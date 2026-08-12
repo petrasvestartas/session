@@ -306,13 +306,9 @@ impl GpuSession {
                 if had_tris {
                     self.add_tri_object(guid, vs, is, instance_id, device, queue);
                 }
-                let xf_f64 = b.xform.to_cols();
-                let xf = [
-                    [xf_f64[0][0] as f32, xf_f64[0][1] as f32, xf_f64[0][2] as f32, xf_f64[0][3] as f32],
-                    [xf_f64[1][0] as f32, xf_f64[1][1] as f32, xf_f64[1][2] as f32, xf_f64[1][3] as f32],
-                    [xf_f64[2][0] as f32, xf_f64[2][1] as f32, xf_f64[2][2] as f32, xf_f64[2][3] as f32],
-                    [xf_f64[3][0] as f32, xf_f64[3][1] as f32, xf_f64[3][2] as f32, xf_f64[3][3] as f32],
-                ];
+                // BRep geometry is LOCAL; its pose is the session placement mirrored in
+                // `placements` (identity when the object was never moved).
+                let xf = self.placements.get(guid).copied().unwrap_or_else(identity_matrix);
                 // Edges: the smooth NURBS edge curves (like the NurbsSurface iso-curves),
                 // sampled finely and independent of the mesh — so they stay smooth even
                 // where the facets are coarse (Rhino-style). Local space; inst.model in shader.

@@ -45,18 +45,29 @@ impl State {
             model[3][0] as f64, model[3][1] as f64, model[3][2] as f64, model[3][3] as f64,
         ];
         let xf = Xform::from_matrix(flat);
+        let mut is_brep = false;
         if let Some(geom) = self.scene.session.lookup.get_mut(guid) {
             match geom {
-                Geometry::Mesh(m)        => { Rc::make_mut(m).transform(Some(&xf)); }
-                Geometry::Point(p)       => { let p = Rc::make_mut(p); p.xform = xf.clone(); p.transform(); }
-                Geometry::Line(l)        => { let l = Rc::make_mut(l); l.xform = xf.clone(); l.transform(); }
-                Geometry::Polyline(pl)   => { let pl = Rc::make_mut(pl); pl.xform = xf.clone(); pl.transform(); }
-                Geometry::Plane(pl)      => { let pl = Rc::make_mut(pl); pl.xform = xf.clone(); pl.transform(); }
-                Geometry::PointCloud(pc) => { let pc = Rc::make_mut(pc); pc.xform = xf.clone(); pc.transform(); }
-                Geometry::OBB(o)         => { let o = Rc::make_mut(o); o.xform = xf.clone(); o.transform(); }
-                Geometry::BRep(b)        => { Rc::make_mut(b).xform = xf.clone(); }
+                Geometry::Mesh(m)        => { Rc::make_mut(m).transform(&xf); }
+                Geometry::Point(p)       => { Rc::make_mut(p).transform(&xf); }
+                Geometry::Line(l)        => { Rc::make_mut(l).transform(&xf); }
+                Geometry::Polyline(pl)   => { Rc::make_mut(pl).transform(&xf); }
+                Geometry::Plane(pl)      => { Rc::make_mut(pl).transform(&xf); }
+                Geometry::PointCloud(pc) => { Rc::make_mut(pc).transform(&xf); }
+                Geometry::OBB(o)         => { Rc::make_mut(o).transform(&xf); }
+                // BRep moves matrix-only (see below): the geometry stays LOCAL and the pose
+                // becomes the object's session placement — baking it here would double the
+                // move, since the GPU instance model is set to `model` as well.
+                Geometry::BRep(_)        => { is_brep = true; }
                 _ => {}
             }
+        }
+        if is_brep {
+            // `model` is the absolute accumulated instance model, so it is the object's new
+            // placement outright. Written as the LOCAL xform: the viewer only ever places
+            // leaf objects, so local == world here.
+            self.scene.session.set_xform(guid, xf);
+            self.scene.gpu_session.set_placement(guid, model);
         }
         self.scene.session.cached_boxes.clear();
         self.scene.session.cached_guids.clear();
@@ -96,7 +107,7 @@ impl State {
             self.apply_thickness();
             return;
         }
-        // BRep: xform was updated in the match above; only the GPU model matrix needs
+        // BRep: the session placement was updated above; only the GPU model matrix needs
         // updating — no re-tessellation required.
         if matches!(self.scene.session.lookup.get(guid), Some(Geometry::BRep(_))) {
             let was_selected = self.scene.gpu_session.pick.instance_id(guid)

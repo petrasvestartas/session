@@ -98,7 +98,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Solve Tridiagonal",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [

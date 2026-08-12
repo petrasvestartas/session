@@ -17,6 +17,8 @@ loc 0 pos   loc 1 normal   loc 2 color   loc 3 inst_id            (uv → loc 4,
 
 > The Phase-3 roadmap note predates instancing and says "group-2 / `@location(3)`" — both were taken
 > by lesson 29. Material = **`@group(3)`**, an optional per-vertex UV = **`@location(4)`**.
+> (72's label atlas also uses group 3 — but on the TEXT pipeline; the material's group 3 is on the
+> TRIANGLE pipeline. Same slot, different pipelines, no contention.)
 
 ## Why UVs are optional here
 
@@ -61,13 +63,13 @@ a variant at the end for meshes that do carry UVs.
 ## Files we touch
 
 ```
-src/engine/gpu.rs             # generate + upload the texture; build the material bind group; bind it
+src/engine/gpu/mod.rs             # generate + upload the texture; build the material bind group; bind it
 src/engine/pipelines/mod.rs   # thread material_layout into Pipelines::new
 src/engine/pipelines/build.rs # add material_layout to the triangle pipeline's layout
 src/shaders/triangle.wgsl     # declare texture + sampler at group(3); triplanar sample
 ```
 
-## Step 1 — generate + upload a texture: `src/engine/gpu.rs`
+## Step 1 — generate + upload a texture: `src/engine/gpu/mod.rs`
 
 We *generate* a 256×256 checkerboard in code — no image file, no asset loader, so it works
 identically on native and wasm. **Find** the `instance_bind_group` block (ends with
@@ -169,7 +171,7 @@ Three traps this Step already dodges, all wgpu-29-specific and all caught by a c
   `ImageCopyTexture` / `ImageDataLayout`).
 - `sample_count: 1` — this is a *sampled* texture; MSAA (4) is only for render targets like `msaa_view`.
 
-## Step 2 — keep the bind group on `Gpu`: `src/engine/gpu.rs`
+## Step 2 — keep the bind group on `Gpu`: `src/engine/gpu/mod.rs`
 
 **Find** the struct field `pub instance_bind_group: wgpu::BindGroup,` and **insert after it**:
 
@@ -194,7 +196,7 @@ pass it on. **Find** the `instance_layout: &wgpu::BindGroupLayout,` param and **
 **Find** the `triangle: build_triangle_pipeline(...)` line and add the arg:
 
 ```rust
-    triangle: build_triangle_pipeline(device, color_format, aspect_layout, time_layout, instance_layout, material_layout),
+    triangle: build_triangle_pipeline(device, samples, color_format, aspect_layout, time_layout, instance_layout, material_layout),
 ```
 
 **`src/engine/pipelines/build.rs`** — **find** the `build_triangle_pipeline` signature and add the
@@ -211,12 +213,13 @@ and add the fourth entry:
         bind_group_layouts: &[Some(aspect_layout), Some(time_layout), Some(instance_layout), Some(material_layout)],
 ```
 
-Back in **`gpu.rs`**, **find** the `Pipelines::new(` call and pass `&material_layout` after
+Back in **`gpu/mod.rs`**, **find** the `Pipelines::new(` call and pass `&material_layout` after
 `&instance_layout` (Step 1 created it above this call):
 
 ```rust
         let pipelines = Pipelines::new(
             &device,
+            samples,            // MSAA count — 2nd param
             config.format,
             &mvp_layout,
             &time_layout,
@@ -226,6 +229,10 @@ Back in **`gpu.rs`**, **find** the `Pipelines::new(` call and pass `&material_la
             &segment_layout,
             &glyph_layout);     // ← keep the existing trailing arg
 ```
+
+Pipelines are **rebuilt on the MSAA flip** (`msaa_for` picks 1× for flat-only scenes, 4× for solids,
+and `set_scene` rebuilds views + pipelines when it changes) — so the material layout must be
+threaded to that rebuild call site too, not only the startup one.
 
 ## Step 4 — declare + sample the texture: `src/shaders/triangle.wgsl`
 
@@ -243,12 +250,17 @@ with the triplanar sample (`n` and `in.world_pos` are already in scope from the 
 
 ```wgsl
     // Triplanar UV: sample on the 3 world axis planes, blend by |normal|. No per-vertex UVs.
-    let scale = 1.0 / 400.0;                 // world units per texture tile
+    // in.world_pos is ANCHOR-RELATIVE (instance models are rebased) — projected raw, the checker
+    // slides/jumps on every re-anchor. Add the anchor back first: upload it as a small uniform
+    // (anchor_ws: vec3<f32>, written where rebase_anchor runs) so the projection keys on true
+    // world position.
+    let wp = in.world_pos + anchor_ws;
+    let scale = 1.0 / 400.0;                 // world units are mm: 400 mm per tile ≈ 2.5 tiles/metre
     let wn = abs(n);
     let bw = wn / (wn.x + wn.y + wn.z);       // blend weights, sum to 1
-    let cx = textureSample(albedo_tex, albedo_smp, in.world_pos.yz * scale).rgb;
-    let cy = textureSample(albedo_tex, albedo_smp, in.world_pos.zx * scale).rgb;
-    let cz = textureSample(albedo_tex, albedo_smp, in.world_pos.xy * scale).rgb;
+    let cx = textureSample(albedo_tex, albedo_smp, wp.yz * scale).rgb;
+    let cy = textureSample(albedo_tex, albedo_smp, wp.zx * scale).rgb;
+    let cz = textureSample(albedo_tex, albedo_smp, wp.xy * scale).rgb;
     let albedo = cx * bw.x + cy * bw.y + cz * bw.z;
 
     return vec4<f32>(albedo * lit, 1.0);      // swap for `albedo * in.color * lit` to tint per object
@@ -257,7 +269,7 @@ with the triplanar sample (`n` and `in.world_pos` are already in scope from the 
 `textureSample` needs **uniform control flow** (it takes implicit derivatives) — that's why it sits at
 the function's top level, *after* the `if !front { … }` block has re-converged, not inside it.
 
-## Step 5 — bind it in the mesh pass: `src/engine/gpu.rs`
+## Step 5 — bind it in the mesh pass: `src/engine/gpu/mod.rs`
 
 **Find**, in `clear()`, the triangle pass's `pass.set_bind_group(2, &self.instance_bind_group, &[]);`
 and **insert after it**:
@@ -283,8 +295,9 @@ For meshes that *carry* UVs, skip triplanar and sample a baked coordinate. This 
 **kernel** (`RenderVertex` is in `session_rust`), so it's a cross-crate change:
 
 1. `session_rust/src/render_mesh.rs` — add `pub uv: [f32; 2]` to `RenderVertex` (stride 40 → 48); in
-   `ATTRIBS` add `4 => Float32x2`; in `to_render` fill it from the vertex `"u"`/`"v"` attributes
-   (like `nx`/`ny`/`nz`), defaulting to `[0.0, 0.0]`.
+   `ATTRIBS` add `4 => Float32x2`; fill it from the vertex `"u"`/`"v"` attributes (like
+   `nx`/`ny`/`nz`), defaulting to `[0.0, 0.0]`. The arena fill (`push_mesh`) now lives in
+   `app/scene.rs` — that is where the uv reaches the vertex buffer.
 2. `triangle.wgsl` — add `@location(4) uv: vec2<f32>` to `VsIn`, pass it through `VsOut`, and replace
    the triplanar block with `let albedo = textureSample(albedo_tex, albedo_smp, in.uv).rgb;`.
 
@@ -302,7 +315,7 @@ from triplanar world-position projection (no attribute needed) — or, for UV-ma
 per-vertex uv at @location(4) (kernel RenderVertex, stride 40→48).
 ```
 
-Edited: `engine/gpu.rs` (generate/upload texture + material bind group, store it, pass its layout to
+Edited: `engine/gpu/mod.rs` (generate/upload texture + material bind group, store it, pass its layout to
 `Pipelines::new`, bind group 3 in the pass), `engine/pipelines/mod.rs` + `build.rs` (thread
 `material_layout` into the triangle pipeline), `shaders/triangle.wgsl` (group-3 texture/sampler +
 triplanar sample).

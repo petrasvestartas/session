@@ -34,7 +34,7 @@
     "group": "Objects",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.181,
+    "time_ms": 0.136,
     "line": 21,
     "code": "    // uncomment #include \"objects.h\"\n    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"point.h\"\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"serialization/test_objects.json\";\n    file_encoders::file_json_dump(original, filename);\n    Objects loaded = file_encoders::file_json_load<Objects>(filename);",
     "checks": [
@@ -50,7 +50,7 @@
     "group": "Objects",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.063,
+    "time_ms": 0.049,
     "line": 38,
     "code": "    // uncomment #include \"objects.h\"\n    // uncomment #include \"point.h\"\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"serialization/test_objects.bin\";\n    original.pb_dump(filename);\n    Objects loaded = Objects::pb_load(filename);",
     "checks": [
@@ -66,7 +66,7 @@
     "group": "Objects",
     "test_name": "Component Constructor",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 54,
     "code": "    // Component is a generic envelope for custom domain objects.\n    // type_name identifies the class; extra holds all custom fields as JSON.\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};",
     "checks": [
@@ -148,7 +148,7 @@
     "group": "Objects",
     "test_name": "Objects Component Json Roundtrip",
     "passed": true,
-    "time_ms": 0.085,
+    "time_ms": 0.089,
     "line": 91,
     "code": "    // An Objects collection serializes components alongside geometry.\n    Objects original;\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};\n    // Pin the guid before push_back so both sides of the later equality have\n    // the same value. Otherwise `c.guid()` after the push copy lazily\n    // generates a fresh random guid on `c` that differs from the one cached\n    // on original.components->at(0) during dump.\n    std::string expected_guid = c.guid();\n    original.components->push_back(c);\n\n    std::string filename = \"serialization/test_objects_component.json\";\n    file_encoders::file_json_dump(original, filename);\n    Objects loaded = file_encoders::file_json_load<Objects>(filename);",
     "checks": [

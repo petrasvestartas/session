@@ -117,7 +117,7 @@
     "line": 79,
     "passed": true,
     "test_name": "Node Creation",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -185,7 +185,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.029
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.039
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Aabb Intersect",
-    "time_ms": 0.008
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.033
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 207,
     "passed": true,
     "test_name": "Merge Aabb",
-    "time_ms": 0.008
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -305,12 +305,12 @@
         "passed": true
       },
       {
-        "code_line": "pairs.len() > 0",
+        "code_line": "pairs.len() == 13",
         "line": 347,
         "passed": true
       },
       {
-        "code_line": "pairs.len() <= 26",
+        "code_line": "pairs.contains(&(4, 74))",
         "line": 348,
         "passed": true
       },
@@ -516,38 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.384
-  },
-  {
-    "checks": [
-      {
-        "code_line": "n0.len() == 1",
-        "line": 374,
-        "passed": true
-      },
-      {
-        "code_line": "n0[0] == 1",
-        "line": 375,
-        "passed": true
-      },
-      {
-        "code_line": "n2.is_empty()",
-        "line": 378,
-        "passed": true
-      },
-      {
-        "code_line": "n2_wide.len() == 2",
-        "line": 381,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::{SpatialBVH, OBB, Point, Vector};\n        let bboxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(0.5, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(10.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let bvh = SpatialBVH::from_boxes(&bboxes, 100.0);\n\n        let n0 = bvh.nearest_neighbors(0, &bboxes, 1.2);\n\n        let n2 = bvh.nearest_neighbors(2, &bboxes, 1.2);\n\n        let n2_wide = bvh.nearest_neighbors(2, &bboxes, 10.0);",
-    "failures": [],
-    "group": "SpatialBVH",
-    "line": 358,
-    "passed": true,
-    "test_name": "Nearest Neighbors",
-    "time_ms": 0.044
+    "time_ms": 0.244
   },
   {
     "checks": [
@@ -583,7 +552,163 @@
     "line": 386,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.036
+    "time_ms": 0.031
+  },
+  {
+    "checks": [
+      {
+        "code_line": "n0.len() == 1",
+        "line": 374,
+        "passed": true
+      },
+      {
+        "code_line": "n0[0] == 1",
+        "line": 375,
+        "passed": true
+      },
+      {
+        "code_line": "n2.is_empty()",
+        "line": 378,
+        "passed": true
+      },
+      {
+        "code_line": "n2_wide.len() == 2",
+        "line": 381,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{SpatialBVH, OBB, Point, Vector};\n        let bboxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(0.5, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(10.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let bvh = SpatialBVH::from_boxes(&bboxes, 100.0);\n\n        let n0 = bvh.nearest_neighbors(0, &bboxes, 1.2);\n\n        let n2 = bvh.nearest_neighbors(2, &bboxes, 1.2);\n\n        let n2_wide = bvh.nearest_neighbors(2, &bboxes, 10.0);",
+    "failures": [],
+    "group": "SpatialBVH",
+    "line": 358,
+    "passed": true,
+    "test_name": "Nearest Neighbors",
+    "time_ms": 0.034
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(bvh.world_size, 100.0)",
+        "line": 441,
+        "passed": true
+      },
+      {
+        "code_line": "pairs.len() == 1",
+        "line": 442,
+        "passed": true
+      },
+      {
+        "code_line": "pairs.contains(&(0, 1))",
+        "line": 443,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{SpatialBVH, OBB, Point, Vector};\n        let boxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(0.5, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(10.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let mut bvh = SpatialBVH::new();\n        bvh.build_from_boxes(&boxes, 100.0);\n        let (pairs, _indices, _checks) = bvh.check_all_collisions(&boxes);\n",
+    "failures": [],
+    "group": "SpatialBVH",
+    "line": 424,
+    "passed": true,
+    "test_name": "Build From Boxes",
+    "time_ms": 0.026
+  },
+  {
+    "checks": [
+      {
+        "code_line": "hits.len() == 2",
+        "line": 462,
+        "passed": true
+      },
+      {
+        "code_line": "hits.contains(&0)",
+        "line": 463,
+        "passed": true
+      },
+      {
+        "code_line": "hits.contains(&1)",
+        "line": 464,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{SpatialBVH, AABB, OBB, Point, Vector};\n        let aabbs = vec![\n            AABB::new(0.0, 0.0, 0.0, 2.0, 2.0, 2.0),\n            AABB::new(3.0, 0.0, 0.0, 2.0, 2.0, 2.0),\n            AABB::new(50.0, 0.0, 0.0, 2.0, 2.0, 2.0),\n        ];\n        let mut bvh = SpatialBVH::new();\n        bvh.build_from_aabbs(&aabbs, 100.0);\n        let query = OBB::new(Point::new(0.0, 0.0, 0.0),\n            Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0), Vector::new(2.0, 2.0, 2.0));\n        let hits = bvh.query_aabb(&query);\n",
+    "failures": [],
+    "group": "SpatialBVH",
+    "line": 448,
+    "passed": true,
+    "test_name": "Build From Aabbs",
+    "time_ms": 0.024
+  },
+  {
+    "checks": [
+      {
+        "code_line": "bvh.object_guids.len() == 3",
+        "line": 490,
+        "passed": true
+      },
+      {
+        "code_line": "bvh.object_guids[0] == \"a\"",
+        "line": 491,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(bvh.world_size, 24.2)",
+        "line": 492,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{SpatialBVH, OBB, Point, Vector};\n        let boxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(0.5, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(10.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let boxes_with_guids: Vec<(OBB, String)> = vec![\n            (boxes[0].clone(), \"a\".to_string()),\n            (boxes[1].clone(), \"b\".to_string()),\n            (boxes[2].clone(), \"c\".to_string()),\n        ];\n        let mut bvh = SpatialBVH::new();\n        bvh.build_with_guids(&boxes_with_guids);\n",
+    "failures": [],
+    "group": "SpatialBVH",
+    "line": 469,
+    "passed": true,
+    "test_name": "Build With Guids",
+    "time_ms": 0.038
+  },
+  {
+    "checks": [
+      {
+        "code_line": "guid_pairs.len() == 1",
+        "line": 519,
+        "passed": true
+      },
+      {
+        "code_line": "guid_pairs[0] == (\"a\".to_string(), \"b\".to_string())",
+        "line": 520,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{SpatialBVH, OBB, Point, Vector};\n        let boxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(0.5, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(10.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let boxes_with_guids: Vec<(OBB, String)> = vec![\n            (boxes[0].clone(), \"a\".to_string()),\n            (boxes[1].clone(), \"b\".to_string()),\n            (boxes[2].clone(), \"c\".to_string()),\n        ];\n        let mut bvh = SpatialBVH::new();\n        bvh.build_with_guids(&boxes_with_guids);\n        let guid_pairs = bvh.check_all_collisions_guids(&boxes);\n",
+    "failures": [],
+    "group": "SpatialBVH",
+    "line": 497,
+    "passed": true,
+    "test_name": "Check All Collisions Guids",
+    "time_ms": 0.037
+  },
+  {
+    "checks": [
+      {
+        "code_line": "c0 == vec![1]",
+        "line": 542,
+        "passed": true
+      },
+      {
+        "code_line": "c2.is_empty()",
+        "line": 543,
+        "passed": true
+      },
+      {
+        "code_line": "checks0 > 0",
+        "line": 544,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{SpatialBVH, OBB, Point, Vector};\n        let boxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(0.5, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(10.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let bvh = SpatialBVH::from_boxes(&boxes, 100.0);\n        let (c0, checks0) = bvh.find_collisions(0, &boxes[0], &boxes);\n        let (c2, _checks2) = bvh.find_collisions(2, &boxes[2], &boxes);\n",
+    "failures": [],
+    "group": "SpatialBVH",
+    "line": 525,
+    "passed": true,
+    "test_name": "Find Collisions",
+    "time_ms": 0.027
   },
   {
     "checks": [
@@ -604,6 +729,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.036
+    "time_ms": 0.027
   }
 ]

@@ -14,7 +14,7 @@ live source of truth instead of a one-shot import.
 Two problems to solve. First, **the browser can't watch a filesystem** — there's no inotify in a tab.
 Second, **your own saves change the file too** (39), so a naive watcher would see its own write, reload,
 and potentially loop. Both have clean answers, and the *reaction* to a change is already built: it's
-38's `reconcile`.
+38b's `reconcile`.
 
 <svg viewBox="0 0 680 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="every N frames the viewer re-fetches the file, hashes the bytes, and if the hash changed AND is not its own last save it runs 38 reconcile; otherwise it skips" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="10" y="30" width="120" height="34" fill="none" stroke="#6fb3ff"/><text x="70" y="51" fill="#d7dae0" text-anchor="middle">poll: fetch bytes</text>
@@ -53,19 +53,21 @@ not built here:
 ```
 src/app/persistence.rs   # file_hash(bytes) — one fingerprint for the WHOLE file
                          # (change + self-write guard)
-src/state.rs             # poll every N frames; self-write guard; apply_reload factored out of 39/38
+src/state.rs             # poll every N frames; self-write guard; apply_session factored out of 38b's reload
+src/lib.rs               # Msg::Watched(url, Session) + its user_event arm — the loader's channel, reused
 ```
 
 ## Step 1 — factor the apply path out of reload: `src/state.rs`
 
-38's `reload` fetched *and* applied. Watch needs the apply half on its own (it already has the bytes), so
-split it:
+38b's `reload` fetches, parses, *and* applies. Watch needs the apply half on its own (its poll task
+delivers an already-parsed `Session`), so split it — `pub`, because the message arm in lib.rs calls it:
 
 ```rust
-    /// Diff `new` against the loaded scene and push only the changes to the GPU — the body of 38's
-    /// reload, minus the fetch. Both manual reload and the watcher call this.
-    fn apply_session(&mut self, new: Session) {
+    /// Diff `new` against the loaded scene and push only the changes to the GPU — the body of 38b's
+    /// reload, minus the fetch+parse. Both manual reload and the watcher call this.
+    pub fn apply_session(&mut self, new: Session) {
         let diff = self.scene.reconcile(&new);
+        // guid_to_row spans ALL docs (35) — fine for this log line; per-doc math needs the doc's own count
         let unchanged = self.scene.guid_to_row.len() - diff.changed.len() - diff.removed.len();
         log::info!("sync: {} added, {} changed, {} removed, {} unchanged",
             diff.added.len(), diff.changed.len(), diff.removed.len(), unchanged);
@@ -85,7 +87,15 @@ split it:
     }
 ```
 
-38's `reload` becomes: fetch, then `self.apply_session(new)`.
+38b's `reload` becomes: fetch + parse in its task, `apply_session(new)` when its message lands —
+watch rides the exact same channel below.
+
+> **Which doc is the watcher's?** 38b's reconcile is per-doc, but `Doc` stores `name`/`place`/`session`
+> — *not* the url it was fetched from, so a url arriving from a poll can't be traced to a doc through
+> the scene alone. The watcher has to carry the mapping itself: key the watch by the **manifest item**
+> (its `file` is the url, its `name` names the doc), or — once 38b's reload lands a source url on `Doc`
+> — read it from there. This lesson polls one url and reconciles the doc it loaded as; the honest
+> "watch every doc" is one poll task per manifest item, same guard each.
 
 ## Step 2 — one fingerprint for the whole file: `src/app/persistence.rs`
 
@@ -101,40 +111,58 @@ pub fn file_hash(bytes: &[u8]) -> u64 {
 }
 ```
 
-## Step 3 — poll, guard, reconcile: `src/state.rs`
+## Step 3 — poll, guard, parse — off the borrow: `src/state.rs`
 
 The watcher is another frame-counter job (like 39's debounce): every `WATCH_POLL_FRAMES`, re-fetch and
-compare. `last_file_hash` remembers what we last *saw*; `self_write_hash` remembers what we last *wrote*
+compare. `watch_seen` remembers what a poll last *saw*; `self_write_hash` remembers what we last *wrote*
 (set by 39's save). A change is real only if it differs from both.
 
+The whole poll runs in a spawned task, because both halves of its work are `async`: the fetch (34) and
+the parse — `session_from_bytes_chunked` is the *only* parse the viewer has, and it awaits between
+chunks. The task owns just a url, the two guard values, and a proxy; it never touches `&mut self`. What
+it delivers is a **ready `Session`**, on the same channel the loader already uses (Step 4).
+
+One plumbing move first: the task must send events, and lib.rs's loader currently `take()`s the proxy.
+Give `State` a clone — add a `pub proxy: winit::event_loop::EventLoopProxy<crate::Msg>` field, and in
+lib.rs's loader find `State::new(window.clone(), scene).await` → `State::new(window.clone(), scene,
+proxy.clone()).await` (and thread the parameter through `State::new` into the struct).
+
 ```rust
-    // add to State: last_file_hash: u64, self_write_hash: Option<u64>, watch_url: String,
-    //               watch_inbox: Rc<RefCell<Option<(u64, Vec<u8>)>>>   (used by Step 4's queue)
-    // and at the top of state.rs: use std::rc::Rc; use std::cell::RefCell;
-    // initialize all four in State::new (watch_inbox: Rc::new(RefCell::new(None))).
+    // add to struct State (init in State::new):
+    //   pub watch_url: String,                          // the ONE url this lesson polls (see the doc note above)
+    //   pub self_write_hash: Option<u64>,               // hash of OUR last 39 save
+    //   watch_seen: std::rc::Rc<std::cell::Cell<u64>>,  // last hash a poll saw — watch_seen: Rc::new(Cell::new(0))
+    //   pub proxy: winit::event_loop::EventLoopProxy<crate::Msg>,   // the loader's channel, cloned in
     const WATCH_POLL_FRAMES: u64 = 60;   // ~1 s
 
-    /// Called once per frame from render(). Cheap when nothing changed: one fetch + one hash.
-    async fn poll_watch(&mut self) {
-        if self.frame % WATCH_POLL_FRAMES != 0 { return; }
-        let bytes = match crate::app::persistence::fetch_bytes(&self.watch_url).await {
-            Ok(b) if !b.is_empty() => b,
-            // fetch failed / empty — leave the scene as-is
-            _ => return,
-        };
-        let h = crate::app::persistence::file_hash(&bytes);
-        // file byte-identical to last poll → nothing to do
-        if h == self.last_file_hash { return; }
-        self.last_file_hash = h;
-        // ← self-write guard: this is our OWN 39 save
-        if Some(h) == self.self_write_hash {
-            log::info!("watch: ignoring our own write");
-            return;
-        }
-        log::info!("watch: external change detected");
-        let new = crate::app::persistence::session_from_bytes(&self.watch_url, &bytes);
-        // 38's incremental diff — only what moved
-        self.apply_session(new);
+    // add inside render(), after 39's `self.frame += 1;` — the poll: spawn a task that fetches,
+    // guards, parses, and only on a REAL external change sends a Msg::Watched.
+    if self.frame % WATCH_POLL_FRAMES == 0 {
+        let url = self.watch_url.clone();
+        let seen = self.watch_seen.clone();   // clone the Rc, not the data
+        let own = self.self_write_hash;       // captured by copy — fresh at every spawn
+        let proxy = self.proxy.clone();
+        wasm_bindgen_futures::spawn_local(async move {
+            let bytes = match crate::app::persistence::fetch_bytes(&url).await {
+                Ok(b) if !b.is_empty() => b,
+                // fetch failed / empty — leave the scene as-is
+                _ => return,
+            };
+            let h = crate::app::persistence::file_hash(&bytes);
+            // file byte-identical to last poll → nothing to do
+            if h == seen.get() { return; }
+            seen.set(h);
+            // ← self-write guard: this is our OWN 39 save
+            if Some(h) == own {
+                log::info!("watch: ignoring our own write");
+                return;
+            }
+            log::info!("watch: external change detected");
+            // parse OFF the borrow — the task owns url/bytes only; the async chunked parse (34)
+            let new = crate::app::persistence::session_from_bytes_chunked(&url, &bytes).await;
+            // deliver a READY Session on the loader's channel; Step 4 applies it
+            let _ = proxy.send_event(crate::Msg::Watched(url, new));
+        });
     }
 ```
 
@@ -152,58 +180,34 @@ next poll recognizes them as ours:
 > content, even one that lands in the same poll window, still reconciles. (If the file's `lastModified`
 > is available via the File System Access upgrade, guard on that too — belt and suspenders.)
 
-## Step 4 — drive the poll: `src/state.rs`
+## Step 4 — deliver on the loader's channel: `src/lib.rs`
 
-`poll_watch` above is the guard logic in one place, but it can't be called directly: its `.await`
-would hold `&mut self` across the fetch, and `render` is synchronous. Split it the way the note below
-describes — a tiny async task owns only the URL and drops `(hash, bytes)` into `watch_inbox`; the
-**synchronous** top of the next `render` drains the inbox and runs the same guard + `apply_session`.
-Both halves go inside `render()`:
+The task can't call `apply_session` itself (that needs `&mut self`), but the viewer already has the
+machinery for exactly this shape: the loader's `Msg` events. `Msg::Ready` delivers a built `State`,
+`Msg::File` a parsed document — `Msg::Watched` is their sibling, a parsed *replacement*:
 
 ```rust
-    // TOP of render(), synchronous — drain last frame's fetch, then guard + apply.
-    // take() empties the RefCell and drops the borrow on this line, so `self` is free below.
-    let inbox_msg = self.watch_inbox.borrow_mut().take();   // Option<(u64, Vec<u8>)>
-    if let Some((h, bytes)) = inbox_msg {
-        if h != self.last_file_hash {
-            self.last_file_hash = h;
-            if Some(h) == self.self_write_hash {
-                log::info!("watch: ignoring our own write");     // ← self-write guard
-            } else {
-                log::info!("watch: external change detected");
-                let new = crate::app::persistence::session_from_bytes(&self.watch_url, &bytes);
-                self.apply_session(new);                          // 38's incremental diff
-            }
-        }
-    }
+    // find, in lib.rs's `pub enum Msg`, and add under the File variant:
+    Watched(String, session_rust::Session),   // (url, freshly parsed) — an external change to watch_url
+```
 
-    // later in render(), once per WATCH_POLL_FRAMES — spawn the fetch; it never touches `self`:
-    if self.frame % WATCH_POLL_FRAMES == 0 {
-        let url = self.watch_url.clone();
-        let inbox = self.watch_inbox.clone();                     // clone the Rc, not the data
-        wasm_bindgen_futures::spawn_local(async move {
-            if let Ok(b) = crate::app::persistence::fetch_bytes(&url).await {
-                if !b.is_empty() {
-                    let h = crate::app::persistence::file_hash(&b);
-                    *inbox.borrow_mut() = Some((h, b));
-                }
-            }
-        });
+and the arm that applies it, in `user_event`'s `match msg`, right next to the `Msg::File` arm:
+
+```rust
+    Msg::Watched(url, new) => {
+        let Some(state) = &mut self.state else { return };
+        state.apply_session(new);   // 38b's incremental diff — only what moved
+        log::info!("watched '{}' applied", url);
+        state.window.request_redraw();
     }
 ```
 
-The drain repeats `poll_watch`'s guard because that logic now lives on the sync side; keep `poll_watch`
-as the readable one-place reference (the Recap points back to it) — it just isn't the thing wired to run.
-
 > **Borrow reality.** `apply_session` needs `&mut self`, but a spawned future can't hold that across an
-> `await`. The clean shape is the classic split: the async task only *fetches* (owns just the URL), drops
-> its result into a shared queue, and the **synchronous** top of the next `render` drains the queue and
-> calls `apply_session`. Same logic as `poll_watch` above, just with the `await` moved off the borrow.
-> Keep the queue a `Rc<RefCell<Option<(u64, Vec<u8>)>>>` — single-threaded wasm, no `Mutex` needed.
-
-`session_data/floor_model.pb` is served static, so for a first cut you can even skip the async dance:
-poll it with a blocking-style fetch behind a dev flag and confirm the reconcile fires; wire the
-channel once it works.
+> `await`. The clean shape is the one the loader already proved in 34–35: the task owns only what it
+> fetches, and the finished value arrives as a user event — `Msg::Watched` next to `Msg::File`, no
+> hand-rolled queue to drain. The one crumb the polls keep *between* tasks — the last hash seen — rides
+> an `Rc<Cell<u64>>`: single-threaded wasm, no `Mutex`; the tasks are its only writer, and a `Cell` of
+> one `u64` is a cursor, not an inbox.
 
 ## Step 5 — verify
 
@@ -214,7 +218,7 @@ cd session_viewer && trunk serve   # http://localhost:8770 — serving session_d
 - **External edit flows in.** With the viewer open on `floor_model.pb`, edit that file from another
   process — e.g. load it in `session_rust`, move one object, `pb_dump` it back over the same path — and
   within ~1 s the console logs `watch: external change detected` then `sync: 0 added, 1 changed, …`, and
-  that one object updates. Nothing else redraws (38's diff).
+  that one object updates. Nothing else redraws (38b's diff).
 - **Own save doesn't loop.** Trigger a 39 save (Ctrl+S). The file changes, the next poll sees it — and
   logs `watch: ignoring our own write`, no reconcile. Without the guard, this is exactly where a
   save→watch→save loop would start; watch it *not* happen.
@@ -227,20 +231,22 @@ cd session_viewer && trunk serve   # http://localhost:8770 — serving session_d
 Ch 39: save — write the file out, gated by dirty + debounce + hash.
 Ch 40: WATCH — external edits flow back IN, closing the 3-way sync. Browser can't watch a
        filesystem, so POLL the same URL (34's fetch) every ~1 s and hash the bytes (file_hash
-       over the whole Vec<u8>). Unchanged hash → skip. Changed → session_from_bytes → 38's
-       reconcile → apply_session (the apply half of 38's reload, factored so manual reload and
+       over the whole Vec<u8>). Unchanged hash → skip. Changed → session_from_bytes_chunked
+       (fetched AND parsed in the poll task) → Msg::Watched on the loader's channel → 38b's
+       reconcile → apply_session (the apply half of 38b's reload, factored so manual reload and
        the watcher share it) → only what moved hits the GPU. The SELF-WRITE GUARD
        (self_write_hash, stamped by 39's save) drops any change whose bytes equal our own last
        write — that's what stops save→watch→reload→save from looping; keying on the hash (not
        a bool flag) means a concurrent external edit in the same window still reconciles.
        Transport upgrades noted, not built: File System Access handle (lastModified, unstable
-       web-sys) and a watcher→WebSocket push; both reuse the same reconcile. Async fetch is
-       kept off the &mut self borrow via a next-frame queue.
+       web-sys) and a watcher→WebSocket push; both reuse the same reconcile. Fetch + parse stay
+       off the &mut self borrow by riding the loader's proxy (Msg::Watched next to Msg::File);
+       the last-seen hash is an Rc<Cell<u64>> cursor the poll tasks own.
 ```
 
 Edited: `app/persistence.rs` (`file_hash` — whole-file fingerprint), `state.rs` (`apply_session` factored
-from 38's reload, `poll_watch` + self-write guard, per-frame non-blocking poll, `self_write_hash` stamped
-by 39's save).
+from 38b's reload, the spawned poll task — fetch, guard, chunked parse — plus `self_write_hash` stamped
+by 39's save), `lib.rs` (`Msg::Watched` + its `user_event` arm; proxy clone handed to `State`).
 
 ## Next
 

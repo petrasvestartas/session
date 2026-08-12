@@ -88,7 +88,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.023
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -101,150 +101,145 @@
         "code_line": "p[0] == 2.0 && p[1] == 4.0 && p[2] == 6.0",
         "line": 92,
         "passed": true
-      },
-      {
-        "code_line": "p.xform == Xform::identity()",
-        "line": 93,
-        "passed": true
       }
     ],
-    "code": "        use crate::Point;\n        use crate::Xform;\n\n        let mut p = Point::new(1.0, 2.0, 3.0);\n        p.xform = Xform::translation(1.0, 2.0, 3.0);\n        let p_transformed = p.transformed(); // Make a copy\n        p.transform(); // After the call, \"xform\" is reset\n",
+    "code": "        use crate::Point;\n        use crate::Xform;\n\n        let mut p = Point::new(1.0, 2.0, 3.0);\n        let p_xf = Xform::translation(1.0, 2.0, 3.0);\n        let p_transformed = p.transformed(&p_xf); // Make a copy\n        p.transform(&p_xf);\n",
     "failures": [],
     "group": "Point",
     "line": 82,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == p.name",
-        "line": 115,
+        "line": 114,
         "passed": true
       },
       {
         "code_line": "loaded[0] == p[0]",
-        "line": 116,
+        "line": 115,
         "passed": true
       },
       {
         "code_line": "loaded[1] == p[1]",
-        "line": 117,
+        "line": 116,
         "passed": true
       },
       {
         "code_line": "loaded[2] == p[2]",
-        "line": 118,
+        "line": 117,
         "passed": true
       },
       {
         "code_line": "loaded.width == p.width",
-        "line": 119,
+        "line": 118,
         "passed": true
       },
       {
         "code_line": "loaded.pointcolor.r == 1.0",
-        "line": 120,
+        "line": 119,
         "passed": true
       },
       {
         "code_line": "loaded.pointcolor.g == 0.5",
-        "line": 121,
+        "line": 120,
         "passed": true
       },
       {
         "code_line": "loaded.pointcolor.b == 0.25",
-        "line": 122,
+        "line": 121,
         "passed": true
       },
       {
         "code_line": "loaded.pointcolor.a == 1.0",
-        "line": 123,
+        "line": 122,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::with_name(1.5, 2.5, 3.5, \"test_point\");\n        p.width = 2.0;\n        p.pointcolor = Color::new(1.0, 0.5, 0.25, 1.0);\n\n        //   file_json_dumps()    │ String       │ to JSON string\n        //   file_json_loads(s)   │ String       │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_point.json\";\n        p.file_json_dump(filename).unwrap();\n        let loaded = Point::file_json_load(filename).unwrap();\n\n",
     "failures": [],
     "group": "Point",
-    "line": 98,
+    "line": 97,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.16
+    "time_ms": 0.131
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == p.name",
-        "line": 142,
+        "line": 141,
         "passed": true
       },
       {
         "code_line": "loaded[0] == p[0]",
-        "line": 143,
+        "line": 142,
         "passed": true
       },
       {
         "code_line": "loaded[1] == p[1]",
-        "line": 144,
+        "line": 143,
         "passed": true
       },
       {
         "code_line": "loaded[2] == p[2]",
-        "line": 145,
+        "line": 144,
         "passed": true
       },
       {
         "code_line": "loaded.width == p.width",
-        "line": 146,
+        "line": 145,
         "passed": true
       },
       {
         "code_line": "loaded.pointcolor.r == 1.0",
-        "line": 147,
+        "line": 146,
         "passed": true
       },
       {
         "code_line": "loaded.pointcolor.g == 0.5",
-        "line": 148,
+        "line": 147,
         "passed": true
       },
       {
         "code_line": "loaded.pointcolor.b == 0.25",
-        "line": 149,
+        "line": 148,
         "passed": true
       },
       {
         "code_line": "loaded.pointcolor.a == 1.0",
-        "line": 150,
+        "line": 149,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n        use crate::Color;\n\n        let mut p = Point::new(1.5, 2.5, 3.5);\n        p.name = \"test_point\".to_string();\n        p.width = 2.0;\n        p.pointcolor = Color::new(1.0, 0.5, 0.25, 1.0);\n\n        let filename = \"serialization/test_point.bin\";\n        p.pb_dump(filename);\n        let loaded = Point::pb_load(filename);\n",
     "failures": [],
     "group": "Point",
-    "line": 129,
+    "line": 128,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.066
+    "time_ms": 0.05
   },
   {
     "checks": [
       {
         "code_line": "is_counter_clock_wise",
-        "line": 166,
+        "line": 165,
         "passed": true
       },
       {
         "code_line": "!is_clock_wise",
-        "line": 167,
+        "line": 166,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(1.0, 0.0, 0.0);\n        let p2 = Point::new(0.05, 1.0, 0.0);\n\n        // Points must be oriented to xy plane.\n        let is_counter_clock_wise = Point::is_ccw(&p0, &p1, &p2);\n        let is_clock_wise = Point::is_ccw(&p2, &p1, &p0);\n",
     "failures": [],
     "group": "Point",
-    "line": 155,
+    "line": 154,
     "passed": true,
     "test_name": "Is Ccw",
     "time_ms": 0.002
@@ -253,30 +248,30 @@
     "checks": [
       {
         "code_line": "mid[0] == 0.5 && mid[1] == 3.5 && mid[2] == 2.0",
-        "line": 179,
+        "line": 178,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n\n        let p0 = Point::new(0.0, 2.0, 1.0);\n        let p1 = Point::new(1.0, 5.0, 3.0);\n        let mid = Point::mid_point(&p0, &p1);\n",
     "failures": [],
     "group": "Point",
-    "line": 172,
+    "line": 171,
     "passed": true,
     "test_name": "Mid Point",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(d, 3.741657)",
-        "line": 192,
+        "line": 191,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n\n\n        let p0 = Point::new(0.0, 2.0, 1.0);\n        let p1 = Point::new(1.0, 5.0, 3.0);\n        let d = p0.distance(&p1, None);\n",
     "failures": [],
     "group": "Point",
-    "line": 184,
+    "line": 183,
     "passed": true,
     "test_name": "Distance",
     "time_ms": 0.002
@@ -285,100 +280,100 @@
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(d, 14.0)",
-        "line": 205,
+        "line": 204,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n\n\n        let p0 = Point::new(0.0, 2.0, 1.0);\n        let p1 = Point::new(1.0, 5.0, 3.0);\n        let d = p0.squared_distance(&p1, None);\n",
     "failures": [],
     "group": "Point",
-    "line": 197,
+    "line": 196,
     "passed": true,
     "test_name": "Squared Distance",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
       {
         "code_line": "area == 4.0",
-        "line": 219,
+        "line": 218,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(2.0, 0.0, 0.0);\n        let p2 = Point::new(2.0, 2.0, 0.0);\n        let p3 = Point::new(0.0, 2.0, 0.0);\n        let area = Point::area(&vec![p0, p1, p2, p3]);\n",
     "failures": [],
     "group": "Point",
-    "line": 210,
+    "line": 209,
     "passed": true,
     "test_name": "Area",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(centroid[0], 1.0)",
-        "line": 234,
+        "line": 233,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(centroid[1], 1.0)",
-        "line": 235,
+        "line": 234,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(centroid[2], 1.0)",
-        "line": 236,
+        "line": 235,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n\n\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(2.0, 0.0, 1.0);\n        let p2 = Point::new(2.0, 2.0, 2.0);\n        let p3 = Point::new(0.0, 2.0, 1.0);\n        let centroid = Point::centroid_quad(&vec![p0, p1, p2, p3]).unwrap();\n",
     "failures": [],
     "group": "Point",
-    "line": 224,
+    "line": 223,
     "passed": true,
     "test_name": "Centroid Quad",
-    "time_ms": 0.01
+    "time_ms": 0.006
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(angle, 90.0)",
-        "line": 268,
+        "line": 267,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n\n        // Edge from origin to (1,0,0); r at (0,1,0); s at (0,0,1).\n        // Both half-planes share the X edge; angle is 90 degrees.\n        let p = Point::new(0.0, 0.0, 0.0);\n        let q = Point::new(1.0, 0.0, 0.0);\n        let r = Point::new(0.0, 1.0, 0.0);\n        let s = Point::new(0.0, 0.0, 1.0);\n        let angle = Point::dihedral_angle_deg(&p, &q, &r, &s);\n",
     "failures": [],
     "group": "Point",
-    "line": 257,
+    "line": 256,
     "passed": true,
     "test_name": "Dihedral Angle Deg",
-    "time_ms": 0.006
+    "time_ms": 0.004
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(centroid[0], 1.0)",
-        "line": 250,
+        "line": 249,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(centroid[1], 1.0)",
-        "line": 251,
+        "line": 250,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(centroid[2], 0.0)",
-        "line": 252,
+        "line": 251,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(2.0, 0.0, 0.0);\n        let p2 = Point::new(2.0, 2.0, 0.0);\n        let p3 = Point::new(0.0, 2.0, 0.0);\n        let centroid = Point::centroid(&vec![p0, p1, p2, p3]);\n",
     "failures": [],
     "group": "Point",
-    "line": 241,
+    "line": 240,
     "passed": true,
     "test_name": "Centroid",
-    "time_ms": 0.004
+    "time_ms": 0.003
   }
 ]

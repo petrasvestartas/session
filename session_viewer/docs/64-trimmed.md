@@ -38,8 +38,14 @@ src/app/scene.rs   # ObjRef + all_objects(); the four maps refactor onto it; tri
 
 ## Step 1 — the iterator: `src/app/scene.rs`
 
-A tiny enum of borrowed references unifies the sources. This is the structural payoff of the phase —
-compare adding a type before (edit four functions, forget one, ship a bug) and after (add one arm):
+A tiny enum of borrowed references unifies the sources. Two constraints shape it: it walks
+**`scene.docs`** (there is no `scene.session`), and it must be **deterministic** — rows are handed
+out in iteration order, and `lookup.values()` is a HashMap walk, so rows would come out random.
+`session.order()` is the kernel's canonical order; the trimmed collection (which `order()` omits)
+is appended in its insertion order. It also yields the owning `Doc` alongside each object — every
+consumer needs the doc's `place` to build the placed frame. This is the structural payoff of the
+phase — compare adding a type before (edit four functions, forget one, ship a bug) and after (add
+one arm):
 
 ```rust
 /// Every renderable object in the document, whatever container it lives in.
@@ -61,10 +67,16 @@ impl ObjRef<'_> {
 
 impl Scene {
     /// THE registration point. Every map iterates this; a new geometry source is one
-    /// new chain link.
-    pub fn all_objects(&self) -> impl Iterator<Item = ObjRef<'_>> {
-        self.session.lookup.values().filter(|g| is_renderable(g)).map(ObjRef::Geom)
-            .chain(self.session.objects.nurbssurfacetrimmeds.iter().map(ObjRef::Trimmed))
+    /// new chain link. Deterministic: order() then trimmed insertion order, doc by doc.
+    pub fn all_objects(&self) -> impl Iterator<Item = (&Doc, ObjRef<'_>)> {
+        self.docs.iter().flat_map(|d| {
+            d.session.order().into_iter()
+                .filter_map(move |guid| d.session.lookup.get(&guid)
+                    .filter(|g| is_renderable(g))
+                    .map(|g| (d, ObjRef::Geom(g))))
+                .chain(d.session.objects.nurbssurfacetrimmeds.iter()
+                    .map(move |t| (d, ObjRef::Trimmed(t))))
+        })
     }
 }
 ```
@@ -75,11 +87,11 @@ Mechanical refactor, worth doing carefully once:
 
 - **`Scene::new` (order/rows):** one loop over `all_objects()` replaces the lookup loop plus any
   trimmed special-casing.
-- **`build` / `apply_object`:** one `match ObjRef` — `Geom` keeps the existing inner match (which
+- **`add_file` (the walk):** one `match ObjRef` — `Geom` keeps the existing inner match (which
   already has 60/61's curve and surface arms); `Trimmed` goes through the cache.
 - **`world_obb`:** `match ObjRef` — `Trimmed` boxes via its cached mesh (`AABB::from_mesh` on the
-  tessellation + xform bake, 36's recipe; the kernel's `from_nurbssurface` sampler doesn't know about
-  trims, and the *cached mesh* is what's actually on screen anyway).
+  tessellation + the row's placed-frame bake, 36's recipe; the kernel's `from_nurbssurface` sampler
+  doesn't know about trims, and the *cached mesh* is what's actually on screen anyway).
 - **pick:** `Trimmed` resolves through `render_mesh` (63), exactly like surfaces already do.
 
 `hidden`, selection, and the gumball never change — flags and `guid_to_row` again.
@@ -92,13 +104,12 @@ layout). Cache it like 61; its linework is the **trim boundary loops** — sampl
 the untrimmed domain rectangle:
 
 ```rust
-    // render_mesh (63) gains the source arm:
-    } else if let Some(ts) = self.session.objects.nurbssurfacetrimmeds.iter()
-        .find(|t| t.guid() == guid) {
-        let ri = self.guid_to_row[guid];
-        // boundary loops: sample each UV trim loop, LIFT (u,v)->3D via point_at, then tube
-        Some((ts.mesh(), trimmed_linework(ts, ri)))
-    }
+    // render_mesh (63) gains the source arm — trimmeds live OUTSIDE lookup, so chain a second
+    // doc scan after 63's lookup match:
+    let entry = entry.or_else(|| self.docs.iter().find_map(|d|
+        d.session.objects.nurbssurfacetrimmeds.iter().find(|t| t.guid() == guid)
+            // boundary loops: sample each UV trim loop, LIFT (u,v)->3D via point_at, then tube
+            .map(|ts| (ts.mesh(), trimmed_linework(ts)))));
 ```
 
 `trimmed_linework` walks the trim's boundary loops — `ts.get_outer_loop()` plus `ts.get_inner_loop(i)`
@@ -110,7 +121,9 @@ a flat ring near the world origin (the `[0,1]²` domain), floating off the actua
 
 ```rust
 /// Trim boundary loops as tubes: sample each UV loop (60's sampler), LIFT (u,v) → 3D, tube.
-fn trimmed_linework(ts: &NurbsSurfaceTrimmed, ri: u32) -> Vec<CylinderSegment> {
+/// Destined for tables.pipes (SOLID lane, 62's rule — flat segments would z-fight the skin);
+/// instance_id stays 0 in the cache, stamped with the row at push time.
+fn trimmed_linework(ts: &NurbsSurfaceTrimmed) -> Vec<CylinderSegment> {
     let edge = [0.10, 0.10, 0.10, 1.0];
     let mut segs = Vec::new();
     let mut one_loop = |uv: &NurbsCurve| {
@@ -120,7 +133,7 @@ fn trimmed_linework(ts: &NurbsSurfaceTrimmed, ri: u32) -> Vec<CylinderSegment> {
             if let Some(a) = &prev {
                 if a.distance(&p, None) > 1e-9 {          // 63's zero-length filter
                     segs.push(CylinderSegment { p0: a.to_f32(), radius: 0.0, p1: p.to_f32(),
-                                                instance_id: ri, color: edge });
+                                                instance_id: 0, color: edge });
                 }
             }
             prev = Some(p);
@@ -158,8 +171,12 @@ is what must be right.
   <text x="500" y="182" fill="#5bbf87" text-anchor="middle">boundary rides the surface — RIGHT</text>
 </svg>
 
-Transforms: matrix-only, same list — `Mesh | BRep | NurbsSurface | NurbsSurfaceTrimmed`. Reconcile's
-`changed` bucket invalidates its cache entry. Both are one-word edits to 61/63's arms.
+Transforms: nothing to add — since 54, `Scene::apply_world_delta` rewrites the Session-local xform
+for *every* type; the old per-type list is empty. Reconcile's `changed` bucket invalidates its
+cache entry — a one-word edit to 61/63's arm. One honest caveat: there is no
+`Session::add_nurbssurfacetrimmed`, so trimmed surfaces are **read-only first-class** for now —
+they arrive via loaded files, and every viewer map treats them fully; creating one in the viewer
+waits on the kernel.
 
 ## Step 4 — verify
 
@@ -184,11 +201,14 @@ Load the trimmed-surface fixture (the circle-trim test model):
 ```
 Ch 63: BRep — debts paid.
 Ch 64: TRIMMED + STRUCTURE. NurbsSurfaceTrimmed::mesh() (= mesh_q(20°, 0.005), holes honored in the
-       tessellation) joins the cache; linework = the TRIM boundary loops sampled to tubes (not the
+       tessellation) joins the cache; linework = the TRIM boundary loops sampled to pipes (not the
        untrimmed domain rectangle); box from the cached mesh (the kernel's surface sampler is
-       trim-blind); matrix-only + reconcile invalidation, one word each. THE REFACTOR: ObjRef +
-       all_objects() — lookup ∪ nurbssurfacetrimmeds (curves/surfaces already ride lookup,
-       gap #4) — the ONE registration point; order/build/boxes/pick all iterate it, and
+       trim-blind); transforms already free (54's type-blind apply_world_delta), reconcile
+       invalidation one word; READ-ONLY first-class — no Session::add_nurbssurfacetrimmed yet.
+       THE REFACTOR: ObjRef + all_objects() — per doc, order() ∪ trimmed insertion order
+       (DETERMINISTIC rows; lookup.values() would randomize them), yielding (doc, obj) so every
+       consumer has the place (curves/surfaces already ride lookup, gap #4) — the ONE registration
+       point; order/build/boxes/pick all iterate it, and
        match-exhaustiveness makes the compiler find every map when a type is added. The
        archive's forgot-the-trimmed bug class is structurally extinct. Phase 10 complete:
        lines, curves, surfaces, solids, trims — all first-class.

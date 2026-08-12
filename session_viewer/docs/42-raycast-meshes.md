@@ -13,11 +13,12 @@ intersect. This is where 36's BVH finally pays off for real.
 
 Two stages, and the second is the subtle one. **Broad-phase**: the scene BVH turns "test all 42,232
 objects" into a short candidate list along the ray. **Narrow-phase**: for each candidate mesh, the ray
-must be tested in the mesh's **local frame** — `mesh.xform` is the placement (33–35), its vertices and
-cached triangle BVH are local, so the *world* ray gets inverse-transformed into local space before the
-test, and the hit transformed back. Nearest `t` along the ray wins; an occluded object never does.
+must be tested in the mesh's **local frame** — the row's **placed frame** (36's `placed_frame(row)`:
+the manifest place × session world xform that `add_file` stored in `tables.objects[row].0`) is the
+placement, the vertices and cached triangle BVH are local, so the *world* ray gets inverse-transformed
+into local space before the test, and the hit transformed back. Nearest `t` along the ray wins; an occluded object never does.
 
-<svg viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the world ray goes through the scene BVH broad-phase to candidate guids, then each candidate mesh is tested in its local frame via inverse xform and the kernel triangle BVH, and the nearest t wins" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+<svg viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the world ray goes through the scene BVH broad-phase to candidate rows, then each candidate mesh is tested in its local frame via the inverse placed frame and the kernel triangle BVH, and the nearest t wins" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="10" y="30" width="110" height="30" fill="none" stroke="#6fb3ff"/><text x="65" y="49" fill="#d7dae0" text-anchor="middle">world ray (41)</text>
   <rect x="150" y="30" width="150" height="30" fill="none" stroke="#6fb3ff"/><text x="225" y="45" fill="#d7dae0" text-anchor="middle">scene BVH ray_cast</text><text x="225" y="56" fill="#666" text-anchor="middle" font-size="9">broad-phase → candidates</text>
   <line x1="120" y1="45" x2="148" y2="45" stroke="#6fb3ff" stroke-width="1.4" marker-end="url(#ah42)"/>
@@ -26,10 +27,10 @@ test, and the hit transformed back. Nearest `t` along the ray wins; an occluded 
   <rect x="330" y="52" width="120" height="24" fill="none" stroke="#3a3a3a"/><text x="390" y="68" fill="#888" text-anchor="middle">candidate B …</text>
   <g fill="none" stroke="#6fb3ff" stroke-width="1.1"><rect x="470" y="24" width="200" height="60"/></g>
   <text x="570" y="42" fill="#d7dae0" text-anchor="middle">per candidate (LOCAL frame):</text>
-  <text x="570" y="57" fill="#666" text-anchor="middle" font-size="10">ray → inv(mesh.xform) → local ray</text>
+  <text x="570" y="57" fill="#666" text-anchor="middle" font-size="10">ray → inv(placed_frame) → local ray</text>
   <text x="570" y="72" fill="#666" text-anchor="middle" font-size="10">Mesh::triangle_bvh_ray_cast → t</text>
   <line x1="450" y1="45" x2="468" y2="45" stroke="#6fb3ff" stroke-width="1.1" marker-end="url(#ah42)"/>
-  <rect x="250" y="120" width="180" height="30" fill="none" stroke="#6fb3ff"/><text x="340" y="139" fill="#d7dae0" text-anchor="middle">nearest t → PickHit{guid, point}</text>
+  <rect x="250" y="120" width="180" height="30" fill="none" stroke="#6fb3ff"/><text x="340" y="139" fill="#d7dae0" text-anchor="middle">nearest t → PickHit{row, guid, point}</text>
   <line x1="570" y1="84" x2="400" y2="118" stroke="#6fb3ff" stroke-width="1.2" marker-end="url(#ah42)"/>
   <text x="340" y="175" fill="#888" text-anchor="middle">no WebGPU depth readback → CPU ray + BVH IS the interactive pick; occluded loses on t</text>
   <defs><marker id="ah42" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
@@ -38,7 +39,7 @@ test, and the hit transformed back. Nearest `t` along the ray wins; an occluded 
 ## Files we touch
 
 ```
-src/app/pick.rs      # NEW — PickHit { guid, point, t }
+src/app/pick.rs      # NEW — PickHit { row, guid, point, t }
 # objects_along_ray (BVH broad-phase); raycast_mesh (local-frame cast); pick_ray (nearest)
 src/app/scene.rs
 src/state.rs         # on left-click: build ray (41) → scene.pick_ray → log/highlight the hit guid
@@ -50,25 +51,28 @@ src/state.rs         # on left-click: build ray (41) → scene.pick_ray → log/
 ## Step 1 — broad-phase: which objects lie along the ray: `src/app/scene.rs`
 
 36's `SpatialBVH` has a ray traversal built in — `ray_cast` walks only the nodes whose AABB the ray
-pierces and returns their leaf object_ids. Map those back to guids exactly like 36's `objects_in`:
+pierces and returns their leaf object_ids. The tree was fed boxes in global row order (36's
+row-indexed `world_boxes` cache), so **object_id == row** — each candidate comes back carrying its
+row, and the guid is one `order[row]` away, same mapping as 36's `objects_in`:
 
 ```rust
-    /// Guids whose world box the ray pierces — the broad-phase candidate set (usually a handful,
-    /// even in the 42k-object stress file). object_id → guid via `order`, same mapping as
-    /// `objects_in` (36).
-    pub fn objects_along_ray(&self, origin: &Point, dir: &Vector) -> Vec<String> {
+    /// Candidates whose world box the ray pierces — the broad-phase set (usually a handful,
+    /// even in the 42k-object stress file). object_id == global row by 36's construction,
+    /// so each candidate carries its row; guid via `order`, same mapping as `objects_in` (36).
+    pub fn objects_along_ray(&self, origin: &Point, dir: &Vector) -> Vec<(u32, String)> {
         let mut ids: Vec<usize> = Vec::new();
         self.bvh.ray_cast(origin, dir, &mut ids, true);
-        ids.iter().filter_map(|&i| self.order.get(i)).cloned().collect()
+        ids.iter().filter_map(|&i| self.order.get(i).map(|g| (i as u32, g.clone()))).collect()
     }
 ```
 
 ## Step 2 — narrow-phase: cast in the mesh's local frame: `src/app/scene.rs`
 
-A mesh's vertices and its cached triangle BVH are **local** (`mesh.xform` places them in the world). So
-the world ray can't be cast against them directly — transform it into the mesh's local frame first, cast,
-then transform the hit back to world. The kernel's transform idiom: give a `Point` an `xform` and call
-`transformed()` (the same move 36 used for world boxes).
+A mesh's vertices and its cached triangle BVH are **local** — the row's placed frame places them in
+the world, and the geometry itself carries no placement (36). So the world ray can't be cast against
+them directly — transform it into the local frame by the frame's inverse first, cast, then transform
+the hit back to world. The frame comes in as a parameter: the caller reads it off the row
+(`scene.placed_frame(row)`, the same matrix the instance row draws with).
 
 ```rust
 // Line/Mesh are already in scene.rs's session_rust import (35); only the ray type is new:
@@ -76,19 +80,20 @@ use crate::engine::pick::Ray;   // 41's Ray { origin: Point, dir: Vector }
 
 const PICK_EPS: f64 = 1e-9;
 
-/// Cast the world ray at one mesh IN ITS LOCAL FRAME. Returns (world hit point, t along the ray).
+/// Cast the world ray at one mesh IN ITS LOCAL FRAME — `frame` is the row's placed frame
+/// (scene.placed_frame(row), 36). Returns (world hit point, t along the ray).
 /// `&mut Mesh` because `triangle_bvh_ray_cast` builds the triangle BVH lazily and caches it
 /// on the mesh.
-fn raycast_mesh(m: &mut Mesh, ray: &Ray, eps: f64) -> Option<(Point, f64)> {
+fn raycast_mesh(m: &mut Mesh, frame: &Xform, ray: &Ray, eps: f64) -> Option<(Point, f64)> {
     // world → local; None if degenerate
-    let inv = m.xform.inverse()?;
+    let inv = frame.inverse()?;
     let world_far = &ray.origin + &ray.dir * 1.0e7;                // a point far down the world ray
                                                                    // (borrow: Point/Vector aren't Copy)
     let local_ray = Line::from_points(&inv.transform_point(&ray.origin),
                                       &inv.transform_point(&world_far));
 
     let local_hit = m.triangle_bvh_ray_cast(&local_ray, eps)?;     // nearest local hit, or None
-    let world_hit = m.xform.transform_point(&local_hit);           // local hit → world
+    let world_hit = frame.transform_point(&local_hit);             // local hit → world
 
     let d = world_hit.clone() - ray.origin.clone();                // Point − Point → Vector
     // signed distance along the (unit) ray
@@ -99,11 +104,12 @@ fn raycast_mesh(m: &mut Mesh, ray: &Ray, eps: f64) -> Option<(Point, f64)> {
 
 > `transform_point` is the kernel API this course *added* (kernel-gap #5, now fixed) — earlier
 > drafts had to carry an xform on a cloned `Point` and call `transformed()`. The kernel's own
-> `Session::ray_cast` now does exactly this local-frame dance for meshes too (gap #3, fixed); we
-> keep the viewer-side cast because it reuses 61/63's cached tessellations for surfaces and BReps.
+> `Session::ray_cast` composes the session's world xforms internally for its mesh arm too — but it
+> knows nothing about the manifest `place`; we keep the viewer-side cast because it works in the
+> full placed frame and reuses 61/63's cached tessellations for surfaces and BReps.
 
 > **Why transform the ray, not the mesh.** Inverse-transforming one ray (two points) is O(1); baking
-> `mesh.xform` into every vertex would be O(vertices) *and* would throw away the mesh's cached local
+> the placed frame into every vertex would be O(vertices) *and* would throw away the mesh's cached local
 > triangle BVH — the whole reason the kernel's `triangle_bvh_ray_cast` is fast. Move the ray to the
 > geometry's frame, never the geometry to the ray's.
 
@@ -115,22 +121,29 @@ Broad-phase to candidates, cast each, keep the smallest `t`. `Mesh` and `BRep` b
 ```rust
 impl Scene {
     pub fn pick_ray(&mut self, ray: &Ray) -> Option<crate::app::pick::PickHit> {
-        // Owned guids so the broad-phase borrow of self.bvh/self.order is released before we
-        // mutate meshes.
-        let cands: Vec<String> = self.objects_along_ray(&ray.origin, &ray.dir);
+        // Owned (row, guid) pairs so the broad-phase borrow of self.bvh/self.order is released
+        // before we mutate meshes.
+        let cands: Vec<(u32, String)> = self.objects_along_ray(&ray.origin, &ray.dir);
         let mut best: Option<crate::app::pick::PickHit> = None;
-        for guid in cands {
-            let hit = match self.session.lookup.get_mut(&guid) {
-                Some(session_rust::Geometry::Mesh(m)) => raycast_mesh(m, ray, PICK_EPS),
+        for (row, guid) in cands {
+            // Borrow order matters: CLONE the frame out first (placed_frame borrows &self),
+            // THEN resolve the owning doc — get_mut below needs &mut on that doc's session,
+            // and the two borrows must not overlap.
+            let frame = self.placed_frame(row).clone();
+            let d = self.doc_of_row(row);
+            let hit = match self.docs[d].session.lookup.get_mut(&guid) {
+                // lookup values are Rc — Rc::make_mut gives the &mut the lazy BVH build needs
+                Some(session_rust::Geometry::Mesh(m)) =>
+                    raycast_mesh(std::rc::Rc::make_mut(m), &frame, ray, PICK_EPS),
                 Some(session_rust::Geometry::BRep(b)) => {
                     let mut bm = b.mesh();
-                    raycast_mesh(&mut bm, ray, PICK_EPS)
+                    raycast_mesh(&mut bm, &frame, ray, PICK_EPS)
                 }
                 _ => None,   // Line/Polyline/Point → lesson 44 (thin geometry needs a pick radius)
             };
             if let Some((point, t)) = hit {
                 if best.as_ref().map_or(true, |h| t < h.t) {
-                    best = Some(crate::app::pick::PickHit { guid, point, t });
+                    best = Some(crate::app::pick::PickHit { row, guid, point, t });
                 }
             }
         }
@@ -149,6 +162,7 @@ And the tiny result type, `src/app/pick.rs` (declare it in `src/app/mod.rs` besi
 use session_rust::Point;
 
 pub struct PickHit {
+    pub row: u32,       // global row — doc resolution (doc_of_row) and highlight both key off it
     pub guid: String,
     pub point: Point,   // world-space hit
     pub t: f64,         // distance along the ray (nearest wins)
@@ -192,9 +206,9 @@ cd session_viewer && trunk serve   # http://localhost:8770
   glyph at `hit.point` to see it land on the face).
 - **Occlusion** → click where a near box hides a far one; the near guid wins every time. Orbit so the
   far one is now in front, click again — the answer flips. That flip is the `t` comparison working.
-- **Placement** → move a mesh far from the origin with its `xform` and pick it; the hit still lands (the
-  local-frame transform, Step 2). If a moved mesh becomes unpickable, `raycast_mesh` is testing the world
-  ray against local vertices — the `inv`/`to_local` step is missing.
+- **Placement** → give a mesh's file a manifest `place` far from the origin and pick it; the hit still
+  lands (the placed-frame transform, Step 2). If a moved mesh becomes unpickable, `raycast_mesh` is
+  testing the world ray against local vertices — the `inv`/`to_local` step is missing.
 - **Miss** → click empty space → `picked nothing`, no candidate survives the triangle test.
 
 ## Recap
@@ -202,11 +216,13 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 41: screen → world ray.
 Ch 42: RAY-CAST MESHES. Broad-phase: 36's SpatialBVH::ray_cast walks only pierced nodes → candidate
-       guids (objects_along_ray, object_id→order→guid). Narrow-phase per candidate, in the mesh's
-       LOCAL frame: inverse-transform the world ray by mesh.xform (transform the RAY, not the mesh
+       (row, guid) pairs (objects_along_ray — object_id == row by 36's construction). Narrow-phase
+       per candidate, in the mesh's LOCAL frame: inverse-transform the world ray by the row's
+       placed frame (placed_frame(row) — geometry carries no xform; transform the RAY, not the mesh
        — O(1), keeps the cached local triangle BVH), call the kernel's Mesh::triangle_bvh_ray_cast
        (lazy triangle BVH, nearest local hit), transform the hit back to world, compute t along the
-       ray. pick_ray keeps the smallest t → PickHit{guid, point, t}; occluded objects lose on t,
+       ray. pick_ray keeps the smallest t → PickHit{row, guid, point, t} (doc via doc_of_row, mesh
+       via Rc::make_mut on the doc's lookup); occluded objects lose on t,
        always. BRep resolves via b.mesh() (re-tessellates per pick — cache noted). No WebGPU depth
        readback exists, so this CPU ray+BVH IS the interactive pick. Thin geometry
        (Line/Polyline/Point) has no area to hit — that's 44.
@@ -219,5 +235,5 @@ Edited: `app/pick.rs` (NEW — `PickHit`), `app/scene.rs` (`objects_along_ray` B
 
 `43-subobject-picking.md` — a hit tells you *which mesh*; sub-object picking tells you *which part*. From
 the hit triangle, resolve the nearest **vertex** (within a screen-pixel radius), else the nearest **edge**
-(point-to-segment distance), else the **face** — returning a `SubHit { guid, kind, key }` that the gumball
+(point-to-segment distance), else the **face** — returning a `SubHit { row, guid, kind }` that the gumball
 and edit tools act on. The pixel-radius test is the same screen-space trick 44 needs for thin geometry.

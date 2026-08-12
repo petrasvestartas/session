@@ -31,16 +31,19 @@ src/app/scene.rs   # iso extraction beside the surface build arm (61); cached wi
 ## Step 1 — extract: `src/app/scene.rs`
 
 Fix one parameter, sample the other — the boundary is the domain's edge values, interior lines the
-quarter fractions. Emitted as `CylinderSegment`s on the surface's row, boundary slightly darker so
-edges read over the iso grid:
+quarter fractions. Emitted as `CylinderSegment`s destined for the **solid pipe lane**
+(`tables.pipes` — 3D linework must protrude off the skin; the flat `segments` lane draws at surface
+depth and would z-fight it), boundary slightly darker so edges read over the iso grid. Cached
+linework carries `instance_id: 0` — the push site stamps the real row:
 
 ```rust
 const ISO_FRACS: [f64; 3] = [0.25, 0.5, 0.75];     // interior lines per direction
 const ISO_SAMPLES: usize = 48;                     // samples along each line
 
 /// Boundary + iso segments for one surface, in LOCAL space (they ride the same instance row and
-/// xform as the tessellated body, so transforms move body and lines together for free).
-fn surface_linework(ns: &NurbsSurface, ri: u32) -> Vec<CylinderSegment> {
+/// placed frame as the tessellated body, so transforms move body and lines together for free).
+/// instance_id stays 0 in the cache — stamped with the real row at push time.
+fn surface_linework(ns: &NurbsSurface) -> Vec<CylinderSegment> {
     let (u0, u1) = ns.domain(0).unwrap();
     let (v0, v1) = ns.domain(1).unwrap();
     let mut segs = Vec::new();
@@ -56,7 +59,7 @@ fn surface_linework(ns: &NurbsSurface, ri: u32) -> Vec<CylinderSegment> {
             if let Some(p) = ns.point_at(u, v) {
                 if let Some(q) = &prev {
                     segs.push(CylinderSegment { p0: q.to_f32(), radius: 0.0, p1: p.to_f32(),
-                                                instance_id: ri, color });
+                                                instance_id: 0, color });
                 }
                 prev = Some(p);
             }
@@ -89,44 +92,58 @@ on first use. **Find 61's `tess_cache` field and `surface_mesh`, replace with:**
     pub tess_cache: std::collections::HashMap<String, (Mesh, Vec<CylinderSegment>)>,   // was: <String, Mesh>
 
     /// 61's surface_mesh, widened: the cache entry is now (mesh, linework) — both built once.
-    fn surface_mesh(&mut self, guid: &str, ri: u32) -> Option<&(Mesh, Vec<CylinderSegment>)> {
+    fn surface_mesh(&mut self, guid: &str) -> Option<&(Mesh, Vec<CylinderSegment>)> {
         if !self.tess_cache.contains_key(guid) {
-            let ns = self.session.objects.nurbssurfaces.iter().find(|s| s.guid() == guid)?;
-            self.tess_cache.insert(guid.to_string(), (ns.mesh(), surface_linework(ns, ri)));
+            let ns = self.docs.iter().find_map(|d| match d.session.lookup.get(guid) {
+                Some(Geometry::NurbsSurface(ns)) => Some(ns),   // a lookup variant — no
+                _ => None,                                      // collection scan needed
+            })?;
+            self.tess_cache.insert(guid.to_string(), (ns.mesh(), surface_linework(ns)));
         }
         self.tess_cache.get(guid)
     }
 ```
 
-Now the build arm (61 Step 2) unpacks the tuple, pushes the mesh **faces only**, and appends the
-cached iso lines to `segments`. **Find 61's surface build arm and replace its body with:**
+Now the surface arm in `add_file`'s walk (61 Step 2) unpacks the tuple, pushes the mesh **faces
+only**, and appends the cached iso lines to `tables.pipes` — the **solid** lane, stamping the row as
+they go. **Find 61's surface arm in `add_file` and replace its body with:**
 
 ```rust
-            Geometry::NurbsSurface(ns) => {
-                objects_base.push((ns.xform.duplicate(), surface_color(ns), flags));
-                // warmed by 61's priming pass (which now passes ri — see below)
-                if let Some((m, linework)) = self.tess_cache.get(guid) {
-                    // NO edge tubes …
-                    push_mesh_faces_only(m, ri, &mut verts, &mut vids, &mut idx, &mut glyphs);
-                    // …iso lines instead
-                    segments.extend(linework.iter().copied());
+                Geometry::NurbsSurface(ns) => {
+                    t.objects.push((placed, surface_color(ns), flags));
+                    // warmed by 61's priming pass (top of add_file — see below)
+                    if let Some((m, linework)) = self.tess_cache.get(&guid) {
+                        // NO edge tubes …
+                        push_mesh_faces_only(m, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                            &mut t.spheres);
+                        // …iso lines instead — SOLID lane, real row stamped now
+                        t.pipes.extend(linework.iter()
+                            .map(|s| CylinderSegment { instance_id: ri, ..*s }));
+                    }
                 }
-            }
 ```
 
-> **Keep 61's priming pass — and pass `ri` now.** The build loop above reads the *warmed* cache; it
-> can't call `surface_mesh` itself (that's `&mut self` — the E0502 case 61 solved with a separate
-> pass). 61's `for guid in &ns_guids { self.surface_mesh(guid); }` still runs just above it, but
-> `surface_mesh` now takes two args — update it to
-> `for guid in &ns_guids { let ri = self.guid_to_row[guid]; self.surface_mesh(guid, ri); }`.
+Pushing the linework into `segments` instead would put it in the flat lane — ribbons drawn *at* the
+skin's depth, z-fighting it at every grazing angle and falsifying the no-bias claim this lesson
+makes below. 3D surface linework always rides `pipes`.
+
+> **Keep 61's priming pass — it runs at the top of `add_file` now** (the walk lives there since
+> 36). The walk loop reads the *warmed* cache; it can't call `surface_mesh` itself (that's
+> `&mut self` — the E0502 case 61 solved with a separate pass). 61's
+> `for guid in &ns_guids { self.surface_mesh(guid); }` runs just before the walk, unchanged — and
+> it's exactly why the cache stores `instance_id: 0`: the priming pass runs before this doc's
+> objects have rows (and can't know rows for docs not yet walked at all), so only the push site can
+> stamp `ri`.
 
 (Two one-word ripples from the widened cache type: 61's pick arm now casts against
-`self.tess_cache[guid].0`, and 61's world-box/`apply_object` reads — if you pointed any at the
+`self.tess_cache[guid].0`, and 61's world-box reads — if you pointed any at the
 cache — gain the same `.0`.)
 
-`push_mesh_faces_only` is `push_mesh` (30–32) with one thing removed: drop the `&mut segments`
-parameter and the loop that pushes triangle-edge `CylinderSegment`s — keep the arena vertex/index
-and boundary-glyph work verbatim. Surfaces then wear their **iso lines**, not their tessellation
+`push_mesh_faces_only` is `push_mesh(m, ri, verts, vids, idx, pipes, spheres)` with one thing
+removed: drop the `pipes` parameter and the loop that pushes edge `CylinderSegment`s — keep the
+arena vertex/index work, the `vwidth` pass, and the dot loop verbatim. The `vwidth` map is built
+from the edge widths and *gates* the dot loop — delete it along with the edge loop and every
+boundary dot disappears. Surfaces then wear their **iso lines**, not their tessellation
 triangles' wireframe. That substitution — parameter-space lines instead of triangle edges — is
 exactly what visually separates "a surface" from "a mesh" in every CAD viewer.
 
@@ -143,17 +160,18 @@ cd session_viewer && trunk serve   # http://localhost:8770
   surface look, and the difference is instantly readable next to a real mesh box.
 - Zoom to a grazing angle: **no z-fighting flicker** between lines and skin — the tubes protrude
   (31's whole design); there is no depth-bias knob to tune because none is needed.
-- Gumball-drag the surface: lines and skin move as one (same row, same xform — local-space linework,
-  Step 1's parenthetical) and the perf HUD stays flat (cached, 61's rule).
+- Gumball-drag the surface: lines and skin move as one (same row, same placed frame — local-space
+  linework, Step 1's parenthetical) and the perf HUD stays flat (cached, 61's rule).
 
 ## Recap
 
 ```
 Ch 61: surfaces — tessellate once, matrices forever.
 Ch 62: LINEWORK. surface_linework: boundary (domain edges, near-black) + interior iso lines (¼ ½ ¾
-       per direction, lighter) sampled point_at along one fixed parameter — 48 samples/line → 31's
-       tubes, LOCAL space on the surface's own row (transforms carry them free). Cached WITH the
-       tessellation (one invalidation story). Surfaces suppress push_mesh's triangle-edge tubes —
+       per direction, lighter) sampled point_at along one fixed parameter — 48 samples/line →
+       tables.pipes (the SOLID lane — flat segments would z-fight the skin), LOCAL space, cached
+       with instance_id 0 and the row stamped at push (the priming pass predates rows). Cached WITH
+       the tessellation (one invalidation story). Surfaces suppress push_mesh's triangle-edge tubes —
        iso lines are what makes a surface read as a surface, not a mesh. Tubes protrude → no
        z-fight, no bias. Short lesson, old infrastructure — that's the compounding paying out.
 ```

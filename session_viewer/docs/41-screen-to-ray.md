@@ -182,6 +182,12 @@ and add a left-button arm next to the existing `MouseButton::Right` one:
     }
 ```
 
+> **Drawn vs. picked matrix.** `render` draws with the *anchored* matrix — `view_proj_anchored(aspect,
+> &anchor)`, anchor from `rebase_anchor` (34c) — while the pick above uses `view_proj(aspect)` +
+> `origin()`: the same map, just rebased at the camera origin, so the `+ origin` shift lands the ray in
+> world exactly. Only if you ever unproject the *anchored* matrix must you shift by that `anchor`
+> instead of `origin`.
+
 ## Step 4 — verify
 
 ```bash
@@ -221,7 +227,9 @@ Edited: `engine/pick.rs` (NEW — `Ray`, `screen_to_world_ray`, `unproject`), `e
 ## Next
 
 `42-raycast-meshes.md` — cast this ray at the meshes. Broad-phase with the 36 BVH to a short candidate
-list, then for each candidate **inverse-transform the ray into the mesh's local frame** (`mesh.xform`
-is the placement, 33–35) and hit its cached triangle BVH (`Mesh::triangle_bvh_ray_cast`) — the nearest
+list, then for each candidate **inverse-transform the ray into the object's local frame** — the
+placement is the row's stored xform, `scene.tables.objects[row].0` (manifest `place` × session world
+xform, baked at `add_file`); 42 inverts exactly that — and hit its cached triangle BVH
+(`Mesh::triangle_bvh_ray_cast`) — the nearest
 `t` wins, and an occluded object never does. WebGPU has no sync depth readback, so this CPU ray + BVH
 *is* the interactive pick path.

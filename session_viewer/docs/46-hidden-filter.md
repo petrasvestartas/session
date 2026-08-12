@@ -36,18 +36,22 @@ src/lib.rs              # H = hide selection, Ctrl+H = show all (keyboard until 
 ## Step 1 — generalize the flag upload: `src/engine/gpu/mod.rs`
 
 45's `set_selected_rows` and the visibility upload are the same function with a different bit. Extract
-it — this is the moment the pattern earns a name:
+it — this is the moment the pattern earns a name (45's tables-then-live-row discipline comes along:
+tables are the truth `set_scene` re-derives from, `write_row_flags` pokes the live instance):
 
 ```rust
-    /// Set `flag` on exactly `rows`, clear it everywhere else; upload only rows that flipped.
-    /// One function serves SELECTED (45) and HIDDEN (here) — CULLED (37) keeps its own per-frame
-    /// path.
-    pub fn set_flag_rows(&mut self, flag: u32, rows: &std::collections::HashSet<u32>) {
-        for i in 0..self.instances.len() as u32 {
+    /// Set `flag` on exactly `rows`, clear it everywhere else; upload only rows that flipped —
+    /// tables first (the truth), then the live instance via write_row_flags (45). One function
+    /// serves SELECTED (45) and HIDDEN (here) — CULLED (37) keeps its own per-frame path.
+    pub fn set_flag_rows(&mut self, tables: &mut ArenaUpload, flag: u32,
+                         rows: &std::collections::HashSet<u32>) {
+        for i in 0..tables.objects.len() as u32 {
             let want = rows.contains(&i);
-            let has = self.instances[i as usize].flags & flag != 0;
+            let has = tables.objects[i as usize].2 & flag != 0;
             if want != has {
-                self.write_row(i, |inst| inst.flags ^= flag);
+                tables.objects[i as usize].2 ^= flag;
+                let f = tables.objects[i as usize].2;
+                self.write_row_flags(i, f);
             }
         }
     }
@@ -56,8 +60,9 @@ it — this is the moment the pattern earns a name:
 and 45's function becomes a wrapper (find `set_selected_rows`, replace its body):
 
 ```rust
-    pub fn set_selected_rows(&mut self, rows: &std::collections::HashSet<u32>) {
-        self.set_flag_rows(Instance::FLAG_SELECTED, rows);
+    pub fn set_selected_rows(&mut self, tables: &mut ArenaUpload,
+                             rows: &std::collections::HashSet<u32>) {
+        self.set_flag_rows(tables, Instance::FLAG_SELECTED, rows);
     }
 ```
 
@@ -67,15 +72,19 @@ architecture paying out again.
 
 ## Step 2 — the verbs: `src/app/scene.rs`
 
-`hidden` has sat on `Scene` since 35 (it fed `build()`'s initial flags); now it changes at runtime.
-Hiding also drops the objects from the selection — you can't act on what you can't see (Rhino's rule),
-and it prevents a hidden object riding along in a later gumball drag:
+`hidden` has sat on `Scene` since 35 (`add_file` reads it per row:
+`let flags = if self.hidden.contains(&guid) { Instance::FLAG_HIDDEN } else { 0 };`); now it changes
+at runtime. Hiding also drops the objects from the selection — you can't act on what you can't see
+(Rhino's rule), and it prevents a hidden object riding along in a later gumball drag:
 
 ```rust
-    /// Push `hidden` to the GPU flags — same flip-tracked upload as selection.
-    pub fn apply_visibility(&self, gpu: &mut Gpu) {
+    /// Push `hidden` into the tables + GPU flags — same flip-tracked upload as selection.
+    /// Both writes matter: the live poke makes the hide show THIS frame; the tables write makes
+    /// it SURVIVE — the next Msg::File append re-derives instances from the tables, and a hide
+    /// that lived only in the instance would silently revert when the next file streams in.
+    pub fn apply_visibility(&mut self, gpu: &mut Gpu) {
         let rows = self.hidden.iter().filter_map(|g| self.guid_to_row.get(g).copied()).collect();
-        gpu.set_flag_rows(Instance::FLAG_HIDDEN, &rows);
+        gpu.set_flag_rows(&mut self.tables, Instance::FLAG_HIDDEN, &rows);
     }
 
     /// The first verb: hide whatever is selected. Hidden objects leave the selection.
@@ -92,20 +101,25 @@ and it prevents a hidden object riding along in a later gumball drag:
     }
 ```
 
+Same caveat as 45's `selected`: guids can collide across docs, so a hide keyed by guid can catch a
+namesake in another file — rows are the unambiguous identity; the guid set stays because it's what
+the CLI and tree will speak.
+
 ## Step 3 — the pickers respect it: `src/app/scene.rs`
 
 Three one-line guards, one per path. The key spelling differs per loop — match it to the loop
 header from each prior lesson exactly, or `contains` won't type-check:
 
 ```rust
-    // pick_mesh (42) — first line inside `for guid in cands {`  (guid is an owned String → &guid)
+    // pick_mesh (42) — first line inside `for (row, guid) in cands {`  (guid is an owned String → &guid)
     if self.hidden.contains(&guid) { continue; }
 
     // pick_thin (44) — before the `match` inside `for h in hits {`  (h.guid() already returns &str)
     if self.hidden.contains(h.guid()) { continue; }
 
-    // select_marquee (45) — first line inside `for guid in &self.order {`  (guid is &String → no &)
-    if self.hidden.contains(guid) { continue; }
+    // select_marquee (45) — first line inside `for row in 0..self.world_boxes.len() {`
+    // (the row's guid is order[row], a String → lend it with &)
+    if self.hidden.contains(&self.order[row]) { continue; }
 ```
 
 Without these, clicking where a hidden object *was* selects it invisibly — and the next `hide`
@@ -135,7 +149,8 @@ cd session_viewer && trunk serve   # http://localhost:8770
 - Select a box in front of another, press **H** → it vanishes; the yellow tint vanishes with it (it
   left the selection). **Click where it was** → the object *behind* it picks — the ray flew through.
 - **Marquee across the hidden object** → it stays unselected; Ctrl+H → it reappears, unselected.
-- Perf HUD: hiding is a couple of `write_row` uploads, not a rebuild — the frame cost doesn't move.
+- Perf HUD: hiding is a couple of `write_row_flags` uploads, not a rebuild — the frame cost doesn't
+  move. Stream in another manifest file after hiding → the hide *stays* (it lives in the tables).
 - The trap this catches: comment out one of Step 3's guards and repeat — the hidden object silently
   joins the selection and reappears highlighted on Ctrl+H. Three consumers, one set, no exceptions.
 
@@ -145,8 +160,9 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 45: selection state + marquee.
 Ch 46: VISIBILITY. Scene.hidden (parked since 35) becomes runtime state with three consumers that
        must agree: draw (FLAG_HIDDEN → w=0 collapse, wired in 37 — zero new shader work), pick
-       (42/44 skip hidden guids), marquee (45 skips). set_flag_rows(flag, rows) generalizes 45's
-       flip-tracked upload — selection and visibility are the same mechanism, different bit.
+       (42/44 skip hidden guids), marquee (45 skips). set_flag_rows(tables, flag, rows) generalizes
+       45's flip-tracked upload — tables.objects[row].2 is the truth (hides survive later Msg::File
+       appends), write_row_flags pokes the live row — same mechanism as selection, different bit.
        hide_selected drains the selection into hidden (can't act on what you can't see); show_all
        clears. H / Ctrl+H until the CLI takes over (48). Phase 7 complete: ray → hit →
        sub-object → thin → selection → visibility.

@@ -2,15 +2,15 @@
 
 > **Big picture.** *Phase 14.* The plan review's most embarrassing find: the kernel has shipped an
 > OBJ codec since long before this course — minitested in all three languages — and the viewer only
-> ever spoke `.pb`/`.json`. This lesson wires it through: fetch-by-URL, a real **Open… file dialog**,
-> and `export obj` via 39's download path. It also triggered a kernel fix: the codec was
-> **path-based only** (`read_file_obj(filepath)` — dead on wasm), so the kernel gained the
-> `_from_str`/`_to_string` pair (the same `_loads`/`_dumps` split the Session codecs always had),
+> ever spoke `.pb`/`.json`. This lesson wires it through: an `.obj` as a **manifest item**, a real
+> **Open… file dialog**, and `export obj` via 39's download path. It also triggered a kernel fix:
+> the codec was **path-based only** (`read_file_obj(filepath)` — dead on wasm), so the kernel gained
+> the `_from_str`/`_to_string` pair (the same `_loads`/`_dumps` split the Session codecs always had),
 > ×3 languages + a String Roundtrip minitest.
 
-<svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="obj text enters via url fetch or a file dialog, parses through the kernel string codec into a mesh, joins the session; export runs the writer and downloads" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+<svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="obj text enters via a manifest item or a file dialog, parses through the kernel string codec into a mesh, joins the session; export runs the writer and downloads" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="10" y="22" width="120" height="26" fill="none" stroke="#6fb3ff"/>
-  <text x="70" y="39" fill="#d7dae0" text-anchor="middle">fetch url (34a)</text>
+  <text x="70" y="39" fill="#d7dae0" text-anchor="middle">manifest item (35)</text>
   <rect x="10" y="58" width="120" height="26" fill="none" stroke="#6fb3ff"/>
   <text x="70" y="75" fill="#d7dae0" text-anchor="middle">open… dialog</text>
   <g stroke="#6fb3ff" stroke-width="1.2">
@@ -30,41 +30,52 @@
 ## Files we touch
 
 ```
-src/app/persistence.rs   # .obj arm in session_from_bytes; export_obj_bytes
-src/app/commands.rs      # `open` (file dialog) + `export obj` verbs
+src/app/persistence.rs   # .obj + STEP arms in session_from_bytes_chunked; open_file_dialog
+src/app/scene.rs         # first_selected_mesh — export obj's subject
+src/app/commands.rs      # `open` (file dialog) + `export obj|pb|json` verbs
+src/state.rs, src/lib.rs # State carries a proxy clone — the dialog delivers files as Msg::File
 Cargo.toml               # web-sys: HtmlInputElement, File, FileList (the dialog)
 ```
 
 ## Step 1 — import by extension: `src/app/persistence.rs`
 
-34a's dispatch grows one arm. An OBJ is a bare mesh, not a Session — wrap it:
+35's `session_from_bytes_chunked` dispatches on extension with early returns — the `.json` arm is
+the pattern. An OBJ is a bare mesh, not a Session — wrap it. Find:
 
 ```rust
-use session_rust::file_obj::{read_file_obj_from_str, write_file_obj_to_string};
-
-pub fn session_from_bytes(url: &str, bytes: &[u8]) -> Session {
     if url.ends_with(".json") {
-        Session::file_json_loads(&String::from_utf8_lossy(bytes))
-    } else if url.ends_with(".obj") {
-        // an OBJ is one mesh, not a document — wrap it in a fresh Session
-        let mesh = read_file_obj_from_str(&String::from_utf8_lossy(bytes));
-        let mut s = Session::default();
-        s.add_mesh(mesh, None);
-        s
-    } else {
-        Session::pb_loads(bytes).unwrap_or_default()
+        return Session::file_json_loads(&String::from_utf8_lossy(bytes));
     }
-}
 ```
 
-That alone makes `DEMO_SESSION_URL = "session_data/bunny.obj"` work — and, better, it makes the
-**watch loop (40) and reconcile (38b) work on OBJ files too**, because everything downstream only
-ever sees a `Session`. Zero extra wiring; the funnel design pays again.
+and insert directly below it (plus
+`use session_rust::file_obj::read_file_obj_from_str;` with the file's other imports):
+
+```rust
+    if url.ends_with(".obj") {
+        // an OBJ is one mesh, not a document — wrap it in a fresh Session. OBJ files are
+        // small text; the arm stays synchronous, like .json (the 25k slicing is for .pb).
+        let mut s = Session::default();
+        s.add_mesh(read_file_obj_from_str(&String::from_utf8_lossy(bytes)), None);
+        return s;
+    }
+```
+
+That alone makes an `.obj` a **manifest citizen** — placement included:
+
+```json
+{ "items": [ { "file": "bunny.obj", "name": "bunny", "at": [3400, 0, 0] } ] }
+```
+
+The loader (35's lib.rs loop) fetches it, the new arm parses it, `Msg::File` appends it through
+`scene.add_file` + `gpu.set_scene(&scene.tables)` — and, better, **the watch loop (40) and
+reconcile (38b) work on OBJ files too**, because everything downstream only ever sees a `Session`.
+Zero extra wiring; the funnel design pays again.
 
 ## Step 2 — the Open… dialog: `src/app/persistence.rs`
 
 The user-driven path 34a deferred. A hidden `<input type=file>`, clicked programmatically; the
-picked `File` is read as bytes and fed to the same funnel.
+picked `File` is read as bytes and handed to a callback.
 
 First, add the three features to the `web-sys` `features = [...]` list in `Cargo.toml`
 (next to the ones 34a added):
@@ -75,9 +86,9 @@ First, add the three features to the `web-sys` `features = [...]` list in `Cargo
     "FileList",
 ```
 
-Add these two imports at the top of `persistence.rs` (alongside Step 1's): `JsCast`
-powers the `.dyn_into()` / `.unchecked_ref()` casts, and `Rc` is how the `done`
-callback survives being handed to *two* closures:
+Add these two imports at the top of `persistence.rs` (`Rc` is already imported for the chunked
+parse — skip it if so): `JsCast` powers the `.dyn_into()` / `.unchecked_ref()` casts, and `Rc` is
+how the `done` callback survives being handed to *two* closures:
 
 ```rust
 use std::rc::Rc;
@@ -115,34 +126,73 @@ pub fn open_file_dialog(done: impl Fn(String, Vec<u8>) + 'static) {
 }
 ```
 
-The `open` verb calls it; `done` routes to `session_from_bytes(name, bytes)` → 38b's
-`apply_session` (reconcile — so opening a *changed* copy of the current file diffs instead of
-rebuilding, for free). Same borrow rule as 40: the async part only *fetches*; the sync frame drains.
+**Delivery is a `Msg`, like every other file.** The parse is *async* now (35's sliced converter),
+so `done` cannot parse inline — it spawns the parse and sends the result to the event loop, exactly
+the shape the progressive loader already receives. Commands need a sender for that: give `State` a
+proxy. In `state.rs`, add the field + parameter —
+
+```rust
+    pub proxy: winit::event_loop::EventLoopProxy<crate::Msg>,   // ← ADD to `struct State`
+```
+
+`State::new(window: Arc<Window>, scene: Scene)` grows a third parameter
+`proxy: winit::event_loop::EventLoopProxy<crate::Msg>` (store it in the struct literal:
+`proxy,`), and in lib.rs's loader, find
+`let state = State::new(window.clone(), scene).await.expect("State init failed");` and pass
+`proxy.clone()` as the third argument.
+
+The `open` verb (`src/app/commands.rs`, one more arm in `dispatch`; add `"open"` to `VERBS`):
+
+```rust
+        "open" => {
+            let proxy = state.proxy.clone();
+            crate::app::persistence::open_file_dialog(move |name, bytes| {
+                let proxy = proxy.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    let session = crate::app::persistence::session_from_bytes_chunked(
+                        &name, &bytes).await;
+                    let _ = proxy.send_event(crate::Msg::File(
+                        name, session, session_rust::Xform::identity()));
+                });
+            });
+            Dispatch::Instant("open: pick a file".into())
+        }
+```
+
+An opened file is an **append** — a new `Doc` at identity placement (type
+`move 0,0,0`-style placement later, or gumball-drag the whole doc's objects). Re-opening a
+*changed copy* of an already-loaded doc is a different operation: that's 38b's reconcile — match
+`name` against `scene.docs` and route the parsed session to `reconcile` instead of `Msg::File`
+when you want the diff instead of a second copy.
 
 ## Step 3 — export: `src/app/commands.rs`
 
-The mirror, riding 39's download machinery:
+The mirror, riding 39's download machinery. There is no "the session" anymore — a scene is
+*several* docs, so `export pb|json` writes the **active doc** (57's `active_doc`;
+`export pb <name>` picking a doc by its manifest name is a two-line extension):
 
 ```rust
         "export" => match parts.next() {
             Some("obj") => {
-                // one mesh per file; the selection's first mesh (or the only mesh in the scene)
+                // one mesh per file; the selection's first mesh (or the scene's first mesh)
                 let Some(m) = state.scene.first_selected_mesh() else {
                     return Dispatch::Instant("select a mesh to export".into());
                 };
-                let s = write_file_obj_to_string(m);
+                let s = write_file_obj_to_string(&m);   // Rc<Mesh> derefs to &Mesh
                 let _ = crate::app::persistence::download_bytes("export.obj", s.as_bytes());
                 Dispatch::Instant("exported export.obj".into())
             }
-            Some("json") => {                                          // whole doc, 39's machinery
+            Some("json") => {                                          // ONE doc, 39's machinery
+                let d = state.scene.active_doc;
                 let bytes = crate::app::persistence::session_to_bytes("session.json",
-                                                                      &state.scene.session);
+                                                                      &state.scene.docs[d].session);
                 let _ = crate::app::persistence::download_bytes("session.json", &bytes);
                 Dispatch::Instant("exported session.json".into())
             }
             Some("pb") | None => {
+                let d = state.scene.active_doc;
                 let bytes = crate::app::persistence::session_to_bytes("session.pb",
-                                                                      &state.scene.session);
+                                                                      &state.scene.docs[d].session);
                 let _ = crate::app::persistence::download_bytes("session.pb", &bytes);
                 Dispatch::Instant("exported session.pb".into())
             }
@@ -150,74 +200,105 @@ The mirror, riding 39's download machinery:
         }
 ```
 
-`first_selected_mesh` is a five-liner on `impl Scene`:
+(`use session_rust::file_obj::write_file_obj_to_string;` at the top of `commands.rs`.)
+
+`first_selected_mesh` goes on `impl Scene` (`src/app/scene.rs`) — doc-aware, and it returns the
+`Rc` handle, not a borrow (the caller holds `&mut State`, so a `&Mesh` borrowed out of `self.scene`
+would lock the whole struct; cloning the `Rc` is a refcount bump):
 
 ```rust
-    /// First selected Mesh, else the scene's only mesh — `export obj`'s subject.
-    pub fn first_selected_mesh(&self) -> Option<&Mesh> {
+    /// First selected Mesh, else the scene's first mesh — `export obj`'s subject.
+    /// Returns the Rc HANDLE (cheap clone) so the caller isn't borrowing the Scene.
+    pub fn first_selected_mesh(&self) -> Option<Rc<Mesh>> {
         self.selected.iter()
-            .filter_map(|g| match self.session.lookup.get(g) {
-                Some(Geometry::Mesh(m)) => Some(m), _ => None })
+            .filter_map(|g| {
+                let &row = self.guid_to_row.get(g)?;
+                match self.docs[self.doc_of_row(row)].session.lookup.get(g) {
+                    Some(Geometry::Mesh(m)) => Some(Rc::clone(m)),
+                    _ => None,
+                }
+            })
             .next()
-            .or_else(|| self.session.objects.meshes.first())
+            .or_else(|| self.docs.iter()
+                .find_map(|d| d.session.objects.meshes.first().map(Rc::clone)))
     }
 ```
 
-(The kernel writer takes ONE mesh — multi-object OBJ (`o name` groups) is a small kernel extension,
-noted in `_KERNEL_GAPS.md`. Curves/BReps export via their tessellation — `b.mesh()` — losing
-exactness by format; OBJ *is* a mesh format, that's honest.)
+(`use std::rc::Rc;` joins scene.rs's imports if 35 didn't already bring it. The kernel writer takes
+ONE mesh — multi-object OBJ (`o name` groups) is a small kernel extension, noted in
+`_KERNEL_GAPS.md`. Curves/BReps export via their tessellation — `b.mesh()` — losing exactness by
+format; OBJ *is* a mesh format, that's honest.)
 
-## The STEP honesty
+## Where the importers actually live — and the STEP honesty
 
-`file_step` exists **only in C++** today — there is no `session_rust::file_step`, so the wasm viewer
-cannot parse STEP no matter what we wire. That's now **kernel-gap #11**: port the STEP codec
-C++ → Rust/Python (C++ is ground truth; the reader/writer logic is substantial — this is a real
-project, not an afternoon). The dispatch arm is written to fail loudly rather than silently.
+The viewer is the *last* stop of an import pipeline that runs offline, and it's worth one honest
+map:
 
-In `session_from_bytes` (Step 1), insert this arm **between the `.obj` arm and the final
-`else`** — it slots right in as one more `else if`, closing with the trailing `}` of the
-existing fallback:
+- **PDF** — `session_rust/src/pdf.rs` (`import_pdf()`) + the `src/bin/pdf_import.rs` binary,
+  behind the **optional `pdf` feature** (`session_data/import_drawings.sh` builds
+  `--features pdf --bin pdf_import`). MuPDF compiles minutes of C through bindgen, so it's off by
+  default — and its deps are declared only under `cfg(not(target_arch = "wasm32"))`, so a wasm
+  build **cannot** pull MuPDF even if something enables the feature: the viewer is structurally
+  safe, not flag-disciplined. The viewer only ever sees the `.pb` the importer wrote.
+- **OBJ** — `session_rust/src/file_obj.rs` (`read_file_obj_from_str` / `write_file_obj_to_string`,
+  this lesson's pair) — plain Rust, wasm-fine, so it runs *in* the viewer.
+- **XYZ point clouds** — `session_rust/src/io.rs` (`read_xyz_from_str` / `write_xyz_to_string`,
+  the same string-pair shape) — a third dispatch arm whenever a cloud needs the door.
+- **STEP** — exists **only in C++** today (`session_cpp/src/file_step.h`); there is no
+  `session_rust::file_step`, so the wasm viewer cannot parse STEP no matter what we wire. That's
+  **kernel-gap #11**: port the codec C++ → Rust/Python (C++ is ground truth; the reader/writer
+  logic is substantial — a real project, not an afternoon). The dispatch arm fails loudly rather
+  than silently: in `session_from_bytes_chunked`, insert below Step 1's `.obj` arm:
 
 ```rust
-    } else if url.ends_with(".step") || url.ends_with(".stp") {
+    if url.ends_with(".step") || url.ends_with(".stp") {
         log::warn!("STEP import needs the C++->Rust codec port (kernel-gap #11)");
-        Session::default()
-    } else {
-        Session::pb_loads(bytes).unwrap_or_default()
+        return Session::default();
     }
 ```
+
+One free improvement while we're here: every kernel type's `to_proto()`/`from_proto()` is `pub`,
+so an import can be regression-tested **headlessly** — `.obj` text in, `to_proto` bytes out,
+compare — no browser, no GPU, just `cargo test`.
 
 ## Verify
 
 ```bash
-cd session_viewer && trunk serve   # http://localhost:8770
+cd session_viewer && trunk serve   # http://127.0.0.1:8770
 ```
 
-- `open`, pick any `.obj` (the Stanford bunny from the kernel's own test data works) → it appears,
-  shaded, edged, pickable, with a fit-able bound — a first-class citizen, because it entered as a
-  `Session` like everything else.
+- Add `{ "file": "bunny.obj", "at": [3400, 0, 0] }` to the manifest (the Stanford bunny ships as
+  the kernel's own fixture, `session_rust/session_data/bunny.obj`) → it streams in placed, shaded,
+  edged, pickable — a first-class citizen, because it entered as a `Session` like everything else.
+- `open`, pick any `.obj` → same result, appended as a new doc, log `loaded …`.
 - Draw a box, select it, `export obj` → the download opens in Blender/Rhino/FreeCAD with the same
   dimensions (the kernel's String Roundtrip minitest guarantees the text is faithful; this checks
-  the *browser* half).
+  the *browser* half). `export pb` → the ACTIVE doc only.
 - Kernel side, already green: `FileObj::String Roundtrip` passes 3/3 languages.
 
 ## Recap
 
 ```
 Ch 78: sections.
-Ch 79: FILES. Import: session_from_bytes grows a `.obj` arm — kernel read_file_obj_from_str (the
-       path-based codec gained a string pair ×3 languages for exactly this lesson) wraps the mesh in
-       a fresh Session, so watch/reconcile/save all work on OBJ for free. Open… dialog: hidden
-       <input type=file> + File.array_buffer → the same funnel → apply_session (a changed copy DIFFS
-       in). Export: write_file_obj_to_string → 39's download (one mesh/file; multi-object OBJ =
-       kernel extension, noted). STEP: C++-only — gap #11, the dispatch arm warns instead of lying.
+Ch 79: FILES. Import: session_from_bytes_chunked grows a `.obj` early-return arm (the .json arm is
+       the pattern) — kernel read_file_obj_from_str (the path-based codec gained a string pair ×3
+       languages for exactly this lesson) wraps the mesh in a fresh Session, so the manifest,
+       watch, and reconcile all speak OBJ for free. Open… dialog: hidden <input type=file> +
+       File.array_buffer → spawn_local parses (ASYNC — the chunked converter) → proxy.send_event
+       (Msg::File — an APPEND; reconcile is for changed COPIES of a loaded doc). Export: a scene is
+       DOCS now — export pb/json writes the ACTIVE doc; export obj takes first_selected_mesh
+       (Option<Rc<Mesh>> — clone the handle, don't borrow the Scene). Importer map: pdf.rs behind
+       the target-gated `pdf` feature (MuPDF never in wasm), file_obj.rs + io.rs in-viewer, STEP
+       C++-only — gap #11, the dispatch arm warns instead of lying.
 ```
 
-Edited: `app/persistence.rs` (`.obj` arm, `open_file_dialog`, STEP warning arm), `app/commands.rs`
-(`open`, `export`), `Cargo.toml` (3 web-sys features). Kernel (done with this lesson):
-`file_obj` string pair ×3 + String Roundtrip minitest ×3.
+Edited: `app/persistence.rs` (`.obj` + STEP arms, `open_file_dialog`), `app/scene.rs`
+(`first_selected_mesh`), `app/commands.rs` (`open`, `export`), `state.rs`/`lib.rs` (proxy on
+`State`), `Cargo.toml` (3 web-sys features). Kernel (done with this lesson): `file_obj` string
+pair ×3 + String Roundtrip minitest ×3.
 
 ## Next
 
 `80-copy-array.md` — duplication: `copy` between two points, Alt+gumball-drag-a-copy, and `array` —
-nearly free because clone → `refresh_guid` → `AddGeometry` rides three existing rails.
+nearly free because `duplicate()` → one `AddGeometry` batch → `apply_world_delta` rides three
+existing rails.

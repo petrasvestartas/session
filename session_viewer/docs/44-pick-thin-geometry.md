@@ -31,19 +31,22 @@ tests **lines** with `intersection::line_line(ray, line, tolerance)`, **polyline
 candidate list* because their BVH boxes are near-degenerate (the kernel documents this itself). It
 was the archive's entire pick path.
 
-Two of its arms we still route around: its **Mesh** arm — which *used* to be placement-blind
-(kernel-gap #3, since **fixed**: it now casts in the mesh's local frame and returns world hits) —
-and its **BRep** arm, a no-op by design ("viewers must use pre-cached tessellations", gap #7, open).
-We keep 42's viewer-side cast for solids anyway: it serves meshes, BReps, *and* tessellated surfaces
-from one cached path, which the kernel can't until #7 lands. So: **kernel cast for thin, 42 for
-solid, merge with a priority rule** — now a performance choice rather than a correctness workaround.
+Two of its arms we still route around: its **Mesh** arm and its **BRep** arm — the latter a no-op
+by design ("viewers must use pre-cached tessellations", gap #7, open). Since the Xform refactor no
+geometry carries a placement: `compute_bounding_box` and `ray_cast` take the **Session's** xforms
+(composed internally), so the kernel cast is correct *within a document*. What it cannot know is the
+manifest `place` — that lives in the viewer's `Doc` — so Step 2 runs the cast per doc, in the doc's
+own frame; cast the world ray as-is and every pick on a placed sheet is off by exactly the manifest
+offset. We keep 42's viewer-side cast for solids anyway: it serves meshes, BReps, *and* tessellated
+surfaces from one cached path, which the kernel can't until #7 lands. So: **kernel cast for thin
+(per doc), 42 for solid, merge with a priority rule**.
 
 ## Files we touch
 
 ```
 # world_per_pixel(depth) — R_PX → world units (the shader's screen_radius, on the CPU)
 src/camera.rs
-# pick_thin (kernel ray_cast, filtered to thin guids); pick_ray merges solid + thin
+# pick_thin (kernel ray_cast per doc, in each doc's place frame); pick_ray merges solid + thin
 src/app/scene.rs
 src/state.rs       # unchanged call site — pick_ray now returns line/point hits too
 ```
@@ -69,34 +72,58 @@ values. `depth` = `self.distance`, the orbit camera's target distance from lesso
 
 (`Geometry` is already in scene.rs's imports from 35 — nothing to add.)
 
+This is THE fix of the lesson: `Session::ray_cast` composes the session's own world xforms
+internally, but it knows **nothing about the manifest `place`** — cast the world ray as-is and every
+pick on a placed sheet is off by exactly the manifest offset. So the cast runs **per doc**: move the
+world ray into the doc's frame by `place.inverse()`, cast, move the hits back out by `place`, and
+keep the nearest across docs. (If a `place` ever carries scale, scale `tol` into the doc's frame
+too — ours are pure translations, so it passes through 1:1.)
+
 ```rust
 impl Scene {
     /// Nearest thin hit (Line / Polyline / Point / PointCloud) within `tol` world units of the
-    /// ray, as a PickHit. `&mut self`: Session::ray_cast rebuilds its cached BVH lazily.
+    /// ray, as a PickHit. `&mut self`, and the docs loop is `iter_mut`: Session::ray_cast
+    /// rebuilds its cached BVH lazily, per doc.
     pub fn pick_thin(&mut self, ray: &Ray, tol: f64) -> Option<PickHit> {
-        let hits = self.session.ray_cast(&ray.origin, &ray.dir, tol);   // sorted by distance
-        for h in hits {
-            match self.session.lookup.get(h.guid()) {
-                // Kernel mesh/BRep arms are placement-blind / no-op — 42's pick_mesh owns solids.
-                // ray_cast force-adds all four thin kinds, so match all four (miss one → it's
-                // silently unpickable).
-                Some(Geometry::Line(_)) | Some(Geometry::Polyline(_)) |
-                Some(Geometry::Point(_)) | Some(Geometry::PointCloud(_)) => {
-                    return Some(PickHit {
-                        guid: h.guid().to_string(), point: h.point.clone(), t: h.distance });
+        let mut best: Option<PickHit> = None;
+        for doc in self.docs.iter_mut() {
+            // world ray → doc frame (two points; ray_cast normalizes the direction itself)
+            let Some(inv) = doc.place.inverse() else { continue };
+            let o = inv.transform_point(&ray.origin);
+            let far = inv.transform_point(&(&ray.origin + &ray.dir * 1.0e7));
+            let dir = far.clone() - o.clone();                  // Point − Point → Vector
+            let hits = doc.session.ray_cast(&o, &dir, tol);     // sorted by distance
+            for h in hits {
+                match doc.session.lookup.get(h.guid()) {
+                    // The kernel's BRep arm is a no-op and 42's pick_mesh owns solids anyway.
+                    // ray_cast force-adds all four thin kinds, so match all four (miss one →
+                    // it's silently unpickable).
+                    Some(Geometry::Line(_)) | Some(Geometry::Polyline(_)) |
+                    Some(Geometry::Point(_)) | Some(Geometry::PointCloud(_)) => {
+                        let point = doc.place.transform_point(&h.point);   // doc frame → world
+                        let dw = point.clone() - ray.origin.clone();
+                        let t = dw[0]*ray.dir[0] + dw[1]*ray.dir[1] + dw[2]*ray.dir[2];
+                        let Some(&row) = self.guid_to_row.get(h.guid()) else { break };
+                        if t >= 0.0 && best.as_ref().map_or(true, |b| t < b.t) {
+                            best = Some(PickHit {
+                                row, guid: h.guid().to_string(), point, t });
+                        }
+                        break;   // hits are sorted — the first thin hit is this doc's nearest
+                    }
+                    _ => continue,
                 }
-                _ => continue,
             }
         }
-        None
+        best
     }
 }
 ```
 
-On borrows: `ray_cast` returns an **owned** `Vec<RayHit>`, so the mutable borrow of `self.session`
-ends the moment it returns. The loop then borrows only `self.session.lookup` immutably — no conflict,
-and the code above compiles as written. (`h.guid()` lazily fills a `OnceLock` on first read, but
-that's an `&self` method, not a mutation, so it needs no `&mut`.)
+On borrows: `ray_cast` returns an **owned** `Vec<RayHit>`, so the mutable borrow of `doc.session`
+ends the moment it returns; the inner loop then borrows only `doc.session.lookup` immutably — no
+conflict. `self.guid_to_row` inside the `self.docs.iter_mut()` loop is fine too: field borrows
+through `self` are disjoint. (`h.guid()` lazily fills a `OnceLock` on first read, but that's an
+`&self` method, not a mutation, so it needs no `&mut`.)
 
 ## Step 3 — merge: solid vs thin priority: `src/app/scene.rs`
 
@@ -163,13 +190,15 @@ Ch 44: THIN GEOMETRY. A ray never exactly hits a 1-D/0-D object, so the pick get
        evaluated at target depth. The kernel's Session::ray_cast(origin, dir, tol) already
        implements the thin narrow-phase (line_line with tolerance, per-segment polylines,
        perpendicular distance for points — thin candidates force-added past the degenerate
-       boxes); we filter its results to thin guids (its mesh arm is placement-blind, its BRep
-       arm a deliberate no-op — 42 owns solids) and merge: thin wins only if MORE than tol
-       nearer, ties → MESH, so a line on a face never steals the face's click. Stress gate:
-       intended line picked from 42k instantly.
+       boxes). It takes the SESSION's xforms (geometry carries none) but knows nothing about the
+       manifest place, so pick_thin runs it PER DOC (iter_mut — lazy BVH cache): world ray in by
+       place.inverse(), hits back out by place, nearest world t across docs; results filtered to
+       thin guids (the BRep arm is a deliberate no-op — 42 owns solids). Merge: thin wins only if
+       MORE than tol nearer, ties → MESH, so a line on a face never steals the face's click.
+       Stress gate: intended line picked from 42k instantly.
 ```
 
-Edited: `camera.rs` (`world_per_pixel`), `app/scene.rs` (`pick_thin` via kernel `ray_cast`,
+Edited: `camera.rs` (`world_per_pixel`), `app/scene.rs` (`pick_thin` via kernel `ray_cast` per doc,
 `pick_ray` = solid/thin merge, 42's cast renamed `pick_mesh`), `state.rs` (tolerance at the call).
 
 ## Next

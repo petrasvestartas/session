@@ -202,7 +202,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Is Vector Close",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -223,7 +223,7 @@
     "line": 303,
     "passed": true,
     "test_name": "Is Finite",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 270,
     "passed": true,
     "test_name": "Precision From Tolerance",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -334,7 +334,7 @@
     "line": 238,
     "passed": true,
     "test_name": "Is Allclose",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -355,7 +355,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Is Point Close",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -485,7 +485,7 @@
     "line": 130,
     "passed": true,
     "test_name": "Triangle Edge By Angle",
-    "time_ms": 0.01
+    "time_ms": 0.001
   },
   {
     "checks": [

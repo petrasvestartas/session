@@ -2,106 +2,149 @@
 
 > **Big picture.** *Phase 14.* Copying is the most-used editing operation in any CAD session — and
 > on this architecture it costs almost nothing, because it's three existing rails composed:
-> **clone** (kernel objects are `Clone`), **fresh identity** (`refresh_guid` — a kernel method this
-> lesson added, because `set_guid` silently no-ops on a clone whose guid is already minted — a real
-> trap), and **`AddGeometry`** (57 — so every copy is undoable for free). The lesson's real content
-> is that identity trap and the Alt-drag wrinkle.
+> **`duplicate()`** (the kernel's copy primitive — a clone that mints a FRESH guid, on every
+> geometry type), **doc-aware insertion** (57's `add_object` rail, wrapped in one `AddGeometry` so
+> every batch is undoable for free), and **`apply_world_delta`** (54 — placement lives in
+> `session.xforms`, so a copy is *placed*, never re-coordinated). The lesson's real content is the
+> identity trap `Rc` handles create and the Alt-drag wrinkle.
 
-<svg viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="copy clones the selection, refreshes guids so the clones are new identities, applies the from-to delta, and commits one AddGeometry command" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+<svg viewBox="0 0 680 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="copy duplicates the selection minting fresh guids, inserts the batch into each source doc as one AddGeometry command, then places every copy with apply world delta" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <g fill="none" stroke="#6fb3ff" stroke-width="1.3">
-    <rect x="8" y="30" width="110" height="34"/><rect x="150" y="30" width="130" height="34"/>
-    <rect x="312" y="30" width="130" height="34"/><rect x="474" y="30" width="196" height="34"/>
+    <rect x="8" y="30" width="130" height="34"/><rect x="170" y="30" width="140" height="34"/>
+    <rect x="342" y="30" width="150" height="34"/><rect x="524" y="30" width="148" height="34"/>
   </g>
   <g fill="#d7dae0" text-anchor="middle">
-    <text x="63" y="47">clone selection</text><text x="63" y="59" fill="#666" font-size="9">Geometry: Clone</text>
-    <text x="215" y="47">refresh_guid()</text><text x="215" y="59" fill="#e05555" font-size="9">set_guid NO-OPS on clones!</text>
-    <text x="377" y="47">apply from→to Δ</text><text x="377" y="59" fill="#666" font-size="9">54's apply_delta</text>
-    <text x="572" y="47">AddGeometry (57)</text><text x="572" y="59" fill="#666" font-size="9">one Command → one undo</text>
+    <text x="73" y="47">duplicate() per arm</text><text x="73" y="59" fill="#e05555" font-size="9">Rc clone = SAME object!</text>
+    <text x="240" y="47">source doc + local xf</text><text x="240" y="59" fill="#666" font-size="9">guid_to_row → doc_of_row</text>
+    <text x="417" y="47">ONE AddGeometry (57)</text><text x="417" y="59" fill="#666" font-size="9">insert batch → one undo</text>
+    <text x="598" y="47">apply_world_delta</text><text x="598" y="59" fill="#666" font-size="9">54, one call per copy</text>
   </g>
   <g stroke="#6fb3ff" stroke-width="1.3">
-    <line x1="118" y1="47" x2="148" y2="47" marker-end="url(#ah80)"/>
-    <line x1="280" y1="47" x2="310" y2="47" marker-end="url(#ah80)"/>
-    <line x1="442" y1="47" x2="472" y2="47" marker-end="url(#ah80)"/>
+    <line x1="138" y1="47" x2="168" y2="47" marker-end="url(#ah80)"/>
+    <line x1="310" y1="47" x2="340" y2="47" marker-end="url(#ah80)"/>
+    <line x1="492" y1="47" x2="522" y2="47" marker-end="url(#ah80)"/>
   </g>
   <text x="340" y="100" fill="#888" text-anchor="middle">array = the same pipeline in a loop; Alt+gumball = the same pipeline on 54's release</text>
   <defs><marker id="ah80" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
     <path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
 </svg>
 
-## The identity trap (why the kernel grew `refresh_guid`)
+## The identity trap — why `.clone()` cannot copy
 
-Guids are lazy `OnceLock`s: minted on first read, and **`Clone` copies the minted value**. So a
-cloned wall *is* the original as far as `lookup`, the tree, undo snapshots, and reconcile are
-concerned — inserting it would *overwrite* the original. And the existing `set_guid` is
-`let _ = self.guid.set(g)` — a **silent no-op** once the lock is filled, i.e. on every clone.
-This lesson added the honest primitive to the kernel, ×3 languages + a minitest:
+`Geometry` variants hold **`Rc<T>`** (51). So `lookup.get(guid).cloned()` clones the *handle*: the
+"copy" **is** the original — same allocation, same guid. Insert it and it *overwrites* its source
+in `lookup`; the scene loses an object. And you can't fix the guid through the handle either: the
+kernel's `refresh_guid` takes `&mut self`, which an `Rc` won't hand out — a naive copy doesn't
+merely forget the fix, it can't reach it.
+
+The kernel's honest primitive is **`duplicate()`** — on every geometry type
+(`mesh.rs`: `clone_with_new_guid` — a full clone whose guid `OnceLock` is reset, so a fresh uuid
+mints lazily on first read). One idiom, per variant:
 
 ```rust
-    /// Clear the guid so a FRESH one mints lazily on next read — the duplicate/copy enabler.
-    pub fn refresh_guid(&mut self) {
-        self.guid = std::sync::OnceLock::new();
-    }
+Geometry::Mesh(m) => Geometry::Mesh(Rc::new((**m).duplicate()))
 ```
 
-The `Refresh Guid` minitest pins the contract: clone equals the original's guid; after refresh it
-differs; the original is untouched.
+`(**m)` reaches through `&Rc<Mesh>` to the `Mesh`, `duplicate()` deep-copies it with a new
+identity, `Rc::new` wraps the copy as its own handle. (`refresh_guid` still exists — it's the
+in-place form `duplicate()` is built from — but `duplicate()` is the copy primitive; you should
+never need the low-level one here.)
+
+Two more things a copy must resolve, because neither lives in the object anymore:
+
+- **its doc** — `guid_to_row` + `doc_of_row` (36). Copies go into the **source object's doc**, so
+  manifest `place` and the session's `world_xform` compose identically for copy and original.
+- **its placement** — `session.xforms` (the Xform refactor). A copy that forgets to carry the
+  source's local xform lands at the doc origin, not on its source.
 
 ## Files we touch
 
 ```
-src/app/history/add.rs # AddGeometry::of_snapshots — the plural constructor (57 shipped only ::one)
-src/app/scene.rs       # clone_selection() → Vec<Geometry> with fresh guids
+src/app/history/add.rs # AddGeometry::of_snapshots — the plural constructor (57 shipped ::one)
+src/app/scene.rs       # clone_selection() → doc-resolved snapshots with fresh guids
 src/app/commands.rs    # `copy` (two-point Get-loop) and `array` verbs
-src/state.rs           # Alt held at gumball-press → drag a COPY (54's skeleton, one branch)
+src/state.rs           # place_copies helper; Alt held at gumball-press → drag a COPY
 ```
 
 ## Step 0 — the plural constructor: `src/app/history/add.rs`
 
-57 gave `AddGeometry::one` (single object) and `RemoveObjects` the plural `of_snapshots`. Copy/array
-commit a *batch*, so add the matching plural to `AddGeometry` — find its `impl AddGeometry` block
-(57) and add this beside `one`:
+57 gave `AddGeometry::one`. Copy/array commit a *batch*, so add the matching plural — find the
+`impl AddGeometry` block (57) and add this beside `one` (`RemovedObj` is 51's snapshot shape —
+row, doc, `Rc` handle, local xform — exactly what a copy is):
 
 ```rust
-    /// Insert MANY new objects as ONE undoable Command. RemoveObjects already has the plural
-    /// `of_snapshots`, so this just wraps it — same duality as `one`.
-    pub fn of_snapshots(geoms: Vec<Geometry>) -> Self {
-        Self { inner: RemoveObjects::of_snapshots(geoms) }
+    /// Insert MANY new objects as ONE undoable Command — the same RemoveObjects duality as
+    /// `one`, plural. Each snapshot inserts through 57's add_object path into ITS OWN doc.
+    pub fn of_snapshots(snaps: Vec<RemovedObj>) -> Self {
+        Self { inner: RemoveObjects::of_snapshots(snaps) }
     }
 ```
 
-## Step 1 — clone with fresh identities: `src/app/scene.rs`
+## Step 1 — duplicate with fresh identities: `src/app/scene.rs`
 
 ```rust
-    /// Deep-copies of the selection, each with a NEW guid (and the name suffixed so the
-    /// tree reads sanely). The Geometry dispatch mirrors restore_geometry's arms (51).
-    pub fn clone_selection(&self) -> Vec<Geometry> {
+    /// Doc-resolved duplicates of the selection, in 51's snapshot shape — ready for ONE
+    /// AddGeometry. duplicate() is the kernel's copy primitive: a deep clone that MINTS a
+    /// fresh guid (a bare Rc clone would BE the original — the identity trap). `local`
+    /// carries the SOURCE's session xform: placement is not in the object anymore, so a
+    /// copy that omits it lands at the doc origin. `row` is assigned by the insert.
+    pub fn clone_selection(&self) -> Vec<RemovedObj> {
         let mut out = Vec::new();
         for g in &self.selected {
-            let Some(geom) = self.session.lookup.get(g) else { continue };
-            let mut c = geom.clone();
-            match &mut c {
-                Geometry::Mesh(m) => { m.refresh_guid(); m.name.push_str("_copy"); }
-                Geometry::BRep(b) => { b.refresh_guid(); b.name.push_str("_copy"); }
-                Geometry::Line(l) => { l.refresh_guid(); l.name.push_str("_copy"); }
-                Geometry::Polyline(p) => { p.refresh_guid(); p.name.push_str("_copy"); }
-                Geometry::Point(p) => { p.refresh_guid(); p.name.push_str("_copy"); }
-                Geometry::NurbsCurve(nc) => { nc.refresh_guid(); nc.name.push_str("_copy"); }
-                Geometry::NurbsSurface(ns) => { ns.refresh_guid(); ns.name.push_str("_copy"); }
-                _ => {}
-            }
-            out.push(c);
+            let Some(&row) = self.guid_to_row.get(g) else { continue };
+            let doc = self.doc_of_row(row);
+            let session = &self.docs[doc].session;
+            let Some(geom) = session.lookup.get(g) else { continue };
+            let copy = match geom {
+                Geometry::Mesh(m) => Geometry::Mesh(Rc::new((**m).duplicate())),
+                Geometry::BRep(b) => Geometry::BRep(Rc::new((**b).duplicate())),
+                Geometry::Line(l) => Geometry::Line(Rc::new((**l).duplicate())),
+                Geometry::Polyline(p) => Geometry::Polyline(Rc::new((**p).duplicate())),
+                Geometry::Point(p) => Geometry::Point(Rc::new((**p).duplicate())),
+                Geometry::NurbsCurve(c) => Geometry::NurbsCurve(Rc::new((**c).duplicate())),
+                Geometry::NurbsSurface(s) => Geometry::NurbsSurface(Rc::new((**s).duplicate())),
+                _ => continue,
+            };
+            out.push(RemovedObj { row: 0, doc, geom: copy, local: session.xform(g) });
         }
         out
     }
 ```
 
+(Imports: `use std::rc::Rc;` and `use crate::app::history::remove::RemovedObj;` join scene.rs's
+top-of-file `use` lines. Want a `_copy` name suffix in the tree? Bind the duplicate mutable in an
+arm and `push_str` before wrapping — cosmetic, skipped here to keep the arms honest-length.)
+
+And the placement half, on `impl State` (`src/state.rs`) — copies exist *after* the insert, so
+their rows resolve through `guid_to_row`, and each gets 54's commit primitive plus the live GPU
+poke:
+
+```rust
+    /// Post-insert placement for a batch of copies: 54's apply_world_delta per new row
+    /// (Session xform + tables + cached box), then the live instance poke so the GPU row
+    /// follows. Rows resolve through guid_to_row — the insert assigned them.
+    pub fn place_copies(&mut self, guids: &[String], delta: &Xform) {
+        for g in guids {
+            let Some(&row) = self.scene.guid_to_row.get(g) else { continue };
+            self.scene.apply_world_delta(row, delta);
+            let m = self.scene.placed_frame(row).duplicate();
+            self.gpu.set_live_model(row, &m);
+        }
+        self.scene.rebuild_bvh();
+    }
+```
+
+Because the copy carries its source's local xform and sits in its source's doc,
+`apply_world_delta`'s `L' = L · W⁻¹ · D · W` conjugation composes with the *same* `W` as the
+original — a copy on a placed sheet lands exactly where the drag said, not offset by the manifest.
+
 ## Step 2 — the `copy` command: `src/app/commands.rs`
 
 `CopyCmd` is 57's `LineTool` shape exactly — a struct with `from: Option<Point>`, the first click
-stashes it, the second runs the batch. The delta is a plain translation applied with 54's
-`apply_delta`; the whole batch commits as **one** `AddGeometry`. Add both commands below `dispatch`
-in `commands.rs` — imports it needs:
-`use session_rust::Xform;`, `use crate::app::scene::apply_delta;`,
+stashes it, the second runs the batch: duplicate → ONE `AddGeometry` (the insert routes each
+snapshot through 57's `add_object` into its own doc and `set_xform`s the carried local — the copy
+materializes exactly ON its source) → `place_copies` shifts them. Add both commands below
+`dispatch` in `commands.rs` — imports it needs: `use session_rust::Xform;`,
 `use crate::app::history::add::AddGeometry;`:
 
 ```rust
@@ -127,13 +170,13 @@ impl ActiveCommand for CopyCmd {
             None => { self.from = Some(p); CmdStep::Prompt(self.ask()) }
             Some(from) => {
                 let to = p;
-                let d = Xform::translation(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
-                let mut clones = state.scene.clone_selection();
-                for c in &mut clones {
-                    apply_delta(c, &d);                       // 54's per-variant compose/bake
-                }
-                let n = clones.len();
-                state.commit(Box::new(AddGeometry::of_snapshots(clones)));
+                let delta = Xform::translation(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
+                let snaps = state.scene.clone_selection();
+                let guids: Vec<String> = snaps.iter()
+                    .map(|s| s.geom.guid().to_string()).collect();
+                let n = snaps.len();
+                state.commit(Box::new(AddGeometry::of_snapshots(snaps)));   // ONE undo step
+                state.place_copies(&guids, &delta);                         // 54, per copy
                 CmdStep::Done(format!("copied {n} object(s)"))
             }
         }
@@ -148,12 +191,11 @@ impl ActiveCommand for CopyCmd {
 }
 ```
 
-(`AddGeometry::of_snapshots(Vec<Geometry>)` — the plural constructor from Step 0, wrapping
-`RemoveObjects::of_snapshots`. Snap (59) applies to both picks automatically, so
-copy-from-corner-to-corner is *exact*.)
+(Snap (59) applies to both picks automatically, so copy-from-corner-to-corner is *exact*.)
 
-`array` is the same in a loop — `array 5` parses the count at dispatch (`count` is a distinct
-binding from copy's `n`), then the same two points, one command total:
+`array` is the same in a loop — `array 5` parses the count at dispatch, then the same two points;
+each round of duplicates remembers its own step delta, and the whole thing is still **one**
+Command:
 
 ```rust
 pub struct ArrayCmd {
@@ -181,15 +223,20 @@ impl ActiveCommand for ArrayCmd {
                 let to = p;
                 let (dx, dy, dz) = (to[0] - from[0], to[1] - from[1], to[2] - from[2]);
                 let mut all = Vec::new();
-                // step the from→to delta k = 1..=count, accumulating — ONE Command for all
+                let mut placements = Vec::new();          // (guids, delta) per round
+                // step the from→to delta k = 1..=count — ONE Command for all copies
                 for k in 1..=self.count {
                     let dk = Xform::translation(dx * k as f64, dy * k as f64, dz * k as f64);
-                    let mut batch = state.scene.clone_selection();
-                    for c in &mut batch { apply_delta(c, &dk); }
+                    let batch = state.scene.clone_selection();
+                    placements.push((batch.iter()
+                        .map(|s| s.geom.guid().to_string()).collect::<Vec<_>>(), dk));
                     all.extend(batch);
                 }
                 let n = all.len();
                 state.commit(Box::new(AddGeometry::of_snapshots(all)));
+                for (guids, dk) in &placements {
+                    state.place_copies(guids, dk);
+                }
                 CmdStep::Done(format!("arrayed {n} object(s)"))
             }
         }
@@ -230,62 +277,68 @@ matrix-only, on the originals — cheapest possible preview), and Alt changes on
         if let Some(ctx) = self.gb_drag.take() {
             if self.alt_down {
                 // originals go BACK to where they were (their kernel objects were never touched —
-                // the live path only moved instance rows); the CLONES take the delta.
-                for (_, row, base) in &ctx.base_models {
-                    self.gpu.set_live_model(*row, base);          // snap originals home
-                }
-                let mut clones = self.scene.clone_selection();
-                for c in &mut clones {
-                    apply_delta(c, &ctx.last_delta);
-                }
-                self.commit(Box::new(AddGeometry::of_snapshots(clones)));
+                // the live path only moved instance rows); the COPIES take the delta.
+                for s in &ctx.before {
+                    self.gpu.set_live_model(s.row, &s.placed);    // snap originals home
+                }                                                 // (rows: guid_to_row, at press)
+                let delta = ctx.last_delta.duplicate();
+                let snaps = self.scene.clone_selection();
+                let guids: Vec<String> = snaps.iter()
+                    .map(|s| s.geom.guid().to_string()).collect();
+                self.commit(Box::new(AddGeometry::of_snapshots(snaps)));
+                self.place_copies(&guids, &delta);
                 self.gb_pressed = None;
                 return;
             }
-            // …the normal commit continues unchanged (56's apply_transform_command call)…
+            // …the normal commit continues unchanged (54's apply_world_delta + TransformObjects)…
         }
 ```
 
 The subtlety that makes this clean: 54's live drag **never mutates the kernel objects** — so
-"restore the originals" is just re-uploading their stashed models, and the copies are built from
-pristine originals. That mid-drag discipline was designed in 54 for Esc-cancel; Alt-copy is its
-second customer.
+"restore the originals" is just re-uploading their stashed placed frames (`ctx.before` carries
+them; the rows in it came from `guid_to_row` when `begin_drag` snapshotted), and the copies are
+built from pristine originals. That mid-drag discipline was designed in 54 for Esc-cancel;
+Alt-copy is its second customer.
 
 ## Step 4 — verify
 
 ```bash
-cd session_viewer && trunk serve   # http://localhost:8770
+cd session_viewer && trunk serve   # http://127.0.0.1:8770
 ```
 
 - Select a beam, `copy`, click its end, click the neighbouring column's corner (watch the `[End]`
-  snaps) → an exact copy lands, selected state preserved, log `copied 1 object(s)`. **Ctrl+Z**
-  removes *only the copy*. Click both — **different guids**, different tree rows.
-- **Alt+drag** the X arrow → the original stays put, a copy follows the drag live; release → copy
-  committed, one undo step. Without Alt → 54's normal move, unchanged.
+  snaps) → an exact copy lands, log `copied 1 object(s)`. **Ctrl+Z** removes *only the copy*.
+  Click both — **different guids**, different tree rows.
+- Copy something on a PLACED sheet (any doc after the first) → the copy lands where you clicked,
+  not offset by the manifest translation — same doc, same `W`, same conjugation.
+- **Alt+drag** the X arrow → the original stays put, release → a copy at the drop point, one undo
+  step. Without Alt → 54's normal move, unchanged.
 - `array 5 …` → five more beams at even spacing, ONE undo step for all five.
-- The trap test: comment out `refresh_guid` in `clone_selection` and `copy` once — the "copy"
-  *replaces* the original in `lookup` and the scene loses an object. Restore the line. That's the
-  bug the kernel method exists to prevent.
+- The trap test: change one `clone_selection` arm to `Geometry::Mesh(Rc::clone(m))` and `copy`
+  a mesh once — the "copy" has the SAME guid, overwrites its original in `lookup`, and the scene
+  loses an object. Restore the line. That's the bug `duplicate()` exists to prevent.
 
 ## Recap
 
 ```
 Ch 79: files in and out.
-Ch 80: DUPLICATION = three rails composed: Clone + refresh_guid + AddGeometry. The trap: guids are
-       minted OnceLocks — Clone copies the VALUE and set_guid silently no-ops on filled locks, so a
-       naive copy overwrites its original in lookup; refresh_guid (added to the kernel ×3 + minitest
-       for this lesson) clears the lock so a fresh guid mints lazily. copy = two snapped points →
-       translation → apply_delta per clone → ONE AddGeometry (undo removes the batch). array = the
-       loop form, still one Command. Alt+gumball = 54's drag untouched until RELEASE: originals snap
-       home (live path never touched kernel objects — 54's Esc discipline, second customer), clones
-       take the final delta.
+Ch 80: DUPLICATION = three rails composed: duplicate() + AddGeometry + apply_world_delta. The trap:
+       Geometry holds Rc handles — .clone() clones the HANDLE, so the "copy" IS the original (same
+       guid, overwrites it in lookup), and refresh_guid is unreachable through &Rc anyway;
+       duplicate() (every type — clone_with_new_guid, a reset OnceLock) is the kernel's copy
+       primitive. clone_selection resolves each source's DOC (guid_to_row + doc_of_row) and carries
+       its LOCAL XFORM (placement left the geometry) → 51-shaped snapshots → ONE
+       AddGeometry::of_snapshots (inserts via 57's add_object into the SOURCE doc; undo removes the
+       batch) → place_copies: apply_world_delta per new row (rows exist post-insert, via
+       guid_to_row) + the live poke. array = the loop form, still one Command. Alt+gumball = 54's
+       drag untouched until RELEASE: originals snap home (live path never touched kernel objects —
+       54's Esc discipline, second customer), copies take the final delta.
 ```
 
 Edited: `app/history/add.rs` (`AddGeometry::of_snapshots`), `app/scene.rs` (`clone_selection`),
-`app/commands.rs` (`copy`, `array`), `state.rs`
-(Alt branch on 54's release). Kernel (done with this lesson): `refresh_guid` on 7 geometry types
-×3 languages + `Refresh Guid` minitest ×3.
+`app/commands.rs` (`copy`, `array`), `state.rs` (`place_copies`, Alt branch on 54's release).
 
 ## Next
 
-`81-layers.md` — organization users expect: layers, built on the tree groups the kernel already has.
+`81-layers.md` — organization users expect: layers — which the PDF importer already built as tree
+groups; the lesson makes them addressable by NAME, across every loaded sheet at once.

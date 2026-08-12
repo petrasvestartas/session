@@ -153,7 +153,11 @@ never shimmers at 10 km, same as every object since 33.
 
 `build_ground_pipeline` is the background pipeline's shape (fullscreen, no vertex buffers) with two
 changes: **alpha blending on** (the fade) and **depth write ON, compare Greater** (reverse-Z — the
-ground is real geometry that occludes and is occluded; `frag_depth` makes that exact):
+ground is real geometry that occludes and is occluded; `frag_depth` makes that exact). Construct it
+**inside `Pipelines::new(device, samples, …)`, from the `samples` it receives** — never as a
+standalone one-off. MSAA is dynamic here (`msaa_for` returns 1 for flat-only scenes, 4 once any
+solid exists), and `set_scene` rebuilds *all* pipelines on the 1×↔4× flip; a ground pipeline pinned
+to one sample count panics on the first solid append with a sample-count mismatch:
 
 ```rust
         blend: Some(wgpu::BlendState::ALPHA_BLENDING),
@@ -169,8 +173,12 @@ ground is real geometry that occludes and is occluded; `frag_depth` makes that e
 Draw order in `clear()`: background gradient (25) → **ground** → grid (20) → meshes/lines/points.
 The per-frame uniform fills from values already at hand: `view_proj.inverse()` (the kernel's full
 4×4 inverse — fixed during lesson 41; this matrix contains the projection, which the old affine-only
-version got wrong), `eye − origin`, fade radius ≈ 30× the camera distance (feels infinite without
-banding), and `−origin[2]`.
+version got wrong — and it returns `Option<Xform>`, so unwrap or early-out), `eye − origin`, fade
+radius ≈ 30× `camera.distance_world()` (feels infinite without banding), and `−origin[2]`. The
+radius **must** come from `distance_world()` — that's the camera distance in world **mm**;
+`camera.distance` itself is in *metres*, and using it makes the fade 1000× too tight: the floor
+dies out a hand-span from the camera. (Alternative: derive the radius from `gpu.scene_min`/
+`scene_max` — refreshed each `set_scene` — so the fade scales with the scene instead of the zoom.)
 
 > **Grid upgrade (optional but natural here).** Lesson 20's vertex grid is 50 fixed vertices (25 segments) — fine on
 > the demo, small on a big scene. The same analytic trick renders an **infinite** grid: in this very

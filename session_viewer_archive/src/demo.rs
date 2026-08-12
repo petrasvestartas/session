@@ -447,30 +447,35 @@ fn trimmed_cdt_demo(s: &mut Session) {
     {
         let mut b = BRep::create_box(1_000.0, 800.0, 600.0);
         b.name = "brep_box".to_string();
-        b.xform = Xform::translation((0.0 * COL) as f64, brep_y as f64, 0.0);
         b.surfacecolor = Color::new(0.3, 0.6, 1.0, 1.0);
+        // Placement, not a bake: the BRep geometry stays local and the pose lives on the session.
+        let guid = b.guid().to_string();
         s.add_brep(b, Some(&root));
+        s.set_xform(&guid, Xform::translation((0.0 * COL) as f64, brep_y as f64, 0.0));
     }
     {
         let mut b = BRep::create_cylinder(400.0, 800.0);
         b.name = "brep_cylinder".to_string();
-        b.xform = Xform::translation((1.0 * COL) as f64, brep_y as f64, 0.0);
         b.surfacecolor = Color::new(0.9, 0.5, 0.2, 1.0);
+        let guid = b.guid().to_string();
         s.add_brep(b, Some(&root));
+        s.set_xform(&guid, Xform::translation((1.0 * COL) as f64, brep_y as f64, 0.0));
     }
     {
         let mut b = BRep::create_sphere(500.0);
         b.name = "brep_sphere".to_string();
-        b.xform = Xform::translation((2.0 * COL) as f64, brep_y as f64, 0.0);
         b.surfacecolor = Color::new(0.35, 0.85, 0.45, 1.0);
+        let guid = b.guid().to_string();
         s.add_brep(b, Some(&root));
+        s.set_xform(&guid, Xform::translation((2.0 * COL) as f64, brep_y as f64, 0.0));
     }
     {
         let mut b = BRep::create_block_with_hole(1_000.0, 1_000.0, 600.0, 300.0);
         b.name = "brep_block_with_hole".to_string();
-        b.xform = Xform::translation((3.0 * COL) as f64, brep_y as f64, 0.0);
         b.surfacecolor = Color::new(0.8, 0.3, 0.7, 1.0);
+        let guid = b.guid().to_string();
         s.add_brep(b, Some(&root));
+        s.set_xform(&guid, Xform::translation((3.0 * COL) as f64, brep_y as f64, 0.0));
     }
 
     // ── Row 1 — NurbsSurfaces (untrimmed: cylinder, cone, sphere, torus, wave) ─

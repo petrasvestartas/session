@@ -53,7 +53,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.03
+    "time_ms": 0.025
   },
   {
     "checks": [],
@@ -63,7 +63,7 @@
     "line": 49,
     "passed": true,
     "test_name": "Constructor Planar",
-    "time_ms": 117.144
+    "time_ms": 101.378
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 136,
     "passed": true,
     "test_name": "Constructor Hole",
-    "time_ms": 0.075
+    "time_ms": 0.049
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.014
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 220,
     "passed": true,
     "test_name": "Add Inner Loop",
-    "time_ms": 0.019
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 269,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.027
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -212,13 +212,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Xform;\n\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let mut ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n        ts.xform = Xform::translation(10.0, 20.0, 30.0);\n        let ts2 = ts.transformed();\n\n        let (u0, _u1) = ts2.surface().domain(0).unwrap();\n        let (v0, _v1) = ts2.surface().domain(1).unwrap();\n        let pt = ts2.point_at(u0, v0).unwrap();\n",
+    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Xform;\n\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n        let ts_xf = Xform::translation(10.0, 20.0, 30.0);\n        let ts2 = ts.transformed(&ts_xf);\n\n        let (u0, _u1) = ts2.surface().domain(0).unwrap();\n        let (v0, _v1) = ts2.surface().domain(1).unwrap();\n        let pt = ts2.point_at(u0, v0).unwrap();\n",
     "failures": [],
     "group": "NurbsSurfaceTrimmed",
     "line": 440,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.025
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -244,7 +244,7 @@
     "line": 476,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 1.24
+    "time_ms": 0.969
   },
   {
     "checks": [
@@ -265,7 +265,7 @@
     "line": 523,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.398
+    "time_ms": 0.302
   },
   {
     "checks": [
@@ -306,7 +306,7 @@
     "line": 406,
     "passed": true,
     "test_name": "Split By UV Curves",
-    "time_ms": 1.797
+    "time_ms": 1.626
   },
   {
     "checks": [
@@ -1522,6 +1522,6 @@
     "line": 307,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 155.4
+    "time_ms": 143.002
   }
 ]

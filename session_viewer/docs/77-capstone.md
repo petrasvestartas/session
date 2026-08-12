@@ -1,6 +1,7 @@
 # 77 Capstone — the full loop, on real work
 
-> **Big picture.** *The course, closed.* Seventy-six lessons built a WebGPU CAD viewer from a blank
+> **Big picture.** *The main course, closed — Phase 14 (78–84) and the 85 appendix follow.*
+> Seventy-six lessons built a WebGPU CAD viewer from a blank
 > window: one draw call per geometry class, an f64 kernel behind an f32 screen, a live file, a
 > command line, undoable everything, curves and solids, an engineered-fast arctic look. The capstone
 > adds **no features**. It runs the whole system on two real models, end to end, and treats every
@@ -29,7 +30,9 @@
 
 ## The script — scene A: the floor model
 
-`DEMO_SESSION_URL = "session_data/floor_model.pb"`. Run in order, no skipping — the order is chosen
+The scene is the manifest: `DEMO_SCENE_URL = "scenes/drawings.json"` (the old single-file
+`DEMO_SESSION_URL` is gone) — switching content means editing the manifest's items, so point one at
+`pb/floor_model.pb`. Run in order, no skipping — the order is chosen
 so each step's output is the next step's input:
 
 1. **Load + fit.** 491 objects log (34a); `F` frames the floor (34b). HUD: 60 fps, single-digit
@@ -41,8 +44,10 @@ so each step's output is the next step's input:
 4. **Draw with snap.** `cplane` onto a beam's face (75). `rect` two corners with `[End]` snaps (59).
    `box`, height `120`. `curve` through four clicks (60). Every one lands *exactly* — `probe`
    endpoints to prove it (49).
-5. **Save.** Wait the debounce (39) → one download. Reload the saved file (34a URL swap or 40's
-   watch): your box, rect, and curve are there, placed to the digit.
+5. **Save.** Wait the debounce (39) → one download. Policy: save the ACTIVE doc — this script edits
+   one sheet; an all-docs save is the same call in a loop over `scene.docs`. Reload the saved file
+   (point a manifest item at it, or 40's watch): your box, rect, and curve are there, placed to the
+   digit.
 6. **The undo walk.** `undo` repeatedly, all the way down: curve → box → rect → rotate → 250-move →
    drag — each reverts *exactly*, in reverse birth order, mixed kinds (51's promise). `redo` back to
    the top. The scene must land byte-identical — hash the session (38b's fingerprints) before and
@@ -50,7 +55,8 @@ so each step's output is the next step's input:
 
 ## The script — scene B: the PDF drawing
 
-`30700_querschnitt_gg.pb` — 42,232 curves, the geometry that punishes different code paths:
+`30700_querschnitt_gg.pb` — the manifest's first item; 42,232 curves, the geometry that punishes
+different code paths:
 
 1. Load, `F`, orbit — interactive (31's one draw + 37's cull). `drawn/total` moves as you zoom.
 2. **Pick one line in dense hatching** — the intended one wins (44's tolerance + priority).
@@ -67,8 +73,8 @@ The capstone's real syllabus is the fix loop. Typical finds and where they point
 | symptom | first suspect |
 |---|---|
 | picks the wrong thing / nothing at density | 44's tolerance, 42's BVH candidates, 36's world boxes |
-| a moved object saves in its old place | 54's commit — `apply_delta` missing an arm, hashes stale |
-| undo restores at the wrong row / loses color | 51/38b — `commit` renumbering, snapshot too shallow |
+| a moved object saves in its old place | the move bypassed 54's `apply_world_delta` (Session xform never written), or 38b/39's fingerprint missing `session.xform` |
+| undo restores at the wrong row / loses placement | 51 — snapshot missing its `local` xform or doc; 38b `commit` renumbering |
 | tree and viewport disagree | a mutation bypassing the Scene verbs (45/46's single authority) |
 | fps sags on scene B only | a per-object CPU loop that scales with N — profile before pulling 76's levers |
 | something draws but won't pick / hide | a map missed a source — `all_objects()` audit (64) |
@@ -83,7 +89,8 @@ Phase 0–3  (01–28): window → triangle → camera → kernel meshes → CAD
 Phase 4    (29–35): ONE DRAW per class — instancing, arena, cylinder lines, point sprites; camera-
                     relative f64→f32; real files; Scene owns the document, Gpu owns the device.
 Phase 5    (36–37): BVH + frustum cull — flags, not draw calls.
-Phase 6    (38–40): the file is ALIVE — per-object arena, diff by content hash, save gates, watch.
+Phase 6    (38–40): the file is ALIVE — per-object arena; reconcile is per-DOC, diff by content
+                    hash (which includes session.xform — 38b's rewrite), save gates, watch.
 Phase 7    (41–46): pick everything — ray, meshes, sub-objects, thin geometry, selection,
                     visibility.
 Phase 8    (47–51): the interface — egui, THE command bus, options, history, trait-Command undo.
@@ -103,5 +110,6 @@ an f32 view** (camera-relative, matrices-not-geometry, tessellate-once); and **q
 contract, performance is architecture** — the fast paths came from skipping work, never from
 degrading it.
 
-Where next: the roadmap's optional appendix (materials/textures), 76's levers when a scene demands
-them, and the parked kernel work (booleans, STEP) that this viewer is now a worthy front-end for.
+Where next: Phase 14 (78–84 — sections through web polish) and the textures appendix (85), 76's
+levers when a scene demands them, and the parked kernel work (booleans, STEP) that this viewer is
+now a worthy front-end for.

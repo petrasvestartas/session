@@ -18,7 +18,7 @@
     "line": 45,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.01
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -155,7 +155,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.35
+    "time_ms": 0.339
   },
   {
     "checks": [
@@ -216,6 +216,6 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.016
+    "time_ms": 0.017
   }
 ]

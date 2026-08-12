@@ -124,36 +124,49 @@ replace it with:
                     let o = Point::new(c[0] as f64, c[1] as f64, c[2] as f64);
                     let delta = crate::engine::gumball::manual_delta(handle, v, &o);
                     self.apply_transform_command(&delta);            // 54's commit path, factored:
-                    // snapshots → apply_delta → execute
+                    // snapshots → apply_world_delta → execute
                 }
             }
         }
 ```
 
 `apply_transform_command` is 54's release-commit path as a named method: snapshot the current
-selection, `apply_delta` each object, wrap `before`/`after` in `TransformObjects`, execute. It works
-for the drag release too, because 54's live path never mutates kernel objects — a release-time
-"before" snapshot equals the press-time one. Add it to `impl State`:
+selection's PLACEMENTS, `apply_world_delta` each row, wrap `before`/`after` in `TransformObjects`,
+execute. It works for the drag release too, because 54's live path never mutates durable state — a
+release-time "before" snapshot equals the press-time one. Add it to `impl State` (imports: the
+`XformSnap` 54 already brought in):
 
 ```rust
-    /// Commit `delta` to the current selection as one undoable TransformObjects (54's path).
+    /// Commit `delta` (WORLD space) to the current selection as one undoable TransformObjects
+    /// (54's path: L' = L·W⁻¹·D·W per row — placement-only, kind-agnostic, place-conjugated).
     pub fn apply_transform_command(&mut self, delta: &Xform) {
-        let guids: Vec<String> = self.scene.selected.iter().cloned().collect();
-        let before: Vec<Geometry> = guids.iter()
-            .filter_map(|g| self.scene.session.lookup.get(g).cloned()).collect();
-        for guid in &guids {
-            if let Some(geom) = self.scene.session.lookup.get_mut(guid) {
-                apply_delta(geom, delta);                                 // 54, per-variant
-            }
+        let snap = |scene: &Scene, guid: &String| -> Option<XformSnap> {
+            let &row = scene.guid_to_row.get(guid)?;
+            let d = scene.doc_of_row(row);
+            Some(XformSnap {
+                row,
+                guid: guid.clone(),
+                local: scene.docs[d].session.xform(guid),
+                placed: scene.placed_frame(row).duplicate(),
+            })
+        };
+        let before: Vec<XformSnap> = self.scene.selected.iter()
+            .filter_map(|g| snap(&self.scene, g)).collect();
+        for s in &before {
+            self.scene.apply_world_delta(s.row, delta);                   // 54's commit primitive
         }
-        let after = guids.iter()
-            .filter_map(|g| self.scene.session.lookup.get(g).cloned()).collect();
+        let after: Vec<XformSnap> = before.iter()
+            .filter_map(|s| snap(&self.scene, &s.guid)).collect();
         let cmd = Box::new(TransformObjects { before, after });
         self.history.execute(cmd, &mut self.scene, &mut self.gpu);        // applies `after` — idempotent
         self.scene.rebuild_bvh();                                         // boxes moved (36)
         self.refresh_gumball();                                           // widget follows the move
     }
 ```
+
+(An exact typed `500` on a PLACED sheet moves 500 mm in world space, not in the sheet's local
+frame — the conjugation inside `apply_world_delta` is what makes the number mean what the user
+typed, on every document.)
 
 Then shrink 54's release arm onto it — find the whole `if let Some(ctx) = self.gb_drag.take() { … }`
 block (54's bake + Command code) → replace with:

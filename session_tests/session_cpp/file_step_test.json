@@ -3,7 +3,7 @@
     "group": "FileStep",
     "test_name": "NurbsCurve Round Trip",
     "passed": true,
-    "time_ms": 0.163,
+    "time_ms": 0.161,
     "line": 13,
     "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::string path = \"./serialization/test_step_nurbscurve.step\";\n\n    // Build a cubic non-rational curve with 4 CVs\n    std::vector<Point> pts = {Point(0,0,0), Point(1,2,0), Point(2,2,0), Point(3,0,0)};\n    NurbsCurve nc = NurbsCurve::create(false, 3, pts);\n\n    file_step::write_file_step_nurbscurves({nc}, path);\n\n    auto curves = file_step::read_file_step_nurbscurves(path);\n    const NurbsCurve& back = curves[0];\n\n    // Check knot round-trip\n    auto kn_orig = nc.get_nurbsknots();\n    auto kn_back = back.get_nurbsknots();\n    for (size_t i = 0; i < kn_orig.size() && i < kn_back.size(); i++)\n\n    // Check CV round-trip\n    for (int i = 0; i < 4; i++) {\n        Point p_orig = nc.get_cv(i);\n        Point p_back = back.get_cv(i);\n    }\n    std::filesystem::remove(path);",
     "checks": [
@@ -616,7 +616,7 @@
     "group": "FileStep",
     "test_name": "NurbsSurface Rational Round Trip",
     "passed": true,
-    "time_ms": 0.092,
+    "time_ms": 0.093,
     "line": 152,
     "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::string path = \"./serialization/test_step_nurbssurface_rat.step\";\n\n    // Build a rational bicubic surface 3x3 CVs (bilinear rational patch with uniform weights)\n    NurbsSurface srf(3, true, 3, 3, 3, 3);\n    // Set clamped knots: internal = {0,1} for degree-2 with 3 CVs → nurbsknot size=3+3-2=4\n    srf.m_nurbsknot[0] = {0.0, 0.0, 1.0, 1.0};\n    srf.m_nurbsknot[1] = {0.0, 0.0, 1.0, 1.0};\n    double w = 0.8;\n    for (int u = 0; u < 3; u++) for (int v = 0; v < 3; v++) {\n        double x = (double)u, y = (double)v, z = std::sin(u+v)*0.3;\n        srf.set_cv_4d(u, v, w*x, w*y, w*z, w);\n    }\n\n    file_step::write_file_step_nurbssurfaces({srf}, path);\n\n    auto surfaces = file_step::read_file_step_nurbssurfaces(path);\n    const NurbsSurface& back = surfaces[0];\n\n    // Check weight round-trip\n    for (int u = 0; u < 3; u++) for (int v = 0; v < 3; v++) {\n        double x1, y1, z1, w1, x2, y2, z2, w2;\n        srf.get_cv_4d(u, v, x1, y1, z1, w1);\n        back.get_cv_4d(u, v, x2, y2, z2, w2);\n    }\n    std::filesystem::remove(path);",
     "checks": [
@@ -873,7 +873,7 @@
     "group": "FileStep",
     "test_name": "BRep Read Schoring",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.012,
     "line": 238,
     "code": "    std::string step_path = \"session_data/elements/schoring_foot_0.step\";\n    if (!std::filesystem::exists(step_path)) return;\n\n    auto breps = file_step::read_file_step_breps(step_path);\n\n    size_t total_faces = 0, total_edges = 0, total_verts = 0;\n    for (const auto& b : breps) {\n        total_faces += b.face_count();\n        total_edges += b.edge_count();\n        total_verts += b.vertex_count();\n    }\n\n    for (const auto& b : breps) {\n    }\n\n    // Verify point count via read_file_step_points\n    auto pts = file_step::read_file_step_points(step_path);",
     "checks": [],

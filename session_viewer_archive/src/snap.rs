@@ -4,7 +4,7 @@
 
 use std::collections::HashSet;
 use session_rust::session::{Geometry, Session};
-use session_rust::{Closest, Line, Point};
+use session_rust::{Closest, Line, Point, Xform};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum SnapKind {
@@ -91,6 +91,9 @@ pub fn build_static_snaps(session: &Session, hidden: &HashSet<String>) -> Static
     const EDGE_SAMPLES: usize = 16;
     let mut points: Vec<(Point, SnapKind, String)> = Vec::new();
     let mut edges: Vec<(String, Vec<Point>)> = Vec::new();
+    // ONE downward pass for every placement (BRep geometry is local; the pose is on the
+    // session). `world_xform` per object rescans the whole tree and is quadratic.
+    let world = session.world_xforms();
     for (guid, geom) in &session.lookup {
         if hidden.contains(guid) { continue; }
         match geom {
@@ -119,7 +122,7 @@ pub fn build_static_snaps(session: &Session, hidden: &HashSet<String>) -> Static
                 }
             }
             Geometry::BRep(b) => {
-                let c = b.xform.to_cols();
+                let c = world.get(guid).cloned().unwrap_or_else(Xform::identity).to_cols();
                 let tp = |p: &Point| Point::new(
                     c[0][0]*p[0]+c[1][0]*p[1]+c[2][0]*p[2]+c[3][0],
                     c[0][1]*p[0]+c[1][1]*p[1]+c[2][1]*p[2]+c[3][1],
@@ -191,6 +194,7 @@ pub fn snap(
     project: &dyn Fn(&Point) -> Option<(f32, f32)>,
 ) -> SnapResult {
     let cand: HashSet<&str> = candidate_guids.iter().map(|s| s.as_str()).collect();
+    let mut world: Option<std::collections::HashMap<String, session_rust::Xform>> = None;
     let mut cands: Vec<(Point, SnapKind)> = Vec::new();
     let mut segs: Vec<Line> = Vec::new(); // for pairwise Intersection
 
@@ -264,9 +268,12 @@ pub fn snap(
                 }
             }
             Geometry::BRep(b) => {
-                // BRep geometry is local; the visible pose is in b.xform. Transform every
-                // snap point through it so markers land on the rendered edges/corners.
-                let c = b.xform.to_cols();
+                // BRep geometry is local; the visible pose is the session placement. Transform
+                // every snap point through it so markers land on the rendered edges/corners.
+                // The placement map is built lazily and reused: one tree pass, only if a BRep
+                // is actually among the (few) candidates.
+                let world = world.get_or_insert_with(|| session.world_xforms());
+                let c = world.get(*guid).cloned().unwrap_or_else(Xform::identity).to_cols();
                 let tp = |p: &Point| Point::new(
                     c[0][0]*p[0] + c[1][0]*p[1] + c[2][0]*p[2] + c[3][0],
                     c[0][1]*p[0] + c[1][1]*p[1] + c[2][1]*p[2] + c[3][1],

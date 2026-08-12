@@ -29,7 +29,7 @@
 ## Files we touch
 
 ```
-src/engine/gpu/mod.rs   # FLAG_SELECTED; set_selected_rows (flip-tracking like 37's cull)
+src/engine/gpu/mod.rs   # FLAG_SELECTED; write_row_flags; set_selected_rows (tables + live rows)
 src/shaders/*.wgsl      # every instance-reading vs tints selected rows (triangle/cylinder/sphere)
 src/camera.rs           # Camera::marquee_frustum(view_proj, rect_ndc) — the marquee sub-frustum
 src/app/scene.rs        # selected: HashSet<guid>; click/shift-click/marquee mutate it
@@ -46,17 +46,41 @@ impl Instance {
     pub const FLAG_SELECTED: u32 = 1 << 0;   // ← ADD above FLAG_HIDDEN (1<<1) / FLAG_CULLED (1<<7)
 ```
 
-Selection changes a few rows out of 42k, so upload like 37's cull did — only rows whose membership
-*flipped*:
+The write has two targets, and the order of importance matters. `scene.tables.objects[row].2` is
+the **truth**: `set_scene` re-derives every instance from the tables, so a selection made while
+later manifest files are still streaming in survives the next `Msg::File` append *because* it lives
+there. The live instance is poked too, so the tint shows this frame instead of after the next
+rebuild — through a tiny helper, because `Instance.flags` is private to the engine, which is why
+the write lives in `gpu/mod.rs` and not in `Scene`:
 
 ```rust
-    /// Set the selected bit on exactly `rows`; clear it everywhere else. Uploads only changed rows.
-    pub fn set_selected_rows(&mut self, rows: &std::collections::HashSet<u32>) {
-        for i in 0..self.instances.len() as u32 {
+    /// One row's flags → the live instance + an upload of just that row. FLAG_CULLED is
+    /// per-frame engine state that never enters the tables, so preserve it on the way through.
+    pub fn write_row_flags(&mut self, row: u32, flags: u32) {
+        let keep = self.instances[row as usize].flags & Instance::FLAG_CULLED;
+        self.instances[row as usize].flags = flags | keep;
+        self.queue.write_buffer(&self.instance_buffer,
+            (row as usize * std::mem::size_of::<Instance>()) as u64,
+            bytemuck::bytes_of(&self.instances[row as usize]));
+    }
+```
+
+Selection changes a few rows out of 42k, so upload like 37's cull did — only rows whose membership
+*flipped*, tables first, live row second:
+
+```rust
+    /// Set the selected bit on exactly `rows`; clear it everywhere else. Writes the TABLES (the
+    /// truth set_scene re-derives from) AND pokes each flipped row's live instance. Only changed
+    /// rows hit the GPU.
+    pub fn set_selected_rows(&mut self, tables: &mut ArenaUpload,
+                             rows: &std::collections::HashSet<u32>) {
+        for i in 0..tables.objects.len() as u32 {
             let want = rows.contains(&i);
-            let has = self.instances[i as usize].flags & Instance::FLAG_SELECTED != 0;
+            let has = tables.objects[i as usize].2 & Instance::FLAG_SELECTED != 0;
             if want != has {
-                self.write_row(i, |inst| inst.flags ^= Instance::FLAG_SELECTED);
+                tables.objects[i as usize].2 ^= Instance::FLAG_SELECTED;
+                let f = tables.objects[i as usize].2;
+                self.write_row_flags(i, f);
             }
         }
     }
@@ -73,7 +97,7 @@ wired). They differ in two ways that matter here: `triangle.wgsl` already has an
 `VsOut.color` is a **`vec3`**; `cylinder.wgsl`/`sphere.wgsl` only pull `.model` out of `instances[…]`
 and their `VsOut.color` is a **`vec4`**. So the tint takes two forms.
 
-In **`triangle.wgsl`**, find `o.color = in.color * inst.color.rgb;` (34h's line) and add right
+In **`triangle.wgsl`**, find `o.color = in.color.rgb * inst.color.rgb;` (34h's line) and add right
 after it (vec3, no alpha — `inst` is already in scope; the `const` goes at the top of the file):
 
 ```wgsl
@@ -143,25 +167,29 @@ drag endpoints, and ignore drags under ~3 px — those are clicks.)
 ```rust
     pub selected: std::collections::HashSet<String>,   // ← ADD to Scene (init empty)
 
-    /// Push the current selection to the GPU flags (call after any mutation below).
-    pub fn apply_selection(&self, gpu: &mut Gpu) {
+    /// Push the current selection into the tables + GPU flags (call after any mutation below).
+    pub fn apply_selection(&mut self, gpu: &mut Gpu) {
         let rows = self.selected.iter().filter_map(|g| self.guid_to_row.get(g).copied()).collect();
-        gpu.set_selected_rows(&rows);
+        gpu.set_selected_rows(&mut self.tables, &rows);
     }
 
     /// Marquee: everything whose world box the sub-frustum accepts. Crossing style —
     /// touching counts.
     pub fn select_marquee(&mut self, f: &Frustum, additive: bool) {
         if !additive { self.selected.clear(); }
-        for guid in &self.order {
-            let (lo, hi) = self.world_aabb(guid);
-            if f.aabb_visible(lo, hi) { self.selected.insert(guid.clone()); }
+        for row in 0..self.world_boxes.len() {
+            let (lo, hi) = self.world_boxes[row];
+            if f.aabb_visible(lo, hi) { self.selected.insert(self.order[row].clone()); }
         }
     }
 ```
 
-(`world_aabb` is 37's helper; the scan is linear like 37's cull — per *release*, not per frame, so
-even cheaper. The BVH broad-phase (36) is the at-scale upgrade if release-lag ever shows.)
+(`world_boxes` is 36's row-indexed extents cache — iterate rows directly, the guid is `order[row]`;
+the scan is linear like 37's cull — per *release*, not per frame, so even cheaper. The BVH
+broad-phase (36) is the at-scale upgrade if release-lag ever shows.) One honest caveat on the key:
+guids *can* collide across docs — two files may carry the same guid — so the row is the unambiguous
+identity (the flags and `guid_to_row`'s resolution work in rows); the guid set is kept because it's
+what the UX speaks (names, the tree, 70).
 
 In `state.rs`, the mouse gestures — press remembers the spot; release decides click vs drag. The
 two are **mutually exclusive**: a plain click is a zero-area rectangle, and `2.0 / (x1 - x0)` on a
@@ -274,8 +302,12 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 44: thin picking — radius + mesh-wins-ties.
 Ch 45: SELECTION. State = Scene.selected: HashSet<guid> — the set every later tool acts on. Visible
        via FLAG_SELECTED (bit 0, reserved since 35): one bit read by all three instance pipelines
-       (triangle/cylinder/sphere) → the whole object tints as a unit; set_selected_rows uploads only
-       flipped rows (37's pattern). Release branches on drag distance: <3 px CLICK = replace,
+       (triangle/cylinder/sphere) → the whole object tints as a unit; set_selected_rows writes
+       tables.objects[row].2 (the truth — set_scene re-derives instances from tables, so the
+       selection survives later Msg::File appends) AND pokes flipped live rows via write_row_flags
+       (gpu/mod.rs — Instance.flags is engine-private), only flipped rows upload (37's pattern).
+       Rows are the unambiguous key (guids can collide across docs); the guid set stays for UX.
+       Release branches on drag distance: <3 px CLICK = replace,
        Shift+click = toggle, empty click = clear; >=3 px MARQUEE (never both — a zero-area rect is a
        NaN frustum). MARQUEE: the drag rect is
        remapped to the full clip cube by a crop matrix (translation · scale_xyz), so crop·view_proj
@@ -284,7 +316,7 @@ Ch 45: SELECTION. State = Scene.selected: HashSet<guid> — the set every later 
        style.
 ```
 
-Edited: `engine/gpu/mod.rs` (`FLAG_SELECTED`, `set_selected_rows`), `shaders/*.wgsl` (selection tint),
+Edited: `engine/gpu/mod.rs` (`FLAG_SELECTED`, `write_row_flags`, `set_selected_rows`), `shaders/*.wgsl` (selection tint),
 `camera.rs` (`marquee_frustum` — crop · view_proj), `app/scene.rs` (`selected`, `apply_selection`,
 `select_marquee`), `state.rs` (click / Shift+click / marquee gestures).
 

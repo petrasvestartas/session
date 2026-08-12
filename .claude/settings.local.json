@@ -47,7 +47,6 @@
       "Bash(tasklist)",
       "Bash(bash bash/minitest.sh --rust --no-web)",
       "Bash(./build/Release/point_minitest.exe --filter \"Polyline::Boolean\")",
-      "Bash(./build/Release/main_1.exe)",
       "Bash(DIAG_TEST=inplane_hexshell WOOD_DUMP=C:/brg/code_rust/session/session_data/session_dump_inplane_hexshell.txt ./build/Release/main_5.exe)",
       "Read(//c/brg/code_cpp/wood/cmake/build/Release/**)",
       "Bash(DIAG_TEST=inplane_hexshell WOOD_DUMP=C:/brg/code_rust/session/session_data/wood_dump_inplane_hexshell.txt ./wood.exe)",

@@ -256,13 +256,20 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     fixture — facecolors box, pointcolors gradient + colored dots, width-5 polyline, fat point
   - consumers: 45 selection (tint), 47 thickness slider (scales all multiplier widths), PointCloud
     lesson (point_size via Instance._pad[0]), 63 BRep per-face colors (3-language kernel change)
-- ✅ 35 Scene struct — the app layer takes shape (ARCHITECTURE §2)
-  - files: `app/scene.rs` (`Scene { session, order, guid→row map, hidden }`), `engine/gpu/mod.rs`
-    (`ArenaUpload`, pub row structs), `state.rs` wiring
-  - steps: the WHOLE 34 walk (all Geometry variants + push_mesh + line/point adapters) moves out of
-    `Gpu` into `Scene::build → ArenaUpload`; `Gpu` back to device/surface/pipelines purity, keeps 33's
-    per-frame rebase; per-object color + `FLAG_HIDDEN` via `objects_base`; static-vs-dynamic split note
-  - verify: identical visuals (meshes+lines+points all survive); `grep Session|Mesh|BRep src/engine/`
+- ✅ 35 Scene struct — the document returns, loading stops hurting (ARCHITECTURE §2). REWRITTEN
+  2026-08-12 for the post-Xform tree, ONE continuous lesson (doc + snapshot `35_scene_struct/`
+  verified: wasm check clean, engine litmus empty)
+  - files: `app/scene.rs` (`Scene { docs: Vec<Doc{name,place,session}>, tables, guid→row, hidden }`
+    + `add_file`), `engine/gpu/mod.rs` (`ArenaUpload`, zero-copy `set_scene`, `zeroed_buffer`, pub
+    row structs, stored layouts, empty-start `new()`), `app/persistence.rs` (chunked parse),
+    `state.rs` (loop out), `lib.rs` (`Msg::Ready/Msg::File` loader), `Cargo.toml` (+prost)
+  - steps: the WHOLE 34 walk moves into `Scene::add_file` (appends into shared tables; placement =
+    manifest place × `world_xforms()`); `Gpu::new()` starts EMPTY, `set_scene` is the ONE upload
+    path — zero-copy `write_buffer` lane splice (WebGPU zero-init); parse sliced 25k objects per
+    `setTimeout(0)` macrotask on the kernel's pub `from_proto` split (`Rc` keeps Session off
+    workers — slicing IS the fix); first sheet ~2-3 s + camera auto-fit, rest stream in, UI live
+  - verify: drag DURING load (no freezes); 3 colors_widths boxes separated; paper pen weights;
+    `grep Session|Mesh|BRep src/engine/` empty
     is empty (litmus test)
 
 ## Phase 5 — Acceleration & culling  (BEFORE picking/scenes grow)

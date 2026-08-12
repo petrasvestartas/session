@@ -42,10 +42,14 @@ handler), walk the picked node's parent chain and add every ancestor to `tree_ex
 ```rust
     /// Make `guid`'s row exist and be on screen next frame.
     fn reveal_in_tree(&mut self, guid: &str) {
-        // ancestors(): the kernel's TreeNode accessor — immediate parent up to root, guids only
-        if let Some(node) = self.scene.session.tree.find_node_by_guid(&guid.to_string()) {
-            for a in node.borrow().ancestors() {
-                self.ui.tree_expanded.insert(a.borrow().guid().to_string());
+        // Multi-doc (35): find the Doc that owns this object first, then search ITS tree.
+        // The object guid is the tree node's NAME, not its uuid → get_node_by_name.
+        if let Some(doc) = self.scene.docs.iter().find(|d| d.session.lookup.contains_key(guid)) {
+            if let Some(node) = doc.session.tree.get_node_by_name(guid) {
+                // ancestors(): the kernel's TreeNode accessor — immediate parent up to root
+                for a in node.borrow().ancestors() {
+                    self.ui.tree_expanded.insert(a.borrow().guid().to_string());
+                }
             }
         }
         self.ui.tree_scroll_to = Some(guid.to_string());   // consumed by the panel next frame
@@ -55,8 +59,13 @@ handler), walk the picked node's parent chain and add every ancestor to `tree_ex
 
 (`TreeNode::ancestors()` returns `Vec<Rc<RefCell<TreeNode>>>` from immediate parent up to root and
 already `upgrade()`s the internal `Weak` parent link for you — never touch the private `.parent` field
-directly. `find_node_by_guid` is the same call `remove_object` uses, verified. If a picked object has
-no tree node — a top-level nurbs row from 70 — `ancestors()` is empty and only the scroll fires.)
+directly. The lookup trap: for geometry nodes the object's GUID is stored as the node's **name**
+(`tree.rs`), so the object-keyed lookup is `Tree::get_node_by_name` — `find_node_by_guid` matches the
+nodes' *own* uuids and returns `None` for an object guid. And since 35 there is one `Session` per
+`Doc`, so the owning doc must be found first. Also insert that doc's own top-level row key into
+`tree_expanded` — the panel has N roots, one per `Doc`, and an expanded ancestor chain inside a
+collapsed doc root is still invisible. If a picked object has no tree node — a top-level nurbs row
+from 70 — `ancestors()` is empty and only the scroll fires.)
 
 ## Step 2 — scroll to the row: `src/ui/tree.rs`
 
@@ -134,8 +143,9 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 70: the tree renders state.
-Ch 71: THE LOOP CLOSED. Viewport pick → reveal_in_tree: walk the TreeNode parent chain into
-       tree_expanded (find_node_by_guid — the same handle remove_object uses), set a one-shot
+Ch 71: THE LOOP CLOSED. Viewport pick → reveal_in_tree: find the owning Doc, get_node_by_name
+       (the object guid IS the node's name — find_node_by_guid matches node uuids), walk the
+       TreeNode parent chain into tree_expanded (+ the doc's root row), set a one-shot
        tree_scroll_to, poke. The panel resolves it AFTER flatten (same-frame ordering via 47's data
        flow): row index × row_h → vertical_scroll_offset, ~3 rows of context. Uniform row height is
        what makes scroll-to-index trivial — a reason to keep rows uniform beyond aesthetics.

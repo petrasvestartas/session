@@ -34,6 +34,11 @@ a(x−oₓ) + b(y−oy) + c(z−o_z) + d  =  a·x + b·y + c·z + (d − (a·o�
 So rebasing the whole frustum to world is: for each plane, `d -= dot(normal, origin)`. Six subtractions,
 done once per frame in f64 — then planes and boxes share the world frame and the test is exact.
 
+One refinement since 34c: the matrix the frame *actually* draws with is the **anchored** one —
+`view_proj_anchored(aspect, &anchor)`, with the anchor `rebase_anchor` picks (near the origin, but
+sticky between frames). Same math, one substitution: the rebase point is that `anchor`, not the raw
+camera `origin`. Extract the planes from the anchored matrix and subtract `dot(normal, anchor)`.
+
 <svg viewBox="0 0 680 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="per frame: extract 6 planes from the f64 camera-relative view_proj, rebase them to world, plane-test every object's world AABB, set FLAG_CULLED on flipped rows; the shader collapses culled instances so one draw call remains" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <g fill="none" stroke="#6fb3ff" stroke-width="1.3">
     <rect x="10" y="30" width="140" height="40"/>
@@ -43,7 +48,7 @@ done once per frame in f64 — then planes and boxes share the world frame and t
   </g>
   <g fill="#d7dae0" text-anchor="middle">
     <text x="80" y="46">view_proj (f64)</text><text x="80" y="61" fill="#666" font-size="9">camera-relative</text>
-    <text x="254" y="46">6 planes → world</text><text x="254" y="61" fill="#666" font-size="9">d −= n·origin</text>
+    <text x="254" y="46">6 planes → world</text><text x="254" y="61" fill="#666" font-size="9">d −= n·anchor</text>
     <text x="433" y="46">plane test</text><text x="433" y="61" fill="#666" font-size="9">every world AABB</text>
     <text x="606" y="46">FLAG_CULLED</text><text x="606" y="61" fill="#666" font-size="9">flipped rows only</text>
   </g>
@@ -102,6 +107,7 @@ impl Frustum {
     }
 
     /// Shift each plane from camera-relative to world: d -= normal·origin (see the box above).
+    /// `origin` is the render loop's rebase point — since 34c that's the ANCHOR, not the raw origin.
     pub fn rebased_to_world(mut self, origin: &Point) -> Self {
         for p in &mut self.planes {
             p[3] -= p[0]*origin[0] + p[1]*origin[1] + p[2]*origin[2];
@@ -144,9 +150,11 @@ the verified `OBB::aabb()` accessor (36's world OBB → its enclosing world AABB
     /// The object's world AABB extents, in f64 — what the frustum plane test consumes.
     /// A CACHE READ, not a computation: 36's build_bvh stored every box's extents when it walked
     /// the vertices. Recomputing here would put an O(total vertices) walk inside the PER-FRAME
-    /// cull — the classic hidden cost. The cache invalidates exactly when the BVH does (rebuild).
+    /// cull — the classic hidden cost. The cache invalidates exactly when the BVH does: rebuilt or
+    /// EXTENDED per `add_file`, since rows are appended globally across docs and the cache must stay
+    /// row-indexed in lockstep (36's row-indexed cache).
     pub fn world_aabb(&self, guid: &str) -> ([f64; 3], [f64; 3]) {
-        self.world_boxes[self.guid_to_row[guid] as usize]   // 36: row == order-index into world_boxes
+        self.world_boxes[self.guid_to_row[guid] as usize]   // 36's row-indexed cache: rows are GLOBAL across docs
     }
 ```
 
@@ -189,6 +197,14 @@ N. Then the per-frame cull (right after `new`, near 33's `rebuild_instances`):
 > **Why set/clear, not rebuild.** 33's `rebuild_instances` rewrites every row's model+color each frame
 > but never touches `flags`; this writes only `flags`, only on the rows that flipped. The two never
 > collide, and a hidden object (35) stays hidden whether or not it's also culled — different bits.
+
+> **Cull bits are transient.** FLAG_CULLED lives only in the live instance buffer — deliberately *not*
+> in the viewer-state flags 36's rewrite keeps in `scene.tables.objects[row].2` (SELECTED/HIDDEN), the
+> truth `set_scene` re-derives instances from. So every `set_scene` — each `Msg::File` append rebuilds
+> the instances from the tables — wipes the bit: clear `culled_now` there (one line in `set_scene`:
+> `self.culled_now.clear();`) and let the next frame's cull recompute. The rule: persistent state lives
+> in the tables; transient per-frame state like cull bits is recomputed after camera moves *and* after
+> every `set_scene`.
 
 ## Step 3 — the shader collapses a culled instance: `src/shaders/*.wgsl`
 
@@ -239,19 +255,24 @@ collapsed instances. Culling changes the *buffer*, never the *draw*.
 
 ## Step 4 — run it each frame: `src/state.rs`
 
-In `render`, build the frustum from the f64 `view_proj`, rebase it to world, cull, then draw. The
-frustum uses the **same** `view_proj` and `origin` that 33 feeds `clear()` — so what's culled matches
-what's drawn:
+In `render`, build the frustum from the **anchored** `view_proj` the frame actually draws with (34c),
+rebase it to world, cull, then draw. `render` already computes the anchor and the matrix — the frustum
+must come from that **same** matrix, and the rebase point is the `anchor`, not the raw `origin` — so
+what's culled matches what's drawn:
 
 ```rust
-        let view_proj = self.camera.view_proj(aspect);
+        // find, in render() — these three lines already exist (34c):
         let origin = self.camera.origin();
-        let frustum = Frustum::from_view_proj(&view_proj.to_cols())   // f64 matrix, camera-relative
+        let anchor = self.gpu.rebase_anchor(&origin, self.camera.distance_world());
+        let view_proj = self.camera.view_proj_anchored(aspect, &anchor);
+        // insert AFTER them, BEFORE the clear() call:
+        let frustum = Frustum::from_view_proj(&view_proj.to_cols())   // f64 matrix, anchor-relative
             // world frame — matches 36's boxes
-            .rebased_to_world(&origin);
+            .rebased_to_world(&anchor);
         let (drawn, culled) = self.gpu.apply_frustum_cull(&self.scene, &frustum);
         self.gpu.perf_set_drawn(drawn, drawn + culled);
-        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
+        // the clear() line itself is unchanged:
+        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj)
 ```
 
 `perf_set_drawn` doesn't exist yet — 28's counter never had a drawn/total split. Give `Gpu` the
@@ -293,10 +314,11 @@ Load the stress file (34), press `F`, then zoom into one corner:
 ## Recap
 
 ```
-Ch 36: Scene.bvh + world_aabb(guid) — world boxes per object (mesh.xform baked in).
-Ch 37: FRUSTUM CULL. Per frame: 6 planes out of the f64 camera-relative view_proj (Gribb–Hartmann),
-       rebased to WORLD (d −= n·origin) so they match 36's world boxes — the one subtlety camera-
-       relative rendering forces. Positive-vertex test on every object's world AABB (linear, like
+Ch 36: Scene.bvh + world_aabb(guid) — world boxes per object (the row's placed frame — manifest
+       place × session world xform — baked in).
+Ch 37: FRUSTUM CULL. Per frame: 6 planes out of the f64 ANCHORED view_proj the frame draws with
+       (view_proj_anchored, 34c; Gribb–Hartmann), rebased to WORLD (d −= n·anchor) so they match
+       36's world boxes — the one subtlety camera-relative rendering forces. Positive-vertex test on every object's world AABB (linear, like
        the archive; cheap here). Set/clear FLAG_CULLED (bit 7) — own bit, so 35's HIDDEN (bit 1) is
        untouched — and re-upload ONLY the rows whose state flipped (culled_now set): flip-tracking,
        not a fancier structure, keeps it cheap. Every instance-reading vertex shader collapses a

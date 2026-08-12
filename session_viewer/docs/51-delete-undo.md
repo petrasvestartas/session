@@ -21,7 +21,7 @@
   <path d="M478,58 H400" stroke="#888" stroke-width="1.2" marker-end="url(#ah51g)"/>
   <text x="439" y="72" fill="#888" font-size="10">Ctrl+Y: apply()</text>
   <text x="340" y="110" fill="#888" text-anchor="middle">a NEW command clears `undone` — the classic branch-point rule</text>
-  <text x="340" y="130" fill="#666" text-anchor="middle">snapshots are ABSOLUTE (the whole Geometry), so revert can't drift</text>
+  <text x="340" y="130" fill="#666" text-anchor="middle">snapshots are the Rc handle + the placement — together, the whole object</text>
   <defs>
     <marker id="ah51" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker>
     <marker id="ah51g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#888"/></marker>
@@ -36,11 +36,30 @@ that enum was a bottleneck everything had to be threaded through. A `trait Comma
 feature ships its own `apply`/`revert` next to the code it belongs to, and `History` never changes
 again. That inversion — **open for extension, closed at the core** — is the entire lesson.
 
+## What a snapshot IS in this kernel — read before Step 2
+
+Two facts decide the design:
+
+- **`Geometry` variants hold `Rc<T>`**, and every kernel mutation goes copy-on-write
+  (`Rc::make_mut`). So `lookup.get(guid).cloned()` clones the *handle* — cheap — and that handle
+  is a **stable snapshot by construction**: an edit after the clone COWs a fresh allocation and
+  can never reach ours. "Absolute snapshot" and "Rc clone" are the same thing here.
+- **The object's placement is NOT in the object.** Since the Xform refactor it lives in
+  `session.xforms`. A snapshot that carries only the `Geometry` restores a body at the origin —
+  delete a moved object, undo, and the move is gone. The snapshot must carry the Session-local
+  xform too.
+
+And one honest scoping call: **delete v1 hides the row instead of reclaiming it.** The arena still
+holds the object's vertices; the instance flag makes every lane skip them (46's shader collapse).
+True row/arena reclamation is 38's business — when its free-list lands, `RemoveObjects` upgrades
+without its interface changing. Until then a deleted object costs its memory but zero draw time,
+and undo is trivially exact.
+
 ## Files we touch
 
 ```
 src/app/history/mod.rs      # NEW — trait Command + History { done, undone }
-src/app/history/remove.rs   # NEW — RemoveObjects: absolute snapshots, apply/revert
+src/app/history/remove.rs   # NEW — RemoveObjects: Rc + xform snapshots, apply/revert
 src/app/commands.rs         # `delete` verb; `undo`/`redo` verbs
 src/state.rs                # State.history
 src/lib.rs                  # Ctrl+Z / Ctrl+Y / Del key — they just type the verbs
@@ -99,25 +118,37 @@ declare the submodule at the top of `history/mod.rs` itself: `pub mod remove;` (
 
 ## Step 2 — the first Command: `src/app/history/remove.rs` (NEW)
 
-`RemoveObjects` holds **absolute snapshots** — the full cloned `Geometry`, not "what changed".
-Absolute snapshots can't drift: revert doesn't *compute* the old state, it *is* the old state. (The
-guid lives inside the cloned object, so a restored object keeps its identity — selection, tree rows,
-and later references all survive the round trip.)
+Each snapshot records where the object lived (row + doc — a guid alone is ambiguous across
+documents), the `Rc` handle, and the placement:
 
 ```rust
-use session_rust::Geometry;
+use session_rust::{Geometry, Xform};
 use super::Command;
 use crate::{app::scene::Scene, engine::gpu::Gpu};
+use crate::engine::gpu::Instance;
+
+pub struct RemovedObj {
+    pub row: u32,
+    pub doc: usize,
+    pub geom: Geometry,   // Rc handle — a stable snapshot (kernel mutations are copy-on-write)
+    pub local: Xform,     // the Session-local placement (it lives in session.xforms, NOT the object)
+}
 
 pub struct RemoveObjects {
-    snapshots: Vec<Geometry>,     // absolute state of every deleted object
+    snapshots: Vec<RemovedObj>,
 }
 
 impl RemoveObjects {
     /// Snapshot NOW, at construction — before anything mutates.
     pub fn of_selection(scene: &Scene) -> Self {
         let snapshots = scene.selected.iter()
-            .filter_map(|g| scene.session.lookup.get(g).cloned())
+            .filter_map(|guid| {
+                let &row = scene.guid_to_row.get(guid)?;
+                let doc = scene.doc_of_row(row);
+                let geom = scene.docs[doc].session.lookup.get(guid)?.clone();
+                let local = scene.docs[doc].session.xform(guid);
+                Some(RemovedObj { row, doc, geom, local })
+            })
             .collect();
         Self { snapshots }
     }
@@ -125,49 +156,55 @@ impl RemoveObjects {
 
 impl Command for RemoveObjects {
     fn apply(&mut self, scene: &mut Scene, gpu: &mut Gpu) {
-        for geom in &self.snapshots {
-            let guid = geom.guid().to_string();
+        for s in &self.snapshots {
+            let guid = s.geom.guid().to_string();
             // kernel: lookup + collections + tree + graph
-            scene.session.remove_object(&guid);
-            if let Some(&row) = scene.guid_to_row.get(&guid) {
-                gpu.remove_object(&guid);                  // 38a: arena free + segment/glyph drain
-                gpu.hide_row(row);
-                scene.free_row(&guid);                     // row back on the free list
-            }
+            scene.docs[s.doc].session.remove_object(&guid);
+            // v1 delete = hide the row. The DURABLE bit lives in the tables (set_scene
+            // re-derives from them — a file streaming in later must not resurrect the object);
+            // the live poke updates the instance without a re-upload.
+            scene.tables.objects[s.row as usize].2 |= Instance::FLAG_HIDDEN;
+            gpu.write_row_flags(s.row, scene.tables.objects[s.row as usize].2);
             scene.selected.remove(&guid);
-            scene.hashes.remove(&guid);
         }
     }
     fn revert(&mut self, scene: &mut Scene, gpu: &mut Gpu) {
-        for geom in &self.snapshots {
-            let guid = geom.guid().to_string();
-            scene.restore_geometry(geom.clone());          // Session::add_* by variant (Step 3)
-            // recycled or fresh — guid_to_row rebinds
-            let row = scene.assign_row(&guid);
-            // 38b: re-flatten into arena + instance row
-            scene.apply_object(gpu, &guid, geom, row);
+        for s in &self.snapshots {
+            let guid = s.geom.guid().to_string();
+            scene.restore_geometry(s.doc, &s.geom);              // Session::add_* by variant (Step 3)
+            scene.docs[s.doc].session.set_xform(&guid, s.local.duplicate());
+            scene.tables.objects[s.row as usize].2 &= !Instance::FLAG_HIDDEN;
+            gpu.write_row_flags(s.row, scene.tables.objects[s.row as usize].2);
         }
     }
     fn label(&self) -> String { format!("delete {} object(s)", self.snapshots.len()) }
 }
 ```
 
+(`write_row_flags` is the one-row flag poke 45/46 added to `engine/gpu/mod.rs` — `Instance.flags`
+is private to the engine, so the write lives there. If you reached this lesson before those, it is
+ten lines: set `objects_base[row].2` and `instances[row].flags`, then `queue.write_buffer` that
+row's 96 bytes.)
+
 ## Step 3 — restoring a snapshot: `src/app/scene.rs`
 
 The kernel removes generically (`Session::remove_object(guid)`) but adds per type — a small dispatch
 closes the gap (kernel-gap #8 in `_KERNEL_GAPS.md`: a kernel `add_geometry(Geometry)` would delete
-this function):
+this function). The `add_*` calls take OWNED values, and our snapshot holds `Rc` handles — so each
+arm clones the inner value out (`(*m).clone()`); the restored object keeps its guid because the
+guid lives inside the clone:
 
 ```rust
-    /// Re-insert a snapshot into the Session (lookup + collections + tree).
-    /// Guid is inside the object.
-    pub fn restore_geometry(&mut self, geom: Geometry) {
+    /// Re-insert a snapshot into doc `d`'s Session (lookup + collections + tree).
+    pub fn restore_geometry(&mut self, d: usize, geom: &Geometry) {
+        let session = &mut self.docs[d].session;
         match geom {
-            Geometry::Mesh(m)     => { self.session.add_mesh(m, None); }
-            Geometry::BRep(b)     => { self.session.add_brep(b, None); }
-            Geometry::Line(l)     => { self.session.add_line(l, None); }
-            Geometry::Polyline(p) => { self.session.add_polyline(p, None); }
-            Geometry::Point(p)    => { self.session.add_point(p, None); }
+            Geometry::Mesh(m)       => { session.add_mesh((**m).clone(), None); }
+            Geometry::BRep(b)       => { session.add_brep((**b).clone(), None); }
+            Geometry::Line(l)       => { session.add_line((**l).clone(), None); }
+            Geometry::Polyline(p)   => { session.add_polyline((**p).clone(), None); }
+            Geometry::NurbsCurve(c) => { session.add_nurbscurve((**c).clone(), None); }
+            Geometry::Point(p)      => { session.add_point((**p).clone(), None); }
             _ => {}
         }
     }
@@ -219,17 +256,21 @@ Keyboard shortcuts are just typists (the commands-only philosophy made literal) 
 ## Step 5 — verify
 
 ```bash
-cd session_viewer && trunk serve   # http://localhost:8770
+cd session_viewer && trunk serve   # http://127.0.0.1:8770
 ```
 
 - Select two objects → **Del** → gone; log `delete 2 object(s)`; HUD object count drops by 2.
-- **Ctrl+Z** → both return, same colors, same placement, and clicking one shows the **same guid** as
-  before — identity survived the round trip (the snapshot carries it). **Ctrl+Y** → gone again.
+- **Ctrl+Z** → both return, same colors, same PLACEMENT (move an object first with 54's gumball if
+  you have it, or set an xform via the console — the snapshot's `local` is what brings the position
+  back), and clicking one shows the **same guid** — identity survived the round trip.
+  **Ctrl+Y** → gone again.
+- Delete something on the SECOND sheet of the manifest → only that sheet's object disappears, and
+  undo restores it into that sheet's document — the snapshots carry their doc.
 - Delete A, delete B, Ctrl+Z ×2 → both back in reverse order; delete C now → **redo is dead** (the
   branch-point rule — `undone` cleared).
-- The `#[cfg(test)]`: build a Scene, snapshot-delete an object, assert it's gone from
-  `session.lookup`, revert, assert `lookup[guid]`'s jsondump equals the original — *byte-identical*
-  restoration, the absolute-snapshot guarantee.
+- The `#[cfg(test)]`: build a Scene (`Scene::new()` + `add_file`), snapshot-delete an object, assert
+  it's gone from that doc's `session.lookup`, revert, assert the restored object's `pb_dumps()`
+  bytes AND `session.xform(guid)` equal the originals — the two halves of the snapshot guarantee.
 
 ## Recap
 
@@ -238,16 +279,18 @@ Ch 50: history/autocomplete — CLI ergonomics.
 Ch 51: UNDO. trait Command { apply / revert / label } + History { done, undone } — the archive's
        UndoAction enum is the documented dead-end (every feature = new variant + new central match);
        the trait inverts it so History never changes again. execute → done.push + undone.clear
-       (a new action kills the redo branch). RemoveObjects = ABSOLUTE Geometry snapshots taken
-       at construction; apply = Session::remove_object + 38a arena free + row free; revert =
-       restore_geometry (per-variant add_*) + assign_row + apply_object — byte-identical restore,
-       guid preserved (it lives in the clone). delete/undo/redo verbs; Del / Ctrl+Z / Ctrl+Y just
-       type them. Phase 8 complete: every future mutation is born a Command and undoable for free.
+       (a new action kills the redo branch). RemoveObjects snapshots (row, doc, Rc handle, LOCAL
+       XFORM) — the Rc IS an absolute snapshot (kernel edits are copy-on-write), and the xform must
+       ride along because placement left the geometry. apply = Session::remove_object + FLAG_HIDDEN
+       in scene.tables (durable across set_scene) + write_row_flags (live); revert =
+       restore_geometry per variant ((*m).clone() — add_* wants owned) + set_xform + unhide.
+       Delete v1 hides, 38 reclaims. delete/undo/redo verbs; Del / Ctrl+Z / Ctrl+Y just type them.
+       Phase 8 complete: every future mutation is born a Command and undoable for free.
 ```
 
-Edited: `app/history/mod.rs` (NEW — trait + stacks), `app/history/remove.rs` (NEW — `RemoveObjects`),
-`app/scene.rs` (`restore_geometry`), `app/commands.rs` (delete/undo/redo), `state.rs` (`history`,
-Del/Ctrl+Z/Ctrl+Y).
+Edited: `app/history/mod.rs` (NEW — trait + stacks), `app/history/remove.rs` (NEW — `RemovedObj`,
+`RemoveObjects`), `app/scene.rs` (`restore_geometry`), `app/commands.rs` (delete/undo/redo),
+`state.rs` (`history`, Del/Ctrl+Z/Ctrl+Y).
 
 ## Next
 

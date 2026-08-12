@@ -1,9 +1,0 @@
-{
-    "type": "Quaternion",
-    "guid": "3715bf71-2cd7-4762-9c8b-cc30d175e143",
-    "name": "serialization/test_quaternion",
-    "s": 0.7071067811865476,
-    "x": 0.0,
-    "y": 0.0,
-    "z": 0.7071067811865476
-}

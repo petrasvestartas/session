@@ -27,7 +27,7 @@
 ```
 src/state.rs   # the dirty flag; mark_dirty() at every state-change site; render() gates on it
 src/lib.rs     # RedrawRequested stops unconditionally re-requesting
-src/ui/mod.rs  # HUD gains "frames drawn/s" beside fps — the number that proves it works
+src/ui/mod.rs  # HUD gains "frames drawn/s" beside fps — the number that proves it works (47 creates ui/)
 ```
 
 ## Step 1 — the flag and its sources: `src/state.rs`
@@ -54,6 +54,8 @@ build in Step 2 (`mark_dirty` + a redraw request), at code that already exists:
 |---|---|
 | camera orbit / pan / zoom / fit / projection | every handler that touches `Camera` (10–16) |
 | resize | `resize()` |
+| first file adopted (`Msg::Ready`) | `lib.rs` `user_event`, the `Ready` arm |
+| progressive file appended (`Msg::File`) | `lib.rs` `user_event`, the `File` arm |
 | selection & hover changes | 45's gestures, 53's gumball hover |
 | any Command executed / undone / redone | `commit()`, the undo/redo verbs (51) |
 | live gumball drag | `set_live_model` callers (54) |
@@ -61,6 +63,10 @@ build in Step 2 (`mark_dirty` + a redraw request), at code that already exists:
 | reconcile applied (watch/reload) | `apply_session` (40) |
 | settings toggles, thickness slider | the apply-intent block (47) |
 | egui needing a repaint (animations, cursor blink) | after `build_ui` returns (code below) |
+
+The loader rows are the classic miss: both `user_event` arms already call `request_redraw()`, but
+under the dirty gate that draw renders **nothing** unless the flag is set — poke there too, or the
+2nd..Nth progressively loaded sheet never appears until the user happens to move the mouse.
 
 That last row matters: egui reports whether *it* wants another frame (a blinking CLI cursor does);
 respect it or the text caret freezes. In `render()`, right after 47's
@@ -103,7 +109,9 @@ helper on `impl State` that all the call sites use (`lib.rs`'s input arms call i
 (Sweep the table's rows to call `poke()`. The watch poll (40) and 39's debounce still need ticks
 while idle — drive them from their own timer/`spawn_local` wakeups rather than the render loop, or
 accept a low-rate heartbeat: `request_redraw` once per second from a timer, with `render` still
-skipping cleanly when nothing is dirty. The heartbeat costs one no-op call, not a frame.)
+skipping cleanly when nothing is dirty. The heartbeat costs one no-op call, not a frame. It also
+covers a CSS-only canvas resize: no winit resize event fires for those — today the treadmill's
+`RedrawRequested` size check catches them, and with the treadmill gone only the heartbeat does.)
 
 ## Step 3 — prove it on the HUD: `src/ui/mod.rs`
 

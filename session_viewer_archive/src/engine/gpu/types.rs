@@ -204,6 +204,18 @@ pub(crate) fn mat4_inverse_cm(m: &[[f32; 4]; 4]) -> [[f32; 4]; 4] {
     t
 }
 
+/// Kernel `Xform` → column-major f32 model matrix (the GPU instance layout).
+pub(crate) fn xform_to_cols_f32(xf: &session_rust::Xform) -> [[f32; 4]; 4] {
+    let c = xf.to_cols();
+    let mut o = [[0.0f32; 4]; 4];
+    for a in 0..4 {
+        for b in 0..4 {
+            o[a][b] = c[a][b] as f32;
+        }
+    }
+    o
+}
+
 pub(crate) fn identity_matrix() -> [[f32; 4]; 4] {
     [
         [1.0, 0.0, 0.0, 0.0],
@@ -383,6 +395,11 @@ pub struct GpuSession {
     pub nurbs_trimmeds: HashMap<String, session_rust::NurbsSurfaceTrimmed>,
     /// Cached polyline points for NurbsCurve viewport picking.
     pub nc_pick_pts: HashMap<String, Vec<[f32; 3]>>,
+    /// Per-guid placement (world xform columns, f32) for the matrix-only types. The kernel
+    /// geometry is LOCAL and carries no transform any more — the pose lives in the session
+    /// (`Session::set_xform`) and is mirrored here so re-adding an object (undo, CV edit,
+    /// re-tessellation) restores its instance model instead of snapping it back to origin.
+    pub placements: HashMap<String, [[f32; 4]; 4]>,
 
     // ── Template instancing ───────────────────────────────────────────────────
 

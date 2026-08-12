@@ -58,7 +58,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Line Point",
-    "time_ms": 0.017
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 34,
     "passed": true,
     "test_name": "Polyline Point",
-    "time_ms": 0.022
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 57,
     "passed": true,
     "test_name": "Curve Point",
-    "time_ms": 0.372
+    "time_ms": 0.331
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Surface Point",
-    "time_ms": 0.934
+    "time_ms": 0.911
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 169,
     "passed": true,
     "test_name": "Mesh Point",
-    "time_ms": 0.451
+    "time_ms": 0.434
   },
   {
     "checks": [
@@ -193,7 +193,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Mesh Point AABB",
-    "time_ms": 0.406
+    "time_ms": 0.378
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Pointcloud Point",
-    "time_ms": 0.013
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 296,
     "passed": true,
     "test_name": "Nurbscurves Closest",
-    "time_ms": 0.243
+    "time_ms": 0.208
   },
   {
     "checks": [
@@ -307,7 +307,7 @@
     "line": 276,
     "passed": true,
     "test_name": "Polylines Closest",
-    "time_ms": 0.038
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -333,7 +333,7 @@
     "line": 256,
     "passed": true,
     "test_name": "Lines Closest",
-    "time_ms": 0.022
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -369,7 +369,7 @@
     "line": 230,
     "passed": true,
     "test_name": "Pointcloud Point SpatialKDTree",
-    "time_ms": 0.022
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -410,6 +410,6 @@
     "line": 119,
     "passed": true,
     "test_name": "Surface Curve",
-    "time_ms": 73.465
+    "time_ms": 68.754
   }
 ]

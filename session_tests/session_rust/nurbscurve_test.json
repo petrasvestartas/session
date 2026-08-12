@@ -58,7 +58,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 11.743
+    "time_ms": 11.716
   },
   {
     "checks": [
@@ -379,7 +379,7 @@
     "line": 226,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.391
+    "time_ms": 0.34
   },
   {
     "checks": [
@@ -475,105 +475,85 @@
     "line": 643,
     "passed": true,
     "test_name": "Modifications",
-    "time_ms": 14.478
+    "time_ms": 12.966
   },
   {
     "checks": [
       {
         "code_line": "loaded_json == curve",
-        "line": 817,
+        "line": 813,
         "passed": true
       },
       {
         "code_line": "loaded_json_string == curve",
-        "line": 818,
+        "line": 814,
         "passed": true
       },
       {
         "code_line": "loaded_from_file == curve",
-        "line": 819,
+        "line": 815,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let curve = NurbsCurve::create(false, 2, &points);\n\n        //   jsondump()      │ String       │ to JSON string (internal use)\n        //   jsonload(s)     │ String       │ from JSON string (internal use)\n        //   file_json_dumps()    │ String       │ to JSON string\n        //   file_json_loads(s)   │ String       │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        // JSON object\n        let json = curve.jsondump().unwrap();\n        let loaded_json = NurbsCurve::jsonload(&json).unwrap();\n\n        // String\n        let json_string = curve.file_json_dumps();\n        let loaded_json_string = NurbsCurve::file_json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbscurve.json\");\n        curve.file_json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsCurve::file_json_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 782,
+    "line": 778,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.984
+    "time_ms": 0.788
   },
   {
     "checks": [
       {
         "code_line": "loaded_proto_string == curve",
-        "line": 853,
+        "line": 849,
         "passed": true
       },
       {
         "code_line": "loaded == curve",
-        "line": 854,
+        "line": 850,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let curve = NurbsCurve::create(false, 2, &points);\n\n        //   pb_dumps()      │ bytes        │ to protobuf bytes\n        //   pb_loads(b)     │ bytes        │ from protobuf bytes\n        //   pb_dump(path)   │ file         │ write to file\n        //   pb_load(path)   │ file         │ read from file\n\n        // String\n        let proto_string = curve.pb_dumps();\n        let loaded_proto_string = NurbsCurve::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbscurve.bin\");\n        curve.pb_dump(filename.to_str().unwrap());\n        let loaded = NurbsCurve::pb_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 824,
+    "line": 820,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.606
+    "time_ms": 0.519
   },
   {
     "checks": [
       {
-        "code_line": "curve1.xform.is_identity() == false",
+        "code_line": "curve1.cv(0).unwrap()[2] == 1.0",
         "line": 755,
         "passed": true
       },
       {
-        "code_line": "curve1.cv(0).unwrap()[2] == 1.0",
-        "line": 756,
-        "passed": true
-      },
-      {
-        "code_line": "curve2.xform.is_identity() == true",
-        "line": 762,
-        "passed": true
-      },
-      {
         "code_line": "curve2.cv(0).unwrap()[2] == 1.0",
-        "line": 763,
-        "passed": true
-      },
-      {
-        "code_line": "curve3_transformed.xform.is_identity() == false",
-        "line": 769,
+        "line": 761,
         "passed": true
       },
       {
         "code_line": "curve3_transformed.cv(0).unwrap()[2] == 10.0",
-        "line": 770,
-        "passed": true
-      },
-      {
-        "code_line": "curve4_transformed.xform.is_identity() == true",
-        "line": 776,
+        "line": 767,
         "passed": true
       },
       {
         "code_line": "curve4_transformed.cv(0).unwrap()[2] == 10.0",
-        "line": 777,
+        "line": 773,
         "passed": true
       }
     ],
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Xform;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n\n        // transform() - Apply stored xform (in-place)\n        let mut curve1 = NurbsCurve::create(false, 2, &points);\n        curve1.xform = Xform::translation(0.0, 0.0, 1.0);\n        curve1.transform(None);\n\n        // transform(xform) - Apply custom xform (in-place)\n        let mut curve2 = NurbsCurve::create(false, 2, &points);\n        let x = Xform::translation(0.0, 0.0, 1.0);\n        curve2.transform(Some(&x));\n\n        // transformed() - Get copy with stored xform applied\n        let mut curve3 = NurbsCurve::create(false, 2, &points);\n        curve3.xform = Xform::translation(0.0, 0.0, 10.0);\n        let curve3_transformed = curve3.transformed(None);\n\n        // transformed(xform) - Get copy with custom xform\n        let curve4 = NurbsCurve::create(false, 2, &points);\n        let x = Xform::translation(0.0, 0.0, 10.0);\n        let curve4_transformed = curve4.transformed(Some(&x));",
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Xform;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n\n        // transform(&xform) - in place\n        let mut curve1 = NurbsCurve::create(false, 2, &points);\n        let curve1_xf = Xform::translation(0.0, 0.0, 1.0);\n        curve1.transform(&curve1_xf);\n\n        // transform(xform) - Apply custom xform (in-place)\n        let mut curve2 = NurbsCurve::create(false, 2, &points);\n        let x = Xform::translation(0.0, 0.0, 1.0);\n        curve2.transform(&x);\n\n        // transformed(&xform) - returns a copy\n        let curve3 = NurbsCurve::create(false, 2, &points);\n        let curve3_xf = Xform::translation(0.0, 0.0, 10.0);\n        let curve3_transformed = curve3.transformed(&curve3_xf);\n\n        // transformed(xform) - Get copy with custom xform\n        let curve4 = NurbsCurve::create(false, 2, &points);\n        let x = Xform::translation(0.0, 0.0, 10.0);\n        let curve4_transformed = curve4.transformed(&x);",
     "failures": [],
     "group": "NurbsCurve",
     "line": 738,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 1.856
+    "time_ms": 1.666
   },
   {
     "checks": [
@@ -860,7 +840,7 @@
     "line": 117,
     "passed": true,
     "test_name": "Create From Parameters",
-    "time_ms": 0.036
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -911,7 +891,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Create Fitted",
-    "time_ms": 0.174
+    "time_ms": 0.163
   },
   {
     "checks": [
@@ -962,92 +942,92 @@
     "line": 194,
     "passed": true,
     "test_name": "Join",
-    "time_ms": 0.105
+    "time_ms": 0.087
   },
   {
     "checks": [
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
-        "line": 870,
+        "line": 866,
         "passed": true
       },
       {
         "code_line": "(cp[0] - 2.0).abs() < 1e-5 && cp[1].abs() < 1e-5 && cp[2].abs() < 1e-5",
-        "line": 874,
+        "line": 870,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&pc, &Point::new(0.5808155659, 0.0, 0.9672315271))",
-        "line": 883,
+        "line": 879,
         "passed": true
       },
       {
         "code_line": "(u - 0.4757682937).abs() < 1e-6 && (v - 0.3366914716).abs() < 1e-6",
-        "line": 894,
+        "line": 890,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&pa,\n&Point::new(4.389607399, 1.285537564, 1.067964425))",
-        "line": 896,
+        "line": 892,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&pb,\n&Point::new(4.552264625, 1.380381100, 0.676740741))",
-        "line": 897,
+        "line": 893,
         "passed": true
       },
       {
         "code_line": "line.curvature_at(line.domain_middle()) < 1e-9",
-        "line": 907,
+        "line": 903,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::primitives::Primitives;\n\n        // A circle of radius R is an exact rational NURBS with constant curvature 1/R.\n        let r = 2.0;\n        let circle = Primitives::circle(0.0, 0.0, 0.0, r);\n        let (t0, t1) = circle.domain();\n        for i in 0..=8 {\n            let t = t0 + (t1 - t0) * (i as f64) / 8.0;\n        }\n        // Closest point: an outside point projects radially onto the circle.\n        let cp = circle.closest_point(&Point::new(5.0, 0.0, 0.0));\n\n        // Project onto a 3D interpolated curve (curve_closest_point.py). Reference from\n        // OCCT GeomAPI_ProjectPointOnCurve (validation/compare_curve_ops.py).\n        use crate::nurbsknot::{CurveNurbsKnotStyle, CurveInterpStyle};\n        let ipts = vec![Point::new(0.0,0.0,0.0), Point::new(3.0,0.0,2.0),\n                        Point::new(6.0,0.0,-3.0), Point::new(8.0,0.0,0.0)];\n        let ic = NurbsCurve::create_interpolated_styled(&ipts, CurveNurbsKnotStyle::Chord, CurveInterpStyle::Occt);\n        let pc = ic.closest_point(&Point::new(2.0, -1.0, 0.0));\n\n        // Curve-curve closest (curve_closest_parameters_curve.py). Reference from\n        // OCCT GeomAPI_ExtremaCurveCurve (u=0.475768, v=0.336691).\n        let c0 = NurbsCurve::create_from_parameters(\n            &[Point::new(0.0,0.0,0.0),Point::new(3.0,6.0,0.0),Point::new(6.0,-3.0,3.0),Point::new(10.0,0.0,0.0)],\n            &[1.0,1.0,1.0,1.0], &[0.0,1.0], &[4,4], 3, false);\n        let c1 = NurbsCurve::create_from_parameters(\n            &[Point::new(6.0,-3.0,0.0),Point::new(3.0,1.0,0.0),Point::new(6.0,6.0,3.0),Point::new(3.0,12.0,0.0)],\n            &[1.0,1.0,1.0,1.0], &[0.0,1.0], &[4,4], 3, false);\n        let (u, v) = c0.closest_parameters_curve(&c1);\n        let (pa, pb) = c0.closest_points_curve(&c1);\n\n        // A straight line has zero curvature.\n        let line_pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n        ];\n        let line = NurbsCurve::create(false, 1, &line_pts);",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 859,
+    "line": 855,
     "passed": true,
     "test_name": "Curvature",
-    "time_ms": 0.869
+    "time_ms": 0.795
   }
 ]

@@ -105,6 +105,12 @@ impl GpuSession {
         self.nurbs_trimmed_pick_meshes.remove(guid);
         self.nurbs_trimmeds.remove(guid);
         self.nc_pick_pts.remove(guid);
+        self.placements.remove(guid);
+    }
+
+    /// Mirror an object's session placement here so a later re-add restores its pose.
+    pub fn set_placement(&mut self, guid: &str, model: [[f32; 4]; 4]) {
+        self.placements.insert(guid.to_string(), model);
     }
 
     pub fn clear(&mut self) {
@@ -135,6 +141,7 @@ impl GpuSession {
         self.nurbs_trimmed_pick_meshes.clear();
         self.nurbs_trimmeds.clear();
         self.nc_pick_pts.clear();
+        self.placements.clear();
         self.template_tri.clear();
         self.instance_groups.groups.clear();
         self.instance_groups.bump = 0;

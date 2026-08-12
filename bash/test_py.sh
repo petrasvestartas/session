@@ -30,6 +30,11 @@ done
 
 PYTHON=$(get_python_path "$REPO_ROOT")
 
+# Tests write file-roundtrip artifacts to CWD-relative "serialization/..." paths
+# (same convention as the C++/Rust runners, which cd into their language dirs).
+# Anchor at the repo root so the script works no matter where it is invoked from.
+cd "$REPO_ROOT"
+
 # Ensure Python environment exists and session_py is installed
 ensure_python_env() {
     if [[ ! -f "$PYTHON" ]]; then

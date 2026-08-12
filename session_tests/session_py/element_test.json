@@ -3,7 +3,7 @@
     "group": "Element",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.256,
+    "time_ms": 0.253,
     "line": 7,
     "code": "    from session_py import Mesh\n    from session_py import BRep\n    from session_py import Element\n\n    # Constructor\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m, name=\"test_element\")\n\n    # Getters\n    geo = e.geometry\n    name = e.name\n    guid = e.guid\n    dirty = e.is_dirty\n\n    # String\n    estr = str(e)\n    erepr = repr(e)\n\n    # Copy\n    ecopy = e.duplicate()\n\n    # Equality\n    e2 = Element(geometry=Mesh(), name=\"test_element\")\n    e3 = Element(geometry=BRep(), name=\"other\")",
     "checks": [
@@ -57,11 +57,11 @@
   },
   {
     "group": "Element",
-    "test_name": "Session Transformation",
+    "test_name": "Place",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.212,
     "line": 48,
-    "code": "    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n    xf = Xform.translation(10.0, 20.0, 30.0)\n    e.session_transformation = xf",
+    "code": "    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n    xf = Xform.translation(10.0, 20.0, 30.0)\n    e.place(xf)\n\n    min_x = min(v.x for v in e.geometry.vertex.values())",
     "checks": [
       {
         "line": 62,
@@ -69,8 +69,8 @@
         "passed": true
       },
       {
-        "line": 63,
-        "code_line": "e.session_transformation == xf",
+        "line": 64,
+        "code_line": "min_x > 9.0",
         "passed": true
       }
     ],
@@ -80,17 +80,17 @@
     "group": "Element",
     "test_name": "Add Feature",
     "passed": true,
-    "time_ms": 0.03,
-    "line": 66,
+    "time_ms": 0.029,
+    "line": 67,
     "code": "    from session_py import Mesh\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n\n    def my_feature(geo):\n        return geo\n\n    e.add_feature(my_feature)",
     "checks": [
       {
-        "line": 82,
+        "line": 83,
         "code_line": "e.is_dirty",
         "passed": true
       },
       {
-        "line": 83,
+        "line": 84,
         "code_line": "len(e._features) == 1",
         "passed": true
       }
@@ -101,27 +101,27 @@
     "group": "Element",
     "test_name": "AABB",
     "passed": true,
-    "time_ms": 0.219,
-    "line": 86,
+    "time_ms": 0.204,
+    "line": 87,
     "code": "    from session_py import Mesh\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n    aabb = e.aabb",
     "checks": [
       {
-        "line": 98,
+        "line": 99,
         "code_line": "aabb is not None",
         "passed": true
       },
       {
-        "line": 99,
+        "line": 100,
         "code_line": "TOLERANCE.is_close(aabb.half_size[0], 0.5)",
         "passed": true
       },
       {
-        "line": 100,
+        "line": 101,
         "code_line": "TOLERANCE.is_close(aabb.half_size[1], 0.5)",
         "passed": true
       },
       {
-        "line": 101,
+        "line": 102,
         "code_line": "TOLERANCE.is_close(aabb.half_size[2], 0.0)",
         "passed": true
       }
@@ -133,21 +133,21 @@
     "test_name": "OBB",
     "passed": true,
     "time_ms": 0.184,
-    "line": 104,
+    "line": 105,
     "code": "    from session_py import Mesh\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n    obb = e.obb",
     "checks": [
       {
-        "line": 116,
+        "line": 117,
         "code_line": "obb is not None",
         "passed": true
       },
       {
-        "line": 117,
+        "line": 118,
         "code_line": "TOLERANCE.is_close(obb.half_size[0], 0.5)",
         "passed": true
       },
       {
-        "line": 118,
+        "line": 119,
         "code_line": "TOLERANCE.is_close(obb.half_size[1], 0.5)",
         "passed": true
       }
@@ -158,27 +158,27 @@
     "group": "Element",
     "test_name": "Session Geometry",
     "passed": true,
-    "time_ms": 0.204,
-    "line": 121,
-    "code": "    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n    e.session_transformation = Xform.translation(10.0, 0.0, 0.0)\n    sg = e.session_geometry\n\n    verts = list(sg.vertex.values())",
+    "time_ms": 0.173,
+    "line": 122,
+    "code": "    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n    e_xf = Xform.translation(10.0, 0.0, 0.0)\n    sg = e.session_geometry(e_xf)\n\n    verts = list(sg.vertex.values())",
     "checks": [
       {
-        "line": 135,
+        "line": 136,
         "code_line": "isinstance(sg, Mesh)",
         "passed": true
       },
       {
-        "line": 137,
+        "line": 138,
         "code_line": "TOLERANCE.is_close(verts[0].x, 10.0)",
         "passed": true
       },
       {
-        "line": 138,
+        "line": 139,
         "code_line": "TOLERANCE.is_close(verts[1].x, 11.0)",
         "passed": true
       },
       {
-        "line": 139,
+        "line": 140,
         "code_line": "e.geometry is not sg",
         "passed": true
       }
@@ -189,32 +189,32 @@
     "group": "Element",
     "test_name": "Reset",
     "passed": true,
-    "time_ms": 0.295,
-    "line": 142,
+    "time_ms": 0.3,
+    "line": 143,
     "code": "    from session_py import Mesh\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [2, 0, 0], [2, 2, 0], [0, 2, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n    _ = e.aabb\n    _ = e.point\n    e.reset()",
     "checks": [
       {
-        "line": 156,
+        "line": 157,
         "code_line": "e.is_dirty",
         "passed": true
       },
       {
-        "line": 157,
+        "line": 158,
         "code_line": "e._aabb is None",
         "passed": true
       },
       {
-        "line": 158,
+        "line": 159,
         "code_line": "e._obb is None",
         "passed": true
       },
       {
-        "line": 159,
+        "line": 160,
         "code_line": "e._collision_mesh is None",
         "passed": true
       },
       {
-        "line": 160,
+        "line": 161,
         "code_line": "e._point is None",
         "passed": true
       }
@@ -225,22 +225,22 @@
     "group": "Element",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.154,
-    "line": 163,
+    "time_ms": 0.168,
+    "line": 164,
     "code": "    from session_py import Mesh\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [2, 0, 0], [2, 2, 0], [0, 2, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)\n    pt = e.point",
     "checks": [
       {
-        "line": 175,
+        "line": 176,
         "code_line": "TOLERANCE.is_close(pt[0], 1.0)",
         "passed": true
       },
       {
-        "line": 176,
+        "line": 177,
         "code_line": "TOLERANCE.is_close(pt[1], 1.0)",
         "passed": true
       },
       {
-        "line": 177,
+        "line": 178,
         "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
         "passed": true
       }
@@ -251,42 +251,42 @@
     "group": "Element",
     "test_name": "Brep Aabb",
     "passed": true,
-    "time_ms": 3.743,
-    "line": 180,
+    "time_ms": 3.535,
+    "line": 181,
     "code": "    from session_py import BRep\n    from session_py import Element\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    e = Element(geometry=b, name=\"brep_element\")\n    aabb = e.aabb\n    pt = e.point",
     "checks": [
       {
-        "line": 190,
+        "line": 191,
         "code_line": "aabb is not None",
         "passed": true
       },
       {
-        "line": 191,
+        "line": 192,
         "code_line": "TOLERANCE.is_close(aabb.half_size[0], 1.0)",
         "passed": true
       },
       {
-        "line": 192,
+        "line": 193,
         "code_line": "TOLERANCE.is_close(aabb.half_size[1], 1.5)",
         "passed": true
       },
       {
-        "line": 193,
+        "line": 194,
         "code_line": "TOLERANCE.is_close(aabb.half_size[2], 2.0)",
         "passed": true
       },
       {
-        "line": 194,
+        "line": 195,
         "code_line": "TOLERANCE.is_close(pt[0], 0.0)",
         "passed": true
       },
       {
-        "line": 195,
+        "line": 196,
         "code_line": "TOLERANCE.is_close(pt[1], 0.0)",
         "passed": true
       },
       {
-        "line": 196,
+        "line": 197,
         "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
         "passed": true
       }
@@ -297,27 +297,27 @@
     "group": "Element",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.728,
-    "line": 199,
-    "code": "    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Element\n    from pathlib import Path\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m, name=\"json_test\")\n    e.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_element.json\"\n    e.file_json_dump(fname)\n    loaded = Element.file_json_load(fname)",
+    "time_ms": 0.681,
+    "line": 200,
+    "code": "    from session_py import Mesh\n    from session_py import Element\n    from pathlib import Path\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m, name=\"json_test\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_element.json\"\n    e.file_json_dump(fname)\n    loaded = Element.file_json_load(fname)",
     "checks": [
       {
-        "line": 217,
+        "line": 216,
         "code_line": "isinstance(loaded, Element)",
         "passed": true
       },
       {
-        "line": 218,
+        "line": 217,
         "code_line": "loaded.name == \"json_test\"",
         "passed": true
       },
       {
-        "line": 219,
+        "line": 218,
         "code_line": "isinstance(loaded.geometry, Mesh)",
         "passed": true
       },
       {
-        "line": 220,
+        "line": 219,
         "code_line": "len(loaded.geometry.vertex) == 4",
         "passed": true
       }
@@ -328,32 +328,32 @@
     "group": "Element",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 3.214,
-    "line": 223,
-    "code": "    from session_py import BRep\n    from session_py import Xform\n    from session_py import Element\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    e = Element(geometry=b, name=\"proto_test\")\n    e.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_element.bin\"\n    e.pb_dump(path)\n    loaded = Element.pb_load(path)",
+    "time_ms": 2.936,
+    "line": 222,
+    "code": "    from session_py import BRep\n    from session_py import Element\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    e = Element(geometry=b, name=\"proto_test\")\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_element.bin\"\n    e.pb_dump(path)\n    loaded = Element.pb_load(path)",
     "checks": [
       {
-        "line": 238,
+        "line": 235,
         "code_line": "isinstance(loaded, Element)",
         "passed": true
       },
       {
-        "line": 239,
+        "line": 236,
         "code_line": "loaded.name == \"proto_test\"",
         "passed": true
       },
       {
-        "line": 240,
+        "line": 237,
         "code_line": "isinstance(loaded.geometry, BRep)",
         "passed": true
       },
       {
-        "line": 241,
+        "line": 238,
         "code_line": "loaded.geometry.face_count() == 6",
         "passed": true
       },
       {
-        "line": 242,
+        "line": 239,
         "code_line": "loaded.geometry.vertex_count() == 8",
         "passed": true
       }
@@ -364,27 +364,27 @@
     "group": "Element",
     "test_name": "Polylines",
     "passed": true,
-    "time_ms": 0.039,
-    "line": 245,
+    "time_ms": 0.04,
+    "line": 242,
     "code": "    from session_py import Mesh\n    from session_py import Element\n\n    m = Mesh.from_vertices_and_faces(\n        [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]],\n        [[0, 1, 2, 3]],\n    )\n    e = Element(geometry=m)",
     "checks": [
       {
-        "line": 256,
+        "line": 253,
         "code_line": "len(e.polylines) == 0",
         "passed": true
       },
       {
-        "line": 257,
+        "line": 254,
         "code_line": "len(e.planes) == 0",
         "passed": true
       },
       {
-        "line": 258,
+        "line": 255,
         "code_line": "len(e.edge_vectors) == 0",
         "passed": true
       },
       {
-        "line": 259,
+        "line": 256,
         "code_line": "e.axis is None",
         "passed": true
       }

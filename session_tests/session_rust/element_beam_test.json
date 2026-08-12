@@ -63,7 +63,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.348
+    "time_ms": 0.324
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 39,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.374
+    "time_ms": 0.391
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.098
+    "time_ms": 0.099
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 67,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.195
+    "time_ms": 0.19
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 78,
     "passed": true,
     "test_name": "AABB",
-    "time_ms": 0.125
+    "time_ms": 0.12
   },
   {
     "checks": [
@@ -198,183 +198,183 @@
         "passed": true
       }
     ],
-    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Xform;\n\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        b.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n        let sg = b.session_geometry();\n\n        if let ElementGeometry::Mesh(mesh) = &sg {\n            let min_x = mesh.vertex.values().map(|v| v.x).fold(f64::INFINITY, f64::min);\n        }",
+    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Xform;\n\n        let b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let b_xf = Xform::translation(10.0, 0.0, 0.0);\n        let sg = b.session_geometry(&b_xf);\n\n        if let ElementGeometry::Mesh(mesh) = &sg {\n            let min_x = mesh.vertex.values().map(|v| v.x).fold(f64::INFINITY, f64::min);\n        }",
     "failures": [],
     "group": "ElementBeam",
     "line": 104,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.119
+    "time_ms": 0.114
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"json_beam\"",
-        "line": 132,
+        "line": 130,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.width().unwrap(), 0.15)",
-        "line": 133,
+        "line": 131,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.depth().unwrap(), 0.3)",
-        "line": 134,
+        "line": 132,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.length().unwrap(), 5.0)",
-        "line": 135,
+        "line": 133,
         "passed": true
       }
     ],
-    "code": "        use crate::element::Element;\n        use crate::Xform;\n\n        let mut b = Element::beam(0.15, 0.3, 5.0, \"json_beam\");\n        b.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let fname = \"serialization/test_beam_element.json\";\n        b.file_json_dump(fname);\n        let loaded = Element::file_json_load(fname);\n",
+    "code": "        use crate::element::Element;\n\n        let b = Element::beam(0.15, 0.3, 5.0, \"json_beam\");\n\n        let fname = \"serialization/test_beam_element.json\";\n        b.file_json_dump(fname);\n        let loaded = Element::file_json_load(fname);\n",
     "failures": [],
     "group": "ElementBeam",
     "line": 121,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.837
+    "time_ms": 0.729
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"proto_beam\"",
-        "line": 151,
+        "line": 147,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.width().unwrap(), 0.15)",
-        "line": 152,
+        "line": 148,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.depth().unwrap(), 0.3)",
-        "line": 153,
+        "line": 149,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.length().unwrap(), 5.0)",
-        "line": 154,
+        "line": 150,
         "passed": true
       }
     ],
-    "code": "        use crate::element::Element;\n        use crate::Xform;\n\n        let mut b = Element::beam(0.15, 0.3, 5.0, \"proto_beam\");\n        b.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n        let path = \"serialization/test_beam_element.bin\";\n        b.pb_dump(path);\n        let loaded = Element::pb_load(path).unwrap();\n",
+    "code": "        use crate::element::Element;\n\n        let b = Element::beam(0.15, 0.3, 5.0, \"proto_beam\");\n\n        let path = \"serialization/test_beam_element.bin\";\n        b.pb_dump(path);\n        let loaded = Element::pb_load(path).unwrap();\n",
     "failures": [],
     "group": "ElementBeam",
-    "line": 140,
+    "line": 138,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.304
+    "time_ms": 0.298
   },
   {
     "checks": [
       {
         "code_line": "pls.len() == 6",
-        "line": 167,
+        "line": 163,
         "passed": true
       },
       {
         "code_line": "pl.point_count() == 5",
-        "line": 168,
+        "line": 164,
         "passed": true
       },
       {
         "code_line": "pl.point_count() == 5",
-        "line": 168,
+        "line": 164,
         "passed": true
       },
       {
         "code_line": "pl.point_count() == 5",
-        "line": 168,
+        "line": 164,
         "passed": true
       },
       {
         "code_line": "pl.point_count() == 5",
-        "line": 168,
+        "line": 164,
         "passed": true
       },
       {
         "code_line": "pl.point_count() == 5",
-        "line": 168,
+        "line": 164,
         "passed": true
       },
       {
         "code_line": "pl.point_count() == 5",
-        "line": 168,
+        "line": 164,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let pls = b.polylines();",
     "failures": [],
     "group": "ElementBeam",
-    "line": 163,
+    "line": 159,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.163
+    "time_ms": 0.133
   },
   {
     "checks": [
       {
         "code_line": "pls.len() == 6",
-        "line": 177,
+        "line": 173,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pls[0].z_axis()[2], -1.0)",
-        "line": 178,
+        "line": 174,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pls[1].z_axis()[2], 1.0)",
-        "line": 179,
+        "line": 175,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let pls = b.planes();",
     "failures": [],
     "group": "ElementBeam",
-    "line": 173,
+    "line": 169,
     "passed": true,
     "test_name": "Planes",
-    "time_ms": 0.13
+    "time_ms": 0.117
   },
   {
     "checks": [
       {
         "code_line": "evs.len() == 12",
-        "line": 188,
+        "line": 184,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        let mut b = Element::beam(0.1, 0.2, 3.0, \"my_beam\");\n        let evs = b.edge_vectors();",
     "failures": [],
     "group": "ElementBeam",
-    "line": 184,
+    "line": 180,
     "passed": true,
     "test_name": "Edge Vectors",
-    "time_ms": 0.109
+    "time_ms": 0.103
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(ax.start()[2], 0.0)",
-        "line": 197,
+        "line": 193,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(ax.end()[2], 5.0)",
-        "line": 198,
+        "line": 194,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        let mut b = Element::beam(0.1, 0.2, 5.0, \"my_beam\");\n        let ax = b.axis().unwrap();",
     "failures": [],
     "group": "ElementBeam",
-    "line": 193,
+    "line": 189,
     "passed": true,
     "test_name": "Axis",
-    "time_ms": 0.099
+    "time_ms": 0.109
   }
 ]

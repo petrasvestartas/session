@@ -3,7 +3,7 @@
     "group": "Matrix",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.016,
     "line": 10,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix m = Matrix::zeros(2, 3);\n    Matrix eye = Matrix::identity(3);\n    Matrix ml = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    Matrix mr = Matrix::from_rows({{1.0, 2.0}, {3.0, 4.0}});\n    Matrix mc = Matrix::from_cols({{1.0, 3.0}, {2.0, 4.0}});\n    double v00 = ml(0, 0);\n    double v01 = ml(0, 1);\n    double v10 = ml(1, 0);\n    double v11 = ml(1, 1);\n    bool eq = (ml == mr);\n    bool ne = (ml != Matrix::identity(2));\n    std::string sstr = m.str();\n    std::string srepr = eye.repr();\n    Matrix d = ml.duplicate();",
     "checks": [
@@ -209,7 +209,7 @@
     "group": "Matrix",
     "test_name": "Transpose",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 106,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    Matrix t = a.transpose();",
     "checks": [
@@ -461,7 +461,7 @@
     "group": "Matrix",
     "test_name": "Eigenvalues",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 210,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0});\n    std::vector<double> evs = a.eigenvalues();\n    std::sort(evs.begin(), evs.end());",
     "checks": [
@@ -575,7 +575,7 @@
     "group": "Matrix",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.059,
+    "time_ms": 0.06,
     "line": 257,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    a.name = \"test_matrix\";\n    a.file_json_dump(\"serialization/test_matrix.json\");\n    Matrix loaded = Matrix::file_json_load(\"serialization/test_matrix.json\");",
     "checks": [

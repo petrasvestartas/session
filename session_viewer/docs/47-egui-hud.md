@@ -105,13 +105,26 @@ pub fn build_ui(shell: &mut Shell, window: &winit::window::Window,
 }
 ```
 
+(A free extra if you want it: `scene.docs.len()` and each `Doc.name` already exist — one more
+label in the perf window shows exactly which files are loaded.)
+
 Add `mod ui;` in `lib.rs`, and to `struct State`: `pub shell: crate::ui::Shell, pub ui:
-crate::ui::UiState`. Build the `Shell` in `State::new` right after `Gpu::new` (it needs the device
-and surface format), seed `UiState` from the current camera/thickness values — the `ortho` flag is
-the inverse of the camera's `perspective` — and add both (`shell`/`ui`) to the `Ok(Self { … })`:
+crate::ui::UiState`. Build the `Shell` in `State::new` right after the two real lines
 
 ```rust
-        // in State::new, right after `let gpu = Gpu::new(...).await?;`:
+        let mut gpu = Gpu::new(window.clone()).await?;
+        gpu.set_scene(&scene.tables);
+```
+
+(it needs the device and surface format), and seed `UiState` from the current camera/thickness
+values — the `ortho` flag is the inverse of the camera's `perspective`. One catch: `State::new` has
+**no `camera` binding** to read — 35 constructs it inline in the `Ok(Self { … })` literal
+(`camera: Camera::new()`). Hoist it into a binding first, change the literal's
+`camera: Camera::new()` to plain `camera,`, and add both new fields (`shell`/`ui`) to the literal:
+
+```rust
+        // in State::new, right after gpu.set_scene(&scene.tables):
+        let camera = Camera::new();              // hoisted out of the Ok(Self { … }) literal
         let shell = crate::ui::Shell::new(&window, &gpu.device, gpu.config.format);
         let ui = crate::ui::UiState {
             show_grid: gpu.show_grid, show_edges: gpu.show_edges,
@@ -123,9 +136,11 @@ the inverse of the camera's `perspective` — and add both (`shell`/`ui`) to the
 
 Three of those sources don't exist yet — small enablers, all in `engine/`:
 
-- **`Gpu.thickness`** — `clear()` has hardcoded `thickness: 2.0` since 31. Add
-  `pub thickness: f32,` to `struct Gpu`, `thickness: 2.0,` to its `Ok(Self { … })`, and in
-  `clear()`'s per-frame `LineUniform` replace `thickness: 2.0,` with `thickness: self.thickness,`.
+- **`Gpu.thickness`** — `thickness: 2.0` has been hardcoded in TWO places since 31: `Gpu::new`'s
+  initial `LineUniform` and `clear()`'s per-frame write. Add `pub thickness: f32,` to `struct Gpu`,
+  `thickness: 2.0,` to its `Ok(Self { … })`, and in **`clear()`**'s per-frame `LineUniform` replace
+  `thickness: 2.0,` with `thickness: self.thickness,` — that per-frame write is the one the slider
+  drives; `Gpu::new`'s init value is overwritten on frame 1, so it can stay.
 - **`Gpu.show_grid` / `show_edges`** — Step 4's gates; add the fields now (see the note there).
 - **Perf readouts** — 28's `Performance` keeps its numbers private and never stored the draw
   count. In `engine/performance.rs`, add `pub last_draws: u32,` to the struct (init `0` in
@@ -160,7 +175,9 @@ Find the `window_event` handler (where orbit/pan/keys live). Before any 3-D hand
 ```
 
 This ordering is the whole input contract: **egui first, 3-D second**. Every later UI lesson (CLI,
-tree, numeric entry) rides on it for free.
+tree, numeric entry) rides on it for free. (lib.rs's `App` is an `ApplicationHandler<Msg>` — the
+`Ready`/`File` messages arrive through `user_event`, not here; 47 touches only `window_event`, so
+the two never collide.)
 
 ## Step 3 — the egui pass: `src/engine/gpu/mod.rs`
 

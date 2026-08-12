@@ -36,9 +36,10 @@ cd "$RUST_DIR"
 JOBS=$(get_jobs)
 
 # The PDF importer is a Rust-only extra behind --features pdf. On by default locally so the Pdf
-# class shows up in the viewer. In CI it is driven by SESSION_PDF, which the workflow sets on Linux
-# only: mupdf-sys compiles MuPDF's C sources through bindgen/libclang, so one platform covers the
-# importer without making macOS and Windows pay for it. Where it is off, the Pdf class is SKIPped.
+# class shows up in the viewer. In CI it is driven by SESSION_PDF, which the workflow sets on
+# every OS: mupdf-sys builds MuPDF with make (macOS) or MSBuild (Windows MSVC x64) and bindgen
+# finds libclang on the stock runners (Ubuntu installs libclang-dev in the workflow). Where it
+# is off, the Pdf class is SKIPped.
 PDF_FEATURE=()
 if [[ "${SESSION_PDF:-}" == "1" ]] || [[ -z "${CI:-}" && -z "${GITHUB_ACTIONS:-}" ]]; then
     PDF_FEATURE=(--features pdf)

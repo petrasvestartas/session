@@ -1,10 +1,10 @@
 # 84 Web polish — load progress and a shippable wasm
 
-> **Big picture.** *Phase 14 closes.* Everything so far assumed localhost, where a 17.5 MB `.pb`
-> arrives instantly and nobody reads the wasm size. Shipped over a real network, both bite: the
-> stress file takes seconds on a slow link with **zero feedback** (a frozen-looking tab), and a
-> debug-ish wasm is several times larger than it needs to be. Two fixes, both measurable — this
-> lesson's verify steps are numbers, not pixels.
+> **Big picture.** *Phase 14 closes.* Everything so far assumed localhost, where the manifest's 10
+> sheets — 2.8–132 MB of `.pb` each, ~0.5 GB total — arrive instantly and nobody reads the wasm
+> size. Shipped over a real network, both bite: half a gigabyte takes real time on a slow link with
+> **no per-sheet feedback**, and a debug-ish wasm is several times larger than it needs to be. Two
+> fixes, both measurable — this lesson's verify steps are numbers, not pixels.
 
 ## Files we touch
 
@@ -16,11 +16,17 @@ index.html               # data-wasm-opt: the Trunk-side optimizer setting
 
 ## Step 1 — streamed fetch with progress: `src/app/persistence.rs`
 
-34a's `fetch_bytes` awaits `array_buffer()` — one gulp, no feedback. The streaming version reads the
-body in chunks and reports against `Content-Length`:
+The loader is no longer one gulp: fetches are pipelined (`fetch_start`/`fetch_finish`, a window of
+2 — sheet N+1 downloads while N parses) and parsing is sliced (`session_from_bytes_chunked`, 25k
+objects per `setTimeout(0)` slice), so the tab already stays live. What's still missing is
+**feedback**: per-item progress ("sheet 3/10, 42%") and the network leg of a single large file —
+`fetch_finish`'s `array_buffer()` await reports nothing until it reports everything. The streaming
+version below fills that gap, reading the body in chunks against `Content-Length`. Wire it in
+without giving up the fetch window (stream file N+1 while N parses) — or accept serial fetches and
+state that tradeoff:
 
 <svg viewBox="0 0 460 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="one-gulp array_buffer awaits the whole file with a dead frozen tab then jumps to 100%, while the streamed reader loop yields a frame per chunk and ticks 5 10 100 percent" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
-  <text x="230" y="16" fill="#888" text-anchor="middle">same 17.5 MB file over a slow link</text>
+  <text x="230" y="16" fill="#888" text-anchor="middle">same 132 MB sheet over a slow link</text>
   <text x="8" y="46" fill="#e06c6c">array_buffer()</text>
   <rect x="120" y="34" width="240" height="18" fill="none" stroke="#e06c6c" stroke-width="1.2"/>
   <text x="240" y="47" fill="#e06c6c" text-anchor="middle">dead tab — no paint, no feedback</text>
@@ -88,7 +94,8 @@ pub async fn fetch_bytes_with_progress(
 The callback feeds the CLI log line — throttled so the log isn't 500 lines of percentages:
 
 ```rust
-    // at the call site (34a's State::new / 79's open) — update at most every 5%:
+    // at the call site — the fetch loop lives in lib.rs resumed() now — update at most every 5%,
+    // prefixed with the manifest position ("sheet 3/10"):
     let last = std::cell::Cell::new(0u64);
     let bytes = fetch_bytes_with_progress(url, move |loaded, total| {
         let pct = if total > 0 { loaded * 100 / total } else { 0 };
@@ -100,8 +107,8 @@ The callback feeds the CLI log line — throttled so the log isn't 500 lines of 
 ```
 
 (`push_gpu_error` = the same static-queue-to-CLI-log channel 83 built for GPU errors — second
-customer, despite the name. Note the read loop yields to the browser between chunks — the tab stays live, which *is*
-the feature; the old one-gulp await gave the browser nothing to paint.)
+customer, despite the name. Note the read loop yields to the browser between chunks — the chunked
+parse already kept the tab live; this makes the network leg report progress instead of silence.)
 
 ## Step 2 — the wasm diet: `Cargo.toml` + `index.html`
 
@@ -135,15 +142,20 @@ That last one matters more than it looks: the course pinned `data-wasm-opt="0"` 
 shipped *unoptimized* wasm. `"z"` runs Binaryen's `wasm-opt` as the final pass; expect the combined
 knobs to cut the binary roughly in half (measure — the lesson's claim is checkable in one command).
 
+One more switch hides in `Cargo.toml`: `[package.metadata.wasm-pack.profile.release]` with
+`wasm-opt = false` is a **second, separate** optimizer setting — it governs wasm-pack builds
+independently of Trunk's `data-wasm-opt`, so flip the one your build path actually uses (or both).
+
 Serving note, not a code change: static hosts (GitHub Pages, nginx) should serve `.wasm` with
 gzip/brotli — another ~2–3× on the wire for free. Trunk's output is already compressible; there is
 nothing to do in the app.
 
 ## Step 3 — verify (numbers, not pixels)
 
-- DevTools → Network → throttle **Slow 3G** → load the stress file: the CLI ticks
-  `loading… 5% … 100%`, the tab never freezes, orbit works the moment parsing finishes. Compare the
-  old `fetch_bytes` (one gulp): seconds of dead tab. That contrast is the lesson.
+- DevTools → Network → throttle **Slow 3G** → load the manifest scene: the CLI ticks
+  `sheet 3/10 … 42%`, the tab never freezes (it already didn't — the chunked parse saw to that),
+  orbit works while later sheets stream in. The contrast with before is **feedback**: per-sheet
+  percentages instead of silence. That contrast is the lesson.
 - `ls -l dist/*.wasm` before vs after Step 2 — record both numbers in your notes; the pair is the
   proof. Cold-load time on the throttled profile should drop proportionally.
 - `trunk serve` (dev) still uses fast unoptimized builds — the `"z"` costs you nothing during
@@ -154,8 +166,8 @@ nothing to do in the app.
 ```
 Ch 83: the workflow.
 Ch 84: THE LAST MILE. Streamed fetch: ReadableStreamDefaultReader chunks + Content-Length →
-       progress into the CLI (throttled to 5% steps; the chunk loop's awaits are what keep the tab
-       painting). Wasm diet: opt-level 'z' + lto + codegen-units 1 + Trunk data-wasm-opt 'z' (the
+       per-sheet progress into the CLI (throttled to 5% steps; the chunked parse already kept the
+       tab painting — this adds the network leg, without giving up the fetch window). Wasm diet: opt-level 'z' + lto + codegen-units 1 + Trunk data-wasm-opt 'z' (the
        course's dev-friendly '0' silently shipped unoptimized release wasm until now) ≈ half the
        binary — MEASURED, one ls before and after; brotli on the host for the wire. Phase 14
        complete: sectioned, file-fluent, duplicating, layered, measuring, testable, shippable.

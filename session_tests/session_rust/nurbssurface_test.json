@@ -273,88 +273,88 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 3.109
+    "time_ms": 2.915
   },
   {
     "checks": [
       {
         "code_line": "s.is_valid()",
-        "line": 1118,
+        "line": 1114,
         "passed": true
       },
       {
         "code_line": "s.degree(0) == 3 && s.degree(1) == 3",
-        "line": 1119,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "s.cv_count_dir(Some(0)) == 4 && s.cv_count_dir(Some(1)) == 4",
-        "line": 1120,
+        "line": 1116,
         "passed": true
       },
       {
         "code_line": "!s.is_rational()",
-        "line": 1121,
+        "line": 1117,
         "passed": true
       },
       {
         "code_line": "u0.abs() < 1e-12 && (u1 - 1.0).abs() < 1e-12",
-        "line": 1124,
+        "line": 1120,
         "passed": true
       },
       {
         "code_line": "v0.abs() < 1e-12 && (v1 - 1.0).abs() < 1e-12",
-        "line": 1125,
+        "line": 1121,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&s.point_at(0.0, 0.0).unwrap(),\n&Point::new(0.0, 0.0, 0.0))",
-        "line": 1126,
+        "line": 1122,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&s.point_at(1.0, 1.0).unwrap(),\n&Point::new(3.0, 3.0, 0.0))",
-        "line": 1127,
+        "line": 1123,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&s.point_at(0.5, 0.5).unwrap(),\n&Point::new(1.5, 1.5, 1.125))",
-        "line": 1128,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&s.point_at(0.37, 0.41).unwrap(),\n&Point::new(1.11, 1.23, 1.01496402))",
-        "line": 1129,
+        "line": 1125,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&fr.origin(), &s.point_at(0.3, 0.4).unwrap())",
-        "line": 1134,
+        "line": 1130,
         "passed": true
       },
       {
         "code_line": "(za[0]-n[0]).abs() < 1e-9 && (za[1]-n[1]).abs() < 1e-9 && (za[2]-n[2]).abs() <\n1e-9",
-        "line": 1137,
+        "line": 1133,
         "passed": true
       },
       {
         "code_line": "hits.len() == 1",
-        "line": 1144,
+        "line": 1140,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&hits[0], &Point::new(1.5, 1.5, 1.125))",
-        "line": 1145,
+        "line": 1141,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        // Mirrors compas_occt OCCNurbsSurface.from_parameters / from_points (surface_from_points.py).\n        // Validated pointwise against OCCT (validation/compare_surface_eval.py).\n        let grid = vec![\n            vec![Point::new(0.0,0.0,0.0), Point::new(1.0,0.0,0.0), Point::new(2.0,0.0,0.0), Point::new(3.0,0.0,0.0)],\n            vec![Point::new(0.0,1.0,0.0), Point::new(1.0,1.0,2.0), Point::new(2.0,1.0,2.0), Point::new(3.0,1.0,0.0)],\n            vec![Point::new(0.0,2.0,0.0), Point::new(1.0,2.0,2.0), Point::new(2.0,2.0,2.0), Point::new(3.0,2.0,0.0)],\n            vec![Point::new(0.0,3.0,0.0), Point::new(1.0,3.0,0.0), Point::new(2.0,3.0,0.0), Point::new(3.0,3.0,0.0)],\n        ];\n        let w: Vec<Vec<f64>> = vec![vec![1.0; 4]; 4];\n        let s = NurbsSurface::create_from_parameters(&grid, &w, &[0.0,1.0], &[0.0,1.0], &[4,4], &[4,4], 3, 3, false, false);\n        let (u0, u1) = s.domain(0).unwrap();\n        let (v0, v1) = s.domain(1).unwrap();\n\n        // frame_at (surface_frames.py): origin == point_at, z-axis == normal_at.\n        // Normal validated vs OCCT D1uxD1v (validation/compare_surface_eval.py).\n        let fr = s.frame_at(0.3, 0.4);\n        let n = s.normal_at(0.3, 0.4);\n        let za = fr.z_axis();\n\n        // intersections_with_line (surface_intersections_with_line.py): a vertical line\n        // through (1.5, 1.5) hits the surface once at (1.5, 1.5, 1.125). Validated vs\n        // OCCT GeomAPI_IntCS (validation harness, dev <= 1.6e-16).\n        use crate::line::Line;\n        let hits = s.intersections_with_line(&Line::new(1.5, 1.5, -5.0, 1.5, 1.5, 5.0));",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 1104,
+    "line": 1100,
     "passed": true,
     "test_name": "Create From Parameters",
-    "time_ms": 8.1
+    "time_ms": 7.79
   },
   {
     "checks": [
@@ -405,7 +405,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.058
+    "time_ms": 0.044
   },
   {
     "checks": [
@@ -471,7 +471,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.015
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -527,7 +527,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Control Vertices Access",
-    "time_ms": 0.018
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -628,7 +628,7 @@
     "line": 274,
     "passed": true,
     "test_name": "NurbsKnot Access",
-    "time_ms": 0.058
+    "time_ms": 0.046
   },
   {
     "checks": [
@@ -669,7 +669,7 @@
     "line": 335,
     "passed": true,
     "test_name": "Domain",
-    "time_ms": 0.015
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -1140,7 +1140,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 0.808
+    "time_ms": 0.744
   },
   {
     "checks": [
@@ -1191,7 +1191,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.061
+    "time_ms": 0.058
   },
   {
     "checks": [
@@ -1282,366 +1282,346 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 2.114
+    "time_ms": 1.977
   },
   {
     "checks": [
       {
-        "code_line": "!surface1.xform.is_identity()",
+        "code_line": "surface1.cv(0, 0).unwrap()[2] == 1.0",
         "line": 704,
         "passed": true
       },
       {
-        "code_line": "surface1.cv(0, 0).unwrap()[2] == 1.0",
-        "line": 705,
-        "passed": true
-      },
-      {
-        "code_line": "surface2.xform.is_identity()",
-        "line": 711,
-        "passed": true
-      },
-      {
         "code_line": "surface2.cv(0, 0).unwrap()[2] == 1.0",
-        "line": 712,
-        "passed": true
-      },
-      {
-        "code_line": "!surface3_transformed.xform.is_identity()",
-        "line": 718,
+        "line": 710,
         "passed": true
       },
       {
         "code_line": "surface3_transformed.cv(0, 0).unwrap()[2] == 10.0",
-        "line": 719,
-        "passed": true
-      },
-      {
-        "code_line": "surface4_transformed.xform.is_identity()",
-        "line": 725,
+        "line": 716,
         "passed": true
       },
       {
         "code_line": "surface4_transformed.cv(0, 0).unwrap()[2] == 10.0",
-        "line": 726,
+        "line": 722,
         "passed": true
       }
     ],
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::Xform;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        // Variant 1: transform_self() - Apply stored xform (in-place)\n        let mut surface1 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        surface1.xform = Xform::translation(0.0, 0.0, 1.0);\n        surface1.transform_self();\n\n\n        // Variant 2: transform(&xform) - Apply custom xform (in-place)\n        let mut surface2 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let x = Xform::translation(0.0, 0.0, 1.0);\n        surface2.transform(&x);\n\n        // Variant 3: transformed(None) - Get copy with stored xform applied\n        let mut surface3 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        surface3.xform = Xform::translation(0.0, 0.0, 10.0);\n        let surface3_transformed = surface3.transformed(None);\n\n        // Variant 4: transformed(Some(&xform)) - Get copy with custom xform\n        let surface4 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let x = Xform::translation(0.0, 0.0, 10.0);\n        let surface4_transformed = surface4.transformed(Some(&x));",
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::Xform;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n\n        // Variant 1: transform(&xform) - in place\n        let mut surface1 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let surface1_xf = Xform::translation(0.0, 0.0, 1.0);\n        surface1.transform(&surface1_xf);\n\n\n        // Variant 2: transform(&xform) - in place, matrix built separately\n        let mut surface2 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let x = Xform::translation(0.0, 0.0, 1.0);\n        surface2.transform(&x);\n\n        // Variant 3: transformed(&xform) - returns a copy\n        let surface3 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let surface3_xf = Xform::translation(0.0, 0.0, 10.0);\n        let surface3_transformed = surface3.transformed(&surface3_xf);\n\n        // Variant 4: transformed(&xform) - returns a copy, matrix built separately\n        let surface4 = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n        let x = Xform::translation(0.0, 0.0, 10.0);\n        let surface4_transformed = surface4.transformed(&x);",
     "failures": [],
     "group": "NurbsSurface",
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.072
+    "time_ms": 0.039
   },
   {
     "checks": [
       {
         "code_line": "mesh_sphere.is_valid()",
-        "line": 741,
+        "line": 737,
         "passed": true
       },
       {
         "code_line": "mesh_cone.is_valid()",
-        "line": 746,
+        "line": 742,
         "passed": true
       },
       {
         "code_line": "mesh_torus.is_valid()",
-        "line": 751,
+        "line": 747,
         "passed": true
       },
       {
         "code_line": "mesh_loft.is_valid()",
-        "line": 760,
+        "line": 756,
         "passed": true
       },
       {
         "code_line": "mesh_cylinder.is_valid()",
-        "line": 766,
+        "line": 762,
         "passed": true
       },
       {
         "code_line": "mesh_hypar.is_valid()",
-        "line": 779,
+        "line": 775,
         "passed": true
       },
       {
         "code_line": "mesh_sweep1.is_valid()",
-        "line": 790,
+        "line": 786,
         "passed": true
       },
       {
         "code_line": "mesh_sweep2.is_valid()",
-        "line": 815,
+        "line": 811,
         "passed": true
       },
       {
         "code_line": "mesh_arched.is_valid()",
-        "line": 842,
+        "line": 838,
         "passed": true
       },
       {
         "code_line": "mesh_wave.is_valid()",
-        "line": 847,
+        "line": 843,
         "passed": true
       },
       {
         "code_line": "mesh_planar.is_valid()",
-        "line": 859,
+        "line": 855,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Primitives;\n        use crate::Vector;\n        use crate::Point;\n\n        // 1. Sphere — two poles, closed U, rational\n        let sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 3.0);\n        let mesh_sphere = sphere.mesh();\n\n\n        // 2. Cone — singular apex (pole), closed U\n        let cone = Primitives::cone_surface(0.0, 12.0, 0.0, 2.0, 6.0);\n        let mesh_cone = cone.mesh();\n\n        // 3. Torus — doubly closed (U and V), rational\n        let torus = Primitives::torus_surface(0.0, 24.0, 0.0, 4.0, 1.5);\n        let mesh_torus = torus.mesh();\n\n        // 4. Loft — varying radius circles, closed U, multi-span V\n        let loft = Primitives::create_loft(&[\n            Primitives::circle(0.0, 38.0, 0.0, 2.0),\n            Primitives::circle(0.0, 38.0, 2.0, 1.0),\n            Primitives::circle(0.0, 38.0, 4.0, 1.5),\n            Primitives::circle(0.0, 38.0, 6.0, 0.8)], 3);\n        let mesh_loft = loft.mesh();\n\n        // 5. Extrusion (circle) — closed U, linear V, rational\n        let ext_dir = Vector::new(0.0, 0.0, 5.0);\n        let cylinder = Primitives::create_extrusion(&Primitives::circle(0.0, 52.0, 0.0, 3.0), &ext_dir);\n        let mesh_cylinder = cylinder.mesh();\n\n        // 6. Ruled — bilinear (degree 1x1), tests twist subdivision\n        let ra = NurbsCurve::create(false, 1, &[\n            Point::new(0.0, 64.0, 0.0),\n            Point::new(5.0, 64.0, 5.0),\n        ]);\n        let rb = NurbsCurve::create(false, 1, &[\n            Point::new(0.0, 69.0, 5.0),\n            Point::new(5.0, 69.0, 0.0),\n        ]);\n        let hypar = Primitives::create_ruled(&ra, &rb);\n        let mesh_hypar = hypar.mesh();\n\n        // 7. Sweep1 — circle along curved rail\n        let profile = Primitives::circle(0.0, 0.0, 0.0, 1.0);\n        let rail = NurbsCurve::create(false, 2, &[\n            Point::new(0.0, 76.0, 0.0),\n            Point::new(0.0, 81.0, 0.0),\n            Point::new(2.0, 85.0, 0.0),\n        ]);\n        let sweep1 = Primitives::create_sweep1(&rail, &profile);\n        let mesh_sweep1 = sweep1.mesh();\n\n        // 8. Sweep2 — two rails + cross sections\n        let r1 = NurbsCurve::create(false, 2, &[\n            Point::new(0.0, 89.0, 0.0),\n            Point::new(1.0, 93.0, 0.0),\n            Point::new(2.0, 94.0, 0.0),\n        ]);\n        let r2 = NurbsCurve::create(false, 2, &[\n            Point::new(4.0, 89.0, 0.0),\n            Point::new(4.0, 93.0, 0.0),\n            Point::new(3.0, 94.0, 0.0),\n        ]);\n        let sh1 = NurbsCurve::create(false, 2, &[\n            Point::new(0.0, 89.0, 0.0),\n            Point::new(2.0, 89.0, 2.0),\n            Point::new(4.0, 89.0, 0.0),\n        ]);\n        let sh2 = NurbsCurve::create(false, 2, &[\n            Point::new(2.0, 94.0, 0.0),\n            Point::new(2.5, 94.0, 1.5),\n            Point::new(3.0, 94.0, 0.0),\n        ]);\n        let sweep2 = Primitives::create_sweep2(&r1, &r2, &[sh1, sh2]);\n        let mesh_sweep2 = sweep2.mesh();\n\n        // 9. Edge surface (Coons patch) — 4 boundary curves\n        let south = NurbsCurve::create(false, 3, &[\n            Point::new(1.0, 104.0, 0.0),\n            Point::new(1.0, 106.0, 3.0),\n            Point::new(1.0, 109.0, 3.0),\n            Point::new(1.0, 111.0, 0.0),\n        ]);\n        let west  = NurbsCurve::create(false, 2, &[\n            Point::new(10.0, 104.0, 0.0),\n            Point::new(5.5, 104.0, 3.5),\n            Point::new(1.0, 104.0, 0.0),\n        ]);\n        let north = NurbsCurve::create(false, 3, &[\n            Point::new(10.0, 104.0, 0.0),\n            Point::new(10.0, 106.0, 3.0),\n            Point::new(10.0, 109.0, 3.0),\n            Point::new(10.0, 111.0, 0.0),\n        ]);\n        let east  = NurbsCurve::create(false, 2, &[\n            Point::new(10.0, 111.0, 0.0),\n            Point::new(5.5, 111.0, 3.5),\n            Point::new(1.0, 111.0, 0.0),\n        ]);\n        let arched = Primitives::create_edge(&south, &west, &north, &east);\n        let mesh_arched = arched.mesh();\n\n        // 10. Wave — multi-span freeform (13x13 CVs, 10 spans)\n        let wave = Primitives::wave_surface(5.0, 1.5);\n        let mesh_wave = wave.mesh();\n\n        // 11. Planar — mesh() early exit: 2 triangles\n        let planar = NurbsCurve::create(false, 1, &[\n            Point::new(0.0, 132.0, 0.0),\n            Point::new(6.0, 132.0, 0.0),\n            Point::new(6.0, 136.0, 0.0),\n            Point::new(0.0, 136.0, 0.0),\n            Point::new(0.0, 132.0, 0.0),\n        ]);\n        let pln = Primitives::create_planar(&planar);\n        let mesh_planar = pln.mesh();",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 731,
+    "line": 727,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 177.641
+    "time_ms": 162.241
   },
   {
     "checks": [
       {
         "code_line": "loaded_json == surface",
-        "line": 1034,
+        "line": 1030,
         "passed": true
       },
       {
         "code_line": "loaded_json_string == surface",
-        "line": 1035,
+        "line": 1031,
         "passed": true
       },
       {
         "code_line": "loaded_from_file == surface",
-        "line": 1036,
+        "line": 1032,
         "passed": true
       }
     ],
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n        let surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // JSON object\n        let json = surface.jsondump().unwrap();\n        let loaded_json = NurbsSurface::jsonload(&json).unwrap();\n\n        // String\n        let json_string = surface.file_json_dumps();\n        let loaded_json_string = NurbsSurface::file_json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.json\");\n        surface.file_json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsSurface::file_json_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 991,
+    "line": 987,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.726
+    "time_ms": 0.654
   },
   {
     "checks": [
       {
         "code_line": "loaded_proto_string == surface",
-        "line": 1080,
+        "line": 1076,
         "passed": true
       },
       {
         "code_line": "loaded == surface",
-        "line": 1081,
+        "line": 1077,
         "passed": true
       }
     ],
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n        let surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // String\n        let proto_string = surface.pb_dumps();\n        let loaded_proto_string = NurbsSurface::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.bin\");\n        surface.pb_dump(filename.to_str().unwrap());\n        let loaded = NurbsSurface::pb_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 1041,
+    "line": 1037,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.181
+    "time_ms": 0.152
   },
   {
     "checks": [
       {
         "code_line": "parts.len() == 2",
+        "line": 977,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 979,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
         "line": 981,
         "passed": true
       },
       {
         "code_line": "ts.is_trimmed()",
-        "line": 983,
+        "line": 979,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() > 0",
-        "line": 985,
-        "passed": true
-      },
-      {
-        "code_line": "ts.is_trimmed()",
-        "line": 983,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() > 0",
-        "line": 985,
+        "line": 981,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::brep::BRep;\n\n        let flat = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(-3.0, -3.0, 0.0),\n            Point::new(-3.0, 3.0, 0.0),\n            Point::new(3.0, -3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n        ]).unwrap();\n        let cutter = BRep::create_box(2.0, 2.0, 2.0);\n\n        let parts = flat.split_by_brep(&cutter, None);\n\n        for ts in &parts {\n            let m = ts.mesh_q(20.0, 0.005);\n        }",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 966,
+    "line": 962,
     "passed": true,
     "test_name": "Split By Brep",
-    "time_ms": 37.487
+    "time_ms": 34.807
   },
   {
     "checks": [
       {
         "code_line": "parts.len() == 2",
+        "line": 952,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 954,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
         "line": 956,
         "passed": true
       },
       {
         "code_line": "ts.is_trimmed()",
-        "line": 958,
+        "line": 954,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() > 0",
-        "line": 960,
-        "passed": true
-      },
-      {
-        "code_line": "ts.is_trimmed()",
-        "line": 958,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() > 0",
-        "line": 960,
+        "line": 956,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, -2.0, 1.0, 4.0);\n        let flat = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(-3.0, -3.0, 0.0),\n            Point::new(-3.0, 3.0, 0.0),\n            Point::new(3.0, -3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n        ]).unwrap();\n\n        let parts = cyl.split_by_surface(&flat, None);\n\n        for ts in &parts {\n            let m = ts.mesh_q(20.0, 0.005);\n        }",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 941,
+    "line": 937,
     "passed": true,
     "test_name": "Split By Surface",
-    "time_ms": 1321.207
+    "time_ms": 1217.081
   },
   {
     "checks": [
       {
         "code_line": "parts.len() == 2",
-        "line": 934,
+        "line": 930,
         "passed": true
       },
       {
         "code_line": "parts[0].is_trimmed()",
-        "line": 935,
+        "line": 931,
         "passed": true
       },
       {
         "code_line": "parts[1].is_trimmed()",
-        "line": 936,
+        "line": 932,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n        use crate::Point;\n        use crate::Primitives;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let line = Line::from_points(&Point::new(-1.0, 5.0, 0.0), &Point::new(11.0, 5.0, 0.0));\n\n        let parts = wave.split_by_line(&line, None);\n",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 924,
+    "line": 920,
     "passed": true,
     "test_name": "Split By Line",
-    "time_ms": 316.684
+    "time_ms": 319.347
   },
   {
     "checks": [
       {
         "code_line": "parts.len() == 2",
-        "line": 911,
+        "line": 907,
         "passed": true
       },
       {
         "code_line": "parts[0].is_trimmed()",
-        "line": 912,
+        "line": 908,
         "passed": true
       },
       {
         "code_line": "parts[1].is_trimmed()",
-        "line": 913,
+        "line": 909,
         "passed": true
       },
       {
         "code_line": "whole.len() == 1",
-        "line": 919,
+        "line": 915,
         "passed": true
       }
     ],
     "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let mut lift_pts = Vec::new();\n        for i in 0..21 {\n            let x = 10.0 * i as f64 / 20.0;\n            let y = 5.0 + 2.0 * x.sin();\n            let (u, v, _d) = Closest::surface_point(&wave, &Point::new(x, y, 0.0), 0.0, 0.0, 0.0, 0.0);\n            lift_pts.push(wave.point_at(u, v).unwrap());\n        }\n        let crv = NurbsCurve::create_interpolated(&lift_pts, CurveNurbsKnotStyle::Chord);\n\n        let parts = wave.split_by_curves(&[crv], None);\n\n\n        let off = NurbsCurve::create(false, 1, &[Point::new(50.0, 50.0, 50.0), Point::new(60.0, 60.0, 60.0)]);\n\n        let whole = wave.split_by_curves(&[off], None);\n",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 892,
+    "line": 888,
     "passed": true,
     "test_name": "Split By Curves",
-    "time_ms": 82.583
+    "time_ms": 77.865
   },
   {
     "checks": [
       {
         "code_line": "parts.len() == 2",
+        "line": 871,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 873,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
         "line": 875,
         "passed": true
       },
       {
         "code_line": "ts.is_trimmed()",
-        "line": 877,
+        "line": 873,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() > 0",
-        "line": 879,
-        "passed": true
-      },
-      {
-        "code_line": "ts.is_trimmed()",
-        "line": 877,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() > 0",
-        "line": 879,
+        "line": 875,
         "passed": true
       },
       {
         "code_line": "caps.len() == 2",
-        "line": 887,
+        "line": 883,
         "passed": true
       }
     ],
     "code": "        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0);\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 2.0), Vector::new(0.3, 0.0, 1.0));\n\n        let parts = cyl.split_by_plane(&plane, None);\n\n        for ts in &parts {\n            let m = ts.mesh_q(20.0, 0.005);\n        }\n\n        let sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0);\n        let plane2 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.3), Vector::new(0.0, 0.0, 1.0));\n\n        let caps = sphere.split_by_plane(&plane2, None);\n",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 864,
+    "line": 860,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 316.924
+    "time_ms": 275.908
   },
   {
     "checks": [
       {
         "code_line": "(cp[0] - 2.0).abs() < 1e-4 && cp[1].abs() < 1e-4 && cp[2].abs() < 1e-4",
-        "line": 1092,
+        "line": 1088,
         "passed": true
       },
       {
         "code_line": "(sphere.gaussian_curvature(um, vm) - 0.25).abs() < 1e-3",
-        "line": 1098,
+        "line": 1094,
         "passed": true
       },
       {
         "code_line": "(sphere.mean_curvature(um, vm).abs() - 0.5).abs() < 1e-3",
-        "line": 1099,
+        "line": 1095,
         "passed": true
       }
     ],
     "code": "        use crate::Point;\n        use crate::primitives::Primitives;\n        // Sphere radius 2 at origin: closest surface point to an outside point is radial.\n        let sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 2.0);\n        let cp = sphere.closest_point(&Point::new(5.0, 0.0, 0.0));\n        // Curvature: sphere radius R has Gaussian K = 1/R^2, |mean| = 1/R.\n        let (u0, u1) = sphere.domain(0).unwrap();\n        let (v0, v1) = sphere.domain(1).unwrap();\n        let um = u0 + 0.37 * (u1 - u0);\n        let vm = v0 + 0.41 * (v1 - v0);",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 1086,
+    "line": 1082,
     "passed": true,
     "test_name": "ClosestPoint",
-    "time_ms": 0.43
+    "time_ms": 0.4
   }
 ]

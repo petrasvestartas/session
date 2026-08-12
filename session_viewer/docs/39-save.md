@@ -55,8 +55,9 @@ src/state.rs             # frame-count debounce + Ctrl+S; fire the download when
 
 ## Step 1 — Session → bytes: `src/app/persistence.rs`
 
-The exact inverse of 34's `session_from_bytes`, and the same entry points every language's minitest
-round-trips — just the dump side. Add next to the load functions:
+The exact inverse of 34's `session_from_bytes_chunked` (minus the chunking — dumping is one
+synchronous pass), and the same entry points every language's minitest round-trips — just the dump
+side. Add next to the load functions:
 
 ```rust
 use session_rust::Session;
@@ -72,6 +73,11 @@ pub fn session_to_bytes(filename: &str, session: &Session) -> Vec<u8> {
     }
 }
 ```
+
+Placements ride the dump too: `Session.xforms` (proto tag 7) carries every placement, so an in-viewer
+move must go through `session.set_xform(guid, …)` for `pb_dumps` to write it. And `pb_dumps` on a
+freshly mutated session is safe as-is — the kernel syncs its object table inside the dump itself (P2
+of the datastructure plan), no manual refresh step.
 
 ## Step 2 — bytes → a download: `src/app/persistence.rs` (new ground)
 
@@ -119,10 +125,17 @@ Add the features to `Cargo.toml`'s `web-sys` list (beside 34's `Request`/`Respon
 
 ## Step 3 — the hash gate: only real changes count: `src/app/scene.rs`
 
-38 built `content_hash` + `Scene.hashes` (the last-saved fingerprints). Save reuses them: an object is
-only *really* changed if its current hash differs from the stored one. Add a dirty set and the gate
-(the field goes in `struct Scene`, its init in `Scene::new`'s `Self { … }`, the two methods in
-`impl Scene`):
+38b built `content_hash` + `Scene.hashes` (the last-saved fingerprints). Save reuses them: an object is
+only *really* changed if its current hash differs from the stored one. One subtlety the Xform refactor
+forces: a pure MOVE never touches the geometry's bytes — placements live in `Session.xforms`, not on
+the object — which is exactly why 38b's rewritten hash folds `session.xform(guid)` in with the
+`to_proto()` bytes; reuse it as-is, or a moved-but-otherwise-untouched object would read as unchanged.
+
+Two 35 realities as well: a `Scene` is now *several* docs, and a save targets ONE of them —
+`save_if_changed` takes the doc index (the trigger below saves `docs[0]`; a shipping Ctrl+S saves the
+*active* doc, or loops over all docs — pick one policy, and split `dirty` per doc when you do). Add a
+dirty set and the gate (the field goes in `struct Scene`, its init in `Scene::new`'s `Self { … }`, the
+two methods in `impl Scene`):
 
 ```rust
     // add to struct Scene:
@@ -135,13 +148,14 @@ only *really* changed if its current hash differs from the stored one. Add a dir
     // add to impl Scene:
     pub fn mark_dirty(&mut self, guid: &str) { self.dirty.insert(guid.to_string()); }
 
-    /// Bytes to write, or None if nothing actually changed. Re-hashes each dirty
-    /// object against its stored fingerprint: a nudge that got reverted hashes back
+    /// Bytes to write for ONE doc, or None if nothing actually changed. Re-hashes each
+    /// dirty object against its stored fingerprint: a nudge that got reverted hashes back
     /// to the same value → not a real change. On a real change, refreshes `hashes`
     /// so the NEXT save's gate starts clean, and clears `dirty`.
-    pub fn save_if_changed(&mut self, filename: &str) -> Option<Vec<u8>> {
+    pub fn save_if_changed(&mut self, doc: usize, filename: &str) -> Option<Vec<u8>> {
+        let session = &self.docs.get(doc)?.session;   // per-DOC: which loaded file to dump
         let real: Vec<String> = self.dirty.iter()
-            .filter(|g| self.session.lookup.get(*g)
+            .filter(|g| session.lookup.get(*g)
                 // removed or hash≠
                 .map_or(true, |geom| self.hashes.get(*g) != Some(&content_hash(geom))))
             .cloned().collect();
@@ -150,12 +164,12 @@ only *really* changed if its current hash differs from the stored one. Add a dir
         if real.is_empty() { return None; }
 
         for g in &real {
-            match self.session.lookup.get(g) {
+            match session.lookup.get(g) {
                 Some(geom) => { self.hashes.insert(g.clone(), content_hash(geom)); }
                 None => { self.hashes.remove(g); }
             }
         }
-        Some(crate::app::persistence::session_to_bytes(filename, &self.session))
+        Some(crate::app::persistence::session_to_bytes(filename, session))
     }
 ```
 
@@ -211,7 +225,7 @@ Now the module-level constants, the `touch` entry point, and the debounce gate i
     if let Some(since) = self.dirty_since {
         if self.frame - since >= SAVE_DEBOUNCE_FRAMES {
             self.dirty_since = None;                               // one save per settled burst
-            if let Some(bytes) = self.scene.save_if_changed(SAVE_FILENAME) {
+            if let Some(bytes) = self.scene.save_if_changed(0, SAVE_FILENAME) {   // doc 0 — see Step 3's policy note
                 let _ = crate::app::persistence::download_bytes(SAVE_FILENAME, &bytes);
                 log::info!("saved {} bytes", bytes.len());
             } else {
@@ -240,17 +254,20 @@ cd session_viewer && trunk serve   # http://localhost:8770
 There's no in-viewer editing yet (that's Phase 7+), so drive the gates manually — wire **Ctrl+S** to
 `touch` a known guid (and, for the negative test, a key that calls `mark_dirty` on an object *without*
 changing it). Add two arms to the keyboard match in `src/lib.rs` (`self.ctrl` is already tracked by the
-`ModifiersChanged` handler; `state.scene` exposes a guid to poke — use whatever's first in `lookup`):
+`ModifiersChanged` handler; `state.scene` exposes a guid to poke — use whatever's first in the first
+doc's `lookup`, the same `docs[0]` the save targets):
 
 ```rust
     // find, in lib.rs's `match event.logical_key.as_ref()`, beside the "f"/"F" arm:
     Key::Character("s" | "S") if self.ctrl => {
-        if let Some(g) = state.scene.session.lookup.keys().next().cloned() {
+        if let Some(g) = state.scene.docs.first()
+            .and_then(|d| d.session.lookup.keys().next().cloned()) {
             state.touch(&g);   // real edit path: mark dirty + stamp dirty_since
         }
     }
     Key::Character("d" | "D") => {
-        if let Some(g) = state.scene.session.lookup.keys().next().cloned() {
+        if let Some(g) = state.scene.docs.first()
+            .and_then(|d| d.session.lookup.keys().next().cloned()) {
             state.scene.mark_dirty(&g);          // dirty WITHOUT changing the hash…
             state.dirty_since = Some(state.frame); // …but still arm the debounce (the negative test)
         }
@@ -263,8 +280,10 @@ changing it). Add two arms to the keyboard match in `src/lib.rs` (`self.ctrl` is
 - **Mark-dirty without changing anything, wait ~1 s** → console `save skipped — nothing changed`, **no
   download**. This is the hash gate earning its place: a dirty flag alone would have written a
   byte-identical file.
-- Re-open the downloaded `.pb` (swap `DEMO_SESSION_URL` to it, or drag it back through 34's loader) →
-  the scene round-trips: what you saved is what you get back.
+- Re-open the downloaded `.pb` — the viewer loads a *manifest* (`DEMO_SCENE_URL` names it, not a
+  session), so drop the saved file where the server can see it and point a manifest item's `file` at
+  it (keep the item's `at`/`xform`), then reload → the doc round-trips: what you saved is what you
+  get back.
 
 A `#[cfg(test)]` covers the gate without a browser: mark an object dirty but leave it untouched →
 `save_if_changed` returns `None`; actually change its hash → returns `Some`, and a second immediate call
@@ -274,11 +293,13 @@ returns `None` again (the first refreshed `hashes`).
 
 ```
 Ch 38: reconcile — read a file in, diff by guid, touch only what changed.
-Ch 39: SAVE — write a file out, THREE gates before one pb_dumps. (1) dirty: a HashSet<guid>
+Ch 39: SAVE — write ONE doc's file out (docs[0] here; active-vs-all is policy), THREE gates before
+       one pb_dumps. (1) dirty: a HashSet<guid>
        editing code fills via touch(); (2) debounce: a frame counter (edit stamps dirty_since;
        save fires only after SAVE_DEBOUNCE_FRAMES of quiet — coalesces a burst into one save,
-       no JS timer); (3) hash gate: save_if_changed re-hashes each dirty object against 38's
-       stored fingerprint and drops the ones that reverted to their old value — nothing truly
+       no JS timer); (3) hash gate: save_if_changed re-hashes each dirty object against 38b's
+       stored fingerprint (geometry bytes + session.xform, so a pure MOVE counts)
+       and drops the ones that reverted to their old value — nothing truly
        changed → Option::None → ZERO writes. Past all three, session_to_bytes (pb_dumps /
        file_json_dumps, the dump side of 34) → download_bytes wraps the Vec<u8> in a Blob and
        clicks a synthetic <a download> (wasm has no fs; new ground vs web-sys, like 34's

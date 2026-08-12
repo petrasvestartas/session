@@ -7,7 +7,7 @@
 
 42 answers *which mesh*. Editing needs *which part*: drag a **vertex**, bevel an **edge**, extrude a
 **face**. From the same click, this lesson resolves the hit down to one sub-object and returns a
-`SubHit { guid, kind }` the gumball and edit tools act on (the sub-object key rides *inside* `kind`).
+`SubHit { row, guid, kind }` the gumball and edit tools act on (the sub-object key rides *inside* `kind`).
 
 The resolution is **screen-space, with a priority order**. A vertex is a point and an edge is a line —
 in 3D a ray almost never hits either exactly, so "did I click the vertex?" is really "is the vertex
@@ -33,7 +33,7 @@ vertex, that's the pick; else the nearest edge; else the face the ray landed on.
 
 ```
 src/engine/pick.rs   # project_to_screen(view_proj, origin, world_pt, viewport) — the forward of 41
-src/app/pick.rs      # SubKind { Vertex/Edge/Face }, SubHit { guid, kind }
+src/app/pick.rs      # SubKind { Vertex/Edge/Face }, SubHit { row, guid, kind }
 src/app/scene.rs     # resolve_subobject(guid, hit, cursor, view_proj, origin, viewport) → SubHit
 ```
 
@@ -70,6 +70,8 @@ pub enum SubKind {
 }
 
 pub struct SubHit {
+    pub row: u32,       // carried through from PickHit, like the guid — downstream tools resolve
+                        // the doc (doc_of_row) and the highlight off the row, not the guid
     pub guid: String,
     pub kind: SubKind,
 }
@@ -77,9 +79,9 @@ pub struct SubHit {
 
 ## Step 3 — resolve, most-specific first: `src/app/scene.rs`
 
-Given 42's `PickHit` (the guid + the world hit point), walk the hit mesh's vertices then edges in screen
-space, and fall back to the face containing the hit. `R_PX` is the click slop — ~8 px feels right and
-matches 44's thin-geometry radius. Widen `scene.rs`'s imports first:
+Given 42's `PickHit` (the row + guid + the world hit point), walk the hit mesh's vertices then edges in
+screen space, and fall back to the face containing the hit. `R_PX` is the click slop — ~8 px feels right
+and matches 44's thin-geometry radius. Widen `scene.rs`'s imports first:
 
 ```rust
 use crate::app::pick::{PickHit, SubHit, SubKind};
@@ -92,13 +94,17 @@ const R_PX: f64 = 8.0;
 impl Scene {
     pub fn resolve_subobject(&self, hit: &PickHit, cursor: (f64, f64), view_proj: &Xform,
                              origin: &Point, viewport: (f64, f64, f64, f64)) -> Option<SubHit> {
-        let m = match self.session.lookup.get(&hit.guid) {
-            Some(session_rust::Geometry::Mesh(m)) => m,   // same qualified lookup as 42's pick_ray
+        let d = self.doc_of_row(hit.row);          // 42's PickHit carries the row → owning doc
+        let m = match self.docs[d].session.lookup.get(&hit.guid) {
+            Some(session_rust::Geometry::Mesh(m)) => m,   // same doc-resolved lookup as 42's pick_ray
             _ => return None,   // BRep sub-objects (trims/edges) are their own lesson
         };
+        // ONE frame lookup, hoisted out of the per-vertex loops below (read-only, so it can
+        // coexist with the `m` borrow — no clone needed here, unlike 42's mutable path).
+        let frame = self.placed_frame(hit.row);
         let world = |vk: usize| -> Option<Point> {
-            // local → world (kernel gap #5's API)
-            Some(m.xform.transform_point(&m.vertex_point(vk)?))
+            // local → world through the row's placed frame (kernel gap #5's transform_point)
+            Some(frame.transform_point(&m.vertex_point(vk)?))
         };
         let px = |vk: usize| world(vk)
             .and_then(|p| project_to_screen(view_proj, origin, &p, viewport));
@@ -116,7 +122,7 @@ impl Scene {
                     best_v = Some((vk, d)); } }
         }
         if let Some((vk, _)) = best_v {
-            return Some(SubHit { guid: hit.guid.clone(), kind: SubKind::Vertex(vk) }); }
+            return Some(SubHit { row: hit.row, guid: hit.guid.clone(), kind: SubKind::Vertex(vk) }); }
 
         // 2) nearest EDGE within R_PX (point-to-segment in screen space)
         let mut best_e: Option<((usize, usize), f64)> = None;
@@ -126,13 +132,13 @@ impl Scene {
                     best_e = Some(((a, b), d)); } }
         }
         if let Some(((a, b), _)) = best_e {
-            return Some(SubHit { guid: hit.guid.clone(), kind: SubKind::Edge(a, b) }); }
+            return Some(SubHit { row: hit.row, guid: hit.guid.clone(), kind: SubKind::Edge(a, b) }); }
 
         // 3) FACE the ray landed on (local point-in-polygon over the mesh faces)
-        let inv = m.xform.inverse()?;
+        let inv = frame.inverse()?;                               // the hoisted placed frame again
         let local = inv.transform_point(&hit.point);              // world hit → local
         let fk = face_containing(m, &local)?;
-        Some(SubHit { guid: hit.guid.clone(), kind: SubKind::Face(fk) })
+        Some(SubHit { row: hit.row, guid: hit.guid.clone(), kind: SubKind::Face(fk) })
     }
 }
 
@@ -223,8 +229,9 @@ Ch 43: SUB-OBJECT. Resolve the hit to vertex / edge / face, SCREEN-SPACE, most-s
        behind). Priority: (1) nearest projected VERTEX within R_PX (~8) → Vertex(key); (2) else
        nearest projected EDGE by screen point-to-segment → Edge(a,b); (3) else the FACE the ray
        hit, recovered by transforming the world hit to local and point-in-polygon over
-       m.faces() — because the kernel ray-cast returns the point, not the face. Returns
-       SubHit{guid, kind} (the key lives inside kind). Pixel radius (not world) so the test is zoom-independent — the
+       m.faces() — because the kernel ray-cast returns the point, not the face. All projection
+       goes through the row's placed frame (hoisted once, before the loops). Returns
+       SubHit{row, guid, kind} (the key lives inside kind). Pixel radius (not world) so the test is zoom-independent — the
        unit the user aims in. Vertex/edge screen-proximity is the same trick 44 uses to pick
        1D/0D geometry that a ray can't hit exactly.
 ```

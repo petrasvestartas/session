@@ -58,7 +58,8 @@ impl SnapKind {
 }
 
 const SNAP_PX: f64 = 10.0;
-const GRID_STEP: f64 = 1000.0;   // must match the lesson-20 grid spacing
+const GRID_STEP: f64 = 1000.0;   // must match the lesson-20 grid spacing (and 65's analytic
+                                 // grid, if you take that lesson's optional retirement of 20's)
 
 /// Snap `raw` (the pick-or-z=0 point under the cursor). Candidates are compared in SCREEN pixels —
 /// project each candidate (43's project_to_screen) and measure against the cursor. Returns the
@@ -80,19 +81,23 @@ pub fn snap(scene: &Scene, raw: &Point, cursor: (f64, f64), view_proj: &Xform, o
     // geometry candidates — only from objects NEAR the cursor
     // (36's BVH keeps this O(few), not O(N))
     for guid in scene.objects_in(&query_box_around(raw, scene)) {
-        match &scene.session.lookup[guid] {
+        let row = scene.guid_to_row[guid];
+        let placed = scene.placed_frame(row);      // manifest place × session world_xform (36)
+        let doc = scene.doc_of_row(row);           // Scene has no session — the doc does
+        match &doc.session.lookup[guid] {
             Geometry::Line(l) => {
-                consider(l.start(), SnapKind::Endpoint);
-                consider(l.end(), SnapKind::Endpoint);
+                consider(l.start().transformed(&placed), SnapKind::Endpoint);
+                consider(l.end().transformed(&placed), SnapKind::Endpoint);
             }
-            Geometry::Polyline(pl) => for p in pl.get_points() { consider(p, SnapKind::Endpoint); },
-            Geometry::Point(p) => consider(p.clone(), SnapKind::Vertex),
+            Geometry::Polyline(pl) => for p in pl.get_points() {
+                consider(p.transformed(&placed), SnapKind::Endpoint);
+            },
+            Geometry::Point(p) => consider(p.transformed(&placed), SnapKind::Vertex),
             Geometry::Mesh(m) => {
                 // boundary verts — the handles (32a)
                 for vk in m.naked_vertices(true) {
-                    if let Some(mut p) = m.vertex_point(vk) {
-                        p.xform = m.xform.clone();
-                        consider(p.transformed(), SnapKind::Vertex);
+                    if let Some(p) = m.vertex_point(vk) {
+                        consider(p.transformed(&placed), SnapKind::Vertex);
                     }
                 }
             }
@@ -124,8 +129,10 @@ fn query_box_around(raw: &Point, _scene: &Scene) -> OBB {
 }
 ```
 
-(The mesh arm transforms local vertices by `mesh.xform` — same world-frame discipline as 36/43;
-skipping it snaps to where the mesh *isn't*.)
+(Every candidate is lifted into world space by its row's **placed frame** — same world-frame
+discipline as 36/43; skipping it snaps to where the object *isn't*. If you ever batch candidates
+per doc instead of per row, get placements from `doc.session.world_xforms()` exactly like
+`add_file` does — don't invent a second placement rule.)
 
 ## Step 2 — one call site: `src/state.rs`
 
@@ -240,9 +247,9 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 58: ghosts — tools show a future; finish makes it real.
 Ch 59: PRECISION. app/snap.rs: SnapKind { Endpoint/Vertex(0) > Grid(6) } — RANK first, pixel
        distance second, radius ~10 px screen-space (zoom-independent). Candidates: line/polyline
-       endpoints, Point objects, mesh boundary verts (transformed by mesh.xform — world frame or
-       you snap to nowhere), gathered via 36's BVH around the raw point; grid = nearest crossing
-       when on z=0.
+       endpoints, Point objects, mesh boundary verts (lifted by the row's PLACED FRAME — world
+       frame or you snap to nowhere), gathered via 36's BVH around the raw point; grid = nearest
+       crossing when on z=0.
        ONE call site — cursor_world_point(), which 48's clicks and 58's on_move already share — so
        every existing and future tool became snap-aware with zero tool edits. Live feedback: white
        marker glyph on the preview row + `[End]` suffix in the prompt. `snap` verb toggles. Phase 9

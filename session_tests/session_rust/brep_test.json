@@ -53,7 +53,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.039
+    "time_ms": 0.052
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 28,
     "passed": true,
     "test_name": "Create Box",
-    "time_ms": 0.215
+    "time_ms": 0.298
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.166
+    "time_ms": 0.258
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 62,
     "passed": true,
     "test_name": "Add Face",
-    "time_ms": 0.014
+    "time_ms": 0.07
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 94,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 0.911
+    "time_ms": 1.08
   },
   {
     "checks": [
@@ -208,7 +208,7 @@
     "line": 107,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.179
+    "time_ms": 0.167
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Is Solid",
-    "time_ms": 0.171
+    "time_ms": 0.149
   },
   {
     "checks": [
@@ -249,13 +249,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::brep::BRep;\n        use crate::Xform;\n\n        let mut b = BRep::create_box(2.0, 3.0, 4.0);\n        b.xform = Xform::translation(10.0, 20.0, 30.0);\n        let moved = b.transformed();\n\n        let pt = moved.point_at(0, 0.0, 0.0);\n        let pt_orig = b.point_at(0, 0.0, 0.0);\n",
+    "code": "        use crate::brep::BRep;\n        use crate::Xform;\n\n        let b = BRep::create_box(2.0, 3.0, 4.0);\n        let b_xf = Xform::translation(10.0, 20.0, 30.0);\n        let moved = b.transformed(&b_xf);\n\n        let pt = moved.point_at(0, 0.0, 0.0);\n        let pt_orig = b.point_at(0, 0.0, 0.0);\n",
     "failures": [],
     "group": "BRep",
     "line": 143,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.269
+    "time_ms": 0.247
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 161,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 12.763
+    "time_ms": 10.083
   },
   {
     "checks": [
@@ -317,7 +317,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Create Cylinder",
-    "time_ms": 8.756
+    "time_ms": 9.274
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 258,
     "passed": true,
     "test_name": "Create Sphere",
-    "time_ms": 19.374
+    "time_ms": 20.302
   },
   {
     "checks": [
@@ -389,7 +389,7 @@
     "line": 421,
     "passed": true,
     "test_name": "From Nurbscurves",
-    "time_ms": 64.809
+    "time_ms": 57.482
   },
   {
     "checks": [
@@ -410,7 +410,7 @@
     "line": 216,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 4.017
+    "time_ms": 2.527
   },
   {
     "checks": [
@@ -436,7 +436,7 @@
     "line": 331,
     "passed": true,
     "test_name": "Volume",
-    "time_ms": 496.78
+    "time_ms": 723.889
   },
   {
     "checks": [
@@ -502,7 +502,7 @@
     "line": 306,
     "passed": true,
     "test_name": "Contains Point",
-    "time_ms": 0.405
+    "time_ms": 0.356
   },
   {
     "checks": [
@@ -552,13 +552,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::brep::BRep;\n        use crate::xform::Xform;\n        let bx = BRep::create_box(2.0, 2.0, 2.0);\n        let mut cyl = BRep::create_cylinder(0.7, 3.0);\n        cyl.xform = Xform::translation(0.0, 0.0, -1.5);\n        let cyl = cyl.transformed();\n        let fus = bx.boolean_union(&cyl, None);\n        let cut = bx.boolean_difference(&cyl, None);\n        let com = bx.boolean_intersection(&cyl, None);",
+    "code": "        use crate::brep::BRep;\n        use crate::xform::Xform;\n        let bx = BRep::create_box(2.0, 2.0, 2.0);\n        let cyl = BRep::create_cylinder(0.7, 3.0);\n        let cyl_xf = Xform::translation(0.0, 0.0, -1.5);\n        let cyl = cyl.transformed(&cyl_xf);\n        let fus = bx.boolean_union(&cyl, None);\n        let cut = bx.boolean_difference(&cyl, None);\n        let com = bx.boolean_intersection(&cyl, None);",
     "failures": [],
     "group": "BRep",
     "line": 622,
     "passed": true,
     "test_name": "Boolean Example brep_booleans",
-    "time_ms": 12301.373
+    "time_ms": 11399.494
   },
   {
     "checks": [
@@ -608,13 +608,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::brep::BRep;\n        use crate::xform::Xform;\n        const PI: f64 = std::f64::consts::PI;\n        let bx = BRep::create_box(4.0, 4.0, 4.0);\n        let mut cyl = BRep::create_cylinder(1.0, 6.0);\n        cyl.xform = Xform::translation(0.5, 0.0, -3.0);\n        let cyl = cyl.transformed();\n        let cut = bx.boolean_difference(&cyl, None);\n        let com = bx.boolean_intersection(&cyl, None);\n        let fus = bx.boolean_union(&cyl, None);",
+    "code": "        use crate::brep::BRep;\n        use crate::xform::Xform;\n        const PI: f64 = std::f64::consts::PI;\n        let bx = BRep::create_box(4.0, 4.0, 4.0);\n        let cyl = BRep::create_cylinder(1.0, 6.0);\n        let cyl_xf = Xform::translation(0.5, 0.0, -3.0);\n        let cyl = cyl.transformed(&cyl_xf);\n        let cut = bx.boolean_difference(&cyl, None);\n        let com = bx.boolean_intersection(&cyl, None);\n        let fus = bx.boolean_union(&cyl, None);",
     "failures": [],
     "group": "BRep",
     "line": 645,
     "passed": true,
     "test_name": "Boolean Off-Center Cyl",
-    "time_ms": 12157.343
+    "time_ms": 11415.584
   },
   {
     "checks": [
@@ -670,7 +670,7 @@
     "line": 669,
     "passed": true,
     "test_name": "Boolean Contained Box",
-    "time_ms": 17.417
+    "time_ms": 14.956
   },
   {
     "checks": [
@@ -720,13 +720,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::brep::BRep;\n        use crate::xform::Xform;\n        let ba = BRep::create_box(4.0, 4.0, 4.0);\n        let mut bb = BRep::create_box(2.0, 2.0, 2.0);\n        bb.xform = Xform::translation(2.0, 0.0, 0.0);\n        let bb = bb.transformed();\n        let bcut = ba.boolean_difference(&bb, None);\n        let bcom = ba.boolean_intersection(&bb, None);\n        let bfus = ba.boolean_union(&bb, None);",
+    "code": "        use crate::brep::BRep;\n        use crate::xform::Xform;\n        let ba = BRep::create_box(4.0, 4.0, 4.0);\n        let bb = BRep::create_box(2.0, 2.0, 2.0);\n        let bb_xf = Xform::translation(2.0, 0.0, 0.0);\n        let bb = bb.transformed(&bb_xf);\n        let bcut = ba.boolean_difference(&bb, None);\n        let bcom = ba.boolean_intersection(&bb, None);\n        let bfus = ba.boolean_union(&bb, None);",
     "failures": [],
     "group": "BRep",
     "line": 689,
     "passed": true,
     "test_name": "Boolean Box-Box",
-    "time_ms": 262.929
+    "time_ms": 236.655
   },
   {
     "checks": [
@@ -782,7 +782,7 @@
     "line": 712,
     "passed": true,
     "test_name": "Boolean Contained Sphere",
-    "time_ms": 12.134
+    "time_ms": 10.469
   },
   {
     "checks": [
@@ -808,7 +808,7 @@
     "line": 762,
     "passed": true,
     "test_name": "Block With Hole Volume",
-    "time_ms": 0.215
+    "time_ms": 0.169
   },
   {
     "checks": [
@@ -834,7 +834,7 @@
     "line": 606,
     "passed": true,
     "test_name": "Split By Brep",
-    "time_ms": 78.562
+    "time_ms": 72.615
   },
   {
     "checks": [
@@ -860,7 +860,7 @@
     "line": 588,
     "passed": true,
     "test_name": "Split By Line",
-    "time_ms": 122.019
+    "time_ms": 109.096
   },
   {
     "checks": [
@@ -901,7 +901,7 @@
     "line": 560,
     "passed": true,
     "test_name": "Split By Plane Pieces",
-    "time_ms": 399.473
+    "time_ms": 333.672
   },
   {
     "checks": [
@@ -942,7 +942,7 @@
     "line": 524,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 399.386
+    "time_ms": 338.344
   },
   {
     "checks": [
@@ -963,7 +963,7 @@
     "line": 203,
     "passed": true,
     "test_name": "Mesh Orientation",
-    "time_ms": 9.214
+    "time_ms": 8.651
   },
   {
     "checks": [
@@ -1004,7 +1004,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Create Block With Hole",
-    "time_ms": 9.003
+    "time_ms": 8.487
   },
   {
     "checks": [
@@ -1045,7 +1045,7 @@
     "line": 290,
     "passed": true,
     "test_name": "Create Torus",
-    "time_ms": 86.31
+    "time_ms": 81.169
   },
   {
     "checks": [
@@ -1086,7 +1086,7 @@
     "line": 274,
     "passed": true,
     "test_name": "Create Cone",
-    "time_ms": 4.137
+    "time_ms": 3.958
   },
   {
     "checks": [
@@ -1137,6 +1137,6 @@
     "line": 737,
     "passed": true,
     "test_name": "Boolean Sphere Split",
-    "time_ms": 72220.352
+    "time_ms": 68238.599
   }
 ]

@@ -4,29 +4,50 @@
 > here to the end of the course: **deferred drag** (a press isn't a drag until the mouse travels — a
 > click means something else, 56), **live = matrix-only** (during the drag, only instance matrices
 > change; geometry is never re-tessellated — this is why dragging 5,000 objects holds 60 fps), and
-> **commit = a Command** (release produces absolute before/after snapshots → undo is exact and free,
-> 51). Rotate and scale (55) will be *only* new delta math on this identical skeleton.
+> **commit = a Command** (release records before/after placements → undo is exact and free, 51).
+> And since the Xform refactor the commit is *also* matrix-only: placement lives in
+> `session.xforms`, so a move never touches coordinates, for ANY geometry kind. Rotate and scale
+> (55) will be *only* new delta math on this identical skeleton.
 
 <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="press stores state, movement past a threshold begins the drag, each mouse move applies a matrix-only delta live, release commits a TransformObjects command onto the undo stack" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <g fill="none" stroke="#6fb3ff" stroke-width="1.3">
     <rect x="8" y="30" width="110" height="34"/><rect x="150" y="30" width="130" height="34"/><rect x="312" y="30" width="160" height="34"/><rect x="504" y="30" width="166" height="34"/>
   </g>
   <g fill="#d7dae0" text-anchor="middle">
-    <text x="63" y="47">press handle</text><text x="63" y="59" fill="#666" font-size="9">snapshot models</text>
+    <text x="63" y="47">press handle</text><text x="63" y="59" fill="#666" font-size="9">snapshot placements</text>
     <text x="215" y="47">travel ≥ 4 px?</text><text x="215" y="59" fill="#666" font-size="9">else: click (56)</text>
     <text x="392" y="47">drag: delta · original</text><text x="392" y="59" fill="#666" font-size="9">matrix-only, LIVE</text>
-    <text x="587" y="47">release: Command</text><text x="587" y="59" fill="#666" font-size="9">before/after → undo stack</text>
+    <text x="587" y="47">release: Command</text><text x="587" y="59" fill="#666" font-size="9">before/after xforms → undo</text>
   </g>
   <g stroke="#6fb3ff" stroke-width="1.3"><line x1="118" y1="47" x2="148" y2="47" marker-end="url(#ah54)"/><line x1="280" y1="47" x2="310" y2="47" marker-end="url(#ah54)"/><line x1="472" y1="47" x2="502" y2="47" marker-end="url(#ah54)"/></g>
-  <text x="340" y="100" fill="#888" text-anchor="middle">the kernel objects are untouched until release — the Session never sees a half-drag</text>
+  <text x="340" y="100" fill="#888" text-anchor="middle">the kernel objects are untouched forever — only session.xforms and the row's placed frame move</text>
   <defs><marker id="ah54" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
 </svg>
+
+## The one formula this lesson adds
+
+The drag produces a **world-space** delta `D`. The object's full world placement is the row's
+placed frame `W = place × ancestors × local` (36's `placed_frame` — the exact matrix `add_file`
+stored). The Session stores only the LOCAL xform `L`, so committing `D` means solving
+`W' = D · W` for the new local:
+
+```
+L' = L · W⁻¹ · D · W
+```
+
+— correct under any manifest `place` and any ancestor group transforms, because both live inside
+`W`. (For an ungrouped sheet object `W = place · L` and the formula collapses to
+`place⁻¹ · D · place · L` — the conjugation that makes a world translation land right on a placed
+sheet, and a world ROTATION rotate about the right point. Skip it and every sheet but the first
+transforms around the wrong origin.)
 
 ## Files we touch
 
 ```
 src/engine/gumball.rs        # axis_drag_delta — closest-point-on-axis math (f64)
-src/app/history/transform.rs # NEW — TransformObjects: absolute before/after snapshots
+src/app/scene.rs             # apply_world_delta — THE commit primitive (55/56/80 reuse it)
+src/app/history/transform.rs # NEW — TransformObjects: before/after placement snapshots
+src/engine/gpu/mod.rs        # set_live_model / base_model — the live path
 src/state.rs                 # the drag state machine: press → threshold → live → commit
 ```
 
@@ -54,33 +75,70 @@ matters: dragging the Z arrow while looking straight down Z has no answer; the d
 `gumball.rs` now names kernel types — add `use session_rust::{Point, Vector};` beside 53's `Ray`
 import.)
 
-## Step 2 — the Command: `src/app/history/transform.rs` (NEW)
+## Step 2 — the commit primitive: `src/app/scene.rs`
 
-Same absolute-snapshot pattern as 51's delete — `before` cloned at press, `after` cloned at release.
-Apply/revert = swap the whole object back in. One code path for mesh *and* thin geometry, because
-`apply_object` (38b) already re-flattens whatever it's given:
+One method, `pub` — 55's rotate/scale, 56's typed entry, and 80's copy-array all call it. No
+per-kind match, no re-tessellation, no `Rc::make_mut`: a transform is a matrix write, twice (the
+Session's local xform, and the row's placed frame — the tables are the truth `set_scene` re-derives
+from, so a placement that only reached the GPU would be erased by the next streamed-in file):
 
 ```rust
-use session_rust::Geometry;
+    /// Apply a WORLD-space delta to one row's object. L' = L · W⁻¹ · D · W (see the lesson's
+    /// formula) — placement-only, kind-agnostic, correct under manifest placement and groups.
+    /// Also moves the row's cached world box, so the BVH refit stays cheap.
+    pub fn apply_world_delta(&mut self, row: u32, delta: &Xform) {
+        let guid = self.order[row as usize].clone();
+        let w = self.tables.objects[row as usize].0.duplicate();
+        let Some(winv) = w.inverse() else { return };
+        let d = self.doc_of_row(row);
+        let session = &mut self.docs[d].session;
+        let local = session.xform(&guid);
+        session.set_xform(&guid, &(&(&local * &winv) * delta) * &w);
+        self.tables.objects[row as usize].0 = delta * &w;
+
+        // move the cached box: transform its 8 corners, take min/max (36's extents cache)
+        let (lo, hi) = self.world_boxes[row as usize];
+        let (mut nlo, mut nhi) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
+        for cx in [lo[0], hi[0]] { for cy in [lo[1], hi[1]] { for cz in [lo[2], hi[2]] {
+            let p = delta.transform_point(&Point::new(cx, cy, cz));
+            for k in 0..3 { nlo[k] = nlo[k].min(p[k]); nhi[k] = nhi[k].max(p[k]); }
+        } } }
+        self.world_boxes[row as usize] = (nlo, nhi);
+    }
+```
+
+## Step 3 — the Command: `src/app/history/transform.rs` (NEW)
+
+Snapshots are `(row, guid, local xform, placed frame)` — a few hundred bytes per object instead of
+cloned geometry, and exact by definition: a transform IS its placement. Apply/revert = write both
+matrices back:
+
+```rust
+use session_rust::Xform;
 use super::Command;
 use crate::{app::scene::Scene, engine::gpu::Gpu};
 
+pub struct XformSnap {
+    pub row: u32,
+    pub guid: String,
+    pub local: Xform,    // the Session-local xform
+    pub placed: Xform,   // the row's placed frame (tables.objects[row].0)
+}
+
 pub struct TransformObjects {
-    pub before: Vec<Geometry>,   // cloned at PRESS
-    // cloned at RELEASE (kernel objects already carry the new placement)
-    pub after: Vec<Geometry>,
+    pub before: Vec<XformSnap>,   // taken at PRESS
+    pub after: Vec<XformSnap>,    // taken at RELEASE (post-commit)
 }
 
 impl TransformObjects {
-    fn restore(set: &[Geometry], scene: &mut Scene, gpu: &mut Gpu) {
-        for geom in set {
-            let guid = geom.guid().to_string();
-            // overwrite in place — same guid
-            scene.session.lookup.insert(guid.clone(), geom.clone());
-            scene.hashes.insert(guid.clone(), Scene::hash_of(geom));   // keep 38b/39's gates honest
-            let row = scene.guid_to_row[&guid];
-            scene.apply_object(gpu, &guid, geom, row);
+    fn restore(set: &[XformSnap], scene: &mut Scene, gpu: &mut Gpu) {
+        for s in set {
+            let d = scene.doc_of_row(s.row);
+            scene.docs[d].session.set_xform(&s.guid, s.local.duplicate());
+            scene.tables.objects[s.row as usize].0 = s.placed.duplicate();
+            gpu.set_live_model(s.row, &s.placed);
         }
+        scene.rebuild_bvh();   // boxes moved (36)
     }
 }
 
@@ -95,20 +153,20 @@ impl Command for TransformObjects {
 }
 ```
 
-(`hash_of` is 38b's `content_hash` made `pub(crate)` on `Scene`. Overwriting `lookup` directly is
-correct for a transform — guid, tree node, and graph edges all survive; only the object body changes.
-One subtlety: `execute` (51) would apply `after` a second time on commit — harmless (idempotent
-restore), so the commit path *is* `history.execute(cmd, …)`, no special casing.)
+(Restore is idempotent, so the commit path *is* `history.execute(cmd, …)` — its first `apply`
+writes the matrices that are already there, no special casing. Note what this Command does NOT
+carry: geometry. After the Xform refactor a moved object's bytes never change; anything that
+fingerprints geometry — 38b's reconcile, 39's save-if-changed — must fingerprint
+`session.xform(guid)` alongside it, which their rewrites do.)
 
-## Step 3 — the drag machine: `src/state.rs`
+## Step 4 — the drag machine: `src/state.rs`
 
 Four small handlers around the fields 53 already added. First the context struct — add it at file
 scope in `state.rs` (below the `use` lines), plus the field: `gb_drag: Option<DragCtx>` on
-`struct State`, initialized `gb_drag: None` in `State::new` (like 53's fields). New imports for this
-lesson: extend `state.rs`'s `session_rust` use to cover `{Geometry, Point, Vector, Xform}`, add
-`use crate::app::history::transform::TransformObjects;` and
-`use crate::app::scene::apply_delta;` — and `app/history/mod.rs` (51) gains
-`pub mod transform;` beside `pub mod remove;`:
+`struct State`, initialized `gb_drag: None` in `State::new` (like 53's fields). New imports for
+this lesson: extend `state.rs`'s `session_rust` use to cover `{Point, Vector, Xform}`, add
+`use crate::app::history::transform::{TransformObjects, XformSnap};` — and `app/history/mod.rs`
+(51) gains `pub mod transform;` beside `pub mod remove;`:
 
 One more field this lesson adds: `lmb_down: bool` on `struct State` (init `false`). It must track
 the **raw** winit button state, *before* egui routing — in `lib.rs`'s `window_event` handler, insert
@@ -129,9 +187,8 @@ struct DragCtx {
     origin: Point,                       // gumball anchor at press
     axis: Vector,                        // world axis for this handle
     t0: f64,                             // axis param at press
-    before: Vec<Geometry>,               // absolute snapshots (guid inside)
-    base_models: Vec<(String, u32, Xform)>,  // (guid, row, model-at-press) for the live path
-    last_delta: Xform,                   // begin_drag seeds identity; each move overwrites; release bakes
+    before: Vec<XformSnap>,              // placement snapshots (row/guid/local/placed)
+    last_delta: Xform,                   // begin_drag seeds identity; each move overwrites; release commits
 }
 ```
 
@@ -147,7 +204,7 @@ method (the drag needs a ray on every mouse move); `begin_drag` fills the `DragC
         crate::engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport)
     }
 
-    /// Press crossed the threshold: snapshot the selection + stash the axis frame.
+    /// Press crossed the threshold: snapshot the selection's placements + stash the axis frame.
     fn begin_drag(&mut self, handle: HandleKind) {
         let Some(o) = self.scene.selection_centroid() else { return };
         let origin = Point::new(o[0] as f64, o[1] as f64, o[2] as f64);
@@ -161,14 +218,17 @@ method (the drag needs a ray on every mouse move); `begin_drag` fills the `DragC
         let t0 = crate::engine::gumball::closest_param_on_axis(&ray, &origin, &axis)
             .unwrap_or(0.0);
         let mut before = Vec::new();
-        let mut base_models = Vec::new();
         for guid in &self.scene.selected {
-            let Some(geom) = self.scene.session.lookup.get(guid) else { continue };
             let Some(&row) = self.scene.guid_to_row.get(guid) else { continue };
-            before.push(geom.clone());
-            base_models.push((guid.clone(), row, self.gpu.base_model(row)));
+            let d = self.scene.doc_of_row(row);
+            before.push(XformSnap {
+                row,
+                guid: guid.clone(),
+                local: self.scene.docs[d].session.xform(guid),
+                placed: self.scene.placed_frame(row).duplicate(),
+            });
         }
-        self.gb_drag = Some(DragCtx { handle, origin, axis, t0, before, base_models,
+        self.gb_drag = Some(DragCtx { handle, origin, axis, t0, before,
                                       last_delta: Xform::identity() });
     }
 ```
@@ -191,15 +251,15 @@ hover block):
                 crate::engine::gumball::closest_param_on_axis(&ray, &ctx.origin, &ctx.axis)) {
                 let dt = t - ctx.t0;
                 let delta = Xform::translation(ctx.axis[0]*dt, ctx.axis[1]*dt, ctx.axis[2]*dt);
-                for (_, row, base) in &ctx.base_models {
+                for s in &ctx.before {
                     // matrix-only — see the note
-                    self.gpu.set_live_model(*row, &(&delta * base));
+                    self.gpu.set_live_model(s.row, &(&delta * &s.placed));
                 }
                 live_delta = Some(delta);
             }
         }
-        // stash the final delta on the ctx so release can bake it (can't touch
-        // ctx above — it's borrowed immutably to read origin/axis/base_models), and
+        // stash the final delta on the ctx so release can commit it (can't touch
+        // ctx above — it's borrowed immutably to read origin/axis/before), and
         // move the widget along with the drag:
         if let Some(delta) = live_delta {
             if let Some(ctx) = self.gb_drag.as_mut() { ctx.last_delta = delta.duplicate(); }
@@ -207,19 +267,24 @@ hover block):
         }
 ```
 
-**Release** — bake into the kernel, commit the Command:
+**Release** — write the placements, commit the Command:
 
 ```rust
         if let Some(ctx) = self.gb_drag.take() {
             let delta = ctx.last_delta.duplicate();   // stashed by the last mouse move
-            for (guid, _, _) in &ctx.base_models {
-                if let Some(geom) = self.scene.session.lookup.get_mut(guid) {
-                    // compose xform / bake coords
-                    apply_delta(geom, &delta);
-                }
+            for s in &ctx.before {
+                // L' = L · W⁻¹ · D · W — Session xform + tables row + cached box, in one call
+                self.scene.apply_world_delta(s.row, &delta);
             }
-            let after = ctx.before.iter()
-                .map(|g| self.scene.session.lookup[g.guid()].clone()).collect();
+            let after = ctx.before.iter().map(|s| {
+                let d = self.scene.doc_of_row(s.row);
+                XformSnap {
+                    row: s.row,
+                    guid: s.guid.clone(),
+                    local: self.scene.docs[d].session.xform(&s.guid),
+                    placed: self.scene.placed_frame(s.row).duplicate(),
+                }
+            }).collect();
             let cmd = Box::new(TransformObjects { before: ctx.before, after });
             // applies `after` — idempotent
             self.history.execute(cmd, &mut self.scene, &mut self.gpu);
@@ -234,8 +299,8 @@ order is the guard, same trick 56 will use):
 ```rust
         Key::Named(NamedKey::Escape) if self.gb_drag.is_some() => {
             if let Some(ctx) = self.gb_drag.take() {
-                for (_, row, base) in &ctx.base_models {
-                    self.gpu.set_live_model(*row, base);   // snap back — the kernel never mutated
+                for s in &ctx.before {
+                    self.gpu.set_live_model(s.row, &s.placed);   // snap back — nothing ever mutated
                 }
             }
             self.gb_pressed = None;
@@ -243,49 +308,26 @@ order is the guard, same trick 56 will use):
         }
 ```
 
-The helpers to pin down. In `engine/gpu/mod.rs`, `impl Gpu` (beside 38b's `write_row`):
+The live-path helpers. In `engine/gpu/mod.rs`, `impl Gpu` (`Instance` and its buffer are private to
+the engine, so the writes live here). `set_live_model` mirrors `rebuild_instances`' rebase for ONE
+row and uploads 96 bytes:
 
 ```rust
-    // the LIVE path: instance model only. Writes objects_base so 33's per-frame
-    // rebase carries the delta; does NOT touch the arena, hashes, or the Session.
+    /// The LIVE path: one instance row's model. Rebases against the current anchor exactly like
+    /// rebuild_instances, uploads just that row. Does NOT touch the arena, the Session, or the
+    /// Scene tables — 54's release (or Esc) is what makes it durable (or erases it).
     pub fn set_live_model(&mut self, row: u32, model: &Xform) {
-        self.objects_base[row as usize].0 = model.duplicate();
-        self.write_row(row, |_| {});      // rebased + re-uploaded by the normal frame path
-    }
-
-    /// The true model at press — begin_drag's base_models read.
-    pub fn base_model(&self, row: u32) -> Xform {
-        self.objects_base[row as usize].0.duplicate()
-    }
-```
-
-In `app/scene.rs`, a free function (`pub` — 56/80 call it from other modules; `state.rs` imports it:
-`use crate::app::scene::apply_delta;`):
-
-```rust
-// bake a delta into a kernel object at COMMIT time.
-// Mesh/BRep: placement lives in xform → compose. Thin: coords are world → bake via transform().
-pub fn apply_delta(geom: &mut Geometry, delta: &Xform) {
-    match geom {
-        Geometry::Mesh(m) => m.xform = delta * &m.xform,
-        Geometry::BRep(b) => b.xform = delta * &b.xform,
-        Geometry::Line(l)     => { l.xform = delta.duplicate(); l.transform(); }
-        Geometry::Polyline(p) => { p.xform = delta.duplicate(); p.transform(); }
-        Geometry::Point(p)    => { p.xform = delta.duplicate(); p.transform(); }
-        _ => {}
-    }
-}
-```
-
-Plus the release block's two remaining names. In `impl Scene` (`app/scene.rs`) — the boxes moved, so
-36's tree rebuilds from the *current* document (38b's `commit` rebuilds it for a reloaded one):
-
-```rust
-    /// Rebuild the broad-phase over the current document — call after any transform commit.
-    pub fn rebuild_bvh(&mut self) {
-        let (bvh, world_boxes) = Self::build_bvh(&self.session, &self.order);
-        self.bvh = bvh;
-        self.world_boxes = world_boxes;
+        let i = row as usize;
+        self.objects_base[i].0 = model.duplicate();
+        let origin = self.last_origin.clone().unwrap_or_else(|| Point::new(0.0, 0.0, 0.0));
+        let (m0, c, f) = (&self.objects_base[i].0, self.objects_base[i].1, self.objects_base[i].2);
+        let mut m = m0.to_f32();
+        m[12] = (m0.m[12] - origin[0]) as f32;
+        m[13] = (m0.m[13] - origin[1]) as f32;
+        m[14] = (m0.m[14] - origin[2]) as f32;
+        self.instances[i] = Instance { model: m, color: c, flags: f, _pad: [0; 3] };
+        self.queue.write_buffer(&self.instance_buffer, (i * std::mem::size_of::<Instance>()) as u64,
+            bytemuck::bytes_of(&self.instances[i]));
     }
 ```
 
@@ -305,25 +347,30 @@ delta-transformed press origin (`refresh_gumball` itself would read the *unmoved
     }
 ```
 
-> **Why the Session stays clean mid-drag.** The live path writes only `objects_base` + instance rows —
-> if the drag is Esc-cancelled, restoring the stashed `base_models` erases all evidence. The kernel
-> objects mutate exactly once, at release, immediately wrapped in a Command. There is never a moment
-> where a half-drag could be saved (39) or diffed (38b).
+> **Why the Session stays clean mid-drag.** The live path writes only `objects_base` + one instance
+> row — Esc restores the stashed placed frames and erases all evidence. The durable state moves
+> exactly once, at release, through `apply_world_delta` (Session xform + Scene tables + cached box)
+> wrapped in a Command. And because the TABLES carry the committed placement, a manifest file
+> streaming in mid-session (`Msg::File` → `set_scene`) reproduces it — only an *uncommitted* live
+> drag would visually snap back to its press position while the drag continues, which is the
+> honest, recoverable behavior.
 
-## Step 4 — verify (including the stress gate)
+## Step 5 — verify (including the stress gate)
 
 ```bash
-cd session_viewer && trunk serve   # http://localhost:8770
+cd session_viewer && trunk serve   # http://127.0.0.1:8770
 ```
 
 - Drag the X arrow → the selection slides **only along X**, wherever the mouse wanders. The motion is
   smooth at any object count — watch the perf HUD: no upload spikes, because nothing re-tessellates.
-- Release, **Ctrl+Z** → objects return *exactly* (compare a coordinate via `probe`). **Ctrl+Y** →
-  re-applied. Esc mid-drag → snaps back to the press position, no Command recorded.
-- A polyline in the selection moves live with the meshes (segments read the instance model), and
-  after release it stays put — the commit baked its coordinates (`apply_delta`) and re-flattened.
-- **STRESS GATE** — marquee a few thousand entities of the PDF drawing, drag: live motion holds the
-  frame rate (matrix-only, the whole point), release commits in one beat, Ctrl+Z restores all of it.
+- Release, **Ctrl+Z** → objects return *exactly* (compare via `probe` — placements, not coordinates,
+  moved). **Ctrl+Y** → re-applied. Esc mid-drag → snaps back to the press position, no Command
+  recorded.
+- Drag something on a PLACED sheet (any doc after the first): it moves under the cursor, not offset
+  by the manifest translation — that's the `W⁻¹ · D · W` conjugation earning its keep.
+- **STRESS GATE** — marquee a few thousand entities of a PDF sheet, drag: live motion holds the
+  frame rate (matrix-only, the whole point), release commits in one beat (matrix writes, no
+  re-tessellation, no re-upload of the arena), Ctrl+Z restores all of it.
 
 ## Recap
 
@@ -331,20 +378,22 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 53: constant size + hit-test — the widget is grabbable.
 Ch 54: TRANSLATE. Deferred drag: press → 4px travel + lmb gate → begin (a clean click stays free for
        56's numeric entry). Delta = closest_param_on_axis(ray, origin, axis) minus its press value —
-       two-line closest approach, None when axis ∥ view. LIVE = set_live_model: objects_base + row
-       only (33's rebase carries it; arena/Session/hashes untouched — Esc leaves no trace). COMMIT =
-       apply_delta into the kernel (Mesh/BRep compose xform; thin geometry bakes via transform() and
-       re-flattens) + TransformObjects{before, after} absolute snapshots through history.execute —
-       idempotent apply, exact undo. BVH rebuilt (boxes moved). Stress gate: thousands drag at full
-       fps because the drag is matrices, never geometry.
+       two-line closest approach, None when axis ∥ view. LIVE = set_live_model: one rebased
+       instance row (arena/Session/tables untouched — Esc leaves no trace). COMMIT =
+       Scene::apply_world_delta per row: L' = L·W⁻¹·D·W into session.set_xform + the row's placed
+       frame in tables (survives set_scene) + the cached box — kind-agnostic, placement-only,
+       nothing bakes. TransformObjects snapshots (row, guid, local, placed) pairs — a transform IS
+       its placement — through history.execute: idempotent apply, exact undo. BVH rebuilt. Stress
+       gate: thousands drag at full fps because a drag is matrices, never geometry.
 ```
 
-Edited: `engine/gumball.rs` (`closest_param_on_axis`), `app/history/transform.rs` (NEW —
-`TransformObjects`), `engine/gpu/mod.rs` (`set_live_model`), `app/scene.rs` (`apply_delta`,
-`hash_of`), `state.rs` (drag machine: press/threshold/live/commit, Esc cancel).
+Edited: `engine/gumball.rs` (`closest_param_on_axis`), `app/scene.rs` (`apply_world_delta`),
+`app/history/transform.rs` (NEW — `XformSnap`, `TransformObjects`), `engine/gpu/mod.rs`
+(`set_live_model`), `state.rs` (drag machine: press/threshold/live/commit, Esc cancel).
 
 ## Next
 
 `55-gumball-rotate-scale.md` — the same skeleton, two new deltas: arcs → ray-plane intersection +
 `atan2` angle about the axis; spheres → distance ratios with the archive's two damping fixes (the
-sign-preserving clamp and the fourth-root response) that keep scaling controllable.
+sign-preserving clamp and the fourth-root response) that keep scaling controllable. Both commit
+through the same `apply_world_delta` — one formula, three transforms.

@@ -37,9 +37,9 @@ jobs:
 
     - name: Install C++ build tools (Ubuntu)
       if: runner.os == 'Linux'
-      # libclang is for mupdf-sys's bindgen: the Rust job builds --features pdf on Linux only
-      # (see SESSION_PDF below), so the PDF importer gets real CI coverage without making
-      # macOS and Windows compile MuPDF's C sources too.
+      # libclang is for mupdf-sys's bindgen (the Rust job builds --features pdf on every OS,
+      # see SESSION_PDF below). macOS runners find libclang via the Xcode CLT and Windows via
+      # the preinstalled C:\Program Files\LLVM, so only Ubuntu needs a package here.
       run: sudo apt-get update && sudo apt-get install -y build-essential cmake libclang-dev
 
     # Prebuilt protoc — only needed on Linux for the 'Check committed proto
@@ -105,10 +105,11 @@ jobs:
       shell: bash
       env:
         MSYS_NO_PATHCONV: 1
-        # Build session_rust --features pdf on Linux only. MuPDF compiles its own C sources, so
-        # one platform's coverage is enough for a Rust-only importer - the same one-OS rule the
-        # proto-freshness check uses. Elsewhere the Pdf class is reported as SKIP.
-        SESSION_PDF: ${{ runner.os == 'Linux' && '1' || '' }}
+        # Build session_rust --features pdf on every OS. mupdf-sys compiles MuPDF's C sources
+        # with make (macOS arm/intel) or MSBuild+VS toolset (Windows x64), and bindgen finds
+        # libclang on the stock runners (Xcode CLT on macOS, LLVM on Windows). Upstream
+        # mupdf-rs CI tests exactly these runner families with no extra installs.
+        SESSION_PDF: "1"
       run: |
         chmod +x bash/*.sh bash/lib/*.sh
         case "${{ matrix.language }}" in

@@ -53,15 +53,22 @@ The kernel hands us the parameters directly:
 ```
 
 In edit-point mode these render as glyphs (amber, to distinguish from 73's CVs) and pick with the
-same screen radius. Surfaces get the tensor version — Greville in u × Greville in v — same idea, a
-grid of on-surface handles; start with curves, the surface loop is the same code twice.
+same screen radius. (`greville_points` evaluates in the curve's LOCAL frame — the glyphs ride the
+row's placed frame like every vertex glyph, so nothing converts here; the *drag*, which comes back
+in world coordinates, converts in Step 2.) Surfaces get the tensor version — Greville in u ×
+Greville in v — same idea, a grid of on-surface handles; start with curves, the surface loop is the
+same code twice.
 
 ## Step 2 — the refit: `src/app/scene.rs`
 
 The cache type first — `R` depends only on knots/degree, so one inversion serves every drag. The
 matrix builds **numerically**: displace CV `j` by a unit (homogeneous, weight untouched),
 re-evaluate at every Greville parameter — column `j` falls out, no basis-function internals needed,
-and it matches the analytic matrix to ~1e-14. Add to `app/scene.rs`:
+and it matches the analytic matrix to ~1e-14. The probe is `nc.duplicate()`, and note the kernel
+contract there: `duplicate()` **mints a fresh guid** (it clears the guid slot; a new one generates
+lazily on first read). For a throwaway probe that is exactly right — it can never collide with the
+real object — and the `GrevilleCache` stays keyed by the ORIGINAL `guid` parameter, which the
+probe's fresh guid never touches. Add to `app/scene.rs`:
 
 ```rust
 /// Per-curve R⁻¹ cache for edit-point drags (R[i][j] = basis_j(greville_i)).

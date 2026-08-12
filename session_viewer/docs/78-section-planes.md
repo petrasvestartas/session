@@ -64,16 +64,17 @@ struct SectionUniform {
 
 ```rust
     /// `sections` are WORLD planes from State. Rebase against the same ANCHOR the instance rows
-    /// use (34c) — in State::render(), right after `let anchor = self.gpu.rebase_anchor(&origin);`,
+    /// use (34c) — in State::render(), right after
+    /// `let anchor = self.gpu.rebase_anchor(&origin, self.camera.distance_world());`,
     /// call `self.gpu.upload_sections(&self.sections, &anchor);`.
-    pub fn upload_sections(&mut self, sections: &[Plane], origin: &Point) {
+    pub fn upload_sections(&mut self, sections: &[Plane], anchor: &Point) {
         let mut u = SectionUniform { planes: [[0.0; 4]; 4], count: sections.len().min(4) as u32,
                                      _pad: [0; 3] };
         for (i, pl) in sections.iter().take(4).enumerate() {
             let n = pl.z_axis();                            // the plane's normal (kernel Plane)
             let d = -n.dot(&(pl.origin() - Point::new(0.0, 0.0, 0.0)));   // world d: n·p + d = 0
-            // rebase to camera-relative: n·(p−o) + (d + n·o) == n·p + d  (37's identity, reused)
-            let d_rel = d + n.dot(&(origin.clone() - Point::new(0.0, 0.0, 0.0)));
+            // rebase to anchor-relative: n·(p−o) + (d + n·o) == n·p + d  (37's identity, reused)
+            let d_rel = d + n.dot(&(anchor.clone() - Point::new(0.0, 0.0, 0.0)));
             u.planes[i] = [n[0] as f32, n[1] as f32, n[2] as f32, d_rel as f32];
         }
         self.queue.write_buffer(&self.section_buffer, 0, bytemuck::bytes_of(&u));
@@ -171,6 +172,9 @@ and the selection disagree, Phase 7's cardinal sin. One world-space filter, appl
     // pick_mesh: after a candidate hit → `if !visible_through_sections(&point, sections) { continue; }`
     // pick_thin: filter the RayHit list the same way before choosing the nearest.
 ```
+
+`pick_mesh`/`pick_thin` are per-doc after 42/44 — `visible_through_sections` is a pure world-space
+test, so it drops into each doc's picker unchanged.
 
 (A mesh whose *nearest* intersection is cut away but whose farther intersection is visible will read
 as unpickable at that pixel — acceptable v1; the exact fix is walking all ray hits, noted not built.)

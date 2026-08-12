@@ -4,7 +4,8 @@
 > **in the scene** — floating at the object, facing the camera, readable at any angle. The technique
 > is 32b's billboard trick grown up: a **glyph atlas** (every character rasterized once into one
 > texture) and one quad per character, all labels in **one draw call**. This is also the course's
-> first textured draw — the atlas is the only texture the CAD look ever needs.
+> first textured draw — the atlas is its first texture bind group (85 binds another, on the triangle
+> pipeline: different pipeline, same group slot — no contention).
 
 <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a font atlas texture holds every glyph once; each label character becomes a billboarded quad sampling its glyph rectangle; all labels draw in one call" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="16" y="20" width="130" height="80" fill="none" stroke="#3a3a3a"/>
@@ -31,7 +32,7 @@
 # NEW — font atlas build + TextVertex quad assembly (archive text.rs recipe)
 src/engine/text.rs
 src/shaders/text.wgsl          # NEW — billboard vs (32b's trick) + atlas-sampling fs
-src/engine/pipelines/build.rs  # build_text_pipeline (first pipeline with a texture bind group)
+src/engine/pipelines/build.rs  # build_text_pipeline(…, samples) — first pipeline with a texture bind group
 src/engine/gpu/mod.rs          # label buffer + TextUniform + one draw, after the gumball, before egui
 ```
 
@@ -152,7 +153,7 @@ NDC-per-pixel after:
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct TextVertex {
-    pub anchor: [f32; 3],    // 12 B — world position of the LABEL (same for all its verts)
+    pub anchor: [f32; 3],    // 12 B — ANCHOR-RELATIVE position of the LABEL (same for all its verts)
     pub px_off: [f32; 2],    //  8 B — this corner's offset from the anchor, in PIXELS
     pub uv: [f32; 2],        //  8 B — into the atlas
     pub color: [f32; 4],     // 16 B
@@ -161,7 +162,11 @@ pub struct TextVertex {
 
 /// Label `text` at world `p`: 6 verts (two triangles) per char, advancing CELL_W px per column,
 /// centered on the anchor, floating one cell above it (shader +y = up on screen).
-pub fn label_verts(text: &str, p: [f32; 3], color: [f32; 4], out: &mut Vec<TextVertex>) {
+/// `origin` = the camera's current rebase anchor (33/34c): mvp is ANCHOR-RELATIVE, so the world
+/// position must have it subtracted BEFORE the f32 cast — full f64 precision, like the instances.
+pub fn label_verts(text: &str, p: [f64; 3], origin: &Point, color: [f32; 4],
+                   out: &mut Vec<TextVertex>) {
+    let a = [(p[0] - origin[0]) as f32, (p[1] - origin[1]) as f32, (p[2] - origin[2]) as f32];
     let (cw, ch) = (CELL_W as f32, CELL_H as f32);
     let (aw, ah) = ((COLS * CELL_W) as f32, (ROWS * CELL_H) as f32);   // atlas px size
     let x0 = -(text.len() as f32) * cw * 0.5;                          // center on the anchor
@@ -177,11 +182,20 @@ pub fn label_verts(text: &str, p: [f32; 3], color: [f32; 4], out: &mut Vec<TextV
             ([px0, top], [u0, v0]), ([px1, bot], [u1, v1]), ([px0, bot], [u0, v1]),
         ];
         for (off, uv) in quad {
-            out.push(TextVertex { anchor: p, px_off: off, uv, color });
+            out.push(TextVertex { anchor: a, px_off: off, uv, color });
         }
     }
 }
 ```
+
+Why the `origin` subtract: `mvp` is **anchor-relative** — 33's camera-relative rendering
+(`view_proj_anchored(&anchor)`, with `rebuild_instances(origin)` baking the same f64 subtract into
+every instance model). Labels have no instance model, so a label built from raw world positions is
+right only until the camera re-anchors — then every label **jumps** by the anchor delta. Subtract
+the current anchor when building the verts (above) and rebuild the label buffer whenever the anchor
+moves — the same trigger that fires `rebuild_instances`. (The alternative — give each label an
+`instance_id` and let the already-rebased instance model place it — works too, but is a bigger
+diff.)
 
 The 44 bytes map field-for-field onto the WGSL vertex input — each Rust field is one `@location(N)`,
 same order, same format. Get an offset or a `format` wrong here and the atlas samples garbage:
@@ -213,8 +227,10 @@ same order, same format. Get an offset or a `format` wrong here and the atlas sa
   <text x="10" y="122" fill="#888">world pt (shared) · px corner offset · atlas uv · rgba → the vs reads these by <tspan fill="#6fb3ff">@location</tspan>, not by struct name</text>
 </svg>
 
-Labels come from the document: object `name`s (the tree's names, 70) at each object's box-top center
-(`world_aabb` again), rebuilt only when the scene or names change — never per frame.
+Labels come from the document: object `name`s (the tree's names, 70) at each object's box-top
+center — the row's **placed** box, 36's row-indexed `world_boxes` (manifest `place` included), not
+the raw session-local box — rebuilt only when the scene, names, or the rebase anchor change — never
+per frame.
 
 ## Step 3 — the shader: `src/shaders/text.wgsl`
 
@@ -249,7 +265,7 @@ struct VsOut {
 
 @vertex
 fn vs_main(
-    @location(0) anchor: vec3<f32>,   // world position of the label (shared by all its verts)
+    @location(0) anchor: vec3<f32>,   // ANCHOR-RELATIVE label position (world − rebase origin)
     @location(1) px_off: vec2<f32>,   // this corner's offset from the anchor, in PIXELS
     @location(2) uv: vec2<f32>,       // into the atlas
     @location(3) color: vec4<f32>,
@@ -276,8 +292,10 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 layout, and refresh `vp_w`/`vp_h` in `resize()` — the cloud's `CloudUniform` (32b) does the same; text
 just drops the `size` field. The pipeline: alpha blend on, depth **test on / write off** — labels hide
 behind geometry but never punch holes in it — and `cull_mode: None` (billboard quads have no
-meaningful winding). First texture bind group of the course: one `Texture` + `Sampler` layout at
-group 3.)
+meaningful winding). Build it **inside `Pipelines::new` with the `samples` parameter** — the scene's
+MSAA count is dynamic (1↔4; `set_scene` rebuilds all pipelines on the flip), and a text pipeline
+pinned at the wrong count fails the render pass. First texture bind group of the course: one
+`Texture` + `Sampler` layout at group 3.)
 
 ## Step 4 — verify
 
@@ -290,7 +308,9 @@ cd session_viewer && trunk serve   # http://localhost:8770
   already trust from line thickness).
 - All four named views (14): labels stay upright and readable — nothing rotates into the screen.
 - Perf HUD: **one** extra draw for all labels; orbiting doesn't rebuild anything (the buffer only
-  rewrites when names/objects change). Behind geometry, labels occlude correctly; they never z-fight
+  rewrites when names/objects change — or on a camera re-anchor, the same trigger as
+  `rebuild_instances`). Pan far from the origin and back: labels stay glued to their objects — no
+  jump on re-anchor. Behind geometry, labels occlude correctly; they never z-fight
   (depth write off).
 - Rename an object (edit the Session name via a future CLI verb or reconcile) → the label follows on
   the next rebuild — labels are a projection of document state like everything else in Phase 12.
@@ -303,8 +323,11 @@ Ch 72: LABELS. A glyph atlas (ASCII on a fixed CELL grid, R8Unorm, baked once �
        one quad per character: TextVertex { anchor (world, shared), px_off (per corner, PIXELS), uv,
        color }. The vs projects the anchor then adds px_off·2/viewport·clip.w in NDC — 32b's
        billboard move → camera-facing, zoom-constant. fs samples coverage, alpha-discards. Depth
-       test on / write off; alpha blend; the course's first (and only) texture bind group. Labels
-       rebuilt on document change, never per frame; every label in ONE draw. Phase 12 complete: the
+       test on / write off; alpha blend; the course's first texture bind group (85 adds another).
+       Verts are ANCHOR-RELATIVE (mvp is anchored — subtract the rebase origin or labels jump);
+       labels sit at each row's PLACED box top (36's world_boxes). Pipeline built in Pipelines::new
+       with the dynamic samples. Labels rebuilt on document/anchor change, never per frame; every
+       label in ONE draw. Phase 12 complete: the
        document is visible as a tree, in sync with the viewport, and named in the scene.
 ```
 

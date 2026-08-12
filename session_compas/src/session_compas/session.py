@@ -70,8 +70,7 @@ def view(filepath_or_session):
     for col in collections:
         for obj in col:
             if xf is not None:
-                obj.xform = xf
-                obj.transform()
+                obj.transform(xf)
             type_name = type(obj).__name__
             if type_name not in _MODULE_MAP:
                 continue
@@ -82,8 +81,7 @@ def view(filepath_or_session):
             viewer.scene.add(compas_obj, name=name, parent=parent)
     for plane_obj in data.objects.planes:
         if xf is not None:
-            plane_obj.xform  = xf
-            plane_obj.transform()
+            plane_obj.transform(xf)
         module = _get_module("Plane")
         rect, normal = module.to_compas(plane_obj)
         name = getattr(plane_obj, "name", None) or "Plane"
@@ -93,12 +91,10 @@ def view(filepath_or_session):
         viewer.scene.add(rect, name=name, parent=parent, **kw)
         viewer.scene.add(normal, name=name + "_normal", parent=parent, **kw)
     for elem in data.objects.elements:
-        geom = elem.session_geometry
+        # The Session owns placement now, so session_geometry takes it as an argument.
+        geom = elem.session_geometry(xf if xf is not None else Xform.identity())
         if geom is None:
             continue
-        if xf is not None:
-            geom.xform = xf
-            geom.transform()
         type_name = type(geom).__name__
         if type_name not in _MODULE_MAP:
             continue
@@ -107,8 +103,7 @@ def view(filepath_or_session):
             fallback = getattr(elem, "_fallback_mesh", None)
             if fallback is not None and xf is not None:
                 fallback = copy.deepcopy(fallback)
-                fallback.xform = xf
-                fallback.transform()
+                fallback.transform(xf)
             compas_obj = module.to_compas(geom, fallback_mesh=fallback)
         else:
             compas_obj = module.to_compas(geom)

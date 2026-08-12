@@ -82,7 +82,11 @@ pts[1].clone(), pts[2].clone());`) before the math. The math itself is kernel ca
             let Some(g) = state.scene.selected.iter().next() else {
                 return Dispatch::Instant("nothing selected".into());
             };
-            let msg = match &state.scene.session.lookup[g] {
+            // Resolve the OWNING doc and use .get — lookup indexing PANICS on a stale guid.
+            let Some(geo) = state.scene.docs.iter().find_map(|d| d.session.lookup.get(g)) else {
+                return Dispatch::Instant("stale guid".into());
+            };
+            let msg = match geo {
                 Geometry::Mesh(m) => format!("Mesh '{}': {} verts, {} faces, area {:.3}",
                     m.name, m.number_of_vertices(), m.number_of_faces(), m.area()),
                 Geometry::Line(l) => format!("Line '{}': length {:.3}", l.name, l.length()),
@@ -90,6 +94,7 @@ pts[1].clone(), pts[2].clone());`) before the math. The math itself is kernel ca
                     p.get_points().len()),
                 Geometry::Point(p) => format!("Point '{}': ({:.3}, {:.3}, {:.3})",
                     p.name, p[0], p[1], p[2]),
+                // b.mesh() RE-TESSELLATES per call (known kernel gap) — fine for a click, not per-frame:
                 Geometry::BRep(b) => format!("BRep '{}': {} faces, area {:.3}",
                     b.name, b.m_faces.len(), b.mesh().area()),
                 Geometry::NurbsCurve(c) => format!("NurbsCurve '{}': degree {}, {} CVs",
@@ -99,6 +104,11 @@ pts[1].clone(), pts[2].clone());`) before the math. The math itself is kernel ca
             Dispatch::Instant(msg)
         }
 ```
+
+The reported numbers are the object's own; its world frame is the row's placed frame
+(`scene.tables.objects[row].0` via `guid_to_row`), and a good `what` improvement is one more line
+reporting placement via `session.world_xform(guid)` — note it walks the chain per call (quadratic
+over many objects; bulk queries use `world_xforms()`).
 
 Every point in these conversations comes through `cursor_world_point` — **snapped** (59). Measuring
 corner-to-corner is exact to the digit, which is the entire difference between a measure tool and a
@@ -144,7 +154,9 @@ ctor. Then feed all three each frame — in `state.rs`, before `build_ui`, where
 One caveat worth its comment: computing `cursor_world_point` on *every* mouse move purely for the
 readout would run picking per move even when idle. Cheap rule: when no command is active and
 nothing needs snap, resolve the readout against the work plane only (75's one intersection) —
-full pick-based resolution stays reserved for when a tool is actually listening.
+full pick-based resolution stays reserved for when a tool is actually listening. With multiple docs
+in the scene, the readout should also name WHICH sheet the cursor is over — each doc has its own
+place, and a coordinate without its sheet is ambiguous.
 
 ## Step 3 — verify
 

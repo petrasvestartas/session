@@ -78,7 +78,10 @@ fps / frame ms / draws / drawn-vs-total / drawn-per-second; add a one-line GPU t
 the main pass (wgpu `TimestampWrites`, feature-gated) and you can attribute frame time to passes
 before touching anything. The perf lesson that matters most is the discipline: **name the
 bottleneck, then pull exactly one lever, then re-measure** — 30 (draw count), 37 (vertex work), 66
-(idle), 67 (fragment work) each did precisely that, and that's why the viewer is fast.
+(idle), 67 (fragment work) each did precisely that, and that's why the viewer is fast. One dormant
+switch already sits in the code: `INK_DEPTH_PREPASS` (`gpu/mod.rs`, currently `false`) — flipping it
+doubles the flat-ink cost in exchange for correct ink ordering, so measure before and after like any
+other lever.
 
 ## Verify
 
@@ -88,8 +91,10 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 This lesson's "verify" is honest bookkeeping rather than a feature demo:
 
-- Confirm the baseline numbers on both acceptance scenes (floor model, PDF drawing) and write them
-  into `_ROADMAP.md`'s capstone entry — the capstone (77) checks against them.
+- Confirm the baseline numbers on the acceptance scene — the 10-sheet manifest
+  (`scenes/drawings.json`) — and write them into `_ROADMAP.md`'s capstone entry — the capstone (77)
+  checks against them. MSAA is per-scene (`msaa_for`): flat sheets run 1×, so note which mode each
+  number was taken in.
 - If you built lever 1: orbit in and out across an LOD boundary — **no visible pop** (hysteresis),
   triangle count on the HUD steps down, fps steps up on the far view.
 - If you built lever 3: `drawn/s` and fps identical to the CPU path on the stress file (it wasn't

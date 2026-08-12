@@ -3,7 +3,7 @@
     "group": "Line",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.291,
+    "time_ms": 0.32,
     "line": 7,
     "code": "    from session_py import Line\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    l = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n\n    # Setters\n    l[0] = 10.0\n    l[1] = 20.0\n    l[2] = 30.0\n    l[3] = 40.0\n    l[4] = 50.0\n    l[5] = 60.0\n\n    # Getters\n    x0 = l[0]\n    y0 = l[1]\n    z0 = l[2]\n    x1 = l[3]\n    y1 = l[4]\n    z1 = l[5]\n\n    # Minimal and Full String Representation\n    lstr = str(l)\n    lrepr = repr(l)\n\n    # Copy (duplicate everything but guid)\n    lcopy = l.duplicate()\n    lother = Line(10.0, 20.0, 30.0, 40.0, 50.0, 60.0)\n\n    # No-copy operators\n    lmult = l.duplicate()\n    lmult *= 2.0\n    ldiv = l.duplicate()\n    ldiv /= 2.0\n    ladd = l.duplicate()\n    ladd += Vector(1.0, 1.0, 1.0)\n    lsub = l.duplicate()\n    lsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    rmul = l * 2.0\n    rdiv = l / 2.0\n    radd = l + Vector(1.0, 1.0, 1.0)\n    rdif = l - Vector(1.0, 1.0, 1.0)\n\n    # Negation (flip start and end)\n    lneg = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n    neg = -lneg\n\n    # From points constructor\n    p0 = Point(1.0, 2.0, 3.0)\n    p1 = Point(4.0, 5.0, 6.0)\n    l2p = Line.from_points(p0, p1)\n\n    # from_point_and_vector constructor\n    pv = Point(1.0, 2.0, 3.0)\n    vv = Vector(3.0, 4.0, 5.0)\n    l_pv = Line.from_point_and_vector(pv, vv)\n\n    # from_point_direction_length constructor\n    pd = Point(0.0, 0.0, 0.0)\n    dd = Vector(1.0, 0.0, 0.0)\n    l_pdl = Line.from_point_direction_length(pd, dd, 5.0)\n\n    # Line with custom color and width\n    lc = Line(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    lc.linecolor = Color(1.0, 0.0, 0.0, 1.0, \"red\")\n    lc.width = 2.5\n\n    # with_name constructor\n    lwn = Line.with_name(\"custom\", 0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n\n    # get_middle_line\n    ms, me = Line.get_middle_line(\n        Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0), Point(2.0, 2.0, 0.0))",
     "checks": [
@@ -129,9 +129,9 @@
     "group": "Line",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.079,
+    "time_ms": 0.048,
     "line": 114,
-    "code": "    from session_py import Line\n    from session_py import Xform\n\n    l = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    l.xform = Xform.translation(10.0, 0.0, 0.0)\n    l_transformed = l.transformed()  # Make a copy\n    l.transform()  # After the call, \"xform\" is reset",
+    "code": "    from session_py import Line\n    from session_py import Xform\n\n    l = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    l_xf = Xform.translation(10.0, 0.0, 0.0)\n    l_transformed = l.transformed(l_xf)  # Make a copy\n    l.transform(l_xf)",
     "checks": [
       {
         "line": 124,
@@ -142,11 +142,6 @@
         "line": 125,
         "code_line": "l[0] == 10.0 and l[3] == 11.0",
         "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "l.xform == Xform.identity()",
-        "passed": true
       }
     ],
     "failures": []
@@ -155,57 +150,57 @@
     "group": "Line",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.492,
-    "line": 129,
+    "time_ms": 0.447,
+    "line": 128,
     "code": "    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   file_json_dumps()    \u2502 str          \u2502 to JSON string\n    #   file_json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   file_json_dump(path) \u2502 file         \u2502 write to file\n    #   file_json_load(path) \u2502 file         \u2502 read from file\n\n    # JSON object\n    d = l.__jsondump__()\n    loaded_j = Line.__jsonload__(d)\n\n\n    # String\n    s = l.file_json_dumps()\n    loaded_s = Line.file_json_loads(s)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_line.json\"\n    l.file_json_dump(fname)\n    loaded = Line.file_json_load(fname)",
     "checks": [
       {
-        "line": 148,
+        "line": 147,
         "code_line": "loaded_j.name == \"test_line\"",
         "passed": true
       },
       {
-        "line": 153,
+        "line": 152,
         "code_line": "loaded_s.name == \"test_line\"",
         "passed": true
       },
       {
-        "line": 154,
+        "line": 153,
         "code_line": "TOLERANCE.is_close(loaded_s[0], 42.1)",
         "passed": true
       },
       {
-        "line": 161,
+        "line": 160,
         "code_line": "loaded.name == \"test_line\"",
         "passed": true
       },
       {
-        "line": 162,
+        "line": 161,
         "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
         "passed": true
       },
       {
-        "line": 163,
+        "line": 162,
         "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
         "passed": true
       },
       {
-        "line": 164,
+        "line": 163,
         "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
         "passed": true
       },
       {
-        "line": 165,
+        "line": 164,
         "code_line": "TOLERANCE.is_close(loaded[3], 168.4)",
         "passed": true
       },
       {
-        "line": 166,
+        "line": 165,
         "code_line": "TOLERANCE.is_close(loaded[4], 210.5)",
         "passed": true
       },
       {
-        "line": 167,
+        "line": 166,
         "code_line": "TOLERANCE.is_close(loaded[5], 252.6)",
         "passed": true
       }
@@ -216,62 +211,62 @@
     "group": "Line",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.553,
-    "line": 170,
+    "time_ms": 0.812,
+    "line": 169,
     "code": "    from session_py import Line\n    from pathlib import Path\n\n    l = Line(42.1, 84.2, 126.3, 168.4, 210.5, 252.6)\n    l.name = \"test_line\"\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # Bytes\n    b = l.pb_dumps()\n    loaded_s = Line.pb_loads(b)\n\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_line.bin\"\n    l.pb_dump(fname)\n    loaded = Line.pb_load(fname)",
     "checks": [
       {
-        "line": 187,
+        "line": 186,
         "code_line": "loaded_s.name == \"test_line\"",
         "passed": true
       },
       {
-        "line": 188,
+        "line": 187,
         "code_line": "TOLERANCE.is_close(loaded_s[0], 42.1)",
         "passed": true
       },
       {
-        "line": 189,
+        "line": 188,
         "code_line": "loaded_s.guid == l.guid",
         "passed": true
       },
       {
-        "line": 196,
+        "line": 195,
         "code_line": "loaded.name == \"test_line\"",
         "passed": true
       },
       {
-        "line": 197,
+        "line": 196,
         "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
         "passed": true
       },
       {
-        "line": 198,
+        "line": 197,
         "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
         "passed": true
       },
       {
-        "line": 199,
+        "line": 198,
         "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
         "passed": true
       },
       {
-        "line": 200,
+        "line": 199,
         "code_line": "TOLERANCE.is_close(loaded[3], 168.4)",
         "passed": true
       },
       {
-        "line": 201,
+        "line": 200,
         "code_line": "TOLERANCE.is_close(loaded[4], 210.5)",
         "passed": true
       },
       {
-        "line": 202,
+        "line": 201,
         "code_line": "TOLERANCE.is_close(loaded[5], 252.6)",
         "passed": true
       },
       {
-        "line": 203,
+        "line": 202,
         "code_line": "loaded.guid == l.guid",
         "passed": true
       }
@@ -283,16 +278,16 @@
     "test_name": "Length",
     "passed": true,
     "time_ms": 0.013,
-    "line": 206,
+    "line": 205,
     "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 3.0, 4.0, 0.0)\n    ln = l.length()\n    lsq = l.squared_length()",
     "checks": [
       {
-        "line": 214,
+        "line": 213,
         "code_line": "TOLERANCE.is_close(ln, 5.0)",
         "passed": true
       },
       {
-        "line": 215,
+        "line": 214,
         "code_line": "TOLERANCE.is_close(lsq, 25.0)",
         "passed": true
       }
@@ -304,11 +299,11 @@
     "test_name": "To Vector",
     "passed": true,
     "time_ms": 0.007,
-    "line": 218,
+    "line": 217,
     "code": "    from session_py import Line\n\n    l = Line(1.0, 2.0, 3.0, 4.0, 6.0, 9.0)\n    v = l.to_vector()",
     "checks": [
       {
-        "line": 225,
+        "line": 224,
         "code_line": "v[0] == 3.0 and v[1] == 4.0 and v[2] == 6.0",
         "passed": true
       }
@@ -319,27 +314,27 @@
     "group": "Line",
     "test_name": "To Direction",
     "passed": true,
-    "time_ms": 0.018,
-    "line": 228,
+    "time_ms": 0.019,
+    "line": 227,
     "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 3.0, 4.0, 0.0)\n    d = l.to_direction()",
     "checks": [
       {
-        "line": 235,
+        "line": 234,
         "code_line": "TOLERANCE.is_close(d[0], 0.6)",
         "passed": true
       },
       {
-        "line": 236,
+        "line": 235,
         "code_line": "TOLERANCE.is_close(d[1], 0.8)",
         "passed": true
       },
       {
-        "line": 237,
+        "line": 236,
         "code_line": "TOLERANCE.is_close(d[2], 0.0)",
         "passed": true
       },
       {
-        "line": 238,
+        "line": 237,
         "code_line": "TOLERANCE.is_close(d.magnitude(), 1.0)",
         "passed": true
       }
@@ -351,21 +346,21 @@
     "test_name": "Point At",
     "passed": true,
     "time_ms": 0.011,
-    "line": 241,
+    "line": 240,
     "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 10.0, 10.0)\n    ps = l.point_at(0.0)\n    pm = l.point_at(0.5)\n    pe = l.point_at(1.0)",
     "checks": [
       {
-        "line": 250,
+        "line": 249,
         "code_line": "ps[0] == 0.0 and ps[1] == 0.0 and ps[2] == 0.0",
         "passed": true
       },
       {
-        "line": 251,
+        "line": 250,
         "code_line": "pm[0] == 5.0 and pm[1] == 5.0 and pm[2] == 5.0",
         "passed": true
       },
       {
-        "line": 252,
+        "line": 251,
         "code_line": "pe[0] == 10.0 and pe[1] == 10.0 and pe[2] == 10.0",
         "passed": true
       }
@@ -377,36 +372,36 @@
     "test_name": "Closest Point",
     "passed": true,
     "time_ms": 0.024,
-    "line": 255,
+    "line": 254,
     "code": "    from session_py import Line\n    from session_py import Point\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n    p1 = Point(5.0, 5.0, 0.0)\n    p2 = Point(-5.0, 0.0, 0.0)\n    p3 = Point(15.0, 0.0, 0.0)\n    t1, cp1 = l.closest_point(p1)\n    t2, cp2 = l.closest_point(p2)\n    t3, cp3 = l.closest_point(p3)",
     "checks": [
       {
-        "line": 268,
+        "line": 267,
         "code_line": "cp1[0] == 5.0 and cp1[1] == 0.0 and cp1[2] == 0.0",
         "passed": true
       },
       {
-        "line": 269,
+        "line": 268,
         "code_line": "cp2[0] == 0.0 and cp2[1] == 0.0 and cp2[2] == 0.0",
         "passed": true
       },
       {
-        "line": 270,
+        "line": 269,
         "code_line": "cp3[0] == 10.0 and cp3[1] == 0.0 and cp3[2] == 0.0",
         "passed": true
       },
       {
-        "line": 271,
+        "line": 270,
         "code_line": "TOLERANCE.is_close(t1, 0.5)",
         "passed": true
       },
       {
-        "line": 272,
+        "line": 271,
         "code_line": "TOLERANCE.is_close(t2, 0.0)",
         "passed": true
       },
       {
-        "line": 273,
+        "line": 272,
         "code_line": "TOLERANCE.is_close(t3, 1.0)",
         "passed": true
       }
@@ -418,21 +413,21 @@
     "test_name": "Start End Center",
     "passed": true,
     "time_ms": 0.01,
-    "line": 276,
+    "line": 275,
     "code": "    from session_py import Line\n\n    l = Line(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)\n    start = l.start()\n    end = l.end()\n    center = l.center()",
     "checks": [
       {
-        "line": 285,
+        "line": 284,
         "code_line": "start[0] == 1.0 and start[1] == 2.0 and start[2] == 3.0",
         "passed": true
       },
       {
-        "line": 286,
+        "line": 285,
         "code_line": "end[0] == 4.0 and end[1] == 5.0 and end[2] == 6.0",
         "passed": true
       },
       {
-        "line": 287,
+        "line": 286,
         "code_line": "center[0] == 2.5 and center[1] == 3.5 and center[2] == 4.5",
         "passed": true
       }
@@ -443,12 +438,12 @@
     "group": "Line",
     "test_name": "Fit Points",
     "passed": true,
-    "time_ms": 0.199,
-    "line": 290,
+    "time_ms": 0.222,
+    "line": 289,
     "code": "    from session_py import Line\n    from session_py import Point\n\n    fit_pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.5),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 3.0, 1.5),\n    ]\n    l_fit = Line.fit_points(fit_pts)",
     "checks": [
       {
-        "line": 303,
+        "line": 302,
         "code_line": "l_fit.length() > 0.0",
         "passed": true
       }
@@ -459,47 +454,47 @@
     "group": "Line",
     "test_name": "Subdivide",
     "passed": true,
-    "time_ms": 0.029,
-    "line": 306,
+    "time_ms": 0.03,
+    "line": 305,
     "code": "    from session_py import Line\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n\n    # subdivide by count\n    pts = l.subdivide(3)\n\n    # subdivide_by_distance\n    pts_dist = l.subdivide_by_distance(2.5)",
     "checks": [
       {
-        "line": 318,
+        "line": 317,
         "code_line": "len(pts) == 3",
         "passed": true
       },
       {
-        "line": 319,
+        "line": 318,
         "code_line": "pts[0][0] == 0.0",
         "passed": true
       },
       {
-        "line": 320,
+        "line": 319,
         "code_line": "pts[1][0] == 5.0",
         "passed": true
       },
       {
-        "line": 321,
+        "line": 320,
         "code_line": "pts[2][0] == 10.0",
         "passed": true
       },
       {
-        "line": 322,
+        "line": 321,
         "code_line": "len(pts_dist) == 5",
         "passed": true
       },
       {
-        "line": 323,
+        "line": 322,
         "code_line": "TOLERANCE.is_close(pts_dist[0][0], 0.0)",
         "passed": true
       },
       {
-        "line": 324,
+        "line": 323,
         "code_line": "TOLERANCE.is_close(pts_dist[1][0], 2.5)",
         "passed": true
       },
       {
-        "line": 325,
+        "line": 324,
         "code_line": "TOLERANCE.is_close(pts_dist[4][0], 10.0)",
         "passed": true
       }
@@ -510,22 +505,22 @@
     "group": "Line",
     "test_name": "Overlap",
     "passed": true,
-    "time_ms": 0.047,
-    "line": 328,
+    "time_ms": 0.048,
+    "line": 327,
     "code": "    from session_py import Line, Point\n    l0 = Line.from_points(Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0))\n    l1 = Line.from_points(Point(5.0, 0.0, 0.0), Point(15.0, 0.0, 0.0))\n    out = l0.overlap(l1)",
     "checks": [
       {
-        "line": 334,
+        "line": 333,
         "code_line": "out is not None",
         "passed": true
       },
       {
-        "line": 335,
+        "line": 334,
         "code_line": "TOLERANCE.is_close(out.start()[0], 5.0)",
         "passed": true
       },
       {
-        "line": 336,
+        "line": 335,
         "code_line": "TOLERANCE.is_close(out.end()[0], 10.0)",
         "passed": true
       }
@@ -537,21 +532,21 @@
     "test_name": "Overlap Average",
     "passed": true,
     "time_ms": 0.054,
-    "line": 339,
+    "line": 338,
     "code": "    from session_py import Line, Point\n    l0 = Line.from_points(Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0))\n    l1 = Line.from_points(Point(5.0, 0.0, 0.0), Point(15.0, 0.0, 0.0))\n    out = l0.overlap_average(l1)",
     "checks": [
       {
-        "line": 345,
+        "line": 344,
         "code_line": "out is not None",
         "passed": true
       },
       {
-        "line": 346,
+        "line": 345,
         "code_line": "TOLERANCE.is_close(out.start()[0], 5.0)",
         "passed": true
       },
       {
-        "line": 347,
+        "line": 346,
         "code_line": "TOLERANCE.is_close(out.end()[0], 10.0)",
         "passed": true
       }
@@ -563,16 +558,16 @@
     "test_name": "Extend",
     "passed": true,
     "time_ms": 0.019,
-    "line": 350,
+    "line": 349,
     "code": "    from session_py import Line, Point\n    l = Line.from_points(Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0))\n    l.extend(1.0, 2.0)",
     "checks": [
       {
-        "line": 355,
+        "line": 354,
         "code_line": "TOLERANCE.is_close(l.start()[0], -1.0)",
         "passed": true
       },
       {
-        "line": 356,
+        "line": 355,
         "code_line": "TOLERANCE.is_close(l.end()[0], 12.0)",
         "passed": true
       }

@@ -215,9 +215,15 @@ and add `a0, d0,` to the `DragCtx { … }` literal at the end of `begin_drag` (E
 (The `if let Some(delta) = live_delta { … }` stash + `refresh_gumball_at` lines after it are 54's,
 unchanged.)
 
-The commit path does not change **at all** — `apply_delta` (54) composes any affine delta into
-`mesh.xform` and bakes thin geometry the same way, and the Command's absolute snapshots don't care
-what kind of transform happened. `label()` can read the group for nicer log lines
+The commit path does not change **at all** — the release still hands the final delta to 54's
+`Scene::apply_world_delta(row, &delta)`: one `session.set_xform` per object, no per-variant match,
+nothing bakes; and the Command's absolute `(guid, Xform)` snapshots don't care what kind of
+transform happened. One thing worth saying out loud about the delta you just built: it is
+**world-space**, and 54's helper conjugates it by the doc's `place` internally — for translate that
+was a nicety, for rotate/scale it's load-bearing (an anchor taken in the wrong frame visibly wrecks
+the object). And because `rotation_around_line` / `scale_non_uniform` anchor at a point, the whole
+delta is one `Xform` — exactly what `set_xform` stores — so rotate and scale are *cheaper* than the
+old bake-the-thin-geometry days, not dearer. `label()` can read the group for nicer log lines
 (`rotate 3 object(s)`).
 
 ## Step 4 — verify

@@ -127,3 +127,18 @@ validation/v2_trace/traces/
 # the class-summary guard counts any existing JSON as passing, so a committed copy is a phantom
 # pass for a test that never ran. It is deliberately untracked.
 session_tests/session_rust/pdf_test.json
+
+# Test roundtrip scratch files written by minitest runs (CWD = repo root). Nothing reads the
+# top-level copies - the viewer consolidates from session_{cpp,py,rust}/serialization/ instead -
+# and instance_ref embeds a fresh random GUID every run, so a tracked copy is pure churn.
+# Scoped to test_* so the committed schoring_*.pb data files stay tracked.
+serialization/test_*
+
+# Viewer .pb assets over GitHub's 50 MB recommendation (125 MB tops, over the 100 MB hard
+# limit - rejected by the pre-receive hook). Kept on disk locally, never committed.
+session_viewer/assets/pb/combined_scene.pb
+session_viewer/assets/pb/draw_pd_treppenhaus04.pb
+session_viewer/assets/pb/draw_pf_he.pb
+session_viewer/assets/pb/draw_pi_laengsschnitt.pb
+session_viewer/assets/pb/draw_pj_grundriss_og2.pb
+session_viewer/assets/pb/draw_pj_treppenhaus_a.pb

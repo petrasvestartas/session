@@ -113,6 +113,7 @@ impl GpuSession {
             nurbs_trimmed_pick_meshes: HashMap::new(),
             nurbs_trimmeds: HashMap::new(),
             nc_pick_pts: HashMap::new(),
+            placements: HashMap::new(),
             template_tri,
             instance_groups: InstanceGroupAllocator::new(),
             bind_group_dirty: false,
@@ -121,6 +122,11 @@ impl GpuSession {
 
     pub fn rebuild_from(&mut self, session: &session_rust::session::Session, device: &wgpu::Device, queue: &wgpu::Queue) {
         self.clear();
+        // ONE downward pass for every object's cumulative placement — `world_xform` per object
+        // rescans the whole tree and is quadratic over a session.
+        for (guid, xf) in session.world_xforms() {
+            self.placements.insert(guid, xform_to_cols_f32(&xf));
+        }
         for (guid, geom) in &session.lookup {
             self.add_geometry(guid, geom, device, queue);
         }

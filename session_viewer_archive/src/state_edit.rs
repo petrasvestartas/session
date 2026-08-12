@@ -219,7 +219,8 @@ impl State {
                     return Some((EditKind::Polyline, nodes, Vec::new()));
                 }
                 Geometry::BRep(b) => {
-                    let cols = b.xform.to_cols();
+                    // CVs are LOCAL; the pose is the session placement.
+                    let cols = self.scene.session.world_xform(guid).to_cols();
                     let mut nodes = Vec::new();
                     for (si, srf) in b.m_surfaces.iter().enumerate() {
                         let ni = srf.cv_count_dir(Some(0));
@@ -516,7 +517,7 @@ impl State {
                             let c2d = &b.m_curves_2d[trim.curve_2d_index as usize];
                             let si = b.m_faces[b.m_loops[trim.loop_index as usize].face_index as usize].surface_index as usize;
                             let srf = &b.m_surfaces[si];
-                            let cols = brep_xform_f32(&b.xform);
+                            let cols = brep_xform_f32(&self.scene.session.world_xform(&guid));
                             let (t0, t1) = c2d.domain();
                             for k in 0..=N {
                                 let t = t0 + (t1 - t0) * (k as f64 / N as f64);
@@ -828,7 +829,7 @@ impl State {
         if kind == EditKind::BRep {
             let tol = self.scene.camera.pick_radius_mm(self.vp_rect().3, 16.0).max(1.0);
             let picked = if let Some(Geometry::BRep(b)) = self.scene.session.lookup.get(&guid) {
-                let cols = brep_xform_f32(&b.xform);
+                let cols = brep_xform_f32(&self.scene.session.world_xform(&guid));
                 brep_nearest_edge(b, &cols, ray, tol).map(|e| {
                     let (addrs, refits) = brep_edge_watertight(b, e);
                     (e, addrs, refits)
@@ -978,7 +979,7 @@ impl State {
             }
             EditKind::BRep => {
                 let b = match self.scene.session.lookup.get(guid) { Some(Geometry::BRep(b)) => b, _ => return vec![] };
-                let cols = brep_xform_f32(&b.xform);
+                let cols = brep_xform_f32(&self.scene.session.world_xform(guid));
                 let mut best = f32::MAX;
                 let mut best_sb: Option<(usize, usize)> = None;
                 for (si, srf) in b.m_surfaces.iter().enumerate() {
@@ -1279,9 +1280,10 @@ impl State {
                     self.scene.gpu_session.tess_angle_deg as f64,
                     self.scene.gpu_session.tess_chord_factor as f64,
                 );
+                // World → local via the session placement (the CVs are local).
+                let inv = self.scene.session.world_xform(&guid).inverse().map(|x| x.to_cols());
                 if let Some(Geometry::BRep(b)) = self.scene.session.lookup.get_mut(&guid) {
                     let b = std::rc::Rc::make_mut(b); // COW split before in-place edit
-                    let inv = b.xform.inverse().map(|x| x.to_cols());
                     for n in &self.edit.nodes {
                         if let NodeAddr::BRepCv(si, i, j) = n.addr {
                             let local = match &inv { Some(m) => mat_apply_f64(m, n.world), None => n.world };
@@ -1381,9 +1383,10 @@ impl State {
                 // directly during the drag; the (stale, flat) overlay nodes would undo it.
                 let skip: std::collections::HashSet<usize> =
                     self.edit.editpt_face_deform.iter().map(|(fs, ..)| *fs).collect();
+                // World → local via the session placement (the CVs are local).
+                let inv = self.scene.session.world_xform(&guid).inverse().map(|x| x.to_cols());
                 if let Some(Geometry::BRep(b)) = self.scene.session.lookup.get_mut(&guid) {
                     let b = std::rc::Rc::make_mut(b); // COW split before in-place edit
-                    let inv = b.xform.inverse().map(|x| x.to_cols());
                     for n in &self.edit.nodes {
                         if let NodeAddr::BRepCv(si, i, j) = n.addr {
                             if skip.contains(&si) { continue; }

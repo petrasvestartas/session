@@ -75,16 +75,30 @@ the surface plane: a sample only occludes if it rises meaningfully out of the ta
 
 This single line is **mandatory** — remove it and the ground plane (65) stripes immediately.
 
-**4. Radius in scene units, clamped.** The AO radius as a fraction of the scene bbox diagonal
-(≈ 1–2%), clamped to sane world bounds — a fixed world radius is invisible on a big model and
-engulfs a small one. `Gpu` has `scene_min/max` since 34b; the uniform update is one line per load.
+**4. Radius in scene units, clamped — and mind the units.** The AO radius as a fraction of the
+scene bbox diagonal (≈ 1–2%), clamped to sane bounds — a fixed radius is invisible on a big model
+and engulfs a small one. Two anchors: (a) `scene_min/max` are world **millimetres**, but the
+reconstructed view positions are **metres** — the camera bakes the mm→m unit scale into
+`view_proj` — so the radius uniform needs the same `× 0.001`; (b) with progressive loading the
+bbox grows on every appended file, and `set_scene` is what refreshes `scene_min/max` — put the
+radius-uniform update **in `set_scene`**, not in some once-per-load hook. (The AO pass is
+downstream of `set_scene` and sees only `scene_min/max` — it survives the Scene refactor
+untouched.)
 
 **5. RGBA16Float + MSAA depth reads.** AO in an 8-bit channel bands visibly on smooth walls — use
 **16-bit float**. But the target carries *two* results, not one: the scalar `ao` **and** the
 3-component **bent normal** 68 reads back as `.gba` — so it must be **`RGBA16Float`**, `R` = ao,
 `GBA` = bent. A single `R16Float` channel can't hold a direction; write the pass to `R16Float` and 68's
-`decode_bent(.gba)` reads garbage. And the depth buffer is MSAA (24): a sampler can't filter it; bind
-it as a multisampled texture and `textureLoad(depth_tex, pixel, 0)` — sample 0 is exact and cheap.
+`decode_bent(.gba)` reads garbage. And the depth buffer's sample count is **dynamic** since 35:
+`msaa_for` picks 1× for flat-only scenes and 4× once solid geometry arrives, and `set_scene`
+rebuilds the depth/msaa views *and* the pipelines mid-session on the flip. A sampler can't filter a
+depth texture anyway — you bind it as a texture and `textureLoad(depth_tex, pixel, 0)` (sample 0 is
+exact and cheap) — but a *multisampled* texture binding is **incompatible with a 1× depth texture**:
+the bind group layout hard-codes `multisampled: true/false`. Either force 4× whenever AO is on
+(simplest: make `msaa_for` return 4 while the AO toggle is set), or build both layouts + bind groups
+and pick per frame from `self.samples`. And the offscreen scene-color target this lesson adds must
+be recreated on the same flip, in `set_scene` beside the depth/msaa views — its sample count must
+track the scene's.
 
 <svg viewBox="0 0 560 148" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a single R16Float channel holds AO only and cannot carry a direction; RGBA16Float packs AO in R and the bent normal xyz in G B A" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="20" y="24" fill="#e06c6c">R16Float — WRONG</text>
@@ -153,7 +167,9 @@ Ch 67: GTAO, CONSTANT QUALITY. Scene → offscreen color; AO at HALF res in RGBA
        (and the historic affine-only Xform::inverse bug, fixed in 41, lived here); (2) IGN
        noise, STATIC — per-frame jitter shimmers during rotation and violates the quality rule;
        (3) the tangent-plane gate dot(Δ,N) > len·0.07 + bias — mandatory or grazing floors
-       stripe; (4) radius = %-of-bbox-diag, clamped; (5) MSAA depth via textureLoad sample 0.
+       stripe; (4) radius = %-of-bbox-diag, clamped — bbox is mm, view space is metres (×0.001),
+       updated in set_scene; (5) depth via textureLoad sample 0 — sample count is DYNAMIC (1↔4),
+       so force 4× with AO on (or carry both layouts) and recreate scene-color on the flip.
        Bent normal written beside AO — free from the horizon search, 68's input. No temporal,
        no adaptive, no idle refinement: one image, every frame.
 ```
