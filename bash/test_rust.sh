@@ -35,12 +35,20 @@ fi
 cd "$RUST_DIR"
 JOBS=$(get_jobs)
 
+# The PDF importer is a Rust-only extra behind --features pdf. Enable it locally so the Pdf class
+# shows up in the viewer, but NOT in CI: mupdf-sys compiles MuPDF's C sources through bindgen and
+# CI has no clang install step on its four platforms.
+PDF_FEATURE=()
+if [[ -z "${CI:-}" && -z "${GITHUB_ACTIONS:-}" ]]; then
+    PDF_FEATURE=(--features pdf)
+fi
+
 if [[ "$DEV_MODE" == "true" ]]; then
     log_lang "rust" "Building and running minitest (dev mode)..."
-    cargo run --bin minitest -j "$JOBS"
+    cargo run --bin minitest "${PDF_FEATURE[@]}" -j "$JOBS"
 else
     log_lang "rust" "Building and running minitest (release)..."
-    cargo run --release --bin minitest -j "$JOBS"
+    cargo run --release --bin minitest "${PDF_FEATURE[@]}" -j "$JOBS"
 fi
 
 if [[ $? -ne 0 ]]; then

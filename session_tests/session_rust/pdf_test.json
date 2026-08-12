@@ -1,0 +1,78 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "out.exists()",
+        "line": 21,
+        "passed": true
+      },
+      {
+        "code_line": "session.objects.lines.len() == 1",
+        "line": 25,
+        "passed": true
+      },
+      {
+        "code_line": "session.objects.meshes.len() == 1",
+        "line": 26,
+        "passed": true
+      },
+      {
+        "code_line": "session.objects.polylines.len() == 1",
+        "line": 27,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(line[0], 10.0)",
+        "line": 31,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(line[3], 90.0)",
+        "line": 32,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(line[2], 0.0)",
+        "line": 33,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(line[5], 0.0)",
+        "line": 34,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(line.linecolor.b as f64, 1.0)",
+        "line": 36,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(line.linecolor.r as f64, 0.0)",
+        "line": 37,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(line.width, 1.0)",
+        "line": 38,
+        "passed": true
+      },
+      {
+        "code_line": "mesh.number_of_vertices() == 4",
+        "line": 42,
+        "passed": true
+      },
+      {
+        "code_line": "mesh.number_of_faces() == 2",
+        "line": 43,
+        "passed": true
+      }
+    ],
+    "code": "        // session_data/minimal.pdf is hand-built and 463 bytes: a 100x100 page holding one blue\n        // stroked line (10,10)->(90,10) at width 1, and one red filled 60x40 rectangle at (20,30).\n        use std::path::PathBuf;\n        use crate::pdf::import_pdf;\n        use crate::Session;\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let pdf_path = src_dir.parent().unwrap().join(\"session_data\").join(\"minimal.pdf\");\n        if !pdf_path.exists() {\n            return Ok(());\n        }\n        let stem = src_dir.join(\"serialization\").join(\"test_temp_pdf\");\n        import_pdf(pdf_path.to_str().unwrap(), stem.to_str().unwrap(), 0);\n        let out = PathBuf::from(format!(\"{}.pb\", stem.to_str().unwrap()));\n        let session = Session::pb_load(out.to_str().unwrap());\n\n        // stroke -> Line, fill -> Mesh, page box -> Polyline\n\n        // PDF y points down and is flipped on import; 1 pt = 1 mm, z = 0\n        let line = &session.objects.lines[0];\n        // \"0 0 1 RG\" -> blue, \"1 w\" -> absolute mm width\n\n        // the rectangle earcuts into 2 triangles over its 4 corners\n        let mesh = &session.objects.meshes[0];\n\n        let _ = std::fs::remove_file(&out);",
+    "failures": [],
+    "group": "Pdf",
+    "line": 7,
+    "passed": true,
+    "test_name": "Import Minimal",
+    "time_ms": 2.635
+  }
+]
