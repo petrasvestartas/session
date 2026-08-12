@@ -36,7 +36,7 @@ jobs:
     # ============ C++ BUILD TOOLS ============
 
     - name: Install C++ build tools (Ubuntu)
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && matrix.language != 'py'
       # libclang is for mupdf-sys's bindgen (the Rust job builds --features pdf on every OS,
       # see SESSION_PDF below). macOS runners find libclang via the Xcode CLT and Windows via
       # the preinstalled C:\Program Files\LLVM, so only Ubuntu needs a package here.
@@ -46,7 +46,7 @@ jobs:
     # bindings are fresh' step. Generated code is platform-independent, so
     # all OSes read the committed artefacts without installing protoc.
     - name: Set up protoc (Linux — for freshness check)
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && matrix.language == 'full'
       uses: arduino/setup-protoc@v3
       with:
         version: '33.6'
@@ -55,6 +55,7 @@ jobs:
     # ============ CACHING ============
 
     - name: Cache Rust Cargo
+      if: matrix.language == 'rust' || matrix.language == 'full'
       uses: actions/cache@v5
       with:
         path: |
@@ -70,20 +71,23 @@ jobs:
     # ============ SETUP ============
 
     - name: Set up Rust (Unix)
-      if: runner.os != 'Windows'
+      if: runner.os != 'Windows' && (matrix.language == 'rust' || matrix.language == 'full')
       run: |
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
     - name: Set up Rust (Windows)
-      if: runner.os == 'Windows'
+      if: runner.os == 'Windows' && (matrix.language == 'rust' || matrix.language == 'full')
       run: |
         choco install rustup.install -y
         rustup default stable
         echo "$env:USERPROFILE\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       shell: pwsh
 
+    # setup-python is for the py tests; the class-summary/consolidate scripts in the other
+    # jobs fall back to the runner image's system python3, which is enough for stdlib json work.
     - name: Set up Python
+      if: matrix.language == 'py' || matrix.language == 'full'
       uses: actions/setup-python@v6
       with:
         python-version: '3.11'
