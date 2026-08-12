@@ -32,7 +32,6 @@ Everything else lives directly in this repository:
 
 | Directory | Description |
 |-----------|-------------|
-| `session_io` | **Every foreign file format lives here** — OBJ, PLY, XYZ and PDF converters that write `.pb`. The kernels read `.pb` and their own JSON, nothing else, so a format is written once instead of three times |
 | `session_viewer` | Browser-only WebGPU CAD viewer (Rust → WASM via Trunk). Camera-relative f64, reverse-Z depth, CPU ray + BVH picking. `docs/` holds 100+ numbered lessons that build it from scratch. |
 | `session_tests` | Vue 3 test viewer — renders the per-class JSON results from all three languages side by side |
 | `validation` | Oracle harness that checks kernel output against OCCT and Rhino (boolean truth tables, curve/surface evaluation, Hausdorff comparisons) |

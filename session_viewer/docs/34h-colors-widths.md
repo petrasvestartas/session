@@ -70,6 +70,11 @@ radius >  0.0 → world-units radius                     (unchanged — 34f's pa
 untouched files stay bit-identical. The future thickness slider (47) writes `LineUniform.thickness`
 and every user width scales with it, Rhino-style.
 
+> **Superseded in Part 3 (2026-08-11):** the `1.0 → 0.0` special case turned out to be lossy — PDF
+> widths became absolute mm, and a real 0.35 mm pen (the old multiplier 1.0) silently collapsed to
+> "unset". `encode_width` now encodes every `w > 0` as `-(w)`; safe because all four flat shaders
+> compute `mult = select(1.0, -radius, radius < 0.0)`, so `0.0` and `-1.0` render identically.
+
 ## Files we touch
 
 ```
@@ -82,6 +87,26 @@ src/shaders/glyph.wgsl            # Step 4c: same
 src/shaders/cylinder.wgsl         # Step 4d: same (SOLID parity)
 src/shaders/sphere.wgsl           # Step 4d: same
 src/shaders/point.wgsl            # Step 4e: tint multiply
+
+session_rust/examples/colors_widths.rs   # Verify V1: the fixture (NEW file) — V2 runs it
+session_viewer/index.html         # Verify V3: copy-file link for the fixture .pb
+src/state.rs                      # Verify V4: DEMO_SESSION_URLS → the fixture (temporary)
+```
+
+Part 2 (below) takes the same rules to nine real drawings and touches these as well:
+
+```
+src/shaders/ribbon.wgsl · glyph.wgsl     # Step 5: HAIRLINE_MIN_ALPHA floor
+src/engine/pipelines/build.rs · mod.rs   # Step 6: MSAA per scene, `samples` threaded through
+src/engine/gpu/mod.rs                    # Steps 6,7,9,10: msaa_for, INK_DEPTH_PREPASS, curve arm, hidden wireframe
+session_rust/src/line.rs                 # Step 8a: xform was dropped by pb_dumps/pb_loads
+src/camera.rs · src/state.rs             # Step 8b: anchor units (metres vs mm) — zoom-in clipping
+src/engine/gpu/adapters.rs               # Step 9: nurbscurve_to_segments
+session_data/pdf_to_session.py           # Step 11: PDF → paths JSON (extraction only)
+session_rust/examples/pdf_build.rs       # Step 11: JSON → .pb — CDT, groups, protobuf (NEW file)
+session_data/import_drawings.sh          # Step 11: both stages for all nine sheets (NEW file)
+session_rust/examples/combined_scene.rs  # Verify: grid-place the nine sheets into one .pb (NEW file)
+session_rust/examples/probe_scene.rs     # Verify: what a .pb really holds (NEW file)
 ```
 
 ## Step 1 — FACECOLORS in `to_render`: `session_rust/src/render_mesh.rs`
@@ -416,14 +441,29 @@ Replace with:
 
 ## Verify
 
-`cargo check` in both `session_rust` (native) and `session_viewer` (wasm). Then two gates:
+`cargo check` in both `session_rust` (native) and `session_viewer` (wasm) — both must be
+warning-free. `encode_width` and `ColorMode` are unused-import warnings until Step 3c/3d land, so a
+clean build is itself the check that Step 3 is complete.
 
-**1. Regression — nothing moved.** `floor_model.pb` and the stress wall must look pixel-identical:
-every default is white-tint × row-color and `radius 0.0`.
+Then two gates. The first is free; the second needs a fixture, built in five ordered steps below.
 
-**2. Positive — user colors/widths appear.** Write a fixture with every channel exercised. Create
-`session_rust/examples/colors_widths.rs` with exactly this content, then run
-`cargo run --example colors_widths` from `session_rust/`:
+**Gate 1 — regression, nothing moved.** `floor_model.pb` and the stress wall must look
+pixel-identical: every default is white-tint × row-color and `radius 0.0`.
+
+**Gate 2 — positive, user colors/widths appear.** Four files, in this order (V1 → V5). The `.pb`
+must exist on disk *before* `trunk serve` runs — V3's `copy-file` link is resolved at build time,
+so skipping V2 fails the whole build with:
+
+```
+error getting canonical path for ".../session_data/colors_widths.pb"
+No such file or directory (os error 2)
+```
+
+### V1 — the fixture: create `session_rust/examples/colors_widths.rs`
+
+A NEW file (no anchor — nothing exists yet), with exactly this content. Every line matters: the
+three `s.add_*` calls and the final `s.pb_dump` are what actually writes the file — a fixture that
+builds the geometry but never adds/dumps it produces nothing.
 
 ```rust
 use session_rust::{Session, Mesh, Polyline, Point, Color, Xform};
@@ -464,12 +504,501 @@ fn main() {
 }
 ```
 
-Add a `copy-file` link for it in `index.html` (same pattern as 34e Step 5), point
-`DEMO_SESSION_URLS` (34e) at just this file — `&["session_data/colors_widths.pb"]` —
-and check, left to right: box 1 shows six distinct flat face colors (not white — the FACECOLORS bug
-is dead), box 2 shows the vertex gradient AND gradient-colored dots, box 3 is indistinguishable from
-before, the polyline is red at 5× thickness, the point is a fat black dot (4× — the width lane on
-a glyph). Then swap the URL list back.
+(`Mesh::create_box`, not `Mesh.create_box` — `::` is Rust's path separator. And `.collect()` closes
+the *iterator*, outside the `map`: `(0..6).map(|i| palette[i * 2].clone()).collect()`.)
+
+### V2 — RUN it (this is what creates the `.pb`)
+
+From `session_rust/`, not from the viewer:
+
+```bash
+cd session_rust
+cargo run --example colors_widths
+ls ../session_data/colors_widths.pb     # must exist before V3/V5
+```
+
+It prints nothing. The path in `pb_dump` is relative to the crate you run from — that is why it
+reads `../session_data/`.
+
+### V3 — publish the file: `session_viewer/index.html`
+
+Find the LAST `copy-file` link (the block of `../session_data/draw_*.pb` lines) and add one more
+directly below it:
+
+```html
+   <link data-trunk rel="copy-file" href="../session_data/colors_widths.pb" data-target-path="session_data"/>
+```
+
+### V4 — load only it: `session_viewer/src/state.rs`
+
+At the top of the file, find `const DEMO_SESSION_URLS` (34e) and TEMPORARILY replace its whole list
+with the one fixture:
+
+```rust
+const DEMO_SESSION_URLS: &[&str] = &["session_data/colors_widths.pb"];
+```
+
+### V5 — look at it
+
+`trunk serve` in `session_viewer/`, then check, left to right: box 1 shows six distinct flat face
+colors (not white — the FACECOLORS bug is dead), box 2 shows the vertex gradient AND
+gradient-colored dots, box 3 is indistinguishable from before, the polyline is red at 5× thickness,
+the point is a fat black dot (4× — the width lane on a glyph).
+
+Then **restore** the V4 list to what it was (V3's link can stay — it costs one small file).
+
+---
+
+# Part 2 — the same rules against a REAL drawing
+
+The fixture proves the plumbing. Nine architectural PDFs prove whether it survives contact with
+production data — half a million objects, plot pens measured in hundredths of a millimetre, and
+colour that a viewer can lose in four different places. Everything below came out of pointing the
+viewer at those sheets and fixing what was wrong. Four of the fixes are in code you already typed.
+
+> **Big picture.** A drawing is not a scene with a few coloured boxes. It is 600k hairlines whose
+> colour reads as *white paper* unless the fade has a floor, ink whose front-to-back order is
+> decided by a HashMap unless something writes depth, and geometry that vanishes as you zoom in
+> unless camera-relative rendering actually runs. Also: text, fills and CAD layers, none of which
+> the importer used to carry.
+
+## Step 5 — the hairline floor: `src/shaders/ribbon.wgsl`, `src/shaders/glyph.wgsl`
+
+34f's hairline rule says a sub-pixel pen renders 1 px wide with *proportional opacity*, so apparent
+weight stays continuous under zoom. That is right for one line and catastrophic for a sheet.
+
+Do the arithmetic on real data. Those PDFs plot with 0.09, 0.14, 0.28 and 0.43 mm pens. Fit a
+2400 mm wide sheet into a 1265 px canvas and one drawing unit is about half a pixel, so the *widest*
+common pen is 0.14 px — `fade = 0.14 / 0.5 = 0.28`. Every line on the sheet draws at under 30%
+alpha over a 0.9 grey background. The ink is black and dark red; what you see is pale grey. The
+colour was never lost — it was faded away.
+
+In **`ribbon.wgsl`**, find the `LineUniform` struct's closing brace and the `struct VsOut` that
+follows it. Insert between them:
+
+```wgsl
+// Sub-pixel pens never fade below this: 0 = original continuous fade, 1 = always solid 1px.
+const HAIRLINE_MIN_ALPHA = 0.5;
+```
+
+Then in `vs_main`, find:
+
+```wgsl
+    var fade = 1.0;
+    if (px < 0.5) {
+        fade = px / 0.5;
+        px = 0.5;
+    }
+```
+
+and change ONE line — `fade = px / 0.5;` becomes:
+
+```wgsl
+        fade = max(px / 0.5, HAIRLINE_MIN_ALPHA);
+```
+
+Do exactly the same twice in **`glyph.wgsl`**: the same `const` above its `struct VsOut`, and the
+same `max(...)` inside its `if (px < 0.5)` block. A dot and the line it terminates must agree about
+weight, or the same width reads as two different weights.
+
+CAD's own answer to a sub-pixel pen is a solid 1 px hairline — `HAIRLINE_MIN_ALPHA = 1.0` is that,
+exactly, at the cost of the thin/thick hierarchy that makes an architectural sheet readable. 0.5
+keeps both: colour legible, hierarchy intact.
+
+## Step 6 — MSAA is a property of the PASS: `src/engine/pipelines/build.rs`, `mod.rs`, `gpu/mod.rs`
+
+The obvious question, once a sheet is on screen: can linework run at 1× (it antialiases itself in
+the shader) while meshes run at 4×? No. Sample count belongs to the render *pass* — every pipeline
+drawn into it must agree, and the depth attachment too. Mixing means two passes plus a manual depth
+resolve, because a multisampled depth buffer cannot be read by a 1-sample pass.
+
+So choose per SCENE. In `build.rs`, delete the constant:
+
+```rust
+pub const MSAA_SAMPLES: u32 = 1;
+```
+
+and give **every** `build_*_pipeline` function a `samples: u32` parameter (right after
+`device: &wgpu::Device`), replacing each `count: MSAA_SAMPLES` with `count: samples`. Ten builders,
+one mechanical edit each. `Pipelines::new` takes `samples: u32` too and forwards it.
+
+In `gpu/mod.rs`, `create_depth_view` and `create_msaa_view` take `samples` as well (`sample_count:
+samples`), `Gpu` stores `pub samples: u32` so `resize` can rebuild both targets at the right count,
+and the rule itself goes next to them:
+
+```rust
+    /// MSAA sample count for a scene. It cannot be chosen per lane: sample count belongs to the
+    /// render PASS, and every pipeline drawn into a pass must match it, so 1x linework and 4x
+    /// solids in one frame would need two passes and a depth resolve between them. Pick per scene
+    /// instead - hard-edged geometry (triangles, tubes, spheres) is the only thing MSAA smooths,
+    /// while ribbons and dots antialias themselves in the shader. A 2D sheet therefore pays
+    /// nothing, and a model with meshes gets clean silhouettes.
+    fn msaa_for(files: &[SceneTables]) -> u32 {
+        let solid = files.iter().any(|f| !f.verts.is_empty() || !f.pipes.is_empty() || !f.spheres.is_empty());
+        if solid { 4 } else { 1 }
+    }
+```
+
+One more consequence, in `clear`'s render pass: a 1-sample attachment must NOT carry a resolve
+target. Find the `color_attachments` line and make both fields conditional:
+
+```rust
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: if self.samples > 1 { &self.msaa_view } else { &view },
+                    resolve_target: if self.samples > 1 { Some(&view) } else { None },
+```
+
+Measured on the nine sheets: **9 fps → 50 fps**. That is the whole edit.
+
+## Step 7 — flat ink writes no depth: `src/engine/gpu/mod.rs`
+
+Both flat pipelines set `depth_write_enabled: false` — deliberately, because a blended AA feather
+that wrote depth would block later ink at the same depth and leave halos at every line crossing.
+The consequence is that ink-vs-ink order is decided by *draw order alone*, and draw order is
+`session.lookup.values()` — a HashMap walk. A dot sits on top of the polyline it belongs to at every
+camera angle, and a polyline hides behind a drawing that is metres further away.
+
+The fix is a depth-only prepass: the same geometry, a binary coverage test at half alpha, colour
+masked off, depth written. `ribbon.wgsl` and `glyph.wgsl` each grow an `fs_depth` entry point, and
+`build_ink_depth_pipeline` builds both (note the colour target with `write_mask:
+wgpu::ColorWrites::empty()` — Dawn rejects an empty target list against a colour pass), while the
+colour pipelines switch to `depth_compare: GreaterEqual` so each survives its own prepass.
+
+It costs a second full pass over every ribbon and dot, so it is a flag, at the top of `gpu/mod.rs`:
+
+```rust
+/// Depth prepass for the FLAT lane, so flat ink occludes flat ink (a dot behind a polyline
+/// loses to it) instead of pure draw order deciding - and draw order here is HashMap order,
+/// so without it "who is in front" is effectively random. Costs a SECOND full pass over every
+/// ribbon/dot; set false to trade correct ink ordering for that frame time back.
+const INK_DEPTH_PREPASS: bool = true;
+```
+
+> **Default flipped in Part 3:** on the ten-sheet scene the second pass doubles the frame for ink
+> that is all coplanar anyway — the flag ships `false` now; set it back for 3D-heavy scenes.
+
+guarding both prepass draws:
+
+```rust
+            if INK_DEPTH_PREPASS && self.segment_count > self.pipe_count {
+```
+
+Coplanar ink — nearly all of a drawing sheet — is unaffected either way: same depth, so
+`GreaterEqual` lets every line paint, and order stays painter's order where that is the correct
+answer.
+
+## Step 8 — two bugs that only a real file exposes
+
+**8a. `Line::pb_dumps` threw away the xform.** `session_rust/src/line.rs` wrote `xform: None` into
+the proto and never read one back, even though `line.proto` has the field and both C++ and Python
+serialize it. Lines are ~90% of a drawing (40,814 of 43,844 objects in one sheet), so laying nine
+sheets out in a grid moved the polylines and left every line stacked at the origin. In `pb_dumps`,
+find the object-level `xform: None,` (the one after `name:` — NOT the two inside the `start`/`end`
+points, which are plain coordinates) and replace it with:
+
+```rust
+            xform: Some(crate::proto::Xform {
+                guid: self.xform.guid().to_string(),
+                name: self.xform.name.clone(),
+                matrix: self.xform.m.iter().map(|&v| v as f64).collect(),
+            }),
+```
+
+and in `pb_loads`, after the `if let Some(color) = proto.linecolor { ... }` block, add the mirror:
+
+```rust
+        if let Some(xform) = proto.xform {
+            line.xform.set_guid(xform.guid);
+            line.xform.name = xform.name;
+            for (i, val) in xform.matrix.iter().enumerate() {
+                if i < 16 {
+                    line.xform.m[i] = *val as f64;
+                }
+            }
+        }
+```
+
+The lesson underneath: C++ is ground truth and Rust had drifted from it silently, because no test
+round-trips a *non-identity* xform. A `to_proto/from_proto` test that only ever sees an identity
+matrix cannot tell the difference between "serialized" and "reconstructed by the constructor".
+
+**8b. Camera-relative rendering had never actually run.** The camera keeps `target`/`distance` in
+**metres** (`fit` multiplies by `unit.to_meters()`), while the instance table's translations are in
+world **millimetres**. `rebase_anchor` was handed metres and subtracted them straight from
+millimetres — a 1000× mismatch — and its threshold (`REANCHOR_DIST = 1e5`, documented as mm) was
+compared against a metre-scale drift, i.e. a 100 km trigger. The anchor therefore stayed at
+`(0,0,0)` forever and every vertex kept its full world magnitude.
+
+You see it as geometry that *disappears* when you zoom in. At a 1 mm view the near/far planes are
+~10 µm and ~10 mm apart while the f32 mvp differences numbers around 47,000: roughly 4 mm of error
+in view-space z, so the computed depth falls outside the frustum and is clipped.
+
+In `camera.rs`, `origin()` returns the target in WORLD units and `view_proj_anchored` converts the
+anchor back to metres itself — one unit for the anchor everywhere, converted where the scale
+already lives:
+
+```rust
+    pub fn origin(&self) -> Point{
+        let s = self.unit.to_meters();
+        Point::new(self.target[0] / s, self.target[1] / s, self.target[2] / s)
+    }
+
+    pub fn distance_world(&self) -> f64 {
+        self.distance / self.unit.to_meters()
+    }
+```
+
+```rust
+        let a = self.unit.to_meters();
+        let anchor = Point::new(anchor[0] * a, anchor[1] * a, anchor[2] * a); // world -> metres
+```
+
+and the threshold becomes a quarter of the view distance, clamped — zoomed out, panning must not
+trigger constant 52 MB rebuilds; zoomed in, it must re-anchor before coordinates grow back:
+
+```rust
+        let thresh = (view_dist * 0.25).clamp(REANCHOR_MIN, REANCHOR_MAX);
+```
+
+(`state.rs` passes it: `self.gpu.rebase_anchor(&origin, self.camera.distance_world())`.) While you
+are in `camera.rs`, delete the `.clamp(0.2, 100.0)` still sitting in `fit()` — 34g removed that
+clamp from zoom precisely because it culled fitted scenes.
+
+## Step 9 — curves finally draw: `src/engine/gpu/adapters.rs`, `mod.rs`
+
+`walk_session`'s match had `Geometry::NurbsCurve(_)` in the do-nothing arm, so ~7% of every drawing
+was silently invisible — and after the importer work below, *most* of it would be. A curve is a
+polyline by the time the GPU sees it, so it rides the FLAT lane.
+
+In `adapters.rs`, add `NurbsCurve` to the `use session_rust::{...}` line, then add above
+`point_to_glyph`:
+
+```rust
+/// A curve becomes a polyline of ribbon segments. Sample count follows the curve's SIZE, not a
+/// fixed number: a PDF sheet is mostly 1-2 mm glyph outlines (4 segments is already smoother than
+/// a pixel) next to metre-long arcs (which need ~50), and a flat count would either shatter the
+/// budget or visibly facet the big ones.
+pub fn nurbscurve_to_segments(c: &NurbsCurve, instance_id: u32) -> Vec<CylinderSegment>{
+    let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
+    for i in 0..c.m_cv_count {
+        if let Some(cv) = c.cv(i) {
+            let w = if c.m_is_rat && cv.len() > 3 && cv[3] != 0.0 { cv[3] } else { 1.0 };
+            for k in 0..3 { lo[k] = lo[k].min(cv[k] / w); hi[k] = hi[k].max(cv[k] / w); }
+        }
+    }
+    if lo[0] > hi[0] { return Vec::new(); }
+    let size = ((hi[0]-lo[0]).powi(2) + (hi[1]-lo[1]).powi(2) + (hi[2]-lo[2]).powi(2)).sqrt();
+    let n = ((size / 0.2).sqrt().ceil() as usize).clamp(4, 64);
+
+    let (t0, t1) = c.domain();
+    let color = c.linecolors.first().map(|c| c.to_f32()).unwrap_or([0.0, 0.0, 0.0, 1.0]);
+    let radius = encode_width(c.width);
+    let pts: Vec<[f32; 3]> = (0..=n)
+        .map(|i| c.point_at(t0 + (t1 - t0) * i as f64 / n as f64).to_f32())
+        .collect();
+    pts.windows(2).map(|w| CylinderSegment{
+        p0: w[0],
+        radius,
+        p1: w[1],
+        instance_id,
+        color,
+    }).collect()
+}
+```
+
+Note it reads `linecolors` (plural) — a curve carries a vec, not the single `linecolor` a
+line/polyline has, and an empty vec means black.
+
+In `mod.rs`, add `nurbscurve_to_segments` to the `use adapters::{...}` line, delete
+`Geometry::NurbsCurve(_) |` from the ignore arm, and add a real arm above `Geometry::Point(p)`:
+
+```rust
+                // Curves ride the FLAT lane too - sampled to segments, they ARE polylines by
+                // the time the GPU sees them. A PDF sheet is mostly these (every bezier, and
+                // every glyph outline once fonts are flattened to paths).
+                Geometry::NurbsCurve(c) => {
+                    t.objects.push((c.xform.clone(), [1.0; 4]));
+                    t.segments.extend(nurbscurve_to_segments(c, ri));
+                }
+```
+
+## Step 10 — hidden wireframe: `src/engine/gpu/mod.rs`
+
+`push_mesh` emits a cylinder per edge and a sphere per vertex, unconditionally. That is right for a
+box and disastrous for the next step, where every letter of text becomes a small mesh: each glyph
+would be outlined in tubes and dotted at every vertex.
+
+Rule: **edge width 0 means hidden**. It is safe because `widths()` is empty unless someone called
+`set_linecolors`, and the existing `.unwrap_or(1.0)` keeps every ordinary mesh exactly as it was.
+
+In `push_mesh`, find the `for (i, (a, b, col)) in m.edges_with_colors()` loop and insert above it:
+
+```rust
+    // Edge width 0 = HIDDEN wireframe. A mesh only has explicit widths if someone called
+    // set_linecolors, so the 1.0 default below leaves every ordinary mesh untouched - but a
+    // triangulated PDF fill (a letter, a poché region) asks for no wireframe at all, and without
+    // this every glyph would render outlined in tubes and dotted at each vertex.
+    // A single width BROADCASTS to every edge - one entry instead of one per edge, which for
+    // thousands of small glyph meshes is the difference between a lean .pb and a fat one.
+    let width_at = |i: usize| -> f64 {
+        let w = m.widths();
+        if w.len() == 1 { w[0] } else { w.get(i).copied().unwrap_or(1.0) }
+    };
+    let hidden = |i: usize| width_at(i) == 0.0;
+```
+
+then, as the loop's first statement, `if hidden(i) { continue }`, and use the broadcast everywhere a
+width is read: `radius: encode_width(width_at(i)),` in the edge loop, `let w = width_at(i);` in the
+`vwidth` loop below it (guarded by the same `if hidden(i) { continue }`), and a dot loop that skips
+a vertex with no surviving edge — replace
+`radius: encode_width(vwidth.get(&vk).copied().unwrap_or(1.0)),` with `radius: encode_width(vw),`
+after adding, as the dot loop's first line:
+
+```rust
+        let Some(&vw) = vwidth.get(&vk) else { continue };
+```
+
+## Step 11 — the importer, in two stages: `pdf_to_session.py` + `pdf_build.rs`
+
+> **Superseded.** This two-stage Python+Ghostscript importer was replaced by a pure-Rust MuPDF
+> device, which after a spell as a standalone `session_pdf`/`session_io` crate now lives in the
+> kernel as `session_rust/src/pdf.rs` — Part 3 below records the final state. The extraction
+> lessons here (white knockouts, size-adaptive flattening, fills as meshes, layers as groups) all
+> carried over; only the machinery changed.
+
+What a PDF sheet actually contains, measured with PyMuPDF on `30700 Querschnitt G-G.pdf`:
+
+| feature | count | before |
+|---|---|---|
+| stroke paths | 57,292 | imported |
+| fill paths | 1,348 (4,803 once fonts are flattened) | drawn as hollow outlines |
+| text | 543 spans, 3,651 chars | **absent** |
+| white knockout paths | 1,017 | imported as phantom rectangles |
+| named CAD layers (OCG) | 33 | discarded |
+| page box | 2979 × 2526 pt | absent |
+| dashes / images / annotations | none / 0 / 0 | — |
+
+**Python extracts, Rust builds.** PyMuPDF is the only PDF reader we have, so extraction stays in
+Python — but nothing else does. The first version triangulated the fills in Python and wrote the
+`.pb` there too: **3 min 11 s for one sheet**. The same work in Rust, with the rayon-parallel
+`from_polygon_with_holes_many` and the Rust protobuf writer, is **1.8 s**; nine sheets import in
+1m43s instead of most of an hour. Python now emits a `.paths.json` of primitives and stops.
+
+```
+pdf_to_session.py   PDF ─► strokes / curves / fills(loops) / layers / page   ─► <stem>.paths.json
+pdf_build.rs        JSON ─► CDT (parallel) + Session + tree groups + protobuf ─► <stem>.pb
+import_drawings.sh  both stages for all nine sheets
+```
+
+**11a. White is a knockout, not ink.** A white path on white paper is a mask box — behind text,
+behind title-block fields. Imported, it is ~1,100 phantom rectangles floating over the drawing.
+
+```python
+def is_white(c):
+    return c is not None and min(float(v) for v in c[:3]) >= 0.99
+```
+
+Applied to the fill colour and the stroke colour *separately* — one path can be both.
+
+**11b. Text.** `page.get_drawings()` returns *paths*; text lives in a layer it cannot see.
+Ghostscript rewrites every glyph as outlines, and — the useful surprise — emits them as **fill
+paths** while preserving all 33 OCG layers:
+
+```python
+    r = subprocess.run(["gs", "-q", "-o", tmp.name, "-sDEVICE=pdfwrite", "-dNoOutputFonts", src],
+                       capture_output=True)
+```
+
+Note what this costs: the font is gone. A glyph arrives as contours, with no character code, no
+family, no size — solid letters you cannot re-typeset. Real text needs a `Text` type in the kernel
+(3 languages + proto), a font system in the viewer, and `page.get_text("dict")` in the importer;
+`InstanceRef` (`session_rust/src/instance_ref.rs`, not yet a `Geometry` variant) is the natural
+middle step — one mesh per unique character, one placement per occurrence.
+
+**11c. Flatten a fill contour by its own size.** Every extra vertex on a glyph is also a face, a
+halfedge and a triangulation entry in the `.pb` — mesh serialization is where a drawing's file size
+now lives. A fixed 6 samples per bezier cost 619 MB across nine sheets; sizing each cubic by its
+control-polygon length cost 444 MB for the same picture:
+
+```python
+def bez_steps(a, c1, c2, b):
+    d = (math.dist(a, c1) + math.dist(c1, c2) + math.dist(c2, b))
+    return max(2, min(12, int(math.sqrt(d / BEZ_CHORD))))
+```
+
+**11d. Fills become meshes — in Rust.** Text and poché are one problem: closed contours, where a
+break in the item chain starts a new one (that is how a glyph's counter, the hole in `o`, `a`, `e`,
+arrives; 1–4 contours per letter). `pdf_build.rs` triangulates them all at once:
+
+```rust
+    let inputs: Vec<Vec<Vec<Point>>> = paths.fills.iter()
+        .map(|f| f.loops.iter().map(|lp| points(lp)).collect())
+        .collect();
+    let meshes = Mesh::from_polygon_with_holes_many(inputs, true, true);
+```
+
+then per mesh:
+
+```rust
+        m.set_objectcolor(color(f.c));
+        // A fill is flat colour: drop the auto-seeded per-vertex/per-face vecs, which would
+        // otherwise dominate the .pb for thousands of glyph meshes.
+        m.clear_pointcolors();
+        m.clear_facecolors();
+        // ONE transparent, zero-width entry: the viewer broadcasts a single width to every edge,
+        // and reads width 0 as "no wireframe" - a letter renders solid, not outlined and dotted.
+        m.set_linecolors(vec![Color::new(0.0, 0.0, 0.0, 0.0)], vec![0.0]);
+```
+
+`true, true` = pick the border by largest bbox (PDF does not guarantee contour order) and run
+rayon. Note `set_linecolors` does *not* change `color_mode` — the fill colour stays with
+`objectcolor`, which is the precedence table at the top of this lesson doing its job on data nobody
+hand-authored. The single-entry width is what Step 10's `width_at` broadcasts.
+
+**11e. Layers and the page edge.** One tree group per CAD layer, passed as the `parent` argument
+every `add_*` already accepts:
+
+```rust
+    let mut group = |s: &mut Session, i: usize| {
+        groups.entry(i)
+            .or_insert_with(|| s.add_group(paths.layers.get(i).map(|x| x.as_str()).unwrap_or("0 unlayered")))
+            .clone()
+    };
+```
+
+plus a closed polyline of the page box in a `page` group — so a sheet's extents are the PAPER, not
+its ink, and sheets whose content sits off-centre stop looking mis-placed next to each other.
+
+Result across the nine sheets: **3,373–14,423 fill meshes each** (text + poché), 1–33 layer groups,
+20,613 knockouts dropped from the worst sheet, and 572,097 objects in the merged scene under 194
+groups.
+
+## Verify — Part 2
+
+```bash
+cd session_data && ./import_drawings.sh          # ~11s per sheet: 4.6s extract + 1.8s build
+cd ../session_rust && cargo run --release --example probe_scene -- ../session_data/draw_pf_he.pb
+cargo run --release --example combined_scene     # nine sheets, grid-placed, one .pb
+```
+
+`probe_scene` must show `mesh` among the types, `moved=<all>` (8a), and bounds equal to the page
+box, not the ink box. Then copy the result into `session_viewer/dist/session_data/` — **trunk only
+re-copies assets when it rebuilds**, and a stale `dist` looks exactly like a fix that did not work.
+
+On screen: labels and dimensions are solid black text, poché is filled, no white rectangles, no
+wireframe outlining the glyphs, a rectangle around each sheet, ink in its real colours (Step 5), and
+the dot at a polyline's end no longer floats in front of it from every angle (Step 7).
+
+## Still missing
+
+Honest list, all deliberate: `PointCloud`, `NurbsSurface`, `Plane`, `OBB` and `Element` are still
+do-nothing arms in `walk_session`. Dash patterns have no kernel representation (none of these sheets
+use them). Fills are lit by the 3D key/fill lights rather than drawn flat, and the triangle pipeline
+does not blend, so a translucent fill renders opaque. Text is glyph outlines, not an SDF atlas —
+fine at 3,651 characters per sheet, wrong at 100,000. And hatching arrives from these PDFs
+pre-exploded (56,889 single-segment paths, median 3.2 pt), so a hatch *shader* would have nothing to
+shade: that only pays off for hatch entities our own kernel authors, and it needs filled regions
+first — which Step 11c just built.
 
 ## Recap
 
@@ -483,12 +1012,117 @@ Ch 34h: RESOLVE COLORS/WIDTHS ONCE, CPU-SIDE. Row color = the user's color (prec
         0.0, defaults bit-identical. to_render grows a FACECOLORS branch (duplicated verts, flat
         color; Rust-only bridge). Dots: pointcolors when user-set, dark constant otherwise —
         every-vertex-dots policy unchanged.
+
+Ch 34h pt2: THE SAME RULES, NINE REAL SHEETS. Hairline fade gets a FLOOR (a 0.09mm plot pen is
+        sub-pixel at every zoom; unfloored it reads as white paper). MSAA is chosen per SCENE, not
+        per lane — sample count belongs to the PASS (9→50 fps). Flat ink writes no depth, so
+        ink-vs-ink order is HashMap order until INK_DEPTH_PREPASS pays for a second pass. Two
+        silent defects: Line::pb_dumps dropped xform (Rust only — C++/py were right; nine sheets
+        stacked at the origin), and camera-relative anchoring mixed metres with millimetres so it
+        NEVER RAN (geometry clipped away when zooming in). NurbsCurve finally draws, sampled by
+        size. Mesh edge width 0 = hidden wireframe — which lets PDF fills and TEXT arrive as
+        triangulated meshes (gs -dNoOutputFonts turns glyphs into fill paths), with CAD layers as
+        tree groups and the page box as a polyline.
 ```
+
+---
+
+# Part 3 — the importer rewritten, the load path attacked (2026-08-11)
+
+A record of what changed after Part 2, in the order it landed. These steps are already in the
+repo — this is the map of WHERE, not instructions to retype.
+
+## 3.1 The importer lives in the kernel: `session_rust/src/pdf.rs`
+
+The pure-Rust MuPDF device that replaced Step 11's Python+Ghostscript pair spent a while as its
+own crate (`session_pdf`, renamed `session_io`) on the theory that every foreign format should
+funnel through one converter writing `.pb`. **That theory was measured and dropped.** Handing bulk
+geometry to a kernel as protobuf costs *3–4× the parse it was meant to share* — 160k vertices of
+OBJ parse in 757 ms, then serialize+deserialize adds 2965 ms on top — and inflates 12.9 MB of OBJ
+into 83 MB of `.pb`. Parsing was never the bottleneck; rebuilding the geometry twice more is.
+
+So ordinary formats (obj, xyz, ply) are parsed **natively in each kernel**, and the importer moved
+into `session_rust` as `pdf.rs`, exposing `session_rust::pdf::import_pdf(src, stem, page)` plus a
+`pdf_import` bin. `session_io` is gone.
+
+PDF keeps one special property that earns the split *within* the crate: `mupdf-sys` compiles
+MuPDF's own C sources, which **cannot build for wasm32** — the viewer's target. So the module and
+its bin sit behind an optional `pdf` feature, off by default:
+
+```toml
+[features]
+default = []
+pdf = ["dep:mupdf", "dep:earcutr"]
+
+[[bin]]
+name = "pdf_import"
+path = "src/bin/pdf_import.rs"
+required-features = ["pdf"]
+```
+
+```rust
+#[cfg(feature = "pdf")]
+pub mod pdf;
+```
+
+`cargo check --target wasm32-unknown-unknown` therefore pulls no MuPDF at all and the viewer builds
+exactly as before; `import_drawings.sh` passes `--features pdf` for the native tool. The viewer
+still *loads* sheets as `.pb` — it cannot run the importer itself, because a browser has no
+filesystem and MuPDF's C sources have no wasm target.
+
+## 3.2 Correct reading (`session_rust/src/pdf.rs`)
+
+- **Dash patterns import dashed.** mupdf hands a custom device the raw `dashes()`/`dash_phase()`
+  (user-space, scaled by `ctm.expansion()` like the width); the pattern is walked by arc length
+  over the flattened chain and each ON-run becomes its own stroke. A dashed cubic is flattened —
+  it cannot stay an analytic NurbsCurve.
+- **The nonzero winding rule.** `fill_path` was ignoring its `even_odd` flag; `islands()` now
+  classifies by winding number when it is false (a same-orientation nested contour is REDUNDANT,
+  not a hole — parity punched wrong holes). Glyph outlines fill nonzero, per spec.
+- **Close-after-curve.** `Seg::Close` closes to the tracked subpath START; the old chain-reset on
+  `Seg::Curve` dropped the closing edge (`draw_pb_haus25` gained 43 polylines back).
+- **Nothing drops silently.** Raster images (with placed mm² area), gradient shadings and
+  no-outline glyphs (Type 3) are counted and WARNED about; an empty space-glyph outline is not a
+  failure. `create_dir_all` replaced the `is_dir()` gate on the font dump.
+- **Widths are absolute mm.** `PEN_REF` (0.35) deleted; PDF width 0 → 0.1 mm hairline. The real
+  pen table survives into the file — `0.14×6177, 0.28×48332, 0.37×769, 0.51×925, 0.71×686` on one
+  sheet — and the viewer's planar lane treats `-w` as full mm width (`radius = -w * 0.5`).
+
+## 3.3 The 90× blow-up, halved (importer perf)
+
+- **Glyph cache**: outline + islands + earcut ONCE per `(font, gid)` in glyph space; each
+  occurrence only transforms cached verts by its text matrix. The same `e` was being outlined and
+  triangulated thousands of times.
+- **Merged fills**: ONE mesh per `(layer, rgba)` — 5142 meshes → 11 on one sheet. Per-object cost
+  (2 guids, graph node, tree node, proto framing) is what the .pb and the parse were paying.
+- Corpus: **781 → 486 MB (−38%)**; import ≈1-3 s/sheet; zero dropped/bad fills on all nine.
+
+## 3.4 The viewer load path
+
+- **Pipelined fetch, window of 2** (`app/persistence.rs` + `state.rs`): `fetch_start()` builds the
+  request and wraps the browser promise — which is EAGER; only the Rust await is lazy — so file
+  N+1 downloads while file N parses. Measured: every fetch fully hidden (77-304 ms inside
+  ~1-2 s parses). Do NOT fetch all up-front: raw bytes for ten sheets would blow the wasm heap.
+- **`INK_DEPTH_PREPASS = false`** (see the note in Step 7).
+- **Kernel serialization stopped double-encoding** (after the Xform refactor landed): every
+  geometry type got `to_proto()`/`from_proto()` split out of `pb_dumps`/`pb_loads`, and
+  `Session::pb_dumps`/`pb_loads` use them directly — the old path encoded every object to bytes
+  and decoded it again, in BOTH directions. minitest 718/718; byte-identical output.
+- **Placement moved into the Session** (the Xform refactor, a parallel effort): geometry types
+  lost their `xform` member; transforms live in `session.xforms` (`set_xform`/`world_xform`), and
+  `walk_session` resolves them in ONE pass via `session.world_xforms()` — the per-object form
+  rescans the tree each call. Per-sheet placement stays in `assets/scenes/drawings.json`.
+
+Measured end-to-end, ten sheets, 486 MB: **28.6 s → 24.3 s** load (parse −30%), then 165 fps at
+744k objects over 7 draw calls. The remaining 24 s is ~11 s parse + ~11 s walk — which is what
+lesson 35 restructures (the walk moves into `Scene`, and the first sheet stops waiting for the
+other nine).
 
 ## Next
 
 `35-scene-struct.md` — the walk (now carrying the full color/width resolution) moves out of `Gpu`
-into an app-layer `Scene`. Later consumers of today's channels: 45 selection (writes the tint),
+into an app-layer `Scene`, and loading turns PROGRESSIVE: first sheet on screen in ~2 s, the rest
+streaming in behind it. Later consumers of today's channels: 45 selection (writes the tint),
 47 thickness slider (scales every multiplier width for free), PointCloud lesson (per-point colors +
 `point_size` via a repurposed `Instance._pad[0]`), 63 BRep per-face colors (maps
 `BRepFace.facecolor` onto the mesh's facecolors — rides today's lane, but needs face-run tracking in
