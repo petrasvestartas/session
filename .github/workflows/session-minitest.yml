@@ -78,11 +78,8 @@ jobs:
 
     - name: Set up Rust (Windows)
       if: runner.os == 'Windows' && (matrix.language == 'rust' || matrix.language == 'full')
-      run: |
-        choco install rustup.install -y
-        rustup default stable
-        echo "$env:USERPROFILE\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      shell: pwsh
+      # dtolnay/rust-toolchain is ~30s; the previous choco install took 2.5-4.5 min.
+      uses: dtolnay/rust-toolchain@stable
 
     # setup-python is for the py tests; the class-summary/consolidate scripts in the other
     # jobs fall back to the runner image's system python3, which is enough for stdlib json work.
