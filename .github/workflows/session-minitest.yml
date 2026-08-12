@@ -59,17 +59,16 @@ jobs:
 
     - name: Cache Rust Cargo
       if: matrix.language == 'rust' || matrix.language == 'full'
-      uses: actions/cache@v5
+      # rust-cache instead of hand-rolled actions/cache: the old Cargo.lock-keyed entries were
+      # first-writer-wins, and a 5 MB dud saved by an early partial run poisoned every later
+      # run ("hit on primary key, not saving") - the intel job recompiled the world each push.
+      # rust-cache prunes unused deps (much smaller entries) and re-saves on change.
+      uses: Swatinem/rust-cache@v2
       with:
-        path: |
-          ~/.cargo/bin/
-          ~/.cargo/registry/index/
-          ~/.cargo/registry/cache/
-          ~/.cargo/git/db/
-          session_rust/target/
-          session_viewer/target/
-        key: rust-${{ matrix.os }}-${{ hashFiles('session_rust/Cargo.lock') }}
-        restore-keys: rust-${{ matrix.os }}-
+        shared-key: ${{ matrix.os }}
+        workspaces: |
+          session_rust
+          session_viewer
 
     # CMake configures into session_cpp/build and FetchContent builds protobuf there; uncached
     # this is 8-17 min per cpp job (the critical path). test_cpp.sh skips configure and does an
