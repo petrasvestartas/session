@@ -53,7 +53,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.147
+    "time_ms": 0.119
   },
   {
     "checks": [
@@ -74,7 +74,7 @@
     "line": 52,
     "passed": true,
     "test_name": "Place",
-    "time_ms": 0.05
+    "time_ms": 0.044
   },
   {
     "checks": [
@@ -95,7 +95,7 @@
     "line": 80,
     "passed": true,
     "test_name": "Add Feature",
-    "time_ms": 0.028
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -121,7 +121,7 @@
     "line": 105,
     "passed": true,
     "test_name": "AABB",
-    "time_ms": 0.049
+    "time_ms": 0.051
   },
   {
     "checks": [
@@ -142,7 +142,7 @@
     "line": 129,
     "passed": true,
     "test_name": "OBB",
-    "time_ms": 0.037
+    "time_ms": 0.042
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Reset",
-    "time_ms": 0.047
+    "time_ms": 0.082
   },
   {
     "checks": [
@@ -230,7 +230,7 @@
     "line": 211,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.042
+    "time_ms": 0.051
   },
   {
     "checks": [
@@ -271,7 +271,7 @@
     "line": 235,
     "passed": true,
     "test_name": "Brep Aabb",
-    "time_ms": 0.199
+    "time_ms": 0.228
   },
   {
     "checks": [
@@ -297,7 +297,7 @@
     "line": 254,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.701
+    "time_ms": 0.513
   },
   {
     "checks": [
@@ -328,7 +328,7 @@
     "line": 283,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 1.422
+    "time_ms": 1.139
   },
   {
     "checks": [
@@ -359,6 +359,6 @@
     "line": 308,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.069
+    "time_ms": 0.034
   }
 ]

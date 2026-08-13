@@ -16,8 +16,9 @@ one spatial index — an AABB **BVH** — and they query it for a short candidat
 so it *doesn't* need the tree; the same index could still accelerate it at extreme scale. Building
 it once, here, means all of them share it.)
 
-The kernel already ships the tree: `session_rust::SpatialBVH` (median-split, `build_with_guids` /
-`query_aabb` / `ray_cast`). The roadmap's rule is *don't rewrite what exists* — so this lesson wires
+The kernel already ships the tree: `session_rust::SpatialBVH` (a Morton-code LBVH: radix-sort the
+boxes' Morton codes, one linear build pass — Karras 2012; `build_with_guids` / `query_aabb` /
+`ray_cast`). The roadmap's rule is *don't rewrite what exists* — so this lesson wires
 that up, it doesn't reimplement a BVH. The real work is one subtlety the kernel can't do for us.
 
 ## Why the viewer builds its own boxes
@@ -30,6 +31,14 @@ argument precisely because the geometry can't supply it — but it is private, p
 nothing about the manifest `place`. The viewer's BVH spans ALL documents in ONE world frame, so
 `Scene` builds each box itself from the same placed frame the instance row draws with. That is the
 invariant: **every box fed to the tree is a world box, computed from `tables.objects[row].0`.**
+
+(Browsing `session.rs` you will also find `Session.bvh` and a `cached_ray_bvh` behind a dirty
+flag — the archive viewer (`session_viewer_archive`) leaned on exactly that cache, calling
+`invalidate_bvh_cache()` after every edit. That was enough there because the archive was a
+single-document app. This viewer is multi-document by design: one tree per session would mean
+querying N trees and merging, each blind to its manifest `place`. One scene-level tree, placed
+boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 42's
+narrow-phase `ray_cast`.)
 
 This lesson also names that frame once and for all, because half the remaining course needs it:
 
@@ -50,6 +59,9 @@ This lesson also names that frame once and for all, because half the remaining c
         }
     }
 ```
+
+(Read them now, type them in Step 3 — `doc_of_row` reads a `doc_rows` field that Step 2 adds
+first.)
 
 <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="per-row world boxes are built by Scene::add_file from the row's placed frame and fed to the kernel SpatialBVH, whose query_aabb serves picking and box-select" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="10" y="18" fill="#888">Scene::add_file — one world box per row (placed frame applied)</text>
@@ -101,6 +113,8 @@ fn world_obb(geom: &Geometry, placed: &Xform) -> OBB {
     const PAD: f64 = 1e-6;
     let local = match geom {
         Geometry::Mesh(m) => OBB::from_aabb(AABB::from_mesh(m, PAD)),
+        // b.mesh() re-tessellates — a SECOND mesh per BRep per append (the walk built its own).
+        // Once per load, never per query; revisit only if BReps ever number in the thousands.
         Geometry::BRep(b) => OBB::from_aabb(AABB::from_mesh(&b.mesh(), PAD)),
         Geometry::Line(l) => OBB::from_line(l, PAD),
         Geometry::Polyline(pl) => OBB::from_polyline(pl, PAD),
@@ -120,8 +134,9 @@ that.
 ## Step 2 — boxes append with the rows: `src/app/scene.rs`
 
 `build_with_guids` keeps its input order: the `object_id` a query returns is the **index into the
-slice you passed**. Feed it boxes in global row order and the mapping back is just
-`self.order[id]` — object_id IS the row.
+slice you passed** (the Morton sort shuffles only the tree's internal layout — each leaf keeps its
+pre-sort index; `build_leaf_aabbs` in `spatial_bvh.rs` is the receipt). Feed it boxes in global
+row order and the mapping back is just `self.order[id]` — object_id IS the row.
 
 **2a. Add the fields** to `struct Scene` (below `hidden`):
 
@@ -148,35 +163,39 @@ Then in the walk loop, right after the two bookkeeping lines
             self.order.push(guid);
 ```
 
-append the row's box (the `placed` local is still in scope — it IS the frame the row was pushed
-with):
+append the row's box. One Rust trap: `placed` LOOKS in scope, but `Xform` is not `Copy`, and every
+match arm **moved** it into `t.objects.push((placed, …))` — so borrow the frame back out of the
+row it now lives in. Which is the invariant made literal: the box is computed from the very
+matrix the row draws with, because it is the SAME value, not a copy that could drift:
 
 ```rust
             // Cache the box's AABB extents row-by-row. Computing a world box walks the object's
             // VERTICES — do it once per append, never per query. 37's per-frame cull and 45's
             // marquee read THIS cache; without it they'd re-walk every mesh every frame.
-            let a = world_obb(geom, &placed).aabb();
+            // (`placed` was moved into the objects push above — the ROW owns the frame now.)
+            let a = world_obb(geom, &t.objects[ri as usize].0).aabb();
             let (lo, hi) = (a.min_point(), a.max_point());
             self.world_boxes.push(([lo[0], lo[1], lo[2]], [hi[0], hi[1], hi[2]]));
 ```
 
 **2c. Rebuild the tree at the end of `add_file`** (after the planar block, before
-`self.docs.push(...)`). A median-split build over cached extents is milliseconds; ten appends cost
-ten rebuilds, which is nothing next to the walk that preceded each:
+`self.docs.push(...)`). The build is a radix sort of Morton codes plus one linear pass —
+milliseconds over cached extents; ten appends cost ten rebuilds, which is nothing next to the
+walk that preceded each:
 
 ```rust
         self.rebuild_bvh();
 ```
 
 ```rust
-    /// Rebuild the whole tree from the cached extents — called once per appended file. A later
-    /// lesson (38) refits incrementally on edit instead of rebuilding. Boxes go in ROW order →
-    /// object_id == row == index into `order`.
+    /// Rebuild the whole tree from the cached extents — called once per appended file (LBVH
+    /// build: O(n) after the Morton radix sort). A later lesson (38) refits incrementally on
+    /// edit instead. Boxes go in ROW order → object_id == row == index into `order`.
     fn rebuild_bvh(&mut self) {
         let boxes: Vec<(OBB, String)> = self.world_boxes.iter().zip(&self.order)
             .map(|((lo, hi), guid)| {
-                let aabb = AABB::from_min_max(&Point::new(lo[0], lo[1], lo[2]),
-                                              &Point::new(hi[0], hi[1], hi[2]));
+                let aabb = AABB::from_points(&[Point::new(lo[0], lo[1], lo[2]),
+                                               Point::new(hi[0], hi[1], hi[2])], 0.0);
                 (OBB::from_aabb(aabb), guid.clone())
             })
             .collect();
@@ -185,13 +204,15 @@ ten rebuilds, which is nothing next to the walk that preceded each:
     }
 ```
 
-(If `AABB::from_min_max` differs in your kernel, use whatever constructor takes min/max points —
-the extents cache is axis-aligned by construction, so no orientation is lost.)
+(The kernel has no min/max constructor — `AABB::from_points` over the two corner points builds
+the same box. Zero inflate is right here: the pad already went in when `world_obb` filled the
+cache entry.)
 
 ## Step 3 — the query every later lesson calls: `src/app/scene.rs`
 
-One public method, in `impl Scene`. It's what 42/45 build on — they differ only in the box they
-pass:
+Three additions to `impl Scene`. First type in the two helpers from the top of the lesson —
+`placed_frame` and `doc_of_row` (the `doc_rows` field they read exists as of Step 2). Then the
+query 42/45 build on — they differ only in the box they pass:
 
 ```rust
     /// Rows whose world box intersects `query` — the broad-phase. Callers narrow further
@@ -219,8 +240,7 @@ headless:
 ```rust
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use session_rust::Line;   // Point comes in via `use super::*` (35's imports)
+    use super::*;   // 35's scene.rs imports already carry Session, Line, Point, Xform
 
     /// A tiny Session at known, separated positions. `add_line` returns a tree node we ignore;
     /// `None` = no parent.
@@ -247,8 +267,8 @@ mod tests {
         let mut want: Vec<u32> = (0..scene.world_boxes.len() as u32)
             .filter(|&row| {
                 let (lo, hi) = scene.world_boxes[row as usize];
-                let aabb = AABB::from_min_max(&Point::new(lo[0], lo[1], lo[2]),
-                                              &Point::new(hi[0], hi[1], hi[2]));
+                let aabb = AABB::from_points(&[Point::new(lo[0], lo[1], lo[2]),
+                                               Point::new(hi[0], hi[1], hi[2])], 0.0);
                 scene.bvh.aabb_intersect(&OBB::from_aabb(aabb), &query)
             })
             .collect();
@@ -260,10 +280,14 @@ mod tests {
 }
 ```
 
-`SpatialBVH::aabb_intersect(&OBB, &OBB)` is the kernel's own overlap primitive — the same OBB →
-enclosing AABB → `intersects` collapse `query_aabb` uses per node — so the brute-force scan and the
-tree are tested against an identical predicate. Once green, every downstream query trusts the
-broad-phase.
+`SpatialBVH::aabb_intersect(&OBB, &OBB)` is the kernel's own overlap primitive, with one honesty
+note: it reads each OBB as center ± half-extents and never looks at its axes, so it is exact only
+for axis-aligned boxes. Here that holds by construction — the cache stores AABB extents and the
+query came from `OBB::from_aabb` — and on that domain it is the same slab test `query_aabb` runs
+per node. (A ROTATED query would differ: `query_aabb` first widens it to its enclosing AABB,
+`aabb_intersect` would not — keep marquee/sliver queries axis-aligned or pre-collapse them with
+`.aabb()`.) So the brute-force scan and the tree are judged by an identical predicate; once
+green, every downstream query trusts the broad-phase.
 
 ## Run
 

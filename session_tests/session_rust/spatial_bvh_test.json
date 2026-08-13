@@ -33,7 +33,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Expand Bits",
-    "time_ms": 0.01
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 46,
     "passed": true,
     "test_name": "Morton Code Origin",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -86,7 +86,7 @@
     "line": 66,
     "passed": true,
     "test_name": "Morton Code Spatial Locality",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -117,7 +117,7 @@
     "line": 79,
     "passed": true,
     "test_name": "Node Creation",
-    "time_ms": 0.01
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -138,7 +138,7 @@
     "line": 91,
     "passed": true,
     "test_name": "Node Leaf",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -169,7 +169,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.009
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -185,7 +185,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.012
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.04
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.044
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Aabb Intersect",
-    "time_ms": 0.008
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.04
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 207,
     "passed": true,
     "test_name": "Merge Aabb",
-    "time_ms": 0.01
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -516,7 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.335
+    "time_ms": 0.202
   },
   {
     "checks": [
@@ -552,7 +552,7 @@
     "line": 386,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.045
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 358,
     "passed": true,
     "test_name": "Nearest Neighbors",
-    "time_ms": 0.046
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -609,7 +609,7 @@
     "line": 424,
     "passed": true,
     "test_name": "Build From Boxes",
-    "time_ms": 0.037
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -635,7 +635,7 @@
     "line": 448,
     "passed": true,
     "test_name": "Build From Aabbs",
-    "time_ms": 0.028
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -661,7 +661,7 @@
     "line": 469,
     "passed": true,
     "test_name": "Build With Guids",
-    "time_ms": 0.047
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -682,7 +682,7 @@
     "line": 497,
     "passed": true,
     "test_name": "Check All Collisions Guids",
-    "time_ms": 0.044
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -708,7 +708,7 @@
     "line": 525,
     "passed": true,
     "test_name": "Find Collisions",
-    "time_ms": 0.028
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -729,6 +729,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.028
+    "time_ms": 0.017
   }
 ]

@@ -23,7 +23,7 @@
     "line": 63,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.233
+    "time_ms": 0.122
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 113,
     "passed": true,
     "test_name": "Other Vertex",
-    "time_ms": 0.015
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 97,
     "passed": true,
     "test_name": "Connects",
-    "time_ms": 0.006
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -86,7 +86,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Vertices",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -117,7 +117,7 @@
     "line": 44,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.007
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -143,7 +143,7 @@
     "line": 148,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.357
+    "time_ms": 0.207
   },
   {
     "checks": [
@@ -159,7 +159,7 @@
     "line": 440,
     "passed": true,
     "test_name": "Cycle Basis",
-    "time_ms": 0.052
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -180,7 +180,7 @@
     "line": 424,
     "passed": true,
     "test_name": "Has Cycle",
-    "time_ms": 0.03
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -211,7 +211,7 @@
     "line": 407,
     "passed": true,
     "test_name": "Shortest Path",
-    "time_ms": 0.032
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -237,7 +237,7 @@
     "line": 390,
     "passed": true,
     "test_name": "Connected Components",
-    "time_ms": 0.047
+    "time_ms": 0.042
   },
   {
     "checks": [
@@ -253,7 +253,7 @@
     "line": 375,
     "passed": true,
     "test_name": "Dfs",
-    "time_ms": 0.038
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -269,7 +269,7 @@
     "line": 360,
     "passed": true,
     "test_name": "Bfs",
-    "time_ms": 0.036
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -285,7 +285,7 @@
     "line": 349,
     "passed": true,
     "test_name": "Edge Attribute",
-    "time_ms": 0.009
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -301,7 +301,7 @@
     "line": 338,
     "passed": true,
     "test_name": "Node Attribute",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -322,7 +322,7 @@
     "line": 326,
     "passed": true,
     "test_name": "Clear",
-    "time_ms": 0.011
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -338,7 +338,7 @@
     "line": 315,
     "passed": true,
     "test_name": "Number Of Edges",
-    "time_ms": 0.013
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -354,7 +354,7 @@
     "line": 303,
     "passed": true,
     "test_name": "Number Of Vertices",
-    "time_ms": 0.006
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -370,7 +370,7 @@
     "line": 290,
     "passed": true,
     "test_name": "Get Neighbors",
-    "time_ms": 0.018
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -386,7 +386,7 @@
     "line": 277,
     "passed": true,
     "test_name": "Neighbors",
-    "time_ms": 0.013
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -402,7 +402,7 @@
     "line": 264,
     "passed": true,
     "test_name": "Get Edges",
-    "time_ms": 0.019
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -418,7 +418,7 @@
     "line": 251,
     "passed": true,
     "test_name": "Get Vertices",
-    "time_ms": 0.013
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -444,7 +444,7 @@
     "line": 238,
     "passed": true,
     "test_name": "Remove Edge",
-    "time_ms": 0.012
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -465,7 +465,7 @@
     "line": 226,
     "passed": true,
     "test_name": "Remove Node",
-    "time_ms": 0.013
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -486,7 +486,7 @@
     "line": 214,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.012
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -533,7 +533,7 @@
     "line": 191,
     "passed": true,
     "test_name": "Has Edge",
-    "time_ms": 0.008
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -580,7 +580,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.292
+    "time_ms": 0.11
   },
   {
     "checks": [
@@ -606,7 +606,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -627,7 +627,7 @@
     "line": 27,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.154
+    "time_ms": 0.108
   },
   {
     "checks": [
@@ -663,6 +663,6 @@
     "line": 9,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.011
+    "time_ms": 0.008
   }
 ]

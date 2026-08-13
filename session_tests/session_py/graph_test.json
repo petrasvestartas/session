@@ -3,7 +3,7 @@
     "group": "Vertex",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.076,
+    "time_ms": 0.036,
     "line": 11,
     "code": "    from session_py import Vertex\n\n    # Default constructor\n    v0 = Vertex()\n\n    # Constructor with name + attribute\n    v = Vertex(\"v_named\", \"attr\")",
     "checks": [
@@ -39,7 +39,7 @@
     "group": "Vertex",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 3.356,
+    "time_ms": 0.31,
     "line": 28,
     "code": "    from session_py import Vertex\n    from session_py.file_encoders import file_json_dump\n    from session_py.file_encoders import file_json_load\n    from pathlib import Path\n\n    original = Vertex(\"v0\", \"test_attribute\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_vertex.json\"\n    file_json_dump(original, fname)\n    loaded = file_json_load(fname)",
     "checks": [
@@ -60,7 +60,7 @@
     "group": "Edge",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.114,
+    "time_ms": 0.019,
     "line": 50,
     "code": "    from session_py import Edge\n\n    # Constructor with v0/v1/attribute\n    e = Edge(\"a\", \"b\", \"attr\")",
     "checks": [
@@ -91,7 +91,7 @@
     "group": "Edge",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.717,
+    "time_ms": 0.216,
     "line": 63,
     "code": "    from session_py import Edge\n    from session_py.file_encoders import file_json_dump\n    from session_py.file_encoders import file_json_load\n    from pathlib import Path\n\n    original = Edge(\"v0\", \"v1\", \"test_edge_attr\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_edge.json\"\n    file_json_dump(original, fname)\n    loaded = file_json_load(fname)",
     "checks": [
@@ -117,7 +117,7 @@
     "group": "Edge",
     "test_name": "Vertices",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.006,
     "line": 81,
     "code": "    from session_py import Edge\n\n    e = Edge(\"a\", \"b\")\n    u, v = e.vertices",
     "checks": [
@@ -133,7 +133,7 @@
     "group": "Edge",
     "test_name": "Connects",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.009,
     "line": 91,
     "code": "    from session_py import Edge\n\n    e = Edge(\"a\", \"b\")",
     "checks": [
@@ -159,7 +159,7 @@
     "group": "Edge",
     "test_name": "Other Vertex",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.008,
     "line": 102,
     "code": "    from session_py import Edge\n\n    e = Edge(\"a\", \"b\")",
     "checks": [
@@ -180,7 +180,7 @@
     "group": "Graph",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.017,
     "line": 117,
     "code": "    from session_py import Graph\n\n    # Default constructor\n    g0 = Graph()\n\n    # Constructor with name\n    g = Graph(\"my_named_graph\")",
     "checks": [
@@ -206,7 +206,7 @@
     "group": "Graph",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.49,
+    "time_ms": 0.299,
     "line": 132,
     "code": "    from session_py import Graph\n    from pathlib import Path\n\n    original = Graph(\"test_graph\")\n    original.add_node(\"node1\", \"Node 1\")\n    original.add_node(\"node2\", \"Node 2\")\n    original.add_edge(\"node1\", \"node2\", \"edge1\")\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   file_json_dumps()    \u2502 str          \u2502 to JSON string\n    #   file_json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   file_json_dump(path) \u2502 file         \u2502 write to file\n    #   file_json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_graph.json\"\n    original.file_json_dump(fname)\n    loaded = Graph.file_json_load(fname)",
     "checks": [
@@ -232,7 +232,7 @@
     "group": "Graph",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 2.073,
+    "time_ms": 1.515,
     "line": 158,
     "code": "    from session_py import Graph\n    from pathlib import Path\n\n    original = Graph(\"test_graph\")\n    original.add_node(\"node1\", \"Node 1\")\n    original.add_node(\"node2\", \"Node 2\")\n    original.add_edge(\"node1\", \"node2\", \"edge1\")\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_graph.bin\"\n    original.pb_dump(path)\n    loaded = Graph.pb_load(path)",
     "checks": [
@@ -279,7 +279,7 @@
     "group": "Graph",
     "test_name": "Has Edge",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.017,
     "line": 188,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")",
     "checks": [
@@ -300,7 +300,7 @@
     "group": "Graph",
     "test_name": "Add Node",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.012,
     "line": 199,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    key = g.add_node(\"a\")",
     "checks": [
@@ -326,7 +326,7 @@
     "group": "Graph",
     "test_name": "Add Edge",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.02,
     "line": 211,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    edge = g.add_edge(\"a\", \"b\")\n    u, v = edge",
     "checks": [
@@ -347,7 +347,7 @@
     "group": "Graph",
     "test_name": "Remove Node",
     "passed": true,
-    "time_ms": 2.326,
+    "time_ms": 0.023,
     "line": 223,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.remove_node(\"a\")",
     "checks": [
@@ -368,7 +368,7 @@
     "group": "Graph",
     "test_name": "Remove Edge",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.021,
     "line": 235,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.remove_edge((\"a\", \"b\"))",
     "checks": [
@@ -394,7 +394,7 @@
     "group": "Graph",
     "test_name": "Get Vertices",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.008,
     "line": 248,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_node(\"a\")\n    g.add_node(\"b\")\n\n    verts = g.get_vertices()",
     "checks": [
@@ -410,7 +410,7 @@
     "group": "Graph",
     "test_name": "Get Edges",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.013,
     "line": 261,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n\n    edges = list(g.get_edges())",
     "checks": [
@@ -426,7 +426,7 @@
     "group": "Graph",
     "test_name": "Neighbors",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.009,
     "line": 274,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"a\", \"c\")\n\n    neigh = list(g.neighbors(\"a\"))",
     "checks": [
@@ -442,7 +442,7 @@
     "group": "Graph",
     "test_name": "Get Neighbors",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.008,
     "line": 287,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"a\", \"c\")\n\n    neigh = g.get_neighbors(\"a\")",
     "checks": [
@@ -458,7 +458,7 @@
     "group": "Graph",
     "test_name": "Number Of Vertices",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.005,
     "line": 300,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_node(\"a\")\n    g.add_node(\"b\")\n    g.add_node(\"c\")",
     "checks": [
@@ -474,7 +474,7 @@
     "group": "Graph",
     "test_name": "Number Of Edges",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.007,
     "line": 312,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")",
     "checks": [
@@ -490,7 +490,7 @@
     "group": "Graph",
     "test_name": "Clear",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.013,
     "line": 323,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.clear()",
     "checks": [
@@ -511,7 +511,7 @@
     "group": "Graph",
     "test_name": "Node Attribute",
     "passed": true,
-    "time_ms": 0.148,
+    "time_ms": 0.011,
     "line": 335,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_node(\"a\", \"initial\")\n    g.node_attribute(\"a\", \"updated\")",
     "checks": [
@@ -527,7 +527,7 @@
     "group": "Graph",
     "test_name": "Edge Attribute",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.009,
     "line": 346,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\", \"initial\")\n    g.edge_attribute(\"a\", \"b\", \"updated\")",
     "checks": [
@@ -543,7 +543,7 @@
     "group": "Graph",
     "test_name": "Bfs",
     "passed": true,
-    "time_ms": 0.321,
+    "time_ms": 0.019,
     "line": 357,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    result = g.bfs(\"a\")",
     "checks": [
@@ -559,7 +559,7 @@
     "group": "Graph",
     "test_name": "Dfs",
     "passed": true,
-    "time_ms": 0.039,
+    "time_ms": 0.017,
     "line": 372,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    result = g.dfs(\"a\")",
     "checks": [
@@ -575,7 +575,7 @@
     "group": "Graph",
     "test_name": "Connected Components",
     "passed": true,
-    "time_ms": 0.052,
+    "time_ms": 0.031,
     "line": 387,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    comps = g.connected_components()",
     "checks": [
@@ -601,7 +601,7 @@
     "group": "Graph",
     "test_name": "Shortest Path",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.032,
     "line": 404,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")",
     "checks": [
@@ -632,7 +632,7 @@
     "group": "Graph",
     "test_name": "Has Cycle",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.019,
     "line": 421,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n\n    g2 = Graph(\"g2\")\n    g2.add_edge(\"x\", \"y\")\n    g2.add_edge(\"y\", \"z\")",
     "checks": [
@@ -653,7 +653,7 @@
     "group": "Graph",
     "test_name": "Cycle Basis",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.019,
     "line": 437,
     "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    cycles = g.cycle_basis()",
     "checks": [

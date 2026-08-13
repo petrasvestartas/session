@@ -88,7 +88,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.074
+    "time_ms": 0.051
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.011
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -140,7 +140,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Rotate",
-    "time_ms": 0.008
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 131,
     "passed": true,
     "test_name": "Is Right Hand",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -234,7 +234,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.228
+    "time_ms": 0.119
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.123
+    "time_ms": 0.091
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 299,
     "passed": true,
     "test_name": "Has On Negative Side",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -297,7 +297,7 @@
     "line": 93,
     "passed": true,
     "test_name": "Is Valid",
-    "time_ms": 0.007
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -328,7 +328,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.011
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -364,7 +364,7 @@
     "line": 201,
     "passed": true,
     "test_name": "Base1 Base2",
-    "time_ms": 0.012
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -385,7 +385,7 @@
     "line": 189,
     "passed": true,
     "test_name": "Translate By Normal",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -406,7 +406,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Is Same Position",
-    "time_ms": 0.019
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -432,6 +432,6 @@
     "line": 145,
     "passed": true,
     "test_name": "Is Same Direction",
-    "time_ms": 0.008
+    "time_ms": 0.006
   }
 ]

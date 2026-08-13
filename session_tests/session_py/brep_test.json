@@ -3,7 +3,7 @@
     "group": "BRep",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.131,
+    "time_ms": 0.233,
     "line": 6,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep()\n\n    sstr = str(b)\n    srepr = repr(b)\n\n    bcopy = b.duplicate()",
     "checks": [
@@ -59,7 +59,7 @@
     "group": "BRep",
     "test_name": "Create Box",
     "passed": true,
-    "time_ms": 0.502,
+    "time_ms": 0.945,
     "line": 29,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "BRep",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.35,
+    "time_ms": 0.507,
     "line": 44,
     "code": "    from session_py import BRep\n    from session_py import Point\n    from session_py import NurbsSurface\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n\n    fc = b.face_count()\n    ec = b.edge_count()\n    vc = b.vertex_count()",
     "checks": [
@@ -141,7 +141,7 @@
     "group": "BRep",
     "test_name": "Add Face",
     "passed": true,
-    "time_ms": 0.106,
+    "time_ms": 0.053,
     "line": 64,
     "code": "    from session_py import BRep\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    b = BRep()\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(1, 0, 0))\n    srf.set_cv(0, 1, Point(0, 1, 0))\n    srf.set_cv(1, 1, Point(1, 1, 0))\n\n    si = b.add_surface(srf)\n    fi = b.add_face(si, False)\n    li = b.add_loop(fi, 0)\n\n    trim = NurbsCurve.create(False, 1, [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n    ])\n    ci = b.add_curve_2d(trim)\n    b.add_trim(ci, -1, li, False, 0)",
     "checks": [
@@ -172,7 +172,7 @@
     "group": "BRep",
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 1.465,
+    "time_ms": 1.669,
     "line": 95,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    m = b.mesh()",
     "checks": [
@@ -198,7 +198,7 @@
     "group": "BRep",
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.432,
+    "time_ms": 0.549,
     "line": 108,
     "code": "    from session_py import BRep\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    pt = b.point_at(0, 0.5, 0.5)",
     "checks": [
@@ -214,7 +214,7 @@
     "group": "BRep",
     "test_name": "Is Solid",
     "passed": true,
-    "time_ms": 0.349,
+    "time_ms": 0.532,
     "line": 121,
     "code": "    from session_py import BRep\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n\n    single = BRep()\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(1, 0, 0))\n    srf.set_cv(0, 1, Point(0, 1, 0))\n    srf.set_cv(1, 1, Point(1, 1, 0))\n    si = single.add_surface(srf)\n    single.add_face(si, False)\n    single.add_vertex(Point(0, 0, 0))",
     "checks": [
@@ -235,7 +235,7 @@
     "group": "BRep",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 1.519,
+    "time_ms": 1.855,
     "line": 144,
     "code": "    from session_py import BRep\n    from session_py import Point\n    from session_py import Xform\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b_xf = Xform.translation(10.0, 20.0, 30.0)\n    moved = b.transformed(b_xf)\n\n    pt = moved.point_at(0, 0.0, 0.0)\n    pt_orig = b.point_at(0, 0.0, 0.0)\n\n\n    v = moved.m_vertices[0]\n    v_orig = b.m_vertices[0]",
     "checks": [
@@ -276,7 +276,7 @@
     "group": "BRep",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 13.187,
+    "time_ms": 5.248,
     "line": 168,
     "code": "    from session_py import BRep\n    from session_py import Color\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.name = \"test_brep\"\n    b.width = 2.0\n    b.surfacecolor = Color(255, 128, 64, 255)\n\n    # JSON object\n    json_obj = b.__jsondump__()\n    loaded_json = BRep.__jsonload__(json_obj)\n\n    # String\n    json_string = b.file_json_dumps()\n    loaded_json_string = BRep.file_json_loads(json_string)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_brep.json\"\n    fname.parent.mkdir(parents=True, exist_ok=True)\n    b.file_json_dump(str(fname))\n    loaded_from_file = BRep.file_json_load(str(fname))",
     "checks": [
@@ -302,7 +302,7 @@
     "group": "BRep",
     "test_name": "Create Cylinder",
     "passed": true,
-    "time_ms": 17.095,
+    "time_ms": 20.133,
     "line": 198,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    cyl = BRep.create_cylinder(1.0, 2.0)\n    m = cyl.mesh()",
     "checks": [
@@ -343,7 +343,7 @@
     "group": "BRep",
     "test_name": "Create Sphere",
     "passed": true,
-    "time_ms": 12.338,
+    "time_ms": 17.278,
     "line": 214,
     "code": "    from session_py import BRep\n    from session_py import Mesh\n\n    sph = BRep.create_sphere(2.0)\n    m = sph.mesh()",
     "checks": [
@@ -384,7 +384,7 @@
     "group": "BRep",
     "test_name": "Create Cone",
     "passed": true,
-    "time_ms": 819.785,
+    "time_ms": 893.656,
     "line": 230,
     "code": "    import math\n    from session_py import BRep\n\n    PI = math.pi\n    cone = BRep.create_cone(1.0, 2.0)   # base r=1 at z=0, apex z=2\n    m = cone.mesh()\n\n    # V = (1/3) pi r^2 h",
     "checks": [
@@ -425,7 +425,7 @@
     "group": "BRep",
     "test_name": "Create Torus",
     "passed": true,
-    "time_ms": 903.448,
+    "time_ms": 1013.992,
     "line": 248,
     "code": "    import math\n    from session_py import BRep\n\n    PI = math.pi\n    tor = BRep.create_torus(2.0, 0.5)   # major R=2, minor r=0.5\n    m = tor.mesh()\n\n    # V = 2 pi^2 R r^2\n    ref = 2.0 * PI * PI * 2.0 * 0.25",
     "checks": [
@@ -466,7 +466,7 @@
     "group": "BRep",
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 6.014,
+    "time_ms": 7.577,
     "line": 267,
     "code": "    from session_py import BRep\n    from session_py import Polyline\n    from session_py import Mesh\n    from session_py import Point\n\n    hx, hy, hz = 1.0, 1.5, 2.0\n    c = [\n        Point(-hx, -hy, -hz),\n        Point(hx, -hy, -hz),\n        Point(hx, hy, -hz),\n        Point(-hx, hy, -hz),\n        Point(-hx, -hy, hz),\n        Point(hx, -hy, hz),\n        Point(hx, hy, hz),\n        Point(-hx, hy, hz),\n    ]\n\n    bottom = Polyline([\n        c[0],\n        c[3],\n        c[2],\n        c[1],\n        c[0],\n    ])\n    top = Polyline([\n        c[4],\n        c[5],\n        c[6],\n        c[7],\n        c[4],\n    ])\n    front = Polyline([\n        c[0],\n        c[1],\n        c[5],\n        c[4],\n        c[0],\n    ])\n    right = Polyline([\n        c[1],\n        c[2],\n        c[6],\n        c[5],\n        c[1],\n    ])\n    back = Polyline([\n        c[2],\n        c[3],\n        c[7],\n        c[6],\n        c[2],\n    ])\n    left = Polyline([\n        c[3],\n        c[0],\n        c[4],\n        c[7],\n        c[3],\n    ])\n\n    b = BRep.from_polylines([bottom, top, front, right, back, left])\n    m = b.mesh()",
     "checks": [
@@ -512,7 +512,7 @@
     "group": "BRep",
     "test_name": "From Nurbscurves",
     "passed": true,
-    "time_ms": 6.123,
+    "time_ms": 5.123,
     "line": 341,
     "code": "    from session_py import BRep\n    from session_py import NurbsCurve\n    from session_py import Mesh\n    from session_py import Point\n\n    hx, hy, hz = 1.0, 1.5, 2.0\n    c = [\n        Point(-hx, -hy, -hz),\n        Point(hx, -hy, -hz),\n        Point(hx, hy, -hz),\n        Point(-hx, hy, -hz),\n        Point(-hx, -hy, hz),\n        Point(hx, -hy, hz),\n        Point(hx, hy, hz),\n        Point(-hx, hy, hz),\n    ]\n\n    bottom = NurbsCurve.create(False, 1, [\n        c[0],\n        c[3],\n        c[2],\n        c[1],\n        c[0],\n    ])\n    top = NurbsCurve.create(False, 1, [\n        c[4],\n        c[5],\n        c[6],\n        c[7],\n        c[4],\n    ])\n    front = NurbsCurve.create(False, 1, [\n        c[0],\n        c[1],\n        c[5],\n        c[4],\n        c[0],\n    ])\n    right = NurbsCurve.create(False, 1, [\n        c[1],\n        c[2],\n        c[6],\n        c[5],\n        c[1],\n    ])\n    back = NurbsCurve.create(False, 1, [\n        c[2],\n        c[3],\n        c[7],\n        c[6],\n        c[2],\n    ])\n    left = NurbsCurve.create(False, 1, [\n        c[3],\n        c[0],\n        c[4],\n        c[7],\n        c[3],\n    ])\n\n    b = BRep.from_nurbscurves([bottom, top, front, right, back, left])\n    m = b.mesh()",
     "checks": [
@@ -543,7 +543,7 @@
     "group": "BRep",
     "test_name": "From Nurbscurves Holes",
     "passed": true,
-    "time_ms": 22.2,
+    "time_ms": 37.382,
     "line": 412,
     "code": "    from session_py import BRep\n    from session_py import NurbsCurve\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Primitives\n\n    outer = NurbsCurve.create(False, 1, [\n        Point(-5, -5, 0),\n        Point(5, -5, 0),\n        Point(5, 5, 0),\n        Point(-5, 5, 0),\n        Point(-5, -5, 0),\n    ])\n    hole = Primitives.circle(0.0, 0.0, 0.0, 2.0)\n\n    b = BRep.from_nurbscurves([outer], [[hole]])\n    m = b.mesh()",
     "checks": [
@@ -589,7 +589,7 @@
     "group": "BRep",
     "test_name": "Create Block With Hole",
     "passed": true,
-    "time_ms": 18.991,
+    "time_ms": 22.004,
     "line": 441,
     "code": "    from session_py.brep import BRep\n    from session_py import Mesh\n\n    bh = BRep.create_block_with_hole(8.0, 6.0, 4.0, 1.5)\n    m = bh.mesh()",
     "checks": [
@@ -630,7 +630,7 @@
     "group": "BRep",
     "test_name": "Mesh Orientation",
     "passed": true,
-    "time_ms": 18.699,
+    "time_ms": 24.132,
     "line": 457,
     "code": "    from session_py.brep import BRep\n    from session_py import Mesh\n\n    # Reversed faces must flip winding; the bug inflated volume() past the solid box.\n    bh = BRep.create_block_with_hole(8.0, 6.0, 4.0, 1.5)\n    vol = bh.mesh().volume()",
     "checks": [
@@ -651,7 +651,7 @@
     "group": "BRep",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 4.283,
+    "time_ms": 4.033,
     "line": 470,
     "code": "    from session_py import BRep\n    from session_py import Color\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.name = \"test_brep\"\n    b.width = 2.0\n    b.surfacecolor = Color(255, 128, 64, 255)\n\n    # String\n    proto_data = b.pb_dumps()\n    loaded_proto = BRep.pb_loads(proto_data)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_brep.bin\"\n    fname.parent.mkdir(parents=True, exist_ok=True)\n    b.pb_dump(str(fname))\n    loaded = BRep.pb_load(str(fname))",
     "checks": [
@@ -672,7 +672,7 @@
     "group": "BRep",
     "test_name": "Split By Plane",
     "passed": true,
-    "time_ms": 709.199,
+    "time_ms": 696.114,
     "line": 495,
     "code": "    from session_py import BRep\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n    from session_py.brep import BRepLoopType\n\n    box = BRep.create_box(2.0, 2.0, 2.0)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    split = box.split_by_plane(plane)\n    box_area = box.mesh().area()\n    split_area = split.mesh().area()\n    inner = 0\n    for face in split.m_faces:\n        for li in face.loop_indices:\n            if split.m_loops[li].type == BRepLoopType.Inner:\n                inner += 1\n\n\n    cylinder = BRep.create_cylinder(1.0, 4.0)\n    mid = Plane.from_point_normal(Point(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0))\n    cut = cylinder.split_by_plane(mid)",
     "checks": [
@@ -713,7 +713,7 @@
     "group": "BRep",
     "test_name": "Split By Plane Pieces",
     "passed": true,
-    "time_ms": 295.861,
+    "time_ms": 278.102,
     "line": 527,
     "code": "    from session_py import BRep\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    box = BRep.create_box(2.0, 2.0, 2.0)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    pieces = box.split_by_plane_pieces(plane)\n    total = 0.0\n    for piece in pieces:\n        total += piece.mesh().area()\n\n\n    far = Plane.from_point_normal(Point(0.0, 0.0, 5.0), Vector(0.0, 0.0, 1.0))\n    whole = box.split_by_plane_pieces(far)",
     "checks": [
@@ -754,7 +754,7 @@
     "group": "BRep",
     "test_name": "Split By Line",
     "passed": true,
-    "time_ms": 272.024,
+    "time_ms": 254.677,
     "line": 553,
     "code": "    from session_py import BRep\n    from session_py import Line\n    from session_py import Point\n\n    box = BRep.create_box(2.0, 2.0, 2.0)\n    line = Line.from_points(Point(0.0, -2.0, 1.0), Point(0.0, 2.0, 1.0))\n    split = box.split_by_line(line)\n    box_area = box.mesh().area()\n    split_area = split.mesh().area()",
     "checks": [
@@ -780,7 +780,7 @@
     "group": "BRep",
     "test_name": "Split By Brep",
     "passed": true,
-    "time_ms": 1402.895,
+    "time_ms": 894.142,
     "line": 570,
     "code": "    from session_py import BRep\n\n    target = BRep.create_box(4.0, 4.0, 2.0)\n    cutter = BRep.create_box(2.0, 2.0, 6.0)\n    split = target.split_by_brep(cutter)\n    target_area = target.mesh().area()\n    split_area = split.mesh().area()",
     "checks": [
@@ -806,7 +806,7 @@
     "group": "BRep",
     "test_name": "Volume",
     "passed": true,
-    "time_ms": 3248.952,
+    "time_ms": 1941.353,
     "line": 585,
     "code": "    import math\n    from .brep import BRep\n    # Exact divergence-theorem volume: matches OCCT BRepGProp to machine precision.\n    vbox = BRep.create_box(2, 3, 4).volume()\n    vcyl = BRep.create_cylinder(1, 4).volume()\n    vsph = BRep.create_sphere(2).volume()",
     "checks": [
@@ -847,7 +847,7 @@
     "group": "BRep",
     "test_name": "Block With Hole Volume",
     "passed": true,
-    "time_ms": 1926.457,
+    "time_ms": 1014.172,
     "line": 601,
     "code": "    # Box(4) with a through cylindrical hole (r=1): the annular top/bottom faces have an inner\n    # loop, so volume()'s face-interior sample must land on the MATERIAL (not in the hole) for\n    # the outward-sign probe. OCCT BRepGProp: 64 - pi*r^2*h.\n    import math\n    from .brep import BRep\n    bh = BRep.create_block_with_hole(4, 4, 4, 1.0)\n    ref = 64.0 - math.pi * 1.0 * 1.0 * 4.0",
     "checks": [
@@ -873,7 +873,7 @@
     "group": "BRep",
     "test_name": "Boolean Example brep_booleans",
     "passed": true,
-    "time_ms": 13251.517,
+    "time_ms": 7033.889,
     "line": 615,
     "code": "    # Reproduces docs/examples/breps/brep_booleans.py: Box(2) + Cylinder(r=0.7, h=3, centred).\n    # OCCT (oracle): fuse 9.539380400258997/10, cut 4.921239199482002/7, common 3.078760800517997/3.\n    from .brep import BRep\n    from .xform import Xform\n    box = BRep.create_box(2, 2, 2)\n    cyl = BRep.create_cylinder(0.7, 3.0)\n    cyl_xf = Xform.translation(0, 0, -1.5)\n    cyl = cyl.transformed(cyl_xf)\n    fus = box.boolean_union(cyl)\n    cut = box.boolean_difference(cyl)\n    com = box.boolean_intersection(cyl)",
     "checks": [
@@ -929,7 +929,7 @@
     "group": "BRep",
     "test_name": "Boolean Off-Center Cyl",
     "passed": true,
-    "time_ms": 12390.084,
+    "time_ms": 5816.446,
     "line": 639,
     "code": "    # Cylinder through a box, shifted +0.5 in x. OCCT (oracle): cut 64-4pi/7, common 4pi/3, fuse 64+2pi/10.\n    import math\n    from .brep import BRep\n    from .xform import Xform\n    PI = math.pi\n    box = BRep.create_box(4, 4, 4)\n    cyl = BRep.create_cylinder(1.0, 6.0)\n    cyl_xf = Xform.translation(0.5, 0, -3)\n    cyl = cyl.transformed(cyl_xf)\n    cut = box.boolean_difference(cyl)\n    com = box.boolean_intersection(cyl)\n    fus = box.boolean_union(cyl)",
     "checks": [
@@ -985,7 +985,7 @@
     "group": "BRep",
     "test_name": "Boolean Contained Box",
     "passed": true,
-    "time_ms": 681.951,
+    "time_ms": 424.781,
     "line": 664,
     "code": "    # B (vol 8) fully inside A (vol 64). OCCT (oracle): cut 56/12, common 8/6, fuse 64/6.\n    from .brep import BRep\n    ba = BRep.create_box(4, 4, 4)\n    bb = BRep.create_box(2, 2, 2)\n    cut = ba.boolean_difference(bb)\n    com = ba.boolean_intersection(bb)\n    fus = ba.boolean_union(bb)",
     "checks": [
@@ -1041,7 +1041,7 @@
     "group": "BRep",
     "test_name": "Boolean Contained Sphere",
     "passed": true,
-    "time_ms": 2495.589,
+    "time_ms": 1722.266,
     "line": 684,
     "code": "    # Sphere (r=1.5) fully inside box(4): no surface intersection (no seam-straddling),\n    # exercises robust volume() over a full periodic sphere + degenerate-pole-edge is_solid().\n    # OCCT: cut 64-(4/3)pi r^3 / 7, common (4/3)pi r^3 / 1, fuse 64 / 6, all watertight.\n    import math\n    from .brep import BRep\n    sv = (4.0 / 3.0) * math.pi * 1.5 ** 3\n    box = BRep.create_box(4, 4, 4)\n    sph = BRep.create_sphere(1.5)\n    cut = box.boolean_difference(sph)\n    com = box.boolean_intersection(sph)\n    fus = box.boolean_union(sph)",
     "checks": [
@@ -1097,7 +1097,7 @@
     "group": "BRep",
     "test_name": "Boolean Box-Box",
     "passed": true,
-    "time_ms": 2789.125,
+    "time_ms": 1431.23,
     "line": 708,
     "code": "    # Pure-planar partial overlap. A=[-2,2]^3 (64); B=[1,3]x[-1,1]^2 (8); overlap 4.\n    # OCCT (oracle): cut 60/11, common 4/6, fuse 68/11.\n    from .brep import BRep\n    from .xform import Xform\n    ba = BRep.create_box(4, 4, 4)\n    bb = BRep.create_box(2, 2, 2)\n    bb_xf = Xform.translation(2, 0, 0)\n    bb = bb.transformed(bb_xf)\n    cut = ba.boolean_difference(bb)\n    com = ba.boolean_intersection(bb)\n    fus = ba.boolean_union(bb)",
     "checks": [
@@ -1138,7 +1138,7 @@
     "group": "BRep",
     "test_name": "Boolean Sphere Split",
     "passed": true,
-    "time_ms": 22968.172,
+    "time_ms": 16395.874,
     "line": 729,
     "code": "    # Box(4) - Sphere(2.5): the sphere pokes through every box face. The +x cap straddles the\n    # periodic u-seam; the analytic sphere pull-back (replicating OCCT ProjLib_Sphere's per-point\n    # inverse U=atan2 -> EXACT seam crossings) cuts it on BOTH sides, so it splits into two\n    # half-caps -> 8 sphere regions (OCCT keeps the cap as a single seam-spanning face = 7).\n    # Box-sphere boolean matches OCCT face counts (cut 7, common 7) and volumes to <0.3%\n    # (cut 9.5457 / common 54.4543) via two fixes: (1) analytic_sphere_pullback maps longitude->u\n    # through the TRUE rational-NURBS parametrization (was a linear approx distorting the cut\n    # circle ~2% in flux); (2) volume() integrates sphere cap-cut faces by the analytic boundary\n    # integral flux = C.A - R^2*closed_integral(h dtheta) instead of a masked Gauss.\n    from .brep import BRep\n    sph = BRep.create_sphere(2.5)\n    box = BRep.create_box(4, 4, 4)\n    B2 = sph.split_by_brep(box)\n    bcut = box.boolean_difference(sph)\n    bcom = box.boolean_intersection(sph)",
     "checks": [
