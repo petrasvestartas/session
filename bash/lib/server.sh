@@ -8,7 +8,9 @@ if [[ -z "${SCRIPT_DIR:-}" ]] || [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 fi
 
 PORT=8769
-URL="http://localhost:${PORT}/session/tests?suite=point_test"
+# Hash-route form: the app (createWebHashHistory) reads suite only from the fragment, so a
+# pre-hash ?suite= would sit in the address bar as a stale duplicate that never updates.
+URL="http://localhost:${PORT}/session/tests#/tests?suite=point_test"
 
 start_server() {
     local repo_root="$1"
