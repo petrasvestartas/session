@@ -1,0 +1,219 @@
+[
+  {
+    "group": "MeshOffset",
+    "test_name": "from_mesh",
+    "passed": true,
+    "time_ms": 0.044,
+    "line": 10,
+    "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        Mesh copy = result;",
+    "checks": [
+      {
+        "line": 20,
+        "code_line": "result.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 21,
+        "code_line": "result == copy",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "!(result != copy)",
+        "passed": true
+      },
+      {
+        "line": 23,
+        "code_line": "result.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "result.number_of_faces() == 6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "from_mesh_grid",
+    "passed": true,
+    "time_ms": 0.058,
+    "line": 27,
+    "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(2, 0, 0),\n            Point(0, 1, 0),\n            Point(1, 1, 0),\n            Point(2, 1, 0),\n            Point(0, 2, 0),\n            Point(1, 2, 0),\n            Point(2, 2, 0),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 1, 4, 3},\n            {1, 2, 5, 4},\n            {3, 4, 7, 6},\n            {4, 5, 8, 7},\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, faces);\n        Mesh result = MeshOffset::from_mesh(mesh, 2.0);",
+    "checks": [
+      {
+        "line": 47,
+        "code_line": "result.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "result.number_of_vertices() == 18",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "result.number_of_faces() == 16",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "from_mesh_layers",
+    "passed": true,
+    "time_ms": 0.033,
+    "line": 52,
+    "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        auto layers = MeshOffset::from_mesh_layers(mesh, 1.0);",
+    "checks": [
+      {
+        "line": 61,
+        "code_line": "layers.bottom.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 62,
+        "code_line": "layers.top.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 63,
+        "code_line": "layers.sides.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "layers.bottom.number_of_vertices() == 4",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "layers.bottom.number_of_faces() == 1",
+        "passed": true
+      },
+      {
+        "line": 66,
+        "code_line": "layers.top.number_of_vertices() == 4",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "layers.top.number_of_faces() == 1",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "layers.sides.number_of_faces() == 4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "file_json_dump",
+    "passed": true,
+    "time_ms": 0.313,
+    "line": 71,
+    "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        std::string filename = \"serialization/test_mesh_offset.json\";\n        result.file_json_dump(filename);\n        Mesh loaded = Mesh::file_json_load(filename);",
+    "checks": [
+      {
+        "line": 83,
+        "code_line": "loaded.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 84,
+        "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
+        "passed": true
+      },
+      {
+        "line": 85,
+        "code_line": "loaded.number_of_faces() == result.number_of_faces()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "file_json_load",
+    "passed": true,
+    "time_ms": 0.059,
+    "line": 88,
+    "code": "        std::string filename = \"serialization/test_mesh_offset.json\";\n        Mesh loaded = Mesh::file_json_load(filename);",
+    "checks": [
+      {
+        "line": 91,
+        "code_line": "loaded.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 92,
+        "code_line": "loaded.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "loaded.number_of_faces() == 6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "to_proto",
+    "passed": true,
+    "time_ms": 0.148,
+    "line": 96,
+    "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        std::string filename = \"serialization/test_mesh_offset.bin\";\n        result.pb_dump(filename);\n        Mesh loaded = Mesh::pb_load(filename);",
+    "checks": [
+      {
+        "line": 108,
+        "code_line": "loaded.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
+        "passed": true
+      },
+      {
+        "line": 110,
+        "code_line": "loaded.number_of_faces() == result.number_of_faces()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "from_proto",
+    "passed": true,
+    "time_ms": 0.033,
+    "line": 113,
+    "code": "        std::string filename = \"serialization/test_mesh_offset.bin\";\n        Mesh loaded = Mesh::pb_load(filename);",
+    "checks": [
+      {
+        "line": 116,
+        "code_line": "loaded.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "loaded.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 118,
+        "code_line": "loaded.number_of_faces() == 6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

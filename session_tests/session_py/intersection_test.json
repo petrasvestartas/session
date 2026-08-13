@@ -1,0 +1,1631 @@
+[
+  {
+    "group": "Intersection",
+    "test_name": "Line Line",
+    "passed": true,
+    "time_ms": 0.097,
+    "line": 7,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Tolerance\n\n    line0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    line1 = Line(0.5, -1.0, 0.0, 0.5, 1.0, 0.0)\n    output = intersection.line_line(line0, line1, Tolerance.APPROXIMATION)",
+    "checks": [
+      {
+        "line": 17,
+        "code_line": "output is not None",
+        "passed": true
+      },
+      {
+        "line": 18,
+        "code_line": "TOLERANCE.is_close(output[0], 0.5)",
+        "passed": true
+      },
+      {
+        "line": 19,
+        "code_line": "TOLERANCE.is_close(output[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 20,
+        "code_line": "TOLERANCE.is_close(output[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Line Line Parallel",
+    "passed": true,
+    "time_ms": 0.045,
+    "line": 23,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Tolerance\n\n    line0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    line1 = Line(0.0, 1.0, 0.0, 1.0, 1.0, 0.0)\n    output = intersection.line_line(line0, line1, Tolerance.APPROXIMATION)",
+    "checks": [
+      {
+        "line": 33,
+        "code_line": "output is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Line Line Parameters",
+    "passed": true,
+    "time_ms": 0.034,
+    "line": 36,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Tolerance\n\n    line0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    line1 = Line(0.5, -1.0, 0.0, 0.5, 1.0, 0.0)\n    result = intersection.line_line_parameters(line0, line1, Tolerance.APPROXIMATION)\n\n    t0, t1 = result",
+    "checks": [
+      {
+        "line": 46,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "TOLERANCE.is_close(t0, 0.5)",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "TOLERANCE.is_close(t1, 0.5)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Line Line Parameters Endpoints",
+    "passed": true,
+    "time_ms": 0.165,
+    "line": 52,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Tolerance\n\n    line0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    line1 = Line(0.0, 0.0, 0.0, 0.0, 1.0, 0.0)\n    result = intersection.line_line_parameters(line0, line1, Tolerance.APPROXIMATION)\n\n    t0, t1 = result",
+    "checks": [
+      {
+        "line": 62,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "TOLERANCE.is_close(t0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "TOLERANCE.is_close(t1, 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Line Line Parameters Infinite",
+    "passed": true,
+    "time_ms": 0.021,
+    "line": 68,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Tolerance\n\n    line0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    line1 = Line(2.0, -1.0, 0.0, 2.0, 1.0, 0.0)\n    result = intersection.line_line_parameters(line0, line1, Tolerance.APPROXIMATION, False)\n\n    t0, t1 = result",
+    "checks": [
+      {
+        "line": 78,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "TOLERANCE.is_close(t0, 2.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Plane Plane",
+    "passed": true,
+    "time_ms": 0.228,
+    "line": 83,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    p0 = Point(0.0, 0.0, 0.0)\n    n0 = Vector(0.0, 0.0, 1.0)\n    plane0 = Plane.from_point_normal(p0, n0)\n\n    p1 = Point(0.0, 0.0, 0.0)\n    n1 = Vector(0.0, 1.0, 0.0)\n    plane1 = Plane.from_point_normal(p1, n1)\n\n    output = intersection.plane_plane(plane0, plane1)\n\n    line_dir = output.to_vector()",
+    "checks": [
+      {
+        "line": 100,
+        "code_line": "output is not None",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "abs(abs(line_dir[0]) - 1.0) < 1e-4",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "abs(line_dir[1]) < 1e-4",
+        "passed": true
+      },
+      {
+        "line": 104,
+        "code_line": "abs(line_dir[2]) < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Plane Plane Complex",
+    "passed": true,
+    "time_ms": 0.534,
+    "line": 107,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    plane_origin_0 = Point(213.787107, 513.797811, -24.743845)\n    plane_xaxis_0 = Vector(0.907673, -0.258819, 0.330366)\n    plane_yaxis_0 = Vector(0.272094, 0.96225, 0.006285)\n    pl0 = Plane(plane_origin_0, plane_xaxis_0, plane_yaxis_0)\n\n    plane_origin_1 = Point(247.17924, 499.115486, 59.619568)\n    plane_xaxis_1 = Vector(0.552465, 0.816035, 0.16991)\n    plane_yaxis_1 = Vector(0.172987, 0.087156, -0.98106)\n    pl1 = Plane(plane_origin_1, plane_xaxis_1, plane_yaxis_1)\n\n    intersection_line = intersection.plane_plane(pl0, pl1)\n\n\n    start = intersection_line.start()\n    end = intersection_line.end()",
+    "checks": [
+      {
+        "line": 126,
+        "code_line": "intersection_line is not None",
+        "passed": true
+      },
+      {
+        "line": 131,
+        "code_line": "abs(start[0] - 252.4632) < 0.01",
+        "passed": true
+      },
+      {
+        "line": 132,
+        "code_line": "abs(start[1] - 495.32248) < 0.01",
+        "passed": true
+      },
+      {
+        "line": 133,
+        "code_line": "abs(start[2] - (-10.002656)) < 0.01",
+        "passed": true
+      },
+      {
+        "line": 135,
+        "code_line": "abs(end[0] - 253.01033) < 0.01",
+        "passed": true
+      },
+      {
+        "line": 136,
+        "code_line": "abs(end[1] - 496.1218) < 0.01",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "abs(end[2] - (-9.888727)) < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Line Plane",
+    "passed": true,
+    "time_ms": 0.138,
+    "line": 140,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    p = Point(0.0, 0.0, 1.0)\n    n = Vector(0.0, 0.0, 1.0)\n    plane = Plane.from_point_normal(p, n)\n\n    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 2.0)\n\n    output = intersection.line_plane(line, plane, True)",
+    "checks": [
+      {
+        "line": 156,
+        "code_line": "output is not None",
+        "passed": true
+      },
+      {
+        "line": 157,
+        "code_line": "TOLERANCE.is_close(output[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 158,
+        "code_line": "TOLERANCE.is_close(output[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 159,
+        "code_line": "TOLERANCE.is_close(output[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Line Plane Parallel",
+    "passed": true,
+    "time_ms": 0.043,
+    "line": 162,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    p = Point(0.0, 0.0, 1.0)\n    n = Vector(0.0, 0.0, 1.0)\n    plane = Plane.from_point_normal(p, n)\n\n    line = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n\n    output = intersection.line_plane(line, plane, True)",
+    "checks": [
+      {
+        "line": 178,
+        "code_line": "output is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Line Plane Real World",
+    "passed": true,
+    "time_ms": 0.055,
+    "line": 181,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    l0 = Line(500.000, -573.576, -819.152, 500.000, 573.576, 819.152)\n\n    plane_origin_0 = Point(213.787107, 513.797811, -24.743845)\n    plane_xaxis_0 = Vector(0.907673, -0.258819, 0.330366)\n    plane_yaxis_0 = Vector(0.272094, 0.96225, 0.006285)\n    pl0 = Plane(plane_origin_0, plane_xaxis_0, plane_yaxis_0)\n\n    lp = intersection.line_plane(l0, pl0)",
+    "checks": [
+      {
+        "line": 198,
+        "code_line": "lp is not None",
+        "passed": true
+      },
+      {
+        "line": 199,
+        "code_line": "abs(lp[0] - 500.0) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 200,
+        "code_line": "abs(lp[1] - 77.7531) < 0.01",
+        "passed": true
+      },
+      {
+        "line": 201,
+        "code_line": "abs(lp[2] - 111.043) < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Plane Plane Plane",
+    "passed": true,
+    "time_ms": 0.058,
+    "line": 204,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    plane_origin_0 = Point(213.787107, 513.797811, -24.743845)\n    plane_xaxis_0 = Vector(0.907673, -0.258819, 0.330366)\n    plane_yaxis_0 = Vector(0.272094, 0.96225, 0.006285)\n    pl0 = Plane(plane_origin_0, plane_xaxis_0, plane_yaxis_0)\n\n    plane_origin_1 = Point(247.17924, 499.115486, 59.619568)\n    plane_xaxis_1 = Vector(0.552465, 0.816035, 0.16991)\n    plane_yaxis_1 = Vector(0.172987, 0.087156, -0.98106)\n    pl1 = Plane(plane_origin_1, plane_xaxis_1, plane_yaxis_1)\n\n    plane_origin_2 = Point(221.399816, 605.893667, -54.000116)\n    plane_xaxis_2 = Vector(0.903451, -0.360516, -0.231957)\n    plane_yaxis_2 = Vector(0.172742, -0.189057, 0.966653)\n    pl2 = Plane(plane_origin_2, plane_xaxis_2, plane_yaxis_2)\n\n    output = intersection.plane_plane_plane(pl0, pl1, pl2)",
+    "checks": [
+      {
+        "line": 228,
+        "code_line": "output is not None",
+        "passed": true
+      },
+      {
+        "line": 229,
+        "code_line": "abs(output[0] - 300.5) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 230,
+        "code_line": "abs(output[1] - 565.5) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 231,
+        "code_line": "abs(output[2] - 0.0) < 0.1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Plane Plane Plane Parallel",
+    "passed": true,
+    "time_ms": 0.034,
+    "line": 234,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    p0 = Point(0.0, 0.0, 0.0)\n    n0 = Vector(0.0, 0.0, 1.0)\n    plane0 = Plane.from_point_normal(p0, n0)\n\n    p1 = Point(0.0, 0.0, 1.0)\n    n1 = Vector(0.0, 0.0, 1.0)\n    plane1 = Plane.from_point_normal(p1, n1)\n\n    p2 = Point(0.0, 0.0, 0.0)\n    n2 = Vector(1.0, 0.0, 0.0)\n    plane2 = Plane.from_point_normal(p2, n2)\n\n    output = intersection.plane_plane_plane(plane0, plane1, plane2)",
+    "checks": [
+      {
+        "line": 255,
+        "code_line": "output is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Box",
+    "passed": true,
+    "time_ms": 0.099,
+    "line": 258,
+    "code": "    from session_py import intersection\n    from session_py import OBB\n    from session_py import Line\n    from session_py import Point\n\n    box = OBB.from_points([\n        Point(-1.0, -1.0, -1.0),\n        Point(1.0, 1.0, 1.0),\n    ])\n    line = Line(-5.0, 0.0, 0.0, -4.0, 0.0, 0.0)\n    points = intersection.ray_box(line, box, 0.0, 100.0)",
+    "checks": [
+      {
+        "line": 272,
+        "code_line": "points is not None",
+        "passed": true
+      },
+      {
+        "line": 273,
+        "code_line": "abs(points[0][0] - (-1.0)) < 1e-4",
+        "passed": true
+      },
+      {
+        "line": 274,
+        "code_line": "abs(points[1][0] - 1.0) < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Box Miss",
+    "passed": true,
+    "time_ms": 0.023,
+    "line": 277,
+    "code": "    from session_py import intersection\n    from session_py import OBB\n    from session_py import Line\n    from session_py import Point\n\n    box = OBB.from_points([\n        Point(-1.0, -1.0, -1.0),\n        Point(1.0, 1.0, 1.0),\n    ])\n    line = Line(-5.0, 5.0, 0.0, -4.0, 5.0, 0.0)\n    points = intersection.ray_box(line, box, 0.0, 100.0)",
+    "checks": [
+      {
+        "line": 291,
+        "code_line": "points is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Sphere",
+    "passed": true,
+    "time_ms": 0.031,
+    "line": 294,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    line = Line(-5.0, 0.0, 0.0, -4.0, 0.0, 0.0)\n    center = Point(0.0, 0.0, 0.0)\n    radius = 2.0\n    points = intersection.ray_sphere(line, center, radius)",
+    "checks": [
+      {
+        "line": 305,
+        "code_line": "points is not None",
+        "passed": true
+      },
+      {
+        "line": 306,
+        "code_line": "len(points) == 2",
+        "passed": true
+      },
+      {
+        "line": 307,
+        "code_line": "abs(points[0][0] - (-2.0)) < 1e-4",
+        "passed": true
+      },
+      {
+        "line": 308,
+        "code_line": "abs(points[1][0] - 2.0) < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Sphere Tangent",
+    "passed": true,
+    "time_ms": 0.018,
+    "line": 311,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    line = Line(-5.0, 2.0, 0.0, -4.0, 2.0, 0.0)\n    center = Point(0.0, 0.0, 0.0)\n    radius = 2.0\n    points = intersection.ray_sphere(line, center, radius)",
+    "checks": [
+      {
+        "line": 322,
+        "code_line": "points is not None",
+        "passed": true
+      },
+      {
+        "line": 323,
+        "code_line": "len(points) == 1",
+        "passed": true
+      },
+      {
+        "line": 324,
+        "code_line": "abs(points[0][0] - 0.0) < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Sphere Miss",
+    "passed": true,
+    "time_ms": 0.07,
+    "line": 327,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    line = Line(-5.0, 5.0, 0.0, -4.0, 5.0, 0.0)\n    center = Point(0.0, 0.0, 0.0)\n    radius = 2.0\n    points = intersection.ray_sphere(line, center, radius)",
+    "checks": [
+      {
+        "line": 338,
+        "code_line": "points is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Triangle",
+    "passed": true,
+    "time_ms": 0.019,
+    "line": 341,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    line = Line(0.5, 0.5, -1.0, 0.5, 0.5, 0.0)\n    v0 = Point(0.0, 0.0, 0.0)\n    v1 = Point(1.0, 0.0, 0.0)\n    v2 = Point(0.0, 1.0, 0.0)\n    result = intersection.ray_triangle(line, v0, v1, v2, 1e-6)",
+    "checks": [
+      {
+        "line": 353,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 354,
+        "code_line": "abs(result[2] - 0.0) < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Triangle Miss",
+    "passed": true,
+    "time_ms": 0.011,
+    "line": 357,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    line = Line(2.0, 2.0, -1.0, 2.0, 2.0, 0.0)\n    v0 = Point(0.0, 0.0, 0.0)\n    v1 = Point(1.0, 0.0, 0.0)\n    v2 = Point(0.0, 1.0, 0.0)\n    result = intersection.ray_triangle(line, v0, v1, v2, 1e-6)",
+    "checks": [
+      {
+        "line": 369,
+        "code_line": "result is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Triangle Parallel",
+    "passed": true,
+    "time_ms": 0.019,
+    "line": 372,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    line = Line(0.5, 0.5, -1.0, 1.5, 0.5, -1.0)\n    v0 = Point(0.0, 0.0, 0.0)\n    v1 = Point(1.0, 0.0, 0.0)\n    v2 = Point(0.0, 1.0, 0.0)\n    result = intersection.ray_triangle(line, v0, v1, v2, 1e-6)",
+    "checks": [
+      {
+        "line": 384,
+        "code_line": "result is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh",
+    "passed": true,
+    "time_ms": 0.383,
+    "line": 387,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Mesh\n    from session_py import Point\n\n    polygons = [\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        ],\n        [\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        ],\n    ]\n    mesh = Mesh.from_polylines(polygons)\n    line = Line(0.5, 0.5, -1.0, 0.5, 0.5, 0.0)\n    hits = intersection.ray_mesh(line, mesh, 1e-6, True)",
+    "checks": [
+      {
+        "line": 412,
+        "code_line": "hits is not None",
+        "passed": true
+      },
+      {
+        "line": 413,
+        "code_line": "len(hits) >= 1",
+        "passed": true
+      },
+      {
+        "line": 414,
+        "code_line": "abs(hits[0][2] - 0.0) < 1e-3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh First",
+    "passed": true,
+    "time_ms": 0.211,
+    "line": 417,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Mesh\n    from session_py import Point\n\n    polygons = [\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        ],\n        [\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        ],\n    ]\n    mesh = Mesh.from_polylines(polygons)\n    line = Line(0.5, 0.5, -1.0, 0.5, 0.5, 0.0)\n    hits = intersection.ray_mesh(line, mesh, 1e-6, False)",
+    "checks": [
+      {
+        "line": 442,
+        "code_line": "hits is not None",
+        "passed": true
+      },
+      {
+        "line": 443,
+        "code_line": "len(hits) == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh Miss",
+    "passed": true,
+    "time_ms": 0.112,
+    "line": 446,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Mesh\n    from session_py import Point\n\n    polygons = [\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        ],\n    ]\n    mesh = Mesh.from_polylines(polygons)\n    line = Line(5.0, 5.0, -1.0, 5.0, 5.0, 0.0)\n    hits = intersection.ray_mesh(line, mesh, 1e-6, True)",
+    "checks": [
+      {
+        "line": 465,
+        "code_line": "hits is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh Bvh",
+    "passed": true,
+    "time_ms": 0.743,
+    "line": 468,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Mesh\n    from session_py import Point\n\n    polygons = [\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        ],\n        [\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        ],\n    ]\n    mesh = Mesh.from_polylines(polygons)\n    line = Line(0.5, 0.5, -1.0, 0.5, 0.5, 0.0)\n    hits = intersection.ray_mesh_bvh(line, mesh, 1e-6, True)",
+    "checks": [
+      {
+        "line": 493,
+        "code_line": "hits is not None",
+        "passed": true
+      },
+      {
+        "line": 494,
+        "code_line": "len(hits) >= 1",
+        "passed": true
+      },
+      {
+        "line": 495,
+        "code_line": "abs(hits[0][2] - 0.0) < 1e-3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh Bvh First",
+    "passed": true,
+    "time_ms": 0.549,
+    "line": 498,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Mesh\n    from session_py import Point\n\n    polygons = [\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        ],\n        [\n            Point(0.0, 0.0, 1.0),\n            Point(1.0, 0.0, 1.0),\n            Point(1.0, 1.0, 1.0),\n            Point(0.0, 1.0, 1.0),\n        ],\n    ]\n    mesh = Mesh.from_polylines(polygons)\n    line = Line(0.5, 0.5, -1.0, 0.5, 0.5, 0.0)\n    hits = intersection.ray_mesh_bvh(line, mesh, 1e-6, False)",
+    "checks": [
+      {
+        "line": 523,
+        "code_line": "hits is not None",
+        "passed": true
+      },
+      {
+        "line": 524,
+        "code_line": "len(hits) == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh Bvh Miss",
+    "passed": true,
+    "time_ms": 0.303,
+    "line": 527,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Mesh\n    from session_py import Point\n\n    polygons = [\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        ],\n    ]\n    mesh = Mesh.from_polylines(polygons)\n    line = Line(5.0, 5.0, -1.0, 5.0, 5.0, 0.0)\n    hits = intersection.ray_mesh_bvh(line, mesh, 1e-6, True)",
+    "checks": [
+      {
+        "line": 546,
+        "code_line": "hits is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Mesh Bvh Vs Naive",
+    "passed": true,
+    "time_ms": 20.431,
+    "line": 549,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Mesh\n    from session_py import Point\n\n    polygons = []\n    for i in range(10):\n        for j in range(10):\n            x = float(i)\n            y = float(j)\n            polygons.append([\n                Point(x, y, 0.0),\n                Point(x + 1.0, y, 0.0),\n                Point(x + 1.0, y + 1.0, 0.0),\n                Point(x, y + 1.0, 0.0),\n            ])\n    mesh = Mesh.from_polylines(polygons)\n    line = Line(5.5, 5.5, -1.0, 5.5, 5.5, 0.0)\n    hits_naive = intersection.ray_mesh(line, mesh, 1e-6, True)\n    hits_bvh = intersection.ray_mesh_bvh(line, mesh, 1e-6, True)\n    result_naive = hits_naive is not None\n    result_bvh = hits_bvh is not None\n\n    naive_count = len(hits_naive) if hits_naive else 0\n    bvh_count = len(hits_bvh) if hits_bvh else 0",
+    "checks": [
+      {
+        "line": 574,
+        "code_line": "result_naive == result_bvh",
+        "passed": true
+      },
+      {
+        "line": 578,
+        "code_line": "naive_count == bvh_count",
+        "passed": true
+      },
+      {
+        "line": 580,
+        "code_line": "abs(hits_naive[0][2] - hits_bvh[0][2]) < 1e-4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Box Real World",
+    "passed": true,
+    "time_ms": 0.088,
+    "line": 583,
+    "code": "    from session_py import intersection\n    from session_py import OBB\n    from session_py import Line\n    from session_py import Point\n\n    l0 = Line(500.0, -573.576, -819.152, 500.0, 573.576, 819.152)\n    min_pt = Point(214.0, 192.0, 484.0)\n    max_pt = Point(694.0, 567.0, 796.0)\n    box = OBB.from_points([min_pt, max_pt])\n    points = intersection.ray_box(l0, box, 0.0, 1000.0)",
+    "checks": [
+      {
+        "line": 596,
+        "code_line": "points is not None",
+        "passed": true
+      },
+      {
+        "line": 597,
+        "code_line": "len(points) == 2",
+        "passed": true
+      },
+      {
+        "line": 598,
+        "code_line": "abs(points[0][0] - 500.0) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 599,
+        "code_line": "abs(points[0][1] - 338.9) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 600,
+        "code_line": "abs(points[0][2] - 484.0) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 601,
+        "code_line": "abs(points[1][0] - 500.0) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 602,
+        "code_line": "abs(points[1][1] - 557.365) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 603,
+        "code_line": "abs(points[1][2] - 796.0) < 0.1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Sphere Real World",
+    "passed": true,
+    "time_ms": 0.051,
+    "line": 606,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    l0 = Line(500.0, -573.576, -819.152, 500.0, 573.576, 819.152)\n    sphere_center = Point(457.0, 192.0, 207.0)\n    radius = 265.0\n    points = intersection.ray_sphere(l0, sphere_center, radius)",
+    "checks": [
+      {
+        "line": 617,
+        "code_line": "points is not None",
+        "passed": true
+      },
+      {
+        "line": 618,
+        "code_line": "len(points) == 2",
+        "passed": true
+      },
+      {
+        "line": 619,
+        "code_line": "abs(points[0][0] - 500.0) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 620,
+        "code_line": "abs(points[0][1] - 12.08) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 621,
+        "code_line": "abs(points[0][2] - 17.25) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 622,
+        "code_line": "abs(points[1][0] - 500.0) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 623,
+        "code_line": "abs(points[1][1] - 308.77) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 624,
+        "code_line": "abs(points[1][2] - 440.97) < 0.1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Ray Triangle Real World",
+    "passed": true,
+    "time_ms": 0.032,
+    "line": 627,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n    from session_py import Tolerance\n\n    l0 = Line(500.0, -573.576, -819.152, 500.0, 573.576, 819.152)\n    p1 = Point(214.0, 567.0, 484.0)\n    p2 = Point(214.0, 192.0, 796.0)\n    p3 = Point(694.0, 192.0, 484.0)\n    result = intersection.ray_triangle(l0, p1, p2, p3, Tolerance.APPROXIMATION)",
+    "checks": [
+      {
+        "line": 640,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 641,
+        "code_line": "abs(result[0] - 500.0) < 0.1",
+        "passed": true
+      },
+      {
+        "line": 642,
+        "code_line": "abs(result[1] - 340.616) < 0.01",
+        "passed": true
+      },
+      {
+        "line": 643,
+        "code_line": "abs(result[2] - 486.451) < 0.01",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Surface Plane",
+    "passed": true,
+    "time_ms": 11.546,
+    "line": 646,
+    "code": "    from session_py import intersection\n    from session_py import NurbsSurface\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n        Point(10.0, 0.0, 10.0),\n        Point(10.0, 10.0, 10.0),\n    ]\n    srf = NurbsSurface.create(False, False, 1, 1, 2, 2, pts)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 5.0), Vector(0.0, 0.0, 1.0))\n    curves = intersection.surface_plane(srf, plane)\n\n    t0, t1 = curves[0].domain()\n    for i in range(11):\n        t = t0 + (t1 - t0) * i / 10.0\n        p = curves[0].point_at(t)",
+    "checks": [
+      {
+        "line": 664,
+        "code_line": "len(curves) == 1",
+        "passed": true
+      },
+      {
+        "line": 665,
+        "code_line": "curves[0].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 670,
+        "code_line": "abs(p[0] - 5.0) < 0.5",
+        "passed": true
+      },
+      {
+        "line": 671,
+        "code_line": "abs(p[2] - 5.0) < 0.5",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Surface Plane Curved",
+    "passed": true,
+    "time_ms": 42.488,
+    "line": 674,
+    "code": "    from session_py import intersection\n    from session_py import NurbsSurface\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    pts = []\n    for i in range(4):\n        for j in range(4):\n            x = i * 10.0\n            y = j * 10.0\n            z = 10.0 if (i == 1 or i == 2) and (j == 1 or j == 2) else 0.0\n            pts.append(Point(x, y, z))\n    srf = NurbsSurface.create(False, False, 3, 3, 4, 4, pts)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 3.0), Vector(0.0, 0.0, 1.0))\n    curves = intersection.surface_plane(srf, plane)\n\n    t0, t1 = curves[0].domain()\n    for i in range(11):\n        t = t0 + (t1 - t0) * i / 10.0\n        p = curves[0].point_at(t)",
+    "checks": [
+      {
+        "line": 693,
+        "code_line": "len(curves) >= 1",
+        "passed": true
+      },
+      {
+        "line": 694,
+        "code_line": "curves[0].is_valid()",
+        "passed": true
+      },
+      {
+        "line": 695,
+        "code_line": "curves[0].degree() == 3",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      },
+      {
+        "line": 700,
+        "code_line": "abs(p[2] - 3.0) < 1.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Surface Plane Miss",
+    "passed": true,
+    "time_ms": 1.543,
+    "line": 703,
+    "code": "    from session_py import intersection\n    from session_py import NurbsSurface\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ]\n    srf = NurbsSurface.create(False, False, 1, 1, 2, 2, pts)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 5.0), Vector(0.0, 0.0, 1.0))\n    curves = intersection.surface_plane(srf, plane)",
+    "checks": [
+      {
+        "line": 721,
+        "code_line": "len(curves) == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Surface Plane UV",
+    "passed": true,
+    "time_ms": 242.284,
+    "line": 724,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n    from session_py.primitives import Primitives\n\n    cyl = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 2.0), Vector(0.3, 0.0, 1.0))\n    pairs = intersection.surface_plane_uv(cyl, plane)\n\n    curve3 = pairs[0][0]\n    pcurve = pairs[0][1]\n    u0, u1 = cyl.domain(0)\n    pn = plane.z_axis\n    po = plane.origin\n    max_off = 0.0\n    for i in range(17):\n        p2 = pcurve.point_at(i / 16.0)\n        s = cyl.point_at(p2[0], p2[1])\n        off = abs((s[0]-po[0])*pn[0] + (s[1]-po[1])*pn[1] + (s[2]-po[2])*pn[2])\n        max_off = max(max_off, off)\n\n    torus = Primitives.torus_surface(0.0, 0.0, 0.0, 2.0, 0.5)\n    plane2 = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    pairs2 = intersection.surface_plane_uv(torus, plane2)\n\n    tu0, tu1 = torus.domain(0)\n    tv0, tv1 = torus.domain(1)\n    inside = True\n    for pair in pairs2:\n        for i in range(17):\n            p2 = pair[1].point_at(i / 16.0)\n            if p2[0] < tu0 - 1e-6 or p2[0] > tu1 + 1e-6 or p2[1] < tv0 - 1e-6 or p2[1] > tv1 + 1e-6:\n                inside = False",
+    "checks": [
+      {
+        "line": 736,
+        "code_line": "len(pairs) == 1",
+        "passed": true
+      },
+      {
+        "line": 739,
+        "code_line": "curve3.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 740,
+        "code_line": "pcurve.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 741,
+        "code_line": "curve3.is_closed()",
+        "passed": true
+      },
+      {
+        "line": 743,
+        "code_line": "abs(pcurve.point_at(0.0)[0] - u1) < 1e-9 or abs(pcurve.point_at(0.0)[0] - u0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 744,
+        "code_line": "abs(pcurve.point_at(1.0)[0] - u1) < 1e-9 or abs(pcurve.point_at(1.0)[0] - u0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 753,
+        "code_line": "max_off < 0.05",
+        "passed": true
+      },
+      {
+        "line": 759,
+        "code_line": "len(pairs2) == 2",
+        "passed": true
+      },
+      {
+        "line": 768,
+        "code_line": "inside",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Surface Surface",
+    "passed": true,
+    "time_ms": 7054.794,
+    "line": 771,
+    "code": "    from session_py import intersection\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    def lies_on_curve(curve3d, pcurve, surface):\n        u0, u1 = surface.domain(0)\n        v0, v1 = surface.domain(1)\n        dense = [curve3d.point_at(j / 128.0) for j in range(129)]\n        worst = 0.0\n        for i in range(33):\n            q = pcurve.point_at(i / 32.0)\n            s = surface.point_at(min(max(q[0], u0), u1), min(max(q[1], v0), v1))\n            best = dense[0].distance(s)\n            for p in dense:\n                d = p.distance(s)\n                if d < best:\n                    best = d\n            if best > worst:\n                worst = best\n        return worst\n\n    # Planar dispatch path: flat NURBS patch x cylinder -> one closed circle\n    flat = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(-3.0, -3.0, 0.5),\n        Point(-3.0, 3.0, 0.5),\n        Point(3.0, -3.0, 0.5),\n        Point(3.0, 3.0, 0.5),\n    ])\n    cyl = Primitives.cylinder_surface(0.0, 0.0, -2.0, 1.0, 4.0)\n    flat_triples = intersection.surface_surface(flat, cyl)\n\n    c3, pa, pb = flat_triples[0]\n\n    # Marching path: sphere x cylinder is a QUARTIC (not a conic). The marcher\n    # finds the intersection branches and most of each branch lies on both\n    # surfaces; precise pcurves on seam-crossing branches are still WIP (need a\n    # whole-loop-c3 + pcurve-piece return type \u2014 tracked in task #12). So assert\n    # the branches are found and at least two clean arcs lie on both surfaces.\n    sphere = Primitives.sphere_surface(0.0, 0.0, 0.0, 2.0)\n    cyl2 = Primitives.cylinder_surface(1.3, 0.0, -3.0, 0.3, 6.0)\n    triples = intersection.surface_surface(sphere, cyl2)\n\n    clean = 0\n    for c3, pa, pb in triples:\n        if lies_on_curve(c3, pa, sphere) < 0.05 and lies_on_curve(c3, pb, cyl2) < 0.05:\n            clean += 1",
+    "checks": [
+      {
+        "line": 805,
+        "code_line": "len(flat_triples) == 1",
+        "passed": true
+      },
+      {
+        "line": 807,
+        "code_line": "c3.is_valid() and pa.is_valid() and pb.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 808,
+        "code_line": "c3.is_closed()",
+        "passed": true
+      },
+      {
+        "line": 809,
+        "code_line": "lies_on_curve(c3, pa, flat) < 0.05",
+        "passed": true
+      },
+      {
+        "line": 810,
+        "code_line": "lies_on_curve(c3, pb, cyl) < 0.05",
+        "passed": true
+      },
+      {
+        "line": 821,
+        "code_line": "len(triples) >= 2",
+        "passed": true
+      },
+      {
+        "line": 824,
+        "code_line": "c3.is_valid() and pa.is_valid() and pb.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 824,
+        "code_line": "c3.is_valid() and pa.is_valid() and pb.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 824,
+        "code_line": "c3.is_valid() and pa.is_valid() and pb.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 824,
+        "code_line": "c3.is_valid() and pa.is_valid() and pb.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 827,
+        "code_line": "clean >= 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Surface Surface Accuracy",
+    "passed": true,
+    "time_ms": 7445.221,
+    "line": 830,
+    "code": "    import math\n    from session_py import intersection\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    # Every intersection point must lie on BOTH analytic surfaces to ~1e-6.\n    # Measured exactly (closed-form distance), independent of OCCT/parameterization.\n    def on_both(c3, dist_a, dist_b):\n        worst = 0.0\n        for i in range(65):\n            p = c3.point_at(i / 64.0)\n            worst = max(worst, dist_a(p), dist_b(p))\n        return worst\n\n    # Quartic: sphere x cylinder (axis Z at x=1.3) -> exact 1e-6.\n    sphere = Primitives.sphere_surface(0.0, 0.0, 0.0, 2.0)\n    cyl = Primitives.cylinder_surface(1.3, 0.0, -3.0, 0.3, 6.0)\n    d_sph = lambda p: abs(math.sqrt(p[0]*p[0]+p[1]*p[1]+p[2]*p[2]) - 2.0)\n    d_cyl = lambda p: abs(math.sqrt((p[0]-1.3)**2 + p[1]*p[1]) - 0.3)\n    tr = intersection.surface_surface(sphere, cyl)\n    for c3, pa, pb in tr:\n\n    # Conic: sphere x sphere -> exact circle (machine precision).\n    sphere2 = Primitives.sphere_surface(2.0, 0.0, 0.0, 2.0)\n    d_sph2 = lambda p: abs(math.sqrt((p[0]-2.0)**2 + p[1]*p[1] + p[2]*p[2]) - 2.0)\n    tr2 = intersection.surface_surface(sphere, sphere2)\n    for c3, pa, pb in tr2:\n\n    # Torus x perpendicular plane -> two exact circles.\n    torus = Primitives.torus_surface(0.0, 0.0, 0.0, 2.0, 0.5)\n    flat = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(-9.0, -9.0, 0.0),\n        Point(-9.0, 9.0, 0.0),\n        Point(9.0, -9.0, 0.0),\n        Point(9.0, 9.0, 0.0),\n    ])\n    d_tor = lambda p: abs(math.sqrt((math.sqrt(p[0]*p[0]+p[1]*p[1]) - 2.0)**2 + p[2]*p[2]) - 0.5)\n    d_flat = lambda p: abs(p[2])\n    tr3 = intersection.surface_surface(torus, flat)\n    for c3, pa, pb in tr3:",
+    "checks": [
+      {
+        "line": 853,
+        "code_line": "len(tr) >= 2",
+        "passed": true
+      },
+      {
+        "line": 855,
+        "code_line": "on_both(c3, d_sph, d_cyl) < 1e-5",
+        "passed": true
+      },
+      {
+        "line": 855,
+        "code_line": "on_both(c3, d_sph, d_cyl) < 1e-5",
+        "passed": true
+      },
+      {
+        "line": 855,
+        "code_line": "on_both(c3, d_sph, d_cyl) < 1e-5",
+        "passed": true
+      },
+      {
+        "line": 855,
+        "code_line": "on_both(c3, d_sph, d_cyl) < 1e-5",
+        "passed": true
+      },
+      {
+        "line": 861,
+        "code_line": "len(tr2) >= 1",
+        "passed": true
+      },
+      {
+        "line": 863,
+        "code_line": "on_both(c3, d_sph, d_sph2) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 876,
+        "code_line": "len(tr3) == 2",
+        "passed": true
+      },
+      {
+        "line": 878,
+        "code_line": "on_both(c3, d_tor, d_flat) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 878,
+        "code_line": "on_both(c3, d_tor, d_flat) < 1e-6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Remap",
+    "passed": true,
+    "time_ms": 0.027,
+    "line": 881,
+    "code": "    from session_py import intersection",
+    "checks": [
+      {
+        "line": 885,
+        "code_line": "abs(intersection.remap(5.0, 0.0, 10.0, 0.0, 1.0) - 0.5) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 886,
+        "code_line": "abs(intersection.remap(0.0, 0.0, 10.0, 0.0, 1.0) - 0.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 887,
+        "code_line": "abs(intersection.remap(10.0, 0.0, 10.0, 0.0, 1.0) - 1.0) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Closest Point On Segment",
+    "passed": true,
+    "time_ms": 0.045,
+    "line": 890,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    seg = Line(0.0, 0.0, 0.0, 4.0, 0.0, 0.0)\n    pt = Point(2.0, 3.0, 0.0)\n    cp, t = intersection.closest_point_on_segment(pt, seg)\n\n\n    pt2 = Point(-2.0, 1.0, 0.0)\n    cp2, t2 = intersection.closest_point_on_segment(pt2, seg)",
+    "checks": [
+      {
+        "line": 900,
+        "code_line": "abs(cp[0] - 2.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 901,
+        "code_line": "abs(cp[1] - 0.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 902,
+        "code_line": "abs(t - 0.5) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 907,
+        "code_line": "abs(cp2[0] - 0.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 908,
+        "code_line": "abs(t2 - 0.0) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Plane Plane Plane Check Parallel",
+    "passed": true,
+    "time_ms": 5.202,
+    "line": 911,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    # Three parallel planes \u2192 None\n    p0 = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    p1 = Plane.from_point_normal(Point(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0))\n    p2 = Plane.from_point_normal(Point(0.0, 0.0, 2.0), Vector(0.0, 0.0, 1.0))\n\n\n    # Three valid planes\n    px = Plane.from_point_normal(Point(1.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0))\n    py = Plane.from_point_normal(Point(0.0, 2.0, 0.0), Vector(0.0, 1.0, 0.0))\n    pz = Plane.from_point_normal(Point(0.0, 0.0, 3.0), Vector(0.0, 0.0, 1.0))\n    pt = intersection.plane_plane_plane_check(px, py, pz)",
+    "checks": [
+      {
+        "line": 923,
+        "code_line": "intersection.plane_plane_plane_check(p0, p1, p2) is None",
+        "passed": true
+      },
+      {
+        "line": 931,
+        "code_line": "pt is not None",
+        "passed": true
+      },
+      {
+        "line": 932,
+        "code_line": "abs(pt[0] - 1.0) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 933,
+        "code_line": "abs(pt[1] - 2.0) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 934,
+        "code_line": "abs(pt[2] - 3.0) < 1e-6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Plane 4 Planes Closed",
+    "passed": true,
+    "time_ms": 0.154,
+    "line": 937,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    main = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    # Cycle left\u2192bottom\u2192right\u2192top so adjacent pairs are non-parallel\n    planes = [\n        Plane.from_point_normal(Point(-1.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),  # x=-1\n        Plane.from_point_normal(Point(0.0, -1.0, 0.0), Vector(0.0, 1.0, 0.0)),  # y=-1\n        Plane.from_point_normal(Point(1.0, 0.0, 0.0),  Vector(1.0, 0.0, 0.0)),  # x= 1\n        Plane.from_point_normal(Point(0.0, 1.0, 0.0),  Vector(0.0, 1.0, 0.0)),  # y= 1\n    ]\n    result = intersection.plane_4planes(main, planes)\n\n    for i in range(result.point_count()):\n        p = result.get_point(i)\n    # First == last (closed)\n    first = result.get_point(0)\n    last = result.get_point(4)",
+    "checks": [
+      {
+        "line": 954,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 955,
+        "code_line": "result.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 958,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 958,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 958,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 958,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 958,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 962,
+        "code_line": "abs(first[0] - last[0]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 963,
+        "code_line": "abs(first[1] - last[1]) < 1e-6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Plane 4 Planes Open",
+    "passed": true,
+    "time_ms": 0.127,
+    "line": 966,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    main = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    planes = [\n        Plane.from_point_normal(Point(-1.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0)),\n        Plane.from_point_normal(Point(0.0, -1.0, 0.0), Vector(0.0, 1.0, 0.0)),\n        Plane.from_point_normal(Point(1.0, 0.0, 0.0),  Vector(1.0, 0.0, 0.0)),\n        Plane.from_point_normal(Point(0.0, 1.0, 0.0),  Vector(0.0, 1.0, 0.0)),\n    ]\n    result = intersection.plane_4planes_open(main, planes)",
+    "checks": [
+      {
+        "line": 982,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 983,
+        "code_line": "result.point_count() == 4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Plane 4 Lines",
+    "passed": true,
+    "time_ms": 0.08,
+    "line": 986,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    l0 = Line(-1.0, -1.0, -1.0, -1.0,  1.0, 1.0)\n    l1 = Line( 1.0, -1.0, -1.0,  1.0,  1.0, 1.0)\n    l2 = Line(-1.0, -1.0, -1.0,  1.0, -1.0, 1.0)\n    l3 = Line(-1.0,  1.0, -1.0,  1.0,  1.0, 1.0)\n    result = intersection.plane_4lines(plane, l0, l1, l2, l3)\n\n    for i in range(result.point_count()):\n        p = result.get_point(i)",
+    "checks": [
+      {
+        "line": 1001,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 1002,
+        "code_line": "result.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 1005,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1005,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1005,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1005,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1005,
+        "code_line": "abs(p[2]) < 1e-6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Scale Vector To Distance Of 2 Planes",
+    "passed": true,
+    "time_ms": 0.087,
+    "line": 1008,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    p0 = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    p1 = Plane.from_point_normal(Point(0.0, 0.0, 3.0), Vector(0.0, 0.0, 1.0))\n    direction = Vector(0.0, 0.0, 1.0)\n    result = intersection.scale_vector_to_distance_of_2planes(direction, p0, p1)",
+    "checks": [
+      {
+        "line": 1020,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 1021,
+        "code_line": "abs(result[2] - 3.0) < 1e-6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Polyline Plane",
+    "passed": true,
+    "time_ms": 0.09,
+    "line": 1024,
+    "code": "    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Polyline\n    from session_py import Vector\n\n    poly = Polyline([\n        Point(-1.0, -1.0, 0.0),\n        Point(1.0,  -1.0, 0.0),\n        Point(1.0,   1.0, 0.0),\n        Point(-1.0,  1.0, 0.0),\n        Point(-1.0, -1.0, 0.0),  # closed\n    ])\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0))\n    result = intersection.polyline_plane(poly, plane)\n\n    pts, indices = result\n    for p in pts:",
+    "checks": [
+      {
+        "line": 1042,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 1044,
+        "code_line": "len(pts) == 2",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "abs(p[0]) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 1046,
+        "code_line": "abs(p[0]) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Line Line 3D",
+    "passed": true,
+    "time_ms": 0.083,
+    "line": 1049,
+    "code": "    from session_py import intersection\n    from session_py import Line\n    from session_py import Point\n\n    # Two lines that cross at (1, 1, 0)\n    cutter = Line(0.0, 1.0, 0.0, 2.0, 1.0, 0.0)\n    seg    = Line(1.0, 0.0, 0.0, 1.0, 2.0, 0.0)\n    result = intersection.line_line_3d(cutter, seg)\n\n\n    # Parallel lines \u2192 None\n    par0 = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    par1 = Line(0.0, 1.0, 0.0, 1.0, 1.0, 0.0)",
+    "checks": [
+      {
+        "line": 1060,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 1061,
+        "code_line": "abs(result[0] - 1.0) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1062,
+        "code_line": "abs(result[1] - 1.0) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1063,
+        "code_line": "abs(result[2] - 0.0) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 1069,
+        "code_line": "intersection.line_line_3d(par0, par1) is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Polyline Plane To Line",
+    "passed": true,
+    "time_ms": 0.07,
+    "line": 1072,
+    "code": "    from session_py import Plane, Point, Polyline, Vector\n    from session_py.intersection import polyline_plane_to_line\n    poly = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    ])\n    pln = Plane.from_point_normal(Point(0.0, 2.0, 0.0), Vector(0.0, 1.0, 0.0))\n    out = polyline_plane_to_line(poly, pln, Point(0.0, 0.0, 0.0))",
+    "checks": [
+      {
+        "line": 1085,
+        "code_line": "out is not None",
+        "passed": true
+      },
+      {
+        "line": 1086,
+        "code_line": "TOLERANCE.is_close(out.start()[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 1087,
+        "code_line": "TOLERANCE.is_close(out.end()[0], 4.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Quad From Line Top Bottom Planes",
+    "passed": true,
+    "time_ms": 0.123,
+    "line": 1090,
+    "code": "    from session_py import Line, Plane, Point, Vector\n    from session_py.intersection import quad_from_line_top_bottom_planes\n    face = Plane.xy_plane()\n    line = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n    plane0 = Plane.from_point_normal(Point(0.0, -2.0, 0.0), Vector(0.0, 1.0, 0.0))\n    plane1 = Plane.from_point_normal(Point(0.0,  2.0, 0.0), Vector(0.0, 1.0, 0.0))\n    out = quad_from_line_top_bottom_planes(face, line, plane0, plane1)",
+    "checks": [
+      {
+        "line": 1099,
+        "code_line": "out is not None",
+        "passed": true
+      },
+      {
+        "line": 1100,
+        "code_line": "out.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 1101,
+        "code_line": "TOLERANCE.is_close(abs(out.get_point(0)[1]), 2.0)",
+        "passed": true
+      },
+      {
+        "line": 1102,
+        "code_line": "TOLERANCE.is_close(abs(out.get_point(2)[1]), 2.0)",
+        "passed": true
+      },
+      {
+        "line": 1103,
+        "code_line": "TOLERANCE.is_close(out.get_point(2)[0], 10.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Orthogonal Vector Between Two Plane Pairs",
+    "passed": true,
+    "time_ms": 0.101,
+    "line": 1106,
+    "code": "    from session_py import Plane, Point, Vector\n    from session_py.intersection import orthogonal_vector_between_two_plane_pairs\n    pp00 = Plane.xy_plane()\n    pp10 = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0))\n    pp11 = Plane.from_point_normal(Point(4.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0))\n    out = orthogonal_vector_between_two_plane_pairs(pp00, pp10, pp11)\n    mag = (out[0]*out[0] + out[1]*out[1] + out[2]*out[2]) ** 0.5",
+    "checks": [
+      {
+        "line": 1114,
+        "code_line": "out is not None",
+        "passed": true
+      },
+      {
+        "line": 1116,
+        "code_line": "TOLERANCE.is_close(mag, 4.0)",
+        "passed": true
+      },
+      {
+        "line": 1117,
+        "code_line": "TOLERANCE.is_close(out[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 1118,
+        "code_line": "TOLERANCE.is_close(out[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Intersection",
+    "test_name": "Closed And Open Paths 2D",
+    "passed": true,
+    "time_ms": 6.928,
+    "line": 1121,
+    "code": "    from session_py import Plane, Point, Polyline\n    from session_py.intersection import closed_and_open_paths_2d\n    plate = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    ])\n    joint = Polyline([\n        Point(-2.0, 5.0, 0.0),\n        Point(12.0, 5.0, 0.0),\n    ])\n    pln = Plane.xy_plane()\n    result = closed_and_open_paths_2d(plate, joint, pln)\n    out, (t0, t1) = result\n    t_lo = min(t0, t1)\n    t_hi = max(t0, t1)",
+    "checks": [
+      {
+        "line": 1138,
+        "code_line": "result is not None",
+        "passed": true
+      },
+      {
+        "line": 1140,
+        "code_line": "out.point_count() == 2",
+        "passed": true
+      },
+      {
+        "line": 1141,
+        "code_line": "TOLERANCE.is_close(out.get_point(0)[1], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 1142,
+        "code_line": "TOLERANCE.is_close(out.get_point(1)[1], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 1145,
+        "code_line": "TOLERANCE.is_close(t_lo, 1.5)",
+        "passed": true
+      },
+      {
+        "line": 1146,
+        "code_line": "TOLERANCE.is_close(t_hi, 3.5)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

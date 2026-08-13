@@ -1,0 +1,178 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 32,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n        use crate::mesh::Mesh;\n\n        let border = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n        ]);\n        let hole = Polyline::new(vec![\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(1.0, 3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n        ]);\n        let tris = RemeshCDT::triangulate(&[border.clone(), hole.clone()]);\n        let mut flat = Vec::new();\n        for p in border.get_points() { flat.push(p); }\n        for p in hole.get_points()   { flat.push(p); }\n        let mut m = Mesh::new();\n        let mut vkeys = Vec::new();\n        for p in &flat { vkeys.push(m.add_vertex(p.clone(), None)); }\n        for t in &tris { m.add_face(vec![vkeys[t.0], vkeys[t.1], vkeys[t.2]], None); }\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 5,
+    "passed": true,
+    "test_name": "Triangulate",
+    "time_ms": 0.315
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 49,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]);\n        let m = RemeshCDT::from_polylines(&[pl], false, true);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 37,
+    "passed": true,
+    "test_name": "Triangle",
+    "time_ms": 0.125
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 67,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(5.0, 2.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n        ]);\n        let m = RemeshCDT::from_polylines(&[pl], false, true);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 54,
+    "passed": true,
+    "test_name": "Rectangle",
+    "time_ms": 0.08
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 87,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(7.0, 0.0, 0.0),\n            Point::new(10.0, 0.0, 0.0),\n            Point::new(10.0, 1.0, 0.0),\n            Point::new(8.0, 1.0, 0.0),\n            Point::new(8.0, 3.0, 0.0),\n            Point::new(7.0, 3.0, 0.0),\n        ]);\n        let m = RemeshCDT::from_polylines(&[pl], false, true);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 72,
+    "passed": true,
+    "test_name": "L-shape",
+    "time_ms": 0.101
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 109,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(25.0, 0.0, 0.0),\n            Point::new(31.0, 0.0, 0.0),\n            Point::new(31.0, 4.0, 0.0),\n            Point::new(29.0, 4.0, 0.0),\n            Point::new(29.0, 2.0, 0.0),\n            Point::new(27.0, 2.0, 0.0),\n            Point::new(27.0, 4.0, 0.0),\n            Point::new(25.0, 4.0, 0.0),\n        ]);\n        let m = RemeshCDT::from_polylines(&[pl], false, true);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 92,
+    "passed": true,
+    "test_name": "U-shape",
+    "time_ms": 0.139
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 123,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::vector::Vector;\n\n        let mut pl = Polyline::from_sides(8, 1.5, false);\n        pl += &Vector::new(14.0, 1.5, 0.0);\n        let m = RemeshCDT::from_polylines(&[pl], false, true);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 114,
+    "passed": true,
+    "test_name": "Octagon",
+    "time_ms": 0.151
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 147,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let border = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n        ]);\n        let hole = Polyline::new(vec![\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(1.0, 3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n        ]);\n        let m = RemeshCDT::from_polylines(&[border, hole], false, true);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 128,
+    "passed": true,
+    "test_name": "Rectangle with rectangle hole",
+    "time_ms": 0.166
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 167,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let pl = Polyline::new(vec![\n            Point::new(33.0, 0.0, 0.0),\n            Point::new(36.0, 0.0, 0.0),\n            Point::new(37.0, 2.0, 0.0),\n            Point::new(35.0, 3.0, 0.0),\n            Point::new(33.0, 2.0, 0.0),\n            Point::new(33.0, 0.0, 0.0),\n        ]);\n        let m = RemeshCDT::from_polylines(&[pl], false, true);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 152,
+    "passed": true,
+    "test_name": "Duplicate vertices",
+    "time_ms": 0.104
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 192,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let m = RemeshCDT::from_polylines(&[\n            Polyline::new(vec![\n                Point::new(55.0, 0.0, 0.0),\n                Point::new(62.0, 0.0, 0.0),\n                Point::new(62.0, 4.0, 2.0),\n                Point::new(55.0, 4.0, 2.0),\n            ]),\n            Polyline::new(vec![\n                Point::new(56.0, 1.0, 0.5),\n                Point::new(61.0, 1.0, 0.5),\n                Point::new(61.0, 3.0, 1.5),\n                Point::new(56.0, 3.0, 1.5),\n            ]),\n        ], false, false);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 172,
+    "passed": true,
+    "test_name": "Tilted rectangle with rectangle hole",
+    "time_ms": 0.156
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 254,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let border = vec![\n            Point::new(125.390575, 14.236865, -16.468853),\n            Point::new(115.72382, 17.091624, -3.285212),\n            Point::new(121.789447, 21.876306, 18.811062),\n            Point::new(151.252023, 21.746582, 18.211977),\n            Point::new(142.916699, 15.485629, -10.701904),\n            Point::new(135.657716, 19.277143, 6.807792),\n            Point::new(142.118715, 19.142866, 6.187686),\n            Point::new(141.57586, 17.857892, 0.253509),\n            Point::new(140.11301, 18.526023, 3.339026),\n            Point::new(141.21524, 18.751613, 4.38083),\n            Point::new(141.292725, 18.989286, 5.478431),\n            Point::new(139.566886, 19.055145, 5.78258),\n            Point::new(138.763256, 18.580689, 3.59148),\n            Point::new(139.310849, 18.055272, 1.165039),\n            Point::new(140.386846, 17.829745, 0.123525),\n            Point::new(140.874682, 17.186517, -2.846986),\n            Point::new(142.977469, 16.726916, -4.969483),\n            Point::new(144.463527, 17.732299, -0.326495),\n            Point::new(144.003555, 19.468828, 7.693018),\n            Point::new(133.951268, 20.010289, 10.193557),\n            Point::new(143.92422, 20.548103, 12.677251),\n            Point::new(134.28842, 20.656763, 13.179053),\n            Point::new(141.475986, 21.027044, 14.889059),\n            Point::new(148.395425, 21.092848, 15.192952),\n            Point::new(146.816239, 20.209864, 11.115218),\n            Point::new(140.129758, 20.039236, 10.327236),\n            Point::new(145.879946, 19.943669, 9.885895),\n            Point::new(146.207165, 18.815694, 4.676763),\n            Point::new(149.810987, 21.502249, 17.083618),\n            Point::new(123.62156, 21.64297, 17.733487),\n            Point::new(143.846461, 21.388459, 16.558122),\n            Point::new(123.531701, 20.756807, 13.641072),\n            Point::new(131.906468, 20.861163, 14.123002),\n            Point::new(134.607416, 15.741609, -9.519754),\n            Point::new(131.232551, 20.580328, 12.826068),\n            Point::new(122.959207, 20.008058, 10.183251),\n            Point::new(129.590699, 18.785461, 4.537144),\n            Point::new(122.199489, 18.387709, 2.700273),\n            Point::new(127.811443, 17.061665, -3.423569),\n            Point::new(132.763864, 14.563498, -14.960425),\n            Point::new(137.425771, 15.246311, -11.807104),\n            Point::new(133.976431, 19.415144, 7.445098),\n            Point::new(141.147246, 14.792123, -13.904602),\n            Point::new(134.321155, 13.729688, -18.811062),\n            Point::new(126.514179, 16.245401, -7.193181),\n            Point::new(122.064196, 16.141604, -7.672527),\n            Point::new(129.662786, 15.027072, -12.81958),\n            Point::new(125.390575, 14.236865, -16.468853),\n        ];\n        let m = RemeshCDT::from_polylines(&[Polyline::new(border)], false, true);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 197,
+    "passed": true,
+    "test_name": "Irregular tilted polyline.",
+    "time_ms": 0.695
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 380,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::remesh_cdt::RemeshCDT;\n        use crate::polyline::Polyline;\n        use crate::point::Point;\n\n        let border = vec![\n            Point::new(80.805571, 2.103432, 0.0),\n            Point::new(77.056348, 6.382318, 0.0),\n            Point::new(73.469325, 10.712368, 0.0),\n            Point::new(76.913186, 20.429093, 0.0),\n            Point::new(81.089809, 22.150636, 0.0),\n            Point::new(80.489618, 16.428762, 0.0),\n            Point::new(77.593256, 13.859214, 0.0),\n            Point::new(79.137808, 10.314549, 0.0),\n            Point::new(81.991647, 13.383871, 0.0),\n            Point::new(82.6268, 17.180658, 0.0),\n            Point::new(83.346466, 22.810648, 0.0),\n            Point::new(80.646064, 27.128804, 0.0),\n            Point::new(75.409533, 25.864862, 0.0),\n            Point::new(72.096289, 20.679753, 0.0),\n            Point::new(69.174993, 24.651843, 0.0),\n            Point::new(73.459453, 30.365867, 0.0),\n            Point::new(78.285356, 32.047254, 0.0),\n            Point::new(84.294064, 31.313912, 0.0),\n            Point::new(88.751527, 27.70307, 0.0),\n            Point::new(89.863118, 24.247859, 0.0),\n            Point::new(86.375694, 25.536811, 0.0),\n            Point::new(85.671769, 28.704182, 0.0),\n            Point::new(83.931992, 29.140561, 0.0),\n            Point::new(83.87182, 26.993861, 0.0),\n            Point::new(85.013894, 23.331116, 0.0),\n            Point::new(86.696592, 22.050319, 0.0),\n            Point::new(91.11007, 21.775838, 0.0),\n            Point::new(93.068864, 24.22017, 0.0),\n            Point::new(90.710749, 28.565741, 0.0),\n            Point::new(91.638895, 29.907121, 0.0),\n            Point::new(98.350352, 28.577586, 0.0),\n            Point::new(97.932933, 19.2177, 0.0),\n            Point::new(92.735476, 16.088655, 0.0),\n            Point::new(88.933069, 18.173691, 0.0),\n            Point::new(87.14089, 18.175371, 0.0),\n            Point::new(88.303603, 12.293181, 0.0),\n            Point::new(95.930447, 12.110783, 0.0),\n            Point::new(99.851107, 14.725665, 0.0),\n            Point::new(100.978975, 20.024267, 0.0),\n            Point::new(102.243884, 24.855315, 0.0),\n            Point::new(107.033349, 22.799502, 0.0),\n            Point::new(106.609681, 11.898217, 0.0),\n            Point::new(103.249112, 7.789628, 0.0),\n            Point::new(96.095448, 7.274641, 0.0),\n            Point::new(89.385773, 5.965419, 0.0),\n            Point::new(96.860717, 2.216133, 0.0),\n            Point::new(100.861767, 4.379475, 0.0),\n            Point::new(101.881544, -0.42956, 0.0),\n            Point::new(97.45084, -3.301412, 0.0),\n            Point::new(91.973637, -1.202488, 0.0),\n            Point::new(85.52513, 1.867323, 0.0),\n            Point::new(84.223176, 6.692841, 0.0),\n            Point::new(89.798972, 8.864768, 0.0),\n            Point::new(95.492277, 9.295981, 0.0),\n            Point::new(99.888391, 10.064787, 0.0),\n            Point::new(103.261854, 11.705226, 0.0),\n            Point::new(103.779131, 19.764949, 0.0),\n            Point::new(102.711068, 14.994661, 0.0),\n            Point::new(99.443654, 12.155559, 0.0),\n            Point::new(97.732698, 11.322088, 0.0),\n            Point::new(90.50953, 9.911877, 0.0),\n            Point::new(85.903966, 9.907526, 0.0),\n            Point::new(84.501578, 11.767742, 0.0),\n            Point::new(85.498912, 16.396132, 0.0),\n            Point::new(82.205875, 10.374609, 0.0),\n            Point::new(79.29099, 8.223327, 0.0),\n            Point::new(82.140367, 5.90496, 0.0),\n            Point::new(80.805571, 2.103432, 0.0),\n        ];\n        let h1 = vec![\n            Point::new(89.032991, 2.017152, 0.0),\n            Point::new(87.733487, 4.228529, 0.0),\n            Point::new(91.344022, 3.519583, 0.0),\n            Point::new(94.484896, 1.422882, 0.0),\n            Point::new(89.032991, 2.017152, 0.0),\n        ];\n        let h2 = vec![\n            Point::new(92.03771, 19.272441, 0.0),\n            Point::new(93.023809, 18.394685, 0.0),\n            Point::new(95.237342, 19.201565, 0.0),\n            Point::new(96.523355, 23.096688, 0.0),\n            Point::new(96.499215, 27.739772, 0.0),\n            Point::new(93.834079, 27.897701, 0.0),\n            Point::new(94.368093, 26.068002, 0.0),\n            Point::new(94.196483, 22.936949, 0.0),\n            Point::new(92.03771, 19.272441, 0.0),\n        ];\n        let h3 = vec![\n            Point::new(75.250389, 29.32022, 0.0),\n            Point::new(71.879629, 25.409869, 0.0),\n            Point::new(72.297014, 23.977747, 0.0),\n            Point::new(74.564259, 26.656863, 0.0),\n            Point::new(77.684277, 29.043429, 0.0),\n            Point::new(81.250681, 29.040871, 0.0),\n            Point::new(81.897777, 29.877526, 0.0),\n            Point::new(80.430576, 30.631228, 0.0),\n            Point::new(75.250389, 29.32022, 0.0),\n        ];\n        let h4 = vec![\n            Point::new(78.759389, 19.25978, 0.0),\n            Point::new(79.548907, 18.00544, 0.0),\n            Point::new(77.949677, 16.331313, 0.0),\n            Point::new(77.272732, 16.707375, 0.0),\n            Point::new(78.759389, 19.25978, 0.0),\n        ];\n        let m = RemeshCDT::from_polylines(\n            &[\n                Polyline::new(border),\n                Polyline::new(h1),\n                Polyline::new(h2),\n                Polyline::new(h3),\n                Polyline::new(h4),\n            ],\n            false, false);\n",
+    "failures": [],
+    "group": "RemeshCDT",
+    "line": 259,
+    "passed": true,
+    "test_name": "Irregular tilted polyline with holes.",
+    "time_ms": 1.406
+  }
+]

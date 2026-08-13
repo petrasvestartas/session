@@ -1,0 +1,420 @@
+[
+  {
+    "group": "ElementColumn",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.742,
+    "line": 7,
+    "code": "    from session_py import ElementColumn\n    from session_py import Mesh\n\n    c = ElementColumn(width=0.4, depth=0.4, height=3.0, name=\"col1\")\n\n    geo = c.geometry\n    name = c.name\n    guid = c.guid\n    cstr = str(c)\n    crepr = repr(c)\n\n    ccopy = c.duplicate()\n    c2 = ElementColumn(width=0.4, depth=0.4, height=3.0, name=\"col1\")\n    c3 = ElementColumn(width=0.5, depth=0.4, height=3.0, name=\"col1\")",
+    "checks": [
+      {
+        "line": 24,
+        "code_line": "name == \"col1\"",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "guid is not None and len(guid) > 0",
+        "passed": true
+      },
+      {
+        "line": 26,
+        "code_line": "isinstance(geo, Mesh)",
+        "passed": true
+      },
+      {
+        "line": 27,
+        "code_line": "c.width == 0.4",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "c.depth == 0.4",
+        "passed": true
+      },
+      {
+        "line": 29,
+        "code_line": "c.height == 3.0",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "cstr == \"ElementColumn(col1, 0.4, 0.4, 3.0)\"",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "crepr == f\"ElementColumn({guid}, col1, 0.4, 0.4, 3.0)\"",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "ccopy == c and ccopy.guid != c.guid",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "c == c2",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "c != c3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Setters",
+    "passed": true,
+    "time_ms": 0.201,
+    "line": 37,
+    "code": "    from session_py import ElementColumn\n\n    c = ElementColumn()\n    c.width = 0.5\n    c.depth = 0.6\n    c.height = 4.0",
+    "checks": [
+      {
+        "line": 46,
+        "code_line": "c.width == 0.5",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "c.depth == 0.6",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "c.height == 4.0",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "c.geometry is not None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Center Line",
+    "passed": true,
+    "time_ms": 0.069,
+    "line": 52,
+    "code": "    from session_py import ElementColumn\n    from session_py import Line\n\n    c = ElementColumn(height=5.0)\n    cl = c.center_line",
+    "checks": [
+      {
+        "line": 60,
+        "code_line": "isinstance(cl, Line)",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "TOLERANCE.is_close(cl.start()[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 62,
+        "code_line": "TOLERANCE.is_close(cl.end()[2], 5.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Extend",
+    "passed": true,
+    "time_ms": 0.071,
+    "line": 65,
+    "code": "    from session_py import ElementColumn\n\n    c = ElementColumn(height=3.0)\n    c.extend(0.5)",
+    "checks": [
+      {
+        "line": 72,
+        "code_line": "TOLERANCE.is_close(c.height, 4.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "AABB",
+    "passed": true,
+    "time_ms": 0.223,
+    "line": 75,
+    "code": "    from session_py import ElementColumn\n\n    c = ElementColumn(width=0.4, depth=0.4, height=3.0)\n    aabb = c.aabb",
+    "checks": [
+      {
+        "line": 82,
+        "code_line": "aabb is not None",
+        "passed": true
+      },
+      {
+        "line": 83,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[0], 0.2)",
+        "passed": true
+      },
+      {
+        "line": 84,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[1], 0.2)",
+        "passed": true
+      },
+      {
+        "line": 85,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[2], 1.5)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Compute Point",
+    "passed": true,
+    "time_ms": 0.258,
+    "line": 88,
+    "code": "    from session_py import ElementColumn\n\n    c = ElementColumn(width=0.4, depth=0.4, height=3.0)\n    pt = c.point",
+    "checks": [
+      {
+        "line": 95,
+        "code_line": "TOLERANCE.is_close(pt[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "TOLERANCE.is_close(pt[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 97,
+        "code_line": "TOLERANCE.is_close(pt[2], 1.5)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Session Geometry",
+    "passed": true,
+    "time_ms": 0.208,
+    "line": 100,
+    "code": "    from session_py import ElementColumn\n    from session_py import Xform\n    from session_py import Mesh\n\n    c = ElementColumn(width=0.4, depth=0.4, height=3.0)\n    c_xf = Xform.translation(10.0, 0.0, 0.0)\n    sg = c.session_geometry(c_xf)\n\n    verts = list(sg.vertex.values())\n    xs = [v.x for v in verts]",
+    "checks": [
+      {
+        "line": 110,
+        "code_line": "isinstance(sg, Mesh)",
+        "passed": true
+      },
+      {
+        "line": 113,
+        "code_line": "min(xs) > 9.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 0.946,
+    "line": 116,
+    "code": "    from session_py import ElementColumn\n    from pathlib import Path\n\n    c = ElementColumn(width=0.5, depth=0.6, height=4.0, name=\"json_col\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_column_element.json\"\n    c.file_json_dump(fname)\n    loaded = ElementColumn.file_json_load(fname)",
+    "checks": [
+      {
+        "line": 127,
+        "code_line": "isinstance(loaded, ElementColumn)",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "loaded.name == \"json_col\"",
+        "passed": true
+      },
+      {
+        "line": 129,
+        "code_line": "TOLERANCE.is_close(loaded.width, 0.5)",
+        "passed": true
+      },
+      {
+        "line": 130,
+        "code_line": "TOLERANCE.is_close(loaded.depth, 0.6)",
+        "passed": true
+      },
+      {
+        "line": 131,
+        "code_line": "TOLERANCE.is_close(loaded.height, 4.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Protobuf Roundtrip",
+    "passed": true,
+    "time_ms": 0.388,
+    "line": 134,
+    "code": "    from session_py import ElementColumn\n    from pathlib import Path\n\n    c = ElementColumn(width=0.5, depth=0.6, height=4.0, name=\"proto_col\")\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_column_element.bin\"\n    c.pb_dump(path)\n    loaded = ElementColumn.pb_load(path)",
+    "checks": [
+      {
+        "line": 145,
+        "code_line": "isinstance(loaded, ElementColumn)",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "loaded.name == \"proto_col\"",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "TOLERANCE.is_close(loaded.width, 0.5)",
+        "passed": true
+      },
+      {
+        "line": 148,
+        "code_line": "TOLERANCE.is_close(loaded.depth, 0.6)",
+        "passed": true
+      },
+      {
+        "line": 149,
+        "code_line": "TOLERANCE.is_close(loaded.height, 4.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Polylines",
+    "passed": true,
+    "time_ms": 0.119,
+    "line": 152,
+    "code": "    from session_py import ElementColumn\n    from session_py import Polyline\n\n    c = ElementColumn(width=0.4, depth=0.4, height=3.0)\n    pls = c.polylines\n\n    for pl in pls:",
+    "checks": [
+      {
+        "line": 160,
+        "code_line": "len(pls) == 6",
+        "passed": true
+      },
+      {
+        "line": 161,
+        "code_line": "isinstance(pls[0], Polyline)",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "pl.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "pl.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "pl.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "pl.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "pl.point_count() == 5",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "pl.point_count() == 5",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Planes",
+    "passed": true,
+    "time_ms": 0.308,
+    "line": 166,
+    "code": "    from session_py import ElementColumn\n    from session_py import Plane\n\n    c = ElementColumn(width=0.4, depth=0.4, height=3.0)\n    pls = c.planes",
+    "checks": [
+      {
+        "line": 174,
+        "code_line": "len(pls) == 6",
+        "passed": true
+      },
+      {
+        "line": 175,
+        "code_line": "isinstance(pls[0], Plane)",
+        "passed": true
+      },
+      {
+        "line": 176,
+        "code_line": "TOLERANCE.is_close(pls[0].z_axis[2], -1.0)",
+        "passed": true
+      },
+      {
+        "line": 177,
+        "code_line": "TOLERANCE.is_close(pls[1].z_axis[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Edge Vectors",
+    "passed": true,
+    "time_ms": 0.087,
+    "line": 180,
+    "code": "    from session_py import ElementColumn\n    from session_py import Vector\n\n    c = ElementColumn(width=0.4, depth=0.4, height=3.0)\n    evs = c.edge_vectors",
+    "checks": [
+      {
+        "line": 188,
+        "code_line": "len(evs) == 12",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "isinstance(evs[0], Vector)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementColumn",
+    "test_name": "Axis",
+    "passed": true,
+    "time_ms": 0.074,
+    "line": 192,
+    "code": "    from session_py import ElementColumn\n    from session_py import Line\n\n    c = ElementColumn(height=5.0)\n    ax = c.axis",
+    "checks": [
+      {
+        "line": 200,
+        "code_line": "isinstance(ax, Line)",
+        "passed": true
+      },
+      {
+        "line": 201,
+        "code_line": "TOLERANCE.is_close(ax.start()[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 202,
+        "code_line": "TOLERANCE.is_close(ax.end()[2], 5.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

@@ -1,0 +1,605 @@
+[
+  {
+    "group": "PointCloud",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.024,
+    "line": 15,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n    // uncomment #include <vector>\n\n    // Default constructor (empty cloud)\n    PointCloud pc0;\n\n    // Constructor with points, normals, colors\n    Point p0(0.0, 0.0, 0.0);\n    Point p1(1.0, 0.0, 0.0);\n    Point p2(0.0, 1.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Vector n2(0.0, 0.0, 1.0);\n    Color c0(1.0f, 0.0f, 0.0f, 1.0f);\n    Color c1(0.0f, 1.0f, 0.0f, 1.0f);\n    Color c2(0.0f, 0.0f, 1.0f, 1.0f);\n    PointCloud pc({p0, p1, p2}, {n0, n1, n2}, {c0, c1, c2});\n\n    // Minimal and Full String Representation\n    std::string pcstr = pc.str();\n    std::string pcrepr = pc.repr();\n\n    // Copy (duplicates everything except guid)\n    PointCloud pccopy = pc;\n    PointCloud pcother;\n\n    // Copy operators\n    Vector offset(10.0, 20.0, 30.0);\n    PointCloud pc_iadd({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_iadd += offset;\n    PointCloud pc_isub({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_isub -= offset;\n    PointCloud pc3({Point(1.0, 2.0, 3.0)}, {}, {});\n    PointCloud pc_add = pc3 + offset;\n    PointCloud pc_sub = pc3 - offset;",
+    "checks": [
+      {
+        "line": 55,
+        "code_line": "pc0.name == \"my_pointcloud\"",
+        "passed": true
+      },
+      {
+        "line": 56,
+        "code_line": "!pc0.guid().empty()",
+        "passed": true
+      },
+      {
+        "line": 57,
+        "code_line": "pc0.is_empty()",
+        "passed": true
+      },
+      {
+        "line": 58,
+        "code_line": "pc.len() == 3",
+        "passed": true
+      },
+      {
+        "line": 59,
+        "code_line": "pcstr == \"3 points\"",
+        "passed": true
+      },
+      {
+        "line": 60,
+        "code_line": "pcrepr == \"PointCloud(my_pointcloud, 3 points, 3 colors, 3 normals)\"",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "pccopy == pc && pccopy.guid() != pc.guid()",
+        "passed": true
+      },
+      {
+        "line": 62,
+        "code_line": "pcother != pc",
+        "passed": true
+      },
+      {
+        "line": 63,
+        "code_line": "TOLERANCE.is_close(pc_iadd.get_point(0)[0], 11.0) && TOLERANCE.is_close(pc_iadd.get_point(0)[1], 22.0) && TOLERANCE.is_close(pc_iadd.get_point(0)[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "TOLERANCE.is_close(pc_isub.get_point(0)[0], -9.0) && TOLERANCE.is_close(pc_isub.get_point(0)[1], -18.0) && TOLERANCE.is_close(pc_isub.get_point(0)[2], -27.0)",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "TOLERANCE.is_close(pc_add.get_point(0)[0], 11.0) && TOLERANCE.is_close(pc_add.get_point(0)[1], 22.0) && TOLERANCE.is_close(pc_add.get_point(0)[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 66,
+        "code_line": "TOLERANCE.is_close(pc_sub.get_point(0)[0], -9.0) && TOLERANCE.is_close(pc_sub.get_point(0)[1], -18.0) && TOLERANCE.is_close(pc_sub.get_point(0)[2], -27.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "From Coords",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 69,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include <vector>\n\n    std::vector<double> coords = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0};\n    std::vector<int> colors = {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255};\n    std::vector<double> normals = {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0};\n    PointCloud pc = PointCloud::from_coords(coords, colors, normals);",
+    "checks": [
+      {
+        "line": 78,
+        "code_line": "pc.len() == 3 && pc.color_count() == 3 && pc.normal_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "TOLERANCE.is_close(pc.get_point(1)[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "pc.get_color(1).g == 1.0f",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "TOLERANCE.is_close(pc.get_normal(1)[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Point Count",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 84,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)}, {}, {});",
+    "checks": [
+      {
+        "line": 90,
+        "code_line": "pc.point_count() == 3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Len",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 93,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)}, {}, {});",
+    "checks": [
+      {
+        "line": 99,
+        "code_line": "pc.len() == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Is Empty",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 102,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc0;\n    PointCloud pc1({Point(0.0, 0.0, 0.0)}, {}, {});",
+    "checks": [
+      {
+        "line": 109,
+        "code_line": "pc0.is_empty()",
+        "passed": true
+      },
+      {
+        "line": 110,
+        "code_line": "!pc1.is_empty()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Get Point",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 113,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)}, {}, {});\n    Point pt = pc.get_point(1);",
+    "checks": [
+      {
+        "line": 120,
+        "code_line": "TOLERANCE.is_close(pt[0], 4.0)",
+        "passed": true
+      },
+      {
+        "line": 121,
+        "code_line": "TOLERANCE.is_close(pt[1], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 122,
+        "code_line": "TOLERANCE.is_close(pt[2], 6.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Set Point",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 125,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(0.0, 0.0, 0.0)}, {}, {});\n    pc.set_point(0, Point(4.0, 5.0, 6.0));",
+    "checks": [
+      {
+        "line": 132,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 4.0)",
+        "passed": true
+      },
+      {
+        "line": 133,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[1], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 134,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[2], 6.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Add Point",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 137,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc;\n    pc.add_point(Point(1.0, 2.0, 3.0));",
+    "checks": [
+      {
+        "line": 144,
+        "code_line": "pc.len() == 1",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[2], 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Get Points",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 150,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)}, {}, {});\n    std::vector<Point> points = pc.get_points();",
+    "checks": [
+      {
+        "line": 157,
+        "code_line": "points.size() == 2",
+        "passed": true
+      },
+      {
+        "line": 158,
+        "code_line": "TOLERANCE.is_close(points[0][0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 159,
+        "code_line": "TOLERANCE.is_close(points[1][2], 6.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Color Count",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 162,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc({}, {}, {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)});",
+    "checks": [
+      {
+        "line": 168,
+        "code_line": "pc.color_count() == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Get Color",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 171,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc({}, {}, {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)});\n    Color c = pc.get_color(1);",
+    "checks": [
+      {
+        "line": 178,
+        "code_line": "c.r == 0.0f && c.g == 1.0f && c.b == 0.0f && c.a == 1.0f",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Set Color",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 181,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc({}, {}, {Color(0.0f, 0.0f, 0.0f, 0.0f)});\n    pc.set_color(0, Color(1.0f, 0.0f, 0.0f, 1.0f));",
+    "checks": [
+      {
+        "line": 188,
+        "code_line": "pc.get_color(0).r == 1.0f && pc.get_color(0).g == 0.0f && pc.get_color(0).b == 0.0f && pc.get_color(0).a == 1.0f",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Add Color",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 191,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc;\n    pc.add_color(Color(1.0f, 0.0f, 1.0f, 1.0f));",
+    "checks": [
+      {
+        "line": 198,
+        "code_line": "pc.color_count() == 1",
+        "passed": true
+      },
+      {
+        "line": 199,
+        "code_line": "pc.get_color(0).r == 1.0f && pc.get_color(0).g == 0.0f && pc.get_color(0).b == 1.0f",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Get Colors",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 202,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc({}, {}, {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)});\n    std::vector<Color> colors = pc.get_colors();",
+    "checks": [
+      {
+        "line": 209,
+        "code_line": "colors.size() == 2",
+        "passed": true
+      },
+      {
+        "line": 210,
+        "code_line": "colors[0].r == 1.0f",
+        "passed": true
+      },
+      {
+        "line": 211,
+        "code_line": "colors[1].g == 1.0f",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Normal Count",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 214,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"vector.h\"\n\n    PointCloud pc({}, {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)}, {});",
+    "checks": [
+      {
+        "line": 220,
+        "code_line": "pc.normal_count() == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Get Normal",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 223,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"vector.h\"\n\n    PointCloud pc({}, {Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0)}, {});\n    Vector n = pc.get_normal(1);",
+    "checks": [
+      {
+        "line": 230,
+        "code_line": "TOLERANCE.is_close(n[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 231,
+        "code_line": "TOLERANCE.is_close(n[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 232,
+        "code_line": "TOLERANCE.is_close(n[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Set Normal",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 235,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"vector.h\"\n\n    PointCloud pc({}, {Vector(0.0, 0.0, 1.0)}, {});\n    pc.set_normal(0, Vector(0.0, 1.0, 0.0));",
+    "checks": [
+      {
+        "line": 242,
+        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 243,
+        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 244,
+        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Add Normal",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 247,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"vector.h\"\n\n    PointCloud pc;\n    pc.add_normal(Vector(1.0, 0.0, 0.0));",
+    "checks": [
+      {
+        "line": 254,
+        "code_line": "pc.normal_count() == 1",
+        "passed": true
+      },
+      {
+        "line": 255,
+        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[0], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Get Normals",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 258,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"vector.h\"\n\n    PointCloud pc({}, {Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0)}, {});\n    std::vector<Vector> normals = pc.get_normals();",
+    "checks": [
+      {
+        "line": 265,
+        "code_line": "normals.size() == 2",
+        "passed": true
+      },
+      {
+        "line": 266,
+        "code_line": "TOLERANCE.is_close(normals[0][2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 267,
+        "code_line": "TOLERANCE.is_close(normals[1][0], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Transform",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 270,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n\n    PointCloud pc({Point(1.0, 2.0, 3.0)}, {}, {});\n    Xform pc_xf = Xform::translation(10.0, 20.0, 30.0);\n    pc.transform(pc_xf);",
+    "checks": [
+      {
+        "line": 279,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 11.0)",
+        "passed": true
+      },
+      {
+        "line": 280,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[1], 22.0)",
+        "passed": true
+      },
+      {
+        "line": 281,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[2], 33.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Transformed",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 284,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n\n    PointCloud pc({Point(1.0, 2.0, 3.0)}, {}, {});\n    Xform pc_xf = Xform::translation(10.0, 20.0, 30.0);\n    PointCloud pc2 = pc.transformed(pc_xf);",
+    "checks": [
+      {
+        "line": 293,
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[0], 11.0)",
+        "passed": true
+      },
+      {
+        "line": 294,
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[1], 22.0)",
+        "passed": true
+      },
+      {
+        "line": 295,
+        "code_line": "TOLERANCE.is_close(pc2.get_point(0)[2], 33.0)",
+        "passed": true
+      },
+      {
+        "line": 296,
+        "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 0.063,
+    "line": 299,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.file_json_dump(fname);\n    PointCloud loaded = PointCloud::file_json_load(fname);",
+    "checks": [
+      {
+        "line": 323,
+        "code_line": "loaded.name == \"test_pointcloud\"",
+        "passed": true
+      },
+      {
+        "line": 324,
+        "code_line": "loaded.len() == 2",
+        "passed": true
+      },
+      {
+        "line": 325,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 326,
+        "code_line": "loaded.get_color(0).r == 1.0f",
+        "passed": true
+      },
+      {
+        "line": 327,
+        "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PointCloud",
+    "test_name": "Protobuf Roundtrip",
+    "passed": true,
+    "time_ms": 0.066,
+    "line": 330,
+    "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);",
+    "checks": [
+      {
+        "line": 347,
+        "code_line": "loaded.name == \"test_pointcloud\"",
+        "passed": true
+      },
+      {
+        "line": 348,
+        "code_line": "loaded.len() == 2",
+        "passed": true
+      },
+      {
+        "line": 349,
+        "code_line": "TOLERANCE.is_close(loaded.get_point(0)[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 350,
+        "code_line": "loaded.get_color(0).r == 1.0f",
+        "passed": true
+      },
+      {
+        "line": 351,
+        "code_line": "TOLERANCE.is_close(loaded.get_normal(0)[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

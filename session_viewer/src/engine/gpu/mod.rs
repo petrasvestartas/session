@@ -9,11 +9,8 @@
 
 use crate::engine::pipelines::Pipelines;
 use crate::engine::performance::Performance;
-mod adapters;
-use adapters::{line_to_segment, nurbscurve_to_segments, point_to_glyph, polyline_to_segments, encode_width};
-use bytemuck::Zeroable;
-use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
-use session_rust::mesh::ColorMode;
+
+use session_rust::{Xform, RenderVertex, Point};
 
 /// Re-anchor distance: the instance table is rebased about a snapped anchor.
 /// The camera can drift this far (mm) before a full rebuild.
@@ -32,14 +29,11 @@ const CYL_SIDES: u32 = 6;
 /// SOLID (cylinder + sphere) for mesh/BRep, whose ink lies ON a surface - the tube radius lifts
 ///   it off that surface, so a silhouette edge cannot lose the depth test to its own face.
 /// FLAT (ribbon + glyph) for line/polyline/point, which float free and have nothing to fight.
-/// Routing lives in `walk_session`, one draw per lane in `clear`.
+/// Routing lives in `app::scene::Scene`, one draw per lane in `clear`.
 
 /// const for the unit_sphere method
 const SPH_LONS: usize = 12;
 const SPH_LATS: usize = 6;
-
-/// Grid floor for load testing: at least STREE_GRID2 cells, cycling the loaded files
-const STRESS_GRID: u32 = 1;
 
 /// Depth prepass for the FLAT lane, so flat ink occludes flat ink (a dot behind a polyline
 /// loses to it) instead of pure draw order deciding - and draw order here is HashMap order,
@@ -48,20 +42,41 @@ const STRESS_GRID: u32 = 1;
 /// Off: on 2D sheets (600k segments, all ribbons) the second pass doubles the frame.
 const INK_DEPTH_PREPASS: bool = false;
 
-/// One loaded file, walked into GPU-ready tables. Built by [`Gpu::walk_session`] BEFORE
-/// `Gpu::new`, so the parsed `Session` (often 10× larger than these tables) can be dropped
-/// before the next file is fetched — peak memory holds ONE session at a time, not all of them.
-pub struct SceneTables {
-    verts: Vec<RenderVertex>,
-    vids: Vec<u32>,
-    idx: Vec<u32>,
-    pipes: Vec<CylinderSegment>,   // SOLID lane: mesh/BRep edges, drawn as 3D cylinders
-    spheres: Vec<GlyphPoint>,      // SOLID lane: mesh/BRep vertices, radius matched to the pipes
-    segments: Vec<CylinderSegment>,// FLAT lane: line/polyline, drawn as camera-facing ribbons
-    glyphs: Vec<GlyphPoint>,       // FLAT lane: points, drawn as SDF dots
-    objects: Vec<(Xform, [f32; 4])>,
-    min: [f32; 3],
-    max: [f32; 3],
+/// Everything `Gpu` needs to fill its buffers, built and owened by `app::scene::Scene`,
+/// the engine borrows it, uploads, and forgets.
+/// Lanes stay apart (SOLID pipes/spheres vs flat segments/glyphs) 
+/// and are spliced solid-first at upload.
+/// `objects` holds the TRUE per-object transfrom + tint + flags.
+/// `Gpu` builds instance rows from it and rebases them as the camera moves.
+/// No Mesh, no Session, no wgpu type on the app side of this line.
+pub struct ArenaUpload{
+    pub verts: Vec<RenderVertex>,
+    pub vids: Vec<u32>,
+    pub idx: Vec<u32>,
+    pub pipes: Vec<CylinderSegment>, // Solid lane: Mesh/Brep edges, drawn as 3D cylinders
+    pub spheres: Vec<GlyphPoint>, // Solid lane: Mesh/Brep vertices, radius matched to the pipes
+    pub segments: Vec<CylinderSegment>, // Flat lane: line/polyline, drawn as camera-facing ribbons
+    pub glyphs: Vec<GlyphPoint>, // Flat lane: points, draw as SDF dots,
+    pub objects: Vec<(Xform, [f32; 4], u32)>,
+    pub min: [f32; 3],
+    pub max: [f32; 3],
+}
+
+impl ArenaUpload {
+    pub fn new() -> Self {
+        Self {
+            verts: Vec::new(),
+            vids: Vec::new(),
+            idx: Vec::new(),
+            pipes: Vec::new(),
+            spheres: Vec::new(),
+            segments: Vec::new(),
+            glyphs: Vec::new(),
+            objects: Vec::new(),
+            min: [f32::INFINITY; 3],
+            max: [f32::NEG_INFINITY; 3],
+        }
+    }
 }
 
 pub struct Gpu {
@@ -83,7 +98,15 @@ pub struct Gpu {
     pub arena_index_count: u32,
     instances: Vec<Instance>,
     last_origin: Option<Point>, // rebuild_instances skips when the camera target did not move
-    objects_base: Vec<(Xform, [f32; 4])>, // TRUE world model+color; isntance[] is rebased from this
+    objects_base: Vec<(Xform, [f32; 4], u32)>, // TRUE world model+color; isntance[] is rebased from this
+    // Layouts surfvive so set_scene can rebuild bind groups and pipelines on an MSAA change.
+    mvp_layout: wgpu::BindGroupLayout,
+    time_layout: wgpu::BindGroupLayout,
+    instance_layout: wgpu::BindGroupLayout,
+    line_layout: wgpu::BindGroupLayout,
+    segment_layout: wgpu::BindGroupLayout,
+    glyph_layout: wgpu::BindGroupLayout,
+
     instance_buffer: wgpu::Buffer, // new() builds this storage buffer as a local and drops it, only the bidn group survives; rebuild_instances() reuploads into it every frame, so the buffer handle itself must live on GPU, not vanish atht eh of new()
     pub instance_bind_group: wgpu::BindGroup,
     pub cyl_template_vbo: wgpu::Buffer,
@@ -114,12 +137,11 @@ pub struct Gpu {
 }
 
 impl Gpu {
+
     /// Set up the five wgpu objects, in order: Instance → Surface → Adapter → Device + Queue → configure.
-    /// `files` carries each loaded file WITH the placement the scene manifest gave it - the
-    /// viewer no longer decides where a sheet goes (see `app::scene`).
-    pub async fn new(
-        window: std::sync::Arc<winit::window::Window>,
-        files: &[(SceneTables, Xform)]) -> anyhow::Result<Self> {
+    /// The scene starts empty - every upload, including the first file, goes through `set_scene`
+    /// (progressive loading calls it once per appended file), One code path, not two.
+    pub async fn new(window: std::sync::Arc<winit::window::Window>) -> anyhow::Result<Self> {
         
 
         // 1. Instance — the driver entry point. WebGPU only in the browser, never WebGL.
@@ -187,9 +209,9 @@ impl Gpu {
         };
         surface.configure(&device, &config);
 
-        // Depth and MSAA
-        let samples = Self::msaa_for(files);
-        log::info!("msaa: {}x", samples);
+        // Depth and MSAA - the emoty scene starts flat (1x)
+        // Set_scene flips to 4x when the first solid geometry arrives
+        let samples = 1;
         let depth_view = Self::create_depth_view(&device, &config, samples);
         let msaa_view = Self::create_msaa_view(&device, &config, samples);
 
@@ -246,170 +268,22 @@ impl Gpu {
 
 
 
-        // Merge the per-file tables into one arena: mesh indices shift by the vertex base,
-        // row ids (vids / instance_id) by the objects base, so every file keeps distinct rows.
-        let mut verts: Vec<RenderVertex> = Vec::new(); // slot 0 - every mesh's vertices, concatenated
-        let mut vids: Vec<u32> = Vec::new(); // slot 1 - one row id per vertex (@location 3)
-        let mut idx: Vec<u32> = Vec::new(); // the shared index buffer
-        // Two lanes per table, kept apart while merging and concatenated solid-first at upload,
-        // so each pipeline draws ONE contiguous range of the same buffer (no second binding).
-        let mut pipes: Vec<CylinderSegment> = Vec::new();
-        let mut spheres: Vec<GlyphPoint> = Vec::new();
-        let mut segments: Vec<CylinderSegment> = Vec::new();
-        let mut glyphs: Vec<GlyphPoint> = Vec::new();
-        let mut objects_base: Vec<(Xform, [f32; 4])> = Vec::new();
-        let mut scene_min = [f32::INFINITY; 3];
-        let mut scene_max = [f32::NEG_INFINITY; 3];
-
-        // for t in files {
-        //     let vbase = verts.len() as u32;
-        //     let obase = objects_base.len() as u32;
-        //     verts.extend_from_slice(&t.verts);
-        //     vids.extend(t.vids.iter().map(|r| r + obase));
-        //     idx.extend(t.idx.iter().map(|i| i + vbase));
-        //     segments.extend(t.segments.iter().map(|s| CylinderSegment { instance_id: s.instance_id + obase, ..*s }));
-        //     glyphs.extend(t.glyphs.iter().map(|g| GlyphPoint { instance_id: g.instance_id + obase, ..*g }));
-        //     objects_base.extend(t.objects.iter().cloned());
-        //     for k in 0..3 {
-        //         scene_min[k] = scene_min[k].min(t.min[k]);
-        //         scene_max[k] = scene_max[k].max(t.max[k]);
-        //     }
-        // }
-        
-        // The merge loop: cells cycle through loaded files (a different per cell).
-        // STRESS_GRID² floors the cell count, cell size = largest file extend +5% gutters.
-        // Bounds accumulate per placed cell (offset included) - F first the whole wall.
-        let cells = if files.is_empty() {
-            0
-        } else {
-            ((STRESS_GRID * STRESS_GRID) as usize).max(files.len())
-        };
-
-        if cells > 0 {
-            let cols = (cells as f64).sqrt().ceil() as usize;
-            let (mut cell_w, mut cell_h) = (0.0_f64, 0.0_f64);
-            for (t, _) in files{
-                cell_w = cell_w.max((t.max[0] - t.min[0]) as f64);
-                cell_h = cell_h.max((t.max[1] - t.min[1]) as f64);
-            }
-            let (dx, dy) = (cell_w * 1.05, cell_h * 1.05); // 5% gutters
-            for cell in 0..cells{
-                let (t, place) = &files[cell % files.len()];
-                // The file's own placement, from the manifest. STRESS_GRID copies still spread
-                // out on a grid - that is a load test, not a scene - but with one copy per file
-                // the offset is zero and `place` alone decides where the sheet sits.
-                let o = if STRESS_GRID > 1 {
-                    [(cell % cols) as f64 * dx, (cell / cols) as f64 * dy, 0.0]
-                } else {
-                    [0.0, 0.0, 0.0]
-                };
-                let off = &Xform::translation(o[0], o[1], o[2]) * place;
-                let ri0 = objects_base.len() as u32; // this cell's first arena vertex
-                let vbase = verts.len() as u32;
-                for (m,c) in &t.objects {
-                    objects_base.push((&off * m, *c));
-                }
-                verts.extend_from_slice(&t.verts);
-                for id in &t.vids {
-                    vids.push(id + ri0);
-                }
-                for i in &t.idx {
-                    idx.push(i+vbase);
-                }
-                for s in &t.pipes {
-                    let mut s2 = *s;
-                    s2.instance_id += ri0;
-                    pipes.push(s2);
-                }
-                for g in &t.spheres {
-                    let mut g2 = *g;
-                    g2.instance_id += ri0;
-                    spheres.push(g2);
-                }
-                for s in &t.segments {
-                    let mut s2 = *s;
-                    s2.instance_id += ri0;
-                    segments.push(s2);
-                }
-                for g in &t.glyphs {
-                    let mut g2 = *g;
-                    g2.instance_id += ri0;
-                    glyphs.push(g2);
-                }
-                // Scene bounds include the placement - "f" fits everything that is on screen.
-                for k in 0..3 {
-                    let shift = off.m[12 + k] as f32;   // the placement's translation column
-                    scene_min[k] = scene_min[k].min(t.min[k] + shift);
-                    scene_max[k] = scene_max[k].max(t.max[k] + shift);
-                }
-            }
-        }
-
-        if !scene_min[0].is_finite() { // no geometry at all - the box the old padded scan produced
-            scene_min = [0.0; 3];
-            scene_max = [0.0; 3];
-        }
-
-        let mut instances: Vec<Instance> = objects_base.iter()
-        .map(|(m, c)| Instance {
-            model: m.to_f32(),
-            color: *c,
-            flags: 0,
-            _pad: [0; 3]
-        }).collect();
-
-        // One buffer per table, SOLID lane first: cylinders draw instances 0..pipe_count and
-        // ribbons the rest, spheres 0..sphere_count and dots the rest.
-        let pipe_count = pipes.len() as u32;
-        let sphere_count = spheres.len() as u32;
-        let mut segments = { pipes.extend(segments); pipes };
-        let mut glyphs = { spheres.extend(glyphs); spheres };
-
-        let segment_count = segments.len() as u32; // Before padding - the real draw-cell count
-        let glyph_count = glyphs.len() as u32;
-        let points: Vec<CloudPoint> = Vec::new();
-
-        // A real file is not the five-mesh demo:
-        // a pure line drawing has zero mesh vertices,
-        // a pure mesh file zero segments.
-        // WGPU buffers cannot be zero-size, so pad the CPU side with one placeholder -*_count
-        // Above already capture the true numnber
-        // So an empty catergory still draws nothing, it just does not cras the buffer upload
-        if instances.is_empty(){
-            instances.push(
-                Instance {
-                    model: Xform::identity().to_f32(),
-                    color: [0.5, 0.5, 0.5, 1.0],
-                    flags: 0,
-                    _pad: [0; 3]
-                }
-            );
-        }
-
-        if verts.is_empty(){
-            verts.push(RenderVertex::zeroed());
-            vids.push(0);
-            idx.extend_from_slice(&[0,0,0]);
-        }
-
-        if segments.is_empty(){
-            segments.push(CylinderSegment::zeroed());
-        }
-        
-        if glyphs.is_empty(){
-            glyphs.push(GlyphPoint::zeroed());
-        }
-
-        let arena_index_count = idx.len() as u32;
-
-        log::info!("grid: {} cells x {} files, {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres)",
-            cells, files.len(), instances.len(), verts.len(), segments.len(), pipe_count, glyphs.len(), sphere_count);
 
 
 
 
+        // The scene-shaped fields start as empty placeholders
+        // WebGPU zero-initializes buffers, and every *_count is 0, so the first frame draws nothing.
+        // The loader calls set_scene the moment the first file's tables exist.
+        let instances: Vec<Instance> = vec![Instance{
+            model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, _pad: [0;3],
+        }];
 
         let instance_buffer =  storage_buffer(&device, "instance.buffer", &instances);
+        let objects_base: Vec<(Xform, [f32; 4], u32)> = Vec::new();
+        let (pipe_count, segment_count, sphere_count, glyph_count) = (0u32, 0u32, 0u32, 0u32);
+        let arena_index_count = 0u32;
+        let (scene_min, scene_max) = ([0.0f32; 3], [0.0f32; 3]);
 
         let instance_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
             label: Some("instance.layout"),
@@ -431,20 +305,9 @@ impl Gpu {
             entries: &[wgpu::BindGroupEntry {binding: 0, resource: instance_buffer.as_entire_binding()}],
         });
 
-        let arena_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
-            label: Some("arena.vbo"),
-            contents: bytemuck::cast_slice(&verts), usage: wgpu::BufferUsages::VERTEX,
-        });
-
-        let arena_vids = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
-            label: Some("arena.vids"),
-            contents: bytemuck::cast_slice(&vids), usage: wgpu::BufferUsages::VERTEX,
-        });
-
-        let arena_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
-            label: Some("arena.ibo"),
-            contents: bytemuck::cast_slice(&idx), usage: wgpu::BufferUsages::INDEX,
-        });
+        let arena_vbo = zeroed_buffer(&device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, wgpu::BufferUsages::VERTEX);
+        let arena_vids = zeroed_buffer(&device, "arena.vids", 4, wgpu::BufferUsages::VERTEX);
+        let arena_ibo = zeroed_buffer(&device, "arena.ibo", 12, wgpu::BufferUsages::INDEX);
 
         // Unit-cylinder tempalte (positions only) - one mesh, instance per edge.
         let (cyl_v, cyl_i) = unit_cylinder(CYL_SIDES);
@@ -463,7 +326,10 @@ impl Gpu {
         });
 
         // One storage row per edge (VERTEX-visible, read-only) - the segment table.
-        let segment_buffer =  storage_buffer(&device, "segments.buffer", &segments);
+        let segment_buffer =  zeroed_buffer(
+            &device, "segments.buffer", 
+            std::mem::size_of::<CylinderSegment>() as u64, 
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
         
         let segment_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
             label: Some("segments.layout"),
@@ -500,7 +366,11 @@ impl Gpu {
             contents: bytemuck::cast_slice(&sph_i),
             usage: wgpu::BufferUsages::INDEX,
         });
-        let glyph_buffer =  storage_buffer(&device, "glyphs.buffer", &glyphs);
+        let glyph_buffer =  zeroed_buffer(
+            &device, 
+            "glyphs.buffer", 
+            std::mem::size_of::<GlyphPoint>() as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
         let glyph_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
             label: Some("glyphs.layout"),
             entries: &[wgpu::BindGroupLayoutEntry{
@@ -564,6 +434,7 @@ impl Gpu {
         });
 
         // Point buffer + the cloud uniform
+        let points: Vec<CloudPoint> = Vec::new();
         let point_count = points.len() as u32;
 
         // point storage buffer
@@ -628,6 +499,12 @@ impl Gpu {
             instances,
             last_origin: None,
             objects_base,
+            mvp_layout,
+            time_layout,
+            instance_layout,
+            line_layout,
+            segment_layout,
+            glyph_layout,
             instance_buffer, // was a dropped local in new(), now moved onto GPU so rebuild_instances() can write into every frame
             instance_bind_group,
             cyl_template_vbo,
@@ -659,101 +536,148 @@ impl Gpu {
 
     }
 
-    /// One file → compact tables. Called from state.rs BEFORE Gpu::new, so the parsed
-    /// Session (and its bytes) can be dropped before the next file is fetched.
-    pub fn walk_session(session: &session_rust::Session) -> SceneTables {
-        let mut t = SceneTables {
-            verts: Vec::new(),
-            vids: Vec::new(),
-            idx: Vec::new(),
-            pipes: Vec::new(),
-            spheres: Vec::new(),
-            segments: Vec::new(),
-            glyphs: Vec::new(),
-            objects: Vec::with_capacity(session.lookup.len()),
-            min: [f32::INFINITY; 3],
-            max: [f32::NEG_INFINITY; 3],
-        };
-        // Placement lives in the SESSION, not on the geometry - `to_render()`/`start()`/
-        // `get_points()` read stored coordinates, so the world xform IS the instance model.
-        // `world_xforms()` resolves the whole tree in one pass; asking per object would
-        // rescan the tree for every row. `ri` is the row in objects, not the lookup index -
-        // skipped variants (Plane/OBB/...) leave no hole.
-        let world = session.world_xforms();
-        let placement = |guid: &str| world.get(guid).cloned().unwrap_or_else(session_rust::Xform::identity);
-        for geom in session.lookup.values() {
-            let ri = t.objects.len() as u32;
-            match geom {
-                // 3D geometry takes the SOLID lane: edges are real cylinders and vertices real
-                // spheres, so ink is lifted off the surface by its own radius instead of being
-                // a flat quad at the surface's depth (which loses the depth test at silhouettes).
-                Geometry::Mesh(m) => {
-                    t.objects.push((placement(m.guid()), [1.0; 4] ));
-                    push_mesh(m, ri, &mut t.verts, &mut t.vids, &mut t.idx,
-                        &mut t.pipes, &mut t.spheres);
-                }
-                Geometry::BRep(b) => {
-                    let mut bm = b.mesh();
-                    bm.set_objectcolor(b.surfacecolor.clone());
-                    t.objects.push((placement(b.guid()), [1.0; 4]));
-                    push_mesh(&bm, ri, &mut t.verts, &mut t.vids, &mut t.idx,
-                        &mut t.pipes, &mut t.spheres);
-                }
-                Geometry::Line(l) => {
-                    t.objects.push((placement(l.guid()), [1.0; 4]));
-                    t.segments.push(line_to_segment(l, ri));
-                }
-                Geometry::Polyline(pl) => {
-                    t.objects.push((placement(pl.guid()), [1.0; 4]));
-                    t.segments.extend(polyline_to_segments(pl, ri));
-                }
-                // Curves ride the FLAT lane too - sampled to segments, they ARE polylines by
-                // the time the GPU sees them. A PDF sheet is mostly these (every bezier, and
-                // every glyph outline once fonts are flattened to paths).
-                Geometry::NurbsCurve(c) => {
-                    t.objects.push((placement(c.guid()), [1.0; 4]));
-                    t.segments.extend(nurbscurve_to_segments(c, ri));
-                }
-                Geometry::Point(p) => {
-                    t.objects.push((placement(p.guid()), [1.0; 4]));
-                    t.glyphs.push(point_to_glyph(p, ri));
-                }
-                // Later lessons - the match must stay exhaustive over all 11 variants
-                Geometry::Plane(_) | Geometry::OBB(_) |
-                Geometry::PointCloud(_) | Geometry::Element(_) |
-                Geometry::NurbsSurface(_) => {}
-            }
+    /// Replace the whole scene scene from the app's tables - called once per file while progressive loading appends.
+    /// ZERO-COPY: lanes are written straight from the Scene's Vecs into fresh buffers (two write_buffer calls splice SOLID-first),
+    /// so nothing is cloned per append.
+    /// WebGPU zero-initializes buffers, so an empty category is just a  1-row zeroed buffer.
+    /// An MSAA flip (first solid file after flat-only ones) also rebuilds the depth/msaa targets and every pipeline, since sample count belongs to the render PASS.
+    pub fn set_scene(&mut self, up: &ArenaUpload){
+        use wgpu::util::DeviceExt;
+
+        // Instance rows: rebuilt from the true transforms (rebase stete, must live CPU-side).
+        self.objects_base = up.objects.clone();
+        self.instances.clear();
+        self.instances.extend(up.objects.iter().map(|(m, c, f)| Instance {
+            model: m.to_f32(),
+            color: *c,
+            flags: *f,
+            _pad: [0; 3],
+        }));
+
+        if self.instances.is_empty(){
+            self.instances.push(Instance {model: Xform::identity().to_f32(), color: [0.5,0.5,0.5,1.0], flags: 0, _pad: [0; 3] });
         }
-        // This FILE's extents in WORLD placement (apply each object's xform), so the stress-grid
-        // cell size matches what is actually drawn and files do not overlap each other.
-        for (i, v) in t.verts.iter().enumerate() {
-            if let Some(&ri) = t.vids.get(i) {
-                if let Some((xf, _)) = t.objects.get(ri as usize) {
-                    grow_bounds(&mut t.min, &mut t.max, xform_point(xf, v.position));
-                }
-            }
+
+        self.instance_buffer = storage_buffer(&self.device, "instance.buffer", &self.instances);
+        self.instance_bind_group = self.device.create_bind_group( &wgpu::BindGroupDescriptor{
+            label: Some("instances.bind_group"),
+            layout: &self.instance_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: self.instance_buffer.as_entire_binding()
+            }],
+        });
+
+        // Mesh arena - straight from the Scene's Vecs; the empy case is a zeroed placeholder.
+        if up.verts.is_empty() {
+            self.arena_vbo = zeroed_buffer(&self.device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, wgpu::BufferUsages::VERTEX);
+            self.arena_vids = zeroed_buffer(&self.device, "arena.vids", 4, wgpu::BufferUsages::VERTEX);
+            self.arena_ibo = zeroed_buffer(&self.device, "arena.ibo", 12, wgpu::BufferUsages::INDEX);
+            self.arena_index_count = 3;
+        } else {
+            self.arena_vbo = self.device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor{
+                    label: Some("arena.vbo"),
+                    contents: bytemuck::cast_slice(&up.verts),
+                    usage: wgpu::BufferUsages::VERTEX,
+                });
+            self.arena_vids = self.device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor{
+                    label: Some("arena.vids"),
+                    contents: bytemuck::cast_slice(&up.vids),
+                    usage: wgpu::BufferUsages::VERTEX,
+                });
+            self.arena_ibo = self.device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor {
+                    label: Some("arena.ibo"),
+                    contents: bytemuck::cast_slice(&up.idx),
+                    usage: wgpu::BufferUsages::INDEX,
+                });
+            self.arena_index_count = up.idx.len() as u32;
         }
-        for s in t.pipes.iter().chain(t.segments.iter()) {
-            if let Some((xf, _)) = t.objects.get(s.instance_id as usize) {
-                grow_bounds(&mut t.min, &mut t.max, xform_point(xf, s.p0));
-                grow_bounds(&mut t.min, &mut t.max, xform_point(xf, s.p1));
-            }
+
+        // The two lane tables: one buffer each, solid rows firstm spliced by two writes.
+        self.pipe_count = up.pipes.len() as u32;
+        self.segment_count = (up.pipes.len() + up.segments.len()) as u32;
+        let rows = (self.segment_count as u64).max(1);
+        self.segment_buffer = zeroed_buffer(
+            &self.device, "segments.buffer", 
+            rows * std::mem::size_of::<CylinderSegment>() as u64, 
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        self.queue.write_buffer(
+            &self.segment_buffer, 
+            0, 
+            bytemuck::cast_slice(&up.pipes));
+        self.queue.write_buffer(
+            &self.segment_buffer, 
+            up.pipes.len() as u64 * std::mem::size_of::<CylinderSegment>() as u64, 
+            bytemuck::cast_slice(&up.segments));
+        self.segment_bind_group = self.device.create_bind_group(
+            &wgpu::BindGroupDescriptor {
+                label: Some("segments.bind_group"),
+                layout: &self.segment_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: self.segment_buffer.as_entire_binding()
+                }],
+        });
+
+        self.sphere_count = up.spheres.len() as u32;
+        self.glyph_count = (up.spheres.len() + up.glyphs.len()) as u32;
+        let rows = (self.glyph_count as u64).max(1);
+        self.glyph_buffer = zeroed_buffer(
+            &self.device,
+            "glyphs.buffer",
+            rows * std::mem::size_of::<GlyphPoint> as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST
+        );
+        self.queue.write_buffer(
+            &self.glyph_buffer,
+            0,
+            bytemuck::cast_slice(&up.spheres),
+        );
+        self.queue.write_buffer(
+            &self.glyph_buffer,
+            up.spheres.len() as u64 * std::mem::size_of::<GlyphPoint> as u64,
+            bytemuck::cast_slice(&up.glyphs),
+        );
+        self.glyph_bind_group = self.device.create_bind_group(
+            &wgpu::BindGroupDescriptor {
+                label: Some("glyphs.bind_group"),
+                layout: &self.glyph_layout,
+                entries: &[wgpu::BindGroupEntry{
+                    binding: 0,
+                    resource: self.glyph_buffer.as_entire_binding()
+                }],
+        });
+
+        self.last_origin = None; // force the next frame to rebase agains the new table
+        self.scene_min = if up.min[0].is_finite() { up.min } else { [0.0; 3] };
+        self.scene_max = if up.min[0].is_finite() { up.max } else { [0.0; 3] };
+
+        log::info!(
+            "scene: {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres)",
+            self.instances.len(), up.verts.len(), self.segment_count, self.pipe_count, self.glyph_count, self.sphere_count
+        );
+
+        let samples = Self::msaa_for(up);
+        if samples != self.samples {
+            self.samples = samples;
+            self.depth_view = Self::create_depth_view(&self.device, &self.config, samples);
+            self.msaa_view = Self::create_msaa_view(&self.device, &self.config, samples);
+            self.pipelines = Pipelines::new(
+                &self.device,
+                samples,
+                self.config.format,
+                &self.mvp_layout,
+                &self.time_layout,
+                &self.instance_layout,
+                &self.line_layout,
+                &self.segment_layout,
+                &self.glyph_layout
+            );
+            log::info!("msaa: {}x", samples);
         }
-        for g in t.spheres.iter().chain(t.glyphs.iter()) {
-            if let Some((xf, _)) = t.objects.get(g.instance_id as usize) {
-                grow_bounds(&mut t.min, &mut t.max, xform_point(xf, g.center));
-            }
-        }
-        // 2D Drawing sheets (exactly planar, z = 0 - every PDF conversion get paper space)
-        // lineweights: kernel width (mm on the sheet) - the radius world lane, so zooming out
-        // thins the ink like a real print. 3D model files keep screen-constant px linework
-        let planar = t.min[2].is_finite() && (t.max[2] - t.min[2]).abs() < 1e-3;
-        if planar {
-            for s in t.pipes.iter_mut().chain(t.segments.iter_mut()) {
-                s.radius = if s.radius < 0.0 { -s.radius * 0.5 } else { 0.5 }
-            }
-        }
-        t
     }
 
     /// The anchor the instance table is rebased about.
@@ -792,7 +716,7 @@ impl Gpu {
         // }
         // self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
         self.last_origin = Some(origin.clone());
-        for (i, (model, color)) in self.objects_base.iter().enumerate() {
+        for (i, (model, color, _)) in self.objects_base.iter().enumerate() {
             let mut m = model.to_f32();
             m[12] = (model.m[12] - origin[0]) as f32;
             m[13] = (model.m[13] - origin[1]) as f32;
@@ -1011,8 +935,8 @@ impl Gpu {
     /// instead - hard-edged geometry (triangles, tubes, spheres) is the only thing MSAA smooths,
     /// while ribbons and dots antialias themselves in the shader. A 2D sheet therefore pays
     /// nothing, and a model with meshes gets clean silhouettes.
-    fn msaa_for(files: &[(SceneTables, Xform)]) -> u32 {
-        let solid = files.iter().any(|(f, _)| !f.verts.is_empty() || !f.pipes.is_empty() || !f.spheres.is_empty());
+    fn msaa_for(up: &ArenaUpload) -> u32 {
+        let solid = !up.verts.is_empty() || !up.pipes.is_empty() || !up.spheres.is_empty();
         if solid { 4 } else { 1 }
     }
 
@@ -1049,11 +973,15 @@ impl Gpu {
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-struct Instance {
+pub struct Instance {
     model: [f32; 16], // 64 B - column-major, from Xform::to_f32()
     color: [f32; 4], // 16 B
     flags: u32, // 4 B - reserved (selection)
     _pad: [u32; 3], // 12 B - pad the row to 96 B (storage array stride)
+}
+
+impl Instance {
+    pub const FLAG_HIDDEN: u32 = 1 << 1; // Row is skipped by the draw, bit 0 is reserved for FLAG_SELECTED
 }
 
 
@@ -1064,12 +992,12 @@ struct Instance {
 // Memory layout is 16 (12+4), 16 (12+4) and 16
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-struct CylinderSegment{
-    p0: [f32; 3],   // 12 B - start point 
-    radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 0 -> wolrd mm override
-    p1: [f32; 3],   // 12 B - end point (p0..instance_id = 32 B of geometry)
-    instance_id: u32,  // 4 B - row in instances[]: object model + flags (hide/select later)
-    color: [f32; 4],  // 16 B - per - edge (black crease, naked color, ...)
+pub struct CylinderSegment{
+    pub p0: [f32; 3],   // 12 B - start point 
+    pub radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 0 -> wolrd mm override
+    pub p1: [f32; 3],   // 12 B - end point (p0..instance_id = 32 B of geometry)
+    pub instance_id: u32,  // 4 B - row in instances[]: object model + flags (hide/select later)
+    pub color: [f32; 4],  // 16 B - per - edge (black crease, naked color, ...)
 }
 
 #[repr(C)]
@@ -1098,12 +1026,12 @@ const _: () = assert!(std::mem::size_of::<LineUniform>() == 48);
 // One instance of the unit-sphere template.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-struct GlyphPoint{
-    center: [f32; 3], // 12 B - mesh-local
-    radius: f32, // 4 B - 0.0 - screen-constant px; 0 - world mm
-    color:  [f32; 4],
-    instance_id: u32, // 4 B - row insntaces
-    _pad: [u32; 3], // 12 B - single trailing scalar is why we need pad
+pub struct GlyphPoint{
+    pub center: [f32; 3], // 12 B - mesh-local
+    pub radius: f32, // 4 B - 0.0 - screen-constant px; 0 - world mm
+    pub color:  [f32; 4],
+    pub instance_id: u32, // 4 B - row insntaces
+    pub _pad: [u32; 3], // 12 B - single trailing scalar is why we need pad
 } // 48 B total, three 16-byte rows
 
 // Points inscribed in circles used for pointclouds
@@ -1195,99 +1123,20 @@ fn unit_sphere() -> (Vec<[f32; 3]>, Vec<u32>) {
     (v, idx)
 }
 
-fn push_mesh(
-    m: &Mesh,
-    ri: u32,
-    verts: &mut Vec<RenderVertex>,
-    vids: &mut Vec<u32>,
-    idx: &mut Vec<u32>,
-    segments: &mut Vec<CylinderSegment>,
-    glyphs: &mut Vec<GlyphPoint>
-){
-    let base = verts.len() as u32;
-    let rm = m.to_render();
-    for v in &rm.vertices{
-        verts.push(*v);
-        vids.push(ri);
-    }
-    for &i in &rm.indices{
-        idx.push(base+i);
-    }
-
-    // Edge width 0 = HIDDEN wireframe. A mesh only has explicit widths if someone called
-    // set_linecolors, so the 1.0 default below leaves every ordinary mesh untouched - but a
-    // triangulated PDF fill (a letter, a poché region) asks for no wireframe at all, and without
-    // this every glyph would render outlined in tubes and dotted at each vertex.
-    // A single width BROADCASTS to every edge - one entry instead of one per edge, which for
-    // thousands of small glyph meshes is the difference between a lean .pb and a fat one.
-    let width_at = |i: usize| -> f64 {
-        let w = m.widths();
-        if w.len() == 1 { w[0] } else { w.get(i).copied().unwrap_or(1.0) }
-    };
-    let hidden = |i: usize| width_at(i) == 0.0;
-
-    for (i, (a, b, col)) in m.edges_with_colors().into_iter().enumerate(){
-        if hidden(i) { continue }
-        let pa = m.vertex_point(a).unwrap();
-        let pb = m.vertex_point(b).unwrap();
-        segments.push(
-            CylinderSegment{
-                p0: pa.to_f32(),
-                radius: encode_width(width_at(i)),
-                p1: pb.to_f32(),
-                instance_id: ri,
-                color: col.to_f32()
-            }
-        )
-    }
-
-    // Dots honor user-set pointcolors.
-    // The auto-seeded white vec is filtered by the MODE gate.
-    // m.vertices() is sorted - the same order to_render indexes pointcolors by.
-    let pc = m.get_pointcolors();
-    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
-    // A vertex sphere must be as fat as the pipes that meet there, or the joint shows a pinch
-    // (thinner sphere) or a bead (fatter one). The kernel has no per-vertex width, so take the
-    // widest incident edge - the same encoding the pipes above are pushed with.
-    let mut vwidth: std::collections::HashMap<usize, f64> = std::collections::HashMap::new();
-    for (i, (a, b, _)) in m.edges_with_colors().into_iter().enumerate(){
-        if hidden(i) { continue }   // a vertex whose every edge is hidden gets no dot either
-        let w = width_at(i);
-        for vk in [a, b] {
-            let e = vwidth.entry(vk).or_insert(w);
-            if w > *e { *e = w; }
-        }
-    }
-    for (i,vk) in m.vertices().into_iter().enumerate(){
-        let Some(&vw) = vwidth.get(&vk) else { continue };
-        let p = m.vertex_point(vk).unwrap();
-        glyphs.push(
-            GlyphPoint {
-                center: p.to_f32(),
-                radius: encode_width(vw),
-                color: if dots_colored { pc[i].to_f32() } else { [0.1, 0.1, 0.1, 1.0] },
-                instance_id: ri,
-                _pad: [0;3] }
-        );
-    }
-}
-
-fn xform_point(xf: &Xform, p: [f32; 3]) -> [f32; 3] {
-    let x = p[0] as f64;
-    let y = p[1] as f64;
-    let z = p[2] as f64;
-    [
-        (xf.m[0] * x + xf.m[4] * y + xf.m[8] * z + xf.m[12]) as f32,
-        (xf.m[1] * x + xf.m[5] * y + xf.m[9] * z + xf.m[13]) as f32,
-        (xf.m[2] * x + xf.m[6] * y + xf.m[10] * z + xf.m[14]) as f32,
-    ]
-}
-
-fn grow_bounds(min: &mut [f32; 3], max: &mut [f32; 3], p: [f32; 3]) {
-    for k in 0..3 {
-        min[k] = min[k].min(p[k]);
-        max[k] = max[k].max(p[k]);
-    }
+/// A fresh buffer of `size` bytes, zero-initialized by WebGPU - the write_buffer splice and the empty-category placeholders both rely on that guarantee.
+fn zeroed_buffer(
+    device: &wgpu::Device,
+    label: &str,
+    size: u64,
+    usage: wgpu::BufferUsages
+) -> wgpu::Buffer {
+    device.create_buffer(
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size,
+            usage,
+            mapped_at_creation: false,
+        })
 }
 
 /// A read-only storage buffer that is never zero-sized (wgpu can't bind a 0-byte buffer).

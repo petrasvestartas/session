@@ -58,13 +58,13 @@ impl State {
             if !session.lookup.is_empty(){
                 // The manifest's placement, or a grid slot when it does not say.
                 let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [7500.0, 4800.0]));
-                files.push((Gpu::walk_session(&session), place)); // failed fetch = skipped file
+                // files.push((Gpu::walk_session(&session), place)); // failed fetch = skipped file
             }
             // `session` + `bytes` DROP here - peak memory holds one parsed file, not all of them
         }
 
         let t1 = now_ms();
-        let gpu = Gpu::new(window.clone(), &files).await?;
+        let gpu = Gpu::new(window.clone()).await?;
         log::info!("{} files | load {:.0}ms · gpu {:.0}ms", files.len(), t1 - t0, now_ms() - t1);
 
         Ok(Self {window, gpu, camera: Camera::new() })

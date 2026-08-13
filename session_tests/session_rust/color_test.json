@@ -1,0 +1,392 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "red.name == \"red\"",
+        "line": 196,
+        "passed": true
+      },
+      {
+        "code_line": "!red.guid().is_empty()",
+        "line": 197,
+        "passed": true
+      },
+      {
+        "code_line": "red.r == 1.0 && red.g == 0.0 && red.b == 0.0 && red.a == 1.0",
+        "line": 198,
+        "passed": true
+      },
+      {
+        "code_line": "r == 1.0 && g == 0.0 && b == 0.0 && a == 1.0",
+        "line": 199,
+        "passed": true
+      },
+      {
+        "code_line": "cstr == \"1.0, 0.0, 0.0, 1.0\"",
+        "line": 200,
+        "passed": true
+      },
+      {
+        "code_line": "crepr == \"Color(red, 1.0, 0.0, 0.0, 1.0)\"",
+        "line": 201,
+        "passed": true
+      },
+      {
+        "code_line": "ccopy == cother",
+        "line": 202,
+        "passed": true
+      },
+      {
+        "code_line": "ccopy.guid() != red.guid()",
+        "line": 203,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Color;\n\n        // Constructor\n        let mut red = Color::new(1.0, 0.0, 0.0, 1.0);\n        red.name = \"red\".to_string();\n\n        // Setters\n        red.r = 1.0;\n        red.g = 0.0;\n        red.b = 0.0;\n        red.a = 1.0;\n\n        // Getters\n        let r = red.r;\n        let g = red.g;\n        let b = red.b;\n        let a = red.a;\n\n        // Minimal and Full String Representation\n        let cstr = red.str();\n        let crepr = red.repr();\n\n        // Copy (duplicates everything except guid)\n        let ccopy = red.duplicate();\n        let mut cother = Color::new(1.0, 0.0, 0.0, 1.0);\n        cother.name = \"red\".to_string();\n",
+    "failures": [],
+    "group": "Color",
+    "line": 168,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.023
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.name == \"test_color\"",
+        "line": 222,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.r == 1.0",
+        "line": 223,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.g == 0.5",
+        "line": 224,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.b == 0.25",
+        "line": 225,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.a == 1.0",
+        "line": 226,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Color;\n\n        let color = Color::with_name(1.0, 0.5, 0.25, 1.0, \"test_color\");\n\n        //   file_json_dumps()    │ String       │ to JSON string\n        //   file_json_loads(s)   │ String       │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_color.json\";\n        color.file_json_dump(filename).unwrap();\n        let loaded = Color::file_json_load(filename).unwrap();\n",
+    "failures": [],
+    "group": "Color",
+    "line": 208,
+    "passed": true,
+    "test_name": "Json Roundtrip",
+    "time_ms": 0.233
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.name == \"test_color\"",
+        "line": 241,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.r == 1.0",
+        "line": 242,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.g == 0.5",
+        "line": 243,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.b == 0.25",
+        "line": 244,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.a == 1.0",
+        "line": 245,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Color;\n\n        let mut color = Color::new(1.0, 0.5, 0.25, 1.0);\n        color.name = \"test_color\".to_string();\n\n        let filename = \"serialization/test_color.bin\";\n        color.pb_dump(filename);\n        let loaded = Color::pb_load(filename);\n",
+    "failures": [],
+    "group": "Color",
+    "line": 231,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 0.315
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(flts[0] as f64, 1.0)",
+        "line": 257,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(flts[1] as f64, 0.5)",
+        "line": 258,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(flts[2] as f64, 0.25)",
+        "line": 259,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(flts[3] as f64, 1.0)",
+        "line": 260,
+        "passed": true
+      },
+      {
+        "code_line": "color2 == color",
+        "line": 261,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Color;\n\n        let color = Color::new(1.0, 0.5, 0.25, 1.0);\n        let flts = color.to_float_array();\n        let color2 = Color::from_float(flts[0], flts[1], flts[2], flts[3]);\n",
+    "failures": [],
+    "group": "Color",
+    "line": 250,
+    "passed": true,
+    "test_name": "Conversion",
+    "time_ms": 0.008
+  },
+  {
+    "checks": [
+      {
+        "code_line": "white.r == 1.0 && white.g == 1.0 && white.b == 1.0",
+        "line": 292,
+        "passed": true
+      },
+      {
+        "code_line": "white.name == \"white\"",
+        "line": 293,
+        "passed": true
+      },
+      {
+        "code_line": "black.r == 0.0 && black.g == 0.0 && black.b == 0.0",
+        "line": 294,
+        "passed": true
+      },
+      {
+        "code_line": "black.name == \"black\"",
+        "line": 295,
+        "passed": true
+      },
+      {
+        "code_line": "grey.r == 0.5 && grey.g == 0.5 && grey.b == 0.5",
+        "line": 296,
+        "passed": true
+      },
+      {
+        "code_line": "grey.name == \"grey\"",
+        "line": 297,
+        "passed": true
+      },
+      {
+        "code_line": "red.r == 1.0 && red.g == 0.0 && red.b == 0.0",
+        "line": 298,
+        "passed": true
+      },
+      {
+        "code_line": "red.name == \"red\"",
+        "line": 299,
+        "passed": true
+      },
+      {
+        "code_line": "orange.r == 1.0 && orange.g == 0.5 && orange.b == 0.0",
+        "line": 300,
+        "passed": true
+      },
+      {
+        "code_line": "orange.name == \"orange\"",
+        "line": 301,
+        "passed": true
+      },
+      {
+        "code_line": "yellow.r == 1.0 && yellow.g == 1.0 && yellow.b == 0.0",
+        "line": 302,
+        "passed": true
+      },
+      {
+        "code_line": "yellow.name == \"yellow\"",
+        "line": 303,
+        "passed": true
+      },
+      {
+        "code_line": "lime.r == 0.5 && lime.g == 1.0 && lime.b == 0.0",
+        "line": 304,
+        "passed": true
+      },
+      {
+        "code_line": "lime.name == \"lime\"",
+        "line": 305,
+        "passed": true
+      },
+      {
+        "code_line": "green.r == 0.0 && green.g == 1.0 && green.b == 0.0",
+        "line": 306,
+        "passed": true
+      },
+      {
+        "code_line": "green.name == \"green\"",
+        "line": 307,
+        "passed": true
+      },
+      {
+        "code_line": "mint.r == 0.0 && mint.g == 1.0 && mint.b == 0.5",
+        "line": 308,
+        "passed": true
+      },
+      {
+        "code_line": "mint.name == \"mint\"",
+        "line": 309,
+        "passed": true
+      },
+      {
+        "code_line": "cyan.r == 0.0 && cyan.g == 1.0 && cyan.b == 1.0",
+        "line": 310,
+        "passed": true
+      },
+      {
+        "code_line": "cyan.name == \"cyan\"",
+        "line": 311,
+        "passed": true
+      },
+      {
+        "code_line": "azure.r == 0.0 && azure.g == 0.5 && azure.b == 1.0",
+        "line": 312,
+        "passed": true
+      },
+      {
+        "code_line": "azure.name == \"azure\"",
+        "line": 313,
+        "passed": true
+      },
+      {
+        "code_line": "blue.r == 0.0 && blue.g == 0.0 && blue.b == 1.0",
+        "line": 314,
+        "passed": true
+      },
+      {
+        "code_line": "blue.name == \"blue\"",
+        "line": 315,
+        "passed": true
+      },
+      {
+        "code_line": "violet.r == 0.5 && violet.g == 0.0 && violet.b == 1.0",
+        "line": 316,
+        "passed": true
+      },
+      {
+        "code_line": "violet.name == \"violet\"",
+        "line": 317,
+        "passed": true
+      },
+      {
+        "code_line": "magenta.r == 1.0 && magenta.g == 0.0 && magenta.b == 1.0",
+        "line": 318,
+        "passed": true
+      },
+      {
+        "code_line": "magenta.name == \"magenta\"",
+        "line": 319,
+        "passed": true
+      },
+      {
+        "code_line": "pink.r == 1.0 && pink.g == 0.0 && pink.b == 0.5",
+        "line": 320,
+        "passed": true
+      },
+      {
+        "code_line": "pink.name == \"pink\"",
+        "line": 321,
+        "passed": true
+      },
+      {
+        "code_line": "maroon.r == 0.5 && maroon.g == 0.0 && maroon.b == 0.0",
+        "line": 322,
+        "passed": true
+      },
+      {
+        "code_line": "maroon.name == \"maroon\"",
+        "line": 323,
+        "passed": true
+      },
+      {
+        "code_line": "brown.r == 0.5 && brown.g == 0.25 && brown.b == 0.0",
+        "line": 324,
+        "passed": true
+      },
+      {
+        "code_line": "brown.name == \"brown\"",
+        "line": 325,
+        "passed": true
+      },
+      {
+        "code_line": "olive.r == 0.5 && olive.g == 0.5 && olive.b == 0.0",
+        "line": 326,
+        "passed": true
+      },
+      {
+        "code_line": "olive.name == \"olive\"",
+        "line": 327,
+        "passed": true
+      },
+      {
+        "code_line": "teal.r == 0.0 && teal.g == 0.5 && teal.b == 0.5",
+        "line": 328,
+        "passed": true
+      },
+      {
+        "code_line": "teal.name == \"teal\"",
+        "line": 329,
+        "passed": true
+      },
+      {
+        "code_line": "navy.r == 0.0 && navy.g == 0.0 && navy.b == 0.5",
+        "line": 330,
+        "passed": true
+      },
+      {
+        "code_line": "navy.name == \"navy\"",
+        "line": 331,
+        "passed": true
+      },
+      {
+        "code_line": "purple.r == 0.5 && purple.g == 0.0 && purple.b == 0.5",
+        "line": 332,
+        "passed": true
+      },
+      {
+        "code_line": "purple.name == \"purple\"",
+        "line": 333,
+        "passed": true
+      },
+      {
+        "code_line": "silver.r == 0.75 && silver.g == 0.75 && silver.b == 0.75",
+        "line": 334,
+        "passed": true
+      },
+      {
+        "code_line": "silver.name == \"silver\"",
+        "line": 335,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Color;\n\n        let white = Color::white();\n        let black = Color::black();\n        let grey = Color::grey();\n        let red = Color::red();\n        let orange = Color::orange();\n        let yellow = Color::yellow();\n        let lime = Color::lime();\n        let green = Color::green();\n        let mint = Color::mint();\n        let cyan = Color::cyan();\n        let azure = Color::azure();\n        let blue = Color::blue();\n        let violet = Color::violet();\n        let magenta = Color::magenta();\n        let pink = Color::pink();\n        let maroon = Color::maroon();\n        let brown = Color::brown();\n        let olive = Color::olive();\n        let teal = Color::teal();\n        let navy = Color::navy();\n        let purple = Color::purple();\n        let silver = Color::silver();\n",
+    "failures": [],
+    "group": "Color",
+    "line": 266,
+    "passed": true,
+    "test_name": "Presets",
+    "time_ms": 0.083
+  }
+]

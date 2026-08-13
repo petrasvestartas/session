@@ -1,0 +1,626 @@
+[
+  {
+    "group": "Matrix",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.052,
+    "line": 10,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix m = Matrix::zeros(2, 3);\n    Matrix eye = Matrix::identity(3);\n    Matrix ml = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    Matrix mr = Matrix::from_rows({{1.0, 2.0}, {3.0, 4.0}});\n    Matrix mc = Matrix::from_cols({{1.0, 3.0}, {2.0, 4.0}});\n    double v00 = ml(0, 0);\n    double v01 = ml(0, 1);\n    double v10 = ml(1, 0);\n    double v11 = ml(1, 1);\n    bool eq = (ml == mr);\n    bool ne = (ml != Matrix::identity(2));\n    std::string sstr = m.str();\n    std::string srepr = eye.repr();\n    Matrix d = ml.duplicate();",
+    "checks": [
+      {
+        "line": 27,
+        "code_line": "m.rows == 2 && m.cols == 3",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "m.name == \"my_matrix\" && !m.guid().empty()",
+        "passed": true
+      },
+      {
+        "line": 29,
+        "code_line": "eye(0, 0) == 1.0 && eye(1, 1) == 1.0 && eye(2, 2) == 1.0",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "eye(0, 1) == 0.0",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "v00 == 1.0 && v01 == 2.0 && v10 == 3.0 && v11 == 4.0",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "mc == ml",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "eq",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "ne",
+        "passed": true
+      },
+      {
+        "line": 35,
+        "code_line": "sstr.find(\"Matrix(2x3)\") != std::string::npos",
+        "passed": true
+      },
+      {
+        "line": 36,
+        "code_line": "srepr.find(\"Matrix(\") != std::string::npos",
+        "passed": true
+      },
+      {
+        "line": 37,
+        "code_line": "d == ml && d.guid() != ml.guid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Properties",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 40,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix m1 = Matrix::identity(3);\n    Matrix m2 = Matrix::zeros(2, 3);\n    Matrix m3 = Matrix::from_vec(3, 3, {1.0, 2.0, 3.0, 2.0, 5.0, 6.0, 3.0, 6.0, 9.0});\n    Matrix m4 = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    bool sq1 = m1.is_square();\n    bool sq2 = m2.is_square();\n    bool sym1 = m3.is_symmetric();\n    bool sym2 = m4.is_symmetric();\n    double tr = m1.trace();",
+    "checks": [
+      {
+        "line": 52,
+        "code_line": "sq1",
+        "passed": true
+      },
+      {
+        "line": 53,
+        "code_line": "!sq2",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "sym1",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "!sym2",
+        "passed": true
+      },
+      {
+        "line": 56,
+        "code_line": "TOLERANCE.is_close(tr, 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Add",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 59,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    Matrix b = Matrix::from_vec(2, 2, {5.0, 6.0, 7.0, 8.0});\n    Matrix c = a.add(b);\n    Matrix d = a + b;",
+    "checks": [
+      {
+        "line": 66,
+        "code_line": "c(0, 0) == 6.0 && c(0, 1) == 8.0",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "c(1, 0) == 10.0 && c(1, 1) == 12.0",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "c == d",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Subtract",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 71,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {5.0, 6.0, 7.0, 8.0});\n    Matrix b = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    Matrix c = a.subtract(b);\n    Matrix d = a - b;",
+    "checks": [
+      {
+        "line": 78,
+        "code_line": "c(0, 0) == 4.0 && c(0, 1) == 4.0",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "c(1, 0) == 4.0 && c(1, 1) == 4.0",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "c == d",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Scale",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 83,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    Matrix b = a.scale(2.0);\n    Matrix c = a.scale(3.0);",
+    "checks": [
+      {
+        "line": 89,
+        "code_line": "b(0, 0) == 2.0 && b(0, 1) == 4.0 && b(1, 0) == 6.0 && b(1, 1) == 8.0",
+        "passed": true
+      },
+      {
+        "line": 90,
+        "code_line": "c(0, 0) == 3.0 && c(1, 1) == 12.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Multiply",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 93,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    Matrix b = Matrix::from_vec(3, 2, {7.0, 8.0, 9.0, 10.0, 11.0, 12.0});\n    Matrix c = a.multiply(b);\n    Matrix d = a * b;",
+    "checks": [
+      {
+        "line": 100,
+        "code_line": "c.rows == 2 && c.cols == 2",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "TOLERANCE.is_close(c(0, 0), 58.0) && TOLERANCE.is_close(c(0, 1), 64.0)",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "TOLERANCE.is_close(c(1, 0), 139.0) && TOLERANCE.is_close(c(1, 1), 154.0)",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "c == d",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Transpose",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 106,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    Matrix t = a.transpose();",
+    "checks": [
+      {
+        "line": 111,
+        "code_line": "t.rows == 3 && t.cols == 2",
+        "passed": true
+      },
+      {
+        "line": 112,
+        "code_line": "t(0, 0) == 1.0 && t(1, 0) == 2.0 && t(2, 0) == 3.0",
+        "passed": true
+      },
+      {
+        "line": 113,
+        "code_line": "t(0, 1) == 4.0 && t(1, 1) == 5.0 && t(2, 1) == 6.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Determinant",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 116,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a1 = Matrix::from_vec(1, 1, {5.0});\n    Matrix a2 = Matrix::from_vec(2, 2, {4.0, 7.0, 2.0, 6.0});\n    Matrix a3 = Matrix::from_vec(3, 3, {1.0, 2.0, 3.0, 0.0, 1.0, 4.0, 5.0, 6.0, 0.0});\n    Matrix eye3 = Matrix::identity(3);",
+    "checks": [
+      {
+        "line": 123,
+        "code_line": "TOLERANCE.is_close(a1.determinant(), 5.0)",
+        "passed": true
+      },
+      {
+        "line": 124,
+        "code_line": "TOLERANCE.is_close(a2.determinant(), 10.0)",
+        "passed": true
+      },
+      {
+        "line": 125,
+        "code_line": "TOLERANCE.is_close(a3.determinant(), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "TOLERANCE.is_close(eye3.determinant(), 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Inverse",
+    "passed": true,
+    "time_ms": 0.011,
+    "line": 129,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {4.0, 7.0, 2.0, 6.0});\n    auto inv = a.inverse();\n    Matrix singular = Matrix::from_vec(2, 2, {1.0, 2.0, 2.0, 4.0});\n    auto inv_none = singular.inverse();\n    Matrix prod = a.multiply(*inv);",
+    "checks": [
+      {
+        "line": 137,
+        "code_line": "inv.has_value()",
+        "passed": true
+      },
+      {
+        "line": 138,
+        "code_line": "TOLERANCE.is_close((*inv)(0, 0), 0.6) && TOLERANCE.is_close((*inv)(0, 1), -0.7)",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "TOLERANCE.is_close((*inv)(1, 0), -0.2) && TOLERANCE.is_close((*inv)(1, 1), 0.4)",
+        "passed": true
+      },
+      {
+        "line": 140,
+        "code_line": "!inv_none.has_value()",
+        "passed": true
+      },
+      {
+        "line": 141,
+        "code_line": "TOLERANCE.is_close(prod(0, 0), 1.0) && TOLERANCE.is_close(prod(1, 1), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 142,
+        "code_line": "TOLERANCE.is_close(prod(0, 1), 0.0) && TOLERANCE.is_close(prod(1, 0), 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Solve",
+    "passed": true,
+    "time_ms": 0.01,
+    "line": 145,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {2.0, 1.0, 1.0, 3.0});\n    Matrix b = Matrix::from_vec(2, 1, {5.0, 10.0});\n    auto x = a.solve(b);\n    // 2x+y=5, x+3y=10 → x=1, y=3\n\n    double residual_0 = 2.0 * (*x)(0, 0) + 1.0 * (*x)(1, 0);\n    double residual_1 = 1.0 * (*x)(0, 0) + 3.0 * (*x)(1, 0);",
+    "checks": [
+      {
+        "line": 152,
+        "code_line": "x.has_value()",
+        "passed": true
+      },
+      {
+        "line": 156,
+        "code_line": "TOLERANCE.is_close((*x)(0, 0), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 157,
+        "code_line": "TOLERANCE.is_close((*x)(1, 0), 3.0)",
+        "passed": true
+      },
+      {
+        "line": 158,
+        "code_line": "TOLERANCE.is_close(residual_0, 5.0)",
+        "passed": true
+      },
+      {
+        "line": 159,
+        "code_line": "TOLERANCE.is_close(residual_1, 10.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Lu Decompose",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 162,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0});\n    auto [l, u, p] = a.lu_decompose();\n    Matrix pa = p.multiply(a);\n    Matrix lu = l.multiply(u);",
+    "checks": [
+      {
+        "line": 169,
+        "code_line": "l.rows == 3 && u.cols == 3",
+        "passed": true
+      },
+      {
+        "line": 170,
+        "code_line": "TOLERANCE.is_close(pa(0, 0), lu(0, 0)) && TOLERANCE.is_close(pa(0, 1), lu(0, 1))",
+        "passed": true
+      },
+      {
+        "line": 171,
+        "code_line": "TOLERANCE.is_close(pa(1, 0), lu(1, 0)) && TOLERANCE.is_close(pa(2, 2), lu(2, 2))",
+        "passed": true
+      },
+      {
+        "line": 172,
+        "code_line": "TOLERANCE.is_close(l(0, 1), 0.0) && TOLERANCE.is_close(l(0, 2), 0.0)",
+        "passed": true
+      },
+      {
+        "line": 173,
+        "code_line": "TOLERANCE.is_close(l(1, 2), 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Qr Decompose",
+    "passed": true,
+    "time_ms": 0.015,
+    "line": 176,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {12.0, -51.0, 4.0, 6.0, 167.0, -68.0, -4.0, 24.0, -41.0});\n    auto [q, r] = a.qr_decompose();\n    Matrix qt = q.transpose();\n    Matrix qtq = qt.multiply(q);\n    Matrix qr_prod = q.multiply(r);",
+    "checks": [
+      {
+        "line": 184,
+        "code_line": "TOLERANCE.is_close(qtq(0, 0), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 185,
+        "code_line": "TOLERANCE.is_close(qtq(1, 1), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 186,
+        "code_line": "TOLERANCE.is_close(qtq(2, 2), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "TOLERANCE.is_close(qtq(0, 1), 0.0) && TOLERANCE.is_close(qtq(0, 2), 0.0)",
+        "passed": true
+      },
+      {
+        "line": 188,
+        "code_line": "TOLERANCE.is_close(qr_prod(0, 0), 12.0)",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "TOLERANCE.is_close(qr_prod(1, 1), 167.0)",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "TOLERANCE.is_close(qr_prod(2, 2), -41.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Cholesky",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 193,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {4.0, 2.0, 2.0, 2.0, 5.0, 3.0, 2.0, 3.0, 6.0});\n    auto l = a.cholesky();\n\n    Matrix lt = l->transpose();\n    Matrix llt = l->multiply(lt);\n    Matrix not_spd = Matrix::from_vec(2, 2, {1.0, 2.0, 2.0, 1.0});\n    auto l_none = not_spd.cholesky();",
+    "checks": [
+      {
+        "line": 198,
+        "code_line": "l.has_value()",
+        "passed": true
+      },
+      {
+        "line": 204,
+        "code_line": "TOLERANCE.is_close(llt(0, 0), 4.0) && TOLERANCE.is_close(llt(0, 1), 2.0)",
+        "passed": true
+      },
+      {
+        "line": 205,
+        "code_line": "TOLERANCE.is_close(llt(1, 0), 2.0) && TOLERANCE.is_close(llt(1, 1), 5.0)",
+        "passed": true
+      },
+      {
+        "line": 206,
+        "code_line": "TOLERANCE.is_close(llt(2, 2), 6.0)",
+        "passed": true
+      },
+      {
+        "line": 207,
+        "code_line": "!l_none.has_value()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Eigenvalues",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 210,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0});\n    std::vector<double> evs = a.eigenvalues();\n    std::sort(evs.begin(), evs.end());",
+    "checks": [
+      {
+        "line": 216,
+        "code_line": "evs.size() == 3",
+        "passed": true
+      },
+      {
+        "line": 217,
+        "code_line": "TOLERANCE.is_close(evs[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 218,
+        "code_line": "TOLERANCE.is_close(evs[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 219,
+        "code_line": "TOLERANCE.is_close(evs[2], 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Svd",
+    "passed": true,
+    "time_ms": 0.012,
+    "line": 222,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {1.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 3.0});\n    auto [u, sv, vt] = a.svd();\n    std::sort(sv.begin(), sv.end(), std::greater<double>());",
+    "checks": [
+      {
+        "line": 228,
+        "code_line": "sv.size() == 3",
+        "passed": true
+      },
+      {
+        "line": 229,
+        "code_line": "TOLERANCE.is_close(sv[0], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 230,
+        "code_line": "TOLERANCE.is_close(sv[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 231,
+        "code_line": "TOLERANCE.is_close(sv[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Norms",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 234,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {1.0, -2.0, 3.0, -4.0});\n    double nf = a.norm_frobenius();\n    double n1 = a.norm_1();\n    double ni = a.norm_inf();",
+    "checks": [
+      {
+        "line": 241,
+        "code_line": "TOLERANCE.is_close(nf, std::sqrt(30.0))",
+        "passed": true
+      },
+      {
+        "line": 242,
+        "code_line": "TOLERANCE.is_close(n1, 6.0)",
+        "passed": true
+      },
+      {
+        "line": 243,
+        "code_line": "TOLERANCE.is_close(ni, 7.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Rank",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 246,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::identity(3);\n    Matrix b = Matrix::from_vec(3, 3, {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0});\n    Matrix c = Matrix::zeros(3, 3);",
+    "checks": [
+      {
+        "line": 252,
+        "code_line": "a.rank() == 3",
+        "passed": true
+      },
+      {
+        "line": 253,
+        "code_line": "b.rank() == 2",
+        "passed": true
+      },
+      {
+        "line": 254,
+        "code_line": "c.rank() == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 0.103,
+    "line": 257,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    a.name = \"test_matrix\";\n    a.file_json_dump(\"serialization/test_matrix.json\");\n    Matrix loaded = Matrix::file_json_load(\"serialization/test_matrix.json\");",
+    "checks": [
+      {
+        "line": 264,
+        "code_line": "loaded.name == \"test_matrix\"",
+        "passed": true
+      },
+      {
+        "line": 265,
+        "code_line": "loaded.rows == 2 && loaded.cols == 3",
+        "passed": true
+      },
+      {
+        "line": 266,
+        "code_line": "TOLERANCE.is_close(loaded(0, 0), 1.0) && TOLERANCE.is_close(loaded(1, 2), 6.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Protobuf Roundtrip",
+    "passed": true,
+    "time_ms": 0.053,
+    "line": 269,
+    "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    a.name = \"test_matrix_proto\";\n    a.pb_dump(\"serialization/test_matrix.bin\");\n    Matrix loaded = Matrix::pb_load(\"serialization/test_matrix.bin\");",
+    "checks": [
+      {
+        "line": 276,
+        "code_line": "loaded.name == \"test_matrix_proto\"",
+        "passed": true
+      },
+      {
+        "line": 277,
+        "code_line": "loaded.rows == 2 && loaded.cols == 3",
+        "passed": true
+      },
+      {
+        "line": 278,
+        "code_line": "TOLERANCE.is_close(loaded(0, 0), 1.0) && TOLERANCE.is_close(loaded(1, 2), 6.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

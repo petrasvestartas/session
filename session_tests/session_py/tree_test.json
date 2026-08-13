@@ -1,0 +1,598 @@
+[
+  {
+    "group": "TreeNode",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.051,
+    "line": 6,
+    "code": "    from session_py import TreeNode\n    from session_py import Color\n\n    # Default constructor\n    n0 = TreeNode()\n\n    # Constructor with name\n    n = TreeNode(\"my_named_node\")\n    n.color = Color(1.0, 0.0, 0.0, 1.0)\n\n    # Minimal string representation\n    nstr = str(n)\n\n    # Copies (compared by identity in Python)\n    nother = TreeNode(\"my_named_node\")",
+    "checks": [
+      {
+        "line": 24,
+        "code_line": "n0.name == \"my_node\"",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "n0.guid",
+        "passed": true
+      },
+      {
+        "line": 26,
+        "code_line": "n.name == \"my_named_node\"",
+        "passed": true
+      },
+      {
+        "line": 27,
+        "code_line": "n.color is not None and n.color[0] == 1.0",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "\"TreeNode(my_named_node\" in nstr)",
+        "passed": true
+      },
+      {
+        "line": 29,
+        "code_line": "n == n",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "n != nother",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 0.531,
+    "line": 33,
+    "code": "    from session_py import TreeNode\n    from session_py.file_encoders import file_json_dump\n    from session_py.file_encoders import file_json_load\n    from pathlib import Path\n\n    original = TreeNode(\"test_node\")\n    child = TreeNode(\"child_node\")\n    original.add(child)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_treenode.json\"\n    file_json_dump(original, fname)\n    loaded = file_json_load(fname)",
+    "checks": [
+      {
+        "line": 48,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "len(loaded.children) == 1",
+        "passed": true
+      },
+      {
+        "line": 50,
+        "code_line": "loaded.children[0].name == \"child_node\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Is Root",
+    "passed": true,
+    "time_ms": 0.013,
+    "line": 53,
+    "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    child = TreeNode(\"child\")\n    root.add(child)",
+    "checks": [
+      {
+        "line": 61,
+        "code_line": "root.is_root",
+        "passed": true
+      },
+      {
+        "line": 62,
+        "code_line": "not child.is_root",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Is Leaf",
+    "passed": true,
+    "time_ms": 0.011,
+    "line": 65,
+    "code": "    from session_py import TreeNode\n\n    parent = TreeNode(\"parent\")\n    child = TreeNode(\"child\")\n    parent.add(child)",
+    "checks": [
+      {
+        "line": 73,
+        "code_line": "child.is_leaf",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "not parent.is_leaf",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Tree",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 77,
+    "code": "    from session_py import TreeNode\n\n    n = TreeNode(\"standalone\")",
+    "checks": [
+      {
+        "line": 83,
+        "code_line": "n.tree is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Add",
+    "passed": true,
+    "time_ms": 0.012,
+    "line": 86,
+    "code": "    from session_py import TreeNode\n\n    parent = TreeNode(\"parent\")\n    child = TreeNode(\"child\")\n    parent.add(child)",
+    "checks": [
+      {
+        "line": 94,
+        "code_line": "len(parent.children) == 1",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "child.parent is parent",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Remove",
+    "passed": true,
+    "time_ms": 0.014,
+    "line": 98,
+    "code": "    from session_py import TreeNode\n\n    parent = TreeNode(\"parent\")\n    child = TreeNode(\"child\")\n    parent.add(child)\n    parent.remove(child)",
+    "checks": [
+      {
+        "line": 107,
+        "code_line": "len(parent.children) == 0",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "child.parent is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Parent",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 111,
+    "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    child = TreeNode(\"child\")\n    root.add(child)",
+    "checks": [
+      {
+        "line": 119,
+        "code_line": "root.parent is None",
+        "passed": true
+      },
+      {
+        "line": 120,
+        "code_line": "child.parent is root",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Ancestors",
+    "passed": true,
+    "time_ms": 0.015,
+    "line": 123,
+    "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    mid = TreeNode(\"mid\")\n    leaf = TreeNode(\"leaf\")\n    root.add(mid)\n    mid.add(leaf)\n\n    anc = list(leaf.ancestors)",
+    "checks": [
+      {
+        "line": 135,
+        "code_line": "len(anc) == 2",
+        "passed": true
+      },
+      {
+        "line": 136,
+        "code_line": "anc[0].name == \"mid\"",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "anc[1].name == \"root\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Descendants",
+    "passed": true,
+    "time_ms": 0.015,
+    "line": 140,
+    "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    mid = TreeNode(\"mid\")\n    leaf = TreeNode(\"leaf\")\n    root.add(mid)\n    mid.add(leaf)\n\n    desc = list(root.descendants)",
+    "checks": [
+      {
+        "line": 152,
+        "code_line": "len(desc) == 2",
+        "passed": true
+      },
+      {
+        "line": 153,
+        "code_line": "desc[0].name == \"mid\"",
+        "passed": true
+      },
+      {
+        "line": 154,
+        "code_line": "desc[1].name == \"leaf\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Children",
+    "passed": true,
+    "time_ms": 0.013,
+    "line": 157,
+    "code": "    from session_py import TreeNode\n\n    parent = TreeNode(\"parent\")\n    c1 = TreeNode(\"c1\")\n    c2 = TreeNode(\"c2\")\n    parent.add(c1)\n    parent.add(c2)\n\n    kids = parent.children",
+    "checks": [
+      {
+        "line": 169,
+        "code_line": "len(kids) == 2",
+        "passed": true
+      },
+      {
+        "line": 170,
+        "code_line": "kids[0].name == \"c1\"",
+        "passed": true
+      },
+      {
+        "line": 171,
+        "code_line": "kids[1].name == \"c2\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Traverse",
+    "passed": true,
+    "time_ms": 0.024,
+    "line": 174,
+    "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    a = TreeNode(\"a\")\n    b = TreeNode(\"b\")\n    root.add(a)\n    root.add(b)\n\n    preorder = list(root.traverse(\"depthfirst\", \"preorder\"))\n    postorder = list(root.traverse(\"depthfirst\", \"postorder\"))\n    bfs = list(root.traverse(\"breadthfirst\", \"preorder\"))",
+    "checks": [
+      {
+        "line": 188,
+        "code_line": "len(preorder) == 3 and preorder[0].name == \"root\"",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "len(postorder) == 3 and postorder[2].name == \"root\"",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "len(bfs) == 3 and bfs[0].name == \"root\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.044,
+    "line": 193,
+    "code": "    from session_py import Tree\n\n    # Default constructor\n    t0 = Tree()\n\n    # Constructor with name\n    t = Tree(\"my_named_tree\")\n\n    # Minimal string representation\n    tstr = str(t)",
+    "checks": [
+      {
+        "line": 206,
+        "code_line": "t0.name == \"my_tree\"",
+        "passed": true
+      },
+      {
+        "line": 207,
+        "code_line": "t0.guid",
+        "passed": true
+      },
+      {
+        "line": 208,
+        "code_line": "t.name == \"my_named_tree\"",
+        "passed": true
+      },
+      {
+        "line": 209,
+        "code_line": "\"Tree\" in tstr",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 3.694,
+    "line": 212,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n    from pathlib import Path\n\n    original = Tree(\"test_tree\")\n    root_node = TreeNode(\"root_node\")\n    original.add(root_node)\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   file_json_dumps()    \u2502 str          \u2502 to JSON string\n    #   file_json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   file_json_dump(path) \u2502 file         \u2502 write to file\n    #   file_json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_tree.json\"\n    original.file_json_dump(fname)\n    loaded = Tree.file_json_load(fname)",
+    "checks": [
+      {
+        "line": 233,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      },
+      {
+        "line": 234,
+        "code_line": "len(list(loaded.nodes)) == len(list(original.nodes))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Protobuf Roundtrip",
+    "passed": true,
+    "time_ms": 0.394,
+    "line": 237,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n    from pathlib import Path\n\n    original = Tree(\"test_tree\")\n    root_node = TreeNode(\"root_node\")\n    original.add(root_node)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_tree.bin\"\n    original.pb_dump(fname)\n    loaded = Tree.pb_load(fname)",
+    "checks": [
+      {
+        "line": 251,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      },
+      {
+        "line": 252,
+        "code_line": "len(list(loaded.nodes)) == len(list(original.nodes))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Root",
+    "passed": true,
+    "time_ms": 0.024,
+    "line": 255,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    t.add(root)",
+    "checks": [
+      {
+        "line": 264,
+        "code_line": "t.root is root",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Add",
+    "passed": true,
+    "time_ms": 0.017,
+    "line": 267,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    child = TreeNode(\"child\")\n    t.add(root)\n    t.add(child, root)",
+    "checks": [
+      {
+        "line": 278,
+        "code_line": "len(list(t.nodes)) == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Nodes",
+    "passed": true,
+    "time_ms": 0.018,
+    "line": 281,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    child = TreeNode(\"child\")\n    t.add(root)\n    t.add(child, root)\n\n    all_nodes = list(t.nodes)",
+    "checks": [
+      {
+        "line": 294,
+        "code_line": "len(all_nodes) == 2",
+        "passed": true
+      },
+      {
+        "line": 295,
+        "code_line": "all_nodes[0].name == \"root\"",
+        "passed": true
+      },
+      {
+        "line": 296,
+        "code_line": "all_nodes[1].name == \"child\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Remove",
+    "passed": true,
+    "time_ms": 0.015,
+    "line": 299,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    child = TreeNode(\"child\")\n    t.add(root)\n    t.add(child, root)\n    t.remove(child)",
+    "checks": [
+      {
+        "line": 311,
+        "code_line": "len(list(t.nodes)) == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Leaves",
+    "passed": true,
+    "time_ms": 0.024,
+    "line": 314,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    a = TreeNode(\"a\")\n    b = TreeNode(\"b\")\n    t.add(root)\n    t.add(a, root)\n    t.add(b, root)\n\n    lvs = list(t.leaves)",
+    "checks": [
+      {
+        "line": 329,
+        "code_line": "len(lvs) == 2",
+        "passed": true
+      },
+      {
+        "line": 330,
+        "code_line": "lvs[0].name == \"a\"",
+        "passed": true
+      },
+      {
+        "line": 331,
+        "code_line": "lvs[1].name == \"b\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Traverse",
+    "passed": true,
+    "time_ms": 0.021,
+    "line": 334,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    a = TreeNode(\"a\")\n    b = TreeNode(\"b\")\n    t.add(root)\n    t.add(a, root)\n    t.add(b, root)\n\n    preorder = list(t.traverse(\"depthfirst\", \"preorder\"))\n    bfs = list(t.traverse(\"breadthfirst\", \"preorder\"))",
+    "checks": [
+      {
+        "line": 350,
+        "code_line": "len(preorder) == 3 and preorder[0].name == \"root\"",
+        "passed": true
+      },
+      {
+        "line": 351,
+        "code_line": "len(bfs) == 3 and bfs[0].name == \"root\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Get Node By Name",
+    "passed": true,
+    "time_ms": 0.014,
+    "line": 354,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    child = TreeNode(\"target\")\n    t.add(root)\n    t.add(child, root)\n\n    found = t.get_node_by_name(\"target\")",
+    "checks": [
+      {
+        "line": 367,
+        "code_line": "found is not None and found.name == \"target\"",
+        "passed": true
+      },
+      {
+        "line": 368,
+        "code_line": "t.get_node_by_name(\"missing\") is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Get Nodes By Name",
+    "passed": true,
+    "time_ms": 0.015,
+    "line": 371,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    a = TreeNode(\"dup\")\n    b = TreeNode(\"dup\")\n    t.add(root)\n    t.add(a, root)\n    t.add(b, root)\n\n    found = t.get_nodes_by_name(\"dup\")",
+    "checks": [
+      {
+        "line": 386,
+        "code_line": "len(found) == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Find Node By Guid",
+    "passed": true,
+    "time_ms": 0.032,
+    "line": 389,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    t.add(root)\n    root_guid = root.guid\n\n    found = t.find_node_by_guid(root_guid)",
+    "checks": [
+      {
+        "line": 401,
+        "code_line": "found is not None and found.guid == root_guid",
+        "passed": true
+      },
+      {
+        "line": 402,
+        "code_line": "t.find_node_by_guid(\"missing-guid\") is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Add Child By Guid",
+    "passed": true,
+    "time_ms": 0.03,
+    "line": 405,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    a = TreeNode(\"a\")\n    b = TreeNode(\"b\")\n    t.add(root)\n    t.add(a, root)\n    t.add(b, root)\n    ok = t.add_child_by_guid(a.guid, b.guid)",
+    "checks": [
+      {
+        "line": 419,
+        "code_line": "ok",
+        "passed": true
+      },
+      {
+        "line": 420,
+        "code_line": "len(a.children) == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tree",
+    "test_name": "Get Children Guids",
+    "passed": true,
+    "time_ms": 0.032,
+    "line": 423,
+    "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    a = TreeNode(\"a\")\n    b = TreeNode(\"b\")\n    t.add(root)\n    t.add(a, root)\n    t.add(b, root)\n\n    guids = t.get_children_guids(root.guid)",
+    "checks": [
+      {
+        "line": 438,
+        "code_line": "len(guids) == 2",
+        "passed": true
+      },
+      {
+        "line": 439,
+        "code_line": "guids[0] == a.guid",
+        "passed": true
+      },
+      {
+        "line": 440,
+        "code_line": "guids[1] == b.guid",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

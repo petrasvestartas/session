@@ -1,0 +1,101 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "idx == 1",
+        "line": 42,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(dist, 0.1)",
+        "line": 43,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::SpatialKDTree;\n        use crate::Point;\n\n        // 5 known points on a line: 0, 1, 2, 3, 4\n        // Query at 1.1 — nearest should be index 1 (point at x=1), distance 0.1\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let tree = SpatialKDTree::new(pts);\n        let query = Point::new(1.1, 0.0, 0.0);\n        let (idx, dist) = tree.nearest(&query);\n",
+    "failures": [],
+    "group": "SpatialKDTree",
+    "line": 25,
+    "passed": true,
+    "test_name": "Nearest",
+    "time_ms": 0.017
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result.len() == 2",
+        "line": 89,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(result[0].1, 0.5)",
+        "line": 90,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(result[1].1, 0.5)",
+        "line": 91,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::SpatialKDTree;\n        use crate::Point;\n\n        // 4 points: 0, 1, 2, 5 on X axis\n        // Query at 0.5, radius 1.1 — finds x=0 (d=0.5) and x=1 (d=0.5)\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(5.0, 0.0, 0.0),\n        ];\n        let tree = SpatialKDTree::new(pts);\n        let query = Point::new(0.5, 0.0, 0.0);\n        let result = tree.radius_search(&query, 1.1);\n",
+    "failures": [],
+    "group": "SpatialKDTree",
+    "line": 73,
+    "passed": true,
+    "test_name": "Radius Search",
+    "time_ms": 0.018
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result.len() == 3",
+        "line": 65,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(result[0].1, 0.5)",
+        "line": 66,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(result[1].1, 0.5)",
+        "line": 67,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(result[2].1, 1.5)",
+        "line": 68,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::SpatialKDTree;\n        use crate::Point;\n\n        // 5 points on X axis: 0, 1, 2, 3, 4\n        // Query at 1.5 — 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let tree = SpatialKDTree::new(pts);\n        let query = Point::new(1.5, 0.0, 0.0);\n        let result = tree.nearest_k(&query, 3);\n",
+    "failures": [],
+    "group": "SpatialKDTree",
+    "line": 48,
+    "passed": true,
+    "test_name": "Nearest K",
+    "time_ms": 0.021
+  },
+  {
+    "checks": [
+      {
+        "code_line": "idx == 1",
+        "line": 19,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(dist, 1.0)",
+        "line": 20,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::SpatialKDTree;\n        use crate::Point;\n\n        // SpatialKDTree: O(n log n) build, O(log n) nearest — static point set closest search\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(10.0, 0.0, 0.0),\n        ];\n        let tree = SpatialKDTree::new(pts);\n        let (idx, dist) = tree.nearest(&Point::new(2.0, 0.0, 0.0));\n",
+    "failures": [],
+    "group": "SpatialKDTree",
+    "line": 6,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.009
+  }
+]

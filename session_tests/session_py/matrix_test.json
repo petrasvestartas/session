@@ -1,0 +1,641 @@
+[
+  {
+    "group": "Matrix",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.186,
+    "line": 8,
+    "code": "    from session_py import Matrix\n    m = Matrix.zeros(2, 3)\n    eye = Matrix.identity(3)\n    ml = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    mr = Matrix.from_rows([[1.0, 2.0], [3.0, 4.0]])\n    mc = Matrix.from_cols([[1.0, 3.0], [2.0, 4.0]])\n    v00 = ml[0, 0]\n    v01 = ml[0, 1]\n    v10 = ml[1, 0]\n    v11 = ml[1, 1]\n    eq = (ml == mr)\n    ne = (ml != Matrix.identity(2))\n    sstr = str(m)\n    srepr = repr(eye)\n    d = ml.duplicate()",
+    "checks": [
+      {
+        "line": 26,
+        "code_line": "m.rows == 2 and m.cols == 3",
+        "passed": true
+      },
+      {
+        "line": 27,
+        "code_line": "m.name == \"my_matrix\" and m.guid != \"\"",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "eye[0, 0] == 1.0 and eye[1, 1] == 1.0 and eye[2, 2] == 1.0",
+        "passed": true
+      },
+      {
+        "line": 29,
+        "code_line": "eye[0, 1] == 0.0",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "v00 == 1.0 and v01 == 2.0 and v10 == 3.0 and v11 == 4.0",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "mc == ml",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "eq",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "ne",
+        "passed": true
+      },
+      {
+        "line": 34,
+        "code_line": "\"Matrix(2x3)\" in sstr",
+        "passed": true
+      },
+      {
+        "line": 35,
+        "code_line": "\"Matrix(\" in srepr)",
+        "passed": true
+      },
+      {
+        "line": 36,
+        "code_line": "d == ml and d.guid != ml.guid",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Properties",
+    "passed": true,
+    "time_ms": 0.044,
+    "line": 39,
+    "code": "    from session_py import Matrix\n    m1 = Matrix.identity(3)\n    m2 = Matrix.zeros(2, 3)\n    m3 = Matrix.from_list(3, 3, [1.0, 2.0, 3.0, 2.0, 5.0, 6.0, 3.0, 6.0, 9.0])\n    m4 = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    sq1 = m1.is_square\n    sq2 = m2.is_square\n    sym1 = m3.is_symmetric\n    sym2 = m4.is_symmetric\n    tr = m1.trace()",
+    "checks": [
+      {
+        "line": 52,
+        "code_line": "sq1",
+        "passed": true
+      },
+      {
+        "line": 53,
+        "code_line": "not sq2",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "sym1",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "not sym2",
+        "passed": true
+      },
+      {
+        "line": 56,
+        "code_line": "TOLERANCE.is_close(tr, 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Add",
+    "passed": true,
+    "time_ms": 0.025,
+    "line": 59,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    b = Matrix.from_list(2, 2, [5.0, 6.0, 7.0, 8.0])\n    c = a.add(b)\n    d = a + b",
+    "checks": [
+      {
+        "line": 67,
+        "code_line": "c[0, 0] == 6.0 and c[0, 1] == 8.0",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "c[1, 0] == 10.0 and c[1, 1] == 12.0",
+        "passed": true
+      },
+      {
+        "line": 69,
+        "code_line": "c == d",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Subtract",
+    "passed": true,
+    "time_ms": 0.053,
+    "line": 72,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [5.0, 6.0, 7.0, 8.0])\n    b = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    c = a.subtract(b)\n    d = a - b",
+    "checks": [
+      {
+        "line": 80,
+        "code_line": "c[0, 0] == 4.0 and c[0, 1] == 4.0",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "c[1, 0] == 4.0 and c[1, 1] == 4.0",
+        "passed": true
+      },
+      {
+        "line": 82,
+        "code_line": "c == d",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Scale",
+    "passed": true,
+    "time_ms": 0.028,
+    "line": 85,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [1.0, 2.0, 3.0, 4.0])\n    b = a.scale(2.0)\n    c = a * 3.0\n    d = 4.0 * a",
+    "checks": [
+      {
+        "line": 93,
+        "code_line": "b[0, 0] == 2.0 and b[0, 1] == 4.0 and b[1, 0] == 6.0 and b[1, 1] == 8.0",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "c[0, 0] == 3.0 and c[1, 1] == 12.0",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "d[0, 0] == 4.0 and d[1, 1] == 16.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Multiply",
+    "passed": true,
+    "time_ms": 0.052,
+    "line": 98,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    b = Matrix.from_list(3, 2, [7.0, 8.0, 9.0, 10.0, 11.0, 12.0])\n    c = a.multiply(b)\n    d = a * b",
+    "checks": [
+      {
+        "line": 106,
+        "code_line": "c.rows == 2 and c.cols == 2",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "TOLERANCE.is_close(c[0, 0], 58.0) and TOLERANCE.is_close(c[0, 1], 64.0)",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "TOLERANCE.is_close(c[1, 0], 139.0) and TOLERANCE.is_close(c[1, 1], 154.0)",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "c == d",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Transpose",
+    "passed": true,
+    "time_ms": 0.019,
+    "line": 112,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    t = a.transpose()",
+    "checks": [
+      {
+        "line": 118,
+        "code_line": "t.rows == 3 and t.cols == 2",
+        "passed": true
+      },
+      {
+        "line": 119,
+        "code_line": "t[0, 0] == 1.0 and t[1, 0] == 2.0 and t[2, 0] == 3.0",
+        "passed": true
+      },
+      {
+        "line": 120,
+        "code_line": "t[0, 1] == 4.0 and t[1, 1] == 5.0 and t[2, 1] == 6.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Determinant",
+    "passed": true,
+    "time_ms": 0.069,
+    "line": 123,
+    "code": "    from session_py import Matrix\n    a1 = Matrix.from_list(1, 1, [5.0])\n    a2 = Matrix.from_list(2, 2, [4.0, 7.0, 2.0, 6.0])\n    a3 = Matrix.from_list(3, 3, [1.0, 2.0, 3.0, 0.0, 1.0, 4.0, 5.0, 6.0, 0.0])\n    eye3 = Matrix.identity(3)",
+    "checks": [
+      {
+        "line": 131,
+        "code_line": "TOLERANCE.is_close(a1.determinant(), 5.0)",
+        "passed": true
+      },
+      {
+        "line": 132,
+        "code_line": "TOLERANCE.is_close(a2.determinant(), 10.0)",
+        "passed": true
+      },
+      {
+        "line": 133,
+        "code_line": "TOLERANCE.is_close(a3.determinant(), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 134,
+        "code_line": "TOLERANCE.is_close(eye3.determinant(), 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Inverse",
+    "passed": true,
+    "time_ms": 0.068,
+    "line": 137,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [4.0, 7.0, 2.0, 6.0])\n    inv = a.inverse()\n    singular = Matrix.from_list(2, 2, [1.0, 2.0, 2.0, 4.0])\n    inv_none = singular.inverse()\n    prod = a.multiply(inv)",
+    "checks": [
+      {
+        "line": 146,
+        "code_line": "inv is not None",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "TOLERANCE.is_close(inv[0, 0], 0.6) and TOLERANCE.is_close(inv[0, 1], -0.7)",
+        "passed": true
+      },
+      {
+        "line": 148,
+        "code_line": "TOLERANCE.is_close(inv[1, 0], -0.2) and TOLERANCE.is_close(inv[1, 1], 0.4)",
+        "passed": true
+      },
+      {
+        "line": 149,
+        "code_line": "inv_none is None",
+        "passed": true
+      },
+      {
+        "line": 150,
+        "code_line": "TOLERANCE.is_close(prod[0, 0], 1.0) and TOLERANCE.is_close(prod[1, 1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 151,
+        "code_line": "TOLERANCE.is_close(prod[0, 1], 0.0) and TOLERANCE.is_close(prod[1, 0], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Solve",
+    "passed": true,
+    "time_ms": 0.058,
+    "line": 154,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [2.0, 1.0, 1.0, 3.0])\n    b = Matrix.from_list(2, 1, [5.0, 10.0])\n    x = a.solve(b)\n    # 2x+y=5, x+3y=10 \u2192 x=1, y=3\n    residual_0 = 2.0 * x[0, 0] + 1.0 * x[1, 0]\n    residual_1 = 1.0 * x[0, 0] + 3.0 * x[1, 0]",
+    "checks": [
+      {
+        "line": 164,
+        "code_line": "x is not None",
+        "passed": true
+      },
+      {
+        "line": 165,
+        "code_line": "TOLERANCE.is_close(x[0, 0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 166,
+        "code_line": "TOLERANCE.is_close(x[1, 0], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 167,
+        "code_line": "TOLERANCE.is_close(residual_0, 5.0)",
+        "passed": true
+      },
+      {
+        "line": 168,
+        "code_line": "TOLERANCE.is_close(residual_1, 10.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Lu Decompose",
+    "passed": true,
+    "time_ms": 0.108,
+    "line": 171,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0])\n    l, u, p = a.lu_decompose()\n    pa = p.multiply(a)\n    lu = l.multiply(u)\n\n    # L is lower triangular",
+    "checks": [
+      {
+        "line": 179,
+        "code_line": "l.rows == 3 and u.cols == 3",
+        "passed": true
+      },
+      {
+        "line": 180,
+        "code_line": "TOLERANCE.is_close(pa[0, 0], lu[0, 0])",
+        "passed": true
+      },
+      {
+        "line": 181,
+        "code_line": "TOLERANCE.is_close(pa[0, 1], lu[0, 1])",
+        "passed": true
+      },
+      {
+        "line": 182,
+        "code_line": "TOLERANCE.is_close(pa[1, 0], lu[1, 0])",
+        "passed": true
+      },
+      {
+        "line": 183,
+        "code_line": "TOLERANCE.is_close(pa[2, 2], lu[2, 2])",
+        "passed": true
+      },
+      {
+        "line": 185,
+        "code_line": "TOLERANCE.is_close(l[0, 1], 0.0) and TOLERANCE.is_close(l[0, 2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 186,
+        "code_line": "TOLERANCE.is_close(l[1, 2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Qr Decompose",
+    "passed": true,
+    "time_ms": 0.157,
+    "line": 189,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [12.0, -51.0, 4.0, 6.0, 167.0, -68.0, -4.0, 24.0, -41.0])\n    q, r = a.qr_decompose()\n    qt = q.transpose()\n    qtq = qt.multiply(q)\n    qr_prod = q.multiply(r)",
+    "checks": [
+      {
+        "line": 198,
+        "code_line": "TOLERANCE.is_close(qtq[0, 0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 199,
+        "code_line": "TOLERANCE.is_close(qtq[1, 1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 200,
+        "code_line": "TOLERANCE.is_close(qtq[2, 2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 201,
+        "code_line": "TOLERANCE.is_close(qtq[0, 1], 0.0) and TOLERANCE.is_close(qtq[0, 2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 202,
+        "code_line": "TOLERANCE.is_close(qr_prod[0, 0], 12.0)",
+        "passed": true
+      },
+      {
+        "line": 203,
+        "code_line": "TOLERANCE.is_close(qr_prod[1, 1], 167.0)",
+        "passed": true
+      },
+      {
+        "line": 204,
+        "code_line": "TOLERANCE.is_close(qr_prod[2, 2], -41.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Cholesky",
+    "passed": true,
+    "time_ms": 0.095,
+    "line": 207,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [4.0, 2.0, 2.0, 2.0, 5.0, 3.0, 2.0, 3.0, 6.0])\n    l = a.cholesky()\n    lt = l.transpose()\n    llt = l.multiply(lt)\n    not_spd = Matrix.from_list(2, 2, [1.0, 2.0, 2.0, 1.0])\n    l_none = not_spd.cholesky()",
+    "checks": [
+      {
+        "line": 217,
+        "code_line": "l is not None",
+        "passed": true
+      },
+      {
+        "line": 218,
+        "code_line": "TOLERANCE.is_close(llt[0, 0], 4.0) and TOLERANCE.is_close(llt[0, 1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 219,
+        "code_line": "TOLERANCE.is_close(llt[1, 0], 2.0) and TOLERANCE.is_close(llt[1, 1], 5.0)",
+        "passed": true
+      },
+      {
+        "line": 220,
+        "code_line": "TOLERANCE.is_close(llt[2, 2], 6.0)",
+        "passed": true
+      },
+      {
+        "line": 221,
+        "code_line": "l_none is None",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Eigenvalues",
+    "passed": true,
+    "time_ms": 0.096,
+    "line": 224,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0])\n    evs = a.eigenvalues()\n    evs_sorted = sorted(evs)",
+    "checks": [
+      {
+        "line": 231,
+        "code_line": "len(evs) == 3",
+        "passed": true
+      },
+      {
+        "line": 232,
+        "code_line": "TOLERANCE.is_close(evs_sorted[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 233,
+        "code_line": "TOLERANCE.is_close(evs_sorted[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 234,
+        "code_line": "TOLERANCE.is_close(evs_sorted[2], 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Svd",
+    "passed": true,
+    "time_ms": 0.139,
+    "line": 237,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [1.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 3.0])\n    u, sv, vt = a.svd()\n    sv_sorted = sorted(sv, reverse=True)",
+    "checks": [
+      {
+        "line": 244,
+        "code_line": "len(sv) == 3",
+        "passed": true
+      },
+      {
+        "line": 245,
+        "code_line": "TOLERANCE.is_close(sv_sorted[0], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 246,
+        "code_line": "TOLERANCE.is_close(sv_sorted[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 247,
+        "code_line": "TOLERANCE.is_close(sv_sorted[2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Norms",
+    "passed": true,
+    "time_ms": 0.031,
+    "line": 250,
+    "code": "    from session_py import Matrix\n    a = Matrix.from_list(2, 2, [1.0, -2.0, 3.0, -4.0])\n    nf = a.norm_frobenius()\n    n1 = a.norm_1()\n    ni = a.norm_inf()",
+    "checks": [
+      {
+        "line": 258,
+        "code_line": "TOLERANCE.is_close(nf, math.sqrt(30.0))",
+        "passed": true
+      },
+      {
+        "line": 259,
+        "code_line": "TOLERANCE.is_close(n1, 6.0)",
+        "passed": true
+      },
+      {
+        "line": 260,
+        "code_line": "TOLERANCE.is_close(ni, 7.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Rank",
+    "passed": true,
+    "time_ms": 1.086,
+    "line": 263,
+    "code": "    from session_py import Matrix\n    a = Matrix.identity(3)\n    b = Matrix.from_list(3, 3, [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0])\n    c = Matrix.zeros(3, 3)",
+    "checks": [
+      {
+        "line": 270,
+        "code_line": "a.rank() == 3",
+        "passed": true
+      },
+      {
+        "line": 271,
+        "code_line": "b.rank() == 2",
+        "passed": true
+      },
+      {
+        "line": 272,
+        "code_line": "c.rank() == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 0.73,
+    "line": 275,
+    "code": "    from session_py import Matrix\n    from pathlib import Path\n    a = Matrix.from_list(2, 3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    a.name = \"test_matrix\"\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_matrix.json\"\n    a.file_json_dump(fname)\n    loaded = Matrix.file_json_load(fname)",
+    "checks": [
+      {
+        "line": 285,
+        "code_line": "loaded.name == \"test_matrix\"",
+        "passed": true
+      },
+      {
+        "line": 286,
+        "code_line": "loaded.rows == 2 and loaded.cols == 3",
+        "passed": true
+      },
+      {
+        "line": 287,
+        "code_line": "TOLERANCE.is_close(loaded[0, 0], 1.0) and TOLERANCE.is_close(loaded[1, 2], 6.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Matrix",
+    "test_name": "Protobuf Roundtrip",
+    "passed": true,
+    "time_ms": 4.266,
+    "line": 290,
+    "code": "    from session_py import Matrix\n    from pathlib import Path\n    a = Matrix.from_list(2, 3, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0])\n    a.name = \"test_matrix_proto\"\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_matrix.bin\"\n    a.pb_dump(fname)\n    loaded = Matrix.pb_load(fname)",
+    "checks": [
+      {
+        "line": 300,
+        "code_line": "loaded.name == \"test_matrix_proto\"",
+        "passed": true
+      },
+      {
+        "line": 301,
+        "code_line": "loaded.rows == 2 and loaded.cols == 3",
+        "passed": true
+      },
+      {
+        "line": 302,
+        "code_line": "TOLERANCE.is_close(loaded[0, 0], 1.0) and TOLERANCE.is_close(loaded[1, 2], 6.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

@@ -94,7 +94,7 @@ use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
 use session_rust::mesh::ColorMode;
 ```
 
-Replace all six lines with (one import only — `Zeroable` goes too: the by-hand `::zeroed()`
+Replace all five lines with (one import only — `Zeroable` goes too: the by-hand `::zeroed()`
 placeholders disappear with the zero-init trick, and `storage_buffer`'s `T::zeroed()` resolves
 through its `Pod` bound without the import):
 
@@ -159,8 +159,11 @@ impl ArenaUpload {
     objects_base: Vec<(Xform, [f32; 4])>, // TRUE world model+color; isntance[] is rebased from this
 ```
 
-Replace with (`set_scene` must rebuild bind groups after buffer recreation, and pipelines when
-MSAA flips — both need the layouts `new()` used to drop on the floor):
+Replace that ONE line with the seven below — the `objects_base` tuple grows a `u32` (flags), and
+the six `*_layout` fields are NEW, inserted right after it. Delete nothing: `instance_buffer` and
+everything under it stays. (Today the layouts are locals inside `new()`, dropped when it returns;
+`set_scene` must rebuild bind groups after buffer recreation, and pipelines when MSAA flips, so
+they move into the struct — step 1g stores them in `Ok(Self { … })`.)
 
 ```rust
     objects_base: Vec<(Xform, [f32; 4], u32)>, // TRUE world model+tint+flags; instances[] is rebased from this
@@ -224,10 +227,13 @@ and **delete everything from that comment down to and including the grid log**:
             cells, files.len(), instances.len(), verts.len(), segments.len(), pipe_count, glyphs.len(), sphere_count);
 ```
 
-(that deletion swallows the six `let mut …` table declarations, the commented-out flat merge,
-the whole `cells`/`cols` stress-grid machinery, the lane concat, the `points` declaration, the
-four `is_empty()` padding guards, `arena_index_count`, and the instances build). **In the hole,
-insert:**
+The deletion is ~155 lines. Check off what it swallows, top to bottom: the eight `let mut …`
+table declarations (`verts` … `objects_base`) plus `scene_min`/`scene_max`, the commented-out
+flat merge, the whole `cells`/`cols` stress-grid machinery, the `is_finite()` bounds fallback,
+the instances build, the lane concat (`let mut segments = { pipes.extend(segments); pipes };` and
+its glyph twin), `segment_count`/`glyph_count`, the `points` declaration, the four `is_empty()`
+padding guards, and `arena_index_count`. The grid log is the LAST line deleted; the
+`let instance_buffer = …` line below it is the first survivor. **In the hole, insert:**
 
 ```rust
         // The scene-shaped fields start as EMPTY placeholders (WebGPU zero-initializes
@@ -242,8 +248,10 @@ insert:**
         let (scene_min, scene_max) = ([0.0f32; 3], [0.0f32; 3]);
 ```
 
-One casualty of the deletion must come back: directly below the insert, find
-`let point_count = points.len() as u32;` and put the declaration back above it:
+One casualty of the deletion must come back. The deletion removed the `points` declaration, but
+its user SURVIVED: `let point_count = points.len() as u32;` sits much further down in `new()`,
+under the `// Point buffer + the cloud uniform` comment (past the arena/template/segment/glyph
+buffer creation). Find it there and put the declaration back directly above it:
 
 ```rust
         let points: Vec<CloudPoint> = Vec::new();
@@ -293,14 +301,17 @@ Replace with:
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
 ```
 
-Find `let glyph_buffer =  storage_buffer(&device, "glyphs.buffer", &glyphs);` and replace with:
+Find `let glyph_buffer =  storage_buffer(&device, "glyphs.buffer", &glyphs);` — careful, the
+source has TWO spaces after the `=` (this find and the `segment_buffer` one above), so search for
+`"glyphs.buffer"` if a pasted line misses — and replace with:
 
 ```rust
         let glyph_buffer = zeroed_buffer(&device, "glyphs.buffer", std::mem::size_of::<GlyphPoint>() as u64,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
 ```
 
-(the `instance_buffer` line above them stays — it uploads the one placeholder instance).
+(`let instance_buffer =  storage_buffer(…)` — the first line after the 1e hole, ABOVE the three
+arena lines you just replaced — stays as is: it uploads the one placeholder instance).
 
 **1g. `Ok(Self { … })` stores the layouts.** In the struct literal at the end of `new()`, find:
 
@@ -321,9 +332,9 @@ and insert the six layouts after `objects_base,`:
             glyph_layout,
 ```
 
-**1h. `walk_session` becomes the zero-copy `set_scene`.** Find the doc comment
-`/// One file → compact tables.` and **delete from it down to and including `walk_session`'s
-closing `}`** (the last lines of the deletion are the planar block and `        t\n    }`).
+**1h. `walk_session` becomes the zero-copy `set_scene`.** Find the doc comment beginning
+`/// One file → compact tables.` (it continues `Called from state.rs BEFORE Gpu::new …` — delete
+all of it) and **delete from it down to and including `walk_session`'s closing `}`** (the last lines of the deletion are the planar block and `        t\n    }`).
 In its place, insert:
 
 ```rust
@@ -423,7 +434,8 @@ In its place, insert:
     }
 ```
 
-**1i. `msaa_for` reads the upload.** Find:
+**1i. `msaa_for` reads the upload.** Two-line change: the signature and the `solid` line (the
+`if solid` line is shown only as context — it stays). Find:
 
 ```rust
     fn msaa_for(files: &[(SceneTables, Xform)]) -> u32 {
@@ -650,13 +662,17 @@ deleted engine code, `push_mesh`, `xform_point`, `grow_bounds`. Nothing in their
 they name `Mesh`/`Line`/`Point` — document types — which is exactly why they now live in the app
 layer.
 
-Two things to notice while typing:
+Four things to notice while typing:
 
+- The import block adds no `Xform` — the manifest code already at the top of this file imports
+  it (`use session_rust::Xform;`), so `Doc { place: Xform }` resolves.
 - `add_file` walks straight into the GLOBAL tables, so `push_mesh`'s `base = verts.len()`
   index-rebasing works unchanged — there is no separate per-file merge step anymore, and
   appending file #7 never touches rows 1-6.
 - The planar test is per FILE (its own new rows only): a 2D sheet keeps paper-space lineweights
   even when a 3D model is loaded next to it.
+- `obj0` is captured alongside the other bases but nothing reads it yet — `let _ = obj0;` at the
+  bottom keeps the unused-variable warning away until a later lesson needs the per-file row base.
 
 ## Step 3 — the sliced parse: `src/app/persistence.rs`
 
@@ -801,9 +817,11 @@ Three details worth pausing on:
 
 ## Step 4 — `State` holds the document set: `src/state.rs`
 
-The load loop LEAVES this file (it becomes the progressive loader in lib.rs). Replace the
-imports, the `DEMO_SCENE_URL` const, the struct, and `State::new` — everything above `resize` —
-with:
+The load loop LEAVES this file (it becomes the progressive loader in lib.rs). Keep the `//!`
+module header; replace everything between it and `/// Forward a canvas resize` — the whole `use`
+block, the `DEMO_SCENE_URL` const, `pub struct State`, and all of `State::new` — with the block
+below. It ends at `new`'s closing brace: `impl State {` stays open, `resize`/`render` follow
+unchanged inside it.
 
 ```rust
 use std::sync::Arc;

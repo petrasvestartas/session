@@ -1,0 +1,241 @@
+[
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Sphere",
+    "passed": true,
+    "time_ms": 25.161,
+    "line": 6,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
+    "checks": [
+      {
+        "line": 14,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "m.number_of_vertices() == 191",
+        "passed": true
+      },
+      {
+        "line": 16,
+        "code_line": "m.number_of_faces() == 378",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Torus",
+    "passed": true,
+    "time_ms": 42.094,
+    "line": 19,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.torus_surface(0, 0, 0, 3.0, 1.0)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
+    "checks": [
+      {
+        "line": 27,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "m.number_of_vertices() == 693",
+        "passed": true
+      },
+      {
+        "line": 29,
+        "code_line": "m.number_of_faces() == 1386",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Cylinder",
+    "passed": true,
+    "time_ms": 6.955,
+    "line": 32,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
+    "checks": [
+      {
+        "line": 40,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 41,
+        "code_line": "m.number_of_vertices() == 42",
+        "passed": true
+      },
+      {
+        "line": 42,
+        "code_line": "m.number_of_faces() == 42",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Cone",
+    "passed": true,
+    "time_ms": 4.305,
+    "line": 45,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.cone_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
+    "checks": [
+      {
+        "line": 53,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 54,
+        "code_line": "m.number_of_vertices() == 22",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "m.number_of_faces() == 21",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Doubly Curved",
+    "passed": true,
+    "time_ms": 87.369,
+    "line": 58,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.5)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
+    "checks": [
+      {
+        "line": 66,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "m.number_of_vertices() == 961",
+        "passed": true
+      },
+      {
+        "line": 68,
+        "code_line": "m.number_of_faces() == 1800",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Grid Target",
+    "passed": true,
+    "time_ms": 253.325,
+    "line": 71,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.5)\n    m_lo = RemeshNurbsSurfaceGrid.from_u_v(s, 8, 8)\n    m_hi = RemeshNurbsSurfaceGrid.from_u_v(s, 32, 32)",
+    "checks": [
+      {
+        "line": 80,
+        "code_line": "m_lo.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "m_lo.number_of_vertices() == 64",
+        "passed": true
+      },
+      {
+        "line": 82,
+        "code_line": "m_hi.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 83,
+        "code_line": "m_hi.number_of_vertices() > m_lo.number_of_vertices()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Flat Quad",
+    "passed": true,
+    "time_ms": 4.418,
+    "line": 86,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    s = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(0, 0, 0),\n        Point(0, 4, 0),\n        Point(4, 0, 0),\n        Point(4, 4, 0),\n    ])\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
+    "checks": [
+      {
+        "line": 100,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "m.number_of_vertices() == 4",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "m.number_of_faces() == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Flat Triangle",
+    "passed": true,
+    "time_ms": 1.13,
+    "line": 105,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    s = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(0, 0, 0),\n        Point(2, 4, 0),\n        Point(4, 0, 0),\n        Point(2, 4, 0),\n    ])\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
+    "checks": [
+      {
+        "line": 119,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 120,
+        "code_line": "m.number_of_vertices() == 3",
+        "passed": true
+      },
+      {
+        "line": 121,
+        "code_line": "m.number_of_faces() == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "RemeshNurbsSurfaceGrid",
+    "test_name": "Double-Curved Triangle",
+    "passed": true,
+    "time_ms": 2.447,
+    "line": 124,
+    "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    s = NurbsSurface.create(False, False, 2, 2, 3, 3, [\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(0, 2, 2),\n        Point(2, 2, 5),\n        Point(4, 2, 2),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    ])\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
+    "checks": [
+      {
+        "line": 143,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 144,
+        "code_line": "m.number_of_vertices() == 64",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "m.number_of_faces() == 98",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]
