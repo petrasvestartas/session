@@ -95,15 +95,17 @@ nothing in `engine/` learns it exists (the 35 litmus test still holds).
 
 ## Step 1 — a world box per object: `src/app/scene.rs`
 
-Extend the top-of-file import (35 already brought `Session`/`Geometry`/`Mesh`/`Point`/…):
+Extend 35's document-side import (it already brought `Session`/`Geometry`/`OBB`/`Point`/…):
 
 ```rust
-use session_rust::{AABB, OBB, SpatialBVH};   // ← ADD to the existing session_rust use
+use session_rust::{AABB, SpatialBVH};   // ← ADD to the existing session_rust use (OBB is
+                                        //   already there — 35's box converter needed it)
 ```
 
 Add a free function next to 35's converters. Since the Xform refactor EVERY object's stored
 coordinates are local, so the rule is uniform: build the LOCAL box, then transform it by the
-row's placed frame — the same matrix the instance row draws with:
+row's placed frame — the same matrix the instance row draws with. One arm per kernel kind:
+35's walk gives every one of the 11 types a row now, so every one needs a box:
 
 ```rust
 /// The object's WORLD box: local box × the row's placed frame. One rule for every kind —
@@ -120,8 +122,22 @@ fn world_obb(geom: &Geometry, placed: &Xform) -> OBB {
         Geometry::Polyline(pl) => OBB::from_polyline(pl, PAD),
         Geometry::NurbsCurve(c) => OBB::from_nurbscurve(c, PAD, true),
         Geometry::Point(p) => OBB::from_point((**p).clone(), PAD),
-        // unreachable: add_file `continue`s the non-renderable kinds before boxes are built
-        _ => OBB::from_point(Point::new(0.0, 0.0, 0.0), PAD),
+        // CV hull ⊇ surface (the NURBS convex-hull property): conservative, and no SECOND
+        // tessellation — the box does not need the mesh the walk built
+        Geometry::NurbsSurface(s) => OBB::from_nurbssurface(s, PAD),
+        // exactly the square the walk draws (from_plane takes FULL extents, halves them)
+        Geometry::Plane(p) => OBB::from_plane(p, 2.0 * PLANE_SIZE, 2.0 * PLANE_SIZE, 2.0 * PAD),
+        // the box IS the geometry: its 8 corners, padded — same corners the 12 edges drew
+        Geometry::OBB(b) => OBB::from_points(&b.corners(), PAD),
+        Geometry::PointCloud(pc) => OBB::from_pointcloud(pc, PAD),
+        // an element boxes as its baked geometry, exactly as the walk drew it
+        Geometry::Element(e) => match e.geometry() {
+            ElementGeometry::Mesh(m) => OBB::from_aabb(AABB::from_mesh(m, PAD)),
+            ElementGeometry::BRep(b) => OBB::from_aabb(AABB::from_mesh(&b.mesh(), PAD)),
+            // unreachable: add_file `continue`d the empty element — no row, so no box
+            ElementGeometry::None => OBB::from_point(Point::new(0.0, 0.0, 0.0), PAD),
+        },
+        // NO wildcard, same rule as add_file's match: a 12th kernel type must not compile
     };
     local.transformed(placed)
 }
@@ -163,8 +179,8 @@ Then in the walk loop, right after the two bookkeeping lines
             self.order.push(guid);
 ```
 
-append the row's box. One Rust trap: `placed` LOOKS in scope, but `Xform` is not `Copy`, and every
-match arm **moved** it into `t.objects.push((placed, …))` — so borrow the frame back out of the
+append the row's box. One Rust trap: `placed` LOOKS in scope, but `Xform` is not `Copy`, and the
+row push above the match **moved** it into `t.objects.push((placed, …))` — so borrow the frame back out of the
 row it now lives in. Which is the invariant made literal: the box is computed from the very
 matrix the row draws with, because it is the SAME value, not a copy that could drift:
 
@@ -307,8 +323,8 @@ Ch 35: Scene owns docs + tables + order + guid_to_row + hidden; rows are GLOBAL,
 Ch 36: Scene gains ONE broad-phase — the kernel's SpatialBVH (reused, not rewritten) — and the two
        helpers half the course leans on: placed_frame(row) = tables.objects[row].0 (the manifest
        place × session world xform that add_file stored) and doc_of_row(row) (contiguous per-doc
-       row ranges). Every box is LOCAL geometry × placed frame — one rule, all six renderable
-       kinds, no geometry placement to consult because none exists. Boxes append with the rows in
+       row ranges). Every box is LOCAL geometry × placed frame — one rule, all ELEVEN kernel
+       kinds (35's walk rows them all), no geometry placement to consult because none exists. Boxes append with the rows in
        add_file (extents cached once per append), the tree rebuilds per file (milliseconds), and
        queries return ROWS — unambiguous across docs, straight into flags/instances/order.
        objects_in(OBB) → rows is the one call picking (42, ray sliver) and box-select (45,

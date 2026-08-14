@@ -57,11 +57,9 @@ src/state.rs             # frame-count debounce + Ctrl+S; fire the download when
 
 The exact inverse of 34's `session_from_bytes_chunked` (minus the chunking — dumping is one
 synchronous pass), and the same entry points every language's minitest round-trips — just the dump
-side. Add next to the load functions:
+side. Add next to the load functions (`Session` is already imported at the top of the file):
 
 ```rust
-use session_rust::Session;
-
 /// `.pb` → prost bytes, `.json` → serde string-as-bytes; dispatched on the target
 /// filename's extension. Both dumpers already exist on `Session` (every minitest
 /// round-trips them); here we feed the bytes to a browser download instead of `std::fs`.
@@ -74,19 +72,20 @@ pub fn session_to_bytes(filename: &str, session: &Session) -> Vec<u8> {
 }
 ```
 
-Placements ride the dump too: `Session.xforms` (proto tag 7) carries every placement, so an in-viewer
-move must go through `session.set_xform(guid, …)` for `pb_dumps` to write it. And `pb_dumps` on a
-freshly mutated session is safe as-is — the kernel syncs its object table inside the dump itself (P2
-of the datastructure plan), no manual refresh step.
+Placements ride the dump too: `Session.xforms` (proto tag 7) carries every OBJECT placement, so an
+in-viewer move must go through `session.set_xform(guid, …)` for `pb_dumps` to write it. (The doc's
+manifest `place` is viewer bookkeeping — it never enters the `Session`, so a save cannot bake the
+sheet placement into the file.) And `pb_dumps` on a freshly mutated session is safe as-is — the
+kernel syncs its object table inside the dump itself (P2 of the datastructure plan), no manual
+refresh step.
 
 ## Step 2 — bytes → a download: `src/app/persistence.rs` (new ground)
 
 `wasm32` can't write a path, so hand the bytes to the browser as a `Blob` and trigger a synthetic
-download — the standard web pattern, and the mirror image of 34's fetch:
+download — the standard web pattern, and the mirror image of 34's fetch (`JsCast` and `JsValue`
+are already imported at the top of this file — the fetch half uses both):
 
 ```rust
-use wasm_bindgen::{JsCast, JsValue};
-
 /// Save `bytes` as `filename` via a browser download: wrap in a Blob, mint an object URL, click a
 /// hidden `<a download>`, then revoke the URL. There is no silent filesystem write on the web — the
 /// user always sees (and confirms) the download, by design.
@@ -128,12 +127,18 @@ Add the features to `Cargo.toml`'s `web-sys` list (beside 34's `Request`/`Respon
 38b built `content_hash` + `Scene.hashes` (the last-saved fingerprints). Save reuses them: an object is
 only *really* changed if its current hash differs from the stored one. One subtlety the Xform refactor
 forces: a pure MOVE never touches the geometry's bytes — placements live in `Session.xforms`, not on
-the object — which is exactly why 38b's rewritten hash folds `session.xform(guid)` in with the
-`to_proto()` bytes; reuse it as-is, or a moved-but-otherwise-untouched object would read as unchanged.
+the object — so the fingerprint must fold the placement in with the object's sorted-JSON bytes.
+The fold lives in 38b's `content_hash(geom, &Xform)`, and the frame MUST match 38b's baselines
+exactly: the composed `world_xforms()[guid]` (one downward pass), not the object's own
+`session.xform(guid)` — for a parented object the two differ, and a gate hashing a different
+frame than the stored baseline would flag it dirty forever. Reconcile needs the same fold for
+the same reason: a reload that only *moves* an object must still bucket as changed — without
+it, a moved-but-otherwise-untouched object would read as unchanged.
 
 Two 35 realities as well: a `Scene` is now *several* docs, and a save targets ONE of them —
 `save_if_changed` takes the doc index (the trigger below saves `docs[0]`; a shipping Ctrl+S saves the
-*active* doc, or loops over all docs — pick one policy, and split `dirty` per doc when you do). Add a
+*active* doc, or loops over all docs — pick one policy, and split `dirty` per doc when you do: as
+written, a guid dirtied in another doc reads as "removed" from the doc being saved). Add a
 dirty set and the gate (the field goes in `struct Scene`, its init in `Scene::new`'s `Self { … }`, the
 two methods in `impl Scene`):
 
@@ -154,10 +159,15 @@ two methods in `impl Scene`):
     /// so the NEXT save's gate starts clean, and clears `dirty`.
     pub fn save_if_changed(&mut self, doc: usize, filename: &str) -> Option<Vec<u8>> {
         let session = &self.docs.get(doc)?.session;   // per-DOC: which loaded file to dump
+        // SAME frame as 38b's baselines: composed world placements, one downward pass.
+        let world = session.world_xforms();
+        let ident = Xform::identity();
+        let placed = |g: &str| world.get(g).unwrap_or(&ident);
         let real: Vec<String> = self.dirty.iter()
             .filter(|g| session.lookup.get(*g)
-                // removed or hash≠
-                .map_or(true, |geom| self.hashes.get(*g) != Some(&content_hash(geom))))
+                // removed or hash≠ (content_hash folds the placement — see above)
+                .map_or(true, |geom| self.hashes.get(*g)
+                    != Some(&content_hash(geom, placed(g)))))
             .cloned().collect();
         self.dirty.clear();
         // debounce fired, but nothing truly moved
@@ -165,7 +175,9 @@ two methods in `impl Scene`):
 
         for g in &real {
             match session.lookup.get(g) {
-                Some(geom) => { self.hashes.insert(g.clone(), content_hash(geom)); }
+                Some(geom) => {
+                    self.hashes.insert(g.clone(), content_hash(geom, placed(g)));
+                }
                 None => { self.hashes.remove(g); }
             }
         }
@@ -176,8 +188,8 @@ two methods in `impl Scene`):
 ## Step 4 — debounce + trigger: `src/state.rs`
 
 The viewer already runs a per-frame loop, so the debounce is a frame counter — no timer API. An edit
-stamps `last_edit` with the current frame; `render` checks whether edits have been quiet long enough,
-then runs the gate:
+stamps `dirty_since` with the current frame; `render` checks whether edits have been quiet long
+enough, then runs the gate:
 
 Add the two fields to `struct State` — and initialize both in `State::new`'s `Ok(Self { … })`,
 or the struct won't compile:
@@ -225,7 +237,8 @@ Now the module-level constants, the `touch` entry point, and the debounce gate i
     if let Some(since) = self.dirty_since {
         if self.frame - since >= SAVE_DEBOUNCE_FRAMES {
             self.dirty_since = None;                               // one save per settled burst
-            if let Some(bytes) = self.scene.save_if_changed(0, SAVE_FILENAME) {   // doc 0 — see Step 3's policy note
+            // doc 0 — see Step 3's policy note
+            if let Some(bytes) = self.scene.save_if_changed(0, SAVE_FILENAME) {
                 let _ = crate::app::persistence::download_bytes(SAVE_FILENAME, &bytes);
                 log::info!("saved {} bytes", bytes.len());
             } else {
@@ -298,7 +311,7 @@ Ch 39: SAVE — write ONE doc's file out (docs[0] here; active-vs-all is policy)
        editing code fills via touch(); (2) debounce: a frame counter (edit stamps dirty_since;
        save fires only after SAVE_DEBOUNCE_FRAMES of quiet — coalesces a burst into one save,
        no JS timer); (3) hash gate: save_if_changed re-hashes each dirty object against 38b's
-       stored fingerprint (geometry bytes + session.xform, so a pure MOVE counts)
+       stored fingerprint (geometry bytes + composed world xform, so a pure MOVE counts)
        and drops the ones that reverted to their old value — nothing truly
        changed → Option::None → ZERO writes. Past all three, session_to_bytes (pb_dumps /
        file_json_dumps, the dump side of 34) → download_bytes wraps the Vec<u8> in a Blob and

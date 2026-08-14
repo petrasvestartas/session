@@ -75,6 +75,7 @@ Cargo.toml              # Step 3: + prost (decode the proto in the app layer)
 src/app/persistence.rs  # Step 3: session_from_bytes_chunked + next_tick; session_from_bytes OUT
 src/state.rs            # Step 4: State gains `scene`; the load loop moves OUT (to lib.rs)
 src/lib.rs              # Step 5: Msg::Ready/Msg::File — the progressive loader
+assets/scenes/drawings_rotated.json  # Step 6: rotated-sheet verify scene (no code)
 ```
 
 > ⚠ Nothing compiles between Step 1 and the end of Step 5 — the walk is changing owners. Type it
@@ -501,19 +502,30 @@ fn zeroed_buffer(device: &wgpu::Device, label: &str, size: u64, usage: wgpu::Buf
 
 ## Step 2 — `Scene` owns the documents: `src/app/scene.rs`
 
-The file already holds the MANIFEST (which files, where). The document side is APPENDED below
-`auto_grid` — manifest above says WHERE, `Scene` below owns WHAT. Read it as four parts: `Doc`
-(one kept session + its placement), `Scene` (docs + the merged tables + bookkeeping),
-`add_file()` (34e's walk, appending into the SHARED tables so each file costs only its own
-walk), and the converters (34's `adapters.rs` + `push_mesh` + the bounds helpers, moved
-verbatim). Append exactly this:
+Nothing in this file changes — it stays the manifest (WHICH files, WHERE they sit). You only
+ADD code at the very bottom, after `auto_grid`'s closing `}`. Three pastes:
+
+**2a.** Paste the block below at the end of the file. It reads as three parts: `Doc` (one kept
+session + its placement), `Scene` (the docs + the merged GPU tables + `guid_to_row`/`hidden`
+bookkeeping), and `add_file()` — 34e's walk moved out of `Gpu`, appending into the SHARED
+tables so each file costs only its own walk. The walk also GROWS here: since 34b it rendered 6
+of the kernel's 11 geometry types and skipped the rest — now that it lives in the app layer it
+covers all 11 (surfaces tessellate like BReps, elements delegate to their baked geometry,
+planes/boxes/clouds get the three new converters of 2c).
+
+**2b.** Below that, the converters rescued from Step 1's deletions (full bodies after the
+block — nothing to dig out of git).
+
+**2c.** Last, the three NEW converters the full coverage needs — plane, box, point cloud (full
+code after 2b).
 
 ```rust
 // ─────────────────────────────────────────────────────────────────────────────────────────────
 // The DOCUMENT side of the scene: manifest above says WHERE, `Scene` below owns WHAT.
 
 use std::collections::{HashMap, HashSet};
-use session_rust::{Session, Geometry, Mesh, Line, Point, Polyline, NurbsCurve, RenderVertex};
+use session_rust::{Session, Geometry, Mesh, Line, Point, Polyline, NurbsCurve, Plane, OBB, PointCloud, RenderVertex, Vector};
+use session_rust::element::ElementGeometry;
 use session_rust::mesh::ColorMode;
 use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint};
 
@@ -553,7 +565,9 @@ impl Scene {
     ///   per-object `world_xform()` rescans the tree each call — quadratic over a session)
     /// - `session.order()` is the kernel's CANONICAL order, deterministic across runs and
     ///   languages — the row a guid gets here is the row it keeps (picking/selection rely on it)
-    /// - per-FILE planar test: a z≡0 sheet flips its linework into the world-mm lane (34f)
+    /// - per-FILE planar test: a sheet flat along its OWN normal (place·ẑ, any orientation)
+    ///   flips its linework into the world-mm lane (34f)
+    /// - unlike the 34 walk (6 of 11 types), EVERY kernel geometry type now renders
     pub fn add_file(&mut self, name: String, session: Session, place: Xform) {
         let seg0 = self.tables.segments.len();
         let pipe0 = self.tables.pipes.len();
@@ -567,47 +581,64 @@ impl Scene {
         let t = &mut self.tables;
         for guid in session.order() {
             let Some(geom) = session.lookup.get(&guid) else { continue };
+            // The ONE skip left: an Element with no baked geometry draws nothing. Screening it
+            // BEFORE the row push is what lets the push live outside the match — every arm
+            // below draws, so every arm shares the same object row.
+            if let Geometry::Element(e) = geom {
+                if matches!(e.geometry(), ElementGeometry::None) { continue }
+            }
             let ri = t.objects.len() as u32;
             let flags = if self.hidden.contains(&guid) { Instance::FLAG_HIDDEN } else { 0 };
             let placed = &place * &placement(&guid);
+            t.objects.push((placed, [1.0; 4], flags));
             match geom {
                 // 3D geometry takes the SOLID lane: edges are real cylinders and vertices real
                 // spheres, so ink is lifted off the surface by its own radius instead of being
                 // a flat quad at the surface's depth (which loses the depth test at silhouettes).
                 Geometry::Mesh(m) => {
-                    t.objects.push((placed, [1.0; 4], flags));
                     push_mesh(m, ri, &mut t.verts, &mut t.vids, &mut t.idx,
                         &mut t.pipes, &mut t.spheres);
                 }
                 Geometry::BRep(b) => {
                     let mut bm = b.mesh();
                     bm.set_objectcolor(b.surfacecolor.clone());
-                    t.objects.push((placed, [1.0; 4], flags));
                     push_mesh(&bm, ri, &mut t.verts, &mut t.vids, &mut t.idx,
                         &mut t.pipes, &mut t.spheres);
                 }
-                Geometry::Line(l) => {
-                    t.objects.push((placed, [1.0; 4], flags));
-                    t.segments.push(line_to_segment(l, ri));
-                }
-                Geometry::Polyline(pl) => {
-                    t.objects.push((placed, [1.0; 4], flags));
-                    t.segments.extend(polyline_to_segments(pl, ri));
-                }
+                Geometry::Line(l) => t.segments.push(line_to_segment(l, ri)),
+                Geometry::Polyline(pl) => t.segments.extend(polyline_to_segments(pl, ri)),
                 // Curves ride the FLAT lane too - sampled to segments, they ARE polylines by
                 // the time the GPU sees them.
-                Geometry::NurbsCurve(c) => {
-                    t.objects.push((placed, [1.0; 4], flags));
-                    t.segments.extend(nurbscurve_to_segments(c, ri));
+                Geometry::NurbsCurve(c) => t.segments.extend(nurbscurve_to_segments(c, ri)),
+                Geometry::Point(p) => t.glyphs.push(point_to_glyph(p, ri)),
+                Geometry::PointCloud(pc) => t.glyphs.extend(pointcloud_to_glyphs(pc, ri)),
+                // A surface tessellates exactly like a BRep face (mesh() caches; a planar
+                // surface is just two triangles), so it rides the SOLID lane.
+                Geometry::NurbsSurface(s) => {
+                    let mut sm = s.mesh();
+                    if let Some(c) = s.facecolors.first() { sm.set_objectcolor(c.clone()); }
+                    push_mesh(&sm, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                        &mut t.pipes, &mut t.spheres);
                 }
-                Geometry::Point(p) => {
-                    t.objects.push((placed, [1.0; 4], flags));
-                    t.glyphs.push(point_to_glyph(p, ri));
-                }
-                // Later lessons - the match must stay exhaustive over all 11 variants
-                Geometry::Plane(_) | Geometry::OBB(_) |
-                Geometry::PointCloud(_) | Geometry::Element(_) |
-                Geometry::NurbsSurface(_) => { continue }
+                // Construction types draw as linework: a plane is infinite, so it gets a fixed
+                // PLANE_SIZE rectangle spanned by its x/y axes; a box is its 12 edges.
+                Geometry::Plane(p) => t.segments.extend(plane_to_segments(p, ri)),
+                Geometry::OBB(b) => t.segments.extend(obb_to_segments(b, ri)),
+                // An element IS its baked geometry. NO wildcard arm anywhere in this match: a
+                // 12th kernel type must fail to compile until the walk decides how to draw it.
+                Geometry::Element(e) => match e.geometry() {
+                    ElementGeometry::Mesh(m) => {
+                        push_mesh(m, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                            &mut t.pipes, &mut t.spheres);
+                    }
+                    ElementGeometry::BRep(b) => {
+                        let mut bm = b.mesh();
+                        bm.set_objectcolor(b.surfacecolor.clone());
+                        push_mesh(&bm, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                            &mut t.pipes, &mut t.spheres);
+                    }
+                    ElementGeometry::None => (), // screened before the row push above
+                },
             }
             self.guid_to_row.insert(guid.clone(), ri);
             self.order.push(guid);
@@ -639,10 +670,45 @@ impl Scene {
             t.max[k] = t.max[k].max(fmax[k]);
         }
 
-        // 2D drawing sheets (exactly planar, z = 0 - every PDF conversion gets paper space)
-        // lineweights: kernel width (mm on the sheet) - the radius world lane, so zooming out
-        // thins the ink like a real print. 3D model files keep screen-constant px linework.
-        let planar = fmin[2].is_finite() && (fmax[2] - fmin[2]).abs() < 1e-3;
+        // 2D drawing sheets (flat linework - every PDF conversion gets paper space) keep kernel
+        // widths (mm on the sheet) via the radius world lane, so zooming out thins the ink like
+        // a real print; 3D model files keep screen-constant px linework. Planar = thin along the
+        // SHEET's normal (place·ẑ; place is rigid — the manifest never scales), not world z, so
+        // a rotated placement stays paper. The 99% path (translation-only place, auto_grid:
+        // normal still ±Z) reuses the z-extent accumulated above — no extra work at all; only a
+        // rotated placement pays one dot-product pass over this file's new rows.
+        let n = place.transform_vector(&Vector::new(0.0, 0.0, 1.0));
+        let thickness = if n[0].abs() < 1e-9 && n[1].abs() < 1e-9 {
+            fmax[2] - fmin[2]
+        } else {
+            let (nx, ny, nz) = (n[0] as f32, n[1] as f32, n[2] as f32);
+            let (mut dmin, mut dmax) = (f32::INFINITY, f32::NEG_INFINITY);
+            let mut span = |p: [f32; 3]| {
+                let d = p[0] * nx + p[1] * ny + p[2] * nz;
+                dmin = dmin.min(d);
+                dmax = dmax.max(d);
+            };
+            for (i, v) in t.verts.iter().enumerate().skip(vert0) {
+                if let Some(&ri) = t.vids.get(i) {
+                    if let Some((xf, _, _)) = t.objects.get(ri as usize) {
+                        span(xform_point(xf, v.position));
+                    }
+                }
+            }
+            for s in t.pipes.iter().skip(pipe0).chain(t.segments.iter().skip(seg0)) {
+                if let Some((xf, _, _)) = t.objects.get(s.instance_id as usize) {
+                    span(xform_point(xf, s.p0));
+                    span(xform_point(xf, s.p1));
+                }
+            }
+            for g in t.spheres.iter().skip(sphere0).chain(t.glyphs.iter().skip(glyph0)) {
+                if let Some((xf, _, _)) = t.objects.get(g.instance_id as usize) {
+                    span(xform_point(xf, g.center));
+                }
+            }
+            dmax - dmin
+        };
+        let planar = thickness.is_finite() && thickness.abs() < 1e-3;
         if planar {
             for s in t.pipes.iter_mut().skip(pipe0).chain(t.segments.iter_mut().skip(seg0)) {
                 s.radius = if s.radius < 0.0 { -s.radius * 0.5 } else { 0.5 }
@@ -655,24 +721,261 @@ impl Scene {
 }
 ```
 
-Then, below that, paste the converters — `line_to_segment`, `polyline_to_segments`,
-`nurbscurve_to_segments`, `point_to_glyph`, `encode_width` (bodies UNCHANGED from the deleted
-`adapters.rs`, `pub`/`pub(super)` dropped — they're file-local now) and, verbatim from the
-deleted engine code, `push_mesh`, `xform_point`, `grow_bounds`. Nothing in their bodies changes;
-they name `Mesh`/`Line`/`Point` — document types — which is exactly why they now live in the app
-layer.
+**2b (the rescued converters).** Below the block you just pasted, add eight functions, bodies
+UNCHANGED: `line_to_segment`, `polyline_to_segments`, `nurbscurve_to_segments`,
+`point_to_glyph`, `encode_width` from the deleted `adapters.rs` (drop the `pub`/`pub(super)` —
+they're file-local now), and `push_mesh`, `xform_point`, `grow_bounds` from the deleted engine
+code. They name `Mesh`/`Line`/`Point` — document types — which is exactly why they now live in
+the app layer. After Step 1's deletions their only other copy is git history
+(`git show a6a33a8b:./src/engine/gpu/adapters.rs` / `…gpu/mod.rs`), so here they are in full —
+the ONLY edits vs the originals are the dropped `pub`/`pub(super)` and `encode_width`'s comment
+saying `add_file` instead of the deleted `walk_session`:
 
-Four things to notice while typing:
+```rust
+fn line_to_segment(l: &Line, instance_id: u32) -> CylinderSegment {
+    CylinderSegment {
+        p0: l.start().to_f32(),
+        radius: encode_width(l.width),
+        p1: l.end().to_f32(),
+        instance_id,
+        color: l.linecolor.to_f32(),
+    }
+}
+
+fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegment> {
+    let pts = pl.get_points();
+    let color = pl.linecolor.to_f32();
+    // windows(2) = every OVERLAPPING pair [p_i, p_i+1]: N points -> N-1 connected edges
+    // (chunks(2) would skip every other edge; < 2 points yields nothing, no panic)
+    pts.windows(2).map(|w| CylinderSegment {
+        p0: w[0].to_f32(),
+        radius: encode_width(pl.width),
+        p1: w[1].to_f32(),
+        instance_id,
+        color,
+    }).collect()
+}
+
+/// A curve becomes a polyline of ribbon segments. Sample count follows the curve's SIZE, not a
+/// fixed number: a PDF sheet is mostly 1-2 mm glyph outlines (4 segments is already smoother
+/// than a pixel) next to metre-long arcs (which need ~50), and a flat count would either
+/// shatter the budget or visibly facet the big ones.
+fn nurbscurve_to_segments(c: &NurbsCurve, instance_id: u32) -> Vec<CylinderSegment> {
+    let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
+    for i in 0..c.m_cv_count {
+        if let Some(cv) = c.cv(i) {
+            let w = if c.m_is_rat && cv.len() > 3 && cv[3] != 0.0 { cv[3] } else { 1.0 };
+            for k in 0..3 { lo[k] = lo[k].min(cv[k] / w); hi[k] = hi[k].max(cv[k] / w); }
+        }
+    }
+    if lo[0] > hi[0] { return Vec::new(); }
+    let size = ((hi[0]-lo[0]).powi(2) + (hi[1]-lo[1]).powi(2) + (hi[2]-lo[2]).powi(2)).sqrt();
+    let n = ((size / 0.2).sqrt().ceil() as usize).clamp(4, 64);
+
+    let (t0, t1) = c.domain();
+    let color = c.linecolors.first().map(|c| c.to_f32()).unwrap_or([0.0, 0.0, 0.0, 1.0]);
+    let radius = encode_width(c.width);
+    let pts: Vec<[f32; 3]> = (0..=n)
+        .map(|i| c.point_at(t0 + (t1 - t0) * i as f64 / n as f64).to_f32())
+        .collect();
+    pts.windows(2).map(|w| CylinderSegment {
+        p0: w[0],
+        radius,
+        p1: w[1],
+        instance_id,
+        color,
+    }).collect()
+}
+
+fn point_to_glyph(p: &Point, instance_id: u32) -> GlyphPoint {
+    GlyphPoint {
+        center: p.to_f32(),
+        radius: encode_width(p.width),
+        color: p.pointcolor.to_f32(),
+        instance_id,
+        _pad: [0; 3],
+    }
+}
+
+/// Kernel width - the radius encoding's negative lane (px multiplier); 0.0 = global default.
+/// Radius 0.0 and -1.0 render identically (mult = select(1.0, -r, r<0)), so every w > 0 encodes
+/// as-is - a special case for 1.0 would silently lose a real 1.0 pen (PDF widths are mm now).
+/// add_file flips negatives into the positive world-mm lane for planar 2d drawings:
+/// paper-space lineweights that scale with zoom.
+fn encode_width(w: f64) -> f32 {
+    if w.is_finite() && w > 0.0 {
+        -(w as f32)
+    } else {
+        0.0
+    }
+}
+
+fn push_mesh(
+    m: &Mesh,
+    ri: u32,
+    verts: &mut Vec<RenderVertex>,
+    vids: &mut Vec<u32>,
+    idx: &mut Vec<u32>,
+    segments: &mut Vec<CylinderSegment>,
+    glyphs: &mut Vec<GlyphPoint>
+){
+    let base = verts.len() as u32;
+    let rm = m.to_render();
+    for v in &rm.vertices{
+        verts.push(*v);
+        vids.push(ri);
+    }
+    for &i in &rm.indices{
+        idx.push(base+i);
+    }
+
+    // Edge width 0 = HIDDEN wireframe. A mesh only has explicit widths if someone called
+    // set_linecolors, so the 1.0 default below leaves every ordinary mesh untouched - but a
+    // triangulated PDF fill (a letter, a poché region) asks for no wireframe at all, and without
+    // this every glyph would render outlined in tubes and dotted at each vertex.
+    // A single width BROADCASTS to every edge - one entry instead of one per edge, which for
+    // thousands of small glyph meshes is the difference between a lean .pb and a fat one.
+    let width_at = |i: usize| -> f64 {
+        let w = m.widths();
+        if w.len() == 1 { w[0] } else { w.get(i).copied().unwrap_or(1.0) }
+    };
+    let hidden = |i: usize| width_at(i) == 0.0;
+
+    for (i, (a, b, col)) in m.edges_with_colors().into_iter().enumerate(){
+        if hidden(i) { continue }
+        let pa = m.vertex_point(a).unwrap();
+        let pb = m.vertex_point(b).unwrap();
+        segments.push(
+            CylinderSegment{
+                p0: pa.to_f32(),
+                radius: encode_width(width_at(i)),
+                p1: pb.to_f32(),
+                instance_id: ri,
+                color: col.to_f32()
+            }
+        )
+    }
+
+    // Dots honor user-set pointcolors.
+    // The auto-seeded white vec is filtered by the MODE gate.
+    // m.vertices() is sorted - the same order to_render indexes pointcolors by.
+    let pc = m.get_pointcolors();
+    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
+    // A vertex sphere must be as fat as the pipes that meet there, or the joint shows a pinch
+    // (thinner sphere) or a bead (fatter one). The kernel has no per-vertex width, so take the
+    // widest incident edge - the same encoding the pipes above are pushed with.
+    let mut vwidth: std::collections::HashMap<usize, f64> = std::collections::HashMap::new();
+    for (i, (a, b, _)) in m.edges_with_colors().into_iter().enumerate(){
+        if hidden(i) { continue }   // a vertex whose every edge is hidden gets no dot either
+        let w = width_at(i);
+        for vk in [a, b] {
+            let e = vwidth.entry(vk).or_insert(w);
+            if w > *e { *e = w; }
+        }
+    }
+    for (i,vk) in m.vertices().into_iter().enumerate(){
+        let Some(&vw) = vwidth.get(&vk) else { continue };
+        let p = m.vertex_point(vk).unwrap();
+        glyphs.push(
+            GlyphPoint {
+                center: p.to_f32(),
+                radius: encode_width(vw),
+                color: if dots_colored { pc[i].to_f32() } else { [0.1, 0.1, 0.1, 1.0] },
+                instance_id: ri,
+                _pad: [0;3] }
+        );
+    }
+}
+
+fn xform_point(xf: &Xform, p: [f32; 3]) -> [f32; 3] {
+    let x = p[0] as f64;
+    let y = p[1] as f64;
+    let z = p[2] as f64;
+    [
+        (xf.m[0] * x + xf.m[4] * y + xf.m[8] * z + xf.m[12]) as f32,
+        (xf.m[1] * x + xf.m[5] * y + xf.m[9] * z + xf.m[13]) as f32,
+        (xf.m[2] * x + xf.m[6] * y + xf.m[10] * z + xf.m[14]) as f32,
+    ]
+}
+
+fn grow_bounds(min: &mut [f32; 3], max: &mut [f32; 3], p: [f32; 3]) {
+    for k in 0..3 {
+        min[k] = min[k].min(p[k]);
+        max[k] = max[k].max(p[k]);
+    }
+}
+```
+
+Two things to notice: `push_mesh`'s last two parameters are NAMED `segments`/`glyphs` but every
+call site passes `&mut t.pipes, &mut t.spheres` — mesh edges and vertices ride the SOLID lane;
+the parameter names just came along with the body. And `xform_point`'s column indices
+(`m[0]/m[4]/m[8]/m[12]` across a row) are the kernel `Xform`'s COLUMN-major layout — the same
+convention Step 6's hand-written manifest matrices use.
+
+**2c (the new converters).** The three types no walk ever drew before. Each reuses a lane that
+already exists — no shader, no pipeline, no engine change:
+
+```rust
+/// A plane is infinite — draw a fixed square around its origin, spanned by its x/y axes.
+/// Half-extent in world mm (a 1 m square); the plane's own pen (width, linecolor) draws it.
+const PLANE_SIZE: f64 = 500.0;
+
+fn plane_to_segments(pl: &Plane, instance_id: u32) -> Vec<CylinderSegment> {
+    let (o, x, y) = (pl.origin(), pl.x_axis(), pl.y_axis());
+    let corner = |sx: f64, sy: f64| -> [f32; 3] {
+        [0usize, 1, 2].map(|k| (o[k] + (x[k] * sx + y[k] * sy) * PLANE_SIZE) as f32)
+    };
+    let c = [corner(1.0, 1.0), corner(-1.0, 1.0), corner(-1.0, -1.0), corner(1.0, -1.0)];
+    let color = pl.linecolor.to_f32();
+    let radius = encode_width(pl.width);
+    (0..4).map(|i| CylinderSegment { p0: c[i], radius, p1: c[(i + 1) % 4], instance_id, color })
+        .collect()
+}
+
+/// A box is its 12 edges: bottom loop, top loop, four verticals — `corners()` orders the bottom
+/// face 0-3 and the top 4-7 with i / i+4 vertically aligned. The OBB type carries no pen, so
+/// the edges draw black at screen-constant width (radius 0.0 = the global default).
+fn obb_to_segments(b: &OBB, instance_id: u32) -> Vec<CylinderSegment> {
+    const EDGES: [[usize; 2]; 12] = [[0, 1], [1, 2], [2, 3], [3, 0],
+        [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
+    let c = b.corners_f32();
+    EDGES.iter().map(|&[i, j]| CylinderSegment {
+        p0: c[i], radius: 0.0, p1: c[j], instance_id, color: [0.0, 0.0, 0.0, 1.0],
+    }).collect()
+}
+
+/// One glyph per point. `point_size` rides the same width encoding as every other pen, and a
+/// cloud with fewer colors than points falls back to black for the tail.
+fn pointcloud_to_glyphs(pc: &PointCloud, instance_id: u32) -> Vec<GlyphPoint> {
+    let radius = encode_width(pc.point_size);
+    let colors = pc.color_count();
+    (0..pc.len()).map(|i| GlyphPoint {
+        center: pc.get_point(i).to_f32(),
+        radius,
+        color: if i < colors { pc.get_color(i).to_f32() } else { [0.0, 0.0, 0.0, 1.0] },
+        instance_id,
+        _pad: [0; 3],
+    }).collect()
+}
+```
+
+Five things to notice while typing:
 
 - The import block adds no `Xform` — the manifest code already at the top of this file imports
   it (`use session_rust::Xform;`), so `Doc { place: Xform }` resolves.
 - `add_file` walks straight into the GLOBAL tables, so `push_mesh`'s `base = verts.len()`
   index-rebasing works unchanged — there is no separate per-file merge step anymore, and
   appending file #7 never touches rows 1-6.
-- The planar test is per FILE (its own new rows only): a 2D sheet keeps paper-space lineweights
-  even when a 3D model is loaded next to it.
+- The planar test is per FILE (its own new rows only) and orientation-independent: thickness is
+  measured along the sheet's own normal (`place·ẑ`), so a rotated sheet keeps paper-space
+  lineweights next to a 3D model — and the ±Z fast path means the common flat layout pays
+  nothing for that generality.
 - `obj0` is captured alongside the other bases but nothing reads it yet — `let _ = obj0;` at the
   bottom keeps the unused-variable warning away until a later lesson needs the per-file row base.
+- The five new arms cost three small converters and zero engine changes because every lane they
+  need already exists: surfaces and elements reuse the BRep pattern (`mesh()` → `push_mesh`),
+  planes and boxes are plain segments, and a cloud goes through the GLYPH lane — deliberately
+  not `Gpu`'s dormant `CloudPoint` machinery, so the walk keeps one path per category.
 
 ## Step 3 — the sliced parse: `src/app/persistence.rs`
 
@@ -985,6 +1288,64 @@ Note the free win in the `Ready` arm: the camera FITS the first sheet — no mor
 a grey void. (Later files widen `scene_min/max`; the camera stays where you are, which is what
 you want while reading sheet one.)
 
+## Step 6 — sheets in space: verify the rotated planar lane
+
+The planar test claims orientation doesn't matter — prove it with your eyes. Nothing compiles
+here: one new manifest, one const flip, reload.
+
+**6a.** Create `assets/scenes/drawings_rotated.json`. The kernel `Xform` is COLUMN-major
+(`m[0..3]` = X column, `m[4..7]` = Y, `m[8..11]` = Z, `m[12..14]` = translation), so each
+`xform` below reads as four columns of four:
+
+```json
+{
+  "name": "rotated sheets",
+  "comment": "Planar-lane torture test: flat / standing / tilted / in-plane-rotated sheets + one 3D control. Xform is column-major, translation in slots 12-14.",
+
+  "items": [
+    { "file": "pb/30700_querschnitt_gg.pb", "name": "flat reference",
+      "at": [0, 0, 0] },
+
+    { "file": "pb/draw_pc_gru_og2.pb",      "name": "standing (90 deg about X)",
+      "xform": [1,0,0,0,  0,0,1,0,  0,-1,0,0,  3400,0,0,1] },
+
+    { "file": "pb/draw_pb_haus25.pb",       "name": "drafting tilt (45 deg about X)",
+      "xform": [1,0,0,0,  0,0.7071068,0.7071068,0,  0,-0.7071068,0.7071068,0,  7200,0,0,1] },
+
+    { "file": "pb/draw_pe_schalungsbild.pb","name": "in-plane spin (30 deg about Z)",
+      "xform": [0.8660254,0.5,0,0,  -0.5,0.8660254,0,0,  0,0,1,0,  10000,0,0,1] },
+
+    { "file": "pb/colors_widths.pb",        "name": "3D control (must stay px pens)",
+      "at": [0, 4200, 0] }
+  ]
+}
+```
+
+**6b.** In `lib.rs`, flip `DEMO_SCENE_URL` to `"scenes/drawings_rotated.json"`, reload. Flip it
+back when done — the manifest stays in `assets/scenes/` as a permanent regression scene.
+
+**What to verify, sheet by sheet:**
+
+- **Rendering is orientation-independent by construction** — nothing should look different on
+  the rotated sheets. FLAT-lane ribbons are built camera-facing per frame from world-space
+  endpoints, glyphs are camera-facing SDF dots, and the SOLID lane is real 3D cylinders — none
+  of them care what plane the endpoints lie in.
+- **Pens are the actual test.** Zoom out: ink must thin like a real print on the flat, the
+  standing, the tilted AND the spun sheet alike. The standing and tilted sheets are exactly the
+  cases the old world-z test misclassified (their world z-extent is their full height — they'd
+  have silently switched to screen-px pens); the normal-aligned test keeps them paper.
+- **The fast path isn't fooled.** The 30°-about-Z sheet is rotated but its normal is still +Z —
+  it must classify planar through the free `fmax[2]−fmin[2]` path, no dot-product pass. (Log a
+  temporary `log::info!("rotated: {}", rotated)` if you want to see the branch taken: false for
+  it, true only for the standing/tilted two.)
+- **The 3D control stays px.** `colors_widths` has solid boxes → not planar → its linework stays
+  screen-constant, and its arrival flips MSAA 1x→4x exactly as before. The four drawing sheets
+  alone run at 1x — edge quality on their linework comes from 34f's SDF ramp, which is
+  per-pixel and angle-independent, so rotated edges look no different from flat ones.
+- **Bounds and fit still hold**: the camera fits the flat reference first, later sheets widen
+  `scene_min/max` (the bounds loop runs every point through its full placement, rotation
+  included), and `F` frames the whole arrangement.
+
 ## Memory honesty
 
 `Scene` now RETAINS every parsed `Session`. One sheet costs tens to hundreds of MB in kernel
@@ -1039,7 +1400,9 @@ Ch 35:  THE DOCUMENT RETURNS, AND SO DO THE PIXELS. Scene (app layer) owns docs:
         place, session}> — the kernel Session KEPT per file — plus the merged ArenaUpload tables
         and viewer-only bookkeeping (guid_to_row, hidden). add_file walks ONE session into the
         shared tables (placement = manifest place × session.world_xforms()), applies the 34f
-        paper lane per file, and never rebuilds old rows. Gpu::new starts EMPTY; set_scene is
+        paper lane per file, never rebuilds old rows — and now renders ALL 11 kernel types
+        (planes as PLANE_SIZE squares, boxes as 12 edges, clouds as glyphs, surfaces and
+        elements through mesh() like BReps). Gpu::new starts EMPTY; set_scene is
         the ONE upload path — zero-copy (write_buffer lane splice into zeroed buffers; WebGPU
         zero-init), MSAA flip rebuilds pipelines (sample count belongs to the PASS). The parse
         is SLICED: proto decoded whole, objects converted 25k per setTimeout(0) macrotask
@@ -1052,7 +1415,8 @@ Ch 35:  THE DOCUMENT RETURNS, AND SO DO THE PIXELS. Scene (app layer) owns docs:
 Edited: `engine/gpu/mod.rs` (imports trimmed, STRESS_GRID+SceneTables+merge+walk_session+
 push_mesh deleted; ArenaUpload + zero-copy set_scene + zeroed_buffer + pub row structs +
 FLAG_HIDDEN + stored layouts; new() starts empty), `engine/gpu/adapters.rs` (DELETED),
-`app/scene.rs` (+Doc/Scene/add_file + converters), `Cargo.toml` (+prost), `app/persistence.rs`
+`app/scene.rs` (+Doc/Scene/add_file, all 11 types + converters), `Cargo.toml` (+prost),
+`app/persistence.rs`
 (chunked parse in, session_from_bytes out), `state.rs` (loop out, `State.scene` in), `lib.rs`
 (Msg enum + progressive loader).
 

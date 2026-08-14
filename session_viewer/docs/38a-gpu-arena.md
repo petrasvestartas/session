@@ -22,15 +22,17 @@
   <text x="480" y="74" fill="#6fb3ff" text-anchor="middle" font-size="10">free(B) → hole; next allocate first-fits into it</text>
   <text x="480" y="90" fill="#666" text-anchor="middle" font-size="10">neighbours never re-uploaded</text>
   <text x="340" y="128" fill="#888" text-anchor="middle">slots: HashMap&lt;guid, ArenaSlot{vertex_range, index_range}&gt; — the address book</text>
-  <text x="340" y="148" fill="#666" text-anchor="middle">meshes: free-list arena · lines/points: guid→Range + drain-shift (small, dense tables)</text>
+  <text x="340" y="148" fill="#666" text-anchor="middle">meshes: free-list arena · lane tables (pipes/spheres/segments/glyphs): guid→Range + drain-shift</text>
 </svg>
 
 ## Files we touch
 
 ```
 src/engine/gpu/arena.rs   # NEW — GpuArena: free-list allocator over vbo+vids+ibo, guid → slot
-# Gpu owns a GpuArena + guid→segment/glyph range maps; append/remove helpers
+# Gpu owns a GpuArena + guid→range maps over the four lane mirrors; append/remove helpers;
+# set_scene fills per object
 src/engine/gpu/mod.rs
+src/app/scene.rs          # flatten_mesh (35's push_mesh, split); add_file fills per-object entries
 ```
 
 ## Step 1 — the allocator type: `src/engine/gpu/arena.rs` (NEW)
@@ -216,77 +218,95 @@ Add to `impl GpuArena`:
     pub fn index_count(&self) -> u32 { self.cursor_i }
 ```
 
-## Step 4 — segments & glyphs: range maps + drain-shift: `src/engine/gpu/mod.rs`
+## Step 4 — the lane tables: range maps + drain-shift: `src/engine/gpu/mod.rs`
 
-Lines and points have no index buffer, so they skip the free-list machinery — a `guid → Range` into
-the CPU-side vec, plus **drain-and-shift** on delete, is simpler and is what the archive uses. Add to
-`Gpu`:
+The linework lanes have no index buffer, so they skip the free-list machinery — a `guid → Range`
+into a CPU-side mirror per lane, plus **drain-and-shift** on delete, is simpler and is what the
+archive uses. There are FOUR lanes since 35 (SOLID `pipes`/`spheres` from mesh edges/vertices,
+FLAT `segments`/`glyphs`), and each pair still shares ONE storage buffer, spliced SOLID-first
+exactly as 35's `set_scene` wrote it. Add to `Gpu` — and delete the four `arena_*` fields the
+first line replaces (5b rewires the initializer):
 
 ```rust
-    arena: GpuArena,                  // ← replaces 30's arena_vbo/vids/ibo
-    guid_to_seg: std::collections::HashMap<String, std::ops::Range<usize>>,
-    guid_to_glyph: std::collections::HashMap<String, std::ops::Range<usize>>,
-    segments: Vec<CylinderSegment>,   // keep the CPU mirror (was upload-only) so we can splice it
+    arena: GpuArena,                  // ← replaces 30's arena_vbo/vids/ibo/arena_index_count
+    guid_to_pipe:   std::collections::HashMap<String, std::ops::Range<usize>>,
+    guid_to_sphere: std::collections::HashMap<String, std::ops::Range<usize>>,
+    guid_to_seg:    std::collections::HashMap<String, std::ops::Range<usize>>,
+    guid_to_glyph:  std::collections::HashMap<String, std::ops::Range<usize>>,
+    pipes:    Vec<CylinderSegment>,   // CPU mirrors (35 only borrowed the Scene's vecs) — the
+    spheres:  Vec<GlyphPoint>,        // drain-shift state each remove edits, then re-splices
+    segments: Vec<CylinderSegment>,
     glyphs:   Vec<GlyphPoint>,
 ```
 
-Append records the guid's range and pushes to the tail; delete drains the slice and shifts every later
-range down. Both re-upload the (dense) segment buffer once:
+Append records the guid's range and pushes to the tail; delete drains the slice and shifts every
+later range down. The mechanics are lane-generic, so they live in two free helpers — put them next
+to `zeroed_buffer` at the bottom of the file:
 
 ```rust
-    fn append_segments(&mut self, guid: &str, segs: &[CylinderSegment]) {
-        let start = self.segments.len();
-        self.segments.extend_from_slice(segs);
-        self.guid_to_seg.insert(guid.to_string(), start..self.segments.len());
-        self.ensure_seg_capacity();   // grow the wgpu buffer 2x if the Vec outgrew it (see note)
-        self.queue.write_buffer(&self.segment_buffer, 0, bytemuck::cast_slice(&self.segments));
-        self.segment_count = self.segments.len() as u32;
+/// Append `rows` under `guid` at the tail of a lane's CPU mirror; record its range.
+fn lane_append<T: Copy>(vec: &mut Vec<T>,
+    map: &mut std::collections::HashMap<String, std::ops::Range<usize>>,
+    guid: &str, rows: &[T]) {
+    let start = vec.len();
+    vec.extend_from_slice(rows);
+    map.insert(guid.to_string(), start..vec.len());
+}
+
+/// Drain `guid`'s slice out of a lane and shift every later range down. True if it was there.
+fn lane_remove<T>(vec: &mut Vec<T>,
+    map: &mut std::collections::HashMap<String, std::ops::Range<usize>>,
+    guid: &str) -> bool {
+    let Some(r) = map.remove(guid) else { return false };
+    let n = r.len();
+    vec.drain(r.clone());
+    for range in map.values_mut() {
+        if range.start >= r.end { range.start -= n; range.end -= n; }   // shift the tail
     }
-    fn remove_segments(&mut self, guid: &str) {
-        if let Some(r) = self.guid_to_seg.remove(guid) {
-            let n = r.len();
-            self.segments.drain(r.clone());
-            for range in self.guid_to_seg.values_mut() {
-                if range.start >= r.end { range.start -= n; range.end -= n; }   // shift the tail
-            }
-            self.queue.write_buffer(&self.segment_buffer, 0, bytemuck::cast_slice(&self.segments));
-            self.segment_count = self.segments.len() as u32;
-        }
+    true
+}
+```
+
+and the guid-facing entry points on `impl Gpu` — `solid` picks the lane, and every mutation ends in
+one splice-upload of the (dense) buffer (`upload_segments`/`upload_glyphs` are 4b):
+
+```rust
+    /// One object's linework in/out by guid. 38b's reconcile calls these; set_scene bulk-fills
+    /// the mirrors instead (one upload for the whole scene, not one per object).
+    pub fn append_segments(&mut self, guid: &str, segs: &[CylinderSegment], solid: bool) {
+        if solid { lane_append(&mut self.pipes, &mut self.guid_to_pipe, guid, segs); }
+        else { lane_append(&mut self.segments, &mut self.guid_to_seg, guid, segs); }
+        self.upload_segments();
+    }
+    pub fn remove_segments(&mut self, guid: &str) {
+        let solid = lane_remove(&mut self.pipes, &mut self.guid_to_pipe, guid);
+        let flat = lane_remove(&mut self.segments, &mut self.guid_to_seg, guid);
+        if solid || flat { self.upload_segments(); }
     }
 
-    fn append_glyphs(&mut self, guid: &str, gs: &[GlyphPoint]) {
-        let start = self.glyphs.len();
-        self.glyphs.extend_from_slice(gs);
-        self.guid_to_glyph.insert(guid.to_string(), start..self.glyphs.len());
-        self.ensure_glyph_capacity();
-        self.queue.write_buffer(&self.glyph_buffer, 0, bytemuck::cast_slice(&self.glyphs));
-        self.glyph_count = self.glyphs.len() as u32;
+    pub fn append_glyphs(&mut self, guid: &str, gs: &[GlyphPoint], solid: bool) {
+        if solid { lane_append(&mut self.spheres, &mut self.guid_to_sphere, guid, gs); }
+        else { lane_append(&mut self.glyphs, &mut self.guid_to_glyph, guid, gs); }
+        self.upload_glyphs();
     }
-    fn remove_glyphs(&mut self, guid: &str) {
-        if let Some(r) = self.guid_to_glyph.remove(guid) {
-            let n = r.len();
-            self.glyphs.drain(r.clone());
-            for range in self.guid_to_glyph.values_mut() {
-                if range.start >= r.end { range.start -= n; range.end -= n; }
-            }
-            self.queue.write_buffer(&self.glyph_buffer, 0, bytemuck::cast_slice(&self.glyphs));
-            self.glyph_count = self.glyphs.len() as u32;
-        }
+    pub fn remove_glyphs(&mut self, guid: &str) {
+        let solid = lane_remove(&mut self.spheres, &mut self.guid_to_sphere, guid);
+        let flat = lane_remove(&mut self.glyphs, &mut self.guid_to_glyph, guid);
+        if solid || flat { self.upload_glyphs(); }
     }
 ```
 
-> **One growth pattern, four buffers.** The arena's `grow_v`/`grow_i` — allocate a 2x buffer,
-> `copy_buffer_to_buffer` the live prefix, swap the handle — is the same move the segment, glyph, and
-> instance buffers need when an added object overflows them. Factor one
-> `fn grow_buffer(old, used, elem, usage) -> Buffer` and call it from `ensure_seg_capacity` /
-> `ensure_glyph_capacity` / `grow_instances`.
+> **One growth pattern, three buffers.** The arena's `grow_v`/`grow_i` — allocate a 2x buffer,
+> refill, swap the handle — is the same move the segment, glyph, and instance buffers need when an
+> added object overflows them. For the two lane buffers it lives inside 4b's
+> `upload_segments`/`upload_glyphs`; the instance buffer gets its turn in 38b (`grow_instances`).
 >
 > **But swapping the handle is not enough for the storage buffers.** The arena's `vbo`/`vids`/`ibo`
 > are re-bound every frame by `set_vertex_buffer`/`set_index_buffer`, so a grown handle is picked up
 > automatically. The segment, glyph, and instance buffers are *storage* buffers wired into a bind
-> group **once** in `Gpu::new` via `as_entire_binding()` — after you swap the handle, the bind group
-> still points at the dropped buffer, and the frame reads stale (or freed) memory. So `grow_buffer`
-> must be followed by **recreating that buffer's bind group** (`segment_bind_group` /
+> group **once per creation** via `as_entire_binding()` — after you swap the handle, the bind group
+> still points at the dropped buffer, and the frame reads stale (or freed) memory. So every buffer
+> swap must be followed by **recreating that buffer's bind group** (`segment_bind_group` /
 > `glyph_bind_group` / `instance_bind_group`) against the new handle before the next draw.
 
 <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="arena vertex/index buffers are re-bound every frame so a grown handle is auto-picked-up; segment glyph and instance storage buffers are bound once in a bind group and go stale unless the bind group is recreated after the swap" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
@@ -307,63 +327,64 @@ range down. Both re-upload the (dense) segment buffer once:
   <g fill="#d7dae0" text-anchor="middle" font-size="10">
     <text x="515" y="70">segment_buffer</text><text x="515" y="98">glyph_buffer</text><text x="515" y="126">instance_buffer</text>
   </g>
-  <text x="515" y="152" fill="#e06c6c" text-anchor="middle" font-size="10">as_entire_binding() once in Gpu::new</text>
+  <text x="515" y="152" fill="#e06c6c" text-anchor="middle" font-size="10">as_entire_binding() once at buffer creation</text>
   <text x="515" y="166" fill="#666" text-anchor="middle" font-size="10">bind group still points at DROPPED buffer</text>
   <text x="515" y="186" fill="#6fb3ff" text-anchor="middle" font-size="10">fix → recreate the bind group after the swap</text>
 </svg>
 
-**4b. The growth methods (code for the two notes above).** One prerequisite: hoist the three storage
-buffers' **bind-group layouts** onto `Gpu` — `segment_layout`, `glyph_layout`, `instance_layout` are
-locals in `new` today; a grown buffer needs its bind group rebuilt, and that needs the layout. Add to
-`struct Gpu`:
-
-```rust
-    segment_layout: wgpu::BindGroupLayout,
-    glyph_layout: wgpu::BindGroupLayout,
-    instance_layout: wgpu::BindGroupLayout,
-```
-
-and the three names to the `Ok(Self { … })` initializer (the locals already exist — they just move
-in). Because
-segments/glyphs/instances each keep a **CPU mirror** that is re-uploaded in full right after, growth is
+**4b. The splice-uploads (code for the notes above).** One prerequisite is already paid: 35 hoisted
+the bind-group layouts onto `Gpu` (`segment_layout` / `glyph_layout` / `instance_layout` are fields
+since its step 1c) — a grown buffer needs its bind group rebuilt, and that needs the layout. Because
+the lanes keep **CPU mirrors** that are re-written in full right after, growth is
 just *allocate bigger + rebuild the bind group* — **no** `copy_buffer_to_buffer` (that's only the arena,
 which has no full mirror, which is why *its* buffers carry `COPY_SRC` and these don't need it):
 
 ```rust
-    /// Grow the segment storage buffer if the CPU mirror outgrew it. Called by append_segments
-    /// BEFORE its write_buffer, so the freshly-grown buffer is filled from `self.segments` that
-    /// same line — no copy needed.
-    fn ensure_seg_capacity(&mut self) {
-        let need = (self.segments.len() * std::mem::size_of::<CylinderSegment>()) as u64;
-        if need <= self.segment_buffer.size() { return; }
-        let mut cap = self.segment_buffer.size().max(std::mem::size_of::<CylinderSegment>() as u64);
-        while cap < need { cap *= 2; }
-        self.segment_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("segment.buffer"), size: cap, mapped_at_creation: false,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        });
-        // bound ONCE via as_entire_binding → rebuild the bind group against the new handle
-        self.segment_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("segment.bind_group"), layout: &self.segment_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0, resource: self.segment_buffer.as_entire_binding() }],
-        });
+    /// Splice-upload BOTH segment lanes: SOLID pipes first, FLAT segments after — the same order
+    /// 35's set_scene wrote, so `pipe_count` keeps meaning "the solid prefix". Grows the storage
+    /// buffer 2x + rebuilds its bind group when the mirrors outgrow it. The buffer never shrinks;
+    /// rows past segment_count are stale bytes no draw range touches.
+    fn upload_segments(&mut self) {
+        self.pipe_count = self.pipes.len() as u32;
+        self.segment_count = (self.pipes.len() + self.segments.len()) as u32;
+        let elem = std::mem::size_of::<CylinderSegment>() as u64;
+        let need = (self.segment_count as u64).max(1) * elem;
+        if need > self.segment_buffer.size() {
+            let mut cap = self.segment_buffer.size().max(elem);
+            while cap < need { cap *= 2; }
+            self.segment_buffer = zeroed_buffer(&self.device, "segments.buffer", cap,
+                wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+            // bound ONCE via as_entire_binding → rebuild the bind group against the new handle
+            self.segment_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("segments.bind_group"), layout: &self.segment_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0, resource: self.segment_buffer.as_entire_binding() }],
+            });
+        }
+        self.queue.write_buffer(&self.segment_buffer, 0, bytemuck::cast_slice(&self.pipes));
+        self.queue.write_buffer(&self.segment_buffer, self.pipes.len() as u64 * elem,
+            bytemuck::cast_slice(&self.segments));
     }
-    /// The glyph twin — same shape over the glyph fields.
-    fn ensure_glyph_capacity(&mut self) {
-        let need = (self.glyphs.len() * std::mem::size_of::<GlyphPoint>()) as u64;
-        if need <= self.glyph_buffer.size() { return; }
-        let mut cap = self.glyph_buffer.size().max(std::mem::size_of::<GlyphPoint>() as u64);
-        while cap < need { cap *= 2; }
-        self.glyph_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("glyph.buffer"), size: cap, mapped_at_creation: false,
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        });
-        self.glyph_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("glyph.bind_group"), layout: &self.glyph_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0, resource: self.glyph_buffer.as_entire_binding() }],
-        });
+    /// The glyph twin — same shape over the sphere/glyph fields (`sphere_count` = solid prefix).
+    fn upload_glyphs(&mut self) {
+        self.sphere_count = self.spheres.len() as u32;
+        self.glyph_count = (self.spheres.len() + self.glyphs.len()) as u32;
+        let elem = std::mem::size_of::<GlyphPoint>() as u64;
+        let need = (self.glyph_count as u64).max(1) * elem;
+        if need > self.glyph_buffer.size() {
+            let mut cap = self.glyph_buffer.size().max(elem);
+            while cap < need { cap *= 2; }
+            self.glyph_buffer = zeroed_buffer(&self.device, "glyphs.buffer", cap,
+                wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+            self.glyph_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("glyphs.bind_group"), layout: &self.glyph_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0, resource: self.glyph_buffer.as_entire_binding() }],
+            });
+        }
+        self.queue.write_buffer(&self.glyph_buffer, 0, bytemuck::cast_slice(&self.spheres));
+        self.queue.write_buffer(&self.glyph_buffer, self.spheres.len() as u64 * elem,
+            bytemuck::cast_slice(&self.glyphs));
     }
     // The instance buffer needs the same treatment the moment rows can grow — that arrives with
     // 38b's set_object_row, which defines grow_instances on this exact pattern (instances /
@@ -371,108 +392,132 @@ which has no full mirror, which is why *its* buffers carry `COPY_SRC` and these 
 ```
 
 > **Two strategies, one reason.** Meshes get the free-list (their vert+index blocks are big; tail
-> re-uploads on every delete are the very cost we're avoiding); segments/glyphs get drain-shift
-> (small, contiguous, no index — a tail rewrite is cheap and keeps them dense for the one draw).
+> re-uploads on every delete are the very cost we're avoiding); the lane tables get drain-shift
+> (small, contiguous, no index — a tail rewrite is cheap and keeps each lane dense for its draw).
 
-## Step 5 — fill through the arena: `src/engine/gpu/mod.rs`
+## Step 5 — fill through the arena: `src/engine/gpu/mod.rs` + `src/app/scene.rs`
 
-**5a. Give the upload per-object boundaries.** Replace 35's `ArenaUpload` so each object arrives
-with its guid and its own slices instead of one concatenated blob (`objects_base` stays — one row
-per object, in guid order; `vids` disappears: the arena writes them from the row number):
+**5a. Give the upload per-object boundaries.** Reshape 35's `ArenaUpload` so each object arrives
+with its guid and its own slices instead of one concatenated blob (`objects`, `min`, `max` stay;
+the four lane vecs keep their SOLID/FLAT split, per guid now; `verts`/`vids`/`idx` collapse into
+`meshes` — `vids` disappears entirely: the arena writes them from the row number):
 
 ```rust
 pub struct ArenaUpload {
     // guid, instance row, verts, 0-based LOCAL indices. The row rides along because only
     // MESH-bearing objects appear here — enumerate() would miscount in a mixed scene.
     pub meshes:   Vec<(String, u32, Vec<RenderVertex>, Vec<u32>)>,
-    pub segments: Vec<(String, Vec<CylinderSegment>)>,
-    pub glyphs:   Vec<(String, Vec<GlyphPoint>)>,
-    pub objects_base: Vec<(Xform, [f32; 4], u32)>,             // true model, tint, flags (35)
+    pub pipes:    Vec<(String, Vec<CylinderSegment>)>, // SOLID lane: mesh/BRep edges
+    pub spheres:  Vec<(String, Vec<GlyphPoint>)>,      // SOLID lane: mesh/BRep vertices
+    pub segments: Vec<(String, Vec<CylinderSegment>)>, // FLAT lane: line/polyline/curve/plane/box
+    pub glyphs:   Vec<(String, Vec<GlyphPoint>)>,      // FLAT lane: points + clouds
+    pub objects:  Vec<(Xform, [f32; 4], u32)>,   // true model, tint, flags (35) — one row per object
+    pub min: [f32; 3],
+    pub max: [f32; 3],
 }
 ```
 
-`Scene::build` (35) changes *where it pushes*. First split 35's `push_mesh` into a function that
+(`ArenaUpload::new()` follows: delete the `verts`/`vids`/`idx` lines, add `meshes: Vec::new(),`.)
+
+`Scene::add_file` (35) changes *where it pushes*. First split 35's `push_mesh` into a function that
 **returns** one object's tables (same body, different sink — 38b's `apply_object` reuses it), in
 `scene.rs`:
 
 ```rust
-/// 35's push_mesh, split to RETURN one object's tables instead of pushing into shared vecs.
+/// 35's `push_mesh`, split to RETURN one object's tables instead of pushing into shared vecs.
 /// Indices are 0-based LOCAL — the arena rebases them onto its vertex start (Step 2).
 fn flatten_mesh(m: &Mesh, ri: u32)
     -> (Vec<RenderVertex>, Vec<u32>, Vec<CylinderSegment>, Vec<GlyphPoint>) {
-    let rm = m.to_render();
-    let mut edges = Vec::new();
-    for (i, (a, b, col)) in m.edges_with_colors().into_iter().enumerate() {
-        let pa = m.vertex_point(a).unwrap();
-        let pb = m.vertex_point(b).unwrap();
-        edges.push(CylinderSegment { p0: pa.to_f32(),
-            radius: encode_width(m.widths().get(i).copied().unwrap_or(1.0)),
-            p1: pb.to_f32(), instance_id: ri, color: col.to_f32() });
-    }
-    let pc = m.get_pointcolors();
-    let dots_colored =
-        m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
-    let mut dots = Vec::new();
-    for (i, vk) in m.vertices().into_iter().enumerate() {
-        let p = m.vertex_point(vk).unwrap();
-        dots.push(GlyphPoint { center: p.to_f32(), radius: 0.0,
-            color: if dots_colored { pc[i].to_f32() } else { [0.1, 0.1, 0.1, 1.0] },
-            instance_id: ri, _pad: [0; 3] });
-    }
-    (rm.vertices, rm.indices, edges, dots)
+    let mut verts = Vec::new();
+    let mut idx = Vec::new();
+    let mut segments = Vec::new();
+    let mut glyphs = Vec::new();
+    // …push_mesh's body, VERBATIM (hidden-width gate, width broadcast, vertex-sphere widths and
+    // all), with exactly three edits:
+    //   `let base = verts.len() as u32;`  — deleted (verts starts empty here)
+    //   `vids.push(ri);`                  — deleted (the arena writes vids from the row)
+    //   `idx.push(base + i);`             → `idx.push(i);` (0-based local)
+    (verts, idx, segments, glyphs)
 }
 ```
 
-then delete `push_mesh` and rewrite `build()`'s vec declarations + arms to fill the per-object
-entries (the 34f planar-width pass at the bottom of `build` now loops
-`for (_, segs) in &mut segments { for s in segs { … } }` — same two-lane body):
+then delete `push_mesh` and repoint the arms of `add_file`'s match. Every SOLID arm — `Mesh`,
+`BRep`, `NurbsSurface`, and `Element`'s Mesh/BRep cases — swaps its `push_mesh(…)` call for the
+per-object pushes; the Mesh arm shown, the others identical over `&bm` / `&sm`:
 
 ```rust
-        let mut meshes:   Vec<(String, Vec<RenderVertex>, Vec<u32>)> = Vec::new();
-        let mut segments: Vec<(String, Vec<CylinderSegment>)> = Vec::new();
-        let mut glyphs:   Vec<(String, Vec<GlyphPoint>)> = Vec::new();
-        let mut objects_base: Vec<(Xform, [f32; 4], u32)> = Vec::with_capacity(self.order.len());
-
-        for (ri, guid) in self.order.iter().enumerate() {
-            let ri = ri as u32;
-            let flags = if self.hidden.contains(guid) { Instance::FLAG_HIDDEN } else { 0 };
-            match &self.session.lookup[guid] {
                 Geometry::Mesh(m) => {
-                    objects_base.push((m.xform.clone(), [1.0; 4], flags));
+                    t.objects.push((placed, [1.0; 4], flags));
                     let (v, i, e, d) = flatten_mesh(m, ri);
-                    meshes.push((guid.clone(), ri, v, i));
-                    if !e.is_empty() { segments.push((guid.clone(), e)); }
-                    if !d.is_empty() { glyphs.push((guid.clone(), d)); }
+                    t.meshes.push((guid.clone(), ri, v, i));
+                    if !e.is_empty() { t.pipes.push((guid.clone(), e)); }
+                    if !d.is_empty() { t.spheres.push((guid.clone(), d)); }
                 }
-                Geometry::BRep(b) => {
-                    let mut bm = b.mesh();
-                    bm.set_objectcolor(b.surfacecolor.clone());
-                    objects_base.push((b.xform.clone(), [1.0; 4], flags));
-                    let (v, i, e, d) = flatten_mesh(&bm, ri);
-                    meshes.push((guid.clone(), ri, v, i));
-                    if !e.is_empty() { segments.push((guid.clone(), e)); }
-                    if !d.is_empty() { glyphs.push((guid.clone(), d)); }
-                }
+```
+
+Every FLAT arm wraps its converter result in the guid entry — each `t.segments.extend(…)` /
+`t.glyphs.extend(…)` becomes a `push` of the pair, and the single-row converters get a `vec![…]`:
+
+```rust
                 Geometry::Line(l) => {
-                    objects_base.push((l.xform.clone(), [1.0; 4], flags));
-                    segments.push((guid.clone(), vec![line_to_segment(l, ri)]));
+                    t.objects.push((placed, [1.0; 4], flags));
+                    t.segments.push((guid.clone(), vec![line_to_segment(l, ri)]));
                 }
                 Geometry::Polyline(pl) => {
-                    objects_base.push((pl.xform.clone(), [1.0; 4], flags));
-                    segments.push((guid.clone(), polyline_to_segments(pl, ri)));
+                    t.objects.push((placed, [1.0; 4], flags));
+                    t.segments.push((guid.clone(), polyline_to_segments(pl, ri)));
                 }
-                Geometry::Point(p) => {
-                    objects_base.push((p.xform.clone(), [1.0; 4], flags));
-                    glyphs.push((guid.clone(), vec![point_to_glyph(p, ri)]));
+```
+
+`NurbsCurve`/`Plane`/`OBB` follow the Polyline shape (`nurbscurve_to_segments` /
+`plane_to_segments` / `obb_to_segments`); `Point` and `PointCloud` are the glyph twins
+(`vec![point_to_glyph(p, ri)]` / `pointcloud_to_glyphs(pc, ri)`). A multi-row object — a polyline,
+a cloud, a plane's 4-edge square, an OBB's 12 edges — is exactly why the entry holds a `Vec`: the
+guid owns its whole span, however many rows that is.
+
+Two `add_file` passes still walk the new rows and must nest one level deeper. The per-file bases
+at the top now count ENTRIES, not rows — same lines, one rename: `let vert0 =
+self.tables.verts.len();` becomes `let mesh0 = self.tables.meshes.len();`. The bounds pass:
+
+```rust
+        for (_, row, verts, _) in t.meshes.iter().skip(mesh0) {
+            if let Some((xf, _, _)) = t.objects.get(*row as usize) {
+                for v in verts { grow_bounds(&mut fmin, &mut fmax, xform_point(xf, v.position)); }
+            }
+        }
+        for (_, segs) in t.pipes.iter().skip(pipe0).chain(t.segments.iter().skip(seg0)) {
+            for s in segs {
+                if let Some((xf, _, _)) = t.objects.get(s.instance_id as usize) {
+                    grow_bounds(&mut fmin, &mut fmax, xform_point(xf, s.p0));
+                    grow_bounds(&mut fmin, &mut fmax, xform_point(xf, s.p1));
                 }
-                _ => {}
+            }
+        }
+        for (_, gs) in t.spheres.iter().skip(sphere0).chain(t.glyphs.iter().skip(glyph0)) {
+            for g in gs {
+                if let Some((xf, _, _)) = t.objects.get(g.instance_id as usize) {
+                    grow_bounds(&mut fmin, &mut fmax, xform_point(xf, g.center));
+                }
             }
         }
 ```
 
-**5b. Fill per object in `Gpu::new`.** Meshes go through the free-list allocator; segments/glyphs build
-their dense vec + range map inline (the `append_*` helpers are `&mut self`, unusable while `Gpu` is
-still under construction — they take over for incremental adds in 38b). Two starting capacities,
+and the 34f planar-width pass at the bottom keeps its two-lane body inside the same nesting:
+
+```rust
+            for (_, segs) in t.pipes.iter_mut().skip(pipe0).chain(t.segments.iter_mut().skip(seg0)) {
+                for s in segs {
+                    s.radius = if s.radius < 0.0 { -s.radius * 0.5 } else { 0.5 }
+                }
+            }
+```
+
+(36's per-row box append and `rebuild_bvh` read `t.objects` and the geometry, not the lane vecs —
+they don't change.)
+
+**5b. Fill per object in `set_scene`.** Meshes go through the free-list allocator; the lanes
+bulk-fill their mirrors + range maps with `lane_append` and splice-upload ONCE per buffer (calling
+`append_*` per object instead would re-upload the whole buffer N times). Two starting capacities,
 next to the other consts at the top of `gpu/mod.rs`:
 
 ```rust
@@ -481,66 +526,59 @@ const INITIAL_CAP_V: u32 = 1 << 16;
 const INITIAL_CAP_I: u32 = 1 << 17;
 ```
 
-then, where 35's flat `create_buffer_init` arena uploads stood:
+In `Gpu::new`, the empty scene's three arena placeholders — the `let arena_vbo = zeroed_buffer(…)`
+/ `arena_vids` / `arena_ibo` lines — become one real (empty) arena:
 
 ```rust
-        let mut arena = GpuArena::new(&device, INITIAL_CAP_V, INITIAL_CAP_I);
-        for (guid, row, verts, local_idx) in &upload.meshes {
-            arena.allocate(guid, verts, *row, local_idx, &device, &queue);
-        }
+        let arena = GpuArena::new(&device, INITIAL_CAP_V, INITIAL_CAP_I);
+```
 
-        let mut segments: Vec<CylinderSegment> = Vec::new();
-        let mut guid_to_seg: std::collections::HashMap<String, std::ops::Range<usize>> =
-            std::collections::HashMap::new();
-        for (guid, segs) in &upload.segments {
-            let start = segments.len();
-            segments.extend_from_slice(segs);
-            guid_to_seg.insert(guid.clone(), start..segments.len());
-        }
+Then in `set_scene`, where 35's flat `create_buffer_init` arena uploads stood (the whole
+`if up.verts.is_empty() { … } else { … }` block under `// Mesh arena`), fill per object:
 
-        let mut glyphs: Vec<GlyphPoint> = Vec::new();
-        let mut guid_to_glyph: std::collections::HashMap<String, std::ops::Range<usize>> =
-            std::collections::HashMap::new();
-        for (guid, gs) in &upload.glyphs {
-            let start = glyphs.len();
-            glyphs.extend_from_slice(gs);
-            guid_to_glyph.insert(guid.clone(), start..glyphs.len());
+```rust
+        // Mesh arena — reset, then place every object individually so each guid gets a slot.
+        // A full refill per set_scene keeps 35's one-upload-path shape; 38b's reconcile is what
+        // starts freeing/replacing single slots instead of calling set_scene at all.
+        self.arena = GpuArena::new(&self.device, INITIAL_CAP_V, INITIAL_CAP_I);
+        for (guid, row, verts, local_idx) in &up.meshes {
+            self.arena.allocate(guid, verts, *row, local_idx, &self.device, &self.queue);
         }
 ```
 
-The reshaped upload ripples through the rest of `new()` — four mechanical fixes:
-
-- **Delete 35's destructure** (`let ArenaUpload { verts, vids, idx, … } = upload;`) — the fills
-  above read `upload.meshes` / `.segments` / `.glyphs` directly, and the instance build becomes
-  `let mut instances: Vec<Instance> = upload.objects_base.iter().map(…)` (same closure).
-- **Delete the arena padding guard** (`if verts.is_empty() { … }`) and `let arena_index_count =
-  idx.len() as u32;` — the arena pre-allocates capacity, so there is no zero-size upload to dodge.
-  The segment/glyph guards stay, over the dense vecs 5b just built (counts captured before
-  padding, as in 34b).
-- **The scene-bounds fold** now walks the per-object tables:
+and replace the two lane-splice blocks below it (from `// The two lane tables` down to the glyph
+bind-group's closing `});`) with mirror fills + the 4b uploads — the splice, the counts, the
+growth, and the bind-group rebuild all live in `upload_*` now:
 
 ```rust
-        for (_, _, verts, _) in &upload.meshes { for v in verts { for k in 0..3 {
-            scene_min[k] = scene_min[k].min(v.position[k]);
-            scene_max[k] = scene_max[k].max(v.position[k]);
-        } } }
-        for (_, segs) in &upload.segments { for s in segs { for p in [s.p0, s.p1] {
-            for k in 0..3 {
-                scene_min[k] = scene_min[k].min(p[k]);
-                scene_max[k] = scene_max[k].max(p[k]);
-            }
-        } } }
-        for (_, gs) in &upload.glyphs { for g in gs { for k in 0..3 {
-            scene_min[k] = scene_min[k].min(g.center[k]);
-            scene_max[k] = scene_max[k].max(g.center[k]);
-        } } }
+        // The two lane tables: fill the CPU mirrors + range maps, splice-upload once per buffer.
+        self.pipes.clear(); self.guid_to_pipe.clear();
+        self.segments.clear(); self.guid_to_seg.clear();
+        for (guid, segs) in &up.pipes { lane_append(&mut self.pipes, &mut self.guid_to_pipe, guid, segs); }
+        for (guid, segs) in &up.segments { lane_append(&mut self.segments, &mut self.guid_to_seg, guid, segs); }
+        self.upload_segments();
+
+        self.spheres.clear(); self.guid_to_sphere.clear();
+        self.glyphs.clear(); self.guid_to_glyph.clear();
+        for (guid, gs) in &up.spheres { lane_append(&mut self.spheres, &mut self.guid_to_sphere, guid, gs); }
+        for (guid, gs) in &up.glyphs { lane_append(&mut self.glyphs, &mut self.guid_to_glyph, guid, gs); }
+        self.upload_glyphs();
 ```
 
-- **Wire the `Ok(Self { … })` initializer** — delete 30's `arena_vbo`, `arena_vids`, `arena_ibo`,
-  `arena_index_count` (from *both* `struct Gpu` and `Self`), replacing them with the Step-4 fields
-  `arena`, `guid_to_seg`, `guid_to_glyph`, `segments`, `glyphs`, `objects_base: upload.objects_base`
-  (plus the hoisted `segment_layout` / `glyph_layout` / `instance_layout` from 4b). Miss one →
-  *"missing field … in initializer of `Gpu`"* (E0063).
+The reshaped upload ripples through the rest — four mechanical fixes:
+
+- **`msaa_for`**: its `solid` line reads the dead `up.verts` — make it
+  `let solid = !up.meshes.is_empty() || !up.pipes.is_empty() || !up.spheres.is_empty();`.
+- **`set_scene`'s first line** `use wgpu::util::DeviceExt;`: delete — nothing in it calls
+  `create_buffer_init` anymore. (And amend the ZERO-COPY line of its doc comment: the lanes now
+  stage through `Gpu`'s mirrors — one CPU copy is the price of addressability.)
+- **Wire `struct Gpu` + the `Ok(Self { … })` initializer** — `arena_vbo`, `arena_vids`,
+  `arena_ibo`, `arena_index_count` leave BOTH (also drop `let arena_index_count = 0u32;` from
+  `new`'s placeholder block); in come `arena,` the four maps
+  (`guid_to_pipe: Default::default(),` …) and the four empty mirrors (`pipes: Vec::new(),` …).
+  Miss one → *"missing field … in initializer of `Gpu`"* (E0063).
+- **Scene bounds are untouched**: `up.min`/`up.max` still arrive from `add_file`'s (rewritten)
+  bounds pass — `set_scene`'s `scene_min`/`scene_max` lines stay as they are.
 
 **5c. Point the mesh draw at the arena.** In `clear()`, find the Arena draw block:
 
@@ -561,7 +599,8 @@ and replace it with the arena-owned sources:
 ```
 
 The instance range is unchanged from 30 (per-vertex `vids` selects each model row, so it stays a
-single-instance draw). One new guard: the padding that kept `arena_index_count` nonzero is gone,
+single-instance draw). One new guard: 35's empty-scene placeholder (`arena_index_count = 3` over a
+zeroed ibo) is gone — an empty arena reports 0 —
 so wrap the whole triangle block (from `pass.set_pipeline(&self.pipelines.triangle);` through its
 `draws += 1;`) in `if self.arena.index_count() > 0 { … }` — a pure-linework file would otherwise
 earn the zero-count Dawn warning 34b fought. Segment and glyph draws are untouched — same
@@ -575,10 +614,11 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 Pixels identical to 35 — floor model and stress file both draw exactly as before. The new capability
 is invisible until something uses it, so prove it with a log — after the arena fill loop in
-`Gpu::new` (give `GpuArena` a tiny getter or make `cursor_v` `pub` for this):
+`set_scene` (give `GpuArena` a tiny getter or make `cursor_v` `pub` for this):
 
 ```rust
-        log::info!("arena: {} slots, {} verts high-water", arena.slots.len(), arena.cursor_v);
+        log::info!("arena: {} slots, {} verts high-water",
+            self.arena.slots.len(), self.arena.cursor_v);
 ```
 
 201 mesh slots for the floor model, high-water mark equal to the old flat build. 38b is where
@@ -593,13 +633,16 @@ Ch 38a: PER-OBJECT ARENA. GpuArena (engine/gpu/arena.rs) replaces 30's flat aren
         (copy old → new, swap handle). free() stamps the index range with a degenerate triangle
         (repeat the object's OWN first vertex index — an ibo offset would read past the vbo)
         so holes
-        draw nothing and neighbours are never re-uploaded. Segments/glyphs: guid→Range + drain-shift
-        (small dense tables; archive's split). Gpu::new fills per object instead of wholesale.
+        draw nothing and neighbours are never re-uploaded. Lane tables (pipes/spheres/segments/
+        glyphs): guid→Range + drain-shift over CPU mirrors, splice-uploaded SOLID-first as in 35
+        (small dense tables; archive's split). set_scene fills per object instead of wholesale.
         Zero visual change — addressability is the product.
 ```
 
 Edited: `engine/gpu/arena.rs` (NEW — `GpuArena`: `allocate`/`free`/`alloc_v`/`grow_v`, `guid→ArenaSlot`),
-`engine/gpu/mod.rs` (arena + `guid_to_seg`/`guid_to_glyph` + append/remove helpers; per-object fill).
+`engine/gpu/mod.rs` (arena + four lane mirrors/range maps + `append_*`/`remove_*` + `upload_*`
+splices; `set_scene` fills per object), `app/scene.rs` (`flatten_mesh` replaces `push_mesh`;
+per-object entries in `add_file`).
 
 ## Next
 

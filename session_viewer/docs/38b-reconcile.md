@@ -31,7 +31,7 @@
 ## Files we touch
 
 ```
-# content_hash; hashes: guid→u64; reconcile(new) → Diff; apply_object; row allocator
+# content_hash; hashes: guid→u64; reconcile(new) → Diff; apply_object; row allocator; commit
 src/app/scene.rs
 # GPU-typed verbs: add_mesh_data / add_segments / add_glyphs / remove_object / set_object_row
 src/engine/gpu/mod.rs
@@ -48,43 +48,64 @@ would differ even when the geometry is byte-identical — marking every mesh "ch
 
 Use the kernel's `jsondump` instead: it emits **sorted** JSON (deterministic regardless of map order),
 and every variant that has it round-trips through it in the minitests. Mind the return types, though —
-they are **not** uniform: `Mesh::jsondump` returns a `serde_json::Value` (so we `.to_string()` it),
-while `Line`/`Polyline`/`Point` return `Result<String, _>` (so those `.unwrap_or_default()`). `BRep`
-has no `jsondump` of its own, so fingerprint it by its tessellation (a `Mesh`, hence `.to_string()`)
-plus placement (kernel-gap #6 in `_KERNEL_GAPS.md`: a single uniform `Geometry::jsondump()` /
-`content_hash()` returning one type would collapse this whole match to one line):
+they are **not** uniform: `Mesh::jsondump` and `Element::jsondump` return a `serde_json::Value` (so we
+`.to_string()` it), while the other eight kinds return `Result<String, _>` (so those
+`.unwrap_or_default()`). `BRep` has no `jsondump` of its own, so fingerprint it by its tessellation
+(a `Mesh`, hence `.to_string()`) — kernel-gap #6 in `_KERNEL_GAPS.md`: a single uniform
+`Geometry::jsondump()` / `content_hash()` returning one type would collapse this whole match to one
+line.
+
+One more input, and it is not optional: since the Xform refactor **no geometry carries its
+placement** — an object's world xform lives in `Session.xforms`. A pure move therefore changes
+nothing in the geometry's `jsondump`, so a JSON-only hash would file a moved wall under *unchanged*
+and the GPU would keep drawing it in the old place. The fingerprint takes the object's session
+world xform as a second input and hashes it in:
 
 ```rust
 use std::hash::{Hash, Hasher};
 
 /// Deterministic content fingerprint — sorted JSON, so a HashMap-backed Mesh hashes the SAME
-/// every load.
-/// Same geometry → same u64; any field change → a different one. (A production app might hash proto
-/// bytes; the diff logic is identical either way.)
-fn content_hash(geom: &Geometry) -> u64 {
+/// every load — plus the object's session world xform (no geometry carries a placement; a pure
+/// MOVE is invisible to the JSON alone).
+/// Same geometry+placement → same u64; any field change → a different one. (A production app
+/// might hash proto bytes; the diff logic is identical either way.)
+fn content_hash(geom: &Geometry, world: &Xform) -> u64 {
     let s = match geom {
-        Geometry::Mesh(m)     => m.jsondump().to_string(),          // jsondump -> serde_json::Value
-        Geometry::Line(l)     => l.jsondump().unwrap_or_default(),  // jsondump -> Result<String,_>
-        Geometry::Polyline(p) => p.jsondump().unwrap_or_default(),
-        Geometry::Point(p)    => p.jsondump().unwrap_or_default(),
-        Geometry::BRep(b)     => format!("{}|{:?}",
-            b.mesh().jsondump().to_string(), b.xform.to_cols()),    // mesh() -> Mesh -> Value
-        _ => String::new(),
+        // jsondump -> serde_json::Value
+        Geometry::Mesh(m)          => m.jsondump().to_string(),
+        Geometry::Element(e)       => e.jsondump().to_string(),
+        // jsondump -> Result<String, _>
+        Geometry::Line(l)          => l.jsondump().unwrap_or_default(),
+        Geometry::Polyline(p)      => p.jsondump().unwrap_or_default(),
+        Geometry::Point(p)         => p.jsondump().unwrap_or_default(),
+        Geometry::Plane(p)         => p.jsondump().unwrap_or_default(),
+        Geometry::OBB(b)           => b.jsondump().unwrap_or_default(),
+        Geometry::PointCloud(pc)   => pc.jsondump().unwrap_or_default(),
+        Geometry::NurbsCurve(c)    => c.jsondump().unwrap_or_default(),
+        Geometry::NurbsSurface(sf) => sf.jsondump().unwrap_or_default(),
+        // no jsondump of its own — fingerprint the tessellation (a Mesh, hence -> Value).
+        // NO wildcard arm, same rule as add_file's match: a 12th kernel type must fail to
+        // compile until the diff decides how to fingerprint it.
+        Geometry::BRep(b)          => b.mesh().jsondump().to_string(),
     };
     let mut h = std::collections::hash_map::DefaultHasher::new();
     s.hash(&mut h);
+    format!("{:?}", world.to_cols()).hash(&mut h);
     h.finish()
 }
 ```
 
-`Scene` remembers last load's hashes — add `hashes: HashMap<String, u64>` to the struct, and fill
-it in `Scene::new`'s loop, right after the `order.push(guid.clone());` line:
+`Scene` remembers last load's hashes — add `hashes: HashMap<String, u64>` to the struct (init
+`hashes: HashMap::new()` in `Scene::new`'s literal), and fill it in `add_file`'s walk loop, right
+after the `self.guid_to_row.insert(guid.clone(), ri);` line (BEFORE `self.order.push(guid);` moves
+the guid; `placement` is the closure the walk already has, so the hash sees the same session xform
+the row was placed with — the manifest `place` stays out: it is viewer arrangement, not document
+content):
 
 ```rust
-                hashes.insert(guid.clone(), content_hash(geom));
+            self.hashes.insert(guid.clone(), content_hash(geom, &placement(&guid)));
 ```
 
-(declare `let mut hashes = HashMap::new();` beside `order`, add `hashes` to the `Self { … }`).
 That map is the "current document state" the next load diffs against.
 
 ## Step 2 — the diff: `src/app/scene.rs`
@@ -102,15 +123,19 @@ pub struct Diff {
 impl Scene {
     /// Diff `new_session` against what's loaded; returns which objects actually moved.
     /// Does NOT touch the GPU — the caller applies the diff (Step 3), then swaps in the new
-    /// session + hashes.
+    /// session + hashes. (The demo manifest loads ONE file, so "what's loaded" IS the document;
+    /// 40's watcher generalizes the diff per doc.)
     pub fn reconcile(&self, new: &Session) -> Diff {
+        let world = new.world_xforms();
+        let ident = Xform::identity();
         let (mut added, mut changed) = (Vec::new(), Vec::new());
         for (guid, geom) in &new.lookup {
             if !is_renderable(geom) { continue; }
+            let h_new = content_hash(geom, world.get(guid).unwrap_or(&ident));
             match self.hashes.get(guid) {
-                None => added.push(guid.clone()),                              // new object
-                Some(&h) if h != content_hash(geom) => changed.push(guid.clone()),  // edited
-                Some(_) => {}                                                  // unchanged → skip
+                None => added.push(guid.clone()),                     // new object
+                Some(&h) if h != h_new => changed.push(guid.clone()), // edited (or moved)
+                Some(_) => {}                                         // unchanged → skip
             }
         }
         let removed = self.order.iter()
@@ -121,24 +146,26 @@ impl Scene {
 }
 ```
 
-`is_renderable` is the 5-variant test `Scene::new` (35) already uses to build `order` — factor it
-into a free function both call, so the diff and the loader agree on what counts as an object. In
-`scene.rs`, next to the converters:
+`is_renderable` mirrors `add_file`'s walk (35): EVERY kernel type renders now, so the only
+object that never gets a row is an `Element` whose `geometry()` is `ElementGeometry::None` —
+`add_file` `continue`s it. The diff must agree, or an empty element would sit in `added` forever
+and be pointlessly re-applied on every reload. In `scene.rs`, next to the converters:
 
 ```rust
+/// Does this object get a row + GPU data? Since 35 everything does — EXCEPT an empty Element.
 fn is_renderable(g: &Geometry) -> bool {
-    matches!(g, Geometry::Mesh(_) | Geometry::BRep(_) | Geometry::Line(_) |
-                Geometry::Polyline(_) | Geometry::Point(_))
+    match g {
+        Geometry::Element(e) => !matches!(e.geometry(), ElementGeometry::None),
+        _ => true,
+    }
 }
 ```
-
-and in `Scene::new`, the `if matches!(geom, …)` gate becomes `if is_renderable(geom)`.
 
 ## Step 3 — apply the diff: `Gpu` verbs + `Scene` dispatch + `State` orchestration
 
 The 35 litmus test still holds: `engine/` names no `Geometry`. So `Gpu` exposes only **GPU-typed**
-verbs, and the `Geometry` match — converting an object to those GPU types via 35's `push_mesh` /
-`line_to_segment` / … — stays in the app layer.
+verbs, and the `Geometry` match — converting an object to those GPU types via 38a's `flatten_mesh` /
+35's `line_to_segment` / … — stays in the app layer.
 
 **3a. Gpu verbs (GPU types only), in `src/engine/gpu/mod.rs`:**
 
@@ -227,45 +254,60 @@ is a `u64`.) The two helpers `set_object_row` leans on:
 ```
 
 **3b. Scene owns the `Geometry` match + rows, in `src/app/scene.rs`** — `apply_object` is 35's
-per-variant `build` logic for a *single* object; rows come from a small allocator that reuses freed
-rows:
+per-variant `add_file` walk for a *single* object; rows come from a small allocator that reuses
+freed rows. No geometry carries a placement, so the row's full world frame (`placed` — manifest
+place × session world xform, exactly what `add_file` stores and 36's `placed_frame` reads) comes
+in as a parameter:
 
 ```rust
     /// Flatten one object into the GPU at `row`, converting via 35's helpers (which live here
-    /// in app).
-    pub fn apply_object(&self, gpu: &mut Gpu, guid: &str, geom: &Geometry, row: u32) {
+    /// in app). `placed` is the row's full world frame — the caller composes it (Step 3c).
+    pub fn apply_object(&self, gpu: &mut Gpu, guid: &str, geom: &Geometry, placed: Xform,
+                        row: u32) {
         // idempotent: clears any prior data for this guid before (re)adding
         gpu.remove_object(guid);
         // instance color stays a WHITE TINT (34h) — the real colors ride the rows flatten_mesh
-        // and the adapters bake; placement = the object's own xform, exactly as in build().
-        let model = match geom {
+        // and the converters bake. Same arms as add_file, same NO-wildcard rule.
+        match geom {
             Geometry::Mesh(m) => {
                 let (v,i,e,n) = flatten_mesh(m, row);
                 gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
-                m.xform.duplicate()
             }
             Geometry::BRep(b) => {
                 let mut bm = b.mesh();
                 bm.set_objectcolor(b.surfacecolor.clone());
-                let (v,i,e,n)=flatten_mesh(&bm,row);
+                let (v,i,e,n) = flatten_mesh(&bm,row);
                 gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
-                b.xform.duplicate()
             }
-            Geometry::Line(l) => {
-                gpu.add_segments(guid, &[line_to_segment(l,row)]);
-                l.xform.duplicate()
+            Geometry::NurbsSurface(s) => {
+                let mut sm = s.mesh();
+                if let Some(c) = s.facecolors.first() { sm.set_objectcolor(c.clone()); }
+                let (v,i,e,n) = flatten_mesh(&sm,row);
+                gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
             }
-            Geometry::Polyline(p) => {
-                gpu.add_segments(guid, &polyline_to_segments(p,row));
-                p.xform.duplicate()
-            }
-            Geometry::Point(p) => {
-                gpu.add_glyphs(guid, &[point_to_glyph(p,row)]);
-                p.xform.duplicate()
-            }
-            _ => return,
-        };
-        gpu.set_object_row(row, model, [1.0; 4], 0);
+            Geometry::Element(el) => match el.geometry() {
+                ElementGeometry::Mesh(m) => {
+                    let (v,i,e,n) = flatten_mesh(m, row);
+                    gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
+                }
+                ElementGeometry::BRep(b) => {
+                    let mut bm = b.mesh();
+                    bm.set_objectcolor(b.surfacecolor.clone());
+                    let (v,i,e,n) = flatten_mesh(&bm,row);
+                    gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
+                }
+                ElementGeometry::None => return,   // no GPU presence, no row write
+            },
+            Geometry::Line(l)        => gpu.add_segments(guid, &[line_to_segment(l, row)]),
+            Geometry::Polyline(p)    => gpu.add_segments(guid, &polyline_to_segments(p, row)),
+            Geometry::NurbsCurve(c)  => gpu.add_segments(guid, &nurbscurve_to_segments(c, row)),
+            Geometry::Plane(p)       => gpu.add_segments(guid, &plane_to_segments(p, row)),
+            Geometry::OBB(b)         => gpu.add_segments(guid, &obb_to_segments(b, row)),
+            Geometry::Point(p)       => gpu.add_glyphs(guid, &[point_to_glyph(p, row)]),
+            Geometry::PointCloud(pc) => gpu.add_glyphs(guid, &pointcloud_to_glyphs(pc, row)),
+        }
+        let flags = if self.hidden.contains(guid) { Instance::FLAG_HIDDEN } else { 0 };
+        gpu.set_object_row(row, placed, [1.0; 4], flags);
     }
 
     /// Row for `guid`: its existing one, else a recycled free row, else a fresh one at the end.
@@ -279,15 +321,18 @@ rows:
 ```
 
 (`flatten_mesh` landed in 38a Step 5a — the per-object split of 35's `push_mesh`.
-`free_rows: Vec<u32>` and `next_row: u32` are new `Scene` fields — add both to `struct Scene` and
-to `Scene::new`'s `Self { … }`: `free_rows: Vec::new(), next_row: order.len() as u32`.)
+`free_rows: Vec<u32>` and `next_row: u32` are new `Scene` fields — add both to `struct Scene`,
+init `free_rows: Vec::new(), next_row: 0` in `Scene::new`'s literal — the scene starts EMPTY
+since 35 — and keep `next_row` in step with the walk: one line at the bottom of `add_file`,
+`self.next_row = self.tables.objects_base.len() as u32;`.)
 
 **3c. State orchestrates the reload, in `src/state.rs`:**
 
 ```rust
     pub async fn reload(&mut self, url: &str) -> anyhow::Result<()> {
         let bytes = crate::app::persistence::fetch_bytes(url).await.unwrap_or_default();
-        let new = crate::app::persistence::session_from_bytes(url, &bytes);
+        // 35's sliced parse — session_from_bytes is GONE, the chunked version replaced it
+        let new = crate::app::persistence::session_from_bytes_chunked(url, &bytes).await;
         let diff = self.scene.reconcile(&new);
         // guid_to_row is the pub view of "how many objects are loaded" (order is Scene-private)
         let unchanged = self.scene.guid_to_row.len() - diff.changed.len() - diff.removed.len();
@@ -301,40 +346,66 @@ to `Scene::new`'s `Self { … }`: `free_rows: Vec::new(), next_row: order.len() 
             // guid_to_row.remove + free_rows.push
             self.scene.free_row(g);
         }
+        // The row's full world frame, composed exactly as add_file composes it. The reloaded
+        // doc keeps its manifest place (the demo scene holds ONE doc; 40 generalizes per doc).
+        let world = new.world_xforms();
+        let place = self.scene.docs.first()
+            .map(|d| d.place.duplicate()).unwrap_or_else(session_rust::Xform::identity);
+        let placed = |g: &String| &place * &world.get(g).cloned()
+            .unwrap_or_else(session_rust::Xform::identity);
         // same row, re-flattened in place
         for g in &diff.changed {
             let row = self.scene.guid_to_row[g];
-            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row);
+            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], placed(g), row);
         }
         for g in &diff.added {                                       // fresh/recycled row
             let row = self.scene.assign_row(g);
-            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row);
+            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], placed(g), row);
         }
-        // swap session; rebuild order/hashes/bvh — but KEEP guid_to_row (below)
+        // swap session; rebuild order/hashes/boxes/bvh — but KEEP guid_to_row (below)
         self.scene.commit(new);
         Ok(())
     }
 ```
 
-> **`commit` must not renumber rows.** It rebuilds `order`, `hashes`, and the BVH for the new document,
-> but leaves `guid_to_row`/`free_rows`/`next_row` alone — those rows already point at the GPU data this
-> reload just wrote, and 35's "row == order index" only ever held on the *first* load. Every consumer
-> keys off `guid_to_row`, never `order`'s index, so the two are free to diverge.
+> **`commit` must not renumber rows.** It rebuilds `order`, `hashes`, 36's extents cache and the BVH
+> for the new document, but leaves `guid_to_row`/`free_rows`/`next_row` alone — those rows already
+> point at the GPU data this reload just wrote, and 35's "row == order index" only ever held on the
+> *first* load. Two 36 helpers still ASSUME that identity, so commit keeps the extents cache
+> ROW-indexed (37's per-frame cull reads `world_boxes[row]`) and the two get a one-line fix each
+> (below the code).
 
 ```rust
-    /// Swap in the reloaded document: rebuild order + hashes + the pick BVH for `new`, but KEEP
-    /// guid_to_row / free_rows / next_row — those rows already point at the GPU data reload wrote.
+    /// Swap in the reloaded document: rebuild order + hashes + 36's extents cache + the BVH for
+    /// `new`, but KEEP guid_to_row / free_rows / next_row — those rows already point at the GPU
+    /// data reload wrote.
     pub fn commit(&mut self, new: Session) {
-        // order + hashes: built exactly as Scene::new (35) does, over new's renderable objects
-        self.order  = new.lookup.iter().filter(|(_, g)| is_renderable(g))
-                                       .map(|(guid, _)| guid.clone()).collect();
-        self.hashes = new.lookup.iter().filter(|(_, g)| is_renderable(g))
-                                       .map(|(guid, g)| (guid.clone(), content_hash(g))).collect();
-        // rebuild 36's world-AABB BVH + extents cache over the new document
-        let (bvh, world_boxes) = Self::build_bvh(&new, &self.order);
-        self.bvh = bvh;
-        self.world_boxes = world_boxes;
-        self.session = new;       // the reloaded doc is now current
+        let world = new.world_xforms();
+        let ident = Xform::identity();
+        // order + hashes: rebuilt exactly as add_file (35) fills them — kernel-canonical order()
+        self.order.clear();
+        self.hashes.clear();
+        for guid in new.order() {
+            let Some(geom) = new.lookup.get(&guid) else { continue };
+            if !is_renderable(geom) { continue; }
+            self.hashes.insert(guid.clone(),
+                content_hash(geom, world.get(&guid).unwrap_or(&ident)));
+            self.order.push(guid);
+        }
+        // 36's extents cache, rebuilt ROW-indexed at the rows reload kept; a freed row keeps a
+        // degenerate box no live guid points at.
+        let place = self.docs.first()
+            .map(|d| d.place.duplicate()).unwrap_or_else(Xform::identity);
+        self.world_boxes = vec![([0.0; 3], [0.0; 3]); self.next_row as usize];
+        for guid in &self.order {
+            let row = self.guid_to_row[guid];
+            let placed = &place * &world.get(guid).cloned().unwrap_or_else(Xform::identity);
+            let a = world_obb(&new.lookup[guid], &placed).aabb();
+            let (lo, hi) = (a.min_point(), a.max_point());
+            self.world_boxes[row as usize] = ([lo[0], lo[1], lo[2]], [hi[0], hi[1], hi[2]]);
+        }
+        self.rebuild_bvh();
+        if let Some(d) = self.docs.first_mut() { d.session = new; }  // the reloaded doc is current
     }
 
     /// Release a removed object's row for reuse (called in reload's `removed` loop).
@@ -343,16 +414,36 @@ to `Scene::new`'s `Self { … }`: `free_rows: Vec::new(), next_row: order.len() 
     }
 ```
 
-> **Transform-only edits still re-flatten today.** Moving an object changes its `jsondump`, so it lands
-> in `changed` and gets a full remove-then-add — correct, if wasteful for a mesh that only slid
-> sideways. The refinement: fingerprint geometry and transform *separately*, and route a transform-only
-> delta straight to `set_object_row` (no arena touch). Noted, not required for correctness.
+The two `row == order index` consumers, made honest — in 36's `rebuild_bvh`, find:
+
+```rust
+        let boxes: Vec<(OBB, String)> = self.world_boxes.iter().zip(&self.order)
+            .map(|((lo, hi), guid)| {
+```
+
+replace with (pair each guid with the box at ITS row — identical on first load, correct after):
+
+```rust
+        let boxes: Vec<(OBB, String)> = self.order.iter()
+            .map(|guid| {
+                let (lo, hi) = &self.world_boxes[self.guid_to_row[guid] as usize];
+```
+
+and in 36's `objects_in`, `.map(|id| id as u32)` becomes
+`.map(|id| self.guid_to_row[&self.order[id]])` — `build_with_guids` keeps input order, so `id`
+indexes `order`; the row is one lookup away.
+
+> **Transform-only edits still re-flatten today.** Moving an object changes its world xform, which the
+> fingerprint hashes in, so it lands in `changed` and gets a full remove-then-add — correct, if wasteful
+> for a mesh that only slid sideways. The refinement: fingerprint geometry and transform *separately*,
+> and route a transform-only delta straight to `set_object_row` (no arena touch). Noted, not required
+> for correctness.
 
 ## Verify
 
 ```bash
 cd session_viewer && trunk serve   # http://localhost:8770
-cargo test -p session_viewer reconcile
+cargo test -p session_viewer reconcile --target x86_64-unknown-linux-gnu   # override the wasm pin (36)
 ```
 
 The headline is the diff log. Load `floor_model.pb`, then reload a copy with **one** wall moved:
@@ -370,19 +461,24 @@ ranges were never re-uploaded.
 
 ```
 Ch 38a: per-object arena — free/replace one object's GPU bytes without touching neighbours.
-Ch 38b: THE DIFF. content_hash = hash of the kernel's SORTED jsondump — a raw {:?} would hash the
-        Mesh's HashMap fields in random order and mark every object changed every reload (the trap).
+Ch 38b: THE DIFF. content_hash = hash of the kernel's SORTED jsondump + the object's session
+        world xform — a raw {:?} would hash the Mesh's HashMap fields in random order and mark
+        every object changed every reload (the trap), and a JSON-only hash would file a pure MOVE
+        under unchanged (placement lives in Session.xforms, not the geometry).
         Scene keeps guid→hash. reconcile(new) buckets the union of guids: added / removed /
         changed(hash≠) / unchanged(SKIPPED — the whole point). Apply: Gpu = GPU-typed verbs only
         (add_mesh_data/add_segments/add_glyphs/remove_object/set_object_row — 35's litmus holds);
-        Scene owns the Geometry match (apply_object) + row recycling (assign_row/free_rows);
-        State.reload runs remove → changed-in-place → added, then commit (which must NOT renumber
-        guid_to_row — those rows point at live GPU data). Edit 1 of N → 1 re-flatten, N−1 skips.
+        Scene owns the Geometry match (apply_object — all 11 kinds, like add_file) + row recycling
+        (assign_row/free_rows); State.reload runs remove → changed-in-place → added, then commit
+        (which must NOT renumber guid_to_row — those rows point at live GPU data; order and rows
+        diverge, so rebuild_bvh/objects_in map through guid_to_row). Edit 1 of N → 1 re-flatten,
+        N−1 skips.
 ```
 
-Edited: `app/scene.rs` (`content_hash`, `hashes`, `Diff`, `reconcile`, `apply_object`,
-`assign_row`/`free_row`, `commit`), `engine/gpu/mod.rs` (the five GPU-typed verbs, `write_row`,
-`grow_instances`), `state.rs` (`reload` — diff-driven, not rebuild-from-zero).
+Edited: `app/scene.rs` (`content_hash`, `hashes`, `Diff`, `reconcile`, `is_renderable`,
+`apply_object`, `assign_row`/`free_row`, `commit`; `rebuild_bvh`/`objects_in` row-mapping),
+`engine/gpu/mod.rs` (the five GPU-typed verbs, `write_row`, `grow_instances`), `state.rs`
+(`reload` — diff-driven, not rebuild-from-zero).
 
 ## Next
 
