@@ -39,9 +39,6 @@ web-sys = { version = "0.3", features = [
     ] }
 getrandom = { version = "0.2", features = ["js"] }
 
-# Native-only: the headless verification harness (examples/selftest.rs)
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-pollster = "0.4"
 js-sys = "0.3"
 prost = "0.14"
 bytemuck = { version = "1", features = ["derive"] }
@@ -63,3 +60,9 @@ wasm-opt = false
 [[example]]
 name = "selftest"
 path = "examples/selftest.rs"
+
+# Native-only: the headless verification harness (examples/selftest.rs). MUST stay at the end -
+# a target table placed mid-file silently swallows every [dependencies] entry after it, which is
+# how prost and bytemuck vanished from the wasm build.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pollster = "0.4"
