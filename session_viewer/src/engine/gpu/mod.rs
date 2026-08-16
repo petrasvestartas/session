@@ -135,6 +135,8 @@ pub struct Gpu {
     pub point_bind_group: wgpu::BindGroup,
     pub cloud_layout: wgpu::BindGroupLayout,
     pub cloud_draws: Vec<CloudDraw>, // one draw per cloud
+    pub cloud_pos_at: u32,           // streaming write cursors, in POINTS
+    pub cloud_col_at: u32,
     pub point_count: u32,
     pub point_capacity: u64,
     pub cloud_buffer: wgpu::Buffer,
@@ -561,6 +563,8 @@ impl Gpu {
             point_col_buffer,
             cloud_layout,
             cloud_draws,
+            cloud_pos_at: 0,
+            cloud_col_at: 0,
             cloud_buffer,
             cloud_bind_group,
             depth_view,
@@ -694,32 +698,7 @@ impl Gpu {
         if !up.clouds.is_empty() {
             let need = self.point_count as u64 + (up.cloud_pos.len() / 3) as u64;
 
-            if need > self.point_capacity {
-                // EXACT, not doubling: appends here are few and huge, so doubling would waste
-                // 122 MB of buffer on this scene AND take the worse worst-transient. What it
-                // avoids is a GPU-side copy - the one thing here that never touches wasm memory.
-                let cap = need;
-                let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
-                let pos = zeroed_buffer(&self.device, "cloud.pos", cap * 12, usage);
-                let col = zeroed_buffer(&self.device, "cloud.col", cap * 4, usage);
-                if self.point_count > 0 {
-                    let mut enc = self.device.create_command_encoder(&Default::default());
-                    enc.copy_buffer_to_buffer(&self.point_pos_buffer, 0, &pos, 0, self.point_count as u64 * 12);
-                    enc.copy_buffer_to_buffer(&self.point_col_buffer, 0, &col, 0, self.point_count as u64 * 4);
-                    self.queue.submit([enc.finish()]);
-                }
-                self.point_pos_buffer = pos;
-                self.point_col_buffer = col;
-                self.point_capacity = cap;
-                self.point_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("points.bind_group"),
-                    layout: &self.cloud_layout,
-                    entries: &[
-                        wgpu::BindGroupEntry { binding: 0, resource: self.point_pos_buffer.as_entire_binding() },
-                        wgpu::BindGroupEntry { binding: 1, resource: self.point_col_buffer.as_entire_binding() },
-                    ],
-                });
-            }
+            self.cloud_reserve(need);
 
             self.queue.write_buffer(&self.point_pos_buffer, self.point_count as u64 * 12, bytemuck::cast_slice(&up.cloud_pos));
             self.queue.write_buffer(&self.point_col_buffer, self.point_count as u64 * 4, bytemuck::cast_slice(&up.cloud_col));
@@ -1027,6 +1006,80 @@ impl Gpu {
     /// render PASS, and every pipeline drawn into a pass must match it, so 1x linework and 4x
     /// solids in one frame would need two passes and a depth resolve between them. Pick per scene
     /// instead - hard-edged geometry (triangles, tubes, spheres) is the only thing MSAA smooths,
+    /// Make room for `need` point rows total, copying the live prefix GPU-side.
+    ///
+    /// EXACT, not doubling: appends here are few and huge, so doubling would waste 122 MB of
+    /// buffer on the three-scan scene AND take the worse worst-transient (668 MB of old+new
+    /// live at once against 540 MB). What doubling avoids is a GPU-side copy - the one thing
+    /// here that never touches wasm memory.
+    fn cloud_reserve(&mut self, need: u64) {
+        if need <= self.point_capacity { return }
+        let cap = need;
+        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let pos = zeroed_buffer(&self.device, "cloud.pos", cap * 12, usage);
+        let col = zeroed_buffer(&self.device, "cloud.col", cap * 4, usage);
+        if self.point_count > 0 {
+            let mut enc = self.device.create_command_encoder(&Default::default());
+            enc.copy_buffer_to_buffer(&self.point_pos_buffer, 0, &pos, 0, self.point_count as u64 * 12);
+            enc.copy_buffer_to_buffer(&self.point_col_buffer, 0, &col, 0, self.point_count as u64 * 4);
+            self.queue.submit([enc.finish()]);
+        }
+        self.point_pos_buffer = pos;
+        self.point_col_buffer = col;
+        self.point_capacity = cap;
+        self.point_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("points.bind_group"),
+            layout: &self.cloud_layout,
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: self.point_pos_buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1, resource: self.point_col_buffer.as_entire_binding() },
+            ],
+        });
+    }
+
+    /// A cloud is about to STREAM in. The count is known before a single point has been read -
+    /// the protobuf packed-double length prefix gives it - so both buffers are sized once,
+    /// exactly, and every slice afterwards lands at a known offset. No growth mid-cloud.
+    pub fn cloud_begin(&mut self, count: u32, instance: u32) {
+        self.cloud_reserve(self.point_count as u64 + count as u64);
+        self.cloud_draws.push(CloudDraw { base: self.point_count, count, instance });
+        self.cloud_pos_at = self.point_count;
+        self.cloud_col_at = self.point_count;
+        self.point_count += count;
+    }
+
+    /// One slice of positions, straight from the socket into GPU memory. `write_buffer` passes a
+    /// subarray VIEW of wasm memory - the slice is the only copy that exists.
+    pub fn cloud_pos(&mut self, pos: &[f32]) {
+        self.queue.write_buffer(&self.point_pos_buffer, self.cloud_pos_at as u64 * 12, bytemuck::cast_slice(pos));
+        self.cloud_pos_at += (pos.len() / 3) as u32;
+        // Dawn only recycles its upload staging when a submitted serial completes. Without a
+        // flush, 165 MB of write_buffer piles 165 MB of staging on top of the destination.
+        self.queue.submit([]);
+    }
+
+    /// The colour run, packed to RGBA8.
+    pub fn cloud_col(&mut self, col: &[u32]) {
+        self.queue.write_buffer(&self.point_col_buffer, self.cloud_col_at as u64 * 4, bytemuck::cast_slice(col));
+        self.cloud_col_at += col.len() as u32;
+        self.queue.submit([]);
+    }
+
+    /// Grow the scene box by a streamed cloud's world-space AABB, so the camera can fit it.
+    pub fn grow_scene(&mut self, min: [f32; 3], max: [f32; 3]) {
+        if !min[0].is_finite() { return }
+        // set_scene collapses an empty upload to a zero box; the first cloud replaces it.
+        if self.scene_min[0] >= self.scene_max[0] {
+            self.scene_min = min;
+            self.scene_max = max;
+            return;
+        }
+        for k in 0..3 {
+            self.scene_min[k] = self.scene_min[k].min(min[k]);
+            self.scene_max[k] = self.scene_max[k].max(max[k]);
+        }
+    }
+
     /// while ribbons and dots antialias themselves in the shader. A 2D sheet therefore pays
     /// nothing, and a model with meshes gets clean silhouettes.
     fn msaa_for(up: &ArenaUpload) -> u32 {

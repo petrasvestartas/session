@@ -85,8 +85,18 @@ pub struct Doc{
 /// It means the progressive loading costs each file only its own walk.
 /// Viewer-only bookkeeping (row order, grid to rowm hidden) lives here
 /// It never in the kernel type that threee languages share.
+/// A cloud whose points never became kernel objects: the loader streamed them from the file
+/// straight into GPU memory. This struct is the ENTIRE CPU-side footprint of a 13.8M-point
+/// scan - a name, a count, and the instance row it draws with.
+pub struct CloudSlot {
+    pub name: String,
+    pub count: u32,
+    pub instance: u32,
+}
+
 pub struct Scene {
     pub docs: Vec<Doc>,
+    pub clouds: Vec<CloudSlot>, // streamed clouds - no Doc, no Session, no points on the CPU
     pub tables: ArenaUpload,
     order: Vec<String>, // renderable guids, global row order across docs
     pub guid_to_row: HashMap<String, u32>,
@@ -97,11 +107,26 @@ impl Scene{
     pub fn new() -> Self{
         Self {
         docs: Vec::new(),
+        clouds: Vec::new(),
         tables: ArenaUpload::new(),
         order: Vec::new(),
         guid_to_row: HashMap::new(),
         hidden: HashSet::new(),
         }
+    }
+
+    /// Reserve the document row for a cloud that is about to stream in. Called before a single
+    /// point has been fetched: the count comes from the file's packed-double length prefix.
+    /// Returns the instance row the streamed points will draw against.
+    pub fn begin_cloud(&mut self, name: String, place: Xform, count: u32) -> u32 {
+        let row = self.tables.objects.len() as u32;
+        self.tables.objects.push((place, [1.0; 4], 0));
+        // Keep the row bookkeeping aligned - `order` is indexed by row everywhere else.
+        let guid = format!("cloud:{name}");
+        self.guid_to_row.insert(guid.clone(), row);
+        self.order.push(guid);
+        self.clouds.push(CloudSlot { name, count, instance: row });
+        row
     }
 
     /// Upload, then FORGET the cloud rows. The GPU is now the only holder of those points.
@@ -530,7 +555,7 @@ fn push_mesh(
     }
 }
 
-fn xform_point(xf: &Xform, p: [f32; 3]) -> [f32; 3] {
+pub fn xform_point(xf: &Xform, p: [f32; 3]) -> [f32; 3] {
     let x = p[0] as f64;
     let y = p[1] as f64;
     let z = p[2] as f64;

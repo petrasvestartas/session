@@ -28,6 +28,15 @@ const DEMO_SCENE_URL: &str = "scenes/pointclouds3.json";
 pub enum Msg {
     Ready(Box<State>),
     File(String, session_rust::Session, session_rust::Xform),
+    /// A cloud is about to stream in: name, placement, and the EXACT point count - known from
+    /// the file's packed-double length prefix before a single point has been fetched.
+    CloudBegin(String, session_rust::Xform, u32),
+    /// One slice of positions / the colour run, on their way to GPU memory. These Vecs are the
+    /// only copy of that data that ever exists on the CPU, and they die in the handler.
+    CloudPos(Vec<f32>),
+    CloudCol(Vec<u32>),
+    /// Done, with the cloud's local-space AABB for the camera fit.
+    CloudEnd([f32; 3], [f32; 3]),
 }
 
 use std::sync::Arc;
@@ -91,50 +100,79 @@ impl ApplicationHandler<Msg> for App {
         if let Some(proxy) = self.proxy.take() {
             wasm_bindgen_futures::spawn_local(async move {
 
-                // Manifest, then the files - pipelined
-                // fetsch_start is eager: the brwoser request for file n+1 is in flight while file n parses
-                // and progressive - ready after the first file, every later streams in as a Msg::File
+                // Manifest, then the files.
+                //
+                // The canvas and the GPU come up FIRST, empty. A streamed cloud writes into GPU
+                // buffers, so the GPU has to exist before the first byte of geometry is fetched -
+                // and as a bonus the viewport is live immediately instead of after a parse.
                 let t0 = crate::engine::performance::now_ms();
                 let manifest_bytes = persistence::fetch_bytes(DEMO_SCENE_URL).await.unwrap_or_default();
                 let manifest = Manifest::parse(&manifest_bytes).unwrap_or_else(|| panic!("cannot read the scene manifest at {DEMO_SCENE_URL}"));
                 log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
                 let count = manifest.items.len();
-                let mut next = manifest.items.first().map(|it| persistence::fetch_start(&it.file));
-                let mut sent_ready = false;
+
+                let state = State::new(window.clone(), Scene::new()).await.expect("State init failed");
+                log::info!("canvas live {:.0}ms after manifest fetch", crate::engine::performance::now_ms() - t0);
+                let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+
                 for (i, item) in manifest.items.iter().enumerate() {
                     let f0 = crate::engine::performance::now_ms();
-                    let cur = next.take();
-                    next = manifest.items.get(i + 1).map(|it| persistence::fetch_start(&it.file));
-                    let bytes = match cur {
-                        Some(Ok(f)) => persistence::fetch_finish(f).await.unwrap_or_default(),
+                    let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [0.0, 0.0]));
+                    let named = if item.name.is_empty() { item.file.clone() } else { item.name.clone() };
+
+                    // ── STREAMING PATH ──────────────────────────────────────────────────────
+                    // A cloud-only .pb never becomes a kernel object and never exists whole in
+                    // wasm memory. Two small Range reads find the packed arrays; the coords run
+                    // then arrives in 8 MB slices, each converted, handed to the GPU and dropped.
+                    if let Some(f) = persistence::cloud_fields(&item.file).await {
+                        log::info!("streaming '{}': {} points | coords {:.0} MB + colours {:.0} MB",
+                            named, f.count, f.coords_len as f64 / 1048576.0, f.colors_len as f64 / 1048576.0);
+                        let _ = proxy.send_event(Msg::CloudBegin(named.clone(), place, f.count));
+
+                        // 8 MB, rounded DOWN to a whole number of points: a slice boundary can
+                        // then never fall inside a point, let alone inside one of its doubles.
+                        const SLICE: u64 = (8 * 1024 * 1024 / 24) * 24;
+                        let (mut at, mut left) = (f.coords_at, f.coords_len);
+                        let (mut lo, mut hi) = ([f32::INFINITY; 3], [f32::NEG_INFINITY; 3]);
+                        while left > 0 {
+                            let n = SLICE.min(left);
+                            let Some(pos) = persistence::cloud_positions(&item.file, at, n).await else { break };
+                            for q in pos.chunks_exact(3) {
+                                for k in 0..3 { lo[k] = lo[k].min(q[k]); hi[k] = hi[k].max(q[k]); }
+                            }
+                            let _ = proxy.send_event(Msg::CloudPos(pos));
+                            at += n;
+                            left -= n;
+                            // A real macrotask between slices. With a warm cache the fetch
+                            // promises resolve as MICROtasks, which never let the browser paint -
+                            // the same freeze the sliced prost parse exists to avoid.
+                            persistence::next_tick().await;
+                        }
+                        if let Some(col) = persistence::cloud_colors(&item.file, f.colors_at, f.colors_len, f.count).await {
+                            let _ = proxy.send_event(Msg::CloudCol(col));
+                        }
+                        let _ = proxy.send_event(Msg::CloudEnd(lo, hi));
+                        log::info!("streamed '{}' in {:.0}ms", named, crate::engine::performance::now_ms() - f0);
+                        continue;
+                    }
+
+                    // ── WHOLE-FILE PATH ─────────────────────────────────────────────────────
+                    // Everything that is not a lone point cloud still goes through prost.
+                    let bytes = match persistence::fetch_start(&item.file) {
+                        Ok(f) => persistence::fetch_finish(f).await.unwrap_or_default(),
                         _ => Vec::new(),
                     };
                     let f1 = crate::engine::performance::now_ms();
                     let nbytes = bytes.len();
                     let session = persistence::session_from_bytes_chunked(&item.file, bytes).await;
-                    let name = if item.name.is_empty() {
-                        session.name.clone()
-                    } else {
-                        item.name.clone()
-                    };
-                    log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms", name, session.lookup.len(), nbytes, f1 - f0, crate::engine::performance::now_ms() - f1);
+                    let name = if item.name.is_empty() { session.name.clone() } else { item.name.clone() };
+                    log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms",
+                        name, session.lookup.len(), nbytes, f1 - f0, crate::engine::performance::now_ms() - f1);
                     if session.lookup.is_empty() {
                         continue; // failed fetch - skipped file
                     }
-                    let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [0.0, 0.0]));
-                    if !sent_ready {
-                        sent_ready = true;
-                        let mut scene = Scene::new();
-                        scene.add_file(name, session, place);
-                        let state = State::new(window.clone(), scene).await.expect("State init failed");
-                        log::info!("first file on screen {:.0}ms after manifest fetch", crate::engine::performance::now_ms() - t0);
-                        let _ = proxy.send_event(Msg::Ready(Box::new(state)));
-                    } else {
-                        let _ = proxy.send_event(Msg::File(name, session, place));
-                    }
-
+                    let _ = proxy.send_event(Msg::File(name, session, place));
                 }
-
 
             });
         }
@@ -153,6 +191,48 @@ impl ApplicationHandler<Msg> for App {
                 state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
                 state.window.request_redraw();
                 self.state = Some(state);
+            }
+            // A cloud, streaming. Nothing here holds points: begin_cloud reserves the GPU
+            // range from a count that is already known, each slice is written and dropped, and
+            // the CPU keeps a name, a count and one instance row.
+            Msg::CloudBegin(name, place, count) => {
+                let Some(state) = &mut self.state else { return };
+                let row = state.scene.begin_cloud(name, place, count);
+                state.scene.upload_to(&mut state.gpu); // pushes the instance row
+                state.gpu.cloud_begin(count, row);
+            }
+            Msg::CloudPos(pos) => {
+                let Some(state) = &mut self.state else { return };
+                state.gpu.cloud_pos(&pos);
+                state.window.request_redraw(); // the cloud grows on screen as it arrives
+            }
+            Msg::CloudCol(col) => {
+                let Some(state) = &mut self.state else { return };
+                state.gpu.cloud_col(&col);
+                state.window.request_redraw();
+            }
+            Msg::CloudEnd(lo, hi) => {
+                let Some(state) = &mut self.state else { return };
+                // lo/hi are the cloud's LOCAL box; place it before it can fit the camera.
+                if let Some(slot) = state.scene.clouds.last() {
+                    if let Some((xf, _, _)) = state.scene.tables.objects.get(slot.instance as usize) {
+                        let (mut wlo, mut whi) = ([f32::INFINITY; 3], [f32::NEG_INFINITY; 3]);
+                        for c in 0..8u32 {
+                            let corner = [
+                                if c & 1 == 0 { lo[0] } else { hi[0] },
+                                if c & 2 == 0 { lo[1] } else { hi[1] },
+                                if c & 4 == 0 { lo[2] } else { hi[2] },
+                            ];
+                            let w = crate::app::scene::xform_point(xf, corner);
+                            for k in 0..3 { wlo[k] = wlo[k].min(w[k]); whi[k] = whi[k].max(w[k]); }
+                        }
+                        state.gpu.grow_scene(wlo, whi);
+                    }
+                }
+                let s = state.window.inner_size();
+                let aspect = s.width.max(1) as f64 / s.height.max(1) as f64;
+                state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
+                state.window.request_redraw();
             }
             Msg::File(name, session, place) => {
                 let Some(state) = &mut self.state else {
