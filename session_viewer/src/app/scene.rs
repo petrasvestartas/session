@@ -540,6 +540,22 @@ fn push_mesh(
         idx.push(base+i);
     }
 
+    // A DENSE mesh gets no wireframe and no vertex dots. This is the same call the cloud lane
+    // makes at CLOUD_RAW_MIN, and for the same reason - decoration that is free on a CAD solid
+    // is ruinous on a scan.
+    //
+    // Measured on the Stanford ladder (1.29M mesh triangles): the per-edge cylinders and
+    // per-vertex spheres added 23.2M and 92.9M triangles respectively - 90x the geometry they
+    // were decorating - and 118 MB of segment/glyph tables against 25 MB of actual mesh arena.
+    // The walk cost 12.4 s, most of it in edges_with_colors() building 1.9M edges and a HashSet.
+    //
+    // Selection is NOT affected: picking a vertex, an edge or a whole mesh reads the kernel
+    // Mesh (positions, indices, BVH), never these drawn tubes and dots. When a dense mesh is
+    // selected, its wireframe can be emitted for that one mesh on demand.
+    if rm.indices.len() / 3 > MESH_RAW_MIN {
+        return;
+    }
+
     // Edge width 0 = hidden wireframe, A mesh only has explicit widths if someone called
     // set_linecolors, so the 1.0 default below leaves every ordinary mesh untouched - but a triangulated PDF
     // fill (a letter, a pocket region) ask for no wireframe at all, and without
@@ -684,6 +700,12 @@ fn obb_to_segments(b: &OBB, instance_id: u32) -> Vec<CylinderSegment>{
 /// vertex, one pixel, opaque. Below it the sized round dots of the glyph lane still read better,
 /// and 100k of them is a frame cost nobody notices.
 const CLOUD_RAW_MIN: usize = 100_000;
+
+/// Above this many triangles a mesh draws as TRIANGLES ONLY - no per-edge cylinder, no
+/// per-vertex sphere. Below it, the wireframe and vertex dots are what make a CAD solid
+/// readable, and 10k triangles of them costs nothing. A PDF fill (tens of triangles) and a
+/// demo box (12) stay decorated; a scan does not.
+const MESH_RAW_MIN: usize = 10_000;
 
 /// The raw lane's rows. Same walk as the glyph version, minus the radius - a cloud has no pen
 /// per point - and 32 B per row instead of 48.
