@@ -304,7 +304,10 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
   - steps: Range not ReadableStream (split doubles/varints/headers are push-only risks); 8 MB
     slices rounded to whole points; 206 or refuse; GPU up first; `next_tick` between slices;
     empty `submit` to recycle Dawn staging
-  - verify: peak becomes CONSTANT; `pb/lidar_14m.pb` (13.8M pts) becomes loadable
+  - verify: peak becomes CONSTANT; `pb/lidar_14m.pb` (13.8M pts) becomes loadable; and
+    `scenes/mixed.json` closes the series - sheets/model (prost path) INTERLEAVED with scans
+    (Range path), which is what proves the MSAA flip, the draw order and the F-fit all hold
+    with both kinds of data resident at once
 
 ## Phase 5 — Acceleration & culling  (BEFORE picking/scenes grow)
 - ✅ 40 Scene AABB BVH — ONE broad-phase for culling, picking, and box-select

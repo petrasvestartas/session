@@ -1,0 +1,17 @@
+{
+  "name": "mixed — architectural sheets, a 3D model, and two LiDAR scans in one scene",
+  "comment": "The closing scene of the point-cloud series, and the only one that exercises BOTH load paths at once. Drawing sheets and floor_model are meshes + polylines: they go through the whole-file prost path (fetch, decode, walk into the shared tables, upload). The two scans are cloud-only .pb files: they go through the Range-streaming path and never become kernel objects at all. The order below deliberately INTERLEAVES them - sheet, scan, sheets, scan, model - so the two paths take turns and nothing is allowed to depend on running first or last. Sheets are ~2-5 m across and sit in a row at y=-30000; each scan spans about 72 m, so they are spaced 90 m apart along x. Press F: the fit must frame ALL of it, which is the thing that was broken when a streamed cloud's box was the only one the scene remembered.",
+
+  "items": [
+    { "file": "pb/30700_querschnitt_gg.pb",  "name": "Querschnitt G-G  (sheet)",   "at": [0, -30000, 0] },
+
+    { "file": "pb/lidar_scan000.pb",         "name": "scan000  (3.65M pts)",       "at": [0, 0, 0] },
+
+    { "file": "pb/draw_pc_gru_og2.pb",       "name": "GRU OG2          (sheet)",   "at": [3400, -30000, 0] },
+    { "file": "pb/draw_pe_schalungsbild.pb", "name": "Schalungsbild    (sheet)",   "at": [9100, -30000, 0] },
+
+    { "file": "pb/lidar_scan003.pb",         "name": "scan003  (3.45M pts)",       "at": [90000, 0, 0] },
+
+    { "file": "pb/floor_model.pb",           "name": "floor model      (3D mesh)", "at": [14000, -30000, 0] }
+  ]
+}
