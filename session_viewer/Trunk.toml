@@ -4,7 +4,9 @@ no_sri = true
 public_url = "./"
 
 [watch]
-watch = ["src", "Cargo.toml", "index.html"]
+# assets included: the scene manifests are meant to be edited and reloaded WITHOUT a
+# rebuild, which only works if trunk re-copies them into dist when they change.
+watch = ["src", "Cargo.toml", "index.html", "assets/scenes"]
 enable_cooldown = true
 
 [serve]
