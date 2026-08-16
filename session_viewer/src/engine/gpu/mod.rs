@@ -1039,6 +1039,14 @@ impl Gpu {
     /// render PASS, and every pipeline drawn into a pass must match it, so 1x linework and 4x
     /// solids in one frame would need two passes and a depth resolve between them. Pick per scene
     /// instead - hard-edged geometry (triangles, tubes, spheres) is the only thing MSAA smooths,
+    /// Forget what the arena holds, so the next upload writes from row 0 again. The buffers
+    /// and their capacity stay - only the counters move - so a rebuild costs no allocation.
+    /// Cloud buffers are deliberately untouched: streamed points are not re-walked.
+    pub fn reset_arena(&mut self) {
+        self.arena_vert_count = 0;
+        self.arena_index_count = 0;
+    }
+
     /// Make room for `need` point rows total, copying the live prefix GPU-side.
     ///
     /// EXACT, not doubling: appends here are few and huge, so doubling would waste 122 MB of

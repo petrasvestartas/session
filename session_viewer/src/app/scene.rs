@@ -85,19 +85,21 @@ pub struct Doc{
 /// It means the progressive loading costs each file only its own walk.
 /// Viewer-only bookkeeping (row order, grid to rowm hidden) lives here
 /// It never in the kernel type that threee languages share.
+
 /// A cloud whose points never became kernel objects: the loader streamed them from the file
 /// straight into GPU memory. This struct is the ENTIRE CPU-side footprint of a 13.8M-point
-/// scan - a name, a count, and the instance row it draws with.
+/// scan - a name, a placement, a count, and the instance row it draws with.
 pub struct CloudSlot {
     pub name: String,
+    pub place: Xform,
     pub count: u32,
     pub instance: u32,
 }
 
 pub struct Scene {
     pub docs: Vec<Doc>,
-    pub clouds: Vec<CloudSlot>,
-    vert_base: u32, // arena rows already uploaded - push_mesh bases its indices on this // streamed clouds - no Doc, no Session, no points on the CPU
+    pub clouds: Vec<CloudSlot>, // streamed clouds - no Doc, no Session, no points on the CPU
+    vert_base: u32,             // arena rows already uploaded - push_mesh bases its indices on this
     pub tables: ArenaUpload,
     order: Vec<String>, // renderable guids, global row order across docs
     pub guid_to_row: HashMap<String, u32>,
@@ -131,13 +133,48 @@ impl Scene{
     /// Returns the instance row the streamed points will draw against.
     pub fn begin_cloud(&mut self, name: String, place: Xform, count: u32) -> u32 {
         let row = self.tables.objects.len() as u32;
-        self.tables.objects.push((place, [1.0; 4], 0));
+        self.tables.objects.push((place.clone(), [1.0; 4], 0));
         // Keep the row bookkeeping aligned - `order` is indexed by row everywhere else.
         let guid = format!("cloud:{name}");
         self.guid_to_row.insert(guid.clone(), row);
         self.order.push(guid);
-        self.clouds.push(CloudSlot { name, count, instance: row });
+        self.clouds.push(CloudSlot { name, place, count, instance: row });
         row
+    }
+
+    /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch.
+    ///
+    /// The blunt instrument, and the reason it exists: once `upload_to` clears the arena
+    /// mirror, there is no CPU copy left to patch, so changing an object's GEOMETRY (dragging
+    /// a polyline vertex, editing a mesh) has nothing to rewrite. Per-object arena ranges are
+    /// what fixes that properly - the planned `guid -> range` map - and until then this gets
+    /// the same result by redoing the walk. It costs a full re-walk, so it belongs behind an
+    /// edit commit, not behind a drag.
+    ///
+    /// Streamed clouds are NOT re-walked: their points exist only on the GPU and are still
+    /// there. Only their instance row is re-issued, because rebuilding shifts every row index.
+    pub fn rebuild(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
+        let docs = std::mem::take(&mut self.docs);
+        let clouds = std::mem::take(&mut self.clouds);
+        self.tables = ArenaUpload::new();
+        self.order.clear();
+        self.guid_to_row.clear();
+        self.vert_base = 0;
+        gpu.reset_arena();
+
+        for d in docs {
+            self.add_file(d.name, d.session, d.place);
+        }
+        // Clouds keep their GPU rows; only the instance they draw against is re-issued, and the
+        // Gpu's draw list is patched to match. Order is preserved on both sides, so index i
+        // here is index i there.
+        for (i, c) in clouds.into_iter().enumerate() {
+            let row = self.begin_cloud(c.name, c.place, c.count);
+            if let Some(d) = gpu.cloud_draws.get_mut(i) {
+                d.instance = row;
+            }
+        }
+        self.upload_to(gpu);
     }
 
     /// Upload, then FORGET the cloud rows. The GPU is now the only holder of those points.
