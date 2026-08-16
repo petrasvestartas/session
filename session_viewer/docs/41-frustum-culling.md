@@ -11,8 +11,8 @@ see: extract the view frustum's six planes, test each object's world box against
 off-screen ones **culled**. The perf HUD's `drawn / total` split — flat since 34 — finally moves.
 
 The scan is linear (every object's flag must be decided each frame), and that's exactly what the
-archive ships — cheap at this scale. The 36 BVH stays in reserve for **picking** (46) and
-**box-select** (49), where a per-object test genuinely can't run N times. What makes the cull cheap
+archive ships — cheap at this scale. The 36 BVH stays in reserve for **picking** (47) and
+**box-select** (50), where a per-object test genuinely can't run N times. What makes the cull cheap
 *here* isn't a fancier data structure — it's only re-uploading the rows whose visibility actually
 flipped since last frame.
 
@@ -190,7 +190,7 @@ N. Then the per-frame cull (right after `new`, near 33's `rebuild_instances`):
 > **Linear, and that's fine here — so why did 36 build a BVH?** Frustum cull *must* decide every
 > object's flag every frame, so the scan is inherently O(N); the real optimization is the flip-tracking
 > (`culled_now`), which keeps GPU traffic proportional to what *moved*, not to N. The BVH earns its keep
-> in **picking (46)** and **box-select (49)**, where the alternative is a per-object triangle test that
+> in **picking (47)** and **box-select (50)**, where the alternative is a per-object triangle test that
 > genuinely can't run N times per click. (A million-object scene could also BVH-query the frustum box to
 > skip the plane test on distant objects — a later refinement; linear holds comfortably at the stress
 > file's 42k.)
@@ -292,7 +292,7 @@ two numbers (the HUD lesson, 47, reads them): add `pub perf_drawn: u32, pub perf
 ```
 
 (`Xform::to_cols()` is the kernel's f64 column-major accessor — `m[col][row]`, exactly what
-`Frustum::from_view_proj` takes; this is its first viewer use, and 45's ray / 49's marquee lean on
+`Frustum::from_view_proj` takes; this is its first viewer use, and 46's ray / 50's marquee lean on
 it later.)
 
 ## Step 5 — verify
@@ -304,7 +304,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Load the stress file (34), press `F`, then zoom into one corner:
 
 - **`drawn / total` drops** as objects leave the view — the whole point. Zoom back out and it
-  climbs to the full count. (Until 51's HUD panel exists, log it: add
+  climbs to the full count. (Until 52's HUD panel exists, log it: add
   `log::info!("cull: {} / {}", drawn, drawn + culled);` after the `apply_frustum_cull` call —
   or fold the two numbers into 28's once-a-second perf line.)
 - **Slow-orbit at the screen edge and nothing pops in late.** This is the test that catches an
@@ -337,7 +337,7 @@ culled/hidden instances), `state.rs` (build frustum, rebase, cull, feed the HUD,
 
 ## Next
 
-`42a-gpu-arena.md` — Phase 6 opens: the `.pb` file becomes a live source. Reloading a file today
+`43a-gpu-arena.md` — Phase 6 opens: the `.pb` file becomes a live source. Reloading a file today
 would rebuild the entire scene (35's `add_file` walk from scratch, plus a whole-buffer `set_scene`).
 The next lesson diffs the incoming `Session`
 against the current one by `guid` — added / removed / content-changed / unchanged — and re-flattens

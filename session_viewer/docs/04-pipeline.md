@@ -198,7 +198,7 @@ later lesson. This table is the reference the whole course leans on:
 | `vertex.module` + `entry_point` | which compiled WGSL function runs **per vertex** — it answers "where does corner *i* land in clip space?" | `vs_main` | every shader lesson |
 | `vertex.buffers` | the **memory layout** of per-vertex input: stride, and which bytes feed which `@location` — how the GPU walks your `Vec<Vertex>` | empty — corners are hard-coded in the shader | **06** (first vertex buffer), **30** (the per-vertex id, slot 1) |
 | `fragment.module` + `entry_point` | which function runs **per covered pixel** — "what colour is this pixel?" | `fs_main` | every shader lesson |
-| `fragment.targets[0].format` | the pixel format of the image being drawn into — must equal the surface's, or the draw is rejected | `config.format` | stays; offscreen targets (71) add their own |
+| `fragment.targets[0].format` | the pixel format of the image being drawn into — must equal the surface's, or the draw is rejected | `config.format` | stays; offscreen targets (72) add their own |
 | `fragment.targets[0].blend` | how the fragment's colour **combines** with what's already in the target: replace, or alpha-mix | `None` = replace (opaque) | **32b** (translucent point sprites), **65** (ground fade) |
 | `fragment.targets[0].write_mask` | which colour channels the draw may touch | ALL | stays ALL |
 | `primitive.topology` | how the vertex stream groups into shapes: every 3 = a triangle (`TriangleList`), every 2 = a line (`LineList`), … | `TriangleList` | **20** (the grid is `LineList`) |

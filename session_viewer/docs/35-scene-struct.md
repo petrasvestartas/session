@@ -2,8 +2,8 @@
 
 > **Big picture.** Since 34e the viewer has NO document. Each `Session` is parsed, walked into
 > flat GPU tables, and **thrown away** — deliberately, to survive the stress wall. That was right
-> for the wall and is wrong for everything ahead: picking (46) must answer "which OBJECT did the
-> ray hit" (a guid), undo (55) must snapshot geometry, save (43) must write a `.pb` back — all of
+> for the wall and is wrong for everything ahead: picking (47) must answer "which OBJECT did the
+> ray hit" (a guid), undo (56) must snapshot geometry, save (44) must write a `.pb` back — all of
 > that needs the real `Session` alive in memory. And the load path hurts three ways you can watch
 > on every reload: ten sheets take ~24 s and **nothing renders until the last one lands**; each
 > file's parse is one synchronous block that would freeze any UI drawn during it; and every
@@ -483,7 +483,7 @@ pub struct Instance {
 
 ```rust
 impl Instance {
-    /// Row is skipped by the draw (50). Bit 0 is reserved for FLAG_SELECTED (49).
+    /// Row is skipped by the draw (51). Bit 0 is reserved for FLAG_SELECTED (50).
     pub const FLAG_HIDDEN: u32 = 1 << 1;
 }
 ```
@@ -1466,7 +1466,7 @@ Two things follow. First, `trunk serve` builds UNOPTIMIZED wasm — 5-9× slower
 exactly this code — so judge load times with `trunk serve --release` and use the dev build only
 for iterating. Second, making the viewer stay interactive DURING a load needs the walk to become
 resumable (a job with a cursor, stepped a few ms per frame from `RedrawRequested`) and the upload
-to become append-only, which is lesson 46a's arena. Both are out of scope here: this lesson's
+to become append-only, which is lesson 48a's arena. Both are out of scope here: this lesson's
 contract is a first sheet on screen in seconds and whole documents appearing one at a time.
 
 ## Memory honesty
@@ -1563,5 +1563,5 @@ scene is not flirting with the heap ceiling.
 
 Then `40-scene-bvh.md` — `Scene` now has a fixed, ordered object list; that lesson gives it a
 broad-phase AABB BVH over their world boxes. One BVH, reused by frustum culling (41), picking
-(46), and box-select (49) — the "one acceleration structure, many uses" principle, and the reason
+(47), and box-select (50) — the "one acceleration structure, many uses" principle, and the reason
 the object list had to stabilize here first.

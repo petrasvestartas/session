@@ -1,7 +1,7 @@
 # 40 Scene BVH — one broad-phase, three consumers
 
-> **Big picture.** *Phase 5 — acceleration, built BEFORE the features that need it.* Picking (46) and
-> box-select (49) each ask "which objects are in this region?" against 744,000 objects, per click or
+> **Big picture.** *Phase 5 — acceleration, built BEFORE the features that need it.* Picking (47) and
+> box-select (50) each ask "which objects are in this region?" against 744,000 objects, per click or
 > per drag. Every real CAD app answers that with a spatial index built once and queried everywhere.
 > Building it now, on the stable global row order 35 just created, makes the later lessons *queries*
 > instead of rewrites.
@@ -37,7 +37,7 @@ flag — the archive viewer (`session_viewer_archive`) leaned on exactly that ca
 `invalidate_bvh_cache()` after every edit. That was enough there because the archive was a
 single-document app. This viewer is multi-document by design: one tree per session would mean
 querying N trees and merging, each blind to its manifest `place`. One scene-level tree, placed
-boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 50's
+boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 52's
 narrow-phase `ray_cast`.)
 
 This lesson also names that frame once and for all, because half the remaining course needs it:
@@ -207,7 +207,7 @@ matrix the row draws with, because it is the SAME value, not a copy that could d
 
 ```rust
             // Cache the box's AABB extents row-by-row. Computing a world box walks the object's
-            // VERTICES — do it once per append, never per query. 41's per-frame cull and 49's
+            // VERTICES — do it once per append, never per query. 41's per-frame cull and 50's
             // marquee read THIS cache; without it they'd re-walk every mesh every frame.
             // (`placed` was moved into the objects push above — the ROW owns the frame now.)
             let a = world_obb(geom, &t.objects[ri as usize].0).aabb();
@@ -239,7 +239,7 @@ closing brace (still ABOVE the `}` that closes the impl):
 
 ```rust
     /// Rebuild the whole tree from the cached extents — called once per appended file (LBVH
-    /// build: O(n) after the Morton radix sort). A later lesson (42) refits incrementally on
+    /// build: O(n) after the Morton radix sort). A later lesson (43) refits incrementally on
     /// edit instead. Boxes go in ROW order → object_id == row == index into `order`.
     fn rebuild_bvh(&mut self) {
         let boxes: Vec<(OBB, String)> = self.world_boxes.iter().zip(&self.order)

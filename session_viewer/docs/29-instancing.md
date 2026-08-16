@@ -40,8 +40,8 @@ GPU already has. `draw_indexed(0..n, 0, 0..100)` issues the pipeline **once**; t
 per-instance data: a second vertex buffer with `step_mode: Instance`, or a **storage buffer** indexed by
 `instance_index`. We take the storage route and skip the vertex-buffer one. Lesson 27 unlocked storage
 buffers for exactly this, and the table is the path everything later builds on: frustum culling flips a
-flag in a row (41), the GPU cull pass writes an indirect draw over the same buffer (80), selection is
-one bit in `flags` (49). A per-instance vertex buffer would dead-end all of that.
+flag in a row (41), the GPU cull pass writes an indirect draw over the same buffer (81), selection is
+one bit in `flags` (50). A per-instance vertex buffer would dead-end all of that.
 
 ```
 Ch 28:  background(1) + grid(1) + meshes(3) + edges(3)  =  8 draws  /  3 objects
@@ -73,7 +73,7 @@ very bottom of `gpu.rs`, below `impl Gpu`:
 struct Instance {
     model: [f32; 16],   // 64 B — column-major, from Xform::to_f32()
     color: [f32; 4],    // 16 B
-    flags: u32,         //  4 B — reserved (selection ch 49 / cull ch 41)
+    flags: u32,         //  4 B — reserved (selection ch 50 / cull ch 41)
     _pad: [u32; 3],     // 12 B — pad the row to 96 B (storage array stride)
 }
 ```

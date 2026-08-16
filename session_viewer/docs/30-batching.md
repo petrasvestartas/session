@@ -336,7 +336,7 @@ mesh, each replaying its slice over however many rows share it:
 
 Here `@builtin(instance_index)` is the row selector again (the per-vertex `@location(3)` id from Step 1
 is only needed by the *single*-draw variant; the per-mesh loop uses the builtin like 29 did). Cost is a
-**handful of draws — one per unique mesh, not per object** — the shape real scenes want. Lesson 80
+**handful of draws — one per unique mesh, not per object** — the shape real scenes want. Lesson 81
 (multi-draw-indirect) folds that handful into a single GPU call, but the data layout is already this.
 
 **Edges are the first real customer.** Lesson 31 draws the whole scene's wireframe as **instanced
