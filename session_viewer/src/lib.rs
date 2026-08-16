@@ -227,6 +227,7 @@ impl ApplicationHandler<Msg> for App {
                             for k in 0..3 { wlo[k] = wlo[k].min(w[k]); whi[k] = whi[k].max(w[k]); }
                         }
                         state.gpu.grow_scene(wlo, whi);
+                        state.scene.grow_bounds(wlo, whi);
                     }
                 }
                 let s = state.window.inner_size();
