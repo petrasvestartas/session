@@ -456,7 +456,7 @@ pub fn build_point_pipeline(
     mvp_layout: &wgpu::BindGroupLayout,
     line_layout: &wgpu::BindGroupLayout,
     instance_layout: &wgpu::BindGroupLayout,
-    glyph_layout: &wgpu::BindGroupLayout,
+    cloud_layout: &wgpu::BindGroupLayout,
 ) -> wgpu::RenderPipeline{
 
     let shader = device.create_shader_module(
@@ -467,7 +467,7 @@ pub fn build_point_pipeline(
 
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
         label: Some("point.layout"),
-        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(glyph_layout)],
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(cloud_layout)],
         immediate_size: 0,
     });
 

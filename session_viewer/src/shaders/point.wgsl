@@ -22,13 +22,14 @@ struct Instance{
 };
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 
-// Matches the Rust CloudPoint (32 B) - no radius field: the cloud has no per-point pen.
-struct CloudPoint {
-    position: vec3<f32>,
-    instance_id: u32,
-    color: vec4<f32>,
-};
-@group(3) @binding(0) var<storage, read> points: array<CloudPoint>;
+// TWO flat arrays, not one interleaved row of structs. In the STORAGE address space
+// array<f32> has element stride 4 and array<u32> stride 4 - no vec3 16-byte padding, which is
+// a uniform-address-space rule and does not apply here - so a point costs exactly 12 + 4 = 16 B
+// against the old CloudPoint's 32. Splitting them is also what lets a file stream in one
+// forward pass: coords and colours are separate contiguous runs on the protobuf wire, and
+// queue.write_buffer cannot do strided writes.
+@group(3) @binding(0) var<storage, read> positions: array<f32>;  // 3 per point
+@group(3) @binding(1) var<storage, read> colors: array<u32>;     // RGBA8, 1 per point
 
 const FLAG_HIDDEN: u32 = 2u;   // Instance::FLAG_HIDDEN, bit 1
 
@@ -37,11 +38,16 @@ struct VsOut {
     @location(0) color: vec4<f32>,
 };
 
+// vid IS the point index, and it is ABSOLUTE: WebGPU counts vertex_index from the draw's
+// first_vertex, so one shared buffer holding every cloud needs no per-point base. The cloud's
+// instance rides on instance_index the same way - one draw call per cloud carries it, which is
+// how the per-point instance_id (4 B x 13.8M) left the row.
 @vertex
-fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
-    let p = points[vid];        // ONE vertex per point - vid IS the point
-    let inst = instances[p.instance_id];
-    let world = (inst.model * vec4<f32>(p.position, 1.0)).xyz;
+fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) iid: u32) -> VsOut{
+    let i = vid * 3u;
+    let local = vec3<f32>(positions[i], positions[i + 1u], positions[i + 2u]);
+    let inst = instances[iid];
+    let world = (inst.model * vec4<f32>(local, 1.0)).xyz;
 
     var o: VsOut;
     o.pos = mvp * vec4<f32>(world, 1.0);
@@ -50,7 +56,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
         o.pos = vec4<f32>(0.0, 0.0, -1.0, 1.0);
     }
-    o.color = p.color * inst.color;
+    o.color = unpack4x8unorm(colors[vid]) * inst.color;
     return o;
 }
 

@@ -68,7 +68,7 @@ use std::collections::{HashMap, HashSet};
 use session_rust::{Session, Geometry, Mesh, Line, Point, Polyline, NurbsCurve, RenderVertex, Plane, OBB, PointCloud, Vector};
 use session_rust::element::ElementGeometry;
 use session_rust::mesh::ColorMode;
-use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint, CloudPoint};
+use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint, CloudDraw};
 
 /// One loaded file: the kernel `Session`
 /// kept alive - picking/undo/save need this
@@ -109,8 +109,11 @@ impl Scene{
     /// only the point lane has an append path (Gpu::set_scene).
     pub fn upload_to(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
         gpu.set_scene(&self.tables);
-        self.tables.points.clear();
-        self.tables.points.shrink_to_fit();
+        self.tables.cloud_pos.clear();
+        self.tables.cloud_pos.shrink_to_fit();
+        self.tables.cloud_col.clear();
+        self.tables.cloud_col.shrink_to_fit();
+        self.tables.clouds.clear();
     }
 
     /// Walk one session into the shared tables.
@@ -125,7 +128,7 @@ impl Scene{
         let vert0 = self.tables.verts.len();
         let sphere0 = self.tables.spheres.len();
         let glyph0 = self.tables.glyphs.len();
-        let point0 = self.tables.points.len();
+        let cloud0 = self.tables.clouds.len();
         let obj0 = self.tables.objects.len();
 
         let world = session.world_xforms();
@@ -178,7 +181,7 @@ impl Scene{
                 // you orbit. A handful of points are worth round sized dots (32b's demo clouds);
                 // a scan is a clump, and the raw lane draws it one vertex and one pixel per point.
                 Geometry::PointCloud(pc) if pc.len() >= CLOUD_RAW_MIN => {
-                    push_cloud(pc, ri, &mut t.points)
+                    push_cloud(pc, ri, t)
                 }
                 Geometry::PointCloud(pc) => t.glyphs.extend(pointcloud_to_glyphs(pc, ri)),
                 Geometry::NurbsSurface(s) => {
@@ -255,9 +258,13 @@ impl Scene{
             } 
         }
 
-        for p in t.points.iter().skip(point0){
-            if let Some((xf, _, _)) = t.objects.get(p.instance_id as usize){
-                grow_bounds(&mut fmin, &mut fmax, xform_point(xf, p.position));
+        for ci in cloud0..t.clouds.len(){
+            let c = t.clouds[ci];
+            if let Some((xf, _, _)) = t.objects.get(c.instance as usize){
+                for i in c.base as usize..(c.base + c.count) as usize {
+                    let p = [t.cloud_pos[i * 3], t.cloud_pos[i * 3 + 1], t.cloud_pos[i * 3 + 2]];
+                    grow_bounds(&mut fmin, &mut fmax, xform_point(xf, p));
+                }
             }
         }
 
@@ -303,9 +310,13 @@ impl Scene{
                     span(xform_point(xf, g.center));
                 }
             }
-            for p in t.points.iter().skip(point0){
-                if let Some((xf, _, _)) = t.objects.get(p.instance_id as usize) {
-                    span(xform_point(xf, p.position));
+            for ci in cloud0..t.clouds.len(){
+                let c = t.clouds[ci];
+                if let Some((xf, _, _)) = t.objects.get(c.instance as usize) {
+                    for i in c.base as usize..(c.base + c.count) as usize {
+                        let p = [t.cloud_pos[i * 3], t.cloud_pos[i * 3 + 1], t.cloud_pos[i * 3 + 2]];
+                        span(xform_point(xf, p));
+                    }
                 }
             }
             dmax - dmin
@@ -595,24 +606,31 @@ const CLOUD_RAW_MIN: usize = 100_000;
 /// It also reads the kernel's FLAT arrays rather than `get_point`/`get_color`, which each build a
 /// `Point`/`Color` - three String allocations per point, measured at 1.08 s against 0.24 s for
 /// the flat walk on this scan, all of it allocator churn on the wasm main thread.
-fn push_cloud(pc: &PointCloud, instance_id: u32, out: &mut Vec<CloudPoint>){
+fn push_cloud(pc: &PointCloud, instance_id: u32, t: &mut ArenaUpload){
     let coords = pc.coords();
     let colors = pc.colors();
     let n = pc.len();
-    out.reserve_exact(n);
+    let base = (t.cloud_pos.len() / 3) as u32;
+    t.cloud_pos.reserve_exact(n * 3);
+    t.cloud_col.reserve_exact(n);
     for i in 0..n {
+        t.cloud_pos.push(coords[i * 3] as f32);
+        t.cloud_pos.push(coords[i * 3 + 1] as f32);
+        t.cloud_pos.push(coords[i * 3 + 2] as f32);
         let c = i * 4;
-        out.push(CloudPoint{
-            position: [coords[i * 3] as f32, coords[i * 3 + 1] as f32, coords[i * 3 + 2] as f32],
-            instance_id,
-            color: if c + 3 < colors.len() {
-                [colors[c] as f32 / 255.0, colors[c + 1] as f32 / 255.0,
-                 colors[c + 2] as f32 / 255.0, colors[c + 3] as f32 / 255.0]
-            } else {
-                [0.0, 0.0, 0.0, 1.0]
-            },
+        // RGBA8 in one u32, little-endian byte order so the shader's unpack4x8unorm reads
+        // x=r y=g b=b w=a. 4 B a point instead of four f32s: the colour is 8-bit at the source
+        // (the proto carries 0-255) and it was being widened to 16 B for nothing.
+        t.cloud_col.push(if c + 3 < colors.len() {
+            ((colors[c] as u32) & 255)
+                | (((colors[c + 1] as u32) & 255) << 8)
+                | (((colors[c + 2] as u32) & 255) << 16)
+                | (((colors[c + 3] as u32) & 255) << 24)
+        } else {
+            0xff00_0000
         });
     }
+    t.clouds.push(CloudDraw { base, count: n as u32, instance: instance_id });
 }
 
 fn pointcloud_to_glyphs(pc: &PointCloud, instance_id: u32) -> Vec<GlyphPoint>{
