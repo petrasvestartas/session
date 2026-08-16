@@ -242,6 +242,7 @@ impl Scene{
                         &mut t.vids, 
                         &mut t.idx, 
                         &mut t.pipes,
+                        &mut t.spheres
                     );
                 }
                 Geometry::BRep(b) => {
@@ -255,6 +256,7 @@ impl Scene{
                         &mut t.vids, 
                         &mut t.idx, 
                         &mut t.pipes,
+                        &mut t.spheres
                     );
                 }
                 Geometry::Line(l) => { t.segments.push(line_to_segment(l, ri)); }
@@ -281,6 +283,7 @@ impl Scene{
                         &mut t.vids, 
                         &mut t.idx, 
                         &mut t.pipes,
+                        &mut t.spheres
                     );
                 }
                 Geometry::Plane(p) => t.segments.extend(plane_to_segments(p, ri)),
@@ -295,6 +298,7 @@ impl Scene{
                             &mut t.vids, 
                             &mut t.idx, 
                             &mut t.pipes,
+                            &mut t.spheres
                         );
                     }
                     ElementGeometry::BRep(b) => {
@@ -308,6 +312,7 @@ impl Scene{
                             &mut t.vids, 
                             &mut t.idx, 
                             &mut t.pipes,
+                            &mut t.spheres
                         );
                     }
                     ElementGeometry::None => (),
@@ -523,6 +528,7 @@ fn push_mesh(
     vids: &mut Vec<u32>,
     idx: &mut Vec<u32>,
     segments: &mut Vec<CylinderSegment>,
+    glyphs: &mut Vec<GlyphPoint>
 ){
     let base = base_off + verts.len() as u32; // GPU rows already uploaded + rows pending in this delta
     let rm = m.to_render();
@@ -546,6 +552,9 @@ fn push_mesh(
     // Selection is NOT affected: picking a vertex, an edge or a whole mesh reads the kernel
     // Mesh (positions, indices, BVH), never these drawn tubes and dots. When a dense mesh is
     // selected, its wireframe can be emitted for that one mesh on demand.
+    if rm.indices.len() / 3 > MESH_RAW_MIN {
+        return;
+    }
 
     // Edge width 0 = hidden wireframe, A mesh only has explicit widths if someone called
     // set_linecolors, so the 1.0 default below leaves every ordinary mesh untouched - but a triangulated PDF
@@ -615,17 +624,13 @@ fn push_mesh(
     for (i, vk) in m.vertices().into_iter().enumerate(){
         let Some(&vw) = vwidth.get(&vk) else { continue };
         let p = m.vertex_point(vk).unwrap();
-        // A vertex dot is a capsule whose ends coincide - same table, same primitive, same
-        // draw call as the edges. The separate sphere lane (and its 144-triangle lat-long
-        // template) is gone; see capsule.wgsl.
-        let c = p.to_f32();
-        segments.push(
-            CylinderSegment {
-                p0: c,
+        glyphs.push(
+            GlyphPoint {
+                center: p.to_f32(),
                 radius: encode_width(vw),
-                p1: c,
-                instance_id: ri,
                 color: if dots_colored { pc[i].to_f32() } else { [0.1, 0.1, 0.1, 1.0] },
+                instance_id: ri,
+                _pad: [0; 3]
             }
         );
     }
@@ -696,8 +701,12 @@ fn obb_to_segments(b: &OBB, instance_id: u32) -> Vec<CylinderSegment>{
 /// and 100k of them is a frame cost nobody notices.
 const CLOUD_RAW_MIN: usize = 100_000;
 
-// MESH_RAW_MIN is gone: the capsule impostor took an edge from 12 triangles to 2 and a vertex
-// dot from 144 to 2, so a dense mesh can keep its wireframe instead of being stripped bare.
+/// Above this many triangles a mesh draws as TRIANGLES ONLY - no per-edge cylinder, no
+/// per-vertex sphere. Below it, the wireframe and vertex dots are what make a CAD solid
+/// readable. At 200k the bunny (69k tri) keeps its wireframe and the armadillo and dragon
+/// do not - which is the honest line until an impostor makes the decoration cheap. A PDF fill (tens of triangles) and a
+/// demo box (12) stay decorated; a scan does not.
+const MESH_RAW_MIN: usize = 200_000;
 
 /// The raw lane's rows. Same walk as the glyph version, minus the radius - a cloud has no pen
 /// per point - and 32 B per row instead of 48.

@@ -5,7 +5,6 @@ use build::build_grid_pipeline;
 use build::build_edges_pipeline;
 use build::build_sphere_pipeline;
 use build::build_point_pipeline;
-use build::build_capsule_pipeline;
 use build::build_ribbon_pipeline;
 use build::build_glyph_pipeline;
 use build::build_background_pipeline;
@@ -21,7 +20,6 @@ pub struct Pipelines{
     pub cylinder: wgpu::RenderPipeline,
     pub sphere: wgpu::RenderPipeline,
     pub point: wgpu::RenderPipeline,
-    pub capsule: wgpu::RenderPipeline,
     pub ribbon: wgpu::RenderPipeline,
     pub glyph: wgpu::RenderPipeline,
     pub ribbon_depth: wgpu::RenderPipeline, // depth-only prepass, so flat ink occludes flat ink
@@ -51,7 +49,6 @@ impl Pipelines {
             background: build_background_pipeline(device, samples, color_format),
             sphere: build_sphere_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
             point: build_point_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, cloud_layout),
-            capsule: build_capsule_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
             ribbon: build_ribbon_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
             glyph: build_glyph_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
             ribbon_depth: build_ink_depth_pipeline(device, samples, "ribbon.depth", color_format,
