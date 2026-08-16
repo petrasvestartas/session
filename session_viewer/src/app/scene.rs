@@ -96,7 +96,8 @@ pub struct CloudSlot {
 
 pub struct Scene {
     pub docs: Vec<Doc>,
-    pub clouds: Vec<CloudSlot>, // streamed clouds - no Doc, no Session, no points on the CPU
+    pub clouds: Vec<CloudSlot>,
+    vert_base: u32, // arena rows already uploaded - push_mesh bases its indices on this // streamed clouds - no Doc, no Session, no points on the CPU
     pub tables: ArenaUpload,
     order: Vec<String>, // renderable guids, global row order across docs
     pub guid_to_row: HashMap<String, u32>,
@@ -108,6 +109,7 @@ impl Scene{
         Self {
         docs: Vec::new(),
         clouds: Vec::new(),
+        vert_base: 0,
         tables: ArenaUpload::new(),
         order: Vec::new(),
         guid_to_row: HashMap::new(),
@@ -143,6 +145,16 @@ impl Scene{
     /// only the point lane has an append path (Gpu::set_scene).
     pub fn upload_to(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
         gpu.set_scene(&self.tables);
+        // The arena rows are on the GPU now and nothing reads them back - picking goes through
+        // the kernel Meshes in Doc.session, never through these flattened rows. Keep only the
+        // running vertex base, so the next file's indices still land in the right place.
+        self.vert_base += self.tables.verts.len() as u32;
+        self.tables.verts.clear();
+        self.tables.verts.shrink_to_fit();
+        self.tables.vids.clear();
+        self.tables.vids.shrink_to_fit();
+        self.tables.idx.clear();
+        self.tables.idx.shrink_to_fit();
         self.tables.cloud_pos.clear();
         self.tables.cloud_pos.shrink_to_fit();
         self.tables.cloud_col.clear();
@@ -160,6 +172,7 @@ impl Scene{
         let seg0 = self.tables.segments.len();
         let pipe0 = self.tables.pipes.len();
         let vert0 = self.tables.verts.len();
+        let vb = self.vert_base; // read before `t` borrows self.tables
         let sphere0 = self.tables.spheres.len();
         let glyph0 = self.tables.glyphs.len();
         let cloud0 = self.tables.clouds.len();
@@ -186,7 +199,8 @@ impl Scene{
 
                     push_mesh(
                         m, 
-                        ri, 
+                        ri,
+                        vb, 
                         &mut t.verts, 
                         &mut t.vids, 
                         &mut t.idx, 
@@ -199,7 +213,8 @@ impl Scene{
                     bm.set_objectcolor(b.surfacecolor.clone());
                     push_mesh(
                         &bm, 
-                        ri, 
+                        ri,
+                        vb, 
                         &mut t.verts, 
                         &mut t.vids, 
                         &mut t.idx, 
@@ -225,7 +240,8 @@ impl Scene{
                     }
                     push_mesh(
                         &sm, 
-                        ri, 
+                        ri,
+                        vb, 
                         &mut t.verts, 
                         &mut t.vids, 
                         &mut t.idx, 
@@ -239,7 +255,8 @@ impl Scene{
                     ElementGeometry::Mesh(m) => {
                         push_mesh(
                             &m, 
-                            ri, 
+                            ri,
+                        vb, 
                             &mut t.verts, 
                             &mut t.vids, 
                             &mut t.idx, 
@@ -252,7 +269,8 @@ impl Scene{
                         bm.set_objectcolor(b.surfacecolor.clone());
                         push_mesh(
                             &bm, 
-                            ri, 
+                            ri,
+                        vb, 
                             &mut t.verts, 
                             &mut t.vids, 
                             &mut t.idx, 
@@ -468,13 +486,14 @@ fn encode_width(w: f64) -> f32{
 fn push_mesh(
     m: &Mesh,
     ri: u32,
+    base_off: u32,
     verts: &mut Vec<RenderVertex>,
     vids: &mut Vec<u32>,
     idx: &mut Vec<u32>,
     segments: &mut Vec<CylinderSegment>,
     glyphs: &mut Vec<GlyphPoint>
 ){
-    let base = verts.len() as u32;
+    let base = base_off + verts.len() as u32; // GPU rows already uploaded + rows pending in this delta
     let rm = m.to_render();
     for v in &rm.vertices{
         verts.push(*v);

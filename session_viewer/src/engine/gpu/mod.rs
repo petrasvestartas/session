@@ -103,6 +103,9 @@ pub struct Gpu {
     pub arena_vids: wgpu::Buffer,
     pub arena_ibo: wgpu::Buffer,
     pub arena_index_count: u32,
+    pub arena_vert_count: u32,   // rows already on the GPU - the base for the next append
+    pub arena_vert_cap: u64,
+    pub arena_index_cap: u64,
     instances: Vec<Instance>,
     last_origin: Option<Point>, // rebuild_instances skips when the camera target did not move
     objects_base: Vec<(Xform, [f32; 4], u32)>, // TRUE world model+color; isntance[] is rebased from this
@@ -296,6 +299,8 @@ impl Gpu {
         let objects_base: Vec<(Xform, [f32; 4], u32)> = Vec::new();
         let (pipe_count, segment_count, sphere_count, glyph_count) = (0u32, 0u32, 0u32, 0u32);
         let arena_index_count = 0u32;
+        let arena_vert_count = 0u32;
+        let (arena_vert_cap, arena_index_cap) = (1u64, 1u64);
         let (scene_min, scene_max) = ([0.0f32; 3], [0.0f32; 3]);
 
         let instance_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
@@ -318,9 +323,13 @@ impl Gpu {
             entries: &[wgpu::BindGroupEntry {binding: 0, resource: instance_buffer.as_entire_binding()}],
         });
 
-        let arena_vbo = zeroed_buffer(&device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, wgpu::BufferUsages::VERTEX);
-        let arena_vids = zeroed_buffer(&device, "arena.vids", 4, wgpu::BufferUsages::VERTEX);
-        let arena_ibo = zeroed_buffer(&device, "arena.ibo", 12, wgpu::BufferUsages::INDEX);
+        // One zeroed row each - wgpu cannot bind a 0-byte buffer, and arena_index_count starts
+        // at 0 so nothing is drawn from them until real geometry appends.
+        let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let iu = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let arena_vbo = zeroed_buffer(&device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, vu);
+        let arena_vids = zeroed_buffer(&device, "arena.vids", 4, vu);
+        let arena_ibo = zeroed_buffer(&device, "arena.ibo", 4, iu);
 
         // Unit-cylinder tempalte (positions only) - one mesh, instance per edge.
         let (cyl_v, cyl_i) = unit_cylinder(CYL_SIDES);
@@ -531,6 +540,9 @@ impl Gpu {
             arena_vids,
             arena_ibo,
             arena_index_count,
+            arena_vert_count,
+            arena_vert_cap,
+            arena_index_cap,
             instances,
             last_origin: None,
             objects_base,
@@ -607,35 +619,47 @@ impl Gpu {
             }],
         });
 
-        // Mesh arena - straight from the Scene's Vecs; the empy case is a zeroed placeholder.
-        if up.verts.is_empty() {
-            self.arena_vbo = zeroed_buffer(&self.device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, wgpu::BufferUsages::VERTEX);
-            self.arena_vids = zeroed_buffer(&self.device, "arena.vids", 4, wgpu::BufferUsages::VERTEX);
-            self.arena_ibo = zeroed_buffer(&self.device, "arena.ibo", 12, wgpu::BufferUsages::INDEX);
-            self.arena_index_count = 3;
-        } else {
-            // NOT create_buffer_init. Same trap as `storage_buffer` (lesson 37 step 7):
-            // mapped_at_creation makes wgpu's WebGPU backend mirror the WHOLE buffer into the
-            // wasm heap (`temporary_mapping`) before handing it to JS. The mesh arena of the
-            // mixed scene is ~100 MB, and this runs on EVERY appended file - six times - so it
-            // was the largest single contributor left in the wasm high-water mark.
-            // write_buffer passes a subarray view of wasm memory instead.
-            let upload = |device: &wgpu::Device, queue: &wgpu::Queue, label, bytes: &[u8], usage| {
-                let b = device.create_buffer(&wgpu::BufferDescriptor {
-                    label: Some(label),
-                    size: bytes.len() as u64,
-                    usage,
-                    mapped_at_creation: false,
-                });
-                queue.write_buffer(&b, 0, bytes);
-                b
-            };
-            let v = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST;
-            let i = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST;
-            self.arena_vbo = upload(&self.device, &self.queue, "arena.vbo", bytemuck::cast_slice(&up.verts), v);
-            self.arena_vids = upload(&self.device, &self.queue, "arena.vids", bytemuck::cast_slice(&up.vids), v);
-            self.arena_ibo = upload(&self.device, &self.queue, "arena.ibo", bytemuck::cast_slice(&up.idx), i);
-            self.arena_index_count = up.idx.len() as u32;
+        // Mesh arena. Like the cloud lane, `up.verts/vids/idx` are a DELTA - the caller clears
+        // them after upload (Scene::upload_to), because nothing reads them back: picking goes
+        // through the kernel Meshes in Doc.session, never through these flattened rows.
+        //
+        // Appending rather than rebuilding is worth two separate things. It stops re-sending the
+        // whole arena on every file (six files meant the 64 MB vertex table travelled six times),
+        // and it lets the CPU-side Vecs go, which is ~70 MB of wasm heap that was being held for
+        // the sole purpose of feeding the next rebuild.
+        if !up.verts.is_empty() {
+            let vstride = std::mem::size_of::<RenderVertex>() as u64;
+            let need_v = self.arena_vert_count as u64 + up.verts.len() as u64;
+            let need_i = self.arena_index_count as u64 + up.idx.len() as u64;
+
+            if need_v > self.arena_vert_cap || need_i > self.arena_index_cap {
+                let cap_v = need_v.max(self.arena_vert_cap);
+                let cap_i = need_i.max(self.arena_index_cap);
+                let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+                let iu = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+                let vbo = zeroed_buffer(&self.device, "arena.vbo", cap_v * vstride, vu);
+                let vids = zeroed_buffer(&self.device, "arena.vids", cap_v * 4, vu);
+                let ibo = zeroed_buffer(&self.device, "arena.ibo", cap_i * 4, iu);
+                if self.arena_vert_count > 0 {
+                    // the prefix moves GPU-side; it never travels back through wasm memory
+                    let mut enc = self.device.create_command_encoder(&Default::default());
+                    enc.copy_buffer_to_buffer(&self.arena_vbo, 0, &vbo, 0, self.arena_vert_count as u64 * vstride);
+                    enc.copy_buffer_to_buffer(&self.arena_vids, 0, &vids, 0, self.arena_vert_count as u64 * 4);
+                    enc.copy_buffer_to_buffer(&self.arena_ibo, 0, &ibo, 0, self.arena_index_count as u64 * 4);
+                    self.queue.submit([enc.finish()]);
+                }
+                self.arena_vbo = vbo;
+                self.arena_vids = vids;
+                self.arena_ibo = ibo;
+                self.arena_vert_cap = cap_v;
+                self.arena_index_cap = cap_i;
+            }
+
+            self.queue.write_buffer(&self.arena_vbo, self.arena_vert_count as u64 * vstride, bytemuck::cast_slice(&up.verts));
+            self.queue.write_buffer(&self.arena_vids, self.arena_vert_count as u64 * 4, bytemuck::cast_slice(&up.vids));
+            self.queue.write_buffer(&self.arena_ibo, self.arena_index_count as u64 * 4, bytemuck::cast_slice(&up.idx));
+            self.arena_vert_count += up.verts.len() as u32;
+            self.arena_index_count += up.idx.len() as u32;
         }
 
         // The two lane tables: one buffer each, solid rows firstm spliced by two writes.

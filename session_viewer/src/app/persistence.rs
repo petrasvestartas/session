@@ -308,17 +308,6 @@ pub async fn cloud_fields(url: &str) -> Option<CloudFields> {
     })
 }
 
-/// Read one slice of `coords` and convert it to f32 triples. `start`/`len` must be multiples of
-/// 24 so a slice can never split a point, and never splits an 8-byte double either.
-pub async fn cloud_positions(url: &str, at: u64, len: u64) -> Option<Vec<f32>> {
-    let raw = fetch_range(url, at, len).await.ok()?;
-    let mut out = Vec::with_capacity(raw.len() / 8);
-    for c in raw.chunks_exact(8) {
-        out.push(f64::from_le_bytes(c.try_into().ok()?) as f32);
-    }
-    Some(out)
-}
-
 /// Read the whole `colors` run and pack it to RGBA8. Packed uint32 is VARINT on the wire - not
 /// memcpy-able the way `coords` is - so this decodes sequentially. It is 27 MB against the
 /// coords' 87 MB, and taking it in one piece buys complete freedom from split-varint handling.
