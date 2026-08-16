@@ -131,34 +131,42 @@ impl ApplicationHandler<Msg> for App {
 
                         // 8 MB, rounded DOWN to a whole number of points: a slice boundary can
                         // then never fall inside a point, let alone inside one of its doubles.
+                        // 8 MB, rounded DOWN to a whole number of points: a slice boundary can
+                        // then never fall inside a point, let alone inside one of its doubles.
                         const SLICE: u64 = (8 * 1024 * 1024 / 24) * 24;
-                        const YIELD_EVERY: u32 = 4; // slices per browser yield - see below
                         let (mut at, mut left) = (f.coords_at, f.coords_len);
-                        let mut slice_no: u32 = 0;
                         let (mut lo, mut hi) = ([f32::INFINITY; 3], [f32::NEG_INFINITY; 3]);
-                        while left > 0 {
+
+                        // PIPELINED, and this is the whole performance story of the loader.
+                        // `fetch_range(..).await` is itself a yield: the promise resolves off
+                        // network I/O, so it cannot resume until the current FRAME is done. Eleven
+                        // sequential slices therefore cost eleven frames - invisible at 100 fps,
+                        // and 5.5 s when sheets are parsing and frames run 500-1100 ms. That, not
+                        // the explicit yields, is why a 3.0 s stream became 7.5 s in the mixed
+                        // scene. Keeping slice n+1 in flight while slice n converts hides the
+                        // round trip AND the frame behind work we had to do anyway.
+                        let mut inflight = if left > 0 {
+                            persistence::fetch_range_start(&item.file, at, SLICE.min(left)).ok()
+                        } else {
+                            None
+                        };
+                        while let Some(f_in) = inflight.take() {
                             let n = SLICE.min(left);
-                            let Some(pos) = persistence::cloud_positions(&item.file, at, n).await else { break };
+                            at += n;
+                            left -= n;
+                            // next one on the wire BEFORE we spend time on this one
+                            inflight = if left > 0 {
+                                persistence::fetch_range_start(&item.file, at, SLICE.min(left)).ok()
+                            } else {
+                                None
+                            };
+                            let Ok(raw) = persistence::fetch_range_finish(f_in).await else { break };
+                            let pos = persistence::positions_from(&raw);
+                            drop(raw);
                             for q in pos.chunks_exact(3) {
                                 for k in 0..3 { lo[k] = lo[k].min(q[k]); hi[k] = hi[k].max(q[k]); }
                             }
                             let _ = proxy.send_event(Msg::CloudPos(pos));
-                            at += n;
-                            left -= n;
-                            // A real macrotask, so the browser can paint. With a warm cache the
-                            // fetch promises resolve as MICROtasks, which never paint - the same
-                            // freeze the sliced prost parse exists to avoid.
-                            //
-                            // But NOT after every slice. setTimeout(0) cannot run until the
-                            // current frame is done, so each yield costs a whole frame - and in
-                            // the mixed scene, where sheets are parsing, frames run 500-1100 ms.
-                            // Yielding 11 times per scan made a 3.0 s stream take 7.5 s: the
-                            // cloud was paying the sheets' frame time. Every 4th slice keeps the
-                            // UI alive and gives most of that back.
-                            slice_no += 1;
-                            if slice_no % YIELD_EVERY == 0 {
-                                persistence::next_tick().await;
-                            }
                         }
                         if let Some(col) = persistence::cloud_colors(&item.file, f.colors_at, f.colors_len, f.count).await {
                             let _ = proxy.send_event(Msg::CloudCol(col));

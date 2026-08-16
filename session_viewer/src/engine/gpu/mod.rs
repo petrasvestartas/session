@@ -583,8 +583,6 @@ impl Gpu {
     /// WebGPU zero-initializes buffers, so an empty category is just a  1-row zeroed buffer.
     /// An MSAA flip (first solid file after flat-only ones) also rebuilds the depth/msaa targets and every pipeline, since sample count belongs to the render PASS.
     pub fn set_scene(&mut self, up: &ArenaUpload){
-        use wgpu::util::DeviceExt;
-
         // Instance rows: rebuilt from the true transforms (rebase stete, must live CPU-side).
         self.objects_base = up.objects.clone();
         self.instances.clear();
