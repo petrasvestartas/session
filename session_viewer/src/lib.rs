@@ -132,7 +132,9 @@ impl ApplicationHandler<Msg> for App {
                         // 8 MB, rounded DOWN to a whole number of points: a slice boundary can
                         // then never fall inside a point, let alone inside one of its doubles.
                         const SLICE: u64 = (8 * 1024 * 1024 / 24) * 24;
+                        const YIELD_EVERY: u32 = 4; // slices per browser yield - see below
                         let (mut at, mut left) = (f.coords_at, f.coords_len);
+                        let mut slice_no: u32 = 0;
                         let (mut lo, mut hi) = ([f32::INFINITY; 3], [f32::NEG_INFINITY; 3]);
                         while left > 0 {
                             let n = SLICE.min(left);
@@ -143,10 +145,20 @@ impl ApplicationHandler<Msg> for App {
                             let _ = proxy.send_event(Msg::CloudPos(pos));
                             at += n;
                             left -= n;
-                            // A real macrotask between slices. With a warm cache the fetch
-                            // promises resolve as MICROtasks, which never let the browser paint -
-                            // the same freeze the sliced prost parse exists to avoid.
-                            persistence::next_tick().await;
+                            // A real macrotask, so the browser can paint. With a warm cache the
+                            // fetch promises resolve as MICROtasks, which never paint - the same
+                            // freeze the sliced prost parse exists to avoid.
+                            //
+                            // But NOT after every slice. setTimeout(0) cannot run until the
+                            // current frame is done, so each yield costs a whole frame - and in
+                            // the mixed scene, where sheets are parsing, frames run 500-1100 ms.
+                            // Yielding 11 times per scan made a 3.0 s stream take 7.5 s: the
+                            // cloud was paying the sheets' frame time. Every 4th slice keeps the
+                            // UI alive and gives most of that back.
+                            slice_no += 1;
+                            if slice_no % YIELD_EVERY == 0 {
+                                persistence::next_tick().await;
+                            }
                         }
                         if let Some(col) = persistence::cloud_colors(&item.file, f.colors_at, f.colors_len, f.count).await {
                             let _ = proxy.send_event(Msg::CloudCol(col));

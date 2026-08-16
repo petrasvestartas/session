@@ -217,22 +217,45 @@ impl Camera {
             (min[2] as f64 + max[2] as f64) * 0.5 * s,
         ];
 
-        // bounding-box-sphere radius = half  the diagonal
-        let dx = (max[0] as f64 - min[0] as f64) * 0.5 * s;
-        let dy = (max[1] as f64 - min[1] as f64) * 0.5 * s;
-        let dz = (max[2] as f64 - min[2] as f64) * 0.5 * s;
-        let radius = (dx * dx + dy * dy + dz * dz).sqrt();
-        if radius <= 0.0 {
+        // Fit along the CAMERA'S OWN AXES, not the box's bounding sphere.
+        //
+        // The sphere form (radius = half the diagonal, distance = radius / sin(half_fov)) is
+        // orientation-free, which sounds like a virtue and is actually why it sits so far back
+        // on anything elongated: half the diagonal of a 216 x 58 x 73 m layout is 118 m, while
+        // the view only has to cover 108 m across and 29 m up. Measured on the mixed scene it
+        // chose 260 m where 122 m frames everything - 2.1x too far. `sin` costs a little more
+        // again: it fits a SPHERE tangentially, where a box wants `tan` on its projected extent.
+        let half_fov_y = f64::to_radians(60.0) * 0.5;
+        let half_fov_x = (aspect * half_fov_y.tan()).atan();
+        let (tx, ty) = (half_fov_x.tan(), half_fov_y.tan());
+
+        let fwd = self.orientation.rotate_vector(Vector::y_axis());
+        let up = self.orientation.rotate_vector(Vector::z_axis());
+        let right = self.orientation.rotate_vector(Vector::x_axis());
+
+        // Every corner has to be inside the frustum. A corner `z` further from the eye needs
+        // proportionally more distance, hence the `+ z` rather than a max of the two separately.
+        let mut distance: f64 = 0.0;
+        let mut extent: f64 = 0.0;
+        for c in 0..8u32 {
+            let p = [
+                (if c & 1 == 0 { min[0] } else { max[0] }) as f64 * s - self.target[0],
+                (if c & 2 == 0 { min[1] } else { max[1] }) as f64 * s - self.target[1],
+                (if c & 4 == 0 { min[2] } else { max[2] }) as f64 * s - self.target[2],
+            ];
+            let dot = |v: session_rust::Vector| p[0] * v[0] + p[1] * v[1] + p[2] * v[2];
+            let (x, y, z) = (dot(right.clone()), dot(up.clone()), dot(fwd.clone()));
+            extent = extent.max((x * x + y * y + z * z).sqrt());
+            distance = distance.max(x.abs() / tx + z);
+            distance = distance.max(y.abs() / ty + z);
+        }
+        if extent <= 0.0 {
             return;
         }
 
-        // limiting half-FOV 60 deg vertical, narrower horizontal on a tall convas
-        let half_fov_y = f64::to_radians(60.0) * 0.5;
-        let half_fov_x = (aspect * half_fov_y.tan()).atan();
-        let half_fov = half_fov_y.min(half_fov_x);
-
-        // distance so the shere fills that half-angle, plus 10% room
-        self.distance = (radius / half_fov.sin() * 1.1).max(1.0e-6); // no upper clamp - it culled big scenes
+        // 5% of breathing room - the old 10% was compensating for a distance that was already
+        // twice what it needed to be.
+        self.distance = (distance * 1.05).max(1.0e-6); // no upper clamp - it culled big scenes
         self.update_position();
     }
 
