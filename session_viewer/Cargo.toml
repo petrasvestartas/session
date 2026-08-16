@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the crate
 
 [dependencies]
 session_rust = { path = "../session_rust" }
@@ -38,6 +38,10 @@ web-sys = { version = "0.3", features = [
     "Headers",
     ] }
 getrandom = { version = "0.2", features = ["js"] }
+
+# Native-only: the headless verification harness (examples/selftest.rs)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pollster = "0.4"
 js-sys = "0.3"
 prost = "0.14"
 bytemuck = { version = "1", features = ["derive"] }
@@ -55,3 +59,7 @@ strip = true
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
+
+[[example]]
+name = "selftest"
+path = "examples/selftest.rs"

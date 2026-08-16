@@ -12,6 +12,8 @@ mod engine;
 mod state;
 mod camera;
 mod app; // App layer for file loading
+#[cfg(not(target_arch = "wasm32"))]
+pub mod selftest; // headless render harness - see src/selftest.rs
 
 pub use state::State;
 use crate::camera::View;
@@ -52,6 +54,7 @@ use winit::window::{Window, WindowId};
 // and deliver the finished State back as a user event (winit's documented wasm pattern).
 /// The winit application handler: owns the viewer `State` once async init completes,
 /// and tracks the mouse-orbit / modifier state between events.
+#[cfg(target_arch = "wasm32")]
 pub struct App {
     state: Option<State>,
     proxy: Option<winit::event_loop::EventLoopProxy<Msg>>,
@@ -61,6 +64,7 @@ pub struct App {
     ctrl: bool,
 }
 
+#[cfg(target_arch = "wasm32")]
 impl App {
     /// Create the event loop and spawn the app on the browser's main loop.
     pub fn run() -> anyhow::Result<()> {
@@ -80,6 +84,7 @@ impl App {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 impl ApplicationHandler<Msg> for App {
 
     /// Bind to the `#canvas` element and kick off async `State` init (delivered back via `user_event`).
@@ -346,6 +351,7 @@ impl ApplicationHandler<Msg> for App {
 }
 
 /// The canvas's pixel size (CSS size × device-pixel-ratio), or `None` if zero or unavailable.
+#[cfg(target_arch = "wasm32")]
 fn desired_canvas_size() -> Option<(u32, u32)> {
     use wasm_bindgen::JsCast;
     let win = web_sys::window()?;
@@ -359,6 +365,7 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
 }
 
 /// wasm entry point: install the panic hook and run the app.
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(start)]
 pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
     console_error_panic_hook::set_once();

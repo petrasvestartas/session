@@ -91,7 +91,7 @@ impl ArenaUpload {
 }
 
 pub struct Gpu {
-    pub surface: wgpu::Surface<'static>,     // Screen to draw pixels on.
+    pub surface: Option<wgpu::Surface<'static>>, // Screen to draw pixels on; None when headless.
     pub device: wgpu::Device,                // Handle to the GPU, used to create resources (textures, buffers, pipelines).
     pub queue: wgpu::Queue,                  // Used to submit work to the GPU (draw calls, resource updates).
     pub config: wgpu::SurfaceConfiguration,  // Settings for Surface: size, pixel format
@@ -162,6 +162,21 @@ impl Gpu {
     /// The scene starts empty - every upload, including the first file, goes through `set_scene`
     /// (progressive loading calls it once per appended file), One code path, not two.
     pub async fn new(window: std::sync::Arc<winit::window::Window>) -> anyhow::Result<Self> {
+        let size = window.inner_size();
+        Self::build(Some(window), size.width.max(1), size.height.max(1)).await
+    }
+
+    /// Same stack with no window and no surface, rendering into an offscreen texture. Exists so
+    /// a shader can be checked against a PNG on this machine instead of against the user's eyes.
+    pub async fn new_headless(width: u32, height: u32) -> anyhow::Result<Self> {
+        Self::build(None, width.max(1), height.max(1)).await
+    }
+
+    async fn build(
+        window: Option<std::sync::Arc<winit::window::Window>>,
+        width: u32,
+        height: u32,
+    ) -> anyhow::Result<Self> {
         
 
         // 1. Instance — the driver entry point. WebGPU only in the browser, never WebGL.
@@ -178,13 +193,13 @@ impl Gpu {
         });
 
         // 2. Surface — the drawable canvas. 3. Adapter — a physical GPU compatible with it.
-        let surface = instance.create_surface(window.clone())?;
+        let surface = match &window { Some(w) => Some(instance.create_surface(w.clone())?), None => None };
         // LowPower = the iGPU the compositor runs on. On hybrid laptops the discrete GPU renders
         // fine but its frames can't be shared to the compositor - the canvas stays black.
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::LowPower,
-                compatible_surface: Some(&surface),
+                compatible_surface: surface.as_ref(),
                 force_fallback_adapter: false,
             })
             .await?;
@@ -214,20 +229,30 @@ impl Gpu {
         device.on_uncaptured_error(std::sync::Arc::new(|e|{ log::error!("wgpu on_uncaptured_error: {e}") }));
 
         // 5. Configure the surface: pixel format (prefer sRGB), size, vsync.
-        let size = window.inner_size();
-        let caps = surface.get_capabilities(&adapter);
-        let format = caps.formats.iter().find(|f| f.is_srgb()).copied().unwrap_or(caps.formats[0]);
+        // Headless has no capabilities to ask, so pick the format the readback path wants.
+        let (format, present_mode, alpha_mode) = match &surface {
+            Some(s) => {
+                let caps = s.get_capabilities(&adapter);
+                let f = caps.formats.iter().find(|f| f.is_srgb()).copied().unwrap_or(caps.formats[0]);
+                (f, caps.present_modes[0], caps.alpha_modes[0])
+            }
+            None => (
+                wgpu::TextureFormat::Rgba8UnormSrgb,
+                wgpu::PresentMode::Fifo,
+                wgpu::CompositeAlphaMode::Auto,
+            ),
+        };
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format,
-            width: size.width.max(1),
-            height: size.height.max(1),
-            present_mode: caps.present_modes[0],
-            alpha_mode: caps.alpha_modes[0],
+            width,
+            height,
+            present_mode,
+            alpha_mode,
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
         };
-        surface.configure(&device, &config);
+        if let Some(s) = &surface { s.configure(&device, &config); }
 
         // Depth and MSAA - the emoty scene starts flat (1x)
         // Set_scene flips to 4x when the first solid geometry arrives
@@ -826,7 +851,7 @@ impl Gpu {
         if width > 0 && height > 0 {
             self.config.width = width;
             self.config.height = height;
-            self.surface.configure(&self.device, &self.config);
+            if let Some(s) = &self.surface { s.configure(&self.device, &self.config); }
             self.depth_view = Self::create_depth_view(&self.device, &self.config, self.samples);
             self.msaa_view = Self::create_msaa_view(&self.device, &self.config, self.samples);
         }
@@ -834,8 +859,89 @@ impl Gpu {
 
     /// Acquire the next frame and clear it to `color`. Chapter 1 does nothing else — geometry passes
     /// (mesh, line, grid, …) get added here in later chapters.
+    /// Draw one frame to the swapchain. The frame ENCODING lives in `encode_frame` so a
+    /// headless harness can aim the same code at an offscreen texture and read the pixels back -
+    /// see `selftest.rs`. Shader work that is only ever checked in a browser is shader work
+    /// checked by somebody else's eyes.
     pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform) -> anyhow::Result<()> {
+        self.write_frame_uniforms(view_proj);
 
+        // wgpu 29: get_current_texture() returns an enum, not a Result.
+        let Some(surface) = &self.surface else { return Ok(()) }; // headless: nothing to present
+        let output = match surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(t) | wgpu::CurrentSurfaceTexture::Suboptimal(t) => t,
+            _ => { surface.configure(&self.device, &self.config); return Ok(()); }
+        };
+        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("clear encoder"),
+        });
+        let (draws, objects) = self.encode_frame(&mut encoder, &view, color);
+        self.queue.submit([encoder.finish()]);
+        output.present();
+        self.performance.frame(draws, objects);
+        Ok(())
+    }
+
+    /// Render one frame into an offscreen texture and read the pixels back (RGBA8, tightly
+    /// packed, top row first). Native only - this is the harness that lets a shader be looked at
+    /// on this machine before it is shipped to a browser.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn render_offscreen(&mut self, color: wgpu::Color, view_proj: &Xform) -> Vec<u8> {
+        let (w, h) = (self.config.width, self.config.height);
+        let tex = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("headless.color"),
+            size: wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.config.format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+        let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
+
+        // copy_texture_to_buffer needs each row padded to 256 B
+        let unpadded = w * 4;
+        let pad = (256 - unpadded % 256) % 256;
+        let padded = unpadded + pad;
+        let readback = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("headless.readback"),
+            size: (padded * h) as u64,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+
+        self.write_frame_uniforms(view_proj);
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        let (draws, objects) = self.encode_frame(&mut encoder, &view, color);
+        encoder.copy_texture_to_buffer(
+            wgpu::TexelCopyTextureInfo { texture: &tex, mip_level: 0, origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All },
+            wgpu::TexelCopyBufferInfo {
+                buffer: &readback,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(padded), rows_per_image: Some(h) },
+            },
+            wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+        );
+        self.queue.submit([encoder.finish()]);
+        log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
+
+        let slice = readback.slice(..);
+        slice.map_async(wgpu::MapMode::Read, |_| {});
+        let _ = self.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+        let data = slice.get_mapped_range();
+        let mut out = Vec::with_capacity((unpadded * h) as usize);
+        for row in 0..h {
+            let a = (row * padded) as usize;
+            out.extend_from_slice(&data[a..a + unpadded as usize]);
+        }
+        drop(data);
+        readback.unmap();
+        out
+    }
+
+    /// Per-frame uniforms: time, camera, and the line/pen block.
+    fn write_frame_uniforms(&mut self, view_proj: &Xform) {
         // Time for triangle wgsl buffer.
         self.time += 1.0 / 60.0;
         self.queue.write_buffer(&self.time_buffer, 0, bytemuck::bytes_of(&self.time));
@@ -852,18 +958,16 @@ impl Gpu {
             _pad1: 0.0,
         };
         self.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
+    }
 
-        // wgpu 29: get_current_texture() returns an enum, not a Result.
-        let output = match self.surface.get_current_texture() {
-            wgpu::CurrentSurfaceTexture::Success(t) | wgpu::CurrentSurfaceTexture::Suboptimal(t) => t,
-            _ => { self.surface.configure(&self.device, &self.config); return Ok(()); }
-        };
-
-        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("clear encoder"),
-        });
-
+    /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
+    /// Knows nothing about a surface, so it works headless.
+    pub fn encode_frame(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        view: &wgpu::TextureView,
+        color: wgpu::Color,
+    ) -> (u32, u32) {
         let mut draws = 0u32;
 
         {
@@ -872,8 +976,8 @@ impl Gpu {
                 // MSAA off (samples == 1): draw straight to the swapchain view - a
                 // 1-sample attachment must NOT carry a resolve target.
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: if self.samples > 1 { &self.msaa_view } else { &view },
-                    resolve_target: if self.samples > 1 { Some(&view) } else { None },
+                    view: if self.samples > 1 { &self.msaa_view } else { view },
+                    resolve_target: if self.samples > 1 { Some(view) } else { None },
                     depth_slice: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(color),
@@ -1030,12 +1134,7 @@ impl Gpu {
 
         }
 
-
-        let objects = self.instances.len() as u32;
-        self.queue.submit([encoder.finish()]);
-        output.present();
-        self.performance.frame(draws, objects);
-        Ok(())
+        (draws, self.instances.len() as u32)
     }
 
 
