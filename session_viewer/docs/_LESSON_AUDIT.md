@@ -30,7 +30,7 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 - **47** — Step 4 — `self.camera.set_ortho(…)` doesn't exist (only `toggle_projection`; field is `perspective`, the inverse) — **Fix:** add `set_ortho(on){ self.perspective = !on; }`, seed `ui.ortho = !camera.perspective`.
 - **48** — Step 4 — `set_prompt` called 5× but never defined — **Fix:** show the body (writes both `self.get` and `self.ui.prompt`).
 - **49** — Step 2 — `self.refresh_prompt()` undefined and unimplementable from the trait (verb/`what` live in `ProbeCmd`'s private `ask()`) — **Fix:** add `fn prompt(&self)->GetState` to the trait, then define `refresh_prompt`.
-- **50** — Step 2 — new State field `history` collides with lesson 51's `pub history: History` on the same struct (E0124) — **Fix:** rename to `cli_history` (+ push/call sites).
+- **50** — Step 2 — new State field `history` collides with lesson 59's `pub history: History` on the same struct (E0124) — **Fix:** rename to `cli_history` (+ push/call sites).
 - **56** — Step 2 — popup writes/reads `gb_submit` but only `gb_input` is added to `UiState` (E0609) — **Fix:** add `gb_submit: bool`. (Med: Step 3 `selection_centroid().unwrap()` panics if selection cleared — guard.)
 - **58** — Step 3 — `ghost_segment(...)` used in polyline.rs + Step 4, defined/imported nowhere (E0425); return `CylinderSegment` not imported — **Fix:** define + import the helper.
 - **59** — Step 1 — new `snap.rs` uses `Scene` and `Xform`, neither imported (E0412) — **Fix:** `use session_rust::{Geometry, Point, Xform};` + `use crate::app::scene::Scene;`.
@@ -51,12 +51,12 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 - **82** — Step 1 — `u.angle(&w, false)` already returns **degrees**; `.to_degrees()` double-converts (right angle prints ~5156.62°) — **Fix:** drop `.to_degrees()`.
 - **83** — Step 2 — `device.on_uncaptured_error(Box::new(...))`; wgpu 29 (and the viewer's gpu.rs) require `Arc::new` — **Fix:** `std::sync::Arc::new(...)`. (Med: selftest.rs `let ray = /* */;` + undefined `reconcile_one_changed`.)
 - **84** — Step 2 — a fresh `[profile.release]` table pasted alongside the existing one (`strip = true`) → duplicate-key TOML parse error; `cargo build --release` fails — **Fix:** merge the three keys into the existing table, don't add a new header.
-- **84** — Step 1 — calls `push_status(...)`, but lesson 83 named that static-queue channel `push_gpu_error`; `push_status` is defined nowhere (E0425) — **Fix:** call `push_gpu_error` (or introduce/rename in 83).
+- **84** — Step 1 — calls `push_status(...)`, but lesson 87 named that static-queue channel `push_gpu_error`; `push_status` is defined nowhere (E0425) — **Fix:** call `push_gpu_error` (or introduce/rename in 83).
 
 ## 2. Recurring patterns (fix as batches)
 
 - **Symbol used as if it exists (undeclared field/method/const/struct/binding)** — the single most common failure; batch a "grep every identifier against source" pass.
-  - WGSL: 37 (`o.clip`), 45 (`inst.flags`), 69 (`inside`/`WIDTH`/`outline_dist`), 72 (`TextVertex`/`mvp`/`line`/`atlas`/`samp`), 78 (`sec`).
+  - WGSL: 41 (`o.clip`), 45 (`inst.flags`), 69 (`inside`/`WIDTH`/`outline_dist`), 72 (`TextVertex`/`mvp`/`line`/`atlas`/`samp`), 78 (`sec`).
   - Rust: 33, 47, 48, 49, 56, 58, 63, 70, 71, 78, 80, 84.
 - **`let x = /* … */;` comment-placeholder shipped as code** (comment ≠ expression → syntax error, and always hides the hard part): 79, 81, 83.
 - **Struct field added but not initialized in the ctor / `State::new`:** 33, 39, 51, 53, 56, 59, 66, 75.
@@ -88,14 +88,14 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 39 · Ctrl+S wiring has no code/anchor; new State-field inits not shown.
 40 · `poll_watch` async holds `&mut self` across `.await` but `render()` sync → watcher never runs; queue never coded.
 41 · `self.aspect()` undeclared; click-handler anchor + new `self.cursor` field unstated.
-42 · `Ray` not imported; 41's `#[derive(Copy)] Ray` invalid; `vp`/`origin`/`viewport` not in scope.
+42 · `Ray` not imported; 45's `#[derive(Copy)] Ray` invalid; `vp`/`origin`/`viewport` not in scope.
 43 · `face_containing` prose-only; `SubHit{guid,kind,key}` prose vs 2-field struct; `Geometry` import unshown.
 44 · `proj_y`/`ortho_h`/`vp_h` at pick site undeclared; contradictory borrow note; PointCloud silently unpickable.
 45 · `Frustum::cropped` vs actual `Camera::marquee_frustum`; locals unestablished; wrong shader names.
 46 · guard key spelling (`&guid` vs `guid` vs `h.guid()`) must match each prior loop.
 47 · grid/edges draw-gate wiring prose-only; `Shell::new` accessors unshown.
 48 · `cli_panel`→`build_ui` + `pending_command` prose-only/contradictory; `ui.log` naming.
-49 · `Point::distance` arity contradiction; Step 2 must replace 48's branch (no anchor); `CmdOption` import missing.
+49 · `Point::distance` arity contradiction; Step 2 must replace 52's branch (no anchor); `CmdOption` import missing.
 50 · `cli_panel` gains 3 params but `UiState` fields + call site unshown; dispatch alias-removal prose-only.
 51 · `history` not initialized in `State::new`; `execute()` note drops the `cmd` arg.
 52 · entire GPU side elided (`gb_*` fields, buffers/bind groups, `upload_gumball`/`clear_gumball`, draw body, `GB_ROW`, `gb`).
@@ -122,7 +122,7 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 81 · `active_layer_node()`/`layer_members()` never coded; `Session::find_group` analog not cited; `layer active` silently creates layer named "active".
 82 · `a`/`b`/`c`/`v` picked-point vars declared nowhere; 3 new `UiState` fields only in a comment.
 83 · `push_gpu_error` + static queue + drain prose-only; `build_cylinder_pipeline` placeholder args.
-84 · features-block anchor missing ("add to web-sys features"); `index.html` `"0"`→`"z"` not an explicit find/replace; `## Next` says "nothing queued" yet `85-textures.md` exists.
+84 · features-block anchor missing ("add to web-sys features"); `index.html` `"0"`→`"z"` not an explicit find/replace; `## Next` says "nothing queued" yet `89-textures.md` exists.
 
 ## 4. Top illustration opportunities (inline SVG, match existing compact style)
 
@@ -142,4 +142,4 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 
 ## Notes
 - **73** and **77** were clean (no confirmed bugs, no followability blockers). **74** is a placeholder stub.
-- Verifier softened four items to non-critical impact — **45** (NaN, not a panic), **35** (full sentence still compiles), **58** (empty-buffer crash only if a reader hand-rolls `create_buffer_init` past the guard), **62** (recoverable from lesson 63).
+- Verifier softened four items to non-critical impact — **45** (NaN, not a panic), **35** (full sentence still compiles), **58** (empty-buffer crash only if a reader hand-rolls `create_buffer_init` past the guard), **62** (recoverable from lesson 67).

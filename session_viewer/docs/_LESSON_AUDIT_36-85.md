@@ -24,30 +24,30 @@ refresh_guid" no longer works at all. Hits: 36, 38a, 38b, 42, 43, 51, 54, 55, 56
 
 **B3 — the `set_scene` wipe.** Every progressive `Msg::File` calls `gpu.set_scene(&scene.tables)`,
 which rebuilds `objects_base`, `instances` (flags!) and all lane buffers wholesale. Any GPU-only
-row state — selection bits (45), hidden bits (46), cull bits (37), gumball live models (54-56),
-reserved gumball/ghost rows (52, 58) — is ERASED by the next arriving file unless it also lands
+row state — selection bits (49), hidden bits (50), cull bits (41), gumball live models (54-56),
+reserved gumball/ghost rows (56, 62) — is ERASED by the next arriving file unless it also lands
 in `scene.tables.objects[row]` (or is re-applied after each `set_scene`). This constraint did
 not exist when 36-58 were written.
 
 **B4 — manifest `place` conjugation.** Rows are `place × world_xform`; the kernel's
-`Session::ray_cast`/`world_xform` know NOTHING about `place`. Picking (42, 44), snapping (59),
-work-plane (75), and any world↔local inverse must conjugate by the doc's `place`, or every hit
+`Session::ray_cast`/`world_xform` know NOTHING about `place`. Picking (46, 48), snapping (63),
+work-plane (79), and any world↔local inverse must conjugate by the doc's `place`, or every hit
 on a placed sheet is off by its manifest offset. Deltas committed as local `set_xform` must be
-`place⁻¹ · delta · place` — cosmetic for translations, visibly wrong for rotations (55).
+`place⁻¹ · delta · place` — cosmetic for translations, visibly wrong for rotations (59).
 
 **B5 — the two-lane split.** 3D linework (iso curves 62, BRep edges 63, trimmed loops 64)
 belongs in `tables.pipes` (SOLID lane, real cylinders that protrude), not `segments` (FLAT
 ribbons at surface depth) — as written, the "tubes protrude → no z-fighting" claim is false for
-exactly those lessons. 69's selection mask must mirror all four lane sub-draws, not one.
+exactly those lessons. 73's selection mask must mirror all four lane sub-draws, not one.
 
-**B6 — no runtime-add path yet.** `add_file` is the only table writer. Draw tools (57, 58, 60)
+**B6 — no runtime-add path yet.** `add_file` is the only table writer. Draw tools (61, 62, 64)
 need an "append one object to a doc + its rows" verb, which must also repeat the per-FILE planar
 width flip and pick a TARGET doc (and doc-local coordinates via `place⁻¹`).
 
 **B7 — loader owns lib.rs.** `Msg::Ready/Msg::File` + `ApplicationHandler<Msg>`;
-`session_from_bytes` is DELETED (only the async chunked parse exists). Reload (38b), watch (40),
-drag-drop import (79) should each become a `Msg` variant — the `Rc<RefCell<…>>` inbox machinery
-in 40 is now redundant. Render-on-demand (66) must count `Msg::Ready/File` as poke sites or
+`session_from_bytes` is DELETED (only the async chunked parse exists). Reload (42b), watch (44),
+drag-drop import (83) should each become a `Msg` variant — the `Rc<RefCell<…>>` inbox machinery
+in 40 is now redundant. Render-on-demand (70) must count `Msg::Ready/File` as poke sites or
 progressively loaded sheets never appear.
 
 **B8 — MSAA is dynamic.** `msaa_for` returns 1 (flat-only) or 4 (any solid), and the flip
@@ -80,8 +80,8 @@ sheets!).
 | 52 | gumball-geometry | TOUCH-UP | `gb_row` reserved in Gpu::new is wiped by set_scene (B3) — reserve per set_scene or own buffer; overlay pass must branch on `samples` (B8) |
 | 53 | gumball-scale-hittest | OK | minor: `tol` source inconsistency |
 | 54 | gumball-translate | **REWRITE** | `apply_delta` writes `.xform`/no-arg `transform()`; commit must be `set_xform` (which also fixes undo snapshots: store (guid, Xform) pairs); live drag wiped per append (B3); per-doc frames (B4) |
-| 55 | gumball-rotate-scale | TOUCH-UP | inherits 54's commit prose; rotation about wrong origin if place not conjugated (B4) |
-| 56 | gumball-numeric | **REWRITE** (Step 3) | `apply_transform_command` on `scene.session` + 54's dead `apply_delta`; Steps 1-2 fine |
+| 55 | gumball-rotate-scale | TOUCH-UP | inherits 58's commit prose; rotation about wrong origin if place not conjugated (B4) |
+| 56 | gumball-numeric | **REWRITE** (Step 3) | `apply_transform_command` on `scene.session` + 58's dead `apply_delta`; Steps 1-2 fine |
 | 57 | draw-tools | **REWRITE** | no runtime-add verb (B6); target doc undefined; `Geometry::Line(l)` needs Rc; verify text describes wrong lanes |
 | 58 | draw-tools-2 | **REWRITE** | reserved ghost row in Gpu::new wiped (B3); `m.xform = …`; row 0 not free (gray fallback instance) |
 | 59 | snapping | TOUCH-UP | `p.xform`/`transformed()`; placement via `place × world_xforms()`; GRID_STEP coupling with 65 |
@@ -120,9 +120,9 @@ sheets!).
 2. **B4 place conjugation** — picking/snapping/deltas off by the manifest offset on every placed
    sheet; rotation/scale visibly wrong. One helper (`Scene::world_frame(guid) -> Xform` = place ×
    world_xform, plus its inverse) removes the class.
-3. **70's `node.guid()` vs `node.name`** — the tree panel compiles and renders but every
+3. **74's `node.guid()` vs `node.name`** — the tree panel compiles and renders but every
    row-to-object association silently misses.
-4. **38b's move-blind hash** — after the Xform refactor a moved object hashes identical, so
+4. **42b's move-blind hash** — after the Xform refactor a moved object hashes identical, so
    reload/save-if-changed miss the most common edit. Hash must fold `session.xform(guid)`
    (cheapest: hash `to_proto()` bytes + the xform).
 5. **B8 dynamic MSAA** — any post-35 pipeline built once at startup panics or mis-renders when
@@ -132,17 +132,17 @@ sheets!).
 
 - Gumball/transforms: `session.set_xform(guid, &delta * &session.xform(guid))` — one line, no
   per-variant match, no re-tessellation; undo snapshots become `(guid, Xform)` pairs.
-- 61's whole thesis is now true by construction (shape cache can't see transforms).
+- 65's whole thesis is now true by construction (shape cache can't see transforms).
 - Diff/hash: pub `to_proto()` bytes are a uniform fingerprint; `Session::order()` (P3, done)
   gives deterministic buckets; P2 (done) makes `pb_dumps` on a mutated session safe.
 - `FLAG_HIDDEN`, `guid_to_row`, `hidden` already exist (46/45 shrink).
 - 81 can demo on REAL layers (the PDF importer already builds one group per OCG layer).
-- Multi-doc gives 70's tree panel its natural top level (one row per `Doc`).
+- Multi-doc gives 74's tree panel its natural top level (one row per `Doc`).
 
 ## Stale reference docs
 
 - `_LESSON_AUDIT.md` (2026-07-20): header scope wrong (74 is a full lesson now); ~12 listed bugs
-  already fixed in the current lesson texts; 61's suggested fix uses the deleted `.xform`; the
+  already fixed in the current lesson texts; 65's suggested fix uses the deleted `.xform`; the
   three biggest CURRENT issues (Rc mutation, `Scene::session` removal, anchor-relative
   world_pos) are absent. Supersede with this file or fold in.
 - `_KERNEL_GAPS.md`: #3 "mesh.xform is the placement, everywhere" is now false and misleading —

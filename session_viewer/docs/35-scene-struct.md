@@ -2,8 +2,8 @@
 
 > **Big picture.** Since 34e the viewer has NO document. Each `Session` is parsed, walked into
 > flat GPU tables, and **thrown away** — deliberately, to survive the stress wall. That was right
-> for the wall and is wrong for everything ahead: picking (42) must answer "which OBJECT did the
-> ray hit" (a guid), undo (51) must snapshot geometry, save (39) must write a `.pb` back — all of
+> for the wall and is wrong for everything ahead: picking (46) must answer "which OBJECT did the
+> ray hit" (a guid), undo (55) must snapshot geometry, save (43) must write a `.pb` back — all of
 > that needs the real `Session` alive in memory. And the load path hurts three ways you can watch
 > on every reload: ten sheets take ~24 s and **nothing renders until the last one lands**; each
 > file's parse is one synchronous block that would freeze any UI drawn during it; and every
@@ -131,6 +131,7 @@ pub struct ArenaUpload {
     pub spheres: Vec<GlyphPoint>,      // SOLID lane: mesh/BRep vertices, radius matched to the pipes
     pub segments: Vec<CylinderSegment>,// FLAT lane: line/polyline, drawn as camera-facing ribbons
     pub glyphs: Vec<GlyphPoint>,       // FLAT lane: points, drawn as SDF dots
+    pub points: Vec<CloudPoint>,       // RAW lane: scanned clouds, one vertex and one pixel each
     pub objects: Vec<(Xform, [f32; 4], u32)>,   // true model, tint, flags
     pub min: [f32; 3],
     pub max: [f32; 3],
@@ -258,6 +259,9 @@ buffer creation). Find it there and put the declaration back directly above it:
         let points: Vec<CloudPoint> = Vec::new();
         let point_count = points.len() as u32;
 ```
+
+(Empty here, and it stayed empty for a long time — the raw cloud lane existed in the engine but
+nothing ever filled it. `set_scene` fills it now; see the note at the end of Step 2.)
 
 **1f. The scene buffers in `new()` become zeroed placeholders** (their real creation now lives
 in `set_scene`). Three replacements. Find:
@@ -468,19 +472,43 @@ Replace the first line with (the flag is set once at build; rebasing never touch
 
 **1k. Row structs go `pub`, `zeroed_buffer` appears, movers leave.** Near the bottom:
 
-- `struct Instance {` → `pub struct Instance {` and give it the flag const right after the
-  struct (fields stay private — only `Gpu` builds rows; `Scene` just names the flag):
+- Find the row struct `struct Instance {` and add `pub` to the struct keyword only — its fields
+  stay private, since only `Gpu` builds rows and `Scene` merely names the flag:
+
+```rust
+pub struct Instance {
+```
+
+  Then insert the flag const directly below that struct's closing `}`:
 
 ```rust
 impl Instance {
-    /// Row is skipped by the draw (46). Bit 0 is reserved for FLAG_SELECTED (45).
+    /// Row is skipped by the draw (50). Bit 0 is reserved for FLAG_SELECTED (49).
     pub const FLAG_HIDDEN: u32 = 1 << 1;
 }
 ```
 
-- `struct CylinderSegment{` and `struct GlyphPoint{` get `pub` on the struct keyword **and on
-  every field** (Scene constructs them field-by-field across the module boundary; keep each
-  field's comment, only visibility changes).
+- Find `struct CylinderSegment{` and `struct GlyphPoint{` and add `pub` to the struct keyword
+  **and to every field** — `Scene` constructs these field-by-field across the module boundary.
+  Nothing else changes; keep each field's comment exactly as it is:
+
+```rust
+pub struct CylinderSegment{
+    pub p0: [f32; 3],
+    pub radius: f32,
+    pub p1: [f32; 3],
+    pub instance_id: u32,
+    pub color: [f32; 4],
+}
+
+pub struct GlyphPoint{
+    pub center: [f32; 3],
+    pub radius: f32,
+    pub color: [f32; 4],
+    pub instance_id: u32,
+    pub _pad: [u32; 3],
+}
+```
 - **Delete** `fn push_mesh(…)`, `fn xform_point(…)` and `fn grow_bounds(…)` whole — they name
   document types and move to `scene.rs` in Step 2.
 - **Delete the file `src/engine/gpu/adapters.rs`** — its converters and `encode_width` also
@@ -841,7 +869,16 @@ fn push_mesh(
     };
     let hidden = |i: usize| width_at(i) == 0.0;
 
-    for (i, (a, b, col)) in m.edges_with_colors().into_iter().enumerate(){
+    // A fill (every PDF glyph, every poché region) broadcasts a single width of 0 - no wireframe
+    // at all. Leave BEFORE edges_with_colors, which builds a HashSet over the faces: on a sheet
+    // made of hundreds of thousands of tiny fills that set is the walk's biggest single cost,
+    // and every edge it produces is skipped one line later anyway.
+    if m.widths().len() == 1 && m.widths()[0] == 0.0 { return }
+
+    // ONE edge walk, shared by the pipes below and the vertex widths further down.
+    let edges = m.edges_with_colors();
+
+    for (i, (a, b, col)) in edges.iter().cloned().enumerate(){
         if hidden(i) { continue }
         let pa = m.vertex_point(a).unwrap();
         let pb = m.vertex_point(b).unwrap();
@@ -865,7 +902,7 @@ fn push_mesh(
     // (thinner sphere) or a bead (fatter one). The kernel has no per-vertex width, so take the
     // widest incident edge - the same encoding the pipes above are pushed with.
     let mut vwidth: std::collections::HashMap<usize, f64> = std::collections::HashMap::new();
-    for (i, (a, b, _)) in m.edges_with_colors().into_iter().enumerate(){
+    for (i, (a, b, _)) in edges.iter().cloned().enumerate(){
         if hidden(i) { continue }   // a vertex whose every edge is hidden gets no dot either
         let w = width_at(i);
         for vk in [a, b] {
@@ -976,6 +1013,12 @@ Five things to notice while typing:
   need already exists: surfaces and elements reuse the BRep pattern (`mesh()` → `push_mesh`),
   planes and boxes are plain segments, and a cloud goes through the GLYPH lane — deliberately
   not `Gpu`'s dormant `CloudPoint` machinery, so the walk keeps one path per category.
+  **This last one did not survive contact with a real scan.** A 13.8M-point LiDAR cloud through
+  the glyph lane is 41.4M vertices and ~520M alpha-blended fragments a frame (a 3 px dot is ~38 px,
+  and blending disables early-Z) — measured at ~100 ms/frame, and it stalled the desktop. Clouds
+  above `CLOUD_RAW_MIN` now take the raw lane after all: `CloudPoint` rows, one vertex per point,
+  `PrimitiveTopology::PointList`, opaque. Small clouds keep the round glyph dots, so 32b's demo is
+  unchanged. The lane is chosen by point COUNT, never by camera state — nothing degrades mid-orbit.
 
 ## Step 3 — the sliced parse: `src/app/persistence.rs`
 
@@ -1030,6 +1073,8 @@ pub async fn session_from_bytes_chunked(url: &str, bytes: &[u8]) -> Session {
     s.set_guid(p.guid.clone());
 
     let mut n = 0usize;
+    // The same conversion loop for all 11 types, written once: proto -> object, stored, paused
+    // every CHUNK so the browser can paint.
     macro_rules! chunk {
         ($vec:expr, $ty:ident, $variant:ident, $slot:ident) => {
             for x in $vec {
@@ -1120,11 +1165,20 @@ Three details worth pausing on:
 
 ## Step 4 — `State` holds the document set: `src/state.rs`
 
-The load loop LEAVES this file (it becomes the progressive loader in lib.rs). Keep the `//!`
-module header; replace everything between it and `/// Forward a canvas resize` — the whole `use`
-block, the `DEMO_SCENE_URL` const, `pub struct State`, and all of `State::new` — with the block
-below. It ends at `new`'s closing brace: `impl State {` stays open, `resize`/`render` follow
-unchanged inside it.
+The load loop LEAVES this file (it becomes the progressive loader in lib.rs), so the top half of
+`state.rs` is replaced and the bottom half is untouched. Three moves:
+
+1. **KEEP** the four `//!` header lines at the very top.
+2. **DELETE** everything from `use std::sync::Arc;` down to and including the `}` that closes
+   `new` — that is the line directly above `/// Forward a canvas resize`. You are deleting: the
+   whole `use` block, the `DEMO_SCENE_URL` const, `pub struct State`, the `impl State {` line,
+   and the entire body of `new` (manifest fetch, pipelined loop, `Gpu::new`, `Ok(Self …)`).
+3. **PASTE** the block below where they were. It re-opens `impl State {` itself and ends at
+   `new`'s closing `}` — deliberately unbalanced, because `resize` and `render` are still sitting
+   below untouched, and the file's existing last `}` still closes the impl.
+
+The file afterwards, top to bottom: `//!` header → the pasted block (`use`s, `struct State`,
+`impl State {`, `new`) → `resize` → `render` → `}`.
 
 ```rust
 use std::sync::Arc;
@@ -1189,10 +1243,46 @@ pub enum Msg {
 }
 ```
 
-**5b. The loop speaks `Msg`.** Three one-line changes:
-`proxy: Option<winit::event_loop::EventLoopProxy<State>>` → `…EventLoopProxy<Msg>>`,
-`EventLoop::<State>::with_user_event()` → `EventLoop::<Msg>::with_user_event()`,
-`impl ApplicationHandler<State> for App` → `impl ApplicationHandler<Msg> for App`.
+**5b. The loop speaks `Msg`.** The event loop was parameterised on `State` — the type it carries
+from the async init back to the handler. Now it carries `Msg` instead, which takes three
+separate one-line edits further down `lib.rs`. `State` stays imported and `App` still holds one
+in `state: Option<State>`; only the message type changes.
+
+First, inside `pub struct App {`, find:
+
+```rust
+    proxy: Option<winit::event_loop::EventLoopProxy<State>>,
+```
+
+and change `State` to `Msg`:
+
+```rust
+    proxy: Option<winit::event_loop::EventLoopProxy<Msg>>,
+```
+
+Second, inside `impl App`'s `run()`, find:
+
+```rust
+        let event_loop = EventLoop::<State>::with_user_event().build()?;
+```
+
+and change `State` to `Msg`:
+
+```rust
+        let event_loop = EventLoop::<Msg>::with_user_event().build()?;
+```
+
+Third, the `impl` header just below `run()`'s closing braces, find:
+
+```rust
+impl ApplicationHandler<State> for App {
+```
+
+and change `State` to `Msg`:
+
+```rust
+impl ApplicationHandler<Msg> for App {
+```
 
 **5c. The loader.** In `resumed`, find:
 
@@ -1254,7 +1344,22 @@ behind the live viewer):
         }
 ```
 
-**5d. Receiving.** Replace the whole `user_event` fn (its signature changes) with:
+**5d. Receiving.** Below `resumed`, find the whole `user_event` fn — doc comment through closing
+brace, seven lines:
+
+```rust
+    /// Receive the initialized `State`, size it to the canvas, and start drawing.
+    fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut state: State) {
+        let (w, h) = desired_canvas_size()
+            .unwrap_or_else(|| { let s = state.window.inner_size(); (s.width, s.height) });
+        state.resize(w, h);
+        state.window.request_redraw();
+        self.state = Some(state);
+    }
+```
+
+Delete all of it and paste in its place (the third parameter is a `Msg` now, so the body becomes
+a match — the old body survives as the `Ready` arm plus the camera fit):
 
 ```rust
     /// `Ready`: adopt the State built around the first file, size it, fit the camera, draw.
@@ -1346,7 +1451,35 @@ back when done — the manifest stays in `assets/scenes/` as a permanent regress
   `scene_min/max` (the bounds loop runs every point through its full placement, rotation
   included), and `F` frames the whole arrangement.
 
+## What loading actually costs (measured)
+
+The parse yields, the walk does not — `add_file` runs to completion inside `user_event`, a
+synchronous winit callback, so each appended file is one uninterrupted block. Native release
+timings for the 69 MB / 129k-object sheet, which is the honest budget this lesson leaves behind:
+
+| stage | native release | native debug |
+|---|---|---|
+| prost decode | 357 ms | — |
+| from_proto conversion (sliced) | ~530 ms | — |
+| mesh walk (`to_render` + edges) | 226 ms | 2007 ms |
+| row bookkeeping (lookup + 2 guid clones each) | 92 ms | 546 ms |
+| `world_xforms()` | 84 ms | 275 ms |
+
+Two things follow. First, `trunk serve` builds UNOPTIMIZED wasm — 5-9× slower than release on
+exactly this code — so judge load times with `trunk serve --release` and use the dev build only
+for iterating. Second, making the viewer stay interactive DURING a load needs the walk to become
+resumable (a job with a cursor, stepped a few ms per frame from `RedrawRequested`) and the upload
+to become append-only, which is lesson 46a's arena. Both are out of scope here: this lesson's
+contract is a first sheet on screen in seconds and whole documents appearing one at a time.
+
 ## Memory honesty
+
+> **Followed up in [37](37-cloud-memory.md), `38` and
+> `39`.** The paragraph below was written before anyone
+> measured it. The measurement, when it came, was worse than this guess: three LiDAR
+> scans put the tab at 3.5 GB and the Linux OOM killer took it. The retained `Session`
+> is only part of it — the upload path was mirroring each whole table into the wasm
+> heap as well. Read this, then read 37.
 
 `Scene` now RETAINS every parsed `Session`. One sheet costs tens to hundreds of MB in kernel
 form — all ten at once flirts with the wasm heap ceiling (~1-2 GB practical). That is a known,
@@ -1401,7 +1534,8 @@ Ch 35:  THE DOCUMENT RETURNS, AND SO DO THE PIXELS. Scene (app layer) owns docs:
         and viewer-only bookkeeping (guid_to_row, hidden). add_file walks ONE session into the
         shared tables (placement = manifest place × session.world_xforms()), applies the 34f
         paper lane per file, never rebuilds old rows — and now renders ALL 11 kernel types
-        (planes as PLANE_SIZE squares, boxes as 12 edges, clouds as glyphs, surfaces and
+        (planes as PLANE_SIZE squares, boxes as 12 edges, clouds by COUNT — glyph dots
+        below CLOUD_RAW_MIN, the raw one-vertex-one-pixel lane above it, surfaces and
         elements through mesh() like BReps). Gpu::new starts EMPTY; set_scene is
         the ONE upload path — zero-copy (write_buffer lane splice into zeroed buffers; WebGPU
         zero-init), MSAA flip rebuilds pipelines (sample count belongs to the PASS). The parse
@@ -1422,7 +1556,15 @@ FLAG_HIDDEN + stored layouts; new() starts empty), `engine/gpu/adapters.rs` (DEL
 
 ## Next
 
-`36-scene-bvh.md` — `Scene` now has a fixed, ordered object list; the next lesson gives it a
-broad-phase AABB BVH over their world boxes. One BVH, reused by frustum culling (37), picking
-(42), and box-select (45) — the "one acceleration structure, many uses" principle, and the reason
+[`37-cloud-memory.md`](37-cloud-memory.md) — the document came back, but it came back
+with **five** copies of every point and a fresh full-size mapped upload buffer per
+appended file. Three LiDAR scans (10.6M points) put the tab at 3.5 GB and got it killed
+by the Linux OOM killer. 37 measures where every megabyte went and takes the peak down
+by a third without changing a single pixel; 38 and 39 then halve the GPU table and
+make the peak constant. Do it before 36 — the BVH is easier to reason about when a
+scene is not flirting with the heap ceiling.
+
+Then `40-scene-bvh.md` — `Scene` now has a fixed, ordered object list; that lesson gives it a
+broad-phase AABB BVH over their world boxes. One BVH, reused by frustum culling (41), picking
+(46), and box-select (49) — the "one acceleration structure, many uses" principle, and the reason
 the object list had to stabilize here first.

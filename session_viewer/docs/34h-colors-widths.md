@@ -23,7 +23,7 @@
     <text x="270" y="54">row.color / row.radius</text>
     <text x="270" y="92" fill="#888">instance = white tint</text>
     <text x="500" y="60">shader: row × tint</text>
-    <text x="500" y="80" fill="#888">selection reuses tint (45)</text>
+    <text x="500" y="80" fill="#888">selection reuses tint (49)</text>
   </g>
   <g stroke="#6fb3ff" stroke-width="1.5">
     <line x1="210" y1="55" x2="256" y2="47" marker-end="url(#ah34c)"/>
@@ -42,7 +42,7 @@
 **Colors resolve on the CPU at table-build time.** Every draw path already has a per-row color slot
 (`RenderVertex.color`, `CylinderSegment.color`, `GlyphPoint.color`, `CloudPoint.color`) — the real
 color lives there. `Instance.color` becomes a pure **tint**, white by default, and every shader ends
-with the same line: `final = row_color × instances[id].color`. Selection (lesson 45) will recolor an
+with the same line: `final = row_color × instances[id].color`. Selection (lesson 49) will recolor an
 object by writing its tint — no row re-upload.
 
 Precedence, first satisfied rule wins (`color_mode` is THE "user set it" signal — the Mesh vecs are
@@ -67,7 +67,7 @@ radius >  0.0 → world-units radius                     (unchanged — 34f's pa
 ```
 
 `width == 1.0` (every kernel default) encodes as `0.0` (34f's `encode_width` already does this), so
-untouched files stay bit-identical. The future thickness slider (47) writes `LineUniform.thickness`
+untouched files stay bit-identical. The future thickness slider (51) writes `LineUniform.thickness`
 and every user width scales with it, Rhino-style.
 
 > **Superseded in Part 3 (2026-08-11):** the `1.0 → 0.0` special case turned out to be lossy — PDF
@@ -1007,7 +1007,7 @@ Ch 34b: session → tables; colors were whatever happened to reach the rows.
 Ch 34h: RESOLVE COLORS/WIDTHS ONCE, CPU-SIDE. Row color = the user's color (precedence:
         color_mode gates FACECOLORS/POINTCOLORS — auto-seeded vecs mean nothing; linecolors ride
         edges_with_colors; surfacecolor bakes into the BRep mesh). Instance.color = WHITE TINT,
-        multiplied in all the shaders (selection's channel, lesson 45). Width = multiplier in the
+        multiplied in all the shaders (selection's channel, lesson 49). Width = multiplier in the
         radius sign lane (0 default / negative px-multiplier / positive world) — width==1.0 encodes
         0.0, defaults bit-identical. to_render grows a FACECOLORS branch (duplicated verts, flat
         color; Rust-only bridge). Dots: pointcolors when user-set, dark constant otherwise —

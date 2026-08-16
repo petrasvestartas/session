@@ -288,7 +288,7 @@ fn push_mesh(m: &Mesh, ri: u32, verts: &mut Vec<RenderVertex>, vids: &mut Vec<u3
 needs the real extent.
 
 **3a. In `gpu/mod.rs`, right after the empty-buffer guards** (Step 2b), fold the min/max of every
-vertex, segment endpoint, and glyph centre — one cheap pass, no BVH (that's 36's job; this is just a
+vertex, segment endpoint, and glyph centre — one cheap pass, no BVH (that's 40's job; this is just a
 camera target):
 
 ```rust
@@ -373,7 +373,7 @@ perf: __._ fps | __.__ ms | 4 draws | 42232 objects   (no glyphs → the sphere 
 
 (`1 arena verts` / `1 glyphs` are Step 2's placeholders — legitimately empty categories.) **51,166
 cylinder segments, ONE `draw_indexed`** — lesson 31's whole point proven at scale. Record the fps,
-press `F`, orbit: if it isn't interactive, frustum culling (37) is the designed next lever.
+press `F`, orbit: if it isn't interactive, frustum culling (41) is the designed next lever.
 
 > **Coverage honesty.** Between them the two fixtures exercise Mesh, Polyline and Line — but no
 > fixture contains a `BRep` or a standalone `Point`, so those two branches (and `point_to_glyph`)

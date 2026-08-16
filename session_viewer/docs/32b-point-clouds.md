@@ -450,7 +450,7 @@ not file length, is the signal to group:
 
 ```rust
 /// One instanced drawable: a template + a storage table of rows + one draw.
-/// Edges (31), handle spheres (32a), and later the gumball (52) and ghosts (58) are all this shape.
+/// Edges (31), handle spheres (32a), and later the gumball (56) and ghosts (62) are all this shape.
 pub struct InstancedSet {
     pub template_vbo: wgpu::Buffer,
     pub template_ibo: wgpu::Buffer,

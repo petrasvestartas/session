@@ -11,7 +11,7 @@ Legend: ✅ fixed · 🔴 high value · 🟡 worthwhile · ⚪ note
 ## ✅ 1. `Xform::inverse()` was affine-only (all three languages) — FIXED
 
 It inverted the 3×3 + translation and silently assumed a `[0,0,0,1]` bottom row — wrong for any
-projective matrix. Lesson 41's screen-ray unprojection through `inverse(view_proj)` was broken by it
+projective matrix. Lesson 49's screen-ray unprojection through `inverse(view_proj)` was broken by it
 (the archive hit the identical bug and shipped its own `mat4_inverse` as a workaround).
 **Fix shipped:** full cofactor 4×4 inverse, identical implementation in py/rust/cpp, plus a
 perspective `P·P⁻¹ = I` check in the Inverse minitest. Affine inputs return the same results as
@@ -49,7 +49,7 @@ parity), `ray_cast` (explicit skip arms, C++ parity), the transformed-lookup wal
 `add_nurbscurve`/`add_nurbssurface` methods + "Add Nurbscurve"/"Add Nurbssurface" minitests (ported
 from py/cpp, which already had them).
 **Remaining:** `NurbsSurfaceTrimmed` is still collection-only in *all three* languages — adding it to
-the C++ variant + ports is the follow-up; until then the viewer's `all_objects()` (lesson 64) still
+the C++ variant + ports is the follow-up; until then the viewer's `all_objects()` (lesson 68) still
 earns its keep for Trimmed.
 
 ## ✅ 5. `Xform::transform_point` / `transform_vector` — FIXED
@@ -65,7 +65,7 @@ Two new minitests each in py/rust/cpp ("Transform Point" incl. a projective w-di
 
 ## 🟡 6. No deterministic content fingerprint on `Geometry`
 
-Reconcile (38b) and save-gating (39) need "did this object change?". `{:?}` is unusable — `Mesh`
+Reconcile (42b) and save-gating (43) need "did this object change?". `{:?}` is unusable — `Mesh`
 stores vertices/faces in `HashMap`s whose Debug order is randomized per instance (every object would
 read as changed every load). The tutorials hash the *sorted* `jsondump`, but that's per-type: `BRep`
 has **no `jsondump`**, so 38b fingerprints it via `mesh() + xform` — expensive and lossy.
@@ -75,7 +75,7 @@ has **no `jsondump`**, so 38b fingerprints it via `mesh() + xform` — expensive
 ## 🟡 7. `BRep::mesh()` re-tessellates on every call
 
 The kernel comments on it itself (`ray_cast`: "BRep tessellation is expensive… viewers must use
-pre-cached tessellations"). The viewer built a guid-keyed cache (lessons 61/63); every other consumer
+pre-cached tessellations"). The viewer built a guid-keyed cache (lessons 65/63); every other consumer
 (C++, Python, future tools) must rebuild the same cache. **Proposal:** cache the render mesh on the
 BRep (the `Mesh::to_render`/`invalidate` pattern already exists in-kernel), invalidated by mutating
 ops. Deletes the viewer's `render_mesh` plumbing and fixes `Session::ray_cast`'s skipped-BRep arm.
@@ -83,14 +83,14 @@ ops. Deletes the viewer's `render_mesh` plumbing and fixes `Session::ray_cast`'s
 ## 🟡 8. No generic `Session::add_geometry(Geometry)`
 
 Removal is generic (`remove_object(guid)`), insertion is per-type (`add_mesh`, `add_line`, …). Undo
-(51) and reconcile-restore paths need a hand-written variant match (`restore_geometry`) that must be
+(55) and reconcile-restore paths need a hand-written variant match (`restore_geometry`) that must be
 maintained as types grow. **Proposal:** one `add_geometry(geom: Geometry, parent) -> node` that
 dispatches internally — the exact inverse of `remove_object`, next to it.
 
 ## 🟡 9. `Mesh` ray-cast requires `&mut` for a read
 
 `triangle_bvh_ray_cast(&mut self, …)` — lazy BVH build via plain mutation — forces the viewer's
-picking to take `get_mut` on the session and infects `pick_ray(&mut self)` (42). The guid field
+picking to take `get_mut` on the session and infects `pick_ray(&mut self)` (46). The guid field
 already solves this exact problem with `OnceLock`. **Proposal:** interior mutability for the cached
 triangle BVH (`OnceLock`/`RefCell` per language convention) so ray queries take `&self`. Same for
 `Session::ray_cast`'s cached BVH.
@@ -98,7 +98,7 @@ triangle BVH (`OnceLock`/`RefCell` per language convention) so ray queries take 
 ## 🔴 11. STEP codec is C++-only
 
 `file_step` exists only in `session_cpp` — no Rust or Python port — so the wasm viewer cannot read
-or write STEP at all (lesson 79 wires the dispatch arm to warn loudly instead). This is the largest
+or write STEP at all (lesson 83 wires the dispatch arm to warn loudly instead). This is the largest
 remaining gap by user impact: STEP is *the* CAD exchange format. C++ is ground truth; the port is a
 real project (the reader alone is substantial), not an afternoon.
 
@@ -106,7 +106,7 @@ real project (the reader alone is substantial), not an afternoon.
 
 `read_file_obj(filepath)` / `write_file_obj(mesh, filepath)` hit `std::fs` — dead on wasm. Fixed
 with the `_from_str` / `_to_string` pair (the same split the Session codecs always had), path
-functions now delegating, ×3 languages + a "String Roundtrip" minitest ×3. Enabled lesson 79.
+functions now delegating, ×3 languages + a "String Roundtrip" minitest ×3. Enabled lesson 83.
 Follow-up noted: the writer takes ONE mesh; multi-object OBJ (`o name` groups) is a small extension.
 
 ## ✅ 13. No way to give a cloned object a fresh guid — FIXED
@@ -116,7 +116,7 @@ Guids are lazily-minted `OnceLock`s; `Clone` copies the minted value and `set_gu
 original to `lookup`, undo, and reconcile — inserting it overwrote the source. Fixed with
 `refresh_guid(&mut self)` (clear the lock → fresh guid mints lazily) on the 7 geometry types,
 ×3 languages (`_guid.clear()` in C++, `_guid = None` in Python) + a "Refresh Guid" minitest ×3.
-Enabled lesson 80's copy/array/Alt-drag. Bonus find: C++ `Mesh`'s hand-written copy
+Enabled lesson 88's copy/array/Alt-drag. Bonus find: C++ `Mesh`'s hand-written copy
 constructor/assignment (it exists for the BVH caches) *cleared* `_guid` on copy — the only type in
 any language where a copy silently changed identity. Now copies the guid like everything else;
 `refresh_guid` is the one explicit way to re-mint.
@@ -124,7 +124,7 @@ any language where a copy silently changed identity. Now copies the guid like ev
 ## ⚪ 10. Smaller notes
 
 - **`OBB::from_nurbssurface` is trim-blind** — fine for untrimmed, but `NurbsSurfaceTrimmed` boxes
-  must come from the tessellation (lesson 64 does); a trimmed-aware overload would centralize it.
+  must come from the tessellation (lesson 68 does); a trimmed-aware overload would centralize it.
 - **`Point` weight/color/xform on every instance** makes bulk sampling (curve/iso tessellation)
   allocation-heavy; a lean `[f64;3]` sampling path (`point_at_into(&mut [f64;3])`?) would help hot
   loops. Matches the parked `alloc-free point_at` idea in the viewer perf plan.

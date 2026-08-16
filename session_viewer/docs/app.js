@@ -75,7 +75,23 @@ function buildNav(sections, activeId) {
   }
 }
 
-async function renderSection(sections, id) {
+// Scroll memory: a refresh must land where you were reading. The offset is stored per section,
+// so reloading lesson 35 half-way down comes back half-way down lesson 35 — and only on RELOAD:
+// clicking a nav link still opens the new lesson at its top.
+const mainEl = document.querySelector('main');
+const scrollKey = (id) => `scroll:${id}`;
+let activeId = null;
+let scrollQueued = false;
+mainEl.addEventListener('scroll', () => {
+  if (scrollQueued || !activeId) return;
+  scrollQueued = true;                       // one write per frame, not one per scroll event
+  requestAnimationFrame(() => {
+    scrollQueued = false;
+    if (activeId) localStorage.setItem(scrollKey(activeId), String(mainEl.scrollTop));
+  });
+});
+
+async function renderSection(sections, id, restore = false) {
   const s = sections.find((x) => x.id === id) || sections[0];
   if (!s) { contentEl.innerHTML = '<p class="loading">No lessons found.</p>'; return; }
   const res = await fetch(s.file, { cache: 'no-store' });
@@ -84,7 +100,11 @@ async function renderSection(sections, id) {
   contentEl.querySelectorAll('pre code').forEach((b) => {
     try { hljs.highlightElement(b); } catch (_) { /* unknown lang → leave plain */ }
   });
-  document.querySelector('main').scrollTop = 0;
+  activeId = s.id;
+  // After paint: highlight.js has finished reflowing the code blocks, so the saved offset means
+  // the same thing it did when it was written (an overshoot past the end clamps by itself).
+  const saved = restore ? parseFloat(localStorage.getItem(scrollKey(s.id))) : 0;
+  requestAnimationFrame(() => { mainEl.scrollTop = Number.isFinite(saved) ? saved : 0; });
   buildNav(sections, s.id);
 }
 
@@ -100,7 +120,7 @@ async function main() {
     return;
   }
   const current = () => decodeURIComponent(location.hash.replace(/^#/, '')) || (sections[0] && sections[0].id);
-  await renderSection(sections, current());
+  await renderSection(sections, current(), true);   // page load / refresh → resume where you were
   window.addEventListener('hashchange', () => renderSection(sections, current()));
 }
 

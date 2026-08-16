@@ -64,7 +64,7 @@ Load flow:
 - Shader = lesson-29 path: `instances[@builtin(instance_index)]`. No per-vertex id buffer (drop `@location(3)` —
   it can't share vertices).
 - Draw count = number of **distinct definitions**, not objects. 76 folds the loop into one indirect call.
-- `flags` bit → selection (45) / culled (37); vs collapses culled rows. Geometry never re-uploaded for these.
+- `flags` bit → selection (49) / culled (41); vs collapses culled rows. Geometry never re-uploaded for these.
 
 ## Caveats
 - **Non-uniform-scale normals**: `(model * vec4(n,0)).xyz` is correct only for rigid/uniform transforms. Add a
