@@ -746,10 +746,10 @@ impl Gpu {
 
         log::info!(
             "scene: {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres) {} cloud points",
-            self.instances.len(), up.verts.len(), self.segment_count, self.pipe_count, self.glyph_count, self.sphere_count, self.point_count
+            self.instances.len(), self.arena_vert_count, self.segment_count, self.pipe_count, self.glyph_count, self.sphere_count, self.point_count
         );
 
-        let samples = Self::msaa_for(up);
+        let samples = self.msaa_now();
         if samples != self.samples {
             self.samples = samples;
             self.depth_view = Self::create_depth_view(&self.device, &self.config, samples);
@@ -913,10 +913,12 @@ impl Gpu {
             pass.set_bind_group(2, &self.instance_bind_group, &[]);
 
             // Arena draw
-            pass.set_vertex_buffer(0, self.arena_vbo.slice(..)); // slot 0 - vertices
-            pass.set_vertex_buffer(1, self.arena_vids.slice(..)); // slot 1 - per-vertex row ids
-            pass.set_index_buffer(self.arena_ibo.slice(..), wgpu::IndexFormat::Uint32);
-            pass.draw_indexed(0..self.arena_index_count, 0, 0..1); // whole scene, one call
+            if self.arena_index_count > 0 {
+                pass.set_vertex_buffer(0, self.arena_vbo.slice(..)); // slot 0 - vertices
+                pass.set_vertex_buffer(1, self.arena_vids.slice(..)); // slot 1 - per-vertex row ids
+                pass.set_index_buffer(self.arena_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.arena_index_count, 0, 0..1); // whole scene, one call
+            }
             draws += 1;
 
             // Linework, ONE draw per lane over the SAME segment table.
@@ -1113,8 +1115,15 @@ impl Gpu {
 
     /// while ribbons and dots antialias themselves in the shader. A 2D sheet therefore pays
     /// nothing, and a model with meshes gets clean silhouettes.
-    fn msaa_for(up: &ArenaUpload) -> u32 {
-        let solid = !up.verts.is_empty() || !up.pipes.is_empty() || !up.spheres.is_empty();
+    /// MSAA follows what is ON THE GPU, not what arrived in the latest upload.
+    ///
+    /// This used to read `up.verts`/`up.pipes`/`up.spheres`, which was correct while every lane
+    /// was cumulative. Now that the arena arrives as a DELTA, an upload carrying only cloud rows
+    /// has an empty `up.verts` - so it reported "no solids", flipped 4x back to 1x, and rebuilt
+    /// every pipeline and both render targets. In the mixed scene that thrashed 4x -> 1x -> 4x
+    /// on every single append.
+    fn msaa_now(&self) -> u32 {
+        let solid = self.arena_vert_count > 0 || self.pipe_count > 0 || self.sphere_count > 0;
         if solid { 4 } else { 1 }
     }
 
