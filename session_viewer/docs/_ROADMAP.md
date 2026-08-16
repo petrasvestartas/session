@@ -272,29 +272,39 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     `grep Session|Mesh|BRep src/engine/` empty
     is empty (litmus test)
 
-- ▶ 37 Point clouds at scale — the four copies, and the tab that died. ADDED 2026-08-16
-  after `scenes/pointclouds3.json` (3 Zagreb Cathedral scans, 10.6M pts) got the tab
-  OOM-killed: renderer 2490 MB + gpu-process 1034 MB = 3.5 GB for a 323 MB GPU payload
-  - files: `app/persistence.rs` (bytes by value + `drop` after decode), `lib.rs`
-    (`nbytes`, `upload_to`), `app/scene.rs` (`reserve_exact`, `Scene::upload_to`),
-    `engine/gpu/mod.rs` (`point_capacity`, growable point buffer, append via
+- ✅ 36 The raw cloud lane — one vertex, one pixel. ADDED 2026-08-16. 35 sent clouds through
+  the GLYPH lane: 3 verts and a blended ~38 px dot per point, which for a 13.8M-point scan is
+  41.4M vertices and ~520M blended fragments a frame (~100 ms/frame, stalled the desktop)
+  - files: `app/scene.rs` (`CLOUD_RAW_MIN`, `push_cloud` off the flat `coords()`/`colors()`
+    slices), `engine/gpu/mod.rs` (`points` table, draw moved up next to the solids),
+    `engine/pipelines/build.rs` (PointList + `blend: None` + depth-write), `shaders/point.wgsl`
+  - steps: opaque restores early-Z, which blending had disabled; lane chosen by point COUNT so
+    nothing degrades mid-orbit; first lane to actually honour `Instance::FLAG_HIDDEN`
+  - verify: dense clump of single pixels, flat ink in front still visible, small clouds
+    unchanged from 32b
+- ▶ 37 Cloud memory — the five copies, and the tab that died. Loading 3 scans (10.6M pts) got
+  the tab OOM-killed: renderer 2490 MB + gpu-process 1034 MB = 3.5 GB for a 323 MB GPU payload
+  - files: `app/persistence.rs` (bytes by value + `drop` after decode), `lib.rs`, `app/scene.rs`
+    (`reserve_exact`, `Scene::upload_to`), `engine/gpu/mod.rs` (`point_capacity`, append via
     `write_buffer`, `storage_buffer` off `create_buffer_init`), `state.rs`,
     `session_rust/src/pointcloud.rs` (one word: `.iter()` → `.into_iter()`)
-  - steps: FIVE copies of every point, not four — the fifth is wgpu's
-    `temporary_mapping` (`webgpu.rs:1431`), a full-size mirror of each uploaded table
-    in the wasm heap that `mapped_at_creation` forces and `write_buffer` avoids
-  - verify: peak 839 → 518 MB native; ZERO `/dev/shm/.com.google.Chrome.*` mappings
-    (was 651 MB in three stale buffers); `upload …ms` stops growing per file; ~110 fps
-    at 10.6M points unchanged. Doc verified: anchors matched, wasm check clean, kernel
-    725/725
-- ⬜ 38 Sixteen bytes a point — split positions/colours buffers, drop per-point
-  `instance_id` (one draw per cloud), colours to RGBA8. GPU table 421 → 221 MB at 14M;
-  the split is also what lets 39 stream a file in one forward pass
-- ⬜ 39 Streaming cloud — HTTP Range requests + a 40-line wire walk to
-  `Session.3 → Objects.8 → PointCloud.3/.4`; packed-double length prefix gives the exact
-  point count before any payload, so both buffers are allocated once, exactly. No kernel
-  `PointCloud` for the raw lane. Peak becomes CONSTANT (~40 MB) regardless of file size;
-  `pb/lidar_14m.pb` (13.8M pts) becomes loadable
+  - steps: the FIFTH copy is wgpu's `temporary_mapping` (`webgpu.rs:1431`) - `mapped_at_creation`
+    mirrors each uploaded table into the wasm heap, which is why the browser measured 1589 MB
+    where a native replay of the four CPU copies accounts for 839 MB
+  - verify: peak 839 → 518 MB native; ZERO `/dev/shm/.com.google.Chrome.*` mappings (was 651 MB
+    in three stale buffers); `upload …ms` stops growing per file; ~110 fps at 10.6M unchanged
+- ⬜ 38 Sixteen bytes a point — split positions (`array<f32>`, 12 B) and colours (`array<u32>`
+  RGBA8, 4 B); the per-point `instance_id` leaves via ONE draw per cloud (`first_vertex` makes
+  `vertex_index` absolute, `first_instance` lands on `instance_index`). GPU 421 → 221 MB at 14M
+  - verify: picture identical, `naga` clean, bytes/point 32 → 16
+- ⬜ 39 Streaming cloud — HTTP Range + a wire walk to `Session.3 → Objects.8 → PointCloud.3/.4`.
+  The packed-double length prefix gives the exact point count before any payload, so both GPU
+  buffers are sized once, exactly. No kernel `PointCloud` for the raw lane; `CloudSlot` (a name,
+  a count, an instance row) is the whole CPU footprint
+  - steps: Range not ReadableStream (split doubles/varints/headers are push-only risks); 8 MB
+    slices rounded to whole points; 206 or refuse; GPU up first; `next_tick` between slices;
+    empty `submit` to recycle Dawn staging
+  - verify: peak becomes CONSTANT; `pb/lidar_14m.pb` (13.8M pts) becomes loadable
 
 ## Phase 5 — Acceleration & culling  (BEFORE picking/scenes grow)
 - ✅ 40 Scene AABB BVH — ONE broad-phase for culling, picking, and box-select

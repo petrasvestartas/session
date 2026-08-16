@@ -1,4 +1,4 @@
-# 37 Point clouds at scale — the four copies, and the tab that died
+# 37 Cloud memory — the five copies, and the tab that died
 
 ## Goal
 
@@ -6,8 +6,10 @@ Load the same three LiDAR scans with **half the peak wasm heap** and **none** of
 stale upload buffers, by making four small changes that apply to every lane — not just
 clouds. No new features. The scene looks identical; the tab stops being 3.5 GB.
 
-This is the first of three: 37 takes the peak from 839 MB to 518 MB, `38`
-halves the GPU table, `39` makes the peak constant.
+[36](36-raw-cloud-lane.md) made the cloud draw. This one makes it load:
+37 takes the peak from 839 MB to 518 MB and kills the stale upload buffers,
+[38](38-sixteen-bytes.md) halves the GPU table, [39](39-streaming-cloud.md) makes the peak
+constant.
 
 ## What happened
 
@@ -548,11 +550,11 @@ Gates:
 ## What is deliberately NOT here
 
 - **The 32 B row.** `CloudPoint` still carries a per-point `instance_id` and four f32
-  colour channels. → `38`
+  colour channels. → [38](38-sixteen-bytes.md)
 - **The kernel `PointCloud`.** Still built, still retained, still 139 MB a scan —
-  and, as it happens, `Doc.session` currently has no readers at all. → `39`
+  and, as it happens, `Doc.session` currently has no readers at all. → [39](39-streaming-cloud.md)
 - **The decoded proto.** Still materialised whole by prost, which is why the 14M peak
-  barely moved. → `39`
+  barely moved. → [39](39-streaming-cloud.md)
 - **`PointCloud::_colors` is `Vec<i32>`** — four bytes to hold a 0-255 channel, 221 MB
   per 14M-point cloud where `u8` would be 55 MB. Fixing it is a three-language API
   change with matching minitests, and it stops mattering to the viewer once 39 stops
@@ -584,7 +586,7 @@ growable point buffer, append path, `storage_buffer` off `create_buffer_init`),
 
 ## Next
 
-`38-sixteen-bytes.md` — a scanned point does not need a
+[`38-sixteen-bytes.md`](38-sixteen-bytes.md) — a scanned point does not need a
 per-point object id and it does not need four floats of colour. Split the row into a
 positions buffer and a colours buffer, 12 B + 4 B, one draw call per cloud: the GPU
 table halves, and the split turns out to be exactly what 39 needs to stream a file

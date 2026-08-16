@@ -1013,12 +1013,9 @@ Five things to notice while typing:
   need already exists: surfaces and elements reuse the BRep pattern (`mesh()` → `push_mesh`),
   planes and boxes are plain segments, and a cloud goes through the GLYPH lane — deliberately
   not `Gpu`'s dormant `CloudPoint` machinery, so the walk keeps one path per category.
-  **This last one did not survive contact with a real scan.** A 13.8M-point LiDAR cloud through
-  the glyph lane is 41.4M vertices and ~520M alpha-blended fragments a frame (a 3 px dot is ~38 px,
-  and blending disables early-Z) — measured at ~100 ms/frame, and it stalled the desktop. Clouds
-  above `CLOUD_RAW_MIN` now take the raw lane after all: `CloudPoint` rows, one vertex per point,
-  `PrimitiveTopology::PointList`, opaque. Small clouds keep the round glyph dots, so 32b's demo is
-  unchanged. The lane is chosen by point COUNT, never by camera state — nothing degrades mid-orbit.
+  That last choice is right for the demo clouds of 32b and wrong for a real scan — which is
+  exactly what [36](36-raw-cloud-lane.md) is about. It stays as written here: a lesson that
+  quietly patches itself teaches nothing about why the first answer looked reasonable.
 
 ## Step 3 — the sliced parse: `src/app/persistence.rs`
 

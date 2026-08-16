@@ -62,10 +62,13 @@ a small live set.
 
 | # | lesson | state |
 |---|---|---|
-| 36 | Raw cloud lane — PointList, opaque, one vertex one pixel, `CLOUD_RAW_MIN` | code exists (baseline commit); **doc not written** |
-| 37 | Cloud memory — the five copies | **doc written + verified; code committed** |
-| 38 | Sixteen bytes a point — split positions/colours, drop per-point `instance_id` | not started |
-| 39 | Streaming cloud — HTTP Range + wire walk, constant peak | not started |
+| 36 | Raw cloud lane — PointList, opaque, one vertex one pixel, `CLOUD_RAW_MIN` | doc written; code is the baseline commit |
+| 37 | Cloud memory — the five copies | doc + code, verified |
+| 38 | Sixteen bytes a point — split positions/colours, one draw per cloud | doc + code, verified |
+| 39 | Streaming cloud — HTTP Range + wire walk, constant peak | doc + code, verified |
+
+All four written. Lesson 35's inline raw-lane correction (its Step 2c) was pulled out and
+now forward-references 36, so 35 ends with clouds on the glyph lane as originally written.
 
 ---
 
@@ -161,17 +164,36 @@ show none.
 
 ---
 
+### `0f1db9c5` — Lesson 38 code
+`CloudPoint` (32 B) becomes two parallel arrays — `array<f32>` positions at 12 B and
+`array<u32>` RGBA8 colours at 4 B, both stride-4 in the **storage** address space (the
+16-byte-stride rule is a *uniform* rule) — plus a `CloudDraw { base, count, instance }` per
+cloud. The per-point `instance_id` retires because `first_vertex` makes `vertex_index`
+absolute into the shared buffers and `first_instance` lands on `instance_index`; wgpu only
+lowers `instance_limit` below `u64::MAX` for instance-rate *vertex* buffers, and this lane
+has none. GPU table 421 → 221 MB at 13.8M, 323 → 162 MB for the three scans. `naga` clean.
+
+### `28c6d7be` — Lesson 39 code
+Range-request streaming. Verified against the real file before wiring: `walk_to_coords`
+returns `(175, 87570576)`, count **3,648,774** (matches the known count), colours field 4
+len 27,237,048 at 87,570,756, first point reads back as `(-4.38796, 2035.38, 891.285)`.
+
+Range rather than `ReadableStream` because split doubles, split varints and split length
+headers are risks that exist *only* when data is pushed; 8 MB slices rounded down to whole
+points cannot split anything. `fetch_range` refuses anything but `206` — a server that
+ignores `Range` returns the whole 411 MB body, silently. GPU comes up first (a streamed
+cloud writes into buffers that must already exist), `next_tick()` between slices (warm-cache
+promises resolve as microtasks and never paint), empty `queue.submit([])` after each write
+(Dawn recycles staging only on a completed serial). `CloudSlot` — a name, a count, an
+instance row — is the entire CPU footprint of a 13.8M-point scan.
+
+`trunk build` clean.
+
 ## Still to do
 
-1. Write lesson 36 (raw cloud lane) and pull the inline correction out of 35's Step 2c.
-2. Lesson 38 code + doc: split positions (`array<f32>`, 12 B) and colours
-   (`array<u32>` RGBA8, 4 B), drop per-point `instance_id`, one draw per cloud.
-   GPU 421 → 221 MB at 14M.
-3. Lesson 39 code + doc: Range-request loader. Peak becomes constant (~40 MB),
-   `pb/lidar_14m.pb` becomes loadable.
-4. Convert the plain-text `38`/`39` references in `37-cloud-memory.md` back into
-   links once those files exist.
-5. On approval: revert main's `session_viewer/src` to the end of lesson 35.
+1. **Run it in a browser.** Nothing in this branch has been executed — see the section above.
+2. On approval: revert main's `session_viewer/src` to the end of lesson 35 so the point-cloud
+   work is re-typed from lessons 36–39.
 
 ## Not in scope, worth raising separately
 
