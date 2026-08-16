@@ -15,6 +15,20 @@ mod app; // App layer for file loading
 
 pub use state::State;
 use crate::camera::View;
+use crate::app::persistence;
+use crate::app::scene::{auto_grid, Manifest, Scene};
+
+// The scene: which sheets, and where each one sits.
+// Fetched at runtime, so re-arringing the scene is a text edit in assets/scenes, not rebuild (app/scene.rs)
+const DEMO_SCENE_URL: &str = "scenes/pointclouds3.json";
+
+/// Async init - event-loop messages.
+/// `Ready` carries the State built around the first file
+/// pixes in 2s, each file is one more parsed document appended live.
+pub enum Msg {
+    Ready(Box<State>),
+    File(String, session_rust::Session, session_rust::Xform),
+}
 
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
@@ -31,7 +45,7 @@ use winit::window::{Window, WindowId};
 /// and tracks the mouse-orbit / modifier state between events.
 pub struct App {
     state: Option<State>,
-    proxy: Option<winit::event_loop::EventLoopProxy<State>>,
+    proxy: Option<winit::event_loop::EventLoopProxy<Msg>>,
     orbiting: bool,
     panning: bool,
     last_cursor: (f64, f64),
@@ -43,7 +57,7 @@ impl App {
     pub fn run() -> anyhow::Result<()> {
         use winit::platform::web::EventLoopExtWebSys;
         console_log::init_with_level(log::Level::Info).ok();
-        let event_loop = EventLoop::<State>::with_user_event().build()?;
+        let event_loop = EventLoop::<Msg>::with_user_event().build()?;
         let app = App {
             proxy: Some(event_loop.create_proxy()),
             state: None,
@@ -57,7 +71,7 @@ impl App {
     }
 }
 
-impl ApplicationHandler<State> for App {
+impl ApplicationHandler<Msg> for App {
 
     /// Bind to the `#canvas` element and kick off async `State` init (delivered back via `user_event`).
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
@@ -76,19 +90,82 @@ impl ApplicationHandler<State> for App {
 
         if let Some(proxy) = self.proxy.take() {
             wasm_bindgen_futures::spawn_local(async move {
-                let state = State::new(window).await.expect("State init failed");
-                let _ = proxy.send_event(state);
+
+                // Manifest, then the files - pipelined
+                // fetsch_start is eager: the brwoser request for file n+1 is in flight while file n parses
+                // and progressive - ready after the first file, every later streams in as a Msg::File
+                let t0 = crate::engine::performance::now_ms();
+                let manifest_bytes = persistence::fetch_bytes(DEMO_SCENE_URL).await.unwrap_or_default();
+                let manifest = Manifest::parse(&manifest_bytes).unwrap_or_else(|| panic!("cannot read the scene manifest at {DEMO_SCENE_URL}"));
+                log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
+                let count = manifest.items.len();
+                let mut next = manifest.items.first().map(|it| persistence::fetch_start(&it.file));
+                let mut sent_ready = false;
+                for (i, item) in manifest.items.iter().enumerate() {
+                    let f0 = crate::engine::performance::now_ms();
+                    let cur = next.take();
+                    next = manifest.items.get(i + 1).map(|it| persistence::fetch_start(&it.file));
+                    let bytes = match cur {
+                        Some(Ok(f)) => persistence::fetch_finish(f).await.unwrap_or_default(),
+                        _ => Vec::new(),
+                    };
+                    let f1 = crate::engine::performance::now_ms();
+                    let session = persistence::session_from_bytes_chunked(&item.file, &bytes).await;
+                    let name = if item.name.is_empty() {
+                        session.name.clone()
+                    } else {
+                        item.name.clone()
+                    };
+                    log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms", name, session.lookup.len(), bytes.len(), f1 - f0, crate::engine::performance::now_ms() - f1);
+                    if session.lookup.is_empty() {
+                        continue; // failed fetch - skipped file
+                    }
+                    let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [0.0, 0.0]));
+                    if !sent_ready {
+                        sent_ready = true;
+                        let mut scene = Scene::new();
+                        scene.add_file(name, session, place);
+                        let state = State::new(window.clone(), scene).await.expect("State init failed");
+                        log::info!("first file on screen {:.0}ms after manifest fetch", crate::engine::performance::now_ms() - t0);
+                        let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+                    } else {
+                        let _ = proxy.send_event(Msg::File(name, session, place));
+                    }
+
+                }
+
+
             });
         }
     }
 
-    /// Receive the initialized `State`, size it to the canvas, and start drawing.
-    fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut state: State) {
-        let (w, h) = desired_canvas_size()
-            .unwrap_or_else(|| { let s = state.window.inner_size(); (s.width, s.height) });
-        state.resize(w, h);
-        state.window.request_redraw();
-        self.state = Some(state);
+    /// `Ready`: adopt the State built around the first file, size it, fit the camera, draw.
+    /// `File` append one more document - walk it into the shared tabkles, re-upload, redraw.
+    fn user_event(&mut self, _event_loop: &ActiveEventLoop, msg: Msg){
+        match msg {
+            Msg::Ready(state) => {
+                let mut state = *state;
+                let (w, h) = desired_canvas_size()
+                    .unwrap_or_else(|| { let s = state.window.inner_size(); (s.width, s.height) });
+                state.resize(w, h);
+                let aspect = w as f64 / h as f64;
+                state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
+                state.window.request_redraw();
+                self.state = Some(state);
+            }
+            Msg::File(name, session, place) => {
+                let Some(state) = &mut self.state else {
+                    return;
+                };
+                let t0 = crate::engine::performance::now_ms();
+                state.scene.add_file(name, session, place);
+                let t1 = crate::engine::performance::now_ms();
+                state.gpu.set_scene(&state.scene.tables);
+                log::info!("appended: walk {:.0}ms · upload {:.0}ms | {} docs",
+                    t1 - t0, crate::engine::performance::now_ms() - t1, state.scene.docs.len());
+                state.window.request_redraw();
+            }
+        }
     }
 
     /// Handle one window event: redraw, resize, keyboard view shortcuts, and mouse orbit/pan/zoom.

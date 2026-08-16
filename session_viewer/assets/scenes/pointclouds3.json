@@ -1,0 +1,10 @@
+{
+  "name": "lidar stress — three Zagreb Cathedral scans, one file each",
+  "comment": "The pointcloud analogue of the drawings manifest: three separate .pb files, each its own kernel Session, appended one at a time by the progressive loader and placed side by side with 'at'. Source: Osnabrueck 3Dscans, Riegl VZ-400 terrestrial scans of Zagreb Cathedral, scan000/003/006, subsampled 1-in-4 to ~3.5M points each (10.6M total, ~330 MB of .pb). The scans are NOT registered to each other - every .pose file in that dataset is all zeros - so each sits in its own scanner frame and 'at' spaces them 70 m apart rather than pretending they align. Source axes are 3DTK's Y-up left-handed convention; the importer swaps y and z, which converts to the viewer's Z-up right-handed frame and flips handedness in one step (verified against the data: the source y axis has p01 -61 mm, p50 -29 mm, p99 +5761 mm - a floor and 5.8 m of structure above it, which no horizontal axis looks like).",
+
+  "items": [
+    { "file": "pb/lidar_scan000.pb", "name": "scan000  (3.65M pts)", "at": [0, 0, 0] },
+    { "file": "pb/lidar_scan003.pb", "name": "scan003  (3.45M pts)", "at": [70000, 0, 0] },
+    { "file": "pb/lidar_scan006.pb", "name": "scan006  (3.50M pts)", "at": [140000, 0, 0] }
+  ]
+}

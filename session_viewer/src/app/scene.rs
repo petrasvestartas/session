@@ -68,7 +68,7 @@ use std::collections::{HashMap, HashSet};
 use session_rust::{Session, Geometry, Mesh, Line, Point, Polyline, NurbsCurve, RenderVertex, Plane, OBB, PointCloud, Vector};
 use session_rust::element::ElementGeometry;
 use session_rust::mesh::ColorMode;
-use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint};
+use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint, CloudPoint};
 
 /// One loaded file: the kernel `Session`
 /// kept alive - picking/undo/save need this
@@ -116,6 +116,7 @@ impl Scene{
         let vert0 = self.tables.verts.len();
         let sphere0 = self.tables.spheres.len();
         let glyph0 = self.tables.glyphs.len();
+        let point0 = self.tables.points.len();
         let obj0 = self.tables.objects.len();
 
         let world = session.world_xforms();
@@ -164,6 +165,12 @@ impl Scene{
                 Geometry::Polyline(pl) => t.segments.extend(polyline_to_segments(pl, ri)),
                 Geometry::NurbsCurve(c) => t.segments.extend(nurbscurve_to_segments(c, ri)),
                 Geometry::Point(p) => t.glyphs.push(point_to_glyph(p, ri)),
+                // A cloud picks its lane by SIZE, not by camera state - so nothing changes while
+                // you orbit. A handful of points are worth round sized dots (32b's demo clouds);
+                // a scan is a clump, and the raw lane draws it one vertex and one pixel per point.
+                Geometry::PointCloud(pc) if pc.len() >= CLOUD_RAW_MIN => {
+                    push_cloud(pc, ri, &mut t.points)
+                }
                 Geometry::PointCloud(pc) => t.glyphs.extend(pointcloud_to_glyphs(pc, ri)),
                 Geometry::NurbsSurface(s) => {
                     let mut sm = s.mesh();
@@ -239,6 +246,12 @@ impl Scene{
             } 
         }
 
+        for p in t.points.iter().skip(point0){
+            if let Some((xf, _, _)) = t.objects.get(p.instance_id as usize){
+                grow_bounds(&mut fmin, &mut fmax, xform_point(xf, p.position));
+            }
+        }
+
         for k in 0..3{
             t.min[k] = t.min[k].min(fmin[k]);
             t.max[k] = t.max[k].max(fmax[k]);
@@ -281,6 +294,11 @@ impl Scene{
                     span(xform_point(xf, g.center));
                 }
             }
+            for p in t.points.iter().skip(point0){
+                if let Some((xf, _, _)) = t.objects.get(p.instance_id as usize) {
+                    span(xform_point(xf, p.position));
+                }
+            }
             dmax - dmin
         };
 
@@ -299,7 +317,7 @@ impl Scene{
         let _ = obj0;
         self.docs.push(Doc {
             name,
-            place, 
+            place,
             session
         });
 
@@ -429,7 +447,16 @@ fn push_mesh(
 
     let hidden = |i: usize| width_at(i) == 0.0;
 
-    for (i, (a, b, col)) in m.edges_with_colors().into_iter().enumerate(){
+    // A fill (every PDF glyph, every poché region) broadcasts a single width of 0 - no wireframe
+    // at all. Leave before edges_with_colors, which builds a HashSet over the faces: for sheets
+    // made of hundreds of thousands of tiny fills, that set was the walk's biggest single cost
+    // and every edge it produced was then skipped.
+    if m.widths().len() == 1 && m.widths()[0] == 0.0 { return }
+
+    // ONE edge walk, shared by the pipes below and the vertex widths further down.
+    let edges = m.edges_with_colors();
+
+    for (i, (a, b, col)) in edges.iter().cloned().enumerate(){
         if hidden(i) {
             continue
         }
@@ -455,7 +482,7 @@ fn push_mesh(
     // A vertex sphere must be as fas as the pipes.
     // The kernel has no per-vertex width, so take the widest incident edge.
     let mut vwidth: std::collections::HashMap<usize, f64> = std::collections::HashMap::new();
-    for (i, (a, b, _)) in m.edges_with_colors().into_iter().enumerate(){
+    for (i, (a, b, _)) in edges.iter().cloned().enumerate(){
         if hidden(i){ // A vertex whose every edge is hidden gets no dot either
             continue;
         }
@@ -499,4 +526,94 @@ fn grow_bounds(min: &mut [f32; 3], max: &mut [f32; 3], p: [f32; 3]) {
         min[k] = min[k].min(p[k]);
         max[k] = max[k].max(p[k]);
     }
+}
+
+
+/// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes
+/// Half-extent in world mm (a 1 m quare)
+const PLANE_SIZE: f64 = 500.0;
+
+fn plane_to_segments(pl: &Plane, instance_id: u32) -> Vec<CylinderSegment> {
+    let (o, x, y) = (pl.origin(), pl.x_axis(), pl.y_axis());
+    let corner = |sx: f64, sy: f64| -> [f32; 3]{
+         [0usize, 1, 2].map(|k| (o[k] + (x[k] * sx + y[k] * sy) * PLANE_SIZE) as f32)
+    };
+    let c = [corner(1.0, 1.0), corner(-1.0, 1.0), corner(-1.0, -1.0), corner(1.0, -1.0)];
+    let color = pl.linecolor.to_f32();
+    let radius = encode_width(pl.width);
+    (0..4).map(|i| CylinderSegment { p0:c[i], radius, p1: c[(i+1) % 4], instance_id, color }).collect()
+}
+
+/// A box is its 12 edges: bottom loop, top loop, four verticals - `corner()` orders tge bottom face
+/// face 0-3 and the top 4-7 with i / i+4 vertically aligned.
+/// The OBB type carries no pen, so the edges draw black at screen-constant width (radius 0.0 = global default)
+fn obb_to_segments(b: &OBB, instance_id: u32) -> Vec<CylinderSegment>{
+    const EDGES: [[usize; 2]; 12] = [
+        [0, 1], 
+        [1, 2], 
+        [2, 3], 
+        [3, 0],
+        [4, 5], 
+        [5, 6], 
+        [6, 7], 
+        [7, 4], 
+        [0, 4], 
+        [1, 5], 
+        [2, 6], 
+        [3, 7]
+    ];
+
+    let c = b.corners_f32();
+    EDGES.iter().map(|&[i, j]| CylinderSegment { p0: c[i], radius: 0.0, p1: c[j], instance_id, color: [0.0, 0.0, 0.0, 1.0] }).collect()
+    
+}
+
+/// One glyph per point. `point_size` rides the same width encoding as every other pen, and
+/// a cloud with fewer colors than points falls back to black for the tail.
+/// Above this many points a cloud stops being decorated dots and becomes a raw clump: one
+/// vertex, one pixel, opaque. Below it the sized round dots of the glyph lane still read better,
+/// and 100k of them is a frame cost nobody notices.
+const CLOUD_RAW_MIN: usize = 100_000;
+
+/// The raw lane's rows. Same walk as the glyph version, minus the radius - a cloud has no pen
+/// per point - and 32 B per row instead of 48.
+///
+/// It writes STRAIGHT into the shared table instead of collecting a Vec the caller then extends:
+/// `Vec::extend` from an owned iterator always memcpies into the destination and drops the
+/// source, so a 13.8M-point scan built the same 441 MB table twice and peaked at 843 MB against
+/// a heap that practically ends around 2 GB. Reserving once and pushing peaks at 423 MB.
+///
+/// It also reads the kernel's FLAT arrays rather than `get_point`/`get_color`, which each build a
+/// `Point`/`Color` - three String allocations per point, measured at 1.08 s against 0.24 s for
+/// the flat walk on this scan, all of it allocator churn on the wasm main thread.
+fn push_cloud(pc: &PointCloud, instance_id: u32, out: &mut Vec<CloudPoint>){
+    let coords = pc.coords();
+    let colors = pc.colors();
+    let n = pc.len();
+    out.reserve(n);
+    for i in 0..n {
+        let c = i * 4;
+        out.push(CloudPoint{
+            position: [coords[i * 3] as f32, coords[i * 3 + 1] as f32, coords[i * 3 + 2] as f32],
+            instance_id,
+            color: if c + 3 < colors.len() {
+                [colors[c] as f32 / 255.0, colors[c + 1] as f32 / 255.0,
+                 colors[c + 2] as f32 / 255.0, colors[c + 3] as f32 / 255.0]
+            } else {
+                [0.0, 0.0, 0.0, 1.0]
+            },
+        });
+    }
+}
+
+fn pointcloud_to_glyphs(pc: &PointCloud, instance_id: u32) -> Vec<GlyphPoint>{
+    let radius = encode_width(pc.point_size);
+    let colors = pc.color_count();
+    (0..pc.len()).map(|i| GlyphPoint{
+        center: pc.get_point(i).to_f32(),
+        radius,
+        color: if i < colors {pc.get_color(i).to_f32()} else { [0.0, 0.0, 0.0, 1.0]},
+        instance_id,
+        _pad: [0; 3],
+    }).collect()
 }

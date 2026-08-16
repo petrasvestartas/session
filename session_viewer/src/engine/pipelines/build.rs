@@ -485,13 +485,17 @@ pub fn build_point_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState{
                 format: color_format,
-                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                // OPAQUE. Blending is what made a dense cloud unaffordable: it turns off early-Z,
+                // so every one of ~520M overlapping fragments had to be shaded and blended in
+                // submission order. Written opaque, the depth test rejects occluded samples first.
+                blend: None,
                 write_mask: wgpu::ColorWrites::ALL,
             })],
         compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState{
-            topology: wgpu::PrimitiveTopology::TriangleList,
+            // ONE vertex per point, rasterised as exactly one pixel (WebGPU has no point size).
+            topology: wgpu::PrimitiveTopology::PointList,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: None,
@@ -501,7 +505,9 @@ pub fn build_point_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState{
             format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(false),
+            // Writes depth like any other solid: a cloud occludes what is behind it, and points
+            // behind it are rejected before shading. The flat-ink lanes stay depth-read-only.
+            depth_write_enabled: Some(true),
             depth_compare: Some(wgpu::CompareFunction::Greater), // reverse -Z¨
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),

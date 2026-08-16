@@ -57,6 +57,7 @@ pub struct ArenaUpload{
     pub spheres: Vec<GlyphPoint>, // Solid lane: Mesh/Brep vertices, radius matched to the pipes
     pub segments: Vec<CylinderSegment>, // Flat lane: line/polyline, drawn as camera-facing ribbons
     pub glyphs: Vec<GlyphPoint>, // Flat lane: points, draw as SDF dots,
+    pub points: Vec<CloudPoint>, // Raw lane: scanned clouds, one vertex and one pixel per point
     pub objects: Vec<(Xform, [f32; 4], u32)>,
     pub min: [f32; 3],
     pub max: [f32; 3],
@@ -72,6 +73,7 @@ impl ArenaUpload {
             spheres: Vec::new(),
             segments: Vec::new(),
             glyphs: Vec::new(),
+            points: Vec::new(),
             objects: Vec::new(),
             min: [f32::INFINITY; 3],
             max: [f32::NEG_INFINITY; 3],
@@ -628,7 +630,7 @@ impl Gpu {
         self.glyph_buffer = zeroed_buffer(
             &self.device,
             "glyphs.buffer",
-            rows * std::mem::size_of::<GlyphPoint> as u64,
+            rows * std::mem::size_of::<GlyphPoint>() as u64,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST
         );
         self.queue.write_buffer(
@@ -638,7 +640,7 @@ impl Gpu {
         );
         self.queue.write_buffer(
             &self.glyph_buffer,
-            up.spheres.len() as u64 * std::mem::size_of::<GlyphPoint> as u64,
+            up.spheres.len() as u64 * std::mem::size_of::<GlyphPoint>() as u64,
             bytemuck::cast_slice(&up.glyphs),
         );
         self.glyph_bind_group = self.device.create_bind_group(
@@ -651,13 +653,28 @@ impl Gpu {
                 }],
         });
 
+        // Raw cloud lane: one row per scanned point, uploaded like any other table. Until now
+        // this buffer was built empty in new() and never refilled - the machinery existed, the
+        // rows never arrived.
+        self.point_count = up.points.len() as u32;
+        self.point_buffer = storage_buffer(&self.device, "points.buffer", &up.points);
+        self.point_bind_group = self.device.create_bind_group(
+            &wgpu::BindGroupDescriptor {
+                label: Some("points.bind_group"),
+                layout: &self.glyph_layout,
+                entries: &[wgpu::BindGroupEntry{
+                    binding: 0,
+                    resource: self.point_buffer.as_entire_binding()
+                }],
+        });
+
         self.last_origin = None; // force the next frame to rebase agains the new table
         self.scene_min = if up.min[0].is_finite() { up.min } else { [0.0; 3] };
         self.scene_max = if up.min[0].is_finite() { up.max } else { [0.0; 3] };
 
         log::info!(
-            "scene: {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres)",
-            self.instances.len(), up.verts.len(), self.segment_count, self.pipe_count, self.glyph_count, self.sphere_count
+            "scene: {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres) {} cloud points",
+            self.instances.len(), up.verts.len(), self.segment_count, self.pipe_count, self.glyph_count, self.sphere_count, self.point_count
         );
 
         let samples = Self::msaa_for(up);
@@ -799,7 +816,10 @@ impl Gpu {
             });
        
 
-            // Pipelines - sequence of drawing is important
+            // Pipelines - sequence of drawing is important:
+            // background -> grid -> triangles -> cylinders -> CLOUD -> ink prepass -> ribbon
+            // -> sphere -> glyph. Everything that WRITES depth comes first (the cloud included,
+            // since it went opaque); the flat ink lanes read that depth and never write it.
 
             // Background
             pass.set_pipeline(&self.pipelines.background);
@@ -840,6 +860,21 @@ impl Gpu {
                 pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
                 pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
                 pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.pipe_count); // one template, N edges
+                draws += 1;
+            }
+
+            // Raw cloud lane, drawn WITH THE SOLIDS: it is opaque and writes depth, so it belongs
+            // before the flat ink, not after it. Here, ink in front of the cloud composites over
+            // it and ink behind is rejected by the ribbon/glyph depth test. Drawn last - where it
+            // sat while it was a blended overlay - an opaque cloud would instead overpaint every
+            // polyline in front of it, because flat ink writes no depth of its own.
+            if self.point_count > 0 {
+                pass.set_pipeline(&self.pipelines.point);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.cloud_bind_group, &[]); // unused by the shader, kept to match the pipeline layout
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.point_bind_group, &[]);
+                pass.draw(0..self.point_count, 0..1); // ONE vertex per point (PointList)
                 draws += 1;
             }
             // FLAT-lane depth prepass, BOTH tables before either colour pass: blended ink cannot
@@ -902,16 +937,6 @@ impl Gpu {
                 draws += 1;
             }
 
-            // Points
-            if self.point_count > 0 {
-                pass.set_pipeline(&self.pipelines.point);
-                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                pass.set_bind_group(1, &self.cloud_bind_group, &[]); // cloud size + viewport
-                pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                pass.set_bind_group(3, &self.point_bind_group, &[]);
-                pass.draw(0..3 * self.point_count, 0..1); // 3 vertices per point, no template
-                draws += 1;
-            }
 
 
 
@@ -1034,13 +1059,14 @@ pub struct GlyphPoint{
     pub _pad: [u32; 3], // 12 B - single trailing scalar is why we need pad
 } // 48 B total, three 16-byte rows
 
-// Points inscribed in circles used for pointclouds
+// The RAW cloud row: one scanned point, one vertex, one pixel. 32 B against GlyphPoint's 48,
+// and no radius field at all - a cloud has one global size, not a pen per point.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-struct CloudPoint{
-    position: [f32; 3], // 12 B - mesh local
-    instance_id: u32, // 4 B - fills position's tail
-    color: [f32; 4], // 16 B
+pub struct CloudPoint{
+    pub position: [f32; 3], // 12 B - mesh local
+    pub instance_id: u32, // 4 B - fills position's tail
+    pub color: [f32; 4], // 16 B
 } // 32 B total, two 16-byte rows, zero padding
 
 // Points global attributes
