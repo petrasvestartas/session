@@ -256,23 +256,31 @@ could not before.
 ## The closing scene — everything at once
 
 A lesson that only ever loads point clouds has not proved much. `assets/scenes/mixed.json`
-is the one that does: three architectural sheets, a 3D model, and two LiDAR scans, with the
+is the one that does: it is **everything lesson 35 proved, plus the scans**, with the
 manifest order deliberately **interleaved** —
 
 ```
-sheet · scan · sheet · sheet · scan · model
+sheet · scan · sheet · sheet · scan · sheet · boxes · model
 ```
 
 — so the two load paths take turns and neither is allowed to depend on running first or last.
 
-They are genuinely different kinds of data taking genuinely different routes:
+What is in it, and why each piece is there:
 
-| | sheets + model | scans |
+| item | what it tests |
+|---|---|
+| 4 sheets: flat / standing 90° / tilted 45° / spun 30° | 35's planar-lane torture test — paper-space pens under arbitrary orientation |
+| `colors_widths` — 3 boxes, 1 polyline, 1 point | per-face colours, mesh edges, pen widths, the glyph lane's dot |
+| `floor_model` — 201 meshes, 290 polylines | a real 3D model: solid lane and flat lane together |
+| 2 LiDAR scans, 3.5M points each | the raw cloud lane, streamed |
+
+and the two routes they take:
+
+| | everything above the scans | the scans |
 |---|---|---|
-| content | meshes (fills) + polylines (linework) | 3.5M points each |
 | path | whole-file prost → `add_file` → shared tables | Range slices → GPU buffers |
 | kernel objects | yes, retained in `Doc.session` | **none** — a `CloudSlot` and nothing else |
-| lane | triangles + ribbons + glyphs | the raw cloud lane |
+| lanes | triangles, cylinders, ribbons, glyphs | the raw cloud lane |
 
 Point `DEMO_SCENE_URL` at it:
 
@@ -280,17 +288,20 @@ Point `DEMO_SCENE_URL` at it:
 const DEMO_SCENE_URL: &str = "scenes/mixed.json";
 ```
 
-Three things this scene checks that a clouds-only scene cannot:
+Four things this scene checks that a clouds-only scene cannot:
 
-**The MSAA flip survives.** `msaa_for` returns 4 the moment a sheet's mesh vertices arrive,
-which rebuilds every pipeline — including the point pipeline — *while clouds are already
-resident in their buffers*. Pipelines are rebuilt; buffers are not. If the cloud vanished on
-the first sheet, that is where to look.
+**The MSAA flip survives.** `msaa_for` returns 4 the moment the first sheet's mesh vertices
+arrive, which rebuilds every pipeline — the point pipeline included — *while clouds are
+already resident in their buffers*. Pipelines are rebuilt; buffers are not. If a cloud
+vanished when a sheet landed, that is where to look.
 
-**The draw order holds with both kinds present.** The cloud is opaque and writes depth, the
+**The draw order holds with both kinds present.** The cloud is opaque and writes depth; the
 sheets' linework is blended and does not. Sheet ink in front of a scan must composite over
-it; ink behind must be rejected. That is the whole reason the cloud draw sits up with the
+it, ink behind must be rejected. That is the whole reason the cloud draw sits up with the
 solids rather than at the end of the pass — see [36](36-raw-cloud-lane.md).
+
+**Pens stay px-constant next to 13.8M points.** The three `colors_widths` boxes and the
+rotated sheets are the same test 35 ended on; nothing in 36–39 was allowed to change them.
 
 **Press F.** The fit has to frame sheets *and* scans together, which is precisely what broke
 when `set_scene` overwrote the scene box on every call: a streamed cloud contributes its box
@@ -299,13 +310,14 @@ already loaded and F framed the last scan alone.
 
 Sheets are 2–5 m across and sit in a row at `y = -30000`; each scan spans about 72 m and they
 are 90 m apart. So a fitted view is mostly scan, with the sheets a small cluster below —
-zoom in on them and the pen weights and hatching are all still there.
+zoom in and the hatching, pen weights and box edges are all still there.
 
-**One honest regression.** Lesson 35's loader kept file *n+1*'s fetch in flight while file *n*
-parsed. That prefetch is gone here, and deliberately: the next item might be a cloud, and
-eagerly fetching a cloud whole is exactly what this lesson exists to stop doing. Sheets
-therefore load one after another. Restoring it means probing the next item with a cheap
-8 KB range read before deciding — worth doing, not worth doing inside this lesson.
+**Two honest notes.** The sheets are **not** streamed: 130 MB of them still go through the
+whole-file prost path, so this scene's peak is dominated by the sheets, not the scans. The
+streaming win of 37–39 applies to clouds only. And lesson 35's fetch-ahead is gone —
+deliberately, because the next manifest item might be a cloud and eagerly fetching a cloud
+whole is exactly what this lesson exists to prevent. Restoring it means probing the next
+item with a cheap 8 KB range read first: worth doing, not worth doing inside this lesson.
 
 ## What is deliberately not here
 
