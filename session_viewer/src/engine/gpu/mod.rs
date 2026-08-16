@@ -927,14 +927,15 @@ impl Gpu {
             // segments[pipe_count..] = line/polyline -> flat ribbons: nothing to fight with, and
             // they stay screen-constant and cheap.
             if self.pipe_count > 0 {
-                pass.set_pipeline(&self.pipelines.cylinder);
+                // ONE draw for the whole solid lane: edges AND vertex dots, as capsules.
+                // 6 vertices an instance, no vertex buffer, no index buffer, no template.
+                // Was 12 triangles an edge plus a separate 144-triangle sphere per vertex.
+                pass.set_pipeline(&self.pipelines.capsule);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
                 pass.set_bind_group(3, &self.segment_bind_group, &[]);
-                pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
-                pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.pipe_count); // one template, N edges
+                pass.draw(0..6 * self.pipe_count, 0..1);
                 draws += 1;
             }
 
@@ -998,15 +999,8 @@ impl Gpu {
             // Vertex ink, same split: glyphs[0..sphere_count] = mesh/BRep vertices -> spheres
             // (radius encoded to match the pipes meeting there), the rest -> flat SDF dots.
             if self.sphere_count > 0 {
-                pass.set_pipeline(&self.pipelines.sphere);
-                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                pass.set_bind_group(1, &self.line_bind_group, &[]);
-                pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
-                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
-                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count); // one template, N glyphs
-                draws += 1;
+                // (the solid sphere lane is gone - vertex dots are degenerate capsules now,
+                //  drawn with the edges above. sphere_count stays 0 for meshes.)
             }
             if self.glyph_count > self.sphere_count {
                 pass.set_pipeline(&self.pipelines.glyph);

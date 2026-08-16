@@ -254,6 +254,71 @@ pub fn build_edges_pipeline(
 }
 
 /// Pipeline for linework tubes — one unit-cylinder template instanced per segment; solid, occluding.
+/// The SOLID lane's one primitive: a capsule impostor. Replaces BOTH the tessellated cylinder
+/// (12 tris an edge) and the tessellated sphere (144 tris a vertex dot) with 6 vertices and a
+/// 2D SDF - see capsule.wgsl. No vertex buffer: the quad is built from `vertex_index`, the way
+/// the grid and background pipelines already do.
+pub fn build_capsule_pipeline(
+    device: &wgpu::Device,
+    samples: u32,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    segment_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("capsule.shader"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/capsule.wgsl").into()),
+    });
+
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("capsule.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(segment_layout)],
+        immediate_size: 0,
+    });
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("capsule"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],                        // vertexless - 6 verts per instance from vertex_index
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend: None,                     // opaque: the caps are carved by discard, not alpha
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,                     // a screen-facing quad has no meaningful winding
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::Greater),  // reverse-Z
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState { count: samples, mask: !0, alpha_to_coverage_enabled: false },
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
 pub fn build_cylinder_pipeline(
     device: &wgpu::Device,
     samples: u32,

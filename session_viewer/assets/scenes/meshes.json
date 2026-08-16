@@ -10,7 +10,9 @@
       "xform": [13.2,0,0,0,  0,13.2,0,0,  0,0,13.2,0,  3000,0,0,1] },
 
     { "file": "pb/mesh_dragon.pb", "name": "dragon  (437,645 v / 871,414 tri)",
-      "xform": [9761,0,0,0,  0,9761,0,0,  0,0,9761,0,  6000,0,0,1] }
+      "xform": [9761,0,0,0,  0,9761,0,0,  0,0,9761,0,  6000,0,0,1] },
+    { "file": "pb/colors_widths.pb", "name": "3 boxes + polyline + point (zoom reference)",
+      "at": [9000, 0, 0] }
   ],
 
   "ladder": [
