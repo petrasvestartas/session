@@ -616,24 +616,27 @@ impl Gpu {
             self.arena_ibo = zeroed_buffer(&self.device, "arena.ibo", 12, wgpu::BufferUsages::INDEX);
             self.arena_index_count = 3;
         } else {
-            self.arena_vbo = self.device.create_buffer_init(
-                &wgpu::util::BufferInitDescriptor{
-                    label: Some("arena.vbo"),
-                    contents: bytemuck::cast_slice(&up.verts),
-                    usage: wgpu::BufferUsages::VERTEX,
+            // NOT create_buffer_init. Same trap as `storage_buffer` (lesson 37 step 7):
+            // mapped_at_creation makes wgpu's WebGPU backend mirror the WHOLE buffer into the
+            // wasm heap (`temporary_mapping`) before handing it to JS. The mesh arena of the
+            // mixed scene is ~100 MB, and this runs on EVERY appended file - six times - so it
+            // was the largest single contributor left in the wasm high-water mark.
+            // write_buffer passes a subarray view of wasm memory instead.
+            let upload = |device: &wgpu::Device, queue: &wgpu::Queue, label, bytes: &[u8], usage| {
+                let b = device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some(label),
+                    size: bytes.len() as u64,
+                    usage,
+                    mapped_at_creation: false,
                 });
-            self.arena_vids = self.device.create_buffer_init(
-                &wgpu::util::BufferInitDescriptor{
-                    label: Some("arena.vids"),
-                    contents: bytemuck::cast_slice(&up.vids),
-                    usage: wgpu::BufferUsages::VERTEX,
-                });
-            self.arena_ibo = self.device.create_buffer_init(
-                &wgpu::util::BufferInitDescriptor {
-                    label: Some("arena.ibo"),
-                    contents: bytemuck::cast_slice(&up.idx),
-                    usage: wgpu::BufferUsages::INDEX,
-                });
+                queue.write_buffer(&b, 0, bytes);
+                b
+            };
+            let v = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST;
+            let i = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST;
+            self.arena_vbo = upload(&self.device, &self.queue, "arena.vbo", bytemuck::cast_slice(&up.verts), v);
+            self.arena_vids = upload(&self.device, &self.queue, "arena.vids", bytemuck::cast_slice(&up.vids), v);
+            self.arena_ibo = upload(&self.device, &self.queue, "arena.ibo", bytemuck::cast_slice(&up.idx), i);
             self.arena_index_count = up.idx.len() as u32;
         }
 
