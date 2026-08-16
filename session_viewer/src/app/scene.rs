@@ -104,6 +104,15 @@ impl Scene{
         }
     }
 
+    /// Upload, then FORGET the cloud rows. The GPU is now the only holder of those points.
+    /// Only `points` is cleared - the other lanes are still uploaded cumulatively, because
+    /// only the point lane has an append path (Gpu::set_scene).
+    pub fn upload_to(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
+        gpu.set_scene(&self.tables);
+        self.tables.points.clear();
+        self.tables.points.shrink_to_fit();
+    }
+
     /// Walk one session into the shared tables.
     /// We moved out of GPU struct:
     /// - placement = manifest `place` x the session's own `world_xforms()` one downward pass per object `world_xform()` rescans the the tree each call
@@ -590,7 +599,7 @@ fn push_cloud(pc: &PointCloud, instance_id: u32, out: &mut Vec<CloudPoint>){
     let coords = pc.coords();
     let colors = pc.colors();
     let n = pc.len();
-    out.reserve(n);
+    out.reserve_exact(n);
     for i in 0..n {
         let c = i * 4;
         out.push(CloudPoint{

@@ -110,13 +110,14 @@ impl ApplicationHandler<Msg> for App {
                         _ => Vec::new(),
                     };
                     let f1 = crate::engine::performance::now_ms();
-                    let session = persistence::session_from_bytes_chunked(&item.file, &bytes).await;
+                    let nbytes = bytes.len();
+                    let session = persistence::session_from_bytes_chunked(&item.file, bytes).await;
                     let name = if item.name.is_empty() {
                         session.name.clone()
                     } else {
                         item.name.clone()
                     };
-                    log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms", name, session.lookup.len(), bytes.len(), f1 - f0, crate::engine::performance::now_ms() - f1);
+                    log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms", name, session.lookup.len(), nbytes, f1 - f0, crate::engine::performance::now_ms() - f1);
                     if session.lookup.is_empty() {
                         continue; // failed fetch - skipped file
                     }
@@ -160,7 +161,7 @@ impl ApplicationHandler<Msg> for App {
                 let t0 = crate::engine::performance::now_ms();
                 state.scene.add_file(name, session, place);
                 let t1 = crate::engine::performance::now_ms();
-                state.gpu.set_scene(&state.scene.tables);
+                state.scene.upload_to(&mut state.gpu);
                 log::info!("appended: walk {:.0}ms · upload {:.0}ms | {} docs",
                     t1 - t0, crate::engine::performance::now_ms() - t1, state.scene.docs.len());
                 state.window.request_redraw();

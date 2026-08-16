@@ -22,10 +22,10 @@ impl State {
 
     /// Wire the stack around an already-populated `Scene` (the loader in lib.rs builds it from
     /// the manifest's FIRST file, then streams the rest through `Gpu::set_scene`).
-    pub async fn new(window: Arc<Window>, scene: Scene) -> anyhow::Result<Self>{
+    pub async fn new(window: Arc<Window>, mut scene: Scene) -> anyhow::Result<Self>{
         let t0 = now_ms();
         let mut gpu = Gpu::new(window.clone()).await?;
-        gpu.set_scene(&scene.tables);
+        scene.upload_to(&mut gpu);
         log::info!("gpu init {:.0}ms", now_ms() - t0);
         Ok(Self {window, gpu, camera: Camera::new(), scene })
     }

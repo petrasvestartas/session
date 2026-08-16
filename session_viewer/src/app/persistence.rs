@@ -57,11 +57,12 @@ async fn next_tick() {
 /// `Session::pb_loads`, unrolled with awaits: decode the proto whole (one short block — prost is
 /// fast), then convert objects CHUNK at a time. Same result, no multi-second freeze. `.json`
 /// files stay on the synchronous path (they are small).
-pub async fn session_from_bytes_chunked(url: &str, bytes: &[u8]) -> Session {
+pub async fn session_from_bytes_chunked(url: &str, bytes: Vec<u8>) -> Session {
     if url.ends_with(".json") {
-        return Session::file_json_loads(&String::from_utf8_lossy(bytes));
+        return Session::file_json_loads(&String::from_utf8_lossy(&bytes));
     }
-    let Ok(p) = proto::Session::decode(bytes) else { return Session::default() };
+    let Ok(p) = proto::Session::decode(&bytes[..]) else { return Session::default() };
+    drop(bytes);
     let mut s = Session::new(&p.name);
     s.set_guid(p.guid.clone());
 

@@ -128,6 +128,7 @@ pub struct Gpu {
     pub point_buffer: wgpu::Buffer,
     pub point_bind_group: wgpu::BindGroup,
     pub point_count: u32,
+    pub point_capacity: u64,
     pub cloud_buffer: wgpu::Buffer,
     pub cloud_bind_group: wgpu::BindGroup,
     pub depth_view: wgpu::TextureView,
@@ -281,7 +282,7 @@ impl Gpu {
             model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, _pad: [0;3],
         }];
 
-        let instance_buffer =  storage_buffer(&device, "instance.buffer", &instances);
+        let instance_buffer =  storage_buffer(&device, &queue, "instance.buffer", &instances);
         let objects_base: Vec<(Xform, [f32; 4], u32)> = Vec::new();
         let (pipe_count, segment_count, sphere_count, glyph_count) = (0u32, 0u32, 0u32, 0u32);
         let arena_index_count = 0u32;
@@ -436,11 +437,15 @@ impl Gpu {
         });
 
         // Point buffer + the cloud uniform
-        let points: Vec<CloudPoint> = Vec::new();
-        let point_count = points.len() as u32;
+        let point_count = 0u32;
+        let point_capacity = 1u64;
 
-        // point storage buffer
-        let point_buffer = storage_buffer(&device, "points.buffer", &points);
+        let point_buffer = zeroed_buffer(
+            &device,
+            "points.buffer",
+            point_capacity * std::mem::size_of::<CloudPoint>() as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
+        );
         let point_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("points.bind_group"),
             layout: &glyph_layout,
@@ -526,6 +531,7 @@ impl Gpu {
             point_buffer,
             point_bind_group,
             point_count,
+            point_capacity,
             cloud_buffer,
             cloud_bind_group,
             depth_view,
@@ -560,7 +566,7 @@ impl Gpu {
             self.instances.push(Instance {model: Xform::identity().to_f32(), color: [0.5,0.5,0.5,1.0], flags: 0, _pad: [0; 3] });
         }
 
-        self.instance_buffer = storage_buffer(&self.device, "instance.buffer", &self.instances);
+        self.instance_buffer = storage_buffer(&self.device, &self.queue, "instance.buffer", &self.instances);
         self.instance_bind_group = self.device.create_bind_group( &wgpu::BindGroupDescriptor{
             label: Some("instances.bind_group"),
             layout: &self.instance_layout,
@@ -656,17 +662,43 @@ impl Gpu {
         // Raw cloud lane: one row per scanned point, uploaded like any other table. Until now
         // this buffer was built empty in new() and never refilled - the machinery existed, the
         // rows never arrived.
-        self.point_count = up.points.len() as u32;
-        self.point_buffer = storage_buffer(&self.device, "points.buffer", &up.points);
-        self.point_bind_group = self.device.create_bind_group(
-            &wgpu::BindGroupDescriptor {
-                label: Some("points.bind_group"),
-                layout: &self.glyph_layout,
-                entries: &[wgpu::BindGroupEntry{
-                    binding: 0,
-                    resource: self.point_buffer.as_entire_binding()
-                }],
-        });
+        if !up.points.is_empty() {
+            let stride = std::mem::size_of::<CloudPoint>() as u64;
+            let need = self.point_count as u64 + up.points.len() as u64;
+
+            if need > self.point_capacity {
+                let cap = need; // EXACT, not doubling - see the lesson
+                let bigger = zeroed_buffer(
+                    &self.device,
+                    "points.buffer",
+                    cap * stride,
+                    wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
+                );
+                if self.point_count > 0 {
+                    let mut enc = self.device.create_command_encoder(&Default::default());
+                    enc.copy_buffer_to_buffer(&self.point_buffer, 0, &bigger, 0, self.point_count as u64 * stride);
+                    self.queue.submit([enc.finish()]);
+                }
+                self.point_buffer = bigger;
+                self.point_capacity = cap;
+                self.point_bind_group = self.device.create_bind_group(
+                    &wgpu::BindGroupDescriptor {
+                        label: Some("points.bind_group"),
+                        layout: &self.glyph_layout,
+                        entries: &[wgpu::BindGroupEntry{
+                            binding: 0,
+                            resource: self.point_buffer.as_entire_binding()
+                        }],
+                });
+            }
+
+            self.queue.write_buffer(
+                &self.point_buffer,
+                self.point_count as u64 * stride,
+                bytemuck::cast_slice(&up.points),
+            );
+            self.point_count += up.points.len() as u32;
+        }
 
         self.last_origin = None; // force the next frame to rebase agains the new table
         self.scene_min = if up.min[0].is_finite() { up.min } else { [0.0; 3] };
@@ -1168,13 +1200,15 @@ fn zeroed_buffer(
 /// A read-only storage buffer that is never zero-sized (wgpu can't bind a 0-byte buffer).
 /// When `data` is empty we still allocate one zeroed element; the real element count is
 /// tracked separately, so the draw call issues 0 instances and nothing renders.
-fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, label: &str, data: &[T]) -> wgpu::Buffer {
-    use wgpu::util::DeviceExt;
+fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, queue: &wgpu::Queue, label: &str, data: &[T]) -> wgpu::Buffer {
     let one = [T::zeroed()];
     let contents: &[u8] = if data.is_empty() { bytemuck::cast_slice(&one) } else { bytemuck::cast_slice(data) };
-    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+    let buffer = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some(label),
-        contents,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-    })
+        size: contents.len() as u64,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    queue.write_buffer(&buffer, 0, contents);
+    buffer
 }
