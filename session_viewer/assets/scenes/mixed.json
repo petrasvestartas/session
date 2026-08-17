@@ -24,6 +24,9 @@
     { "file": "pb/colors_widths.pb",         "name": "3 boxes + polyline + point (pen test)",
       "at": [0, -25800, 0] },
 
+    { "file": "pb/lidar_scan006.pb",         "name": "scan006  (3.50M pts, streamed)",
+      "at": [180000, 0, 0] },
+
     { "file": "pb/floor_model.pb",           "name": "floor model (201 meshes, 290 polylines)",
       "at": [14000, -30000, 0] }
   ]
