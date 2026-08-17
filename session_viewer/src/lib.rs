@@ -302,6 +302,17 @@ impl ApplicationHandler<Msg> for App {
                         Key::Character("6") => state.camera.set_view(View::Bottom),
                         Key::Character("7") => state.camera.set_view(View::Iso),
                         Key::Character("c" | "C") => state.camera.reset(),
+                        // L toggles how the SOLID lane draws mesh/BRep edges: real 3D tubes, or
+                        // camera-facing flat quads through the flat lane's own shader. Same
+                        // instance table either way, so it is a free A/B at any zoom.
+                        Key::Character("l" | "L") => {
+                            use crate::engine::gpu::LineStyle;
+                            state.gpu.line_style = match state.gpu.line_style {
+                                LineStyle::Tubes => LineStyle::Flat,
+                                LineStyle::Flat => LineStyle::Tubes,
+                            };
+                            log::info!("line style: {:?}", state.gpu.line_style);
+                        }
                         Key::Character("f" | "F") => {
                             let aspect = state.gpu.config.width as f64 / state.gpu.config.height as f64;
                             state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);

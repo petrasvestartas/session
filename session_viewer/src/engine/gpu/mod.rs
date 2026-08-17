@@ -90,6 +90,20 @@ impl ArenaUpload {
     }
 }
 
+/// How the SOLID lane draws mesh/BRep edges. Both read the SAME `CylinderSegment` table, so
+/// switching costs one branch at the draw site and nothing in memory - which is the whole reason
+/// the two lanes were built over one buffer. Easy3D ships exactly this pair
+/// (`lines_cylinders_*` against `lines_plain_*_width_control`) and lets you pick.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum LineStyle {
+    /// A real 3D tube per edge: 12 triangles, and the radius lifts the ink off the surface it
+    /// decorates so silhouette edges never lose the depth test.
+    Tubes,
+    /// A camera-facing quad per edge: 6 vertices, the flat lane's own shader. Cheaper, and it
+    /// lies IN the surface rather than proud of it.
+    Flat,
+}
+
 pub struct Gpu {
     pub surface: Option<wgpu::Surface<'static>>, // Screen to draw pixels on; None when headless.
     pub device: wgpu::Device,                // Handle to the GPU, used to create resources (textures, buffers, pipelines).
@@ -146,6 +160,8 @@ pub struct Gpu {
     pub cloud_col_at: u32,
     pub point_count: u32,
     pub point_capacity: u64,
+    /// Solid-lane style; `VIEWER_LINE_STYLE=flat` picks Flat at startup.
+    pub line_style: LineStyle,
     pub cloud_buffer: wgpu::Buffer,
     pub cloud_bind_group: wgpu::BindGroup,
     pub depth_view: wgpu::TextureView,
@@ -600,6 +616,11 @@ impl Gpu {
             point_bind_group,
             point_count,
             point_capacity,
+            line_style: if std::env::var("VIEWER_LINE_STYLE").map(|v| v.eq_ignore_ascii_case("flat")).unwrap_or(false) {
+                LineStyle::Flat
+            } else {
+                LineStyle::Tubes
+            },
             point_pos_buffer,
             point_col_buffer,
             cloud_layout,
@@ -1035,14 +1056,24 @@ impl Gpu {
             // segments[pipe_count..] = line/polyline -> flat ribbons: nothing to fight with, and
             // they stay screen-constant and cheap.
             if self.pipe_count > 0 {
-                pass.set_pipeline(&self.pipelines.cylinder);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
                 pass.set_bind_group(3, &self.segment_bind_group, &[]);
-                pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
-                pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.pipe_count); // one template, N edges
+                match self.line_style {
+                    LineStyle::Tubes => {
+                        pass.set_pipeline(&self.pipelines.cylinder);
+                        pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
+                        pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                        pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.pipe_count); // one template, N edges
+                    }
+                    // The flat lane's own shader over the SOLID half of the same table. vid/6
+                    // picks the row, so the range is simply the pipes prefix.
+                    LineStyle::Flat => {
+                        pass.set_pipeline(&self.pipelines.ribbon);
+                        pass.draw(0..6 * self.pipe_count, 0..1);
+                    }
+                }
                 draws += 1;
             }
 
