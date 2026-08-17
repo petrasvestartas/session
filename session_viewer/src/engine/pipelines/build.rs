@@ -593,18 +593,21 @@ pub fn build_ink_depth_pipeline(
 }
 
 /// Pipeline for flat capsule ribbons - buffer-less, 6 vertices / segments, opaque, depth-writing.
-/// The flat lane's shader, but aimed at the SOLID lane (mesh/BRep edges) - so it needs the one
-/// thing a screen-space quad cannot give itself: to sit PROUD of the surface it decorates.
+/// The flat lane's shader, aimed at the SOLID lane (mesh/BRep edges) so those can be drawn as
+/// camera-facing quads instead of tessellated tubes.
 ///
-/// A ribbon lies at its edge's own depth. Moving inward across an angled face the surface comes
-/// TOWARD the camera, so the inner half of every line is buried by the face it sits on and only
-/// the outer half survives - the line reads as offset outward, and which half dies depends on
-/// which way the face tilts. `gpu/mod.rs` already names this: "the tube radius lifts the ink off
-/// the surface it sits on, so silhouette edges never lose the depth test."
+/// The ONLY thing that differs from `build_ribbon_pipeline` is that this one writes depth - an
+/// edge in the solid lane should occlude what is behind it. Everything else, including
+/// `GreaterEqual`, is deliberately identical, and `GreaterEqual` is the load-bearing part:
 ///
-/// A SLOPE-SCALED depth bias is exactly the right instrument: the artifact scales with the depth
-/// gradient of the surface underneath, and so does the bias. Reverse-Z means nearer is LARGER, so
-/// the bias is positive here where a conventional depth buffer would want it negative.
+/// A mesh edge lies EXACTLY on the boundary of the two faces that meet there, so the quad and the
+/// face are at the same depth. Strict `Greater` discards the line and float precision then decides
+/// which pixels survive, which reads as an edge offset outward, ragged, and asymmetric along its
+/// length - buried at one end and clean at the other. The flat lane always used `GreaterEqual`
+/// for exactly this reason; copying `Greater` from the tube pipeline was the whole bug.
+///
+/// The quad geometry was never wrong: with the depth test disabled entirely, all twelve edges of
+/// a box land precisely on their edges.
 pub fn build_ribbon_solid_pipeline(
     device: &wgpu::Device,
     samples: u32,
@@ -654,9 +657,17 @@ pub fn build_ribbon_solid_pipeline(
         depth_stencil: Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
             depth_write_enabled: Some(true), // solid lane: an edge occludes what is behind it
-            depth_compare: Some(wgpu::CompareFunction::Greater),
+            // GreaterEqual, NOT Greater. A mesh edge is EXACTLY on the boundary of the two faces
+            // that meet there, so the ribbon and the face are at the same depth; strict Greater
+            // discards the line and float precision then decides which pixels survive, which is
+            // what made the edge look offset and ragged and asymmetric along its length. The flat
+            // lane always used GreaterEqual; copying Greater from the tube pipeline was the bug.
+            depth_compare: Some(if std::env::var("VIEWER_NO_DEPTH").is_ok() { wgpu::CompareFunction::Always } else { wgpu::CompareFunction::GreaterEqual }),
             stencil: wgpu::StencilState::default(),
-            bias: wgpu::DepthBiasState { constant: 64, slope_scale: 2.0, clamp: 0.0 },
+            // NO bias. An earlier attempt used a slope-scaled bias here, which only masked the
+            // strict-Greater bug above: with GreaterEqual the quad needs no nudge at all, because
+            // it is already exactly where it should be.
+            bias: wgpu::DepthBiasState::default(),
         }),
         multisample: wgpu::MultisampleState { count: samples, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
