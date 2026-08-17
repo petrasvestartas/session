@@ -12,6 +12,9 @@ struct Instance {
 // Matches the Rust Cylinder Segment (48 B)
 // Matches the Rust CylinderSegment, 40 B. The ends are SCALARS, not vec3<f32>: WGSL aligns
 // vec3<f32> to 16, which padded this struct to 48 and made the 40 impossible.
+// Matches FACING_UNKNOWN in scene.rs.
+const FACING_UNKNOWN: u32 = 0xffffffffu;
+
 struct CylinderSegment{
     p0x: f32, p0y: f32, p0z: f32,
     radius: f32,
@@ -29,7 +32,10 @@ fn oct16_decode(p: u32) -> vec3<f32> {
     );
     var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
     if (n.z < 0.0){
-        n = vec3<f32>((1.0 - abs(n.y)) * sign(n.x), (1.0 - abs(n.x)) * sign(n.y), n.z);
+        // signNotZero, matching the encoder: WGSL `sign(0.0)` is 0.0, and using it here folds the
+        // -Z pole onto the +Z code instead of back onto -Z.
+        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
+        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
     }
     return normalize(n);
 }
@@ -43,10 +49,11 @@ fn oct16_decode(p: u32) -> vec3<f32> {
 // float needed scales with the pen while the offset that would supply it makes neighbouring faces
 // fight each other. Classifying the edge sidesteps the whole trade.
 //
-// `facing == 0` means the geometry never had adjacency - free-standing linework, drawing pens,
-// BRep edges - and those always draw.
+// FACING_UNKNOWN means the geometry never had adjacency - free-standing linework, drawing pens,
+// BRep edges - and those always draw. It is all-ones rather than 0 because (0,0) is the honest
+// octahedral code for +Z, and a box's top face is exactly that.
 fn edge_faces_camera(seg: CylinderSegment, model: mat4x4<f32>, mid: vec3<f32>) -> bool {
-    if (seg.facing == 0u){
+    if (seg.facing == FACING_UNKNOWN){
         return true;
     }
     // Rotate into world with the model's linear part. Non-uniform scale would strictly want the

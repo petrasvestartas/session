@@ -546,38 +546,50 @@ fn pack_rgba(c: [f32; 4]) -> u32 {
 /// A unit vector in 16 bits, octahedral: project onto the octahedron, fold the lower hemisphere
 /// out across the diagonals, and store the two coordinates as signed bytes. ~1.4 degrees of error,
 /// which is generous for a value only ever used for the SIGN of a dot product.
-fn oct16(n: &Vector) -> u32 {
+fn oct16(n: &Vector) -> Option<u32> {
     let l = n[0].abs() + n[1].abs() + n[2].abs();
     if !(l > 0.0) {
-        return 0;
+        return None;
     }
     let (mut x, mut y) = (n[0] / l, n[1] / l);
     if n[2] < 0.0 {
+        // signNotZero, NOT signum. `f64::signum(0.0)` is 0.0, which folds (0,0,-1) onto (0,0) -
+        // the code for (0,0,+1) - so the two poles collided. On an axis-aligned box that is the
+        // top and bottom faces, i.e. most of its edges, and the collision then landed on the
+        // all-zero "no adjacency" sentinel: the facing test silently did nothing for them.
+        let s = |v: f64| if v < 0.0 { -1.0 } else { 1.0 };
         let (ax, ay) = (x.abs(), y.abs());
-        (x, y) = ((1.0 - ay) * x.signum(), (1.0 - ax) * y.signum());
+        (x, y) = ((1.0 - ay) * s(x), (1.0 - ax) * s(y));
     }
     let q = |v: f64| (((v.clamp(-1.0, 1.0) * 127.0).round() as i32) as u32) & 0xff;
-    q(x) | q(y) << 8
+    Some(q(x) | q(y) << 8)
 }
+
+/// `facing` value meaning "this edge has no adjacency, always draw it".
+///
+/// It cannot be 0: (0, 0) is the honest encoding of +Z. All four corners of the octahedral square
+/// collapse onto -Z, so the all-ones word is a value the encoder can produce but never needs, which
+/// makes it the one safe sentinel here.
+pub const FACING_UNKNOWN: u32 = u32::MAX;
 
 /// The two faces an edge belongs to, packed into one word for the shader's facing test.
 ///
-/// 0 means "no adjacency known, always draw" - the whole word, so a genuinely encoded pair can
-/// never collide with it: `oct16` returns 0 only for a degenerate normal, and the second face
-/// occupies the high half, so a real single-face (naked) edge lands in the low half and stays
-/// non-zero. Naked edges get their one normal duplicated: a boundary edge is visible whenever its
-/// single face is, which is the correct answer and needs no special case in the shader.
+/// `FACING_UNKNOWN` means "no adjacency known, always draw" - see the constant for why it is the
+/// all-ones word and not 0.
 fn pack_facing(n0: Option<Vector>, n1: Option<Vector>) -> u32 {
-    match (n0, n1) {
+    let pair = match (n0, n1) {
+        (Some(a), Some(b)) => (oct16(&a), oct16(&b)),
+        // A naked edge is visible whenever its single face is, so duplicating the one normal is
+        // the correct answer and needs no special case in the shader.
+        (Some(a), None) | (None, Some(a)) => (oct16(&a), oct16(&a)),
+        _ => (None, None),
+    };
+    match pair {
         (Some(a), Some(b)) => {
-            let (pa, pb) = (oct16(&a), oct16(&b));
-            if pa == 0 || pb == 0 { 0 } else { pa | pb << 16 }
+            let v = a | b << 16;
+            if v == FACING_UNKNOWN { FACING_UNKNOWN } else { v }
         }
-        (Some(a), None) | (None, Some(a)) => {
-            let pa = oct16(&a);
-            if pa == 0 { 0 } else { pa | pa << 16 }
-        }
-        _ => 0,
+        _ => FACING_UNKNOWN,
     }
 }
 

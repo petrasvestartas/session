@@ -66,13 +66,16 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
 
     // px radius: global thickness, or a world radius projected (>0) — the same inverse of
     // cylinder.wgsl's screen_radius that ribbon.wgsl uses.
+    // The 0.5s: NDC spans [-1,1] over vp_h px, so one NDC unit is vp_h/2 px - see the long note
+    // in ribbon.wgsl's half_width_px. `px` is a RADIUS, and without them every dot drew at twice
+    // its size, out of step with sphere.wgsl which goes through screen_radius and is correct.
     let mult = select(1.0, -g.radius, g.radius < 0.0);
-    var px = line.thickness * mult;
+    var px = line.thickness * 0.5 * mult;
     if (g.radius > 0.0) {
         if (line.ortho_h > 0.0) {
-            px = g.radius * line.vp_h / line.ortho_h;
+            px = g.radius * line.vp_h * 0.5 / line.ortho_h;
         } else {
-            px = g.radius * line.proj_y * line.vp_h / max(clip.w, 1e-6);
+            px = g.radius * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6);
         }
     }
 

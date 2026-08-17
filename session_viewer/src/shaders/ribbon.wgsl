@@ -10,6 +10,9 @@ struct Instance{
 
 // Matches the Rust CylinderSegment, 40 B. The ends are SCALARS, not vec3<f32>: WGSL aligns
 // vec3<f32> to 16, which padded this struct to 48 and made the 40 impossible.
+// Matches FACING_UNKNOWN in scene.rs.
+const FACING_UNKNOWN: u32 = 0xffffffffu;
+
 struct CylinderSegment{
     p0x: f32, p0y: f32, p0z: f32,
     radius: f32,
@@ -27,7 +30,10 @@ fn oct16_decode(p: u32) -> vec3<f32> {
     );
     var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
     if (n.z < 0.0){
-        n = vec3<f32>((1.0 - abs(n.y)) * sign(n.x), (1.0 - abs(n.x)) * sign(n.y), n.z);
+        // signNotZero, matching the encoder: WGSL `sign(0.0)` is 0.0, and using it here folds the
+        // -Z pole onto the +Z code instead of back onto -Z.
+        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
+        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
     }
     return normalize(n);
 }
@@ -41,10 +47,11 @@ fn oct16_decode(p: u32) -> vec3<f32> {
 // float needed scales with the pen while the offset that would supply it makes neighbouring faces
 // fight each other. Classifying the edge sidesteps the whole trade.
 //
-// `facing == 0` means the geometry never had adjacency - free-standing linework, drawing pens,
-// BRep edges - and those always draw.
+// FACING_UNKNOWN means the geometry never had adjacency - free-standing linework, drawing pens,
+// BRep edges - and those always draw. It is all-ones rather than 0 because (0,0) is the honest
+// octahedral code for +Z, and a box's top face is exactly that.
 fn edge_faces_camera(seg: CylinderSegment, model: mat4x4<f32>, mid: vec3<f32>) -> bool {
-    if (seg.facing == 0u){
+    if (seg.facing == FACING_UNKNOWN){
         return true;
     }
     // Rotate into world with the model's linear part. Non-uniform scale would strictly want the
@@ -96,16 +103,28 @@ const MM_TO_M = 0.001;
 // five zooms and six orbits.
 const LIFT_RADII = 3.0;
 
-// Half-width in px at one end: the global pen thickness, or a world radius projected.
-// The inverse of `screen_radius` in cylinder.wgsl, solved for pixels.
+// HALF-width in px at one end: half the global pen thickness, or a world radius projected.
+//
+// The two 0.5s are the bug this lane shipped with, and they are the same bug twice. NDC spans
+// [-1, 1] across vp_h pixels, so ONE NDC unit is vp_h/2 px, not vp_h:
+//
+//     y_ndc = (y_eye / d) * cot(fovy/2)        px = y_ndc * vp_h/2 = y*cot*vp_h / (2*d)
+//
+// and `proj_y` is cot(fovy/2) with the mm->m scale folded in, so a world radius projects to
+// `r * proj_y * vp_h / (2*w)` px. Without the 2 every ribbon drew at twice its pen. `thickness`
+// is documented as an on-screen WIDTH in px (cylinder.wgsl's screen_radius reads it that way and
+// is correct), so as a HALF-width it needs halving too.
+//
+// The reference is the tube lane, which is real geometry of radius r and cannot be argued with:
+// before this, a mesh edge measured 8 px flat against 4 px as a tube.
 fn half_width_px(radius: f32, w: f32) -> f32 {
     if (radius > 0.0){
         if (line.ortho_h > 0.0){
-            return radius * line.vp_h / line.ortho_h;
+            return radius * line.vp_h * 0.5 / line.ortho_h;
         }
-        return radius * line.proj_y * line.vp_h / w;
+        return radius * line.proj_y * line.vp_h * 0.5 / w;
     }
-    return line.thickness * select(1.0, -radius, radius < 0.0);
+    return line.thickness * 0.5 * select(1.0, -radius, radius < 0.0);
 }
 
 // Hairline rule: never rasterize thinner than 1px - carry the deficit into OPACITY instead, so a
