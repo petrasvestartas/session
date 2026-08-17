@@ -31,14 +31,6 @@ const CYL_SIDES: u32 = 6;
 /// FLAT (ribbon + glyph) for line/polyline/point, which float free and have nothing to fight.
 /// Routing lives in `app::scene::Scene`, one draw per lane in `clear`.
 
-/// const for the unit_sphere method
-// A vertex dot is a few pixels across on screen. 12x6 spent 144 triangles approximating a
-// shape that never covers more than a handful of fragments - and on the Stanford ladder that
-// was 92.9M triangles, 80% of the entire solid lane. 6x3 is 36, visually identical at dot size,
-// and it is a pure template change: no shader, no coordinate math, nothing that can render wrong.
-const SPH_LONS: usize = 6;
-const SPH_LATS: usize = 3;
-
 /// Depth prepass for the FLAT lane, so flat ink occludes flat ink (a dot behind a polyline
 /// loses to it) instead of pure draw order deciding - and draw order here is HashMap order,
 /// so without it "who is in front" is effectively random. Costs a SECOND full pass over every
@@ -66,6 +58,9 @@ pub struct ArenaUpload{
     pub cloud_col: Vec<u32>,      // RGBA8, 1 per point
     pub clouds: Vec<CloudDraw>,   // one entry per cloud - the instance rides here, not per point
     pub objects: Vec<(Xform, [f32; 4], u32)>,
+    /// Mesh-local AABB per object row, aligned with `objects`. None for linework/points/clouds:
+    /// only the solid lane's facing cull needs it (see `Instance::FLAG_INSIDE`).
+    pub object_bounds: Vec<Option<([f32; 3], [f32; 3])>>,
     pub min: [f32; 3],
     pub max: [f32; 3],
 }
@@ -84,6 +79,7 @@ impl ArenaUpload {
             cloud_col: Vec::new(),
             clouds: Vec::new(),
             objects: Vec::new(),
+            object_bounds: Vec::new(),
             min: [f32::INFINITY; 3],
             max: [f32::NEG_INFINITY; 3],
         }
@@ -127,6 +123,10 @@ pub struct Gpu {
     instances: Vec<Instance>,
     last_origin: Option<Point>, // rebuild_instances skips when the camera target did not move
     objects_base: Vec<(Xform, [f32; 4], u32)>, // TRUE world model+color; isntance[] is rebased from this
+    /// Per-object WORLD AABB (ArenaUpload.object_bounds through the true transform), aligned with
+    /// `instances`. Drives FLAG_INSIDE - see update_inside_flags.
+    object_bounds_world: Vec<Option<([f64; 3], [f64; 3])>>,
+    inside: Vec<bool>, // current FLAG_INSIDE state per instance row, for change detection
     // Layouts surfvive so set_scene can rebuild bind groups and pipelines on an MSAA change.
     mvp_layout: wgpu::BindGroupLayout,
     time_layout: wgpu::BindGroupLayout,
@@ -420,8 +420,8 @@ impl Gpu {
             }]
         });
 
-        // Unit-sphere template (positions-only) - one mesh, instance per glyph
-        let (sph_v, sph_i) = unit_sphere();
+        // Camera-facing quad template (positions-only) - one mesh, instance per marker
+        let (sph_v, sph_i) = unit_quad();
         let sph_index_count = sph_i.len() as u32;
         let sph_template_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
             label: Some("sph.template.vbo"), 
@@ -481,7 +481,10 @@ impl Gpu {
             label: Some("line.layout"),
             entries: &[wgpu::BindGroupLayoutEntry{
                 binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
+                // FRAGMENT too: the flat lane's fragment stage reads the viewport size to
+                // recover the fragment's ndc for the face-plane depth solve (ribbon.wgsl
+                // `ink_depth`). Everything else still only touches it from the vertex stage.
+                visibility: wgpu::ShaderStages::VERTEX.union(wgpu::ShaderStages::FRAGMENT),
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
@@ -591,6 +594,8 @@ impl Gpu {
             instances,
             last_origin: None,
             objects_base,
+            object_bounds_world: Vec::new(),
+            inside: Vec::new(),
             mvp_layout,
             time_layout,
             instance_layout,
@@ -647,6 +652,30 @@ impl Gpu {
     pub fn set_scene(&mut self, up: &ArenaUpload){
         // Instance rows: rebuilt from the true transforms (rebase stete, must live CPU-side).
         self.objects_base = up.objects.clone();
+        debug_assert_eq!(up.objects.len(), up.object_bounds.len());
+        self.object_bounds_world = up.objects.iter().zip(&up.object_bounds).map(|((m, _, _), b)| {
+            b.map(|(lo, hi)| {
+                // World AABB of the local box: the 8 corners through the true transform.
+                // Conservative for rotated placements - FLAG_INSIDE is a hint, not a cull.
+                let xp = |x: f64, y: f64, z: f64| [
+                    m.m[0] * x + m.m[4] * y + m.m[8] * z + m.m[12],
+                    m.m[1] * x + m.m[5] * y + m.m[9] * z + m.m[13],
+                    m.m[2] * x + m.m[6] * y + m.m[10] * z + m.m[14],
+                ];
+                let mut wlo = [f64::INFINITY; 3];
+                let mut whi = [f64::NEG_INFINITY; 3];
+                for c in 0..8 {
+                    let p = xp(
+                        (if c & 1 == 0 { lo[0] } else { hi[0] }) as f64,
+                        (if c & 2 == 0 { lo[1] } else { hi[1] }) as f64,
+                        (if c & 4 == 0 { lo[2] } else { hi[2] }) as f64,
+                    );
+                    for k in 0..3 { wlo[k] = wlo[k].min(p[k]); whi[k] = whi[k].max(p[k]); }
+                }
+                (wlo, whi)
+            })
+        }).collect();
+        self.inside = vec![false; up.objects.len()];
         self.instances.clear();
         self.instances.extend(up.objects.iter().map(|(m, c, f)| Instance {
             model: m.to_f32(),
@@ -1023,6 +1052,40 @@ impl Gpu {
             _pad1: 0.0,
         };
         self.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
+        self.update_inside_flags(view_proj);
+    }
+
+    /// Per-frame refresh of Instance::FLAG_INSIDE. The facing cull in both edge lanes assumes the
+    /// eye is OUTSIDE the solid (both adjacent faces turned away = hidden edge); from inside, every
+    /// face points away and the whole object loses its wireframe the moment the camera crosses a
+    /// face. Per-edge data cannot tell "far side of the solid" from "eye inside it" - that
+    /// difference is global - so the CPU answers it per object from the world AABBs, and the answer
+    /// rides the instance row. One containment test per object per frame; the instance buffer is
+    /// rewritten only when some answer flips, which orbit/zoom almost never does.
+    fn update_inside_flags(&mut self, view_proj: &Xform) {
+        if self.object_bounds_world.iter().all(Option::is_none) {
+            return;
+        }
+        let Some(origin) = self.last_origin.clone() else { return };
+        let eye = Self::eye_from_view_proj(view_proj); // anchored world units, like instances[]
+        let ew = [origin[0] + eye[0] as f64, origin[1] + eye[1] as f64, origin[2] + eye[2] as f64];
+        // The eye outside the scene's box is outside every object in it.
+        let in_scene = (0..3).all(|k| ew[k] >= self.scene_min[k] as f64 && ew[k] <= self.scene_max[k] as f64);
+        let mut dirty = false;
+        for (i, b) in self.object_bounds_world.iter().enumerate() {
+            let inside = in_scene && b.is_some_and(|(lo, hi)| (0..3).all(|k| ew[k] >= lo[k] && ew[k] <= hi[k]));
+            if self.inside.get(i).copied().unwrap_or(false) == inside {
+                continue;
+            }
+            if let Some(row) = self.instances.get_mut(i) {
+                row.flags = if inside { row.flags | Instance::FLAG_INSIDE } else { row.flags & !Instance::FLAG_INSIDE };
+            }
+            if i < self.inside.len() { self.inside[i] = inside; }
+            dirty = true;
+        }
+        if dirty {
+            self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
+        }
     }
 
     /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
@@ -1063,9 +1126,11 @@ impl Gpu {
        
 
             // Pipelines - sequence of drawing is important:
-            // background -> grid -> triangles -> cylinders -> CLOUD -> ink prepass -> ribbon
-            // -> sphere -> glyph. Everything that WRITES depth comes first (the cloud included,
-            // since it went opaque); the flat ink lanes read that depth and never write it.
+            // background -> grid -> triangles -> sphere markers -> cylinders -> CLOUD -> ink
+            // prepass -> ribbon -> glyph. Everything that WRITES depth comes first (the cloud
+            // included, since it went opaque); the flat ink lanes read that depth and never
+            // write it. The markers go with the solids so the line ink tests against them -
+            // a vertex marker is the topmost ink at its own joint.
 
             // Background
             pass.set_pipeline(&self.pipelines.background);
@@ -1093,6 +1158,29 @@ impl Gpu {
                 pass.draw_indexed(0..self.arena_index_count, 0, 0..1); // whole scene, one call
             }
             draws += 1;
+
+            // Vertex markers, right after the faces and BEFORE any linework: the marker depth-tests
+            // against surfaces only, so a vertex hidden by the solid stays hidden, and the bands
+            // and tubes drawn afterwards test against the marker's depth and lose the joint to it
+            // (their hug is face+eps, the marker's is face+eps+SPHERE_TIE). The line ink can still
+            // cover a marker where it is genuinely nearer (an edge approaching the eye past a far
+            // corner) - that is occlusion, not a lost tie.
+            //
+            // Under VIEWER_NO_DEPTH (the acceptance harness) the marker instead draws LATE, at the
+            // end of the pass: bands are Always then and would otherwise overwrite the markers in
+            // the oracle run only, and the on/off comparison would drown in disc-sized clusters.
+            let markers_late = std::env::var("VIEWER_NO_DEPTH").is_ok();
+            if self.sphere_count > 0 && !markers_late {
+                pass.set_pipeline(&self.pipelines.sphere);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count); // one template, N glyphs
+                draws += 1;
+            }
 
             // Linework, ONE draw per lane over the SAME segment table.
             // segments[0..pipe_count] = mesh/BRep edges -> real cylinders: the tube radius lifts
@@ -1178,19 +1266,8 @@ impl Gpu {
                 draws += 1;
             }
 
-            // Vertex ink, same split: glyphs[0..sphere_count] = mesh/BRep vertices -> spheres
-            // (radius encoded to match the pipes meeting there), the rest -> flat SDF dots.
-            if self.sphere_count > 0 {
-                pass.set_pipeline(&self.pipelines.sphere);
-                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                pass.set_bind_group(1, &self.line_bind_group, &[]);
-                pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
-                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
-                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count); // one template, N glyphs
-                draws += 1;
-            }
+            // Vertex ink, same split: glyphs[0..sphere_count] = mesh/BRep vertices -> markers
+            // (DRAWN EARLIER - right after the faces; see there), the rest -> flat SDF dots.
             if self.glyph_count > self.sphere_count {
                 pass.set_pipeline(&self.pipelines.glyph);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
@@ -1198,6 +1275,21 @@ impl Gpu {
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
                 pass.set_bind_group(3, &self.glyph_bind_group, &[]);
                 pass.draw(3 * self.sphere_count..3 * self.glyph_count, 0..1); // 3 verts/dot, no template
+                draws += 1;
+            }
+
+            // Acceptance-harness-only marker position (see the early draw for why): with every ink
+            // lane's depth test forced off, the marker - also Always - must come LAST so the oracle
+            // frame still shows the markers on top, matching the normal run.
+            if self.sphere_count > 0 && markers_late {
+                pass.set_pipeline(&self.pipelines.sphere);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count);
                 draws += 1;
             }
 
@@ -1355,6 +1447,11 @@ pub struct Instance {
 
 impl Instance {
     pub const FLAG_HIDDEN: u32 = 1 << 1; // Row is skipped by the draw, bit 0 is reserved for FLAG_SELECTED
+    /// The eye is inside this object's bounds (per-frame CPU test, see `update_inside_flags`).
+    /// Both edge lanes then skip the facing cull - from inside a solid every face points away -
+    /// and the flat lane hugs BOTH adjacent face planes, since the back-facing ones are the
+    /// visible surface from in there. Bit 2, matching FLAG_INSIDE in ribbon.wgsl/cylinder.wgsl.
+    pub const FLAG_INSIDE: u32 = 1 << 2;
 }
 
 
@@ -1379,10 +1476,11 @@ pub struct CylinderSegment{
     // (118 MB at mesh-stress scale).
     pub color: u32,     // 4 B - RGBA8, low byte red
     // The two faces this edge belongs to, as octahedral unit normals, 16 bits each - about 1.4
-    // degrees, when all that is asked of them is the SIGN of a dot product. This is what lets the
-    // shader answer "is this edge facing the camera" without the depth buffer: both faces facing
-    // away means the edge is hidden and must not be drawn at all. 0 = unknown, always draw
-    // (polylines, drawing linework, BRep edges with no adjacency).
+    // degrees, when all that is asked of them is the SIGN of a dot product (the facing cull) and
+    // a plane to hug (the flat lane's depth solve). This is what lets the shader answer "is this
+    // edge facing the camera" without the depth buffer: both faces facing away means the edge is
+    // hidden and must not be drawn at all. FACING_UNKNOWN = unknown, always draw (polylines,
+    // drawing linework, BRep edges with no adjacency); 0 is a real value - a +Z/+Z face pair.
     pub facing: u32,    // 4 B
 }                       // 40 B
 
@@ -1422,8 +1520,17 @@ pub struct GlyphPoint{
     pub radius: f32, // 4 B - 0.0 - screen-constant px; 0 - world mm
     pub color:  [f32; 4],
     pub instance_id: u32, // 4 B - row insntaces
-    pub _pad: [u32; 3], // 12 B - single trailing scalar is why we need pad
+    // Up to SIX incident face normals (oct16 pairs), widest incident edge's two first - the same
+    // adjacency CylinderSegment carries one word of. A marker that hugs only the widest edge's
+    // two faces still loses a sector of its disc to the THIRD face's band at a trihedral corner
+    // (measured on a box corner); all-ones (FACING_UNKNOWN) means "no adjacency / no more".
+    pub facing: u32,
+    pub facing_ext: [u32; 2],
 } // 48 B total, three 16-byte rows
+
+// The WGSL GlyphPoint (glyph.wgsl AND sphere.wgsl - same table) is exactly this layout; the
+// array stride is the struct's, so a drift here misreads every row.
+const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
 
 // The raw cloud lane has no row STRUCT any more - it has two parallel arrays, 12 B of position
 // and 4 B of packed RGBA8 per point. What is left per CLOUD is this, and only this.
@@ -1478,39 +1585,20 @@ fn unit_cylinder(sides: u32) -> (Vec<[f32; 3]>, Vec<u32>){
 }
 
 
-// Unit sphere on the origin, radius 1. The shader offsets each template vertex by the
-/// Unit-sphere template mesh (positions + indices) for the instanced sphere glyphs.
-// screen-constant radius around the glyph's world centre — no frame needed (a sphere is
-// symmetric), unlike 31's tube.
-fn unit_sphere() -> (Vec<[f32; 3]>, Vec<u32>) {
-    let pi = std::f32::consts::PI;
-    let mut v: Vec<[f32; 3]> = Vec::new();
-    let mut idx: Vec<u32> = Vec::new();
-    v.push([0.0, 0.0, 1.0]);                                   // north pole
-    for k in 1..=SPH_LATS {
-        let phi = k as f32 * pi / (SPH_LATS + 1) as f32;
-        let (z, r) = (phi.cos(), phi.sin());
-        for i in 0..SPH_LONS {
-            let t = i as f32 * 2.0 * pi / SPH_LONS as f32;
-            v.push([r * t.cos(), r * t.sin(), z]);
-        }
-    }
-    let south = v.len() as u32; v.push([0.0, 0.0, -1.0]);      // south pole
-    for i in 0..SPH_LONS {                                     // top cap fan
-        idx.extend_from_slice(&[0, 1 + i as u32, 1 + ((i + 1) % SPH_LONS) as u32]);
-    }
-    for k in 0..(SPH_LATS - 1) {                               // middle bands
-        let (ra, rb) = ((1 + k * SPH_LONS) as u32, (1 + (k + 1) * SPH_LONS) as u32);
-        for i in 0..SPH_LONS {
-            let (a0, a1) = (ra + i as u32, ra + ((i + 1) % SPH_LONS) as u32);
-            let (b0, b1) = (rb + i as u32, rb + ((i + 1) % SPH_LONS) as u32);
-            idx.extend_from_slice(&[a0, a1, b0, a1, b1, b0]);
-        }
-    }
-    let lr = (1 + (SPH_LATS - 1) * SPH_LONS) as u32;           // bottom cap fan (reversed)
-    for i in 0..SPH_LONS {
-        idx.extend_from_slice(&[south, lr + ((i + 1) % SPH_LONS) as u32, lr + i as u32]);
-    }
+/// Camera-facing quad template (positions + indices) for the instanced vertex markers. The
+/// shader expands it in SCREEN space and trims to a circle in the fragment with a 1px AA ramp,
+/// so the silhouette is a perfect circle at any radius. This replaced a tessellated unit sphere:
+/// 6x3 segments was a comment-era choice ("a few pixels across") that reads as a hexagon at the
+/// sizes world-mm pens reach, and any fixed tessellation is still a polygon when you zoom in -
+/// the SDF is exact and cheaper (2 triangles instead of 36+).
+fn unit_quad() -> (Vec<[f32; 3]>, Vec<u32>) {
+    let v = vec![
+        [-1.0, -1.0, 0.0],
+        [ 1.0, -1.0, 0.0],
+        [ 1.0,  1.0, 0.0],
+        [-1.0,  1.0, 0.0],
+    ];
+    let idx = vec![0u32, 1, 2, 0, 2, 3];
     (v, idx)
 }
 

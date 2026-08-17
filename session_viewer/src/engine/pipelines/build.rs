@@ -387,7 +387,8 @@ pub fn build_background_pipeline(
     )
 }
 
-/// Pipeline for handle/endpoint spheres — a unit-sphere template instanced per glyph.
+/// Pipeline for vertex markers — a camera-facing quad template instanced per glyph, trimmed to
+/// a circle by the fragment SDF. Blended (the AA rim needs it); always in front (see depth).
 pub fn build_sphere_pipeline(
     device: &wgpu::Device,
     samples: u32,
@@ -424,7 +425,7 @@ pub fn build_sphere_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState{
                 format: color_format,
-                blend: None,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING), // smooth AA feather + hairline fade
                 write_mask: wgpu::ColorWrites::ALL,
             })],
         compilation_options: Default::default(),
@@ -440,8 +441,13 @@ pub fn build_sphere_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState{
             format: wgpu::TextureFormat::Depth32Float,
+            // In front of the marker's OWN ink, occluded by everything genuinely nearer - and
+            // NOT the other way round: a back-corner dot showing through the solid reads as a
+            // live vertex where there is none. The win at the joint comes from the shader: the
+            // hug puts the disc at the same face+eps the bands wrote, and SPHERE_TIE tips that
+            // tie to the marker - so plain Greater (strict) is enough and stays honest.
             depth_write_enabled: Some(true),
-            depth_compare: Some(wgpu::CompareFunction::Greater), // reverse -Z¨
+            depth_compare: Some(if std::env::var("VIEWER_NO_DEPTH").is_ok() { wgpu::CompareFunction::Always } else { wgpu::CompareFunction::Greater }),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),

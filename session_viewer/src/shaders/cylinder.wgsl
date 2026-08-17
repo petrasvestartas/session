@@ -14,6 +14,8 @@ struct Instance {
 // vec3<f32> to 16, which padded this struct to 48 and made the 40 impossible.
 // Matches FACING_UNKNOWN in scene.rs.
 const FACING_UNKNOWN: u32 = 0xffffffffu;
+// Instance flag bit: the eye is inside THIS object's bounds (set per frame on the CPU).
+const FLAG_INSIDE: u32 = 4u;
 
 struct CylinderSegment{
     p0x: f32, p0y: f32, p0z: f32,
@@ -21,7 +23,8 @@ struct CylinderSegment{
     p1x: f32, p1y: f32, p1z: f32,
     instance_id: u32,
     color: u32,   // RGBA8, low byte red
-    facing: u32,  // two oct16 adjacent face normals; 0 = no adjacency, always draw
+    facing: u32,  // two oct16 adjacent face normals; FACING_UNKNOWN = no adjacency, always draw.
+                  // 0 is NOT the sentinel: it is the honest oct16 code for a +Z/+Z face pair.
 }
 
 // The two adjacent face normals, mesh-local. Octahedral decode: undo the fold, then normalize.
@@ -120,8 +123,10 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si:u32) -> VsO
     let r = select(screen_radius(clip_c.w, line) * mult, seg.radius, seg.radius>0.0);
 
     // Same hidden-edge cull as the flat lane, so the two agree about WHICH edges exist and the
-    // switch only changes how they are drawn.
-    if (!edge_faces_camera(seg, model, (w0 + w1) * 0.5)){
+    // switch only changes how they are drawn. FLAG_INSIDE: from inside the object every face
+    // points away, so the cull would drop the whole object - skip it and let the depth test do
+    // the occlusion (tubes are real geometry, it suffices).
+    if ((instances[seg.instance_id].flags & FLAG_INSIDE) == 0u && !edge_faces_camera(seg, model, (w0 + w1) * 0.5)){
         var dead: VsOut;
         dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
         dead.color = vec4<f32>(0.0);

@@ -234,7 +234,7 @@ impl Scene{
                 // 3D geometry takes the solid lane: edges are real cylinders and vertices - spheres
                 Geometry::Mesh(m) => {
 
-                    push_mesh(
+                    let b = push_mesh(
                         m, 
                         ri,
                         vb, 
@@ -244,11 +244,12 @@ impl Scene{
                         &mut t.pipes,
                         &mut t.spheres
                     );
+                    t.object_bounds.push(b);
                 }
                 Geometry::BRep(b) => {
                     let mut bm = b.mesh();
                     bm.set_objectcolor(b.surfacecolor.clone());
-                    push_mesh(
+                    let bb = push_mesh(
                         &bm, 
                         ri,
                         vb, 
@@ -258,24 +259,26 @@ impl Scene{
                         &mut t.pipes,
                         &mut t.spheres
                     );
+                    t.object_bounds.push(bb);
                 }
-                Geometry::Line(l) => { t.segments.push(line_to_segment(l, ri)); }
-                Geometry::Polyline(pl) => t.segments.extend(polyline_to_segments(pl, ri)),
-                Geometry::NurbsCurve(c) => t.segments.extend(nurbscurve_to_segments(c, ri)),
-                Geometry::Point(p) => t.glyphs.push(point_to_glyph(p, ri)),
+                Geometry::Line(l) => { t.segments.push(line_to_segment(l, ri)); t.object_bounds.push(None); }
+                Geometry::Polyline(pl) => { t.segments.extend(polyline_to_segments(pl, ri)); t.object_bounds.push(None); }
+                Geometry::NurbsCurve(c) => { t.segments.extend(nurbscurve_to_segments(c, ri)); t.object_bounds.push(None); }
+                Geometry::Point(p) => { t.glyphs.push(point_to_glyph(p, ri)); t.object_bounds.push(None); }
                 // A cloud picks its lane by SIZE, not by camera state - so nothing changes while
                 // you orbit. A handful of points are worth round sized dots (32b's demo clouds);
                 // a scan is a clump, and the raw lane draws it one vertex and one pixel per point.
                 Geometry::PointCloud(pc) if pc.len() >= CLOUD_RAW_MIN => {
-                    push_cloud(pc, ri, t)
+                    push_cloud(pc, ri, t);
+                    t.object_bounds.push(None);
                 }
-                Geometry::PointCloud(pc) => t.glyphs.extend(pointcloud_to_glyphs(pc, ri)),
+                Geometry::PointCloud(pc) => { t.glyphs.extend(pointcloud_to_glyphs(pc, ri)); t.object_bounds.push(None); }
                 Geometry::NurbsSurface(s) => {
                     let mut sm = s.mesh();
                     if let Some(c) = s.facecolors.first() {
                         sm.set_objectcolor(c.clone());
                     }
-                    push_mesh(
+                    let b = push_mesh(
                         &sm, 
                         ri,
                         vb, 
@@ -285,12 +288,13 @@ impl Scene{
                         &mut t.pipes,
                         &mut t.spheres
                     );
+                    t.object_bounds.push(b);
                 }
-                Geometry::Plane(p) => t.segments.extend(plane_to_segments(p, ri)),
-                Geometry::OBB(b) => t.segments.extend(obb_to_segments(b, ri)),
+                Geometry::Plane(p) => { t.segments.extend(plane_to_segments(p, ri)); t.object_bounds.push(None); }
+                Geometry::OBB(b) => { t.segments.extend(obb_to_segments(b, ri)); t.object_bounds.push(None); }
                 Geometry::Element(e) => match e.geometry() {
                     ElementGeometry::Mesh(m) => {
-                        push_mesh(
+                        let b = push_mesh(
                             &m, 
                             ri,
                         vb, 
@@ -300,11 +304,12 @@ impl Scene{
                             &mut t.pipes,
                             &mut t.spheres
                         );
+                        t.object_bounds.push(b);
                     }
                     ElementGeometry::BRep(b) => {
                         let mut bm = b.mesh();
                         bm.set_objectcolor(b.surfacecolor.clone());
-                        push_mesh(
+                        let bb = push_mesh(
                             &bm, 
                             ri,
                         vb, 
@@ -314,8 +319,9 @@ impl Scene{
                             &mut t.pipes,
                             &mut t.spheres
                         );
+                        t.object_bounds.push(bb);
                     }
-                    ElementGeometry::None => (),
+                    ElementGeometry::None => { t.object_bounds.push(None); },
                 },
             }
             self.guid_to_row.insert(guid.clone(), ri);
@@ -447,7 +453,7 @@ fn line_to_segment(l: &Line, instance_id: u32) -> CylinderSegment {
         p1: l.end().to_f32(),
         instance_id,
         color: pack_rgba(l.linecolor.to_f32()),
-        facing: 0, // free-standing linework has no adjacent faces: always drawn
+        facing: FACING_UNKNOWN, // free-standing linework has no adjacent faces: always drawn
     }
 }
 
@@ -460,7 +466,7 @@ fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegment>
         p1: w[1].to_f32(),
         instance_id,
         color,
-        facing: 0,
+        facing: FACING_UNKNOWN,
     }).collect()
 }
 
@@ -506,7 +512,7 @@ fn nurbscurve_to_segments(c: &NurbsCurve, instance_id: u32) -> Vec<CylinderSegme
         p1: w[1],
         instance_id,
         color,
-        facing: 0,
+        facing: FACING_UNKNOWN,
     }).collect()
 }
 
@@ -516,7 +522,8 @@ fn point_to_glyph(p: &Point, instance_id: u32) -> GlyphPoint {
         radius: encode_width(p.width),
         color: p.pointcolor.to_f32(),
         instance_id,
-        _pad: [0; 3],
+        facing: FACING_UNKNOWN, // a free point decorates no surface
+        facing_ext: [FACING_UNKNOWN; 2],
     }
 }
 
@@ -602,13 +609,22 @@ fn push_mesh(
     idx: &mut Vec<u32>,
     segments: &mut Vec<CylinderSegment>,
     glyphs: &mut Vec<GlyphPoint>
-){
+) -> Option<([f32; 3], [f32; 3])> {
     let base = base_off + verts.len() as u32; // GPU rows already uploaded + rows pending in this delta
     let rm = m.to_render();
+
+    // The mesh-local AABB rides the object row, so the edge lanes can be told "the eye is inside
+    // this solid" (Instance::FLAG_INSIDE) - the facing cull's premise, both faces away = hidden,
+    // is only valid for an eye OUTSIDE. Computed even when the wireframe below is skipped: the
+    // flag costs nothing and the lanes ignore it when there are no edges.
+    let mut lo = [f32::INFINITY; 3];
+    let mut hi = [f32::NEG_INFINITY; 3];
     for v in &rm.vertices{
+        grow_bounds(&mut lo, &mut hi, v.position);
         verts.push(*v);
         vids.push(ri);
     }
+    let local_bounds = if lo[0] <= hi[0] { Some((lo, hi)) } else { None };
     for &i in &rm.indices{
         idx.push(base+i);
     }
@@ -626,7 +642,7 @@ fn push_mesh(
     // Mesh (positions, indices, BVH), never these drawn tubes and dots. When a dense mesh is
     // selected, its wireframe can be emitted for that one mesh on demand.
     if rm.indices.len() / 3 > MESH_RAW_MIN {
-        return;
+        return None;
     }
 
     // Edge width 0 = hidden wireframe, A mesh only has explicit widths if someone called
@@ -650,9 +666,9 @@ fn push_mesh(
     // at all. Leave before edges_with_colors, which builds a HashSet over the faces: for sheets
     // made of hundreds of thousands of tiny fills, that set was the walk's biggest single cost
     // and every edge it produced was then skipped.
-    if m.widths().len() == 1 && m.widths()[0] == 0.0 { return }
+    if m.widths().len() == 1 && m.widths()[0] == 0.0 { return None }
 
-    if std::env::var("VIEWER_NO_EDGES").is_ok() { return }
+    if std::env::var("VIEWER_NO_EDGES").is_ok() { return None }
 
     // ONE edge walk, shared by the pipes below and the vertex widths further down.
     let edges = m.edges_with_colors();
@@ -700,38 +716,88 @@ fn push_mesh(
     let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
 
     // A vertex sphere must be as fas as the pipes.
-    // The kernel has no per-vertex width, so take the widest incident edge.
-    let mut vwidth: std::collections::HashMap<usize, f64> = std::collections::HashMap::new();
+    // The kernel has no per-vertex width, so take the widest incident edge - and remember WHICH
+    // edge it was. The dot inherits that edge's pen color and leads its `facing` adjacency, so
+    // the sphere lane hugs the faces the bands meeting at the vertex already hug: a marker
+    // floating on the old constant lift loses the depth test to its own hugged bands over most
+    // of its disc at close zoom, and shows up as a lopsided chunk smaller than the band width.
+    let mut vbest: std::collections::HashMap<usize, (f64, usize)> = std::collections::HashMap::new();
     for (i, (a, b, _)) in edges.iter().cloned().enumerate(){
         if hidden(i){ // A vertex whose every edge is hidden gets no dot either
             continue;
         }
         let w = width_at(i);
         for vk in [a, b] {
-            let e = vwidth.entry(vk).or_insert(w);
-            if w > *e {
-                *e = w;
+            let e = vbest.entry(vk).or_insert((w, i));
+            if w > e.0 {
+                *e = (w, i);
             }
         }
     }
 
+    // Incident EDGES per vertex, for the face list below. Hidden edges contribute faces too:
+    // a hidden edge's adjacent face can still carry a visible band from another edge, and the
+    // dot must hug that face to stay in front of it.
+    let mut vedges: std::collections::HashMap<usize, Vec<usize>> = std::collections::HashMap::new();
+    for (i, (a, b, _)) in edges.iter().enumerate(){
+        vedges.entry(*a).or_default().push(i);
+        vedges.entry(*b).or_default().push(i);
+    }
+
     // VIEWER_NO_DOTS drops the per-vertex dots, so the harness can tell how much of a dense
     // wireframe's ink is dots and how much is edges.
-    if std::env::var("VIEWER_NO_DOTS").is_ok() { return }
+    if std::env::var("VIEWER_NO_DOTS").is_ok() { return local_bounds }
 
     for (i, vk) in m.vertices().into_iter().enumerate(){
-        let Some(&vw) = vwidth.get(&vk) else { continue };
+        let Some(&(vw, ei)) = vbest.get(&vk) else { continue };
         let p = m.vertex_point(vk).unwrap();
+
+        // Face keys, widest edge's pair first, then every other incident edge's, deduped. The
+        // row carries up to SIX normals (3 words x oct16 pair): a trihedral corner needs three,
+        // and hugging only the widest edge's two leaves the third face's band able to bite a
+        // sector out of the disc at grazing slants - the marker is meant to go in front.
+        let mut fkeys: Vec<usize> = Vec::new();
+        let mut take = |ei: usize, fkeys: &mut Vec<usize>| {
+            let (a, b, _) = edges[ei].clone();
+            for fk in m.edge_faces(a, b).unwrap_or_default() {
+                if !fkeys.contains(&fk) { fkeys.push(fk); }
+            }
+        };
+        take(ei, &mut fkeys);
+        if let Some(incident) = vedges.get(&vk) {
+            for &j in incident { take(j, &mut fkeys); }
+        }
+        let codes: Vec<u32> = fkeys.iter()
+            .filter_map(|fk| fnormals.get(fk))
+            .filter_map(oct16)
+            .take(6)
+            .collect();
+        // pack_facing's rules: a lone normal is duplicated, none at all is FACING_UNKNOWN, and a
+        // pair colliding with the all-ones sentinel collapses to it (accepted loss, same as edges).
+        let word = |k: usize| -> u32 {
+            match (codes.get(2 * k).copied(), codes.get(2 * k + 1).copied()) {
+                (Some(a), b) => {
+                    let v = a | b.unwrap_or(a) << 16;
+                    if v == FACING_UNKNOWN { FACING_UNKNOWN } else { v }
+                }
+                _ => FACING_UNKNOWN,
+            }
+        };
         glyphs.push(
             GlyphPoint {
                 center: p.to_f32(),
                 radius: encode_width(vw),
+                // No pointcolors -> fixed near-black marker, whatever the pen color is: the dot
+                // must read as a DOT so the joint can be checked by eye (following the pen color
+                // hid the marker exactly where checking happens - black on a black-penned cube).
                 color: if dots_colored { pc[i].to_f32() } else { [0.1, 0.1, 0.1, 1.0] },
                 instance_id: ri,
-                _pad: [0; 3]
+                facing: word(0),
+                facing_ext: [word(1), word(2)],
             }
         );
     }
+    local_bounds
 }
 
 pub fn xform_point(xf: &Xform, p: [f32; 3]) -> [f32; 3] {
@@ -765,7 +831,7 @@ fn plane_to_segments(pl: &Plane, instance_id: u32) -> Vec<CylinderSegment> {
     let c = [corner(1.0, 1.0), corner(-1.0, 1.0), corner(-1.0, -1.0), corner(1.0, -1.0)];
     let color = pack_rgba(pl.linecolor.to_f32());
     let radius = encode_width(pl.width);
-    (0..4).map(|i| CylinderSegment { p0:c[i], radius, p1: c[(i+1) % 4], instance_id, color, facing: 0 }).collect()
+    (0..4).map(|i| CylinderSegment { p0:c[i], radius, p1: c[(i+1) % 4], instance_id, color, facing: FACING_UNKNOWN }).collect()
 }
 
 /// A box is its 12 edges: bottom loop, top loop, four verticals - `corner()` orders tge bottom face
@@ -788,7 +854,7 @@ fn obb_to_segments(b: &OBB, instance_id: u32) -> Vec<CylinderSegment>{
     ];
 
     let c = b.corners_f32();
-    EDGES.iter().map(|&[i, j]| CylinderSegment { p0: c[i], radius: 0.0, p1: c[j], instance_id, color: pack_rgba([0.0, 0.0, 0.0, 1.0]), facing: 0 }).collect()
+    EDGES.iter().map(|&[i, j]| CylinderSegment { p0: c[i], radius: 0.0, p1: c[j], instance_id, color: pack_rgba([0.0, 0.0, 0.0, 1.0]), facing: FACING_UNKNOWN }).collect()
     
 }
 
@@ -852,6 +918,7 @@ fn pointcloud_to_glyphs(pc: &PointCloud, instance_id: u32) -> Vec<GlyphPoint>{
         radius,
         color: if i < colors {pc.get_color(i).to_f32()} else { [0.0, 0.0, 0.0, 1.0]},
         instance_id,
-        _pad: [0; 3],
+        facing: FACING_UNKNOWN, // a cloud point has no surface to hug
+        facing_ext: [FACING_UNKNOWN; 2],
     }).collect()
 }

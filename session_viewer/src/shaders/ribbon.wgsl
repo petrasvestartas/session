@@ -12,6 +12,8 @@ struct Instance{
 // vec3<f32> to 16, which padded this struct to 48 and made the 40 impossible.
 // Matches FACING_UNKNOWN in scene.rs.
 const FACING_UNKNOWN: u32 = 0xffffffffu;
+// Instance flag bit: the eye is inside THIS object's bounds (set per frame on the CPU).
+const FLAG_INSIDE: u32 = 4u;
 
 struct CylinderSegment{
     p0x: f32, p0y: f32, p0z: f32,
@@ -19,7 +21,8 @@ struct CylinderSegment{
     p1x: f32, p1y: f32, p1z: f32,
     instance_id: u32,
     color: u32,   // RGBA8, low byte red
-    facing: u32,  // two oct16 adjacent face normals; 0 = no adjacency, always draw
+    facing: u32,  // two oct16 adjacent face normals; FACING_UNKNOWN = no adjacency, always draw.
+                  // 0 is NOT the sentinel: it is the honest oct16 code for a +Z/+Z face pair.
 }
 
 // The two adjacent face normals, mesh-local. Octahedral decode: undo the fold, then normalize.
@@ -50,15 +53,13 @@ fn oct16_decode(p: u32) -> vec3<f32> {
 // FACING_UNKNOWN means the geometry never had adjacency - free-standing linework, drawing pens,
 // BRep edges - and those always draw. It is all-ones rather than 0 because (0,0) is the honest
 // octahedral code for +Z, and a box's top face is exactly that.
-fn edge_faces_camera(seg: CylinderSegment, model: mat4x4<f32>, mid: vec3<f32>) -> bool {
-    if (seg.facing == FACING_UNKNOWN){
+//
+// Takes the two normals ALREADY decoded and rotated to world: vs_main needs them a second time
+// to build the face planes, and decoding once keeps the two uses consistent.
+fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
+    if (facing == FACING_UNKNOWN){
         return true;
     }
-    // Rotate into world with the model's linear part. Non-uniform scale would strictly want the
-    // inverse transpose, but this only decides a SIGN and placements here are rigid or uniform.
-    let n0 = (model * vec4<f32>(oct16_decode(seg.facing & 0xffffu), 0.0)).xyz;
-    let n1 = (model * vec4<f32>(oct16_decode(seg.facing >> 16u), 0.0)).xyz;
-    let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - mid;
     return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
 }
 @group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
@@ -102,6 +103,49 @@ const MM_TO_M = 0.001;
 // constant stays: it is one line, it has no per-vertex cost, and it is the value verified across
 // five zooms and six orbits.
 const LIFT_RADII = 3.0;
+
+// The surface-hug epsilon (see `ink_depth`). ABS covers the float disagreement between the
+// plane solve here and the face rasterizer's own depth for the same surface (a few ULP at
+// depth ~1). PIX scales with the plane's own screen slope: under 4x MSAA the ink's depth is
+// solved once at the pixel centre while the face holds a depth PER SAMPLE, so the eps must
+// span the slope over the sample spread (sub-pixel) - exactly glPolygonOffset's slope term,
+// but computed in closed form from the plane instead of from a state's magic constant.
+// REL is a fraction of the plane's local RISE across the band and covers the oct16
+// normals' ~1.4 degree quantization: tilting the plane by d changes its rise by
+// d*secant^2(theta), i.e. 2d/sin(2theta) AS A FRACTION of the rise - under ~30% for any face
+// less than ~85 degrees to the view ray, which is why the value below is what it is. Neither
+// constant is the old failure mode: they move only the INK, never a face, so two faces meeting
+// at an edge cannot be made to fight over a pen-width band by them.
+const HUG_ABS = 1e-6;
+const HUG_PIX = 1.5;
+const HUG_REL = 0.35;
+
+// A "no plane here" value for the plane varyings: pl.z == 0 skips the depth solve entirely and
+// the fragment keeps the centreline depth (dead vertices, no adjacency, back-facing planes).
+const PLANE_NONE = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+
+// One end's lifted w: the LIFT_RADII pull toward the camera, as a fraction of eye depth, so it
+// is unit-free. `clip.w` IS the eye depth in this projection; scaling it shrinks the depth
+// while `ndc * w` keeps the pixel where it was. Done PER END because the two ends project to
+// different widths under perspective, and the fragment needs both ends' depths to reproduce
+// the centreline depth exactly (see `zend`).
+fn lifted_w(raw_px: f32, e: vec4<f32>) -> f32 {
+    let lift = floor_hairline(raw_px) * LIFT_RADII * MM_TO_M / (line.proj_y * line.vp_h);
+    return e.w * (1.0 - clamp(lift, 0.0, 0.5));
+}
+
+// The homogeneous JOIN of three clip-space points: the plane they span, as four signed 3x3
+// minors (each a dot with a cross). No matrix inverse and no normalize - the fragment's depth
+// solve divides the overall scale back out. Verified: join of (0,0,0,1),(1,0,0,1),(0,1,0,1)
+// is (0,0,1,0), the z=0 plane.
+fn join3(a: vec4<f32>, b: vec4<f32>, c: vec4<f32>) -> vec4<f32> {
+    return vec4<f32>(
+        dot(a.yzw, cross(b.yzw, c.yzw)),
+        -dot(a.xzw, cross(b.xzw, c.xzw)),
+        dot(a.xyw, cross(b.xyw, c.xyw)),
+        -dot(a.xyz, cross(b.xyz, c.xyz)),
+    );
+}
 
 // HALF-width in px at one end: half the global pen thickness, or a world radius projected.
 //
@@ -150,6 +194,14 @@ struct VsOut{
     // Half-width in px at each END, both FLAT. Never interpolated - see `resolve_width`.
     @location(4) @interpolate(flat) hw0: f32,
     @location(5) @interpolate(flat) hw1: f32,
+    // The two adjacent FACE PLANES in clip space (join3 of three transformed points), flat, or
+    // PLANE_NONE where a face is back-facing / unknown. The fragment solves the band's depth
+    // from them - see `ink_depth`.
+    @location(6) @interpolate(flat) pl0: vec4<f32>,
+    @location(7) @interpolate(flat) pl1: vec4<f32>,
+    // Centreline depth (z/w, lift included) at each clipped end, flat. Screen-linear in between,
+    // which is exactly how the rasterizer would have interpolated it - see `ink_depth`.
+    @location(8) @interpolate(flat) zend: vec2<f32>,
  };
 
  // The fragment's own half-width and hairline fade, resolved at `h` - its position along the
@@ -181,6 +233,9 @@ struct VsOut{
     dead.b = vec2<f32>(0.0);
     dead.hw0 = 0.0;
     dead.hw1 = 0.0;
+    dead.pl0 = PLANE_NONE;
+    dead.pl1 = PLANE_NONE;
+    dead.zend = vec2<f32>(0.0);
     return dead;
  }
 
@@ -197,12 +252,28 @@ struct VsOut{
     let l1 = vec3<f32>(seg.p1x, seg.p1y, seg.p1z);
     let w0 = (model * vec4<f32>(l0, 1.0)).xyz;
     let w1 = (model * vec4<f32>(l1, 1.0)).xyz;
+    let mid = (w0 + w1) * 0.5;
+    let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - mid;
+
+    // The two adjacent face normals, decoded once and rotated into world with the model's linear
+    // part (non-uniform scale would strictly want the inverse transpose, but placements here are
+    // rigid or uniform). The facing cull below needs their sign against the eye; the face planes
+    // further down are built from the same two vectors.
+    let n0 = (model * vec4<f32>(oct16_decode(seg.facing & 0xffffu), 0.0)).xyz;
+    let n1 = (model * vec4<f32>(oct16_decode(seg.facing >> 16u), 0.0)).xyz;
 
     // HIDDEN EDGES NEVER REACH THE RASTERIZER. Both adjacent faces turned away means this edge is
     // inside the solid; drop it here and the ink that remains never has to win a depth argument
     // with the surface it decorates. Collapsed outside NDC so it is clipped, like the near-plane
     // case below.
-    if (!edge_faces_camera(seg, model, (w0 + w1) * 0.5)){
+    //
+    // ...unless the eye is INSIDE this object's bounds (FLAG_INSIDE, set per frame on the CPU):
+    // from inside a solid EVERY face points away by definition, so the cull would drop the whole
+    // object the moment the camera crosses a face. The per-edge test cannot tell "far side of the
+    // solid" from "eye inside it" - that difference is global, which is why the flag rides the
+    // instance row.
+    let inside = (instances[seg.instance_id].flags & FLAG_INSIDE) != 0u;
+    if (!inside && !edge_faces_camera(seg.facing, n0, n1, to_eye)){
         return dead_vertex();
     }
 
@@ -289,8 +360,51 @@ struct VsOut{
     // `lift` is that radius as a FRACTION of eye depth, which is what makes it unit-free:
     // px = r * proj_y * vp_h / w (see above, and screen_radius in cylinder.wgsl), so
     // r/w = px / (proj_y * vp_h) - times the mm->m scale already baked into proj_y.
-    let lift = px * LIFT_RADII * MM_TO_M / (line.proj_y * line.vp_h);
-    let wn = clip.w * (1.0 - clamp(lift, 0.0, 0.5));
+    //
+    // The lift alone cannot win against a GRAZING face (the face's rise across the band is
+    // d*tan(theta), unbounded), which is what the planes below are for; it stays because the
+    // centreline depth is still the answer everywhere a plane does not apply, and the verified
+    // close-zoom behavior rides on it.
+    let wn0 = lifted_w(raw0, e0);
+    let wn1 = lifted_w(raw1, e1);
+    let wn = select(wn0, wn1, at_end1);
+
+    // THE ADJACENT FACES ARE PLANES, and a plane's depth at any pixel is closed form. Instead of
+    // floating the band a guessed constant in front of the surface it decorates (any constant
+    // loses where d*tan(theta) exceeds it, and making the FACES move by that much just makes two
+    // faces fight over a band of the same width), the band can RIDE the surface: write, per
+    // fragment, the depth of whichever front-facing adjacent plane is nearer there, one epsilon
+    // in front. The planes are built in CLIP space as the join of three transformed points - the
+    // two endpoints (both lie on both faces) plus a third stepped one edge-length sideways off
+    // the midpoint along the face - so no matrix inverse is needed, and near-plane clipping is
+    // irrelevant to them: a clip-space point with w < 0 is still algebraically on the plane.
+    //
+    // A face turned AWAY gets PLANE_NONE: past the silhouette its plane continues through space
+    // that is not the object, and there the honest depth is the edge's own. The max() in
+    // ink_depth never lets a plane pull the ink BEHIND the centreline, so silhouette edges keep
+    // their full pen width - the outer half stays at centreline depth. EXCEPT when the eye is
+    // inside the object: from inside, the back-facing faces ARE the visible surface (they rise
+    // toward the eye across the band exactly like a grazing face does from outside), so both
+    // planes hug.
+    var pl0 = PLANE_NONE;
+    var pl1 = PLANE_NONE;
+    if (seg.facing != FACING_UNKNOWN) {
+        let edge = w1 - w0;
+        let elen = length(edge);
+        if (elen > 1e-12) {
+            let edir = edge / elen;
+            // Face normals are perpendicular to the edge (the face CONTAINS it), so
+            // cross(n, edir) is an in-plane direction of about unit length.
+            if (inside || dot(n0, to_eye) > 0.0) {
+                let t0 = mvp * vec4<f32>(mid + cross(n0, edir) * elen, 1.0);
+                pl0 = join3(c0, c1, t0);
+            }
+            if (inside || dot(n1, to_eye) > 0.0) {
+                let t1 = mvp * vec4<f32>(mid + cross(n1, edir) * elen, 1.0);
+                pl1 = join3(c0, c1, t1);
+            }
+        }
+    }
 
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
@@ -301,15 +415,58 @@ struct VsOut{
     o.b = s1;
     o.hw0 = raw0;
     o.hw1 = raw1;
+    o.pl0 = pl0;
+    o.pl1 = pl1;
+    o.zend = vec2<f32>(e0.z / wn0, e1.z / wn1);
     return o;
  }
+
+ // The depth the fragment WRITES. The band's geometrically correct depth is its centreline's,
+ // but the test is per fragment, and at a screen distance d from the centreline an adjacent
+ // face has already risen toward the eye by d*tan(theta) - unbounded as the face turns
+ // edge-on, which is exactly where a wide world-mm pen got eaten. The face is a PLANE, though,
+ // and a clip-space plane's depth at the fragment's own ndc is one division:
+ //
+ //     pl.x*nx + pl.y*ny + pl.z*nz + pl.w = 0   =>   nz = -(pl.x*nx + pl.y*ny + pl.w) / pl.z
+ //
+ // So: keep the centreline depth, unless a front-facing adjacent plane rises ABOVE it here -
+ // then take the plane, one epsilon in front. The ink hugs the surface it decorates instead of
+ // floating a guessed distance in front of it, no offset constant is chosen anywhere (HUG_* is
+ // a numeric guard, not a geometric offset), and occlusion by other geometry still works
+ // because this is an ordinary depth value: anything genuinely nearer than the surface still
+ // wins. A plane can never pull the ink behind the centreline (max), so silhouette outer halves
+ // keep the full pen width.
+ fn ink_depth(in: VsOut, h: f32) -> f32 {
+    var z = mix(in.zend.x, in.zend.y, h);
+    // The fragment's ndc, inverted from the same mapping the vertex stage used to build `p`.
+    let ndc = (in.p / vec2<f32>(line.vp_w, line.vp_h) - 0.5) * 2.0;
+    for (var k = 0u; k < 2u; k = k + 1u) {
+        let pl = select(in.pl0, in.pl1, k == 1u);
+        // pl.z == 0 is PLANE_NONE, and also a genuinely edge-on plane, whose depth at the
+        // pixel is meaningless: fall back to the centreline for both.
+        if (pl.z != 0.0) {
+            let zp = clamp(-(pl.x * ndc.x + pl.y * ndc.y + pl.w) / pl.z, -1e9, 1.0);
+            // One epsilon in front of the surface - see HUG_ABS / HUG_PIX / HUG_REL at the top.
+            // The slope term is the plane's ndc-z change over one screen pixel.
+            let slope_px = (abs(pl.x) / line.vp_w + abs(pl.y) / line.vp_h) * 2.0 / abs(pl.z);
+            let eps = HUG_ABS + HUG_PIX * slope_px + HUG_REL * abs(zp - z);
+            z = max(z, min(zp + eps, 1.0));
+        }
+    }
+    return clamp(z, 0.0, 1.0);
+ }
+
+ struct FsOut {
+    @location(0) color: vec4<f32>,
+    @builtin(frag_depth) depth: f32,
+ };
 
  // Depth-only prepass: the SAME capsule, but binary at half coverage and writing NOTHING to
  // colour. It lays the ink's depth down so the colour pass below (which does not write depth,
  // so its blended AA feather cannot leave halos) can be occluded by ink drawn later in the
  // same frame - a dot behind a polyline now loses to it instead of winning on draw order.
  @fragment
- fn fs_depth(in: VsOut) -> @location(0) vec4<f32> {
+ fn fs_depth(in: VsOut) -> FsOut {
     let pa = in.p - in.a;
     let ba = in.b - in.a;
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
@@ -317,11 +474,14 @@ struct VsOut{
     if (clamp(hf.x + 0.5 - length(pa - ba * h), 0.0, 1.0) * hf.y < 0.5){
         discard;
     }
-    return vec4<f32>(0.0); // masked out by write_mask - only depth matters
+    var o: FsOut;
+    o.color = vec4<f32>(0.0); // masked out by write_mask - only depth matters
+    o.depth = ink_depth(in, h);
+    return o;
  }
 
  @fragment
- fn fs_main(in: VsOut) -> @location(0) vec4<f32>{
+ fn fs_main(in: VsOut) -> FsOut{
     // Capsule SDF in screen px - rounds both caps. Analytic AA: a 1px alpha ramp centered
     // on the edge, alpha-blended (a binary discard cannot be smoothed by MSAA - all 4
     // samples of a pixel live or die together), times the hairline fade.
@@ -334,5 +494,8 @@ struct VsOut{
     if (alpha <= 0.0){
         discard;
     }
-    return vec4<f32>(in.color.rgb, in.color.a * alpha);
+    var o: FsOut;
+    o.color = vec4<f32>(in.color.rgb, in.color.a * alpha);
+    o.depth = ink_depth(in, h);
+    return o;
  }

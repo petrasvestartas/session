@@ -14,6 +14,11 @@ struct GlyphPoint{
     radius: f32,
     color: vec4<f32>,
     instance_id: u32,
+    // Adjacent face normals, oct16 pairs (up to six) - only sphere.wgsl reads them: this lane's
+    // rows are free points and clouds (FACING_UNKNOWN from scene.rs), which decorate no surface
+    // and hug nothing. The fields must still be declared: the buffer stride is the struct's.
+    facing: u32,
+    facing_ext: vec2<u32>,
 };
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
@@ -42,10 +47,10 @@ const CORNERS = array<vec2<f32>, 3>(
 // Sub-pixel pens never fade below this: 0 = original continuous fade, 1 = always solid 1px.
 const HAIRLINE_MIN_ALPHA = 0.5;
 
-// MM_TO_M must match ribbon.wgsl. The lift must NOT: it is one radius MORE than the line lane's
-// 3, because a vertex dot sits exactly where several edges meet, and at an equal lift the two tie
-// on depth and the lines - drawn later - swallow the dot. One radius of clearance makes a dot the
-// topmost ink by construction, which is the rule this viewer wants: a dot on EVERY vertex.
+// MM_TO_M must match ribbon.wgsl. The lift stays one radius MORE than the line lane's 3: a point
+// marker sits on top of whatever it punctuates, which is the rule this viewer wants for free
+// points. (MESH vertices are not this lane - they are sphere.wgsl rows, which also HUG the
+// adjacent faces; a flat dot has no adjacency and only floats.)
 const MM_TO_M = 0.001;
 const LIFT_RADII = 4.0;
 
@@ -64,6 +69,22 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
     let world = (model * vec4<f32>(g.center, 1.0)).xyz;
     let clip = mvp * vec4<f32>(world, 1.0);
 
+    // NEAR-PLANE CLIP, the ribbon.wgsl rule: this lane projects by hand, and a hand divide is
+    // only valid in FRONT of the eye. A dot centre crossing the near plane (z - w > 0 in
+    // reverse-Z) sent w -> 0+, the projected px exploded, and the giant disc's 1px AA rim landed
+    // on screen as a soft screen-wide streak. Drop the dot once the centre crosses (all three
+    // verts take the branch, so the triangle collapses outside NDC and is clipped). Behind the
+    // eye (w < 0) needs no test: wn < 0 and the hardware clips it.
+    if (clip.z - clip.w > 0.0) {
+        var dead: VsOut;
+        dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
+        dead.color = vec4<f32>(0.0);
+        dead.corner = vec2<f32>(0.0);
+        dead.px = 0.0;
+        dead.fade = 0.0;
+        return dead;
+    }
+
     // px radius: global thickness, or a world radius projected (>0) — the same inverse of
     // cylinder.wgsl's screen_radius that ribbon.wgsl uses.
     // The 0.5s: NDC spans [-1,1] over vp_h px, so one NDC unit is vp_h/2 px - see the long note
@@ -79,6 +100,22 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
         }
     }
 
+    // NEAR-EYE CAP. The near-plane test above only fires once the centre has CROSSED; just in
+    // front of it w -> 0+ makes px unbounded (px ~ 1/w), and what reaches the screen is the rim
+    // of a disc whose interior is thousands of px off-screen - a soft screen-wide streak that
+    // reads as a red hairline running through the model. A dot whose radius alone exceeds the
+    // viewport is a ball millimetres from the eye, not a marker: drop it. Screen-constant dots
+    // (px = thickness/2) never approach the cap.
+    if (px > max(line.vp_w, line.vp_h)) {
+        var dead: VsOut;
+        dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
+        dead.color = vec4<f32>(0.0);
+        dead.corner = vec2<f32>(0.0);
+        dead.px = 0.0;
+        dead.fade = 0.0;
+        return dead;
+    }
+
     // Hairline rule with the same floor as ribbon.wgsl - a dot must stay as legible as the
     // line it sits on, or the two disagree about weight at the same width.
     var fade = 1.0;
@@ -90,10 +127,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
     // Triangle scaled to px + 0.5 so the AA feather ramp fits inside it
     let corner = CORNERS[vid % 3u];
 
-    // Same lift as ribbon.wgsl, by the SAME number of radii, or the two lanes fight. A vertex dot
-    // sits exactly where several edges meet, so once the lines float in front of the surface the
-    // dot has to float with them - otherwise the ink that used to show a dot at every corner
-    // quietly swallows it, and a dot on EVERY vertex is not negotiable.
+    // Same closed form as ribbon.wgsl: px/(proj_y*vp_h) is the radius as a fraction of eye
+    // depth, so the lift is unit-free and holds the pixel still. One radius more than the
+    // lines, so the marker stays the topmost ink on whatever it punctuates.
     let lift = px * LIFT_RADII * MM_TO_M / (line.proj_y * line.vp_h);
     let wn = clip.w * (1.0 - clamp(lift, 0.0, 0.5));
     let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
