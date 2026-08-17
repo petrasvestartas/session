@@ -446,19 +446,21 @@ fn line_to_segment(l: &Line, instance_id: u32) -> CylinderSegment {
         radius: encode_width(l.width),
         p1: l.end().to_f32(),
         instance_id,
-        color: l.linecolor.to_f32(),
+        color: pack_rgba(l.linecolor.to_f32()),
+        facing: 0, // free-standing linework has no adjacent faces: always drawn
     }
 }
 
 fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegment> {
     let pts = pl.get_points();
-    let color = pl.linecolor.to_f32();
+    let color = pack_rgba(pl.linecolor.to_f32());
     pts.windows(2).map( |w| CylinderSegment {
         p0: w[0].to_f32(),
         radius: encode_width(pl.width),
         p1: w[1].to_f32(),
         instance_id,
         color,
+        facing: 0,
     }).collect()
 }
 
@@ -492,7 +494,7 @@ fn nurbscurve_to_segments(c: &NurbsCurve, instance_id: u32) -> Vec<CylinderSegme
 
     // Evaluate the curve at n+1 evenly spaced parameters across its domain [t0, t1] ...
     let (t0, t1) = c.domain();
-    let color = c.linecolors.first().map(|c| c.to_f32()).unwrap_or([0.0, 0.0, 0.0, 1.0]);
+    let color = pack_rgba(c.linecolors.first().map(|c| c.to_f32()).unwrap_or([0.0, 0.0, 0.0, 1.0]));
     let radius = encode_width(c.width);
     let pts: Vec<[f32; 3]> = (0..=n)
         .map(|i| c.point_at(t0 + (t1 - t0) * i as f64 / n as f64).to_f32())
@@ -504,6 +506,7 @@ fn nurbscurve_to_segments(c: &NurbsCurve, instance_id: u32) -> Vec<CylinderSegme
         p1: w[1],
         instance_id,
         color,
+        facing: 0,
     }).collect()
 }
 
@@ -531,6 +534,50 @@ fn encode_width(w: f64) -> f32{
         (w as f32) * 0.5
     } else {
         0.0
+    }
+}
+
+/// RGBA8 in one word, low byte red - the layout `unpack4x8unorm` expects in WGSL.
+fn pack_rgba(c: [f32; 4]) -> u32 {
+    let q = |v: f32| ((v.clamp(0.0, 1.0) * 255.0 + 0.5) as u32) & 0xff;
+    q(c[0]) | q(c[1]) << 8 | q(c[2]) << 16 | q(c[3]) << 24
+}
+
+/// A unit vector in 16 bits, octahedral: project onto the octahedron, fold the lower hemisphere
+/// out across the diagonals, and store the two coordinates as signed bytes. ~1.4 degrees of error,
+/// which is generous for a value only ever used for the SIGN of a dot product.
+fn oct16(n: &Vector) -> u32 {
+    let l = n[0].abs() + n[1].abs() + n[2].abs();
+    if !(l > 0.0) {
+        return 0;
+    }
+    let (mut x, mut y) = (n[0] / l, n[1] / l);
+    if n[2] < 0.0 {
+        let (ax, ay) = (x.abs(), y.abs());
+        (x, y) = ((1.0 - ay) * x.signum(), (1.0 - ax) * y.signum());
+    }
+    let q = |v: f64| (((v.clamp(-1.0, 1.0) * 127.0).round() as i32) as u32) & 0xff;
+    q(x) | q(y) << 8
+}
+
+/// The two faces an edge belongs to, packed into one word for the shader's facing test.
+///
+/// 0 means "no adjacency known, always draw" - the whole word, so a genuinely encoded pair can
+/// never collide with it: `oct16` returns 0 only for a degenerate normal, and the second face
+/// occupies the high half, so a real single-face (naked) edge lands in the low half and stays
+/// non-zero. Naked edges get their one normal duplicated: a boundary edge is visible whenever its
+/// single face is, which is the correct answer and needs no special case in the shader.
+fn pack_facing(n0: Option<Vector>, n1: Option<Vector>) -> u32 {
+    match (n0, n1) {
+        (Some(a), Some(b)) => {
+            let (pa, pb) = (oct16(&a), oct16(&b));
+            if pa == 0 || pb == 0 { 0 } else { pa | pb << 16 }
+        }
+        (Some(a), None) | (None, Some(a)) => {
+            let pa = oct16(&a);
+            if pa == 0 { 0 } else { pa | pa << 16 }
+        }
+        _ => 0,
     }
 }
 
@@ -598,19 +645,38 @@ fn push_mesh(
     // ONE edge walk, shared by the pipes below and the vertex widths further down.
     let edges = m.edges_with_colors();
 
+    // Face normals once for the whole mesh, so the per-edge adjacency lookup below is two map
+    // reads instead of a cross product each time. These are MESH-LOCAL, matching p0/p1 - the
+    // shader rotates them by the instance model the same way it transforms the endpoints.
+    let fnormals = m.face_normals();
+
     for (i, (a, b, col)) in edges.iter().cloned().enumerate(){
         if hidden(i) {
             continue
         }
         let pa = m.vertex_point(a).unwrap();
         let pb = m.vertex_point(b).unwrap();
+
+        // The two faces sharing this edge, so the shader can decide whether it faces the camera
+        // without asking the depth buffer. An edge with both faces turned away is HIDDEN and the
+        // shader drops it; one that keeps only one is a silhouette. This is the whole point of the
+        // exercise: a pen has width, so ink tested against the surface it decorates either gets
+        // cut by it or has to float in front of it, and no offset wins at every slant. Deciding
+        // visibility from the geometry instead sidesteps the trade entirely.
+        let f = m.edge_faces(a, b).unwrap_or_default();
+        let facing = pack_facing(
+            f.first().and_then(|&k| fnormals.get(&k).cloned()),
+            f.get(1).and_then(|&k| fnormals.get(&k).cloned()),
+        );
+
         segments.push(
             CylinderSegment{
                 p0: pa.to_f32(),
                 radius: encode_width(width_at(i)),
                 p1: pb.to_f32(),
                 instance_id: ri,
-                color: col.to_f32()
+                color: pack_rgba(col.to_f32()),
+                facing,
             }
         )
     }
@@ -685,9 +751,9 @@ fn plane_to_segments(pl: &Plane, instance_id: u32) -> Vec<CylinderSegment> {
          [0usize, 1, 2].map(|k| (o[k] + (x[k] * sx + y[k] * sy) * PLANE_SIZE) as f32)
     };
     let c = [corner(1.0, 1.0), corner(-1.0, 1.0), corner(-1.0, -1.0), corner(1.0, -1.0)];
-    let color = pl.linecolor.to_f32();
+    let color = pack_rgba(pl.linecolor.to_f32());
     let radius = encode_width(pl.width);
-    (0..4).map(|i| CylinderSegment { p0:c[i], radius, p1: c[(i+1) % 4], instance_id, color }).collect()
+    (0..4).map(|i| CylinderSegment { p0:c[i], radius, p1: c[(i+1) % 4], instance_id, color, facing: 0 }).collect()
 }
 
 /// A box is its 12 edges: bottom loop, top loop, four verticals - `corner()` orders tge bottom face
@@ -710,7 +776,7 @@ fn obb_to_segments(b: &OBB, instance_id: u32) -> Vec<CylinderSegment>{
     ];
 
     let c = b.corners_f32();
-    EDGES.iter().map(|&[i, j]| CylinderSegment { p0: c[i], radius: 0.0, p1: c[j], instance_id, color: [0.0, 0.0, 0.0, 1.0] }).collect()
+    EDGES.iter().map(|&[i, j]| CylinderSegment { p0: c[i], radius: 0.0, p1: c[j], instance_id, color: pack_rgba([0.0, 0.0, 0.0, 1.0]), facing: 0 }).collect()
     
 }
 

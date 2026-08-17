@@ -470,7 +470,7 @@ impl Gpu {
                 ortho_h: 0.0,
                 vp_h: config.height as f32,
                 vp_w: config.width as f32,
-                _pad0: [0.0; 3],
+                eye: [0.0; 3],   // no camera until the first frame writes one
                 anchor: [0.0; 3],   // no anchor until the first frame rebases the table
                 _pad1: 0.0,
             }),
@@ -961,6 +961,50 @@ impl Gpu {
         out
     }
 
+    /// The camera position, recovered from the combined view-projection alone.
+    ///
+    /// The eye is the one point that projects to nothing: it is where the clip x, y and w all
+    /// vanish at once, because every view ray passes through it. Three rows of the matrix, three
+    /// unknowns, one 3x3 solve - no camera struct needed, so this works for any caller that can
+    /// produce a view-projection, including the headless harness.
+    ///
+    /// Orthographic has no eye: rows 0, 1 and 3 are linearly dependent there (w is constant 1),
+    /// the determinant collapses, and the fallback is the view direction pushed a long way back -
+    /// which is exactly what an orthographic "eye at infinity" means.
+    fn eye_from_view_proj(vp: &Xform) -> [f32; 3] {
+        let r = |i: usize| [vp[(i, 0)], vp[(i, 1)], vp[(i, 2)], vp[(i, 3)]];
+        let (a, b, c) = (r(0), r(1), r(3));
+
+        // Cramer on [a b c] . p = -[a3 b3 c3]
+        let det3 = |m: [[f64; 3]; 3]| {
+            m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+                - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+                + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+        };
+        let rows = [[a[0], a[1], a[2]], [b[0], b[1], b[2]], [c[0], c[1], c[2]]];
+        let rhs = [-a[3], -b[3], -c[3]];
+        let d = det3(rows);
+
+        // Scale-free singularity test: compare against the product of the row magnitudes, so it
+        // fires on genuine dependence rather than on a scene whose units make everything small.
+        let norm: f64 = rows.iter().map(|r| (r[0] * r[0] + r[1] * r[1] + r[2] * r[2]).sqrt()).product();
+        if d.abs() <= 1e-9 * norm.max(1e-30) {
+            // Orthographic: row 3 carries no direction, so take the view axis from row 2 (depth)
+            // and stand a long way back along it.
+            let f = [vp[(2, 0)], vp[(2, 1)], vp[(2, 2)]];
+            let len = (f[0] * f[0] + f[1] * f[1] + f[2] * f[2]).sqrt().max(1e-30);
+            return [0, 1, 2].map(|k| (f[k] / len * 1.0e9) as f32);
+        }
+
+        [0, 1, 2].map(|k| {
+            let mut m = rows;
+            for row in 0..3 {
+                m[row][k] = rhs[row];
+            }
+            (det3(m) / d) as f32
+        })
+    }
+
     /// Per-frame uniforms: time, camera, and the line/pen block.
     fn write_frame_uniforms(&mut self, view_proj: &Xform) {
         // Time for triangle wgsl buffer.
@@ -974,7 +1018,7 @@ impl Gpu {
             ortho_h: 0.0, // perspective, set the ortho half-height when ortho
             vp_h: self.config.height as f32,
             vp_w: self.config.width as f32,
-            _pad0: [0.0; 3],
+            eye: Self::eye_from_view_proj(view_proj),
             anchor: self.last_origin.as_ref().map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3]),
             _pad1: 0.0,
         };
@@ -1322,12 +1366,25 @@ impl Instance {
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct CylinderSegment{
-    pub p0: [f32; 3],   // 12 B - start point 
+    // The two ends are FLAT f32s, not `[f32; 3]`, and that is deliberate. WGSL gives `vec3<f32>`
+    // an alignment of 16, so any struct containing one is padded to a multiple of 16 - this table
+    // was 48 B and could not have been 40 whatever else was packed. Scalars align to 4, so the
+    // stride is the honest sum of the fields. Costs one `vec3<f32>(..)` per end in the shaders.
+    pub p0: [f32; 3],   // 12 B - start point
     pub radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 0 -> wolrd mm override
     pub p1: [f32; 3],   // 12 B - end point (p0..instance_id = 32 B of geometry)
     pub instance_id: u32,  // 4 B - row in instances[]: object model + flags (hide/select later)
-    pub color: [f32; 4],  // 16 B - per - edge (black crease, naked color, ...)
-}
+    // Was `[f32; 4]` - 16 B carrying what is really 8-bit RGBA. Packing it paid for `facing`
+    // AND took 8 B off every segment: 48 -> 40, which is 20% of the biggest table in the viewer
+    // (118 MB at mesh-stress scale).
+    pub color: u32,     // 4 B - RGBA8, low byte red
+    // The two faces this edge belongs to, as octahedral unit normals, 16 bits each - about 1.4
+    // degrees, when all that is asked of them is the SIGN of a dot product. This is what lets the
+    // shader answer "is this edge facing the camera" without the depth buffer: both faces facing
+    // away means the edge is hidden and must not be drawn at all. 0 = unknown, always draw
+    // (polylines, drawing linework, BRep edges with no adjacency).
+    pub facing: u32,    // 4 B
+}                       // 40 B
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -1337,7 +1394,12 @@ struct LineUniform{
     ortho_h: f32, // ortho world half.heigh x unit scale
     vp_h: f32, // framebuffer height, px
     vp_w: f32, // framebuffer width, px - flat linework needs the aspect
-    _pad0: [f32; 3], // 12 B - WGSL aligns vec3<f32> to 16, so `anchor` starts at offset 32
+    // Camera position, in the SAME anchored frame the instance rows use - so a shader can build
+    // the view ray to a point as `eye - p`. That is what the per-edge facing test needs, and it
+    // has to be the real eye rather than a constant forward direction: at this 60 degree FOV a
+    // constant direction is off by up to 30 degrees at the frame corner, and it is precisely the
+    // near-silhouette edges - the ones whose classification is in doubt - that would flip.
+    eye: [f32; 3],   // 12 B - and it fills the pad WGSL leaves before `anchor`'s 16 B alignment
     // The camera-relative ANCHOR, world units. Instance rows are rebased about it, so anything
     // NOT an instance - the grid, the axes - has to subtract it too or it drifts away from the
     // scene every time re-anchoring fires.

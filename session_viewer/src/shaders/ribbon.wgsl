@@ -8,13 +8,51 @@ struct Instance{
 };
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 
-// Matches the Rust CylinderSegment (48 B) - same table the cylinder pipeline reads.
+// Matches the Rust CylinderSegment, 40 B. The ends are SCALARS, not vec3<f32>: WGSL aligns
+// vec3<f32> to 16, which padded this struct to 48 and made the 40 impossible.
 struct CylinderSegment{
-    p0: vec3<f32>,
+    p0x: f32, p0y: f32, p0z: f32,
     radius: f32,
-    p1: vec3<f32>,
+    p1x: f32, p1y: f32, p1z: f32,
     instance_id: u32,
-    color: vec4<f32>,
+    color: u32,   // RGBA8, low byte red
+    facing: u32,  // two oct16 adjacent face normals; 0 = no adjacency, always draw
+}
+
+// The two adjacent face normals, mesh-local. Octahedral decode: undo the fold, then normalize.
+fn oct16_decode(p: u32) -> vec3<f32> {
+    let e = vec2<f32>(
+        f32(i32(p << 24u) >> 24u) / 127.0,
+        f32(i32(p << 16u) >> 24u) / 127.0,
+    );
+    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
+    if (n.z < 0.0){
+        n = vec3<f32>((1.0 - abs(n.y)) * sign(n.x), (1.0 - abs(n.x)) * sign(n.y), n.z);
+    }
+    return normalize(n);
+}
+
+// Is this edge worth drawing at all?
+//
+// An edge belongs to two faces. If BOTH turn away from the camera it is inside the solid and must
+// not be drawn; otherwise it is on the silhouette or on visible surface. That single test is what
+// replaces asking the depth buffer, and the reason it has to: a pen has WIDTH, so ink depth-tested
+// against the very surface it decorates is either cut by it or has to float in front of it, and the
+// float needed scales with the pen while the offset that would supply it makes neighbouring faces
+// fight each other. Classifying the edge sidesteps the whole trade.
+//
+// `facing == 0` means the geometry never had adjacency - free-standing linework, drawing pens,
+// BRep edges - and those always draw.
+fn edge_faces_camera(seg: CylinderSegment, model: mat4x4<f32>, mid: vec3<f32>) -> bool {
+    if (seg.facing == 0u){
+        return true;
+    }
+    // Rotate into world with the model's linear part. Non-uniform scale would strictly want the
+    // inverse transpose, but this only decides a SIGN and placements here are rigid or uniform.
+    let n0 = (model * vec4<f32>(oct16_decode(seg.facing & 0xffffu), 0.0)).xyz;
+    let n1 = (model * vec4<f32>(oct16_decode(seg.facing >> 16u), 0.0)).xyz;
+    let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - mid;
+    return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
 }
 @group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
 
@@ -24,6 +62,12 @@ struct LineUniform{
     ortho_h: f32,
     vp_h: f32,
     vp_w: f32,
+    // The camera position, as three SCALARS. It occupies exactly the 12 bytes WGSL pads out
+    // between `vp_w` and `anchor` - a vec3<f32> aligns to 16 and would be pushed to offset 32,
+    // silently shifting `anchor` and growing the block to 64 B against Rust's 48.
+    eye_x: f32,
+    eye_y: f32,
+    eye_z: f32,
     anchor: vec3<f32>,   // camera-relative anchor, world units (see gpu/mod.rs)
 };
 
@@ -99,6 +143,20 @@ struct VsOut{
     return vec2<f32>(floor_hairline(raw), hairline_fade(raw));
  }
 
+ // A vertex placed outside NDC, so the whole quad is clipped and nothing rasterizes. Every one of
+ // the six vertices takes it, so the triangles are degenerate as well.
+  fn dead_vertex() -> VsOut {
+    var dead: VsOut;
+    dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
+    dead.color = vec4<f32>(0.0);
+    dead.p = vec2<f32>(0.0);
+    dead.a = vec2<f32>(0.0);
+    dead.b = vec2<f32>(0.0);
+    dead.hw0 = 0.0;
+    dead.hw1 = 0.0;
+    return dead;
+ }
+
 
  // corner 0: e0 - 1: e1 - 2: e1 + (tri 1)
  // corner 3: e0 - 4: e1 + 5: e0 + (tri 2)
@@ -108,8 +166,19 @@ struct VsOut{
     let corner = vid % 6u;
     let model = instances[seg.instance_id].model;
 
-    let w0 = (model * vec4<f32>(seg.p0, 1.0)).xyz;
-    let w1 = (model * vec4<f32>(seg.p1, 1.0)).xyz;
+    let l0 = vec3<f32>(seg.p0x, seg.p0y, seg.p0z);
+    let l1 = vec3<f32>(seg.p1x, seg.p1y, seg.p1z);
+    let w0 = (model * vec4<f32>(l0, 1.0)).xyz;
+    let w1 = (model * vec4<f32>(l1, 1.0)).xyz;
+
+    // HIDDEN EDGES NEVER REACH THE RASTERIZER. Both adjacent faces turned away means this edge is
+    // inside the solid; drop it here and the ink that remains never has to win a depth argument
+    // with the surface it decorates. Collapsed outside NDC so it is clipped, like the near-plane
+    // case below.
+    if (!edge_faces_camera(seg, model, (w0 + w1) * 0.5)){
+        return dead_vertex();
+    }
+
     let c0 = mvp * vec4<f32>(w0, 1.0);
     let c1 = mvp * vec4<f32>(w1, 1.0);
 
@@ -138,15 +207,7 @@ struct VsOut{
 
     // Wholly nearer than the near plane: collapse to a point outside NDC so it is clipped away.
     if (f0 > 0.0 && f1 > 0.0){
-        var dead: VsOut;
-        dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
-        dead.color = vec4<f32>(0.0);
-        dead.p = vec2<f32>(0.0);
-        dead.a = vec2<f32>(0.0);
-        dead.b = vec2<f32>(0.0);
-        dead.hw0 = 0.0;
-        dead.hw1 = 0.0;
-        return dead;
+        return dead_vertex();
     }
 
     // At most one end is outside now, so both t's are safe to compute from the ORIGINALS.
@@ -207,7 +268,7 @@ struct VsOut{
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
     o.pos = vec4<f32>(ndc * wn, clip.z, wn);
-    o.color = seg.color * instances[seg.instance_id].color;
+    o.color = unpack4x8unorm(seg.color) * instances[seg.instance_id].color;
     o.p = p;
     o.a = s0;
     o.b = s1;

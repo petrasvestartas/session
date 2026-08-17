@@ -23,6 +23,12 @@ struct LineUniform{
     ortho_h: f32,
     vp_h: f32,
     vp_w: f32,
+    // The camera position, as three SCALARS. It occupies exactly the 12 bytes WGSL pads out
+    // between `vp_w` and `anchor` - a vec3<f32> aligns to 16 and would be pushed to offset 32,
+    // silently shifting `anchor` and growing the block to 64 B against Rust's 48.
+    eye_x: f32,
+    eye_y: f32,
+    eye_z: f32,
     anchor: vec3<f32>,   // camera-relative anchor, world units (see gpu/mod.rs)
 };
 
