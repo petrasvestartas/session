@@ -37,6 +37,13 @@ pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> Strin
 
     let mut camera = Camera::new();
     camera.fit(gpu.scene_min, gpu.scene_max, w as f64 / h as f64);
+    // One canned view is one sample of the failure space, and depth artifacts on mesh edges are
+    // ANGLE-dependent - a face only grazes the eye from some directions. VIEWER_ORBIT="dx,dy"
+    // orbits before framing so a sweep can be rendered and every frame looked at.
+    if let Ok(o) = std::env::var("VIEWER_ORBIT") {
+        let mut it = o.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
+        camera.orbit(it.next().unwrap_or(0.0), it.next().unwrap_or(0.0));
+    }
     let origin = camera.origin();
     let anchor = gpu.rebase_anchor(&origin, camera.distance_world());
     let view_proj = camera.view_proj_anchored(w as f64 / h as f64, &anchor);
