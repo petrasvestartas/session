@@ -948,7 +948,7 @@ impl Gpu {
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&view_proj.to_f32()));
 
         let line = LineUniform{
-            thickness: 2.0, // later driven by the egui slider
+            thickness: line_thickness_px(), // env VIEWER_THICKNESS; later an egui slider
             proj_y: 1.0 / (30.0_f32).to_radians().tan() * 0.001, // cot(fovy/2) mm-m unit scale
             ortho_h: 0.0, // perspective, set the ortho half-height when ortho
             vp_h: self.config.height as f32,
@@ -1422,6 +1422,12 @@ fn unit_sphere() -> (Vec<[f32; 3]>, Vec<u32>) {
 }
 
 /// A fresh buffer of `size` bytes, zero-initialized by WebGPU - the write_buffer splice and the empty-category placeholders both rely on that guarantee.
+/// On-screen pen weight in px. `VIEWER_THICKNESS` overrides it so the headless harness can
+/// sweep line weight without a rebuild; unset (and always on wasm) it is the usual 2.0.
+fn line_thickness_px() -> f32 {
+    std::env::var("VIEWER_THICKNESS").ok().and_then(|v| v.parse().ok()).unwrap_or(2.0)
+}
+
 fn zeroed_buffer(
     device: &wgpu::Device,
     label: &str,

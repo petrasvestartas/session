@@ -579,6 +579,8 @@ fn push_mesh(
     // and every edge it produced was then skipped.
     if m.widths().len() == 1 && m.widths()[0] == 0.0 { return }
 
+    if std::env::var("VIEWER_NO_EDGES").is_ok() { return }
+
     // ONE edge walk, shared by the pipes below and the vertex widths further down.
     let edges = m.edges_with_colors();
 
@@ -620,6 +622,10 @@ fn push_mesh(
             }
         }
     }
+
+    // VIEWER_NO_DOTS drops the per-vertex dots, so the harness can tell how much of a dense
+    // wireframe's ink is dots and how much is edges.
+    if std::env::var("VIEWER_NO_DOTS").is_ok() { return }
 
     for (i, vk) in m.vertices().into_iter().enumerate(){
         let Some(&vw) = vwidth.get(&vk) else { continue };
