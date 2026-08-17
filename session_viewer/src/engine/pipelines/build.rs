@@ -101,7 +101,17 @@ pub fn build_triangle_pipeline(
                 depth_write_enabled: Some(true),
                 depth_compare: Some(wgpu::CompareFunction::Greater),
                 stencil: wgpu::StencilState::default(),
-                bias: wgpu::DepthBiasState::default(),
+                // Faces recede so the wireframe on top of them can win. The line lanes lift
+                // their ink by one radius (see ribbon.wgsl), which is a CONSTANT offset and so
+                // cannot cover a face seen nearly edge-on: across the few px of a pen's width a
+                // grazing face's depth climbs by far more than a radius, which is what leaves a
+                // hairline slit inside an edge and eats a tube down to half its width.
+                //
+                // The missing term is the FACE's slope, and only the face pipeline knows it -
+                // hence `slope_scale`, the same reason OpenGL hidden-line renderers reach for
+                // glPolygonOffset. NEGATIVE because depth is reversed here (Greater), so
+                // "further away" means a SMALLER value.
+                bias: wgpu::DepthBiasState{ constant: -1, slope_scale: -2.0, clamp: 0.0 },
             }),
             multisample: wgpu::MultisampleState{
                 count: samples,

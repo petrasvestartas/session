@@ -30,6 +30,9 @@ struct LineUniform{
 // Sub-pixel pens never fade below this: 0 = original continuous fade, 1 = always solid 1px.
 const HAIRLINE_MIN_ALPHA = 0.5;
 
+// The scene unit (mm) in metres, matching the factor baked into LineUniform.proj_y.
+const MM_TO_M = 0.001;
+
 struct VsOut{
     @builtin(position) pos: vec4<f32>,
     @location(0) color: vec4<f32>,
@@ -99,9 +102,37 @@ struct VsOut{
     let along = select(-1.0, 1.0, at_end1);
     let p = select(s0, s1, at_end1) + (n*side+dir*along) * (px + 0.5);
 
+    // LIFT THE INK OFF THE SURFACE IT DECORATES.
+    //
+    // A camera-facing rectangle through a mesh edge is correctly oriented (Easy3D builds the
+    // same one: `offset = radius * normalize(cross(view_dir, axes))` in
+    // lines_plain_color_width_control.geom) and still renders wrong on a solid, because at a
+    // convex edge the two adjacent faces form a wedge and a PLANE through the edge cuts into
+    // it on both sides. Half the quad's width is then geometrically behind a face, so the
+    // interior edges of a box get eaten down to slivers while the silhouette edges - which
+    // have nothing behind their outer half - survive and read as offset outward.
+    //
+    // No depth-compare fixes that; it is interpenetration, not a tie. What makes the
+    // tessellated tube immune is that its surface is a radius PROUD of the centreline, and
+    // Easy3D's answer is the same: its cylinder impostor solves the ray/cylinder analytically
+    // and writes the tube surface's depth (lines_cylinders_color.frag). Both put the ink in
+    // front of the wedge instead of inside it.
+    //
+    // So do exactly that, for free: pull the quad toward the camera by its own radius. In
+    // reverse-Z, `clip.w` IS the eye depth, so scaling it shrinks the depth while `ndc * w`
+    // keeps the pixel where it was - one multiply, no eye position, no frag_depth, early-Z
+    // intact. `z` would strictly want +A*delta with it, but A*delta / z is ~1e-4 here
+    // (near = 10x the view distance), and erring low only lifts LESS, never buries it.
+    //
+    // `lift` is that radius as a FRACTION of eye depth, which is what makes it unit-free:
+    // px = r * proj_y * vp_h / w (see above, and screen_radius in cylinder.wgsl), so
+    // r/w = px / (proj_y * vp_h) - times the mm->m scale already baked into proj_y.
+    let lift = px * MM_TO_M / (line.proj_y * line.vp_h);
+    let wn = clip.w * (1.0 - clamp(lift, 0.0, 0.5));
+
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
-    o.pos = vec4<f32>(ndc * clip.w, clip.zw);
+    o.pos = vec4<f32>(ndc * wn, clip.z, wn);
     o.color = seg.color * instances[seg.instance_id].color;
     o.p = p;
     o.a = s0;
