@@ -9,6 +9,11 @@ struct Instance {
 
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 
+// How far faces slide back along their own view ray, as a FRACTION of eye depth. 0.4% is well
+// under a shading gradient yet ~10x the widest pen this viewer draws at a normal zoom, so ink
+// wins even where a face grazes the eye. See the comment in vs_main.
+const FACE_PUSH = 1.004;
+
 
 struct VsIn {
     @location(0) position: vec3<f32>,
@@ -30,8 +35,31 @@ fn vs_main(in: VsIn) -> VsOut {
     let inst = instances[in.inst_id];
     let world = inst.model * vec4<f32>(in.position, 1.0);
 
+    // FACES RECEDE, so the wireframe drawn on them can never be cut by them.
+    //
+    // A pen has WIDTH, and a plane through a mesh edge cuts into the wedge its two adjacent
+    // faces form, so half the ink ends up geometrically inside the solid. The line lanes
+    // already lift their ink toward the camera by one radius (ribbon.wgsl), but a CONSTANT
+    // lift cannot cover a face seen nearly edge-on: across a few px of pen width a grazing
+    // face's depth climbs by r*tan(slant), which is unbounded.
+    //
+    // The hardware answer is a slope-scaled depth bias, and it worked - but the units of
+    // `DepthBiasState.constant` on a FLOAT depth format are implementation-defined, so a
+    // driver is free to apply less than asked, or nothing. Do it here instead, where the
+    // behaviour is the same on every backend.
+    //
+    // The push is RELATIVE: scale eye depth by K. `clip.w` IS eye depth, and scaling xy with
+    // it leaves ndc = clip.xy/clip.w untouched, so nothing moves on screen - the geometry only
+    // slides back along its own view ray. Being relative is what makes it scale-correct: the
+    // gap grows with distance exactly as a screen-constant pen's world width does.
+    //
+    // Monotone in depth, so face-vs-face ordering is EXACTLY preserved (coplanar faces shift
+    // together and their tie stays a tie). Only face-vs-ink ordering changes, which is the
+    // whole point.
+    let clip = mvp * world;
+
     var o: VsOut;
-    o.pos = mvp * world; // Set the position
+    o.pos = vec4<f32>(clip.xy * FACE_PUSH, clip.z, clip.w * FACE_PUSH);
     o.color = in.color.rgb * inst.color.rgb; // baked base color x instance tint (white today)
     o.world_pos = world.xyz;
     o.normal =  (inst.model * vec4<f32>(in.normal, 0.0)).xyz; // rotate normal, drop translation
