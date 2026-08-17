@@ -6,6 +6,7 @@ use build::build_edges_pipeline;
 use build::build_sphere_pipeline;
 use build::build_point_pipeline;
 use build::build_ribbon_pipeline;
+use build::build_ribbon_solid_pipeline;
 use build::build_glyph_pipeline;
 use build::build_background_pipeline;
 use build::build_ink_depth_pipeline;
@@ -21,6 +22,7 @@ pub struct Pipelines{
     pub sphere: wgpu::RenderPipeline,
     pub point: wgpu::RenderPipeline,
     pub ribbon: wgpu::RenderPipeline,
+    pub ribbon_solid: wgpu::RenderPipeline,
     pub glyph: wgpu::RenderPipeline,
     pub ribbon_depth: wgpu::RenderPipeline, // depth-only prepass, so flat ink occludes flat ink
     pub glyph_depth: wgpu::RenderPipeline,
@@ -50,6 +52,7 @@ impl Pipelines {
             sphere: build_sphere_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
             point: build_point_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, cloud_layout),
             ribbon: build_ribbon_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
+            ribbon_solid: build_ribbon_solid_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
             glyph: build_glyph_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
             ribbon_depth: build_ink_depth_pipeline(device, samples, "ribbon.depth", color_format,
                 wgpu::ShaderSource::Wgsl(include_str!("../../shaders/ribbon.wgsl").into()),

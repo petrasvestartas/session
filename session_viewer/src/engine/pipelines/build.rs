@@ -593,6 +593,77 @@ pub fn build_ink_depth_pipeline(
 }
 
 /// Pipeline for flat capsule ribbons - buffer-less, 6 vertices / segments, opaque, depth-writing.
+/// The flat lane's shader, but aimed at the SOLID lane (mesh/BRep edges) - so it needs the one
+/// thing a screen-space quad cannot give itself: to sit PROUD of the surface it decorates.
+///
+/// A ribbon lies at its edge's own depth. Moving inward across an angled face the surface comes
+/// TOWARD the camera, so the inner half of every line is buried by the face it sits on and only
+/// the outer half survives - the line reads as offset outward, and which half dies depends on
+/// which way the face tilts. `gpu/mod.rs` already names this: "the tube radius lifts the ink off
+/// the surface it sits on, so silhouette edges never lose the depth test."
+///
+/// A SLOPE-SCALED depth bias is exactly the right instrument: the artifact scales with the depth
+/// gradient of the surface underneath, and so does the bias. Reverse-Z means nearer is LARGER, so
+/// the bias is positive here where a conventional depth buffer would want it negative.
+pub fn build_ribbon_solid_pipeline(
+    device: &wgpu::Device,
+    samples: u32,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    segment_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("ribbon.solid.shader"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/ribbon.wgsl").into()),
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("ribbon.solid.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(segment_layout)],
+        immediate_size: 0,
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("ribbon.solid"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true), // solid lane: an edge occludes what is behind it
+            depth_compare: Some(wgpu::CompareFunction::Greater),
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState { constant: 64, slope_scale: 2.0, clamp: 0.0 },
+        }),
+        multisample: wgpu::MultisampleState { count: samples, mask: !0, alpha_to_coverage_enabled: false },
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
 pub fn build_ribbon_pipeline(
     device: &wgpu::Device,
     samples: u32,

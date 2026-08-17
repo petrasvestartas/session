@@ -1070,7 +1070,7 @@ impl Gpu {
                     // The flat lane's own shader over the SOLID half of the same table. vid/6
                     // picks the row, so the range is simply the pipes prefix.
                     LineStyle::Flat => {
-                        pass.set_pipeline(&self.pipelines.ribbon);
+                        pass.set_pipeline(&self.pipelines.ribbon_solid);
                         pass.draw(0..6 * self.pipe_count, 0..1);
                     }
                 }
