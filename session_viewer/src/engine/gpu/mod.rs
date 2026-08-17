@@ -1159,29 +1159,6 @@ impl Gpu {
             }
             draws += 1;
 
-            // Vertex markers, right after the faces and BEFORE any linework: the marker depth-tests
-            // against surfaces only, so a vertex hidden by the solid stays hidden, and the bands
-            // and tubes drawn afterwards test against the marker's depth and lose the joint to it
-            // (their hug is face+eps, the marker's is face+eps+SPHERE_TIE). The line ink can still
-            // cover a marker where it is genuinely nearer (an edge approaching the eye past a far
-            // corner) - that is occlusion, not a lost tie.
-            //
-            // Under VIEWER_NO_DEPTH (the acceptance harness) the marker instead draws LATE, at the
-            // end of the pass: bands are Always then and would otherwise overwrite the markers in
-            // the oracle run only, and the on/off comparison would drown in disc-sized clusters.
-            let markers_late = std::env::var("VIEWER_NO_DEPTH").is_ok();
-            if self.sphere_count > 0 && !markers_late {
-                pass.set_pipeline(&self.pipelines.sphere);
-                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                pass.set_bind_group(1, &self.line_bind_group, &[]);
-                pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
-                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
-                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count); // one template, N glyphs
-                draws += 1;
-            }
-
             // Linework, ONE draw per lane over the SAME segment table.
             // segments[0..pipe_count] = mesh/BRep edges -> real cylinders: the tube radius lifts
             // the ink off the surface it sits on, so silhouette edges never lose the depth test.
@@ -1206,6 +1183,30 @@ impl Gpu {
                         pass.draw(0..6 * self.pipe_count, 0..1);
                     }
                 }
+                draws += 1;
+            }
+
+            // Vertex markers are drawn LAST of the solid lane, after the bands, and their
+            // pipeline compares GreaterEqual. Drawn FIRST (the previous arrangement) the marker
+            // had to win STRICTLY - the band, testing GreaterEqual against the marker's depth,
+            // takes the pixel on any tie - so every pixel where the two computed the same depth
+            // went to the band, and the disc lost a bite of its rim wherever a band cap crossed
+            // it. Ordering it last inverts that: the marker only has to MATCH the band's depth to
+            // keep the pixel, which is a strictly weaker condition, so it can only ever draw more
+            // of the disc. Real occlusion is untouched - anything genuinely nearer still has a
+            // higher depth and still wins.
+            //
+            // Faces are already down by this point, so a vertex hidden inside the solid stays
+            // hidden, which was the reason markers went early in the first place.
+            if self.sphere_count > 0 {
+                pass.set_pipeline(&self.pipelines.sphere);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count); // one template, N glyphs
                 draws += 1;
             }
 
@@ -1278,20 +1279,6 @@ impl Gpu {
                 draws += 1;
             }
 
-            // Acceptance-harness-only marker position (see the early draw for why): with every ink
-            // lane's depth test forced off, the marker - also Always - must come LAST so the oracle
-            // frame still shows the markers on top, matching the normal run.
-            if self.sphere_count > 0 && markers_late {
-                pass.set_pipeline(&self.pipelines.sphere);
-                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                pass.set_bind_group(1, &self.line_bind_group, &[]);
-                pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
-                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
-                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count);
-                draws += 1;
-            }
 
 
 

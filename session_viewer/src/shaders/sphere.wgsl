@@ -308,7 +308,15 @@ fn hug_depth(in: VsOut) -> f32 {
         if (pl.z != 0.0) {
             let zp = clamp(-(pl.x * ndc.x + pl.y * ndc.y + pl.w) / pl.z, -1e9, 1.0);
             let slope_px = (abs(pl.x) / line.vp_w + abs(pl.y) / line.vp_h) * 2.0 / abs(pl.z);
-            let eps = HUG_ABS + HUG_PIX * slope_px + HUG_REL * abs(zp - z_band) + SPHERE_TIE;
+            // The band's REL term references ITS centreline depth AT THIS PIXEL, and this pixel
+            // is up to one marker radius away from the vertex along the band, where the centreline
+            // has moved by the plane's own screen slope times that distance. Bounding it with
+            // `slope_px * (px + 0.5)` makes the marker's eps at least the band's everywhere on the
+            // disc - a derived bound, not a tuned margin, so it scales with zoom and slant instead
+            // of needing a bigger constant every time a case is found.
+            let band_span = slope_px * (in.px + 0.5);
+            let eps = HUG_ABS + HUG_PIX * slope_px
+                + HUG_REL * (abs(zp - z_band) + band_span) + SPHERE_TIE;
             z = max(z, min(zp + eps, 1.0));
         }
     }

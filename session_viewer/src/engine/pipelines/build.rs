@@ -447,7 +447,10 @@ pub fn build_sphere_pipeline(
             // hug puts the disc at the same face+eps the bands wrote, and SPHERE_TIE tips that
             // tie to the marker - so plain Greater (strict) is enough and stays honest.
             depth_write_enabled: Some(true),
-            depth_compare: Some(if std::env::var("VIEWER_NO_DEPTH").is_ok() { wgpu::CompareFunction::Always } else { wgpu::CompareFunction::Greater }),
+            // GreaterEqual, not Greater. The marker draws AFTER the bands (see encode_frame), so a
+            // tie has to fall to the marker for it to keep the rim a band cap overlaps; with a
+            // strict compare the band, already written at the same depth, would hold the pixel.
+            depth_compare: Some(if std::env::var("VIEWER_NO_DEPTH").is_ok() { wgpu::CompareFunction::Always } else { wgpu::CompareFunction::GreaterEqual }),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),

@@ -33,6 +33,25 @@ pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> Strin
         let name = path.rsplit('/').next().unwrap_or(path).to_string();
         scene.add_file(name, session, place.clone());
     }
+    // Table footprint, before the upload hands them to the GPU: the numbers to quote when asking
+    // "what does this model cost", and the ones that move when a struct is repacked.
+    {
+        let t = &scene.tables;
+        let mb = |b: usize| b as f64 / 1.048576e6;
+        let (v, i) = (t.verts.len(), t.idx.len());
+        let (pipes, sph) = (t.pipes.len(), t.spheres.len());
+        println!(
+            "tables: {v} verts {:.1} MB | {i} indices {:.1} MB | {pipes} edges {:.1} MB | {sph} markers {:.1} MB | total {:.1} MB",
+            mb(v * std::mem::size_of::<session_rust::RenderVertex>()),
+            mb(i * 4),
+            mb(pipes * std::mem::size_of::<crate::engine::gpu::CylinderSegment>()),
+            mb(sph * std::mem::size_of::<crate::engine::gpu::GlyphPoint>()),
+            mb(v * std::mem::size_of::<session_rust::RenderVertex>() + i * 4
+                + pipes * std::mem::size_of::<crate::engine::gpu::CylinderSegment>()
+                + sph * std::mem::size_of::<crate::engine::gpu::GlyphPoint>()),
+        );
+    }
+
     scene.upload_to(&mut gpu);
 
     let mut camera = Camera::new();
