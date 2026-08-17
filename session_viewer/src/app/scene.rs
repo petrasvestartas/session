@@ -415,8 +415,13 @@ impl Scene{
 
         if planar {
             for s in t.pipes.iter_mut().skip(pipe0).chain(t.segments.iter_mut().skip(seg0)){
-                s.radius = if s.radius < 0.0 {
-                    -s.radius * 0.5
+                // A flat sheet is paper: every pen becomes a world-mm radius so widths behave
+                // like plotter pens. encode_width already returns a positive mm radius for any
+                // authored width, so only the unset default (0.0) needs a value here - 0.5 mm,
+                // the usual hairline. This used to read `radius < 0` because widths arrived as
+                // NEGATIVE multipliers; they are millimetres now.
+                s.radius = if s.radius > 0.0 {
+                    s.radius
                 } else {
                     0.5
                 } 
@@ -512,9 +517,18 @@ fn point_to_glyph(p: &Point, instance_id: u32) -> GlyphPoint {
     }
 }
 
+/// The kernel's `width` is in MILLIMETRES - the drawings lane talks in 0.09-0.5 mm plot pens
+/// and `Line`/`Polyline` default to 1.0. This used to return `-(w)`, and a NEGATIVE radius means
+/// "multiply the global pen" to every shader - so a 30 mm polyline became 2 px x 30 = a 60 px
+/// half-width, a 120 px slab. Millimetres were being read as a multiplier.
+///
+/// Now: an explicit width is a world-mm RADIUS (half the width, positive => the projected
+/// branch), and only the untouched 1.0 default falls back to the screen-constant pen. That
+/// keeps mesh edges - which never set a width - at a zoom-independent 2 px, while a pen someone
+/// actually authored measures what it says.
 fn encode_width(w: f64) -> f32{
-    if w.is_finite() && w > 0.0{
-        -(w as f32)
+    if w.is_finite() && w > 0.0 && (w - 1.0).abs() > 1e-9 {
+        (w as f32) * 0.5
     } else {
         0.0
     }
