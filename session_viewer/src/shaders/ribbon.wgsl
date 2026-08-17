@@ -86,6 +86,14 @@ const MM_TO_M = 0.001;
 // The cost of a larger value is ink bleeding through geometry within that many half-widths of
 // depth, which for a 2px pen is about 3px worth - nothing. It scales with the pen, which is what
 // keeps it honest for the wide world-mm pens a drawing uses.
+// How far the ink floats in front of the edge it draws, in HALF-WIDTHS.
+//
+// A secant version of this - r*tan(theta) per edge, from the adjacent normals now in the table -
+// is the theoretically right law, and it was tried at a ceiling of 64 radii. It changed nothing
+// measurable, because the residual it was meant to fix turned out not to be a lift problem at all
+// (the edges that vanish at some rotations are genuinely occluded by the box in front). So the
+// constant stays: it is one line, it has no per-vertex cost, and it is the value verified across
+// five zooms and six orbits.
 const LIFT_RADII = 3.0;
 
 // Half-width in px at one end: the global pen thickness, or a world radius projected.
@@ -145,7 +153,7 @@ struct VsOut{
 
  // A vertex placed outside NDC, so the whole quad is clipped and nothing rasterizes. Every one of
  // the six vertices takes it, so the triangles are degenerate as well.
-  fn dead_vertex() -> VsOut {
+ fn dead_vertex() -> VsOut {
     var dead: VsOut;
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
     dead.color = vec4<f32>(0.0);

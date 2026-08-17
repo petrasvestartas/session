@@ -971,7 +971,7 @@ impl Gpu {
     /// Orthographic has no eye: rows 0, 1 and 3 are linearly dependent there (w is constant 1),
     /// the determinant collapses, and the fallback is the view direction pushed a long way back -
     /// which is exactly what an orthographic "eye at infinity" means.
-    fn eye_from_view_proj(vp: &Xform) -> [f32; 3] {
+    pub fn eye_from_view_proj(vp: &Xform) -> [f32; 3] {
         let r = |i: usize| [vp[(i, 0)], vp[(i, 1)], vp[(i, 2)], vp[(i, 3)]];
         let (a, b, c) = (r(0), r(1), r(3));
 

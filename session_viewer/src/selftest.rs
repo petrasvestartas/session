@@ -55,6 +55,20 @@ pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> Strin
     let anchor = gpu.rebase_anchor(&origin, camera.distance_world());
     let view_proj = camera.view_proj_anchored(w as f64 / h as f64, &anchor);
 
+    // The facing test depends on this being the real camera, so check it against the camera the
+    // frame was actually built from - anchored world units, the space the instance table uses.
+    {
+        let solved = Gpu::eye_from_view_proj(&view_proj);
+        let sc = camera.unit.to_meters();
+        let truth = [0usize, 1, 2].map(|k| ((camera.position[k] / sc) - anchor[k]) as f32);
+        let err = (0..3).map(|k| (solved[k] - truth[k]).powi(2)).sum::<f32>().sqrt();
+        let mag = (0..3).map(|k| truth[k] * truth[k]).sum::<f32>().sqrt().max(1.0);
+        // Silent unless it actually drifts - the facing test is only as good as this.
+        if err / mag > 1e-4 {
+            println!("EYE MISMATCH: solved {solved:?} truth {truth:?} rel err {:.3e}", err / mag);
+        }
+    }
+
     let rgba = gpu.render_offscreen(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj);
     write_ppm(out, &rgba, w, h).expect("write ppm");
 
