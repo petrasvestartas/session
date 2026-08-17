@@ -36,6 +36,13 @@ const CORNERS = array<vec2<f32>, 3>(
 // Sub-pixel pens never fade below this: 0 = original continuous fade, 1 = always solid 1px.
 const HAIRLINE_MIN_ALPHA = 0.5;
 
+// MM_TO_M must match ribbon.wgsl. The lift must NOT: it is one radius MORE than the line lane's
+// 3, because a vertex dot sits exactly where several edges meet, and at an equal lift the two tie
+// on depth and the lines - drawn later - swallow the dot. One radius of clearance makes a dot the
+// topmost ink by construction, which is the rule this viewer wants: a dot on EVERY vertex.
+const MM_TO_M = 0.001;
+const LIFT_RADII = 4.0;
+
 struct VsOut {
     @builtin(position) pos: vec4<f32>,
     @location(0) color: vec4<f32>,
@@ -73,9 +80,16 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
 
     // Triangle scaled to px + 0.5 so the AA feather ramp fits inside it
     let corner = CORNERS[vid % 3u];
-    let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
+
+    // Same lift as ribbon.wgsl, by the SAME number of radii, or the two lanes fight. A vertex dot
+    // sits exactly where several edges meet, so once the lines float in front of the surface the
+    // dot has to float with them - otherwise the ink that used to show a dot at every corner
+    // quietly swallows it, and a dot on EVERY vertex is not negotiable.
+    let lift = px * LIFT_RADII * MM_TO_M / (line.proj_y * line.vp_h);
+    let wn = clip.w * (1.0 - clamp(lift, 0.0, 0.5));
+    let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
     var o: VsOut;
-    o.pos = vec4<f32>(clip.xy + off, clip.zw);
+    o.pos = vec4<f32>(clip.xy / clip.w * wn + off, clip.z, wn);
     o.color = g.color * instances[g.instance_id].color;
     o.corner = corner;
     o.px = px;

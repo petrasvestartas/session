@@ -44,6 +44,13 @@ pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> Strin
         let mut it = o.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
         camera.orbit(it.next().unwrap_or(0.0), it.next().unwrap_or(0.0));
     }
+    // VIEWER_ZOOM dollies in after framing. Needed because the interesting failures are the ones
+    // where geometry crosses the eye plane, and a fit view never gets near that.
+    if let Ok(z) = std::env::var("VIEWER_ZOOM") {
+        if let Ok(n) = z.trim().parse::<i32>() {
+            for _ in 0..n.abs() { camera.zoom(if n > 0 { 1.0 } else { -1.0 }); }
+        }
+    }
     let origin = camera.origin();
     let anchor = gpu.rebase_anchor(&origin, camera.distance_world());
     let view_proj = camera.view_proj_anchored(w as f64 / h as f64, &anchor);
