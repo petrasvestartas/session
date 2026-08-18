@@ -246,16 +246,34 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
     var pl: array<vec4<f32>, 6>;
     for (var k = 0u; k < 6u; k = k + 1u) { pl[k] = PLANE_NONE; }
     let fwords = array<u32, 3>(g.facing, g.facing_ext.x, g.facing_ext.y);
+    var known = false;   // this vertex carries adjacency at all
+    var front = false;   // ...and at least one incident face turns toward the eye
     for (var w = 0u; w < 3u; w = w + 1u) {
         let fw = fwords[w];
         if (fw == FACING_UNKNOWN) { continue; }
+        known = true;
         for (var h = 0u; h < 2u; h = h + 1u) {
             let n = (model * vec4<f32>(oct16_decode((fw >> (16u * h)) & 0xffffu), 0.0)).xyz;
+            if (dot(n, to_eye) > 0.0) { front = true; }
             if (inside || dot(n, to_eye) > 0.0) {
                 let pw = vec4<f32>(n, -dot(n, centre));
                 pl[2u * w + h] = vec4<f32>(dot(j0, pw), -dot(j1, pw), dot(j2, pw), -dot(j3, pw));
             }
         }
+    }
+
+    // HIDDEN VERTICES NEVER REACH THE RASTERIZER - the ribbon lane's cull, which this lane was
+    // missing. Every incident face turned away means the vertex is on the far side of the solid,
+    // and a marker there is not merely redundant: it floats 4 radii toward the camera and then
+    // HUGS a plane, so on a dense curved mesh it pokes through the near surface and the model
+    // reads as though its back vertices were showing through. The bunny emits one marker per
+    // vertex - 35,947 of them, about half on the far side - which is where this became obvious.
+    //
+    // `known == false` is geometry with no adjacency at all (free-standing points, a drawing's
+    // dots): those always draw. `inside` keeps the whole object when the eye is within its
+    // bounds, for the same reason the bands do - from inside, every face points away.
+    if (known && !front && !inside) {
+        return dead_dot();
     }
 
     var o: VsOut;

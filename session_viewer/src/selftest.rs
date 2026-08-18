@@ -23,15 +23,43 @@ fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
     f.flush()
 }
 
+/// Resident set size in MB, straight from /proc. Coarse - it counts the allocator's slack and
+/// never shrinks when memory is freed - which is exactly the right measure here, because a wasm32
+/// heap does not shrink either: the PEAK is the budget.
+#[cfg(target_os = "linux")]
+fn rss_mb() -> f64 {
+    std::fs::read_to_string("/proc/self/statm")
+        .ok()
+        .and_then(|s| s.split_whitespace().nth(1).and_then(|v| v.parse::<f64>().ok()))
+        .map(|pages| pages * 4096.0 / 1.048576e6)
+        .unwrap_or(0.0)
+}
+#[cfg(not(target_os = "linux"))]
+fn rss_mb() -> f64 { 0.0 }
+
 /// Load `.pb` files, frame them, render one frame, and write it out.
 pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> String {
     let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
     let mut scene = Scene::new();
+    // Staged RSS, so "the model costs 122 MB" can be attributed instead of guessed at. The three
+    // numbers that matter are different levers: the file buffer is transient, the decode is the
+    // protobuf intermediate, and the kernel figure is what the halfedge and the vertex/face maps
+    // actually cost once built.
+    let rss0 = rss_mb();
     for (path, place) in files {
         let Ok(bytes) = std::fs::read(path) else { return format!("could not read {path}\n") };
+        let nbytes = bytes.len();
+        let rss_read = rss_mb();
         let Ok(session) = Session::pb_loads(&bytes) else { return format!("could not parse {path}\n") };
+        let rss_parsed = rss_mb();
+        drop(bytes);
         let name = path.rsplit('/').next().unwrap_or(path).to_string();
+        println!(
+            "  {name}: file {:.1} MB | after read {:.1} MB | after decode+build {:.1} MB (+{:.1})",
+            nbytes as f64 / 1.048576e6, rss_read - rss0, rss_parsed - rss0, rss_parsed - rss_read
+        );
         scene.add_file(name, session, place.clone());
+        println!("  after walk into GPU tables: {:.1} MB", rss_mb() - rss0);
     }
     // Table footprint, before the upload hands them to the GPU: the numbers to quote when asking
     // "what does this model cost", and the ones that move when a struct is repacked.

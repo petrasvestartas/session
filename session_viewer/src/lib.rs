@@ -11,7 +11,7 @@
 mod engine;
 mod state;
 mod camera;
-mod app; // App layer for file loading
+pub mod app; // App layer for file loading
 #[cfg(not(target_arch = "wasm32"))]
 pub mod selftest; // headless render harness - see src/selftest.rs
 
@@ -22,7 +22,7 @@ use crate::app::scene::{auto_grid, Manifest, Scene};
 
 // The scene: which sheets, and where each one sits.
 // Fetched at runtime, so re-arringing the scene is a text edit in assets/scenes, not rebuild (app/scene.rs)
-const DEMO_SCENE_URL: &str = "scenes/boxes.json";
+const DEMO_SCENE_URL: &str = "scenes/bunny.json";
 
 /// Async init - event-loop messages.
 /// `Ready` carries the State built around the first file
