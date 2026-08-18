@@ -272,6 +272,37 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     `grep Session|Mesh|BRep src/engine/` empty
     is empty (litmus test)
 
+- ✅ 35b The mesh edge lane — a pen that survives the surface it draws on. ADDED 2026-08-18.
+  Mesh edges were 3D tubes: 12 tris an edge + 36 per vertex sphere = 90x the geometry decorated.
+  Flat camera-facing quads are 2 tris, and the whole lesson is why that is hard: a flat quad is a
+  PLANE through the edge, so at a convex edge it cuts into the wedge the two faces form
+  - files: `engine/gpu/mod.rs` (`LineStyle`, `CylinderSegment` 48→40 B, `Instance.extent/.spacing`,
+    `eye_from_view_proj`), `app/scene.rs` (`pack_rgba`/`oct16`/`pack_facing`/`mesh_spacing`,
+    adjacency in `push_mesh`), `shaders/ribbon.wgsl` + `sphere.wgsl` + `cylinder.wgsl`,
+    `selftest.rs` + `examples/selftest.rs` (VIEWER_ORBIT/VIEWER_ZOOM, manifests, footprint+RSS)
+  - the law: a band's depth is its CENTRELINE's, one value across the width, but the test is per
+    fragment - at distance d off centre the face has risen by d*tan(theta). So the offset needed
+    scales with PEN WIDTH and is unbounded; and any offset that size makes two faces meeting at an
+    edge fight over a band the same width. Constant lift, relative face push, hardware slope bias,
+    dpdx/dpdy slope bias, per-edge secant lift ALL sit on that trade. **A constant that needs
+    tuning proves the model is wrong**
+  - the fix: the ink HUGS the adjacent face. Planes built in CLIP space as `join3` of three
+    transformed points (no matrix inverse; w<0 still algebraically on the plane), solved per
+    fragment, `max()` against the centreline so silhouettes keep full width, back-facing planes
+    skipped, epsilon DERIVED (abs + plane's ndc-z slope per px for the MSAA sample spread +
+    fraction of local rise for oct16's 1.4 deg)
+  - four bugs that MIMIC the depth bug: width 2x (NDC spans 2 units over vp_h px, twice over);
+    half-width as a varying (trapezoid -> projective, not affine -> triangular bite on the quad
+    diagonal); no near-plane clip (`abs(w)` MIRRORS a vertex behind the eye); oct16 folding both
+    poles onto one code (`signum(0.0)` is 0.0) which collided with an all-zeros sentinel
+  - NOT depth: at distance a dense mesh goes see-through because 104k edges + 36k markers at
+    screen-constant width is more ink than pixels -> WIRE_MIN_PX / MARKER_MIN_PX density LOD; and
+    the lift itself was unbounded (fraction of EYE DEPTH: exceeds a 1000 mm box at 242 m band /
+    91 m marker) -> `lift_capped` at a tenth of the object AABB diagonal
+  - verify: depth-on vs `VIEWER_NO_DEPTH=1` must agree on visible edges — 1804 → 12 px of 675k at
+    zoom 19; marker rim 394 = 394 vs the oracle; flat vs tube 4 px = 4 px on a box edge; drawing
+    sheet unchanged at 52244 ink px
+
 - ✅ 36 The raw cloud lane — one vertex, one pixel. ADDED 2026-08-16. 35 sent clouds through
   the GLYPH lane: 3 verts and a blended ~38 px dot per point, which for a 13.8M-point scan is
   41.4M vertices and ~520M blended fragments a frame (~100 ms/frame, stalled the desktop)

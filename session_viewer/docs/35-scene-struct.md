@@ -1553,15 +1553,19 @@ FLAG_HIDDEN + stored layouts; new() starts empty), `engine/gpu/adapters.rs` (DEL
 
 ## Next
 
-[`37-cloud-memory.md`](37-cloud-memory.md) — the document came back, but it came back
-with **five** copies of every point and a fresh full-size mapped upload buffer per
-appended file. Three LiDAR scans (10.6M points) put the tab at 3.5 GB and got it killed
-by the Linux OOM killer. 37 measures where every megabyte went and takes the peak down
-by a third without changing a single pixel; 38 and 39 then halve the GPU table and
-make the peak constant. Do it before 36 — the BVH is easier to reason about when a
-scene is not flirting with the heap ceiling.
+[`35b-mesh-edge-lane.md`](35b-mesh-edge-lane.md) — the document is back and loading no longer
+hurts, so the next thing you will notice is what the viewer spends its triangles on. Mesh edges
+are 3D tubes: twelve triangles an edge, ninety times the geometry they decorate. 35b replaces
+them with two triangles — and spends most of its length on why a flat rectangle of nonzero width
+is so much harder to occlude correctly than a tube, because that argument is the lesson.
 
-Then `40-scene-bvh.md` — `Scene` now has a fixed, ordered object list; that lesson gives it a
-broad-phase AABB BVH over their world boxes. One BVH, reused by frustum culling (41), picking
-(47), and box-select (50) — the "one acceleration structure, many uses" principle, and the reason
-the object list had to stabilize here first.
+Then [`36-raw-cloud-lane.md`](36-raw-cloud-lane.md) — 35 routes `Geometry::PointCloud` into the
+flat glyph dots, which is right for 32b's demo clouds and wrong for a 13.8M-point scan. 36 gives
+dense clouds their own lane; 37 measures where 3.5 GB went for 323 MB of GPU data and takes the
+peak down by a third; 38 halves the GPU table; 39 streams the file straight into GPU memory so
+the peak stops growing with the scene.
+
+Then [`40-scene-bvh.md`](40-scene-bvh.md) — `Scene` now has a fixed, ordered object list; that
+lesson gives it a broad-phase AABB BVH over their world boxes. One BVH, reused by frustum culling
+(41), picking (47), and box-select (50) — the "one acceleration structure, many uses" principle,
+and the reason the object list had to stabilize here first.
