@@ -272,7 +272,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     `grep Session|Mesh|BRep src/engine/` empty
     is empty (litmus test)
 
-- ✅ 35b The mesh edge lane — a pen that survives the surface it draws on. ADDED 2026-08-18.
+- ✅ 35 (part 2) The mesh edge lane — a pen that survives the surface it draws on. ADDED 2026-08-18.
   Mesh edges were 3D tubes: 12 tris an edge + 36 per vertex sphere = 90x the geometry decorated.
   Flat camera-facing quads are 2 tris, and the whole lesson is why that is hard: a flat quad is a
   PLANE through the edge, so at a convex edge it cuts into the wedge the two faces form

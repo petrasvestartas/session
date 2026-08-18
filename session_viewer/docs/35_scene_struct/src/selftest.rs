@@ -1,0 +1,127 @@
+//! Headless render harness — native only.
+//!
+//! The point of this module is narrow and important: a shader change can be LOOKED AT on this
+//! machine, as a PNG-ish image file, before it is shipped to a browser for somebody else to
+//! judge by eye. Four broken builds is what it costs not to have one.
+//!
+//! It reuses the real pipeline: `Gpu::new_headless` builds the same stack without a surface, and
+//! `Gpu::render_offscreen` runs the same `encode_frame` the swapchain path runs.
+
+use crate::app::scene::Scene;
+use crate::camera::Camera;
+use crate::engine::gpu::Gpu;
+use session_rust::{Session, Xform};
+
+/// Write RGBA8 rows as a binary PPM (P6). No image crate needed, and every viewer opens it.
+fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
+    use std::io::Write;
+    let mut f = std::io::BufWriter::new(std::fs::File::create(path)?);
+    write!(f, "P6\n{w} {h}\n255\n")?;
+    for px in rgba.chunks_exact(4) {
+        f.write_all(&px[..3])?;
+    }
+    f.flush()
+}
+
+/// Resident set size in MB, straight from /proc. Coarse - it counts the allocator's slack and
+/// never shrinks when memory is freed - which is exactly the right measure here, because a wasm32
+/// heap does not shrink either: the PEAK is the budget.
+#[cfg(target_os = "linux")]
+fn rss_mb() -> f64 {
+    std::fs::read_to_string("/proc/self/statm")
+        .ok()
+        .and_then(|s| s.split_whitespace().nth(1).and_then(|v| v.parse::<f64>().ok()))
+        .map(|pages| pages * 4096.0 / 1.048576e6)
+        .unwrap_or(0.0)
+}
+#[cfg(not(target_os = "linux"))]
+fn rss_mb() -> f64 { 0.0 }
+
+/// Load `.pb` files, frame them, render one frame, and write it out.
+pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> String {
+    let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
+    let mut scene = Scene::new();
+    // Staged RSS, so "the model costs 122 MB" can be attributed instead of guessed at. The three
+    // numbers that matter are different levers: the file buffer is transient, the decode is the
+    // protobuf intermediate, and the kernel figure is what the halfedge and the vertex/face maps
+    // actually cost once built.
+    let rss0 = rss_mb();
+    for (path, place) in files {
+        let Ok(bytes) = std::fs::read(path) else { return format!("could not read {path}\n") };
+        let nbytes = bytes.len();
+        let rss_read = rss_mb();
+        let Ok(session) = Session::pb_loads(&bytes) else { return format!("could not parse {path}\n") };
+        let rss_parsed = rss_mb();
+        drop(bytes);
+        let name = path.rsplit('/').next().unwrap_or(path).to_string();
+        println!(
+            "  {name}: file {:.1} MB | after read {:.1} MB | after decode+build {:.1} MB (+{:.1})",
+            nbytes as f64 / 1.048576e6, rss_read - rss0, rss_parsed - rss0, rss_parsed - rss_read
+        );
+        scene.add_file(name, session, place.clone());
+        println!("  after walk into GPU tables: {:.1} MB", rss_mb() - rss0);
+    }
+    // Table footprint, before the upload hands them to the GPU: the numbers to quote when asking
+    // "what does this model cost", and the ones that move when a struct is repacked.
+    {
+        let t = &scene.tables;
+        let mb = |b: usize| b as f64 / 1.048576e6;
+        let (v, i) = (t.verts.len(), t.idx.len());
+        let (pipes, sph) = (t.pipes.len(), t.spheres.len());
+        println!(
+            "tables: {v} verts {:.1} MB | {i} indices {:.1} MB | {pipes} edges {:.1} MB | {sph} markers {:.1} MB | total {:.1} MB",
+            mb(v * std::mem::size_of::<session_rust::RenderVertex>()),
+            mb(i * 4),
+            mb(pipes * std::mem::size_of::<crate::engine::gpu::CylinderSegment>()),
+            mb(sph * std::mem::size_of::<crate::engine::gpu::GlyphPoint>()),
+            mb(v * std::mem::size_of::<session_rust::RenderVertex>() + i * 4
+                + pipes * std::mem::size_of::<crate::engine::gpu::CylinderSegment>()
+                + sph * std::mem::size_of::<crate::engine::gpu::GlyphPoint>()),
+        );
+    }
+
+    scene.upload_to(&mut gpu);
+
+    let mut camera = Camera::new();
+    camera.fit(gpu.scene_min, gpu.scene_max, w as f64 / h as f64);
+    // One canned view is one sample of the failure space, and depth artifacts on mesh edges are
+    // ANGLE-dependent - a face only grazes the eye from some directions. VIEWER_ORBIT="dx,dy"
+    // orbits before framing so a sweep can be rendered and every frame looked at.
+    if let Ok(o) = std::env::var("VIEWER_ORBIT") {
+        let mut it = o.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
+        camera.orbit(it.next().unwrap_or(0.0), it.next().unwrap_or(0.0));
+    }
+    // VIEWER_ZOOM dollies in after framing. Needed because the interesting failures are the ones
+    // where geometry crosses the eye plane, and a fit view never gets near that.
+    if let Ok(z) = std::env::var("VIEWER_ZOOM") {
+        if let Ok(n) = z.trim().parse::<i32>() {
+            for _ in 0..n.abs() { camera.zoom(if n > 0 { 1.0 } else { -1.0 }); }
+        }
+    }
+    let origin = camera.origin();
+    let anchor = gpu.rebase_anchor(&origin, camera.distance_world());
+    let view_proj = camera.view_proj_anchored(w as f64 / h as f64, &anchor);
+
+    // The facing test depends on this being the real camera, so check it against the camera the
+    // frame was actually built from - anchored world units, the space the instance table uses.
+    {
+        let solved = Gpu::eye_from_view_proj(&view_proj);
+        let sc = camera.unit.to_meters();
+        let truth = [0usize, 1, 2].map(|k| ((camera.position[k] / sc) - anchor[k]) as f32);
+        let err = (0..3).map(|k| (solved[k] - truth[k]).powi(2)).sum::<f32>().sqrt();
+        let mag = (0..3).map(|k| truth[k] * truth[k]).sum::<f32>().sqrt().max(1.0);
+        // Silent unless it actually drifts - the facing test is only as good as this.
+        if err / mag > 1e-4 {
+            println!("EYE MISMATCH: solved {solved:?} truth {truth:?} rel err {:.3e}", err / mag);
+        }
+    }
+
+    let rgba = gpu.render_offscreen(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj);
+    write_ppm(out, &rgba, w, h).expect("write ppm");
+
+    let ink = rgba.chunks_exact(4).filter(|p| p[0] < 200 || p[1] < 200 || p[2] < 200).count();
+    format!(
+        "wrote {out}  {w}x{h}  non-background pixels: {ink} ({:.1}%)\n",
+        100.0 * ink as f64 / (w * h) as f64
+    )
+}
