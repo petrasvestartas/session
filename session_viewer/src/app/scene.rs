@@ -244,7 +244,7 @@ impl Scene{
                         &mut t.pipes,
                         &mut t.spheres
                     );
-                    t.object_bounds.push(b);
+                    t.object_bounds.push(b); t.object_spacing.push(mesh_spacing(b, m.number_of_vertices()));
                 }
                 Geometry::BRep(b) => {
                     let mut bm = b.mesh();
@@ -259,20 +259,20 @@ impl Scene{
                         &mut t.pipes,
                         &mut t.spheres
                     );
-                    t.object_bounds.push(bb);
+                    t.object_bounds.push(bb); t.object_spacing.push(mesh_spacing(bb, bm.number_of_vertices()));
                 }
-                Geometry::Line(l) => { t.segments.push(line_to_segment(l, ri)); t.object_bounds.push(None); }
-                Geometry::Polyline(pl) => { t.segments.extend(polyline_to_segments(pl, ri)); t.object_bounds.push(None); }
-                Geometry::NurbsCurve(c) => { t.segments.extend(nurbscurve_to_segments(c, ri)); t.object_bounds.push(None); }
-                Geometry::Point(p) => { t.glyphs.push(point_to_glyph(p, ri)); t.object_bounds.push(None); }
+                Geometry::Line(l) => { t.segments.push(line_to_segment(l, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
+                Geometry::Polyline(pl) => { t.segments.extend(polyline_to_segments(pl, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
+                Geometry::NurbsCurve(c) => { t.segments.extend(nurbscurve_to_segments(c, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
+                Geometry::Point(p) => { t.glyphs.push(point_to_glyph(p, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
                 // A cloud picks its lane by SIZE, not by camera state - so nothing changes while
                 // you orbit. A handful of points are worth round sized dots (32b's demo clouds);
                 // a scan is a clump, and the raw lane draws it one vertex and one pixel per point.
                 Geometry::PointCloud(pc) if pc.len() >= CLOUD_RAW_MIN => {
                     push_cloud(pc, ri, t);
-                    t.object_bounds.push(None);
+                    t.object_bounds.push(None); t.object_spacing.push(0.0);
                 }
-                Geometry::PointCloud(pc) => { t.glyphs.extend(pointcloud_to_glyphs(pc, ri)); t.object_bounds.push(None); }
+                Geometry::PointCloud(pc) => { t.glyphs.extend(pointcloud_to_glyphs(pc, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
                 Geometry::NurbsSurface(s) => {
                     let mut sm = s.mesh();
                     if let Some(c) = s.facecolors.first() {
@@ -288,10 +288,10 @@ impl Scene{
                         &mut t.pipes,
                         &mut t.spheres
                     );
-                    t.object_bounds.push(b);
+                    t.object_bounds.push(b); t.object_spacing.push(mesh_spacing(b, sm.number_of_vertices()));
                 }
-                Geometry::Plane(p) => { t.segments.extend(plane_to_segments(p, ri)); t.object_bounds.push(None); }
-                Geometry::OBB(b) => { t.segments.extend(obb_to_segments(b, ri)); t.object_bounds.push(None); }
+                Geometry::Plane(p) => { t.segments.extend(plane_to_segments(p, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
+                Geometry::OBB(b) => { t.segments.extend(obb_to_segments(b, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
                 Geometry::Element(e) => match e.geometry() {
                     ElementGeometry::Mesh(m) => {
                         let b = push_mesh(
@@ -304,7 +304,7 @@ impl Scene{
                             &mut t.pipes,
                             &mut t.spheres
                         );
-                        t.object_bounds.push(b);
+                        t.object_bounds.push(b); t.object_spacing.push(mesh_spacing(b, m.number_of_vertices()));
                     }
                     ElementGeometry::BRep(b) => {
                         let mut bm = b.mesh();
@@ -319,9 +319,9 @@ impl Scene{
                             &mut t.pipes,
                             &mut t.spheres
                         );
-                        t.object_bounds.push(bb);
+                        t.object_bounds.push(bb); t.object_spacing.push(mesh_spacing(bb, bm.number_of_vertices()));
                     }
-                    ElementGeometry::None => { t.object_bounds.push(None); },
+                    ElementGeometry::None => { t.object_bounds.push(None); t.object_spacing.push(0.0); },
                 },
             }
             self.guid_to_row.insert(guid.clone(), ri);
@@ -598,6 +598,20 @@ fn pack_facing(n0: Option<Vector>, n1: Option<Vector>) -> u32 {
         }
         _ => FACING_UNKNOWN,
     }
+}
+
+/// Typical distance between a mesh's vertices, world units: the AABB diagonal over the square root
+/// of the vertex count. A surface mesh spreads its vertices over an AREA, so the count's square
+/// root is what scales with the extent, which makes this a good proxy for "how far apart are
+/// neighbouring vertices" without walking the edges a second time. The ink lanes drop their
+/// markers once it projects below a few pixels - see WIRE_MIN_PX in ribbon.wgsl.
+fn mesh_spacing(bounds: Option<([f32; 3], [f32; 3])>, verts: usize) -> f32 {
+    let Some((lo, hi)) = bounds else { return 0.0 };
+    if verts < 2 {
+        return 0.0;
+    }
+    let d = ((hi[0]-lo[0]).powi(2) + (hi[1]-lo[1]).powi(2) + (hi[2]-lo[2]).powi(2)).sqrt();
+    d / (verts as f32).sqrt()
 }
 
 fn push_mesh(

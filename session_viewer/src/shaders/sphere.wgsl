@@ -5,6 +5,8 @@ struct Instance{
     model: mat4x4<f32>,
     color: vec4<f32>,
     flags: u32,
+    extent: f32,   // world AABB diagonal; 0 = unknown. Caps the ink lift - see lift_capped().
+    spacing: f32,  // typical vertex spacing, world units; 0 = unknown. Density LOD - see below.
 };
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 
@@ -71,6 +73,42 @@ const MARKER_TIE = 2e-6;
 // A "no plane here" value for the plane varyings: pl.z == 0 skips the depth solve entirely and
 // the fragment keeps the disc's own depth (no adjacency, back-facing planes).
 const PLANE_NONE = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+
+// The ink lift, CAPPED so it can never lift ink in front of the object it belongs to.
+//
+// `lift` here is a fraction of EYE DEPTH, which is what makes it unit-free and correct at any
+// zoom - but it is also why it cannot be left alone. World lift = lift * eye_depth, so it grows
+// with camera distance while an object's front-to-back size does not. Past some distance the
+// object's BACK wireframe is lifted in front of its own front faces and the model goes
+// see-through: measured on a 1000 mm box with a 2px pen, 242 m for a band and 91 m for a marker,
+// which is ordinary zoom-out in a scene spanning tens of metres. Zoom in and it cannot happen;
+// zoom out and it must.
+//
+// The cap is a fraction of the object's own world AABB diagonal, which the CPU already computes
+// for FLAG_INSIDE and now ships per instance row. A tenth of the diagonal is far more than the
+// lift ever needs when the pen is small against the object (the case the lift was tuned for) and
+// bites only in the regime where the lift had stopped meaning "just in front of the surface".
+// `extent == 0` is unknown (linework, clouds): no cap, since there is no object to punch through.
+const LIFT_MAX_EXTENT = 0.1;
+
+fn lift_capped(lift: f32, w: f32, extent: f32) -> f32 {
+    if (extent <= 0.0) {
+        return clamp(lift, 0.0, 0.5);
+    }
+    // extent is world units (mm); w is eye depth in metres, so world lift = lift * w / MM_TO_M.
+    let max_lift = LIFT_MAX_EXTENT * extent * MM_TO_M / max(w, 1e-9);
+    return clamp(min(lift, max_lift), 0.0, 0.5);
+}
+
+
+// DENSITY LOD, the marker half of ribbon.wgsl's WIRE_MIN_PX.
+//
+// A marker is screen-constant: it never shrinks with the model, so at distance a dense mesh puts
+// one on every pixel several times over - 35,947 of them on a bunny 100 px tall - and the surface
+// reads as speckle you can see through. That is not a depth failure and no depth fix touches it.
+// The edge lane can measure its own projected length; a marker cannot, so it uses the object's
+// vertex SPACING projected to pixels, which is the same quantity one step removed.
+const MARKER_MIN_PX = 2.5;
 
 // The two adjacent face normals, mesh-local. Octahedral decode: undo the fold, then normalize.
 // Identical to ribbon.wgsl's - both lanes must read the same `facing` word the same way.
@@ -193,6 +231,15 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
         px = r * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6);
     }
 
+    // Below the density threshold this marker is noise, not information - see MARKER_MIN_PX.
+    // Projected the same way a world radius is (half_width_px in ribbon.wgsl): spacing is a world
+    // length, so it lands in px as `s * proj_y * vp_h / (2 * w)`.
+    let sp = instances[g.instance_id].spacing;
+    if (sp > 0.0 && line.ortho_h <= 0.0
+        && sp * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6) < MARKER_MIN_PX) {
+        return dead_dot();
+    }
+
     // NEAR-EYE CAP, the glyph.wgsl rule: a marker whose radius alone exceeds the viewport is a
     // ball millimetres from the eye, not a marker - its correctly projected rim would land on
     // screen as a soft screen-wide arc. Drop it; the near-plane clip above takes it from there.
@@ -213,7 +260,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
     // stays the topmost mark where no plane applies (the silhouette side).
     let corner = tmpl.xy;
     let lift = px * LIFT_RADII * MM_TO_M / (line.proj_y * line.vp_h);
-    let wn = clip.w * (1.0 - clamp(lift, 0.0, 0.5));
+    let wn = clip.w * (1.0 - lift_capped(lift, clip.w, instances[g.instance_id].extent));
     let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
 
     // THE ADJACENT FACES ARE PLANES - the ribbon.wgsl argument, applied to the marker. The bands

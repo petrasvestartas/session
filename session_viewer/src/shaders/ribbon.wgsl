@@ -5,6 +5,8 @@ struct Instance{
     model: mat4x4<f32>,
     color: vec4<f32>,
     flags: u32,
+    extent: f32,   // world AABB diagonal; 0 = unknown. Caps the ink lift - see lift_capped().
+    spacing: f32,  // typical vertex spacing, world units; 0 = unknown. Density LOD - see below.
 };
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 
@@ -124,14 +126,55 @@ const HUG_REL = 0.35;
 // the fragment keeps the centreline depth (dead vertices, no adjacency, back-facing planes).
 const PLANE_NONE = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 
+// DENSITY LOD: a wire shorter than this many pixels is dropped.
+//
+// At distance a dense mesh has more wires than the screen has pixels - the bunny is 104,288 edges
+// and 35,947 markers, and at 100 px tall that is ink on every pixel several times over. The
+// surface then reads as speckle you can see through, which is not a depth failure and no depth
+// fix touches it: it is that a 2px screen-constant pen does not shrink with the model. Rhino and
+// every CAD viewer stop drawing wires below a density like this.
+//
+// Measured against the projected length of the edge itself, so it needs no per-object data and
+// costs one compare: an edge whose two ends land within a few pixels cannot communicate a
+// direction, only noise. Free-standing linework is exempt - a short polyline segment is still a
+// real line the user drew, and drawings are full of them - so this applies to geometry that HAS
+// adjacency, which is exactly mesh and BRep wireframe.
+const WIRE_MIN_PX = 2.5;
+
+// The ink lift, CAPPED so it can never lift ink in front of the object it belongs to.
+//
+// `lift` here is a fraction of EYE DEPTH, which is what makes it unit-free and correct at any
+// zoom - but it is also why it cannot be left alone. World lift = lift * eye_depth, so it grows
+// with camera distance while an object's front-to-back size does not. Past some distance the
+// object's BACK wireframe is lifted in front of its own front faces and the model goes
+// see-through: measured on a 1000 mm box with a 2px pen, 242 m for a band and 91 m for a marker,
+// which is ordinary zoom-out in a scene spanning tens of metres. Zoom in and it cannot happen;
+// zoom out and it must.
+//
+// The cap is a fraction of the object's own world AABB diagonal, which the CPU already computes
+// for FLAG_INSIDE and now ships per instance row. A tenth of the diagonal is far more than the
+// lift ever needs when the pen is small against the object (the case the lift was tuned for) and
+// bites only in the regime where the lift had stopped meaning "just in front of the surface".
+// `extent == 0` is unknown (linework, clouds): no cap, since there is no object to punch through.
+const LIFT_MAX_EXTENT = 0.1;
+
+fn lift_capped(lift: f32, w: f32, extent: f32) -> f32 {
+    if (extent <= 0.0) {
+        return clamp(lift, 0.0, 0.5);
+    }
+    // extent is world units (mm); w is eye depth in metres, so world lift = lift * w / MM_TO_M.
+    let max_lift = LIFT_MAX_EXTENT * extent * MM_TO_M / max(w, 1e-9);
+    return clamp(min(lift, max_lift), 0.0, 0.5);
+}
+
 // One end's lifted w: the LIFT_RADII pull toward the camera, as a fraction of eye depth, so it
 // is unit-free. `clip.w` IS the eye depth in this projection; scaling it shrinks the depth
 // while `ndc * w` keeps the pixel where it was. Done PER END because the two ends project to
 // different widths under perspective, and the fragment needs both ends' depths to reproduce
 // the centreline depth exactly (see `zend`).
-fn lifted_w(raw_px: f32, e: vec4<f32>) -> f32 {
+fn lifted_w(raw_px: f32, e: vec4<f32>, extent: f32) -> f32 {
     let lift = floor_hairline(raw_px) * LIFT_RADII * MM_TO_M / (line.proj_y * line.vp_h);
-    return e.w * (1.0 - clamp(lift, 0.0, 0.5));
+    return e.w * (1.0 - lift_capped(lift, e.w, extent));
 }
 
 // The homogeneous JOIN of three clip-space points: the plane they span, as four signed 3x3
@@ -330,6 +373,11 @@ struct VsOut{
     let raw1 = half_width_px(seg.radius, e1.w);
     let px = floor_hairline(select(raw0, raw1, at_end1));
 
+    // Below the density threshold this wire is noise, not information - see WIRE_MIN_PX.
+    if (seg.facing != FACING_UNKNOWN && len < WIRE_MIN_PX){
+        return dead_vertex();
+    }
+
     // Corner in px: sideways +/- half-width, past the end by half-width (cap room),
     // +0.5px on both so the AA feather ramp fits inside the quad
     let along = select(-1.0, 1.0, at_end1);
@@ -365,8 +413,8 @@ struct VsOut{
     // d*tan(theta), unbounded), which is what the planes below are for; it stays because the
     // centreline depth is still the answer everywhere a plane does not apply, and the verified
     // close-zoom behavior rides on it.
-    let wn0 = lifted_w(raw0, e0);
-    let wn1 = lifted_w(raw1, e1);
+    let wn0 = lifted_w(raw0, e0, instances[seg.instance_id].extent);
+    let wn1 = lifted_w(raw1, e1, instances[seg.instance_id].extent);
     let wn = select(wn0, wn1, at_end1);
 
     // THE ADJACENT FACES ARE PLANES, and a plane's depth at any pixel is closed form. Instead of

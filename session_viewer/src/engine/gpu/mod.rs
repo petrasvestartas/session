@@ -61,6 +61,9 @@ pub struct ArenaUpload{
     /// Mesh-local AABB per object row, aligned with `objects`. None for linework/points/clouds:
     /// only the solid lane's facing cull needs it (see `Instance::FLAG_INSIDE`).
     pub object_bounds: Vec<Option<([f32; 3], [f32; 3])>>,
+    /// Vertex spacing per object row, world units, aligned with `objects`. 0 = unknown (linework,
+    /// points, clouds), which the ink lanes read as "never density-cull".
+    pub object_spacing: Vec<f32>,
     pub min: [f32; 3],
     pub max: [f32; 3],
 }
@@ -80,6 +83,7 @@ impl ArenaUpload {
             clouds: Vec::new(),
             objects: Vec::new(),
             object_bounds: Vec::new(),
+            object_spacing: Vec::new(),
             min: [f32::INFINITY; 3],
             max: [f32::NEG_INFINITY; 3],
         }
@@ -337,7 +341,7 @@ impl Gpu {
         // WebGPU zero-initializes buffers, and every *_count is 0, so the first frame draws nothing.
         // The loader calls set_scene the moment the first file's tables exist.
         let instances: Vec<Instance> = vec![Instance{
-            model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, _pad: [0;3],
+            model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0,
         }];
 
         let instance_buffer =  storage_buffer(&device, &queue, "instance.buffer", &instances);
@@ -677,15 +681,22 @@ impl Gpu {
         }).collect();
         self.inside = vec![false; up.objects.len()];
         self.instances.clear();
-        self.instances.extend(up.objects.iter().map(|(m, c, f)| Instance {
+        // `object_bounds_world` was just rebuilt above, so each row's extent comes from the same
+        // AABB FLAG_INSIDE uses. The diagonal, not an axis: a flat sheet has a zero-thickness axis
+        // and would clamp its ink lift to nothing.
+        self.instances.extend(up.objects.iter().enumerate().map(|(i, (m, c, f))| Instance {
             model: m.to_f32(),
             color: *c,
             flags: *f,
-            _pad: [0; 3],
+            extent: self.object_bounds_world.get(i).and_then(|b| *b).map_or(0.0, |(lo, hi)| {
+                ((hi[0] - lo[0]).powi(2) + (hi[1] - lo[1]).powi(2) + (hi[2] - lo[2]).powi(2)).sqrt() as f32
+            }),
+            spacing: up.object_spacing.get(i).copied().unwrap_or(0.0),
+            _pad: 0,
         }));
 
         if self.instances.is_empty(){
-            self.instances.push(Instance {model: Xform::identity().to_f32(), color: [0.5,0.5,0.5,1.0], flags: 0, _pad: [0; 3] });
+            self.instances.push(Instance {model: Xform::identity().to_f32(), color: [0.5,0.5,0.5,1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0 });
         }
 
         self.instance_buffer = storage_buffer(&self.device, &self.queue, "instance.buffer", &self.instances);
@@ -1429,7 +1440,19 @@ pub struct Instance {
     model: [f32; 16], // 64 B - column-major, from Xform::to_f32()
     color: [f32; 4], // 16 B
     flags: u32, // 4 B - reserved (selection)
-    _pad: [u32; 3], // 12 B - pad the row to 96 B (storage array stride)
+    /// This object's world AABB diagonal, in world units. The ink lanes CLAMP their lift to a
+    /// fraction of it - see `LIFT_MAX_EXTENT` in ribbon.wgsl. 0.0 = unknown, no clamp.
+    ///
+    /// Without it the lift is a fraction of EYE DEPTH, so its world size grows with camera
+    /// distance while an object's front-to-back size does not: past some distance the back
+    /// wireframe is lifted in front of the front faces and the object goes see-through. Measured
+    /// on a 1000 mm box at a 2px pen, that distance is 242 m for a band and 91 m for a marker -
+    /// ordinary zoom-out in a scene spanning tens of metres.
+    extent: f32, // 4 B
+    /// Vertex spacing in world units (see `ArenaUpload::object_spacing`). The ink lanes drop
+    /// markers once this projects below a few pixels; 0 = unknown, never culled.
+    spacing: f32, // 4 B
+    _pad: u32, // 4 B - pad the row to 96 B (storage array stride)
 }
 
 impl Instance {

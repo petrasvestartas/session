@@ -6,6 +6,8 @@ struct Instance {
     model: mat4x4<f32>,
     color: vec4<f32>,
     flags: u32,
+    extent: f32,   // world AABB diagonal; 0 = unknown. Caps the ink lift - see lift_capped().
+    spacing: f32,  // typical vertex spacing, world units; 0 = unknown. Density LOD - see below.
 };
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 
