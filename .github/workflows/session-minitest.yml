@@ -79,8 +79,33 @@ jobs:
       uses: actions/cache@v5
       with:
         path: session_cpp/build/
-        key: cpp-${{ matrix.os }}-${{ hashFiles('session_cpp/CMakeLists.txt', 'session_cpp/src/**', 'session_cpp/generated/**', 'session_cpp/main*.cpp', 'session_cpp/*.h', 'session_cpp/session_proto/**') }}
-        restore-keys: cpp-${{ matrix.os }}-
+        # runner.arch is part of the key because a build/ dir bakes ABSOLUTE toolchain paths into
+        # CMakeCache.txt and the generated Makefiles. The `macos-15` label migrated from Intel to
+        # Apple Silicon, so a cache made under the old image points make at Intel Homebrew's
+        # /usr/local/bin/cmake, which does not exist on arm64:
+        #     make: /usr/local/bin/cmake: No such file or directory
+        #     make: *** [cmake_check_build_system] Error 1
+        # The os label alone could not tell those two machines apart, and `restore-keys` then
+        # cheerfully restored the wrong one.
+        key: cpp-${{ matrix.os }}-${{ runner.arch }}-${{ hashFiles('session_cpp/CMakeLists.txt', 'session_cpp/src/**', 'session_cpp/generated/**', 'session_cpp/main*.cpp', 'session_cpp/*.h', 'session_cpp/session_proto/**') }}
+        restore-keys: cpp-${{ matrix.os }}-${{ runner.arch }}-
+
+    # Belt and braces for the same class of failure: any restored build/ whose recorded cmake is
+    # gone (a runner image moving its toolchain, not just the arch flip above) is discarded rather
+    # than handed to make. Cheap - it only reads one line of CMakeCache.txt.
+    - name: Discard a C++ build dir from a different toolchain
+      if: (matrix.language == 'cpp' || matrix.language == 'full') && runner.os != 'Windows'
+      shell: bash
+      run: |
+        cache="session_cpp/build/CMakeCache.txt"
+        [ -f "$cache" ] || exit 0
+        cm=$(sed -n 's/^CMAKE_COMMAND:INTERNAL=//p' "$cache" | head -1)
+        if [ -n "$cm" ] && [ ! -x "$cm" ]; then
+          echo "cached build/ records cmake at '$cm', which is not executable here - discarding"
+          rm -rf session_cpp/build
+        else
+          echo "cached build/ toolchain looks valid (cmake: ${cm:-none recorded})"
+        fi
 
     # ============ SETUP ============
 
