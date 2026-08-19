@@ -1937,28 +1937,47 @@ inside of an ear through its near side.
 A 2 px pen does not shrink with the model. So stop drawing wires once they fall below the
 density the screen can carry.
 
+The threshold is the part worth getting right, and the obvious version is wrong. Measuring
+against an absolute pixel count (2.5 px, say) asks "can I see one edge" — but what makes a
+wireframe readable is **room between the wires**. A 2 px pen on edges 4 px apart still covers the
+whole surface. Measure in **pen widths** instead and it is scale-free: a fat pen needs more room
+than a hairline before it reads as a line rather than as fill.
+
 **Add** to `src/shaders/ribbon.wgsl`, after the width is known:
 
 ```wgsl
-const WIRE_MIN_PX = 2.5;
+const WIRE_MIN_PENS = 3.0;
 
-    // Below the density threshold this wire is noise, not information.
-    if (seg.facing != FACING_UNKNOWN && len < WIRE_MIN_PX){
+    // Below the density threshold this wire is fill, not information.
+    if (seg.facing != FACING_UNKNOWN && len < WIRE_MIN_PENS * 2.0 * px){
         return dead_vertex();
     }
 ```
 
 Measured on the edge itself, so it needs no per-object data. A marker cannot measure its own
 length, so it uses the object's vertex **spacing** — `extent / sqrt(vertices)`, computed in
-`mesh_spacing` and shipped on the instance row — projected the same way a world radius is:
+`mesh_spacing` and shipped on the instance row — projected the same way a world radius is, and
+compared against the marker's own diameter:
 
 ```wgsl
     let sp = instances[g.instance_id].spacing;
     if (sp > 0.0 && line.ortho_h <= 0.0
-        && sp * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6) < MARKER_MIN_PX) {
+        && sp * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6) < MARKER_MIN_DIAMS * 2.0 * px) {
         return dead_dot();
     }
 ```
+
+> **Do it in ALL THREE lanes.** Ribbons, markers *and* tubes. Fixing only the flat lane leaves the
+> tube lane — which is the DEFAULT — still painting a dense mesh solid black, and it looks exactly
+> like a depth bug when it is nothing of the kind. `cylinder.wgsl` gets the same test, projecting
+> its two endpoints itself:
+>
+> ```wgsl
+>     let sa = (ca.xy / ca.w * 0.5 + 0.5) * vp;
+>     let sb = (cb.xy / cb.w * 0.5 + 0.5) * vp;
+>     let px = r * line.proj_y * line.vp_h * 0.5 / max(clip_c.w, 1e-6);
+>     if (length(sb - sa) < WIRE_MIN_PENS * 2.0 * px) { /* collapse the tube */ }
+> ```
 
 Free-standing linework is exempt on both counts (`facing == FACING_UNKNOWN`, `spacing == 0`): a
 short polyline segment is a real line the user drew, and a drawing is full of them.

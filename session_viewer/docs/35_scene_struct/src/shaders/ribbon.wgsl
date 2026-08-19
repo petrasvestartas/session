@@ -139,7 +139,16 @@ const PLANE_NONE = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 // direction, only noise. Free-standing linework is exempt - a short polyline segment is still a
 // real line the user drew, and drawings are full of them - so this applies to geometry that HAS
 // adjacency, which is exactly mesh and BRep wireframe.
-const WIRE_MIN_PX = 2.5;
+// DENSITY LOD: a wire is dropped when it is shorter than this many times its OWN PEN WIDTH.
+//
+// The first version of this compared against an absolute 2.5 px and was wrong in kind, not just
+// in value: what makes a wireframe readable is not that one edge is visible, it is that edges have
+// ROOM BETWEEN THEM. A 2 px pen on edges 4 px apart still covers the whole surface - the bunny at
+// its fit framing has ~4 px edges and rendered as a solid black silhouette, ink over every pixel.
+//
+// Measuring in pen widths is scale-free and self-calibrating: a fat pen needs more room than a
+// hairline to read as a line rather than as fill. At 3, a 2 px pen needs 6 px of edge.
+const WIRE_MIN_PENS = 3.0;
 
 // The ink lift, CAPPED so it can never lift ink in front of the object it belongs to.
 //
@@ -374,7 +383,7 @@ struct VsOut{
     let px = floor_hairline(select(raw0, raw1, at_end1));
 
     // Below the density threshold this wire is noise, not information - see WIRE_MIN_PX.
-    if (seg.facing != FACING_UNKNOWN && len < WIRE_MIN_PX){
+    if (seg.facing != FACING_UNKNOWN && len < WIRE_MIN_PENS * 2.0 * px){
         return dead_vertex();
     }
 

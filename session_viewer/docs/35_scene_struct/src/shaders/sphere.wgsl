@@ -108,7 +108,10 @@ fn lift_capped(lift: f32, w: f32, extent: f32) -> f32 {
 // reads as speckle you can see through. That is not a depth failure and no depth fix touches it.
 // The edge lane can measure its own projected length; a marker cannot, so it uses the object's
 // vertex SPACING projected to pixels, which is the same quantity one step removed.
-const MARKER_MIN_PX = 2.5;
+// The marker half of ribbon.wgsl's WIRE_MIN_PENS, in the same units: a marker is dropped when the
+// object's vertex spacing is under this many times the marker's OWN DIAMETER. Same reason - what
+// matters is room between marks, not whether one mark is visible.
+const MARKER_MIN_DIAMS = 3.0;
 
 // The two adjacent face normals, mesh-local. Octahedral decode: undo the fold, then normalize.
 // Identical to ribbon.wgsl's - both lanes must read the same `facing` word the same way.
@@ -236,7 +239,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
     // length, so it lands in px as `s * proj_y * vp_h / (2 * w)`.
     let sp = instances[g.instance_id].spacing;
     if (sp > 0.0 && line.ortho_h <= 0.0
-        && sp * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6) < MARKER_MIN_PX) {
+        && sp * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6) < MARKER_MIN_DIAMS * 2.0 * px) {
         return dead_dot();
     }
 
