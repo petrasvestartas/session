@@ -112,6 +112,7 @@ fn lift_capped(lift: f32, w: f32, extent: f32) -> f32 {
 // object's vertex spacing is under this many times the marker's OWN DIAMETER. Same reason - what
 // matters is room between marks, not whether one mark is visible.
 const MARKER_MIN_DIAMS = 3.0;
+const TAPER_MIN = 0.15;   // a marker never thins past this fraction of its radius
 
 // The two adjacent face normals, mesh-local. Octahedral decode: undo the fold, then normalize.
 // Identical to ribbon.wgsl's - both lanes must read the same `facing` word the same way.
@@ -237,10 +238,12 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
     // Below the density threshold this marker is noise, not information - see MARKER_MIN_PX.
     // Projected the same way a world radius is (half_width_px in ribbon.wgsl): spacing is a world
     // length, so it lands in px as `s * proj_y * vp_h / (2 * w)`.
+    // Density taper, not a cull - the markers thin as their object's vertices crowd together, and
+    // the hairline rule below carries the remainder into alpha. A vertex always keeps a mark.
     let sp = instances[g.instance_id].spacing;
-    if (sp > 0.0 && line.ortho_h <= 0.0
-        && sp * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6) < MARKER_MIN_DIAMS * 2.0 * px) {
-        return dead_dot();
+    if (sp > 0.0 && line.ortho_h <= 0.0) {
+        let sp_px = sp * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6);
+        px = px * clamp(sp_px / max(MARKER_MIN_DIAMS * 2.0 * px, 1e-6), TAPER_MIN, 1.0);
     }
 
     // NEAR-EYE CAP, the glyph.wgsl rule: a marker whose radius alone exceeds the viewport is a

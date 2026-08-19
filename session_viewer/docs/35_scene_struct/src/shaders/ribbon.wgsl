@@ -139,7 +139,14 @@ const PLANE_NONE = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 // direction, only noise. Free-standing linework is exempt - a short polyline segment is still a
 // real line the user drew, and drawings are full of them - so this applies to geometry that HAS
 // adjacency, which is exactly mesh and BRep wireframe.
-// DENSITY LOD: a wire is dropped when it is shorter than this many times its OWN PEN WIDTH.
+// DENSITY TAPER: a wire THINS when it is shorter than this many times its own pen width.
+//
+// It used to be a cull, and a cull is the wrong instrument: edges popping out of existence as you
+// zoom is worse than the problem it solved, and this viewer's rule is that geometry is never
+// hidden. Thinning keeps every edge on screen and continuous - nothing to notice at the threshold
+// - while a dense mesh stops being a solid mass of ink, because the ink SHRINKS instead of
+// disappearing. Below 1px the existing hairline rule carries the remainder into ALPHA, so a wire
+// fades rather than vanishes and the surface reads through it.
 //
 // The first version of this compared against an absolute 2.5 px and was wrong in kind, not just
 // in value: what makes a wireframe readable is not that one edge is visible, it is that edges have
@@ -149,6 +156,8 @@ const PLANE_NONE = vec4<f32>(0.0, 0.0, 0.0, 0.0);
 // Measuring in pen widths is scale-free and self-calibrating: a fat pen needs more room than a
 // hairline to read as a line rather than as fill. At 3, a 2 px pen needs 6 px of edge.
 const WIRE_MIN_PENS = 3.0;
+// A wire never thins past this fraction of its pen. It fades; it does not vanish.
+const TAPER_MIN = 0.15;
 
 // The ink lift, CAPPED so it can never lift ink in front of the object it belongs to.
 //
@@ -274,6 +283,16 @@ struct VsOut{
     return vec2<f32>(floor_hairline(raw), hairline_fade(raw));
  }
 
+ // How much to thin a wire that has run out of room, as a fraction of its pen. 1 = full width.
+ // Floored, so a wire always leaves a mark and the hairline rule turns the remainder into alpha.
+ fn density_taper(facing: u32, len_px: f32, px: f32) -> f32 {
+    if (facing == FACING_UNKNOWN){
+        return 1.0;   // free-standing linework is never thinned - the user drew it deliberately
+    }
+    let room = WIRE_MIN_PENS * 2.0 * max(px, 1e-6);
+    return clamp(len_px / room, TAPER_MIN, 1.0);
+ }
+
  // A vertex placed outside NDC, so the whole quad is clipped and nothing rasterizes. Every one of
  // the six vertices takes it, so the triangles are degenerate as well.
  fn dead_vertex() -> VsOut {
@@ -382,10 +401,12 @@ struct VsOut{
     let raw1 = half_width_px(seg.radius, e1.w);
     let px = floor_hairline(select(raw0, raw1, at_end1));
 
-    // Below the density threshold this wire is noise, not information - see WIRE_MIN_PX.
-    if (seg.facing != FACING_UNKNOWN && len < WIRE_MIN_PENS * 2.0 * px){
-        return dead_vertex();
-    }
+    // Density taper - see WIRE_MIN_PENS. Applied to the RAW widths so the hairline floor and its
+    // alpha fade still run afterwards, which is what keeps a very dense mesh legible rather than
+    // black. It never reaches zero: an edge always leaves a mark.
+    let crowd = density_taper(seg.facing, len, px);
+    let raw0t = raw0 * crowd;
+    let raw1t = raw1 * crowd;
 
     // Corner in px: sideways +/- half-width, past the end by half-width (cap room),
     // +0.5px on both so the AA feather ramp fits inside the quad
@@ -470,8 +491,8 @@ struct VsOut{
     o.p = p;
     o.a = s0;
     o.b = s1;
-    o.hw0 = raw0;
-    o.hw1 = raw1;
+    o.hw0 = raw0t;
+    o.hw1 = raw1t;
     o.pl0 = pl0;
     o.pl1 = pl1;
     o.zend = vec2<f32>(e0.z / wn0, e1.z / wn1);

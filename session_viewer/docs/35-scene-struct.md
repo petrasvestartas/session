@@ -1937,47 +1937,50 @@ inside of an ear through its near side.
 A 2 px pen does not shrink with the model. So stop drawing wires once they fall below the
 density the screen can carry.
 
-The threshold is the part worth getting right, and the obvious version is wrong. Measuring
-against an absolute pixel count (2.5 px, say) asks "can I see one edge" — but what makes a
+The threshold is the part worth getting right, and the obvious version is wrong twice over.
+
+First, measuring against an absolute pixel count asks "can I see one edge" — but what makes a
 wireframe readable is **room between the wires**. A 2 px pen on edges 4 px apart still covers the
 whole surface. Measure in **pen widths** instead and it is scale-free: a fat pen needs more room
 than a hairline before it reads as a line rather than as fill.
 
-**Add** to `src/shaders/ribbon.wgsl`, after the width is known:
+Second — and this is the part to take seriously — **do not cull.** Dropping edges makes them pop
+out of existence as you zoom, which is worse than the problem it solves, and this viewer's rule is
+that geometry is never hidden. **Thin** them instead: the ink shrinks, the surface reads through,
+and below 1 px the hairline rule already in this lane carries the remainder into alpha. Nothing
+disappears, and there is no visible threshold to notice.
+
+**Add** to `src/shaders/ribbon.wgsl`:
 
 ```wgsl
 const WIRE_MIN_PENS = 3.0;
+const TAPER_MIN = 0.15;   // a wire never thins past this fraction of its pen
 
-    // Below the density threshold this wire is fill, not information.
-    if (seg.facing != FACING_UNKNOWN && len < WIRE_MIN_PENS * 2.0 * px){
-        return dead_vertex();
+ fn density_taper(facing: u32, len_px: f32, px: f32) -> f32 {
+    if (facing == FACING_UNKNOWN){
+        return 1.0;   // free-standing linework is never thinned - the user drew it deliberately
     }
+    let room = WIRE_MIN_PENS * 2.0 * max(px, 1e-6);
+    return clamp(len_px / room, TAPER_MIN, 1.0);
+ }
 ```
 
-Measured on the edge itself, so it needs no per-object data. A marker cannot measure its own
-length, so it uses the object's vertex **spacing** — `extent / sqrt(vertices)`, computed in
-`mesh_spacing` and shipped on the instance row — projected the same way a world radius is, and
-compared against the marker's own diameter:
+applied to the RAW widths, so the hairline floor and its alpha fade still run afterwards:
 
 ```wgsl
-    let sp = instances[g.instance_id].spacing;
-    if (sp > 0.0 && line.ortho_h <= 0.0
-        && sp * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6) < MARKER_MIN_DIAMS * 2.0 * px) {
-        return dead_dot();
-    }
+    let crowd = density_taper(seg.facing, len, px);
+    let raw0t = raw0 * crowd;
+    let raw1t = raw1 * crowd;
 ```
 
+A marker cannot measure its own length, so it uses the object's vertex **spacing** —
+`extent / sqrt(vertices)`, computed in `mesh_spacing` and shipped on the instance row — against
+its own diameter, and scales `px` by the same clamp.
+
 > **Do it in ALL THREE lanes.** Ribbons, markers *and* tubes. Fixing only the flat lane leaves the
-> tube lane — which is the DEFAULT — still painting a dense mesh solid black, and it looks exactly
-> like a depth bug when it is nothing of the kind. `cylinder.wgsl` gets the same test, projecting
-> its two endpoints itself:
->
-> ```wgsl
->     let sa = (ca.xy / ca.w * 0.5 + 0.5) * vp;
->     let sb = (cb.xy / cb.w * 0.5 + 0.5) * vp;
->     let px = r * line.proj_y * line.vp_h * 0.5 / max(clip_c.w, 1e-6);
->     if (length(sb - sa) < WIRE_MIN_PENS * 2.0 * px) { /* collapse the tube */ }
-> ```
+> tube lane — which is the DEFAULT — painting a dense mesh solid black, and it looks exactly like a
+> depth bug when it is nothing of the kind. `cylinder.wgsl` projects its own two endpoints and
+> scales its radius; a tube is opaque so it cannot fade, but a thin tube still marks the edge.
 
 Free-standing linework is exempt on both counts (`facing == FACING_UNKNOWN`, `spacing == 0`): a
 short polyline segment is a real line the user drew, and a drawing is full of them.

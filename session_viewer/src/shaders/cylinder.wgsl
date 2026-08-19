@@ -85,12 +85,13 @@ struct LineUniform{
     anchor: vec3<f32>,   // camera-relative anchor, world units (see gpu/mod.rs)
 };
 
-// DENSITY LOD - the tube lane's half of ribbon.wgsl's WIRE_MIN_PENS, in the same units and for
-// the same reason. Fixing only the flat lane left this one painting a dense mesh solid: at the
+// DENSITY TAPER - the tube lane's half of ribbon.wgsl's WIRE_MIN_PENS, in the same units and for
+// the same reason. It THINS, it does not cull: geometry is never hidden here. Fixing only the flat lane left this one painting a dense mesh solid: at the
 // bunny's fit framing its 104,324 edges are ~3 px apart, and a 12-triangle tube on each is ink
 // over every pixel of the surface. What makes a wireframe readable is room BETWEEN the wires, so
 // the test is the edge's projected length against its own pen width.
 const WIRE_MIN_PENS = 3.0;
+const TAPER_MIN = 0.15;   // a tube never thins past this fraction of its radius
 
 // World-space radius that projects to thickness px, constant regardlesss of zoom
 fn screen_radius(clip_w: f32, u: LineUniform) -> f32 {
@@ -142,8 +143,11 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si:u32) -> VsO
         return dead;
     }
 
-    // Below the density threshold this tube is fill, not a wire - see WIRE_MIN_PENS. Measured on
-    // the edge's own projection, so it needs no per-object data, exactly as the flat lane does it.
+    // Density taper - see WIRE_MIN_PENS. Measured on the edge's own projection, so it needs no
+    // per-object data, exactly as the flat lane does it. A tube cannot fade (it is opaque
+    // geometry), so thinning is all it has - but a thin tube still marks the edge, and that is the
+    // point: nothing disappears.
+    var rt = r;
     if (seg.facing != FACING_UNKNOWN) {
         let ca = mvp * vec4<f32>(w0, 1.0);
         let cb = mvp * vec4<f32>(w1, 1.0);
@@ -153,16 +157,12 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si:u32) -> VsO
             let sb = (cb.xy / cb.w * 0.5 + 0.5) * vp;
             // The pen's HALF-width in px, the same closed form half_width_px uses in ribbon.wgsl.
             let px = r * line.proj_y * line.vp_h * 0.5 / max(clip_c.w, 1e-6);
-            if (length(sb - sa) < WIRE_MIN_PENS * 2.0 * px) {
-                var dead: VsOut;
-                dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
-                dead.color = vec4<f32>(0.0);
-                return dead;
-            }
+            let room = WIRE_MIN_PENS * 2.0 * max(px, 1e-6);
+            rt = r * clamp(length(sb - sa) / room, TAPER_MIN, 1.0);
         }
     }
 
-    let world = center + (right * tmpl.x + up * tmpl.y) * r;
+    let world = center + (right * tmpl.x + up * tmpl.y) * rt;
     var o: VsOut;
     o.pos = mvp * vec4<f32>(world, 1.0);
     o.color = unpack4x8unorm(seg.color) * instances[seg.instance_id].color;
