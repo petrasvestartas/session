@@ -198,7 +198,8 @@ The loader logs `bytes.len()` *after* the call, so capture it before the move.
 
 ## Step 3 — one word in the kernel: `session_rust/src/pointcloud.rs`
 
-**Find** (line 378, inside `from_proto`):
+**Find** (line 378, inside `from_proto`) — if it already reads `into_iter`, this step is
+done and there is nothing to change:
 
 ```rust
             proto.colors.iter().map(|&c| c as i32).collect(),

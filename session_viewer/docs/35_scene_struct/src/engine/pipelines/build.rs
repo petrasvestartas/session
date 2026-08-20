@@ -469,7 +469,7 @@ pub fn build_point_pipeline(
     mvp_layout: &wgpu::BindGroupLayout,
     line_layout: &wgpu::BindGroupLayout,
     instance_layout: &wgpu::BindGroupLayout,
-    cloud_layout: &wgpu::BindGroupLayout,
+    glyph_layout: &wgpu::BindGroupLayout,
 ) -> wgpu::RenderPipeline{
 
     let shader = device.create_shader_module(
@@ -480,7 +480,7 @@ pub fn build_point_pipeline(
 
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
         label: Some("point.layout"),
-        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(cloud_layout)],
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(glyph_layout)],
         immediate_size: 0,
     });
 
@@ -498,17 +498,13 @@ pub fn build_point_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState{
                 format: color_format,
-                // OPAQUE. Blending is what made a dense cloud unaffordable: it turns off early-Z,
-                // so every one of ~520M overlapping fragments had to be shaded and blended in
-                // submission order. Written opaque, the depth test rejects occluded samples first.
-                blend: None,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
         compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState{
-            // ONE vertex per point, rasterised as exactly one pixel (WebGPU has no point size).
-            topology: wgpu::PrimitiveTopology::PointList,
+            topology: wgpu::PrimitiveTopology::TriangleList,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: None,
@@ -518,9 +514,7 @@ pub fn build_point_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState{
             format: wgpu::TextureFormat::Depth32Float,
-            // Writes depth like any other solid: a cloud occludes what is behind it, and points
-            // behind it are rejected before shading. The flat-ink lanes stay depth-read-only.
-            depth_write_enabled: Some(true),
+            depth_write_enabled: Some(false),
             depth_compare: Some(wgpu::CompareFunction::Greater), // reverse -Z¨
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),

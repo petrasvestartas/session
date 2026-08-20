@@ -68,7 +68,7 @@ use std::collections::{HashMap, HashSet};
 use session_rust::{Session, Geometry, Mesh, Line, Point, Polyline, NurbsCurve, RenderVertex, Plane, OBB, PointCloud, Vector};
 use session_rust::element::ElementGeometry;
 use session_rust::mesh::ColorMode;
-use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint, CloudDraw};
+use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint};
 
 /// One loaded file: the kernel `Session`
 /// kept alive - picking/undo/save need this
@@ -85,20 +85,8 @@ pub struct Doc{
 /// It means the progressive loading costs each file only its own walk.
 /// Viewer-only bookkeeping (row order, grid to rowm hidden) lives here
 /// It never in the kernel type that threee languages share.
-
-/// A cloud whose points never became kernel objects: the loader streamed them from the file
-/// straight into GPU memory. This struct is the ENTIRE CPU-side footprint of a 13.8M-point
-/// scan - a name, a placement, a count, and the instance row it draws with.
-pub struct CloudSlot {
-    pub name: String,
-    pub place: Xform,
-    pub count: u32,
-    pub instance: u32,
-}
-
 pub struct Scene {
     pub docs: Vec<Doc>,
-    pub clouds: Vec<CloudSlot>, // streamed clouds - no Doc, no Session, no points on the CPU
     vert_base: u32,             // arena rows already uploaded - push_mesh bases its indices on this
     pub tables: ArenaUpload,
     order: Vec<String>, // renderable guids, global row order across docs
@@ -110,36 +98,12 @@ impl Scene{
     pub fn new() -> Self{
         Self {
         docs: Vec::new(),
-        clouds: Vec::new(),
         vert_base: 0,
         tables: ArenaUpload::new(),
         order: Vec::new(),
         guid_to_row: HashMap::new(),
         hidden: HashSet::new(),
         }
-    }
-
-    /// Widen the shared walk box by a streamed cloud's world AABB. Without this the box lives
-    /// only in `Gpu` and the next `set_scene` from a real walk would replace it.
-    pub fn grow_bounds(&mut self, min: [f32; 3], max: [f32; 3]) {
-        for k in 0..3 {
-            self.tables.min[k] = self.tables.min[k].min(min[k]);
-            self.tables.max[k] = self.tables.max[k].max(max[k]);
-        }
-    }
-
-    /// Reserve the document row for a cloud that is about to stream in. Called before a single
-    /// point has been fetched: the count comes from the file's packed-double length prefix.
-    /// Returns the instance row the streamed points will draw against.
-    pub fn begin_cloud(&mut self, name: String, place: Xform, count: u32) -> u32 {
-        let row = self.tables.objects.len() as u32;
-        self.tables.objects.push((place.clone(), [1.0; 4], 0));
-        // Keep the row bookkeeping aligned - `order` is indexed by row everywhere else.
-        let guid = format!("cloud:{name}");
-        self.guid_to_row.insert(guid.clone(), row);
-        self.order.push(guid);
-        self.clouds.push(CloudSlot { name, place, count, instance: row });
-        row
     }
 
     /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch.
@@ -150,12 +114,8 @@ impl Scene{
     /// what fixes that properly - the planned `guid -> range` map - and until then this gets
     /// the same result by redoing the walk. It costs a full re-walk, so it belongs behind an
     /// edit commit, not behind a drag.
-    ///
-    /// Streamed clouds are NOT re-walked: their points exist only on the GPU and are still
-    /// there. Only their instance row is re-issued, because rebuilding shifts every row index.
     pub fn rebuild(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
         let docs = std::mem::take(&mut self.docs);
-        let clouds = std::mem::take(&mut self.clouds);
         self.tables = ArenaUpload::new();
         self.order.clear();
         self.guid_to_row.clear();
@@ -165,21 +125,10 @@ impl Scene{
         for d in docs {
             self.add_file(d.name, d.session, d.place);
         }
-        // Clouds keep their GPU rows; only the instance they draw against is re-issued, and the
-        // Gpu's draw list is patched to match. Order is preserved on both sides, so index i
-        // here is index i there.
-        for (i, c) in clouds.into_iter().enumerate() {
-            let row = self.begin_cloud(c.name, c.place, c.count);
-            if let Some(d) = gpu.cloud_draws.get_mut(i) {
-                d.instance = row;
-            }
-        }
         self.upload_to(gpu);
     }
 
-    /// Upload, then FORGET the cloud rows. The GPU is now the only holder of those points.
-    /// Only `points` is cleared - the other lanes are still uploaded cumulatively, because
-    /// only the point lane has an append path (Gpu::set_scene).
+    /// Upload the walked tables, then FORGET the arena rows: the GPU is their only holder.
     pub fn upload_to(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
         gpu.set_scene(&self.tables);
         // The arena rows are on the GPU now and nothing reads them back - picking goes through
@@ -192,11 +141,6 @@ impl Scene{
         self.tables.vids.shrink_to_fit();
         self.tables.idx.clear();
         self.tables.idx.shrink_to_fit();
-        self.tables.cloud_pos.clear();
-        self.tables.cloud_pos.shrink_to_fit();
-        self.tables.cloud_col.clear();
-        self.tables.cloud_col.shrink_to_fit();
-        self.tables.clouds.clear();
     }
 
     /// Walk one session into the shared tables.
@@ -212,7 +156,6 @@ impl Scene{
         let vb = self.vert_base; // read before `t` borrows self.tables
         let sphere0 = self.tables.spheres.len();
         let glyph0 = self.tables.glyphs.len();
-        let cloud0 = self.tables.clouds.len();
         let obj0 = self.tables.objects.len();
 
         let world = session.world_xforms();
@@ -265,13 +208,6 @@ impl Scene{
                 Geometry::Polyline(pl) => { t.segments.extend(polyline_to_segments(pl, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
                 Geometry::NurbsCurve(c) => { t.segments.extend(nurbscurve_to_segments(c, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
                 Geometry::Point(p) => { t.glyphs.push(point_to_glyph(p, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
-                // A cloud picks its lane by SIZE, not by camera state - so nothing changes while
-                // you orbit. A handful of points are worth round sized dots (32b's demo clouds);
-                // a scan is a clump, and the raw lane draws it one vertex and one pixel per point.
-                Geometry::PointCloud(pc) if pc.len() >= CLOUD_RAW_MIN => {
-                    push_cloud(pc, ri, t);
-                    t.object_bounds.push(None); t.object_spacing.push(0.0);
-                }
                 Geometry::PointCloud(pc) => { t.glyphs.extend(pointcloud_to_glyphs(pc, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
                 Geometry::NurbsSurface(s) => {
                     let mut sm = s.mesh();
@@ -353,16 +289,6 @@ impl Scene{
             } 
         }
 
-        for ci in cloud0..t.clouds.len(){
-            let c = t.clouds[ci];
-            if let Some((xf, _, _)) = t.objects.get(c.instance as usize){
-                for i in c.base as usize..(c.base + c.count) as usize {
-                    let p = [t.cloud_pos[i * 3], t.cloud_pos[i * 3 + 1], t.cloud_pos[i * 3 + 2]];
-                    grow_bounds(&mut fmin, &mut fmax, xform_point(xf, p));
-                }
-            }
-        }
-
         for k in 0..3{
             t.min[k] = t.min[k].min(fmin[k]);
             t.max[k] = t.max[k].max(fmax[k]);
@@ -403,15 +329,6 @@ impl Scene{
             for g in t.spheres.iter().skip(sphere0).chain(t.glyphs.iter().skip(glyph0)){
                 if let Some((xf, _, _)) = t.objects.get(g.instance_id as usize) {
                     span(xform_point(xf, g.center));
-                }
-            }
-            for ci in cloud0..t.clouds.len(){
-                let c = t.clouds[ci];
-                if let Some((xf, _, _)) = t.objects.get(c.instance as usize) {
-                    for i in c.base as usize..(c.base + c.count) as usize {
-                        let p = [t.cloud_pos[i * 3], t.cloud_pos[i * 3 + 1], t.cloud_pos[i * 3 + 2]];
-                        span(xform_point(xf, p));
-                    }
                 }
             }
             dmax - dmin
@@ -872,13 +789,6 @@ fn obb_to_segments(b: &OBB, instance_id: u32) -> Vec<CylinderSegment>{
     
 }
 
-/// One glyph per point. `point_size` rides the same width encoding as every other pen, and
-/// a cloud with fewer colors than points falls back to black for the tail.
-/// Above this many points a cloud stops being decorated dots and becomes a raw clump: one
-/// vertex, one pixel, opaque. Below it the sized round dots of the glyph lane still read better,
-/// and 100k of them is a frame cost nobody notices.
-const CLOUD_RAW_MIN: usize = 100_000;
-
 /// Above this many triangles a mesh draws as TRIANGLES ONLY - no per-edge cylinder, no
 /// per-vertex sphere. Below it, the wireframe and vertex dots are what make a CAD solid
 /// readable. At 200k the bunny (69k tri) keeps its wireframe and the armadillo and dragon
@@ -886,44 +796,8 @@ const CLOUD_RAW_MIN: usize = 100_000;
 /// demo box (12) stay decorated; a scan does not.
 const MESH_RAW_MIN: usize = 200_000;
 
-/// The raw lane's rows. Same walk as the glyph version, minus the radius - a cloud has no pen
-/// per point - and 32 B per row instead of 48.
-///
-/// It writes STRAIGHT into the shared table instead of collecting a Vec the caller then extends:
-/// `Vec::extend` from an owned iterator always memcpies into the destination and drops the
-/// source, so a 13.8M-point scan built the same 441 MB table twice and peaked at 843 MB against
-/// a heap that practically ends around 2 GB. Reserving once and pushing peaks at 423 MB.
-///
-/// It also reads the kernel's FLAT arrays rather than `get_point`/`get_color`, which each build a
-/// `Point`/`Color` - three String allocations per point, measured at 1.08 s against 0.24 s for
-/// the flat walk on this scan, all of it allocator churn on the wasm main thread.
-fn push_cloud(pc: &PointCloud, instance_id: u32, t: &mut ArenaUpload){
-    let coords = pc.coords();
-    let colors = pc.colors();
-    let n = pc.len();
-    let base = (t.cloud_pos.len() / 3) as u32;
-    t.cloud_pos.reserve_exact(n * 3);
-    t.cloud_col.reserve_exact(n);
-    for i in 0..n {
-        t.cloud_pos.push(coords[i * 3] as f32);
-        t.cloud_pos.push(coords[i * 3 + 1] as f32);
-        t.cloud_pos.push(coords[i * 3 + 2] as f32);
-        let c = i * 4;
-        // RGBA8 in one u32, little-endian byte order so the shader's unpack4x8unorm reads
-        // x=r y=g b=b w=a. 4 B a point instead of four f32s: the colour is 8-bit at the source
-        // (the proto carries 0-255) and it was being widened to 16 B for nothing.
-        t.cloud_col.push(if c + 3 < colors.len() {
-            ((colors[c] as u32) & 255)
-                | (((colors[c + 1] as u32) & 255) << 8)
-                | (((colors[c + 2] as u32) & 255) << 16)
-                | (((colors[c + 3] as u32) & 255) << 24)
-        } else {
-            0xff00_0000
-        });
-    }
-    t.clouds.push(CloudDraw { base, count: n as u32, instance: instance_id });
-}
-
+/// One glyph per point. `point_size` rides the same width encoding as every other pen, and
+/// a cloud with fewer colors than points falls back to black for the tail.
 fn pointcloud_to_glyphs(pc: &PointCloud, instance_id: u32) -> Vec<GlyphPoint>{
     let radius = encode_width(pc.point_size);
     let colors = pc.color_count();

@@ -53,10 +53,6 @@ pub struct ArenaUpload{
     pub spheres: Vec<GlyphPoint>, // Solid lane: Mesh/Brep vertices, radius matched to the pipes
     pub segments: Vec<CylinderSegment>, // Flat lane: line/polyline, drawn as camera-facing ribbons
     pub glyphs: Vec<GlyphPoint>, // Flat lane: points, draw as SDF dots,
-    // Raw lane, SPLIT: 3 floats + 1 packed RGBA8 per point = 16 B, against CloudPoint's 32.
-    pub cloud_pos: Vec<f32>,      // 3 per point
-    pub cloud_col: Vec<u32>,      // RGBA8, 1 per point
-    pub clouds: Vec<CloudDraw>,   // one entry per cloud - the instance rides here, not per point
     pub objects: Vec<(Xform, [f32; 4], u32)>,
     /// Mesh-local AABB per object row, aligned with `objects`. None for linework/points/clouds:
     /// only the solid lane's facing cull needs it (see `Instance::FLAG_INSIDE`).
@@ -78,9 +74,6 @@ impl ArenaUpload {
             spheres: Vec::new(),
             segments: Vec::new(),
             glyphs: Vec::new(),
-            cloud_pos: Vec::new(),
-            cloud_col: Vec::new(),
-            clouds: Vec::new(),
             objects: Vec::new(),
             object_bounds: Vec::new(),
             object_spacing: Vec::new(),
@@ -155,15 +148,9 @@ pub struct Gpu {
     pub glyph_bind_group: wgpu::BindGroup,
     pub glyph_count: u32,
     pub sphere_count: u32, // glyphs[0..sphere_count] are the SOLID lane, the rest are flat dots
-    pub point_pos_buffer: wgpu::Buffer,
-    pub point_col_buffer: wgpu::Buffer,
+    pub point_buffer: wgpu::Buffer,
     pub point_bind_group: wgpu::BindGroup,
-    pub cloud_layout: wgpu::BindGroupLayout,
-    pub cloud_draws: Vec<CloudDraw>, // one draw per cloud
-    pub cloud_pos_at: u32,           // streaming write cursors, in POINTS
-    pub cloud_col_at: u32,
     pub point_count: u32,
-    pub point_capacity: u64,
     /// Solid-lane style; `VIEWER_LINE_STYLE=flat` picks Flat at startup.
     pub line_style: LineStyle,
     pub cloud_buffer: wgpu::Buffer,
@@ -344,7 +331,7 @@ impl Gpu {
             model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0,
         }];
 
-        let instance_buffer =  storage_buffer(&device, &queue, "instance.buffer", &instances);
+        let instance_buffer =  storage_buffer(&device, "instance.buffer", &instances);
         let objects_base: Vec<(Xform, [f32; 4], u32)> = Vec::new();
         let (pipe_count, segment_count, sphere_count, glyph_count) = (0u32, 0u32, 0u32, 0u32);
         let arena_index_count = 0u32;
@@ -507,37 +494,14 @@ impl Gpu {
             }],
         });
 
-        // Point buffers + the cloud uniform. TWO buffers now, and its own layout: the glyph
-        // layout has one binding, the split cloud needs two.
-        let point_count = 0u32;
-        let point_capacity = 1u64;
-        let cloud_draws: Vec<CloudDraw> = Vec::new();
-
-        let storage_entry = |binding: u32| wgpu::BindGroupLayoutEntry {
-            binding,
-            visibility: wgpu::ShaderStages::VERTEX,
-            ty: wgpu::BindingType::Buffer {
-                ty: wgpu::BufferBindingType::Storage { read_only: true },
-                has_dynamic_offset: false,
-                min_binding_size: None,
-            },
-            count: None,
-        };
-        let cloud_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("cloud.layout"),
-            entries: &[storage_entry(0), storage_entry(1)],
-        });
-
-        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
-        let point_pos_buffer = zeroed_buffer(&device, "cloud.pos", point_capacity * 12, usage);
-        let point_col_buffer = zeroed_buffer(&device, "cloud.col", point_capacity * 4, usage);
+        // Point buffer + the cloud uniform
+        let points: Vec<CloudPoint> = Vec::new();
+        let point_count = points.len() as u32;
+        let point_buffer = storage_buffer(&device, "points.buffer", &points);
         let point_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("points.bind_group"),
-            layout: &cloud_layout,
-            entries: &[
-                wgpu::BindGroupEntry { binding: 0, resource: point_pos_buffer.as_entire_binding() },
-                wgpu::BindGroupEntry { binding: 1, resource: point_col_buffer.as_entire_binding() },
-            ],
+            layout: &glyph_layout,
+            entries: &[wgpu::BindGroupEntry {binding: 0, resource: point_buffer.as_entire_binding()}],
         });
 
         // point cloud unioform - the cloud's OWN global size + viewport (reuses line_layout)
@@ -569,7 +533,6 @@ impl Gpu {
             &line_layout,
             &segment_layout,
             &glyph_layout,
-            &cloud_layout,
         );
 
 
@@ -622,20 +585,14 @@ impl Gpu {
             glyph_bind_group,
             glyph_count,
             sphere_count,
+            point_buffer,
             point_bind_group,
             point_count,
-            point_capacity,
             line_style: if std::env::var("VIEWER_LINE_STYLE").map(|v| v.eq_ignore_ascii_case("flat")).unwrap_or(false) {
                 LineStyle::Flat
             } else {
                 LineStyle::Tubes
             },
-            point_pos_buffer,
-            point_col_buffer,
-            cloud_layout,
-            cloud_draws,
-            cloud_pos_at: 0,
-            cloud_col_at: 0,
             cloud_buffer,
             cloud_bind_group,
             depth_view,
@@ -699,7 +656,7 @@ impl Gpu {
             self.instances.push(Instance {model: Xform::identity().to_f32(), color: [0.5,0.5,0.5,1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0 });
         }
 
-        self.instance_buffer = storage_buffer(&self.device, &self.queue, "instance.buffer", &self.instances);
+        self.instance_buffer = storage_buffer(&self.device, "instance.buffer", &self.instances);
         self.instance_bind_group = self.device.create_bind_group( &wgpu::BindGroupDescriptor{
             label: Some("instances.bind_group"),
             layout: &self.instance_layout,
@@ -807,36 +764,13 @@ impl Gpu {
                 }],
         });
 
-        // Raw cloud lane. `up.cloud_pos`/`up.cloud_col`/`up.clouds` are a DELTA - only what the
-        // newest file added - because the caller clears them after each upload (Scene::upload_to).
-        // Every other table in this function is cumulative. Two buffers, 12 B + 4 B per point.
-        if !up.clouds.is_empty() {
-            let need = self.point_count as u64 + (up.cloud_pos.len() / 3) as u64;
-
-            self.cloud_reserve(need);
-
-            self.queue.write_buffer(&self.point_pos_buffer, self.point_count as u64 * 12, bytemuck::cast_slice(&up.cloud_pos));
-            self.queue.write_buffer(&self.point_col_buffer, self.point_count as u64 * 4, bytemuck::cast_slice(&up.cloud_col));
-            // The delta's bases are relative to the delta; shift them into the shared buffers.
-            for c in &up.clouds {
-                self.cloud_draws.push(CloudDraw { base: self.point_count + c.base, count: c.count, instance: c.instance });
-            }
-            self.point_count += (up.cloud_pos.len() / 3) as u32;
-        }
-
         self.last_origin = None; // force the next frame to rebase agains the new table
-        // ONLY the walk tables know a box here, and a STREAMED cloud has none: its points never
-        // pass through `add_file`, so `up.min` stays infinite and the cloud reports its box later
-        // through `grow_scene`. Overwriting unconditionally therefore wiped the box of every cloud
-        // already loaded - which is why F framed the LAST scan instead of all three.
-        if up.min[0].is_finite() {
-            self.scene_min = up.min;
-            self.scene_max = up.max;
-        }
+        self.scene_min = up.min;
+        self.scene_max = up.max;
 
         log::info!(
-            "scene: {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres) {} cloud points",
-            self.instances.len(), self.arena_vert_count, self.segment_count, self.pipe_count, self.glyph_count, self.sphere_count, self.point_count
+            "scene: {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres)",
+            self.instances.len(), self.arena_vert_count, self.segment_count, self.pipe_count, self.glyph_count, self.sphere_count
         );
 
         let samples = self.msaa_now();
@@ -853,8 +787,7 @@ impl Gpu {
                 &self.instance_layout,
                 &self.line_layout,
                 &self.segment_layout,
-                &self.glyph_layout,
-                &self.cloud_layout
+                &self.glyph_layout
             );
             log::info!("msaa: {}x", samples);
         }
@@ -1221,26 +1154,6 @@ impl Gpu {
                 draws += 1;
             }
 
-            // Raw cloud lane, drawn WITH THE SOLIDS: it is opaque and writes depth, so it belongs
-            // before the flat ink, not after it. Here, ink in front of the cloud composites over
-            // it and ink behind is rejected by the ribbon/glyph depth test. Drawn last - where it
-            // sat while it was a blended overlay - an opaque cloud would instead overpaint every
-            // polyline in front of it, because flat ink writes no depth of its own.
-            if !self.cloud_draws.is_empty() {
-                pass.set_pipeline(&self.pipelines.point);
-                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                pass.set_bind_group(1, &self.cloud_bind_group, &[]); // unused by the shader, kept to match the pipeline layout
-                pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                pass.set_bind_group(3, &self.point_bind_group, &[]);
-                // ONE draw per cloud, not one per point: the draw's first_vertex makes
-                // vertex_index absolute into the shared buffers, and first_instance puts the
-                // cloud's instance row on instance_index. That pair is what let the per-point
-                // instance_id (4 B x 13.8M) leave the row.
-                for c in &self.cloud_draws {
-                    pass.draw(c.base..c.base + c.count, c.instance..c.instance + 1);
-                    draws += 1;
-                }
-            }
             // FLAT-lane depth prepass, BOTH tables before either colour pass: blended ink cannot
             // write depth (its AA feather would leave halos), so without this nothing in the flat
             // lane occludes anything else in it and pure draw order wins - a point dot then sits
@@ -1290,6 +1203,16 @@ impl Gpu {
                 draws += 1;
             }
 
+            if self.point_count > 0 {
+                pass.set_pipeline(&self.pipelines.point);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.cloud_bind_group, &[]); // cloud size + viewport
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.point_bind_group, &[]);
+                pass.draw(0..3 * self.point_count, 0..1); // 3 vertices per point, no template
+                draws += 1;
+            }
+
 
 
 
@@ -1309,84 +1232,9 @@ impl Gpu {
     /// instead - hard-edged geometry (triangles, tubes, spheres) is the only thing MSAA smooths,
     /// Forget what the arena holds, so the next upload writes from row 0 again. The buffers
     /// and their capacity stay - only the counters move - so a rebuild costs no allocation.
-    /// Cloud buffers are deliberately untouched: streamed points are not re-walked.
     pub fn reset_arena(&mut self) {
         self.arena_vert_count = 0;
         self.arena_index_count = 0;
-    }
-
-    /// Make room for `need` point rows total, copying the live prefix GPU-side.
-    ///
-    /// EXACT, not doubling: appends here are few and huge, so doubling would waste 122 MB of
-    /// buffer on the three-scan scene AND take the worse worst-transient (668 MB of old+new
-    /// live at once against 540 MB). What doubling avoids is a GPU-side copy - the one thing
-    /// here that never touches wasm memory.
-    fn cloud_reserve(&mut self, need: u64) {
-        if need <= self.point_capacity { return }
-        let cap = need;
-        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
-        let pos = zeroed_buffer(&self.device, "cloud.pos", cap * 12, usage);
-        let col = zeroed_buffer(&self.device, "cloud.col", cap * 4, usage);
-        if self.point_count > 0 {
-            let mut enc = self.device.create_command_encoder(&Default::default());
-            enc.copy_buffer_to_buffer(&self.point_pos_buffer, 0, &pos, 0, self.point_count as u64 * 12);
-            enc.copy_buffer_to_buffer(&self.point_col_buffer, 0, &col, 0, self.point_count as u64 * 4);
-            self.queue.submit([enc.finish()]);
-        }
-        self.point_pos_buffer = pos;
-        self.point_col_buffer = col;
-        self.point_capacity = cap;
-        self.point_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("points.bind_group"),
-            layout: &self.cloud_layout,
-            entries: &[
-                wgpu::BindGroupEntry { binding: 0, resource: self.point_pos_buffer.as_entire_binding() },
-                wgpu::BindGroupEntry { binding: 1, resource: self.point_col_buffer.as_entire_binding() },
-            ],
-        });
-    }
-
-    /// A cloud is about to STREAM in. The count is known before a single point has been read -
-    /// the protobuf packed-double length prefix gives it - so both buffers are sized once,
-    /// exactly, and every slice afterwards lands at a known offset. No growth mid-cloud.
-    pub fn cloud_begin(&mut self, count: u32, instance: u32) {
-        self.cloud_reserve(self.point_count as u64 + count as u64);
-        self.cloud_draws.push(CloudDraw { base: self.point_count, count, instance });
-        self.cloud_pos_at = self.point_count;
-        self.cloud_col_at = self.point_count;
-        self.point_count += count;
-    }
-
-    /// One slice of positions, straight from the socket into GPU memory. `write_buffer` passes a
-    /// subarray VIEW of wasm memory - the slice is the only copy that exists.
-    pub fn cloud_pos(&mut self, pos: &[f32]) {
-        self.queue.write_buffer(&self.point_pos_buffer, self.cloud_pos_at as u64 * 12, bytemuck::cast_slice(pos));
-        self.cloud_pos_at += (pos.len() / 3) as u32;
-        // Dawn only recycles its upload staging when a submitted serial completes. Without a
-        // flush, 165 MB of write_buffer piles 165 MB of staging on top of the destination.
-        self.queue.submit([]);
-    }
-
-    /// The colour run, packed to RGBA8.
-    pub fn cloud_col(&mut self, col: &[u32]) {
-        self.queue.write_buffer(&self.point_col_buffer, self.cloud_col_at as u64 * 4, bytemuck::cast_slice(col));
-        self.cloud_col_at += col.len() as u32;
-        self.queue.submit([]);
-    }
-
-    /// Grow the scene box by a streamed cloud's world-space AABB, so the camera can fit it.
-    pub fn grow_scene(&mut self, min: [f32; 3], max: [f32; 3]) {
-        if !min[0].is_finite() { return }
-        // set_scene collapses an empty upload to a zero box; the first cloud replaces it.
-        if self.scene_min[0] >= self.scene_max[0] {
-            self.scene_min = min;
-            self.scene_max = max;
-            return;
-        }
-        for k in 0..3 {
-            self.scene_min[k] = self.scene_min[k].min(min[k]);
-            self.scene_max[k] = self.scene_max[k].max(max[k]);
-        }
     }
 
     /// while ribbons and dots antialias themselves in the shader. A 2D sheet therefore pays
@@ -1542,14 +1390,14 @@ pub struct GlyphPoint{
 // array stride is the struct's, so a drift here misreads every row.
 const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
 
-// The raw cloud lane has no row STRUCT any more - it has two parallel arrays, 12 B of position
-// and 4 B of packed RGBA8 per point. What is left per CLOUD is this, and only this.
-#[derive(Clone, Copy)]
-pub struct CloudDraw {
-    pub base: u32,     // first point row, absolute in the shared buffers
-    pub count: u32,    // how many points
-    pub instance: u32, // which instance row - once per cloud instead of once per point
-}
+// Points inscribed in circles used for pointclouds
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct CloudPoint{
+    position: [f32; 3], // 12 B - mesh local
+    instance_id: u32, // 4 B - fills position's tail
+    color: [f32; 4], // 16 B
+} // 32 B total, two 16-byte rows, zero padding
 
 // Points global attributes
 #[repr(C)]
@@ -1637,15 +1485,13 @@ fn zeroed_buffer(
 /// A read-only storage buffer that is never zero-sized (wgpu can't bind a 0-byte buffer).
 /// When `data` is empty we still allocate one zeroed element; the real element count is
 /// tracked separately, so the draw call issues 0 instances and nothing renders.
-fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, queue: &wgpu::Queue, label: &str, data: &[T]) -> wgpu::Buffer {
+fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, label: &str, data: &[T]) -> wgpu::Buffer {
+    use wgpu::util::DeviceExt;
     let one = [T::zeroed()];
     let contents: &[u8] = if data.is_empty() { bytemuck::cast_slice(&one) } else { bytemuck::cast_slice(data) };
-    let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some(label),
-        size: contents.len() as u64,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
-        mapped_at_creation: false,
-    });
-    queue.write_buffer(&buffer, 0, contents);
-    buffer
+        contents,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+    })
 }

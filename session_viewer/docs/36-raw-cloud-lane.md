@@ -86,7 +86,7 @@ not a pen per point. ([38](38-sixteen-bytes.md) takes it to 16.)
 **Find** the point-cloud arm:
 
 ```rust
-                Geometry::PointCloud(pc) => t.glyphs.extend(pointcloud_to_glyphs(pc, ri)),
+                Geometry::PointCloud(pc) => { t.glyphs.extend(pointcloud_to_glyphs(pc, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
 ```
 
 **Replace with** two arms — the guarded one must come **first**, because Rust takes the
@@ -97,10 +97,15 @@ first arm that matches:
                 // you orbit. A handful of points are worth round sized dots (32b's demo clouds);
                 // a scan is a clump, and the raw lane draws it one vertex and one pixel per point.
                 Geometry::PointCloud(pc) if pc.len() >= CLOUD_RAW_MIN => {
-                    push_cloud(pc, ri, &mut t.points)
+                    push_cloud(pc, ri, &mut t.points);
+                    t.object_bounds.push(None); t.object_spacing.push(0.0);
                 }
-                Geometry::PointCloud(pc) => t.glyphs.extend(pointcloud_to_glyphs(pc, ri)),
+                Geometry::PointCloud(pc) => { t.glyphs.extend(pointcloud_to_glyphs(pc, ri)); t.object_bounds.push(None); t.object_spacing.push(0.0); }
 ```
+
+Both arms push a `None` bound and a `0.0` spacing, like every other non-mesh arm: the
+object-row tables 35 added stay aligned with `objects`, and a cloud has no surface for
+the ink lanes to density-cull against.
 
 **Add** at the bottom of the file, next to `pointcloud_to_glyphs`:
 
@@ -143,6 +148,29 @@ fn push_cloud(pc: &PointCloud, instance_id: u32, out: &mut Vec<CloudPoint>){
 ```
 
 and put `CloudPoint` in the import at the top of the file.
+
+**One kernel addition this depends on**, in `session_rust/src/pointcloud.rs` — the flat
+arrays have no public accessor yet. Add both next to `get_points` / `get_colors`:
+
+```rust
+    /// The flat coordinate array itself, [x0, y0, z0, x1, ...]. A renderer walking millions of
+    /// points cannot afford `get_point` per point: that builds a `Point`, and a `Point` owns a
+    /// name and a colour, so a 13.8M-point scan spends most of its walk in the allocator.
+    pub fn coords(&self) -> &[f64] {
+        &self._coords
+    }
+```
+
+```rust
+    /// The flat colour array itself, [r0, g0, b0, a0, r1, ...] as 0-255 - the same encoding the
+    /// proto carries. Same reason as `coords`: `get_color` builds a `Color`, which owns a name.
+    pub fn colors(&self) -> &[i32] {
+        &self._colors
+    }
+```
+
+Two borrows of private fields — no new behaviour, no test, so the three-language parity
+rule does not apply.
 
 Those two doc-comment paragraphs are the whole reason this function does not look like
 `pointcloud_to_glyphs`. `get_point(i)` builds a `Point`, and a `Point` owns a name and a

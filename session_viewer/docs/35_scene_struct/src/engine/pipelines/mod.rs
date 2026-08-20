@@ -41,7 +41,6 @@ impl Pipelines {
         line_layout: &wgpu::BindGroupLayout,
         segment_layout: &wgpu::BindGroupLayout,
         glyph_layout: &wgpu::BindGroupLayout,
-        cloud_layout: &wgpu::BindGroupLayout,
     ) -> Self{
         Self {
             triangle: build_triangle_pipeline(device, samples, color_format, aspect_layout, time_layout, instance_layout),
@@ -50,7 +49,7 @@ impl Pipelines {
             cylinder: build_cylinder_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
             background: build_background_pipeline(device, samples, color_format),
             sphere: build_sphere_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
-            point: build_point_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, cloud_layout),
+            point: build_point_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
             ribbon: build_ribbon_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
             ribbon_solid: build_ribbon_solid_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
             glyph: build_glyph_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
