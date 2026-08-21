@@ -27,14 +27,14 @@
 ```
 src/shaders/outline_mask.wgsl    # NEW — selected instances only, white on black (MSAA coverage)
 src/shaders/outline_sep.wgsl     # NEW — the two 1×N distance passes (one shader, direction uniform)
-src/shaders/composite.wgsl       # + outline ramp over the 68 output
+src/shaders/composite.wgsl       # + outline ramp over the 73 output
 src/engine/gpu/mod.rs            # mask/dist targets; the passes, gated on selection + dirty
 ```
 
 ## Step 1 — the mask, MSAA coverage as free AA: `outline_mask.wgsl`
 
 Render *only the selected instances* (the vs reads `FLAG_SELECTED`; unselected rows collapse to w=0 —
-the 37 trick inverted) as flat white into a small offscreen target, **4× MSAA, resolved**. The
+the 41 trick inverted) as flat white into a small offscreen target, **4× MSAA, resolved**. The
 resolve is the magic: edge pixels come out fractionally gray (coverage), so the outline inherits
 sub-pixel smoothness before any blur exists — the archive's technique, and the real payoff of
 lesson 24's MSAA decision.
@@ -74,7 +74,7 @@ struct LineUniform {
 };
 
 const FLAG_SELECTED: u32 = 1u;   // bit 0 (50)
-const COLLAPSED: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);   // w=0 → clipped, the 37 trick
+const COLLAPSED: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);   // w=0 → clipped, the 41 trick
 
 // triangle.wgsl's vs minus normals/colors — only position + the row id matter here.
 @vertex
@@ -138,7 +138,9 @@ struct Sep { dir: vec2<f32>, radius: f32, seed: f32 };  // dir=(1,0)|(0,1); seed
 @group(0) @binding(0) var<uniform> sep: Sep;
 @group(0) @binding(1) var src: texture_2d<f32>;         // pass1: mask coverage; pass2: dist field
 
-const INF: f32 = 1e9;
+// INF must FIT the target: R16Float tops out at 65504 — write 1e9 and you store inf, and
+// inf * 0 in a later combine is NaN. 60000 is "infinitely far" at any sane outline radius.
+const INF: f32 = 60000.0;
 
 // pass1: coverage>0.5 → on-mask distance 0, else INF. pass2: src already IS a distance — pass through.
 fn seed(c: vec2<i32>) -> f32 {
@@ -293,21 +295,51 @@ main pass when a lane is added. The `h` bind group binds `outline_mask` as `src`
 `Sep { dir: (1,0), radius: 4.0, seed: 1.0 }`; the `v` one binds `outline_dist_a` with
 `dir: (0,1), seed: 0.0`.)
 
+> **The WGSL duplication needs a rule too.** The mask's lane vertex stages are *copies* of
+> `triangle.wgsl`/`cylinder.wgsl`/etc. minus color — and WGSL in wgpu has no `#include`, so there
+> is physically one source of truth per file. When `cylinder.wgsl`'s vs changes (a new radius
+> rule, a new lane field), the mask copy goes silently stale and the outline no longer matches the
+> geometry it rings. The cheap discipline: a reciprocal comment at the top of each lane shader —
+> `// mirror: outline_mask.wgsl vs_cyl — change both or neither` — and one selftest (88) that
+> draws a selected known shape and asserts the ring hugs it. If a compose tool (naga_oil-style)
+> ever enters the dependency tree, these copies are the first thing to unify.
+>
+> **Orbit-with-selection rasterizes the selection twice.** Every camera change re-renders the
+> mask — the selected geometry's vertex work runs once for the scene and once for the mask, per
+> drawn frame. At this course's scale that's nothing; at heavy-scene scale the alternatives are:
+> derive the outline from the **stencil/depth** of the main pass (mark selected rows with a
+> stencil ref during the scene draw — zero extra rasterization, but the ring then respects
+> occlusion instead of showing through), or drive the mask from a **compacted indirect draw**
+> (a tiny compute pass gathers selected rows into an indirect args buffer, so the mask pass
+> never touches unselected vertices). Neither is built here; the design leaves the door open
+> because the mask pass is already fully self-bound.
+
 **The gate** — computed by `State` and stored as a `Gpu` field (`self.gpu.outline_needed = …;`)
 right before the `clear(color, &view_proj)` call: that signature is today's entry point and stays
-untouched — the flag rides on `Gpu` instead of a new parameter:
+untouched — the flag rides on `Gpu` instead of a new parameter. Get the gating exactly right, or
+the ring **stays on screen after deselect** (the composite always samples `outline_dist_b`; skip
+the sep passes on the deselect frame and the stale distance field keeps drawing the ring forever).
+The truth table:
+
+| selection | changed (selection or camera) | mask pass | sep passes | what the composite shows |
+|---|---|---|---|---|
+| nonempty | yes | re-render | run | ring follows |
+| nonempty | no | skip | skip | reuses `outline_dist_b` — still valid, nothing moved |
+| **just emptied** | yes | re-render — every draw collapses (FLAG_SELECTED) → **black** | run **once** | distance → INF, ring erased |
+| empty | no | skip | skip | `outline_dist_b` is already INF |
+
+So the flag is:
 
 ```rust
-    // the three outline passes run ONLY when:
-    let outline_needed = selection_nonempty && (selection_changed || camera_changed);
-    // …and with 66, a fully static frame doesn't even reach here.
+    // deselect MUST re-run (erase the ring); a camera move with an empty selection needn't
+    // (nothing to show, nothing stale); a static selected frame reuses the field.
+    let outline_needed = selection_changed || (camera_changed && selection_nonempty);
+    // …and with 71, a fully static frame doesn't even reach here.
 ```
 
-One cold-start subtlety: the composite *always* samples `outline_dist_b`, so when the selection
-empties, run the two sep passes one last time over the now-black mask (distance → INF, ring → 0) —
-gate on `selection_changed || camera_changed` while `selection_nonempty` only skips the *mask*
-geometry draws, or simply keep `outline_needed = selection_changed || camera_changed ||
-selection_nonempty` and let the black mask wash the field clean.
+Note the deselect case needs no special clear path: the mask pass re-runs with zero selected rows,
+every instance collapses in the vertex shader, and the resolved mask comes out black — the two sep
+passes then wash the distance field to INF on their own.
 
 Nothing selected and nothing changing → zero passes, zero cost — the archive ran the full chain
 regardless. And FXAA:
@@ -326,7 +358,10 @@ cd session_viewer && trunk serve   # http://localhost:8770
   geometry, not a bounding shape).
 - Watch `drawn/s` (71) and frame time: selection sitting still = **no outline passes re-run**;
   orbiting with a selection = outline follows at full rate; nothing selected = identical numbers to
-  68. The archive's version cost the full chain in all three states.
+  73. The archive's version cost the full chain in all three states.
+- Select something, then **deselect it** (Esc / click empty space) → the ring is *gone*, not
+  frozen on screen — the just-emptied row of the truth table (mask re-renders black, sep washes
+  the field to INF, once).
 - Zoom text/lines: no FXAA smear — lines are exactly as 31 drew them.
 
 ## Recap
@@ -338,8 +373,11 @@ Ch 74: OUTLINE, structural fixes only. Mask = selected instances rendered white 
        payoff); its draws mirror clear()'s four ink-lane sub-draws (cyl/ribbon/sphere/dot), its
        4× is pinned independent of the scene's dynamic samples.
        Distance = separable: 1×N then N×1 (exact euclidean via row-distance + k²), 18 taps for what
-       the archive's box search did in 81. Ramp = smoothstep at WIDTH in composite, ring outside
-       only. Gated: no selection → no passes; unchanged frame → nothing at all (71). FXAA retired —
+       the archive's box search did in 81; INF = 60000.0 because the field is R16Float (1e9 stores
+       as inf, and inf×0 is NaN). Ramp = smoothstep at WIDTH in composite, ring outside
+       only. Gated by the TRUTH TABLE: selection+change → full chain; static → nothing (71);
+       JUST-EMPTIED → mask re-renders black (all draws collapse) + sep once, or the ring sticks
+       after deselect. FXAA retired —
        MSAA + coverage + egui already cover every edge class; a second AA is just blur. Identical
        look, zero standing tax. Phase 11 complete: ground, on-demand, GTAO, GI, outline — the arctic
        viewer, engineered fast.

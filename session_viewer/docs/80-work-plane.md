@@ -4,7 +4,7 @@
 > drawing on a wall. The **construction plane** (Rhino's CPlane) makes the drawing surface a piece of
 > state: set it by three points or from a face, and everything that assumed the ground — the empty-
 > click resolver, the grid, snapping, `rect`/`box` — follows automatically. The architecture did the
-> work already: all of those go through **one function** (`cursor_world_point`, 48/59), so this
+> work already: all of those go through **one function** (`cursor_world_point`, 53/63), so this
 > lesson mostly replaces a hardcoded plane with a stored one.
 
 <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the work plane is stored state; the click resolver, grid, snap, and draw tools all read it; set by three points or a picked face" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
@@ -30,7 +30,7 @@
 
 ```
 src/state.rs          # work_plane: Plane (kernel type) — default world-XY; the resolver uses it
-src/app/commands.rs   # `cplane` command: 3 points / `cplane face` / `cplane world` (Get-loop, 49)
+src/app/commands.rs   # `cplane` command: 3 points / `cplane face` / `cplane world` (Get-loop, 54)
 src/shaders/ground.wgsl # plane frame uniform — ground + infinite grid render ON the plane
 src/app/snap.rs       # grid snap in plane coordinates
 ```
@@ -64,7 +64,15 @@ fails with "missing field `work_plane`"):
 
 Because every tool's empty-space clicks flow through this one function, `line`, `polyline`, `point`,
 and the Get-loop are now plane-aware — **zero tool edits**, third time the single-resolver design
-pays (48 → 59 → here).
+pays (53 → 64 → here).
+
+One more `State` method now, so Step 2's commands compile against it — Step 3 grows it:
+
+```rust
+    /// The work plane changed: redraw (71). Defined NOW so the Step 2 verbs build; Step 3 extends
+    /// it to push the new frame into the ground shader's uniform.
+    pub fn on_cplane_changed(&mut self) { self.poke(); }
+```
 
 ## Step 2 — the command: `src/app/commands.rs`
 
@@ -83,9 +91,9 @@ A three-way verb, all Get-loop (54's grammar). The dispatch arm (`commands.rs` n
         }
 ```
 
-(`on_cplane_changed()` is **defined in Step 3** — it pushes the plane frame to the ground shader and
-calls `poke()`. It's called here before you write it; add the verb now, add the method in Step 3,
-and the build is green only once both exist.)
+(`on_cplane_changed()` was **defined in Step 1** (poke-only) precisely so this dispatch compiles the
+moment you add it; Step 3 extends the method to also push the plane frame to the ground shader. The
+build stays green at the end of every step.)
 
 The two commands, below `dispatch` in `commands.rs` — 54's ActiveCommand shape, nothing new:
 
@@ -164,7 +172,7 @@ impl ActiveCommand for CplaneFace {
 }
 ```
 
-`face_plane_under_cursor` composes machinery from 42/43 — add to `impl State` (`state.rs`):
+`face_plane_under_cursor` composes machinery from 47/48 — add to `impl State` (`state.rs`):
 
 ```rust
     /// The plane of the mesh face under the cursor (48's resolve → kernel face normal).
@@ -177,7 +185,12 @@ impl ActiveCommand for CplaneFace {
         let sub = self.scene.resolve_subobject(&hit.guid, &hit, self.cursor,
                                                &vp, &origin, viewport)?;
         let crate::app::pick::SubKind::Face(fk) = sub.kind else { return None };
-        let Some(Geometry::Mesh(m)) = self.scene.session.lookup.get(&hit.guid) else { return None };
+        // multi-doc: resolve the OWNING doc through the row map — `scene.session` (singular)
+        // doesn't exist since 35, and the wrong doc's lookup returns None or the WRONG mesh
+        let Some(&row) = self.scene.guid_to_row.get(&hit.guid) else { return None };
+        let d = self.scene.doc_of_row(row);
+        let Some(Geometry::Mesh(m)) = self.scene.docs[d].session.lookup.get(&hit.guid)
+            else { return None };
         let n = m.xform.transform_vector(&m.face_normal(fk)?);     // local normal → world
         Some(Plane::from_point_normal(hit.point.clone(), n))
     }
@@ -299,7 +312,7 @@ block (`if raw[2].abs() < 1e-6 { … }`) → replace with:
     }
 ```
 
-**The change broadcaster** — the method Step 2 has been calling, in `impl State`:
+**The change broadcaster** — grow the Step 1 stub into the real thing (`impl State`):
 
 ```rust
     /// The work plane changed: push the frame to the ground shader + redraw (71).
@@ -310,13 +323,20 @@ block (`if raw[2].abs() < 1e-6 { … }`) → replace with:
     }
 ```
 
+> ⚠ The work plane is **viewer state, not document state** — it lives on `State`, so a reload,
+> reconcile (43b), or a fresh session silently resets it to world XY. That's Rhino's session
+> behavior too, but say it in the HUD when a non-default plane is active (`cplane: custom`) so a
+> reload doesn't move anyone's drawing surface without a word. Persisting it (a manifest setting
+> per doc) is a small, real follow-up: serialize origin + axes next to 44's save path and restore
+> in `set_scene`.
+
 ## Step 4 — verify
 
 ```bash
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-- `cplane` → click three points on a box's tilted face (endpoint snap makes this exact, 59) → the
+- `cplane` → click three points on a box's tilted face (endpoint snap makes this exact, 64) → the
   grid **lies on that face**. Draw a `rect` → the rectangle lands **in the face's plane**, not on the
   floor — the roadmap's acceptance line, verbatim.
 - `box` on the tilted plane → extrudes along the plane normal. Grid snap → clicks land on the tilted
@@ -333,7 +353,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 79: edit points — modeling on the curve.
 Ch 80: CPLANE. work_plane: Plane (kernel type: origin + axes IS a construction plane), default world
-       XY. The ONE empty-click resolver (48/64's cursor_world_point) swaps z=0 for ray∩plane — every
+       XY. The ONE empty-click resolver (63/64's cursor_world_point) swaps z=0 for ray∩plane — every
        tool becomes plane-aware with zero tool edits (the single-resolver design's third payoff).
        `cplane` verb: 3 points (Get-loop) / face (pick → face plane) / world (reset). Grid + ground
        render on the plane (frame uniform into 70's analytic shader); grid snap quantizes in plane

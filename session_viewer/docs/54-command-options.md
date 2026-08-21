@@ -3,8 +3,8 @@
 > **Big picture.** *Phase 8.* Real commands are conversations: `Line` asks *from*, then *to*; along
 > the way you can flip `Snap=On`, type a number, or step back one prompt. Rhino renders that whole
 > conversation in one prompt line — `Line (From, Snap=On):` — and that's the shape every drawing tool
-> (57–60) will reuse. This lesson teaches the Get-loop that grammar with a deliberately geometry-free
-> dummy command, so 57 can focus on geometry, not plumbing.
+> (62–63) will reuse. This lesson teaches the Get-loop that grammar with a deliberately geometry-free
+> dummy command, so 62 can focus on geometry, not plumbing.
 
 <svg viewBox="0 0 680 110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a running command chains prompts: first point, second point, done; Esc cancels, Enter accepts default, back steps to the previous prompt; options render in the prompt line" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="10" y="30" width="180" height="28" fill="none" stroke="#6fb3ff"/><text x="100" y="48" fill="#d7dae0" text-anchor="middle">probe (Rounded=On): pick A</text>
@@ -68,7 +68,9 @@ pub trait ActiveCommand {
     fn feed_point(&mut self, state: &mut crate::state::State, p: Point) -> CmdStep;
     fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep;
     fn options(&mut self) -> &mut [CmdOption] { &mut [] }      // ← ADD
-    fn back(&mut self) -> CmdStep;                             // ← ADD — one prompt backwards
+    /// One prompt backwards. The default re-asks the CURRENT prompt — the right answer for a
+    /// stateless command; commands with a stage (ProbeCmd, 62's tools) override it to step back.
+    fn back(&mut self) -> CmdStep { CmdStep::Prompt(self.prompt()) }   // ← ADD
     fn prompt(&self) -> GetState;                             // ← ADD — the current prompt, so
                                                               //   state.rs can re-render after an
                                                               //   option flip without advancing
@@ -84,7 +86,7 @@ before the text ever reaches the command. First widen 53's `use` line so `CmdOpt
         use crate::app::{commands::Dispatch, getloop::{GetState, CmdOption}};   // ← add CmdOption
 ```
 
-Then **find the `if let Some(mut cmd) = self.active.take()` block you wrote in 48** (the two-line
+Then **find the `if let Some(mut cmd) = self.active.take()` block you wrote in 53** (the two-line
 `feed_text` + `step` version) and replace its body with the grammar-aware one:
 
 ```rust
@@ -97,19 +99,34 @@ Then **find the `if let Some(mut cmd) = self.active.take()` block you wrote in 4
                 return;
             }
             if let Some((k, v)) = t.split_once('=') {
+                let mut known = false;
+                let mut err: Option<String> = None;
                 for o in cmd.options() {
+                    let name = match o {
+                        CmdOption::Toggle { name, .. } |
+                        CmdOption::Number { name, .. } |
+                        CmdOption::List { name, .. } => *name,
+                    };
+                    if !name.eq_ignore_ascii_case(k) { continue; }
+                    known = true;
                     match o {
-                        CmdOption::Toggle { name, value } if name.eq_ignore_ascii_case(k) =>
+                        CmdOption::Toggle { value, .. } =>
                             *value = matches!(v, "on" | "true" | "1" | "yes"),
-                        CmdOption::Number { name, value } if name.eq_ignore_ascii_case(k) =>
-                            if let Ok(n) = v.parse() { *value = n },
-                        CmdOption::List { name, choices, current }
-                            if name.eq_ignore_ascii_case(k) =>
-                            if let Some(i) = choices.iter()
-                                .position(|c| c.eq_ignore_ascii_case(v)) { *current = i },
-                        _ => {}
+                        CmdOption::Number { value, .. } => match v.parse() {
+                            Ok(n) => *value = n,
+                            Err(_) => err = Some(format!("{k}: '{v}' is not a number")),
+                        },
+                        CmdOption::List { choices, current, .. } =>
+                            match choices.iter().position(|c| c.eq_ignore_ascii_case(v)) {
+                                Some(i) => *current = i,
+                                None =>
+                                    err = Some(format!("{k}: expected one of {}", choices.join("|"))),
+                            },
                     }
                 }
+                // NEVER silent: a typo'd option that vanishes reads as "accepted" — the worst lie
+                self.ui.log = err.unwrap_or_else(|| if known { format!("{k}={v}") }
+                    else { format!("unknown option '{k}'") });
                 // option set; SAME prompt — the command didn't advance
                 self.active = Some(cmd);
                 self.refresh_prompt();
@@ -221,6 +238,8 @@ cd session_viewer && trunk serve   # http://localhost:8770
   click at that point.
 - **`back`** ⏎ after the first pick → asking for the *first* point again. **Esc** anywhere →
   `cancelled`. **Enter** on the empty line at the second prompt → accepts the default (origin).
+- Type **`ronded=off`** ⏎ (a typo) → the log answers `unknown option 'ronded'` instead of eating
+  it — silence reads as "accepted", which is the bug the feedback line exists to kill.
 - Every behaviour above came from `state.rs`'s grammar layer or the `stage` pattern — the command
   itself is ~40 lines. That ratio is the point: tools stay small because the loop owns the grammar.
 
@@ -231,7 +250,8 @@ Ch 53: the bus — verbs dispatch, instant commands work end to end.
 Ch 54: THE CONVERSATION. CmdOption { Toggle / Number / List } renders into the Rhino prompt shape —
        `probe (Rounded=On): pick first point` — via prompt_line; typed `name=value` is parsed by the
        GRAMMAR layer in run_command (every command gets options for free), as is `back` (one prompt
-       backwards, command resets its own stage). ProbeCmd is the canonical multi-step template: a
+       backwards, default = re-ask the current prompt, staged commands override). Unknown names and
+       unparseable values land in the log — never eaten. ProbeCmd is the canonical multi-step template: a
        stage field (Option<Point>), ask() derives the prompt from state, feed_point advances, typed
        `x,y,z` converges on feed_point, empty Enter = default, Esc = cancel (53). Geometry-free on
        purpose — 62's real tools copy the shape and only swap what Done does.

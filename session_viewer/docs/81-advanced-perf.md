@@ -23,20 +23,25 @@
 A beam 400 px tall deserves its full tessellation; the same beam at 6 px is a colored stick. The
 machinery is almost all owned already:
 
-- **Levels:** per mesh, precompute 1–2 decimated versions (the kernel side: cluster-collapse or
-  vertex-weld at increasing tolerance — `Mesh` welding utilities are the starting point) and
+- **Levels:** per object, precompute 1–2 coarser versions **by re-tessellating from the NURBS/BRep
+  truth** at relaxed quality (66's `mesh_q` knobs) — not by decimating the level-0 mesh: vertex-weld
+  / cluster-collapse opens cracks at seams and melts the hard edges CAD shading depends on.
+  Decimation is the fallback for meshes with no underlying surface (imported STL/OBJ). Then
   `arena.allocate` each level at load. Cheap: slots are just ranges (43a).
 - **Selection:** projected box height in px (the world box through 48's `project_to_screen`) picks
   the level; hysteresis (switch up at 120 px, down at 80) prevents flicker at the boundary.
 - **The swap is an index-range choice**, not an upload: draw the object's level-k `index_range`
   instead of level-0's. With 30's single-draw arena this means bucketing draws by level — 2–3
-  `draw_indexed` calls instead of 1. The draw-count HUD barely notices.
+  `draw_indexed` calls instead of 1. The draw-count HUD barely notices. Honest caveat: a *per-object*
+  level choice fights the one-draw batch — past a few hundred objects the practical shape is the
+  level as instance data plus lever 3's indirect machinery (the compute pass emits one compacted
+  draw per occupied level). Lever 1 at scale effectively rides on lever 3.
 - **Rule from the user contract:** hysteresis + generous thresholds, because a *visible* LOD pop
   during orbit is a quality change while interacting — the one thing this course never does.
 
 ## Lever 2 — occlusion culling: don't draw what a wall hides
 
-37 culls what's *outside the view*; buildings are full of things *inside the view but behind walls*.
+41 culls what's *outside the view*; buildings are full of things *inside the view but behind walls*.
 The modern shape (no per-object GPU queries — those stall):
 
 - Render (or reuse) depth, build a **depth pyramid** (mips of max-depth).
@@ -50,7 +55,7 @@ The modern shape (no per-object GPU queries — those stall):
 
 ## Lever 3 — GPU cull + indirect draw: the CPU stops counting
 
-37/lever-2 decide per object on the CPU and re-upload flags. At 500k objects even that loop matters.
+41/lever-2 decide per object on the CPU and re-upload flags. At 500k objects even that loop matters.
 WebGPU's answer — unavailable in WebGL, which is why 27 locked WebGPU-only. The shape, in
 pseudocode (a sketch of the two passes — **not code to type**):
 
@@ -69,16 +74,23 @@ render pass:
 - The new primitives: `wgpu::BufferUsages::INDIRECT`, `draw_indexed_indirect`, and a compute pipeline
   (the course's first — `@compute @workgroup_size(69)`).
 - What changes architecturally: `drawn/total` moves GPU-side (read back *occasionally*, async, for
-  the HUD — never synchronously; that's the readback rule from 42 again).
+  the HUD — never synchronously; that's the readback rule from 47 again).
+- **The memory ledger.** GPU residency isn't free: the depth pyramid (lever 2) is ~1.3× a full-res
+  R32Float frame, boxes + indirect + counter buffers are per-object small but nonzero — and on
+  wasm32 *everything* shares one linear address space capped at 4 GB (less in practice, once the
+  browser takes its share). 41/44 already budget the CPU side of big scenes; these GPU tables join
+  the same budget. At 500k objects, count bytes before you count draws.
 
 ## Measuring — the capstone's precondition
 
 Every lever above starts with the same sentence: *profile first*. The HUD (28/41/71) already shows
 fps / frame ms / draws / drawn-vs-total / drawn-per-second; add a one-line GPU timestamp pair around
 the main pass (wgpu `TimestampWrites`, feature-gated) and you can attribute frame time to passes
-before touching anything. The perf lesson that matters most is the discipline: **name the
-bottleneck, then pull exactly one lever, then re-measure** — 30 (draw count), 37 (vertex work), 66
-(idle), 67 (fragment work) each did precisely that, and that's why the viewer is fast. One dormant
+before touching anything. The timestamp query resolves like every other GPU readback: into a
+readback buffer, `map_async`, consumed a frame later — a blocking read stalls the pipeline (and wasm
+can't block at all — 47's rule again). The perf lesson that matters most is the discipline: **name the
+bottleneck, then pull exactly one lever, then re-measure** — 30 (draw count), 41 (vertex work), 71
+(idle), 72 (fragment work) each did precisely that, and that's why the viewer is fast. One dormant
 switch already sits in the code: `INK_DEPTH_PREPASS` (`gpu/mod.rs`, currently `false`) — flipping it
 doubles the flat-ink cost in exchange for correct ink ordering, so measure before and after like any
 other lever.
@@ -104,9 +116,10 @@ This lesson's "verify" is honest bookkeeping rather than a feature demo:
 
 ```
 Ch 80: work plane — Phase 13's modeling tools complete.
-Ch 81: HEADROOM, mapped. (1) LOD: decimated levels pre-allocated as extra arena ranges; screen-size
-       selection with hysteresis (a pop during orbit = a quality change = forbidden); the swap is an
-       index-range choice. (2) Occlusion: depth pyramid, test boxes at the ~2 px mip, one-frame
+Ch 81: HEADROOM, mapped. (1) LOD: coarser levels RE-TESSELLATED from the NURBS/BRep truth
+       (decimation cracks seams and melts hard edges), pre-allocated as extra arena ranges;
+       screen-size selection with hysteresis (a pop during orbit = a quality change = forbidden);
+       the swap is an index-range choice — and at scale it rides on lever 3's indirect draws. (2) Occlusion: depth pyramid, test boxes at the ~2 px mip, one-frame
        latency, feeds 41's FLAG_CULLED path — only when profiling shows hidden-geometry cost.
        (3) GPU cull + indirect: a compute pass tests frustum+pyramid per object and atomically packs
        an INDIRECT buffer; draw_indexed_indirect renders what the GPU chose; CPU per-object

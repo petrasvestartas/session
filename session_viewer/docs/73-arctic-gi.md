@@ -1,12 +1,12 @@
 # 73 Arctic + cheap GI — a better default look for the same money
 
-> **Big picture.** *Phase 11.* 67 bought occlusion data at ~12 reads/px; this lesson spends the same
+> **Big picture.** *Phase 11.* 72 bought occlusion data at ~12 reads/px; this lesson spends the same
 > data three more ways — **zero additional texture fetches** — to fake global illumination well
 > enough that flat-shaded CAD scenes read as photographed: directional sky occlusion from the bent
 > normal, bounce light from a polynomial, and contact micro-shadows on the key light. The "arctic"
 > preset (bright hemisphere white) becomes a toggle; the *default* look improves too.
 
-<svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the ao and bent normal from 67 feed three effects in the composite: sky visibility, multibounce, and key light micro shadowing" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+<svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the ao and bent normal from 72 feed three effects in the composite: sky visibility, multibounce, and key light micro shadowing" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="10" y="40" width="150" height="40" fill="none" stroke="#6fb3ff" stroke-width="1.4"/>
   <text x="85" y="57" fill="#d7dae0" text-anchor="middle">72's outputs</text>
   <text x="85" y="72" fill="#666" text-anchor="middle" font-size="10">ao · bent normal</text>
@@ -30,25 +30,32 @@ src/shaders/composite.wgsl   # the three effects + arctic branch + IGN output di
 src/state.rs / ui            # B toggle + settings checkbox (52)
 ```
 
-Everything happens in the composite pass 67 created — the AO texture (with the bent normal encoded
+Everything happens in the composite pass 72 created — the AO texture (with the bent normal encoded
 beside it) is already bound; the scene color already flows through. This lesson is shader math.
 
 ## Step 1 — sky visibility: the bent normal earns its keep
 
-Plain AO darkens uniformly. The **bent normal** — the average *unoccluded* direction 67 wrote for
+Plain AO darkens uniformly. The **bent normal** — the average *unoccluded* direction 72 wrote for
 free — says *which way* the opening faces. Weight the ambient hemisphere by how much of the **sky**
 the bent normal sees, and creases darken toward the ground while upward-facing surfaces stay bright —
 the directional cue that reads as real GI:
 
-67 stored the bent normal as `bent*0.5+0.5` in the AO target's `gba` channels (73's `RGBA16Float`: `r`=ao,
+72 stored the bent normal as `bent*0.5+0.5` in the AO target's `gba` channels (72's `RGBA16Float`: `r`=ao,
 `gba`=bent), so decoding is one line — add it beside `multi_bounce` at the top of `composite.wgsl`:
 
 ```wgsl
-// decode 72's bent normal (stored bent*0.5+0.5 in gba)
-fn decode_bent(v: vec3<f32>) -> vec3<f32> { return normalize(v * 2.0 - 1.0); }
+// decode 72's bent normal (stored bent*0.5+0.5 in gba). GUARD the normalize: on background
+// pixels gba holds whatever the AO pass cleared to — (0,0,0) decodes to the zero vector and
+// normalize(0) is NaN, which then poisons sky_vis, the multiply, and the whole pixel.
+fn decode_bent(v: vec3<f32>) -> vec3<f32> {
+    let b = v * 2.0 - 1.0;
+    let l = length(b);
+    if (l < 1e-4) { return vec3<f32>(0.0, 0.0, 1.0); }   // background: call it "sky-facing"
+    return b / l;
+}
 ```
 
-Then, in the composite's fragment body where 67 did the flat `scene_rgb * ao`, replace that with:
+Then, in the composite's fragment body where 72 did the flat `scene_rgb * ao`, replace that with:
 
 ```wgsl
     let bent = decode_bent(ao_tex_sample.gba);                 // ao_tex_sample = 72's upsampled texel (r=ao)
@@ -65,14 +72,25 @@ approximation reconstructs that from AO and albedo alone — one polynomial, no 
 
 ```wgsl
 // GTAO multi-bounce (Jimenez 2016): brighter albedo returns more of the occluded energy.
+// The second argument is ALBEDO — the unlit surface base color — NOT the lit scene color:
+// scene_rgb already has the key light baked in (72's pipeline), and feeding it here
+// double-counts the shading: dark-in-shadow pixels would "bounce" less light exactly where
+// bounce matters most.
 fn multi_bounce(ao: f32, albedo: vec3<f32>) -> vec3<f32> {
     let a = 2.0404 * albedo - 0.3324;
     let b = -4.7951 * albedo + 0.6417;
     let c = 2.7552 * albedo + 0.6903;
     return max(vec3<f32>(ao), ((ao * a + b) * ao + c) * ao);
 }
-    // usage: ambient *= multi_bounce(ao, scene_rgb);   // instead of the flat `* ao`
+    // usage: ambient *= multi_bounce(ao, albedo);   // instead of the flat `* ao`
 ```
+
+Where does the composite get `albedo`? The honest route: the mesh pipeline writes the unlit base
+color to a **second render target** (MRT, `@location(1)`) beside the lit color, and the composite
+binds both. The cheap route — acceptable only because the arctic palette is near-white — is a
+constant `vec3<f32>(0.9, 0.9, 0.92)`: the polynomial is forgiving near 1.0 and visibly wrong on
+saturated dark materials. Take the MRT route the day a colored model looks muddy; until then, name
+the constant `ARCTIC_ALBEDO_APPROX` so the compromise is greppable.
 
 The visible difference: corners between white walls glow softly instead of going gray — occlusion
 with *color memory*.
@@ -82,7 +100,7 @@ with *color memory*.
 AO is ambient occlusion, but a pinch of it on the **key light** fakes the contact shadows a real sun
 would cast — the single cheapest "grounded" cue there is:
 
-67 outputs a single already-lit `scene_rgb` (the key is baked in at shade time in `triangle.wgsl`), so
+72 outputs a single already-lit `scene_rgb` (the key is baked in at shade time in `triangle.wgsl`), so
 the composite has no isolated key term to dim — restate the micro-shadow as a grounding multiply on the
 lit color:
 
@@ -99,13 +117,26 @@ under every box for free.
 
 Arctic = the bright preset: hemisphere ambient dominant (the 0.72..1.0 band from Step 1), key light
 soft, background near-white (70's ground already matches). One uniform flag branches the composite;
-**B** toggles it and the 47 settings panel gets a checkbox (both just flip the flag + `poke()`, 66).
+**B** toggles it and the 52 settings panel gets a checkbox (both just flip the flag + `poke()`, 71).
 
 Last line before the swapchain — dither. A near-white gradient in 8 bits bands visibly; add the IGN
 value (72's, static) scaled to one LSB:
 
 ```wgsl
     out_rgb += (ign(pixel_xy) - 0.5) * (1.0 / 255.0);   // breaks 8-bit banding, invisible as noise
+```
+
+And because the pieces were built one at a time, here is the **assembled composite**, once,
+complete — every multiply this lesson added, in order:
+
+```wgsl
+    // the whole composition, end to end:
+    //   bent      = decode_bent(ao_tex.gba)          // guarded normalize (Step 1)
+    //   sky_vis   = mix(0.72, 1.0, (dot(bent,up)*0.5+0.5) * ao)
+    //   out_rgb   = scene_rgb * sky_vis              // lit color × directional sky visibility
+    //             * multi_bounce(ao, albedo)         // bounce light from ALBEDO (Step 2)
+    //             * clamp(ao * 1.3 - 0.3, 0.0, 1.0)  // contact micro-shadow (Step 3)
+    //             + (ign(pixel) - 0.5) / 255.0       // dither (above)
 ```
 
 ## Step 5 — verify
@@ -121,7 +152,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
   a flat `ao` to see the difference: the directionality vanishes).
 - The sky gradient (70's fade region) shows **no banding** stripes (Step 4's dither; comment it out
   on a large monitor to see them).
-- Perf HUD: frame time unchanged from 67 — every effect here is arithmetic on data already fetched.
+- Perf HUD: frame time unchanged from 72 — every effect here is arithmetic on data already fetched.
   And rotation still changes nothing about the image but the viewpoint.
 
 ## Recap
@@ -133,9 +164,11 @@ Ch 73: THE LOOK, same money. Three effects, all in the composite, ZERO new fetch
        toward the sky opening = the directional cue that reads as GI. (2) Jimenez multi-bounce — one
        polynomial of (ao, albedo) returns energy by albedo; white corners glow instead of graying.
        (3) micro-shadow — key light × lifted AO = contact shadows, ON BY DEFAULT, not just arctic.
-       Arctic itself = a uniform branch, B key + checkbox (poke on toggle, 66). IGN dither (±½ LSB,
-       static) kills 8-bit banding on the bright gradients. Default look visibly better; arctic ≥
-       the archive's, at a tenth the fetch budget.
+       Arctic itself = a uniform branch, B key + checkbox (poke on toggle, 71). IGN dither (±½ LSB,
+       static) kills 8-bit banding on the bright gradients. decode_bent is GUARDED — normalize(0)
+       on background pixels is a NaN that poisons the whole pixel. Multi-bounce takes ALBEDO, not
+       the lit scene_rgb (MRT base-color target when the constant approximation shows). Default
+       look visibly better; arctic ≥ the archive's, at a tenth the fetch budget.
 ```
 
 Edited: `shaders/composite.wgsl` (sky-vis, multi-bounce, micro-shadow, arctic branch, dither),

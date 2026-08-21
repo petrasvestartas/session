@@ -39,7 +39,7 @@ manifest `place` — that lives in the viewer's `Doc` — so Step 2 runs the cas
 own frame; cast the world ray as-is and every pick on a placed sheet is off by exactly the manifest
 offset. We keep 47's viewer-side cast for solids anyway: it serves meshes, BReps, *and* tessellated
 surfaces from one cached path, which the kernel can't until #7 lands. So: **kernel cast for thin
-(per doc), 42 for solid, merge with a priority rule**.
+(per doc), 47 for solid, merge with a priority rule**.
 
 ## Files we touch
 
@@ -53,15 +53,20 @@ src/state.rs       # unchanged call site — pick_ray now returns line/point hit
 
 ## Step 1 — pixels → world units: `src/camera.rs`
 
-The pick radius is *pixels* (zoom-independent, like 43), but the kernel wants a *world* tolerance. The
+The pick radius is *pixels* (zoom-independent, like 48), but the kernel wants a *world* tolerance. The
 conversion is the same formula `cylinder.wgsl` (31) uses to size screen-constant tubes — evaluated
-once on the CPU, at the camera-target depth (a good proxy for where the user is looking):
+once on the CPU, at the camera-target depth (a good proxy for where the user is looking). Mind the
+**factor of 2**: NDC spans 2.0 over `vp_h` pixels, so one pixel is `2·depth/(proj_y·vp_h)` world
+units. (`screen_radius` doesn't show the 2 because its `thickness` is a full pen *width* in px while
+its result is a world *radius* — the two halves cancel; here we're converting a pixel count, so the
+2 is explicit.)
 
 ```rust
     /// World size of one screen pixel at `depth` (view-space distance). Mirrors screen_radius() in
-    /// cylinder.wgsl: perspective scales with depth; ortho is constant.
+    /// cylinder.wgsl: perspective scales with depth; ortho is constant. `ortho_h` is the ortho
+    /// HALF-height (what gpu.rs packs into the line uniform), hence the shared factor 2.
     pub fn world_per_pixel(&self, depth: f64, proj_y: f64, ortho_h: f64, vp_h: f64) -> f64 {
-        if ortho_h > 0.0 { ortho_h / vp_h } else { depth / (proj_y * vp_h) }
+        if ortho_h > 0.0 { 2.0 * ortho_h / vp_h } else { 2.0 * depth / (proj_y * vp_h) }
     }
 ```
 
@@ -103,7 +108,10 @@ impl Scene {
                         let point = doc.place.transform_point(&h.point);   // doc frame → world
                         let dw = point.clone() - ray.origin.clone();
                         let t = dw[0]*ray.dir[0] + dw[1]*ray.dir[1] + dw[2]*ray.dir[2];
-                        let Some(&row) = self.guid_to_row.get(h.guid()) else { break };
+                        let Some(&row) = self.guid_to_row.get(h.guid()) else { continue };
+                        //                            not in the map (a guid two docs share, or a
+                        //                            non-renderable) — skip THIS hit; `break`
+                        //                            would abandon the doc's remaining hits
                         if t >= 0.0 && best.as_ref().map_or(true, |b| t < b.t) {
                             best = Some(PickHit {
                                 row, guid: h.guid().to_string(), point, t });
@@ -125,6 +133,14 @@ conflict. `self.guid_to_row` inside the `self.docs.iter_mut()` loop is fine too:
 through `self` are disjoint. (`h.guid()` lazily fills a `OnceLock` on first read, but that's an
 `&self` method, not a mutation, so it needs no `&mut`.)
 
+Two costs to know about. **Lazy rebuild**: the per-doc ray-BVH `ray_cast` builds is invalidated by
+every reconcile (43b) or regen, so the FIRST click after one pays a full rebuild per doc — a visible
+hitch on the stress file, off the profile you just read. Warm it (one throwaway `ray_cast` per doc)
+inside `commit` if that matters. **One tolerance for all depths**: `tol` is evaluated at the
+camera-target depth, but a candidate in front of the target gets a too-fat tolerance (over-selects)
+and one behind it a too-thin one. The refinement is per-candidate: re-evaluate `world_per_pixel` at
+each hit's own depth before accepting it — cheap, and the honest version for deep scenes.
+
 ## Step 3 — merge: solid vs thin priority: `src/app/scene.rs`
 
 Rename 47's `pick_ray` to `pick_mesh` and make `pick_ray` the umbrella:
@@ -134,7 +150,7 @@ Rename 47's `pick_ray` to `pick_mesh` and make `pick_ray` the umbrella:
     /// thin wins ONLY if it is clearly in front (more than `tol` nearer); ties go to the MESH —
     /// a line lying ON a face must not steal the click from the face under it.
     pub fn pick_ray(&mut self, ray: &Ray, tol: f64) -> Option<PickHit> {
-        let solid = self.pick_mesh(ray);          // 42, renamed — unchanged inside
+        let solid = self.pick_mesh(ray);          // 47, renamed — unchanged inside
         let thin  = self.pick_thin(ray, tol);
         match (solid, thin) {
             (Some(s), Some(t)) => Some(if t.t < s.t - tol { t } else { s }),
@@ -147,11 +163,11 @@ Rename 47's `pick_ray` to `pick_mesh` and make `pick_ray` the umbrella:
 > naive "smallest t wins", the fattened thin test would grab every click near it — the slab becomes
 > unselectable anywhere close to its outline. Requiring the thin hit to be **more than `tol` nearer**
 > means: line alone in space → picks fine; line on a surface → the surface wins, select the line by
-> clicking where the surface isn't (or via the tree, 70). This is Rhino's behaviour, and the archive's
+> clicking where the surface isn't (or via the tree, 75). This is Rhino's behaviour, and the archive's
 > rule (`reference_viewer_picking_system`).
 
 The click site just adds the tolerance — in `State::on_left_click`, insert the `tol` derivation
-right before the pick call, and add `, tol` to the call itself (whatever shape 42/43 left it in —
+right before the pick call, and add `, tol` to the call itself (whatever shape 47/48 left it in —
 `pick_ray(&ray)` becomes `pick_ray(&ray, tol)`):
 
 ```rust
@@ -160,7 +176,8 @@ right before the pick call, and add `, tol` to the call itself (whatever shape 4
         let unit    = self.camera.unit.to_meters();                              // mm → m
         let proj_y  = 1.0 / (30.0_f64).to_radians().tan() * unit;                // cot(fovy/2) · unit
         let ortho_h = if self.camera.perspective { 0.0 }                         // perspective: unused
-                      else { 2.0 * self.camera.distance * (30.0_f64).to_radians().tan() * unit };
+                      else { self.camera.distance * (30.0_f64).to_radians().tan() * unit };
+        //          ^ ortho HALF-height — what gpu.rs's ortho_half_height packs into the uniform
         let vp_h    = self.gpu.config.height as f64;                             // framebuffer px
         // R_PX = 8
         let tol = self.camera.world_per_pixel(self.camera.distance, proj_y, ortho_h, vp_h) * 8.0;
@@ -178,7 +195,11 @@ cd session_viewer && trunk serve   # http://localhost:8770
   hangs off the face. That's the priority rule doing its job.
 - **STRESS GATE** — load the PDF drawing (34b), zoom mid-way, click single lines in dense hatching:
   the *intended* line logs (nearest along the ray inside the tolerance), and the click returns
-  instantly — the kernel's cached ray-BVH plus per-type distance tests, no freeze at 42k objects.
+  instantly. Credit the right mechanism: the thin candidates are **force-added past the BVH**
+  (their boxes are near-degenerate — the plan section's kernel quote), so the thin side is a
+  *linear* scan of every line/point in the doc; what's cheap is the per-candidate distance math
+  (a few flops per segment), and the ray-BVH only accelerates the SOLID side. At 42k lines that
+  linear scan is still sub-millisecond — but it is O(thin objects) per click, not O(log N).
 - A `#[cfg(test)]` pins the merge: a mesh at t=10 and a line at t=10±ε → mesh; line at t=5 → line.
 
 ## Recap
@@ -186,14 +207,18 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 48: sub-object — vertex/edge/face by screen-pixel proximity.
 Ch 49: THIN GEOMETRY. A ray never exactly hits a 1-D/0-D object, so the pick gets a RADIUS: R_PX (8)
-       converted to world units by the SAME formula cylinder.wgsl uses for screen-constant tubes,
-       evaluated at target depth. The kernel's Session::ray_cast(origin, dir, tol) already
+       converted to world units by the SAME formula cylinder.wgsl uses for screen-constant tubes
+       (2·depth/(proj_y·vp_h) — the factor 2 the shader hides in its width-vs-radius convention),
+       evaluated at target depth (per-candidate depth: noted refinement). The kernel's
+       Session::ray_cast(origin, dir, tol) already
        implements the thin narrow-phase (line_line with tolerance, per-segment polylines,
        perpendicular distance for points — thin candidates force-added past the degenerate
-       boxes). It takes the SESSION's xforms (geometry carries none) but knows nothing about the
-       manifest place, so pick_thin runs it PER DOC (iter_mut — lazy BVH cache): world ray in by
+       boxes, so the thin side is a LINEAR scan; the BVH only accelerates solids). It takes the
+       SESSION's xforms (geometry carries none) but knows nothing about the
+       manifest place, so pick_thin runs it PER DOC (iter_mut — lazy BVH cache, rebuilt on the
+       first click after a reconcile): world ray in by
        place.inverse(), hits back out by place, nearest world t across docs; results filtered to
-       thin guids (the BRep arm is a deliberate no-op — 42 owns solids). Merge: thin wins only if
+       thin guids (the BRep arm is a deliberate no-op — 47 owns solids). Merge: thin wins only if
        MORE than tol nearer, ties → MESH, so a line on a face never steals the face's click.
        Stress gate: intended line picked from 42k instantly.
 ```

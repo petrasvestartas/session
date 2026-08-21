@@ -1,6 +1,6 @@
 # 50 Selection — highlight + marquee
 
-> **Big picture.** *Phase 7.* Picking (42–44) answers a click; **selection is state** — the set of
+> **Big picture.** *Phase 7.* Picking (47–49) answers a click; **selection is state** — the set of
 > objects every later tool acts on: gumball (57) moves the selection, `delete` (56) removes it, the
 > tree (75) mirrors it. This lesson stores that set, makes it *visible* (a tint via one instance-flag
 > bit — the same mechanism as hidden/culled), and adds the second way to build it: the drag
@@ -32,7 +32,7 @@
 src/engine/gpu/mod.rs   # FLAG_SELECTED; write_row_flags; set_selected_rows (tables + live rows)
 src/shaders/*.wgsl      # every instance-reading vs tints selected rows (triangle/cylinder/sphere)
 src/camera.rs           # Camera::marquee_frustum(view_proj, rect_ndc) — the marquee sub-frustum
-src/app/scene.rs        # selected: HashSet<guid>; click/shift-click/marquee mutate it
+src/app/scene.rs        # selected: HashSet<u32> (ROWS — see Step 4); click/shift-click/marquee mutate it
 src/state.rs            # on_left_release: click = replace, Shift+click = toggle, drag = marquee
 src/lib.rs              # Left press stashes drag_start; release calls on_left_release; shift flag
 ```
@@ -165,12 +165,11 @@ drag endpoints, and ignore drags under ~3 px — those are clicks.)
 `Scene` gets the set and one apply function:
 
 ```rust
-    pub selected: std::collections::HashSet<String>,   // ← ADD to Scene (init empty)
+    pub selected: std::collections::HashSet<u32>,   // ← ADD to Scene (init empty) — ROWS, not guids
 
     /// Push the current selection into the tables + GPU flags (call after any mutation below).
     pub fn apply_selection(&mut self, gpu: &mut Gpu) {
-        let rows = self.selected.iter().filter_map(|g| self.guid_to_row.get(g).copied()).collect();
-        gpu.set_selected_rows(&mut self.tables, &rows);
+        gpu.set_selected_rows(&mut self.tables, &self.selected);
     }
 
     /// Marquee: everything whose world box the sub-frustum accepts. Crossing style —
@@ -179,17 +178,19 @@ drag endpoints, and ignore drags under ~3 px — those are clicks.)
         if !additive { self.selected.clear(); }
         for row in 0..self.world_boxes.len() {
             let (lo, hi) = self.world_boxes[row];
-            if f.aabb_visible(lo, hi) { self.selected.insert(self.order[row].clone()); }
+            if f.aabb_visible(lo, hi) { self.selected.insert(row as u32); }
         }
     }
 ```
 
-(`world_boxes` is 40's row-indexed extents cache — iterate rows directly, the guid is `order[row]`;
+(`world_boxes` is 40's row-indexed extents cache — iterate rows directly;
 the scan is linear like 41's cull — per *release*, not per frame, so even cheaper. The BVH
-broad-phase (40) is the at-scale upgrade if release-lag ever shows.) One honest caveat on the key:
-guids *can* collide across docs — two files may carry the same guid — so the row is the unambiguous
-identity (the flags and `guid_to_row`'s resolution work in rows); the guid set is kept because it's
-what the UX speaks (names, the tree, 70).
+broad-phase (40) is the at-scale upgrade if release-lag ever shows.) One deliberate choice on the
+key: the set stores **rows**, not guids. Guids *can* collide across docs — two files may carry the
+same guid — so the row is the unambiguous identity, and keying by it also skips a `guid_to_row`
+lookup and a `String` clone per hit. Where the UX speaks names (the tree, 75), translate at the
+edge: a selected row's guid is just `order[row]`. One consequence to remember: anything that
+reorders rows (43b's reconcile) must remap or clear this set — 56's snapshots hit the same rule.
 
 In `state.rs`, the mouse gestures — press remembers the spot; release decides click vs drag. The
 two are **mutually exclusive**: a plain click is a zero-area rectangle, and `2.0 / (x1 - x0)` on a
@@ -235,8 +236,8 @@ Press and release split in **lib.rs** — replace 46's Left-button `MouseInput` 
             }
 ```
 
-and in `state.rs`, rename 41–49's `on_left_click` to `on_left_release`. Its body keeps the
-`vp`/`origin`/`viewport`/`ray`/`tol` construction from 41/44, then the whole
+and in `state.rs`, rename 47–49's `on_left_click` to `on_left_release`. Its body keeps the
+`vp`/`origin`/`viewport`/`ray`/`tol` construction from 46/49, then the whole
 pick-and-log block at the end is replaced with the gesture branch:
 
 ```rust
@@ -247,16 +248,16 @@ pick-and-log block at the end is replaced with the gesture branch:
         let drag = (mx - px).hypot(my - py);
 
         if drag < 3.0 {
-            // CLICK: replace (or Shift → toggle). `ray`/`tol` as built at 42/49's pick site.
+            // CLICK: replace (or Shift → toggle). `ray`/`tol` as built at 47/49's pick site.
             match self.scene.pick_ray(&ray, tol) {
                 Some(hit) if shift => {
-                    if !self.scene.selected.remove(&hit.guid) {
-                        self.scene.selected.insert(hit.guid);
+                    if !self.scene.selected.remove(&hit.row) {
+                        self.scene.selected.insert(hit.row);
                     }
                 }
                 Some(hit)          => {
                     self.scene.selected.clear();
-                    self.scene.selected.insert(hit.guid);
+                    self.scene.selected.insert(hit.row);
                 }
                 None if !shift     => { self.scene.selected.clear(); }
                 None               => {}
@@ -278,8 +279,9 @@ pick-and-log block at the end is replaced with the gesture branch:
         self.scene.apply_selection(&mut self.gpu);       // push either result to the GPU flags
 ```
 
-(Drawing the rubber-band rectangle itself is two triangles in an overlay pass — or simply defer the
-visual to 52's egui, which gives it for free; selection is correct either way.)
+(Drawing the rubber-band rectangle itself lands with the UI layer: 52's egui overlay paints it from
+`drag_start`/`cursor` as one `Painter` rect — see 52 Step 4. Selection is correct with or without
+the visual.)
 
 ## Step 5 — verify
 
@@ -300,13 +302,14 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 49: thin picking — radius + mesh-wins-ties.
-Ch 50: SELECTION. State = Scene.selected: HashSet<guid> — the set every later tool acts on. Visible
+Ch 50: SELECTION. State = Scene.selected: HashSet<u32> of ROWS — the set every later tool acts on.
+       Rows are the unambiguous key (guids can collide across docs) and save a guid_to_row lookup +
+       a String clone per hit; the tree (75) translates via order[row]. Visible
        via FLAG_SELECTED (bit 0, reserved since 35): one bit read by all three instance pipelines
        (triangle/cylinder/sphere) → the whole object tints as a unit; set_selected_rows writes
        tables.objects[row].2 (the truth — set_scene re-derives instances from tables, so the
        selection survives later Msg::File appends) AND pokes flipped live rows via write_row_flags
        (gpu/mod.rs — Instance.flags is engine-private), only flipped rows upload (41's pattern).
-       Rows are the unambiguous key (guids can collide across docs); the guid set stays for UX.
        Release branches on drag distance: <3 px CLICK = replace,
        Shift+click = toggle, empty click = clear; >=3 px MARQUEE (never both — a zero-area rect is a
        NaN frustum). MARQUEE: the drag rect is

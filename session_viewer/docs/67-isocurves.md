@@ -44,8 +44,10 @@ const ISO_SAMPLES: usize = 48;                     // samples along each line
 /// placed frame as the tessellated body, so transforms move body and lines together for free).
 /// instance_id stays 0 in the cache — stamped with the real row at push time.
 fn surface_linework(ns: &NurbsSurface) -> Vec<CylinderSegment> {
-    let (u0, u1) = ns.domain(0).unwrap();
-    let (v0, v1) = ns.domain(1).unwrap();
+    // guards, not unwraps: a degenerate surface gets NO linework, never a panic
+    let (Some((u0, u1)), Some((v0, v1))) = (ns.domain(0), ns.domain(1)) else {
+        return Vec::new();
+    };
     let mut segs = Vec::new();
     let mut line = |fixed_u: Option<f64>, fixed_v: Option<f64>, color: [f32; 4]| {
         let mut prev: Option<Point> = None;
@@ -79,13 +81,14 @@ fn surface_linework(ns: &NurbsSurface) -> Vec<CylinderSegment> {
 ```
 
 (`ns.domain(dir)` returns `Option<(f64, f64)>` and `point_at(u, v)` → `Option<Point>` — the same
-calls the kernel's own BRep bounding-box sampler uses, so the unwraps above are safe for any valid
-surface; keep the `if let` guards regardless.)
+calls the kernel's own BRep bounding-box sampler uses. The `let-else` guard means a surface whose
+domain the kernel can't report simply draws without linework; the per-sample `if let` stays,
+because one degenerate span shouldn't kill the other nine lines.)
 
 ## Step 2 — cache it with the mesh: `src/app/scene.rs`
 
 Sampling 10 lines × 48 points is cheap but not free — and it changes exactly when the tessellation
-does. Widen 66's cache entry to carry both, and widen `surface_mesh` (61 Step 1) to fill both halves
+does. Widen 66's cache entry to carry both, and widen `surface_mesh` (66 Step 1) to fill both halves
 on first use. **Find 66's `tess_cache` field and `surface_mesh`, replace with:**
 
 ```rust
@@ -104,7 +107,7 @@ on first use. **Find 66's `tess_cache` field and `surface_mesh`, replace with:**
     }
 ```
 
-Now the surface arm in `add_file`'s walk (61 Step 2) unpacks the tuple, pushes the mesh **faces
+Now the surface arm in `add_file`'s walk (66 Step 2) unpacks the tuple, pushes the mesh **faces
 only**, and appends the cached iso lines to `tables.pipes` — the **solid** lane, stamping the row as
 they go. **Find 66's surface arm in `add_file` and replace its body with:**
 
@@ -114,8 +117,8 @@ they go. **Find 66's surface arm in `add_file` and replace its body with:**
                     // warmed by 66's priming pass (top of add_file — see below)
                     if let Some((m, linework)) = self.tess_cache.get(&guid) {
                         // NO edge tubes …
-                        push_mesh_faces_only(m, ri, &mut t.verts, &mut t.vids, &mut t.idx,
-                            &mut t.spheres);
+                        push_mesh(m, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                            &mut t.pipes, &mut t.spheres, Edges::Suppress);
                         // …iso lines instead — SOLID lane, real row stamped now
                         t.pipes.extend(linework.iter()
                             .map(|s| CylinderSegment { instance_id: ri, ..*s }));
@@ -128,24 +131,39 @@ skin's depth, z-fighting it at every grazing angle and falsifying the no-bias cl
 makes below. 3D surface linework always rides `pipes`.
 
 > **Keep 66's priming pass — it runs at the top of `add_file` now** (the walk lives there since
-> 36). The walk loop reads the *warmed* cache; it can't call `surface_mesh` itself (that's
-> `&mut self` — the E0502 case 61 solved with a separate pass). 66's
+> 35). The walk loop reads the *warmed* cache; it can't call `surface_mesh` itself (that's
+> `&mut self` — the E0502 case 66 solved with a separate pass). 66's
 > `for guid in &ns_guids { self.surface_mesh(guid); }` runs just before the walk, unchanged — and
 > it's exactly why the cache stores `instance_id: 0`: the priming pass runs before this doc's
 > objects have rows (and can't know rows for docs not yet walked at all), so only the push site can
 > stamp `ri`.
 
-(Two one-word ripples from the widened cache type: 66's pick arm now casts against
-`self.tess_cache[guid].0`, and 66's world-box reads — if you pointed any at the
-cache — gain the same `.0`.)
+(Three small ripples in 66's code from this lesson: the pick arm now casts against
+`self.tess_cache[guid].0`, the world-box reads — if you pointed any at the cache — gain the same
+`.0`, and the mesh arm's `push_mesh` call gains a trailing `Edges::Draw`.)
 
-`push_mesh_faces_only` is `push_mesh(m, ri, verts, vids, idx, pipes, spheres)` with one thing
-removed: drop the `pipes` parameter and the loop that pushes edge `CylinderSegment`s — keep the
-arena vertex/index work, the `vwidth` pass, and the dot loop verbatim. The `vwidth` map is built
-from the edge widths and *gates* the dot loop — delete it along with the edge loop and every
-boundary dot disappears. Surfaces then wear their **iso lines**, not their tessellation
-triangles' wireframe. That substitution — parameter-space lines instead of triangle edges — is
-exactly what visually separates "a surface" from "a mesh" in every CAD viewer.
+`Edges::Suppress` is one new parameter on 31's `push_mesh`, not a copy of it — never fork a
+function to delete a feature:
+
+```rust
+pub enum Edges { Draw, Suppress }
+
+// push_mesh(m, ri, verts, vids, idx, pipes, spheres, edges: Edges) — the edge-CylinderSegment
+// loop wraps in `if matches!(edges, Edges::Draw) { … }`; EVERYTHING else stays unconditional
+```
+
+The `vwidth` map is built from the edge widths and *gates* the dot loop — gate it out along with
+the edge loop and every boundary dot disappears; only the tube push is conditional. 66's mesh arm
+(and 30–32's other call sites) pass `Edges::Draw`. Surfaces then wear their **iso lines**, not
+their tessellation triangles' wireframe. That substitution — parameter-space lines instead of
+triangle edges — is exactly what visually separates "a surface" from "a mesh" in every CAD viewer.
+
+> **Density knobs.** `ISO_FRACS` (3 lines per direction) and `ISO_SAMPLES` (48) are constants, so
+> a 500-surface file caches 500 × 10 lines × 48 samples — a couple of MB of segments, fine. But
+> the *right* density is per-surface: a gentle panel reads with two iso lines, a tight fillet
+> needs more samples per line. When these become quality settings, scale them by the surface's
+> span counts (65's rule) rather than bumping the globals — and since the linework is cached with
+> the tessellation, a density change is a `tess_cache.clear()` away, never a per-frame cost.
 
 ## Step 3 — verify
 
@@ -171,16 +189,18 @@ Ch 67: LINEWORK. surface_linework: boundary (domain edges, near-black) + interio
        per direction, lighter) sampled point_at along one fixed parameter — 48 samples/line →
        tables.pipes (the SOLID lane — flat segments would z-fight the skin), LOCAL space, cached
        with instance_id 0 and the row stamped at push (the priming pass predates rows). Cached WITH
-       the tessellation (one invalidation story). Surfaces suppress push_mesh's triangle-edge tubes —
+       the tessellation (one invalidation story). push_mesh gains an Edges::Suppress FLAG — never
+       fork a function to delete a feature — so surfaces wear iso lines, not triangle wireframe:
        iso lines are what makes a surface read as a surface, not a mesh. Tubes protrude → no
        z-fight, no bias. Short lesson, old infrastructure — that's the compounding paying out.
 ```
 
-Edited: `app/scene.rs` (`surface_linework`, widened `tess_cache`, faces-only mesh push for surfaces).
+Edited: `app/scene.rs` (`surface_linework`, widened `tess_cache`, `Edges::Suppress` flag on
+`push_mesh` for surfaces).
 
 ## Next
 
 `68-brep.md` — the boundary representation: multiple faces + shared edges as **one object**. It's
-been half-supported since 34 (tessellated and drawn); now it gets the 61 treatment — cached
+been half-supported since 34 (tessellated and drawn); now it gets the 66 treatment — cached
 tessellation, matrix-only transforms — and its edge curves drawn properly, so picking any face
 selects the whole solid.

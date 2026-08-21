@@ -34,23 +34,30 @@ also what the popup's title shows. (`manual_delta` names two more kernel types �
 
 ```rust
 impl HandleKind {
-    /// Popup title + unit: "Move X (mm)", "Rotate Z (deg)", "Scale (factor)".
-    pub fn label(self) -> &'static str {
+    /// Popup title: "Move X (mm)", "Rotate Z (deg)", "Scale (factor)". The translate unit is the
+    /// SCENE's own unit (camera.unit — world coordinates are expressed in it), never a hardcoded
+    /// "mm": a meters scene must read (m), and the typed value needs NO conversion — 500 means
+    /// 500 of whatever unit the scene speaks.
+    pub fn label(self, unit: crate::camera::Unit) -> String {
         use HandleKind::*;
         match self {
-            TranslateX => "Move X (mm)",   TranslateY => "Move Y (mm)",
-            TranslateZ => "Move Z (mm)",
-            RotateX    => "Rotate X (deg)", RotateY   => "Rotate Y (deg)",
-            RotateZ   => "Rotate Z (deg)",
-            ScaleX     => "Scale X (factor)", ScaleY  => "Scale Y (factor)",
-            ScaleZ  => "Scale Z (factor)",
-            ScaleUniform => "Scale (factor)",
+            TranslateX => format!("Move X ({})", unit.label()),
+            TranslateY => format!("Move Y ({})", unit.label()),
+            TranslateZ => format!("Move Z ({})", unit.label()),
+            RotateX    => "Rotate X (deg)".into(),
+            RotateY    => "Rotate Y (deg)".into(),
+            RotateZ    => "Rotate Z (deg)".into(),
+            ScaleX     => "Scale X (factor)".into(),
+            ScaleY     => "Scale Y (factor)".into(),
+            ScaleZ     => "Scale Z (factor)".into(),
+            ScaleUniform => "Scale (factor)".into(),
         }
     }
 }
 
 /// The exact delta for a typed value — RELATIVE, about the gumball origin (like the drags).
 /// Degrees for rotation (users think in degrees); scale floored at 0.01 to match the drag floor.
+/// Translate values are in scene units (camera.unit) — the world IS that unit.
 pub fn manual_delta(handle: HandleKind, value: f64, o: &Point) -> Xform {
     use HandleKind::*;
     let ax = |i: usize| { let mut a = [0.0; 3]; a[i] = 1.0; Vector::new(a[0], a[1], a[2]) };
@@ -61,7 +68,7 @@ pub fn manual_delta(handle: HandleKind, value: f64, o: &Point) -> Xform {
         RotateX | RotateY | RotateZ => {
             let i = matches!(handle, RotateY) as usize + 2 * matches!(handle, RotateZ) as usize;
             let axis_line = Line::from_points(o, &(o.clone() + ax(i)));
-            Xform::rotation_around_line(&axis_line, value, true)     // true = the value IS degrees
+            Xform::rotation_around_line(&axis_line, value, /* degrees: */ true)
         }
         ScaleX => Xform::scale_non_uniform(o, value.max(0.01), 1.0, 1.0),
         ScaleY => Xform::scale_non_uniform(o, 1.0, value.max(0.01), 1.0),
@@ -71,27 +78,40 @@ pub fn manual_delta(handle: HandleKind, value: f64, o: &Point) -> Xform {
 }
 ```
 
+(`Unit` gains the obvious `pub fn label(self) -> &'static str` — `"mm"` / `"m"` — in
+`src/camera.rs`, beside `to_meters`. And note the `/* degrees: */ true`: 60's drag passes `false`
+to the same parameter — the bare bool flips between the two lessons, annotate both, always.)
+
 ## Step 2 — the popup: `src/ui/mod.rs`
 
-A borderless one-field window pinned at the click position. Add **two** fields to `UiState`
-(and initialize both in `UiState::new`/`Default`): `gb_input: Option<(HandleKind, String, (f32, f32))>`
-— handle, buffer, screen pos — and `gb_submit: bool` (`false`), the closure→state flag the popup sets.
-In `build_ui`:
+A borderless one-field window pinned at the click position. Add **four** fields to `UiState`
+(and initialize all four in the `UiState { … }` literal in `State::new`, 52):
+`gb_input: Option<(HandleKind, String, (f32, f32))>`
+— handle, buffer, screen pos — `gb_submit: bool` (`false`), the closure→state flag the popup sets;
+`gb_unit: crate::camera::Unit` (`Unit::Millimeters` — State rewrites it at open time, for the
+title); and `gb_focus: bool` (`false`) — a one-shot so the field grabs focus ONLY on the first
+frame (re-requesting every frame would steal the focus back forever and make click-away dismissal
+impossible). In `build_ui`:
 
 ```rust
+    let want_focus = std::mem::take(&mut ui_state.gb_focus);   // one-shot: first frame only
+    let mut close_popup = false;
     if let Some((handle, buffer, pos)) = &mut ui_state.gb_input {
         let mut submit = false;
-        egui::Window::new(handle.label())
+        egui::Window::new(handle.label(ui_state.gb_unit))
             .fixed_pos([pos.0, pos.1]).collapsible(false).resizable(false)
             .show(ctx, |ui| {
                 let r = ui.add(egui::TextEdit::singleline(buffer).desired_width(90.0));
-                r.request_focus();                                   // typing starts immediately
-                if r.lost_focus() &&
-                    ui.input(|i| i.key_pressed(egui::Key::Enter)) { submit = true; }
+                if want_focus { r.request_focus(); }             // typing starts immediately
+                if r.lost_focus() {
+                    if ui.input(|i| i.key_pressed(egui::Key::Enter)) { submit = true; }
+                    else { close_popup = true; }   // focus lost WITHOUT Enter (a viewport
+                }                                  // click) → dismiss, nothing applied
             });
         // State applies after the closure (52's rule)
         if submit { ui_state.gb_submit = true; }
     }
+    if close_popup { ui_state.gb_input = None; }
 ```
 
 ## Step 3 — open, apply, and the three gotchas: `src/state.rs`
@@ -99,16 +119,20 @@ In `build_ui`:
 **Open** — in the mouse-release handler. A subtlety: 59's commit block has already `take()`n
 `gb_drag` by this point, so "was this a drag?" must be read *before* it. Insert
 `let dragged = self.gb_drag.is_some();` as the first line of the release handler (above 59's
-`if let Some(ctx) = self.gb_drag.take()`), then find 59's trailing `self.gb_pressed = None;` →
-replace it with:
+`if let Some(ctx) = self.gb_drag.take()`), then find **58's gate** below 59's block —
+`if self.gb_pressed.take().is_some() { return; }` — and replace it with the popup open (which keeps
+the early `return`: a handle press still never reaches 50's selection branch):
 
 ```rust
         if let Some((handle, _press_at)) = self.gb_pressed.take() {
             // never crossed the 4 px threshold → this was a CLICK on a handle
             if !dragged {
+                self.ui.gb_unit = self.camera.unit;          // the title's "(mm)/(m)" (Step 1)
+                self.ui.gb_focus = true;                     // focus on the FIRST frame only
                 self.ui.gb_input = Some((handle, String::new(),
                                          (self.cursor.0 as f32, self.cursor.1 as f32)));
             }
+            return;        // dragged or not: a handle press is never a selection click (58)
         }
 ```
 
@@ -121,7 +145,7 @@ replace it with:
                 // guard: selection may have been cleared while the popup was open
                 if let (Ok(v), Some(c)) =
                     (buffer.trim().parse::<f64>(), self.scene.selection_centroid()) {
-                    let o = Point::new(c[0] as f64, c[1] as f64, c[2] as f64);
+                    let o = Point::new(c[0], c[1], c[2]);    // 57's centroid is f64 — no casts
                     let delta = crate::engine::gumball::manual_delta(handle, v, &o);
                     self.apply_transform_command(&delta);            // 59's commit path, factored:
                     // snapshots → apply_world_delta → execute
@@ -134,32 +158,33 @@ replace it with:
 selection's PLACEMENTS, `apply_world_delta` each row, wrap `before`/`after` in `TransformObjects`,
 execute. It works for the drag release too, because 59's live path never mutates durable state — a
 release-time "before" snapshot equals the press-time one. Add it to `impl State` (imports: the
-`XformSnap` 54 already brought in):
+`XformSnap` 59 already brought in):
 
 ```rust
     /// Commit `delta` (WORLD space) to the current selection as one undoable TransformObjects
     /// (59's path: L' = L·W⁻¹·D·W per row — placement-only, kind-agnostic, place-conjugated).
     pub fn apply_transform_command(&mut self, delta: &Xform) {
-        let snap = |scene: &Scene, guid: &String| -> Option<XformSnap> {
-            let &row = scene.guid_to_row.get(guid)?;
+        let snap = |scene: &Scene, row: u32| -> XformSnap {   // selection is row-keyed (50)
+            let guid = scene.order[row as usize].clone();
             let d = scene.doc_of_row(row);
-            Some(XformSnap {
+            XformSnap {
                 row,
                 guid: guid.clone(),
-                local: scene.docs[d].session.xform(guid),
+                local: scene.docs[d].session.xform(&guid),
                 placed: scene.placed_frame(row).duplicate(),
-            })
+            }
         };
         let before: Vec<XformSnap> = self.scene.selected.iter()
-            .filter_map(|g| snap(&self.scene, g)).collect();
+            .map(|&r| snap(&self.scene, r)).collect();
         for s in &before {
             self.scene.apply_world_delta(s.row, delta);                   // 59's commit primitive
         }
         let after: Vec<XformSnap> = before.iter()
-            .filter_map(|s| snap(&self.scene, &s.guid)).collect();
+            .map(|s| snap(&self.scene, s.row)).collect();
         let cmd = Box::new(TransformObjects { before, after });
-        self.history.execute(cmd, &mut self.scene, &mut self.gpu);        // applies `after` — idempotent
-        self.scene.rebuild_bvh();                                         // boxes moved (40)
+        self.history.execute(cmd, &mut self.scene, &mut self.gpu);        // applies `after` —
+        // idempotent — and its restore() runs this commit's ONE rebuild_bvh: no explicit
+        // rebuild here (that was a second full rebuild per commit)
         self.refresh_gumball();                                           // widget follows the move
     }
 ```
@@ -169,11 +194,19 @@ frame — the conjugation inside `apply_world_delta` is what makes the number me
 typed, on every document.)
 
 Then shrink 59's release arm onto it — find the whole `if let Some(ctx) = self.gb_drag.take() { … }`
-block (59's bake + Command code) → replace with:
+block (59's commit code) → replace with the same call, **keeping 59's no-op guard** (drop it and
+every sub-epsilon click-drag lands a phantom Command on the undo stack):
 
 ```rust
         if let Some(ctx) = self.gb_drag.take() {
-            self.apply_transform_command(&ctx.last_delta);
+            // 59's no-op guard + snap-back, unchanged — then the ONE commit path:
+            let ident = Xform::identity();
+            let no_op = (0..16).all(|i| (ctx.last_delta.m[i] - ident.m[i]).abs() < 1e-12);
+            if no_op {
+                for s in &ctx.before { self.gpu.set_live_model(s.row, &s.placed); }
+            } else {
+                self.apply_transform_command(&ctx.last_delta);
+            }
         }
 ```
 
@@ -182,10 +215,11 @@ is undoable for the same reason a drag is.
 
 **The three gotchas** (each one a real archive bug):
 
-1. **The lmb gate.** Track `lmb_down` from the *raw* winit `MouseInput` **before** egui routing —
+1. **The lmb gate.** `lmb_down` is tracked from the *raw* winit `MouseInput` **before** egui
+   routing (52 sets it there, for the marquee) —
    once the popup exists, egui consumes the release, and without the raw flag a stale press could
    start a "no-button drag" the next time the cursor crosses the gumball. 59's threshold check
-   already requires `self.lmb_down`; this is why it must be set upstream of `consumed`.
+   requires `self.lmb_down`; this is why it must be set upstream of `consumed`.
 2. **Fast taps.** A quick press-release can deliver the release *before* the deferred pick processes
    the press. Handle it where the state is, not where the event is: opening the popup keys off
    `gb_pressed`-and-no-drag at release time (the code above), never off event ordering.
@@ -194,8 +228,11 @@ is undoable for the same reason a drag is.
 
 ```rust
         Key::Named(NamedKey::Escape) if self.ui.gb_input.is_some() => { self.ui.gb_input = None; }
-        // …the 48 Esc arm stays BELOW this one — match order is the guard
+        // …the 53 Esc arm stays BELOW this one — match order is the guard
 ```
+
+(Esc closes the popup; a viewport *click* dismisses it too — Step 2's lost-focus-without-Enter arm,
+which is also why focus is requested once via `gb_focus`, not every frame.)
 
 ## Step 4 — verify
 
@@ -203,29 +240,38 @@ is undoable for the same reason a drag is.
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-- Click (don't drag) the X arrow → `Move X (mm)` popup at the cursor, already focused. Type `500` ⏎ —
-  the selection jumps exactly 500 mm; `probe` two matching corners to confirm. **Ctrl+Z** undoes it —
-  same Command as a drag.
+- Click (don't drag) the X arrow → `Move X (mm)` popup at the cursor, already focused (a meters
+  scene reads `Move X (m)` — the title follows `camera.unit`, and `500` means 500 of that unit).
+  Type `500` ⏎ —
+  the selection jumps exactly 500 of the scene's unit (mm here); `probe` two matching corners to
+  confirm. **Ctrl+Z** undoes it — same Command as a drag.
 - Click the blue arc → `Rotate Z (deg)`, type `45` ⏎ → exact 45°. Click the white sphere → `2` ⏎ →
   doubled about the centroid. `0` on a scale handle → clamps to 0.01, no vanishing.
 - Click a handle and *drag* → still a drag, no popup (the threshold arbitrates). Esc with the popup
-  open → popup closes, command state untouched. Type `abc` ⏎ → nothing happens, no panic.
+  open → popup closes, command state untouched. **Click the viewport** with the popup open → it
+  dismisses, nothing applied, nothing stuck. Type `abc` ⏎ → nothing happens, no panic.
 
 ## Recap
 
 ```
 Ch 60: rotate + scale — the drag family complete.
 Ch 61: NUMERIC ENTRY. Release under 59's 4 px threshold = CLICK → egui popup at the cursor titled by
-       HandleKind::label() ("Move X (mm)" / "Rotate Z (deg)" / "Scale (factor)"). manual_delta maps
+       HandleKind::label(camera.unit) ("Move X (mm)" — the SCENE's unit, no conversion, the world IS
+       that unit — / "Rotate Z (deg)" / "Scale (factor)"). manual_delta maps
        the typed value to a RELATIVE delta about the centroid (degrees→radians via the kernel's PI;
-       scale floored 0.01 like drags) and commits through 59's exact path — undoable for free. The
+       scale floored 0.01 like drags) and commits through 59's exact path — undoable for free, ONE
+       rebuild per commit (execute→restore runs it; no explicit second rebuild_bvh). The
        three archive gotchas: lmb tracked from RAW MouseInput before egui consumes releases (no
        phantom drags); popup-open decided from state at release (fast taps beat event order); Esc
-       guard arm ABOVE 53's cancel arm (popup closes, nothing else reacts). The gumball is complete.
+       guard arm ABOVE 53's cancel arm (popup closes, nothing else reacts) — plus focus is a
+       one-shot (gb_focus) so a viewport click dismisses the popup instead of fighting it.
+       The gumball is complete.
 ```
 
-Edited: `engine/gumball.rs` (`HandleKind::label`, `manual_delta`), `ui/mod.rs` (popup + `gb_input`/
-`gb_submit`), `state.rs` (open on clean release, apply after closure, the three guards).
+Edited: `engine/gumball.rs` (`HandleKind::label(unit)`, `manual_delta`), `camera.rs`
+(`Unit::label`), `ui/mod.rs` (popup + `gb_input`/`gb_submit`/`gb_unit`/`gb_focus`, dismiss on
+focus loss), `state.rs` (open on clean release, apply after closure, `apply_transform_command`
+factored from 59's release, the three guards).
 
 ## Next
 

@@ -2,14 +2,14 @@
 
 > **Big picture.** *Phase 9.* Everything so far edits what a file provided; now the viewer *creates*.
 > Architecturally this is pattern (b), and it's deliberately anticlimactic: a drawing tool is **just
-> a multi-step command** (54's `ActiveCommand` — prompts, clicks, Esc) whose final act is an
-> `AddGeometry` Command (51 — so creation is undoable for free). No new machinery, no `DrawTool` enum
+> a multi-step command** (53's `ActiveCommand` — prompts, clicks, Esc) whose final act is an
+> `AddGeometry` Command (56 — so creation is undoable for free). No new machinery, no `DrawTool` enum
 > (the archive's documented dead-end, same disease as `UndoAction`): each tool is its own struct in
-> its own file, and `State.active` — the slot 48 built — *is* the "ToolHost".
+> its own file, and `State.active` — the slot 53 built — *is* the "ToolHost".
 
 <svg viewBox="0 0 680 110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the line verb starts a tool which is an active command; two fed points construct a kernel Line; finish commits an AddGeometry command making creation undoable" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="8" y="30" width="90" height="30" fill="none" stroke="#6fb3ff"/><text x="53" y="49" fill="#d7dae0" text-anchor="middle">`line` ⏎</text>
-  <rect x="130" y="30" width="150" height="30" fill="none" stroke="#6fb3ff"/><text x="205" y="43" fill="#d7dae0" text-anchor="middle">LineTool (ActiveCommand)</text><text x="205" y="55" fill="#666" text-anchor="middle" font-size="9">from → to (Get-loop, 49)</text>
+  <rect x="130" y="30" width="150" height="30" fill="none" stroke="#6fb3ff"/><text x="205" y="43" fill="#d7dae0" text-anchor="middle">LineTool (ActiveCommand)</text><text x="205" y="55" fill="#666" text-anchor="middle" font-size="9">from → to (Get-loop, 53)</text>
   <rect x="312" y="30" width="140" height="30" fill="none" stroke="#6fb3ff"/><text x="382" y="49" fill="#d7dae0" text-anchor="middle">Line::from_points</text>
   <rect x="484" y="30" width="186" height="30" fill="none" stroke="#6fb3ff"/><text x="577" y="43" fill="#d7dae0" text-anchor="middle">AddGeometry → history</text><text x="577" y="55" fill="#666" text-anchor="middle" font-size="9">= RemoveObjects, mirrored</text>
   <g stroke="#6fb3ff" stroke-width="1.3"><line x1="98" y1="45" x2="128" y2="45" marker-end="url(#ah57)"/><line x1="280" y1="45" x2="310" y2="45" marker-end="url(#ah57)"/><line x1="452" y1="45" x2="482" y2="45" marker-end="url(#ah57)"/></g>
@@ -87,6 +87,16 @@ destructure from 56's note, factored once):
     }
 ```
 
+> **Cost note.** `commit` pays a full `rebuild_bvh` — O(N) box recompute plus the O(N log N)
+> rebuild — on *every* commit. For one click that's nothing, and the rebuild itself is wholesale
+> by design (40/43b), but two rules follow: only the *changed* rows' `world_boxes` need
+> recomputing before the rebuild (the 43b pattern), and batch creators must not commit per
+> object — 85's `array` collects its placements and hoists the rebuild out of the loop.
+>
+> **Memory note.** Every commit also *retains*: `AddGeometry`'s snapshots (and `RemoveObjects`')
+> sit in the history stack until evicted. 56's undo-memory section (stack cap, coalescing,
+> clear-on-load/reconcile) applies to everything that flows through here.
+
 ## Step 2 — the one-click tool: `src/app/tools/point.rs`
 
 ```rust
@@ -110,10 +120,12 @@ impl ActiveCommand for PointTool {
         // 'x,y,z' typed — same convergence as probe (54)
         let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
         if n.len() == 3 { return self.feed_point(state, Point::new(n[0], n[1], n[2])); }
+        // never swallow bad input silently — say why, then re-ask
+        state.ui.log = format!("point: expected 'x,y,z' numbers, got '{s}'");
         CmdStep::Prompt(GetState::WaitingPoint { prompt: "point: pick location".into() })
     }
     fn back(&mut self) -> CmdStep { CmdStep::Cancel }   // one step — back means out
-    fn prompt(&self) -> GetState {                      // 49 made prompt() a REQUIRED trait method
+    fn prompt(&self) -> GetState {                      // 54 made prompt() a REQUIRED trait method
         GetState::WaitingPoint { prompt: "point: pick location".into() }
     }
 }
@@ -161,10 +173,11 @@ impl ActiveCommand for LineTool {
     fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep {
         let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
         if n.len() == 3 { return self.feed_point(state, Point::new(n[0], n[1], n[2])); }
+        state.ui.log = format!("line: expected 'x,y,z' numbers, got '{s}'");   // reject loudly
         self.ask()
     }
     fn back(&mut self) -> CmdStep { self.from = None; self.ask() }   // forget FROM → first prompt
-    fn prompt(&self) -> GetState {                                   // 49 requires it (return GetState, not CmdStep)
+    fn prompt(&self) -> GetState {                                   // 54 requires it (return GetState, not CmdStep)
         let what = if self.from.is_none() { "line: pick FROM point" } else { "line: pick TO point" };
         GetState::WaitingPoint { prompt: what.into() }
     }
@@ -173,7 +186,7 @@ impl ActiveCommand for LineTool {
 
 ## Step 4 — register the verbs: `src/app/commands.rs`
 
-Find the verb `match` that `dispatch()` runs (the one 48/49 grew — where `probe` etc. already
+Find the verb `match` that `dispatch()` runs (the one 53/54 grew — where `probe` etc. already
 resolve) and splice these two arms in beside the others:
 
 ```rust
@@ -199,7 +212,8 @@ cd session_viewer && trunk serve   # http://localhost:8770
 - **Ctrl+Z** → gone. **Ctrl+Y** → back, same guid. `delete` on it → gone → Ctrl+Z → back. Creation,
   deletion, and transform all interleave in one history because they're all just Commands.
 - **`pt`** ⏎, type `100,200,0` ⏎ → a point object lands at exactly those coordinates — typed and
-  clicked input converge, as designed in 49.
+  clicked input converge, as designed in 53. Type `100,200` → the log tells you what was wrong
+  (`expected 'x,y,z' numbers`) and re-asks; bad input is never eaten silently.
 - **Save** (44) after drawing → reload the downloaded file → your drawn line is in it. It was a
   first-class Session object from birth.
 - `back` mid-`line` → re-asks FROM. Esc → `cancelled`, nothing added.
@@ -208,14 +222,16 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 61: numeric entry — the gumball is complete.
-Ch 62: CREATION = pattern (b), and it's small on purpose: a drawing tool IS an ActiveCommand (54's
+Ch 62: CREATION = pattern (b), and it's small on purpose: a drawing tool IS an ActiveCommand (53/54's
        machinery: prompts, click-or-type convergence, back, Esc) whose finish COMMITS an AddGeometry
        (56's machinery: undo). AddGeometry = RemoveObjects mirrored — apply calls revert and vice
        versa; one tested insert/delete body, two directions. No DrawTool enum (same dead-end as
-       UndoAction — every new tool would grow a central match); State.active from 48 IS the
+       UndoAction — every new tool would grow a central match); State.active from 53 IS the
        ToolHost. PointTool = 1 fed point; LineTool = from/to with back support. state.commit(cmd)
-       bridges tools to history with the borrow-safe destructure. Drawn objects are
-       Session-first-class: they save (44), diff (43b), pick (47), and undo like everything else.
+       bridges tools to history with the borrow-safe destructure — one full rebuild_bvh per commit,
+       so batch creators hoist it (85). Bad typed input is rejected with a reason, not swallowed.
+       Drawn objects are Session-first-class: they save (44), diff (43b), pick (47), and undo
+       like everything else.
 ```
 
 Edited: `app/history/add.rs` (NEW — `AddGeometry` wrapper; `RemoveObjects` gains

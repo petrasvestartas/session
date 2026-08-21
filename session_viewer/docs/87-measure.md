@@ -1,7 +1,7 @@
 # 87 Measure + status bar — the viewer answers questions
 
 > **Big picture.** *Phase 14.* CAD models exist to be interrogated: how long, how far apart, what
-> angle, how big. Lesson 59's `probe` was secretly the prototype — a Get-loop conversation ending in
+> angle, how big. Lesson 54's `probe` was secretly the prototype — a Get-loop conversation ending in
 > a printed number. This lesson makes the family real (`distance`, `angle`, `radius`, `what`) and
 > adds the **status bar**: the always-on line telling you where the cursor is, what's snapped, and
 > what's selected. All kernel math, all existing machinery.
@@ -33,14 +33,19 @@ pts[1].clone(), pts[2].clone());`) before the math. The math itself is kernel ca
     let deg = u.angle(&w, false);                        // kernel angle — already DEGREES, unsigned
     CmdStep::Done(format!("angle = {deg:.2}°"))
 
-    // radius — three points on the arc; circumradius R = abc / 4A (pure triangle math):
+    // radius — three points on the arc; circumradius R = abc / 4A (pure triangle math).
+    // A from the CROSS PRODUCT, not Heron: s·(s−a)·(s−b)·(s−c) cancels catastrophically on the
+    // needle-thin triangles three clicks along a shallow arc produce; the cross product keeps
+    // full precision all the way to collinearity.
     let (la, lb, lc) = (b.distance(&c, None), a.distance(&c, None), a.distance(&b, None));
-    let s = (la + lb + lc) * 0.5;
-    let area2 = s * (s - la) * (s - lb) * (s - lc);      // Heron; ≤ 0 → collinear
-    if area2 <= 0.0 {
+    let (u, v) = (b - a.clone(), c - a.clone());       // edge vectors from a (Point − Point → Vector)
+    let cross2 = u.cross(&v).magnitude();              // = 2A
+    // near-collinear REFUSAL, relative to the edges — an absolute epsilon misjudges both a
+    // 1e-3 mm sliver and a 1e6 mm site plan
+    if cross2 <= 1e-9 * u.magnitude() * v.magnitude() {
         return CmdStep::Done("points are collinear — no circle".into());
     }
-    let r = (la * lb * lc) / (4.0 * area2.sqrt());
+    let r = (la * lb * lc) / (2.0 * cross2);           // 4A = 2·cross2
     CmdStep::Done(format!("radius = {r:.3}  (diameter {:.3})", r * 2.0))
 ```
 
@@ -72,17 +77,19 @@ pts[1].clone(), pts[2].clone());`) before the math. The math itself is kernel ca
   <text x="490" y="32" fill="#d7dae0" text-anchor="middle">a</text>
   <text x="417" y="150" fill="#d7dae0">b</text>
   <text x="557" y="150" fill="#d7dae0">c</text>
-  <text x="490" y="190" fill="#666" text-anchor="middle">R = |ab|·|bc|·|ca| / 4·Area  (Heron)</text>
+  <text x="490" y="190" fill="#666" text-anchor="middle">R = |ab|·|bc|·|ca| / 4·Area  (Area from the cross product)</text>
 </svg>
 
 `what` is instant, not a conversation — it reports the selection via kernel accessors:
 
 ```rust
         "what" => {
-            let Some(g) = state.scene.selected.iter().next() else {
+            let Some(&row) = state.scene.selected.iter().next() else {
                 return Dispatch::Instant("nothing selected".into());
             };
-            // Resolve the OWNING doc and use .get — lookup indexing PANICS on a stale guid.
+            // Selection is row-keyed (50); the guid is order[row]. Resolve the OWNING doc and
+            // use .get — lookup indexing PANICS on a stale guid.
+            let g = &state.scene.order[row as usize];
             let Some(geo) = state.scene.docs.iter().find_map(|d| d.session.lookup.get(g)) else {
                 return Dispatch::Instant("stale guid".into());
             };
@@ -94,7 +101,8 @@ pts[1].clone(), pts[2].clone());`) before the math. The math itself is kernel ca
                     p.get_points().len()),
                 Geometry::Point(p) => format!("Point '{}': ({:.3}, {:.3}, {:.3})",
                     p.name, p[0], p[1], p[2]),
-                // b.mesh() RE-TESSELLATES per call (known kernel gap) — fine for a click, not per-frame:
+                // b.mesh() RE-TESSELLATES per call — tracked in _KERNEL_GAPS.md — fine for a
+                // click, not per-frame:
                 Geometry::BRep(b) => format!("BRep '{}': {} faces, area {:.3}",
                     b.name, b.m_faces.len(), b.mesh().area()),
                 Geometry::NurbsCurve(c) => format!("NurbsCurve '{}': degree {}, {} CVs",
@@ -116,7 +124,7 @@ guess tool.
 
 ## Step 2 — the status bar: `src/ui/mod.rs` + `src/state.rs`
 
-One always-on line above the CLI input, in the panel 48 built. It renders three facts `State`
+One always-on line above the CLI input, in the panel 53 built. It renders three facts `State`
 already knows and just has to hand over each frame. First **add three fields to the `UiState` struct
 (53)**:
 
@@ -169,7 +177,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
   sane radius; three collinear picks → the honest refusal.
 - `what` on a beam → name, counts, area — kernel numbers, so cross-checkable against the minitests.
 - Sweep the mouse: coordinates track live; hover a corner mid-command → the amber `End` chip
-  appears in the bar; selection count updates on every click. Idle GPU cost: zero extra (66 — the
+  appears in the bar; selection count updates on every click. Idle GPU cost: zero extra (71 — the
   bar only repaints when egui repaints).
 
 ## Recap
@@ -177,7 +185,8 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 86: layers.
 Ch 87: INTERROGATION. distance/angle/radius = 54's conversation template + kernel math (distance,
-       Vector::angle, Heron circumradius with a collinear guard); every picked point arrives SNAPPED
+       Vector::angle, cross-product circumradius — NOT naive Heron, which cancels on shallow-arc
+       needles — with a RELATIVE near-collinear refusal); every picked point arrives SNAPPED
        (64), which is what makes measurements exact rather than approximate. `what` = instant verb
        over kernel accessors (counts, area, length, degree). Status bar = one always-on panel row of
        three facts State already tracks: cursor world coords (work-plane-resolved when idle — don't

@@ -4,7 +4,7 @@
 > **in the scene** — floating at the object, facing the camera, readable at any angle. The technique
 > is 32b's billboard trick grown up: a **glyph atlas** (every character rasterized once into one
 > texture) and one quad per character, all labels in **one draw call**. This is also the course's
-> first textured draw — the atlas is its first texture bind group (85 binds another, on the triangle
+> first textured draw — the atlas is its first texture bind group (90 binds another, on the triangle
 > pipeline: different pipeline, same group slot — no contention).
 
 <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a font atlas texture holds every glyph once; each label character becomes a billboarded quad sampling its glyph rectangle; all labels draw in one call" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
@@ -121,11 +121,19 @@ pub fn create_font_atlas(device: &wgpu::Device,
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         view_formats: &[],
     });
+    // write_texture validates bytes_per_row against COPY_BYTES_PER_ROW_ALIGNMENT (256) — our rows
+    // are w = 128 B, so stage a padded copy (the same padded-row dance 35's readback does).
+    let bpr = w.next_multiple_of(256);                    // 128 → 256
+    let mut staged = vec![0u8; (bpr * h) as usize];
+    for r in 0..h {
+        let (s, d) = ((r * w) as usize, (r * bpr) as usize);
+        staged[d..d + w as usize].copy_from_slice(&texels[s..s + w as usize]);
+    }
     queue.write_texture(
         wgpu::TexelCopyTextureInfo { texture: &tex, mip_level: 0,
             origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All },
-        &texels,
-        wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(w), rows_per_image: Some(h) },
+        &staged,
+        wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(bpr), rows_per_image: Some(h) },
         wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
     );
     let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
@@ -169,8 +177,9 @@ pub fn label_verts(text: &str, p: [f64; 3], origin: &Point, color: [f32; 4],
     let a = [(p[0] - origin[0]) as f32, (p[1] - origin[1]) as f32, (p[2] - origin[2]) as f32];
     let (cw, ch) = (CELL_W as f32, CELL_H as f32);
     let (aw, ah) = ((COLS * CELL_W) as f32, (ROWS * CELL_H) as f32);   // atlas px size
-    let x0 = -(text.len() as f32) * cw * 0.5;                          // center on the anchor
-    for (i, c) in text.chars().enumerate() {
+    let n = text.chars().count();
+    let x0 = -(n as f32) * cw * 0.5;                                   // center on the anchor
+    for (i, c) in text.chars().enumerate() {                           // CHARS: i is the column
         let g = if (' '..='~').contains(&c) { c as u32 - 32 } else { 0 };
         let (gx, gy) = (((g % COLS) * CELL_W) as f32, ((g / COLS) * CELL_H) as f32);
         let (u0, v0) = (gx / aw, gy / ah);                             // v0 = glyph TOP row
@@ -196,6 +205,22 @@ the current anchor when building the verts (above) and rebuild the label buffer 
 moves — the same trigger that fires `rebuild_instances`. (The alternative — give each label an
 `instance_id` and let the already-rebased instance model place it — works too, but is a bigger
 diff.)
+
+Two honest limitations of the 8×14 ASCII atlas, both visible on the project fixtures (the German
+drawings name layers *Längsschnitt*, *Bemaßung*): non-ASCII chars fall through to glyph 0 (a blank
+cell — the label loses the letter, it does not panic), and the centering counts **chars**, never
+bytes — `text.len()` would mis-center any name with an umlaut. When real labels need ü/ß, widen the
+atlas grid to Latin-1 and index by `c as u32`; the quad assembly doesn't change.
+
+Two cost notes before we wire it up. **Memory:** 6 verts × 44 B per character ≈ 4× the bytes of an
+instanced-quad design (one 4-vert template + a per-char instance row, 29's trick) — acceptable at
+label counts (thousands of chars ≈ a few hundred KB), and the plain buffer keeps the rebuild code
+dead simple; go instanced if you ever render full sheets of annotation text. **Rebuild granularity:**
+the label buffer rebuilds *wholesale* on any name/anchor change — fine while labels are few; when
+they get big, rewrite per-label ranges (the same partial-upload move 78 uses for mesh verts).
+**Blending:** the fs `discard`s below coverage instead of using alpha-to-coverage — under 4× MSAA
+that keeps glyph edges hard rather than dithered; it's the right call for text, but know that
+`discard` also defeats early-z for the whole label pass.
 
 The 44 bytes map field-for-field onto the WGSL vertex input — each Rust field is one `@location(N)`,
 same order, same format. Get an offset or a `format` wrong here and the atlas samples garbage:
@@ -227,14 +252,14 @@ same order, same format. Get an offset or a `format` wrong here and the atlas sa
   <text x="10" y="122" fill="#888">world pt (shared) · px corner offset · atlas uv · rgba → the vs reads these by <tspan fill="#6fb3ff">@location</tspan>, not by struct name</text>
 </svg>
 
-Labels come from the document: object `name`s (the tree's names, 70) at each object's box-top
+Labels come from the document: object `name`s (the tree's names, 75) at each object's box-top
 center — the row's **placed** box, 40's row-indexed `world_boxes` (manifest `place` included), not
 the raw session-local box — rebuilt only when the scene, names, or the rebase anchor change — never
 per frame.
 
 ## Step 3 — the shader: `src/shaders/text.wgsl`
 
-Create the file. Group 0 is 31's `mvp`; group 1 is text's **own** `TextUniform` (just the viewport —
+Create the file. Group 0 is the shared `mvp` (binding 0, same slot 32b's cloud shader uses); group 1 is text's **own** `TextUniform` (just the viewport —
 labels borrow nothing from the line uniform, exactly like 32b's `CloudUniform`); group 3 is the course's
 first texture — the atlas + its sampler (group 2 stays the unused `instances` slot so the pipeline's
 layout array is contiguous). The `TextVertex` fields arrive as `@location`s (a WGSL vertex-input type,
@@ -323,7 +348,7 @@ Ch 77: LABELS. A glyph atlas (ASCII on a fixed CELL grid, R8Unorm, baked once �
        one quad per character: TextVertex { anchor (world, shared), px_off (per corner, PIXELS), uv,
        color }. The vs projects the anchor then adds px_off·2/viewport·clip.w in NDC — 32b's
        billboard move → camera-facing, zoom-constant. fs samples coverage, alpha-discards. Depth
-       test on / write off; alpha blend; the course's first texture bind group (85 adds another).
+       test on / write off; alpha blend; the course's first texture bind group (90 adds another).
        Verts are ANCHOR-RELATIVE (mvp is anchored — subtract the rebase origin or labels jump);
        labels sit at each row's PLACED box top (40's world_boxes). Pipeline built in Pipelines::new
        with the dynamic samples. Labels rebuilt on document/anchor change, never per frame; every

@@ -1,6 +1,6 @@
 # 65 NurbsCurve — evaluate, draw, create
 
-> **Big picture.** *Phase 10 — curved geometry (60–64).* Everything drawn so far is straight or
+> **Big picture.** *Phase 10 — curved geometry (65–69).* Everything drawn so far is straight or
 > faceted; the kernel's NURBS types bring true curves and surfaces. One structural fact shaped this
 > phase when it was first written: nurbs objects lived only in their own collections
 > (`session.objects.nurbscurves`, …), outside `session.lookup` — and every map the viewer keeps had
@@ -17,8 +17,8 @@
   <text x="150" y="122" fill="#888" text-anchor="middle">point_at(t) samples → polyline → 31's tubes</text>
   <g transform="translate(360,20)">
     <text x="0" y="16" fill="#d7dae0">samples = spans × 16 (clamped 32..512)</text>
-    <text x="0" y="36" fill="#666" font-size="10">more spans = more wiggle = more samples;</text>
-    <text x="0" y="50" fill="#666" font-size="10">a straight-ish curve stays cheap</text>
+    <text x="0" y="36" fill="#666" font-size="10">uniform per span — budget follows span</text>
+    <text x="0" y="50" fill="#666" font-size="10">count, NOT measured curvature</text>
     <text x="0" y="78" fill="#888">control points → 32a sphere glyphs</text>
     <text x="0" y="96" fill="#666" font-size="10">(the handles 78's editing will grab)</text>
   </g>
@@ -41,11 +41,38 @@ samples; one with few stays cheap):
 ```rust
 use session_rust::NurbsCurve;
 
-/// Sample a curve into world points for drawing/picking. Adaptive: 16 per span, clamped.
+/// Sample a curve into world points for drawing/picking. Uniform per span: 16 per span, clamped —
+/// the budget follows the SPAN COUNT, not the measured curvature (true adaptivity is below).
 fn sample_curve(nc: &NurbsCurve) -> Vec<Point> {
     let n = (nc.span_count() * 16).clamp(32, 512);
     let (t0, t1) = nc.domain();
     (0..=n).map(|i| nc.point_at(t0 + (t1 - t0) * i as f64 / n as f64)).collect()
+}
+```
+
+Honest label: this is *uniform* sampling with a span-scaled budget — curvature is never measured,
+so a tight single-span S-curve gets the same 16 samples as a straight span, and zooming close
+enough will always find the chords (see Step 4). When that bites, the drop-in upgrade is
+chord-error refinement — subdivide until each segment's midpoint stays within `tol` of its chord:
+
+```rust
+/// Adaptive by chord error: straight regions cost 1 segment, curvature concentrates samples.
+fn sample_curve_adaptive(nc: &NurbsCurve, tol: f64) -> Vec<Point> {
+    let (t0, t1) = nc.domain();
+    let mut out = vec![nc.point_at(t0)];
+    let mut stack = vec![(t0, t1)];
+    while let Some((a, b)) = stack.pop() {
+        let (pa, pb) = (nc.point_at(a), nc.point_at(b));
+        let m = 0.5 * (a + b);
+        let pm = nc.point_at(m);
+        let chord_mid = pa.clone() + (pb.clone() - pa.clone()) * 0.5;
+        if (pm - chord_mid).magnitude() <= tol {
+            out.push(pb);                                  // flat enough — keep the chord
+        } else {
+            stack.push((m, b)); stack.push((a, m));        // split, left half first (LIFO)
+        }
+    }
+    out
 }
 ```
 
@@ -118,17 +145,20 @@ cast matched nothing):
 ```rust
         // curves: ray↔segment over the cached samples (49's tolerance, same tol)
         let mut best: Option<PickHit> = None;
-        for (guid, geom) in &self.session.lookup {
-            let Geometry::NurbsCurve(_) = geom else { continue };
-            let Some(pts) = self.curve_cache.get(guid) else { continue };
-            for w in pts.windows(2) {
-                let line = Line::from_points(&w[0], &w[1]);
-                if let Some(hit) = session_rust::intersection::line_line(
-                    &Line::from_points(&ray.origin, &(ray.origin.clone() + &ray.dir * 1.0e7)),
-                    &line, tol) {
-                    let t = (hit.clone() - ray.origin.clone()).magnitude();
-                    if best.as_ref().map_or(true, |b| t < b.t) {
-                        best = Some(PickHit { guid: guid.clone(), point: hit, t });
+        for doc in &self.docs {                          // multi-doc (43b): EVERY doc's lookup —
+            for (guid, geom) in &doc.session.lookup {    // the singular `session` walk was stale
+                let Geometry::NurbsCurve(_) = geom else { continue };
+                let Some(pts) = self.curve_cache.get(guid) else { continue };
+                for w in pts.windows(2) {
+                    let line = Line::from_points(&w[0], &w[1]);
+                    if let Some(hit) = session_rust::intersection::line_line(
+                        // 1.0e7 = 46's far-point cap — beyond it this pick ray ends early
+                        &Line::from_points(&ray.origin, &(ray.origin.clone() + &ray.dir * 1.0e7)),
+                        &line, tol) {
+                        let t = (hit.clone() - ray.origin.clone()).magnitude();
+                        if best.as_ref().map_or(true, |b| t < b.t) {
+                            best = Some(PickHit { guid: guid.clone(), point: hit, t });
+                        }
                     }
                 }
             }
@@ -136,8 +166,23 @@ cast matched nothing):
         best
 ```
 
+Two honest caveats on that loop. **Cost:** it's O(curves × samples) per click — fine at this
+course's scene sizes; when it isn't, the broad-phase is 40's BVH (gather candidate guids with
+`objects_in` around the ray's box, then test only those cache entries — the same pattern 64's
+snap uses). **Placement:** the cached samples are object-local — `build` draws them through the
+instance row's xform. A curve with a non-identity placed frame must transform the samples (or the
+ray) first, exactly like 47's mesh arm does; at the identity placements this phase uses, the code
+above is correct as written.
+
 `sample_curve` runs once per curve per (re)build — sampling per pick would be wasteful, per frame a
 bug; the cache is the difference.
+
+And the cache has a **lifecycle**: entries are keyed by guid, so deleting a curve (`delete`, undo
+of an add, 56's `RemoveObjects`) leaves its samples behind — a slow leak, and a stale-pick hazard
+the day the pick loop trusts the cache without the lookup gate. Evict on the way out: 56's remove
+path gains a `scene.curve_cache.remove(&guid)` per removed object (cheap no-op for non-curves), and
+`Scene::build` — being a full rebuild — may simply `self.curve_cache.clear()` before draining
+`curve_samples`, which makes every rebuild self-healing.
 
 Hide/selection need nothing: they key off `guid_to_row` and the instance flags, which arms (1)/(2)
 already feed. That's the reward for flag-driven state (50/51) — new geometry types inherit it.
@@ -167,31 +212,37 @@ real smoothed curve, not the control polygon (cheap: a handful of CVs, ~64 sampl
 copied `ghost` helper's body with:
 
 ```rust
-    fn ghost(&self, state: &mut crate::state::State, cursor: Option<&Point>) {
-        let mut cvs: Vec<Point> = self.points.iter().cloned().collect();
+    fn ghost(&mut self, state: &mut crate::state::State, cursor: Option<&Point>) {
+        let mut cvs: Vec<Point> = self.points.iter().cloned().collect();   // handful of CVs — OK
         if let Some(c) = cursor { cvs.push(c.clone()); }
         if cvs.len() < 2 { state.gpu.clear_preview(); return; }
         let deg = 3.min(cvs.len() - 1);                    // a cubic once there are enough CVs
-        let tmp = NurbsCurve::create(false, deg, &cvs);
+        let tmp = NurbsCurve::create(false, deg, &cvs);    // tiny kernel object, built per move
         let (t0, t1) = tmp.domain();
-        let mut segs = Vec::new();
+        self.scratch.clear();                              // 63's reused staging — no per-move alloc
         let mut prev: Option<Point> = None;
         for i in 0..=64 {
             let p = tmp.point_at(t0 + (t1 - t0) * i as f64 / 64.0);
-            if let Some(q) = &prev { segs.push(super::polyline::ghost_segment(q, &p)); }
+            if let Some(q) = &prev { self.scratch.push(super::polyline::ghost_segment(q, &p)); }
             prev = Some(p);
         }
-        state.gpu.set_preview(&segs);
+        state.gpu.set_preview(&self.scratch);
     }
 ```
 
+(The per-move `NurbsCurve::create` is deliberate: the CV count is single digits, so the temp curve
+is microseconds — the *allocations* were the real churn, and those now ride the copied file's
+`scratch` Vec from 63. If a profiler ever disagrees, cache `tmp` keyed on `(points.len(), cursor)`
+— but measure first.)
+
 Since curves are `Geometry` variants now, no bespoke command is needed at all — 62's `AddGeometry`
-takes them directly, and 56's `restore_geometry` grows one arm:
+takes them directly, and 56's `restore_geometry` already grew the arm (`session` there is
+`self.docs[d].session` — multi-doc since 43b, never a singular `self.session`):
 
 ```rust
-    // 56's restore_geometry, one new arm — the kernel's add_nurbscurve handles
+    // already in 56's restore_geometry — the kernel's add_nurbscurve handles
     // objects/lookup/graph/tree:
-    Geometry::NurbsCurve(c) => { self.session.add_nurbscurve(c, None); }
+    Geometry::NurbsCurve(c) => { session.add_nurbscurve((**c).clone(), None); }
 
     // the tool's finish (Step 3 above) is therefore just:
     state.commit(Box::new(AddGeometry::one(Geometry::NurbsCurve(nc))));
@@ -211,8 +262,12 @@ cd session_viewer && trunk serve   # http://localhost:8770
 - **`curve`**, click 5 points, Enter → a smooth cubic threads *near* your clicks (control points, not
   interpolation — the ghost already showed exactly this while you clicked). Its control points wear
   32a spheres.
-- Zoom close → still smooth (the 16-per-span sampling holds up); a curve drawn from 5 points costs
-  ~32 segments, not 512 (adaptive — a 5-CV cubic has 2 spans, `(2*16).clamp(32,512)` = the 32 floor).
+- Zoom close → eventually you *will* see chords: the sample count is fixed at build time and
+  uniform per span, so nothing re-densifies as you zoom. That honesty is the lesson's sampling
+  policy — if it bothers you, Step 1's `sample_curve_adaptive` is the drop-in (and 81 revisits
+  zoom-dependent tessellation as a perf lever). What the span-scaled budget *does* buy: a curve
+  drawn from 5 points costs ~32 segments, not 512 (a 5-CV cubic has 2 spans,
+  `(2*16).clamp(32,512)` = the 32 floor).
 - The **every-map audit** — do all four, deliberately: it *draws* (map 2), it *picks* with a click on
   the curve body (map 4), **F** includes it in the fit and marquee catches it (map 3), `hide` hides
   it (map 1's row + flags). Any one failing means an arm was skipped — the phase's core bug class,
@@ -227,10 +282,14 @@ Ch 65: NURBSCURVE. Curves are Geometry variants (kernel-gap #4, FIXED while writ
        registered in lookup by add_nurbscurve and on load — so every lookup-walking map gains a
        match ARM, not a parallel loop: is_renderable admits it, build samples it, world_obb boxes
        it (OBB::from_nurbscurve, kernel-exact). Draw = sample point_at over the domain, spans×16
-       clamped 32..512, → 31's segments; CVs → 32a glyphs (78's future handles); cache samples per
-       guid. Pick = ray↔segment over the cached samples (the kernel's curve ray arm is a deliberate
-       no-op). Tool = polyline-shaped, clicks are CONTROL points, ghost samples a temporary curve,
-       Enter → NurbsCurve::create(false, 3, points), ≥4 CVs — committed via 62's AddGeometry
+       clamped 32..512 — UNIFORM per span, not curvature-adaptive (chord-error refinement is the
+       drop-in upgrade; zooming always finds chords eventually) → 31's segments; CVs → 32a glyphs
+       (78's future handles); cache samples per guid, and EVICT the cache on remove/rebuild (56's
+       remove path; build clears). Pick = ray↔segment over the cached samples, walking EVERY doc's
+       lookup (43b — the singular `session` walk was stale), 1.0e7 far-point cap per 46 (the
+       kernel's curve ray arm is a deliberate no-op). Tool = polyline-shaped, clicks are CONTROL
+       points, ghost samples a temporary curve into 63's reused scratch, Enter →
+       NurbsCurve::create(false, 3, points), ≥4 CVs — committed via 62's AddGeometry
        directly; 56's restore_geometry grows one arm. Only NurbsSurfaceTrimmed (69) still lives
        collection-only.
 ```

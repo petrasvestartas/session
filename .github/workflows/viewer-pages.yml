@@ -1,0 +1,50 @@
+# Build the session_viewer wasm app with trunk and publish it as the repo's GitHub Pages site.
+# The dist is fully relative (Trunk.toml public_url = "./"), so it serves cleanly from
+# https://petrasvestartas.github.io/session/ without any path rewriting.
+name: viewer-pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'session_viewer/**'
+      - '.github/workflows/viewer-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Only session_rust is a build dependency of the viewer; the other submodules
+      # (C++/Python kernels, data) are dead weight for this job.
+      - name: Checkout session_rust submodule
+        run: git submodule update --init --depth 1 session_rust
+      - name: Add wasm target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Install trunk
+        run: curl -sL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf- -C "$HOME/.cargo/bin"
+      - name: Build
+        run: cd session_viewer && trunk build --release
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: session_viewer/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

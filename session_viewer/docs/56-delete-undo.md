@@ -3,7 +3,7 @@
 > **Big picture.** *Phase 8 closes.* This is the most consequential lesson of the phase: the first
 > command that **destroys** data, and therefore the machinery that makes destruction safe. The
 > pattern — `trait Command { apply / revert }` + two stacks — is how every serious editor does undo,
-> and *every* later mutation (gumball drags 54, drawing tools 57, CV edits 73) will be born as one of
+> and *every* later mutation (gumball drags 59, drawing tools 62, CV edits 78) will be born as one of
 > these objects and become undoable for free. The archive got this wrong with an `UndoAction` enum
 > and documented the dead-end; we start on the trait.
 
@@ -21,7 +21,7 @@
   <path d="M478,58 H400" stroke="#888" stroke-width="1.2" marker-end="url(#ah51g)"/>
   <text x="439" y="72" fill="#888" font-size="10">Ctrl+Y: apply()</text>
   <text x="340" y="110" fill="#888" text-anchor="middle">a NEW command clears `undone` — the classic branch-point rule</text>
-  <text x="340" y="130" fill="#666" text-anchor="middle">snapshots are the Rc handle + the placement — together, the whole object</text>
+  <text x="340" y="130" fill="#666" text-anchor="middle">snapshots are the Rc handle + the placement + prior flags — together, the whole object</text>
   <defs>
     <marker id="ah51" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker>
     <marker id="ah51g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#888"/></marker>
@@ -51,7 +51,7 @@ Two facts decide the design:
 
 And one honest scoping call: **delete v1 hides the row instead of reclaiming it.** The arena still
 holds the object's vertices; the instance flag makes every lane skip them (51's shader collapse).
-True row/arena reclamation is 43's business — when its free-list lands, `RemoveObjects` upgrades
+True row/arena reclamation is 43a's business — when its free-list lands, `RemoveObjects` upgrades
 without its interface changing. Until then a deleted object costs its memory but zero draw time,
 and undo is trivially exact.
 
@@ -87,14 +87,22 @@ pub struct History {
 }
 
 impl History {
+    /// Cap on the done stack — see "Undo memory policy" below. `undone` is bounded by it too
+    /// (every entry there was once on done).
+    const MAX: usize = 100;
+
     pub fn new() -> Self { Self { done: Vec::new(), undone: Vec::new() } }
 
     /// Run a fresh command. A new action invalidates the redo branch — the classic rule.
     pub fn execute(&mut self, mut cmd: Box<dyn Command>, scene: &mut Scene, gpu: &mut Gpu) {
         cmd.apply(scene, gpu);
         self.done.push(cmd);
+        if self.done.len() > Self::MAX { self.done.remove(0); }   // oldest falls off
         self.undone.clear();
     }
+    /// Row-keyed snapshots are meaningless after anything reorders rows (fresh set_scene,
+    /// 43b's reconcile) — call this there, or undo would resurrect the WRONG object.
+    pub fn clear(&mut self) { self.done.clear(); self.undone.clear(); }
     pub fn undo(&mut self, scene: &mut Scene, gpu: &mut Gpu) -> Option<String> {
         let mut cmd = self.done.pop()?;
         cmd.revert(scene, gpu);
@@ -119,7 +127,9 @@ declare the submodule at the top of `history/mod.rs` itself: `pub mod remove;` (
 ## Step 2 — the first Command: `src/app/history/remove.rs` (NEW)
 
 Each snapshot records where the object lived (row + doc — a guid alone is ambiguous across
-documents), the `Rc` handle, and the placement:
+documents), the `Rc` handle, the placement, and the row's **prior flag word** (one `u32` — revert
+must restore it verbatim, or undoing the delete of an already-hidden object would wrongly unhide
+it):
 
 ```rust
 use session_rust::{Geometry, Xform};
@@ -132,6 +142,7 @@ pub struct RemovedObj {
     pub doc: usize,
     pub geom: Geometry,   // Rc handle — a stable snapshot (kernel mutations are copy-on-write)
     pub local: Xform,     // the Session-local placement (it lives in session.xforms, NOT the object)
+    pub flags: u32,       // the row's tables flag word BEFORE the delete — restored verbatim
 }
 
 pub struct RemoveObjects {
@@ -139,15 +150,17 @@ pub struct RemoveObjects {
 }
 
 impl RemoveObjects {
-    /// Snapshot NOW, at construction — before anything mutates.
+    /// Snapshot NOW, at construction — before anything mutates. (50's selection is row-keyed,
+    /// so the row IS the iteration item; the guid comes from order[row].)
     pub fn of_selection(scene: &Scene) -> Self {
         let snapshots = scene.selected.iter()
-            .filter_map(|guid| {
-                let &row = scene.guid_to_row.get(guid)?;
+            .filter_map(|&row| {
+                let guid = &scene.order[row as usize];
                 let doc = scene.doc_of_row(row);
                 let geom = scene.docs[doc].session.lookup.get(guid)?.clone();
                 let local = scene.docs[doc].session.xform(guid);
-                Some(RemovedObj { row, doc, geom, local })
+                let flags = scene.tables.objects[row as usize].2;
+                Some(RemovedObj { row, doc, geom, local, flags })
             })
             .collect();
         Self { snapshots }
@@ -165,7 +178,7 @@ impl Command for RemoveObjects {
             // the live poke updates the instance without a re-upload.
             scene.tables.objects[s.row as usize].2 |= Instance::FLAG_HIDDEN;
             gpu.write_row_flags(s.row, scene.tables.objects[s.row as usize].2);
-            scene.selected.remove(&guid);
+            scene.selected.remove(&s.row);
         }
     }
     fn revert(&mut self, scene: &mut Scene, gpu: &mut Gpu) {
@@ -173,15 +186,15 @@ impl Command for RemoveObjects {
             let guid = s.geom.guid().to_string();
             scene.restore_geometry(s.doc, &s.geom);              // Session::add_* by variant (Step 3)
             scene.docs[s.doc].session.set_xform(&guid, s.local.duplicate());
-            scene.tables.objects[s.row as usize].2 &= !Instance::FLAG_HIDDEN;
-            gpu.write_row_flags(s.row, scene.tables.objects[s.row as usize].2);
-        }
+            scene.tables.objects[s.row as usize].2 = s.flags;    // prior flags, verbatim —
+            gpu.write_row_flags(s.row, s.flags);                 // a hidden-before-delete object
+        }                                                        // STAYS hidden after undo
     }
     fn label(&self) -> String { format!("delete {} object(s)", self.snapshots.len()) }
 }
 ```
 
-(`write_row_flags` is the one-row flag poke 45/46 added to `engine/gpu/mod.rs` — `Instance.flags`
+(`write_row_flags` is the one-row flag poke 50 added to `engine/gpu/mod.rs` — `Instance.flags`
 is private to the engine, so the write lives there. If you reached this lesson before those, it is
 ten lines: set `objects_base[row].2` and `instances[row].flags`, then `queue.write_buffer` that
 row's 96 bytes.)
@@ -205,13 +218,13 @@ guid lives inside the clone:
             Geometry::Polyline(p)   => { session.add_polyline((**p).clone(), None); }
             Geometry::NurbsCurve(c) => { session.add_nurbscurve((**c).clone(), None); }
             Geometry::Point(p)      => { session.add_point((**p).clone(), None); }
-            _ => {}
+            other => { log::warn!("restore_geometry: no add_* arm for {other:?} — the object is LOST; add the arm, don't swallow it"); }
         }
     }
 ```
 
 (Deleted objects lose their tree *position* — they re-enter at the root. Remembering the parent node
-is a straightforward extension of the snapshot once the tree UI exists, 70.)
+is a straightforward extension of the snapshot once the tree UI exists, 75.)
 
 ## Step 4 — verbs + keys: `src/app/commands.rs` + `src/state.rs`
 
@@ -253,13 +266,38 @@ Keyboard shortcuts are just typists (the commands-only philosophy made literal) 
 > `let State { history, scene, gpu, .. } = state;`. The lesson code uses direct field access for
 > exactly this reason.
 
+## Undo memory policy — cap, pin, coalesce, clear
+
+Undo makes mutation safe; it also makes *memory* a design question, because every entry on the
+stacks holds data alive. Four rules keep it honest:
+
+- **Cap the stacks** (done in Step 1: `History::MAX = 100`, oldest falls off). Without a cap a
+  long session grows `done` without bound — an undo stack is a cache, and caches need a bound.
+- **An `Rc` snapshot PINS its geometry.** A deleted object's mesh stays fully alive as long as its
+  `RemoveObjects` sits on either stack — the cap is what makes that bounded (≈100 commands' worth
+  of deleted meshes, worst case). The arena bytes stay allocated regardless (v1 hides, doesn't
+  reclaim — 43a); the pin is the *kernel-side* copy, and it shrinks only when entries fall off.
+- **Coalescing: not in v1, and here's the line.** A gumball drag is already ONE command (59:
+  snapshot at press, commit at release — the hundred intermediate live frames never touch the
+  stacks). What floods a stack is micro-commits — 61's typed nudges, arrow-key moves: 200 nudges =
+  200 entries. The standard fix is to coalesce consecutive `TransformObjects` over the same row set
+  (keep the earliest `before`, the latest `after`). v1 skips it deliberately: the cap makes the
+  flood harmless, and coalescing logic is exactly the kind of cleverness that corrupts history.
+- **Clear on scene rebuild.** Snapshots are row-keyed, and rows are positional: a fresh
+  `set_scene` or 43b's reconcile reorders them, after which "restore row 17" would resurrect the
+  WRONG object or flip another row's flags. Call `history.clear()` wherever a scene rebuild lands —
+  undo across a rebuild is meaningless anyway. (50's `selected` is row-keyed too and wants the
+  same remap-or-clear treatment there.)
+
 ## Step 5 — verify
 
 ```bash
 cd session_viewer && trunk serve   # http://127.0.0.1:8770
 ```
 
-- Select two objects → **Del** → gone; log `delete 2 object(s)`; HUD object count drops by 2.
+- Select two objects → **Del** → gone; log `delete 2 object(s)`; the HUD object count does NOT
+  move — v1 delete *hides* the rows, it doesn't reclaim them (51's collapse, 43a's future free
+  list), so "deleted" costs memory but zero draw time.
 - **Ctrl+Z** → both return, same colors, same PLACEMENT (move an object first with 59's gumball if
   you have it, or set an xform via the console — the snapshot's `local` is what brings the position
   back), and clicking one shows the **same guid** — identity survived the round trip.
@@ -281,10 +319,15 @@ Ch 56: UNDO. trait Command { apply / revert / label } + History { done, undone }
        the trait inverts it so History never changes again. execute → done.push + undone.clear
        (a new action kills the redo branch). RemoveObjects snapshots (row, doc, Rc handle, LOCAL
        XFORM) — the Rc IS an absolute snapshot (kernel edits are copy-on-write), and the xform must
-       ride along because placement left the geometry. apply = Session::remove_object + FLAG_HIDDEN
-       in scene.tables (durable across set_scene) + write_row_flags (live); revert =
-       restore_geometry per variant ((*m).clone() — add_* wants owned) + set_xform + unhide.
-       Delete v1 hides, 38 reclaims. delete/undo/redo verbs; Del / Ctrl+Z / Ctrl+Y just type them.
+       ride along because placement left the geometry; the prior flag word (one u32) rides too, so
+       undoing the delete of an already-hidden object keeps it hidden. apply = Session::remove_object
+       + FLAG_HIDDEN in scene.tables (durable across set_scene) + write_row_flags (live); revert =
+       restore_geometry per variant ((*m).clone() — add_* wants owned; an unmatched variant WARNS,
+       never silently drops) + set_xform + prior-flags restore.
+       Memory policy: stacks capped at 100 (a delete pins its Rc geometry until the entry falls
+       off); no coalescing in v1 (drags are already one command each — nudges are what would flood);
+       history.clear() on any scene rebuild — row-keyed snapshots are invalid after a reorder.
+       Delete v1 hides, 43a reclaims. delete/undo/redo verbs; Del / Ctrl+Z / Ctrl+Y just type them.
        Phase 8 complete: every future mutation is born a Command and undoable for free.
 ```
 

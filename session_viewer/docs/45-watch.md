@@ -6,7 +6,7 @@
 > other tools instead of an import. The reaction is already built (43b's reconcile); what's new here
 > is the transport and one classic trap — not reacting to your *own* saves.
 
-Three sync directions close the loop: 34 reads a file in, 39 writes it out, and this lesson watches it
+Three sync directions close the loop: 34 reads a file in, 44 writes it out, and this lesson watches it
 — when *something else* edits the file (another tool, a script, a teammate's export), the viewer picks
 up the change and reconciles it, without a manual reload. It's the last piece that makes the `.pb` a
 live source of truth instead of a one-shot import.
@@ -16,14 +16,14 @@ Second, **your own saves change the file too** (44), so a naive watcher would se
 and potentially loop. Both have clean answers, and the *reaction* to a change is already built: it's
 43b's `reconcile`.
 
-<svg viewBox="0 0 680 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="every N frames the viewer re-fetches the file, hashes the bytes, and if the hash changed AND is not its own last save it runs 38 reconcile; otherwise it skips" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+<svg viewBox="0 0 680 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="every N frames the viewer re-fetches the file, hashes the bytes, and if the hash changed AND is not its own last save it runs 43b reconcile; otherwise it skips" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="10" y="30" width="120" height="34" fill="none" stroke="#6fb3ff"/><text x="70" y="51" fill="#d7dae0" text-anchor="middle">poll: fetch bytes</text>
   <text x="70" y="80" fill="#666" text-anchor="middle" font-size="9">every N frames (34)</text>
   <rect x="168" y="30" width="120" height="34" fill="none" stroke="#6fb3ff"/><text x="228" y="51" fill="#d7dae0" text-anchor="middle">hash bytes</text>
   <path d="M326,47 l-30,-14 l0,28 z" fill="none" stroke="#6fb3ff"/><text x="360" y="34" fill="#888">same?</text>
   <rect x="404" y="12" width="150" height="24" fill="none" stroke="#3a3a3a"/><text x="479" y="28" fill="#888" text-anchor="middle">unchanged → skip</text>
   <rect x="404" y="44" width="150" height="24" fill="none" stroke="#3a3a3a"/><text x="479" y="60" fill="#888" text-anchor="middle">== our last save → skip</text>
-  <rect x="404" y="76" width="150" height="24" fill="none" stroke="#6fb3ff"/><text x="479" y="92" fill="#d7dae0" text-anchor="middle">changed → reconcile (43)</text>
+  <rect x="404" y="76" width="150" height="24" fill="none" stroke="#6fb3ff"/><text x="479" y="92" fill="#d7dae0" text-anchor="middle">changed → reconcile (43b)</text>
   <line x1="130" y1="47" x2="166" y2="47" stroke="#6fb3ff" stroke-width="1.4" marker-end="url(#ah40)"/>
   <line x1="288" y1="47" x2="294" y2="47" stroke="#6fb3ff" stroke-width="1.4"/>
   <line x1="326" y1="40" x2="402" y2="24" stroke="#3a3a3a" stroke-width="1.1" marker-end="url(#ah40)"/>
@@ -67,39 +67,56 @@ delivers an already-parsed `Session`), so split it — `pub`, because the messag
     /// reload, minus the fetch+parse. Both manual reload and the watcher call this.
     pub fn apply_session(&mut self, new: Session) {
         let diff = self.scene.reconcile(&new);
-        // guid_to_row spans ALL docs (35) — fine for this log line; per-doc math needs the doc's own count
-        let unchanged = self.scene.guid_to_row.len() - diff.changed.len() - diff.removed.len();
+        // guid_to_row spans ALL docs (35) — fine for this log line in a one-doc scene; a real
+        // per-doc count needs the doc's own rows. saturating_sub: never underflow a log line.
+        let unchanged = self.scene.guid_to_row.len()
+            .saturating_sub(diff.changed.len() + diff.removed.len());
         log::info!("sync: {} added, {} changed, {} removed, {} unchanged",
             diff.added.len(), diff.changed.len(), diff.removed.len(), unchanged);
         for g in &diff.removed {
             let row = self.scene.guid_to_row[g];
             self.gpu.remove_object(g); self.gpu.hide_row(row); self.scene.free_row(g);
         }
+        // The row's full world frame, composed exactly as 43b's reload composes it (manifest
+        // place × session world xform) — apply_object takes it as a parameter.
+        let world = new.world_xforms();
+        let place = self.scene.docs.first()
+            .map(|d| d.place.duplicate()).unwrap_or_else(session_rust::Xform::identity);
+        let placed = |g: &String| &place * &world.get(g).cloned()
+            .unwrap_or_else(session_rust::Xform::identity);
         for g in &diff.changed {
             let row = self.scene.guid_to_row[g];
-            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row);
+            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], placed(g), row);
         }
         for g in &diff.added {
             let row = self.scene.assign_row(g);
-            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row);
+            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], placed(g), row);
         }
-        self.scene.commit(new);
+        self.scene.commit(new, &diff);
     }
 ```
 
 43b's `reload` becomes: fetch + parse in its task, `apply_session(new)` when its message lands —
 watch rides the exact same channel below.
 
-> **Which doc is the watcher's?** 43b's reconcile is per-doc, but `Doc` stores `name`/`place`/`session`
+> **Which doc is the watcher's?** 43b's reconcile diffs against the scene as loaded, but `Doc` stores
+> `name`/`place`/`session`
 > — *not* the url it was fetched from, so a url arriving from a poll can't be traced to a doc through
 > the scene alone. The watcher has to carry the mapping itself: key the watch by the **manifest item**
 > (its `file` is the url, its `name` names the doc), or — once 43b's reload lands a source url on `Doc`
 > — read it from there. This lesson polls one url and reconciles the doc it loaded as; the honest
 > "watch every doc" is one poll task per manifest item, same guard each.
+>
+> **And with more than one doc loaded, `docs.first()` is WRONG, not merely incomplete.** `hashes`
+> spans every doc (35's global rows), so a watched session is diffed against the *whole scene*:
+> the other docs' objects bucket as `removed` and get freed off the GPU, and `commit` overwrites
+> `docs[0]`'s session even if the watched url loaded as doc 3. The code in this lesson is correct
+> for the one-doc scene it demos; a multi-doc watch needs per-doc `hashes`/`reconcile` (diff the
+> incoming session against one doc's guids) before any of it is safe.
 
 ## Step 2 — one fingerprint for the whole file: `src/app/persistence.rs`
 
-Object-level `content_hash` (43) answers "which objects changed"; the watcher first needs a cheaper
+Object-level `content_hash` (43b) answers "which objects changed"; the watcher first needs a cheaper
 "did the *file* change at all", and the same number doubles as the self-write guard. Hash the raw bytes:
 
 ```rust
@@ -130,19 +147,29 @@ proxy.clone()).await` (and thread the parameter through `State::new` into the st
 ```rust
     // add to struct State (init in State::new):
     //   pub watch_url: String,                          // the ONE url this lesson polls (see the doc note above)
-    //   pub self_write_hash: Option<u64>,               // hash of OUR last 39 save
+    //   pub self_write_hash: Option<u64>,               // hash of OUR last 44 save
     //   watch_seen: std::rc::Rc<std::cell::Cell<u64>>,  // last hash a poll saw — watch_seen: Rc::new(Cell::new(0))
+    //   watch_in_flight: std::rc::Rc<std::cell::Cell<bool>>,  // a slow poll must not overlap the next spawn
     //   pub proxy: winit::event_loop::EventLoopProxy<crate::Msg>,   // the loader's channel, cloned in
     const WATCH_POLL_FRAMES: u64 = 60;   // ~1 s
 
     // add inside render(), after 44's `self.frame += 1;` — the poll: spawn a task that fetches,
-    // guards, parses, and only on a REAL external change sends a Msg::Watched.
-    if self.frame % WATCH_POLL_FRAMES == 0 {
+    // guards, parses, and only on a REAL external change sends a Msg::Watched. The in-flight flag
+    // stops a fetch+parse that takes LONGER than the poll interval from stacking a second task on
+    // top of the first (two parses, and seen.set racing itself).
+    if self.frame % WATCH_POLL_FRAMES == 0 && !self.watch_in_flight.get() {
         let url = self.watch_url.clone();
         let seen = self.watch_seen.clone();   // clone the Rc, not the data
         let own = self.self_write_hash;       // captured by copy — fresh at every spawn
         let proxy = self.proxy.clone();
+        let in_flight = self.watch_in_flight.clone();
+        in_flight.set(true);
         wasm_bindgen_futures::spawn_local(async move {
+            // cleared on EVERY exit, early return included — single-threaded wasm, no Mutex
+            struct ClearOnDrop(std::rc::Rc<std::cell::Cell<bool>>);
+            impl Drop for ClearOnDrop { fn drop(&mut self) { self.0.set(false); } }
+            let _clear = ClearOnDrop(in_flight);
+
             let bytes = match crate::app::persistence::fetch_bytes(&url).await {
                 Ok(b) if !b.is_empty() => b,
                 // fetch failed / empty — leave the scene as-is
@@ -152,7 +179,7 @@ proxy.clone()).await` (and thread the parameter through `State::new` into the st
             // file byte-identical to last poll → nothing to do
             if h == seen.get() { return; }
             seen.set(h);
-            // ← self-write guard: this is our OWN 39 save
+            // ← self-write guard: this is our OWN 44 save
             if Some(h) == own {
                 log::info!("watch: ignoring our own write");
                 return;
@@ -165,6 +192,13 @@ proxy.clone()).await` (and thread the parameter through `State::new` into the st
         });
     }
 ```
+
+> **Honesty check: with 44's download-shelf save, the self-write guard is currently dead code.** A
+> browser download never writes the polled URL — the served file only changes when *something else*
+> writes it, which is exactly what we want to reconcile. `Some(h) == own` can fire only if the user
+> manually drops the downloaded file back onto the server's path. Keep the guard — it earns its
+> keep the moment the File System Access upgrade saves in place — but know which save path it
+> belongs to, and don't read its silence as proof it's working.
 
 **Close the loop with 44's save.** When Step 4 of lesson 44 writes bytes, stamp their hash so the very
 next poll recognizes them as ours:
@@ -179,6 +213,39 @@ next poll recognizes them as ours:
 > on the actual bytes means only the file that *equals your write* is ignored — any genuinely different
 > content, even one that lands in the same poll window, still reconciles. (If the file's `lastModified`
 > is available via the File System Access upgrade, guard on that too — belt and suspenders.)
+
+## Step 3b — idle polls should cost ~0 bytes: conditional fetch
+
+The poll above downloads the **whole file every second** just to hash it and throw it away — fine
+for a 2 MB `.pb` on localhost, rude for anything bigger or remote. HTTP already has the answer:
+conditional requests. Remember the response's `ETag` (or `Last-Modified`) and send it back as
+`If-None-Match` / `If-Modified-Since`; an unchanged file answers `304 Not Modified` with an **empty
+body**, and the poll becomes ~0 bytes when idle. Clone 34's `fetch_bytes` into a
+`fetch_conditional` — one request header in, two response fields out:
+
+```rust
+// persistence.rs — same fetch as 34, plus:
+//   request:  header `If-None-Match: <last etag>` when we have one
+//   response: (status, etag: Option<String>, bytes) — status 304 ⇒ bytes empty, STOP (skip hash,
+//             skip parse); 200 ⇒ stash etag, fall through to the hash + guard as before
+```
+
+Every static dev server (trunk, `python -m http.server`, nginx) answers conditional GETs out of the
+box. Keep the body hash as the second line of defense: a tool that *rewrites identical bytes*
+(re-export, `touch`) bumps `Last-Modified` but not the content — the 304 misses it, the hash catches
+it. Two layers, each cheap where the other isn't.
+
+> **This poll, too, rides the frame clock — and 71 stops it.** Like 44's debounce, `frame %
+> WATCH_POLL_FRAMES` only ticks while `render` runs. Under 71's render-on-demand an *idle* app draws
+> no frames — which is exactly when an external edit would arrive. From that lesson on, drive the
+> poll off a real timer (a `setInterval`-backed future), not the frame counter.
+
+> **Collision policy: last writer wins, and the loser is YOU.** An incoming change is applied
+> wholesale — reconcile overwrites any in-viewer edit to an object the external writer also
+> touched, so unsaved local work silently loses. That is a defensible default (the file is the
+> source of truth — this phase's whole premise), but it should be a *stated* default: a shipping
+> app at minimum logs a warning when the diff touches guids in 44's `dirty` set, and optionally
+> refuses to apply while unsaved edits exist. Noted, not built.
 
 ## Step 4 — deliver on the loader's channel: `src/lib.rs`
 
@@ -219,9 +286,11 @@ cd session_viewer && trunk serve   # http://localhost:8770 — serving session_d
   process — e.g. load it in `session_rust`, move one object, `pb_dump` it back over the same path — and
   within ~1 s the console logs `watch: external change detected` then `sync: 0 added, 1 changed, …`, and
   that one object updates. Nothing else redraws (43b's diff).
-- **Own save doesn't loop.** Trigger a 39 save (Ctrl+S). The file changes, the next poll sees it — and
+- **Own save doesn't loop.** Trigger a 44 save (Ctrl+S), then copy the downloaded file back over the
+  served path (a browser download never touches the polled URL itself — Step 3's honesty check — so
+  the manual copy is what exercises this). The next poll sees matching bytes and
   logs `watch: ignoring our own write`, no reconcile. Without the guard, this is exactly where a
-  save→watch→save loop would start; watch it *not* happen.
+  save→watch→save loop would start once saves write in place; watch it *not* happen.
 - **Idle is quiet.** Leave it untouched: every poll hashes identical bytes and returns early — no log
   spam, no GPU work.
 
@@ -238,15 +307,23 @@ Ch 45: WATCH — external edits flow back IN, closing the 3-way sync. Browser ca
        (self_write_hash, stamped by 44's save) drops any change whose bytes equal our own last
        write — that's what stops save→watch→reload→save from looping; keying on the hash (not
        a bool flag) means a concurrent external edit in the same window still reconciles.
+       (Dead code while saves are browser downloads — they never touch the polled URL; it wakes
+       with in-place File System Access saves.) A conditional fetch (If-None-Match → 304) makes
+       idle polls ~0 bytes; an in-flight flag keeps a slow poll from overlapping the next spawn.
+       Multi-doc warning: hashes/reconcile are scene-global, so docs.first() is WRONG with >1 doc
+       (other docs diff as "removed") — per-doc hashes first. Poll and debounce both ride the
+       frame clock, which 71's render-on-demand stops — timer-driven from there. Collision policy:
+       last writer wins, stated.
        Transport upgrades noted, not built: File System Access handle (lastModified, unstable
        web-sys) and a watcher→WebSocket push; both reuse the same reconcile. Fetch + parse stay
        off the &mut self borrow by riding the loader's proxy (Msg::Watched next to Msg::File);
        the last-seen hash is an Rc<Cell<u64>> cursor the poll tasks own.
 ```
 
-Edited: `app/persistence.rs` (`file_hash` — whole-file fingerprint), `state.rs` (`apply_session` factored
-from 43b's reload, the spawned poll task — fetch, guard, chunked parse — plus `self_write_hash` stamped
-by 44's save), `lib.rs` (`Msg::Watched` + its `user_event` arm; proxy clone handed to `State`).
+Edited: `app/persistence.rs` (`file_hash` — whole-file fingerprint; `fetch_conditional` sketch),
+`state.rs` (`apply_session` factored from 43b's reload, the spawned poll task — fetch, guard, chunked
+parse, `watch_in_flight` overlap guard — plus `self_write_hash` stamped by 44's save), `lib.rs`
+(`Msg::Watched` + its `user_event` arm; proxy clone handed to `State`).
 
 ## Next
 

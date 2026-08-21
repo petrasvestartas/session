@@ -47,19 +47,22 @@ pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> Strin
     // actually cost once built.
     let rss0 = rss_mb();
     for (path, place) in files {
+        let t0 = std::time::Instant::now();
         let Ok(bytes) = std::fs::read(path) else { return format!("could not read {path}\n") };
         let nbytes = bytes.len();
         let rss_read = rss_mb();
+        let t_read = t0.elapsed();
         let Ok(session) = Session::pb_loads(&bytes) else { return format!("could not parse {path}\n") };
+        let t_decode = t0.elapsed() - t_read;
         let rss_parsed = rss_mb();
         drop(bytes);
         let name = path.rsplit('/').next().unwrap_or(path).to_string();
         println!(
-            "  {name}: file {:.1} MB | after read {:.1} MB | after decode+build {:.1} MB (+{:.1})",
-            nbytes as f64 / 1.048576e6, rss_read - rss0, rss_parsed - rss0, rss_parsed - rss_read
+            "  {name}: file {:.1} MB | after read {:.1} MB | after decode+build {:.1} MB (+{:.1}) | read {:?} decode {:?}",
+            nbytes as f64 / 1.048576e6, rss_read - rss0, rss_parsed - rss0, rss_parsed - rss_read, t_read, t_decode
         );
         scene.add_file(name, session, place.clone());
-        println!("  after walk into GPU tables: {:.1} MB", rss_mb() - rss0);
+        println!("  after walk into GPU tables: {:.1} MB | walk {:?}", rss_mb() - rss0, t0.elapsed() - t_read - t_decode);
     }
     // Table footprint, before the upload hands them to the GPU: the numbers to quote when asking
     // "what does this model cost", and the ones that move when a struct is repacked.
@@ -90,6 +93,18 @@ pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> Strin
     if let Ok(o) = std::env::var("VIEWER_ORBIT") {
         let mut it = o.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
         camera.orbit(it.next().unwrap_or(0.0), it.next().unwrap_or(0.0));
+    }
+    // VIEWER_ORTHO=1 flips to the orthographic projection after framing - the ink lanes take a
+    // different uniform path there (ortho_h > 0), and it is where "lines through faces" shows.
+    if std::env::var("VIEWER_ORTHO").is_ok() {
+        camera.toggle_projection();
+    }
+    // VIEWER_VIEW=top|front|right|iso snaps to a named view (ortho), like the viewer's 1-7 keys.
+    if let Ok(v) = std::env::var("VIEWER_VIEW") {
+        use crate::camera::View;
+        camera.set_view(match v.as_str() {
+            "top" => View::Top, "bottom" => View::Bottom, "front" => View::Front, "right" => View::Right, _ => View::Iso,
+        });
     }
     // VIEWER_ZOOM dollies in after framing. Needed because the interesting failures are the ones
     // where geometry crosses the eye plane, and a fit view never gets near that.
@@ -124,4 +139,44 @@ pub fn render_scene(files: &[(&str, Xform)], w: u32, h: u32, out: &str) -> Strin
         "wrote {out}  {w}x{h}  non-background pixels: {ink} ({:.1}%)\n",
         100.0 * ink as f64 / (w * h) as f64
     )
+}
+
+/// Bench BOTH line styles on the same loaded scene at two zooms (fit and far), same frames,
+/// same camera - the flat-vs-tubes speed question answered on the real pipeline. Returns the
+/// report; table sizes print on the way (they are IDENTICAL between styles - both lanes draw
+/// the same 40 B/edge segment table, tubes just add a 6-sided unit template).
+pub fn bench_scene(files: &[(&str, Xform)], w: u32, h: u32) -> String {
+    use crate::engine::gpu::LineStyle;
+    let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
+    let mut scene = Scene::new();
+    for (path, place) in files {
+        let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("cannot read {path}: {e}"));
+        let session = Session::pb_loads(&bytes).unwrap_or_else(|e| panic!("cannot parse {path}: {e:?}"));
+        let name = path.rsplit('/').next().unwrap_or(path).to_string();
+        scene.add_file(name, session, place.clone());
+    }
+    scene.upload_to(&mut gpu);
+    {
+        let t = &scene.tables;
+        println!("scene: {} edges ({:.1} MB segments), {} markers, {} verts",
+            t.pipes.len(), t.pipes.len() as f64 * 40.0 / 1.048576e6, t.spheres.len(), t.verts.len());
+    }
+    let aspect = w as f64 / h as f64;
+    let n: u32 = std::env::var("BENCH_FRAMES").ok().and_then(|v| v.parse().ok()).unwrap_or(60);
+    let mut out = String::new();
+    for (label, zoom) in [("fit", 0i32), ("far", -12)] {
+        let mut camera = Camera::new();
+        camera.fit(gpu.scene_min, gpu.scene_max, aspect);
+        for _ in 0..zoom.abs() { camera.zoom(if zoom > 0 { 1.0 } else { -1.0 }); }
+        let origin = camera.origin();
+        let anchor = gpu.rebase_anchor(&origin, camera.distance_world());
+        let vp = camera.view_proj_anchored(aspect, &anchor);
+        for style in [LineStyle::Tubes, LineStyle::Flat] {
+            gpu.line_style = style;
+            let secs = gpu.bench_frames(&vp, n);
+            out.push_str(&format!("{label:>4} {style:?}: {:7.2} ms/frame ({:5.0} fps)\n",
+                secs * 1000.0 / n as f64, n as f64 / secs));
+        }
+    }
+    out
 }

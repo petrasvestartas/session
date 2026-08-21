@@ -5,7 +5,7 @@
 > full-res, every frame; this rebuild spends **~12 reads per drawn pixel** for equal-or-better
 > quality: half-resolution GTAO, a fixed tap budget, and — the user rule again — **the same result
 > every frame, moving or still**. No temporal accumulation, no motion-adaptive degradation, no idle
-> refinement (if idle looked better, starting an orbit would read as a quality *drop*). And 66 makes
+> refinement (if idle looked better, starting an orbit would read as a quality *drop*). And 71 makes
 > the idle cost exactly zero.
 
 <svg viewBox="0 0 680 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="depth renders at full res; gtao computes ao at half res with fixed slices and steps; one depth-aware blur; composite upsamples depth-aware and multiplies the scene" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
@@ -59,6 +59,13 @@ Two multiplies per axis, exact, no matrix. (The archive's root perspective bug l
 kernel's `Xform::inverse` used to be affine-only; lesson 46 found and fixed it kernel-wide. The
 analytic form is still the right choice *here* regardless: fewer ops per pixel and no matrix upload.)
 
+> **Perspective only.** `z = -near / d` is the reverse-Z *perspective* depth mapping. Under the
+> camera's ortho mode (16's projection toggle) depth maps *linearly*, and this formula
+> reconstructs garbage — AO goes quietly wrong in exactly the mode drafters live in. Either gate
+> the AO pass off in
+> ortho (and say so in the HUD), or carry the ortho branch: `z = mix(-near, -far, d)` with the
+> position then linear in `ndc` as well. Don't ship the perspective formula silently into both.
+
 **2. Interleaved Gradient Noise, STATIC.** Every AO needs per-pixel randomization of sample
 directions or it bands. Use IGN — `fract(52.9829189 * fract(0.06711056·x + 0.00583715·y))` — a
 per-*pixel* pattern that a small spatial blur cancels almost perfectly. **Never** re-seed it per
@@ -87,18 +94,23 @@ untouched.)
 
 **5. RGBA16Float + MSAA depth reads.** AO in an 8-bit channel bands visibly on smooth walls — use
 **16-bit float**. But the target carries *two* results, not one: the scalar `ao` **and** the
-3-component **bent normal** 68 reads back as `.gba` — so it must be **`RGBA16Float`**, `R` = ao,
+3-component **bent normal** 73 reads back as `.gba` — so it must be **`RGBA16Float`**, `R` = ao,
 `GBA` = bent. A single `R16Float` channel can't hold a direction; write the pass to `R16Float` and 73's
 `decode_bent(.gba)` reads garbage. And the depth buffer's sample count is **dynamic** since 35:
 `msaa_for` picks 1× for flat-only scenes and 4× once solid geometry arrives, and `set_scene`
 rebuilds the depth/msaa views *and* the pipelines mid-session on the flip. A sampler can't filter a
 depth texture anyway — you bind it as a texture and `textureLoad(depth_tex, pixel, 0)` (sample 0 is
 exact and cheap) — but a *multisampled* texture binding is **incompatible with a 1× depth texture**:
-the bind group layout hard-codes `multisampled: true/false`. Either force 4× whenever AO is on
-(simplest: make `msaa_for` return 4 while the AO toggle is set), or build both layouts + bind groups
-and pick per frame from `self.samples`. And the offscreen scene-color target this lesson adds must
-be recreated on the same flip, in `set_scene` beside the depth/msaa views — its sample count must
-track the scene's.
+the bind group layout hard-codes `multisampled: true/false`. Build **both** layouts + pipelines +
+bind groups up front (1× and 4×) and pick per frame from `self.samples` — don't rebuild them on the
+flip: a pipeline build is a shader compile, a multi-ms stall on the exact frame a file finished
+loading. (The lazier alternative — force 4× whenever AO is on, i.e. `msaa_for` returns 4 while the
+AO toggle is set — works, but know its bill: at 4K a 4× RGBA16Float scene-color target is ~250 MB
+and the 4× Depth32Float another ~130 MB, before the AO pair itself. On integrated GPUs that
+residency is the difference between smooth and swapping. The two-variant build spends a few
+hundred KB of pipeline objects to avoid it.) And the offscreen scene-color target this lesson adds
+must be recreated on the same flip, in `set_scene` beside the depth/msaa views — its sample count
+must track the scene's.
 
 <svg viewBox="0 0 560 148" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a single R16Float channel holds AO only and cannot carry a direction; RGBA16Float packs AO in R and the bent normal xyz in G B A" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="20" y="24" fill="#e06c6c">R16Float — WRONG</text>
@@ -113,7 +125,7 @@ track the scene's.
   <g fill="#d7dae0" text-anchor="middle"><text x="50" y="127">ao</text><text x="110" y="127">bent.x</text><text x="170" y="127">bent.y</text><text x="230" y="127">bent.z</text></g>
   <g fill="#6fb3ff" text-anchor="middle" font-size="9"><text x="50" y="103">R</text><text x="110" y="103">G</text><text x="170" y="103">B</text><text x="230" y="103">A</text></g>
   <text x="284" y="120" fill="#888">frag out = vec4(ao, bent.xyz)</text>
-  <text x="284" y="134" fill="#666" font-size="9">68 samples .r for ao, .gba for the direction</text>
+  <text x="284" y="134" fill="#666" font-size="9">73 samples .r for ao, .gba for the direction</text>
 </svg>
 
 ## The pass itself — shape, not scripture
@@ -123,7 +135,14 @@ normal (from depth derivatives — `fwidth`-style cross of neighboring positions
 slices** (screen-space directions rotated by IGN) walk **6 steps** outward on each side, tracking the
 maximum horizon angle that clears the tangent gate; the two horizons per slice integrate to a
 visibility term (the GTAO closed form), averaged over slices. Output: `ao` — and, nearly free, the
-**bent normal** (the average unoccluded direction), written alongside for 68 to consume:
+**bent normal** (the average unoccluded direction), written alongside for 73 to consume:
+
+> **Derivative normals lie at silhouettes.** The `fwidth`-style neighbor cross assumes both
+> neighbors are *the same surface*. At a silhouette one neighbor is background (reverse-Z depth ≈
+> 0, an infinitely distant plane), the cross produces a garbage normal, and AO halos around every
+> edge. The guard is the depth-similarity test the blur already uses: reject a neighbor whose
+> depth disagrees beyond a threshold and fall back to the other axis pair (or the face normal) —
+> same `exp(-|Δz|·k)` idea, one `if`.
 
 ```wgsl
     // per slice: dir = rotate(slice_dir, ign(pixel)); h1/h2 = max horizon over 6 steps each way
@@ -164,14 +183,18 @@ Ch 72: GTAO, CONSTANT QUALITY. Scene → offscreen color; AO at HALF res in RGBA
        slices × 6 steps, horizons integrated closed-form; ONE 5-tap depth-aware blur; composite does
        depth-aware upsample × scene. Budget ≈ 12 reads/px/drawn-frame vs the archive's ~112.
        The five ported traps: (1) view-pos via ANALYTIC inv-projection — cheaper and exact
-       (and the historic affine-only Xform::inverse bug, fixed in 41, lived here); (2) IGN
+       (and the historic affine-only Xform::inverse bug, fixed in 46, lived here); (2) IGN
        noise, STATIC — per-frame jitter shimmers during rotation and violates the quality rule;
        (3) the tangent-plane gate dot(Δ,N) > len·0.07 + bias — mandatory or grazing floors
        stripe; (4) radius = %-of-bbox-diag, clamped — bbox is mm, view space is metres (×0.001),
        updated in set_scene; (5) depth via textureLoad sample 0 — sample count is DYNAMIC (1↔4),
-       so force 4× with AO on (or carry both layouts) and recreate scene-color on the flip.
+       so PREBUILD both pipeline/layout variants (a rebuild on the flip is a shader-compile
+       stall; forcing 4× with AO on costs ~250 MB of 4K scene-color alone) and recreate
+       scene-color on the flip.
        Bent normal written beside AO — free from the horizon search, 73's input. No temporal,
-       no adaptive, no idle refinement: one image, every frame.
+       no adaptive, no idle refinement: one image, every frame. Two caveats: the analytic
+       view-pos is PERSPECTIVE-only (ortho needs the linear branch or AO off), and
+       derivative normals lie at silhouettes — depth-gate the neighbor cross.
 ```
 
 Edited: `shaders/gtao.wgsl` + `shaders/blur5.wgsl` (NEW), `engine/gpu/targets.rs` (NEW — half-res

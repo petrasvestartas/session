@@ -10,7 +10,7 @@
 ## Files we touch
 
 ```
-examples/selftest.rs    # NEW — headless: kernel + Scene + pick + reconcile asserts, exit code
+examples/selftest.rs    # EXISTS — the PPM render harness (src/selftest.rs); ADD the checks below
 Cargo.toml + src/lib.rs # the two visibility edits that let an example link the crate
 src/engine/gpu/mod.rs   # error scopes around pipeline/shader creation → CLI log, not console
 .github/workflows/viewer.yml   # NEW — build + selftest on push
@@ -35,13 +35,19 @@ picking, and the tables — never fetch/parse, which are browser APIs. If the na
 over `persistence.rs` regardless (it's web-only by nature), the honest fix is to say so in the
 one place gates are allowed now: in `app/mod.rs`, make it
 `#[cfg(target_arch = "wasm32")] pub mod persistence;` — the wasm build is unchanged, the native
-build skips the module nothing native can call anyway.
+build skips the module nothing native can call anyway. And that is the **one** permitted cfg gate
+in the viewer — everything else stays target-blind, because the wasm pin's whole point is that
+browser APIs fail at *compile* time. If you find yourself reaching for a second `cfg`, the design —
+not the target — is what's wrong.
 
 ## Step 1 — the headless selftest: `examples/selftest.rs`
 
 Everything below the GPU is plain Rust — `Scene`, picking math, reconcile, the BVH — and runs
-natively in milliseconds. The archive proved this pattern; ours asserts the invariants the
-lessons established:
+natively in milliseconds. The harness isn't new: `src/selftest.rs` already renders a scene headless
+through `Gpu::new_headless` (the shader-look harness — it wants a native GPU), and
+`examples/selftest.rs` wraps it. What this lesson adds to that example is the **GPU-free assertion
+block** below — run it first, before any render, so a broken invariant fails in milliseconds without
+touching a device. It asserts the invariants the lessons established:
 
 ```rust
 //! Headless viewer selftest: no browser, no GPU.
@@ -70,8 +76,15 @@ fn main() {
     check("rows bijective", scene.rows_are_bijective(), &mut fails);
     check("bvh parity", scene.bvh_matches_brute_force_sample(), &mut fails);
 
-    // 3. a known ray hits a known object (42, no GPU needed — picking is CPU by design)
-    let ray = /* aimed at a fixture object's box center from above */;
+    // 3. a known ray hits a known object (47, no GPU needed — picking is CPU by design):
+    // aim straight down at the first row's box center (46's Ray, 41's world_aabb)
+    let g0 = scene.order[0].clone();
+    let (lo, hi) = scene.world_aabb(&g0);
+    let c = [(lo[0] + hi[0]) * 0.5, (lo[1] + hi[1]) * 0.5, (lo[2] + hi[2]) * 0.5];
+    let ray = session_viewer::engine::pick::Ray {
+        origin: session_rust::Point::new(c[0], c[1], hi[2] + 1000.0),
+        dir: session_rust::Vector::new(0.0, 0.0, -1.0),
+    };
     check("pick hits", scene.pick_ray(&ray, 1.0).is_some(), &mut fails);
 
     // 4. copy identity (85): a duplicate MINTS a fresh guid — the Rc-clone trap stays dead
@@ -82,11 +95,39 @@ fn main() {
 
     std::process::exit(if fails == 0 { 0 } else { 1 });
 }
+
+// The two helpers are small and local — keep them in the example, not in Scene:
+
+/// 85's identity trap, as a check: clone one object; the copy's guid must DIFFER.
+fn copies_get_fresh_guids(scene: &mut Scene) -> bool {
+    let g0 = scene.order[0].clone();
+    scene.selected.clear();
+    scene.selected.insert(0);          // selected is row-keyed (50); row 0 IS order[0]
+    let snaps = scene.clone_selection();
+    snaps.len() == 1 && snaps[0].geom.guid().to_string() != g0
+}
+
+/// 43b's diff, as a check: perturb ONE object in a re-parsed copy → exactly one `changed`.
+fn reconcile_one_changed(scene: &mut Scene) -> bool {
+    let bytes = std::fs::read("../session_data/floor_model.pb").expect("fixture");
+    let mut fresh = Session::pb_loads(&bytes).unwrap_or_default();
+    // move one object: a new world xform for one guid changes its content hash (43b's rule)
+    let g0 = scene.order[0].clone();
+    fresh.set_xform(&g0, Xform::translation(1.0, 0.0, 0.0));
+    let diff = scene.reconcile(&fresh);
+    diff.added.is_empty() && diff.removed.is_empty() && diff.changed == vec![g0]
+}
 ```
 
-The deep reason this works: **picking was CPU-side by necessity** (42 — WebGPU has no sync
+The deep reason this works: **picking was CPU-side by necessity** (47 — WebGPU has no sync
 readback), and the Scene/Gpu split (35) kept the document logic GPU-free. Two decisions made for
 other reasons; testability fell out — Step 0's two lines were the only thing missing.
+
+**Fixture paths, native vs browser.** The selftest runs native, so it reads the source-tree fixture
+directly (`../session_data/floor_model.pb`, relative to the crate dir — that file exists). The
+browser can't do that: trunk serves only the assets root, and a manifest item resolves against it —
+so 84's `bunny.obj` manifest line means *copy the kernel fixture into `assets/` first*; a manifest
+path will never reach `session_rust/session_data/`. Same fixture, two doors — don't confuse them.
 
 ## Step 2 — GPU errors surface in the CLI: `src/engine/gpu/mod.rs`
 

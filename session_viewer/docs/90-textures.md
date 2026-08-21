@@ -93,7 +93,8 @@ for y in 0..TEX_SIZE {
 let material_tex = device.create_texture(&wgpu::TextureDescriptor {
     label: Some("albedo"),
     size: wgpu::Extent3d { width: TEX_SIZE, height: TEX_SIZE, depth_or_array_layers: 1 },
-    mip_level_count: 1,
+    mip_level_count: 9,    // 256→1: the FULL chain — 1 mip + linear min filter shimmers the
+                           // moment a textured face minifies (zoomed out, grazing angles)
     sample_count: 1,                                  // sampled, NOT an MSAA render target
     dimension: wgpu::TextureDimension::D2,
     format: wgpu::TextureFormat::Rgba8UnormSrgb,      // sRGB → sampler linearizes, lighting stays correct
@@ -101,21 +102,46 @@ let material_tex = device.create_texture(&wgpu::TextureDescriptor {
     view_formats: &[],
 });
 
-queue.write_texture(
-    wgpu::TexelCopyTextureInfo {                      // wgpu 29 name (was ImageCopyTexture)
-        texture: &material_tex,
-        mip_level: 0,
-        origin: wgpu::Origin3d::ZERO,
-        aspect: wgpu::TextureAspect::All,
-    },
-    &texels,
-    wgpu::TexelCopyBufferLayout {                     // wgpu 29 name (was ImageDataLayout)
-        offset: 0,
-        bytes_per_row: Some(4 * TEX_SIZE),
-        rows_per_image: Some(TEX_SIZE),
-    },
-    wgpu::Extent3d { width: TEX_SIZE, height: TEX_SIZE, depth_or_array_layers: 1 },
-);
+// wgpu has no generate_mipmap — box-filter the chain on the CPU (trivial for a generated
+// texture; a real image pipeline would downsample in a compute pass instead).
+// Rows under 64 px are < 256 B/row → pad the staging rows (COPY_BYTES_PER_ROW_ALIGNMENT —
+// 77's atlas needed the same dance).
+fn upload_mips(queue: &wgpu::Queue, tex: &wgpu::Texture, base: &[u8], size: u32) {
+    let (mut w, mut level, mut mip) = (size, base.to_vec(), 0u32);
+    loop {
+        let unpadded = (w * 4) as usize;
+        let bpr = unpadded.next_multiple_of(256);
+        let mut staged = vec![0u8; bpr * w as usize];
+        for r in 0..w as usize {
+            staged[r * bpr..r * bpr + unpadded]
+                .copy_from_slice(&level[r * unpadded..(r + 1) * unpadded]);
+        }
+        queue.write_texture(
+            wgpu::TexelCopyTextureInfo {                  // wgpu 29 name (was ImageCopyTexture)
+                texture: tex, mip_level: mip,
+                origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All },
+            &staged,
+            wgpu::TexelCopyBufferLayout {                 // wgpu 29 name (was ImageDataLayout)
+                offset: 0, bytes_per_row: Some(bpr as u32), rows_per_image: Some(w) },
+            wgpu::Extent3d { width: w, height: w, depth_or_array_layers: 1 });
+        if w == 1 { break; }
+        let nw = w / 2;
+        let mut next = vec![0u8; (nw * nw * 4) as usize];
+        for y in 0..nw {
+            for x in 0..nw {
+                for c in 0..4 {
+                    let mut acc = 0u32;
+                    for dy in 0..2 { for dx in 0..2 {
+                        acc += level[(((2 * y + dy) * w + 2 * x + dx) * 4 + c) as usize] as u32;
+                    }}
+                    next[((y * nw + x) * 4 + c) as usize] = (acc / 4) as u8;
+                }
+            }
+        }
+        level = next; w = nw; mip += 1;
+    }
+}
+upload_mips(&queue, &material_tex, &texels, TEX_SIZE);
 
 let material_view = material_tex.create_view(&wgpu::TextureViewDescriptor::default());
 let material_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
@@ -125,7 +151,8 @@ let material_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
     address_mode_w: wgpu::AddressMode::Repeat,
     mag_filter: wgpu::FilterMode::Linear,
     min_filter: wgpu::FilterMode::Linear,
-    mipmap_filter: wgpu::MipmapFilterMode::Nearest,   // wgpu 29: MipmapFilterMode, NOT FilterMode
+    mipmap_filter: wgpu::MipmapFilterMode::Linear,    // wgpu 29: MipmapFilterMode, NOT FilterMode;
+                                                      // Linear so mip transitions don't band
     ..Default::default()
 });
 
@@ -165,11 +192,13 @@ The bind group ref-counts the texture, view, and sampler, so we only need to kee
 `material_bind_group` alive — `material_tex`/`material_view`/`material_sampler` may drop, exactly like
 `instance_buffer` isn't stored after `instance_bind_group` is built.
 
-Three traps this Step already dodges, all wgpu-29-specific and all caught by a compile:
+Four traps this Step already dodges, all caught by a compile or a validation error:
 - `mipmap_filter` takes `MipmapFilterMode`, not `FilterMode`.
 - `write_texture` uses `TexelCopyTextureInfo` / `TexelCopyBufferLayout` (renamed from the old
   `ImageCopyTexture` / `ImageDataLayout`).
 - `sample_count: 1` — this is a *sampled* texture; MSAA (4) is only for render targets like `msaa_view`.
+- `bytes_per_row` must be a multiple of 256 — level-0 rows are (1024 B), but the small mips aren't;
+  `upload_mips` pads every level's staging rows (77's atlas hit the same wall).
 
 ## Step 2 — keep the bind group on `Gpu`: `src/engine/gpu/mod.rs`
 
@@ -243,6 +272,25 @@ them**:
 // Material — texture + sampler. group(3): 0/1/2 are mvp/time/instances.
 @group(3) @binding(0) var albedo_tex: texture_2d<f32>;
 @group(3) @binding(1) var albedo_smp: sampler;
+
+// The rebase anchor, mod the texture's 400 mm tile — CPU-computed in f64, uploaded tiny.
+// group 0 binding 2: the shared mvp layout (83 put sections at binding 1).
+@group(0) @binding(2) var<uniform> tex_anchor: vec4<f32>;
+```
+
+The Rust half is three small edits beside 83's section buffer: a `binding: 2` entry in
+`mvp_layout`'s `entries` (visibility FRAGMENT, uniform buffer), a 16-byte `tex_anchor` buffer +
+`BindGroupEntry` on the `mvp_bind_group`, and the upload — where `rebase_anchor` runs in
+`State::render`:
+
+```rust
+    // The triplanar pattern repeats every 400 mm, so only (anchor mod 400) can change the
+    // sampling — compute it in f64 and upload it TINY. Adding the raw anchor (millions of mm)
+    // to a fragment's position in f32 would drown the 400 mm tile phase in rounding: the
+    // checker would swim on every re-anchor.
+    let a_mod = [0, 1, 2].map(|k| anchor[k].rem_euclid(400.0) as f32);
+    self.gpu.queue.write_buffer(&self.gpu.tex_anchor_buffer, 0,
+        bytemuck::bytes_of(&[a_mod[0], a_mod[1], a_mod[2], 0.0]));
 ```
 
 Then **find** the last line of `fs_main`, `return vec4<f32>(in.color * lit, 1.0);`, and **replace it**
@@ -250,11 +298,12 @@ with the triplanar sample (`n` and `in.world_pos` are already in scope from the 
 
 ```wgsl
     // Triplanar UV: sample on the 3 world axis planes, blend by |normal|. No per-vertex UVs.
-    // in.world_pos is ANCHOR-RELATIVE (instance models are rebased) — projected raw, the checker
-    // slides/jumps on every re-anchor. Add the anchor back first: upload it as a small uniform
-    // (anchor_ws: vec3<f32>, written where rebase_anchor runs) so the projection keys on true
-    // world position.
-    let wp = in.world_pos + anchor_ws;
+    // in.world_pos is ANCHOR-RELATIVE f32 (instance models are rebased). The texture phase keys
+    // on TRUE world position — but adding the raw anchor back in f32 (millions of mm against a
+    // 400 mm tile) loses the phase to rounding, and the checker swims on every re-anchor. Since
+    // the pattern is periodic, the CPU sent anchor mod tile instead (tex_anchor, above):
+    // world_pos + (anchor mod 400mm) differs from true world by a WHOLE number of tiles.
+    let wp = in.world_pos + tex_anchor.xyz;
     let scale = 1.0 / 400.0;                 // world units are mm: 400 mm per tile ≈ 2.5 tiles/metre
     let wn = abs(n);
     let bw = wn / (wn.x + wn.y + wn.z);       // blend weights, sum to 1
@@ -286,8 +335,11 @@ cd session_viewer && trunk serve   # http://localhost:8769
 
 Every solid in the scene wears the checkerboard, wrapped by the triplanar projection: the box's faces
 tile cleanly, and the sphere/torus show the three-axis blend seams softening across curved normals.
-Orbit and the texture stays locked to the geometry (it's keyed on world position), while the shading
-still moves with the lights. Edges (the cylinder pass) are untouched — they never bind the material.
+Orbit and the texture stays locked to the geometry (it's keyed on world position — and stays locked
+through a camera re-anchor, because `tex_anchor` carries the anchor's tile phase), while the shading
+still moves with the lights. **Zoom far out** — the checker fades to a smooth average, no shimmer
+(the full mip chain + trilinear filtering; with `mip_level_count: 1` it would sparkle). Edges (the
+cylinder pass) are untouched — they never bind the material.
 
 ## Variant — real per-vertex UVs (`@location(4)`)
 
@@ -309,16 +361,20 @@ reports automatically.
 
 ```
 Textures = upload + bind + sample. Generate an RGBA8 checker, write_texture it (TexelCopyTextureInfo /
-TexelCopyBufferLayout in wgpu 29), build a group(3) bind group of {texture, sampler}, add that layout
-to the triangle pipeline, set_bind_group(3, …) in the mesh pass, and in fs_main sample it. UVs come
-from triplanar world-position projection (no attribute needed) — or, for UV-mapped meshes, from a
-per-vertex uv at @location(4) (kernel RenderVertex, stride 40→48).
+TexelCopyBufferLayout in wgpu 29; full CPU-built mip chain — 1 mip + linear min filter shimmers on
+minification, and small-mip rows need 256 B padding), build a group(3) bind group of {texture,
+sampler}, add that layout to the triangle pipeline, set_bind_group(3, …) in the mesh pass, and in
+fs_main sample it. The triplanar projection keys on world position WITHOUT adding the raw anchor in
+f32 — tex_anchor (group 0 binding 2, beside 83's sections) carries anchor mod tile, f64-computed.
+UVs come from triplanar world-position projection (no attribute needed) — or, for UV-mapped meshes,
+from a per-vertex uv at @location(4) (kernel RenderVertex, stride 40→48).
 ```
 
-Edited: `engine/gpu/mod.rs` (generate/upload texture + material bind group, store it, pass its layout to
-`Pipelines::new`, bind group 3 in the pass), `engine/pipelines/mod.rs` + `build.rs` (thread
+Edited: `engine/gpu/mod.rs` (generate/upload texture + mip chain + material bind group, store it,
+pass its layout to `Pipelines::new`, bind group 3 in the pass, `tex_anchor` buffer at group 0
+binding 2), `engine/pipelines/mod.rs` + `build.rs` (thread
 `material_layout` into the triangle pipeline), `shaders/triangle.wgsl` (group-3 texture/sampler +
-triplanar sample).
+group-0-binding-2 `tex_anchor` + triplanar sample).
 
 ## Next
 

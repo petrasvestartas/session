@@ -20,7 +20,8 @@ their human name there**. So:
   (NOT `find_node_by_guid`, which matches node uuids and returns `None` for names and object
   guids alike). One group per name per doc — the importer dedups (`or_insert_with`).
 - a layer's members are its descendants' **names** — object guids live in `node.name`, which is
-  exactly what `scene.hidden` and `scene.selected` store. No translation layer needed.
+  exactly what `scene.hidden` stores (`scene.selected` is row-keyed — 50 — so membership tests
+  there go through `guid_to_row`). No translation layer needed.
 - `active_layer` is therefore an `Option<String>` holding a **name**, resolved to a node only at
   the moment of use, in whichever doc the new object targets.
 
@@ -95,8 +96,9 @@ object's own doc for assignment):
     /// selection can span sheets, and a layer exists per doc). Pure document organization:
     /// see the cheap-move note below.
     pub fn assign_to_layer(&mut self, name: &str) {
-        for g in self.selected.clone() {
-            let Some(&row) = self.guid_to_row.get(&g) else { continue };
+        let rows: Vec<u32> = self.selected.iter().copied().collect();   // row-keyed (50)
+        for row in rows {
+            let g = self.order[row as usize].clone();       // guid at the edge
             let d = self.doc_of_row(row);
             let layer = self.layer_node(d, name);
             let tree = &mut self.docs[d].session.tree;
@@ -117,7 +119,7 @@ row**: draw, pick, selection, and the arena are all untouched. Layers cost nothi
 New objects land on the active layer with a one-line change where 62's `add_object` parents its
 tree node: pass `state.scene.active_layer` — resolved at that moment via
 `layer_node(d, name)` with `d` = the target doc (62's `active_doc`) — as the `parent` argument
-that `add_mesh`/`add_line`/… always accepted. It was `None` since 57 — the parameter was waiting.
+that `add_mesh`/`add_line`/… always accepted. It was `None` since 62 — the parameter was waiting.
 
 ## Step 3 — the verbs: `src/app/commands.rs`
 
@@ -156,6 +158,12 @@ that `add_mesh`/`add_line`/… always accepted. It was `None` since 57 — the p
         }
 ```
 
+> ⚠ `layer off` writes `scene.hidden` — **viewer state, not document state** (51's rule; 83 draws
+> the same line for sections). Step 4's reload test passes because the layer *structure* lives in
+> each doc's `session.tree` — but the off/on state does **not** round-trip: reload and every layer
+> is visible again, however you left it. Persistent layer visibility would be per-doc settings on
+> 44's save path — noted, not built.
+
 ## Step 4 — verify
 
 ```bash
@@ -186,11 +194,12 @@ Ch 86: LAYERS = tree groups the PDF importer ALREADY builds (one per OCG layer, 
        every doc, so every op folds over scene.docs + get_node_by_name (75's identity rule — group
        names AND object guids both live in node.name; find_node_by_guid matches nothing you want,
        and find_group PANICS on a miss). layer list = top-level non-object children, summed;
-       off/on = union of descendants' names → scene.hidden → 46; assign = a TREE MOVE in each
+       off/on = union of descendants' names → scene.hidden → 51; assign = a TREE MOVE in each
        object's own doc (detach keeps the subtree; add(node, None) would replace the ROOT) — and
        provably free: rows came from session.order(), which walks object vectors, never the tree.
        active_layer: Option<String> = a name, resolved per target doc (62's active_doc) into the
-       parent argument every add_* had since day one. Round-trips per doc in the .pb for free.
+       parent argument every add_* had since day one. Round-trips per doc in the .pb for free
+       (the STRUCTURE — layer off/on is viewer state and resets on reload).
 ```
 
 Edited: `app/scene.rs` (`active_layer`, `layer_names`, `layer_members`, `layer_node(d, name)`,

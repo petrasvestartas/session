@@ -1,6 +1,6 @@
 # 57 Gumball I — the widget appears
 
-> **Big picture.** *Phase 9 — transform & draw (52–59).* Everything so far *inspects* the scene; this
+> **Big picture.** *Phase 9 — transform & draw (57–61).* Everything so far *inspects* the scene; this
 > phase finally *changes* it. The gumball — the 3-axis move/rotate/scale gizmo every CAD app centers
 > its editing on — arrives over four lessons: geometry (here), screen-constant scale + hit-testing
 > (58), drag-to-translate with undo (59), rotate/scale (60). The payoff of Phases 4–8 shows
@@ -58,7 +58,7 @@ pub enum HandleKind {
     ScaleUniform,
 }
 
-pub const ARROW_LEN: f32 = 150.0;     // shaft length, gumball-local units (scaled per frame, 53)
+pub const ARROW_LEN: f32 = 150.0;     // shaft length, gumball-local units (scaled per frame, 58)
 pub const ARROW_CAP: f32 = 18.0;      // cone-tip length
 pub const ARC_RADIUS: f32 = 150.0;    // rotate arcs sit at the arrow length
 pub const SPHERE_R: f32 = 8.0;        // all four scale spheres
@@ -76,7 +76,7 @@ pub const AXIS_COLORS: [[f32; 4]; 3] = [
 
 One function turns an origin + scale into rows. Arrow shafts are single segments; arcs are `ARC_SEGS`
 short segments (the 31 path renders any polyline); spheres are glyphs. Each emitted row carries a
-**handle tag** so 53 can map "what did the ray hit" back to a `HandleKind`:
+**handle tag** so 58 can map "what did the ray hit" back to a `HandleKind`:
 
 ```rust
 pub struct GumballGeom {
@@ -84,9 +84,11 @@ pub struct GumballGeom {
     pub glyphs: Vec<(GlyphPoint, HandleKind)>,
 }
 
-/// Build the widget at `o`, scaled by `s` (53 computes s for constant screen size;
-/// use 1.0 for now).
-/// `row` is a reserved instance row with an identity model — the gumball is world-anchored.
+/// Build the widget, scaled by `s` (58 computes s for constant screen size; use 1.0 for now).
+/// `o` is GUMBALL-LOCAL — pass [0,0,0]: the reserved row's MODEL carries the world position
+/// (Step 4's place_gumball), so the geometry here is small f32, exact at any world size (§5b —
+/// an f32 cast of an absolute millimetre coordinate loses ~0.1 mm at 1e6 mm, and the widget
+/// visibly swims). `row` is that reserved instance row.
 pub fn build(o: [f32; 3], s: f32, row: u32) -> GumballGeom {
     let axes = [[1.0f32, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
     let t_kinds = [HandleKind::TranslateX, HandleKind::TranslateY, HandleKind::TranslateZ];
@@ -165,7 +167,7 @@ Four pieces of `Gpu` state. In `struct Gpu`, find the glyph fields (`pub glyph_b
     pub gb_glyph_bind_group: wgpu::BindGroup,
     pub gb_segment_count: u32,
     pub gb_glyph_count: u32,
-    pub gb_row: u32,             // the reserved identity instance row (Step 4)
+    pub gb_row: u32,             // the reserved instance row — its MODEL positions the widget (Step 4)
 ```
 
 In `Gpu::new`, right after the `glyph_bind_group` creation (it uses the same `segment_layout` /
@@ -266,36 +268,71 @@ missing field is E0063.
 cylinder/sphere blocks verbatim, with group 3 swapped to the gumball bind groups and the counts
 swapped to `gb_*` — that's the whole trick: same pipelines, different tables.)
 
+> **The re-resolve contract.** This pass *re-resolves* `msaa_view` into `view` — the main passes
+> already resolved once, and this second resolve blits scene+gumball over it. Two rules fall out:
+> color must `LoadOp::Load` on the MSAA attachment (or the re-resolve erases the scene), and the
+> pass must sit **after the main passes and before 52's egui pass** — egui draws straight onto
+> `view`, so a gumball resolve after it would blit right over the UI. Encoder order is the only
+> guarantee; keep the block where the comment says.
+
 ## Step 4 — where it sits: `src/app/scene.rs` + `src/state.rs`
 
 The widget anchors at the **selection centroid** — the average of the selected objects' world-box
 centers (the archive's hard-won rule: use the *box center*, not the object's anchor, or a cylinder's
-gumball sits at its base):
+gumball sits at its base). It is computed in **f64 end to end** (ARCHITECTURE §5b: f32 is a one-way
+snapshot at the GPU edge, never a working type — an `as f32` on an absolute millimetre coordinate
+quantizes to ~0.1 mm steps at 1e6 mm, and the widget would swim):
 
 ```rust
     /// World centroid of the selection — the gumball anchor. Box CENTERS, not object anchors.
-    pub fn selection_centroid(&self) -> Option<[f32; 3]> {
+    pub fn selection_centroid(&self) -> Option<[f64; 3]> {
         if self.selected.is_empty() { return None; }
         let (mut c, mut n) = ([0.0f64; 3], 0.0);
-        for g in &self.selected {
-            let (lo, hi) = self.world_aabb(g);                     // 41's helper
+        for &row in &self.selected {
+            let (lo, hi) = self.world_boxes[row as usize];          // 40's row-indexed cache
             for k in 0..3 { c[k] += (lo[k] + hi[k]) * 0.5; }
             n += 1.0;
         }
-        Some([(c[0]/n) as f32, (c[1]/n) as f32, (c[2]/n) as f32])
+        Some([c[0]/n, c[1]/n, c[2]/n])
     }
 ```
 
-In `state.rs`, whenever the selection changes (the three gesture sites in 45 + hide in 46), rebuild.
+The world position reaches the GPU the way every scene row's does: **in the row's model**, rebased
+around the camera anchor in f64 and cast last — never baked into the f32 geometry. One helper in
+`engine/gpu/mod.rs` (next to `upload_gumball`; `objects_base`/`instances` are engine-private):
+
+```rust
+    /// Move the gumball's reserved row to a world point: write the TRUE model, then poke the
+    /// live instance rebased around the current anchor — 33's rebuild_instances math for one row.
+    /// The gumball geometry stays local (built around [0,0,0]), so f32 never sees a world
+    /// coordinate and the widget is exact at any scene size.
+    pub fn place_gumball(&mut self, world: &Point) {
+        let i = self.gb_row as usize;
+        self.objects_base[i].0 = Xform::translation(world[0], world[1], world[2]);
+        let origin = self.last_origin.clone().unwrap_or_else(|| Point::new(0.0, 0.0, 0.0));
+        let mut m = self.objects_base[i].0.to_f32();
+        m[12] = (world[0] - origin[0]) as f32;   // f64 subtract, f32 cast LAST (§5b)
+        m[13] = (world[1] - origin[1]) as f32;
+        m[14] = (world[2] - origin[2]) as f32;
+        self.instances[i].model = m;             // color/flags/extent/spacing untouched
+        self.queue.write_buffer(&self.instance_buffer,
+            (i * std::mem::size_of::<Instance>()) as u64,
+            bytemuck::bytes_of(&self.instances[i]));
+    }
+```
+
+In `state.rs`, whenever the selection changes (the gesture sites in 50 + hide in 51), rebuild.
 First add the field this uses: `gb: Option<GumballGeom>` on `struct State`, **and** initialize it
-`gb: None` in `State::new` — else E0609 here, then E0063 in the initializer (53 does the same for
+`gb: None` in `State::new` — else E0609 here, then E0063 in the initializer (58 does the same for
 `gb_pressed`/`gb_hovered`):
 
 ```rust
     fn refresh_gumball(&mut self) {
         match self.scene.selection_centroid() {
             Some(o) => {
-                let g = crate::engine::gumball::build(o, 1.0, self.gpu.gb_row);
+                // model carries the world position; geometry is gumball-LOCAL ([0,0,0], Step 2)
+                self.gpu.place_gumball(&Point::new(o[0], o[1], o[2]));
+                let g = crate::engine::gumball::build([0.0, 0.0, 0.0], 1.0, self.gpu.gb_row);
                 self.gb = Some(g);
                 self.gpu.upload_gumball(self.gb.as_ref().unwrap());
             }
@@ -304,17 +341,29 @@ First add the field this uses: `gb: Option<GumballGeom>` on `struct State`, **an
     }
 ```
 
-`gpu.gb_row` is one reserved instance row with an identity model, created at startup — the gumball
-is world-anchored and never rebased wrong, because 33's rebase writes models, and identity + world
-coords is exactly the convention lines already use. Reserve it in `Gpu::new`, right after the
+`gpu.gb_row` is one reserved instance row, created at startup — its `objects_base` entry starts at
+identity and `place_gumball` moves it; 33's rebase then treats it exactly like a line row, which is
+the point: the widget's position rides the same f64→rebase→f32 path as everything else. Reserve it
+in `Gpu::new`, right after the
 `let ArenaUpload { … } = upload;` destructure and **before** the `instances` vec is built from
 `objects_base` (the row must exist in `objects_base` so `rebuild_instances` rebases it too):
 
 ```rust
-        // one reserved identity row for the gumball (57) — rides 33/34c's rebase like a line row
+        // one reserved row for the gumball (57) — rides 33/34c's rebase like a line row
         let mut objects_base = objects_base;
         let gb_row = objects_base.len() as u32;
         objects_base.push((Xform::identity(), [1.0, 1.0, 1.0, 1.0], 0));
+```
+
+**The same reservation must re-run in `set_scene`** (35): it replaces `objects_base` wholesale on
+every streamed file, which silently drops the reserved row and leaves `gb_row` dangling past the new
+end — the next `place_gumball` would index out of bounds (or worse, repaint a scene row). Right
+after `set_scene`'s `objects_base` assignment, before its instances rebuild:
+
+```rust
+        // re-reserve the gumball row — set_scene just replaced objects_base wholesale
+        self.gb_row = self.objects_base.len() as u32;
+        self.objects_base.push((Xform::identity(), [1.0, 1.0, 1.0, 1.0], 0));
 ```
 
 ## Step 5 — verify
@@ -330,25 +379,31 @@ cd session_viewer && trunk serve   # http://localhost:8770
   (three colored + white center).
 - Orbit until geometry passes *through* the widget → the gumball stays fully visible (the cleared
   depth), but its own near parts still occlude its far parts.
-- It's tiny far away and huge up close — correct, and exactly what 53 fixes next.
+- It's tiny far away and huge up close — correct, and exactly what 58 fixes next.
 
 ## Recap
 
 ```
 Ch 56: undo — every mutation is a Command. Phase 8 done.
 Ch 57: GUMBALL GEOMETRY. HandleKind = the id everything keys on (4 translate/rotate/scale groups,
-       10 handles). build(origin, scale, row) emits tagged CylinderSegment/GlyphPoint rows — NO new
-       pipelines: shafts/arcs are 31 segments (positive radius = world-mm, immune to the thickness
-       slider; fat last segment ≈ cone tip, real cone = one shader line later), spheres are 32
-       glyphs. Archive constants: ARROW 150/18, ARC 150 on the NEGATIVE side (no overlap with
-       arrows), spheres 8 at −arc/2 + white center. Drawn LAST in an overlay pass: color Load, depth
-       CLEAR(0.0 — reverse-Z) → floats over the scene, self-occludes correctly. Anchor =
+       10 handles). build(origin, scale, row) emits tagged CylinderSegment/GlyphPoint rows —
+       GUMBALL-LOCAL around [0,0,0]: the reserved row's MODEL carries the world position
+       (place_gumball: true model into objects_base + one rebased live-instance poke — f64
+       subtract, f32 cast last, §5b; absolute-world f32 geometry swims at ~1e6 mm). The row is
+       reserved in Gpu::new AND re-reserved in set_scene, which replaces objects_base wholesale.
+       NO new pipelines: shafts/arcs are 31 segments (positive radius = world-mm, immune to the
+       thickness slider; fat last segment ≈ cone tip, real cone = one shader line later), spheres
+       are 32 glyphs. Archive constants: ARROW 150/18, ARC 150 on the NEGATIVE side (no overlap
+       with arrows), spheres 8 at −arc/2 + white center. Drawn LAST in an overlay pass: color Load,
+       depth CLEAR(0.0 — reverse-Z), re-resolve of msaa_view → must precede 52's egui pass →
+       floats over the scene, self-occludes correctly. Anchor =
        selection_centroid from world-box CENTERS (archive bug: anchors put a cylinder's gumball at
        its base). Rebuilt on every selection change.
 ```
 
 Edited: `engine/gumball.rs` (NEW — `HandleKind`, constants, `build`), `engine/gpu/mod.rs` (gumball
-buffers + overlay pass), `app/scene.rs` (`selection_centroid`), `state.rs` (`refresh_gumball`).
+buffers + overlay pass, `place_gumball`, `gb_row` reserved in `Gpu::new` and re-reserved in
+`set_scene`), `app/scene.rs` (`selection_centroid`), `state.rs` (`refresh_gumball`).
 
 ## Next
 

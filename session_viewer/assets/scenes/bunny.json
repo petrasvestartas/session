@@ -1,12 +1,12 @@
 {
   "name": "bunny — mesh stress + pen reference",
-  "comment": "The Stanford bunny at full resolution (35,947 v / 69,451 tri) next to colors_widths, so a stress mesh and a known pen sit in one frame and the line lanes can be judged against each other. Measured release-native: 17.2 MB .pb -> 7.7 MB of GPU tables (1.4 verts + 0.8 indices + 4.0 edges + 1.6 markers) and ~122 MB resident above an empty scene, about 3.4 KB per vertex - the halfedge, not the render data. Under MESH_RAW_MIN (200k verts) so it keeps its wireframe and its vertex markers; armadillo and dragon in meshes.json are above it and draw faces only. The bunny is 0.156 units across natively, so the xform scales it to ~2 m; translation lives in slots 12-14, column-major. The Stanford models are authored Y-UP and this viewer is Z-up, so the scale carries a +90 deg rotation about X (column 1 becomes +Z, column 2 becomes -Y) - without it the bunny lies on its side.",
+  "comment": "The Stanford bunny at full resolution (35,947 v / 69,451 tri) next to colors_widths, so a stress mesh and a known pen sit in one frame and the line lanes can be judged against each other. Measured release-native: 12.2 MB .pb -> 7.7 MB of GPU tables (1.4 verts + 0.8 indices + 4.0 edges + 1.6 markers) and ~93 MB resident above an empty scene, about 2.6 KB per vertex - the halfedge, not the render data. mesh_bunny_grey.pb is the same mesh repainted to one object colour; the original mesh_bunny.pb carries 35,947 vertex + 69,451 face + 104,288 edge colours. Under MESH_RAW_MIN (200k verts) so it keeps its wireframe and its vertex markers; armadillo and dragon in meshes.json are above it and draw faces only. The bunny is 0.156 units across natively, so the xform scales it to ~2 m; translation lives in slots 12-14, column-major. The Stanford models are authored Y-UP and this viewer is Z-up, so the scale carries a +90 deg rotation about X (column 1 becomes +Z, column 2 becomes -Y) - without it the bunny lies on its side.",
 
   "items": [
     { "file": "pb/colors_widths.pb", "name": "3 boxes + polyline + point (pen reference)",
       "at": [0, 0, 0] },
 
-    { "file": "pb/mesh_bunny.pb", "name": "bunny  (35,947 v / 69,451 tri)",
+    { "file": "pb/mesh_bunny_grey.pb", "name": "bunny  (35,947 v / 69,451 tri)",
       "xform": [12845,0,0,0,  0,0,12845,0,  0,-12845,0,0,  3000,0,600,1] }
   ]
 }

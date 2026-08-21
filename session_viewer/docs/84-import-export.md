@@ -53,13 +53,19 @@ and insert directly below it (plus
 
 ```rust
     if url.ends_with(".obj") {
-        // an OBJ is one mesh, not a document — wrap it in a fresh Session. OBJ files are
-        // small text; the arm stays synchronous, like .json (the 25k slicing is for .pb).
+        // an OBJ is one mesh, not a document — wrap it in a fresh Session.
         let mut s = Session::default();
         s.add_mesh(read_file_obj_from_str(&String::from_utf8_lossy(bytes)), None);
         return s;
     }
 ```
+
+One honesty fix to the comment that used to live in that arm — *"OBJ files are small text, the arm
+stays synchronous"* is wrong often enough to matter: 100 MB OBJs exist (scans, exported meshes), and
+a synchronous multi-second parse pins the one wasm thread — no preemption, the tab freezes (28's
+budget rule). The kernel reader is a line loop, so when a big OBJ shows up, slice the parse exactly
+like 35's `.pb` converter (N lines, `yield_now().await`, repeat). Until then the arm is honest for
+the megabyte-scale OBJs this course ships.
 
 That alone makes an `.obj` a **manifest citizen** — placement included:
 
@@ -104,27 +110,41 @@ use wasm_bindgen::JsCast;
 /// New ground like 34a's fetch: verified against web-sys 0.3, wants a click-through.
 pub fn open_file_dialog(done: impl Fn(String, Vec<u8>) + 'static) {
     let done = Rc::new(done);
-    let document = web_sys::window().unwrap().document().unwrap();
-    let input: web_sys::HtmlInputElement =
-        document.create_element("input").unwrap().dyn_into().unwrap();
+    // DOM boundary — no unwraps (ARCHITECTURE §3): any failure here logs and no-ops
+    let Some(document) = web_sys::window().and_then(|w| w.document()) else {
+        log::warn!("open_file_dialog: no window/document"); return;
+    };
+    let Some(input) = document.create_element("input").ok()
+        .and_then(|e| e.dyn_into::<web_sys::HtmlInputElement>().ok()) else {
+        log::warn!("open_file_dialog: <input> unavailable"); return;
+    };
     input.set_type("file");
     input.set_accept(".pb,.json,.obj");
+    if let Some(body) = document.body() { let _ = body.append_child(&input); }
     let input2 = input.clone();
     let onchange = wasm_bindgen::closure::Closure::wrap(Box::new(move || {
         if let Some(file) = input2.files().and_then(|l| l.get(0)) {
             let name = file.name();
             let done = done.clone();        // clone the Rc handle for the async frame
             wasm_bindgen_futures::spawn_local(async move {
-                let buf = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await.unwrap();
-                done(name, js_sys::Uint8Array::new(&buf).to_vec());
+                match wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await {
+                    Ok(buf) => done(name, js_sys::Uint8Array::new(&buf).to_vec()),
+                    Err(e) => log::warn!("open: read failed: {e:?}"),   // loud, not unwrap
+                }
             });
         }
+        input2.remove();   // one open = one element; don't leak a DOM node per click
     }) as Box<dyn Fn()>);
     input.set_onchange(Some(onchange.as_ref().unchecked_ref()));
     onchange.forget();                      // the closure lives as long as the input does
     input.click();
 }
 ```
+
+(The element now gets appended so the callback's `remove()` is real — an un-appended input would
+make `remove()` a no-op and the leak cosmetic-only. `forget()` still leaks one *closure* per
+`open` — a few dozen bytes per click; the zero-leak shape is one lazily-created static input reused
+across opens. Noted, not built.)
 
 **Delivery is a `Msg`, like every other file.** The parse is *async* now (35's sliced converter),
 so `done` cannot parse inline — it spawns the parse and sends the result to the event loop, exactly
@@ -151,6 +171,12 @@ The `open` verb (`src/app/commands.rs`, one more arm in `dispatch`; add `"open"`
                 wasm_bindgen_futures::spawn_local(async move {
                     let session = crate::app::persistence::session_from_bytes_chunked(
                         &name, &bytes).await;
+                    // a refusing arm (STEP, Step 4) comes back EMPTY — don't append an empty
+                    // doc: it would sit in the tree (75) looking like a successful load
+                    if session.lookup.is_empty() {
+                        log::warn!("open: nothing loaded from {name}");
+                        return;
+                    }
                     let _ = proxy.send_event(crate::Msg::File(
                         name, session, session_rust::Xform::identity()));
                 });
@@ -174,7 +200,9 @@ The mirror, riding 44's download machinery. There is no "the session" anymore �
 ```rust
         "export" => match parts.next() {
             Some("obj") => {
-                // one mesh per file; the selection's first mesh (or the scene's first mesh)
+                // one mesh per file; the selection's first mesh — and ONLY the selection's:
+                // no silent fallback to the scene's first mesh (exporting an object the user
+                // didn't choose is worse than refusing)
                 let Some(m) = state.scene.first_selected_mesh() else {
                     return Dispatch::Instant("select a mesh to export".into());
                 };
@@ -207,20 +235,19 @@ The mirror, riding 44's download machinery. There is no "the session" anymore �
 would lock the whole struct; cloning the `Rc` is a refcount bump):
 
 ```rust
-    /// First selected Mesh, else the scene's first mesh — `export obj`'s subject.
-    /// Returns the Rc HANDLE (cheap clone) so the caller isn't borrowing the Scene.
+    /// First selected Mesh — `export obj`'s subject. Returns the Rc HANDLE (cheap clone) so the
+    /// caller isn't borrowing the Scene. No selection → None: the caller REFUSES, it doesn't go
+    /// fishing for an arbitrary mesh.
     pub fn first_selected_mesh(&self) -> Option<Rc<Mesh>> {
         self.selected.iter()
-            .filter_map(|g| {
-                let &row = self.guid_to_row.get(g)?;
+            .filter_map(|&row| {
+                let g = &self.order[row as usize];          // selection is row-keyed (50)
                 match self.docs[self.doc_of_row(row)].session.lookup.get(g) {
                     Some(Geometry::Mesh(m)) => Some(Rc::clone(m)),
                     _ => None,
                 }
             })
             .next()
-            .or_else(|| self.docs.iter()
-                .find_map(|d| d.session.objects.meshes.first().map(Rc::clone)))
     }
 ```
 
@@ -248,7 +275,10 @@ map:
   `session_rust::file_step`, so the wasm viewer cannot parse STEP no matter what we wire. That's
   **kernel-gap #11**: port the codec C++ → Rust/Python (C++ is ground truth; the reader/writer
   logic is substantial — a real project, not an afternoon). The dispatch arm fails loudly rather
-  than silently: in `session_from_bytes_chunked`, insert below Step 1's `.obj` arm:
+  than silently — the log line says why, and the empty Session it returns is exactly what Step 2's
+  guard drops instead of appending (no phantom empty doc in the tree; 35's manifest loader should
+  skip an empty session at its `add_file` call site the same way). In
+  `session_from_bytes_chunked`, insert below Step 1's `.obj` arm:
 
 ```rust
     if url.ends_with(".step") || url.ends_with(".stp") {
@@ -267,8 +297,10 @@ compare — no browser, no GPU, just `cargo test`.
 cd session_viewer && trunk serve   # http://127.0.0.1:8770
 ```
 
-- Add `{ "file": "bunny.obj", "at": [3400, 0, 0] }` to the manifest (the Stanford bunny ships as
-  the kernel's own fixture, `session_rust/session_data/bunny.obj`) → it streams in placed, shaded,
+- Add `{ "file": "bunny.obj", "at": [3400, 0, 0] }` to the manifest — the Stanford bunny ships as
+  the kernel's own fixture (`session_rust/session_data/bunny.obj`), but manifest paths resolve
+  against the **assets root**, so copy it there first (`cp` it to `assets/bunny.obj`; the browser
+  can't reach the source tree — 88's native selftest can). It streams in placed, shaded,
   edged, pickable — a first-class citizen, because it entered as a `Session` like everything else.
 - `open`, pick any `.obj` → same result, appended as a new doc, log `loaded …`.
 - Draw a box, select it, `export obj` → the download opens in Blender/Rhino/FreeCAD with the same

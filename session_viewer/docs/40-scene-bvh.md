@@ -8,11 +8,11 @@
 
 `Scene` (35) has a fixed, ordered object list — global rows appended per document by `add_file`.
 Two lessons ahead need the same question answered fast: **which objects fall inside this box?** —
-picking (42: box = a thin sliver around the ray) and box-select (45: box = the drag rectangle's
+picking (47: box = a thin sliver around the ray) and box-select (50: box = the drag rectangle's
 sub-frustum). Both do a *per-object* test (ray↔triangle, point-in-frustum) that is far too
 expensive to run N times, so they can't afford to scan all ten sheets' objects. So `Scene` gains
 one spatial index — an AABB **BVH** — and they query it for a short candidate list instead.
-(Frustum culling, 37, turns out to ship a linear scan — it must touch every object's flag anyway —
+(Frustum culling, 41, turns out to ship a linear scan — it must touch every object's flag anyway —
 so it *doesn't* need the tree; the same index could still accelerate it at extreme scale. Building
 it once, here, means all of them share it.)
 
@@ -37,7 +37,7 @@ flag — the archive viewer (`session_viewer_archive`) leaned on exactly that ca
 `invalidate_bvh_cache()` after every edit. That was enough there because the archive was a
 single-document app. This viewer is multi-document by design: one tree per session would mean
 querying N trees and merging, each blind to its manifest `place`. One scene-level tree, placed
-boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 52's
+boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 47's
 narrow-phase `ray_cast`.)
 
 This lesson also names that frame once and for all, because half the remaining course needs it:
@@ -61,7 +61,9 @@ This lesson also names that frame once and for all, because half the remaining c
 ```
 
 (Read them now, type them in Step 3 — `doc_of_row` reads a `doc_rows` field that Step 2 adds
-first.)
+first. One guard to know about: `Err(i) => i - 1` underflows on an EMPTY `doc_rows` — a query
+before the first `add_file` — which no caller can hit today, since rows only exist once a doc
+pushed its first row. Make it `i.saturating_sub(1)` if that ever changes.)
 
 <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="per-row world boxes are built by Scene::add_file from the row's placed frame and fed to the kernel SpatialBVH, whose query_aabb serves picking and box-select" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="10" y="18" fill="#888">Scene::add_file — one world box per row (placed frame applied)</text>
@@ -78,7 +80,7 @@ first.)
   <text x="291" y="112" fill="#555" text-anchor="middle" font-size="10">query_aabb(OBB) → object_ids == rows</text>
   <g stroke="#6fb3ff" stroke-width="1.3"><line x1="366" y1="73" x2="440" y2="45" marker-end="url(#ah36)"/><line x1="366" y1="73" x2="440" y2="73" marker-end="url(#ah36)"/><line x1="366" y1="73" x2="440" y2="101" marker-end="url(#ah36)"/></g>
   <g fill="none" stroke="#3a3a3a"><rect x="442" y="32" width="220" height="26"/><rect x="442" y="60" width="220" height="26"/><rect x="442" y="88" width="220" height="26"/></g>
-  <g fill="#d7dae0"><text x="452" y="49">42 picking — box = ray sliver</text><text x="452" y="77">45 box-select — box = drag frustum</text><text x="452" y="105" fill="#888">(37 frustum cull — linear; tree optional)</text></g>
+  <g fill="#d7dae0"><text x="452" y="49">47 picking — box = ray sliver</text><text x="452" y="77">50 box-select — box = drag frustum</text><text x="452" y="105" fill="#888">(41 frustum cull — linear; tree optional)</text></g>
   <text x="10" y="140" fill="#666">one tree, appended per doc; picking &amp; box-select query it instead of scanning N objects.</text>
   <defs><marker id="ah36" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
 </svg>
@@ -239,8 +241,10 @@ closing brace (still ABOVE the `}` that closes the impl):
 
 ```rust
     /// Rebuild the whole tree from the cached extents — called once per appended file (LBVH
-    /// build: O(n) after the Morton radix sort). A later lesson (43) refits incrementally on
-    /// edit instead. Boxes go in ROW order → object_id == row == index into `order`.
+    /// build: O(n) after the Morton radix sort). 43b's reconcile calls this SAME wholesale
+    /// rebuild after applying a diff — the per-row extents cache is what keeps that cheap; a
+    /// true incremental refit stays future work. Boxes go in ROW order → object_id == row ==
+    /// index into `order`.
     fn rebuild_bvh(&mut self) {
         let boxes: Vec<(OBB, String)> = self.world_boxes.iter().zip(&self.order)
             .map(|((lo, hi), guid)| {
@@ -258,16 +262,22 @@ closing brace (still ABOVE the `}` that closes the impl):
 the same box. Zero inflate is right here: the pad already went in when `world_obb` filled the
 cache entry.)
 
+> **The boxes go stale when a row moves.** Any lesson that transforms an object in place —
+> 43b's reconcile, later the gumball drags (59–61) — must write the row's new world box into
+> `world_boxes[row]` and call `rebuild_bvh()` as part of its commit, or picks and marquee
+> queries keep seeing the old geometry. The tree and the extents cache are only as fresh as the
+> last writer.
+
 ## Step 3 — the query every later lesson calls: `src/app/scene.rs`
 
 Three methods, all going in the same place: inside `impl Scene`, below the `rebuild_bvh` you just
 added. First type in `placed_frame` and `doc_of_row` exactly as they were printed near the top of
 this lesson (the `doc_rows` field they read exists as of Step 2). Then, below them, the query
-42/45 build on — those two lessons differ only in the box they pass:
+47/50 build on — those two lessons differ only in the box they pass:
 
 ```rust
     /// Rows whose world box intersects `query` — the broad-phase. Callers narrow further
-    /// (42 does ray↔triangle, 45 tests the marquee frustum) on this short list, not all N.
+    /// (47 does ray↔triangle, 50 tests the marquee frustum) on this short list, not all N.
     /// A row maps to its guid via `order[row]` and to its doc via `doc_of_row(row)`.
     pub fn objects_in(&self, query: &OBB) -> Vec<u32> {
         self.bvh.query_aabb(query)
@@ -362,7 +372,7 @@ Ch 40: Scene gains ONE broad-phase — the kernel's SpatialBVH (reused, not rewr
        kinds (35's walk rows them all), no geometry placement to consult because none exists. Boxes append with the rows in
        add_file (extents cached once per append), the tree rebuilds per file (milliseconds), and
        queries return ROWS — unambiguous across docs, straight into flags/instances/order.
-       objects_in(OBB) → rows is the one call picking (42, ray sliver) and box-select (45,
+       objects_in(OBB) → rows is the one call picking (47, ray sliver) and box-select (50,
        marquee) narrow from; 41's frustum cull stays a linear scan over the extents cache. A
        #[cfg(test)] proves tree == brute force AND that placement lands in the boxes.
        Zero visual change — infrastructure for the lessons that query it.

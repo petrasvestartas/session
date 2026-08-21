@@ -1,10 +1,10 @@
 # 52 egui overlay — the HUD and first settings
 
-> **Big picture.** *Phase 8 — the interface (47–51).* The locked design is **commands-only**: no
+> **Big picture.** *Phase 8 — the interface (52–56).* The locked design is **commands-only**: no
 > toolbar forest, a command line like Rhino's. Before the CLI can exist there must be a UI layer to
 > type into — that's egui, an immediate-mode GUI drawn as one extra render pass over the 3-D frame.
 > This lesson wires it in and pays rent immediately: the perf HUD graduates from the console to a
-> panel, and the first settings (grid, edges, projection, line thickness) become checkboxes. 48 puts
+> panel, and the first settings (grid, edges, projection, line thickness) become checkboxes. 53 puts
 > the command line in the same overlay.
 
 <svg viewBox="0 0 680 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="winit events go to egui first and are dropped if consumed; each frame the 3D pass renders, then the egui pass renders over it on the same encoder" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
@@ -65,6 +65,8 @@ pub struct UiState {
     pub draws: u32,
     pub drawn: u32,
     pub total: u32,
+    // 50's rubber band — Some((press, cursor)) in screen points while a marquee drag is live:
+    pub marquee: Option<((f32, f32), (f32, f32))>,
 }
 
 impl Shell {
@@ -101,6 +103,14 @@ pub fn build_ui(shell: &mut Shell, window: &winit::window::Window,
             ui.checkbox(&mut ui_state.ortho, "orthographic");
             ui.add(egui::Slider::new(&mut ui_state.thickness, 0.5..=6.0).text("line px"));
         });
+        // 50's rubber band, at last: one painter rect over everything while the drag is live.
+        if let Some((a, b)) = ui_state.marquee {
+            let rect = egui::Rect::from_two_pos(egui::pos2(a.0, a.1), egui::pos2(b.0, b.1));
+            ctx.layer_painter(egui::LayerId::new(
+                egui::Order::Foreground, egui::Id::new("marquee")))
+                .rect(rect, 0.0, egui::Color32::from_rgba_unmultiplied(111, 179, 255, 24),
+                      egui::Stroke::new(1.0, egui::Color32::from_rgb(111, 179, 255)));
+        }
     })
 }
 ```
@@ -131,6 +141,7 @@ values — the `ortho` flag is the inverse of the camera's `perspective`. One ca
             ortho: !camera.perspective,          // camera stores `perspective`; UI shows its inverse
             thickness: gpu.thickness,
             fps: 0.0, frame_ms: 0.0, draws: 0, drawn: 0, total: 0,
+            marquee: None,
         };
 ```
 
@@ -178,6 +189,20 @@ This ordering is the whole input contract: **egui first, 3-D second**. Every lat
 tree, numeric entry) rides on it for free. (lib.rs's `App` is an `ApplicationHandler<Msg>` — the
 `Ready`/`File` messages arrive through `user_event`, not here; 47 touches only `window_event`, so
 the two never collide.)
+
+One raw input must be tracked **above** that gate: the left button. egui can consume the release
+(clicking a panel), and a stale "down" would stick 50's marquee on screen — and later start a
+phantom gumball drag (61's gotcha #1). Add `pub lmb_down: bool` to `struct State` (init `false` in
+`State::new`), and in lib.rs insert **above** the `let resp = state.shell.state.on_window_event(…)`
+line:
+
+```rust
+        // raw button state — egui may consume the release, never let a stale press linger
+        if let winit::event::WindowEvent::MouseInput {
+            state: s, button: winit::event::MouseButton::Left, .. } = &event {
+            state.lmb_down = *s == winit::event::ElementState::Pressed;
+        }
+```
 
 ## Step 3 — the egui pass: `src/engine/gpu/mod.rs`
 
@@ -243,6 +268,19 @@ pub struct UiFrame<'a> {
 }
 ```
 
+> **Pass-ordering contract.** The egui pass draws onto the *resolved* `view` with `LoadOp::Load`
+> and no depth — so it must be the LAST thing on the encoder. Every 3-D pass precedes it, and any
+> later overlay pass that resolves MSAA into `view` (57's gumball: color Load on `msaa_view`,
+> resolve into `view`) must run *before* it too — a resolve after egui would blit the MSAA buffer
+> right over the UI. Encoder order is the whole guarantee; there is no depth test to save you.
+
+> **Perf note — don't format what hasn't changed.** The two HUD `format!`s (and the tessellation
+> after them) run every frame even on a static scene — small, but pure churn, and `format!` allocs.
+> The cheap gate: cache the two label strings in `UiState` and rebuild them only when the numbers
+> they show actually change (`draws`/`drawn`/`total`/`frame_ms` quantized to 0.01 ms) — build_ui
+> then does `ui.label(&ui_state.hud_line1)` and the allocs vanish from the steady state. 71 goes
+> the whole way: nothing changed → no UI build, no tessellation, no frame at all.
+
 ## Step 4 — the frame ties together: `src/state.rs`
 
 `render()` now: copy HUD numbers in → build the UI → **apply** the settings → tessellate → draw.
@@ -256,6 +294,12 @@ end of `render()` and replace it with:
         self.ui.draws = self.gpu.performance.last_draws;
         self.ui.drawn = self.gpu.perf_drawn;
         self.ui.total = self.gpu.perf_total;
+        // …and 50's rubber band: live while the left button is down past the click threshold
+        let (px, py) = self.drag_start;
+        let drag = (self.cursor.0 - px).hypot(self.cursor.1 - py);
+        self.ui.marquee = if self.lmb_down && drag >= 3.0 {
+            Some(((px as f32, py as f32), (self.cursor.0 as f32, self.cursor.1 as f32)))
+        } else { None };
 
         // 2. lay out; widgets mutate self.ui only
         let full_out = crate::ui::build_ui(&mut self.shell, &self.window, &mut self.ui);
@@ -316,17 +360,20 @@ Ch 51: visibility — Phase 7 closed; the scene is fully interactive but mute.
 Ch 52: EGUI OVERLAY. Shell { ctx, winit-state, wgpu-renderer } (archive wiring:
        Renderer::new(device, format, RendererOptions::default()), State::new(ctx,
        ViewportId::ROOT, window, …)). INPUT
-       CONTRACT: every winit event → egui first; consumed → the 3-D layer never sees it.
+       CONTRACT: every winit event → egui first; consumed → the 3-D layer never sees it (the ONE
+       exception: lmb_down is tracked raw, above the gate — egui can eat a release).
        FRAME: State copies HUD numbers into UiState → build_ui (widgets bind to the plain
        struct — NEVER mutate State inside the closure) → apply intent after → ctx.tessellate →
        Gpu draws a second pass on the SAME encoder, LoadOp::Load, no depth (UiFrame carries
-       renderer+tris+textures_delta; tessellation stays with the Context in Shell). First rent:
-       perf HUD panel; grid/edges/ortho checkboxes; thickness slider straight into 31's uniform.
+       renderer+tris+textures_delta; tessellation stays with the Context in Shell) — LAST on the
+       encoder, after any MSAA-resolving overlay (57's gumball). First rent:
+       perf HUD panel; grid/edges/ortho checkboxes; thickness slider straight into 31's uniform;
+       and 50's rubber band, painted as one Foreground-layer rect while lmb_down && drag ≥ 3 px.
 ```
 
-Edited: `ui/mod.rs` (NEW — `Shell`, `UiState`, `UiFrame`, `build_ui`), `lib.rs` (`mod ui;` +
-egui-first event routing), `state.rs` (shell + ui fields, the 4-step frame), `engine/gpu/mod.rs`
-(`clear(…, ui)` egui pass, `show_grid`/`show_edges` gates).
+Edited: `ui/mod.rs` (NEW — `Shell`, `UiState`, `UiFrame`, `build_ui`, the marquee rect), `lib.rs`
+(`mod ui;` + egui-first event routing + raw `lmb_down`), `state.rs` (shell + ui fields, the 4-step
+frame, marquee feed), `engine/gpu/mod.rs` (`clear(…, ui)` egui pass, `show_grid`/`show_edges` gates).
 
 ## Next
 

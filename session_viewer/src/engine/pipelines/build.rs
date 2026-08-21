@@ -30,7 +30,7 @@ fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
 }
 
 /// Vertex-buffer layout for the unit-cylinder/-sphere template positions (`@location(0)`, one `vec3<f32>`).
-fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
+pub fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
     wgpu::VertexBufferLayout {
         array_stride: 12, // one vec3<f32> per templete vertex
         step_mode: wgpu::VertexStepMode::Vertex,
@@ -441,12 +441,10 @@ pub fn build_sphere_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState{
             format: wgpu::TextureFormat::Depth32Float,
-            // In front of the marker's OWN ink, occluded by everything genuinely nearer - and
-            // NOT the other way round: a back-corner dot showing through the solid reads as a
-            // live vertex where there is none. The win at the joint comes from the shader: the
-            // hug puts the disc at the same face+eps the bands wrote, and SPHERE_TIE tips that
-            // tie to the marker - so plain Greater (strict) is enough and stays honest.
-            depth_write_enabled: Some(true),
+            // Depth comes from the sphere_depth PREPASS (binary at half coverage); this blended
+            // colour pass must not write it - a semi-transparent rim pixel that wrote depth
+            // would reject the next stroke's opaque core and leave a pale fleck.
+            depth_write_enabled: Some(false),
             // GreaterEqual, not Greater. The marker draws AFTER the bands (see encode_frame), so a
             // tie has to fall to the marker for it to keep the rim a band cap overlaps; with a
             // strict compare the band, already written at the same depth, would hold the pixel.
@@ -541,6 +539,8 @@ pub fn build_ink_depth_pipeline(
     line_layout: &wgpu::BindGroupLayout,
     instance_layout: &wgpu::BindGroupLayout,
     table_layout: &wgpu::BindGroupLayout,
+    vertex_buffers: &[wgpu::VertexBufferLayout],
+    topology: wgpu::PrimitiveTopology,
 ) -> wgpu::RenderPipeline {
 
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some(label), source });
@@ -561,7 +561,7 @@ pub fn build_ink_depth_pipeline(
         vertex: wgpu::VertexState{
             module: &shader,
             entry_point: Some("vs_main"),
-            buffers: &[],
+            buffers: vertex_buffers,
             compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {
@@ -578,7 +578,7 @@ pub fn build_ink_depth_pipeline(
             compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
+            topology,
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: None,
@@ -653,7 +653,7 @@ pub fn build_ribbon_solid_pipeline(
             compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
+            topology: wgpu::PrimitiveTopology::TriangleStrip, // 4 verts/quad, one instance/segment
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: None,
@@ -663,7 +663,11 @@ pub fn build_ribbon_solid_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true), // solid lane: an edge occludes what is behind it
+            // Depth comes from the ribbon_solid_depth PREPASS (binary at half coverage, same
+            // fs_depth the free lane uses); the blended colour pass must not write it - a
+            // feather pixel that wrote depth would reject a later stroke's opaque core there
+            // and leave a pale fleck inside the wireframe (measured on the bunny).
+            depth_write_enabled: Some(false),
             // GreaterEqual, NOT Greater. A mesh edge is EXACTLY on the boundary of the two faces
             // that meet there, so the ribbon and the face are at the same depth; strict Greater
             // discards the line and float precision then decides which pixels survive, which is
@@ -727,7 +731,7 @@ pub fn build_ribbon_pipeline(
             compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleList,
+            topology: wgpu::PrimitiveTopology::TriangleStrip, // 4 verts/quad, one instance/segment
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: None,

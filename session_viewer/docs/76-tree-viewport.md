@@ -36,7 +36,7 @@ src/state.rs     # pick success → reveal(guid); double-click in the tree → z
 
 ## Step 1 — expand the ancestors: `src/state.rs`
 
-On a successful viewport pick (42/49's `pick_ray`, right after the selection update in 50's click
+On a successful viewport pick (47/49's `pick_ray`, right after the selection update in 50's click
 handler), walk the picked node's parent chain and add every ancestor to `tree_expanded`:
 
 ```rust
@@ -44,16 +44,20 @@ handler), walk the picked node's parent chain and add every ancestor to `tree_ex
     fn reveal_in_tree(&mut self, guid: &str) {
         // Multi-doc (35): find the Doc that owns this object first, then search ITS tree.
         // The object guid is the tree node's NAME, not its uuid → get_node_by_name.
-        if let Some(doc) = self.scene.docs.iter().find(|d| d.session.lookup.contains_key(guid)) {
+        if let Some((d, doc)) = self.scene.docs.iter().enumerate()
+                .find(|(_, doc)| doc.session.lookup.contains_key(guid)) {
+            // the panel has N roots, one per Doc — open the owning doc's top-level row too
+            self.ui.tree_expanded.insert(format!("doc:{d}"));
             if let Some(node) = doc.session.tree.get_node_by_name(guid) {
                 // ancestors(): the kernel's TreeNode accessor — immediate parent up to root
                 for a in node.borrow().ancestors() {
                     self.ui.tree_expanded.insert(a.borrow().guid().to_string());
                 }
             }
+            self.ui.expansion_gen += 1;   // invalidate 75's flatten cache
         }
         self.ui.tree_scroll_to = Some(guid.to_string());   // consumed by the panel next frame
-        self.poke();                                       // 66 — the tree must redraw
+        self.poke();                                       // 71 — the tree must redraw
     }
 ```
 
@@ -62,10 +66,10 @@ already `upgrade()`s the internal `Weak` parent link for you — never touch the
 directly. The lookup trap: for geometry nodes the object's GUID is stored as the node's **name**
 (`tree.rs`), so the object-keyed lookup is `Tree::get_node_by_name` — `find_node_by_guid` matches the
 nodes' *own* uuids and returns `None` for an object guid. And since 35 there is one `Session` per
-`Doc`, so the owning doc must be found first. Also insert that doc's own top-level row key into
-`tree_expanded` — the panel has N roots, one per `Doc`, and an expanded ancestor chain inside a
-collapsed doc root is still invisible. If a picked object has no tree node — a top-level nurbs row
-from 70 — `ancestors()` is empty and only the scroll fires.)
+`Doc`, so the owning doc must be found first — and its own top-level row key (`doc:N`) inserted
+into `tree_expanded` (the snippet does both): the panel has N roots, one per `Doc`, and an expanded
+ancestor chain inside a collapsed doc root is still invisible. If a picked object has no tree node
+— a top-level nurbs row from 69 — `ancestors()` is empty and only the scroll fires.)
 
 ## Step 2 — scroll to the row: `src/ui/tree.rs`
 
@@ -73,8 +77,8 @@ The scroll request is *input* to the panel (State → panel), so it can't ride o
 (that flows panel → State). Give `tree_panel` one more parameter — extend 75's signature with
 `scroll_to: &mut Option<String>` — and at the call site (in `ui/mod.rs`) pass `&mut self.ui.tree_scroll_to`.
 **That is the bridge**: Step 1's `ui.tree_scroll_to` field and this `scroll_to` param are the same
-one-shot slot. (If 70 didn't add it: `tree_scroll_to: Option<String>` is a field on the tree UI state,
-init `None`.)
+one-shot slot. (If 75's wiring didn't add it: `tree_scroll_to: Option<String>` is a field on the
+tree UI state, init `None`.)
 
 ```rust
 pub fn tree_panel(ui: &mut egui::Ui, rows: &[Row], scene_sel: &HashSet<String>,
@@ -89,7 +93,8 @@ from 75's Step 2 and replace it with this):
 
 ```rust
     // inside tree_panel, before show_rows:
-    let scroll_target = scroll_to.take().and_then(|g| rows.iter().position(|r| r.guid == g));
+    let scroll_target = scroll_to.take()
+        .and_then(|g| rows.iter().position(|r| r.guid.as_deref() == Some(g.as_str())));
     let mut area = egui::ScrollArea::vertical();
     if let Some(ix) = scroll_target {
         // ~3 rows of context above
@@ -99,8 +104,9 @@ from 75's Step 2 and replace it with this):
 ```
 
 Order matters within the frame: `flatten` runs *after* Step 1's expansions landed in
-`tree_expanded`, so the target row exists in `rows` by the time we look for its index. (Both happen
-in the same `State` before `build_ui` — the data flow 47 set up already guarantees it.)
+`tree_expanded` (and bumped `expansion_gen`, so the cache rebuilds), so the target row exists in
+`rows` by the time we look for its index. (Both happen
+in the same `State` before `build_ui` — the data flow 52 set up already guarantees it.)
 
 ## Step 3 — double-click zooms: `src/ui/tree.rs` + `src/state.rs`
 
@@ -110,8 +116,8 @@ problem mirrored. Zoom *is* a genuine intent (panel → State), so it rides on 7
 row → frame it:
 
 ```rust
-    // in the row: if ui.selectable_label(selected, &row.name).double_clicked()
-    //     { out.zoom_to = Some(row.guid.clone()); }
+    // in the row: if row.guid.is_some() && ui.selectable_label(selected, &row.name).double_clicked()
+    //     { out.zoom_to = row.guid.clone(); }
 
     // in the drain: zoom = the object's world box through 15's fit —
     if let Some(g) = intent.zoom_to {
@@ -159,5 +165,5 @@ zoom-to drain).
 ## Next
 
 `77-text-labels.md` — names in the 3-D view itself: billboarded text from a glyph atlas, readable at
-every angle, one draw call for all labels — the archive's `text.rs` recipe on 31/32's instancing
+every angle, one draw call for all labels — the archive's `text.rs` recipe on 29/30's instancing
 bones.

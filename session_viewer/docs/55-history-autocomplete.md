@@ -23,7 +23,7 @@ tables feeds both — the `match` now consults `ALIASES` first, so a name exists
 pub const VERBS: &[&str] = &["hide", "show", "zoom", "probe", "help"];
 
 /// alias → canonical. Dispatch resolves through this BEFORE matching, so `match` arms only
-/// ever name canonical verbs (drop the `| "h"`-style patterns from 48).
+/// ever name canonical verbs (drop the `| "h"`-style patterns from 53).
 pub const ALIASES: &[(&str, &str)] = &[("h", "hide"), ("z", "zoom"), ("fit", "zoom"), ("f", "zoom"), ("?", "help")];
 
 pub fn resolve(verb: &str) -> &str {
@@ -41,7 +41,7 @@ Because `verb` is now always canonical, strip the alias patterns from every arm 
 match arm in `dispatch` and drop the `| "…"` alternatives, e.g.:
 
 ```rust
-    // 48:                          →  now:
+    // 53:                          →  now:
     "hide" | "h" => …                  "hide" => …
     "zoom" | "z" | "fit" | "f" => …    "zoom" => …
     "help" | "?" => …                  "help" => …
@@ -49,7 +49,9 @@ match arm in `dispatch` and drop the `| "…"` alternatives, e.g.:
 
 ## Step 2 — history: `src/state.rs`
 
-`run_command` records every non-empty line; the CLI walks the record:
+`run_command` records every non-empty line; the CLI walks the record. Two guards keep the record
+honest: consecutive duplicates collapse (running `zoom` ten times is one entry), and the vec is
+capped — a long session must not grow it without bound:
 
 ```rust
     pub cli_history: Vec<String>,        // ← ADD to State (init empty in State::new)
@@ -57,7 +59,13 @@ match arm in `dispatch` and drop the `| "…"` alternatives, e.g.:
                                          //   `pub history: History` (undo stack) to this same struct.
 
     // first line of run_command:
-    if !line.trim().is_empty() { self.cli_history.push(line.to_string()); }
+    const CLI_HISTORY_MAX: usize = 500;   // cap: oldest fall off (one O(n) drain per 500 commands)
+    if !line.trim().is_empty() && self.cli_history.last().map_or(true, |l| l.as_str() != line) {
+        self.cli_history.push(line.to_string());
+        if self.cli_history.len() > CLI_HISTORY_MAX {
+            self.cli_history.drain(..self.cli_history.len() - CLI_HISTORY_MAX);
+        }
+    }
 ```
 
 ## Step 3 — ↑ / ↓ / Tab in the panel: `src/ui/cli.rs`
@@ -68,7 +76,7 @@ before the walk began:
 
 First, two new fields on `UiState` (find `pub input: String,` in `struct UiState` and add these
 after it; then add `hist_cursor: None, stash: String::new(),` to the `UiState { … }` literal in
-`State::new`, 47):
+`State::new`, 52):
 
 ```rust
     pub hist_cursor: Option<usize>,   // index into cli_history while walking; None = editing a fresh line
@@ -84,6 +92,15 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Opti
                  stash: &mut String, history: &[String], log: &str,
                  prompt: &str) -> Option<String> {
     let mut submitted = None;
+    // A recalled line must land with the cursor at its END — egui keeps the old position
+    // (start of line) after a programmatic replace, so walk the TextEditState explicitly.
+    let cursor_to_end = |ctx: &egui::Context, input: &String| {
+        let id = egui::Id::new("cli_input");
+        let mut st = egui::text_edit::TextEditState::load(ctx, id).unwrap_or_default();
+        st.cursor.set_char_range(Some(egui::text::CCursorRange::one(
+            egui::text::CCursor::new(input.chars().count()))));   // CHARS, not bytes
+        st.store(ctx, id);
+    };
     egui::TopBottomPanel::bottom("cli").show(ctx, |ui| {
         if !log.is_empty() { ui.label(log); }
 
@@ -100,15 +117,18 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Opti
             };
             *hist_cursor = Some(next);
             *input = history[next].clone();
+            cursor_to_end(ctx, input);
         }
         if down {
             match *hist_cursor {
                 Some(i) if i + 1 < history.len() => {
                     *hist_cursor = Some(i + 1);
                     *input = history[i + 1].clone();
+                    cursor_to_end(ctx, input);
                 }
                 // past the end → fresh line
-                Some(_) => { *hist_cursor = None; *input = std::mem::take(stash); }
+                Some(_) => { *hist_cursor = None; *input = std::mem::take(stash);
+                             cursor_to_end(ctx, input); }
                 None => {}
             }
         }
@@ -117,7 +137,7 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Opti
             let hits: Vec<&str> = crate::app::commands::VERBS.iter().copied()
                 .filter(|v| v.starts_with(input.as_str())).collect();
             match hits.len() {
-                1 => { *input = hits[0].to_string(); input.push(' '); }
+                1 => { *input = hits[0].to_string(); input.push(' '); cursor_to_end(ctx, input); }
                 // ambiguous ("h" → help/hide) or no match: leave the line as typed —
                 // the user types one more letter (see Verify)
                 _ => {}
@@ -126,7 +146,8 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Opti
 
         ui.horizontal(|ui| {
             ui.label(if prompt.is_empty() { ">" } else { prompt });
-            let r = ui.add(egui::TextEdit::singleline(input).desired_width(f32::INFINITY));
+            let r = ui.add(egui::TextEdit::singleline(input).id(egui::Id::new("cli_input"))
+                .desired_width(f32::INFINITY));
             if r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                 submitted = Some(std::mem::take(input));
                 *hist_cursor = None;                                   // a submit ends any walk
@@ -143,10 +164,10 @@ Inside 53's `build_ui` closure (where `cli_panel` is already called and its retu
 `stash` come from `ui_state`; the history record lives on `State`, so add a `cli_history: &[String]`
 parameter to `build_ui` **and** pass `&self.cli_history` at its call site in `render()` — the closure then
 borrows it (miss the call site → E0061; note the type is `&[String]`, not `&History` which doesn't exist
-until 51):
+until 56):
 
 ```rust
-        // in build_ui's closure — same pending_command drain as 48, wider cli_panel args:
+        // in build_ui's closure — same pending_command drain as 53, wider cli_panel args:
         let out = cli_panel(ctx, &mut ui_state.input, &mut ui_state.hist_cursor,
                             &mut ui_state.stash, cli_history, &ui_state.log, &ui_state.prompt);
         if let Some(line) = out { ui_state.pending_command = Some(line); }
@@ -155,9 +176,9 @@ until 51):
 > **Two egui realities worth knowing.** (1) `consume_key` *removes* the key event, so the TextEdit
 > built afterwards never sees it — that's the whole interception trick, and it's frame-order
 > dependent: intercept first, build second. (2) After programmatically replacing `input`, egui keeps
-> the old cursor position (start of line). The polish — jumping the cursor to the end via
-> `egui::text_edit::TextEditState::load / set_ccursor_range` — is real but noisy; add it once the
-> basics feel right. Recalled lines run fine either way.
+> the old cursor position (start of line) — which is why every recall above runs `cursor_to_end`:
+> `TextEditState::load` → `set_char_range` → `store` against the TextEdit's explicit
+> `Id::new("cli_input")`. The index is in CHARS (`chars().count()`), not bytes.
 
 ## Step 4 — verify
 
@@ -180,10 +201,12 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 54: options + multi-step — the conversation grammar.
 Ch 55: MUSCLE MEMORY. VERBS + ALIASES as const tables — one source of truth for dispatch (resolve()
        before the match), Tab-completion, and help. History: cli_history: Vec<String> on State
-       (named to dodge 56's undo `history`), pushed by run_command; the CLI walks it with ↑/↓ (cursor Option<usize>, live line stashed and restored
+       (named to dodge 56's undo `history`), pushed by run_command — capped at 500 entries,
+       consecutive duplicates collapsed; the CLI walks it with ↑/↓ (cursor Option<usize>, live line stashed and restored
        past the end). Tab prefix-completes canonical verbs, unique-match-only. egui gotchas: keys
        must be consume_key'd BEFORE the TextEdit is built (frame order), and programmatic input
-       replacement leaves the cursor at line start (TextEditState polish, optional).
+       replacement leaves the cursor at line start — every recall runs cursor_to_end
+       (TextEditState + set_char_range, CHAR index) against the field's explicit id.
 ```
 
 Edited: `app/commands.rs` (`VERBS`, `ALIASES`, `resolve`), `ui/cli.rs` (↑/↓ walk + stash, Tab

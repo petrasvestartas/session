@@ -143,3 +143,35 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 ## Notes
 - **73** and **77** were clean (no confirmed bugs, no followability blockers). **74** is a placeholder stub.
 - Verifier softened four items to non-critical impact — **45** (NaN, not a panic), **35** (full sentence still compiles), **58** (empty-buffer crash only if a reader hand-rolls `create_buffer_init` past the guard), **62** (recoverable from lesson 68).
+
+## 5. Fix pass 2026-08-21 (docs 40–90, current numbering)
+
+Sections 1–3 above use the **pre-rename** lesson numbering (audit "45" ≈ current doc 50, etc.).
+A second review + fix pass over the current docs 40–90 (quality / memory / realtime focus) landed
+the following. Fixed in place: all stale cross-reference numbering; 64's zoom-independent snap
+broad-phase; 47's BVH row-mapping after reconcile; 73's `normalize(0)` NaN on background pixels;
+74's deselect gating (now a truth table); 77's `bytes_per_row` 256-alignment + UTF-8 centering;
+43b's `reload` empty-fetch scene wipe + `Instance` literal (real struct has `extent`/`spacing`);
+57's `gb_row` invalidation + f32 world coords; 59's per-row `write_buffer` storm (now one batched
+dirty-range write) + double `rebuild_bvh`; 60's `ctx.base_models` compile error; 75's per-frame
+flatten (now cached) + `&name[..8]` panic; 79's collection-side mutation + missing world→local;
+85's per-copy BVH rebuilds; 89's no-`Content-Length` progress stall + fetch-error swallow;
+84's boundary `unwrap`s; 50's selection is now row-keyed (`HashSet<u32>`, propagated to
+75/84/85/86/87/88); undo/history/cache memory policies added to 55/56/65/66/79.
+
+Newly tracked (documented in the lessons, deliberately not built):
+- **83** — section-cut nearest-hit pick flaw: a mesh whose nearest intersection is clipped but a
+  farther one is visible reads as unpickable at that pixel. Fix = walk all ray hits; v1 keeps the
+  nearest-hit test.
+- **47/48** — `Geometry::Plane`/`OBB` draw as linework but have no pick arm in either lesson.
+- **66** — the pick arm reads `tess_cache` directly, so surfaces arriving via reconcile (not
+  `add_file`) are unpickable until the cache is warmed (68's `render_mesh` warms lazily).
+- **84** — the open dialog still leaks one `.forget()`ed closure per open; the static-input fix is
+  noted in the lesson, not built.
+- **Lane-struct layout drift (global, pre-existing):** docs 29–90 build lane rows as
+  `Instance{model,color,flags,_pad:[0;3]}` / `GlyphPoint{…,_pad:[u32;3]}` /
+  `CylinderSegment{color:[f32;4],…}`, while the real tree since 34h/35-part-2 has
+  `Instance{…,extent,spacing,_pad:u32}`, `GlyphPoint{…,facing,facing_ext}`,
+  `CylinderSegment{color:u32,facing}` (+ `unpack4x8unorm` in the shaders). 43b's `Instance`
+  literal was fixed to the real fields; the other literals remain the docs' internal convention —
+  unify when the lessons are implemented against the current tree.

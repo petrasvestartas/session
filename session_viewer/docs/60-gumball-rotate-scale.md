@@ -1,6 +1,6 @@
 # 60 Gumball IV — rotate and scale
 
-> **Big picture.** *Phase 9.* 54 built the whole drag skeleton — deferred press, live matrix path,
+> **Big picture.** *Phase 9.* 59 built the whole drag skeleton — deferred press, live matrix path,
 > Command commit. Rotate and scale add **only new delta math** into that skeleton: an arc drag
 > becomes an angle (ray–plane intersection + `atan2`), a sphere drag becomes a factor (distance
 > ratios). Scale is where naive math bites hardest — the archive shipped two specific damping fixes
@@ -71,10 +71,14 @@ pub fn arc_basis(k: HandleKind) -> (Vector, Vector, Vector) {
 ```
 
 The live delta is a rotation **about the axis line through the gumball origin** — the kernel has
-that in one call (`Xform::rotation_around_line(&line, ang, false)`, `false` = radians); Step 3's
-match arm builds it. Everything else — `set_live_model`, release, `TransformObjects`, undo — is
+that in one call: `Xform::rotation_around_line(&line, ang, /* degrees: */ false)`. Mind the third
+positional argument: it is a bare `bool` meaning **"the value is in degrees"** — `false` here
+because the drag math works in radians, and 61's typed entry passes `true`. A bool at a call site
+is a trap (nothing at the call says what it means, and the two lessons pass *opposite* values) —
+annotate it every single time, as above. Step 3's
+match arm builds it. Everything else — `set_live_models`, release, `TransformObjects`, undo — is
 59's code untouched. That's the skeleton paying off. (`state.rs` gains `Line` in its
-`session_rust` use for the axis-line constructor; `gumball.rs` needs nothing new — 54 already
+`session_rust` use for the axis-line constructor; `gumball.rs` needs nothing new — 59 already
 imported `Point`/`Vector`.)
 
 ## Step 2 — the scale delta, with the two archive fixes: `src/engine/gumball.rs`
@@ -135,11 +139,14 @@ spell it out.
 
 `begin_drag` and the mouse-move arm switch on the handle's group; each group stashes its own press
 reference (`t0` for translate/axis-scale, `a0` for rotate, `d0` for uniform scale) in `DragCtx`, and
-every group ends at the same two lines — `set_live_model` per object, `TransformObjects` on release.
+every group ends at the same two lines — 59's batched `set_live_models`, `TransformObjects` on
+release.
 
 **3a. The stash.** Add `a0: f64,` and `d0: f64,` to 59's `DragCtx` struct. In `begin_drag` (59),
 find the `let t0 = …unwrap_or(0.0);` line → insert after it (the `use HandleKind::*;` above it
-already covers these names):
+already covers these names). Like `t0`, these are PRESS references — 59's Step-1 aside is the why:
+every delta is measured from the press value, never from the previous frame, so mouse jitter and
+f64 round-off never compound, and the release commits exactly one delta.
 
 ```rust
         let (mut a0, mut d0) = (0.0, 0.0);
@@ -171,7 +178,7 @@ and add `a0, d0,` to the `DragCtx { … }` literal at the end of `begin_drag` (E
                                          view_plane_distance};
             use HandleKind::*;
             let delta = match ctx.handle {
-                TranslateX | TranslateY | TranslateZ =>                       // 54, unchanged math
+                TranslateX | TranslateY | TranslateZ =>                       // 59, unchanged math
                     closest_param_on_axis(&ray, &ctx.origin, &ctx.axis).map(|t| {
                         let dt = t - ctx.t0;
                         Xform::translation(ctx.axis[0]*dt, ctx.axis[1]*dt, ctx.axis[2]*dt)
@@ -182,7 +189,8 @@ and add `a0, d0,` to the `DragCtx { … }` literal at the end of `begin_drag` (E
                         let ang = now - ctx.a0;                               // radians since press
                         let axis_line = Line::from_points(&ctx.origin,
                                                           &(ctx.origin.clone() + n.clone()));
-                        Xform::rotation_around_line(&axis_line, ang, false)   // false = radians
+                        Xform::rotation_around_line(&axis_line, ang,
+                                                    /* degrees: */ false)
                     })
                 }
                 ScaleX | ScaleY | ScaleZ =>                                   // Step 2, one axis
@@ -204,16 +212,18 @@ and add `a0, d0,` to the `DragCtx { … }` literal at the end of `begin_drag` (E
                 }
             };
             if let Some(delta) = delta {
-                for (_, row, base) in &ctx.base_models {
-                    self.gpu.set_live_model(*row, &(&delta * base));          // 59's live path
-                }
+                // 59's batched live path: stage all rows into the scratch, ONE write_buffer
+                self.gb_edits.clear();
+                self.gb_edits.extend(ctx.before.iter().map(|s| (s.row, &delta * &s.placed)));
+                self.gpu.set_live_models(&self.gb_edits);
                 live_delta = Some(delta);
             }
         }
 ```
 
 (The `if let Some(delta) = live_delta { … }` stash + `refresh_gumball_at` lines after it are 59's,
-unchanged.)
+unchanged. So are 59's guards: the release's identity check skips no-op commits for every group,
+since all four funnel into the same `last_delta`.)
 
 The commit path does not change **at all** — the release still hands the final delta to 59's
 `Scene::apply_world_delta(row, &delta)`: one `session.set_xform` per object, no per-variant match,
@@ -226,7 +236,37 @@ delta is one `Xform` — exactly what `set_xform` stores — so rotate and scale
 old bake-the-thin-geometry days, not dearer. `label()` can read the group for nicer log lines
 (`rotate 3 object(s)`).
 
-## Step 4 — verify
+## Step 4 — pin the new math: `src/engine/gumball.rs`
+
+The two ratio functions and the axis param are exactly the kind of pure math that regresses
+silently — add to 58's `#[cfg(test)] mod tests`:
+
+```rust
+    #[test]
+    fn axis_param_is_press_relative_and_guarded() {
+        let o = Point::new(0.0, 0.0, 0.0);
+        // a ray crossing the X axis at x=3 → t = 3
+        let r = ray([3.0, -50.0, 0.0], [0.0, 1.0, 0.0]);
+        assert!((closest_param_on_axis(&r, &o, &Vector::x_axis()).unwrap() - 3.0).abs() < 1e-9);
+        // ray PARALLEL to the axis → None (the denom guard): the drag holds, no NaN delta
+        let par = ray([0.0, 5.0, 0.0], [1.0, 0.0, 0.0]);
+        assert!(closest_param_on_axis(&par, &o, &Vector::x_axis()).is_none());
+    }
+
+    #[test]
+    fn axis_scale_ratio_preserves_sign_and_damps() {
+        // the scale spheres sit on the NEGATIVE axis (57): press t is negative, and the
+        // sign-preserving clamp must not turn it into 1e-4 (that made first-frame ratios ~10⁴)
+        assert!(axis_scale_ratio(-150.0, -75.0) > 0.0);
+        // √-damped: a 4× raw ratio reads as 2×
+        assert!((axis_scale_ratio(300.0, 75.0) - 2.0).abs() < 1e-9);
+        // dragging THROUGH the origin keeps the sign negative — the 0.01 floor at the call
+        // site (Step 3b) is what stops the mirror flip
+        assert!(axis_scale_ratio(-10.0, 75.0) < 0.0);
+    }
+```
+
+## Step 5 — verify
 
 ```bash
 cd session_viewer && trunk serve   # http://localhost:8770
@@ -248,17 +288,22 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 59: translate — the drag skeleton (defer, live matrix, Command commit).
 Ch 60: ROTATE + SCALE = two delta functions on that skeleton. Rotate: ray ∩ arc plane (denom guard
-       when edge-on) → atan2(v·B, v·A) in the (i+1,i+2) basis 52 drew the arc in → rotation
-       about the gumball origin. Scale: distance ratios with the TWO archive fixes —
+       when edge-on) → atan2(v·B, v·A) in the (i+1,i+2) basis 57 drew the arc in → rotation
+       about the gumball origin (`rotation_around_line(…, /* degrees: */ false)` — a bare bool
+       meaning "degrees", annotate EVERY call; 61 passes true). Scale: distance ratios with the
+       TWO archive fixes —
        clamp_signed (spheres sit on the NEGATIVE axis; an unsigned clamp makes the first
        frame's ratio ~10⁴) and damped response (√ axis, ⁴√ uniform — the center sphere's press
-       distance is near zero) + a 0.01 floor so a drag can never zero or mirror.
+       distance is near zero) + a 0.01 floor so a drag can never zero or mirror — all pinned by
+       #[cfg(test)] (press-relative axis param, parallel-ray None, sign preservation, √ damping).
        scale_non_uniform(origin,…) scales about the anchor in one kernel call. Commit path
-       byte-identical to 54 — absolute snapshots don't care what moved.
+       byte-identical to 59 — absolute snapshots don't care what moved, and the live path is the
+       same batched set_live_models.
 ```
 
 Edited: `engine/gumball.rs` (`angle_on_arc_plane`, `clamp_signed`, `axis_scale_ratio`,
-`uniform_scale_ratio`), `state.rs` (per-group `begin_drag` stash + delta dispatch).
+`uniform_scale_ratio`, `view_plane_distance`, `arc_basis`, more `#[cfg(test)]`s), `state.rs`
+(per-group `begin_drag` stash + delta dispatch).
 
 ## Next
 

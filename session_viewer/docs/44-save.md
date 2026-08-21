@@ -1,6 +1,6 @@
 # 44 Save — write the file back, only when something changed
 
-> **Big picture.** *Phase 6 — the file is the source of truth.* 38 reads changes IN; this lesson
+> **Big picture.** *Phase 6 — the file is the source of truth.* 43b reads changes IN; this lesson
 > writes changes OUT — quietly. Real CAD apps never write on every edit: **dirty-flag → wait for
 > edits to settle → write only if something truly changed** is the standard pattern, and 43b's
 > content hash is exactly the "truly changed" test, reused.
@@ -12,7 +12,7 @@ So save is three gates in front of one `pb_dumps`: a **dirty flag** (did anythin
 change, or get nudged and reverted?). Only past all three does a byte hit the disk.
 
 `wasm32` has no filesystem, so "the disk" is a browser download (a `Blob` + a synthetic
-`<a download>` click) — the mirror of 34's fetch. The dirty + content-hash plumbing is exactly what 38
+`<a download>` click) — the mirror of 34's fetch. The dirty + content-hash plumbing is exactly what 43b
 already built for reconcile, now run in reverse.
 
 <svg viewBox="0 0 680 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="an edit marks the scene dirty; a debounce waits for edits to settle; a hash check skips unchanged objects; only then does pb_dumps produce bytes for a Blob download" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
@@ -87,7 +87,10 @@ are already imported at the top of this file — the fetch half uses both):
 
 ```rust
 /// Save `bytes` as `filename` via a browser download: wrap in a Blob, mint an object URL, click a
-/// hidden `<a download>`, then revoke the URL. There is no silent filesystem write on the web — the
+/// hidden `<a download>`, then revoke the URL — on the NEXT task: revoking synchronously races
+/// the click in Safari, which re-reads the URL after the handler returns and cancels the
+/// download if it's already dead.
+/// There is no silent filesystem write on the web — the
 /// user always sees (and confirms) the download, by design.
 pub fn download_bytes(filename: &str, bytes: &[u8]) -> Result<(), JsValue> {
     let array = js_sys::Array::new();
@@ -100,10 +103,23 @@ pub fn download_bytes(filename: &str, bytes: &[u8]) -> Result<(), JsValue> {
     a.set_href(&url);
     a.set_download(filename);
     a.click();
-    web_sys::Url::revoke_object_url(&url)?;   // release the blob once the click has fired
+    // Defer the revoke (the Safari race above). once_into_js hands the closure to JS — no
+    // forget() leak.
+    let revoke = wasm_bindgen::closure::Closure::once_into_js(move || {
+        let _ = web_sys::Url::revoke_object_url(&url);
+    });
+    web_sys::window().ok_or("no window")?
+        .set_timeout_with_callback_and_timeout_and_arguments_0(revoke.unchecked_ref(), 0)?;
     Ok(())
 }
 ```
+
+> **A save is a download — the user SEES every one.** Each trigger drops an entry onto the
+> browser's download shelf (and Chrome interposes a "this site is downloading multiple files"
+> prompt if saves come fast). For an app that saves every settled edit burst that shelf is noise —
+> the File System Access API below (writes in place, no download at all) is the real fix, not a
+> nicety. Until then: keep the debounce honest, and never wire `touch` to anything chattier than
+> an edit.
 
 Add the features to `Cargo.toml`'s `web-sys` list (beside 34's `Request`/`Response`):
 
@@ -124,7 +140,7 @@ Add the features to `Cargo.toml`'s `web-sys` list (beside 34's `Request`/`Respon
 
 ## Step 3 — the hash gate: only real changes count: `src/app/scene.rs`
 
-38b built `content_hash` + `Scene.hashes` (the last-saved fingerprints). Save reuses them: an object is
+43b built `content_hash` + `Scene.hashes` (the last-saved fingerprints). Save reuses them: an object is
 only *really* changed if its current hash differs from the stored one. One subtlety the Xform refactor
 forces: a pure MOVE never touches the geometry's bytes — placements live in `Session.xforms`, not on
 the object — so the fingerprint must fold the placement in with the object's sorted-JSON bytes.
@@ -253,6 +269,12 @@ Now the module-level constants, the `touch` entry point, and the debounce gate i
 > coalesces a *burst* of edits into one save: each edit pushes `dirty_since` forward, so the 60-frame
 > countdown only completes once edits actually stop. A wall-clock debounce (`performance.now()`) is the
 > swap-in if you ever decouple saves from the frame rate; the logic is identical.
+>
+> **That swap becomes mandatory at 71.** Today `render` runs every frame, so `frame` always advances.
+> 71's render-on-demand ticks `render` only when something pokes a redraw — an idle app produces no
+> frames, the 60-frame countdown after the *last* edit of a burst never completes, and the save
+> silently never fires. From that lesson on, drive the debounce off a wall-clock timer (or have
+> `touch` schedule a wake-up), not the frame counter.
 
 New objects created in-viewer (later lessons) need a `guid` before they can be saved — the kernel mints
 one lazily (`Geometry::guid()` fills its `OnceLock` on first read), so a freshly-built object already
@@ -273,6 +295,9 @@ doc's `lookup`, the same `docs[0]` the save targets):
 ```rust
     // find, in lib.rs's `match event.logical_key.as_ref()`, beside the "f"/"F" arm:
     Key::Character("s" | "S") if self.ctrl => {
+        // swallow the browser's own Save-Page dialog — winit's web extension trait:
+        // `use winit::platform::web::KeyEventExtWebSys;` at the top of lib.rs
+        event.prevent_default();
         if let Some(g) = state.scene.docs.first()
             .and_then(|d| d.session.lookup.keys().next().cloned()) {
             state.touch(&g);   // real edit path: mark dirty + stamp dirty_since
@@ -328,6 +353,6 @@ Edited: `Cargo.toml` (web-sys `Blob`/`Url`/`HtmlAnchorElement`), `app/persistenc
 
 `45-watch.md` — the third sync direction: an *external* edit to the file flows back in. The browser can't
 watch a filesystem, so a File System Access handle polls `lastModified` (or a watcher→WebSocket bridge
-pushes), and on change we run 43's `reconcile`. The catch is the loop: our own Step-4 save changes the
+pushes), and on change we run 43b's `reconcile`. The catch is the loop: our own Step-4 save changes the
 file too, so the watcher needs a **self-write guard** — ignore any change whose hash matches the bytes we
 just wrote.

@@ -2,10 +2,10 @@
 
 > **Big picture.** *Phase 7.* Object-level picking is enough to *select*; editing needs the *part* —
 > the vertex you drag, the edge you bevel, the face you extrude. Sub-object resolution is what makes
-> the gumball (52+) and control-point editing (78) possible later; the screen-pixel radius trick it
-> introduces is also exactly how 44 picks lines and points at all.
+> the gumball (57+) and control-point editing (78) possible later; the screen-pixel radius trick it
+> introduces is also exactly how 49 picks lines and points at all.
 
-42 answers *which mesh*. Editing needs *which part*: drag a **vertex**, bevel an **edge**, extrude a
+47 answers *which mesh*. Editing needs *which part*: drag a **vertex**, bevel an **edge**, extrude a
 **face**. From the same click, this lesson resolves the hit down to one sub-object and returns a
 `SubHit { row, guid, kind }` the gumball and edit tools act on (the sub-object key rides *inside* `kind`).
 
@@ -25,14 +25,14 @@ vertex, that's the pick; else the nearest edge; else the face the ray landed on.
     <text x="30" y="52" fill="#d7dae0">1. vertex — cursor within R px of a projected vertex</text>
     <text x="30" y="72" fill="#d7dae0">2. edge — cursor within R px of a projected edge segment</text>
     <text x="30" y="92" fill="#d7dae0">3. face — the face the ray actually hit</text>
-    <text x="20" y="122" fill="#666">R ≈ 8 px; same screen-space test 44 uses for thin geometry</text>
+    <text x="20" y="122" fill="#666">R ≈ 8 px; same screen-space test 49 uses for thin geometry</text>
   </g>
 </svg>
 
 ## Files we touch
 
 ```
-src/engine/pick.rs   # project_to_screen(view_proj, origin, world_pt, viewport) — the forward of 41
+src/engine/pick.rs   # project_to_screen(view_proj, origin, world_pt, viewport) — the forward of 46
 src/app/pick.rs      # SubKind { Vertex/Edge/Face }, SubHit { row, guid, kind }
 src/app/scene.rs     # resolve_subobject(guid, hit, cursor, view_proj, origin, viewport) → SubHit
 ```
@@ -95,9 +95,15 @@ impl Scene {
     pub fn resolve_subobject(&self, hit: &PickHit, cursor: (f64, f64), view_proj: &Xform,
                              origin: &Point, viewport: (f64, f64, f64, f64)) -> Option<SubHit> {
         let d = self.doc_of_row(hit.row);          // 47's PickHit carries the row → owning doc
-        let m = match self.docs[d].session.lookup.get(&hit.guid) {
+        let m: &session_rust::Mesh = match self.docs[d].session.lookup.get(&hit.guid) {
             Some(session_rust::Geometry::Mesh(m)) => m,   // same doc-resolved lookup as 47's pick_ray
-            _ => return None,   // BRep sub-objects (trims/edges) are their own lesson
+            // An element's baked mesh resolves too — READ-ONLY here, so geometry()'s &Mesh is
+            // enough (no clone, unlike 47's mutable cast).
+            Some(session_rust::Geometry::Element(e)) => match e.geometry() {
+                session_rust::ElementGeometry::Mesh(m) => m,
+                _ => return None,
+            },
+            _ => return None,   // BRep/NurbsSurface sub-objects (trims/edges) are their own lesson
         };
         // ONE frame lookup, hoisted out of the per-vertex loops below (read-only, so it can
         // coexist with the `m` borrow — no clone needed here, unlike 47's mutable path).
@@ -178,15 +184,20 @@ fn face_containing(m: &Mesh, p: &Point) -> Option<usize> {
 
 /// p inside triangle abc if it's on the inner side of all three edges, measured against the triangle's
 /// OWN normal — so a small off-plane error from the ray hit is ignored (only the in-plane sign matters).
+/// The signs are tested against an epsilon, not exact zero: the hit point came through two matrix
+/// transforms, so a point dead ON an edge can land a hair to either side. eps scales with |n|² —
+/// the edge tests are homogeneous in the triangle's size, so a fixed epsilon would be wrong for a
+/// huge or tiny face.
 fn point_in_tri(p: &Point, a: &Point, b: &Point, c: &Point) -> bool {
     let sub = |u: &Point, v: &Point| [u[0]-v[0], u[1]-v[1], u[2]-v[2]];
     let cross = |u: [f64;3], v: [f64;3]| [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
     let dot = |u: [f64;3], v: [f64;3]| u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
     let n = cross(sub(b, a), sub(c, a));                  // triangle normal
+    let eps = 1e-9 * dot(n, n);                           // relative to the triangle's own scale
     let e0 = dot(n, cross(sub(b, a), sub(p, a)));
     let e1 = dot(n, cross(sub(c, b), sub(p, b)));
     let e2 = dot(n, cross(sub(a, c), sub(p, c)));
-    (e0 >= 0.0 && e1 >= 0.0 && e2 >= 0.0) || (e0 <= 0.0 && e1 <= 0.0 && e2 <= 0.0)
+    (e0 >= -eps && e1 >= -eps && e2 >= -eps) || (e0 <= eps && e1 <= eps && e2 <= eps)
 }
 ```
 
@@ -194,6 +205,12 @@ fn point_in_tri(p: &Point, a: &Point, b: &Point, c: &Point) -> bool {
 > zoom in and balloons as you zoom out — a vertex you can't hit up close and a whole face you snap to from
 > far away. Pixels are the unit the user actually aims in, so the radius test *must* be post-projection.
 > The same reason the gumball's handles are a fixed pixel size (later).
+
+> **This is O(V+E) per event — fine on a click, not on hover.** Every resolve projects every vertex
+> and walks every edge of the hit mesh. At click rates that's invisible; wired to mousemove (hover
+> highlight) it's a full scan of the hit mesh per event, and a 100k-vertex mesh will hitch. Hover
+> needs a spatial prefilter first — cull by the mesh's screen-space box, or walk only the
+> hit-triangle's neighbourhood through the kernel's edge adjacency. Noted, not built.
 
 ## Step 4 — wire it + verify
 
@@ -212,8 +229,10 @@ replace 47's `match self.scene.pick_ray(&ray) { … }` with:
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-- **Hover a corner** → `Vertex(k)`. Move a few px onto an edge → `Edge(a,b)`. Move into the face
-  interior → `Face(k)`. The transitions should feel like Rhino's sub-object highlight.
+- **Click a corner** → `Vertex(k)`. Click a few px onto an edge → `Edge(a,b)`. Click the face
+  interior → `Face(k)`. (The code is CLICK-driven — `on_left_click`. A hover version would call the
+  same `resolve_subobject` from `CursorMoved`, but read the O(V+E) note above first: it needs a
+  prefilter before it's hover-grade.)
 - **Zoom out until the box is tiny** → clicking anywhere still resolves (usually `Vertex`/`Edge`, since
   everything is within 8 px of *something*), and zooming in re-separates them. That zoom-independence is
   the screen-space radius working; a world-space radius would break here.
@@ -225,14 +244,14 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 47: ray-cast meshes → which mesh + world hit point.
 Ch 48: SUB-OBJECT. Resolve the hit to vertex / edge / face, SCREEN-SPACE, most-specific-first.
-       project_to_screen (the forward of 41: world −origin → view_proj → NDC → px, None if
+       project_to_screen (the forward of 46: world −origin → view_proj → NDC → px, None if
        behind). Priority: (1) nearest projected VERTEX within R_PX (~8) → Vertex(key); (2) else
        nearest projected EDGE by screen point-to-segment → Edge(a,b); (3) else the FACE the ray
        hit, recovered by transforming the world hit to local and point-in-polygon over
        m.faces() — because the kernel ray-cast returns the point, not the face. All projection
        goes through the row's placed frame (hoisted once, before the loops). Returns
        SubHit{row, guid, kind} (the key lives inside kind). Pixel radius (not world) so the test is zoom-independent — the
-       unit the user aims in. Vertex/edge screen-proximity is the same trick 44 uses to pick
+       unit the user aims in. Vertex/edge screen-proximity is the same trick 49 uses to pick
        1D/0D geometry that a ray can't hit exactly.
 ```
 
@@ -242,6 +261,6 @@ Edited: `engine/pick.rs` (`project_to_screen` — forward projection), `app/pick
 ## Next
 
 `49-pick-thin-geometry.md` — Lines, polylines, and points are 1D and 0D: a ray passes *through* them,
-never *hits* them. 44 picks them by the same screen-space radius used for vertices here — ray↔segment and
+never *hits* them. 49 picks them by the same screen-space radius used for vertices here — ray↔segment and
 ray↔point distance with a `pick_radius` floor in pixels — and settles the **solid-vs-thin priority**: a
 line lying on a mesh face shouldn't steal the click from the face at equal depth.

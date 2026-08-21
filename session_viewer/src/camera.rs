@@ -40,6 +40,9 @@ pub struct Camera {
     pub up: [f64; 3],            // derived by update_position
     pub perspective: bool,
     pub unit: Unit,
+    /// Scene bounding-sphere radius in metres, set by `fit`. Floors the far plane so zooming
+    /// into one detail can never clip the rest of the scene (0 = pure distance-scaled range).
+    pub scene_extent: f64,
 }
 
 impl Camera {
@@ -62,6 +65,7 @@ impl Camera {
             up: [0.0, 0.0, 1.0],
             perspective: true,
             unit: Unit::Millimeters,
+            scene_extent: 0.0,
         };
 
         cam.update_position();
@@ -129,6 +133,56 @@ impl Camera {
         self.perspective = !self.perspective;
     }
 
+    /// The Space toggle, but it can never LOSE what the user was looking at. Ortho puts content
+    /// on screen no matter how far off the view AXIS it sits and how much NEARER than the target
+    /// plane it is (parallel projection); perspective divides by depth, so content near the eye
+    /// but off-axis - the thing the user zoomed against, with the target still out on empty grid -
+    /// falls outside the 60-degree cone and the swap presents sky. No camera state is "equivalent"
+    /// across the swap, so the honest move is to KEEP THE CONTENT, not the numbers: clip the
+    /// scene's bounds to the rectangle the ortho view was actually showing (the view-plane rect,
+    /// half-height distance*tan30 at the target) and refit the perspective camera to that -
+    /// orientation untouched, target recentred on the formerly visible geometry. The other
+    /// direction (perspective -> ortho) only ever widens what is visible and keeps the plain flip.
+    pub fn toggle_projection_framed(&mut self, min: [f32; 3], max: [f32; 3], aspect: f64) {
+        self.perspective = !self.perspective;
+        if !self.perspective {
+            return;
+        }
+        let s = self.unit.to_meters();
+        let t = self.origin(); // target, world units
+        let right = self.orientation.rotate_vector(Vector::x_axis());
+        let up = Vector::new(self.up[0], self.up[1], self.up[2]);
+        let fwd = Vector::new(
+            (self.target[0] - self.position[0]) / self.distance,
+            (self.target[1] - self.position[1]) / self.distance,
+            (self.target[2] - self.position[2]) / self.distance,
+        );
+        let half_h = self.distance * f64::to_radians(30.0).tan() / s; // world units
+        let half_w = half_h * aspect;
+        let mut lo = [f64::INFINITY; 3];
+        let mut hi = [f64::NEG_INFINITY; 3];
+        for k in 0..8u32 {
+            let c = [
+                (if k & 1 == 0 { min[0] } else { max[0] }) as f64 - t[0],
+                (if k & 2 == 0 { min[1] } else { max[1] }) as f64 - t[1],
+                (if k & 4 == 0 { min[2] } else { max[2] }) as f64 - t[2],
+            ];
+            let dx = (c[0] * right[0] + c[1] * right[1] + c[2] * right[2]).clamp(-half_w, half_w);
+            let dy = (c[0] * up[0] + c[1] * up[1] + c[2] * up[2]).clamp(-half_h, half_h);
+            let dz = c[0] * fwd[0] + c[1] * fwd[1] + c[2] * fwd[2];
+            for i in 0..3 {
+                let p = t[i] + dx * right[i] + dy * up[i] + dz * fwd[i];
+                lo[i] = lo[i].min(p);
+                hi[i] = hi[i].max(p);
+            }
+        }
+        self.fit(
+            [lo[0] as f32, lo[1] as f32, lo[2] as f32],
+            [hi[0] as f32, hi[1] as f32, hi[2] as f32],
+            aspect,
+        );
+    }
+
     /// Build the combined `projection · view · unit-scale` matrix for the given aspect ratio.
     /// The camera target in WORLD units (mm), not the internal metres — this is the anchor the
     /// instance table rebases about, and that table holds world coordinates. Mixing the two
@@ -157,11 +211,18 @@ impl Camera {
         let dist = self.distance;
         let a = self.unit.to_meters();
         let anchor = Point::new(anchor[0] * a, anchor[1] * a, anchor[2] * a); // world -> metres
+        // Far must reach the whole scene, not just 10x the focus distance: zoomed close to one
+        // detail, `dist * 10` shrinks below the scene's own extent and everything past it clips -
+        // the "scene vanishes when I zoom in" bug. `dist + 2*scene_extent` reaches any scene point
+        // from any eye position via the target (triangle inequality); the `max` keeps the plain
+        // distance-scaled range whenever it is already wider. Reverse-Z absorbs the larger ratio.
+        let far = (dist * 10.0).max(dist + 2.0 * self.scene_extent);
         let projection = if self.perspective {
-            Xform::perspective(f64::to_radians(60.0), aspect, dist * 10.0, dist * 0.01)
+            //                                          far ↓   near ↓   — swapped (reverse-Z)
+            Xform::perspective(f64::to_radians(60.0), aspect, far, dist * 0.01)
         } else {
             let h = dist * f64::to_radians(30.0).tan();
-            let r = dist * 100.0;
+            let r = (dist * 100.0).max(dist + 2.0 * self.scene_extent); // same floor as perspective
             Xform::orthographic(-aspect * h, aspect * h, -h, h, r, -r)
         };
 
@@ -256,6 +317,7 @@ impl Camera {
         // 5% of breathing room - the old 10% was compensating for a distance that was already
         // twice what it needed to be.
         self.distance = (distance * 1.05).max(1.0e-6); // no upper clamp - it culled big scenes
+        self.scene_extent = extent; // far-plane floor, see view_proj_anchored
         self.update_position();
     }
 

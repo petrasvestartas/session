@@ -1,6 +1,6 @@
 # 70 Analytic ground + infinite grid — the stage
 
-> **Big picture.** *Phase 11 — rendering quality, engineered FAST (65–69).* The archive's pretty
+> **Big picture.** *Phase 11 — rendering quality, engineered FAST (70–74).* The archive's pretty
 > "arctic" look cost ~200 texture fetches per pixel per frame and crawled on integrated GPUs; this
 > phase rebuilds the same look on a budget, under one **user rule: quality must never drop while
 > interacting** — the savings come from architecture (skip unchanged frames, half-res AO), never from
@@ -117,7 +117,7 @@ fn fs_main(in: VsOut) -> FsOut {
 
   <text x="10" y="48" fill="#e06c6c">vec3 pad ✗</text>
   <rect x="120" y="36" width="205" height="20" fill="none" stroke="#555"/>
-  <text x="222" y="50" fill="#888" text-anchor="middle">inv_view_proj (69)</text>
+  <text x="222" y="50" fill="#888" text-anchor="middle">inv_view_proj (64 B)</text>
   <rect x="325" y="36" width="51" height="20" fill="none" stroke="#6fb3ff"/>
   <text x="350" y="50" fill="#6fb3ff" text-anchor="middle">vec4</text>
   <rect x="376" y="36" width="13" height="20" fill="none" stroke="#d7dae0"/>
@@ -132,7 +132,7 @@ fn fs_main(in: VsOut) -> FsOut {
 
   <text x="10" y="112" fill="#5bbf87">3 scalars ✓</text>
   <rect x="120" y="100" width="205" height="20" fill="none" stroke="#555"/>
-  <text x="222" y="114" fill="#888" text-anchor="middle">inv_view_proj (69)</text>
+  <text x="222" y="114" fill="#888" text-anchor="middle">inv_view_proj (64 B)</text>
   <rect x="325" y="100" width="51" height="20" fill="none" stroke="#6fb3ff"/>
   <text x="350" y="114" fill="#6fb3ff" text-anchor="middle">vec4</text>
   <rect x="376" y="100" width="13" height="20" fill="none" stroke="#d7dae0"/>
@@ -148,6 +148,22 @@ Two details carrying earlier lessons' weight: the unproject uses `ndc_z = 0.5` f
 46's conditioning rule applies on the GPU too — and everything is **camera-relative** (the uniform
 feeds `inverse(view_proj)` of the already-rebased matrix and `ground_z = −origin.z`), so the ground
 never shimmers at 10 km, same as every object since 33.
+
+> **Three honest caveats on this shader.**
+> **Blend × depth-write.** The fade band alpha-blends yet writes *full* `frag_depth` — a
+> half-faded ground fragment still occludes whatever is behind it. In practice the band sits at
+> the horizon where nothing real lives; but if you ever fade the ground *near* geometry (small
+> scenes, top-down views), objects below the plane will be hard-clipped by an invisible surface.
+> The fix, when needed: fade by dithered `discard` instead of alpha, and keep the depth write.
+> **The near-parallel seam.** As `dir.z → 0`, `t → ∞` and the hit coordinate loses f32 precision —
+> a thin shimmering band right at the horizon, exactly where the eye is looking. The fade radius
+> hides it only if the fade completes *before* that distance; if you see the seam, tighten
+> `cam_rel_eye.w`'s inner smoothstep edge, don't touch the ray math.
+> **`fwidth` AA breaks down at the horizon.** The optional grid upgrade's antialiasing assumes
+> `fwidth(hit.xy / step)` is about one pixel — at grazing angles the derivative explodes, the
+> "1 px stroke" becomes the whole screen, and the grid dissolves into gray mush near the horizon.
+> Clamp the computed line width (or fade the grid out with distance, like the ground itself)
+> before it reaches that regime.
 
 ## Step 2 — pipeline + draw: `src/engine/pipelines/build.rs` + `gpu/mod.rs`
 
@@ -196,8 +212,8 @@ cd session_viewer && trunk serve   # http://localhost:8770
 - A white floor now reaches the horizon in every direction — orbit low: it *ends* in a soft fade, not
   a hard polygon edge, and there is **no shimmer** anywhere (the giant-quad disease — if you want to
   see it once, replace the shader with a huge quad and orbit; then come back).
-- Objects sit *on* it: their bases are occluded exactly at contact (the `frag_depth`), shadows-of-
-  -occlusion to come in 67 will land on it, and the grid draws crisply over it with no z-fighting at
+- Objects sit *on* it: their bases are occluded exactly at contact (the `frag_depth`), the ambient
+  occlusion to come in 72 will land on it, and the grid draws crisply over it with no z-fighting at
   grazing angles.
 - Perf HUD: +1 draw call, fullscreen but almost branchless — frame time moves barely at all. The
   stage is set for the money lessons: render-on-demand (71) and GTAO (72).
@@ -213,6 +229,9 @@ Ch 70: THE STAGE. Analytic ground: a fullscreen triangle whose FRAGMENTS each un
        occlusion is real. Depth write ON, Greater (reverse-Z), alpha blend for the fade. NEVER a
        giant quad — f32 far-corner shimmer + interpolated-depth z-fights, both archive-verified.
        Optional: the same hit powers a fract/fwidth INFINITE grid, retiring 20's 50-vertex one.
+       Caveats, all at the horizon: the fade band blends yet writes FULL depth (dithered discard
+       if it ever clips real geometry); the near-parallel ray loses precision in a thin seam;
+       fwidth AA dissolves at grazing angles — fade out before all three.
 ```
 
 Edited: `shaders/ground.wgsl` (NEW), `engine/pipelines/build.rs` (`build_ground_pipeline`),

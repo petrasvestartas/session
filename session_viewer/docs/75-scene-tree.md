@@ -1,6 +1,6 @@
 # 75 Scene tree — the documents, as a panel
 
-> **Big picture.** *Phase 12 — scene management UI (70–72).* Everything the viewer knows lives in
+> **Big picture.** *Phase 12 — scene management UI (75–77).* Everything the viewer knows lives in
 > maps and flags; users need it as a **list they can read and poke**: every document's tree in a
 > side panel, an eye icon per row driving 51's visibility, names instead of guids. Two disciplines
 > carry the lesson: **virtualize** (build only the visible rows — a 744k-object scene must scroll
@@ -36,8 +36,10 @@ and silently match nothing:
 
 - **`node.name`** is the identity the *document* uses: *"for geometry nodes, this is the
   geometry's GUID"* (tree.rs) — it is what `session.world_xform`/`world_xforms` key off, what
-  `guid_to_row` contains, and what `scene.hidden`/`scene.selected` store. Group nodes carry their
-  human name here (the PDF importer makes one group per CAD layer).
+  `guid_to_row` contains, and what `scene.hidden` stores. Group nodes carry their
+  human name here (the PDF importer makes one group per CAD layer). (`scene.selected` is
+  **row-keyed** since 50 — `HashSet<u32>` — so the panel resolves guid→row through
+  `guid_to_row` once, at flatten time: `Row.scene_row` below.)
 - **`node.guid()`** is the node's OWN lazily-minted uuid — fine as UI-local expansion state, wrong
   for everything else.
 
@@ -48,7 +50,7 @@ Corollary: the object-keyed tree lookup is **`tree.get_node_by_name(guid)`**;
 
 ```
 src/ui/tree.rs   # NEW — flatten visible tree rows; egui show_rows virtualization; eye + select
-src/ui/mod.rs    # a left SidePanel hosting it; TreeUi state (expanded set, scroll target)
+src/ui/mod.rs    # a left SidePanel hosting it; TreeUi state (expanded set, scroll target, flatten cache)
 src/state.rs     # apply collected intents (toggle/select) after the closure — 52's rule
 src/app/scene.rs # object_name / untreed_guids — doc-aware adapters
 ```
@@ -63,7 +65,8 @@ then hand that to `ScrollArea::show_rows`, which instantiates **only the on-scre
 ```rust
 pub struct Row {
     pub key: String,                   // expansion identity: node.guid() uuid, or "doc:N"
-    pub obj: Option<(usize, String)>,  // Some((doc, OBJECT guid)) for geometry rows
+    pub guid: Option<String>,          // Some(OBJECT guid) for geometry rows — 76 scrolls/zooms by it
+    pub scene_row: Option<u32>,        // guid_to_row[guid] at flatten time — selection is ROW-keyed (50)
     pub node_name: String,             // node.name — object guid or group name (the doc identity)
     pub doc: usize,
     pub name: String,                  // display
@@ -84,9 +87,10 @@ pub fn flatten(scene: &Scene, expanded: &HashSet<String>) -> Vec<Row> {
         let children = n.children();
         let is_branch = !children.is_empty();
         let is_expanded = expanded.contains(&key);
-        let obj = scene.docs[d].session.lookup.contains_key(&node_name)
-            .then(|| (d, node_name.clone()));
-        out.push(Row { key, obj, node_name: node_name.clone(), doc: d,
+        let guid = scene.docs[d].session.lookup.contains_key(&node_name)
+            .then(|| node_name.clone());
+        let scene_row = scene.guid_to_row.get(&node_name).copied();   // Some for geometry rows
+        out.push(Row { key, guid, scene_row, node_name: node_name.clone(), doc: d,
                        name: row_name(scene, d, &node_name), depth,
                        is_branch, expanded: is_expanded });
         if is_branch && is_expanded {
@@ -97,7 +101,7 @@ pub fn flatten(scene: &Scene, expanded: &HashSet<String>) -> Vec<Row> {
     for (d, doc) in scene.docs.iter().enumerate() {
         let key = format!("doc:{d}");
         let open = expanded.contains(&key);
-        rows.push(Row { key, obj: None, node_name: String::new(), doc: d,
+        rows.push(Row { key, guid: None, scene_row: None, node_name: String::new(), doc: d,
                         name: format!("{}  ({} objects)", doc.name,
                                       doc.session.lookup.len()),
                         depth: 0, is_branch: true, expanded: open });
@@ -108,7 +112,8 @@ pub fn flatten(scene: &Scene, expanded: &HashSet<String>) -> Vec<Row> {
         }
         // objects the tree doesn't parent (69's nurbs collections) → rows under the doc
         for guid in scene.untreed_guids(d) {
-            rows.push(Row { key: guid.clone(), obj: Some((d, guid.clone())),
+            rows.push(Row { scene_row: scene.guid_to_row.get(&guid).copied(),
+                            key: guid.clone(), guid: Some(guid.clone()),
                             node_name: guid.clone(), doc: d,
                             name: row_name(scene, d, &guid), depth: 1,
                             is_branch: false, expanded: false });
@@ -120,8 +125,10 @@ pub fn flatten(scene: &Scene, expanded: &HashSet<String>) -> Vec<Row> {
 /// Display name: the object's own name if it set one, the group name for groups, else short guid.
 fn row_name(scene: &Scene, d: usize, node_name: &str) -> String {
     scene.object_name(d, node_name)
-        .unwrap_or_else(|| if node_name.len() > 12 {
-            format!("{}…", &node_name[..8])
+        .unwrap_or_else(|| if node_name.chars().count() > 12 {
+            // CHARS, not bytes — &name[..8] panics on a multi-byte boundary (guids are ASCII,
+            // but a group's human name passes through here; German layer names carry umlauts)
+            format!("{}…", node_name.chars().take(8).collect::<String>())
         } else {
             node_name.to_string()   // a group's human name passes through
         })
@@ -164,20 +171,21 @@ and using the RIGHT tree lookup:
 ## Step 2 — the rows, virtualized: `src/ui/tree.rs`
 
 `TreeIntent` is the collect-then-apply buffer (52's rule) the panel fills and `State` drains — add
-it to `src/ui/tree.rs` above `tree_panel`. Intents carry `(doc, node_name)` — the document
-identity, which is exactly what the visibility/selection sets store:
+it to `src/ui/tree.rs` above `tree_panel`. Eye/expand intents carry document identities
+(`node_name` / expansion key); name clicks carry the **scene row** — 50's `selected` set is
+row-keyed, and `flatten` already resolved it:
 
 ```rust
 #[derive(Default)]
 pub struct TreeIntent {
     pub toggled: Vec<(usize, String)>,           // eye clicks → (doc, node_name)
     pub expand_toggled: Vec<String>,             // ▸/▾ clicks → expansion KEY
-    pub clicked: Vec<(usize, String, bool)>,     // name clicks → (doc, object guid, shift)
+    pub clicked: Vec<(usize, u32, bool)>,        // name clicks → (doc, scene ROW, shift)
 }
 ```
 
 ```rust
-pub fn tree_panel(ui: &mut egui::Ui, rows: &[Row], scene_sel: &HashSet<String>,
+pub fn tree_panel(ui: &mut egui::Ui, rows: &[Row], scene_sel: &HashSet<u32>,
                   scene_hidden: &HashSet<String>, out: &mut TreeIntent) {
     let row_h = 18.0;
     egui::ScrollArea::vertical().show_rows(ui, row_h, rows.len(), |ui, range| {
@@ -195,11 +203,11 @@ pub fn tree_panel(ui: &mut egui::Ui, rows: &[Row], scene_sel: &HashSet<String>,
                         out.expand_toggled.push(row.key.clone());
                     }
                 }
-                let selected = row.obj.as_ref()
-                    .map_or(false, |(_, g)| scene_sel.contains(g));
+                let selected = row.scene_row
+                    .map_or(false, |r| scene_sel.contains(&r));
                 if ui.selectable_label(selected, &row.name).clicked() {
-                    if let Some((d, g)) = &row.obj {
-                        out.clicked.push((*d, g.clone(), ui.input(|i| i.modifiers.shift)));
+                    if let Some(r) = row.scene_row {
+                        out.clicked.push((row.doc, r, ui.input(|i| i.modifiers.shift)));
                     } else {
                         out.expand_toggled.push(row.key.clone());   // clicking a group toggles it
                     }
@@ -214,6 +222,35 @@ Two archive rules baked in: the **eye sits before the name** (a long name must t
 the control out of reach), and the selected row's style is **white background, black text** — 52's
 `Visuals` already set `selection.bg_fill`/`override_text_color`; never restyle it white-on-dark (the
 archive shipped that once; selected rows became unreadable).
+
+## ⚠ Cache the flatten — `show_rows` virtualizes widgets, not your `Vec`
+
+`flatten` walks every expanded node and allocates several `String`s per row — O(visible tree) with
+allocator churn. Once per *change* that's nothing; once per *frame* a fully-expanded 744k-object
+sheet stutters. `show_rows` only saves you the egui *widgets* for off-screen rows — the `Vec<Row>`
+you hand it is built in full either way. So treat the flattened rows as derived state and cache
+them, keyed on two generation counters:
+
+```rust
+// UiState additions (init: empty Vec, (u64::MAX, u64::MAX) so the first frame rebuilds):
+pub flattened_rows: Vec<Row>,
+pub rows_key: (u64, u64),     // (scene generation, expansion generation) the cache was built from
+pub expansion_gen: u64,       // bumped wherever tree_expanded mutates (Step 3's drain, 76's reveal)
+```
+
+```rust
+// where the panel is drawn (ui/mod.rs), IN PLACE OF a per-frame flatten(...):
+let key = (self.scene.generation, self.ui.expansion_gen);
+if self.ui.rows_key != key {
+    self.ui.flattened_rows = flatten(&self.scene, &self.ui.tree_expanded);
+    self.ui.rows_key = key;
+}
+tree_panel(ui, &self.ui.flattened_rows, &self.scene.selected, &self.scene.hidden, &mut intent);
+```
+
+`scene.generation` is a `u64` that every scene mutation bumps — add it to 50/51/56's verbs and to
+drains that touch the scene sets directly (Step 3's is one). Same discipline as 71's
+render-on-demand: rebuild on change, never on vsync.
 
 ## Step 3 — intents apply after: `src/state.rs`
 
@@ -240,24 +277,26 @@ of the per-frame UI method, right **after** the egui closure that ran `tree_pane
             }
             if !self.scene.hidden.remove(&name) { self.scene.hidden.insert(name); }
         }
-        // 46
+        // 51
         if any_toggle { self.scene.apply_visibility(&mut self.gpu); self.poke(); }
 
-        for (_, g, shift) in intent.clicked {
+        for (_, row, shift) in intent.clicked {
             if shift {
-                if !self.scene.selected.remove(&g) { self.scene.selected.insert(g); }
+                if !self.scene.selected.remove(&row) { self.scene.selected.insert(row); }
             } else {
                 self.scene.selected.clear();
-                self.scene.selected.insert(g);
+                self.scene.selected.insert(row);
             }
         }
-        // 45
+        // 50
         self.scene.apply_selection(&mut self.gpu);
-        // 52
+        // 57
         self.refresh_gumball();
+        let any_expand = !intent.expand_toggled.is_empty();
         for k in intent.expand_toggled {
             if !self.ui.tree_expanded.remove(&k) { self.ui.tree_expanded.insert(k); }
         }
+        if any_expand { self.ui.expansion_gen += 1; }   // invalidate the flatten cache (⚠ above)
 ```
 
 (`tree_expanded: HashSet<String>` is the `UiState` field the panel's `flatten` call reads — add it
@@ -272,8 +311,9 @@ cd session_viewer && trunk serve   # http://127.0.0.1:8770
 
 - The panel opens with **one row per sheet** (the manifest names), each expandable into its CAD
   layers — the PDF importer built one group per OCG layer, so real drawings arrive pre-organized.
-- **Scrolling is smooth** with everything expanded — the frame builds ~40 rows whether the
-  flattened list holds 50 or 744,000 (`show_rows`). That's the virtualization contract.
+- **Scrolling is smooth** with everything expanded — `show_rows` instantiates ~40 row *widgets*
+  whether the flattened list holds 50 or 744,000 rows, and on a pure scroll frame the cached
+  flatten doesn't rebuild at all. That's the virtualization contract.
 - Click an eye on a LAYER → the whole layer blinks out in the viewport *and* stops picking (51's
   single authority — the panel called the same verb, and the branch resolved its descendants by
   node **name**). Click an object's eye → just that object.
@@ -291,16 +331,19 @@ Ch 75: THE TREE. Top level = one row per Doc (manifest name + object count); eac
        ScrollArea::show_rows instantiates ONLY the on-screen slice (immediate-mode virtualization —
        nested CollapsingHeaders would rebuild 744k rows/frame). THE IDENTITY RULE: an object's guid
        lives in node.NAME (node.guid() is the node's own uuid; the object-keyed lookup is
-       get_node_by_name) — every hidden/selected/world_xform set keys off the name. Rows: eye
+       get_node_by_name) — hidden/world_xform key off the name, selection off the ROW (50, resolved
+       to `Row.scene_row` at flatten). Rows: eye
        BEFORE name, ▸/▾ for branches, white-bg/black-text selection. Panel COLLECTS TreeIntent
        ((doc, name) tuples); State drains it through 51's visibility and 50's selection verbs — one
        authority, no drift; branch-eye resolves descendants by NAME. Untreed collections join under
-       their doc. Deletes/undo work — the panel renders the trees the Commands already maintain.
+       their doc. The flatten is CACHED, keyed on (scene generation, expansion generation) —
+       show_rows virtualizes widgets, not your Vec. Deletes/undo work — the panel renders the
+       trees the Commands already maintain.
 ```
 
 Edited: `ui/tree.rs` (NEW — `Row`, `flatten`, `tree_panel`, `TreeIntent`), `ui/mod.rs` (SidePanel +
-`tree_expanded`), `app/scene.rs` (`object_name(d, guid)`, `untreed_guids(d)`), `state.rs` (intent
-drain through existing verbs).
+`tree_expanded`, flatten cache), `app/scene.rs` (`object_name(d, guid)`, `untreed_guids(d)`),
+`state.rs` (intent drain through existing verbs).
 
 ## Next
 

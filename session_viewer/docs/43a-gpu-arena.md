@@ -12,7 +12,7 @@
   <rect x="20" y="28" width="260" height="26" fill="none" stroke="#3a3a3a"/>
   <text x="150" y="45" fill="#666" text-anchor="middle">all objects, concatenated once</text>
   <text x="150" y="74" fill="#888" text-anchor="middle" font-size="10">any change → rebuild + re-upload EVERYTHING</text>
-  <text x="480" y="18" fill="#888" text-anchor="middle">38a — free-list arena</text>
+  <text x="480" y="18" fill="#888" text-anchor="middle">43a — free-list arena</text>
   <g fill="none" stroke="#6fb3ff" stroke-width="1.2">
     <rect x="360" y="28" width="70" height="26"/><rect x="430" y="28" width="90" height="26"/><rect x="520" y="28" width="60" height="26"/><rect x="580" y="28" width="80" height="26"/>
   </g>
@@ -101,6 +101,10 @@ impl GpuArena {
 }
 ```
 
+(`vids` stores the same row number once per vertex — 4 B/vertex of pure duplication, ≈4 MB on a
+1M-vertex scene. A per-instance indirection (indirect draws, 81) could carry it once per object;
+per-vertex is what keeps the whole arena one flat draw call, so it stays.)
+
 ## Step 2 — allocate and free: `src/engine/gpu/arena.rs`
 
 Add to `impl GpuArena`:
@@ -108,9 +112,12 @@ Add to `impl GpuArena`:
 ```rust
     /// Place one object's mesh data; records and returns its slot. `local_idx` are 0-based into
     /// this object's own vertices — rebased onto the arena vertex start here, so the ibo is
-    /// arena-global.
+    /// arena-global. Re-allocating an EXISTING guid frees its old ranges first — the slot map
+    /// holds one entry per guid, so without the self-free the stale ranges would be neither
+    /// drawn nor reusable (a silent leak on every replace).
     pub fn allocate(&mut self, guid: &str, verts: &[RenderVertex], row: u32, local_idx: &[u32],
                     device: &wgpu::Device, queue: &wgpu::Queue) -> ArenaSlot {
+        if self.slots.contains_key(guid) { let _ = self.free(guid, queue); }
         let v = self.alloc_v(verts.len() as u32, device, queue);
         let i = self.alloc_i(local_idx.len() as u32, device, queue);
         queue.write_buffer(&self.vbo,
@@ -128,21 +135,48 @@ Add to `impl GpuArena`:
     }
 
     /// Reclaim an object's ranges for reuse. The buffers keep the stale bytes, but nothing draws
-    /// them: the freed index range is overwritten with a degenerate triangle so it renders zero
+    /// them: the freed index range is overwritten with degenerate triangles so it renders zero
     /// area.
     pub fn free(&mut self, guid: &str, queue: &wgpu::Queue) -> Option<ArenaSlot> {
         let slot = self.slots.remove(guid)?;
         // Repeat a VALID vertex index (this object's own first vertex) — three identical indices
         // → zero area. NOT index_range.start: that's an ibo offset and could point past the vbo's
-        // vertex count.
-        let dead = vec![slot.vertex_range.start; slot.index_range.len()];
-        queue.write_buffer(&self.ibo, slot.index_range.start as u64 * 4,
-            bytemuck::cast_slice(&dead));
-        self.free_v.push(slot.vertex_range.clone());
-        self.free_i.push(slot.index_range.clone());
+        // vertex count. A small FIXED staging array, chunked — not a `vec![…]` sized to the
+        // object, which would re-allocate per free on the biggest meshes.
+        let mut staging = [0u32; 256];
+        staging.fill(slot.vertex_range.start);
+        let mut offset = slot.index_range.start as u64 * 4;
+        let mut left = slot.index_range.len();
+        while left > 0 {
+            let n = left.min(staging.len());
+            queue.write_buffer(&self.ibo, offset, bytemuck::cast_slice(&staging[..n]));
+            offset += n as u64 * 4;
+            left -= n;
+        }
+        Self::push_free(&mut self.free_v, slot.vertex_range.clone());
+        Self::push_free(&mut self.free_i, slot.index_range.clone());
         Some(slot)
     }
+
+    /// Push a reclaimed range, merging adjacent entries. Without coalescing the free list
+    /// fragments into object-sized slivers: a freed 100+100 never fits a 150, the bump cursor
+    /// keeps growing, and the arena balloons on edit-heavy sessions.
+    fn push_free(list: &mut Vec<Range<u32>>, r: Range<u32>) {
+        list.push(r);
+        list.sort_by_key(|x| x.start);
+        let mut merged: Vec<Range<u32>> = Vec::with_capacity(list.len());
+        for x in list.drain(..) {
+            if let Some(last) = merged.last_mut() {
+                if last.end == x.start { last.end = x.end; continue; }
+            }
+            merged.push(x);
+        }
+        *list = merged;
+    }
 ```
+
+(First-fit in `alloc_v`/`alloc_i` below walks the list unordered — order doesn't matter to it, so
+keeping `free_v`/`free_i` sorted for the merge costs nothing extra.)
 
 > **Free without shifting.** Deleting a mesh doesn't compact the buffer — it drops the ranges onto the
 > free list and stamps the *index* range with a degenerate triangle (three identical indices → zero
@@ -299,7 +333,7 @@ one splice-upload of the (dense) buffer (`upload_segments`/`upload_glyphs` are 4
 > **One growth pattern, three buffers.** The arena's `grow_v`/`grow_i` — allocate a 2x buffer,
 > refill, swap the handle — is the same move the segment, glyph, and instance buffers need when an
 > added object overflows them. For the two lane buffers it lives inside 4b's
-> `upload_segments`/`upload_glyphs`; the instance buffer gets its turn in 38b (`grow_instances`).
+> `upload_segments`/`upload_glyphs`; the instance buffer gets its turn in 43b (`grow_instances`).
 >
 > **But swapping the handle is not enough for the storage buffers.** The arena's `vbo`/`vids`/`ibo`
 > are re-bound every frame by `set_vertex_buffer`/`set_index_buffer`, so a grown handle is picked up
@@ -420,8 +454,8 @@ pub struct ArenaUpload {
 (`ArenaUpload::new()` follows: delete the `verts`/`vids`/`idx` lines, add `meshes: Vec::new(),`.)
 
 `Scene::add_file` (35) changes *where it pushes*. First split 35's `push_mesh` into a function that
-**returns** one object's tables (same body, different sink — 43b's `apply_object` reuses it), in
-`scene.rs`:
+**returns** one object's tables (same body, four anchored edits, different sink — 43b's
+`apply_object` reuses it), in `scene.rs`:
 
 ```rust
 /// 35's `push_mesh`, split to RETURN one object's tables instead of pushing into shared vecs.
@@ -432,11 +466,16 @@ fn flatten_mesh(m: &Mesh, ri: u32)
     let mut idx = Vec::new();
     let mut segments = Vec::new();
     let mut glyphs = Vec::new();
-    // …push_mesh's body, VERBATIM (hidden-width gate, width broadcast, vertex-sphere widths and
-    // all), with exactly three edits:
-    //   `let base = verts.len() as u32;`  — deleted (verts starts empty here)
-    //   `vids.push(ri);`                  — deleted (the arena writes vids from the row)
-    //   `idx.push(base + i);`             → `idx.push(i);` (0-based local)
+    // ── 35's push_mesh BODY goes here, copied in whole from `let rm = m.to_render();` down to
+    // its final closing brace (hidden-width gate, width broadcast, vertex-sphere widths and
+    // all) — with exactly these FOUR anchored edits:
+    //
+    //   top of body:        let base = verts.len() as u32;      — DELETE (verts starts empty here)
+    //   the vertex loop:        vids.push(ri);                  — DELETE (the arena writes vids)
+    //   the index loop:         idx.push(base + i);  →  idx.push(i);   — 0-based LOCAL
+    //   the fill early-out:  if m.widths().len() == 1 && m.widths()[0] == 0.0 { return }
+    //                        → { return (verts, idx, segments, glyphs) }   — push_mesh returned
+    //                          (); we return the four locals, and a bare `return` won't compile
     (verts, idx, segments, glyphs)
 }
 ```
@@ -621,7 +660,7 @@ is invisible until something uses it, so prove it with a log — after the arena
             self.arena.slots.len(), self.arena.cursor_v);
 ```
 
-201 mesh slots for the floor model, high-water mark equal to the old flat build. 38b is where
+201 mesh slots for the floor model, high-water mark equal to the old flat build. 43b is where
 freeing and replacing start actually happening.
 
 ## Recap
@@ -629,9 +668,12 @@ freeing and replacing start actually happening.
 ```
 Ch 41: frustum cull — per-object FLAG_CULLED, one draw preserved.
 Ch 43a: PER-OBJECT ARENA. GpuArena (engine/gpu/arena.rs) replaces 30's flat arena: guid →
-        ArenaSlot{vertex_range, index_range}; bump-fill, first-fit reuse of freed ranges, grow 2x
-        (copy old → new, swap handle). free() stamps the index range with a degenerate triangle
-        (repeat the object's OWN first vertex index — an ibo offset would read past the vbo)
+        ArenaSlot{vertex_range, index_range}; bump-fill, first-fit reuse of freed ranges (coalesced
+        on free, so the list doesn't fragment into slivers), grow 2x
+        (copy old → new, swap handle). allocate self-frees an existing guid first — a replace
+        can't leak the old ranges. free() stamps the index range with degenerate triangles
+        (repeat the object's OWN first vertex index — an ibo offset would read past the vbo;
+        chunked through a small fixed staging array, not a per-object Vec)
         so holes
         draw nothing and neighbours are never re-uploaded. Lane tables (pipes/spheres/segments/
         glyphs): guid→Range + drain-shift over CPU mirrors, splice-uploaded SOLID-first as in 35

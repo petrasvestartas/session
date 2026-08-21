@@ -18,6 +18,9 @@ struct Instance {
 const FACING_UNKNOWN: u32 = 0xffffffffu;
 // Instance flag bit: the eye is inside THIS object's bounds (set per frame on the CPU).
 const FLAG_INSIDE: u32 = 4u;
+// Instance flag bit: the mesh is OPEN (boundary edges) - not a solid, so the facing cull's
+// premise is void and it is skipped exactly like FLAG_INSIDE (see Instance::FLAG_OPEN).
+const FLAG_OPEN: u32 = 16u;
 
 struct CylinderSegment{
     p0x: f32, p0y: f32, p0z: f32,
@@ -136,7 +139,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si:u32) -> VsO
     // switch only changes how they are drawn. FLAG_INSIDE: from inside the object every face
     // points away, so the cull would drop the whole object - skip it and let the depth test do
     // the occlusion (tubes are real geometry, it suffices).
-    if ((instances[seg.instance_id].flags & FLAG_INSIDE) == 0u && !edge_faces_camera(seg, model, (w0 + w1) * 0.5)){
+    if ((instances[seg.instance_id].flags & (FLAG_INSIDE | FLAG_OPEN)) == 0u && !edge_faces_camera(seg, model, (w0 + w1) * 0.5)){
         var dead: VsOut;
         dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
         dead.color = vec4<f32>(0.0);
@@ -156,7 +159,12 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si:u32) -> VsO
             let sa = (ca.xy / ca.w * 0.5 + 0.5) * vp;
             let sb = (cb.xy / cb.w * 0.5 + 0.5) * vp;
             // The pen's HALF-width in px, the same closed form half_width_px uses in ribbon.wgsl.
-            let px = r * line.proj_y * line.vp_h * 0.5 / max(clip_c.w, 1e-6);
+            var px: f32;
+            if (line.ortho_h > 0.0) {
+                px = r * line.vp_h * 0.5 / line.ortho_h;
+            } else {
+                px = r * line.proj_y * line.vp_h * 0.5 / max(clip_c.w, 1e-6);
+            }
             let room = WIRE_MIN_PENS * 2.0 * max(px, 1e-6);
             rt = r * clamp(length(sb - sa) / room, TAPER_MIN, 1.0);
         }

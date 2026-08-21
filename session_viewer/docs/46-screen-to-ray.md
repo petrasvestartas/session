@@ -1,9 +1,9 @@
 # 46 Screen → ray — unproject the mouse into a world ray
 
-> **Big picture.** *Phase 7 — picking & selection (41–46).* Everything interactive from here on —
+> **Big picture.** *Phase 7 — picking & selection (46–50).* Everything interactive from here on —
 > select, gumball, draw tools, snapping — starts with one question: *what is under the cursor?*
 > WebGPU can't answer it GPU-side (no synchronous readback), so we build the CAD-standard CPU answer
-> in stages: turn the cursor into a ray (this lesson), cast it (42–44), select with it (45–46).
+> in stages: turn the cursor into a ray (this lesson), cast it (47–49), select with it (50).
 
 Picking starts here. The cursor is a 2D pixel; everything selectable is 3D. Every pick in Phase 7 —
 mesh (47), vertex/edge/face (48), line/point (49), marquee (50) — begins by turning that pixel into a
@@ -46,7 +46,7 @@ src/lib.rs           # CursorMoved stashes state.cursor; a Left MouseInput arm c
 
 `engine/pick.rs` names only `Point`/`Vector`/`Xform` — geometry primitives, never `Session`/`Mesh` — so
 it stays on the engine side of 35's litmus. The *dispatch* ("which object did the ray hit?") is app-layer
-and arrives in 42.
+and arrives in 47.
 
 ## Step 1 — the ray type + unproject: `src/engine/pick.rs`
 
@@ -102,6 +102,13 @@ fn unproject(m: &[[f64; 4]; 4], x: f64, y: f64, z: f64) -> Option<Point> {
 > perspective matrix before trusting any unprojection. See `_KERNEL_GAPS.md` for the audit trail.
 >
 > `Point + Vector`, `Point − Point → Vector`, and `Vector::normalized()` are all verified kernel ops.
+
+> **A ray is infinite; the downstream casts are not.** 47 and 49 turn this ray into a *segment* by
+> unprojecting a far point at `origin + dir · 1.0e7` — anything farther than 10⁷ world units down
+> the ray is unpickable. That's 10 km in millimetre units, so ordinary CAD never notices; if your
+> scene ever works in microns (10⁷ µm = 10 m!) or kilometres, raise the cap or derive it from the
+> scene bounds. It lives in the cast functions, not here — flagged here so the constant doesn't
+> surprise you later.
 
 ## Step 2 — why `ndc_z = 0.5`, not the far plane
 
@@ -162,7 +169,7 @@ and add a left-button arm next to the existing `MouseButton::Right` one:
     }
 
     /// Left-click entry point (wired from lib.rs). Today: the ground-plane self-check;
-    /// 42 replaces the z=0 block with the real pick.
+    /// 47 replaces the z=0 block with the real pick.
     pub fn on_left_click(&mut self) {
         let vp = self.camera.view_proj(self.aspect());
         let origin = self.camera.origin();
@@ -205,6 +212,43 @@ missing or the `ndc_z` convention is wrong for your depth setup.
   instead of `0.5` (Step 2).
 - **Y-flipped** (clicking top hits bottom) → the `ndc_y = 1.0 − …` line; pixel-y is top-down.
 
+And a `#[cfg(test)]` pins the math without a browser — unproject a cursor pixel, project a point on
+the ray back through the same matrix, assert it lands on the cursor. Add at the bottom of
+`engine/pick.rs` (the forward projection is written out inline; 48 packages it as
+`project_to_screen`):
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unproject_project_round_trip() {
+        let cam = crate::camera::Camera::new();   // 13's default: iso view, perspective, mm
+        let vp = cam.view_proj(800.0 / 600.0);
+        let origin = cam.origin();
+        let viewport = (0.0, 0.0, 800.0, 600.0);
+        let m = vp.to_cols();
+        for cursor in [(40.0, 30.0), (400.0, 300.0), (799.0, 599.0)] {
+            let ray = screen_to_world_ray(&vp, &origin, cursor, viewport).unwrap();
+            for t in [0.0, 1.0, 100.0] {
+                let p = &ray.origin + &ray.dir * t;
+                // world → cam-relative → clip → NDC → px (the mirror of Step 1)
+                let v = [p[0] - origin[0], p[1] - origin[1], p[2] - origin[2], 1.0];
+                let row = |r: usize| m[0][r]*v[0] + m[1][r]*v[1] + m[2][r]*v[2] + m[3][r]*v[3];
+                let w = row(3);
+                let px = ((row(0)/w * 0.5 + 0.5) * 800.0, (0.5 - row(1)/w * 0.5) * 600.0);
+                assert!((px.0 - cursor.0).abs() < 1e-3 && (px.1 - cursor.1).abs() < 1e-3,
+                    "cursor {cursor:?} round-tripped to {px:?}");
+            }
+        }
+    }
+}
+```
+
+Same wasm-override to run headless: `cargo test -p session_viewer round_trip --target
+x86_64-unknown-linux-gnu`.
+
 ## Recap
 
 ```
@@ -220,16 +264,17 @@ Ch 46: SCREEN → RAY. A cursor pixel → NDC (x,y ∈ [-1,1], y flipped for top
        Point/Vector/Xform — engine-side of 35's litmus).
 ```
 
-Edited: `engine/pick.rs` (NEW — `Ray`, `screen_to_world_ray`, `unproject`), `engine/mod.rs`
+Edited: `engine/pick.rs` (NEW — `Ray`, `screen_to_world_ray`, `unproject`, round-trip
+`#[cfg(test)]`), `engine/mod.rs`
 (`pub mod pick;`), `state.rs` (`cursor` field, `aspect()`, `on_left_click` — ray → z=0 self-check),
 `lib.rs` (cursor stash + Left-button arm).
 
 ## Next
 
-`47-raycast-meshes.md` — cast this ray at the meshes. Broad-phase with the 36 BVH to a short candidate
+`47-raycast-meshes.md` — cast this ray at the meshes. Broad-phase with the 40 BVH to a short candidate
 list, then for each candidate **inverse-transform the ray into the object's local frame** — the
 placement is the row's stored xform, `scene.tables.objects[row].0` (manifest `place` × session world
-xform, baked at `add_file`); 42 inverts exactly that — and hit its cached triangle BVH
+xform, baked at `add_file`); 47 inverts exactly that — and hit its cached triangle BVH
 (`Mesh::triangle_bvh_ray_cast`) — the nearest
 `t` wins, and an occluded object never does. WebGPU has no sync depth readback, so this CPU ray + BVH
 *is* the interactive pick path.

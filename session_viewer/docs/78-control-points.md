@@ -1,6 +1,6 @@
 # 78 Control-point editing — F10, grab a CV, reshape
 
-> **Big picture.** *Phase 13 — sub-object editing (73–76).* Until now the gumball moves whole
+> **Big picture.** *Phase 13 — sub-object editing (78–81).* Until now the gumball moves whole
 > objects; real modeling moves their **insides** — drag one control point and the surface flows. All
 > the parts exist: CV glyphs (65), sub-object picking (48), the drag skeleton (59), Commands (56).
 > What's genuinely new is the **update economics**: a shape edit must not re-flatten the object per
@@ -103,20 +103,27 @@ Per mouse-move: `move_cv`, then **resample into the existing layout** — same s
 cached tessellation/polyline, so vertex *count* is unchanged and the arena slot still fits — and
 upload just that range.
 
-**This write is 43a's payoff, and it does not exist without 38a.** The per-object address comes
-from the arena's guid→slot map (`arena.slots[guid].vertex_range` into `arena.vbo`); before 38a the
+**This write is 43a's payoff, and it does not exist without the arena.** The per-object address comes
+from the arena's guid→slot map (`arena.slots[guid].vertex_range` into `arena.vbo`); before 43a the
 scene is one monolithic buffer with no per-object ranges, so there is nothing surgical to write.
 The honest v1 without it: during the drag, preview only the **CV glyphs** (the dragged handle and
 its polygon — a tiny write, and what your eye actually tracks); the body updates on **release** via
 a tables rebuild + `gpu.set_scene(&scene.tables)` — correct, ~100 ms, once per drag, and the drag
 itself stays at full frame rate. Do NOT call `set_scene` per mouse-move — a full-scene re-upload
-per frame is exactly the economics this lesson exists to avoid. With 38a in place, the live path is:
+per frame is exactly the economics this lesson exists to avoid. With 43a in place, the live path is:
 
 ```rust
     // gpu — the surgical write 43a's slot map makes possible:
     pub fn update_vertex_range(&mut self, guid: &str, verts: &[RenderVertex]) {
         if let Some(slot) = self.arena.slots.get(guid) {
-            debug_assert_eq!(verts.len() as u32, slot.vertex_range.len() as u32);
+            // NOT a debug_assert: in a release build a mismatched write would bleed past the slot
+            // and corrupt the NEXT object's vertices. Refuse loud; the caller falls back to the
+            // v1 path (tables rebuild + set_scene) for this object.
+            if verts.len() != slot.vertex_range.len() {
+                log::warn!("update_vertex_range({guid}): {} verts, slot holds {} — skipping",
+                           verts.len(), slot.vertex_range.len());
+                return;
+            }
             self.queue.write_buffer(&self.arena.vbo,
                 slot.vertex_range.start as u64 * std::mem::size_of::<RenderVertex>() as u64,
                 bytemuck::cast_slice(verts));
@@ -129,15 +136,26 @@ range map) in place. Either way: **no allocation, no re-flatten, no full-buffer 
 HUD's upload counter shows a few kilobytes per frame, and dragging a CV on the stress scene doesn't
 move the frame time.
 
+Two refinements to know about, neither needed for v1. **The live resample re-evaluates the whole
+object** at the cached sample counts, but a NURBS CV only influences `degree + 1` knot spans —
+span-local re-evaluation (find the affected parameter interval from the CV's index, resample just
+those spans into the same vertex layout) shrinks the live CPU work from O(samples) to
+O(spans × degree²). Worth it on dense surfaces; on curves you won't measure the difference.
+**Fixed counts cut both ways**: keeping the cached sample count is what makes the slot write
+legal, but sculpt a tight curl into a sparsely-sampled region and the live preview under-samples
+it — faceting that the release rebuild's fresh tessellation (66's quality knobs) resolves. If the
+preview faceting bothers you, resample *denser* during the drag and take the release path's rebuild
+when the count changes (the guard above refuses the write and falls back).
+
 On **release**: one `EditShape` Command — the 54 pattern, with 56's snapshot insight doing the heavy
 lifting: `before`/`after` are cloned `Geometry` handles (`lookup.get(guid).cloned()` — an `Rc`
 clone IS an absolute snapshot, because every later edit COWs a fresh allocation; restore = write
 the handle back with `lookup.insert`, and `objects_synced()` heals the split at save). Then the
 real bookkeeping: `tess_cache.remove(guid)` (66's one sanctioned invalidation) + the rebuild —
-tables + `set_scene` in v1, one arena-slot rewrite with 38a — so normals and edge tubes true up at
-the final shape; `hashes` refresh (43b), and the row's world box + BVH refit (36 — the shape
+tables + `set_scene` in v1, one arena-slot rewrite with 43a — so normals and edge tubes true up at
+the final shape; `hashes` refresh (43b), and the row's world box + BVH refit (40 — the shape
 changed, so its box did). And the **second trap**: if the edit target is a `Mesh` (dragging mesh
-vertices works the same way), `invalidate_triangle_bvh()` before anything picks again, or 42 casts
+vertices works the same way), `invalidate_triangle_bvh()` before anything picks again, or 47 casts
 rays against the shape *before* the drag. The kernel invalidates on its own mutators, but a direct
 vertex write bypasses them.
 
@@ -159,7 +177,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 - The **stale-BVH test**: drag a surface CV far, release, immediately click the *new* bulge —
   it picks. Comment out the cache/BVH invalidation on release and repeat: the click misses (it's
   casting at the old shape). Restore.
-- Perf HUD during a drag: with 38a, uploads = the one vertex range, frame time flat — compare
+- Perf HUD during a drag: with 43a, uploads = the one vertex range, frame time flat — compare
   against a deliberate full `set_scene` per move to feel why the slot write is the lesson. On v1,
   the drag stays smooth (glyphs only) and release costs one ~100 ms rebuild — visible, honest, and
   the exact hitch 43a's arena deletes.
@@ -185,7 +203,7 @@ Ch 78: CV EDITING. F10 mode: CVs pick first (48's radius over 65's glyphs); drag
 
 Edited: `state.rs` (F10, CV pick, drag route), `app/scene.rs` (`move_cv` — doc resolve, COW via
 lookup, world→local; live resample; release bookkeeping, `EditShape`), `engine/gpu/mod.rs`
-(`update_vertex_range`, 38a-gated).
+(`update_vertex_range`, 43a-gated).
 
 ## Next
 

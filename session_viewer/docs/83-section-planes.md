@@ -148,9 +148,17 @@ Then, as the first statement in each `fs_main`:
 ```
 
 `count = 0` → the loop body never runs — sections cost nothing until used. The cut face is hollow
-(you see the object's inside back-faces); a darker tint on `!front_facing` fragments (21's builtin)
-is the classic cheap "cut material" cue — one `if`, worth it. True solid caps are kernel
-plane-splits — a later boolean lesson, not a shader trick.
+(you see the object's inside back-faces); a darker tint on back-facing fragments is the classic cheap
+"cut material" cue — one `if`, and here it is, not just a suggestion: add
+`@builtin(front_facing) front: bool` as an `fs_main` parameter (21's builtin) and darken the albedo
+before lighting —
+
+```wgsl
+    var albedo = in.color.rgb;
+    if (!front) { albedo = albedo * 0.55; }   // inside the cut: the "solid core" reads darker
+```
+
+True solid caps are kernel plane-splits — a later boolean lesson, not a shader trick.
 
 ## Step 3 — picking respects the cut: `src/app/scene.rs`
 
@@ -173,11 +181,12 @@ and the selection disagree, Phase 7's cardinal sin. One world-space filter, appl
     // pick_thin: filter the RayHit list the same way before choosing the nearest.
 ```
 
-`pick_mesh`/`pick_thin` are per-doc after 42/44 — `visible_through_sections` is a pure world-space
+`pick_mesh`/`pick_thin` are per-doc after 47/49 — `visible_through_sections` is a pure world-space
 test, so it drops into each doc's picker unchanged.
 
 (A mesh whose *nearest* intersection is cut away but whose farther intersection is visible will read
-as unpickable at that pixel — acceptable v1; the exact fix is walking all ray hits, noted not built.)
+as unpickable at that pixel — a **tracked gap** (logged in `_LESSON_AUDIT.md`), not a v1 bug; the
+exact fix is walking all ray hits, noted, deliberately not built.)
 
 ## Step 4 — the command + the drag: `src/app/commands.rs` + `src/state.rs`
 
@@ -189,6 +198,10 @@ drag:
             Some("off")  => { state.sections.clear(); state.poke();
                               Dispatch::Instant("sections off".into()) }
             Some("flip") => { for pl in &mut state.sections {          // kernel Plane has no flip():
+                                  // NOTE from_point_normal mints an ARBITRARY in-plane x/y frame —
+                                  // only the normal (what sectioning reads) survives the flip
+                                  // deterministically; rebuild the frame from the old one if a
+                                  // later feature (a grid on the section plane) ever reads it
                                   *pl = Plane::from_point_normal(pl.origin(), -pl.z_axis());
                               }
                               state.poke(); Dispatch::Instant("sections flipped".into()) }
@@ -236,7 +249,8 @@ impl ActiveCommand for SectionDrag {
         let Some(t) = crate::engine::gumball::closest_param_on_axis(&ray, &o, &n) else { return };
         let t0 = *self.t0.get_or_insert(t);
         let dt = t - t0;
-        if dt.abs() > 0.0 {
+        // a REAL epsilon, not > 0.0: suppress sub-micron axis-solve jitter (world units — mm here)
+        if dt.abs() > 1e-6 {
             let moved = Plane::from_point_normal(o + n.clone() * dt, n);
             *state.sections.last_mut().unwrap() = moved;
             self.t0 = Some(t);                       // incremental: origin moved, re-anchor

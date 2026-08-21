@@ -22,7 +22,7 @@ use crate::app::scene::{auto_grid, Manifest, Scene};
 
 // The scene: which sheets, and where each one sits.
 // Fetched at runtime, so re-arringing the scene is a text edit in assets/scenes, not rebuild (app/scene.rs)
-const DEMO_SCENE_URL: &str = "scenes/bunny.json";
+const DEMO_SCENE_URL: &str = "scenes/bunny_drawings.json";
 
 /// Async init - event-loop messages.
 /// `Ready` carries the State built around the first file
@@ -191,7 +191,10 @@ impl ApplicationHandler<Msg> for App {
             WindowEvent::KeyboardInput { event, ..} => {
                 if event.state == ElementState::Pressed && !event.repeat{
                     match event.logical_key.as_ref() {
-                        Key::Named(NamedKey::Space) => state.camera.toggle_projection(),
+                        Key::Named(NamedKey::Space) => {
+                            let aspect = state.gpu.config.width as f64 / state.gpu.config.height as f64;
+                            state.camera.toggle_projection_framed(state.gpu.scene_min, state.gpu.scene_max, aspect);
+                        }
                         Key::Character("1") => state.camera.set_view(View::Front),
                         Key::Character("2") => state.camera.set_view(View::Back),
                         Key::Character("3") => state.camera.set_view(View::Left),

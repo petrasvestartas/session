@@ -1,10 +1,10 @@
 # 43b Reconcile II — diff by guid, touch only what changed
 
-> **Big picture.** *Phase 6 — the file is the source of truth.* 38a made single objects addressable on
+> **Big picture.** *Phase 6 — the file is the source of truth.* 43a made single objects addressable on
 > the GPU. Now the payoff: when a file is reloaded, don't rebuild the scene — **diff** the incoming
 > `Session` against the loaded one by `guid`, and apply only the difference. Edit one wall in a
 > 42,232-object drawing → one object re-flattened, 42,231 skipped. This diff is also the engine that
-> 40 (watch) reuses verbatim, and its content-hash is what 39 (save) uses to skip pointless writes.
+> 45 (watch) reuses verbatim, and its content-hash is what 44 (save) uses to skip pointless writes.
 
 <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a new Session is diffed against the current one by guid into added, removed, changed and unchanged; only the first three touch the GPU arena via allocate, free and replace" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="12" y="26" width="150" height="30" fill="none" stroke="#6fb3ff"/><text x="87" y="45" fill="#d7dae0" text-anchor="middle">new Session</text>
@@ -90,7 +90,12 @@ fn content_hash(geom: &Geometry, world: &Xform) -> u64 {
     };
     let mut h = std::collections::hash_map::DefaultHasher::new();
     s.hash(&mut h);
-    format!("{:?}", world.to_cols()).hash(&mut h);
+    // Hash the xform's 16 f64 BIT PATTERNS — not format!("{:?}"), which would allocate a fresh
+    // String per object per diff. (Bits, not values: -0.0 and 0.0 hash differently — the
+    // conservative side for a change-detector, which may over-report but never under-report.)
+    for c in world.to_cols().into_iter().flat_map(|col| col) {
+        c.to_bits().hash(&mut h);
+    }
     h.finish()
 }
 ```
@@ -203,14 +208,20 @@ verbs, and the `Geometry` match — converting an object to those GPU types via 
     pub fn set_object_row(&mut self, row: u32, model: Xform, color: [f32;4], flags: u32) {
         if row as usize == self.objects_base.len() {
             self.objects_base.push((model.duplicate(), color, flags));
-            self.instances.push(Instance { model: model.to_f32(), color, flags, _pad: [0;3] });
+            // extent/spacing: 0.0 = "unknown" (the ink lanes fall back gracefully); set_scene
+            // measures them from the object bounds, and a size-aware refine could too.
+            self.instances.push(Instance { model: model.to_f32(), color, flags,
+                extent: 0.0, spacing: 0.0, _pad: 0 });
             if (self.instances.len() as u64) * SZ as u64 > self.instance_buffer.size() {
                 self.grow_instances();
             }
         } else {
             self.objects_base[row as usize] = (model.duplicate(), color, flags);
-            self.instances[row as usize] =
-                Instance { model: model.to_f32(), color, flags, _pad: [0;3] };
+            // Preserve the row's extent/spacing — set_scene measured them from the object's
+            // bounds; overwriting with 0.0 would silently switch off the ink-lift clamp.
+            let old = self.instances[row as usize];
+            self.instances[row as usize] = Instance { model: model.to_f32(), color, flags,
+                extent: old.extent, spacing: old.spacing, _pad: 0 };
         }
         self.write_row(row, |_| {});   // upload just this row (or the whole buffer after a grow)
     }
@@ -320,22 +331,35 @@ in as a parameter:
     }
 ```
 
-(`flatten_mesh` landed in 38a Step 5a — the per-object split of 35's `push_mesh`.
+(`flatten_mesh` landed in 43a Step 5a — the per-object split of 35's `push_mesh`.
 `free_rows: Vec<u32>` and `next_row: u32` are new `Scene` fields — add both to `struct Scene`,
 init `free_rows: Vec::new(), next_row: 0` in `Scene::new`'s literal — the scene starts EMPTY
 since 35 — and keep `next_row` in step with the walk: one line at the bottom of `add_file`,
-`self.next_row = self.tables.objects_base.len() as u32;`.)
+`self.next_row = self.tables.objects.len() as u32;`.)
 
 **3c. State orchestrates the reload, in `src/state.rs`:**
 
 ```rust
     pub async fn reload(&mut self, url: &str) -> anyhow::Result<()> {
-        let bytes = crate::app::persistence::fetch_bytes(url).await.unwrap_or_default();
+        // Guard like 45's poll: a failed/EMPTY fetch must leave the scene as-is. Parsing empty
+        // bytes yields an empty Session, and the diff would bucket every loaded object as
+        // `removed` — a network hiccup wiping the whole scene off the GPU.
+        let bytes = match crate::app::persistence::fetch_bytes(url).await {
+            Ok(b) if !b.is_empty() => b,
+            _ => {
+                log::warn!("reload: fetch failed or empty — keeping the current scene");
+                return Ok(());
+            }
+        };
         // 35's sliced parse — session_from_bytes is GONE, the chunked version replaced it
         let new = crate::app::persistence::session_from_bytes_chunked(url, &bytes).await;
         let diff = self.scene.reconcile(&new);
-        // guid_to_row is the pub view of "how many objects are loaded" (order is Scene-private)
-        let unchanged = self.scene.guid_to_row.len() - diff.changed.len() - diff.removed.len();
+        // guid_to_row is the pub view of "how many objects are loaded" (order is Scene-private).
+        // Exact for the one-doc demo scene (live rows = unchanged + changed + removed); spans ALL
+        // docs otherwise — 45's per-doc watcher needs the doc's own count. saturating_sub: a
+        // missing row entry must never underflow a LOG line into a panic.
+        let unchanged = self.scene.guid_to_row.len()
+            .saturating_sub(diff.changed.len() + diff.removed.len());
         log::info!("reload: {} added, {} changed, {} removed, {} unchanged",
             diff.added.len(), diff.changed.len(), diff.removed.len(), unchanged);
 
@@ -347,7 +371,7 @@ since 35 — and keep `next_row` in step with the walk: one line at the bottom o
             self.scene.free_row(g);
         }
         // The row's full world frame, composed exactly as add_file composes it. The reloaded
-        // doc keeps its manifest place (the demo scene holds ONE doc; 40 generalizes per doc).
+        // doc keeps its manifest place (the demo scene holds ONE doc; 45 generalizes per doc).
         let world = new.world_xforms();
         let place = self.scene.docs.first()
             .map(|d| d.place.duplicate()).unwrap_or_else(session_rust::Xform::identity);
@@ -362,24 +386,27 @@ since 35 — and keep `next_row` in step with the walk: one line at the bottom o
             let row = self.scene.assign_row(g);
             self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], placed(g), row);
         }
-        // swap session; rebuild order/hashes/boxes/bvh — but KEEP guid_to_row (below)
-        self.scene.commit(new);
+        // swap session; rebuild order/hashes, re-walk the touched rows' boxes, rebuild the bvh —
+        // but KEEP guid_to_row (below)
+        self.scene.commit(new, &diff);
         Ok(())
     }
 ```
 
-> **`commit` must not renumber rows.** It rebuilds `order`, `hashes`, 40's extents cache and the BVH
+> **`commit` must not renumber rows.** It rebuilds `order` + `hashes`, re-walks the boxes of the rows
+> the diff touched, and rebuilds 40's BVH
 > for the new document, but leaves `guid_to_row`/`free_rows`/`next_row` alone — those rows already
 > point at the GPU data this reload just wrote, and 35's "row == order index" only ever held on the
-> *first* load. Two 36 helpers still ASSUME that identity, so commit keeps the extents cache
+> *first* load. Two 40 helpers still ASSUME that identity, so commit keeps the extents cache
 > ROW-indexed (41's per-frame cull reads `world_boxes[row]`) and the two get a one-line fix each
 > (below the code).
 
 ```rust
-    /// Swap in the reloaded document: rebuild order + hashes + 40's extents cache + the BVH for
-    /// `new`, but KEEP guid_to_row / free_rows / next_row — those rows already point at the GPU
-    /// data reload wrote.
-    pub fn commit(&mut self, new: Session) {
+    /// Swap in the reloaded document: rebuild order + hashes + the BVH for `new`, but KEEP
+    /// guid_to_row / free_rows / next_row — those rows already point at the GPU data reload wrote.
+    /// The extents cache is re-walked ONLY for rows the diff touched: world_obb reads every VERTEX
+    /// of an object, so recomputing all N boxes would hand back the cost the diff just saved.
+    pub fn commit(&mut self, new: Session, diff: &Diff) {
         let world = new.world_xforms();
         let ident = Xform::identity();
         // order + hashes: rebuilt exactly as add_file (35) fills them — kernel-canonical order()
@@ -392,12 +419,13 @@ since 35 — and keep `next_row` in step with the walk: one line at the bottom o
                 content_hash(geom, world.get(&guid).unwrap_or(&ident)));
             self.order.push(guid);
         }
-        // 40's extents cache, rebuilt ROW-indexed at the rows reload kept; a freed row keeps a
-        // degenerate box no live guid points at.
+        // 40's extents cache stays ROW-indexed at the rows reload kept. Unchanged rows keep their
+        // cached box; a freed row keeps a degenerate box no live guid points at; resize extends
+        // the cache for rows this reload added beyond the old high-water.
         let place = self.docs.first()
             .map(|d| d.place.duplicate()).unwrap_or_else(Xform::identity);
-        self.world_boxes = vec![([0.0; 3], [0.0; 3]); self.next_row as usize];
-        for guid in &self.order {
+        self.world_boxes.resize(self.next_row as usize, ([0.0; 3], [0.0; 3]));
+        for guid in diff.changed.iter().chain(&diff.added) {
             let row = self.guid_to_row[guid];
             let placed = &place * &world.get(guid).cloned().unwrap_or_else(Xform::identity);
             let a = world_obb(&new.lookup[guid], &placed).aabb();
@@ -457,28 +485,65 @@ session with one object added, one removed, one field-edited → `added/removed/
 those three guids. Visually, the moved wall jumps and nothing else flickers — the untouched arena
 ranges were never re-uploaded.
 
+A second test pins the part that actually breaks in the field: after a reconcile, `order` and rows
+have diverged, so a broad-phase query must return the row the GPU *drew* the object on — not the
+stale order index. Add it inside 40's `#[cfg(test)] mod tests` in `scene.rs`:
+
+```rust
+    /// Pick-after-reconcile: move an object (same guid, new xform), commit, and the BVH must
+    /// answer with ITS row at the NEW position — and nothing at the old one.
+    #[test]
+    fn pick_after_reconcile() {
+        let mut scene = Scene::new();
+        scene.add_file("a".into(), demo_session(), Xform::identity());
+
+        let mut s2 = demo_session();
+        let g = s2.lookup.keys().next().cloned().unwrap();
+        s2.set_xform(&g, Xform::translation(50_000.0, 0.0, 0.0));   // a pure MOVE
+        let diff = scene.reconcile(&s2);
+        assert_eq!(diff.changed, vec![g.clone()], "a moved object is changed, not added/removed");
+        scene.commit(s2, &diff);
+
+        let row = scene.guid_to_row[&g];   // same row — commit must not renumber
+        // AABB::new is CENTER + HALF-EXTENTS (40): the new spot catches it, the old one is empty.
+        let new_spot = OBB::from_aabb(AABB::new(50_000.0, 0.0, 0.0, 500.0, 500.0, 500.0));
+        assert_eq!(scene.objects_in(&new_spot), vec![row]);
+        let old_spot = OBB::from_aabb(AABB::new(0.0, 0.0, 0.0, 500.0, 500.0, 500.0));
+        assert!(!scene.objects_in(&old_spot).contains(&row));
+    }
+```
+
+(The demo session has three lines; the moved one leaves the old box, its two unmoved sisters stay
+— which is why the second assert is `!contains`, not `is_empty`. `demo_session` is 40's helper;
+`Session::set_xform` is the same entry point 44's in-viewer moves save through.)
+
 ## Recap
 
 ```
 Ch 43a: per-object arena — free/replace one object's GPU bytes without touching neighbours.
 Ch 43b: THE DIFF. content_hash = hash of the kernel's SORTED jsondump + the object's session
-        world xform — a raw {:?} would hash the Mesh's HashMap fields in random order and mark
+        world xform (16 f64 bit patterns — no {:?} String alloc) — a raw {:?} would hash the
+        Mesh's HashMap fields in random order and mark
         every object changed every reload (the trap), and a JSON-only hash would file a pure MOVE
         under unchanged (placement lives in Session.xforms, not the geometry).
         Scene keeps guid→hash. reconcile(new) buckets the union of guids: added / removed /
         changed(hash≠) / unchanged(SKIPPED — the whole point). Apply: Gpu = GPU-typed verbs only
         (add_mesh_data/add_segments/add_glyphs/remove_object/set_object_row — 35's litmus holds);
         Scene owns the Geometry match (apply_object — all 11 kinds, like add_file) + row recycling
-        (assign_row/free_rows); State.reload runs remove → changed-in-place → added, then commit
+        (assign_row/free_rows); State.reload GUARDS the fetch (empty bytes → keep the scene, or a
+        hiccup diffs as "everything removed"), runs remove → changed-in-place → added, then
+        commit(new, &diff)
         (which must NOT renumber guid_to_row — those rows point at live GPU data; order and rows
-        diverge, so rebuild_bvh/objects_in map through guid_to_row). Edit 1 of N → 1 re-flatten,
-        N−1 skips.
+        diverge, so rebuild_bvh/objects_in map through guid_to_row — and which re-walks world
+        boxes ONLY for the diff-touched rows, or it hands back the cost the diff saved). Edit 1
+        of N → 1 re-flatten, N−1 skips.
 ```
 
 Edited: `app/scene.rs` (`content_hash`, `hashes`, `Diff`, `reconcile`, `is_renderable`,
-`apply_object`, `assign_row`/`free_row`, `commit`; `rebuild_bvh`/`objects_in` row-mapping),
+`apply_object`, `assign_row`/`free_row`, `commit(new, &diff)` — boxes re-walked for touched rows
+only; `rebuild_bvh`/`objects_in` row-mapping; `pick_after_reconcile` test),
 `engine/gpu/mod.rs` (the five GPU-typed verbs, `write_row`, `grow_instances`), `state.rs`
-(`reload` — diff-driven, not rebuild-from-zero).
+(`reload` — diff-driven, fetch-guarded, not rebuild-from-zero).
 
 ## Next
 

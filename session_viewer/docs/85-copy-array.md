@@ -4,7 +4,7 @@
 > on this architecture it costs almost nothing, because it's three existing rails composed:
 > **`duplicate()`** (the kernel's copy primitive — a clone that mints a FRESH guid, on every
 > geometry type), **doc-aware insertion** (62's `add_object` rail, wrapped in one `AddGeometry` so
-> every batch is undoable for free), and **`apply_world_delta`** (54 — placement lives in
+> every batch is undoable for free), and **`apply_world_delta`** (59 — placement lives in
 > `session.xforms`, so a copy is *placed*, never re-coordinated). The lesson's real content is the
 > identity trap `Rc` handles create and the Alt-drag wrinkle.
 
@@ -17,7 +17,7 @@
     <text x="73" y="47">duplicate() per arm</text><text x="73" y="59" fill="#e05555" font-size="9">Rc clone = SAME object!</text>
     <text x="240" y="47">source doc + local xf</text><text x="240" y="59" fill="#666" font-size="9">guid_to_row → doc_of_row</text>
     <text x="417" y="47">ONE AddGeometry (62)</text><text x="417" y="59" fill="#666" font-size="9">insert batch → one undo</text>
-    <text x="598" y="47">apply_world_delta</text><text x="598" y="59" fill="#666" font-size="9">54, one call per copy</text>
+    <text x="598" y="47">apply_world_delta</text><text x="598" y="59" fill="#666" font-size="9">59, one call per copy</text>
   </g>
   <g stroke="#6fb3ff" stroke-width="1.3">
     <line x1="138" y1="47" x2="168" y2="47" marker-end="url(#ah80)"/>
@@ -60,7 +60,7 @@ Two more things a copy must resolve, because neither lives in the object anymore
 ## Files we touch
 
 ```
-src/app/history/add.rs # AddGeometry::of_snapshots — the plural constructor (57 shipped ::one)
+src/app/history/add.rs # AddGeometry::of_snapshots — the plural constructor (62 shipped ::one)
 src/app/scene.rs       # clone_selection() → doc-resolved snapshots with fresh guids
 src/app/commands.rs    # `copy` (two-point Get-loop) and `array` verbs
 src/state.rs           # place_copies helper; Alt held at gumball-press → drag a COPY
@@ -68,7 +68,7 @@ src/state.rs           # place_copies helper; Alt held at gumball-press → drag
 
 ## Step 0 — the plural constructor: `src/app/history/add.rs`
 
-57 gave `AddGeometry::one`. Copy/array commit a *batch*, so add the matching plural — find the
+62 gave `AddGeometry::one`. Copy/array commit a *batch*, so add the matching plural — find the
 `impl AddGeometry` block (62) and add this beside `one` (`RemovedObj` is 56's snapshot shape —
 row, doc, `Rc` handle, local xform — exactly what a copy is):
 
@@ -90,8 +90,8 @@ row, doc, `Rc` handle, local xform — exactly what a copy is):
     /// copy that omits it lands at the doc origin. `row` is assigned by the insert.
     pub fn clone_selection(&self) -> Vec<RemovedObj> {
         let mut out = Vec::new();
-        for g in &self.selected {
-            let Some(&row) = self.guid_to_row.get(g) else { continue };
+        for &row in &self.selected {                        // row-keyed (50) — guid at the edge
+            let g = &self.order[row as usize];
             let doc = self.doc_of_row(row);
             let session = &self.docs[doc].session;
             let Some(geom) = session.lookup.get(g) else { continue };
@@ -103,7 +103,10 @@ row, doc, `Rc` handle, local xform — exactly what a copy is):
                 Geometry::Point(p) => Geometry::Point(Rc::new((**p).duplicate())),
                 Geometry::NurbsCurve(c) => Geometry::NurbsCurve(Rc::new((**c).duplicate())),
                 Geometry::NurbsSurface(s) => Geometry::NurbsSurface(Rc::new((**s).duplicate())),
-                _ => continue,
+                // LOUD drop: a selected object that can't duplicate must say so — a silent
+                // skip reads as "copied N-1 object(s)" with no explanation
+                other => { log::warn!("clone_selection: {g} ({other:?}) not duplicable — skipped");
+                           continue }
             };
             out.push(RemovedObj { row: 0, doc, geom: copy, local: session.xform(g) });
         }
@@ -122,7 +125,9 @@ poke:
 ```rust
     /// Post-insert placement for a batch of copies: 59's apply_world_delta per new row
     /// (Session xform + tables + cached box), then the live instance poke so the GPU row
-    /// follows. Rows resolve through guid_to_row — the insert assigned them.
+    /// follows. Rows resolve through guid_to_row — the insert assigned them. NO BVH rebuild
+    /// here — the caller rebuilds ONCE after the whole batch (`array 100` calls this 100
+    /// times; a rebuild per round is 100 wholesale BVH builds for one gesture).
     pub fn place_copies(&mut self, guids: &[String], delta: &Xform) {
         for g in guids {
             let Some(&row) = self.scene.guid_to_row.get(g) else { continue };
@@ -130,13 +135,35 @@ poke:
             let m = self.scene.placed_frame(row).duplicate();
             self.gpu.set_live_model(row, &m);
         }
-        self.scene.rebuild_bvh();
     }
 ```
 
 Because the copy carries its source's local xform and sits in its source's doc,
 `apply_world_delta`'s `L' = L · W⁻¹ · D · W` conjugation composes with the *same* `W` as the
 original — a copy on a placed sheet lands exactly where the drag said, not offset by the manifest.
+
+## ⚠ What `duplicate()` costs — and the instanced ceiling
+
+`duplicate()` is a **deep** copy: the geometry, and on first rebuild its tessellation, land in the
+arena *once per copy* — `array 100` of a 50k-triangle mesh banks 100 identical tessellations (plus
+100 lookup entries, 100 BVH leaves). That's the honest general case: copies are independent, so
+editing one copy's CVs (78) can't move the others.
+
+But the common case never edits them, and the architecture already owns the cheaper shape: 29–31's
+instancing draws N rows from ONE vertex payload, and 43b's content fingerprints already detect
+byte-identical geometry. A **linked copy** shares the source's arena slot and adds only an instance
+row whose model carries the placement — the same conjugation as above, composed once at copy time
+with `W` already folded into the placed frame:
+
+```
+model_copy = placed_frame(source) · Δ        // Δ = the copy delta, world space
+```
+
+Geometry bytes ×1, instance rows ×N; reconcile sees one fingerprint plus N placements. The price is
+a real dependency: an edit must COW the shared slot back into a private one (the same split 78's
+`make_mut` performs), so linked copies belong behind a `copy --linked` flag or a share-until-edited
+rule — **this course doesn't build it.** Know where the ceiling is before `array 1000` finds it for
+you.
 
 ## Step 2 — the `copy` command: `src/app/commands.rs`
 
@@ -176,7 +203,8 @@ impl ActiveCommand for CopyCmd {
                     .map(|s| s.geom.guid().to_string()).collect();
                 let n = snaps.len();
                 state.commit(Box::new(AddGeometry::of_snapshots(snaps)));   // ONE undo step
-                state.place_copies(&guids, &delta);                         // 54, per copy
+                state.place_copies(&guids, &delta);                         // 59, per copy
+                state.scene.rebuild_bvh();      // ONCE per gesture — place_copies no longer does
                 CmdStep::Done(format!("copied {n} object(s)"))
             }
         }
@@ -237,6 +265,7 @@ impl ActiveCommand for ArrayCmd {
                 for (guids, dk) in &placements {
                     state.place_copies(guids, dk);
                 }
+                state.scene.rebuild_bvh();      // ONE rebuild for all rounds — not 100
                 CmdStep::Done(format!("arrayed {n} object(s)"))
             }
         }
@@ -264,7 +293,7 @@ Register both in `dispatch`'s match (+ `VERBS`: `"copy"`, `"array"`; alias `("co
 
 ## Step 3 — Alt+gumball-drag = drag a copy: `src/state.rs`
 
-One branch on 59's **release**, not its press: the drag runs exactly as 54 built it (live,
+One branch on 59's **release**, not its press: the drag runs exactly as 59 built it (live,
 matrix-only, on the originals — cheapest possible preview), and Alt changes only what *commits*:
 
 > **New `State` field.** This branch reads `self.alt_down`, which no earlier lesson added — give `State`
@@ -287,6 +316,7 @@ matrix-only, on the originals — cheapest possible preview), and Alt changes on
                     .map(|s| s.geom.guid().to_string()).collect();
                 self.commit(Box::new(AddGeometry::of_snapshots(snaps)));
                 self.place_copies(&guids, &delta);
+                self.scene.rebuild_bvh();       // once, after the batch
                 self.gb_pressed = None;
                 return;
             }
@@ -297,7 +327,7 @@ matrix-only, on the originals — cheapest possible preview), and Alt changes on
 The subtlety that makes this clean: 59's live drag **never mutates the kernel objects** — so
 "restore the originals" is just re-uploading their stashed placed frames (`ctx.before` carries
 them; the rows in it came from `guid_to_row` when `begin_drag` snapshotted), and the copies are
-built from pristine originals. That mid-drag discipline was designed in 54 for Esc-cancel;
+built from pristine originals. That mid-drag discipline was designed in 59 for Esc-cancel;
 Alt-copy is its second customer.
 
 ## Step 4 — verify
@@ -327,7 +357,7 @@ Ch 85: DUPLICATION = three rails composed: duplicate() + AddGeometry + apply_wor
        guid, overwrites it in lookup), and refresh_guid is unreachable through &Rc anyway;
        duplicate() (every type — clone_with_new_guid, a reset OnceLock) is the kernel's copy
        primitive. clone_selection resolves each source's DOC (guid_to_row + doc_of_row) and carries
-       its LOCAL XFORM (placement left the geometry) → 51-shaped snapshots → ONE
+       its LOCAL XFORM (placement left the geometry) → 56-shaped snapshots → ONE
        AddGeometry::of_snapshots (inserts via 62's add_object into the SOURCE doc; undo removes the
        batch) → place_copies: apply_world_delta per new row (rows exist post-insert, via
        guid_to_row) + the live poke. array = the loop form, still one Command. Alt+gumball = 59's

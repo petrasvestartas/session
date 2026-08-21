@@ -143,3 +143,10 @@ session_viewer/assets/pb/draw_pf_he.pb
 session_viewer/assets/pb/draw_pi_laengsschnitt.pb
 session_viewer/assets/pb/draw_pj_grundriss_og2.pb
 session_viewer/assets/pb/draw_pj_treppenhaus_a.pb
+
+# LiDAR stress-test clouds (Zagreb Cathedral scan003), too big for GitHub
+session_viewer/assets/pb/lidar_*.pb
+
+# Big reference meshes (armadillo 90 MB grazes the 100 MB hard limit, dragon is over it)
+session_viewer/assets/pb/mesh_armadillo.pb
+session_viewer/assets/pb/mesh_dragon.pb

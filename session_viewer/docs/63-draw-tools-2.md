@@ -37,7 +37,7 @@ src/app/commands.rs        # verbs: polyline / rect / box
 ## Step 1 — the preview table: `src/engine/gpu/mod.rs`
 
 Identical mechanism to the gumball's overlay tables (57), one level simpler — no depth-clear pass
-needed, ghosts draw in the main cylinder pass, just from their own small buffer. Three new `struct
+needed, ghosts draw in the main cylinder pass, just from their own small buffer. Five new `struct
 Gpu` fields, below 57's `gb_*` block:
 
 ```rust
@@ -46,6 +46,7 @@ Gpu` fields, below 57's `gb_*` block:
     pub preview_bind_group: wgpu::BindGroup,
     pub preview_count: u32,
     pub preview_row: u32,        // reserved identity row, the gumball's gb_row pattern
+    preview_scratch: Vec<CylinderSegment>,  // staging for set_preview — reused, never realloc'd
 ```
 
 In `Gpu::new`, find 57's reserved-row block (`let gb_row = objects_base.len() as u32;` …) → insert
@@ -59,7 +60,8 @@ after it:
 and find 57's `gb_glyph_bind_group` creation → insert after it (same fixed-capacity trick):
 
 ```rust
-        const PREVIEW_MAX_SEGMENTS: usize = 4096;
+        // module-level const (set_preview enforces it too):
+        //   const PREVIEW_MAX_SEGMENTS: usize = 4096;
         let preview_buffer = storage_buffer(&device, "preview.segments",
             &vec![CylinderSegment::zeroed(); PREVIEW_MAX_SEGMENTS]);
         let preview_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -70,21 +72,35 @@ and find 57's `gb_glyph_bind_group` creation → insert after it (same fixed-cap
         });
 ```
 
-(All four new fields go into the `Ok(Self { … })` initializer — `preview_count: 0` plus the three
-locals.) The upload pair mirrors 57's, with one extra move: `set_preview` **stamps every segment
-onto the reserved row**, so tools never need to know which row it is:
+(All five new fields go into the `Ok(Self { … })` initializer — `preview_count: 0`,
+`preview_scratch: Vec::new()`, plus the three locals.) The upload pair mirrors 57's, with one extra
+move: `set_preview` **stamps every segment onto the reserved row**, so tools never need to know
+which row it is:
 
 ```rust
-    /// Replace the ghost. Called every mouse-move while a tool previews — a few hundred bytes.
+    /// Replace the ghost. Called every mouse-move while a tool previews — a few hundred bytes,
+    /// and NO allocation: the scratch Vec's capacity is reused move after move. This matters
+    /// beyond the usual GC-fodder argument — wasm linear memory grows but never shrinks, so
+    /// every per-mouse-move Vec you allocate raises the process's high-water mark permanently.
     pub fn set_preview(&mut self, segs: &[CylinderSegment]) {
-        let mut segs: Vec<CylinderSegment> = segs.iter().take(4096).copied().collect();
-        for s in &mut segs { s.instance_id = self.preview_row; }
-        self.queue.write_buffer(&self.preview_buffer, 0, bytemuck::cast_slice(&segs));
-        self.preview_count = segs.len() as u32;
+        if segs.len() > PREVIEW_MAX_SEGMENTS {
+            log::warn!("set_preview: {} segments, truncated to {PREVIEW_MAX_SEGMENTS}", segs.len());
+        }
+        let row = self.preview_row;
+        self.preview_scratch.clear();
+        self.preview_scratch.extend(segs.iter().take(PREVIEW_MAX_SEGMENTS).map(|s| {
+            let mut s = *s; s.instance_id = row; s
+        }));
+        self.queue.write_buffer(&self.preview_buffer, 0,
+            bytemuck::cast_slice(&self.preview_scratch));
+        self.preview_count = self.preview_scratch.len() as u32;
     }
 
     pub fn clear_preview(&mut self) { self.preview_count = 0; }
 ```
+
+Note the `take(PREVIEW_MAX_SEGMENTS)` now *says so* when it fires — a silent truncation would
+otherwise show up as a polyline ghost that mysteriously stops growing past 4096 points.
 
 Draw the ghosts right after the main cylinder block in `clear()` — find its closing brace (after
 `draws += 1;` of the `if self.segment_count > 0` block) → insert:
@@ -115,7 +131,7 @@ Step 3/4 just import it.)
 pub trait ActiveCommand {
     // …feed_point / feed_text / options / back…
     /// Cursor moved while this command runs (world point under the cursor, snap already applied
-    /// once 59 lands). Default: tools without previews ignore it.
+    /// once 64 lands). Default: tools without previews ignore it.
     fn on_move(&mut self, _state: &mut crate::state::State, _p: Point) {}      // ← ADD
 }
 ```
@@ -126,8 +142,8 @@ In `state.rs`, the point resolver becomes a named method — 53's click reroute 
 
 ```rust
     /// THE point resolver: the world point under the cursor — scene hit if any, else ray ∩ z=0
-    /// (41 Step 3's formula). 53's clicks and this lesson's on_move both call it; 59 adds snap,
-    /// 75 swaps z=0 for the work plane — one function, every tool inherits.
+    /// (46 Step 3's formula). 53's clicks and this lesson's on_move both call it; 64 adds snap,
+    /// 80 swaps z=0 for the work plane — one function, every tool inherits.
     fn cursor_world_point(&mut self) -> Option<Point> {
         let ray = self.cursor_ray()?;
         // 49's pick-site tolerance trio, verbatim
@@ -154,7 +170,7 @@ cursor-move handler (after the gumball hover check) forwards motion to the activ
 
 ```rust
         if self.active.is_some() {
-            // the 48 click resolver, factored
+            // the 53 click resolver, factored
             if let Some(p) = self.cursor_world_point() {
                 if let Some(mut cmd) = self.active.take() {
                     cmd.on_move(self, p);
@@ -192,11 +208,12 @@ pub fn ghost_segment(a: &Point, b: &Point) -> CylinderSegment {
 
 pub struct PolylineTool {
     points: Vec<Point>,
+    scratch: Vec<CylinderSegment>,   // ghost staging — reused every mouse-move, never realloc'd
 }
 
 impl PolylineTool {
     pub fn start() -> (Box<dyn ActiveCommand>, GetState) {
-        (Box::new(PolylineTool { points: Vec::new() }),
+        (Box::new(PolylineTool { points: Vec::new(), scratch: Vec::new() }),
          GetState::WaitingPoint { prompt: "polyline: pick point (Enter finishes)".into() })
     }
     fn ask(&self) -> CmdStep {
@@ -204,13 +221,15 @@ impl PolylineTool {
             prompt: format!("polyline: pick point {} (Enter finishes)", self.points.len() + 1),
         })
     }
-    fn ghost(&self, state: &mut crate::state::State, cursor: Option<&Point>) {
-        let mut segs = Vec::new();
-        let pts: Vec<&Point> = self.points.iter().chain(cursor).collect();
-        for w in pts.windows(2) {
-            segs.push(ghost_segment(w[0], w[1]));       // gray CylinderSegment on the preview row
+    fn ghost(&mut self, state: &mut crate::state::State, cursor: Option<&Point>) {
+        self.scratch.clear();                                // capacity survives — no per-move alloc
+        for w in self.points.windows(2) {
+            self.scratch.push(ghost_segment(&w[0], &w[1]));  // gray CylinderSegment on the preview row
         }
-        state.gpu.set_preview(&segs);
+        if let (Some(last), Some(c)) = (self.points.last(), cursor) {
+            self.scratch.push(ghost_segment(last, c));       // the rubber tail
+        }
+        state.gpu.set_preview(&self.scratch);
     }
 }
 
@@ -235,10 +254,11 @@ impl ActiveCommand for PolylineTool {
         }
         let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
         if n.len() == 3 { return self.feed_point(state, Point::new(n[0], n[1], n[2])); }
+        state.ui.log = format!("polyline: expected 'x,y,z' numbers, got '{s}'");   // reject loudly
         self.ask()
     }
     fn back(&mut self) -> CmdStep { self.points.pop(); self.ask() }   // un-click the last point
-    fn prompt(&self) -> GetState {                                    // 49 requires it
+    fn prompt(&self) -> GetState {                                    // 54 requires it
         GetState::WaitingPoint {
             prompt: format!("polyline: pick point {} (Enter finishes)", self.points.len() + 1),
         }
@@ -247,11 +267,13 @@ impl ActiveCommand for PolylineTool {
 ```
 
 (Esc must also clear the ghost — add `state.gpu.clear_preview()` to 53's cancel arm, once, centrally:
-every future previewing tool is then leak-proof.)
+every future previewing tool is then leak-proof. Same on the path that *replaces* a running command:
+typing `rect` mid-`polyline` installs a fresh ActiveCommand over the old one (53's dispatch `Start`),
+and without a `clear_preview()` there the abandoned ghost sticks on screen forever.)
 
 ## Step 4 — RectangleTool + BoxTool: `src/app/tools/rect.rs`
 
-Both are two-corner tools on the `z = 0` plane (the work plane arrives in 75; until then the ground
+Both are two-corner tools on the `z = 0` plane (the work plane arrives in 80; until then the ground
 is the canvas). Rectangle emits a closed `Polyline`; Box runs the same two corners, then one more
 prompt for the height — typed or clicked — and emits a placed `Mesh::create_box`. One file holds
 both, sharing a corner-outline helper; add `pub mod rect;` beside `pub mod polyline;` in
@@ -271,9 +293,9 @@ fn rect_corners(a: &Point, b: &Point) -> [Point; 4] {
      Point::new(x1, y1, 0.0), Point::new(x0, y1, 0.0)]
 }
 
-fn rect_ghost(a: &Point, b: &Point) -> Vec<CylinderSegment> {
+fn rect_ghost(a: &Point, b: &Point) -> [CylinderSegment; 4] {   // stack array — zero alloc per move
     let c = rect_corners(a, b);
-    (0..4).map(|i| ghost_segment(&c[i], &c[(i + 1) % 4])).collect()
+    [0, 1, 2, 3].map(|i| ghost_segment(&c[i], &c[(i + 1) % 4]))
 }
 
 pub struct RectangleTool {
@@ -310,6 +332,7 @@ impl ActiveCommand for RectangleTool {
     fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep {
         let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
         if n.len() == 3 { return self.feed_point(state, Point::new(n[0], n[1], n[2])); }
+        state.ui.log = format!("rect: expected 'x,y,z' numbers, got '{s}'");   // reject loudly
         CmdStep::Prompt(self.prompt())
     }
     fn back(&mut self) -> CmdStep { self.from = None; CmdStep::Prompt(self.prompt()) }
@@ -362,9 +385,12 @@ impl ActiveCommand for BoxTool {
         if self.corners.len() == 2 {
             // 54's grammar: a typed value at a point prompt — here, the height
             if let Ok(h) = s.trim().parse::<f64>() { return self.finish(state, h); }
+            state.ui.log = format!("box: expected a height number, got '{s}'");   // reject loudly
+            return CmdStep::Prompt(self.prompt());
         }
         let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
         if n.len() == 3 { return self.feed_point(state, Point::new(n[0], n[1], n[2])); }
+        state.ui.log = format!("box: expected 'x,y,z' numbers, got '{s}'");       // reject loudly
         CmdStep::Prompt(self.prompt())
     }
     fn back(&mut self) -> CmdStep { self.corners.pop(); CmdStep::Prompt(self.prompt()) }
@@ -418,9 +444,11 @@ Ch 63: N-CLICK TOOLS + THE GHOST. Preview = a dedicated small segment buffer (gu
        PURE VIEWPORT: never in the Session, never hashed/saved/undone; Esc's cancel arm clears it
        centrally. ActiveCommand gains on_move (default no-op); State feeds it the same pick-or-z=0
        point as clicks. PolylineTool: points Vec + rubber tail, Enter (empty feed_text) finishes,
-       back un-clicks. Rectangle: two corners → CLOSED Polyline (last = first). Box: two corners +
-       height prompt → Mesh::create_box + translation xform (centered → lift by h/2). One Command
-       per finished object — N clicks undo as one.
+       back un-clicks; ghost builds go through a REUSED scratch Vec (per-move Vec allocs raise
+       wasm's never-shrinking memory high-water mark). Bad typed input is rejected with a reason
+       in the log, never eaten. Rectangle: two corners → CLOSED Polyline (last = first). Box: two
+       corners + height prompt → Mesh::create_box + translation xform (centered → lift by h/2).
+       One Command per finished object — N clicks undo as one.
 ```
 
 Edited: `engine/gpu/mod.rs` (preview table + draw), `app/getloop.rs` (`on_move`), `state.rs` (motion

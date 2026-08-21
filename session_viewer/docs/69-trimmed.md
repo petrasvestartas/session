@@ -81,6 +81,12 @@ impl Scene {
 }
 ```
 
+> **Cost note.** `session.order()` allocates its guid `Vec` on *every* `all_objects()` call, and
+> every map calls it — so the price lands once per **rebuild**, which is the right cadence (the
+> four maps are all rebuild-driven). What it must never become is a per-frame or per-event walk:
+> if a hot path needs the object list, cache the flattened `(doc, guid)` pairs keyed on the docs
+> generation — the same rule 75's tree applies to `flatten`.
+
 ## Step 2 — the maps consume it: `src/app/scene.rs`
 
 Mechanical refactor, worth doing carefully once:
@@ -88,7 +94,9 @@ Mechanical refactor, worth doing carefully once:
 - **`Scene::new` (order/rows):** one loop over `all_objects()` replaces the lookup loop plus any
   trimmed special-casing.
 - **`add_file` (the walk):** one `match ObjRef` — `Geom` keeps the existing inner match (which
-  already has 60/66's curve and surface arms); `Trimmed` goes through the cache.
+  already has 65/66's curve and surface arms); `Trimmed` goes through the cache — and since the
+  walk can only *read* a warm cache (66's E0502 rule), the priming filter widens once more, 68's
+  move, chaining the trimmed collection's guids beside the lookup-sourced ones.
 - **`world_obb`:** `match ObjRef` — `Trimmed` boxes via its cached mesh (`AABB::from_mesh` on the
   tessellation + the row's placed-frame bake, 40's recipe; the kernel's `from_nurbssurface` sampler
   doesn't know about trims, and the *cached mesh* is what's actually on screen anyway).
@@ -100,7 +108,7 @@ Mechanical refactor, worth doing carefully once:
 
 The kernel makes this almost free: `NurbsSurfaceTrimmed::mesh()` is `mesh_q(20.0, 0.005)` — the
 deflection-refined trimmed tessellator (holes and cut boundaries already honored in the triangle
-layout). Cache it like 61; its linework is the **trim boundary loops** — sample the trim curves, not
+layout). Cache it like 66; its linework is the **trim boundary loops** — sample the trim curves, not
 the untrimmed domain rectangle:
 
 ```rust
@@ -111,6 +119,15 @@ the untrimmed domain rectangle:
             // boundary loops: sample each UV trim loop, LIFT (u,v)->3D via point_at, then tube
             .map(|ts| (ts.mesh(), trimmed_linework(ts)))));
 ```
+
+> **What `mesh_q(20.0, 0.005)` means.** The first argument is an *angle* — max 20° of normal
+> deviation per triangle — and the second is an *absolute* deflection (chord-to-surface distance)
+> in the kernel's length unit. Absolute is the catch: 0.005 is 5 microns on a meter-unit file
+> (absurdly tight) and 5 mm on a millimeter-unit file (visibly coarse on a small part). The
+> tessellation is cached, so the cost is paid once — but if trimmed parts in your unit of choice
+> come out over- or under-refined, the honest fix is a unit-relative tolerance (e.g.
+> `0.005 * camera.unit.to_meters()`-style scaling, or a fraction of the model's diagonal), not a
+> new global constant.
 
 `trimmed_linework` walks the trim's boundary loops — `ts.get_outer_loop()` plus `ts.get_inner_loop(i)`
 for `i in 0..ts.inner_loop_count()` (the very loops `mesh_q` itself consumes). **Critical: these are UV
@@ -147,7 +164,7 @@ fn trimmed_linework(ts: &NurbsSurfaceTrimmed) -> Vec<CylinderSegment> {
 }
 ```
 
-Iso lines from 62 apply too if you want the interior grid — clip them mentally or skip; the boundary
+Iso lines from 67 apply too if you want the interior grid — clip them mentally or skip; the boundary
 is what must be right.
 
 <svg viewBox="0 0 660 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="trim loops sampled in the flat uv unit square must be lifted onto the curved surface with point_at(u,v) or they collapse to a flat ring at the world origin" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
@@ -171,12 +188,14 @@ is what must be right.
   <text x="500" y="182" fill="#5bbf87" text-anchor="middle">boundary rides the surface — RIGHT</text>
 </svg>
 
-Transforms: nothing to add — since 54, `Scene::apply_world_delta` rewrites the Session-local xform
+Transforms: nothing to add — since 59, `Scene::apply_world_delta` rewrites the Session-local xform
 for *every* type; the old per-type list is empty. Reconcile's `changed` bucket invalidates its
-cache entry — a one-word edit to 61/68's arm. One honest caveat: there is no
+cache entry — a one-word edit to 66/68's arm. One honest caveat: there is no
 `Session::add_nurbssurfacetrimmed`, so trimmed surfaces are **read-only first-class** for now —
 they arrive via loaded files, and every viewer map treats them fully; creating one in the viewer
-waits on the kernel.
+waits on the kernel. When the kernel grows that call, the slot is already obvious: a 62-style tool
+whose finish commits `AddGeometry`, one new arm in 56's `restore_geometry` — and **zero** map
+work, because `all_objects()` already knows the type.
 
 ## Step 4 — verify
 
@@ -200,7 +219,8 @@ Load the trimmed-surface fixture (the circle-trim test model):
 
 ```
 Ch 68: BRep — debts paid.
-Ch 69: TRIMMED + STRUCTURE. NurbsSurfaceTrimmed::mesh() (= mesh_q(20°, 0.005), holes honored in the
+Ch 69: TRIMMED + STRUCTURE. NurbsSurfaceTrimmed::mesh() (= mesh_q(20° normal deviation, 0.005
+       ABSOLUTE deflection — make it unit-relative if your files mis-refine), holes honored in the
        tessellation) joins the cache; linework = the TRIM boundary loops sampled to pipes (not the
        untrimmed domain rectangle); box from the cached mesh (the kernel's surface sampler is
        trim-blind); transforms already free (59's type-blind apply_world_delta), reconcile

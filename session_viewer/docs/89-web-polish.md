@@ -91,24 +91,55 @@ pub async fn fetch_bytes_with_progress(
 }
 ```
 
-The callback feeds the CLI log line — throttled so the log isn't 500 lines of percentages:
+The callback feeds the CLI log line — throttled so the log isn't 500 lines of percentages. Two
+boundary rules get honored here: `total == 0` (no `Content-Length`) must still *report* — throttle
+on bytes, or the percentage sits at 0 forever and the user gets silence; and a **failed fetch is an
+error, not an empty Vec** — `unwrap_or_default()` would feed zero bytes to the parser and append a
+phantom empty doc (43b's scene-wipe class of bug, at the network boundary):
 
 ```rust
     // at the call site — the fetch loop lives in lib.rs resumed() now — update at most every 5%,
     // prefixed with the manifest position ("sheet 3/10"):
     let last = std::cell::Cell::new(0u64);
-    let bytes = fetch_bytes_with_progress(url, move |loaded, total| {
-        let pct = if total > 0 { loaded * 100 / total } else { 0 };
-        if pct >= last.get() + 5 || pct == 100 {
-            last.set(pct);
-            push_gpu_error(format!("loading… {pct}%  ({loaded} bytes)"));
+    let bytes = match fetch_bytes_with_progress(url, move |loaded, total| {
+        if total > 0 {
+            let pct = loaded * 100 / total;
+            if pct >= last.get() + 5 || (pct == 100 && last.get() != 100) {
+                last.set(pct);
+                push_gpu_error(format!("loading… {pct}%  ({loaded} bytes)"));
+            }
+        } else {
+            // no Content-Length — pct would sit at 0 forever; throttle on 8 MB steps instead
+            let step = loaded / (8 * 1024 * 1024);
+            if step > last.get() {
+                last.set(step);
+                push_gpu_error(format!("loading… {:.0} MB", loaded as f64 / 1.048576e6));
+            }
         }
-    }).await.unwrap_or_default();
+    }).await {
+        Ok(b) => b,
+        Err(e) => { push_gpu_error(format!("fetch {url} failed: {e:?}")); continue; }
+    };
 ```
 
-(`push_gpu_error` = the same static-queue-to-CLI-log channel 83 built for GPU errors — second
+(`push_gpu_error` = the same static-queue-to-CLI-log channel 88 built for GPU errors — second
 customer, despite the name. Note the read loop yields to the browser between chunks — the chunked
 parse already kept the tab live; this makes the network leg report progress instead of silence.)
+
+## ⚠ The memory ceiling — doc lifecycle
+
+The manifest's ten sheets are ~0.5 GB **resident** — and the *transient* cost of opening one is
+3–4× its final size: file bytes + protobuf decode + kernel build ride together before the
+intermediates drop (41/44's accounting). Two facts make that the real budget: wasm32 linear memory
+**never shrinks** (63's note — freed Rust memory stays mapped), and the address space caps at 4 GB,
+less in practice (81's ledger). So the number that matters is the **peak**, and today's policy is
+simply: fetch window of 2, drop bytes right after parse, don't open a second 0.5 GB scene.
+
+When a real project outgrows that, the lever is **doc unload/eviction**, and the architecture
+already has the seams for it: a doc is a `Session` + arena slots (43a) + caches (66's tess, 40's
+boxes) — all droppable while the manifest entry stays; reload on focus is 43b's reconcile path.
+Out of scope for this course; name the shape now so the day the browser kills your tab at 3.8 GB
+you know which lever exists.
 
 ## Step 2 — the wasm diet: `Cargo.toml` + `index.html`
 
@@ -166,8 +197,12 @@ nothing to do in the app.
 ```
 Ch 88: the workflow.
 Ch 89: THE LAST MILE. Streamed fetch: ReadableStreamDefaultReader chunks + Content-Length →
-       per-sheet progress into the CLI (throttled to 5% steps; the chunked parse already kept the
-       tab painting — this adds the network leg, without giving up the fetch window). Wasm diet: opt-level 'z' + lto + codegen-units 1 + Trunk data-wasm-opt 'z' (the
+       per-sheet progress into the CLI (throttled to 5% steps — BYTES when the server omits
+       Content-Length, else pct pins at 0; a failed fetch is a loud CLI error, never an empty
+       Vec → phantom doc; the chunked parse already kept the tab painting — this adds the network
+       leg, without giving up the fetch window). The memory ceiling: ~0.5 GB resident sheets,
+       3–4× transient per open, wasm linear memory never shrinks and caps at 4 GB — the budget is
+       the PEAK; doc unload/eviction is the named lever when a scene outgrows it. Wasm diet: opt-level 'z' + lto + codegen-units 1 + Trunk data-wasm-opt 'z' (the
        course's dev-friendly '0' silently shipped unoptimized release wasm until now) ≈ half the
        binary — MEASURED, one ls before and after; brotli on the host for the wire. Phase 14
        complete: sectioned, file-fluent, duplicating, layered, measuring, testable, shippable.

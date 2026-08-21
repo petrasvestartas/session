@@ -6,12 +6,13 @@
 > *what* is drawn (still one call) nor *how it looks*, only how much work each frame costs.
 
 Zoomed into one corner of the stress file, the GPU is still processing all 51,166 cylinder segments
-every frame — most of them behind you or off the sides. This lesson skips the ones the camera can't
-see: extract the view frustum's six planes, test each object's world box against them, and flag the
-off-screen ones **culled**. The perf HUD's `drawn / total` split — flat since 34 — finally moves.
+every frame — most of them behind you or off the sides. This lesson keeps the ones the camera can't
+see out of the rasterizer: extract the view frustum's six planes, test each object's world box against
+them, and flag the off-screen ones **culled** (vertex work still runs — Step 3 is honest about what
+that means). The perf HUD's `drawn / total` split — flat since 34 — finally moves.
 
 The scan is linear (every object's flag must be decided each frame), and that's exactly what the
-archive ships — cheap at this scale. The 36 BVH stays in reserve for **picking** (47) and
+archive ships — cheap at this scale. 40's BVH stays in reserve for **picking** (47) and
 **box-select** (50), where a per-object test genuinely can't run N times. What makes the cull cheap
 *here* isn't a fancier data structure — it's only re-uploading the rows whose visibility actually
 flipped since last frame.
@@ -132,6 +133,42 @@ impl Frustum {
 
 `Point` is already imported in `camera.rs` (33's `origin()` returns one).
 
+A plane test is exactly the kind of math that fails silently (an inverted plane culls the *visible*
+half and the screen just looks empty), so pin it headless — at the bottom of `camera.rs`:
+
+```rust
+#[cfg(test)]
+mod frustum_tests {
+    use super::*;
+
+    /// One real plane, five degenerate pass-throughs (a zero plane never culls: 0 < 0 is false).
+    #[test]
+    fn aabb_visible_plane_sides() {
+        let mut planes = [[0.0; 4]; 6];
+        planes[0] = [1.0, 0.0, 0.0, 0.0];   // inside when x ≥ 0
+        let f = Frustum { planes };
+        assert!(f.aabb_visible([1.0, -1.0, -1.0], [2.0, 1.0, 1.0]));     // fully inside
+        assert!(f.aabb_visible([-1.0, -1.0, -1.0], [2.0, 1.0, 1.0]));    // straddling → conservative
+        assert!(!f.aabb_visible([-3.0, -1.0, -1.0], [-1.5, 1.0, 1.0]));  // fully outside
+    }
+
+    /// Identity view_proj → clip space IS the world: the frustum must be exactly the wgpu clip
+    /// box x,y ∈ [-1, 1], z ∈ [0, 1] (reverse-z planes included).
+    #[test]
+    fn identity_view_proj_gives_the_clip_box() {
+        let f = Frustum::from_view_proj(&[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
+                                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]);
+        assert!(f.aabb_visible([-0.5; 3], [0.5; 3]));                    // at the origin → visible
+        assert!(!f.aabb_visible([2.0, 0.0, 0.2], [3.0, 1.0, 0.8]));      // past x = 1 → culled
+        assert!(!f.aabb_visible([0.0, 0.0, 2.0], [0.5, 0.5, 3.0]));      // past far z = 1 → culled
+        assert!(!f.aabb_visible([0.0, 0.0, -2.0], [0.5, 0.5, -1.0]));    // behind near z = 0 → culled
+    }
+}
+```
+
+Runs with the same wasm-override as 40's test: `cargo test -p session_viewer frustum --target
+x86_64-unknown-linux-gnu`.
+
 ## Step 2 — plane-test each object, flag the losers: `src/engine/gpu/mod.rs`
 
 The instance flag field gains one bit. It has to coexist with 35's `FLAG_HIDDEN` — so cull *sets and
@@ -166,33 +203,57 @@ N. Then the per-frame cull (right after `new`, near 33's `rebuild_instances`):
 ```rust
     /// Plane-test every object's world AABB, set/clear FLAG_CULLED. Returns (drawn, culled) for the
     /// HUD. The scan is O(N), but only rows whose state CHANGED since last frame hit the GPU.
+    /// Iterates the extents cache BY ROW — `world_boxes` is row-indexed (40), so a guid round-trip
+    /// through `guid_to_row` here would be a double hash lookup per object per frame (and a panic
+    /// on any stale guid). `world_aabb(guid)` stays for one-off lookups (57, 76).
     pub fn apply_frustum_cull(&mut self, scene: &crate::app::scene::Scene,
                               frustum: &crate::camera::Frustum) -> (u32, u32) {
         let (mut drawn, mut culled) = (0u32, 0u32);
-        for (guid, &row) in &scene.guid_to_row {
-            let (lo, hi) = scene.world_aabb(guid);
+        let mut flipped: Vec<(u32, Instance)> = Vec::new();
+        for (row, &(lo, hi)) in scene.world_boxes.iter().enumerate() {
+            let row = row as u32;
             let cull = !frustum.aabb_visible(lo, hi);
             let was = self.culled_now.contains(&row);
             if cull != was {
-                let f = &mut self.instances[row as usize].flags;
-                if cull { *f |= Instance::FLAG_CULLED; } else { *f &= !Instance::FLAG_CULLED; }
-                self.queue.write_buffer(&self.instance_buffer,
-                    (row as usize * std::mem::size_of::<Instance>()) as u64,
-                    bytemuck::bytes_of(&self.instances[row as usize]));
+                let inst = &mut self.instances[row as usize];
+                if cull { inst.flags |= Instance::FLAG_CULLED; }
+                else { inst.flags &= !Instance::FLAG_CULLED; }
+                flipped.push((row, *inst));
                 if cull { self.culled_now.insert(row); } else { self.culled_now.remove(&row); }
             }
             if cull { culled += 1; } else { drawn += 1; }
+        }
+        // ONE upload per frame, not one write_buffer per flipped row: pack the flipped rows into
+        // a staging buffer, batch one copy per row into a single encoder, submit once. (Each
+        // write_buffer stages its own copy — hundreds of staging allocations on a fast orbit.)
+        if !flipped.is_empty() {
+            use wgpu::util::DeviceExt;
+            let data: Vec<Instance> = flipped.iter().map(|(_, i)| *i).collect();
+            let staging = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("cull.staging"), contents: bytemuck::cast_slice(&data),
+                usage: wgpu::BufferUsages::COPY_SRC,
+            });
+            let sz = std::mem::size_of::<Instance>() as u64;
+            let mut enc = self.device.create_command_encoder(&Default::default());
+            for (k, (row, _)) in flipped.iter().enumerate() {
+                enc.copy_buffer_to_buffer(&staging, k as u64 * sz,
+                    &self.instance_buffer, *row as u64 * sz, sz);
+            }
+            self.queue.submit([enc.finish()]);
         }
         (drawn, culled)
     }
 ```
 
-> **Linear, and that's fine here — so why did 36 build a BVH?** Frustum cull *must* decide every
+(The instance buffer already carries `COPY_DST` — 43b's `write_row` writes into it — so the batch
+copies need no usage change. Rows are distinct, so the copies never overlap.)
+
+> **Linear, and that's fine here — so why did 40 build a BVH?** Frustum cull *must* decide every
 > object's flag every frame, so the scan is inherently O(N); the real optimization is the flip-tracking
 > (`culled_now`), which keeps GPU traffic proportional to what *moved*, not to N. The BVH earns its keep
 > in **picking (47)** and **box-select (50)**, where the alternative is a per-object triangle test that
 > genuinely can't run N times per click. (A million-object scene could also BVH-query the frustum box to
-> skip the plane test on distant objects — a later refinement; linear holds comfortably at the stress
+> skip the plane test on distant objects — 81 picks that up; linear holds comfortably at the stress
 > file's 42k.)
 
 > **Why set/clear, not rebuild.** 33's `rebuild_instances` rewrites every row's model+color each frame
@@ -255,31 +316,56 @@ const FLAG_CULLED: u32 = 128u;` — matching the Rust bit values. **One draw cal
 31's `draw_indexed(0..N, 0, 0..segments.len())` fires for the whole arena; the GPU simply discards the
 collapsed instances. Culling changes the *buffer*, never the *draw*.
 
+> **What the collapse actually saves.** A `w = 0` vertex still *runs* the vertex shader — every culled
+> instance pays its full vertex cost, and only then does the rasterizer throw the degenerate primitive
+> away. So the win is fragment + depth work (and the bandwidth those would have burned), not vertex
+> invocations; for the tube lanes (cylinder/sphere), which are vertex-bound, the saving is real but
+> modest. Skipping the vertex work too means compacting the draw or going indirect — 81's territory.
+
 ## Step 4 — run it each frame: `src/state.rs`
 
 In `render`, build the frustum from the **anchored** `view_proj` the frame actually draws with (34c),
 rebase it to world, cull, then draw. `render` already computes the anchor and the matrix — the frustum
 must come from that **same** matrix, and the rebase point is the `anchor`, not the raw `origin` — so
 what's culled matches what's drawn. First bring the type in: extend the import at the top from
-`use crate::camera::Camera;` to `use crate::camera::{Camera, Frustum};`. Then:
+`use crate::camera::Camera;` to `use crate::camera::{Camera, Frustum};`.
+
+The scan is O(N) over every row — pointless when the camera hasn't moved since the last scan (the
+cull result depends only on the camera and the boxes). So gate it on a cheap camera signature, kept
+on `Gpu` beside `culled_now` (add the field, init `None`; a `set_scene` invalidates the cull bits, so
+it must reset the gate too — the Step-2 one-liner becomes `self.culled_now.clear();
+self.last_cull_sig = None;`):
+
+```rust
+    // add to struct Gpu, beside culled_now (pub — state.rs's render gate reads/writes it):
+    pub last_cull_sig: Option<([f64; 3], [f64; 3], f64, f64, bool)>,   // camera at the last scan
+```
+
+Then:
 
 ```rust
         // find, in render() — these three lines already exist (34c):
         let origin = self.camera.origin();
         let anchor = self.gpu.rebase_anchor(&origin, self.camera.distance_world());
         let view_proj = self.camera.view_proj_anchored(aspect, &anchor);
-        // insert AFTER them, BEFORE the clear() call:
-        let frustum = Frustum::from_view_proj(&view_proj.to_cols())   // f64 matrix, anchor-relative
-            // world frame — matches 40's boxes
-            .rebased_to_world(&anchor);
-        let (drawn, culled) = self.gpu.apply_frustum_cull(&self.scene, &frustum);
-        self.gpu.perf_set_drawn(drawn, drawn + culled);
-        // the clear() line itself is unchanged:
-        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj)
+        // insert AFTER them, BEFORE the clear() call. Gate: re-cull only when the camera moved
+        // (or set_scene reset the sig) — the O(N) scan's inputs are exactly these.
+        let sig = ([origin[0], origin[1], origin[2]], self.camera.target,
+                   self.camera.distance, aspect, self.camera.perspective);
+        if self.gpu.last_cull_sig != Some(sig) {
+            let frustum = Frustum::from_view_proj(&view_proj.to_cols())   // f64, anchor-relative
+                // world frame — matches 40's boxes
+                .rebased_to_world(&anchor);
+            let (drawn, culled) = self.gpu.apply_frustum_cull(&self.scene, &frustum);
+            self.gpu.perf_set_drawn(drawn, drawn + culled);
+            self.gpu.last_cull_sig = Some(sig);
+        }
+        // the clear() line itself is unchanged (3-arg since 34d: color, view_proj, origin):
+        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
 ```
 
 `perf_set_drawn` doesn't exist yet — 28's counter never had a drawn/total split. Give `Gpu` the
-two numbers (the HUD lesson, 47, reads them): add `pub perf_drawn: u32, pub perf_total: u32,` to
+two numbers (the HUD lesson, 52, reads them): add `pub perf_drawn: u32, pub perf_total: u32,` to
 `struct Gpu`, initialize both to `0` in the `Ok(Self { … })`, and add next to
 `apply_frustum_cull`:
 
@@ -323,17 +409,22 @@ Ch 40: Scene.bvh + the world_boxes extents cache — world boxes per object (the
 Ch 41: FRUSTUM CULL. Per frame: 6 planes out of the f64 ANCHORED view_proj the frame draws with
        (view_proj_anchored, 34c; Gribb–Hartmann), rebased to WORLD (d −= n·anchor) so they match
        40's world boxes — the one subtlety camera-relative rendering forces. Positive-vertex test on every object's world AABB (linear, like
-       the archive; cheap here). Set/clear FLAG_CULLED (bit 7) — own bit, so 35's HIDDEN (bit 1) is
-       untouched — and re-upload ONLY the rows whose state flipped (culled_now set): flip-tracking,
-       not a fancier structure, keeps it cheap. Every instance-reading vertex shader collapses a
+       the archive; cheap here — and gated on a camera signature, so a still camera skips the scan).
+       Set/clear FLAG_CULLED (bit 7) — own bit, so 35's HIDDEN (bit 1) is
+       untouched — and re-upload ONLY the rows whose state flipped (culled_now set), batched into
+       ONE staging buffer + one submit per frame: flip-tracking, not a fancier structure, keeps it
+       cheap. Every instance-reading vertex shader collapses a
        culled/hidden row to a w=0 vertex, so the arena still draws in ONE call: culling changes the
-       BUFFER, not the DRAW COUNT. HUD drawn/total finally moves; nothing pops at the screen edge.
+       BUFFER, not the DRAW COUNT — and the collapse saves fragment/depth work, not the vertex
+       shader (tube lanes are vertex-bound; compaction/indirect is 81). HUD drawn/total finally
+       moves; nothing pops at the screen edge; two #[cfg(test)]s pin the plane math.
 ```
 
-Edited: `camera.rs` (`Frustum` + `from_view_proj` + `rebased_to_world` + `aabb_visible`),
-`app/scene.rs` (`world_aabb(guid)` → world AABB extents from 40's cache),
-`engine/gpu/mod.rs` (`FLAG_CULLED`, `culled_now`, `apply_frustum_cull`), `shaders/*.wgsl` (collapse
-culled/hidden instances), `state.rs` (build frustum, rebase, cull, feed the HUD, per frame).
+Edited: `camera.rs` (`Frustum` + `from_view_proj` + `rebased_to_world` + `aabb_visible` +
+`#[cfg(test)]` plane tests), `app/scene.rs` (`world_aabb(guid)` → world AABB extents from 40's cache),
+`engine/gpu/mod.rs` (`FLAG_CULLED`, `culled_now`, `last_cull_sig`, `apply_frustum_cull` — row-indexed
+scan, one batched staging upload), `shaders/*.wgsl` (collapse
+culled/hidden instances), `state.rs` (build frustum, rebase, cull when the camera moved, feed the HUD).
 
 ## Next
 
@@ -341,5 +432,6 @@ culled/hidden instances), `state.rs` (build frustum, rebase, cull, feed the HUD,
 would rebuild the entire scene (35's `add_file` walk from scratch, plus a whole-buffer `set_scene`).
 The next lesson diffs the incoming `Session`
 against the current one by `guid` — added / removed / content-changed / unchanged — and re-flattens
-**only** the objects that actually changed, refitting 40's BVH and 35's arena incrementally
-instead of from zero.
+**only** the objects that actually changed, replacing their arena slots in place and re-walking only
+their boxes in 40's extents cache (the tree itself rebuilds from that cache — cheap), instead of
+starting from zero.

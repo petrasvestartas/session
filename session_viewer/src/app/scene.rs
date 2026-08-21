@@ -187,6 +187,17 @@ impl Scene{
                         &mut t.pipes,
                         &mut t.spheres
                     );
+                    if is_print_fill(m) {
+                        // The object row for this guid was pushed just above the match - .2 is flags.
+                        t.objects.last_mut().unwrap().2 |= Instance::FLAG_PRINT;
+                    }
+                    // An open mesh (boundary edges) is not a solid: the facing cull would strip
+                    // the wireframe off interior surface that is genuinely visible through the
+                    // hole while the faces still draw. Meshes only - a BRep tessellation is often
+                    // numerically non-watertight and its solids would lose the cull wholesale.
+                    if !m.is_closed() {
+                        t.objects.last_mut().unwrap().2 |= Instance::FLAG_OPEN;
+                    }
                     t.object_bounds.push(b); t.object_spacing.push(mesh_spacing(b, m.number_of_vertices()));
                 }
                 Geometry::BRep(b) => {
@@ -240,6 +251,9 @@ impl Scene{
                             &mut t.pipes,
                             &mut t.spheres
                         );
+                        if is_print_fill(&m) {
+                            t.objects.last_mut().unwrap().2 |= Instance::FLAG_PRINT;
+                        }
                         t.object_bounds.push(b); t.object_spacing.push(mesh_spacing(b, m.number_of_vertices()));
                     }
                     ElementGeometry::BRep(b) => {
@@ -531,6 +545,26 @@ fn mesh_spacing(bounds: Option<([f32; 3], [f32; 3])>, verts: usize) -> f32 {
     d / (verts as f32).sqrt()
 }
 
+/// A fill (every PDF glyph, every poché region) broadcasts a single width of 0 - print, not
+/// surface. One test in one place: it drives the wireframe skip in push_mesh AND
+/// Instance::FLAG_PRINT (flat lighting, so the sheet reads the same from the back), and the
+/// two cannot drift apart.
+fn is_print_fill(m: &Mesh) -> bool {
+    m.widths().len() == 1 && m.widths()[0] == 0.0
+}
+
+/// Debug toggles read ONCE per process instead of once per mesh. An env lookup is a linear
+/// scan of the environment block, and a sheet can hold tens of thousands of tiny fill meshes -
+/// at three reads per mesh (PROFILE, NO_EDGES, NO_DOTS) that alone was ~30 ms against HEAD's
+/// two on a 33 MB sheet. These are launch-time harness toggles; setting one mid-process was
+/// never a use case.
+fn env_flag(name: &str, slot: &'static std::sync::OnceLock<bool>) -> bool {
+    *slot.get_or_init(|| std::env::var(name).is_ok())
+}
+static VIEWER_PROFILE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+static VIEWER_NO_EDGES: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+static VIEWER_NO_DOTS: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+
 fn push_mesh(
     m: &Mesh,
     ri: u32,
@@ -542,7 +576,25 @@ fn push_mesh(
     glyphs: &mut Vec<GlyphPoint>
 ) -> Option<([f32; 3], [f32; 3])> {
     let base = base_off + verts.len() as u32; // GPU rows already uploaded + rows pending in this delta
+    // VIEWER_PROFILE=1 times the walk's stages. HARNESS-ONLY, and the cfg is load-bearing, not
+    // tidiness: `Instant::now()` on wasm32-unknown-unknown does not return a dummy, it PANICS
+    // ("time not implemented on this platform"), and this line runs for every mesh - so an
+    // ungated clock here kills the browser build on the first mesh it walks.
+    #[cfg(not(target_arch = "wasm32"))]
+    let prof = env_flag("VIEWER_PROFILE", &VIEWER_PROFILE);
+    #[cfg(not(target_arch = "wasm32"))]
+    let mut lap = std::time::Instant::now();
+    #[cfg(not(target_arch = "wasm32"))]
+    let mut mark = |name: &str, lap: &mut std::time::Instant| {
+        if prof { eprintln!("  push_mesh {name:<20} {:?}", lap.elapsed()); *lap = std::time::Instant::now(); }
+    };
+    // Same signature on wasm so every `mark(..)` call site below stays identical.
+    #[cfg(target_arch = "wasm32")]
+    let mut lap = ();
+    #[cfg(target_arch = "wasm32")]
+    let mut mark = |_name: &str, _lap: &mut ()| {};
     let rm = m.to_render();
+    mark("to_render", &mut lap);
 
     // The mesh-local AABB rides the object row, so the edge lanes can be told "the eye is inside
     // this solid" (Instance::FLAG_INSIDE) - the facing cull's premise, both faces away = hidden,
@@ -559,6 +611,7 @@ fn push_mesh(
     for &i in &rm.indices{
         idx.push(base+i);
     }
+    mark("vert+idx push", &mut lap);
 
     // A DENSE mesh gets no wireframe and no vertex dots. This is the same call the cloud lane
     // makes at CLOUD_RAW_MIN, and for the same reason - decoration that is free on a CAD solid
@@ -597,24 +650,62 @@ fn push_mesh(
     // at all. Leave before edges_with_colors, which builds a HashSet over the faces: for sheets
     // made of hundreds of thousands of tiny fills, that set was the walk's biggest single cost
     // and every edge it produced was then skipped.
-    if m.widths().len() == 1 && m.widths()[0] == 0.0 { return None }
+    if is_print_fill(m) { return None }
 
-    if std::env::var("VIEWER_NO_EDGES").is_ok() { return None }
+    if env_flag("VIEWER_NO_EDGES", &VIEWER_NO_EDGES) { return None }
 
     // ONE edge walk, shared by the pipes below and the vertex widths further down.
     let edges = m.edges_with_colors();
+    mark("edges_with_colors", &mut lap);
 
     // Face normals once for the whole mesh, so the per-edge adjacency lookup below is two map
     // reads instead of a cross product each time. These are MESH-LOCAL, matching p0/p1 - the
     // shader rotates them by the instance model the same way it transforms the endpoints.
     let fnormals = m.face_normals();
+    mark("face_normals", &mut lap);
+
+    // Vertex keys are arbitrary usizes; everything below indexes by SLOT, the key's position in
+    // the sorted order m.vertices() emits. One map build here replaces ~250k kernel map lookups
+    // over the three passes below.
+    // Vertex keys are arbitrary usizes, but in practice they are dense ids: a Vec indexed BY
+    // KEY (u32::MAX sentinel) turns every key->slot lookup below into an array read, where a
+    // HashMap trades the same cost the kernel's vertex_point was just removed for. Sparse key
+    // spaces (a mesh after deletions) fall back to the map.
+    let keys = m.vertices();
+    let max_key = keys.last().copied().unwrap_or(0);
+    let dense = max_key < 4 * keys.len().max(1);
+    let mut slot_vec: Vec<u32> = Vec::new();
+    let mut slot_map: std::collections::HashMap<usize, u32> = std::collections::HashMap::new();
+    if dense {
+        slot_vec = vec![u32::MAX; max_key + 1];
+        for (s, &k) in keys.iter().enumerate() { slot_vec[k] = s as u32; }
+    } else {
+        slot_map = keys.iter().enumerate().map(|(s, &k)| (k, s as u32)).collect();
+    }
+    let slot = |k: usize| -> usize {
+        if dense { slot_vec[k] as usize } else { slot_map[&k] as usize }
+    };
+
+    // Positions by slot, from the KERNEL's vertex map - one lookup per vertex instead of two
+    // per edge. NOT rm.vertices[slot]: to_render DUPLICATES vertices for per-face colors, so
+    // its rows are in vertex order only when no duplication happens (the colors_widths boxes
+    // are exactly the case where it does).
+    let vpos: Vec<[f32; 3]> = keys.iter().map(|&k| m.vertex_point(k).unwrap().to_f32()).collect();
+
+    // Each edge's adjacent faces, kept for the dots pass: edge_faces allocates a Vec per call,
+    // and the dots used to repeat it per incident edge per vertex - the walk's biggest cost.
+    // Hidden edges contribute faces too (their face can still carry a visible band), so the
+    // call happens even when the segment below is skipped.
+    let mut edge_faces: Vec<Vec<usize>> = Vec::with_capacity(edges.len());
+
+    // A DENSE wireframe draws BLACK, whatever linecolors the file carries: at scan density an
+    // edge's color is a property of the tessellation, not of the model, and per-edge pens
+    // stopped being readable thousands of edges ago. Authored colors on ordinary meshes (the
+    // red pen box) are always honored - the gate sits far above any CAD part.
+    let black_wire = edges.len() >= WIREFRAME_BLACK_MIN;
 
     for (i, (a, b, col)) in edges.iter().cloned().enumerate(){
-        if hidden(i) {
-            continue
-        }
-        let pa = m.vertex_point(a).unwrap();
-        let pb = m.vertex_point(b).unwrap();
+        let f = m.edge_faces(a, b).unwrap_or_default();
 
         // The two faces sharing this edge, so the shader can decide whether it faces the camera
         // without asking the depth buffer. An edge with both faces turned away is HIDDEN and the
@@ -622,23 +713,27 @@ fn push_mesh(
         // exercise: a pen has width, so ink tested against the surface it decorates either gets
         // cut by it or has to float in front of it, and no offset wins at every slant. Deciding
         // visibility from the geometry instead sidesteps the trade entirely.
-        let f = m.edge_faces(a, b).unwrap_or_default();
         let facing = pack_facing(
             f.first().and_then(|&k| fnormals.get(&k).cloned()),
             f.get(1).and_then(|&k| fnormals.get(&k).cloned()),
         );
+        edge_faces.push(f);
 
+        if hidden(i) {
+            continue
+        }
         segments.push(
             CylinderSegment{
-                p0: pa.to_f32(),
+                p0: vpos[slot(a)],
                 radius: encode_width(width_at(i)),
-                p1: pb.to_f32(),
+                p1: vpos[slot(b)],
                 instance_id: ri,
-                color: pack_rgba(col.to_f32()),
+                color: if black_wire { pack_rgba([0.0, 0.0, 0.0, 1.0]) } else { pack_rgba(col.to_f32()) },
                 facing,
             }
         )
     }
+    mark("pipe loop", &mut lap);
 
     // Dots are used for user set pointcolors.
     // The auto-seeded white vec is filtered by the mode gate.
@@ -652,14 +747,17 @@ fn push_mesh(
     // the sphere lane hugs the faces the bands meeting at the vertex already hug: a marker
     // floating on the old constant lift loses the depth test to its own hugged bands over most
     // of its disc at close zoom, and shows up as a lopsided chunk smaller than the band width.
-    let mut vbest: std::collections::HashMap<usize, (f64, usize)> = std::collections::HashMap::new();
+    // Same two passes, by slot instead of by key: vbest as a flat Vec (sentinel -inf = no
+    // visible edge yet; widths can be NEGATIVE world-mm radii, so the sentinel is not 0) and
+    // the incident list as CSR (degree count, prefix sum, fill) instead of a Vec per vertex.
+    let mut vbest = vec![(f64::NEG_INFINITY, 0usize); keys.len()];
     for (i, (a, b, _)) in edges.iter().cloned().enumerate(){
         if hidden(i){ // A vertex whose every edge is hidden gets no dot either
             continue;
         }
         let w = width_at(i);
         for vk in [a, b] {
-            let e = vbest.entry(vk).or_insert((w, i));
+            let e = &mut vbest[slot(vk)];
             if w > e.0 {
                 *e = (w, i);
             }
@@ -669,40 +767,58 @@ fn push_mesh(
     // Incident EDGES per vertex, for the face list below. Hidden edges contribute faces too:
     // a hidden edge's adjacent face can still carry a visible band from another edge, and the
     // dot must hug that face to stay in front of it.
-    let mut vedges: std::collections::HashMap<usize, Vec<usize>> = std::collections::HashMap::new();
-    for (i, (a, b, _)) in edges.iter().enumerate(){
-        vedges.entry(*a).or_default().push(i);
-        vedges.entry(*b).or_default().push(i);
+    let mut vstart = vec![0u32; keys.len() + 1];
+    for (a, b, _) in edges.iter(){
+        vstart[slot(*a) + 1] += 1;
+        vstart[slot(*b) + 1] += 1;
     }
+    for i in 0..keys.len(){
+        vstart[i + 1] += vstart[i];
+    }
+    let mut vinc = vec![0u32; 2 * edges.len()];
+    let mut cur = vstart.clone();
+    for (i, (a, b, _)) in edges.iter().enumerate(){
+        for vk in [*a, *b] {
+            let s = slot(vk);
+            vinc[cur[s] as usize] = i as u32;
+            cur[s] += 1;
+        }
+    }
+    mark("vbest+vedges", &mut lap);
 
     // VIEWER_NO_DOTS drops the per-vertex dots, so the harness can tell how much of a dense
     // wireframe's ink is dots and how much is edges.
-    if std::env::var("VIEWER_NO_DOTS").is_ok() { return local_bounds }
+    if env_flag("VIEWER_NO_DOTS", &VIEWER_NO_DOTS) { return local_bounds }
 
-    for (i, vk) in m.vertices().into_iter().enumerate(){
-        let Some(&(vw, ei)) = vbest.get(&vk) else { continue };
-        let p = m.vertex_point(vk).unwrap();
+    // Widest edge's faces first, then every other incident edge's, deduped - one reused Vec,
+    // and the face lists cached from the pipe pass instead of a kernel call per incident edge.
+    let mut fkeys: Vec<usize> = Vec::new();
+    let mut codes: Vec<u32> = Vec::new();
+    for i in 0..keys.len(){
+        let (vw, ei) = vbest[i];
+        if vw == f64::NEG_INFINITY { continue }
 
         // Face keys, widest edge's pair first, then every other incident edge's, deduped. The
         // row carries up to SIX normals (3 words x oct16 pair): a trihedral corner needs three,
         // and hugging only the widest edge's two leaves the third face's band able to bite a
         // sector out of the disc at grazing slants - the marker is meant to go in front.
-        let mut fkeys: Vec<usize> = Vec::new();
-        let mut take = |ei: usize, fkeys: &mut Vec<usize>| {
-            let (a, b, _) = edges[ei].clone();
-            for fk in m.edge_faces(a, b).unwrap_or_default() {
+        fkeys.clear();
+        let take = |ei: usize, fkeys: &mut Vec<usize>| {
+            for &fk in &edge_faces[ei] {
                 if !fkeys.contains(&fk) { fkeys.push(fk); }
             }
         };
         take(ei, &mut fkeys);
-        if let Some(incident) = vedges.get(&vk) {
-            for &j in incident { take(j, &mut fkeys); }
+        for &j in &vinc[vstart[i] as usize..vstart[i + 1] as usize] {
+            take(j as usize, &mut fkeys);
         }
-        let codes: Vec<u32> = fkeys.iter()
-            .filter_map(|fk| fnormals.get(fk))
-            .filter_map(oct16)
-            .take(6)
-            .collect();
+        codes.clear();
+        codes.extend(
+            fkeys.iter()
+                .filter_map(|fk| fnormals.get(fk))
+                .filter_map(oct16)
+                .take(6),
+        );
         // pack_facing's rules: a lone normal is duplicated, none at all is FACING_UNKNOWN, and a
         // pair colliding with the all-ones sentinel collapses to it (accepted loss, same as edges).
         let word = |k: usize| -> u32 {
@@ -716,7 +832,7 @@ fn push_mesh(
         };
         glyphs.push(
             GlyphPoint {
-                center: p.to_f32(),
+                center: vpos[i],
                 radius: encode_width(vw),
                 // No pointcolors -> fixed near-black marker, whatever the pen color is: the dot
                 // must read as a DOT so the joint can be checked by eye (following the pen color
@@ -728,6 +844,7 @@ fn push_mesh(
             }
         );
     }
+    mark("dots loop", &mut lap);
     local_bounds
 }
 
@@ -795,6 +912,10 @@ fn obb_to_segments(b: &OBB, instance_id: u32) -> Vec<CylinderSegment>{
 /// do not - which is the honest line until an impostor makes the decoration cheap. A PDF fill (tens of triangles) and a
 /// demo box (12) stay decorated; a scan does not.
 const MESH_RAW_MIN: usize = 200_000;
+
+/// At or above this many edges a mesh's wireframe draws BLACK whatever the file says - see
+/// push_mesh. 104,288 on the bunny; 12 on a box, whose authored red pen always survives.
+const WIREFRAME_BLACK_MIN: usize = 10_000;
 
 /// One glyph per point. `point_size` rides the same width encoding as every other pen, and
 /// a cloud with fewer colors than points falls back to black for the tail.

@@ -4,7 +4,7 @@
 > action is a typed verb, and buttons/keys are just shortcuts that type verbs for you. That has a
 > deep consequence: if every mutation is born as a command, then undo (56), macros, and scripting
 > fall out of one pipeline instead of being retrofitted per feature. This lesson builds the pipeline:
-> a **registry** (verb → command), a **CLI line** in the 47 overlay, and the **Get-loop** — the small
+> a **registry** (verb → command), a **CLI line** in the 52 overlay, and the **Get-loop** — the small
 > state machine that lets a running command ask "pick a point or type a value", Rhino's signature
 > interaction.
 
@@ -62,7 +62,7 @@ pub enum CmdStep {
 
 /// A command that outlives one call: it consumes inputs until it reports Done/Cancel.
 /// Instant verbs never construct one — they act in `run` and return. Multi-step commands
-/// (line, move, … from 49 on) live here.
+/// (line, move, … from 62 on) live here.
 pub trait ActiveCommand {
     fn feed_point(&mut self, state: &mut crate::state::State, p: Point) -> CmdStep;
     fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep;
@@ -84,7 +84,7 @@ pub enum Dispatch {
 }
 
 /// The whole interface, one match. Aliases live in the pattern — `h` IS `hide`.
-/// (49 upgrades this to per-command options; 50 adds history + Tab-completion over these names.)
+/// (54 upgrades this to per-command options; 55 adds history + Tab-completion over these names.)
 pub fn dispatch(state: &mut State, line: &str) -> Dispatch {
     let mut parts = line.trim().split_whitespace();
     let verb = parts.next().unwrap_or("");
@@ -239,9 +239,21 @@ click-vs-marquee branch:
 ```rust
     use crate::app::getloop::GetState;
     if matches!(self.get, GetState::WaitingPoint { .. }) {
-        if let Some(hit) = self.scene.pick_ray(&ray, tol) {        // a click IS a point
+        // a click IS a point — the picked hit, or 46's ray ∩ z=0 when empty space was
+        // clicked, so drawing on the grid works (that's what makes 62's tools possible):
+        let p = match self.scene.pick_ray(&ray, tol) {
+            Some(hit) => Some(hit.point),
+            None if ray.dir[2].abs() > 1e-9 => {
+                let t = -ray.origin[2] / ray.dir[2];
+                (t > 0.0).then(|| &ray.origin + &ray.dir * t)
+            }
+            None => None,                               // looking level with the grid: no point
+        };
+        // feed only when a point actually resulted — a level-with-the-grid miss leaves the
+        // command RUNNING (take()ing it here would silently cancel it):
+        if let Some(p) = p {
             if let Some(mut cmd) = self.active.take() {
-                let r = cmd.feed_point(self, hit.point);
+                let r = cmd.feed_point(self, p);
                 self.step(r, cmd);
             }
         }
@@ -269,8 +281,12 @@ and add the arm in lib.rs's `match event.logical_key.as_ref()`:
                         Key::Named(NamedKey::Escape) => state.cancel_command(),
 ```
 
-(When nothing is hit, intersect the ray with the work plane `z = 0` — 41 Step 3's formula — so
-clicking empty grid still yields a point. That's what makes drawing on the grid possible in 57.)
+> **Typed verbs while a command runs.** The feed rule in `run_command` is absolute: while
+> `self.active` is `Some`, *every* typed line — including what looks like a fresh verb (`hide`,
+> `zoom`) — goes to the running command's `feed_text`, never to `dispatch`. That is deliberate
+> (Rhino works the same: options and values arrive as text mid-command), and the way out is Esc,
+> not typing over the prompt. The alternative — cancel-and-restart when the feed doesn't parse —
+> means one mistyped character kills a command that already holds your picks; we don't take it.
 
 ## Step 5 — verify
 

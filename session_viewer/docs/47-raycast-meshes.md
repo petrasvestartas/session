@@ -5,11 +5,19 @@
 > (broad-phase over boxes, then a narrow-phase in each candidate's local frame) is the same pattern
 > every ray-tracer and CAD kernel uses.
 
-The 41 ray is aimed; now hit something with it. Click a mesh and the viewer must answer *which* object,
+The 46 ray is aimed; now hit something with it. Click a mesh and the viewer must answer *which* object,
 *where*, and — when several line up behind the cursor — the **nearest** one. WebGPU has no synchronous
-depth readback (you can't ask "what's under pixel (x,y)?" without stalling the pipeline), so the
-interactive pick path is CPU-side: cast the ray against geometry the kernel already knows how to
-intersect. This is where 40's BVH finally pays off for real.
+depth readback, and this course goes **CPU-side**: cast the ray against geometry the kernel already
+knows how to intersect. This is where 40's BVH finally pays off for real.
+
+> **Why CPU — and what the GPU route would look like.** Picking on the GPU *is* possible: draw an
+> offscreen id-buffer (object id as color) and `mapAsync` the one pixel under the cursor. Two reasons
+> this course doesn't. First, the latency shape: `mapAsync` answers a frame or more *later* — fine for
+> a click, wrong for hover-highlight and drag feedback, which want the hit within the same event.
+> Second, the data is already here: 40's BVH + the kernel's triangle cast answer "which object, which
+> point" in f64 world space with no extra render pass, no readback stall, and no second pipeline to
+> keep in sync — and the same machinery serves marquee (50) and snapping (64). The id-buffer stays
+> attractive when scenes outgrow even the broad-phase scan — 81 revisits it.
 
 Two stages, and the second is the subtle one. **Broad-phase**: the scene BVH turns "test all 42,232
 objects" into a short candidate list along the ray. **Narrow-phase**: for each candidate mesh, the ray
@@ -51,18 +59,22 @@ src/state.rs         # on left-click: build ray (46) → scene.pick_ray → log/
 ## Step 1 — broad-phase: which objects lie along the ray: `src/app/scene.rs`
 
 40's `SpatialBVH` has a ray traversal built in — `ray_cast` walks only the nodes whose AABB the ray
-pierces and returns their leaf object_ids. The tree was fed boxes in global row order (40's
-row-indexed `world_boxes` cache), so **object_id == row** — each candidate comes back carrying its
-row, and the guid is one `order[row]` away, same mapping as 40's `objects_in`:
+pierces and returns their leaf object_ids. The tree was fed boxes in `order` order (40), so an
+object_id indexes **`order`** — and the ROW is one `guid_to_row` lookup away, same mapping as 40's
+`objects_in`. (object_id == row held on the first load only: 43b's reconcile keeps rows stable while
+`order` is rebuilt, and its `pick_after_reconcile` test pins exactly this indirection.)
 
 ```rust
     /// Candidates whose world box the ray pierces — the broad-phase set (usually a handful,
-    /// even in the 42k-object stress file). object_id == global row by 40's construction,
-    /// so each candidate carries its row; guid via `order`, same mapping as `objects_in` (40).
+    /// even in the 42k-object stress file). object_id indexes `order` (40); the row is
+    /// `guid_to_row[guid]` — identical on first load, correct after a reconcile (43b).
     pub fn objects_along_ray(&self, origin: &Point, dir: &Vector) -> Vec<(u32, String)> {
         let mut ids: Vec<usize> = Vec::new();
         self.bvh.ray_cast(origin, dir, &mut ids, true);
-        ids.iter().filter_map(|&i| self.order.get(i).map(|g| (i as u32, g.clone()))).collect()
+        ids.iter()
+            .filter_map(|&i| self.order.get(i))
+            .map(|g| (self.guid_to_row[g], g.clone()))
+            .collect()
     }
 ```
 
@@ -81,7 +93,7 @@ use crate::engine::pick::Ray;   // 46's Ray { origin: Point, dir: Vector }
 const PICK_EPS: f64 = 1e-9;
 
 /// Cast the world ray at one mesh IN ITS LOCAL FRAME — `frame` is the row's placed frame
-/// (scene.placed_frame(row), 36). Returns (world hit point, t along the ray).
+/// (scene.placed_frame(row), 40). Returns (world hit point, t along the ray).
 /// `&mut Mesh` because `triangle_bvh_ray_cast` builds the triangle BVH lazily and caches it
 /// on the mesh.
 fn raycast_mesh(m: &mut Mesh, frame: &Xform, ray: &Ray, eps: f64) -> Option<(Point, f64)> {
@@ -106,7 +118,7 @@ fn raycast_mesh(m: &mut Mesh, frame: &Xform, ray: &Ray, eps: f64) -> Option<(Poi
 > drafts had to carry an xform on a cloned `Point` and call `transformed()`. The kernel's own
 > `Session::ray_cast` composes the session's world xforms internally for its mesh arm too — but it
 > knows nothing about the manifest `place`; we keep the viewer-side cast because it works in the
-> full placed frame and reuses 61/68's cached tessellations for surfaces and BReps.
+> full placed frame and reuses 66/68's cached tessellations for surfaces and BReps.
 
 > **Why transform the ray, not the mesh.** Inverse-transforming one ray (two points) is O(1); baking
 > the placed frame into every vertex would be O(vertices) *and* would throw away the mesh's cached local
@@ -139,7 +151,28 @@ impl Scene {
                     let mut bm = b.mesh();
                     raycast_mesh(&mut bm, &frame, ray, PICK_EPS)
                 }
-                _ => None,   // Line/Polyline/Point → lesson 49 (thin geometry needs a pick radius)
+                // 66's tessellated surface is a solid too — route BOTH surface kinds through the
+                // mesh cast, or they fall through here AND 49's thin filter and are unpickable.
+                Some(session_rust::Geometry::NurbsSurface(s)) => {
+                    let mut sm = s.mesh();
+                    raycast_mesh(&mut sm, &frame, ray, PICK_EPS)
+                }
+                Some(session_rust::Geometry::Element(el)) => match el.geometry() {
+                    // geometry() yields &Mesh — no &mut path — so clone; the lazy-BVH win is
+                    // lost for elements (each pick re-clones + rebuilds). Noted, like BRep below.
+                    ElementGeometry::Mesh(m) => {
+                        let mut mc = m.clone();
+                        raycast_mesh(&mut mc, &frame, ray, PICK_EPS)
+                    }
+                    ElementGeometry::BRep(b) => {
+                        let mut bm = b.mesh();
+                        raycast_mesh(&mut bm, &frame, ray, PICK_EPS)
+                    }
+                    ElementGeometry::None => None,   // add_file gave it no row — never a candidate
+                },
+                _ => None,   // Line/Polyline/Point/PointCloud → lesson 49 (thin geometry needs a
+                             // pick radius). Plane/OBB draw as linework but have no pick arm in
+                             // either lesson — a tracked gap, same shape as 49's four kinds
             };
             if let Some((point, t)) = hit {
                 if best.as_ref().map_or(true, |h| t < h.t) {
@@ -170,13 +203,26 @@ pub struct PickHit {
 ```
 
 > **BRep re-tessellates per pick.** `b.mesh()` builds a fresh `Mesh` (and thus a fresh triangle BVH) on
-> every ray — fine for a click, wasteful for hover-picking a BRep-heavy scene. The fix is to cache each
-> BRep's render mesh (the same cache 34 already wants for drawing); noted, not built here.
+> every ray — fine for a click, wasteful for hover-picking a BRep-heavy scene. The same goes for the
+> `NurbsSurface` and `Element` arms above (a tessellation per pick, plus a full mesh *clone* for an
+> element's mesh). The fix is to cache each object's render mesh (the same cache 66/68 want for
+> drawing); noted, not built here.
+
+> **`Rc::make_mut` deep-clones a shared mesh on first pick.** `make_mut` only mutates in place when
+> the `Rc` is uniquely held; a mesh the kernel shares (the same geometry referenced from two tree
+> nodes) is cloned wholesale the first time you pick it — a pause proportional to the mesh, and the
+> clone's lazily-built BVH is what you pay next. Unique meshes (the common case after a load) pay
+> nothing. If picks on instanced/shared content ever hitch, this line is why.
+
+> **`PICK_EPS` is absolute world units.** `1e-9` is right for millimetre-scale CAD; a scene authored
+> in metres-with-millimetre details (or microns) wants the epsilon scaled to the object's box —
+> e.g. `1e-9 * frame_scale` or a fraction of the candidate's world diagonal. The kernel's
+> `line_line` tolerance in 49 has the same property; both are constants here for clarity.
 
 ## Step 4 — wire the click + a headless test: `src/state.rs`
 
 ```rust
-    // In State::on_left_click (41 Step 3b) — REPLACE the z=0 ground-plane block inside the
+    // In State::on_left_click (46 Step 3b) — REPLACE the z=0 ground-plane block inside the
     // `if let Some(ray)` with the pick_ray match. The vp/origin/viewport locals are 46's,
     // unchanged; the whole method now reads:
     let vp = self.camera.view_proj(self.aspect());
@@ -216,16 +262,19 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 46: screen → world ray.
 Ch 47: RAY-CAST MESHES. Broad-phase: 40's SpatialBVH::ray_cast walks only pierced nodes → candidate
-       (row, guid) pairs (objects_along_ray — object_id == row by 40's construction). Narrow-phase
+       (row, guid) pairs (objects_along_ray — object_id indexes `order`; the row is one
+       guid_to_row lookup away, the identity only ever held before 43b's reconcile). Narrow-phase
        per candidate, in the mesh's LOCAL frame: inverse-transform the world ray by the row's
        placed frame (placed_frame(row) — geometry carries no xform; transform the RAY, not the mesh
        — O(1), keeps the cached local triangle BVH), call the kernel's Mesh::triangle_bvh_ray_cast
        (lazy triangle BVH, nearest local hit), transform the hit back to world, compute t along the
        ray. pick_ray keeps the smallest t → PickHit{row, guid, point, t} (doc via doc_of_row, mesh
-       via Rc::make_mut on the doc's lookup); occluded objects lose on t,
-       always. BRep resolves via b.mesh() (re-tessellates per pick — cache noted). No WebGPU depth
-       readback exists, so this CPU ray+BVH IS the interactive pick. Thin geometry
-       (Line/Polyline/Point) has no area to hit — that's 44.
+       via Rc::make_mut on the doc's lookup — a SHARED mesh is deep-cloned on first pick);
+       occluded objects lose on t,
+       always. BRep resolves via b.mesh(), NurbsSurface via s.mesh(), Element(Mesh) via a clone
+       (all re-tessellate per pick — cache noted). CPU ray+BVH is the interactive pick BY CHOICE
+       (the GPU id-buffer + mapAsync route answers a frame late — see the box up top). Thin geometry
+       (Line/Polyline/Point) has no area to hit — that's 49.
 ```
 
 Edited: `app/pick.rs` (NEW — `PickHit`), `app/scene.rs` (`objects_along_ray` BVH broad-phase,
@@ -236,4 +285,4 @@ Edited: `app/pick.rs` (NEW — `PickHit`), `app/scene.rs` (`objects_along_ray` B
 `48-subobject-picking.md` — a hit tells you *which mesh*; sub-object picking tells you *which part*. From
 the hit triangle, resolve the nearest **vertex** (within a screen-pixel radius), else the nearest **edge**
 (point-to-segment distance), else the **face** — returning a `SubHit { row, guid, kind }` that the gumball
-and edit tools act on. The pixel-radius test is the same screen-space trick 44 needs for thin geometry.
+and edit tools act on. The pixel-radius test is the same screen-space trick 49 needs for thin geometry.

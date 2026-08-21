@@ -132,11 +132,22 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
     // Same closed form as ribbon.wgsl: px/(proj_y*vp_h) is the radius as a fraction of eye
     // depth, so the lift is unit-free and holds the pixel still. One radius more than the
     // lines, so the marker stays the topmost ink on whatever it punctuates.
-    let lift = px * LIFT_RADII * MM_TO_M / (line.proj_y * line.vp_h);
-    let wn = clip.w * (1.0 - clamp(lift, 0.0, 0.5));
+    // Ortho carries no eye depth in w, so the w-scale would collapse into a constant ndc
+    // offset that outgrows the scene's whole depth span on zoom-out (the full argument is at
+    // ribbon.wgsl's ortho_lift_ndc): lift in ndc instead, LIFT_RADII world radii (a px is
+    // 2*ortho_h/vp_h world units) through the mvp's own z row.
+    var lift = 0.0;
+    var zlift = 0.0;
+    if (line.ortho_h > 0.0) {
+        zlift = px * LIFT_RADII * 2.0 * line.ortho_h / line.vp_h
+            * length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
+    } else {
+        lift = clamp(px * LIFT_RADII * MM_TO_M / (line.proj_y * line.vp_h), 0.0, 0.5);
+    }
+    let wn = clip.w * (1.0 - lift);
     let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
     var o: VsOut;
-    o.pos = vec4<f32>(clip.xy / clip.w * wn + off, clip.z, wn);
+    o.pos = vec4<f32>(clip.xy / clip.w * wn + off, clip.z + zlift * wn, wn);
     o.color = g.color * instances[g.instance_id].color;
     o.corner = corner;
     o.px = px;

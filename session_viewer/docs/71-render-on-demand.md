@@ -27,7 +27,7 @@
 ```
 src/state.rs   # the dirty flag; mark_dirty() at every state-change site; render() gates on it
 src/lib.rs     # RedrawRequested stops unconditionally re-requesting
-src/ui/mod.rs  # HUD gains "frames drawn/s" beside fps — the number that proves it works (47 creates ui/)
+src/ui/mod.rs  # HUD gains "frames drawn/s" beside fps — the number that proves it works (52 creates ui/)
 ```
 
 ## Step 1 — the flag and its sources: `src/state.rs`
@@ -68,6 +68,18 @@ The loader rows are the classic miss: both `user_event` arms already call `reque
 under the dirty gate that draw renders **nothing** unless the flag is set — poke there too, or the
 2nd..Nth progressively loaded sheet never appears until the user happens to move the mouse.
 
+> **An 11-row table is a liability — shrink it to choke points.** Every row above is a place a
+> future edit can forget, and a missed poke fails *silently* (a stale frame looks plausible).
+> Two defenses, both cheap:
+> **Poke at choke points, not call sites.** All Commands already funnel through `commit()` (62)
+> and undo/redo through `history` — one poke inside each retires whole rows of the table. Same
+> for the camera: if its mutators go through one method (or `set_scene` for scene swaps), the
+> poke rides along and the table shrinks to the few rows that *don't* pass a choke point.
+> **A debug-mode missed-poke detector.** Keep a `scene_gen: u32` that the scene's mutating
+> methods bump, and snapshot `drawn_gen` at each drawn frame. In debug builds, a *skipped* render
+> with `scene_gen != drawn_gen` logs `missed poke: scene changed while clean` — turning the
+> silent failure into a console line at development time, at zero release cost.
+
 That last row matters: egui reports whether *it* wants another frame (a blinking CLI cursor does);
 respect it or the text caret freezes. In `render()`, right after 52's
 `let full_out = crate::ui::build_ui(…)` line, insert:
@@ -78,6 +90,11 @@ respect it or the text caret freezes. In `render()`, right after 52's
             self.poke();
         }
 ```
+
+(This is egui-version-sensitive API — `viewport_output`/`repaint_delay` have shifted between
+releases. If an egui upgrade changes the shape, the fallback that keeps the caret alive without
+chasing the API: poke unconditionally while the CLI has keyboard focus — typing and a blinking
+caret are the only *continuous* egui repaint sources this app has.)
 
 ## Step 2 — the gate: `src/state.rs` + `src/lib.rs`
 
@@ -111,7 +128,11 @@ while idle — drive them from their own timer/`spawn_local` wakeups rather than
 accept a low-rate heartbeat: `request_redraw` once per second from a timer, with `render` still
 skipping cleanly when nothing is dirty. The heartbeat costs one no-op call, not a frame. It also
 covers a CSS-only canvas resize: no winit resize event fires for those — today the treadmill's
-`RedrawRequested` size check catches them, and with the treadmill gone only the heartbeat does.)
+`RedrawRequested` size check catches them, and with the treadmill gone only the heartbeat does.
+The *right* fix for that last case is a `ResizeObserver` on the canvas that pokes on CSS resizes —
+it replaces the heartbeat's resize-detection role entirely (the heartbeat then only services the
+watch poll); it costs one more `web-sys` feature flag (`"ResizeObserver"`,
+`"ResizeObserverEntry"`), which is why the heartbeat is shown first.)
 
 ## Step 3 — prove it on the HUD: `src/ui/mod.rs`
 
