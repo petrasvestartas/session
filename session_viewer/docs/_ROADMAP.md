@@ -503,6 +503,26 @@ start instead of being retrofitted at lesson 74 like the old plan.
   include it in every object map — tree, picking, visibility — the archive forgot repeatedly)
   - verify: trimmed circle/cut renders the hole; picking respects the trim
 
+## Phase 10b — GPU tessellation (compute producers for existing tables)
+Study + rationale: `_GPU_TESSELLATION_PLAN.md`. The pattern, four times: a compute shader
+becomes a PRODUCER for a table the viewer already draws (segment table, vertex arena) — no new
+lanes downstream, CPU proxies stay for picking, f32 is the display contract, no frag_depth.
+- ⬜ 69a GPU curves — de Boor in compute, one invocation per segment, rows into the shared
+  segment table (verified vs kernel `point_at`: f32 rounding only)
+  - verify: CPU-vs-GPU polyline diff = float noise; tight bend smooth at spans×64; L toggle works
+- ⬜ 69b GPU surfaces — tensor product per (u,v) grid vertex into the arena; `mesh_q` criteria
+  become the up-front density law; FD normals with the exact-derivative upgrade path named
+  - verify: same-resolution CPU/GPU vertex diff = float noise; no shading delta; no add_file stall
+- ⬜ 69c GPU trimming — the CDT stays CPU (sequential by construction); full-rect grid +
+  per-fragment winding parity = concave + holes with zero cases; compute classifies cells
+  in/out/boundary so only perimeter cells pay `discard`
+  - verify: hole + concave test set matches CPU silhouettes sub-pixel; trimmed orbit costs
+    the untrimmed frame
+- ⬜ 69d GPU BRep — assembly only: face = 69b+69c, edge = 69a, vertex = 32a; shared-edge
+  matching demoted to an EXPORT requirement (both faces clip the same curve; cracks sub-pixel
+  under the drawn edge pen); `BRep::mesh()` stays the watertight truth
+  - verify: boolean-result BRep matches 68's build; seam audit under edge pen; load stall drops
+
 ## Phase 11 — Rendering quality: the "arctic" GI look, engineered FAST
 > **Why the redesign (2026-07-03, archive measured):** the archive's post stack costs **~200+
 > texture fetches/pixel/FRAME** — SSAO 32+16 taps (mode 0 default) + 2×13-tap bilateral blur +

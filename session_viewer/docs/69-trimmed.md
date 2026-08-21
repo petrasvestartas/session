@@ -239,6 +239,6 @@ arms, transform + invalidation one-worders).
 
 ## Next
 
-`70-ground-grid.md` — Phase 11: rendering quality, engineered fast. First the stage: an analytic
-ground plane with distance fade (per-pixel ray∩plane in the fragment shader — never a giant quad, it
-flickers) and the infinite fragment-shader grid.
+`69a-gpu-curves.md` — Phase 10b: every curved type is on screen; now the tessellation WORK moves
+to the GPU, one type per lesson, each a compute producer for a table the viewer already draws.
+(The mainline resumes at `70-ground-grid.md` after 69d.)
