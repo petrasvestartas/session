@@ -1,0 +1,114 @@
+# Weekly kernel audit: every Thursday a randomly chosen geometry-kernel data structure gets a
+# cross-language review (session_cpp / session_py / session_rust) covering performance, memory,
+# tests, readability, minimal verbosity, and 3-language alignment. The report lands as a GitHub
+# issue labeled `kernel-audit`. Manual runs: Actions → kernel-audit → Run workflow (optionally
+# naming a class); the scheduled run picks one at random.
+name: kernel-audit
+
+on:
+  schedule:
+    # Thursday 14:01 Europe/Zurich summer time (12:01 UTC). GitHub cron is UTC-only, so in
+    # winter (CET) this fires at 13:01 local — accepted drift, same as every UTC cron.
+    - cron: '1 12 * * 4'
+  workflow_dispatch:
+    inputs:
+      class:
+        description: 'Class to audit (empty = random pick)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  issues: write
+  id-token: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout kernel submodules
+        run: git submodule update --init --depth 1 session_cpp session_py session_rust
+
+      - name: Pick the class
+        id: pick
+        run: |
+          # Candidates = Rust kernel modules that exist in ALL THREE languages, minus
+          # infrastructure files. The Rust file list is the driver; cpp needs src/<c>.cpp,
+          # py needs src/session_py/<c>.py.
+          CANDIDATES=""
+          for f in session_rust/src/*.rs; do
+            c=$(basename "$f" .rs)
+            case "$c" in
+              *_test|lib|main|mini_test|mc_tritable|guid_serde|tolerance) continue ;;
+            esac
+            if [ -f "session_cpp/src/$c.cpp" ] && [ -f "session_py/src/session_py/$c.py" ]; then
+              CANDIDATES="$CANDIDATES $c"
+            fi
+          done
+          set -- $CANDIDATES
+          echo "pool ($#):$CANDIDATES"
+          PICK="${{ github.event.inputs.class }}"
+          if [ -z "$PICK" ]; then
+            IDX=$(( (GITHUB_RUN_ID + $(date +%s)) % $# + 1 ))
+            eval "PICK=\${$IDX}"
+          fi
+          echo "picked: $PICK"
+          echo "class=$PICK" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure the audit label exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh label create kernel-audit --color 5319e7 --description "Weekly cross-language kernel audit" --force -R "$GITHUB_REPOSITORY"
+
+      - name: Run the audit
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowed-tools "Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(wc:*),Bash(ls:*)"'
+          prompt: |
+            You are the weekly kernel auditor for this multi-language geometry kernel
+            (C++ is ground truth; Python and Rust are ports that must mirror it — see
+            CLAUDE.md for the house rules: identical APIs, variable names, test logic and
+            line counts across languages; least verbose style).
+
+            Today's randomly selected data structure: **${{ steps.pick.outputs.class }}**
+
+            Its six files:
+            - session_cpp/src/${{ steps.pick.outputs.class }}.h and .cpp (+ ${{ steps.pick.outputs.class }}_test.cpp)
+            - session_py/src/session_py/${{ steps.pick.outputs.class }}.py (+ ${{ steps.pick.outputs.class }}_test.py)
+            - session_rust/src/${{ steps.pick.outputs.class }}.rs (+ ${{ steps.pick.outputs.class }}_test.rs)
+
+            Read all six files completely, then audit along exactly these dimensions:
+
+            1. PERFORMANCE — algorithmic complexity of the hot methods, avoidable allocations
+               or clones in loops, missed early-outs, O(n^2) where O(n log n) exists. Quote
+               file:line for every claim.
+            2. MEMORY — struct layout and size, redundant cached state, String/Vec bloat per
+               instance, clone-happy APIs.
+            3. TESTS — which public methods lack a test, whether the three languages test the
+               same logic with the same values (the repo's parity rule), missing edge cases
+               (degenerate inputs, tolerance boundaries).
+            4. READABILITY / HUMAN UNDERSTANDABILITY — naming, function length, comment
+               quality (comments must state constraints, not narrate code).
+            5. MINIMAL VERBOSITY — dead code, redundant branches, copies of logic that could
+               be one helper, per the house least-verbose rule.
+            6. ALIGNMENT ACROSS THE THREE CODEBASES — public API deltas (methods present in
+               one language and missing in another), behavioral drift (different tolerance
+               handling, different defaults), naming drift. This is the most valuable
+               section: list every divergence as a table.
+
+            Verdict discipline: every finding must cite file:line and be concrete enough to
+            act on. Rank findings by impact. If a dimension is genuinely clean, say so in one
+            line — do not pad. Do NOT change any code: this is an audit, the report is the
+            deliverable.
+
+            When the analysis is complete, create ONE GitHub issue with:
+            - title: "Kernel audit: ${{ steps.pick.outputs.class }} (${{ github.run_id }})"
+            - label: kernel-audit
+            - body: the full report in markdown — a one-paragraph executive summary, then
+              the six sections, then a ranked "top 5 actions" list.
+            Use: gh issue create -R ${{ github.repository }} --label kernel-audit
+            --title "..." --body-file <the report you wrote to a file>
