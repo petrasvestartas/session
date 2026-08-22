@@ -17,7 +17,7 @@ so it *doesn't* need the tree; the same index could still accelerate it at extre
 it once, here, means all of them share it.)
 
 The kernel already ships the tree: `session_rust::SpatialBVH` (a Morton-code LBVH: radix-sort the
-boxes' Morton codes, one linear build pass — Karras 2012; `build_with_guids` / `query_aabb` /
+boxes' Morton codes, one linear build pass — Karras 2012; `build_from_aabbs` / `query_aabb` /
 `ray_cast`). The roadmap's rule is *don't rewrite what exists* — so this lesson wires
 that up, it doesn't reimplement a BVH. The real work is one subtlety the kernel can't do for us.
 
@@ -150,7 +150,7 @@ that.
 
 ## Step 2 — boxes append with the rows: `src/app/scene.rs`
 
-`build_with_guids` keeps its input order: the `object_id` a query returns is the **index into the
+`build_from_aabbs` keeps its input order: the `object_id` a query returns is the **index into the
 slice you passed** (the Morton sort shuffles only the tree's internal layout — each leaf keeps its
 pre-sort index; `build_leaf_aabbs` in `spatial_bvh.rs` is the receipt). Feed it boxes in global
 row order and the mapping back is just `self.order[id]` — object_id IS the row.
@@ -167,6 +167,7 @@ and insert three fields above that brace:
 ```rust
     pub hidden: HashSet<String>,
     bvh: SpatialBVH,                          // broad-phase over world boxes, object_id == row
+    bvh_dirty: bool,                          // true = rows changed since the last build
     world_boxes: Vec<([f64; 3], [f64; 3])>,   // cached AABB extents, one per row
     doc_rows: Vec<u32>,                       // each doc's first row (doc_of_row's index)
 }
@@ -178,6 +179,7 @@ Every field needs a value, so do the same to `Scene::new`'s `Self { … }` liter
 ```rust
             hidden: HashSet::new(),
             bvh: SpatialBVH::new(),
+            bvh_dirty: false,
             world_boxes: Vec::new(),
             doc_rows: Vec::new(),
 ```
@@ -217,7 +219,7 @@ matrix the row draws with, because it is the SAME value, not a copy that could d
             self.world_boxes.push(([lo[0], lo[1], lo[2]], [hi[0], hi[1], hi[2]]));
 ```
 
-**2c. Rebuild the tree at the end of `add_file`.** Find the last lines of `add_file` — the
+**2c. Mark the tree stale at the end of `add_file`.** Find the last lines of `add_file` — the
 planar block's closing brace, then the doc push:
 
 ```rust
@@ -225,48 +227,61 @@ planar block's closing brace, then the doc push:
         self.docs.push(Doc { name, place, session });
 ```
 
-and insert the rebuild call between them:
+and insert one line between them:
 
 ```rust
         let _ = obj0;
-        self.rebuild_bvh();
+        self.bvh_dirty = true;
         self.docs.push(Doc { name, place, session });
 ```
 
-The build is a radix sort of Morton codes plus one linear pass — milliseconds over cached
-extents; ten appends cost ten rebuilds, which is nothing next to the walk that preceded each.
+A flag, not a build — deliberately. Nothing queries the tree DURING a load, so building per
+append does ten throwaway builds of growing size and only the last one is ever used. Deferring
+to the first query (Step 3) makes a ten-file load pay for exactly ONE build. Measured at this
+lesson's own scale — 744k boxes — a build is ~250 ms; eager-per-append across ten files wastes
+over a second of load for nothing.
 
-That call needs the method itself. Add it inside `impl Scene`, directly below `add_file`'s
-closing brace (still ABOVE the `}` that closes the impl):
+The build itself goes inside `impl Scene`, directly below `add_file`'s closing brace (still
+ABOVE the `}` that closes the impl):
 
 ```rust
-    /// Rebuild the whole tree from the cached extents — called once per appended file (LBVH
-    /// build: O(n) after the Morton radix sort). 43b's reconcile calls this SAME wholesale
-    /// rebuild after applying a diff — the per-row extents cache is what keeps that cheap; a
-    /// true incremental refit stays future work. Boxes go in ROW order → object_id == row ==
-    /// index into `order`.
+    /// Rebuild the whole tree from the cached extents (LBVH: O(n) after the Morton radix
+    /// sort — ~250 ms at 744k boxes). Runs lazily from `objects_in` whenever `bvh_dirty`;
+    /// 43b's reconcile just sets the flag again after applying a diff — the per-row extents
+    /// cache is what keeps that cheap; a true incremental refit stays future work. Boxes go
+    /// in ROW order → object_id == row == index into `order`.
+    ///
+    /// `build_from_aabbs`, NOT `build_with_guids`: the guid path clones one String per row
+    /// into the tree and wraps every AABB in an OBB — measured 3.2x the build time and 42.6 MB
+    /// of retained Strings at 744k rows — and the viewer never reads them: a query returns
+    /// object_ids, which ARE rows here, and `order[row]` already knows the guid. The `ws`
+    /// argument is metadata only (the kernel normalizes Morton codes over the input's own
+    /// bounds); pass the extents' own span so the field stays honest.
     fn rebuild_bvh(&mut self) {
-        let boxes: Vec<(OBB, String)> = self.world_boxes.iter().zip(&self.order)
-            .map(|((lo, hi), guid)| {
-                let aabb = AABB::from_points(&[Point::new(lo[0], lo[1], lo[2]),
-                                               Point::new(hi[0], hi[1], hi[2])], 0.0);
-                (OBB::from_aabb(aabb), guid.clone())
-            })
+        let aabbs: Vec<AABB> = self.world_boxes.iter()
+            .map(|(lo, hi)| AABB::new(
+                (lo[0] + hi[0]) * 0.5, (lo[1] + hi[1]) * 0.5, (lo[2] + hi[2]) * 0.5,
+                (hi[0] - lo[0]) * 0.5, (hi[1] - lo[1]) * 0.5, (hi[2] - lo[2]) * 0.5))
             .collect();
+        let ws = aabbs.iter().fold(0.0f64, |w, a| {
+            w.max(2.0 * (a.cx.abs() + a.hx)).max(2.0 * (a.cy.abs() + a.hy)).max(2.0 * (a.cz.abs() + a.hz))
+        });
         self.bvh = SpatialBVH::new();
-        self.bvh.build_with_guids(&boxes);   // empty slice → empty tree; query returns []
+        self.bvh.build_from_aabbs(&aabbs, ws);   // empty slice → empty tree; query returns []
+        self.bvh_dirty = false;
     }
 ```
 
-(The kernel has no min/max constructor — `AABB::from_points` over the two corner points builds
-the same box. Zero inflate is right here: the pad already went in when `world_obb` filled the
-cache entry.)
+(Zero inflate is right here: the pad already went in when `world_obb` filled the cache entry.
+No pointer tree is built — the kernel's arena path is flat `(2n-1) × 64 B` nodes, which at
+744k rows is ~91 MB; that plus the 36 MB extents cache is the honest price of a broad-phase
+at this scale, and both are O(n) with small constants.)
 
 > **The boxes go stale when a row moves.** Any lesson that transforms an object in place —
 > 43b's reconcile, later the gumball drags (59–61) — must write the row's new world box into
-> `world_boxes[row]` and call `rebuild_bvh()` as part of its commit, or picks and marquee
-> queries keep seeing the old geometry. The tree and the extents cache are only as fresh as the
-> last writer.
+> `world_boxes[row]` and set `bvh_dirty = true` as part of its commit, or picks and marquee
+> queries keep seeing the old geometry. The next query rebuilds; the tree and the extents
+> cache are only as fresh as the last writer.
 
 ## Step 3 — the query every later lesson calls: `src/app/scene.rs`
 
@@ -279,7 +294,13 @@ this lesson (the `doc_rows` field they read exists as of Step 2). Then, below th
     /// Rows whose world box intersects `query` — the broad-phase. Callers narrow further
     /// (47 does ray↔triangle, 50 tests the marquee frustum) on this short list, not all N.
     /// A row maps to its guid via `order[row]` and to its doc via `doc_of_row(row)`.
-    pub fn objects_in(&self, query: &OBB) -> Vec<u32> {
+    /// `&mut self` from day one: the tree builds LAZILY on the first query after any change
+    /// (2c's flag), so loads never pay for builds nobody reads. ~8 us per pick-sized query
+    /// at 744k boxes once built.
+    pub fn objects_in(&mut self, query: &OBB) -> Vec<u32> {
+        if self.bvh_dirty {
+            self.rebuild_bvh();
+        }
         self.bvh.query_aabb(query)
             .into_iter()
             .map(|id| id as u32)   // object_id == row, by construction (Step 2)
@@ -350,6 +371,34 @@ per node. (A ROTATED query would differ: `query_aabb` first widens it to its enc
 `.aabb()`.) So the brute-force scan and the tree are judged by an identical predicate; once
 green, every downstream query trusts the broad-phase.
 
+## What this costs — measured, not estimated
+
+Numbers from a 744k-box synthetic sheet scene (30 m of drawings, mm units), the scale this
+lesson's big-picture quotes:
+
+```
+build (lazy, once per load)   ~250 ms      LBVH: radix sort + O(n) Karras pass
+pick-sized query               ~8 us       1000 queries in 8 ms, exact hits == brute force
+arena memory                   (2n-1) x 64 B  ->  ~91 MB      flat nodes, no pointers
+extents cache                  n x 48 B        ->  ~36 MB      serves 41's linear cull too
+```
+
+Two costs this lesson deliberately does NOT pay:
+
+- **`build_with_guids`** — 3.2x the build time and 42.6 MB of retained `String`s at this
+  scale, for a mapping (`object_id -> guid`) the viewer already owns as `order[row]`.
+- **Eager rebuilds** — ten appends would trigger ten throwaway builds; the dirty flag defers
+  to the first query.
+
+And one the kernel used to pay, fixed while writing this lesson (all three languages,
+minitests green): Morton codes were normalized over an origin-centered `world_size`, so a
+scene sitting far from the origin — any georeferenced model — collapsed into a handful of
+Morton cells and queries went **660x slower** (5.3 ms instead of 8 us each) with unchanged
+results. Codes are now normalized over the input's own bounding CUBE (uniform scale: per-axis
+stretch would scatter flat scenes — measured 4x — because a 10 mm z-span blown up to 1024
+cells shuffles xy-neighbours apart in the sort). Tree quality is translation-invariant now;
+`world_size` remains as serialized metadata.
+
 ## Run
 
 ```bash
@@ -373,14 +422,19 @@ Ch 40: Scene gains ONE broad-phase — the kernel's SpatialBVH (reused, not rewr
        add_file (extents cached once per append), the tree rebuilds per file (milliseconds), and
        queries return ROWS — unambiguous across docs, straight into flags/instances/order.
        objects_in(OBB) → rows is the one call picking (47, ray sliver) and box-select (50,
-       marquee) narrow from; 41's frustum cull stays a linear scan over the extents cache. A
-       #[cfg(test)] proves tree == brute force AND that placement lands in the boxes.
+       marquee) narrow from; 41's frustum cull stays a linear scan over the extents cache.
+       The tree builds LAZILY (bvh_dirty, first query after a change) via build_from_aabbs —
+       no guid Strings, no OBB wrap, one build per load (~250 ms at 744k; ~8 us/query;
+       arena (2n-1)x64 B). Kernel fixed alongside: Morton codes normalize over the input's
+       bounding cube, not an origin-centered world_size (660x off-origin query win, x3 langs).
+       A #[cfg(test)] proves tree == brute force AND that placement lands in the boxes.
        Zero visual change — infrastructure for the lessons that query it.
 ```
 
 Edited: `app/scene.rs` (`placed_frame`/`doc_of_row`, `world_obb(geom, placed)`, `bvh` +
-`world_boxes` + `doc_rows` fields, per-row box append in `add_file`, `rebuild_bvh`,
-`objects_in(&OBB) -> Vec<u32>`, `#[cfg(test)]` parity).
+`bvh_dirty` + `world_boxes` + `doc_rows` fields, per-row box append in `add_file`,
+lazy `rebuild_bvh` via `build_from_aabbs`, `objects_in(&OBB) -> Vec<u32>`, `#[cfg(test)]`
+parity).
 
 ## Next
 

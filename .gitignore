@@ -150,3 +150,7 @@ session_viewer/assets/pb/lidar_*.pb
 # Big reference meshes (armadillo 90 MB grazes the 100 MB hard limit, dragon is over it)
 session_viewer/assets/pb/mesh_armadillo.pb
 session_viewer/assets/pb/mesh_dragon.pb
+
+# Editor/scratch leftovers
+*.bak
+/keep
