@@ -28,6 +28,9 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 
 ## Git
 - NEVER add Claude/AI as git contributor, author, or co-author
+- The weekly kernel-audit action merges fix PRs into main (parent + submodules). At session
+  start and after any audit merge: `git pull` in the parent and `git submodule update --remote`
+  (or pull inside session_cpp/py/rust) before editing kernel code.
 - Check CI: `gh run list --limit 5`, failures: `gh run view <id> --log-failed`
 - CI: macOS-15 (ARM64), manylinux_2_28 (Linux), chmod +x bash scripts in CI
 
