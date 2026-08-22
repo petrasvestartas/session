@@ -40,7 +40,7 @@ ensure_python_env() {
     if [[ ! -f "$PYTHON" ]]; then
         log_lang "py" "Creating Python environment..."
         if has_uv; then
-            (cd "$REPO_ROOT" && uv venv uvsession --python 3.13)
+            (cd "$REPO_ROOT" && uv venv uvsession --python 3.11)
         else
             local py_cmd="python3"
             [[ "$(detect_platform)" == "windows" ]] && py_cmd="python"

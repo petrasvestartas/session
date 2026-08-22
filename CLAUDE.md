@@ -44,7 +44,7 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 - Use `/test-rules` command for full import patterns and conventions
 
 ## Code Style
-- Python: 3.13 is the floor and the style target — `X | None` and builtin generics (`list[str]`, `dict[...]`), never `typing.Union/Optional/List`; `from __future__ import annotations` where a class property shadows a builtin used in annotations (str). One import per line. TOLERANCE/PI from `.tolerance` at top of file. Geometry imports inside test functions. Use flat imports: `from session_py import Line, Plane` not `from session_py.line import Line`. Exception: `from session_py.intersection import line_line`.
+- Python: 3.11 is the floor; style stays modern — `X | None` and builtin generics (`list[str]`, `dict[...]`), never `typing.Union/Optional/List` (all 3.11-native). `from __future__ import annotations` ONLY where a class property shadows a builtin used in annotations (the str property; required on every Python < 3.14 — annotations evaluate eagerly at class creation). One import per line. TOLERANCE/PI from `.tolerance` at top of file. Geometry imports inside test functions. Use flat imports: `from session_py import Line, Plane` not `from session_py.line import Line`. Exception: `from session_py.intersection import line_line`.
 - C++: never `#include "tolerance.h"` in production code. Use `std::cout << point` not manual coords.
 - Rust: `use crate::tolerance::{TOLERANCE, PI};` at top. Geometry imports inside MINI_TEST blocks.
 
