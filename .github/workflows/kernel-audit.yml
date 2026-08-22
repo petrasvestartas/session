@@ -105,7 +105,10 @@ jobs:
             line — do not pad. Do NOT change any code: this is an audit, the report is the
             deliverable.
 
-            When the analysis is complete, create ONE GitHub issue with:
+            When the analysis is complete, create EXACTLY ONE GitHub issue — never split the
+            report across several issues or comments. An issue body holds 65k characters;
+            budget ~55k and stay selective: keep every finding's file:line citation, trim
+            explanation prose first if space runs short. Create it with:
             - title: "Kernel audit: ${{ steps.pick.outputs.class }} (${{ github.run_id }})"
             - label: kernel-audit
             - body: the full report in markdown — a one-paragraph executive summary, then
