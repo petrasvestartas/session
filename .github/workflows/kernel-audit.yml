@@ -91,7 +91,8 @@ jobs:
             You are the weekly kernel auditor AND fixer for this multi-language geometry
             kernel (C++ is ground truth; Python and Rust are ports that must mirror it — see
             CLAUDE.md: identical APIs, variable names, test logic and line counts across
-            languages; least verbose style; Python floor is 3.11 with modern typing (X | None,
+            languages; least verbose style; Python floor is 3.9 (Rhino 8's embedded CPython)
+            with modern typing via mandatory `from __future__ import annotations` (X | None,
             builtin generics), never typing.Union/Optional/List; NEVER add Claude/AI as a
             git author or co-author).
 
