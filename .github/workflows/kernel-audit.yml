@@ -146,6 +146,13 @@ jobs:
                    (skip the wait if the repo has no checks), then
                    `gh pr merge <num> -R ... --squash --delete-branch`. Merge ONLY on green
                    checks; a red PR stays open and is reported in the issue instead.
+                   AFTER the merge, also watch the workflows the push to main triggers
+                   (`gh run list -R ... --branch main` + `gh run watch`) — some jobs run
+                   only on main (session_py's publish job tests Python 3.10 there and
+                   nowhere else). If a post-merge main workflow goes red from your merge,
+                   fix forward with another PR in the same run if the cause is clear,
+                   otherwise open a revert PR, merge it, and report loudly in the issue.
+                   ALL sub-repo workflows must end green.
                 5. before the next adjustment's branch, refresh local main
                    (`git fetch origin && git rebase origin/main` or re-branch) so PRs stack
                    cleanly.
