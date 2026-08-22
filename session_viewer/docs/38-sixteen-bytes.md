@@ -78,7 +78,8 @@ one extra sequential read stream on a lane that is rasterisation-bound anyway.
 
 and in `ArenaUpload::new()`, replace `points: Vec::new(),` with the three matching lines.
 
-**Find** the `CloudPoint` struct and **replace the whole thing with:**
+**Find** the `CloudPoint` struct and **replace the whole thing** — the comment above it
+and the `#[repr(C)]`/`derive` attributes included — **with:**
 
 ```rust
 // The raw cloud lane has no row STRUCT any more - it has two parallel arrays, 12 B of position
@@ -105,7 +106,8 @@ call instead of once per point. (wgpu only lowers its `instance_limit` below `u6
 instance-rate *vertex* buffers, and this lane has none; the WebGPU spec gates non-zero
 `firstInstance` only for **indirect** draws.)
 
-**Find** the point draw block and **replace with:**
+**Find** the point draw block — the `if self.point_count > 0 { … }` from 36; the
+"drawn WITH THE SOLIDS" comment above it stays — and **replace with:**
 
 ```rust
             if !self.cloud_draws.is_empty() {
@@ -175,7 +177,8 @@ passes it to `build_point_pipeline` in place of `glyph_layout`, and
 ## Step 4 — the append, split in two
 
 In `set_scene`, the point block becomes a pair of writes plus the draw records. Pull the
-growth out into a helper, because [39](39-streaming-cloud.md) needs it too:
+growth out into a helper, because [39](39-streaming-cloud.md) needs it too. **Add** to
+`impl Gpu`, next to `set_scene`:
 
 ```rust
     /// Make room for `need` point rows total, copying the live prefix GPU-side.
@@ -184,10 +187,33 @@ growth out into a helper, because [39](39-streaming-cloud.md) needs it too:
     /// buffer on the three-scan scene AND take the worse worst-transient (668 MB of old+new
     /// live at once against 540 MB). What doubling avoids is a GPU-side copy - the one thing
     /// here that never touches wasm memory.
-    fn cloud_reserve(&mut self, need: u64) { … }
+    fn cloud_reserve(&mut self, need: u64) {
+        if need <= self.point_capacity { return; }
+        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let pos = zeroed_buffer(&self.device, "cloud.pos", need * 12, usage);
+        let col = zeroed_buffer(&self.device, "cloud.col", need * 4, usage);
+        if self.point_count > 0 {
+            let mut enc = self.device.create_command_encoder(&Default::default());
+            enc.copy_buffer_to_buffer(&self.point_pos_buffer, 0, &pos, 0, self.point_count as u64 * 12);
+            enc.copy_buffer_to_buffer(&self.point_col_buffer, 0, &col, 0, self.point_count as u64 * 4);
+            self.queue.submit([enc.finish()]);
+        }
+        self.point_pos_buffer = pos;
+        self.point_col_buffer = col;
+        self.point_capacity = need;
+        self.point_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("points.bind_group"),
+            layout: &self.cloud_layout,
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: self.point_pos_buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1, resource: self.point_col_buffer.as_entire_binding() },
+            ],
+        });
+    }
 ```
 
-and the block itself:
+Then **replace** 37's whole `if !up.points.is_empty() { … }` block in `set_scene`
+(keep the "READ THIS BEFORE THE CODE" comment above it) with:
 
 ```rust
         if !up.clouds.is_empty() {
@@ -236,9 +262,40 @@ fn push_cloud(pc: &PointCloud, instance_id: u32, t: &mut ArenaUpload){
 }
 ```
 
-The call site loses its `&mut t.points` and just passes `t`. `Scene::upload_to` clears
-`cloud_pos`, `cloud_col` **and** `clouds`; the two bounds walks in `add_file` iterate
-`t.clouds` from a `cloud0` mark and read positions out of `t.cloud_pos` in triples.
+Three follow-ups in `src/app/scene.rs`, all mechanical:
+
+- the import at the top: `CloudPoint` becomes `CloudDraw`;
+- the call site in the match arm: `push_cloud(pc, ri, &mut t.points)` becomes
+  `push_cloud(pc, ri, t)` — and mind the borrow: `t` is already the `&mut` you need;
+- `Scene::upload_to`: the two `points` lines become all three tables —
+
+```rust
+        self.tables.cloud_pos.clear();
+        self.tables.cloud_pos.shrink_to_fit();
+        self.tables.cloud_col.clear();
+        self.tables.cloud_col.shrink_to_fit();
+        self.tables.clouds.clear();
+        self.tables.clouds.shrink_to_fit();
+```
+
+In `Scene::rebuild`, the reset line 37 added grows a sibling — **find**
+`gpu.point_count = 0;` and **add below it** `gpu.cloud_draws.clear();`.
+
+And the bounds walk from 36 follows the data. **Replace** the `point0` mark with
+`let cloud0 = self.tables.clouds.len();` and the `t.points` loop with:
+
+```rust
+        // Bases in the delta table are delta-relative (upload shifts them), so this walk
+        // indexes t.cloud_pos directly - no point_count offset here.
+        for c in t.clouds.iter().skip(cloud0){
+            if let Some((xf, _, _)) = t.objects.get(c.instance as usize){
+                for i in c.base as usize..(c.base + c.count) as usize {
+                    let p = [t.cloud_pos[i * 3], t.cloud_pos[i * 3 + 1], t.cloud_pos[i * 3 + 2]];
+                    grow_bounds(&mut fmin, &mut fmax, xform_point(xf, p));
+                }
+            }
+        }
+```
 
 ## Step 6 — the shader
 

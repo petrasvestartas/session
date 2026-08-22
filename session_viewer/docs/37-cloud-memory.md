@@ -126,11 +126,10 @@ lessons follows from that one sentence.
 | file | change |
 |---|---|
 | `src/app/persistence.rs` | take the bytes by value, drop them at the decode |
-| `src/lib.rs` | hand the bytes over; call the new upload path |
-| `session_rust/src/pointcloud.rs` | one word: `.iter()` → `.into_iter()` |
-| `src/app/scene.rs` | `reserve_exact`; a `Scene::upload_to` that clears the mirror |
+| `src/lib.rs` | hand the bytes over |
+| `session_rust/src/pointcloud.rs` | verify: `.into_iter()`, not `.iter()` (already fixed) |
+| `src/app/scene.rs` | `reserve_exact`; `upload_to` also clears the point mirror |
 | `src/engine/gpu/mod.rs` | the point buffer appends instead of being rebuilt |
-| `src/state.rs` | use the new upload path |
 
 ---
 
@@ -171,7 +170,7 @@ the 14M rung, and it helps every file type, not just clouds.
 
 The loader logs `bytes.len()` *after* the call, so capture it before the move.
 
-**Find** (line 113):
+**Find** (line 118):
 
 ```rust
                     let session = persistence::session_from_bytes_chunked(&item.file, &bytes).await;
@@ -184,7 +183,7 @@ The loader logs `bytes.len()` *after* the call, so capture it before the move.
                     let session = persistence::session_from_bytes_chunked(&item.file, bytes).await;
 ```
 
-**Find** (line 119) — the `bytes.len()` inside the log line:
+**Find** (line 124) — the `bytes.len()` inside the log line:
 
 ```rust
                     log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms", name, session.lookup.len(), bytes.len(), f1 - f0, crate::engine::performance::now_ms() - f1);
@@ -245,7 +244,7 @@ and here we always know it exactly.
 
 This is the one that kills the 651 MB. Three edits.
 
-**5a — a capacity field.** Find the point fields in the `Gpu` struct (line 128):
+**5a — a capacity field.** Find the point fields in the `Gpu` struct (line 151):
 
 ```rust
     pub point_buffer: wgpu::Buffer,
@@ -262,14 +261,12 @@ This is the one that kills the 651 MB. Three edits.
     pub point_capacity: u64, // ROWS the buffer can hold; point_count is how many are filled
 ```
 
-**5b — start with a real, growable buffer.** Find, in `Gpu::new` (line 438):
+**5b — start with a real, growable buffer.** Find, in `Gpu::new` (line 497):
 
 ```rust
         // Point buffer + the cloud uniform
         let points: Vec<CloudPoint> = Vec::new();
         let point_count = points.len() as u32;
-
-        // point storage buffer
         let point_buffer = storage_buffer(&device, "points.buffer", &points);
 ```
 
@@ -291,9 +288,9 @@ This is the one that kills the 651 MB. Three edits.
 ```
 
 Then add `point_capacity,` to the struct literal at the end of `new()`, next to
-`point_count,` (line 528).
+`point_count,` (line 590).
 
-**5c — append instead of rebuild.** Find the block in `set_scene` (line 656):
+**5c — append instead of rebuild.** Find the block in `set_scene` — the one 36 added:
 
 ```rust
         // Raw cloud lane: one row per scanned point, uploaded like any other table. Until now
@@ -315,10 +312,10 @@ Then add `point_capacity,` to the struct literal at the end of `new()`, next to
 **Replace with:**
 
 ```rust
-        // Raw cloud lane. READ THIS BEFORE THE CODE: unlike every other table in this
-        // function, `up.points` is a DELTA - only the rows the newest file added. The caller
-        // clears the mirror after each upload (see Scene::upload_to), because once the GPU has
-        // a scanned point the CPU has no further use for it.
+        // Raw cloud lane. READ THIS BEFORE THE CODE: like the arena verts and unlike the
+        // other tables here, `up.points` is a DELTA - only the rows the newest file added. The
+        // caller clears the mirror after each upload (see Scene::upload_to), because once the
+        // GPU has a scanned point the CPU has no further use for it.
         //
         // The old code recreated the whole buffer per appended file. Three files meant three
         // create_buffer_init calls of 111, 217 and 323 MB, each one a full-size MAPPED buffer
@@ -374,20 +371,29 @@ Then add `point_capacity,` to the struct literal at the end of `new()`, next to
 The bind group is rebuilt **only** when the buffer is reallocated — that is the whole
 reason `point_capacity` exists as a separate number from `point_count`.
 
-## Step 6 — clear the mirror: `src/app/scene.rs`, `src/state.rs`, `src/lib.rs`
+## Step 6 — clear the mirror: `src/app/scene.rs`
 
-`set_scene` takes `&ArenaUpload`, so it cannot clear the table itself. Give `Scene`
-one method that does both, so the two call sites cannot drift apart.
+`Scene::upload_to` already exists — 35 built it, and it already forgets the arena
+verts after each upload for exactly the reason this lesson keeps repeating. The point
+lane now joins that pattern. Both call sites (`state.rs` and the `Msg::File` arm in
+`lib.rs`) already go through it, so nothing else changes.
 
-**Add** to `impl Scene` in `src/app/scene.rs`, next to `add_file`:
+**Find** the end of `upload_to`:
 
 ```rust
-    /// Upload, then FORGET the cloud rows. The GPU is now the only holder of those points,
-    /// which is the point: 323 MB of f32 mirror for the three scans, retained for nothing.
-    /// Only `points` is cleared - the other lanes are still uploaded cumulatively, because
-    /// only the point lane has an append path (Gpu::set_scene, step 5c).
-    pub fn upload_to(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
-        gpu.set_scene(&self.tables);
+        self.tables.idx.clear();
+        self.tables.idx.shrink_to_fit();
+    }
+```
+
+**Replace with:**
+
+```rust
+        self.tables.idx.clear();
+        self.tables.idx.shrink_to_fit();
+        // Same rule for the cloud rows: the GPU is now their only holder, and 323 MB of f32
+        // mirror for the three scans was retained for nothing. The other tables stay cumulative
+        // because only the arena and the point lane have an append path (Gpu::set_scene, 5c).
         self.tables.points.clear();
         self.tables.points.shrink_to_fit();
     }
@@ -397,57 +403,39 @@ one method that does both, so the two call sites cannot drift apart.
 its 445 MB allocation, and a cleared-but-still-huge allocation is exactly the kind of
 thing wasm never hands back.
 
-**In `src/state.rs`**, find (line 25):
+### The asymmetry to keep straight
+
+`up.points` is now a delta while `instance_id` still indexes `t.objects`, which is
+**not** cleared and stays cumulative. That asymmetry is deliberate and is why the
+comment in step 5c is shouty.
+
+One consequence that will look wrong later: 36's `point0` mark in `add_file` is now
+always **0**, because the previous upload cleared the table. That is correct —
+`skip(0)` walks exactly the rows this file just added — but leave the `skip(point0)`
+in place rather than "simplifying" it away. It is what keeps the bounds walk honest
+if the clearing ever goes away.
+
+And one more append-path debt: `Scene::rebuild` re-walks every document from scratch,
+so its re-upload would now APPEND every cloud a second time. Nothing calls `rebuild`
+yet — it waits for the editing lessons — but keep it honest today. **Find** in it:
 
 ```rust
-    pub async fn new(window: Arc<Window>, scene: Scene) -> anyhow::Result<Self>{
-        let t0 = now_ms();
-        let mut gpu = Gpu::new(window.clone()).await?;
-        gpu.set_scene(&scene.tables);
+        gpu.reset_arena();
 ```
 
-**Replace with:**
+**Add below it:**
 
 ```rust
-    pub async fn new(window: Arc<Window>, mut scene: Scene) -> anyhow::Result<Self>{
-        let t0 = now_ms();
-        let mut gpu = Gpu::new(window.clone()).await?;
-        scene.upload_to(&mut gpu);
+        gpu.point_count = 0; // clouds are delta-appended; the re-walk regenerates every row
 ```
-
-**In `src/lib.rs`**, in the `Msg::File` arm, find:
-
-```rust
-                state.gpu.set_scene(&state.scene.tables);
-```
-
-**Replace with:**
-
-```rust
-                state.scene.upload_to(&mut state.gpu);
-```
-
-(`scene` and `gpu` are different fields of `State`, so borrowing both at once is fine.)
-
-### The thing that will look wrong later
-
-`Scene::add_file` starts with `let point0 = self.tables.points.len();` and its bounds
-loops then do `t.points.iter().skip(point0)`. After step 6, `point0` is always **0**,
-because the table was cleared by the previous upload. That is correct — `skip(0)`
-walks exactly the rows this file just added — but it reads like a bug six months from
-now, so leave the `skip(point0)` in place rather than "simplifying" it to nothing. It
-is what keeps `add_file` honest if the clearing ever goes away.
-
-`instance_id` still indexes `t.objects`, which is **not** cleared and stays cumulative.
-That asymmetry is deliberate and is why the comment in step 5c is shouty.
 
 ## Step 7 — while we are here: `storage_buffer` itself
 
 Step 5 took the point lane off `create_buffer_init`, but the helper is still used for
-the instance table (`mod.rs:284` and `mod.rs:563`), and it will be used by every table
+the instance table (`mod.rs:334` and `mod.rs:659`), and it will be used by every table
 someone adds later. Fix the helper, not just the one caller.
 
-**Find** (line 1171):
+**Find** (line 1562):
 
 ```rust
 fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, label: &str, data: &[T]) -> wgpu::Buffer {
@@ -487,9 +475,9 @@ fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, queue: &wgpu::Queue, 
 }
 ```
 
-Then pass the queue at both remaining call sites — `storage_buffer(&device, &queue, "instance.buffer", &instances)` at line 284, and `storage_buffer(&self.device, &self.queue, "instance.buffer", &self.instances)` at line 563.
+Then pass the queue at both remaining call sites — `storage_buffer(&device, &queue, "instance.buffer", &instances)` at line 334, and `storage_buffer(&self.device, &self.queue, "instance.buffer", &self.instances)` at line 659.
 
-The three `arena_*` buffers (`mod.rs:580`, `586`, `592`) still call `create_buffer_init`
+The three `arena_*` buffers still call `create_buffer_init`
 directly. They are the drawings lane, not the cloud lane, and they deserve the same
 treatment — but measure that separately so you can attribute the win.
 
@@ -580,10 +568,10 @@ Ch 37: it also came back with FIVE copies of every point and a fresh 300 MB mapp
         shrinks, so the number that matters is the PEAK, not the live set.
 ```
 
-Edited: `app/persistence.rs` (bytes by value + `drop`), `lib.rs` (`nbytes`, `upload_to`),
-`app/scene.rs` (`reserve_exact`, `upload_to`), `engine/gpu/mod.rs` (`point_capacity`,
-growable point buffer, append path, `storage_buffer` off `create_buffer_init`),
-`state.rs` (`upload_to`), `session_rust/src/pointcloud.rs` (`into_iter`).
+Edited: `app/persistence.rs` (bytes by value + `drop`), `lib.rs` (`nbytes`),
+`app/scene.rs` (`reserve_exact`, `upload_to` clears points), `engine/gpu/mod.rs`
+(`point_capacity`, growable point buffer, append path, `storage_buffer` off
+`create_buffer_init`); `session_rust/src/pointcloud.rs` already has the `into_iter` fix.
 
 ## Next
 

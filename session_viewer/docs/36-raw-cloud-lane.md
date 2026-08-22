@@ -109,6 +109,42 @@ Both arms push a `None` bound and a `0.0` spacing, like every other non-mesh arm
 object-row tables 35 added stay aligned with `objects`, and a cloud has no surface for
 the ink lanes to density-cull against.
 
+The raw rows do still have to reach the SCENE bounds, though — zoom-extents and the
+camera fit read `t.min`/`t.max`, and those grow from walks over the lane tables. A scan
+that skips them loads outside the framed view. Two additions in `add_file`:
+
+**Find** (top of `add_file`):
+
+```rust
+        let glyph0 = self.tables.glyphs.len();
+```
+
+**Add below it:**
+
+```rust
+        let point0 = self.tables.points.len();
+```
+
+**Find** the spheres/glyphs bounds loop:
+
+```rust
+        for s in t.spheres.iter().skip(sphere0).chain(t.glyphs.iter().skip(glyph0)){
+            if let Some((xf, _, _)) = t.objects.get(s.instance_id as usize){
+                grow_bounds(&mut fmin, &mut fmax, xform_point(xf, s.center));
+            } 
+        }
+```
+
+**Add below it:**
+
+```rust
+        for p in t.points.iter().skip(point0){
+            if let Some((xf, _, _)) = t.objects.get(p.instance_id as usize){
+                grow_bounds(&mut fmin, &mut fmax, xform_point(xf, p.position));
+            }
+        }
+```
+
 **Add** at the bottom of the file, next to `pointcloud_to_glyphs`:
 
 ```rust
@@ -193,7 +229,10 @@ In `set_scene`, after the glyph block, **add**:
             &wgpu::BindGroupDescriptor {
                 label: Some("points.bind_group"),
                 layout: &self.glyph_layout,
-                entries: &[wgpu::BindGroupEntry{ binding: 0, resource: self.point_buffer.as_entire_binding() }],
+                entries: &[wgpu::BindGroupEntry{
+                    binding: 0,
+                    resource: self.point_buffer.as_entire_binding()
+                }],
         });
 ```
 
@@ -249,7 +288,8 @@ write it.
 
 ## Step 4 — the pipeline: `src/engine/pipelines/build.rs`
 
-Three changes in `build_point_pipeline`, and each one is doing real work.
+Three changes, **all inside `build_point_pipeline`** (line 463) — each find string also
+appears in other pipelines in this file, so stay inside that one function.
 
 **Find** `blend: Some(wgpu::BlendState::ALPHA_BLENDING),` and **replace with:**
 
