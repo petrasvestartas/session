@@ -1,8 +1,10 @@
-# Weekly kernel audit: every Thursday a randomly chosen geometry-kernel data structure gets a
-# cross-language review (session_cpp / session_py / session_rust) covering performance, memory,
-# tests, readability, minimal verbosity, and 3-language alignment. The report lands as a GitHub
-# issue labeled `kernel-audit`. Manual runs: Actions → kernel-audit → Run workflow (optionally
-# naming a class); the scheduled run picks one at random.
+# Weekly kernel audit + fix: every Thursday a randomly chosen geometry-kernel data structure
+# gets a cross-language review (session_cpp / session_py / session_rust) covering performance,
+# memory, tests, readability, minimal verbosity, and 3-language alignment — and the safe,
+# test-verifiable findings get FIXED, not just filed. Fixes land as PRs on the submodule repos
+# when the KERNEL_AUDIT_PUSH_TOKEN secret exists (a fine-grained PAT with contents+pull-requests
+# write on session_cpp/py/rust); without it, verified patches are attached to the report issue.
+# Manual runs: Actions → kernel-audit → Run workflow (optionally naming a class).
 name: kernel-audit
 
 on:
@@ -25,19 +27,32 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
+    timeout-minutes: 150
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Checkout kernel submodules
-        run: git submodule update --init --depth 1 session_cpp session_py session_rust
+        run: git submodule update --init --depth 50 session_cpp session_py session_rust
+
+      - name: Configure git identity and push credentials
+        env:
+          PUSH_TOKEN: ${{ secrets.KERNEL_AUDIT_PUSH_TOKEN }}
+        run: |
+          git config --global user.name "petrasvestartas"
+          git config --global user.email "petrasvestartas@gmail.com"
+          if [ -n "$PUSH_TOKEN" ]; then
+            git config --global url."https://x-access-token:${PUSH_TOKEN}@github.com/".insteadOf "https://github.com/"
+            echo "CAN_PUSH=1" >> "$GITHUB_ENV"
+          else
+            echo "CAN_PUSH=0" >> "$GITHUB_ENV"
+          fi
 
       - name: Pick the class
         id: pick
         run: |
           # Candidates = Rust kernel modules that exist in ALL THREE languages, minus
-          # infrastructure files. The Rust file list is the driver; cpp needs src/<c>.cpp,
-          # py needs src/session_py/<c>.py.
+          # infrastructure files.
           CANDIDATES=""
           for f in session_rust/src/*.rs; do
             c=$(basename "$f" .rs)
@@ -63,55 +78,75 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh label create kernel-audit --color 5319e7 --description "Weekly cross-language kernel audit" --force -R "$GITHUB_REPOSITORY"
 
-      - name: Run the audit
+      - name: Audit and fix
         uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUSH_TOKEN: ${{ secrets.KERNEL_AUDIT_PUSH_TOKEN }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: '--allowed-tools "Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(wc:*),Bash(ls:*)"'
+          claude_args: '--model claude-fable-5 --allowed-tools "Bash(git:*),Bash(gh pr create:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*)"'
           prompt: |
-            You are the weekly kernel auditor for this multi-language geometry kernel
-            (C++ is ground truth; Python and Rust are ports that must mirror it — see
-            CLAUDE.md for the house rules: identical APIs, variable names, test logic and
-            line counts across languages; least verbose style).
+            You are the weekly kernel auditor AND fixer for this multi-language geometry
+            kernel (C++ is ground truth; Python and Rust are ports that must mirror it — see
+            CLAUDE.md: identical APIs, variable names, test logic and line counts across
+            languages; least verbose style; NEVER add Claude/AI as a git author or co-author).
 
-            Today's randomly selected data structure: **${{ steps.pick.outputs.class }}**
+            Today's class: **${{ steps.pick.outputs.class }}**
 
             Its six files:
             - session_cpp/src/${{ steps.pick.outputs.class }}.h and .cpp (+ ${{ steps.pick.outputs.class }}_test.cpp)
             - session_py/src/session_py/${{ steps.pick.outputs.class }}.py (+ ${{ steps.pick.outputs.class }}_test.py)
             - session_rust/src/${{ steps.pick.outputs.class }}.rs (+ ${{ steps.pick.outputs.class }}_test.rs)
 
-            Read all six files completely, then audit along exactly these dimensions:
+            PHASE 1 — AUDIT. Read all six files completely, then audit these dimensions:
+            1. PERFORMANCE — complexity of hot methods, avoidable allocations/clones in
+               loops, missed early-outs. Cite file:line for every claim.
+            2. MEMORY — struct layout, redundant cached state, String/Vec bloat, clone-happy
+               APIs.
+            3. TESTS — untested public methods, cross-language test parity, missing edge
+               cases (degenerate inputs, tolerance boundaries).
+            4. READABILITY — naming, function length, comments that state constraints rather
+               than narrate code.
+            5. MINIMAL VERBOSITY — dead code, redundant branches, logic that should be one
+               helper.
+            6. ALIGNMENT — public API deltas, behavioral drift, naming drift across the
+               three languages, as a table. The most valuable section.
+            Rank findings by impact. A clean dimension gets one line, no padding.
 
-            1. PERFORMANCE — algorithmic complexity of the hot methods, avoidable allocations
-               or clones in loops, missed early-outs, O(n^2) where O(n log n) exists. Quote
-               file:line for every claim.
-            2. MEMORY — struct layout and size, redundant cached state, String/Vec bloat per
-               instance, clone-happy APIs.
-            3. TESTS — which public methods lack a test, whether the three languages test the
-               same logic with the same values (the repo's parity rule), missing edge cases
-               (degenerate inputs, tolerance boundaries).
-            4. READABILITY / HUMAN UNDERSTANDABILITY — naming, function length, comment
-               quality (comments must state constraints, not narrate code).
-            5. MINIMAL VERBOSITY — dead code, redundant branches, copies of logic that could
-               be one helper, per the house least-verbose rule.
-            6. ALIGNMENT ACROSS THE THREE CODEBASES — public API deltas (methods present in
-               one language and missing in another), behavioral drift (different tolerance
-               handling, different defaults), naming drift. This is the most valuable
-               section: list every divergence as a table.
+            PHASE 2 — FIX. From the ranked findings, implement the ones that are SAFE and
+            TEST-VERIFIABLE: real bugs, quadratic algorithms with linear equivalents,
+            behavioral drift between languages (align Python/Rust to the C++ ground truth
+            unless C++ itself is the bug — then fix all three), and missing edge-case tests
+            for what you fixed. Keep three-language parity: a shared defect is fixed in all
+            three, identically. Skip anything subjective, risky, or API-breaking — leave
+            those in the report as recommendations.
 
-            Verdict discipline: every finding must cite file:line and be concrete enough to
-            act on. Rank findings by impact. If a dimension is genuinely clean, say so in one
-            line — do not pad. Do NOT change any code: this is an audit, the report is the
-            deliverable.
+            VERIFY: run the affected languages' suites — `./bash/minitest.sh --rust --no-web`,
+            `--py --no-web`, `--cpp --no-web` (chmod +x bash scripts first if needed). Every
+            suite you touched must end green. REVERT any fix whose tests you cannot make
+            pass; a reverted fix goes back into the report as a recommendation with what you
+            learned.
 
-            When the analysis is complete, create EXACTLY ONE GitHub issue — never split the
-            report across several issues or comments. An issue body holds 65k characters;
-            budget ~55k and stay selective: keep every finding's file:line citation, trim
-            explanation prose first if space runs short. Create it with:
-            - title: "Kernel audit: ${{ steps.pick.outputs.class }} (${{ github.run_id }})"
-            - label: kernel-audit
-            - body: the full report in markdown — a one-paragraph executive summary, then
-              the six sections, then a ranked "top 5 actions" list.
-            Use: gh issue create -R ${{ github.repository }} --label kernel-audit
-            --title "..." --body-file <the report you wrote to a file>
+            PHASE 3 — DELIVER. The environment variable CAN_PUSH tells you which mode:
+            - CAN_PUSH=1: in each submodule repo you changed (session_cpp, session_py,
+              session_rust — they are git checkouts with authenticated remotes), create
+              branch `kernel-audit/${{ steps.pick.outputs.class }}-${{ github.run_id }}`,
+              commit with a plain descriptive message (repo rule: no AI co-author line),
+              push the branch, and open a PR against main in that submodule's own repo
+              (`gh pr create -R petrasvestartas/<submodule>`) whose body summarizes what was
+              fixed and how it was verified. NEVER push to main directly. Do not touch the
+              parent repo's submodule pointers.
+            - CAN_PUSH=0: run `git diff` in each changed submodule and embed each diff in
+              the issue body as a fenced ```diff block titled by repo, ready for `git apply`.
+              Note in the issue that adding the KERNEL_AUDIT_PUSH_TOKEN secret upgrades
+              these to automatic PRs.
+
+            Finally create EXACTLY ONE GitHub issue — never split across several issues.
+            Budget the body under ~55k characters; keep every file:line citation, trim prose
+            first. Create with:
+            gh issue create -R ${{ github.repository }} --label kernel-audit
+            --title "Kernel audit: ${{ steps.pick.outputs.class }} (${{ github.run_id }})"
+            --body-file <report file>
+            Body: one-paragraph executive summary; the six audit sections; WHAT WAS FIXED
+            (with PR links or diffs and the test evidence); remaining recommendations ranked.
