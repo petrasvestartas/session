@@ -68,13 +68,15 @@ allowed to degrade while the view is moving.
 
 and the matching `points: Vec::new(),` in `ArenaUpload::new()`, next to `glyphs`.
 
-The row itself is already there; it is worth reading:
+The row itself is already there, further down the same file — but private, because until
+now nothing outside the engine touched it. `scene.rs` is about to construct rows, so
+**find** it and make the struct and all three fields `pub`:
 
 ```rust
 pub struct CloudPoint{
     pub position: [f32; 3], // 12 B - mesh local
-    pub instance_id: u32,   //  4 B - fills position's tail
-    pub color: [f32; 4],    // 16 B
+    pub instance_id: u32, // 4 B - fills position's tail
+    pub color: [f32; 4], // 16 B
 } // 32 B total, two 16-byte rows, zero padding
 ```
 
@@ -149,8 +151,8 @@ fn push_cloud(pc: &PointCloud, instance_id: u32, out: &mut Vec<CloudPoint>){
 
 and put `CloudPoint` in the import at the top of the file.
 
-**One kernel addition this depends on**, in `session_rust/src/pointcloud.rs` — the flat
-arrays have no public accessor yet. Add both next to `get_points` / `get_colors`:
+**One kernel dependency**, in `session_rust/src/pointcloud.rs` — the flat-array
+accessors, already in the file next to `get_points` / `get_colors`. Read both:
 
 ```rust
     /// The flat coordinate array itself, [x0, y0, z0, x1, ...]. A renderer walking millions of
@@ -169,10 +171,9 @@ arrays have no public accessor yet. Add both next to `get_points` / `get_colors`
     }
 ```
 
-Two borrows of private fields — no new behaviour, no test, so the three-language parity
-rule does not apply.
+Two borrows of private fields — no new behaviour, which is why they carry no test.
 
-Those two doc-comment paragraphs are the whole reason this function does not look like
+Those two doc-comment paragraphs are the whole reason `push_cloud` does not look like
 `pointcloud_to_glyphs`. `get_point(i)` builds a `Point`, and a `Point` owns a name and a
 `Color` that owns another name — three heap allocations, thirteen million times. The
 flat-slice accessors `coords()` / `colors()` exist for exactly this, in all three
@@ -196,16 +197,39 @@ In `set_scene`, after the glyph block, **add**:
         });
 ```
 
+While you are in `set_scene`, **find** the `log::info!` that starts with `"scene: {} objects`
+and extend its format string and argument list with the new count, at the end:
+
+```rust
+            "scene: {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres) {} cloud points",
+            self.instances.len(), self.arena_vert_count, self.segment_count, self.pipe_count, self.glyph_count, self.sphere_count, self.point_count
+```
+
 Then **move** the point draw. It currently sits at the very end of the pass, where it was
-left when it was a blended overlay. **Cut** it from there and **paste** it right after the
-cylinder draw, before the flat-ink prepass:
+left when it was a blended overlay — **find** and **cut** this block:
+
+```rust
+            if self.point_count > 0 {
+                pass.set_pipeline(&self.pipelines.point);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.cloud_bind_group, &[]); // cloud size + viewport
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.point_bind_group, &[]);
+                pass.draw(0..3 * self.point_count, 0..1); // 3 vertices per point, no template
+                draws += 1;
+            }
+```
+
+and **paste** this version (note the draw call: one vertex per point now, not three)
+right after the linework `if self.pipe_count > 0 { … }` block closes — i.e. directly
+**above** the comment that begins `// Vertex markers are drawn LAST of the solid lane`:
 
 ```rust
             // Raw cloud lane, drawn WITH THE SOLIDS: it is opaque and writes depth, so it belongs
             // before the flat ink, not after it. Here, ink in front of the cloud composites over
-            // it and ink behind is rejected by the ribbon/glyph depth test. Drawn last - where it
+            // it and ink behind is rejected by the flat-ink depth prepass. Drawn last - where it
             // sat while it was a blended overlay - an opaque cloud would instead overpaint every
-            // polyline in front of it, because flat ink writes no depth of its own.
+            // polyline in front of it, because the ink COLOUR passes write no depth of their own.
             if self.point_count > 0 {
                 pass.set_pipeline(&self.pipelines.point);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
@@ -218,16 +242,10 @@ cylinder draw, before the flat-ink prepass:
 ```
 
 The order is the whole point, and it is a consequence of the cloud going opaque. The pass
-now reads: background → grid → triangles → cylinders → **CLOUD** → ink prepass → ribbon →
-sphere → glyph. Everything that **writes** depth comes first; the flat ink lanes read that
-depth and never write it.
-
-Also fix a latent bug two lines up while you are here — `std::mem::size_of::<GlyphPoint>`
-without the parentheses is a *function pointer*, not a size:
-
-```rust
-rows * std::mem::size_of::<GlyphPoint>() as u64
-```
+now reads: background → grid → triangles → linework (cylinders or solid ribbons) →
+**CLOUD** → vertex markers → flat-ink depth prepass → ribbon → glyph. Everything that
+**writes** real depth comes first; the flat colour passes read that depth and never
+write it.
 
 ## Step 4 — the pipeline: `src/engine/pipelines/build.rs`
 
@@ -316,10 +334,10 @@ with rasterizer coverage on every backend, so it can only clear bits, never set 
 writing all-ones is inert, and *merely declaring it* makes coverage shader-dependent,
 which demotes an early-Z rejection to late-Z. Early-Z is the entire point of this lane.
 
-And it is the first lane to actually read `Instance.flags`. Every other shader declares
-the field (the struct layout has to match) and ignores it, so hiding a mesh today does
-nothing. Here, `FLAG_HIDDEN` collapses the vertex behind the near plane and the clip stage
-drops it — no per-fragment cost at all.
+And it is the first lane to honour `FLAG_HIDDEN`. The ink shaders read `Instance.flags`
+for the facing cull (`FLAG_INSIDE` / `FLAG_OPEN`), but nothing yet acts on hidden — hiding
+a mesh today does nothing. Here, `FLAG_HIDDEN` collapses the vertex behind the near plane
+and the clip stage drops it — no per-fragment cost at all.
 
 ## Verify
 
