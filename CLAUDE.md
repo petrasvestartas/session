@@ -31,6 +31,10 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 - The weekly kernel-audit action merges fix PRs into main (parent + submodules). At session
   start and after any audit merge: `git pull` in the parent and `git submodule update --remote`
   (or pull inside session_cpp/py/rust) before editing kernel code.
+- After EVERY push (parent or submodule): watch ALL workflows that push triggered to
+  completion — parent `Session mini tests` included — `gh run list`/`gh run watch`; a push is
+  not done until its runs are green. Never split a parent CI-config change and the submodule
+  pointer bump it depends on into two commits (the intermediate commit is a guaranteed-red run).
 - Check CI: `gh run list --limit 5`, failures: `gh run view <id> --log-failed`
 - CI: macOS-15 (ARM64), manylinux_2_28 (Linux), chmod +x bash scripts in CI
 
