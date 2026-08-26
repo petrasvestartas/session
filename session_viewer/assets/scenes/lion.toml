@@ -1,0 +1,7 @@
+name = "lion check"
+
+[[items]]
+file = "pb/lion.pb"
+name = "lion"
+at = [0, 0, 0]
+point_size = 4

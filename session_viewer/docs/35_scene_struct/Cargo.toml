@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the crate
 
 [dependencies]
-session_rust = { path = "../../../session_rust" }
+session_rust = { path = "../session_rust" }
 anyhow = "1.0"
 # The scene manifest (assets/scenes/*.json) - pure Rust, wasm-safe, and already a session_rust dep.
 serde = { version = "1.0", features = ["derive"] }

@@ -7,8 +7,8 @@
 
 > **Big picture.** Since 34e the viewer has NO document. Each `Session` is parsed, walked into
 > flat GPU tables, and **thrown away** — deliberately, to survive the stress wall. That was right
-> for the wall and is wrong for everything ahead: picking (47) must answer "which OBJECT did the
-> ray hit" (a guid), undo (56) must snapshot geometry, save (44) must write a `.pb` back — all of
+> for the wall and is wrong for everything ahead: picking (55) must answer "which OBJECT did the
+> ray hit" (a guid), undo (64) must snapshot geometry, save (50) must write a `.pb` back — all of
 > that needs the real `Session` alive in memory. And the load path hurts three ways you can watch
 > on every reload: ten sheets take ~24 s and **nothing renders until the last one lands**; each
 > file's parse is one synchronous block that would freeze any UI drawn during it; and every
@@ -80,7 +80,7 @@ Cargo.toml              # Step 3: + prost (decode the proto in the app layer)
 src/app/persistence.rs  # Step 3: session_from_bytes_chunked + next_tick; session_from_bytes OUT
 src/state.rs            # Step 4: State gains `scene`; the load loop moves OUT (to lib.rs)
 src/lib.rs              # Step 5: Msg::Ready/Msg::File — the progressive loader
-assets/scenes/drawings_rotated.json  # Step 6: rotated-sheet verify scene (no code)
+assets/scenes/drawings_rotated.toml  # Step 6: rotated-sheet verify scene (no code)
 ```
 
 > ⚠ Nothing compiles between Step 1 and the end of Step 5 — the walk is changing owners. Type it
@@ -1019,7 +1019,7 @@ Five things to notice while typing:
   planes and boxes are plain segments, and a cloud goes through the GLYPH lane — deliberately
   not `Gpu`'s dormant `CloudPoint` machinery, so the walk keeps one path per category.
   That last choice is right for the demo clouds of 32b and wrong for a real scan — which is
-  exactly what [36](36-raw-cloud-lane.md) is about. It stays as written here: a lesson that
+  exactly what [36](36-cloud-tables.md) is about. It stays as written here: a lesson that
   quietly patches itself teaches nothing about why the first answer looked reasonable.
 
 ## Step 3 — the sliced parse: `src/app/persistence.rs`
@@ -1235,7 +1235,7 @@ use crate::app::scene::{auto_grid, Manifest, Scene};
 
 // The scene: which sheets, and where each one sits. Fetched at runtime, so re-arranging the
 // scene is a text edit in assets/scenes/, not a rebuild (app/scene.rs).
-const DEMO_SCENE_URL: &str = "scenes/drawings.json";
+const DEMO_SCENE_URL: &str = "scenes/drawings.toml";
 
 /// Async init → event-loop messages. `Ready` carries the State built around the FIRST file
 /// (pixels in ~2s); each `File` is one more parsed document, appended live.
@@ -1400,7 +1400,7 @@ you want while reading sheet one.)
 The planar test claims orientation doesn't matter — prove it with your eyes. Nothing compiles
 here: one new manifest, one const flip, reload.
 
-**6a.** Create `assets/scenes/drawings_rotated.json`. The kernel `Xform` is COLUMN-major
+**6a.** Create `assets/scenes/drawings_rotated.toml`. The kernel `Xform` is COLUMN-major
 (`m[0..3]` = X column, `m[4..7]` = Y, `m[8..11]` = Z, `m[12..14]` = translation), so each
 `xform` below reads as four columns of four:
 
@@ -1428,7 +1428,7 @@ here: one new manifest, one const flip, reload.
 }
 ```
 
-**6b.** In `lib.rs`, flip `DEMO_SCENE_URL` to `"scenes/drawings_rotated.json"`, reload. Flip it
+**6b.** In `lib.rs`, flip `DEMO_SCENE_URL` to `"scenes/drawings_rotated.toml"`, reload. Flip it
 back when done — the manifest stays in `assets/scenes/` as a permanent regression scene.
 
 **What to verify, sheet by sheet:**
@@ -2006,7 +2006,7 @@ That number is the bug. It went **1804 → 12** differing px of 675,000 at zoom 
 ```bash
 cargo build --release --example selftest --target x86_64-unknown-linux-gnu
 VIEWER_W=900 VIEWER_H=750 VIEWER_ZOOM=19 VIEWER_ORBIT="10,-8" \
-  ./target/x86_64-unknown-linux-gnu/release/examples/selftest out.ppm assets/scenes/bunny.json
+  ./target/x86_64-unknown-linux-gnu/release/examples/selftest out.ppm assets/scenes/bunny.toml
 ```
 
 Two more measurements worth keeping in the harness, both one line of output:
@@ -2075,14 +2075,14 @@ their messages say what happened.
 
 ## Next
 
-[`36-raw-cloud-lane.md`](36-raw-cloud-lane.md) — meshes now have a lane that scales. Point clouds
+[`36-cloud-tables.md`](36-cloud-tables.md) — meshes now have a lane that scales. Point clouds
 do not: this lesson routes `Geometry::PointCloud` into the flat glyph dots, which is the right
 answer for 32b's demo clouds and the wrong one for a 13.8M-point scan. 36 gives dense clouds their
 own lane; 37 measures where 3.5 GB went for 323 MB of GPU data and takes the peak down by a third;
 38 halves the GPU table; 39 streams the file straight into GPU memory so the peak stops growing
 with the scene.
 
-Then [`40-scene-bvh.md`](40-scene-bvh.md) — `Scene` now has a fixed, ordered object list; that
+Then [`54-scene-bvh.md`](54-scene-bvh.md) — `Scene` now has a fixed, ordered object list; that
 lesson gives it a broad-phase AABB BVH over their world boxes. One BVH, reused by frustum culling
 (41), picking (47), and box-select (50) — the "one acceleration structure, many uses" principle,
 and the reason the object list had to stabilize here first.

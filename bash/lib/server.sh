@@ -29,15 +29,8 @@ start_server() {
 
     log "Server started at ${URL}"
 
-    # Open browser
-    local platform=$(detect_platform)
-    if [[ "$platform" == "windows" ]]; then
-        start "" "${URL}" 2>/dev/null || cmd //c start "" "${URL}" 2>/dev/null || true
-    elif command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "${URL}" >/dev/null 2>&1 || true
-    elif command -v open >/dev/null 2>&1; then
-        open "${URL}" >/dev/null 2>&1 || true
-    fi
+    # Open browser (chrome with the WebGPU flags - see open_url in common.sh)
+    open_url "${URL}"
 }
 
 stop_server() {

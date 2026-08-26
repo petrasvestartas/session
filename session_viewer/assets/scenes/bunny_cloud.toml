@@ -1,0 +1,7 @@
+name = "bunny cloud check"
+
+[[items]]
+file = "pb/bunny_cloud.pb"
+name = "bunny cloud"
+xform = [25000, 0, 0, 0, 0, 0, 25000, 0, 0, -25000, 0, 0, 0, 0, 0, 1]
+point_size = 6

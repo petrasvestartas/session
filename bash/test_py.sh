@@ -79,7 +79,8 @@ ensure_python_env() {
 
 ensure_python_env
 
-# Run tests — single process batch (avoids 43 interpreter startups)
+# Run tests — process pool, one class per worker (classes write disjoint JSON files;
+# sequential fallback on Windows where fork is unavailable)
 if [[ -n "$CLASS_FILTER" ]]; then
     log_lang "py" "Running ${CLASS_FILTER} tests..."
     output=$("$PYTHON" -m "session_py.${CLASS_FILTER}_test" 2>&1)
@@ -89,41 +90,53 @@ if [[ -n "$CLASS_FILTER" ]]; then
 else
     CLASSES_STR="${CLASS_NAMES[*]}"
     "$PYTHON" -c "
-import sys, importlib, io
+import sys, os, importlib, io
 from contextlib import redirect_stdout, redirect_stderr
-import session_py.mini_test as mt
 
-classes = '''${CLASSES_STR}'''.split()
-failed = []
-for cls in classes:
+def run_one(cls):
+    import session_py.mini_test as mt
     mt._REGISTERED_TESTS.clear()
     mod_name = f'session_py.{cls}_test'
+    buf = io.StringIO()
+    ebuf = io.StringIO()
+    ok = True
     try:
         if mod_name in sys.modules:
             del sys.modules[mod_name]
-        buf = io.StringIO()
-        ebuf = io.StringIO()
         with redirect_stdout(buf), redirect_stderr(ebuf):
             try:
                 importlib.import_module(mod_name)
                 mt.run_all(language='python')
             except SystemExit as e:
                 if e.code:
-                    failed.append(cls)
-        out = buf.getvalue().replace('[py-minitest]', f'[py-{cls}]')
-        err = ebuf.getvalue().replace('[py-minitest]', f'[py-{cls}]')
-        if out.strip():
-            print(out, end='')
-        if err.strip():
-            print(err, end='', file=sys.stderr)
+                    ok = False
     except ModuleNotFoundError as e:
         # class not implemented in this language -- the class summary below flags it
         if e.name != mod_name:
-            failed.append(cls)
-            print(f'[py-{cls}] FAILED: {e}', file=sys.stderr)
+            ok = False
+            print(f'[py-{cls}] FAILED: {e}', file=ebuf)
     except Exception as e:
+        ok = False
+        print(f'[py-{cls}] FAILED: {e}', file=ebuf)
+    out = buf.getvalue().replace('[py-minitest]', f'[py-{cls}]')
+    err = ebuf.getvalue().replace('[py-minitest]', f'[py-{cls}]')
+    return cls, ok, out, err
+
+classes = '''${CLASSES_STR}'''.split()
+failed = []
+if sys.platform != 'win32':
+    import multiprocessing as mp
+    pool = mp.get_context('fork').Pool(min(len(classes), os.cpu_count() or 4))
+    results = pool.imap(run_one, classes, chunksize=1)
+else:
+    results = map(run_one, classes)
+for cls, ok, out, err in results:
+    if not ok:
         failed.append(cls)
-        print(f'[py-{cls}] FAILED: {e}', file=sys.stderr)
+    if out.strip():
+        print(out, end='')
+    if err.strip():
+        print(err, end='', file=sys.stderr)
 if failed:
     print(f'[py] FAILED: {\" \".join(failed)}', file=sys.stderr)
     sys.exit(1)

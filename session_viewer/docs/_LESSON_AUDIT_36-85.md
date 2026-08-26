@@ -12,14 +12,14 @@ kept by the four audit passes; this file is the synthesis.
 
 **B1 — `scene.session` does not exist.** `Scene { docs: Vec<Doc{name, place, session}>, tables,
 order, guid_to_row, hidden }`. Every `self.session.*` must resolve WHICH doc (or fold over
-`docs`). Hits: 36, 38a, 38b, 39, 40, 42, 43, 44, 51, 54, 56, 57, 59, 60, 61, 62, 63, 64, 70,
+`docs`). Hits: 36, 39, 40, 39, 40, 42, 43, 44, 51, 54, 56, 57, 59, 60, 61, 62, 63, 64, 70,
 71, 73, 74, 75, 79, 80, 81, 82, 83.
 
 **B2 — geometry has no `.xform`; variants are `Rc<T>`.** `m.xform = …` fails twice (no member;
 no `&mut` through `Rc`). Read placement: `session.world_xform(guid)` (bulk: `world_xforms()`);
 write: `session.set_xform(guid, xf)`; bake: `Rc::make_mut(m).transform(&xf)`. Copies:
 `duplicate()` already mints a fresh guid — `geom.clone()` clones the HANDLE, so "clone then
-refresh_guid" no longer works at all. Hits: 36, 38a, 38b, 42, 43, 51, 54, 55, 56, 58, 59, 60,
+refresh_guid" no longer works at all. Hits: 36, 39, 40, 42, 43, 51, 54, 55, 56, 58, 59, 60,
 61, 62, 63, 73, 74, 75, 79, 80.
 
 **B3 — the `set_scene` wipe.** Every progressive `Msg::File` calls `gpu.set_scene(&scene.tables)`,
@@ -45,7 +45,7 @@ need an "append one object to a doc + its rows" verb, which must also repeat the
 width flip and pick a TARGET doc (and doc-local coordinates via `place⁻¹`).
 
 **B7 — loader owns lib.rs.** `Msg::Ready/Msg::File` + `ApplicationHandler<Msg>`;
-`session_from_bytes` is DELETED (only the async chunked parse exists). Reload (43b), watch (45),
+`session_from_bytes` is DELETED (only the async chunked parse exists). Reload (46), watch (45),
 drag-drop import (84) should each become a `Msg` variant — the `Rc<RefCell<…>>` inbox machinery
 in 40 is now redundant. Render-on-demand (71) must count `Msg::Ready/File` as poke sites or
 progressively loaded sheets never appear.
@@ -62,9 +62,9 @@ sheets!).
 |---|---|---|---|
 | 36 | scene-bvh | **REWRITE** | built in a `Scene::new(session)` that doesn't exist; `.xform` on Mesh/BRep/OBB; thin-geometry boxes must apply placement (correctness bug) |
 | 37 | frustum-culling | TOUCH-UP | `clear()` is 2-arg; frustum must come from the ANCHORED matrix; cull bits wiped per append (B3) |
-| 38a | gpu-arena | **REWRITE** | reshaped ArenaUpload drops the pipes/spheres lanes; fills a `Gpu::new` that takes nothing; `flatten_mesh` regresses 35's hidden-edge/width rules; layouts already hoisted |
-| 38b | reconcile | **REWRITE** | content hash is blind to moves (placement left geometry!); `session_from_bytes` deleted; reload must be a `Msg`; `Doc` doesn't record its url; P3 already landed — cite `order()` |
-| 39 | save | TOUCH-UP | `scene.session`; per-doc save policy needed; hash gap inherited from 38b; note placements ride `Session.xforms` (tag 7); P2 done — staleness caveat can go |
+| 39 | gpu-arena | **REWRITE** | reshaped ArenaUpload drops the pipes/spheres lanes; fills a `Gpu::new` that takes nothing; `flatten_mesh` regresses 35's hidden-edge/width rules; layouts already hoisted |
+| 40 | reconcile | **REWRITE** | content hash is blind to moves (placement left geometry!); `session_from_bytes` deleted; reload must be a `Msg`; `Doc` doesn't record its url; P3 already landed — cite `order()` |
+| 39 | save | TOUCH-UP | `scene.session`; per-doc save policy needed; hash gap inherited from 40; note placements ride `Session.xforms` (tag 7); P2 done — staleness caveat can go |
 | 40 | watch | TOUCH-UP | `session_from_bytes` ×3; inbox → `Msg::Watched`; which doc does a url map to? |
 | 41 | screen-to-ray | OK | one stale "mesh.xform" sentence in Next |
 | 42 | raycast-meshes | TOUCH-UP | local frame is `place × world_xform`; borrow-order fix (clone xform before `get_mut`); PickHit needs doc identity |
@@ -122,7 +122,7 @@ sheets!).
    world_xform, plus its inverse) removes the class.
 3. **75's `node.guid()` vs `node.name`** — the tree panel compiles and renders but every
    row-to-object association silently misses.
-4. **43b's move-blind hash** — after the Xform refactor a moved object hashes identical, so
+4. **46's move-blind hash** — after the Xform refactor a moved object hashes identical, so
    reload/save-if-changed miss the most common edit. Hash must fold `session.xform(guid)`
    (cheapest: hash `to_proto()` bytes + the xform).
 5. **B8 dynamic MSAA** — any post-35 pipeline built once at startup panics or mis-renders when
@@ -155,7 +155,7 @@ sheets!).
 
 1. Decide B3 (viewer-state survival across `set_scene`) and B4 (place-conjugation helper) — they
    are design decisions, not typos, and 20+ lessons depend on the answer.
-2. Rewrite the load-bearing four: 36 (BVH feeds 37/42/45), 38a/38b (or explicitly de-scope them
+2. Rewrite the load-bearing four: 36 (BVH feeds 37/42/45), 39/40 (or explicitly de-scope them
    to "tables rebuild + set_scene" until incremental updates are needed), 54 (its `apply_delta`
    is quoted by 55/56/57/61/63/80).
 3. Touch-ups in numeric order; they are mostly one-to-three-line anchor fixes once B1-B8 are

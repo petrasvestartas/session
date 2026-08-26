@@ -42,7 +42,7 @@
 **Colors resolve on the CPU at table-build time.** Every draw path already has a per-row color slot
 (`RenderVertex.color`, `CylinderSegment.color`, `GlyphPoint.color`, `CloudPoint.color`) — the real
 color lives there. `Instance.color` becomes a pure **tint**, white by default, and every shader ends
-with the same line: `final = row_color × instances[id].color`. Selection (lesson 50) will recolor an
+with the same line: `final = row_color × instances[id].color`. Selection (lesson 60) will recolor an
 object by writing its tint — no row re-upload.
 
 Precedence, first satisfied rule wins (`color_mode` is THE "user set it" signal — the Mesh vecs are
@@ -67,7 +67,7 @@ radius >  0.0 → world-units radius                     (unchanged — 34f's pa
 ```
 
 `width == 1.0` (every kernel default) encodes as `0.0` (34f's `encode_width` already does this), so
-untouched files stay bit-identical. The future thickness slider (52) writes `LineUniform.thickness`
+untouched files stay bit-identical. The future thickness slider (60) writes `LineUniform.thickness`
 and every user width scales with it, Rhino-style.
 
 > **Superseded in Part 3 (2026-08-11):** the `1.0 → 0.0` special case turned out to be lossy — PDF
@@ -1007,7 +1007,7 @@ Ch 34b: session → tables; colors were whatever happened to reach the rows.
 Ch 34h: RESOLVE COLORS/WIDTHS ONCE, CPU-SIDE. Row color = the user's color (precedence:
         color_mode gates FACECOLORS/POINTCOLORS — auto-seeded vecs mean nothing; linecolors ride
         edges_with_colors; surfacecolor bakes into the BRep mesh). Instance.color = WHITE TINT,
-        multiplied in all the shaders (selection's channel, lesson 50). Width = multiplier in the
+        multiplied in all the shaders (selection's channel, lesson 60). Width = multiplier in the
         radius sign lane (0 default / negative px-multiplier / positive world) — width==1.0 encodes
         0.0, defaults bit-identical. to_render grows a FACECOLORS branch (duplicated verts, flat
         color; Rust-only bridge). Dots: pointcolors when user-set, dark constant otherwise —
@@ -1111,7 +1111,7 @@ filesystem and MuPDF's C sources have no wasm target.
 - **Placement moved into the Session** (the Xform refactor, a parallel effort): geometry types
   lost their `xform` member; transforms live in `session.xforms` (`set_xform`/`world_xform`), and
   `walk_session` resolves them in ONE pass via `session.world_xforms()` — the per-object form
-  rescans the tree each call. Per-sheet placement stays in `assets/scenes/drawings.json`.
+  rescans the tree each call. Per-sheet placement stays in `assets/scenes/drawings.toml`.
 
 Measured end-to-end, ten sheets, 486 MB: **28.6 s → 24.3 s** load (parse −30%), then 165 fps at
 744k objects over 7 draw calls. The remaining 24 s is ~11 s parse + ~11 s walk — which is what

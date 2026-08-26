@@ -17,13 +17,13 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 - **34a** — Step 3a/1b — `mod app;` added and `src/app/persistence.rs` created, but no `src/app/mod.rs` (edition 2024, E0583) — **Fix:** create `src/app/mod.rs` with `pub mod persistence;`.
 - **34b** — Step 2b — `Geometry` match handles 9 of 11 variants, no wildcard; `NurbsCurve`/`NurbsSurface` uncovered (E0004) — **Fix:** add both to the no-op arm.
 - **37** — Step 3 — `out_clipped()` writes `o.clip`; `VsOut`'s builtin field is `pos` in all 3 shaders (naga fail) — **Fix:** `o.pos = vec4<f32>(0.0);`.
-- **38b** — Step 1 `content_hash` — `Mesh::jsondump` returns `serde_json::Value`, not `Result`; `.unwrap_or_default()` doesn't compile (propagates to 39) — **Fix:** `m.jsondump().to_string()`; keep Line/Polyline/Point on `.unwrap_or_default()`.
+- **40** — Step 1 `content_hash` — `Mesh::jsondump` returns `serde_json::Value`, not `Result`; `.unwrap_or_default()` doesn't compile (propagates to 39) — **Fix:** `m.jsondump().to_string()`; keep Line/Polyline/Point on `.unwrap_or_default()`.
 - **45** — Step 4 — click and marquee branches both run every release; a plain click gives a zero-area rect → `2.0/(x1-x0)` NaN frustum, and `select_marquee` clears the click's selection — **Fix:** guard on drag distance (`if drag < ~3px { click } else { marquee }`).
 - **63** — Step 2 — `for c in &b.m_curves` — no such field; edge curves are `m_curves_3d` (`m_curves_2d` = trim pcurves) — **Fix:** `for c in &b.m_curves_3d`.
 - **85** — Step 3 — new `Pipelines::new(...)` block drops the existing trailing `&glyph_layout` arg (9 params, 8 supplied) — **Fix:** insert `&material_layout` after `&instance_layout`, keep `&glyph_layout` last.
 
 ### High
-- **38a** — Step 4 — "grown handle picked up automatically" is false for segment/glyph/instance **storage** buffers (bound once via `as_entire_binding`); a grown handle leaves bind groups pointing at the dropped buffer — **Fix:** recreate each bind group after swap. (+ `arena_index_count` removed with no accessor — add `index_count()`.)
+- **39** — Step 4 — "grown handle picked up automatically" is false for segment/glyph/instance **storage** buffers (bound once via `as_entire_binding`); a grown handle leaves bind groups pointing at the dropped buffer — **Fix:** recreate each bind group after swap. (+ `arena_index_count` removed with no accessor — add `index_count()`.)
 - **42** — Step 2 — `ray.origin + ray.dir * 1.0e7` moves out of `&Ray`; `Point`/`Vector` aren't `Copy` (E0507) — **Fix:** `&ray.origin + &ray.dir * 1.0e7`.
 - **45** — Step 2 tint — `o.color.a` / `mix(...vec4...)` in **triangle.wgsl** where `VsOut.color` is `vec3` — **Fix:** vec3 form, no alpha, mesh shader only.
 - **45** — Step 2 tint — `inst.flags` in cylinder/sphere, which have no `inst` local (they read `instances[seg.instance_id]` / `[g.instance_id]`) — **Fix:** bind `let inst = instances[…];` first, per shader.
@@ -69,7 +69,7 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 - **Non-exhaustive `Geometry` walk (11 variants):** 34b, 80.
 - **`ri` / instance-row vs lookup-index vs cache confusion:** 34b, 35, 36→37, 61, 62.
 - **Cross-lesson locals reused with no anchor** (`vp`/`origin`/`viewport`/`proj_y`/`ortho_h`/`vp_h`/`ray`/`tol`): 41, 42, 44, 45, 53, 59.
-- **Load-bearing helper described only in prose, never coded:** 38a, 43, 52, 53, 54, 55, 60, 70, 81, 83.
+- **Load-bearing helper described only in prose, never coded:** 39, 43, 52, 53, 54, 55, 60, 70, 81, 83.
 - **Frame counter assumed to advance but never incremented (`self.frame` stuck at 0):** 39, 40, 66.
 - **Duplicate manifest/config table:** 84 (`[profile.release]`).
 - **Runtime hazards (unwrap / div-by-zero):** 45 (NaN), 56 (unwrap on empty selection).
@@ -83,8 +83,8 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 35 · Step 4 heading lists `src/lib.rs` but no lib.rs edit; two `pub`-field edits prose-only.
 36 · `demo_session()` undefined yet Run says `cargo test bvh`; `AABB::new` is center+half-size; row==order-index unstated.
 37 · `order_index` undefined; `let inst` anchor only matches triangle.wgsl; wrong shader names.
-38a · `ensure_seg_capacity`/`alloc_i`/`grow_i` + Step-5 arena wiring elided; best-fit vs first-fit contradiction.
-38b · `commit()` body never shown (must repopulate `hashes`); "uniform jsondump" false; `SZ` needs `as u64`.
+39 · `ensure_seg_capacity`/`alloc_i`/`grow_i` + Step-5 arena wiring elided; best-fit vs first-fit contradiction.
+40 · `commit()` body never shown (must repopulate `hashes`); "uniform jsondump" false; `SZ` needs `as u64`.
 39 · Ctrl+S wiring has no code/anchor; new State-field inits not shown.
 40 · `poll_watch` async holds `&mut self` across `.await` but `render()` sync → watcher never runs; queue never coded.
 41 · `self.aspect()` undeclared; click-handler anchor + new `self.cursor` field unstated.
@@ -122,7 +122,7 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 81 · `active_layer_node()`/`layer_members()` never coded; `Session::find_group` analog not cited; `layer active` silently creates layer named "active".
 82 · `a`/`b`/`c`/`v` picked-point vars declared nowhere; 3 new `UiState` fields only in a comment.
 83 · `push_gpu_error` + static queue + drain prose-only; `build_cylinder_pipeline` placeholder args.
-84 · features-block anchor missing ("add to web-sys features"); `index.html` `"0"`→`"z"` not an explicit find/replace; `## Next` says "nothing queued" yet `90-textures.md` exists.
+84 · features-block anchor missing ("add to web-sys features"); `index.html` `"0"`→`"z"` not an explicit find/replace; `## Next` says "nothing queued" yet `97-textures.md` exists.
 
 ## 4. Top illustration opportunities (inline SVG, match existing compact style)
 
@@ -135,7 +135,7 @@ Method: one reviewer per lesson → per-finding adversarial verify → synthesis
 7. **72** — `TextVertex` 44-B byte-map with each field's `@location(N)` + format (where Rust desyncs from WGSL vertex input).
 8. **33** — transform-chain strip `clip = projection·view(−origin)·…·model·vertex` with both `−origin` boxes highlighted.
 9. **34b** — lookup file-order → compacted `objects_base` rows with skipped variants X'd (why `instance_id` indexes the compacted row, not the map slot).
-10. **38a** — two-column "set every frame" (arena vbo/vids/ibo → auto, green) vs "bound once in a bind group" (segment/glyph/instance → STALE unless recreated, red).
+10. **39** — two-column "set every frame" (arena vbo/vids/ibo → auto, green) vs "bound once in a bind group" (segment/glyph/instance → STALE unless recreated, red).
 11. **84** — one-gulp vs streamed fetch: two-lane timeline (`array_buffer()` dead block + sudden 100% vs the chunk loop yielding frames + `5%…10%…`).
 
 *Runners-up: 82 angle/circumradius geometry; 78 `d_rel = d + n·origin` rebase; 47 collect-in-`UiState`-then-apply borrow boundary.*
@@ -151,7 +151,7 @@ A second review + fix pass over the current docs 40–90 (quality / memory / rea
 the following. Fixed in place: all stale cross-reference numbering; 64's zoom-independent snap
 broad-phase; 47's BVH row-mapping after reconcile; 73's `normalize(0)` NaN on background pixels;
 74's deselect gating (now a truth table); 77's `bytes_per_row` 256-alignment + UTF-8 centering;
-43b's `reload` empty-fetch scene wipe + `Instance` literal (real struct has `extent`/`spacing`);
+46's `reload` empty-fetch scene wipe + `Instance` literal (real struct has `extent`/`spacing`);
 57's `gb_row` invalidation + f32 world coords; 59's per-row `write_buffer` storm (now one batched
 dirty-range write) + double `rebuild_bvh`; 60's `ctx.base_models` compile error; 75's per-frame
 flatten (now cached) + `&name[..8]` panic; 79's collection-side mutation + missing world→local;
@@ -172,6 +172,6 @@ Newly tracked (documented in the lessons, deliberately not built):
   `Instance{model,color,flags,_pad:[0;3]}` / `GlyphPoint{…,_pad:[u32;3]}` /
   `CylinderSegment{color:[f32;4],…}`, while the real tree since 34h/35-part-2 has
   `Instance{…,extent,spacing,_pad:u32}`, `GlyphPoint{…,facing,facing_ext}`,
-  `CylinderSegment{color:u32,facing}` (+ `unpack4x8unorm` in the shaders). 43b's `Instance`
+  `CylinderSegment{color:u32,facing}` (+ `unpack4x8unorm` in the shaders). 46's `Instance`
   literal was fixed to the real fields; the other literals remain the docs' internal convention —
   unify when the lessons are implemented against the current tree.

@@ -466,7 +466,7 @@ pub struct InstancedSet {
 fields work, and the course's text keeps naming them individually so either layout follows along —
 but know the rule it demonstrates: *fields that always travel together are a struct; a struct with
 behavior earns its own file; a **file** splits only when it gains a second kind of responsibility*
-(which is exactly why `gpu.rs` becomes `gpu/mod.rs + adapters.rs` in 34b, gains `arena.rs` in 38a,
+(which is exactly why `gpu.rs` becomes `gpu/mod.rs + adapters.rs` in 34b, gains `arena.rs` in 39,
 and `targets.rs` in 67 — each a new responsibility, never just new length).
 
 ## Run

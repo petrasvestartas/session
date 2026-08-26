@@ -705,7 +705,7 @@ pass them into `clear(…, proj_y, ortho_h)`, and fill the uniform there:
 
 ```rust
         let line = LineUniform {
-            // px — later driven by the egui slider (lesson 52)
+            // px — later driven by the egui slider (lesson 62)
             thickness: 2.0,
             proj_y,
             // 0.0 selects the perspective branch in the shader

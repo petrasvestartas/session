@@ -12,11 +12,11 @@ already has its lesson: NurbsCurve 65, NurbsSurface 66, iso-curves 67, BRep 68, 
 and "plane" needs no tessellation at all — its two real viewer forms are already lessons
 (ground grid 70, work-plane 80; both are vertexless/analytic shaders, not geometry).
 
-**What is genuinely missing is not a type — it is where tessellation RUNS.** Lessons 65–69
+**What is genuinely missing is not a type — it is where tessellation RUNS.** Lessons 67–69
 tessellate on the CPU (`divide_by_count`, `mesh_grid`, `mesh_q` CDT) and cache. Moving
 tessellation into compute shaders is a real, teachable, archive-grade upgrade — but it is an
 *architecture* phase, and it belongs **immediately after 69** (call it Phase 10b, lessons
-69a–69d), not before 40, for two hard reasons:
+73–76), not before 40, for two hard reasons:
 
 1. **40–50 are built on CPU-side triangles.** The BVH (40), frustum culling (41), and the
    whole picking stack (46–49) raycast CPU-resident tessellations. GPU-resident geometry has
@@ -37,7 +37,7 @@ tessellation into compute shaders is a real, teachable, archive-grade upgrade �
 | Deflection criteria | `mesh_q(max_angle_deg, chord_factor)` refinement rules | **Reuse as LOD law** (density chosen from spans/curvature), not as a mesher |
 | Trim-loop discretization | `mesh_q` step 1 (adaptive pcurve polygonization) | **Stays CPU** at load — tiny, and the GPU consumes the polygon |
 | Bowyer–Watson CDT | `nurbssurface_trimmed.rs:12` | **Does NOT port.** Incremental/sequential by nature; GPU Delaunay is research-grade. Replaced by trim-by-fragment (below) |
-| BRep face classification + shared-edge matching | `brep.rs` mesh phases 1–3 | Classification reused; seam-matching becomes unnecessary for display (see 69d) |
+| BRep face classification + shared-edge matching | `brep.rs` mesh phases 1–3 | Classification reused; seam-matching becomes unnecessary for display (see 76) |
 
 ## The one idea that makes trimming GPU-shaped
 
@@ -62,7 +62,7 @@ Ladder within the lesson:
 
 ## Phase 10b — proposed lessons (insert after 69, before 70)
 
-**69a GPU curves — the segment table gets a compute producer.**
+**73 GPU curves — the segment table gets a compute producer.**
 Control points + knots in a storage buffer; one invocation per sample; de Boor in WGSL
 (fixed max-degree arrays); rational = homogeneous accumulate, divide by w at the end. Output
 is **CylinderSegment rows written straight into the existing shared segment table** — the
@@ -71,20 +71,20 @@ line styles come for free. Sample count = the kernel's span rule × a screen fac
 recomputed only when zoom crosses a ×2 threshold (render-on-demand friendly). Draw via
 indirect count. Picking keeps the coarse CPU polyline as proxy — GPU output is display-only.
 
-**69b GPU surfaces — the arena gets a compute producer.**
-(u,v) grid eval → RenderVertex (position + du×dv normal) into an arena region (43a); one
+**74 GPU surfaces — the arena gets a compute producer.**
+(u,v) grid eval → RenderVertex (position + du×dv normal) into an arena region (45); one
 static index grid per resolution class. Density per direction chosen up front from the
 `mesh_q` angle/chord criteria applied to spans — a pre-pass estimate, not per-frame work.
 Iso-curves (67) fall out of the same dispatch: the same basis evaluations emit iso-lines as
 segment rows.
 
-**69c GPU trimming — the CDT stays home.**
-The trim-by-fragment ladder above, on top of 69b's grid. Acceptance: the archive's trimmed
+**75 GPU trimming — the CDT stays home.**
+The trim-by-fragment ladder above, on top of 74's grid. Acceptance: the archive's trimmed
 test set (circle hole, concave boundary) pixel-diffed against `mesh_q` CPU output; the
 early-Z cost of boundary-cell discard measured with the bench harness (`bench_lines` pattern).
 
-**69d GPU BRep — faces assemble, seams dissolve.**
-A BRep = 69b+69c per face + its real edge network through 69a. The CPU mesher's hardest
+**76 GPU BRep — faces assemble, seams dissolve.**
+A BRep = 74+75 per face + its real edge network through 73. The CPU mesher's hardest
 labor — matching shared-edge discretizations so faces stay watertight — is *not needed for
 display*: both adjacent faces clip fragments against the same trim curve, so the crack is
 bounded by mask resolution (sub-pixel), and the drawn edge curve covers the seam with pen

@@ -588,10 +588,10 @@ impl Gpu {
             point_buffer,
             point_bind_group,
             point_count,
-            line_style: if std::env::var("VIEWER_LINE_STYLE").map(|v| v.eq_ignore_ascii_case("flat")).unwrap_or(false) {
-                LineStyle::Flat
-            } else {
+            line_style: if std::env::var("VIEWER_LINE_STYLE").map(|v| v.eq_ignore_ascii_case("tubes")).unwrap_or(false) {
                 LineStyle::Tubes
+            } else {
+                LineStyle::Flat
             },
             cloud_buffer,
             cloud_bind_group,
@@ -934,6 +934,40 @@ impl Gpu {
         out
     }
 
+    /// Time `frames` full frames (encode + submit), reusing one offscreen target, and wait for
+    /// the GPU to drain. Native bench helper: returns seconds for the whole batch, warmup
+    /// excluded, so two line styles can be compared on the same scene.
+    pub fn bench_frames(&mut self, view_proj: &Xform, frames: u32) -> f64 {
+        let (w, h) = (self.config.width, self.config.height);
+        let tex = self.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("bench.color"),
+            size: wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.config.format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+        let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
+        self.write_frame_uniforms(view_proj);
+        let clear = wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 };
+        for _ in 0..3 { // warmup: pipeline/driver caches
+            let mut encoder = self.device.create_command_encoder(&Default::default());
+            self.encode_frame(&mut encoder, &view, clear);
+            self.queue.submit([encoder.finish()]);
+        }
+        let _ = self.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+        let t0 = std::time::Instant::now();
+        for _ in 0..frames {
+            let mut encoder = self.device.create_command_encoder(&Default::default());
+            self.encode_frame(&mut encoder, &view, clear);
+            self.queue.submit([encoder.finish()]);
+            let _ = self.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+        }
+        t0.elapsed().as_secs_f64()
+    }
+
     /// The camera position, recovered from the combined view-projection alone.
     ///
     /// The eye is the one point that projects to nothing: it is where the clip x, y and w all
@@ -978,6 +1012,26 @@ impl Gpu {
         })
     }
 
+    /// Ortho half-height in world units (mm), 0.0 in perspective. The w row of the composed
+    /// matrix says which projection this is: perspective carries the view direction there
+    /// (magnitude 1), orthographic is all zeros (w is constant 1). Row 1 of the matrix is the
+    /// y basis scaled by s/h, so 1/|row1.xyz| IS the world half-height - rotation and the
+    /// anchor (translation lives in column 3) drop out. Left as 0.0, every ink lane falls back
+    /// to the perspective pen formula with clip.w = 1, which pins pens to a zoom-independent
+    /// world size: zoom out in ortho and the density taper never fires and far-side ink
+    /// bleeds through faces.
+    fn ortho_half_height(vp: &Xform) -> f32 {
+        let w2 = vp[(3, 0)].powi(2) + vp[(3, 1)].powi(2) + vp[(3, 2)].powi(2);
+        if w2 > 1e-12 {
+            return 0.0;
+        }
+        let r1 = vp[(1, 0)].powi(2) + vp[(1, 1)].powi(2) + vp[(1, 2)].powi(2);
+        if r1 <= 1e-30 {
+            return 0.0;
+        }
+        (1.0 / r1.sqrt()) as f32
+    }
+
     /// Per-frame uniforms: time, camera, and the line/pen block.
     fn write_frame_uniforms(&mut self, view_proj: &Xform) {
         // Time for triangle wgsl buffer.
@@ -988,7 +1042,7 @@ impl Gpu {
         let line = LineUniform{
             thickness: line_thickness_px(), // env VIEWER_THICKNESS; later an egui slider
             proj_y: 1.0 / (30.0_f32).to_radians().tan() * 0.001, // cot(fovy/2) mm-m unit scale
-            ortho_h: 0.0, // perspective, set the ortho half-height when ortho
+            ortho_h: Self::ortho_half_height(view_proj),
             vp_h: self.config.height as f32,
             vp_w: self.config.width as f32,
             eye: Self::eye_from_view_proj(view_proj),
@@ -1121,10 +1175,16 @@ impl Gpu {
                         pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.pipe_count); // one template, N edges
                     }
                     // The flat lane's own shader over the SOLID half of the same table. vid/6
-                    // picks the row, so the range is simply the pipes prefix.
+                    // picks the row, so the range is simply the pipes prefix. DEPTH PREPASS
+                    // first (binary at half coverage): the blended colour pass writes no depth,
+                    // so its AA feather can never depth-reject a later stroke's opaque core -
+                    // that rejection read as pale flecks inside the bunny's wireframe.
                     LineStyle::Flat => {
+                        pass.set_pipeline(&self.pipelines.ribbon_solid_depth);
+                        pass.draw(0..4, 0..self.pipe_count);
                         pass.set_pipeline(&self.pipelines.ribbon_solid);
-                        pass.draw(0..6 * self.pipe_count, 0..1);
+                        pass.draw(0..4, 0..self.pipe_count);
+                        draws += 1;
                     }
                 }
                 draws += 1;
@@ -1142,16 +1202,19 @@ impl Gpu {
             //
             // Faces are already down by this point, so a vertex hidden inside the solid stays
             // hidden, which was the reason markers went early in the first place.
-            if self.sphere_count > 0 {
-                pass.set_pipeline(&self.pipelines.sphere);
+            if self.sphere_count > 0 && std::env::var("BENCH_NO_MARKERS").is_err() {
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
                 pass.set_bind_group(3, &self.glyph_bind_group, &[]);
                 pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
                 pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                // Same prepass split as the solid ribbons - see the LineStyle::Flat note above.
+                pass.set_pipeline(&self.pipelines.sphere_depth);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count);
+                pass.set_pipeline(&self.pipelines.sphere);
                 pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count); // one template, N glyphs
-                draws += 1;
+                draws += 2;
             }
 
             // FLAT-lane depth prepass, BOTH tables before either colour pass: blended ink cannot
@@ -1167,7 +1230,7 @@ impl Gpu {
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
                 pass.set_bind_group(3, &self.segment_bind_group, &[]);
-                pass.draw(6 * self.pipe_count..6 * self.segment_count, 0..1);
+                pass.draw(0..4, self.pipe_count..self.segment_count);
                 draws += 1;
             }
             if INK_DEPTH_PREPASS && self.glyph_count > self.sphere_count {
@@ -1186,8 +1249,8 @@ impl Gpu {
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
                 pass.set_bind_group(3, &self.segment_bind_group, &[]);
-                // vertex_index carries the base, so vid/6 still lands on the right segment row
-                pass.draw(6 * self.pipe_count..6 * self.segment_count, 0..1);
+                // instance_index carries the base, so the row is just the instance id
+                pass.draw(0..4, self.pipe_count..self.segment_count);
                 draws += 1;
             }
 
@@ -1310,6 +1373,17 @@ impl Instance {
     /// and the flat lane hugs BOTH adjacent face planes, since the back-facing ones are the
     /// visible surface from in there. Bit 2, matching FLAG_INSIDE in ribbon.wgsl/cylinder.wgsl.
     pub const FLAG_INSIDE: u32 = 1 << 2;
+    /// The mesh broadcast a zero edge width: it is PRINT, not surface - a PDF glyph, a poché
+    /// region, any triangulated fill. triangle.wgsl lights such faces flat (lit = 1.0), so the
+    /// authored colour reads the same from the back of the sheet as from the front. Bit 3.
+    pub const FLAG_PRINT: u32 = 1 << 3;
+    /// The mesh is NOT closed (boundary edges exist), so the facing cull's premise - both
+    /// adjacent faces away = far side of a solid, hidden - is void: an interior surface can be
+    /// genuinely visible through the hole, faces drawn but its wireframe culled (the bunny's
+    /// open base). Set once at build time from Mesh::is_closed(); the edge lanes then skip the
+    /// facing cull exactly as FLAG_INSIDE does and occlusion falls to the depth test, which
+    /// both lanes already write honestly. Bit 4.
+    pub const FLAG_OPEN: u32 = 1 << 4;
 }
 
 

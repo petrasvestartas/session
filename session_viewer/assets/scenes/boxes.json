@@ -1,8 +1,0 @@
-{
-  "name": "boxes — fast debug cycle",
-  "comment": "Just colors_widths.pb: 3 meshes with per-face colours and edges, 1 polyline, 1 point. 8 KB, parses in ~3 ms, so a reload costs nothing. This is the scene to point DEMO_SCENE_URL at while iterating on line rendering - the Stanford meshes carry a serialized halfedge and take tens of seconds each to parse, which is a terrible debug loop.",
-
-  "items": [
-    { "file": "pb/colors_widths.pb", "name": "3 boxes + polyline + point", "at": [0, 0, 0] }
-  ]
-}

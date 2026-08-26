@@ -1,0 +1,16 @@
+[build]
+no_sri = true
+# Relative asset URLs so the built dist/ works when iframed under /session/viewer/.
+public_url = "./"
+
+[watch]
+# assets included: the scene manifests are meant to be edited and reloaded WITHOUT a
+# rebuild, which only works if trunk re-copies them into dist when they change.
+watch = ["src", "Cargo.toml", "index.html", "assets/scenes"]
+enable_cooldown = true
+
+[serve]
+addresses = ["127.0.0.1"]
+# 8770 so `trunk serve` (viewer) and `npm run dev` (docs, 8769) run side by side; the docs
+# Viewer/Learn iframes point here in dev for live reload, and at the static build in prod.
+port = 8770

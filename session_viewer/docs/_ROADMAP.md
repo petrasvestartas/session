@@ -328,7 +328,25 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
   RGBA8, 4 B); the per-point `instance_id` leaves via ONE draw per cloud (`first_vertex` makes
   `vertex_index` absolute, `first_instance` lands on `instance_index`). GPU 421 → 221 MB at 14M
   - verify: picture identical, `naga` clean, bytes/point 32 → 16
-- ⬜ 39 Streaming cloud — HTTP Range + a wire walk to `Session.3 → Objects.8 → PointCloud.3/.4`.
+- ✅ 36 Cloud tables + hello splats — 20 B/pt split arrays, cloud_draws + measured spacing, per-cloud px, and the VERSION-0 compute splatter (pixels at the end of the first lesson). REPLAY-VERIFIED
+  straight-write, cloud_draws (first,count,instance,measured spacing), per-cloud point_size
+  riding Instance.spacing, [ ] global scale. DIRECT PATH: replaces the old raw-lane/16-bytes
+  pair; every PointCloud splats, glyph fallback deleted
+- ✅ 37 Cloud memory — kill the five loading copies (adaptation note added for the split tables)
+- ✅ 38 Big scenes — far-plane grow_extent per streamed file; rebase base_f32 cache + 200ms
+  throttle + bounded_rows; the measured vertex dead end (squares 45 / discard 30 / prepass 15
+  fps at fit, TRUE rAF numbers — the CPU counter lies under GPU backpressure)
+- ✅ 39 The production splatter — per-cloud tint, static skip, 2D dispatch (the 65535 trap narrated with its real console error). REPLAY-VERIFIED
+  colour claim pass, fullscreen resolve with frag_depth; folded mvp×model records (36 words);
+  static skip when camera still; 2D dispatch (65535-workgroup trap INVALIDATES the command
+  buffer silently). Fit view 10.6M pts: 60 fps idle/orbit/zoom
+- ✅ 40 The Potree look — EDL from the splat depth buffer (4 taps, shade floor 0.25),
+  attenuated world-sized splats (measured spacing × px/6, manifest px = far-size floor),
+  oct16 NORMALS + lambert; datasets: potree_import (Takanawa lion, 342k pts with normals)
+  and mk_bunny_cloud (sampled ground-truth normals)
+- ✅ 41 Cloud scenes — pb_bbox percentile packing (25 m gaps, shared ground plane), the
+  cloud_mix stress scene, final numbers (60 fps everywhere), keys/knobs; octree LOD = future
+- ✅ 42 Streaming cloud (implemented on the splat lane as its OWN stream lane; replay-verified + run live: 13.8M pts / 431 MB in 3.4 s, ~130 MB heap) — HTTP Range + a wire walk to `Session.3 → Objects.8 → PointCloud.3/.4`.
   The packed-double length prefix gives the exact point count before any payload, so both GPU
   buffers are sized once, exactly. No kernel `PointCloud` for the raw lane; `CloudSlot` (a name,
   a count, an instance row) is the whole CPU footprint
@@ -336,82 +354,115 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     slices rounded to whole points; 206 or refuse; GPU up first; `next_tick` between slices;
     empty `submit` to recycle Dawn staging
   - verify: peak becomes CONSTANT; `pb/lidar_14m.pb` (13.8M pts) becomes loadable; and
-    `scenes/mixed.json` closes the series - sheets/model (prost path) INTERLEAVED with scans
+    `scenes/cloud_mix.toml` closes the series - sheets/model (prost path) INTERLEAVED with scans
     (Range path), which is what proves the MSAA flip, the draw order and the F-fit all hold
     with both kinds of data resident at once
 
+## Phase 4a — The lane refactor + cloud octree (43-44; inserted 2026-08-24, right after the cloud chain)
+- ⬜ 43 Lane structs — `ArenaUpload` + `Gpu` regrouped BY LANE: named rows (`CloudDraw`,
+  `ObjectBase`) replace every tuple; sub-structs `FrameUniforms`/`Layouts`/`Arena`/
+  `InstanceTable`/`SegmentLane`/`GlyphLane`/`CloudLane`/`Splat`/`StreamLane`; ~300 mechanical
+  whole-word renames + 17 hand hunks; behavior-identical (goldens: lion 325369, cloud_mix
+  12143, lidar14 3798 — pixel-exact, run twice)
+  - EVERY lesson from here on is written against the NEW field paths — never the old flat names
+- ⬜ 44 Cloud octree — kernel `SpatialOctree` (new 3-language class, 9/9 minitests each:
+  spacing-limited subsample per node, octree-order permutation) drives Potree-style LOD in
+  the splat lane: per-node records, screen-error selection, frustum cull, refined-vs-fringe
+  dot sizing. Measured: lion close-up PIXEL-IDENTICAL (325369); fit views draw 92k of 7.5M
+  (cloud_mix, 11887 px) and 38k of 13.8M (lidar14, 3548 px). VIEWER_LOD=0 = exact old
+  behavior (reorder is depth-race invariant). Streamed clouds not LOD'd (no CPU points)
+
+## Phase 4b — Curved geometry (45–49; MOVED before infrastructure & interaction, 2026-08-24: every kernel type renders first. RETARGETED to the end-of-42 code: the walk already draws curves/surfaces/breps — these lessons make them cached and honest; the box/pick/tool arms LIVE in the lessons that build those maps — 54, 57/59, 73)
+- ✅ 45 NurbsCurve — evaluate + draw
+  - steps: kernel `NurbsCurve` sampled by parameter (adaptive count from span count) → polyline →
+    the 31 cylinder path; `NurbsCurveTool` (N control clicks + Enter) via the Tool trait — lives in 73
+  - verify: curve renders smooth at every zoom; tool-drawn curve undoes as one Command
+- ✅ 46 NurbsSurface — tessellate to a mesh (reference_viewer_nurbs_brep_pipeline)
+  - steps: kernel tessellation (grid/adaptive remesh, ~24×24 archive default) → mesh WITH baked
+    vertex normals → smooth shading arrives free via 22's data-driven select; cache the
+    tessellation; transform stays matrix-only (re-tessellating on gumball commit was the archive's
+    perf bug — project_viewer_perf_plan)
+  - verify: sphere/torus surfaces read smooth; dragging a surface never re-tessellates (perf HUD)
+- ✅ 47 Iso-curve boundaries — surface edges + iso lines through the 23/31 line path
+  - verify: boundaries hug the surface with no z-fight (uses 23's depth bias)
+- ✅ 48 BRep — faces + edges as one object; transform matrix-only (project_viewer_edge_brep_fixes)
+  - verify: pick selects the whole BRep; edges + faces move together under the gumball
+- ✅ 49 Trimmed surface — first-class `NurbsSurfaceTrimmed` (reference_viewer_trimmed_firstclass:
+  include it in every object map — tree, picking, visibility — the archive forgot repeatedly)
+  - verify: trimmed circle/cut renders the hole; picking respects the trim
+
+## Phase 6 — Document & file sync (the `.pb` file is the source, like a real CAD app)
+- ✅ 50–51 Reconcile (split: 50 per-object GpuArena, 51 diff by guid) — never rebuild the whole scene
+  - files: `app/reconcile.rs`; extend `app/scene.rs`'s `guid → (hash, row/handle)` map
+  - steps: on (re)load diff by `guid`: added → build+upload; removed → free arena range + row;
+    changed (content-hash differs) → re-flatten that object only; unchanged → skip
+  - verify: reload a file with 1 of N objects edited → log shows 1 changed / N−1 skipped
+- ✅ 52 Save (viewer → file) — write only when something actually changed
+  - files: `app/persistence.rs` (save half), dirty hooks where mutations happen
+  - steps: mutation → dirty flag → debounce (~1 s) → recompute content-hash, skip if unchanged →
+    `pb_dumps` → Blob download (or File System Access write); new objects get a `guid`
+  - verify: one save fires after an edit burst; zero writes when nothing changed
+- ✅ 53 Watch (file → viewer) — external edits flow in
+  - steps: browser can't watch the FS — File System Access handle + poll `lastModified` (or a
+    watcher→WebSocket bridge); on change run the 51-reconcile; **self-write guard**: ignore events
+    whose hash matches your own last save
+  - verify: edit the file externally → viewer updates just that object; own saves don't loop
+
 ## Phase 5 — Acceleration & culling  (BEFORE picking/scenes grow)
-- ✅ 40 Scene AABB BVH — ONE broad-phase for culling, picking, and box-select
+- ✅ 54 Scene AABB BVH — ONE broad-phase for culling, picking, and box-select
   - files: `engine/bvh.rs` (or reuse the kernel's spatial AABB tree if its API fits — check
     `session_rust` spatial_bvh/aabbtree first, don't rewrite what exists)
   - steps: node = AABB + children/leaf(object id); build median-split over per-object WORLD AABBs;
     refit on transform, insert/remove on add/delete (incremental, not full rebuild)
   - verify: `#[cfg(test)]` query box → same id set as brute force over all objects
-- ✅ 41 Frustum culling — draw only what's on screen
+- ✅ 55 Frustum culling — draw only what's on screen
   - files: `engine/cull.rs`, hook in the instance-table upload
   - steps: extract 6 planes from view_proj (f64, kernel math) → walk the BVH, AABB-vs-planes →
     survivors keep their instance rows (or set a culled flag the vs collapses, archive-style bit 7);
     feed drawn/total to the perf counter
   - verify: zoom in → drawn count drops; slow-orbit → nothing pops at the screen edge (test the
-    "AABB intersects but center outside" case). CPU cull now; GPU compute cull is 76
-
-## Phase 6 — Document & file sync (the `.pb` file is the source, like a real CAD app)
-- ✅ 43 Reconcile (split: 38a per-object GpuArena, 38b diff by guid) — never rebuild the whole scene
-  - files: `app/reconcile.rs`; extend `app/scene.rs`'s `guid → (hash, row/handle)` map
-  - steps: on (re)load diff by `guid`: added → build+upload; removed → free arena range + row;
-    changed (content-hash differs) → re-flatten that object only; unchanged → skip
-  - verify: reload a file with 1 of N objects edited → log shows 1 changed / N−1 skipped
-- ✅ 44 Save (viewer → file) — write only when something actually changed
-  - files: `app/persistence.rs` (save half), dirty hooks where mutations happen
-  - steps: mutation → dirty flag → debounce (~1 s) → recompute content-hash, skip if unchanged →
-    `pb_dumps` → Blob download (or File System Access write); new objects get a `guid`
-  - verify: one save fires after an edit burst; zero writes when nothing changed
-- ✅ 45 Watch (file → viewer) — external edits flow in
-  - steps: browser can't watch the FS — File System Access handle + poll `lastModified` (or a
-    watcher→WebSocket bridge); on change run the 38-reconcile; **self-write guard**: ignore events
-    whose hash matches your own last save
-  - verify: edit the file externally → viewer updates just that object; own saves don't loop
+    "AABB intersects but center outside" case). CPU cull now; GPU compute cull is 78
 
 ## Phase 7 — Picking & selection
-- ✅ 46 Screen → ray — unproject the mouse into a world ray
+- ✅ 56 Screen → ray — unproject the mouse into a world ray
   - files: `engine/pick.rs` (`screen_to_world_ray`), `app/pick.rs` dispatch
   - steps: cursor px → NDC → inverse view_proj (f64 kernel math) → near/far points → ray;
     **use ndc_z = 0.5 for p_far in perspective** — ndc_z = 1 divides by zero at huge far/near
     ratios (project_picking_bug_fix, a real archive bug)
   - verify: click the grid → marker spawned at ray∩z=0 lands under the cursor from every angle
-- ✅ 47 Ray-cast meshes — nearest hit wins
-  - steps: scene-BVH broad-phase (40) → per-mesh triangle test via the kernel's cached triangle
+- ✅ 57 Ray-cast meshes — nearest hit wins
+  - steps: scene-BVH broad-phase (54) → per-mesh triangle test via the kernel's cached triangle
     BVH (`ensure_triangle_bvh`) in the mesh's LOCAL frame (inverse-transform the ray, f64) →
     smallest t. WebGPU has NO sync readback → CPU ray+BVH IS the interactive path
     (reference_viewer_picking_system)
   - verify: click each object → correct guid; an occluded object never wins; `#[cfg(test)]` on a
     known ray/triangle pair
-- ✅ 48 Sub-object picking — vertex / edge / face
+- ✅ 58 Sub-object picking — vertex / edge / face
   - steps: from the hit triangle, resolve nearest vertex (screen-px radius), nearest edge
     (point-segment distance), else the face; return `SubHit { guid, kind, key }`
   - verify: hover highlights the intended vertex/edge at several zoom levels
-- ✅ 49 Pick thin geometry — lines & points are 1D/0D, rays never hit them exactly
+- ✅ 59 Pick thin geometry — lines & points are 1D/0D, rays never hit them exactly
   - steps: ray↔segment / ray↔point distance with a `pick_radius` floor in screen px
     (reference_instanced_picking); **solid-vs-thin priority**: mesh wins at equal depth
     (reference_viewer_picking_system)
   - verify: a line lying ON a mesh face → mesh wins; line alone in space → pickable within radius
   - **STRESS GATE**: click-pick + marquee on the PDF drawing (34) — the intended entity wins on
     dense linework, no freeze (BVH broad-phase holds)
-- ✅ 50 Selection highlight & marquee — see what you selected
+- ✅ 60 Selection highlight & marquee — see what you selected
   - steps: FLAG_SELECTED bit in the instance row → vs/fs tint; click = replace, Shift+click =
     toggle; drag rectangle → 4-plane sub-frustum → BVH query (async GPU id-buffer readback is the
     later upgrade, ~5–15 ms, hidden behind async UX)
   - verify: click/shift-click behave like Rhino; marquee selects exactly the visible set
-- ✅ 51 Hidden-object filter — visibility is real state
+- ✅ 61 Hidden-object filter — visibility is real state
   - steps: per-object visible flag (35) respected by draw (row collapsed/culled), picking (skip),
-    and marquee; `hide`/`show` groundwork for the CLI verbs (53)
+    and marquee; `hide`/`show` groundwork for the CLI verbs (63)
   - verify: hidden object neither draws nor picks; show restores both
 
 ## Phase 8 — The interface: egui shell + THE command line (moved up)
 Commands-only is the locked interface (reference_webgpu_cad_caveats). The bus lands **before**
 gumball and tools, so every later mutation is born as a command — pattern (a)/(b) compose from the
-start instead of being retrofitted at lesson 74 like the old plan.
-- ✅ 52 egui overlay + perf HUD + first settings
+start instead of being retrofitted at lesson 78 like the old plan.
+- ✅ 62 egui overlay + perf HUD + first settings
   - files: `ui/mod.rs` (`build_ui`), `ui/settings.rs`, egui-wgpu/egui-winit wiring in
     `app/render.rs` + `lib.rs` (feed winit events to egui FIRST; it reports "consumed")
   - steps: egui render pass AFTER the 3D pass, same encoder; HUD window = fps / frame ms /
@@ -420,22 +471,22 @@ start instead of being retrofitted at lesson 74 like the old plan.
   - rule: UI collects intent inside the closure into a small struct, applied to `State` AFTER it
     (can't borrow `self` mutably inside)
   - verify: unchecking grid hides it next frame; typing in egui doesn't orbit the camera
-- ✅ 53 Command bus + Get-loop — THE interface arrives
+- ✅ 63 Command bus + Get-loop — THE interface arrives
   - files: `app/commands.rs` (registry: verb → factory), `app/getloop.rs` (state machine),
     `ui/cli.rs` (input line docked at the screen edge)
   - steps: `enum GetState { Idle, WaitingPoint(prompt), WaitingOption(..) }`; a running command
     asks for input, the loop feeds it a picked point OR a typed value — Rhino's point-or-option at
-    one prompt; every mutation goes bus → kernel → `Session` → reconcile (43); first verbs:
+    one prompt; every mutation goes bus → kernel → `Session` → reconcile (51); first verbs:
     `hide`/`show`/`zoom`
   - verify: type `hide` → selection hides; unknown verb → friendly message in the CLI log
-- ✅ 54 Command options & modal multi-step
+- ✅ 64 Command options & modal multi-step
   - steps: option kinds toggle/number/list registered per command, rendered in the prompt line
     (`Line (From, Snap=On):`); chained prompts (from → to) with Esc = cancel, Enter = accept
     default, one-step-back
   - verify: a two-step dummy command completes, cancels, and steps back correctly
-- ✅ 55 History & autocomplete — ↑/↓ recall, Tab prefix-complete, alias table (`l` → `line`)
+- ✅ 65 History & autocomplete — ↑/↓ recall, Tab prefix-complete, alias table (`l` → `line`)
   - verify: ↑ recalls last command; `li<Tab>` completes; aliases dispatch
-- ✅ 56 Delete + undo/redo — the FIRST scene mutation, so ARCHITECTURE pattern (a) lands HERE
+- ✅ 66 Delete + undo/redo — the FIRST scene mutation, so ARCHITECTURE pattern (a) lands HERE
   - files: `app/history/{mod,remove}.rs`, `ui/toolbar.rs`
   - steps: `trait Command { apply(scene,gpu) / revert / label }` + `History { done, undone }`
     stacks — NEVER an UndoAction enum (archive's documented dead-end); `RemoveObjects` holds
@@ -444,84 +495,65 @@ start instead of being retrofitted at lesson 74 like the old plan.
   - verify: delete → undo restores identical guids/rows; redo repeats; HUD object count tracks
 
 ## Phase 9 — Transform & draw (every tool is a command)
-- ✅ 57 Gumball geometry — the 3-axis gizmo appears (reference_gumball_widget has the full recipe)
+- ✅ 67 Gumball geometry — the 3-axis gizmo appears (reference_gumball_widget has the full recipe)
   - files: `engine/gumball/mod.rs` (geometry + handle ids), `app/gumball_state.rs`
   - steps: 3 axis cylinders + cone tips + 3 rotate arcs + 3 scale boxes, built from kernel meshes
     into instance rows (31's templates); one stable id per handle; drawn last, depth-tested but
     depth-cleared (or compare Always) so it floats over geometry; appears at selection centroid
   - verify: select → gizmo at centroid, xyz = red/green/blue; deselect → gone
-- ✅ 58 Gumball scale & hit-test — constant screen size + pickable handles
+- ✅ 68 Gumball scale & hit-test — constant screen size + pickable handles
   - steps: scale = distance-based formula so the gizmo is ~90 px at every zoom
     (reference_gumball_widget has the exact tuning constants); ray→handle test picks the nearest
     handle BEFORE scene picking; hovered handle brightens
   - verify: gizmo same pixel size zoomed in/out; each handle hit-tests exactly
-- ✅ 59 Drag to translate — first real transform
+- ✅ 69 Drag to translate — first real transform
   - files: `engine/gumball/drag.rs` (math), `app/interaction/transform.rs`,
     `app/history/transform.rs`
   - steps: on press snapshot; drag = closest-point-on-axis delta (f64 ray math); LIVE = matrix-only
     on the instance row (no re-tessellation); release = `TransformObjects` Command with absolute
-    before/after snapshots → undoable for free (56)
+    before/after snapshots → undoable for free (66)
   - verify: motion locked to the axis; Ctrl+Z restores exactly; geometry untouched until commit
   - **STRESS GATE**: marquee a large region of the PDF drawing (34), gumball-move it — matrix-only
     update keeps the fps, undo restores exactly at that object count
-- ✅ 60 Rotate + scale handles — arcs → angle about axis; boxes → (uniform) scale; same commit path
+- ✅ 70 Rotate + scale handles — arcs → angle about axis; boxes → (uniform) scale; same commit path
   - verify: rotation snaps visually to the arc plane; undo/redo across mixed drags works
-- ✅ 61 Numeric entry — click a handle, type `500`, exact move (reuses the Get-loop input, 48;
+- ✅ 71 Numeric entry — click a handle, type `500`, exact move (reuses the Get-loop input, 63;
   archive gotchas: lmb_down gate, deferred drag, Escape guard — reference_gumball_widget)
   - verify: typed value applies once, Esc cancels cleanly mid-entry
-- ✅ 62 Draw tools I — ARCHITECTURE pattern (b) lands: creating geometry
+- ✅ 72 Draw tools I — ARCHITECTURE pattern (b) lands: creating geometry
   - files: `app/tools/{mod,point,line}.rs`, `app/history/add.rs`
   - steps: `trait Tool { on_click / on_move / preview / finish → Box<dyn Command> }` + a ToolHost
     slot on State — NEVER a DrawTool enum; `PointTool` (1 click), `LineTool` (2 clicks), driven by
-    the Get-loop prompts (53); finish yields `AddGeometry` → undoable for free
+    the Get-loop prompts (63); finish yields `AddGeometry` → undoable for free
   - verify: `line` command: click-click → line exists in the Session, undo removes it
-- ✅ 63 Draw tools II — `PolylineTool` (N clicks, Enter finishes), `RectangleTool`/`BoxTool` (on
-  the z=0 plane until 79's work plane); ghost preview via a transient instance row on `on_move`
+- ✅ 73 Draw tools II — `PolylineTool` (N clicks, Enter finishes), `RectangleTool`/`BoxTool` (on
+  the z=0 plane until 89's work plane); ghost preview via a transient instance row on `on_move`
   - verify: preview follows the cursor, never enters the Session until finish
-- ✅ 64 Snapping — drawing becomes precise (was lesson 79 — belongs WITH drawing)
+- ✅ 74 Snapping — drawing becomes precise (belongs WITH drawing)
   - files: `app/snap.rs`; extend `engine/pick.rs` with nearest-candidate queries
   - steps: candidates = vertex / endpoint / grid intersection within a screen-px radius; the
     Get-loop's point acquisition consults snap FIRST; on-screen marker glyph at the active snap
   - verify: line endpoints land exactly on box corners / grid crossings; toggle via CLI option
 
-## Phase 10 — Curved geometry
-- ✅ 65 NurbsCurve — evaluate + draw
-  - steps: kernel `NurbsCurve` sampled by parameter (adaptive count from span count) → polyline →
-    the 31 cylinder path; `NurbsCurveTool` (N control clicks + Enter) via the Tool trait (62)
-  - verify: curve renders smooth at every zoom; tool-drawn curve undoes as one Command
-- ✅ 66 NurbsSurface — tessellate to a mesh (reference_viewer_nurbs_brep_pipeline)
-  - steps: kernel tessellation (grid/adaptive remesh, ~24×24 archive default) → mesh WITH baked
-    vertex normals → smooth shading arrives free via 22's data-driven select; cache the
-    tessellation; transform stays matrix-only (re-tessellating on gumball commit was the archive's
-    perf bug — project_viewer_perf_plan)
-  - verify: sphere/torus surfaces read smooth; dragging a surface never re-tessellates (perf HUD)
-- ✅ 67 Iso-curve boundaries — surface edges + iso lines through the 23/31 line path
-  - verify: boundaries hug the surface with no z-fight (uses 23's depth bias)
-- ✅ 68 BRep — faces + edges as one object; transform matrix-only (project_viewer_edge_brep_fixes)
-  - verify: pick selects the whole BRep; edges + faces move together under the gumball
-- ✅ 69 Trimmed surface — first-class `NurbsSurfaceTrimmed` (reference_viewer_trimmed_firstclass:
-  include it in every object map — tree, picking, visibility — the archive forgot repeatedly)
-  - verify: trimmed circle/cut renders the hole; picking respects the trim
-
 ## Phase 10b — GPU tessellation (compute producers for existing tables)
 Study + rationale: `_GPU_TESSELLATION_PLAN.md`. The pattern, four times: a compute shader
 becomes a PRODUCER for a table the viewer already draws (segment table, vertex arena) — no new
 lanes downstream, CPU proxies stay for picking, f32 is the display contract, no frag_depth.
-- ⬜ 69a GPU curves — de Boor in compute, one invocation per segment, rows into the shared
+- ⬜ 75 GPU curves — de Boor in compute, one invocation per segment, rows into the shared
   segment table (verified vs kernel `point_at`: f32 rounding only)
   - verify: CPU-vs-GPU polyline diff = float noise; tight bend smooth at spans×64; L toggle works
-- ⬜ 69b GPU surfaces — tensor product per (u,v) grid vertex into the arena; `mesh_q` criteria
+- ⬜ 76 GPU surfaces — tensor product per (u,v) grid vertex into the arena; `mesh_q` criteria
   become the up-front density law; FD normals with the exact-derivative upgrade path named
   - verify: same-resolution CPU/GPU vertex diff = float noise; no shading delta; no add_file stall
-- ⬜ 69c GPU trimming — the CDT stays CPU (sequential by construction); full-rect grid +
+- ⬜ 77 GPU trimming — the CDT stays CPU (sequential by construction); full-rect grid +
   per-fragment winding parity = concave + holes with zero cases; compute classifies cells
   in/out/boundary so only perimeter cells pay `discard`
   - verify: hole + concave test set matches CPU silhouettes sub-pixel; trimmed orbit costs
     the untrimmed frame
-- ⬜ 69d GPU BRep — assembly only: face = 69b+69c, edge = 69a, vertex = 32a; shared-edge
+- ⬜ 78 GPU BRep — assembly only: face = 76+77, edge = 75, vertex = 32a; shared-edge
   matching demoted to an EXPORT requirement (both faces clip the same curve; cracks sub-pixel
   under the drawn edge pen); `BRep::mesh()` stays the watertight truth
-  - verify: boolean-result BRep matches 68's build; seam audit under edge pen; load stall drops
+  - verify: boolean-result BRep matches 70's build; seam audit under edge pen; load stall drops
 
 ## Phase 11 — Rendering quality: the "arctic" GI look, engineered FAST
 > **Why the redesign (2026-07-03, archive measured):** the archive's post stack costs **~200+
@@ -557,7 +589,7 @@ lanes downstream, CPU proxies stay for picking, f32 is the display contract, no 
     super-refinement rejected for the same reason: if idle looks better, starting a rotation
     reads as a quality DROP.)
   - port from the archive (proven, don't re-derive): view-pos reconstruction via ANALYTIC
-    inv_proj (`Xform::inverse` WAS affine-only — found & fixed kernel-wide in lesson 46), IGN noise,
+    inv_proj (`Xform::inverse` WAS affine-only — found & fixed kernel-wide in lesson 48), IGN noise,
     the tangent-plane gate (`dot(D,N) > len·0.07 + bias` — MANDATORY or grazing planes stripe),
     radius = %-of-bbox-diag clamped, R16Float against banding, MSAA depth `textureLoad` sample 0
   - output a BENT NORMAL beside AO (free byproduct of GTAO horizon search) → 68 consumes it
@@ -607,7 +639,7 @@ lanes downstream, CPU proxies stay for picking, f32 is the display contract, no 
 - ✅ 81 Advanced perf — LOD/decimation, occlusion culling, GPU compute cull + indirect draw
   (culling + batching already landed in 30/37; 27 unlocked compute)
   - verify: perf HUD before/after on the capstone scene
-- ✅ 90 (optional appendix) Materials & textures — `docs/90-textures.md`. Written against the real
+- ✅ 90 (optional appendix) Materials & textures — `docs/99-textures.md`. Written against the real
   post-instancing pipeline: material = **`@group(3)`**, optional per-vertex UV = **`@location(4)`**
   (group 2 / loc 3 are taken by instances / inst_id since lesson 29 — the old note below was stale).
   Generated RGBA8 checker → `write_texture` (`TexelCopyTextureInfo`/`TexelCopyBufferLayout`), group-3
@@ -721,3 +753,27 @@ protobuf.dev Rust · wgpu-py#407 · compiler-research clang-repl/xeus-cpp-lite �
 Camera comparison: `session_viewer_archive/src/camera.rs` (quaternion turntable, last_right pole
 handling, named views, ortho_scale, adaptive near, mm scale, fit_to_box) + memory
 `reference_viewer_camera`. Full reasoning: `~/.claude/plans/but-why-our-mesh-linked-puddle.md`.
+
+## Phase 15 — At scale (100–107; from _RESEARCH_GPU_CAD.md, 2026-08-24; NO third-party
+libraries — every technique reimplemented as our source)
+- ⬜ 100 Sheet impostors — static sheets rasterized once (own render_offscreen) into
+  zoom-bucketed textures, drawn as quads; LRU cap; reconcile invalidates
+- ⬜ 101 Compute ink — segments as a THIRD splat record set: DDA per thread into the shared
+  pixel buffers, length-capped to far zoom; atomicAdd coverage buys AA back
+- ⬜ 102 Segment batches — 4096-segment AABB batches, GPU frustum cull → indirect draws;
+  batch-relative snorm16 endpoints (32 → 20 B/segment, display-only)
+- ⬜ 103 Quantized meshes — unorm16 positions dequantized by the object box on the instance
+  row + oct16 normals: 40 → 16 B/vertex, kernel truth untouched
+- ⬜ 104 Meshlets — greedy ~124-tri clusters (80-line builder, no METIS) with bbox + normal
+  cone; compute cull compacts index ranges → one indirect draw; big meshes only
+- ⬜ 105 Mesh LOD — viewer-side QEM edge collapse (~200 lines), 2-3 discrete levels by
+  projected size with hysteresis; curved types re-tessellate via mesh_q instead; NO DAG
+- ⬜ 106 HiZ occlusion — last-frame depth mip pyramid, box-vs-coarsest-mip test in the
+  existing cull passes; single-phase then two-phase (early/late)
+- ⬜ 107 Id-buffer picking — r32uint id pass + 3-deep async readback ring: hover = 1 texel,
+  marquee = the rect's pixel set; CPU ray keeps the click and topology
+- (folded, 2026-08-24: the two remaining research items changed DESIGN DECISIONS existing
+  lessons make, so they were integrated instead of appended — the bin allocator IS 50's
+  allocator now (with the property test), and the shapecast visitor / Contained marquee /
+  drag refit live in 54 / 60 / 69. Packed flat nodes stay a one-line future note in 54.)
+

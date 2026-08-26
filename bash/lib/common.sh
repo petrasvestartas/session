@@ -2,7 +2,7 @@
 # Shared functions for minitest system
 
 # Single source of truth for class names (sorted alphabetically)
-CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "color" "convex_hull" "element" "element_beam" "element_column" "element_plate" "file_encoders" "file_obj" "file_step" "graph" "intersection" "io" "nurbsknot" "line" "instance_ref" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
+CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "color" "convex_hull" "element" "element_beam" "element_column" "element_plate" "file_encoders" "file_obj" "file_step" "graph" "intersection" "io" "nurbsknot" "line" "instance_ref" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_octree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
 
 # Classes with NO test source in a given language, so they legitimately produce no json.
 # These are reported as SKIP; every other class in CLASS_NAMES must still emit json or the
@@ -249,3 +249,32 @@ setup_windows_paths() {
 
 # Auto-setup paths when sourced
 setup_windows_paths
+
+# Open a URL in the browser. Linux: run the user's OWN chrome .desktop Exec line rather than
+# xdg-open — a snap-confined shell (VS Code terminal) carries a snap XDG_DATA_DIRS, so xdg-open
+# resolves the SYSTEM chrome .desktop, which has none of the WebGPU/Vulkan flags and the viewer
+# then panics with "webgpu found no adapters".
+open_url() {
+    local url="$1"
+    if [[ "$(detect_platform)" == "windows" ]]; then
+        start "" "${url}" 2>/dev/null || cmd //c start "" "${url}" 2>/dev/null || true
+        return
+    fi
+    local desktop="${HOME}/.local/share/applications/google-chrome.desktop"
+    if [[ -r "$desktop" ]] && grep -q 'enable-features=[^ ]*Vulkan' "$desktop"; then
+        if pgrep -f '^/opt/google/chrome/chrome ' >/dev/null 2>&1 &&
+           ! pgrep -af '^/opt/google/chrome/chrome ' | grep -q 'enable-features=[^ ]*Vulkan'; then
+            log "WARNING: Chrome is running WITHOUT the WebGPU flags - the viewer will find no adapter."
+            log "         Quit Chrome completely, then re-run."
+        fi
+        local exec_line
+        exec_line="$(grep -m1 '^Exec=' "$desktop" | sed 's/^Exec=//; s/%[UufFdDnNickvm]//g')"
+        ( eval "${exec_line} \"${url}\"" >/dev/null 2>&1 & )
+        return
+    fi
+    if command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "${url}" >/dev/null 2>&1 || true
+    elif command -v open >/dev/null 2>&1; then
+        open "${url}" >/dev/null 2>&1 || true
+    fi
+}
