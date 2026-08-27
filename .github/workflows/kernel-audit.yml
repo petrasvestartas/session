@@ -12,6 +12,9 @@ on:
     # Thursday 14:01 Europe/Zurich summer time (12:01 UTC). GitHub cron is UTC-only, so in
     # winter (CET) this fires at 13:01 local — accepted drift, same as every UTC cron.
     - cron: '1 12 * * 4'
+    # Backup fire 4h later: GitHub silently dropped the 12:01 event on 2026-08-27, so a second
+    # cron retries; the dedup job below skips it whenever any run already started this Thursday.
+    - cron: '1 16 * * 4'
   workflow_dispatch:
     inputs:
       class:
@@ -20,13 +23,40 @@ on:
         default: ''
 
 permissions:
+  actions: read          # dedup job lists this workflow's runs
   contents: write        # parent-repo pointer bump PR after submodule merges
   pull-requests: write
   issues: write
   id-token: write
 
 jobs:
+  dedup:
+    # Scheduled fires only: skip when another kernel-audit run (scheduled or manual) already
+    # started today, so the 16:01 backup — or a late-delivered 12:01 — never double-audits.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - name: Check for an earlier run today
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PROCEED=1
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            TODAY=$(date -u +%Y-%m-%d)
+            N=$(gh run list -R "$GITHUB_REPOSITORY" --workflow=kernel-audit \
+                  --created "$TODAY" --json databaseId \
+                  --jq "map(select(.databaseId != ${{ github.run_id }})) | length")
+            echo "other kernel-audit runs today: $N"
+            if [ "$N" -gt 0 ]; then PROCEED=0; fi
+          fi
+          echo "proceed=$PROCEED" >> "$GITHUB_OUTPUT"
+
   audit:
+    needs: dedup
+    if: needs.dedup.outputs.proceed == '1'
     runs-on: ubuntu-latest
     timeout-minutes: 150
     steps:
