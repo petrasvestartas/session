@@ -12,11 +12,12 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
+    # Skip the weekly audit's own PRs (kernel-audit/* branches, sometimes bot-actored via
+    # github.token pushes): they are already audited and test-gated by the run that opens
+    # them, and claude-code-action refuses bot actors, which left a red check on the PR.
+    if: |
+      github.actor != 'github-actions[bot]' &&
+      !startsWith(github.event.pull_request.head.ref, 'kernel-audit/')
 
     runs-on: ubuntu-latest
     permissions:
