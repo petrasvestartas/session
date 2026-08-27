@@ -1,19 +1,23 @@
 # 39 The production splatter — tint, the static skip, and the trap
 
-> Direct-path chain (36-41); every step below is replay-verified against a clean
-> end-of-35 checkout.
+> Direct-path chain (36-42). Re-verified 2026-08-27 against the tree lesson 38 leaves
+> behind: every anchor matches, the result compiles, `naga` validates the shader.
 
 ## Goal
 
-Lesson [36](36-cloud-tables.md)'s version-0 splatter draws one cloud beautifully and
-falls over on a real scene, twice. This lesson fixes both: per-cloud TINT (the instance
-colour never reached the splats), the STATIC SKIP (idle frames re-splatted millions of
-points for nothing), and the dispatch trap — the best bug of this whole build.
+Lesson [36](36-cloud-tables.md)'s splatter draws one cloud well. Put it in a real scene and
+three things go wrong. This lesson fixes all three.
+
+- **Tint.** An object's colour never reached its splats, so a cloud ignored whatever the
+  scene told it to be.
+- **The static skip.** A still camera re-splatted every point, every frame, to produce the
+  picture that was already on screen.
+- **The dispatch trap.** Past roughly 4 million points the frame stops drawing at all.
 
 ## The trap, first
 
-Load the three-scan stress scene on version 0 and the clouds FREEZE in screen space
-while everything else orbits — or the frame goes black entirely. The console says why:
+Open the three-scan scene on lesson 36's code. The clouds sit frozen in screen space while
+everything else orbits. Sometimes the frame is black. The console says why:
 
 ```
 wgpu on_uncaptured_error: Dispatch workgroup count X (108600) exceeds max compute
@@ -21,17 +25,24 @@ workgroups per dimension (65535).
 [Invalid CommandBuffer "clear encoder"] is invalid due to a previous error.
 ```
 
-A 1D dispatch caps at **65,535 workgroups** — 4.2 M threads at 64/group, well under a
-7 M-point frame — and an oversized dispatch does not clamp: it **invalidates the whole
-command buffer**, so the frame silently never draws and the screen keeps showing the
-LAST good frame. Frozen clouds, black offscreen renders, symptoms that masquerade as
-matrix bugs. The fix is a 2D grid.
+One dispatch may ask for **65,535 workgroups**, no more. At 64 threads each that covers
+4.2 million points. A 7-million-point scene asks for more.
+
+Asking for more does not clamp to the limit. It throws the whole command buffer away. The
+frame never draws, so the screen keeps showing the last good one — which is why the clouds
+look frozen rather than missing. Nothing on screen points at the dispatch. It reads like a
+broken matrix, and that is where you will waste the afternoon.
+
+A 2D grid fixes it: the same threads, laid out in rows instead of one long line.
 
 ## Step 1 — the shader: 24-word records, 2D indexing
 
 Six find/replace pairs in `src/shaders/splat.wgsl`.
 
-**Find** (records grow a 4-word tint row, so every offset past the matrix moves by 4):
+A record grows from 20 words to 24. The four new ones hold the tint and sit straight after
+the matrix, so every offset past the matrix moves up by 4.
+
+**Find**:
 
 ```wgsl
 const REC_WORDS: u32 = 20u;
@@ -216,10 +227,11 @@ the meta words):
 
 ## Step 3 — the invalidation hooks
 
-The skip is only correct if every input change resets it. Three one-liners, same file.
+A cached frame is only safe while everything that feeds it holds still. Three places clear
+the cache.
 
-**Find** in `set_scene` (the call right after the cloud-table appends — `resize` has the
-same line one indent deeper, so take this one with its preceding line):
+**Find** in `set_scene`. `resize` calls the same function one indent deeper, so this anchor
+takes the line above it too:
 
 ```rust
         self.cloud_draws.extend_from_slice(&up.cloud_draws);
@@ -244,8 +256,8 @@ same line one indent deeper, so take this one with its preceding line):
             self.splat_state = None;
 ```
 
-**Find** the end of `rebuild_instances` (`update_inside_flags` writes the same buffer —
-leave that one):
+**Find** the end of `rebuild_instances`. `update_inside_flags` writes the same buffer, but
+it only ever changes flags — leave that one alone:
 
 ```rust
             self.instances[i].model = m;
@@ -261,10 +273,9 @@ leave that one):
 
 ## Expected state
 
-- `naga src/shaders/splat.wgsl`: `Validation successful`; wasm check clean.
-- The lion render is unchanged: `non-background pixels: 189148 (19.7%)` — tint is white
-  for an untinted cloud, and the skip/2D change WHEN work happens, not what it draws.
-- The three-scan stress scene now renders and orbits instead of freezing; the console
-  error above is gone.
-- Idle frames cost the resolve triangle and nothing else — the compute prelude only runs
-  when the camera, the scale, or the scene actually changed.
+- `naga src/shaders/splat.wgsl` says `Validation successful`. The wasm check is clean.
+- The lion render does not move: `non-background pixels: 189148 (19.7%)`. An untinted cloud
+  tints by white, and the other two fixes change WHEN the work happens, not what it draws.
+- The three-scan scene renders and orbits instead of freezing. The console error is gone.
+- A still camera costs one resolve triangle. The compute prelude runs only when the camera,
+  the scale, or the scene changed.

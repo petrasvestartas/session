@@ -155,9 +155,9 @@ change under a rebase):
 ```rust
         for (i, (model, _, _)) in self.objects_base.iter().enumerate() {
             let mut m = self.base_f32[i]; // rotation/scale cast once at set_scene
-            m[12] = (model.m[12] - origin[0]) as f32;
-            m[13] = (model.m[13] - origin[1]) as f32;
-            m[14] = (model.m[14] - origin[2]) as f32;
+            m[12] = (model[12] - origin[0]) as f32;
+            m[13] = (model[13] - origin[1]) as f32;
+            m[14] = (model[14] - origin[2]) as f32;
             self.instances[i].model = m;
         }
 ```
