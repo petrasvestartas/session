@@ -58,7 +58,9 @@ jobs:
     needs: dedup
     if: needs.dedup.outputs.proceed == '1'
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    # Deep-audit budget: most of GitHub's 6h hosted-runner job cap. The prompt tells the
+    # model it has hours; an early finish means the class is clean, not that time ran out.
+    timeout-minutes: 330
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -116,9 +118,14 @@ jobs:
           # which github.token cannot — use the PAT when it exists, else fall back.
           GH_TOKEN: ${{ secrets.KERNEL_AUDIT_PUSH_TOKEN || github.token }}
           PUSH_TOKEN: ${{ secrets.KERNEL_AUDIT_PUSH_TOKEN }}
+          # Long-run headroom: full minitest suites and `gh pr checks --watch` block for a
+          # while (default bash cap is 10 min), and deep audits read long tool output.
+          BASH_DEFAULT_TIMEOUT_MS: "600000"
+          BASH_MAX_TIMEOUT_MS: "1800000"
+          BASH_MAX_OUTPUT_LENGTH: "150000"
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: '--model claude-fable-5 --allowed-tools "Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
+          claude_args: '--model claude-fable-5 --effort max --allowed-tools "Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
           prompt: |
             You are the weekly kernel auditor AND fixer for this multi-language geometry
             kernel (C++ is ground truth; Python and Rust are ports that must mirror it — see
@@ -134,6 +141,15 @@ jobs:
             - session_cpp/src/${{ steps.pick.outputs.class }}.h and .cpp (+ ${{ steps.pick.outputs.class }}_test.cpp)
             - session_py/src/session_py/${{ steps.pick.outputs.class }}.py (+ ${{ steps.pick.outputs.class }}_test.py)
             - session_rust/src/${{ steps.pick.outputs.class }}.rs (+ ${{ steps.pick.outputs.class }}_test.rs)
+
+            EFFORT. This is a scheduled deep-audit session running at maximum reasoning
+            effort with a budget of several hours — depth beats speed, and finishing early
+            is not a goal. Do not economize: read every line of all six files (no skimming),
+            trace the hot paths by hand, check EVERY public method against both ports, and
+            hand-verify each finding against the code before acting on it. After Phase 2,
+            run a SECOND full audit pass over the post-fix code; keep iterating until a
+            complete pass surfaces nothing new that is safe to fix. The existing guardrails
+            still apply on every pass: skip subjective, risky, or API-breaking changes.
 
             PHASE 1 — AUDIT. Read all six files completely, then audit these dimensions:
             1. PERFORMANCE — complexity of hot methods, avoidable allocations/clones in
