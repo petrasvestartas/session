@@ -1,5 +1,5 @@
-# Weekly kernel audit + fix: every Thursday a randomly chosen geometry-kernel data structure
-# gets a cross-language review (session_cpp / session_py / session_rust) covering performance,
+# Daily kernel audit + fix: every morning a geometry-kernel data structure gets a
+# cross-language review (session_cpp / session_py / session_rust) covering performance,
 # memory, tests, readability, minimal verbosity, and 3-language alignment — and the safe,
 # test-verifiable findings get FIXED, not just filed. Fixes land as PRs on the submodule repos
 # when the KERNEL_AUDIT_PUSH_TOKEN secret exists (a fine-grained PAT with contents+pull-requests
@@ -9,16 +9,16 @@ name: kernel-audit
 
 on:
   schedule:
-    # Thursday 14:01 Europe/Zurich summer time (12:01 UTC). GitHub cron is UTC-only, so in
-    # winter (CET) this fires at 13:01 local — accepted drift, same as every UTC cron.
-    - cron: '1 12 * * 4'
-    # Backup fire 4h later: GitHub silently dropped the 12:01 event on 2026-08-27, so a second
-    # cron retries; the dedup job below skips it whenever any run already started this Thursday.
-    - cron: '1 16 * * 4'
+    # 05:00 Europe/Zurich summer time (03:00 UTC). GitHub cron is UTC-only, so in winter (CET)
+    # this fires at 04:00 local — accepted drift, same as every UTC cron.
+    - cron: '0 3 * * *'
+    # Backup fire 2h later: GitHub silently drops scheduled events under load (it dropped the
+    # 2026-08-27 fire); the dedup job below skips it whenever a run already started today.
+    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       class:
-        description: 'Class to audit (empty = random pick)'
+        description: 'Class to audit (empty = least recently audited)'
         required: false
         default: ''
 
@@ -32,7 +32,7 @@ permissions:
 jobs:
   dedup:
     # Scheduled fires only: skip when another kernel-audit run (scheduled or manual) already
-    # started today, so the 16:01 backup — or a late-delivered 12:01 — never double-audits.
+    # started today, so the 05:00 backup — or a late-delivered 03:00 — never double-audits.
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -83,6 +83,8 @@ jobs:
 
       - name: Pick the class
         id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Candidates = Rust kernel modules that exist in ALL THREE languages, minus
           # infrastructure files.
@@ -100,8 +102,24 @@ jobs:
           echo "pool ($#):$CANDIDATES"
           PICK="${{ github.event.inputs.class }}"
           if [ -z "$PICK" ]; then
-            IDX=$(( (GITHUB_RUN_ID + $(date +%s)) % $# + 1 ))
-            eval "PICK=\${$IDX}"
+            # Daily cadence needs coverage, not dice: audit history lives in the report issue
+            # titles ("Kernel audit: <class> (<run id>)"), newest first. Prefer a class that
+            # has never been audited; otherwise take the least recently audited one.
+            HISTORY=$(gh issue list -R "$GITHUB_REPOSITORY" --label kernel-audit --state all \
+                        --limit 500 --json title,createdAt \
+                        --jq 'sort_by(.createdAt) | reverse | .[].title' \
+                      | sed -n 's/^Kernel audit: \([A-Za-z0-9_]*\) .*/\1/p')
+            FRESH=""
+            for c in $CANDIDATES; do
+              printf '%s\n' "$HISTORY" | grep -qx "$c" || FRESH="$FRESH $c"
+            done
+            if [ -n "$FRESH" ]; then
+              set -- $FRESH
+              IDX=$(( GITHUB_RUN_ID % $# + 1 ))
+              eval "PICK=\${$IDX}"
+            else
+              PICK=$(printf '%s\n' "$HISTORY" | awk '!seen[$0]++' | tail -1)
+            fi
           fi
           echo "picked: $PICK"
           echo "class=$PICK" >> "$GITHUB_OUTPUT"
@@ -109,7 +127,7 @@ jobs:
       - name: Ensure the audit label exists
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh label create kernel-audit --color 5319e7 --description "Weekly cross-language kernel audit" --force -R "$GITHUB_REPOSITORY"
+        run: gh label create kernel-audit --color 5319e7 --description "Daily cross-language kernel audit" --force -R "$GITHUB_REPOSITORY"
 
       - name: Audit and fix
         uses: anthropics/claude-code-action@v1
@@ -125,9 +143,9 @@ jobs:
           BASH_MAX_OUTPUT_LENGTH: "150000"
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: '--model claude-fable-5 --effort max --allowed-tools "Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
+          claude_args: '--model claude-fable-5 --fallback-model claude-opus-4-8 --effort max --allowed-tools "Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
           prompt: |
-            You are the weekly kernel auditor AND fixer for this multi-language geometry
+            You are the daily kernel auditor AND fixer for this multi-language geometry
             kernel (C++ is ground truth; Python and Rust are ports that must mirror it — see
             CLAUDE.md: identical APIs, variable names, test logic and line counts across
             languages; least verbose style; Python floor is 3.9 (Rhino 8's embedded CPython)
@@ -180,6 +198,20 @@ jobs:
             pass; a reverted fix goes back into the report as a recommendation with what you
             learned.
 
+            WRITING RULES (apply to every PR title, PR body, commit message and the
+            report issue). The audit is read by a human in a PR list, so keep it scannable:
+            - PR title: `<class>: <what changed>`, <= 60 characters, no suffix or tag.
+            - PR body: EXACTLY these three lines, nothing else — no headings, no bullet
+              lists, no "Why" section, no cross-repo narration:
+                **What:** <the defect or gap, one sentence>
+                **Fix:** <what you changed, one sentence, with the `file:line` you touched>
+                **Tests:** `<minitest command>` <N/N> (<class> <n/n>)
+              Hard cap 600 characters. A parity PR in another repo is referenced by one
+              trailing `(parity: <repo>#<n>)` inside the Fix line, never a paragraph.
+            - Never restate what the diff already shows, never explain the algorithm, never
+              quote code in a PR body. One sentence per line means one sentence.
+            - No emoji anywhere. No praise, no summary of your own process.
+
             PHASE 3 — DELIVER. Commit discipline throughout Phase 2: ONE commit per
             logical adjustment per repo (plain descriptive messages; repo rule: no AI
             co-author line). The environment variable CAN_PUSH tells you which mode:
@@ -188,8 +220,9 @@ jobs:
               (session_cpp / session_py / session_rust — authenticated checkouts):
                 1. branch `kernel-audit/${{ steps.pick.outputs.class }}-${{ github.run_id }}-<n>-<slug>`
                    from origin/main carrying only that adjustment's commit;
-                2. push it and `gh pr create -R petrasvestartas/<submodule>` — body: what
-                   changed, why, and the minitest evidence from Phase 2;
+                2. push it and `gh pr create -R petrasvestartas/<submodule>` with a title
+                   and body in the three-line form above (`--body-file`, never a heredoc
+                   that grows extra sections);
                 3. `gh pr review --approve -R ...` (tolerate failure — GitHub rejects
                    self-approval when the PR author is the same identity; the merge below is
                    the approval that counts, backed by the green suites);
@@ -217,12 +250,18 @@ jobs:
               these to automatic per-adjustment PRs merged on green.
 
             Finally create EXACTLY ONE GitHub issue — never split across several issues.
-            Budget the body under ~55k characters; keep every file:line citation, trim prose
-            first. Create with:
+            Create with:
             gh issue create -R ${{ github.repository }} --label kernel-audit
             --title "Kernel audit: ${{ steps.pick.outputs.class }} (${{ github.run_id }})"
             --body-file <report file>
-            Body: one-paragraph executive summary; the six audit sections; WHAT WAS FIXED —
-            one line per adjustment with its merged PR links (or diffs in CAN_PUSH=0 mode)
-            and the test evidence; any PR left unmerged (red checks) flagged loudly at the
-            top; remaining recommendations ranked.
+            The body is a short report, hard cap 6000 characters, in exactly this order:
+            - a `RED: <what is broken>` line FIRST if any PR stayed unmerged or any workflow
+              is red; omit the line entirely when everything is green.
+            - one line: `Fixed: <n> | Recommendations: <n> | Suites: cpp <N/N>, py <N/N>, rust <N/N>`
+            - `## Fixed` — one line per adjustment: `- <one sentence> — <repo>#<n>`.
+              In CAN_PUSH=0 mode this section instead carries one ```diff block per repo.
+            - `## Recommendations` — ranked, one line each, every line carrying a `file:line`.
+            - `## Audit` — the six dimensions, one line each, `file:line` for every claim;
+              a clean dimension is `- PERFORMANCE: clean.` and nothing more.
+            Citations survive the cap; prose does not. If it does not fit, cut sentences,
+            never findings.
