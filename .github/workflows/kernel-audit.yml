@@ -145,6 +145,8 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_args: '--model claude-fable-5 --fallback-model claude-opus-4-8 --effort max --allowed-tools "Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
           prompt: |
+            ultrathink
+
             You are the daily kernel auditor AND fixer for this multi-language geometry
             kernel (C++ is ground truth; Python and Rust are ports that must mirror it — see
             CLAUDE.md: identical APIs, variable names, test logic and line counts across
@@ -160,9 +162,9 @@ jobs:
             - session_py/src/session_py/${{ steps.pick.outputs.class }}.py (+ ${{ steps.pick.outputs.class }}_test.py)
             - session_rust/src/${{ steps.pick.outputs.class }}.rs (+ ${{ steps.pick.outputs.class }}_test.rs)
 
-            EFFORT. This is a scheduled deep-audit session running at maximum reasoning
-            effort with a budget of several hours — depth beats speed, and finishing early
-            is not a goal. Do not economize: read every line of all six files (no skimming),
+            EFFORT. This is a scheduled deep-audit session: ultrathink on every step, at
+            maximum reasoning effort, with a budget of several hours — depth beats speed,
+            and finishing early is not a goal. Do not economize: read every line of all six files (no skimming),
             trace the hot paths by hand, check EVERY public method against both ports, and
             hand-verify each finding against the code before acting on it. After Phase 2,
             run a SECOND full audit pass over the post-fix code; keep iterating until a
