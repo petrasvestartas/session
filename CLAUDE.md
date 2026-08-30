@@ -28,8 +28,9 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 
 ## Git
 - NEVER add Claude/AI as git contributor, author, or co-author
-- The daily kernel-audit action (05:00 Europe/Zurich) merges fix PRs into main (parent +
-  submodules). At session start and after any audit merge: `git pull` in the parent and `git submodule update --remote`
+- The daily kernel-audit action (05:00 Europe/Zurich) opens ONE review-ready PR per kernel
+  submodule and merges nothing — you approve and merge, then bump the parent pointers.
+  At session start and after merging an audit PR: `git pull` in the parent and `git submodule update --remote`
   (or pull inside session_cpp/py/rust) before editing kernel code.
 - After EVERY push (parent or submodule): watch ALL workflows that push triggered to
   completion — parent `Session mini tests` included — `gh run list`/`gh run watch`; a push is
