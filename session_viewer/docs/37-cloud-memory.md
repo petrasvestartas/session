@@ -109,7 +109,7 @@ back out of it — picking, editing, saving, `Scene::rebuild`. A document that d
 is pure cost, which is what the manifest's `display_only` flag is for: it releases the Session
 the moment the walk is done, and on ten drawing sheets that is most of the gigabyte. Streaming
 past the kernel entirely — never building a `Session` for a scan at all — is lesson
-[42](42-streaming-cloud.md)'s subject.
+[43](43-streaming-cloud.md)'s subject.
 
 ## The finished tree
 

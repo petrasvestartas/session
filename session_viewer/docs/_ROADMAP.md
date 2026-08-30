@@ -340,39 +340,38 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
   colour claim pass, fullscreen resolve with frag_depth; folded mvp×model records (36 words);
   static skip when camera still; 2D dispatch (65535-workgroup trap INVALIDATES the command
   buffer silently). Fit view 10.6M pts: 60 fps idle/orbit/zoom
-- ✅ 40 The Potree look — EDL from the splat depth buffer (4 taps, shade floor 0.25),
-  attenuated world-sized splats (measured spacing × px/6, manifest px = far-size floor),
-  oct16 NORMALS + lambert; datasets: potree_import (Takanawa lion, 342k pts with normals)
-  and mk_bunny_cloud (sampled ground-truth normals)
-- ✅ 41 Cloud scenes — pb_bbox percentile packing (25 m gaps, shared ground plane), the
-  cloud_mix stress scene, final numbers (60 fps everywhere), keys/knobs; octree LOD = future
-- ✅ 42 Streaming cloud (implemented on the splat lane as its OWN stream lane; replay-verified + run live: 13.8M pts / 431 MB in 3.4 s, ~130 MB heap) — HTTP Range + a wire walk to `Session.3 → Objects.8 → PointCloud.3/.4`.
-  The packed-double length prefix gives the exact point count before any payload, so both GPU
-  buffers are sized once, exactly. No kernel `PointCloud` for the raw lane; `CloudSlot` (a name,
-  a count, an instance row) is the whole CPU footprint
-  - steps: Range not ReadableStream (split doubles/varints/headers are push-only risks); 8 MB
-    slices rounded to whole points; 206 or refuse; GPU up first; `next_tick` between slices;
-    empty `submit` to recycle Dawn staging
-  - verify: peak becomes CONSTANT; `pb/lidar_14m.pb` (13.8M pts) becomes loadable; and
-    `scenes/cloud_mix.toml` closes the series - sheets/model (prost path) INTERLEAVED with scans
-    (Range path), which is what proves the MSAA flip, the draw order and the F-fit all hold
-    with both kinds of data resident at once
 
-## Phase 4a — The lane refactor + cloud octree (43-44; inserted 2026-08-24, right after the cloud chain)
-- ⬜ 43 Lane structs — `ArenaUpload` + `Gpu` regrouped BY LANE: named rows (`CloudDraw`,
-  `ObjectBase`) replace every tuple; sub-structs `FrameUniforms`/`Layouts`/`Arena`/
-  `InstanceTable`/`SegmentLane`/`GlyphLane`/`CloudLane`/`Splat`/`StreamLane`; ~300 mechanical
-  whole-word renames + 17 hand hunks; behavior-identical (goldens: lion 325369, cloud_mix
-  12143, lidar14 3798 — pixel-exact, run twice)
-  - EVERY lesson from here on is written against the NEW field paths — never the old flat names
-- ⬜ 44 Cloud octree — kernel `SpatialOctree` (new 3-language class, 9/9 minitests each:
-  spacing-limited subsample per node, octree-order permutation) drives Potree-style LOD in
-  the splat lane: per-node records, screen-error selection, frustum cull, refined-vs-fringe
-  dot sizing. Measured: lion close-up PIXEL-IDENTICAL (325369); fit views draw 92k of 7.5M
-  (cloud_mix, 11887 px) and 38k of 13.8M (lidar14, 3548 px). VIEWER_LOD=0 = exact old
-  behavior (reorder is depth-race invariant). Streamed clouds not LOD'd (no CPU points)
+## Phase 4a — The point-cloud chain (40–44) — FINISHED BEFORE ANY REFACTOR (user, 2026-08-29)
+- ✅ 40 The Potree look — EDL from the splat depth buffer (4 taps, shade floor 0.25) and
+  attenuated world-sized splats (measured spacing × px/6, manifest px = far-size floor)
+- ✅ 41 Cloud normals — oct16 normals + lambert in the splat lane (record 24 → 36 words, the
+  model's rotation columns ride along); the two datasets that carry normals: potree_import
+  (Takanawa lion, 342k pts, `lion_takanawa_normals`) and mk_bunny_cloud (400k sampled pts with
+  exact ground-truth normals). Both `.pb`s and the lion's Potree source are TRACKED
+- ✅ 42 Cloud scenes — pb_bbox percentile packing (25 m gaps, shared ground plane), the
+  cloud_mix stress scene, final numbers (60 fps everywhere), keys/knobs
+- ✅ 43 Streaming cloud — HTTP Range + a wire walk to `Session.3 → Objects.8 → PointCloud.3/.4`;
+  its OWN stream lane beside the walked one (13.8M pts / 431 MB in 3.4 s, ~130 MB heap).
+  `splat_records` is factored out here, which is the anchor lesson 44 edits
+- ⬜ 44 Cloud octree — kernel `SpatialOctree` (new 3-language class) drives Potree-style LOD in
+  the splat lane: per-node records, screen-error selection, frustum cull. Lion close-up
+  PIXEL-IDENTICAL; fit views draw 92k of 7.5M. Streamed clouds opt out (no CPU points).
+  **The point-cloud chain ends here — the restructure (45-51) starts only after it**
 
-## Phase 4b — Curved geometry (45–49; MOVED before infrastructure & interaction, 2026-08-24: every kernel type renders first. RETARGETED to the end-of-42 code: the walk already draws curves/surfaces/breps — these lessons make them cached and honest; the box/pick/tool arms LIVE in the lessons that build those maps — 54, 57/59, 73)
+## Phase 4b — The restructuring (45–51; USER DECISION 2026-08-28: after the pointcloud chain, plain numbers — spec: `_ARCHITECTURE_TARGET.md`, plan: `_RESTRUCTURE_PLAN.md`)
+- ⬜ 45–51 The lanes and the walk — `Gpu` ~110 → ~19 fields, ONE file per render lane
+  (`engine/gpu/{buffers,upload,frame,targets,instance,objects,arena,segments,glyphs,cloud,splat,stream,backdrop,render,present,view}.rs` — one per ROW FAMILY, not per shader)
+  and ONE file per geometry type (`app/walk/{mesh,mesh_ink,mesh_topology,brep,surface,curves,points,
+  frames,cloud}.rs`); `push_mesh` 8 params → `Walk`; `pipelines/build.rs` 845 → ~135 via `PipelineDesc`;
+  `Pipelines::new` 10 → 3 params. ZERO behaviour change: goldens of the end-of-44 tree pixel-identical
+  after every lesson, run twice. Lessons are generated from a verified scratch build (one commit per
+  lesson) and replay-checked; old 45–99 shift up when they land. Every lesson from 52 on is written
+  against the NEW paths.
+  - Prerequisite chain, made replayable on main: 40 Potree look (EDL + attenuation) · 41 Cloud normals
+    (split out of 40) · 42 Cloud scenes (ex-41) · 43 Streaming cloud (ex-42) · 44 Cloud octree
+    (re-anchored to main's flat paths; the old 43-lane-structs it assumed is deleted)
+
+## Phase 4c — Curved geometry (45–49; MOVED before infrastructure & interaction, 2026-08-24: every kernel type renders first. RETARGETED to the end-of-42 code: the walk already draws curves/surfaces/breps — these lessons make them cached and honest; the box/pick/tool arms LIVE in the lessons that build those maps — 54, 57/59, 73)
 - ✅ 45 NurbsCurve — evaluate + draw
   - steps: kernel `NurbsCurve` sampled by parameter (adaptive count from span count) → polyline →
     the 31 cylinder path; `NurbsCurveTool` (N control clicks + Enter) via the Tool trait — lives in 73

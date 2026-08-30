@@ -17,7 +17,7 @@ screen-error walk picks nodes: far clouds stop at coarse ancestors (a few big do
 near clouds descend to raw leaves. Zoomed out, a 13.8M-point scene costs 38k points;
 zoomed in, you get every point back, pixel-exact.
 
-Streamed clouds (lesson [42](42-streaming-cloud.md)) keep their whole-cloud record —
+Streamed clouds (lesson [43](43-streaming-cloud.md)) keep their whole-cloud record —
 their points never exist on the CPU, so there is nothing to build a tree from. That is
 import-side work for another day.
 

@@ -1,6 +1,6 @@
-# 41 Cloud scenes — datasets, bbox packing, and the stress test
+# 42 Cloud scenes — datasets, bbox packing, and the stress test
 
-> Direct-path chain (36–41); replay-verified.
+> Direct-path chain (36–44); replay-verified.
 
 ## Goal
 
@@ -53,7 +53,7 @@ Intel RPL-S iGPU (Vulkan under BrowserWebGpu), 1332×927, rAF medians:
 ```
 
 The remaining known costs are NOT the clouds: the load-phase jank (1–3 fps while sheets
-parse) is the main-thread prost decode — lesson [42](42-streaming-cloud.md)'s territory —
+parse) is the main-thread prost decode — lesson [43](43-streaming-cloud.md)'s territory —
 and the occasional 20 ms rebase blip is the 210k-object instance table, throttled to
 ≤5/s by lesson [38](38-big-scenes.md).
 
@@ -149,7 +149,7 @@ The scene manifests themselves — `cloud_mix.json` (the packed stress scene),
 Potree's remaining edge is the **octree**: a multi-res hierarchy selected by screen-space
 error. Lesson [44](44-cloud-octree.md) builds it for the walked lane on the kernel's own
 `SpatialOctree`; streaming BY OCTREE NODE (unbounded scale) stays future work beside
-lesson [42](42-streaming-cloud.md)'s byte-range streaming.
+lesson [43](43-streaming-cloud.md)'s byte-range streaming.
 
 
 ## Expected state

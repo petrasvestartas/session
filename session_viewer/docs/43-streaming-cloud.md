@@ -1,7 +1,7 @@
-# 42 Streaming cloud — HTTP Range in, GPU rows out
+# 43 Streaming cloud — HTTP Range in, GPU rows out
 
-> Direct-path chain (36-42); every step below is replay-verified against a clean
-> end-of-35 checkout carried through lesson [41](41-cloud-scenes.md), and the whole
+> Direct-path chain (36-44); every step below is replay-verified against a clean
+> end-of-35 checkout carried through lesson [42](42-cloud-scenes.md), and the whole
 > pipeline was then run live against the real files - the numbers in **Expected state**
 > are measured, not estimated.
 
@@ -94,7 +94,7 @@ table — and the two lanes MEET in the shared per-pixel depth/colour buffers, b
 atomics compose across dispatches: both lanes' `cs_depth` passes contest the same
 `atomicMax` race, and the resolve triangle never knows there were two. The cost is a
 second bind-group pair and a second dispatch; the payoff is that nothing about lessons
-36-41 changes underneath, and `rebuild` preserves streamed clouds for free because
+36-42 changes underneath, and `rebuild` preserves streamed clouds for free because
 `set_scene` never touches their buffers.
 
 ## Files we touch
@@ -997,9 +997,12 @@ file. The whole-file path would have peaked near a gigabyte.
 
 ## Next
 
-[43 — Lane structs](43-lane-structs.md): before any new geometry, the flat `Gpu` and
-`ArenaUpload` earn their split — named rows and per-lane sub-structs, behavior-identical.
-Every lesson after it speaks the new field paths. Then
-[44 — Cloud octree](44-cloud-octree.md) gives the cloud lane Potree's LOD, and
-[45 — NurbsCurve](45-nurbscurve.md): the geometry block continues — every curved kernel type
-gets on screen (curves, surfaces, iso lines, BReps, trims) before any interaction machinery exists.
+[44 — Cloud octree](44-cloud-octree.md) closes the point-cloud chain: the walked lane gets
+Potree's LOD on the kernel's own `SpatialOctree` — per-node records, screen-error selection,
+frustum culling. Streamed clouds (this lesson's lane) opt out; they have no CPU points to
+reorder.
+
+Only then does the code get its overhaul: **45-51** split the 2,100-line `gpu/mod.rs` into one
+file per render lane and `scene.rs` into one file per geometry type, as pure moves under a pixel
+gate (`_ARCHITECTURE_TARGET.md`). Every lesson from 52 on — curves, surfaces, BReps, picking,
+tools — is written against that tree.

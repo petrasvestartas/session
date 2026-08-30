@@ -7,12 +7,11 @@
 //! plus the `config` describing the surface size/format. It knows nothing app-specific — its whole
 //! job is "hand me a cleared frame". Higher layers sit on top and only talk to this.
 
- 
-
 use crate::engine::pipelines::Pipelines;
- 
+
 use crate::engine::performance::Performance;
 
+use bytemuck::bytes_of_mut;
 use session_rust::{Xform, RenderVertex, Point};
 
 /// Re-anchor distance: the instance table is rebased about a snapped anchor.
@@ -43,7 +42,7 @@ const INK_DEPTH_PREPASS: bool = false;
 
 /// Everything `Gpu` needs to fill its buffers, built and owened by `app::scene::Scene`,
 /// the engine borrows it, uploads, and forgets.
-/// Lanes stay apart (SOLID pipes/spheres vs flat segments/glyphs) 
+/// Lanes stay apart (SOLID pipes/spheres vs flat segments/glyphs)
 /// and are spliced solid-first at upload.
 /// `objects` holds the TRUE per-object transfrom + tint + flags.
 /// `Gpu` builds instance rows from it and rebases them as the camera moves.
@@ -314,6 +313,7 @@ pub struct Gpu {
     splat_depth_pipeline: wgpu::ComputePipeline,
     splat_color_pipeline: wgpu::ComputePipeline,
     splat_total: u32,
+    splat_state: Option<([f32; 16], f32)>, // (mvp, cloud_size) the buffers were build for; None = stale
     mvp_f32: [f32; 16],
     cloud_draws: Vec<(u32, u32, u32, f32)>, // (first, count, instance, spacing)
     pub point_count: u32,
@@ -322,6 +322,8 @@ pub struct Gpu {
     pub cloud_buffer: wgpu::Buffer,
     pub cloud_size: f32, // global SCALE on per-cloud sizes, [ and ] keys
     last_rebase_ms: f64, // throttle - a 210k-row rebase costs ~25 ms, one per frame is jank
+    pub edl_strength: f32, // Eye-Dome Lighting strength; 0 = off (VIEWER_EDL)
+    last_ortho_h: f32, // ortho half-height this frame (0=perspective), for the plat k
     pub cloud_bind_group: wgpu::BindGroup,
     pub depth_view: wgpu::TextureView,
     pub msaa_view: wgpu::TextureView,
@@ -352,7 +354,6 @@ impl Gpu {
         width: u32,
         height: u32,
     ) -> anyhow::Result<Self> {
-        
 
         // 1. Instance — the driver entry point. WebGPU only in the browser, never WebGL.
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -400,7 +401,7 @@ impl Gpu {
                 ..Default::default()
             })
             .await?;
-    
+
         device.on_uncaptured_error(std::sync::Arc::new(|e|{ log::error!("wgpu on_uncaptured_error: {e}") }));
 
         // 5. Configure the surface: pixel format (prefer sRGB), size, vsync.
@@ -450,7 +451,7 @@ impl Gpu {
                 visibility: wgpu::ShaderStages::VERTEX,
                 ty: wgpu:: BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
                 count: None,
-            }],    
+            }],
         });
 
         let mvp_bind_group: wgpu::BindGroup = device.create_bind_group(&wgpu::BindGroupDescriptor{
@@ -485,13 +486,6 @@ impl Gpu {
             entries: &[wgpu::BindGroupEntry{ binding: 0, resource: time_buffer.as_entire_binding() }],
         });
 
-
-
-
-
-
-
-
         // The scene-shaped fields start as empty placeholders
         // WebGPU zero-initializes buffers, and every *_count is 0, so the first frame draws nothing.
         // The loader calls set_scene the moment the first file's tables exist.
@@ -503,7 +497,7 @@ impl Gpu {
         // is copied GPU-side into the bigger one, and a buffer without COPY_SRC cannot be the
         // source of that copy.
         let instance_buffer = zeroed_buffer(
-            &device, 
+            &device,
             "instance.buffer",
             std::mem::size_of::<Instance>() as u64,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
@@ -526,9 +520,9 @@ impl Gpu {
             entries: &[wgpu::BindGroupLayoutEntry{
                 binding: 0,
                 visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer { 
-                    ty: wgpu::BufferBindingType::Storage { read_only: true }, 
-                    has_dynamic_offset: false, 
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                    has_dynamic_offset: false,
                     min_binding_size: None,
                 },
                 count: None,
@@ -575,10 +569,10 @@ impl Gpu {
             std::mem::size_of::<CylinderSegment>() as u64,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
         let segment_buffer =  zeroed_buffer(
-            &device, "segments.buffer", 
-            std::mem::size_of::<CylinderSegment>() as u64, 
+            &device, "segments.buffer",
+            std::mem::size_of::<CylinderSegment>() as u64,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
-        
+
         let segment_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
             label: Some("segments.layout"),
             entries: &[wgpu::BindGroupLayoutEntry {
@@ -599,7 +593,7 @@ impl Gpu {
         let (sph_v, sph_i) = unit_quad();
         let sph_index_count = sph_i.len() as u32;
         let sph_template_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
-            label: Some("sph.template.vbo"), 
+            label: Some("sph.template.vbo"),
             contents: bytemuck::cast_slice(&sph_v),
             usage: wgpu::BufferUsages::VERTEX,
         });
@@ -616,8 +610,8 @@ impl Gpu {
             std::mem::size_of::<GlyphPoint>() as u64,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
         let glyph_buffer =  zeroed_buffer(
-            &device, 
-            "glyphs.buffer", 
+            &device,
+            "glyphs.buffer",
             std::mem::size_of::<GlyphPoint>() as u64,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
         let glyph_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
@@ -635,7 +629,6 @@ impl Gpu {
         });
         let sphere_bind_group = Self::mk_rows_group(&device, &glyph_layout, "spheres.bind_group", &sphere_buffer);
         let glyph_bind_group = Self::mk_rows_group(&device, &glyph_layout, "glyphs.bind_group", &glyph_buffer);
-        
 
         // Line uniform - scree-constant thickness
         let line_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -671,7 +664,7 @@ impl Gpu {
         });
 
         let line_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("line.bind_group"), 
+            label: Some("line.bind_group"),
             layout: &line_layout,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
@@ -727,6 +720,7 @@ impl Gpu {
                 Self::splat_entry(1, wgpu::BufferBindingType::Storage { read_only: true }), // col
                 Self::splat_entry(2, wgpu::BufferBindingType::Storage { read_only: false }), // sdepth
                 Self::splat_entry(3, wgpu::BufferBindingType::Storage { read_only: false }), // scolor
+                Self::splat_entry(4, wgpu::BufferBindingType::Storage { read_only: true }),
             ],
         });
 
@@ -746,10 +740,10 @@ impl Gpu {
                 wgpu::BindGroupLayoutEntry{
                     binding: 1,
                     visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer { 
-                        ty: wgpu::BufferBindingType::Storage { read_only: true }, 
-                        has_dynamic_offset: false, 
-                        min_binding_size: None 
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
+                        has_dynamic_offset: false,
+                        min_binding_size: None
                     },
                     count: None,
                 },
@@ -757,7 +751,7 @@ impl Gpu {
         });
 
         let splat_group0 = Self::mk_splat_group0(
-            &device, 
+            &device,
             &splat_group0_layout,
             &mvp_buffer,
             &cloud_buffer,
@@ -766,10 +760,11 @@ impl Gpu {
         );
 
         let splat_group1 = Self::mk_splat_group1(
-            &device, 
+            &device,
             &splat_group1_layout,
             &point_buffer,
             &point_col_buffer,
+            &point_nrm_buffer,
             &splat_depth_buf,
             &splat_color_buf,
         );
@@ -815,8 +810,8 @@ impl Gpu {
             &device,
             samples,
             config.format,
-            &mvp_layout, 
-            &time_layout, 
+            &mvp_layout,
+            &time_layout,
             &instance_layout,
             &line_layout,
             &segment_layout,
@@ -824,22 +819,21 @@ impl Gpu {
             &splat_resolve_layout,
         );
 
-
         // Output
         log::info!("viewer init OK — surface {}x{}, format {:?}", config.width, config.height, config.format);
-        Ok(Self { 
-            surface, 
-            device, 
-            queue, 
-            config, 
-            pipelines, 
+        Ok(Self {
+            surface,
+            device,
+            queue,
+            config,
+            pipelines,
             mvp_buffer, // shared: camera
-            mvp_bind_group, 
+            mvp_bind_group,
             line_buffer,  // shared: px-sizing for cylinders + spheres
             line_bind_group,
             time_buffer,    // shared: animation
             time_bind_group,
-            time: 0.0, 
+            time: 0.0,
             arena_vbo,
             arena_vids,
             arena_ibo,
@@ -910,6 +904,7 @@ impl Gpu {
             splat_depth_pipeline,
             splat_color_pipeline,
             splat_total: 0,
+            splat_state: None,
             mvp_f32: [0.0; 16],
             cloud_draws: Vec::new(),
             point_count,
@@ -921,6 +916,8 @@ impl Gpu {
             cloud_buffer,
             cloud_size: std::env::var("VIEWER_CLOUD_SCALE").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0),
             last_rebase_ms: 0.0,
+            edl_strength: std::env::var("VIEWER_EDL").ok().and_then(|v| v.parse().ok()).unwrap_or(0.25),
+            last_ortho_h: 0.0,
             cloud_bind_group,
             depth_view,
             msaa_view,
@@ -1092,7 +1089,7 @@ impl Gpu {
         self.point_count = pos_rows / 3;
         self.cloud_draws.extend_from_slice(&up.cloud_draws);
         self.rebuild_splat_groups();
-
+        self.splat_state = None;
 
         self.last_origin = None; // force the next frame to rebase agains the new table
         self.scene_min = up.min;
@@ -1175,24 +1172,26 @@ impl Gpu {
             self.instances[i].model = m;
         }
         self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
+        self.splat_state = None; // instance model moved - splats are stale
+
     }
 
     // splat helpers - one compute-visible buffer entry, and the three bind groups,
     // rebuilt whenever any bound buffer is recreated (set_scene, resize)
     fn splat_entry(
-        binding: u32, 
+        binding: u32,
         ty: wgpu::BufferBindingType) -> wgpu::BindGroupLayoutEntry{
-        wgpu::BindGroupLayoutEntry { 
-            binding, 
-            visibility: wgpu::ShaderStages::COMPUTE, 
-            ty: wgpu::BindingType::Buffer { ty, has_dynamic_offset: false, min_binding_size: None }, 
+        wgpu::BindGroupLayoutEntry {
+            binding,
+            visibility: wgpu::ShaderStages::COMPUTE,
+            ty: wgpu::BindingType::Buffer { ty, has_dynamic_offset: false, min_binding_size: None },
             count: None }
     }
 
     fn mk_splat_group0(
-        device: &wgpu::Device, 
-        layout: &wgpu::BindGroupLayout, 
-        mvp: &wgpu::Buffer, 
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        mvp: &wgpu::Buffer,
         cloud: &wgpu::Buffer,
         instances: &wgpu::Buffer,
         recs: &wgpu::Buffer
@@ -1210,10 +1209,11 @@ impl Gpu {
     }
 
     fn mk_splat_group1(
-        device: &wgpu::Device, 
-        layout: &wgpu::BindGroupLayout, 
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
         pos: &wgpu::Buffer,
         col: &wgpu::Buffer,
+        nrm: &wgpu::Buffer,
         sdepth: &wgpu::Buffer,
         scolor: &wgpu::Buffer,
     ) -> wgpu::BindGroup {
@@ -1225,6 +1225,7 @@ impl Gpu {
                 wgpu::BindGroupEntry{binding: 1, resource: col.as_entire_binding()},
                 wgpu::BindGroupEntry{binding: 2, resource: sdepth.as_entire_binding()},
                 wgpu::BindGroupEntry{binding: 3, resource: scolor.as_entire_binding()},
+                wgpu::BindGroupEntry{binding: 4, resource: nrm.as_entire_binding()},
             ],
         })
     }
@@ -1256,7 +1257,7 @@ impl Gpu {
 
     fn rebuild_splat_groups(&mut self){
         self.splat_group0 = Self::mk_splat_group0(&self.device, &self.splat_group0_layout, &self.mvp_buffer, &self.cloud_buffer, &self.instance_buffer, &self.splat_recs);
-        self.splat_group1 = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.point_buffer, &self.point_col_buffer, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_group1 = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.point_buffer, &self.point_col_buffer, &self.point_nrm_buffer, &self.splat_depth_buf, &self.splat_color_buf);
         self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.splat_resolve_layout, &self.splat_depth_buf, &self.splat_color_buf);
 
     }
@@ -1273,6 +1274,7 @@ impl Gpu {
             self.splat_depth_buf = zeroed_buffer(&self.device, "splat.depth", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
             self.splat_color_buf = zeroed_buffer(&self.device, "splat.color", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
             self.rebuild_splat_groups();
+            self.splat_state = None;
 
         }
     }
@@ -1464,6 +1466,7 @@ impl Gpu {
         self.time += 1.0 / 60.0;
         self.queue.write_buffer(&self.time_buffer, 0, bytemuck::bytes_of(&self.time));
         self.mvp_f32 = view_proj.to_f32();
+        self.last_ortho_h = Self::ortho_half_height(view_proj);
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&self.mvp_f32));
 
         let line = LineUniform{
@@ -1481,7 +1484,7 @@ impl Gpu {
             size: self.cloud_size,
             vp_w: self.config.width as f32,
             vp_h: self.config.height as f32,
-            _pad: 0.0,
+            _pad: self.edl_strength, // EDL strength, read by the splat resolve
         }));
         self.update_inside_flags(view_proj);
     }
@@ -1540,7 +1543,8 @@ impl Gpu {
             let mut header = [0u32; 4];
             let mut recs: Vec<u8> = Vec::new();
             let mut cum = 0u32;
-            for &(first, count, inst, _spacing) in &self.cloud_draws {
+            let ortho_h = self.last_ortho_h as f64;
+            for &(first, count, inst, spacing) in &self.cloud_draws {
                 let Some(row) = self.instances.get(inst as usize) else { continue };
                 if row.flags & Instance::FLAG_HIDDEN != 0 { continue; }
                 let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * self.cloud_size;
@@ -1554,26 +1558,64 @@ impl Gpu {
                         }
                     }
                     recs.extend_from_slice(bytemuck::cast_slice(&m));
-                    recs.extend_from_slice(bytemuck::cast_slice(&[first, count, cum, (px * 0.5).to_bits()]));
+
+                    // tint.a smuggles the minimum radius (the manifest px, halved): without a
+                    // floor attenuation turns distant clouds to dust - Potree avoids that with
+                    // octree LOD (far nodes have bigger spacing)
+                    let tint = [row.color[0], row.color[1], row.color[2], (px * 0.5).max(0.5)];
+                    recs.extend_from_slice(bytemuck::cast_slice(&tint));
+                    // world radois = spacing x (px/6): manifest 6 ~ a full spacing of radius,
+                    // 3 ~ half. k folds the projection so the shader only divides by clip.w:
+                    // perspective: r_px = world_r * cot(fov/2) * vp_h/2 / w
+                    // ortho: r_px = world_r * vp_h / (2*ortho_h), anw w = 1
+                    // spacing was measured in the clouds's local units; the model may slcae
+                    // col0's length is that scale so the footprint reacher world units first.
+                    let mscale = ((row.model[0] as f64).powi(2) + (row.model[1] as f64).powi(2) + (row.model[2] as f64).powi(2)).sqrt();
+                    let world_r = (spacing as f64).max(1.0e-9) * mscale * 0.001 * (px as f64) / 6.0; // metres
+                    let k = if ortho_h > 0.0 {
+                        world_r / (2.0 * ortho_h)
+                    } else {
+                        world_r * 1.7320508 * 0.5
+                    }; // cot(30 deg) / 2
+                    recs.extend_from_slice(bytemuck::cast_slice(&[first, count, cum, (k as f32).to_bits()]));
+
+                    // the model rotation columns (translation-free), so a cloud with normals
+                    // can rotate them into world space for the lambrt term
+                    let b = &row.model;
+                    recs.extend_from_slice(bytemuck::cast_slice(&[
+                        b[0], b[1], b[2], 0.0f32,
+                        b[4], b[5], b[6], 0.0,
+                        b[8], b[9], b[10], 0.0,
+                    ]));
+
                     header[0] += 1;
                     cum += count;
                 }
             }
             header[1] = cum;
             self.splat_total = cum;
-            if cum > 0 {
+            // Static skip: camera still ,same sclae, nothing rebuild - the buffers already
+            // hold this example frame's splat, so the whole compute is free.
+            let state = (self.mvp_f32, self.cloud_size);
+            if cum > 0 && self.splat_state != Some(state) {
                 self.queue.write_buffer(&self.splat_recs, 0, bytemuck::bytes_of(&header));
                 self.queue.write_buffer(&self.splat_recs, 16, &recs);
                 encoder.clear_buffer(&self.splat_depth_buf, 0, None); // 0 bits = reverse-Z far = empty
                 encoder.clear_buffer(&self.splat_color_buf, 0, None);
+                // 2D grid: a 1D dispatch caps at 65535 workgroups (~4.2M threads) and an
+                // oversized dispatch invalidates the WHOLE command buffer - the frame
+                // silently never draws. 4096-wide rows cover any point count.
                 let groups = cum.div_ceil(64);
+                let gx = groups.min(4096);
+                let gy = groups.div_ceil(4096);
                 let mut cp = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
                 cp.set_bind_group(0, &self.splat_group0, &[]);
                 cp.set_bind_group(1, &self.splat_group1, &[]);
                 cp.set_pipeline(&self.splat_depth_pipeline);
-                cp.dispatch_workgroups(groups, 1, 1);
+                cp.dispatch_workgroups(gx, gy, 1);
                 cp.set_pipeline(&self.splat_color_pipeline);
-                cp.dispatch_workgroups(groups, 1, 1);
+                cp.dispatch_workgroups(gx, gy, 1);
+                self.splat_state = Some(state);
             }
         }
 
@@ -1591,18 +1633,17 @@ impl Gpu {
                         store: wgpu::StoreOp::Store,
                     },
                 })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { 
-                    view: &self.depth_view, 
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.depth_view,
                     depth_ops: Some(
                         wgpu::Operations{load: wgpu::LoadOp::Clear(0.0),
                         store:wgpu::StoreOp::Store,
-                    }), 
+                    }),
                     stencil_ops: None }),
                 timestamp_writes: None,
                 occlusion_query_set: None,
                 multiview_mask: None,
             });
-       
 
             // Pipelines - sequence of drawing is important:
             // background -> grid -> triangles -> sphere markers -> cylinders -> CLOUD -> ink
@@ -1613,7 +1654,7 @@ impl Gpu {
 
             // Background
             pass.set_pipeline(&self.pipelines.background);
-            pass.draw(0..3, 0..1); 
+            pass.draw(0..3, 0..1);
             draws += 1;
 
             // Grid first as the depth writes are off, all objects paints over it
@@ -1789,7 +1830,6 @@ impl Gpu {
         (draws, self.instances.len() as u32)
     }
 
-
     /// MSAA sample count for a scene. It cannot be chosen per lane: sample count belongs to the
     /// render PASS, and every pipeline drawn into a pass must match it, so 1x linework and 4x
     /// solids in one frame would need two passes and a depth resolve between them. Pick per scene
@@ -1815,6 +1855,12 @@ impl Gpu {
         self.inside.clear();
         self.instances.clear();
         self.instance_rows = 0;
+        // DERIVED from object_bounds_world (rebuilt in set_scene), so leaving it
+        // behind holds row indices into a vector that is now empty. `rebuild`
+        // hides that by re-walking immediately, but a scene that is cleared and
+        // then DRAWN before the next upload - reload_scene between Clear and the
+        // first File - panics in update_inside_flags on the stale rows.
+        self.bounded_rows.clear();
     }
 
     /// while ribbons and dots antialias themselves in the shader. A 2D sheet therefore pays
@@ -1910,7 +1956,6 @@ impl Instance {
     pub const FLAG_SHEET: u32 = 1 << 5;
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////
 /// Individual type memory layouts
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1967,7 +2012,6 @@ struct LineUniform{
 // frame, from every pipeline that binds group 1.
 const _: () = assert!(std::mem::size_of::<LineUniform>() == 48);
 
-
 // One instance of the unit-sphere template.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -2002,8 +2046,6 @@ struct CloudUniform{
 /// Primitives
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
 /// Unit-cylinder template mesh (positions + indices) along +Z, radius 1, z in [0,1], with cap fans.
 /// The shader rescales xy by the screen-constant radius and maps z along (p1-p0), so it's registered ONCE.
 fn unit_cylinder(sides: u32) -> (Vec<[f32; 3]>, Vec<u32>){
@@ -2031,7 +2073,6 @@ fn unit_cylinder(sides: u32) -> (Vec<[f32; 3]>, Vec<u32>){
     (v, idx)
 }
 
-
 /// Camera-facing quad template (positions + indices) for the instanced vertex markers. The
 /// shader expands it in SCREEN space and trims to a circle in the fragment with a 1px AA ramp,
 /// so the silhouette is a perfect circle at any radius. This replaced a tessellated unit sphere:
@@ -2050,10 +2091,39 @@ fn unit_quad() -> (Vec<[f32; 3]>, Vec<u32>) {
 }
 
 /// A fresh buffer of `size` bytes, zero-initialized by WebGPU - the write_buffer splice and the empty-category placeholders both rely on that guarantee.
-/// On-screen pen weight in px. `VIEWER_THICKNESS` overrides it so the headless harness can
-/// sweep line weight without a rebuild; unset (and always on wasm) it is the usual 2.0.
+/// On-screen pen weight in px. Default 2.0.
+///
+/// It was briefly 1.0, to stop an embedded viewer reading as a blob of ink. That trades one
+/// problem for a worse one: a tube is opaque GEOMETRY, and 4x MSAA gives a pixel four coverage
+/// samples - enough to smooth the edge of a shape that covers it, nothing at all for a shape
+/// THINNER than it. A 1 px pen lands on one or two samples and resolves dim and broken, and the
+/// density taper below (`WIRE_MIN_PENS`) can thin it to 0.15 of that again on a dense mesh. Two
+/// pixels is the floor at which MSAA has something to work with.
+///
+/// Tune per embed with `?thickness=1.5` rather than rebuilding, the same query-string mechanism
+/// as `?scene=`; `VIEWER_THICKNESS` does the same for native (env vars are unreachable on wasm).
 fn line_thickness_px() -> f32 {
-    std::env::var("VIEWER_THICKNESS").ok().and_then(|v| v.parse().ok()).unwrap_or(2.0)
+    #[cfg(target_arch = "wasm32")]
+    {
+        static PX: std::sync::OnceLock<f32> = std::sync::OnceLock::new();
+        return *PX.get_or_init(|| {
+            web_sys::window()
+                .and_then(|w| w.location().search().ok())
+                .and_then(|search| {
+                    search
+                        .trim_start_matches('?')
+                        .split('&')
+                        .find_map(|pair| pair.strip_prefix("thickness=").map(str::to_owned))
+                })
+                .and_then(|value| value.parse().ok())
+                .filter(|px: &f32| px.is_finite() && *px > 0.0)
+                .unwrap_or(2.0)
+        });
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::env::var("VIEWER_THICKNESS").ok().and_then(|v| v.parse().ok()).unwrap_or(2.0)
+    }
 }
 
 fn zeroed_buffer(

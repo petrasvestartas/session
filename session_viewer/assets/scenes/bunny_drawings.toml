@@ -12,12 +12,6 @@ file = "pb/mesh_bunny_grey.pb"
 name = "bunny"
 xform = [12845,0,0,0,  0,0,12845,0,  0,-12845,0,0,  3000,0,600,1]
 
-[[items]]  # the splat lane: 342k points with colors + normals
-file = "pb/lion.pb"
-name = "Takanawa lion"
-at = [-3000, 0, 2000]
-point_size = 4
-
 [[items]]  # flat-ink row at y = 4000
 file = "pb/30700_querschnitt_gg.pb"
 name = "Querschnitt G-G (2980 x 2526)"
@@ -29,3 +23,15 @@ file = "pb/draw_pd_treppenhaus04.pb"
 name = "Treppenhaus 04 (3119 x 2041)"
 at = [3000, 4000, 0]
 display_only = true   # a sheet is looked at, never picked: release the kernel document after the walk
+
+[[items]]  # the sampled cloud, beside the mesh it came from
+file = "pb/bunny_cloud.pb"
+name = "bunny cloud"
+xform = [12845,0,0,0,  0,0,12845,0,  0,-12845,0,0,  6000,0,600,1]
+point_size = 6
+
+[[items]]  # the splat lane: 342k points with colors + normals
+file = "pb/lion.pb"
+name = "Takanawa lion"
+at = [-3000, 0, 2000]
+point_size = 4
