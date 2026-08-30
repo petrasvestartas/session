@@ -143,7 +143,7 @@ jobs:
           BASH_MAX_OUTPUT_LENGTH: "150000"
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: '--model claude-fable-5 --fallback-model claude-opus-4-8 --effort max --allowed-tools "Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
+          claude_args: '--model claude-opus-5 --fallback-model claude-opus-4-8 --effort max --allowed-tools "Bash(git:*),Bash(gh pr:*),Bash(gh issue create:*),Bash(gh label:*),Bash(cargo:*),Bash(python3:*),Bash(pip:*),Bash(pip3:*),Bash(cmake:*),Bash(make:*),Bash(./bash/minitest.sh:*),Bash(bash bash/minitest.sh:*),Bash(chmod:*),Bash(wc:*),Bash(ls:*),Bash(diff:*),Bash(sleep:*)"'
           prompt: |
             ultrathink
 

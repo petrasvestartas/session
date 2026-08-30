@@ -160,6 +160,6 @@ session_viewer/docs/*/assets/
 # Editor/scratch leftovers
 *.bak
 /keep
-session_viewer/assets/pb/bunny_cloud.pb
-session_viewer/assets/pb/lion.pb
-session_viewer/assets/lion_src/
+# Lesson 40's two clouds are TRACKED (assets/pb/lion.pb 18 MB, bunny_cloud.pb 21 MB) so the
+# tutorial is "open a scene", not "download and convert". Their inputs are tracked beside them -
+# assets/lion_src/ and assets/pb/mesh_bunny_grey.pb - so either can be rebuilt from source.
