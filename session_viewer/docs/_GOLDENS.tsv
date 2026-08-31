@@ -1,24 +1,69 @@
-# docs/_GOLDENS.tsv - the pixel baseline for the restructure lessons. EMPTY ON PURPOSE.
-#
-# Recorded at git tag end-of-44, once lessons 43 (streaming) and 44 (cloud octree) are typed:
-#     ./docs/_gate.sh --record
-# Recording it before then bakes in numbers from a tree that is only at end-of-42, and the seven
-# byte-identical Move lessons would then be gated against the wrong frame.
-#
-# The baseline is a TAG, not a working tree. The live tree carries edits no lesson doc contains
-# (`show_points`/`show_lines`/`show_mesh_edges`, COPLANAR_DOT = 1.0 - 1e-9, the VIEWER_FRAMES
-# median loop, DEMO_SCENE_URL commented out), and `show_mesh_edges: false` alone gates two draws.
-# Tag first, record second, and pin Cargo.lock - `wgpu = "29.0"` is a caret range and an
-# unpinned resolver makes a golden diff indistinguishable from a regression.
-#
+# docs/_GOLDENS.tsv - recorded by docs/_gate.sh --record at git tag end-of-44.
+# The baseline is a TAG, not a working tree: an uncommitted edit moves these numbers.
 # columns: scene	config	pass	ink	draws	objects	ppm_sha256_16
-#
-# MANDATORY - lion, bunny, bunny_cloud, drawings_rotated. Every .pb they name is TRACKED, so a
-# fresh clone reproduces these. x4 configs x2 passes = 32 rows.
-#
-# ADVISORY - drawings, bunny_drawings, cloud_mix, lidar14. Their .pb assets are gitignored
-# (>50 MB); _gate.sh skips them loudly by name when absent and they never fail the gate.
-#
-# ppm_sha256_16 reads `nondet(splat)` for cloud scenes: the splat lane is a 2-pass atomic compute
-# rasterizer, so contested pixels are a race. MEASURED 2026-08-31 - `lion` produced three distinct
-# PPM hashes over eight runs while ink/draws/objects were 77543/4/1 every single time.
+# MANDATORY - resolves entirely to tracked .pb; a fresh clone must reproduce these.
+lion	default	1	77543	4	1	nondet(splat)
+lion	default	2	77543	4	1	nondet(splat)
+lion	VIEWER_LINE_STYLE=tubes	1	77543	4	1	nondet(splat)
+lion	VIEWER_LINE_STYLE=tubes	2	77543	4	1	nondet(splat)
+lion	VIEWER_REBUILD=1	1	77543	4	1	nondet(splat)
+lion	VIEWER_REBUILD=1	2	77543	4	1	nondet(splat)
+lion	VIEWER_INCREMENTAL=1	1	77543	4	1	nondet(splat)
+lion	VIEWER_INCREMENTAL=1	2	77543	4	1	nondet(splat)
+bunny	default	1	44215	9	6	nondet(mesh)
+bunny	default	2	44215	9	6	nondet(mesh)
+bunny	VIEWER_LINE_STYLE=tubes	1	43954	8	6	nondet(mesh)
+bunny	VIEWER_LINE_STYLE=tubes	2	43954	8	6	nondet(mesh)
+bunny	VIEWER_REBUILD=1	1	44215	9	6	nondet(mesh)
+bunny	VIEWER_REBUILD=1	2	44215	9	6	nondet(mesh)
+bunny	VIEWER_INCREMENTAL=1	1	44215	9	6	nondet(mesh)
+bunny	VIEWER_INCREMENTAL=1	2	44215	9	6	nondet(mesh)
+bunny_cloud	default	1	7511	4	1	nondet(splat)
+bunny_cloud	default	2	7511	4	1	nondet(splat)
+bunny_cloud	VIEWER_LINE_STYLE=tubes	1	7511	4	1	nondet(splat)
+bunny_cloud	VIEWER_LINE_STYLE=tubes	2	7511	4	1	nondet(splat)
+bunny_cloud	VIEWER_REBUILD=1	1	7511	4	1	nondet(splat)
+bunny_cloud	VIEWER_REBUILD=1	2	7511	4	1	nondet(splat)
+bunny_cloud	VIEWER_INCREMENTAL=1	1	7511	4	1	nondet(splat)
+bunny_cloud	VIEWER_INCREMENTAL=1	2	7511	4	1	nondet(splat)
+drawings_rotated	default	1	25043	10	155465	8c339ef1c45a1e39
+drawings_rotated	default	2	25043	10	155465	8c339ef1c45a1e39
+drawings_rotated	VIEWER_LINE_STYLE=tubes	1	24970	9	155465	0436f04fe5fc5c7c
+drawings_rotated	VIEWER_LINE_STYLE=tubes	2	24970	9	155465	0436f04fe5fc5c7c
+drawings_rotated	VIEWER_REBUILD=1	1	25043	10	155465	8c339ef1c45a1e39
+drawings_rotated	VIEWER_REBUILD=1	2	25043	10	155465	8c339ef1c45a1e39
+drawings_rotated	VIEWER_INCREMENTAL=1	1	25043	10	155465	8c339ef1c45a1e39
+drawings_rotated	VIEWER_INCREMENTAL=1	2	25043	10	155465	8c339ef1c45a1e39
+# ADVISORY - local-only scenes; gitignored .pb assets. Never fails the gate.
+drawings	default	1	51565	10	744040	44ddc4171fc50953
+drawings	default	2	51565	10	744040	44ddc4171fc50953
+drawings	VIEWER_LINE_STYLE=tubes	1	51507	9	744040	7dfb44e580e84bb8
+drawings	VIEWER_LINE_STYLE=tubes	2	51507	9	744040	7dfb44e580e84bb8
+drawings	VIEWER_REBUILD=1	1	55234	9	5	422819286f0691d3
+drawings	VIEWER_REBUILD=1	2	55234	9	5	422819286f0691d3
+drawings	VIEWER_INCREMENTAL=1	1	51565	10	744040	44ddc4171fc50953
+drawings	VIEWER_INCREMENTAL=1	2	51565	10	744040	44ddc4171fc50953
+bunny_drawings	default	1	46464	11	148560	nondet(splat)
+bunny_drawings	default	2	46464	11	148560	nondet(splat)
+bunny_drawings	VIEWER_LINE_STYLE=tubes	1	46316	10	148560	nondet(splat)
+bunny_drawings	VIEWER_LINE_STYLE=tubes	2	46316	10	148560	nondet(splat)
+bunny_drawings	VIEWER_REBUILD=1	1	41997	10	8	nondet(splat)
+bunny_drawings	VIEWER_REBUILD=1	2	41997	10	8	nondet(splat)
+bunny_drawings	VIEWER_INCREMENTAL=1	1	46464	11	148560	nondet(splat)
+bunny_drawings	VIEWER_INCREMENTAL=1	2	46464	11	148560	nondet(splat)
+cloud_mix	default	1	7469	11	210892	nondet(splat)
+cloud_mix	default	2	7469	11	210892	nondet(splat)
+cloud_mix	VIEWER_LINE_STYLE=tubes	1	7455	10	210892	nondet(splat)
+cloud_mix	VIEWER_LINE_STYLE=tubes	2	7455	10	210892	nondet(splat)
+cloud_mix	VIEWER_REBUILD=1	1	7469	11	210892	nondet(splat)
+cloud_mix	VIEWER_REBUILD=1	2	7469	11	210892	nondet(splat)
+cloud_mix	VIEWER_INCREMENTAL=1	1	7469	11	210892	nondet(splat)
+cloud_mix	VIEWER_INCREMENTAL=1	2	7469	11	210892	nondet(splat)
+lidar14	default	1	3549	4	1	nondet(splat)
+lidar14	default	2	3549	4	1	nondet(splat)
+lidar14	VIEWER_LINE_STYLE=tubes	1	3549	4	1	nondet(splat)
+lidar14	VIEWER_LINE_STYLE=tubes	2	3549	4	1	nondet(splat)
+lidar14	VIEWER_REBUILD=1	1	3549	4	1	nondet(splat)
+lidar14	VIEWER_REBUILD=1	2	3549	4	1	nondet(splat)
+lidar14	VIEWER_INCREMENTAL=1	1	3549	4	1	nondet(splat)
+lidar14	VIEWER_INCREMENTAL=1	2	3549	4	1	nondet(splat)

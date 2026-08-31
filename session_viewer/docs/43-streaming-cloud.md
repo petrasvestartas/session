@@ -106,18 +106,29 @@ second bind-group pair and a second dispatch; the payoff is that nothing about l
 | `src/engine/gpu/mod.rs` | the stream lane: buffers, `stream_reserve`, `cloud_begin`/`cloud_pos`/`cloud_col`, `grow_scene`; `splat_records` factored out; two-lane dispatch; `set_scene` keeps a finite box |
 | `src/app/scene.rs` | `Item.stream`, `CloudSlot`, `begin_cloud`, `grow_bounds`; `rebuild` preserves streamed clouds |
 | `src/lib.rs` | four `Msg` variants, GPU-first boot, the streaming branch, four handler arms |
-| `assets/scenes/*.json` | `"stream": true` on the scan items |
+| `assets/scenes/*.toml` | `stream = true` on the scan items |
 
 ---
 
 ## Step 1 — `Cargo.toml`
 
-Find the `web-sys` feature list and add `"Headers",` after `"ImageData",`. Setting a
-`Range` header needs it.
+Setting a `Range` header needs one more `web-sys` binding. **Find** in `Cargo.toml`:
+
+```toml
+    "Response",
+```
+
+**Add below it:**
+
+```toml
+    "Headers",
+```
 
 ## Step 2 — the reader: `src/app/persistence.rs`
 
-Two edits. First, the loader will yield between slices, so **Find** `async fn next_tick() {` and **Replace with:** `pub async fn next_tick() {`
+Three edits. First, the loader will yield between slices, so **Find** `async fn next_tick() {` and **Replace with:** `pub async fn next_tick() {`
+
+Second, the block below sets a `Range` header, so **Find** `use web_sys::{Request, RequestInit, RequestMode, Response};` and **Replace with:** `use web_sys::{Headers, Request, RequestInit, RequestMode, Response};`
 
 Then the whole streaming block goes at the end of the file. **Find** the last lines of
 `src/app/persistence.rs`:
@@ -312,7 +323,13 @@ noise-level memory (26 MB against the coords' 84 MB).
 
 ## Step 3 — the GPU side: `src/engine/gpu/mod.rs`
 
-**3a — fields.** Find `pub point_count: u32,` and add below it:
+**3a — fields.** The stream lane's own buffers, counters and record table. **Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    pub point_count: u32,
+```
+
+**Add below it:**
 
 ```rust
     // The STREAM lane: clouds whose points never existed on the CPU. Their own three buffers
@@ -354,7 +371,13 @@ lines):
         let splat_group1_stream = Self::mk_splat_group1(&device, &splat_group1_layout, &stream_pos_buf, &stream_col_buf, &splat_depth_buf, &splat_color_buf, &stream_nrm_buf);
 ```
 
-and the matching struct-literal lines after `splat_state: None,`:
+Then the matching struct-literal entries. **Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            splat_state: None,
+```
+
+**Add below it:**
 
 ```rust
             stream_pos_buf,
@@ -372,16 +395,31 @@ and the matching struct-literal lines after `splat_state: None,`:
 
 **3c — group rebuilds.** `rebuild_splat_groups` recreates bind groups whenever a bound
 buffer is replaced — the stream lane's groups now belong in it too (the pixel buffers they
-bind are recreated on every resize). **Add** to its body, before the resolve-group line:
+bind are recreated on every resize). **Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.splat_resolve_layout, &self.splat_depth_buf, &self.splat_color_buf);
+```
+
+**Add above it:**
 
 ```rust
         self.splat_group0_stream = Self::mk_splat_group0(&self.device, &self.splat_group0_layout, &self.mvp_buffer, &self.cloud_buffer, &self.instance_buffer, &self.splat_stream_recs);
         self.splat_group1_stream = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.stream_pos_buf, &self.stream_col_buf, &self.splat_depth_buf, &self.splat_color_buf, &self.stream_nrm_buf);
 ```
 
-**3d — the grow API.** Add to `impl Gpu`, right after `rebuild_splat_groups`:
+**3d — the grow API.** Four methods, right after `rebuild_splat_groups` closes. **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
+        self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.splat_resolve_layout, &self.splat_depth_buf, &self.splat_color_buf);
+
+    }
+```
+
+**Add below it:**
+
+```rust
+
     /// Make room for `need` stream rows total, copying the live prefix GPU-side.
     ///
     /// EXACT, not doubling: appends here are few and huge, so doubling would waste over a
@@ -495,11 +533,20 @@ measures the point spacing (lesson 40's attenuation input) from the FIRST slice 
 consecutive distance, scan order being surface order, exactly `cloud_spacing`'s trick.
 
 **3e — two-lane dispatch.** The record builder moves out of `encode_frame` so both draw
-lists can use it. **Cut** the whole record loop (from `let mut header = [0u32; 4];` down
-to `header[1] = cum;`) plus the attenuation comment above it, and paste it as a method
-before `encode_frame`, generalised over `draws`:
+lists can use it, generalised over `draws`. It lands as a method of its own, immediately
+above `encode_frame`. **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
+        if dirty {
+            self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
+        }
+    }
+```
+
+**Add below it:**
+
+```rust
+
     /// Build the record table for one cloud lane. A record folds the cloud's whole per-frame
     /// state: mvp x rebased model as ONE matrix, the tint, the attenuation constant and the
     /// model rotation - so a thread does one mat-vec, no instance fetch.
@@ -559,9 +606,22 @@ before `encode_frame`, generalised over `draws`:
     }
 ```
 
-Then the compute prelude at the top of `encode_frame` becomes:
+That leaves the old record loop sitting inside `encode_frame`. It goes, and the whole
+compute prelude around it goes with it.
+
+**Remove** `src/engine/gpu/mod.rs` `        let mut draws = 0u32;` **through** `        }`
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
+    ) -> (u32, u32) {
+```
+
+**Add below it:**
+
+```rust
+        let mut draws = 0u32;
+
         // Splat the clouds by COMPUTE before the render pass. One thread per point,
         // twice (depth race, then colour claim); the render pass composites the result
         // with one fullscreen triangle. TWO record sets - the walked lane and the stream
@@ -659,8 +719,13 @@ past its NORMALS, which only the prost path decodes. **Find** in `Item`:
 
 The field only — do NOT close the struct here; `Item` has more fields after it.
 
-**4b — the slot.** A streamed cloud has no `Session` and no `Doc`. **Add above
-`pub struct Scene`:**
+**4b — the slot.** A streamed cloud has no `Session` and no `Doc`. **Find** in `src/app/scene.rs`:
+
+```rust
+pub struct Scene {
+```
+
+**Add above it:**
 
 ```rust
 /// A cloud whose points never became kernel objects: the loader streamed them from the file
@@ -673,12 +738,40 @@ pub struct CloudSlot {
     pub px: f32,
     pub instance: u32,
 }
+
 ```
 
-Give `Scene` the list — after `pub docs: Vec<Doc>,` add
-`pub clouds: Vec<CloudSlot>,` with the matching `clouds: Vec::new(),` in `Scene::new()`.
+Then `Scene` gets the list. **Find** in `src/app/scene.rs`:
 
-**4c — the row.** Add to `impl Scene`, above `rebuild`:
+```rust
+    pub docs: Vec<Doc>,
+```
+
+**Add below it:**
+
+```rust
+    pub clouds: Vec<CloudSlot>,
+```
+
+and its initialiser in `Scene::new`. **Find** in `src/app/scene.rs`:
+
+```rust
+        docs: Vec::new(),
+```
+
+**Add below it:**
+
+```rust
+        clouds: Vec::new(),
+```
+
+**4c — the row.** Two methods, above `rebuild`. **Find** in `src/app/scene.rs`:
+
+```rust
+    pub fn rebuild(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
+```
+
+**Add above it:**
 
 ```rust
     /// Widen the shared walk box by a streamed cloud's world AABB. Without this the box lives
@@ -695,7 +788,7 @@ Give `Scene` the list — after `pub docs: Vec<Doc>,` add
     /// Returns the instance row the streamed points will draw against.
     pub fn begin_cloud(&mut self, name: String, place: Xform, count: u32, px: f32) -> u32 {
         let row = self.tables.objects.len() as u32;
-        self.tables.objects.push((place.clone(), [1.0; 4], 0));
+        self.tables.objects.push((place.m, [1.0; 4], 0));
         self.tables.object_bounds.push(None);
         self.tables.object_spacing.push(px); // the manifest px rides the spacing row, like the walk's clouds
         // Keep the row bookkeeping aligned - `order` is indexed by row everywhere else.
@@ -705,6 +798,7 @@ Give `Scene` the list — after `pub docs: Vec<Doc>,` add
         self.clouds.push(CloudSlot { name, place, count, px, instance: row });
         row
     }
+
 ```
 
 The `object_bounds`/`object_spacing` pushes are the same row-alignment rule every walk arm
@@ -730,25 +824,37 @@ loop, so **Find** `        self.upload_to(gpu);` and **Add above it:**
 
 ## Step 5 — the loader: `src/lib.rs`
 
-**5a — the variants.** The `Msg` enum becomes:
+**5a — the variants.** Four messages carry a streamed cloud: one to reserve its rows, one
+per slice, one for the colour run, one to close it. **Find** in `src/lib.rs`:
 
 ```rust
-pub enum Msg {
     Ready(Box<State>),
-    File(String, session_rust::Session, session_rust::Xform, f32),
+```
+
+**Add below it:**
+
+```rust
     CloudBegin(String, session_rust::Xform, u32, f32),
     CloudPos(Vec<f32>),
     CloudCol(Vec<u32>),
     CloudEnd([f32; 3], [f32; 3]),
-}
 ```
+
+`CloudBegin` carries the name, the placement, the point count and the manifest px — the
+count is already known, which is what lets the GPU size its buffers once. `CloudPos` and
+`CloudCol` each carry one slice, and nothing keeps them after the handler runs.
 
 **5b — GPU first, empty.** One structural change: **the GPU and the canvas come up FIRST,
 empty.** A streamed cloud writes into GPU buffers, so the GPU has to exist before the
 first byte of geometry is fetched — and as a bonus the viewport is live immediately
-instead of after the first parse. In `resumed`'s `spawn_local`, after the manifest parse
-and `let count = ...`, **replace** the `let mut next = ...` / `let mut sent_ready` boot
-with:
+instead of after the first parse. In `resumed`'s `spawn_local`, **Find** in `src/lib.rs`:
+
+```rust
+                let mut next = manifest.items.first().map(|it| persistence::fetch_start(&it.file));
+                let mut sent_ready = false;
+```
+
+**Replace with:**
 
 ```rust
                 // The canvas and the GPU come up FIRST, empty. A streamed cloud writes into
@@ -764,13 +870,51 @@ with:
                 let mut next = manifest.items.first().and_then(prefetch);
 ```
 
-and inside the loop `next = manifest.items.get(i + 1).and_then(prefetch);` — the window-2
-fetch-ahead SURVIVES, it just skips `stream` items: eagerly starting a plain GET on a
-431 MB scan would pull the entire body, which is exactly what this lesson exists to
-prevent. The old `if !sent_ready { ... }` branch collapses to a plain
-`Msg::File(...)` send — `Ready` went out before the loop.
+The window-2 fetch-ahead SURVIVES, it just skips `stream` items: eagerly starting a plain
+GET on a 431 MB scan would pull the entire body, which is exactly what this lesson exists
+to prevent. **Find** in `src/lib.rs`:
 
-**5c — the streaming branch**, at the top of the loop body (before the whole-file fetch):
+```rust
+                    next = manifest.items.get(i + 1).map(|it| persistence::fetch_start(&it.file));
+```
+
+**Replace with:**
+
+```rust
+                    next = manifest.items.get(i + 1).and_then(prefetch);
+```
+
+And the first-file branch collapses to a plain `Msg::File` send — `Ready` went out before
+the loop. **Find** in `src/lib.rs`:
+
+```rust
+                    if !sent_ready {
+                        sent_ready = true;
+                        let mut scene = Scene::new();
+                        scene.add_file(name, session, place, item.point_size as f32, item.display_only);
+                        let state = State::new(window.clone(), scene).await.expect("State init failed");
+                        log::info!("first file on screen {:.0}ms after manifest fetch", crate::engine::performance::now_ms() - t0);
+                        let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+                    } else {
+                        let _ = proxy.send_event(Msg::File(name, session, place, item.point_size as f32, item.display_only));
+                    }
+```
+
+**Replace with:**
+
+```rust
+                    let _ = proxy.send_event(Msg::File(name, session, place, item.point_size as f32, item.display_only));
+```
+
+**5c — the streaming branch.** It goes at the top of the loop body: after the fetch-ahead
+for the NEXT item has been started (a `stream` item must not swallow its successor's
+prefetch) and before the whole-file fetch uses `cur`. **Find** in `src/lib.rs`:
+
+```rust
+                    next = manifest.items.get(i + 1).and_then(prefetch);
+```
+
+**Add below it:**
 
 ```rust
                     // ── STREAMING PATH ─────────────────────────────────────────────────
@@ -840,14 +984,31 @@ prevent. The old `if !sent_ready { ... }` branch collapses to a plain
 **microtasks**, and a microtask never lets the browser paint — the exact freeze that the
 sliced prost parse exists to avoid, reintroduced by a different route.
 
-**5d — the fit flag.** `App` gains a field — after `ctrl: bool,` add
+**5d — the fit flag.** `App` gains a field. **Find** in `src/lib.rs`:
+
+```rust
+    ctrl: bool,
+```
+
+**Add below it:**
 
 ```rust
     fitted: bool, // first geometry fits the camera; everything later only grows the extent
 ```
 
-(init `fitted: false,` in the constructor). The `Ready` arm no longer fits — the scene is
-empty at boot. **Find** in it:
+and its initialiser in `App::run`. **Find** in `src/lib.rs`:
+
+```rust
+            ctrl: false,
+```
+
+**Add below it:**
+
+```rust
+            fitted: false,
+```
+
+The `Ready` arm no longer fits — the scene is empty at boot. **Find** in it:
 
 ```rust
                 state.resize(w, h);
@@ -876,7 +1037,16 @@ And in the `Msg::File` arm (lesson [38](38-big-scenes.md)), **Find** `          
                 }
 ```
 
-**5e — the handlers.** Four new arms, after the `Msg::File` arm:
+**5e — the handlers.** Four new arms, at the end of the `Msg::File` arm. **Find** in
+`src/lib.rs`:
+
+```rust
+                    crate::engine::performance::heap_mb());
+                state.window.request_redraw();
+            }
+```
+
+**Add below it:**
 
 ```rust
             // A cloud, streaming. Nothing here holds points: begin_cloud reserves the GPU
@@ -909,7 +1079,7 @@ And in the `Msg::File` arm (lesson [38](38-big-scenes.md)), **Find** `          
                             if c & 2 == 0 { lo[1] } else { hi[1] },
                             if c & 4 == 0 { lo[2] } else { hi[2] },
                         ];
-                        let w = crate::app::scene::xform_point(&slot.place, corner);
+                        let w = crate::app::scene::xform_point(&slot.place.m, corner);
                         for k in 0..3 { wlo[k] = wlo[k].min(w[k]); whi[k] = whi[k].max(w[k]); }
                     }
                     state.gpu.grow_scene(wlo, whi);
@@ -931,18 +1101,23 @@ the cloud's local AABB, which the handler transforms by the slot's placement and
 
 ## Step 6 — the scenes
 
-Mark the scans in `assets/scenes/cloud_mix.toml`: each `lidar_scan*` item gains
-`"stream": true`. The lion keeps parsing whole — its normals live only on the prost path.
+Mark the scans in `assets/scenes/cloud_mix.toml`: each `lidar_scan*` item gains a
+`stream = true` line. The lion keeps parsing whole — its normals live only on the prost
+path.
 
-And a dedicated stress scene, `assets/scenes/lidar14.toml`:
+And a dedicated stress scene.
 
-```json
-{
-  "name": "lidar 14M streamed",
-  "items": [
-    { "file": "pb/lidar_14m.pb", "name": "lidar 14M", "at": [0, 0, 0], "point_size": 1, "stream": true }
-  ]
-}
+**Create `assets/scenes/lidar14.toml`**
+
+```toml
+name = "lidar 14M streamed"
+
+[[items]]
+file = "pb/lidar_14m.pb"
+name = "lidar 14M"
+at = [0, 0, 0]
+point_size = 1
+stream = true
 ```
 
 ## Expected state
