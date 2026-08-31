@@ -123,7 +123,7 @@ The chain table, as far as this lesson takes it:
 | file | what | step | why |
 |---|---|---|---|
 | `src/engine/gpu/instance.rs` | **NEW**, 159 lines | 4.1 | the row, the flag table, and the test that keeps five shaders honest |
-| `src/engine/gpu/objects.rs` | **NEW**, 341 lines | 4.2 | the object table and everything that keeps it current |
+| `src/engine/gpu/objects.rs` | **NEW**, 337 lines | 4.2 | the object table and everything that keeps it current |
 | `src/engine/gpu/arena.rs` | **NEW**, 303 lines | 4.3 | the triangle family: rows, buffers, pipelines, draws |
 | `src/engine/gpu/buffers.rs` | 140 → 132 | 6.1 | `GrowBuf` stops being dead; `append_index_run` 6 params → 3 |
 | `src/engine/gpu/upload.rs` | 110 → 98 | 6.2 | eight flat columns become two groups |
@@ -619,9 +619,6 @@ impl ObjectRows {
         Self { rows: Vec::new(), bounds: Vec::new(), spacing: Vec::new() }
     }
 
-    pub fn len(&self) -> usize {
-        self.rows.len()
-    }
 }
 
 /// The GPU-side object table, plus the CPU state a rebase needs.
@@ -660,17 +657,15 @@ impl InstanceTable {
         // source of that copy.
         let buffer = zeroed_buffer(
             device,
-            "instance.buffer",
+            BUFFER_LABEL,
             std::mem::size_of::<Instance>() as u64,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
-        let bind_group = mk_rows_group(device, &layouts.instance, "instances.bind_group", &buffer);
+        let bind_group = mk_rows_group(device, &layouts.instance, GROUP_LABEL, &buffer);
         Self {
             // The scene-shaped state starts as an empty placeholder. WebGPU zero-initializes
             // buffers and `on_gpu` is 0, so the first frame draws nothing; the first `append`
             // clears this row and starts the real table.
-            rows: vec![Instance {
-                model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0,
-            }],
+            rows: vec![placeholder_row()],
             base: Vec::new(),
             base_f32: Vec::new(),
             bounds_world: Vec::new(),
@@ -689,6 +684,10 @@ impl InstanceTable {
         self.rows.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.rows.is_empty()
+    }
+
     /// One rebased row, for a lane that needs its model/flags/spacing without touching the table.
     pub fn row(&self, i: usize) -> Option<&Instance> {
         self.rows.get(i)
@@ -698,11 +697,6 @@ impl InstanceTable {
     /// - the grid, the axes - which has to subtract the same origin or it drifts away.
     pub fn anchor(&self) -> Option<&Point> {
         self.last_origin.as_ref()
-    }
-
-    /// This row's world AABB, if it has one. The only way out of `bounds_world`.
-    pub fn bounds_world(&self, row: usize) -> Option<([f64; 3], [f64; 3])> {
-        self.bounds_world.get(row).copied().flatten()
     }
 
     /// Turn the NEW object rows into instance rows and send them.
@@ -721,6 +715,7 @@ impl InstanceTable {
             self.on_gpu = 0;
         }
         debug_assert_eq!(up.rows.len(), up.bounds.len());
+        debug_assert_eq!(up.rows.len(), up.spacing.len(), "a row without its spacing shifts every later row's");
         debug_assert!(up.rows.len() >= base, "the object table only ever grows");
         self.base.extend(up.rows[base..].iter().map(|o| ObjectBase { model: o.model, color: o.color, flags: o.flags }));
         self.base_f32.extend(up.rows[base..].iter().map(|o| mat_to_f32(&o.model)));
@@ -748,7 +743,8 @@ impl InstanceTable {
             })
         }));
         self.inside.resize(self.base.len(), false);
-        self.bounded_rows = self.bounds_world.iter().enumerate().filter_map(|(i, b)| b.map(|_| i as u32)).collect();
+        // Extend, don't re-walk: `bounds_world` only ever grows here, and `reset` empties both.
+        self.bounded_rows.extend((base..self.bounds_world.len()).filter(|&i| self.bounds_world[i].is_some()).map(|i| i as u32));
         // `bounds_world` was just extended above, so each row's extent comes from the same
         // AABB FLAG_INSIDE uses. The diagonal, not an axis: a flat sheet has a zero-thickness axis
         // and would clamp its ink lift to nothing.
@@ -757,7 +753,7 @@ impl InstanceTable {
             model: mat_to_f32(&o.model),
             color: o.color,
             flags: o.flags,
-            extent: bounds.get(base + i).and_then(|b| *b).map_or(0.0, |(lo, hi)| {
+            extent: bounds.get(base + i).copied().flatten().map_or(0.0, |(lo, hi)| {
                 ((hi[0] - lo[0]).powi(2) + (hi[1] - lo[1]).powi(2) + (hi[2] - lo[2]).powi(2)).sqrt() as f32
             }),
             spacing: up.spacing.get(base + i).copied().unwrap_or(0.0),
@@ -765,15 +761,13 @@ impl InstanceTable {
         }));
 
         if self.rows.is_empty(){
-            self.rows.push(Instance {model: Xform::identity().to_f32(), color: [0.5,0.5,0.5,1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0 });
+            self.rows.push(placeholder_row());
         }
 
-        let mut on_gpu = self.on_gpu;
-        let fresh = &self.rows[on_gpu as usize..];
-        if append_rows(ctx, "instance.buffer", &mut self.buffer, &mut on_gpu, &mut self.cap, fresh) {
-            self.bind_group = mk_rows_group(&ctx.device, &layouts.instance, "instances.bind_group", &self.buffer);
+        let fresh = &self.rows[self.on_gpu as usize..];
+        if append_rows(ctx, BUFFER_LABEL, &mut self.buffer, &mut self.on_gpu, &mut self.cap, fresh) {
+            self.bind_group = mk_rows_group(&ctx.device, &layouts.instance, GROUP_LABEL, &self.buffer);
         }
-        self.on_gpu = on_gpu;
 
         // The table just grew, so the anchor it was rebased about no longer covers every row.
         self.last_origin = None;
@@ -809,7 +803,7 @@ impl InstanceTable {
             self.rebuild(ctx, origin);
             self.last_rebase_ms = now;
         }
-        (self.last_origin.clone().unwrap(), rebuilt)
+        (self.last_origin.clone().expect("`rebuilt` is forced true whenever `last_origin` was None"), rebuilt)
     }
 
     /// Rebase every instance's translation around 'origin' - an f64 subtract against the TRUE world transform in 'base'
@@ -844,13 +838,15 @@ impl InstanceTable {
             let i = row as usize;
             let b = &self.bounds_world[i];
             let inside = in_scene && b.is_some_and(|(lo, hi)| (0..3).all(|k| ew[k] >= lo[k] && ew[k] <= hi[k]));
-            if self.inside.get(i).copied().unwrap_or(false) == inside {
+            // `bounded_rows` indexes `bounds_world`, and `append` keeps `inside` and `rows` the
+            // same length as it - so a miss here is a desync, not a case to tolerate.
+            debug_assert!(i < self.inside.len() && i < self.rows.len());
+            if self.inside[i] == inside {
                 continue;
             }
-            if let Some(row) = self.rows.get_mut(i) {
-                row.flags = if inside { row.flags | Instance::FLAG_INSIDE } else { row.flags & !Instance::FLAG_INSIDE };
-            }
-            if i < self.inside.len() { self.inside[i] = inside; }
+            let row = &mut self.rows[i];
+            row.flags = if inside { row.flags | Instance::FLAG_INSIDE } else { row.flags & !Instance::FLAG_INSIDE };
+            self.inside[i] = inside;
             dirty = true;
         }
         if dirty {
@@ -1809,7 +1805,7 @@ wc -l src/engine/gpu/instance.rs src/engine/gpu/objects.rs src/engine/gpu/arena.
 
 ```text
  159 src/engine/gpu/instance.rs
- 341 src/engine/gpu/objects.rs
+ 337 src/engine/gpu/objects.rs
  303 src/engine/gpu/arena.rs
 ```
 
@@ -3304,7 +3300,7 @@ macro_rules! same { ($($f:ident).+) => {
 **Replace with:**
 
 ```rust
-        if a.obj.len() != b.obj.len() { println!("  MISMATCH objects rows"); ok = false; }
+        if a.obj.rows.len() != b.obj.rows.len() { println!("  MISMATCH objects rows"); ok = false; }
 ```
 
 **Find** in `examples/check_lean.rs`:
@@ -3648,7 +3644,7 @@ cargo xtest 2>&1 | tail -3
 
   1335 src/engine/gpu/mod.rs
    159 src/engine/gpu/instance.rs
-   341 src/engine/gpu/objects.rs
+   337 src/engine/gpu/objects.rs
    303 src/engine/gpu/arena.rs
 
 src/math.rs
@@ -3665,7 +3661,7 @@ test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 | `Gpu` fields | 86 | **63** |
 | `gpu/mod.rs` | 1,691 | **1,335** |
 | `gpu/instance.rs` | — | **159** |
-| `gpu/objects.rs` | — | **341** |
+| `gpu/objects.rs` | — | **337** |
 | `gpu/arena.rs` | — | **303** |
 | `gpu/buffers.rs` | 140 | **132** |
 | `gpu/upload.rs` | 110 | **98** |

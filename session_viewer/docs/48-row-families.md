@@ -126,12 +126,12 @@ The chain table, extended:
 
 | file | what | step | why |
 |---|---|---|---|
-| `src/engine/gpu/segments.rs` | **NEW**, 323 lines | 4.1 | the row, both tables, five pipelines, three draws |
-| `src/engine/gpu/glyphs.rs` | **NEW**, 209 lines | 4.2 | the same shape for point-like ink |
-| `src/engine/gpu/buffers.rs` | 129 → 140 | 6.1 | `GrowBuf::append`, so a lane appends to itself |
-| `src/engine/gpu/upload.rs` | 92 → 94 | 6.2 | four flat columns become two groups |
+| `src/engine/gpu/segments.rs` | **NEW**, 338 lines | 4.1 | the row, both tables, five pipelines, three draws |
+| `src/engine/gpu/glyphs.rs` | **NEW**, 251 lines | 4.2 | the same shape for point-like ink |
+| `src/engine/gpu/buffers.rs` | 132 → 177 | 6.1 | `GrowBuf::append` and `Template`; `append_index_run` goes |
+| `src/engine/gpu/upload.rs` | 98 → 100 | 6.2 | four flat columns become two groups |
 | `src/engine/pipelines/mod.rs` | 130 → **67** | 6.3 | nine descs and five shader constants leave |
-| `src/engine/gpu/mod.rs` | 1,336 → **1,056** | 6.4-6.5 | 22 fields become 2; six draw sites become six calls |
+| `src/engine/gpu/mod.rs` | 1,335 → **1,055** | 6.4-6.5 | 22 fields become 2; six draw sites become six calls |
 | `src/app/scene.rs` | 1,341 → 1,335 | 6.6 | eight `Replace-all`s, and `FACING_UNKNOWN` goes to the row |
 | `src/selftest.rs`, `examples/check_*.rs` | small | 6.6 | the harnesses follow the columns |
 
@@ -171,7 +171,7 @@ it before you paste it.
 use crate::engine::pipelines::layouts::Layouts;
 use crate::engine::pipelines::{PipelineDesc, Target, build::{build, cyl_template_layout}};
 
-use super::buffers::{GpuCtx, GrowBuf, mk_rows_group, zeroed_buffer};
+use super::buffers::{GpuCtx, GrowBuf, Template, mk_rows_group, zeroed_buffer};
 use super::frame::Binds;
 
 const RIBBON: &str = include_str!("../../shaders/ribbon.wgsl");
@@ -262,40 +262,6 @@ impl SegRows {
     }
 }
 
-/// A template mesh instanced once per row: positions only, uploaded once at startup.
-pub struct Template {
-    vbo: wgpu::Buffer,
-    ibo: wgpu::Buffer,
-    count: u32,
-}
-
-impl Template {
-    pub fn new(device: &wgpu::Device, label: &str, mesh: (Vec<[f32; 3]>, Vec<u32>)) -> Self {
-        use wgpu::util::DeviceExt;
-        let (v, i) = mesh;
-        Self {
-            count: i.len() as u32,
-            vbo: device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some(&format!("{label}.vbo")),
-                contents: bytemuck::cast_slice(&v),
-                usage: wgpu::BufferUsages::VERTEX,
-            }),
-            ibo: device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some(&format!("{label}.ibo")),
-                contents: bytemuck::cast_slice(&i),
-                usage: wgpu::BufferUsages::INDEX,
-            }),
-        }
-    }
-
-    /// Bind the template and draw `n` instances of it.
-    pub fn draw(&self, pass: &mut wgpu::RenderPass, n: u32) {
-        pass.set_vertex_buffer(0, self.vbo.slice(..));
-        pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.count, 0, 0..n);
-    }
-}
-
 /// The two segment tables on the GPU, their bind groups, and the tube template.
 pub struct SegmentLane {
     template: Template,
@@ -310,13 +276,14 @@ impl SegmentLane {
         // One storage row per edge (VERTEX-visible, read-only) - the two segment tables. Both
         // start at one row and grow by appending; COPY_SRC lets a grown buffer take the old
         // prefix straight from the old one without a round trip through wasm memory.
+        let (cyl_v, cyl_i) = unit_cylinder(CYL_SIDES);
         let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
         let stride = std::mem::size_of::<CylinderSegment>() as u64;
         let pipes = GrowBuf { buf: zeroed_buffer(device, "pipes.buffer", stride, usage), count: 0, cap: 1, usage, label: "pipes.buffer" };
         let ribbons = GrowBuf { buf: zeroed_buffer(device, "segments.buffer", stride, usage), count: 0, cap: 1, usage, label: "segments.buffer" };
         Self {
-            // Unit-cylinder tempalte (positions only) - one mesh, instance per edge.
-            template: Template::new(device, "cyl.template", unit_cylinder(CYL_SIDES)),
+            // Unit-cylinder template (positions only) - one mesh, instance per edge.
+            template: Template::new(device, "cyl.template", &cyl_v, &cyl_i),
             pipes_group: mk_rows_group(device, &layouts.segment, "pipes.bind_group", &pipes.buf),
             ribbons_group: mk_rows_group(device, &layouts.segment, "segments.bind_group", &ribbons.buf),
             pipes,
@@ -324,10 +291,12 @@ impl SegmentLane {
         }
     }
 
+    /// Rows on the GPU - a COUNT, not the table.
     pub fn pipes(&self) -> u32 {
         self.pipes.count
     }
 
+    /// Rows on the GPU - a COUNT, not the table.
     pub fn ribbons(&self) -> u32 {
         self.ribbons.count
     }
@@ -469,6 +438,111 @@ And the template mesh itself, which nothing outside this file has ever needed.
 
 **Move** `src/engine/gpu/mod.rs` `/// Unit-cylinder template mesh (positions + indices) along +Z, radius 1, z in [0,1], with cap fans.` **through** `}` **to** `src/engine/gpu/segments.rs` **at the end**
 
+
+**Find** in `src/engine/gpu/segments.rs`:
+
+```rust
+/// const for the unit_cylinder method
+```
+
+**Replace with:**
+
+```rust
+/// Sides on the unit-cylinder template. Six, because at the pen widths this viewer draws a tube
+/// covers two or three pixels across, where a hexagon and a circle resolve to the same pixels -
+/// and every extra side is twelve more triangles on the biggest instanced draw in the frame.
+```
+
+**Find** in `src/engine/gpu/segments.rs`:
+
+```rust
+// Memory layout is 16 (12+4), 16 (12+4) and 16
+```
+
+**Replace with:**
+
+```rust
+// Memory layout is 16 (12+4), 16 (12+4) and 16
+//
+// The fields are `pub`, not `pub(crate)` like `Instance`'s, and that is not an oversight:
+// `examples/check_lean.rs` dumps a differing row field by field when the determinism harness
+// finds one, and an example is a separate crate.
+```
+
+**Find** in `src/engine/gpu/segments.rs`:
+
+```rust
+    pub radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 0 -> wolrd mm override
+```
+
+**Replace with:**
+
+```rust
+    pub radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 -> world mm override
+```
+
+Last, the mirror test this family has been missing. `CylinderSegment` is declared twice more, in
+`cylinder.wgsl` and `ribbon.wgsl`, and until now only a size assert stood between them.
+
+**Find** in `src/engine/gpu/segments.rs`:
+
+```rust
+        idx.extend_from_slice(&[cb, b1, b0, ct, b0 + 1, b1 + 1]); // bottom + top fan
+    }
+    (v, idx)
+}
+```
+
+**Replace with:**
+
+```rust
+        idx.extend_from_slice(&[cb, b1, b0, ct, b0 + 1, b1 + 1]); // bottom + top fan
+    }
+    (v, idx)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::engine::gpu::instance::wgsl_fields;
+
+    /// The two shaders that declare `struct CylinderSegment`. Both read the SAME table, which is
+    /// the whole argument of this file - so both have to agree with it, and with each other.
+    const MIRRORS: [(&str, &str); 2] = [("cylinder.wgsl", CYLINDER), ("ribbon.wgsl", RIBBON)];
+
+    /// The ends are three SCALARS on both sides, not a `vec3<f32>`. That is the one thing this
+    /// test exists to hold: WGSL aligns a `vec3<f32>` to 16, so writing the obvious thing on the
+    /// shader side takes the stride from 40 to 48 and every row after the first is misread - at
+    /// the right size, in the wrong place, with no error anywhere.
+    #[test]
+    fn cylinder_segment_mirror() {
+        assert_eq!(std::mem::size_of::<CylinderSegment>(), 40, "the storage array stride is 40 B");
+        assert_eq!(std::mem::offset_of!(CylinderSegment, radius), 12);
+        assert_eq!(std::mem::offset_of!(CylinderSegment, p1), 16);
+        assert_eq!(std::mem::offset_of!(CylinderSegment, instance_id), 28);
+        assert_eq!(std::mem::offset_of!(CylinderSegment, color), 32);
+        assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
+
+        let want: Vec<(String, String)> = [
+            ("p0x", "f32"), ("p0y", "f32"), ("p0z", "f32"), ("radius", "f32"),
+            ("p1x", "f32"), ("p1y", "f32"), ("p1z", "f32"), ("instance_id", "u32"),
+            ("color", "u32"), ("facing", "u32"),
+        ]
+        .iter()
+        .map(|(f, t)| (f.to_string(), t.to_string()))
+        .collect();
+
+        for (file, src) in MIRRORS {
+            assert_eq!(
+                wgsl_fields(src, "CylinderSegment"), want,
+                "{file} declares `CylinderSegment` differently from segments.rs",
+            );
+        }
+    }
+}
+```
+
+
 **Gate.** `cargo check --target wasm32-unknown-unknown --lib` — errors, because `gpu/mod.rs`
 still declares the types you just took. That is expected until 6.4; what matters is that the
 errors are all `cannot find type` and none of them are inside `segments.rs`.
@@ -503,9 +577,8 @@ Same shape, same order. The header says what differs: the flat half draws withou
 use crate::engine::pipelines::layouts::Layouts;
 use crate::engine::pipelines::{PipelineDesc, Target, build::{build, cyl_template_layout}};
 
-use super::buffers::{GpuCtx, GrowBuf, mk_rows_group, zeroed_buffer};
+use super::buffers::{GpuCtx, GrowBuf, Template, mk_rows_group, zeroed_buffer};
 use super::frame::Binds;
-use super::segments::Template;
 
 const SPHERE: &str = include_str!("../../shaders/sphere.wgsl");
 const GLYPH: &str = include_str!("../../shaders/glyph.wgsl");
@@ -550,13 +623,14 @@ pub struct GlyphLane {
 
 impl GlyphLane {
     pub fn new(device: &wgpu::Device, layouts: &Layouts) -> Self {
+        let (quad_v, quad_i) = unit_quad();
         let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
         let stride = std::mem::size_of::<GlyphPoint>() as u64;
         let spheres = GrowBuf { buf: zeroed_buffer(device, "spheres.buffer", stride, usage), count: 0, cap: 1, usage, label: "spheres.buffer" };
         let dots = GrowBuf { buf: zeroed_buffer(device, "glyphs.buffer", stride, usage), count: 0, cap: 1, usage, label: "glyphs.buffer" };
         Self {
             // Camera-facing quad template (positions-only) - one mesh, instance per marker
-            template: Template::new(device, "sph.template", unit_quad()),
+            template: Template::new(device, "sph.template", &quad_v, &quad_i),
             spheres_group: mk_rows_group(device, &layouts.glyph, "spheres.bind_group", &spheres.buf),
             dots_group: mk_rows_group(device, &layouts.glyph, "glyphs.bind_group", &dots.buf),
             spheres,
@@ -564,14 +638,18 @@ impl GlyphLane {
         }
     }
 
+    /// Rows on the GPU - a COUNT, not the table.
     pub fn spheres(&self) -> u32 {
         self.spheres.count
     }
 
+    /// Rows on the GPU - a COUNT, not the table.
     pub fn dots(&self) -> u32 {
         self.dots.count
     }
 
+    /// Append one file's rows to each table. A DELTA like every other lane: only this file's
+    /// rows travel, and a bind group is rebuilt only when the buffer behind it actually grew.
     pub fn append(&mut self, ctx: &GpuCtx, layouts: &Layouts, up: &GlyphRows) {
         if self.spheres.append(ctx, &up.spheres) {
             self.spheres_group = mk_rows_group(&ctx.device, &layouts.glyph, "spheres.bind_group", &self.spheres.buf);
@@ -581,6 +659,7 @@ impl GlyphLane {
         }
     }
 
+    /// Rewind both tables. Capacity stays, so a rebuild costs no allocation.
     pub fn reset(&mut self) {
         self.spheres.count = 0;
         self.dots.count = 0;
@@ -655,11 +734,11 @@ impl Pipes {
                 depth_compare: if std::env::var("VIEWER_NO_DEPTH").is_ok() { wgpu::CompareFunction::Always } else { wgpu::CompareFunction::GreaterEqual },
                 ..PipelineDesc::ink("sphere", SPHERE, &[&l.mvp, &l.line, &l.instance, &l.glyph])
             }),
-            // The ribbon recipe with the glyph names. `l.segment` at group 3, NOT `l.glyph`: the
-            // old builder named its parameter `glyph_layout` and was handed the segment one, and
-            // it has always worked because the two layouts are byte-identical. Preserved as it
-            // stands - `glyph_depth` below binds the other one.
-            glyph: build(device, t, &PipelineDesc::ink("glyph", GLYPH, &[&l.mvp, &l.line, &l.instance, &l.segment])),
+            // Group 3 is `l.glyph`, matching `dots_group` and `glyph_depth` below. It read
+            // `l.segment` for a long time - the old builder's parameter was named `glyph_layout`
+            // and was handed the segment one - and worked only because the two layouts are
+            // byte-identical, so wgpu deduplicates them. Named honestly now.
+            glyph: build(device, t, &PipelineDesc::ink("glyph", GLYPH, &[&l.mvp, &l.line, &l.instance, &l.glyph])),
             sphere_depth: build(device, t, &PipelineDesc {
                 vertex_buffers: &[cyl_template_layout()],
                 ..PipelineDesc::depth_only("sphere.depth", SPHERE, &[&l.mvp, &l.line, &l.instance, &l.glyph])
@@ -672,7 +751,98 @@ impl Pipes {
 
 **Move** `src/engine/gpu/mod.rs` `/// Camera-facing quad template (positions + indices) for the instanced vertex markers. The` **through** `}` **to** `src/engine/gpu/glyphs.rs` **at the end**
 
-**Gate.** `wc -l src/engine/gpu/segments.rs src/engine/gpu/glyphs.rs` — **323** and **209**. A
+
+**Find** in `src/engine/gpu/glyphs.rs`:
+
+```rust
+// One instance of the unit-sphere template.
+```
+
+**Replace with:**
+
+```rust
+// One instance of the camera-facing quad template, trimmed to a disc in the fragment shader.
+```
+
+**Find** in `src/engine/gpu/glyphs.rs`:
+
+```rust
+    pub radius: f32, // 4 B - 0.0 - screen-constant px; 0 - world mm
+```
+
+**Replace with:**
+
+```rust
+    pub radius: f32, // 4 B - 0.0 = screen-constant px (default); > 0 = world mm override
+```
+
+**Find** in `src/engine/gpu/glyphs.rs`:
+
+```rust
+    pub instance_id: u32, // 4 B - row insntaces
+```
+
+**Replace with:**
+
+```rust
+    pub instance_id: u32, // 4 B - row in instances[]
+```
+
+**Find** in `src/engine/gpu/glyphs.rs`:
+
+```rust
+    let idx = vec![0u32, 1, 2, 0, 2, 3];
+    (v, idx)
+}
+```
+
+**Replace with:**
+
+```rust
+    let idx = vec![0u32, 1, 2, 0, 2, 3];
+    (v, idx)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::engine::gpu::instance::wgsl_fields;
+
+    /// The two shaders that declare `struct GlyphPoint` — one per half of the family.
+    const MIRRORS: [(&str, &str); 2] = [("sphere.wgsl", SPHERE), ("glyph.wgsl", GLYPH)];
+
+    /// Unlike `CylinderSegment`, this row CAN carry `vec3`/`vec4` on the shader side: `center`
+    /// sits at offset 0 and `color` at 16, both already 16-aligned, so WGSL's rules and Rust's
+    /// agree by luck rather than by design. The test is what turns that luck into a contract.
+    #[test]
+    fn glyph_point_mirror() {
+        assert_eq!(std::mem::size_of::<GlyphPoint>(), 48, "three 16-byte rows");
+        assert_eq!(std::mem::offset_of!(GlyphPoint, radius), 12);
+        assert_eq!(std::mem::offset_of!(GlyphPoint, color), 16);
+        assert_eq!(std::mem::offset_of!(GlyphPoint, instance_id), 32);
+        assert_eq!(std::mem::offset_of!(GlyphPoint, facing), 36);
+        assert_eq!(std::mem::offset_of!(GlyphPoint, facing_ext), 40);
+
+        let want: Vec<(String, String)> = [
+            ("center", "vec3<f32>"), ("radius", "f32"), ("color", "vec4<f32>"),
+            ("instance_id", "u32"), ("facing", "u32"), ("facing_ext", "vec2<u32>"),
+        ]
+        .iter()
+        .map(|(f, t)| (f.to_string(), t.to_string()))
+        .collect();
+
+        for (file, src) in MIRRORS {
+            assert_eq!(
+                wgsl_fields(src, "GlyphPoint"), want,
+                "{file} declares `GlyphPoint` differently from glyphs.rs",
+            );
+        }
+    }
+}
+```
+
+
+**Gate.** `wc -l src/engine/gpu/segments.rs src/engine/gpu/glyphs.rs` — **338** and **251**. A
 count far off means a paste went wrong, and it is cheaper to find that now.
 
 ### 4.3 The two banners `gpu/mod.rs` no longer needs
@@ -738,6 +908,8 @@ all three by hand. Four tables in two new files is enough evidence for the metho
 
 ```rust
 /// Grow-and-append one index run. Same shape as the solid arena's own append: the existing
+/// prefix is copied GPU-side, never back through wasm memory.
+/// Append rows to a growable STORAGE buffer
 ```
 
 **Replace with:**
@@ -747,14 +919,149 @@ impl GrowBuf {
     /// Append rows to this table, growing it if they do not fit. Returns `true` when the buffer
     /// was replaced, so the caller knows to rebuild the bind group pointing at it.
     ///
-    /// The work is `append_rows` below, which still takes the triple spelled out because two
-    /// lanes - the raw point positions and the streamed ones - are not `GrowBuf`s until 49.
+    /// Growth RE-CREATES the buffer with THIS table's `usage`, which is the whole reason that
+    /// field is carried: the arena's index runs are INDEX buffers and the ink tables are STORAGE
+    /// ones, and an index run re-made as STORAGE fails validation at the next `set_index_buffer`.
     pub fn append<T: bytemuck::Pod>(&mut self, ctx: &GpuCtx, data: &[T]) -> bool {
-        append_rows(ctx, self.label, &mut self.buf, &mut self.count, &mut self.cap, data)
+        if data.is_empty() {
+            return false;
+        }
+        let stride = std::mem::size_of::<T>() as u64;
+        let need = self.count as u64 + data.len() as u64;
+        let mut grew = false;
+        if need > self.cap {
+            let new_cap = need.max(self.cap * 2);
+            let nb = zeroed_buffer(&ctx.device, self.label, new_cap * stride, self.usage);
+            if self.count > 0 {
+                // the prefix moves GPU-side; it never travels back through wasm memory
+                let mut enc = ctx.device.create_command_encoder(&Default::default());
+                enc.copy_buffer_to_buffer(&self.buf, 0, &nb, 0, self.count as u64 * stride);
+                ctx.queue.submit([enc.finish()]);
+            }
+            self.buf = nb;
+            self.cap = new_cap;
+            grew = true;
+        }
+        ctx.queue.write_buffer(&self.buf, self.count as u64 * stride, bytemuck::cast_slice(data));
+        self.count += data.len() as u32;
+        grew
     }
 }
 
-/// Grow-and-append one index run. Same shape as the solid arena's own append: the existing
+/// Append rows to a growable STORAGE buffer
+```
+
+`GrowBuf::append` is the real implementation, not a wrapper: growth RE-CREATES the buffer, and it
+must be re-created with **this table's** `usage`. That is what the field is for. Delegating to
+`append_rows` below would have hard-coded `STORAGE`, and the arena's three index runs are `INDEX`
+buffers — a grown index run re-made as storage fails validation at the next `set_index_buffer`.
+With the method in place, `append_index_run` is the same function with one type fixed, so it goes.
+
+**Remove** `src/engine/gpu/buffers.rs` `pub fn append_index_run(ctx: &GpuCtx, run: &mut GrowBuf, data: &[u32]) {` **through** `}`
+
+**Find** in `src/engine/gpu/buffers.rs`:
+
+```rust
+    grew
+}
+
+
+/// One read-only storage buffer at binding 0 - the shape every ink lane's bind group has.
+```
+
+**Replace with:**
+
+```rust
+    grew
+}
+
+/// One read-only storage buffer at binding 0 - the shape every ink lane's bind group has.
+```
+
+**Find** in `src/engine/gpu/buffers.rs`:
+
+```rust
+/// cloud lanes in `mod.rs` are still a loose (buffer, count, cap) triple rather than a `GrowBuf`.
+```
+
+**Replace with:**
+
+```rust
+/// cloud lanes in `mod.rs` are still a loose (buffer, count, cap) triple rather than a `GrowBuf`.
+/// Anything that HAS a `GrowBuf` calls `GrowBuf::append` above instead.
+```
+
+**Find** in `src/engine/gpu/arena.rs`:
+
+```rust
+use super::buffers::{GpuCtx, GrowBuf, append_index_run, zeroed_buffer};
+```
+
+**Replace with:**
+
+```rust
+use super::buffers::{GpuCtx, GrowBuf, zeroed_buffer};
+```
+
+**Find** in `src/engine/gpu/arena.rs`:
+
+```rust
+        append_index_run(ctx, self.run_mut(IdxLane::Print), &up.idx_print);
+        append_index_run(ctx, self.run_mut(IdxLane::Text), &up.idx_text);
+```
+
+**Replace with:**
+
+```rust
+        self.run_mut(IdxLane::Print).append(ctx, &up.idx_print);
+        self.run_mut(IdxLane::Text).append(ctx, &up.idx_text);
+```
+
+Last for this file, `Template` — a positions-only mesh uploaded once and instanced per row. Both
+ink families need one and neither owns it, which is the definition of the floor.
+
+**Find** in `src/engine/gpu/buffers.rs`:
+
+```rust
+/// A fresh buffer of `size` bytes,
+```
+
+**Add above it:**
+
+```rust
+/// A template mesh instanced once per row: positions only, uploaded once at startup.
+pub struct Template {
+    vbo: wgpu::Buffer,
+    ibo: wgpu::Buffer,
+    count: u32,
+}
+
+impl Template {
+    pub fn new(device: &wgpu::Device, label: &str, verts: &[[f32; 3]], idx: &[u32]) -> Self {
+        use wgpu::util::DeviceExt;
+        Self {
+            count: idx.len() as u32,
+            vbo: device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{label}.vbo")),
+                contents: bytemuck::cast_slice(verts),
+                usage: wgpu::BufferUsages::VERTEX,
+            }),
+            ibo: device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{label}.ibo")),
+                contents: bytemuck::cast_slice(idx),
+                usage: wgpu::BufferUsages::INDEX,
+            }),
+        }
+    }
+
+    /// Bind the template and draw `n` instances of it.
+    pub fn draw(&self, pass: &mut wgpu::RenderPass, n: u32) {
+        pass.set_vertex_buffer(0, self.vbo.slice(..));
+        pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(0..self.count, 0, 0..n);
+    }
+}
+
 ```
 
 ### 6.2 `Upload` — four more columns become two groups
@@ -1595,12 +1902,12 @@ cargo check --all-targets --target x86_64-unknown-linux-gnu
 One new warning came up while this lesson was written — `mk_rows_group` unused in `gpu/mod.rs`,
 because both families now build their own bind groups. It is dropped from the import in 6.4.
 
-**(2) The tests.** Unchanged from 47, and still the only mechanical check on the Rust↔WGSL
-boundary. `cargo xtest` — 2 passed.
+**(2) The tests.** Two more, added in §4.1 and §4.2. `cargo xtest` — **4 passed**: `Instance`
+and `LineUniform` from 47, and now `CylinderSegment` (cylinder + ribbon) and `GlyphPoint`
+(sphere + glyph).
 
-What they cannot catch: `CylinderSegment` and `GlyphPoint` have no mirror test. They are checked
-by a `const _: () = assert!(size_of::<..>() == N)` on the Rust side only, which catches a
-field added but not a field RENAMED on one side. Lesson **57** gives them the same treatment.
+What they cannot catch: the shaders' `const FLAG_X = Nu;` bit values, and the `facing` word's
+oct16 encoding. Structure is checked; meaning is not.
 
 **(3) The line multiset.**
 
@@ -1609,7 +1916,7 @@ python3 docs/_replay_check.py --moves <end-of-47 tree> /tmp/w48 docs/48-row-fami
 ```
 
 ```text
-docs/48-row-families.md: 60 ops, 0 failed
+docs/48-row-families.md: 76 ops, 0 failed
 docs/48-row-families.md: 1 move source(s), 0 not byte-identical
 ```
 
@@ -1717,17 +2024,11 @@ missing was a caller willing to pair them.
 ## 9. What is deliberately not here
 
 - **One `InkLane` over both row types.** §1c. Lesson **107** is where the shapes diverge.
-- **A mirror test for `CylinderSegment` and `GlyphPoint`.** The parser from 47 would do it; the
-  two rows have SIX and SEVEN fields respectively against the shaders' copies, and the exercise
-  belongs with `RowTable<T>` at **57**.
 - **`append_rows`'s six-parameter form.** Two lanes — raw points and the streamed ones — are not
   `GrowBuf`s until **49**, and one function with two shapes for one lesson is cheaper than
   migrating a lane that is about to move anyway.
 - **`INK_DEPTH_PREPASS`.** Still a `const` in `gpu/mod.rs`; it belongs to the FRAME, not to
   either family, and it goes to `render.rs` at **49**.
-- **`Template` in `buffers.rs`.** Both families use it and `glyphs.rs` imports it from
-  `segments.rs`, which is a real (small) wart. It is a two-file sharing, not a floor concern; if
-  a third family wants one, **57** moves it down.
 - **The `Spacing` enum.** `radius: 0.0` still means "screen-constant px" and `> 0.0` means world
   mm, encoded in a float. The first lesson that needs both units in one row names it.
 
@@ -1744,9 +2045,9 @@ grep -c 'build(device, t' src/engine/pipelines/mod.rs
 ```text
 43
 
-  1056 src/engine/gpu/mod.rs
-   323 src/engine/gpu/segments.rs
-   209 src/engine/gpu/glyphs.rs
+  1055 src/engine/gpu/mod.rs
+   338 src/engine/gpu/segments.rs
+   251 src/engine/gpu/glyphs.rs
     67 src/engine/pipelines/mod.rs
 
 src/engine/gpu/arena.rs:1
@@ -1760,14 +2061,14 @@ src/engine/pipelines/mod.rs:4
 | | end-of-47 | end-of-48 |
 |---|---|---|
 | `Gpu` fields | 63 | **43** |
-| `gpu/mod.rs` | 1,336 | **1,056** |
-| `gpu/segments.rs` | — | **323** |
-| `gpu/glyphs.rs` | — | **209** |
+| `gpu/mod.rs` | 1,335 | **1,055** |
+| `gpu/segments.rs` | — | **338** |
+| `gpu/glyphs.rs` | — | **251** |
 | `pipelines/mod.rs` | 130 | **67** |
-| `gpu/buffers.rs` | 129 | 140 |
+| `gpu/buffers.rs` | 132 | **177** |
 | shaders named in `pipelines/mod.rs` | 8 | **4** |
 | render pipelines built there | 12 | **3** |
-| `Upload` flat columns | 13 + 2 groups | **9 + 4 groups** |
+| `Upload` flat columns | 11 + 2 groups | **7 + 4 groups** |
 
 ## Recap
 
@@ -1803,7 +2104,7 @@ Gpu is 43 fields. Twenty of the twenty-two it lost were one shape written out fo
 |---|---|
 | 48a | `gpu/segments.rs` — the row, both tables, five pipelines, three draws |
 | 48b | `gpu/glyphs.rs` — the same shape, template shared from `segments.rs` |
-| 48c | `GrowBuf::append`, and `Upload`'s `seg`/`glyph` groups |
+| 48c | `GrowBuf::append` honouring `usage`, `Template` on the floor, `Upload`'s two groups |
 | 48d | `pipelines/mod.rs` down to the list plus three row-less pipelines |
 | 48e | `Gpu`'s 22 fields, the six draw sites, and the walk's eight renames |
 
