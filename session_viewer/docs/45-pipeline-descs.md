@@ -49,9 +49,10 @@ Eleven functions, 3 to 11 parameters, six of them at exactly seven, **eleven**
 diff <(sed -n '563,632p' src/engine/pipelines/build.rs)      <(sed -n '634,702p' src/engine/pipelines/build.rs)
 ```
 
-70 and 69 lines, and the only *setting* that differs is one `depth_compare` expression. Of a
-`RenderPipelineDescriptor`'s two dozen leaf settings, exactly eleven ever vary across the fourteen
-pipelines; the rest are copy-pasted eleven times. Same story for the nine bind-group layouts.
+`build_ribbon_solid_pipeline` and `build_ribbon_pipeline` are 70 and 69 lines, and the only
+*setting* that differs is one `depth_compare` expression. Of a `RenderPipelineDescriptor`'s two
+dozen leaf settings, exactly eleven ever vary across the fourteen pipelines; the rest are
+copy-pasted eleven times. Same story for the nine bind-group layouts.
 
 ### 1b. The law this enforces, stated as what it forbids
 
@@ -513,8 +514,8 @@ gets a `cargo check`; steps 5.1, 5.3, 5.4 and 5.5 get the pixel gate as well.
 ### 5.1 Delete before you move
 
 `edges` is built by a 67-line builder, compiles a 24-line shader and is drawn **zero** times —
-`grep -rn 'pipelines\.edges' src/` returns nothing. `storage_buffer` has zero callers. Neither is
-moved: faithfully relocating dead code is how it survives another five lessons.
+`grep -rn 'pipelines\.edges' src/` returns nothing, and `storage_buffer` has zero callers. Neither
+is moved: faithfully relocating dead code is how it survives another five lessons.
 
 **Remove** `src/engine/pipelines/build.rs`
 
@@ -840,9 +841,8 @@ wc -l src/math.rs src/app/scene.rs      # 123, 1365
 
 ### 5.3 The nine layouts leave `Gpu::build`
 
-`Layouts` is one field where nine were. Each block is cut out of `Gpu::build` — most with the
-blank line that follows — and every reference renamed by a counted `Replace-all`; the count is the
-proof you cut the right region.
+`Layouts` is one field where nine were. Each block is cut out of `Gpu::build`, most with the blank
+line that follows, and every reference renamed by a counted `Replace-all` — the count is the proof.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -923,9 +923,8 @@ and `splat_group0` are followed immediately by the next statement and stop at th
 
 ```
 
-`splat_entry` was the same idea one lane deep — a `COMPUTE`-visible buffer entry written once so
-the two splat groups could be lists. It is `compute_entry` in `layouts.rs` now; its two comment
-lines above it stay, describing the three bind-group helpers that follow.
+`splat_entry` was a `COMPUTE`-visible buffer entry written once so the two splat groups could be
+lists; it is `compute_entry` in `layouts.rs` now. Its two comment lines above it stay.
 
 **Remove** `src/engine/gpu/mod.rs` `    fn splat_entry(` **through** the blank line below its closing brace:
 
@@ -1028,9 +1027,8 @@ The struct literal in `build` loses the same nine names and gains one:
             layouts,
 ```
 
-Nine counted renames, re-pointing every remaining reference at the one owner: the bind groups in
-`build`, the rebuild paths in `set_scene`, the two `Pipelines::new` call sites, one comment. If a
-count differs, you cut the wrong region:
+Nine counted renames, re-pointing every remaining reference at the one owner. If a count differs,
+you cut the wrong region:
 
 **Replace-all** `src/engine/gpu/mod.rs` `mvp_layout` → `layouts.mvp` (3 hits)
 
@@ -1492,7 +1490,7 @@ preset, and the preset is identical across all fourteen.
             glyph: build(device, t, &PipelineDesc::ink("glyph", GLYPH, &[&l.mvp, &l.line, &l.instance, &l.segment])),
 ```
 
-`glyph` binds `l.segment` at group 3, not `l.glyph` — not a typo introduced here. The old
+`glyph` binds `l.segment` at group 3, not `l.glyph` — not a typo introduced here: the old
 `build_glyph_pipeline` was handed `segment_layout` despite its parameter name, and it works because
 the two layouts are byte-identical. A body you are moving is not a body you are fixing.
 

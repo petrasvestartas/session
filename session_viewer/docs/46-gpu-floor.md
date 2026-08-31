@@ -176,9 +176,8 @@ else already existed. Shape taken while a body is moving — `usage`/`label` on 
 
 ## 4. The six destination files, created first
 
-Every new file is created before anything is cut, so each step below is a deletion plus a
-re-point, not a two-ended edit you cannot compile in the middle of. It also lets almost every move
-in §6 land `at the end`, with no ordering dependency between them.
+Every new file is created before anything is cut, so each step is a deletion plus a re-point, not
+a two-ended edit you cannot compile in the middle of, and almost every move can land `at the end`.
 
 `targets.rs` arrives with its bodies already in it, because **a Move that also renames is two
 edits pretending to be one**: `Targets::new` is the two `create_*_view` bodies fused, and
@@ -188,8 +187,8 @@ edits pretending to be one**: `Targets::new` is the two `create_*_view` bodies f
 
 `GpuCtx` and `GrowBuf` are the two genuinely new values here. Nothing constructs `GrowBuf` yet —
 each family folds its own triple in at 47-49 — so it carries `#[allow(dead_code)]` until 47. The
-`label` field is not decoration: `append_rows` threads it into `zeroed_buffer` at every growth,
-and without it the binding-size error a scene throws on crossing a cap names an anonymous buffer.
+`label` field is not decoration: without it, the binding-size error a scene throws the first time
+it crosses a cap names an anonymous buffer.
 
 **Create `src/engine/gpu/buffers.rs`**
 
@@ -577,9 +576,8 @@ the refactor was wrong, when what is wrong is the shape of the call.
 > ```
 >
 > **The error.** `error[E0499]: cannot borrow *self as mutable more than once at a time`, or
-> `error[E0502]: cannot borrow self.ctx as immutable because it is also borrowed as mutable`,
-> the moment two lanes appear in one body. **A method borrows ALL of `self`** — the compiler sees
-> `&mut self`, not "`ctx` shared and `pipe_buffer` mutable".
+> `error[E0502]: cannot borrow self.ctx as immutable because it is also borrowed as mutable`, the
+> moment two lanes appear in one body. **A method borrows ALL of `self`.**
 >
 > **The compiling form** borrows FIELDS, which are disjoint places:
 >
@@ -919,8 +917,8 @@ line the sweep renames and a later step deletes, so these five by hand keep ladd
 36 you ran these two first; undo and do them in the printed order. One hit is inside a
 commented-out block in `rebuild_instances` — re-rooting a comment that quotes code is right.
 
-Gate. This is the step where a `&mut self` method would have failed (§5); every call here is a
-free function taking `&self.ctx` beside a `&mut self.<field>`, which are disjoint places:
+Gate. This is where a `&mut self` method would have failed (§5): every call takes `&self.ctx`
+beside a `&mut self.<field>`, which are disjoint places:
 
 ```bash
 cargo check --target wasm32-unknown-unknown --lib
@@ -977,8 +975,8 @@ Same tidy-up as 6.1 — two regions cut, three blank lines left:
 
 **Replace-all** `src/engine/gpu/mod.rs` `ArenaUpload` → `Upload` (4 hits)
 
-Four in `gpu/mod.rs`: `set_scene`'s parameter and three comments that name the table. Then the
-re-export, so `crate::engine::gpu::Upload` keeps working for `app/` and for the examples:
+Four in `gpu/mod.rs`: `set_scene`'s parameter and three comments. Then the re-export, so
+`crate::engine::gpu::Upload` keeps working for `app/` and the examples:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -995,8 +993,8 @@ pub use upload::Upload;
 **Replace-all** `src/app/scene.rs` `ArenaUpload` → `Upload` (5 hits)
 
 Now the sweep that empties the table after an upload: fourteen `drop_rows` calls in
-`Scene::upload_to`, reaching into `Upload`'s columns through a `let t = &mut self.tables`. That is
-a method on `Upload` written out longhand at the call site, so both halves go to the table.
+`Scene::upload_to`, reaching into `Upload`'s columns through a `let t = &mut self.tables` — a
+method on `Upload` written out longhand at the call site. Both halves go to the table.
 
 **Find** in `src/app/scene.rs`:
 
@@ -1154,8 +1152,8 @@ pub struct View {
     /// Solid-lane style; `VIEWER_LINE_STYLE=flat` picks Flat at startup.
 ```
 
-Their four startup values are contiguous too, inside the `Gpu` struct literal at the bottom of
-`build`, and they land in `from_env` at the same indentation:
+Their four startup values are contiguous too, in the `Gpu` struct literal at the bottom of
+`build`, and land in `from_env` at the same indentation:
 
 **Move** `src/engine/gpu/mod.rs` `            show_points: true,` **through** `            },` **to** `src/engine/gpu/view.rs` **after** `        Self {`
 
@@ -1876,8 +1874,8 @@ pub use upload::Upload;
 use targets::Targets;
 ```
 
-The two view builders were the last two functions in `impl Gpu`, and `Targets::new` is both of
-them with the textures kept:
+The two view builders were the last two functions in `impl Gpu`; `Targets::new` is both of them
+with the textures kept:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2246,8 +2244,8 @@ The impl is still open — the stitch ate its closing brace — so close it afte
 ```
 
 Gate. Nothing in the goldens calls `clear`, `begin_present` or `end_present` — the harness goes
-through `render_offscreen` and never builds a `State` — so at this step the compiler is the only
-automatic check on two of the three, and §7's browser smoke test is the other:
+through `render_offscreen` — so the compiler is the only automatic check here, and §7's browser
+smoke test is the other:
 
 ```bash
 cargo check --target wasm32-unknown-unknown --lib
@@ -2273,9 +2271,8 @@ cargo check --all-targets
 `Targets::new` that forgot `TEXTURE_BINDING`. Nor can it see a `#[cfg]`-gated arm on the target
 you did not build, and `render_offscreen` and `bench_frames` are both behind one.
 
-**Ladder 2, `--moves`.** The only proof a move took its lines byte-identically: the multiset of
-stripped, non-blank lines over {source} ∪ {destinations}, before and after, minus every line the
-doc declares as added or removed and every `Replace-all` rename:
+**Ladder 2, `--moves`**, introduced in lesson 45 §7: the only proof a move took its lines
+byte-identically.
 
 ```bash
 python3 docs/_replay_check.py --moves <end-of-45 snapshot> /tmp/w46 docs/46-gpu-floor.md
@@ -2288,8 +2285,7 @@ docs/46-gpu-floor.md: 1 move source(s), 0 not byte-identical
 ```
 
 The third line is informational, marked `...` not `!!`: those 105 lines left `gpu/mod.rs` and the
-doc spells each one out in a `Find` block before deleting it. `0 not byte-identical` is the
-verdict; `LOST` or `UNDECLARED` rows would not be.
+doc spells each one out in a `Find` block first. `0 not byte-identical` is the verdict.
 
 All fourteen moves start in `src/engine/gpu/mod.rs` and land in five files. That is what makes the
 ladder usable: two sources into one destination would report the other source's lines as an
@@ -2305,14 +2301,10 @@ pixel gate itself runs, and it is invisible to `cargo check --target wasm32-unkn
 ./docs/_gate.sh && ./docs/_gate.sh
 ```
 
-64 rows: four mandatory scenes × four configs × two passes, plus four advisory scenes when their
-gitignored `.pb` assets are present. Every row is gated on **ink, draw count and object count**;
-only `drawings_rotated` is gated on the PPM checksum, because the splat lane is a two-pass atomic
-compute rasterizer and which point wins a contested pixel is a race. `lion`, `bunny_cloud`,
-`cloud_mix`, `lidar14` and `bunny_drawings` record `nondet(splat)`; `bunny` holds no cloud and
-still drifts by one pixel — (625, 220), grey 171 ⇄ 170, three bytes of 2,880,016 — and records
-`nondet(mesh)`. Both are exempted in `_GOLDENS.tsv` and neither is your bug. The gate runs each
-row twice and fails on a disagreement before comparing to the goldens.
+The same 64 rows lesson 45 §7 describes: four mandatory scenes × four configs × two passes, plus
+four advisory scenes when their gitignored `.pb` assets are present, every row gated on **ink,
+draw count and object count**, with the `nondet(splat)` and `nondet(mesh)` exemptions recorded in
+`_GOLDENS.tsv`. Neither exemption is your bug.
 
 *What it cannot catch:* everything `State` owns. The harness calls `render_offscreen` and never
 constructs a `State`, so **`clear`, `begin_present` and `end_present` are compiler-gated only** —
@@ -2504,9 +2496,8 @@ writer, its `FrameInput` and the list of shaders that mirror it were all on one 
 - **`RowTable<T>`.** Each family folds its own `(buffer, count, cap)` triple in as it is created —
   `Arena` at **47**, `SegmentLane`/`GlyphLane` at **48**, cloud and stream at **49**. The
   CPU-mirror-plus-`guid`-map version lands at **57**, with its first honest caller.
-- **`Upload` regrouped per family.** It moved FLAT: nineteen columns, today's names. The `obj` and
-  `arena` groups are **47**, `seg` and `glyph` are **48**, `cloud` and `span` are **49** — one
-  instalment inside the lesson that creates the consumer, never as one 170-site table.
+- **`Upload` regrouped per family.** It moved FLAT. `obj`/`arena` are **47**, `seg`/`glyph` **48**,
+  `cloud`/`span` **49** — one instalment per consumer, never one 170-site table.
 - **`upload_rows(ctx, &[u32])`**, the flip-tracked partial upload of the object table: **62**,
   where frustum culling makes per-row updates worth the bookkeeping.
 - **`Targets::new_sized(ctx, size, format, samples)`** and the half-res effect targets: **107** and
@@ -2519,9 +2510,9 @@ writer, its `FrameInput` and the list of shaders that mirror it were all on one 
   This lesson took the pass descriptor and the bind groups out and left the draw order alone.
 - **The three `#[allow(dead_code)]`s.** `GrowBuf` comes off at 47, `Targets.depth` at 88,
   `Frame.view` at 69 — each a field only the named lesson uses; the attribute is the receipt.
-- **Fixing anything a Move carried.** `append_rows`'s doc comment still opens with two lines about
-  the index run below it. `ArenaUpload`'s doc still says "owened". The `glyph`/`segment` layout
-  alias from lesson 45 is still there. A body you are moving is not a body you are fixing.
+- **Fixing anything a move carried.** `append_rows`'s doc still describes the index run below it,
+  `ArenaUpload`'s still says "owened", and lesson 45's `glyph`/`segment` layout alias is still
+  there. A body you are moving is not a body you are fixing.
 
 ## 10. Expected state
 
