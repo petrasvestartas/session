@@ -1,0 +1,46 @@
+[build]
+# RELEASE BY DEFAULT. `trunk serve` builds DEBUG unless told otherwise, and for this viewer that
+# is not a small difference - it is the difference between measuring the code and measuring the
+# lack of optimisation. Same machine, same scene (bunny + lion + two sheets), debug -> release:
+#   bunny        parse 831 -> 100 ms   walk 900 -> 90 ms
+#   lion         parse 539 ->  30 ms   walk 235 -> 16 ms
+#   Querschnitt  parse 2491 -> 256 ms  walk 895 -> 116 ms
+#   Treppenhaus  parse 3550 -> 373 ms  walk 1268 -> 188 ms
+#   total parse + walk 10.7 s -> 1.07 s, and the .wasm 12.3 MB -> 7.7 MB
+# Nothing in the source changed between those two columns. Every load number written in a lesson
+# has to come from this build, or it is a measurement of the wrong thing.
+#
+# It costs almost NOTHING to watch in release, which is the part that is easy to get wrong. Live
+# reload works the same either way, and the edit -> reloaded-page cycle, measured twice each:
+#   debug   4.99 / 4.70 s     release   5.31 / 5.30 s
+# Half a second. `cargo build` alone IS twice as slow in release (1.39 s -> 2.85 s), but
+# wasm-bindgen dominates the cycle and it runs LONGER on the fatter debug .wasm (12.3 vs 7.7 MB),
+# which cancels most of it.
+# Comment this out only when you need a real panic backtrace - [profile.release] sets strip = true.
+release = true
+no_sri = true
+# Relative asset URLs so the built dist/ works when iframed under /session/viewer/.
+public_url = "./"
+
+[watch]
+# assets included: the scene manifests are meant to be edited and reloaded WITHOUT a
+# rebuild, which only works if trunk re-copies them into dist when they change.
+# ../session_rust/src IS load-bearing: this list REPLACES trunk's default (the project dir), and
+# the viewer is `session_rust = { path = "../session_rust" }`. Without it a kernel edit rebuilt
+# NOTHING - the page kept serving the last wasm, so kernel work looked like it had no effect while
+# regenerated .pb assets did change. Verified: a real edit here rebuilds in ~38 s. (A bare `touch`
+# does not - the watcher filters metadata-only events; change bytes when you test this.)
+watch = ["src", "Cargo.toml", "index.html", "assets/scenes", "../session_rust/src"]
+enable_cooldown = true
+
+[serve]
+# index.html is the one file trunk does NOT hash, and it names the hashed bundle. Trunk sends no
+# Cache-Control, so Chrome falls back to HEURISTIC freshness (~10% of the age of the cached copy's
+# Last-Modified) and can serve a cached index.html that still points at the PREVIOUS bundle - the
+# page then runs old code while freshly re-copied .pb assets show the new model. no-store on the
+# dev server removes the question; the 7.7 MB re-fetch is local and costs milliseconds.
+headers = { "Cache-Control" = "no-store" }
+addresses = ["127.0.0.1"]
+# 8770 so `trunk serve` (viewer) and `npm run dev` (docs, 8769) run side by side; the docs
+# Viewer/Learn iframes point here in dev for live reload, and at the static build in prod.
+port = 8770
