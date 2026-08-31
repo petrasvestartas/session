@@ -117,10 +117,22 @@ Find the `web-sys` feature list and add `"Headers",` after `"ImageData",`. Setti
 
 ## Step 2 — the reader: `src/app/persistence.rs`
 
-Two edits. First, the loader will yield between slices, so **find** `async fn next_tick()`
-and make it `pub async fn next_tick()`.
+Two edits. First, the loader will yield between slices, so **Find** `async fn next_tick() {` and **Replace with:** `pub async fn next_tick() {`
 
-Then **append at the bottom of the file** the whole streaming block:
+Then the whole streaming block goes at the end of the file. **Find** the last lines of
+`src/app/persistence.rs`:
+
+```rust
+            let root = build(rp);
+            s.tree.add(&root, None);
+        }
+    }
+
+    s
+}
+```
+
+**Add below it:**
 
 ```rust
 // ── streaming a point cloud: HTTP Range in, GPU rows out, nothing large in between ──
@@ -638,13 +650,14 @@ past its NORMALS, which only the prost path decodes. **Find** in `Item`:
     pub point_size: f64,              // raw-cloud px for this file; 0 = keep the pb'own
 ```
 
-**Add below it** (the field only — do NOT close the struct here; `Item` has more fields
-after it):
+**Add below it:**
 
 ```rust
     #[serde(default)]
     pub stream: bool,                 // Range-stream this file's cloud instead of parsing it
 ```
+
+The field only — do NOT close the struct here; `Item` has more fields after it.
 
 **4b — the slot.** A streamed cloud has no `Session` and no `Doc`. **Add above
 `pub struct Scene`:**
@@ -698,10 +711,10 @@ The `object_bounds`/`object_spacing` pushes are the same row-alignment rule ever
 follows, and the spacing row carries the manifest px exactly like the walked clouds — the
 record builder reads `row.spacing` for both lanes without knowing which is which.
 
-**4d — rebuild preserves clouds.** In `rebuild`, **find**
-`let docs = std::mem::take(&mut self.docs);` and add below it
-`let clouds = std::mem::take(&mut self.clouds);`. Then after the `for d in docs { … }`
-loop, **add:**
+**4d — rebuild preserves clouds.** In `rebuild`, **Find** `        let docs = std::mem::take(&mut self.docs);` and **Add below it:** `        let clouds = std::mem::take(&mut self.clouds);`
+
+Then, still in `rebuild`, the loop over the taken clouds goes after the `for d in docs { … }`
+loop, so **Find** `        self.upload_to(gpu);` and **Add above it:**
 
 ```rust
         // Clouds keep their GPU rows; only the instance they draw against is re-issued, and
@@ -850,9 +863,7 @@ empty at boot. **Find** in it:
                 state.window.request_redraw(); // the scene is still empty - the first file fits
 ```
 
-And in the `Msg::File` arm, **find** the
-`state.camera.grow_extent(state.gpu.scene_min, state.gpu.scene_max);` line
-(lesson [38](38-big-scenes.md)) and **replace with:**
+And in the `Msg::File` arm (lesson [38](38-big-scenes.md)), **Find** `                state.camera.grow_extent(state.gpu.scene_min, state.gpu.scene_max);` and **Replace with:**
 
 ```rust
                 if self.fitted {

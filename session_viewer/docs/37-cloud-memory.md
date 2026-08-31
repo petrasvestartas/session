@@ -92,13 +92,13 @@ alive to re-send them from. Appending drops both. Measured on the ten-sheet `dra
 
 **`storage_buffer` is not dead weight** — it is the right tool for a different job, a small table
 of KNOWN maximum size reserved once so the per-frame path is a plain `write_buffer` and never a
-reallocation. It gets used again in lesson [67](67-gumball-geometry.md) (`gumball.segments`,
-512 rows), [73](73-draw-tools-2.md) (`preview.segments`, 4096) and [74](74-snapping.md)
+reallocation. It gets used again in lesson [74](74-gumball-geometry.md) (`gumball.segments`,
+512 rows), [80](80-draw-tools-2.md) (`preview.segments`, 4096) and [81](81-snapping.md)
 (`snap.marker`). Leave the warning; it goes away there.
 
 > Typing this chain against a clean end-of-35 checkout instead of the live tree? Then the eight
 > call sites DO still exist, and each one takes `&device, &queue,` (or `&self.device,
-> &self.queue,`) in place of `&device,` / `&self.device,`. Lessons 67, 73 and 74 still spell the
+> &self.queue,`) in place of `&device,` / `&self.device,`. Lessons 74, 80 and 81 still spell the
 > old three-argument form and need the same edit.
 
 ## What this does NOT fix

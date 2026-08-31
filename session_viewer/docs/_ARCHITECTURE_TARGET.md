@@ -1,4 +1,7 @@
-# session_viewer — Target Architecture (revision 2, 2026-08-29)
+# session_viewer — Target Architecture (revision 3, 2026-08-30)
+
+> Revision 2 (the compartment axis, the two maps, the contracts, the 45-51 cut) is below;
+> revision 3 — the maintenance kit that makes those rules enforceable — is at the end of this file.
 
 Status: **revision of the 2026-08-29 final spec.** It replaces §2 (target tree), §3 (contracts) and §8 (the 45-51 cut) wholesale, adds the two maps the user asked for by name (§2 geometry chains, §3 shader chains), and adds an explicit borrow-rules section and a lesson-writing template. §1 (the two rules + the three classes), §4 (the frame), §5 (the object-table invariant), §6 (Q1-Q16), §7 (the seam ledger), §9-§12 stand except where §10 below lists a delta.
 
@@ -902,3 +905,222 @@ Files the renumber must touch:
 - **The nrm-binding hazard is live between lesson 41 and lesson 49.** On-disk 40 puts `nrm` 5th in `mk_splat_group1` and on-disk 42 passes it 7th; all params are `&wgpu::Buffer`, so it compiles and silently binds the depth buffer as normals. S7a kills the class permanently at 49; until then it needs a **review note in lesson 43's text**.
 - **Every "one-line edit" in §9 assumes the lesson is re-anchored first.** The survey found stale Find blocks in most lessons independent of this design (`push_mesh`'s tuple return, `msaa_for` vs `msaa_now`, a 3-arg `clear` that never existed, `Msg::File` arity, `point.wgsl`, `unpack4x8unorm` in cylinder/ribbon, `HashSet<String>` vs `HashSet<u32>`). The +7 renumber plus the re-anchor pass is AI-side work of roughly the same size as the block itself, and it is a prerequisite, not a follow-up.
 - **`persistence.rs` is ~453 lines when 45 starts** (292 today + 161 from lesson 43). If A11 slips out of 51, the app ships a file 50% over the cap that lessons 100 and 105 both edit.
+
+---
+
+# Revision 3 — the maintenance kit (2026-08-30)
+
+Five maintainer lenses (cold newcomer, 2am debugger, rule enforcer, two-years-later evolver,
+curriculum maintainer) reviewed revision 2 against the code. The axis, the maps, the recipes and
+the borrow rules survived untouched. What they found missing is **the machinery that makes this
+document's own rules true** — the section below is the addition, and its artefact A is a
+BLOCKER: seven lessons of "the picture did not change" rest on a gate that has no runner today.
+
+## 1. Verdict
+
+The spec's axis, its maps, its recipes and its borrow rules are right, and nothing below touches them. What it skipped is **the machinery that makes its own rules true**: it names four `#[cfg(test)]` functions as "the only mechanism that keeps the compartments after the tutorial ends" (`docs/_ARCHITECTURE_TARGET.md:304`) while `session_viewer` has zero `#[test]` today, `.cargo/config.toml:4` pins every bare `cargo` command to `wasm32-unknown-unknown` (where `std::fs::read` does not link and no test binary runs), and the only viewer CI step is `trunk build --release` (`.github/workflows/viewer-pages.yml:37`) — so as written, `cargo test chain_table` cannot execute and never will. Second, the pixel gate cited ~20 times has no artefact: no baseline file, no compare script, `docs/_moved_check.sh` does not exist, and **four of the six named gate scenes reference gitignored `.pb` files** (`drawings` 5, `cloud_mix` 3, `bunny_drawings` 1, `lidar14` its only file), so a second contributor — or the same person on a new machine — can reproduce two of them. Third, the mirror test in §3 is specified as a field-**name** comparison and is structurally impossible on correct code: Rust `LineUniform` has 8 names against WGSL's 9 (`eye: [f32;3]` vs `eye_x/eye_y/eye_z`), Rust `Instance` has 6 against WGSL's 5 (`_pad`), so lesson 47's "run them before anything else" fails on a clean tree and the reader will weaken the test out of existence — while `CylinderSegment`, `GlyphPoint` and `CloudUniform` (2 WGSL copies each) go unguarded and `Instance`/`CylinderSegment` have no `size_of` assert at all. Fourth, §5.3's twelve-line `scene_list` does not match `encode_frame`: the sheet-fill draw is at position 4 in code (`gpu/mod.rs:1695`, right after faces) and position 8 in the spec, and text (`:1814`) precedes dots (`:1828`) in code but follows them in the spec — and §4 prints a third, different copy that omits `draw_print` entirely. Fifth, `ARCHITECTURE.md` is the file README sends every reader to and it is comprehensively false (`GpuSession` 0 hits in `src/`, `bash/build_viewer.sh` and `session_tests/viewer_sections/` do not exist), yet seam S22 budgets its rewrite at **0 lines** and lesson 51's row never names it. Sixth, the vocabulary is unmanaged: `lane` occurs 173 times in `src/` in at least four incompatible senses, and the spec adds `IdxLane::Solid` for the **faces** run while today's code says "the SOLID lane" for mesh **edges** (`pipelines/mod.rs:31`, `lib.rs:300`) — a head-on collision that is free to remove while the name is still on paper. **One blocker**: the test-runner + gate-artefact hole, because seven lessons of "the picture did not change" rest on it and the block cannot honestly start without it; everything else is high-value but survivable.
+
+---
+
+## 2. The kit
+
+| artefact | what it is | what it prevents | lesson | lines |
+|---|---|---|---|---|
+| **A** `.cargo/config.toml` alias + `.github/workflows/viewer-check.yml` | `xtest` alias pinning the native target; a CI job running `cargo xtest` + both `cargo check --all-targets`, gating the Pages deploy | The four rule-keeping tests never running. Today `cargo test` builds a wasm binary that cannot execute and `compartments_hold`'s `read()` does not link. | **45** (prereq) | 30 |
+| **B** `docs/_gate.sh` + `docs/_GOLDENS.tsv` | one command that runs the 4 clean-clone scenes × 4 configs × 2 passes, records ink + draws + objects + PPM sha256, diffs against a tracked TSV; `--record` re-baselines | A gate whose reference values live in prose on one laptop, and a baseline measured on an uncommitted tree (`show_mesh_edges` was added after the spec's 99-field measurement). | **45** (prereq) | 55 |
+| **C** `docs/_replay_check.py --moves` | the promised `_moved_check.sh`, folded into the parser that already reads `**Move**`/`**Replace-all**` ops | A dropped line inside a `#[cfg(target_arch)]` arm — invisible to the compiler on the default wasm target *and* to the goldens. | **45** (prereq) | 40 |
+| **D** offset-table mirrors in `gpu/buffers.rs` | one `#[cfg(test)] fn mirror(src, name, &[(field, offset)])` + 5 call sites + 2 missing `const _: () = assert!` | The name-list test failing on correct code and being deleted; and stride drift in the 3 mirrored structs the spec leaves unguarded. | **47** | 35 |
+| **E** `ARCHITECTURE.md` §0 "First hour" | the run/gate/test commands, a 10-row symptom→file table, the 24-knob table | A cold reader whose only orientation doc points at `GpuSession`, `adapters.rs` and `bash/build_viewer.sh`, none of which exist. **This is S22's real budget.** | **51** | 90 |
+| **F** `ARCHITECTURE.md` §0.1 glossary | 18 terms, one line each, owner file named; the `lane` ruling | `lane` meaning four things and `IdxLane::Solid` colliding with "the SOLID lane". | **45** seeded, **51** complete | 30 |
+| **G** §5.2 / §5.5 amendments | `//!` header law · naming law · recipe step 8 (`walk/bounds.rs`) · `GrowBuf.label` | 25 unlabelled files; six suffixes for one role; a new family silently excluded from `file_extent`; 16 named buffers going anonymous in every wgpu error. | **46**–**50** | 35 |
+| **H** `compartments_hold` hardening | strip comments before the litmus; assert `Gpu`'s field-name set, `//!` presence, the knob table, `Bases` coverage | A test that fails on day one (5 banned substrings are live in comments Rule 2 requires to move byte-identically) and covers 9 of ~35 files. | **50** | 30 |
+| **I** free corrections | one canonical `scene_list`; 51→59 propagated in 6 places; `IdxLane` → `IdxRun { Faces, Print, Text }` | A doc that teaches the wrong frame order; a lesson author guessing which of two answers is current. | in place | 12 |
+| | | | **total** | **357** |
+
+---
+
+## 3. Per-artefact detail
+
+### A — make the tests runnable (prerequisite, before 45 is drafted)
+
+`session_viewer/.cargo/config.toml`, three lines appended:
+
+```toml
+# Tests and examples are NATIVE: wasm32 has no test runner and no std::fs.
+[alias]
+xtest = "test --target x86_64-unknown-linux-gnu"
+```
+
+Every `cargo test` in the spec and in lessons 47-51 becomes **`cargo xtest`**. Every test file is headed `#![cfg(not(target_arch = "wasm32"))]` and roots its paths at `env!("CARGO_MANIFEST_DIR")`, never a relative `src/...`.
+
+`.github/workflows/viewer-check.yml` — same `paths:` filter as `viewer-pages.yml` **plus `session_rust/**`** (the daily kernel-audit bot bumps the gitlink, which does not match `session_viewer/**`, so today a kernel API change cannot trigger the only job that compiles the viewer):
+
+```yaml
+name: viewer-check
+on: { push: { branches: [main], paths: ['session_viewer/**','session_rust/**','.github/workflows/viewer-check.yml'] }, pull_request: {}, workflow_dispatch: {} }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git submodule update --init --depth 1 session_rust
+      - run: rustup target add wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with: { workspaces: session_viewer, shared-key: viewer }
+      - run: cd session_viewer && cargo check --target wasm32-unknown-unknown --lib
+      - run: cd session_viewer && cargo check --target x86_64-unknown-linux-gnu --all-targets
+      - run: cd session_viewer && cargo xtest
+```
+
+Add `needs: check` to `viewer-pages.yml`'s `build` job so a broken compartment cannot deploy. Add one line to `CLAUDE.md`'s Git section: *a submodule pointer bump now triggers `viewer-check` — watch it too.*
+
+### B — `docs/_gate.sh` + `docs/_GOLDENS.tsv` (prerequisite)
+
+The mandatory gate is the **four scenes that resolve entirely to tracked `.pb`**: `lion`, `bunny`, `bunny_cloud`, `drawings_rotated`. `drawings`, `bunny_drawings`, `cloud_mix` and `lidar14` stay in the TSV as an **advisory local-only** block, skipped loudly by name when their assets are absent — the spec must stop citing them as the gate.
+
+```bash
+#!/usr/bin/env bash   # docs/_gate.sh  [--record]
+set -euo pipefail; cd "$(dirname "$0")/.."
+T=x86_64-unknown-linux-gnu; OUT=${TMPDIR:-/tmp}/gate.ppm; NEW=$(mktemp)
+for s in lion bunny bunny_cloud drawings_rotated; do
+  for cfg in "" "VIEWER_LINE_STYLE=tubes" "VIEWER_REBUILD=1" "VIEWER_INCREMENTAL=1"; do
+    for pass in 1 2; do                       # house rule: measure TWICE
+      r=$(env $cfg cargo run -q --example selftest --target $T --release -- \
+            "$OUT" "assets/scenes/$s.toml" 2>/dev/null)
+      ink=$(sed -n 's/.*non-background pixels: \([0-9]*\).*/\1/p' <<<"$r")
+      dro=$(sed -n 's/.*: \([0-9]*\) draws, \([0-9]*\) objects.*/\1 \2/p' <<<"$r")
+      printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$s" "${cfg:-default}" "$pass" "$ink" "$dro" \
+             "$(sha256sum "$OUT" | cut -c1-16)" >> "$NEW"
+    done; done; done
+if [ "${1:-}" = --record ]; then mv "$NEW" docs/_GOLDENS.tsv
+else diff -u docs/_GOLDENS.tsv "$NEW" && echo "gate OK"; fi
+```
+
+Three things ride this file and cost one line each: the **PPM sha256** (a scalar ink count passes when geometry moves and the count does not — the sha does not, at zero repo weight); `git tag end-of-44 <sha>`, named in the TSV header, because the spec's baseline is an uncommitted working tree (`show_mesh_edges: false` at `gpu/mod.rs:329,919` was added *after* the 99-field measurement and gates two draws at `:1708,:1758`, so the quoted `lion 4/1` pair is already stale); and `!session_viewer/Cargo.lock` after `.gitignore:44`, because `wgpu = "29.0"` is a caret range and an unpinned resolver makes a golden diff indistinguishable from a regression. Also fix `examples/bench_lines.rs:17` — `p.ends_with(".json")` only, while every scene is `.toml`, so the one frame-time harness has been dead since the format migrated.
+
+### C — `docs/_replay_check.py --moves`
+
+`_moved_check.sh` is promised twice (`:423`, `:454`) and does not exist; `_replay_check.py` already parses every op into `(verb, target, find_blocks, arg, doc_line)` and already copies a snapshot tree, so this is a mode, not a file:
+
+```python
+def moves(snap, work, doc):            # after apply(work, doc)
+    def bag(p):                        # sorted multiset of stripped, non-blank lines
+        return sorted(l.strip() for l in p.read_text().splitlines() if l.strip())
+    fails = []
+    for src, dsts in move_map(doc).items():        # from the **Move** ops already parsed
+        before = collections.Counter(bag(snap / src))
+        after  = collections.Counter(itertools.chain(*(bag(work / d) for d in {src, *dsts})))
+        lost, gained = before - after, after - before
+        if lost: fails.append((src, "LOST", list(lost)[:8]))
+        expected = declared_replace_all(doc) + declared_new_lines(doc)
+        if (gained - collections.Counter(expected)): fails.append((src, "UNDECLARED", ...))
+    return fails
+```
+
+Second mode, `--stale <tree>`, at ~15 more lines: for every op in every `docs/NN-*.md`, assert the target path exists and each Find literal occurs **exactly once**; print `lesson · doc_line · verb · target · verdict`. That is the enumeration the +7 re-anchor pass needs (§12 calls it a prerequisite and schedules nothing) — 38 of the 63 downstream lessons name `gpu/mod.rs`, `app/scene.rs` or `pipelines/build.rs` in a verb line, and all three dissolve.
+
+### D — offset-table mirrors, in `gpu/buffers.rs`, called from each family file
+
+The §3 test as written cannot pass. Compare **offsets and total size**, which is what the hazard actually is:
+
+```rust
+#[cfg(test)]
+pub fn mirror(src: &str, name: &str, want: &[(&str, usize)], size: usize) {
+    let body = src.split(&format!("struct {name}")).nth(1).unwrap().split('}').next().unwrap();
+    let mut off = 0usize; let mut got = Vec::new();
+    for f in body.lines().filter_map(|l| l.split_once(':')) {
+        let (n, ty) = (f.0.trim().trim_start_matches(','), f.1.trim().trim_end_matches(','));
+        let (sz, al) = match ty.split(&[' ', '/'][..]).next().unwrap() {
+            "f32" | "u32" | "i32" => (4, 4), "vec2<f32>" => (8, 8),
+            "vec3<f32>" => (12, 16), "vec4<f32>" => (16, 16), "mat4x4<f32>" => (64, 16),
+            t => panic!("{name}: unknown wgsl type {t}"),
+        };
+        off = (off + al - 1) / al * al; got.push((n.to_string(), off)); off += sz;
+    }
+    assert_eq!(got.iter().map(|(n,o)|(n.as_str(),*o)).collect::<Vec<_>>(), want, "{name} drifted");
+    assert_eq!((off + 15) / 16 * 16, size, "{name} stride");
+}
+```
+
+Five call sites, one per mirrored struct, each inside the family that owns it — `instance.rs` (`Instance`, 5 shaders, 96 B), `frame.rs` (`LineUniform`, 5 shaders, 48 B; `CloudUniform`, 2, 16 B), `segments.rs` (`CylinderSegment`, 2, 40 B), `glyphs.rs` (`GlyphPoint`, 2, 48 B) — plus the two static asserts that do not exist today: `const _: () = assert!(size_of::<Instance>() == 96);` and `== 40` for `CylinderSegment` (only `LineUniform` at `gpu/mod.rs:2022` and `GlyphPoint` at `:2042` have one). §5.2's family shape gains the mirror line so a future family arrives with it.
+
+### E — `ARCHITECTURE.md` §0 "First hour" (S22's real budget: 90 lines, not 0)
+
+Widen S22 from "§2/§3" to the whole file — §6's `session_tests/viewer_sections/` rule and §7's `bash/build_viewer.sh` both point at paths that do not exist, and rule 2's "engine contains zero references to `session_rust`" is false at `pipelines/build.rs:1` and `gpu/mod.rs:15` (the spec corrects it at `:539`, inside a planning document that will not ship). Add lesson 51's row: *rewrite ARCHITECTURE.md — §0 new, §2/§3 replaced, §6 deleted, §7 replaced.* Three blocks:
+
+**§0.a Commands** — `trunk serve --release` (port 8770); `cargo check` (wasm, the default); `cargo check --target x86_64-unknown-linux-gnu --all-targets`; `cargo xtest`; `./docs/_gate.sh`; `cargo run --example check_determinism|check_lean --target …`; and the **browser smoke check**, which the spec mandates four times (`:410,413,454,630`) and never defines — twelve numbered observations: the four console lines in order (`adapter:` `gpu/mod.rs:391`, `viewer init OK` `:831`, `scene: N objects` `:1107`, and **no** `wgpu on_uncaptured_error` `:413`), orbit/pan/zoom, view keys 1-7, `E` (mesh edges — the lane that is **off** by default), `L`, `[`/`]`, a window resize, `?perf=1`. It is the sole gate on `clear`/`begin_present`/`end_present`/`impl State`, which `render_offscreen` never touches.
+
+**§0.b Symptom → compartment** — ten rows, `symptom | files upstream → downstream | the knob that isolates it`. This is the payoff of the split and the one thing the spec never converts into a page: *black screen* → `present.rs` (adapter line, `on_uncaptured_error`); *a whole lane missing* → the `set_scene` row-count line → the `walk/` producer → `View`'s gate → `append`'s `grew` bool vs `rebind`; *every object past row 0 wrong* → `instance_mirror` → `instance.rs` + 5 `.wgsl`; *one lane's ink drifting, four correct* → `line_uniform_mirror` → `frame.rs`; *cloud wrong place/size* → `SplatRecord` word indices → `splat.rs`; *sheets z-fighting* → `IdxRun` + `msaa_now` → `arena.rs`/`targets.rs`; *lines too thick at some zooms* → `walk/encode.rs::encode_width` → the planar sheet override (`scene.rs:487-497`) → `line_thickness_px` (`gpu/mod.rs:2114`, reads env **and** `?thickness=`) → `ribbon.wgsl`/`cylinder.wgsl`; *mesh shading wrong* → `session_rust/src/render_mesh.rs::vertex_normal` → `to_render()` → `triangle.wgsl:109`; *nothing after a rebuild* → `reset_arena` skips `stream`; *fit view frames nothing* → `walk/bounds.rs::file_extent`. Also: add `to_render()` to §2's Mesh row, which today names `b.mesh()` for BRep and `s.mesh()` for NurbsSurface but leaves the Mesh row's left edge unattached to the kernel.
+
+**§0.c Knobs** — the 24 `VIEWER_*`/`BENCH_*`/`DETAIL`/`SELF_CHECK`/`PB_BYTES` names, read across six files, documented in **zero** places today (`grep -c VIEWER_ ARCHITECTURE.md README.md` → 0, 0). One table: `name | read at | native / browser | what it isolates`. State once, at the top, the fact that lives only in two comments (`performance.rs:38-42`, `gpu/mod.rs:2113`): env vars are unreachable on wasm, so only `?scene=`, `?perf=1` and `?thickness=` work where the viewer actually runs. `View::from_env()` (Q2) absorbs three of the twenty-four; the rest keep their homes and their table row.
+
+### F / G / H / I — the small amendments
+
+**F glossary** — §4 below, dropped in as `ARCHITECTURE.md` §0.1.
+
+**G, four edits to §5.2/§5.5.** (1) *Header law*: §5.2's shape starts at `const SRC` with no `//!`, while §9 step 4 asks for one — so it is written for the first family and forgotten by the third. Put four lines into the shape (what this file owns · who may call it and under which rule (F1-F8 / W1-W7 / B7) · the `.wgsl` files or `Geometry::` variants it touches · the §2/§3 row it implements), and note in lesson 50 that the `scene.rs:1-84` Move takes `scene.rs`'s own `//!` block with it, leaving `scene.rs` headerless. (2) *Naming law*, six lines: module `<family>.rs` · row `<Row>` · CPU sink `<Family>Rows` · GPU holder `<Family>Lane` · `Gpu` field and `Upload` group spelled **identically** · pipelines `Pipes`. Today §4 has six suffixes for one role (`Arena`, `SegmentLane`, `GlyphLane`, `PointBufs`, `SplatSlot`, `InstanceTable`) and `Gpu.glyphs`/`Upload.glyph`, `Gpu.objects`/`Upload.obj` disagree on number. Renames ride the F6 Replace-all that already happens; `InstanceTable` and the `PointBufs`+`SplatSlot` pair stay, each with one sentence saying why. (3) *§5.5 step 8*: `walk/bounds.rs` — one `.chain(rows.iter().skip(base))` in `file_extent` **and** in `sheet_thickness`, plus one `Bases` field. `add_file` captures seven per-population bases (`scene.rs:217-225`) and the sweeps hard-code one skip chain each (`:407,414,420,464,470,484,487`); §5.4's "**Total: 1 new file + 2 lines. Zero engine edits**" is true only for a type writing into an existing group, and the spec's own declared exception 3 names the resulting bug (thickness 0 → whole file `FLAG_SHEET`). (4) *`GrowBuf.label`*: `append_rows` threads `label: &str` into `zeroed_buffer` on every growth (`gpu/mod.rs:109`, `:2146`) and 16 distinct labels are in use; §4's `GrowBuf { buf, count, cap, usage }` drops all of them, so a binding-size error at the exact moment a scene crosses a cap names an unlabelled buffer. One field, FREE-SHAPE.
+
+**H `compartments_hold`.** As sketched it fails on day one: `s.contains("Scene"|"Doc"|"Geometry"|"Session"|"egui")` over `src/engine/gpu` hits live comments that Rule 2 requires to move byte-identically — `gpu/mod.rs:34,43,49,942,1019,1088` and `:1482` ("later an egui slider"), which lands in `frame.rs` at lesson 46 and fails the test the moment the file exists. Strip `//` comments first, match on word boundaries, and add four clauses that cost one line each: `Gpu`'s field-name set equals a `const GPU_FIELDS: &[&str]` of the 18 (a named-list edit is reviewable; `show_mesh_edges` proves the ratchet is already slipping and §5.6 forbids exactly that); every file under `engine/gpu/` and `app/walk/` starts with `//!`; every `VIEWER_`/`BENCH_` literal in `src/` appears in ARCHITECTURE.md §0.c; every `Bases` field is named in `bounds.rs`. Add a `const OVER_CAP: &[(&str, u32, &str)]` allow-list so the two files the spec's §4 tree omits entirely — `src/camera.rs` (356 lines) and `src/lib.rs` (394, B7 says the loader owns it) — are visible debt rows with an owning lesson rather than silence. And while the §6 regroup is happening, `#[derive(PartialEq)]` on the five row groups turns `check_determinism`'s hand-written `same!` list (9 of 18 columns; **`objects`, `object_bounds`, `object_spacing`, `idx_print`, `idx_text`, `cloud_draws` are never compared**) into one `a != b` — the flags column that lesson 51 is *about* is the one it does not check.
+
+**I, free.** One canonical `scene_list`, transcribed from `encode_frame` and line-cited — background `:1665` · grid `:1670` · faces `:1677` · **print `:1695`** · pipes `:1715` · splat_resolve `:1739` · markers `:1768` · ribbons_depth `:1781` · dots_depth `:1790` · ribbons `:1800` · **text `:1814`** · **dots `:1828`** — with one clause per line; delete §4's second copy and cross-reference. Propagate the 59 answer for `persistence.rs` and `impl State { render, resize }` into ledger rows A11/A12 (`:732,:733`), Q9 (`:687`), and `:904`, which today all say 51 against §1/§4/§10's 59. Rename `IdxLane { Solid, Print, Text }` → `IdxRun { Faces, Print, Text }` at lesson 47, where the enum is created.
+
+---
+
+## 4. The vocabulary — `ARCHITECTURE.md` §0.1
+
+| term | one line | owner |
+|---|---|---|
+| **row** | one fixed-size `#[repr(C)]` record the GPU reads by index; the unit every producer emits | the family file |
+| **row format** | one of the five: `RenderVertex`, `CylinderSegment` (40 B), `GlyphPoint` (48 B), `Instance` (96 B), the cloud SoA triple | §2 |
+| **family** | a row format together with every shader that reads it — five of them, one file each; **the engine compartment** | `gpu/<family>.rs` |
+| **producer** | an `app/walk/*.rs` function turning one `Geometry::` variant into rows; **the app compartment** | `walk/mod.rs` |
+| **sink** | the `&mut …Rows` a producer receives; it can write nothing else (W1) | `upload.rs` |
+| **`Rows` / `Lane` / `Pipes`** | CPU sink · GPU buffers+bind group · the family's pipelines (naming law, §5.2) | §5.2 |
+| **arena** | the one shared vertex+index buffer every tessellating type writes into | `arena.rs` |
+| **ink** | screen-width linework and markers — ribbons, tubes, dots — as opposed to fills | `segments.rs`, `glyphs.rs` |
+| **pen** | the `(radius, color)` pair encoded per segment; `radius == 0.0` means screen-constant px | `walk/encode.rs` |
+| **pipes vs ribbons** | mesh/BRep **edges** as protruding 3D cylinders vs curve/line rows as camera-facing flat quads — the split B5 depends on | `segments.rs` |
+| **spheres vs dots** | mesh/BRep **vertices** as markers vs free `Point` rows as SDF dots — same file, different sink | `glyphs.rs` |
+| **splat** | the 2-pass atomic compute point rasterizer and its resolve | `splat.rs` |
+| **walk** | the one traversal from `Doc` to rows; `walk_geometry` is its only dispatch | `walk/mod.rs` |
+| **upload** | the CPU-side `Upload` of five row groups handed to `set_scene` once and dropped except `obj` | `upload.rs` |
+| **anchor / rebase** | the camera-relative origin instance rows are expressed about; re-anchoring rewrites every `model` | `objects.rs` |
+| **print / text run** | index runs off the same arena verts encoding **draw order** for PDF fills and lettering, not geometry | `arena.rs` |
+| **base** | a per-file starting index into a population, so a file sweep touches only its own rows | `walk/bounds.rs` |
+| **knob** | a runtime toggle that gates a draw or picks a pipeline; never a uniform, never a `pub` field on `Gpu` | `view.rs`, `knobs.rs` |
+
+**Terms used inconsistently today — flagged, then fixed by this glossary.** `lane` occurs **173 times in `src/`** in four senses: a drawing population (`pipelines/mod.rs:31` "the SOLID flat lane", `pipelines/build.rs:472,548,552` "FLAT lane"/"SOLID lane", `gpu/mod.rs:158-171` "Solid lane"/"Flat lane"/"Raw lane"/"Sheet lanes"), a shader half (`cylinder.wgsl:91` "the tube lane's half", `sphere.wgsl:198,244` "the ribbon lane"), a data type (`splat.wgsl:1` "the cloud lane"), and — added by the spec — an index run (`IdxLane`) and a buffer holder (`SegmentLane`, `GlyphLane`). **`IdxLane::Solid` names the *faces* run while "the SOLID lane" in `lib.rs:300` and `pipelines/mod.rs:31` means mesh *edges*** — renamed `IdxRun::Faces` by amendment I. `family`, `producer` and `sink` appear **0 times** in `src/` today; the header law (G1) is what puts them there. `spacing` carries two units into one f32 — world for meshes (`scene.rs:681-688`), screen pixels for clouds (`:326-328`) — which §2 names and `Row::world_spacing` / `Row::point_size_px` label at the write site.
+
+---
+
+## 5. What was correctly left out
+
+| proposed | why not |
+|---|---|
+| `examples/ppm_diff.rs` + committed reference images | 60 lines and repo weight for a solo viewer; the PPM **sha256** in `_gate.sh` catches "pixels moved, count unchanged" for one line, and localization is what the browser is for. |
+| A snapshot-crate build checker (`bash/check_snapshots.sh`, `SNAPSHOTS.md`) | The 45 `docs/NN_*/` crates are frozen chapter artefacts by design; making 45 stale crates a green-CI obligation is a permanent tax to protect a `diff -u` reference. |
+| Offline WGSL validation via a `naga` dev-dependency | `_gate.sh` already turns a broken shader into ink=0 on four scenes; a new dependency to re-detect what one command detects is not worth its line. |
+| `VIEWER_DUMP` row dump + `VIEWER_LANE` single-lane isolation | Genuinely useful, genuinely not needed to *land the block* — and the symptom table plus the existing 24 knobs cover the same ground. Revisit when a bug demands it. |
+| Per-family `FrameStats` and `Performance` breakdown | S20 already defers the perf counters to lesson 62; splitting one accumulator early adds a struct to the highest-risk lesson for no gate. |
+| A perf/`.wasm`-size regression gate | Seven lessons that move code byte-identically cannot regress frame time meaningfully; the one-line `bench_lines.rs` `.toml` fix rides lesson 45 and that is enough. |
+| `docs/_TEMPLATE.md` rewrite, `@lesson` tags, a file→lesson index | Curriculum tooling, not viewer maintenance, and the +7 renumber must land first or every hand-written link is wrong. |
+| Manifest `deny_unknown_fields` + `Result` error path | A behaviour change under a pixel gate, in a format one person authors; §5.6 has no manifest row because a manifest field is one `#[serde(default)]` line. |
+| A `params()` ≤5 ratchet with a 14-entry allow-list | The cap is real but the allow-list is bureaucracy at this size; `GPU_FIELDS` in `compartments_hold` guards the number the spec actually headlines. |
+
+---
+
+## 6. Where each addition lands
+
+| lesson | what it gains | added lines |
+|---|---|---|
+| **prereq** (before 45 is drafted; §8's "two artefacts" becomes **four**) | **A** the `xtest` alias + `viewer-check.yml`; **B** `_gate.sh` + `_GOLDENS.tsv` + `git tag end-of-44` + `!Cargo.lock`; **C** `_replay_check.py --moves`; the corrected gate scene list (4 mandatory / 4 advisory) | 125 |
+| **45** — *a pipeline is data* | **F** glossary seeded (the block's vocabulary is introduced here); **I** the `scene_list` correction and the 51→59 propagation land as doc edits; the `bench_lines.rs` `.toml` one-liner rides "delete before you move" | 16 |
+| **46** — *the floor is not a lane* | **G4** `GrowBuf { …, label: &'static str }` (FREE-SHAPE, rides a struct being created); **G1** the `//!` header law enters §5.2's shape and every file 46 creates carries one | 12 |
+| **47** — *one row per object* | **D** `buffers::mirror` + 5 call sites + the 2 missing `size_of` asserts, replacing the impossible name-list test; **I** `IdxLane` → `IdxRun { Faces, Print, Text }`; `#[derive(PartialEq)]` on `ObjectRows`/`ArenaRows` so `check_determinism` covers the flags column | 40 |
+| **48** — *one row, two shaders* | **G2** the naming law applied as part of the `seg`/`glyph` Replace-all (`Gpu.glyphs`↔`Upload.glyph`, `Gpu.objects`↔`Upload.obj` aligned); `mirror` calls for `CylinderSegment` and `GlyphPoint` | 8 |
+| **49** — *the frame is a list* | the canonical `scene_list` transcribed from `encode_frame` with per-line reasons; `mirror` for `CloudUniform`; the `set_scene` log line extended to name every group | 10 |
+| **50** — *narrow sinks* | **H** `compartments_hold` hardened (comment-stripped litmus, `GPU_FIELDS`, `//!`, knob-table, `Bases`, `OVER_CAP` with `camera.rs`/`lib.rs`); **G3** recipe step 8 (`walk/bounds.rs`) written into §5.5 as `bounds.rs` is created | 38 |
+| **51** — *adapters, not copies* | **E** the `ARCHITECTURE.md` rewrite as a **named, budgeted deliverable in the what-moves column** — §0 commands + symptom table + knob table, §0.1 the glossary complete, §2/§3 replaced, §6 deleted, §7 rewritten; the five `//!` section pointers in `src/` (`state.rs:2,39`, `lib.rs:3`, `engine/mod.rs:1`, `gpu/mod.rs:1`) re-pointed | 108 |
+| | | **357** |
+
+**Deferred, deliberately.** `_replay_check.py --stale` runs against the post-51 tree as the **first step of the +7 re-anchor pass**, not inside the block. The `Spacing` enum stays at the first lesson needing both units; the WGSL prelude stays at 104 (`mirror` is what covers the gap until then, now that it can actually run); `persistence.rs`'s 3-way split and `impl State { render, resize }` stay at **59** in all six places. `src/camera.rs`'s re-root to `engine/camera.rs` is **not** scheduled — it is recorded as an `OVER_CAP` debt row with lesson 62 (`Frustum`) as its owner, because moving it buys nothing the block needs and costs a golden.
