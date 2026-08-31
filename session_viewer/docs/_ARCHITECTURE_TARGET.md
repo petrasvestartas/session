@@ -1194,3 +1194,50 @@ So a lesson gate is `ink + draws + objects` on three of the four mandatory scene
 moved, count unchanged" holds for exactly one scene. Restoring it elsewhere needs a deterministic
 tie-break in `splat.wgsl` (depth-then-index `atomicMin`) and a diagnosis of the mesh case — both
 behaviour changes in `src/`, and therefore **not** part of a moves-only block.
+
+---
+
+# Revision 5 — the ladder as BUILT (2026-08-31, after 45-48 shipped)
+
+Revision 4 predicted `116 -> 106 -> 88 -> 65 -> 45 -> 18` from the deltas. Four lessons are now
+built and gated, and the measured numbers are **revision 3's original arithmetic**, not
+revision 4's:
+
+| | 44 | 45 | 46 | 47 | 48 | 49 |
+|---|---|---|---|---|---|---|
+| predicted (rev 4) | 116 | 106 | 88 | 65 | 45 | 18 |
+| **measured** | 116 | **106** | **86** | **63** | **43** | 18 (target) |
+
+Revision 4's two wrong slots came from the same miscount: `mvp_f32`, `last_ortho_h` and `last_eye`
+went into `FrameUniforms` at 46 (they are computed with the buffers they sit beside), and
+`last_rebase_ms` went into `InstanceTable` at 47 (it throttles nothing else). The 49 target is
+unchanged and now arithmetic rather than hope: `Gpu` holds 43, of which 25 are the point lanes and
+the splat machinery, and 43 - 25 = 18 exactly matches §4's enumerated end-state list.
+
+## Corrections to §8's table, from building it
+
+- **45.** `Pipelines::new` takes `device`, not `ctx` — `GpuCtx` does not exist until 46. The
+  3-parameter signature must land in the SAME step as `PipelineDesc`, because a desc literal
+  references `&l.mvp`. **Two** `VIEWER_NO_DEPTH` branches exist, not one (`sphere` and
+  `ribbon_solid`); both are preserved and the grep count of 2 is itself a gate.
+- **46.** `present.rs` and `view.rs` moved here from 49 as planned; the `Gpu` head order
+  (`surface, ctx, config, layouts, pipelines, frame, targets, view`) is set here, not at 49.
+- **47.** `INSTANCE_ID_ATTRIBS` and `instance_id_layout` move from `pipelines/build.rs` into
+  `arena.rs` — `vids` is that family's second vertex buffer and nothing else has one. The old
+  `reset_arena` never cleared `base_f32`, so a rebuild read the previous scene's rotation and
+  scale; `InstanceTable::clear` fixes it, and it is the block's one declared behaviour change.
+- **48.** `Template` (a positions-only instanced mesh) is shared by both ink families and lives in
+  `segments.rs`; `glyphs.rs` imports it. `GrowBuf::append` arrives here, but `append_rows`'s
+  six-parameter form survives until 49 because the raw and streamed point lanes are not `GrowBuf`s
+  yet. Every family draw RETURNS its draw count — `&mut Gpu` plus a `&Binds` borrowed from it is
+  E0502, and a shared counter cannot be threaded through.
+
+## Two rules for writing the remaining lessons, learned the hard way
+
+1. **A moved body is extracted from the tree, never retyped.** `unit_cylinder` was retyped from
+   memory into `segments.rs` and came out with different triangle winding — invisible to the
+   compiler, invisible to the pixel gate until a tube is seen end-on. Every moved region is now
+   pulled programmatically and `difflib`-checked against its original before the doc is written.
+2. **Write the ops before the prose.** Build an ops-only scratch document, iterate
+   replay -> `diff -r` until the tree is byte-identical, and only then wrap prose around the
+   proven blocks. Doing both at once means every prose edit risks an anchor.
