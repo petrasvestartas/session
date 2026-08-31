@@ -5,3 +5,7 @@ target = "wasm32-unknown-unknown"
 
 [target.wasm32-unknown-unknown]
 rustflags = ["-C", "link-arg=--max-memory=4294967296"]
+
+# Tests and examples are NATIVE: wasm32 has no test runner and no std::fs.
+[alias]
+xtest = "test --target x86_64-unknown-linux-gnu"

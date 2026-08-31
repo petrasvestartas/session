@@ -21,7 +21,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # `needs:` only reaches jobs in this file, so viewer-check runs here as a
+  # reusable workflow: a compartment that does not compile or does not pass
+  # `cargo xtest` never reaches the deploy.
+  check:
+    uses: ./.github/workflows/viewer-check.yml
+
   build:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

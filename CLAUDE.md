@@ -36,6 +36,8 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
   completion — parent `Session mini tests` included — `gh run list`/`gh run watch`; a push is
   not done until its runs are green. Never split a parent CI-config change and the submodule
   pointer bump it depends on into two commits (the intermediate commit is a guaranteed-red run).
+- A submodule pointer bump now triggers `viewer-check` (it compiles the viewer on wasm + native
+  and runs `cargo xtest`, and gates the Pages deploy) — watch it too.
 - Check CI: `gh run list --limit 5`, failures: `gh run view <id> --log-failed`
 - CI: macOS-15 (ARM64), manylinux_2_28 (Linux), chmod +x bash scripts in CI
 

@@ -1,0 +1,46 @@
+# Compile and test the session_viewer crate on BOTH targets it has to survive on.
+# wasm32 is the shipping target, but it has no test runner and no std::fs, so the
+# rule-keeping #[cfg(test)] functions only ever execute on the native target via
+# the `xtest` alias in session_viewer/.cargo/config.toml.
+# viewer-pages.yml calls this workflow as its `check` job, so a broken compartment
+# cannot deploy.
+name: viewer-check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # `session_rust` (no slash) is the gitlink itself: the daily kernel-audit bot
+      # bumps that one path, which `session_rust/**` does not match.
+      - 'session_viewer/**'
+      - 'session_rust'
+      - 'session_rust/**'
+      - '.github/workflows/viewer-check.yml'
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Only session_rust is a build dependency of the viewer; the other submodules
+      # (C++/Python kernels, data) are dead weight for this job.
+      - name: Checkout session_rust submodule
+        run: git submodule update --init --depth 1 session_rust
+      - name: Add wasm target
+        run: rustup target add wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: session_viewer
+          shared-key: viewer
+      - name: Check wasm (the shipping target)
+        run: cd session_viewer && cargo check --target wasm32-unknown-unknown --lib
+      - name: Check native, all targets
+        run: cd session_viewer && cargo check --target x86_64-unknown-linux-gnu --all-targets
+      - name: Test native
+        run: cd session_viewer && cargo xtest
