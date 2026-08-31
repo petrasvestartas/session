@@ -20,7 +20,66 @@ snapping, F10 edit-points, tree UI, undo/redo, draw tools, CLI, and egui all wor
 
 ---
 
-## 0. Working cadence (user-gated)
+## 0. The first hour — where anything is
+
+The viewer is two halves with one line between them. Learn the line and the rest follows.
+
+```text
+  app/    knows what a Geometry IS      talks to session_rust, never to wgpu
+  ────────────────────────────────────  Upload: rows in, no wgpu type either side
+  engine/ knows what a ROW IS           talks to wgpu, never to session_rust
+```
+
+**The two halves are organised on DIFFERENT axes, and that is the single most important fact in
+this document.**
+
+| | `app/walk/` | `engine/gpu/` |
+|---|---|---|
+| one file per | **geometry type** | **row format** |
+| because | a producer starts from a kernel type | a shader reads a row format |
+| files | `mesh.rs` `mesh_ink.rs` `mesh_topology.rs` `brep.rs` `surface.rs` `curves.rs` `points.rs` `frames.rs` `cloud.rs` | `arena.rs` `segments.rs` `glyphs.rs` `cloud.rs` `splat.rs` `backdrop.rs` |
+
+They differ because the mapping is **many-to-many**: one `Mesh` produces triangles AND cylinder
+segments AND glyph points; one `CylinderSegment` is produced by six types (mesh edges, Line,
+Polyline, NurbsCurve, Plane, OBB). Neither axis can serve both ends. What crosses between them is
+a **row**, and every row carries an `instance_id` into the one object table.
+
+### Symptom → file
+
+| what you are looking at | open |
+|---|---|
+| a geometry type draws nothing / wrongly | `app/walk/<type>.rs` |
+| the wrong pixels, right geometry | `engine/gpu/<family>.rs` — the family that owns that row |
+| the wrong draw ORDER | `engine/gpu/render.rs` — `scene_list`, eleven lines |
+| a pipeline/blend/depth setting | `engine/pipelines/mod.rs` + the family's `descs` |
+| a buffer that grows or a bind group | `engine/gpu/buffers.rs` (`GpuCtx`, `GrowBuf`) |
+| per-object transform, tint, flags | `engine/gpu/objects.rs` + `instance.rs` |
+| a per-frame uniform | `engine/gpu/frame.rs` |
+| a shader's struct disagreeing with Rust | run `cargo xtest` — four mirror tests name the file |
+| WHERE a file sits in the world | `app/manifest.rs` |
+| an env switch | `app/knobs.rs` (walk) or `engine/gpu/view.rs` (draw) |
+
+### The five rules the code enforces
+
+1. **A family may not build or renumber an object row.** One `(model, tint, flags)` per guid,
+   owned by `objects.rs`; everything else holds an index.
+2. **A module is defined by the ROW it owns** — its tables, its pipelines, its draws. Not by a
+   shader: `ribbon.wgsl` is compiled twice, for two tables.
+3. **The frame is an ordered LIST.** `scene_list` is eleven entries; no entry reaches past its own
+   family. `grep -cE 'wgpu::Buffer|\.wgsl' engine/gpu/render.rs` is 0.
+4. **A producer returns its object row; it never pushes one.** `Row` (`app/walk/mod.rs`).
+5. **An option the caller must decide is a named field.** `MeshOpts`, not eight parameters and a
+   tuple half its callers drop.
+
+### The gates
+
+```bash
+cargo xtest                                   # 4 Rust<->WGSL mirror tests
+./docs/_gate.sh                               # 4 scenes x 4 configs, twice
+python3 docs/_replay_check.py --render docs/*.md   # the page renders as written
+```
+
+## 0.1 Working cadence (user-gated)
 
 Chapters advance **only when the user says "I understand"** and asks to proceed. Today the viewer is
 just a **window that clears the screen** (Chapter 1). We learn the current chapter together; no later

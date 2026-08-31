@@ -1241,3 +1241,52 @@ the splat machinery, and 43 - 25 = 18 exactly matches §4's enumerated end-state
 2. **Write the ops before the prose.** Build an ops-only scratch document, iterate
    replay -> `diff -r` until the tree is byte-identical, and only then wrap prose around the
    proven blocks. Doing both at once means every prose edit risks an anchor.
+
+---
+
+# Revision 6 — the block as BUILT (2026-08-31, all seven lessons shipped)
+
+| | 44 | 45 | 46 | 47 | 48 | 49 | 50 | 51 |
+|---|---|---|---|---|---|---|---|---|
+| `Gpu` fields | 116 | 106 | 86 | 63 | 43 | **18** | 18 | 18 |
+| `engine/gpu/mod.rs` | 2,447 | 2,139 | 1,691 | 1,336 | 1,055 | **524** | 524 | 524 |
+| `app/scene.rs` | 1,382 | 1,365 | 1,341 | 1,341 | 1,335 | 1,333 | 739 | **284** |
+| `engine/pipelines/mod.rs` | 80 | 148 | 148 | 130 | 67 | **52** | 52 | 52 |
+
+`Gpu`'s end state is §4's enumerated 18 exactly. `gpu/mod.rs` is 524 rather than the ~300 targeted:
+what remains is `build` (~250 lines of resource construction), `set_scene`, `resize`, `reset_arena`,
+`msaa_now` and the re-export list. Splitting `build` is a **57** candidate, not a 49 one.
+
+## What the spec got wrong, corrected by building it
+
+1. **The ladder.** Revision 4's `88 / 65` were wrong in both slots; revision 3's arithmetic was
+   right. `mvp_f32`/`last_ortho_h`/`last_eye` went to `FrameUniforms` at 46, `last_rebase_ms` to
+   `InstanceTable` at 47.
+2. **`encode_splat` does not exist** and never did; the compute encode is inline in `encode_frame`.
+3. **49's suggested payoff does not work.** "Move `draw_text` above `draw_ribbons`, watch lettering
+   go under the ink" changes **0 pixels** — `drawings_rotated` carries no lettering. Replaced with
+   the vertex-marker reorder: 25,353 pixels.
+4. **`walk_geometry` cannot take narrow sinks yet.** It takes `&mut Upload` and reaches disjoint
+   FIELDS, which is the only reason the mesh arm compiles; a `t.arena_mut()` accessor borrows all
+   of `t`. Narrow sinks need the mesh split first, so 50 ships `Row` instead.
+
+## Three gates the spec never named, all earned by a real defect
+
+- **`--render`** (fence parity, duplicate `Create` bodies, repeated large blocks). Lesson 47
+  shipped ~900 lines rendering inside-out from one mistyped ` ```text `; replay, `--audit` and
+  `--moves` were all green.
+- **The warning count.** Three new "never used" warnings exposed an edit script that asserted its
+  way out before writing, so a whole batch of fixes silently never landed.
+- **The chain replay.** The only check that catches an anchor in lesson N+1 invalidated by a prose
+  edit to lesson N.
+
+## The two behaviour changes, both declared in their lessons
+
+1. **47** — `InstanceTable::reset` clears `base_f32`; the old `reset_arena` forgot it, so after a
+   rebuild `rebuild` read the previous scene's rotation and scale.
+2. **51** — `MeshOpts::allow_open` gives `Element(Mesh)` back `FLAG_OPEN`. No mandatory scene holds
+   an Element, so the pixel gate is silent either way.
+
+Plus one PRE-EXISTING bug found and fixed at its origin: lesson 43's streamed lane bound its
+pixel buffers where its normals belonged (`docs/43-streaming-cloud.md`, both call sites). No gate
+scene streams, so nothing had ever exercised it.
