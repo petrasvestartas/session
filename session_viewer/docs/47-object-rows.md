@@ -1,6 +1,6 @@
 # 47 One row per object
 
-> Lesson [66](66-bvh.md) asks "which object did the ray hit"; lesson [86](86-ground-grid.md) asks
+> Lesson [64](64-raycast-meshes.md) asks "which object did the ray hit"; lesson [86](86-ground-grid.md) asks
 > "where is this object in the world"; lesson [114](114-id-buffer-picking.md) writes an object id
 > into a render target. All three get the same answer from the same place, because after this
 > lesson there is exactly ONE table of objects and everything else holds an index into it.
@@ -39,7 +39,7 @@ Two shapes are hiding in those 86 fields, and both are the same mistake made twi
 The first is the **object table**. Eleven fields — `instances`, `last_origin`, `objects_base`,
 `base_f32`, `bounded_rows`, `object_bounds_world`, `inside`, `instance_buffer`, `instance_rows`,
 `instance_cap`, `instance_bind_group` — plus the `last_rebase_ms` throttle that only they use.
-Every one of them is indexed by the same row number. Add an object and you must push to seven
+Every one of them is indexed by the same row number. Add an object and you must push to six
 vectors in the right order; forget one and every later row reads the previous row's bounds, with
 no error anywhere. Four of the eleven are the `(buffer, rows-on-GPU, capacity, bind group)`
 quadruple lesson 46 already named.
@@ -59,7 +59,7 @@ And the walk writes both by naming their columns one at a time: forty-eight site
 glyph row, a vertex in the arena, a splat record — carries an `instance_id` that *indexes* it.
 No family may push to it, reorder it, or keep a second copy of any part of it.
 
-That is testable, and the test is a grep: after this lesson, `instances`, `objects_base` and
+That is testable, and the test is a grep: after this lesson, `arena_ibo`, `objects_base` and
 `bounded_rows` appear in exactly one file.
 
 ### 1c. The rejected alternative
@@ -106,7 +106,8 @@ sixth shader reading `instances[]`, has nowhere to add itself to.
 ```
 
 **Exit litmus, grep it when you are done:** `grep -rn 'objects_base\|bounded_rows\|arena_ibo' src/`
-names `src/engine/gpu/objects.rs` and `src/engine/gpu/arena.rs` and nothing else.
+names `src/engine/gpu/objects.rs` and `src/engine/gpu/arena.rs` — plus the one doc comment in
+`src/math.rs` that still quotes the old field name — and nothing else.
 
 The chain table, as far as this lesson takes it:
 
@@ -121,14 +122,14 @@ The chain table, as far as this lesson takes it:
 
 | file | what | step | why |
 |---|---|---|---|
-| `src/engine/gpu/instance.rs` | **NEW**, 161 lines | 4.1 | the row, the flag table, and the test that keeps five shaders honest |
-| `src/engine/gpu/objects.rs` | **NEW**, 320 lines | 4.2 | the object table and everything that keeps it current |
-| `src/engine/gpu/arena.rs` | **NEW**, 275 lines | 4.3 | the triangle family: rows, buffers, pipelines, draws |
-| `src/engine/gpu/buffers.rs` | 140 → 129 | 6.1 | `GrowBuf` stops being dead; `append_index_run` 6 params → 3 |
-| `src/engine/gpu/upload.rs` | 110 → 92 | 6.2 | eight flat columns become two groups |
+| `src/engine/gpu/instance.rs` | **NEW**, 159 lines | 4.1 | the row, the flag table, and the test that keeps five shaders honest |
+| `src/engine/gpu/objects.rs` | **NEW**, 341 lines | 4.2 | the object table and everything that keeps it current |
+| `src/engine/gpu/arena.rs` | **NEW**, 303 lines | 4.3 | the triangle family: rows, buffers, pipelines, draws |
+| `src/engine/gpu/buffers.rs` | 140 → 132 | 6.1 | `GrowBuf` stops being dead; `append_index_run` 6 params → 3 |
+| `src/engine/gpu/upload.rs` | 110 → 98 | 6.2 | eight flat columns become two groups |
 | `src/engine/pipelines/mod.rs` | 148 → 130 | 6.3 | the triangle descs leave for the family that owns them |
 | `src/engine/pipelines/build.rs` | 215 → 199 | 4.3 | `instance_id_layout` leaves with them |
-| `src/engine/gpu/mod.rs` | 1,691 → 1,336 | 6.4-6.6 | 25 fields become 2 |
+| `src/engine/gpu/mod.rs` | 1,691 → 1,335 | 6.4-6.6 | 25 fields become 2 |
 | `src/app/scene.rs` | 1,340 → 1,341 | 6.7 | the walk writes into two sinks instead of eight columns |
 | `src/engine/gpu/frame.rs` | 177 → 224 | 4.1 | gains `line_uniform_mirror` |
 | `src/selftest.rs`, `examples/check_*.rs` | small | 6.8 | the harnesses follow the columns |
@@ -179,6 +180,36 @@ The re-anchor constants first. They are the object table's own tuning and nothin
 **Move** `src/engine/gpu/mod.rs` `/// Re-anchor distance: the instance table is rebased about a snapped anchor.` **through** `const REANCHOR_MAX: f64 = 1.0e5;` **to** `src/engine/gpu/instance.rs` **at the end**
 
 **Replace-all** `src/engine/gpu/instance.rs` `const` -> `pub(crate) const` (2 hits)
+
+The block that arrived is two drafts of one paragraph stacked on the first constant, with nothing
+on the second. Give each its own.
+
+**Find** in `src/engine/gpu/instance.rs`:
+
+```rust
+/// Re-anchor distance: the instance table is rebased about a snapped anchor.
+/// The camera can drift this far (mm) before a full rebuild.
+/// Within it, pan/zoon only changes the view matrix.
+/// f32 error at 1e5 mm from the achor = 6e-3 mm - far below a pixel.
+/// Re-anchor threshold, WORLD units (mm): a quarter of the current view distance, so a zoomed-out
+/// pan does not rebuild constantly while a zoomed-IN pan re-anchors early enough that world
+/// coordinates never regain the magnitude that eats f32 precision. Clamped to a sane band.
+pub(crate) const REANCHOR_MIN: f64 = 1.0e3;
+pub(crate) const REANCHOR_MAX: f64 = 1.0e5;
+```
+
+**Replace with:**
+
+```rust
+/// Re-anchor threshold band, WORLD units (mm). The instance table is rebased about a snapped
+/// anchor, and the camera may drift a quarter of its view distance - clamped into this band -
+/// before a full rebuild. Within the threshold, pan and zoom only change the view matrix. f32
+/// error at 1e5 mm from the anchor is 6e-3 mm, far below a pixel.
+pub(crate) const REANCHOR_MIN: f64 = 1.0e3;
+/// The upper clamp. A zoomed-OUT pan must not rebuild constantly, but world coordinates must
+/// never regain the magnitude that eats f32 precision either.
+pub(crate) const REANCHOR_MAX: f64 = 1.0e5;
+```
 
 Now the row itself. `#[repr(C)]` appears four times in `gpu/mod.rs`, so it cannot be a Move's
 first line — the Move takes the struct and the impl, and the two attribute lines are re-typed
@@ -240,7 +271,22 @@ edits, and they are the whole reason `Instance` can leave `Gpu`'s file at all:
 **Replace with:**
 
 ```rust
-    pub(crate) flags: u32, // 4 B - reserved (selection)
+    /// The flag word. Nine bits, and it is only readable if the whole word is on one screen -
+    /// bit 0 and bits 6-8 are the budget, three free bits before it needs a second word.
+    ///
+    /// | bit | const | set by | read by |
+    /// |---|---|---|---|
+    /// | 0 | (reserved: FLAG_SELECTED) | - | - |
+    /// | 1 | `FLAG_HIDDEN` | the tree's visibility toggle | every draw, CPU-side |
+    /// | 2 | `FLAG_INSIDE` | `InstanceTable::update_inside_flags`, per frame | ribbon.wgsl, cylinder.wgsl |
+    /// | 3 | `FLAG_PRINT` | the walk, from a zero edge width | triangle.wgsl |
+    /// | 4 | `FLAG_OPEN` | the walk, from `Mesh::is_closed()` | ribbon.wgsl, cylinder.wgsl |
+    /// | 5 | `FLAG_SHEET` | the walk's per-file planar sweep | ribbon.wgsl |
+    /// | 6-8 | free | | |
+    ///
+    /// A new bit is a row here, a `pub const` below, and the matching `const FLAG_X = Nu;` in
+    /// every shader that reads it - `instance_mirror` checks the struct, never the bit values.
+    pub(crate) flags: u32, // 4 B
 ```
 
 **Find** in `src/engine/gpu/instance.rs`:
@@ -307,26 +353,6 @@ is in one place, and "which bit is free" is a question this table answers in a s
 
 ```rust
 
-/// The nine bits, in one table, because a flag word is only readable if the whole word is on one
-/// screen. Bit 0 and bits 6-8 are the budget: three free bits before the word needs a second one.
-///
-/// | bit | const | set by | read by |
-/// |---|---|---|---|
-/// | 0 | (reserved: FLAG_SELECTED) | - | - |
-/// | 1 | `FLAG_HIDDEN` | the tree's visibility toggle | every draw, CPU-side |
-/// | 2 | `FLAG_INSIDE` | `InstanceTable::update_inside_flags`, per frame | ribbon.wgsl, cylinder.wgsl |
-/// | 3 | `FLAG_PRINT` | the walk, from a zero edge width | triangle.wgsl |
-/// | 4 | `FLAG_OPEN` | the walk, from `Mesh::is_closed()` | ribbon.wgsl, cylinder.wgsl |
-/// | 5 | `FLAG_SHEET` | the walk's per-file planar sweep | ribbon.wgsl |
-/// | 6 | free | | |
-/// | 7 | free | | |
-/// | 8 | free | | |
-///
-/// A new bit is a row here, a `pub const` above, and the matching `const FLAG_X = Nu;` in every
-/// shader that reads it - `instance_mirror` does not check bit values, only the struct.
-#[allow(dead_code)]
-pub(crate) const FLAG_TABLE: () = ();
-
 /// Pull one `struct <name> { .. }` out of a `.wgsl` source as `(field, type)` pairs, comments and
 /// blank lines dropped. Shared by `instance_mirror` here and `line_uniform_mirror` in `frame.rs`:
 /// the two structs the CPU and the GPU both declare are the two that need it, and one parser is
@@ -338,7 +364,11 @@ pub(crate) fn wgsl_fields(src: &str, name: &str) -> Vec<(String, String)> {
     let body = &src[start + src[start..].find('{').unwrap() + 1..];
     let body = &body[..body.find('}').expect("unterminated struct")];
     body.lines()
-        .map(|l| l.split("//").next().unwrap().trim().trim_end_matches(','))
+        // Comment FIRST, then commas: `CylinderSegment` packs `p0x: f32, p0y: f32, p0z: f32,`
+        // onto one line, and a trailing `// ... always draw.` would otherwise split into junk.
+        .map(|l| l.split("//").next().expect("split always yields one element"))
+        .flat_map(|l| l.split(','))
+        .map(str::trim)
         .filter(|l| !l.is_empty())
         .map(|l| {
             let (f, t) = l.split_once(':').unwrap_or_else(|| panic!("not a field: `{l}`"));
@@ -516,6 +546,339 @@ leave `gpu/mod.rs` in step 6.5; create the destination now.
 //! Three vectors arrive from the walk (`ObjectRows`, a group of `Upload`) and seven live here:
 //!
 //! ```text
+//!   walk ->  ObjectRows { rows: ObjectBase, bounds: local AABB, spacing }
+//!              |  append()
+//!              v
+//!   base ------+--> base_f32   (the 13 floats a rebase does NOT touch, cast once)
+//!              +--> bounds_world (the local AABB through the TRUE transform)
+//!              +--> bounded_rows (which rows have one - the only rows the eye test walks)
+//!              +--> inside      (last frame's FLAG_INSIDE, for change detection)
+//!              v
+//!   rows: Vec<Instance>  --write_buffer-->  buffer -> bind_group -> group(2) of five shaders
+//! ```
+//!
+//! `base` holds f64 world transforms; `rows` holds f32 rebased ones. That split is the whole
+//! reason this file exists: an f32 matrix cannot hold a coordinate 100 m from the origin AND a
+//! millimetre of detail, so the GPU is only ever shown coordinates measured from an anchor near
+//! the camera, and the true placement stays here in f64 to be re-differenced when the anchor
+//! moves. Lose `base` and the scene cannot be re-anchored; lose the anchor and it jitters.
+
+use session_rust::{Point, Xform};
+
+use crate::engine::pipelines::layouts::Layouts;
+use crate::math::{Mat4, eye_from_view_proj, mat_to_f32};
+
+use super::buffers::{GpuCtx, append_rows, mk_rows_group, zeroed_buffer};
+use super::instance::{Instance, REANCHOR_MAX, REANCHOR_MIN};
+
+/// The two labels the instance table is built and rebound under. Spelled once: a grown buffer
+/// must keep its name, or the binding-size error a scene throws on crossing a cap is anonymous.
+const BUFFER_LABEL: &str = "instance.buffer";
+const GROUP_LABEL: &str = "instances.bind_group";
+
+/// The one row an empty table keeps: identity placement, mid grey, no flags. WebGPU zeroes the
+/// buffer and `on_gpu` stays 0, so it is never drawn - it exists because wgpu cannot bind a
+/// 0-byte buffer, and the first `append` clears it.
+fn placeholder_row() -> Instance {
+    Instance { model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0 }
+}
+
+/// One object's TRUE placement, in world units and f64 - the row the walk writes and the row a
+/// rebase reads. It was a `(Mat4, [f32; 4], u32)` tuple, indexed `.0`/`.1`/`.2` in eleven places
+/// across two files; the flags field in particular was `.2 |= Instance::FLAG_PRINT`, which reads
+/// as nothing at all.
+pub struct ObjectBase {
+    pub model: Mat4,
+    pub color: [f32; 4],
+    pub flags: u32,
+}
+
+/// The object group of `Upload`: the three columns the walk fills per object, aligned by row.
+///
+/// They are one group because they are written together - a producer that pushes a row without
+/// pushing its bounds and its spacing shifts every later row's data by one - and `append` below
+/// is the only reader, which is what a sink means.
+pub struct ObjectRows {
+    pub rows: Vec<ObjectBase>,
+    /// Mesh-LOCAL AABB per row. None for linework/points/clouds: only the solid lane's facing
+    /// cull needs it (see `Instance::FLAG_INSIDE`).
+    pub bounds: Vec<Option<([f32; 3], [f32; 3])>>,
+    /// Vertex spacing per row, world units. 0 = unknown (linework, points, clouds), which the
+    /// ink lanes read as "never density-cull".
+    pub spacing: Vec<f32>,
+}
+
+impl Default for ObjectRows {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ObjectRows {
+    pub fn new() -> Self {
+        Self { rows: Vec::new(), bounds: Vec::new(), spacing: Vec::new() }
+    }
+
+    pub fn len(&self) -> usize {
+        self.rows.len()
+    }
+}
+
+/// The GPU-side object table, plus the CPU state a rebase needs.
+pub struct InstanceTable {
+    /// What the GPU sees: rebased about `last_origin`, f32, uploaded whole on a rebase and
+    /// appended to on a new file.
+    rows: Vec<Instance>,
+    /// The TRUE world placements, f64. Never uploaded.
+    base: Vec<ObjectBase>,
+    /// `base`'s rotation/scale cast to f32 ONCE, here, instead of per re-anchor: a rebase then
+    /// re-patches three floats per row instead of casting sixteen. At 210k objects that is the
+    /// difference between a 20 ms CPU loop and a copy.
+    base_f32: Vec<[f32; 16]>,
+    /// Per-row WORLD AABB - the local `ObjectRows::bounds` through the true transform.
+    bounds_world: Vec<Option<([f64; 3], [f64; 3])>>,
+    /// The rows that HAVE one. Derived from `bounds_world`, so the two are cleared together.
+    bounded_rows: Vec<u32>,
+    /// Last frame's FLAG_INSIDE per row, so an unchanged frame uploads nothing.
+    inside: Vec<bool>,
+    pub(super) buffer: wgpu::Buffer,
+    /// Rows already ON the buffer - the base for the next append.
+    on_gpu: u32,
+    cap: u64,
+    pub bind_group: wgpu::BindGroup,
+    /// The anchor `rows` is currently rebased about. None = the next frame must rebuild.
+    last_origin: Option<Point>,
+    /// Throttle. A 210k-row rebase costs ~25 ms and one per frame is the motion jank the
+    /// constant-quality rule forbids.
+    last_rebase_ms: f64,
+}
+
+impl InstanceTable {
+    pub fn new(device: &wgpu::Device, layouts: &Layouts) -> Self {
+        // COPY_SRC because the table GROWS by appending: when it outgrows its buffer the prefix
+        // is copied GPU-side into the bigger one, and a buffer without COPY_SRC cannot be the
+        // source of that copy.
+        let buffer = zeroed_buffer(
+            device,
+            "instance.buffer",
+            std::mem::size_of::<Instance>() as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+        let bind_group = mk_rows_group(device, &layouts.instance, "instances.bind_group", &buffer);
+        Self {
+            // The scene-shaped state starts as an empty placeholder. WebGPU zero-initializes
+            // buffers and `on_gpu` is 0, so the first frame draws nothing; the first `append`
+            // clears this row and starts the real table.
+            rows: vec![Instance {
+                model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0,
+            }],
+            base: Vec::new(),
+            base_f32: Vec::new(),
+            bounds_world: Vec::new(),
+            bounded_rows: Vec::new(),
+            inside: Vec::new(),
+            buffer,
+            on_gpu: 0,
+            cap: 1,
+            bind_group,
+            last_origin: None,
+            last_rebase_ms: 0.0,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.rows.len()
+    }
+
+    /// One rebased row, for a lane that needs its model/flags/spacing without touching the table.
+    pub fn row(&self, i: usize) -> Option<&Instance> {
+        self.rows.get(i)
+    }
+
+    /// The anchor `rows` is currently rebased about, for anything drawn OUTSIDE the object table
+    /// - the grid, the axes - which has to subtract the same origin or it drifts away.
+    pub fn anchor(&self) -> Option<&Point> {
+        self.last_origin.as_ref()
+    }
+
+    /// This row's world AABB, if it has one. The only way out of `bounds_world`.
+    pub fn bounds_world(&self, row: usize) -> Option<([f64; 3], [f64; 3])> {
+        self.bounds_world.get(row).copied().flatten()
+    }
+
+    /// Turn the NEW object rows into instance rows and send them.
+    ///
+    /// `up.rows` is the ONE table the walk keeps cumulative - the bounds sweep and the per-file
+    /// sheet pass both index it by global row - so this is the one lane that gets a full table
+    /// every time instead of a delta. Only the rows past `self.base.len()` are converted and
+    /// sent: cloning 148k rows per file was 22 MB of memcpy and a full re-upload, for a tail
+    /// that had not changed since the file before.
+    pub fn append(&mut self, ctx: &GpuCtx, layouts: &Layouts, up: &ObjectRows) {
+        let base = self.base.len();
+        if base == 0 {
+            // First upload, or a rebuild that rewound everything: start the GPU table over too,
+            // which also drops the one-row placeholder an empty scene leaves behind.
+            self.rows.clear();
+            self.on_gpu = 0;
+        }
+        debug_assert_eq!(up.rows.len(), up.bounds.len());
+        debug_assert!(up.rows.len() >= base, "the object table only ever grows");
+        self.base.extend(up.rows[base..].iter().map(|o| ObjectBase { model: o.model, color: o.color, flags: o.flags }));
+        self.base_f32.extend(up.rows[base..].iter().map(|o| mat_to_f32(&o.model)));
+        self.bounds_world.extend(up.rows[base..].iter().zip(&up.bounds[base..]).map(|(o, b)| {
+            let m = &o.model;
+            b.map(|(lo, hi)| {
+                // World AABB of the local box: the 8 corners through the true transform.
+                // Conservative for rotated placements - FLAG_INSIDE is a hint, not a cull.
+                let xp = |x: f64, y: f64, z: f64| [
+                    m[0] * x + m[4] * y + m[8] * z + m[12],
+                    m[1] * x + m[5] * y + m[9] * z + m[13],
+                    m[2] * x + m[6] * y + m[10] * z + m[14],
+                ];
+                let mut wlo = [f64::INFINITY; 3];
+                let mut whi = [f64::NEG_INFINITY; 3];
+                for c in 0..8 {
+                    let p = xp(
+                        (if c & 1 == 0 { lo[0] } else { hi[0] }) as f64,
+                        (if c & 2 == 0 { lo[1] } else { hi[1] }) as f64,
+                        (if c & 4 == 0 { lo[2] } else { hi[2] }) as f64,
+                    );
+                    for k in 0..3 { wlo[k] = wlo[k].min(p[k]); whi[k] = whi[k].max(p[k]); }
+                }
+                (wlo, whi)
+            })
+        }));
+        self.inside.resize(self.base.len(), false);
+        self.bounded_rows = self.bounds_world.iter().enumerate().filter_map(|(i, b)| b.map(|_| i as u32)).collect();
+        // `bounds_world` was just extended above, so each row's extent comes from the same
+        // AABB FLAG_INSIDE uses. The diagonal, not an axis: a flat sheet has a zero-thickness axis
+        // and would clamp its ink lift to nothing.
+        let bounds = &self.bounds_world;
+        self.rows.extend(up.rows[base..].iter().enumerate().map(|(i, o)| Instance {
+            model: mat_to_f32(&o.model),
+            color: o.color,
+            flags: o.flags,
+            extent: bounds.get(base + i).and_then(|b| *b).map_or(0.0, |(lo, hi)| {
+                ((hi[0] - lo[0]).powi(2) + (hi[1] - lo[1]).powi(2) + (hi[2] - lo[2]).powi(2)).sqrt() as f32
+            }),
+            spacing: up.spacing.get(base + i).copied().unwrap_or(0.0),
+            _pad: 0,
+        }));
+
+        if self.rows.is_empty(){
+            self.rows.push(Instance {model: Xform::identity().to_f32(), color: [0.5,0.5,0.5,1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0 });
+        }
+
+        let mut on_gpu = self.on_gpu;
+        let fresh = &self.rows[on_gpu as usize..];
+        if append_rows(ctx, "instance.buffer", &mut self.buffer, &mut on_gpu, &mut self.cap, fresh) {
+            self.bind_group = mk_rows_group(&ctx.device, &layouts.instance, "instances.bind_group", &self.buffer);
+        }
+        self.on_gpu = on_gpu;
+
+        // The table just grew, so the anchor it was rebased about no longer covers every row.
+        self.last_origin = None;
+    }
+
+    /// The anchor the instance table is rebased about, and whether this call rebuilt it.
+    ///
+    /// A full rebuild (42 000 x at stress scale) runs only when the camera target strays past
+    /// `thresh` - a quarter of the view distance, clamped into [`REANCHOR_MIN`, `REANCHOR_MAX`].
+    /// Orbit never moves the target, and pan/zoom within the budget just changes the view matrix.
+    ///
+    /// `origin` and `view_dist` are both in WORLD units (mm) - the same units as the instance
+    /// table's translations. Feeding metres here (the camera's internal unit) makes the subtract
+    /// in `rebuild` a no-op at 1/1000 scale, which silently turns camera-relative rendering off:
+    /// the symptom is geometry that jitters and then clips away entirely as you zoom in, because
+    /// the f32 mvp is differencing two large world magnitudes.
+    pub fn rebase_anchor(&mut self, ctx: &GpuCtx, origin: &Point, view_dist: f64) -> (Point, bool) {
+        let thresh = (view_dist * 0.25).clamp(REANCHOR_MIN, REANCHOR_MAX);
+        let need = match &self.last_origin {
+            None => true,
+            Some(a) => {
+                let (dx, dy, dz) = (a[0] - origin[0], a[1] - origin[1], a[2] - origin[2]);
+                (dx * dx + dy * dy + dz * dz).sqrt() > thresh
+            }
+        };
+        // Throttled: during a wheel-zoom gesture the target moves every tick,
+        // and an every-frame rebuild is the motion jank the rule forbids.
+        // Between rebuilds the old anchor stays valid - it is just farther from the eye than the threshold likes, which costs f32 precision
+        // only past the threshold distance, never a wrong image.
+        let now = crate::engine::performance::now_ms();
+        let rebuilt = need && (now - self.last_rebase_ms > 200.0 || self.last_origin.is_none());
+        if rebuilt {
+            self.rebuild(ctx, origin);
+            self.last_rebase_ms = now;
+        }
+        (self.last_origin.clone().unwrap(), rebuilt)
+    }
+
+    /// Rebase every instance's translation around 'origin' - an f64 subtract against the TRUE world transform in 'base'
+    /// Then cast to f32.
+    /// 'rows', what GPU actually sees, never holds a coordinate bigger than the camera's distance from 'origin',
+    /// no matter how far the scene sits from world (0,0,0).
+    fn rebuild(&mut self, ctx: &GpuCtx, origin: &Point){
+        self.last_origin = Some(origin.clone());
+        for (i, o) in self.base.iter().enumerate() {
+            let mut m = self.base_f32[i]; // rotation / scale cast once at set_scene
+            m[12] = (o.model[12] - origin[0]) as f32;
+            m[13] = (o.model[13] - origin[1]) as f32;
+            m[14] = (o.model[14] - origin[2]) as f32;
+            self.rows[i].model = m;
+        }
+        ctx.queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&self.rows));
+    }
+
+    /// Set FLAG_INSIDE on every row whose world AABB contains the eye, clear it on the rest, and
+    /// upload only if something actually flipped.
+    pub fn update_inside_flags(&mut self, ctx: &GpuCtx, view_proj: &Xform, scene_min: [f32; 3], scene_max: [f32; 3]) {
+        if self.bounded_rows.is_empty(){
+            return;
+        }
+        let Some(origin) = self.last_origin.clone() else { return };
+        let eye = eye_from_view_proj(view_proj); // anchored world units, like rows[]
+        let ew = [origin[0] + eye[0] as f64, origin[1] + eye[1] as f64, origin[2] + eye[2] as f64];
+        // The eye outside the scene's box is outside every object in it.
+        let in_scene = (0..3).all(|k| ew[k] >= scene_min[k] as f64 && ew[k] <= scene_max[k] as f64);
+        let mut dirty = false;
+        for &row in &self.bounded_rows{
+            let i = row as usize;
+            let b = &self.bounds_world[i];
+            let inside = in_scene && b.is_some_and(|(lo, hi)| (0..3).all(|k| ew[k] >= lo[k] && ew[k] <= hi[k]));
+            if self.inside.get(i).copied().unwrap_or(false) == inside {
+                continue;
+            }
+            if let Some(row) = self.rows.get_mut(i) {
+                row.flags = if inside { row.flags | Instance::FLAG_INSIDE } else { row.flags & !Instance::FLAG_INSIDE };
+            }
+            if i < self.inside.len() { self.inside[i] = inside; }
+            dirty = true;
+        }
+        if dirty {
+            ctx.queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&self.rows));
+        }
+    }
+
+    /// Rewind the whole table so the next upload writes from row 0 again. The buffer and its
+    /// capacity stay - only the counters and the CPU vectors move.
+    ///
+    /// `bounded_rows` is DERIVED from `bounds_world`, so leaving it behind holds row indices
+    /// into a vector that is now empty. `rebuild` hides that by re-walking immediately, but a
+    /// scene that is cleared and then DRAWN before the next upload - reload_scene between Clear
+    /// and the first File - panics in `update_inside_flags` on the stale rows.
+    ///
+    /// `last_origin` deliberately STAYS: nothing is drawn from the table until the next `append`,
+    /// which nulls it, and the grid still needs a valid anchor to subtract in between.
+    pub fn reset(&mut self) {
+        self.base.clear();
+        self.base_f32.clear();
+        self.bounds_world.clear();
+        self.bounded_rows.clear();
+        self.inside.clear();
+        self.rows.clear();
+        self.on_gpu = 0;
+    }
+}
+```text
 //!   walk ->  ObjectRows { rows: ObjectBase, bounds: local AABB, spacing }
 //!              |  append()
 //!              v
@@ -837,11 +1200,11 @@ Three things in there are NOT a move, and each is deliberate:
 - **`ObjectRows` is a sink.** The three columns are written together — push a row without its
   bounds and every later row is off by one — so they travel as one value and `append` is their
   only reader.
-- **`clear()` clears `base_f32`.** The old `reset_arena` cleared six vectors and forgot this one,
+- **`clear()` clears `base_f32`.** The old `reset_arena` cleared five vectors and forgot this one,
   so after a rebuild `base_f32` was twice as long as `base` and `rebuild` read the PREVIOUS
   scene's rotation and scale. No golden catches it, because a rebuild re-walks identical content
   and the stale rows happen to be equal. It is still a leak and still wrong, and a method called
-  `clear` on a struct that owns all seven vectors is where it stops being possible.
+  `clear` on a struct that owns all six vectors is where it stops being possible.
 
 ### 4.3 `src/engine/gpu/arena.rs`
 
@@ -858,6 +1221,286 @@ One vertex table, three index runs, two pipelines, three draws.
 //! thing that separates them is WHICH INDICES are drawn and in WHAT ORDER:
 //!
 //! ```text
+//!   vbo   RenderVertex  position+normal+colour  ]  one table, appended per file
+//!   vids  u32           instance_id per vertex  ]  slot 1, so a vertex knows its object row
+//!
+//!   solid -> triangle        depth write ON    drawn with the 3D geometry
+//!   print -> triangle_sheet  depth write OFF   a page's fills, in document order
+//!   text  -> triangle_sheet  depth write OFF   the lettering, LAST of everything
+//! ```
+//!
+//! That is the family contract in one file: the rows (`ArenaRows`), the buffers (`Arena`), the
+//! pipelines that read them (`Pipes` + `descs`), and the draws. Nothing outside this file names
+//! `triangle.wgsl`, and nothing in this file names a `Geometry::` variant - the walk decides
+//! which run an index lands in, the family decides what a run means.
+
+use session_rust::RenderVertex;
+
+use crate::engine::pipelines::layouts::Layouts;
+use crate::engine::pipelines::{PipelineDesc, Target, build::build};
+
+use super::buffers::{GpuCtx, GrowBuf, append_index_run, zeroed_buffer};
+use super::frame::Binds;
+
+const TRIANGLE: &str = include_str!("../../shaders/triangle.wgsl");
+
+/// The arena group of `Upload`: this file's rows, as the walk hands them over.
+///
+/// `verts`/`vids` are parallel - one instance id per vertex - and the three index runs all index
+/// the SAME vertex table, which is what makes splitting the sheet lanes free: one buffer each,
+/// no duplicated geometry.
+pub struct ArenaRows {
+    pub verts: Vec<RenderVertex>,
+    pub vids: Vec<u32>,
+    pub idx: Vec<u32>,
+    /// Sheet lanes. A PDF's fills are exactly coplanar, so they must NOT arbitrate by depth -
+    /// they are split off the solid index run and drawn in document order with depth write off.
+    /// `idx_text` is the lettering, drawn LAST of all, after the ink lanes, because a page puts
+    /// its text on top of both its hatching and its linework.
+    pub idx_print: Vec<u32>,
+    pub idx_text: Vec<u32>,
+}
+
+impl Default for ArenaRows {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ArenaRows {
+    pub fn new() -> Self {
+        Self { verts: Vec::new(), vids: Vec::new(), idx: Vec::new(), idx_print: Vec::new(), idx_text: Vec::new() }
+    }
+}
+
+/// Which index run. The three differ in one pipeline and one draw position; naming them is what
+/// keeps `run(Text)` from being `self.arena_ibo_text`, `self.arena_text_count` and
+/// `self.arena_text_cap` spelled out at every site.
+#[derive(Clone, Copy)]
+pub enum IdxLane {
+    Solid,
+    Print,
+    Text,
+}
+
+/// The shared vertex table and its three index runs.
+pub struct Arena {
+    vbo: wgpu::Buffer,
+    vids: wgpu::Buffer,
+    /// Vertices already on the GPU - the base for the next append, and the row every index is
+    /// relative to.
+    verts: u32,
+    vert_cap: u64,
+    solid: GrowBuf,
+    print: GrowBuf,
+    text: GrowBuf,
+}
+
+impl Arena {
+    pub fn new(device: &wgpu::Device) -> Self {
+        // One zeroed row each - wgpu cannot bind a 0-byte buffer, and every count starts at 0 so
+        // nothing is drawn from them until real geometry appends.
+        let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let iu = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        Self {
+            vbo: zeroed_buffer(device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, vu),
+            vids: zeroed_buffer(device, "arena.vids", 4, vu),
+            verts: 0,
+            vert_cap: 1,
+            solid: GrowBuf { buf: zeroed_buffer(device, "arena.ibo", 4, iu), count: 0, cap: 1, usage: iu, label: "arena.ibo" },
+            print: GrowBuf { buf: zeroed_buffer(device, "arena.ibo.print", 4, iu), count: 0, cap: 1, usage: iu, label: "arena.ibo.print" },
+            text: GrowBuf { buf: zeroed_buffer(device, "arena.ibo.text", 4, iu), count: 0, cap: 1, usage: iu, label: "arena.ibo.text" },
+        }
+    }
+
+    fn run(&self, lane: IdxLane) -> &GrowBuf {
+        match lane {
+            IdxLane::Solid => &self.solid,
+            IdxLane::Print => &self.print,
+            IdxLane::Text => &self.text,
+        }
+    }
+
+    fn run_mut(&mut self, lane: IdxLane) -> &mut GrowBuf {
+        match lane {
+            IdxLane::Solid => &mut self.solid,
+            IdxLane::Print => &mut self.print,
+            IdxLane::Text => &mut self.text,
+        }
+    }
+
+    /// Vertices on the GPU - a COUNT, not the table. `msaa_now` reads it to decide whether the
+    /// scene holds solids at all.
+    pub fn verts(&self) -> u32 {
+        self.verts
+    }
+
+    /// Append one file's worth of triangles.
+    ///
+    /// Like the cloud lane, `up.verts/vids/idx` are a DELTA - the caller clears them after
+    /// upload (`Scene::upload_to`), because nothing reads them back: picking goes through the
+    /// kernel Meshes in Doc.session, never through these flattened rows.
+    ///
+    /// Appending rather than rebuilding is worth two separate things. It stops re-sending the
+    /// whole arena on every file (six files meant the 64 MB vertex table travelled six times),
+    /// and it lets the CPU-side Vecs go, which is ~70 MB of wasm heap that was being held for
+    /// the sole purpose of feeding the next rebuild.
+    pub fn append(&mut self, ctx: &GpuCtx, up: &ArenaRows) {
+        if up.verts.is_empty() {
+            // The three index runs are appended BELOW this return, so indices without vertices
+            // would vanish - and `Upload::drop_uploaded` frees them right after, with no second
+            // chance. The walk always pushes both; this says so out loud.
+            debug_assert!(
+                up.idx.is_empty() && up.idx_print.is_empty() && up.idx_text.is_empty(),
+                "index rows arrived with no vertex rows; this early return would drop them",
+            );
+            return;
+        }
+        debug_assert_eq!(up.verts.len(), up.vids.len(), "one instance id per vertex, or slot 1 reads the wrong row");
+        let vstride = std::mem::size_of::<RenderVertex>() as u64;
+        let need_v = self.verts as u64 + up.verts.len() as u64;
+        let need_i = self.solid.count as u64 + up.idx.len() as u64;
+
+        if need_v > self.vert_cap || need_i > self.solid.cap {
+            // EXACT fit, not doubling - and unlike `GrowBuf::append` that is deliberate here.
+            // This is the biggest table in the viewer (64 MB on the mesh-stress scene, and a
+            // lidar scene puts hundreds of MB behind it), so a doubling would cost more VRAM
+            // than the re-copy costs time: growth happens once per FILE, not per row.
+            let cap_v = need_v.max(self.vert_cap);
+            let cap_i = need_i.max(self.solid.cap);
+            let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+            let vbo = zeroed_buffer(&ctx.device, "arena.vbo", cap_v * vstride, vu);
+            let vids = zeroed_buffer(&ctx.device, "arena.vids", cap_v * 4, vu);
+            let ibo = zeroed_buffer(&ctx.device, self.solid.label, cap_i * 4, self.solid.usage);
+            if self.verts > 0 {
+                // the prefix moves GPU-side; it never travels back through wasm memory
+                let mut enc = ctx.device.create_command_encoder(&Default::default());
+                enc.copy_buffer_to_buffer(&self.vbo, 0, &vbo, 0, self.verts as u64 * vstride);
+                enc.copy_buffer_to_buffer(&self.vids, 0, &vids, 0, self.verts as u64 * 4);
+                enc.copy_buffer_to_buffer(&self.solid.buf, 0, &ibo, 0, self.solid.count as u64 * 4);
+                ctx.queue.submit([enc.finish()]);
+            }
+            self.vbo = vbo;
+            self.vids = vids;
+            self.solid.buf = ibo;
+            self.vert_cap = cap_v;
+            self.solid.cap = cap_i;
+        }
+
+        ctx.queue.write_buffer(&self.vbo, self.verts as u64 * vstride, bytemuck::cast_slice(&up.verts));
+        ctx.queue.write_buffer(&self.vids, self.verts as u64 * 4, bytemuck::cast_slice(&up.vids));
+        ctx.queue.write_buffer(&self.solid.buf, self.solid.count as u64 * 4, bytemuck::cast_slice(&up.idx));
+        self.verts += up.verts.len() as u32;
+        self.solid.count += up.idx.len() as u32;
+
+        // The sheet runs grow and append the same way; they index the SAME vertex table, so
+        // splitting them costs one buffer each and no duplicated geometry.
+        append_index_run(ctx, self.run_mut(IdxLane::Print), &up.idx_print);
+        append_index_run(ctx, self.run_mut(IdxLane::Text), &up.idx_text);
+    }
+
+    /// Forget what the arena holds, so the next upload writes from row 0 again. The buffers and
+    /// their capacity stay - only the counters move - so a rebuild costs no allocation.
+    pub fn reset(&mut self) {
+        self.verts = 0;
+        self.solid.count = 0;
+        self.print.count = 0;
+        self.text.count = 0;
+    }
+
+    /// Bind the shared vertex table and draw one index run. The CALLER sets the pipeline and the
+    /// bind groups, because the three lanes sit at three different points of the frame's order
+    /// and that order is the whole reason they are three lanes.
+    fn draw(&self, pass: &mut wgpu::RenderPass, lane: IdxLane) {
+        let run = self.run(lane);
+        pass.set_vertex_buffer(0, self.vbo.slice(..)); // slot 0 - vertices
+        pass.set_vertex_buffer(1, self.vids.slice(..)); // slot 1 - per-vertex row ids
+        pass.set_index_buffer(run.buf.slice(..), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(0..run.count, 0, 0..1); // whole scene, one call
+    }
+
+    /// The solid faces.
+    ///
+    /// PRECONDITION: the pipeline and groups 0-2 (mvp, time, instances) are set by the frame
+    /// immediately above the call, whether or not this run is empty.
+    ///
+    /// Returns 1 always, matching its siblings' contract - the frame's draw count is of
+    /// PIPELINES SET, not of non-empty runs, and the goldens record that number.
+    pub fn draw_faces(&self, pass: &mut wgpu::RenderPass) -> u32 {
+        if self.solid.count > 0 {
+            self.draw(pass, IdxLane::Solid);
+        }
+        1
+    }
+
+    /// SHEET FILLS. Same vertex table, depth WRITE off, so a page's exactly coplanar regions
+    /// composite in document order instead of flickering over one shared depth value. They still
+    /// depth-TEST, so 3D geometry in front of the sheet occludes. Returns the draws it issued.
+    ///
+    /// PRECONDITION: groups 0-2 are still bound from `draw_faces`'s call site - only the pipeline
+    /// changes. `draw_text` below re-binds them, because the ink lanes drawn in between put the
+    /// pen uniform in group 1.
+    pub fn draw_print(&self, pass: &mut wgpu::RenderPass, b: &Binds) -> u32 {
+        if self.print.count == 0 {
+            return 0;
+        }
+        pass.set_pipeline(&b.p.arena.sheet);
+        self.draw(pass, IdxLane::Print);
+        1
+    }
+
+    /// LETTERING, last of everything. A page paints its text on top of its hatching AND its
+    /// linework, so it lands after the ink lanes - the one thing draw order can express that a
+    /// depth buffer cannot, since all of it is coplanar at z = 0.
+    pub fn draw_text(&self, pass: &mut wgpu::RenderPass, b: &Binds) -> u32 {
+        if self.text.count == 0 {
+            return 0;
+        }
+        pass.set_pipeline(&b.p.arena.sheet);
+        pass.set_bind_group(0, b.mvp, &[]);
+        pass.set_bind_group(1, b.time, &[]);
+        pass.set_bind_group(2, b.instances, &[]);
+        self.draw(pass, IdxLane::Text);
+        1
+    }
+}
+
+/// The family's pipelines. Two, and they differ in ONE field.
+pub struct Pipes {
+    pub triangle: wgpu::RenderPipeline,
+    /// Same program, depth WRITE off: the sheet lanes (print fills, then lettering) composite in
+    /// draw order instead of fighting over one coplanar depth value.
+    pub sheet: wgpu::RenderPipeline,
+}
+
+impl Pipes {
+    /// A family builds its own pipelines from the shared layouts. `Pipelines::new` calls this
+    /// and never sees `TRIANGLE`, which is what keeps the shader constant in the file that owns
+    /// the rows it reads.
+    pub fn descs(device: &wgpu::Device, t: Target, l: &Layouts) -> Self {
+        Self {
+            // Solid mesh triangles. Blended, because a surface can be translucent.
+            triangle: build(device, t, &PipelineDesc {
+                vertex_buffers: &[RenderVertex::layout(), instance_id_layout()],
+                ..PipelineDesc::sheet("triangle", TRIANGLE, &[&l.mvp, &l.time, &l.instance])
+            }),
+            // The same program with ONE field flipped. A drawing's fills are exactly coplanar -
+            // 362,581 vertices of a PDF sheet, ONE distinct z - so the depth buffer cannot order
+            // them: equal depth fails a strict Greater, and the depths are not even reliably
+            // equal, since positions are camera-relative and re-rounded to f32 every frame.
+            // Whichever fill won flipped as the camera moved, and that flip is the flicker
+            // between lettering and hatching. With no depth WRITE the fills stop arbitrating and
+            // composite in draw order, which is what a page is. They are still depth-TESTED, so
+            // 3D geometry in front still occludes the sheet.
+            sheet: build(device, t, &PipelineDesc {
+                vertex_buffers: &[RenderVertex::layout(), instance_id_layout()],
+                depth_write: false,
+                ..PipelineDesc::sheet("triangle.sheet", TRIANGLE, &[&l.mvp, &l.time, &l.instance])
+            }),
+        }
+    }
+}
+```text
 //!   vbo   RenderVertex  position+normal+colour  ]  one table, appended per file
 //!   vids  u32           instance_id per vertex  ]  slot 1, so a vertex knows its object row
 //!
@@ -1123,6 +1766,8 @@ belongs beside the buffer, not in a file of generic builders.
 **Find** in `src/engine/gpu/arena.rs`:
 
 ```rust
+// This helps the GPU to read the second vertex buffer - the instance row id.
+// Without a layout description, the pipeline doesn' know those bytes exists and in what shape they are.
 /// Vertex-buffer layout for the per-vertex instance-row id (`@location(3)`, one `u32` per vertex).
 pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
 ```
@@ -1131,6 +1776,7 @@ pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
 
 ```rust
 /// Vertex-buffer layout for the per-vertex instance-row id (`@location(3)`, one `u32` per vertex).
+/// Without it the pipeline does not know those four bytes exist, or what shape they are.
 /// It belongs here and nowhere else: `vids` is this family's second vertex buffer.
 fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
 ```
@@ -1162,9 +1808,9 @@ wc -l src/engine/gpu/instance.rs src/engine/gpu/objects.rs src/engine/gpu/arena.
 ```
 
 ```text
- 161 src/engine/gpu/instance.rs
- 320 src/engine/gpu/objects.rs
- 275 src/engine/gpu/arena.rs
+ 159 src/engine/gpu/instance.rs
+ 341 src/engine/gpu/objects.rs
+ 303 src/engine/gpu/arena.rs
 ```
 
 If a count is far off, a paste went wrong and it is cheaper to find out now than after 25 fields
@@ -2241,8 +2887,7 @@ the goldens count it.
             pass.set_bind_group(0, b.mvp, &[]);
             pass.set_bind_group(1, b.time, &[]);
             pass.set_bind_group(2, b.instances, &[]);
-            self.arena.draw_faces(&mut pass);
-            draws += 1;
+            draws += self.arena.draw_faces(&mut pass);
 ```
 
 **Find** in `src/engine/gpu/mod.rs`:
@@ -2341,7 +2986,7 @@ about actually lives.
 **Replace with:**
 
 ```rust
-        self.objects.clear();
+        self.objects.reset();
 ```
 
 **Find** in `src/engine/gpu/mod.rs`:
@@ -2364,9 +3009,101 @@ cargo check --target wasm32-unknown-unknown --lib
 
 Still red — `src/app/scene.rs` writes the old column names. That is step 6.7.
 
+### 6.6b Three stale claims in the comments this lesson is folding
+
+Not a move, and not style: a wrong MEASURED number in a comment is a wrong fact, and `buffers.rs`
+carries two. `rebind` has never existed, and twelve triples is thirty-six fields, not thirty-three.
+While we are in there, the six-parameter exception gets written where the violation lives.
+
+**Find** in `src/engine/gpu/buffers.rs`:
+
+```rust
+/// `new`/`append`/`rebind` at three parameters instead of four and lets one `let Gpu { ctx, .. }`
+```
+
+**Replace with:**
+
+```rust
+/// `new`/`append`/`mk_rows_group` at three parameters instead of four and lets one `let Gpu { ctx, .. }`
+```
+
+**Find** in `src/engine/gpu/buffers.rs`:
+
+```rust
+/// - and `Gpu` carries that triple twelve times over, which is thirty-three of its fields. Each
+```
+
+**Replace with:**
+
+```rust
+/// - and `Gpu` carries that triple twelve times over, which is thirty-six of its fields. Each
+```
+
+**Find** in `src/engine/gpu/buffers.rs`:
+
+```rust
+/// This is the same deal the mesh arena already struck, extended to the lanes that had not taken
+```
+
+**Replace with:**
+
+```rust
+/// Six parameters, against the house limit of five, and deliberately so until 49: three raw
+/// cloud lanes in `mod.rs` are still a loose (buffer, count, cap) triple rather than a `GrowBuf`.
+///
+/// This is the same deal the mesh arena already struck, extended to the lanes that had not taken
+```
+
+And `Upload` gets the `Default` clippy asks for beside its `new`, plus two typos in the doc comment
+that now describes the `obj` group.
+
+**Find** in `src/engine/gpu/upload.rs`:
+
+```rust
+/// Everything `Gpu` needs to fill its buffers, built and owened by `app::scene::Scene`,
+```
+
+**Replace with:**
+
+```rust
+/// Everything `Gpu` needs to fill its buffers, built and owned by `app::scene::Scene`,
+```
+
+**Find** in `src/engine/gpu/upload.rs`:
+
+```rust
+/// `objects` holds the TRUE per-object transfrom + tint + flags.
+```
+
+**Replace with:**
+
+```rust
+/// `obj.rows` holds the TRUE per-object transform + tint + flags.
+```
+
+**Find** in `src/engine/gpu/upload.rs`:
+
+```rust
+impl Upload {
+    pub fn new() -> Self {
+```
+
+**Replace with:**
+
+```rust
+impl Default for Upload {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Upload {
+    pub fn new() -> Self {
+```
+
 ### 6.7 The walk writes into sinks
 
-Two literal conversions, the flag accesses that stop being `.2`, and then eleven `Replace-all`s
+Two literal conversions, the flag accesses that stop being `.2`, and then twelve `Replace-all`s
 with their counts asserted. **If a count differs, you renamed the wrong thing** — stop and look
 rather than adjusting the number.
 
@@ -2703,7 +3440,7 @@ python3 docs/_replay_check.py --moves <end-of-46 tree> /tmp/w47 docs/47-object-r
 ```
 
 ```text
-docs/47-object-rows.md: 113 ops, 0 failed
+docs/47-object-rows.md: 120 ops, 0 failed
 docs/47-object-rows.md: 2 move source(s), 0 not byte-identical
 ```
 
@@ -2909,13 +3646,14 @@ cargo xtest 2>&1 | tail -3
 ```text
 63
 
-  1336 src/engine/gpu/mod.rs
-   161 src/engine/gpu/instance.rs
-   320 src/engine/gpu/objects.rs
-   275 src/engine/gpu/arena.rs
+  1335 src/engine/gpu/mod.rs
+   159 src/engine/gpu/instance.rs
+   341 src/engine/gpu/objects.rs
+   303 src/engine/gpu/arena.rs
 
-src/engine/gpu/objects.rs
+src/math.rs
 src/engine/gpu/arena.rs
+src/engine/gpu/objects.rs
 
 0
 
@@ -2925,24 +3663,24 @@ test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 | | end-of-46 | end-of-47 |
 |---|---|---|
 | `Gpu` fields | 86 | **63** |
-| `gpu/mod.rs` | 1,691 | **1,336** |
-| `gpu/instance.rs` | — | **161** |
-| `gpu/objects.rs` | — | **320** |
-| `gpu/arena.rs` | — | **275** |
-| `gpu/buffers.rs` | 140 | **129** |
-| `gpu/upload.rs` | 110 | **92** |
+| `gpu/mod.rs` | 1,691 | **1,335** |
+| `gpu/instance.rs` | — | **159** |
+| `gpu/objects.rs` | — | **341** |
+| `gpu/arena.rs` | — | **303** |
+| `gpu/buffers.rs` | 140 | **132** |
+| `gpu/upload.rs` | 110 | **98** |
 | `gpu/frame.rs` | 177 | **224** |
 | `pipelines/mod.rs` | 148 | **130** |
 | `pipelines/build.rs` | 215 | **199** |
 | `app/scene.rs` | 1,340 | 1,341 |
-| `Upload` columns, flat | 19 | **13 + 2 groups** |
+| `Upload` columns, flat | 19 | **11 + 2 groups** |
 | `append_index_run` params | 6 | **3** |
 | `#[test]` in `src/` | 0 | **2** |
 
 ## Recap
 
 ```text
-Lesson 45 made a pipeline a value: eleven builders at seven to eleven parameters became one
+Lesson 45 made a pipeline a value: eleven builders at three to eleven parameters became one
 `build` and fourteen `PipelineDesc` literals, and `Gpu` lost ten fields with the layouts.
 Lesson 46 put a floor under the families: `GpuCtx` instead of a device and a queue held
 separately, `GrowBuf` for the triple every lane spells out, and six files - buffers, upload,
@@ -2957,7 +3695,7 @@ is not just a Vec; and the triangle family - one vertex table, three index runs,
 three draws - went to `arena.rs` and took its shader constant and its vertex layout with it.
 `Gpu` is 63 fields, and 25 of the ones it lost were two shapes written out longhand.
 
-The law: a family may not build or renumber an object row. Grep for `objects_base` and you get
+The law: a family may not build or renumber an object row. Grep for `bounded_rows` and you get
 one file.
 ```
 
@@ -2972,7 +3710,7 @@ one file.
 `src/engine/gpu/frame.rs` (`line_uniform_mirror`) ·
 `src/engine/pipelines/mod.rs` (`arena: arena::Pipes`) ·
 `src/engine/pipelines/build.rs` (the vertex-id layout leaves) ·
-`src/app/scene.rs` (eleven `Replace-all`s and the tuple named) ·
+`src/app/scene.rs` (twelve `Replace-all`s and the tuple named) ·
 `src/selftest.rs`, `examples/check_determinism.rs`, `examples/check_lean.rs` ·
 the five `.wgsl` (comments only).
 
@@ -2985,7 +3723,7 @@ The implementation this lesson was written from was built in one sitting and gat
 | 47a | `gpu/instance.rs` — the row, the flag table, both mirror tests |
 | 47b | `gpu/objects.rs` — `ObjectBase`, `ObjectRows`, `InstanceTable` and its five methods |
 | 47c | `gpu/arena.rs` — three `GrowBuf`s, `IdxLane`, the family's `Pipes` and its draws |
-| 47d | `Upload`'s two groups and the eleven `Replace-all`s in the walk |
+| 47d | `Upload`'s two groups and the twelve `Replace-all`s in the walk |
 | 47e | `Gpu`'s field list, constructor, `set_scene` and draws |
 
 `git diff end-of-46..end-of-47 -- session_viewer/src` is the whole lesson as one patch; `diff -u`
@@ -2997,7 +3735,7 @@ Lesson **48** — **one row, two shaders.** Run the evidence:
 
 ```bash
 grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs | grep -cE 'pipe_|segment_|sphere_|glyph_|cyl_template|sph_template'
+sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs | grep -cE 'pipe_|segment_|sphere_|glyph_|cyl_|sph_'
 grep -c 'CylinderSegment' src/engine/gpu/mod.rs src/app/scene.rs
 ```
 

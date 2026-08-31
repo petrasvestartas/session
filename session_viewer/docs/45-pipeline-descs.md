@@ -853,7 +853,7 @@ what proves a Move did not quietly lose a line:
 `src/math.rs` is complete — 123 lines, in this order:
 
 ```text
-  1- 12  header + Bounds + Aabb64          (new: 2 aliases, 4 doc lines)
+  1- 12  header + Bounds + Aabb64          (new: 2 aliases, 2 doc lines)
  14- 41  Mat4 + mat_mul + mat_to_f32       (from gpu/mod.rs, unchanged)
  43-105  eye_from_view_proj + ortho_half_height   (from impl Gpu, dedented)
 107-123  xform_point + grow_bounds         (moved from scene.rs)
@@ -1872,7 +1872,7 @@ build and renders the frame you expect.
 ./docs/_gate.sh && ./docs/_gate.sh
 ```
 
-64 rows: four scenes × four configs × two passes, plus four advisory scenes when their gitignored
+64 rows: four mandatory scenes × four configs × two passes, plus four advisory scenes when their gitignored
 `.pb` assets are present. Every row is gated on **ink, draw count and object count**. Only
 `drawings_rotated` is gated on the PPM checksum, and it is the only one that can be: the splat
 lane is a two-pass atomic compute rasterizer, so which point wins a contested pixel is a race and
@@ -2123,10 +2123,10 @@ Lesson **46** — **the floor is not a lane.** Run the evidence:
 
 ```bash
 grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-grep -c '_cap:' src/engine/gpu/mod.rs
+sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs | grep -cE '_(cap|capacity):'
 ```
 
-106 fields, and **thirteen** `*_cap` fields — thirteen buffers each written out longhand as a
+106 fields, and **thirteen** capacity fields — thirteen buffers each written out longhand as a
 `(buffer, count, cap)` triple, some forty fields saying one thing thirteen times. A buffer, its
 row count and its capacity are one value; and everything that belongs to no family belongs
 beneath them all.

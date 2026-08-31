@@ -757,7 +757,7 @@ pub fn mk_rows_group(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, labe
 **Replace-all** `src/engine/gpu/mod.rs` `Self::mk_rows_group` → `mk_rows_group` (9 hits)
 
 If that count is not 9, you cut the wrong region — every one of the nine is a bind group built
-over one storage buffer, six in `build` and three in `set_scene`.
+over one storage buffer, four in `build` and five in `set_scene`.
 
 Last, `zeroed_buffer`. Its doc comment is not above it: it is glued to the top of
 `line_thickness_px`'s doc, twenty lines further down, where a lesson-36 edit left it. Move the
@@ -958,7 +958,7 @@ between §7's ladder 2 printing nothing and printing five lines you would have t
 33 and 25, after the ten pairs and the five hand-edited lines are gone. If your counts are 47 and
 36 you ran these two first and the pair substitution has nothing left to match; undo and do them
 in the printed order. One of
-the 26 is inside a commented-out block in `rebase_anchor` — re-rooting a comment that quotes code
+the 26 is inside a commented-out block in `rebuild_instances` — re-rooting a comment that quotes code
 is right, and it is what the implementation does.
 
 Gate. This is the step where a `&mut self` method would have failed (§5); every call here is a
@@ -1023,7 +1023,7 @@ Same tidy-up as 6.1 — two regions cut, three blank lines left:
 **Replace-all** `src/engine/gpu/mod.rs` `ArenaUpload` → `Upload` (4 hits)
 
 Four in `gpu/mod.rs`: `set_scene`'s parameter and three comments that name the table. Then the
-re-export, so `crate::engine::gpu::Upload` keeps working for `app/` and for the three examples:
+re-export, so `crate::engine::gpu::Upload` keeps working for `app/` and for the examples:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2324,7 +2324,7 @@ The field count prints **86**.
 
 ## 7. Proving nothing changed — four ladders
 
-**Ladder 1, the compiler.** Both targets, and `--all-targets` natively so the three examples and
+**Ladder 1, the compiler.** Both targets, and `--all-targets` natively so the examples and
 the headless harness are type-checked too:
 
 ```bash
@@ -2349,12 +2349,12 @@ python3 docs/_replay_check.py --moves <end-of-45 snapshot> /tmp/w46 docs/46-gpu-
 ```
 
 ```text
-docs/46-gpu-floor.md: 138 ops, 0 failed
+docs/46-gpu-floor.md: 143 ops, 0 failed
 docs/46-gpu-floor.md: 1 move source(s), 0 not byte-identical
-   ... lost-declared src/engine/gpu/mod.rs (over …) — 107 line(s)
+   ... lost-declared src/engine/gpu/mod.rs (over …) — 105 line(s)
 ```
 
-The third line is informational and is marked `...`, not `!!`: those 107 lines left `gpu/mod.rs`
+The third line is informational and is marked `...`, not `!!`: those 105 lines left `gpu/mod.rs`
 and the doc SPELLS EACH ONE OUT, in a `Find` block, before deleting it. `0 not byte-identical` is
 the verdict; `LOST` or `UNDECLARED` rows would not be.
 
