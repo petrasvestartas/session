@@ -16,7 +16,12 @@ dropping things earlier fixes it: the decoded proto and the GPU rows have to coe
 because prost builds the whole message before you can look at any of it. The only way past
 that is to stop decoding the whole message.
 
-## The two facts that make this possible
+## The two schema properties that make this possible
+
+Neither of these is luck, and neither is a property of protobuf. They are properties of
+*this message*, and `PointCloud` is the only message in `session_proto` that has them.
+Read this section as a specification for what a transfer schema has to look like, not as a
+trick discovered in an existing one.
 
 Walking the wire format of a real scan (`assets/pb/lidar_scan000.pb`, 114.8 MB):
 
@@ -44,6 +49,58 @@ gives the exact point count *before a byte of payload is read*:
 That second fact is the one that matters. Knowing the count up front removes **every**
 reallocation: both GPU buffers are sized once, exactly, and every slice afterwards lands at
 a known offset. There is no growth mid-cloud and no `reserve` to get wrong.
+
+### Why this works for clouds and nothing else — a schema defect, not a protobuf one
+
+It is tempting to read the section above as "protobuf is bad, so we route around it." That
+is the wrong lesson, and it is worth being precise about, because the correct lesson is a
+design rule you will apply again.
+
+Protobuf never promised zero-copy. Its data model is *parse every field into an allocated
+object*, so a full decode always materialises the whole message — that part is real, and it
+is why lesson [37](37-cloud-memory.md) could not be optimised into a bounded heap. But how
+much you are *forced* to decode is decided by the schema, not by the format. Here we decode
+nothing at all: the three headers are walked and the payload is memcpy'd, because
+`coords` is a **packed fixed-width array**.
+
+Compare the message that carries a mesh:
+
+```proto
+map<uint64, VertexData> vertices = 3;   // a serialized HashMap
+map<uint64, FaceData>   faces    = 4;
+```
+
+Every consequence follows from that one line:
+
+- **No count without decoding.** Entries are variable length, so the length prefix says
+  bytes, not elements. Buffers cannot be sized up front — the exact thing that makes this
+  lesson's loop allocation-free.
+- **No slicing.** A byte range can split an entry, so the pull-with-`Range` design that
+  makes chunk-boundary bugs *structurally impossible* is unavailable.
+- **Two hash builds.** prost builds its `HashMap`, then `Mesh::from_proto` builds the
+  kernel's — 714k SipHash inserts, then 714k more, for data that is really parallel arrays.
+
+The schema was derived from the in-memory representation. That is backwards: the wire
+should be shaped for its reader, and this reader is a streaming GPU uploader. Where the
+schema happens to already be shaped that way — `PointCloud.coords`, and also
+`Polyline.coords`, `NurbsCurve.cvs`, `NurbsSurface.cvs` — the fast path is available for
+free. Where it is not, no amount of loader cleverness recovers it.
+
+So: **clouds are not special by nature. They are the one type whose schema was written
+correctly.** Fixing `Mesh` to packed parallel arrays makes `walk_to_coords` below
+generalise to it essentially unchanged. That work is tracked as P6 in
+`.claude/SESSION_DATASTRUCTURE_PLAN.md`.
+
+Two things this lesson is *not* a workaround for, and which survive any schema fix:
+
+- **Streaming itself.** A 411 MB file cannot be fully materialised in a bounded wasm heap
+  no matter how good the encoding is. Range-pull is the correct architecture for large
+  files, not a patch over a bad one.
+- **The f64 → f32 conversion.** The kernel is f64 ground truth and the GPU wants f32, so
+  one pass over every coordinate is the floor. Reaching that floor — bytes in, GPU rows
+  out, one conversion — is exactly what this lane does, and it is why a zero-copy format
+  (FlatBuffers, Cap'n Proto, a custom container) would buy nothing here: it would save a
+  memcpy you have to make anyway.
 
 ## Range requests, not a push stream
 
@@ -368,7 +425,7 @@ lines):
         let splat_stream_recs = zeroed_buffer(&device, "splat.stream.recs", 16 + 256 * 144,
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
         let splat_group0_stream = Self::mk_splat_group0(&device, &splat_group0_layout, &mvp_buffer, &cloud_buffer, &instance_buffer, &splat_stream_recs);
-        let splat_group1_stream = Self::mk_splat_group1(&device, &splat_group1_layout, &stream_pos_buf, &stream_col_buf, &splat_depth_buf, &splat_color_buf, &stream_nrm_buf);
+        let splat_group1_stream = Self::mk_splat_group1(&device, &splat_group1_layout, &stream_pos_buf, &stream_col_buf, &stream_nrm_buf, &splat_depth_buf, &splat_color_buf);
 ```
 
 Then the matching struct-literal entries. **Find** in `src/engine/gpu/mod.rs`:
@@ -405,8 +462,16 @@ bind are recreated on every resize). **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
         self.splat_group0_stream = Self::mk_splat_group0(&self.device, &self.splat_group0_layout, &self.mvp_buffer, &self.cloud_buffer, &self.instance_buffer, &self.splat_stream_recs);
-        self.splat_group1_stream = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.stream_pos_buf, &self.stream_col_buf, &self.splat_depth_buf, &self.splat_color_buf, &self.stream_nrm_buf);
+        self.splat_group1_stream = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.stream_pos_buf, &self.stream_col_buf, &self.stream_nrm_buf, &self.splat_depth_buf, &self.splat_color_buf);
 ```
+
+The stream lane's group 1 binds ITS OWN three point buffers and the SHARED two pixel buffers.
+That sharing is the whole design: `sdepth` and `scolor` are the same allocations the walked lane
+binds, so the two dispatches contest one per-pixel depth race and compose. Bind a per-point buffer
+where a per-pixel one belongs and nothing errors — a WGSL storage array takes any length, and the
+out-of-range writes are simply dropped — so the cloud renders, dimly and wrongly, with no message
+anywhere. `mk_splat_group1` takes them in the order `pos, col, nrm, sdepth, scolor`; count them
+before you move on.
 
 **3d — the grow API.** Four methods, right after `rebuild_splat_groups` closes. **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1174,6 +1239,12 @@ file. The whole-file path would have peaked near a gigabyte.
 
 - A protobuf file is Range-addressable storage: three length prefixes reach `coords`, and
   packed-double means its length IS the point count — buffers sized once, exactly.
+- That is a property of the **schema**, not of protobuf. `PointCloud` is the only message
+  in `session_proto` whose bulk field is a packed fixed-width array; `Mesh`'s
+  `map<uint64, VertexData>` forbids up-front sizing, forbids slicing, and costs two hash
+  builds. Design bulk fields as packed arrays and this lane generalises to them.
+- Streaming is not the workaround — it is the architecture. No encoding lets a 411 MB file
+  fit a bounded heap; and f64 → f32 means one conversion pass is the floor regardless.
 - Insist on `206`. A server that ignores `Range` sends the whole body, silently.
 - Streamed rows land in their OWN lane; the two lanes meet in the per-pixel atomics.
   Nothing about the walked lane changes, and rebuild preservation is free.
