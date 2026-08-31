@@ -14,7 +14,7 @@ fn main() {
     let a: Vec<String> = std::env::args().skip(1).collect();
     let mut owned: Vec<(String, session_rust::Xform)> = Vec::new();
     for p in &a {
-        if p.ends_with(".json") {
+        if p.ends_with(".toml") {
             let bytes = std::fs::read(p).unwrap_or_else(|e| panic!("cannot read manifest {p}: {e}"));
             let man = session_viewer::app::scene::Manifest::parse(&bytes)
                 .unwrap_or_else(|| panic!("cannot parse manifest {p}"));

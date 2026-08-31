@@ -8,8 +8,20 @@ consecutive fenced blocks right below it, in order:
   **Remove** `file A` `first line` **through** `last line`
   **Replace-all** `file` `old` → `new` (N hits)          whole-word, count asserted
 `first line` must be unique in A; `last line` is the first match AFTER it (a closing `}` is fine);
-the region is whole lines, cut with its trailing newline and pasted after `anchor line` (unique in B)."""
-import re, sys, pathlib, shutil
+the region is whole lines, cut with its trailing newline and pasted after `anchor line` (unique in B).
+
+Usage:
+  python3 docs/_replay_check.py <snap> <work> <doc.md>...            replay, report failed ops
+  python3 docs/_replay_check.py --moves <snap> <work> <doc.md>...    replay + prove every **Move**
+                                                                    moved its lines BYTE-IDENTICALLY
+  python3 docs/_replay_check.py --stale <tree> docs/*.md            enumerate every op against a
+                                                                    tree: does the target exist and
+                                                                    does each Find match exactly once
+  python3 docs/_replay_check.py --audit [--max N] docs/*.md         every fenced code block that NO
+                                                                    op reached — the code a replay
+                                                                    silently never types
+"""
+import re, sys, pathlib, shutil, collections
 
 FILE_RE = re.compile(r'`([\w/_.-]+\.(?:rs|wgsl|toml|html|json))`')
 SPAN_RE = re.compile(r'`([^`]+)`')
@@ -250,15 +262,311 @@ def apply(root, doc):
             p.write_text(txt)
     return fails
 
-if __name__ == "__main__":
-    snap = pathlib.Path(sys.argv[1]); work = pathlib.Path(sys.argv[2]); docs = sys.argv[3:]
-    if work.exists(): shutil.rmtree(work)
-    shutil.copytree(snap, work)
+# ----------------------------------------------------------------- --moves
+# A **Move** is the one op the compiler and the pixel goldens cannot police: a line dropped
+# inside a `#[cfg(...)]` arm compiles on the default target and renders the same frame. So
+# compare the MULTISET of stripped, non-blank lines over {source} u {destinations} BEFORE the
+# doc against the same set AFTER it. Destinations are counted on both sides, so moving into a
+# file that already exists is not read as a gain.
+
+def _bag(p):
+    """Sorted multiset of stripped, non-blank lines; a missing file is empty."""
+    if not p.exists():
+        return []
+    return [l.strip() for l in p.read_text().splitlines() if l.strip()]
+
+def _lines(blocks):
+    out = []
+    for b in blocks or []:
+        if b:
+            out += [l.strip() for l in b.split("\n") if l.strip()]
+    return out
+
+def move_map(oplist):
+    """source file -> the set of files its **Move** ops send lines to."""
+    m = {}
+    for verb, tgt, a, b, ln in oplist:
+        if verb == "move" and tgt and b:
+            m.setdefault(tgt, set()).add(b[0])
+    return m
+
+def declared_new_lines(oplist):
+    """Every line the doc says it ADDS: Create bodies and the arguments of Replace/Add."""
+    out = []
+    for verb, tgt, a, b, ln in oplist:
+        if verb == "create":                                   out += _lines(a)
+        elif verb in ("replace", "replace_first", "below", "above"): out += _lines(b)
+    return out
+
+def declared_removed_lines(oplist):
+    """Every line the doc SPELLS OUT as dropped: Delete/Replace anchors. **Remove** is NOT here —
+    it names two anchors and never its content, so everything it eats stays undeclared on purpose."""
+    out = []
+    for verb, tgt, a, b, ln in oplist:
+        if verb in ("replace", "delete"):
+            out += _lines(a)
+        elif verb == "replace_first":
+            out += [f.split("\n")[0].strip() for f in (a or []) if f and f.strip()]
+    return out
+
+def declared_subs(oplist):
+    return [(a[0], b[0]) for verb, tgt, a, b, ln in oplist
+            if verb == "replace_all" and a and b]
+
+def moves(snap, work, doc):
+    """[(src, files, kind, lines)] — kind is LOST, GAINED or (informational) LOST-declared.
+    No LOST/GAINED rows means every **Move** in the doc moved its lines byte-identically."""
+    oplist = ops(doc)
+    subs = declared_subs(oplist)
+    new, gone = collections.Counter(declared_new_lines(oplist)), collections.Counter(declared_removed_lines(oplist))
+    fails = []
+    for src, dsts in sorted(move_map(oplist).items()):
+        files = [src] + sorted(dsts)
+        b = collections.Counter(l for f in files for l in _bag(snap / f))
+        a = collections.Counter(l for f in files for l in _bag(work / f))
+        lost, gained = b - a, a - b
+        for l in list(lost.elements()):           # a declared Replace-all rename is not a loss:
+            n = l                                 # cancel the old spelling against the new one
+            for old, nw in subs:
+                n = replace_all_words(n, old, nw)[0]
+            if n != l and gained[n] > 0:
+                gained[n] -= 1; lost[l] -= 1
+        lost, gained = +lost, (+gained) - new
+        told = lost & gone                       # a Delete/Replace op spelled these out
+        lost -= told
+        if lost:   fails.append((src, files, "LOST", sorted(lost.elements())))
+        if gained: fails.append((src, files, "UNDECLARED", sorted(gained.elements())))
+        if told:   fails.append((src, files, "lost-declared", sorted(told.elements())))
+    return fails
+
+# ----------------------------------------------------------------- --stale
+# Read-only enumeration of every op against one tree. Ops that depend on an earlier op in the
+# same doc read as STALE here by construction; this is the re-anchor worklist, not a verdict
+# on the doc.
+
+def stale(tree, docs):
     bad = 0
     for d in docs:
+        lesson = pathlib.Path(d).stem.split("-")[0]
+        for verb, tgt, a, b, ln in ops(d):
+            if verb == "?" or tgt is None:
+                v = "STALE: no verb recognised"
+            elif verb == "create":
+                v = "EXISTS ALREADY" if (tree / tgt).exists() else "n/a (creates it)"
+            elif not (tree / tgt).exists():
+                v = "STALE: no such file"
+            else:
+                txt = (tree / tgt).read_text()
+                if verb in ("move", "remove"):
+                    rest, why = cut_region(txt, a[0], a[1])
+                    v = "ok" if rest is not None else f"STALE: {why}"
+                    if rest is not None and verb == "move" and b and b[1] not in ("end", "start"):
+                        q = tree / b[0]
+                        n = q.read_text().split("\n").count(b[1]) if q.exists() else 0
+                        if n != 1: v = f"STALE: anchor in {b[0]} matches {n}x"
+                elif verb == "replace_all":
+                    n = replace_all_words(txt, a[0], b[0])[1]
+                    v = "ok" if n == b[1] else f"STALE: {n} hits, doc says {b[1]}"
+                elif verb == "after_field":
+                    v = "STALE: prose op, no Find anchor"
+                else:
+                    miss = [f"{i+1}/{len(a)} matches {txt.count(f)}x"
+                            for i, f in enumerate(a or []) if f is None or txt.count(f) != 1]
+                    v = "ok" if (a and not miss) else "STALE: find " + ", ".join(miss or ["is empty"])
+            bad += v.startswith("STALE")
+            print(f"{lesson} · {ln} · {verb} · {tgt} · {v}")
+    print(f"# {bad} stale op(s)")
+    return bad
+
+# ----------------------------------------------------------------- --audit
+# The replay only ever touches a fenced block that a PARSED op reached. A lesson whose verb was
+# written as prose ("in `gpu/mod.rs`, add this to the struct:"), or whose verb hides inside a bold
+# span that does not START with it ("**1a. Find the `Instance` struct**"), parses to nothing — the
+# block is never applied and the run still prints "0 failed". Lesson 43 delivered 27% of its code
+# that way. --audit closes the hole from the other side: enumerate EVERY fenced block, subtract the
+# ones an op claimed, and report the remainder.
+#
+# HEURISTIC, in one paragraph. A block is CODE if its language tag is a source language, or it is
+# untagged and reads like source and not like a shell transcript. A code block is CLAIMED if its
+# exact body text appears among the Find anchors / arguments / Create bodies / region parts that
+# `ops()` produced for that doc. An unclaimed code block is ILLUSTRATIVE (the lesson is quoting,
+# not dictating) when it sits under a heading that OPENS with an explanatory word — Goal, Why,
+# Design, Mental model, How it works, Recap, Next, Expected state, Files we touch, Troubleshoot —
+# or when the last prose line above it carries a quote cue ("looks like", "currently reads",
+# "for reference", "you should see", "is unchanged", "it prints", "the error"). A bold verb on that
+# same line always wins over a quote cue, because "**1b. `SceneTables` becomes `ArenaUpload`.**
+# Find:" is an instruction that happens to contain the word "becomes". Everything else is ORPHANED.
+#
+# LIMITS, measured over the 128 docs in this directory:
+#  * It only sees FENCED blocks. A prose op whose payload is an inline `span` is invisible here —
+#    lesson 43 had 3 such sites on top of the 13 fenced ones this mode reports.
+#  * Claiming is by exact body text, so two identical blocks are both claimed when one op took one
+#    of them, and a one-line block is claimed by an inline span of the same text. Both err toward
+#    silence, never toward a false alarm.
+#  * A block claimed as an op's ARGUMENT is counted even when the op itself is broken; the normal
+#    replay is what reports those.
+#  * Measured false-alarm rate on a 12-block hand-check of the best docs: 1 in 12 (37-cloud-memory
+#    line 83, a two-line quote of `append_rows` introduced by prose with no cue word). Blocks that
+#    illustrate mid-Step, with no cue and under a Step heading, are the class that leaks through.
+#  * Unknown language tags (anything outside the two sets below) are treated as prose and never
+#    reported. Add the tag to SOURCE_LANGS when a lesson starts using one.
+
+SOURCE_LANGS = {"rust", "rs", "wgsl", "toml", "html", "json", "python", "py", "cpp", "proto", "css"}
+PROSE_LANGS  = {"bash", "sh", "shell", "console", "text", "txt", "output", "log", "diff",
+                "md", "markdown", "yaml", "yml", "csv", "tsv", "ini"}
+# An UNTAGGED block counts as code only if it reads like source and not like a shell transcript.
+CODE_RE  = re.compile(r"(^|\n)\s*(pub |fn |let |use |impl |struct |enum |const |#\[|//|@group|@binding)")
+SHELL_RE = re.compile(r"(^|\n)\s*(\$ |# |cargo |trunk |python3? |\./|git |ls |cd |RUST|VIEWER_)")
+
+ILLUS_RE = re.compile(r"(looks? like|read like|reads like|for reference|as a reminder|"
+                      r"you (should )?see|it prints|prints:|the error|error message|for context|"
+                      r"currently reads|today reads|shipped as|quoted here|is (currently|today)|"
+                      r"unchanged|excerpt)", re.I)
+INSTR_RE = re.compile(r"\*\*(find|replace|add|delete|create|move|remove|insert|new|then|change)", re.I)
+# Whole sections that hold explanation, transcripts or listings — never something to type. The
+# keyword must OPEN the heading, so "## Why the lane is compute" counts and
+# "## Step 3 — why the cache is keyed on the guid" does not.
+QUOTE_HEAD_RE = re.compile(r"^#+\s+(the\s+)?(expected state|recap|next|what you should see|"
+                           r"troubleshoot|compare to the archive|files we touch|mental model|"
+                           r"how it works|goal|design|why)\b", re.I)
+
+def blocks(doc):
+    """Every fenced block: (1-based line of its opening fence, lang, body). Same fence convention
+    as fence()/fences(): any line starting with ``` opens or closes."""
+    lines = pathlib.Path(doc).read_text().split("\n")
+    out, i = [], 0
+    while i < len(lines):
+        if lines[i].startswith("```"):
+            lang = lines[i][3:].strip().lower()
+            k, body = i + 1, []
+            while k < len(lines) and not lines[k].startswith("```"):
+                body.append(lines[k]); k += 1
+            out.append((i + 1, lang, "\n".join(body)))
+            i = k + 1
+        else:
+            i += 1
+    return out, lines
+
+def claimed(oplist):
+    """Every block body an op took hold of — Find anchor, argument, Create body, region part."""
+    out = set()
+    for verb, tgt, a, b, ln in oplist:
+        for part in list(a or []) + list(b or []):
+            if isinstance(part, str):
+                out.add(part)
+    return out
+
+def is_code(lang, body):
+    if lang in SOURCE_LANGS: return True
+    if lang in PROSE_LANGS:  return False
+    if lang:                 return False          # unknown tag: prose (see LIMITS)
+    return bool(CODE_RE.search(body)) and not SHELL_RE.search(body)
+
+def context(lines, ln):
+    """(last non-blank prose line above the fence at `ln`, nearest heading at/above it)."""
+    i = ln - 2
+    while i >= 0 and not lines[i].strip():
+        i -= 1
+    prev = lines[i] if i >= 0 else ""
+    h = ""
+    for k in range(ln - 1, -1, -1):
+        if lines[k].startswith("#"):
+            h = lines[k]; break
+    return prev, h
+
+def preamble(lines, ln):
+    """The whole prose paragraph above the fence at `ln`: back to the previous fence or heading."""
+    out, i = [], ln - 2
+    while i >= 0 and not lines[i].startswith("```") and not lines[i].startswith("#"):
+        out.append(lines[i]); i -= 1
+    return "\n".join(reversed(out))
+
+def illustrative(prev, head):
+    if QUOTE_HEAD_RE.search(head): return True
+    if INSTR_RE.search(prev):      return False
+    return bool(ILLUS_RE.search(prev))
+
+VERB_WORD_RE = re.compile(r"\b(find|replace|add|delete|create|insert|move|remove)\b", re.I)
+BOLD_RE = re.compile(r"\*\*(.+?)\*\*", re.S)
+
+def why_orphan(pre):
+    """Best guess at WHY no op reached the block — the repair differs per class."""
+    for m in BOLD_RE.finditer(pre):
+        v = VERB_WORD_RE.search(m.group(1))
+        if v and v.start() > 0:
+            return "verb-not-at-bold-start"   # "**1a. Find the X**" — the parser needs "**Find"
+    if VERB_WORD_RE.search(pre):
+        return "verb-unbolded"                # "In `f`, find:" / "**add:**" — no parsable verb
+    return "no-verb"                          # pure prose, or a payload with no instruction at all
+
+def audit(docs, threshold):
+    """Exit-code rule: only a doc that parses at least ONE op can fail. A doc with zero parsed ops
+    is a full-listing lesson (everything before 34c) or one whose verbs are all invisible — the
+    replay already prints a visibly vacuous "0 ops, 0 failed" for it, so it is reported and tagged,
+    never counted. Default threshold 0: the five docs authored in the current verb style
+    (38, 39, 40, 42, 44) all score exactly 0 orphans, so 0 is a reachable bar, not an aspiration."""
+    bad = 0
+    for d in docs:
+        oplist = ops(d)
+        bs, lines = blocks(d)
+        have = claimed(oplist)
+        code = [(ln, lg, body) for ln, lg, body in bs if is_code(lg, body)]
+        orph = []
+        for ln, lg, body in code:
+            if body in have: continue
+            prev, head = context(lines, ln)
+            if illustrative(prev, head): continue
+            orph.append((ln, lg, body, why_orphan(preamble(lines, ln))))
+        nl = sum(len(b.split("\n")) for _, _, b, _ in orph)
+        tag = "" if oplist else "   [NO OPS PARSED — informational]"
+        print(f"{d}: {len(code)} fenced code blocks, {len(code) - len(orph)} claimed by ops, "
+              f"{len(orph)} orphaned ({nl} lines){tag}")
+        for ln, lg, body, why in orph:
+            first = next((l for l in body.split("\n") if l.strip()), "")
+            print(f"   ?? {ln:>4} · {lg or 'untagged':<8} · {len(body.split(chr(10))):>3} lines · "
+                  f"{first.strip()[:66]} · {why}")
+        if oplist and len(orph) > threshold:
+            bad += 1
+    print(f"# {bad} doc(s) with parsed ops over the orphan threshold ({threshold})")
+    return bad
+
+if __name__ == "__main__":
+    argv = sys.argv[1:]
+    if argv and argv[0] == "--audit":
+        argv = argv[1:]
+        thr = 0
+        if argv and argv[0] == "--max":
+            thr = int(argv[1]); argv = argv[2:]
+        elif argv and argv[0].startswith("--max="):
+            thr = int(argv[0].split("=", 1)[1]); argv = argv[1:]
+        sys.exit(1 if audit(argv, thr) else 0)
+    if argv and argv[0] == "--stale":
+        sys.exit(1 if stale(pathlib.Path(argv[1]), argv[2:]) else 0)
+    check_moves = bool(argv) and argv[0] == "--moves"
+    if check_moves: argv = argv[1:]
+    snap = pathlib.Path(argv[0]); work = pathlib.Path(argv[1]); docs = argv[2:]
+    if work.exists(): shutil.rmtree(work)
+    shutil.copytree(snap, work)
+    prev = work.parent / (work.name + ".prev")
+    bad = 0
+    for d in docs:
+        if check_moves:
+            if prev.exists(): shutil.rmtree(prev)
+            shutil.copytree(work, prev)
         f = apply(work, d); total = len(ops(d))
         print(f"{d}: {total} ops, {len(f)} failed")
         for ln, tgt, why in f[:14]:
             print(f"   !! doc line {ln:>4}  {tgt}  — {why}")
         bad += len(f)
+        if check_moves:
+            mv = moves(prev, work, d)
+            hard = [m for m in mv if m[2] != "lost-declared"]
+            print(f"{d}: {len(move_map(ops(d)))} move source(s), {len(hard)} not byte-identical")
+            for src, files, kind, ls in mv:
+                mark = "!!" if kind != "lost-declared" else "..."
+                print(f"   {mark} {kind} {src} (over {', '.join(files)}) — {len(ls)} line(s)")
+                for l in ls[:8]:
+                    print(f"        {l}")
+            bad += len(hard)
+    if prev.exists(): shutil.rmtree(prev)
     sys.exit(1 if bad else 0)
