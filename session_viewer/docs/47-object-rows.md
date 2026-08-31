@@ -1,13 +1,11 @@
 # 47 One row per object
 
-> Lesson [64](64-raycast-meshes.md) asks "which object did the ray hit"; lesson [86](86-ground-grid.md) asks
-> "where is this object in the world"; lesson [114](114-id-buffer-picking.md) writes an object id
-> into a render target. All three get the same answer from the same place, because after this
-> lesson there is exactly ONE table of objects and everything else holds an index into it.
-> Nothing you can see changes: same ink, same draw count, same object count, on every scene and
-> every config.
-> Answer key: the block's snapshot branch `end-of-47`, so
-> `git diff end-of-46..end-of-47 -- session_viewer/src` is this whole lesson as one patch.
+> Lesson [64](64-raycast-meshes.md) asks which object the ray hit; [86](86-ground-grid.md) asks
+> where an object is in the world; [114](114-id-buffer-picking.md) writes an object id into a
+> render target. All three read one table after this lesson, and everything else holds an index
+> into it. Nothing
+> visible changes: same ink, same draw count, same object count, on every scene and config.
+> Answer key: `git diff end-of-46..end-of-47 -- session_viewer/src`.
 >
 > **Lessons 45-51 move code. Every body you cut is pasted byte-identical except for path
 > re-roots inside ONE file; if you find yourself improving a line while moving it, stop — the
@@ -34,43 +32,36 @@ grep -c 'pub fn append_index_run' -A6 src/engine/gpu/buffers.rs
  1   append_index_run — at SIX parameters, five of which are one value
 ```
 
-Two shapes are hiding in those 86 fields, and both are the same mistake made twice.
+Two shapes hide in those 86 fields.
 
-The first is the **object table**. Eleven fields — `instances`, `last_origin`, `objects_base`,
-`base_f32`, `bounded_rows`, `object_bounds_world`, `inside`, `instance_buffer`, `instance_rows`,
-`instance_cap`, `instance_bind_group` — plus the `last_rebase_ms` throttle that only they use.
-Every one of them is indexed by the same row number. Add an object and you must push to six
-vectors in the right order; forget one and every later row reads the previous row's bounds, with
-no error anywhere. Four of the eleven are the `(buffer, rows-on-GPU, capacity, bind group)`
-quadruple lesson 46 already named.
+The **object table** — eleven fields (`instances`, `last_origin`, `objects_base`, `base_f32`,
+`bounded_rows`, `object_bounds_world`, `inside`, `instance_buffer`, `instance_rows`,
+`instance_cap`, `instance_bind_group`) plus the `last_rebase_ms` throttle only they use. All are
+indexed by the same row number, so adding an object means pushing to six vectors in the right
+order; forget one and every later row reads the previous row's bounds, with no error anywhere.
 
-The second is the **arena**: thirteen fields for one vertex table and three index runs, where the
-runs are three copies of `(buffer, count, cap)` — the exact triple `buffers.rs` typed as `GrowBuf`
-at lesson 46 and then left with `#[allow(dead_code)]` on it, because nothing had been folded into
-it yet.
+The **arena** — thirteen fields for one vertex table and three index runs, where the runs are
+three copies of the `(buffer, count, cap)` triple `buffers.rs` typed as `GrowBuf` at lesson 46 and
+then left dead.
 
-And the walk writes both by naming their columns one at a time: forty-eight sites reaching into an
-`Upload` with nineteen flat columns, free to push a vertex without its instance id.
+And the walk writes both a column at a time: forty-eight sites in an `Upload` of nineteen flat
+columns, free to push a vertex without its instance id.
 
 ### 1b. The law this enforces, stated as what it forbids
 
 **F2 — a family may not build or renumber an object row.** There is exactly one
 `(model, tint, flags)` per guid, `objects.rs` owns it, and everything else — a segment row, a
-glyph row, a vertex in the arena, a splat record — carries an `instance_id` that *indexes* it.
-No family may push to it, reorder it, or keep a second copy of any part of it.
+glyph row, an arena vertex, a splat record — carries an `instance_id` that *indexes* it.
 
-That is testable, and the test is a grep: after this lesson, `arena_ibo`, `objects_base` and
-`bounded_rows` appear in exactly one file.
+The test is a grep: after this lesson `arena_ibo`, `objects_base` and `bounded_rows` appear in
+exactly one file.
 
 ### 1c. The rejected alternative
 
-The obvious cut is to let `Instance` live inside `objects.rs` — one file, the row and its table,
-nothing else to open. Do not make it. `Instance` is declared FIVE more times, in five `.wgsl`
-files, and those copies are the ones that break: a field added on the Rust side reads the next
-field's bytes on the GPU side, silently, at the right size and in the wrong place. Splitting the
-row into its own file gives that hazard a home and a **test**, and it puts the flag-bit table
-where a shader author looks for it. Fold it into `objects.rs` and lesson 114, which adds a
-sixth shader reading `instances[]`, has nowhere to add itself to.
+The obvious cut is to let `Instance` live inside `objects.rs`. Do not make it. `Instance` is
+declared FIVE more times, in five `.wgsl` files, and those copies are what break: a field added on
+the Rust side reads the next field's bytes on the GPU side, silently. Its own file gives that
+hazard a **test** and the flag-bit table a home.
 
 ## 2. Where the code lives after this lesson
 
@@ -109,7 +100,7 @@ sixth shader reading `instances[]`, has nowhere to add itself to.
 names `src/engine/gpu/objects.rs` and `src/engine/gpu/arena.rs` — plus the one doc comment in
 `src/math.rs` that still quotes the old field name — and nothing else.
 
-The chain table, as far as this lesson takes it:
+The chain table so far:
 
 | geometry | walk writes | engine sink | family | shader |
 |---|---|---|---|---|
@@ -137,14 +128,12 @@ The chain table, as far as this lesson takes it:
 
 ## 4. The three destination files, created first
 
-An empty `impl` compiles, and a file created first makes every later step an append instead of a
-splice. Create all three before you cut anything out of `gpu/mod.rs`.
+A file created first makes every later step an append instead of a splice.
 
 ### 4.1 `src/engine/gpu/instance.rs`
 
-Start with the header. It is the file's argument: this type belongs to no family, five shaders
-declare it, and a test below is the only thing checking those five.
-
+The header is the file's argument: this type belongs to no family, five shaders declare it, and the
+test below is the only thing checking those five.
 
 **Create `src/engine/gpu/instance.rs`** with the header:
 
@@ -168,21 +157,18 @@ declare it, and a test below is the only thing checking those five.
 //! The TABLE of these rows - building it, rebasing it, uploading it - is `objects.rs`.
 ```
 
-**How to type a Move.** This is the first lesson in the curriculum that uses it, and it is worth
-one paragraph. `**Move** <file A> <first line> **through** <last line> **to** <file B> **at the
-end**` cuts WHOLE LINES: `first line` must match exactly once in A, and `last line` is the first
-line at or after it that matches exactly. Nothing is retyped, so a Move cannot introduce a typo —
-which is the entire reason to prefer it over copy-and-paste for a body you are not changing.
+**How to type a Move** — the curriculum's first. It cuts WHOLE LINES: `first line` must match
+exactly once in file A, and `last line` is the first line at or after it that matches. Nothing is
+retyped, so a Move cannot introduce a typo.
 
-The re-anchor constants first. They are the object table's own tuning and nothing else reads them:
-
+The re-anchor constants first: the object table's own tuning, read by nothing else.
 
 **Move** `src/engine/gpu/mod.rs` `/// Re-anchor distance: the instance table is rebased about a snapped anchor.` **through** `const REANCHOR_MAX: f64 = 1.0e5;` **to** `src/engine/gpu/instance.rs` **at the end**
 
 **Replace-all** `src/engine/gpu/instance.rs` `const` -> `pub(crate) const` (2 hits)
 
-The block that arrived is two drafts of one paragraph stacked on the first constant, with nothing
-on the second. Give each its own.
+The block that arrived stacks two drafts of one paragraph on the first constant. Give each its
+own.
 
 **Find** in `src/engine/gpu/instance.rs`:
 
@@ -211,11 +197,8 @@ pub(crate) const REANCHOR_MIN: f64 = 1.0e3;
 pub(crate) const REANCHOR_MAX: f64 = 1.0e5;
 ```
 
-Now the row itself. `#[repr(C)]` appears four times in `gpu/mod.rs`, so it cannot be a Move's
-first line — the Move takes the struct and the impl, and the two attribute lines are re-typed
-here and deleted there. That asymmetry is the one thing to watch when you cut a region: the
-anchor has to be **unique**, not merely correct.
-
+Now the row. `#[repr(C)]` appears four times in `gpu/mod.rs`, so it cannot be a Move's first line —
+the attribute lines are re-typed here and deleted there. A Move anchor must be **unique**.
 
 **Move** `src/engine/gpu/mod.rs` `pub struct Instance {` **through** `}` **to** `src/engine/gpu/instance.rs` **at the end**
 
@@ -234,9 +217,7 @@ pub struct Instance {
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 ```
 
-`objects.rs` builds and rebases these rows, so the fields have to be visible to it. Six one-line
-edits, and they are the whole reason `Instance` can leave `Gpu`'s file at all:
-
+`objects.rs` builds and rebases these rows, so six fields have to become visible to it:
 
 **Find** in `src/engine/gpu/instance.rs`:
 
@@ -337,10 +318,8 @@ edits, and they are the whole reason `Instance` can leave `Gpu`'s file at all:
     pub(crate) _pad: u32, // 4 B - pad the row to 96 B (storage array stride)
 ```
 
-Last, the parts that are NEW: the nine-bit flag table on one screen, the WGSL struct parser, and
-the mirror test. Nine bits, six used, three free — a flag word is only readable if the whole word
-is in one place, and "which bit is free" is a question this table answers in a second.
-
+Last, the NEW parts: the flag table, the WGSL struct parser, and the mirror test. Nine bits, six
+used, three free — a flag word is only readable if the whole word is in one place.
 
 **Find** in `src/engine/gpu/instance.rs`:
 
@@ -424,11 +403,8 @@ mod tests {
 }
 ```
 
-And the second mirror, in `frame.rs`. `LineUniform` is declared by five shaders too — but NOT
-the same five: `grid.wgsl` reads the pen and no object row, `triangle.wgsl` reads the object row
-and no pen. It reuses the parser from `instance.rs`, because one parser is easier to trust than
-two.
-
+And the second mirror, in `frame.rs`. `LineUniform` is declared by five shaders too, but not the
+same five: `grid.wgsl` reads the pen and no object row, `triangle.wgsl` the reverse.
 
 **Find** in `src/engine/gpu/frame.rs`:
 
@@ -492,11 +468,8 @@ mod tests {
 }
 ```
 
-Clean up what the two Moves left behind in `gpu/mod.rs` — the orphaned attribute lines. Note the
-Find carries the banner line under them: a **Delete** would leave a blank line where the anchor
-was, so the way to remove lines cleanly is to Find them WITH a neighbour and Replace with the
-neighbour alone.
-
+Clean up the attribute lines the two Moves orphaned in `gpu/mod.rs`. The Find carries the banner
+line under them because a delete verb would leave a blank line behind.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -521,18 +494,15 @@ cargo check --target wasm32-unknown-unknown --lib      # 0 errors
 cargo xtest                                            # 2 passed
 ```
 
-Two tests, where `src/` had none. Prove they bite before you trust them: add a line
-`drift: f32,` to `struct Instance` in `src/shaders/triangle.wgsl`, run `cargo xtest` again, and
-read what it says — it names the file. Then take the line out.
+Two tests, where `src/` had none. Prove they bite: add `drift: f32,` to `struct Instance` in
+`src/shaders/triangle.wgsl` and run `cargo xtest` again — it names the file. Then take it out.
 
 ### 4.2 `src/engine/gpu/objects.rs`
 
-The whole table, in one file. The bodies are `set_scene`'s object block, `rebase_anchor`,
-`rebuild_instances` and `update_inside_flags`, re-rooted onto the table's own field names —
-`self.instances` → `self.rows`, `self.objects_base` → `self.base`,
-`self.object_bounds_world` → `self.bounds_world`, `self.instance_buffer` → `self.buffer`. They
-leave `gpu/mod.rs` in step 6.5; create the destination now.
-
+The whole table in one file: `set_scene`'s object block, `rebase_anchor`, `rebuild_instances` and
+`update_inside_flags`, re-rooted onto the table's own names — `self.instances` → `self.rows`,
+`self.objects_base` → `self.base`, `self.object_bounds_world` → `self.bounds_world`,
+`self.instance_buffer` → `self.buffer`. They leave `gpu/mod.rs` in step 6.5.
 
 **Create `src/engine/gpu/objects.rs`**
 
@@ -874,338 +844,23 @@ impl InstanceTable {
         self.on_gpu = 0;
     }
 }
-```text
-//!   walk ->  ObjectRows { rows: ObjectBase, bounds: local AABB, spacing }
-//!              |  append()
-//!              v
-//!   base ------+--> base_f32   (the 13 floats a rebase does NOT touch, cast once)
-//!              +--> bounds_world (the local AABB through the TRUE transform)
-//!              +--> bounded_rows (which rows have one - the only rows the eye test walks)
-//!              +--> inside      (last frame's FLAG_INSIDE, for change detection)
-//!              v
-//!   rows: Vec<Instance>  --write_buffer-->  buffer -> bind_group -> group(2) of five shaders
-//! ```
-//!
-//! `base` holds f64 world transforms; `rows` holds f32 rebased ones. That split is the whole
-//! reason this file exists: an f32 matrix cannot hold a coordinate 100 m from the origin AND a
-//! millimetre of detail, so the GPU is only ever shown coordinates measured from an anchor near
-//! the camera, and the true placement stays here in f64 to be re-differenced when the anchor
-//! moves. Lose `base` and the scene cannot be re-anchored; lose the anchor and it jitters.
-
-use session_rust::{Point, Xform};
-
-use crate::engine::pipelines::layouts::Layouts;
-use crate::math::{Mat4, eye_from_view_proj, mat_to_f32};
-
-use super::buffers::{GpuCtx, append_rows, mk_rows_group, zeroed_buffer};
-use super::instance::{Instance, REANCHOR_MAX, REANCHOR_MIN};
-
-/// One object's TRUE placement, in world units and f64 - the row the walk writes and the row a
-/// rebase reads. It was a `(Mat4, [f32; 4], u32)` tuple, indexed `.0`/`.1`/`.2` in eleven places
-/// across two files; the flags field in particular was `.2 |= Instance::FLAG_PRINT`, which reads
-/// as nothing at all.
-pub struct ObjectBase {
-    pub model: Mat4,
-    pub color: [f32; 4],
-    pub flags: u32,
-}
-
-/// The object group of `Upload`: the three columns the walk fills per object, aligned by row.
-///
-/// They are one group because they are written together - a producer that pushes a row without
-/// pushing its bounds and its spacing shifts every later row's data by one - and `append` below
-/// is the only reader, which is what a sink means.
-pub struct ObjectRows {
-    pub rows: Vec<ObjectBase>,
-    /// Mesh-LOCAL AABB per row. None for linework/points/clouds: only the solid lane's facing
-    /// cull needs it (see `Instance::FLAG_INSIDE`).
-    pub bounds: Vec<Option<([f32; 3], [f32; 3])>>,
-    /// Vertex spacing per row, world units. 0 = unknown (linework, points, clouds), which the
-    /// ink lanes read as "never density-cull".
-    pub spacing: Vec<f32>,
-}
-
-impl ObjectRows {
-    pub fn new() -> Self {
-        Self { rows: Vec::new(), bounds: Vec::new(), spacing: Vec::new() }
-    }
-
-    pub fn len(&self) -> usize {
-        self.rows.len()
-    }
-}
-
-/// The GPU-side object table, plus the CPU state a rebase needs.
-pub struct InstanceTable {
-    /// What the GPU sees: rebased about `last_origin`, f32, uploaded whole on a rebase and
-    /// appended to on a new file.
-    rows: Vec<Instance>,
-    /// The TRUE world placements, f64. Never uploaded.
-    base: Vec<ObjectBase>,
-    /// `base`'s rotation/scale cast to f32 ONCE, here, instead of per re-anchor: a rebase then
-    /// re-patches three floats per row instead of casting sixteen. At 210k objects that is the
-    /// difference between a 20 ms CPU loop and a copy.
-    base_f32: Vec<[f32; 16]>,
-    /// Per-row WORLD AABB - the local `ObjectRows::bounds` through the true transform.
-    bounds_world: Vec<Option<([f64; 3], [f64; 3])>>,
-    /// The rows that HAVE one. Derived from `bounds_world`, so the two are cleared together.
-    bounded_rows: Vec<u32>,
-    /// Last frame's FLAG_INSIDE per row, so an unchanged frame uploads nothing.
-    inside: Vec<bool>,
-    pub(super) buffer: wgpu::Buffer,
-    /// Rows already ON the buffer - the base for the next append.
-    on_gpu: u32,
-    cap: u64,
-    pub bind_group: wgpu::BindGroup,
-    /// The anchor `rows` is currently rebased about. None = the next frame must rebuild.
-    last_origin: Option<Point>,
-    /// Throttle. A 210k-row rebase costs ~25 ms and one per frame is the motion jank the
-    /// constant-quality rule forbids.
-    last_rebase_ms: f64,
-}
-
-impl InstanceTable {
-    pub fn new(device: &wgpu::Device, layouts: &Layouts) -> Self {
-        // COPY_SRC because the table GROWS by appending: when it outgrows its buffer the prefix
-        // is copied GPU-side into the bigger one, and a buffer without COPY_SRC cannot be the
-        // source of that copy.
-        let buffer = zeroed_buffer(
-            device,
-            "instance.buffer",
-            std::mem::size_of::<Instance>() as u64,
-            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
-        let bind_group = mk_rows_group(device, &layouts.instance, "instances.bind_group", &buffer);
-        Self {
-            // The scene-shaped state starts as an empty placeholder. WebGPU zero-initializes
-            // buffers and `on_gpu` is 0, so the first frame draws nothing; the first `append`
-            // clears this row and starts the real table.
-            rows: vec![Instance {
-                model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0,
-            }],
-            base: Vec::new(),
-            base_f32: Vec::new(),
-            bounds_world: Vec::new(),
-            bounded_rows: Vec::new(),
-            inside: Vec::new(),
-            buffer,
-            on_gpu: 0,
-            cap: 1,
-            bind_group,
-            last_origin: None,
-            last_rebase_ms: 0.0,
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        self.rows.len()
-    }
-
-    /// One rebased row, for a lane that needs its model/flags/spacing without touching the table.
-    pub fn row(&self, i: usize) -> Option<&Instance> {
-        self.rows.get(i)
-    }
-
-    /// The anchor `rows` is currently rebased about, for anything drawn OUTSIDE the object table
-    /// - the grid, the axes - which has to subtract the same origin or it drifts away.
-    pub fn anchor(&self) -> Option<&Point> {
-        self.last_origin.as_ref()
-    }
-
-    /// This row's world AABB, if it has one. The only way out of `bounds_world`.
-    pub fn bounds_world(&self, row: usize) -> Option<([f64; 3], [f64; 3])> {
-        self.bounds_world.get(row).copied().flatten()
-    }
-
-    /// Turn the NEW object rows into instance rows and send them.
-    ///
-    /// `up.rows` is the ONE table the walk keeps cumulative - the bounds sweep and the per-file
-    /// sheet pass both index it by global row - so this is the one lane that gets a full table
-    /// every time instead of a delta. Only the rows past `self.base.len()` are converted and
-    /// sent: cloning 148k rows per file was 22 MB of memcpy and a full re-upload, for a tail
-    /// that had not changed since the file before.
-    pub fn append(&mut self, ctx: &GpuCtx, layouts: &Layouts, up: &ObjectRows) {
-        let base = self.base.len();
-        if base == 0 {
-            // First upload, or a rebuild that rewound everything: start the GPU table over too,
-            // which also drops the one-row placeholder an empty scene leaves behind.
-            self.rows.clear();
-            self.on_gpu = 0;
-        }
-        debug_assert_eq!(up.rows.len(), up.bounds.len());
-        debug_assert!(up.rows.len() >= base, "the object table only ever grows");
-        self.base.extend(up.rows[base..].iter().map(|o| ObjectBase { model: o.model, color: o.color, flags: o.flags }));
-        self.base_f32.extend(up.rows[base..].iter().map(|o| mat_to_f32(&o.model)));
-        self.bounds_world.extend(up.rows[base..].iter().zip(&up.bounds[base..]).map(|(o, b)| {
-            let m = &o.model;
-            b.map(|(lo, hi)| {
-                // World AABB of the local box: the 8 corners through the true transform.
-                // Conservative for rotated placements - FLAG_INSIDE is a hint, not a cull.
-                let xp = |x: f64, y: f64, z: f64| [
-                    m[0] * x + m[4] * y + m[8] * z + m[12],
-                    m[1] * x + m[5] * y + m[9] * z + m[13],
-                    m[2] * x + m[6] * y + m[10] * z + m[14],
-                ];
-                let mut wlo = [f64::INFINITY; 3];
-                let mut whi = [f64::NEG_INFINITY; 3];
-                for c in 0..8 {
-                    let p = xp(
-                        (if c & 1 == 0 { lo[0] } else { hi[0] }) as f64,
-                        (if c & 2 == 0 { lo[1] } else { hi[1] }) as f64,
-                        (if c & 4 == 0 { lo[2] } else { hi[2] }) as f64,
-                    );
-                    for k in 0..3 { wlo[k] = wlo[k].min(p[k]); whi[k] = whi[k].max(p[k]); }
-                }
-                (wlo, whi)
-            })
-        }));
-        self.inside.resize(self.base.len(), false);
-        self.bounded_rows = self.bounds_world.iter().enumerate().filter_map(|(i, b)| b.map(|_| i as u32)).collect();
-        // `bounds_world` was just extended above, so each row's extent comes from the same
-        // AABB FLAG_INSIDE uses. The diagonal, not an axis: a flat sheet has a zero-thickness axis
-        // and would clamp its ink lift to nothing.
-        let bounds = &self.bounds_world;
-        self.rows.extend(up.rows[base..].iter().enumerate().map(|(i, o)| Instance {
-            model: mat_to_f32(&o.model),
-            color: o.color,
-            flags: o.flags,
-            extent: bounds.get(base + i).and_then(|b| *b).map_or(0.0, |(lo, hi)| {
-                ((hi[0] - lo[0]).powi(2) + (hi[1] - lo[1]).powi(2) + (hi[2] - lo[2]).powi(2)).sqrt() as f32
-            }),
-            spacing: up.spacing.get(base + i).copied().unwrap_or(0.0),
-            _pad: 0,
-        }));
-
-        if self.rows.is_empty(){
-            self.rows.push(Instance {model: Xform::identity().to_f32(), color: [0.5,0.5,0.5,1.0], flags: 0, extent: 0.0, spacing: 0.0, _pad: 0 });
-        }
-
-        let mut on_gpu = self.on_gpu;
-        let fresh = &self.rows[on_gpu as usize..];
-        if append_rows(ctx, "instance.buffer", &mut self.buffer, &mut on_gpu, &mut self.cap, fresh) {
-            self.bind_group = mk_rows_group(&ctx.device, &layouts.instance, "instances.bind_group", &self.buffer);
-        }
-        self.on_gpu = on_gpu;
-
-        // The table just grew, so the anchor it was rebased about no longer covers every row.
-        self.last_origin = None;
-    }
-
-    /// The anchor the instance table is rebased about, and whether this call rebuilt it.
-    ///
-    /// A full rebuild (42 000 x at stress scale) runs only when the camera target strays
-    /// REANCHOR_DIST from the current anchor - orbit never moves the target, and pan/zoom within
-    /// the budget just changes the view matrix.
-    ///
-    /// `origin` and `view_dist` are both in WORLD units (mm) - the same units as the instance
-    /// table's translations. Feeding metres here (the camera's internal unit) makes the subtract
-    /// in `rebuild` a no-op at 1/1000 scale, which silently turns camera-relative rendering off:
-    /// the symptom is geometry that jitters and then clips away entirely as you zoom in, because
-    /// the f32 mvp is differencing two large world magnitudes.
-    pub fn rebase_anchor(&mut self, ctx: &GpuCtx, origin: &Point, view_dist: f64) -> (Point, bool) {
-        let thresh = (view_dist * 0.25).clamp(REANCHOR_MIN, REANCHOR_MAX);
-        let need = match &self.last_origin {
-            None => true,
-            Some(a) => {
-                let (dx, dy, dz) = (a[0] - origin[0], a[1] - origin[1], a[2] - origin[2]);
-                (dx * dx + dy * dy + dz * dz).sqrt() > thresh
-            }
-        };
-        // Throttled: during a wheel-zoom gesture the target moves every tick,
-        // and an every-frame rebuild is the motion jank the rule forbids.
-        // Between rebuulds the old achor stays valid - it is just farther from the eye than the threshold likes, which costs f32 precision
-        // only past the threshold distance, never a wrong image.
-        let now = crate::engine::performance::now_ms();
-        let rebuilt = need && (now - self.last_rebase_ms > 200.0 || self.last_origin.is_none());
-        if rebuilt {
-            self.rebuild(ctx, origin);
-            self.last_rebase_ms = now;
-        }
-        (self.last_origin.clone().unwrap(), rebuilt)
-    }
-
-    /// Rebase every instance's translation around 'origin' - an f64 subtract agains the TRUE world transfrom in 'base'
-    /// Then cast to f32.
-    /// 'rows', what GPU actually sees, never holds a coordinate bigger than the camera's distnace from 'origin',
-    /// no matter how fas the scene fists from world (0,0,0).
-    fn rebuild(&mut self, ctx: &GpuCtx, origin: &Point){
-        self.last_origin = Some(origin.clone());
-        for (i, o) in self.base.iter().enumerate() {
-            let mut m = self.base_f32[i]; // rotation / scale casr once at set_scene
-            m[12] = (o.model[12] - origin[0]) as f32;
-            m[13] = (o.model[13] - origin[1]) as f32;
-            m[14] = (o.model[14] - origin[2]) as f32;
-            self.rows[i].model = m;
-        }
-        ctx.queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&self.rows));
-    }
-
-    /// Set FLAG_INSIDE on every row whose world AABB contains the eye, clear it on the rest, and
-    /// upload only if something actually flipped.
-    pub fn update_inside_flags(&mut self, ctx: &GpuCtx, view_proj: &Xform, scene_min: [f32; 3], scene_max: [f32; 3]) {
-        if self.bounded_rows.is_empty(){
-            return;
-        }
-        let Some(origin) = self.last_origin.clone() else { return };
-        let eye = eye_from_view_proj(view_proj); // anchored world units, like rows[]
-        let ew = [origin[0] + eye[0] as f64, origin[1] + eye[1] as f64, origin[2] + eye[2] as f64];
-        // The eye outside the scene's box is outside every object in it.
-        let in_scene = (0..3).all(|k| ew[k] >= scene_min[k] as f64 && ew[k] <= scene_max[k] as f64);
-        let mut dirty = false;
-        for &row in &self.bounded_rows{
-            let i = row as usize;
-            let b = &self.bounds_world[i];
-            let inside = in_scene && b.is_some_and(|(lo, hi)| (0..3).all(|k| ew[k] >= lo[k] && ew[k] <= hi[k]));
-            if self.inside.get(i).copied().unwrap_or(false) == inside {
-                continue;
-            }
-            if let Some(row) = self.rows.get_mut(i) {
-                row.flags = if inside { row.flags | Instance::FLAG_INSIDE } else { row.flags & !Instance::FLAG_INSIDE };
-            }
-            if i < self.inside.len() { self.inside[i] = inside; }
-            dirty = true;
-        }
-        if dirty {
-            ctx.queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&self.rows));
-        }
-    }
-
-    /// Rewind the whole table so the next upload writes from row 0 again. The buffer and its
-    /// capacity stay - only the counters and the CPU vectors move.
-    ///
-    /// `bounded_rows` is DERIVED from `bounds_world`, so leaving it behind holds row indices
-    /// into a vector that is now empty. `rebuild` hides that by re-walking immediately, but a
-    /// scene that is cleared and then DRAWN before the next upload - reload_scene between Clear
-    /// and the first File - panics in `update_inside_flags` on the stale rows.
-    pub fn clear(&mut self) {
-        self.base.clear();
-        self.base_f32.clear();
-        self.bounds_world.clear();
-        self.bounded_rows.clear();
-        self.inside.clear();
-        self.rows.clear();
-        self.on_gpu = 0;
-    }
-}
 ```
 
-Three things in there are NOT a move, and each is deliberate:
+Three things in there are NOT a move:
 
 - **`ObjectBase` names the tuple.** `Vec<(Mat4, [f32; 4], u32)>` was indexed `.0`/`.1`/`.2` in
-  eleven places across two files, and the flags one read `t.objects.last_mut().unwrap().2 |=
-  Instance::FLAG_PRINT`. That line is now `.flags |=`.
+  eleven places across two files; `t.objects.last_mut().unwrap().2 |= Instance::FLAG_PRINT` is now
+  `.flags |=`.
 - **`ObjectRows` is a sink.** The three columns are written together — push a row without its
-  bounds and every later row is off by one — so they travel as one value and `append` is their
-  only reader.
-- **`clear()` clears `base_f32`.** The old `reset_arena` cleared five vectors and forgot this one,
-  so after a rebuild `base_f32` was twice as long as `base` and `rebuild` read the PREVIOUS
-  scene's rotation and scale. No golden catches it, because a rebuild re-walks identical content
-  and the stale rows happen to be equal. It is still a leak and still wrong, and a method called
-  `clear` on a struct that owns all six vectors is where it stops being possible.
+  bounds and every later row is off by one — so they travel as one value.
+- **`clear()` clears `base_f32`.** The old `reset_arena` forgot it, so after a rebuild `base_f32`
+  was twice as long as `base` and `rebuild` read the PREVIOUS scene's rotation and scale. No
+  golden catches it. A `clear` on the struct owning all six vectors is where that stops being
+  possible.
 
 ### 4.3 `src/engine/gpu/arena.rs`
 
 One vertex table, three index runs, two pipelines, three draws.
-
 
 **Create `src/engine/gpu/arena.rs`**
 
@@ -1496,264 +1151,10 @@ impl Pipes {
         }
     }
 }
-```text
-//!   vbo   RenderVertex  position+normal+colour  ]  one table, appended per file
-//!   vids  u32           instance_id per vertex  ]  slot 1, so a vertex knows its object row
-//!
-//!   solid -> triangle        depth write ON    drawn with the 3D geometry
-//!   print -> triangle_sheet  depth write OFF   a page's fills, in document order
-//!   text  -> triangle_sheet  depth write OFF   the lettering, LAST of everything
-//! ```
-//!
-//! That is the family contract in one file: the rows (`ArenaRows`), the buffers (`Arena`), the
-//! pipelines that read them (`Pipes` + `descs`), and the draws. Nothing outside this file names
-//! `triangle.wgsl`, and nothing in this file names a `Geometry::` variant - the walk decides
-//! which run an index lands in, the family decides what a run means.
-
-use session_rust::RenderVertex;
-
-use crate::engine::pipelines::layouts::Layouts;
-use crate::engine::pipelines::{PipelineDesc, Target, build::build};
-
-use super::buffers::{GpuCtx, GrowBuf, append_index_run, zeroed_buffer};
-use super::frame::Binds;
-
-const TRIANGLE: &str = include_str!("../../shaders/triangle.wgsl");
-
-/// The arena group of `Upload`: this file's rows, as the walk hands them over.
-///
-/// `verts`/`vids` are parallel - one instance id per vertex - and the three index runs all index
-/// the SAME vertex table, which is what makes splitting the sheet lanes free: one buffer each,
-/// no duplicated geometry.
-pub struct ArenaRows {
-    pub verts: Vec<RenderVertex>,
-    pub vids: Vec<u32>,
-    pub idx: Vec<u32>,
-    /// Sheet lanes. A PDF's fills are exactly coplanar, so they must NOT arbitrate by depth -
-    /// they are split off the solid index run and drawn in document order with depth write off.
-    /// `idx_text` is the lettering, drawn LAST of all, after the ink lanes, because a page puts
-    /// its text on top of both its hatching and its linework.
-    pub idx_print: Vec<u32>,
-    pub idx_text: Vec<u32>,
-}
-
-impl ArenaRows {
-    pub fn new() -> Self {
-        Self { verts: Vec::new(), vids: Vec::new(), idx: Vec::new(), idx_print: Vec::new(), idx_text: Vec::new() }
-    }
-}
-
-/// Which index run. The three differ in one pipeline and one draw position; naming them is what
-/// keeps `run(Text)` from being `self.arena_ibo_text`, `self.arena_text_count` and
-/// `self.arena_text_cap` spelled out at every site.
-#[derive(Clone, Copy)]
-pub enum IdxLane {
-    Solid,
-    Print,
-    Text,
-}
-
-/// The shared vertex table and its three index runs.
-pub struct Arena {
-    vbo: wgpu::Buffer,
-    vids: wgpu::Buffer,
-    /// Vertices already on the GPU - the base for the next append, and the row every index is
-    /// relative to.
-    verts: u32,
-    vert_cap: u64,
-    solid: GrowBuf,
-    print: GrowBuf,
-    text: GrowBuf,
-}
-
-impl Arena {
-    pub fn new(device: &wgpu::Device) -> Self {
-        // One zeroed row each - wgpu cannot bind a 0-byte buffer, and every count starts at 0 so
-        // nothing is drawn from them until real geometry appends.
-        let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
-        let iu = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
-        Self {
-            vbo: zeroed_buffer(device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, vu),
-            vids: zeroed_buffer(device, "arena.vids", 4, vu),
-            verts: 0,
-            vert_cap: 1,
-            solid: GrowBuf { buf: zeroed_buffer(device, "arena.ibo", 4, iu), count: 0, cap: 1, usage: iu, label: "arena.ibo" },
-            print: GrowBuf { buf: zeroed_buffer(device, "arena.ibo.print", 4, iu), count: 0, cap: 1, usage: iu, label: "arena.ibo.print" },
-            text: GrowBuf { buf: zeroed_buffer(device, "arena.ibo.text", 4, iu), count: 0, cap: 1, usage: iu, label: "arena.ibo.text" },
-        }
-    }
-
-    pub fn run(&self, lane: IdxLane) -> &GrowBuf {
-        match lane {
-            IdxLane::Solid => &self.solid,
-            IdxLane::Print => &self.print,
-            IdxLane::Text => &self.text,
-        }
-    }
-
-    fn run_mut(&mut self, lane: IdxLane) -> &mut GrowBuf {
-        match lane {
-            IdxLane::Solid => &mut self.solid,
-            IdxLane::Print => &mut self.print,
-            IdxLane::Text => &mut self.text,
-        }
-    }
-
-    /// Vertices on the GPU. `msaa_now` reads it to decide whether the scene holds solids at all.
-    pub fn verts(&self) -> u32 {
-        self.verts
-    }
-
-    /// Append one file's worth of triangles.
-    ///
-    /// Like the cloud lane, `up.verts/vids/idx` are a DELTA - the caller clears them after
-    /// upload (`Scene::upload_to`), because nothing reads them back: picking goes through the
-    /// kernel Meshes in Doc.session, never through these flattened rows.
-    ///
-    /// Appending rather than rebuilding is worth two separate things. It stops re-sending the
-    /// whole arena on every file (six files meant the 64 MB vertex table travelled six times),
-    /// and it lets the CPU-side Vecs go, which is ~70 MB of wasm heap that was being held for
-    /// the sole purpose of feeding the next rebuild.
-    pub fn append(&mut self, ctx: &GpuCtx, up: &ArenaRows) {
-        if up.verts.is_empty() {
-            return;
-        }
-        debug_assert_eq!(up.verts.len(), up.vids.len(), "one instance id per vertex, or slot 1 reads the wrong row");
-        let vstride = std::mem::size_of::<RenderVertex>() as u64;
-        let need_v = self.verts as u64 + up.verts.len() as u64;
-        let need_i = self.solid.count as u64 + up.idx.len() as u64;
-
-        if need_v > self.vert_cap || need_i > self.solid.cap {
-            let cap_v = need_v.max(self.vert_cap);
-            let cap_i = need_i.max(self.solid.cap);
-            let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
-            let vbo = zeroed_buffer(&ctx.device, "arena.vbo", cap_v * vstride, vu);
-            let vids = zeroed_buffer(&ctx.device, "arena.vids", cap_v * 4, vu);
-            let ibo = zeroed_buffer(&ctx.device, self.solid.label, cap_i * 4, self.solid.usage);
-            if self.verts > 0 {
-                // the prefix moves GPU-side; it never travels back through wasm memory
-                let mut enc = ctx.device.create_command_encoder(&Default::default());
-                enc.copy_buffer_to_buffer(&self.vbo, 0, &vbo, 0, self.verts as u64 * vstride);
-                enc.copy_buffer_to_buffer(&self.vids, 0, &vids, 0, self.verts as u64 * 4);
-                enc.copy_buffer_to_buffer(&self.solid.buf, 0, &ibo, 0, self.solid.count as u64 * 4);
-                ctx.queue.submit([enc.finish()]);
-            }
-            self.vbo = vbo;
-            self.vids = vids;
-            self.solid.buf = ibo;
-            self.vert_cap = cap_v;
-            self.solid.cap = cap_i;
-        }
-
-        ctx.queue.write_buffer(&self.vbo, self.verts as u64 * vstride, bytemuck::cast_slice(&up.verts));
-        ctx.queue.write_buffer(&self.vids, self.verts as u64 * 4, bytemuck::cast_slice(&up.vids));
-        ctx.queue.write_buffer(&self.solid.buf, self.solid.count as u64 * 4, bytemuck::cast_slice(&up.idx));
-        self.verts += up.verts.len() as u32;
-        self.solid.count += up.idx.len() as u32;
-
-        // The sheet runs grow and append the same way; they index the SAME vertex table, so
-        // splitting them costs one buffer each and no duplicated geometry.
-        append_index_run(ctx, self.run_mut(IdxLane::Print), &up.idx_print);
-        append_index_run(ctx, self.run_mut(IdxLane::Text), &up.idx_text);
-    }
-
-    /// Forget what the arena holds, so the next upload writes from row 0 again. The buffers and
-    /// their capacity stay - only the counters move - so a rebuild costs no allocation.
-    pub fn reset(&mut self) {
-        self.verts = 0;
-        self.solid.count = 0;
-        self.print.count = 0;
-        self.text.count = 0;
-    }
-
-    /// Bind the shared vertex table and draw one index run. The CALLER sets the pipeline and the
-    /// bind groups, because the three lanes sit at three different points of the frame's order
-    /// and that order is the whole reason they are three lanes.
-    fn draw(&self, pass: &mut wgpu::RenderPass, lane: IdxLane) {
-        let run = self.run(lane);
-        pass.set_vertex_buffer(0, self.vbo.slice(..)); // slot 0 - vertices
-        pass.set_vertex_buffer(1, self.vids.slice(..)); // slot 1 - per-vertex row ids
-        pass.set_index_buffer(run.buf.slice(..), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..run.count, 0, 0..1); // whole scene, one call
-    }
-
-    /// The solid faces. The pipeline and groups 0-2 are already set by the frame.
-    pub fn draw_faces(&self, pass: &mut wgpu::RenderPass) {
-        if self.solid.count > 0 {
-            self.draw(pass, IdxLane::Solid);
-        }
-    }
-
-    /// SHEET FILLS. Same vertex table, depth WRITE off, so a page's exactly coplanar regions
-    /// composite in document order instead of flickering over one shared depth value. They still
-    /// depth-TEST, so 3D geometry in front of the sheet occludes. Returns the draws it issued.
-    pub fn draw_print(&self, pass: &mut wgpu::RenderPass, b: &Binds) -> u32 {
-        if self.print.count == 0 {
-            return 0;
-        }
-        pass.set_pipeline(&b.p.arena.sheet);
-        self.draw(pass, IdxLane::Print);
-        1
-    }
-
-    /// LETTERING, last of everything. A page paints its text on top of its hatching AND its
-    /// linework, so it lands after the ink lanes - the one thing draw order can express that a
-    /// depth buffer cannot, since all of it is coplanar at z = 0.
-    pub fn draw_text(&self, pass: &mut wgpu::RenderPass, b: &Binds) -> u32 {
-        if self.text.count == 0 {
-            return 0;
-        }
-        pass.set_pipeline(&b.p.arena.sheet);
-        pass.set_bind_group(0, b.mvp, &[]);
-        pass.set_bind_group(1, b.time, &[]);
-        pass.set_bind_group(2, b.instances, &[]);
-        self.draw(pass, IdxLane::Text);
-        1
-    }
-}
-
-/// The family's pipelines. Two, and they differ in ONE field.
-pub struct Pipes {
-    pub triangle: wgpu::RenderPipeline,
-    /// Same program, depth WRITE off: the sheet lanes (print fills, then lettering) composite in
-    /// draw order instead of fighting over one coplanar depth value.
-    pub sheet: wgpu::RenderPipeline,
-}
-
-impl Pipes {
-    /// A family builds its own pipelines from the shared layouts. `Pipelines::new` calls this
-    /// and never sees `TRIANGLE`, which is what keeps the shader constant in the file that owns
-    /// the rows it reads.
-    pub fn descs(device: &wgpu::Device, t: Target, l: &Layouts) -> Self {
-        Self {
-            // Solid mesh triangles. Blended, because a surface can be translucent.
-            triangle: build(device, t, &PipelineDesc {
-                vertex_buffers: &[RenderVertex::layout(), instance_id_layout()],
-                ..PipelineDesc::sheet("triangle", TRIANGLE, &[&l.mvp, &l.time, &l.instance])
-            }),
-            // The same program with ONE field flipped. A drawing's fills are exactly coplanar -
-            // 362,581 vertices of a PDF sheet, ONE distinct z - so the depth buffer cannot order
-            // them: equal depth fails a strict Greater, and the depths are not even reliably
-            // equal, since positions are camera-relative and re-rounded to f32 every frame.
-            // Whichever fill won flipped as the camera moved, and that flip is the flicker
-            // between lettering and hatching. With no depth WRITE the fills stop arbitrating and
-            // composite in draw order, which is what a page is. They are still depth-TESTED, so
-            // 3D geometry in front still occludes the sheet.
-            sheet: build(device, t, &PipelineDesc {
-                vertex_buffers: &[RenderVertex::layout(), instance_id_layout()],
-                depth_write: false,
-                ..PipelineDesc::sheet("triangle.sheet", TRIANGLE, &[&l.mvp, &l.time, &l.instance])
-            }),
-        }
-    }
-}
 ```
 
-Then the vertex-id layout comes over from `pipelines/build.rs` — by Move, because it is
-byte-identical and this is the case where that is worth demonstrating. `vids` is this family's
-second vertex buffer and nothing else in the program has one, so the layout that describes it
-belongs beside the buffer, not in a file of generic builders.
-
+Then the vertex-id layout comes over from `pipelines/build.rs` by Move: `vids` is this family's
+second vertex buffer and nothing else has one, so the layout describing it belongs beside it.
 
 **Move** `src/engine/pipelines/build.rs` `const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {` **through** `}];` **to** `src/engine/gpu/arena.rs` **after** `const TRIANGLE: &str = include_str!("../../shaders/triangle.wgsl");`
 
@@ -1809,17 +1210,17 @@ wc -l src/engine/gpu/instance.rs src/engine/gpu/objects.rs src/engine/gpu/arena.
  303 src/engine/gpu/arena.rs
 ```
 
-If a count is far off, a paste went wrong and it is cheaper to find out now than after 25 fields
-have moved.
+If a count is far off, a paste went wrong — cheaper to find out now than after 25 fields have
+moved.
 
-## 5. Where the borrow checker bites — B2, and it bites in step 6.5
+## 5. Where the borrow checker bites — B2, in step 6.5
 
 > ```rust
 > self.objects.append(&self.ctx, &self.layouts, &up.obj);
 > ```
 >
-> reads fine. But write the same call as a method that takes `&mut self` on `Gpu` and reaches
-> for two of its own fields —
+> compiles. Written as a `&mut self` method on `Gpu` that reaches for two of its own fields, it
+> does not:
 >
 > ```rust
 > fn append_objects(&mut self) {
@@ -1827,21 +1228,18 @@ have moved.
 > }                    // ^^^^^^^^^^^^ E0499: cannot borrow `self.objects` as mutable
 > ```                  //                      while `self` is also borrowed as immutable
 >
-> — and it stops compiling. The fix is the one lesson 46 introduced as B1, applied one level
-> down: **the sub-struct takes what it needs as parameters, and the caller does the field
-> access at the call site.** `&self.ctx` and `&self.layouts` are disjoint borrows of `Gpu`;
-> `self.<method that borrows all of self>` is not. It recurs every time a family method needs
-> the floor, which is every family method in lessons 48 and 49.
+> The fix is lesson 46's B1 one level down: **the sub-struct takes what it needs as parameters,
+> and the caller does the field access at the call site.** `&self.ctx` and `&self.layouts` are
+> disjoint borrows of `Gpu`; `self.<method that borrows all of self>` is not. Every family method
+> in lessons 48 and 49 hits this.
 
 ## 6. The steps
 
 ### 6.1 `buffers.rs` — `GrowBuf` stops being dead
 
-Lesson 46 typed `GrowBuf` and put `#[allow(dead_code)]` on it, with a comment promising the
-attribute would come off at 47 with `Arena`. `Arena` has three of them, so it comes off now — and
-`append_index_run`, which took the same triple spelled out plus a label and the data, drops from
-six parameters to three.
-
+`Arena` has three `GrowBuf`s, so lesson 46's `#[allow(dead_code)]` comes off — and
+`append_index_run`, which took that triple spelled out plus a label and the data, drops from six
+parameters to three.
 
 **Find** in `src/engine/gpu/buffers.rs`:
 
@@ -1927,15 +1325,14 @@ pub fn append_index_run(ctx: &GpuCtx, run: &mut GrowBuf, data: &[u32]) {
 ```
 
 **Gate.** `cargo check --target wasm32-unknown-unknown --lib` — one error, at the two old call
-sites in `set_scene`, which step 6.5 deletes. That is the shape of a refactor's error wall:
-`cargo check 2>&1 | grep -c '^error'` is your progress bar, and you fix only the FIRST error and
-re-run, because two hundred `E0609`s are usually one missing rename.
+sites in `set_scene`, which step 6.5 deletes. `cargo check 2>&1 | grep -c '^error'` is your
+progress bar: fix the FIRST error and re-run, because two hundred `E0609`s are usually one missing
+rename.
 
 ### 6.2 `Upload` — eight flat columns become two groups
 
 A producer should be handed the columns it may write, not all nineteen. The arena's five and the
 object table's three go first; `seg`, `glyph` and `cloud` follow at 48 and 49.
-
 
 **Find** in `src/engine/gpu/upload.rs`:
 
@@ -2095,10 +1492,8 @@ use super::{CloudDraw, CylinderSegment, GlyphPoint, LodNode};
 
 ### 6.3 The triangle family takes its own pipelines
 
-`Pipelines` keeps the LIST. The descs, and the `include_str!` of the shader they compile, go to
-the file that owns the rows they read — which is what makes "add a shader" a change in one file
-instead of three.
-
+`Pipelines` keeps the LIST. The descs, and the `include_str!` of the shader they compile, go to the
+file that owns the rows they read — so "add a shader" is a change in one file, not three.
 
 **Find** in `src/engine/pipelines/mod.rs`:
 
@@ -2186,7 +1581,6 @@ pub struct Pipelines{
 
 Leaves before roots: the modules and imports first, then the field list, then the constructor.
 
-
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
@@ -2263,10 +1657,8 @@ use session_rust::{Xform, RenderVertex, Point};
 use session_rust::{Xform, Point};
 ```
 
-Now the field list itself. Twenty-five lines out, two in — and read the two comments, because
-after this the only way to find out what is in the object table is to open `objects.rs`, which is
-the point.
-
+Now the field list: twenty-five lines out, two in. After this the only way to learn what is in the
+object table is to open `objects.rs`, which is the point.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2324,9 +1716,8 @@ the point.
     pub performance: Performance,
 ```
 
-And the constructor. Both sub-structs build themselves; `Gpu::build` stops knowing that an
+And the constructor. Both sub-structs build themselves, so `Gpu::build` stops knowing that an
 instance buffer needs `COPY_SRC` or that an index run starts at capacity 1.
-
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2514,7 +1905,6 @@ remaining call site. Steps 6.5 and 6.6 walk it down to zero.
 
 The object table first, because every other lane's rows carry an index into it.
 
-
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
@@ -2683,10 +2073,8 @@ The object table first, because every other lane's rows carry an index into it.
         if up.min[0].is_finite()
 ```
 
-`rebase_anchor` stays on `Gpu`, as a forwarder, for one reason: a rebase moves every row, which
-makes every splat record stale, and staleness of the splat lane is the one thing `InstanceTable`
-cannot know and `Gpu` can.
-
+`rebase_anchor` stays on `Gpu` as a forwarder for one reason: a rebase moves every row, making
+every splat record stale, and that is the one thing `InstanceTable` cannot know and `Gpu` can.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2776,7 +2164,6 @@ cannot know and `Gpu` can.
 
 ### 6.6 The rest of `Gpu` — the frame, the draws, the reset
 
-
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
@@ -2853,10 +2240,8 @@ cannot know and `Gpu` can.
             let b = self.frame.binds(&self.pipelines, &self.objects.bind_group);
 ```
 
-The three arena draws. The solid one keeps its `draws += 1` OUTSIDE the emptiness test, exactly
-as before — the count is of pipelines set, not of index runs that happened to be non-empty, and
-the goldens count it.
-
+The three arena draws. The solid one keeps its `draws += 1` OUTSIDE the emptiness test: the count
+is of pipelines set, not of non-empty index runs, and the goldens count it.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2943,10 +2328,8 @@ the goldens count it.
         (draws, self.objects.len() as u32)
 ```
 
-And the two resets. Note the second one: eleven lines become one call, and the comment about
-`bounded_rows` being derived state moves into `InstanceTable::clear`, where the vector it warns
-about actually lives.
-
+And the two resets. In the second, eleven lines become one call and the `bounded_rows`
+derived-state warning moves into `InstanceTable::clear`, where that vector lives.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -3007,9 +2390,8 @@ Still red — `src/app/scene.rs` writes the old column names. That is step 6.7.
 
 ### 6.6b Three stale claims in the comments this lesson is folding
 
-Not a move, and not style: a wrong MEASURED number in a comment is a wrong fact, and `buffers.rs`
-carries two. `rebind` has never existed, and twelve triples is thirty-six fields, not thirty-three.
-While we are in there, the six-parameter exception gets written where the violation lives.
+A wrong measured number in a comment is a wrong fact, and `buffers.rs` carries two: `rebind` has
+never existed, and twelve triples is thirty-six fields, not thirty-three.
 
 **Find** in `src/engine/gpu/buffers.rs`:
 
@@ -3050,8 +2432,8 @@ While we are in there, the six-parameter exception gets written where the violat
 /// This is the same deal the mesh arena already struck, extended to the lanes that had not taken
 ```
 
-And `Upload` gets the `Default` clippy asks for beside its `new`, plus two typos in the doc comment
-that now describes the `obj` group.
+And `Upload` gets the `Default` clippy asks for, plus two typos in the doc comment that now
+describes the `obj` group.
 
 **Find** in `src/engine/gpu/upload.rs`:
 
@@ -3102,7 +2484,6 @@ impl Upload {
 Two literal conversions, the flag accesses that stop being `.2`, and then twelve `Replace-all`s
 with their counts asserted. **If a count differs, you renamed the wrong thing** — stop and look
 rather than adjusting the number.
-
 
 **Find** in `src/app/scene.rs`:
 
@@ -3160,7 +2541,6 @@ t.objects.push(ObjectBase { model: placed, color: [1.0; 4], flags });
 The renames. Longest key first, always: `t.object_bounds` before `t.objects`, `t.idx_print`
 before `t.idx`, or the short one eats the long one's prefix.
 
-
 **Replace-all** `src/app/scene.rs` `self.tables.object_bounds` -> `self.tables.obj.bounds` (1 hits)
 
 **Replace-all** `src/app/scene.rs` `self.tables.object_spacing` -> `self.tables.obj.spacing` (1 hits)
@@ -3187,9 +2567,8 @@ before `t.idx`, or the short one eats the long one's prefix.
 
 ### 6.8 The harnesses and the five shaders
 
-`selftest` and the two `check_*` examples read `Upload` directly, so they follow the columns. The
-`same!` macro has to widen from one identifier to a dotted path:
-
+`selftest` and the two `check_*` examples read `Upload` directly, so they follow the columns, and
+`same!` widens from one identifier to a dotted path:
 
 **Find** in `src/selftest.rs`:
 
@@ -3319,10 +2698,8 @@ macro_rules! same { ($($f:ident).+) => {
         }
 ```
 
-And the comments in the shaders that cite a Rust path. These are load-bearing now: the mirror
-tests make the two-language structs a checked contract, and a comment pointing at the wrong file
-is how the next author fails to find the other half.
-
+And the shader comments citing a Rust path. They are load-bearing now: a comment pointing at the
+wrong file is how the next author fails to find the other half of a mirrored struct.
 
 **Find** in `src/shaders/glyph.wgsl`:
 
@@ -3395,6 +2772,7 @@ is how the next author fails to find the other half.
 ```wgsl
 // Instance flag bit 3 (Instance::FLAG_PRINT in gpu/instance.rs): the mesh broadcast a zero edge
 ```
+
 ## 7. Proving nothing changed — four ladders
 
 **(1) The compiler.** Both targets, all targets natively.
@@ -3404,15 +2782,11 @@ cargo check --target wasm32-unknown-unknown --lib
 cargo check --all-targets --target x86_64-unknown-linux-gnu
 ```
 
-Zero errors, and the warning list must be exactly the one lesson 46 left — nine of them, all in
-`lib.rs` and `probe_mem.rs`, all predating this block. A NEW warning here is a real finding: it
-means a symbol you moved is no longer reachable from where it is used. Two came up while this
-lesson was written (`RenderVertex` and the `Mat4`/`mat_to_f32` re-export in `gpu/mod.rs`, both
-now consumed by the new files instead), and both are fixed in step 6.4.
+Zero errors, and exactly the nine warnings lesson 46 left. A NEW warning is a real finding: a
+symbol you moved is no longer reachable from where it is used. Step 6.4 fixes the two this lesson
+raised. It cannot catch a body that lost a line while moving — that type-checks fine.
 
-What it cannot catch: a body that lost a line while moving. It type-checks fine.
-
-**(2) The tests.** New this lesson, and the only mechanical check on the Rust↔WGSL boundary.
+**(2) The tests.** The only mechanical check on the Rust↔WGSL boundary.
 
 ```bash
 cargo xtest
@@ -3424,12 +2798,11 @@ test engine::gpu::frame::tests::line_uniform_mirror ... ok
 test result: ok. 2 passed; 0 failed
 ```
 
-What they cannot catch: a flag BIT that disagrees. `instance_mirror` checks the struct, not
+They cannot catch a flag BIT that disagrees: `instance_mirror` checks the struct, not
 `const FLAG_PRINT = 8u`. Bits are still on you, which is why they are in one table.
 
-**(3) The line multiset.** The compiler proves a Move type-checks and the goldens prove the
-pixels agree; neither proves a Move was byte-identical, and a line dropped inside a `#[cfg]` arm
-passes both.
+**(3) The line multiset.** Neither the compiler nor the goldens prove a Move was byte-identical —
+a line dropped inside a `#[cfg]` arm passes both.
 
 ```bash
 python3 docs/_replay_check.py --moves <end-of-46 tree> /tmp/w47 docs/47-object-rows.md
@@ -3440,11 +2813,9 @@ docs/47-object-rows.md: 120 ops, 0 failed
 docs/47-object-rows.md: 2 move source(s), 0 not byte-identical
 ```
 
-The two sources are `gpu/mod.rs` (the row and its constants, to `instance.rs`) and
-`pipelines/build.rs` (the vertex-id layout, to `arena.rs`). Everything else this lesson does is a
-Create plus a Remove, and `--moves` accounts for those against the Create bodies — which is why
-the run also prints a `lost-declared` list of 333 lines and passes: those lines are declared gone
-by an op you typed, not dropped on the floor.
+The two sources are `gpu/mod.rs` (row and constants → `instance.rs`) and `pipelines/build.rs`
+(vertex-id layout → `arena.rs`). Everything else is a Create plus a Remove, which is why the run
+also prints a `lost-declared` list of 333 lines and passes.
 
 **(4) The pixels, and the two harnesses that go where pixels do not.**
 
@@ -3463,22 +2834,18 @@ mesh_bunny.pb: IDENTICAL
 Four mandatory scenes × four configs × two passes, against `docs/_GOLDENS.tsv`:
 `lion` 77543/4/1 · `bunny` 44215/9/6 (tubes 43954/8/6) · `bunny_cloud` 7511/4/1 ·
 `drawings_rotated` 25043/10/155465 sha `8c339ef1c45a1e39` (tubes 24970/9 sha `0436f04fe5fc5c7c`).
-`drawings_rotated` is the one mandatory row a checksum still gates — the other three carry
-`nondet(splat)`/`nondet(mesh)` and are gated on ink, draws and objects. `objects` is the count
-this lesson is about, so a wrong number there is a wrong object table, immediately.
+Only `drawings_rotated` is checksum-gated; the other three carry `nondet(splat)`/`nondet(mesh)`
+and are gated on ink, draws and objects. A wrong `objects` count is a wrong object table.
 
 ## 8. What you can now do in one line
 
-Take a flag bit. Before this lesson that meant finding `Instance` two thirds of the way down a
-1,691-line file, guessing which of five shaders declare it, and finding out at runtime — as a
-wrong colour, or as nothing at all — whether you guessed right. Now the const, the free-bit
-budget and the list of shaders that mirror it are one screen, and a test tells you which shader
-you forgot.
+Take a flag bit. Before this lesson that meant finding `Instance` two thirds down a 1,691-line file
+and guessing which of five shaders declare it. Now the const, the free-bit budget and the mirroring
+shaders are one screen, and a test names the shader you forgot.
 
-**Type all eight steps below.** The first four add the bit, the last four take it back out — this
-is a demonstration, not part of the lesson's end state, and the tree must be back to what §6 left
-before you read §10. Do **not** undo it with `git checkout`: you have not committed lesson 47 yet,
-and that command would throw the whole lesson away.
+**Type all eight steps below.** The first four add the bit, the last four take it back out, and the
+tree must be back to what §6 left before you read §10. Do **not** undo it with `git checkout` — you
+have not committed lesson 47 yet, and that would throw the whole lesson away.
 
 **8a.** Bit 6, straight off the free budget in the table. **Find** in `src/engine/gpu/instance.rs`:
 
@@ -3545,10 +2912,9 @@ cargo run -q --release --example selftest --target x86_64-unknown-linux-gnu -- \
 wrote /tmp/dbg.ppm  900x700  non-background pixels: 46976 (7.5%)
 ```
 
-Green bunny. Counted the same way both times — a pixel whose green channel leads both others by
-25 — it goes from **2,207 to 30,724**. Four lines: one const in Rust, one const in WGSL, one
-field expression, one shader expression. Nothing else in the program knew, and the free-bit
-budget in the table is now two instead of three. Put it back:
+Green bunny: counted the same way both times — a pixel whose green channel leads both others by
+25 — it goes from **2,207 to 30,724**. Four lines in four files, one const in Rust, one in WGSL,
+one field expression, one shader expression. Put it back:
 
 **8e.** **Find** in `src/shaders/triangle.wgsl`:
 
@@ -3603,30 +2969,28 @@ const FLAG_PRINT = 8u;
     pub const FLAG_SHEET: u32 = 1 << 5;
 ```
 
-The point is that the diff was four lines in four files and the compiler and the test between
-them told you about the fifth file you would otherwise have missed.
+The diff was four lines, and the compiler and the test between them named the fifth file you would
+otherwise have missed.
 
 ## 9. What is deliberately not here
 
-- **`RowTable<T>` — the generic growable table.** `GrowBuf` is a struct of three fields, not a
-  generic that owns its rows. Three families is not enough evidence for the abstraction; lesson
-  **57** has five and takes it then.
+- **`RowTable<T>` — the generic growable table.** Three families is not enough evidence for the
+  abstraction; lesson **57** has five and takes it then.
 - **`upload_rows` as one call.** Each lane still appends itself. Lesson **62**.
 - **A `Frustum` on the object table.** `bounded_rows` + `update_inside_flags` is a point-in-box
   test, not a cull. Lesson **62**.
 - **The `Upload.seg`, `Upload.glyph` and `Upload.cloud` groups.** Two of eight groups this
-  lesson, the rest with the families that consume them — 48 and 49. Regrouping a column before
+  lesson, the rest with the families that consume them at 48 and 49 — regrouping a column before
   its family exists means renaming it twice.
-- **`Instance::new`.** The struct literal in `InstanceTable::append` is the only one, and a
-  constructor for a single call site is a name to look up, not a simplification. Lesson **59**
-  adds the second one, and it can add the constructor.
+- **`Instance::new`.** A constructor for a single call site is a name to look up, not a
+  simplification. Lesson **59** adds the second call site and the constructor with it.
 - **The `objects_base` → `base` rename in `Upload`.** The walk still calls its column
   `obj.rows`. Lesson **50** rewrites those producers wholesale and names them there.
 - **`persistence.rs`.** Declared over cap at 453 lines since lesson 43; the three-way split is
   lesson **59**.
 
-And the standing rule: **a body you are moving is not a body you are fixing.** This lesson breaks
-it exactly once, in `InstanceTable::clear`, and says so in §4.2 with the reason.
+The standing rule: **a body you are moving is not a body you are fixing.** This lesson breaks it
+exactly once, in `InstanceTable::clear`, with the reason in §4.2.
 
 ## 10. Expected state
 
@@ -3712,18 +3076,8 @@ the five `.wgsl` (comments only).
 
 ## Reference
 
-The implementation this lesson was written from was built in one sitting and gated twice:
-
-| checkpoint | what landed |
-|---|---|
-| 47a | `gpu/instance.rs` — the row, the flag table, both mirror tests |
-| 47b | `gpu/objects.rs` — `ObjectBase`, `ObjectRows`, `InstanceTable` and its five methods |
-| 47c | `gpu/arena.rs` — three `GrowBuf`s, `IdxLane`, the family's `Pipes` and its draws |
-| 47d | `Upload`'s two groups and the twelve `Replace-all`s in the walk |
-| 47e | `Gpu`'s field list, constructor, `set_scene` and draws |
-
-`git diff end-of-46..end-of-47 -- session_viewer/src` is the whole lesson as one patch; `diff -u`
-any single file against it if a line count comes out wrong.
+`git diff end-of-46..end-of-47 -- session_viewer/src` is the whole lesson as one patch — `diff -u`
+a single file against it if a line count comes out wrong.
 
 ## Next
 
@@ -3736,6 +3090,6 @@ grep -c 'CylinderSegment' src/engine/gpu/mod.rs src/app/scene.rs
 ```
 
 63 fields, and 22 of them are two lanes of the same row: `pipe_*` and `segment_*` hold identical
-`CylinderSegment` tables read by `ribbon.wgsl` and `cylinder.wgsl` through one layout, with the
-choice made at one draw site. That is not two families. It is one module and five pipelines — and
-`sphere`/`glyph` is the same shape, which is why you write the second half.
+`CylinderSegment` tables read by `ribbon.wgsl` and `cylinder.wgsl` through one layout, chosen at
+one draw site. That is one module and five pipelines, not two families — and `sphere`/`glyph` is
+the same shape, which is why you write the second half.

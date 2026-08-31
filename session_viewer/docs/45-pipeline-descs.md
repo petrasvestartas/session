@@ -1,11 +1,10 @@
 # 45 A pipeline is data, not a function
 
-> Lesson [114](114-id-buffer-picking.md) re-runs this frame's entire draw list against a second
-> set of pipelines that write object ids instead of colour. It costs one preset and one extra
-> `Pipelines::new` call — because of this lesson. Nothing you can see changes: same ink, same
-> draw count, same object count, on every scene and every config.
-> Answer key: the block's snapshot branch `end-of-45`, so
-> `git diff end-of-44..end-of-45 -- session_viewer/src` is this whole lesson as one patch.
+> Lesson [114](114-id-buffer-picking.md) re-runs this frame's whole draw list against a second set
+> of pipelines that write object ids instead of colour. It costs one preset and one extra
+> `Pipelines::new` call — because of this lesson. Nothing you can see changes: same ink, same draw
+> count, same object count, on every scene and every config. Answer key: branch `end-of-45`, so
+> `git diff end-of-44..end-of-45 -- session_viewer/src` is this lesson as one patch.
 >
 > **Lessons 45-51 move code. Every body you cut is pasted byte-identical except for path
 > re-roots inside ONE file; if you find yourself improving a line while moving it, stop.**
@@ -50,34 +49,25 @@ Eleven functions, 3 to 11 parameters, six of them at exactly seven, **eleven**
 diff <(sed -n '563,632p' src/engine/pipelines/build.rs)      <(sed -n '634,702p' src/engine/pipelines/build.rs)
 ```
 
-`build_ribbon_solid_pipeline` and `build_ribbon_pipeline` are 70 and 69 lines, and the only
-*setting* that differs between them is one `depth_compare` expression — everything else in that
-diff is a label, a brace style, a comment or a line wrap. A `RenderPipelineDescriptor` has about
-two dozen leaf settings; across all fourteen pipelines exactly eleven of them ever vary. The rest
-— `Ccw`, no culling, `Fill`, `Depth32Float`, no stencil, no bias, `mask: !0`, no
-`alpha_to_coverage`, `multiview_mask: None`, `cache: None`, `vs_main`, default compilation
-options — are copy-pasted eleven times. The same is true of the nine bind-group layouts, which
-are declared inside `Gpu::build` between whichever buffer they happen to sit next to.
+70 and 69 lines, and the only *setting* that differs is one `depth_compare` expression. Of a
+`RenderPipelineDescriptor`'s two dozen leaf settings, exactly eleven ever vary across the fourteen
+pipelines; the rest are copy-pasted eleven times. Same story for the nine bind-group layouts.
 
 ### 1b. The law this enforces, stated as what it forbids
 
 > **A new pipeline is ONE `PipelineDesc` literal in the list that owns it. A new layout is ONE
 > field on `Layouts`. Neither may be a new function, and neither may be a new parameter.**
 
-That is testable at the end of the lesson, and it is testable in every later lesson too:
-`Pipelines::new` is frozen at three parameters forever, so nothing can add a layout by threading
-it through fourteen desc literals. Lessons 82-85, 88, 90, 93, 106, 108-114 each add pipelines;
-under this law every one of them is a literal and a field.
+`Pipelines::new` is frozen at three parameters forever, so no later lesson can add a layout by
+threading it through fourteen desc literals — and 82-85, 88, 90, 93, 106 and 108-114 all add one.
 
 ### 1c. The rejected alternative
 
-The obvious cut is a builder file per family — `triangle.rs`, `ribbon.rs`, `splat.rs`, each
-owning its own `build_*` function. **Do not make it.** It keeps the eleven near-identical
-`create_render_pipeline` calls and merely files them; and it breaks on the first shape that does
-not fit the filing system. Lesson **48** is exactly that shape:
-`ribbon.wgsl` and `cylinder.wgsl` read one identical row through one layout, so "the cylinder
-builder" would have to live in two files or be duplicated in one. A desc is data, and data can
-sit in a list beside its siblings without owning a file.
+The obvious cut is a builder file per family — `triangle.rs`, `ribbon.rs`, `splat.rs`. **Do not
+make it.** It files the eleven near-identical `create_render_pipeline` calls instead of removing
+them, and it breaks on the first shape that does not fit: at **48**, `ribbon.wgsl` and
+`cylinder.wgsl` read one identical row through one layout, so "the cylinder builder" would need
+two files. A desc is data, and data sits in a list without owning a file.
 
 ## 2. Where the code lives after this lesson
 
@@ -151,28 +141,23 @@ exactly one `device.create_render_pipeline` and one `device.create_compute_pipel
 | `src/shaders/edges.wgsl` | **DELETED, 24 lines** | 5.1 | zero draw sites |
 
 **Line budgets.** A bad paste is visible by size alone: `src/math.rs` = **123** lines,
-`layouts.rs` = **181**, `build.rs` = **215**, `pipelines/mod.rs` = **148**. If any of those is
-off by more than a line or two when you finish, do not run the gate — re-read the file.
+`layouts.rs` = **181**, `build.rs` = **215**, `pipelines/mod.rs` = **148**. If any is off by more
+than a line or two, do not run the gate — re-read the file.
 
-New code this lesson is allowed to invent: **14 lines** — `Target`, the `PipelineDesc.target`
-field, `Bounds`/`Aabb64` with their doc lines, and `build_compute`'s signature. Everything else in
-the three new files is a body that already existed somewhere. Shape taken while
-a body is already moving — a struct instead of two threaded parameters, a list instead of nine
-literals — is free and mandatory. Anything else is deferred; §9 says to which lesson.
+New code this lesson may invent: **14 lines** — `Target`, `PipelineDesc.target`, `Bounds`/`Aabb64`
+with their doc lines, and `build_compute`'s signature. Everything else already existed somewhere.
+Shape taken while a body is moving is free; anything else is deferred to the lesson §9 names.
 
 ## 4. The destination files, created first
 
-Both new files are created before anything is cut, so every step after this one is a deletion
-plus a re-point rather than a two-ended edit you cannot compile in the middle of. Neither file
-knows anything about `Gpu`.
+Both new files are created before anything is cut, so every later step is a deletion plus a
+re-point, not a two-ended edit you cannot compile in the middle of. Neither knows about `Gpu`.
 
 ### 4.1 `src/math.rs`
 
-The matrix half comes out of `gpu/mod.rs` unchanged; the two camera solves come out of
-`impl Gpu`, which means they lose four spaces of indent and `ortho_half_height` gains a `pub` —
-that is why they are printed here in full rather than moved. `Bounds` and `Aabb64` are the two
-genuinely new lines: lessons 61, 62, 67, 107, 110 and 112 all pass a box around, and today every
-one of them would spell it out longhand.
+Printed in full rather than moved: the two camera solves leave `impl Gpu`, so they lose four
+spaces of indent and `ortho_half_height` gains a `pub`. `Bounds` and `Aabb64` are the only new
+lines — lessons 61, 62, 67, 107, 110 and 112 all pass a box around and spell it out longhand.
 
 **Create `src/math.rs`**
 
@@ -296,8 +281,7 @@ mod engine;
 pub mod math; // shared free-function math: matrices, the camera solves, the box aliases
 ```
 
-Gate — an unused module still compiles, and `math.rs` is `pub` at the crate root so nothing is
-dead:
+Gate — an unused module compiles, and `math.rs` is `pub` at the crate root so nothing is dead:
 
 ```bash
 cargo check --target wasm32-unknown-unknown --lib
@@ -306,15 +290,11 @@ wc -l src/math.rs        # 105 for now; 123 after step 5.2
 
 ### 4.2 `src/engine/pipelines/layouts.rs`
 
-Nine layouts describe this entire viewer. They are created inside `Gpu::build` today, each one
-wedged between the buffer it happens to precede and the bind group it happens to feed, and all
-nine stored on `Gpu` as fields with a comment explaining that they survive for the MSAA rebuild.
-Collected, they are one value and one editable list.
+Nine layouts describe this entire viewer, each wedged into `Gpu::build` beside the buffer it
+happens to precede. Collected, they are one value and one editable list.
 
-This file is created **whole**, rather than assembled by nine Moves, because every one of those
-bodies changes as it lands: `let mvp_layout` becomes `let mvp`. A Move that also renames is two
-edits pretending to be one. Step 5.3 deletes each block from `Gpu::build` by naming its first
-and last line, so you cut exactly what this file already holds.
+The file is created **whole**, not assembled by nine Moves, because every body changes as it
+lands: `let mvp_layout` becomes `let mvp`. Step 5.3 then cuts each block from `Gpu::build`.
 
 **Create `src/engine/pipelines/layouts.rs`**
 
@@ -533,10 +513,8 @@ gets a `cargo check`; steps 5.1, 5.3, 5.4 and 5.5 get the pixel gate as well.
 ### 5.1 Delete before you move
 
 `edges` is built by a 67-line builder, compiles a 24-line shader and is drawn **zero** times —
-`grep -rn 'pipelines\.edges' src/` returns nothing. `storage_buffer` has zero callers and
-`cargo check` has been saying so. Neither is moved into the new files. Code nothing calls must
-not be faithfully relocated; that is how it survives another five lessons and then gets
-"maintained" by lesson 104's error scopes.
+`grep -rn 'pipelines\.edges' src/` returns nothing. `storage_buffer` has zero callers. Neither is
+moved: faithfully relocating dead code is how it survives another five lessons.
 
 **Remove** `src/engine/pipelines/build.rs`
 
@@ -550,15 +528,12 @@ not be faithfully relocated; that is how it survives another five lessons and th
 }
 ```
 
-That is the first of five anchors in this lesson that start on a comment line — the other four
-are in step 5.2 — and they are deliberate: the comment dies with the function it documents, so
-there is nothing else to anchor on that would take it along. If your copy of one of those lines
-was ever reworded, anchor on the `pub fn` line below it instead and delete the stranded comment by
-hand.
+Five anchors in this lesson start on a comment line — this one and four in 5.2 — because the
+comment dies with the function it documents. If your copy of one was ever reworded, anchor on the
+`pub fn` below it and delete the stranded comment by hand.
 
-Three one-line sites in `src/engine/pipelines/mod.rs`. Each is anchored together with the line
-above it, which survives — that is the shape to use whenever you drop a single line, because it
-leaves no ambiguity about which blank line goes with it.
+Three one-line sites in `src/engine/pipelines/mod.rs`, each anchored together with the surviving
+line above it — the shape to use whenever you drop a single line.
 
 **Find** in `src/engine/pipelines/mod.rs`:
 
@@ -599,8 +574,8 @@ use build::build_grid_pipeline;
             grid: build_grid_pipeline(device, samples, color_format, aspect_layout, line_layout),
 ```
 
-`storage_buffer` sits at the very end of `src/engine/gpu/mod.rs`, after `zeroed_buffer` — so the
-anchor is the tail of the file, and what survives is `zeroed_buffer`'s last two lines.
+`storage_buffer` sits at the tail of `src/engine/gpu/mod.rs`, after `zeroed_buffer`, so the
+anchor is the end of the file and what survives is `zeroed_buffer`'s last two lines.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -655,8 +630,7 @@ compiled at every startup.
 ### 5.2 `src/math.rs` — the bodies leave, the paths do not
 
 `gpu/mod.rs` re-exports the five names it used to define, so every `engine::gpu::` caller keeps
-the path it already types and nothing outside this step is edited. `scene.rs` does the same for
-its two.
+the path it already types; `scene.rs` does the same for its two.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -672,8 +646,8 @@ use crate::engine::pipelines::Pipelines;
 pub use crate::math::{Mat4, mat_mul, mat_to_f32, eye_from_view_proj, ortho_half_height};
 ```
 
-Now the matrix block. Note what the first seven lines of it actually are: a doc comment that
-describes `ArenaUpload`, stranded above `Mat4` by an edit years ago. It comes back below.
+Now the matrix block. Its first seven lines are a doc comment describing `ArenaUpload`, stranded
+above `Mat4` by an old edit; it comes back below.
 
 **Remove** `src/engine/gpu/mod.rs`
 
@@ -735,8 +709,8 @@ pub struct ArenaUpload{
 /// No Mesh, no Session, no wgpu type on the app side of this line.
 ```
 
-Next the two camera solves. They are `impl Gpu` methods that never touch `self` — the giveaway
-that they were never engine code at all.
+Next the two camera solves — `impl Gpu` methods that never touch `self`, the giveaway that they
+were never engine code.
 
 **Remove** `src/engine/gpu/mod.rs`
 
@@ -789,8 +763,7 @@ if yours differ, you cut the wrong region:
 
 **Replace-all** `src/engine/gpu/mod.rs` `Self::eye_from_view_proj` → `eye_from_view_proj` (2 hits)
 
-The headless harness called it through `Gpu`, which was always a lie — it needs a matrix, not a
-graphics card:
+The headless harness called it through `Gpu`; it needs a matrix, not a graphics card:
 
 **Find** in `src/selftest.rs`:
 
@@ -804,8 +777,7 @@ graphics card:
         let solved = crate::math::eye_from_view_proj(&view_proj);
 ```
 
-Now the app side. `Mat4` leaves the import list because the only thing in `scene.rs` that named
-it is about to leave the file:
+Now the app side. `Mat4` leaves the import list with the body in `scene.rs` that named it:
 
 **Find** in `src/app/scene.rs`:
 
@@ -820,9 +792,8 @@ use crate::engine::gpu::{ArenaUpload, CloudDraw, LodNode, Instance, CylinderSegm
 pub use crate::math::{grow_bounds, xform_point};
 ```
 
-These two bodies are byte-identical in both files, so they are **moved**, not retyped — this is
-the verb lesson **47** leans on, and `docs/_replay_check.py --moves` is
-what proves a Move did not quietly lose a line:
+Byte-identical in both files, so they are **moved**, not retyped — the verb lesson **47** leans
+on. `docs/_replay_check.py --moves` proves a move did not quietly lose a line:
 
 **Move** `src/app/scene.rs` `pub fn xform_point(m: &Mat4, p: [f32; 3]) -> [f32; 3] {` **through** `}` **to** `src/math.rs` **at the end**
 
@@ -869,10 +840,9 @@ wc -l src/math.rs src/app/scene.rs      # 123, 1365
 
 ### 5.3 The nine layouts leave `Gpu::build`
 
-`Layouts` is one field where nine were. Each block below is cut out of `Gpu::build` — most of
-them together with the blank line that follows — and every reference to it is renamed by a counted
-`Replace-all`. The Remove and the rename are one edit; the count is the proof you cut the right
-region.
+`Layouts` is one field where nine were. Each block is cut out of `Gpu::build` — most with the
+blank line that follows — and every reference renamed by a counted `Replace-all`; the count is the
+proof you cut the right region.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -953,10 +923,9 @@ and `splat_group0` are followed immediately by the next statement and stop at th
 
 ```
 
-`splat_entry` was the same idea one lane deep — a `COMPUTE`-visible buffer entry, written once so
-the two splat groups could be lists instead of nine eleven-line literals. It is `compute_entry`
-in `layouts.rs` now. Its two comment lines above it stay: they still describe the three bind-group
-helpers that follow.
+`splat_entry` was the same idea one lane deep — a `COMPUTE`-visible buffer entry written once so
+the two splat groups could be lists. It is `compute_entry` in `layouts.rs` now; its two comment
+lines above it stay, describing the three bind-group helpers that follow.
 
 **Remove** `src/engine/gpu/mod.rs` `    fn splat_entry(` **through** the blank line below its closing brace:
 
@@ -1059,9 +1028,9 @@ The struct literal in `build` loses the same nine names and gains one:
             layouts,
 ```
 
-Nine counted renames. Every remaining reference — the bind groups in `build`, the rebuild paths in
-`set_scene`, the two `Pipelines::new` call sites, and one comment that names the layout it reuses —
-is re-pointed at the one owner. If a count differs, you cut the wrong region:
+Nine counted renames, re-pointing every remaining reference at the one owner: the bind groups in
+`build`, the rebuild paths in `set_scene`, the two `Pipelines::new` call sites, one comment. If a
+count differs, you cut the wrong region:
 
 **Replace-all** `src/engine/gpu/mod.rs` `mvp_layout` → `layouts.mvp` (3 hits)
 
@@ -1094,26 +1063,21 @@ grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engi
 
 ### 5.4 `build.rs` rewritten, and fourteen descs
 
-This is the block's **one sanctioned rewrite**, and it is the one step whose halves cannot compile
-apart: the moment `build.rs` stops exporting the ten remaining builders, `Pipelines::new` stops
-resolving.
-The architecture's rule for that case is explicit — *a step that cannot be made to compile is two
-half-steps that must be merged, never a declared window* — so type 5.4 end to end before you run
-`cargo check`. It is red in between and that is not a mistake.
+The block's **one sanctioned rewrite**, and the one step whose halves cannot compile apart: the
+moment `build.rs` stops exporting the ten remaining builders, `Pipelines::new` stops resolving.
+Type 5.4 end to end before you run `cargo check` — it is red in between, and that is not a mistake.
 
-Two things this step must get right, and both are easy to lose:
+Two things that are easy to lose:
 
 - **`Pipelines::new` takes `device` here, not `ctx`.** `GpuCtx` does not exist until lesson
   **46**, which renames it with a single Replace-all. Do not invent it now.
-- **There are TWO live `VIEWER_NO_DEPTH → CompareFunction::Always` branches, not one.** They are
-  inside `build_sphere_pipeline` and `build_ribbon_solid_pipeline`. `build_ribbon_pipeline` does
-  **not** have one. Both survive, as `depth_compare:` overrides on the `sphere` and `ribbon.solid`
-  descs. Losing either one silently changes what `VIEWER_NO_DEPTH=1` shows you, and no golden in
-  the gate runs with that variable set.
+- **There are TWO live `VIEWER_NO_DEPTH → CompareFunction::Always` branches**, in
+  `build_sphere_pipeline` and `build_ribbon_solid_pipeline` (`build_ribbon_pipeline` has none).
+  Both survive as `depth_compare:` overrides on the `sphere` and `ribbon.solid` descs. No golden
+  runs with that variable set, so losing one is silent.
 
-`Pipelines` keeps **named fields**, not a map: the MSAA flip rebuilds every pipeline mid-session
-by assigning a whole new `Pipelines`, and lesson 114's id pass re-runs the same draw list against
-a second `Pipelines` set. Both want a struct.
+`Pipelines` keeps **named fields**, not a map: the MSAA flip assigns a whole new `Pipelines`
+mid-session, and lesson 114's id pass re-runs the draw list against a second set.
 
 **Create `src/engine/pipelines/build.rs`**
 
@@ -1335,14 +1299,12 @@ pub fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
 }
 ```
 
-`build` holds the only `create_render_pipeline` call in the viewer and `build_compute` the only
-`create_compute_pipeline`. The four presets are the four recipes the viewer actually uses, and
-each is written as a `..Self::opaque(..)` spread so that the difference between them is literally
-the lines you can see: `ink` is three fields, `sheet` is one, `depth_only` is two.
+`build` holds the only `create_render_pipeline` call in the viewer, `build_compute` the only
+`create_compute_pipeline`. Each preset is a `..Self::opaque(..)` spread, so the difference between
+them is the lines you can see: `ink` is three fields, `sheet` one, `depth_only` two.
 
-Now the call sites. The head of `pipelines/mod.rs` stops importing eleven builders and starts
-naming the WGSL each family compiles — they sit beside the descs that name them until lessons
-47-49 move each pair into the family file that owns the row it draws.
+Now the call sites. `pipelines/mod.rs` stops importing eleven builders and starts naming the WGSL
+each family compiles; lessons 47-49 move each pair into the family file that owns its row.
 
 **Find** in `src/engine/pipelines/mod.rs`:
 
@@ -1419,9 +1381,8 @@ Ten parameters become three, and they are frozen at three:
         Self {
 ```
 
-Four groups of descs, in the order they already sit in. Read each one against the builder it
-replaces: everything you cannot see in the literal is the preset, and everything in the preset is
-identical across all fourteen.
+Four groups of descs, in the order they already sit in. What you cannot see in a literal is the
+preset, and the preset is identical across all fourteen.
 
 **Find** in `src/engine/pipelines/mod.rs` — the sheet pair:
 
@@ -1531,11 +1492,9 @@ identical across all fourteen.
             glyph: build(device, t, &PipelineDesc::ink("glyph", GLYPH, &[&l.mvp, &l.line, &l.instance, &l.segment])),
 ```
 
-`glyph` binds `l.segment` at group 3, not `l.glyph`. That is not a typo introduced here: the old
-`build_glyph_pipeline` named its parameter `glyph_layout` and `Pipelines::new` handed it
-`segment_layout`, and it has always worked because the two layouts are byte-identical. The desc
-preserves the behaviour and says so out loud; `glyph_depth` below binds the other one. Fixing it is
-not this lesson's job — a body you are moving is not a body you are fixing.
+`glyph` binds `l.segment` at group 3, not `l.glyph` — not a typo introduced here. The old
+`build_glyph_pipeline` was handed `segment_layout` despite its parameter name, and it works because
+the two layouts are byte-identical. A body you are moving is not a body you are fixing.
 
 **Find** in `src/engine/pipelines/mod.rs` — the four depth-only prepasses:
 
@@ -1657,9 +1616,8 @@ four: the default config draws the ink descs, `VIEWER_LINE_STYLE=tubes` swaps in
 
 ### 5.5 The two compute pipelines come home
 
-The splat rasterizer is compute, not raster, and its two pipelines were built inline in
-`Gpu::build` and stored as two `Gpu` fields — the only two pipelines in the viewer that were not
-in `Pipelines`. `build_compute` takes them for the same reason `build` took the other fourteen.
+The splat rasterizer's two compute pipelines were built inline in `Gpu::build` and stored as two
+`Gpu` fields — the only two in the viewer not in `Pipelines`. `build_compute` takes them.
 
 **Find** in `src/engine/pipelines/mod.rs`:
 
@@ -1816,14 +1774,7 @@ grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engi
 
 ## 6. Delete before you move — and what looks dead but is not
 
-Step 5.1 came first on purpose. A refactor makes dead code *look* alive: once
-`build_edges_pipeline` had been faithfully rewritten as a `PipelineDesc::opaque` literal sitting
-between `grid` and `cylinder`, nothing about it would have said "nobody draws this", and lesson
-104 would have wrapped it in an error scope, lesson 111 would have given it a meshlet path, and it
-would still be here at 114. Eighty-nine lines of Rust and a whole shader, and the only work was
-reading a `grep` that returns nothing.
-
-Three things in the same neighbourhood look dead and are **not**, so they stay:
+Three things near `edges` look dead and are **not**, so they stay:
 
 - **`ribbon_depth` and `glyph_depth`** are gated behind `const INK_DEPTH_PREPASS: bool = false;`,
   so no frame in the gate builds them into a draw. They are the depth prepass for the flat lane
@@ -1838,7 +1789,7 @@ The test is not "does this look old". It is `grep -rn '<name>' src/` and the ans
 
 ## 7. Proving nothing changed — three ladders
 
-**Ladder 1, the compiler.** Both targets, and `--all-targets` natively so the examples and the
+**Ladder 1, the compiler.** Both targets, `--all-targets` natively so the examples and the
 headless harness are type-checked too:
 
 ```bash
@@ -1847,24 +1798,20 @@ cargo check --all-targets
 ```
 
 *What it cannot catch:* anything that type-checks. A desc that binds `l.glyph` where the builder
-bound `l.segment` compiles perfectly — the two layouts are byte-identical — and so does a
-`depth_compare` you copied from the wrong builder. It also cannot see a `#[cfg]`-gated arm on the
-target you did not build.
+bound `l.segment` compiles perfectly, and so does a `depth_compare` copied from the wrong builder.
+Nor can it see a `#[cfg]`-gated arm on the target you did not build.
 
-**Ladder 2, `--moves`.** The only proof a `**Move**` moved its lines byte-identically: it takes
-the multiset of stripped, non-blank lines over {source} ∪ {destinations} before the lesson and
-after it, cancels every line the doc explicitly declares as added or removed, and reports the
-remainder.
+**Ladder 2, `--moves`.** The only proof a move took its lines byte-identically: the multiset of
+stripped, non-blank lines over {source} ∪ {destinations}, before and after, minus every line the
+doc declares as added or removed. One source here (`src/app/scene.rs`), two moves — thin on
+purpose, so lesson 47's nine bodies across three files are not the first time you run it.
 
 ```bash
 python3 docs/_replay_check.py --moves <end-of-44 snapshot> /tmp/w45 docs/45-pipeline-descs.md
 ```
 
-This lesson has exactly **one move source** (`src/app/scene.rs`) and two `**Move**`s, so the
-ladder is thin here on purpose — it is introduced now so that lesson 47, which moves nine bodies
-across three new files, is not the first time you run it. What it catches and the other two do
-not: a line dropped inside a `#[cfg(target_arch = ...)]` arm, which compiles on the target you
-build and renders the frame you expect.
+What the other two ladders miss: a line dropped inside a `#[cfg(target_arch = ...)]` arm, which
+compiles and renders exactly the frame you expect.
 
 **Ladder 3, the pixel gate, twice.**
 
@@ -1872,30 +1819,26 @@ build and renders the frame you expect.
 ./docs/_gate.sh && ./docs/_gate.sh
 ```
 
-64 rows: four mandatory scenes × four configs × two passes, plus four advisory scenes when their gitignored
-`.pb` assets are present. Every row is gated on **ink, draw count and object count**. Only
-`drawings_rotated` is gated on the PPM checksum, and it is the only one that can be: the splat
-lane is a two-pass atomic compute rasterizer, so which point wins a contested pixel is a race and
-`lion`, `bunny_cloud`, `cloud_mix`, `lidar14` and `bunny_drawings` record `nondet(splat)`; `bunny`
-holds no cloud at all and still drifts by exactly one pixel — (625, 220), grey 171 ⇄ 170 — through
-a second, unrelated race, and records `nondet(mesh)`. Both are exempted in `_GOLDENS.tsv` and
-neither is your bug. The gate runs each row twice inside itself and fails on a disagreement
-*before* it compares anything to the goldens, so a new nondeterminism surfaces as a
-nondeterminism and not as a diff.
+64 rows: four mandatory scenes × four configs × two passes, plus four advisory scenes when their
+gitignored `.pb` assets are present. Every row is gated on **ink, draw count and object count**;
+only `drawings_rotated` is gated on the PPM checksum, because the splat lane is a two-pass atomic
+compute rasterizer and which point wins a contested pixel is a race. `lion`, `bunny_cloud`,
+`cloud_mix`, `lidar14` and `bunny_drawings` record `nondet(splat)`; `bunny` holds no cloud and
+still drifts by one pixel — (625, 220), grey 171 ⇄ 170 — and records `nondet(mesh)`. Both are
+exempted in `_GOLDENS.tsv` and neither is your bug. The gate runs each row twice and fails on a
+disagreement before comparing to the goldens.
 
 *What it cannot catch:* the whole `VIEWER_NO_DEPTH` path — no golden sets it. That is why §5.4
 names both branches by hand.
 
 ## 8. What you can now do in one line
 
-Add a wireframe pass over every mesh edge. Before this lesson that was a ~70-line copy of
-`build_ribbon_pipeline` with two fields changed, a `use` line, a struct field and a call. Now it is
-one literal.
+Add a wireframe pass over every mesh edge. Before this lesson: a ~70-line copy of
+`build_ribbon_pipeline`, a `use` line, a struct field and a call. Now one literal.
 
-**Type all six steps below.** The first three add it, the last three take it back out — this is a
-demonstration, not part of the lesson's end state, and the file must be back to 148 lines before
-you read §10. Do **not** undo it with `git checkout`: you have not committed lesson 45 yet, and
-that command would throw the whole lesson away.
+**Type all six steps below.** The first three add it, the last three take it back out — a
+demonstration, not part of the end state, and the file must be back to 148 lines before §10. Do
+**not** undo it with `git checkout`: lesson 45 is not committed, and that would throw it all away.
 
 **8a.** **Find** in `src/engine/pipelines/mod.rs`:
 
@@ -1949,8 +1892,8 @@ cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- \
 ```
 
 Every mesh edge is now a hairline that ignores depth — the bunny becomes a see-through cage. The
-point is the size of the diff, not the picture: **six lines** for a pipeline that is genuinely new,
-and none of them anywhere near `create_render_pipeline`.
+point is the diff, not the picture: **six lines** for a genuinely new pipeline, none of them
+anywhere near `create_render_pipeline`.
 
 Now put it back, in reverse order.
 
@@ -2002,21 +1945,18 @@ is not, you removed one line too many or too few — 8e and 8f undo 8a and 8b ex
 
 ## 9. What is deliberately not here
 
-- **Per-family `descs()`.** The fourteen literals live in `pipelines/mod.rs` today. They move into
-  the file that owns the row they draw at **47** (`arena.rs`), **48** (`segments.rs`, `glyphs.rs`)
-  and **49** (`splat.rs`, `backdrop.rs`), together with the `const RIBBON: &str = include_str!(…)`
-  lines that now sit beside them.
+- **Per-family `descs()`.** The fourteen literals and their `include_str!` lines move to the file
+  that owns the row they draw: **47** (`arena.rs`), **48** (`segments.rs`, `glyphs.rs`), **49**
+  (`splat.rs`, `backdrop.rs`).
 - **`GpuCtx`.** `Pipelines::new` takes `&wgpu::Device`. Lesson **46** introduces
   `GpuCtx { device, queue }` and renames the parameter with one Replace-all; the arity stays 3.
-- **A WGSL prelude / shared shader header.** Every `.wgsl` still repeats its own struct
-  definitions. `PipelineDesc.shader` is a `&str`, which is what makes a prelude a one-line change
-  later — lesson **111**.
+- **A WGSL prelude.** Every `.wgsl` still repeats its own struct definitions.
+  `PipelineDesc.shader` is a `&str`, which makes a prelude a one-line change at **111**.
 - **MRT colour targets.** `PipelineDesc.target` is `Option<Target>`, one attachment. Lessons
   **90** and **114** pin a pipeline to its own attachment through it; a *second simultaneous*
   attachment is a sibling function, not a wider desc (seam S3c, rejected).
-- **`Layouts` entries as data.** `Layouts::new` is nine literal blocks with one shared helper. The
-  entry lists are editable, which is the whole ask; turning them into a table buys nothing until
-  something generates them.
+- **`Layouts` entries as data.** Nine literal blocks with one shared helper. The entry lists are
+  editable, which is the whole ask; a table buys nothing until something generates it.
 - **Fixing the `glyph`/`segment` layout alias.** Preserved exactly, comment and all. A body you
   are moving is not a body you are fixing.
 
@@ -2061,41 +2001,35 @@ grep -rn 'create_bind_group_layout' src/engine/gpu/mod.rs | wc -l
 0     bind-group layouts left in gpu/mod.rs
 ```
 
-`Gpu` 116 → 106 in human terms: nine bind-group layouts became one `layouts` field, and the two
-compute pipelines moved next to the fourteen render pipelines they belong with. `build.rs` 845 →
-215: eleven builders became one `build`, one `build_compute`, four presets and a struct.
+`Gpu` 116 → 106: nine bind-group layouts became one `layouts` field, and the two compute pipelines
+moved next to the fourteen render pipelines. `build.rs` 845 → 215: eleven builders became one
+`build`, one `build_compute`, four presets and a struct.
 
 ## Recap
 
-> A pipeline is data. Eleven near-identical builder functions existed because a pipeline had been
-> modelled as code, and code cannot be spread with `..`: the only way to say "the ribbon recipe
-> with depth writing on" was to copy sixty-nine lines and change one. `PipelineDesc` names the
-> eleven fields that actually vary, four presets name the four recipes the viewer uses, and one
-> `build` holds the single `create_render_pipeline` call that every pipeline in the program now
-> goes through. `Layouts` does the same thing one level down: nine bind-group layouts that were
-> scattered through a 500-line constructor become one value with one owner, and
-> `Pipelines::new(device, t, &l)` is frozen at three parameters so that no later lesson can add a
-> layout by threading it through fourteen literals. `src/math.rs` is the same move for a different
-> reason — five functions that never touched `self` were living inside a wgpu handle. And before
-> any of it, the `edges` pipeline was deleted rather than relocated, because faithfully moving
-> dead code is how dead code survives a refactor. **The law: a new pipeline is one literal, a new
-> layout is one field. Never a new function, never a new parameter.**
+> A pipeline is data. Eleven near-identical builders existed because a pipeline was modelled as
+> code, and code cannot be spread with `..`: saying "the ribbon recipe with depth writing on" meant
+> copying sixty-nine lines to change one. `PipelineDesc` names the eleven settings that vary, four
+> presets name the four recipes, and one `build` holds the single `create_render_pipeline` call.
+> `Layouts` does the same one level down, and `Pipelines::new(device, t, &l)` is frozen at three
+> parameters so no later lesson can add a layout by threading it through fourteen literals. And
+> `edges` was deleted rather than relocated, because faithfully moving dead code is how it
+> survives a refactor. **The law: a new pipeline is one literal, a new layout is one field. Never
+> a new function, never a new parameter.**
 
 ## Edited
 
-`src/math.rs` (NEW — matrices, the two camera solves, the point helpers, `Bounds`/`Aabb64`) ·
-`src/lib.rs` (one `pub mod`) · `src/engine/pipelines/layouts.rs` (NEW — the nine bind-group
-layouts + `compute_entry`) · `src/engine/pipelines/build.rs` (REWRITTEN — `Target`,
-`PipelineDesc`, four presets, `build`, `build_compute`, the two vertex layouts) ·
-`src/engine/pipelines/mod.rs` (fourteen descs + two compute; `new` frozen at 3 params) ·
-`src/engine/gpu/mod.rs` (loses the math, the nine layouts, `splat_entry`, `storage_buffer` and the
-two compute pipelines; gains `layouts`) · `src/app/scene.rs` (`xform_point`/`grow_bounds` out) ·
-`src/selftest.rs` (one call site) · `src/shaders/edges.wgsl` (DELETED).
+`src/math.rs` (NEW — matrices, the camera solves, `Bounds`/`Aabb64`) · `src/lib.rs` (one
+`pub mod`) · `src/engine/pipelines/layouts.rs` (NEW — nine layouts + `compute_entry`) ·
+`src/engine/pipelines/build.rs` (REWRITTEN — `Target`, `PipelineDesc`, four presets, `build`,
+`build_compute`) · `src/engine/pipelines/mod.rs` (fourteen descs + two compute) ·
+`src/engine/gpu/mod.rs` (loses the math, the layouts, `splat_entry`, `storage_buffer`, the two
+compute pipelines; gains `layouts`) · `src/app/scene.rs` · `src/selftest.rs` ·
+`src/shaders/edges.wgsl` (DELETED).
 
 ## Reference
 
-The implementation this lesson was written from was built in nine checkpoints, each compiled and
-most of them gated:
+Built in nine checkpoints, each compiled and most of them gated:
 
 | checkpoint | what landed |
 |---|---|
@@ -2109,10 +2043,8 @@ most of them gated:
 | 45d5 | the four depth-only descs; `build_ink_depth_pipeline` deleted — `build.rs` 845 → 215 |
 | 45d6 | the two compute pipelines fold in — `Gpu` 116 → 106 |
 
-45d1-45d5 are merged into step 5.4 here for one reason: keeping them apart means adding the
-machinery to `build.rs` in one step and printing the finished file in another, so you would type
-`PipelineDesc` twice. The checkpoints are worth reading if a group refuses to compile — each one
-converts exactly one preset's worth of descs.
+45d1-45d5 are merged into step 5.4 so you do not type `PipelineDesc` twice. They are worth reading
+if a group refuses to compile — each converts exactly one preset's worth of descs.
 
 `git diff end-of-44..end-of-45 -- session_viewer/src` is the whole lesson as one patch;
 `diff -u` any single file against it if a line count comes out wrong.
@@ -2126,7 +2058,6 @@ grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engi
 sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs | grep -cE '_(cap|capacity):'
 ```
 
-106 fields, and **thirteen** capacity fields — thirteen buffers each written out longhand as a
+106 fields, thirteen of them capacities — thirteen buffers written out longhand as a
 `(buffer, count, cap)` triple, some forty fields saying one thing thirteen times. A buffer, its
-row count and its capacity are one value; and everything that belongs to no family belongs
-beneath them all.
+row count and its capacity are one value, and what belongs to no family belongs beneath them all.

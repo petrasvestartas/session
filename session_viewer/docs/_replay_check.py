@@ -17,6 +17,8 @@ Usage:
   python3 docs/_replay_check.py --stale <tree> docs/*.md            enumerate every op against a
                                                                     tree: does the target exist and
                                                                     does each Find match exactly once
+  python3 docs/_replay_check.py --render docs/*.md                  fence parity + duplicate Create
+                                                                    bodies — what a broken page looks like
   python3 docs/_replay_check.py --audit [--max N] docs/*.md         every fenced code block that NO
                                                                     op reached — the code a replay
                                                                     silently never types
@@ -532,6 +534,36 @@ def audit(docs, threshold):
 
 HEAVY = ("assets", "target", ".git", "dist", "node_modules", "__pycache__")
 
+def render(docs):
+    """Checks the other three modes are blind to: does the page RENDER as intended?
+
+    A mistyped fence (```text where a closing ``` belongs) flips every following block from code
+    to prose and back for the rest of the file, and NOTHING else here sees it: no op reaches the
+    stray block, so `--audit` stays clean, and the replay stays byte-perfect because the ops
+    themselves are untouched. Lesson 47 shipped ~900 lines rendered inside-out that way.
+    """
+    bad = False
+    for d in docs:
+        lines = pathlib.Path(d).read_text().split("\n")
+        depth, opened = 0, None
+        for i, l in enumerate(lines, 1):
+            if l.startswith("```"):
+                if depth == 0: depth, opened = 1, (i, l.strip())
+                else: depth, opened = 0, None
+        if depth:
+            print(f"   !! {d}: fence opened at line {opened[0]} ({opened[1]}) is never closed"); bad = True
+        heads = collections.Counter(re.findall(r"\*\*Create `([^`]+)`\*\*", "\n".join(lines)))
+        for f, n in heads.items():
+            if n > 1:
+                print(f"   !! {d}: `{f}` is Created {n}x — a stale duplicate body?"); bad = True
+        blocks = re.findall(r"```[a-z]*\n(.*?)\n```", "\n".join(lines), re.S)
+        for b, n in collections.Counter(x for x in blocks if x.count("\n") > 40).items():
+            if n > 1:
+                print(f"   !! {d}: a {b.count(chr(10))+1}-line block appears {n}x verbatim"); bad = True
+        print(f"{d}: fences balanced, no duplicate Create body")
+    return bad
+
+
 def copy_tree(src, dst, link_heavy=True):
     """Copy a snapshot without duplicating its bulk: heavy dirs are symlinked, not copied.
     A snapshot's assets/ is ~1.7 GB — copying it per replay filled /tmp."""
@@ -552,6 +584,8 @@ if __name__ == "__main__":
         elif argv and argv[0].startswith("--max="):
             thr = int(argv[0].split("=", 1)[1]); argv = argv[1:]
         sys.exit(1 if audit(argv, thr) else 0)
+    if argv and argv[0] == "--render":
+        sys.exit(1 if render(argv[1:]) else 0)
     if argv and argv[0] == "--stale":
         sys.exit(1 if stale(pathlib.Path(argv[1]), argv[2:]) else 0)
     check_moves = bool(argv) and argv[0] == "--moves"

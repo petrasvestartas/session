@@ -1,29 +1,22 @@
 # 43 Streaming cloud — HTTP Range in, GPU rows out
 
-> Direct-path chain (36-44); every step below is replay-verified against a clean
-> end-of-35 checkout carried through lesson [42](42-cloud-scenes.md), and the whole
-> pipeline was then run live against the real files - the numbers in **Expected state**
-> are measured, not estimated.
+> Replay-verified against a clean end-of-35 checkout carried through lesson
+> [42](42-cloud-scenes.md); every number in **Expected state** is measured.
 
 ## Goal
 
 Load a 411 MB, 13.8-million-point scan with a **bounded** wasm heap — a few tens of MB,
-independent of how big the file is and how many files there are. The peak stops being a
-function of the data.
+whatever the file size and however many files there are.
 
-After [37](37-cloud-memory.md) the 14M scan still peaks near a gigabyte, and no amount of
-dropping things earlier fixes it: the decoded proto and the GPU rows have to coexist,
-because prost builds the whole message before you can look at any of it. The only way past
-that is to stop decoding the whole message.
+After [37](37-cloud-memory.md) the 14M scan still peaks near a gigabyte: prost builds the
+whole message before you can look at any of it, so the decoded proto and the GPU rows have
+to coexist. The only way past that is to stop decoding the whole message.
 
 ## The two schema properties that make this possible
 
-Neither of these is luck, and neither is a property of protobuf. They are properties of
-*this message*, and `PointCloud` is the only message in `session_proto` that has them.
-Read this section as a specification for what a transfer schema has to look like, not as a
-trick discovered in an existing one.
-
-Walking the wire format of a real scan (`assets/pb/lidar_scan000.pb`, 114.8 MB):
+`PointCloud` is the only message in `session_proto` with both. Read this as a specification
+for a transfer schema. The wire format of a real scan (`assets/pb/lidar_scan000.pb`,
+114.8 MB):
 
 ```
 Session.3 (Objects)              LEN 114,807,751
@@ -46,24 +39,15 @@ gives the exact point count *before a byte of payload is read*:
 87,570,576 / 24 = 3,648,774 points
 ```
 
-That second fact is the one that matters. Knowing the count up front removes **every**
-reallocation: both GPU buffers are sized once, exactly, and every slice afterwards lands at
-a known offset. There is no growth mid-cloud and no `reserve` to get wrong.
+The second fact is the one that matters: it removes **every** reallocation. Both GPU
+buffers are sized once, exactly, and every slice lands at a known offset.
 
 ### Why this works for clouds and nothing else — a schema defect, not a protobuf one
 
-It is tempting to read the section above as "protobuf is bad, so we route around it." That
-is the wrong lesson, and it is worth being precise about, because the correct lesson is a
-design rule you will apply again.
-
-Protobuf never promised zero-copy. Its data model is *parse every field into an allocated
-object*, so a full decode always materialises the whole message — that part is real, and it
-is why lesson [37](37-cloud-memory.md) could not be optimised into a bounded heap. But how
-much you are *forced* to decode is decided by the schema, not by the format. Here we decode
-nothing at all: the three headers are walked and the payload is memcpy'd, because
-`coords` is a **packed fixed-width array**.
-
-Compare the message that carries a mesh:
+A full protobuf decode always materialises the whole message, which is why lesson
+[37](37-cloud-memory.md) could not be optimised into a bounded heap. But how much you are
+*forced* to decode is decided by the schema, not the format. Compare the message that
+carries a mesh:
 
 ```proto
 map<uint64, VertexData> vertices = 3;   // a serialized HashMap
@@ -73,43 +57,27 @@ map<uint64, FaceData>   faces    = 4;
 Every consequence follows from that one line:
 
 - **No count without decoding.** Entries are variable length, so the length prefix says
-  bytes, not elements. Buffers cannot be sized up front — the exact thing that makes this
-  lesson's loop allocation-free.
-- **No slicing.** A byte range can split an entry, so the pull-with-`Range` design that
-  makes chunk-boundary bugs *structurally impossible* is unavailable.
+  bytes, not elements, and buffers cannot be sized up front.
+- **No slicing.** A byte range can split an entry, so the pull-with-`Range` design below is
+  unavailable.
 - **Two hash builds.** prost builds its `HashMap`, then `Mesh::from_proto` builds the
   kernel's — 714k SipHash inserts, then 714k more, for data that is really parallel arrays.
 
-The schema was derived from the in-memory representation. That is backwards: the wire
-should be shaped for its reader, and this reader is a streaming GPU uploader. Where the
-schema happens to already be shaped that way — `PointCloud.coords`, and also
-`Polyline.coords`, `NurbsCurve.cvs`, `NurbsSurface.cvs` — the fast path is available for
-free. Where it is not, no amount of loader cleverness recovers it.
+That schema was derived from the in-memory representation, which is backwards: the wire
+should be shaped for its reader, and this reader is a streaming GPU uploader. Where it
+already is — `PointCloud.coords`, `Polyline.coords`, `NurbsCurve.cvs`, `NurbsSurface.cvs` —
+the fast path is free. Fixing `Mesh` to packed parallel arrays makes `walk_to_coords` below
+generalise to it unchanged; that is P6 in `.claude/SESSION_DATASTRUCTURE_PLAN.md`.
 
-So: **clouds are not special by nature. They are the one type whose schema was written
-correctly.** Fixing `Mesh` to packed parallel arrays makes `walk_to_coords` below
-generalise to it essentially unchanged. That work is tracked as P6 in
-`.claude/SESSION_DATASTRUCTURE_PLAN.md`.
-
-Two things this lesson is *not* a workaround for, and which survive any schema fix:
-
-- **Streaming itself.** A 411 MB file cannot be fully materialised in a bounded wasm heap
-  no matter how good the encoding is. Range-pull is the correct architecture for large
-  files, not a patch over a bad one.
-- **The f64 → f32 conversion.** The kernel is f64 ground truth and the GPU wants f32, so
-  one pass over every coordinate is the floor. Reaching that floor — bytes in, GPU rows
-  out, one conversion — is exactly what this lane does, and it is why a zero-copy format
-  (FlatBuffers, Cap'n Proto, a custom container) would buy nothing here: it would save a
-  memcpy you have to make anyway.
+Two things survive any schema fix: 411 MB never fits a bounded wasm heap under any
+encoding, and f64 → f32 makes one pass over every coordinate the floor. That is why a
+zero-copy format would buy nothing here.
 
 ## Range requests, not a push stream
 
 The obvious design is `fetch().body().getReader()` and a state machine over the chunks. Do
-not build that. Its entire risk surface — chunks splitting an 8-byte double, splitting a
-multi-byte varint, splitting a length header, and nested byte-budget bookkeeping across all
-of it — exists *only because the data is pushed at you*.
-
-Pull it instead:
+not build that. Its whole risk surface — chunks splitting an 8-byte double, a multi-byte
+varint, a length header — exists *only because the data is pushed at you*. Pull it instead:
 
 ```
   1. Range 0-8191          -> walk three headers in a contiguous buffer. No state machine.
@@ -122,9 +90,8 @@ Each slice arrives complete, converts to f32, goes to the GPU, and dies. Peak wa
 one slice plus the colour run.
 
 **One hard prerequisite.** A server that does not implement `Range` **ignores the header
-and returns `200` with the whole body** — which on a 411 MB scan is silent and
-catastrophic. So the fetch refuses anything but `206`. `trunk serve` (axum +
-`tower-http::ServeDir`) does ranges:
+and returns `200` with the whole body** — silent and catastrophic on a 411 MB scan. So the
+fetch refuses anything but `206`. `trunk serve` (axum + `tower-http::ServeDir`) does ranges:
 
 ```
 $ curl -s -D- -o /dev/null -H "Range: bytes=0-99" http://localhost:8770/pb/lidar_scan000.pb
@@ -133,26 +100,21 @@ accept-ranges: bytes
 content-range: bytes 0-99/114808149
 ```
 
-`docs/serve.py` is `SimpleHTTPRequestHandler` and does **not**. If you ever serve the `.pb`
-assets from it, this path must fail loudly rather than quietly download everything.
+`docs/serve.py` is `SimpleHTTPRequestHandler` and does **not**. Serve the `.pb` assets from
+it and this path must fail loudly rather than quietly download everything.
 
 ## Why the stream lane is its OWN lane
 
-There is one design decision to make before any code: where do streamed rows LAND?
-
-The walked lane cannot take them. `set_scene` rebuilds `point_buffer`/`point_col_buffer`/
-`point_nrm_buffer` WHOLE from the Scene tables on every upload — that is lesson 36's
-contract, and every later file append re-runs it. A streamed cloud has no rows in those
-tables (that is the whole point), so the first document that loads after it would rebuild
+Not in the walked lane. `set_scene` rebuilds `point_buffer`/`point_col_buffer`/
+`point_nrm_buffer` WHOLE from the Scene tables on every upload (lesson 36's contract), and
+a streamed cloud has no rows in those tables — so the next document to load would rebuild
 the buffers without it and the cloud would vanish.
 
-So streamed clouds get their own three buffers, their own draw list and their own record
-table — and the two lanes MEET in the shared per-pixel depth/colour buffers, because
-atomics compose across dispatches: both lanes' `cs_depth` passes contest the same
-`atomicMax` race, and the resolve triangle never knows there were two. The cost is a
-second bind-group pair and a second dispatch; the payoff is that nothing about lessons
-36-42 changes underneath, and `rebuild` preserves streamed clouds for free because
-`set_scene` never touches their buffers.
+So streamed clouds get their own three buffers, draw list and record table. The two lanes
+MEET in the shared per-pixel depth/colour buffers, because atomics compose across
+dispatches: both lanes' `cs_depth` passes contest the same `atomicMax` race, and the
+resolve triangle never knows there were two. Cost: a second bind-group pair and a second
+dispatch. Payoff: nothing in lessons 36-42 changes underneath.
 
 ## Files we touch
 
@@ -366,17 +328,8 @@ pub async fn cloud_colors(url: &str, at: u64, len: u64, count: u32) -> Option<Ve
 }
 ```
 
-`cloud_fields` does it in **two small reads**: 8 KB at the head for `coords`, then 16 bytes
-at `coords_at + coords_len`, which is exactly where the `colors` header must be.
-
-`positions_from` converts `f64 → f32` straight out of the slice. Positions are packed
-little-endian doubles, bit-identical to a `&[f64]` on any LE target, so there is no
-per-element *decode* — only the narrowing cast.
-
-`cloud_colors` reads the whole colour run in one piece because packed `uint32` is
-**varint**, not memcpy-able the way `coords` is. Values 0-255 encode as 1-2 bytes each,
-four per point; one contiguous read buys complete freedom from split-varint handling for
-noise-level memory (26 MB against the coords' 84 MB).
+`positions_from` has no per-element *decode*, only the narrowing cast: packed
+little-endian doubles are bit-identical to a `&[f64]` on any LE target.
 
 ## Step 3 — the GPU side: `src/engine/gpu/mod.rs`
 
@@ -407,8 +360,8 @@ noise-level memory (26 MB against the coords' 84 MB).
 ```
 
 **3b — construction.** In `Gpu::new`, **find** the line that starts the NEXT group's
-construction (anchoring past `mk_splat_group1`'s call, which you may have wrapped over several
-lines):
+construction — anchor past `mk_splat_group1`'s call, which you may have wrapped over
+several lines:
 
 ```rust
         let splat_resolve_group = Self::mk_splat_resolve_group(
@@ -451,8 +404,8 @@ Then the matching struct-literal entries. **Find** in `src/engine/gpu/mod.rs`:
 ```
 
 **3c — group rebuilds.** `rebuild_splat_groups` recreates bind groups whenever a bound
-buffer is replaced — the stream lane's groups now belong in it too (the pixel buffers they
-bind are recreated on every resize). **Find** in `src/engine/gpu/mod.rs`:
+buffer is replaced, and the pixel buffers the stream groups bind are recreated on every
+resize. **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
         self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.splat_resolve_layout, &self.splat_depth_buf, &self.splat_color_buf);
@@ -465,13 +418,12 @@ bind are recreated on every resize). **Find** in `src/engine/gpu/mod.rs`:
         self.splat_group1_stream = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.stream_pos_buf, &self.stream_col_buf, &self.stream_nrm_buf, &self.splat_depth_buf, &self.splat_color_buf);
 ```
 
-The stream lane's group 1 binds ITS OWN three point buffers and the SHARED two pixel buffers.
-That sharing is the whole design: `sdepth` and `scolor` are the same allocations the walked lane
-binds, so the two dispatches contest one per-pixel depth race and compose. Bind a per-point buffer
-where a per-pixel one belongs and nothing errors — a WGSL storage array takes any length, and the
-out-of-range writes are simply dropped — so the cloud renders, dimly and wrongly, with no message
-anywhere. `mk_splat_group1` takes them in the order `pos, col, nrm, sdepth, scolor`; count them
-before you move on.
+Group 1 binds ITS OWN three point buffers and the SHARED two pixel buffers (`sdepth`,
+`scolor` — the same allocations the walked lane binds, which is how the two dispatches
+compose). Bind a per-point buffer where a per-pixel one belongs and nothing errors: a WGSL
+storage array takes any length and out-of-range writes are dropped, so the cloud renders
+dimly and wrongly with no message anywhere. The order is `pos, col, nrm, sdepth, scolor`;
+count them before you move on.
 
 **3d — the grow API.** Four methods, right after `rebuild_splat_groups` closes. **Find** in `src/engine/gpu/mod.rs`:
 
@@ -585,21 +537,12 @@ before you move on.
     }
 ```
 
-Three details earn their comments. The **exact** (not doubling) reserve: appends here are
-few and huge, so doubling wastes buffer AND worsens the old+new transient. The
-**`u32::MAX` normal fill**: a zeroed buffer is NOT "no normal" — oct code 0 decodes to a
-real direction and lesson [40](40-potree-look.md)'s lambert would shade the scan with it.
-And the empty **`queue.submit([])`** after every slice write: it ticks Dawn's serial so
-the upload staging ring recycles; without it the GPU process accumulates the whole 165 MB
-upload a second time.
+The three comments in there each cost a debugging session: the exact (not doubling)
+reserve, the `u32::MAX` normal fill (lesson [40](40-potree-look.md)'s lambert would shade
+the scan with oct code 0), and the empty `queue.submit([])` after every slice write.
 
-`cloud_pos` also does the one thing a streamed cloud cannot get from the kernel walk: it
-measures the point spacing (lesson 40's attenuation input) from the FIRST slice — median
-consecutive distance, scan order being surface order, exactly `cloud_spacing`'s trick.
-
-**3e — two-lane dispatch.** The record builder moves out of `encode_frame` so both draw
-lists can use it, generalised over `draws`. It lands as a method of its own, immediately
-above `encode_frame`. **Find** in `src/engine/gpu/mod.rs`:
+**3e — two-lane dispatch.** The record builder moves out of `encode_frame`, generalised
+over `draws`, so both draw lists can use it. **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
         if dirty {
@@ -671,8 +614,7 @@ above `encode_frame`. **Find** in `src/engine/gpu/mod.rs`:
     }
 ```
 
-That leaves the old record loop sitting inside `encode_frame`. It goes, and the whole
-compute prelude around it goes with it.
+The old record loop and the whole compute prelude around it now go.
 
 **Remove** `src/engine/gpu/mod.rs` `        let mut draws = 0u32;` **through** `        }`
 
@@ -741,11 +683,10 @@ compute prelude around it goes with it.
         }
 ```
 
-The ordering comment is the correctness core: `cs_color` claims a pixel by comparing its
-own depth against the stored winner, so BOTH lanes' depth dispatches must land before
-EITHER lane's colour dispatch — otherwise a walked point could claim a pixel that a
-streamed point is about to win. Dispatches in one compute pass are ordered with memory
-visibility, so the depth-depth-colour-colour sequence is all it takes.
+The dispatch order is the correctness core. `cs_color` claims a pixel by comparing its own
+depth against the stored winner, so a walked point would claim a pixel a streamed point is
+about to win unless both depth dispatches land first. Dispatches in one compute pass are
+ordered with memory visibility, so depth-depth-colour-colour is all it takes.
 
 **3f — the box guard.** A streamed cloud's instance row arrives through `set_scene` in an
 upload whose walk tables are empty — `up.min` still infinite — and the State now boots
@@ -767,9 +708,9 @@ before any file at all. **Find** in `set_scene`:
 
 ## Step 4 — the document row: `src/app/scene.rs`
 
-**4a — the manifest flag.** Streaming is OPT-IN per item, not sniffed from the file: the
-lion's .pb is also a single-cloud file, and the wire walk would happily stream it — right
-past its NORMALS, which only the prost path decodes. **Find** in `Item`:
+**4a — the manifest flag.** Streaming is OPT-IN per item, never sniffed: the lion's .pb is
+also a single-cloud file, and the wire walk would happily stream it right past its NORMALS,
+which only the prost path decodes. **Find** in `Item`:
 
 ```rust
     pub point_size: f64,              // raw-cloud px for this file; 0 = keep the pb'own
@@ -806,7 +747,7 @@ pub struct CloudSlot {
 
 ```
 
-Then `Scene` gets the list. **Find** in `src/app/scene.rs`:
+`Scene` gets the list. **Find** in `src/app/scene.rs`:
 
 ```rust
     pub docs: Vec<Doc>,
@@ -818,7 +759,7 @@ Then `Scene` gets the list. **Find** in `src/app/scene.rs`:
     pub clouds: Vec<CloudSlot>,
 ```
 
-and its initialiser in `Scene::new`. **Find** in `src/app/scene.rs`:
+and its initialiser. **Find** in `src/app/scene.rs`:
 
 ```rust
         docs: Vec::new(),
@@ -866,9 +807,8 @@ and its initialiser in `Scene::new`. **Find** in `src/app/scene.rs`:
 
 ```
 
-The `object_bounds`/`object_spacing` pushes are the same row-alignment rule every walk arm
-follows, and the spacing row carries the manifest px exactly like the walked clouds — the
-record builder reads `row.spacing` for both lanes without knowing which is which.
+The spacing row carries the manifest px exactly like the walked clouds, so the record
+builder reads `row.spacing` for both lanes without knowing which is which.
 
 **4d — rebuild preserves clouds.** In `rebuild`, **Find** `        let docs = std::mem::take(&mut self.docs);` and **Add below it:** `        let clouds = std::mem::take(&mut self.clouds);`
 
@@ -905,14 +845,11 @@ per slice, one for the colour run, one to close it. **Find** in `src/lib.rs`:
     CloudEnd([f32; 3], [f32; 3]),
 ```
 
-`CloudBegin` carries the name, the placement, the point count and the manifest px — the
-count is already known, which is what lets the GPU size its buffers once. `CloudPos` and
-`CloudCol` each carry one slice, and nothing keeps them after the handler runs.
+`CloudBegin` carries the count, already known, which is what lets the GPU size its buffers
+once. Nothing keeps a `CloudPos`/`CloudCol` slice after its handler runs.
 
-**5b — GPU first, empty.** One structural change: **the GPU and the canvas come up FIRST,
-empty.** A streamed cloud writes into GPU buffers, so the GPU has to exist before the
-first byte of geometry is fetched — and as a bonus the viewport is live immediately
-instead of after the first parse. In `resumed`'s `spawn_local`, **Find** in `src/lib.rs`:
+**5b — GPU first, empty.** The one structural change. In `resumed`'s `spawn_local`,
+**Find** in `src/lib.rs`:
 
 ```rust
                 let mut next = manifest.items.first().map(|it| persistence::fetch_start(&it.file));
@@ -935,9 +872,7 @@ instead of after the first parse. In `resumed`'s `spawn_local`, **Find** in `src
                 let mut next = manifest.items.first().and_then(prefetch);
 ```
 
-The window-2 fetch-ahead SURVIVES, it just skips `stream` items: eagerly starting a plain
-GET on a 431 MB scan would pull the entire body, which is exactly what this lesson exists
-to prevent. **Find** in `src/lib.rs`:
+The window-2 fetch-ahead survives; it just skips `stream` items. **Find** in `src/lib.rs`:
 
 ```rust
                     next = manifest.items.get(i + 1).map(|it| persistence::fetch_start(&it.file));
@@ -949,8 +884,8 @@ to prevent. **Find** in `src/lib.rs`:
                     next = manifest.items.get(i + 1).and_then(prefetch);
 ```
 
-And the first-file branch collapses to a plain `Msg::File` send — `Ready` went out before
-the loop. **Find** in `src/lib.rs`:
+`Ready` went out before the loop, so the first-file branch collapses to a plain `Msg::File`
+send. **Find** in `src/lib.rs`:
 
 ```rust
                     if !sent_ready {
@@ -971,9 +906,9 @@ the loop. **Find** in `src/lib.rs`:
                     let _ = proxy.send_event(Msg::File(name, session, place, item.point_size as f32, item.display_only));
 ```
 
-**5c — the streaming branch.** It goes at the top of the loop body: after the fetch-ahead
-for the NEXT item has been started (a `stream` item must not swallow its successor's
-prefetch) and before the whole-file fetch uses `cur`. **Find** in `src/lib.rs`:
+**5c — the streaming branch.** It goes after the NEXT item's fetch-ahead has started (a
+`stream` item must not swallow its successor's prefetch) and before the whole-file fetch
+uses `cur`. **Find** in `src/lib.rs`:
 
 ```rust
                     next = manifest.items.get(i + 1).and_then(prefetch);
@@ -1045,10 +980,6 @@ prefetch) and before the whole-file fetch uses `cur`. **Find** in `src/lib.rs`:
                     }
 ```
 
-`next_tick()` matters more than it looks. With a warm cache the range requests resolve as
-**microtasks**, and a microtask never lets the browser paint — the exact freeze that the
-sliced prost parse exists to avoid, reintroduced by a different route.
-
 **5d — the fit flag.** `App` gains a field. **Find** in `src/lib.rs`:
 
 ```rust
@@ -1061,7 +992,7 @@ sliced prost parse exists to avoid, reintroduced by a different route.
     fitted: bool, // first geometry fits the camera; everything later only grows the extent
 ```
 
-and its initialiser in `App::run`. **Find** in `src/lib.rs`:
+and its initialiser. **Find** in `src/lib.rs`:
 
 ```rust
             ctrl: false,
@@ -1102,8 +1033,7 @@ And in the `Msg::File` arm (lesson [38](38-big-scenes.md)), **Find** `          
                 }
 ```
 
-**5e — the handlers.** Four new arms, at the end of the `Msg::File` arm. **Find** in
-`src/lib.rs`:
+**5e — the handlers.** Four new arms, after the `Msg::File` arm. **Find** in `src/lib.rs`:
 
 ```rust
                     crate::engine::performance::heap_mb());
@@ -1159,10 +1089,8 @@ And in the `Msg::File` arm (lesson [38](38-big-scenes.md)), **Find** `          
             }
 ```
 
-Those `Vec`s in the messages are the only copy of the data that ever exists on the CPU,
-and they die in the handler: `Msg::CloudPos` writes and drops. `Msg::CloudEnd` carries
-the cloud's local AABB, which the handler transforms by the slot's placement and hands to
-`grow_scene` before refitting — a finished scan is the dominant geometry on screen.
+Those `Vec`s are the only copy of the data that ever exists on the CPU, and they die in the
+handler.
 
 ## Step 6 — the scenes
 
@@ -1170,7 +1098,7 @@ Mark the scans in `assets/scenes/cloud_mix.toml`: each `lidar_scan*` item gains 
 `stream = true` line. The lion keeps parsing whole — its normals live only on the prost
 path.
 
-And a dedicated stress scene.
+Then a dedicated stress scene.
 
 **Create `assets/scenes/lidar14.toml`**
 
@@ -1188,9 +1116,9 @@ stream = true
 ## Expected state
 
 - `cargo check --target wasm32-unknown-unknown --lib`: clean; native `--examples` build.
-- The native goldens are UNTOUCHED — the selftest path parses whole files, so
-  `lion.json` still renders `325369 (33.9%)` and `cloud_mix.json` `12143 (1.1%)`. The
-  new scene renders on both runs:
+- The native goldens are UNTOUCHED — the selftest path parses whole files, so `lion.json`
+  still renders `325369 (33.9%)` and `cloud_mix.json` `12143 (1.1%)`. The new scene, on
+  both runs:
 
 ```
 VIEWER_W=1200 VIEWER_H=800 VIEWER_ZOOM=8 \
@@ -1201,8 +1129,8 @@ cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- \
 
 ![the 14M scan, streamed](img/42-lidar14.png)
 
-- In the browser (`trunk serve --release`, which answers `206`), `cloud_mix` logs — with
-  the sheets and bunny landing through prost BETWEEN the streams:
+- In the browser (`trunk serve --release`, which answers `206`), `cloud_mix` prints — the
+  sheets and bunny land through prost BETWEEN the streams:
 
 ```
 streaming 'scan000 (3.65M pts, 1 px)': 3648774 points | coords 84 MB + colours 26 MB
@@ -1219,47 +1147,41 @@ streaming 'lidar 14M': 13793783 points | coords 316 MB + colours 96 MB
 streamed 'lidar 14M' in 3402ms
 ```
 
-A **431 MB** file on screen in **3.4 seconds**, growing visibly slice by slice, with the
-JS heap around **130 MB** — one slice, one colour run, and the wasm runtime; never the
-file. The whole-file path would have peaked near a gigabyte.
+A **431 MB** file on screen in **3.4 seconds**, growing visibly slice by slice, JS heap
+around **130 MB** — one slice, one colour run, the wasm runtime; never the file. The
+whole-file path would have peaked near a gigabyte.
 
 ## What is deliberately not here
 
 - **No push-stream state machine.** Range pulls make chunk-boundary bugs structurally
-  impossible; see the design section above.
+  impossible.
 - **No streamed normals.** The scans have none; the fill is `u32::MAX` = unlit, and a
-  dataset WITH normals (the lion) simply keeps the prost path.
-- **No octree / LOD.** Potree streams by visibility cell; this lesson streams by byte
-  offset. The splat lane absorbs the difference at these sizes — 13.8 M points splat in
-  single-digit milliseconds — and LOD only starts paying at the 100 M+ scale.
-- **No `Doc` for streamed clouds.** Picking, undo and save walk kernel sessions; a
-  `CloudSlot` is not one. Streamed clouds are display objects until a lesson needs more.
+  dataset WITH normals (the lion) keeps the prost path.
+- **No octree / LOD.** 13.8M points splat in single-digit milliseconds, so LOD only starts
+  paying at the 100M+ scale.
+- **No `Doc` for streamed clouds.** Picking, undo and save walk kernel sessions and a
+  `CloudSlot` is not one, so streamed clouds are display objects until a lesson needs more.
 
 ## Recap
 
 - A protobuf file is Range-addressable storage: three length prefixes reach `coords`, and
   packed-double means its length IS the point count — buffers sized once, exactly.
-- That is a property of the **schema**, not of protobuf. `PointCloud` is the only message
-  in `session_proto` whose bulk field is a packed fixed-width array; `Mesh`'s
+- That is a property of the **schema**, not of protobuf. `Mesh`'s
   `map<uint64, VertexData>` forbids up-front sizing, forbids slicing, and costs two hash
   builds. Design bulk fields as packed arrays and this lane generalises to them.
-- Streaming is not the workaround — it is the architecture. No encoding lets a 411 MB file
-  fit a bounded heap; and f64 → f32 means one conversion pass is the floor regardless.
+- Streaming is the architecture, not the workaround: no encoding fits 411 MB in a bounded
+  heap, and f64 → f32 makes one conversion pass the floor regardless.
 - Insist on `206`. A server that ignores `Range` sends the whole body, silently.
 - Streamed rows land in their OWN lane; the two lanes meet in the per-pixel atomics.
-  Nothing about the walked lane changes, and rebuild preservation is free.
 - Depth dispatches for ALL lanes land before any colour dispatch.
 - `queue.submit([])` after each slice write, or staging doubles the upload.
-- The GPU boots before the first byte; slices convert, upload, and die.
 
 ## Next
 
 [44 — Cloud octree](44-cloud-octree.md) closes the point-cloud chain: the walked lane gets
-Potree's LOD on the kernel's own `SpatialOctree` — per-node records, screen-error selection,
-frustum culling. Streamed clouds (this lesson's lane) opt out; they have no CPU points to
-reorder.
+Potree's LOD on the kernel's own `SpatialOctree`. Streamed clouds opt out — they have no
+CPU points to reorder.
 
-Only then does the code get its overhaul: **45-51** split the 2,100-line `gpu/mod.rs` into one
-file per render lane and `scene.rs` into one file per geometry type, as pure moves under a pixel
-gate (`_ARCHITECTURE_TARGET.md`). Every lesson from 52 on — curves, surfaces, BReps, picking,
-tools — is written against that tree.
+Then **45-51** split the 2,100-line `gpu/mod.rs` into one file per render lane and
+`scene.rs` into one file per geometry type, as pure moves under a pixel gate
+(`_ARCHITECTURE_TARGET.md`). Every lesson from 52 on is written against that tree.

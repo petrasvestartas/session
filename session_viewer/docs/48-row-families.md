@@ -1,13 +1,11 @@
 # 48 One row, two shaders
 
-> Lesson [56](56-trimmed.md) adds a trimmed surface whose edges are already `CylinderSegment`s;
-> lesson [65](65-screen-to-ray.md) picks against those same rows; lesson [111](111-meshlets.md)
-> re-batches them. None of the three touches a shader, because after this lesson a row and the
-> programs that read it live in one file and the choice between them is one argument.
-> Nothing you can see changes: same ink, same draw count, same object count, on every scene and
-> every config.
-> Answer key: the block's snapshot branch `end-of-48`, so
-> `git diff end-of-47..end-of-48 -- session_viewer/src` is this whole lesson as one patch.
+> Lesson [56](56-trimmed.md) adds a trimmed surface whose edges are already `CylinderSegment`s,
+> [65](65-screen-to-ray.md) picks against those same rows, [111](111-meshlets.md) re-batches them.
+> None touches a shader, because after this lesson a row and the programs that read it live in one
+> file and the choice between them is one argument.
+> Nothing visible changes: same ink, same draw count, same object count, on every scene and config.
+> Answer key: `git diff end-of-47..end-of-48 -- session_viewer/src` is this lesson as one patch.
 >
 > **Lessons 45-51 move code. Every body you cut is pasted byte-identical except for path
 > re-roots inside ONE file; if you find yourself improving a line while moving it, stop — the
@@ -42,14 +40,13 @@ Twenty-two fields, and they are two copies of one shape, written out twice each:
   segment_buffer segment_bind_group segment_count segment_cap   glyph_buffer   glyph_bind_group   glyph_count   glyph_cap
 ```
 
-Now open `pipelines/mod.rs` and read the `ribbon` and `ribbon_solid` descs next to each other.
-They are the SAME `.wgsl` file, compiled twice,
-differing in one field — `depth_compare` — and aimed at two tables of the SAME row type. The
-`cylinder` pipeline is a THIRD program over the first of those two tables, chosen at run time by
-one `match` on `LineStyle`. That is not three families. It is **one row, and a choice**.
+Now read the `ribbon` and `ribbon_solid` descs in `pipelines/mod.rs` next to each other: the SAME
+`.wgsl` compiled twice, differing in one field — `depth_compare` — over two tables of the SAME row
+type. The `cylinder` pipeline is a third program over the first of those tables, chosen at run
+time by one `match` on `LineStyle`. That is not three families. It is **one row, and a choice**.
 
 `sphere`/`glyph` is the identical shape: one 48-byte `GlyphPoint`, two tables, two programs, two
-prepasses. Which is why you write that half yourself.
+prepasses — which is why you write that half yourself.
 
 ### 1b. The law this enforces, stated as what it forbids
 
@@ -58,20 +55,18 @@ row format, every table of that row, and every pipeline that reads it. It follow
 `.wgsl` may be named in two files, and no file may name a row it does not own.
 
 Testable: after this lesson every shader a PIPELINE compiles is named in exactly one file, and
-`pipelines/mod.rs` — the file whose job is the LIST — names four rather than the eight it names
-today. (`frame.rs` and `instance.rs` also `include_str!` shaders, but only inside `#[cfg(test)]`:
-the mirror tests read them as TEXT and never compile one. Reading a shader and owning a shader
-are different things, and the litmus below distinguishes them.)
+`pipelines/mod.rs` names four rather than today's eight. (`frame.rs` and `instance.rs` also
+`include_str!` shaders, but only inside `#[cfg(test)]` — reading a shader as text is not owning
+it, and the litmus below distinguishes them.)
 
 ### 1c. The rejected alternative
 
-The obvious cut is one `InkLane` with a style flag: both row types are ink, both are screen-
-constant, both take a prepass. Do not make it. `CylinderSegment` is 40 bytes with two endpoints
-and `GlyphPoint` is 48 with a centre and six face normals; they share a bind-group layout by
-coincidence, not by contract, and the moment lesson **107** gives glyphs an atlas index the
-"shared" lane becomes a struct with two dead fields in half its rows. Two files that look alike
-are cheaper than one file with a discriminant — and the second one is your exercise precisely
-because the shapes match today.
+The obvious cut is one `InkLane` with a style flag: both rows are ink, both screen-constant, both
+take a prepass. Do not make it. `CylinderSegment` is 40 bytes with two endpoints, `GlyphPoint` is
+48 with a centre and six face normals; they share a bind-group layout by coincidence, not by
+contract, and the moment lesson **107** gives glyphs an atlas index the shared lane becomes a
+struct with two dead fields in half its rows. Two files that look alike are cheaper than one file
+with a discriminant.
 
 ## 2. Where the code lives after this lesson
 
@@ -109,9 +104,9 @@ because the shapes match today.
 ```
 
 **Exit litmus:** `grep -c 'include_str!("../../shaders' src/engine/gpu/*.rs src/engine/pipelines/mod.rs`
-gives `arena.rs 1 · segments.rs 2 · glyphs.rs 2 · pipelines/mod.rs 4` — every shader that a
-pipeline compiles, named once, in the file that owns the row it reads. (`frame.rs 5` and
-`instance.rs 5` are the `#[cfg(test)]` mirrors reading them as text, never compiling one.)
+gives `arena.rs 1 · segments.rs 2 · glyphs.rs 2 · pipelines/mod.rs 4` — every compiled shader named
+once, in the file that owns the row it reads. (`frame.rs 5` and `instance.rs 5` are the
+`#[cfg(test)]` mirrors, reading them as text.)
 
 The chain table, extended:
 
@@ -139,9 +134,8 @@ The chain table, extended:
 
 ### 4.1 `src/engine/gpu/segments.rs`
 
-Header, imports, and the two shader constants — the file's whole claim is in the header, so read
-it before you paste it.
-
+Header, imports, and the two shader constants. The file's whole claim is in the header — read it
+before you paste it.
 
 **Create `src/engine/gpu/segments.rs`**
 
@@ -178,11 +172,9 @@ const RIBBON: &str = include_str!("../../shaders/ribbon.wgsl");
 const CYLINDER: &str = include_str!("../../shaders/cylinder.wgsl");
 ```
 
-Then the constants and the row come over. Four Moves and one Remove, and note what the Remove
-is: `FACING_UNKNOWN` has been living in `app/scene.rs` since the facing cull was written, because
-that is where it was first typed. It is a property of the ROW, not of the walk, and the shaders
-that mirror it are this file's shaders. It moves.
-
+Then the constants and the row come over: four Moves and one Remove. `FACING_UNKNOWN` has lived in
+`app/scene.rs` since the facing cull was written, but it is a property of the ROW, not of the walk.
+It moves.
 
 **Move** `src/engine/gpu/mod.rs` `/// const for the unit_cylinder method` **through** `const CYL_SIDES: u32 = 6;` **to** `src/engine/gpu/segments.rs` **at the end**
 
@@ -214,11 +206,10 @@ const CYL_SIDES: u32 = 6;
 pub const FACING_UNKNOWN: u32 = u32::MAX;
 ```
 
-**A note on the two Moves below.** Their first line contains a backtick, and the region verb
-reads inline `code spans` — so the anchor is written as two fenced blocks instead, first line and
-last line, which the checker treats identically. Any anchor with a backtick in it has to be
-written this way.
-
+**A note on the two Moves below.** Their first line contains a backtick, and the region verb reads
+inline `code spans` — so the anchor is written as two fenced blocks, first line and last line,
+which the checker treats identically. **Any anchor with a backtick in it must be written this
+way.**
 
 **Move** `src/engine/gpu/mod.rs` **to** `src/engine/gpu/segments.rs` **at the end**
 
@@ -232,9 +223,8 @@ written this way.
 
 **Move** `src/engine/gpu/mod.rs` `// Memory layout is 16 (12+4), 16 (12+4) and 16` **through** `}                       // 40 B` **to** `src/engine/gpu/segments.rs` **at the end**
 
-Now the parts that are NEW: the size assert, the `SegRows` sink, the `Template` helper both
-families share, `SegmentLane` with its three draws, and `Pipes` with the five descs.
-
+Now the NEW parts: the size assert, the `SegRows` sink, the `Template` helper both families share,
+`SegmentLane` with its three draws, and `Pipes` with the five descs.
 
 **Find** in `src/engine/gpu/segments.rs`:
 
@@ -435,9 +425,7 @@ impl Pipes {
 
 And the template mesh itself, which nothing outside this file has ever needed.
 
-
 **Move** `src/engine/gpu/mod.rs` `/// Unit-cylinder template mesh (positions + indices) along +Z, radius 1, z in [0,1], with cap fans.` **through** `}` **to** `src/engine/gpu/segments.rs` **at the end**
-
 
 **Find** in `src/engine/gpu/segments.rs`:
 
@@ -481,8 +469,8 @@ And the template mesh itself, which nothing outside this file has ever needed.
     pub radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 -> world mm override
 ```
 
-Last, the mirror test this family has been missing. `CylinderSegment` is declared twice more, in
-`cylinder.wgsl` and `ribbon.wgsl`, and until now only a size assert stood between them.
+Last, the mirror test this family has been missing: `CylinderSegment` is declared twice more, in
+`cylinder.wgsl` and `ribbon.wgsl`, with only a size assert between them until now.
 
 **Find** in `src/engine/gpu/segments.rs`:
 
@@ -542,15 +530,13 @@ mod tests {
 }
 ```
 
-
-**Gate.** `cargo check --target wasm32-unknown-unknown --lib` — errors, because `gpu/mod.rs`
-still declares the types you just took. That is expected until 6.4; what matters is that the
-errors are all `cannot find type` and none of them are inside `segments.rs`.
+**Gate.** `cargo check --target wasm32-unknown-unknown --lib` — errors, because `gpu/mod.rs` still
+declares the types you just took. Expected until 6.4; all of them should be `cannot find type`, and
+none inside `segments.rs`.
 
 ### 4.2 `src/engine/gpu/glyphs.rs`
 
 Same shape, same order. The header says what differs: the flat half draws without a template.
-
 
 **Create `src/engine/gpu/glyphs.rs`**
 
@@ -751,7 +737,6 @@ impl Pipes {
 
 **Move** `src/engine/gpu/mod.rs` `/// Camera-facing quad template (positions + indices) for the instanced vertex markers. The` **through** `}` **to** `src/engine/gpu/glyphs.rs` **at the end**
 
-
 **Find** in `src/engine/gpu/glyphs.rs`:
 
 ```rust
@@ -841,15 +826,12 @@ mod tests {
 }
 ```
 
-
 **Gate.** `wc -l src/engine/gpu/segments.rs src/engine/gpu/glyphs.rs` — **338** and **251**. A
-count far off means a paste went wrong, and it is cheaper to find that now.
+count far off means a paste went wrong.
 
 ### 4.3 The two banners `gpu/mod.rs` no longer needs
 
-Both "Individual type memory layouts" and "Primitives" are empty now. A section header with
-nothing under it is worse than no header.
-
+Both "Individual type memory layouts" and "Primitives" are empty now.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -893,16 +875,15 @@ nothing under it is worse than no header.
 >
 > `self` is already a borrow of `gpu`. The fix is the contract every draw in this block uses:
 > **a draw returns the number of draws it issued, and the caller adds it up.** `draws +=
-> self.seg.draw_flat(&mut pass, &b);` — one line, no shared counter, and the number is visible at
-> the call site where the frame's order is being read.
+> self.seg.draw_flat(&mut pass, &b);` — no shared counter, and the number is visible at the call
+> site where the frame's order is read.
 
 ## 6. The steps
 
 ### 6.1 `buffers.rs` — a table appends to itself
 
-`GrowBuf` has held the buffer, the count and the cap since lesson 46, but callers still passed
-all three by hand. Four tables in two new files is enough evidence for the method.
-
+`GrowBuf` has held the buffer, the count and the cap since lesson 46, but callers still passed all
+three by hand. Four tables in two new files is enough evidence for the method.
 
 **Find** in `src/engine/gpu/buffers.rs`:
 
@@ -951,11 +932,10 @@ impl GrowBuf {
 /// Append rows to a growable STORAGE buffer
 ```
 
-`GrowBuf::append` is the real implementation, not a wrapper: growth RE-CREATES the buffer, and it
-must be re-created with **this table's** `usage`. That is what the field is for. Delegating to
-`append_rows` below would have hard-coded `STORAGE`, and the arena's three index runs are `INDEX`
-buffers — a grown index run re-made as storage fails validation at the next `set_index_buffer`.
-With the method in place, `append_index_run` is the same function with one type fixed, so it goes.
+`GrowBuf::append` is the real implementation, not a wrapper: growth RE-CREATES the buffer, with
+**this table's** `usage`. Delegating to `append_rows` would hard-code `STORAGE`, and the arena's
+three index runs are `INDEX` buffers — a grown index run re-made as storage fails validation at the
+next `set_index_buffer`. `append_index_run` is now that method with one type fixed, so it goes.
 
 **Remove** `src/engine/gpu/buffers.rs` `pub fn append_index_run(ctx: &GpuCtx, run: &mut GrowBuf, data: &[u32]) {` **through** `}`
 
@@ -1018,7 +998,7 @@ use super::buffers::{GpuCtx, GrowBuf, zeroed_buffer};
 ```
 
 Last for this file, `Template` — a positions-only mesh uploaded once and instanced per row. Both
-ink families need one and neither owns it, which is the definition of the floor.
+ink families need one and neither owns it, which is what the floor is for.
 
 **Find** in `src/engine/gpu/buffers.rs`:
 
@@ -1065,7 +1045,6 @@ impl Template {
 ```
 
 ### 6.2 `Upload` — four more columns become two groups
-
 
 **Find** in `src/engine/gpu/upload.rs`:
 
@@ -1153,9 +1132,8 @@ use super::{CloudDraw, LodNode};
 
 ### 6.3 `pipelines/mod.rs` — nine descs and five shaders leave
 
-What is left is the LIST plus the three pipelines that belong to no row: the grid, the
-background, and the splat resolve. That file goes from 130 lines to 67.
-
+What is left is the LIST plus the three pipelines that belong to no row — grid, background, splat
+resolve. The file goes from 130 lines to 67.
 
 **Find** in `src/engine/pipelines/mod.rs`:
 
@@ -1297,7 +1275,6 @@ const GRID: &str = include_str!("../../shaders/grid.wgsl");
 ```
 
 ### 6.4 `Gpu` — 22 fields become 2
-
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1537,10 +1514,9 @@ use buffers::{GpuCtx, append_rows, zeroed_buffer};
 
 ### 6.5 `set_scene`, the log, and the six draws
 
-Four appends become two, and the six draw sites become six calls. Read the `draws +=` on each:
-the counts are the same as before, including `draw_solid` returning **2** in `Flat` style because
-its colour pass needs a depth prepass in front of it. The goldens count these.
-
+Four appends become two and the six draw sites become six calls. The `draws +=` counts are the
+same as before, including `draw_solid` returning **2** in `Flat` style because its colour pass
+needs a depth prepass in front of it. The goldens count these.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1771,7 +1747,6 @@ its colour pass needs a depth prepass in front of it. The goldens count these.
 
 ### 6.6 The walk, the harnesses, and the constant that went home
 
-
 **Find** in `src/app/scene.rs`:
 
 ```rust
@@ -1892,22 +1867,21 @@ const BLACK: u32 = 0xff00_0000;
 
 ## 7. Proving nothing changed — four ladders
 
-**(1) The compiler.** Both targets, and the warning set must be exactly the nine lesson 46 left.
+**(1) The compiler.** Both targets, and exactly the nine warnings lesson 46 left.
 
 ```bash
 cargo check --target wasm32-unknown-unknown --lib
 cargo check --all-targets --target x86_64-unknown-linux-gnu
 ```
 
-One new warning came up while this lesson was written — `mk_rows_group` unused in `gpu/mod.rs`,
-because both families now build their own bind groups. It is dropped from the import in 6.4.
+One new warning appears — `mk_rows_group` unused in `gpu/mod.rs`, because both families now build
+their own bind groups. Step 6.4 drops it from the import.
 
-**(2) The tests.** Two more, added in §4.1 and §4.2. `cargo xtest` — **4 passed**: `Instance`
-and `LineUniform` from 47, and now `CylinderSegment` (cylinder + ribbon) and `GlyphPoint`
-(sphere + glyph).
+**(2) The tests.** `cargo xtest` — **4 passed**: `Instance` and `LineUniform` from 47, plus the two
+added in §4.1 and §4.2, `CylinderSegment` (cylinder + ribbon) and `GlyphPoint` (sphere + glyph).
 
-What they cannot catch: the shaders' `const FLAG_X = Nu;` bit values, and the `facing` word's
-oct16 encoding. Structure is checked; meaning is not.
+What they cannot catch: the shaders' `const FLAG_X = Nu;` bit values and the `facing` word's oct16
+encoding. Structure is checked; meaning is not.
 
 **(3) The line multiset.**
 
@@ -1920,10 +1894,9 @@ docs/48-row-families.md: 76 ops, 0 failed
 docs/48-row-families.md: 1 move source(s), 0 not byte-identical
 ```
 
-One source: `gpu/mod.rs`, over both new files. `FACING_UNKNOWN` is deliberately a **Remove** plus
-an **Add**, not a Move, because `--moves` pairs ONE source with its destinations — a second source
-into the same destination reads every line of the first as undeclared. Worth knowing: it is a
-limitation of the check, not of the refactor, and the way around it is to declare the removal.
+One source: `gpu/mod.rs`, over both new files. `FACING_UNKNOWN` is a **Remove** plus an **Add**,
+not a Move, because `--moves` pairs ONE source with its destinations — a second source into the
+same destination reads every line of the first as undeclared.
 
 **(4) The pixels, and the two harnesses.**
 
@@ -1939,19 +1912,19 @@ lion.pb: DETERMINISTIC
 mesh_bunny.pb: IDENTICAL
 ```
 
-This lesson is the one where **Tubes matters**. `bunny` under `VIEWER_LINE_STYLE=tubes` is
-43,954 ink and **8** draws against 44,215 and **9** in Flat — one draw fewer, because Flat needs
-its prepass and Tubes does not. That single difference is `draw_solid`'s return value, and it is
-the only golden in the set that proves the `LineStyle` branch survived the move.
+This is the lesson where **Tubes matters**. `bunny` under `VIEWER_LINE_STYLE=tubes` is 43,954 ink
+and **8** draws against 44,215 and **9** in Flat — one fewer, because Flat needs its prepass and
+Tubes does not. That difference is `draw_solid`'s return value, and it is the only golden proving
+the `LineStyle` branch survived the move.
 
 ## 8. What you can now do in one line
 
-Give the flat lane a second view of its own rows. `drawings_rotated` holds **191,605** ribbons
-and 36 pipes; the mesh lane can already render its rows as tubes, and now that both programs and
-both tables are in one file, pointing the tube pipeline at the OTHER table is two lines.
+Give the flat lane a second view of its own rows. `drawings_rotated` holds **191,605** ribbons and
+36 pipes, and now that both programs and both tables are in one file, pointing the tube pipeline at
+the OTHER table is two lines.
 
 **Type all four steps.** The first two add it, the last two take it back out. Do **not** undo it
-with `git checkout`: you have not committed lesson 48 yet.
+with `git checkout` — you have not committed lesson 48 yet.
 
 **8a.** **Find** in `src/engine/gpu/segments.rs`:
 
@@ -1990,9 +1963,8 @@ wrote /tmp/tube.ppm  900x700  non-background pixels: 25255 (4.0%)
 ```
 
 Every line on the page is a real 3D tube: draws **10 → 11**, ink **25,043 → 25,255**, and 191,605
-tubes of twelve triangles each went through in the same frame. Two lines of Rust, no new pipeline,
-no new table, no new row — the pipeline and the table were already in the file, and the only thing
-missing was a caller willing to pair them.
+tubes of twelve triangles each in the same frame. Two lines of Rust, no new pipeline, table or row
+— both halves were already in the file, missing only a caller willing to pair them.
 
 **8c.** Put it back. **Find** in `src/engine/gpu/segments.rs`:
 
@@ -2025,12 +1997,11 @@ missing was a caller willing to pair them.
 
 - **One `InkLane` over both row types.** §1c. Lesson **107** is where the shapes diverge.
 - **`append_rows`'s six-parameter form.** Two lanes — raw points and the streamed ones — are not
-  `GrowBuf`s until **49**, and one function with two shapes for one lesson is cheaper than
-  migrating a lane that is about to move anyway.
+  `GrowBuf`s until **49**, and migrating a lane that is about to move anyway costs more.
 - **`INK_DEPTH_PREPASS`.** Still a `const` in `gpu/mod.rs`; it belongs to the FRAME, not to
   either family, and it goes to `render.rs` at **49**.
-- **The `Spacing` enum.** `radius: 0.0` still means "screen-constant px" and `> 0.0` means world
-  mm, encoded in a float. The first lesson that needs both units in one row names it.
+- **The `Spacing` enum.** `radius: 0.0` still means "screen-constant px" and `> 0.0` world mm,
+  encoded in a float. The first lesson needing both units in one row names it.
 
 ## 10. Expected state
 
@@ -2100,14 +2071,6 @@ Gpu is 43 fields. Twenty of the twenty-two it lost were one shape written out fo
 
 ## Reference
 
-| checkpoint | what landed |
-|---|---|
-| 48a | `gpu/segments.rs` — the row, both tables, five pipelines, three draws |
-| 48b | `gpu/glyphs.rs` — the same shape, template shared from `segments.rs` |
-| 48c | `GrowBuf::append` honouring `usage`, `Template` on the floor, `Upload`'s two groups |
-| 48d | `pipelines/mod.rs` down to the list plus three row-less pipelines |
-| 48e | `Gpu`'s 22 fields, the six draw sites, and the walk's eight renames |
-
 `git diff end-of-47..end-of-48 -- session_viewer/src` is the whole lesson as one patch.
 
 ## Next
@@ -2120,9 +2083,8 @@ awk '/pub fn encode_frame/,/^    }$/' src/engine/gpu/mod.rs | wc -l
 grep -c 'extend_from_slice' src/engine/gpu/mod.rs
 ```
 
-43 fields, of which 25 are the point lanes: raw positions, colours, normals, the streamed copies
-of all three, and eleven fields of splat machinery whose record format has **no Rust type at
-all** — 36 words packed by four `extend_from_slice` calls and read back by literal index. That
-record gets a `#[repr(C)]` struct, the point lanes get their two files, and what is left of
-`encode_frame` becomes a list of draws you can read top to bottom.
-
+43 fields, of which 25 are the point lanes: raw positions, colours, normals, the streamed copies of
+all three, and eleven fields of splat machinery whose record format has **no Rust type at all** —
+36 words packed by four `extend_from_slice` calls and read back by literal index. That record gets
+a `#[repr(C)]` struct, the point lanes get their two files, and what is left of `encode_frame`
+becomes a list of draws you can read top to bottom.

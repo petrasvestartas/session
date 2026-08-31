@@ -1,13 +1,12 @@
 # 49 The frame is a list
 
-> Lesson [52](52-nurbscurve.md) adds a geometry type and never opens this file; lesson
-> [88](88-gtao.md) inserts an ambient-occlusion pass and changes one line of it; lesson
+> Lesson [52](52-nurbscurve.md) adds a geometry type and never opens this file,
+> [88](88-gtao.md) inserts an ambient-occlusion pass and changes one line of it,
 > [113](113-hiz-occlusion.md) reorders two entries. All three are possible because after this
-> lesson the frame is eleven lines you can read top to bottom, and each one names the family that
-> owns those rows. Nothing you can see changes: same ink, same draw count, same object count, on
-> every scene and every config.
-> Answer key: the block's snapshot branch `end-of-49`, so
-> `git diff end-of-48..end-of-49 -- session_viewer/src` is this whole lesson as one patch.
+> lesson the frame is eleven lines you can read top to bottom, each naming the family that owns
+> those rows. Nothing visible changes: same ink, same draw count, same object count, on every
+> scene and config.
+> Answer key: `git diff end-of-48..end-of-49 -- session_viewer/src` is this lesson as one patch.
 >
 > **Lessons 45-51 move code. Every body you cut is pasted byte-identical except for path
 > re-roots inside ONE file; if you find yourself improving a line while moving it, stop — the
@@ -36,15 +35,15 @@ grep -c '256 \* 144' src/engine/gpu/mod.rs
 
 Twenty-eight of forty-three fields, and they are three things wearing one coat.
 
-Nine hold **the walked point lane**: three parallel buffers, three capacities, a count, and two
-CPU tables. Eight hold **the streamed lane** — the same three columns again, plus a capacity, a
-count and two write cursors, separate because the walked lane is rebuilt whole by every
-`set_scene` and a streamed cloud has nothing to be rebuilt from. Eleven hold **the rasterizer**:
-two record tables, four bind groups, a per-pixel depth and colour pair, a resolve group, a total
-and a staleness cache.
+Nine hold **the walked point lane**: three parallel buffers, three capacities, a count, two CPU
+tables. Eight hold **the streamed lane** — the same three columns again, plus a capacity, a count
+and two write cursors, separate because the walked lane is rebuilt whole by every `set_scene` and
+a streamed cloud has nothing to be rebuilt from. Eleven hold **the rasterizer**: two record
+tables, four bind groups, a per-pixel depth and colour pair, a resolve group, a total and a
+staleness cache.
 
-And then there is the record itself, which is the reason this lesson exists. It is currently
-written like this — quoted here for reference, not to type:
+Then the record itself, which is why this lesson exists. It is currently written like this —
+quoted here for reference, not to type:
 
 ```rust
 recs.extend_from_slice(bytemuck::cast_slice(&m));
@@ -53,11 +52,10 @@ recs.extend_from_slice(bytemuck::cast_slice(&[f, c, *cum, (k as f32).to_bits()])
 recs.extend_from_slice(bytemuck::cast_slice(&[ b[0], b[1], b[2], 0.0f32, /* … */ ]));
 ```
 
-Thirty-six words, packed by four calls into a `Vec<u8>`, and read back on the other side by
-literal index — `table[b + 22u]` is the cumulative thread count, `rec_f(base, 19u)` is the
-minimum radius, if you were wondering. **There is no Rust type for it.** The size appears as
-`256 * 144` in two constructors and as `REC_WORDS = 36u` in the shader, and nothing checks that
-those three numbers agree.
+Thirty-six words, packed by four calls into a `Vec<u8>` and read back by literal index —
+`table[b + 22u]` is the cumulative thread count, `rec_f(base, 19u)` the minimum radius. **There is
+no Rust type for it.** The size appears as `256 * 144` in two constructors and as
+`REC_WORDS = 36u` in the shader, and nothing checks that those three numbers agree.
 
 ### 1b. The law this enforces, stated as what it forbids
 
@@ -70,14 +68,11 @@ Testable: after this lesson `render.rs` names no `wgpu::Buffer` and no `.wgsl` f
 
 ### 1c. The rejected alternative
 
-The obvious cut is a render graph: nodes, edges, declared reads and writes, a scheduler that
-orders them. Do not make it. The order here is not derivable — it encodes four separate physical
-arguments (depth writers first; markers with the solids so ink tests against them; the cloud
-opaque via `frag_depth`; the lettering last because a page paints text over its own hatching)
-and a scheduler would need every one of them expressed as a constraint before it could rediscover
-an order a human can just read. Eleven entries do not need a graph. Lesson **113** adds a hi-Z
-pass and lesson **88** an occlusion pass; both are one line in a list, and neither is one node in
-a graph you would then have to debug.
+The obvious cut is a render graph. Do not make it. The order is not derivable — it encodes four
+physical arguments (depth writers first; markers with the solids so ink tests against them; the
+cloud opaque via `frag_depth`; the lettering last because a page paints text over its own hatching)
+and a scheduler would need each one as a constraint to rediscover an order a human can just read.
+Lesson **113** adds a hi-Z pass and **88** an occlusion pass; both are one line in a list.
 
 ## 2. Where the code lives after this lesson
 
@@ -101,8 +96,8 @@ a graph you would then have to debug.
         render.rs ──── scene_list ── entry 4 of 11 ───────────────────┘
 ```
 
-**Exit litmus:** `grep -cE 'wgpu::Buffer|\.wgsl' src/engine/gpu/render.rs` is **0** — the file
-that decides the frame touches no buffer and compiles no shader.
+**Exit litmus:** `grep -cE 'wgpu::Buffer|\.wgsl' src/engine/gpu/render.rs` is **0** — the file that
+decides the frame touches no buffer and compiles no shader.
 
 The chain table's point row, filled in completely for the first time:
 
@@ -112,10 +107,8 @@ The chain table's point row, filled in completely for the first time:
 | PointCloud (streamed) | nothing — it never reaches the CPU | `StreamLane` | same | same |
 | — (no geometry) | — | — | `backdrop.rs` | `grid.wgsl`, `background.wgsl` |
 
-`PointCloud` is the only type that is its own compartment end to end, and `backdrop.rs` is the
-only family with no rows at all. Both facts are the same fact seen from two sides: a family is
-defined by the row it owns, and "no row" and "a row nobody else produces" are both legitimate
-answers.
+`PointCloud` is the only type that is its own compartment end to end, and `backdrop.rs` the only
+family with no rows at all — both legitimate answers to "which row does this family own".
 
 ## 3. Files we touch
 
@@ -135,9 +128,7 @@ answers.
 
 ### 4.1 `src/engine/gpu/cloud.rs`
 
-The header first, then the two row structs come over by Move — they are top-level types in both
-files and nothing about them changes.
-
+The header first, then the two row structs by Move — nothing about them changes.
 
 **Create `src/engine/gpu/cloud.rs`**
 
@@ -285,8 +276,8 @@ impl CloudLane {
 }
 ```
 
-`CloudDraw` and `LodNode` are byte-identical to the versions in `gpu/mod.rs` — extract them from
-your own tree rather than retyping them, then delete the originals:
+`CloudDraw` and `LodNode` are byte-identical to the versions in `gpu/mod.rs`: extract them from
+your own tree rather than retyping, then delete the originals.
 
 **Remove** `src/engine/gpu/mod.rs` `/// One cloud's contiguous point range, as the record builder sees it. It was a` **through** `}`
 
@@ -300,8 +291,9 @@ your own tree rather than retyping them, then delete the originals:
 }
 ```
 
-The second anchor is written as two fenced blocks because its first line contains a backtick,
-and the region verb reads inline `code spans`. Any anchor with a backtick in it has to be.
+The second anchor is written as two fenced blocks because its first line contains a backtick and
+the region verb reads inline `code spans`. **Any anchor with a backtick in it must be written this
+way.**
 
 **Gate.** `cargo check --target wasm32-unknown-unknown --lib` — errors, because `mod.rs` still
 declares `CloudDraw`. Expected until 6.1.
@@ -309,9 +301,7 @@ declares `CloudDraw`. Expected until 6.1.
 ### 4.2 `src/engine/gpu/stream.rs`
 
 Same three columns as the walked lane, its own buffers. The reason is a LIFETIME, not a format:
-the walked lane is rebuilt whole by every `set_scene`, and a streamed cloud has nothing to be
-rebuilt from.
-
+`set_scene` rebuilds the walked lane whole, and a streamed cloud has nothing to be rebuilt from.
 
 **Create `src/engine/gpu/stream.rs`**
 
@@ -464,10 +454,8 @@ impl StreamLane {
 ### 4.3 `src/engine/gpu/splat.rs`
 
 The biggest file in the block, and the only one that introduces a type rather than moving one.
-Read `SplatRecord` before you paste it: thirty-six words, in the order the shader indexes them,
-with the word numbers in the doc comments so the two sides can be checked against each other by
-eye.
-
+Read `SplatRecord` before you paste it: thirty-six words in the order the shader indexes them,
+with the word numbers in the doc comments so the two sides can be checked by eye.
 
 **Create `src/engine/gpu/splat.rs`**
 
@@ -898,18 +886,16 @@ Three things in there earn their place:
 - **`const _: () = assert!(size_of::<SplatRecord>() as u64 == REC_WORDS * 4);`** — the record is
   144 bytes on both sides or the build stops. That assert is what the two `256 * 144` literals
   were standing in for.
-- **`SplatSlot::new` takes two tuples, not seven buffers.** Five and six same-typed `&Buffer`
-  parameters in a row is exactly how the streamed lane spent five lessons binding its pixel
-  buffers where its normals belonged — silently, because nothing in the type system could tell
-  them apart. Grouping them by WHERE THEY COME FROM (this lane's points; the shared frame) makes
-  the mistake visible at the call site.
+- **`SplatSlot::new` takes two tuples, not seven buffers.** Six same-typed `&Buffer` parameters in
+  a row is how the streamed lane spent five lessons binding its pixel buffers where its normals
+  belonged. Grouping them by WHERE THEY COME FROM (this lane's points; the shared frame) makes the
+  mistake visible at the call site.
 - **`Splat` owns the staleness cache.** `invalidate()` / `is_current(state)` / `mark_current()`
-  replace a bare `splat_state = None` that was written at seven unrelated call sites.
+  replace a bare `splat_state = None` written at seven unrelated call sites.
 
 ### 4.4 `src/engine/gpu/backdrop.rs`
 
 Two pipelines, two draws, and not one byte of vertex data.
-
 
 **Create `src/engine/gpu/backdrop.rs`**
 
@@ -986,8 +972,7 @@ pub fn draw(pass: &mut wgpu::RenderPass, b: &Binds) -> u32 {
 
 The frame. `encode_frame` keeps the compute prelude and the pass setup; everything drawn INSIDE
 the pass becomes `scene_list`, and the module header carries the order as a table so the argument
-for it survives next to the code that implements it.
-
+for it lives next to the code implementing it.
 
 **Create `src/engine/gpu/render.rs`**
 
@@ -1231,15 +1216,13 @@ wc -l src/engine/gpu/cloud.rs src/engine/gpu/stream.rs src/engine/gpu/splat.rs \
 > //                       `self.frame` are already borrowed by `pass` and `b`
 > ```
 >
-> The fix is the contract lesson 48 introduced, applied to the whole frame: **every draw returns
-> the number of draws it issued, and the caller sums them.** That is why `scene_list` ends in a
-> bare `draws` and why each of the eleven lines is `draws += …`. It recurs for every pass a later
-> lesson adds.
+> The fix is lesson 48's contract applied to the whole frame: **every draw returns the number of
+> draws it issued, and the caller sums them.** That is why `scene_list` ends in a bare `draws` and
+> why each of the eleven lines is `draws += …`.
 
 ## 6. The steps
 
 ### 6.1 `mod.rs` — the modules, the imports, and 28 fields become 3
-
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1374,10 +1357,9 @@ use bytemuck::bytes_of_mut;
 
 ### 6.2 The constructor
 
-Three lanes build themselves. `Gpu::build` stops knowing that a record table is
-`16 + 256 * 144` bytes, or that a normals buffer must be filled with `u32::MAX` rather than
+Three lanes build themselves, so `Gpu::build` stops knowing that a record table is
+`16 + 256 * 144` bytes or that a normals buffer must be filled with `u32::MAX` rather than
 zeroed.
-
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1500,9 +1482,8 @@ zeroed.
 ### 6.3 The three bind-group builders leave, and `rebuild_splat_groups` becomes a forwarder
 
 Note the destructure in the replacement: `let Gpu { splat, cloud, stream, ctx, layouts, frame,
-objects, .. } = self;`. That is B1 from lesson 46, and this is the body that needs it most — six
-disjoint fields, one of them `&mut`.
-
+objects, .. } = self;` — B1 from lesson 46, and the body that needs it most: six disjoint fields,
+one of them `&mut`.
 
 **Remove** `src/engine/gpu/mod.rs` `    // splat helpers - one compute-visible buffer entry, and the three bind groups,` **through** `    }`
 
@@ -1536,7 +1517,6 @@ disjoint fields, one of them `&mut`.
 ```
 
 ### 6.4 `set_scene`, the log, and the streaming API
-
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1719,7 +1699,6 @@ self.glyphs.spheres() + self.glyphs.dots(), self.glyphs.spheres(), self.cloud.po
 
 ### 6.5 `resize`, the anchor, and the two big bodies that leave
 
-
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
@@ -1867,7 +1846,6 @@ pub struct Gpu {
 
 ### 6.6 `Upload` — the last five flat columns become a group
 
-
 **Find** in `src/engine/gpu/upload.rs`:
 
 ```rust
@@ -1950,9 +1928,8 @@ use super::{CloudDraw, LodNode};
 
 ### 6.7 `pipelines/mod.rs` — down to the list
 
-What is left is the LIST plus the two compute pipelines and the fullscreen resolve. Fifty-two
-lines, from 845 at the start of the block.
-
+What is left is the LIST plus the two compute pipelines and the fullscreen resolve: 52 lines, from
+845 at the start of the block.
 
 **Find** in `src/engine/pipelines/mod.rs`:
 
@@ -2025,7 +2002,6 @@ const BACKGROUND: &str = include_str!("../../shaders/background.wgsl");
 
 ### 6.8 The walk and the harnesses
 
-
 **Replace-all** `src/app/scene.rs` `t.cloud_pos` -> `t.cloud.pos` (5 hits)
 
 **Replace-all** `src/app/scene.rs` `t.cloud_col` -> `t.cloud.col` (1 hits)
@@ -2080,17 +2056,15 @@ const BACKGROUND: &str = include_str!("../../shaders/background.wgsl");
 
 ## 7. Proving nothing changed — four ladders
 
-**(1) The compiler.** Both targets, `--all-targets` natively. The warning set must be exactly the
-one lesson 46 left; three came up while this lesson was written (`bytes_of_mut`, `append_rows`,
-`zeroed_buffer` all unused in `mod.rs` once the lanes owned their own buffers) and are removed in
-step 6.1.
+**(1) The compiler.** Both targets, `--all-targets` natively, and exactly the warning set lesson 46
+left. Three new ones appear — `bytes_of_mut`, `append_rows`, `zeroed_buffer`, all unused in
+`mod.rs` once the lanes own their buffers — and step 6.1 removes them.
 
-**(2) The tests.** `cargo xtest` — **4 passed**, unchanged from 48. What they cannot catch is the
-whole subject of this lesson: `SplatRecord`'s field ORDER against the shader's literal indices.
-`instance_mirror` and its three siblings parse a `struct` out of a `.wgsl`; `splat.wgsl` declares
-no struct for the record at all, it reads `table[b + 22u]`. The `const _: () = assert!` on the
-SIZE is the only mechanical check, and it would not catch two fields swapped. That is why the
-record's doc comments carry the word numbers, and why step 4.3 asks you to read them.
+**(2) The tests.** `cargo xtest` — **4 passed**, unchanged from 48. They cannot catch this lesson's
+whole subject: `SplatRecord`'s field ORDER against the shader's literal indices. The mirror tests
+parse a `struct` out of a `.wgsl`, and `splat.wgsl` declares none — it reads `table[b + 22u]`. The
+`const _: () = assert!` on the SIZE is the only mechanical check, and two swapped fields pass it.
+Hence the word numbers in the record's doc comments.
 
 **(3) The line multiset.**
 
@@ -2103,10 +2077,9 @@ docs/49-frame-list.md: 57 ops, 0 failed
 docs/49-frame-list.md: 1 move source(s), 0 not byte-identical
 ```
 
-**(4) The pixels.** `./docs/_gate.sh` twice, plus the two harnesses. This is the lesson where
-`lion` and `bunny_cloud` matter most — they are the only mandatory scenes that go through the
-record builder at all, and a single wrong word index would put the cloud in the wrong place at
-the wrong size with nothing reported.
+**(4) The pixels.** `./docs/_gate.sh` twice, plus the two harnesses. `lion` and `bunny_cloud` are
+the only mandatory scenes that go through the record builder, and one wrong word index would put
+the cloud in the wrong place at the wrong size with nothing reported.
 
 ```text
 gate OK                        (both runs)
@@ -2115,21 +2088,18 @@ mesh_bunny.pb: IDENTICAL
 ```
 
 **What none of the four covers: the streamed lane.** Every streaming scene is advisory and its
-`.pb` is gitignored, so the mandatory gate never streams a single point. `stream.rs` is moved
-here on the strength of the compiler and a reading, and that is worth knowing when you change it.
+`.pb` is gitignored, so the mandatory gate never streams a point. `stream.rs` moves here on the
+strength of the compiler and a reading — worth knowing when you change it.
 
 ## 8. What you can now do in one line
 
-Reorder the frame. The list is eleven lines; move one and the picture changes in exactly the way
-the comment beside it predicts.
-
-The vertex markers are drawn LAST of the solid lane, after the bands. Their comment explains why
-at length — drawn FIRST, a marker has to win the depth test STRICTLY, so every pixel where a disc
-and a band cap compute the same depth goes to the band and the disc loses a bite of its rim. Move
-them and watch it happen.
+Reorder the frame. The vertex markers are drawn LAST of the solid lane, after the bands. Drawn
+FIRST, a marker has to win the depth test STRICTLY, so every pixel where a disc and a band cap
+compute the same depth goes to the band and the disc loses a bite of its rim. Move them up and
+watch it happen.
 
 **Type all four steps.** The first two move the entry up, the last two put it back. Do **not**
-undo it with `git checkout`: you have not committed lesson 49 yet.
+undo it with `git checkout` — you have not committed lesson 49 yet.
 
 **8a.** Cut the entry. **Find** in `src/engine/gpu/render.rs`:
 
@@ -2199,8 +2169,8 @@ wrote /tmp/mk.ppm  900x700  non-background pixels: 44214 (7.0%)
 ```
 
 **25,353 pixels of 630,000 change** — every marker on the bunny's wireframe loses rim wherever a
-band crosses it, and the ink count drops by exactly one, from 44,215 to 44,214. The draw count
-does not move: same eleven entries, same nine draws, different order. One line.
+band crosses it, and ink drops by exactly one, 44,215 to 44,214. The draw count does not move:
+same eleven entries, same nine draws, different order. One line.
 
 **8c.** Put it back. **Find** in `src/engine/gpu/render.rs`:
 
@@ -2264,19 +2234,18 @@ does not move: same eleven entries, same nine draws, different order. One line.
 
 - **A render graph.** §1c. Eleven entries, four physical arguments, one readable order.
 - **Splitting `Gpu::build`.** `mod.rs` ends at **524 lines**, over the 300 the architecture
-  targets, and ~250 of those are `build` constructing uniforms, layouts and templates. It is
-  resource construction, not a lane, and it belongs with `RowTable<T>` at **57**.
+  targets, and ~250 are `build` constructing uniforms, layouts and templates. Resource
+  construction, not a lane; it goes with `RowTable<T>` at **57**.
 - **A mirror test for `SplatRecord`.** `splat.wgsl` declares no struct to mirror — it indexes raw
-  words. Giving it one, and pointing `wgsl_fields` at it, is a shader change and therefore not a
-  moves-only job. **57**.
+  words. Giving it one is a shader change, not a moves-only job. **57**.
 - **Fixing the streamed lane's lack of pixel coverage.** A streamed scene must join the mandatory
   gate before that lane can be changed safely. Named here so it is not forgotten.
 - **`enum Spacing { World(f32), Pixels(f32) }`.** `Instance.spacing` still carries world units for
-  meshes and PIXELS for clouds in one f32. The shaders read one field; splitting it is a
-  behaviour change under a pixel gate. The first lesson that needs both units on one row names it.
-- **Sub-object identity.** A row carries `instance_id` — the OBJECT — and nothing that says which
-  face or which edge of the kernel mesh it came from. `scene.rs` already names the intended fix,
-  the `guid -> range` map, and lesson **114** builds it with the id buffer.
+  meshes and PIXELS for clouds in one f32. Splitting it is a behaviour change under a pixel gate;
+  the first lesson needing both units on one row names it.
+- **Sub-object identity.** A row carries `instance_id` — the OBJECT — and nothing saying which
+  face or edge of the kernel mesh it came from. `scene.rs` names the intended fix, the
+  `guid -> range` map; lesson **114** builds it with the id buffer.
 
 ## 10. Expected state
 
@@ -2349,14 +2318,6 @@ all leave) · `src/engine/gpu/upload.rs` (the `cloud` group) ·
 
 ## Reference
 
-| checkpoint | what landed |
-|---|---|
-| 49a | `cloud.rs` + `stream.rs` — the two point lanes |
-| 49b | `splat.rs` — `SplatRecord`, `PixelBufs`, `SplatSlot`, `Splat` |
-| 49c | `backdrop.rs` — the family with no rows |
-| 49d | `Gpu`'s 28 fields → 3, and the constructor |
-| 49e | `render.rs` — `encode_frame` and the eleven-line list |
-
 `git diff end-of-48..end-of-49 -- session_viewer/src` is the whole lesson as one patch.
 
 ## Next
@@ -2371,8 +2332,8 @@ awk '/fn push_mesh/,/^    \}$/' src/app/scene.rs | wc -l
 ```
 
 `scene.rs` is one 1,333-line file holding all thirteen geometry arms, the file sweeps, the
-converters and a 314-line `push_mesh` with eight parameters. It becomes `app/walk/` — one file
-per GEOMETRY TYPE this time, not per row format, because that is the axis the app side turns on:
-`mesh.rs`, `curves.rs`, `points.rs`, `frames.rs`, `cloud.rs`, `brep.rs`, `surface.rs`. And the
-signatures become narrow sinks: `walk_line(s: &mut SegRows, ..)` cannot reach a cloud column,
-which is a law the compiler enforces rather than a convention the reviewer checks.
+converters and a 314-line `push_mesh` with eight parameters. It becomes `app/walk/` — one file per
+GEOMETRY TYPE this time, not per row format, because that is the axis the app side turns on:
+`mesh.rs`, `curves.rs`, `points.rs`, `frames.rs`, `cloud.rs`, `brep.rs`, `surface.rs`. The
+signatures become narrow sinks: `walk_line(s: &mut SegRows, ..)` cannot reach a cloud column — a
+law the compiler enforces rather than a convention the reviewer checks.

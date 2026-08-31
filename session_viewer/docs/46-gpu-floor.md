@@ -2,11 +2,10 @@
 
 > Lesson [88](88-gtao.md) samples this frame's depth buffer for ambient occlusion, and lesson
 > [113](113-hiz-occlusion.md) builds a hi-Z pyramid from it. Both cost one field access — because
-> `targets.rs` keeps the depth **Texture**, with `TEXTURE_BINDING` already on, and not just a view
-> you cannot re-view. Nothing you can see changes: same ink, same draw count, same object count,
-> on every scene and every config.
-> Answer key: the block's snapshot branch `end-of-46`, so
-> `git diff end-of-45..end-of-46 -- session_viewer/src` is this whole lesson as one patch.
+> `targets.rs` keeps the depth **Texture** with `TEXTURE_BINDING` on, not just a view you cannot
+> re-view. Nothing you can see changes: same ink, same draw count, same object count, on every
+> scene and config. Answer key: branch `end-of-46`, so
+> `git diff end-of-45..end-of-46 -- session_viewer/src` is this lesson as one patch.
 >
 > **Lessons 45-51 move code. Every body you cut is pasted byte-identical except for path
 > re-roots inside ONE file; if you find yourself improving a line while moving it, stop — the
@@ -46,9 +45,8 @@ longhand, over and over. Four of them, quoted here:
 ```
 
 and then `segment_*`, `sphere_*`, `glyph_*`, `point_*`, `point_col_*`, `point_nrm_*`, the four
-arena runs, the instance table, the stream lane. Ten of the thirteen are appended to by the same
-function — the last grep's number — and the other three grow by hand, in the same shape, a
-hundred lines apart. Its signature currently reads:
+arena runs, the instance table, the stream lane. Ten of the thirteen are appended by one function
+— the last grep's number — and three grow by hand in the same shape. Its signature currently reads:
 
 ```rust
 fn append_rows<T: bytemuck::Pod>(
@@ -62,14 +60,12 @@ fn append_rows<T: bytemuck::Pod>(
 ) -> bool {
 ```
 
-Seven parameters, four of which are one value split into four. And the first two are the pair
-`grep` just found ten times: wherever both handles are needed at all, they are needed together,
-and the only functions that take one of them take a `&wgpu::Device` to make something with.
+Seven parameters, four of which are one value split into four; the first two are the pair `grep`
+just found ten times. Wherever both handles are needed, they are needed together.
 
-That is the whole lesson. `GpuCtx` folds the first pair, `GrowBuf` names the second triple, and
-the four files under them — `frame.rs`, `targets.rs`, `present.rs`, `view.rs` — take everything
-that belongs to no family at all, so that lessons 47-49 can hand a family its own file and find
-nothing generic left inside it.
+That is the whole lesson. `GpuCtx` folds the pair, `GrowBuf` names the triple, and the four files
+under them — `frame.rs`, `targets.rs`, `present.rs`, `view.rs` — take everything that belongs to
+no family, so lessons 47-49 can hand a family its own file and find nothing generic left in it.
 
 ### 1b. The law this enforces, stated as what it forbids
 
@@ -78,23 +74,18 @@ nothing generic left inside it.
 > the other side of the same line, may not name a `wgpu::` type. A buffer, its count and its cap
 > are ONE value; a knob is not a uniform.
 
-Stated that way it is testable, and it stays testable in every later lesson: a family that needs
-something from the floor gets it as a parameter (`&GpuCtx`, `&Binds`, `&Targets`), never by the
-floor learning about the family. Lessons 47, 48 and 49 each move a family into its own file under
-this floor; if the floor had grown a `CylinderSegment`-shaped hole, all three of them would have
-to widen it.
+A family that needs something from the floor gets it as a parameter (`&GpuCtx`, `&Binds`,
+`&Targets`), never by the floor learning about the family. Lessons 47, 48 and 49 each move a
+family under this floor; a `CylinderSegment`-shaped hole would have to be widened three times.
 
 ### 1c. The rejected alternative
 
-The obvious cut is `RowTable<T>` right now — `GrowBuf` plus the CPU-side `Vec<T>` that fed it,
-plus the bind group, plus a `guid → Range` map, so that a lane is one generic value and
-`set_scene` is a loop. **Do not make it.** That CPU mirror is exactly the second copy of the scene
-that lessons 37 and 38 spent themselves deleting: 263 MB of browser heap freed on a 13.8 M-point
-lidar scan, precisely by *not* keeping the rows after they were uploaded. `append_rows` already
-returns the `grew` bool that is the only thing lessons 45-51 need from a row table, and a generic
-that has to be specialised per lane before it is useful is a name, not an abstraction. It lands at
-lesson **57**, where the arena's reconcile pass is the first caller that genuinely needs the
-`guid → Range` half of it.
+The obvious cut is `RowTable<T>` right now — `GrowBuf` plus a CPU-side `Vec<T>`, the bind group
+and a `guid → Range` map, so a lane is one generic value and `set_scene` is a loop. **Do not make
+it.** That CPU mirror is the second copy of the scene lessons 37 and 38 spent themselves deleting:
+263 MB of browser heap freed on a 13.8 M-point lidar scan, precisely by *not* keeping the rows
+after upload. `append_rows` already returns the `grew` bool, which is all lessons 45-51 need. It
+lands at **57**, where the reconcile pass is the first caller that needs the `guid → Range` half.
 
 ## 2. Where the code lives after this lesson
 
@@ -175,37 +166,30 @@ no lane.
 
 **Line budgets.** A bad paste is visible by size alone: `buffers.rs` = **140**, `upload.rs` =
 **110**, `view.rs` = **50**, `frame.rs` = **177**, `targets.rs` = **88**, `present.rs` = **162**.
-727 new lines against 473 cut, so the tree gains **254**. If any file is off by more than a line
-or two when you finish, do not run the gate — re-read the file.
+727 new lines against 473 cut, so the tree gains **254**. Off by more than a line or two? Re-read
+the file before you run the gate.
 
-New code this lesson is allowed to invent: `GpuCtx`, `GrowBuf`, `FrameInput`, `Binds`, `Frame`,
+New code this lesson may invent: `GpuCtx`, `GrowBuf`, `FrameInput`, `Binds`, `Frame`,
 `begin_present`/`end_present`, `View::from_env`, `Targets`, and the six `//!` headers. Everything
-else in the six new files is a body that already existed somewhere. Shape taken while a body is
-already moving — the `usage`/`label` fields on `GrowBuf`, the two `LoadOp` parameters on
-`begin_pass`, keeping the depth as a `Texture` — is free and mandatory. Anything else is deferred;
-§9 says to which lesson.
+else already existed. Shape taken while a body is moving — `usage`/`label` on `GrowBuf`, the two
+`LoadOp` parameters on `begin_pass`, the depth kept as a `Texture` — is free; the rest §9 defers.
 
 ## 4. The six destination files, created first
 
 Every new file is created before anything is cut, so each step below is a deletion plus a
-re-point rather than a two-ended edit you cannot compile in the middle of. **The file's shape is
-the idea; the bodies are furniture.** It also means almost every Move in §6 can land `at the end`,
-which removes the invisible ordering dependency that chained anchor-Moves create.
+re-point, not a two-ended edit you cannot compile in the middle of. It also lets almost every move
+in §6 land `at the end`, with no ordering dependency between them.
 
-One of them arrives with its bodies already in it, for the reason lesson 45 gave when it wrote
-`layouts.rs` whole: **a Move that also renames is two edits pretending to be one.** `Targets::new`
-is the two `create_*_view` bodies fused, and `begin_pass` is a descriptor that loses four spaces
-of indent — so `targets.rs` is printed here complete and step 6.6 is three deletions. Everything
-else is a skeleton.
+`targets.rs` arrives with its bodies already in it, because **a Move that also renames is two
+edits pretending to be one**: `Targets::new` is the two `create_*_view` bodies fused, and
+`begin_pass` loses four spaces of indent. Step 6.6 is then three deletions; the rest are skeletons.
 
 ### 4.1 `src/engine/gpu/buffers.rs`
 
-`GpuCtx` and `GrowBuf` are the two genuinely new values in this lesson. `GrowBuf` is not
-constructed by anything yet — each family folds its own triple into one as it is created at 47-49
-— so it carries `#[allow(dead_code)]` until `Arena` takes it at 47. The `label` field is not
-decoration: `append_rows` threads a label into `zeroed_buffer` at every growth, sixteen distinct
-ones are in use, and without it the binding-size error a scene throws the first time it crosses a
-cap names an anonymous buffer.
+`GpuCtx` and `GrowBuf` are the two genuinely new values here. Nothing constructs `GrowBuf` yet —
+each family folds its own triple in at 47-49 — so it carries `#[allow(dead_code)]` until 47. The
+`label` field is not decoration: `append_rows` threads it into `zeroed_buffer` at every growth,
+and without it the binding-size error a scene throws on crossing a cap names an anonymous buffer.
 
 **Create `src/engine/gpu/buffers.rs`**
 
@@ -281,9 +265,8 @@ use super::{CloudDraw, CylinderSegment, GlyphPoint, LodNode};
 ### 4.3 `src/engine/gpu/view.rs`
 
 Three of the seven knobs are single lines scattered through `Gpu`, so they are typed here; the
-other four are a contiguous block with a doc comment worth keeping word for word, and they are
-moved in at 6.4. `from_env` is the same split: the three `VIEWER_*` reads below, the four
-defaults moved in.
+other four are a contiguous block, moved in at 6.4. `from_env` splits the same way: three
+`VIEWER_*` reads below, four defaults moved in.
 
 **Create `src/engine/gpu/view.rs`**
 
@@ -322,9 +305,8 @@ impl View {
 ### 4.4 `src/engine/gpu/frame.rs`
 
 Three structs and an empty impl. `FrameUniforms` is the twelve `Gpu` fields collected;
-`FrameInput` is what the two writers READ, so that they take three parameters instead of six;
-`Binds` is groups 0-2 for one frame, and every field in it is a `&` for a reason the borrow
-checker will explain in §5.
+`FrameInput` is what the two writers READ, so they take three parameters instead of six; `Binds`
+is groups 0-2 for one frame, every field a `&` for the reason §5 gives.
 
 **Create `src/engine/gpu/frame.rs`**
 
@@ -393,18 +375,15 @@ impl FrameUniforms {
 
 ### 4.5 `src/engine/gpu/targets.rs`
 
-Created whole. `Targets::new` is the two `create_*_view` bodies fused — same textures, same sizes,
-same sample count, three changes: the local is named after the field it becomes, the TEXTURE is
+Created whole. `Targets::new` is the two `create_*_view` bodies fused — same textures, sizes and
+sample count, with three changes: each local is named after the field it becomes, the TEXTURE is
 kept and not just its view, and depth gains `TEXTURE_BINDING`. `begin_pass` is `encode_frame`'s
-descriptor one indent level shallower, with the two `LoadOp`s that were literals as parameters.
-Neither is a body you can Move without editing, so both are printed here and step 6.6 cuts the
-originals.
+descriptor one indent shallower, with the two `LoadOp` literals as parameters.
 
-Keeping `depth` as a `wgpu::Texture` is the free shape in this file: a view cannot be re-viewed
-and a usage flag cannot be added after creation, so a lesson that wants to SAMPLE the depth
-would otherwise have to change this field's type and every line that reads it. `depth_load:
-Option<LoadOp<f32>>` is the other: `None` means no depth attachment at all, which is what
-lesson 74's gumball overlay needs to draw over the scene without testing against it.
+Keeping `depth` as a `wgpu::Texture` is the free shape here: a view cannot be re-viewed and a
+usage flag cannot be added after creation, so a lesson that wants to SAMPLE the depth would
+otherwise change this field's type and every line that reads it. `depth_load: Option<LoadOp<f32>>`
+is the other: `None` means no depth attachment, which is what lesson 74's gumball overlay needs.
 
 **Create `src/engine/gpu/targets.rs`**
 
@@ -561,9 +540,8 @@ pub mod view;
 pub use view::View;
 ```
 
-Gate. Six modules, no callers yet: an empty impl compiles, and so does a struct nothing builds.
-The unused-import and never-read warnings this prints are the worklist for §6 — every one of them
-is answered by a step below.
+Gate. Six modules, no callers yet. The unused-import and never-read warnings it prints are the
+worklist for §6 — every one is answered by a step below.
 
 ```bash
 cargo check --target wasm32-unknown-unknown --lib
@@ -582,11 +560,10 @@ wc -l src/engine/gpu/*.rs
 
 ## 5. Where the borrow checker bites — B1, and it bites in the next step
 
-Read this before you type 6.2. It is the one place in the block where a hand-typing reader is most
-likely to conclude the refactor was wrong, when what is wrong is the shape of the call.
+Read this before you type 6.2 — the one place where a hand-typing reader is likely to conclude
+the refactor was wrong, when what is wrong is the shape of the call.
 
-> **The failing form.** Once `device` and `queue` are one field, the natural next thought is to
-> make appending a method. It reads like this:
+> **The failing form.** Once `device` and `queue` are one field, appending looks like a method:
 >
 > ```rust
 > impl Gpu {
@@ -600,12 +577,11 @@ likely to conclude the refactor was wrong, when what is wrong is the shape of th
 > ```
 >
 > **The error.** `error[E0499]: cannot borrow *self as mutable more than once at a time`, or
-> `error[E0502]: cannot borrow self.ctx as immutable because it is also borrowed as mutable`
+> `error[E0502]: cannot borrow self.ctx as immutable because it is also borrowed as mutable`,
 > the moment two lanes appear in one body. **A method borrows ALL of `self`** — the compiler sees
 > `&mut self`, not "`ctx` shared and `pipe_buffer` mutable".
 >
-> **The compiling form** borrows FIELDS, which are disjoint places, and one destructure serves
-> the whole body. It reads like this:
+> **The compiling form** borrows FIELDS, which are disjoint places:
 >
 > ```rust
 > let Gpu { ctx, layouts, arena, seg, glyphs, .. } = self;   // ONE destructure
@@ -614,35 +590,28 @@ likely to conclude the refactor was wrong, when what is wrong is the shape of th
 > ```
 >
 > **The rule.** Pass `&GpuCtx`; never hold it. A free function or a method on the LANE takes
-> `(ctx, …)` and the caller borrows `ctx` and the lane as two separate fields of `Gpu`. That is
-> also why §5.2 of the target architecture writes every family method as
-> `fn append(&mut self, ctx: &GpuCtx, rows: &Rows) -> bool` and never as a method on `Gpu`.
+> `(ctx, …)`, and the caller borrows `ctx` and the lane as two separate fields of `Gpu` — which is
+> why every family method is `fn append(&mut self, ctx: &GpuCtx, rows: &Rows) -> bool`.
 >
-> **It recurs every time** two lanes are touched in one body: at 47 when `arena` and `objects`
-> both append, at 48 when `seg` and `glyphs` do, at 49 in `set_scene`'s final form, and at 51
-> when one mesh writes three sinks at once (B4). Today's step is the easy case — the calls stay
-> free functions, so `append_rows(&self.ctx, …, &mut self.pipe_buffer, …)` is already two disjoint
-> field borrows and compiles as written. Type it that way now and the shape is already right when
-> lesson 47 turns it into a method on the lane.
+> **It recurs** whenever two lanes are touched in one body: at 47, 48, 49 and 51. Today is the
+> easy case — the calls stay free functions, so `append_rows(&self.ctx, …, &mut self.pipe_buffer,
+> …)` is already two disjoint field borrows. Type it that way now and 47's method is right.
 
 ## 6. The steps
 
-Leaves before roots, one file per step, and the god-struct's field list changes LAST within a
-step and never between steps. Each step is the complete round trip: extend the destination, Move
-the bodies **at the end**, Replace-all the paths INSIDE the new file, move the fields, fix the
-residual call sites, delete the dead forwarders — then the gate.
+Leaves before roots, one file per step, and the field list changes LAST within a step. Each step
+is the round trip: extend the destination, move the bodies to the end, Replace-all the paths
+INSIDE the new file, move the fields, fix the call sites, delete the dead forwarders, gate.
 
-A Move pastes its region with a blank line in front of it. When the region belongs at the end of
-a file that is exactly right; when it belongs *inside* an item, the next edit is a **stitch**: a
-`Find` whose block spans the blank line and joins the two halves. Every stitch below is marked as
-one, and every one of them is also where the moved body's signature or indentation changes.
+A move pastes its region with a blank line in front. That is right at the end of a file; inside an
+item the next edit is a **stitch** — a `Find` spanning the blank line to join the halves. Every
+stitch is marked, and each is where the body's signature or indent changes.
 
 ### 6.1 `buffers.rs` — the four functions that know no lane
 
-`append_rows` and `append_index_run` are free functions at the top of `gpu/mod.rs` that take
-seven parameters and touch no `self`; `zeroed_buffer` is a free function at the bottom of the
-same file; `mk_rows_group` is an associated function on `Gpu` that never reads a field. Four
-bodies, none of which knows what a row means — the definition of the floor.
+`append_rows`, `append_index_run` and `zeroed_buffer` are free functions in `gpu/mod.rs`;
+`mk_rows_group` is an associated function on `Gpu` that never reads a field. Four bodies, none of
+which knows what a row means — the definition of the floor.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -656,13 +625,12 @@ pub use view::View;
 use buffers::{GpuCtx, append_index_run, append_rows, mk_rows_group, zeroed_buffer};
 ```
 
-`GpuCtx` comes along with them, unused until the next step — one warning, and it keeps this
-import line in its final form, which is what ladder 2 in §7 wants.
+`GpuCtx` comes along unused until the next step — one warning, and the import line is already in
+its final form, which is what ladder 2 wants.
 
-Now the two appenders. The region is the twelve-line doc comment plus the whole of `append_rows`
-— the doc's first two lines are already wrong, describing the index run BELOW it, and they stay
-wrong: **a body you are moving is not a body you are fixing.** 45 lines, ending on `}` at
-column 0.
+Now the two appenders: the twelve-line doc comment plus all of `append_rows`, 45 lines ending on
+`}` at column 0. The doc's first two lines wrongly describe the index run below it, and they stay
+wrong — **a body you are moving is not a body you are fixing.**
 
 **Move** `src/engine/gpu/mod.rs`
 
@@ -707,9 +675,8 @@ const INK_DEPTH_PREPASS: bool = false;
 /// One cloud's contiguous point range, as the record builder sees it. It was a
 ```
 
-`mk_rows_group` is the one body in this lesson that cannot be Moved: it sits inside `impl Gpu`,
-so it lands one indent level shallower, and a Move that also re-indents is two edits pretending
-to be one. It is typed here and cut there.
+`mk_rows_group` is the one body here that cannot be moved: inside `impl Gpu`, it lands one indent
+shallower, and a move that also re-indents is two edits pretending to be one. Typed here, cut there.
 
 **Find** in `src/engine/gpu/buffers.rs`:
 
@@ -759,9 +726,8 @@ pub fn mk_rows_group(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, labe
 If that count is not 9, you cut the wrong region — every one of the nine is a bind group built
 over one storage buffer, four in `build` and five in `set_scene`.
 
-Last, `zeroed_buffer`. Its doc comment is not above it: it is glued to the top of
-`line_thickness_px`'s doc, twenty lines further down, where a lesson-36 edit left it. Move the
-function, then put the comment where it belongs and delete the orphan.
+Last, `zeroed_buffer`. Its doc comment is not above it — a lesson-36 edit glued it to the top of
+`line_thickness_px`'s doc, twenty lines down. Move the function, then re-home the comment.
 
 **Move** `src/engine/gpu/mod.rs` `fn zeroed_buffer(` **through** `}` **to** `src/engine/gpu/buffers.rs` **at the end**
 
@@ -813,9 +779,8 @@ wc -l src/engine/gpu/buffers.rs src/engine/gpu/mod.rs      # 142  2049
 
 ### 6.2 `device` and `queue` become `ctx`
 
-Ten call sites pass the two as a pair, and every family from lesson 47 on will be handed the pair
-rather than hold it. Fold them: first the floor's own two signatures, then the ten pairs, then
-everything left over.
+Ten call sites pass the two as a pair, and every family from 47 on is handed the pair rather than
+holding it. Fold them: the floor's two signatures, then the ten pairs, then the leftovers.
 
 **Find** in `src/engine/gpu/buffers.rs`:
 
@@ -848,8 +813,7 @@ pub fn append_index_run(
 ```
 
 Four Replace-alls re-root the two bodies. `zeroed_buffer` and `mk_rows_group` keep their
-`&wgpu::Device` parameter — they need one handle, not two — which is why this is four narrow
-substitutions and not one blanket rename of `device`:
+`&wgpu::Device` parameter, which is why this is four narrow substitutions and not one rename:
 
 **Replace-all** `src/engine/gpu/buffers.rs` `zeroed_buffer(device,` → `zeroed_buffer(&ctx.device,` (2 hits)
 
@@ -859,9 +823,8 @@ substitutions and not one blanket rename of `device`:
 
 **Replace-all** `src/engine/gpu/buffers.rs` `queue.write_buffer` → `ctx.queue.write_buffer` (2 hits)
 
-Now `gpu/mod.rs`. The two fields become one, and their trailing comments become one comment —
-rewritten rather than moved, because the two lines it described are now a single field. It is the
-only comment on an existing line that this lesson rewrites:
+Now `gpu/mod.rs`. The two fields become one, and their two trailing comments become one — the only
+comment on an existing line that this lesson rewrites:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -896,16 +859,13 @@ only comment on an existing line that this lesson rewrites:
 ```
 
 The two locals in `build` keep their names — `GpuCtx { device, queue }` is field-init shorthand,
-so nothing else in that 400-line constructor changes. Then the ten pairs, in one substitution
-whose count is the whole argument for `GpuCtx`:
+so nothing else in that 400-line constructor changes. Then the ten pairs:
 
 **Replace-all** `src/engine/gpu/mod.rs` `&self.device, &self.queue,` → `&self.ctx,` (10 hits)
 
-Three places are re-rooted by hand first, before the sweep runs: the two `create_*_view` call
-sites, which 6.6 deletes whole, and the one `submit` in `clear`, which 6.7 turns into
-`end_present`. A line that the sweep renames and a later step then deletes cannot be cancelled by
-`--moves` — it only ever follows ONE step — so five lines done by hand here are the difference
-between §7's ladder 2 printing nothing and printing five lines you would have to check by eye:
+Three places are re-rooted by hand first: the two `create_*_view` call sites, which 6.6 deletes
+whole, and the `submit` in `clear`, which 6.7 turns into `end_present`. `--moves` cannot cancel a
+line the sweep renames and a later step deletes, so these five by hand keep ladder 2 silent:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -956,10 +916,8 @@ between §7's ladder 2 printing nothing and printing five lines you would have t
 **Replace-all** `src/engine/gpu/mod.rs` `self.queue` → `self.ctx.queue` (25 hits)
 
 33 and 25, after the ten pairs and the five hand-edited lines are gone. If your counts are 47 and
-36 you ran these two first and the pair substitution has nothing left to match; undo and do them
-in the printed order. One of
-the 26 is inside a commented-out block in `rebuild_instances` — re-rooting a comment that quotes code
-is right, and it is what the implementation does.
+36 you ran these two first; undo and do them in the printed order. One hit is inside a
+commented-out block in `rebuild_instances` — re-rooting a comment that quotes code is right.
 
 Gate. This is the step where a `&mut self` method would have failed (§5); every call here is a
 free function taking `&self.ctx` beside a `&mut self.<field>`, which are disjoint places:
@@ -974,11 +932,8 @@ grep -c 'self\.device\|self\.queue' src/engine/gpu/mod.rs        # 0
 ### 6.3 `upload.rs` — `ArenaUpload` becomes `Upload`, moved flat
 
 `ArenaUpload` is the app's side of `set_scene`: nineteen columns of rows, written by
-`app::scene::Scene`, read once by `Gpu`, then dropped. It has been living in `gpu/mod.rs` next to
-the buffers it feeds, which is the one place it does not belong — it names no `wgpu` type at all.
-It moves **flat**: same nineteen columns, same names. Lessons 47, 48 and 49 each regroup the
-columns belonging to the family they create, one instalment at a time, in the lesson that has
-somewhere to put them.
+`app::scene::Scene`, read once by `Gpu`, then dropped. It names no `wgpu` type, so `gpu/mod.rs` is
+the one place it does not belong. It moves **flat**; 47, 48 and 49 regroup the columns per family.
 
 **Move** `src/engine/gpu/mod.rs`
 
@@ -1039,10 +994,9 @@ pub use upload::Upload;
 
 **Replace-all** `src/app/scene.rs` `ArenaUpload` → `Upload` (5 hits)
 
-Now the sweep that empties the table after an upload. It is fourteen `drop_rows` calls and a
-comment, sitting in `Scene::upload_to` and reaching into fourteen of `Upload`'s columns through a
-`let t = &mut self.tables` — which is a method on `Upload` written out longhand at the call site.
-Both halves go to the table.
+Now the sweep that empties the table after an upload: fourteen `drop_rows` calls in
+`Scene::upload_to`, reaching into `Upload`'s columns through a `let t = &mut self.tables`. That is
+a method on `Upload` written out longhand at the call site, so both halves go to the table.
 
 **Find** in `src/app/scene.rs`:
 
@@ -1093,9 +1047,8 @@ fn drop_rows<T>(v: &mut Vec<T>) {
 /// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes
 ```
 
-The other end. This is the one place in the lesson where a moved body is retyped rather than cut:
-`t.verts` becomes `self.verts` fourteen times, which is a rename, and the closing brace of
-`Upload::new` has to become the closing brace of `impl Upload`.
+The other end — the one place a moved body is retyped rather than cut: `t.verts` becomes
+`self.verts` fourteen times, and `Upload::new`'s closing brace becomes `impl Upload`'s.
 
 **Find** in `src/engine/gpu/upload.rs`:
 
@@ -1171,10 +1124,8 @@ grep -c 'wgpu::' src/engine/gpu/upload.rs      # 0
 ### 6.4 `view.rs` — seven knobs become one field
 
 A **knob is not a uniform.** `show_points` gates a draw; `line_style` picks a pipeline; neither is
-ever written into a buffer and no `.wgsl` file has ever seen one. They are also the three
-`Gpu` fields the architecture's field ladder did not know about — `show_points`, `show_lines` and
-`show_mesh_edges` were typed after the plan was measured — which is why `View` takes all seven and
-not the four that were budgeted.
+written into a buffer and no `.wgsl` has seen one. `show_points`, `show_lines` and `show_mesh_edges`
+were typed after the plan was measured, which is why `View` takes seven and not the four budgeted.
 
 The four with doc comments are a contiguous block in `Gpu`, so they are cut whole:
 
@@ -1225,9 +1176,8 @@ Stitch:
             show_points: true,
 ```
 
-Now the `Gpu` side. The new field goes at the head, with the four that arrived in §4 and the two
-still to come — `surface, ctx, config, layouts, pipelines, frame, targets, view` is the end-state
-head the architecture names, and each step from here inserts its own field into it:
+Now the `Gpu` side. The end-state head is `surface, ctx, config, layouts, pipelines, frame,
+targets, view`, and each step from here inserts its own field into it:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1285,9 +1235,8 @@ the line above it:
     last_eye: [f32; 3], // eye in anchored world units, for the LOD screen-error test
 ```
 
-Then the struct literal. Three `std::env::var` reads leave `Gpu::build` for `View::from_env` —
-the only expression this lesson relocates rather than copies, and the reason `from_env` is its
-own checkpoint in the implementation:
+Then the struct literal. Three `std::env::var` reads leave `Gpu::build` for `View::from_env`, the
+only expression this lesson relocates rather than copies:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1369,14 +1318,12 @@ cargo check --all-targets
 
 ### 6.5 `frame.rs` — what every shader reads, once per frame
 
-Three uniform blocks belong to no family: the camera matrix that every vertex shader reads at
-group 0, the pen block that five shaders read at group 1, and the cloud block the splat pair
-reads. Twelve `Gpu` fields carry them — three buffers, three bind groups, the animation clock and
-the three camera values the CPU caches for the same frame — and one function writes all of them.
+Three uniform blocks belong to no family: the camera matrix every vertex shader reads at group 0,
+the pen block five shaders read at group 1, and the cloud block the splat pair reads. Twelve `Gpu`
+fields carry them, and one function writes all of them.
 
-Start with that function's body. It is contiguous: `write_camera` and `write_cloud` are the first
-and second halves of one 24-line block, and only the last line of `write_frame_uniforms`
-(`update_inside_flags`) stays behind.
+Start with that function's body. `write_camera` and `write_cloud` are the two halves of one
+24-line block; only the last line of `write_frame_uniforms` (`update_inside_flags`) stays behind.
 
 **Move** `src/engine/gpu/mod.rs` `        // Time for triangle wgsl buffer.` **through** `        }));` **to** `src/engine/gpu/frame.rs` **at the end**
 
@@ -1420,9 +1367,8 @@ Split the two halves at the line where one uniform ends and the next begins:
         self.ctx.queue.write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&CloudUniform{
 ```
 
-Close it, and add the one genuinely new function in this file. `binds` is not a convenience: it
-is the only way group 0-2 can be read inside a render pass at all, for the reason §5's B3 gives —
-`Binds` is six shared reborrows taken before the pass opens.
+Close it, and add the one genuinely new function here. `binds` is not a convenience: it is the
+only way groups 0-2 can be read inside a render pass — six shared reborrows taken before it opens.
 
 **Find** in `src/engine/gpu/frame.rs`:
 
@@ -1451,11 +1397,9 @@ is the only way group 0-2 can be read inside a render pass at all, for the reaso
 }
 ```
 
-Now the re-roots, and this is the payoff of moving the body into a struct that owns exactly the
-right fields: `self.time_buffer`, `self.mvp_buffer`, `self.line_buffer`, `self.mvp_f32`,
-`self.last_ortho_h` and `self.last_eye` **do not change at all** — `self` is a `FrameUniforms`
-now, and it owns all six. Only what came from OUTSIDE the uniforms moves, and every one of them
-came in through `FrameInput`:
+Now the re-roots — the payoff of a struct that owns exactly the right fields. `self.time_buffer`,
+`self.mvp_buffer`, `self.line_buffer`, `self.mvp_f32`, `self.last_ortho_h` and `self.last_eye`
+**do not change at all**: `self` is a `FrameUniforms` now. Only what came from outside moves:
 
 **Replace-all** `src/engine/gpu/frame.rs` `self.ctx.queue.write_buffer(&self.time_buffer` → `ctx.queue.write_buffer(&self.time_buffer` (1 hit)
 
@@ -1493,10 +1437,9 @@ came in through `FrameInput`:
             ortho_h: ortho_half_height(f.view_proj),
 ```
 
-The fourth read is `view_proj`, and it is deliberately NOT a Replace-all: `FrameInput` has a field
-of that name, so `view_proj` → `f.view_proj` matches five times and the fifth is the declaration
-`pub view_proj: &'a Xform,`. A count one higher than you expected has found a name you did not
-mean — check it before you widen the substitution, every time.
+The fourth read is `view_proj`, deliberately NOT a Replace-all: `FrameInput` has a field of that
+name, so `view_proj` → `f.view_proj` matches five times, the fifth being the declaration. A count
+one higher than you expected has found a name you did not mean — check before you widen it.
 
 **Replace-all** `src/engine/gpu/frame.rs` `vp_h: self.config.height` → `vp_h: f.config.height` (2 hits)
 
@@ -1511,11 +1454,9 @@ mean — check it before you widen the substitution, every time.
 Four reads, four fields on `FrameInput` — that is the seam A3 asked for, and it is why
 `write_camera` takes three parameters and not six.
 
-Next the two `#[repr(C)]` blocks the uniforms are written from. Both are private in `gpu/mod.rs`
-and both stay in the crate, but `Gpu::build` still fills each one with its startup values, so
-the struct and every field become `pub(crate)`. The Move takes the struct and the size assert
-that guards it; the two attribute lines above it are not part of any unique anchor, so they are
-retyped on arrival and deleted at the source.
+Next the two `#[repr(C)]` blocks the uniforms are written from. `Gpu::build` still fills each with
+its startup values, so the struct and every field become `pub(crate)`. The move takes the struct
+and the size assert; the two attribute lines above are retyped on arrival and deleted at source.
 
 **Move** `src/engine/gpu/mod.rs` `struct LineUniform{` **through** `const _: () = assert!(std::mem::size_of::<LineUniform>() == 48);` **to** `src/engine/gpu/frame.rs` **at the end**
 
@@ -1650,10 +1591,9 @@ And the pen width, which is read by exactly one line of `write_camera` and by no
 
 **Move** `src/engine/gpu/mod.rs` `/// On-screen pen weight in px. Default 2.0.` **through** `}` **to** `src/engine/gpu/frame.rs` **at the end**
 
-That was the last item in the file, and `zeroed_buffer` left from the same tail in 6.1, so
-`gpu/mod.rs` now ends on three blank lines. The Find block below ends with **three** blank lines
-inside the fence and the replacement with **one** — the only edit in this lesson where the
-whitespace at the end of a block is the edit:
+That was the last item in the file, and `zeroed_buffer` left the same tail in 6.1, so `gpu/mod.rs`
+now ends on three blank lines. The Find block below ends with **three** blank lines inside the
+fence and the replacement with **one** — the one edit here where trailing whitespace is the edit:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -1748,10 +1688,9 @@ which run before it:
 
 **Replace-all** `src/engine/gpu/mod.rs` `let eye = self.last_eye;` → `let eye = self.frame.last_eye;` (1 hit)
 
-Each key is longer than the field name it re-roots, and deliberately so: `self.mvp_buffer` alone
-would also match the line that just moved into `frame.rs`, where `self` IS the uniforms and the
-path is already right. A substitution is scoped to a file by its `Replace-all` and to a site by
-how much of the line you put in the key.
+Each key is longer than the field it re-roots, deliberately: `self.mvp_buffer` alone would also
+match the line that just moved into `frame.rs`, where the path is already right. A `Replace-all`
+scopes a substitution to a file; how much of the line you put in the key scopes it to a site.
 
 The field list changes last. Seven fields out of the head, one in:
 
@@ -1910,8 +1849,7 @@ use frame::{CloudUniform, FrameInput, FrameUniforms, LineUniform};
 144-177  line_thickness_px
 ```
 
-Gate. This is the step with the most re-rooted call sites in the block, so run the compiler on
-both targets before the pixels:
+Gate. The step with the most re-rooted call sites in the block, so compile both targets first:
 
 ```bash
 cargo check --target wasm32-unknown-unknown --lib
@@ -2026,9 +1964,8 @@ that were literals inside it become the two parameters lesson 74's overlay pass 
                                                   Some(wgpu::LoadOp::Clear(0.0)));
 ```
 
-Three call sites rebuild the attachments — startup, the MSAA flip, and a window resize — and each
-one becomes a single `Targets::new`, because the sample count now lives with the textures it
-built:
+Three call sites rebuild the attachments — startup, the MSAA flip, a window resize — and each
+becomes a single `Targets::new`, because the sample count now lives with the textures:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2196,15 +2133,14 @@ impl Gpu {
     /// Acquire the next frame and clear it to `color`. Chapter 1 does nothing else — geometry passes
 ```
 
-Now the split. `clear` does four things in one body: write the uniforms, acquire a swapchain
-texture, encode the frame, submit and present. A caller that wants to add its OWN pass — an egui
-overlay at 69, a gumball at 74 — needs to get in between the third and the fourth, and cannot.
-So `clear`'s body becomes `begin_present`, and `clear` comes back as the two-line composition of
-the halves, which is the only way its behaviour cannot drift away from theirs.
+Now the split. `clear` writes the uniforms, acquires a swapchain texture, encodes the frame, then
+submits and presents. A caller that wants its OWN pass — an egui overlay at 69, a gumball at 74 —
+must get in between the third step and the fourth, and cannot. So `clear`'s body becomes
+`begin_present`, and `clear` comes back as the two-line composition of the halves.
 
-The `Option` is not cosmetic: this body has **two** early returns that mean "there is no frame" —
-a headless `Gpu` with no surface, and a lost surface that has just been reconfigured — and
-`Frame.view` has to hold a real `TextureView`, so neither can be expressed by a `Frame`.
+The `Option` is not cosmetic: this body has **two** early returns meaning "there is no frame" — a
+headless `Gpu` with no surface, and a lost surface just reconfigured — and `Frame.view` has to
+hold a real `TextureView`.
 
 **Find** in `src/engine/gpu/present.rs`:
 
@@ -2334,15 +2270,12 @@ cargo check --all-targets
 
 *What it cannot catch:* anything that type-checks. `b.line` where the old line read
 `&self.time_bind_group` compiles perfectly — both are `&wgpu::BindGroup` — and so does a
-`Targets::new` that forgot `TEXTURE_BINDING`. It also cannot see a `#[cfg]`-gated arm on the
-target you did not build, and `render_offscreen` and `bench_frames` are both behind
-`#[cfg(not(target_arch = "wasm32"))]`.
+`Targets::new` that forgot `TEXTURE_BINDING`. Nor can it see a `#[cfg]`-gated arm on the target
+you did not build, and `render_offscreen` and `bench_frames` are both behind one.
 
-**Ladder 2, `--moves`.** The only proof a `**Move**` moved its lines byte-identically. It takes
-the multiset of stripped, non-blank lines over {source} ∪ {destinations} before the lesson and
-after it, cancels every line the doc declares as added (a `Create` body, a `Replace`/`Add`
-argument) or removed (a `Delete`/`Replace` anchor) and every `Replace-all` rename, and reports the
-remainder:
+**Ladder 2, `--moves`.** The only proof a move took its lines byte-identically: the multiset of
+stripped, non-blank lines over {source} ∪ {destinations}, before and after, minus every line the
+doc declares as added or removed and every `Replace-all` rename:
 
 ```bash
 python3 docs/_replay_check.py --moves <end-of-45 snapshot> /tmp/w46 docs/46-gpu-floor.md
@@ -2354,15 +2287,13 @@ docs/46-gpu-floor.md: 1 move source(s), 0 not byte-identical
    ... lost-declared src/engine/gpu/mod.rs (over …) — 105 line(s)
 ```
 
-The third line is informational and is marked `...`, not `!!`: those 105 lines left `gpu/mod.rs`
-and the doc SPELLS EACH ONE OUT, in a `Find` block, before deleting it. `0 not byte-identical` is
-the verdict; `LOST` or `UNDECLARED` rows would not be.
+The third line is informational, marked `...` not `!!`: those 105 lines left `gpu/mod.rs` and the
+doc spells each one out in a `Find` block before deleting it. `0 not byte-identical` is the
+verdict; `LOST` or `UNDECLARED` rows would not be.
 
-**One** move source: every `**Move**` in this lesson starts in `src/engine/gpu/mod.rs`, and there
-are fourteen of them, landing in five files. That is not an accident of the writing — it is what
-made this ladder usable. Two sources pointing into one destination would report every line the
-other source contributed as an undeclared gain, so the sweep out of `app/scene.rs` in 6.3 is a
-`Replace` (declared, both sides printed) and not a Move.
+All fourteen moves start in `src/engine/gpu/mod.rs` and land in five files. That is what makes the
+ladder usable: two sources into one destination would report the other source's lines as an
+undeclared gain, so the sweep out of `app/scene.rs` in 6.3 is a `Replace`, not a move.
 
 *What it catches and the other three do not:* a line dropped inside a
 `#[cfg(not(target_arch = "wasm32"))]` arm. `render_offscreen` is 52 such lines, it is what the
@@ -2375,15 +2306,13 @@ pixel gate itself runs, and it is invisible to `cargo check --target wasm32-unkn
 ```
 
 64 rows: four mandatory scenes × four configs × two passes, plus four advisory scenes when their
-gitignored `.pb` assets are present. Every row is gated on **ink, draw count and object count**.
-Only `drawings_rotated` is gated on the PPM checksum, and it is the only one that can be: the
-splat lane is a two-pass atomic compute rasterizer, so which point wins a contested pixel is a
-race and `lion`, `bunny_cloud`, `cloud_mix`, `lidar14` and `bunny_drawings` record `nondet(splat)`;
-`bunny` holds no cloud at all and still drifts by exactly one pixel — (625, 220), grey 171 ⇄ 170,
-three bytes of 2,880,016 — through a second, unrelated race, and records `nondet(mesh)`. Both are
-exempted in `_GOLDENS.tsv` and neither is your bug. The gate runs each row twice inside itself and
-fails on a disagreement *before* it compares anything to the goldens, so a new nondeterminism
-surfaces as a nondeterminism and not as a diff.
+gitignored `.pb` assets are present. Every row is gated on **ink, draw count and object count**;
+only `drawings_rotated` is gated on the PPM checksum, because the splat lane is a two-pass atomic
+compute rasterizer and which point wins a contested pixel is a race. `lion`, `bunny_cloud`,
+`cloud_mix`, `lidar14` and `bunny_drawings` record `nondet(splat)`; `bunny` holds no cloud and
+still drifts by one pixel — (625, 220), grey 171 ⇄ 170, three bytes of 2,880,016 — and records
+`nondet(mesh)`. Both are exempted in `_GOLDENS.tsv` and neither is your bug. The gate runs each
+row twice and fails on a disagreement before comparing to the goldens.
 
 *What it cannot catch:* everything `State` owns. The harness calls `render_offscreen` and never
 constructs a `State`, so **`clear`, `begin_present` and `end_present` are compiler-gated only** —
@@ -2403,32 +2332,26 @@ viewer init OK — surface <w>x<h>, format <format>
 scene: <n> objects <n> arena verts <n> segments (<n> pipes) <n> glyphs (<n> spheres) <n> cloud points
 ```
 
-Three lines, in that order — `build` reached the end, the surface is configured, and `set_scene`
-ran — and then **no** `wgpu on_uncaptured_error` line, ever. That is the device error scope, and a
-binding whose size no longer matches its layout reports there and nowhere else. Then, with the
-scene up: orbit, pan and zoom (the `clear` path, once per frame); view keys **1**-**7** (each one
-re-writes the camera uniform through `write_camera`); **E** (a knob gating a draw); **L** (a knob
-picking a pipeline); **[** and **]** (a knob the cloud block reads); and finally **resize the
-window**, which is the only gesture that runs `Targets::new` after startup. If the frame survives
-all of that, `present.rs`, `view.rs`, `frame.rs` and `targets.rs` have each been exercised on a
-real surface.
+Three lines in that order, and then **no** `wgpu on_uncaptured_error` line, ever — a binding whose
+size no longer matches its layout reports in that device error scope and nowhere else. Then, with
+the scene up: orbit, pan and zoom (the `clear` path); view keys **1**-**7** (`write_camera`); **E**
+(a knob gating a draw); **L** (a knob picking a pipeline); **[** and **]** (a knob the cloud block
+reads); and **resize the window**, the only gesture that runs `Targets::new` after startup. That
+exercises `present.rs`, `view.rs`, `frame.rs` and `targets.rs` on a real surface.
 
 ## 8. What you can now do in one line
 
-Add a uniform the whole flat ink lane reads. Before this lesson that meant finding the struct near
-the bottom of a 2,139-line file, the write that fills it 500 lines above that, the buffer it is
-written into 800 lines above THAT, and then guessing which shaders declare the block. Now the
-struct, the writer, and the header naming the five `.wgsl` files that mirror it are one 177-line
-file.
+Add a uniform the whole flat ink lane reads. Before this lesson: the struct near the bottom of a
+2,139-line file, the write that fills it 500 lines above, the buffer 800 lines above THAT, and a
+guess at which shaders declare the block. Now all of it is one 177-line file.
 
 `LineUniform` ends in `_pad1`, four bytes that exist only because WGSL rounds the block up to 48.
 Take them.
 
-**Type all ten steps below.** The first five add the uniform, the last five take it back out —
-this is a demonstration, not part of the lesson's end state, and `frame.rs`, `gpu/mod.rs` and
-`ribbon.wgsl` must be back to what §6 left them at before you read §10. Do **not** undo it with
-`git checkout`: you have not committed lesson 46 yet, and that command would throw the whole
-lesson away.
+**Type all ten steps below.** The first five add the uniform, the last five take it back out — a
+demonstration, not part of the end state, and `frame.rs`, `gpu/mod.rs` and `ribbon.wgsl` must be
+back to what §6 left before §10. Do **not** undo it with `git checkout`: lesson 46 is not
+committed, and that would throw it all away.
 
 **8a.** The field. **Find** in `src/engine/gpu/frame.rs`:
 
@@ -2502,12 +2425,10 @@ cargo run -q --example selftest --target x86_64-unknown-linux-gnu --release -- \
     /tmp/tint.ppm assets/scenes/drawings_rotated.toml
 ```
 
-Most of the sheet's ink is now 35% of the way to red — reddish pixels go from 976 to 3,322. The ink
-COUNT barely moves: a colour change moves no geometry, and the only pixels that cross the counter's
-background threshold are anti-aliased edges that were already within a rounding step of it. But the
-frame is a different frame, and `drawings_rotated` is the one scene a checksum gates, so take it
-back out before §10. Three lines of Rust across two files, two of them in `frame.rs`, two lines of
-WGSL in one shader, and nothing else in the program knew.
+Most of the sheet's ink is now 35% of the way to red — reddish pixels go from 976 to 3,322. The
+ink COUNT barely moves: a colour change moves no geometry. But the frame is a different frame, and
+`drawings_rotated` is the one scene a checksum gates, so take it back out before §10. Three lines
+of Rust across two files, two lines of WGSL in one shader, and nothing else in the program knew.
 
 **8f.** **Find** in `src/shaders/ribbon.wgsl`:
 
@@ -2575,16 +2496,14 @@ WGSL in one shader, and nothing else in the program knew.
     pub(crate) _pad1: f32, // 4 B - struct size rounds up to the 16 B alignment
 ```
 
-The point is the size of the diff and the number of files you had to open, not the picture: the
-uniform, its writer, its `FrameInput`, and the list of shaders that mirror it were all on one
-screen.
+The point is the size of the diff and the number of files you had to open: the uniform, its
+writer, its `FrameInput` and the list of shaders that mirror it were all on one screen.
 
 ## 9. What is deliberately not here
 
-- **`RowTable<T>`.** `GrowBuf` is declared and constructed by nothing. Each family folds its own
-  `(buffer, count, cap)` triple into one as it is created — `Arena` at **47**, `SegmentLane` and
-  `GlyphLane` at **48**, the cloud and stream lanes at **49** — and the CPU-mirror-plus-`guid`-map
-  version lands at **57**, with the reconcile pass that is its first honest caller.
+- **`RowTable<T>`.** Each family folds its own `(buffer, count, cap)` triple in as it is created —
+  `Arena` at **47**, `SegmentLane`/`GlyphLane` at **48**, cloud and stream at **49**. The
+  CPU-mirror-plus-`guid`-map version lands at **57**, with its first honest caller.
 - **`Upload` regrouped per family.** It moved FLAT: nineteen columns, today's names. The `obj` and
   `arena` groups are **47**, `seg` and `glyph` are **48**, `cloud` and `span` are **49** — one
   instalment inside the lesson that creates the consumer, never as one 170-site table.
@@ -2594,15 +2513,12 @@ screen.
   **88**/**90**. `Targets` is sized from `config` today because that is all any caller needs.
 - **`render_to_texture(size, view_proj)`** — `render_offscreen` still hardcodes the surface size
   and the surface format: **107**.
-- **The `line_uniform_mirror` test**, which asserts the Rust `LineUniform` and the WGSL one agree
-  field by field: **47**, beside `instance_mirror`, because both are the same kind of test and 47
-  is where the `Instance` row moves.
+- **The `line_uniform_mirror` test**, asserting the Rust and WGSL `LineUniform` agree field by
+  field: **47**, beside `instance_mirror`, where the `Instance` row moves.
 - **Splitting `encode_frame`** into three fenced regions plus a twelve-line `scene_list`: **49**.
-  This lesson took the pass descriptor and the bind groups out of it and left the draw order
-  exactly where it was.
+  This lesson took the pass descriptor and the bind groups out and left the draw order alone.
 - **The three `#[allow(dead_code)]`s.** `GrowBuf` comes off at 47, `Targets.depth` at 88,
-  `Frame.view` at 69. Each is a field this lesson could not have justified on its own and the
-  named lesson uses; the attribute is the receipt.
+  `Frame.view` at 69 — each a field only the named lesson uses; the attribute is the receipt.
 - **Fixing anything a Move carried.** `append_rows`'s doc comment still opens with two lines about
   the index run below it. `ArenaUpload`'s doc still says "owened". The `glyph`/`segment` layout
   alias from lesson 45 is still there. A body you are moving is not a body you are fixing.
@@ -2647,54 +2563,47 @@ grep -c '&self.device, &self.queue,' src/engine/gpu/mod.rs
  0   device/queue pairs left
 ```
 
-`Gpu` 106 → 86 in human terms: two handles became one `ctx`, twelve uniform fields became one
-`frame`, three attachments became one `targets`, and seven knobs became one `view`. The
-architecture's arithmetic predicted 88; the measured tree is 86, because `mvp_f32`,
-`last_ortho_h` and `last_eye` are camera values the frame caches and they went with the uniforms
-they are computed beside. `gpu/mod.rs` 2139 → 1691: it still holds `build`, `set_scene`,
-`encode_frame` and eleven lanes' worth of flat fields — lessons 47-49 take those — but every line
-in it now does something specific to this program, and nothing in it is plumbing.
+`Gpu` 106 → 86: two handles became one `ctx`, twelve uniform fields one `frame`, three attachments
+one `targets`, seven knobs one `view`. The plan predicted 88; the measured tree is 86, because
+`mvp_f32`, `last_ortho_h` and `last_eye` went with the uniforms they are computed beside.
+`gpu/mod.rs` 2139 → 1691: it still holds `build`, `set_scene`, `encode_frame` and eleven lanes'
+worth of flat fields — 47-49 take those — but nothing left in it is plumbing.
 
 ## Recap
 
-> **45.** A pipeline is data. Eleven near-identical builder functions existed because a pipeline
-> had been modelled as code, and code cannot be spread with `..`. `PipelineDesc` names the eleven
-> settings that actually vary, four presets name the four recipes the viewer uses, and one `build`
-> holds the single `create_render_pipeline` call the whole program goes through. `Layouts` does the
-> same one level down, and `Pipelines::new(device, t, &l)` is frozen at three parameters so no
-> later lesson can add a layout by threading it through fourteen literals.
+> **45.** A pipeline is data. Eleven near-identical builders existed because a pipeline was
+> modelled as code, and code cannot be spread with `..`. `PipelineDesc` names the eleven settings
+> that vary, four presets name the four recipes, and one `build` holds the single
+> `create_render_pipeline` call. `Layouts` does the same one level down, and
+> `Pipelines::new(device, t, &l)` is frozen at three parameters.
 >
-> **46.** A buffer, its row count and its capacity are one value, and `device` and `queue` are one
-> value, and the seven things the keyboard toggles are one value. Forty-three of `Gpu`'s 106 fields
-> were spelling `(buffer, count, cap)` out longhand; ten call sites were passing `&self.device,
-> &self.queue,` as a pair; twelve fields were the three uniform blocks every shader reads. None of
-> that is a lane — a lane is a row format and a shader — so all of it goes UNDER the lanes, in five
-> files that name no row type and no `.wgsl`, plus `upload.rs` on the far side of the same line
-> naming no `wgpu::` type. The two shapes that fall out are the ones lessons 47-51 are built on:
-> `&GpuCtx` handed to a lane instead of held by it, which is what keeps every family method at
-> three parameters, and `Binds<'a>` — six shared reborrows taken before the pass opens, because a
-> `RenderPass` borrows the encoder for its whole life and a `&mut` in that struct would make every
-> draw uncompilable. **The law: the floor knows no lane. A buffer, its count and its cap are one
-> value; a knob is not a uniform; and nothing under the families may name a row, a shader or a
-> `Geometry::` variant.**
+> **46.** A buffer, its row count and its capacity are one value; so are `device` and `queue`; so
+> are the seven things the keyboard toggles. Forty-three of `Gpu`'s 106 fields spelled
+> `(buffer, count, cap)` out longhand, ten call sites passed `&self.device, &self.queue,` as a
+> pair, and twelve fields were the three uniform blocks every shader reads. None of that is a lane
+> — a lane is a row format and a shader — so it all goes UNDER the lanes, in five files that name
+> no row type and no `.wgsl`, plus `upload.rs` on the far side naming no `wgpu::` type. Two shapes
+> fall out that 47-51 are built on: `&GpuCtx` handed to a lane instead of held by it, and
+> `Binds<'a>`, six shared reborrows taken before the pass opens, because a `RenderPass` borrows
+> the encoder for its whole life. **The law: the floor knows no lane. A buffer, its count and its
+> cap are one value; a knob is not a uniform; and nothing under the families may name a row, a
+> shader or a `Geometry::` variant.**
 
 ## Edited
 
-`src/engine/gpu/buffers.rs` (NEW — `GpuCtx`, `GrowBuf`, `append_rows`, `append_index_run`,
-`mk_rows_group`, `zeroed_buffer`) · `src/engine/gpu/upload.rs` (NEW — `Upload` moved flat +
-`drop_uploaded` + `drop_rows`) · `src/engine/gpu/view.rs` (NEW — the seven knobs + `from_env`) ·
-`src/engine/gpu/frame.rs` (NEW — `FrameUniforms`, `FrameInput`, `Binds`, `write_camera`,
-`write_cloud`, `LineUniform`, `CloudUniform`, `line_thickness_px`) · `src/engine/gpu/targets.rs`
-(NEW — `Targets` with the depth TEXTURE + `begin_pass`) · `src/engine/gpu/present.rs` (NEW —
-`Frame`, `begin_present`, `end_present`, `clear`, `render_offscreen`, `bench_frames`) ·
-`src/engine/gpu/mod.rs` (loses all six; gains `ctx`, `frame`, `targets`, `view`; 106 → 86 fields) ·
-`src/app/scene.rs` (`drop_rows` and the fourteen-line sweep leave with the table) · `src/lib.rs`
-(five knob paths) · `src/selftest.rs` (two knob paths).
+`src/engine/gpu/buffers.rs` (NEW — `GpuCtx`, `GrowBuf`, the four free functions) ·
+`src/engine/gpu/upload.rs` (NEW — `Upload` moved flat + `drop_uploaded`) ·
+`src/engine/gpu/view.rs` (NEW — the seven knobs + `from_env`) · `src/engine/gpu/frame.rs` (NEW —
+`FrameUniforms`, `FrameInput`, `Binds`, the two writers, the two uniform structs) ·
+`src/engine/gpu/targets.rs` (NEW — `Targets` with the depth TEXTURE + `begin_pass`) ·
+`src/engine/gpu/present.rs` (NEW — `Frame`, `begin_present`/`end_present`, `clear`,
+`render_offscreen`, `bench_frames`) · `src/engine/gpu/mod.rs` (loses all six; gains `ctx`, `frame`,
+`targets`, `view`; 106 → 86) · `src/app/scene.rs` · `src/lib.rs` (five knob paths) ·
+`src/selftest.rs` (two).
 
 ## Reference
 
-The implementation this lesson was written from was built in eight checkpoints, each compiled,
-the last one gated twice:
+Built in eight checkpoints, each compiled, the last one gated twice:
 
 | checkpoint | what landed |
 |---|---|
@@ -2707,9 +2616,8 @@ the last one gated twice:
 | 46g | `gpu/present.rs` — `Frame` + `begin_present`/`end_present`/`clear` + the two native harnesses |
 | 46h | the `Gpu` head reordered to `surface, ctx, config, layouts, pipelines, frame, targets, view` |
 
-46h is folded into the steps above rather than kept as a step of its own: each of 6.4, 6.5 and 6.6
-inserts its field where it finally belongs, so the head is right the first time and no step ends
-by moving a line it wrote two steps earlier.
+46h is folded into the steps above: 6.4, 6.5 and 6.6 each insert their field where it finally
+belongs, so the head is right the first time.
 
 `git diff end-of-45..end-of-46 -- session_viewer/src` is the whole lesson as one patch; `diff -u`
 any single file against it if a line count comes out wrong.
