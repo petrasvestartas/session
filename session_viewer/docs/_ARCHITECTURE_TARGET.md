@@ -1124,3 +1124,73 @@ Widen S22 from "§2/§3" to the whole file — §6's `session_tests/viewer_secti
 | | | **357** |
 
 **Deferred, deliberately.** `_replay_check.py --stale` runs against the post-51 tree as the **first step of the +7 re-anchor pass**, not inside the block. The `Spacing` enum stays at the first lesson needing both units; the WGSL prelude stays at 104 (`mirror` is what covers the gap until then, now that it can actually run); `persistence.rs`'s 3-way split and `impl State { render, resize }` stay at **59** in all six places. `src/camera.rs`'s re-root to `engine/camera.rs` is **not** scheduled — it is recorded as an `OVER_CAP` debt row with lesson 62 (`Frustum`) as its owner, because moving it buys nothing the block needs and costs a golden.
+---
+
+# Revision 4 — measured on the real end-of-44 tree (2026-08-31)
+
+Revisions 1-3 were written against an end-of-39 working tree and predicted end-of-44 by arithmetic.
+The tree now exists: lesson 43 was re-authored to deliver all 31 of its ops (it delivered 9), lesson
+44 was re-authored onto main's flat cloud lane (33 ops), and the chain replays green from the
+end-of-42 snapshot and compiles on both targets. **Every number below was measured on that tree,
+twice, both passes identical. Where this section disagrees with revisions 1-3, this section is
+right** — and each disagreement is a gate the seven lessons must be re-based on.
+
+Baseline tree: replay `docs/43-streaming-cloud.md` then `docs/44-cloud-octree.md` onto the
+end-of-42 source. Goldens: `docs/_GOLDENS.tsv`, 64 rows, recorded by `docs/_gate.sh --record`.
+
+## The corrections
+
+| # | revisions 1-3 say | measured at end-of-44 | what it changes |
+|---|---|---|---|
+| 1 | `Gpu` = **113** | **116** | the whole field ladder |
+| 2 | ladder `113→103→86→63→43→18` (§8) *and* `113→102→89→66→44→18` (§1) — the document contradicts itself | start = **116** | every lesson's exit gate — see below |
+| 3 | today's `Gpu` = 99 / 98 | end-of-42 = **102** | the base of #1 |
+| 4 | `encode_frame` = **310** lines | **271** (`gpu/mod.rs:1845-2115`) | lesson 49's headline shrinks: 43 already pulled `splat_records` (114 lines) out |
+| 5 | `set_scene` = 197 lines | **194** (`1022-1215`) | minor |
+| 6 | `encode_splat` exists, seam S7b is free-shape "because it exists at end-of-44" | **there is no such function** — the compute encode is inline in `encode_frame:1860-1900` | S7b rests on a phantom. The *shape* (records → depth-for-all → colour-for-all, two lanes) is real; **extracting it is new code in lesson 49 and must be budgeted** |
+| 7 | `COPLANAR_DOT = 0.9999` | **`1.0 - 1e-9`** (`scene.rs:774`) | five orders of magnitude; §2's Mesh row is wrong |
+| 8 | `upload_to` drops **13** columns | **14** (44 adds `cloud_nodes`) | the count asserted in 46 and 49 |
+| 9 | **one** live `VIEWER_NO_DEPTH` branch (`build.rs:621`) | **two** — `build_sphere_pipeline:461` **and** `build_ribbon_solid_pipeline:621` | lesson 45's descs must preserve **both** |
+| 10 | `show_mesh_edges: false`, added after the 99-field measurement | **`true`** | the stated reason for calling `lion 4/1` stale does not exist |
+| 11 | "the quoted `lion 4/1` pair is already stale" | **not stale**: 77543 ink / 4 draws / 1 object, all four configs, both passes | keep the assertion |
+| 12 | `cloud_mix 11/210892 (Tubes 10)` | **confirmed exactly** (7469 ink / 11 / 210892; tubes 7455 / 10) | keep |
+| 13 | the pixel gate is a PPM checksum | **two independent nondeterminisms** — see below | `drawings_rotated` is the ONLY mandatory scene a checksum still gates |
+
+**Confirmed correct and unchanged:** 10 `.wgsl` files · `build.rs` 845 · `ArenaUpload` **19** columns
+· **12** `_cap` fields · `arena_vids` has no cap and rides `arena_vert_cap` · `Pipelines::new` 10
+params · 15 render pipelines · `edges` has **0** draw sites (yet is still declared, built and
+compiled) · `push_mesh` **314** lines / 8 params / `-> (Option<Bounds>, bool)` · **9** layout blocks
+in `Gpu::build` · `state.rs` 48 · `persistence.rs` 453 · `MESH_RAW_MIN` 200_000 ·
+`WIREFRAME_BLACK_MIN` 10_000.
+
+## The ladder, re-based
+
+`116` start with revision 2's per-lesson deltas gives `116 → 106 → 89 → 66 → 46 → 21`, which
+overshoots §4's **enumerated** 18-name end state by three. The three are exactly
+`show_points`, `show_lines`, `show_mesh_edges` — the Q/W/E lane toggles typed after revision 2 was
+measured. They are **knobs, not uniforms** (§5.6), so `View` absorbs them at lesson 46 along with
+`line_style`, `cloud_size`, `edl_strength` and `lod_split_px`, and the end state stays **18**.
+
+**Corrected ladder: `116 → 106 → 88 → 65 → 45 → 18`.** It is still arithmetic. Each lesson's
+Expected-state block quotes the count measured on its own output tree, and the count is the one
+cheap thing a reader can verify after every part.
+
+## The pixel gate is weaker than revisions 1-3 assume
+
+Two independent sources of frame-to-frame nondeterminism, both found by the house double-run rule,
+neither previously known:
+
+1. **The splat lane.** A 2-pass **atomic** compute rasterizer: which point wins a contested pixel is
+   a race. `lion` produced **three distinct PPM checksums over eight runs** while ink/draws/objects
+   stayed 77543/4/1 exactly. Affects `lion`, `bunny_cloud`, `cloud_mix`, `lidar14`, `bunny_drawings`.
+2. **The mesh lane.** `bunny` carries **no cloud** and still gave **four distinct checksums over 24
+   runs** under `VIEWER_REBUILD=1` (three over twelve at default). The magnitude is **three bytes of
+   2,880,016** — one pixel at (625, 220), grey 171 against 170 — below the ink threshold, so the
+   scalar counts never move. Root cause not yet chased; it is not the output path (a private
+   `TMPDIR` produced a fourth checksum) and not the splat lane.
+
+So a lesson gate is `ink + draws + objects` on three of the four mandatory scenes, and only
+`drawings_rotated` still carries a checksum. Revision 3's claim that the sha256 catches "pixels
+moved, count unchanged" holds for exactly one scene. Restoring it elsewhere needs a deterministic
+tie-break in `splat.wgsl` (depth-then-index `atomicMin`) and a diagnosis of the mesh case — both
+behaviour changes in `src/`, and therefore **not** part of a moves-only block.
