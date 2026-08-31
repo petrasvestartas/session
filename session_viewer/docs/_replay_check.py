@@ -530,6 +530,18 @@ def audit(docs, threshold):
     print(f"# {bad} doc(s) with parsed ops over the orphan threshold ({threshold})")
     return bad
 
+HEAVY = ("assets", "target", ".git", "dist", "node_modules", "__pycache__")
+
+def copy_tree(src, dst, link_heavy=True):
+    """Copy a snapshot without duplicating its bulk: heavy dirs are symlinked, not copied.
+    A snapshot's assets/ is ~1.7 GB — copying it per replay filled /tmp."""
+    src = pathlib.Path(src).resolve()
+    shutil.copytree(src, dst, symlinks=True, ignore=shutil.ignore_patterns(*HEAVY))
+    if not link_heavy: return
+    for p in src.iterdir():
+        if p.name in HEAVY and p.is_dir() and p.name != "__pycache__":
+            (pathlib.Path(dst) / p.name).symlink_to(p, target_is_directory=True)
+
 if __name__ == "__main__":
     argv = sys.argv[1:]
     if argv and argv[0] == "--audit":
@@ -546,13 +558,13 @@ if __name__ == "__main__":
     if check_moves: argv = argv[1:]
     snap = pathlib.Path(argv[0]); work = pathlib.Path(argv[1]); docs = argv[2:]
     if work.exists(): shutil.rmtree(work)
-    shutil.copytree(snap, work)
+    copy_tree(snap, work)
     prev = work.parent / (work.name + ".prev")
     bad = 0
     for d in docs:
         if check_moves:
             if prev.exists(): shutil.rmtree(prev)
-            shutil.copytree(work, prev)
+            copy_tree(work, prev, link_heavy=False)
         f = apply(work, d); total = len(ops(d))
         print(f"{d}: {total} ops, {len(f)} failed")
         for ln, tgt, why in f[:14]:
