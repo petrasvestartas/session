@@ -1,21 +1,20 @@
 # 44 Cloud octree — Potree's LOD, on our splat lane
 
-> Replay-verified against the end-of-43 tree. Numbers measured twice: with LOD off the
-> three goldens are PIXEL-IDENTICAL to lesson 43's; with LOD on, the lion close-up is
-> STILL pixel-identical (325369) while the fit views draw **92,331 of 7,492,706** points
-> (cloud_mix) and **37,972 of 13,793,783** (lidar14).
+> Replay-verified against the end-of-43 tree, and every number below measured twice on it
+> (both passes agreed). With LOD off the ink is the end-of-43 ink; with LOD on, the lion
+> close-up still draws every one of its points, while the two fit views draw **92,331 of
+> 7,492,706** and **37,972 of 13,793,783**.
 
 ## Goal
 
 Lessons 40/41 left one Potree feature on the table: the octree. This lesson takes it —
-using the kernel's new `SpatialOctree` (a real 3-language class,
-`session_rust/src/spatial_octree.rs`, with its own minitests: run
+using the kernel's `SpatialOctree` (a real 3-language class with its own minitests: run
 `./bash/quicktest.sh spatial_octree`). Each octree node owns a spacing-limited SUBSAMPLE
 of the cloud; the walk uploads points in octree order so every node is one contiguous
 `(first, count)` range — which is exactly what a splat record already is. Per frame, a
 screen-error walk picks nodes: far clouds stop at coarse ancestors (a few big dots),
-near clouds descend to raw leaves. Zoomed out, a 13.8M-point scene costs 38k points;
-zoomed in, you get every point back, pixel-exact.
+near clouds descend to raw leaves. Zoomed out, a 13.8M-point scene costs tens of
+thousands of points; zoomed in, you get every point back, pixel-exact.
 
 Streamed clouds (lesson [43](43-streaming-cloud.md)) keep their whole-cloud record —
 their points never exist on the CPU, so there is nothing to build a tree from. That is
@@ -29,168 +28,265 @@ wins — deterministic), sends the leftovers into octants at HALF the spacing, a
 whole nodes below `leaf_capacity`. It hands back:
 
 - `order()` — the permutation that makes every node's points contiguous,
-- per node: `node_cube` (center + edge), `node_spacing`, `node_range`, `children`.
+- per node: `node_cube` (centre + edge), `node_spacing`, `node_range`, `children`.
 
-## Step 1 — the node row: `src/engine/gpu/mod.rs`
+The class lives in the kernel, not in the viewer, and it is read-only here. Do not change it.
 
-**Find**:
+## The tuple has to go first
+
+A cloud's draw record has been a `(first, count, instance, spacing)` tuple since lesson 36.
+The octree gives every cloud a SECOND range — its slice of the node table — and
+`(first, count, instance, spacing, node_first, node_count)` is where positional fields stop
+being readable. So step 1 converts the tuple to a named struct across all three of its
+holders (`ArenaUpload`, the walked lane, the stream lane) before anything else happens.
+
+## Step 1 — the two row types: `src/engine/gpu/mod.rs`
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub spacing: f32,  // measured point spacing, world units (0 = unknown)
-}
+pub struct ArenaUpload{
 ```
 
-**Replace with:**
+**Add above it:**
 
 ```rust
-    pub spacing: f32,  // measured point spacing, world units (0 = unknown)
+/// One cloud's contiguous point range, as the record builder sees it. It was a
+/// `(first, count, instance, spacing)` tuple until the octree gave every cloud a second
+/// range - its slice of the LOD node table - and six positional fields is where a tuple
+/// stops being readable.
+#[derive(Clone, Copy)]
+pub struct CloudDraw {
+    pub first: u32,      // absolute first row in the cloud tables
+    pub count: u32,
+    pub instance: u32,   // the instance row this cloud draws against
+    pub spacing: f32,    // measured point spacing, world units (0 = unknown)
     pub node_first: u32, // first LodNode of this cloud in the nodes table (walked lane)
     pub node_count: u32, // 0 = no octree (streamed clouds) - the record covers everything
 }
 
-/// One octree node of a WALKED cloud (kernel SpatialOctree): its own spacing-limited
-/// subsample as an absolute row range in the cloud tables, its cube for the screen-error
-/// test, and the accept spacing that drives the attenuated splat radius. Children are
-/// indices RELATIVE to the cloud's node slice; -1 = none.
+/// One octree node of a WALKED cloud (kernel `SpatialOctree`): its own spacing-limited
+/// subsample as a row range, its cube for the screen-error test, and the accept spacing
+/// that drives the attenuated splat radius. `first` is RELATIVE to the cloud's own first
+/// point and `children` are indices RELATIVE to the cloud's node slice; -1 = none.
 #[derive(Clone, Copy)]
 pub struct LodNode {
-    pub center: [f32; 3], // cube center, cloud-LOCAL units
+    pub center: [f32; 3], // cube centre, cloud-LOCAL units
     pub size: f32,        // cube edge, cloud-local units
     pub spacing: f32,     // accept spacing, cloud-local units
-    pub first: u32,       // absolute row in the cloud tables
+    pub first: u32,       // row offset from the draw's own `first`
     pub count: u32,
     pub children: [i32; 8],
 }
+
 ```
 
-## Step 2 — the tables carry the nodes
+Both rows are `Copy` on purpose: `set_scene` rebases every draw on the way in, and the
+record walk copies a node out of the table per visit.
 
-**Find**:
+**Replace-all** `src/engine/gpu/mod.rs` `Vec<(u32, u32, u32, f32)>` → `Vec<CloudDraw>` (3 hits)
+
+Three holders, one rename: the upload table, the walked lane's draw list and the stream
+lane's. Their trailing comments still read true — the field names now say the same thing.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub draws: Vec<CloudDraw>,
-}
+    pub cloud_draws: Vec<CloudDraw>,
+```
 
-impl CloudTables {
-    pub fn new() -> Self {
-        Self { pos: Vec::new(), col: Vec::new(), nrm: Vec::new(), draws: Vec::new() }
-    }
-}
+**Add above it:**
+
+```rust
+    pub cloud_nodes: Vec<LodNode>, // every walked cloud's octree nodes; a draw owns one slice
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    cloud_draws: Vec<CloudDraw>,
+```
+
+**Add above it:**
+
+```rust
+    cloud_nodes: Vec<LodNode>,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            idx_print: Vec::new(),
+```
+
+**Add above it:**
+
+```rust
+            cloud_nodes: Vec::new(),
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            point_count,
+```
+
+**Add above it:**
+
+```rust
+            cloud_nodes: Vec::new(),
+```
+
+The node table is a fifth cloud column, sitting beside `cloud_pos`/`cloud_col`/`cloud_nrm`/
+`cloud_draws` in the upload and mirrored on the `Gpu`. It never reaches the GPU — the
+screen-error walk is a CPU pass over a few thousand rows per frame.
+
+## Step 2 — the node table reaches the lane: `src/engine/gpu/mod.rs`
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.cloud_draws.extend_from_slice(&up.cloud_draws);
 ```
 
 **Replace with:**
 
 ```rust
-    pub draws: Vec<CloudDraw>,
-    pub nodes: Vec<LodNode>, // all clouds' octree nodes, sliced per draw by node_first/count
-}
-
-impl CloudTables {
-    pub fn new() -> Self {
-        Self { pos: Vec::new(), col: Vec::new(), nrm: Vec::new(), draws: Vec::new(), nodes: Vec::new() }
-    }
-}
+        // The walk numbers a cloud's nodes from the start of ITS upload; the lane's table is
+        // cumulative, so every draw's node slice is rebased on the way in - the same thing
+        // `Scene::cloud_base` already does for the point rows.
+        let node_base = self.cloud_nodes.len() as u32;
+        self.cloud_nodes.extend_from_slice(&up.cloud_nodes);
+        self.cloud_draws.extend(up.cloud_draws.iter().map(|d| CloudDraw { node_first: d.node_first + node_base, ..*d }));
 ```
 
-**Find** (in `CloudLane` — the only `count` + `draws` pair):
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub count: u32,
-    pub draws: Vec<CloudDraw>,
-}
-```
-
-**Replace with:**
-
-```rust
-    pub count: u32,
-    pub draws: Vec<CloudDraw>,
-    pub nodes: Vec<LodNode>,
-}
-```
-
-**Find** (the `cloud:` literal in `Gpu::build`):
-
-```rust
-                count: point_count,
-                draws: Vec::new(),
-            },
-```
-
-**Replace with:**
-
-```rust
-                count: point_count,
-                draws: Vec::new(),
-                nodes: Vec::new(),
-            },
-```
-
-**Find** (in `set_scene`):
-
-```rust
-        self.cloud.draws = up.clouds.draws.clone();
+        self.cloud_draws.clear();
 ```
 
 **Add below it:**
 
 ```rust
-        self.cloud.nodes = up.clouds.nodes.clone();
+        self.cloud_nodes.clear();
 ```
 
-## Step 3 — the eye reaches the record builder
+A rebuild rewinds every lane, and a node slice that outlived its draws would hand the
+record walk indices into a table that no longer describes the scene.
+
+## Step 3 — the tuple's remaining users
+
+Five field accesses were positional. Naming them is the whole change.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.stream_draws.push((self.stream_count, count, instance, 0.0));
+```
+
+**Replace with:**
+
+```rust
+        self.stream_draws.push(CloudDraw { first: self.stream_count, count, instance, spacing: 0.0, node_first: 0, node_count: 0 });
+```
+
+`node_count: 0` is how a streamed cloud opts out: no CPU points, no tree, one record for
+the whole run. It is not a special case in the record builder — just an empty slice.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if d.3 == 0.0 && self.stream_pos_at == d.0 && pos.len() >= 6 {
+```
+
+**Replace with:**
+
+```rust
+            if d.spacing == 0.0 && self.stream_pos_at == d.first && pos.len() >= 6 {
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                    d.3 = gaps[gaps.len() / 2];
+```
+
+**Replace with:**
+
+```rust
+                    d.spacing = gaps[gaps.len() / 2];
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+                d.2 = row;
+```
+
+**Replace with:**
+
+```rust
+                d.instance = row;
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+        for &(first, count, inst, _) in t.cloud_draws.iter().skip(draw0){
+```
+
+**Replace with:**
+
+```rust
+        for &CloudDraw { first, count, instance: inst, .. } in t.cloud_draws.iter().skip(draw0){
+```
+
+The walk's bounds sweep wants three of six fields, so it names three and `..` the rest —
+the read that a six-field tuple could not have expressed at all.
+
+## Step 4 — the eye reaches the record builder: `src/engine/gpu/mod.rs`
 
 The screen-error test needs the camera position in anchored world units — the same eye
-`write_frame_uniforms` already solves for the pen uniforms, now cached.
+`write_frame_uniforms` already solves for the pen uniform, now cached.
 
-**Find** (in `FrameUniforms`):
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub mvp_f32: [f32; 16], // this frame's matrix, CPU-side - the splat records fold it
-    pub last_ortho_h: f32,  // ortho half-height (0 = perspective), for the splat k
-}
+    pub cloud_bind_group: wgpu::BindGroup,
 ```
 
-**Replace with:**
+**Add above it:**
 
 ```rust
-    pub mvp_f32: [f32; 16], // this frame's matrix, CPU-side - the splat records fold it
-    pub last_ortho_h: f32,  // ortho half-height (0 = perspective), for the splat k
-    pub last_eye: [f32; 3], // eye in anchored world units, for the LOD screen-error test
-}
+    last_eye: [f32; 3], // eye in anchored world units, for the LOD screen-error test
 ```
 
-**Find** (the `frame:` literal):
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-                mvp_f32: [0.0; 16],
-                last_ortho_h: 0.0,
-            },
+            cloud_bind_group,
 ```
 
-**Replace with:**
+**Add above it:**
 
 ```rust
-                mvp_f32: [0.0; 16],
-                last_ortho_h: 0.0,
-                last_eye: [0.0; 3],
-            },
+            last_eye: [0.0; 3],
 ```
 
-**Find** (in `write_frame_uniforms`):
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-        self.frame.mvp_f32 = view_proj.to_f32();
-        self.frame.last_ortho_h = Self::ortho_half_height(view_proj);
+        self.last_ortho_h = Self::ortho_half_height(view_proj);
 ```
 
 **Add below it:**
 
 ```rust
-        self.frame.last_eye = Self::eye_from_view_proj(view_proj);
+        self.last_eye = Self::eye_from_view_proj(view_proj);
 ```
 
-**Find** (the pen uniform reuses it, a few lines down):
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
             eye: Self::eye_from_view_proj(view_proj),
@@ -199,72 +295,86 @@ The screen-error test needs the camera position in anchored world units — the 
 **Replace with:**
 
 ```rust
-            eye: self.frame.last_eye,
+            eye: self.last_eye,
 ```
 
-## Step 4 — the knob
+The pen uniform used to solve the eye a second time. Now both readers take the cached one,
+and there is exactly one place where "this frame's eye" is decided.
 
-**Find**:
+## Step 5 — the knob: `src/engine/gpu/mod.rs`
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub edl_strength: f32, // Eye-Dome Lighting strength; 0 = off (VIEWER_EDL)
+    pub cloud_bind_group: wgpu::BindGroup,
 ```
 
-**Add below it:**
+**Add above it:**
 
 ```rust
     pub lod_split_px: f32, // octree LOD cutoff: descend while a node's spacing projects wider; 0 = off (VIEWER_LOD)
 ```
 
-**Find** (the struct literal):
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-            edl_strength: std::env::var("VIEWER_EDL").ok().and_then(|v| v.parse().ok()).unwrap_or(0.25),
+            cloud_bind_group,
 ```
 
-**Add below it:**
+**Add above it:**
 
 ```rust
             lod_split_px: std::env::var("VIEWER_LOD").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0),
 ```
 
-## Step 5 — streamed clouds opt out
+It lands in the cloud knob block beside `cloud_size` and `edl_strength`, and `VIEWER_LOD=0`
+turns the whole selection off — which is what makes the next section's claim testable.
 
-**Find** (in `cloud_begin`):
+## Step 6 — the selection: `splat_records` learns LOD
+
+The record builder gains the node table and, per cloud, a screen-error walk over it.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-        self.stream.draws.push(CloudDraw { first: self.stream.count, count, instance, spacing: 0.0 });
+draws: &[(u32, u32, u32, f32)]
 ```
 
 **Replace with:**
 
 ```rust
-        self.stream.draws.push(CloudDraw { first: self.stream.count, count, instance, spacing: 0.0, node_first: 0, node_count: 0 });
+draws: &[CloudDraw], nodes: &[LodNode]
 ```
 
-## Step 6 — the selection: `splat_records` learns LOD
+**Remove** `src/engine/gpu/mod.rs` `        let mut header = [0u32; 4];` **through** `    }`
 
-**Find** `fn splat_records(&self, draws: &[CloudDraw]) -> ([u32; 4], Vec<u8>, u32) {` and
-**replace the whole function** — down to and including its closing
-`(header, recs, cum)` + `}` — **with:**
+That cuts the old body out from under the signature, leaving its doc comment and the
+signature you just renamed. The replacement goes straight back in below it.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    fn splat_records(&self, draws: &[CloudDraw], nodes: &[LodNode]) -> ([u32; 4], Vec<u8>, u32) {
+-> ([u32; 4], Vec<u8>, u32) {
+```
+
+**Add below it:**
+
+```rust
         let mut header = [0u32; 4];
         let mut recs: Vec<u8> = Vec::new();
         let mut cum = 0u32;
-        let ortho_h = self.frame.last_ortho_h as f64;
+        let ortho_h = self.last_ortho_h as f64;
         let vp_h = self.config.height as f64;
         let aspect = self.config.width as f64 / self.config.height as f64;
-        let eye = self.frame.last_eye;
+        let eye = self.last_eye;
         for &CloudDraw { first, count, instance: inst, spacing, node_first, node_count } in draws {
-            let Some(row) = self.objects.rows.get(inst as usize) else { continue };
+            let Some(row) = self.instances.get(inst as usize) else { continue };
             if row.flags & Instance::FLAG_HIDDEN != 0 { continue; }
             let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * self.cloud_size;
             if px <= 0.0 || header[0] >= 256 { continue; }
-            // column-major 4x4: combined = mvp x model - the same per cloud, shared by
-            // every record the cloud emits
-            let (a, b) = (&self.frame.mvp_f32, &row.model);
+            // column-major 4x4: combined = mvp x model - one per cloud, shared by every
+            // record the cloud emits
+            let (a, b) = (&self.mvp_f32, &row.model);
             let mut m = [0.0f32; 16];
             for col in 0..4 {
                 for r in 0..4 {
@@ -328,7 +438,7 @@ The screen-error test needs the camera position in anchored world units — the 
                     if ndc_x.abs() > 1.0 + ry / aspect.min(1.0) || ndc_y.abs() > 1.0 + ry {
                         continue; // the whole subtree is outside the view
                     }
-                    // node center in anchored world units - the eye's space
+                    // node centre in anchored world units - the eye's space
                     let w = [
                         row.model[0] * c[0] + row.model[4] * c[1] + row.model[8] * c[2] + row.model[12],
                         row.model[1] * c[0] + row.model[5] * c[1] + row.model[9] * c[2] + row.model[13],
@@ -348,7 +458,8 @@ The screen-error test needs the camera position in anchored world units — the 
                     // a node can never be DENSER than the raw cloud, so the measured
                     // spacing is also the floor there. Leaves hold raw points.
                     let sp = if refine || leaf { spacing } else { nd.spacing.max(spacing) };
-                    emit(nd.first, nd.count, sp, &mut recs, &mut header, &mut cum);
+                    // `nd.first` is relative to this cloud's own first point
+                    emit(first + nd.first, nd.count, sp, &mut recs, &mut header, &mut cum);
                     if refine {
                         for &ch in &nd.children {
                             if ch >= 0 { stack.push(ch as usize); }
@@ -366,9 +477,12 @@ The screen-error test needs the camera position in anchored world units — the 
 
 Three design points hiding in there, each paid for in debugging:
 
-- **The frustum cull is load-bearing, not an optimisation.** Without it a close zoom
-  visits every node, and the 256-record table silently truncates — the lion lost 12k
-  pixels to exactly this before the cull went in.
+- **The frustum cull is load-bearing, not an optimisation.** A close zoom pushes most of
+  the tree off screen, and every off-screen node the walk visits still spends a record out
+  of 256. Measured on the lion close-up: `VIEWER_ZOOM=60` costs 64 records with the cull
+  and 84 without, for the SAME 663485 ink pixels. Twenty wasted records is nothing at
+  342k points and everything on a scene of scans, where the table saturating truncates
+  the picture with no error anywhere.
 - **A refined node renders at the MEASURED spacing.** Its region also receives all its
   deeper points, so its subsample is part of a full-density picture; give it the coarse
   node spacing and its big dots blob OVER the fine layer (the depth race lets the nearer
@@ -378,91 +492,139 @@ Three design points hiding in there, each paid for in debugging:
   plus the fringe is the whole picture at bounded density — that is Potree's additive
   hierarchy.
 
-**Find** (first call site, in `encode_frame`):
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-            let (header, recs, cum) = self.splat_records(&self.cloud.draws);
+self.splat_records(&self.cloud_draws)
 ```
 
 **Replace with:**
 
 ```rust
-            let (header, recs, cum) = self.splat_records(&self.cloud.draws, &self.cloud.nodes);
+self.splat_records(&self.cloud_draws, &self.cloud_nodes)
 ```
 
-**Find** (the stream lane call — no CPU points, no tree):
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-            let (header_s, recs_s, cum_s) = self.splat_records(&self.stream.draws);
+self.splat_records(&self.stream_draws)
 ```
 
 **Replace with:**
 
 ```rust
-            let (header_s, recs_s, cum_s) = self.splat_records(&self.stream.draws, &[]);
+self.splat_records(&self.stream_draws, &[])
 ```
+
+The stream lane passes an empty node table and every one of its draws carries
+`node_count: 0`, so the walk is never entered for it. One function, two lanes, no flag.
 
 ## Step 7 — the walk builds the tree: `src/app/scene.rs`
 
-**Find**:
+**Find** in `src/app/scene.rs`:
 
 ```rust
-use session_rust::{Session, Geometry, Mesh, Line, Point, Polyline, NurbsCurve, RenderVertex, Plane, OBB, PointCloud, Vector};
+PointCloud, Vector, Tolerance};
 ```
 
 **Replace with:**
 
 ```rust
-use session_rust::{Session, Geometry, Mesh, Line, Point, Polyline, NurbsCurve, RenderVertex, Plane, OBB, PointCloud, SpatialOctree, Vector};
+PointCloud, SpatialOctree, Vector, Tolerance};
 ```
 
-**Find**:
+**Find** in `src/app/scene.rs`:
 
 ```rust
-use crate::engine::gpu::{ArenaUpload, CloudDraw, Instance, CylinderSegment, GlyphPoint, ObjectBase};
-```
-
-**Replace with:**
-
-```rust
-use crate::engine::gpu::{ArenaUpload, CloudDraw, Instance, CylinderSegment, GlyphPoint, LodNode, ObjectBase};
-```
-
-**Find** (the cloud arm):
-
-```rust
-                Geometry::PointCloud(pc) => {
-                    let first = (t.clouds.pos.len() / 3) as u32;
-                    push_cloud(pc, &mut t.clouds.pos, &mut t.clouds.col, &mut t.clouds.nrm);
-                    t.clouds.draws.push(CloudDraw { first, count: pc.len() as u32, instance: ri, spacing: cloud_spacing(pc) });
+use crate::engine::gpu::{ArenaUpload,
 ```
 
 **Replace with:**
 
 ```rust
-                Geometry::PointCloud(pc) => {
-                    let first = (t.clouds.pos.len() / 3) as u32;
-                    let node_first = t.clouds.nodes.len() as u32;
-                    push_cloud(pc, &mut t.clouds);
-                    let node_count = t.clouds.nodes.len() as u32 - node_first;
-                    t.clouds.draws.push(CloudDraw { first, count: pc.len() as u32, instance: ri, spacing: cloud_spacing(pc), node_first, node_count });
+use crate::engine::gpu::{ArenaUpload, CloudDraw, LodNode,
 ```
 
-**Find** `/// The raw lane's rows, written STRAIGHT into the shared table` and **replace
-the whole `push_cloud` function including that comment with:**
+**Find** in `src/app/scene.rs`:
 
 ```rust
-/// The raw lane's rows, written STRAIGHT into the shared table in OCTREE ORDER: the
-/// kernel SpatialOctree hands back a permutation where every LOD node's subsample is
-/// contiguous, so a node is one (first, count) splat record. Still the kernel's FLAT
-/// arrays (no per-point allocs), still one peak, not two.
-fn push_cloud(pc: &PointCloud, t: &mut crate::engine::gpu::CloudTables) {
-    let coords = pc.coords();
-    let colors = pc.colors();
-    let normals = pc.normals();
-    let n = pc.len();
-    // Octree knobs: root accept spacing = cube/64 (the root's own subsample is a coarse
-    // sketch), leaves absorb below 8192 points so shallow clouds stay one node.
+                    let first = cb + (t.cloud_pos.len() / 3) as u32;
+```
+
+**Add below it:**
+
+```rust
+                    let node_first = t.cloud_nodes.len() as u32;
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+&mut t.cloud_col, &mut t.cloud_nrm);
+```
+
+**Replace with:**
+
+```rust
+&mut t.cloud_col, &mut t.cloud_nrm, &mut t.cloud_nodes);
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+                    t.cloud_draws.push((first, pc.len() as u32, ri, cloud_spacing(pc)));
+```
+
+**Replace with:**
+
+```rust
+                    let node_count = t.cloud_nodes.len() as u32 - node_first;
+                    t.cloud_draws.push(CloudDraw { first, count: pc.len() as u32, instance: ri, spacing: cloud_spacing(pc), node_first, node_count });
+```
+
+The cloud arm brackets `push_cloud` with the node table's length: what the walk appended
+in between IS this cloud's slice. No counter, no second pass.
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+        drop_rows(&mut t.cloud_draws);
+```
+
+**Add below it:**
+
+```rust
+        drop_rows(&mut t.cloud_nodes);
+```
+
+The node column is a per-upload delta like the point columns, which is exactly why
+`set_scene` rebases `node_first` when it takes it: the walk counts from zero every upload.
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+nrm: &mut Vec<u32>){
+```
+
+**Replace with:**
+
+```rust
+nrm: &mut Vec<u32>, nodes: &mut Vec<LodNode>){
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+    nrm.reserve(n);
+```
+
+**Add below it:**
+
+```rust
+    // The LOD octree, built ONCE and read twice: `order()` is the permutation that makes
+    // every node's points contiguous, and the node table is this walk's second output.
+    // Root accept spacing = the cube over 64 (the root's own subsample is a coarse
+    // sketch); leaves absorb below 8192 points, so a shallow cloud stays one node.
     let (mut lo, mut hi) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
     for i in 0..n {
         for k in 0..3 {
@@ -472,79 +634,100 @@ fn push_cloud(pc: &PointCloud, t: &mut crate::engine::gpu::CloudTables) {
     }
     let size = (hi[0] - lo[0]).max(hi[1] - lo[1]).max(hi[2] - lo[2]).max(1.0e-9);
     let tree = SpatialOctree::from_coords(coords, size / 64.0, 8192);
-    let base = (t.pos.len() / 3) as u32;
-    t.pos.reserve(n * 3);
-    t.col.reserve(n);
-    t.nrm.reserve(n);
-    for &i in tree.order() {
-        t.pos.push(coords[i * 3] as f32);
-        t.pos.push(coords[i * 3 + 1] as f32);
-        t.pos.push(coords[i * 3 + 2] as f32);
-        // Normal, oct16-packed into 16 bits (same encoding as the edge facing words).
-        // All-ones = this point HAS no normal: a scan without them still pays the 4 B,
-        // but the shading branch stays uniform per cloud, which is what the GPU wants.
-        t.nrm.push(if i * 3 + 2 < normals.len() {
-            let v = Vector::new(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]);
-            oct16(&v).unwrap_or(u32::MAX)
-        } else {
-            u32::MAX
-        });
-        let c = i * 4;
-        // The colour is 8-bit at the source (proto 0-255): pack it back to the four bytes it
-        // is, instead of four f32s carrying four bytes of information.
-        t.col.push(if c + 3 < colors.len() {
-            (colors[c] as u32 & 255) | (colors[c + 1] as u32 & 255) << 8
-                | (colors[c + 2] as u32 & 255) << 16 | (colors[c + 3] as u32 & 255) << 24
-        } else {
-            0xff00_0000
-        });
-    }
+    // `first` is RELATIVE to this cloud's own first point, exactly as `children` are
+    // relative to the cloud's node slice: the record builder adds the draw's base, so a
+    // cloud can be re-uploaded at a different offset without rewriting its nodes.
     for ni in 0..tree.node_count() {
         let (center, sz) = tree.node_cube(ni);
         let (f, count) = tree.node_range(ni);
+        // `children` hands back only the octants that exist, so the empty slots stay -1
+        // and the record walk skips them; which octant a child was is nothing the
+        // screen-error test asks about.
         let mut children = [-1i32; 8];
         for (slot, &ch) in tree.children(ni).iter().enumerate() {
             children[slot] = ch as i32;
         }
-        t.nodes.push(LodNode {
+        nodes.push(LodNode {
             center: [center[0] as f32, center[1] as f32, center[2] as f32],
             size: sz as f32,
             spacing: tree.node_spacing(ni) as f32,
-            first: base + f as u32,
+            first: f as u32,
             count: count as u32,
             children,
         });
     }
-}
 ```
 
-## Why LOD off is pixel-identical
+**Find** in `src/app/scene.rs`:
+
+```rust
+    for i in 0..n{
+```
+
+**Replace with:**
+
+```rust
+    for &i in tree.order(){
+```
+
+That last one-line swap is the whole upload change: the rows are written in octree order
+instead of file order, and `i` still indexes the kernel's flat arrays, so every push below
+it is untouched. Still no per-point allocation, still one peak and not two — the tree
+stores nothing, it only borrows `coords` during construction.
+
+## Why LOD off is the reference switch
 
 `VIEWER_LOD=0` emits one whole-cloud record, exactly as before — but the points are now
 in octree order. That cannot change the image: the depth pass keeps the MAX reverse-Z
-bits per pixel over the same point set, and max is order-free. Which makes LOD off a
-true reference switch: any pixel that differs with it ON was changed by selection, not by
-the reorder.
+bits per pixel over the same point set, and max is order-free. Only the colour claim can
+notice, and only where two points tie on depth — the same race two runs of the unchanged
+binary already lose to each other. So the ink count with LOD off is the end-of-43 ink
+count, and any ink that moves with it ON was moved by selection, not by the reorder.
 
 ## Expected state
 
 - Kernel: `./bash/quicktest.sh spatial_octree` — 9/9 in all three languages.
 - `cargo check --target wasm32-unknown-unknown --lib` clean; shaders untouched.
-- `VIEWER_LOD=0`: all three lesson-43 goldens EXACTLY — lion 325369, cloud_mix 12143,
-  lidar14 3798.
-- LOD on (default 1.0), measured twice:
+- The SELECTION, at default `VIEWER_LOD=1.0` and 1200x800. Two runs of each scene agreed
+  to the record:
 
 ```
-lion.json     (ZOOM=6 close-up)  non-background pixels: 325369 (33.9%)  <- IDENTICAL to full
-cloud_mix.json (fit)             non-background pixels: 11887 (1.1%)    92,331 of 7,492,706 points
-lidar14.json   (fit)             non-background pixels: 3548 (0.3%)     37,972 of 13,793,783 points
+lion.toml       (VIEWER_ZOOM=6, close-up)   127 records    341,989 of    341,989 points
+cloud_mix.toml  (fit)                        66 records     92,331 of  7,492,706 points
+lidar14.toml    (fit)                        29 records     37,972 of 13,793,783 points
 ```
 
-  The lion close-up selects 127 records that happen to cover all 341,989 points — full
-  detail because you are close. The fit views draw 66 and 29 records: **80-360× fewer
-  points for ~95% of the ink**.
-- The 13.8M native walk now takes ~10.3 s (octree build included) — native only; a cloud
-  that big STREAMS in the browser and skips the tree. The browser's walked clouds
-  (≤1.5M) build in well under a second.
+  The lion close-up selects 127 records that cover ALL its points — full detail because
+  you are close. The fit views draw **81× and 363× fewer points** for **99% and 93% of the
+  ink**.
+- The INK, same harness, each row measured twice:
+
+```
+scene                        end-of-43   VIEWER_LOD=0   LOD on (1.0)
+lion.toml   (ZOOM=6)            319965        319965         319965
+cloud_mix.toml (fit)              9009          9009           8899
+lidar14.toml   (fit)              4611          4612           4294
+```
+
+  `VIEWER_LOD=0` reproduces the end-of-43 ink exactly on two scenes and to a single pixel
+  on lidar14 — and that pixel is not the reorder. Two runs of the SAME end-of-43 binary
+  already differ in a few pixels (3 on the lion, 0-2 elsewhere), because `cs_color` claims
+  a pixel through an atomic race and two points at equal depth can win in either order.
+  Compare ink counts, not file hashes: the .ppm sha is not reproducible run to run, with
+  or without this lesson.
+- The octree is the walk's new cost, and it is paid on the CPU at load: the lion's 342k
+  points go from ~14-28 ms to ~85-107 ms, and the 13.8M scan walks in 10.3 s (measured
+  twice, 10.36 / 10.33). Native only — a cloud that big STREAMS in the browser and skips
+  the tree, and the browser's walked clouds (≤1.5M) build in well under a second.
 - Knobs: `VIEWER_LOD=<px>` — descend while a node's spacing projects wider than this
   (bigger = coarser = faster; 0 = off). `[` `]` still scale dot size on top.
+
+## Recap
+
+- The kernel owns the octree; the viewer owns the selection. `order()` is the whole
+  contract between them — write the points in it and a node becomes a splat record.
+- A tuple stops being a data structure at about four fields. Name it before you grow it.
+- Emit every VISITED node, not just the leaves: the additive hierarchy is what makes the
+  fringe's coarse dots and the interior's fine dots add up to one picture.
+- Cull the subtree before you test its error, or a close zoom starves the record table.
+- `VIEWER_LOD=0` is a reference switch, not a fallback. Keep it working.
