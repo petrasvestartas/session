@@ -359,7 +359,21 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
   **The point-cloud chain ends here — the restructure (45-51) starts only after it**
 
 ## Phase 4b — The restructuring (45–51; USER DECISION 2026-08-28: after the pointcloud chain, plain numbers — spec: `_ARCHITECTURE_TARGET.md`, plan: `_RESTRUCTURE_PLAN.md`)
-- ⬜ 45–51 The lanes and the walk — `Gpu` ~110 → ~19 fields, ONE file per render lane
+- 🔨 45–51 The lanes and the walk — `Gpu` **116 → 18** fields, ONE file per render lane
+  - ✅ **45** A pipeline is data, not a function — `build.rs` 845 → 215, `Pipelines::new` 10 → 3 params,
+    `math.rs` + `pipelines/layouts.rs` split out, `edges.wgsl` deleted. `Gpu` 116 → **106**.
+  - ✅ **46** The floor is not a lane — `buffers.rs` (`GpuCtx`, `GrowBuf`), `upload.rs`, `view.rs`,
+    `frame.rs`, `targets.rs`, `present.rs`. `Gpu` 106 → **86**.
+  - ✅ **47** One row per object — `instance.rs` (+ two WGSL-mirror tests, the first `#[test]`s in
+    `src/`), `objects.rs`, `arena.rs`. `Gpu` 86 → **63**.
+  - ✅ **48** One row, two shaders — `segments.rs`, `glyphs.rs`; `pipelines/mod.rs` 130 → 67 and it
+    names 4 shaders instead of 8. `Gpu` 63 → **43**.
+  - ⬜ **49** The frame is a list — `cloud.rs`, `splat.rs` (+ a real `SplatRecord` type),
+    `stream.rs`, `backdrop.rs`, `render.rs`. `Gpu` 43 → **18**.
+  - ⬜ **50** A producer's signature names the shaders it can reach — the `app/walk/` split.
+  - ⬜ **51** Five types, one body — `push_mesh` 314 lines / 8 params → adapters; then
+    `ARCHITECTURE.md` §0 and this phase's rows are rewritten as the block's exit artefact.
+  - Original scope note: ONE file per render lane
   (`engine/gpu/{buffers,upload,frame,targets,instance,objects,arena,segments,glyphs,cloud,splat,stream,backdrop,render,present,view}.rs` — one per ROW FAMILY, not per shader)
   and ONE file per geometry type (`app/walk/{mesh,mesh_ink,mesh_topology,brep,surface,curves,points,
   frames,cloud}.rs`); `push_mesh` 8 params → `Walk`; `pipelines/build.rs` 845 → ~135 via `PipelineDesc`;
