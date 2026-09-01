@@ -22,11 +22,13 @@
 ## Files we touch
 
 ```
-src/shaders/surface_tess.wgsl # NEW — 2-direction basis + tensor accumulate + FD normal
-src/engine/pipelines/build.rs # build_surface_tess_pipeline (clone of 73's builder, new bgl)
-src/engine/pipelines/mod.rs   # register
-src/engine/gpu/mod.rs         # arena vbo gains STORAGE usage; dispatch_surfaces
-src/app/scene.rs              # surface arm: reserve arena region + static index grid
+src/shaders/surface_tess.wgsl      # NEW — 2-direction basis + tensor accumulate + FD normal
+src/engine/gpu/surface_tess.rs     # NEW — SurfaceUpload + the dispatch, 73's lane file mirrored
+src/engine/pipelines/layouts.rs    # Layouts.surface_tess — 73's three entries, wider uniform
+src/engine/pipelines/mod.rs        # one build_compute line
+src/engine/gpu/arena.rs            # the vbo gains STORAGE usage, both sites
+src/engine/gpu/upload.rs           # Upload.surface_uploads + one drop_rows line
+src/app/walk/surface.rs            # reserve an arena region + write the static index grid
 ```
 
 ## Step 1 — what the tensor product parallelizes
@@ -130,7 +132,7 @@ fn tess(@builtin(global_invocation_id) gid: vec3<u32>) {
 ## Step 3 — density is a decision, not a loop
 
 The CPU mesher refines until deflection criteria pass. On the GPU the same criteria run ONCE,
-CPU-side, to pick the grid — in `src/app/scene.rs` beside the surface arm:
+CPU-side, to pick the grid — in `src/app/walk/surface.rs`, beside the producer:
 
 ```rust
 /// mesh_q's criteria as an up-front density law: per direction, samples per span from the
@@ -148,40 +150,44 @@ Honest label: this is the *budgeted* version — spans stand in for measured cur
 43's trade. The full port (turn angles of the control net per span deciding `per_span`) is a
 CPU-side refinement of this function; the shader never changes.
 
-## Step 4 — the arena becomes writable: `src/engine/gpu/mod.rs`
+## Step 4 — the arena becomes writable: `src/engine/gpu/arena.rs`
 
-Find the arena vbo usage (`let vu = wgpu::BufferUsages::VERTEX | ...`, two sites — creation
-and the grow path in reconcile) and add `STORAGE` to both:
+The triangle family owns its vertex table, so the usage line is there — `let vu = ...`, two
+sites, `Arena::new` and the grow path inside `Arena::append` — and `STORAGE` goes on both:
 
 ```rust
         let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST
                | wgpu::BufferUsages::COPY_SRC | wgpu::BufferUsages::STORAGE; // compute writes verts
 ```
 
-`dispatch_surfaces` mirrors `dispatch_curves` with 2-D workgroups:
+`gpu/surface_tess.rs` is `curve_tess.rs` with a second direction: the same `SurfaceUpload` in,
+the same bind-group-per-surface, and `dispatch_surfaces` mirroring `tessellate_curves` with 2-D
+workgroups:
 
 ```rust
                 pass.dispatch_workgroups(c.grid_u.div_ceil(8), c.grid_v.div_ceil(8), 1);
 ```
 
-## Step 5 — the surface arm reserves a region
+## Step 5 — the producer reserves a region: `src/app/walk/surface.rs`
 
-In the walk's `Geometry::NurbsSurface(s)` arm (44), the `tess_cache` entry fill is
-replaced for DISPLAY by a reservation: push `gu × gv` default `RenderVertex` rows (the arena
-region), and CPU-write the **static index grid** — two triangles per cell, the only part that
-is pure index arithmetic:
+`walk_surface` re-entered the mesh producer with the kernel's own tessellation (44). For DISPLAY
+that fill becomes a reservation: push `gu × gv` default `RenderVertex` rows (the arena region),
+one `vids` row per vertex — the two tables are parallel, and a short `vids` desyncs slot 1 for
+every mesh appended after this one — and CPU-write the **static index grid**, two triangles per
+cell, the only part that is pure index arithmetic:
 
 ```rust
-        let (gu, gv) = grid_for(ns);
-        let base = verts.len() as u32;
-        verts.extend((0..gu * gv).map(|_| RenderVertex::zeroed()));   // bytemuck::Zeroable
+        let (gu, gv) = grid_for(s);
+        let base = base_off + t.arena.verts.len() as u32;   // GPU rows already uploaded + this delta
+        t.arena.verts.extend((0..gu * gv).map(|_| RenderVertex::zeroed()));   // bytemuck::Zeroable
+        t.arena.vids.extend(std::iter::repeat(ri).take((gu * gv) as usize));  // parallel, never short
         for y in 0..gv - 1 {
             for x in 0..gu - 1 {
                 let a = base + y * gu + x;
-                idx.extend_from_slice(&[a, a + 1, a + gu, a + 1, a + gu + 1, a + gu]);
+                t.arena.idx.extend_from_slice(&[a, a + 1, a + gu, a + 1, a + gu + 1, a + gu]);
             }
         }
-        gpu_surfaces.push(surf_upload(ns, base, gu, gv, ri));
+        t.surface_uploads.push(surf_upload(s, base, gu, gv, ri));
 ```
 
 44's `tess_cache` **stays** — demoted to what it always really was for picking: the pick mesh.
@@ -205,8 +211,9 @@ Ch 74: the producer pattern, second table. CV grid + two knot vectors upload onc
         tess_cache demoted to pick proxy. Arena vbo gains STORAGE, triangle pass unchanged.
 ```
 
-Edited: `shaders/surface_tess.wgsl` (new), `pipelines/build.rs` + `mod.rs`, `gpu/mod.rs`
-(arena STORAGE + `dispatch_surfaces`), `scene.rs` (`grid_for`, reservation arm).
+Edited: `shaders/surface_tess.wgsl` + `gpu/surface_tess.rs` (new), `pipelines/layouts.rs` +
+`mod.rs`, `gpu/arena.rs` (vbo STORAGE), `gpu/upload.rs` (`surface_uploads`), `walk/surface.rs`
+(`grid_for`, the reservation).
 
 ## Next
 
