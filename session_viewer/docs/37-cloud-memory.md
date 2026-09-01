@@ -82,7 +82,8 @@ eight call sites this step used to list — the instance table, the three cloud 
 lane tables either side of them — were rewritten to GROW instead of being rebuilt. They now go
 through `append_rows`, which does what step 1 just taught (`create_buffer` with
 `mapped_at_creation: false`, filled by `queue.write_buffer`) and then keeps doing it for every
-appended file:
+appended file. You type that function in lesson [38](38-append-dont-rebuild.md); nothing to type
+here — this is an excerpt of the tail of its body, where the staging write happens:
 
 ```rust
     queue.write_buffer(buf, *count as u64 * stride, bytemuck::cast_slice(data));
