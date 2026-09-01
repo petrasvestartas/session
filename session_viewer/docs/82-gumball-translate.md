@@ -45,10 +45,11 @@ transforms around the wrong origin.)
 
 ```
 src/engine/gumball.rs        # axis_drag_delta — closest-point-on-axis math (f64)
-src/app/scene.rs             # apply_world_delta — THE commit primitive (60/61/85 reuse it)
+src/app/query.rs             # apply_world_delta — THE commit primitive (60/61/85 reuse it)
 src/app/history/transform.rs # NEW — TransformObjects: before/after placement snapshots
-src/engine/gpu/mod.rs        # set_live_model / set_live_models — the live path (batched)
-src/state.rs                 # the drag state machine: press → threshold → live → commit
+src/engine/gpu/objects.rs    # set_live_model / set_live_models — the live row path (batched)
+src/state.rs                 # DragCtx + the fields the machine runs on
+src/app/input.rs             # the drag gestures: press → threshold → live → commit → Esc
 ```
 
 ## Step 1 — the axis delta: `src/engine/gumball.rs`
@@ -80,7 +81,7 @@ matters: dragging the Z arrow while looking straight down Z has no answer; the d
 > result of the previous application. The release commits exactly one delta. (This is the property
 > 68's rotate/scale inherit for free by stashing `a0`/`d0` the same way.)
 
-## Step 2 — the commit primitive: `src/app/scene.rs`
+## Step 2 — the commit primitive: `src/app/query.rs`
 
 One method, `pub` — 68's rotate/scale, 69's typed entry, and 92's copy-array all call it. No
 per-kind match, no re-tessellation, no `Rc::make_mut`: a transform is a matrix write, twice (the
@@ -182,7 +183,7 @@ carry: geometry. After the Xform refactor a moved object's bytes never change; a
 fingerprints geometry — 49's reconcile, 50's save-if-changed — must fingerprint
 `session.xform(guid)` alongside it, which their rewrites do.)
 
-## Step 4 — the drag machine: `src/state.rs`
+## Step 4 — the drag machine: `src/app/input.rs` + `src/state.rs`
 
 Four small handlers around the fields 58 already added. First the context struct — add it at file
 scope in `state.rs` (below the `use` lines), plus the field: `gb_drag: Option<DragCtx>` on
@@ -345,8 +346,9 @@ order is the guard, same trick 61 will use):
         }
 ```
 
-The live-path helpers. In `engine/gpu/mod.rs`, `impl Gpu` (`Instance` and its buffer are private to
-the engine, so the writes live here). Two entry points: `set_live_model` mirrors
+The live-path helpers. In `engine/gpu/objects.rs`, `impl InstanceTable` (the rows and their buffer
+are private to the table, so the writes live there; `Gpu` keeps a one-line forwarder for each in
+`engine/gpu/mod.rs`). Two entry points: `set_live_model` mirrors
 `rebuild_instances`' rebase for ONE row (the Esc snap-back and undo's per-row restore); the
 per-frame drag path is **batched** — `set_live_models` stages every dragged row, then issues ONE
 `write_buffer` over the dirty span. Per-row uploads during a drag were thousands of 96-byte GPU
@@ -454,10 +456,10 @@ Ch 67: TRANSLATE. Deferred drag: press → 4px travel + lmb gate (lmb_down is 60
        upload per frame, never one per row per move.
 ```
 
-Edited: `engine/gumball.rs` (`closest_param_on_axis`), `app/scene.rs` (`apply_world_delta`),
-`app/history/transform.rs` (NEW — `XformSnap`, `TransformObjects`), `engine/gpu/mod.rs`
-(`set_live_model` + the batched `set_live_models`), `state.rs` (drag machine: press/threshold/
-live/commit, Esc cancel, `gb_edits` scratch).
+Edited: `engine/gumball.rs` (`closest_param_on_axis`), `app/query.rs` (`apply_world_delta`),
+`app/history/transform.rs` (NEW — `XformSnap`, `TransformObjects`), `engine/gpu/objects.rs`
+(`set_live_model` + the batched `set_live_models`), `state.rs` (`DragCtx`, `gb_drag`, `gb_edits`
+scratch), `app/input.rs` (drag machine: press/threshold/live/commit, Esc cancel).
 
 ## Next
 
