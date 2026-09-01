@@ -2653,6 +2653,12 @@ The kernel's `Mesh` proto carries a halfedge map the viewer throws away — but 
 into a nested `HashMap` first. A wire-identical mirror with that one tag left out skips it with
 a length jump instead.
 
+`LeanMesh` mirrors `proto::Mesh` as the kernel spelled it here, so it only compiles against the
+kernel this lesson's tree pins. If yours has moved — the colour fields were later repacked to
+`*_rgba`, and the halfedge tag went away entirely — mirror the fields your `proto::Mesh`
+actually has, and keep the rule rather than the field list: every tag the viewer reads gets its
+exact type so `into_proto` MOVES it, and every tag it does not read is simply absent.
+
 **Find** in `src/app/persistence.rs`:
 
 ```rust
