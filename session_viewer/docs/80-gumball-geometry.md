@@ -30,10 +30,12 @@
 ## Files we touch
 
 ```
-src/engine/gumball.rs   # NEW — HandleKind, tuning consts, geometry gen (segments + glyphs)
-src/engine/gpu/mod.rs   # gumball segment/glyph buffers + the overlay pass (depth cleared)
-src/app/scene.rs        # selection_centroid() — where the widget sits
-src/state.rs            # rebuild the gumball when the selection changes
+src/engine/gumball.rs     # NEW — HandleKind, tuning consts, geometry gen (segments + glyphs)
+src/engine/gpu/overlay.rs # NEW — gumball segment/glyph buffers + the overlay pass (depth cleared)
+src/engine/gpu/render.rs  # one line: the pass, opened through targets.rs's begin_pass
+src/engine/gpu/objects.rs # place_gumball — the widget's row model, rebased like any other
+src/app/scene.rs          # selection_centroid() — where the widget sits
+src/state.rs              # rebuild the gumball when the selection changes
 ```
 
 ## Step 1 — handles + tuning: `src/engine/gumball.rs` (NEW)
@@ -150,11 +152,15 @@ pub fn build(o: [f32; 3], s: f32, row: u32) -> GumballGeom {
 Note the `radius: SHAFT_R*s` — a **positive** radius, which 31 defined as the world-mm override. The
 gumball must *not* track the global thickness slider; its proportions are its identity.
 
-## Step 3 — the overlay pass: `src/engine/gpu/mod.rs`
+## Step 3 — the overlay pass: `src/engine/gpu/overlay.rs` (NEW)
 
 The gumball must float over geometry (you grab it even when the selection is buried), yet its own
 parts must depth-test against *each other* (the far arc behind the near shaft). The standard trick:
-draw it **last, in a pass that clears only the depth buffer** — color loads, depth restarts:
+draw it **last, in a pass that clears only the depth buffer** — color loads, depth restarts.
+Create the file and register it: `pub mod overlay;` beside the other lane modules in
+`src/engine/gpu/mod.rs`. The lane's buffers and its draw live here; the pass that runs it is one
+line in `src/engine/gpu/render.rs`, after the main region and before 60's egui pass, opened
+through `targets.rs`'s `begin_pass`.
 
 Four pieces of `Gpu` state. In `struct Gpu`, find the glyph fields (`pub glyph_bind_group: …` /
 `glyph_count`) and add below them:
@@ -299,7 +305,8 @@ quantizes to ~0.1 mm steps at 1e6 mm, and the widget would swim):
 
 The world position reaches the GPU the way every scene row's does: **in the row's model**, rebased
 around the camera anchor in f64 and cast last — never baked into the f32 geometry. One helper in
-`engine/gpu/mod.rs` (next to `upload_gumball`; `objects_base`/`instances` are engine-private):
+`engine/gpu/objects.rs`, where the object table's rows and their buffer are private
+(`InstanceTable` owns them; `Gpu` keeps a two-line forwarder next to `upload_gumball`):
 
 ```rust
     /// Move the gumball's reserved row to a world point: write the TRUE model, then poke the
@@ -401,8 +408,9 @@ Ch 65: GUMBALL GEOMETRY. HandleKind = the id everything keys on (4 translate/rot
        its base). Rebuilt on every selection change.
 ```
 
-Edited: `engine/gumball.rs` (NEW — `HandleKind`, constants, `build`), `engine/gpu/mod.rs` (gumball
-buffers + overlay pass, `place_gumball`, `gb_row` reserved in `Gpu::new` and re-reserved in
+Edited: `engine/gumball.rs` (NEW — `HandleKind`, constants, `build`), `engine/gpu/overlay.rs`
+(NEW — gumball buffers + the overlay draw), `engine/gpu/render.rs` (one line: the overlay pass),
+`engine/gpu/objects.rs` (`place_gumball`, `gb_row` reserved in `Gpu::new` and re-reserved in
 `set_scene`), `app/scene.rs` (`selection_centroid`), `state.rs` (`refresh_gumball`).
 
 ## Next
