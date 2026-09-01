@@ -1,7 +1,7 @@
 # 49 One row, two shaders
 
-> Lesson [58](58-trimmed.md) adds a trimmed surface whose edges are already `CylinderSegment`s,
-> [65](65-screen-to-ray.md) picks against those same rows, [113](113-meshlets.md) re-batches them.
+> Lesson [59](59-trimmed.md) adds a trimmed surface whose edges are already `CylinderSegment`s,
+> [66](66-screen-to-ray.md) picks against those same rows, [114](114-meshlets.md) re-batches them.
 > None touches a shader, because after this lesson a row and the programs that read it live in one
 > file and the choice between them is one argument.
 > Nothing visible changes: same ink, same draw count, same object count, on every scene and config.

@@ -1,4 +1,4 @@
-# 96 Control-point editing — F10, grab a CV, reshape
+# 97 Control-point editing — F10, grab a CV, reshape
 
 > **Big picture.** *Phase 13 — sub-object editing (78–81).* Until now the gumball moves whole
 > objects; real modeling moves their **insides** — drag one control point and the surface flows. All
@@ -207,6 +207,6 @@ lookup, world→local; live resample; release bookkeeping, `EditShape`), `engine
 
 ## Next
 
-`97-edit-points.md` — CVs are *off* the curve (they pull from a distance); **edit points** are *on*
+`98-edit-points.md` — CVs are *off* the curve (they pull from a distance); **edit points** are *on*
 it. Dragging a point the curve actually passes through — solved with the kernel's Greville abscissae
 and a small linear refit, weights preserved.

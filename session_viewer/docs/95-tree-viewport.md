@@ -1,4 +1,4 @@
-# 94 Tree ↔ viewport — one selection, two views
+# 95 Tree ↔ viewport — one selection, two views
 
 > **Big picture.** *Phase 12.* The tree and the viewport show the same document; the moment they can
 > disagree about *what's selected*, users stop trusting both. Half the sync already exists — tree
@@ -164,6 +164,6 @@ zoom-to drain).
 
 ## Next
 
-`95-text-labels.md` — names in the 3-D view itself: billboarded text from a glyph atlas, readable at
+`96-text-labels.md` — names in the 3-D view itself: billboarded text from a glyph atlas, readable at
 every angle, one draw call for all labels — the archive's `text.rs` recipe on 29/30's instancing
 bones.

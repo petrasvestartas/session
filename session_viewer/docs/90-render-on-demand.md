@@ -1,4 +1,4 @@
-# 89 Render-on-demand — the biggest win never touches the image
+# 90 Render-on-demand — the biggest win never touches the image
 
 > **Big picture.** *Phase 11.* Every frame so far was drawn at 60 fps whether anything changed or
 > not — the archive did the same (`request_redraw()` unconditionally), which is why its heavy post
@@ -197,7 +197,7 @@ treadmill), `ui/mod.rs` (drawn/s on the HUD).
 
 ## Next
 
-`90-gtao.md` — ambient occlusion, the constant-quality way: half-resolution GTAO with a fixed tap
+`91-gtao.md` — ambient occlusion, the constant-quality way: half-resolution GTAO with a fixed tap
 budget (~12 reads/px vs the archive's ~112), identical every frame moving or still — plus the
 archive's hard-won implementation traps (the analytic inverse-projection, the tangent-plane gate, IGN
 noise) ported, not re-derived.

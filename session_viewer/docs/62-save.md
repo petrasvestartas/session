@@ -1,4 +1,4 @@
-# 61 Save — write the file back, only when something changed
+# 62 Save — write the file back, only when something changed
 
 > **Big picture.** *Phase 6 — the file is the source of truth.* 49 reads changes IN; this lesson
 > writes changes OUT — quietly. Real CAD apps never write on every edit: **dirty-flag → wait for
@@ -359,7 +359,7 @@ Edited: `Cargo.toml` (web-sys `Blob`/`Url`/`HtmlAnchorElement`), `app/persistenc
 
 ## Next
 
-`62-watch.md` — the third sync direction: an *external* edit to the file flows back in. The browser can't
+`63-watch.md` — the third sync direction: an *external* edit to the file flows back in. The browser can't
 watch a filesystem, so a File System Access handle polls `lastModified` (or a watcher→WebSocket bridge
 pushes), and on change we run 49's `reconcile`. The catch is the loop: our own Step-4 save changes the
 file too, so the watcher needs a **self-write guard** — ignore any change whose hash matches the bytes we

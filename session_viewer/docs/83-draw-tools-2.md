@@ -1,4 +1,4 @@
-# 82 Draw tools II — polyline, rectangle, box, and the ghost preview
+# 83 Draw tools II — polyline, rectangle, box, and the ghost preview
 
 > **Big picture.** *Phase 9.* Three more tools, but the real subject is the **ghost preview** — the
 > rubber-band that follows the cursor between clicks. Its rule is absolute in every CAD app: the
@@ -525,7 +525,7 @@ feed, central ghost clear on cancel), `app/tools/polyline.rs` + `app/tools/rect.
 
 ## Next
 
-`83-snapping.md` — drawing becomes *precise*: endpoints, vertices, and grid intersections within a
+`84-snapping.md` — drawing becomes *precise*: endpoints, vertices, and grid intersections within a
 few pixels of the cursor pull the point to themselves, with a marker glyph showing the live snap.
 The Get-loop consults snap before every point it hands out — so every tool built so far becomes
 snap-aware without changing a line of tool code.

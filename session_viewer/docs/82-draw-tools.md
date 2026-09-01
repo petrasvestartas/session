@@ -1,4 +1,4 @@
-# 81 Draw tools I — creating geometry
+# 82 Draw tools I — creating geometry
 
 > **Big picture.** *Phase 9.* Everything so far edits what a file provided; now the viewer *creates*.
 > Architecturally this is pattern (b), and it's deliberately anticlimactic: a drawing tool is **just
@@ -240,6 +240,6 @@ Edited: `app/history/add.rs` (NEW — `AddGeometry` wrapper; `RemoveObjects` gai
 
 ## Next
 
-`82-draw-tools-2.md` — tools that need *N* clicks and live feedback: `PolylineTool` (Enter finishes),
+`83-draw-tools-2.md` — tools that need *N* clicks and live feedback: `PolylineTool` (Enter finishes),
 `RectangleTool` and `BoxTool` on the z=0 plane — plus the **ghost preview**: the rubber-band line that
 follows the cursor before you commit, drawn from a transient row that never touches the Session.

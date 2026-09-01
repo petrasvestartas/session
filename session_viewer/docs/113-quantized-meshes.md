@@ -1,4 +1,4 @@
-# 112 Quantized meshes — the arena on a diet
+# 113 Quantized meshes — the arena on a diet
 
 > **Big picture.** *Phase 15.* `RenderVertex` spends full f32s on values the screen
 > can't distinguish: a position inside a bounded object needs ~16 bits per axis before

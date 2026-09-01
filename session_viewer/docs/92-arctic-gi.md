@@ -1,4 +1,4 @@
-# 91 Arctic + cheap GI — a better default look for the same money
+# 92 Arctic + cheap GI — a better default look for the same money
 
 > **Big picture.** *Phase 11.* 72 bought occlusion data at ~12 reads/px; this lesson spends the same
 > data three more ways — **zero additional texture fetches** — to fake global illumination well
@@ -176,6 +176,6 @@ Edited: `shaders/composite.wgsl` (sky-vis, multi-bounce, micro-shadow, arctic br
 
 ## Next
 
-`92-outline-aa.md` — the last archive-look piece: the crisp selection outline, rebuilt without the
+`93-outline-aa.md` — the last archive-look piece: the crisp selection outline, rebuilt without the
 per-frame tax — mask passes render only when dirty (78), the 81-tap box search becomes two separable
 1×N passes, and FXAA retires (4× MSAA already covers geometry).

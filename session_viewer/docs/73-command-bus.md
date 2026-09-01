@@ -1,4 +1,4 @@
-# 72 Command bus + Get-loop — THE interface arrives
+# 73 Command bus + Get-loop — THE interface arrives
 
 > **Big picture.** *Phase 8.* The locked interface decision is **commands-only**: like Rhino, every
 > action is a typed verb, and buttons/keys are just shortcuts that type verbs for you. That has a
@@ -325,6 +325,6 @@ Edited: `app/getloop.rs` (NEW — `GetState`, `CmdStep`, `ActiveCommand`), `app/
 
 ## Next
 
-`73-command-options.md` — commands grow **options** rendered in the prompt line, Rhino-style:
+`74-command-options.md` — commands grow **options** rendered in the prompt line, Rhino-style:
 `Line (From, Snap=On):` — toggles, numbers, and lists clickable or typeable mid-command; chained
 prompts (from → to) with Esc = cancel, Enter = accept default, and one-step-back.

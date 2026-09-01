@@ -1,4 +1,4 @@
-# 98 Work plane — "the ground" becomes a choice
+# 99 Work plane — "the ground" becomes a choice
 
 > **Big picture.** *Phase 13.* Every tool so far draws on `z = 0` — fine for floor plans, useless for
 > drawing on a wall. The **construction plane** (Rhino's CPlane) makes the drawing surface a piece of
@@ -366,5 +366,5 @@ Edited: `state.rs` (`work_plane`, resolver, `on_cplane_changed`, uv helpers), `a
 
 ## Next
 
-`99-advanced-perf.md` — headroom for scenes beyond the stress file: LOD/decimation, occlusion
+`100-advanced-perf.md` — headroom for scenes beyond the stress file: LOD/decimation, occlusion
 culling, and the GPU-compute cull + indirect draw that lesson 27's WebGPU-only decision unlocked.

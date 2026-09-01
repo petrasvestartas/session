@@ -1,4 +1,4 @@
-# 110 Compute ink — segments through the splat lane
+# 111 Compute ink — segments through the splat lane
 
 > **Big picture.** *Phase 15.* Lesson [40](40-compute-splatting.md) proved it for points:
 > when millions of primitives are subpixel, atomic compute rasterization beats the vertex

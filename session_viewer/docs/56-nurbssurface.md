@@ -1,4 +1,4 @@
-# 55 NurbsSurface — tessellate once, transform matrices forever
+# 56 NurbsSurface — tessellate once, transform matrices forever
 
 > **Big picture.** *Phase 4b.* A NURBS surface is a mathematical sheet; the GPU eats triangles.
 > The bridge is tessellation — and the walk you have ALREADY crosses it: the surface arm calls
@@ -112,8 +112,8 @@ kernel's tessellators bake them — so a sphere surface renders smooth and a box
 faceted, same pipeline, no flag, no new shader. That decision from 22 lessons ago was for this
 moment.
 
-**(3) WORLD BOX and (4) PICK** — born with their maps: [63](63-scene-bvh.md) boxes the surface
-(`OBB::from_nurbssurface`, kernel-exact) and [66](66-raycast-meshes.md) picks the cached
+**(3) WORLD BOX and (4) PICK** — born with their maps: [64](64-scene-bvh.md) boxes the surface
+(`OBB::from_nurbssurface`, kernel-exact) and [67](67-raycast-meshes.md) picks the cached
 tessellation — the cache entry OWNS its `Mesh`, which is exactly what the lazy triangle-BVH
 build wants. Both read what THIS lesson built; the cache is the contract.
 
@@ -161,7 +161,7 @@ Edited: `app/scene.rs` (`tess_cache`, the cached surface arm).
 
 ## Next
 
-`56-isocurves.md` — the tessellated body reads as a surface only when its **edges** say so:
+`57-isocurves.md` — the tessellated body reads as a surface only when its **edges** say so:
 boundary curves and iso-parameter lines (the u/v grid every CAD surface wears), extracted from
 the kernel and drawn through the 31 tube path — replacing the triangle-wireframe look the mesh
 edge lane gives surfaces today.

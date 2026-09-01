@@ -1,4 +1,4 @@
-# 88 Analytic ground + infinite grid — the stage
+# 89 Analytic ground + infinite grid — the stage
 
 > **Big picture.** *Phase 11 — rendering quality, engineered FAST (70–74).* The archive's pretty
 > "arctic" look cost ~200 texture fetches per pixel per frame and crawled on integrated GPUs; this
@@ -188,7 +188,7 @@ to one sample count panics on the first solid append with a sample-count mismatc
 
 Draw order in `clear()`: background gradient (25) → **ground** → grid (20) → meshes/lines/points.
 The per-frame uniform fills from values already at hand: `view_proj.inverse()` (the kernel's full
-4×4 inverse — fixed during lesson 65; this matrix contains the projection, which the old affine-only
+4×4 inverse — fixed during lesson 66; this matrix contains the projection, which the old affine-only
 version got wrong — and it returns `Option<Xform>`, so unwrap or early-out), `eye − origin`, fade
 radius ≈ 30× `camera.distance_world()` (feels infinite without banding), and `−origin[2]`. The
 radius **must** come from `distance_world()` — that's the camera distance in world **mm**;
@@ -239,6 +239,6 @@ Edited: `shaders/ground.wgsl` (NEW), `engine/pipelines/build.rs` (`build_ground_
 
 ## Next
 
-`89-render-on-demand.md` — the single biggest perf win in the whole course, and it never touches the
+`90-render-on-demand.md` — the single biggest perf win in the whole course, and it never touches the
 image: draw only when something changed. CAD apps do this; games can't. A static scene costs zero
 GPU; the frame that IS drawn is always full quality — the user rule, honored by architecture.

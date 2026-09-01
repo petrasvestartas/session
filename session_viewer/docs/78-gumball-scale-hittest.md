@@ -1,4 +1,4 @@
-# 77 Gumball II — constant size + pickable handles
+# 78 Gumball II — constant size + pickable handles
 
 > **Big picture.** *Phase 9.* A gizmo you can't reliably see or grab is decoration. Two properties
 > make the gumball a tool: it stays **~140 px on screen at every zoom** (like every CAD gizmo —
@@ -406,6 +406,6 @@ helpers, `#[cfg(test)]`s), `engine/gpu/mod.rs` (`upload_gumball` on scratch buff
 
 ## Next
 
-`78-gumball-translate.md` — the first real transform: press an arrow, drag along its axis, watch the
+`79-gumball-translate.md` — the first real transform: press an arrow, drag along its axis, watch the
 selection follow live (matrix-only — no re-tessellation), release to commit a `TransformObjects`
 Command with absolute before/after snapshots. Undo restores exactly. Stress-gated on the PDF drawing.

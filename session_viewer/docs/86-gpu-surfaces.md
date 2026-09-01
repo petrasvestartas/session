@@ -1,4 +1,4 @@
-# 85 GPU surfaces — tensor product in compute, the arena gets a producer
+# 86 GPU surfaces — tensor product in compute, the arena gets a producer
 
 > **Big picture.** *Phase 10b.* 73's pattern — a compute producer writing an existing table —
 > aimed at linework. This lesson aims it at the **vertex arena** (48): a `NurbsSurface`
@@ -210,6 +210,6 @@ Edited: `shaders/surface_tess.wgsl` (new), `pipelines/build.rs` + `mod.rs`, `gpu
 
 ## Next
 
-`86-gpu-trimming.md` — the lesson the CDT does not survive: trim loops become a per-fragment
+`87-gpu-trimming.md` — the lesson the CDT does not survive: trim loops become a per-fragment
 winding test, concave boundaries and holes included, and the only cells that pay are the ones
 the boundary actually crosses.

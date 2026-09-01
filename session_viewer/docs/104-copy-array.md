@@ -1,4 +1,4 @@
-# 103 Copy, duplicate, array — daily-use editing, nearly free
+# 104 Copy, duplicate, array — daily-use editing, nearly free
 
 > **Big picture.** *Phase 14.* Copying is the most-used editing operation in any CAD session — and
 > on this architecture it costs almost nothing, because it's three existing rails composed:
@@ -370,5 +370,5 @@ Edited: `app/history/add.rs` (`AddGeometry::of_snapshots`), `app/scene.rs` (`clo
 
 ## Next
 
-`104-layers.md` — organization users expect: layers — which the PDF importer already built as tree
+`105-layers.md` — organization users expect: layers — which the PDF importer already built as tree
 groups; the lesson makes them addressable by NAME, across every loaded sheet at once.

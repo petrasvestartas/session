@@ -1,4 +1,4 @@
-# 109 Sheet impostors — a drawing becomes a texture until you look closely
+# 110 Sheet impostors — a drawing becomes a texture until you look closely
 
 > **Big picture.** *Phase 15 — at scale (100–107): the research findings of
 > `_RESEARCH_GPU_CAD.md` implemented as source, no third-party code.* A 2D sheet is

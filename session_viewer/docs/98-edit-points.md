@@ -1,4 +1,4 @@
-# 97 Edit points — drag the curve itself
+# 98 Edit points — drag the curve itself
 
 > **Big picture.** *Phase 13.* CVs (85) are honest but unintuitive — they float *off* the curve and
 > pull like magnets. Users expect to grab **the curve itself**. Edit points do that: points *on* the
@@ -226,5 +226,5 @@ drag substitution).
 
 ## Next
 
-`98-work-plane.md` — until now every tool draws on `z = 0`. The construction plane makes "the ground"
+`99-work-plane.md` — until now every tool draws on `z = 0`. The construction plane makes "the ground"
 a *choice*: set it by three points or to a face, and the draw tools, grid, and snapping all follow.

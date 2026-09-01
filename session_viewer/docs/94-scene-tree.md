@@ -1,4 +1,4 @@
-# 93 Scene tree — the documents, as a panel
+# 94 Scene tree — the documents, as a panel
 
 > **Big picture.** *Phase 12 — scene management UI (75–77).* Everything the viewer knows lives in
 > maps and flags; users need it as a **list they can read and poke**: every document's tree in a
@@ -347,7 +347,7 @@ Edited: `ui/tree.rs` (NEW — `Row`, `flatten`, `tree_panel`, `TreeIntent`), `ui
 
 ## Next
 
-`94-tree-viewport.md` — the two views converge: picking in the viewport reveals and scrolls the tree
+`95-tree-viewport.md` — the two views converge: picking in the viewport reveals and scrolls the tree
 to the object (auto-reveal — find the owning doc, then `get_node_by_name` + `ancestors()`);
 selecting in the tree highlights in the viewport (already true) — plus double-click-to-zoom. Small
 lesson, big daily-use payoff.

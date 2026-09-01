@@ -1,4 +1,4 @@
-# 65 Screen → ray — unproject the mouse into a world ray
+# 66 Screen → ray — unproject the mouse into a world ray
 
 > **Big picture.** *Phase 7 — picking & selection (54–58).* Everything interactive from here on —
 > select, gumball, draw tools, snapping — starts with one question: *what is under the cursor?*
@@ -271,7 +271,7 @@ Edited: `engine/pick.rs` (NEW — `Ray`, `screen_to_world_ray`, `unproject`, rou
 
 ## Next
 
-`66-raycast-meshes.md` — cast this ray at the meshes. Broad-phase with the 40 BVH to a short candidate
+`67-raycast-meshes.md` — cast this ray at the meshes. Broad-phase with the 40 BVH to a short candidate
 list, then for each candidate **inverse-transform the ray into the object's local frame** — the
 placement is the row's stored xform, `scene.tables.objects[row].0` (manifest `place` × session world
 xform, baked at `add_file`); 47 inverts exactly that — and hit its cached triangle BVH

@@ -1,4 +1,4 @@
-# 60 Reconcile II — diff by guid, touch only what changed
+# 61 Reconcile II — diff by guid, touch only what changed
 
 > **Big picture.** *Phase 6 — the file is the source of truth.* 45 made single objects addressable on
 > the GPU. Now the payoff: when a file is reloaded, don't rebuild the scene — **diff** the incoming
@@ -396,7 +396,7 @@ since 35 — and keep `next_row` in step with the walk: one line at the bottom o
 > **`commit` must not renumber rows.** It rebuilds `order` + `hashes` for the new document, but
 > leaves `guid_to_row`/`free_rows`/`next_row` alone — those rows already point at the GPU data
 > this reload just wrote, and 35's "row == order index" only ever held on the *first* load.
-> (When the BVH lands, [63](63-scene-bvh.md) extends this exact function with the touched-rows
+> (When the BVH lands, [64](64-scene-bvh.md) extends this exact function with the touched-rows
 > box re-walk and the `rebuild_bvh()` call — its step quotes the insertion point.)
 
 ```rust
@@ -521,6 +521,6 @@ only; `rebuild_bvh`/`objects_in` row-mapping; `pick_after_reconcile` test),
 
 ## Next
 
-`61-save.md` — the reverse trip. An in-viewer edit marks the object dirty; a debounce coalesces the
+`62-save.md` — the reverse trip. An in-viewer edit marks the object dirty; a debounce coalesces the
 burst; the content hash from this lesson decides whether anything *truly* changed; only then does
 `pb_dumps` produce bytes for a browser download. Three gates before one write.

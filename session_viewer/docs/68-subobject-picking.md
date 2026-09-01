@@ -1,4 +1,4 @@
-# 67 Sub-object picking — vertex, edge, or face
+# 68 Sub-object picking — vertex, edge, or face
 
 > **Big picture.** *Phase 7.* Object-level picking is enough to *select*; editing needs the *part* —
 > the vertex you drag, the edge you bevel, the face you extrude. Sub-object resolution is what makes
@@ -260,7 +260,7 @@ Edited: `engine/pick.rs` (`project_to_screen` — forward projection), `app/pick
 
 ## Next
 
-`68-pick-thin-geometry.md` — Lines, polylines, and points are 1D and 0D: a ray passes *through* them,
+`69-pick-thin-geometry.md` — Lines, polylines, and points are 1D and 0D: a ray passes *through* them,
 never *hits* them. 49 picks them by the same screen-space radius used for vertices here — ray↔segment and
 ray↔point distance with a `pick_radius` floor in pixels — and settles the **solid-vs-thin priority**: a
 line lying on a mesh face shouldn't steal the click from the face at equal depth.

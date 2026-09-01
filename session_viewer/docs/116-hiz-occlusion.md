@@ -1,4 +1,4 @@
-# 115 HiZ occlusion — what's behind things costs nothing
+# 116 HiZ occlusion — what's behind things costs nothing
 
 > **Big picture.** *Phase 15.* Frustum culling (55) can't help when everything IS in
 > view — an assembly's interior, the city behind the first facade. The GPU already

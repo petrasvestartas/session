@@ -1,4 +1,4 @@
-# 66 Ray-cast meshes — nearest hit wins
+# 67 Ray-cast meshes — nearest hit wins
 
 > **Big picture.** *Phase 7.* The ray must now answer *which object* — fast, correct under occlusion,
 > at 42k objects. This is the first real consumer of 40's BVH, and the shape of the answer
@@ -170,7 +170,7 @@ impl Scene {
                     }
                     ElementGeometry::None => None,   // add_file gave it no row — never a candidate
                 },
-                _ => None,   // Line/Polyline/Point/PointCloud → lesson 68 (thin geometry needs a
+                _ => None,   // Line/Polyline/Point/PointCloud → lesson 69 (thin geometry needs a
                              // pick radius). Plane/OBB draw as linework but have no pick arm in
                              // either lesson — a tracked gap, same shape as 49's four kinds
             };
@@ -249,7 +249,7 @@ through a 3.6M-point scan reports the sheet behind it. That is the declared cont
 42 — streamed clouds are display objects — and the honest fix (a screen-space depth probe
 against the splat depth buffer, not a CPU ray-vs-points test) is its own future lesson.
 Walked kernel `PointCloud` objects are different: they have rows and bounds, and land in
-lesson 68 with the other thin geometry.
+lesson 69 with the other thin geometry.
 
 ## Step 4b — curved types pick through their caches
 
@@ -314,7 +314,7 @@ Edited: `app/pick.rs` (NEW — `PickHit`), `app/scene.rs` (`objects_along_ray` B
 
 ## Next
 
-`67-subobject-picking.md` — a hit tells you *which mesh*; sub-object picking tells you *which part*. From
+`68-subobject-picking.md` — a hit tells you *which mesh*; sub-object picking tells you *which part*. From
 the hit triangle, resolve the nearest **vertex** (within a screen-pixel radius), else the nearest **edge**
 (point-to-segment distance), else the **face** — returning a `SubHit { row, guid, kind }` that the gumball
 and edit tools act on. The pixel-radius test is the same screen-space trick 49 needs for thin geometry.

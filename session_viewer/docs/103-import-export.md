@@ -1,4 +1,4 @@
-# 102 Import / export — OBJ in, OBJ out (and the STEP honesty)
+# 103 Import / export — OBJ in, OBJ out (and the STEP honesty)
 
 > **Big picture.** *Phase 14.* The plan review's most embarrassing find: the kernel has shipped an
 > OBJ codec since long before this course — minitested in all three languages — and the viewer only
@@ -331,6 +331,6 @@ pair ×3 + String Roundtrip minitest ×3.
 
 ## Next
 
-`103-copy-array.md` — duplication: `copy` between two points, Alt+gumball-drag-a-copy, and `array` —
+`104-copy-array.md` — duplication: `copy` between two points, Alt+gumball-drag-a-copy, and `array` —
 nearly free because `duplicate()` → one `AddGeometry` batch → `apply_world_delta` rides three
 existing rails.

@@ -1,4 +1,4 @@
-# 114 Mesh LOD — fewer triangles when they'd be smaller than pixels
+# 115 Mesh LOD — fewer triangles when they'd be smaller than pixels
 
 > **Big picture.** *Phase 15.* The full Nanite LOD DAG is months of work (seam locking,
 > graph partitioning); Bevy's own posts document the grind. The 90% answer is DISCRETE:

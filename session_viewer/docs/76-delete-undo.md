@@ -1,4 +1,4 @@
-# 75 Delete + undo/redo — the pattern everything stands on
+# 76 Delete + undo/redo — the pattern everything stands on
 
 > **Big picture.** *Phase 8 closes.* This is the most consequential lesson of the phase: the first
 > command that **destroys** data, and therefore the machinery that makes destruction safe. The
@@ -348,6 +348,6 @@ Edited: `app/history/mod.rs` (NEW — trait + stacks), `app/history/remove.rs` (
 
 ## Next
 
-`76-gumball-geometry.md` — Phase 9: transform & draw. The 3-axis gizmo appears at the selection
+`77-gumball-geometry.md` — Phase 9: transform & draw. The 3-axis gizmo appears at the selection
 centroid — axis cylinders, cone tips, rotate arcs, scale boxes, all built from kernel meshes into
 ordinary instance rows with one stable id per handle, drawn last so it floats over the scene.

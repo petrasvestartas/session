@@ -1,4 +1,4 @@
-# 105 Measure + status bar — the viewer answers questions
+# 106 Measure + status bar — the viewer answers questions
 
 > **Big picture.** *Phase 14.* CAD models exist to be interrogated: how long, how far apart, what
 > angle, how big. Lesson 71's `probe` was secretly the prototype — a Get-loop conversation ending in
@@ -197,5 +197,5 @@ Edited: `app/commands.rs` (four verbs), `ui/mod.rs` (status row), `state.rs` (th
 
 ## Next
 
-`106-dev-toolbox.md` — the developer-experience lesson: a headless selftest, GPU errors that surface
+`107-dev-toolbox.md` — the developer-experience lesson: a headless selftest, GPU errors that surface
 in the viewer's own CLI, a black-screen checklist, and CI.

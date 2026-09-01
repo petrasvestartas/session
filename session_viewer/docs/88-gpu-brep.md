@@ -1,4 +1,4 @@
-# 87 GPU BRep — faces assemble, seams dissolve
+# 88 GPU BRep — faces assemble, seams dissolve
 
 > **Big picture.** *Phase 10b closes.* A BRep (46) is faces + shared edge curves + topology.
 > On the GPU it is **nothing new**: every face is a 74 grid trimmed by 75's loops, every
@@ -125,6 +125,6 @@ covers all lists). No new shader files — the point.
 
 ## Next
 
-`88-ground-grid.md` resumes the mainline — an *analytic* plane drawn without vertices, which
+`89-ground-grid.md` resumes the mainline — an *analytic* plane drawn without vertices, which
 after this phase reads as the degenerate case of everything 10b built: geometry whose GPU
 representation is a formula, not a table.

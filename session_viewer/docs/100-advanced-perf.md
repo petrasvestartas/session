@@ -1,4 +1,4 @@
-# 99 Advanced perf — headroom beyond the stress file
+# 100 Advanced perf — headroom beyond the stress file
 
 > **Big picture.** *Phase 13 closes.* The viewer already carries its two acceptance scenes easily —
 > batching (30/31), culling (53), render-on-demand (78), and the half-res AO (79) did the heavy
@@ -129,6 +129,6 @@ Ch 81: HEADROOM, mapped. (1) LOD: coarser levels RE-TESSELLATED from the NURBS/B
 
 ## Next
 
-`100-capstone.md` — everything, together: load the floor model, run the whole loop — pick, tree,
+`101-capstone.md` — everything, together: load the floor model, run the whole loop — pick, tree,
 gumball, numeric entry, draw with snap, save, undo — then do it again on the PDF drawing. Fixing
 whatever breaks *is* the lesson.

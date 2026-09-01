@@ -1,4 +1,4 @@
-# 104 Layers — naming what the importer already built
+# 105 Layers — naming what the importer already built
 
 > **Big picture.** *Phase 14.* Ask any CAD user how they keep a model sane: layers — named buckets
 > with one-click visibility. The viewer already *has* them: the PDF importer builds **one tree
@@ -207,5 +207,5 @@ Edited: `app/scene.rs` (`active_layer`, `layer_names`, `layer_members`, `layer_n
 
 ## Next
 
-`105-measure.md` — `probe` grows up: distance, angle, radius, object info — and a status bar that
+`106-measure.md` — `probe` grows up: distance, angle, radius, object info — and a status bar that
 always tells you where the cursor is.

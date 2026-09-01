@@ -1,4 +1,4 @@
-# 84 GPU curves — the segment table gets a compute producer
+# 85 GPU curves — the segment table gets a compute producer
 
 > **Big picture.** *Phase 10b — GPU tessellation (73–76).* Phase 10 put every curved type on
 > screen by tessellating on the **CPU**: 43 sampled `point_at(t)` into a polyline, 44/46 cached
@@ -360,6 +360,6 @@ pipeline), `gpu/mod.rs` (`dispatch_curves`), `scene.rs` (reserve + upload + cade
 
 ## Next
 
-`85-gpu-surfaces.md` — the same producer pattern aimed at the vertex arena: tensor-product
+`86-gpu-surfaces.md` — the same producer pattern aimed at the vertex arena: tensor-product
 NURBS evaluation in compute, one invocation per grid vertex, and 44's cache becomes a
 resolution policy instead of a mesh store.

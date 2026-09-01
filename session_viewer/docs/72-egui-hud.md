@@ -1,4 +1,4 @@
-# 71 egui overlay — the HUD and first settings
+# 72 egui overlay — the HUD and first settings
 
 > **Big picture.** *Phase 8 — the interface (60–64).* The locked design is **commands-only**: no
 > toolbar forest, a command line like Rhino's. Before the CLI can exist there must be a UI layer to
@@ -377,7 +377,7 @@ frame, marquee feed), `engine/gpu/mod.rs` (`clear(…, ui)` egui pass, `show_gri
 
 ## Next
 
-`72-command-bus.md` — THE interface arrives: a command line docked at the screen edge, a registry of
+`73-command-bus.md` — THE interface arrives: a command line docked at the screen edge, a registry of
 verbs, and the **Get-loop** — the little state machine that lets a running command ask for a point or
 an option and accept *either* a click *or* typed text, exactly like Rhino's prompt. First verbs:
 `hide`, `show`, `zoom`.

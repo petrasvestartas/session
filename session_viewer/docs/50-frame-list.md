@@ -1,8 +1,8 @@
 # 50 The frame is a list
 
-> Lesson [54](54-nurbscurve.md) adds a geometry type and never opens this file,
-> [90](90-gtao.md) inserts an ambient-occlusion pass and changes one line of it,
-> [115](115-hiz-occlusion.md) reorders two entries. All three are possible because after this
+> Lesson [55](55-nurbscurve.md) adds a geometry type and never opens this file,
+> [91](91-gtao.md) inserts an ambient-occlusion pass and changes one line of it,
+> [116](116-hiz-occlusion.md) reorders two entries. All three are possible because after this
 > lesson the frame is eleven lines you can read top to bottom, each naming the family that owns
 > those rows. Nothing visible changes: same ink, same draw count, same object count, on every
 > scene and config.

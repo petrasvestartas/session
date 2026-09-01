@@ -1,4 +1,4 @@
-# 86 GPU trimming — the CDT stays home, the fragment decides
+# 87 GPU trimming — the CDT stays home, the fragment decides
 
 > **Big picture.** *Phase 10b.* This is the lesson where a CPU algorithm does **not** port —
 > and knowing why is the content. 47's trimmed surfaces mesh through a Bowyer–Watson
@@ -202,5 +202,5 @@ Edited: `shaders/trim_classify.wgsl` (new), `shaders/triangle.wgsl` (`fs_trimmed
 
 ## Next
 
-`87-gpu-brep.md` — faces are trimmed surfaces, edges are curves, and the CPU mesher's hardest
+`88-gpu-brep.md` — faces are trimmed surfaces, edges are curves, and the CPU mesher's hardest
 labor — watertight shared-edge matching — turns out to be a non-requirement for display.

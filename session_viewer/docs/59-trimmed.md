@@ -1,4 +1,4 @@
-# 58 Trimmed surfaces — first-class, and the every-map rule becomes structure
+# 59 Trimmed surfaces — first-class, and the every-map rule becomes structure
 
 > **Big picture.** *The geometry block closes.* `NurbsSurfaceTrimmed` — a surface with cut
 > boundaries and holes — is today's one genuinely INVISIBLE type: it has no `Geometry` variant,
@@ -216,7 +216,7 @@ the Trimmed arm).
 
 ## Next
 
-`59-gpu-arena.md` — every geometry type renders; now the session infrastructure: the flat GPU
+`60-gpu-arena.md` — every geometry type renders; now the session infrastructure: the flat GPU
 arena becomes per-object and addressable, so reconcile (49), save (50) and watch (51) can make
 the `.pb` file a live document. (The GPU-tessellation sequel to THIS block is 73–76, once the
 arena and the interaction phases exist.)

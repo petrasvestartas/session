@@ -1,4 +1,4 @@
-# 80 Gumball V — click a handle, type a number
+# 81 Gumball V — click a handle, type a number
 
 > **Big picture.** *Phase 9.* Dragging is for roughing; CAD work is exact. Rhino's gumball has a
 > beloved shortcut: *click* (don't drag) an arrow, type `500`, Enter — an exact 500 mm move. 67's
@@ -275,6 +275,6 @@ factored from 67's release, the three guards).
 
 ## Next
 
-`81-draw-tools.md` — creating geometry at last: the `Tool` trait (ARCHITECTURE's pattern (b)),
+`82-draw-tools.md` — creating geometry at last: the `Tool` trait (ARCHITECTURE's pattern (b)),
 `PointTool` and `LineTool` driven by the Get-loop's prompts, finishing as `AddGeometry` Commands —
 click-click, a line exists in the Session, and Ctrl+Z removes it.

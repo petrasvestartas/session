@@ -1,4 +1,4 @@
-# 62 Watch — external edits flow back in
+# 63 Watch — external edits flow back in
 
 > **Big picture.** *Phase 6 closes.* Load (34), save (50) — the last direction is external edits
 > flowing in *while the viewer runs*: a script regenerates the `.pb`, a teammate exports, another
@@ -200,7 +200,7 @@ lib.rs's loader find `State::new(window.clone(), Scene::new()).await` (42's empt
 > keep the moment the File System Access upgrade saves in place — but know which save path it
 > belongs to, and don't read its silence as proof it's working.
 
-**Close the loop with 59's save.** When Step 4 of lesson 61 writes bytes, stamp their hash so the very
+**Close the loop with 59's save.** When Step 4 of lesson 62 writes bytes, stamp their hash so the very
 next poll recognizes them as ours:
 
 ```rust
@@ -327,7 +327,7 @@ parse, `watch_in_flight` overlap guard — plus `self_write_hash` stamped by 44'
 
 ## Next
 
-`65-screen-to-ray.md` — Phase 7 opens: picking. The mouse is a 2D point; everything selectable is 3D. The
+`66-screen-to-ray.md` — Phase 7 opens: picking. The mouse is a 2D point; everything selectable is 3D. The
 next lesson unprojects the cursor through the inverse `view_proj` into a world-space ray — with the
 `ndc_z = 0.5` far-point trick that dodges a real precision bug — the ray every later pick (mesh, edge,
 vertex, line) is cast from.

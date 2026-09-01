@@ -1,4 +1,4 @@
-# 64 Frustum culling — draw only what's on screen
+# 65 Frustum culling — draw only what's on screen
 
 > **Big picture.** *Phase 5.* The stress file pushes 51k segments through the GPU even when you're
 > zoomed into a corner where fifty are visible. Culling is the classic renderer fix: decide per
@@ -440,7 +440,7 @@ culled/hidden instances), `state.rs` (build frustum, rebase, cull when the camer
 
 ## Next
 
-`59-gpu-arena.md` — Phase 6 opens: the `.pb` file becomes a live source. Reloading a file today
+`60-gpu-arena.md` — Phase 6 opens: the `.pb` file becomes a live source. Reloading a file today
 would rebuild the entire scene (35's `add_file` walk from scratch, plus a whole-buffer `set_scene`).
 The next lesson diffs the incoming `Session`
 against the current one by `guid` — added / removed / content-changed / unchanged — and re-flattens

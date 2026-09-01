@@ -1,4 +1,4 @@
-# 79 Gumball IV — rotate and scale
+# 80 Gumball IV — rotate and scale
 
 > **Big picture.** *Phase 9.* 59 built the whole drag skeleton — deferred press, live matrix path,
 > Command commit. Rotate and scale add **only new delta math** into that skeleton: an arc drag
@@ -307,7 +307,7 @@ Edited: `engine/gumball.rs` (`angle_on_arc_plane`, `clamp_signed`, `axis_scale_r
 
 ## Next
 
-`80-gumball-numeric.md` — the click that 67's threshold deliberately left free: click a handle
+`81-gumball-numeric.md` — the click that 67's threshold deliberately left free: click a handle
 *without* dragging and a tiny popup opens at the cursor — type `500` ⏎ and the selection moves
 exactly 500 mm along that axis. Reuses the Get-loop input, with three archive gotchas (the lmb gate,
 deferred drag interplay, and an Escape guard) already accounted for.

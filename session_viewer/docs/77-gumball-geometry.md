@@ -1,4 +1,4 @@
-# 76 Gumball I — the widget appears
+# 77 Gumball I — the widget appears
 
 > **Big picture.** *Phase 9 — transform & draw (65–69).* Everything so far *inspects* the scene; this
 > phase finally *changes* it. The gumball — the 3-axis move/rotate/scale gizmo every CAD app centers
@@ -407,6 +407,6 @@ buffers + overlay pass, `place_gumball`, `gb_row` reserved in `Gpu::new` and re-
 
 ## Next
 
-`77-gumball-scale-hittest.md` — two fixes that make it usable: **constant screen size** (the scale
+`78-gumball-scale-hittest.md` — two fixes that make it usable: **constant screen size** (the scale
 factor from view-space Z depth — the Euclidean-distance version breaks during orbit, a real archive
 bug) and **hit-testing** (ray → nearest handle, tested BEFORE scene picking, with hover highlight).

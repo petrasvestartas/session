@@ -1,4 +1,4 @@
-# 54 NurbsCurve — what already draws, made honest and reusable
+# 55 NurbsCurve — what already draws, made honest and reusable
 
 > **Big picture.** *Phase 4b — curved geometry (43–47), pulled AHEAD of the interaction phases:
 > every kernel type is rendered CORRECTLY and CHEAPLY before any tool touches one.* One structural
@@ -167,7 +167,7 @@ reconcile's `changed` bucket (49).) The walk arm becomes get-or-sample — and n
 
 **What this lesson deliberately does NOT add: CV glyphs.** The archive drew every curve's control
 points as 32a spheres, always — and a sheet of curves became a starfield. Real CAD shows control
-points in an EDIT mode; that is lesson 96's job (`F10`, on the selected curve only), and the
+points in an EDIT mode; that is lesson 97's job (`F10`, on the selected curve only), and the
 weighted-CV read it needs is already sitting in `sample_curve`'s box loop.
 
 ## Step 3 — verify
@@ -207,7 +207,7 @@ Edited: `app/scene.rs` (`sample_curve` + span floor + `curve_cache` + the slimme
 
 ## Next
 
-`55-nurbssurface.md` — surfaces already draw too (`s.mesh()` straight into `push_mesh`) — and
+`56-nurbssurface.md` — surfaces already draw too (`s.mesh()` straight into `push_mesh`) — and
 that call is the problem: every walk re-tessellates every surface. The fix is the phase's
 central rule: tessellate **once, cache it** — transforms never touch shape, so the cache can
 never go stale from moving things.

@@ -1,4 +1,4 @@
-# 95 Text labels — names in the scene
+# 96 Text labels — names in the scene
 
 > **Big picture.** *Phase 12 closes.* The tree names objects in a panel; big assemblies want names
 > **in the scene** — floating at the object, facing the camera, readable at any angle. The technique
@@ -362,6 +362,6 @@ Edited: `engine/text.rs` (NEW — atlas + `label_verts`), `shaders/text.wgsl` (N
 
 ## Next
 
-`96-control-points.md` — Phase 13: sub-object editing. F10 turns control points on; the gumball grabs
+`97-control-points.md` — Phase 13: sub-object editing. F10 turns control points on; the gumball grabs
 a CV; the surface reshapes — with the two kernel gotchas (`set_cv_4d`, `invalidate_triangle_bvh`) and
 a **partial** GPU upload that rewrites only the changed vertex range.

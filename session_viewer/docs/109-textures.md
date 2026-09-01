@@ -1,4 +1,4 @@
-# 108 Textures — paint an image onto geometry (optional appendix)
+# 109 Textures — paint an image onto geometry (optional appendix)
 
 The CAD default look — shaded + edges + arctic GI — never uses textures, so this lesson sits outside
 the main path. But applying an **image** to a surface is the one rendering idea the 84 lessons skip,
@@ -387,6 +387,6 @@ which never binds a material. Fold textures in only where a rendering mode genui
 
 ## Next
 
-[100 — sheet impostors](109-sheet-impostors.md) opens Phase 15: the `_RESEARCH_GPU_CAD.md`
+[100 — sheet impostors](110-sheet-impostors.md) opens Phase 15: the `_RESEARCH_GPU_CAD.md`
 findings implemented as our own source — costs scale with the screen, not the file.
 

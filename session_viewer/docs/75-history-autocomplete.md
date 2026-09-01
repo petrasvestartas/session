@@ -1,4 +1,4 @@
-# 74 History & autocomplete — the CLI grows muscle memory
+# 75 History & autocomplete — the CLI grows muscle memory
 
 > **Big picture.** *Phase 8.* A command line lives or dies on typing speed: ↑ to repeat, Tab to
 > finish a verb, one-letter aliases. Rhino users run `l ⏎` a hundred times a day without thinking.
@@ -55,7 +55,7 @@ capped — a long session must not grow it without bound:
 
 ```rust
     pub cli_history: Vec<String>,        // ← ADD to State (init empty in State::new)
-                                         //   NB: named cli_history, not history — lesson 75 adds
+                                         //   NB: named cli_history, not history — lesson 76 adds
                                          //   `pub history: History` (undo stack) to this same struct.
 
     // first line of run_command:
@@ -214,7 +214,7 @@ completion), `state.rs` (`cli_history`).
 
 ## Next
 
-`75-delete-undo.md` — the first *destructive* mutation, and with it the pattern the whole editor
+`76-delete-undo.md` — the first *destructive* mutation, and with it the pattern the whole editor
 stands on: `trait Command { apply / revert }` + done/undone stacks. Delete an object, Ctrl+Z brings
 it back byte-identical — and the trap the archive fell into (an `UndoAction` enum instead of a trait)
 is called out so it's never repeated.

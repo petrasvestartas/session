@@ -1,4 +1,4 @@
-# 57 BRep — many faces, one object
+# 58 BRep — many faces, one object
 
 > **Big picture.** *Phase 4b.* The BRep (boundary representation) is the kernel's solid-modeling
 > heavyweight — the type booleans, STEP files, and real CAD assemblies live in. The viewer has
@@ -156,7 +156,7 @@ Edited: `app/scene.rs` (`brep_linework`, both cached BRep arms).
 
 ## Next
 
-`58-trimmed.md` — the last citizen of the geometry block: `NurbsSurfaceTrimmed` — a surface with
+`59-trimmed.md` — the last citizen of the geometry block: `NurbsSurfaceTrimmed` — a surface with
 holes and cut boundaries — is TODAY'S one genuinely invisible type: it lives outside `lookup`, in
 its own collection, and the walk never sees it. Adding it is the occasion to turn "every map,
 checked" into structure: one `all_objects()` iterator every map consumes.

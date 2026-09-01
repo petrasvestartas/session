@@ -1,4 +1,4 @@
-# 83 Snapping — drawing becomes precise
+# 84 Snapping — drawing becomes precise
 
 > **Big picture.** *Phase 9 closes.* Freehand clicks are never exact — and CAD is nothing if not
 > exact. Snapping pulls the cursor's point to the nearest *meaningful* location: a line's endpoint, a
@@ -299,6 +299,6 @@ consults snap, marker, `snap_enabled`), `app/commands.rs` (`snap` verb).
 
 ## Next
 
-`54-nurbscurve.md` — Phase 10: curved geometry. The kernel's `NurbsCurve` gets drawn (sampled to a
+`55-nurbscurve.md` — Phase 10: curved geometry. The kernel's `NurbsCurve` gets drawn (sampled to a
 polyline through the 31 tube path) and drawable (`curve` tool: control-point clicks, Enter) —
 sampled once, cached, undoable as one Command.

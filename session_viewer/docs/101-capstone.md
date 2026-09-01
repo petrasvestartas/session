@@ -1,4 +1,4 @@
-# 100 Capstone — the full loop, on real work
+# 101 Capstone — the full loop, on real work
 
 > **Big picture.** *The main course, closed — Phase 14 (83–89) and the textures appendix (90) follow.*
 > Seventy-six lessons built a WebGPU CAD viewer from a blank

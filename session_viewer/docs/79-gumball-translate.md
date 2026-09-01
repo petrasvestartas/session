@@ -1,4 +1,4 @@
-# 78 Gumball III — drag to translate
+# 79 Gumball III — drag to translate
 
 > **Big picture.** *Phase 9.* The first real transform. Three ideas carry every drag interaction from
 > here to the end of the course: **deferred drag** (a press isn't a drag until the mouse travels — a
@@ -461,7 +461,7 @@ live/commit, Esc cancel, `gb_edits` scratch).
 
 ## Next
 
-`79-gumball-rotate-scale.md` — the same skeleton, two new deltas: arcs → ray-plane intersection +
+`80-gumball-rotate-scale.md` — the same skeleton, two new deltas: arcs → ray-plane intersection +
 `atan2` angle about the axis; spheres → distance ratios with the archive's two damping fixes (the
 sign-preserving clamp and the fourth-root response) that keep scaling controllable. Both commit
 through the same `apply_world_delta` — one formula, three transforms.

@@ -1,4 +1,4 @@
-# 68 Pick thin geometry — lines and points need a radius
+# 69 Pick thin geometry — lines and points need a radius
 
 > **Big picture.** *Phase 7.* The stress file is 42,000 lines and the cursor must select one. But a
 > line is 1-D and a point is 0-D — a mathematical ray passes *near* them, never *through* them, so
@@ -268,7 +268,7 @@ Edited: `camera.rs` (`world_per_pixel`), `app/scene.rs` (`pick_thin` via kernel 
 
 ## Next
 
-`69-selection.md` — picking finds objects; selection *keeps* them. `FLAG_SELECTED` in the instance row
+`70-selection.md` — picking finds objects; selection *keeps* them. `FLAG_SELECTED` in the instance row
 tints everything the object owns (faces, edges, glyphs — one bit, all pipelines), click/Shift+click
 behave like Rhino, and a drag rectangle becomes a 4-plane sub-frustum queried against 40's BVH —
 marquee select at 42k objects.

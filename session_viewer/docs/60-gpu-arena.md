@@ -1,4 +1,4 @@
-# 59 Reconcile I — a per-object GPU arena
+# 60 Reconcile I — a per-object GPU arena
 
 > **Big picture.** *Phase 6 — the `.pb` file becomes the live source of truth, like a real CAD app.*
 > The plan: reload only what changed (49), save only when something changed (50), watch for external
@@ -773,7 +773,7 @@ per-object entries in `add_file`).
 
 ## Next
 
-`60-reconcile.md` — the arena can now touch one object, so the diff arrives: fingerprint every object
+`61-reconcile.md` — the arena can now touch one object, so the diff arrives: fingerprint every object
 (a deterministic content hash — with a real `HashMap`-ordering trap to dodge), diff the incoming
 `Session` against the loaded one by guid, and apply only `added` / `removed` / `changed`. Edit 1 of
 491 objects → 1 re-flatten, 490 skips.

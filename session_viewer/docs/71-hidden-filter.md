@@ -1,4 +1,4 @@
-# 70 Hidden objects — visibility is real state
+# 71 Hidden objects — visibility is real state
 
 > **Big picture.** *Phase 7 closes.* Hiding scaffolding to work on what's behind it is a daily CAD
 > gesture, and it's the acid test of the state plumbing built since 35: one `hidden` set must be
@@ -183,7 +183,7 @@ Edited: `engine/gpu/mod.rs` (`set_flag_rows`, `set_selected_rows` → wrapper), 
 
 ## Next
 
-`71-egui-hud.md` — Phase 8: the interface. An egui overlay lands on top of the 3-D pass — the perf HUD
+`72-egui-hud.md` — Phase 8: the interface. An egui overlay lands on top of the 3-D pass — the perf HUD
 graduates from the console to a real panel, checkboxes toggle grid/edges/projection, and a slider
 drives 31's line thickness. The rule that keeps it sane: the UI *collects intent*, and `State` applies
 it after the closure — never mutate mid-layout.

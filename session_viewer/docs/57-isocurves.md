@@ -1,4 +1,4 @@
-# 56 Iso-curves — the lines that make a surface read
+# 57 Iso-curves — the lines that make a surface read
 
 > **Big picture.** *Phase 4b.* Shading alone doesn't say "surface" — a smooth gray blob could be
 > anything. What makes CAD surfaces legible is their **linework**: the boundary curves and the u/v
@@ -202,7 +202,7 @@ Edited: `app/scene.rs` (`surface_linework`, widened `tess_cache`, `Edges` flag o
 
 ## Next
 
-`57-brep.md` — the boundary representation: multiple faces + shared edges as **one object**.
+`58-brep.md` — the boundary representation: multiple faces + shared edges as **one object**.
 It's been drawing since the first walk (`b.mesh()` → `push_mesh`, three call sites) — now it
 gets the 44 treatment: cached tessellation — and its edge curves drawn properly from the
 kernel's real curve network.

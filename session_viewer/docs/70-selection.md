@@ -1,4 +1,4 @@
-# 69 Selection — highlight + marquee
+# 70 Selection — highlight + marquee
 
 > **Big picture.** *Phase 7.* Picking (55–57) answers a click; **selection is state** — the set of
 > objects every later tool acts on: gumball (65) moves the selection, `delete` (64) removes it, the
@@ -336,6 +336,6 @@ Edited: `engine/gpu/mod.rs` (`FLAG_SELECTED`, `write_row_flags`, `set_selected_r
 
 ## Next
 
-`70-hidden-filter.md` — visibility becomes real state. 35 parked a `hidden` set and a flag bit; now
+`71-hidden-filter.md` — visibility becomes real state. 35 parked a `hidden` set and a flag bit; now
 `hide`/`show` actually work end to end: a hidden object doesn't draw (already), doesn't pick, doesn't
 marquee — and the little state machine here is the groundwork for the first CLI verbs (61).

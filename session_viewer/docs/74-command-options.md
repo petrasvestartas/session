@@ -1,4 +1,4 @@
-# 73 Command options — modal, multi-step, Rhino-style
+# 74 Command options — modal, multi-step, Rhino-style
 
 > **Big picture.** *Phase 8.* Real commands are conversations: `Line` asks *from*, then *to*; along
 > the way you can flip `Snap=On`, type a number, or step back one prompt. Rhino renders that whole
@@ -263,5 +263,5 @@ Edited: `app/getloop.rs` (`CmdOption`, `prompt_line`, trait gains `options()`/`b
 
 ## Next
 
-`74-history-autocomplete.md` — the CLI grows muscle memory: ↑/↓ recall previous commands, Tab
+`75-history-autocomplete.md` — the CLI grows muscle memory: ↑/↓ recall previous commands, Tab
 prefix-completes verbs, and an alias table (`l` → `line`) formalizes what 61's match patterns started.

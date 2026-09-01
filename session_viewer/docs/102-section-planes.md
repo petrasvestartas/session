@@ -1,4 +1,4 @@
-# 101 Section planes — cut the building open
+# 102 Section planes — cut the building open
 
 > **Big picture.** *Phase 14 — CAD completeness.* The capstone proved the loop; this phase adds what
 > a plan review found missing — ranked, and this is #1. For an AEC-adjacent kernel (floors, beams,
@@ -310,5 +310,5 @@ Edited: `engine/gpu/mod.rs` (`SectionUniform`, `upload_sections`), `shaders/*.wg
 
 ## Next
 
-`102-import-export.md` — the kernel's OBJ codec (and one honest gap about STEP) reaches the browser:
+`103-import-export.md` — the kernel's OBJ codec (and one honest gap about STEP) reaches the browser:
 drag a file in, `export obj` out.

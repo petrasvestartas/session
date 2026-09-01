@@ -1,4 +1,4 @@
-# 90 GTAO — ambient occlusion at constant quality
+# 91 GTAO — ambient occlusion at constant quality
 
 > **Big picture.** *Phase 11.* Ambient occlusion — creases and contacts darkening — is what makes the
 > arctic look read as *lit* instead of flat. The archive's SSAO burned ~112 texture reads per pixel,
@@ -56,7 +56,7 @@ fn view_pos(ndc: vec2<f32>, d: f32) -> vec3<f32> {
 ```
 
 Two multiplies per axis, exact, no matrix. (The archive's root perspective bug lived here — the
-kernel's `Xform::inverse` used to be affine-only; lesson 65 found and fixed it kernel-wide. The
+kernel's `Xform::inverse` used to be affine-only; lesson 66 found and fixed it kernel-wide. The
 analytic form is still the right choice *here* regardless: fewer ops per pixel and no matrix upload.)
 
 > **Perspective only.** `z = -near / d` is the reverse-Z *perspective* depth mapping. Under the
@@ -203,6 +203,6 @@ RGBA16F pair + scene color), `engine/pipelines/build.rs` (two pipelines + compos
 
 ## Next
 
-`91-arctic-gi.md` — the look, completed: sky-visibility from the bent normal (creases darken toward
+`92-arctic-gi.md` — the look, completed: sky-visibility from the bent normal (creases darken toward
 the open sky — reads as real GI), Jimenez multi-bounce (bounce light from one polynomial), AO
 micro-shadowing on the key light — all for zero extra texture fetches. Plus the B toggle.

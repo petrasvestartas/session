@@ -1,4 +1,4 @@
-# 111 Segment batches — cull ink before it costs
+# 112 Segment batches — cull ink before it costs
 
 > **Big picture.** *Phase 15.* Schütz 2022 batches points (10k per batch + a box) so the
 > GPU can drop whole batches before threads spawn. Our sheets deserve the same: zoomed

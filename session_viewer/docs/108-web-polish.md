@@ -1,4 +1,4 @@
-# 107 Web polish — load progress and a shippable wasm
+# 108 Web polish — load progress and a shippable wasm
 
 > **Big picture.** *Phase 14 closes.* Everything so far assumed localhost, where the manifest's 10
 > sheets — 2.8–132 MB of `.pb` each, ~0.5 GB total — arrive instantly and nobody reads the wasm
@@ -213,7 +213,7 @@ Edited: `app/persistence.rs` (`fetch_bytes_with_progress` + throttled call sites
 
 ## Next
 
-`108-textures.md` — an **optional appendix** outside the CAD default look: upload an image, bind a
+`109-textures.md` — an **optional appendix** outside the CAD default look: upload an image, bind a
 texture + sampler onto the existing mesh pass, sample it in the fragment shader. The one rendering
 idea the main path skips. After that the roadmap is done; what remains is the honest backlog, in two
 files: `_KERNEL_GAPS.md` (the STEP port is the big one) and 81's perf levers, both waiting on real

@@ -1,4 +1,4 @@
-# 63 Scene BVH — one broad-phase, three consumers
+# 64 Scene BVH — one broad-phase, three consumers
 
 > **Big picture.** *Phase 5 — acceleration, built BEFORE the features that need it.* Picking (55) and
 > box-select (58) each ask "which objects are in this region?" against 744,000 objects, per click or
@@ -38,7 +38,7 @@ flag — the archive viewer (`session_viewer_archive`) leaned on exactly that ca
 `invalidate_bvh_cache()` after every edit. That was enough there because the archive was a
 single-document app. This viewer is multi-document by design: one tree per session would mean
 querying N trees and merging, each blind to its manifest `place`. One scene-level tree, placed
-boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 66's
+boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 67's
 narrow-phase `ray_cast`.)
 
 This lesson also names that frame once and for all, because half the remaining course needs it:
@@ -567,7 +567,7 @@ parity).
 
 ## Next
 
-`64-frustum-culling.md` — extract the view frustum's 6 planes from the ANCHORED `view_proj`
+`65-frustum-culling.md` — extract the view frustum's 6 planes from the ANCHORED `view_proj`
 (Gribb–Hartmann, f64), rebase them by the anchor (the camera-relative matrix and 40's world boxes
 are in different frames), plane-test every row's cached extents, and set `FLAG_CULLED` on
 everything off-screen. The shader collapses a culled instance to a degenerate vertex, so the whole

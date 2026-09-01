@@ -1,4 +1,4 @@
-# 113 Meshlets — clusters cull what triangles can't
+# 114 Meshlets — clusters cull what triangles can't
 
 > **Big picture.** *Phase 15.* A 1.3M-triangle scan is one draw today — perfect until
 > most of it faces away or sits off-screen, and the vertex shader still runs 4M times.

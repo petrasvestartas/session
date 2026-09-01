@@ -1,4 +1,4 @@
-# 116 Id-buffer picking — hover and marquee stop scaling with the scene
+# 117 Id-buffer picking — hover and marquee stop scaling with the scene
 
 > **Big picture.** *Phase 15.* The CPU ray (57) is exact and resolves topology — keep
 > it as the CLICK. But hover highlight runs every mouse move, and a marquee over dense

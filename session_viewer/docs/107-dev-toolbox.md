@@ -1,4 +1,4 @@
-# 106 Developer toolbox — selftest, surfaced errors, CI
+# 107 Developer toolbox — selftest, surfaced errors, CI
 
 > **Big picture.** *Phase 14.* The kernel has minitests in three languages; the viewer, until now,
 > had scattered `#[cfg(test)]`s and the browser console. This lesson closes the workflow gap the
@@ -234,5 +234,5 @@ Edited: `examples/selftest.rs` (NEW), `Cargo.toml` (`+ "rlib"`), `src/lib.rs` (`
 
 ## Next
 
-`107-web-polish.md` — the last mile: a progress bar for the 17.5 MB stress file, and a wasm binary
+`108-web-polish.md` — the last mile: a progress bar for the 17.5 MB stress file, and a wasm binary
 worth shipping.

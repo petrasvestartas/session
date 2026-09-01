@@ -1,4 +1,4 @@
-# 92 Selection outline + AA polish — the look, without the tax
+# 93 Selection outline + AA polish — the look, without the tax
 
 > **Big picture.** *Phase 11 closes.* The archive's selection outline was its most expensive habit:
 > an extra full-scene mask rasterization plus an **81-tap** box search in the composite — every
@@ -388,5 +388,5 @@ Edited: `shaders/outline_mask.wgsl` + `shaders/outline_sep.wgsl` (NEW), `shaders
 
 ## Next
 
-`93-scene-tree.md` — Phase 12: scene management UI. The Session's tree appears in a panel —
+`94-scene-tree.md` — Phase 12: scene management UI. The Session's tree appears in a panel —
 virtualized so a thousand rows scroll smoothly, with an eye icon driving 59's visibility per object.
