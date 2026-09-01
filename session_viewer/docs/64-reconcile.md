@@ -31,14 +31,20 @@
 ## Files we touch
 
 ```
-# content_hash; hashes: guid→u64; reconcile(new) → Diff; apply_object; row allocator; commit
-src/app/scene.rs
-# GPU-typed verbs: add_mesh_data / add_segments / add_glyphs / remove_object / set_object_row
-src/engine/gpu/mod.rs
-src/state.rs              # reload(url): fetch → diff → apply per bucket → commit
+# NEW — content_hash; Diff; reconcile(new); is_renderable; apply_object; row allocator; commit.
+# The diff is a second `impl Scene` file: scene.rs holds the document state, this holds the
+# reasoning over it, and neither grows the other.
+src/app/reconcile.rs
+src/app/scene.rs           # the fields the diff keeps: hashes, free_rows, next_row; one add_file line
+src/engine/gpu/objects.rs  # InstanceTable::set_row + write_row — one instance row, uploaded alone
+src/engine/gpu/arena.rs    # allocate / free, per object, on the arena
+src/engine/gpu/segments.rs # the ink lanes' add/remove by guid
+src/engine/gpu/glyphs.rs
+src/engine/gpu/mod.rs      # GPU-typed Gpu verbs, three lines each, forwarding to the four above
+src/state.rs               # reload(url): fetch → diff → apply per bucket → commit
 ```
 
-## Step 1 — the content fingerprint: `src/app/scene.rs`
+## Step 1 — the content fingerprint: `src/app/reconcile.rs` (NEW)
 
 Reconcile needs to know an object *changed*, not just that its guid still exists. The kernel has no
 content hash — and the obvious `format!("{:?}", geom)` is a **trap**: `Mesh` stores its `vertex`,
@@ -100,8 +106,9 @@ fn content_hash(geom: &Geometry, world: &Xform) -> u64 {
 }
 ```
 
-`Scene` remembers last load's hashes — add `hashes: HashMap<String, u64>` to the struct (init
-`hashes: HashMap::new()` in `Scene::new`'s literal), and fill it in `add_file`'s walk loop, right
+`Scene` remembers last load's hashes — add `hashes: HashMap<String, u64>` to the struct in
+`app/scene.rs` (init `hashes: HashMap::new()` in `Scene::new`'s literal; the diff's own file reads
+it as one more piece of document state), and fill it in `add_file`'s walk loop, right
 after the `self.guid_to_row.insert(guid.clone(), ri);` line (BEFORE `self.order.push(guid);` moves
 the guid; `placement` is the closure the walk already has, so the hash sees the same session xform
 the row was placed with — the manifest `place` stays out: it is viewer arrangement, not document
@@ -113,7 +120,7 @@ content):
 
 That map is the "current document state" the next load diffs against.
 
-## Step 2 — the diff: `src/app/scene.rs`
+## Step 2 — the diff: `src/app/reconcile.rs`
 
 One pass over the union of old and new guids sorts every object into exactly one bucket:
 
@@ -153,8 +160,9 @@ impl Scene {
 
 `is_renderable` mirrors `add_file`'s walk (35): EVERY kernel type renders now, so the only
 object that never gets a row is an `Element` whose `geometry()` is `ElementGeometry::None` —
-`add_file` `continue`s it. The diff must agree, or an empty element would sit in `added` forever
-and be pointlessly re-applied on every reload. In `scene.rs`, next to the converters:
+`add_file` `continue`s it (`app/scene.rs`, the one skip still in the loop). The diff must agree, or
+an empty element would sit in `added` forever and be pointlessly re-applied on every reload. In
+`reconcile.rs`, next to `content_hash`:
 
 ```rust
 /// Does this object get a row + GPU data? Since 35 everything does — EXCEPT an empty Element.
@@ -169,10 +177,14 @@ fn is_renderable(g: &Geometry) -> bool {
 ## Step 3 — apply the diff: `Gpu` verbs + `Scene` dispatch + `State` orchestration
 
 The 35 litmus test still holds: `engine/` names no `Geometry`. So `Gpu` exposes only **GPU-typed**
-verbs, and the `Geometry` match — converting an object to those GPU types via 45's `flatten_mesh` /
-35's `line_to_segment` / … — stays in the app layer.
+verbs, and the `Geometry` match — converting an object to those GPU types via 45's `flatten_mesh`
+(`app/walk/mesh.rs`) and the walk's converters (`app/walk/curves.rs`, `frames.rs`, `points.rs`) —
+stays in the app layer.
 
-**3a. Gpu verbs (GPU types only), in `src/engine/gpu/mod.rs`:**
+**3a. Gpu verbs (GPU types only), in `src/engine/gpu/mod.rs`** — three lines each, because the work
+belongs to whichever family owns the rows: `allocate`/`free` are the arena's (`arena.rs`),
+`add`/`remove` by guid are the ink lanes' (`segments.rs`, `glyphs.rs`), and `set_object_row`
+forwards to `InstanceTable::set_row` (`objects.rs`), which is where the row and its buffer live:
 
 ```rust
     /// A mesh object's already-flattened data → arena + edge/naked tables. Scene did the
@@ -227,7 +239,8 @@ verbs, and the `Geometry` match — converting an object to those GPU types via 
     }
 ```
 
-`SZ` is a new module-level const — add near the top of `gpu/mod.rs`, next to the other consts:
+`SZ` is a new module-level const — add near the top of `objects.rs`, the file that spends it
+(`Instance` itself is declared in `instance.rs`; the TABLE of those rows is `objects.rs`):
 
 ```rust
 /// One instance row's byte size — write_row / grow_instances offsets.
@@ -235,7 +248,7 @@ const SZ: usize = std::mem::size_of::<Instance>();
 ```
 
 (a `usize`, so cast it — `SZ as u64` — before comparing against `instance_buffer.size()`, which
-is a `u64`.) The two helpers `set_object_row` leans on:
+is a `u64`.) The two helpers `set_row` leans on, both on `impl InstanceTable` in `objects.rs`:
 
 ```rust
     /// Mutate one instance row and upload just it (SZ bytes at row*SZ).
@@ -246,7 +259,7 @@ is a `u64`.) The two helpers `set_object_row` leans on:
     }
 
     /// Instance buffer overflowed: re-alloc 2x, rebuild the (bound-once) bind group, re-upload all
-    /// rows. Same shape as 45's ensure_seg_capacity; needs `instance_layout` hoisted onto Gpu.
+    /// rows. Same shape as GrowBuf::append (buffers.rs); the layout arrives as &Layouts.
     fn grow_instances(&mut self) {
         let need = (self.instances.len() * SZ) as u64;
         let mut cap = self.instance_buffer.size().max(SZ as u64);
@@ -264,15 +277,15 @@ is a `u64`.) The two helpers `set_object_row` leans on:
     }
 ```
 
-**3b. Scene owns the `Geometry` match + rows, in `src/app/scene.rs`** — `apply_object` is 35's
+**3b. Scene owns the `Geometry` match + rows, in `src/app/reconcile.rs`** — `apply_object` is 35's
 per-variant `add_file` walk for a *single* object; rows come from a small allocator that reuses
 freed rows. No geometry carries a placement, so the row's full world frame (`placed` — manifest
 place × session world xform, exactly what `add_file` stores and 40's `placed_frame` reads) comes
 in as a parameter:
 
 ```rust
-    /// Flatten one object into the GPU at `row`, converting via 35's helpers (which live here
-    /// in app). `placed` is the row's full world frame — the caller composes it (Step 3c).
+    /// Flatten one object into the GPU at `row`, converting via the walk's producers (app/walk/,
+    /// one file per type). `placed` is the row's full world frame — the caller composes it (3c).
     pub fn apply_object(&self, gpu: &mut Gpu, guid: &str, geom: &Geometry, placed: Xform,
                         row: u32) {
         // idempotent: clears any prior data for this guid before (re)adding
@@ -331,11 +344,15 @@ in as a parameter:
     }
 ```
 
-(`flatten_mesh` landed in 48 Step 5a — the per-object split of 35's `push_mesh`.
-`free_rows: Vec<u32>` and `next_row: u32` are new `Scene` fields — add both to `struct Scene`,
-init `free_rows: Vec::new(), next_row: 0` in `Scene::new`'s literal — the scene starts EMPTY
-since 35 — and keep `next_row` in step with the walk: one line at the bottom of `add_file`,
-`self.next_row = self.tables.objects.len() as u32;`.)
+(`flatten_mesh` landed in 48 Step 5a — the per-object split of the mesh producer — and lives beside
+`walk_mesh` in `app/walk/mesh.rs`; `line_to_segment`/`polyline_to_segments`/`nurbscurve_to_segments`
+are `walk/curves.rs`, `plane_to_segments`/`obb_to_segments` are `walk/frames.rs`, `point_to_glyph`
+is `walk/points.rs`. A walked `PointCloud` no longer converts to glyphs at all — `walk/cloud.rs`
+sends it down the splat lane — so that arm's GPU verb is the cloud lane's, not `add_glyphs`.
+`free_rows: Vec<u32>` and `next_row: u32` are new `Scene` fields — add both to `struct Scene` in
+`app/scene.rs`, init `free_rows: Vec::new(), next_row: 0` in `Scene::new`'s literal — the scene
+starts EMPTY since 35 — and keep `next_row` in step with the walk: one line at the bottom of
+`add_file`, `self.next_row = self.tables.obj.rows.len() as u32;`.)
 
 **3c. State orchestrates the reload, in `src/state.rs`:**
 
@@ -399,6 +416,9 @@ since 35 — and keep `next_row` in step with the walk: one line at the bottom o
 > (When the BVH lands, [67](67-scene-bvh.md) extends this exact function with the touched-rows
 > box re-walk and the `rebuild_bvh()` call — its step quotes the insertion point.)
 
+Both land in `reconcile.rs` beside `apply_object` — they read `Scene`'s bookkeeping, which is
+`pub(crate)` precisely so a second `impl Scene` file can:
+
 ```rust
     /// Swap in the reloaded document: rebuild order + hashes for `new`, but KEEP
     /// guid_to_row / free_rows / next_row — those rows already point at the GPU data reload
@@ -461,7 +481,9 @@ ranges were never re-uploaded.
 
 A second test pins the part that actually breaks in the field: after a reconcile, `order` and rows
 have diverged, so a broad-phase query must return the row the GPU *drew* the object on — not the
-stale order index. Add it inside 40's `#[cfg(test)] mod tests` in `scene.rs`:
+stale order index. Add it inside a `#[cfg(test)] mod tests` at the bottom of `reconcile.rs` — the
+file whose behaviour it pins; the BVH's own tests stay with the tree, in the `app/spatial.rs` that
+lesson adds:
 
 ```rust
     /// Pick-after-reconcile: move an object (same guid, new xform), commit, and the BVH must
@@ -513,11 +535,16 @@ Ch 46: THE DIFF. content_hash = hash of the kernel's SORTED jsondump + the objec
         of N → 1 re-flatten, N−1 skips.
 ```
 
-Edited: `app/scene.rs` (`content_hash`, `hashes`, `Diff`, `reconcile`, `is_renderable`,
+Edited: `app/reconcile.rs` (NEW — `content_hash`, `Diff`, `reconcile`, `is_renderable`,
 `apply_object`, `assign_row`/`free_row`, `commit(new, &diff)` — boxes re-walked for touched rows
-only; `rebuild_bvh`/`objects_in` row-mapping; `pick_after_reconcile` test),
-`engine/gpu/mod.rs` (the five GPU-typed verbs, `write_row`, `grow_instances`), `state.rs`
-(`reload` — diff-driven, fetch-guarded, not rebuild-from-zero).
+only; `rebuild_bvh`/`objects_in` row-mapping; `pick_after_reconcile` test), `app/mod.rs` (one
+`pub mod reconcile;` line), `app/scene.rs` (`hashes`, `free_rows`, `next_row` on `struct Scene`;
+one hash line in `add_file`'s loop and one `next_row` line at its foot),
+`engine/gpu/objects.rs` (`InstanceTable::set_row`, `write_row`, the `SZ` const and the instance
+buffer's growth), `engine/gpu/arena.rs` + `engine/gpu/segments.rs` + `engine/gpu/glyphs.rs`
+(allocate/free and the lanes' add/remove by guid), `engine/gpu/mod.rs` (the five GPU-typed `Gpu`
+verbs, three lines each), `state.rs` (`reload` — diff-driven, fetch-guarded, not
+rebuild-from-zero).
 
 ## Next
 
