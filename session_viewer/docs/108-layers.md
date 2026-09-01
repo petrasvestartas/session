@@ -28,16 +28,21 @@ their human name there**. So:
 ## Files we touch
 
 ```
-src/app/scene.rs      # active_layer: Option<String>; layer_names/layer_members/layer_node/
-                      # assign_to_layer — all NAME-keyed, doc-folding
+src/app/layers.rs     # NEW — layer_names/layer_members/layer_node/assign_to_layer,
+                      # all NAME-keyed, doc-folding
+src/app/scene.rs      # ONE field: active_layer: Option<String>
 src/app/commands.rs   # `layer list` / `layer <name>` / `layer off|on <name>` / `layer active <name>`
 ```
 
-## Step 1 — list what's already there: `src/app/scene.rs`
+## Step 1 — list what's already there: `src/app/layers.rs`
+
+A new file (`pub mod layers;` in `app/mod.rs`) carrying its own `impl Scene` block; the *field*
+below is the one line this lesson owes `app/scene.rs`, which still holds `struct Scene` and
+`Scene::new`.
 
 The best first demo is not creating a toy layer — it's *seeing the real ones* the import built.
 Top-level tree children whose name is **not** an object guid in that doc are groups; collect them
-across all docs (add `BTreeMap` to scene.rs's `std::collections` import — it sorts the listing
+across all docs (`use std::collections::BTreeMap;` heads the new file — it sorts the listing
 for free):
 
 ```rust
@@ -75,7 +80,7 @@ for free):
     }
 ```
 
-## Step 2 — creating and assigning: `src/app/scene.rs`
+## Step 2 — creating and assigning: `src/app/layers.rs`
 
 *Finding* a layer folds over all docs; *creating* one cannot — a new group needs a **target doc**.
 The find-or-create is doc-scoped (the caller says which — the active doc for new layers, the
@@ -202,8 +207,9 @@ Ch 86: LAYERS = tree groups the PDF importer ALREADY builds (one per OCG layer, 
        (the STRUCTURE — layer off/on is viewer state and resets on reload).
 ```
 
-Edited: `app/scene.rs` (`active_layer`, `layer_names`, `layer_members`, `layer_node(d, name)`,
-`assign_to_layer`), `app/commands.rs` (`layer` verbs).
+Edited: `app/layers.rs` (NEW — `layer_names`, `layer_members`, `layer_node(d, name)`,
+`assign_to_layer`) + one `app/mod.rs` line, `app/scene.rs` (one field: `active_layer`),
+`app/commands.rs` (`layer` verbs).
 
 ## Next
 
