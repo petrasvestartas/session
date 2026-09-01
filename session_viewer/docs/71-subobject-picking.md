@@ -33,9 +33,14 @@ vertex, that's the pick; else the nearest edge; else the face the ray landed on.
 
 ```
 src/engine/pick.rs   # project_to_screen(view_proj, origin, world_pt, viewport) — the forward of 46
-src/app/pick.rs      # SubKind { Vertex/Edge/Face }, SubHit { row, guid, kind }
-src/app/scene.rs     # resolve_subobject(guid, hit, cursor, view_proj, origin, viewport) → SubHit
+src/app/pick.rs      # SubKind { Vertex/Edge/Face }, SubHit { row, guid, kind };
+                     # resolve_subobject(hit, cursor, view_proj, origin, viewport) → SubHit
+src/app/input.rs     # one call, right after 47's pick_ray succeeds
 ```
+
+Everything on the app side lands in 47's `app/pick.rs` — the resolver reads the same `docs`/row
+bookkeeping `pick_ray` does, and it is the second half of the same question, so it keeps the same
+file. `engine/pick.rs` gains only the projection: no document type ever reaches it.
 
 ## Step 1 — project a world point to the screen: `src/engine/pick.rs`
 
@@ -77,14 +82,14 @@ pub struct SubHit {
 }
 ```
 
-## Step 3 — resolve, most-specific first: `src/app/scene.rs`
+## Step 3 — resolve, most-specific first: `src/app/pick.rs`
 
 Given 47's `PickHit` (the row + guid + the world hit point), walk the hit mesh's vertices then edges in
 screen space, and fall back to the face containing the hit. `R_PX` is the click slop — ~8 px feels right
-and matches 49's thin-geometry radius. Widen `scene.rs`'s imports first:
+and matches 49's thin-geometry radius. `PickHit` and Step 2's two types are already in this file;
+one import is new:
 
 ```rust
-use crate::app::pick::{PickHit, SubHit, SubKind};
 use crate::engine::pick::project_to_screen;
 ```
 
@@ -214,8 +219,8 @@ fn point_in_tri(p: &Point, a: &Point, b: &Point, c: &Point) -> bool {
 
 ## Step 4 — wire it + verify
 
-Call `resolve_subobject` right after 47's `pick_ray` succeeds — in `State::on_left_click`,
-replace 47's `match self.scene.pick_ray(&ray) { … }` with:
+Call `resolve_subobject` right after 47's `pick_ray` succeeds — in `on_left_click`
+(`src/app/input.rs`), replace 47's `match self.scene.pick_ray(&ray) { … }` with:
 
 ```rust
     if let Some(hit) = self.scene.pick_ray(&ray) {
@@ -255,8 +260,8 @@ Ch 48: SUB-OBJECT. Resolve the hit to vertex / edge / face, SCREEN-SPACE, most-s
        1D/0D geometry that a ray can't hit exactly.
 ```
 
-Edited: `engine/pick.rs` (`project_to_screen` — forward projection), `app/pick.rs` (`SubKind`, `SubHit`),
-`app/scene.rs` (`resolve_subobject` vertex→edge→face, `seg_dist2`, `face_containing`).
+Edited: `engine/pick.rs` (`project_to_screen` — forward projection), `app/pick.rs` (`SubKind`, `SubHit`,
+`resolve_subobject` vertex→edge→face, `seg_dist2`, `face_containing`), `app/input.rs` (the call).
 
 ## Next
 
