@@ -345,6 +345,32 @@ colliding with the in-flight lessons 45-51 authoring run.
    object, and the per-vertex cost falls from ~97 B to ~37 B. Still ~60% off what remains of
    the sheet graph (3.37 MB of a 23.9 MB file after the two fixes above).
 
+### Measured dead end: `Color` guids in sub-message positions (2026-09-01)
+
+`Color` carries `string guid = 1`, and every owner's writer calls `.guid()`, which MINTS. That
+looks like item 2 waiting to happen — a Polyline's linecolor is not an identity — and the
+arithmetic is tempting: 38 B of guid per Color, times the 42,232 Line/Polyline rows lesson 34d
+cites, is 1.5 MB.
+
+It is wrong, and measuring the actual files says so:
+
+| asset | Color sub-messages | guid bytes | % of file |
+|---|---|---|---|
+| `draw_pe_schalungsbild.pb` | 1 | 38 | 0.00% |
+| `floor_model.pb` | 290 | 0 | 0.00% |
+| `colors_widths.pb` | 2 | 76 | 1.62% |
+
+The sheet has ONE. P6 items 1/2 already moved bulk ink colour to packed `linecolor_rgba` on
+`Line`, so the `Color` sub-message is no longer on any hot path in these assets — and
+`floor_model`'s 290 are already written with empty guids. The 42,232 figure is from a
+DIFFERENT file (`30700_querschnitt_gg.pb`) and multiplying it by a per-object cost is not a
+measurement.
+
+Do not spend the 8-message-type × 3-language change on this. If bulk colour ever returns to a
+`Color` sub-message, re-measure first. (`NurbsCurve`/`NurbsSurface` still declare `repeated
+Color` from item 1 and remain genuinely unconverted — but no asset here exercises them, so
+that too needs a measurement before it earns any work.)
+
 ### What P6 does NOT fix
 
 Loading, not residency. A `Line` still costs ~320 B and a face ~78 B, because that is the
