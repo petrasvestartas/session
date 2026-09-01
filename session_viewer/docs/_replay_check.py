@@ -210,9 +210,17 @@ def replace_all_words(txt, old, new):
     pat = re.compile(r"(?<![A-Za-z0-9_])" + re.escape(old) + r"(?![A-Za-z0-9_])")
     return pat.subn(new, txt)
 
+# A lesson may edit the KERNEL as well as the viewer (lesson 36 adds `PointCloud::normals`).
+# Those paths live outside the staged viewer tree, so a replay cannot apply them - and must not
+# report them as broken anchors either, or the gate carries a permanent false failure that
+# trains you to ignore it. They are counted and named instead.
+OUT_OF_TREE = ("session_rust/", "session_cpp/", "session_py/", "session_proto/")
+
 def apply(root, doc):
-    fails = []
+    fails, skipped = [], []
     for verb, tgt, a, b, ln in ops(doc):
+        if tgt and tgt.startswith(OUT_OF_TREE):
+            skipped.append((ln, tgt)); continue
         if verb == "create":
             body = a[0] if isinstance(a, list) and a else (a or "")
             p = root / tgt; p.parent.mkdir(parents=True, exist_ok=True); p.write_text(body + "\n"); continue
@@ -262,7 +270,7 @@ def apply(root, doc):
             else:                            txt = txt.replace(fa, ar + "\n" + fa)
         if not bad:
             p.write_text(txt)
-    return fails
+    return fails, skipped
 
 # ----------------------------------------------------------------- --moves
 # A **Move** is the one op the compiler and the pixel goldens cannot police: a line dropped
@@ -599,8 +607,13 @@ if __name__ == "__main__":
         if check_moves:
             if prev.exists(): shutil.rmtree(prev)
             copy_tree(work, prev, link_heavy=False)
-        f = apply(work, d); total = len(ops(d))
-        print(f"{d}: {total} ops, {len(f)} failed")
+        f, skipped = apply(work, d); total = len(ops(d))
+        out = f"{d}: {total} ops, {len(f)} failed"
+        if skipped:
+            out += f", {len(skipped)} kernel op(s) outside the viewer tree"
+        print(out)
+        for ln, tgt in skipped:
+            print(f"   .. doc line {ln:>4}  {tgt}  — out of tree, not applied")
         for ln, tgt, why in f[:14]:
             print(f"   !! doc line {ln:>4}  {tgt}  — {why}")
         bad += len(f)

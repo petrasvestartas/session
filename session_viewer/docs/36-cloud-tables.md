@@ -251,8 +251,16 @@ pub struct Doc{
 }
 ```
 
-**Add** `pub cloud_px: f32, // per-file raw-cloud point size, px; 0 = pb's own` **after
-the `session` field**.
+**Replace with:**
+
+```rust
+pub struct Doc{
+    pub name: String,
+    pub place: Xform,
+    pub session: Session,
+    pub cloud_px: f32, // per-file raw_cloud point size, px; 0 = pb's own
+}
+```
 
 **3c.** Same file, **find**:
 
@@ -520,10 +528,11 @@ the cloud-point count shows up in the harness).
         owned.iter().map(|(p, x, px)| (p.as_str(), x.clone(), *px)).collect();
 ```
 
-**3k (optional) — TOML manifests.** Hand-written scene files deserve comments, which JSON
+**3k — TOML manifests.** Hand-written scene files deserve comments, which JSON
 doesn't have. Three tiny edits and every manifest parses as EITHER format (same structs,
-serde does the rest). `Cargo.toml`: add `toml = "0.8"` above `serde_json`. In
-`Manifest::parse`, **find** `serde_json::from_slice(bytes).ok()` and **replace with:**
+serde does the rest). In `Cargo.toml`, add `toml = "0.8"` above `serde_json`. Then in
+`src/app/scene.rs`, in `Manifest::parse`, **find** `serde_json::from_slice(bytes).ok()`
+and **replace with:**
 
 ```rust
         serde_json::from_slice(bytes).ok()
@@ -532,8 +541,21 @@ serde does the rest). `Cargo.toml`: add `toml = "0.8"` above `serde_json`. In
 
 (JSON first — every existing scene; a JSON parse of TOML text fails fast, so the fallback
 costs nothing.) And in `examples/selftest.rs`, the manifest gate
-`if p.ends_with(".json")` gains `|| p.ends_with(".toml")`. See
-`assets/scenes/bunny_drawings.toml` for the commented style.
+`if p.ends_with(".json")` gains `|| p.ends_with(".toml")`.
+
+The commented file already ships as `assets/scenes/bunny_drawings.toml`, so point the default
+at it — lessons [41](41-cloud-normals.md) and [42](42-cloud-scenes.md) both edit that file as
+TOML. In `src/lib.rs`, **find**:
+
+```rust
+const DEMO_SCENE_URL: &str = "scenes/bunny_drawings.json";
+```
+
+**Replace with:**
+
+```rust
+const DEMO_SCENE_URL: &str = "scenes/bunny_drawings.toml";
+```
 
 ## Step 4 — the walk: `src/app/scene.rs`
 
