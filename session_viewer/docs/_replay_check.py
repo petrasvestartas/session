@@ -655,15 +655,53 @@ def links(docs):
             if words and not any(w in fn for w in words):
                 mistopic.append(f"{m.group(0)} -> {fn}")
 
-        n = len(miss) + len(wrong) + len(unknown) + len(mistopic)
+        # The "Next" line is the ONLY thing carrying a reader from one lesson to the next, and it
+        # is what a renumber breaks most silently. Every check above passes on a Next that points
+        # at the wrong lesson, because the target it names does exist. Three real failures this
+        # missed across 33 of 85 lessons: 46-52 each named their OWN number (`Lesson **51**` at
+        # the end of 51-walk-sinks.md, describing 52's content - the filenames shifted, the
+        # bolded numbers did not); 53-56 all pointed at 58, each written as the last lesson
+        # before it and never updated when the next was appended, so the trail SKIPPED four
+        # lessons including the one that makes the tree compile; and 36-43 plus 45 had no Next
+        # at all. Note the bold: `Lesson **51**` is invisible to a `lesson (\d+)` pattern.
+        nextref, nonext = [], []
+        order = sorted(have.items(), key=lambda kv: (int(re.match(r"\d+", kv[0]).group(0)),
+                                                     re.sub(r"^\d+", "", kv[0])))
+        names = [v for _, v in order]
+        try:    idx = names.index(pathlib.Path(d).name)
+        except ValueError: idx = -1
+        succ = names[idx + 1] if 0 <= idx < len(names) - 1 else None
+        sec = re.split(r"^## Next\s*$", s, flags=re.M)
+        if succ:
+            if len(sec) < 2:
+                # Only from 36 on, where every lesson carries a Next; the early ones close with
+                # a sentence by design ("Draw a triangle.") and that is not a renumber break.
+                if int(re.match(r"\d+", pathlib.Path(d).name).group(0)) >= 36:
+                    nonext.append(succ)
+            else:
+                body = sec[1]
+                if not re.search(re.escape(succ), body):
+                    # A NUMBER in the Next block that is not the successor's. Bolded or plain,
+                    # linked or bare - `Lesson **51**` is invisible to a plain \d+ scan.
+                    nums = re.findall(r"\[?\*{0,2}(\d{2,3}[a-z]?)\*{0,2}\]?", body)
+                    snum = re.match(r"(\d+[a-z]?)", succ).group(1)
+                    if nums and snum not in nums:
+                        me = re.match(r"(\d+[a-z]?)", pathlib.Path(d).name).group(1)
+                        how = "names ITSELF" if me in nums else f"points at {nums[0]}"
+                        nextref.append(f"{how}; successor is {succ}")
+
+        n = len(miss) + len(wrong) + len(unknown) + len(mistopic) + len(nextref) + len(nonext)
         if n:
             bad += n
             print(f"{d}: {len(miss)} dead link(s), {len(wrong)} mislabelled, "
-                  f"{len(unknown)} naming no lesson, {len(mistopic)} naming the WRONG lesson")
+                  f"{len(unknown)} naming no lesson, {len(mistopic)} naming the WRONG lesson, "
+                  f"{len(nextref) + len(nonext)} Next problem(s)")
             for x in miss[:4]:    print(f"   !! dead link      {x}")
             for x in wrong[:4]:   print(f"   !! label mismatch {x}")
             for x in sorted(set(unknown))[:6]: print(f"   ?? no such lesson  {x}")
             for x in sorted(set(mistopic))[:6]: print(f"   !! wrong lesson    {x}")
+            for x in nextref[:3]: print(f"   !! Next            {x}")
+            for x in nonext[:3]:  print(f"   !! Next            MISSING; successor is {x}")
     print(f"# {bad} cross-reference problem(s) over {len(docs)} doc(s)")
     return bad
 
