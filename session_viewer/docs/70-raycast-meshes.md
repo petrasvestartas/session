@@ -47,16 +47,19 @@ into local space before the test, and the hit transformed back. Nearest `t` alon
 ## Files we touch
 
 ```
-src/app/pick.rs      # NEW — PickHit { row, guid, point, t }
-# objects_along_ray (BVH broad-phase); raycast_mesh (local-frame cast); pick_ray (nearest)
-src/app/scene.rs
-src/state.rs         # on left-click: build ray (54) → scene.pick_ray → log/highlight the hit guid
+src/app/pick.rs      # NEW — PickHit { row, guid, point, t }; objects_along_ray (BVH broad-phase);
+                     # raycast_mesh (local-frame cast); pick_ray (nearest)
+src/app/mod.rs       # pub mod pick;
+src/app/input.rs     # on left-click: build ray (54) → scene.pick_ray → log/highlight the hit guid
 ```
 
 `pick_ray` lives in `Scene` (app layer): it names `Mesh`/`BRep`/`Geometry` and mutates the kernel meshes
 (the triangle BVH is built lazily on first cast). `engine/pick.rs` keeps only the ray math (54).
+The whole pick — result type, broad-phase, narrow-phase, nearest-wins — is ONE new file,
+`app/pick.rs`, carrying its own `impl Scene` block: `scene.rs` holds the document state these
+methods read (`docs`, `order`, `guid_to_row`, `tables`), not the algorithms that read it.
 
-## Step 1 — broad-phase: which objects lie along the ray: `src/app/scene.rs`
+## Step 1 — broad-phase: which objects lie along the ray: `src/app/pick.rs`
 
 40's `SpatialBVH` has a ray traversal built in — `ray_cast` walks only the nodes whose AABB the ray
 pierces and returns their leaf object_ids. The tree was fed boxes in `order` order (52), so an
@@ -78,7 +81,7 @@ object_id indexes **`order`** — and the ROW is one `guid_to_row` lookup away, 
     }
 ```
 
-## Step 2 — narrow-phase: cast in the mesh's local frame: `src/app/scene.rs`
+## Step 2 — narrow-phase: cast in the mesh's local frame: `src/app/pick.rs`
 
 A mesh's vertices and its cached triangle BVH are **local** — the row's placed frame places them in
 the world, and the geometry itself carries no placement (52). So the world ray can't be cast against
@@ -87,7 +90,7 @@ the hit back to world. The frame comes in as a parameter: the caller reads it of
 (`scene.placed_frame(row)`, the same matrix the instance row draws with).
 
 ```rust
-// Line/Mesh are already in scene.rs's session_rust import (35); only the ray type is new:
+// Line/Mesh come in with pick.rs's own session_rust import; only the ray type is new:
 use crate::engine::pick::Ray;   // 46's Ray { origin: Point, dir: Vector }
 
 const PICK_EPS: f64 = 1e-9;
@@ -125,7 +128,7 @@ fn raycast_mesh(m: &mut Mesh, frame: &Xform, ray: &Ray, eps: f64) -> Option<(Poi
 > triangle BVH — the whole reason the kernel's `triangle_bvh_ray_cast` is fast. Move the ray to the
 > geometry's frame, never the geometry to the ray's.
 
-## Step 3 — nearest wins: `src/app/scene.rs`
+## Step 3 — nearest wins: `src/app/pick.rs`
 
 Broad-phase to candidates, cast each, keep the smallest `t`. `Mesh` and `BRep` both resolve to a mesh
 (`BRep::mesh()`); everything else falls to 49's thin-geometry path:
@@ -188,8 +191,8 @@ impl Scene {
 (`pick_ray` needs `&mut self` only because the kernel's lazy triangle BVH builds through plain
 mutation — kernel-gap #9 in `_KERNEL_GAPS.md`; interior mutability there would make picking `&self`.)
 
-And the tiny result type, `src/app/pick.rs` (declare it in `src/app/mod.rs` beside the others:
-`pub mod pick;`):
+And the tiny result type, at the top of that same `src/app/pick.rs` (declare the module in
+`src/app/mod.rs` beside the others: `pub mod pick;`):
 
 ```rust
 use session_rust::Point;
@@ -219,10 +222,10 @@ pub struct PickHit {
 > e.g. `1e-9 * frame_scale` or a fraction of the candidate's world diagonal. The kernel's
 > `line_line` tolerance in 57 has the same property; both are constants here for clarity.
 
-## Step 4 — wire the click + a headless test: `src/state.rs`
+## Step 4 — wire the click + a headless test: `src/app/input.rs`
 
 ```rust
-    // In State::on_left_click (46 Step 3b) — REPLACE the z=0 ground-plane block inside the
+    // In on_left_click (46 Step 3b, in app/input.rs) — REPLACE the z=0 ground-plane block inside the
     // `if let Some(ray)` with the pick_ray match. The vp/origin/viewport locals are 46's,
     // unchanged; the whole method now reads:
     let vp = self.camera.view_proj(self.aspect());
@@ -309,8 +312,9 @@ Ch 47: RAY-CAST MESHES. Broad-phase: 40's SpatialBVH::ray_cast walks only pierce
        (Line/Polyline/Point) has no area to hit — that's 49.
 ```
 
-Edited: `app/pick.rs` (NEW — `PickHit`), `app/scene.rs` (`objects_along_ray` BVH broad-phase,
-`raycast_mesh` local-frame cast, `pick_ray` nearest-wins), `state.rs` (click → ray → `pick_ray` → log).
+Edited: `app/pick.rs` (NEW — `PickHit`, `objects_along_ray` BVH broad-phase, `raycast_mesh`
+local-frame cast, `pick_ray` nearest-wins), `app/mod.rs` (`pub mod pick;`), `app/input.rs`
+(click → ray → `pick_ray` → log).
 
 ## Next
 
