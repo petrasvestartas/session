@@ -62,8 +62,8 @@ src/app/history/mod.rs      # NEW — trait Command + History { done, undone }
 src/app/history/remove.rs   # NEW — RemoveObjects: Rc + xform snapshots, apply/revert
 src/app/commands.rs         # `delete` verb; `undo`/`redo` verbs
 src/state.rs                # State.history
-src/lib.rs                  # Ctrl+Z / Ctrl+Y / Del key — they just type the verbs
-src/app/scene.rs            # restore_geometry — Geometry → the right Session::add_* call
+src/app/input.rs            # Ctrl+Z / Ctrl+Y / Del key — they just type the verbs
+src/app/reconcile.rs        # restore_geometry — Geometry → the right Session::add_* call
 ```
 
 ## Step 1 — the pattern: `src/app/history/mod.rs` (NEW)
@@ -194,12 +194,12 @@ impl Command for RemoveObjects {
 }
 ```
 
-(`write_row_flags` is the one-row flag poke 50 added to `engine/gpu/mod.rs` — `Instance.flags`
+(`write_row_flags` is the one-row flag poke 50 added to `engine/gpu/objects.rs` — `Instance.flags`
 is private to the engine, so the write lives there. If you reached this lesson before those, it is
 ten lines: set `objects_base[row].2` and `instances[row].flags`, then `queue.write_buffer` that
 row's 96 bytes.)
 
-## Step 3 — restoring a snapshot: `src/app/scene.rs`
+## Step 3 — restoring a snapshot: `src/app/reconcile.rs`
 
 The kernel removes generically (`Session::remove_object(guid)`) but adds per type — a small dispatch
 closes the gap (kernel-gap #8 in `_KERNEL_GAPS.md`: a kernel `add_geometry(Geometry)` would delete
@@ -250,8 +250,8 @@ method):
                        .map(|l| format!("redo: {l}")).unwrap_or("nothing to redo".into())),
 ```
 
-Keyboard shortcuts are just typists (the commands-only philosophy made literal) — in lib.rs's
-`match event.logical_key.as_ref()`, beside the Escape arm (61):
+Keyboard shortcuts are just typists (the commands-only philosophy made literal) — in
+`app/input.rs`'s `match event.logical_key.as_ref()`, beside the Escape arm (61):
 
 ```rust
                         Key::Named(NamedKey::Delete) => state.run_command("delete"),
@@ -343,8 +343,8 @@ Ch 64: UNDO. trait Command { apply / revert / label } + History { done, undone }
 ```
 
 Edited: `app/history/mod.rs` (NEW — trait + stacks), `app/history/remove.rs` (NEW — `RemovedObj`,
-`RemoveObjects`), `app/scene.rs` (`restore_geometry`), `app/commands.rs` (delete/undo/redo),
-`state.rs` (`history`, Del/Ctrl+Z/Ctrl+Y).
+`RemoveObjects`), `app/reconcile.rs` (`restore_geometry`), `app/commands.rs` (delete/undo/redo),
+`state.rs` (`history`), `app/input.rs` (Del/Ctrl+Z/Ctrl+Y).
 
 ## Next
 
