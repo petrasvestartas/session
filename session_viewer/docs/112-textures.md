@@ -288,22 +288,27 @@ them**:
 @group(0) @binding(2) var<uniform> tex_anchor: vec4<f32>;
 ```
 
-The Rust half is three small edits beside 83's section buffer: a `binding: 2` entry in
-`mvp_layout`'s `entries` (visibility FRAGMENT, uniform buffer), a 16-byte `tex_anchor` buffer +
-`BindGroupEntry` on the `mvp_bind_group`, and the upload — where `rebase_anchor` runs in
-`State::render`:
+The Rust half is three small edits beside 83's section buffer. Two of them sit in
+`src/engine/gpu/mod.rs` right next to Step 1: a `binding: 2` entry in `mvp_layout`'s `entries`
+(visibility FRAGMENT, uniform buffer), and a 16-byte `tex_anchor_buffer` plus its `BindGroupEntry`
+on the `mvp_bind_group` — kept on `Gpu` exactly the way Step 2 keeps `material_bind_group`.
+
+The third is the per-frame upload, and it belongs where the anchor is actually computed — the one
+place that already holds `anchor` as an f64 `Point`, `State::render`.
+
+In `src/state.rs`, **Find** `        let anchor = self.gpu.rebase_anchor(&origin, self.camera.distance_world());` and **Add below it**:
 
 ```rust
-    // The triplanar pattern repeats every 400 mm, so only (anchor mod 400) can change the
-    // sampling — compute it in f64 and upload it TINY. Adding the raw anchor (millions of mm)
-    // to a fragment's position in f32 would drown the 400 mm tile phase in rounding: the
-    // checker would swim on every re-anchor.
-    let a_mod = [0, 1, 2].map(|k| anchor[k].rem_euclid(400.0) as f32);
-    self.gpu.queue.write_buffer(&self.gpu.tex_anchor_buffer, 0,
-        bytemuck::bytes_of(&[a_mod[0], a_mod[1], a_mod[2], 0.0]));
+        // The triplanar pattern repeats every 400 mm, so only (anchor mod 400) can change the
+        // sampling — compute it in f64 and upload it TINY. Adding the raw anchor (millions of mm)
+        // to a fragment's position in f32 would drown the 400 mm tile phase in rounding: the
+        // checker would swim on every re-anchor.
+        let a_mod = [0, 1, 2].map(|k| anchor[k].rem_euclid(400.0) as f32);
+        self.gpu.queue.write_buffer(&self.gpu.tex_anchor_buffer, 0,
+            bytemuck::bytes_of(&[a_mod[0], a_mod[1], a_mod[2], 0.0]));
 ```
 
-Then **find** the last line of `fs_main`,
+Then, back in `src/shaders/triangle.wgsl`, **find** the last line of `fs_main`,
 `return vec4<f32>(in.color * select(lit, 1.0, in.print > 0.5), 1.0);` (34h's print-fill
 select — KEEP the select, texture only the lit half), and **replace it**
 with the triplanar sample (`n` and `in.world_pos` are already in scope from the light model above):
@@ -387,7 +392,8 @@ Edited: `engine/gpu/material.rs` (NEW — generate/upload texture + mip chain + 
 group), `engine/gpu/frame.rs` (`Binds.material`, the `tex_anchor` buffer at group 0 binding 2),
 `engine/gpu/arena.rs` (one bind line inside `Arena::draw_faces`), `engine/pipelines/layouts.rs` +
 `build.rs` (`Layouts.material`, handed to the triangle and triangle_sheet descs), one `Gpu` field
-and its `::new` line in `engine/gpu/mod.rs`, `shaders/triangle.wgsl` (group-3 texture/sampler +
+and its `::new` line in `engine/gpu/mod.rs`, `state.rs` (the per-frame `tex_anchor` upload in
+`State::render`), `shaders/triangle.wgsl` (group-3 texture/sampler +
 group-0-binding-2 `tex_anchor` + triplanar sample).
 
 ## Next
