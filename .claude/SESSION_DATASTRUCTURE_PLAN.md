@@ -323,12 +323,27 @@ colliding with the in-flight lessons 45-51 authoring run.
    | `floor_model.pb` | 1,202,137 → 1,167,438 (−2.89%) | −36.53% | 176 → 88 |
    | `colors_widths.pb` | 4,699 → 4,504 (−4.15%) | −26.21% | 0 |
 
-   STILL TO DO for this item: the actual skip-and-rebuild. Blocker to design around — a
-   rebuild from objects reproduces `name` and `attribute` exactly (Python already centralises
-   this in `Session._add_object`; Rust has twelve copies of the same three lines and should
-   adopt the same helper), but `Vertex.index` is INSERTION order across kinds, and the objects
-   are stored in per-kind vectors, so a rebuild renumbers a session that interleaved kinds.
-   Establish whether anything reads `index` before relying on it.
+   STILL TO DO for this item: the actual skip-and-rebuild. A rebuild from objects reproduces
+   `name` and `attribute` exactly (Python already centralises this in `Session._add_object`;
+   Rust has twelve copies of the same three lines and should adopt the same helper).
+
+   **`Vertex.index` — question answered 2026-09-01.** It is read in exactly one place, in all
+   three languages: `Graph::jsondump` sorts vertices and edges by it, because `vertices` is a
+   hash map and the JSON needs a deterministic order. `_reassign_vertex_indices` /
+   `_reassign_edge_indices` renumber it after a removal to keep the order dense. Nothing else
+   consumes it. So `index` IS insertion order across kinds, and objects live in per-kind
+   vectors — meaning a naive rebuild renumbers any session that interleaved kinds, which
+   changes that session's graph JSON byte-for-byte. `Session::order()` is canonical and
+   cross-language, so rebuilding through it is deterministic and all three agree; it just is
+   not the ORIGINAL insertion order. That is a deliberate choice to make, not an accident to
+   avoid: rebuilt-canonical is arguably better than preserved-arbitrary, but it will move the
+   JSON of any existing session that interleaved.
+
+   Cheaper option that sidesteps it entirely: keep the order, drop the payload — write
+   `repeated string vertex_names` in index order instead of `map<string, Vertex>`. Index is
+   then the array position (exact, no renumbering), the attribute stays derivable from the
+   object, and the per-vertex cost falls from ~97 B to ~37 B. Still ~60% off what remains of
+   the sheet graph (3.37 MB of a 23.9 MB file after the two fixes above).
 
 ### What P6 does NOT fix
 
