@@ -30,9 +30,13 @@
 ## Files we touch
 
 ```
-src/state.rs         # F10 edit mode; CV picking (56's screen radius over CV glyphs); drag routing
-src/app/scene.rs     # move_cv (set_cv_4d!) + live resample + partial upload; cache invalidation
-src/engine/gpu/mod.rs # update_vertex_range — write_buffer into ONE arena slot's range
+src/state.rs               # F10 edit mode; CV picking (56's screen radius over CV glyphs); drag routing
+src/app/edit.rs            # NEW — move_cv (set_cv_4d!) + live resample; cache invalidation on release
+src/app/walk/curves.rs     # its producer half, called again to resample into the SAME layout
+src/app/walk/surface.rs    # the same, for a surface
+src/engine/gpu/arena.rs    # Arena::write_range — write_buffer into ONE slot's vertex range
+src/engine/gpu/segments.rs # SegmentLane::write_range — the same, for a curve's segment rows
+src/engine/gpu/mod.rs      # two three-line Gpu forwarders onto that pair
 ```
 
 ## Step 1 — edit mode: `src/state.rs`
@@ -51,7 +55,10 @@ The drag itself reuses the gumball's *free* translation math: the CV follows the
 the **camera-facing plane through the CV** (68's ray∩plane with n = view forward) — screen-natural
 motion, no axis lock. (Axis-locked CV drags: select the CV, then use the gumball — later polish.)
 
-## Step 2 — the kernel edit, weights intact: `src/app/scene.rs`
+## Step 2 — the kernel edit, weights intact: `src/app/edit.rs`
+
+`edit.rs` is a new file holding an `impl Scene` block — the editing half. `scene.rs` keeps what it
+keeps: the documents, their placements and the row bookkeeping.
 
 Two contracts meet in this one method, so read them first. **Frames**: the drag hands us a WORLD
 point (the cursor's spot on the camera plane), but CVs are stored in the object's **local** frame —
@@ -97,14 +104,14 @@ weighted CV teleports. This is the whole reason the `_4d` API exists. And note t
 the `Rc` directly — deref coercion; only the *write* pays `make_mut`, so an already-unique handle
 mutates in place with zero copies.)
 
-## Step 3 — live update, partial upload: `src/app/scene.rs` + `engine/gpu/mod.rs`
+## Step 3 — live update, partial upload: `src/app/edit.rs` + `engine/gpu/arena.rs`
 
 Per mouse-move: `move_cv`, then **resample into the existing layout** — same sample counts as the
 cached tessellation/polyline, so vertex *count* is unchanged and the arena slot still fits — and
 upload just that range.
 
 **This write is 45's payoff, and it does not exist without the arena.** The per-object address comes
-from the arena's guid→slot map (`arena.slots[guid].vertex_range` into `arena.vbo`); before 45 the
+from the arena's guid→slot map (`slots[guid].vertex_range` into `vbo`); before 45 the
 scene is one monolithic buffer with no per-object ranges, so there is nothing surgical to write.
 The honest v1 without it: during the drag, preview only the **CV glyphs** (the dragged handle and
 its polygon — a tiny write, and what your eye actually tracks); the body updates on **release** via
@@ -113,26 +120,27 @@ itself stays at full frame rate. Do NOT call `set_scene` per mouse-move — a fu
 per frame is exactly the economics this lesson exists to avoid. With 45 in place, the live path is:
 
 ```rust
-    // gpu — the surgical write 45's slot map makes possible:
-    pub fn update_vertex_range(&mut self, guid: &str, verts: &[RenderVertex]) {
-        if let Some(slot) = self.arena.slots.get(guid) {
+    // arena.rs — the surgical write 45's slot map makes possible. Both the slot map and `vbo`
+    // are private to this file, so the write is a method on Arena and Gpu only forwards:
+    pub fn write_range(&mut self, ctx: &GpuCtx, guid: &str, verts: &[RenderVertex]) {
+        if let Some(slot) = self.slots.get(guid) {
             // NOT a debug_assert: in a release build a mismatched write would bleed past the slot
             // and corrupt the NEXT object's vertices. Refuse loud; the caller falls back to the
             // v1 path (tables rebuild + set_scene) for this object.
             if verts.len() != slot.vertex_range.len() {
-                log::warn!("update_vertex_range({guid}): {} verts, slot holds {} — skipping",
+                log::warn!("write_range({guid}): {} verts, slot holds {} — skipping",
                            verts.len(), slot.vertex_range.len());
                 return;
             }
-            self.queue.write_buffer(&self.arena.vbo,
+            ctx.queue.write_buffer(&self.vbo,
                 slot.vertex_range.start as u64 * std::mem::size_of::<RenderVertex>() as u64,
                 bytemuck::cast_slice(verts));
         }
     }
 ```
 
-Curves are even lighter — `update_object_segments` rewrites their slice of the segment table (45's
-range map) in place. Either way: **no allocation, no re-flatten, no full-buffer upload** — the perf
+Curves are even lighter — `SegmentLane::write_range` (`engine/gpu/segments.rs`) rewrites their
+slice of the segment table (45's range map) in place. Either way: **no allocation, no re-flatten, no full-buffer upload** — the perf
 HUD's upload counter shows a few kilobytes per frame, and dragging a CV on the stress scene doesn't
 move the frame time.
 
@@ -193,17 +201,18 @@ Ch 78: CV EDITING. F10 mode: CVs pick first (56's radius over 43's glyphs); drag
        CVs are LOCAL → placed_frame(row).inverse() first, or CVs jump on placed sheets.
        get_cv_4d → set_cv_4d writing HOMOGENEOUS (x·w, y·w, z·w, w) — set_cv resets rational
        weights and dents circles (archive bug #1). LIVE: resample into the SAME layout →
-       update_vertex_range = one write_buffer into 45's arena slot / update_object_segments for
-       curves — REQUIRES 45's guid→slot map; v1 without it previews glyphs live and commits via
+       Arena::write_range = one write_buffer into 45's arena slot / SegmentLane::write_range for
+       curves, each behind a three-line Gpu forwarder — REQUIRES 45's guid→slot map; v1 without it previews glyphs live and commits via
        tables rebuild + set_scene (~100 ms, once per release — never per move). RELEASE: EditShape
        Command (before/after = cloned Rc handles — stable snapshots by COW), tess_cache.remove +
        ONE rebuild, hash + box/BVH refresh, and invalidate_triangle_bvh for direct mesh-vertex
        writes — or picking targets the pre-drag shape (archive bug #2). Undo restores the whole drag.
 ```
 
-Edited: `state.rs` (F10, CV pick, drag route), `app/scene.rs` (`move_cv` — doc resolve, COW via
-lookup, world→local; live resample; release bookkeeping, `EditShape`), `engine/gpu/mod.rs`
-(`update_vertex_range`, 45-gated).
+Edited: `state.rs` (F10, CV pick, drag route), `app/edit.rs` (NEW — `move_cv`: doc resolve, COW via
+lookup, world→local; live resample through `app/walk/curves.rs` + `app/walk/surface.rs`; release
+bookkeeping, `EditShape`), `engine/gpu/arena.rs` + `engine/gpu/segments.rs` (`write_range`,
+45-gated), `engine/gpu/mod.rs` (two three-line forwarders).
 
 ## Next
 
