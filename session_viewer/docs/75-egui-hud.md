@@ -27,11 +27,19 @@
 ## Files we touch
 
 ```
-src/ui/mod.rs     # NEW — Shell (egui ctx/state/renderer), UiState (settings), build_ui
-src/lib.rs        # mod ui; route every winit event to egui FIRST
+src/ui/mod.rs     # NEW — Shell (egui ctx/state/renderer), UiState (settings), build_ui, UiFrame
+src/lib.rs        # mod ui;
+src/app/input.rs  # route every winit event to egui FIRST (the window_event handler lives here)
 src/state.rs      # State.shell + State.ui; render() builds the UI then hands it to the gpu
-src/engine/gpu/mod.rs  # clear() gains the egui pass (same encoder, after the 3-D passes)
+src/engine/gpu/present.rs  # the egui pass, between begin_present and end_present
+src/engine/gpu/view.rs     # the three new knobs: show_grid, show_edges, thickness
+src/engine/gpu/render.rs   # two `if self.view.show_*` wraps in the frame list
+src/engine/gpu/frame.rs    # the per-frame LineUniform reads the knob instead of a constant
+src/engine/performance.rs  # last_draws + the fps()/ms() accessors
 ```
+
+`ui/` is a new top-level layer, above `app/` — it may read `State`, and nothing reads it. `engine/`
+never names it: `Gpu` sees finished triangles (Step 3's `UiFrame`) and no egui `Context`.
 
 The deps are already pinned from lesson 02 (`egui`, `egui-wgpu`, `egui-winit`, `egui_extras`, all
 0.34 in `Cargo.toml`) — nothing to add. All call shapes below are ported from the archive's working
@@ -137,22 +145,27 @@ values — the `ortho` flag is the inverse of the camera's `perspective`. One ca
         let camera = Camera::new();              // hoisted out of the Ok(Self { … }) literal
         let shell = crate::ui::Shell::new(&window, &gpu.device, gpu.config.format);
         let ui = crate::ui::UiState {
-            show_grid: gpu.show_grid, show_edges: gpu.show_edges,
+            show_grid: gpu.view.show_grid, show_edges: gpu.view.show_edges,
             ortho: !camera.perspective,          // camera stores `perspective`; UI shows its inverse
-            thickness: gpu.thickness,
+            thickness: gpu.view.thickness,
             fps: 0.0, frame_ms: 0.0, draws: 0, drawn: 0, total: 0,
             marquee: None,
         };
 ```
 
-Three of those sources don't exist yet — small enablers, all in `engine/`:
+Three of those sources don't exist yet — small enablers, all in `engine/`. The first two are
+runtime knobs, so they go where the knobs live: `View`, in `engine/gpu/view.rs`, reachable as
+`gpu.view.*` and seeded in `View::from_env`.
 
-- **`Gpu.thickness`** — `thickness: 2.0` has been hardcoded in TWO places since 31: `Gpu::new`'s
-  initial `LineUniform` and `clear()`'s per-frame write. Add `pub thickness: f32,` to `struct Gpu`,
-  `thickness: 2.0,` to its `Ok(Self { … })`, and in **`clear()`**'s per-frame `LineUniform` replace
-  `thickness: 2.0,` with `thickness: self.thickness,` — that per-frame write is the one the slider
-  drives; `Gpu::new`'s init value is overwritten on frame 1, so it can stay.
-- **`Gpu.show_grid` / `show_edges`** — Step 4's gates; add the fields now (see the note there).
+- **`View.thickness`** — the pen width is fixed for the whole session today: `FrameUniforms::new`
+  seeds the `LineUniform` at `2.0` and `write_camera`'s per-frame write recomputes it from
+  `line_thickness_px()` (the `?thickness=` query string), both in `engine/gpu/frame.rs`. Add
+  `pub thickness: f32,` to `View` (`from_env` seeds it with `line_thickness_px()`), and in
+  `frame.rs`'s per-frame `LineUniform` read `f.view.thickness` instead — `FrameInput` already
+  carries `view`. That per-frame write is the one the slider drives; `FrameUniforms::new`'s init
+  value is overwritten on frame 1, so it can stay.
+- **`View.show_grid` / `show_edges`** — Step 4's gates, beside `show_points`/`show_lines`/
+  `show_mesh_edges`; add the fields now (see the note there).
 - **Perf readouts** — 28's `Performance` keeps its numbers private and never stored the draw
   count. In `engine/performance.rs`, add `pub last_draws: u32,` to the struct (init `0` in
   `Performance::new`), set it in `frame()` (first line: `self.last_draws = draws;`), and add two
@@ -167,9 +180,10 @@ Three of those sources don't exist yet — small enablers, all in `engine/`:
 
 (`drawn`/`total` come from 53's `perf_drawn`/`perf_total` on `Gpu`.)
 
-## Step 2 — events go to egui first: `src/lib.rs`
+## Step 2 — events go to egui first: `src/app/input.rs`
 
-Find the `window_event` handler (where orbit/pan/keys live). Before any 3-D handling:
+Find `Input::on_window_event` (where orbit/pan/keys live — `lib.rs`'s `window_event` does nothing
+but forward to it). Before any 3-D handling:
 
 ```rust
         // Route the event to egui FIRST; if it consumed it (typing in a field, dragging a slider),
@@ -187,14 +201,14 @@ Find the `window_event` handler (where orbit/pan/keys live). Before any 3-D hand
 
 This ordering is the whole input contract: **egui first, 3-D second**. Every later UI lesson (CLI,
 tree, numeric entry) rides on it for free. (lib.rs's `App` is an `ApplicationHandler<Msg>` — the
-`Ready`/`File` messages arrive through `user_event`, not here; 47 touches only `window_event`, so
-the two never collide.)
+`Ready`/`File` messages arrive through `user_event`, not here; 47 touches only the window-event
+path, so the two never collide.)
 
 One raw input must be tracked **above** that gate: the left button. egui can consume the release
 (clicking a panel), and a stale "down" would stick 58's marquee on screen — and later start a
 phantom gumball drag (69's gotcha #1). Add `pub lmb_down: bool` to `struct State` (init `false` in
-`State::new`), and in lib.rs insert **above** the `let resp = state.shell.state.on_window_event(…)`
-line:
+`State::new`), and in `app/input.rs` insert above the
+`let resp = state.shell.state.on_window_event(…)` line:
 
 ```rust
         // raw button state — egui may consume the release, never let a stale press linger
@@ -204,22 +218,30 @@ line:
         }
 ```
 
-## Step 3 — the egui pass: `src/engine/gpu/mod.rs`
+## Step 3 — the egui pass: `src/engine/gpu/present.rs`
 
 egui hands back triangles; drawing them is four calls on the **same encoder** as the 3-D passes, in a
 second render pass that loads (not clears) the color target. The split matters: *tessellation* needs
 the egui `Context`, which lives in `Shell` — so the **caller tessellates**, and `Gpu` only ever sees
 finished triangles. (`Gpu` knowing `egui_wgpu` is fine — it's a GPU library, not a document type;
-35's litmus is about `Session`/`Mesh`.) `clear()` gains one parameter:
+35's litmus is about `Session`/`Mesh`.)
+
+`present.rs` was already built for this: `begin_present` acquires the swapchain frame and encodes
+the 3-D passes into it, `end_present` submits and presents, and the `Frame` between them carries a
+public `view` and `encoder` precisely so a later pass can add to the same command buffer. That is
+the seam the UI draws through, and `clear()` — the two-call composition of the halves — is what
+gains the parameter:
 
 ```rust
     pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform, origin: &Point,
                  ui: Option<crate::ui::UiFrame>) -> anyhow::Result<()> {
 ```
 
-then, after the last 3-D pass's closing `}` — the block below ENDS with the submit, so **delete
-the existing `self.queue.submit([encoder.finish()]);` line** (the `output.present();` after it
-stays):
+Its body stops being one line: `begin_present`, then the block below on the returned frame's
+`encoder` and `view`. The block ends with the submit, and that is deliberate — egui's
+`update_buffers` hands back staging command buffers that must land *ahead* of the frame's own, an
+ordering `end_present`'s bare `submit([encoder.finish()])` cannot express; presenting the surface
+texture afterwards is `end_present`'s other half, unchanged:
 
 ```rust
         // ---- egui pass (after the 3-D passes, same encoder) ----
@@ -306,9 +328,9 @@ end of `render()` and replace it with:
         self.shell.state.handle_platform_output(&self.window, full_out.platform_output);
 
         // 3. APPLY intent — after the closure, where &mut self is free again
-        self.gpu.show_grid = self.ui.show_grid;
-        self.gpu.show_edges = self.ui.show_edges;
-        self.gpu.thickness = self.ui.thickness;
+        self.gpu.view.show_grid = self.ui.show_grid;
+        self.gpu.view.show_edges = self.ui.show_edges;
+        self.gpu.view.thickness = self.ui.thickness;
         self.camera.set_ortho(self.ui.ortho);            // 16's projection toggle, now data-driven
 
         // 4. tessellate + hand to the gpu (the same clear call, one new argument)
@@ -328,11 +350,12 @@ Camera only has `toggle_projection` (from 16) — add the data-driven setter nex
     }
 ```
 
-(`show_grid`/`show_edges` are two new `pub bool` fields on `Gpu`, gated in `clear()`: wrap the
-grid block — `pass.set_pipeline(&self.pipelines.grid)` through its `draws += 1;` — in
-`if self.show_grid { … }`, and wrap the whole Edges block — 34f's
-`if self.segment_count > 0 { … }` (both SOLID and FLAT branches) — in
-`if self.show_edges { … }`. Add both to `struct Gpu` **and** initialize them in `Gpu::new`'s
+(`show_grid`/`show_edges` are two new `pub bool` fields on `View`, in `engine/gpu/view.rs`, and the
+gates are two lines in `engine/gpu/render.rs`'s `scene_list` — THE LIST, where every draw the frame
+issues is one entry. The grid is `backdrop::draw`'s second half, so it gates there: give
+`backdrop::draw` the flag, or wrap its call. The edge draws are the two `self.seg.draw_*` entries
+(SOLID and FLAT), wrapped in `if self.view.show_edges { … }` the way `show_lines`/`show_points`
+already wrap theirs. Add both fields to `struct View` **and** initialize them in `View::from_env`'s
 `Self { … }` (`show_grid: true, show_edges: true`) — a struct literal, so a missing field is an
 **E0063** build error. `thickness` drives the line uniform every frame after Step 1's enabler;
 the slider just changes the number it uploads.)
@@ -372,8 +395,11 @@ Ch 60: EGUI OVERLAY. Shell { ctx, winit-state, wgpu-renderer } (archive wiring:
 ```
 
 Edited: `ui/mod.rs` (NEW — `Shell`, `UiState`, `UiFrame`, `build_ui`, the marquee rect), `lib.rs`
-(`mod ui;` + egui-first event routing + raw `lmb_down`), `state.rs` (shell + ui fields, the 4-step
-frame, marquee feed), `engine/gpu/mod.rs` (`clear(…, ui)` egui pass, `show_grid`/`show_edges` gates).
+(`mod ui;`), `app/input.rs` (egui-first event routing + raw `lmb_down`), `state.rs` (shell + ui
+fields, the 4-step frame, marquee feed), `engine/gpu/present.rs` (`clear(…, ui)` — the egui pass
+between `begin_present` and `end_present`), `engine/gpu/view.rs` (`show_grid`/`show_edges`/
+`thickness`), `engine/gpu/render.rs` (the two gates), `engine/gpu/frame.rs` (the pen width reads
+the knob), `engine/performance.rs` (`last_draws`, `fps()`, `ms()`).
 
 ## Next
 
