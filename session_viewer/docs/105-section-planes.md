@@ -35,18 +35,20 @@
 ## Files we touch
 
 ```
-src/engine/gpu/mod.rs   # SectionUniform (4 planes max) + per-frame rebase + upload
-src/shaders/*.wgsl      # triangle/cylinder/sphere/point/ground fs: the discard line
-src/app/scene.rs        # pick filter: reject hits behind active sections
-src/app/commands.rs     # `section` verb: 3 points / wp / off / flip / drag
-src/state.rs            # sections: Vec<Plane> (kernel type) — viewer state, like the camera
+src/engine/gpu/frame.rs         # SectionUniform (4 planes max) + per-frame rebase + write_sections
+src/engine/pipelines/layouts.rs # Layouts.mvp gains binding 1 — the one group every pipeline binds
+src/shaders/*.wgsl              # triangle/cylinder/ribbon/sphere/glyph/ground fs: the discard line
+src/shaders/splat.wgsl          # the cloud lane is COMPUTE — an early return, not a discard
+src/app/pick.rs                 # pick filter: reject hits behind active sections
+src/app/commands.rs             # `section` verb: 3 points / wp / off / flip / drag
+src/state.rs                    # sections: Vec<Plane> (kernel type) — viewer state, like the camera
 ```
 
 > **New `State` field first.** `sections: Vec<Plane>` is viewer state like the camera — add it to
 > `struct State` **and** initialize `sections: Vec::new()` in `State::new` (a struct literal, so a missing
 > field is an **E0063** build error — same as 87's `work_plane`). Step 4's `state.sections…` code needs it.
 
-## Step 1 — the uniform, camera-relative like everything else: `src/engine/gpu/mod.rs`
+## Step 1 — the uniform, camera-relative like everything else: `src/engine/gpu/frame.rs`
 
 A plane is `(normal, d)` with the keep-side test `n·p + d ≥ 0`. The shaders' `world_pos` is
 **camera-relative** (33), so the planes rebase per frame exactly like 53's frustum did — same move,
@@ -63,11 +65,12 @@ struct SectionUniform {
 ```
 
 ```rust
-    /// `sections` are WORLD planes from State. Rebase against the same ANCHOR the instance rows
-    /// use (34c) — in State::render(), right after
+    /// The fifth per-frame block, beside `write_camera` and `write_cloud`. `sections` are WORLD
+    /// planes from State; rebase against the same ANCHOR the instance rows use (34c) — in
+    /// State::render(), right after
     /// `let anchor = self.gpu.rebase_anchor(&origin, self.camera.distance_world());`,
-    /// call `self.gpu.upload_sections(&self.sections, &anchor);`.
-    pub fn upload_sections(&mut self, sections: &[Plane], anchor: &Point) {
+    /// call `self.gpu.frame.write_sections(&self.gpu.ctx, &self.sections, &anchor);`.
+    pub(crate) fn write_sections(&self, ctx: &GpuCtx, sections: &[Plane], anchor: &Point) {
         let mut u = SectionUniform { planes: [[0.0; 4]; 4], count: sections.len().min(4) as u32,
                                      _pad: [0; 3] };
         for (i, pl) in sections.iter().take(4).enumerate() {
@@ -77,17 +80,17 @@ struct SectionUniform {
             let d_rel = d + n.dot(&(anchor.clone() - Point::new(0.0, 0.0, 0.0)));
             u.planes[i] = [n[0] as f32, n[1] as f32, n[2] as f32, d_rel as f32];
         }
-        self.queue.write_buffer(&self.section_buffer, 0, bytemuck::bytes_of(&u));
+        ctx.queue.write_buffer(&self.sections.buf, 0, bytemuck::bytes_of(&u));
     }
 ```
 
 The buffer is 07's uniform pattern; `SectionUniform` is its **own** uniform with its own buffer —
 don't fold the data into the line uniform, sectioning has nothing to do with line width. But
-*where* it binds matters: cylinder/sphere/point already use groups 0–3, and WebGPU's default
+*where* it binds matters: cylinder/ribbon/sphere/glyph already use groups 0–3, and WebGPU's default
 `max_bind_groups` is **4** — there is no group 4 to claim. The one group every pipeline shares is
 **group 0 (mvp)** — so the section uniform becomes `@group(0) @binding(1)`, piggybacking on the one
-layout all pipelines already bind. In `Gpu::new`, find the `mvp_layout` creation → add a second
-entry to its `entries` array:
+layout all pipelines already bind. `Layouts::new` (`src/engine/pipelines/layouts.rs`) builds `mvp`
+with a single entry; give it a second:
 
 ```rust
             wgpu::BindGroupLayoutEntry {
@@ -102,7 +105,8 @@ entry to its `entries` array:
             },
 ```
 
-create the buffer just above the `mvp_bind_group` (zeroed = count 0 = sections off):
+create the buffer in `FrameUniforms::new` (`src/engine/gpu/frame.rs`), beside the `mvp` block
+(zeroed = count 0 = sections off):
 
 ```rust
         let section_buffer = device.create_buffer(&wgpu::BufferDescriptor {
@@ -114,17 +118,23 @@ create the buffer just above the `mvp_bind_group` (zeroed = count 0 = sections o
 ```
 
 and add `wgpu::BindGroupEntry { binding: 1, resource: section_buffer.as_entire_binding() }` to the
-`mvp_bind_group`'s `entries`. (Store `section_buffer` on `Gpu` — `upload_sections` writes it. No
-pipeline gains a layout slot, no pass binds anything new: group 0 was already bound everywhere.)
+mvp bind group's `entries` — this is the one place the `mvp` block stops going through
+`Uniform::new`, which binds exactly one buffer. (Store `section_buffer` on `FrameUniforms` beside
+the other blocks — `write_sections` writes it. No pipeline gains a layout slot, no pass binds
+anything new: group 0 was already bound everywhere.)
 
 ## Step 2 — one line per shader: `src/shaders/*.wgsl`
 
-Each geometry fs (`triangle.wgsl` = meshes; `cylinder.wgsl`; `sphere.wgsl` = spheres; `point.wgsl`
-= cloud billboards; `ground.wgsl` = 70's analytic ground, which computes its own `hit`) gains the
-loop — first thing in `fs_main`, before any lighting. The background gradient stays uncut — it's
-sky. `triangle.wgsl` already carries `world_pos` in `VsOut` (`@location(1)`); the shaders that
-don't yet pass it to the fragment stage (cylinder/sphere/point) add it to `VsOut` — the vs already
-computes the world position.
+Each geometry fs (`triangle.wgsl` = meshes; `cylinder.wgsl` and `ribbon.wgsl` = the two ink lanes;
+`sphere.wgsl` and `glyph.wgsl` = the two marker lanes; `ground.wgsl` = 70's analytic ground, which
+computes its own `hit`) gains the loop — first thing in `fs_main`, before any lighting. Six
+shaders, one block each. The background gradient stays uncut — it's sky. `triangle.wgsl` already
+carries `world_pos` in `VsOut` (`@location(1)`); the shaders that don't yet pass it to the fragment
+stage (cylinder/ribbon/sphere/glyph) add it to `VsOut` — the vs already computes the world position.
+
+The point cloud is the exception, and it is a real one: that lane has no fragment shader at all —
+it splats through compute. The same keep-test goes in as an **early return** at the top of both
+`splat.wgsl` kernels, so a cut point never writes a depth or a colour record.
 
 First declare the uniform once per shader — same slot everywhere, because Step 1 put it in the
 shared mvp group. Add at the top of each file, right below its `@group(0) @binding(0) … mvp` line:
@@ -160,7 +170,7 @@ before lighting —
 
 True solid caps are kernel plane-splits — a later boolean lesson, not a shader trick.
 
-## Step 3 — picking respects the cut: `src/app/scene.rs`
+## Step 3 — picking respects the cut: `src/app/pick.rs`
 
 Without this you click *through* the opened wall and select what the eye can't see — the viewport
 and the selection disagree, Phase 7's cardinal sin. One world-space filter, applied to both pickers:
@@ -303,10 +313,11 @@ Ch 83: SECTIONS. Up to 4 world planes in one uniform, rebased camera-relative pe
        one loop, one filter — everything else was already on the shelf.
 ```
 
-Edited: `engine/gpu/mod.rs` (`SectionUniform`, `upload_sections`), `shaders/*.wgsl` (keep-test loop,
-`world_pos` through cylinder/sphere `VsOut`, back-face tint), `app/scene.rs`
-(`visible_through_sections` + two picker filters), `app/commands.rs` (`section`), `state.rs`
-(`sections: Vec<Plane>`, `SectionDrag`).
+Edited: `engine/gpu/frame.rs` (`SectionUniform`, `write_sections`), `engine/pipelines/layouts.rs`
+(`mvp` binding 1), `shaders/*.wgsl` (keep-test loop in six fragment shaders, `world_pos` through
+cylinder/ribbon/sphere/glyph `VsOut`, back-face tint) plus the early return in `shaders/splat.wgsl`,
+`app/pick.rs` (`visible_through_sections` + two picker filters), `app/commands.rs` (`section`),
+`state.rs` (`sections: Vec<Plane>`, `SectionDrag`).
 
 ## Next
 
