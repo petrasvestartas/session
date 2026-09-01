@@ -31,9 +31,12 @@
 ```
 # NEW — font atlas build + TextVertex quad assembly (archive text.rs recipe)
 src/engine/text.rs
-src/shaders/text.wgsl          # NEW — billboard vs (32b's trick) + atlas-sampling fs
-src/engine/pipelines/build.rs  # build_text_pipeline(…, samples) — first pipeline with a texture bind group
-src/engine/gpu/mod.rs          # label buffer + TextUniform + one draw, after the gumball, before egui
+src/shaders/text.wgsl           # NEW — billboard vs (32b's trick) + atlas-sampling fs
+src/engine/gpu/text.rs          # NEW — the lane: vertex buffer, TextUniform, atlas bind group, one desc, one draw
+src/app/labels.rs               # NEW — WHICH labels exist: names × placed box tops
+src/engine/pipelines/layouts.rs # Layouts.atlas — the course's first texture layout
+src/engine/gpu/render.rs        # ONE line, LAST in the list — after the gumball, before egui
+src/engine/gpu/mod.rs           # one field, one ::new, one resize line
 ```
 
 ## Step 1 — the atlas: `src/engine/text.rs`
@@ -198,11 +201,11 @@ pub fn label_verts(text: &str, p: [f64; 3], origin: &Point, color: [f32; 4],
 ```
 
 Why the `origin` subtract: `mvp` is **anchor-relative** — 33's camera-relative rendering
-(`view_proj_anchored(&anchor)`, with `rebuild_instances(origin)` baking the same f64 subtract into
-every instance model). Labels have no instance model, so a label built from raw world positions is
+(`view_proj_anchored(&anchor)`, with `rebase_anchor(origin, …)` in `gpu/objects.rs` baking the same
+f64 subtract into every instance model). Labels have no instance model, so a label built from raw world positions is
 right only until the camera re-anchors — then every label **jumps** by the anchor delta. Subtract
 the current anchor when building the verts (above) and rebuild the label buffer whenever the anchor
-moves — the same trigger that fires `rebuild_instances`. (The alternative — give each label an
+moves — the same trigger that fires `rebase_anchor`. (The alternative — give each label an
 `instance_id` and let the already-rebased instance model place it — works too, but is a bigger
 diff.)
 
@@ -252,10 +255,11 @@ same order, same format. Get an offset or a `format` wrong here and the atlas sa
   <text x="10" y="122" fill="#888">world pt (shared) · px corner offset · atlas uv · rgba → the vs reads these by <tspan fill="#6fb3ff">@location</tspan>, not by struct name</text>
 </svg>
 
-Labels come from the document: object `name`s (the tree's names, 75) at each object's box-top
-center — the row's **placed** box, 52's row-indexed `world_boxes` (manifest `place` included), not
-the raw session-local box — rebuilt only when the scene, names, or the rebase anchor change — never
-per frame.
+Which labels exist is a question about the DOCUMENT, so it is `app/labels.rs`, not either half of
+the lane above: object `name`s (the tree's names, 75) at each object's box-top center — the row's
+**placed** box, which the object table already keeps row-indexed as `bounds_world()` (the local
+AABB through the TRUE transform, manifest `place` included), not the raw session-local box —
+rebuilt only when the scene, names, or the rebase anchor change — never per frame.
 
 ## Step 3 — the shader: `src/shaders/text.wgsl`
 
@@ -314,13 +318,14 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 ```
 
 (Build a `text_uniform` buffer `{ vp_w, vp_h, 0, 0 }` + a `text_bind_group` on the existing uniform
-layout, and refresh `vp_w`/`vp_h` in `resize()` — the cloud's `CloudUniform` (32b) does the same; text
-just drops the `size` field. The pipeline: alpha blend on, depth **test on / write off** — labels hide
-behind geometry but never punch holes in it — and `cull_mode: None` (billboard quads have no
-meaningful winding). Build it **inside `Pipelines::new` with the `samples` parameter** — the scene's
-MSAA count is dynamic (1↔4; `set_scene` rebuilds all pipelines on the flip), and a text pipeline
-pinned at the wrong count fails the render pass. First texture bind group of the course: one
-`Texture` + `Sampler` layout at group 3.)
+layout, and refresh `vp_w`/`vp_h` from the one `resize` line — the cloud's `CloudUniform` (32b) does
+the same; text just drops the `size` field. The pipeline: alpha blend on, depth **test on / write
+off** — labels hide behind geometry but never punch holes in it — and no face culling (billboard
+quads have no meaningful winding). All three of those ARE the `ink` preset, so the whole pipeline is
+one `PipelineDesc::ink` literal in this lane's `descs`, carried by `Pipelines::new(device, t, &l)` —
+which is also what keeps it correct when the scene's MSAA count flips 1↔4 and every pipeline is
+rebuilt. First texture bind group of the course: one `Texture` + `Sampler` layout, `Layouts.atlas`,
+at group 3.)
 
 ## Step 4 — verify
 
@@ -334,7 +339,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 - All four named views (14): labels stay upright and readable — nothing rotates into the screen.
 - Perf HUD: **one** extra draw for all labels; orbiting doesn't rebuild anything (the buffer only
   rewrites when names/objects change — or on a camera re-anchor, the same trigger as
-  `rebuild_instances`). Pan far from the origin and back: labels stay glued to their objects — no
+  `rebase_anchor`). Pan far from the origin and back: labels stay glued to their objects — no
   jump on re-anchor. Behind geometry, labels occlude correctly; they never z-fight
   (depth write off).
 - Rename an object (edit the Session name via a future CLI verb or reconcile) → the label follows on
@@ -356,9 +361,10 @@ Ch 77: LABELS. A glyph atlas (ASCII on a fixed CELL grid, R8Unorm, baked once �
        document is visible as a tree, in sync with the viewport, and named in the scene.
 ```
 
-Edited: `engine/text.rs` (NEW — atlas + `label_verts`), `shaders/text.wgsl` (NEW),
-`engine/pipelines/build.rs` (`build_text_pipeline`, texture layout, `TextUniform`),
-`engine/gpu/mod.rs` (label buffer + `TextUniform` + draw).
+Edited: `engine/text.rs` (NEW — atlas + `label_verts`), `shaders/text.wgsl` + `engine/gpu/text.rs`
++ `app/labels.rs` (NEW), `engine/pipelines/layouts.rs` (`Layouts.atlas`), `engine/gpu/render.rs`
+(one line, last), `engine/gpu/mod.rs` (one field, one `::new`, one resize line). Six list lines and
+a lane file: a new render lane is additive, which is the whole claim.
 
 ## Next
 
