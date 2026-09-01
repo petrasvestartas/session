@@ -91,7 +91,7 @@ readback buffer, `map_async`, consumed a frame later — a blocking read stalls 
 can't block at all — 55's rule again). The perf lesson that matters most is the discipline: **name the
 bottleneck, then pull exactly one lever, then re-measure** — 30 (draw count), 41 (vertex work), 71
 (idle), 72 (fragment work) each did precisely that, and that's why the viewer is fast. One dormant
-switch already sits in the code: `INK_DEPTH_PREPASS` (`gpu/mod.rs`, currently `false`) — flipping it
+switch already sits in the code: `INK_DEPTH_PREPASS` (`gpu/render.rs`, currently `false`) — flipping it
 doubles the flat-ink cost in exchange for correct ink ordering, so measure before and after like any
 other lever.
 
