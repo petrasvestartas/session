@@ -1,10 +1,22 @@
 # docs/_GOLDENS.tsv - recorded by docs/_gate.sh --record at git tag end-of-44.
 # The baseline is a TAG, not a working tree: an uncommitted edit moves these numbers.
-# assets: 4267726218
+# assets: 1305121168
 # ^ cksum of (size, path) over every .pb the scenes reference. These numbers were measured on
-# THOSE bytes; the P6 wire reshape re-encoded the .pb files, and a tree carrying the re-encoded
-# ones renders a different bunny (37417 ink, not 44215) with identical source. The gate refuses
-# to compare across a fingerprint change rather than reporting it as a code regression.
+# THOSE bytes, and the gate refuses to compare across a fingerprint change rather than reporting
+# an asset swap as a code regression. That is the whole point of the line: a pixel count is only
+# comparable against the same bytes.
+#
+# Re-armed 2026-09-01 after the P6 re-encode (commit 1f7f4fcb rewrote 10 tracked .pb - mesh_bunny
+# -63%, mesh_bunny_grey -61%, floor_model -57% - without updating this line, so the gate had been
+# refusing to compare ever since). Re-armed on EVIDENCE, not convenience: the full gate was run
+# against the UNCHANGED rows below with the new fingerprint, and every mandatory row matched.
+# The re-encode moves no frame.
+#
+# An earlier version of this comment claimed the re-encoded assets render a different bunny
+# (37417 ink, not 44215). That is wrong and was the fake regression it was written during: the
+# bunny scene loads mesh_bunny_grey.pb, which IS the re-encoded 4,952,671-byte file today, and it
+# renders 44215. The 37417 came from a replay tree whose `ln -sfn` had nested rather than
+# replaced, so it was reading the OLD 12,795,331-byte bunny.
 # columns: scene	config	pass	ink	draws	objects	ppm_sha256_16
 # MANDATORY - resolves entirely to tracked .pb; a fresh clone must reproduce these.
 lion	default	1	77543	4	1	nondet(splat)

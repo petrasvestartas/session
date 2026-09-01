@@ -215,3 +215,79 @@ pub fn bench_scene(files: &[(&str, Xform)], w: u32, h: u32) -> String {
     }
     out
 }
+
+/// Where a frame's milliseconds actually go, split three ways, for a STILL and a MOVING camera.
+///
+/// `bench_frames` above answers "how fast is the frame"; it cannot answer "whose fault is it",
+/// and on a scene with 155k object rows the answer turned out to be neither the GPU nor the
+/// draw calls. The three legs:
+///
+///   uniforms  `Gpu::clear` on a headless Gpu writes the per-frame uniform blocks and returns
+///             before it touches a surface - so timing it IS `write_frame_uniforms`, which is
+///             also where the per-object `FLAG_INSIDE` sweep lives.
+///   encode    building the command buffer: the splat records, the render pass, the draws.
+///   gpu       submit + poll to completion.
+///
+/// The moving pass orbits a hair per frame, because every cache in the frame path (the splat
+/// static-skip, the re-anchor throttle, the inside-flag change detection) keys on the camera not
+/// having moved - and "constant quality during motion" is exactly the case that must stay fast.
+pub fn frame_profile(files: &[(&str, Xform, f32, bool)], w: u32, h: u32) -> String {
+    let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
+    let mut scene = Scene::new();
+    for (path, place, px, only) in files {
+        let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("cannot read {path}: {e}"));
+        let session = Session::pb_loads(&bytes).unwrap_or_else(|e| panic!("cannot parse {path}: {e:?}"));
+        let name = path.rsplit('/').next().unwrap_or(path).to_string();
+        scene.add_file(name, session, place.clone(), *px, *only);
+    }
+    scene.upload_to(&mut gpu);
+
+    let aspect = w as f64 / h as f64;
+    let n: usize = std::env::var("BENCH_FRAMES").ok().and_then(|v| v.parse().ok()).unwrap_or(120);
+    let clear = wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 };
+    let tex = gpu.device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("profile.color"),
+        size: wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: gpu.config.format,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
+    });
+    let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
+
+    let mut camera = Camera::new();
+    camera.fit(gpu.scene_min, gpu.scene_max, aspect);
+    let mut out = String::new();
+    for (label, spin) in [("still", 0.0f32), ("moving", 0.35f32)] {
+        let (mut uni, mut enc_ms, mut gpu_ms) = (Vec::new(), Vec::new(), Vec::new());
+        for i in 0..n + 5 {
+            camera.orbit(spin, 0.0);
+            let origin = camera.origin();
+            let anchor = gpu.rebase_anchor(&origin, camera.distance_world());
+            let vp = camera.view_proj_anchored(aspect, &anchor);
+
+            let t0 = std::time::Instant::now();
+            let _ = gpu.clear(clear, &vp); // headless: uniforms, then returns
+            let t1 = std::time::Instant::now();
+            let mut encoder = gpu.device.create_command_encoder(&Default::default());
+            gpu.encode_frame(&mut encoder, &view, clear);
+            let t2 = std::time::Instant::now();
+            gpu.queue.submit([encoder.finish()]);
+            let _ = gpu.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+            let t3 = std::time::Instant::now();
+            if i >= 5 { // warmup: pipeline + driver caches
+                uni.push((t1 - t0).as_secs_f64() * 1000.0);
+                enc_ms.push((t2 - t1).as_secs_f64() * 1000.0);
+                gpu_ms.push((t3 - t2).as_secs_f64() * 1000.0);
+            }
+        }
+        let med = |v: &mut Vec<f64>| { v.sort_by(|a, b| a.partial_cmp(b).unwrap()); v[v.len() / 2] };
+        let (u, e, g) = (med(&mut uni), med(&mut enc_ms), med(&mut gpu_ms));
+        out.push_str(&format!(
+            "{label:>6}: uniforms {u:6.2} ms | encode {e:6.2} ms | gpu {g:6.2} ms | total {:6.2} ms ({:5.0} fps)\n",
+            u + e + g, 1000.0 / (u + e + g)));
+    }
+    out
+}
