@@ -35,7 +35,7 @@ The kernel's `TreeNode` has TWO identifiers, and confusing them makes the panel 
 and silently match nothing:
 
 - **`node.name`** is the identity the *document* uses: *"for geometry nodes, this is the
-  geometry's GUID"* (tree.rs) — it is what `session.world_xform`/`world_xforms` key off, what
+  geometry's GUID"* (`session_rust/src/tree.rs`) — it is what `session.world_xform`/`world_xforms` key off, what
   `guid_to_row` contains, and what `scene.hidden` stores. Group nodes carry their
   human name here (the PDF importer makes one group per CAD layer). (`scene.selected` is
   **row-keyed** since 50 — `HashSet<u32>` — so the panel resolves guid→row through
@@ -52,7 +52,8 @@ Corollary: the object-keyed tree lookup is **`tree.get_node_by_name(guid)`**;
 src/ui/tree.rs   # NEW — flatten visible tree rows; egui show_rows virtualization; eye + select
 src/ui/mod.rs    # a left SidePanel hosting it; TreeUi state (expanded set, scroll target, flatten cache)
 src/state.rs     # apply collected intents (toggle/select) after the closure — 60's rule
-src/app/scene.rs # object_name / untreed_guids — doc-aware adapters
+src/app/query.rs # object_name / untreed_guids — doc-aware READ adapters, beside 61's
+src/app/scene.rs # one field: Scene.generation, bumped by every mutation
 ```
 
 ## Step 1 — flatten what's visible: `src/ui/tree.rs`
@@ -135,8 +136,10 @@ fn row_name(scene: &Scene, d: usize, node_name: &str) -> String {
 }
 ```
 
-`object_name` / `untreed_guids` are two thin adapters on `impl Scene` (`app/scene.rs`) — doc-aware,
-and using the RIGHT tree lookup:
+`object_name` / `untreed_guids` are two thin adapters on `impl Scene` — doc-aware, and using the
+RIGHT tree lookup. They go where 61 put the other read-only ones, `app/query.rs`: `scene.rs` holds
+the documents and the mutations, and a helper that only ASKS the docs a question belongs beside
+`world_frame` and `object_name`'s siblings rather than growing the file that owns the state:
 
 ```rust
     /// The object's own name, if the kernel type carries one it set. Doc-scoped.
@@ -248,9 +251,10 @@ if self.ui.rows_key != key {
 tree_panel(ui, &self.ui.flattened_rows, &self.scene.selected, &self.scene.hidden, &mut intent);
 ```
 
-`scene.generation` is a `u64` that every scene mutation bumps — add it to 50/51/64's verbs and to
-drains that touch the scene sets directly (Step 3's is one). Same discipline as 78's
-render-on-demand: rebuild on change, never on vsync.
+`scene.generation` is a `u64` that every scene mutation bumps — one more field on `Scene` in
+`app/scene.rs`, which is exactly the kind of thing still living there: document state, not a walk
+and not a query. Add the bump to 50/51/64's verbs and to drains that touch the scene sets directly
+(Step 3's is one). Same discipline as 78's render-on-demand: rebuild on change, never on vsync.
 
 ## Step 3 — intents apply after: `src/state.rs`
 
@@ -342,8 +346,8 @@ Ch 75: THE TREE. Top level = one row per Doc (manifest name + object count); eac
 ```
 
 Edited: `ui/tree.rs` (NEW — `Row`, `flatten`, `tree_panel`, `TreeIntent`), `ui/mod.rs` (SidePanel +
-`tree_expanded`, flatten cache), `app/scene.rs` (`object_name(d, guid)`, `untreed_guids(d)`),
-`state.rs` (intent drain through existing verbs).
+`tree_expanded`, flatten cache), `app/query.rs` (`object_name(d, guid)`, `untreed_guids(d)`),
+`app/scene.rs` (`generation`), `state.rs` (intent drain through existing verbs).
 
 ## Next
 
