@@ -46,9 +46,10 @@ surfaces from one cached path, which the kernel can't until #7 lands. So: **kern
 ```
 # world_per_pixel(depth) — R_PX → world units (the shader's screen_radius, on the CPU)
 src/camera.rs
-# pick_thin (kernel ray_cast per doc, in each doc's place frame); pick_ray merges solid + thin
-src/app/scene.rs
-src/state.rs       # unchanged call site — pick_ray now returns line/point hits too
+# pick_thin (kernel ray_cast per doc, in each doc's place frame); pick_ray merges solid + thin,
+# and 47's cast is renamed pick_mesh — all three in the file 47 created
+src/app/pick.rs
+src/app/input.rs   # same call site as 47/48 — it just gains the tolerance argument
 ```
 
 ## Step 1 — pixels → world units: `src/camera.rs`
@@ -64,7 +65,7 @@ its result is a world *radius* — the two halves cancel; here we're converting 
 ```rust
     /// World size of one screen pixel at `depth` (view-space distance). Mirrors screen_radius() in
     /// cylinder.wgsl: perspective scales with depth; ortho is constant. `ortho_h` is the ortho
-    /// HALF-height (what gpu.rs packs into the line uniform), hence the shared factor 2.
+    /// HALF-height (what frame.rs packs into the line uniform), hence the shared factor 2.
     pub fn world_per_pixel(&self, depth: f64, proj_y: f64, ortho_h: f64, vp_h: f64) -> f64 {
         if ortho_h > 0.0 { 2.0 * ortho_h / vp_h } else { 2.0 * depth / (proj_y * vp_h) }
     }
@@ -73,9 +74,9 @@ its result is a world *radius* — the two halves cancel; here we're converting 
 (`proj_y`/`ortho_h`/`vp_h` are the numbers 31 already packs into the line uniform — pass the same
 values. `depth` = `self.distance`, the orbit camera's target distance from lesson 10.)
 
-## Step 2 — the thin cast: `src/app/scene.rs`
+## Step 2 — the thin cast: `src/app/pick.rs`
 
-(`Geometry` is already in scene.rs's imports from 35 — nothing to add.)
+(`Geometry` came in with `pick.rs`'s `session_rust` import at 47 — nothing to add.)
 
 This is THE fix of the lesson: `Session::ray_cast` composes the session's own world xforms
 internally, but it knows **nothing about the manifest `place`** — cast the world ray as-is and every
@@ -141,7 +142,7 @@ camera-target depth, but a candidate in front of the target gets a too-fat toler
 and one behind it a too-thin one. The refinement is per-candidate: re-evaluate `world_per_pixel` at
 each hit's own depth before accepting it — cheap, and the honest version for deep scenes.
 
-## Step 3 — merge: solid vs thin priority: `src/app/scene.rs`
+## Step 3 — merge: solid vs thin priority: `src/app/pick.rs`
 
 Rename 47's `pick_ray` to `pick_mesh` and make `pick_ray` the umbrella:
 
@@ -166,18 +167,20 @@ Rename 47's `pick_ray` to `pick_mesh` and make `pick_ray` the umbrella:
 > clicking where the surface isn't (or via the tree, 75). This is Rhino's behaviour, and the archive's
 > rule (`reference_viewer_picking_system`).
 
-The click site just adds the tolerance — in `State::on_left_click`, insert the `tol` derivation
+The click site just adds the tolerance — in `on_left_click` (`src/app/input.rs`), insert the `tol` derivation
 right before the pick call, and add `, tol` to the call itself (whatever shape 47/48 left it in —
 `pick_ray(&ray)` becomes `pick_ray(&ray, tol)`):
 
 ```rust
         // proj_y / ortho_h / vp_h — the same three numbers 31 packs into the line uniform
-        // (mirror gpu.rs; see cylinder.wgsl's screen_radius). fovy = 60°, so cot(fovy/2) = 1/tan(30°).
+        // (mirror engine/gpu/frame.rs's LineUniform write; see cylinder.wgsl's screen_radius).
+        // fovy = 60°, so cot(fovy/2) = 1/tan(30°).
         let unit    = self.camera.unit.to_meters();                              // mm → m
         let proj_y  = 1.0 / (30.0_f64).to_radians().tan() * unit;                // cot(fovy/2) · unit
         let ortho_h = if self.camera.perspective { 0.0 }                         // perspective: unused
                       else { self.camera.distance * (30.0_f64).to_radians().tan() * unit };
-        //          ^ ortho HALF-height — what gpu.rs's ortho_half_height packs into the uniform
+        //          ^ ortho HALF-height — math.rs's ortho_half_height, which frame.rs packs into
+        //            the uniform; derive it from there rather than re-typing tan(30°)
         let vp_h    = self.gpu.config.height as f64;                             // framebuffer px
         // R_PX = 8
         let tol = self.camera.world_per_pixel(self.camera.distance, proj_y, ortho_h, vp_h) * 8.0;
@@ -263,8 +266,8 @@ Ch 49: THIN GEOMETRY. A ray never exactly hits a 1-D/0-D object, so the pick get
        Stress gate: intended line picked from 42k instantly.
 ```
 
-Edited: `camera.rs` (`world_per_pixel`), `app/scene.rs` (`pick_thin` via kernel `ray_cast` per doc,
-`pick_ray` = solid/thin merge, 47's cast renamed `pick_mesh`), `state.rs` (tolerance at the call).
+Edited: `camera.rs` (`world_per_pixel`), `app/pick.rs` (`pick_thin` via kernel `ray_cast` per doc,
+`pick_ray` = solid/thin merge, 47's cast renamed `pick_mesh`), `app/input.rs` (tolerance at the call).
 
 ## Next
 
