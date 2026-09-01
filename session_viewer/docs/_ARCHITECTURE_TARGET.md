@@ -866,7 +866,7 @@ Class: **F** = free-shape (0 lines, mandatory) · **P** = pre-seam (counted) · 
 
 Files the renumber must touch:
 
-- `session_viewer/docs/NN-*.md` — 63 filenames renamed (`45-nurbscurve.md` → `52-nurbscurve.md` … `107-id-buffer-picking.md` → `114-id-buffer-picking.md`); the 40-44 chain renumber is **DONE (2026-08-29)**: `43-lane-structs.md` deleted, `40-potree-look.md` split into `40-potree-look.md` + `41-cloud-normals.md`, `41-cloud-scenes.md` → `42-cloud-scenes.md`, `42-streaming-cloud.md` → `43-streaming-cloud.md`, `44-cloud-octree.md` unchanged. What REMAINS is the +7 shift of the 63 files from `45-nurbscurve.md` → `52-nurbscurve.md` through `107-id-buffer-picking.md` → `114-id-buffer-picking.md`.
+- `session_viewer/docs/NN-*.md` — 63 filenames renamed (`45-nurbscurve.md` → `53-nurbscurve.md` … `107-id-buffer-picking.md` → `115-id-buffer-picking.md`); the 40-44 chain renumber is **DONE (2026-08-29)**: `43-lane-structs.md` deleted, `41-potree-look.md` split into `41-potree-look.md` + `42-cloud-normals.md`, `41-cloud-scenes.md` → `43-cloud-scenes.md`, `42-streaming-cloud.md` → `44-streaming-cloud.md`, `45-cloud-octree.md` unchanged. What REMAINS is the +7 shift of the 63 files from `45-nurbscurve.md` → `53-nurbscurve.md` through `107-id-buffer-picking.md` → `115-id-buffer-picking.md`.
 - `session_viewer/docs/NN_*/` snapshot directories, and `.gitignore`'s `docs/*/assets/` rule.
 - `session_viewer/docs/_ROADMAP.md` — the lesson list and every forward reference.
 - `session_viewer/docs/_RESTRUCTURE_PLAN.md` — the 7-row part table (§8 deltas), the "97 → 18 fields" line, the "15 render + 2 compute" line, the `state.rs`/`persistence.rs` "unchanged" rows, the end-of-44 gate table.
@@ -1135,7 +1135,7 @@ end-of-42 snapshot and compiles on both targets. **Every number below was measur
 twice, both passes identical. Where this section disagrees with revisions 1-3, this section is
 right** — and each disagreement is a gate the seven lessons must be re-based on.
 
-Baseline tree: replay `docs/43-streaming-cloud.md` then `docs/44-cloud-octree.md` onto the
+Baseline tree: replay `docs/44-streaming-cloud.md` then `docs/45-cloud-octree.md` onto the
 end-of-42 source. Goldens: `docs/_GOLDENS.tsv`, 64 rows, recorded by `docs/_gate.sh --record`.
 
 ## The corrections
@@ -1288,5 +1288,5 @@ what remains is `build` (~250 lines of resource construction), `set_scene`, `res
    an Element, so the pixel gate is silent either way.
 
 Plus one PRE-EXISTING bug found and fixed at its origin: lesson 43's streamed lane bound its
-pixel buffers where its normals belonged (`docs/43-streaming-cloud.md`, both call sites). No gate
+pixel buffers where its normals belonged (`docs/44-streaming-cloud.md`, both call sites). No gate
 scene streams, so nothing had ever exercised it.

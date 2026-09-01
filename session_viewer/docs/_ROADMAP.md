@@ -661,7 +661,7 @@ lanes downstream, CPU proxies stay for picking, f32 is the display contract, no 
 - ✅ 81 Advanced perf — LOD/decimation, occlusion culling, GPU compute cull + indirect draw
   (culling + batching already landed in 30/37; 27 unlocked compute)
   - verify: perf HUD before/after on the capstone scene
-- ✅ 90 (optional appendix) Materials & textures — `docs/106-textures.md`. Written against the real
+- ✅ 90 (optional appendix) Materials & textures — `docs/107-textures.md`. Written against the real
   post-instancing pipeline: material = **`@group(3)`**, optional per-vertex UV = **`@location(4)`**
   (group 2 / loc 3 are taken by instances / inst_id since lesson 29 — the old note below was stale).
   Generated RGBA8 checker → `write_texture` (`TexelCopyTextureInfo`/`TexelCopyBufferLayout`), group-3

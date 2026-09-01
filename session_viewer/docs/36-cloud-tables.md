@@ -566,7 +566,7 @@ costs nothing.) And in `examples/selftest.rs`, the manifest gate
 `if p.ends_with(".json")` gains `|| p.ends_with(".toml")`.
 
 The commented file already ships as `assets/scenes/bunny_drawings.toml`, so point the default
-at it — lessons [41](41-cloud-normals.md) and [42](42-cloud-scenes.md) both edit that file as
+at it — lessons [42](42-cloud-normals.md) and [43](43-cloud-scenes.md) both edit that file as
 TOML. In `src/lib.rs`, **find**:
 
 ```rust
@@ -626,7 +626,7 @@ const WIREFRAME_BLACK_MIN: usize = 10_000;
 built a 13.8M-point table twice: 843 MB peak against a wasm heap that practically ends
 around 2 GB; reserve-and-push peaks at 423 MB), and `cloud_spacing` measures the median
 consecutive-point distance (a scanner emits angular neighbours in order, so consecutive
-points are usually adjacent on the surface — lesson [40](40-potree-look.md)'s attenuated
+points are usually adjacent on the surface — lesson [41](41-potree-look.md)'s attenuated
 sizes are built on it):
 
 ```rust
@@ -1414,8 +1414,8 @@ In `resize`, **find**:
 ```
 
 What version 0 deliberately leaves out — and where it returns: per-cloud tint, the
-static skip and the safe dispatch ([39](39-compute-splatting.md)); attenuation, EDL and
-normals ([40](40-potree-look.md)).
+static skip and the safe dispatch ([40](40-compute-splatting.md)); attenuation, EDL and
+normals ([41](41-potree-look.md)).
 
 ## Expected state
 

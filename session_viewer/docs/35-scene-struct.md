@@ -2082,7 +2082,7 @@ own lane; 37 measures where 3.5 GB went for 323 MB of GPU data and takes the pea
 38 halves the GPU table; 39 streams the file straight into GPU memory so the peak stops growing
 with the scene.
 
-Then [`61-scene-bvh.md`](61-scene-bvh.md) — `Scene` now has a fixed, ordered object list; that
+Then [`62-scene-bvh.md`](62-scene-bvh.md) — `Scene` now has a fixed, ordered object list; that
 lesson gives it a broad-phase AABB BVH over their world boxes. One BVH, reused by frustum culling
 (41), picking (47), and box-select (50) — the "one acceleration structure, many uses" principle,
 and the reason the object list had to stabilize here first.
