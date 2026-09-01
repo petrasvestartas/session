@@ -1,7 +1,7 @@
 # 48 One row per object
 
-> Lesson [69](69-raycast-meshes.md) asks which object the ray hit; [91](91-ground-grid.md) asks
-> where an object is in the world; [119](119-id-buffer-picking.md) writes an object id into a
+> Lesson [70](70-raycast-meshes.md) asks which object the ray hit; [92](92-ground-grid.md) asks
+> where an object is in the world; [120](120-id-buffer-picking.md) writes an object id into a
 > render target. All three read one table after this lesson, and everything else holds an index
 > into it. Nothing
 > visible changes: same ink, same draw count, same object count, on every scene and config.

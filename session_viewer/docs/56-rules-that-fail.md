@@ -538,4 +538,4 @@ it visible.
 
 ## Next
 
-Lesson [57](57-nurbscurve.md) - NurbsCurve.
+Lesson [58](58-nurbscurve.md) - NurbsCurve.

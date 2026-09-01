@@ -1,7 +1,7 @@
 # 52 Five types, one body
 
 > The last lesson of the block. After it, `scene.rs` is 284 lines and every geometry type has a
-> file; lessons 57-119 are written against these paths.
+> file; lessons 58-120 are written against these paths.
 > Nothing you can see changes.
 > Answer key: `git diff end-of-50..end-of-51 -- session_viewer/src`.
 >

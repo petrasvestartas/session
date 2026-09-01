@@ -257,4 +257,4 @@ the wire stopped, it was 218 lines of pure liability.
 
 ## Next
 
-Lesson [57](57-nurbscurve.md) — NurbsCurve.
+Lesson [58](58-nurbscurve.md) — NurbsCurve.
