@@ -29,17 +29,20 @@
 ## Files we touch
 
 ```
-src/engine/gpu/mod.rs   # FLAG_SELECTED; write_row_flags; set_selected_rows (tables + live rows)
-src/shaders/*.wgsl      # every instance-reading vs tints selected rows (triangle/cylinder/sphere)
-src/camera.rs           # Camera::marquee_frustum(view_proj, rect_ndc) — the marquee sub-frustum
-src/app/scene.rs        # selected: HashSet<u32> (ROWS — see Step 4); click/shift-click/marquee mutate it
-src/state.rs            # on_left_release: click = replace, Shift+click = toggle, drag = marquee
-src/lib.rs              # Left press stashes drag_start; release calls on_left_release; shift flag
+src/engine/gpu/instance.rs # FLAG_SELECTED — the reserved bit 0, beside the other row flags
+src/engine/gpu/objects.rs  # write_row_flags; set_selected_rows (tables + live rows) on InstanceTable
+src/shaders/*.wgsl         # every instance-reading vs tints selected rows (triangle/cylinder/sphere)
+src/camera.rs              # Camera::marquee_frustum(view_proj, rect_ndc) — the marquee sub-frustum
+src/app/scene.rs           # ONE field: selected: HashSet<u32> (ROWS — see Step 4)
+src/app/select.rs          # NEW — apply_selection / select_marquee; the selection's own impl Scene
+src/app/input.rs           # Left press stashes drag_start, release runs on_left_release
+                           # (click = replace, Shift+click = toggle, drag = marquee); shift flag
 ```
 
-## Step 1 — the flag + flip-tracked upload: `src/engine/gpu/mod.rs`
+## Step 1 — the flag + flip-tracked upload: `src/engine/gpu/instance.rs` + `objects.rs`
 
-Bit 0 was reserved for exactly this (35):
+Bit 0 was reserved for exactly this (35) — in `instance.rs`, with the flag table its doc comment
+keeps:
 
 ```rust
 impl Instance {
@@ -51,7 +54,7 @@ the **truth**: `set_scene` re-derives every instance from the tables, so a selec
 later manifest files are still streaming in survives the next `Msg::File` append *because* it lives
 there. The live instance is poked too, so the tint shows this frame instead of after the next
 rebuild — through a tiny helper, because `Instance.flags` is private to the engine, which is why
-the write lives in `gpu/mod.rs` and not in `Scene`:
+the write lives with the live rows in `gpu/objects.rs` (the `InstanceTable`) and not in `Scene`:
 
 ```rust
     /// One row's flags → the live instance + an upload of just that row. FLAG_CULLED is
@@ -92,8 +95,8 @@ Selected objects tint toward highlight-yellow in **every** pipeline the object o
 tubes, sphere glyphs — because they all read the same `instances[]` row. The instance-reading
 shaders with live tables are `triangle.wgsl`, `cylinder.wgsl`, `sphere.wgsl` — plus 34f's
 `ribbon.wgsl`/`glyph.wgsl`, which get the cylinder/sphere edit respectively (their 34h tint
-multiply line is the `o.color` anchor; `point.wgsl`'s cloud table stays empty until PointCloud is
-wired). They differ in two ways that matter here: `triangle.wgsl` already has an `inst` local and its
+multiply line is the `o.color` anchor; the cloud lane is out — `splat.wgsl` binds the instance
+table as `instances_unused` and reads no row at all). They differ in two ways that matter here: `triangle.wgsl` already has an `inst` local and its
 `VsOut.color` is a **`vec3`**; `cylinder.wgsl`/`sphere.wgsl` only pull `.model` out of `instances[…]`
 and their `VsOut.color` is a **`vec4`**. So the tint takes two forms.
 
@@ -160,9 +163,10 @@ view-projection whose frustum is the marquee volume — feed it straight to 41's
 (Convert cursor px → NDC with 46's two formulas; make sure `x0 < x1`, `y0 < y1` after sorting the
 drag endpoints, and ignore drags under ~3 px — those are clicks.)
 
-## Step 4 — selection state + the three gestures: `src/app/scene.rs` + `src/state.rs`
+## Step 4 — selection state + the three gestures: `src/app/select.rs` + `src/app/input.rs`
 
-`Scene` gets the set and one apply function:
+`Scene` gets the set — one field on the struct in `src/app/scene.rs`, which owns the document
+state; the verbs that read it are their own `impl Scene` file, `src/app/select.rs`:
 
 ```rust
     pub selected: std::collections::HashSet<u32>,   // ← ADD to Scene (init empty) — ROWS, not guids
@@ -196,7 +200,7 @@ lookup and a `String` clone per hit. Where the UX speaks names (the tree, 75), t
 edge: a selected row's guid is just `order[row]`. One consequence to remember: anything that
 reorders rows (46's reconcile) must remap or clear this set — 56's snapshots hit the same rule.
 
-In `state.rs`, the mouse gestures — press remembers the spot; release decides click vs drag. The
+In `app/input.rs`, the mouse gestures — press remembers the spot; release decides click vs drag. The
 two are **mutually exclusive**: a plain click is a zero-area rectangle, and `2.0 / (x1 - x0)` on a
 zero-width window is a NaN frustum — worse, running the marquee afterward would *clear* the selection
 the click just made. So the release branches on drag distance and runs exactly one of them:
@@ -225,10 +229,10 @@ This needs **two new `State` fields** first: add each to `struct State` **and** 
 `State::new`, or it won't compile —
 
 - `pub drag_start: (f64, f64)` — init `(0.0, 0.0)`
-- `pub shift: bool` — init `false`; set from **lib.rs**'s `ModifiersChanged` arm, beside the
+- `pub shift: bool` — init `false`; set from `app/input.rs`'s `ModifiersChanged` arm, beside the
   `self.ctrl = …` line: `state.shift = mods.state().shift_key();`
 
-Press and release split in **lib.rs** — replace 46's Left-button `MouseInput` arm with:
+Press and release split in `app/input.rs` — replace 46's Left-button `MouseInput` arm with:
 
 ```rust
             WindowEvent::MouseInput { state: btn, button: MouseButton::Left, .. } => {
@@ -240,7 +244,7 @@ Press and release split in **lib.rs** — replace 46's Left-button `MouseInput` 
             }
 ```
 
-and in `state.rs`, rename 47–49's `on_left_click` to `on_left_release`. Its body keeps the
+and in the same file, rename 47–49's `on_left_click` to `on_left_release`. Its body keeps the
 `vp`/`origin`/`viewport`/`ray`/`tol` construction from 46/49, then the whole
 pick-and-log block at the end is replaced with the gesture branch:
 
@@ -320,7 +324,7 @@ Ch 50: SELECTION. State = Scene.selected: HashSet<u32> of ROWS — the set every
        (triangle/cylinder/sphere) → the whole object tints as a unit; set_selected_rows writes
        tables.objects[row].2 (the truth — set_scene re-derives instances from tables, so the
        selection survives later Msg::File appends) AND pokes flipped live rows via write_row_flags
-       (gpu/mod.rs — Instance.flags is engine-private), only flipped rows upload (41's pattern).
+       (gpu/objects.rs — Instance.flags is engine-private), only flipped rows upload (41's pattern).
        Release branches on drag distance: <3 px CLICK = replace,
        Shift+click = toggle, empty click = clear; >=3 px MARQUEE (never both — a zero-area rect is a
        NaN frustum). MARQUEE: the drag rect is
@@ -330,9 +334,10 @@ Ch 50: SELECTION. State = Scene.selected: HashSet<u32> of ROWS — the set every
        style.
 ```
 
-Edited: `engine/gpu/mod.rs` (`FLAG_SELECTED`, `write_row_flags`, `set_selected_rows`), `shaders/*.wgsl` (selection tint),
-`camera.rs` (`marquee_frustum` — crop · view_proj), `app/scene.rs` (`selected`, `apply_selection`,
-`select_marquee`), `state.rs` (click / Shift+click / marquee gestures).
+Edited: `engine/gpu/instance.rs` (`FLAG_SELECTED`), `engine/gpu/objects.rs` (`write_row_flags`,
+`set_selected_rows`), `shaders/*.wgsl` (selection tint), `camera.rs` (`marquee_frustum` —
+crop · view_proj), `app/scene.rs` (the `selected` field), `app/select.rs` (NEW — `apply_selection`,
+`select_marquee`), `app/input.rs` (click / Shift+click / marquee gestures).
 
 ## Next
 
