@@ -866,7 +866,7 @@ Class: **F** = free-shape (0 lines, mandatory) · **P** = pre-seam (counted) · 
 
 Files the renumber must touch:
 
-- `session_viewer/docs/NN-*.md` — 63 filenames renamed (`45-nurbscurve.md` → `56-nurbscurve.md` … `107-id-buffer-picking.md` → `118-id-buffer-picking.md`); the 40-44 chain renumber is **DONE (2026-08-29)**: `43-lane-structs.md` deleted, `41-potree-look.md` split into `41-potree-look.md` + `42-cloud-normals.md`, `41-cloud-scenes.md` → `43-cloud-scenes.md`, `42-streaming-cloud.md` → `44-streaming-cloud.md`, `45-cloud-octree.md` unchanged. What REMAINS is the +7 shift of the 63 files from `45-nurbscurve.md` → `56-nurbscurve.md` through `107-id-buffer-picking.md` → `118-id-buffer-picking.md`.
+- `session_viewer/docs/NN-*.md` — 63 filenames renamed (`45-nurbscurve.md` → `57-nurbscurve.md` … `107-id-buffer-picking.md` → `119-id-buffer-picking.md`); the 40-44 chain renumber is **DONE (2026-08-29)**: `43-lane-structs.md` deleted, `41-potree-look.md` split into `41-potree-look.md` + `42-cloud-normals.md`, `41-cloud-scenes.md` → `43-cloud-scenes.md`, `42-streaming-cloud.md` → `44-streaming-cloud.md`, `45-cloud-octree.md` unchanged. What REMAINS is the +7 shift of the 63 files from `45-nurbscurve.md` → `57-nurbscurve.md` through `107-id-buffer-picking.md` → `119-id-buffer-picking.md`.
 - `session_viewer/docs/NN_*/` snapshot directories, and `.gitignore`'s `docs/*/assets/` rule.
 - `session_viewer/docs/_ROADMAP.md` — the lesson list and every forward reference.
 - `session_viewer/docs/_RESTRUCTURE_PLAN.md` — the 7-row part table (§8 deltas), the "97 → 18 fields" line, the "15 render + 2 compute" line, the `state.rs`/`persistence.rs` "unchanged" rows, the end-of-44 gate table.

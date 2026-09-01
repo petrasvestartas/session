@@ -3,7 +3,7 @@
 The next two lessons **collapse draw calls**: instancing (29) turns many mesh draws into one, the GPU
 arena (30) fuses buffers. But "it's faster now" is worthless without a number — you can't see a win
 you don't measure. So before optimizing, we add the gauge: frame time, fps, and **how many draw
-calls** the frame actually issued. Console-first today (graduates to an on-screen HUD in lesson 73),
+calls** the frame actually issued. Console-first today (graduates to an on-screen HUD in lesson 74),
 logging once a second.
 
 ## Why
@@ -183,7 +183,7 @@ Ch 27: unlocked storage buffers — the tool the next lessons use to cut draw ca
 Ch 28: add the gauge first. A Performance struct times each frame (exponential-average ms → fps) and takes
        a draws count tallied `+= 1` next to every draw call, logging once a second. Today: ~8 draws
        for 3 objects. The point is to watch that 8 drop as instancing (29) and batching (30) land —
-       measured, not assumed. Console now; on-screen HUD in lesson 73.
+       measured, not assumed. Console now; on-screen HUD in lesson 74.
 ```
 
 Edited: `Cargo.toml` (web-sys `"Performance"`), `engine/performance.rs` (new `Performance`),
