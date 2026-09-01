@@ -28,12 +28,13 @@
 ## Files we touch
 
 ```
-src/engine/gpu/mod.rs   # set_flag_rows(flag, rows) — the generalization of 58's set_selected_rows
-src/app/scene.rs        # hide_selected / show_all / apply_visibility; pickers + marquee skip hidden
-src/lib.rs              # H = hide selection, Ctrl+H = show all (keyboard until the CLI, 53)
+src/engine/gpu/objects.rs # set_flag_rows(flag, rows) — the generalization of 58's set_selected_rows
+src/app/select.rs         # hide_selected / show_all / apply_visibility; select_marquee skips hidden
+src/app/pick.rs           # the two picker guards
+src/app/input.rs          # H = hide selection, Ctrl+H = show all (keyboard until the CLI, 53)
 ```
 
-## Step 1 — generalize the flag upload: `src/engine/gpu/mod.rs`
+## Step 1 — generalize the flag upload: `src/engine/gpu/objects.rs`
 
 58's `set_selected_rows` and the visibility upload are the same function with a different bit. Extract
 it — this is the moment the pattern earns a name (58's tables-then-live-row discipline comes along:
@@ -70,9 +71,12 @@ The shader side needs **nothing**: 53 Step 3 already collapses any `FLAG_HIDDEN`
 vertex in all three pipelines. Drawing was solved before hiding existed — that's the instance-flag
 architecture paying out again.
 
-## Step 2 — the verbs: `src/app/scene.rs`
+## Step 2 — the verbs: `src/app/select.rs`
 
-`hidden` has sat on `Scene` since 35 (`add_file` reads it per row:
+The set itself is a `Scene` field in `app/scene.rs`; the verbs join 58's, in the file that already
+owns "what is selected" — hiding is the same question with a different bit.
+
+`hidden` has sat on `Scene` since 35 (`add_file`, in `app/scene.rs`, reads it per row:
 `let flags = if self.hidden.contains(&guid) { Instance::FLAG_HIDDEN } else { 0 };`); now it changes
 at runtime. Hiding also drops the objects from the selection — you can't act on what you can't see
 (Rhino's rule), and it prevents a hidden object riding along in a later gumball drag:
@@ -111,20 +115,20 @@ Unlike 58's `selected` (row-keyed), `hidden` stays a guid set — 35's `add_file
 as new files stream in, and a hide must survive that. The collision caveat is inherited: a hide
 keyed by guid can catch a namesake in another file.
 
-## Step 3 — the pickers respect it: `src/app/scene.rs`
+## Step 3 — the pickers respect it: `src/app/pick.rs` + `src/app/select.rs`
 
 Three one-line guards, one per path. All three read the row-indexed flag word the verbs above
 already maintain — one array index per candidate instead of a `HashSet<String>` lookup, and it can
 never disagree with what the shaders draw (same word, same bit):
 
 ```rust
-    // pick_mesh (55) — first line inside `for (row, guid) in cands {`
+    // pick_mesh (55, app/pick.rs) — first line inside `for (row, guid) in cands {`
     if self.tables.objects[row as usize].2 & Instance::FLAG_HIDDEN != 0 { continue; }
 
-    // pick_thin (57) — right after its `let Some(&row) = self.guid_to_row.get(h.guid()) …` line
+    // pick_thin (57, app/pick.rs) — right after its `let Some(&row) = self.guid_to_row.get(h.guid()) …`
     if self.tables.objects[row as usize].2 & Instance::FLAG_HIDDEN != 0 { continue; }
 
-    // select_marquee (58) — first line inside `for row in 0..self.world_boxes.len() {`
+    // select_marquee (58, app/select.rs) — first line inside `for row in 0..self.world_boxes.len() {`
     if self.tables.objects[row as usize].2 & Instance::FLAG_HIDDEN != 0 { continue; }
 ```
 
@@ -132,10 +136,11 @@ Without these, clicking where a hidden object *was* selects it invisibly — and
 gesture acts on a ghost. The bug class this prevents is "the viewport and the state disagree", which
 is exactly what Phase 7 exists to prevent.
 
-## Step 4 — keys until the CLI: `src/lib.rs`
+## Step 4 — keys until the CLI: `src/app/input.rs`
 
-In lib.rs's keyboard match (`match event.logical_key.as_ref()`), add two arms beside the
-`"f" | "F"` one (`self.ctrl` is `App`'s modifier flag, already maintained by `ModifiersChanged`):
+In the keyboard match (`match event.logical_key.as_ref()`), add two arms beside the
+`"f" | "F"` one (`self.ctrl` is `Input`'s modifier flag, already maintained by `ModifiersChanged`
+in the same file):
 
 ```rust
                         Key::Character("h" | "H") if !self.ctrl =>
@@ -178,8 +183,9 @@ Ch 59: VISIBILITY. Scene.hidden (parked since 35) becomes runtime state with thr
        sub-object → thin → selection → visibility.
 ```
 
-Edited: `engine/gpu/mod.rs` (`set_flag_rows`, `set_selected_rows` → wrapper), `app/scene.rs`
-(`apply_visibility`, `hide_selected`, `show_all`, 3 picker guards), `lib.rs` (H / Ctrl+H).
+Edited: `engine/gpu/objects.rs` (`set_flag_rows`, `set_selected_rows` → wrapper), `app/select.rs`
+(`apply_visibility`, `hide_selected`, `show_all`, the marquee guard), `app/pick.rs` (the two picker
+guards), `app/input.rs` (H / Ctrl+H).
 
 ## Next
 
