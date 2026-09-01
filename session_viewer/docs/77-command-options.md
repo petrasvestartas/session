@@ -3,8 +3,8 @@
 > **Big picture.** *Phase 8.* Real commands are conversations: `Line` asks *from*, then *to*; along
 > the way you can flip `Snap=On`, type a number, or step back one prompt. Rhino renders that whole
 > conversation in one prompt line — `Line (From, Snap=On):` — and that's the shape every drawing tool
-> (70–71) will reuse. This lesson teaches the Get-loop that grammar with a deliberately geometry-free
-> dummy command, so 62 can focus on geometry, not plumbing.
+> (85–86) will reuse. This lesson teaches the Get-loop that grammar with a deliberately geometry-free
+> dummy command, so the real tools can focus on geometry, not plumbing.
 
 <svg viewBox="0 0 680 110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a running command chains prompts: first point, second point, done; Esc cancels, Enter accepts default, back steps to the previous prompt; options render in the prompt line" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <rect x="10" y="30" width="180" height="28" fill="none" stroke="#6fb3ff"/><text x="100" y="48" fill="#d7dae0" text-anchor="middle">probe (Rounded=On): pick A</text>
@@ -30,11 +30,22 @@ src/app/commands.rs   # the dummy: ProbeCmd — two points, one option, back/can
 src/state.rs          # feed_text parses options + 'back' BEFORE reaching the command
 ```
 
+Every anchor below is a line you typed in [76](76-command-bus.md); nothing here creates a file.
+
 ## Step 1 — options as data: `src/app/getloop.rs`
 
-Options render in the prompt and parse from typed text — one type serves both:
+Options render in the prompt and parse from typed text — one type serves both.
+
+**Find** in `src/app/getloop.rs`:
 
 ```rust
+use session_rust::Point;
+```
+
+**Add below it:**
+
+```rust
+
 /// An option a running command exposes mid-conversation. Rendered in the prompt line;
 /// set by typing `name=value` (case-insensitive) while the command runs.
 pub enum CmdOption {
@@ -61,33 +72,60 @@ impl CmdOption {
 }
 ```
 
-Extend the trait with an options hook (default: none) — the Get-loop reads it to build the prompt:
+Now three methods on the trait, all added under 76's last one — `feed_text`.
+`options()` is the hook the Get-loop reads to build the prompt (default: none, so
+every command 76 could already run still compiles); `back()` steps one prompt backwards; `prompt()`
+hands back the current prompt so the loop can re-render it without advancing the command.
+
+**Find** in `src/app/getloop.rs`:
 
 ```rust
-pub trait ActiveCommand {
-    fn feed_point(&mut self, state: &mut crate::state::State, p: Point) -> CmdStep;
     fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep;
-    fn options(&mut self) -> &mut [CmdOption] { &mut [] }      // ← ADD
+```
+
+**Add below it:**
+
+```rust
+    fn options(&mut self) -> &mut [CmdOption] { &mut [] }
     /// One prompt backwards. The default re-asks the CURRENT prompt — the right answer for a
-    /// stateless command; commands with a stage (ProbeCmd, 70's tools) override it to step back.
-    fn back(&mut self) -> CmdStep { CmdStep::Prompt(self.prompt()) }   // ← ADD
-    fn prompt(&self) -> GetState;                             // ← ADD — the current prompt, so
-                                                              //   state.rs can re-render after an
-                                                              //   option flip without advancing
-}
+    /// stateless command; a command with a stage (ProbeCmd below, 85's draw tools later)
+    /// overrides it to step back one pick.
+    fn back(&mut self) -> CmdStep { CmdStep::Prompt(self.prompt()) }
+    /// The current prompt, so `state.rs` can re-render after an option flip without advancing.
+    fn prompt(&self) -> GetState;
 ```
 
 ## Step 2 — universal text handling: `src/state.rs`
 
 `name=value` and `back` are *grammar*, not per-command logic — intercept them in `run_command`
-before the text ever reaches the command. First widen 61's `use` line so `CmdOption` is in scope:
+before the text ever reaches the command. First widen 76's `use` line so `CmdOption` is in scope:
+
+**Find** in `src/state.rs`:
 
 ```rust
-        use crate::app::{commands::Dispatch, getloop::{GetState, CmdOption}};   // ← add CmdOption
+        use crate::app::{commands::Dispatch, getloop::GetState};
 ```
 
-Then **find the `if let Some(mut cmd) = self.active.take()` block you wrote in 53** (the two-line
-`feed_text` + `step` version) and replace its body with the grammar-aware one:
+**Replace with:**
+
+```rust
+        use crate::app::{commands::Dispatch, getloop::{GetState, CmdOption}};
+```
+
+Then the feed branch itself — 76's two-statement version becomes the grammar layer:
+
+**Find** in `src/state.rs`:
+
+```rust
+        if let Some(mut cmd) = self.active.take() {
+            // two statements — feed borrows self, then step does
+            let r = cmd.feed_text(self, line);
+            self.step(r, cmd);
+            return;
+        }
+```
+
+**Replace with:**
 
 ```rust
         if let Some(mut cmd) = self.active.take() {
@@ -141,9 +179,19 @@ Then **find the `if let Some(mut cmd) = self.active.take()` block you wrote in 5
 `refresh_prompt` re-renders `prompt_line` from the command's current options — the prompt is always
 a pure function of the command's state. It can't build the prompt itself (the verb and the "which
 point" text live in `ProbeCmd`'s private `ask()`), so it asks the command via the new `prompt()`
-trait method. Add it to `impl State` next to `set_prompt`:
+trait method. It goes directly below 76's `set_prompt`, whose last two lines are the anchor:
+
+**Find** in `src/state.rs`:
 
 ```rust
+        self.get = g;
+    }
+```
+
+**Add below it:**
+
+```rust
+
     fn refresh_prompt(&mut self) {
         // borrow ends after prompt(); then set_prompt takes &mut self freely
         let get = match &self.active {
@@ -158,12 +206,26 @@ trait method. Add it to `impl State` next to `set_prompt`:
 
 `probe`: pick two points, print their distance. No geometry created, no Session touched — pure
 Get-loop exercise. Its structure — a `stage` field, prompts derived from it — is the template every
-real tool copies:
+real tool copies. Two imports first:
+
+**Find** in `src/app/commands.rs`:
+
+```rust
+use crate::state::State;
+```
+
+**Add below it:**
 
 ```rust
 use session_rust::Point;
 use super::getloop::{ActiveCommand, CmdOption, CmdStep, GetState};
+```
 
+Then the command itself, at the bottom of the file:
+
+**Append** to `src/app/commands.rs`:
+
+```rust
 pub struct ProbeCmd {
     a: Option<Point>,                 // stage 0: None → asking for A; stage 1: Some → asking for B
     opts: [CmdOption; 1],
@@ -215,15 +277,23 @@ impl ActiveCommand for ProbeCmd {
 }
 ```
 
-Register it — one new arm in `dispatch`:
+Register it — one new arm in `dispatch`, above the `help` arm:
+
+**Find** in `src/app/commands.rs`:
+
+```rust
+        "help" | "?" => Dispatch::Instant("verbs: hide show zoom help".into()),
+```
+
+**Add above it:**
 
 ```rust
         "probe" => { let (cmd, get) = ProbeCmd::start(); Dispatch::Start(cmd, get) }
 ```
 
-(`Point::distance(&other, None)` is a kernel method — the second arg is an optional min-clamp, same as
-Step 3's call; typed `x,y,z` points and clicked points converge on the
-same `feed_point` — that equivalence *is* the Get-loop's promise.)
+(`Point::distance(&other, None)` is a kernel method — the second arg is an optional min-clamp;
+typed `x,y,z` points and clicked points converge on the same `feed_point`, and that equivalence
+*is* the Get-loop's promise.)
 
 ## Step 4 — verify
 
@@ -246,15 +316,15 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ## Recap
 
 ```
-Ch 61: the bus — verbs dispatch, instant commands work end to end.
-Ch 62: THE CONVERSATION. CmdOption { Toggle / Number / List } renders into the Rhino prompt shape —
+Ch 76: the bus — verbs dispatch, instant commands work end to end.
+Ch 77: THE CONVERSATION. CmdOption { Toggle / Number / List } renders into the Rhino prompt shape —
        `probe (Rounded=On): pick first point` — via prompt_line; typed `name=value` is parsed by the
        GRAMMAR layer in run_command (every command gets options for free), as is `back` (one prompt
        backwards, default = re-ask the current prompt, staged commands override). Unknown names and
        unparseable values land in the log — never eaten. ProbeCmd is the canonical multi-step template: a
        stage field (Option<Point>), ask() derives the prompt from state, feed_point advances, typed
-       `x,y,z` converges on feed_point, empty Enter = default, Esc = cancel (61). Geometry-free on
-       purpose — 70's real tools copy the shape and only swap what Done does.
+       `x,y,z` converges on feed_point, empty Enter = default, Esc = cancel (76). Geometry-free on
+       purpose — the real draw tools copy the shape and only swap what Done does.
 ```
 
 Edited: `app/getloop.rs` (`CmdOption`, `prompt_line`, trait gains `options()`/`back()`/`prompt()`),
@@ -264,4 +334,4 @@ Edited: `app/getloop.rs` (`CmdOption`, `prompt_line`, trait gains `options()`/`b
 ## Next
 
 `78-history-autocomplete.md` — the CLI grows muscle memory: ↑/↓ recall previous commands, Tab
-prefix-completes verbs, and an alias table (`l` → `line`) formalizes what 61's match patterns started.
+prefix-completes verbs, and an alias table (`l` → `line`) formalizes what 76's match patterns started.
