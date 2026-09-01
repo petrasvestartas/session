@@ -58,6 +58,8 @@ a **row**, and every row carries an `instance_id` into the one object table.
 | adapter, surface format, device limits | `engine/gpu/device.rs` — the only file that talks to the driver |
 | a shader's struct disagreeing with Rust | run `cargo xtest` — four mirror tests name the file |
 | WHERE a file sits in the world | `app/manifest.rs` |
+| a URL becoming documents, or a reload | `app/loader.rs` — produces `Msg`, touches no GPU |
+| a drag, a wheel, a key | `app/input.rs` — `Input` is the gesture state machine |
 | an env switch | `app/knobs.rs` (walk) or `engine/gpu/view.rs` (draw) |
 
 ### The five rules the code enforces
