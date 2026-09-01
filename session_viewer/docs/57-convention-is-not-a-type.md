@@ -899,6 +899,88 @@ pub struct SplatPipes {
             },
 ```
 
+### The call sites the rename leaves behind
+
+Renaming the fields is only half of it. Seven places still reach for the flat names, and the
+compiler is the only thing that will tell you - `cargo check` reports eight `E0609`s, one per
+call site plus a duplicate, and the tree does not build until every one is moved.
+
+**Find** in `src/engine/gpu/splat.rs`:
+
+```rust
+        let resolve_group = mk_splat_resolve_group(device, &layouts.splat_resolve, &depth, &color);
+```
+
+**Replace with:**
+
+```rust
+        let resolve_group = mk_splat_resolve_group(device, &layouts.splat.resolve, &depth, &color);
+```
+
+**Find** in `src/engine/gpu/splat.rs`:
+
+```rust
+            group0: mk_splat_group0(device, &layouts.splat_group0, shared, &recs),
+            group1: mk_splat_group1(device, &layouts.splat_group1, points, pixels),
+```
+
+**Replace with:**
+
+```rust
+            group0: mk_splat_group0(device, &layouts.splat.group0, shared, &recs),
+            group1: mk_splat_group1(device, &layouts.splat.group1, points, pixels),
+```
+
+**Find** in `src/engine/gpu/splat.rs`:
+
+```rust
+        self.group0 = mk_splat_group0(device, &layouts.splat_group0, shared, &self.recs);
+        self.group1 = mk_splat_group1(device, &layouts.splat_group1, points, pixels);
+```
+
+**Replace with:**
+
+```rust
+        self.group0 = mk_splat_group0(device, &layouts.splat.group0, shared, &self.recs);
+        self.group1 = mk_splat_group1(device, &layouts.splat.group1, points, pixels);
+```
+
+**Find** in `src/engine/gpu/render.rs`:
+
+```rust
+                cp.set_pipeline(&self.pipelines.splat_depth);
+```
+
+**Replace with:**
+
+```rust
+                cp.set_pipeline(&self.pipelines.splat.depth);
+```
+
+**Find** in `src/engine/gpu/render.rs`:
+
+```rust
+                cp.set_pipeline(&self.pipelines.splat_color);
+```
+
+**Replace with:**
+
+```rust
+                cp.set_pipeline(&self.pipelines.splat.color);
+```
+
+**Find** in `src/engine/gpu/render.rs`:
+
+```rust
+            pass.set_pipeline(&b.p.splat_resolve);
+```
+
+**Replace with:**
+
+```rust
+            pass.set_pipeline(&b.p.splat.resolve);
+```
+
 ## 7. The rule
 
 A struct with three or more fields sharing a stem is a struct that has not been written down.
