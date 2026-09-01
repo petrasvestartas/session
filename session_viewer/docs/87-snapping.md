@@ -27,8 +27,11 @@
 ```
 # NEW — SnapKind + SnapContext + snap(scene, raw, cursor, ctx) → (Point, Option<SnapKind>)
 src/app/snap.rs
-src/state.rs       # cursor_world_point() consults snap; marker glyph; `snap` CLI toggle
-src/app/commands.rs # `snap` on|off verb registration (Step 2)
+src/state.rs              # cursor_world_point() consults snap; snap_enabled / snap_marker
+src/engine/gpu/overlay.rs # the marker glyph — one row, the lane's third fixed-capacity table
+src/engine/gpu/render.rs  # one line: the marker draw, right after the ghost
+src/app/input.rs          # every cursor move pushes (or clears) the marker
+src/app/commands.rs       # `snap` on|off verb registration (Step 2)
 ```
 
 ## Step 1 — kinds and candidates: `src/app/snap.rs` (NEW)
@@ -205,11 +208,11 @@ otherwise the `self.snap_enabled` / `self.snap_marker` above don't exist. `state
 Plus a `snap` verb in the registry — `"snap"` toggles `snap_enabled` and logs the state (`VERBS` too).
 This is the CLI-option pattern from 53; a per-kind toggle UI can wait for the settings panel.
 
-## Step 3 — the marker: `src/engine/gpu/mod.rs` + `src/state.rs`
+## Step 3 — the marker: `src/engine/gpu/overlay.rs` + `src/app/input.rs`
 
 Users trust snap only when they can *see* it. One white glyph at the snap point — 71's preview
 table holds *segments*, so the marker gets its own one-glyph slot, the same fixed-capacity pattern
-a third time. In `Gpu`: fields `pub marker_buffer: wgpu::Buffer, pub marker_bind_group:
+a third time. In the lane: fields `pub marker_buffer: wgpu::Buffer, pub marker_bind_group:
 wgpu::BindGroup, pub marker_count: u32` (buffer = `storage_buffer(&device, "snap.marker",
 &vec![GlyphPoint::zeroed(); 1])`, bind group on `glyph_layout`, created beside 71's preview pair;
 all three into `Ok(Self { … })`), plus:
@@ -229,7 +232,7 @@ all three into `Ok(Self { … })`), plus:
     }
 ```
 
-Draw it right after 71's ghost block in `clear()` — same shape, sphere pipeline:
+Draw it right after 71's ghost block in `src/engine/gpu/render.rs` — same shape, sphere pipeline:
 
 ```rust
             if self.marker_count > 0 {
@@ -245,8 +248,8 @@ Draw it right after 71's ghost block in `clear()` — same shape, sphere pipelin
             }
 ```
 
-In `state.rs`, the cursor-move handler (right after 71's `on_move` forwarding block) pushes the
-marker every move a command is listening:
+In `app/input.rs`, the cursor-move handler (right after 71's `on_move` forwarding block) pushes
+the marker every move a command is listening:
 
 ```rust
         // show (or clear) the live snap marker
@@ -295,7 +298,9 @@ Ch 72: PRECISION. app/snap.rs: SnapKind { Endpoint/Vertex(0) > Grid(6) } — RAN
 ```
 
 Edited: `app/snap.rs` (NEW — `SnapKind`, `SnapContext`, `snap`), `state.rs` (`cursor_world_point`
-consults snap, marker, `snap_enabled`), `app/commands.rs` (`snap` verb).
+consults snap, `snap_enabled`, `snap_marker`), `engine/gpu/overlay.rs` (`set_snap_marker`),
+`engine/gpu/render.rs` (one line: the marker draw), `app/input.rs` (the marker, every move),
+`app/commands.rs` (`snap` verb).
 
 ## Next
 
