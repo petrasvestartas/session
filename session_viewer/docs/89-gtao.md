@@ -56,7 +56,7 @@ fn view_pos(ndc: vec2<f32>, d: f32) -> vec3<f32> {
 ```
 
 Two multiplies per axis, exact, no matrix. (The archive's root perspective bug lived here — the
-kernel's `Xform::inverse` used to be affine-only; lesson 63 found and fixed it kernel-wide. The
+kernel's `Xform::inverse` used to be affine-only; lesson 64 found and fixed it kernel-wide. The
 analytic form is still the right choice *here* regardless: fewer ops per pixel and no matrix upload.)
 
 > **Perspective only.** `z = -near / d` is the reverse-Z *perspective* depth mapping. Under the

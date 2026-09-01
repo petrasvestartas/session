@@ -741,7 +741,7 @@ they also name the unit that one `spacing` float carries — world units for a m
 cloud.
 
 It is also where provenance will go. A row knows its OBJECT today and not which face or edge it
-came from; lesson 114 adds a field here and touches no family file.
+came from; lesson 115 adds a field here and touches no family file.
 
 
 **Create `src/app/walk/mod.rs`**
@@ -770,7 +770,7 @@ use session_rust::element::ElementGeometry;
 
 use crate::engine::gpu::{CloudDraw, Instance, Upload};
 
-// The mesh family still lives in `scene.rs`; lesson 51 gives it `walk/mesh.rs` and these three
+// The mesh family still lives in `scene.rs`; lesson 52 gives it `walk/mesh.rs` and these three
 // come with it.
 use super::scene::{is_print_fill, mesh_spacing, push_mesh};
 
@@ -796,7 +796,7 @@ pub struct WalkCx {
 /// every later row's data by one, silently.
 ///
 /// It is also the seam for provenance. A row today knows its OBJECT (`instance_id`) but not which
-/// FACE or EDGE of the kernel geometry it came from; when lesson 114 adds that, it adds a field
+/// FACE or EDGE of the kernel geometry it came from; when lesson 115 adds that, it adds a field
 /// here and touches no family file.
 pub struct Row {
     /// Mesh-LOCAL AABB. `None` for everything the solid lane's facing cull does not need.
@@ -1699,7 +1699,7 @@ The thirteen arms left scene.rs for walk_geometry, and with them went the fourte
 the two per-object columns and the three reach-backs that patched a row already pushed. A
 producer now RETURNS a Row and cannot push one, so the object table's count cannot drift. Row
 also names the unit its one spacing float carries, and it is where a face or edge id will go when
-lesson 114 needs one.
+lesson 115 needs one.
 
 scene.rs is 739 lines and no longer knows what a Geometry is.
 ```

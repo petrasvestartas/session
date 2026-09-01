@@ -55,7 +55,7 @@ capped — a long session must not grow it without bound:
 
 ```rust
     pub cli_history: Vec<String>,        // ← ADD to State (init empty in State::new)
-                                         //   NB: named cli_history, not history — lesson 73 adds
+                                         //   NB: named cli_history, not history — lesson 74 adds
                                          //   `pub history: History` (undo stack) to this same struct.
 
     // first line of run_command:

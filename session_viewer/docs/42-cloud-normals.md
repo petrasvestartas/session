@@ -1,7 +1,7 @@
 # 42 Cloud normals — lambert in the splat lane, and the clouds that carry it
 
 > Direct-path chain (36-44); continues lesson [41](41-potree-look.md), which added EDL and
-> attenuated sizes to lesson 39's splat lane.
+> attenuated sizes to lesson 40's splat lane.
 
 ## Goal
 
@@ -18,7 +18,7 @@ lesson 36 already packs it oct16 into `point_nrm_buffer` — unused until now. T
 grows the model's rotation columns so the normal reaches world space even under a
 rotated placement.
 
-**1a.** In `src/shaders/splat.wgsl`, **find** (lesson 39's record width):
+**1a.** In `src/shaders/splat.wgsl`, **find** (lesson 40's record width):
 
 ```wgsl
 const REC_WORDS: u32 = 24u;
@@ -46,7 +46,7 @@ const REC_WORDS: u32 = 36u;
 @group(1) @binding(4) var<storage, read> normals: array<u32>; // oct16; MAX = point has none
 ```
 
-**1c.** Same file, **find** (lesson 39's tint pack in `project`):
+**1c.** Same file, **find** (lesson 40's tint pack in `project`):
 
 ```wgsl
     let tint = vec4<f32>(rec_f(base, 16u), rec_f(base, 17u), rec_f(base, 18u), 1.0);
@@ -158,7 +158,7 @@ shader reads, so the parameter's position in the list is free):
 ```
 
 **1f.** The rotation columns ride the record. In `encode_frame`, **find** (the k push
-from lesson 40's step 2c):
+from lesson 41's step 2c):
 
 ```rust
                     recs.extend_from_slice(bytemuck::cast_slice(&[first, count, cum, (k as f32).to_bits()]));
@@ -389,7 +389,7 @@ cargo run --example mk_bunny_cloud --target x86_64-unknown-linux-gnu --release -
 ```
 
 The count is the only knob, and it matters less than it looks. Sampling is area-weighted, so points
-land at even density over the surface instead of clumping on small triangles, and lesson 40's attenuation then sizes
+land at even density over the surface instead of clumping on small triangles, and lesson 41's attenuation then sizes
 each splat by the cloud's own measured spacing — so a 400k and a 1.5M bunny draw the same picture
 (4741 vs 4741 non-background pixels at one zoom, 4298 vs 4303 at another); the sparser one just
 uses bigger dots. What earns this dataset its place is the normals: every point carries the

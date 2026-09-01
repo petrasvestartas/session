@@ -41,7 +41,7 @@ indexed by the same row number, so adding an object means pushing to six vectors
 order; forget one and every later row reads the previous row's bounds, with no error anywhere.
 
 The **arena** — thirteen fields for one vertex table and three index runs, where the runs are
-three copies of the `(buffer, count, cap)` triple `buffers.rs` typed as `GrowBuf` at lesson 46 and
+three copies of the `(buffer, count, cap)` triple `buffers.rs` typed as `GrowBuf` at lesson 47 and
 then left dead.
 
 And the walk writes both a column at a time: forty-eight sites in an `Upload` of nineteen flat
@@ -1228,16 +1228,16 @@ moved.
 > }                    // ^^^^^^^^^^^^ E0499: cannot borrow `self.objects` as mutable
 > ```                  //                      while `self` is also borrowed as immutable
 >
-> The fix is lesson 46's B1 one level down: **the sub-struct takes what it needs as parameters,
+> The fix is lesson 47's B1 one level down: **the sub-struct takes what it needs as parameters,
 > and the caller does the field access at the call site.** `&self.ctx` and `&self.layouts` are
 > disjoint borrows of `Gpu`; `self.<method that borrows all of self>` is not. Every family method
-> in lessons 48 and 49 hits this.
+> in lessons 49 and 50 hits this.
 
 ## 6. The steps
 
 ### 6.1 `buffers.rs` — `GrowBuf` stops being dead
 
-`Arena` has three `GrowBuf`s, so lesson 46's `#[allow(dead_code)]` comes off — and
+`Arena` has three `GrowBuf`s, so lesson 47's `#[allow(dead_code)]` comes off — and
 `append_index_run`, which took that triple spelled out plus a label and the data, drops from six
 parameters to three.
 
@@ -1540,7 +1540,7 @@ pub struct Pipelines{
 ```rust
 /// Every pipeline the viewer draws with, built once at startup and rebuilt whole on an MSAA
 /// flip. Fourteen render pipelines and two compute - the triangle family's two now live behind
-/// `arena`, which is where lessons 48 and 49 take the other twelve.
+/// `arena`, which is where lessons 49 and 50 take the other twelve.
 pub struct Pipelines{
     /// The triangle family's own two, built by `gpu::arena` from the layouts below. A family
     /// owns the pipelines that read its rows; this struct owns only the list.
@@ -2782,7 +2782,7 @@ cargo check --target wasm32-unknown-unknown --lib
 cargo check --all-targets --target x86_64-unknown-linux-gnu
 ```
 
-Zero errors, and exactly the nine warnings lesson 46 left. A NEW warning is a real finding: a
+Zero errors, and exactly the nine warnings lesson 47 left. A NEW warning is a real finding: a
 symbol you moved is no longer reachable from where it is used. Step 6.4 fixes the two this lesson
 raised. It cannot catch a body that lost a line while moving — that type-checks fine.
 
@@ -2845,7 +2845,7 @@ shaders are one screen, and a test names the shader you forgot.
 
 **Type all eight steps below.** The first four add the bit, the last four take it back out, and the
 tree must be back to what §6 left before you read §10. Do **not** undo it with `git checkout` — you
-have not committed lesson 47 yet, and that would throw the whole lesson away.
+have not committed lesson 48 yet, and that would throw the whole lesson away.
 
 **8a.** Bit 6, straight off the free budget in the table. **Find** in `src/engine/gpu/instance.rs`:
 
@@ -2986,7 +2986,7 @@ otherwise have missed.
   simplification. Lesson **59** adds the second call site and the constructor with it.
 - **The `objects_base` → `base` rename in `Upload`.** The walk still calls its column
   `obj.rows`. Lesson **50** rewrites those producers wholesale and names them there.
-- **`persistence.rs`.** Declared over cap at 453 lines since lesson 43; the three-way split is
+- **`persistence.rs`.** Declared over cap at 453 lines since lesson 44; the three-way split is
   lesson **59**.
 
 The standing rule: **a body you are moving is not a body you are fixing.** This lesson breaks it

@@ -170,7 +170,7 @@ impl Scene {
                     }
                     ElementGeometry::None => None,   // add_file gave it no row — never a candidate
                 },
-                _ => None,   // Line/Polyline/Point/PointCloud → lesson 66 (thin geometry needs a
+                _ => None,   // Line/Polyline/Point/PointCloud → lesson 67 (thin geometry needs a
                              // pick radius). Plane/OBB draw as linework but have no pick arm in
                              // either lesson — a tracked gap, same shape as 49's four kinds
             };
@@ -249,7 +249,7 @@ through a 3.6M-point scan reports the sheet behind it. That is the declared cont
 42 — streamed clouds are display objects — and the honest fix (a screen-space depth probe
 against the splat depth buffer, not a CPU ray-vs-points test) is its own future lesson.
 Walked kernel `PointCloud` objects are different: they have rows and bounds, and land in
-lesson 66 with the other thin geometry.
+lesson 67 with the other thin geometry.
 
 ## Step 4b — curved types pick through their caches
 

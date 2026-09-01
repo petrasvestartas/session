@@ -77,7 +77,7 @@ two files. A desc is data, and data sits in a list without owning a file.
 | `Mat4`, `mat_mul`, `mat_to_f32` | `engine/gpu/mod.rs` (top level) | **`src/math.rs`** | anyone — no wgpu, no `self` |
 | `eye_from_view_proj`, `ortho_half_height` | `impl Gpu` | **`src/math.rs`** | anyone, incl. the headless harness |
 | `xform_point`, `grow_bounds` | `app/scene.rs` | **`src/math.rs`** | anyone |
-| `Bounds`, `Aabb64` | nowhere — written out longhand | **`src/math.rs`** | anyone (lessons 61, 62, 67, 107, 110, 112) |
+| `Bounds`, `Aabb64` | nowhere — written out longhand | **`src/math.rs`** | anyone (lessons 62, 63, 68, 108, 111, 113) |
 | the 9 `create_bind_group_layout` blocks | `Gpu::build`, lines 506-810 | **`pipelines/layouts.rs`** | `Layouts::new` ONLY |
 | `Self::splat_entry` | `impl Gpu` | **`pipelines/layouts.rs::compute_entry`** | `Layouts::new` ONLY |
 | the 11 `build_*_pipeline` fns | `pipelines/build.rs` | **gone** — `PipelineDesc` + `build` | nobody adds a twelfth |
@@ -158,7 +158,7 @@ re-point, not a two-ended edit you cannot compile in the middle of. Neither know
 
 Printed in full rather than moved: the two camera solves leave `impl Gpu`, so they lose four
 spaces of indent and `ortho_half_height` gains a `pub`. `Bounds` and `Aabb64` are the only new
-lines — lessons 61, 62, 67, 107, 110 and 112 all pass a box around and spell it out longhand.
+lines — lessons 62, 63, 68, 108, 111 and 113 all pass a box around and spell it out longhand.
 
 **Create `src/math.rs`**
 
@@ -1075,7 +1075,7 @@ Two things that are easy to lose:
   runs with that variable set, so losing one is silent.
 
 `Pipelines` keeps **named fields**, not a map: the MSAA flip assigns a whole new `Pipelines`
-mid-session, and lesson 114's id pass re-runs the draw list against a second set.
+mid-session, and lesson 115's id pass re-runs the draw list against a second set.
 
 **Create `src/engine/pipelines/build.rs`**
 
@@ -1106,7 +1106,7 @@ pub struct Target {
 /// the same in all fourteen and lives once, in `build`.
 pub struct PipelineDesc<'a> {
     /// Names the shader module, the pipeline layout AND the pipeline; the only string a GPU
-    /// error message will hand back, so it is also lesson 104's error-scope label.
+    /// error message will hand back, so it is also lesson 105's error-scope label.
     pub label: &'a str,
     /// WGSL source text, normally an `include_str!`.
     pub shader: &'a str,
@@ -1123,7 +1123,7 @@ pub struct PipelineDesc<'a> {
     pub depth_write: bool,
     pub depth_compare: wgpu::CompareFunction,
     /// Overrides the pass target. `None` = draw into the frame; a value pins this pipeline to its
-    /// own attachment (lesson 90's R8Unorm mask, lesson 114's R32Uint id buffer).
+    /// own attachment (lesson 91's R8Unorm mask, lesson 115's R32Uint id buffer).
     pub target: Option<Target>,
 }
 
@@ -1302,7 +1302,7 @@ pub fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
 them is the lines you can see: `ink` is three fields, `sheet` one, `depth_only` two.
 
 Now the call sites. `pipelines/mod.rs` stops importing eleven builders and starts naming the WGSL
-each family compiles; lessons 47-49 move each pair into the family file that owns its row.
+each family compiles; lessons 48-50 move each pair into the family file that owns its row.
 
 **Find** in `src/engine/pipelines/mod.rs`:
 
@@ -1332,7 +1332,7 @@ use build::{build, cyl_template_layout, instance_id_layout};
 use session_rust::RenderVertex;
 use layouts::Layouts;
 
-// The WGSL each family compiles. They live beside the descs that name them; lessons 47-49 move
+// The WGSL each family compiles. They live beside the descs that name them; lessons 48-50 move
 // each pair into the family file that owns the row it draws.
 const RIBBON: &str = include_str!("../../shaders/ribbon.wgsl");
 const GLYPH: &str = include_str!("../../shaders/glyph.wgsl");
@@ -1802,7 +1802,7 @@ Nor can it see a `#[cfg]`-gated arm on the target you did not build.
 **Ladder 2, `--moves`.** The only proof a move took its lines byte-identically: the multiset of
 stripped, non-blank lines over {source} ∪ {destinations}, before and after, minus every line the
 doc declares as added or removed. One source here (`src/app/scene.rs`), two moves — thin on
-purpose, so lesson 47's nine bodies across three files are not the first time you run it.
+purpose, so lesson 48's nine bodies across three files are not the first time you run it.
 
 ```bash
 python3 docs/_replay_check.py --moves <end-of-44 snapshot> /tmp/w45 docs/46-pipeline-descs.md
@@ -1836,7 +1836,7 @@ Add a wireframe pass over every mesh edge. Before this lesson: a ~70-line copy o
 
 **Type all six steps below.** The first three add it, the last three take it back out — a
 demonstration, not part of the end state, and the file must be back to 148 lines before §10. Do
-**not** undo it with `git checkout`: lesson 45 is not committed, and that would throw it all away.
+**not** undo it with `git checkout`: lesson 46 is not committed, and that would throw it all away.
 
 **8a.** **Find** in `src/engine/pipelines/mod.rs`:
 

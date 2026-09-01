@@ -882,7 +882,7 @@ Both "Individual type memory layouts" and "Primitives" are empty now.
 
 ### 6.1 `buffers.rs` — a table appends to itself
 
-`GrowBuf` has held the buffer, the count and the cap since lesson 46, but callers still passed all
+`GrowBuf` has held the buffer, the count and the cap since lesson 47, but callers still passed all
 three by hand. Four tables in two new files is enough evidence for the method.
 
 **Find** in `src/engine/gpu/buffers.rs`:
@@ -1867,7 +1867,7 @@ const BLACK: u32 = 0xff00_0000;
 
 ## 7. Proving nothing changed — four ladders
 
-**(1) The compiler.** Both targets, and exactly the nine warnings lesson 46 left.
+**(1) The compiler.** Both targets, and exactly the nine warnings lesson 47 left.
 
 ```bash
 cargo check --target wasm32-unknown-unknown --lib
@@ -1924,7 +1924,7 @@ Give the flat lane a second view of its own rows. `drawings_rotated` holds **191
 the OTHER table is two lines.
 
 **Type all four steps.** The first two add it, the last two take it back out. Do **not** undo it
-with `git checkout` — you have not committed lesson 48 yet.
+with `git checkout` — you have not committed lesson 49 yet.
 
 **8a.** **Find** in `src/engine/gpu/segments.rs`:
 

@@ -167,7 +167,7 @@ reconcile's `changed` bucket (49).) The walk arm becomes get-or-sample — and n
 
 **What this lesson deliberately does NOT add: CV glyphs.** The archive drew every curve's control
 points as 32a spheres, always — and a sheet of curves became a starfield. Real CAD shows control
-points in an EDIT mode; that is lesson 94's job (`F10`, on the selected curve only), and the
+points in an EDIT mode; that is lesson 95's job (`F10`, on the selected curve only), and the
 weighted-CV read it needs is already sitting in `sample_curve`'s box loop.
 
 ## Step 3 — verify

@@ -1,6 +1,6 @@
 # 40 The production splatter — tint, the static skip, and the trap
 
-> Direct-path chain (36-42). Re-verified 2026-08-27 against the tree lesson 38 leaves
+> Direct-path chain (36-42). Re-verified 2026-08-27 against the tree lesson 39 leaves
 > behind: every anchor matches, the result compiles, `naga` validates the shader.
 
 ## Goal

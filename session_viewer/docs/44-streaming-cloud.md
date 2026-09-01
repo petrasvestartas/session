@@ -114,7 +114,7 @@ So streamed clouds get their own three buffers, draw list and record table. The 
 MEET in the shared per-pixel depth/colour buffers, because atomics compose across
 dispatches: both lanes' `cs_depth` passes contest the same `atomicMax` race, and the
 resolve triangle never knows there were two. Cost: a second bind-group pair and a second
-dispatch. Payoff: nothing in lessons 36-42 changes underneath.
+dispatch. Payoff: nothing in lessons 36-43 changes underneath.
 
 ## Files we touch
 
@@ -489,7 +489,7 @@ count them before you move on.
     /// One slice of positions, straight from the socket into GPU memory. `write_buffer` passes
     /// a subarray VIEW of wasm memory - the slice is the only copy that exists. The FIRST slice
     /// also measures the cloud's point spacing (median consecutive distance - scan order is
-    /// surface order), which lesson 40's attenuation needs and a streamed cloud cannot get
+    /// surface order), which lesson 41's attenuation needs and a streamed cloud cannot get
     /// from the kernel walk.
     pub fn cloud_pos(&mut self, pos: &[f32]) {
         if let Some(d) = self.stream_draws.last_mut() {

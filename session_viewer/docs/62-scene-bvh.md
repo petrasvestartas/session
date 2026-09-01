@@ -38,7 +38,7 @@ flag — the archive viewer (`session_viewer_archive`) leaned on exactly that ca
 `invalidate_bvh_cache()` after every edit. That was enough there because the archive was a
 single-document app. This viewer is multi-document by design: one tree per session would mean
 querying N trees and merging, each blind to its manifest `place`. One scene-level tree, placed
-boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 64's
+boxes in, is the simpler contract — and the per-session caches stay untouched for lesson 65's
 narrow-phase `ray_cast`.)
 
 This lesson also names that frame once and for all, because half the remaining course needs it:
@@ -432,7 +432,7 @@ A `CloudSlot` (42) pushes its object row with `object_bounds: None` — delibera
 points live only on the GPU, so there is no per-object geometry to derive a box from at
 walk time, and the BVH simply gets no leaf for it. That is consistent with where this
 phase is headed: streamed clouds are display objects — unpickable, unselectable — until a
-later lesson gives them kernel-side structure. (Their SCENE box still exists — lesson 42's
+later lesson gives them kernel-side structure. (Their SCENE box still exists — lesson 43's
 `grow_bounds` feeds the camera — it is the per-object index they sit out.)
 
 ## The curved types join `world_obb`

@@ -65,7 +65,7 @@ just found ten times. Wherever both handles are needed, they are needed together
 
 That is the whole lesson. `GpuCtx` folds the pair, `GrowBuf` names the triple, and the four files
 under them — `frame.rs`, `targets.rs`, `present.rs`, `view.rs` — take everything that belongs to
-no family, so lessons 47-49 can hand a family its own file and find nothing generic left in it.
+no family, so lessons 48-50 can hand a family its own file and find nothing generic left in it.
 
 ### 1b. The law this enforces, stated as what it forbids
 
@@ -82,9 +82,9 @@ family under this floor; a `CylinderSegment`-shaped hole would have to be widene
 
 The obvious cut is `RowTable<T>` right now — `GrowBuf` plus a CPU-side `Vec<T>`, the bind group
 and a `guid → Range` map, so a lane is one generic value and `set_scene` is a loop. **Do not make
-it.** That CPU mirror is the second copy of the scene lessons 37 and 38 spent themselves deleting:
+it.** That CPU mirror is the second copy of the scene lessons 37 and 39 spent themselves deleting:
 263 MB of browser heap freed on a 13.8 M-point lidar scan, precisely by *not* keeping the rows
-after upload. `append_rows` already returns the `grew` bool, which is all lessons 45-51 need. It
+after upload. `append_rows` already returns the `grew` bool, which is all lessons 46-52 need. It
 lands at **57**, where the reconcile pass is the first caller that needs the `guid → Range` half.
 
 ## 2. Where the code lives after this lesson
@@ -382,7 +382,7 @@ descriptor one indent shallower, with the two `LoadOp` literals as parameters.
 Keeping `depth` as a `wgpu::Texture` is the free shape here: a view cannot be re-viewed and a
 usage flag cannot be added after creation, so a lesson that wants to SAMPLE the depth would
 otherwise change this field's type and every line that reads it. `depth_load: Option<LoadOp<f32>>`
-is the other: `None` means no depth attachment, which is what lesson 74's gumball overlay needs.
+is the other: `None` means no depth attachment, which is what lesson 75's gumball overlay needs.
 
 **Create `src/engine/gpu/targets.rs`**
 
@@ -1924,7 +1924,7 @@ with the textures kept:
 ```
 
 The pass descriptor. Twenty-four lines of `encode_frame` become one call, and the two `LoadOp`s
-that were literals inside it become the two parameters lesson 74's overlay pass needs:
+that were literals inside it become the two parameters lesson 75's overlay pass needs:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2271,7 +2271,7 @@ cargo check --all-targets
 `Targets::new` that forgot `TEXTURE_BINDING`. Nor can it see a `#[cfg]`-gated arm on the target
 you did not build, and `render_offscreen` and `bench_frames` are both behind one.
 
-**Ladder 2, `--moves`**, introduced in lesson 45 §7: the only proof a move took its lines
+**Ladder 2, `--moves`**, introduced in lesson 46 §7: the only proof a move took its lines
 byte-identically.
 
 ```bash
@@ -2301,7 +2301,7 @@ pixel gate itself runs, and it is invisible to `cargo check --target wasm32-unkn
 ./docs/_gate.sh && ./docs/_gate.sh
 ```
 
-The same 64 rows lesson 45 §7 describes: four mandatory scenes × four configs × two passes, plus
+The same 64 rows lesson 46 §7 describes: four mandatory scenes × four configs × two passes, plus
 four advisory scenes when their gitignored `.pb` assets are present, every row gated on **ink,
 draw count and object count**, with the `nondet(splat)` and `nondet(mesh)` exemptions recorded in
 `_GOLDENS.tsv`. Neither exemption is your bug.
@@ -2342,7 +2342,7 @@ Take them.
 
 **Type all ten steps below.** The first five add the uniform, the last five take it back out — a
 demonstration, not part of the end state, and `frame.rs`, `gpu/mod.rs` and `ribbon.wgsl` must be
-back to what §6 left before §10. Do **not** undo it with `git checkout`: lesson 46 is not
+back to what §6 left before §10. Do **not** undo it with `git checkout`: lesson 47 is not
 committed, and that would throw it all away.
 
 **8a.** The field. **Find** in `src/engine/gpu/frame.rs`:
@@ -2511,7 +2511,7 @@ writer, its `FrameInput` and the list of shaders that mirror it were all on one 
 - **The three `#[allow(dead_code)]`s.** `GrowBuf` comes off at 47, `Targets.depth` at 88,
   `Frame.view` at 69 — each a field only the named lesson uses; the attribute is the receipt.
 - **Fixing anything a move carried.** `append_rows`'s doc still describes the index run below it,
-  `ArenaUpload`'s still says "owened", and lesson 45's `glyph`/`segment` layout alias is still
+  `ArenaUpload`'s still says "owened", and lesson 46's `glyph`/`segment` layout alias is still
   there. A body you are moving is not a body you are fixing.
 
 ## 10. Expected state

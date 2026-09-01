@@ -1,7 +1,7 @@
 # 52 Five types, one body
 
 > The last lesson of the block. After it, `scene.rs` is 284 lines and every geometry type has a
-> file; lessons 52-114 are written against these paths.
+> file; lessons 53-115 are written against these paths.
 > Nothing you can see changes.
 > Answer key: `git diff end-of-50..end-of-51 -- session_viewer/src`.
 >
@@ -745,7 +745,7 @@ use session_rust::element::ElementGeometry;
 
 use crate::engine::gpu::{CloudDraw, Instance, Upload};
 
-// The mesh family still lives in `scene.rs`; lesson 51 gives it `walk/mesh.rs` and these three
+// The mesh family still lives in `scene.rs`; lesson 52 gives it `walk/mesh.rs` and these three
 // come with it.
 use super::scene::{is_print_fill, mesh_spacing, push_mesh};
 
@@ -775,7 +775,7 @@ use session_rust::element::ElementGeometry;
 
 use crate::engine::gpu::{CloudDraw, Upload};
 
-// The mesh family still lives in `scene.rs`; lesson 51 gives it `walk/mesh.rs` and these three
+// The mesh family still lives in `scene.rs`; lesson 52 gives it `walk/mesh.rs` and these three
 // come with it.
 
 use cloud::{cloud_spacing, push_cloud};
@@ -1086,7 +1086,7 @@ const WIREFRAME_BLACK_MIN: usize = 10_000;
 ```
 
 The doc comment for those five toggles travels with them - it was left behind in `scene.rs` when
-the statics moved at lesson 50.
+the statics moved at lesson 51.
 
 **Find** in `src/app/knobs.rs`:
 
@@ -1213,12 +1213,12 @@ point away.
 ## 8. What is deliberately not here
 
 - **`app/persistence.rs`.** 453 lines, the largest leaf under `app/` now, and declared over cap
-  since lesson 43. Its three-way split is lesson **59**.
+  since lesson 44. Its three-way split is lesson **59**.
 - **`chain_table` / `compartments_hold`.** The tests that assert the geometry-to-shader map are
   worth having, but they assert a table this lesson only just completed. First lesson that adds a
   fourteenth row writes them.
 - **Sub-object identity.** A row carries `instance_id` — the object — and still nothing that says
-  which face or edge of the kernel mesh produced it. `Row` (lesson 50) is where that field goes;
+  which face or edge of the kernel mesh produced it. `Row` (lesson 51) is where that field goes;
   lesson **114** puts it there with the id buffer.
 - **`enum Spacing { World, Pixels }`.** Still one f32 carrying two units, named at the write site
   by `Row::solid` and `Row::point_size_px`.

@@ -117,7 +117,7 @@ fn main() {
     }
 ```
 
-Same-camera frames hit lesson 39's static skip, so this measures the CACHED path; treat
+Same-camera frames hit lesson 40's static skip, so this measures the CACHED path; treat
 it comparatively.
 
 **The browser scene.** In `src/lib.rs`, **find**:

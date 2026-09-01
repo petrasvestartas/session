@@ -188,7 +188,7 @@ to one sample count panics on the first solid append with a sample-count mismatc
 
 Draw order in `clear()`: background gradient (25) → **ground** → grid (20) → meshes/lines/points.
 The per-frame uniform fills from values already at hand: `view_proj.inverse()` (the kernel's full
-4×4 inverse — fixed during lesson 63; this matrix contains the projection, which the old affine-only
+4×4 inverse — fixed during lesson 64; this matrix contains the projection, which the old affine-only
 version got wrong — and it returns `Option<Xform>`, so unwrap or early-out), `eye − origin`, fade
 radius ≈ 30× `camera.distance_world()` (feels infinite without banding), and `−origin[2]`. The
 radius **must** come from `distance_world()` — that's the camera distance in world **mm**;

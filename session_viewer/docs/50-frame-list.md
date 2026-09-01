@@ -419,7 +419,7 @@ impl StreamLane {
     /// One slice of positions, straight from the socket into GPU memory. `write_buffer` passes
     /// a subarray VIEW of wasm memory - the slice is the only copy that exists. The FIRST slice
     /// also measures the cloud's point spacing (median consecutive distance - scan order is
-    /// surface order), which lesson 40's attenuation needs and a streamed cloud cannot get
+    /// surface order), which lesson 41's attenuation needs and a streamed cloud cannot get
     /// from the kernel walk.
     pub fn push_pos(&mut self, ctx: &GpuCtx, pos: &[f32]) {
         if let Some(d) = self.draws.last_mut() {
@@ -1216,7 +1216,7 @@ wc -l src/engine/gpu/cloud.rs src/engine/gpu/stream.rs src/engine/gpu/splat.rs \
 > //                       `self.frame` are already borrowed by `pass` and `b`
 > ```
 >
-> The fix is lesson 48's contract applied to the whole frame: **every draw returns the number of
+> The fix is lesson 49's contract applied to the whole frame: **every draw returns the number of
 > draws it issued, and the caller sums them.** That is why `scene_list` ends in a bare `draws` and
 > why each of the eleven lines is `draws += …`.
 
@@ -1482,7 +1482,7 @@ zeroed.
 ### 6.3 The three bind-group builders leave, and `rebuild_splat_groups` becomes a forwarder
 
 Note the destructure in the replacement: `let Gpu { splat, cloud, stream, ctx, layouts, frame,
-objects, .. } = self;` — B1 from lesson 46, and the body that needs it most: six disjoint fields,
+objects, .. } = self;` — B1 from lesson 47, and the body that needs it most: six disjoint fields,
 one of them `&mut`.
 
 **Remove** `src/engine/gpu/mod.rs` `    // splat helpers - one compute-visible buffer entry, and the three bind groups,` **through** `    }`
@@ -1639,7 +1639,7 @@ self.glyphs.spheres() + self.glyphs.dots(), self.glyphs.spheres(), self.cloud.po
     /// One slice of positions, straight from the socket into GPU memory. `write_buffer` passes
     /// a subarray VIEW of wasm memory - the slice is the only copy that exists. The FIRST slice
     /// also measures the cloud's point spacing (median consecutive distance - scan order is
-    /// surface order), which lesson 40's attenuation needs and a streamed cloud cannot get
+    /// surface order), which lesson 41's attenuation needs and a streamed cloud cannot get
     /// from the kernel walk.
     pub fn cloud_pos(&mut self, pos: &[f32]) {
         if let Some(d) = self.stream_draws.last_mut() {
@@ -2439,7 +2439,7 @@ is the list this file was always meant to be.
 
 ## 7. Proving nothing changed — four ladders
 
-**(1) The compiler.** Both targets, `--all-targets` natively, and exactly the warning set lesson 46
+**(1) The compiler.** Both targets, `--all-targets` natively, and exactly the warning set lesson 47
 left. Three new ones appear — `bytes_of_mut`, `append_rows`, `zeroed_buffer`, all unused in
 `mod.rs` once the lanes own their buffers — and step 6.1 removes them.
 
@@ -2482,7 +2482,7 @@ compute the same depth goes to the band and the disc loses a bite of its rim. Mo
 watch it happen.
 
 **Type all four steps.** The first two move the entry up, the last two put it back. Do **not**
-undo it with `git checkout` — you have not committed lesson 49 yet.
+undo it with `git checkout` — you have not committed lesson 50 yet.
 
 **8a.** Cut the entry. **Find** in `src/engine/gpu/render.rs`:
 

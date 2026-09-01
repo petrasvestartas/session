@@ -589,6 +589,47 @@ def audit(docs, threshold):
 
 HEAVY = ("assets", "target", ".git", "dist", "node_modules", "__pycache__")
 
+def links(docs):
+    """Every cross-reference resolves, and every number in one names a lesson that exists.
+
+    Inserting a lesson renumbers every file after it. The rename pass sees `](45-foo.md)` and the
+    `[45]` label in front of it; it does NOT see `lesson 45` written in prose, or inside a code
+    comment the lesson tells you to type. Those silently keep pointing one lesson short, and no
+    other mode here looks at them - the replay is happy either way, because a number in prose is
+    not an anchor. Inserting lesson 38 left 84 of them stale across 22 files.
+    """
+    import collections
+    here = pathlib.Path(docs[0]).parent if docs else pathlib.Path("docs")
+    have = {}
+    for f in here.glob("*.md"):
+        m = re.match(r"^(\d+[a-z]?)-", f.name)
+        if m: have[m.group(1)] = f.name
+    # `34` is a real reference when the lessons on disk are 34b..34h - the number names the
+    # GROUP. Both the exact key and its numeric prefix count as known.
+    known = {k.lstrip("0") or "0" for k in have}
+    known |= {re.match(r"\d+", k).group(0).lstrip("0") or "0" for k in have}
+    bad = 0
+    for d in docs:
+        s = pathlib.Path(d).read_text()
+        miss, wrong, unknown = [], [], []
+        for m in re.finditer(r"\]\((\d+[a-z]?-[a-z0-9-]+\.md)\)", s):
+            if not (here / m.group(1)).exists(): miss.append(m.group(1))
+        for m in re.finditer(r"\[(\d+)\]\((\d+)-[a-z0-9-]+\.md\)", s):
+            if m.group(1) != m.group(2): wrong.append(m.group(0))
+        for m in re.finditer(r"\b[Ll]essons? ((?:\b\d{2,3}\b)(?:\s*(?:,|and|&|/|[-\u2013\u2014])\s*\b\d{2,3}\b)*)", s):
+            for n in re.findall(r"\b\d{2,3}\b", m.group(1)):
+                if (n.lstrip("0") or "0") not in known: unknown.append(n)
+        n = len(miss) + len(wrong) + len(unknown)
+        if n:
+            bad += n
+            print(f"{d}: {len(miss)} dead link(s), {len(wrong)} mislabelled, {len(unknown)} naming no lesson")
+            for x in miss[:4]:    print(f"   !! dead link      {x}")
+            for x in wrong[:4]:   print(f"   !! label mismatch {x}")
+            for x in sorted(set(unknown))[:6]: print(f"   ?? no such lesson  {x}")
+    print(f"# {bad} cross-reference problem(s) over {len(docs)} doc(s)")
+    return bad
+
+
 def render(docs):
     """Checks the other three modes are blind to: does the page RENDER as intended?
 
@@ -639,6 +680,8 @@ if __name__ == "__main__":
         elif argv and argv[0].startswith("--max="):
             thr = int(argv[0].split("=", 1)[1]); argv = argv[1:]
         sys.exit(1 if audit(argv, thr) else 0)
+    if argv and argv[0] == "--links":
+        sys.exit(1 if links(argv[1:]) else 0)
     if argv and argv[0] == "--render":
         sys.exit(1 if render(argv[1:]) else 0)
     if argv and argv[0] == "--stale":

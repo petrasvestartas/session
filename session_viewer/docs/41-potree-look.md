@@ -1,7 +1,7 @@
 # 41 The Potree look — EDL and attenuated splats
 
 > Direct-path chain (36-44); every step below is replay-verified against a clean
-> end-of-35 checkout, applied on top of lesson 39's production lane.
+> end-of-35 checkout, applied on top of lesson 40's production lane.
 
 ## Goal
 
@@ -77,7 +77,7 @@ The shade FLOOR is ours, not Potree's: at Potree's densities a hard black rim re
 shading, at a sparse scan it reads as a cartoon outline.
 
 **1c.** The strength rides the cloud uniform's spare word. In `src/engine/gpu/mod.rs`,
-**find** (from lesson 38):
+**find** (from lesson 39):
 
 ```rust
     last_rebase_ms: f64, // throttle - a 210k-row rebase costs ~25 ms, one per frame is jank
@@ -194,7 +194,7 @@ is one divide.
             for &(first, count, inst, spacing) in &self.cloud_draws {
 ```
 
-**Find** (lesson 39's tint + meta pushes):
+**Find** (lesson 40's tint + meta pushes):
 
 ```rust
                     let tint = [row.color[0], row.color[1], row.color[2], 1.0f32];

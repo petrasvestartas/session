@@ -200,7 +200,7 @@ lib.rs's loader find `State::new(window.clone(), Scene::new()).await` (42's empt
 > keep the moment the File System Access upgrade saves in place — but know which save path it
 > belongs to, and don't read its silence as proof it's working.
 
-**Close the loop with 59's save.** When Step 4 of lesson 59 writes bytes, stamp their hash so the very
+**Close the loop with 59's save.** When Step 4 of lesson 60 writes bytes, stamp their hash so the very
 next poll recognizes them as ours:
 
 ```rust

@@ -1,5 +1,9 @@
 # The restructuring — lessons 45–51, 2026-08-28 (USER DECISION: after the pointcloud chain, plain numbers)
 
+> **Renumbered 2026-09-01.** Lesson 38 'Append, don't rebuild' went in ahead of 'Big scenes',
+> so this block is now **46–52** and the lessons after it **53–115**. The numbers in the tables
+> below are the ones the block was planned under; the files on disk carry the shifted ones.
+
 > **SUPERSEDED IN PART, 2026-08-29 (revision 2) — read `_ARCHITECTURE_TARGET.md` first.** That document is the
 > full-curriculum spec (the tree every lesson 52–114 lands in, the lane/walker contracts, decisions
 > Q1–Q16, the seam ledger, the landing map for all 68 surveyed lessons). It keeps this file's settled
