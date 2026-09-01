@@ -31,12 +31,28 @@ check_large_files() {
     return 0
 }
 
-for d in session_cpp session_py session_rust session_data session_proto session_rhino session_viewer; do
+# session_viewer is deliberately absent: it is a plain directory in THIS repo, not a submodule
+# (check .gitmodules). Including it made every git command in the loop body operate on the parent
+# instead - it worked only because session_viewer sorted last, so the parent happened to be
+# committed after the real submodules. The "=== main repo ===" block below is what pushes it.
+for d in session_cpp session_py session_rust session_data session_proto session_rhino; do
     if [ -d "$d" ]; then
         echo -e "\n=== $d ==="
         cd "$d"
         git checkout "$BRANCH" 2>/dev/null || git checkout -B "$BRANCH"
         git fetch origin "$BRANCH" 2>/dev/null
+
+        # A submodule can hold submodules of its own (session_py/session_data). The loop never
+        # visited them, so a dirty nested checkout left `git status` permanently showing
+        # "modified: session_py (modified content)" - noise that trains you to ignore the one
+        # signal that says whether a push is complete. Report them by name rather than
+        # committing blind: regenerated test data may be legitimate output or may be drift, and
+        # the script cannot tell which.
+        nested=$(git submodule foreach --quiet 'test -n "$(git status --porcelain)" && echo "$name"' 2>/dev/null)
+        if [ -n "$nested" ]; then
+            echo "NOTE: $d has dirty NESTED submodule(s): $(echo $nested | tr '\n' ' ')"
+            echo "      Left alone. Commit inside them first if the change is intended."
+        fi
 
         git add -A
 
