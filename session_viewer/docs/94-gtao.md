@@ -27,16 +27,21 @@
 ## Files we touch
 
 ```
-src/shaders/gtao.wgsl          # NEW — the AO pass (fullscreen, reads depth, writes RGBA16Float)
-src/shaders/blur5.wgsl         # NEW — one 5-tap depth-aware blur
-src/engine/gpu/targets.rs      # NEW — half-res AO textures, full-res scene color target
-src/engine/pipelines/build.rs  # the two pipelines + a composite change
-src/engine/gpu/mod.rs          # pass order: scene → gtao → blur → composite
+src/shaders/gtao.wgsl            # NEW — the AO pass (fullscreen, reads depth, writes RGBA16Float)
+src/shaders/blur5.wgsl           # NEW — one 5-tap depth-aware blur
+src/shaders/composite.wgsl       # NEW — depth-aware upsample × scene, into the swapchain
+src/engine/gpu/post.rs           # NEW — the post lane: the AO pair, PostUniform, the four descs
+src/engine/gpu/targets.rs        # scene_color beside depth and msaa — half-res AO textures too
+src/engine/pipelines/build.rs    # one more preset: `post` (fullscreen, no depth, no blend)
+src/engine/pipelines/layouts.rs  # the four layouts the four post pipelines bind
+src/engine/gpu/render.rs         # pass order: scene → gtao → blur → composite, two lines
 ```
 
 The scene now renders to an offscreen color target instead of the swapchain, and a **composite** pass
 (fullscreen) multiplies scene × AO into the swapchain — the standard post-process arrangement; 74's
-outline joins the same composite.
+outline joins the same composite. Which is why the frame gains TWO lines rather than one:
+`encode_ao` and `encode_composite` stay separate calls, and 74 slots its mask and its distance
+passes between them without opening `post.rs` at all.
 
 ## The five traps — ported from the archive, not re-derived
 
@@ -88,7 +93,7 @@ and engulfs a small one. Two anchors: (a) `scene_min/max` are world **millimetre
 reconstructed view positions are **metres** — the camera bakes the mm→m unit scale into
 `view_proj` — so the radius uniform needs the same `× 0.001`; (b) with progressive loading the
 bbox grows on every appended file, and `set_scene` is what refreshes `scene_min/max` — put the
-radius-uniform update **in `set_scene`**, not in some once-per-load hook. (The AO pass is
+`write_ao` call that carries the radius **in `set_scene`**, not in some once-per-load hook. (The AO pass is
 downstream of `set_scene` and sees only `scene_min/max` — it survives the Scene refactor
 untouched.)
 
@@ -97,20 +102,21 @@ untouched.)
 3-component **bent normal** 73 reads back as `.gba` — so it must be **`RGBA16Float`**, `R` = ao,
 `GBA` = bent. A single `R16Float` channel can't hold a direction; write the pass to `R16Float` and 73's
 `decode_bent(.gba)` reads garbage. And the depth buffer's sample count is **dynamic** since 35:
-`msaa_for` picks 1× for flat-only scenes and 4× once solid geometry arrives, and `set_scene`
+`msaa_now` picks 1× for flat-only scenes and 4× once solid geometry arrives, and `set_scene`
 rebuilds the depth/msaa views *and* the pipelines mid-session on the flip. A sampler can't filter a
 depth texture anyway — you bind it as a texture and `textureLoad(depth_tex, pixel, 0)` (sample 0 is
 exact and cheap) — but a *multisampled* texture binding is **incompatible with a 1× depth texture**:
 the bind group layout hard-codes `multisampled: true/false`. Build **both** layouts + pipelines +
 bind groups up front (1× and 4×) and pick per frame from `self.samples` — don't rebuild them on the
 flip: a pipeline build is a shader compile, a multi-ms stall on the exact frame a file finished
-loading. (The lazier alternative — force 4× whenever AO is on, i.e. `msaa_for` returns 4 while the
+loading. (The lazier alternative — force 4× whenever AO is on, i.e. `msaa_now` returns 4 while the
 AO toggle is set — works, but know its bill: at 4K a 4× RGBA16Float scene-color target is ~250 MB
 and the 4× Depth32Float another ~130 MB, before the AO pair itself. On integrated GPUs that
 residency is the difference between smooth and swapping. The two-variant build spends a few
 hundred KB of pipeline objects to avoid it.) And the offscreen scene-color target this lesson adds
-must be recreated on the same flip, in `set_scene` beside the depth/msaa views — its sample count
-must track the scene's.
+must be recreated on the same flip — which is free if it is built in `Targets::new` beside the
+depth and msaa views, because that constructor is the one road both the resize and the MSAA flip
+already travel. Its sample count then tracks the scene's without a second call site.
 
 <svg viewBox="0 0 560 148" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a single R16Float channel holds AO only and cannot carry a direction; RGBA16Float packs AO in R and the bent normal xyz in G B A" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="20" y="24" fill="#e06c6c">R16Float — WRONG</text>
@@ -197,9 +203,10 @@ Ch 72: GTAO, CONSTANT QUALITY. Scene → offscreen color; AO at HALF res in RGBA
        derivative normals lie at silhouettes — depth-gate the neighbor cross.
 ```
 
-Edited: `shaders/gtao.wgsl` + `shaders/blur5.wgsl` (NEW), `engine/gpu/targets.rs` (NEW — half-res
-RGBA16F pair + scene color), `engine/pipelines/build.rs` (two pipelines + composite), `engine/gpu/mod.rs`
-(pass order).
+Edited: `shaders/gtao.wgsl` + `shaders/blur5.wgsl` + `shaders/composite.wgsl` + `engine/gpu/post.rs`
+(NEW), `engine/gpu/targets.rs` (half-res RGBA16F pair + `scene_color`), `engine/pipelines/build.rs`
++ `layouts.rs` (the `post` preset, four layouts, four descs), `engine/gpu/render.rs` (two lines:
+`encode_ao`, then `encode_composite`), `engine/gpu/mod.rs` (`write_ao` from `set_scene`).
 
 ## Next
 
