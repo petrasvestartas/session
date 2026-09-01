@@ -25,9 +25,11 @@
 ## Files we touch
 
 ```
-src/engine/gumball.rs   # SCREEN_PX + hit_test(ray, geom) → nearest HandleKind
-# per-frame scale from VIEW-SPACE Z; gumball hit BEFORE pick; hover highlight
+src/engine/gumball.rs     # SCREEN_PX + hit_test(ray, geom) → nearest HandleKind
+src/engine/gpu/overlay.rs # upload_gumball, now on two reused scratch Vecs
+# per-frame scale from VIEW-SPACE Z, and the dirty gate that rebuilds on camera motion
 src/state.rs
+src/app/input.rs          # gumball hit BEFORE pick; hover highlight
 ```
 
 ## Step 1 — the scale factor, from view-space Z: `src/state.rs`
@@ -226,7 +228,7 @@ fn ray_segment_distance(ray: &Ray, p0: [f32; 3], p1: [f32; 3]) -> f64 {
 }
 ```
 
-## Step 3 — gumball first, scene second: `src/state.rs`
+## Step 3 — gumball first, scene second: `src/app/input.rs` + `src/state.rs`
 
 The input pecking order grows one level. From top: egui (60) → Get-loop (61) → **gumball** → scene
 picking (55–58). `ray` here is 55's `engine::pick::screen_to_world_ray(&vp, &origin, self.cursor,
@@ -400,9 +402,9 @@ Ch 66: USABLE. Scale = SCREEN_PX(140) · world_per_px(depth) / ARC_RADIUS with d
 ```
 
 Edited: `engine/gumball.rs` (`SCREEN_PX`, `hit_test` + world-anchor param, `rank`, distance
-helpers, `#[cfg(test)]`s), `engine/gpu/mod.rs` (`upload_gumball` on scratch buffers), `state.rs`
-(`gumball_scale`/`gumball_depth` from view-space Z, the dirty-gated camera hook, hit-before-pick,
-`gb_pressed`/`gb_hovered`/`gb_scale`).
+helpers, `#[cfg(test)]`s), `engine/gpu/overlay.rs` (`upload_gumball` on scratch buffers),
+`state.rs` (`gumball_scale`/`gumball_depth` from view-space Z, the dirty-gated camera hook,
+`gb_pressed`/`gb_hovered`/`gb_scale`), `app/input.rs` (hit-before-pick, hover).
 
 ## Next
 
