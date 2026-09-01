@@ -1073,8 +1073,8 @@ cargo check --target wasm32-unknown-unknown     0 errors
 |---|---|
 | `CloudLane` | 9 -> 3 |
 | `StreamLane` | 8 -> 6 |
-| `InstanceTable` | 11 -> 9 |
-| `FrameUniforms` | 11 -> 7 |
+| `InstanceTable` | 12 -> 10 |
+| `FrameUniforms` | 12 -> 8 |
 | `Layouts` | 9 -> 7 |
 | `Pipelines` | 7 -> 5 |
 
