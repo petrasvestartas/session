@@ -197,7 +197,7 @@ is one divide.
 **Find** (lesson 39's tint + meta pushes):
 
 ```rust
-                    let tint = [row.color[0],row.color[1],row.color[2], 1.0f32];
+                    let tint = [row.color[0], row.color[1], row.color[2], 1.0f32];
                     recs.extend_from_slice(bytemuck::cast_slice(&tint));
                     recs.extend_from_slice(bytemuck::cast_slice(&[first, count, cum, (px * 0.5).to_bits()]));
 ```
