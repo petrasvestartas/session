@@ -28,14 +28,21 @@
 ## Files we touch
 
 ```
-src/engine/gpu/arena.rs   # NEW — GpuArena: free-list allocator over vbo+vids+ibo, guid → slot
-# Gpu owns a GpuArena + guid→range maps over the four lane mirrors; append/remove helpers;
-# set_scene fills per object
-src/engine/gpu/mod.rs
-src/app/scene.rs          # flatten_mesh (35's push_mesh, split); add_file fills per-object entries
+src/engine/gpu/arena_alloc.rs  # NEW — GpuArena: free-list allocator over vbo+vids+ibo, guid → slot.
+                               #   The name `arena.rs` is taken: since the restructure it owns the
+                               #   triangle family (rows, index runs, draws), and the allocator is
+                               #   the layer BENEATH it.
+src/engine/gpu/buffers.rs      # RowTable<T> — GrowBuf plus a guid → Range map, the lane-generic half
+src/engine/gpu/segments.rs     # SegmentLane's two tables become RowTable; append/remove by guid
+src/engine/gpu/glyphs.rs       # GlyphLane's two tables, the same
+src/engine/gpu/arena.rs        # Arena's vertex table + index runs move onto GpuArena
+src/engine/gpu/upload.rs       # the upload tables gain a per-object guid column
+src/engine/gpu/mod.rs          # set_scene fills per object
+src/app/walk/mesh.rs           # flatten_mesh (walk_mesh, split) returns one object's tables
+src/app/scene.rs               # add_file fills per-object entries
 ```
 
-## Step 1 — the allocator type: `src/engine/gpu/arena.rs` (NEW)
+## Step 1 — the allocator type: `src/engine/gpu/arena_alloc.rs` (NEW)
 
 `GpuArena` is a game-engine allocator: a **bump cursor** for fast first-fill, **binned free
 ranges** for O(1) reuse after deletes, and a `guid → slot` map so any object can be found,
@@ -51,11 +58,11 @@ through physical links; both hard O(1). We build it here from scratch (~120 line
 than bolting it on later — the interface (`allocate`/`free`/`slots`) is identical either
 way, so nothing above this file ever knows which allocator it got.
 
-Declare the new module in `gpu/mod.rs` — add at the top, next to the existing `use` lines:
+Declare the new module in `gpu/mod.rs` — add at the top, next to the existing `pub mod` lines:
 
 ```rust
-mod arena;
-use arena::GpuArena;
+pub mod arena_alloc;
+use arena_alloc::GpuArena;
 ```
 
 ```rust
@@ -185,7 +192,7 @@ impl GpuArena {
 1M-vertex scene. A per-instance indirection (indirect draws, 81) could carry it once per object;
 per-vertex is what keeps the whole arena one flat draw call, so it stays.)
 
-## Step 2 — allocate and free: `src/engine/gpu/arena.rs`
+## Step 2 — allocate and free: `src/engine/gpu/arena_alloc.rs`
 
 Add to `impl GpuArena`:
 
@@ -250,7 +257,7 @@ cursor keeps growing, and the arena balloons on edit-heavy sessions.)
 > to re-upload untouched neighbours — the property reconcile (49) needs, and the one a flat `Vec`
 > can't give.
 
-## Step 3 — the allocation strategy + growth: `src/engine/gpu/arena.rs`
+## Step 3 — the allocation strategy + growth: `src/engine/gpu/arena_alloc.rs`
 
 ```rust
     fn alloc_v(&mut self, n: u32, device: &wgpu::Device, queue: &wgpu::Queue) -> Range<u32> {
@@ -313,7 +320,7 @@ cursor keeps growing, and the arena balloons on edit-heavy sessions.)
     pub fn index_count(&self) -> u32 { self.cursor_i }
 ```
 
-## Step 3b — the property test: `#[cfg(test)]` in `arena.rs`
+## Step 3b — the property test: `#[cfg(test)]` in `arena_alloc.rs`
 
 Allocator bookkeeping is exactly the code class property tests exist for. One test, a
 thousand random storms:
@@ -337,14 +344,16 @@ the merge/split/bin_slot bookkeeping the same day you type it.
 > That rule (42's `stream_reserve` set the precedent) is why growth is invisible to every
 > other lesson.
 
-## Step 4 — the lane tables: range maps + drain-shift: `src/engine/gpu/mod.rs`
+## Step 4 — the lane tables: range maps + drain-shift: `src/engine/gpu/buffers.rs` + `segments.rs` / `glyphs.rs`
 
 The linework lanes have no index buffer, so they skip the free-list machinery — a `guid → Range`
 into a CPU-side mirror per lane, plus **drain-and-shift** on delete, is simpler and is what the
-archive uses. There are FOUR lanes since 35 (SOLID `pipes`/`spheres` from mesh edges/vertices,
-FLAT `segments`/`glyphs`), and each pair still shares ONE storage buffer, spliced SOLID-first
-exactly as 35's `set_scene` wrote it. Add to `Gpu` — and delete the four `arena_*` fields the
-first line replaces (5b rewires the initializer):
+archive uses. There are FOUR lane tables, two per family: SOLID `seg.pipes`/`glyph.spheres` from
+mesh edges/vertices, FLAT `seg.ribbons`/`glyph.dots`. Each is already a `GrowBuf` — buffer, count,
+capacity — declared in `buffers.rs`; the CPU mirror and the range map turn that into a `RowTable<T>`
+in the same file, so both lanes inherit the machinery from one place. The fields below join
+`SegmentLane` (`segments.rs`) and `GlyphLane` (`glyphs.rs`); `arena` is `Gpu`'s own field in
+`gpu/mod.rs`, replacing 30's flat one (5b rewires the initializers):
 
 ```rust
     arena: GpuArena,                  // ← replaces 30's arena_vbo/vids/ibo/arena_index_count
@@ -359,8 +368,9 @@ first line replaces (5b rewires the initializer):
 ```
 
 Append records the guid's range and pushes to the tail; delete drains the slice and shifts every
-later range down. The mechanics are lane-generic, so they live in two free helpers — put them next
-to `zeroed_buffer` at the bottom of the file:
+later range down. The mechanics are lane-generic, so they live in two free helpers — put them in
+`buffers.rs`, beside `zeroed_buffer` and `GrowBuf`, which is the one file both lanes already
+import:
 
 ```rust
 /// Append `rows` under `guid` at the tail of a lane's CPU mirror; record its range.
@@ -386,8 +396,10 @@ fn lane_remove<T>(vec: &mut Vec<T>,
 }
 ```
 
-and the guid-facing entry points on `impl Gpu` — `solid` picks the lane, and every mutation ends in
-one splice-upload of the (dense) buffer (`upload_segments`/`upload_glyphs` are 4b):
+and the guid-facing entry points on `impl SegmentLane` (`segments.rs`) and `impl GlyphLane`
+(`glyphs.rs`) — each family owns both of its tables, so `solid` picks the lane inside the file that
+holds it, and every mutation ends in one splice-upload of the (dense) buffer
+(`upload_segments`/`upload_glyphs` are 4b). `Gpu` keeps a one-line forwarder to each:
 
 ```rust
     /// One object's linework in/out by guid. 46's reconcile calls these; set_scene bulk-fills
@@ -451,9 +463,10 @@ one splice-upload of the (dense) buffer (`upload_segments`/`upload_glyphs` are 4
   <text x="515" y="186" fill="#6fb3ff" text-anchor="middle" font-size="10">fix → recreate the bind group after the swap</text>
 </svg>
 
-**4b. The splice-uploads (code for the notes above).** One prerequisite is already paid: 35 hoisted
-the bind-group layouts onto `Gpu` (`segment_layout` / `glyph_layout` / `instance_layout` are fields
-since its step 1c) — a grown buffer needs its bind group rebuilt, and that needs the layout. Because
+**4b. The splice-uploads (code for the notes above).** One prerequisite is already paid: the
+bind-group layouts are one `Layouts` value (`engine/pipelines/layouts.rs` — `l.segment`, `l.glyph`,
+`l.instance`), and every lane's `append` is already handed a `&Layouts` — a grown buffer needs its
+bind group rebuilt, and that needs the layout. Because
 the lanes keep **CPU mirrors** that are re-written in full right after, growth is
 just *allocate bigger + rebuild the bind group* — **no** `copy_buffer_to_buffer` (that's only the arena,
 which has no full mirror, which is why *its* buffers carry `COPY_SRC` and these don't need it):
@@ -514,9 +527,12 @@ which has no full mirror, which is why *its* buffers carry `COPY_SRC` and these 
 > re-uploads on every delete are the very cost we're avoiding); the lane tables get drain-shift
 > (small, contiguous, no index — a tail rewrite is cheap and keeps each lane dense for its draw).
 
-## Step 5 — fill through the arena: `src/engine/gpu/mod.rs` + `src/app/scene.rs`
+## Step 5 — fill through the arena: `src/engine/gpu/upload.rs` + `gpu/mod.rs` + `src/app/walk/mesh.rs`
 
-**5a. Give the upload per-object boundaries.** Reshape 35's `ArenaUpload` so each object arrives
+**5a. Give the upload per-object boundaries.** `ArenaUpload` is `Upload` now, in
+`src/engine/gpu/upload.rs`, and its columns are grouped per family — `ArenaRows` in `arena.rs`,
+`SegRows` in `segments.rs`, `GlyphRows` in `glyphs.rs`, `ObjectRows` in `objects.rs` — so the guid
+column below is added once per group, in the family file that owns it. Each object then arrives
 with its guid and its own slices instead of one concatenated blob (`objects`, `min`, `max` stay;
 the four lane vecs keep their SOLID/FLAT split, per guid now; `verts`/`vids`/`idx` collapse into
 `meshes` — `vids` disappears entirely: the arena writes them from the row number):
@@ -536,11 +552,13 @@ pub struct ArenaUpload {
 }
 ```
 
-(`ArenaUpload::new()` follows: delete the `verts`/`vids`/`idx` lines, add `meshes: Vec::new(),`.)
+(`ArenaRows::new()` follows: delete the `verts`/`vids`/`idx` lines, add `meshes: Vec::new(),`.)
 
-`Scene::add_file` (35) changes *where it pushes*. First split 35's `push_mesh` into a function that
-**returns** one object's tables (same body, four anchored edits, different sink — 46's
-`apply_object` reuses it), in `scene.rs`:
+`Scene::add_file` (`app/scene.rs`) changes *where it pushes*. First split the mesh producer into a
+function that **returns** one object's tables (same body, four anchored edits, different sink —
+46's `apply_object` reuses it). That producer is `walk_mesh` in `src/app/walk/mesh.rs` now — 35's
+`push_mesh`, moved out of `scene.rs` and given a `MeshOpts` — so the new function lands beside it
+in the same file:
 
 ```rust
 /// 35's `push_mesh`, split to RETURN one object's tables instead of pushing into shared vecs.
@@ -565,9 +583,10 @@ fn flatten_mesh(m: &Mesh, ri: u32)
 }
 ```
 
-then delete `push_mesh` and repoint the arms of `add_file`'s match. Every SOLID arm — `Mesh`,
-`BRep`, `NurbsSurface`, and `Element`'s Mesh/BRep cases — swaps its `push_mesh(…)` call for the
-per-object pushes; the Mesh arm shown, the others identical over `&bm` / `&sm`:
+then repoint the arms of the geometry match. It is `walk_geometry` in `src/app/walk/mod.rs` now,
+not `add_file` — thirteen arms, one per kernel type, each calling into its own `walk/` file. Every
+SOLID arm — `Mesh`, `BRep`, `NurbsSurface`, and `Element`'s Mesh/BRep cases — swaps its producer
+call for the per-object pushes; the Mesh arm shown, the others identical over `&bm` / `&sm`:
 
 ```rust
                 Geometry::Mesh(m) => {
@@ -593,15 +612,19 @@ Every FLAT arm wraps its converter result in the guid entry — each `t.segments
                 }
 ```
 
-`NurbsCurve`/`Plane`/`OBB` follow the Polyline shape (`nurbscurve_to_segments` /
-`plane_to_segments` / `obb_to_segments`); `Point` and `PointCloud` are the glyph twins
-(`vec![point_to_glyph(p, ri)]` / `pointcloud_to_glyphs(pc, ri)`). A multi-row object — a polyline,
-a cloud, a plane's 4-edge square, an OBB's 12 edges — is exactly why the entry holds a `Vec`: the
-guid owns its whole span, however many rows that is.
+`NurbsCurve`/`Plane`/`OBB` follow the Polyline shape (`nurbscurve_to_segments` in
+`walk/curves.rs`; `plane_to_segments` / `obb_to_segments` in `walk/frames.rs`); `Point` is the
+glyph twin (`vec![point_to_glyph(p, ri)]`, `walk/points.rs`). A `PointCloud` no longer produces
+glyph rows at all — it goes down the splat lane through `push_cloud` (`walk/cloud.rs`) and one
+`CloudDraw` record, so its guid entry is that record's range, not a glyph span. A multi-row object
+— a polyline, a plane's 4-edge square, an OBB's 12 edges — is exactly why the entry holds a `Vec`:
+the guid owns its whole span, however many rows that is.
 
-Two `add_file` passes still walk the new rows and must nest one level deeper. The per-file bases
-at the top now count ENTRIES, not rows — same lines, one rename: `let vert0 =
-self.tables.verts.len();` becomes `let mesh0 = self.tables.meshes.len();`. The bounds pass:
+Two file sweeps still walk the new rows and must nest one level deeper. They are
+`src/app/walk/bounds.rs` now — `file_extent` for the box, `sheet_thickness`/`mark_sheet` for the
+planar test — each driven by the `Baselines` that `add_file` builds. Those per-file bases now count
+ENTRIES, not rows — same lines, one rename: `let vert0 = self.tables.arena.verts.len();` becomes
+`let mesh0 = self.tables.arena.meshes.len();`. The bounds pass:
 
 ```rust
         for (_, row, verts, _) in t.meshes.iter().skip(mesh0) {
@@ -626,7 +649,8 @@ self.tables.verts.len();` becomes `let mesh0 = self.tables.meshes.len();`. The b
         }
 ```
 
-and the 34f planar-width pass at the bottom keeps its two-lane body inside the same nesting:
+and the 34f planar-width pass — `mark_sheet` in `walk/bounds.rs` — keeps its two-lane body inside
+the same nesting:
 
 ```rust
             for (_, segs) in t.pipes.iter_mut().skip(pipe0).chain(t.segments.iter_mut().skip(seg0)) {
@@ -636,13 +660,13 @@ and the 34f planar-width pass at the bottom keeps its two-lane body inside the s
             }
 ```
 
-(40's per-row box append and `rebuild_bvh` read `t.objects` and the geometry, not the lane vecs —
+(40's per-row box append and `rebuild_bvh` read `t.obj.rows` and the geometry, not the lane vecs —
 they don't change.)
 
 **5b. Fill per object in `set_scene`.** Meshes go through the free-list allocator; the lanes
 bulk-fill their mirrors + range maps with `lane_append` and splice-upload ONCE per buffer (calling
 `append_*` per object instead would re-upload the whole buffer N times). Two starting capacities,
-next to the other consts at the top of `gpu/mod.rs`:
+next to `GpuArena` at the top of `arena_alloc.rs` — the file that spends them:
 
 ```rust
 /// Arena starting capacities (elements). Undersized is fine — grow_v/grow_i double as needed.
@@ -650,15 +674,16 @@ const INITIAL_CAP_V: u32 = 1 << 16;
 const INITIAL_CAP_I: u32 = 1 << 17;
 ```
 
-In `Gpu::new`, the empty scene's three arena placeholders — the `let arena_vbo = zeroed_buffer(…)`
-/ `arena_vids` / `arena_ibo` lines — become one real (empty) arena:
+In `Arena::new` (`arena.rs`), the empty scene's three placeholders — the `zeroed_buffer` calls
+labelled `arena.vbo` / `arena.vids` / `arena.ibo` — become one real (empty) arena. `Gpu::new`'s own
+`let arena = Arena::new(&device);` line (`gpu/mod.rs`) does not move:
 
 ```rust
         let arena = GpuArena::new(&device, INITIAL_CAP_V, INITIAL_CAP_I);
 ```
 
-Then in `set_scene`, where 35's flat `create_buffer_init` arena uploads stood (the whole
-`if up.verts.is_empty() { … } else { … }` block under `// Mesh arena`), fill per object:
+Then where the arena's own upload stands — `Arena::append` in `arena.rs`, reached from
+`set_scene`'s single `self.arena.append(&self.ctx, &up.arena);` line — fill per object:
 
 ```rust
         // Mesh arena — reset, then place every object individually so each guid gets a slot.
@@ -670,8 +695,9 @@ Then in `set_scene`, where 35's flat `create_buffer_init` arena uploads stood (t
         }
 ```
 
-and replace the two lane-splice blocks below it (from `// The two lane tables` down to the glyph
-bind-group's closing `});`) with mirror fills + the 4b uploads — the splice, the counts, the
+and replace the two lane appends below it in `set_scene` — `self.seg.append(…)` and
+`self.glyphs.append(…)`, whose bodies are `SegmentLane::append` (`segments.rs`) and
+`GlyphLane::append` (`glyphs.rs`) — with mirror fills + the 4b uploads. The splice, the counts, the
 growth, and the bind-group rebuild all live in `upload_*` now:
 
 ```rust
@@ -691,20 +717,24 @@ growth, and the bind-group rebuild all live in `upload_*` now:
 
 The reshaped upload ripples through the rest — four mechanical fixes:
 
-- **`msaa_for`**: its `solid` line reads the dead `up.verts` — make it
-  `let solid = !up.meshes.is_empty() || !up.pipes.is_empty() || !up.spheres.is_empty();`.
-- **`set_scene`'s first line** `use wgpu::util::DeviceExt;`: delete — nothing in it calls
-  `create_buffer_init` anymore. (And amend the ZERO-COPY line of its doc comment: the lanes now
-  stage through `Gpu`'s mirrors — one CPU copy is the price of addressability.)
-- **Wire `struct Gpu` + the `Ok(Self { … })` initializer** — `arena_vbo`, `arena_vids`,
-  `arena_ibo`, `arena_index_count` leave BOTH (also drop `let arena_index_count = 0u32;` from
-  `new`'s placeholder block); in come `arena,` the four maps
-  (`guid_to_pipe: Default::default(),` …) and the four empty mirrors (`pipes: Vec::new(),` …).
-  Miss one → *"missing field … in initializer of `Gpu`"* (E0063).
-- **Scene bounds are untouched**: `up.min`/`up.max` still arrive from `add_file`'s (rewritten)
-  bounds pass — `set_scene`'s `scene_min`/`scene_max` lines stay as they are.
+- **`msaa_now`** (`gpu/mod.rs`, and the reason its `solid` line survives the reshape): it counts
+  what is already ON the GPU — `self.arena.verts()`, `self.seg.pipes()`, `self.glyphs.spheres()` —
+  not what arrived in `up`, so a reshaped upload never reaches it.
+- **`set_scene`'s doc comment** (`gpu/mod.rs`): amend its ZERO-COPY line — the lanes now stage
+  through the `RowTable` mirrors, and one CPU copy is the price of addressability. (The
+  `use wgpu::util::DeviceExt;` this bullet used to delete is already gone from `set_scene`; it
+  lives in `buffers.rs` and `frame.rs`, which still build buffers from data.)
+- **Wire each struct and its initializer where the fields land** — `Arena`'s `vbo`, `vids` and
+  `solid` (`arena.rs`) give way to the allocator; the four maps
+  (`guid_to_pipe: Default::default(),` …) and the four empty mirrors (`pipes: Vec::new(),` …) join
+  `SegmentLane::new` (`segments.rs`) and `GlyphLane::new` (`glyphs.rs`).
+  Miss one → *"missing field … in initializer of `SegmentLane`"* (E0063).
+- **Scene bounds are untouched**: `up.min`/`up.max` still arrive from `file_extent`
+  (`walk/bounds.rs`), folded into `t.min`/`t.max` by `add_file` — `set_scene`'s
+  `scene_min`/`scene_max` lines stay as they are.
 
-**5c. Point the mesh draw at the arena.** In `clear()`, find the Arena draw block:
+**5c. Point the mesh draw at the arena.** In `Arena::draw` (`src/engine/gpu/arena.rs`), find the
+block that binds the vertex table and issues the indexed draw:
 
 ```rust
             pass.set_vertex_buffer(0, self.arena_vbo.slice(..)); // slot 0 - vertices
@@ -724,11 +754,11 @@ and replace it with the arena-owned sources:
 
 The instance range is unchanged from 30 (per-vertex `vids` selects each model row, so it stays a
 single-instance draw). One new guard: 35's empty-scene placeholder (`arena_index_count = 3` over a
-zeroed ibo) is gone — an empty arena reports 0 —
-so wrap the whole triangle block (from `pass.set_pipeline(&self.pipelines.triangle);` through its
-`draws += 1;`) in `if self.arena.index_count() > 0 { … }` — a pure-linework file would otherwise
-earn the zero-count Dawn warning 34b fought. Segment and glyph draws are untouched — same
-buffers, same counts.
+zeroed ibo) is gone — an empty arena reports 0 — so the count test `draw_faces` already carries
+(`if self.solid.count > 0`) becomes `if self.arena.index_count() > 0 { … }`; a pure-linework file
+would otherwise earn the zero-count Dawn warning 34b fought. The pipeline and bind groups are set
+one level up, by `scene_list` in `render.rs`, and its draw count is unchanged. Segment and glyph
+draws are untouched — same buffers, same counts.
 
 ## Verify
 
@@ -738,7 +768,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 Pixels identical to 35 — floor model and stress file both draw exactly as before. The new capability
 is invisible until something uses it, so prove it with a log — after the arena fill loop in
-`set_scene` (give `GpuArena` a tiny getter or make `cursor_v` `pub` for this):
+`Arena::append` (`arena.rs`; give `GpuArena` a tiny getter or make `cursor_v` `pub` for this):
 
 ```rust
         log::info!("arena: {} slots, {} verts high-water",
@@ -752,7 +782,7 @@ freeing and replacing start actually happening.
 
 ```
 Ch 41: frustum cull — per-object FLAG_CULLED, one draw preserved.
-Ch 45: PER-OBJECT ARENA. GpuArena (engine/gpu/arena.rs) replaces 30's flat arena: guid →
+Ch 45: PER-OBJECT ARENA. GpuArena (engine/gpu/arena_alloc.rs) replaces 30's flat arena: guid →
         ArenaSlot{vertex_range, index_range}; bump-fill, first-fit reuse of freed ranges (coalesced
         on free, so the list doesn't fragment into slivers), grow 2x
         (copy old → new, swap handle). allocate self-frees an existing guid first — a replace
@@ -760,16 +790,22 @@ Ch 45: PER-OBJECT ARENA. GpuArena (engine/gpu/arena.rs) replaces 30's flat arena
         (repeat the object's OWN first vertex index — an ibo offset would read past the vbo;
         chunked through a small fixed staging array, not a per-object Vec)
         so holes
-        draw nothing and neighbours are never re-uploaded. Lane tables (pipes/spheres/segments/
-        glyphs): guid→Range + drain-shift over CPU mirrors, splice-uploaded SOLID-first as in 35
+        draw nothing and neighbours are never re-uploaded. Lane tables (seg.pipes/glyph.spheres/
+        seg.ribbons/glyph.dots): guid→Range + drain-shift over CPU mirrors, as RowTable in
+        buffers.rs, splice-uploaded SOLID-first as in 35
         (small dense tables; archive's split). set_scene fills per object instead of wholesale.
         Zero visual change — addressability is the product.
 ```
 
-Edited: `engine/gpu/arena.rs` (NEW — `GpuArena`: `allocate`/`free`/`alloc_v`/`grow_v`, `guid→ArenaSlot`),
-`engine/gpu/mod.rs` (arena + four lane mirrors/range maps + `append_*`/`remove_*` + `upload_*`
-splices; `set_scene` fills per object), `app/scene.rs` (`flatten_mesh` replaces `push_mesh`;
-per-object entries in `add_file`).
+Edited: `engine/gpu/arena_alloc.rs` (NEW — `GpuArena`: `allocate`/`free`/`alloc_v`/`grow_v`,
+`guid→ArenaSlot`), `engine/gpu/buffers.rs` (`RowTable<T>` = `GrowBuf` + guid→Range, plus
+`lane_append`/`lane_remove`), `engine/gpu/segments.rs` + `engine/gpu/glyphs.rs` (the four lane
+mirrors/range maps + `append_*`/`remove_*` + the `upload_*` splices), `engine/gpu/arena.rs`
+(`Arena` holds the allocator; `append` places per object; `draw` reads its buffers),
+`engine/gpu/upload.rs` (the per-object guid column, per family group), `engine/gpu/mod.rs`
+(`set_scene` fills per object), `app/walk/mesh.rs` (`flatten_mesh` beside `walk_mesh`),
+`app/walk/mod.rs` (the arms of `walk_geometry` push per guid), `app/scene.rs` (per-object entries
+in `add_file`).
 
 ## Next
 
