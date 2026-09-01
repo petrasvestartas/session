@@ -9,21 +9,23 @@
 ## Files we touch
 
 ```
-src/app/persistence.rs   # fetch_bytes_with_progress — streamed read, % into the CLI log
-Cargo.toml               # [profile.release] — the size/speed knobs
+src/app/persistence.rs   # fetch_finish_with_progress — streamed read, % into the CLI log
+src/lib.rs               # the loader's call site — throttled ticks, a loud fetch error
+Cargo.toml               # web-sys stream features + [profile.release] size/speed knobs
 index.html               # data-wasm-opt: the Trunk-side optimizer setting
 ```
 
-## Step 1 — streamed fetch with progress: `src/app/persistence.rs`
+## Step 1 — streamed fetch with progress: `src/app/persistence.rs` + `src/lib.rs`
 
 The loader is no longer one gulp: fetches are pipelined (`fetch_start`/`fetch_finish`, a window of
 2 — sheet N+1 downloads while N parses) and parsing is sliced (`session_from_bytes_chunked`, 25k
 objects per `setTimeout(0)` slice), so the tab already stays live. What's still missing is
 **feedback**: per-item progress ("sheet 3/10, 42%") and the network leg of a single large file —
 `fetch_finish`'s `array_buffer()` await reports nothing until it reports everything. The streaming
-version below fills that gap, reading the body in chunks against `Content-Length`. Wire it in
-without giving up the fetch window (stream file N+1 while N parses) — or accept serial fetches and
-state that tradeoff:
+version below fills that gap, reading the body in chunks against `Content-Length`. It **extends
+`fetch_finish`** instead of issuing its own GET: it takes the `Fetch` the loader already has in
+flight, so the window of 2 survives (sheet N+1 streams while N parses). A version that called
+`fetch_with_str(url)` itself would look identical and quietly serialise every sheet:
 
 <svg viewBox="0 0 460 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="one-gulp array_buffer awaits the whole file with a dead frozen tab then jumps to 100%, while the streamed reader loop yields a frame per chunk and ticks 5 10 100 percent" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="230" y="16" fill="#888" text-anchor="middle">same 132 MB sheet over a slow link</text>
@@ -46,26 +48,44 @@ state that tradeoff:
   <text x="120" y="132" fill="#666" font-size="10">each chunk yields to the browser → a frame paints, the CLI ticks</text>
 </svg>
 
-**Add three stream types to the web-sys `features` list in `Cargo.toml`** (beside the ones 34a
-already enabled for `fetch`):
+Reading a body in chunks needs two more `web-sys` bindings. The third one this uses, `"Headers"`
+(for `Content-Length`), has been on the list since 44's Range reader.
+
+**Find** in `Cargo.toml`:
+
+```toml
+    "Headers",
+```
+
+**Add below it:**
 
 ```toml
     "ReadableStream",
     "ReadableStreamDefaultReader",
-    "Headers",
 ```
 
+Then the reader itself. **Find** in `src/app/persistence.rs`:
+
 ```rust
-/// fetch_bytes, but chunked: calls `progress(loaded, total)` as the body streams in.
+pub async fn fetch_finish(f: Fetch) -> Result<Vec<u8>, JsValue>{
+    let resp: Response = f.fut.await?.dyn_into()?;
+    let buf = JsFuture::from(resp.array_buffer()?).await?;
+    Ok(js_sys::Uint8Array::new(&buf).to_vec())
+}
+```
+
+**Add below it:**
+
+```rust
+/// `fetch_finish`, but chunked: calls `progress(loaded, total)` as the body streams in.
+/// Takes the SAME in-flight `Fetch` the loader started - re-issuing the GET here would
+/// throw away the window of 2 and serialise every sheet.
 /// total == 0 when the server omits Content-Length (report bytes instead of % then).
-pub async fn fetch_bytes_with_progress(
-    url: &str,
+pub async fn fetch_finish_with_progress(
+    f: Fetch,
     progress: impl Fn(u64, u64),
 ) -> Result<Vec<u8>, JsValue> {
-    let window = web_sys::window().ok_or_else(|| JsValue::from_str("no window"))?;
-    let resp_value =
-        wasm_bindgen_futures::JsFuture::from(window.fetch_with_str(url)).await?;
-    let resp: web_sys::Response = resp_value.dyn_into()?;
+    let resp: Response = f.fut.await?.dyn_into()?;
     let total: u64 = resp.headers().get("Content-Length").ok().flatten()
         .and_then(|s| s.parse().ok()).unwrap_or(0);
 
@@ -74,7 +94,7 @@ pub async fn fetch_bytes_with_progress(
         body.get_reader().dyn_into()?;
     let mut out: Vec<u8> = Vec::with_capacity(total as usize);
     loop {
-        let chunk = wasm_bindgen_futures::JsFuture::from(reader.read()).await?;
+        let chunk = JsFuture::from(reader.read()).await?;
         let done = js_sys::Reflect::get(&chunk, &"done".into())?
             .as_bool().unwrap_or(true);
         if done {
@@ -95,36 +115,56 @@ The callback feeds the CLI log line — throttled so the log isn't 500 lines of 
 boundary rules get honored here: `total == 0` (no `Content-Length`) must still *report* — throttle
 on bytes, or the percentage sits at 0 forever and the user gets silence; and a **failed fetch is an
 error, not an empty Vec** — `unwrap_or_default()` would feed zero bytes to the parser and append a
-phantom empty doc (46's scene-wipe class of bug, at the network boundary):
+phantom empty doc (46's scene-wipe class of bug, at the network boundary). That
+`unwrap_or_default()` is exactly what the loader does today — the fetch loop lives in `src/lib.rs`
+`resumed()`. **Find** in `src/lib.rs`:
 
 ```rust
-    // at the call site — the fetch loop lives in lib.rs resumed() now — update at most every 5%,
-    // prefixed with the manifest position ("sheet 3/10"):
-    let last = std::cell::Cell::new(0u64);
-    let bytes = match fetch_bytes_with_progress(url, move |loaded, total| {
-        if total > 0 {
-            let pct = loaded * 100 / total;
-            if pct >= last.get() + 5 || (pct == 100 && last.get() != 100) {
-                last.set(pct);
-                push_gpu_error(format!("loading… {pct}%  ({loaded} bytes)"));
-            }
-        } else {
-            // no Content-Length — pct would sit at 0 forever; throttle on 8 MB steps instead
-            let step = loaded / (8 * 1024 * 1024);
-            if step > last.get() {
-                last.set(step);
-                push_gpu_error(format!("loading… {:.0} MB", loaded as f64 / 1.048576e6));
-            }
-        }
-    }).await {
-        Ok(b) => b,
-        Err(e) => { push_gpu_error(format!("fetch {url} failed: {e:?}")); continue; }
-    };
+                    let bytes = match cur {
+                        Some(Ok(f)) => persistence::fetch_finish(f).await.unwrap_or_default(),
+                        _ => Vec::new(),
+                    };
 ```
 
-(`push_gpu_error` = the same static-queue-to-CLI-log channel 88 built for GPU errors — second
-customer, despite the name. Note the read loop yields to the browser between chunks — the chunked
-parse already kept the tab live; this makes the network leg report progress instead of silence.)
+**Replace with:**
+
+```rust
+                    // one line per 5%, prefixed with the manifest position ("sheet 3/10")
+                    let last = std::cell::Cell::new(0u64);
+                    let tag = format!("sheet {}/{}", i + 1, count);
+                    let bytes = match cur {
+                        Some(Ok(f)) => match persistence::fetch_finish_with_progress(f, |loaded, total| {
+                            if total > 0 {
+                                let pct = loaded * 100 / total;
+                                if pct >= last.get() + 5 || (pct == 100 && last.get() != 100) {
+                                    last.set(pct);
+                                    crate::engine::gpu::errors::push_gpu_error(format!("{tag} … {pct}%"));
+                                }
+                            } else {
+                                // no Content-Length - pct would sit at 0 forever; step on 8 MB
+                                let step = loaded / (8 * 1024 * 1024);
+                                if step > last.get() {
+                                    last.set(step);
+                                    crate::engine::gpu::errors::push_gpu_error(
+                                        format!("{tag} … {:.0} MB", loaded as f64 / 1.048576e6));
+                                }
+                            }
+                        }).await {
+                            Ok(b) => b,
+                            Err(e) => {
+                                crate::engine::gpu::errors::push_gpu_error(
+                                    format!("fetch {} failed: {e:?}", item.file));
+                                continue;
+                            }
+                        },
+                        _ => Vec::new(),
+                    };
+```
+
+(`push_gpu_error` = the same static-queue-to-CLI-log channel 88 built for GPU errors in
+`engine/gpu/errors.rs` — second customer, despite the name. Note the read loop yields to the
+browser between chunks — the chunked parse already kept the tab live; this makes the network leg
+report progress instead of silence.)
 
 ## ⚠ The memory ceiling — doc lifecycle
 
@@ -150,19 +190,31 @@ trunk build --release && ls -l dist/*.wasm     # write this number down
 ```
 
 Then the three standard knobs. **`Cargo.toml` already has a `[profile.release]` table** (`strip =
-true`) — add the three keys **into that existing table**; a second `[profile.release]` header is a
-duplicate-key TOML error and `cargo build --release` refuses to start:
+true`, from lesson 02) — the three keys go **into that existing table**; a second
+`[profile.release]` header is a duplicate-key TOML error and `cargo build --release` refuses to
+start.
+
+**Find** in `Cargo.toml`:
 
 ```toml
-[profile.release]
-strip = true          # (already here from an earlier lesson — keep it)
+strip = true
+```
+
+**Add below it:**
+
+```toml
 opt-level = "z"       # optimize for SIZE (CAD hot loops live in the kernel's f64 math,
 lto = true            #   which 'z' barely slows; 's' if you measure a real regression)
 codegen-units = 1     # slower compile, smaller + faster binary
 ```
 
-In `index.html`, **find the `data-trunk rel="rust"` link and change `data-wasm-opt="0"` → `"z"`**
-(that `"0"` was pinned in lesson 01 for fast dev rebuilds):
+One line in `index.html` carries the Trunk-side setting. **Find** in `index.html`:
+
+```html
+  <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
+```
+
+**Replace with:**
 
 ```html
   <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="z"/>
@@ -196,7 +248,8 @@ nothing to do in the app.
 
 ```
 Ch 88: the workflow.
-Ch 89: THE LAST MILE. Streamed fetch: ReadableStreamDefaultReader chunks + Content-Length →
+Ch 89: THE LAST MILE. Streamed fetch: fetch_finish_with_progress EXTENDS fetch_finish - same
+       in-flight Fetch, ReadableStreamDefaultReader chunks + Content-Length →
        per-sheet progress into the CLI (throttled to 5% steps — BYTES when the server omits
        Content-Length, else pct pins at 0; a failed fetch is a loud CLI error, never an empty
        Vec → phantom doc; the chunked parse already kept the tab painting — this adds the network
@@ -208,8 +261,9 @@ Ch 89: THE LAST MILE. Streamed fetch: ReadableStreamDefaultReader chunks + Conte
        complete: sectioned, file-fluent, duplicating, layered, measuring, testable, shippable.
 ```
 
-Edited: `app/persistence.rs` (`fetch_bytes_with_progress` + throttled call sites), `Cargo.toml`
-(`[profile.release]`), `index.html` (`data-wasm-opt="z"`), `Cargo.toml` web-sys (3 stream features).
+Edited: `app/persistence.rs` (`fetch_finish_with_progress`), `src/lib.rs` (the throttled call site
+in `resumed()`), `Cargo.toml` (2 web-sys stream features + `[profile.release]`), `index.html`
+(`data-wasm-opt="z"`).
 
 ## Next
 
