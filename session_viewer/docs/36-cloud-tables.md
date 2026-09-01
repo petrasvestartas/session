@@ -936,8 +936,10 @@ fn fs_main(in: VsOut) -> FsOut{
 
 ## Step 7 — the resolve pipeline
 
-**7a.** In `src/engine/pipelines/build.rs`, **at the very end of the file** (after
-`build_glyph_pipeline`), **add:**
+**7a.** The resolve pass needs a pipeline of its own — full-screen, no vertex buffer, reading
+the two pixel tables the compute pass just filled.
+
+**Append** to `src/engine/pipelines/build.rs`:
 
 ```rust
 pub fn build_splat_resolve_pipeline(
