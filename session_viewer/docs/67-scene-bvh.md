@@ -1,19 +1,19 @@
 # 67 Scene BVH — one broad-phase, three consumers
 
-> **Big picture.** *Phase 5 — acceleration, built BEFORE the features that need it.* Picking (55) and
-> box-select (58) each ask "which objects are in this region?" against 744,000 objects, per click or
+> **Big picture.** *Phase 5 — acceleration, built BEFORE the features that need it.* Picking (70) and
+> box-select (73) each ask "which objects are in this region?" against 744,000 objects, per click or
 > per drag. Every real CAD app answers that with a spatial index built once and queried everywhere.
-> Building it now — on 35's stable global row order, fed by 47's `all_objects()` so every
+> Building it now — on 35's stable global row order, fed by 62's `all_objects()` so every
 > geometry type (curves, surfaces, BReps, trims included) gets its box arm here — makes the later lessons *queries*
 > instead of rewrites.
 
 `Scene` (35) has a fixed, ordered object list — global rows appended per document by `add_file`.
 Two lessons ahead need the same question answered fast: **which objects fall inside this box?** —
-picking (55: box = a thin sliver around the ray) and box-select (58: box = the drag rectangle's
+picking (70: box = a thin sliver around the ray) and box-select (73: box = the drag rectangle's
 sub-frustum). Both do a *per-object* test (ray↔triangle, point-in-frustum) that is far too
 expensive to run N times, so they can't afford to scan all ten sheets' objects. So `Scene` gains
 one spatial index — an AABB **BVH** — and they query it for a short candidate list instead.
-(Frustum culling, 41, turns out to ship a linear scan — it must touch every object's flag anyway —
+(Frustum culling, 68, turns out to ship a linear scan — it must touch every object's flag anyway —
 so it *doesn't* need the tree; the same index could still accelerate it at extreme scale. Building
 it once, here, means all of them share it.)
 
@@ -32,11 +32,11 @@ argument precisely because the geometry can't supply it — but it is private, p
 nothing about the manifest `place`. The viewer's BVH spans ALL documents in ONE world frame, so
 `Scene` builds each box itself from the same placed frame the instance row draws with. That is the
 invariant: **every box fed to the tree is a world box, computed from `tables.obj.rows[row].model`.**
-(That composition already exists on the engine side: `InstanceTable::append` in
+(A version of that composition already exists on the engine side: `InstanceTable::append` in
 `engine/gpu/objects.rs` puts each row's LOCAL `Row.bounds` through its model matrix into
-`bounds_world`, and lists the rows that have one in `bounded_rows`. This lesson's job is to fill
-that local box for the types that still leave it `None`, and to build a tree over the result — not
-to compute a second cache of world boxes.)
+`bounds_world`, and lists the rows that have one in `bounded_rows`. It covers only the rows the
+solid lane's facing cull needs, it is private to the engine, and Step 1 explains why widening it
+is a three-part edit this lesson does not make.)
 
 (Browsing `session.rs` you will also find `Session.bvh` and a `cached_ray_bvh` behind a dirty
 flag — the archive viewer (`session_viewer_archive`) leaned on exactly that cache, calling
@@ -47,31 +47,22 @@ boxes in, is the simpler contract — and the per-session caches stay untouched 
 narrow-phase `ray_cast`.)
 
 This lesson also names that frame once and for all, because half the remaining course needs it.
-Both helpers land in `src/app/query.rs`, the read surface Step 3 opens:
+Two helpers, both landing in `src/app/query.rs`, the read surface Step 3 creates — quoted here
+for what they mean, typed there:
 
 ```rust
-    /// The row's full WORLD placement — manifest place × the session's world xform, exactly
-    /// what add_file stored as the instance model. Picking/snapping invert THIS to go
-    /// world → document-local; nothing ever asks the geometry for its placement again.
-    /// OWNED, not borrowed: the row stores a Mat4, and the Xform is minted around it here.
-    pub fn placed_frame(&self, row: u32) -> Xform {
-        Xform { m: self.tables.obj.rows[row as usize].model }
-    }
-
-    /// Which document a global row belongs to. Rows are appended per file, so each doc owns one
-    /// contiguous range; `doc_rows[i]` is doc i's first row.
-    pub fn doc_of_row(&self, row: u32) -> usize {
-        match self.doc_rows.binary_search(&row) {
-            Ok(i) => i,
-            Err(i) => i - 1,
-        }
-    }
+    pub fn placed_frame(&self, row: u32) -> Xform;   // the row's WORLD frame, OWNED
+    pub fn doc_of_row(&self, row: u32) -> usize;     // which document a global row came from
 ```
 
-(Read them now, type them in Step 3 — `doc_of_row` reads a `doc_rows` field that Step 2 adds
-first. One guard to know about: `Err(i) => i - 1` underflows on an EMPTY `doc_rows` — a query
+`placed_frame` is `Xform::from_matrix(tables.obj.rows[row].model)` — the row already holds the
+composed matrix, and `Xform`'s fields are not all public, so the frame is MINTED from it rather
+than struct-literalled. Picking and snapping invert THIS to go world → document-local; nothing
+ever asks the geometry for its placement again. `doc_of_row` binary-searches `doc_rows`, the
+per-doc row starts Step 2 adds — rows are appended per file, so each document owns one contiguous
+range. One guard to know about: its `Err(i) => i - 1` underflows on an EMPTY `doc_rows` — a query
 before the first `add_file` — which no caller can hit today, since rows only exist once a doc
-pushed its first row. Make it `i.saturating_sub(1)` if that ever changes.)
+pushed its first row. Make it `i.saturating_sub(1)` if that ever changes.
 
 <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="per-row world boxes are built by Scene::add_file from the row's placed frame and fed to the kernel SpatialBVH, whose query_aabb serves picking and box-select" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="10" y="18" fill="#888">Scene::add_file — one world box per row (placed frame applied)</text>
@@ -96,66 +87,85 @@ pushed its first row. Make it `i.saturating_sub(1)` if that ever changes.)
 ## Files we touch
 
 ```
-src/app/spatial.rs   # NEW — the tree: Scene.index, rebuild_bvh, shapecast/Hit3, the parity test
+src/app/spatial.rs   # NEW — the boxes and the tree: world_obb, rebuild_bvh, shapecast/Hit3, the parity test
 src/app/query.rs     # NEW — the read surface: placed_frame(), doc_of_row(), objects_in(query)
-src/app/scene.rs     # the two fields (index, doc_rows) and one line in add_file
-# each producer fills Row.bounds — mesh.rs already does; the other kinds are one line each
-src/app/walk/{brep,surface,curves,frames,points,cloud}.rs
-# bounds_world/bounded_rows already exist here: narrow the cull predicate, gate the ink extent
-src/engine/gpu/objects.rs
+src/app/scene.rs     # four fields, two use lines, three inserts in add_file
+src/app/mod.rs       # the two `pub mod` lines that compile the new files at all
+src/app/reconcile.rs # 64's commit: the touched-rows box re-walk, and one rebuild
 ```
 
 Still document state: `spatial.rs` and `query.rs` are two more `impl Scene` files, sitting beside
 `docs`/`order`/`guid_to_row`, and nothing in `engine/` learns the TREE exists (the 35 litmus test
-still holds). The engine-side lines touch a table that is already there — the per-row world boxes
-`InstanceTable` has been keeping for the facing cull since 35.
+still holds). Nothing under `engine/` is touched at all — Step 1 says why that is a decision and
+not an oversight.
 
-## Step 1 — a world box per object: `src/app/walk/*.rs` + `src/app/spatial.rs`
+## Step 1 — a world box per object: `src/app/spatial.rs`
 
-The new file `src/app/spatial.rs` opens with the two kernel names the tree needs —
-`use session_rust::{AABB, SpatialBVH};` — plus `OBB` and `Point`, which the box arms below use.
+Two routes lead to the same box. This lesson takes the second, and the first is worth knowing for
+what it would cost.
 
-The per-type box then belongs where the type already is. Every producer under `app/walk/` returns
-a `Row`, and `Row.bounds` is exactly this box in MESH-LOCAL coordinates; `walk/mesh.rs` has filled
-it since 35 (the facing cull reads it), and this lesson is where the other kinds stop returning
-`Row::none()` and fill it too — one line each, in `walk/{brep,surface,curves,frames,points,cloud}.rs`.
-The transform to world is already written: `InstanceTable::append` (`engine/gpu/objects.rs`) puts
-each row's local box through its model matrix into `bounds_world`. Since the Xform refactor EVERY
-object's stored coordinates are local, so the rule is uniform: build the LOCAL box, and let the
-row's placed frame — the same matrix the instance row draws with — lift it. The arms below are that
-map, one per kernel kind; 35's walk gives every one of the 11 types a row, so every one needs a box.
-(Written as ONE free function, as this lesson first had it, it belongs in `spatial.rs` beside the
-tree — the arms are identical either way, and the `Row.bounds` route is the one that costs the
-walk nothing extra.)
+**The `Row.bounds` route.** Every producer under `app/walk/` returns a `Row`, and `Row.bounds` is
+an AABB in MESH-LOCAL coordinates. `walk/mesh.rs` has filled it since 35 because the facing cull
+reads it; the six other kinds still answer `Row::none()` (from `walk_geometry`'s arms in
+`walk/mod.rs` — a linework arm builds its row inline rather than in its type file).
+`InstanceTable::append` (`engine/gpu/objects.rs`) already lifts whatever is there through the row's
+model matrix into `bounds_world`, so filling those in LOOKS like six one-line edits. It is not,
+because two engine fields are DERIVED from that same box and both move the frame the moment a row
+gains one: `bounded_rows` (the rows `update_inside_flags` walks — a newly bounded curve row starts
+taking the facing cull's eye test) and `Instance.extent` (the ink lift's size, `0.0` today for
+every unbounded row). The honest version of that route is three edits at once — the six arms, a
+predicate narrowing `bounded_rows` back to the solid rows the cull wants, and a gate keeping
+`extent` on the rows that had a box before — and any part of it alone is a silent ink change with
+no lesson attached.
+
+**The `world_obb` route**, which is what the tree is fed from here. The BVH wants a WORLD box per
+row; `Row.bounds` is local, and the frame that lifts it — `tables.obj.rows[row].model` — is the
+same one either way. A single free function over `Geometry` produces that box directly, costs the
+walk nothing because it does not run in the walk, and leaves the engine's derived fields untouched.
+The arms below are the map, one per kernel kind; 35's walk gives every one of the eleven types a
+row, so every one needs a box.
+
+**Create `src/app/spatial.rs`**
 
 ```rust
-/// The object's WORLD box: local box × the row's placed frame. One rule for every kind —
+//! `spatial.rs` - the scene's broad-phase: one world box per object, one kernel BVH over them.
+//!
+//! Document state, like `scene.rs` and `query.rs`: nothing in `engine/` learns the tree exists.
+
+use session_rust::element::ElementGeometry;
+use session_rust::spatial_bvh::SpatialBVHNode;
+use session_rust::{AABB, Geometry, OBB, Point, SpatialBVH, Xform};
+
+use super::scene::Scene;
+use super::walk::frames::PLANE_SIZE;
+
+/// The object's WORLD box: local box x the row's placed frame. One rule for every kind -
 /// no geometry carries a placement anymore, the row does.
-fn world_obb(geom: &Geometry, placed: &Xform) -> OBB {
+pub(super) fn world_obb(geom: &Geometry, placed: &Xform) -> OBB {
     // planar meshes/sheets give a zero-thickness box; a hair of pad keeps intersects robust
     const PAD: f64 = 1e-6;
     let local = match geom {
-        Geometry::Mesh(m) => OBB::from_aabb(AABB::from_mesh(m, PAD)),
-        // b.mesh() re-tessellates — a SECOND mesh per BRep per append (the walk built its own).
+        Geometry::Mesh(m) => OBB::from_mesh(m, PAD),
+        // b.mesh() re-tessellates - a SECOND mesh per BRep per append (the walk built its own).
         // Once per load, never per query; revisit only if BReps ever number in the thousands.
-        Geometry::BRep(b) => OBB::from_aabb(AABB::from_mesh(&b.mesh(), PAD)),
+        Geometry::BRep(b) => OBB::from_mesh(&b.mesh(), PAD),
         Geometry::Line(l) => OBB::from_line(l, PAD),
         Geometry::Polyline(pl) => OBB::from_polyline(pl, PAD),
         Geometry::NurbsCurve(c) => OBB::from_nurbscurve(c, PAD, true),
         Geometry::Point(p) => OBB::from_point((**p).clone(), PAD),
-        // CV hull ⊇ surface (the NURBS convex-hull property): conservative, and no SECOND
-        // tessellation — the box does not need the mesh the walk built
+        // CV hull contains the surface (the NURBS convex-hull property): conservative, and no
+        // SECOND tessellation - the box does not need the mesh the walk built
         Geometry::NurbsSurface(s) => OBB::from_nurbssurface(s, PAD),
         // exactly the square the walk draws (from_plane takes FULL extents, halves them)
         Geometry::Plane(p) => OBB::from_plane(p, 2.0 * PLANE_SIZE, 2.0 * PLANE_SIZE, 2.0 * PAD),
-        // the box IS the geometry: its 8 corners, padded — same corners the 12 edges drew
+        // the box IS the geometry: its 8 corners, padded - same corners the 12 edges drew
         Geometry::OBB(b) => OBB::from_points(&b.corners(), PAD),
         Geometry::PointCloud(pc) => OBB::from_pointcloud(pc, PAD),
         // an element boxes as its baked geometry, exactly as the walk drew it
         Geometry::Element(e) => match e.geometry() {
-            ElementGeometry::Mesh(m) => OBB::from_aabb(AABB::from_mesh(m, PAD)),
-            ElementGeometry::BRep(b) => OBB::from_aabb(AABB::from_mesh(&b.mesh(), PAD)),
-            // unreachable: add_file `continue`d the empty element — no row, so no box
+            ElementGeometry::Mesh(m) => OBB::from_mesh(m, PAD),
+            ElementGeometry::BRep(b) => OBB::from_mesh(&b.mesh(), PAD),
+            // unreachable: add_file `continue`d the empty element - no row, so no box
             ElementGeometry::None => OBB::from_point(Point::new(0.0, 0.0, 0.0), PAD),
         },
         // NO wildcard, same rule as add_file's match: a 12th kernel type must not compile
@@ -163,6 +173,11 @@ fn world_obb(geom: &Geometry, placed: &Xform) -> OBB {
     local.transformed(placed)
 }
 ```
+
+`AABB` and `SpatialBVHNode` are imported for the two blocks Steps 2 and 3b append to this file;
+`rustc` will say they are unused until then. Every `OBB::from_*` above is axis-aligned — they all
+route through `AABB` and `OBB::from_aabb` in the kernel — so the only rotation in the result is
+the placed frame's, applied last by `transformed`.
 
 `query_aabb` collapses any OBB back to its enclosing AABB internally, so a tilted placed box just
 yields a slightly looser world AABB — conservative, never a false miss. Broad-phase wants exactly
@@ -175,85 +190,127 @@ slice you passed** (the Morton sort shuffles only the tree's internal layout —
 pre-sort index; `build_leaf_aabbs` in `spatial_bvh.rs` is the receipt). Feed it boxes in global
 row order and the mapping back is just `self.order[id]` — object_id IS the row.
 
-**2a. Add the fields.** Two of the four below are genuinely new state; the other two name a cache
-that already exists. `world_boxes` is `InstanceTable`'s `bounds_world` (`engine/gpu/objects.rs`),
-filled from `Row.bounds` on every append, and `bounded_rows` beside it already lists the rows that
-have a box — so read those rather than keeping a second copy on `Scene`, and spend the two engine
-lines the landing map budgets instead: one predicate narrowing `bounded_rows` back to the solid
-rows the facing cull wants, and one gate keeping the ink lift's `extent` on the rows that had a box
-before this lesson. What `Scene` itself gains is the index and the per-doc row starts. In
-`pub struct Scene` (`app/scene.rs`), find its last field and the closing brace:
+**2a. The fields.** Four of them, and `world_boxes` is the one that needs a defence: it is a
+second copy of what `InstanceTable::bounds_world` (`engine/gpu/objects.rs`) keeps for the rows that
+have a local box. That table is engine-side, private, and filled only for the solid lane, and
+reaching into it from `Scene` would put a `&Gpu` in the signature of every query the rest of the
+course writes. Row-indexed extents on `Scene` keep the read surface free of the engine; 48 bytes a
+row is the price. `bvh` + `bvh_dirty` together are the INDEX — the tree, and whether it still fits
+the rows — and `doc_rows` is what `doc_of_row` binary-searches. All four are `pub(super)`, because
+`spatial.rs` and `query.rs` are SIBLING modules of `scene.rs`: a plain private field would be
+invisible to exactly the two files that read it.
+
+**Find** in `src/app/scene.rs` — the struct's last field and its closing brace:
 
 ```rust
     pub hidden: HashSet<String>,
 }
 ```
 
-and insert three fields above that brace:
+**Replace with**:
 
 ```rust
     pub hidden: HashSet<String>,
-    // the two together are `index` — the tree and whether it still matches the rows
-    bvh: SpatialBVH,                          // broad-phase over world boxes, object_id == row
-    bvh_dirty: bool,                          // true = rows changed since the last build
-    world_boxes: Vec<([f64; 3], [f64; 3])>,   // → InstanceTable::bounds_world (objects.rs)
-    doc_rows: Vec<u32>,                       // each doc's first row (doc_of_row's index)
+    pub(super) bvh: SpatialBVH,                          // broad-phase; object_id == row
+    pub(super) bvh_dirty: bool,                          // true = rows changed since the last build
+    pub(super) world_boxes: Vec<([f64; 3], [f64; 3])>,   // one world AABB per row, extents only
+    pub(super) doc_rows: Vec<u32>,                       // each doc's first row (doc_of_row's index)
 }
 ```
 
-Every field needs a value, so do the same to `Scene::new`'s `Self { … }` literal — find its
-`hidden` line and add three below it:
+Every field needs a value, so `Scene::new`'s `Self { … }` literal takes the same four.
+
+**Find** in `src/app/scene.rs`:
 
 ```rust
-            hidden: HashSet::new(),
-            bvh: SpatialBVH::new(),
-            bvh_dirty: false,
-            world_boxes: Vec::new(),
-            doc_rows: Vec::new(),
+        hidden: HashSet::new(),
 ```
 
-**2b. Append per row in `add_file`.** At the TOP of `add_file`, find the first of the six `let
-…0 = …len();` base lines:
+**Replace with**:
+
+```rust
+        hidden: HashSet::new(),
+        bvh: SpatialBVH::new(),
+        bvh_dirty: false,
+        world_boxes: Vec::new(),
+        doc_rows: Vec::new(),
+```
+
+Two names arrive with them: `SpatialBVH`, the kernel type the field is declared as, and
+`world_obb`, Step 1's function, which `add_file` is about to call.
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+use super::walk::{WalkCx, walk_geometry};
+```
+
+**Add below it**:
+
+```rust
+use super::spatial::world_obb;
+use session_rust::SpatialBVH;
+```
+
+And the two new files have to be declared, or nothing in them is compiled at all.
+
+**Find** in `src/app/mod.rs`:
+
+```rust
+pub mod walk;
+```
+
+**Add above it**:
+
+```rust
+pub mod query;
+pub mod spatial;
+```
+
+**2b. Boxes append with the rows.** Two inserts in `add_file`. The first records where this
+document's rows start, before a single row is pushed.
+
+**Find** in `src/app/scene.rs` — the first of the six `let …0 = …len();` base lines:
 
 ```rust
         let seg0 = self.tables.seg.ribbons.len();
 ```
 
-and insert one line directly ABOVE it, recording the doc's first row before anything is pushed:
+**Add above it**:
 
 ```rust
         self.doc_rows.push(self.tables.obj.rows.len() as u32);
 ```
 
-Then in the walk loop, right after the two bookkeeping lines
+The second is the box itself, at the end of the walk loop. One Rust trap: `placed` LOOKS in scope,
+but the row push above the match **moved** it into `t.obj.rows.push(ObjectBase { model: placed, … })`
+— so read the frame back out of the row it now lives in. Which is the invariant made literal: the
+box is computed from the very matrix the row draws with, because it is the SAME value, not a copy
+that could drift.
+
+**Find** in `src/app/scene.rs` — the two bookkeeping lines that close the walk loop:
 
 ```rust
             self.guid_to_row.insert(guid.clone(), ri);
             self.order.push(guid);
 ```
 
-append the row's box. One Rust trap: `placed` LOOKS in scope, but the row push above the match
-**moved** it into `t.obj.rows.push(ObjectBase { model: placed, … })` — so read the frame back out
-of the row it now lives in. Which is the invariant made literal: the box is computed from the very
-matrix the row draws with, because it is the SAME value, not a copy that could drift.
-
-Note where this lands today. `add_file` already pushes the local box one line further down —
-`t.obj.bounds.push(row.bounds);`, filled by Step 1's producers — and `InstanceTable::append` turns
-that into the world extents. So `add_file`'s one NEW line here is the `doc_rows` bookkeeping of 2b;
-the world-box cache below is the shape of what `objects.rs` already keeps:
+**Add below it**:
 
 ```rust
             // Cache the box's AABB extents row-by-row. Computing a world box walks the object's
-            // VERTICES — do it once per append, never per query. 41's per-frame cull and 50's
+            // VERTICES - do it once per append, never per query. 68's per-frame cull and 73's
             // marquee read THIS cache; without it they'd re-walk every mesh every frame.
-            // (`placed` was moved into the objects push above — the ROW owns the frame now.)
-            let a = world_obb(geom, &t.obj.rows[ri as usize].model).aabb();
+            // (`placed` was moved into the objects push above - the ROW owns the frame now.)
+            let a = world_obb(geom, &Xform::from_matrix(t.obj.rows[ri as usize].model)).aabb();
             let (lo, hi) = (a.min_point(), a.max_point());
             self.world_boxes.push(([lo[0], lo[1], lo[2]], [hi[0], hi[1], hi[2]]));
 ```
 
-**2c. Mark the tree stale at the end of `add_file`.** Find the last lines of `add_file` — the
-display-only release, then the doc push:
+**2c. Mark the tree stale at the end of `add_file`.**
+
+**Find** in `src/app/scene.rs` — the last lines of `add_file`, the display-only release and the
+doc push:
 
 ```rust
         let session = if display_only { Session::new(&name) } else { session };
@@ -266,7 +323,7 @@ display-only release, then the doc push:
         });
 ```
 
-and insert one line between them:
+**Replace with** — one line between them:
 
 ```rust
         let session = if display_only { Session::new(&name) } else { session };
@@ -286,23 +343,29 @@ to the first query (Step 3) makes a ten-file load pay for exactly ONE build. Mea
 lesson's own scale — 744k boxes — a build is ~250 ms; eager-per-append across ten files wastes
 over a second of load for nothing.
 
-The build itself goes into `src/app/spatial.rs` — the second `impl Scene` file, which owns the
-tree and nothing else:
+The build itself goes into `src/app/spatial.rs`, which owns the tree and nothing else. It is an
+`impl Scene` block of its own — a type can be implemented across as many blocks and files as the
+crate likes, which is the whole reason `Scene`'s methods can be split by JOB instead of piled into
+`scene.rs`.
+
+**Append** to `src/app/spatial.rs`:
 
 ```rust
+
+impl Scene {
     /// Rebuild the whole tree from the cached extents (LBVH: O(n) after the Morton radix
-    /// sort — ~250 ms at 744k boxes). Runs lazily from `objects_in` whenever `bvh_dirty`;
-    /// 49's reconcile just sets the flag again after applying a diff — the per-row extents
+    /// sort - ~250 ms at 744k boxes). Runs lazily from `objects_in` whenever `bvh_dirty`;
+    /// 64's reconcile just sets the flag again after applying a diff - the per-row extents
     /// cache is what keeps that cheap; a true incremental refit stays future work. Boxes go
-    /// in ROW order → object_id == row == index into `order`.
+    /// in ROW order -> object_id == row == index into `order`.
     ///
     /// `build_from_aabbs`, NOT `build_with_guids`: the guid path clones one String per row
-    /// into the tree and wraps every AABB in an OBB — measured 3.2x the build time and 42.6 MB
-    /// of retained Strings at 744k rows — and the viewer never reads them: a query returns
+    /// into the tree and wraps every AABB in an OBB - measured 3.2x the build time and 42.6 MB
+    /// of retained Strings at 744k rows - and the viewer never reads them: a query returns
     /// object_ids, which ARE rows here, and `order[row]` already knows the guid. The `ws`
     /// argument is metadata only (the kernel normalizes Morton codes over the input's own
     /// bounds); pass the extents' own span so the field stays honest.
-    fn rebuild_bvh(&mut self) {
+    pub(super) fn rebuild_bvh(&mut self) {
         let aabbs: Vec<AABB> = self.world_boxes.iter()
             .map(|(lo, hi)| AABB::new(
                 (lo[0] + hi[0]) * 0.5, (lo[1] + hi[1]) * 0.5, (lo[2] + hi[2]) * 0.5,
@@ -312,9 +375,10 @@ tree and nothing else:
             w.max(2.0 * (a.cx.abs() + a.hx)).max(2.0 * (a.cy.abs() + a.hy)).max(2.0 * (a.cz.abs() + a.hz))
         });
         self.bvh = SpatialBVH::new();
-        self.bvh.build_from_aabbs(&aabbs, ws);   // empty slice → empty tree; query returns []
+        self.bvh.build_from_aabbs(&aabbs, ws);   // empty slice -> empty tree; query returns []
         self.bvh_dirty = false;
     }
+}
 ```
 
 (Zero inflate is right here: the pad already went in when `world_obb` filled the cache entry.
@@ -323,8 +387,8 @@ No pointer tree is built — the kernel's arena path is flat `(2n-1) × 64 B` no
 at this scale, and both are O(n) with small constants.)
 
 > **The boxes go stale when a row moves.** Any lesson that transforms an object in place —
-> 49's reconcile — which already exists: its `commit` marked the hook point, and the step below
-> installs it — and later the gumball drags (67–69) must write the row's new world box into
+> 64's reconcile — which already exists: its `commit` marked the hook point, and the step below
+> installs it — and later the gumball drags (82–84) must write the row's new world box into
 > `world_boxes[row]` and set `bvh_dirty = true` as part of its commit, or picks and marquee
 > queries keep seeing the old geometry. The next query rebuilds; the tree and the extents
 > cache are only as fresh as the last writer.
@@ -333,14 +397,59 @@ at this scale, and both are O(n) with small constants.)
 
 Three methods, all going in the same place: `src/app/query.rs`, the third `impl Scene` file — the
 read surface, kept apart from `spatial.rs`'s tree so that the lessons which only ASK questions
-(47's pick, 50's marquee, 66's snap, 96's work plane) have one small file to open. First type in
-`placed_frame` and `doc_of_row` exactly as they were printed near the top of this lesson (the
-`doc_rows` field they read exists as of Step 2). Then, below them, the query 47/50 build on —
-those two lessons differ only in the box they pass:
+(70's pick, 73's marquee, 87's snap, 102's work plane) have one small file to open. Two of them
+were printed near the top of this lesson; here they are with a file around them (the `doc_rows`
+field they read exists as of Step 2).
+
+**Create `src/app/query.rs`**
 
 ```rust
-    /// Rows whose world box intersects `query` — the broad-phase. Callers narrow further
-    /// (47 does ray↔triangle, 50 tests the marquee frustum) on this short list, not all N.
+//! `query.rs` - the scene's READ surface: where a row sits, which document it came from, and
+//! which rows a box touches. No tree code lives here - that is `spatial.rs`. This file only asks.
+
+use session_rust::{OBB, Xform};
+
+use super::scene::Scene;
+
+impl Scene {
+    /// The row's full WORLD placement - manifest place x the session's world xform, exactly
+    /// what add_file stored as the instance model. Picking/snapping invert THIS to go
+    /// world -> document-local; nothing ever asks the geometry for its placement again.
+    /// OWNED, not borrowed: the row stores a bare `[f64; 16]`, and the Xform is minted here.
+    pub fn placed_frame(&self, row: u32) -> Xform {
+        Xform::from_matrix(self.tables.obj.rows[row as usize].model)
+    }
+
+    /// Which document a global row belongs to. Rows are appended per file, so each doc owns one
+    /// contiguous range; `doc_rows[i]` is doc i's first row.
+    pub fn doc_of_row(&self, row: u32) -> usize {
+        match self.doc_rows.binary_search(&row) {
+            Ok(i) => i,
+            Err(i) => i - 1,
+        }
+    }
+}
+```
+
+Then, below them, the query 70/73 build on — those two lessons differ only in the box they pass.
+
+**Find** in `src/app/query.rs`:
+
+```rust
+    pub fn doc_of_row(&self, row: u32) -> usize {
+        match self.doc_rows.binary_search(&row) {
+            Ok(i) => i,
+            Err(i) => i - 1,
+        }
+    }
+```
+
+**Add below it**:
+
+```rust
+
+    /// Rows whose world box intersects `query` - the broad-phase. Callers narrow further
+    /// (70 does ray-vs-triangle, 73 tests the marquee frustum) on this short list, not all N.
     /// A row maps to its guid via `order[row]` and to its doc via `doc_of_row(row)`.
     /// `&mut self` from day one: the tree builds LAZILY on the first query after any change
     /// (2c's flag), so loads never pay for builds nobody reads. ~8 us per pick-sized query
@@ -362,18 +471,20 @@ it is what the instance table, the flags, and `placed_frame` are all keyed by. T
 
 ## Step 3b — one visitor, every query: `shapecast`
 
-`objects_in` answers boxes; 57's ray, 60's marquee and 96's measure snaps all want the same
+`objects_in` answers boxes; 70's ray, 73's marquee and 109's measure snaps all want the same
 walk with a different test. The kernel tree's nodes are `pub` (`root`, `left`, `right`,
 `aabb`, `object_id`) — so ONE generic visitor in the viewer serves them all, and no query
-ever writes its own recursion again. It is traversal, not a query, so it lives with the tree
-in `src/app/spatial.rs` and `query.rs` calls it:
+ever writes its own recursion again. It is traversal, not a query, so it lives with the tree.
+
+**Append** to `src/app/spatial.rs`:
 
 ```rust
+
 pub enum Hit3 { Miss, Intersects, Contained }
 
 /// The one traversal every spatial query shares. `test` classifies a node's box;
 /// `Contained` short-circuits: the WHOLE subtree is accepted without further tests —
-/// that one arm is what makes 60's marquee stop caring how many objects the scene has.
+/// that one arm is what makes 73's marquee stop caring how many objects the scene has.
 pub fn shapecast(node: &SpatialBVHNode, test: &impl Fn(&OBB) -> Hit3,
                  out: &mut impl FnMut(u32)) {
     let Some(b) = &node.aabb else { return };
@@ -398,13 +509,13 @@ fn accept_subtree(node: &SpatialBVHNode, out: &mut impl FnMut(u32)) {
 }
 ```
 
-`objects_in`'s body becomes a closure over it (box-overlap test, `Contained` when the query
-box contains the node box); the brute-force parity test below now covers the visitor for
-every future caller at once. Later lessons collect their dividends: 57 walks it
+`objects_in` could be written as a closure over it and behave identically — it keeps
+`query_aabb` because for a plain box the kernel's own traversal IS this walk. What `shapecast`
+adds is the arms `query_aabb` has no place for, and the later lessons collect them: 70 walks it
 nearest-child-first with an early-out (compare the ray's entry distance to each child box,
-recurse the nearer first, stop when the best hit beats the next node), 60 gets the
-`Contained` marquee arm, and 69 refits node boxes in place during drags — all through these
-same `pub` nodes, no kernel changes. (If traversal ever profiles hot at millions of
+recurse the nearer first, stop when the best hit beats the next node), 73 gets the
+`Contained` marquee arm — the whole subtree accepted with no further test — and 82 refits node
+boxes in place during drags, all through these same `pub` nodes, no kernel changes. (If traversal ever profiles hot at millions of
 objects, the cache upgrade is flattening these boxed nodes into a `Vec` of 32-byte
 implicit-left-child records — an optimization, not a redesign, BECAUSE every caller goes
 through `shapecast`.)
@@ -413,13 +524,17 @@ through `shapecast`.)
 
 A BVH is only trustworthy if it returns *exactly* the brute-force set — no misses, no phantoms.
 The test also proves the PLACEMENT half: the same document loaded twice with different manifest
-placements must yield disjoint boxes. Add it at the very bottom of `spatial.rs`, below
-`rebuild_bvh` and `shapecast`; it needs no GPU, so it runs headless:
+placements must yield disjoint boxes. It goes at the very bottom of `spatial.rs`, below
+`rebuild_bvh` and `shapecast`; it needs no GPU, so it runs headless.
+
+**Append** to `src/app/spatial.rs`:
 
 ```rust
+
 #[cfg(test)]
 mod tests {
-    use super::*;   // spatial.rs's own imports carry Session, Line, Point, Xform, AABB, OBB
+    use super::*;   // the file's own imports: Scene, Point, Xform, AABB, OBB
+    use session_rust::{Line, Session};
 
     /// A tiny Session at known, separated positions. `add_line` returns a tree node we ignore;
     /// `None` = no parent.
@@ -434,9 +549,11 @@ mod tests {
     #[test]
     fn bvh_matches_brute_force() {
         let mut scene = Scene::new();
-        scene.add_file("a".into(), demo_session(), Xform::identity());
-        // The same file again, pushed 50 m away — placement MUST move its boxes.
-        scene.add_file("b".into(), demo_session(), Xform::translation(50_000.0, 0.0, 0.0));
+        // add_file's last two arguments are the manifest's point-size override and its
+        // display_only flag - neither matters here, so 0.0 and false.
+        scene.add_file("a".into(), demo_session(), Xform::identity(), 0.0, false);
+        // The same file again, pushed 50 m away - placement MUST move its boxes.
+        scene.add_file("b".into(), demo_session(), Xform::translation(50_000.0, 0.0, 0.0), 0.0, false);
 
         // AABB::new is CENTER + HALF-EXTENTS (not min/max): this box spans -500..500 on each
         // axis, so it catches doc a's two near-origin lines and nothing from doc b.
@@ -470,7 +587,7 @@ green, every downstream query trusts the broad-phase.
 
 ## Streamed clouds are not in this tree
 
-A `CloudSlot` (42) pushes its object row with `object_bounds: None` — deliberately. Its
+A `CloudSlot` (44) pushes its object row with `object_bounds: None` — deliberately. Its
 points live only on the GPU, so there is no per-object geometry to derive a box from at
 walk time, and the BVH simply gets no leaf for it. That is consistent with where this
 phase is headed: streamed clouds are display objects — unpickable, unselectable — until a
@@ -479,34 +596,32 @@ later lesson gives them kernel-side structure. (Their SCENE box still exists —
 
 ## The curved types join `world_obb`
 
-The geometry block (43–47) shipped four types with no box map to join — this lesson is
-where that map is born, so their arms are steps HERE, not there. They go wherever Step 1 put the
-map: `Row.bounds` in `walk/curves.rs`, `walk/surface.rs` and `walk/brep.rs`, or `world_obb`'s
-match in `spatial.rs` if you kept it as one function. Beside the Mesh arm (all four local; the
-row's placed frame lifts them to world like every other kind — one rule, no exceptions):
+The geometry block (58–62) shipped four types with no box map to join — this lesson is where that
+map is born, so their arms are steps HERE, not there, and Step 1 already typed them. They are the
+interesting three, quoted here from Step 1's map because of what they choose:
 
 ```rust
-        // kernel-exact ctors where they exist:
-        Geometry::NurbsCurve(nc) => OBB::from_nurbscurve(nc, PAD, true),
-        Geometry::NurbsSurface(ns) => OBB::from_nurbssurface(ns, PAD),
-        // BRep boxes its CACHED tessellation (46's entry is (mesh, linework) — box the .0;
-        // warm by construction: the walk filled the cache before any BVH build):
-        Geometry::BRep(_) => {
-            let (m, _) = &self.tess_cache[&guid];
-            OBB::from_mesh(m, PAD)
-        }
+        Geometry::NurbsCurve(c) => OBB::from_nurbscurve(c, PAD, true),
+        Geometry::NurbsSurface(s) => OBB::from_nurbssurface(s, PAD),
+        Geometry::BRep(b) => OBB::from_mesh(&b.mesh(), PAD),
 ```
 
-with `Trimmed` taking the same cached-mesh route through its `ObjRef` arm — 47's
-`all_objects()` hands this walk both sources, so the arms are the ONLY per-type work. (The
-kernel's `from_nurbssurface` sampler is trim-blind; the cached mesh is what's on screen
-anyway. And 43's `curve_cache` samples would box a curve too — the kernel ctor is used
-because it reads the CV net exactly, cache warm or not.)
+A curve and a surface take the kernel ctor, which reads the CV net exactly — the control hull
+contains the geometry, so the box is conservative and warms no cache. The BRep arm is the one with
+an alternative: `b.mesh()` re-tessellates, and 61's walk already keeps a `(mesh, linework)` entry
+per BRep, so a `&self` route could box the CACHED mesh instead and save the second tessellation —
+and 62's trimmed surfaces would take that same route, their kernel sampler being trim-blind while
+the cached mesh is what is actually on screen. `world_obb` is a free function precisely so it needs
+no cache to be correct; swapping in the cached mesh is a later optimisation, and it only pays off
+if BReps ever number in the thousands.
 
 ## Reconcile grows the hook
 
-49's `commit` — which lives in `app/reconcile.rs` — marked exactly where this lesson's state joins
-the reload path. **Find** (in `commit`, 49):
+64's `commit` marked exactly where this lesson's state joins the reload path — the marker it
+planted still says 52, the number this lesson carried before the restructure, so match it as it
+is written. `world_obb` needs importing there too: `use super::spatial::world_obb;`.
+
+**Find** in `src/app/reconcile.rs` — inside `commit` (64):
 
 ```rust
         // (52's hook lands here: touched-rows box re-walk + rebuild_bvh.)
@@ -534,14 +649,14 @@ and the tree rebuilds once at the end:
 ```
 
 And note what reconcile does NOT break — by construction. `world_boxes` is ROW-indexed and
-the BVH's leaf ids equal positions in it, so `id == row` survives a reload untouched: 49
+the BVH's leaf ids equal positions in it, so `id == row` survives a reload untouched: 64
 keeps rows stable, and the hook above rewrites boxes AT their rows. The archive's variant
 zipped `world_boxes` with `order` here and needed a post-reconcile repair; this design
 doesn't. The one identity that DOES die is the reverse translation `self.order[row]`
 (`objects_in`'s closing comment leans on it for names): after a reload, `order` is rebuilt
 while rows persist, so a UI that wants a row's guid must invert `guid_to_row` (or keep a
-`row_to_guid` map maintained beside it) — flag it now, pay it when a consumer appears (82's
-tree is the first).
+`row_to_guid` map maintained beside it) — flag it now, pay it when a consumer appears (97's
+scene tree is the first).
 
 ## What this costs — measured, not estimated
 
@@ -552,7 +667,7 @@ lesson's big-picture quotes:
 build (lazy, once per load)   ~250 ms      LBVH: radix sort + O(n) Karras pass
 pick-sized query               ~8 us       1000 queries in 8 ms, exact hits == brute force
 arena memory                   (2n-1) x 64 B  ->  ~91 MB      flat nodes, no pointers
-extents cache                  n x 48 B        ->  ~36 MB      serves 41's linear cull too
+extents cache                  n x 48 B        ->  ~36 MB      serves 68's linear cull too
 ```
 
 Two costs this lesson deliberately does NOT pay:
@@ -579,24 +694,27 @@ cd session_viewer && trunk serve
 cargo test -p session_viewer bvh --target x86_64-unknown-linux-gnu   # .cargo/config.toml pins wasm — override for the headless test
 ```
 
-Nothing on screen moves this lesson — the tree is pure infrastructure. Lesson 41 is where it earns
+Nothing on screen moves this lesson — the tree is pure infrastructure. Lesson 68 is where it earns
 its keep: the drawn-object count on the perf HUD drops the moment you zoom in.
 
 ## Recap
 
 ```
 Ch 35: Scene owns docs + tables + order + guid_to_row + hidden; rows are GLOBAL, appended per doc.
-Ch 40: Scene gains ONE broad-phase — the kernel's SpatialBVH (reused, not rewritten) — and the two
+Ch 67: Scene gains ONE broad-phase — the kernel's SpatialBVH (reused, not rewritten) — and the two
        helpers half the course leans on: placed_frame(row) = tables.obj.rows[row].model (the
        manifest place × session world xform that add_file stored) and doc_of_row(row) (contiguous
        per-doc row ranges), both in app/query.rs; the tree itself in app/spatial.rs.
-       Every box is LOCAL geometry × placed frame — Row.bounds per walk file, lifted to world by
-       InstanceTable::append — one rule, all ELEVEN kernel
-       kinds (35's walk rows them all), no geometry placement to consult because none exists. Boxes append with the rows in
-       add_file (extents cached once per append), the tree rebuilds per file (milliseconds), and
-       queries return ROWS — unambiguous across docs, straight into flags/instances/order.
-       objects_in(OBB) → rows is the one call picking (47, ray sliver) and box-select (50,
-       marquee) narrow from; 41's frustum cull stays a linear scan over the extents cache.
+       Every box is world_obb(geometry, placed frame) — LOCAL geometry lifted by the row's own
+       matrix — one rule, all ELEVEN kernel kinds (35's walk rows them all), no geometry placement
+       to consult because none exists. The engine's Row.bounds/bounds_world/bounded_rows/extent
+       chain is left EXACTLY as it was: filling Row.bounds for the unbounded kinds would silently
+       move the facing cull and the ink lift, and that is three edits in one step, not one.
+       Boxes append with the rows in add_file (extents cached once per append), the tree is marked
+       dirty per file and built on the first query, and queries return ROWS — unambiguous across
+       docs, straight into flags/instances/order.
+       objects_in(OBB) → rows is the one call picking (70, ray sliver) and box-select (73,
+       marquee) narrow from; 68's frustum cull stays a linear scan over the extents cache.
        The tree builds LAZILY (bvh_dirty, first query after a change) via build_from_aabbs —
        no guid Strings, no OBB wrap, one build per load (~250 ms at 744k; ~8 us/query;
        arena (2n-1)x64 B). Kernel fixed alongside: Morton codes normalize over the input's
@@ -605,18 +723,17 @@ Ch 40: Scene gains ONE broad-phase — the kernel's SpatialBVH (reused, not rewr
        Zero visual change — infrastructure for the lessons that query it.
 ```
 
-Edited: `app/spatial.rs` (NEW — `bvh` + `bvh_dirty`, lazy `rebuild_bvh` via `build_from_aabbs`,
+Edited: `app/spatial.rs` (NEW — `world_obb`, lazy `rebuild_bvh` via `build_from_aabbs`,
 `shapecast`/`Hit3`, the `#[cfg(test)]` parity test), `app/query.rs` (NEW — `placed_frame`,
 `doc_of_row`, `objects_in(&OBB) -> Vec<u32>`), `app/mod.rs` (two `pub mod` lines),
-`app/scene.rs` (the `index` + `doc_rows` fields, one `doc_rows` line in `add_file`),
-`app/walk/{brep,surface,curves,frames,points,cloud}.rs` (each producer fills `Row.bounds`;
-`walk/mesh.rs` already did), `engine/gpu/objects.rs` (the `bounded_rows` predicate and the
-`extent` gate that keep the facing cull and the ink lift on exactly the rows they had before).
+`app/scene.rs` (four fields, two `use` lines, the `doc_rows` line and the box cache in `add_file`,
+the `bvh_dirty` flag at its foot), `app/reconcile.rs` (64's hook: touched-rows box re-walk +
+`rebuild_bvh`). Nothing under `engine/` and nothing under `app/walk/` — Step 1 says why.
 
 ## Next
 
 `68-frustum-culling.md` — extract the view frustum's 6 planes from the ANCHORED `view_proj`
-(Gribb–Hartmann, f64), rebase them by the anchor (the camera-relative matrix and 40's world boxes
-are in different frames), plane-test every row's cached extents, and set `FLAG_CULLED` on
+(Gribb–Hartmann, f64), rebase them by the anchor (the camera-relative matrix and this lesson's
+world boxes are in different frames), plane-test every row's cached extents, and set `FLAG_CULLED` on
 everything off-screen. The shader collapses a culled instance to a degenerate vertex, so the whole
 arena still draws in **one** call — and the perf HUD's drawn/total split finally moves.
