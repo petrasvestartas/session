@@ -302,6 +302,34 @@ colliding with the in-flight lessons 45-51 authoring run.
    shared helper so `add_*` and rebuild cannot drift. Measured: file −22%, prost decode −19%,
    `pb_loads` −23%.
 
+   **PARTIALLY DONE 2026-09-01 — the two cheap halves, no rebuild yet.** Two defects were in
+   the way and are now fixed in all three languages:
+   - Rust's `Session::pb_dumps` built the Graph proto INLINE instead of calling the Graph
+     writer the way C++ and Python do, and the copies had drifted: the Graph one deduplicates
+     `edges`, the inline one did not. `edges` holds every edge under BOTH endpoints, so Rust
+     wrote **98 edges for 49**. It round-tripped (re-inserting is idempotent) so nothing
+     failed. Now one `Graph::to_proto`, called by both — which is the "ONE shared helper"
+     this item asks for, arriving early.
+   - The writers called `vertex.guid()` / `edge.guid()`, which **MINT**. A sheet with 34,592
+     graph vertices generated 34,592 UUIDs at write time and wrote ~1.3 MB of them — and
+     `Session::pb_loads` discards every one (it calls `add_node(name, attribute)` and never
+     reads `v.guid`). A vertex's identity is its NAME, already the object's guid. `has_guid()`
+     now asks without minting, in Vertex, Edge and Graph in all three languages.
+
+   Measured on real assets, two byte-identical passes:
+   | asset | file | graph | edges |
+   |---|---|---|---|
+   | `draw_pe_schalungsbild.pb` | 25,271,308 → 23,922,220 (−5.34%) | −28.56% | 0 |
+   | `floor_model.pb` | 1,202,137 → 1,167,438 (−2.89%) | −36.53% | 176 → 88 |
+   | `colors_widths.pb` | 4,699 → 4,504 (−4.15%) | −26.21% | 0 |
+
+   STILL TO DO for this item: the actual skip-and-rebuild. Blocker to design around — a
+   rebuild from objects reproduces `name` and `attribute` exactly (Python already centralises
+   this in `Session._add_object`; Rust has twelve copies of the same three lines and should
+   adopt the same helper), but `Vertex.index` is INSERTION order across kinds, and the objects
+   are stored in per-kind vectors, so a rebuild renumbers a session that interleaved kinds.
+   Establish whether anything reads `index` before relying on it.
+
 ### What P6 does NOT fix
 
 Loading, not residency. A `Line` still costs ~320 B and a face ~78 B, because that is the
