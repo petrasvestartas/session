@@ -1,7 +1,7 @@
 # 47 The floor is not a lane
 
-> Lesson [91](91-gtao.md) samples this frame's depth buffer for ambient occlusion, and lesson
-> [116](116-hiz-occlusion.md) builds a hi-Z pyramid from it. Both cost one field access — because
+> Lesson [92](92-gtao.md) samples this frame's depth buffer for ambient occlusion, and lesson
+> [117](117-hiz-occlusion.md) builds a hi-Z pyramid from it. Both cost one field access — because
 > `targets.rs` keeps the depth **Texture** with `TEXTURE_BINDING` on, not just a view you cannot
 > re-view. Nothing you can see changes: same ink, same draw count, same object count, on every
 > scene and config. Answer key: branch `end-of-46`, so
@@ -382,7 +382,7 @@ descriptor one indent shallower, with the two `LoadOp` literals as parameters.
 Keeping `depth` as a `wgpu::Texture` is the free shape here: a view cannot be re-viewed and a
 usage flag cannot be added after creation, so a lesson that wants to SAMPLE the depth would
 otherwise change this field's type and every line that reads it. `depth_load: Option<LoadOp<f32>>`
-is the other: `None` means no depth attachment, which is what lesson 77's gumball overlay needs.
+is the other: `None` means no depth attachment, which is what lesson 78's gumball overlay needs.
 
 **Create `src/engine/gpu/targets.rs`**
 
@@ -1924,7 +1924,7 @@ with the textures kept:
 ```
 
 The pass descriptor. Twenty-four lines of `encode_frame` become one call, and the two `LoadOp`s
-that were literals inside it become the two parameters lesson 77's overlay pass needs:
+that were literals inside it become the two parameters lesson 78's overlay pass needs:
 
 **Find** in `src/engine/gpu/mod.rs`:
 

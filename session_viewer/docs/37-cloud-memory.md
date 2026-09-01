@@ -96,8 +96,8 @@ alive to re-send them from. Appending drops both. Measured on the ten-sheet `dra
 
 **`storage_buffer` is not dead weight** — it is the right tool for a different job, a small table
 of KNOWN maximum size reserved once so the per-frame path is a plain `write_buffer` and never a
-reallocation. It gets used again in lesson [77](77-gumball-geometry.md) (`gumball.segments`,
-512 rows), [83](83-draw-tools-2.md) (`preview.segments`, 4096) and [84](84-snapping.md)
+reallocation. It gets used again in lesson [78](78-gumball-geometry.md) (`gumball.segments`,
+512 rows), [84](84-draw-tools-2.md) (`preview.segments`, 4096) and [85](85-snapping.md)
 (`snap.marker`). Leave the warning; it goes away there.
 
 > Typing this chain against a clean end-of-35 checkout instead of the live tree? Then the eight
