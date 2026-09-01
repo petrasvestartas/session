@@ -34,34 +34,35 @@
 ## Files we touch
 
 ```
-src/app/scene.rs   # the BRep arm: per-face 74/75 reservations, per-edge 73 reservations
-src/engine/gpu/mod.rs  # dispatch loop covers faces of all objects; nothing else
+src/app/walk/brep.rs   # the producer: per-face 74/75 reservations, per-edge 73 reservations
 ```
 
-No new shaders. That is the payoff of the producer pattern: the fourth type is pure wiring.
+One file, and not one engine line. No new shaders, no new layout, no new desc, no new lane —
+73, 74 and 75 already dispatch over per-object lists, and this type pushes into the same ones.
+That is the payoff of the producer pattern: the fourth type is pure wiring.
 
-## Step 1 — the arm decomposes, the producers consume
+## Step 1 — the producer decomposes, the other producers consume
 
-46's arm drew `b.mesh()` from the cache. The GPU arm walks topology instead — for each face,
-its surface + its loops' pcurves; for each edge, its 3D curve:
+46's `walk_brep` re-entered the mesh producer with `b.mesh()`. The GPU version walks topology
+instead — for each face, its surface + its loops' pcurves; for each edge, its 3D curve:
 
 ```rust
-    Geometry::BRep(b) => {
-        objects_base.push((/* like 68 */));
-        for f in 0..b.m_faces.len() {
-            let (srf, loops) = brep_face_uv(b, f);      // surface ref + UV loop polygons,
-                                                        // discretized like 75 (the pcurves
-                                                        // live in b.m_curves_2d via m_trims)
-            let (gu, gv) = grid_for(srf);
-            // 74 reservation + index grid, 75 loop upload — verbatim from those arms
-        }
-        for c in &b.m_curves_3d {
-            // 73 reservation: spans × 64 clamped, seg_base, FACING_UNKNOWN
-        }
-        for v in &b.m_vertices {
-            // vertex markers: unchanged, the 32a glyph push
-        }
+pub(crate) fn walk_brep(b: &BRep, t: &mut Upload, ri: u32, base_off: u32) -> Row {
+    for f in 0..b.m_faces.len() {
+        let (srf, loops) = brep_face_uv(b, f);      // surface ref + UV loop polygons,
+                                                    // discretized like 75 (the pcurves
+                                                    // live in b.m_curves_2d via m_trims)
+        let (gu, gv) = grid_for(srf);
+        // 74 reservation + index grid, 75 loop upload — verbatim from those producers
     }
+    for c in &b.m_curves_3d {
+        // 73 reservation: spans × 64 clamped, seg_base, FACING_UNKNOWN
+    }
+    for v in &b.m_vertices {
+        // vertex markers: unchanged, the 32a glyph push
+    }
+    Row::solid(bounds, spacing, flags)   // RETURNED, never pushed - the row is add_file's
+}
 ```
 
 `brep_face_uv` is the one genuinely new function, and it is a *reader*: face → loops →
@@ -92,10 +93,11 @@ demands it.
 
 ## Step 3 — one dispatch walk
 
-`Gpu::dispatch_curves` and `dispatch_surfaces` (+ classify) already loop over per-object
-lists; the BRep arm just pushed into the same lists. The whole scene re-tessellates through
-THREE compute pipelines in one encoder, ordered classify-after-grid per face; the zoom-bucket
-cadence from 73 governs all of it. There is nothing else — which is the lesson.
+`tessellate_curves` (`gpu/curve_tess.rs`), `dispatch_surfaces` (`gpu/surface_tess.rs`) and the
+classify pass (`gpu/trim.rs`) already loop over per-object lists; this producer just pushed into
+the same three `Upload` columns. The whole scene re-tessellates through THREE compute pipelines
+in one encoder, ordered classify-after-grid per face; the zoom-bucket cadence from 73 governs
+all of it. There is nothing else — which is the lesson.
 
 ## What you should see
 
@@ -120,8 +122,8 @@ Ch 76: Phase 10b closes on wiring, not shaders: face = 74 grid + 75 trim, edge =
         remains the watertight truth for booleans/export/picking.
 ```
 
-Edited: `scene.rs` (BRep arm decomposition + `brep_face_uv`), `gpu/mod.rs` (dispatch walk
-covers all lists). No new shader files — the point.
+Edited: `walk/brep.rs` (the decomposition + `brep_face_uv`). ZERO engine lines and no new
+shader files — the point.
 
 ## Next
 
