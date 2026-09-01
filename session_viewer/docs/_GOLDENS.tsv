@@ -31,14 +31,14 @@ bunny_cloud	VIEWER_REBUILD=1	1	7511	4	1	nondet(splat)
 bunny_cloud	VIEWER_REBUILD=1	2	7511	4	1	nondet(splat)
 bunny_cloud	VIEWER_INCREMENTAL=1	1	7511	4	1	nondet(splat)
 bunny_cloud	VIEWER_INCREMENTAL=1	2	7511	4	1	nondet(splat)
-drawings_rotated	default	1	25043	10	155465	8c339ef1c45a1e39
-drawings_rotated	default	2	25043	10	155465	8c339ef1c45a1e39
-drawings_rotated	VIEWER_LINE_STYLE=tubes	1	24970	9	155465	0436f04fe5fc5c7c
-drawings_rotated	VIEWER_LINE_STYLE=tubes	2	24970	9	155465	0436f04fe5fc5c7c
-drawings_rotated	VIEWER_REBUILD=1	1	25043	10	155465	8c339ef1c45a1e39
-drawings_rotated	VIEWER_REBUILD=1	2	25043	10	155465	8c339ef1c45a1e39
-drawings_rotated	VIEWER_INCREMENTAL=1	1	25043	10	155465	8c339ef1c45a1e39
-drawings_rotated	VIEWER_INCREMENTAL=1	2	25043	10	155465	8c339ef1c45a1e39
+drawings_rotated	default	1	25043	10	155465	nondet(mesh)
+drawings_rotated	default	2	25043	10	155465	nondet(mesh)
+drawings_rotated	VIEWER_LINE_STYLE=tubes	1	24970	9	155465	nondet(mesh)
+drawings_rotated	VIEWER_LINE_STYLE=tubes	2	24970	9	155465	nondet(mesh)
+drawings_rotated	VIEWER_REBUILD=1	1	25043	10	155465	nondet(mesh)
+drawings_rotated	VIEWER_REBUILD=1	2	25043	10	155465	nondet(mesh)
+drawings_rotated	VIEWER_INCREMENTAL=1	1	25043	10	155465	nondet(mesh)
+drawings_rotated	VIEWER_INCREMENTAL=1	2	25043	10	155465	nondet(mesh)
 # ADVISORY - local-only scenes; gitignored .pb assets. Never fails the gate.
 drawings	default	1	51565	10	744040	44ddc4171fc50953
 drawings	default	2	51565	10	744040	44ddc4171fc50953

@@ -614,7 +614,7 @@ def links(docs):
     bad = 0
     for d in docs:
         s = pathlib.Path(d).read_text()
-        miss, wrong, unknown = [], [], []
+        miss, wrong, unknown, mistopic = [], [], [], []
         for m in re.finditer(r"\]\((\d+[a-z]?-[a-z0-9-]+\.md)\)", s):
             if not (here / m.group(1)).exists(): miss.append(m.group(1))
         for m in re.finditer(r"\[(\d+)\]\((\d+)-[a-z0-9-]+\.md\)", s):
@@ -622,13 +622,28 @@ def links(docs):
         for m in re.finditer(r"\b[Ll]essons? ((?:\b\d{2,3}\b)(?:\s*(?:,|and|&|/|[-\u2013\u2014])\s*\b\d{2,3}\b)*)", s):
             for n in re.findall(r"\b\d{2,3}\b", m.group(1)):
                 if (n.lstrip("0") or "0") not in known: unknown.append(n)
-        n = len(miss) + len(wrong) + len(unknown)
+        # A bare `lesson 57` cannot be checked - 57 exists, and nothing says which 57 was meant.
+        # But prose usually names the topic too: "lesson 57 (isocurves)", "lesson 57's isocurves".
+        # When it does, the topic must appear in THAT lesson's filename. This is what catches a
+        # renumber that moved the file and left the sentence behind - the number still resolves,
+        # so the check above is happy, and the reader is sent to the wrong lesson.
+        for m in re.finditer(r"\b[Ll]essons? (\d{1,3})(?:'s)? \(([a-z][a-z0-9 /-]{2,40})\)", s):
+            num, topic = (m.group(1).lstrip("0") or "0"), m.group(2)
+            fn = next((v for k, v in have.items() if (k.lstrip("0") or "0") == num), None)
+            if not fn: continue
+            words = [w for w in re.split(r"[ /-]+", topic) if len(w) > 3]
+            if words and not any(w in fn for w in words):
+                mistopic.append(f"{m.group(0)} -> {fn}")
+
+        n = len(miss) + len(wrong) + len(unknown) + len(mistopic)
         if n:
             bad += n
-            print(f"{d}: {len(miss)} dead link(s), {len(wrong)} mislabelled, {len(unknown)} naming no lesson")
+            print(f"{d}: {len(miss)} dead link(s), {len(wrong)} mislabelled, "
+                  f"{len(unknown)} naming no lesson, {len(mistopic)} naming the WRONG lesson")
             for x in miss[:4]:    print(f"   !! dead link      {x}")
             for x in wrong[:4]:   print(f"   !! label mismatch {x}")
             for x in sorted(set(unknown))[:6]: print(f"   ?? no such lesson  {x}")
+            for x in sorted(set(mistopic))[:6]: print(f"   !! wrong lesson    {x}")
     print(f"# {bad} cross-reference problem(s) over {len(docs)} doc(s)")
     return bad
 

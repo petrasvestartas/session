@@ -41,7 +41,23 @@ SPLAT_SCENES="lion bunny_cloud cloud_mix lidar14 bunny_drawings"
 # The whole deviation is ONE pixel - (x=625,y=220) flips grey 171 -> 170, 3 bytes of 2,880,016 -
 # and both values are under the ink threshold, so ink/draws/objects never move (44215/9/6).
 # `drawings_rotated` was stable over 12 and is now the only mandatory row a sha still gates.
-NONDET_SCENES="bunny"
+# MEASURED, 2026-09-01 - the cause, not just the symptom. `triangle.wgsl`'s flat normal comes
+# from screen-space derivatives (`cross(dpdy(world_pos), dpdx(world_pos))`), and on this machine's
+# Intel iGPU that is NOT deterministic. Proved twice on the same tree: replacing that ONE line
+# with a constant took bunny from 13/150 deviating runs to 0/150, and running the IDENTICAL
+# binary on llvmpipe instead of the Intel driver took it from 18/150 to 0/150. Every deviation
+# seen was a 2x2-derivative-quad of pixels shifting by 1-2 grey levels inside a smooth region.
+#
+# No mesh in the repo carries baked vertex normals, so EVERY shaded triangle takes that line;
+# a scene's exposure is just how many derivative-lit triangles it has. bunny has 69,451 and
+# flips often. drawings_rotated has 36 (its 1.55M sheet triangles bypass the normal entirely,
+# being unlit paper), so it flips rarely - 0 times in 670 renders here, but it did once in CI.
+# Rare is not never, and a gate that fails at random teaches you to ignore it.
+#
+# The real fix is to bake a per-face normal into RenderVertex in the KERNEL's Mesh::to_render, so
+# the shader takes its has_normal branch; that is a three-language change and is not this file's
+# to make. Until then both scenes carry the gate on ink/draws/objects, which never moved.
+NONDET_SCENES="bunny drawings_rotated"
 
 # The harness reads a dozen VIEWER_* knobs; an inherited one silently re-frames the camera and
 # every row goes red for a reason that is not in the diff.
