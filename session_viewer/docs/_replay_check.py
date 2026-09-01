@@ -300,6 +300,15 @@ def apply(root, doc):
             if n != 1:
                 fails.append((ln, tgt, f"Find block {idx_f+1}/{len(finds)} matches {n}x")); bad = True; break
             ar = "" if verb == "delete" else (args[idx_f] or "")
+            # An INLINE replacement ("**Replace with** `scene.add_file(..)`") is written in prose,
+            # where leading whitespace cannot survive. Take the indentation from the line being
+            # replaced. Without this the op silently un-indents its line and every later lesson
+            # that anchors on it misses.
+            if verb in ("replace", "replace_first") and "\n" not in ar and ar[:1] not in ("", " ", "\t"):
+                head = fa.split("\n")[0]
+                pad = head[:len(head) - len(head.lstrip())]
+                if pad:
+                    ar = pad + ar
             if verb in ("replace", "delete"): txt = txt.replace(fa, ar)
             elif verb == "replace_first":
                 first = fa.split("\n")[0]
