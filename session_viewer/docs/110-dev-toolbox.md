@@ -12,8 +12,10 @@
 ```
 examples/selftest.rs    # EXISTS — the PPM render harness (src/selftest.rs); ADD the checks below
 Cargo.toml + src/lib.rs # the two visibility edits that let an example link the crate
-src/engine/gpu/mod.rs   # error scopes around pipeline/shader creation → CLI log, not console
-.github/workflows/viewer.yml   # NEW — build + selftest on push
+src/engine/gpu/errors.rs      # NEW — the push_gpu_error queue the CLI drains
+src/engine/gpu/device.rs      # ONE line: the bring-up's on_uncaptured_error handler
+src/engine/pipelines/build.rs # ONE error-scope pair inside build() — all 14 pipelines at once
+.github/workflows/viewer.yml  # NEW — build + selftest on push
 ```
 
 ## Step 0 — two visibility edits (examples can't see the crate yet)
@@ -129,33 +131,37 @@ browser can't do that: trunk serves only the assets root, and a manifest item re
 so 84's `bunny.obj` manifest line means *copy the kernel fixture into `assets/` first*; a manifest
 path will never reach `session_rust/session_data/`. Same fixture, two doors — don't confuse them.
 
-## Step 2 — GPU errors surface in the CLI: `src/engine/gpu/mod.rs`
+## Step 2 — GPU errors surface in the CLI: `src/engine/gpu/errors.rs`
 
 wgpu reports validation errors asynchronously — by default to the browser console, which the person
 staring at a black canvas doesn't think to open. Two hooks route them into the viewer itself:
 
 ```rust
-    // once, in Gpu::new — the catch-all for anything not scoped below:
+    // the bring-up's handler in engine/gpu/device.rs — the catch-all for anything not scoped
+    // below. It already exists and already logs, so this is one line REPLACED, not one added:
     device.on_uncaptured_error(std::sync::Arc::new(|e| {
         // route into a static queue that State drains into the CLI log each frame
-        crate::engine::gpu::push_gpu_error(format!("wgpu: {e}"));
+        crate::engine::gpu::errors::push_gpu_error(format!("wgpu: {e}"));
     }));
 ```
 
 ```rust
-    // around every pipeline build (04's builders) — names the culprit:
+    // ONE pair, inside `build` (engine/pipelines/build.rs) — the viewer's only
+    // create_render_pipeline call, so all 14 pipelines are covered by this one edit, and
+    // `d.label` (the desc's own name) says which one failed:
     device.push_error_scope(wgpu::ErrorFilter::Validation);
-    let pipeline = build_cylinder_pipeline(/* … */);
+    let pipeline = device.create_render_pipeline(/* … */);
     let scope = device.pop_error_scope();
+    let label = d.label.to_string();
     wasm_bindgen_futures::spawn_local(async move {
         if let Some(e) = scope.await {
-            push_gpu_error(format!("pipeline 'cylinder': {e}"));
+            push_gpu_error(format!("pipeline '{label}': {e}"));
         }
     });
 ```
 
-(`push_gpu_error` appends to a `static` mutex'd `Vec<String>`; `State` drains it into `ui.log` once
-per frame — single-threaded wasm makes this trivially safe. The payoff: a bad WGSL edit now prints
+(`push_gpu_error` — the whole of `engine/gpu/errors.rs` — appends to a `static` mutex'd
+`Vec<String>`; `State` drains it into `ui.log` once per frame — single-threaded wasm makes this trivially safe. The payoff: a bad WGSL edit now prints
 `pipeline 'cylinder': …shader error…` **in the app**, with the pipeline named.)
 
 ## Step 3 — the black-screen checklist
@@ -222,15 +228,17 @@ Ch 88: THE WORKFLOW. Two visibility lines first: crate-type gains "rlib" (exampl
        and say so). Headless selftest (examples/selftest.rs): fixture counts, Scene::new +
        add_file invariants, BVH parity, a CPU pick, copy identity (92's duplicate-vs-Rc-clone
        trap), reconcile buckets — possible because picking was CPU-by-necessity (55) and Scene was
-       GPU-free by design (35); seconds, exit-coded, no browser. GPU errors: on_uncaptured_error +
-       per-pipeline error scopes → a static queue → the CLI log, with the pipeline NAMED. The
+       GPU-free by design (35); seconds, exit-coded, no browser. GPU errors: on_uncaptured_error
+       (one line at the device bring-up) + ONE error scope inside the one pipeline builder, named
+       by desc.label → a static queue → the CLI log, with the pipeline NAMED. The
        black-screen checklist: log → draw count → object count → camera(F!) → clear-color →
        bisect passes. CI: selftest + trunk build --release; no headless-GPU testing (fragile),
        and honestly so.
 ```
 
 Edited: `examples/selftest.rs` (NEW), `Cargo.toml` (`+ "rlib"`), `src/lib.rs` (`pub mod app`),
-`engine/gpu/mod.rs` (error scopes + queue), `.github/workflows/viewer.yml` (NEW).
+`engine/gpu/errors.rs` (NEW — the queue), `engine/gpu/device.rs` (one line in the bring-up),
+`engine/pipelines/build.rs` (one error-scope pair), `.github/workflows/viewer.yml` (NEW).
 
 ## Next
 
