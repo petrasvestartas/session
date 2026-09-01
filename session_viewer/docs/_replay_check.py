@@ -559,13 +559,25 @@ def why_orphan(pre):
         return "verb-unbolded"                # "In `f`, find:" / "**add:**" — no parsable verb
     return "no-verb"                          # pure prose, or a payload with no instruction at all
 
+def all_lesson_docs():
+    """Every lesson doc, for a mode invoked without an explicit list.
+
+    Handed no documents, these modes used to iterate an empty list and print a summary that
+    reads exactly like a pass - `--audit` and `--links` both reported clean while checking
+    nothing at all. A verification tool that answers "fine" to a question it never asked is
+    worse than one that errors, so an omitted list now means ALL of them.
+    """
+    here = pathlib.Path(__file__).resolve().parent
+    return [str(f) for f in sorted(here.glob("[0-9]*-*.md"))]
+
+
 def audit(docs, threshold):
     """Exit-code rule: only a doc that parses at least ONE op can fail. A doc with zero parsed ops
     is a full-listing lesson (everything before 34c) or one whose verbs are all invisible — the
     replay already prints a visibly vacuous "0 ops, 0 failed" for it, so it is reported and tagged,
     never counted. Default threshold 0: the five docs authored in the current verb style
     (38, 39, 40, 42, 44) all score exactly 0 orphans, so 0 is a reachable bar, not an aspiration."""
-    bad = 0
+    bad = noops = 0
     for d in docs:
         oplist = ops(d)
         bs, lines = blocks(d)
@@ -578,6 +590,7 @@ def audit(docs, threshold):
             if illustrative(prev, head): continue
             orph.append((ln, lg, body, why_orphan(preamble(lines, ln))))
         nl = sum(len(b.split("\n")) for _, _, b, _ in orph)
+        if not oplist: noops += 1
         tag = "" if oplist else "   [NO OPS PARSED — informational]"
         print(f"{d}: {len(code)} fenced code blocks, {len(code) - len(orph)} claimed by ops, "
               f"{len(orph)} orphaned ({nl} lines){tag}")
@@ -587,7 +600,8 @@ def audit(docs, threshold):
                   f"{first.strip()[:66]} · {why}")
         if oplist and len(orph) > threshold:
             bad += 1
-    print(f"# {bad} doc(s) with parsed ops over the orphan threshold ({threshold})")
+    print(f"# {bad} doc(s) with parsed ops over the orphan threshold ({threshold}), "
+          f"{len(docs)} audited, {noops} with NO ops parsed")
     return bad
 
 HEAVY = ("assets", "target", ".git", "dist", "node_modules", "__pycache__")
@@ -697,11 +711,11 @@ if __name__ == "__main__":
             thr = int(argv[1]); argv = argv[2:]
         elif argv and argv[0].startswith("--max="):
             thr = int(argv[0].split("=", 1)[1]); argv = argv[1:]
-        sys.exit(1 if audit(argv, thr) else 0)
+        sys.exit(1 if audit(argv or all_lesson_docs(), thr) else 0)
     if argv and argv[0] == "--links":
-        sys.exit(1 if links(argv[1:]) else 0)
+        sys.exit(1 if links(argv[1:] or all_lesson_docs()) else 0)
     if argv and argv[0] == "--render":
-        sys.exit(1 if render(argv[1:]) else 0)
+        sys.exit(1 if render(argv[1:] or all_lesson_docs()) else 0)
     if argv and argv[0] == "--stale":
         sys.exit(1 if stale(pathlib.Path(argv[1]), argv[2:]) else 0)
     check_moves = bool(argv) and argv[0] == "--moves"
