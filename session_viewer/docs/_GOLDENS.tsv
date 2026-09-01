@@ -1,5 +1,10 @@
 # docs/_GOLDENS.tsv - recorded by docs/_gate.sh --record at git tag end-of-44.
 # The baseline is a TAG, not a working tree: an uncommitted edit moves these numbers.
+# assets: 4267726218
+# ^ cksum of (size, path) over every .pb the scenes reference. These numbers were measured on
+# THOSE bytes; the P6 wire reshape re-encoded the .pb files, and a tree carrying the re-encoded
+# ones renders a different bunny (37417 ink, not 44215) with identical source. The gate refuses
+# to compare across a fingerprint change rather than reporting it as a code regression.
 # columns: scene	config	pass	ink	draws	objects	ppm_sha256_16
 # MANDATORY - resolves entirely to tracked .pb; a fresh clone must reproduce these.
 lion	default	1	77543	4	1	nondet(splat)

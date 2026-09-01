@@ -104,8 +104,31 @@ rows() {                                    # rows <sink> <scene>...
   done
 }
 
+# The goldens are numbers measured on SPECIFIC asset BYTES. A tree replayed from an old commit
+# carries that commit's assets/, so two trees can differ by a whole re-encode while looking
+# identical in source - and then the gate reports a code regression that is really a different
+# file. (Cost four wrong diagnoses on 2026-09-01.) Fingerprint what we actually read.
+asset_fingerprint() {
+    for f in $(grep -ho 'pb/[A-Za-z0-9_.-]*\.pb' assets/scenes/*.toml 2>/dev/null | sort -u); do
+        [ -f "assets/$f" ] && printf '%s %s\n' "$(stat -c%s "assets/$f" 2>/dev/null || stat -f%z "assets/$f")" "$f"
+    done | sort | cksum | cut -d' ' -f1
+}
+
 if [ -n "$ONLY" ] && [ -n "$(missing_assets "$ONLY")" ]; then
   echo "gate: SKIPPING scene '$ONLY' - assets absent: $(missing_assets "$ONLY")" >&2; exit 0
+fi
+
+# Refuse BEFORE rendering anything: a fingerprint mismatch makes every number below
+# incomparable, so measuring them is wasted minutes. `--only` is exempt - it compares nothing.
+if [ -z "$ONLY" ] && [ "$RECORD" != 1 ]; then
+  WANT=$(grep -m1 '^# assets:' "$TSV" 2>/dev/null | cut -d' ' -f3)
+  HAVE=$(asset_fingerprint)
+  if [ -n "$WANT" ] && [ "$WANT" != "$HAVE" ]; then
+    echo "gate: ASSETS DIFFER from the ones these goldens were recorded on ($WANT vs $HAVE)." >&2
+    echo "gate: nothing measured here is comparable to $TSV. Point at the assets the goldens" >&2
+    echo "gate: were recorded on, or re-record with --record and say so in the commit." >&2
+    exit 1
+  fi
 fi
 
 echo "gate: building the harness once, so the timing of the first run is not the compiler's"
@@ -135,6 +158,7 @@ if [ "$RECORD" = 1 ]; then
   {
     echo "# docs/_GOLDENS.tsv - recorded by docs/_gate.sh --record at git tag end-of-44."
     echo "# The baseline is a TAG, not a working tree: an uncommitted edit moves these numbers."
+    echo "# assets: $(asset_fingerprint)"
     echo "# columns: scene	config	pass	ink	draws	objects	ppm_sha256_16"
     echo "# MANDATORY - resolves entirely to tracked .pb; a fresh clone must reproduce these."
     cat "$NEW_M"
