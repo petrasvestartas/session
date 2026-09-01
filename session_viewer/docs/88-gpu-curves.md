@@ -26,11 +26,13 @@
 ## Files we touch
 
 ```
-src/shaders/curve_tess.wgsl   # NEW — find_span + Cox-de Boor + segment writer
-src/engine/pipelines/build.rs # build_curve_tess_pipeline — the viewer's FIRST compute pipeline
-src/engine/pipelines/mod.rs   # register it
-src/engine/gpu/mod.rs         # read_write segment binding + dispatch_curves
-src/app/scene.rs              # build: reserve rows instead of filling them; upload curve data
+src/shaders/curve_tess.wgsl        # NEW — find_span + Cox-de Boor + segment writer
+src/engine/gpu/curve_tess.rs       # NEW — the lane file: CurveUpload, GpuCurve, the dispatch
+src/engine/pipelines/layouts.rs    # Layouts.curve_tess — the compute bind-group layout
+src/engine/pipelines/mod.rs        # one build_compute line in Pipelines::new
+src/engine/gpu/segments.rs         # the ribbon table's usage flags: compute writes rows too
+src/engine/gpu/upload.rs           # Upload.curve_uploads + one drop_rows line
+src/app/walk/curves.rs             # reserve rows instead of filling them; emit CurveUpload
 ```
 
 ## Step 1 — why one dispatch beats 512 `point_at` calls
@@ -63,7 +65,7 @@ struct CurveInfo {
     t0: f32,           // domain start
     t1: f32,           // domain end
     instance_id: u32,  // the object row (model matrix, flags)
-    color: u32,        // RGBA8, low byte red - scene.rs's pack_rgba
+    color: u32,        // RGBA8, low byte red - walk/encode.rs's pack_rgba
     knot_base: u32,    // where this curve's knots start in data[]
     cv_base: u32,      // where its CVs start (always 4 floats per CV)
     _pad0: u32, _pad1: u32,
@@ -72,7 +74,7 @@ struct CurveInfo {
 // One flat f32 pool per scene: every curve's knots, then its CVs.
 @group(0) @binding(1) var<storage, read> data: array<f32>;
 
-// The REAL row - must match CylinderSegment in gpu/mod.rs exactly (40 B, scalar ends).
+// The REAL row - must match CylinderSegment in gpu/segments.rs exactly (40 B, scalar ends).
 struct CylinderSegment {
     p0x: f32, p0y: f32, p0z: f32,
     radius: f32,
@@ -164,96 +166,70 @@ buys enough headroom (`spans × 16` becomes `spans × 64` for the same frame cos
 density stops being the visible limit. The adaptive upgrade, if ever needed, runs the
 subdivision on the CPU into a `t`-value buffer and keeps this shader unchanged.
 
-## Step 3 — the first compute pipeline: `src/engine/pipelines/build.rs`
+## Step 3 — the compute pipeline: `src/engine/pipelines/layouts.rs` + `mod.rs`
 
-Everything so far was a `RenderPipeline`. A compute pipeline is smaller — no vertex layouts, no
-targets, no depth state — just bind groups and an entry point. Add at the end of the file:
+A compute pipeline is smaller than a render one — no vertex layouts, no targets, no depth state,
+just bind groups and an entry point — which is why `build_compute` takes a label, a shader, an
+entry and its groups where `build` takes a whole `PipelineDesc`. So this lesson writes no
+builder: a bind-group layout, and one line in the list.
+
+The layout is a field on `Layouts` plus a block in `Layouts::new`, three `compute_entry` rows in
+the same list form the splat groups use:
 
 ```rust
-/// The viewer's FIRST compute pipeline: curve tessellation (73). Bind group 0 is built ad hoc
-/// per dispatch (uniform + data pool + the segment table as read_WRITE - the render passes keep
-/// their own read-only binding of the same buffer).
-pub fn build_curve_tess_pipeline(device: &wgpu::Device) -> (wgpu::ComputePipeline, wgpu::BindGroupLayout) {
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("curve.tess.shader"),
-        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/curve_tess.wgsl").into()),
-    });
-    let bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("curve.tess.bgl"),
-        entries: &[
-            wgpu::BindGroupLayoutEntry {
-                binding: 0, visibility: wgpu::ShaderStages::COMPUTE,
-                ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false, min_binding_size: None },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 1, visibility: wgpu::ShaderStages::COMPUTE,
-                ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
-                    has_dynamic_offset: false, min_binding_size: None },
-                count: None,
-            },
-            wgpu::BindGroupLayoutEntry {
-                binding: 2, visibility: wgpu::ShaderStages::COMPUTE,
-                ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: false },
-                    has_dynamic_offset: false, min_binding_size: None },
-                count: None,
-            },
-        ],
-    });
-    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("curve.tess.layout"),
-        bind_group_layouts: &[Some(&bgl)],
-        immediate_size: 0,
-    });
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("curve.tess"),
-        layout: Some(&layout),
-        module: &shader,
-        entry_point: Some("tess"),
-        compilation_options: Default::default(),
-        cache: None,
-    });
-    (pipeline, bgl)
-}
+    /// group 0 of `curve_tess.wgsl`: the CurveInfo uniform, the shared f32 pool, and the ribbon
+    /// table as read_WRITE - the render passes keep their own read-only binding of that buffer.
+    pub curve_tess: wgpu::BindGroupLayout,
+
+    // ...and in Layouts::new, beside the splat groups:
+        let curve_tess = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("curve.tess.layout"),
+            entries: &[
+                compute_entry(0, wgpu::BufferBindingType::Uniform),
+                compute_entry(1, wgpu::BufferBindingType::Storage { read_only: true }),
+                compute_entry(2, wgpu::BufferBindingType::Storage { read_only: false }),
+            ],
+        });
 ```
 
-In `src/engine/pipelines/mod.rs`, find `pub struct Pipelines{` and add two fields at the end:
+The pipeline itself is one line in `Pipelines::new` (`src/engine/pipelines/mod.rs`), beside the
+splat lane's two compute pipelines — a new pipeline is a literal in that list, never a new
+builder function:
 
 ```rust
+// beside SPLAT_RESOLVE / SPLAT at the top of the file:
+const CURVE_TESS: &str = include_str!("../../shaders/curve_tess.wgsl");
+
+// the field on Pipelines:
     pub curve_tess: wgpu::ComputePipeline,
-    pub curve_tess_bgl: wgpu::BindGroupLayout,
+
+// the line inside Pipelines::new's Self { .. }:
+            curve_tess: build_compute(device, "curve.tess", CURVE_TESS, "tess", &[&l.curve_tess]),
 ```
 
-In `Pipelines::new`, insert ABOVE the `Self {` line (the builder returns a pair, so it cannot
-sit inside the literal like the others):
+## Step 4 — writable segments: `src/engine/gpu/segments.rs`, then `curve_tess.rs`
+
+The segment table is already a storage buffer — the family that owns it builds both of its
+tables from one `usage` in `SegmentLane::new`, so that is the line to extend so compute may
+write it:
 
 ```rust
-        let (curve_tess, curve_tess_bgl) = build_curve_tess_pipeline(device);
-```
-
-and add `curve_tess, curve_tess_bgl,` to the `Self {` literal.
-
-## Step 4 — writable segments: `src/engine/gpu/mod.rs`
-
-The segment table is already a storage buffer — find its creation (the `zeroed_buffer` call
-with `"segments"`, ~line 387) and extend the usage so compute may write it:
-
-```rust
-            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
 ```
 becomes
 ```rust
-            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST); // compute writes rows too
+        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC; // compute writes rows too
 ```
 
 (no flag change needed — `STORAGE` covers read_write; the render bind group stays
 `read_only: true`, the compute bind group below declares `read_only: false`. Same buffer, two
 bindings, no hazard: the dispatch and the draws are ordered by the queue.)
 
-Then give `Gpu` the upload + dispatch. The layering law from the roadmap holds — **lower
-layers never reach up** — so the wgpu objects live HERE, and the scene hands over plain data
-(`CurveUpload`, next step). Add near `render_offscreen`:
+Then the upload + dispatch. The layering law from the roadmap holds — **lower layers never
+reach up** — so the wgpu objects live in `engine/gpu/`, and the walk hands over plain data
+(`CurveUpload`, next step). Both belong to a new row producer, not to any existing family, so
+they get their own lane file, `src/engine/gpu/curve_tess.rs`, and `Gpu` gains the four list
+lines that reach it (`pub mod curve_tess;`, the field, its `::new`, the call):
 
 ```rust
 /// One curve's GPU residency: its CurveInfo uniform + data pool bound against curve_tess_bgl.
@@ -292,13 +268,14 @@ pub struct GpuCurve {
 the one new fact is the bind group pairing each curve's own uniform + pool with the SHARED
 `segment_buffer` as its read_write third binding.)
 
-## Step 5 — the build arm reserves instead of fills: `src/app/scene.rs`
+## Step 5 — the producer reserves instead of fills: `src/app/walk/curves.rs`
 
-43's arm pushed `samples - 1` filled rows. Now it pushes the same COUNT of **zeroed rows**
+43's producer pushed `samples - 1` filled rows. Now it pushes the same COUNT of **zeroed rows**
 (the reservation — row indexing downstream is untouched; a zeroed row is a zero-length
 segment, invisible until the dispatch fills it) and records what the engine needs, in plain
-data. `CurveUpload` is declared in `gpu/mod.rs` beside `GpuCurve` and imported here like
-`CylinderSegment` is — the app consumes engine types, never the reverse:
+data. `CurveUpload` is declared in `gpu/curve_tess.rs` beside `GpuCurve` and imported here the
+way `CylinderSegment` already is from `gpu/segments.rs` — the app consumes engine types, never
+the reverse:
 
 ```rust
 /// Everything the app hands over to make one curve GPU-resident. Plain data: the wgpu
@@ -317,21 +294,29 @@ pub struct CurveUpload {
 }
 ```
 
-In `Scene::build`'s `Geometry::NurbsCurve(nc)` arm, keep the coarse `sample_curve(nc)` polyline
-for `curve_cache` (the pick proxy) — but replace the `for w in pts.windows(2)` segment loop
-with the reservation (`use bytemuck::Zeroable;` at the top of the file):
+In `nurbscurve_to_segments`, keep the coarse `point_at` polyline for the pick proxy — but
+replace its closing `pts.windows(2).map(..)` with the reservation (`use bytemuck::Zeroable;` at
+the top of the file). The uploads ride to the engine on the same `Upload` every other row does:
+one `pub curve_uploads: Vec<CurveUpload>` column in `gpu/upload.rs`, and one `drop_rows` line
+beside the other fourteen, since the GPU is their only holder afterwards too:
 
 ```rust
-        let samples = (nc.span_count() as u32 * 64).clamp(64, 2048);   // GPU headroom: 4x 43's
-        let seg_base = segments.len() as u32;
-        segments.extend((1..samples).map(|_| CylinderSegment::zeroed()));
-        curve_uploads.push(nc_upload(nc, samples, seg_base, ri, pack_rgba(curve_color(nc))));
+        let samples = (c.span_count() as u32 * 64).clamp(64, 2048);   // GPU headroom: 4x 43's
+        let seg_base = t.seg.ribbons.len() as u32;
+        t.seg.ribbons.extend((1..samples).map(|_| CylinderSegment::zeroed()));
+        t.curve_uploads.push(nc_upload(c, samples, seg_base, instance_id, color));
 ```
 
 where `nc_upload` flattens knots + always-homogeneous CVs into a `CurveUpload` (the Step 2
-upload rule — `w = 1` when `!nc.m_is_rat`, else copy `m_cv`'s `(xw, yw, zw, w)` as-is).
-`upload_to` hands the collected `curve_uploads` to `gpu.tessellate_curves(..)` after the
+upload rule — `w = 1` when `!c.m_is_rat`, else copy `m_cv`'s `(xw, yw, zw, w)` as-is).
+`Scene::upload_to` hands the collected `curve_uploads` to `gpu.tessellate_curves(..)` after the
 tables are pushed.
+
+One trap the reservation buys, and it is not visible from this file: the two file sweeps in
+`walk/bounds.rs` (`file_extent`, then `sheet_thickness`) read every ribbon row this file wrote.
+Zeroed rows sit at the origin, so a curves-only file measures a thickness of 0, gets marked
+`FLAG_SHEET`, and its fills stop writing depth while its ink loses its lift. The reserved range
+has to be skipped by both sweeps — the rows are not geometry until the dispatch has run.
 
 **Re-tessellation cadence**: store the camera distance the last dispatch used; in the render
 path, when `dist_now / dist_then` leaves `[0.5, 2.0]`, recompute `samples` per curve, re-reserve
@@ -355,8 +340,9 @@ Ch 73: the pattern of Phase 10b, once: a COMPUTE PRODUCER writes a table the vie
         Re-dispatch on x2 zoom thresholds only. CPU polyline survives as pick proxy + reference.
 ```
 
-Edited: `shaders/curve_tess.wgsl` (new), `pipelines/build.rs` + `mod.rs` (first compute
-pipeline), `gpu/mod.rs` (`dispatch_curves`), `scene.rs` (reserve + upload + cadence).
+Edited: `shaders/curve_tess.wgsl` + `gpu/curve_tess.rs` (new), `pipelines/layouts.rs` +
+`mod.rs` (one layout, one `build_compute` line), `gpu/segments.rs` (read_write usage),
+`gpu/upload.rs` (`curve_uploads`), `walk/curves.rs` (reserve + upload + cadence).
 
 ## Next
 
