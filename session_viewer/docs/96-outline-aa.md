@@ -28,7 +28,12 @@
 src/shaders/outline_mask.wgsl    # NEW — selected instances only, white on black (MSAA coverage)
 src/shaders/outline_sep.wgsl     # NEW — the two 1×N distance passes (one shader, direction uniform)
 src/shaders/composite.wgsl       # + outline ramp over the 73 output
-src/engine/gpu/mod.rs            # mask/dist targets; the passes, gated on selection + dirty
+src/engine/gpu/outline.rs        # NEW — the four targets, the six descs, the gated encode
+src/engine/gpu/arena.rs          # one draw_mask — additive, no existing draw touched
+src/engine/gpu/segments.rs       # one draw_mask — both tables, in their own bind groups
+src/engine/gpu/glyphs.rs         # one draw_mask — spheres and dots, same shape
+src/engine/gpu/render.rs         # ONE gated line, between 79's blur and its composite
+src/engine/gpu/view.rs           # View.outline_needed — the knob the gate reads
 ```
 
 ## Step 1 — the mask, MSAA coverage as free AA: `outline_mask.wgsl`
@@ -118,9 +123,10 @@ fn fs_main() -> @location(0) vec4<f32> {
 The mask pipelines are the scene pipelines' shapes with this module's entries, a single `R8Unorm`
 color target (no depth attachment — the ring shows through occluders, which is what you want for
 "where is my selection"), and `multisample.count = 4`. Pin that 4 explicitly: it is the *mask
-target's* sample count, **independent of the scene's dynamic samples** (35's `msaa_for` flips 1↔4
-and `set_scene` rebuilds the scene pipelines on the flip — the mask set is keyed to its own target
-and never needs that rebuild).
+target's* sample count, **independent of the scene's dynamic samples** (35's `msaa_now` flips 1↔4
+and `set_scene` rebuilds the scene pipelines on the flip). A desc that names its own `Target` opts
+out of that flip by construction, which is the whole reason the field exists — the mask set is
+keyed to its own attachment and never needs the rebuild.
 
 ## Step 2 — separable distance: `outline_sep.wgsl`
 
@@ -204,96 +210,70 @@ binding is needed:
     out_rgb = mix(out_rgb, sel_color, ring * (1.0 - inside));  // ring outside the object only
 ```
 
-## Step 4 — targets, passes, and the gating where the tax dies: `engine/gpu/mod.rs`
+## Step 4 — targets, passes, and the gating where the tax dies: `engine/gpu/outline.rs`
 
-The plumbing is 79's post-process pattern, one more time. **Targets** — beside 79's half-res AO pair
-in `targets.rs`: `outline_mask_msaa` (`R8Unorm`, `sample_count: 4`, `RENDER_ATTACHMENT`),
-`outline_mask` (`R8Unorm`, 1×, `RENDER_ATTACHMENT | TEXTURE_BINDING` — the resolve target),
-`outline_dist_a` / `outline_dist_b` (`R16Float`, 1×, `RENDER_ATTACHMENT | TEXTURE_BINDING`), all at
-half resolution, rebuilt in `resize()` with the rest — and because the sep and composite **bind
-groups** reference these half-res views, rebuild those bind groups in `resize()` too (a bind group
-keeps holding the old, dead view otherwise). **Passes** — in `clear(color, &view_proj)`, today's
-frame entry point, between 79's blur pass and the composite (the composite samples
-`outline_dist_b`, so it must be final by then):
+The plumbing is 79's post-process pattern, one more time, in a lane file of its own — nothing
+outside it samples these four textures, and its six pipelines are the only ones pinned to
+`Target { samples: 4, format: R8Unorm }` while the scene's own sample count keeps flipping.
+**Targets** — `mask_msaa` (`R8Unorm`, `sample_count: 4`, `RENDER_ATTACHMENT`), `mask`
+(`R8Unorm`, 1×, `RENDER_ATTACHMENT | TEXTURE_BINDING` — the resolve target), `dist_a` / `dist_b`
+(`R16Float`, 1×, `RENDER_ATTACHMENT | TEXTURE_BINDING`), all at half resolution, rebuilt from ONE
+line in `Gpu::resize` — and because the sep and composite **bind groups** reference these half-res
+views, that same call rebuilds them (a bind group keeps holding the old, dead view otherwise).
+**Passes** — one gated line in the frame list (`render.rs`), between 79's blur pass and its
+composite (the composite samples `dist_b`, so it must be final by then):
 
 ```rust
-        // ---- outline (74): mask → separable distance ×2 — only when it can matter ----
-        if self.outline_needed {
-            let mut mp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("outline.mask"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &self.outline_mask_msaa, resolve_target: Some(&self.outline_mask),
-                    depth_slice: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                        store: wgpu::StoreOp::Store },
-                })],
-                depth_stencil_attachment: None,      // no depth — the ring shows through occluders
-                occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
-            });
-            mp.set_pipeline(&self.pipelines.outline_mask_mesh);
-            mp.set_bind_group(0, &self.mvp_bind_group, &[]);
-            mp.set_bind_group(1, &self.line_bind_group, &[]);
-            mp.set_bind_group(2, &self.instance_bind_group, &[]);
-            mp.set_bind_group(3, &self.segment_bind_group, &[]);
-            mp.set_vertex_buffer(0, self.arena_vbo.slice(..));
-            mp.set_vertex_buffer(1, self.arena_vids.slice(..));
-            mp.set_index_buffer(self.arena_ibo.slice(..), wgpu::IndexFormat::Uint32);
-            mp.draw_indexed(0..self.arena_index_count, 0, 0..1);
-            // Linework + vertex ink: mirror Gpu::clear's FOUR lane sub-draws exactly.
-            // segments = pipes ‖ ribbons (cylinders 0..pipe_count, then procedural verts
-            // 6*pipe_count..6*segment_count); glyphs = spheres ‖ dots (0..sphere_count, then
-            // 3*sphere_count..3*glyph_count). A single 0..segment_count cylinder draw would give
-            // selected flat linework a wrong-shaped ring — and selected dots none at all.
-            if self.pipe_count > 0 {
-                mp.set_pipeline(&self.pipelines.outline_mask_cyl);
-                mp.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
-                mp.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                mp.draw_indexed(0..self.cyl_index_count, 0, 0..self.pipe_count);
-            }
-            if self.segment_count > self.pipe_count {
-                mp.set_pipeline(&self.pipelines.outline_mask_ribbon);
-                mp.draw(6 * self.pipe_count..6 * self.segment_count, 0..1);
-            }
-            if self.sphere_count > 0 {
-                mp.set_pipeline(&self.pipelines.outline_mask_sphere);
-                mp.set_bind_group(3, &self.glyph_bind_group, &[]);   // glyph table, as in clear()
-                mp.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
-                mp.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                mp.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count);
-            }
-            if self.glyph_count > self.sphere_count {
-                mp.set_pipeline(&self.pipelines.outline_mask_glyph);
-                mp.set_bind_group(3, &self.glyph_bind_group, &[]);
-                mp.draw(3 * self.sphere_count..3 * self.glyph_count, 0..1);
-            }
-            drop(mp);
-            // two fullscreen sep passes — each its own pre-written Sep uniform + bind group
-            for (target, bind) in [(&self.outline_dist_a, &self.outline_sep_h_bind_group),
-                                   (&self.outline_dist_b, &self.outline_sep_v_bind_group)] {
-                let mut sp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                    label: Some("outline.sep"),
-                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: target, resolve_target: None, depth_slice: None,
-                        ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
-                            store: wgpu::StoreOp::Store },
-                    })],
-                    depth_stencil_attachment: None,
-                    occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
-                });
-                sp.set_pipeline(&self.pipelines.outline_sep);
-                sp.set_bind_group(0, bind, &[]);
-                sp.draw(0..3, 0..1);
-            }
-        }
+/// The mask and the two distance passes, encoded together: ONE gated line in the frame list.
+/// A free fn, not a method, so every borrow below is a shared reborrow of the same `Gpu`.
+pub fn encode(g: &Gpu, encoder: &mut wgpu::CommandEncoder) {
+    let o = &g.outline;
+    let mut mp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some("outline.mask"),
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+            view: &o.mask_msaa, resolve_target: Some(&o.mask),
+            depth_slice: None,
+            ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                store: wgpu::StoreOp::Store },
+        })],
+        depth_stencil_attachment: None,      // no depth — the ring shows through occluders
+        occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
+    });
+    // ONE call per family, each drawing ITS OWN rows through ITS OWN bind group, mirroring
+    // the frame list's sub-draws by construction: arena = faces, seg = pipes ‖ ribbons,
+    // glyphs = spheres ‖ dots. Written by hand this pass got it wrong in a way that is now
+    // unrepresentable - it bound the RIBBON table while instancing `pipes.count`, so selected
+    // mesh edges were ringed from the wrong rows, and selected dots got no ring at all.
+    // A family that later gains a lane gains it in its own `draw_mask`, and this stays three lines.
+    g.arena.draw_mask(&mut mp, &o.pipes);
+    g.seg.draw_mask(&mut mp, &o.pipes);
+    g.glyphs.draw_mask(&mut mp, &o.pipes);
+    drop(mp);
+    // two fullscreen sep passes — each its own pre-written Sep uniform + bind group
+    for (target, bind) in [(&o.dist_a, &o.sep_h), (&o.dist_b, &o.sep_v)] {
+        let mut sp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("outline.sep"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: target, resolve_target: None, depth_slice: None,
+                ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                    store: wgpu::StoreOp::Store },
+            })],
+            depth_stencil_attachment: None,
+            occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
+        });
+        sp.set_pipeline(&o.pipes.sep);
+        sp.set_bind_group(0, bind, &[]);
+        sp.draw(0..3, 0..1);
+    }
+}
 ```
-
-(The five mask pipelines — mesh + the four ink lanes — the sep pipeline, and the bind groups are
-built once in `Gpu::new`, the same `build_*_pipeline` + layout/bind-group moves as 79's gtao/blur
-passes, nothing new in shape. The duplication with `clear()`'s lane split begs a small shared
-helper — a `draw_ink_lanes(pass, &LanePipelines)` both call — so the mask can never drift from the
-main pass when a lane is added. The `h` bind group binds `outline_mask` as `src` with
-`Sep { dir: (1,0), radius: 4.0, seed: 1.0 }`; the `v` one binds `outline_dist_a` with
-`dir: (0,1), seed: 0.0`.)
+(The five mask pipelines — mesh + the four ink lanes — and the sep pipeline are six
+`PipelineDesc` literals in this file's `descs`, each pinning its own `Target`, and the bind groups
+are built once beside them: the same shape as 79's gtao/blur pair, nothing new. The three
+`draw_mask` methods are what stops the mask drifting from the main pass — each family answers for
+its own rows in both places, so adding a lane cannot leave the outline behind. The `h` bind group
+binds `mask` as `src` with `Sep { dir: (1,0), radius: 4.0, seed: 1.0 }`; the `v` one binds
+`dist_a` with `dir: (0,1), seed: 0.0`.)
 
 > **The WGSL duplication needs a rule too.** The mask's lane vertex stages are *copies* of
 > `triangle.wgsl`/`cylinder.wgsl`/etc. minus color — and WGSL in wgpu has no `#include`, so there
@@ -314,19 +294,20 @@ main pass when a lane is added. The `h` bind group binds `outline_mask` as `src`
 > never touches unselected vertices). Neither is built here; the design leaves the door open
 > because the mask pass is already fully self-bound.
 
-**The gate** — computed by `State` and stored as a `Gpu` field (`self.gpu.outline_needed = …;`)
-right before the `clear(color, &view_proj)` call: that signature is today's entry point and stays
-untouched — the flag rides on `Gpu` instead of a new parameter. Get the gating exactly right, or
-the ring **stays on screen after deselect** (the composite always samples `outline_dist_b`; skip
+**The gate** — computed by `State` and stored as a knob (`self.gpu.view.outline_needed = …;`)
+right before the `clear(color, &view_proj)` call: that signature is still the frame's entry point
+(`present.rs`) and stays untouched — the flag rides on `View` with the other knobs, which is
+exactly what a knob is for (it gates a draw and is never a uniform), instead of a new parameter. Get the gating exactly right, or
+the ring **stays on screen after deselect** (the composite always samples `dist_b`; skip
 the sep passes on the deselect frame and the stale distance field keeps drawing the ring forever).
 The truth table:
 
 | selection | changed (selection or camera) | mask pass | sep passes | what the composite shows |
 |---|---|---|---|---|
 | nonempty | yes | re-render | run | ring follows |
-| nonempty | no | skip | skip | reuses `outline_dist_b` — still valid, nothing moved |
+| nonempty | no | skip | skip | reuses `dist_b` — still valid, nothing moved |
 | **just emptied** | yes | re-render — every draw collapses (FLAG_SELECTED) → **black** | run **once** | distance → INF, ring erased |
-| empty | no | skip | skip | `outline_dist_b` is already INF |
+| empty | no | skip | skip | `dist_b` is already INF |
 
 So the flag is:
 
@@ -370,8 +351,8 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 73: arctic GI — the look, cheap.
 Ch 74: OUTLINE, structural fixes only. Mask = selected instances rendered white (FLAG_SELECTED
        inverted-collapse), 4× MSAA RESOLVED — fractional coverage IS the anti-aliasing (24's
-       payoff); its draws mirror clear()'s four ink-lane sub-draws (cyl/ribbon/sphere/dot), its
-       4× is pinned independent of the scene's dynamic samples.
+       payoff); its draws mirror the frame list's four ink-lane sub-draws (cyl/ribbon/sphere/dot)
+       through one draw_mask per family, its 4× pinned independent of the scene's dynamic samples.
        Distance = separable: 1×N then N×1 (exact euclidean via row-distance + k²), 18 taps for what
        the archive's box search did in 81; INF = 60000.0 because the field is R16Float (1e9 stores
        as inf, and inf×0 is NaN). Ramp = smoothstep at WIDTH in composite, ring outside
@@ -383,8 +364,9 @@ Ch 74: OUTLINE, structural fixes only. Mask = selected instances rendered white 
        viewer, engineered fast.
 ```
 
-Edited: `shaders/outline_mask.wgsl` + `shaders/outline_sep.wgsl` (NEW), `shaders/composite.wgsl`
-(ramp), `engine/gpu/mod.rs` (targets, gated passes).
+Edited: `shaders/outline_mask.wgsl` + `shaders/outline_sep.wgsl` + `engine/gpu/outline.rs` (NEW),
+`shaders/composite.wgsl` (ramp), `engine/gpu/{arena,segments,glyphs}.rs` (one `draw_mask` each),
+`engine/gpu/render.rs` (one gated line), `engine/gpu/view.rs` (`outline_needed`).
 
 ## Next
 
