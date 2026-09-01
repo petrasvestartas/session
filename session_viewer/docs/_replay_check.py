@@ -193,7 +193,10 @@ def region_op(lines, i):
         where = "end" if "**at the end**" in text else ("start" if "**at the start**" in text else None)
         n = 2 if where else 3
         if len(files) < 2 or len(parts) < n: return bad
-        return (("move", files[0], [parts[0], parts[1]], [files[1], where or parts[2]], i + 1), j)
+        # `**up to**` is exclusive here exactly as it is for Remove: a body is named by the thing
+        # that follows it, and moving a method's body must not take the method's closing brace.
+        return (("move", files[0], [parts[0], parts[1], "**up to**" in text],
+                 [files[1], where or parts[2]], i + 1), j)
     if low.startswith("**append**"):
         # `**Create` covers a new file and `**Add below` needs an anchor; adding a whole new item
         # at the END of an existing file had no verb at all, so lesson 36's resolve pipeline sat

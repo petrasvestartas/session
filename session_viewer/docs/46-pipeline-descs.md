@@ -1,6 +1,6 @@
 # 46 A pipeline is data, not a function
 
-> Lesson [115](115-id-buffer-picking.md) re-runs this frame's whole draw list against a second set
+> Lesson [116](116-id-buffer-picking.md) re-runs this frame's whole draw list against a second set
 > of pipelines that write object ids instead of colour. It costs one preset and one extra
 > `Pipelines::new` call — because of this lesson. Nothing you can see changes: same ink, same draw
 > count, same object count, on every scene and every config. Answer key: branch `end-of-45`, so
@@ -77,7 +77,7 @@ two files. A desc is data, and data sits in a list without owning a file.
 | `Mat4`, `mat_mul`, `mat_to_f32` | `engine/gpu/mod.rs` (top level) | **`src/math.rs`** | anyone — no wgpu, no `self` |
 | `eye_from_view_proj`, `ortho_half_height` | `impl Gpu` | **`src/math.rs`** | anyone, incl. the headless harness |
 | `xform_point`, `grow_bounds` | `app/scene.rs` | **`src/math.rs`** | anyone |
-| `Bounds`, `Aabb64` | nowhere — written out longhand | **`src/math.rs`** | anyone (lessons 62, 63, 68, 108, 111, 113) |
+| `Bounds`, `Aabb64` | nowhere — written out longhand | **`src/math.rs`** | anyone (lessons 63, 64, 69, 109, 112, 114) |
 | the 9 `create_bind_group_layout` blocks | `Gpu::build`, lines 506-810 | **`pipelines/layouts.rs`** | `Layouts::new` ONLY |
 | `Self::splat_entry` | `impl Gpu` | **`pipelines/layouts.rs::compute_entry`** | `Layouts::new` ONLY |
 | the 11 `build_*_pipeline` fns | `pipelines/build.rs` | **gone** — `PipelineDesc` + `build` | nobody adds a twelfth |
@@ -158,7 +158,7 @@ re-point, not a two-ended edit you cannot compile in the middle of. Neither know
 
 Printed in full rather than moved: the two camera solves leave `impl Gpu`, so they lose four
 spaces of indent and `ortho_half_height` gains a `pub`. `Bounds` and `Aabb64` are the only new
-lines — lessons 62, 63, 68, 108, 111 and 113 all pass a box around and spell it out longhand.
+lines — lessons 63, 64, 69, 109, 112 and 114 all pass a box around and spell it out longhand.
 
 **Create `src/math.rs`**
 
@@ -1075,7 +1075,7 @@ Two things that are easy to lose:
   runs with that variable set, so losing one is silent.
 
 `Pipelines` keeps **named fields**, not a map: the MSAA flip assigns a whole new `Pipelines`
-mid-session, and lesson 115's id pass re-runs the draw list against a second set.
+mid-session, and lesson 116's id pass re-runs the draw list against a second set.
 
 **Create `src/engine/pipelines/build.rs`**
 
@@ -1106,7 +1106,7 @@ pub struct Target {
 /// the same in all fourteen and lives once, in `build`.
 pub struct PipelineDesc<'a> {
     /// Names the shader module, the pipeline layout AND the pipeline; the only string a GPU
-    /// error message will hand back, so it is also lesson 105's error-scope label.
+    /// error message will hand back, so it is also lesson 106's error-scope label.
     pub label: &'a str,
     /// WGSL source text, normally an `include_str!`.
     pub shader: &'a str,
@@ -1123,7 +1123,7 @@ pub struct PipelineDesc<'a> {
     pub depth_write: bool,
     pub depth_compare: wgpu::CompareFunction,
     /// Overrides the pass target. `None` = draw into the frame; a value pins this pipeline to its
-    /// own attachment (lesson 91's R8Unorm mask, lesson 115's R32Uint id buffer).
+    /// own attachment (lesson 92's R8Unorm mask, lesson 116's R32Uint id buffer).
     pub target: Option<Target>,
 }
 

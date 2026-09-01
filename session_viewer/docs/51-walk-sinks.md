@@ -1,7 +1,7 @@
 # 51 A producer's signature names what it can reach
 
-> Lesson [53](53-nurbscurve.md) adds a geometry type by writing one file and two lines; lesson
-> [115](115-id-buffer-picking.md) needs to know which face a triangle came from, and adds one
+> Lesson [54](54-nurbscurve.md) adds a geometry type by writing one file and two lines; lesson
+> [116](116-id-buffer-picking.md) needs to know which face a triangle came from, and adds one
 > field in one place. Both are cheap because after this lesson the walk is one file per KERNEL
 > TYPE, and a producer hands back its object row instead of pushing it.
 > Nothing you can see changes.
@@ -741,7 +741,7 @@ they also name the unit that one `spacing` float carries — world units for a m
 cloud.
 
 It is also where provenance will go. A row knows its OBJECT today and not which face or edge it
-came from; lesson 115 adds a field here and touches no family file.
+came from; lesson 116 adds a field here and touches no family file.
 
 
 **Create `src/app/walk/mod.rs`**
@@ -796,7 +796,7 @@ pub struct WalkCx {
 /// every later row's data by one, silently.
 ///
 /// It is also the seam for provenance. A row today knows its OBJECT (`instance_id`) but not which
-/// FACE or EDGE of the kernel geometry it came from; when lesson 115 adds that, it adds a field
+/// FACE or EDGE of the kernel geometry it came from; when lesson 116 adds that, it adds a field
 /// here and touches no family file.
 pub struct Row {
     /// Mesh-LOCAL AABB. `None` for everything the solid lane's facing cull does not need.
@@ -1699,7 +1699,7 @@ The thirteen arms left scene.rs for walk_geometry, and with them went the fourte
 the two per-object columns and the three reach-backs that patched a row already pushed. A
 producer now RETURNS a Row and cannot push one, so the object table's count cannot drift. Row
 also names the unit its one spacing float carries, and it is where a face or edge id will go when
-lesson 115 needs one.
+lesson 116 needs one.
 
 scene.rs is 739 lines and no longer knows what a Geometry is.
 ```
