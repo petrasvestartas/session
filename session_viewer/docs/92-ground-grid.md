@@ -33,9 +33,12 @@ at every distance, one fullscreen triangle.
 ## Files we touch
 
 ```
-src/shaders/ground.wgsl        # NEW — fullscreen triangle; fs does ray ∩ z=0, fade, frag_depth
-src/engine/pipelines/build.rs  # build_ground_pipeline (depth WRITE on, compare Greater)
-src/engine/gpu/mod.rs          # draw it after the background, before the meshes
+src/shaders/ground.wgsl          # NEW — fullscreen triangle; fs does ray ∩ z=0, fade, frag_depth
+src/engine/gpu/ground.rs         # NEW — the lane: GroundUniform, its bind group, the desc, the draw
+src/engine/pipelines/layouts.rs  # Layouts.ground — one field, one block
+src/engine/gpu/render.rs         # ONE line in the frame list, after the background, before the grid
+src/engine/gpu/frame.rs          # FrameInput.view_dist — the fade radius reads it
+src/engine/gpu/mod.rs            # one Gpu field + one ::new line
 ```
 
 ## Step 1 — the shader: `src/shaders/ground.wgsl`
@@ -165,36 +168,40 @@ never shimmers at 10 km, same as every object since 33.
 > Clamp the computed line width (or fade the grid out with distance, like the ground itself)
 > before it reaches that regime.
 
-## Step 2 — pipeline + draw: `src/engine/pipelines/build.rs` + `gpu/mod.rs`
+## Step 2 — the lane file: `src/engine/gpu/ground.rs`
 
-`build_ground_pipeline` is the background pipeline's shape (fullscreen, no vertex buffers) with two
-changes: **alpha blending on** (the fade) and **depth write ON, compare Greater** (reverse-Z — the
-ground is real geometry that occludes and is occluded; `frag_depth` makes that exact). Construct it
-**inside `Pipelines::new(device, samples, …)`, from the `samples` it receives** — never as a
-standalone one-off. MSAA is dynamic here (`msaa_for` returns 1 for flat-only scenes, 4 once any
-solid exists), and `set_scene` rebuilds *all* pipelines on the 1×↔4× flip; a ground pipeline pinned
-to one sample count panics on the first solid append with a sample-count mismatch:
+A new render lane is a new file under `engine/gpu/`, and this is the smallest possible one: a
+uniform, its bind group, one desc, one draw. Its `GroundUniform` does NOT join the frame's
+uniform blocks — the ground is a lane, not the frame, and keeping it here is what leaves
+`frame.rs` a three-block file and gives 96's work plane a one-field edit.
+
+The desc is the background pipeline's shape (fullscreen, no vertex buffers) with two changes:
+**alpha blending on** (the fade) and **depth write ON, compare Greater** (reverse-Z — the ground
+is real geometry that occludes and is occluded; `frag_depth` makes that exact). Both of those are
+already a preset, so the whole pipeline is one literal in this family's `descs`, built through
+`Pipelines::new(device, t, &l)` from the `Target` it receives — never as a standalone one-off.
+MSAA is dynamic here (`msaa_now` returns 1 for flat-only scenes, 4 once any solid exists), and
+`set_scene` rebuilds *all* pipelines on the 1×↔4× flip; a ground pipeline pinned to one sample
+count panics on the first solid append with a sample-count mismatch:
 
 ```rust
-        blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-        depth_stencil: Some(wgpu::DepthStencilState {
-            format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),
-            depth_compare: Some(wgpu::CompareFunction::Greater),
-            stencil: wgpu::StencilState::default(),
-            bias: wgpu::DepthBiasState::default(),
-        }),
+            // `sheet` IS opaque + ALPHA_BLENDING, and opaque is already depth-write + Greater.
+            ground: build(device, t, &PipelineDesc::sheet("ground", GROUND, &[&l.mvp, &l.ground])),
 ```
 
-Draw order in `clear()`: background gradient (25) → **ground** → grid (20) → meshes/lines/points.
+Draw order in the frame list (`render.rs`): background gradient (25) → **ground** → grid (20) →
+meshes/lines/points. `backdrop::draw` paints its background and its grid in ONE call, so this is
+the one place that pair splits into two list entries with the ground between them.
 The per-frame uniform fills from values already at hand: `view_proj.inverse()` (the kernel's full
 4×4 inverse — fixed during lesson 69; this matrix contains the projection, which the old affine-only
 version got wrong — and it returns `Option<Xform>`, so unwrap or early-out), `eye − origin`, fade
-radius ≈ 30× `camera.distance_world()` (feels infinite without banding), and `−origin[2]`. The
-radius **must** come from `distance_world()` — that's the camera distance in world **mm**;
-`camera.distance` itself is in *metres*, and using it makes the fade 1000× too tight: the floor
-dies out a hand-span from the camera. (Alternative: derive the radius from `gpu.scene_min`/
-`scene_max` — refreshed each `set_scene` — so the fade scales with the scene instead of the zoom.)
+radius ≈ 30× the view distance (feels infinite without banding), and `−origin[2]`. The radius
+**must** be the camera distance in world **mm** — `camera.distance` itself is in *metres*, and
+using it makes the fade 1000× too tight: the floor dies out a hand-span from the camera. That
+number is not in `FrameInput` yet, and it is already passed to `rebase_anchor` every frame, so it
+is one stashed field there and one `pub view_dist: f64` here. (Alternative: derive the radius from
+`gpu.scene_min`/`scene_max` — refreshed each `set_scene` — so the fade scales with the scene
+instead of the zoom.)
 
 > **Grid upgrade (optional but natural here).** Lesson 20's vertex grid is 50 fixed vertices (25 segments) — fine on
 > the demo, small on a big scene. The same analytic trick renders an **infinite** grid: in this very
@@ -234,8 +241,9 @@ Ch 70: THE STAGE. Analytic ground: a fullscreen triangle whose FRAGMENTS each un
        fwidth AA dissolves at grazing angles — fade out before all three.
 ```
 
-Edited: `shaders/ground.wgsl` (NEW), `engine/pipelines/build.rs` (`build_ground_pipeline`),
-`engine/gpu/mod.rs` (uniform + draw between background and grid).
+Edited: `shaders/ground.wgsl` + `engine/gpu/ground.rs` (NEW), `engine/pipelines/layouts.rs`
+(`Layouts.ground`), `engine/gpu/render.rs` (the draw, between background and grid),
+`engine/gpu/frame.rs` (`FrameInput.view_dist`), `engine/gpu/mod.rs` (one field + one `::new`).
 
 ## Next
 
