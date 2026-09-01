@@ -51,3 +51,7 @@ Ch 101: COMPUTE INK. Segments join points in the atomic pixel race: DDA per thre
         stays on the AA raster lane; atomicAdd coverage buys back antialiasing at fit.
         Hatching overdraw dies the same death the cloud fit-view did in 39.
 ```
+
+## Next
+
+Lesson [115](115-segment-batches.md) — **Segment batches: cull ink before it costs.** Segments are rejected in batches instead of per fragment.

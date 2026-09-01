@@ -1711,7 +1711,7 @@ scene.rs is 739 lines and no longer knows what a Geometry is.
 
 ## Next
 
-Lesson **51** — **five types, one body.**
+Lesson [52](52-adapters.md) — **five types, one body.**
 
 ```bash
 awk '/fn push_mesh/,/^\}$/' src/app/scene.rs | wc -l

@@ -49,3 +49,7 @@ Ch 106: HiZ. Last frame's depth, mip-reduced keeping the farthest value; boxes t
         already run. Single-phase (one-frame popping) first, two-phase (early/late)
         when it matters. 90's lever 2, cashed in.
 ```
+
+## Next
+
+Lesson [120](120-id-buffer-picking.md) — **Id-buffer picking: hover and marquee stop scaling with the scene.** The GPU writes the row id it drew, so a pick is a texture read.

@@ -50,3 +50,7 @@ Ch 105: DISCRETE LOD. QEM edge-collapse (~200 lines, viewer-only, kernel truth i
         mesh_q instead — their exact geometry IS the LOD source. The Nanite DAG stays
         unbuilt on purpose.
 ```
+
+## Next
+
+Lesson [119](119-hiz-occlusion.md) — **HiZ occlusion: what's behind things costs nothing.** A depth pyramid rejects geometry the frame has already covered.

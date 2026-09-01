@@ -255,3 +255,7 @@ walked them all. **Find** in `update_inside_flags`:
 - In the browser with the full mix scene: scans streamed in AFTER the first fit are no
   longer sliced by the far plane as the view turns, and wheel-zoom logs at most ~5
   rebases a second instead of one per tick.
+
+## Next
+
+Lesson [40](40-compute-splatting.md) — **The production splatter: tint, the static skip, and the trap.** The dots stop being a demo - and one of the optimisations is a trap worth meeting.

@@ -2075,7 +2075,7 @@ Gpu is 43 fields. Twenty of the twenty-two it lost were one shape written out fo
 
 ## Next
 
-Lesson **49** — **the frame is a list you can read.** Run the evidence:
+Lesson [50](50-frame-list.md) — **the frame is a list you can read.** Run the evidence:
 
 ```bash
 grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)

@@ -1275,6 +1275,8 @@ calls) · `app/scene.rs` (739 → 284) · `app/knobs.rs` (its doc comment).
 
 ## Next
 
-Lesson **52** — **NurbsCurve**, and the first lesson written against the new paths. A geometry
-type is now one file under `app/walk/` and, if it needs a new row format, one file under
-`engine/gpu/`. Nothing else has to move.
+Lesson [53](53-shell-loader-input.md) — the shell, the loader and the input.
+
+The payoff this unlocks arrives at lesson [58](58-nurbscurve.md), the first geometry lesson
+written against the new paths: a geometry type is now one file under `app/walk/` and, if it
+needs a new row format, one file under `engine/gpu/`. Nothing else has to move.

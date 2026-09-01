@@ -136,3 +136,7 @@ cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- \
 
 - In the browser, the memory panel no longer spikes per appended file: the upload's
   full-size staging mirror is gone.
+
+## Next
+
+Lesson [38](38-append-dont-rebuild.md) — **Append, don't rebuild: Mat4 rows and growable lanes.** Adding a file should cost the file, not the scene.

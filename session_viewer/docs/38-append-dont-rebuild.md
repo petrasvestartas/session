@@ -3817,3 +3817,7 @@ it is the largest single allocation left in a load.
 ```
 cargo run --release --example selftest -- out.ppm assets/scenes/bunny_drawings.toml
 ```
+
+## Next
+
+Lesson [39](39-big-scenes.md) — **Big scenes: the far plane, the rebase, and the vertex dead end.** What breaks first when the model is kilometres across, and why f32 is where it breaks.

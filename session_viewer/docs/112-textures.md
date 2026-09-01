@@ -381,9 +381,14 @@ group-0-binding-2 `tex_anchor` + triplanar sample).
 
 ## Next
 
-This is the last (optional) appendix — the CAD default look returns to shaded + edges + arctic GI,
-which never binds a material. Fold textures in only where a rendering mode genuinely needs an image
-(a preview material, a decal, an imported model's baked albedo).
+This closes the optional appendices on look — the CAD default returns to shaded + edges + arctic
+GI, which never binds a material. Fold textures in only where a rendering mode genuinely needs an
+image (a preview material, a decal, an imported model's baked albedo).
+
+Lesson [113](113-sheet-impostors.md) — **sheet impostors: a drawing becomes a texture until you
+look closely.** It opens the performance appendices ([113](113-sheet-impostors.md)-[120](120-id-buffer-picking.md)),
+which take the lanes built above and make them cheap: impostors, compute ink, batching,
+quantization, meshlets, LOD, occlusion, and picking that stops scaling with the scene.
 
 ## Next
 

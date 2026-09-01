@@ -3081,7 +3081,7 @@ a single file against it if a line count comes out wrong.
 
 ## Next
 
-Lesson **48** — **one row, two shaders.** Run the evidence:
+Lesson [49](49-row-families.md) — **one row, two shaders.** Run the evidence:
 
 ```bash
 grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)

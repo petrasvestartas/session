@@ -327,7 +327,7 @@ parse, `watch_in_flight` overlap guard — plus `self_write_hash` stamped by 44'
 
 ## Next
 
-`69-screen-to-ray.md` — Phase 7 opens: picking. The mouse is a 2D point; everything selectable is 3D. The
-next lesson unprojects the cursor through the inverse `view_proj` into a world-space ray — with the
-`ndc_z = 0.5` far-point trick that dodges a real precision bug — the ray every later pick (mesh, edge,
-vertex, line) is cast from.
+Lesson [67](67-scene-bvh.md) — **Scene BVH: one broad-phase, three consumers.** Everything that
+has to ask "which objects are near here" — culling, picking, selection — currently walks every
+row. One tree over the scene's boxes answers all three, which is what makes the next two lessons
+affordable.

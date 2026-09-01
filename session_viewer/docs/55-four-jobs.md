@@ -305,4 +305,4 @@ down is the whole refactor; the halves fall out of it.
 
 ## Next
 
-Lesson [58](58-nurbscurve.md) - NurbsCurve.
+Lesson [56](56-rules-that-fail.md) - rules that fail.

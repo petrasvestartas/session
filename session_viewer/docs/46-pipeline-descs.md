@@ -2049,7 +2049,7 @@ if a group refuses to compile — each converts exactly one preset's worth of de
 
 ## Next
 
-Lesson **46** — **the floor is not a lane.** Run the evidence:
+Lesson [47](47-gpu-floor.md) — **the floor is not a lane.** Run the evidence:
 
 ```bash
 grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)

@@ -464,3 +464,7 @@ the WALKED lane, on the kernel's own `SpatialOctree`.
 - The sampled bunny (`assets/scenes/bunny_cloud.toml`, ground-truth normals):
 
 ![bunny cloud closeup](img/40-bunny.png)
+
+## Next
+
+Lesson [43](43-cloud-scenes.md) — **Cloud scenes: datasets, bbox packing, and the stress test.** Several clouds in one frame, packed and measured.

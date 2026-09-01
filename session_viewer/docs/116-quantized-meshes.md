@@ -48,3 +48,7 @@ Ch 103: QUANTIZED ARENA. 40 → 16 B/vertex: unorm16 positions dequantized by th
         shared decoder). Display format only — kernel truth untouched, picking exact.
         A/B behind VIEWER_VQ, adopted on numbers.
 ```
+
+## Next
+
+Lesson [117](117-meshlets.md) — **Meshlets: clusters cull what triangles can't.** Triangles are grouped so a whole cluster can be rejected at once.

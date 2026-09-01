@@ -2705,8 +2705,8 @@ all leave) · `src/engine/gpu/upload.rs` (the `cloud` group) ·
 
 ## Next
 
-Lesson **50** — **a producer's signature names the shaders it can reach.** The engine is done;
-everything above is `app/`. Run the evidence:
+Lesson [51](51-walk-sinks.md) — **a producer's signature names the shaders it can reach.** The
+engine is done; everything above is `app/`. Run the evidence:
 
 ```bash
 wc -l src/app/scene.rs

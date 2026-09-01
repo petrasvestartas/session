@@ -2615,7 +2615,7 @@ any single file against it if a line count comes out wrong.
 
 ## Next
 
-Lesson **47** — **one row per object.** Run the evidence:
+Lesson [48](48-object-rows.md) — **one row per object.** Run the evidence:
 
 ```bash
 grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)

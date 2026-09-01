@@ -54,3 +54,7 @@ Ch 100: IMPOSTORS. A static sheet renders once into a zoom-bucketed texture; per
         Hysteresis keeps near zoom vector-true; LRU bounds memory; reconcile invalidates.
         The vello "retained raster" idea without the dependency.
 ```
+
+## Next
+
+Lesson [114](114-compute-ink.md) — **Compute ink: segments through the splat lane.** The ink producer moves onto the compute path the clouds already use.

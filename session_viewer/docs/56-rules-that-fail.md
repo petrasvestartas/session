@@ -538,4 +538,4 @@ it visible.
 
 ## Next
 
-Lesson [58](58-nurbscurve.md) - NurbsCurve.
+Lesson [57](57-convention-is-not-a-type.md) - a naming convention is not a type.

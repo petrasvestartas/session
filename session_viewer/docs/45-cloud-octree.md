@@ -721,3 +721,10 @@ lidar14.toml   (fit)              4611          4612           4294
   fringe's coarse dots and the interior's fine dots add up to one picture.
 - Cull the subtree before you test its error, or a close zoom starves the record table.
 - `VIEWER_LOD=0` is a reference switch, not a fallback. Keep it working.
+
+## Next
+
+Lesson [46](46-pipeline-descs.md) — **a pipeline is data, not a function.** This closes the
+point-cloud chain and opens the restructure: lessons [46](46-pipeline-descs.md)-[52](52-adapters.md)
+split the 2,100-line `gpu/mod.rs` into one file per render lane and `scene.rs` into one file per
+geometry type, as pure moves under a pixel gate.

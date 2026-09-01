@@ -237,3 +237,7 @@ doubles as the far-size floor — the per-cloud size control from lesson 36 surv
 - `VIEWER_EDL=0` turns the shading off for an A/B; the geometry must not move.
 - The pixel gate for this pair lands at the end of lesson [42](42-cloud-normals.md)
   (`325369`), once the lambert term is in and the clouds that carry normals exist.
+
+## Next
+
+Lesson [42](42-cloud-normals.md) — **Cloud normals: lambert in the splat lane.** Clouds that carry normals get shaded like surfaces, through an oct16 lane that costs one u32 a point.

@@ -1178,10 +1178,12 @@ whole-file path would have peaked near a gigabyte.
 
 ## Next
 
-[44 — Cloud octree](45-cloud-octree.md) closes the point-cloud chain: the walked lane gets
+[45 — Cloud octree](45-cloud-octree.md) closes the point-cloud chain: the walked lane gets
 Potree's LOD on the kernel's own `SpatialOctree`. Streamed clouds opt out — they have no
 CPU points to reorder.
 
-Then **45-51** split the 2,100-line `gpu/mod.rs` into one file per render lane and
-`scene.rs` into one file per geometry type, as pure moves under a pixel gate
-(`_ARCHITECTURE_TARGET.md`). Every lesson from 52 on is written against that tree.
+Then [46](46-pipeline-descs.md)-[52](52-adapters.md) split the 2,100-line `gpu/mod.rs` into one
+file per render lane and `scene.rs` into one file per geometry type, as pure moves under a pixel
+gate (`_ARCHITECTURE_TARGET.md`). Lessons [53](53-shell-loader-input.md)-[57](57-convention-is-not-a-type.md)
+then finish the shell, retire the wire mirrors and turn the architecture rules into tests, and
+every lesson from [58](58-nurbscurve.md) on is written against that tree.

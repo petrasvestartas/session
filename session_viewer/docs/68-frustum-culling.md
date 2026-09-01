@@ -440,10 +440,7 @@ culled/hidden instances), `state.rs` (build frustum, rebase, cull when the camer
 
 ## Next
 
-`63-gpu-arena.md` — Phase 6 opens: the `.pb` file becomes a live source. Reloading a file today
-would rebuild the entire scene (35's `add_file` walk from scratch, plus a whole-buffer `set_scene`).
-The next lesson diffs the incoming `Session`
-against the current one by `guid` — added / removed / content-changed / unchanged — and re-flattens
-**only** the objects that actually changed, replacing their arena slots in place and re-walking only
-their boxes in 40's extents cache (the tree itself rebuilds from that cache — cheap), instead of
-starting from zero.
+Lesson [69](69-screen-to-ray.md) — **Phase 7 opens: picking.** The mouse is a 2D point;
+everything selectable is 3D. The next lesson unprojects the cursor through the inverse
+`view_proj` into a world-space ray — with the `ndc_z = 0.5` far-point trick that dodges a real
+precision bug — the ray every later pick (mesh, edge, vertex, line) is cast from.

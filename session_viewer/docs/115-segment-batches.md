@@ -50,3 +50,7 @@ Ch 102: SEG BATCHES. 4096-segment batches with AABBs, GPU frustum cull into indi
         snorm16 endpoints cut the display table 32 → 20 B/segment; the raw table keeps
         the truth for picking. Schütz's batch idea, applied to ink.
 ```
+
+## Next
+
+Lesson [116](116-quantized-meshes.md) — **Quantized meshes: the arena on a diet.** Vertex rows shrink to the precision the frame can actually show.

@@ -114,3 +114,7 @@ degrading it.
 Where next: Phase 14 (83–89 — sections through web polish) and the textures appendix (90), 81's
 levers when a scene demands them, and the parked kernel work (booleans, STEP) that this viewer is
 now a worthy front-end for.
+
+## Next
+
+Lesson [105](105-section-planes.md) — **Section planes: cut the building open.** A clipping plane the shaders honour, so the model can be opened without being modified.

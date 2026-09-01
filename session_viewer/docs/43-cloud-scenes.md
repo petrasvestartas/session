@@ -2824,3 +2824,7 @@ cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- \
 
 And in the browser: 60 fps at the fit view — idle, orbiting, wheel-zooming — measured
 with an rAF probe, not the frame counter.
+
+## Next
+
+Lesson [44](44-streaming-cloud.md) — **Streaming cloud: HTTP Range in, GPU rows out.** A 431 MB file that never fits the heap, drawn while it downloads - the payoff for every packed-array decision in this block.

@@ -50,3 +50,7 @@ Ch 104: MESHLETS. ~124-tri clusters with bbox + normal cone, built greedily in i
         ranges; one indirect draw per big mesh. 3-4× on dense scans, zero effect on
         small objects, no mesh shaders needed, no libraries — 80 lines of builder.
 ```
+
+## Next
+
+Lesson [118](118-mesh-lod.md) — **Mesh LOD: fewer triangles when they'd be smaller than pixels.** The cluster hierarchy picks a detail level per view.

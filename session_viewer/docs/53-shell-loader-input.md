@@ -495,6 +495,16 @@ cargo check --target wasm32-unknown-unknown                     3 warnings, as b
 ./docs/_gate.sh                                                 gate OK
 ```
 
+**"As before", not "clean".** These counts were measured against the kernel as it stood when this
+lesson was written. The tree at this point still carries `LeanMesh` from lesson
+[38](38-append-dont-rebuild.md), and the kernel's P6 wire reshape has since reserved the tags
+that mirror names — so against today's kernel the same two commands also report four
+`error[E0560]: struct proto::Mesh has no field named …` for `halfedges`, `pointcolors`,
+`facecolors` and `linecolors`. That is expected here and is not something you typed wrong:
+removing the mirror is the whole subject of lesson [54](54-the-mirror-can-go.md), which quotes
+those four errors and is the first point in the chain where the tree builds against the current
+kernel. Compare warning counts here; expect the errors until 54.
+
 ## 5. What is deliberately not here
 
 `resumed` is still 128 lines and `user_event` 83. They are one job — bring the app up, then feed it
@@ -508,4 +518,4 @@ shell, nothing else. The gesture machine is a value with a name, not four loose 
 
 ## Next
 
-Lesson [58](58-nurbscurve.md) — NurbsCurve.
+Lesson [54](54-the-mirror-can-go.md) — the mirror can go.

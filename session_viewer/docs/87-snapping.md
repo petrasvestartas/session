@@ -299,6 +299,6 @@ consults snap, marker, `snap_enabled`), `app/commands.rs` (`snap` verb).
 
 ## Next
 
-`58-nurbscurve.md` — Phase 10: curved geometry. The kernel's `NurbsCurve` gets drawn (sampled to a
-polyline through the 31 tube path) and drawable (`curve` tool: control-point clicks, Enter) —
-sampled once, cached, undoable as one Command.
+Lesson [88](88-gpu-curves.md) — **GPU curves: the segment table gets a compute producer.** The
+curve sampling that has run on the CPU since lesson [58](58-nurbscurve.md) moves to a compute
+pass that writes the segment rows directly, so a curve costs an upload rather than a walk.

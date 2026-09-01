@@ -279,3 +279,7 @@ it only ever changes flags — leave that one alone:
 - The three-scan scene renders and orbits instead of freezing. The console error is gone.
 - A still camera costs one resolve triangle. The compute prelude runs only when the camera,
   the scale, or the scene changed.
+
+## Next
+
+Lesson [41](41-potree-look.md) — **The Potree look: EDL and attenuated splats.** Eye-dome lighting gives an unlit cloud its shape back.

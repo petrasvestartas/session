@@ -1445,3 +1445,7 @@ cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- \
 
 Flat, fixed-size, but REAL: round compute-splatted dots with correct depth against every
 other lane, at the end of the first lesson.
+
+## Next
+
+Lesson [37](37-cloud-memory.md) — **Cloud memory: kill the upload mirror.** The points now live twice - once in the walk's tables, once on the GPU. One of those copies has to go.
