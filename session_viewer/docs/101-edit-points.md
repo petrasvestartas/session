@@ -37,11 +37,12 @@ work on the **projected** 3-D points and write back through `set_cv_4d` with eac
 ## Files we touch
 
 ```
-src/app/scene.rs   # greville_points; refit_through (build R once per curve, solve on drag)
-src/state.rs       # F10 + modifier switches CV-mode ↔ edit-point-mode; same drag skeleton
+src/app/edit_points.rs # NEW — greville_points; refit_through (build R once per curve, solve on drag)
+src/app/scene.rs       # ONE field: greville_cache (the struct still lives here)
+src/state.rs           # F10 + modifier switches CV-mode ↔ edit-point-mode; same drag skeleton
 ```
 
-## Step 1 — the points: `src/app/scene.rs`
+## Step 1 — the points: `src/app/edit_points.rs`
 
 The kernel hands us the parameters directly:
 
@@ -61,7 +62,7 @@ in world coordinates, converts in Step 2.) Surfaces get the tensor version — G
 Greville in v — same idea, a grid of on-surface handles; start with curves, the surface loop is the
 same code twice.
 
-## Step 2 — the refit: `src/app/scene.rs`
+## Step 2 — the refit: `src/app/edit_points.rs`
 
 The cache type first — `R` depends only on knots/degree, so one inversion serves every drag. The
 matrix builds **numerically**: displace CV `j` by a unit (homogeneous, weight untouched),
@@ -73,7 +74,7 @@ note the kernel
 contract there: `duplicate()` **mints a fresh guid** (it clears the guid slot; a new one generates
 lazily on first read). For a throwaway probe that is exactly right — it can never collide with the
 real object — and the `GrevilleCache` stays keyed by the ORIGINAL `guid` parameter, which the
-probe's fresh guid never touches. Add to `app/scene.rs`:
+probe's fresh guid never touches. Add to `app/edit_points.rs`:
 
 ```rust
 /// Per-curve R⁻¹ cache for edit-point drags (R[i][j] = basis_j(greville_i)).
@@ -137,9 +138,10 @@ fn invert(mut a: Vec<Vec<f64>>) -> Option<Vec<Vec<f64>>> {
 }
 ```
 
-`greville_cache: GrevilleCache` is a **new `Scene` field** — add it to `struct Scene` and
-initialize `greville_cache: GrevilleCache::default()` in `Scene::new` (a struct literal, so a
-missing field is **E0063**), like any other cache. Then the refit itself, in `impl Scene`:
+`greville_cache: GrevilleCache` is a **new `Scene` field** — the one line this lesson owes
+`app/scene.rs`, which still holds `struct Scene` and `Scene::new`: add the field, and initialize
+`greville_cache: GrevilleCache::default()` (a struct literal, so a missing field is **E0063**),
+like any other cache. Then the refit itself, back in `edit_points.rs` as an `impl Scene` block:
 
 ```rust
     /// Move edit point k of curve `guid` to `target_world`: P' = R⁻¹ · E' per coordinate,
@@ -221,8 +223,8 @@ Ch 79: EDIT POINTS — handles ON the curve at the Greville abscissae (kernel: g
        "CVs moved".
 ```
 
-Edited: `app/scene.rs` (`greville_points`, `refit_through`, greville cache), `state.rs` (mode cycle,
-drag substitution).
+Edited: `app/edit_points.rs` (NEW — `greville_points`, `refit_through`, `GrevilleCache`),
+`app/scene.rs` (one field: `greville_cache`), `state.rs` (mode cycle, drag substitution).
 
 ## Next
 
