@@ -2054,6 +2054,389 @@ const BACKGROUND: &str = include_str!("../../shaders/background.wgsl");
 
 **Replace-all** `src/app/scene.rs` `self.tables.cloud_pos` -> `self.tables.cloud.pos` (1 hits)
 
+## Step 6 — `build` is a list of lanes
+
+`Gpu::build` is 232 lines. Seventy-four of them negotiate with the driver — instance, adapter,
+limits, device, surface format — and eighty more build four uniform buffers. Neither is a lane.
+What is left once both move out is what the function is for: one `::new` per lane, then the
+struct literal.
+
+The driver half goes first, into a file of its own. It is the only code in the viewer that talks
+to the machine rather than to the scene, and that is the seam: everything in `device.rs` is
+settled once at start-up by what the hardware has, everything in `mod.rs` is settled per scene
+and per frame by what the file holds.
+
+`open` hands back the four values by name rather than a built `Gpu`, so `build` destructures them
+and every line after it still reads `device`, `queue` and `config` exactly as before.
+
+**Create `src/engine/gpu/device.rs`**:
+
+```rust
+//! `device.rs` — the five wgpu objects, in order, and nothing else.
+//!
+//! Instance → Surface → Adapter → Device + Queue → configure. This is the only file in the
+//! viewer that talks to the driver rather than to the scene, and it is separate for that reason:
+//! everything here is decided ONCE at start-up by what the machine has, while everything in
+//! `mod.rs` is decided per scene and per frame by what the file holds. Mixing the two put 74
+//! lines of adapter negotiation in front of `Gpu::build`, which is a list of lanes.
+//!
+//! `open` returns the four values by name rather than a built `Gpu`, so `build` destructures
+//! them and every line after it reads `device`/`queue`/`config` exactly as before.
+
+/// What the driver hands back: the canvas (`None` when headless), the two handles, and the
+/// surface settings the rest of start-up reads for size and format.
+pub struct Opened {
+    pub surface: Option<wgpu::Surface<'static>>,
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pub config: wgpu::SurfaceConfiguration,
+}
+
+pub async fn open(
+    window: Option<std::sync::Arc<winit::window::Window>>,
+    width: u32,
+    height: u32,
+) -> anyhow::Result<Opened> {
+
+    Ok(Opened { surface, device, queue, config })
+}
+
+```
+
+**Move** from `src/engine/gpu/mod.rs` to `src/engine/gpu/device.rs`, **after**:
+
+```rust
+        // 1. Instance — the driver entry point. WebGPU only in the browser, never WebGL.
+```
+
+```rust
+        if let Some(s) = &surface { s.configure(&device, &config); }
+```
+
+```rust
+) -> anyhow::Result<Opened> {
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+pub mod cloud;
+```
+
+**Add below it:**
+
+```rust
+pub mod device;
+```
+
+Now `build` calls it.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    ) -> anyhow::Result<Self> {
+```
+
+**Add below it:**
+
+```rust
+        // Instance → Surface → Adapter → Device + Queue → configure, all in `device.rs`:
+        // the only part of start-up decided by the machine rather than by the scene.
+        let device::Opened { surface, device, queue, config } = device::open(window, width, height).await?;
+```
+
+#### The four uniform blocks belong to the frame
+
+The camera matrix, the clock, the pen and the cloud block are read by every family and written by
+none of them, so they are the frame's. `frame.rs` already owns the struct that holds them; it
+should own their construction too. In `build` they were eighty lines of `create_buffer_init`
+followed by `create_bind_group`, four times over, differing only in which struct they carry.
+
+None of the initial values is a default worth tuning — an identity matrix, `t = 0`, a pen with no
+eye and no anchor. The first frame overwrites all of them through `write_camera`. They exist so
+the buffers have a defined size before a bind group points at one.
+
+**Find** in `src/engine/gpu/frame.rs`:
+
+```rust
+impl FrameUniforms {
+```
+
+**Add below it:**
+
+```rust
+    /// Build the four uniform blocks. They are the frame's, not any lane's, so they are made
+    /// here rather than in `Gpu::build` - which had 80 lines of `create_buffer_init` +
+    /// `create_bind_group` in the middle of its list of lanes, four times over, differing only
+    /// in which struct they carry.
+    ///
+    /// The initial values are all "no camera yet": an identity matrix, t = 0, and a pen whose
+    /// eye and anchor are zero. The first frame overwrites every one of them through
+    /// `write_camera`, so nothing here is a default worth tuning - it exists so the buffers have
+    /// a defined size before a bind group points at them.
+    pub fn new(
+        device: &wgpu::Device,
+        layouts: &crate::engine::pipelines::layouts::Layouts,
+        config: &wgpu::SurfaceConfiguration,
+    ) -> Self {
+        use wgpu::util::DeviceExt;
+
+        // Camera MVP uniform - buffer + layout + bind group (group 0)
+        let mvp_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("mvp.buffer"),
+            contents: bytemuck::cast_slice(&Xform::identity().to_f32()),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let mvp_bind_group: wgpu::BindGroup = device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("mvp.bind_group"),
+            layout: &layouts.mvp,
+            entries: &[wgpu::BindGroupEntry{
+                binding: 0,
+                resource: mvp_buffer.as_entire_binding(),
+            }],
+        });
+
+        // Time Uniform
+        let time_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("time.buffer"),
+            contents: bytemuck::bytes_of(&0.0f32),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let time_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("time.bind_group"),
+            layout: &layouts.time,
+            entries: &[wgpu::BindGroupEntry{ binding: 0, resource: time_buffer.as_entire_binding() }],
+        });
+
+        // Line uniform - scree-constant thickness
+        let line_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("line.buffer"),
+            contents: bytemuck::bytes_of(&LineUniform {
+                thickness: 2.0,
+                proj_y: 1.0,
+                ortho_h: 0.0,
+                vp_h: config.height as f32,
+                vp_w: config.width as f32,
+                eye: [0.0; 3],   // no camera until the first frame writes one
+                anchor: [0.0; 3],   // no anchor until the first frame rebases the table
+                _pad1: 0.0,
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let line_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("line.bind_group"),
+            layout: &layouts.line,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: line_buffer.as_entire_binding()
+            }],
+        });
+
+        // point cloud unioform - the cloud's OWN global size + viewport (reuses layouts.line)
+        let cloud_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("cloud.buffer"),
+            contents: bytemuck::bytes_of(&CloudUniform {
+                size: 4.0,
+                vp_w: config.width as f32,
+                vp_h: config.height as f32,
+                _pad: 0.0,
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let cloud_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("cloud.bind_group"),
+            layout: &layouts.line,
+            entries: &[wgpu::BindGroupEntry {binding: 0, resource: cloud_buffer.as_entire_binding()}],
+        });
+
+        Self {
+            mvp_buffer,
+            mvp_bind_group,
+            line_buffer,
+            line_bind_group,
+            time: 0.0,
+            time_buffer,
+            time_bind_group,
+            cloud_buffer,
+            cloud_bind_group,
+            mvp_f32: [0.0; 16],
+            last_ortho_h: 0.0,
+            last_eye: [0.0; 3],
+        }
+    }
+
+
+```
+
+Then the three blocks come out of `build`, and what stood in for them is one call.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        // Camera MVP uniform - buffer + layout + bind group (group 0)
+        use wgpu::util::DeviceExt;
+        let mvp_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("mvp.buffer"),
+            contents: bytemuck::cast_slice(&Xform::identity().to_f32()),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let mvp_bind_group: wgpu::BindGroup = device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("mvp.bind_group"),
+            layout: &layouts.mvp,
+            entries: &[wgpu::BindGroupEntry{
+                binding: 0,
+                resource: mvp_buffer.as_entire_binding(),
+            }],
+        });
+
+        // Time Uniform
+        let time_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("time.buffer"),
+            contents: bytemuck::bytes_of(&0.0f32),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let time_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("time.bind_group"),
+            layout: &layouts.time,
+            entries: &[wgpu::BindGroupEntry{ binding: 0, resource: time_buffer.as_entire_binding() }],
+        });
+```
+
+**Replace with:**
+
+```rust
+        // The four per-frame uniform blocks - camera, time, pen, cloud - are the FRAME's,
+        // not any lane's, so `frame.rs` builds them (S5).
+        let frame = FrameUniforms::new(&device, &layouts, &config);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        // Line uniform - scree-constant thickness
+        let line_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("line.buffer"),
+            contents: bytemuck::bytes_of(&LineUniform {
+                thickness: 2.0,
+                proj_y: 1.0,
+                ortho_h: 0.0,
+                vp_h: config.height as f32,
+                vp_w: config.width as f32,
+                eye: [0.0; 3],   // no camera until the first frame writes one
+                anchor: [0.0; 3],   // no anchor until the first frame rebases the table
+                _pad1: 0.0,
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let line_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("line.bind_group"),
+            layout: &layouts.line,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: line_buffer.as_entire_binding()
+            }],
+        });
+```
+
+**Delete**
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+
+        // The point lane - empty until set_scene fills it from Upload.
+        let cloud = CloudLane::new(&device);
+
+        // point cloud unioform - the cloud's OWN global size + viewport (reuses layouts.line)
+        let cloud_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("cloud.buffer"),
+            contents: bytemuck::bytes_of(&CloudUniform {
+                size: 4.0,
+                vp_w: config.width as f32,
+                vp_h: config.height as f32,
+                _pad: 0.0,
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let cloud_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("cloud.bind_group"),
+            layout: &layouts.line,
+            entries: &[wgpu::BindGroupEntry {binding: 0, resource: cloud_buffer.as_entire_binding()}],
+        });
+```
+
+**Replace with:**
+
+```rust
+        // The point lane - empty until set_scene fills it from Upload.
+        let cloud = CloudLane::new(&device);
+
+```
+
+The splat groups bind two of those buffers, and the struct literal no longer builds the value it
+is given.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            (&mvp_buffer, &cloud_buffer, &objects.buffer));
+```
+
+**Replace with:**
+
+```rust
+            (&frame.mvp_buffer, &frame.cloud_buffer, &objects.buffer));
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            frame: FrameUniforms {
+                mvp_buffer, // shared: camera
+                mvp_bind_group,
+                line_buffer,  // shared: px-sizing for cylinders + spheres
+                line_bind_group,
+                time: 0.0,
+                time_buffer,    // shared: animation
+                time_bind_group,
+                cloud_buffer,
+                cloud_bind_group,
+                mvp_f32: [0.0; 16],
+                last_ortho_h: 0.0,
+                last_eye: [0.0; 3],
+            },
+```
+
+**Replace with:**
+
+```rust
+            frame,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+use frame::{CloudUniform, FrameInput, FrameUniforms, LineUniform};
+```
+
+**Replace with:**
+
+```rust
+use frame::{FrameInput, FrameUniforms};
+```
+
+`build` is now 81 lines and `gpu/mod.rs` 524 → 374, with no function in it over 81 lines. The
+frame's uniforms are in `frame.rs`, the driver is in `device.rs`, and what remains between them
+is the list this file was always meant to be.
+
 ## 7. Proving nothing changed — four ladders
 
 **(1) The compiler.** Both targets, `--all-targets` natively, and exactly the warning set lesson 46

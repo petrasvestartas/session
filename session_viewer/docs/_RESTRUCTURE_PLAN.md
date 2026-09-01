@@ -143,6 +143,16 @@ natively and is a final gate only. Any number that moves means a move changed an
 
 ## Status
 
+- 2026-09-01: the block's own target for `gpu/mod.rs` (~280) was missed — it ended at 524, all of
+  it in `Gpu::build`, which was 232 lines. Closed inside lesson 50 rather than as a new lesson, so
+  nothing renumbers: `device.rs` takes the 74 lines of driver negotiation (the only code in the
+  viewer decided by the machine rather than by the scene), and `FrameUniforms::new` takes the 80
+  lines that built the four uniform blocks. `build` 232 → 81, `gpu/mod.rs` 524 → 374 with no
+  function over 81 lines, and it is no longer the largest file in the tree. Pixel gate OK
+  (4 scenes × 4 configs × 2 passes), warning count unchanged, lessons 51-52 still replay clean.
+  Still over ~300 and ranked: `lib.rs` 523, `persistence.rs` 453, `splat.rs` 419, `camera.rs` 356,
+  `segments.rs` 338, `objects.rs` 337, `frame.rs` 329, `arena.rs` 303.
+
 - 2026-08-28: analysis done (3 censuses, lesson-43 audit, anchor-churn costing, 3 designs, 2 judges).
   USER DECISION: restructure after 44, as 45+, no letters. In progress: (1) the chain 40–44 made
   replayable on main — 40 split into 40 + 41, 42/43 renumbered, old 43 deleted, 44 re-anchored;

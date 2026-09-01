@@ -54,7 +54,8 @@ a **row**, and every row carries an `instance_id` into the one object table.
 | a pipeline/blend/depth setting | `engine/pipelines/mod.rs` + the family's `descs` |
 | a buffer that grows or a bind group | `engine/gpu/buffers.rs` (`GpuCtx`, `GrowBuf`) |
 | per-object transform, tint, flags | `engine/gpu/objects.rs` + `instance.rs` |
-| a per-frame uniform | `engine/gpu/frame.rs` |
+| a per-frame uniform | `engine/gpu/frame.rs` — including where the four blocks are BUILT |
+| adapter, surface format, device limits | `engine/gpu/device.rs` — the only file that talks to the driver |
 | a shader's struct disagreeing with Rust | run `cargo xtest` — four mirror tests name the file |
 | WHERE a file sits in the world | `app/manifest.rs` |
 | an env switch | `app/knobs.rs` (walk) or `engine/gpu/view.rs` (draw) |
