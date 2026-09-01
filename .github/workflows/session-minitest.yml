@@ -166,7 +166,15 @@ jobs:
     - name: Check committed proto bindings are fresh
       if: matrix.language == 'full'
       shell: bash
-      run: ./bash/gen_proto.sh --check
+      run: |
+        # grpcio-tools is a BUILD-time tool and deliberately NOT a session_py runtime
+        # dependency: it ships no pure-Python wheel, which made session_py uninstallable
+        # under Pyodide/micropip. It lives in the `proto` dependency-group instead, which
+        # a plain install does not pull, so this check has to bring its own. The pin
+        # matches session_py's group exactly - protoc stamps its version into the
+        # generated files, so a different one fails the diff it is here to run.
+        pip install "grpcio-tools==1.80.0"
+        ./bash/gen_proto.sh --check
 
     - name: Verify dist exists
       if: matrix.language == 'full'
