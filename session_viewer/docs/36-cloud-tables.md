@@ -28,24 +28,44 @@ rasterises the dots instead. That is what this lesson builds.
 The 32b glyph cloud path and the dormant `CloudPoint` vertex path both die here. Five
 files.
 
-**0a.** Delete the file `src/shaders/point.wgsl`.
+**0a.** **Delete `src/shaders/point.wgsl`**.
 
-**0b.** In `src/engine/pipelines/build.rs` — **find** `pub fn build_point_pipeline(` and
-**delete the whole function**, everything down to (not including)
-`pub fn build_ink_depth_pipeline(`.
+**0b.** **Remove** from `src/engine/pipelines/build.rs`, the whole builder and its doc comment,
+**up to** the next one:
 
-**0c.** In `src/engine/pipelines/mod.rs` — **delete these three lines** (they are the
-only mentions of `point`):
+```rust
+/// Pipeline for point-cloud billboards — buffer-less triangles, alpha-blended, depth-tested not written.
+```
+
+```rust
+/// Depth-only prepass for the FLAT lane (ribbons + dots), one builder for both since the two
+```
+
+**0c.** Three lines in `src/engine/pipelines/mod.rs` are the only other mentions of `point`.
+
+**Find**:
 
 ```rust
 use build::build_point_pipeline;
 ```
+
+**Delete**
+
+**Find**:
+
 ```rust
     pub point: wgpu::RenderPipeline,
 ```
+
+**Delete**
+
+**Find**:
+
 ```rust
             point: build_point_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
 ```
+
+**Delete**
 
 **0d.** In `src/app/scene.rs` — **find** near the bottom of the file:
 

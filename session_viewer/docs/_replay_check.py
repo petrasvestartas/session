@@ -28,6 +28,9 @@ import re, sys, pathlib, shutil, collections
 FILE_RE = re.compile(r'`([\w/_.-]+\.(?:rs|wgsl|toml|html|json))`')
 SPAN_RE = re.compile(r'`([^`]+)`')
 CREATE_RE = re.compile(r'\*\*Create `([\w/_.-]+)`')
+# The counterpart of Create. Requires an EXTENSION so it can never be confused with the
+# content-level `**Delete**` that follows a Find, or with a `**Delete** `some_expr`` span.
+DELETE_FILE_RE = re.compile(r'\*\*Delete `([\w/_.-]+\.(?:rs|wgsl|toml|json|md))`\*\*')
 
 def spans(line, after):
     """Code spans on `line` occurring after index `after`, excluding file paths."""
@@ -76,6 +79,9 @@ def ops(doc):
     cur = None; i = 0; out = []
     while i < len(lines):
         line = lines[i]
+        d = DELETE_FILE_RE.search(line)
+        if d:
+            out.append(("delete_file", d.group(1), None, None, i + 1)); i += 1; continue
         c = CREATE_RE.search(line)
         if c:
             body, k = fence(lines, i)
@@ -118,12 +124,22 @@ def ops(doc):
                     if hit == "delete":
                         arg = [""]
                     else:
-                        # A fenced block on the next non-blank line wins over any span in the
-                        # verb's own prose ("**Replace with** (the `point_buffer` NAME survives):").
+                        # A fenced block belonging to this verb wins over any span in the verb's
+                        # own prose ("**Replace with** (the `point_buffer` NAME survives):").
+                        # Scan PAST a multi-line explanation, not just one blank line: lesson 36's
+                        # "**Add below it** - `push_cloud` writes STRAIGHT into..." runs six lines
+                        # before its fence, and taking the span wrote the literal token
+                        # `push_cloud` into scene.rs where 58 lines of function belonged - an op
+                        # that REPORTED SUCCESS. Stop at the next op so an unrelated later fence
+                        # is never stolen.
                         nb = j + 1
-                        while nb < len(lines) and not lines[nb].strip():
+                        while nb < len(lines):
+                            l = lines[nb]
+                            if l.startswith("```"): break
+                            if l.startswith("#") or "**find" in l.lower(): nb = -1; break
+                            if l.startswith("**") and nb > j: nb = -1; break
                             nb += 1
-                        if nb < len(lines) and lines[nb].startswith("```"):
+                        if 0 <= nb < len(lines) and lines[nb].startswith("```"):
                             arg = fences(lines, nb)[0]
                         else:
                             pos = low.lower().index(tag.lower())
@@ -139,7 +155,7 @@ def ops(doc):
 
 
 HITS_RE = re.compile(r"\((\d+) hits?\)")
-CONT = ("**through**", "**to**", "**after**", "**at the end**", "**at the start**")
+CONT = ("**through**", "**to**", "**after**", "**at the end**", "**at the start**", "**up to**")
 
 def _window(lines, i):
     """Lines i..j of one region verb: until the next top-level verb/heading (continuation
@@ -179,20 +195,26 @@ def region_op(lines, i):
         return (("move", files[0], [parts[0], parts[1]], [files[1], where or parts[2]], i + 1), j)
     if low.startswith("**remove**"):
         if not files or len(parts) < 2: return bad
-        return (("remove", files[0], [parts[0], parts[1]], None, i + 1), j)
+        # "**up to**" makes the second anchor EXCLUSIVE. Deleting a whole function needs it:
+        # its own closing brace is not a unique line, but the next item's first line is.
+        return (("remove", files[0], [parts[0], parts[1], "**up to**" in text], None, i + 1), j)
     h = HITS_RE.search(text)
     if not files or len(parts) < 2 or not h: return bad
     return (("replace_all", files[0], [parts[0]], [parts[1], int(h.group(1))], i + 1), j)
 
-def cut_region(txt, first, last):
+def cut_region(txt, first, last, exclusive=False):
     """Whole-line exact matches: `first` unique, `last` = first line == last at/after it.
-    Returns (remaining text, region) or (None, why)."""
+    `exclusive` stops one line SHORT of `last`, which is how a whole function is named: by the
+    thing that follows it. Returns (remaining text, region) or (None, why)."""
     ls = txt.split("\n")
     hits = [k for k, l in enumerate(ls) if l == first]
     if len(hits) != 1: return None, f"first line matches {len(hits)}x (whole-line, exact)"
     a = hits[0]
     b = next((k for k in range(a, len(ls)) if ls[k] == last), None)
     if b is None: return None, "last line not found at/after the first (whole-line, exact)"
+    if exclusive:
+        if b <= a: return None, "the exclusive end line sits at or before the first line"
+        b -= 1
     return "\n".join(ls[:a] + ls[b + 1:]), "\n".join(ls[a:b + 1]) + "\n"
 
 def paste_region(txt, region, where):
@@ -221,6 +243,10 @@ def apply(root, doc):
     for verb, tgt, a, b, ln in ops(doc):
         if tgt and tgt.startswith(OUT_OF_TREE):
             skipped.append((ln, tgt)); continue
+        if verb == "delete_file":
+            p = root / tgt
+            if not p.exists(): fails.append((ln, tgt, "file not in snapshot")); continue
+            p.unlink(); continue
         if verb == "create":
             body = a[0] if isinstance(a, list) and a else (a or "")
             p = root / tgt; p.parent.mkdir(parents=True, exist_ok=True); p.write_text(body + "\n"); continue
@@ -229,7 +255,7 @@ def apply(root, doc):
         if verb in ("move", "remove"):
             p = root / tgt
             if not p.exists(): fails.append((ln, tgt, "file not in snapshot")); continue
-            rest, region = cut_region(p.read_text(), a[0], a[1])
+            rest, region = cut_region(p.read_text(), a[0], a[1], len(a) > 2 and bool(a[2]))
             if rest is None: fails.append((ln, tgt, f"Move/Remove: {region}")); continue
             if verb == "move":
                 q = root / b[0]
