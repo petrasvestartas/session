@@ -48,9 +48,13 @@ already built for reconcile, now run in reverse.
 Cargo.toml
 # save half: session_to_bytes (pb_dumps) + download_bytes (Blob → <a download>)
 src/app/persistence.rs
-# dirty: HashSet<guid>; mark_dirty; save_if_changed → Option<Vec<u8>> (hash gate)
+# dirty: HashSet<guid>; mark_dirty; save_if_changed → Option<Vec<u8>> (hash gate).
+# Document state, so it stays with the documents.
 src/app/scene.rs
-src/state.rs             # frame-count debounce + Ctrl+S; fire the download when edits settle
+# NEW — Sync: the frame-count debounce clock and the trigger, in one file, so 78's
+# render-on-demand rewrite lands here and nowhere else
+src/app/sync.rs
+src/state.rs             # one `sync: Sync` field + one line in render(); Ctrl+S in lib.rs
 ```
 
 ## Step 1 — Session → bytes: `src/app/persistence.rs`
@@ -140,7 +144,8 @@ Add the features to `Cargo.toml`'s `web-sys` list (beside 34's `Request`/`Respon
 
 ## Step 3 — the hash gate: only real changes count: `src/app/scene.rs`
 
-46 built `content_hash` + `Scene.hashes` (the last-saved fingerprints). Save reuses them: an object is
+46 built `content_hash` (`app/reconcile.rs`) + `Scene.hashes` (the last-saved fingerprints, on
+`struct Scene` in `app/scene.rs`). Save reuses them: an object is
 only *really* changed if its current hash differs from the stored one. One subtlety the Xform refactor
 forces: a pure MOVE never touches the geometry's bytes — placements live in `Session.xforms`, not on
 the object — so the fingerprint must fold the placement in with the object's sorted-JSON bytes.
@@ -201,58 +206,59 @@ two methods in `impl Scene`):
     }
 ```
 
-## Step 4 — debounce + trigger: `src/state.rs`
+## Step 4 — debounce + trigger: `src/app/sync.rs` (NEW) + `src/state.rs`
 
 The viewer already runs a per-frame loop, so the debounce is a frame counter — no timer API. An edit
 stamps `dirty_since` with the current frame; `render` checks whether edits have been quiet long
-enough, then runs the gate:
+enough, then runs the gate.
 
-Add the two fields to `struct State` — and initialize both in `State::new`'s `Ok(Self { … })`,
-or the struct won't compile:
+The clock gets its own file. `Sync` in `src/app/sync.rs` owns both fields, and `State` gains one
+`sync: Sync` — its FIRST sub-struct, and the reason the wall-clock swap the note below makes
+mandatory at 78 rewrites one small file instead of reaching into `state.rs`:
 
 ```rust
-    // add to struct State:
+    // add to struct Sync, in app/sync.rs:
     pub dirty_since: Option<u64>,   // frame of the most recent edit, None once settled
     pub frame: u64,                 // monotonic frame counter — nothing else advances it
 ```
 ```rust
-    // add to State::new's Ok(Self { … }) initializer:
-    dirty_since: None,
-    frame: 0,
+    // add to struct State (state.rs), and to State::new's Ok(Self { … }) initializer:
+    pub sync: Sync,
+    //   sync: Sync { dirty_since: None, frame: 0 },
 ```
 
 `frame` is the debounce clock, so *something* must advance it. Nothing does yet — add the increment
 as the first line of `render()`, right beside the `request_redraw()` treadmill:
 
 ```rust
-    // find, at the top of State::render():
+    // find, at the top of State::render() (state.rs):
     pub fn render(&mut self) -> anyhow::Result<()> {
         self.window.request_redraw();
-        self.frame += 1;   // WITHOUT this the debounce below is dead (frame - since is always 0)
+        self.sync.frame += 1;   // WITHOUT this the debounce below is dead (frame - since is 0)
         // …existing render body…
 ```
 
 Now the module-level constants, the `touch` entry point, and the debounce gate itself:
 
 ```rust
-    // add near the top of state.rs (module scope):
+    // add near the top of sync.rs (module scope), beside Sync:
     const SAVE_DEBOUNCE_FRAMES: u64 = 60;   // ~1 s at 60 fps
     const SAVE_FILENAME: &str = "session.pb";
 
-    // add to impl State:
+    // add to impl State (state.rs) — the one verb that reaches both halves:
     /// Editing code calls this on every mutation (gumball drag, delete, …).
     /// Cheap: just stamps a frame.
     pub fn touch(&mut self, guid: &str) {
         self.scene.mark_dirty(guid);
-        self.dirty_since = Some(self.frame);
+        self.sync.dirty_since = Some(self.sync.frame);
     }
 ```
 
 ```rust
-    // add inside render(), after `self.frame += 1;`, before the clear/draw returns:
-    if let Some(since) = self.dirty_since {
-        if self.frame - since >= SAVE_DEBOUNCE_FRAMES {
-            self.dirty_since = None;                               // one save per settled burst
+    // add inside render(), after `self.sync.frame += 1;`, before the clear/draw returns:
+    if let Some(since) = self.sync.dirty_since {
+        if self.sync.frame - since >= SAVE_DEBOUNCE_FRAMES {
+            self.sync.dirty_since = None;                          // one save per settled burst
             // doc 0 — see Step 3's policy note
             if let Some(bytes) = self.scene.save_if_changed(0, SAVE_FILENAME) {
                 let _ = crate::app::persistence::download_bytes(SAVE_FILENAME, &bytes);
@@ -315,7 +321,7 @@ doc's `lookup`, the same `docs[0]` the save targets):
         if let Some(g) = state.scene.docs.first()
             .and_then(|d| d.session.lookup.keys().next().cloned()) {
             state.scene.mark_dirty(&g);          // dirty WITHOUT changing the hash…
-            state.dirty_since = Some(state.frame); // …but still arm the debounce (the negative test)
+            state.sync.dirty_since = Some(state.sync.frame); // …but arm the debounce (negative test)
         }
     }
 ```
@@ -355,7 +361,9 @@ Ch 44: SAVE — write ONE doc's file out (docs[0] here; active-vs-all is policy)
 
 Edited: `Cargo.toml` (web-sys `Blob`/`Url`/`HtmlAnchorElement`), `app/persistence.rs` (`session_to_bytes`,
 `download_bytes` — the save half), `app/scene.rs` (`dirty` set, `mark_dirty`, `save_if_changed` hash gate),
-`state.rs` (`touch`, frame-count debounce in `render`, Ctrl+S).
+`app/sync.rs` (NEW — `Sync`: the frame clock, `SAVE_DEBOUNCE_FRAMES`, `SAVE_FILENAME`),
+`app/mod.rs` (one `pub mod sync;` line), `state.rs` (`sync: Sync`, `touch`, the debounce gate in
+`render`), `lib.rs` (the Ctrl+S and "d" key arms).
 
 ## Next
 
