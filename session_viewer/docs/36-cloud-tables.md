@@ -30,8 +30,10 @@ files.
 
 **0a.** **Delete `src/shaders/point.wgsl`**.
 
-**0b.** **Remove** from `src/engine/pipelines/build.rs`, the whole builder and its doc comment,
-**up to** the next one:
+**0b.** The builder itself goes with it.
+
+**Remove** from `src/engine/pipelines/build.rs`, its doc comment included, **up to** the
+builder that follows:
 
 ```rust
 /// Pipeline for point-cloud billboards — buffer-less triangles, alpha-blended, depth-tested not written.

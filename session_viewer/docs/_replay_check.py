@@ -182,7 +182,8 @@ def _parts(lines, i, j):
 
 def region_op(lines, i):
     low = lines[i].lower()
-    if not (low.startswith("**move**") or low.startswith("**remove**") or low.startswith("**replace-all**")):
+    if not (low.startswith("**move**") or low.startswith("**remove**") or low.startswith("**append**")
+            or low.startswith("**replace-all**")):
         return None
     j = _window(lines, i)
     files, parts = _parts(lines, i, j)
@@ -193,6 +194,12 @@ def region_op(lines, i):
         n = 2 if where else 3
         if len(files) < 2 or len(parts) < n: return bad
         return (("move", files[0], [parts[0], parts[1]], [files[1], where or parts[2]], i + 1), j)
+    if low.startswith("**append**"):
+        # `**Create` covers a new file and `**Add below` needs an anchor; adding a whole new item
+        # at the END of an existing file had no verb at all, so lesson 36's resolve pipeline sat
+        # in the doc as unreachable prose.
+        if not files or not parts: return bad
+        return (("append", files[0], [parts[0]], None, i + 1), j)
     if low.startswith("**remove**"):
         if not files or len(parts) < 2: return bad
         # "**up to**" makes the second anchor EXCLUSIVE. Deleting a whole function needs it:
@@ -243,6 +250,11 @@ def apply(root, doc):
     for verb, tgt, a, b, ln in ops(doc):
         if tgt and tgt.startswith(OUT_OF_TREE):
             skipped.append((ln, tgt)); continue
+        if verb == "append":
+            p = root / tgt
+            if not p.exists(): fails.append((ln, tgt, "file not in snapshot")); continue
+            old = p.read_text()
+            p.write_text(old + ("" if old.endswith("\n") else "\n") + a[0] + "\n"); continue
         if verb == "delete_file":
             p = root / tgt
             if not p.exists(): fails.append((ln, tgt, "file not in snapshot")); continue

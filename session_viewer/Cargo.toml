@@ -36,6 +36,7 @@ web-sys = { version = "0.3", features = [
     "RequestInit",
     "RequestMode",
     "Response",
+    "Headers",
     ] }
 getrandom = { version = "0.2", features = ["js"] }
 
@@ -75,9 +76,6 @@ path = "examples/bench_load.rs"
 name = "mk_facing_probe"
 path = "examples/mk_facing_probe.rs"
 
-[[example]]
-name = "check_lean"
-path = "examples/check_lean.rs"
 
 [[example]]
 name = "check_determinism"

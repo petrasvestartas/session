@@ -22,12 +22,16 @@ three-cloud scene pays it three times.
 
 ## Step 1 — `storage_buffer` stages through the queue
 
-**Find** in `src/engine/gpu/mod.rs` (near the bottom) — and **delete the three `///`
-doc-comment lines that sit above it**: the replacement block below carries its own doc,
-and the old one's "we still allocate one zeroed element" claim becomes FALSE with the new
-code (it allocates nothing; WebGPU's zero-initialization guarantee does the work):
+The old doc comment goes with the old body: its "we still allocate one zeroed element" claim
+becomes false, because the new code allocates nothing and lets WebGPU's zero-initialization
+guarantee do the work. So the anchor starts at the `///`.
+
+**Find** in `src/engine/gpu/mod.rs`, near the bottom:
 
 ```rust
+/// A read-only storage buffer that is never zero-sized (wgpu can't bind a 0-byte buffer).
+/// When `data` is empty we still allocate one zeroed element; the real element count is
+/// tracked separately, so the draw call issues 0 instances and nothing renders.
 fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, label: &str, data: &[T]) -> wgpu::Buffer {
     use wgpu::util::DeviceExt;
     let one = [T::zeroed()];

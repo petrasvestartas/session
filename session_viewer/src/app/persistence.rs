@@ -44,146 +44,13 @@ use session_rust::tree::{Tree, TreeNode};
 const CHUNK: usize = 25_000;
 
 /// One macrotask (setTimeout 0). A microtask (Promise.resolve) would NOT let the browser paint.
-async fn next_tick() {
+pub async fn next_tick() {
     let p = js_sys::Promise::new(&mut |resolve, _| {
         web_sys::window().unwrap()
             .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, 0)
             .unwrap();
     });
     let _ = JsFuture::from(p).await;
-}
-
-/// Wire-identical mirror of `proto::Mesh` with ONE field left out: `halfedges` (tag 5).
-///
-/// `Mesh::from_proto` discards that map - topology is rebuilt from faces on the first edit - but
-/// prost still decoded it into a nested `HashMap<u64, HashMap<u64, ..>>` first: 208k entries on
-/// the bunny, allocated and dropped. An unlisted tag is skipped with a length jump instead.
-/// Every other field keeps `proto::Mesh`'s exact type, so `into_proto` below MOVES them - no
-/// copy, no second hash, and the kernel's own `from_proto` stays the single source of truth for
-/// what a mesh means.
-#[derive(Clone, PartialEq, prost::Message)]
-pub struct LeanMesh {
-    #[prost(string, tag = "1")]
-    pub guid: String,
-    #[prost(string, tag = "2")]
-    pub name: String,
-    #[prost(map = "uint64, message", tag = "3")]
-    pub vertices: std::collections::HashMap<u64, proto::VertexData>,
-    #[prost(map = "uint64, message", tag = "4")]
-    pub faces: std::collections::HashMap<u64, proto::FaceData>,
-    // tag 5 (halfedges) intentionally absent - see the doc comment.
-    #[prost(message, repeated, tag = "6")]
-    pub edge_data: Vec<proto::EdgeData>,
-    #[prost(btree_map = "string, double", tag = "7")]
-    pub default_vertex_attributes: std::collections::BTreeMap<String, f64>,
-    #[prost(btree_map = "string, double", tag = "8")]
-    pub default_face_attributes: std::collections::BTreeMap<String, f64>,
-    #[prost(btree_map = "string, double", tag = "9")]
-    pub default_edge_attributes: std::collections::BTreeMap<String, f64>,
-    #[prost(message, repeated, tag = "10")]
-    pub pointcolors: Vec<proto::Color>,
-    #[prost(message, repeated, tag = "11")]
-    pub facecolors: Vec<proto::Color>,
-    #[prost(message, repeated, tag = "12")]
-    pub linecolors: Vec<proto::Color>,
-    #[prost(double, repeated, tag = "13")]
-    pub widths: Vec<f64>,
-    #[prost(message, optional, tag = "15")]
-    pub objectcolor: Option<proto::Color>,
-    #[prost(int32, tag = "16")]
-    pub color_mode: i32,
-    #[prost(map = "uint64, message", tag = "17")]
-    pub triangulation: std::collections::HashMap<u64, proto::TriList>,
-}
-
-impl LeanMesh {
-    /// Hand the decoded fields to the kernel unchanged. `halfedges` is the empty map the kernel
-    /// would have ignored anyway.
-    pub fn into_proto_pub(self) -> proto::Mesh { self.into_proto() }
-
-    fn into_proto(self) -> proto::Mesh {
-        proto::Mesh {
-            guid: self.guid,
-            name: self.name,
-            vertices: self.vertices,
-            faces: self.faces,
-            halfedges: Default::default(),
-            edge_data: self.edge_data,
-            default_vertex_attributes: self.default_vertex_attributes,
-            default_face_attributes: self.default_face_attributes,
-            default_edge_attributes: self.default_edge_attributes,
-            pointcolors: self.pointcolors,
-            facecolors: self.facecolors,
-            linecolors: self.linecolors,
-            widths: self.widths,
-            objectcolor: self.objectcolor,
-            color_mode: self.color_mode,
-            triangulation: self.triangulation,
-        }
-    }
-}
-
-/// `proto::Objects` with the mesh lane swapped for [`LeanMesh`]; every other lane keeps the
-/// generated type, so nothing else about the decode changes.
-#[derive(Clone, PartialEq, prost::Message)]
-pub struct LeanObjects {
-    #[prost(string, tag = "1")]
-    pub name: String,
-    #[prost(string, tag = "2")]
-    pub guid: String,
-    #[prost(message, repeated, tag = "3")]
-    pub points: Vec<proto::Point>,
-    #[prost(message, repeated, tag = "4")]
-    pub lines: Vec<proto::Line>,
-    #[prost(message, repeated, tag = "5")]
-    pub planes: Vec<proto::Plane>,
-    #[prost(message, repeated, tag = "6")]
-    pub bboxes: Vec<proto::BoundingBox>,
-    #[prost(message, repeated, tag = "7")]
-    pub polylines: Vec<proto::Polyline>,
-    #[prost(message, repeated, tag = "8")]
-    pub pointclouds: Vec<proto::PointCloud>,
-    #[prost(message, repeated, tag = "9")]
-    pub meshes: Vec<LeanMesh>,
-    #[prost(message, repeated, tag = "12")]
-    pub nurbscurves: Vec<proto::NurbsCurve>,
-    #[prost(message, repeated, tag = "13")]
-    pub nurbssurfaces: Vec<proto::NurbsSurface>,
-    #[prost(message, repeated, tag = "14")]
-    pub breps: Vec<proto::BRep>,
-    #[prost(message, repeated, tag = "15")]
-    pub elements: Vec<proto::Element>,
-}
-
-/// The `Session` fields the viewer actually READS - same wire tags as `proto::Session`, so this
-/// decodes the same bytes, but prost skips an unlisted field with a cheap length-delimited jump
-/// instead of allocating it.
-///
-/// `tree` (tag 4) and `graph` (tag 5) are 21.7 MB of the 52 MB Treppenhaus sheet - 42% of the
-/// file - and NOTHING in the viewer reads either one: the walk orders objects by
-/// `Session::order()`, which is built from the object vectors, and `world_xforms()` consults the
-/// tree only when `xforms` is non-empty. `TreeOnly` below covers exactly that case, and skipping
-/// `objects` in turn makes it cheap.
-/// Same shape, public, so the native `bench_load` harness can time this decode against the full
-/// one. The loader below uses the private alias.
-#[derive(Clone, PartialEq, prost::Message)]
-pub struct LeanSessionProbe {
-    #[prost(string, tag = "1")]
-    pub name: String,
-    #[prost(string, tag = "2")]
-    pub guid: String,
-    #[prost(message, optional, tag = "3")]
-    pub objects: Option<LeanObjects>,
-    #[prost(message, repeated, tag = "7")]
-    pub xforms: Vec<proto::XformEntry>,
-}
-
-/// Second pass for the rare file that carries local transforms: the tree, with the 30 MB of
-/// objects skipped rather than decoded twice.
-#[derive(Clone, PartialEq, prost::Message)]
-pub struct TreeOnlyProbe {
-    #[prost(message, optional, tag = "4")]
-    pub tree: Option<proto::Tree>,
 }
 
 /// `Session::pb_loads`, unrolled with awaits: decode the proto whole (one short block — prost is
@@ -193,7 +60,7 @@ pub async fn session_from_bytes_chunked(url: &str, bytes: &[u8]) -> Session {
     if url.ends_with(".json") {
         return Session::file_json_loads(&String::from_utf8_lossy(bytes));
     }
-    let Ok(p) = LeanSessionProbe::decode(bytes) else { return Session::default() };
+    let Ok(p) = proto::Session::decode(bytes) else { return Session::default() };
     let mut s = Session::new(&p.name);
     s.set_guid(p.guid.clone());
 
@@ -204,17 +71,6 @@ pub async fn session_from_bytes_chunked(url: &str, bytes: &[u8]) -> Session {
         ($vec:expr, $ty:ident, $variant:ident, $slot:ident) => {
             for x in $vec {
                 let g = Rc::new($ty::from_proto(x));
-                s.lookup.insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
-                s.objects.$slot.push(g);
-                n += 1;
-                if n % CHUNK == 0 { next_tick().await; }
-            }
-        };
-        // the mesh lane arrives as LeanMesh (halfedges skipped); the kernel's from_proto still
-        // does the building
-        (lean $vec:expr, $ty:ident, $variant:ident, $slot:ident) => {
-            for x in $vec {
-                let g = Rc::new($ty::from_proto(x.into_proto()));
                 s.lookup.insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
                 s.objects.$slot.push(g);
                 n += 1;
@@ -243,7 +99,7 @@ pub async fn session_from_bytes_chunked(url: &str, bytes: &[u8]) -> Session {
         chunk!(fallible o.bboxes, OBB, OBB, bboxes);
         chunk!(o.polylines, Polyline, Polyline, polylines);
         chunk!(o.pointclouds, PointCloud, PointCloud, pointclouds);
-        chunk!(lean o.meshes, Mesh, Mesh, meshes);
+        chunk!(o.meshes, Mesh, Mesh, meshes);
         chunk!(o.nurbscurves, NurbsCurve, NurbsCurve, nurbscurves);
         chunk!(fallible o.nurbssurfaces, NurbsSurface, NurbsSurface, nurbssurfaces);
         chunk!(fallible o.breps, BRep, BRep, breps);
@@ -263,15 +119,22 @@ pub async fn session_from_bytes_chunked(url: &str, bytes: &[u8]) -> Session {
         }
     }
 
-    // The tree is rebuilt ONLY to compose those transforms down the hierarchy - see
-    // `Session::world_xforms`, which returns an empty map on the same test. A flat sheet or a
-    // mesh file lands here with nothing to compose and pays neither the decode nor the 90k
-    // Rc<RefCell<TreeNode>> allocations.
-    if s.xforms.is_empty() {
-        return s;
+    // The graph is real session data, not scratch: it was being decoded and dropped.
+    if let Some(gp) = &p.graph {
+        s.graph = session_rust::Graph::new(&gp.name);
+        s.graph.set_guid(gp.guid.clone());
+        for (name, v) in &gp.vertices {
+            s.graph.add_node(name, &v.attribute);
+        }
+        for e in &gp.edges {
+            s.graph.add_edge(&e.v0, &e.v1, &e.attribute);
+        }
     }
-    let p = match TreeOnlyProbe::decode(bytes) { Ok(t) => t, Err(_) => return s };
-    if let Some(tp) = &p.tree{
+
+    // The tree comes from the same decode as everything else. It used to be skipped and then
+    // re-decoded by a second mirror struct; a Session that loads its own tree is both simpler
+    // and honest about what it holds.
+    if let Some(tp) = &p.tree {
         s.tree = Tree::new(&tp.name);
         s.tree.set_guid(tp.guid.clone());
         if let Some(rp) = &tp.root {
@@ -290,4 +153,49 @@ pub async fn session_from_bytes_chunked(url: &str, bytes: &[u8]) -> Session {
     }
 
     s
+}
+
+
+// streaming a point cloud: HTTP Range in, GPU rows out, nothing large in between ──
+//
+// The whole-file path above peaks at raw bytes + decoded proto + kernel object + GPU rows.
+// This one never holds more than one slice. It is possible because of two facts about the
+// wire format, both checked against a real scan (assets/pb/lidar_scan000.pb):
+//
+//   Session.3 (Objects) -> Objects.8 (pointclouds) -> PointCloud.3 coords / .4 colors
+//
+//   - every hop is wire type 2, length-delimited, so the headers sit in the first ~170 bytes
+//   - `coords` is packed DOUBLE, a fixed 8 bytes an element, so its length prefix gives the
+//     exact point count BEFORE a byte of payload is read: 87,570,576 / 24 = 3,648,774
+//
+// Knowing the count up front is what removes every reallocation: all three GPU buffers are
+// sized once, exactly, and each slice is written at a known offset.
+
+/// Where the two packed arrays live in the file, as absolute byte offsets
+pub struct CloudFields{
+    pub coord_at: u64,
+    pub coord_len: u64,
+    pub colors_at: u64,
+    pub colors_len: u64,
+    pub count: u32,
+}
+
+/// One protobuf variant. Returns the value and how many bytes it ate.
+fn variant(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
+    let (mut v, mut shift) = (0u64, 0u32);
+    let start = i;
+    loop {
+        let byte = *b.get(i)?;
+        v |= ((byte & 0x7f) as u64) << shift;
+        i += 1;
+        
+        if byte & 0x80 == 0 {
+            return Some((v, i-start))
+        }
+        shift += 7;
+
+        if shift > 63 {
+            return None
+        }
+    }
 }

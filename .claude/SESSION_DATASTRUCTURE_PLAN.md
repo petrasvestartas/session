@@ -239,6 +239,144 @@ real document makes it hurt, not before.
 
 ---
 
+## P6 — the wire is shaped like memory; reshape it for its reader — 📋 SPEC (2026-08-31)
+
+**Problem.** The schema was derived from the in-memory representation, so the wire mirrors it:
+`map<uint64, VertexData>` is a serialized `HashMap`, and `Color` is a sub-message carrying a
+36-char guid `String` and a name. Three consequences, all measured:
+
+- **Double materialization.** prost builds its maps, then `from_proto` builds the kernel's —
+  714k SipHash inserts, then 714k more, for data that is really parallel arrays.
+- **Per-object, not per-byte, cost.** ~500-800k `String` allocations per sheet load; wasm
+  punishes it hardest — lion decodes at 28 ms/MB, a sheet at 95 ms/MB. Raw prost decode is
+  byte-proportional and modest (213 ms native for 34.7 MB), so **the format is not the cost —
+  the shape is**.
+- **No streaming for anything but clouds.** Variable-length entries mean the length prefix
+  gives bytes, not elements: buffers cannot be sized up front and a byte range can split an
+  entry. `PointCloud.coords` is the only bulk field in the schema that is a packed
+  fixed-width array, and it is the only type lesson 43 can stream. See
+  `session_viewer/docs/43-streaming-cloud.md` § "Why this works for clouds and nothing else".
+
+**Non-goal: replacing protobuf.** Its strengths — one schema, generated readers/writers in
+three languages that provably agree, compatibility, buf tooling — are exactly what the
+3-language parity rule needs. And since the kernel is f64 while the GPU wants f32, one
+conversion pass over every coordinate is the floor; packed `repeated double` already reaches
+it, so a zero-copy format (FlatBuffers / Cap'n Proto / custom container) would save only a
+memcpy that has to happen anyway. Protobuf is the right *envelope*; it stops being right the
+moment it is asked to model per-element structure for millions of elements. **Metadata →
+messages. Bulk → packed arrays.**
+
+**Migration discipline (applies to every item).** Additive: new tags alongside the old, readers
+prefer new and fall back to old, writers emit only new, old fields marked deprecated and
+`reserved` only after every asset is regenerated. This is what lets the three languages land
+independently without a red CI window and keeps committed `.pb` assets loading. It also avoids
+colliding with the in-flight lessons 45-51 authoring run.
+
+### Ranked change set
+
+1. **Bulk colours → packed `repeated float` (4 per colour).** `repeated Color pointcolors`
+   appears in `Mesh`, `NurbsCurve` and `NurbsSurface`, and each `Color` carries guid + name:
+   measured at **66 B per line** against 55 B for the line's actual geometry. Packed floats are
+   memcpy-able and **bit-exact** — do NOT pack to RGBA8, it would break `to_proto`/`from_proto`
+   round-trip equality in the minitests. Biggest win per unit of risk, and it touches no
+   structure.
+2. **Drop guid/name from sub-message positions.** `Line.start`/`end` are `Point`s carrying their
+   own guid + name; a line's start point is not an identity. Keep guid/name on top-level
+   objects only. (Line is 178 B/line on the wire for 48 B of data; 123 B of that is identity
+   metadata.)
+3. **`PointCloud.colors`: `repeated uint32` → `repeated fixed32`.** Varint is not memcpy-able,
+   which is exactly why lesson 43 must fetch the 27 MB colour run whole and decode it
+   element-by-element instead of slicing it. One-word change, makes colours stream like coords.
+4. **`Mesh` maps → SoA.** `repeated uint64 vertex_keys`, `repeated double vertex_xyz` (3N,
+   packed — length/24 gives the count), `repeated uint64 face_keys`, `repeated uint32
+   face_offsets` (F+1 prefix sums), `repeated uint32 face_verts` (indices INTO `vertex_keys`,
+   not raw keys — half the bytes and directly usable as GPU indices; `vertex_keys` is ascending
+   so the reverse map is a binary search). Attributes go **columnar** — `repeated string
+   attr_names` plus one packed `repeated double` per name — so the common case (measured: sheets
+   have ZERO vertex attributes) costs nothing. A probe of just `map` → `repeated` measured mesh
+   decode 160 → 100 ms; full SoA goes further and makes `walk_to_coords` generalise to meshes.
+5. **Stop writing `halfedges`.** All three languages already tolerate its absence (lazy
+   halfedge), yet the wire still carries megabytes of nested per-vertex maps that the reader
+   throws away. Writer-side only.
+6. **Skip `Graph.vertices` when there are no edges**, rebuilt on load from objects via ONE
+   shared helper so `add_*` and rebuild cannot drift. Measured: file −22%, prost decode −19%,
+   `pb_loads` −23%.
+
+### What P6 does NOT fix
+
+Loading, not residency. A `Line` still costs ~320 B and a face ~78 B, because that is the
+**object model**, not the wire — a zero-copy format would not help either. Small memory needs
+the other half: keep the transfer representation (SoA arrays) separate from the edit
+representation (objects + halfedge) and build the second lazily, per object actually touched.
+`display_only` and lazy-halfedge are the first two steps of that; they are independent of P6
+and both are needed.
+
+### Acceptance
+
+- Round-trip minitests ×3 languages: `to_proto`/`from_proto` and `file_json_dump`/`load` equal
+  on a mesh WITH vertex attributes, face attributes and holes (the columnar path), and on one
+  without (the fast path). Old-file fallback proven by a checked-in pre-P6 `.pb` fixture.
+- Cross-language: a file written by each language loads in the other two, bytes compared.
+- `minitest.sh --py --rust --cpp` at current counts (735 / 767 / 783), run **twice**.
+- Viewer goldens **pixel-identical** (`examples/selftest` PPM `cmp`), lion `189148`.
+- `examples/bench_load.rs` and `examples/probe_mem.rs` before/after, double-run, in the plan.
+
+**Order:** 1 → 3 → 5 → 6 → 2 → 4 (cheapest and least structural first; 4 is the big one).
+**Risk:** 1/3/5/6 low, 2 medium (touches `Line`/`Point`), 4 high. **Effort:** ~a day for 1+3+5+6
+per language, several for 4.
+
+### RUST LANDED 2026-08-31 — items 1, 2, 5 (py/cpp ports NOT started)
+
+Measured with `session_rust/examples/p6_probe.rs` (load a `.pb`, re-serialize, reload; second
+arg writes the P6 file out). Rust minitests **738/738** after each step.
+
+| file | wire | reload of P6 file vs load of pre-P6 |
+|---|---|---|
+| `draw_pd_treppenhaus04.pb` (90,015 objs) | 54,673,378 → 49,935,717 B (**−8.7%**) | 499 → **325 ms** |
+| `floor_model.pb` | 2,800,017 → 2,524,968 B (**−9.8%**) | 19 → 13 ms |
+| `colors_widths.pb` | 8,113 → 7,690 B (**−5.2%**) | — |
+
+RENDER EQUIVALENCE, double-run, `examples/selftest` PPM `cmp`: `colors_widths` and
+`floor_model` both **PIXEL-IDENTICAL** old vs P6-rewritten, and each run-to-run identical.
+
+- **Item 1** — `Mesh` bulk colours → `pointcolors_rgba`/`facecolors_rgba`/`linecolors_rgba`
+  (tags 18-20, packed float ×4).
+- **Item 2** — `Line`: `coords` (tag 9, 6 packed doubles) replaces the two `Point`
+  sub-messages, which were serialization-only wrappers each carrying a redundant
+  `width: 1.0` fixed64; `linecolor_rgba` (tag 10) replaces the `Color` sub-message and its
+  36-char guid String. This is the sheet win — a sheet's cost is Lines, not meshes.
+- **Item 5** — `to_proto` no longer emits `halfedges`. It had been transiently *computing*
+  them for meshes that carried none, so a re-save GREW the file 35%.
+
+**ONE shared implementation:** `Color::pack` / `Color::unpack` live in `color.rs` and every
+type calls them. Do NOT copy pack/unpack into a geometry module — see the simplification note
+below.
+
+**TRAP, hit and fixed:** `session_viewer/src/app/persistence.rs`'s `LeanMesh` is a hand-written
+prost mirror, and an unlisted tag is skipped **silently**. Adding tags 18-20 to `mesh.proto`
+without adding them to `LeanMesh` makes P6 meshes render with no colours and no error. Any new
+tag must be added in both places — which is itself an argument for the note below.
+
+### SIMPLIFICATION NOTE — the additive migration is the thing that hurts
+
+The additive shape (legacy field + new field + writer branch + reader branch, ×3 languages ×
+~8 types, plus a hand-mirrored `LeanMesh`) is *more* code, permanently, and it fails silently
+when the mirror drifts. The end state should be ONE path:
+
+1. Keep the P6 fields, DELETE the legacy ones (`reserved` their tags).
+2. Put the fallback in a **one-shot migration binary** that reads pre-P6 and writes P6, run
+   once over `session_viewer/assets/pb/` and `session_data`; then delete the binary.
+3. Drop the "does any colour have a non-default name" branch by deciding bulk colours have no
+   names (verify nothing sets one first) — that removes the `(legacy, packed)` tuple and makes
+   `Color::pack` return a plain `Vec<f32>`.
+4. Generate `LeanMesh` from the schema, or delete it once item 4's SoA makes the skip-list
+   unnecessary.
+
+That halves the serialization code instead of doubling it. It costs one coordinated landing
+plus an asset regen — deliberately deferred here only because lessons 45-51 are mid-flight.
+
+---
+
 ## Order of work and lesson coupling
 
 ```
@@ -247,6 +385,7 @@ P2  with P1        Rust-only + 1 new test ×3          MUST precede lesson 39 (s
 P3  next           3 languages + viewer erratum        MUST precede lesson 38 (reconcile)
 P4  deferred       decide Option A/B after 39+51 exist
 P5  deferred       when a real file shows the cache in a profile
+P6  spec'd         proto + 3 languages + asset regen  additive; sequence 1,3,5,6,2,4
 ```
 
 Re-run the baseline bench after each phase (bench source lives in this plan's history; consider

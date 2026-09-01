@@ -60,9 +60,6 @@ emit the **same set of test names**. Currently **33 of 47** classes are at full 
 - [x] `color`
 - [x] `convex_hull`
 - [x] `element`
-- [x] `element_beam`
-- [x] `element_column`
-- [x] `element_plate`
 - [x] `file_encoders`
 - [x] `file_obj`
 - [ ] `file_step` — only C++
@@ -104,8 +101,8 @@ Regenerate this status with `./bash/minitest.sh` — it rewrites the per-class J
 `session_tests/<language>/` that the table above is derived from.
 
 Modules with no cross-language test set: `mesh_boolean`, `render_mesh` and `guid_serde` are Rust
-only; `element_schoring` is Python only; the `brep_*` internals (`bds`, `commonblock`,
-`massprops`, `samedomain`, `section`) are C++ only.
+only; the `brep_*` internals (`bds`, `commonblock`, `massprops`, `samedomain`,
+`section`) are C++ only.
 
 `vector`'s divergence is not a C++ gap. `Polyline::interpolate_points` exists and is tested under
 `Polyline` in all three languages. Python and Rust additionally keep a *second* copy of it as a

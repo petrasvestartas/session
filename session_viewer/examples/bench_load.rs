@@ -15,7 +15,7 @@ fn main() {
     let p = proto::Session::decode(&bytes[..]).unwrap();
     println!("prost decode   {:>7.0} ms  (full: objects + tree + graph)", t.elapsed().as_secs_f64()*1e3);
     let t = Instant::now();
-    let lean = session_viewer::app::persistence::LeanSessionProbe::decode(&bytes[..]).unwrap();
+    let lean = session_rust::proto::Session::decode(&bytes[..]).unwrap();
     println!("lean decode    {:>7.0} ms  (objects + xforms only, {} xforms)", t.elapsed().as_secs_f64()*1e3, lean.xforms.len());
 
     {
@@ -95,13 +95,11 @@ fn main() {
         o.points.len(), o.lines.len(), o.polylines.len(), o.meshes.len(), o.pointclouds.len());
 
     if let Some(l) = o.lines.first() {
-        println!("  sample line: encoded {} B | guid {:?} name {:?} dash {} start.guid {:?} start.name {:?} color {:?}",
-            l.encoded_len(), l.guid, l.name, l.dash.len(),
-            l.start.as_ref().map(|p| p.guid.clone()), l.start.as_ref().map(|p| p.name.clone()), l.linecolor.is_some());
+        // P6: coords/linecolor_rgba are packed; the Point and Color sub-messages are gone.
+        println!("  sample line: encoded {} B | guid {:?} name {:?} dash {} coords {} rgba {}",
+            l.encoded_len(), l.guid, l.name, l.dash.len(), l.coords.len(), l.linecolor_rgba.len());
         let tot: usize = o.lines.iter().map(|l| l.encoded_len()).sum();
-        let guids: usize = o.lines.iter().map(|l| l.guid.len() + l.name.len()
-            + l.start.as_ref().map_or(0, |p| p.guid.len()+p.name.len())
-            + l.end.as_ref().map_or(0, |p| p.guid.len()+p.name.len())).sum();
+        let guids: usize = o.lines.iter().map(|l| l.guid.len() + l.name.len()).sum();
         let dash: usize = o.lines.iter().map(|l| l.dash.len()*8).sum();
         println!("  lines total {:.1} MB | guid+name {:.1} MB | dash {:.1} MB",
             tot as f64/1.048576e6, guids as f64/1.048576e6, dash as f64/1.048576e6);
@@ -111,16 +109,11 @@ fn main() {
         use prost::Message;
         let ms = &o.meshes;
         let tot: usize = ms.iter().map(|m| m.encoded_len()).sum();
-        let he: usize = ms.iter().map(|m| m.halfedges.iter().map(|(k,v)| {
-            let inner: usize = v.neighbors.len() * 4 + 2;
-            let _ = k; inner + 6
-        }).sum::<usize>()).sum();
-        let he_entries: usize = ms.iter().map(|m| m.halfedges.values().map(|v| v.neighbors.len()).sum::<usize>()).sum();
         let verts: usize = ms.iter().map(|m| m.vertices.len()).sum();
         let attrs: usize = ms.iter().map(|m| m.vertices.values().map(|v| v.attributes.len()).sum::<usize>()).sum();
         let faces: usize = ms.iter().map(|m| m.faces.len()).sum();
-        println!("  meshes: {:.1} MB encoded | {verts} verts ({attrs} attr entries) | {faces} faces | halfedge {he_entries} entries ~{:.1} MB",
-            tot as f64/1.048576e6, he as f64/1.048576e6);
+        println!("  meshes: {:.1} MB encoded | {verts} verts ({attrs} attr entries) | {faces} faces",
+            tot as f64/1.048576e6);
     }
 
     // object build only (no lookup)
