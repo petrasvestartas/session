@@ -36,10 +36,14 @@
 ## Files we touch
 
 ```
-src/shaders/trim_classify.wgsl # NEW — per-CELL in/out/boundary classification (compute)
-src/shaders/triangle.wgsl      # trimmed variant fs: winding test on boundary fragments
-src/engine/pipelines/build.rs  # build_trim_classify_pipeline + the trimmed triangle pipeline
-src/app/scene.rs               # trimmed arm: 74 grid + loop upload; kill_outside in compute
+src/shaders/trim_classify.wgsl   # NEW — per-CELL in/out/boundary classification (compute)
+src/shaders/triangle.wgsl        # trimmed variant fs: winding test on boundary fragments
+src/engine/gpu/trim.rs           # NEW — TrimUpload, the classify dispatch, the cell classes
+src/engine/gpu/arena.rs          # IdxLane::Trimmed: one arm, one more index run, one desc
+src/engine/pipelines/layouts.rs  # the classify layout, + one build_compute line in mod.rs
+src/engine/gpu/render.rs         # ONE line in the list, right after draw_faces
+src/engine/gpu/upload.rs         # Upload.trim_uploads + one drop_rows line
+src/app/walk/trimmed.rs          # the producer's body: 74's grid + the loop upload
 ```
 
 ## Step 1 — the loops come from the code 69 already trusts
@@ -152,31 +156,38 @@ surfaces' arena ranges, so meshes and untrimmed surfaces never pay a branch. `di
 confined exactly like the flat-lane prepass confined blending: to the pixels where geometry
 genuinely cannot answer without it.
 
+"Bound only for trimmed ranges" is a fourth index run, not a second vertex table: `IdxLane`
+gains a `Trimmed` arm and `Arena` the run behind it (`arena.rs`), the `fs_trimmed` desc sits
+beside `triangle` and `triangle_sheet` in the same family's `Pipes::descs`, and the frame gains
+ONE line in `render.rs`'s list — `draw_trimmed`, immediately after `draw_faces`, because a
+trimmed face is a face and belongs in the depth-writing band with the others. `gpu/trim.rs`
+owns what is genuinely new: the `TrimUpload` the walk hands over, the loop pool, the cell-class
+buffer, and the dispatch that fills it.
+
 Honest label: the trim edge is as crisp as the loop polygon — sub-pixel at mesh_q's own
 discretization budget — but it is not *watertight geometry*; a boolean export still uses the
 CPU CDT. Display and modeling truth split here on purpose, the same split as 73/74's pick
 proxies.
 
-## Step 4 — the trimmed arm: `src/app/scene.rs`
+## Step 4 — the trimmed producer: `src/app/walk/trimmed.rs`
 
 47's arm called `mesh_render` and pushed a mesh. Now it goes through 74's reservation
-(the underlying `m_surface` gives the grid), plus the loop upload:
+(the underlying `m_surface` gives the grid), plus the loop upload.
 
-In the trimmed branch of the `all_objects()` walk (69 made it the single registration
-point), the `mesh_render` push becomes:
+69 gave the type its own producer file and its place in the every-map walk; neither moves. Only
+the body of `walk_trimmed` changes — the `mesh_render` push becomes:
 
 ```rust
-    trimmed_arm => {
         let (gu, gv) = grid_for(&ts.m_surface);
-        // 74's reservation + index grid, verbatim …
+        // 74's reservation + index grid, verbatim - but into t.arena.idx_trimmed …
         // … then the loops, discretized by the SAME adaptive rule mesh_q uses:
         let (loops, ranges) = trim_loops_upload(ts);   // Vec<[f32;2]>, Vec<(u32,u32)>
-        gpu_trims.push(trim_upload(loops, ranges, base_cells, gu - 1, gv - 1));
-    }
+        t.trim_uploads.push(trim_upload(loops, ranges, base_cells, gu - 1, gv - 1));
 ```
 
-`mesh_render` still runs once, coarse, for the pick proxy — 47's every-map discipline
-(`all_objects()`) is untouched; only the display bytes moved.
+`mesh_render` still runs once, coarse, for the pick proxy — 47's every-map discipline is
+untouched, and so is the rule 69 states about it: a new geometry type is a new file under
+`walk/`, never a second dispatch site. Only the display bytes moved.
 
 ## What you should see
 
@@ -197,8 +208,10 @@ Ch 75: the CDT does not port (sequential by construction) and does not need to: 
         on screen, CDT remains the export/boolean truth.
 ```
 
-Edited: `shaders/trim_classify.wgsl` (new), `shaders/triangle.wgsl` (`fs_trimmed`),
-`pipelines/build.rs` + `mod.rs`, `scene.rs` (trimmed arm reroute + loop upload).
+Edited: `shaders/trim_classify.wgsl` + `gpu/trim.rs` (new), `shaders/triangle.wgsl`
+(`fs_trimmed`), `gpu/arena.rs` (`IdxLane::Trimmed` + its desc), `pipelines/layouts.rs` +
+`mod.rs`, `gpu/render.rs` (one line), `gpu/upload.rs` (`trim_uploads`), `walk/trimmed.rs`
+(the reroute + loop upload).
 
 ## Next
 
