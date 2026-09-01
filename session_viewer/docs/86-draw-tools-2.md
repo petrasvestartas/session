@@ -25,20 +25,22 @@
 ## Files we touch
 
 ```
-# preview table: set_preview(segments) / clear_preview — gumball's pattern
-src/engine/gpu/mod.rs
+# preview table: set_preview(segments) / clear_preview — gumball's pattern, on 65's overlay lane
+src/engine/gpu/overlay.rs
+src/engine/gpu/render.rs   # one line: the ghost draw, after the flat lane
 src/app/getloop.rs         # ActiveCommand gains on_move (default no-op)
-src/state.rs               # cursor moves feed on_move while a command runs; Enter routes as ""
+src/state.rs               # cursor_world_point — the shared point resolver; Enter routes as ""
+src/app/input.rs           # cursor moves feed on_move while a command runs
 src/app/tools/polyline.rs  # NEW — N clicks, Enter finishes
 src/app/tools/rect.rs      # NEW — RectangleTool + BoxTool on z=0
 src/app/commands.rs        # verbs: polyline / rect / box
 ```
 
-## Step 1 — the preview table: `src/engine/gpu/mod.rs`
+## Step 1 — the preview table: `src/engine/gpu/overlay.rs`
 
-Identical mechanism to the gumball's overlay tables (65), one level simpler — no depth-clear pass
-needed, ghosts draw in the main cylinder pass, just from their own small buffer. Five new `struct
-Gpu` fields, below 65's `gb_*` block:
+Identical mechanism to the gumball's overlay tables (65) — the same lane file, one row format
+further — and one level simpler: no depth-clear pass needed, ghosts draw in the main cylinder
+pass, just from their own small buffer. Five new fields, below 65's `gb_*` block:
 
 ```rust
     // ghost preview table (71) — replaced whole on every tool mouse-move
@@ -102,8 +104,8 @@ which row it is:
 Note the `take(PREVIEW_MAX_SEGMENTS)` now *says so* when it fires — a silent truncation would
 otherwise show up as a polyline ghost that mysteriously stops growing past 4096 points.
 
-Draw the ghosts right after the main cylinder block in `clear()` — find its closing brace (after
-`draws += 1;` of the `if self.segment_count > 0` block) → insert:
+Draw the ghosts right after the main cylinder block in `src/engine/gpu/render.rs`'s frame list —
+find its closing brace (after `draws += 1;` of the `if self.segment_count > 0` block) → insert:
 
 ```rust
             // ghost preview (71) — same pipeline, its own table at group 3. Fully self-bound:
@@ -165,8 +167,9 @@ In `state.rs`, the point resolver becomes a named method — 61's click reroute 
 ```
 
 (61's `WaitingPoint` click branch now reads `if let Some(p) = self.cursor_world_point()` and feeds
-`p` — replace its inline `pick_ray` + z=0 code with the call, one behavior, one place.) Then the
-cursor-move handler (after the gumball hover check) forwards motion to the active command:
+`p` — replace its inline `pick_ray` + z=0 code with the call, one behavior, one place.) Then, in
+`app/input.rs`, the cursor-move handler (after the gumball hover check) forwards motion to the
+active command:
 
 ```rust
         if self.active.is_some() {
@@ -519,8 +522,9 @@ Ch 71: N-CLICK TOOLS + THE GHOST. Preview = a dedicated small segment buffer (gu
        One Command per finished object — N clicks undo as one.
 ```
 
-Edited: `engine/gpu/mod.rs` (preview table + draw), `app/getloop.rs` (`on_move`), `state.rs` (motion
-feed, central ghost clear on cancel), `app/tools/polyline.rs` + `app/tools/rect.rs` (NEW),
+Edited: `engine/gpu/overlay.rs` (preview table), `engine/gpu/render.rs` (one line: the ghost
+draw), `app/getloop.rs` (`on_move`), `state.rs` (`cursor_world_point`, central ghost clear on
+cancel), `app/input.rs` (motion feed), `app/tools/polyline.rs` + `app/tools/rect.rs` (NEW),
 `app/commands.rs` (three verbs).
 
 ## Next
