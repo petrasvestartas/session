@@ -406,9 +406,11 @@ http://127.0.0.1:8770/?scene=scenes/bunny_cloud.toml
 
 ### Adding them to the scene you actually use
 
-Nothing to create: a manifest is a LIST, so a cloud joins a scene as one more `[[items]]` block in
-the `.toml` you already have open. The default scene, `assets/scenes/bunny_drawings.toml`, already
-loads the lion (third item) — so the one edit left is the bunny cloud. Append:
+Nothing to create, and for these two clouds nothing to type: a manifest is a LIST, so a cloud joins
+a scene as one more `[[items]]` block, and the default scene — `assets/scenes/bunny_drawings.toml`,
+tracked, like every manifest under `assets/` — ships with both already in it, the sampled bunny
+fifth and the lion sixth. That fifth block is the shape every cloud you later add to a manifest of
+your own takes, so it is quoted here unchanged rather than typed:
 
 ```toml
 [[items]]  # the sampled cloud, beside the mesh it came from
@@ -418,8 +420,8 @@ xform = [12845,0,0,0,  0,0,12845,0,  0,-12845,0,0,  6000,0,600,1]
 point_size = 6
 ```
 
-Save and reload the page — `Trunk.toml` watches `assets/scenes`, so writing the file is the whole
-loop. The log line confirms it:
+Paste one like it into a manifest of your own, save, and reload the page — `Trunk.toml` watches
+`assets/scenes`, so writing the file is the whole loop. Here the log line already confirms it:
 
 ```
 scene: 148560 objects  645635 arena verts  258604 segments  741989 cloud points
