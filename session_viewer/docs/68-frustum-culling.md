@@ -66,22 +66,27 @@ camera `origin`. Extract the planes from the anchored matrix and subtract `dot(n
 ## Files we touch
 
 ```
-# Frustum: from_view_proj (Gribb–Hartmann, f64) + rebase-to-world + aabb_visible
-src/camera.rs
-# world_aabb(guid) → the object's world AABB extents (reads 40's world_boxes cache)
-src/app/scene.rs
-# apply_frustum_cull(): plane-test each world AABB → FLAG_CULLED on flipped rows; culled_now set
-src/engine/gpu/mod.rs
+# Frustum: from_view_proj (Gribb–Hartmann, f64) + rebase-to-world + aabb_visible.
+# Pure math over plain arrays, no wgpu and no self — which is what math.rs is for.
+src/math.rs
+# update_culled(): plane-test each row's world AABB → FLAG_CULLED on flipped rows; culled();
+# upload_rows() — the batched one-submit write the flip set needs.
+# The boxes are already here: bounds_world / bounded_rows, filled on every append.
+src/engine/gpu/objects.rs
+src/engine/gpu/instance.rs   # FLAG_CULLED — one row in the flag table, bit 7 of the free band
+src/engine/performance.rs    # Performance.drawn / .total — the HUD split
 # every vs that reads an instance row collapses a culled one to a clipped vertex
 src/shaders/*.wgsl
-src/state.rs          # render() builds the frustum, calls apply_frustum_cull before clear()
+src/state.rs          # render() builds the frustum and culls before clear()
 ```
 
-## Step 1 — the frustum: `src/camera.rs`
+## Step 1 — the frustum: `src/math.rs`
 
 Gribb–Hartmann pulls the six planes straight out of a view-projection matrix. Build them in **f64**
 from the same `view_proj` the renderer uses (before its `to_f32`), so the cull frustum matches the
-rendered frame exactly. Add at the bottom of `camera.rs`:
+rendered frame exactly. It goes in `math.rs`, not `camera.rs`: it is a free solve over plain arrays
+with no `self` and no wgpu, and the app layer (67's queries) wants it as much as the frame does.
+`math.rs` already names the box type it consumes — `Aabb64`. Add at the bottom of `math.rs`:
 
 ```rust
 /// Six inward-facing frustum planes [a,b,c,d]; a point is inside when a·x+b·y+c·z+d ≥ 0.
@@ -131,10 +136,11 @@ impl Frustum {
 }
 ```
 
-`Point` is already imported in `camera.rs` (33's `origin()` returns one).
+`Point` needs adding to `math.rs`'s one import line — it carries `use session_rust::Xform;` today,
+so it becomes `use session_rust::{Point, Xform};`.
 
 A plane test is exactly the kind of math that fails silently (an inverted plane culls the *visible*
-half and the screen just looks empty), so pin it headless — at the bottom of `camera.rs`:
+half and the screen just looks empty), so pin it headless — at the bottom of `math.rs`:
 
 ```rust
 #[cfg(test)]
@@ -169,10 +175,13 @@ mod frustum_tests {
 Runs with the same wasm-override as 40's test: `cargo test -p session_viewer frustum --target
 x86_64-unknown-linux-gnu`.
 
-## Step 2 — plane-test each object, flag the losers: `src/engine/gpu/mod.rs`
+## Step 2 — plane-test each object, flag the losers: `src/engine/gpu/objects.rs`
 
-The instance flag field gains one bit. It has to coexist with 35's `FLAG_HIDDEN` — so cull *sets and
-clears its own bit*, never overwrites the whole field:
+The instance flag field gains one bit, in `src/engine/gpu/instance.rs` — the file that declares
+`Instance`, carries the flag table in its doc comment, and reserves bits 6-8 for exactly this. Add
+the row to that table as well as the const; the `instance_mirror` test at the foot of the file is
+what catches a shader that forgot the new bit. It has to coexist with 35's `FLAG_HIDDEN` — so cull
+*sets and clears its own bit*, never overwrites the whole field:
 
 ```rust
 impl Instance {
@@ -181,36 +190,41 @@ impl Instance {
 }
 ```
 
-First the world-AABB helper `Scene` owes us — add it to `impl Scene` in `app/scene.rs`, beside 40's
-`objects_in` (the `OBB::aabb()` collapse already happened when 40's `add_file` filled the cache):
+The world-AABB helper this step used to ask `Scene` for is already written, and it is on the wrong
+side of the app/engine line to be a `Scene` method at all: `InstanceTable` (`engine/gpu/objects.rs`)
+keeps `bounds_world` — every row's LOCAL box through its true model matrix, in f64 — and
+`bounded_rows` beside it, the rows that HAVE one. Both are filled by `append`, once per file, and
+40's step is what fills the local box for the kinds that used to leave it `None`. So the cull reads
+its own table, and the helper below is the shape of what that read returns — a CACHE READ, never a
+recomputation, because recomputing would put an O(total vertices) walk inside the PER-FRAME cull:
 
 ```rust
     /// The object's world AABB extents, in f64 — what the frustum plane test consumes.
-    /// A CACHE READ, not a computation: 40's add_file stored every box's extents when it walked
-    /// the vertices. Recomputing here would put an O(total vertices) walk inside the PER-FRAME
-    /// cull — the classic hidden cost. The cache invalidates exactly when the BVH does: rebuilt or
-    /// EXTENDED per `add_file`, since rows are appended globally across docs and the cache must stay
-    /// row-indexed in lockstep (40's row-indexed cache).
-    pub fn world_aabb(&self, guid: &str) -> ([f64; 3], [f64; 3]) {
-        self.world_boxes[self.guid_to_row[guid] as usize]   // 40's row-indexed cache: rows are GLOBAL across docs
+    /// A CACHE READ, not a computation: `InstanceTable::append` put every row's local box
+    /// through its model matrix when the file was walked. The cache is row-indexed and grows
+    /// with the rows, so it stays in lockstep across documents.
+    pub fn world_aabb(&self, row: u32) -> Option<Aabb64> {
+        self.bounds_world[row as usize]
     }
 ```
 
-Add a `culled_now: std::collections::HashSet<u32>` field to `Gpu` (init empty in `new`) — it remembers
-which rows are currently culled so each frame only re-uploads the ones whose state **flipped**, not all
-N. Then the per-frame cull (right after `new`, near 33's `rebuild_instances`):
+Add a `culled_now: std::collections::HashSet<u32>` field to `InstanceTable` (init empty in `new`) —
+it remembers which rows are currently culled so each frame only re-uploads the ones whose state
+**flipped**, not all N. Then the per-frame cull, `InstanceTable::update_culled`, beside
+`update_inside_flags` — the other per-frame flag pass, and the one whose shape this follows:
 
 ```rust
     /// Plane-test every object's world AABB, set/clear FLAG_CULLED. Returns (drawn, culled) for the
     /// HUD. The scan is O(N), but only rows whose state CHANGED since last frame hit the GPU.
-    /// Iterates the extents cache BY ROW — `world_boxes` is row-indexed (52), so a guid round-trip
-    /// through `guid_to_row` here would be a double hash lookup per object per frame (and a panic
-    /// on any stale guid). `world_aabb(guid)` stays for one-off lookups (57, 76).
-    pub fn apply_frustum_cull(&mut self, scene: &crate::app::scene::Scene,
-                              frustum: &crate::camera::Frustum) -> (u32, u32) {
+    /// Iterates the extents cache BY ROW — `bounds_world` is row-indexed and `bounded_rows` is
+    /// its index, so a guid round-trip through `guid_to_row` here would be a double hash lookup
+    /// per object per frame (and a panic on any stale guid). `world_aabb(row)` stays for one-off
+    /// lookups (57, 76).
+    pub fn update_culled(&mut self, ctx: &GpuCtx,
+                         frustum: &crate::math::Frustum) -> (u32, u32) {
         let (mut drawn, mut culled) = (0u32, 0u32);
         let mut flipped: Vec<(u32, Instance)> = Vec::new();
-        for (row, &(lo, hi)) in scene.world_boxes.iter().enumerate() {
+        for (row, &(lo, hi)) in self.bounds_world.iter().enumerate() {
             let row = row as u32;
             let cull = !frustum.aabb_visible(lo, hi);
             let was = self.culled_now.contains(&row);
@@ -246,7 +260,10 @@ N. Then the per-frame cull (right after `new`, near 33's `rebuild_instances`):
 ```
 
 (The instance buffer already carries `COPY_DST` — 46's `write_row` writes into it — so the batch
-copies need no usage change. Rows are distinct, so the copies never overlap.)
+copies need no usage change. Rows are distinct, so the copies never overlap. That staging block is
+the one piece worth naming: it becomes `InstanceTable::upload_rows(ctx, &flipped)` in `objects.rs`,
+because 67's selection and 68's hidden toggle want the same "write these rows and only these rows"
+verb, and writing it once here is what makes those two lessons cost no engine lines at all.)
 
 > **Linear, and that's fine here — so why did 40 build a BVH?** Frustum cull *must* decide every
 > object's flag every frame, so the scan is inherently O(N); the real optimization is the flip-tracking
@@ -256,26 +273,26 @@ copies need no usage change. Rows are distinct, so the copies never overlap.)
 > skip the plane test on distant objects — 81 picks that up; linear holds comfortably at the stress
 > file's 42k.)
 
-> **Why set/clear, not rebuild.** 33's `rebuild_instances` rewrites every row's model+color each frame
-> but never touches `flags`; this writes only `flags`, only on the rows that flipped. The two never
-> collide, and a hidden object (35) stays hidden whether or not it's also culled — different bits.
+> **Why set/clear, not rebuild.** `InstanceTable::rebase_anchor` (`objects.rs`) rewrites every row's
+> model when the anchor moves but never touches `flags`; this writes only `flags`, only on the rows
+> that flipped. The two never collide, and a hidden object (35) stays hidden whether or not it's also
+> culled — different bits.
 
-> **Cull bits are transient.** FLAG_CULLED lives only in the live instance buffer — deliberately *not*
-> in the viewer-state flags 35's rewrite keeps in `scene.tables.objects[row].2` (SELECTED/HIDDEN), the
-> truth `set_scene` re-derives instances from. So every `set_scene` — each `Msg::File` append rebuilds
-> the instances from the tables — wipes the bit: clear `culled_now` there (one line in `set_scene`:
-> `self.culled_now.clear();`) and let the next frame's cull recompute. The rule: persistent state lives
-> in the tables; transient per-frame state like cull bits is recomputed after camera moves *and* after
-> every `set_scene`.
+> **Cull bits are transient.** FLAG_CULLED lives only in the live instance rows — deliberately *not*
+> in the viewer-state flags kept in `scene.tables.obj.rows[row].flags` (SELECTED/HIDDEN), the truth
+> `InstanceTable::append` re-derives instance rows from. So a rebuild wipes the bit: clear
+> `culled_now` in `InstanceTable::reset` (`objects.rs`), the one `reset_arena` calls on every
+> `Scene::rebuild`, and let the next frame's cull recompute. The rule: persistent state lives in the
+> tables; transient per-frame state like cull bits is recomputed after camera moves *and* after
+> every rebuild.
 
 ## Step 3 — the shader collapses a culled instance: `src/shaders/*.wgsl`
 
-One rule, applied in **every** vertex shader that reads an instance row for a table that has data
-(`triangle.wgsl`, `cylinder.wgsl`, `sphere.wgsl`, plus 34f's `ribbon.wgsl`/`glyph.wgsl` — same
-edit, same anchors as cylinder/sphere; `point.wgsl` also reads the row, but its cloud table stays
-empty — 35 routes PointCloud through the GLYPH lane — add the same collapse there only if the
-dormant cloud path ever wakes): if the row is
-culled (or hidden), output a vertex
+One rule, applied in **every** vertex shader that reads an instance row — five files, and exactly
+five: `triangle.wgsl`, `cylinder.wgsl`, `sphere.wgsl`, plus 34f's `ribbon.wgsl`/`glyph.wgsl` (same
+edit, same anchors as cylinder/sphere). The cloud lane is NOT one of them: it is compute
+(`splat.wgsl`), has no vertex shader to collapse, and culls as records instead — Step 4b. If the
+row is culled (or hidden), output a vertex
 the rasterizer throws away, so the primitive vanishes without a branch on the CPU or a second draw call.
 Each shader reaches the instance differently, so the anchor and the flag read differ per file — but the
 collapse is identical: set the builtin position (`VsOut.pos`, **not** `o.clip` — no such field) to a
@@ -327,17 +344,18 @@ collapsed instances. Culling changes the *buffer*, never the *draw*.
 In `render`, build the frustum from the **anchored** `view_proj` the frame actually draws with (34c),
 rebase it to world, cull, then draw. `render` already computes the anchor and the matrix — the frustum
 must come from that **same** matrix, and the rebase point is the `anchor`, not the raw `origin` — so
-what's culled matches what's drawn. First bring the type in: extend the import at the top from
-`use crate::camera::Camera;` to `use crate::camera::{Camera, Frustum};`.
+what's culled matches what's drawn. First bring the type in: `Frustum` lives in `math.rs`, so add
+`use crate::math::Frustum;` beside `state.rs`'s existing `use crate::camera::Camera;`.
 
 The scan is O(N) over every row — pointless when the camera hasn't moved since the last scan (the
 cull result depends only on the camera and the boxes). So gate it on a cheap camera signature, kept
-on `Gpu` beside `culled_now` (add the field, init `None`; a `set_scene` invalidates the cull bits, so
-it must reset the gate too — the Step-2 one-liner becomes `self.culled_now.clear();
-self.last_cull_sig = None;`):
+beside `culled_now` on `InstanceTable` (add the field, init `None`; a rebuild invalidates the cull
+bits, so it must reset the gate too — the Step-2 one-liner in `InstanceTable::reset` becomes
+`self.culled_now.clear(); self.last_cull_sig = None;`):
 
 ```rust
-    // add to struct Gpu, beside culled_now (pub — state.rs's render gate reads/writes it):
+    // add to struct InstanceTable (objects.rs), beside culled_now
+    // (pub — state.rs's render gate reads/writes it through gpu.objects):
     pub last_cull_sig: Option<([f64; 3], [f64; 3], f64, f64, bool)>,   // camera at the last scan
 ```
 
@@ -352,28 +370,28 @@ Then:
         // (or set_scene reset the sig) — the O(N) scan's inputs are exactly these.
         let sig = ([origin[0], origin[1], origin[2]], self.camera.target,
                    self.camera.distance, aspect, self.camera.perspective);
-        if self.gpu.last_cull_sig != Some(sig) {
+        if self.gpu.objects.last_cull_sig != Some(sig) {
             let frustum = Frustum::from_view_proj(&view_proj.to_cols())   // f64, anchor-relative
                 // world frame — matches 40's boxes
                 .rebased_to_world(&anchor);
-            let (drawn, culled) = self.gpu.apply_frustum_cull(&self.scene, &frustum);
-            self.gpu.perf_set_drawn(drawn, drawn + culled);
-            self.gpu.last_cull_sig = Some(sig);
+            let (drawn, culled) = self.gpu.update_culled(&frustum);   // one forwarding line on Gpu
+            self.gpu.performance.set_drawn(drawn, drawn + culled);
+            self.gpu.objects.last_cull_sig = Some(sig);
         }
-        // the clear() line itself is unchanged (3-arg since 34d: color, view_proj, origin):
-        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
+        // the clear() line itself is unchanged (2-arg: color, view_proj):
+        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj)
 ```
 
-`perf_set_drawn` doesn't exist yet — 28's counter never had a drawn/total split. Give `Gpu` the
-two numbers (the HUD lesson, 52, reads them): add `pub perf_drawn: u32, pub perf_total: u32,` to
-`struct Gpu`, initialize both to `0` in the `Ok(Self { … })`, and add next to
-`apply_frustum_cull`:
+`set_drawn` doesn't exist yet — 28's counter never had a drawn/total split. The two numbers belong
+to `Performance` (`src/engine/performance.rs`), which already owns the once-a-second line and is
+what the HUD lesson (52) will read: add `pub drawn: u32, pub total: u32,` to `struct Performance`,
+initialize both to `0` in `Performance::new`, and add beside `frame`:
 
 ```rust
     /// HUD feed: how many objects survived the cull this frame, out of how many total.
-    pub fn perf_set_drawn(&mut self, drawn: u32, total: u32) {
-        self.perf_drawn = drawn;
-        self.perf_total = total;
+    pub fn set_drawn(&mut self, drawn: u32, total: u32) {
+        self.drawn = drawn;
+        self.total = total;
     }
 ```
 
@@ -384,12 +402,15 @@ it later.)
 ## Step 4b — the cloud lanes cull as RECORDS, not points
 
 This lesson's per-object flag never touches a splat: the compute prelude (39) already
-rebuilds its record table every frame, so the cull goes there — in `splat_records`, test
-each cloud's world box against the same six planes and simply DON'T EMIT the record. One
-box test drops millions of threads before they dispatch, which makes clouds the single
-cheapest cull in the scene. Two sources for the box: a walked cloud has its
-`object_bounds` row; a streamed cloud (42) keeps the world box `grow_scene` was fed —
-stash it on the draw record at `CloudEnd`. Skipped-record frames must still invalidate
+rebuilds its record table every frame, so the cull goes there — in `splat_records`
+(`src/engine/gpu/splat.rs`), test each cloud's world box against the same six planes and simply
+DON'T EMIT the record. One box test drops millions of threads before they dispatch, which makes
+clouds the single cheapest cull in the scene. Two sources for the box: a walked cloud has its
+`bounds_world` row; a streamed cloud (42) keeps the world box `grow_scene` was fed —
+stash it on the draw record at `CloudEnd`. Keep the frustum itself on `Splat`, NOT on
+`CloudDraw`: `splat_records` is called with a fixed signature that other lanes share, and a field
+on the row struct would widen every record table to carry a per-frame value.
+Skipped-record frames must still invalidate
 the static skip when the camera moves — which they do for free, because the mvp is part
 of `splat_state`.
 
@@ -403,7 +424,7 @@ Load the stress file (34), press `F`, then zoom into one corner:
 
 - **`drawn / total` drops** as objects leave the view — the whole point. Zoom back out and it
   climbs to the full count. (Until 52's HUD panel exists, log it: add
-  `log::info!("cull: {} / {}", drawn, drawn + culled);` after the `apply_frustum_cull` call —
+  `log::info!("cull: {} / {}", drawn, drawn + culled);` after the `update_culled` call —
   or fold the two numbers into 28's once-a-second perf line.)
 - **Slow-orbit at the screen edge and nothing pops in late.** This is the test that catches an
   inverted plane or a too-tight box: an object whose center is just outside the frustum but whose body
@@ -416,8 +437,8 @@ Load the stress file (34), press `F`, then zoom into one corner:
 ## Recap
 
 ```
-Ch 40: Scene.bvh + the world_boxes extents cache — world boxes per object (the row's placed
-       frame — manifest place × session world xform — baked in).
+Ch 40: Scene.index (app/spatial.rs) + InstanceTable's bounds_world/bounded_rows — world boxes
+       per object (the row's placed frame — manifest place × session world xform — baked in).
 Ch 41: FRUSTUM CULL. Per frame: 6 planes out of the f64 ANCHORED view_proj the frame draws with
        (view_proj_anchored, 34c; Gribb–Hartmann), rebased to WORLD (d −= n·anchor) so they match
        40's world boxes — the one subtlety camera-relative rendering forces. Positive-vertex test on every object's world AABB (linear, like
@@ -432,11 +453,15 @@ Ch 41: FRUSTUM CULL. Per frame: 6 planes out of the f64 ANCHORED view_proj the f
        moves; nothing pops at the screen edge; two #[cfg(test)]s pin the plane math.
 ```
 
-Edited: `camera.rs` (`Frustum` + `from_view_proj` + `rebased_to_world` + `aabb_visible` +
-`#[cfg(test)]` plane tests), `app/scene.rs` (`world_aabb(guid)` → world AABB extents from 40's cache),
-`engine/gpu/mod.rs` (`FLAG_CULLED`, `culled_now`, `last_cull_sig`, `apply_frustum_cull` — row-indexed
-scan, one batched staging upload), `shaders/*.wgsl` (collapse
-culled/hidden instances), `state.rs` (build frustum, rebase, cull when the camera moved, feed the HUD).
+Edited: `math.rs` (`Frustum` + `from_view_proj` + `rebased_to_world` + `aabb_visible` +
+`#[cfg(test)]` plane tests), `engine/gpu/instance.rs` (`FLAG_CULLED` — one const and one row in the
+flag table), `engine/gpu/objects.rs` (`culled_now`, `last_cull_sig`, `world_aabb(row)`,
+`update_culled` — the row-indexed scan over `bounds_world` — and `upload_rows`, the batched staging
+write it needs), `engine/gpu/mod.rs` (one forwarding line for `update_culled`),
+`engine/gpu/splat.rs` (the record-level cull in `splat_records`, frustum stashed on `Splat`),
+`engine/performance.rs` (`drawn`/`total` + `set_drawn`), `shaders/*.wgsl` (five vertex shaders
+collapse culled/hidden instances), `state.rs` (build frustum, rebase, cull when the camera moved,
+feed the HUD).
 
 ## Next
 
