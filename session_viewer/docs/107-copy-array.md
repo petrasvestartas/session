@@ -61,7 +61,7 @@ Two more things a copy must resolve, because neither lives in the object anymore
 
 ```
 src/app/history/add.rs # AddGeometry::of_snapshots — the plural constructor (62 shipped ::one)
-src/app/scene.rs       # clone_selection() → doc-resolved snapshots with fresh guids
+src/app/tools/copy.rs  # NEW — clone_selection() → doc-resolved snapshots with fresh guids
 src/app/commands.rs    # `copy` (two-point Get-loop) and `array` verbs
 src/state.rs           # place_copies helper; Alt held at gumball-press → drag a COPY
 ```
@@ -80,7 +80,10 @@ row, doc, `Rc` handle, local xform — exactly what a copy is):
     }
 ```
 
-## Step 1 — duplicate with fresh identities: `src/app/scene.rs`
+## Step 1 — duplicate with fresh identities: `src/app/tools/copy.rs`
+
+A new file in 85's `tools/` module (`pub mod copy;` in `app/tools/mod.rs`), carrying its own
+`impl Scene` block — `scene.rs` holds the document state this reads, not the operations on it:
 
 ```rust
     /// Doc-resolved duplicates of the selection, in 64's snapshot shape — ready for ONE
@@ -114,8 +117,8 @@ row, doc, `Rc` handle, local xform — exactly what a copy is):
     }
 ```
 
-(Imports: `use std::rc::Rc;` and `use crate::app::history::remove::RemovedObj;` join scene.rs's
-top-of-file `use` lines. Want a `_copy` name suffix in the tree? Bind the duplicate mutable in an
+(Imports: `use std::rc::Rc;` and `use crate::app::history::remove::RemovedObj;` head the new
+file. Want a `_copy` name suffix in the tree? Bind the duplicate mutable in an
 arm and `push_str` before wrapping — cosmetic, skipped here to keep the arms honest-length.)
 
 And the placement half, on `impl State` (`src/state.rs`) — copies exist *after* the insert, so
@@ -365,8 +368,9 @@ Ch 85: DUPLICATION = three rails composed: duplicate() + AddGeometry + apply_wor
        67's Esc discipline, second customer), copies take the final delta.
 ```
 
-Edited: `app/history/add.rs` (`AddGeometry::of_snapshots`), `app/scene.rs` (`clone_selection`),
-`app/commands.rs` (`copy`, `array`), `state.rs` (`place_copies`, Alt branch on 67's release).
+Edited: `app/history/add.rs` (`AddGeometry::of_snapshots`), `app/tools/copy.rs` (NEW —
+`clone_selection`) + one `app/tools/mod.rs` line, `app/commands.rs` (`copy`, `array`), `state.rs`
+(`place_copies`, Alt branch on 67's release).
 
 ## Next
 
