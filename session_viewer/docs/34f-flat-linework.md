@@ -62,7 +62,9 @@ const LINEWORK_SOLID: bool = false;
 Flat shapes offset corners in CLIP space — pixels→NDC needs BOTH viewport axes. Uniform sizes are
 16-byte multiples, so the struct grows from one vec4 to two.
 
-**2a. The Rust struct.** Near the bottom of `gpu/mod.rs`, find:
+**2a. The Rust struct.** Near the bottom of the file.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
 struct LineUniform{
@@ -73,7 +75,7 @@ struct LineUniform{
 } // 16 B - one vec4, no padding
 ```
 
-Replace the last two lines (`vp_h: …` and the closing `}`) so it reads:
+**Replace with**:
 
 ```rust
 struct LineUniform{
@@ -86,7 +88,9 @@ struct LineUniform{
 } // 32 B - two vec4s
 ```
 
-**2b. Write site 1 — `new()`.** Find (inside the `line_buffer` init; note `vp_h` has no comma):
+**2b. Write site 1 — `new()`.** Inside the `line_buffer` init; note `vp_h` has no comma.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
             contents: bytemuck::bytes_of(&LineUniform {
@@ -97,7 +101,7 @@ struct LineUniform{
             }),
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
             contents: bytemuck::bytes_of(&LineUniform {
@@ -110,7 +114,9 @@ Replace with:
             }),
 ```
 
-**2c. Write site 2 — `clear()`.** Find:
+**2c. Write site 2 — `clear()`.**
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
             ortho_h: 0.0, // perspective, set the ortho half-height when ortho
@@ -118,7 +124,7 @@ Replace with:
         };
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
             ortho_h: 0.0, // perspective, set the ortho half-height when ortho
@@ -128,7 +134,9 @@ Replace with:
         };
 ```
 
-**2d. Mirror in `src/shaders/cylinder.wgsl`.** Find:
+**2d. Mirror in `src/shaders/cylinder.wgsl`.** Four fields join the struct before its closing `};`.
+
+**Find** in `src/shaders/cylinder.wgsl`:
 
 ```wgsl
 struct LineUniform{
@@ -139,16 +147,24 @@ struct LineUniform{
 };
 ```
 
-Add four fields before the closing `};`:
+**Replace with**:
 
 ```wgsl
+struct LineUniform{
+    thickness: f32, // desired on-screen width, in pixels
+    proj_y: f32, // vertical projection scale + unit scale (perspective: cot(fovy)/2) mm > m)
+    ortho_h: f32, // ortho world-height * unit scale; 0.0 in perspcetive
+    vp_h: f32, // framebuffer height, in pixels
     vp_w: f32,
     _pad0: f32,
     _pad1: f32,
     _pad2: f32,
+};
 ```
 
-**2e. Mirror in `src/shaders/sphere.wgsl`.** Find:
+**2e. Mirror in `src/shaders/sphere.wgsl`.** The same four fields, same place.
+
+**Find** in `src/shaders/sphere.wgsl`:
 
 ```wgsl
 struct LineUniform{
@@ -159,7 +175,20 @@ struct LineUniform{
 };
 ```
 
-Add the same four fields before the closing `};`.
+**Replace with**:
+
+```wgsl
+struct LineUniform{
+    thickness: f32,
+    proj_y: f32,
+    ortho_h: f32,
+    vp_h: f32,
+    vp_w: f32,
+    _pad0: f32,
+    _pad1: f32,
+    _pad2: f32,
+};
+```
 
 A mismatched uniform struct is a pipeline-creation error at startup — after this step both 3D
 pipelines still build, and `cargo check` passes again.
@@ -384,13 +413,15 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 
 ## Step 4 — pipelines
 
-**4a. `src/engine/pipelines/build.rs`** — paste both builders at the very END of the file, after
+**4a.** Both builders go at the very END of `src/engine/pipelines/build.rs`, after
 `build_point_pipeline`'s closing `}`. Both are buffer-less (verts come from `vertex_index`) and
 **alpha-blended** (`ALPHA_BLENDING` — the shader's AA ramp and hairline fade need real blending;
 see Step 3). Depth is **tested but not written**: every sheet line sits at the same depth, and a
 blended 5%-alpha feather pixel that wrote depth would BLOCK the full-opacity core of the next
 line crossing it — light holes at every intersection. Test-only keeps meshes occluding linework
-while ink blends freely over ink:
+while ink blends freely over ink.
+
+**Append** to `src/engine/pipelines/build.rs`:
 
 ```rust
 /// Pipeline for flat capsule ribbons — buffer-less, 6 verts/segment, opaque, depth-writing.
@@ -518,39 +549,42 @@ pub fn build_glyph_pipeline(
 
 **4b. `src/engine/pipelines/mod.rs`** — three edits, top to bottom.
 
-Find:
+**Find** in `src/engine/pipelines/mod.rs`:
 
 ```rust
 use build::build_point_pipeline;
 ```
 
-Insert after it:
+**Add below it:**
 
 ```rust
 use build::build_ribbon_pipeline;
 use build::build_glyph_pipeline;
 ```
 
-Find in `pub struct Pipelines`:
+**Find** in `pub struct Pipelines`:
 
 ```rust
     pub point: wgpu::RenderPipeline,
 ```
 
-Insert after it:
+**Add below it:**
 
 ```rust
     pub ribbon: wgpu::RenderPipeline,
     pub glyph: wgpu::RenderPipeline,
 ```
 
-Find in `Pipelines::new` (one long line):
+Then one long line in `Pipelines::new`. This file calls the mvp layout `aspect_layout` — keep that
+name.
+
+**Find** in `src/engine/pipelines/mod.rs`:
 
 ```rust
             point: build_point_pipeline(device, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
 ```
 
-Insert after it (this file calls the mvp layout `aspect_layout` — keep that name):
+**Add below it:**
 
 ```rust
             ribbon: build_ribbon_pipeline(device, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
@@ -562,7 +596,9 @@ Insert after it (this file calls the mvp layout `aspect_layout` — keep that na
 ## Step 5 — the switch: `gpu/mod.rs` `clear()`
 
 Both linework blocks branch on `LINEWORK_SOLID` inside their count-guards — SOLID keeps the exact
-template draws, FLAT drops the template buffers. **Find the whole Edges block:**
+template draws, FLAT drops the template buffers.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
             if self.segment_count > 0 {
@@ -578,7 +614,7 @@ template draws, FLAT drops the template buffers. **Find the whole Edges block:**
             }
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
             if self.segment_count > 0 {
@@ -604,7 +640,9 @@ Replace with:
             }
 ```
 
-**Find the whole Spheres block** (right below):
+The Spheres block is right below it.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
             if self.glyph_count > 0 {
@@ -620,7 +658,7 @@ Replace with:
             }
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
             if self.glyph_count > 0 {
@@ -655,8 +693,10 @@ a print; **model geometry (3D lines, mesh/BRep edges) stays screen-constant**. T
 has both lanes (`radius == 0` px-constant, `> 0` world-mm); route drawing widths into the world
 lane.
 
-**6a. `src/engine/gpu/adapters.rs`** — three edits. At the very END of the file, after
-`point_to_glyph`'s closing `}`, add:
+**6a. `src/engine/gpu/adapters.rs`** — three edits. The first goes at the very END of the file,
+after `point_to_glyph`'s closing `}`.
+
+**Append** to `src/engine/gpu/adapters.rs`:
 
 ```rust
 /// Kernel width (dimensionless, default 1.0) → the radius encoding's NEGATIVE lane (px
@@ -667,23 +707,43 @@ pub(super) fn encode_width(w: f64) -> f32 {
 }
 ```
 
-In `line_to_segment`, find `radius: 0.0,` and replace with:
+`radius: 0.0,` appears three times in this file, so each anchor carries the line above it.
+
+**Find** in `src/engine/gpu/adapters.rs`:
 
 ```rust
+        p0: l.start().to_f32(),
+        radius: 0.0,
+```
+
+**Replace with**:
+
+```rust
+        p0: l.start().to_f32(),
         radius: encode_width(l.width),
 ```
 
-In `polyline_to_segments`, find `radius: 0.0,` and replace with:
+**Find** in `src/engine/gpu/adapters.rs`:
 
 ```rust
+        p0: w[0].to_f32(),
+        radius: 0.0,
+```
+
+**Replace with**:
+
+```rust
+        p0: w[0].to_f32(),
         radius: encode_width(pl.width),
 ```
 
 (`point_to_glyph` KEEPS its `radius: 0.0` — 34h wires point widths.)
 
 **6b. `gpu/mod.rs` `walk_session`** — planarity IS the discriminator (every PDF conversion is
-exactly z ≡ 0; no flag needed in the data). Find the END of `walk_session` — the glyph extent
-fold and the return:
+exactly z ≡ 0; no flag needed in the data). The anchor is the END of `walk_session` — the glyph
+extent fold.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
         for g in &t.glyphs { for k in 0..3 {
@@ -694,9 +754,16 @@ fold and the return:
     }
 ```
 
-Insert between the fold and the `t` line:
+The planar pass goes between the fold and the `t` line, so the anchor is replaced whole.
+
+**Replace with**:
 
 ```rust
+        for g in &t.glyphs { for k in 0..3 {
+            t.min[k] = t.min[k].min(g.center[k]);
+            t.max[k] = t.max[k].max(g.center[k]);
+        } }
+
         // 2D DRAWING SHEETS (exactly planar, z ≡ 0 — every PDF conversion) get PAPER-SPACE
         // lineweights: kernel width (mm on the sheet) → the radius WORLD lane, so zooming out
         // thins the ink like a real print. 3D model files keep screen-constant px linework.
@@ -707,6 +774,8 @@ Insert between the fold and the `t` line:
                            else { 0.5 };                        // default width 1.0 → 0.5mm pen
             }
         }
+        t
+    }
 ```
 
 The hairline rule in ribbon.wgsl (Step 3) keeps zoomed-out ink at 1px — fading its opacity

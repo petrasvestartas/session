@@ -90,7 +90,7 @@ assets/scenes/drawings_rotated.toml  # Step 6: rotated-sheet verify scene (no co
 
 Eleven edits, strictly top to bottom.
 
-**1a. Imports.** Find at the top:
+**1a. Imports.** **Find** at the top of `src/engine/gpu/mod.rs`:
 
 ```rust
 mod adapters;
@@ -100,27 +100,63 @@ use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
 use session_rust::mesh::ColorMode;
 ```
 
-Replace all five lines with (one import only — `Zeroable` goes too: the by-hand `::zeroed()`
-placeholders disappear with the zero-init trick, and `storage_buffer`'s `T::zeroed()` resolves
-through its `Pod` bound without the import):
+**Replace with** — one import only; `Zeroable` goes too, since the by-hand `::zeroed()`
+placeholders disappear with the zero-init trick and `storage_buffer`'s `T::zeroed()` resolves
+through its `Pod` bound without the import:
 
 ```rust
 use session_rust::{Xform, RenderVertex, Point};
 ```
 
-Also fix one comment: find `/// Routing lives in `walk_session`, one draw per lane in `clear`.`
-and make it `/// Routing lives in `app::scene::Scene::add_file`, one draw per lane in `clear`.`
+One comment upstream names the function that is about to leave.
 
-**1b. `STRESS_GRID` dies, `SceneTables` becomes `ArenaUpload`.** Find:
+**Find**:
+
+```rust
+/// Routing lives in `walk_session`, one draw per lane in `clear`.
+```
+
+**Replace with**:
+
+```rust
+/// Routing lives in `app::scene::Scene::add_file`, one draw per lane in `clear`.
+```
+
+**1b. `STRESS_GRID` dies, `SceneTables` becomes `ArenaUpload`.**
+
+**Find** (the trailing blank line belongs to the anchor, so one blank line is left behind):
 
 ```rust
 /// Grid floor for load testing: at least STREE_GRID2 cells, cycling the loaded files
 const STRESS_GRID: u32 = 1;
+
 ```
 
-Delete both lines. Then find the `SceneTables` block (the doc comment beginning
-`/// One loaded file, walked into GPU-ready tables.` down to the struct's closing `}`) and
-replace the whole thing with:
+**Delete**
+
+Then the table struct itself — doc comment through the closing brace.
+
+**Find**:
+
+```rust
+/// One loaded file, walked into GPU-ready tables. Built by [`Gpu::walk_session`] BEFORE
+/// `Gpu::new`, so the parsed `Session` (often 10× larger than these tables) can be dropped
+/// before the next file is fetched — peak memory holds ONE session at a time, not all of them.
+pub struct SceneTables {
+    verts: Vec<RenderVertex>,
+    vids: Vec<u32>,
+    idx: Vec<u32>,
+    pipes: Vec<CylinderSegment>,   // SOLID lane: mesh/BRep edges, drawn as 3D cylinders
+    spheres: Vec<GlyphPoint>,      // SOLID lane: mesh/BRep vertices, radius matched to the pipes
+    segments: Vec<CylinderSegment>,// FLAT lane: line/polyline, drawn as camera-facing ribbons
+    glyphs: Vec<GlyphPoint>,       // FLAT lane: points, drawn as SDF dots
+    objects: Vec<(Xform, [f32; 4])>,
+    min: [f32; 3],
+    max: [f32; 3],
+}
+```
+
+**Replace with**:
 
 ```rust
 /// Everything `Gpu` needs to fill its buffers, built and OWNED by `app::scene::Scene` — the
@@ -160,17 +196,20 @@ impl ArenaUpload {
 }
 ```
 
-**1c. The field grows flags, the layouts survive.** In `pub struct Gpu`, find:
+**1c. The field grows flags, the layouts survive.** One line in `pub struct Gpu` becomes seven —
+the `objects_base` tuple grows a `u32` (flags), and the six `*_layout` fields are NEW, inserted
+right after it. Nothing is deleted: `instance_buffer` and everything under it stays. (Today the
+layouts are locals inside `new()`, dropped when it returns; `set_scene` must rebuild bind groups
+after buffer recreation, and pipelines when MSAA flips, so they move into the struct — step 1g
+stores them in `Ok(Self { … })`.)
+
+**Find**:
 
 ```rust
     objects_base: Vec<(Xform, [f32; 4])>, // TRUE world model+color; isntance[] is rebased from this
 ```
 
-Replace that ONE line with the seven below — the `objects_base` tuple grows a `u32` (flags), and
-the six `*_layout` fields are NEW, inserted right after it. Delete nothing: `instance_buffer` and
-everything under it stays. (Today the layouts are locals inside `new()`, dropped when it returns;
-`set_scene` must rebuild bind groups after buffer recreation, and pipelines when MSAA flips, so
-they move into the struct — step 1g stores them in `Ok(Self { … })`.)
+**Replace with**:
 
 ```rust
     objects_base: Vec<(Xform, [f32; 4], u32)>, // TRUE world model+tint+flags; instances[] is rebased from this
@@ -183,7 +222,9 @@ they move into the struct — step 1g stores them in `Ok(Self { … })`.)
     glyph_layout: wgpu::BindGroupLayout,
 ```
 
-**1d. The signature — `new()` takes NOTHING but the window.** Find:
+**1d. The signature — `new()` takes NOTHING but the window.**
+
+**Find**:
 
 ```rust
     /// Set up the five wgpu objects, in order: Instance → Surface → Adapter → Device + Queue → configure.
@@ -194,7 +235,7 @@ they move into the struct — step 1g stores them in `Ok(Self { … })`.)
         files: &[(SceneTables, Xform)]) -> anyhow::Result<Self> {
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
     /// Set up the five wgpu objects, in order: Instance → Surface → Adapter → Device + Queue → configure.
@@ -204,7 +245,9 @@ Replace with:
         window: std::sync::Arc<winit::window::Window>) -> anyhow::Result<Self> {
 ```
 
-Then a few pages down find:
+Then a few pages down, the MSAA choice.
+
+**Find**:
 
 ```rust
         // Depth and MSAA
@@ -212,7 +255,7 @@ Then a few pages down find:
         log::info!("msaa: {}x", samples);
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
         // Depth and MSAA — the empty scene starts flat (1x); set_scene flips to 4x when the
@@ -220,27 +263,30 @@ Replace with:
         let samples = 1;
 ```
 
-**1e. The merge loop dies — empty placeholders take its place.** Find the block that starts at:
+**1e. The merge loop dies — empty placeholders take its place.** The deletion is ~155 lines, from
+the merge comment down to and including the grid log. Check off what it swallows, top to bottom:
+the eight `let mut …` table declarations (`verts` … `objects_base`) plus `scene_min`/`scene_max`,
+the commented-out flat merge, the whole `cells`/`cols` stress-grid machinery, the `is_finite()`
+bounds fallback, the instances build, the lane concat
+(`let mut segments = { pipes.extend(segments); pipes };` and its glyph twin),
+`segment_count`/`glyph_count`, the `points` declaration, the four `is_empty()` padding guards, and
+`arena_index_count`. The grid log is the LAST line deleted; the `let instance_buffer = …` line
+below it is the first survivor.
+
+**Remove** `src/engine/gpu/mod.rs`
+`        // Merge the per-file tables into one arena: mesh indices shift by the vertex base,`
+**through**
+`            cells, files.len(), instances.len(), verts.len(), segments.len(), pipe_count, glyphs.len(), sphere_count);`
+
+In the hole the placeholders go.
+
+**Find**:
 
 ```rust
-        // Merge the per-file tables into one arena: mesh indices shift by the vertex base,
-        // row ids (vids / instance_id) by the objects base, so every file keeps distinct rows.
+        let instance_buffer =  storage_buffer(&device, "instance.buffer", &instances);
 ```
 
-and **delete everything from that comment down to and including the grid log**:
-
-```rust
-        log::info!("grid: {} cells x {} files, {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres)",
-            cells, files.len(), instances.len(), verts.len(), segments.len(), pipe_count, glyphs.len(), sphere_count);
-```
-
-The deletion is ~155 lines. Check off what it swallows, top to bottom: the eight `let mut …`
-table declarations (`verts` … `objects_base`) plus `scene_min`/`scene_max`, the commented-out
-flat merge, the whole `cells`/`cols` stress-grid machinery, the `is_finite()` bounds fallback,
-the instances build, the lane concat (`let mut segments = { pipes.extend(segments); pipes };` and
-its glyph twin), `segment_count`/`glyph_count`, the `points` declaration, the four `is_empty()`
-padding guards, and `arena_index_count`. The grid log is the LAST line deleted; the
-`let instance_buffer = …` line below it is the first survivor. **In the hole, insert:**
+**Add above it:**
 
 ```rust
         // The scene-shaped fields start as EMPTY placeholders (WebGPU zero-initializes
@@ -258,18 +304,27 @@ padding guards, and `arena_index_count`. The grid log is the LAST line deleted; 
 One casualty of the deletion must come back. The deletion removed the `points` declaration, but
 its user SURVIVED: `let point_count = points.len() as u32;` sits much further down in `new()`,
 under the `// Point buffer + the cloud uniform` comment (past the arena/template/segment/glyph
-buffer creation). Find it there and put the declaration back directly above it:
+buffer creation). The declaration goes back directly above it.
+
+**Find**:
+
+```rust
+        let point_count = points.len() as u32;
+```
+
+**Add above it:**
 
 ```rust
         let points: Vec<CloudPoint> = Vec::new();
-        let point_count = points.len() as u32;
 ```
 
 (Empty here, and it stayed empty for a long time — the raw cloud lane existed in the engine but
 nothing ever filled it. `set_scene` fills it now; see the note at the end of Step 2.)
 
 **1f. The scene buffers in `new()` become zeroed placeholders** (their real creation now lives
-in `set_scene`). Three replacements. Find:
+in `set_scene`). Three replacements.
+
+**Find**:
 
 ```rust
         let arena_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
@@ -288,7 +343,7 @@ in `set_scene`). Three replacements. Find:
         });
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
         let arena_vbo = zeroed_buffer(&device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, wgpu::BufferUsages::VERTEX);
@@ -296,14 +351,14 @@ Replace with:
         let arena_ibo = zeroed_buffer(&device, "arena.ibo", 12, wgpu::BufferUsages::INDEX);
 ```
 
-Find:
+**Find**:
 
 ```rust
         // One storage row per edge (VERTEX-visible, read-only) - the segment table.
         let segment_buffer =  storage_buffer(&device, "segments.buffer", &segments);
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
         // One storage row per edge (VERTEX-visible, read-only) - the segment table.
@@ -311,9 +366,16 @@ Replace with:
             wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
 ```
 
-Find `let glyph_buffer =  storage_buffer(&device, "glyphs.buffer", &glyphs);` — careful, the
-source has TWO spaces after the `=` (this find and the `segment_buffer` one above), so search for
-`"glyphs.buffer"` if a pasted line misses — and replace with:
+The last of the three has TWO spaces after its `=`, exactly like the `segment_buffer` line above
+it — if a pasted anchor misses, that is why.
+
+**Find**:
+
+```rust
+        let glyph_buffer =  storage_buffer(&device, "glyphs.buffer", &glyphs);
+```
+
+**Replace with**:
 
 ```rust
         let glyph_buffer = zeroed_buffer(&device, "glyphs.buffer", std::mem::size_of::<GlyphPoint>() as u64,
@@ -323,7 +385,10 @@ source has TWO spaces after the `=` (this find and the `segment_buffer` one abov
 (`let instance_buffer =  storage_buffer(…)` — the first line after the 1e hole, ABOVE the three
 arena lines you just replaced — stays as is: it uploads the one placeholder instance).
 
-**1g. `Ok(Self { … })` stores the layouts.** In the struct literal at the end of `new()`, find:
+**1g. `Ok(Self { … })` stores the layouts.** The six layouts go after `objects_base,` in the
+struct literal at the end of `new()`.
+
+**Find**:
 
 ```rust
             instances,
@@ -331,7 +396,7 @@ arena lines you just replaced — stays as is: it uploads the one placeholder in
             objects_base,
 ```
 
-and insert the six layouts after `objects_base,`:
+**Add below it:**
 
 ```rust
             mvp_layout,
@@ -342,10 +407,24 @@ and insert the six layouts after `objects_base,`:
             glyph_layout,
 ```
 
-**1h. `walk_session` becomes the zero-copy `set_scene`.** Find the doc comment beginning
-`/// One file → compact tables.` (it continues `Called from state.rs BEFORE Gpu::new …` — delete
-all of it) and **delete from it down to and including `walk_session`'s closing `}`** (the last lines of the deletion are the planar block and `        t\n    }`).
-In its place, insert:
+**1h. `walk_session` becomes the zero-copy `set_scene`.** The whole method goes — its doc comment
+through its closing `}`, the planar block and `        t` being the last lines of the body. The
+method that FOLLOWS it names the exclusive end, since a bare `    }` is not a unique anchor.
+
+**Remove** `src/engine/gpu/mod.rs`
+`    /// One file → compact tables. Called from state.rs BEFORE Gpu::new, so the parsed`
+**up to**
+`    /// The anchor the instance table is rebased about.`
+
+In its place, `set_scene`.
+
+**Find**:
+
+```rust
+    /// The anchor the instance table is rebased about.
+```
+
+**Add above it:**
 
 ```rust
     /// Replace the whole scene from the app's tables — called once per file while progressive
@@ -442,10 +521,13 @@ In its place, insert:
             log::info!("msaa: {}x", samples);
         }
     }
+
 ```
 
-**1i. `msaa_for` reads the upload.** Two-line change: the signature and the `solid` line (the
-`if solid` line is shown only as context — it stays). Find:
+**1i. `msaa_for` reads the upload.** Two lines change — the signature and the `solid` line; the
+`if solid` line rides along as the third line of the anchor and comes back unchanged.
+
+**Find**:
 
 ```rust
     fn msaa_for(files: &[(SceneTables, Xform)]) -> u32 {
@@ -453,7 +535,7 @@ In its place, insert:
         if solid { 4 } else { 1 }
 ```
 
-Replace the first two lines with:
+**Replace with**:
 
 ```rust
     fn msaa_for(up: &ArenaUpload) -> u32 {
@@ -461,64 +543,131 @@ Replace the first two lines with:
         if solid { 4 } else { 1 }
 ```
 
-**1j. `rebuild_instances` learns the third tuple element.** Find the LIVE loop (not the
-commented-out copy just above it):
+**1j. `rebuild_instances` learns the third tuple element.** The anchor is the LIVE loop, not the
+commented-out copy just above it — the flag is set once at build, and rebasing never touches it.
+
+**Find**:
 
 ```rust
         for (i, (model, color)) in self.objects_base.iter().enumerate() {
             let mut m = model.to_f32();
 ```
 
-Replace the first line with (the flag is set once at build; rebasing never touches it):
+**Replace the first line with**:
 
 ```rust
         for (i, (model, color, _)) in self.objects_base.iter().enumerate() {
 ```
 
-**1k. Row structs go `pub`, `zeroed_buffer` appears, movers leave.** Near the bottom:
+**1k. Row structs go `pub`, `zeroed_buffer` appears, movers leave.** Near the bottom, six edits.
 
-- Find the row struct `struct Instance {` and add `pub` to the struct keyword only — its fields
-  stay private, since only `Gpu` builds rows and `Scene` merely names the flag:
+The `Instance` row keeps its fields private — only `Gpu` builds rows, and `Scene` merely names
+the flag — so the struct keyword alone changes.
+
+**Find**:
+
+```rust
+struct Instance {
+```
+
+**Replace with**:
 
 ```rust
 pub struct Instance {
 ```
 
-  Then insert the flag const directly below that struct's closing `}`:
+The flag const goes directly below that struct's closing `}`.
+
+**Find**:
 
 ```rust
+    _pad: [u32; 3], // 12 B - pad the row to 96 B (storage array stride)
+}
+```
+
+**Add below it:**
+
+```rust
+
 impl Instance {
     /// Row is skipped by the draw (51). Bit 0 is reserved for FLAG_SELECTED (50).
     pub const FLAG_HIDDEN: u32 = 1 << 1;
 }
 ```
 
-- Find `struct CylinderSegment{` and `struct GlyphPoint{` and add `pub` to the struct keyword
-  **and to every field** — `Scene` constructs these field-by-field across the module boundary.
-  Nothing else changes; keep each field's comment exactly as it is:
+`CylinderSegment` and `GlyphPoint` go `pub` on the struct keyword **and on every field** —
+`Scene` constructs these field-by-field across the module boundary now. Nothing else changes,
+each field's comment included.
+
+**Find**:
+
+```rust
+struct CylinderSegment{
+    p0: [f32; 3],   // 12 B - start point 
+    radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 0 -> wolrd mm override
+    p1: [f32; 3],   // 12 B - end point (p0..instance_id = 32 B of geometry)
+    instance_id: u32,  // 4 B - row in instances[]: object model + flags (hide/select later)
+    color: [f32; 4],  // 16 B - per - edge (black crease, naked color, ...)
+}
+```
+
+**Replace with**:
 
 ```rust
 pub struct CylinderSegment{
-    pub p0: [f32; 3],
-    pub radius: f32,
-    pub p1: [f32; 3],
-    pub instance_id: u32,
-    pub color: [f32; 4],
-}
-
-pub struct GlyphPoint{
-    pub center: [f32; 3],
-    pub radius: f32,
-    pub color: [f32; 4],
-    pub instance_id: u32,
-    pub _pad: [u32; 3],
+    pub p0: [f32; 3],   // 12 B - start point 
+    pub radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 0 -> wolrd mm override
+    pub p1: [f32; 3],   // 12 B - end point (p0..instance_id = 32 B of geometry)
+    pub instance_id: u32,  // 4 B - row in instances[]: object model + flags (hide/select later)
+    pub color: [f32; 4],  // 16 B - per - edge (black crease, naked color, ...)
 }
 ```
-- **Delete** `fn push_mesh(…)`, `fn xform_point(…)` and `fn grow_bounds(…)` whole — they name
-  document types and move to `scene.rs` in Step 2.
-- **Delete the file `src/engine/gpu/adapters.rs`** — its converters and `encode_width` also
-  reappear in `scene.rs`.
-- Finally insert the zero-init helper directly above `fn storage_buffer<`:
+
+**Find**:
+
+```rust
+struct GlyphPoint{
+    center: [f32; 3], // 12 B - mesh-local
+    radius: f32, // 4 B - 0.0 - screen-constant px; 0 - world mm
+    color:  [f32; 4],
+    instance_id: u32, // 4 B - row insntaces
+    _pad: [u32; 3], // 12 B - single trailing scalar is why we need pad
+} // 48 B total, three 16-byte rows
+```
+
+**Replace with**:
+
+```rust
+pub struct GlyphPoint{
+    pub center: [f32; 3], // 12 B - mesh-local
+    pub radius: f32, // 4 B - 0.0 - screen-constant px; 0 - world mm
+    pub color:  [f32; 4],
+    pub instance_id: u32, // 4 B - row insntaces
+    pub _pad: [u32; 3], // 12 B - single trailing scalar is why we need pad
+} // 48 B total, three 16-byte rows
+```
+
+`push_mesh`, `xform_point` and `grow_bounds` go whole — they name document types and reappear in
+`scene.rs` in Step 2. The three are contiguous, and `storage_buffer`'s doc comment is what
+follows them, so it names the exclusive end.
+
+**Remove** `src/engine/gpu/mod.rs`
+`fn push_mesh(`
+**up to**
+`/// A read-only storage buffer that is never zero-sized (wgpu can't bind a 0-byte buffer).`
+
+**Delete `src/engine/gpu/adapters.rs`** — its converters and `encode_width` also reappear in
+`scene.rs`.
+
+Finally the zero-init helper, directly above `fn storage_buffer<`.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+/// A read-only storage buffer that is never zero-sized (wgpu can't bind a 0-byte buffer).
+```
+
+**Add above it:**
 
 ```rust
 /// A fresh buffer of `size` bytes, zero-initialized by WebGPU — the write_buffer splice and the
@@ -538,7 +687,7 @@ fn zeroed_buffer(device: &wgpu::Device, label: &str, size: u64, usage: wgpu::Buf
 Nothing in this file changes — it stays the manifest (WHICH files, WHERE they sit). You only
 ADD code at the very bottom, after `auto_grid`'s closing `}`. Three pastes:
 
-**2a.** Paste the block below at the end of the file. It reads as three parts: `Doc` (one kept
+**2a.** The block below goes at the end of the file. It reads as three parts: `Doc` (one kept
 session + its placement), `Scene` (the docs + the merged GPU tables + `guid_to_row`/`hidden`
 bookkeeping), and `add_file()` — 34e's walk moved out of `Gpu`, appending into the SHARED
 tables so each file costs only its own walk. The walk also GROWS here: since 34b it rendered 6
@@ -546,11 +695,7 @@ of the kernel's 11 geometry types and skipped the rest — now that it lives in 
 covers all 11 (surfaces tessellate like BReps, elements delegate to their baked geometry,
 planes/boxes/clouds get the three new converters of 2c).
 
-**2b.** Below that, the converters rescued from Step 1's deletions (full bodies after the
-block — nothing to dig out of git).
-
-**2c.** Last, the three NEW converters the full coverage needs — plane, box, point cloud (full
-code after 2b).
+**Append** to `src/app/scene.rs`:
 
 ```rust
 // ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -754,15 +899,17 @@ impl Scene {
 }
 ```
 
-**2b (the rescued converters).** Below the block you just pasted, add eight functions, bodies
-UNCHANGED: `line_to_segment`, `polyline_to_segments`, `nurbscurve_to_segments`,
-`point_to_glyph`, `encode_width` from the deleted `adapters.rs` (drop the `pub`/`pub(super)` —
-they're file-local now), and `push_mesh`, `xform_point`, `grow_bounds` from the deleted engine
-code. They name `Mesh`/`Line`/`Point` — document types — which is exactly why they now live in
-the app layer. After Step 1's deletions their only other copy is git history
+**2b (the rescued converters).** Eight more functions, bodies UNCHANGED: `line_to_segment`,
+`polyline_to_segments`, `nurbscurve_to_segments`, `point_to_glyph`, `encode_width` from the
+deleted `adapters.rs` (drop the `pub`/`pub(super)` — they're file-local now), and `push_mesh`,
+`xform_point`, `grow_bounds` from the deleted engine code. They name `Mesh`/`Line`/`Point` —
+document types — which is exactly why they now live in the app layer. After Step 1's deletions
+their only other copy is git history
 (`git show a6a33a8b:./src/engine/gpu/adapters.rs` / `…gpu/mod.rs`), so here they are in full —
 the ONLY edits vs the originals are the dropped `pub`/`pub(super)` and `encode_width`'s comment
-saying `add_file` instead of the deleted `walk_session`:
+saying `add_file` instead of the deleted `walk_session`.
+
+**Append** to `src/app/scene.rs`:
 
 ```rust
 fn line_to_segment(l: &Line, instance_id: u32) -> CylinderSegment {
@@ -955,7 +1102,9 @@ the parameter names just came along with the body. And `xform_point`'s column in
 convention Step 6's hand-written manifest matrices use.
 
 **2c (the new converters).** The three types no walk ever drew before. Each reuses a lane that
-already exists — no shader, no pipeline, no engine change:
+already exists — no shader, no pipeline, no engine change.
+
+**Append** to `src/app/scene.rs`:
 
 ```rust
 /// A plane is infinite — draw a fixed square around its origin, spanned by its x/y axes.
@@ -1029,15 +1178,30 @@ cannot paint. The kernel's `from_proto` split (34h pt3) lets the app own the pac
 decode the proto whole (prost is fast), then convert objects 25k at a time with a REAL browser
 yield between slices.
 
-First the dependency: in `Cargo.toml`, find `js-sys = "0.3"` and add below it (the SAME major
-version the kernel uses, or the `Message` trait won't line up):
+First the dependency. It has to be the SAME major version the kernel uses, or the `Message` trait
+won't line up.
+
+**Find** in `Cargo.toml`:
+
+```toml
+js-sys = "0.3"
+```
+
+**Add below it:**
 
 ```toml
 prost = "0.14"
 ```
 
-Then in `persistence.rs`, **delete `session_from_bytes` whole** (with its doc comment — the
-chunked version replaces it) and append at the end of the file:
+Then `session_from_bytes` goes whole, doc comment included — the chunked version replaces it, and
+the closing brace of the file names the end.
+
+**Remove** `src/app/persistence.rs`
+`/// .pb - prost, .json - serde`
+**through**
+`}`
+
+**Append** to `src/app/persistence.rs`:
 
 ```rust
 // ── chunked parsing: convert the decoded proto in slices, yielding between them ──
@@ -1168,19 +1332,29 @@ Three details worth pausing on:
 ## Step 4 — `State` holds the document set: `src/state.rs`
 
 The load loop LEAVES this file (it becomes the progressive loader in lib.rs), so the top half of
-`state.rs` is replaced and the bottom half is untouched. Three moves:
+`state.rs` is replaced and the bottom half is untouched. The four `//!` header lines at the very
+top stay. Everything from `use std::sync::Arc;` down to and including the `}` that closes `new`
+goes: the whole `use` block, the `DEMO_SCENE_URL` const, `pub struct State`, the `impl State {`
+line, and the entire body of `new` (manifest fetch, pipelined loop, `Gpu::new`, `Ok(Self …)`).
+`resize`'s doc comment names the exclusive end.
 
-1. **KEEP** the four `//!` header lines at the very top.
-2. **DELETE** everything from `use std::sync::Arc;` down to and including the `}` that closes
-   `new` — that is the line directly above `/// Forward a canvas resize`. You are deleting: the
-   whole `use` block, the `DEMO_SCENE_URL` const, `pub struct State`, the `impl State {` line,
-   and the entire body of `new` (manifest fetch, pipelined loop, `Gpu::new`, `Ok(Self …)`).
-3. **PASTE** the block below where they were. It re-opens `impl State {` itself and ends at
-   `new`'s closing `}` — deliberately unbalanced, because `resize` and `render` are still sitting
-   below untouched, and the file's existing last `}` still closes the impl.
+**Remove** `src/state.rs`
+`use std::sync::Arc;`
+**up to**
+`    /// Forward a canvas resize to the GPU layer.`
 
-The file afterwards, top to bottom: `//!` header → the pasted block (`use`s, `struct State`,
-`impl State {`, `new`) → `resize` → `render` → `}`.
+The block that takes its place re-opens `impl State {` itself and ends at `new`'s closing `}` —
+deliberately unbalanced, because `resize` and `render` are still sitting below untouched, and the
+file's existing last `}` still closes the impl. The file afterwards, top to bottom: `//!` header →
+the pasted block (`use`s, `struct State`, `impl State {`, `new`) → `resize` → `render` → `}`.
+
+**Find** in `src/state.rs`:
+
+```rust
+    /// Forward a canvas resize to the GPU layer.
+```
+
+**Add above it:**
 
 ```rust
 use std::sync::Arc;
@@ -1209,6 +1383,7 @@ impl State {
         log::info!("gpu init {:.0}ms", now_ms() - t0);
         Ok(Self {window, gpu, camera: Camera::new(), scene })
     }
+
 ```
 
 `resize`/`render` are untouched — `render()` still does 34c's anchor dance against `gpu` and
@@ -1218,14 +1393,16 @@ makes for every later file, so there is exactly one upload path to get right.
 
 ## Step 5 — the progressive loader: `src/lib.rs`
 
-**5a. The message type.** Find:
+**5a. The message type.**
+
+**Find** in `src/lib.rs`:
 
 ```rust
 pub use state::State;
 use crate::camera::View;
 ```
 
-and extend it to:
+**Replace with**:
 
 ```rust
 pub use state::State;
@@ -1250,43 +1427,51 @@ from the async init back to the handler. Now it carries `Msg` instead, which tak
 separate one-line edits further down `lib.rs`. `State` stays imported and `App` still holds one
 in `state: Option<State>`; only the message type changes.
 
-First, inside `pub struct App {`, find:
+First, inside `pub struct App {`.
+
+**Find** in `src/lib.rs`:
 
 ```rust
     proxy: Option<winit::event_loop::EventLoopProxy<State>>,
 ```
 
-and change `State` to `Msg`:
+**Replace with**:
 
 ```rust
     proxy: Option<winit::event_loop::EventLoopProxy<Msg>>,
 ```
 
-Second, inside `impl App`'s `run()`, find:
+Second, inside `impl App`'s `run()`.
+
+**Find** in `src/lib.rs`:
 
 ```rust
         let event_loop = EventLoop::<State>::with_user_event().build()?;
 ```
 
-and change `State` to `Msg`:
+**Replace with**:
 
 ```rust
         let event_loop = EventLoop::<Msg>::with_user_event().build()?;
 ```
 
-Third, the `impl` header just below `run()`'s closing braces, find:
+Third, the `impl` header just below `run()`'s closing braces.
+
+**Find** in `src/lib.rs`:
 
 ```rust
 impl ApplicationHandler<State> for App {
 ```
 
-and change `State` to `Msg`:
+**Replace with**:
 
 ```rust
 impl ApplicationHandler<Msg> for App {
 ```
 
-**5c. The loader.** In `resumed`, find:
+**5c. The loader.** In `resumed`.
+
+**Find** in `src/lib.rs`:
 
 ```rust
         if let Some(proxy) = self.proxy.take() {
@@ -1297,9 +1482,10 @@ impl ApplicationHandler<Msg> for App {
         }
 ```
 
-Replace with — this is 34e's loop from state.rs, PIPELINED (34h pt3's eager `fetch_start`),
-CHUNKED (Step 3's parse) and PROGRESSIVE (`Ready` fires after file one; the loop keeps running
-behind the live viewer):
+This is 34e's loop, PIPELINED (34h pt3's eager `fetch_start`), CHUNKED (Step 3's parse) and
+PROGRESSIVE (`Ready` fires after file one; the loop keeps running behind the live viewer).
+
+**Replace with**:
 
 ```rust
         if let Some(proxy) = self.proxy.take() {
@@ -1346,8 +1532,10 @@ behind the live viewer):
         }
 ```
 
-**5d. Receiving.** Below `resumed`, find the whole `user_event` fn — doc comment through closing
-brace, seven lines:
+**5d. Receiving.** Below `resumed` sits the whole `user_event` fn — doc comment through closing
+brace, seven lines.
+
+**Find** in `src/lib.rs`:
 
 ```rust
     /// Receive the initialized `State`, size it to the canvas, and start drawing.
@@ -1360,8 +1548,10 @@ brace, seven lines:
     }
 ```
 
-Delete all of it and paste in its place (the third parameter is a `Msg` now, so the body becomes
-a match — the old body survives as the `Ready` arm plus the camera fit):
+The third parameter is a `Msg` now, so the body becomes a match — the old body survives as the
+`Ready` arm plus the camera fit.
+
+**Replace with**:
 
 ```rust
     /// `Ready`: adopt the State built around the first file, size it, fit the camera, draw.
@@ -1400,9 +1590,10 @@ you want while reading sheet one.)
 The planar test claims orientation doesn't matter — prove it with your eyes. Nothing compiles
 here: one new manifest, one const flip, reload.
 
-**6a.** Create `assets/scenes/drawings_rotated.toml`. The kernel `Xform` is COLUMN-major
-(`m[0..3]` = X column, `m[4..7]` = Y, `m[8..11]` = Z, `m[12..14]` = translation), so each
-`xform` below reads as four columns of four:
+**6a.** The kernel `Xform` is COLUMN-major (`m[0..3]` = X column, `m[4..7]` = Y, `m[8..11]` = Z,
+`m[12..14]` = translation), so each `xform` below reads as four columns of four.
+
+**Create `assets/scenes/drawings_rotated.toml`**:
 
 ```json
 {
@@ -1566,6 +1757,15 @@ FLAG_HIDDEN + stored layouts; new() starts empty), `engine/gpu/adapters.rs` (DEL
 > triangles — and spends most of its length on why a flat rectangle of nonzero width is so much
 > harder to occlude correctly than a tube, because that argument IS the lesson.
 
+> **How to read Part 2.** Part 1 above is dictated: every block is an op with an anchor, and a
+> replay types the whole of it. Part 2 is the argument, and its blocks are **excerpts quoted from
+> the finished files** — the flat lane rewrites `ribbon.wgsl` from 142 lines to 510 and
+> `sphere.wgsl` from 66 to 288, so quoting the ten lines that carry each idea is the only way the
+> reasoning stays readable. The complete text of every one of them is the snapshot crate
+> [`35_scene_struct/`](35_scene_struct/); "Reference — checking what you typed" at the end of this
+> part says how to diff against it, step by step, commit by commit. Two edits below do have stable
+> anchors and are dictated as ops; the rest are shipped as quotations, and are marked as such.
+
 ## Part 2 goal
 
 Draw a mesh's edges as **camera-facing rectangles** — two triangles an edge instead of a
@@ -1637,7 +1837,7 @@ pub enum LineStyle {
 }
 ```
 
-At the draw site in `encode_frame`, the two lanes differ by one `match`:
+At the draw site in `encode_frame`, the two lanes differ by one `match`, quoted here:
 
 ```rust
 match self.line_style {
@@ -1658,7 +1858,8 @@ was caught by measuring the flat lane against it.
 
 ## Step 2 — the row: 48 → 40 bytes, and where the adjacency lives
 
-**Replace** `CylinderSegment` in `src/engine/gpu/mod.rs` with:
+`CylinderSegment` in `src/engine/gpu/mod.rs`, with its comments trimmed to the argument, is
+quoted here:
 
 ```rust
 pub struct CylinderSegment{
@@ -1678,7 +1879,7 @@ Packing the colour paid for `facing` **and** took 8 B off every row: on the bunn
 104,288 edges, 4.0 MB where 48 B would have been 4.8.
 
 The `facing` word is two octahedral normals, 16 bits each — about 1.4°, when all that is ever
-asked of them is the **sign** of a dot product. In `src/app/scene.rs`:
+asked of them is the **sign** of a dot product. As it is shipped as in `src/app/scene.rs`:
 
 ```rust
 fn oct16(n: &Vector) -> Option<u32> {
@@ -1722,7 +1923,7 @@ In `push_mesh`, fill it from the halfedge the kernel already has:
     let fnormals = m.face_normals();
 ```
 
-and inside the edge loop, before the `segments.push`:
+and inside the edge loop, before the `segments.push`, an excerpt of the filled-in row:
 
 ```rust
         let f = m.edge_faces(a, b).unwrap_or_default();
@@ -1746,7 +1947,7 @@ y_ndc = (y_eye / d) * cot(fovy/2)        px = y_ndc * vp_h/2 = y*cot*vp_h / (2*d
 The lane divided by `vp_h`. And separately used `thickness` — documented as an on-screen
 **width** — as a **half**-width. Same factor twice.
 
-**Replace** the width helper in `src/shaders/ribbon.wgsl`:
+The corrected width helper in `src/shaders/ribbon.wgsl` is quoted here:
 
 ```wgsl
 fn half_width_px(radius: f32, w: f32) -> f32 {
@@ -1773,7 +1974,7 @@ per-vertex `hw` and each of the quad's two triangles builds its own affine appro
 agree only on the diagonal they share, and the seam shows as a **triangular bite** out of the
 band along that diagonal.
 
-**Change** the varyings:
+The varyings, shipped as:
 
 ```wgsl
     // Half-width in px at each END, both FLAT. Never interpolated.
@@ -1781,7 +1982,7 @@ band along that diagonal.
     @location(5) @interpolate(flat) hw1: f32,
 ```
 
-and resolve per fragment, at the SDF's own along-parameter `h`:
+and, quoted here, the per-fragment resolve at the SDF's own along-parameter `h`:
 
 ```wgsl
  fn resolve_width(in: VsOut, h: f32) -> vec2<f32> {
@@ -1799,7 +2000,7 @@ This lane projects by hand, and a hand divide is only valid **in front of the ey
 `c.xy / max(abs(c.w), 1e-6)` does not clip a vertex behind the eye — it **mirrors** it through
 the screen centre, and the quad splays off across the model.
 
-**Add** before the screen-space mapping:
+The clip, quoted here, runs before the screen-space mapping:
 
 ```wgsl
     // In CLIP space `z - w` is linear along the segment and the near plane is exactly z - w = 0
@@ -1816,7 +2017,7 @@ The tube lane never had this bug because the hardware clips real geometry for yo
 
 ## Step 6 — hidden edges never reach the rasterizer
 
-An edge belongs to two faces. If **both** turn away, it is inside the solid.
+An edge belongs to two faces. If **both** turn away, it is inside the solid. The test, quoted here:
 
 ```wgsl
 fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
@@ -1865,7 +2066,7 @@ Stop choosing a distance. The adjacent faces are **planes**, their normals are a
 table, and a plane's depth at a pixel is closed form. Write, per fragment, the depth of whichever
 front-facing adjacent plane is nearer here, one epsilon in front.
 
-Build the planes in **clip space**, as the homogeneous join of three transformed points:
+Build the planes in **clip space**, as the homogeneous join of three transformed points, quoted here:
 
 ```wgsl
 // The plane three clip-space points span, as four signed 3x3 minors (each a dot with a cross).
@@ -1884,7 +2085,7 @@ The three points are the two endpoints (both lie on both faces) plus one stepped
 `cross(n, edir) * elen` off the midpoint. Near-plane clipping is irrelevant to them: a clip-space
 point with `w < 0` is still algebraically on the plane.
 
-Then the fragment solves it:
+Then the fragment solves it. The identity, quoted here as it appears in the shader:
 
 ```wgsl
 //     pl.x*nx + pl.y*ny + pl.z*nz + pl.w = 0   =>   nz = -(pl.x*nx + pl.y*ny + pl.w) / pl.z
@@ -1914,7 +2115,7 @@ Markers ride the same hug. Two rules beyond it:
   only have to match — a strictly weaker condition.
 - **Bound the band's own epsilon.** The band references its centreline depth *at the fragment*,
   and a fragment on the disc is up to one marker radius along the band from the vertex, where
-  that centreline has moved by the plane's screen slope times the distance:
+  that centreline has moved by the plane's screen slope times the distance — quoted here:
 
 ```wgsl
             let band_span = slope_px * (in.px + 0.5);
@@ -1950,7 +2151,7 @@ that geometry is never hidden. **Thin** them instead: the ink shrinks, the surfa
 and below 1 px the hairline rule already in this lane carries the remainder into alpha. Nothing
 disappears, and there is no visible threshold to notice.
 
-**Add** to `src/shaders/ribbon.wgsl`:
+The taper, quoted here from `src/shaders/ribbon.wgsl`:
 
 ```wgsl
 const WIRE_MIN_PENS = 3.0;
@@ -1965,7 +2166,8 @@ const TAPER_MIN = 0.15;   // a wire never thins past this fraction of its pen
  }
 ```
 
-applied to the RAW widths, so the hairline floor and its alpha fade still run afterwards:
+applied to the RAW widths, so the hairline floor and its alpha fade still run afterwards — the
+call site is quoted here:
 
 ```wgsl
     let crowd = density_taper(seg.facing, len, px);

@@ -77,18 +77,20 @@ Cargo.toml              # Step 5a: [profile.dev.package."*"] opt-level = 3 (pars
 ## Step 1 — `STRESS_GRID` at the top of `src/engine/gpu/mod.rs`
 
 **Where:** top of the file, **line 29** — the last of the three `SPH_*`/`CYL_*` consts, just
-before the `SceneTables` doc comment. Find:
+before the `SceneTables` doc comment (`/// One loaded file, walked into GPU-ready tables.`), which
+is what the new const lands in front of.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
 const SPH_LONS: usize = 12;
 const SPH_LATS: usize = 6;
-
-/// One loaded file, walked into GPU-ready tables. Built by [`Gpu::walk_session`] BEFORE
 ```
 
-**Insert between `const SPH_LATS…` and the doc comment:**
+**Add below it:**
 
 ```rust
+
 /// Grid floor for load testing: at least STRESS_GRID² cells, cycling the loaded files.
 const STRESS_GRID: u32 = 3;
 ```
@@ -104,7 +106,8 @@ at ~1.4M objects (96B instance rows). Desktop adapters allow far more; request i
 
 **Where:** inside `Gpu::new` (starts line 93), **≈ line 122** — step 4 of new()'s setup ladder
 (Instance → Surface → Adapter → **Device**), right after the `.request_adapter(…).await?;` call.
-Find:
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
         // 4. Device (creates resources) + Queue (submits work).
@@ -115,7 +118,9 @@ Find:
                 required_limits: wgpu::Limits::default(),  // unlock the WEBGpu storage buffers
 ```
 
-Insert 4 lines ABOVE `let (device, queue)` and swap the `required_limits` value, so it reads:
+Four lines go ABOVE `let (device, queue)`, and the `required_limits` value is swapped.
+
+**Replace with**:
 
 ```rust
         let mut limits = wgpu::Limits::default();
@@ -139,7 +144,9 @@ Insert 4 lines ABOVE `let (device, queue)` and swap the `required_limits` value,
 **Where:** still inside `Gpu::new`, **≈ line 218** — past the MVP and Time uniform blocks, under
 the `// Merge the per-file tables into one arena…` comment (≈ line 207). That comment is followed
 by six `let mut …` declarations plus `scene_min`/`scene_max` (ALL of these stay), then the flat
-loop that stacks every file at the origin. **Find the whole loop:**
+loop that stacks every file at the origin.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
         for t in files {
@@ -158,8 +165,10 @@ loop that stacks every file at the origin. **Find the whole loop:**
         }
 ```
 
-**Replace it with the grid version** — cells cycle the files, each cell's objects get a
-translated model, bounds now INCLUDE the offset:
+The grid version cycles the files, each cell's objects get a translated model, and bounds now
+INCLUDE the offset.
+
+**Replace with**:
 
 ```rust
         // The merge loop: cells cycle through the loaded files (a different drawing per cell),
@@ -208,14 +217,16 @@ the four `is_empty()` padding guards, `let arena_index_count…` — is untouche
 
 **Where:** still inside `Gpu::new`, **≈ line 282** — below the four `is_empty()` padding guards,
 sandwiched between `let arena_index_count = idx.len() as u32;` (≈ 280) and
-`let instance_buffer = …` (≈ 289). Find:
+`let instance_buffer = …` (≈ 289).
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
         log::info!("scene: {} files, {} objects, {} arena verts, {} segments, {} glyphs",
             files.len(), instances.len(), verts.len(), segments.len(), glyphs.len());
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
         log::info!("grid: {} cells x {} files: {} objects, {} arena verts, {} segments, {} glyphs",
@@ -229,7 +240,9 @@ of `new()` nothing changes. `walk_session` needs NO edit today.
 
 **3a. The URL list grows to nine.**
 
-**Where:** `src/state.rs`, **line 15** — the const right above `pub struct State`. Find:
+**Where:** `src/state.rs`, **line 15** — the const right above `pub struct State`.
+
+**Find** in `src/state.rs`:
 
 ```rust
 // Runtime fetch path — must match an index.html copy-file target (data-target-path + filename).
@@ -240,7 +253,7 @@ const DEMO_SESSION_URLS: &[&str] = &[
 ];
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
 // Runtime fetch paths — each must match an index.html copy-file target (data-target-path + filename).
@@ -261,25 +274,29 @@ const DEMO_SESSION_URLS: &[&str] = &[
 totals.
 
 **Where:** `src/state.rs`, inside `State::new` — first line of the body (**≈ line 30**), then the
-`Gpu::new` call right after the loop's closing `}` (**≈ line 46**). Find:
+`Gpu::new` call right after the loop's closing `}` (**≈ line 46**).
+
+**Find** in `src/state.rs`:
 
 ```rust
         let mut files = Vec::new();
 ```
 
-Insert ABOVE it:
+**Add above it:**
 
 ```rust
         let t0 = now_ms();
 ```
 
-Then find (below the loop):
+Then the `Gpu::new` call below the loop grows to three lines.
+
+**Find** in `src/state.rs`:
 
 ```rust
         let gpu = Gpu::new(window.clone(), &files).await?;
 ```
 
-and grow it to three lines:
+**Replace with**:
 
 ```rust
         let t1 = now_ms();
@@ -296,14 +313,18 @@ The `Ok(Self {window, gpu, camera: Camera::new() })` line below stays.
 
 **Where:** `index.html` (viewer crate root), **line 20** — inside `<body>`, in the
 `<link data-trunk rel="copy-file" …>` block between the Trunk rust link and
-`<canvas id="canvas">`. Find the existing fixture line (the `floor_model.pb` line above it
-stays):
+`<canvas id="canvas">`. The existing fixture line is the anchor; the `floor_model.pb` line above
+it stays.
+
+**Find** in `index.html`:
 
 ```html
    <link data-trunk rel="copy-file" href="../session_data/30700_querschnitt_gg.pb" data-target-path="session_data"/>
 ```
 
-Insert after it, one line per new drawing (before `<canvas id="canvas"></canvas>`):
+One line per new drawing, before `<canvas id="canvas"></canvas>`.
+
+**Add below it:**
 
 ```html
    <link data-trunk rel="copy-file" href="../session_data/draw_pb_haus25.pb" data-target-path="session_data"/>
@@ -321,18 +342,21 @@ Insert after it, one line per new drawing (before `<canvas id="canvas"></canvas>
 **5a. `Cargo.toml`** — parse speed in debug builds. Dependencies (prost above all) run optimized
 while your own crate keeps fast rebuilds — measured **3.9s → 0.6s** parsing the 20MB querschnitt.
 
-**Where:** `Cargo.toml` (viewer crate root), **line 44** — below the dependency tables. Find:
+**Where:** `Cargo.toml` (viewer crate root), **line 44** — below the dependency tables.
+
+**Find** in `Cargo.toml`:
 
 ```toml
 [profile.release]
 strip = true
 ```
 
-Insert ABOVE it (blank line between the tables):
+**Add above it:**
 
 ```toml
 [profile.dev.package."*"]
 opt-level = 3
+
 ```
 
 **5b. `.cargo/config.toml`** — the OOM killer.
@@ -340,8 +364,10 @@ opt-level = 3
 **Where:** `.cargo/config.toml` (viewer crate root, next to `Cargo.toml`). The file already
 exists (it pins every `cargo` command to the wasm32 target) and is 4 lines long. The default
 wasm linear-memory ceiling (1GB) dies loading multi-hundred-MB fixture sets with
-`RuntimeError: unreachable` (an allocator abort, no panic message). **Append at the end, below
-the `[build]` table:**
+`RuntimeError: unreachable` (an allocator abort, no panic message). The new table goes at the end,
+below the `[build]` table.
+
+**Append** to `.cargo/config.toml`:
 
 ```toml
 [target.wasm32-unknown-unknown]

@@ -37,34 +37,42 @@ Right now `CYL_SIDES` hides at the BOTTOM of the file (above `fn unit_cylinder`)
 `SPH_LONS`/`SPH_LATS` below that — this lesson adds a third const, so gather them all at the top
 where the next lessons expect them.
 
-**1a.** Near the bottom of the file, find (under the `/// Primitives` banner):
+**1a.** Near the bottom of the file, under the `/// Primitives` banner. The
+`/// Unit-cylinder template mesh…` doc comment below it stays, on top of `fn unit_cylinder`.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
 const CYL_SIDES: u32 = 12;
 ```
 
-**Delete that line** (the `/// Unit-cylinder template mesh…` doc comment below it stays, on top
-of `fn unit_cylinder`).
+**Delete**
 
 **1b.** A screen further down, between `fn unit_cylinder`'s closing `}` and the
-`// Unit sphere on the origin…` comment, find:
+`// Unit sphere on the origin…` comment.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
 const SPH_LONS: usize = 12;
 const SPH_LATS: usize = 6;
 ```
 
-**Delete both lines.**
+**Delete**
 
-**1c.** At the TOP of the file, find the import block's last line:
+**1c.** At the TOP of the file, the import block's last line. The three consts return below it,
+plus this lesson's new one.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
 use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
 ```
 
-Insert after it (blank line between) — the three consts return, plus this lesson's new one:
+**Add below it:**
 
 ```rust
+
 /// Re-anchor distance: the instance table is rebased about a snapped anchor.
 /// The camera can drift this far (mm) before a full rebuild.
 /// Within it, pan/zoom only changes the view matrix.
@@ -81,44 +89,45 @@ const SPH_LATS: usize = 6;
 
 ## Step 2 — the anchor state + the 20× cheaper rebuild: `gpu/mod.rs`
 
-**2a. The field.** In `pub struct Gpu`, find:
+**2a. The field.** In `pub struct Gpu`, between `instances` and the `objects_base` line under it.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
     instances: Vec<Instance>,
-    objects_base: Vec<(Xform, [f32; 4])>, // TRUE world model+color; isntance[] is rebased from this
 ```
 
-Insert between the two lines:
+**Add below it:**
 
 ```rust
     last_origin: Option<Point>, // rebuild_instances skips when the camera target did not move
 ```
 
-**2b. The initializer.** In the `Ok(Self { … })` at the end of `new()`, find:
+**2b. The initializer.** In the `Ok(Self { … })` at the end of `new()`, between `instances,` and
+the `objects_base,` line under it.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
             instances,
-            objects_base,
 ```
 
-Insert between the two lines:
+**Add below it:**
 
 ```rust
             last_origin: None,
 ```
 
-**2c. The public entry.** Find the seam between `new()`'s end and `rebuild_instances` — the
-lines:
+**2c. The public entry.** The seam between `new()`'s end and `rebuild_instances`: the new method
+goes between `new()`'s closing `}` and `rebuild_instances`'s doc comment, which is the anchor.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-         })
-
-    }
-
     /// Rebase every instance's translation around 'origin' - an f64 subtract agains the TRUE world transfrom in 'objects_base'
 ```
 
-Insert the new method between the `}` and the doc comment:
+**Add above it:**
 
 ```rust
     /// The anchor the instance table is rebased about.
@@ -138,11 +147,14 @@ Insert the new method between the `}` and the doc comment:
         }
         self.last_origin.clone().unwrap()
     }
+
 ```
 
 **2d. The rebuild gets 20× cheaper.** `T(-origin) × M` only changes the TRANSLATION column of a
 column-major matrix — the old code paid a full 4×4 f64 multiply per object for three
-subtractions' worth of change. Find lesson 33's body:
+subtractions' worth of change.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
     fn rebuild_instances(&mut self, origin: &Point){
@@ -155,8 +167,10 @@ subtractions' worth of change. Find lesson 33's body:
     }
 ```
 
-Replace with (keep the f64-subtract-then-cast order — that's lesson 33's precision guarantee; it
-also records the anchor now):
+Keep the f64-subtract-then-cast order — that's lesson 33's precision guarantee; it also records
+the anchor now.
+
+**Replace with**:
 
 ```rust
     fn rebuild_instances(&mut self, origin: &Point){
@@ -173,14 +187,18 @@ also records the anchor now):
     }
 ```
 
-**2e. `clear()` stops rebuilding.** Inside `pub fn clear`, find the line lesson 33 added between
-the time write and the mvp write:
+**2e. `clear()` stops rebuilding.** Inside `pub fn clear`, the line lesson 33 added between the
+time write and the mvp write.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
         self.rebuild_instances(origin); // Make sure objects are displayed within limits, we rebuild buffers here to avoid camera wiggle!
 ```
 
-**Delete it** — rebasing is `rebase_anchor`'s job now, called from `render()` (Step 4).
+**Delete**
+
+Rebasing is `rebase_anchor`'s job now, called from `render()` (Step 4).
 `clear()`'s signature keeps its (now unused) `origin: &Point` parameter — expect an
 `unused variable: origin` warning from here on; `state.rs` keeps passing `&origin`, so no call
 site changes.
@@ -188,7 +206,8 @@ site changes.
 ## Step 3 — the camera renders about the anchor: `src/camera.rs`
 
 Lesson 33's `view_proj` built eye/target relative to `origin()` (the target). Generalize it.
-**Find the whole function:**
+
+**Find** in `src/camera.rs`:
 
 ```rust
     pub fn view_proj(&self, aspect: f64) -> Xform {
@@ -215,8 +234,10 @@ Lesson 33's `view_proj` built eye/target relative to `origin()` (the target). Ge
     }
 ```
 
-Replace with a wrapper + the anchored variant — the body is the same, with `origin` renamed to
-the `anchor` parameter and the `let origin = self.origin();` line gone:
+A wrapper plus the anchored variant takes its place — the body is the same, with `origin` renamed
+to the `anchor` parameter and the `let origin = self.origin();` line gone.
+
+**Replace with**:
 
 ```rust
     pub fn view_proj(&self, aspect: f64) -> Xform {
@@ -251,15 +272,19 @@ the `anchor` parameter and the `let origin = self.origin();` line gone:
 
 ## Step 4 — the wiring: `src/state.rs` `render()`
 
-Find lesson 33's lines in `render()`:
+Two lines go between `let origin = …;` and the `clear` call, so the tail of `render()` reads as
+below.
+
+**Find** in `src/state.rs`:
 
 ```rust
         let view_proj = self.camera.view_proj(aspect);
         let origin = self.camera.origin();
         self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
+    }
 ```
 
-Insert two lines between `let origin = …;` and the `clear` call, so the tail of `render()` reads:
+**Replace with**:
 
 ```rust
         let view_proj = self.camera.view_proj(aspect);

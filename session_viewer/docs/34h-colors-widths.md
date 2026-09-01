@@ -115,7 +115,7 @@ session_rust/examples/probe_scene.rs     # Verify: what a .pb really holds (NEW 
 so no 3-language port.) `to_render` shares vertices between faces, but a shared vertex can only
 carry ONE color — flat per-face color needs its own vertices, three per triangle.
 
-**Find the `has_point_colors` gate and the `let mut vertices` line that follows it:**
+**Find** in `session_rust/src/render_mesh.rs`:
 
 ```rust
         let has_point_colors =
@@ -124,7 +124,9 @@ carry ONE color — flat per-face color needs its own vertices, three per triang
         let mut vertices: Vec<RenderVertex> = Vec::with_capacity(keys.len());
 ```
 
-**Insert the FACECOLORS early-return between them** (after the gate, before `let mut vertices`):
+The FACECOLORS early-return goes between them, after the gate and before `let mut vertices`.
+
+**Add below it:**
 
 ```rust
         // FACECOLORS: flat per-face color needs duplicated vertices — a shared vertex can only
@@ -176,22 +178,27 @@ meshes actually in FACECOLORS mode. Check it: `cargo check --lib` in `session_ru
 ## Step 2 — point widths: `src/engine/gpu/adapters.rs`
 
 34f already landed `encode_width` and wired `line_to_segment`/`polyline_to_segments`. One piece
-remains — points. In `point_to_glyph`, find:
+remains — points, in `point_to_glyph`.
+
+**Find** in `src/engine/gpu/adapters.rs`:
 
 ```rust
         center: p.to_f32(),
         radius: 0.0,
 ```
 
-Replace the radius line with:
+**Replace with**:
 
 ```rust
+        center: p.to_f32(),
         radius: encode_width(p.width),
 ```
 
 ## Step 3 — the walk pushes a TINT: `src/engine/gpu/mod.rs`
 
-**3a. Imports.** At the top of the file, find:
+**3a. Imports.**
+
+**Find** at the top of `src/engine/gpu/mod.rs`:
 
 ```rust
 use adapters::{line_to_segment, point_to_glyph, polyline_to_segments};
@@ -199,8 +206,10 @@ use bytemuck::Zeroable;
 use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
 ```
 
-Replace with (`encode_width` joins the list; `ColorMode` is NOT re-exported at the crate root —
-it lives in the `mesh` module):
+`encode_width` joins the list; `ColorMode` is NOT re-exported at the crate root — it lives in the
+`mesh` module.
+
+**Replace with**:
 
 ```rust
 use adapters::{line_to_segment, point_to_glyph, polyline_to_segments, encode_width};
@@ -210,8 +219,10 @@ use session_rust::mesh::ColorMode;
 ```
 
 **3b. Every `t.objects.push((xform, color))` becomes white tint** — the row colors now carry the
-real color, the instance slot is the modulation channel. In `walk_session`'s match, find the five
-renderable arms:
+real color, the instance slot is the modulation channel. The five renderable arms of
+`walk_session`'s match.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
                 Geometry::Mesh(m) => {
@@ -239,8 +250,10 @@ renderable arms:
                 }
 ```
 
-Replace all five with (BRep additionally BAKES its surfacecolor into the built mesh, so
-`to_render` carries it into the vertex rows):
+BRep additionally BAKES its surfacecolor into the built mesh, so `to_render` carries it into the
+vertex rows.
+
+**Replace with**:
 
 ```rust
                 Geometry::Mesh(m) => {
@@ -271,8 +284,9 @@ Replace all five with (BRep additionally BAKES its surfacecolor into the built m
 
 (`rebuild_instances` is unchanged — it now streams the tint.)
 
-**3c. `push_mesh` — per-edge widths.** In `push_mesh` (bottom of `gpu/mod.rs`), find the edge
-loop:
+**3c. `push_mesh` — per-edge widths.** The edge loop at the bottom of the file.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
     for (a, b, col) in m.edges_with_colors(){
@@ -290,8 +304,10 @@ loop:
     }
 ```
 
-Replace with an indexed loop (`m.widths()` is seeded in the same discovery order
-`edges_with_colors()` walks — kernel-guaranteed alignment):
+An indexed loop takes its place. `m.widths()` is seeded in the same discovery order
+`edges_with_colors()` walks — kernel-guaranteed alignment.
+
+**Replace with**:
 
 ```rust
     for (i, (a, b, col)) in m.edges_with_colors().into_iter().enumerate(){
@@ -309,7 +325,9 @@ Replace with an indexed loop (`m.widths()` is seeded in the same discovery order
     }
 ```
 
-**3d. `push_mesh` — honest dots.** Directly below, find the dot loop:
+**3d. `push_mesh` — honest dots.** Directly below sits the dot loop.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
     for vk in m.vertices(){
@@ -325,7 +343,7 @@ Replace with an indexed loop (`m.widths()` is seeded in the same discovery order
     }
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
     // Dots honor user-set pointcolors; the auto-seeded white vec is filtered by the MODE gate.
@@ -347,28 +365,33 @@ Replace with:
 
 ## Step 4 — six shaders, one rule each (both linework modes stay honest)
 
-**4a. `src/shaders/triangle.wgsl`** — in `vs_main`, find:
+**4a.** This single line resurrects everything `to_render` bakes — objectcolor, pointcolors, and
+now facecolors.
+
+**Find** in `src/shaders/triangle.wgsl`:
 
 ```wgsl
     o.color = inst.color.rgb; // Set the color
 ```
 
-Replace — this single line resurrects everything `to_render` bakes (objectcolor, pointcolors, and
-now facecolors):
+**Replace with**:
 
 ```wgsl
     o.color = in.color.rgb * inst.color.rgb; // baked base color × instance tint (white today)
 ```
 
-**4b. `src/shaders/ribbon.wgsl`** (default edges, 34f) — two edits. Find:
+**4b. `src/shaders/ribbon.wgsl`** (default edges, 34f) — two edits. The first gives it the
+px-multiplier lane: negative radii are 3D files' widths, planar sheets having already converted
+theirs to the world lane in `walk_session`.
+
+**Find** in `src/shaders/ribbon.wgsl`:
 
 ```wgsl
     var px = line.thickness;
     if (seg.radius > 0.0) {
 ```
 
-Give it the px-multiplier lane (negative radii — 3D files' widths; planar sheets already
-converted theirs to the world lane in `walk_session`):
+**Replace with**:
 
 ```wgsl
     let mult = select(1.0, -seg.radius, seg.radius < 0.0);
@@ -376,20 +399,28 @@ converted theirs to the world lane in `walk_session`):
     if (seg.radius > 0.0) {
 ```
 
-Then find `o.color = seg.color;` and replace with:
+**Find** in `src/shaders/ribbon.wgsl`:
+
+```wgsl
+    o.color = seg.color;
+```
+
+**Replace with**:
 
 ```wgsl
     o.color = seg.color * instances[seg.instance_id].color;
 ```
 
-**4c. `src/shaders/glyph.wgsl`** (default dots, 34f) — the same two changes. Find:
+**4c. `src/shaders/glyph.wgsl`** (default dots, 34f) — the same two changes.
+
+**Find** in `src/shaders/glyph.wgsl`:
 
 ```wgsl
     var px = line.thickness;
     if (g.radius > 0.0) {
 ```
 
-Replace with:
+**Replace with**:
 
 ```wgsl
     let mult = select(1.0, -g.radius, g.radius < 0.0);
@@ -397,47 +428,86 @@ Replace with:
     if (g.radius > 0.0) {
 ```
 
-Then `o.color = g.color;` → `o.color = g.color * instances[g.instance_id].color;`
+**Find** in `src/shaders/glyph.wgsl`:
+
+```wgsl
+    o.color = g.color;
+```
+
+**Replace with**:
+
+```wgsl
+    o.color = g.color * instances[g.instance_id].color;
+```
 
 **4d. SOLID parity — `cylinder.wgsl` + `sphere.wgsl`** (so `LINEWORK_SOLID = true` honors the
-same widths/tints). In `cylinder.wgsl`, find (note: no spaces around the `>`):
+same widths/tints). Note there are no spaces around the `>` in the first anchor.
+
+**Find** in `src/shaders/cylinder.wgsl`:
 
 ```wgsl
     let r = select(screen_radius(clip_c.w, line), seg.radius, seg.radius>0.0);
 ```
 
-Replace with:
+**Replace with**:
 
 ```wgsl
     let mult = select(1.0, -seg.radius, seg.radius < 0.0);
     let r = select(screen_radius(clip_c.w, line) * mult, seg.radius, seg.radius>0.0);
 ```
 
-Then `o.color = seg.color;` → `o.color = seg.color * instances[seg.instance_id].color;`
+**Find** in `src/shaders/cylinder.wgsl`:
 
-In `sphere.wgsl`, find:
+```wgsl
+    o.color = seg.color;
+```
+
+**Replace with**:
+
+```wgsl
+    o.color = seg.color * instances[seg.instance_id].color;
+```
+
+The `let r = select(base, g.radius, g.radius > 0.0);` line below the sphere anchor stays.
+
+**Find** in `src/shaders/sphere.wgsl`:
 
 ```wgsl
     let base = screen_radius(clip_c.w, line) * 1.0; // sphere inflation radius
 ```
 
-Replace with:
+**Replace with**:
 
 ```wgsl
     let mult = select(1.0, -g.radius, g.radius < 0.0);
     let base = screen_radius(clip_c.w, line) * mult; // sphere inflation radius
 ```
 
-(the `let r = select(base, g.radius, g.radius > 0.0);` line below it stays), then
-`o.color = g.color;` → `o.color = g.color * instances[g.instance_id].color;`
+**Find** in `src/shaders/sphere.wgsl`:
 
-**4e. `src/shaders/point.wgsl`** — find `o.color = p.color;` and replace with:
+```wgsl
+    o.color = g.color;
+```
+
+**Replace with**:
+
+```wgsl
+    o.color = g.color * instances[g.instance_id].color;
+```
+
+**4e.** Tint wiring only; per-cloud `point_size` waits for the PointCloud lesson.
+
+**Find** in `src/shaders/point.wgsl`:
+
+```wgsl
+    o.color = p.color;
+```
+
+**Replace with**:
 
 ```wgsl
     o.color = p.color * instances[p.instance_id].color;
 ```
-
-(tint wiring only; per-cloud `point_size` waits for the PointCloud lesson).
 
 ## Verify
 
@@ -464,6 +534,8 @@ No such file or directory (os error 2)
 A NEW file (no anchor — nothing exists yet), with exactly this content. Every line matters: the
 three `s.add_*` calls and the final `s.pb_dump` are what actually writes the file — a fixture that
 builds the geometry but never adds/dumps it produces nothing.
+
+**Create `session_rust/examples/colors_widths.rs`**:
 
 ```rust
 use session_rust::{Session, Mesh, Polyline, Point, Color, Xform};
@@ -522,8 +594,16 @@ reads `../session_data/`.
 
 ### V3 — publish the file: `session_viewer/index.html`
 
-Find the LAST `copy-file` link (the block of `../session_data/draw_*.pb` lines) and add one more
-directly below it:
+The LAST `copy-file` link is the end of the `../session_data/draw_*.pb` block; one more goes
+directly below it.
+
+**Find** in `index.html`:
+
+```html
+   <link data-trunk rel="copy-file" href="../session_data/draw_pj_treppenhaus_a.pb" data-target-path="session_data"/>
+```
+
+**Add below it:**
 
 ```html
    <link data-trunk rel="copy-file" href="../session_data/colors_widths.pb" data-target-path="session_data"/>
@@ -531,8 +611,26 @@ directly below it:
 
 ### V4 — load only it: `session_viewer/src/state.rs`
 
-At the top of the file, find `const DEMO_SESSION_URLS` (34e) and TEMPORARILY replace its whole list
-with the one fixture:
+`const DEMO_SESSION_URLS` (34e) sits at the top of the file. Its whole list is TEMPORARILY replaced
+by the one fixture — V5 puts it back.
+
+**Find** in `src/state.rs`:
+
+```rust
+const DEMO_SESSION_URLS: &[&str] = &[
+    "session_data/30700_querschnitt_gg.pb",
+    "session_data/draw_pb_haus25.pb",
+    "session_data/draw_pc_gru_og2.pb",
+    "session_data/draw_pd_treppenhaus04.pb",
+    "session_data/draw_pe_schalungsbild.pb",
+    "session_data/draw_pf_he.pb",
+    "session_data/draw_pi_laengsschnitt.pb",
+    "session_data/draw_pj_grundriss_og2.pb",
+    "session_data/draw_pj_treppenhaus_a.pb",
+];
+```
+
+**Replace with**:
 
 ```rust
 const DEMO_SESSION_URLS: &[&str] = &["session_data/colors_widths.pb"];
@@ -545,7 +643,29 @@ colors (not white — the FACECOLORS bug is dead), box 2 shows the vertex gradie
 gradient-colored dots, box 3 is indistinguishable from before, the polyline is red at 5× thickness,
 the point is a fat black dot (4× — the width lane on a glyph).
 
-Then **restore** the V4 list to what it was (V3's link can stay — it costs one small file).
+Then the V4 list goes back to what it was; V3's link can stay, it costs one small file.
+
+**Find** in `src/state.rs`:
+
+```rust
+const DEMO_SESSION_URLS: &[&str] = &["session_data/colors_widths.pb"];
+```
+
+**Replace with**:
+
+```rust
+const DEMO_SESSION_URLS: &[&str] = &[
+    "session_data/30700_querschnitt_gg.pb",
+    "session_data/draw_pb_haus25.pb",
+    "session_data/draw_pc_gru_og2.pb",
+    "session_data/draw_pd_treppenhaus04.pb",
+    "session_data/draw_pe_schalungsbild.pb",
+    "session_data/draw_pf_he.pb",
+    "session_data/draw_pi_laengsschnitt.pb",
+    "session_data/draw_pj_grundriss_og2.pb",
+    "session_data/draw_pj_treppenhaus_a.pb",
+];
+```
 
 ---
 
@@ -573,15 +693,26 @@ common pen is 0.14 px — `fade = 0.14 / 0.5 = 0.28`. Every line on the sheet dr
 alpha over a 0.9 grey background. The ink is black and dark red; what you see is pale grey. The
 colour was never lost — it was faded away.
 
-In **`ribbon.wgsl`**, find the `LineUniform` struct's closing brace and the `struct VsOut` that
-follows it. Insert between them:
+The const goes between the `LineUniform` struct's closing brace and the `struct VsOut` that
+follows it.
+
+**Find** in `src/shaders/ribbon.wgsl`:
+
+```wgsl
+struct VsOut{
+```
+
+**Add above it:**
 
 ```wgsl
 // Sub-pixel pens never fade below this: 0 = original continuous fade, 1 = always solid 1px.
 const HAIRLINE_MIN_ALPHA = 0.5;
+
 ```
 
-Then in `vs_main`, find:
+Then ONE line inside `vs_main` — `fade = px / 0.5;`.
+
+**Find** in `src/shaders/ribbon.wgsl`:
 
 ```wgsl
     var fade = 1.0;
@@ -591,15 +722,53 @@ Then in `vs_main`, find:
     }
 ```
 
-and change ONE line — `fade = px / 0.5;` becomes:
+**Replace with**:
 
 ```wgsl
+    var fade = 1.0;
+    if (px < 0.5) {
         fade = max(px / 0.5, HAIRLINE_MIN_ALPHA);
+        px = 0.5;
+    }
 ```
 
-Do exactly the same twice in **`glyph.wgsl`**: the same `const` above its `struct VsOut`, and the
-same `max(...)` inside its `if (px < 0.5)` block. A dot and the line it terminates must agree about
+Exactly the same twice in **`glyph.wgsl`** — the same `const` above its `struct VsOut`, the same
+`max(...)` inside its `if (px < 0.5)` block. A dot and the line it terminates must agree about
 weight, or the same width reads as two different weights.
+
+**Find** in `src/shaders/glyph.wgsl`:
+
+```wgsl
+struct VsOut {
+```
+
+**Add above it:**
+
+```wgsl
+// Sub-pixel pens never fade below this: 0 = original continuous fade, 1 = always solid 1px.
+const HAIRLINE_MIN_ALPHA = 0.5;
+
+```
+
+**Find** in `src/shaders/glyph.wgsl`:
+
+```wgsl
+    var fade = 1.0;
+    if (px < 0.5) {
+        fade = px / 0.5;
+        px = 0.5;
+    }
+```
+
+**Replace with**:
+
+```wgsl
+    var fade = 1.0;
+    if (px < 0.5) {
+        fade = max(px / 0.5, HAIRLINE_MIN_ALPHA);
+        px = 0.5;
+    }
+```
 
 CAD's own answer to a sub-pixel pen is a solid 1 px hairline — `HAIRLINE_MIN_ALPHA = 1.0` is that,
 exactly, at the cost of the thin/thick hierarchy that makes an architectural sheet readable. 0.5
@@ -612,19 +781,21 @@ the shader) while meshes run at 4×? No. Sample count belongs to the render *pas
 drawn into it must agree, and the depth attachment too. Mixing means two passes plus a manual depth
 resolve, because a multisampled depth buffer cannot be read by a 1-sample pass.
 
-So choose per SCENE. In `build.rs`, delete the constant:
+So choose per SCENE. This step is a mechanical sweep over ten pipeline builders rather than a
+handful of anchored edits, so what follows is described rather than dictated. In `build.rs` the
+constant goes — it currently reads:
 
 ```rust
-pub const MSAA_SAMPLES: u32 = 1;
+pub const MSAA_SAMPLES: u32 = 4;
 ```
 
-and give **every** `build_*_pipeline` function a `samples: u32` parameter (right after
-`device: &wgpu::Device`), replacing each `count: MSAA_SAMPLES` with `count: samples`. Ten builders,
-one mechanical edit each. `Pipelines::new` takes `samples: u32` too and forwards it.
+**every** `build_*_pipeline` function gains a `samples: u32` parameter (right after
+`device: &wgpu::Device`), each `count: MSAA_SAMPLES` becomes `count: samples`, and
+`Pipelines::new` takes `samples: u32` too and forwards it. Ten builders, one edit each.
 
 In `gpu/mod.rs`, `create_depth_view` and `create_msaa_view` take `samples` as well (`sample_count:
 samples`), `Gpu` stores `pub samples: u32` so `resize` can rebuild both targets at the right count,
-and the rule itself goes next to them:
+and the rule itself goes next to them, quoted here:
 
 ```rust
     /// MSAA sample count for a scene. It cannot be chosen per lane: sample count belongs to the
@@ -640,7 +811,7 @@ and the rule itself goes next to them:
 ```
 
 One more consequence, in `clear`'s render pass: a 1-sample attachment must NOT carry a resolve
-target. Find the `color_attachments` line and make both fields conditional:
+target, so the `color_attachments` line makes both fields conditional. Quoted here:
 
 ```rust
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -664,7 +835,9 @@ masked off, depth written. `ribbon.wgsl` and `glyph.wgsl` each grow an `fs_depth
 wgpu::ColorWrites::empty()` — Dawn rejects an empty target list against a colour pass), while the
 colour pipelines switch to `depth_compare: GreaterEqual` so each survives its own prepass.
 
-It costs a second full pass over every ribbon and dot, so it is a flag, at the top of `gpu/mod.rs`:
+It costs a second full pass over every ribbon and dot, so it is a flag at the top of `gpu/mod.rs`.
+The `fs_depth` entry points and `build_ink_depth_pipeline` that it switches on are part of the same
+un-dictated pipeline sweep as Step 6; the flag itself is quoted here:
 
 ```rust
 /// Depth prepass for the FLAT lane, so flat ink occludes flat ink (a dot behind a polyline
@@ -677,7 +850,7 @@ const INK_DEPTH_PREPASS: bool = true;
 > **Default flipped in Part 3:** on the ten-sheet scene the second pass doubles the frame for ink
 > that is all coplanar anyway — the flag ships `false` now; set it back for 3D-heavy scenes.
 
-guarding both prepass draws:
+guarding both prepass draws — the guard, quoted here:
 
 ```rust
             if INK_DEPTH_PREPASS && self.segment_count > self.pipe_count {
@@ -692,9 +865,11 @@ answer.
 **8a. `Line::pb_dumps` threw away the xform.** `session_rust/src/line.rs` wrote `xform: None` into
 the proto and never read one back, even though `line.proto` has the field and both C++ and Python
 serialize it. Lines are ~90% of a drawing (40,814 of 43,844 objects in one sheet), so laying nine
-sheets out in a grid moved the polylines and left every line stacked at the origin. In `pb_dumps`,
-find the object-level `xform: None,` (the one after `name:` — NOT the two inside the `start`/`end`
-points, which are plain coordinates) and replace it with:
+sheets out in a grid moved the polylines and left every line stacked at the origin. The fix landed
+in the kernel long ago and the Xform refactor (Part 3) has since moved `xform` out of the geometry
+types altogether, so there is no anchor left to hit. In `pb_dumps` the object-level `xform: None,`
+(the one after `name:` — NOT the two inside the `start`/`end` points, which are plain coordinates)
+became what is quoted here:
 
 ```rust
             xform: Some(crate::proto::Xform {
@@ -704,7 +879,8 @@ points, which are plain coordinates) and replace it with:
             }),
 ```
 
-and in `pb_loads`, after the `if let Some(color) = proto.linecolor { ... }` block, add the mirror:
+and in `pb_loads`, after the `if let Some(color) = proto.linecolor { ... }` block, the mirror,
+quoted here:
 
 ```rust
         if let Some(xform) = proto.xform {
@@ -735,7 +911,17 @@ in view-space z, so the computed depth falls outside the frustum and is clipped.
 
 In `camera.rs`, `origin()` returns the target in WORLD units and `view_proj_anchored` converts the
 anchor back to metres itself — one unit for the anchor everywhere, converted where the scale
-already lives:
+already lives.
+
+**Find** in `src/camera.rs`:
+
+```rust
+    pub fn origin(&self) -> Point{
+        Point::new(self.target[0], self.target[1], self.target[2])
+    }
+```
+
+**Replace with**:
 
 ```rust
     pub fn origin(&self) -> Point{
@@ -748,21 +934,45 @@ already lives:
     }
 ```
 
+The conversion itself rides the first line of `view_proj_anchored`'s body.
+
+**Find** in `src/camera.rs`:
+
+```rust
+        let dist = self.distance;
+```
+
+**Add below it:**
+
 ```rust
         let a = self.unit.to_meters();
         let anchor = Point::new(anchor[0] * a, anchor[1] * a, anchor[2] * a); // world -> metres
 ```
 
-and the threshold becomes a quarter of the view distance, clamped — zoomed out, panning must not
-trigger constant 52 MB rebuilds; zoomed in, it must re-anchor before coordinates grow back:
+While you are in `camera.rs`, the `.clamp(0.2, 100.0)` still sitting in `fit()` goes — 34g removed
+that clamp from zoom precisely because it culled fitted scenes.
+
+**Find** in `src/camera.rs`:
+
+```rust
+        self.distance = (radius / half_fov.sin() * 1.1).clamp(0.2, 100.0);
+```
+
+**Replace with**:
+
+```rust
+        self.distance = radius / half_fov.sin() * 1.1;
+```
+
+Last, the threshold becomes a quarter of the view distance, clamped — zoomed out, panning must not
+trigger constant 52 MB rebuilds; zoomed in, it must re-anchor before coordinates grow back. That
+one needs `rebase_anchor` to take a `view_dist: f64` and `REANCHOR_DIST` to split into a
+`REANCHOR_MIN`/`REANCHOR_MAX` band, with `state.rs` passing
+`self.gpu.rebase_anchor(&origin, self.camera.distance_world())`. The deciding line, quoted here:
 
 ```rust
         let thresh = (view_dist * 0.25).clamp(REANCHOR_MIN, REANCHOR_MAX);
 ```
-
-(`state.rs` passes it: `self.gpu.rebase_anchor(&origin, self.camera.distance_world())`.) While you
-are in `camera.rs`, delete the `.clamp(0.2, 100.0)` still sitting in `fit()` — 34g removed that
-clamp from zoom precisely because it culled fitted scenes.
 
 ## Step 9 — curves finally draw: `src/engine/gpu/adapters.rs`, `mod.rs`
 
@@ -770,8 +980,27 @@ clamp from zoom precisely because it culled fitted scenes.
 was silently invisible — and after the importer work below, *most* of it would be. A curve is a
 polyline by the time the GPU sees it, so it rides the FLAT lane.
 
-In `adapters.rs`, add `NurbsCurve` to the `use session_rust::{...}` line, then add above
-`point_to_glyph`:
+**Find** in `src/engine/gpu/adapters.rs`:
+
+```rust
+use session_rust::{Line, Point, Polyline};
+```
+
+**Replace with**:
+
+```rust
+use session_rust::{Line, NurbsCurve, Point, Polyline};
+```
+
+The converter goes above `point_to_glyph`.
+
+**Find** in `src/engine/gpu/adapters.rs`:
+
+```rust
+pub fn point_to_glyph(p: &Point, instance_id: u32) -> GlyphPoint{
+```
+
+**Add above it:**
 
 ```rust
 /// A curve becomes a polyline of ribbon segments. Sample count follows the curve's SIZE, not a
@@ -809,8 +1038,42 @@ pub fn nurbscurve_to_segments(c: &NurbsCurve, instance_id: u32) -> Vec<CylinderS
 Note it reads `linecolors` (plural) — a curve carries a vec, not the single `linecolor` a
 line/polyline has, and an empty vec means black.
 
-In `mod.rs`, add `nurbscurve_to_segments` to the `use adapters::{...}` line, delete
-`Geometry::NurbsCurve(_) |` from the ignore arm, and add a real arm above `Geometry::Point(p)`:
+Three more edits in `mod.rs`: the import, the ignore arm, and a real arm above `Geometry::Point(p)`.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+use adapters::{line_to_segment, point_to_glyph, polyline_to_segments, encode_width};
+```
+
+**Replace with**:
+
+```rust
+use adapters::{line_to_segment, nurbscurve_to_segments, point_to_glyph, polyline_to_segments, encode_width};
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                Geometry::NurbsCurve(_) | Geometry::NurbsSurface(_) => {}
+```
+
+**Replace with**:
+
+```rust
+                Geometry::NurbsSurface(_) => {}
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                Geometry::Point(p) => {
+                    t.objects.push((p.xform.clone(), [1.0; 4]));
+                    t.glyphs.push(point_to_glyph(p, ri));
+                }
+```
+
+**Add above it:**
 
 ```rust
                 // Curves ride the FLAT lane too - sampled to segments, they ARE polylines by
@@ -831,7 +1094,13 @@ would be outlined in tubes and dotted at every vertex.
 Rule: **edge width 0 means hidden**. It is safe because `widths()` is empty unless someone called
 `set_linecolors`, and the existing `.unwrap_or(1.0)` keeps every ordinary mesh exactly as it was.
 
-In `push_mesh`, find the `for (i, (a, b, col)) in m.edges_with_colors()` loop and insert above it:
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    for (i, (a, b, col)) in m.edges_with_colors().into_iter().enumerate(){
+```
+
+**Add above it:**
 
 ```rust
     // Edge width 0 = HIDDEN wireframe. A mesh only has explicit widths if someone called
@@ -847,16 +1116,20 @@ In `push_mesh`, find the `for (i, (a, b, col)) in m.edges_with_colors()` loop an
     let hidden = |i: usize| width_at(i) == 0.0;
 ```
 
-then, as the loop's first statement, `if hidden(i) { continue }`, and use the broadcast everywhere a
-width is read: `radius: encode_width(width_at(i)),` in the edge loop, `let w = width_at(i);` in the
-`vwidth` loop below it (guarded by the same `if hidden(i) { continue }`), and a dot loop that skips
-a vertex with no surviving edge — replace
-`radius: encode_width(vwidth.get(&vk).copied().unwrap_or(1.0)),` with `radius: encode_width(vw),`
-after adding, as the dot loop's first line:
+The rest of this step is a set of small in-place edits that the finished `push_mesh` carries and
+that this lesson describes rather than dictates: `if hidden(i) { continue }` as the edge loop's
+first statement, `radius: encode_width(width_at(i)),` in that loop, a per-vertex `vwidth` map built
+from the widest surviving incident edge (guarded by the same `if hidden(i) { continue }`), and a dot
+loop that skips a vertex with no surviving edge at all —
+`radius: encode_width(vwidth.get(&vk).copied().unwrap_or(1.0)),` becomes
+`radius: encode_width(vw),` after the dot loop gains a first line, quoted here:
 
 ```rust
         let Some(&vw) = vwidth.get(&vk) else { continue };
 ```
+
+The whole of the finished function is printed in
+[lesson 35's step 2b](35-scene-struct.md), which rescues it into `app/scene.rs` unchanged.
 
 ## Step 11 — the importer, in two stages: `pdf_to_session.py` + `pdf_build.rs`
 
@@ -893,6 +1166,9 @@ import_drawings.sh  both stages for all nine sheets
 **11a. White is a knockout, not ink.** A white path on white paper is a mask box — behind text,
 behind title-block fields. Imported, it is ~1,100 phantom rectangles floating over the drawing.
 
+Nothing in this step is typed into the viewer: the importer excerpts below, this one included, are
+quoted here from the superseded Python+Ghostscript pair.
+
 ```python
 def is_white(c):
     return c is not None and min(float(v) for v in c[:3]) >= 0.99
@@ -902,7 +1178,7 @@ Applied to the fill colour and the stroke colour *separately* — one path can b
 
 **11b. Text.** `page.get_drawings()` returns *paths*; text lives in a layer it cannot see.
 Ghostscript rewrites every glyph as outlines, and — the useful surprise — emits them as **fill
-paths** while preserving all 33 OCG layers:
+paths** while preserving all 33 OCG layers. Quoted here:
 
 ```python
     r = subprocess.run(["gs", "-q", "-o", tmp.name, "-sDEVICE=pdfwrite", "-dNoOutputFonts", src],
@@ -918,7 +1194,7 @@ middle step — one mesh per unique character, one placement per occurrence.
 **11c. Flatten a fill contour by its own size.** Every extra vertex on a glyph is also a face, a
 halfedge and a triangulation entry in the `.pb` — mesh serialization is where a drawing's file size
 now lives. A fixed 6 samples per bezier cost 619 MB across nine sheets; sizing each cubic by its
-control-polygon length cost 444 MB for the same picture:
+control-polygon length cost 444 MB for the same picture. Quoted here:
 
 ```python
 def bez_steps(a, c1, c2, b):
@@ -928,7 +1204,7 @@ def bez_steps(a, c1, c2, b):
 
 **11d. Fills become meshes — in Rust.** Text and poché are one problem: closed contours, where a
 break in the item chain starts a new one (that is how a glyph's counter, the hole in `o`, `a`, `e`,
-arrives; 1–4 contours per letter). `pdf_build.rs` triangulates them all at once:
+arrives; 1–4 contours per letter). `pdf_build.rs` triangulates them all at once, quoted here:
 
 ```rust
     let inputs: Vec<Vec<Vec<Point>>> = paths.fills.iter()
@@ -937,7 +1213,7 @@ arrives; 1–4 contours per letter). `pdf_build.rs` triangulates them all at onc
     let meshes = Mesh::from_polygon_with_holes_many(inputs, true, true);
 ```
 
-then per mesh:
+then per mesh, quoted here:
 
 ```rust
         m.set_objectcolor(color(f.c));
@@ -956,7 +1232,7 @@ rayon. Note `set_linecolors` does *not* change `color_mode` — the fill colour 
 hand-authored. The single-entry width is what Step 10's `width_at` broadcasts.
 
 **11e. Layers and the page edge.** One tree group per CAD layer, passed as the `parent` argument
-every `add_*` already accepts:
+every `add_*` already accepts. Quoted here:
 
 ```rust
     let mut group = |s: &mut Session, i: usize| {
@@ -1047,7 +1323,8 @@ into `session_rust` as `pdf.rs`, exposing `session_rust::pdf::import_pdf(src, st
 
 PDF keeps one special property that earns the split *within* the crate: `mupdf-sys` compiles
 MuPDF's own C sources, which **cannot build for wasm32** — the viewer's target. So the module and
-its bin sit behind an optional `pdf` feature, off by default:
+its bin sit behind an optional `pdf` feature, off by default. In the kernel's `Cargo.toml` it is
+shipped as:
 
 ```toml
 [features]
@@ -1059,6 +1336,8 @@ name = "pdf_import"
 path = "src/bin/pdf_import.rs"
 required-features = ["pdf"]
 ```
+
+and in `session_rust/src/lib.rs`, shipped as:
 
 ```rust
 #[cfg(feature = "pdf")]

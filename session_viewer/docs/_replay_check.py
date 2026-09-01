@@ -25,7 +25,12 @@ Usage:
 """
 import re, sys, pathlib, shutil, collections
 
-FILE_RE = re.compile(r'`([\w/_.-]+\.(?:rs|wgsl|toml|html|json))`')
+# Kernel extensions (proto/py/cpp/h) are here so a kernel lesson's ops PARSE. They are then
+# reported as out-of-tree rather than applied - see OUT_OF_TREE - because the replay owns a
+# viewer tree, not the kernel. Without them a lesson like 34d, whose every target is a .proto
+# or .py, produced zero parsed ops and the audit skipped it as "informational" - so 37 blocks
+# that teach nothing replayable looked exactly like a lesson with nothing to check.
+FILE_RE = re.compile(r'`([\w/_.-]+\.(?:rs|wgsl|toml|html|json|proto|py|cpp|h))`')
 SPAN_RE = re.compile(r'`([^`]+)`')
 CREATE_RE = re.compile(r'\*\*Create `([\w/_.-]+)`')
 # The counterpart of Create. Requires an EXTENSION so it can never be confused with the
@@ -246,7 +251,8 @@ def replace_all_words(txt, old, new):
 # Those paths live outside the staged viewer tree, so a replay cannot apply them - and must not
 # report them as broken anchors either, or the gate carries a permanent false failure that
 # trains you to ignore it. They are counted and named instead.
-OUT_OF_TREE = ("session_rust/", "session_cpp/", "session_py/", "session_proto/")
+OUT_OF_TREE = ("session_rust/", "session_cpp/", "session_py/", "session_proto/",
+               "session_data/")
 
 def apply(root, doc):
     fails, skipped = [], []

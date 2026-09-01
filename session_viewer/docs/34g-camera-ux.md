@@ -19,7 +19,9 @@ src/lib.rs      # Step 3: MMB pan state + wheel wired to zoom_at
 
 Multiplicative zoom (×0.9 per detent) is naturally asymptotic — it approaches zero but never
 reaches it, and our near/far planes scale WITH distance (`dist*0.01 … dist*10`), so no absolute
-range is ever needed. **Find the whole function (including its doc comment):**
+range is ever needed.
+
+**Find** in `src/camera.rs` — the whole function, doc comment included:
 
 ```rust
     /// Dolly in/out by scaling `distance` (clamped to 0.2–100).
@@ -29,7 +31,7 @@ range is ever needed. **Find the whole function (including its doc comment):**
     }
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
     /// Dolly in/out by scaling `distance`. NO range clamp — zoom is multiplicative (×0.9 per
@@ -48,8 +50,16 @@ frustum half-extents × NDC), then scale the distance by `k` while pulling the t
 fixed — `target' = target + (p − target)·(1 − k)`. Our ortho height matches perspective at the
 target distance, so ONE `half_h` formula serves both projections.
 
-**Insert directly BELOW the `zoom` function you just replaced** (between `zoom`'s closing `}` and
-`/// Flip between perspective and orthographic projection.`):
+The new method goes directly BELOW the `zoom` function you just replaced, so the doc comment of
+the function AFTER it is the anchor.
+
+**Find** in `src/camera.rs`:
+
+```rust
+    /// Flip between perspective and orthographic projection.
+```
+
+**Add above it:**
 
 ```rust
     /// CAD zoom: dolly toward the CURSOR — the point under the mouse stays under the mouse.
@@ -71,6 +81,7 @@ target distance, so ONE `half_h` formula serves both projections.
         self.distance = new_dist;
         self.update_position();
     }
+
 ```
 
 (`Vector` is already imported at the top of `camera.rs` — nothing to add.)
@@ -80,33 +91,37 @@ target distance, so ONE `half_h` formula serves both projections.
 
 ## Step 3 — middle-mouse pan + the wiring: `src/lib.rs`
 
-**3a. The field.** In `pub struct App`, find:
+**3a. The field.** In `pub struct App`, between `orbiting` and the `last_cursor` line under it.
+
+**Find** in `src/lib.rs`:
 
 ```rust
     orbiting: bool,
-    last_cursor: (f64, f64),
 ```
 
-Insert between the two lines:
+**Add below it:**
 
 ```rust
     panning: bool,
 ```
 
-**3b. The initializer.** In `App::run()`, find the `let app = App { … }` literal:
+**3b. The initializer.** In `App::run()`'s `let app = App { … }` literal, same place.
+
+**Find** in `src/lib.rs`:
 
 ```rust
             orbiting: false,
-            last_cursor: (0.0, 0.0),
 ```
 
-Insert between the two lines:
+**Add below it:**
 
 ```rust
             panning: false,
 ```
 
-**3c. The MMB handler.** Find the RMB arm in `window_event`:
+**3c. The MMB handler.** The RMB arm in `window_event` is the anchor.
+
+**Find** in `src/lib.rs`:
 
 ```rust
             WindowEvent::MouseInput {state: btn, button: MouseButton::Right, ..} => {
@@ -114,7 +129,7 @@ Insert between the two lines:
             }
 ```
 
-Insert after its closing `}`:
+**Add below it:**
 
 ```rust
             WindowEvent::MouseInput {state: btn, button: MouseButton::Middle, ..} => {
@@ -123,7 +138,9 @@ Insert after its closing `}`:
 ```
 
 **3d. The move handler decides by mode** — MMB pans, RMB orbits, Ctrl+RMB still pans. In the
-`WindowEvent::CursorMoved` arm, find:
+`WindowEvent::CursorMoved` arm.
+
+**Find** in `src/lib.rs`:
 
 ```rust
                 if self.orbiting {
@@ -137,7 +154,9 @@ Insert after its closing `}`:
                 }
 ```
 
-Replace the whole if-block with (two condition lines change, the deltas stay):
+Two condition lines change, the deltas stay.
+
+**Replace with**:
 
 ```rust
                 if self.orbiting || self.panning {
@@ -153,14 +172,15 @@ Replace the whole if-block with (two condition lines change, the deltas stay):
 
 (the `self.last_cursor = (position.x, position.y);` line below stays.)
 
-**3e. The wheel calls the new zoom** with the tracked cursor. In the `WindowEvent::MouseWheel`
-arm, find:
+**3e. The wheel calls the new zoom** with the tracked cursor, in the `WindowEvent::MouseWheel` arm.
+
+**Find** in `src/lib.rs`:
 
 ```rust
                 state.camera.zoom(amount);
 ```
 
-Replace with:
+**Replace with**:
 
 ```rust
                 // Zoom TOWARD THE CURSOR — the point under the mouse stays put (CAD standard)
