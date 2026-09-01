@@ -69,6 +69,16 @@ src/engine/pipelines/build.rs # add material_layout to the triangle pipeline's l
 src/shaders/triangle.wgsl     # declare texture + sampler at group(3); triplanar sample
 ```
 
+> Where the engine half lands. This appendix was written against the pre-split `gpu/mod.rs`, and
+> the step anchors below still quote that file's names. After the engine split the three pieces
+> have their own homes: the texture, sampler and material bind group are a lane file of their own,
+> `src/engine/gpu/material.rs`; the layout is `Layouts.material` in
+> `src/engine/pipelines/layouts.rs`, handed to the `triangle` and `triangle_sheet` descs (two
+> lines, both in `src/engine/pipelines/build.rs`); `Binds.material` and the `tex_anchor` buffer
+> join the other per-frame blocks in `src/engine/gpu/frame.rs`; and the bind is one line inside
+> `Arena::draw_faces` (`src/engine/gpu/arena.rs`), not in the frame encoder. Read the steps for
+> the mechanism, take the file names from here.
+
 ## Step 1 — generate + upload a texture: `src/engine/gpu/mod.rs`
 
 We *generate* a 256×256 checkerboard in code — no image file, no asset loader, so it works
@@ -351,8 +361,8 @@ For meshes that *carry* UVs, skip triplanar and sample a baked coordinate. This 
 
 1. `session_rust/src/render_mesh.rs` — add `pub uv: [f32; 2]` to `RenderVertex` (stride 40 → 48); in
    `ATTRIBS` add `4 => Float32x2`; fill it from the vertex `"u"`/`"v"` attributes (like
-   `nx`/`ny`/`nz`), defaulting to `[0.0, 0.0]`. The arena fill (`push_mesh`) now lives in
-   `app/scene.rs` — that is where the uv reaches the vertex buffer.
+   `nx`/`ny`/`nz`), defaulting to `[0.0, 0.0]`. The arena fill is `walk_mesh` in
+   `app/walk/mesh.rs` — its `t.arena.verts.push(*v)` is where the uv reaches the vertex buffer.
 2. `triangle.wgsl` — add `@location(4) uv: vec2<f32>` to `VsIn`, pass it through `VsOut`, and replace
    the triplanar block with `let albedo = textureSample(albedo_tex, albedo_smp, in.uv).rgb;`.
 
@@ -373,10 +383,11 @@ UVs come from triplanar world-position projection (no attribute needed) — or, 
 from a per-vertex uv at @location(4) (kernel RenderVertex, stride 40→48).
 ```
 
-Edited: `engine/gpu/mod.rs` (generate/upload texture + mip chain + material bind group, store it,
-pass its layout to `Pipelines::new`, bind group 3 in the pass, `tex_anchor` buffer at group 0
-binding 2), `engine/pipelines/mod.rs` + `build.rs` (thread
-`material_layout` into the triangle pipeline), `shaders/triangle.wgsl` (group-3 texture/sampler +
+Edited: `engine/gpu/material.rs` (NEW — generate/upload texture + mip chain + material bind
+group), `engine/gpu/frame.rs` (`Binds.material`, the `tex_anchor` buffer at group 0 binding 2),
+`engine/gpu/arena.rs` (one bind line inside `Arena::draw_faces`), `engine/pipelines/layouts.rs` +
+`build.rs` (`Layouts.material`, handed to the triangle and triangle_sheet descs), one `Gpu` field
+and its `::new` line in `engine/gpu/mod.rs`, `shaders/triangle.wgsl` (group-3 texture/sampler +
 group-0-binding-2 `tex_anchor` + triplanar sample).
 
 ## Next
