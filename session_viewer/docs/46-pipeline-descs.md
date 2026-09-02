@@ -1,187 +1,106 @@
-# 46 A pipeline is data, not a function
+# 46 Pipelines are data — one `build`, fourteen descriptions
 
-> Lesson [120](120-id-buffer-picking.md) re-runs this frame's whole draw list against a second set
-> of pipelines that write object ids instead of colour. It costs one preset and one extra
-> `Pipelines::new` call — because of this lesson. Nothing you can see changes: same ink, same draw
-> count, same object count, on every scene and every config. Answer key: branch `end-of-45`, so
-> `git diff end-of-44..end-of-45 -- session_viewer/src` is this lesson as one patch.
+> First of six refactor lessons (46-51). Start from the end of lesson 45 (`docs/45_cloud_octree/`
+> is that tree). Every lesson in the block keeps the frame pixel-identical: `./docs/_gate.sh`
+> must print `gate OK` at the end of each one.
 >
-> **Lessons 45-51 move code. Every body you cut is pasted byte-identical except for path
-> re-roots inside ONE file; if you find yourself improving a line while moving it, stop.**
+> How the edits in this block are written: a **Create** on a file that already exists replaces
+> its whole content. A **Remove** names a first and a last line and deletes them and everything
+> between (inclusive); written with `up to`, it stops just before the second line. When the two
+> lines hold backticks they are quoted as two code blocks under the verb instead. Anchors are
+> whole lines, leading spaces included.
 
-## 1. Why this seam
+<svg viewBox="0 0 700 290" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="eleven copy-paste pipeline builders become one PipelineDesc literal fed through one build function that returns a render pipeline" style="max-width:100%;height:auto;font:12px ui-monospace,monospace">
+  <defs><marker id="pg" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ed37e"/></marker></defs>
+  <text x="105" y="22" fill="#888" font-size="11" text-anchor="middle">before — 11 copy-paste builders</text>
+  <g fill="none" stroke="#3a3a3a">
+    <rect x="36" y="74" width="150" height="22"/><rect x="32" y="68" width="150" height="22"/><rect x="28" y="62" width="150" height="22"/>
+    <rect x="24" y="56" width="150" height="22"/><rect x="20" y="50" width="150" height="22"/><rect x="16" y="44" width="150" height="22"/>
+  </g>
+  <text x="24" y="59" fill="#d7dae0" font-size="10">build_triangle_pipeline()</text>
+  <text x="24" y="116" fill="#666" font-size="10">… build_splat_resolve_pipeline()</text>
+  <text x="24" y="130" fill="#666" font-size="10">×11, each repeating the descriptor</text>
+  <text x="212" y="118" fill="#7ed37e" font-size="18">▶</text>
+  <text x="350" y="22" fill="#888" font-size="11" text-anchor="middle">after — a pipeline is data</text>
+  <rect x="250" y="34" width="210" height="150" fill="none" stroke="#7ed37e"/>
+  <g fill="#d7dae0" font-size="10">
+    <text x="258" y="50">PipelineDesc {</text>
+    <text x="258" y="65">  label, shader: &amp;ShaderModule,</text>
+    <text x="258" y="80">  vs, fs: &amp;str,</text>
+    <text x="258" y="95">  groups: &amp;[&amp;BindGroupLayout],</text>
+    <text x="258" y="110">  vertex_buffers: &amp;[..],</text>
+    <text x="258" y="125">  topology, blend: Option&lt;..&gt;,</text>
+    <text x="258" y="140">  write_color: bool,</text>
+    <text x="258" y="155">  depth: DepthMode,</text>
+    <text x="258" y="170">}</text>
+  </g>
+  <rect x="250" y="196" width="210" height="22" fill="none" stroke="#7ed37e"/>
+  <text x="258" y="211" fill="#d7dae0" font-size="10">Target { format, samples }</text>
+  <g stroke="#7ed37e" marker-end="url(#pg)">
+    <line x1="460" y1="109" x2="480" y2="109"/><line x1="460" y1="207" x2="500" y2="132"/><line x1="582" y1="109" x2="600" y2="109"/>
+  </g>
+  <rect x="482" y="88" width="100" height="42" fill="none" stroke="#7ed37e" stroke-width="1.3"/>
+  <text x="532" y="106" fill="#d7dae0" font-size="10" text-anchor="middle">build(device,</text>
+  <text x="532" y="121" fill="#d7dae0" font-size="10" text-anchor="middle">target, &amp;desc)</text>
+  <rect x="602" y="88" width="90" height="42" fill="none" stroke="#6fb3ff"/>
+  <text x="647" y="106" fill="#d7dae0" font-size="10" text-anchor="middle">wgpu::</text>
+  <text x="647" y="121" fill="#d7dae0" font-size="10" text-anchor="middle">RenderPipeline</text>
+  <text x="355" y="232" fill="#888" font-size="9" text-anchor="middle">14 render descs + 2 compute descs</text>
+  <g fill="#888" font-size="10">
+    <text x="16" y="258">DepthMode { Opaque, ReadOnly, ReadOnlyEqual, Always } — reverse-Z: nearer is GREATER</text>
+    <text x="16" y="274">Pipelines::new(device, target, &amp;Layouts) — groups: 0 mvp · 1 line/cloud · 2 instances · 3 family rows</text>
+  </g>
+</svg>
 
-### 1a. The evidence — run it on your own tree
+## Goal
 
-```bash
-cd session_viewer
-wc -l src/engine/pipelines/build.rs                                    # 845
-grep -c '^pub fn build_' src/engine/pipelines/build.rs                 # 11
-grep -c 'device.create_render_pipeline' src/engine/pipelines/build.rs  # 11
-awk '/^pub fn build_/{f=$3; c=0; g=1; next} g&&/^\)/{print c, f; g=0} g&&/:/{c++}' \
-    src/engine/pipelines/build.rs
-grep -c 'create_bind_group_layout' src/engine/gpu/mod.rs               # 9
-grep -rn 'pipelines\.edges' src/ | wc -l                               # 0
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-                                                                       # 116
-```
+`pipelines/build.rs` shrinks from eleven copy-paste builders (845 lines) to one `build` fed by a
+`PipelineDesc` literal per pipeline, and the nine bind-group layouts leave `Gpu::build` for a
+`Layouts` struct. Same pixels, `Gpu` loses 14 fields.
 
-The `awk` prints a parameter count per builder:
+## Why
 
-```text
-7 build_triangle_pipeline(
-5 build_grid_pipeline(
-4 build_edges_pipeline(
-7 build_cylinder_pipeline(
-3 build_background_pipeline(
-7 build_sphere_pipeline(
-11 build_ink_depth_pipeline(
-7 build_ribbon_solid_pipeline(
-7 build_ribbon_pipeline(
-7 build_glyph_pipeline(
-5 build_splat_resolve_pipeline(
-```
+Every builder repeated a 60-line descriptor to change two settings, so nobody could see WHICH two.
+A pipeline is data: label, shader, entry points, groups, vertex buffers, topology, blend, colour
+mask, depth mode. Written as one struct, the fourteen pipelines fit on one screen and a new one is
+a literal, not a function. The same move takes the maths (`Mat4`, the eye solve, `Aabb`) out of
+the GPU file into `math.rs`, deletes the `time` uniform (declared, never read) and the dead
+`edges` pipeline, and drops the splat compute's unused instance binding.
 
-Eleven functions, 3 to 11 parameters, six of them at exactly seven, **eleven**
-`create_render_pipeline` calls. Diff any two:
+## Files
 
-```bash
-diff <(sed -n '563,632p' src/engine/pipelines/build.rs)      <(sed -n '634,702p' src/engine/pipelines/build.rs)
-```
+| file | change | lines after |
+|---|---|---|
+| `src/math.rs` | created | 135 |
+| `src/engine/pipelines/layouts.rs` | created | 103 |
+| `src/engine/pipelines/build.rs` | rewritten | 183 (was 845) |
+| `src/engine/pipelines/mod.rs` | rewritten | 146 (was 80) |
+| `src/shaders/splat.wgsl`, `src/shaders/triangle.wgsl` | one binding each | 276 · 135 |
+| `src/shaders/edges.wgsl` | deleted | — |
+| `src/engine/gpu/mod.rs` | edited | 2125 (was 2447) |
+| `src/app/scene.rs`, `src/lib.rs`, `src/selftest.rs`, `examples/check_determinism.rs` | edited | — |
 
-`build_ribbon_solid_pipeline` and `build_ribbon_pipeline` are 70 and 69 lines, and the only
-*setting* that differs is one `depth_compare` expression. Of a `RenderPipelineDescriptor`'s two
-dozen leaf settings, exactly eleven ever vary across the fourteen pipelines; the rest are
-copy-pasted eleven times. Same story for the nine bind-group layouts.
+The build only compiles again at the end of the lesson: create the four files first, then edit.
+Steps 3 and 4 use `Create` on a file that already exists: empty it, then paste the listing.
 
-### 1b. The law this enforces, stated as what it forbids
+## Step 1 — `src/math.rs`
 
-> **A new pipeline is ONE `PipelineDesc` literal in the list that owns it. A new layout is ONE
-> field on `Layouts`. Neither may be a new function, and neither may be a new parameter.**
-
-`Pipelines::new` is frozen at three parameters forever, so no later lesson can add a layout by
-threading it through fourteen desc literals — and 82-85, 88, 90, 93, 106 and 108-114 all add one.
-
-### 1c. The rejected alternative
-
-The obvious cut is a builder file per family — `triangle.rs`, `ribbon.rs`, `splat.rs`. **Do not
-make it.** It files the eleven near-identical `create_render_pipeline` calls instead of removing
-them, and it breaks on the first shape that does not fit: at **48**, `ribbon.wgsl` and
-`cylinder.wgsl` read one identical row through one layout, so "the cylinder builder" would need
-two files. A desc is data, and data sits in a list without owning a file.
-
-## 2. Where the code lives after this lesson
-
-| symbol | today's home | new home | who may touch it |
-|---|---|---|---|
-| `Mat4`, `mat_mul`, `mat_to_f32` | `engine/gpu/mod.rs` (top level) | **`src/math.rs`** | anyone — no wgpu, no `self` |
-| `eye_from_view_proj`, `ortho_half_height` | `impl Gpu` | **`src/math.rs`** | anyone, incl. the headless harness |
-| `xform_point`, `grow_bounds` | `app/scene.rs` | **`src/math.rs`** | anyone |
-| `Bounds`, `Aabb64` | nowhere — written out longhand | **`src/math.rs`** | anyone (lessons 67, 68, 73, 113, 116, 118) |
-| the 9 `create_bind_group_layout` blocks | `Gpu::build`, lines 506-810 | **`pipelines/layouts.rs`** | `Layouts::new` ONLY |
-| `Self::splat_entry` | `impl Gpu` | **`pipelines/layouts.rs::compute_entry`** | `Layouts::new` ONLY |
-| the 11 `build_*_pipeline` fns | `pipelines/build.rs` | **gone** — `PipelineDesc` + `build` | nobody adds a twelfth |
-| `Target { samples, format }` | `samples` + `color_format`, threaded | **`pipelines/build.rs`** | every desc reads it |
-| the 14 pipeline recipes | eleven builder bodies | **`Pipelines::new`, as literals** | the family that draws them (47-49) |
-| `splat_depth_pipeline`, `splat_color_pipeline` | two `Gpu` fields | **`Pipelines.splat_depth/_color`** | `render`, through `self.pipelines` |
-| `edges` pipeline, `edges.wgsl`, `storage_buffer` | built, compiled, drawn 0 times | **deleted** | — |
-
-The compartment, and what crosses each boundary:
-
-```text
-                    +--------------------------------------------------+
-                    |  src/math.rs        no wgpu, no self, no kernel   |
-                    |  Mat4 · mat_mul · mat_to_f32 · eye_from_view_proj |
-                    |  ortho_half_height · xform_point · grow_bounds    |
-                    |  Bounds · Aabb64                                  |
-                    +--------------------------------------------------+
-                        ^  [f64;16] in, [f32;3] out — values only
-                        |
-   +--------------------+----------------------------------------------+
-   |  engine/pipelines/                                                |
-   |                                                                   |
-   |   layouts.rs  ---- &BindGroupLayout ---->  mod.rs                 |
-   |   Layouts::new(device)                     Pipelines::new(        |
-   |   9 layouts, one owner                       device, t, &l)       |
-   |                                              14 PipelineDesc      |
-   |                                              literals + 2 compute |
-   |                                                    |              |
-   |                                          &PipelineDesc            |
-   |                                                    v              |
-   |                                            build.rs               |
-   |                                            Target · PipelineDesc  |
-   |                                            opaque/ink/sheet/      |
-   |                                            depth_only · build     |
-   |                                            build_compute          |
-   +-------------------------------------------------------------------+
-                        ^  Layouts::new(&device) once; Pipelines::new(device, t, &l)
-                        |  again on every MSAA flip
-                    +---+----------------------------------------------+
-                    |  engine/gpu/mod.rs   Gpu { layouts, pipelines }  |
-                    |  106 fields (was 116)                            |
-                    +--------------------------------------------------+
-```
-
-**Exit litmus, grep it when you are done:**
-`grep -rln 'create_render_pipeline\|create_compute_pipeline\|create_bind_group_layout' src/`
-names exactly two files — `pipelines/build.rs` and `pipelines/layouts.rs` — and `build.rs` holds
-exactly one `device.create_render_pipeline` and one `device.create_compute_pipeline`.
-
-## 3. Files we touch
-
-| file | what | step | why |
-|---|---|---|---|
-| `src/math.rs` | **NEW, 123 lines** | 4.1, 5.2 | free-function math has no business inside a wgpu handle |
-| `src/lib.rs` | one line | 4.1 | `pub mod math;` |
-| `src/engine/pipelines/layouts.rs` | **NEW, 181 lines** | 4.2, 5.3 | one owner for all nine bind-group layouts |
-| `src/engine/pipelines/build.rs` | **REWRITTEN, 845 → 215** | 5.1 (delete), 5.4 | the block's one sanctioned rewrite |
-| `src/engine/pipelines/mod.rs` | 80 → 148 lines | 5.1, 5.4, 5.5 | fourteen descs + two compute, `new` frozen at 3 params |
-| `src/engine/gpu/mod.rs` | 2447 → 2139 lines | 5.1-5.5 | loses the math, the layouts, the two compute pipelines |
-| `src/app/scene.rs` | 1382 → 1365 lines | 5.2 | `xform_point`/`grow_bounds` move out |
-| `src/selftest.rs` | one line | 5.2 | `Gpu::eye_from_view_proj` → `crate::math::` |
-| `src/shaders/edges.wgsl` | **DELETED, 24 lines** | 5.1 | zero draw sites |
-
-**Line budgets.** A bad paste is visible by size alone: `src/math.rs` = **123** lines,
-`layouts.rs` = **181**, `build.rs` = **215**, `pipelines/mod.rs` = **148**. If any is off by more
-than a line or two, do not run the gate — re-read the file.
-
-New code this lesson may invent: **14 lines** — `Target`, `PipelineDesc.target`, `Bounds`/`Aabb64`
-with their doc lines, and `build_compute`'s signature. Everything else already existed somewhere.
-Shape taken while a body is moving is free; anything else is deferred to the lesson §9 names.
-
-## 4. The destination files, created first
-
-Both new files are created before anything is cut, so every later step is a deletion plus a
-re-point, not a two-ended edit you cannot compile in the middle of. Neither knows about `Gpu`.
-
-### 4.1 `src/math.rs`
-
-Printed in full rather than moved: the two camera solves leave `impl Gpu`, so they lose four
-spaces of indent and `ortho_half_height` gains a `pub`. `Bounds` and `Aabb64` are the only new
-lines — lessons 67, 68, 73, 113, 116 and 118 all pass a box around and spell it out longhand.
+The maths the app and the engine share, moved out of `gpu/mod.rs` and `scene.rs` unchanged:
+`Mat4`, `mat_mul`, `mat_to_f32`, `xform_point`, `grow_bounds`, the eye solve and the ortho
+half-height as free functions, plus a small `Aabb` that replaces every loose `min/max` pair.
 
 **Create `src/math.rs`**
 
 ```rust
-//! Pure math the viewer shares — no wgpu, no kernel state, no `self`.
-//!
-//! Matrices, the two camera solves, and the f32/f64 box aliases. Everything here is a free
-//! function over plain arrays, so an engine lane, an app producer and a headless example can all
-//! call it without pulling one another in.
+//! Small f64/f32 math shared by the app and the engine: the column-major `Mat4`, point
+//! transforms, the f32 `Aabb`, and the two camera facts recovered from a view-projection.
+//! Nothing here touches wgpu or a kernel type beyond `Xform`.
 
 use session_rust::Xform;
 
-/// A world-space axis-aligned box in the arena's f32 units: `(min, max)`.
-pub type Bounds = ([f32; 3], [f32; 3]);
-/// The same box in the kernel's f64 units, as the object table keeps it.
-pub type Aabb64 = ([f64; 3], [f64; 3]);
-
 /// One object's world placement as the 16 raw column-major doubles the GPU row needs.
-///
-/// NOT a kernel `Xform`: that struct carries `typ`/`name` Strings and a guid `OnceLock`, so
-/// `Xform::identity()` heap-allocates TWICE per call and every arena row cost two more on the
-/// clone into `objects_base`. On a 90k-line sheet that was ~400k allocations - 300 ms of the
-/// walk - to carry 128 bytes of numbers nothing downstream ever reads a name off.
+/// NOT a kernel `Xform`: that one heap-allocates twice per construction (name + guid), which
+/// measured as 300 ms of a 90k-line sheet's walk for numbers nothing downstream names.
 pub type Mat4 = [f64; 16];
 
 /// `a * b` in the kernel's convention: column-major, index = col * 4 + row.
@@ -205,16 +124,61 @@ pub fn mat_to_f32(m: &Mat4) -> [f32; 16] {
     std::array::from_fn(|i| m[i] as f32)
 }
 
-/// The camera position, recovered from the combined view-projection alone.
-///
-/// The eye is the one point that projects to nothing: it is where the clip x, y and w all
-/// vanish at once, because every view ray passes through it. Three rows of the matrix, three
-/// unknowns, one 3x3 solve - no camera struct needed, so this works for any caller that can
-/// produce a view-projection, including the headless harness.
-///
-/// Orthographic has no eye: rows 0, 1 and 3 are linearly dependent there (w is constant 1),
-/// the determinant collapses, and the fallback is the view direction pushed a long way back -
-/// which is exactly what an orthographic "eye at infinity" means.
+/// A local point through a column-major placement, f64 inside, f32 at the edges.
+pub fn xform_point(m: &Mat4, p: [f32; 3]) -> [f32; 3] {
+    let x = p[0] as f64;
+    let y = p[1] as f64;
+    let z = p[2] as f64;
+    [
+        (m[0] * x + m[4] * y + m[8] * z + m[12]) as f32,
+        (m[1] * x + m[5] * y + m[9] * z + m[13]) as f32,
+        (m[2] * x + m[6] * y + m[10] * z + m[14]) as f32,
+    ]
+}
+
+/// Widen a min/max pair to hold `p`.
+pub fn grow_bounds(min: &mut [f32; 3], max: &mut [f32; 3], p: [f32; 3]) {
+    for k in 0..3 {
+        min[k] = min[k].min(p[k]);
+        max[k] = max[k].max(p[k]);
+    }
+}
+
+/// An axis-aligned box in f32 world units. `empty()` is inverted, so the first `grow` sets it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Aabb {
+    pub min: [f32; 3],
+    pub max: [f32; 3],
+}
+
+impl Aabb {
+    /// The inverted box: every `grow` or `union` replaces it.
+    pub fn empty() -> Self {
+        Self { min: [f32::INFINITY; 3], max: [f32::NEG_INFINITY; 3] }
+    }
+
+    /// Widen the box to hold `p`.
+    pub fn grow(&mut self, p: [f32; 3]) {
+        grow_bounds(&mut self.min, &mut self.max, p);
+    }
+
+    /// Widen the box to hold `other`; an empty `other` changes nothing.
+    pub fn union(&mut self, other: &Aabb) {
+        for k in 0..3 {
+            self.min[k] = self.min[k].min(other.min[k]);
+            self.max[k] = self.max[k].max(other.max[k]);
+        }
+    }
+
+    /// False for the empty box: nothing has been grown into it.
+    pub fn is_finite(&self) -> bool {
+        self.min.iter().chain(&self.max).all(|v| v.is_finite())
+    }
+}
+
+/// The camera position, recovered from the view-projection alone: the eye is where clip x, y
+/// and w all vanish, so rows 0, 1, 3 give a 3x3 solve. Orthographic has no eye (those rows are
+/// dependent), so the fallback is the view direction pushed 1e9 back - an eye at infinity.
 pub fn eye_from_view_proj(vp: &Xform) -> [f32; 3] {
     let r = |i: usize| [vp[(i, 0)], vp[(i, 1)], vp[(i, 2)], vp[(i, 3)]];
     let (a, b, c) = (r(0), r(1), r(3));
@@ -249,14 +213,9 @@ pub fn eye_from_view_proj(vp: &Xform) -> [f32; 3] {
     })
 }
 
-/// Ortho half-height in world units (mm), 0.0 in perspective. The w row of the composed
-/// matrix says which projection this is: perspective carries the view direction there
-/// (magnitude 1), orthographic is all zeros (w is constant 1). Row 1 of the matrix is the
-/// y basis scaled by s/h, so 1/|row1.xyz| IS the world half-height - rotation and the
-/// anchor (translation lives in column 3) drop out. Left as 0.0, every ink lane falls back
-/// to the perspective pen formula with clip.w = 1, which pins pens to a zoom-independent
-/// world size: zoom out in ortho and the density taper never fires and far-side ink
-/// bleeds through faces.
+/// Ortho half-height in world units (mm), 0.0 in perspective. The w row tells the projection
+/// apart (ortho: all zeros); row 1 is the y basis scaled by s/h, so 1/|row1.xyz| is the
+/// half-height. Left at 0.0 in ortho, every pen pins to a zoom-independent world size.
 pub fn ortho_half_height(vp: &Xform) -> f32 {
     let w2 = vp[(3, 0)].powi(2) + vp[(3, 1)].powi(2) + vp[(3, 2)].powi(2);
     if w2 > 1e-12 {
@@ -270,368 +229,517 @@ pub fn ortho_half_height(vp: &Xform) -> f32 {
 }
 ```
 
-**Find** in `src/lib.rs`:
+## Step 2 — `src/engine/pipelines/layouts.rs`
 
-```rust
-mod engine;
-```
-
-**Add below it:**
-
-```rust
-pub mod math; // shared free-function math: matrices, the camera solves, the box aliases
-```
-
-Gate — an unused module compiles, and `math.rs` is `pub` at the crate root so nothing is dead:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-wc -l src/math.rs        # 105 for now; 123 after step 5.2
-```
-
-### 4.2 `src/engine/pipelines/layouts.rs`
-
-Nine layouts describe this entire viewer, each wedged into `Gpu::build` beside the buffer it
-happens to precede. Collected, they are one value and one editable list.
-
-The file is created **whole**, not assembled by nine Moves, because every body changes as it
-lands: `let mvp_layout` becomes `let mvp`. Step 5.3 then cuts each block from `Gpu::build`.
+The bind-group layouts are the SHAPE of a bind group. They were nine blocks inside `Gpu::build`;
+now `Layouts::new(device)` builds eight (the `time` layout goes) through two shared helpers and
+three splat-specific ones.
 
 **Create `src/engine/pipelines/layouts.rs`**
 
 ```rust
-//! `Layouts` — the single owner of every bind-group layout the viewer binds.
-//!
-//! A bind-group layout is the shape of one `@group(n)` block: which bindings exist, what type
-//! each one is, and which shader stages may read it. Nine of them describe this whole viewer,
-//! every pipeline picks from those nine, and a shader and a Rust binding that disagree fail at
-//! pipeline creation — so there is exactly one place to look and exactly one place to edit.
-//!
-//! `Layouts::new` is the editable list: adding a uniform is one entry in one `entries: &[..]`,
-//! adding a layout is one field here and one block below. Nothing threads a layout through a
-//! parameter list — `Pipelines::new(device, t, &l)` takes the whole set, and is frozen at three
-//! parameters for exactly that reason.
+//! `Layouts` — every bind-group layout the viewer binds, built once per device.
+//! A layout is the SHAPE of a bind group (binding index, stages, buffer kind); the buffers
+//! themselves live in `gpu/`. Pipelines and bind groups both reference these, never their own.
 
-/// One `COMPUTE`-visible buffer binding. The two splat groups are nine entries that differ only
-/// in their binding index and their buffer type, so they are written as a list, not as nine
-/// eleven-line literals.
-pub fn compute_entry(
-    binding: u32,
-    ty: wgpu::BufferBindingType) -> wgpu::BindGroupLayoutEntry{
+/// One buffer binding, visible to `stages`.
+fn buffer_entry(binding: u32, stages: wgpu::ShaderStages, ty: wgpu::BufferBindingType) -> wgpu::BindGroupLayoutEntry {
     wgpu::BindGroupLayoutEntry {
         binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
+        visibility: stages,
         ty: wgpu::BindingType::Buffer { ty, has_dynamic_offset: false, min_binding_size: None },
-        count: None }
+        count: None,
+    }
 }
 
-/// Every bind-group layout, built once and kept for the life of the `Gpu`: an MSAA flip rebuilds
-/// every pipeline and every rows bind group from these, so they must outlive both.
+/// One uniform buffer at binding 0.
+fn uniform_layout(device: &wgpu::Device, label: &str, stages: wgpu::ShaderStages) -> wgpu::BindGroupLayout {
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some(label),
+        entries: &[buffer_entry(0, stages, wgpu::BufferBindingType::Uniform)],
+    })
+}
+
+/// One read-only storage buffer at binding 0, vertex-visible: the row table every ink lane reads.
+fn storage_layout(device: &wgpu::Device, label: &str) -> wgpu::BindGroupLayout {
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some(label),
+        entries: &[buffer_entry(0, wgpu::ShaderStages::VERTEX, wgpu::BufferBindingType::Storage { read_only: true })],
+    })
+}
+
+/// A compute-visible buffer binding for the splat groups.
+fn splat_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {
+    buffer_entry(binding, wgpu::ShaderStages::COMPUTE, wgpu::BufferBindingType::Storage { read_only })
+}
+
+/// Splat group 0: the frame (mvp, cloud uniform) and the record table.
+fn splat_group0_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("splat.group0.layout"),
+        entries: &[
+            buffer_entry(0, wgpu::ShaderStages::COMPUTE, wgpu::BufferBindingType::Uniform),
+            buffer_entry(1, wgpu::ShaderStages::COMPUTE, wgpu::BufferBindingType::Uniform),
+            splat_entry(2, true),
+        ],
+    })
+}
+
+/// Splat group 1: a lane's points (pos, col, nrm) and the shared per-pixel depth/colour buffers.
+fn splat_group1_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("splat.group1.layout"),
+        entries: &[
+            splat_entry(0, true),
+            splat_entry(1, true),
+            splat_entry(2, false),
+            splat_entry(3, false),
+            splat_entry(4, true),
+        ],
+    })
+}
+
+/// The resolve pass reads the two per-pixel splat buffers from its fragment stage.
+fn splat_resolve_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    let read = wgpu::BufferBindingType::Storage { read_only: true };
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("splat.resolve.layout"),
+        entries: &[
+            buffer_entry(0, wgpu::ShaderStages::FRAGMENT, read),
+            buffer_entry(1, wgpu::ShaderStages::FRAGMENT, read),
+        ],
+    })
+}
+
+/// The eight bind-group layouts. Group scheme for every draw: 0 = mvp, 1 = line/cloud uniform,
+/// 2 = instances, 3 = the family's row table.
 pub struct Layouts {
-    /// group 0 of everything that reads the camera: the `mvp` uniform, VERTEX only.
     pub mvp: wgpu::BindGroupLayout,
-    /// group 1 of `triangle.wgsl`: the animation clock, FRAGMENT only.
-    pub time: wgpu::BindGroupLayout,
-    /// group 2 everywhere: the object table (`Instance` rows), VERTEX storage.
-    pub instance: wgpu::BindGroupLayout,
-    /// group 3 of the segment lanes: `CylinderSegment` rows, VERTEX storage.
-    pub segment: wgpu::BindGroupLayout,
-    /// group 3 of the glyph lanes: `GlyphPoint` rows. Byte-identical to `segment`, which is why
-    /// the `glyph` pipeline has always been built against the WRONG one of the two without
-    /// anything noticing - see the desc in `mod.rs`.
-    pub glyph: wgpu::BindGroupLayout,
-    /// group 1 of every ink lane AND group 0 of the splat compute: the pen/viewport uniform.
-    /// VERTEX + FRAGMENT, and `cloud_bind_group` is a second bind group over this same layout.
     pub line: wgpu::BindGroupLayout,
-    /// The splat compute's two groups: camera + records, then the point columns + pixel buffers.
+    pub instance: wgpu::BindGroupLayout,
+    pub segment: wgpu::BindGroupLayout,
+    pub glyph: wgpu::BindGroupLayout,
     pub splat_group0: wgpu::BindGroupLayout,
     pub splat_group1: wgpu::BindGroupLayout,
-    /// The fullscreen resolve reads the two per-pixel buffers from the FRAGMENT stage.
     pub splat_resolve: wgpu::BindGroupLayout,
 }
 
 impl Layouts {
-    /// Build all nine. Order is the order they were created in `Gpu::build`.
+    /// Build every layout once; they outlive any pipeline or bind group made from them.
     pub fn new(device: &wgpu::Device) -> Self {
-        let mvp = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("mvp.layout"),
-            entries: &[wgpu::BindGroupLayoutEntry{
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu:: BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
-                count: None,
-            }],
-        });
-
-        let time = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("time.layout"),
-            entries: &[wgpu::BindGroupLayoutEntry{
-                binding: 0,
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer {ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None},
-                count: None,
-            }],
-        });
-
-        let instance = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("instance.layout"),
-            entries: &[wgpu::BindGroupLayoutEntry{
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage { read_only: true },
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
-
-        let segment = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("segments.layout"),
-            entries: &[wgpu::BindGroupLayoutEntry {
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage { read_only: true },
-                    has_dynamic_offset: false, min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
-
-        let glyph = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("glyphs.layout"),
-            entries: &[wgpu::BindGroupLayoutEntry{
-                binding: 0,
-                visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Storage { read_only: true },
-                    has_dynamic_offset: false,
-                    min_binding_size: None,
-                },
-                count: None,
-            }],
-        });
-
-        let line = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("line.layout"),
-            entries: &[wgpu::BindGroupLayoutEntry{
-                binding: 0,
-                // FRAGMENT too: the flat lane's fragment stage reads the viewport size to
-                // recover the fragment's ndc for the face-plane depth solve (ribbon.wgsl
-                // `ink_depth`). Everything else still only touches it from the vertex stage.
-                visibility: wgpu::ShaderStages::VERTEX.union(wgpu::ShaderStages::FRAGMENT),
-                ty: wgpu::BindingType::Buffer {
-                    ty: wgpu::BufferBindingType::Uniform,
-                    has_dynamic_offset: false,
-                    min_binding_size: None
-                },
-                count:None
-            }],
-        });
-
-        let splat_group0 = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("splat.group0.layout"),
-            entries: &[
-                compute_entry(0, wgpu::BufferBindingType::Uniform),
-                compute_entry(1, wgpu::BufferBindingType::Uniform),
-                compute_entry(2, wgpu::BufferBindingType::Storage { read_only: true }),
-                compute_entry(3, wgpu::BufferBindingType::Storage { read_only: true }),
-            ],
-        });
-
-        let splat_group1 = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("splat.group1.layout"),
-            entries: &[
-                compute_entry(0, wgpu::BufferBindingType::Storage { read_only: true }), // pos
-                compute_entry(1, wgpu::BufferBindingType::Storage { read_only: true }), // col
-                compute_entry(2, wgpu::BufferBindingType::Storage { read_only: false }), // sdepth
-                compute_entry(3, wgpu::BufferBindingType::Storage { read_only: false }), // scolor
-                compute_entry(4, wgpu::BufferBindingType::Storage { read_only: true }),
-            ],
-        });
-
-        let splat_resolve = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
-            label: Some("splat.resolve.layout"),
-            entries: & [
-                wgpu::BindGroupLayoutEntry{
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None
-                    },
-                    count: None,
-                },
-                wgpu::BindGroupLayoutEntry{
-                    binding: 1,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None
-                    },
-                    count: None,
-                },
-            ],
-        });
-
-        Self { mvp, time, instance, segment, glyph, line, splat_group0, splat_group1, splat_resolve }
+        Self {
+            mvp: uniform_layout(device, "mvp.layout", wgpu::ShaderStages::VERTEX),
+            // FRAGMENT too: the splat resolve reads the cloud uniform (bound with this layout)
+            // from its fragment stage.
+            line: uniform_layout(device, "line.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
+            instance: storage_layout(device, "instance.layout"),
+            segment: storage_layout(device, "segments.layout"),
+            glyph: storage_layout(device, "glyphs.layout"),
+            splat_group0: splat_group0_layout(device),
+            splat_group1: splat_group1_layout(device),
+            splat_resolve: splat_resolve_layout(device),
+        }
     }
 }
 ```
 
-**Find** in `src/engine/pipelines/mod.rs`:
+## Step 3 — `src/engine/pipelines/build.rs`
+
+Replace the whole file. `Target` is where a pipeline draws, `DepthMode` is the four depth
+behaviours the viewer uses (reverse-Z: nearer is greater), `PipelineDesc` is everything that
+differs between pipelines, and `build` is the only place wgpu is asked for a render pipeline.
+
+**Create `src/engine/pipelines/build.rs`**
 
 ```rust
-pub mod build;
-```
+//! Pipelines are data. `PipelineDesc` names the ten things that differ between the viewer's
+//! render pipelines; `build` turns one into a `wgpu::RenderPipeline` and is the only place
+//! wgpu is asked for one. Shader modules are made by the caller, once per source.
 
-**Add above it:**
+use std::sync::OnceLock;
 
-```rust
-pub mod layouts;
-```
-
-Gate:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-wc -l src/engine/pipelines/layouts.rs    # 181
-```
-
-`Layouts` is not used yet, so `cargo check` warns `struct \`Layouts\` is never constructed`.
-That warning is the progress bar for the next three steps; it goes away at 5.3.
-
-## 5. The steps
-
-Order is leaves before roots: delete what nothing calls, then the free functions, then the
-layouts, then the pipeline recipes, then the two compute pipelines that hang off them. Every step
-gets a `cargo check`; steps 5.1, 5.3, 5.4 and 5.5 get the pixel gate as well.
-
-### 5.1 Delete before you move
-
-`edges` is built by a 67-line builder, compiles a 24-line shader and is drawn **zero** times —
-`grep -rn 'pipelines\.edges' src/` returns nothing, and `storage_buffer` has zero callers. Neither
-is moved: faithfully relocating dead code is how it survives another five lessons.
-
-**Remove** `src/engine/pipelines/build.rs`
-
-```rust
-/// Pipeline for mesh edges — `LineList` over the mesh vertices, depth-tested but not written.
-```
-
-**through**
-
-```rust
-}
-```
-
-Five anchors in this lesson start on a comment line — this one and four in 5.2 — because the
-comment dies with the function it documents. If your copy of one was ever reworded, anchor on the
-`pub fn` below it and delete the stranded comment by hand.
-
-Three one-line sites in `src/engine/pipelines/mod.rs`, each anchored together with the surviving
-line above it — the shape to use whenever you drop a single line.
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-use build::build_grid_pipeline;
-use build::build_edges_pipeline;
-```
-
-**Replace with:**
-
-```rust
-use build::build_grid_pipeline;
-```
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-    pub grid: wgpu::RenderPipeline,
-    pub edges: wgpu::RenderPipeline,
-```
-
-**Replace with:**
-
-```rust
-    pub grid: wgpu::RenderPipeline,
-```
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-            grid: build_grid_pipeline(device, samples, color_format, aspect_layout, line_layout),
-            edges: build_edges_pipeline(device, samples, color_format, aspect_layout),
-```
-
-**Replace with:**
-
-```rust
-            grid: build_grid_pipeline(device, samples, color_format, aspect_layout, line_layout),
-```
-
-`storage_buffer` sits at the tail of `src/engine/gpu/mod.rs`, after `zeroed_buffer`, so the
-anchor is the end of the file and what survives is `zeroed_buffer`'s last two lines.
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-        })
+/// Where a pipeline draws: the surface format and the MSAA sample count of the pass.
+///
+/// MSAA cannot be mixed WITHIN a frame - sample count is a property of the render PASS - so
+/// the viewer picks one per SCENE (`Gpu::msaa_now`) and rebuilds every pipeline on a flip.
+#[derive(Clone, Copy)]
+pub struct Target {
+    pub format: wgpu::TextureFormat,
+    pub samples: u32,
 }
 
-/// A storage bufffer filled by  `write buffer`, not `create_buffer_init`: init maps the whole buffer at a creation
-/// and on wgpu's web backend that allocates a full-size mirror of the contents in the wasm heap costs three times per scene load.
-/// `ẁrite_buffer` stages through the queue instead
-/// empty data leaves the minimum buffer zeri-initialized.
-fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, queue: &wgpu::Queue, label: &str, data: &[T]) -> wgpu::Buffer{
-    let size = (data.len() * std::mem::size_of::<T>()).max(std::mem::size_of::<T>()).max(4) as u64;
-    let buf = device.create_buffer(&wgpu::BufferDescriptor {
+/// How a pipeline treats depth. Every compare is reverse-Z: nearer is GREATER.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum DepthMode {
+    /// Write, strict `Greater`: solids, and the depth-only prepasses.
+    Opaque,
+    /// Test only, strict `Greater`: sheet fills and the grid.
+    ReadOnly,
+    /// Test only, `GreaterEqual`: blended ink that must tie with its prepass and with faces.
+    ReadOnlyEqual,
+    /// No test, no write: the background, and `VIEWER_NO_DEPTH`.
+    Always,
+}
+
+impl DepthMode {
+    /// The (write, compare) pair wgpu wants.
+    fn state(self) -> (bool, wgpu::CompareFunction) {
+        match self {
+            DepthMode::Opaque => (true, wgpu::CompareFunction::Greater),
+            DepthMode::ReadOnly => (false, wgpu::CompareFunction::Greater),
+            DepthMode::ReadOnlyEqual => (false, wgpu::CompareFunction::GreaterEqual),
+            DepthMode::Always => (false, wgpu::CompareFunction::Always),
+        }
+    }
+}
+
+/// Everything `build` needs to make one render pipeline. A pipeline is data, not a function.
+pub struct PipelineDesc<'a> {
+    pub label: &'a str,
+    pub shader: &'a wgpu::ShaderModule,
+    pub vs: &'a str,
+    pub fs: &'a str,
+    pub groups: &'a [&'a wgpu::BindGroupLayout],
+    pub vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>],
+    pub topology: wgpu::PrimitiveTopology,
+    pub blend: Option<wgpu::BlendState>,
+    /// False = depth-only prepass: every colour channel masked, only depth lands.
+    pub write_color: bool,
+    pub depth: DepthMode,
+}
+
+/// Everything `build_compute` needs to make one compute pipeline.
+pub struct ComputeDesc<'a> {
+    pub label: &'a str,
+    pub shader: &'a wgpu::ShaderModule,
+    pub entry: &'a str,
+    pub groups: &'a [&'a wgpu::BindGroupLayout],
+}
+
+const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 3,
+    format: wgpu::VertexFormat::Uint32,
+}];
+
+const TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 0,
+    format: wgpu::VertexFormat::Float32x3,
+}];
+
+/// Vertex-buffer layout for the per-vertex instance-row id (`@location(3)`, one `u32` per vertex).
+pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
+    wgpu::VertexBufferLayout {
+        array_stride: 4,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &INSTANCE_ID_ATTRIBS,
+    }
+}
+
+/// Vertex-buffer layout for the unit-cylinder / quad template positions (`@location(0)`, one `vec3<f32>`).
+pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
+    wgpu::VertexBufferLayout {
+        array_stride: 12,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &TEMPLATE_ATTRIBS,
+    }
+}
+
+/// `mode`, or `Always` when `VIEWER_NO_DEPTH` is set. Read once; env vars never exist on wasm.
+pub fn depth_or_always(mode: DepthMode) -> DepthMode {
+    static NO_DEPTH: OnceLock<bool> = OnceLock::new();
+    if *NO_DEPTH.get_or_init(|| std::env::var("VIEWER_NO_DEPTH").is_ok()) { DepthMode::Always } else { mode }
+}
+
+/// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
+pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+    device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some(label),
-        size,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
-
-    if !data.is_empty(){
-        queue.write_buffer(&buf, 0, bytemuck::cast_slice(data));
-    }
-    buf
+        source: wgpu::ShaderSource::Wgsl(source.into()),
+    })
 }
+
+/// The pipeline layout for `groups`, in slot order.
+fn pipeline_layout(device: &wgpu::Device, label: &str, groups: &[&wgpu::BindGroupLayout]) -> wgpu::PipelineLayout {
+    let groups: Vec<Option<&wgpu::BindGroupLayout>> = groups.iter().map(|g| Some(*g)).collect();
+    device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some(label),
+        bind_group_layouts: &groups,
+        immediate_size: 0,
+    })
+}
+
+/// One render pipeline from its description. Everything not in the desc is the same for all
+/// of them: one colour target, `Depth32Float`, no cull, no hardware bias, fill mode.
+pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu::RenderPipeline {
+    let layout = pipeline_layout(device, desc.label, desc.groups);
+    let (depth_write, depth_compare) = desc.depth.state();
+    let write_mask = if desc.write_color { wgpu::ColorWrites::ALL } else { wgpu::ColorWrites::empty() };
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some(desc.label),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: desc.shader,
+            entry_point: Some(desc.vs),
+            buffers: desc.vertex_buffers,
+            compilation_options: Default::default(),
+        },
+        // The pass HAS a colour attachment, so a depth-only pipeline still declares one and
+        // masks every channel - Dawn rejects an empty target list against a colour pass.
+        fragment: Some(wgpu::FragmentState {
+            module: desc.shader,
+            entry_point: Some(desc.fs),
+            targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: desc.blend, write_mask })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: desc.topology,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        // No hardware bias anywhere: the units of `constant` on a float depth format are
+        // implementation-defined, so faces recede in triangle.wgsl instead (FACE_PUSH).
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(depth_write),
+            depth_compare: Some(depth_compare),
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState {
+            count: target.samples,
+            mask: !0,
+            alpha_to_coverage_enabled: false,
+        },
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
+/// One compute pipeline from its description.
+pub fn build_compute(device: &wgpu::Device, desc: &ComputeDesc) -> wgpu::ComputePipeline {
+    let layout = pipeline_layout(device, desc.label, desc.groups);
+
+    device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+        label: Some(desc.label),
+        layout: Some(&layout),
+        module: desc.shader,
+        entry_point: Some(desc.entry),
+        compilation_options: Default::default(),
+        cache: None,
+    })
+}
+```
+
+## Step 4 — `src/engine/pipelines/mod.rs`
+
+Replace the whole file. Nine shader modules are compiled once, then fourteen `PipelineDesc`
+literals and two `ComputeDesc`s. The two `VIEWER_NO_DEPTH` branches survive as `depth_or_always`
+on `sphere` and `ribbon_solid`.
+
+**Create `src/engine/pipelines/mod.rs`**
+
+```rust
+//! `Pipelines` — every render and compute pipeline the viewer draws with, as data: one
+//! `PipelineDesc` literal each, built by `build::build` from shader modules made once per
+//! source. Rebuilt whole when the MSAA sample count flips (the count belongs to the pass).
+
+pub mod build;
+pub mod layouts;
+
+pub use build::Target;
+pub use layouts::Layouts;
+
+use build::{build, build_compute, depth_or_always, instance_id_layout, module, template_layout};
+use build::{ComputeDesc, DepthMode, PipelineDesc};
+use session_rust::RenderVertex;
+use wgpu::PrimitiveTopology::{LineList, TriangleList, TriangleStrip};
+
+/// Smooth AA feather + hairline fade on every blended lane.
+const ALPHA: Option<wgpu::BlendState> = Some(wgpu::BlendState::ALPHA_BLENDING);
+
+/// Every pipeline the viewer draws with, built once at startup and again on an MSAA flip.
+pub struct Pipelines {
+    pub triangle: wgpu::RenderPipeline,
+    /// Same program, depth WRITE off: a sheet's fills are exactly coplanar, so they composite
+    /// in draw order (a painter's document) instead of flickering over one shared depth value.
+    pub triangle_sheet: wgpu::RenderPipeline,
+    pub grid: wgpu::RenderPipeline,
+    pub background: wgpu::RenderPipeline,
+    pub cylinder: wgpu::RenderPipeline,
+    pub sphere: wgpu::RenderPipeline,
+    pub sphere_depth: wgpu::RenderPipeline,
+    pub ribbon: wgpu::RenderPipeline,
+    pub ribbon_depth: wgpu::RenderPipeline,
+    /// The flat lane's shader over the SOLID table; `GreaterEqual` is load-bearing (a mesh
+    /// edge sits EXACTLY on its faces' depth, and strict `Greater` shreds it).
+    pub ribbon_solid: wgpu::RenderPipeline,
+    /// Depth-only prepasses for the solid ink: binary at half coverage, so the blended colour
+    /// passes never write depth and their AA feather cannot depth-reject a later stroke.
+    pub ribbon_solid_depth: wgpu::RenderPipeline,
+    pub glyph: wgpu::RenderPipeline,
+    pub glyph_depth: wgpu::RenderPipeline,
+    /// Fullscreen composite of the splat buffers.
+    pub splat_resolve: wgpu::RenderPipeline,
+    pub splat_depth: wgpu::ComputePipeline,
+    pub splat_color: wgpu::ComputePipeline,
+}
+
+impl Pipelines {
+    /// Build every pipeline for `target` from the shared layouts. One shader module per source.
+    pub fn new(device: &wgpu::Device, target: Target, l: &Layouts) -> Self {
+        let triangle = module(device, "triangle.shader", include_str!("../../shaders/triangle.wgsl"));
+        let grid = module(device, "grid.shader", include_str!("../../shaders/grid.wgsl"));
+        let background = module(device, "background.shader", include_str!("../../shaders/background.wgsl"));
+        let cylinder = module(device, "cylinder.shader", include_str!("../../shaders/cylinder.wgsl"));
+        let sphere = module(device, "sphere.shader", include_str!("../../shaders/sphere.wgsl"));
+        let ribbon = module(device, "ribbon.shader", include_str!("../../shaders/ribbon.wgsl"));
+        let glyph = module(device, "glyph.shader", include_str!("../../shaders/glyph.wgsl"));
+        let resolve = module(device, "splat.resolve.shader", include_str!("../../shaders/splat_resolve.wgsl"));
+        let splat = module(device, "splat.shader", include_str!("../../shaders/splat.wgsl"));
+
+        // Group scheme: 0 = mvp, 1 = line/cloud uniform, 2 = instances, 3 = the family's rows.
+        let solid = [&l.mvp, &l.line, &l.instance];
+        let seg = [&l.mvp, &l.line, &l.instance, &l.segment];
+        let gly = [&l.mvp, &l.line, &l.instance, &l.glyph];
+        let splat_groups = [&l.splat_group0, &l.splat_group1];
+
+        Self {
+            triangle: build(device, target, &PipelineDesc {
+                label: "triangle", shader: &triangle, vs: "vs_main", fs: "fs_main",
+                groups: &solid, vertex_buffers: &[RenderVertex::layout(), instance_id_layout()],
+                topology: TriangleList, blend: ALPHA, write_color: true, depth: DepthMode::Opaque,
+            }),
+            triangle_sheet: build(device, target, &PipelineDesc {
+                label: "triangle.sheet", shader: &triangle, vs: "vs_main", fs: "fs_main",
+                groups: &solid, vertex_buffers: &[RenderVertex::layout(), instance_id_layout()],
+                topology: TriangleList, blend: ALPHA, write_color: true, depth: DepthMode::ReadOnly,
+            }),
+            grid: build(device, target, &PipelineDesc {
+                label: "grid", shader: &grid, vs: "vs_main", fs: "fs_main",
+                groups: &[&l.mvp, &l.line], vertex_buffers: &[],
+                topology: LineList, blend: None, write_color: true, depth: DepthMode::ReadOnly,
+            }),
+            background: build(device, target, &PipelineDesc {
+                label: "background", shader: &background, vs: "vs_main", fs: "fs_main",
+                groups: &[], vertex_buffers: &[],
+                topology: TriangleList, blend: None, write_color: true, depth: DepthMode::Always,
+            }),
+            cylinder: build(device, target, &PipelineDesc {
+                label: "cylinder", shader: &cylinder, vs: "vs_main", fs: "fs_main",
+                groups: &seg, vertex_buffers: &[template_layout()],
+                topology: TriangleList, blend: None, write_color: true, depth: DepthMode::Opaque,
+            }),
+            sphere: build(device, target, &PipelineDesc {
+                label: "sphere", shader: &sphere, vs: "vs_main", fs: "fs_main",
+                groups: &gly, vertex_buffers: &[template_layout()],
+                topology: TriangleList, blend: ALPHA, write_color: true,
+                depth: depth_or_always(DepthMode::ReadOnlyEqual), // VIEWER_NO_DEPTH
+            }),
+            sphere_depth: build(device, target, &PipelineDesc {
+                label: "sphere.depth", shader: &sphere, vs: "vs_main", fs: "fs_depth",
+                groups: &gly, vertex_buffers: &[template_layout()],
+                topology: TriangleList, blend: None, write_color: false, depth: DepthMode::Opaque,
+            }),
+            ribbon: build(device, target, &PipelineDesc {
+                label: "ribbon", shader: &ribbon, vs: "vs_main", fs: "fs_main",
+                groups: &seg, vertex_buffers: &[],
+                topology: TriangleStrip, blend: ALPHA, write_color: true, depth: DepthMode::ReadOnlyEqual,
+            }),
+            ribbon_depth: build(device, target, &PipelineDesc {
+                label: "ribbon.depth", shader: &ribbon, vs: "vs_main", fs: "fs_depth",
+                groups: &seg, vertex_buffers: &[],
+                topology: TriangleStrip, blend: None, write_color: false, depth: DepthMode::Opaque,
+            }),
+            ribbon_solid: build(device, target, &PipelineDesc {
+                label: "ribbon.solid", shader: &ribbon, vs: "vs_main", fs: "fs_main",
+                groups: &seg, vertex_buffers: &[],
+                topology: TriangleStrip, blend: ALPHA, write_color: true,
+                depth: depth_or_always(DepthMode::ReadOnlyEqual), // VIEWER_NO_DEPTH
+            }),
+            ribbon_solid_depth: build(device, target, &PipelineDesc {
+                label: "ribbon.solid.depth", shader: &ribbon, vs: "vs_main", fs: "fs_depth",
+                groups: &seg, vertex_buffers: &[],
+                topology: TriangleStrip, blend: None, write_color: false, depth: DepthMode::Opaque,
+            }),
+            glyph: build(device, target, &PipelineDesc {
+                label: "glyph", shader: &glyph, vs: "vs_main", fs: "fs_main",
+                groups: &gly, vertex_buffers: &[],
+                topology: TriangleList, blend: ALPHA, write_color: true, depth: DepthMode::ReadOnlyEqual,
+            }),
+            glyph_depth: build(device, target, &PipelineDesc {
+                label: "glyph.depth", shader: &glyph, vs: "vs_main", fs: "fs_depth",
+                groups: &gly, vertex_buffers: &[],
+                topology: TriangleList, blend: None, write_color: false, depth: DepthMode::Opaque,
+            }),
+            splat_resolve: build(device, target, &PipelineDesc {
+                label: "splat.resolve", shader: &resolve, vs: "vs_main", fs: "fs_main",
+                groups: &[&l.line, &l.splat_resolve], vertex_buffers: &[],
+                topology: TriangleList, blend: None, write_color: true, depth: DepthMode::Opaque,
+            }),
+            splat_depth: build_compute(device, &ComputeDesc {
+                label: "splat.depth", shader: &splat, entry: "cs_depth", groups: &splat_groups,
+            }),
+            splat_color: build_compute(device, &ComputeDesc {
+                label: "splat.color", shader: &splat, entry: "cs_color", groups: &splat_groups,
+            }),
+        }
+    }
+}
+```
+
+## Step 5 — `src/shaders/splat.wgsl`
+
+The compute splatter bound the whole instance table and never read it; the record table moves to
+binding 2.
+
+**Find** in `src/shaders/splat.wgsl`:
+
+```wgsl
+@group(0) @binding(2) var<storage, read> instances_unused: array<vec4<f32>>;
+@group(0) @binding(3) var<storage, read> table: array<u32>;
 ```
 
 **Replace with:**
 
-```rust
-        })
-}
+```wgsl
+@group(0) @binding(2) var<storage, read> table: array<u32>;
 ```
 
-Then the shader itself, which nothing includes any more:
+## Step 6 — `src/shaders/triangle.wgsl`
 
-```bash
-rm src/shaders/edges.wgsl
+The `time` uniform was declared here and read nowhere.
+
+**Find** in `src/shaders/triangle.wgsl`:
+
+```wgsl
+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
+@group(1) @binding(0) var<uniform> time: f32;
 ```
 
-Gate — the warning count drops by one and the frame does not move:
+**Replace with:**
 
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-./docs/_gate.sh
+```wgsl
+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 ```
 
-`gate OK`. That is **89 lines of Rust** gone plus a 24-line shader, and one fewer WGSL module
-compiled at every startup.
+## Step 7 — `src/shaders/edges.wgsl`
 
-### 5.2 `src/math.rs` — the bodies leave, the paths do not
+Built at every start since lesson 31 and bound by no pass; Step 4 already dropped its builder.
 
-`gpu/mod.rs` re-exports the five names it used to define, so every `engine::gpu::` caller keeps
-the path it already types; `scene.rs` does the same for its two.
+**Delete `src/shaders/edges.wgsl`**
+
+## Step 8 — `src/engine/gpu/mod.rs`
+
+The layouts, the compute pipelines, the `time` uniform and the maths leave; `Pipelines::new`
+takes three arguments. Each edit removes a block, re-roots a name onto `layouts` or `bounds`, or
+restores a doc comment that a removed block carried.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -639,66 +747,84 @@ the path it already types; `scene.rs` does the same for its two.
 use crate::engine::pipelines::Pipelines;
 ```
 
+**Replace with:**
+
+```rust
+use crate::engine::pipelines::{Pipelines, Target, Layouts};
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+use session_rust::{Xform, RenderVertex, Point};
+```
+
 **Add below it:**
 
 ```rust
-/// The shared math lives in `crate::math`; re-exported here so every `engine::gpu::` caller
-/// keeps the path it already types.
-pub use crate::math::{Mat4, mat_mul, mat_to_f32, eye_from_view_proj, ortho_half_height};
+use crate::math::{Mat4, mat_to_f32, eye_from_view_proj, ortho_half_height, Aabb};
 ```
 
-Now the matrix block. Its first seven lines are a doc comment describing `ArenaUpload`, stranded
-above `Mat4` by an old edit; it comes back below.
+`Mat4` and its two functions now live in `math.rs`. The doc comment above them belonged to
+`ArenaUpload`; the next edit puts it back where it belongs.
 
-**Remove** `src/engine/gpu/mod.rs`
-
-```rust
-/// Everything `Gpu` needs to fill its buffers, built and owened by `app::scene::Scene`,
-```
-
-**through**
-
-```rust
-}
-```
-
-**Remove** `src/engine/gpu/mod.rs`
-
-```rust
-/// The GPU edge: f64 world math stays CPU-side, the instance row is f32.
-```
-
-**through**
-
-```rust
-}
-```
-
-**Find** in `src/engine/gpu/mod.rs` — the two cuts left three blank lines:
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
 const INK_DEPTH_PREPASS: bool = false;
 
+/// Everything `Gpu` needs to fill its buffers, built and owened by `app::scene::Scene`,
+/// the engine borrows it, uploads, and forgets.
+/// Lanes stay apart (SOLID pipes/spheres vs flat segments/glyphs)
+/// and are spliced solid-first at upload.
+/// `objects` holds the TRUE per-object transfrom + tint + flags.
+/// `Gpu` builds instance rows from it and rebases them as the camera moves.
+/// No Mesh, no Session, no wgpu type on the app side of this line.
+/// One object's world placement as the 16 raw column-major doubles the GPU row needs.
+///
+/// NOT a kernel `Xform`: that struct carries `typ`/`name` Strings and a guid `OnceLock`, so
+/// `Xform::identity()` heap-allocates TWICE per call and every arena row cost two more on the
+/// clone into `objects_base`. On a 90k-line sheet that was ~400k allocations - 300 ms of the
+/// walk - to carry 128 bytes of numbers nothing downstream ever reads a name off.
+pub type Mat4 = [f64; 16];
 
+/// `a * b` in the kernel's convention: column-major, index = col * 4 + row.
+/// Matches `impl Mul for &Xform` element for element - and allocates nothing.
+pub fn mat_mul(a: &Mat4, b: &Mat4) -> Mat4 {
+    let mut out = [0.0f64; 16];
+    for i in 0..4 {
+        for j in 0..4 {
+            let mut sum = 0.0;
+            for k in 0..4 {
+                sum += a[k * 4 + i] * b[j * 4 + k];
+            }
+            out[j * 4 + i] = sum;
+        }
+    }
+    out
+}
 
-
+/// The GPU edge: f64 world math stays CPU-side, the instance row is f32.
+pub fn mat_to_f32(m: &Mat4) -> [f32; 16] {
+    std::array::from_fn(|i| m[i] as f32)
+}
 ```
 
 **Replace with:**
 
 ```rust
 const INK_DEPTH_PREPASS: bool = false;
-
-
 ```
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-pub struct ArenaUpload{
+    pub children: [i32; 8],
+}
+
 ```
 
-**Add above it:**
+**Add below it:**
 
 ```rust
 /// Everything `Gpu` needs to fill its buffers, built and owened by `app::scene::Scene`,
@@ -710,233 +836,66 @@ pub struct ArenaUpload{
 /// No Mesh, no Session, no wgpu type on the app side of this line.
 ```
 
-Next the two camera solves — `impl Gpu` methods that never touch `self`, the giveaway that they
-were never engine code.
-
-**Remove** `src/engine/gpu/mod.rs`
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    /// The camera position, recovered from the combined view-projection alone.
-```
-
-**through**
-
-```rust
-    }
-```
-
-**Remove** `src/engine/gpu/mod.rs`
-
-```rust
-    /// Ortho half-height in world units (mm), 0.0 in perspective. The w row of the composed
-```
-
-**through**
-
-```rust
-    }
-```
-
-**Find** in `src/engine/gpu/mod.rs` — again, three blank lines where two functions were:
-
-```rust
-        t0.elapsed().as_secs_f64()
-    }
-
-
-
-
+    pub min: [f32; 3],
+    pub max: [f32; 3],
 ```
 
 **Replace with:**
 
 ```rust
-        t0.elapsed().as_secs_f64()
-    }
-
-
+    pub bounds: Aabb,
 ```
-
-They were called as associated functions; they are free functions now. Both counts are asserted —
-if yours differ, you cut the wrong region:
-
-**Replace-all** `src/engine/gpu/mod.rs` `Self::ortho_half_height` → `ortho_half_height` (2 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `Self::eye_from_view_proj` → `eye_from_view_proj` (2 hits)
-
-The headless harness called it through `Gpu`; it needs a matrix, not a graphics card:
-
-**Find** in `src/selftest.rs`:
-
-```rust
-        let solved = Gpu::eye_from_view_proj(&view_proj);
-```
-
-**Replace with:**
-
-```rust
-        let solved = crate::math::eye_from_view_proj(&view_proj);
-```
-
-Now the app side. `Mat4` leaves the import list with the body in `scene.rs` that named it:
-
-**Find** in `src/app/scene.rs`:
-
-```rust
-use crate::engine::gpu::{ArenaUpload, CloudDraw, LodNode, Instance, CylinderSegment, GlyphPoint, Mat4, mat_mul};
-```
-
-**Replace with:**
-
-```rust
-use crate::engine::gpu::{ArenaUpload, CloudDraw, LodNode, Instance, CylinderSegment, GlyphPoint, mat_mul};
-pub use crate::math::{grow_bounds, xform_point};
-```
-
-Byte-identical in both files, so they are **moved**, not retyped — the verb lesson **47** leans
-on. `docs/_replay_check.py --moves` proves a move did not quietly lose a line:
-
-**Move** `src/app/scene.rs` `pub fn xform_point(m: &Mat4, p: [f32; 3]) -> [f32; 3] {` **through** `}` **to** `src/math.rs` **at the end**
-
-**Move** `src/app/scene.rs` `fn grow_bounds(min: &mut [f32; 3], max: &mut [f32; 3], p: [f32; 3]) {` **through** `}` **to** `src/math.rs` **at the end**
-
-**Replace-all** `src/math.rs` `fn grow_bounds` → `pub fn grow_bounds` (1 hit)
-
-**Find** in `src/app/scene.rs` — the two Moves left three blank lines:
-
-```rust
-    v.shrink_to_fit();
-}
-
-
-
-/// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes
-```
-
-**Replace with:**
-
-```rust
-    v.shrink_to_fit();
-}
-
-/// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes
-```
-
-`src/math.rs` is complete — 123 lines, in this order:
-
-```text
-  1- 12  header + Bounds + Aabb64          (new: 2 aliases, 2 doc lines)
- 14- 41  Mat4 + mat_mul + mat_to_f32       (from gpu/mod.rs, unchanged)
- 43-105  eye_from_view_proj + ortho_half_height   (from impl Gpu, dedented)
-107-123  xform_point + grow_bounds         (moved from scene.rs)
-```
-
-Gate:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-wc -l src/math.rs src/app/scene.rs      # 123, 1365
-```
-
-### 5.3 The nine layouts leave `Gpu::build`
-
-`Layouts` is one field where nine were. Each block is cut out of `Gpu::build`, most with the blank
-line that follows, and every reference renamed by a counted `Replace-all` — the count is the proof.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-use crate::engine::pipelines::Pipelines;
-```
-
-**Replace with:**
-
-```rust
-use crate::engine::pipelines::Pipelines;
-use crate::engine::pipelines::layouts::Layouts;
-```
-
-`Layouts::new` runs once, before the first buffer that needs one:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-        let msaa_view = Self::create_msaa_view(&device, &config, samples);
+impl ArenaUpload {
 ```
 
 **Add below it:**
 
 ```rust
-
-        // Every bind-group layout, in one value. They outlive the pipelines they were built
-        // for: an MSAA flip rebuilds those from these.
-        let layouts = Layouts::new(&device);
+    /// Every lane empty and the box inverted, ready for the first walk.
 ```
 
-Now the nine blocks. Seven of them are followed by a blank line and take it with them; `glyph`
-and `splat_group0` are followed immediately by the next statement and stop at their own `});`.
-
-**Remove** `src/engine/gpu/mod.rs` `        let mvp_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** the blank line below it:
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-
+            min: [f32::INFINITY; 3],
+            max: [f32::NEG_INFINITY; 3],
 ```
 
-**Remove** `src/engine/gpu/mod.rs` `        let time_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** the blank line below it:
+**Replace with:**
 
 ```rust
-
+            bounds: Aabb::empty(),
 ```
 
-**Remove** `src/engine/gpu/mod.rs` `        let instance_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** the blank line below it:
+The three `time` fields go.
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-
+    pub line_bind_group: wgpu::BindGroup,
+    pub time: f32,  // shared: animation
+    pub time_buffer: wgpu::Buffer,
+    pub time_bind_group: wgpu::BindGroup,
 ```
 
-**Remove** `src/engine/gpu/mod.rs` `        let segment_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** the blank line below it:
+**Replace with:**
 
 ```rust
-
+    pub line_bind_group: wgpu::BindGroup,
 ```
 
-**Remove** `src/engine/gpu/mod.rs` `        let glyph_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** `        });`
+Nine layout fields become one.
 
-**Remove** `src/engine/gpu/mod.rs` `        let line_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** the blank line below it:
-
-```rust
-
-```
-
-**Remove** `src/engine/gpu/mod.rs` `        let splat_group0_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** `        });`
-
-**Remove** `src/engine/gpu/mod.rs` `        let splat_group1_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** the blank line below it:
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-
-```
-
-**Remove** `src/engine/gpu/mod.rs` `        let splat_resolve_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** the blank line below it:
-
-```rust
-
-```
-
-`splat_entry` was a `COMPUTE`-visible buffer entry written once so the two splat groups could be
-lists; it is `compute_entry` in `layouts.rs` now. Its two comment lines above it stay.
-
-**Remove** `src/engine/gpu/mod.rs` `    fn splat_entry(` **through** the blank line below its closing brace:
-
-```rust
-
-```
-
-**Find** in `src/engine/gpu/mod.rs` — the six layout fields and the comment that explains them,
-anchored on the field above them:
-
-```rust
-    inside: Vec<bool>, // current FLAG_INSIDE state per instance row, for change detection
     // Layouts surfvive so set_scene can rebuild bind groups and pipelines on an MSAA change.
     mvp_layout: wgpu::BindGroupLayout,
     time_layout: wgpu::BindGroupLayout,
@@ -949,7 +908,8 @@ anchored on the field above them:
 **Replace with:**
 
 ```rust
-    inside: Vec<bool>, // current FLAG_INSIDE state per instance row, for change detection
+    /// Layouts survive so set_scene can rebuild bind groups and pipelines on an MSAA change.
+    pub layouts: Layouts,
 ```
 
 **Find** in `src/engine/gpu/mod.rs`:
@@ -970,22 +930,325 @@ anchored on the field above them:
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub config: wgpu::SurfaceConfiguration,  // Settings for Surface: size, pixel format
+    splat_resolve_group: wgpu::BindGroup,
+    splat_depth_pipeline: wgpu::ComputePipeline,
+    splat_color_pipeline: wgpu::ComputePipeline,
+```
+
+**Replace with:**
+
+```rust
+    splat_resolve_group: wgpu::BindGroup,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    pub scene_min: [f32; 3],
+    pub scene_max: [f32; 3],
+```
+
+**Replace with:**
+
+```rust
+    pub bounds: Aabb,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        Self::build(None, width.max(1), height.max(1)).await
+    }
+
 ```
 
 **Add below it:**
 
 ```rust
-    // Layouts surfvive so set_scene can rebuild bind groups and pipelines on an MSAA change.
-    pub layouts: Layouts,
+    /// The shared constructor: negotiate the device, make every layout, buffer, bind group and
+    /// pipeline, and start with an empty scene.
 ```
 
-The struct literal in `build` loses the same nine names and gains one:
+`Layouts::new` replaces the first layout block; the remaining blocks go in the edits that follow.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-            inside: Vec::new(),
+        let mvp_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("mvp.layout"),
+            entries: &[wgpu::BindGroupLayoutEntry{
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu:: BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
+                count: None,
+            }],
+        });
+```
+
+**Replace with:**
+
+```rust
+        // Every bind-group layout, once; pipelines and bind groups are made from these.
+        let layouts = Layouts::new(&device);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            layout: &mvp_layout,
+```
+
+**Replace with:**
+
+```rust
+            layout: &layouts.mvp,
+```
+
+The time buffer, its layout and its bind group.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            }],
+        });
+
+        // Time Uniform
+        let time_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("time.buffer"),
+            contents: bytemuck::bytes_of(&0.0f32),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let time_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("time.layout"),
+            entries: &[wgpu::BindGroupLayoutEntry{
+                binding: 0,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Buffer {ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None},
+                count: None,
+            }],
+        });
+
+        let time_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("time.bind_group"),
+            layout: &time_layout,
+            entries: &[wgpu::BindGroupEntry{ binding: 0, resource: time_buffer.as_entire_binding() }],
+```
+
+**Replace with:**
+
+```rust
+            }],
+```
+
+The instance layout block, whole: the `});` named as the last line is the one that closes it.
+
+**Remove** `src/engine/gpu/mod.rs` `        let (scene_min, scene_max) = ([0.0f32; 3], [0.0f32; 3]);` **through** `        });`
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            layout: &instance_layout,
+```
+
+**Replace with:**
+
+```rust
+            layout: &layouts.instance,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let segment_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("segments.layout"),
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                    has_dynamic_offset: false, min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+
+        let pipe_bind_group = Self::mk_rows_group(&device, &segment_layout, "pipes.bind_group", &pipe_buffer);
+        let segment_bind_group = Self::mk_rows_group(&device, &segment_layout, "segments.bind_group", &segment_buffer);
+```
+
+**Replace with:**
+
+```rust
+        let pipe_bind_group = Self::mk_rows_group(&device, &layouts.segment, "pipes.bind_group", &pipe_buffer);
+        let segment_bind_group = Self::mk_rows_group(&device, &layouts.segment, "segments.bind_group", &segment_buffer);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let glyph_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("glyphs.layout"),
+            entries: &[wgpu::BindGroupLayoutEntry{
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+        let sphere_bind_group = Self::mk_rows_group(&device, &glyph_layout, "spheres.bind_group", &sphere_buffer);
+        let glyph_bind_group = Self::mk_rows_group(&device, &glyph_layout, "glyphs.bind_group", &glyph_buffer);
+```
+
+**Replace with:**
+
+```rust
+        let sphere_bind_group = Self::mk_rows_group(&device, &layouts.glyph, "spheres.bind_group", &sphere_buffer);
+        let glyph_bind_group = Self::mk_rows_group(&device, &layouts.glyph, "glyphs.bind_group", &glyph_buffer);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let line_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("line.layout"),
+            entries: &[wgpu::BindGroupLayoutEntry{
+                binding: 0,
+                // FRAGMENT too: the flat lane's fragment stage reads the viewport size to
+                // recover the fragment's ndc for the face-plane depth solve (ribbon.wgsl
+                // `ink_depth`). Everything else still only touches it from the vertex stage.
+                visibility: wgpu::ShaderStages::VERTEX.union(wgpu::ShaderStages::FRAGMENT),
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None
+                },
+                count:None
+            }],
+        });
+
+        let line_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("line.bind_group"),
+            layout: &line_layout,
+```
+
+**Replace with:**
+
+```rust
+        let line_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("line.bind_group"),
+            layout: &layouts.line,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            layout: &line_layout,
+```
+
+**Replace with:**
+
+```rust
+            layout: &layouts.line,
+```
+
+The three splat layouts go. This Remove also takes the head of the `splat_group0` construction;
+the next edit restores it with the `layouts` names.
+
+**Remove** `src/engine/gpu/mod.rs` `        let splat_group0_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{` **through** `            &instance_buffer,`
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let splat_recs = zeroed_buffer(&device, "splat.rescales", 16 + 256 * 144, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+```
+
+**Add below it:**
+
+```rust
+        let splat_group0 = Self::mk_splat_group0(
+            &device,
+            &layouts.splat_group0,
+            &mvp_buffer,
+            &cloud_buffer,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            &splat_group1_layout,
+```
+
+**Replace with:**
+
+```rust
+            &layouts.splat_group1,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let splat_group0_stream = Self::mk_splat_group0(&device, &splat_group0_layout, &mvp_buffer, &cloud_buffer, &instance_buffer, &splat_stream_recs);
+        let splat_group1_stream = Self::mk_splat_group1(&device, &splat_group1_layout, &stream_pos_buf, &stream_col_buf, &stream_nrm_buf, &splat_depth_buf, &splat_color_buf);
+        let splat_resolve_group = Self::mk_splat_resolve_group(
+            &device,
+            &splat_resolve_layout,
+```
+
+**Replace with:**
+
+```rust
+        let splat_group0_stream = Self::mk_splat_group0(&device, &layouts.splat_group0, &mvp_buffer, &cloud_buffer, &splat_stream_recs);
+        let splat_group1_stream = Self::mk_splat_group1(&device, &layouts.splat_group1, &stream_pos_buf, &stream_col_buf, &stream_nrm_buf, &splat_depth_buf, &splat_color_buf);
+        let splat_resolve_group = Self::mk_splat_resolve_group(
+            &device,
+            &layouts.splat_resolve,
+```
+
+The compute shader and its two pipelines are built by `Pipelines::new` now; the edit after this
+one adds the call.
+
+**Remove** `src/engine/gpu/mod.rs` `        let splat_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor{` **through** `        );`
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            &layouts.splat_resolve,
+            &splat_depth_buf,
+            &splat_color_buf,
+        );
+
+```
+
+**Add below it:**
+
+```rust
+        // Pipelines - render and compute, one set per sample count.
+        let pipelines = Pipelines::new(&device, Target { format: config.format, samples }, &layouts);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            line_bind_group,
+            time_buffer,    // shared: animation
+            time_bind_group,
+            time: 0.0,
+```
+
+**Replace with:**
+
+```rust
+            line_bind_group,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
             mvp_layout,
             time_layout,
             instance_layout,
@@ -997,7 +1260,7 @@ The struct literal in `build` loses the same nine names and gains one:
 **Replace with:**
 
 ```rust
-            inside: Vec::new(),
+            layouts,
 ```
 
 **Find** in `src/engine/gpu/mod.rs`:
@@ -1018,732 +1281,6 @@ The struct literal in `build` loses the same nine names and gains one:
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-            config,
-```
-
-**Add below it:**
-
-```rust
-            layouts,
-```
-
-Nine counted renames, re-pointing every remaining reference at the one owner. If a count differs,
-you cut the wrong region:
-
-**Replace-all** `src/engine/gpu/mod.rs` `mvp_layout` → `layouts.mvp` (3 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `time_layout` → `layouts.time` (3 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `instance_layout` → `layouts.instance` (4 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `segment_layout` → `layouts.segment` (6 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `glyph_layout` → `layouts.glyph` (6 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `line_layout` → `layouts.line` (5 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `splat_group0_layout` → `layouts.splat_group0` (5 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `splat_group1_layout` → `layouts.splat_group1` (5 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `splat_resolve_layout` → `layouts.splat_resolve` (4 hits)
-
-Gate — `Gpu` is down nine fields and up one, and `Layouts` is no longer dead:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-grep -c 'create_bind_group_layout' src/engine/gpu/mod.rs                  # 0
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-                                                                          # 108
-./docs/_gate.sh
-```
-
-### 5.4 `build.rs` rewritten, and fourteen descs
-
-The block's **one sanctioned rewrite**, and the one step whose halves cannot compile apart: the
-moment `build.rs` stops exporting the ten remaining builders, `Pipelines::new` stops resolving.
-Type 5.4 end to end before you run `cargo check` — it is red in between, and that is not a mistake.
-
-Two things that are easy to lose:
-
-- **`Pipelines::new` takes `device` here, not `ctx`.** `GpuCtx` does not exist until lesson
-  **46**, which renames it with a single Replace-all. Do not invent it now.
-- **There are TWO live `VIEWER_NO_DEPTH → CompareFunction::Always` branches**, in
-  `build_sphere_pipeline` and `build_ribbon_solid_pipeline` (`build_ribbon_pipeline` has none).
-  Both survive as `depth_compare:` overrides on the `sphere` and `ribbon.solid` descs. No golden
-  runs with that variable set, so losing one is silent.
-
-`Pipelines` keeps **named fields**, not a map: the MSAA flip assigns a whole new `Pipelines`
-mid-session, and lesson 120's id pass re-runs the draw list against a second set.
-
-**Create `src/engine/pipelines/build.rs`**
-
-```rust
-//! Building blocks for every pipeline in the viewer. A pipeline is DATA - a `PipelineDesc`
-//! literal in `mod.rs` - and this file holds the one function that turns one into a
-//! `wgpu::RenderPipeline`, plus the four presets that name the four recipes the viewer actually
-//! uses. There is exactly ONE `create_render_pipeline` call and exactly ONE
-//! `create_compute_pipeline` call below.
-
-// `samples` (on `Target`) is MSAA. 4 = smooth mesh silhouettes, but it quadruples
-// fragment work AND framebuffer bandwidth. Linework does its OWN antialiasing (SDF alpha ramp
-// in ribbon/glyph), so on a 2D sheet - 100% linework - MSAA buys nothing and costs everything.
-// It cannot be mixed WITHIN a frame: sample count is a property of the render PASS, so every
-// pipeline drawn into it must agree. The viewer therefore picks one per SCENE - see
-// `Gpu::msaa_for`.
-/// What every pipeline drawn into one render pass must agree on. An MSAA flip therefore rebuilds
-/// every pipeline - see `Gpu::set_scene`.
-#[derive(Clone, Copy)]
-pub struct Target {
-    pub samples: u32,
-    pub format: wgpu::TextureFormat,
-}
-
-/// A pipeline as DATA. Eleven near-identical builders existed because a pipeline was modelled as
-/// code; they differed in about five of these fields. Everything not named here - `Ccw`, no
-/// culling, `Fill`, `Depth32Float`, no stencil, no bias, `mask: !0`, no `alpha_to_coverage` - is
-/// the same in all fourteen and lives once, in `build`.
-pub struct PipelineDesc<'a> {
-    /// Names the shader module, the pipeline layout AND the pipeline; the only string a GPU
-    /// error message will hand back, so it is also lesson 110's error-scope label.
-    pub label: &'a str,
-    /// WGSL source text, normally an `include_str!`.
-    pub shader: &'a str,
-    /// `fs_main` for a colour pass, `fs_depth` for a prepass.
-    pub fs_entry: &'a str,
-    pub topology: wgpu::PrimitiveTopology,
-    /// Almost always empty: the ink lanes read their rows from storage buffers, not attributes.
-    pub vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>],
-    /// `@group(0)`, `@group(1)`, ... in order.
-    pub bind_groups: &'a [&'a wgpu::BindGroupLayout],
-    pub blend: Option<wgpu::BlendState>,
-    /// `ColorWrites::empty()` is what makes a depth-only pass legal against a colour attachment.
-    pub write_mask: wgpu::ColorWrites,
-    pub depth_write: bool,
-    pub depth_compare: wgpu::CompareFunction,
-    /// Overrides the pass target. `None` = draw into the frame; a value pins this pipeline to its
-    /// own attachment (lesson 96's R8Unorm mask, lesson 120's R32Uint id buffer).
-    pub target: Option<Target>,
-}
-
-impl<'a> PipelineDesc<'a> {
-    /// Solid geometry: unblended, writes depth, strict reverse-Z. Tubes, the splat resolve, and -
-    /// with two fields flipped - the grid and the background.
-    pub fn opaque(label: &'a str, shader: &'a str, bind_groups: &'a [&'a wgpu::BindGroupLayout]) -> Self {
-        Self {
-            label, shader, bind_groups,
-            fs_entry: "fs_main",
-            topology: wgpu::PrimitiveTopology::TriangleList,
-            vertex_buffers: &[],
-            blend: None,
-            write_mask: wgpu::ColorWrites::ALL,
-            depth_write: true,
-            depth_compare: wgpu::CompareFunction::Greater,
-            target: None,
-        }
-    }
-
-    /// Linework and markers: blended for the AA feather, and NOT depth-writing, because a
-    /// half-covered feather pixel that wrote depth would reject the next stroke's opaque core.
-    /// `GreaterEqual`, not `Greater`: ink sits exactly on the face it annotates, and it has to
-    /// survive its OWN depth prepass.
-    pub fn ink(label: &'a str, shader: &'a str, bind_groups: &'a [&'a wgpu::BindGroupLayout]) -> Self {
-        Self {
-            blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-            depth_write: false,
-            depth_compare: wgpu::CompareFunction::GreaterEqual,
-            ..Self::opaque(label, shader, bind_groups)
-        }
-    }
-
-    /// Blended fills. A surface can be translucent - a PDF sheet's shaded regions arrive at 5-40%
-    /// alpha and unblended render SOLID - and opaque geometry is unaffected, since alpha 1 blends
-    /// to itself. Flipping `depth_write` off is the whole of `triangle_sheet`.
-    pub fn sheet(label: &'a str, shader: &'a str, bind_groups: &'a [&'a wgpu::BindGroupLayout]) -> Self {
-        Self {
-            blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-            ..Self::opaque(label, shader, bind_groups)
-        }
-    }
-
-    /// A depth-only prepass: run `fs_depth`, write depth, write NO colour. The pass has a colour
-    /// attachment so the pipeline must declare one too - Dawn rejects an empty target list
-    /// against a colour pass - so every channel is masked off instead.
-    pub fn depth_only(label: &'a str, shader: &'a str, bind_groups: &'a [&'a wgpu::BindGroupLayout]) -> Self {
-        Self {
-            fs_entry: "fs_depth",
-            write_mask: wgpu::ColorWrites::empty(),
-            ..Self::opaque(label, shader, bind_groups)
-        }
-    }
-}
-
-/// The ONE `create_render_pipeline` call in the viewer.
-pub fn build(device: &wgpu::Device, t: Target, d: &PipelineDesc) -> wgpu::RenderPipeline {
-    let t = d.target.unwrap_or(t);
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some(d.label),
-        source: wgpu::ShaderSource::Wgsl(d.shader.into()),
-    });
-    let groups: Vec<Option<&wgpu::BindGroupLayout>> = d.bind_groups.iter().map(|g| Some(*g)).collect();
-    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some(d.label),
-        bind_group_layouts: &groups,
-        immediate_size: 0,
-    });
-    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some(d.label),
-        layout: Some(&layout),
-        vertex: wgpu::VertexState {
-            module: &shader,
-            entry_point: Some("vs_main"),
-            buffers: d.vertex_buffers,
-            compilation_options: Default::default(),
-        },
-        fragment: Some(wgpu::FragmentState {
-            module: &shader,
-            entry_point: Some(d.fs_entry),
-            targets: &[Some(wgpu::ColorTargetState {
-                format: t.format,
-                blend: d.blend,
-                write_mask: d.write_mask,
-            })],
-            compilation_options: Default::default(),
-        }),
-        primitive: wgpu::PrimitiveState {
-            topology: d.topology,
-            strip_index_format: None,
-            front_face: wgpu::FrontFace::Ccw,
-            cull_mode: None,
-            polygon_mode: wgpu::PolygonMode::Fill,
-            unclipped_depth: false,
-            conservative: false,
-        },
-        depth_stencil: Some(wgpu::DepthStencilState {
-            format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(d.depth_write),
-            depth_compare: Some(d.depth_compare),
-            stencil: wgpu::StencilState::default(),
-            // No hardware bias anywhere. The units of `constant` on a float depth format are
-            // implementation-defined - a driver may apply less than asked, or nothing - so faces
-            // recede in `triangle.wgsl` instead (FACE_PUSH) and the ink lanes lean on
-            // `GreaterEqual`.
-            bias: wgpu::DepthBiasState::default(),
-        }),
-        multisample: wgpu::MultisampleState { count: t.samples, mask: !0, alpha_to_coverage_enabled: false },
-        multiview_mask: None,
-        cache: None,
-    })
-}
-
-/// The same, for compute. No target, no depth, no blend - a shader, an entry point and its groups.
-pub fn build_compute(
-    device: &wgpu::Device,
-    label: &str,
-    wgsl: &str,
-    entry: &str,
-    bind_groups: &[&wgpu::BindGroupLayout],
-) -> wgpu::ComputePipeline {
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some(label),
-        source: wgpu::ShaderSource::Wgsl(wgsl.into()),
-    });
-    let groups: Vec<Option<&wgpu::BindGroupLayout>> = bind_groups.iter().map(|g| Some(*g)).collect();
-    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some(label),
-        bind_group_layouts: &groups,
-        immediate_size: 0,
-    });
-    device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some(label),
-        layout: Some(&layout),
-        module: &shader,
-        entry_point: Some(entry),
-        compilation_options: Default::default(),
-        cache: None,
-    })
-}
-
-const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
-    offset: 0,
-    shader_location: 3,
-    format: wgpu::VertexFormat::Uint32,
-}];
-const CYL_TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
-    offset: 0,
-    shader_location: 0,
-    format: wgpu::VertexFormat::Float32x3,
-}];
-
-// This helps the GPU to read the second vertex buffer - the instance row id.
-// Without a layout description, the pipeline doesn' know those bytes exists and in what shape they are.
-/// Vertex-buffer layout for the per-vertex instance-row id (`@location(3)`, one `u32` per vertex).
-pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
-    wgpu::VertexBufferLayout{
-        array_stride: 4,
-        step_mode: wgpu::VertexStepMode::Vertex, // one u32 per vertex
-        attributes: &INSTANCE_ID_ATTRIBS // advances per-vertex, like position
-    }
-}
-
-/// Vertex-buffer layout for the unit-cylinder/-sphere template positions (`@location(0)`, one `vec3<f32>`).
-pub fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
-    wgpu::VertexBufferLayout {
-        array_stride: 12, // one vec3<f32> per templete vertex
-        step_mode: wgpu::VertexStepMode::Vertex,
-        attributes: &CYL_TEMPLATE_ATTRIBS
-    }
-}
-```
-
-`build` holds the only `create_render_pipeline` call in the viewer, `build_compute` the only
-`create_compute_pipeline`. Each preset is a `..Self::opaque(..)` spread, so the difference between
-them is the lines you can see: `ink` is three fields, `sheet` one, `depth_only` two.
-
-Now the call sites. `pipelines/mod.rs` stops importing eleven builders and starts naming the WGSL
-each family compiles; lessons 48-50 move each pair into the family file that owns its row.
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-pub mod build;
-
-use build::build_triangle_pipeline;
-use build::build_grid_pipeline;
-use build::build_sphere_pipeline;
-use build::build_ribbon_pipeline;
-use build::build_ribbon_solid_pipeline;
-use build::build_glyph_pipeline;
-use build::build_background_pipeline;
-use build::build_splat_resolve_pipeline;
-use build::build_ink_depth_pipeline;
-
-use crate::engine::pipelines::build::build_cylinder_pipeline;
-```
-
-**Replace with:**
-
-```rust
-pub mod build;
-
-pub use build::{PipelineDesc, Target};
-use build::{build, cyl_template_layout, instance_id_layout};
-use session_rust::RenderVertex;
-use layouts::Layouts;
-
-// The WGSL each family compiles. They live beside the descs that name them; lessons 48-50 move
-// each pair into the family file that owns the row it draws.
-const RIBBON: &str = include_str!("../../shaders/ribbon.wgsl");
-const GLYPH: &str = include_str!("../../shaders/glyph.wgsl");
-const SPHERE: &str = include_str!("../../shaders/sphere.wgsl");
-const GRID: &str = include_str!("../../shaders/grid.wgsl");
-const CYLINDER: &str = include_str!("../../shaders/cylinder.wgsl");
-const BACKGROUND: &str = include_str!("../../shaders/background.wgsl");
-const SPLAT_RESOLVE: &str = include_str!("../../shaders/splat_resolve.wgsl");
-const TRIANGLE: &str = include_str!("../../shaders/triangle.wgsl");
-
-```
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-    /// draw order instead of fighting over one coplanar depth value. See build_triangle_pipeline.
-```
-
-**Replace with:**
-
-```rust
-    /// draw order instead of fighting over one coplanar depth value. See its desc below.
-```
-
-Ten parameters become three, and they are frozen at three:
-
-**Remove** `src/engine/pipelines/mod.rs` `    pub fn new(` **through** `    ) -> Self{`
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-    /// Build every render pipeline from the shared bind-group layouts.
-        Self {
-```
-
-**Replace with:**
-
-```rust
-    /// Build every pipeline from the shared bind-group layouts. Each one is a `PipelineDesc`
-    /// literal: a NEW pipeline is a literal here, never a new builder function.
-    /// FROZEN AT THREE PARAMETERS. A new layout is a field on `Layouts`, never a parameter here -
-    /// otherwise every later lesson that adds one threads it through fourteen desc literals.
-    pub fn new(device: &wgpu::Device, t: Target, l: &Layouts) -> Self{
-        Self {
-```
-
-Four groups of descs, in the order they already sit in. What you cannot see in a literal is the
-preset, and the preset is identical across all fourteen.
-
-**Find** in `src/engine/pipelines/mod.rs` — the sheet pair:
-
-```rust
-            triangle: build_triangle_pipeline(device, samples, color_format, aspect_layout, time_layout, instance_layout, true),
-            triangle_sheet: build_triangle_pipeline(device, samples, color_format, aspect_layout, time_layout, instance_layout, false),
-```
-
-**Replace with:**
-
-```rust
-            // Solid mesh triangles. Blended, because a surface can be translucent.
-            triangle: build(device, t, &PipelineDesc {
-                vertex_buffers: &[RenderVertex::layout(), instance_id_layout()],
-                ..PipelineDesc::sheet("triangle", TRIANGLE, &[&l.mvp, &l.time, &l.instance])
-            }),
-            // The same program with ONE field flipped. A drawing's fills are exactly coplanar -
-            // 362,581 vertices of a PDF sheet, ONE distinct z - so the depth buffer cannot order
-            // them: equal depth fails a strict Greater, and the depths are not even reliably
-            // equal, since positions are camera-relative and re-rounded to f32 every frame.
-            // Whichever fill won flipped as the camera moved, and that flip is the flicker
-            // between lettering and hatching. With no depth WRITE the fills stop arbitrating and
-            // composite in draw order, which is what a page is. They are still depth-TESTED, so
-            // 3D geometry in front still occludes the sheet.
-            triangle_sheet: build(device, t, &PipelineDesc {
-                vertex_buffers: &[RenderVertex::layout(), instance_id_layout()],
-                depth_write: false,
-                ..PipelineDesc::sheet("triangle.sheet", TRIANGLE, &[&l.mvp, &l.time, &l.instance])
-            }),
-```
-
-**Find** in `src/engine/pipelines/mod.rs` — the four opaque lanes:
-
-```rust
-            grid: build_grid_pipeline(device, samples, color_format, aspect_layout, line_layout),
-            cylinder: build_cylinder_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
-            background: build_background_pipeline(device, samples, color_format),
-            splat_resolve: build_splat_resolve_pipeline(device, samples, color_format, line_layout, splat_resolve_layout),
-```
-
-**Replace with:**
-
-```rust
-            // Buffer-less LineList - positions come from @builtin(vertex_index). Depth-tested
-            // so geometry hides it, never depth-writing, so it hides nothing.
-            grid: build(device, t, &PipelineDesc {
-                topology: wgpu::PrimitiveTopology::LineList,
-                depth_write: false,
-                ..PipelineDesc::opaque("grid", GRID, &[&l.mvp, &l.line])
-            }),
-            // Linework tubes: one unit-cylinder template instanced per segment. Solid, so it
-            // occludes correctly and needs no bias at all.
-            cylinder: build(device, t, &PipelineDesc {
-                vertex_buffers: &[cyl_template_layout()], // slot 0 - the unit-cylinder positions
-                ..PipelineDesc::opaque("cylinder", CYLINDER, &[&l.mvp, &l.line, &l.instance, &l.segment])
-            }),
-            // A buffer-less triangle at the far plane, with no bind groups at all. `Always`,
-            // never depth-writing: it paints under everything and blocks nothing.
-            background: build(device, t, &PipelineDesc {
-                depth_write: false,
-                depth_compare: wgpu::CompareFunction::Always,
-                ..PipelineDesc::opaque("background", BACKGROUND, &[])
-            }),
-            // Fullscreen composite of the two per-pixel splat buffers. Splats occlude like any
-            // solid, so this is the `opaque` preset unchanged - the only desc with no overrides.
-            splat_resolve: build(device, t, &PipelineDesc::opaque("splat.resolve", SPLAT_RESOLVE, &[&l.line, &l.splat_resolve])),
-```
-
-**Find** in `src/engine/pipelines/mod.rs` — the four ink lanes:
-
-```rust
-            sphere: build_sphere_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
-            ribbon: build_ribbon_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
-            ribbon_solid: build_ribbon_solid_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
-            glyph: build_glyph_pipeline(device, samples, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
-```
-
-**Replace with:**
-
-```rust
-            // A camera-facing quad template instanced per marker, trimmed to a circle by the
-            // fragment SDF. Its depth comes from the `sphere_depth` prepass; GreaterEqual lets a
-            // marker drawn AFTER a band still keep the rim the band's cap overlaps.
-            sphere: build(device, t, &PipelineDesc {
-                vertex_buffers: &[cyl_template_layout()], // reused - position only, stride 12
-                depth_compare: if std::env::var("VIEWER_NO_DEPTH").is_ok() { wgpu::CompareFunction::Always } else { wgpu::CompareFunction::GreaterEqual },
-                ..PipelineDesc::ink("sphere", SPHERE, &[&l.mvp, &l.line, &l.instance, &l.glyph])
-            }),
-            // Flat capsule ribbons: buffer-less, 4 verts per quad, one instance per segment.
-            ribbon: build(device, t, &PipelineDesc {
-                topology: wgpu::PrimitiveTopology::TriangleStrip,
-                ..PipelineDesc::ink("ribbon", RIBBON, &[&l.mvp, &l.line, &l.instance, &l.segment])
-            }),
-            // The SAME shader aimed at the SOLID lane (mesh/BRep edges). GreaterEqual is
-            // load-bearing here: a mesh edge lies EXACTLY on the boundary of the two faces that
-            // meet there, so strict Greater discards the line and float precision decides which
-            // pixels survive - the edge reads offset, ragged and asymmetric along its length.
-            ribbon_solid: build(device, t, &PipelineDesc {
-                topology: wgpu::PrimitiveTopology::TriangleStrip,
-                depth_compare: if std::env::var("VIEWER_NO_DEPTH").is_ok() { wgpu::CompareFunction::Always } else { wgpu::CompareFunction::GreaterEqual },
-                ..PipelineDesc::ink("ribbon.solid", RIBBON, &[&l.mvp, &l.line, &l.instance, &l.segment])
-            }),
-            // The ribbon recipe with the glyph names. `l.segment` at group 3, NOT `l.glyph`: the
-            // old builder named its parameter `glyph_layout` and was handed the segment one, and
-            // it has always worked because the two layouts are byte-identical. Preserved as it
-            // stands - `glyph_depth` below binds the other one.
-            glyph: build(device, t, &PipelineDesc::ink("glyph", GLYPH, &[&l.mvp, &l.line, &l.instance, &l.segment])),
-```
-
-`glyph` binds `l.segment` at group 3, not `l.glyph` — not a typo introduced here: the old
-`build_glyph_pipeline` was handed `segment_layout` despite its parameter name, and it works because
-the two layouts are byte-identical. A body you are moving is not a body you are fixing.
-
-**Find** in `src/engine/pipelines/mod.rs` — the four depth-only prepasses:
-
-```rust
-            ribbon_depth: build_ink_depth_pipeline(device, samples, "ribbon.depth", color_format,
-                wgpu::ShaderSource::Wgsl(include_str!("../../shaders/ribbon.wgsl").into()),
-                aspect_layout, line_layout, instance_layout, segment_layout, &[], wgpu::PrimitiveTopology::TriangleStrip),
-            glyph_depth: build_ink_depth_pipeline(device, samples, "glyph.depth", color_format,
-                wgpu::ShaderSource::Wgsl(include_str!("../../shaders/glyph.wgsl").into()),
-                aspect_layout, line_layout, instance_layout, glyph_layout, &[], wgpu::PrimitiveTopology::TriangleList),
-            ribbon_solid_depth: build_ink_depth_pipeline(device, samples, "ribbon.solid.depth", color_format,
-                wgpu::ShaderSource::Wgsl(include_str!("../../shaders/ribbon.wgsl").into()),
-                aspect_layout, line_layout, instance_layout, segment_layout, &[], wgpu::PrimitiveTopology::TriangleStrip),
-            sphere_depth: build_ink_depth_pipeline(device, samples, "sphere.depth", color_format,
-                wgpu::ShaderSource::Wgsl(include_str!("../../shaders/sphere.wgsl").into()),
-                aspect_layout, line_layout, instance_layout, glyph_layout,
-                &[build::cyl_template_layout()], wgpu::PrimitiveTopology::TriangleList),
-```
-
-**Replace with:**
-
-```rust
-            // The four depth-only prepasses. `fs_depth` is binary at half coverage, so the
-            // blended colour passes above never write depth and the AA feather cannot leave pale
-            // flecks by depth-rejecting a later stroke's opaque core. Without them, ink never
-            // writes depth and draw order alone decides who wins - and draw order here is HashMap
-            // order, so "who is in front" was effectively random.
-            ribbon_depth: build(device, t, &PipelineDesc {
-                topology: wgpu::PrimitiveTopology::TriangleStrip,
-                ..PipelineDesc::depth_only("ribbon.depth", RIBBON, &[&l.mvp, &l.line, &l.instance, &l.segment])
-            }),
-            glyph_depth: build(device, t, &PipelineDesc::depth_only("glyph.depth", GLYPH, &[&l.mvp, &l.line, &l.instance, &l.glyph])),
-            ribbon_solid_depth: build(device, t, &PipelineDesc {
-                topology: wgpu::PrimitiveTopology::TriangleStrip,
-                ..PipelineDesc::depth_only("ribbon.solid.depth", RIBBON, &[&l.mvp, &l.line, &l.instance, &l.segment])
-            }),
-            // The only ink-depth pipeline with a vertex buffer: the marker prepass runs the same
-            // quad template its colour pass does.
-            sphere_depth: build(device, t, &PipelineDesc {
-                vertex_buffers: &[cyl_template_layout()],
-                ..PipelineDesc::depth_only("sphere.depth", SPHERE, &[&l.mvp, &l.line, &l.instance, &l.glyph])
-            }),
-```
-
-Last, the two `Pipelines::new` call sites in `gpu/mod.rs`. `samples` and `color_format` were
-threaded as two parameters through eleven builders; they are one `Target` now, and it is `Copy`.
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-use crate::engine::pipelines::Pipelines;
-```
-
-**Replace with:**
-
-```rust
-use crate::engine::pipelines::{Pipelines, Target};
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-        let pipelines = Pipelines::new(
-            &device,
-            samples,
-            config.format,
-            &layouts.mvp,
-            &layouts.time,
-            &layouts.instance,
-            &layouts.line,
-            &layouts.segment,
-            &layouts.glyph,
-            &layouts.splat_resolve,
-        );
-```
-
-**Replace with:**
-
-```rust
-        let pipelines = Pipelines::new(&device, Target { samples, format: config.format }, &layouts);
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-            self.pipelines = Pipelines::new(
-                &self.device,
-                samples,
-                self.config.format,
-                &self.layouts.mvp,
-                &self.layouts.time,
-                &self.layouts.instance,
-                &self.layouts.line,
-                &self.layouts.segment,
-                &self.layouts.glyph,
-                &self.layouts.splat_resolve,
-            );
-```
-
-**Replace with:**
-
-```rust
-            self.pipelines = Pipelines::new(&self.device, Target { samples, format: self.config.format }, &self.layouts);
-```
-
-Gate — now it should be green, and the frame should not have moved on any config:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-wc -l src/engine/pipelines/build.rs src/engine/pipelines/mod.rs   # 215, 140
-grep -c 'device.create_render_pipeline' src/engine/pipelines/build.rs   # 1
-./docs/_gate.sh
-```
-
-Each config in the gate exercises a different group, which is what makes one gate run cover all
-four: the default config draws the ink descs, `VIEWER_LINE_STYLE=tubes` swaps in `cylinder`,
-`drawings_rotated` is `triangle_sheet` end to end, and the cloud scenes are `splat_resolve`.
-
-### 5.5 The two compute pipelines come home
-
-The splat rasterizer's two compute pipelines were built inline in `Gpu::build` and stored as two
-`Gpu` fields — the only two in the viewer not in `Pipelines`. `build_compute` takes them.
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-use build::{build, cyl_template_layout, instance_id_layout};
-```
-
-**Replace with:**
-
-```rust
-use build::{build, build_compute, cyl_template_layout, instance_id_layout};
-```
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-const TRIANGLE: &str = include_str!("../../shaders/triangle.wgsl");
-```
-
-**Add below it:**
-
-```rust
-const SPLAT: &str = include_str!("../../shaders/splat.wgsl");
-```
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-/// Every render pipeline the viewer draws with, built once at startup.
-pub struct Pipelines{
-```
-
-**Replace with:**
-
-```rust
-/// Every pipeline the viewer draws with, built once at startup and rebuilt whole on an MSAA
-/// flip. Fourteen render pipelines and two compute.
-pub struct Pipelines{
-```
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-    pub splat_resolve: wgpu::RenderPipeline, // fullscreen composite of the splat buffers
-```
-
-**Add below it:**
-
-```rust
-    // The splat rasterizer is COMPUTE: two passes over one shader, depth for every point first,
-    // then colour for every point, composing into the two per-pixel atomics buffers.
-    pub splat_depth: wgpu::ComputePipeline,
-    pub splat_color: wgpu::ComputePipeline,
-```
-
-**Find** in `src/engine/pipelines/mod.rs`:
-
-```rust
-                ..PipelineDesc::depth_only("sphere.depth", SPHERE, &[&l.mvp, &l.line, &l.instance, &l.glyph])
-            }),
-```
-
-**Add below it:**
-
-```rust
-            splat_depth: build_compute(device, "splat.depth", SPLAT, "cs_depth", &[&l.splat_group0, &l.splat_group1]),
-            splat_color: build_compute(device, "splat.color", SPLAT, "cs_color", &[&l.splat_group0, &l.splat_group1]),
-```
-
-**Find** in `src/engine/gpu/mod.rs` — the inline shader module, the pipeline layout and the two
-`create_compute_pipeline` calls, anchored on the comment that follows them:
-
-```rust
-        let splat_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor{
-            label: Some("splat.shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/splat.wgsl").into()),
-        });
-
-        let splat_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
-            label: Some("splat.layout"),
-            bind_group_layouts: &[Some(&layouts.splat_group0), Some(&layouts.splat_group1)],
-            immediate_size: 0,
-        });
-
-        let splat_depth_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor{
-            label: Some("splat.depth"),
-            layout: Some(&splat_layout),
-            module: &splat_shader,
-            entry_point: Some("cs_depth"),
-            compilation_options: Default::default(),
-            cache: None,
-        });
-
-         let splat_color_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor{
-            label: Some("splat.color"),
-            layout: Some(&splat_layout),
-            module: &splat_shader,
-            entry_point: Some("cs_color"),
-            compilation_options: Default::default(),
-            cache: None,
-        });
-
-        // Pipelines
-```
-
-**Replace with:**
-
-```rust
-        // Pipelines
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    splat_resolve_group: wgpu::BindGroup,
-    splat_depth_pipeline: wgpu::ComputePipeline,
-    splat_color_pipeline: wgpu::ComputePipeline,
-```
-
-**Replace with:**
-
-```rust
-    splat_resolve_group: wgpu::BindGroup,
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
             splat_resolve_group,
             splat_depth_pipeline,
             splat_color_pipeline,
@@ -1755,307 +1292,616 @@ pub struct Pipelines{
             splat_resolve_group,
 ```
 
-**Replace-all** `src/engine/gpu/mod.rs` `self.splat_depth_pipeline` → `self.pipelines.splat_depth` (1 hit)
+A zero box, not `Aabb::empty()`: `grow_scene` detects an unset scene by `min >= max`, and
+`camera.fit` must never see infinities.
 
-**Replace-all** `src/engine/gpu/mod.rs` `self.splat_color_pipeline` → `self.pipelines.splat_color` (1 hit)
-
-Gate — this is the last edit of the lesson:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-grep -rn 'create_compute_pipeline' src/ | grep -c 'device\.'   # 1
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-                                                                # 106
-./docs/_gate.sh
-```
-
-## 6. Delete before you move — and what looks dead but is not
-
-Three things near `edges` look dead and are **not**, so they stay:
-
-- **`ribbon_depth` and `glyph_depth`** are gated behind `const INK_DEPTH_PREPASS: bool = false;`,
-  so no frame in the gate builds them into a draw. They are the depth prepass for the flat lane
-  and the constant is a switch, not a tombstone — flip it and flat ink starts occluding flat ink.
-- **`ribbon_solid_depth` and `sphere_depth`** are drawn every frame; the SOLID lane's prepass is
-  not gated by that constant.
-- **the `time` uniform and its layout** feed exactly one shader (`triangle.wgsl`'s animation
-  clock) and look like leftovers from lesson 07. They are bound at group 1 of both triangle
-  pipelines; removing the layout removes the binding and the shader stops validating.
-
-The test is not "does this look old". It is `grep -rn '<name>' src/` and the answer being zero.
-
-## 7. Proving nothing changed — three ladders
-
-**Ladder 1, the compiler.** Both targets, `--all-targets` natively so the examples and the
-headless harness are type-checked too:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-```
-
-*What it cannot catch:* anything that type-checks. A desc that binds `l.glyph` where the builder
-bound `l.segment` compiles perfectly, and so does a `depth_compare` copied from the wrong builder.
-Nor can it see a `#[cfg]`-gated arm on the target you did not build.
-
-**Ladder 2, `--moves`.** The only proof a move took its lines byte-identically: the multiset of
-stripped, non-blank lines over {source} ∪ {destinations}, before and after, minus every line the
-doc declares as added or removed. One source here (`src/app/scene.rs`), two moves — thin on
-purpose, so lesson 48's nine bodies across three files are not the first time you run it.
-
-```bash
-python3 docs/_replay_check.py --moves <end-of-44 snapshot> /tmp/w45 docs/46-pipeline-descs.md
-```
-
-What the other two ladders miss: a line dropped inside a `#[cfg(target_arch = ...)]` arm, which
-compiles and renders exactly the frame you expect.
-
-**Ladder 3, the pixel gate, twice.**
-
-```bash
-./docs/_gate.sh && ./docs/_gate.sh
-```
-
-64 rows: four mandatory scenes × four configs × two passes, plus four advisory scenes when their
-gitignored `.pb` assets are present. Every row is gated on **ink, draw count and object count**;
-only `drawings_rotated` is gated on the PPM checksum, because the splat lane is a two-pass atomic
-compute rasterizer and which point wins a contested pixel is a race. `lion`, `bunny_cloud`,
-`cloud_mix`, `lidar14` and `bunny_drawings` record `nondet(splat)`; `bunny` holds no cloud and
-still drifts by one pixel — (625, 220), grey 171 ⇄ 170 — and records `nondet(mesh)`. Both are
-exempted in `_GOLDENS.tsv` and neither is your bug. The gate runs each row twice and fails on a
-disagreement before comparing to the goldens.
-
-*What it cannot catch:* the whole `VIEWER_NO_DEPTH` path — no golden sets it. That is why §5.4
-names both branches by hand.
-
-## 8. What you can now do in one line
-
-Add a wireframe pass over every mesh edge. Before this lesson: a ~70-line copy of
-`build_ribbon_pipeline`, a `use` line, a struct field and a call. Now one literal.
-
-**Type all six steps below.** The first three add it, the last three take it back out — a
-demonstration, not part of the end state, and the file must be back to 148 lines before §10. Do
-**not** undo it with `git checkout`: lesson 46 is not committed, and that would throw it all away.
-
-**8a.** **Find** in `src/engine/pipelines/mod.rs`:
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub ribbon_solid: wgpu::RenderPipeline,
+            scene_min,
+            scene_max,
+```
+
+**Replace with:**
+
+```rust
+            bounds: Aabb { min: [0.0; 3], max: [0.0; 3] },
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.instance_bind_group = Self::mk_rows_group(&self.device, &self.instance_layout, "instances.bind_group", &self.instance_buffer);
+```
+
+**Replace with:**
+
+```rust
+            self.instance_bind_group = Self::mk_rows_group(&self.device, &self.layouts.instance, "instances.bind_group", &self.instance_buffer);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.pipe_bind_group = Self::mk_rows_group(&self.device, &self.segment_layout, "pipes.bind_group", &self.pipe_buffer);
+```
+
+**Replace with:**
+
+```rust
+            self.pipe_bind_group = Self::mk_rows_group(&self.device, &self.layouts.segment, "pipes.bind_group", &self.pipe_buffer);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.segment_bind_group = Self::mk_rows_group(&self.device, &self.segment_layout, "segments.bind_group", &self.segment_buffer);
+```
+
+**Replace with:**
+
+```rust
+            self.segment_bind_group = Self::mk_rows_group(&self.device, &self.layouts.segment, "segments.bind_group", &self.segment_buffer);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.sphere_bind_group = Self::mk_rows_group(&self.device, &self.glyph_layout, "spheres.bind_group", &self.sphere_buffer);
+```
+
+**Replace with:**
+
+```rust
+            self.sphere_bind_group = Self::mk_rows_group(&self.device, &self.layouts.glyph, "spheres.bind_group", &self.sphere_buffer);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.glyph_bind_group = Self::mk_rows_group(&self.device, &self.glyph_layout, "glyphs.bind_group", &self.glyph_buffer);
+```
+
+**Replace with:**
+
+```rust
+            self.glyph_bind_group = Self::mk_rows_group(&self.device, &self.layouts.glyph, "glyphs.bind_group", &self.glyph_buffer);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        if up.min[0].is_finite() { // an empty upload (the State boots before any file) knows no box
+            self.scene_min = up.min;
+            self.scene_max = up.max;
+```
+
+**Replace with:**
+
+```rust
+        if up.bounds.is_finite() { // an empty upload (the State boots before any file) knows no box
+            self.bounds = up.bounds;
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.pipelines = Pipelines::new(
+                &self.device,
+                samples,
+                self.config.format,
+                &self.mvp_layout,
+                &self.time_layout,
+                &self.instance_layout,
+                &self.line_layout,
+                &self.segment_layout,
+                &self.glyph_layout,
+                &self.splat_resolve_layout,
+            );
+```
+
+**Replace with:**
+
+```rust
+            self.pipelines = Pipelines::new(&self.device, Target { format: self.config.format, samples }, &self.layouts);
+```
+
+`splat_entry` moved to `layouts.rs`; only the bind-group builders stay, and they lose the
+instance buffer that binding 2 no longer wants.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    // splat helpers - one compute-visible buffer entry, and the three bind groups,
+    // rebuilt whenever any bound buffer is recreated (set_scene, resize)
+    fn splat_entry(
+        binding: u32,
+        ty: wgpu::BufferBindingType) -> wgpu::BindGroupLayoutEntry{
+        wgpu::BindGroupLayoutEntry {
+            binding,
+            visibility: wgpu::ShaderStages::COMPUTE,
+            ty: wgpu::BindingType::Buffer { ty, has_dynamic_offset: false, min_binding_size: None },
+            count: None }
+    }
+
+```
+
+**Replace with:**
+
+```rust
+    /// Splat group 0 for one lane: the frame uniforms and that lane's record table. The three
+    /// splat groups are rebuilt whenever any bound buffer is recreated (set_scene, resize).
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        cloud: &wgpu::Buffer,
+        instances: &wgpu::Buffer,
+```
+
+**Replace with:**
+
+```rust
+        cloud: &wgpu::Buffer,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                wgpu::BindGroupEntry{binding: 2, resource: instances.as_entire_binding()},
+                wgpu::BindGroupEntry{binding: 3, resource: recs.as_entire_binding()},
+```
+
+**Replace with:**
+
+```rust
+                wgpu::BindGroupEntry{binding: 2, resource: recs.as_entire_binding()},
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                wgpu::BindGroupEntry{binding: 2, resource: recs.as_entire_binding()},
+            ],
+        })
+    }
+
 ```
 
 **Add below it:**
 
 ```rust
-    pub wireframe: wgpu::RenderPipeline,
+    /// Splat group 1 for one lane: its point buffers and the shared per-pixel depth/colour pair.
 ```
 
-**8b.** One entry in the list, immediately after the `ribbon_solid` desc. **Find** in
-`src/engine/pipelines/mod.rs`:
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-                ..PipelineDesc::ink("ribbon.solid", RIBBON, &[&l.mvp, &l.line, &l.instance, &l.segment])
-            }),
+                wgpu::BindGroupEntry{binding: 4, resource: nrm.as_entire_binding()},
+            ],
+        })
+    }
+
 ```
 
 **Add below it:**
 
 ```rust
-            wireframe: build(device, t, &PipelineDesc {
-                topology: wgpu::PrimitiveTopology::LineStrip,
-                depth_compare: wgpu::CompareFunction::Always,
-                ..PipelineDesc::ink("wireframe", RIBBON, &[&l.mvp, &l.line, &l.instance, &l.segment])
-            }),
+    /// The resolve pass's view of the per-pixel splat buffers.
 ```
 
-Three overrides on top of the ink preset: line topology, no depth test, everything else inherited.
-
-**8c.** Now point one draw at it. **Find** in `src/engine/gpu/mod.rs`:
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-                        pass.set_pipeline(&self.pipelines.ribbon_solid);
+    fn rebuild_splat_groups(&mut self){
+        self.splat_group0 = Self::mk_splat_group0(&self.device, &self.splat_group0_layout, &self.mvp_buffer, &self.cloud_buffer, &self.instance_buffer, &self.splat_recs);
+        self.splat_group1 = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.point_buffer, &self.point_col_buffer, &self.point_nrm_buffer, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_group0_stream = Self::mk_splat_group0(&self.device, &self.splat_group0_layout, &self.mvp_buffer, &self.cloud_buffer, &self.instance_buffer, &self.splat_stream_recs);
+        self.splat_group1_stream = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.stream_pos_buf, &self.stream_col_buf, &self.stream_nrm_buf, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.splat_resolve_layout, &self.splat_depth_buf, &self.splat_color_buf);
 ```
 
 **Replace with:**
 
 ```rust
-                        pass.set_pipeline(&self.pipelines.wireframe);
+    /// Re-point the five splat bind groups at the current buffers (set_scene, resize, stream growth).
+    fn rebuild_splat_groups(&mut self){
+        self.splat_group0 = Self::mk_splat_group0(&self.device, &self.layouts.splat_group0, &self.mvp_buffer, &self.cloud_buffer, &self.splat_recs);
+        self.splat_group1 = Self::mk_splat_group1(&self.device, &self.layouts.splat_group1, &self.point_buffer, &self.point_col_buffer, &self.point_nrm_buffer, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_group0_stream = Self::mk_splat_group0(&self.device, &self.layouts.splat_group0, &self.mvp_buffer, &self.cloud_buffer, &self.splat_stream_recs);
+        self.splat_group1_stream = Self::mk_splat_group1(&self.device, &self.layouts.splat_group1, &self.stream_pos_buf, &self.stream_col_buf, &self.stream_nrm_buf, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.layouts.splat_resolve, &self.splat_depth_buf, &self.splat_color_buf);
 ```
 
-Run it:
-
-```bash
-cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- \
-    /tmp/wire.ppm assets/scenes/bunny.toml
-```
-
-Every mesh edge is now a hairline that ignores depth — the bunny becomes a see-through cage. The
-point is the diff, not the picture: **six lines** for a genuinely new pipeline, none of them
-anywhere near `create_render_pipeline`.
-
-Now put it back, in reverse order.
-
-**8d.** **Find** in `src/engine/gpu/mod.rs`:
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-                        pass.set_pipeline(&self.pipelines.wireframe);
+    pub fn grow_scene(&mut self, min: [f32; 3], max: [f32; 3]) {
+        if !min[0].is_finite() { return }
+        // an empty scene starts with a zero box; the first cloud replaces it
+        if self.scene_min[0] >= self.scene_max[0] {
+            self.scene_min = min;
+            self.scene_max = max;
+            return;
+        }
+        for k in 0..3 {
+            self.scene_min[k] = self.scene_min[k].min(min[k]);
+            self.scene_max[k] = self.scene_max[k].max(max[k]);
+        }
 ```
 
 **Replace with:**
 
 ```rust
-                        pass.set_pipeline(&self.pipelines.ribbon_solid);
+    pub fn grow_scene(&mut self, world: &Aabb) {
+        if !world.is_finite() { return }
+        // an empty scene starts with a zero box; the first cloud replaces it
+        if self.bounds.min[0] >= self.bounds.max[0] {
+            self.bounds = *world;
+            return;
+        }
+        self.bounds.union(world);
 ```
 
-**8e.** **Find** in `src/engine/pipelines/mod.rs` (the anchor carries the line above, so no blank
-line is left behind):
+The two camera functions are free functions in `math.rs` now. This Remove also takes the first
+lines of `write_frame_uniforms`; the next edit restores them calling the free functions.
+
+**Remove** `src/engine/gpu/mod.rs` `    /// The camera position, recovered from the combined view-projection alone.` **through** `        self.last_eye = Self::eye_from_view_proj(view_proj);`
+
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-            }),
-            wireframe: build(device, t, &PipelineDesc {
-                topology: wgpu::PrimitiveTopology::LineStrip,
-                depth_compare: wgpu::CompareFunction::Always,
-                ..PipelineDesc::ink("wireframe", RIBBON, &[&l.mvp, &l.line, &l.instance, &l.segment])
-            }),
+        t0.elapsed().as_secs_f64()
+    }
+
+```
+
+**Add below it:**
+
+```rust
+    /// Per-frame uniforms: camera, the line/pen block, and the cloud block.
+    fn write_frame_uniforms(&mut self, view_proj: &Xform) {
+        self.mvp_f32 = view_proj.to_f32();
+        self.last_ortho_h = ortho_half_height(view_proj);
+        self.last_eye = eye_from_view_proj(view_proj);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            ortho_h: Self::ortho_half_height(view_proj),
 ```
 
 **Replace with:**
 
 ```rust
-            }),
+            ortho_h: ortho_half_height(view_proj),
 ```
 
-**8f.** **Find** in `src/engine/pipelines/mod.rs`:
+**Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub ribbon_solid: wgpu::RenderPipeline,
-    pub wireframe: wgpu::RenderPipeline,
+        let eye = Self::eye_from_view_proj(view_proj); // anchored world units, like instances[]
+        let ew = [origin[0] + eye[0] as f64, origin[1] + eye[1] as f64, origin[2] + eye[2] as f64];
+        // The eye outside the scene's box is outside every object in it.
+        let in_scene = (0..3).all(|k| ew[k] >= self.scene_min[k] as f64 && ew[k] <= self.scene_max[k] as f64);
 ```
 
 **Replace with:**
 
 ```rust
-    pub ribbon_solid: wgpu::RenderPipeline,
+        let eye = eye_from_view_proj(view_proj); // anchored world units, like instances[]
+        let ew = [origin[0] + eye[0] as f64, origin[1] + eye[1] as f64, origin[2] + eye[2] as f64];
+        // The eye outside the scene's box is outside every object in it.
+        let in_scene = (0..3).all(|k| ew[k] >= self.bounds.min[k] as f64 && ew[k] <= self.bounds.max[k] as f64);
 ```
 
-`wc -l src/engine/pipelines/mod.rs` is back to **148**, and `./docs/_gate.sh` is green again. If it
-is not, you removed one line too many or too few — 8e and 8f undo 8a and 8b exactly.
+**Find** in `src/engine/gpu/mod.rs`:
 
-## 9. What is deliberately not here
+```rust
+                cp.set_pipeline(&self.splat_depth_pipeline);
+```
 
-- **Per-family `descs()`.** The fourteen literals and their `include_str!` lines move to the file
-  that owns the row they draw: **47** (`arena.rs`), **48** (`segments.rs`, `glyphs.rs`), **49**
-  (`splat.rs`, `backdrop.rs`).
-- **`GpuCtx`.** `Pipelines::new` takes `&wgpu::Device`. Lesson **46** introduces
-  `GpuCtx { device, queue }` and renames the parameter with one Replace-all; the arity stays 3.
-- **A WGSL prelude.** Every `.wgsl` still repeats its own struct definitions.
-  `PipelineDesc.shader` is a `&str`, which makes a prelude a one-line change at **111**.
-- **MRT colour targets.** `PipelineDesc.target` is `Option<Target>`, one attachment. Lessons
-  **90** and **114** pin a pipeline to its own attachment through it; a *second simultaneous*
-  attachment is a sibling function, not a wider desc (seam S3c, rejected).
-- **`Layouts` entries as data.** Nine literal blocks with one shared helper. The entry lists are
-  editable, which is the whole ask; a table buys nothing until something generates it.
-- **Fixing the `glyph`/`segment` layout alias.** Preserved exactly, comment and all. A body you
-  are moving is not a body you are fixing.
+**Replace with:**
 
-## 10. Expected state
+```rust
+                cp.set_pipeline(&self.pipelines.splat_depth);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                cp.set_pipeline(&self.splat_color_pipeline);
+```
+
+**Replace with:**
+
+```rust
+                cp.set_pipeline(&self.pipelines.splat_color);
+```
+
+`triangle.wgsl` no longer declares group 1, but the slot stays bound so every draw keeps the
+0/1/2/3 scheme.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+            pass.set_bind_group(1, &self.time_bind_group, &[]);
+```
+
+**Replace with:**
+
+```rust
+            pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+            pass.set_bind_group(1, &self.line_bind_group, &[]);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                pass.set_bind_group(1, &self.time_bind_group, &[]);
+```
+
+**Replace with:**
+
+```rust
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+```
+
+## Step 9 — `src/app/scene.rs`
+
+`xform_point` and `grow_bounds` now come from `math.rs`; the two loose bounds become one `Aabb`.
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+use crate::engine::gpu::{ArenaUpload, CloudDraw, LodNode, Instance, CylinderSegment, GlyphPoint, Mat4, mat_mul};
+```
+
+**Replace with:**
+
+```rust
+use crate::engine::gpu::{ArenaUpload, CloudDraw, LodNode, Instance, CylinderSegment, GlyphPoint};
+use crate::math::{mat_mul, xform_point, grow_bounds, Aabb};
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+    pub fn grow_bounds(&mut self, min: [f32; 3], max: [f32; 3]) {
+        for k in 0..3 {
+            self.tables.min[k] = self.tables.min[k].min(min[k]);
+            self.tables.max[k] = self.tables.max[k].max(max[k]);
+        }
+```
+
+**Replace with:**
+
+```rust
+    pub fn grow_bounds(&mut self, world: &Aabb) {
+        self.tables.bounds.union(world);
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+        for k in 0..3{
+            t.min[k] = t.min[k].min(fmin[k]);
+            t.max[k] = t.max[k].max(fmax[k]);
+        }
+```
+
+**Replace with:**
+
+```rust
+        t.bounds.union(&Aabb { min: fmin, max: fmax });
+```
+
+**Remove** `src/app/scene.rs` `pub fn xform_point(m: &Mat4, p: [f32; 3]) -> [f32; 3] {` **up to** `/// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes`
+
+## Step 10 — `src/lib.rs`
+
+`scene_min/scene_max` became `gpu.bounds`; the streamed cloud's box grows through `Aabb`.
+
+**Find** in `src/lib.rs`:
+
+```rust
+mod camera;
+```
+
+**Add below it:**
+
+```rust
+pub mod math;
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                    state.camera.grow_extent(state.gpu.scene_min, state.gpu.scene_max);
+```
+
+**Replace with:**
+
+```rust
+                    state.camera.grow_extent(state.gpu.bounds.min, state.gpu.bounds.max);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                    let aspect = s.width.max(1) as f64 / s.height.max(1) as f64;
+                    state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
+```
+
+**Replace with:**
+
+```rust
+                    let aspect = s.width.max(1) as f64 / s.height.max(1) as f64;
+                    state.camera.fit(state.gpu.bounds.min, state.gpu.bounds.max, aspect);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                    let (mut wlo, mut whi) = ([f32::INFINITY; 3], [f32::NEG_INFINITY; 3]);
+```
+
+**Replace with:**
+
+```rust
+                    let mut world = crate::math::Aabb::empty();
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                        let w = crate::app::scene::xform_point(&slot.place.m, corner);
+                        for k in 0..3 { wlo[k] = wlo[k].min(w[k]); whi[k] = whi[k].max(w[k]); }
+                    }
+                    state.gpu.grow_scene(wlo, whi);
+                    state.scene.grow_bounds(wlo, whi);
+```
+
+**Replace with:**
+
+```rust
+                        world.grow(crate::math::xform_point(&slot.place.m, corner));
+                    }
+                    state.gpu.grow_scene(&world);
+                    state.scene.grow_bounds(&world);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                let aspect = s.width.max(1) as f64 / s.height.max(1) as f64;
+                state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
+```
+
+**Replace with:**
+
+```rust
+                let aspect = s.width.max(1) as f64 / s.height.max(1) as f64;
+                state.camera.fit(state.gpu.bounds.min, state.gpu.bounds.max, aspect);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                            state.camera.toggle_projection_framed(state.gpu.scene_min, state.gpu.scene_max, aspect);
+```
+
+**Replace with:**
+
+```rust
+                            state.camera.toggle_projection_framed(state.gpu.bounds.min, state.gpu.bounds.max, aspect);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                            state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
+```
+
+**Replace with:**
+
+```rust
+                            state.camera.fit(state.gpu.bounds.min, state.gpu.bounds.max, aspect);
+```
+
+## Step 11 — `src/selftest.rs`
+
+Same rename, and the eye solve is a free function now.
+
+**Find** in `src/selftest.rs`:
+
+```rust
+    camera.fit(gpu.scene_min, gpu.scene_max, w as f64 / h as f64);
+```
+
+**Replace with:**
+
+```rust
+    camera.fit(gpu.bounds.min, gpu.bounds.max, w as f64 / h as f64);
+```
+
+**Find** in `src/selftest.rs`:
+
+```rust
+        let solved = Gpu::eye_from_view_proj(&view_proj);
+```
+
+**Replace with:**
+
+```rust
+        let solved = crate::math::eye_from_view_proj(&view_proj);
+```
+
+**Find** in `src/selftest.rs`:
+
+```rust
+        camera.fit(gpu.scene_min, gpu.scene_max, aspect);
+```
+
+**Replace with:**
+
+```rust
+        camera.fit(gpu.bounds.min, gpu.bounds.max, aspect);
+```
+
+**Find** in `src/selftest.rs`:
+
+```rust
+    camera.fit(gpu.scene_min, gpu.scene_max, aspect);
+```
+
+**Replace with:**
+
+```rust
+    camera.fit(gpu.bounds.min, gpu.bounds.max, aspect);
+```
+
+## Step 12 — `examples/check_determinism.rs`
+
+One comparison follows the `Aabb` rename.
+
+**Find** in `examples/check_determinism.rs`:
+
+```rust
+        if a.tables.min != b.tables.min || a.tables.max != b.tables.max { fails.push("tables.bounds".into()) }
+```
+
+**Replace with:**
+
+```rust
+        if a.tables.bounds != b.tables.bounds { fails.push("tables.bounds".into()) }
+```
+
+## Check
 
 ```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-./docs/_gate.sh && ./docs/_gate.sh
+cargo check --lib --target wasm32-unknown-unknown            # 4 warnings, as before
+cargo check --all-targets --target x86_64-unknown-linux-gnu  # 11 warnings, as before
+grep -rc 'create_render_pipeline' src | grep -v ':0'         # build.rs:1 - the only one
+grep -c 'PipelineDesc {' src/engine/pipelines/mod.rs         # 14
+./docs/_gate.sh                                              # gate OK
 ```
 
-Both gate runs print `gate OK`.
-
-```bash
-wc -l src/math.rs src/engine/pipelines/layouts.rs \
-      src/engine/pipelines/build.rs src/engine/pipelines/mod.rs \
-      src/engine/gpu/mod.rs src/app/scene.rs
-```
-
-```text
-  123 src/math.rs                        NEW
-  181 src/engine/pipelines/layouts.rs    NEW
-  215 src/engine/pipelines/build.rs      was 845
-  148 src/engine/pipelines/mod.rs        was  80
- 2139 src/engine/gpu/mod.rs              was 2447
- 1365 src/app/scene.rs                   was 1382
-```
-
-```bash
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-grep -c 'device.create_render_pipeline' src/engine/pipelines/build.rs
-grep -c 'device.create_compute_pipeline' src/engine/pipelines/build.rs
-grep -rc 'create_bind_group_layout' src/engine/pipelines/layouts.rs
-grep -rn 'create_bind_group_layout' src/engine/gpu/mod.rs | wc -l
-```
-
-```text
-106   Gpu fields          (was 116)
-1     create_render_pipeline calls      (was 11)
-1     create_compute_pipeline calls     (was 2, both inline in Gpu::build)
-9     bind-group layouts, all in Layouts::new
-0     bind-group layouts left in gpu/mod.rs
-```
-
-`Gpu` 116 → 106: nine bind-group layouts became one `layouts` field, and the two compute pipelines
-moved next to the fourteen render pipelines. `build.rs` 845 → 215: eleven builders became one
-`build`, one `build_compute`, four presets and a struct.
+`Gpu` has 102 fields (was 116) — count them with
+`awk '/^pub struct Gpu \{/,/^\}/' src/engine/gpu/mod.rs | grep -cE '^ +(pub )?[a-z_0-9]+:'` —
+and every ink/draw/object count in `docs/_GOLDENS.tsv` is unchanged.
 
 ## Recap
 
-> A pipeline is data. Eleven near-identical builders existed because a pipeline was modelled as
-> code, and code cannot be spread with `..`: saying "the ribbon recipe with depth writing on" meant
-> copying sixty-nine lines to change one. `PipelineDesc` names the eleven settings that vary, four
-> presets name the four recipes, and one `build` holds the single `create_render_pipeline` call.
-> `Layouts` does the same one level down, and `Pipelines::new(device, t, &l)` is frozen at three
-> parameters so no later lesson can add a layout by threading it through fourteen literals. And
-> `edges` was deleted rather than relocated, because faithfully moving dead code is how it
-> survives a refactor. **The law: a new pipeline is one literal, a new layout is one field. Never
-> a new function, never a new parameter.**
-
-## Edited
-
-`src/math.rs` (NEW — matrices, the camera solves, `Bounds`/`Aabb64`) · `src/lib.rs` (one
-`pub mod`) · `src/engine/pipelines/layouts.rs` (NEW — nine layouts + `compute_entry`) ·
-`src/engine/pipelines/build.rs` (REWRITTEN — `Target`, `PipelineDesc`, four presets, `build`,
-`build_compute`) · `src/engine/pipelines/mod.rs` (fourteen descs + two compute) ·
-`src/engine/gpu/mod.rs` (loses the math, the layouts, `splat_entry`, `storage_buffer`, the two
-compute pipelines; gains `layouts`) · `src/app/scene.rs` · `src/selftest.rs` ·
-`src/shaders/edges.wgsl` (DELETED).
-
-## Reference
-
-Built in nine checkpoints, each compiled and most of them gated:
-
-| checkpoint | what landed |
-|---|---|
-| 45a | `src/math.rs` — the seven names + `Bounds`/`Aabb64` |
-| 45b | `pipelines/layouts.rs` — nine blocks out of `Gpu::build`, `Gpu` gains `layouts` |
-| 45c | delete before you move — `edges.wgsl`, `build_edges_pipeline`, `Pipelines.edges`, `storage_buffer` |
-| 45d1 | `Target`/`PipelineDesc`/presets/`build`/`build_compute`; `Pipelines::new` 10 params → 3 |
-| 45d2 | the four ink descs; four builders deleted (gated with `VIEWER_LINE_STYLE=tubes`) |
-| 45d3 | the four opaque descs; four builders deleted |
-| 45d4 | the two sheet descs; `build_triangle_pipeline` deleted |
-| 45d5 | the four depth-only descs; `build_ink_depth_pipeline` deleted — `build.rs` 845 → 215 |
-| 45d6 | the two compute pipelines fold in — `Gpu` 116 → 106 |
-
-45d1-45d5 are merged into step 5.4 so you do not type `PipelineDesc` twice. They are worth reading
-if a group refuses to compile — each converts exactly one preset's worth of descs.
-
-`git diff end-of-44..end-of-45 -- session_viewer/src` is the whole lesson as one patch;
-`diff -u` any single file against it if a line count comes out wrong.
+- A pipeline is a `PipelineDesc` literal; `build` is the one function. Adding a wireframe pipeline
+  is ten lines in `pipelines/mod.rs`, nothing in `build.rs`.
+- Layouts are the shape of a bind group and live once, in `layouts.rs`; buffers stay in `gpu/`.
+- Anything declared and never read (`time`, `edges`, `instances_unused`) is a cost with no pixel.
 
 ## Next
 
-Lesson [47](47-gpu-floor.md) — **the floor is not a lane.** Run the evidence:
-
-```bash
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs | grep -cE '_(cap|capacity):'
-```
-
-106 fields, thirteen of them capacities — thirteen buffers written out longhand as a
-`(buffer, count, cap)` triple, some forty fields saying one thing thirteen times. A buffer, its
-row count and its capacity are one value, and what belongs to no family belongs beneath them all.
+Lesson [47](47-gpu-floor.md) — the GPU floor: `GpuCtx`, `GrowBuf`, `FrameUniforms`, `Targets`,
+`Upload`.

@@ -59,6 +59,11 @@
     article pre { background:#161b22; border:1px solid var(--line); border-radius:8px; padding:12px 14px;
                   overflow-x:auto; margin:12px 0; }
     article pre code { background:transparent; padding:0; font-size:13px; }
+    article pre { position:relative; }
+    article pre .copy { position:absolute; top:6px; right:8px; font:11px var(--font); color:var(--muted);
+                        background:#161a20; border:1px solid var(--line); border-radius:4px; padding:2px 7px;
+                        cursor:pointer; opacity:.55; }
+    article pre:hover .copy, article pre .copy:focus { opacity:1; color:#fff; border-color:#2e3a46; }
     article table { border-collapse:collapse; margin:12px 0; }
     article th, article td { border:1px solid var(--line); padding:6px 12px; font-size:13px; }
     .loading { color:var(--muted); padding:40px; }

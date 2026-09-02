@@ -724,7 +724,7 @@ lidar14.toml   (fit)              4611          4612           4294
 
 ## Next
 
-Lesson [46](46-pipeline-descs.md) — **a pipeline is data, not a function.** This closes the
-point-cloud chain and opens the restructure: lessons [46](46-pipeline-descs.md)-[52](52-adapters.md)
-split the 2,100-line `gpu/mod.rs` into one file per render lane and `scene.rs` into one file per
-geometry type, as pure moves under a pixel gate.
+Lesson [46](46-pipeline-descs.md) — **pipelines are data.** This closes the point-cloud chain and
+opens the refactor block: lessons 46-51 split `gpu/mod.rs` into one file per row family and
+`scene.rs` into one file per geometry type under a pixel gate, then lesson 51 fixes what the
+performance audit found.

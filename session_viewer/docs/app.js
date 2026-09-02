@@ -100,6 +100,26 @@ async function renderSection(sections, id, restore = false) {
   contentEl.querySelectorAll('pre code').forEach((b) => {
     try { hljs.highlightElement(b); } catch (_) { /* unknown lang → leave plain */ }
   });
+  // One copy button per code block: the refactor lessons ship whole files as listings, and a
+  // listing that has to be selected by hand across a scrolling page is a listing that gets
+  // typed wrong. Clipboard access needs a secure context; localhost counts.
+  contentEl.querySelectorAll('pre').forEach((pre) => {
+    const btn = document.createElement('button');
+    btn.className = 'copy';
+    btn.type = 'button';
+    btn.textContent = 'copy';
+    btn.addEventListener('click', async () => {
+      const code = pre.querySelector('code');
+      try {
+        await navigator.clipboard.writeText(code ? code.textContent : pre.textContent);
+        btn.textContent = 'copied';
+      } catch (_) {
+        btn.textContent = 'select + ctrl-c';
+      }
+      setTimeout(() => { btn.textContent = 'copy'; }, 1500);
+    });
+    pre.appendChild(btn);
+  });
   activeId = s.id;
   // After paint: highlight.js has finished reflowing the code blocks, so the saved offset means
   // the same thing it did when it was written (an overshoot past the end clamps by itself).

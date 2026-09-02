@@ -1,45 +1,60 @@
-# NN · Title of this step
+# NN Title — one-line subtitle
 
 <!--
-HOW TO ADD A SECTION (it becomes an item in the left sidebar under the Viewer tab):
-
-1. Copy this file to a new one named  NN-title.md  in this folder
-   (session_tests/viewer_sections/). The NN number sets the order, e.g. 02-grid.md, 03-camera.md.
-   The first "# heading" becomes the sidebar label.
-2. Write your notes as normal Markdown.
-3. Paste code in fenced blocks with the language after the backticks. Highlighted by Shiki;
-   supported languages: rust, cpp, python, json, bash, toml.
-
-       ```rust
-       fn main() { println!("hi"); }
-       ```
-
-4. Save → it appears in the sidebar at #/viewer (dev: hot-reloads instantly).
-
-Files starting with "_" (like this one) are ignored, so this template never shows up.
+The house form for a lesson (files starting with "_" never show in the sidebar).
+- Prose is minimal: one or two sentences per step, the WHY once, no war stories.
+- Every edit is an op the checker can replay: Create / Find+Replace with / Add below it /
+  Add above it / Delete / Remove … through … / Replace-all … (N hits). Anchors are whole,
+  unique lines quoted from the tree the reader has at that step.
+- Verify before shipping (from session_viewer/):
+    python3 docs/_replay_check.py <prev-snapshot> /tmp/v docs/NN-*.md   # 0 failed
+    python3 docs/_replay_check.py --audit docs/NN-*.md                  # 0 orphaned
+    python3 docs/_replay_check.py --render docs/NN-*.md                 # page renders
+    diff -r /tmp/v/src <end-snapshot>/src                               # empty
 -->
 
+<svg viewBox="0 0 640 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="what this lesson builds" style="max-width:100%;height:auto;font:12px ui-monospace,monospace">
+  <text x="320" y="60" fill="#888" text-anchor="middle">one diagram of what this lesson builds</text>
+</svg>
+
 ## Goal
-One sentence: what the viewer can do after this step that it couldn't before.
 
-## How it works
-The idea in your own words — the *why*, not just the *what*.
+Two sentences: what the viewer can do (or how the code reads) after this lesson.
 
-## Code
+## Why
+
+Three sentences at most.
+
+## Files
+
+| file | change | lines after |
+|---|---|---|
+| `src/…` | created / edited / deleted | 0 |
+
+## Step 1 — `src/path.rs`
+
+One or two sentences, then the ops.
+
+**Create `src/path.rs`**
+
 ```rust
-// paste the key snippet from session_viewer/src/...  (file + line so you can jump back)
 ```
 
-## My notes
-> your reading notes — what each call does, what confused you, what you'd forget next week
+## Check
 
-## Compare to the archive
-How `session_viewer_archive/` does the same thing, and what it adds on top.
-
-## Run
 ```bash
-../bash/build_viewer.sh   # rebuild the viewer into public/viewer/, then it shows in the Live item
+cargo check --lib --target wasm32-unknown-unknown
+cargo check --all-targets --target x86_64-unknown-linux-gnu
+cargo xtest
+./docs/_gate.sh
 ```
 
-## Verify
-#/viewer → **Live** → what you should see on screen.
+The numbers these print, measured twice.
+
+## Recap
+
+- three bullets
+
+## Next
+
+Lesson [NN+1](NN+1-title.md) — one line.

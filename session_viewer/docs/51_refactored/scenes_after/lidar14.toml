@@ -1,0 +1,9 @@
+name = "lidar 14M streamed"
+
+[[items]]
+file = "pb/lidar_14m.pb"
+name = "lidar 14M"
+at = [0, 0, 0]
+point_size = 1
+stream = true
+display_only = true

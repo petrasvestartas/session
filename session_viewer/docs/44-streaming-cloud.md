@@ -131,23 +131,25 @@ dispatch. Payoff: nothing in lessons 36-43 changes underneath.
 
 ## Step 1 — `Cargo.toml`
 
-Setting a `Range` header needs one more `web-sys` binding. **Find** in `Cargo.toml`:
-
-```toml
-    "Response",
-```
-
-**Add below it:**
-
-```toml
-    "Headers",
-```
+Setting a `Range` header needs the `"Headers"` binding of `web-sys`. It is already in the
+feature list under `"Response",` (it arrived with the P6 refactor) - check it is there, and
+type nothing.
 
 ## Step 2 — the reader: `src/app/persistence.rs`
 
-Three edits. First, the loader will yield between slices, so **Find** `async fn next_tick() {` and **Replace with:** `pub async fn next_tick() {`
+Three edits. First, the tail of the file holds an unfinished sketch of this reader - a
+comment block, a `CloudFields` with `coord_at` fields, and a `variant` function nobody calls.
+The real reader below replaces it, so it goes first: two removes, the comment with its struct
+and then the function. (`next_tick` is already `pub`, so the loader can yield between slices
+as it is.)
 
-Second, the block below sets a `Range` header, so **Find** `use web_sys::{Request, RequestInit, RequestMode, Response};` and **Replace with:** `use web_sys::{Headers, Request, RequestInit, RequestMode, Response};`
+**Remove** `src/app/persistence.rs` `// streaming a point cloud: HTTP Range in, GPU rows out, nothing large in between ──` **through** `}`
+
+**Remove** `src/app/persistence.rs` `/// One protobuf variant. Returns the value and how many bytes it ate.` **through** `}`
+
+Second, the block below sets a `Range` header.
+
+**Find** `use web_sys::{Request, RequestInit, RequestMode, Response};` and **Replace with:** `use web_sys::{Headers, Request, RequestInit, RequestMode, Response};`
 
 Then the whole streaming block goes at the end of the file. **Find** the last lines of
 `src/app/persistence.rs`:
@@ -1182,8 +1184,6 @@ whole-file path would have peaked near a gigabyte.
 Potree's LOD on the kernel's own `SpatialOctree`. Streamed clouds opt out — they have no
 CPU points to reorder.
 
-Then [46](46-pipeline-descs.md)-[52](52-adapters.md) split the 2,100-line `gpu/mod.rs` into one
-file per render lane and `scene.rs` into one file per geometry type, as pure moves under a pixel
-gate (`_ARCHITECTURE_TARGET.md`). Lessons [53](53-shell-loader-input.md)-[57](57-convention-is-not-a-type.md)
-then finish the shell, retire the wire mirrors and turn the architecture rules into tests, and
-every lesson from [58](58-nurbscurve.md) on is written against that tree.
+Then the refactor block, lessons [46](46-pipeline-descs.md) to 51, splits `gpu/mod.rs` into one
+file per row family and `scene.rs` into one file per geometry type under a pixel gate, and
+finishes with a measured performance and memory pass.

@@ -1,696 +1,325 @@
-# 47 The floor is not a lane
+# 47 The GPU floor — the things every lane stands on
 
-> Lesson [94](94-gtao.md) samples this frame's depth buffer for ambient occlusion, and lesson
-> [119](119-hiz-occlusion.md) builds a hi-Z pyramid from it. Both cost one field access — because
-> `targets.rs` keeps the depth **Texture** with `TEXTURE_BINDING` on, not just a view you cannot
-> re-view. Nothing you can see changes: same ink, same draw count, same object count, on every
-> scene and config. Answer key: branch `end-of-46`, so
-> `git diff end-of-45..end-of-46 -- session_viewer/src` is this lesson as one patch.
->
-> **Lessons 45-51 move code. Every body you cut is pasted byte-identical except for path
-> re-roots inside ONE file; if you find yourself improving a line while moving it, stop — the
-> deferral list at the end says which lesson owns that change.**
+> Second refactor lesson. Start from the end of lesson 46. Pixels stay identical: `./docs/_gate.sh`
+> prints `gate OK` at the end.
 
-## 1. Why this seam
+<svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Upload is the contract between app and engine; below it the GPU floor: GpuCtx, GrowBuf with its append rule, Targets, and FrameUniforms" style="max-width:100%;height:auto;font:12px ui-monospace,monospace">
+  <defs><marker id="fa" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f0b35c"/></marker><marker id="fb" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
+  <rect x="14" y="20" width="170" height="48" fill="none" stroke="#f0b35c"/>
+  <text x="99" y="40" fill="#f0b35c" font-size="11" text-anchor="middle">app/scene.rs</text>
+  <text x="99" y="56" fill="#d7dae0" font-size="10" text-anchor="middle">Scene.tables: Upload</text>
+  <line x1="184" y1="44" x2="248" y2="44" stroke="#f0b35c" marker-end="url(#fa)"/>
+  <rect x="250" y="12" width="220" height="64" fill="none" stroke="#7ed37e" stroke-width="1.3"/>
+  <text x="360" y="30" fill="#d7dae0" font-size="11" text-anchor="middle">Upload { verts/idx, pipes/spheres,</text>
+  <text x="360" y="45" fill="#d7dae0" font-size="11" text-anchor="middle">segments/glyphs, cloud_*, objects }</text>
+  <text x="360" y="64" fill="#888" font-size="9" text-anchor="middle">drop_uploaded(): every table except obj</text>
+  <line x1="470" y1="44" x2="534" y2="44" stroke="#6fb3ff" marker-end="url(#fb)"/>
+  <rect x="536" y="20" width="170" height="48" fill="none" stroke="#6fb3ff"/>
+  <text x="621" y="40" fill="#6fb3ff" font-size="11" text-anchor="middle">engine/gpu/mod.rs</text>
+  <text x="621" y="56" fill="#d7dae0" font-size="10" text-anchor="middle">Gpu::set_scene(&amp;Upload)</text>
+  <text x="360" y="92" fill="#888" font-size="10" text-anchor="middle">the contract: typed per family; the engine never names session_rust except RenderVertex, Xform and Point</text>
+  <line x1="14" y1="102" x2="706" y2="102" stroke="#3a3a3a"/>
+  <g fill="none" stroke="#7ed37e">
+    <rect x="14" y="116" width="150" height="70"/><rect x="180" y="116" width="240" height="120"/>
+    <rect x="436" y="116" width="130" height="70"/><rect x="582" y="116" width="124" height="70"/>
+  </g>
+  <g fill="#d7dae0" font-size="11">
+    <text x="22" y="134">GpuCtx</text><text x="188" y="134">GrowBuf { buf, len, cap }</text>
+    <text x="444" y="134">Targets</text><text x="590" y="134">FrameUniforms</text>
+  </g>
+  <g fill="#888" font-size="9">
+    <text x="22" y="150">device, queue</text><text x="22" y="163">device.rs → DeviceSetup</text><text x="22" y="176">buffers.rs</text>
+    <text x="444" y="150">depth, msaa, samples</text><text x="444" y="163">begin_pass(encoder,</text><text x="444" y="176">  view, clear)</text>
+    <text x="590" y="150">mvp, line, cloud</text><text x="590" y="163">write(ctx, FrameInput,</text><text x="590" y="176">  FrameCx)</text>
+    <text x="188" y="150">append(ctx, rows) -&gt; bool grew</text>
+  </g>
+  <g stroke="#0d0f12">
+    <rect x="188" y="160" width="110" height="18" fill="#2b4a63"/><rect x="298" y="160" width="60" height="18" fill="#2b4a2b"/>
+    <rect x="358" y="160" width="54" height="18" fill="none" stroke="#3a3a3a" stroke-dasharray="3 2"/>
+  </g>
+  <g fill="#d7dae0" font-size="9" text-anchor="middle">
+    <text x="243" y="172">live prefix</text><text x="328" y="172">new rows</text><text x="385" y="172" fill="#666">free</text>
+  </g>
+  <g fill="#888" font-size="9">
+    <text x="188" y="196">1 cap doubles (max(need, cap·2))</text>
+    <text x="188" y="209">2 prefix copied GPU-side (copy_buffer_to_buffer)</text>
+    <text x="188" y="222">3 only the new rows are written</text>
+  </g>
+  <g fill="#888" font-size="10">
+    <text x="14" y="258">view.rs — View::from_env(), read once · frame.rs — FrameInput { view_proj, clear }, Binds { mvp, line, instances }</text>
+    <text x="14" y="274">present.rs — clear, render_offscreen, bench_frames · buffers.rs — Template { vbo, ibo, index_count }: cylinder, quad</text>
+    <text x="14" y="290">green = created in lesson 47</text>
+  </g>
+</svg>
 
-### 1a. The evidence — run it on your own tree
+## Goal
 
-```bash
-cd session_viewer
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs | grep -cE '_(cap|capacity):'
-sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs | grep -cE '_(count|rows):'
-sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs | grep -cE ': wgpu::Buffer,'
-grep -c '&self.device, &self.queue,' src/engine/gpu/mod.rs
-grep -oE '&mut self\.[a-z_0-9]+_(cap|capacity)' src/engine/gpu/mod.rs | sort -u | wc -l
-```
+Seven small files take the device negotiation, the growable buffer, the upload contract, the
+runtime knobs, the per-frame uniforms, the render targets and the three ways a frame leaves the
+GPU out of `gpu/mod.rs`. `Gpu` goes from 102 fields to 64 and the file from 2125 lines to 1379.
 
-```text
-106   fields on Gpu
- 13   capacities        (12 `*_cap` + `stream_capacity`)
- 14   counts            (`*_count` + `instance_rows`)
- 28   wgpu::Buffer fields, of which 16 are growable row tables
- 10   call sites that pass `&self.device, &self.queue,` as a pair
- 10   capacities grown through `append_rows`/`append_index_run`
-```
+## Why
 
-Thirteen capacities, fourteen counts, and the sixteen buffers they govern: **forty-three of
-`Gpu`'s 106 fields** — two in every five — spell the same `(buffer, count, cap)` triple out
-longhand, over and over. Four of them, quoted here:
+Every lane repeated the same three things: a `(buffer, count, cap)` triple with a hand-rolled
+grow-and-copy, a bind group pointing at it, and an environment read at the wrong time. Naming
+them once (`GrowBuf`, `View`, `FrameUniforms`) removes the repetition before lesson 48 moves the
+lanes themselves. The uniforms and the targets get the same treatment so that lesson 49 can
+write the frame as a list.
+
+## Files
+
+| file | change | lines after |
+|---|---|---|
+| `src/engine/gpu/device.rs` | created | 96 |
+| `src/engine/gpu/buffers.rs` | created | 129 |
+| `src/engine/gpu/upload.rs` | created | 101 |
+| `src/engine/gpu/view.rs` | created | 91 |
+| `src/engine/gpu/frame.rs` | created | 185 |
+| `src/engine/gpu/targets.rs` | created | 86 |
+| `src/engine/gpu/present.rs` | created | 125 |
+| `src/engine/gpu/mod.rs` | edited | 1379 (was 2125) |
+| `src/app/scene.rs`, `src/state.rs`, `src/lib.rs`, `src/selftest.rs` | edited | — |
+
+The build only compiles again at the end: create the seven files first, then edit `gpu/mod.rs`.
+
+## Step 1 — `src/engine/gpu/device.rs`
+
+The instance → surface → adapter → device → surface-format negotiation, moved out of `Gpu::build`
+into `open`, which hands back a `DeviceSetup` and keeps nothing.
+
+**Create `src/engine/gpu/device.rs`**
 
 ```rust
-    pub pipe_buffer: wgpu::Buffer,
-    pub pipe_count: u32,
-    pub pipe_cap: u64,
+//! Device negotiation: instance -> surface -> adapter -> device + queue -> surface format.
+//! Produces one `DeviceSetup` and owns nothing afterwards: no buffer, no pipeline, no frame
+//! state. Headless callers pass no window and get no surface.
+
+use std::sync::Arc;
+use winit::window::Window;
+
+/// What `open` negotiated: the surface (None when headless), the device/queue pair, and the
+/// surface configuration it was configured with.
+pub struct DeviceSetup {
+    pub surface: Option<wgpu::Surface<'static>>,
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pub config: wgpu::SurfaceConfiguration,
+}
+
+/// Set up the wgpu objects in order: Instance -> Surface -> Adapter -> Device + Queue -> configure.
+/// `size` is the canvas in pixels; a zero side is clamped to 1 so the surface can be configured.
+pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Result<DeviceSetup> {
+    // 1. Instance — the driver entry point. WebGPU only in the browser, never WebGL.
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: if cfg!(target_arch = "wasm32") {
+            wgpu::Backends::BROWSER_WEBGPU
+        } else {
+            wgpu::Backends::PRIMARY //Vulkan / Metal / DX12 for native selftest
+        },
+        flags: Default::default(),
+        memory_budget_thresholds: Default::default(),
+        backend_options: Default::default(),
+        display: None,
+    });
+
+    // 2. Surface — the drawable canvas. 3. Adapter — a physical GPU compatible with it.
+    let surface = match &window { Some(w) => Some(instance.create_surface(w.clone())?), None => None };
+    // LowPower = the iGPU the compositor runs on. On hybrid laptops the discrete GPU renders
+    // fine but its frames can't be shared to the compositor - the canvas stays black.
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::LowPower,
+            compatible_surface: surface.as_ref(),
+            force_fallback_adapter: false,
+        })
+        .await?;
+    let info = adapter.get_info();
+    log::info!("adapter: {} ({:?}, {:?})", info.name, info.device_type, info.backend);
+    if info.device_type == wgpu::DeviceType::Cpu {
+        log::warn!("software adapter - rendering on the CPU will be slow");
+    }
+
+    // Limit to 128 mb, then the flat merge becomes the grid
+    let mut limits = wgpu::Limits::default();
+    let hw = adapter.limits();
+    limits.max_storage_buffer_binding_size = hw.max_storage_buffer_binding_size;
+    limits.max_buffer_size = hw.max_buffer_size;
+
+    // 4. Device (creates resources) + Queue (submits work).
+    let (device, queue) = adapter
+        .request_device(&wgpu::DeviceDescriptor {
+            label: None,
+            required_features: wgpu::Features::empty(),
+            required_limits: limits,  // unlock the WEBGpu storage buffers
+            memory_hints: Default::default(),
+            ..Default::default()
+        })
+        .await?;
+
+    device.on_uncaptured_error(Arc::new(|e|{ log::error!("wgpu on_uncaptured_error: {e}") }));
+
+    // 5. Configure the surface: pixel format (prefer sRGB), size, vsync.
+    // Headless has no capabilities to ask, so pick the format the readback path wants.
+    let (format, present_mode, alpha_mode) = match &surface {
+        Some(s) => {
+            let caps = s.get_capabilities(&adapter);
+            let f = caps.formats.iter().find(|f| f.is_srgb()).copied().unwrap_or(caps.formats[0]);
+            (f, caps.present_modes[0], caps.alpha_modes[0])
+        }
+        None => (
+            wgpu::TextureFormat::Rgba8UnormSrgb,
+            wgpu::PresentMode::Fifo,
+            wgpu::CompositeAlphaMode::Auto,
+        ),
+    };
+    let config = wgpu::SurfaceConfiguration {
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        format,
+        width: size.0.max(1),
+        height: size.1.max(1),
+        present_mode,
+        alpha_mode,
+        view_formats: vec![],
+        desired_maximum_frame_latency: 2,
+    };
+    if let Some(s) = &surface { s.configure(&device, &config); }
+
+    Ok(DeviceSetup { surface, device, queue, config })
+}
 ```
 
-and then `segment_*`, `sphere_*`, `glyph_*`, `point_*`, `point_col_*`, `point_nrm_*`, the four
-arena runs, the instance table, the stream lane. Ten of the thirteen are appended by one function
-— the last grep's number — and three grow by hand in the same shape. Its signature currently reads:
+## Step 2 — `src/engine/gpu/buffers.rs`
 
-```rust
-fn append_rows<T: bytemuck::Pod>(
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
-    label: &str,
-    buf: &mut wgpu::Buffer,
-    count: &mut u32,
-    cap: &mut u64,
-    data: &[T],
-) -> bool {
-```
-
-Seven parameters, four of which are one value split into four; the first two are the pair `grep`
-just found ten times. Wherever both handles are needed, they are needed together.
-
-That is the whole lesson. `GpuCtx` folds the pair, `GrowBuf` names the triple, and the four files
-under them — `frame.rs`, `targets.rs`, `present.rs`, `view.rs` — take everything that belongs to
-no family, so lessons 48-50 can hand a family its own file and find nothing generic left in it.
-
-### 1b. The law this enforces, stated as what it forbids
-
-> **The floor knows no lane.** Nothing in `buffers.rs`, `frame.rs`, `targets.rs`, `present.rs` or
-> `view.rs` may name a row type, a `.wgsl` file or a `Geometry::` variant — and `upload.rs`, on
-> the other side of the same line, may not name a `wgpu::` type. A buffer, its count and its cap
-> are ONE value; a knob is not a uniform.
-
-A family that needs something from the floor gets it as a parameter (`&GpuCtx`, `&Binds`,
-`&Targets`), never by the floor learning about the family. Lessons 47, 48 and 49 each move a
-family under this floor; a `CylinderSegment`-shaped hole would have to be widened three times.
-
-### 1c. The rejected alternative
-
-The obvious cut is `RowTable<T>` right now — `GrowBuf` plus a CPU-side `Vec<T>`, the bind group
-and a `guid → Range` map, so a lane is one generic value and `set_scene` is a loop. **Do not make
-it.** That CPU mirror is the second copy of the scene lessons 37 and 39 spent themselves deleting:
-263 MB of browser heap freed on a 13.8 M-point lidar scan, precisely by *not* keeping the rows
-after upload. `append_rows` already returns the `grew` bool, which is all lessons 46-52 need. It
-lands at **57**, where the reconcile pass is the first caller that needs the `guid → Range` half.
-
-## 2. Where the code lives after this lesson
-
-| symbol | today's home | new home | who may touch it |
-|---|---|---|---|
-| `device`, `queue` | two `Gpu` fields, passed as a pair 10× | **`buffers.rs::GpuCtx`** | everything under `gpu/`, as `&GpuCtx` — never held |
-| `GrowBuf { buf, count, cap, usage, label }` | 43 fields spelling it out | **`buffers.rs`** | each family folds its own copy in, at 47-49 |
-| `append_rows`, `append_index_run`, `zeroed_buffer`, `mk_rows_group` | free fns + one `impl Gpu` assoc fn in `gpu/mod.rs` | **`buffers.rs`** | anything under `gpu/`; knows no row format |
-| `ArenaUpload` | `gpu/mod.rs`, next to the GPU it feeds | **`upload.rs::Upload`** | `app/` writes it, `Gpu::set_scene` reads it, nobody else |
-| `drop_rows` + the 14-line drop sweep | `app/scene.rs` | **`upload.rs::Upload::drop_uploaded`** | `Scene::upload_to` only |
-| `mvp_*`, `line_*`, `time*`, `cloud_buffer`, `cloud_bind_group`, `mvp_f32`, `last_ortho_h`, `last_eye` | 12 `Gpu` fields | **`frame.rs::FrameUniforms`** | the frame encoder writes; families READ through `Binds` |
-| `LineUniform`, `CloudUniform`, `line_thickness_px` | bottom of `gpu/mod.rs` | **`frame.rs`** | `write_camera`/`write_cloud` and `Gpu::build`'s two literals |
-| the 6 group-0-to-2 bind groups at 42 draw sites | `&self.<x>_bind_group` | **`frame.rs::Binds<'a>`** | taken once, before the pass opens (B3) |
-| `depth_view`, `msaa_view`, `samples`, `create_depth_view`, `create_msaa_view` | 3 fields + 2 assoc fns | **`targets.rs::Targets`** | `resize`, `set_scene`'s MSAA flip, `begin_pass` |
-| the 24-line `RenderPassDescriptor` | inline in `encode_frame` | **`targets.rs::begin_pass`** | every encoder under `gpu/`, 4 params |
-| `clear`, `render_offscreen`, `bench_frames` | `impl Gpu` in `gpu/mod.rs` | **`present.rs`** | `state.rs` and the headless harness |
-| `line_style`, `show_points`, `show_lines`, `show_mesh_edges`, `cloud_size`, `edl_strength`, `lod_split_px` | 7 `Gpu` fields, 4 of them reading env in the struct literal | **`view.rs::View` + `from_env`** | `lib.rs`'s key handler writes; the encoder reads |
-
-The compartment, and what crosses each boundary:
-
-```text
-              app/scene.rs  ---- &Upload, 19 columns ---->  Gpu::set_scene
-                    |                                             |
-                    v                                             |
-            +-----------------+                                   |
-            |   upload.rs     |  Upload · drop_uploaded           |
-            |  no `wgpu::`    |  the app/engine line              |
-            +-----------------+                                   v
-  +--------------------------------------------------------------------------+
-  | engine/gpu/mod.rs   Gpu { surface, ctx, config, layouts, pipelines,       |
-  |                           frame, targets, view, … }   86 fields (was 106) |
-  | build · set_scene · encode_frame · resize · msaa_now · rebase_anchor      |
-  +----+------------+-------------+---------------+--------------+-----------+
-       |            |             |               |              |
-   &GpuCtx     &FrameInput    &TextureView    &mut Encoder   &View (read)
-   bool grew   Binds<'a>      RenderPass<'e>  Option<Frame>   Q W E L [ ]
-       v            v             v               v              v
-  buffers.rs    frame.rs      targets.rs      present.rs      view.rs
-  GpuCtx        FrameUniforms Targets         Frame           View
-  GrowBuf       FrameInput    new             begin_present   from_env
-  append_rows   Binds         begin_pass      end_present     line_style
-  append_index  write_camera  depth: Texture  clear           show_points
-  zeroed_buffer write_cloud   msaa:  Texture  render_offscr   show_lines
-  mk_rows_group LineUniform   samples         bench_frames    show_mesh_edges
-                CloudUniform                                  cloud_size
-                line_thick_px                                 edl_strength
-                                                              lod_split_px
-  --------------------------------------------------------------------------
-   not one of the five names a row type, a `.wgsl` file or a Geometry:: variant
-```
-
-**Exit litmus, grep it when you are done:**
-
-```bash
-grep -c 'wgpu::' src/engine/gpu/upload.rs
-grep -nE 'CylinderSegment|GlyphPoint|RenderVertex|include_str!' \
-     src/engine/gpu/buffers.rs src/engine/gpu/frame.rs src/engine/gpu/targets.rs \
-     src/engine/gpu/present.rs src/engine/gpu/view.rs
-```
-
-`0`, and no output. The first says `upload.rs` is app-side data; the second says the floor knows
-no lane.
-
-## 3. Files we touch
-
-| file | what | step | why |
-|---|---|---|---|
-| `src/engine/gpu/buffers.rs` | **NEW, 140 lines** | 4.1, 6.1, 6.2 | a buffer, its count and its cap are one value |
-| `src/engine/gpu/upload.rs` | **NEW, 110 lines** | 4.2, 6.3 | the app/engine line deserves a file, not a neighbour |
-| `src/engine/gpu/view.rs` | **NEW, 50 lines** | 4.3, 6.4 | a knob gates a draw; it is not a uniform |
-| `src/engine/gpu/frame.rs` | **NEW, 177 lines** | 4.4, 6.5 | what every shader reads, once per frame |
-| `src/engine/gpu/targets.rs` | **NEW, 88 lines** | 4.5, 6.6 | what a pass writes into, and the one descriptor |
-| `src/engine/gpu/present.rs` | **NEW, 162 lines** | 4.6, 6.7 | the three ways a frame leaves the encoder |
-| `src/engine/gpu/mod.rs` | 2139 → **1691** | 6.1-6.7 | loses the floor; keeps `build`, `set_scene`, `encode_frame` |
-| `src/app/scene.rs` | 1365 → **1340** | 6.3 | `drop_rows` and the 14-line sweep go with the table |
-| `src/lib.rs` | 5 Replace-alls | 6.4 | the key handler now toggles `gpu.view.*` |
-| `src/selftest.rs` | 2 Replace-alls | 6.4 | two knob reads |
-
-**Line budgets.** A bad paste is visible by size alone: `buffers.rs` = **140**, `upload.rs` =
-**110**, `view.rs` = **50**, `frame.rs` = **177**, `targets.rs` = **88**, `present.rs` = **162**.
-727 new lines against 473 cut, so the tree gains **254**. Off by more than a line or two? Re-read
-the file before you run the gate.
-
-New code this lesson may invent: `GpuCtx`, `GrowBuf`, `FrameInput`, `Binds`, `Frame`,
-`begin_present`/`end_present`, `View::from_env`, `Targets`, and the six `//!` headers. Everything
-else already existed. Shape taken while a body is moving — `usage`/`label` on `GrowBuf`, the two
-`LoadOp` parameters on `begin_pass`, the depth kept as a `Texture` — is free; the rest §9 defers.
-
-## 4. The six destination files, created first
-
-Every new file is created before anything is cut, so each step is a deletion plus a re-point, not
-a two-ended edit you cannot compile in the middle of, and almost every move can land `at the end`.
-
-`targets.rs` arrives with its bodies already in it, because **a Move that also renames is two
-edits pretending to be one**: `Targets::new` is the two `create_*_view` bodies fused, and
-`begin_pass` loses four spaces of indent. Step 6.6 is then three deletions; the rest are skeletons.
-
-### 4.1 `src/engine/gpu/buffers.rs`
-
-`GpuCtx` and `GrowBuf` are the two genuinely new values here. Nothing constructs `GrowBuf` yet —
-each family folds its own triple in at 47-49 — so it carries `#[allow(dead_code)]` until 47. The
-`label` field is not decoration: without it, the binding-size error a scene throws the first time
-it crosses a cap names an anonymous buffer.
+`GpuCtx` is the device/queue pair every resource is made with; `GrowBuf` is the one growable
+table, the body of the old `append_rows` with its count and capacity inside.
 
 **Create `src/engine/gpu/buffers.rs`**
 
 ```rust
-//! `buffers.rs` — the floor beneath the five families (ARCHITECTURE.md §4).
-//!
-//! Owns the two values every family is built from: `GpuCtx`, the device+queue pair a family is
-//! handed instead of holding (F4), and `GrowBuf`, one growable row table — its buffer, the rows
-//! already on it, and the rows that fit — plus the four free functions that append to and bind
-//! one. Callable by anything under `engine/gpu/`; it knows no shader, no row format and no
-//! `Geometry::` variant, which is what "floor" means.
+//! The GPU floor every lane stands on: `GpuCtx` (device + queue), `GrowBuf` (a table that
+//! grows by appending, its live prefix copied GPU-side), `Template` (a unit mesh drawn N
+//! times) and the two buffer helpers. No lane, no shader and no per-frame state lives here.
 
-/// The two wgpu handles every buffer operation needs, as ONE value.
-///
-/// A family never HOLDS these (F4) - it is handed `&GpuCtx` at the call, which is what keeps
-/// `new`/`append`/`rebind` at three parameters instead of four and lets one `let Gpu { ctx, .. }`
-/// destructure serve every lane in a body (§7 B1).
+use bytemuck::Pod;
+use wgpu::util::DeviceExt;
+
+/// The device/queue pair every resource is made with and every write goes through.
 pub struct GpuCtx {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
 }
 
-/// A growable GPU row table: the buffer, the rows already ON it, and the rows that FIT.
-///
-/// The three always move together - `append_rows` takes all three by `&mut` and writes all three
-/// - and `Gpu` carries that triple twelve times over, which is thirty-three of its fields. Each
-/// family collapses its own copy into this struct as it is created (47-49), so `pipe_count`
-/// becomes `pipes.count` and the arithmetic that keeps them in step stops being spelled out at
-/// every call site.
-///
-/// `usage` and `label` ride along because growth RE-CREATES the buffer: the new one must be made
-/// with the same usage flags, and it must keep the same name or the binding-size error a scene
-/// throws the moment it crosses a cap names an anonymous buffer. Sixteen distinct labels are in
-/// use today.
-///
-/// Nothing constructs one YET: `Gpu` still carries the twelve triples spread flat, and each is
-/// folded here by the lesson that creates its family - so the attribute comes off at 47, with
-/// `Arena`.
-#[allow(dead_code)]
+/// A growable GPU table: capacity doubles when it runs out, the live prefix is copied GPU-side
+/// and only the new rows are written. Appending is what lets the CPU copy go after upload -
+/// a lane that rebuilt its whole buffer per file had to keep every row twice.
 pub struct GrowBuf {
     pub buf: wgpu::Buffer,
-    pub count: u32,
-    pub cap: u64,
-    pub usage: wgpu::BufferUsages,
-    pub label: &'static str,
-}
-```
-
-### 4.2 `src/engine/gpu/upload.rs`
-
-Header and imports only — the table itself is moved in, whole, at step 6.3.
-
-**Create `src/engine/gpu/upload.rs`**
-
-```rust
-//! `upload.rs` — the CPU side of one `set_scene` (ARCHITECTURE.md §4).
-//!
-//! Owns `Upload`: every row `app::scene::Scene` walks, handed to `Gpu::set_scene` once and then
-//! forgotten. Written by `app/`, read by `engine/gpu/`, and it names no wgpu type in either
-//! direction - which is the line between the two halves of the viewer. It reads no shader and
-//! no `Geometry::` variant; the walk decides which column a variant lands in.
-//!
-//! It arrives here FLAT - one struct, nineteen columns, today's names. Each family regroups its
-//! own columns into a `<Family>Rows` sink as it is created (47-49), so a producer can be handed
-//! the two columns it may write instead of all nineteen.
-
-use crate::math::Mat4;
-use session_rust::RenderVertex;
-
-use super::{CloudDraw, CylinderSegment, GlyphPoint, LodNode};
-```
-
-### 4.3 `src/engine/gpu/view.rs`
-
-Three of the seven knobs are single lines scattered through `Gpu`, so they are typed here; the
-other four are a contiguous block, moved in at 6.4. `from_env` splits the same way: three
-`VIEWER_*` reads below, four defaults moved in.
-
-**Create `src/engine/gpu/view.rs`**
-
-```rust
-//! `view.rs` — the runtime knobs (ARCHITECTURE.md §4, §5.6).
-//!
-//! Owns `View`: every toggle the keyboard reaches. A knob GATES a draw or PICKS a pipeline -
-//! `show_lines` decides whether the ribbon draw happens at all, `line_style` decides which of
-//! two pipelines the edge table is drawn through - and it is never a uniform: nothing here is
-//! written into a buffer or read by a `.wgsl` file. Read by the frame encoder, written by the
-//! key handler in `lib.rs`; a family never reads it, it is TOLD.
-
-use super::LineStyle;
-
-/// The knobs, as one value on `Gpu`.
-pub struct View {
-    pub cloud_size: f32, // global SCALE on per-cloud sizes, [ and ] keys
-    pub edl_strength: f32, // Eye-Dome Lighting strength; 0 = off (VIEWER_EDL)
-    pub lod_split_px: f32, // octree LOD cutoff: descend while a node's spacing projects wider; 0 = off (VIEWER_LOD)
+    len: u32,
+    cap: u64,
+    stride: u64,
+    usage: wgpu::BufferUsages,
+    label: &'static str,
 }
 
-impl View {
-    /// The startup values. Four knobs read a `VIEWER_*` env var, which is native-only - on wasm
-    /// `std::env::var` always fails, so the browser gets the defaults and query strings like
-    /// `?thickness=` are the only runtime knob there.
-    pub fn from_env() -> Self {
-        Self {
-            cloud_size: std::env::var("VIEWER_CLOUD_SCALE").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0),
-            edl_strength: std::env::var("VIEWER_EDL").ok().and_then(|v| v.parse().ok()).unwrap_or(0.25),
-            lod_split_px: std::env::var("VIEWER_LOD").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0),
+impl GrowBuf {
+    /// One zeroed row: wgpu cannot bind a 0-byte buffer, and `len` starts at 0 so nothing
+    /// draws from it. COPY_SRC is what lets a grown buffer take the old prefix GPU-side.
+    pub fn new(ctx: &GpuCtx, label: &'static str, stride: u64, usage: wgpu::BufferUsages) -> Self {
+        let buf = zeroed_buffer(&ctx.device, label, stride, usage);
+
+        Self { buf, len: 0, cap: 1, stride, usage, label }
+    }
+
+    /// Append rows. Returns `true` when the buffer was replaced, so the caller knows to rebuild
+    /// the bind group pointing at it.
+    pub fn append<T: Pod>(&mut self, ctx: &GpuCtx, data: &[T]) -> bool {
+        debug_assert_eq!(std::mem::size_of::<T>() as u64, self.stride);
+
+        if data.is_empty() {
+            return false;
         }
-    }
-}
-```
-
-### 4.4 `src/engine/gpu/frame.rs`
-
-Three structs and an empty impl. `FrameUniforms` is the twelve `Gpu` fields collected;
-`FrameInput` is what the two writers READ, so they take three parameters instead of six; `Binds`
-is groups 0-2 for one frame, every field a `&` for the reason §5 gives.
-
-**Create `src/engine/gpu/frame.rs`**
-
-```rust
-//! `frame.rs` — what every shader reads, once per frame (ARCHITECTURE.md §4, seam A3/S5).
-//!
-//! Owns the three uniform blocks that are not any one family's: the camera matrix (group 0), the
-//! pen/`LineUniform` block (group 1) and the cloud block, each with its buffer and bind group,
-//! plus the camera values the CPU caches for the same frame. `ribbon.wgsl`, `cylinder.wgsl`,
-//! `sphere.wgsl`, `glyph.wgsl` and `grid.wgsl` all declare `LineUniform`; `splat.wgsl` and
-//! `splat_resolve.wgsl` declare `CloudUniform`. Written once by the frame encoder, read by every
-//! family through `Binds` - a family never writes a uniform (F5).
-
-use session_rust::{Point, Xform};
-
-use crate::engine::pipelines::Pipelines;
-
-use super::buffers::GpuCtx;
-use super::{View, eye_from_view_proj, ortho_half_height};
-
-/// The per-frame uniform blocks, as one value on `Gpu`.
-pub struct FrameUniforms {
-    pub(super) mvp_buffer: wgpu::Buffer,            // Camera matrix
-    pub(super) mvp_bind_group: wgpu::BindGroup,     // Camera matrix
-    pub(super) line_buffer: wgpu::Buffer, // shared: px-sizing for cylinders + spheres
-    pub(super) line_bind_group: wgpu::BindGroup,
-    pub(super) time: f32,  // shared: animation
-    pub(super) time_buffer: wgpu::Buffer,
-    pub(super) time_bind_group: wgpu::BindGroup,
-    pub(super) cloud_buffer: wgpu::Buffer,
-    pub(super) cloud_bind_group: wgpu::BindGroup,
-    pub(super) mvp_f32: [f32; 16],
-    pub(super) last_ortho_h: f32, // ortho half-height this frame (0=perspective), for the plat k
-    pub(super) last_eye: [f32; 3], // eye in anchored world units, for the LOD screen-error test
-}
-
-/// Everything `write_camera`/`write_cloud` READ, as one borrowed value.
-///
-/// It exists so those two take three parameters instead of six, and so the read set is written
-/// down: the surface size, this frame's view-projection, the anchor the instance rows are rebased
-/// about, and the knobs. `anchor` is `None` until the first rebase.
-pub struct FrameInput<'a> {
-    pub config: &'a wgpu::SurfaceConfiguration,
-    pub view_proj: &'a Xform,
-    pub anchor: Option<&'a Point>,
-    pub view: &'a View,
-}
-
-/// Groups 0-2 for one frame, plus the pipelines - all of it SHARED (§7 B3).
-///
-/// Every field is a `&`, which is the whole point: a `RenderPass<'e>` borrows the encoder for the
-/// pass's entire lifetime, so anything read inside the pass must already be a shared reborrow
-/// taken before it. One `&mut` in here and no draw would compose.
-pub struct Binds<'a> {
-    pub(crate) p: &'a Pipelines,
-    pub(crate) mvp: &'a wgpu::BindGroup,
-    pub(crate) time: &'a wgpu::BindGroup,
-    pub(crate) line: &'a wgpu::BindGroup,
-    pub(crate) cloud: &'a wgpu::BindGroup,
-    pub(crate) instances: &'a wgpu::BindGroup,
-}
-
-impl FrameUniforms {
-}
-```
-
-### 4.5 `src/engine/gpu/targets.rs`
-
-Created whole. `Targets::new` is the two `create_*_view` bodies fused — same textures, sizes and
-sample count, with three changes: each local is named after the field it becomes, the TEXTURE is
-kept and not just its view, and depth gains `TEXTURE_BINDING`. `begin_pass` is `encode_frame`'s
-descriptor one indent shallower, with the two `LoadOp` literals as parameters.
-
-Keeping `depth` as a `wgpu::Texture` is the free shape here: a view cannot be re-viewed and a
-usage flag cannot be added after creation, so a lesson that wants to SAMPLE the depth would
-otherwise change this field's type and every line that reads it. `depth_load: Option<LoadOp<f32>>`
-is the other: `None` means no depth attachment, which is what lesson 80's gumball overlay needs.
-
-**Create `src/engine/gpu/targets.rs`**
-
-```rust
-//! `targets.rs` — the attachments a render pass writes into (ARCHITECTURE.md §4, seam S2a).
-//!
-//! Owns the reverse-Z depth texture and the multisampled colour target, the sample count they
-//! were built at, and `begin_pass` - the one place a `RenderPassDescriptor` is spelled out. Every
-//! encoder under `engine/gpu/` opens its pass through it; no `.wgsl` file and no row format is
-//! named here. Sample count belongs to the PASS, so it cannot be chosen per family (see
-//! `Gpu::msaa_now`).
-
-/// The frame's attachments, as one value on `Gpu`.
-///
-/// The TEXTURES are kept, not just their views. A view cannot be re-viewed and a usage flag
-/// cannot be added after creation, so keeping `depth` (with `TEXTURE_BINDING` already on) is what
-/// lets a later pass SAMPLE the depth without any field here changing type.
-pub struct Targets {
-    #[allow(dead_code)] // read by 88's GTAO and 113's hi-Z, which sample this texture
-    pub(super) depth: wgpu::Texture,
-    pub(super) depth_view: wgpu::TextureView,
-    #[allow(dead_code)] // same: 107 reads the resolved colour back
-    pub(super) msaa: wgpu::Texture,
-    pub(super) msaa_view: wgpu::TextureView,
-    pub(super) samples: u32, // MSAA sample count this scene chose (see `msaa_for`)
-}
-
-impl Targets {
-    /// Create the reverse-Z depth texture and the multisampled colour target the frame
-    /// renders into (resolved to the surface each frame), both sized to the surface.
-    pub(crate) fn new(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration, samples: u32) -> Self {
-        let depth = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("depth"),
-            size: wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1},
-            mip_level_count: 1,
-            sample_count: samples,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
-            view_formats: &[],
-        });
-        let depth_view = depth.create_view(&wgpu::TextureViewDescriptor::default());
-        let msaa = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("msaa_color"),
-            size: wgpu::Extent3d{ width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1},
-            mip_level_count: 1,
-            sample_count: samples,
-            dimension: wgpu::TextureDimension::D2,
-            format: config.format,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
-        let msaa_view = msaa.create_view(&wgpu::TextureViewDescriptor::default());
-        Self { depth, depth_view, msaa, msaa_view, samples }
+        let stride = self.stride;
+        let need = self.len as u64 + data.len() as u64;
+        let mut grew = false;
+        if need > self.cap {
+            let new_cap = need.max(self.cap * 2);
+            let nb = zeroed_buffer(&ctx.device, self.label, new_cap * stride, self.usage);
+            if self.len > 0 {
+                // the prefix moves GPU-side; it never travels back through wasm memory
+                let mut enc = ctx.device.create_command_encoder(&Default::default());
+                enc.copy_buffer_to_buffer(&self.buf, 0, &nb, 0, self.len as u64 * stride);
+                ctx.queue.submit([enc.finish()]);
+            }
+            self.buf = nb;
+            self.cap = new_cap;
+            grew = true;
+        }
+        ctx.queue.write_buffer(&self.buf, self.len as u64 * stride, bytemuck::cast_slice(data));
+        self.len += data.len() as u32;
+        grew
     }
 
-    /// Open the scene pass. `load` is what happens to the colour attachment, `depth_load` to the
-    /// depth one - `None` means no depth attachment at all, which is what an overlay pass that
-    /// must not test against the scene wants.
-    pub(crate) fn begin_pass<'e>(
-        &self,
-        encoder: &'e mut wgpu::CommandEncoder,
-        target: &wgpu::TextureView,
-        load: wgpu::LoadOp<wgpu::Color>,
-        depth_load: Option<wgpu::LoadOp<f32>>,
-    ) -> wgpu::RenderPass<'e> {
-        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("clear pass"),
-            // MSAA off (samples == 1): draw straight to the swapchain view - a
-            // 1-sample attachment must NOT carry a resolve target.
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: if self.samples > 1 { &self.msaa_view } else { target },
-                resolve_target: if self.samples > 1 { Some(target) } else { None },
-                depth_slice: None,
-                ops: wgpu::Operations {
-                    load,
-                    store: wgpu::StoreOp::Store,
-                },
-            })],
-            depth_stencil_attachment: depth_load.map(|load| wgpu::RenderPassDepthStencilAttachment {
-                view: &self.depth_view,
-                depth_ops: Some(
-                    wgpu::Operations{load,
-                    store:wgpu::StoreOp::Store,
-                }),
-                stencil_ops: None }),
-            timestamp_writes: None,
-            occlusion_query_set: None,
-            multiview_mask: None,
+    /// Forget the rows; the buffer and its capacity stay, so a rebuild costs no allocation.
+    pub fn reset(&mut self) {
+        self.len = 0;
+    }
+
+    /// Rows on the GPU - the base for the next append and the instance count of a draw.
+    pub fn len(&self) -> u32 {
+        self.len
+    }
+
+    /// No rows: the draw that reads this table is skipped.
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+}
+
+/// A unit mesh drawn N times by an instanced lane (the cylinder, the marker quad).
+pub struct Template {
+    pub vbo: wgpu::Buffer,
+    pub ibo: wgpu::Buffer,
+    pub index_count: u32,
+}
+
+impl Template {
+    /// Upload positions and indices once; `label` names the lane (`<label>.vbo`, `<label>.ibo`).
+    pub fn new(ctx: &GpuCtx, label: &str, verts: &[[f32; 3]], idx: &[u32]) -> Self {
+        let vbo = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some(&format!("{label}.vbo")),
+            contents: bytemuck::cast_slice(verts),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let ibo = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some(&format!("{label}.ibo")),
+            contents: bytemuck::cast_slice(idx),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+
+        Self { vbo, ibo, index_count: idx.len() as u32 }
+    }
+}
+
+/// A fresh buffer of `size` bytes, zero-initialized by WebGPU - the write_buffer splice and the
+/// empty-category placeholders both rely on that guarantee.
+pub fn zeroed_buffer(
+    device: &wgpu::Device,
+    label: &str,
+    size: u64,
+    usage: wgpu::BufferUsages
+) -> wgpu::Buffer {
+    device.create_buffer(
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size,
+            usage,
+            mapped_at_creation: false,
         })
-    }
 }
-```
-
-### 4.6 `src/engine/gpu/present.rs`
-
-`Frame` and an empty `impl Gpu`. The three methods are moved in at 6.7, and `begin_present` /
-`end_present` are cut out of `clear`'s own body there — so nothing of them is typed twice.
-
-**Create `src/engine/gpu/present.rs`**
-
-```rust
-//! `present.rs` — getting a finished frame onto the screen, or into a buffer (§4, seam S1b).
-//!
-//! Owns the three ways a frame LEAVES the encoder: the swapchain (`begin_present`/`end_present`,
-//! and `clear` as their composition), a readback texture (`render_offscreen`, which is what the
-//! pixel gate drives) and a timing loop (`bench_frames`). It encodes nothing itself - every one
-//! of them calls `encode_frame` in `mod.rs` - and it names no shader and no row format.
-//!
-//! `begin_present` and `end_present` are split so a caller can append its OWN pass to the same
-//! encoder, in a fixed order, before the frame is submitted: that is how the UI layer will draw
-//! without `engine/` ever naming it.
-
-use session_rust::Xform;
-
-use super::Gpu;
-
-/// One frame in flight: what was acquired, where it draws, and the commands so far.
-///
-/// `surface` is `None` for a frame that has nothing to present. `view` and `encoder` are public
-/// because the point of the split is that a later pass can use them.
-pub struct Frame {
-    surface: Option<wgpu::SurfaceTexture>,
-    #[allow(dead_code)] // read by 69's egui pass and 74's overlay, which draw into this view
-    pub view: wgpu::TextureView,
-    pub encoder: wgpu::CommandEncoder,
-}
-
-impl Gpu {
-}
-```
-
-### 4.7 The six module lines
-
-`view.rs` is declared and re-exported here rather than in its own step, because `frame.rs` says
-`use super::View` and would not compile without it.
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-use crate::engine::performance::Performance;
-```
-
-**Add below it:**
-
-```rust
-
-pub mod buffers;
-pub mod frame;
-pub mod present;
-pub mod targets;
-pub mod upload;
-pub mod view;
-pub use view::View;
-```
-
-Gate. Six modules, no callers yet. The unused-import and never-read warnings it prints are the
-worklist for §6 — every one is answered by a step below.
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-wc -l src/engine/gpu/*.rs
-```
-
-```text
-   42 src/engine/gpu/buffers.rs     140 when 6.1 and 6.2 are done
-   60 src/engine/gpu/frame.rs       177
- 2147 src/engine/gpu/mod.rs        1691
-   28 src/engine/gpu/present.rs     162
-   88 src/engine/gpu/targets.rs      88   created whole, and already final
-   15 src/engine/gpu/upload.rs      110
-   29 src/engine/gpu/view.rs         50
-```
-
-## 5. Where the borrow checker bites — B1, and it bites in the next step
-
-Read this before you type 6.2 — the one place where a hand-typing reader is likely to conclude
-the refactor was wrong, when what is wrong is the shape of the call.
-
-> **The failing form.** Once `device` and `queue` are one field, appending looks like a method:
->
-> ```rust
-> impl Gpu {
->     fn append_pipes(&mut self, rows: &[CylinderSegment]) -> bool {
->         append_rows(&self.ctx, "pipes.buffer",
->             &mut self.pipe_buffer, &mut self.pipe_count, &mut self.pipe_cap, rows)
->     }
-> }
-> // and then, in set_scene:
-> if self.append_pipes(&up.pipes) { self.rebind_pipes(); }
-> ```
->
-> **The error.** `error[E0499]: cannot borrow *self as mutable more than once at a time`, or
-> `error[E0502]: cannot borrow self.ctx as immutable because it is also borrowed as mutable`, the
-> moment two lanes appear in one body. **A method borrows ALL of `self`.**
->
-> **The compiling form** borrows FIELDS, which are disjoint places:
->
-> ```rust
-> let Gpu { ctx, layouts, arena, seg, glyphs, .. } = self;   // ONE destructure
-> if arena.append(ctx, &up.arena) { arena.rebind(ctx, layouts); }
-> if seg  .append(ctx, &up.seg)   { seg  .rebind(ctx, layouts); }
-> ```
->
-> **The rule.** Pass `&GpuCtx`; never hold it. A free function or a method on the LANE takes
-> `(ctx, …)`, and the caller borrows `ctx` and the lane as two separate fields of `Gpu` — which is
-> why every family method is `fn append(&mut self, ctx: &GpuCtx, rows: &Rows) -> bool`.
->
-> **It recurs** whenever two lanes are touched in one body: at 47, 48, 49 and 51. Today is the
-> easy case — the calls stay free functions, so `append_rows(&self.ctx, …, &mut self.pipe_buffer,
-> …)` is already two disjoint field borrows. Type it that way now and 47's method is right.
-
-## 6. The steps
-
-Leaves before roots, one file per step, and the field list changes LAST within a step. Each step
-is the round trip: extend the destination, move the bodies to the end, Replace-all the paths
-INSIDE the new file, move the fields, fix the call sites, delete the dead forwarders, gate.
-
-A move pastes its region with a blank line in front. That is right at the end of a file; inside an
-item the next edit is a **stitch** — a `Find` spanning the blank line to join the halves. Every
-stitch is marked, and each is where the body's signature or indent changes.
-
-### 6.1 `buffers.rs` — the four functions that know no lane
-
-`append_rows`, `append_index_run` and `zeroed_buffer` are free functions in `gpu/mod.rs`;
-`mk_rows_group` is an associated function on `Gpu` that never reads a field. Four bodies, none of
-which knows what a row means — the definition of the floor.
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-pub use view::View;
-```
-
-**Add below it:**
-
-```rust
-use buffers::{GpuCtx, append_index_run, append_rows, mk_rows_group, zeroed_buffer};
-```
-
-`GpuCtx` comes along unused until the next step — one warning, and the import line is already in
-its final form, which is what ladder 2 wants.
-
-Now the two appenders: the twelve-line doc comment plus all of `append_rows`, 45 lines ending on
-`}` at column 0. The doc's first two lines wrongly describe the index run below it, and they stay
-wrong — **a body you are moving is not a body you are fixing.**
-
-**Move** `src/engine/gpu/mod.rs`
-
-```rust
-/// Grow-and-append one index run. Same shape as the solid arena's own append: the existing
-```
-
-**through**
-
-```rust
-}
-```
-
-**to** `src/engine/gpu/buffers.rs` **at the end**
-
-**Move** `src/engine/gpu/mod.rs` `fn append_index_run(` **through** `}` **to** `src/engine/gpu/buffers.rs` **at the end**
-
-28 lines, ending on the same `}`. Both are private in `gpu/mod.rs` and public in the floor, which
-is one word each:
-
-**Replace-all** `src/engine/gpu/buffers.rs` `fn append_rows` → `pub fn append_rows` (1 hit)
-
-**Replace-all** `src/engine/gpu/buffers.rs` `fn append_index_run` → `pub fn append_index_run` (1 hit)
-
-Two cuts, three blank lines left where two functions used to be:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-const INK_DEPTH_PREPASS: bool = false;
-
-
-
-/// One cloud's contiguous point range, as the record builder sees it. It was a
-```
-
-**Replace with:**
-
-```rust
-const INK_DEPTH_PREPASS: bool = false;
-
-/// One cloud's contiguous point range, as the record builder sees it. It was a
-```
-
-`mk_rows_group` is the one body here that cannot be moved: inside `impl Gpu`, it lands one indent
-shallower, and a move that also re-indents is two edits pretending to be one. Typed here, cut there.
-
-**Find** in `src/engine/gpu/buffers.rs`:
-
-```rust
-    queue.write_buffer(ibo, *count as u64 * 4, bytemuck::cast_slice(data));
-    *count += data.len() as u32;
-}
-```
-
-**Add below it:**
-
-```rust
 
 /// One read-only storage buffer at binding 0 - the shape every ink lane's bind group has.
-pub fn mk_rows_group(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, label: &str, buf: &wgpu::Buffer) -> wgpu::BindGroup {
-    device.create_bind_group(&wgpu::BindGroupDescriptor {
+pub fn rows_group(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, label: &str, buf: &wgpu::Buffer) -> wgpu::BindGroup {
+    ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some(label),
         layout,
         entries: &[wgpu::BindGroupEntry { binding: 0, resource: buf.as_entire_binding() }],
@@ -698,378 +327,90 @@ pub fn mk_rows_group(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, labe
 }
 ```
 
-**Find** in `src/engine/gpu/mod.rs`:
+## Step 3 — `src/engine/gpu/upload.rs`
+
+`ArenaUpload` becomes `Upload`, unchanged in shape, with `Default` and `drop_uploaded` (the
+fourteen `drop_rows` calls that lived in `scene.rs`).
+
+**Create `src/engine/gpu/upload.rs`**
 
 ```rust
-    /// One read-only storage buffer at binding 0 - the shape every ink lane's bind group has.
-    fn mk_rows_group(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, label: &str, buf: &wgpu::Buffer) -> wgpu::BindGroup {
-        device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some(label),
-            layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: buf.as_entire_binding() }],
-        })
-    }
-
-    fn rebuild_splat_groups(&mut self){
-```
-
-**Replace with:**
-
-```rust
-    fn rebuild_splat_groups(&mut self){
-```
-
-**Replace-all** `src/engine/gpu/mod.rs` `Self::mk_rows_group` → `mk_rows_group` (9 hits)
-
-If that count is not 9, you cut the wrong region — every one of the nine is a bind group built
-over one storage buffer, four in `build` and five in `set_scene`.
-
-Last, `zeroed_buffer`. Its doc comment is not above it — a lesson-36 edit glued it to the top of
-`line_thickness_px`'s doc, twenty lines down. Move the function, then re-home the comment.
-
-**Move** `src/engine/gpu/mod.rs` `fn zeroed_buffer(` **through** `}` **to** `src/engine/gpu/buffers.rs` **at the end**
-
-**Replace-all** `src/engine/gpu/buffers.rs` `fn zeroed_buffer` → `pub fn zeroed_buffer` (1 hit)
-
-**Find** in `src/engine/gpu/buffers.rs`:
-
-```rust
-pub fn zeroed_buffer(
-```
-
-**Add above it:**
-
-```rust
-/// A fresh buffer of `size` bytes, zero-initialized by WebGPU - the write_buffer splice and the empty-category placeholders both rely on that guarantee.
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-/// A fresh buffer of `size` bytes, zero-initialized by WebGPU - the write_buffer splice and the empty-category placeholders both rely on that guarantee.
-/// On-screen pen weight in px. Default 2.0.
-```
-
-**Replace with:**
-
-```rust
-/// On-screen pen weight in px. Default 2.0.
-```
-
-`buffers.rs` so far — the table of contents you should be able to read off the file:
-
-```text
-  1-  7  //! header — the floor, and what it may not know
-  9- 17  GpuCtx { device, queue }
- 19- 42  GrowBuf { buf, count, cap, usage, label }   #[allow(dead_code)] until 47
- 44- 89  append_rows — grow, copy the prefix GPU-side, write the tail, return `grew`
- 91-117  append_index_run
-119-126  mk_rows_group — one storage buffer at binding 0
-128-142  zeroed_buffer
-```
-
-Gate:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-wc -l src/engine/gpu/buffers.rs src/engine/gpu/mod.rs      # 142  2049
-```
-
-### 6.2 `device` and `queue` become `ctx`
-
-Ten call sites pass the two as a pair, and every family from 47 on is handed the pair rather than
-holding it. Fold them: the floor's two signatures, then the ten pairs, then the leftovers.
-
-**Find** in `src/engine/gpu/buffers.rs`:
-
-```rust
-pub fn append_rows<T: bytemuck::Pod>(
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
-```
-
-**Replace with:**
-
-```rust
-pub fn append_rows<T: bytemuck::Pod>(
-    ctx: &GpuCtx,
-```
-
-**Find** in `src/engine/gpu/buffers.rs`:
-
-```rust
-pub fn append_index_run(
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
-```
-
-**Replace with:**
-
-```rust
-pub fn append_index_run(
-    ctx: &GpuCtx,
-```
-
-Four Replace-alls re-root the two bodies. `zeroed_buffer` and `mk_rows_group` keep their
-`&wgpu::Device` parameter, which is why this is four narrow substitutions and not one rename:
-
-**Replace-all** `src/engine/gpu/buffers.rs` `zeroed_buffer(device,` → `zeroed_buffer(&ctx.device,` (2 hits)
-
-**Replace-all** `src/engine/gpu/buffers.rs` `enc = device.create_command_encoder` → `enc = ctx.device.create_command_encoder` (2 hits)
-
-**Replace-all** `src/engine/gpu/buffers.rs` `queue.submit([enc.finish()]);` → `ctx.queue.submit([enc.finish()]);` (2 hits)
-
-**Replace-all** `src/engine/gpu/buffers.rs` `queue.write_buffer` → `ctx.queue.write_buffer` (2 hits)
-
-Now `gpu/mod.rs`. The two fields become one, and their two trailing comments become one — the only
-comment on an existing line that this lesson rewrites:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    pub device: wgpu::Device,                // Handle to the GPU, used to create resources (textures, buffers, pipelines).
-    pub queue: wgpu::Queue,                  // Used to submit work to the GPU (draw calls, resource updates).
-```
-
-**Replace with:**
-
-```rust
-    // `device` makes GPU resources (textures, buffers, pipelines), `queue` submits work to the
-    // GPU (draw calls, resource updates). One value, so a family is HANDED `&GpuCtx` (F4).
-    pub ctx: GpuCtx,
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-            surface,
-            device,
-            queue,
-            config,
-```
-
-**Replace with:**
-
-```rust
-            surface,
-            ctx: GpuCtx { device, queue },
-            config,
-```
-
-The two locals in `build` keep their names — `GpuCtx { device, queue }` is field-init shorthand,
-so nothing else in that 400-line constructor changes. Then the ten pairs:
-
-**Replace-all** `src/engine/gpu/mod.rs` `&self.device, &self.queue,` → `&self.ctx,` (10 hits)
-
-Three places are re-rooted by hand first: the two `create_*_view` call sites, which 6.6 deletes
-whole, and the `submit` in `clear`, which 6.7 turns into `end_present`. `--moves` cannot cancel a
-line the sweep renames and a later step deletes, so these five by hand keep ladder 2 silent:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-            self.depth_view = Self::create_depth_view(&self.device, &self.config, samples);
-            self.msaa_view = Self::create_msaa_view(&self.device, &self.config, samples);
-```
-
-**Replace with:**
-
-```rust
-            self.depth_view = Self::create_depth_view(&self.ctx.device, &self.config, samples);
-            self.msaa_view = Self::create_msaa_view(&self.ctx.device, &self.config, samples);
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-            self.depth_view = Self::create_depth_view(&self.device, &self.config, self.samples);
-            self.msaa_view = Self::create_msaa_view(&self.device, &self.config, self.samples);
-```
-
-**Replace with:**
-
-```rust
-            self.depth_view = Self::create_depth_view(&self.ctx.device, &self.config, self.samples);
-            self.msaa_view = Self::create_msaa_view(&self.ctx.device, &self.config, self.samples);
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-        let (draws, objects) = self.encode_frame(&mut encoder, &view, color);
-        self.queue.submit([encoder.finish()]);
-        output.present();
-```
-
-**Replace with:**
-
-```rust
-        let (draws, objects) = self.encode_frame(&mut encoder, &view, color);
-        self.ctx.queue.submit([encoder.finish()]);
-        output.present();
-```
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.device` → `self.ctx.device` (33 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.queue` → `self.ctx.queue` (25 hits)
-
-33 and 25, after the ten pairs and the five hand-edited lines are gone. If your counts are 47 and
-36 you ran these two first; undo and do them in the printed order. One hit is inside a
-commented-out block in `rebuild_instances` — re-rooting a comment that quotes code is right.
-
-Gate. This is where a `&mut self` method would have failed (§5): every call takes `&self.ctx`
-beside a `&mut self.<field>`, which are disjoint places:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-grep -c 'self\.device\|self\.queue' src/engine/gpu/mod.rs        # 0
-./docs/_gate.sh
-```
-
-### 6.3 `upload.rs` — `ArenaUpload` becomes `Upload`, moved flat
-
-`ArenaUpload` is the app's side of `set_scene`: nineteen columns of rows, written by
-`app::scene::Scene`, read once by `Gpu`, then dropped. It names no `wgpu` type, so `gpu/mod.rs` is
-the one place it does not belong. It moves **flat**; 47, 48 and 49 regroup the columns per family.
-
-**Move** `src/engine/gpu/mod.rs`
-
-```rust
-/// Everything `Gpu` needs to fill its buffers, built and owened by `app::scene::Scene`,
-```
-
-**through**
-
-```rust
-}
-```
-
-**to** `src/engine/gpu/upload.rs` **at the end**
-
-**Move** `src/engine/gpu/mod.rs` `impl ArenaUpload {` **through** `}` **to** `src/engine/gpu/upload.rs` **at the end**
-
-**Replace-all** `src/engine/gpu/upload.rs` `ArenaUpload` → `Upload` (2 hits)
-
-Same tidy-up as 6.1 — two regions cut, three blank lines left:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    pub children: [i32; 8],
+//! `Upload` - the walked rows on their way to the GPU: every family's table for one file (a
+//! DELTA) plus the cumulative object columns. Built by `app::scene::Scene`, borrowed by
+//! `Gpu::set_scene`, then emptied. No wgpu type and no kernel type but `RenderVertex` here.
+
+use crate::math::{Aabb, Mat4};
+use session_rust::RenderVertex;
+use super::{CloudDraw, CylinderSegment, GlyphPoint, LodNode};
+
+/// Everything `Gpu` needs to fill its buffers, built and owned by `app::scene::Scene`;
+/// the engine borrows it, uploads, and forgets.
+/// Lanes stay apart (SOLID pipes/spheres vs flat segments/glyphs)
+/// and are spliced solid-first at upload.
+/// `objects` holds the TRUE per-object transform + tint + flags.
+/// `Gpu` builds instance rows from it and rebases them as the camera moves.
+/// No Mesh, no Session, no wgpu type on the app side of this line.
+pub struct Upload {
+    pub verts: Vec<RenderVertex>,
+    pub vids: Vec<u32>,
+    pub idx: Vec<u32>,
+    pub pipes: Vec<CylinderSegment>, // Solid lane: Mesh/Brep edges, drawn as 3D cylinders
+    pub spheres: Vec<GlyphPoint>, // Solid lane: Mesh/Brep vertices, radius matched to the pipes
+    pub segments: Vec<CylinderSegment>, // Flat lane: line/polyline, drawn as camera-facing ribbons
+    pub glyphs: Vec<GlyphPoint>, // Flat lane: points, draw as SDF dots,
+    pub cloud_pos: Vec<f32>, // Raw lane: 3 floats per point, 12 B
+    pub cloud_col: Vec<u32>, // Raw lane: RBGA8 per point, 4 B
+    pub cloud_nrm: Vec<u32>, // Raw lane: oct16 normal per point (u32::MAX = none), 4 B -> 20 B/pt
+    pub cloud_nodes: Vec<LodNode>, // every walked cloud's octree nodes; a draw owns one slice
+    pub cloud_draws: Vec<CloudDraw>, // first, count, instance, point spacing world units
+    /// Sheet lanes. A PDF's fills are exactly coplanar, so they must NOT arbitrate by depth -
+    /// they are split off the solid index run and drawn in document order with depth write off.
+    /// `idx_text` is the lettering, drawn LAST of all, after the ink lanes, because a page puts
+    /// its text on top of both its hatching and its linework.
+    pub idx_print: Vec<u32>,
+    pub idx_text: Vec<u32>,
+    pub objects: Vec<(Mat4, [f32; 4], u32)>,
+    /// Mesh-local AABB per object row, aligned with `objects`. None for linework/points/clouds:
+    /// only the solid lane's facing cull needs it (see `Instance::FLAG_INSIDE`).
+    pub object_bounds: Vec<Option<([f32; 3], [f32; 3])>>,
+    /// Vertex spacing per object row, world units, aligned with `objects`. 0 = unknown (linework,
+    /// points, clouds), which the ink lanes read as "never density-cull".
+    pub object_spacing: Vec<f32>,
+    pub bounds: Aabb,
 }
 
-
-
-/// How the SOLID lane draws mesh/BRep edges. Both read the SAME `CylinderSegment` table, so
-```
-
-**Replace with:**
-
-```rust
-    pub children: [i32; 8],
-}
-
-/// How the SOLID lane draws mesh/BRep edges. Both read the SAME `CylinderSegment` table, so
-```
-
-**Replace-all** `src/engine/gpu/mod.rs` `ArenaUpload` → `Upload` (4 hits)
-
-Four in `gpu/mod.rs`: `set_scene`'s parameter and three comments. Then the re-export, so
-`crate::engine::gpu::Upload` keeps working for `app/` and the examples:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-pub mod view;
-```
-
-**Add below it:**
-
-```rust
-pub use upload::Upload;
-```
-
-**Replace-all** `src/app/scene.rs` `ArenaUpload` → `Upload` (5 hits)
-
-Now the sweep that empties the table after an upload: fourteen `drop_rows` calls in
-`Scene::upload_to`, reaching into `Upload`'s columns through a `let t = &mut self.tables` — a
-method on `Upload` written out longhand at the call site. Both halves go to the table.
-
-**Find** in `src/app/scene.rs`:
-
-```rust
-        let t = &mut self.tables;
-        drop_rows(&mut t.verts);
-        drop_rows(&mut t.vids);
-        drop_rows(&mut t.idx);
-        drop_rows(&mut t.idx_print);
-        drop_rows(&mut t.idx_text);
-        drop_rows(&mut t.pipes);
-        drop_rows(&mut t.segments);
-        drop_rows(&mut t.spheres);
-        drop_rows(&mut t.glyphs);
-        drop_rows(&mut t.cloud_pos);
-        drop_rows(&mut t.cloud_col);
-        drop_rows(&mut t.cloud_nrm);
-        drop_rows(&mut t.cloud_draws);
-        drop_rows(&mut t.cloud_nodes);
-        // `objects`, `object_bounds` and `object_spacing` STAY: they are per-object rows the
-        // instance table is rebased from every time the camera re-anchors, and the walk indexes
-        // them by global row - they are the one table the GPU is not the only holder of.
-```
-
-**Replace with:**
-
-```rust
-        self.tables.drop_uploaded();
-```
-
-**Find** in `src/app/scene.rs`:
-
-```rust
-/// Empty a table AND hand its allocation back. `clear()` alone keeps the capacity, which on
-/// these tables is the whole point of the exercise - a scan's cleared-but-capacious `cloud_pos`
-/// holds exactly as much wasm heap as a full one.
-fn drop_rows<T>(v: &mut Vec<T>) {
-    v.clear();
-    v.shrink_to_fit();
-}
-
-/// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes
-```
-
-**Replace with:**
-
-```rust
-/// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes
-```
-
-The other end — the one place a moved body is retyped rather than cut: `t.verts` becomes
-`self.verts` fourteen times, and `Upload::new`'s closing brace becomes `impl Upload`'s.
-
-**Find** in `src/engine/gpu/upload.rs`:
-
-```rust
-            min: [f32::INFINITY; 3],
-            max: [f32::NEG_INFINITY; 3],
+impl Default for Upload {
+    /// Every lane empty and the box inverted, ready for the first walk.
+    fn default() -> Self {
+        Self {
+            verts: Vec::new(),
+            vids: Vec::new(),
+            idx: Vec::new(),
+            pipes: Vec::new(),
+            spheres: Vec::new(),
+            segments: Vec::new(),
+            glyphs: Vec::new(),
+            cloud_pos: Vec::new(),
+            cloud_col: Vec::new(),
+            cloud_nrm: Vec::new(),
+            cloud_draws: Vec::new(),
+            cloud_nodes: Vec::new(),
+            idx_print: Vec::new(),
+            idx_text: Vec::new(),
+            objects: Vec::new(),
+            object_bounds: Vec::new(),
+            object_spacing: Vec::new(),
+            bounds: Aabb::empty(),
         }
     }
 }
-```
 
-**Replace with:**
-
-```rust
-            min: [f32::INFINITY; 3],
-            max: [f32::NEG_INFINITY; 3],
-        }
-    }
-
-    /// Hand every UPLOADED column's allocation back - the GPU is their only holder now.
-    ///
-    /// Fourteen of the nineteen columns; `objects`, `object_bounds` and `object_spacing` stay,
-    /// and `min`/`max` are not rows.
+impl Upload {
+    /// Forget the uploaded rows: the GPU is their only holder now. Every drawn table goes -
+    /// nothing reads them back (picking goes through the kernel Meshes in `Doc.session`), and a
+    /// kept copy is what let lanes rebuild whole buffers per file. `objects`, `object_bounds`
+    /// and `object_spacing` STAY: the instance table is rebased from them on every re-anchor,
+    /// and the walk indexes them by global row.
     pub fn drop_uploaded(&mut self) {
         drop_rows(&mut self.verts);
         drop_rows(&mut self.vids);
@@ -1085,9 +426,6 @@ The other end — the one place a moved body is retyped rather than cut: `t.vert
         drop_rows(&mut self.cloud_nrm);
         drop_rows(&mut self.cloud_draws);
         drop_rows(&mut self.cloud_nodes);
-        // `objects`, `object_bounds` and `object_spacing` STAY: they are per-object rows the
-        // instance table is rebased from every time the camera re-anchors, and the walk indexes
-        // them by global row - they are the one table the GPU is not the only holder of.
     }
 }
 
@@ -1100,627 +438,825 @@ fn drop_rows<T>(v: &mut Vec<T>) {
 }
 ```
 
-`upload.rs` so far:
+## Step 4 — `src/engine/gpu/view.rs`
 
-```text
-  1- 10  //! header — the app/engine line
- 12- 15  use Mat4 · RenderVertex · CloudDraw · CylinderSegment · GlyphPoint · LodNode
- 17- 52  Upload — 19 columns
- 54-102  impl Upload — `new`, then `drop_uploaded` and its 14 columns
-104-110  drop_rows
-```
+Every runtime knob read once, at start: the three show toggles, the line style, the cloud
+scale, EDL, LOD, the pen weight, and the marker switch that `encode_frame` used to read from
+the environment on every frame.
 
-Gate — `check_lean` is the test that would notice if a column stopped being dropped:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-grep -c 'wgpu::' src/engine/gpu/upload.rs      # 0
-./docs/_gate.sh
-```
-
-### 6.4 `view.rs` — seven knobs become one field
-
-A **knob is not a uniform.** `show_points` gates a draw; `line_style` picks a pipeline; neither is
-written into a buffer and no `.wgsl` has seen one. `show_points`, `show_lines` and `show_mesh_edges`
-were typed after the plan was measured, which is why `View` takes seven and not the four budgeted.
-
-The four with doc comments are a contiguous block in `Gpu`, so they are cut whole:
-
-**Move** `src/engine/gpu/mod.rs`
+**Create `src/engine/gpu/view.rs`**
 
 ```rust
-    /// Solid-lane style; `VIEWER_LINE_STYLE=flat` picks Flat at startup.
-```
-
-**through** `    pub show_mesh_edges: bool,` **to** `src/engine/gpu/view.rs` **after** `pub struct View {`
-
-Stitch — the paste leaves a blank line under the struct head:
-
-**Find** in `src/engine/gpu/view.rs`:
-
-```rust
-pub struct View {
-
-    /// Solid-lane style; `VIEWER_LINE_STYLE=flat` picks Flat at startup.
-```
-
-**Replace with:**
-
-```rust
-pub struct View {
-    /// Solid-lane style; `VIEWER_LINE_STYLE=flat` picks Flat at startup.
-```
-
-Their four startup values are contiguous too, in the `Gpu` struct literal at the bottom of
-`build`, and land in `from_env` at the same indentation:
-
-**Move** `src/engine/gpu/mod.rs` `            show_points: true,` **through** `            },` **to** `src/engine/gpu/view.rs` **after** `        Self {`
-
-Stitch:
-
-**Find** in `src/engine/gpu/view.rs`:
-
-```rust
-        Self {
-
-            show_points: true,
-```
-
-**Replace with:**
-
-```rust
-        Self {
-            show_points: true,
-```
-
-Now the `Gpu` side. The end-state head is `surface, ctx, config, layouts, pipelines, frame,
-targets, view`, and each step from here inserts its own field into it:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    pub pipelines: Pipelines,
-```
-
-**Add below it:**
-
-```rust
-    /// The runtime knobs - what the keyboard toggles (`view.rs`). A knob gates a draw or
-    /// picks a pipeline; it is never a uniform, and no `.wgsl` file ever sees one.
-    pub view: View,
-```
-
-The other three knobs are single lines wedged between unrelated fields, so each is cut against
-the line above it:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    pub cloud_buffer: wgpu::Buffer,
-    pub cloud_size: f32, // global SCALE on per-cloud sizes, [ and ] keys
-```
-
-**Replace with:**
-
-```rust
-    pub cloud_buffer: wgpu::Buffer,
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    last_rebase_ms: f64, // throttle - a 210k-row rebase costs ~25 ms, one per frame is jank
-    pub edl_strength: f32, // Eye-Dome Lighting strength; 0 = off (VIEWER_EDL)
-```
-
-**Replace with:**
-
-```rust
-    last_rebase_ms: f64, // throttle - a 210k-row rebase costs ~25 ms, one per frame is jank
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    last_eye: [f32; 3], // eye in anchored world units, for the LOD screen-error test
-    pub lod_split_px: f32, // octree LOD cutoff: descend while a node's spacing projects wider; 0 = off (VIEWER_LOD)
-```
-
-**Replace with:**
-
-```rust
-    last_eye: [f32; 3], // eye in anchored world units, for the LOD screen-error test
-```
-
-Then the struct literal. Three `std::env::var` reads leave `Gpu::build` for `View::from_env`, the
-only expression this lesson relocates rather than copies:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-            point_count,
-            cloud_buffer,
-            cloud_size: std::env::var("VIEWER_CLOUD_SCALE").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0),
-            last_rebase_ms: 0.0,
-            edl_strength: std::env::var("VIEWER_EDL").ok().and_then(|v| v.parse().ok()).unwrap_or(0.25),
-            last_ortho_h: 0.0,
-            last_eye: [0.0; 3],
-            lod_split_px: std::env::var("VIEWER_LOD").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0),
-            cloud_bind_group,
-```
-
-**Replace with:**
-
-```rust
-            point_count,
-            view: View::from_env(),
-            cloud_buffer,
-            last_rebase_ms: 0.0,
-            last_ortho_h: 0.0,
-            last_eye: [0.0; 3],
-            cloud_bind_group,
-```
-
-Seven readers inside the frame encoder, one substitution each. The counts are the map of who
-actually reads a knob — two draw gates per lane, one pipeline choice, three cloud sizes:
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.show_points` → `self.view.show_points` (2 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.show_lines` → `self.view.show_lines` (2 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.show_mesh_edges` → `self.view.show_mesh_edges` (2 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.line_style` → `self.view.line_style` (1 hit)
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.cloud_size` → `self.view.cloud_size` (3 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.edl_strength` → `self.view.edl_strength` (1 hit)
-
-**Replace-all** `src/engine/gpu/mod.rs` `self.lod_split_px` → `self.view.lod_split_px` (2 hits)
-
-The key handler in `lib.rs` is the only writer, and the headless harness reads two:
-
-**Replace-all** `src/lib.rs` `state.gpu.show_points` → `state.gpu.view.show_points` (3 hits)
-
-**Replace-all** `src/lib.rs` `state.gpu.show_lines` → `state.gpu.view.show_lines` (3 hits)
-
-**Replace-all** `src/lib.rs` `state.gpu.show_mesh_edges` → `state.gpu.view.show_mesh_edges` (3 hits)
-
-**Replace-all** `src/lib.rs` `state.gpu.line_style` → `state.gpu.view.line_style` (3 hits)
-
-**Replace-all** `src/lib.rs` `state.gpu.cloud_size` → `state.gpu.view.cloud_size` (6 hits)
-
-**Replace-all** `src/selftest.rs` `gpu.cloud_size` → `gpu.view.cloud_size` (1 hit)
-
-**Replace-all** `src/selftest.rs` `gpu.line_style` → `gpu.view.line_style` (1 hit)
-
-`view.rs` so far:
-
-```text
-  1-  7  //! header — a knob gates a draw, it is never a uniform
-  9      use super::LineStyle
- 11- 29  View — line_style · show_points · show_lines · show_mesh_edges
-         · cloud_size · edl_strength · lod_split_px
- 31- 50  View::from_env — the four defaults and the three VIEWER_* reads
-```
-
-Gate. `VIEWER_LINE_STYLE=tubes` is the config that proves `line_style` still arrives from the
-environment, and `_gate.sh` runs it on every scene:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-./docs/_gate.sh
-```
-
-### 6.5 `frame.rs` — what every shader reads, once per frame
-
-Three uniform blocks belong to no family: the camera matrix every vertex shader reads at group 0,
-the pen block five shaders read at group 1, and the cloud block the splat pair reads. Twelve `Gpu`
-fields carry them, and one function writes all of them.
-
-Start with that function's body. `write_camera` and `write_cloud` are the two halves of one
-24-line block; only the last line of `write_frame_uniforms` (`update_inside_flags`) stays behind.
-
-**Move** `src/engine/gpu/mod.rs` `        // Time for triangle wgsl buffer.` **through** `        }));` **to** `src/engine/gpu/frame.rs` **at the end**
-
-Stitch, and open `write_camera` over it:
-
-**Find** in `src/engine/gpu/frame.rs`:
-
-```rust
-impl FrameUniforms {
+//! `View` - the runtime knobs a frame reads: what to show, how the solid ink is drawn, the
+//! cloud / EDL / LOD scalars and the pen weight. Read from the environment (or the query
+//! string) ONCE at startup; the key handlers in lib.rs flip them afterwards. No GPU here.
+
+/// How the SOLID lane draws mesh/BRep edges. Both read the SAME `CylinderSegment` table, so
+/// switching costs one branch at the draw site and nothing in memory - which is the whole reason
+/// the two lanes were built over one buffer. Easy3D ships exactly this pair
+/// (`lines_cylinders_*` against `lines_plain_*_width_control`) and lets you pick.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum LineStyle {
+    /// A real 3D tube per edge: 12 triangles, and the radius lifts the ink off the surface it
+    /// decorates so silhouette edges never lose the depth test.
+    Tubes,
+    /// A camera-facing quad per edge: 6 vertices, the flat lane's own shader. Cheaper, and it
+    /// lies IN the surface rather than proud of it.
+    Flat,
 }
 
-        // Time for triangle wgsl buffer.
-```
+/// The knobs one frame reads.
+pub struct View {
+    /// Point markers - the FLAT lane's dots. `Q`.
+    pub show_points: bool,
+    /// Lines and polylines - the FLAT lane's ribbons. `W`.
+    pub show_lines: bool,
+    /// Mesh/BRep edges and their vertex markers - the SOLID lane. `E`. ON by default; turn it
+    /// off for a model whose outlines are drawn as polylines too, where the mesh's own topology
+    /// gives those edges a second time and two strokes a fraction of a pixel apart read as one.
+    pub show_mesh_edges: bool,
+    /// Vertex markers on top of the solid ink; `BENCH_NO_MARKERS` turns them off for timing.
+    pub markers: bool,
+    /// Solid-lane style; `VIEWER_LINE_STYLE=tubes` picks Tubes at startup.
+    pub line_style: LineStyle,
+    /// Global SCALE on per-cloud point sizes, `[` and `]` keys (`VIEWER_CLOUD_SCALE`).
+    pub cloud_size: f32,
+    /// Eye-Dome Lighting strength; 0 = off (`VIEWER_EDL`).
+    pub edl_strength: f32,
+    /// Octree LOD cutoff: descend while a node's spacing projects wider; 0 = off (`VIEWER_LOD`).
+    pub lod_split_px: f32,
+    /// On-screen pen weight, px (`VIEWER_THICKNESS` natively, `?thickness=` on wasm).
+    pub thickness_px: f32,
+}
 
-**Replace with:**
+impl View {
+    /// Read every knob once. Env vars are unreachable on wasm, so there the defaults hold and
+    /// only the pen weight has a query-string override.
+    pub fn from_env() -> Self {
+        let tubes = std::env::var("VIEWER_LINE_STYLE").map(|v| v.eq_ignore_ascii_case("tubes")).unwrap_or(false);
 
-```rust
-impl FrameUniforms {
-    /// Per-frame uniforms: time, camera, and the line/pen block.
-    pub(crate) fn write_camera(&mut self, ctx: &GpuCtx, f: &FrameInput<'_>) {
-        // Time for triangle wgsl buffer.
-```
-
-Split the two halves at the line where one uniform ends and the next begins:
-
-**Find** in `src/engine/gpu/frame.rs`:
-
-```rust
-        self.ctx.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
-        self.ctx.queue.write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&CloudUniform{
-```
-
-**Replace with:**
-
-```rust
-        self.ctx.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
-    }
-
-    /// The cloud block: the global point-size scale and the EDL strength the resolve pass reads.
-    pub(crate) fn write_cloud(&self, ctx: &GpuCtx, f: &FrameInput<'_>) {
-        self.ctx.queue.write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&CloudUniform{
-```
-
-Close it, and add the one genuinely new function here. `binds` is not a convenience: it is the
-only way groups 0-2 can be read inside a render pass — six shared reborrows taken before it opens.
-
-**Find** in `src/engine/gpu/frame.rs`:
-
-```rust
-            _pad: self.view.edl_strength, // EDL strength, read by the splat resolve
-        }));
-```
-
-**Add below it:**
-
-```rust
-    }
-
-    /// Groups 0-2 for this frame. `instances` is the object table's bind group, which lives
-    /// outside this file - `Gpu` hands it in rather than `frame` reaching for it.
-    pub(crate) fn binds<'a>(&'a self, p: &'a Pipelines, instances: &'a wgpu::BindGroup) -> Binds<'a> {
-        Binds {
-            p,
-            mvp: &self.mvp_bind_group,
-            time: &self.time_bind_group,
-            line: &self.line_bind_group,
-            cloud: &self.cloud_bind_group,
-            instances,
+        Self {
+            show_points: true,
+            show_lines: true,
+            show_mesh_edges: true,
+            markers: std::env::var("BENCH_NO_MARKERS").is_err(),
+            line_style: if tubes { LineStyle::Tubes } else { LineStyle::Flat },
+            cloud_size: env_f32("VIEWER_CLOUD_SCALE", 1.0),
+            edl_strength: env_f32("VIEWER_EDL", 0.25),
+            lod_split_px: env_f32("VIEWER_LOD", 1.0),
+            thickness_px: thickness_px(),
         }
     }
 }
+
+/// A float knob from the environment; `default` when unset or unparsable.
+fn env_f32(name: &str, default: f32) -> f32 {
+    std::env::var(name).ok().and_then(|v| v.parse().ok()).unwrap_or(default)
+}
+
+/// On-screen pen weight in px, default 2.0 - the floor at which 4x MSAA has something to
+/// work with: a 1 px pen lands on one or two coverage samples and resolves dim and broken,
+/// and the density taper (`WIRE_MIN_PENS`) can thin it to 0.15 of that on a dense mesh.
+/// `?thickness=1.5` tunes an embed without a rebuild; `VIEWER_THICKNESS` does the same natively.
+fn thickness_px() -> f32 {
+    #[cfg(target_arch = "wasm32")]
+    {
+        return web_sys::window()
+            .and_then(|w| w.location().search().ok())
+            .and_then(|search| {
+                search
+                    .trim_start_matches('?')
+                    .split('&')
+                    .find_map(|pair| pair.strip_prefix("thickness=").map(str::to_owned))
+            })
+            .and_then(|value| value.parse().ok())
+            .filter(|px: &f32| px.is_finite() && *px > 0.0)
+            .unwrap_or(2.0);
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::env::var("VIEWER_THICKNESS").ok().and_then(|v| v.parse().ok()).unwrap_or(2.0)
+    }
+}
 ```
 
-Now the re-roots — the payoff of a struct that owns exactly the right fields. `self.time_buffer`,
-`self.mvp_buffer`, `self.line_buffer`, `self.mvp_f32`, `self.last_ortho_h` and `self.last_eye`
-**do not change at all**: `self` is a `FrameUniforms` now. Only what came from outside moves:
+## Step 5 — `src/engine/gpu/frame.rs`
 
-**Replace-all** `src/engine/gpu/frame.rs` `self.ctx.queue.write_buffer(&self.time_buffer` → `ctx.queue.write_buffer(&self.time_buffer` (1 hit)
+The three uniform buffers and their bind groups, written once per frame from a `FrameInput`
+(camera matrix + clear colour) and a `FrameCx` (knobs, anchor, size). The eye and the ortho
+half-height are solved here once and read by everyone else.
 
-**Replace-all** `src/engine/gpu/frame.rs` `self.ctx.queue.write_buffer(&self.mvp_buffer` → `ctx.queue.write_buffer(&self.mvp_buffer` (1 hit)
-
-**Replace-all** `src/engine/gpu/frame.rs` `self.ctx.queue.write_buffer(&self.line_buffer` → `ctx.queue.write_buffer(&self.line_buffer` (1 hit)
-
-**Replace-all** `src/engine/gpu/frame.rs` `self.ctx.queue.write_buffer(&self.cloud_buffer` → `ctx.queue.write_buffer(&self.cloud_buffer` (1 hit)
-
-**Find** in `src/engine/gpu/frame.rs`:
+**Create `src/engine/gpu/frame.rs`**
 
 ```rust
-        self.mvp_f32 = view_proj.to_f32();
-        self.last_ortho_h = ortho_half_height(view_proj);
-        self.last_eye = eye_from_view_proj(view_proj);
-```
+//! The per-frame uniforms every shader reads: the camera matrix (group 0), the line/pen block
+//! and the cloud block (group 1), written once per frame from a `FrameInput`. The eye and the
+//! ortho half-height are solved here ONCE and read by the splat records and the inside test.
 
-**Replace with:**
+use crate::engine::pipelines::Layouts;
+use crate::math::{eye_from_view_proj, ortho_half_height};
+use session_rust::Xform;
+use super::buffers::GpuCtx;
+use super::view::View;
+use wgpu::util::DeviceExt;
 
-```rust
-        self.mvp_f32 = f.view_proj.to_f32();
-        self.last_ortho_h = ortho_half_height(f.view_proj);
-        self.last_eye = eye_from_view_proj(f.view_proj);
-```
+/// What one frame needs from the camera, computed once per frame by the caller.
+pub struct FrameInput {
+    pub view_proj: Xform,
+    pub clear: wgpu::Color,
+}
 
-**Find** in `src/engine/gpu/frame.rs`:
+/// What `FrameUniforms::write` needs besides the camera: the knobs, the anchor the instance
+/// rows are rebased about, and the framebuffer size in pixels.
+pub struct FrameCx<'a> {
+    pub view: &'a View,
+    pub anchor: [f32; 3],
+    pub size: (u32, u32),
+}
 
-```rust
-            ortho_h: ortho_half_height(view_proj),
-```
+/// The three bind groups every family draw needs, borrowed for one pass.
+pub struct Binds<'a> {
+    pub mvp: &'a wgpu::BindGroup,
+    pub line: &'a wgpu::BindGroup,
+    pub instances: &'a wgpu::BindGroup,
+}
 
-**Replace with:**
-
-```rust
-            ortho_h: ortho_half_height(f.view_proj),
-```
-
-The fourth read is `view_proj`, deliberately NOT a Replace-all: `FrameInput` has a field of that
-name, so `view_proj` → `f.view_proj` matches five times, the fifth being the declaration. A count
-one higher than you expected has found a name you did not mean — check before you widen it.
-
-**Replace-all** `src/engine/gpu/frame.rs` `vp_h: self.config.height` → `vp_h: f.config.height` (2 hits)
-
-**Replace-all** `src/engine/gpu/frame.rs` `vp_w: self.config.width` → `vp_w: f.config.width` (2 hits)
-
-**Replace-all** `src/engine/gpu/frame.rs` `self.last_origin.as_ref()` → `f.anchor` (1 hit)
-
-**Replace-all** `src/engine/gpu/frame.rs` `size: self.view.cloud_size,` → `size: f.view.cloud_size,` (1 hit)
-
-**Replace-all** `src/engine/gpu/frame.rs` `_pad: self.view.edl_strength,` → `_pad: f.view.edl_strength,` (1 hit)
-
-Four reads, four fields on `FrameInput` — that is the seam A3 asked for, and it is why
-`write_camera` takes three parameters and not six.
-
-Next the two `#[repr(C)]` blocks the uniforms are written from. `Gpu::build` still fills each with
-its startup values, so the struct and every field become `pub(crate)`. The move takes the struct
-and the size assert; the two attribute lines above are retyped on arrival and deleted at source.
-
-**Move** `src/engine/gpu/mod.rs` `struct LineUniform{` **through** `const _: () = assert!(std::mem::size_of::<LineUniform>() == 48);` **to** `src/engine/gpu/frame.rs` **at the end**
-
-**Find** in `src/engine/gpu/frame.rs`:
-
-```rust
-struct LineUniform{
-```
-
-**Add above it:**
-
-```rust
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-```
-
-**Find** in `src/engine/gpu/frame.rs`:
-
-```rust
 struct LineUniform{
     thickness: f32, // on-screwwn width, px
     proj_y: f32, // vertical projection scale x unit scale
     ortho_h: f32, // ortho world half.heigh x unit scale
     vp_h: f32, // framebuffer height, px
     vp_w: f32, // framebuffer width, px - flat linework needs the aspect
-```
-
-**Replace with:**
-
-```rust
-pub(crate) struct LineUniform{
-    pub(crate) thickness: f32, // on-screwwn width, px
-    pub(crate) proj_y: f32, // vertical projection scale x unit scale
-    pub(crate) ortho_h: f32, // ortho world half.heigh x unit scale
-    pub(crate) vp_h: f32, // framebuffer height, px
-    pub(crate) vp_w: f32, // framebuffer width, px - flat linework needs the aspect
-```
-
-**Find** in `src/engine/gpu/frame.rs`:
-
-```rust
+    // Camera position, in the SAME anchored frame the instance rows use - so a shader can build
+    // the view ray to a point as `eye - p`. That is what the per-edge facing test needs, and it
+    // has to be the real eye rather than a constant forward direction: at this 60 degree FOV a
+    // constant direction is off by up to 30 degrees at the frame corner, and it is precisely the
+    // near-silhouette edges - the ones whose classification is in doubt - that would flip.
     eye: [f32; 3],   // 12 B - and it fills the pad WGSL leaves before `anchor`'s 16 B alignment
-```
-
-**Replace with:**
-
-```rust
-    pub(crate) eye: [f32; 3],   // 12 B - and it fills the pad WGSL leaves before `anchor`'s 16 B alignment
-```
-
-**Find** in `src/engine/gpu/frame.rs`:
-
-```rust
+    // The camera-relative ANCHOR, world units. Instance rows are rebased about it, so anything
+    // NOT an instance - the grid, the axes - has to subtract it too or it drifts away from the
+    // scene every time re-anchoring fires.
     anchor: [f32; 3],
     _pad1: f32, // 4 B - struct size rounds up to the 16 B alignment
-```
+} // 48 B - three vec4s
 
-**Replace with:**
+// The shaders declare this same struct with `anchor: vec3<f32>`, which WGSL aligns to 16 - so the
+// uniform is 48 B there, not the 32 B a naive Rust layout gives. A mismatch is not a compile error:
+// it surfaces at run time as "buffer bound with size 32 ... requires at least 48 bytes", every
+// frame, from every pipeline that binds group 1.
+const _: () = assert!(std::mem::size_of::<LineUniform>() == 48);
 
-```rust
-    pub(crate) anchor: [f32; 3],
-    pub(crate) _pad1: f32, // 4 B - struct size rounds up to the 16 B alignment
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-}                       // 40 B
-
+// Points global attributes
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-
-// One instance of the unit-sphere template.
-```
-
-**Replace with:**
-
-```rust
-}                       // 40 B
-
-// One instance of the unit-sphere template.
-```
-
-`CloudUniform` is the same shape, three lines of preamble instead of two:
-
-**Move** `src/engine/gpu/mod.rs` `struct CloudUniform{` **through** `} // 16 B - one vec4; its own buffer + bind group` **to** `src/engine/gpu/frame.rs` **at the end**
-
-**Find** in `src/engine/gpu/frame.rs`:
-
-```rust
 struct CloudUniform{
     size: f32, // global point-cloud size SCALE ([ and ] keys)
     vp_w: f32, // framebuffer width, px
     vp_h: f32, // framebuffer height, px
     _pad: f32,
-```
+} // 16 B - one vec4; its own buffer + bind group
 
-**Replace with:**
-
-```rust
-// Points global attributes
-#[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub(crate) struct CloudUniform{
-    pub(crate) size: f32, // global point-cloud size SCALE ([ and ] keys)
-    pub(crate) vp_w: f32, // framebuffer width, px
-    pub(crate) vp_h: f32, // framebuffer height, px
-    pub(crate) _pad: f32,
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
-
-// Points global attributes
-#[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-```
-
-**Replace with:**
-
-```rust
-const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
-
-//////////////////////////////////////////////////////////////////////////////////////////////////
-```
-
-And the pen width, which is read by exactly one line of `write_camera` and by nothing else:
-
-**Move** `src/engine/gpu/mod.rs` `/// On-screen pen weight in px. Default 2.0.` **through** `}` **to** `src/engine/gpu/frame.rs` **at the end**
-
-That was the last item in the file, and `zeroed_buffer` left the same tail in 6.1, so `gpu/mod.rs`
-now ends on three blank lines. The Find block below ends with **three** blank lines inside the
-fence and the replacement with **one** — the one edit here where trailing whitespace is the edit:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    (v, idx)
+/// The three uniform buffers with their bind groups, plus this frame's solved camera facts.
+pub struct FrameUniforms {
+    pub(super) mvp_buffer: wgpu::Buffer,
+    line_buffer: wgpu::Buffer,
+    pub(super) cloud_buffer: wgpu::Buffer,
+    pub mvp_group: wgpu::BindGroup,
+    pub line_group: wgpu::BindGroup,
+    pub cloud_group: wgpu::BindGroup,
+    /// This frame's camera matrix as f32: the splat static-skip key and the record fold.
+    pub mvp_f32: [f32; 16],
+    /// Ortho half-height this frame (0 = perspective), for the splat k.
+    pub ortho_h: f32,
+    /// Eye in anchored world units, for the inside test and the LOD screen-error test.
+    pub eye: [f32; 3],
 }
 
+impl FrameUniforms {
+    /// The three buffers and bind groups with no camera yet: identity mvp, a 2 px pen, size-4
+    /// clouds. The cloud block reuses the line layout (one uniform at binding 0).
+    pub fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
+        let mvp_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("mvp.buffer"),
+            contents: bytemuck::cast_slice(&Xform::identity().to_f32()),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
 
+        let mvp_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("mvp.bind_group"),
+            layout: &l.mvp,
+            entries: &[wgpu::BindGroupEntry{
+                binding: 0,
+                resource: mvp_buffer.as_entire_binding(),
+            }],
+        });
 
+        let line_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("line.buffer"),
+            contents: bytemuck::bytes_of(&LineUniform {
+                thickness: 2.0,
+                proj_y: 1.0,
+                ortho_h: 0.0,
+                vp_h: size.1 as f32,
+                vp_w: size.0 as f32,
+                eye: [0.0; 3],   // no camera until the first frame writes one
+                anchor: [0.0; 3],   // no anchor until the first frame rebases the table
+                _pad1: 0.0,
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let line_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("line.bind_group"),
+            layout: &l.line,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: line_buffer.as_entire_binding()
+            }],
+        });
+
+        let cloud_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("cloud.buffer"),
+            contents: bytemuck::bytes_of(&CloudUniform {
+                size: 4.0,
+                vp_w: size.0 as f32,
+                vp_h: size.1 as f32,
+                _pad: 0.0,
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let cloud_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("cloud.bind_group"),
+            layout: &l.line,
+            entries: &[wgpu::BindGroupEntry {binding: 0, resource: cloud_buffer.as_entire_binding()}],
+        });
+
+        Self {
+            mvp_buffer,
+            line_buffer,
+            cloud_buffer,
+            mvp_group,
+            line_group,
+            cloud_group,
+            mvp_f32: [0.0; 16],
+            ortho_h: 0.0,
+            eye: [0.0; 3],
+        }
+    }
+
+    /// Per-frame uniforms: camera, the line/pen block, and the cloud block. The eye and the
+    /// ortho half-height are solved once here and kept for the rest of the frame.
+    pub fn write(&mut self, ctx: &GpuCtx, input: &FrameInput, cx: &FrameCx) {
+        self.mvp_f32 = input.view_proj.to_f32();
+        self.ortho_h = ortho_half_height(&input.view_proj);
+        self.eye = eye_from_view_proj(&input.view_proj);
+        ctx.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&self.mvp_f32));
+
+        let line = LineUniform{
+            thickness: cx.view.thickness_px,
+            proj_y: 1.0 / (30.0_f32).to_radians().tan() * 0.001, // cot(fovy/2) mm-m unit scale
+            ortho_h: self.ortho_h,
+            vp_h: cx.size.1 as f32,
+            vp_w: cx.size.0 as f32,
+            eye: self.eye,
+            anchor: cx.anchor,
+            _pad1: 0.0,
+        };
+        ctx.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
+        ctx.queue.write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&CloudUniform{
+            size: cx.view.cloud_size,
+            vp_w: cx.size.0 as f32,
+            vp_h: cx.size.1 as f32,
+            _pad: cx.view.edl_strength, // EDL strength, read by the splat resolve
+        }));
+    }
+}
 ```
 
-**Replace with:**
+## Step 6 — `src/engine/gpu/targets.rs`
+
+The depth and MSAA attachments and the one render pass that clears them.
+
+**Create `src/engine/gpu/targets.rs`**
 
 ```rust
-    (v, idx)
+//! `Targets` - the depth and MSAA colour attachments a frame renders into, sized to the
+//! surface at the sample count the scene chose, and the one render pass that clears them.
+//! Nothing here knows what is drawn; it only opens the pass.
+
+use super::buffers::GpuCtx;
+
+/// The two attachments of the frame's render pass, and the sample count they were made at.
+pub struct Targets {
+    pub depth: wgpu::TextureView,
+    pub msaa: wgpu::TextureView,
+    pub samples: u32,
 }
 
+impl Targets {
+    /// Both attachments for `config`'s size and format at `samples` (1 or 4).
+    pub fn new(ctx: &GpuCtx, config: &wgpu::SurfaceConfiguration, samples: u32) -> Self {
+        let depth = depth_view(&ctx.device, config, samples);
+        let msaa = msaa_view(&ctx.device, config, samples);
+
+        Self { depth, msaa, samples }
+    }
+
+    /// Open the frame's render pass: colour cleared to `clear`, depth cleared to 0 (reverse-Z
+    /// far). At 1x the pass draws straight into `view`.
+    pub fn begin_pass<'a>(
+        &'a self,
+        encoder: &'a mut wgpu::CommandEncoder,
+        view: &'a wgpu::TextureView,
+        clear: wgpu::Color,
+    ) -> wgpu::RenderPass<'a> {
+        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("clear pass"),
+            // MSAA off (samples == 1): draw straight to the swapchain view - a
+            // 1-sample attachment must NOT carry a resolve target.
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: if self.samples > 1 { &self.msaa } else { view },
+                resolve_target: if self.samples > 1 { Some(view) } else { None },
+                depth_slice: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(clear),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &self.depth,
+                depth_ops: Some(
+                    wgpu::Operations{load: wgpu::LoadOp::Clear(0.0),
+                    store:wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None }),
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        })
+    }
+}
+
+/// Create the reverse-Z depth texture view, sized to the surface at the MSAA sample count.
+fn depth_view(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration, samples: u32) -> wgpu::TextureView {
+    let texture = device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("depth"),
+        size: wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1},
+        mip_level_count: 1,
+        sample_count: samples,
+        dimension: wgpu::TextureDimension::D2,
+        format: wgpu::TextureFormat::Depth32Float,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
+    });
+    texture.create_view(&wgpu::TextureViewDescriptor::default())
+}
+
+/// Create the multisampled color target the frame renders into (resolved to the surface each frame).
+fn msaa_view(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration, samples: u32) -> wgpu::TextureView {
+    let texture = device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("msaa_color"),
+        size: wgpu::Extent3d{ width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1},
+        mip_level_count: 1,
+        sample_count: samples,
+        dimension: wgpu::TextureDimension::D2,
+        format: config.format,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
+    });
+    texture.create_view(&wgpu::TextureViewDescriptor::default())
+}
 ```
 
-Back in `gpu/mod.rs`. `write_frame_uniforms` keeps its name and its one caller-visible job, and
-becomes three lines — the second of which is the borrow rule from §5 in its mildest form:
+## Step 7 — `src/engine/gpu/present.rs`
+
+`clear` and `render_offscreen` take a `FrameInput` now; `bench_frames` builds its own. The bodies are unchanged.
+
+**Create `src/engine/gpu/present.rs`**
+
+```rust
+//! The three ways a frame leaves `Gpu`: presented to the swapchain (`clear`), read back from
+//! an offscreen texture (`render_offscreen`, the native harness), or timed in a batch
+//! (`bench_frames`). Each writes the uniforms, encodes through `encode_frame`, and submits.
+
+use session_rust::Xform;
+use super::Gpu;
+use super::frame::FrameInput;
+
+impl Gpu {
+    /// Draw one frame to the swapchain. The frame ENCODING lives in `encode_frame` so a
+    /// headless harness can aim the same code at an offscreen texture and read the pixels back -
+    /// see `selftest.rs`. Shader work that is only ever checked in a browser is shader work
+    /// checked by somebody else's eyes.
+    pub fn clear(&mut self, input: &FrameInput) -> anyhow::Result<()> {
+        self.write_frame_uniforms(input);
+
+        // wgpu 29: get_current_texture() returns an enum, not a Result.
+        let Some(surface) = &self.surface else { return Ok(()) }; // headless: nothing to present
+        let output = match surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(t) | wgpu::CurrentSurfaceTexture::Suboptimal(t) => t,
+            _ => { surface.configure(&self.ctx.device, &self.config); return Ok(()); }
+        };
+        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = self.ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("clear encoder"),
+        });
+        let (draws, objects) = self.encode_frame(&mut encoder, &view, input.clear);
+        self.ctx.queue.submit([encoder.finish()]);
+        output.present();
+        self.performance.frame(draws, objects);
+        Ok(())
+    }
+
+    /// Render one frame into an offscreen texture and read the pixels back (RGBA8, tightly
+    /// packed, top row first). Native only - this is the harness that lets a shader be looked at
+    /// on this machine before it is shipped to a browser.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn render_offscreen(&mut self, input: &FrameInput) -> Vec<u8> {
+        let (w, h) = (self.config.width, self.config.height);
+        let tex = self.ctx.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("headless.color"),
+            size: wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.config.format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+        let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
+
+        // copy_texture_to_buffer needs each row padded to 256 B
+        let unpadded = w * 4;
+        let pad = (256 - unpadded % 256) % 256;
+        let padded = unpadded + pad;
+        let readback = self.ctx.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("headless.readback"),
+            size: (padded * h) as u64,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+
+        self.write_frame_uniforms(input);
+        let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
+        let (draws, objects) = self.encode_frame(&mut encoder, &view, input.clear);
+        encoder.copy_texture_to_buffer(
+            wgpu::TexelCopyTextureInfo { texture: &tex, mip_level: 0, origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All },
+            wgpu::TexelCopyBufferInfo {
+                buffer: &readback,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(padded), rows_per_image: Some(h) },
+            },
+            wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+        );
+        self.ctx.queue.submit([encoder.finish()]);
+        log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
+
+        let slice = readback.slice(..);
+        slice.map_async(wgpu::MapMode::Read, |_| {});
+        let _ = self.ctx.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+        let data = slice.get_mapped_range();
+        let mut out = Vec::with_capacity((unpadded * h) as usize);
+        for row in 0..h {
+            let a = (row * padded) as usize;
+            out.extend_from_slice(&data[a..a + unpadded as usize]);
+        }
+        drop(data);
+        readback.unmap();
+        out
+    }
+
+    /// Time `frames` full frames (encode + submit), reusing one offscreen target, and wait for
+    /// the GPU to drain. Native bench helper: returns seconds for the whole batch, warmup
+    /// excluded, so two line styles can be compared on the same scene.
+    pub fn bench_frames(&mut self, view_proj: &Xform, frames: u32) -> f64 {
+        let (w, h) = (self.config.width, self.config.height);
+        let tex = self.ctx.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("bench.color"),
+            size: wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: self.config.format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+        let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
+        let clear = wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 };
+        let input = FrameInput { view_proj: view_proj.clone(), clear };
+        self.write_frame_uniforms(&input);
+        for _ in 0..3 { // warmup: pipeline/driver caches
+            let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
+            self.encode_frame(&mut encoder, &view, clear);
+            self.ctx.queue.submit([encoder.finish()]);
+        }
+        let _ = self.ctx.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+        let t0 = std::time::Instant::now();
+        for _ in 0..frames {
+            let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
+            self.encode_frame(&mut encoder, &view, clear);
+            self.ctx.queue.submit([encoder.finish()]);
+            let _ = self.ctx.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+        }
+        t0.elapsed().as_secs_f64()
+    }
+}
+```
+
+## Step 8 — `src/engine/gpu/mod.rs`
+
+`Gpu` keeps the lanes and loses the floor: `device`/`queue` become `ctx`, the tables become
+`GrowBuf`s, the knobs `view`, the uniforms `frame`, the attachments `targets`. The edits go top
+to bottom; a Remove that stops one line short of a closing brace leaves it for the Add that
+follows.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    /// Per-frame uniforms: time, camera, and the line/pen block.
-    fn write_frame_uniforms(&mut self, view_proj: &Xform) {
-        self.update_inside_flags(view_proj);
-    }
+//! `Gpu` — our handle to the graphics card and the lowest layer of the viewer (ARCHITECTURE.md §1).
+//!
+//! It owns the three things wgpu needs to draw:
+//!   • `device` — makes GPU resources (textures, buffers, pipelines)
+//!   • `queue`  — sends work to the GPU
+//!   • `surface`— the canvas pixels we present each frame
+//! plus the `config` describing the surface size/format. It knows nothing app-specific — its whole
+//! job is "hand me a cleared frame". Higher layers sit on top and only talk to this.
+
+use crate::engine::pipelines::{Pipelines, Target, Layouts};
 ```
 
 **Replace with:**
 
 ```rust
-    /// Per-frame uniforms, then the per-object flags they feed.
-    ///
-    /// B1: `f` borrows the FIELDS `config`, `last_origin` and `view`, and `write_camera`
-    /// borrows the FIELD `frame` - four disjoint places, so this compiles. The same body
-    /// written as `self.write_camera(&f)` does not: a method borrows ALL of `self`.
-    fn write_frame_uniforms(&mut self, view_proj: &Xform) {
-        let f = FrameInput { config: &self.config, view_proj, anchor: self.last_origin.as_ref(), view: &self.view };
-        self.frame.write_camera(&self.ctx, &f);
-        self.frame.write_cloud(&self.ctx, &f);
-        self.update_inside_flags(view_proj);
-    }
-```
+//! `Gpu` - the lowest layer of the viewer (ARCHITECTURE.md §1): the surface, the `GpuCtx`
+//! (device + queue), the layouts and pipelines, the per-frame uniforms and targets, and every
+//! lane's tables. The floor it stands on lives in the child modules - device, buffers, upload,
+//! view, frame, targets, present. It knows nothing app-specific.
 
-Groups 0-2 are taken once, before the pass opens:
+pub mod buffers;
+pub mod device;
+pub mod frame;
+pub mod present;
+pub mod targets;
+pub mod upload;
+pub mod view;
+
+use crate::engine::pipelines::{Pipelines, Target, Layouts};
+use device::DeviceSetup;
+use buffers::{GpuCtx, GrowBuf, Template, zeroed_buffer, rows_group};
+pub use upload::Upload;
+pub use frame::FrameInput;
+use frame::{Binds, FrameCx, FrameUniforms};
+use targets::Targets;
+pub use view::{LineStyle, View};
+```
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+use bytemuck::bytes_of_mut;
+use session_rust::{Xform, RenderVertex, Point};
+use crate::math::{Mat4, mat_to_f32, eye_from_view_proj, ortho_half_height, Aabb};
 ```
 
 **Replace with:**
 
 ```rust
-        {
-            // Groups 0-2 for this frame, all shared, taken BEFORE the pass opens (B3).
-            let b = self.frame.binds(&self.pipelines, &self.instance_bind_group);
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+use session_rust::{Xform, RenderVertex, Point};
+use crate::math::{Mat4, mat_to_f32, Aabb};
 ```
 
-Then the draw sites. Forty-two of them, six substitutions, and the counts are worth reading as a
-census of the frame: fifteen pipeline switches, nine cameras, seven pens, eight object tables,
-two clocks and one cloud block.
-
-**Replace-all** `src/engine/gpu/mod.rs` `pass.set_pipeline(&self.pipelines` → `pass.set_pipeline(&b.p` (15 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `pass.set_bind_group(0, &self.mvp_bind_group, &[]);` → `pass.set_bind_group(0, b.mvp, &[]);` (9 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `pass.set_bind_group(1, &self.line_bind_group, &[]);` → `pass.set_bind_group(1, b.line, &[]);` (7 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `pass.set_bind_group(1, &self.time_bind_group, &[]);` → `pass.set_bind_group(1, b.time, &[]);` (2 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `pass.set_bind_group(2, &self.instance_bind_group, &[]);` → `pass.set_bind_group(2, b.instances, &[]);` (8 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `pass.set_bind_group(0, &self.cloud_bind_group, &[]);` → `pass.set_bind_group(0, b.cloud, &[]);` (1 hit)
-
-Five reads survive outside the pass — the splat compute's bind groups and the record encoder,
-which run before it:
-
-**Replace-all** `src/engine/gpu/mod.rs` `&self.mvp_buffer, &self.cloud_buffer,` → `&self.frame.mvp_buffer, &self.frame.cloud_buffer,` (2 hits)
-
-**Replace-all** `src/engine/gpu/mod.rs` `(&self.mvp_f32, &row.model)` → `(&self.frame.mvp_f32, &row.model)` (1 hit)
-
-**Replace-all** `src/engine/gpu/mod.rs` `let state = (self.mvp_f32,` → `let state = (self.frame.mvp_f32,` (1 hit)
-
-**Replace-all** `src/engine/gpu/mod.rs` `let ortho_h = self.last_ortho_h` → `let ortho_h = self.frame.last_ortho_h` (1 hit)
-
-**Replace-all** `src/engine/gpu/mod.rs` `let eye = self.last_eye;` → `let eye = self.frame.last_eye;` (1 hit)
-
-Each key is longer than the field it re-roots, deliberately: `self.mvp_buffer` alone would also
-match the line that just moved into `frame.rs`, where the path is already right. A `Replace-all`
-scopes a substitution to a file; how much of the line you put in the key scopes it to a site.
-
-The field list changes last. Seven fields out of the head, one in:
+The two append helpers are `GrowBuf::append` now; only the constant stays.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub pipelines: Pipelines,
+const INK_DEPTH_PREPASS: bool = false;
+
+/// Grow-and-append one index run. Same shape as the solid arena's own append: the existing
+/// prefix is copied GPU-side, never back through wasm memory.
+/// Append rows to a growable STORAGE buffer: double the capacity when it runs out, move the
+/// prefix GPU-side, and write only the new rows. Returns `true` when the buffer was replaced, so
+/// the caller knows to rebuild the bind group pointing at it.
+///
+/// This is the same deal the mesh arena already struck, extended to the lanes that had not taken
+/// it: a lane that rebuilds its whole buffer per file re-sends every earlier file's rows (five
+/// files means the last one travels once and the first one five times), and it can only do that
+/// because the CPU-side table is still there to re-send FROM - so the rows are held twice, in
+/// wasm memory and on the GPU, for the whole session. On a 13.8 M-point scan that second copy is
+/// 280 MB of browser heap.
+fn append_rows<T: bytemuck::Pod>(
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    label: &str,
+    buf: &mut wgpu::Buffer,
+    count: &mut u32,
+    cap: &mut u64,
+    data: &[T],
+) -> bool {
+    if data.is_empty() {
+        return false;
+    }
+    let stride = std::mem::size_of::<T>() as u64;
+    let need = *count as u64 + data.len() as u64;
+    let mut grew = false;
+    if need > *cap {
+        let new_cap = need.max(*cap * 2);
+        let usage = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let nb = zeroed_buffer(device, label, new_cap * stride, usage);
+        if *count > 0 {
+            // the prefix moves GPU-side; it never travels back through wasm memory
+            let mut enc = device.create_command_encoder(&Default::default());
+            enc.copy_buffer_to_buffer(buf, 0, &nb, 0, *count as u64 * stride);
+            queue.submit([enc.finish()]);
+        }
+        *buf = nb;
+        *cap = new_cap;
+        grew = true;
+    }
+    queue.write_buffer(buf, *count as u64 * stride, bytemuck::cast_slice(data));
+    *count += data.len() as u32;
+    grew
+}
+
+fn append_index_run(
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    label: &str,
+    ibo: &mut wgpu::Buffer,
+    count: &mut u32,
+    cap: &mut u64,
+    data: &[u32],
+) {
+    if data.is_empty() {
+        return;
+    }
+    let need = *count as u64 + data.len() as u64;
+    if need > *cap {
+        let new_cap = need.max(*cap * 2);
+        let iu = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let nb = zeroed_buffer(device, label, new_cap * 4, iu);
+        if *count > 0 {
+            let mut enc = device.create_command_encoder(&Default::default());
+            enc.copy_buffer_to_buffer(ibo, 0, &nb, 0, *count as u64 * 4);
+            queue.submit([enc.finish()]);
+        }
+        *ibo = nb;
+        *cap = new_cap;
+    }
+    queue.write_buffer(ibo, *count as u64 * 4, bytemuck::cast_slice(data));
+    *count += data.len() as u32;
+}
+```
+
+**Replace with:**
+
+```rust
+const INK_DEPTH_PREPASS: bool = false;
+```
+
+Remove from the `ArenaUpload` doc line through `pub line_bind_group` inclusive: `ArenaUpload`,
+`LineStyle` and the head of `Gpu` go; the next edit re-opens `Gpu` under `LodNode` with its
+floor fields.
+
+**Remove** `src/engine/gpu/mod.rs` **through**
+
+```rust
+/// Everything `Gpu` needs to fill its buffers, built and owened by `app::scene::Scene`,
+```
+
+```rust
+    pub line_bind_group: wgpu::BindGroup,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    pub children: [i32; 8],
+}
+
 ```
 
 **Add below it:**
 
 ```rust
-    pub frame: FrameUniforms,                // camera + pen + cloud uniforms (frame.rs)
+pub struct Gpu {
+    pub surface: Option<wgpu::Surface<'static>>, // Screen to draw pixels on; None when headless.
+    pub ctx: GpuCtx,                         // Device (makes resources) + queue (submits work).
+    pub config: wgpu::SurfaceConfiguration,  // Settings for Surface: size, pixel format
+    /// Layouts survive so set_scene can rebuild bind groups and pipelines on an MSAA change.
+    pub layouts: Layouts,
+    pub pipelines: Pipelines,
+    pub frame: FrameUniforms,                // mvp / line / cloud uniforms + this frame's eye and ortho
+    pub targets: Targets, // depth + MSAA colour at the sample count this scene chose (see `msaa_now`)
+    /// The runtime knobs: what to show, ink style, cloud/EDL/LOD scalars, pen weight.
+    pub view: View,
 ```
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub mvp_buffer: wgpu::Buffer,            // Camera matrix
-    pub mvp_bind_group: wgpu::BindGroup,     // Camera matrix
-    pub line_buffer: wgpu::Buffer, // shared: px-sizing for cylinders + spheres
-    pub line_bind_group: wgpu::BindGroup,
-    pub time: f32,  // shared: animation
-    pub time_buffer: wgpu::Buffer,
-    pub time_bind_group: wgpu::BindGroup,
-    pub arena_vbo: wgpu::Buffer,
+    arena_ibo_print: wgpu::Buffer,
+    arena_print_count: u32,
+    arena_print_cap: u64,
+    arena_ibo_text: wgpu::Buffer,
+    arena_text_count: u32,
+    arena_text_cap: u64,
 ```
 
 **Replace with:**
 
 ```rust
-    pub arena_vbo: wgpu::Buffer,
+    arena_ibo_print: GrowBuf,
+    arena_ibo_text: GrowBuf,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    /// Per-object WORLD AABB (ArenaUpload.object_bounds through the true transform), aligned with
+```
+
+**Replace with:**
+
+```rust
+    /// Per-object WORLD AABB (Upload.object_bounds through the true transform), aligned with
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    /// Layouts survive so set_scene can rebuild bind groups and pipelines on an MSAA change.
+    pub layouts: Layouts,
+
+    instance_buffer: wgpu::Buffer, // new() builds this storage buffer as a local and drops it, only the bidn group survives; rebuild_instances() reuploads into it every frame, so the buffer handle itself must live on GPU, not vanish atht eh of new()
+    instance_rows: u32, // instance rows already ON the GPU - the base for the next append
+    instance_cap: u64,
+    pub instance_bind_group: wgpu::BindGroup,
+    pub cyl_template_vbo: wgpu::Buffer,
+    pub cyl_template_ibo: wgpu::Buffer,
+    pub cyl_index_count: u32,
+```
+
+**Replace with:**
+
+```rust
+    instance_buffer: GrowBuf, // rebuild_instances() rewrites it whole on every re-anchor
+    pub instance_bind_group: wgpu::BindGroup,
+    pub cyl_template: Template,
+```
+
+One `GrowBuf` per ink lane.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    pub pipe_buffer: wgpu::Buffer,
+    pub pipe_bind_group: wgpu::BindGroup,
+    pub pipe_count: u32,
+    pub pipe_cap: u64,
+    pub segment_buffer: wgpu::Buffer,
+    pub segment_bind_group: wgpu::BindGroup,
+    pub segment_count: u32,
+    pub segment_cap: u64,
+    pub sph_template_vbo: wgpu::Buffer,
+    pub sph_template_ibo: wgpu::Buffer,
+    pub sph_index_count: u32,
+    /// Vertex ink, split the same way: spheres are mesh/BRep vertices, glyphs are flat dots.
+    pub sphere_buffer: wgpu::Buffer,
+    pub sphere_bind_group: wgpu::BindGroup,
+    pub sphere_count: u32,
+    pub sphere_cap: u64,
+    pub glyph_buffer: wgpu::Buffer,
+    pub glyph_bind_group: wgpu::BindGroup,
+    pub glyph_count: u32,
+    pub glyph_cap: u64,
+    pub point_buffer: wgpu::Buffer, // positions, array<f32>
+    pub point_col_buffer: wgpu::Buffer, // colours, array<u32> RGBA8
+    pub point_nrm_buffer: wgpu::Buffer, // normals, array<u32> oct16 (u32::MAX = none)
+    pub point_cap: u64,     // capacity in POINTS; positions hold 3 floats each
+    pub point_col_cap: u64,
+    pub point_nrm_cap: u64,
+```
+
+**Replace with:**
+
+```rust
+    pub pipes: GrowBuf,
+    pub pipe_bind_group: wgpu::BindGroup,
+    pub segments: GrowBuf,
+    pub segment_bind_group: wgpu::BindGroup,
+    pub sph_template: Template,
+    /// Vertex ink, split the same way: spheres are mesh/BRep vertices, glyphs are flat dots.
+    pub spheres: GrowBuf,
+    pub sphere_bind_group: wgpu::BindGroup,
+    pub glyphs: GrowBuf,
+    pub glyph_bind_group: wgpu::BindGroup,
+    pub point_pos: GrowBuf, // positions, array<f32> - three rows per point
+    pub point_col: GrowBuf, // colours, array<u32> RGBA8
+    pub point_nrm: GrowBuf, // normals, array<u32> oct16 (u32::MAX = none)
 ```
 
 **Find** in `src/engine/gpu/mod.rs`:
@@ -1736,150 +1272,1468 @@ The field list changes last. Seven fields out of the head, one in:
     splat_state: Option<([f32; 16], f32)>, // (mvp, cloud_size) the buffers were build for; None = stale
 ```
 
+The knobs go to `view`, the cloud uniform to `frame`, the attachments to `targets`; only
+`last_rebase_ms` stays.
+
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    splat_group1_stream: wgpu::BindGroup,
+    /// Solid-lane style; `VIEWER_LINE_STYLE=flat` picks Flat at startup.
+    pub line_style: LineStyle,
+    /// Point markers - the FLAT lane's dots. `Q`.
+    pub show_points: bool,
+    /// Lines and polylines - the FLAT lane's ribbons. `W`.
+    pub show_lines: bool,
+    /// Mesh/BRep edges and their vertex markers - the SOLID lane. `E`.
+    ///
+    /// ON by default. Turn it off for a model whose outlines are drawn as
+    /// polylines too - a plate with its cut outline, say - where the mesh's own
+    /// topology gives those same edges a second time, and two strokes a fraction
+    /// of a pixel apart read as one thick ragged line rather than as two things.
+    pub show_mesh_edges: bool,
     pub cloud_buffer: wgpu::Buffer,
+    pub cloud_size: f32, // global SCALE on per-cloud sizes, [ and ] keys
     last_rebase_ms: f64, // throttle - a 210k-row rebase costs ~25 ms, one per frame is jank
+    pub edl_strength: f32, // Eye-Dome Lighting strength; 0 = off (VIEWER_EDL)
     last_ortho_h: f32, // ortho half-height this frame (0=perspective), for the plat k
     last_eye: [f32; 3], // eye in anchored world units, for the LOD screen-error test
+    pub lod_split_px: f32, // octree LOD cutoff: descend while a node's spacing projects wider; 0 = off (VIEWER_LOD)
     pub cloud_bind_group: wgpu::BindGroup,
+    pub depth_view: wgpu::TextureView,
+    pub msaa_view: wgpu::TextureView,
+    pub samples: u32, // MSAA sample count this scene chose (see `msaa_for`)
 ```
 
 **Replace with:**
 
 ```rust
-    splat_group1_stream: wgpu::BindGroup,
     last_rebase_ms: f64, // throttle - a 210k-row rebase costs ~25 ms, one per frame is jank
 ```
 
-Then the struct literal in `build`. The locals keep their names, so this is a brace and an indent:
+Drop the blank line after `impl Gpu {` so `new` follows the brace directly.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
+impl Gpu {
+
+```
+
+**Replace with:**
+
+```rust
+impl Gpu {
+```
+
+The whole negotiation is `device::open`. Search the first line with its leading spaces (the same
+text ends the two constructor signatures above); the Remove takes the signature line too, and
+the next edit puts it back with the new body.
+
+**Remove** `src/engine/gpu/mod.rs` `    ) -> anyhow::Result<Self> {` **through** `        // The loader calls set_scene the moment the first file's tables exist.`
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        height: u32,
+```
+
+**Add below it:**
+
+```rust
+    ) -> anyhow::Result<Self> {
+        let DeviceSetup { surface, device, queue, config } = device::open(window, (width, height)).await?;
+        let ctx = GpuCtx { device, queue };
+
+        // Depth and MSAA - the empty scene starts flat (1x); set_scene flips to 4x when the
+        // first solid geometry arrives.
+        let samples = 1;
+        let targets = Targets::new(&ctx, &config, samples);
+
+        // Every bind-group layout, once; pipelines and bind groups are made from these.
+        let layouts = Layouts::new(&ctx.device);
+        let frame = FrameUniforms::new(&ctx, &layouts, (config.width, config.height));
+
+        // The scene-shaped tables start as one zeroed row each: wgpu cannot bind a 0-byte
+        // buffer, and every length is 0, so the first frame draws nothing. The loader calls
+        // set_scene the moment the first file's tables exist.
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+
+        // COPY_SRC because the table GROWS by appending: when it outgrows its buffer the prefix
+        // is copied GPU-side into the bigger one, and a buffer without COPY_SRC cannot be the
+        // source of that copy.
+        let instance_buffer = zeroed_buffer(
+            &device,
+            "instance.buffer",
+            std::mem::size_of::<Instance>() as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+```
+
+**Replace with:**
+
+```rust
+        let rows = wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let instance_buffer = GrowBuf::new(&ctx, "instance.buffer", std::mem::size_of::<Instance>() as u64, rows);
+        let instance_bind_group = rows_group(&ctx, &layouts.instance, "instances.bind_group", &instance_buffer.buf);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let (pipe_count, segment_count, sphere_count, glyph_count) = (0u32, 0u32, 0u32, 0u32);
+        let arena_index_count = 0u32;
+        let iu_sheet = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let arena_ibo_print = zeroed_buffer(&device, "arena.ibo.print", 4, iu_sheet);
+        let arena_ibo_text = zeroed_buffer(&device, "arena.ibo.text", 4, iu_sheet);
+        let (arena_print_count, arena_print_cap) = (0u32, 1u64);
+        let (arena_text_count, arena_text_cap) = (0u32, 1u64);
+```
+
+**Replace with:**
+
+```rust
+
+        // The mesh arena keeps its exact-fit growth (see set_scene); the two sheet index runs
+        // grow by appending like every other lane.
+        let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let iu = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let arena_vbo = zeroed_buffer(&ctx.device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, vu);
+        let arena_vids = zeroed_buffer(&ctx.device, "arena.vids", 4, vu);
+        let arena_ibo = zeroed_buffer(&ctx.device, "arena.ibo", 4, iu);
+        let arena_ibo_print = GrowBuf::new(&ctx, "arena.ibo.print", 4, iu);
+        let arena_ibo_text = GrowBuf::new(&ctx, "arena.ibo.text", 4, iu);
+        let arena_index_count = 0u32;
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let instance_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("instances.bind_group"),
+            layout: &layouts.instance,
+            entries: &[wgpu::BindGroupEntry {binding: 0, resource: instance_buffer.as_entire_binding()}],
+        });
+
+        // One zeroed row each - wgpu cannot bind a 0-byte buffer, and arena_index_count starts
+        // at 0 so nothing is drawn from them until real geometry appends.
+        let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let iu = wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
+        let arena_vbo = zeroed_buffer(&device, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, vu);
+        let arena_vids = zeroed_buffer(&device, "arena.vids", 4, vu);
+        let arena_ibo = zeroed_buffer(&device, "arena.ibo", 4, iu);
+
+        // Unit-cylinder tempalte (positions only) - one mesh, instance per edge.
+        let (cyl_v, cyl_i) = unit_cylinder(CYL_SIDES);
+        let cyl_index_count = cyl_i.len() as u32;
+
+        let cyl_template_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("cyl.template.vbo"),
+            contents: bytemuck::cast_slice(&cyl_v),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let cyl_template_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("cyl.template.ibo"),
+            contents: bytemuck::cast_slice(&cyl_i),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+```
+
+**Replace with:**
+
+```rust
+        // Unit-cylinder template (positions only) - one mesh, an instance per edge.
+        let (cyl_v, cyl_i) = unit_cylinder(CYL_SIDES);
+        let cyl_template = Template::new(&ctx, "cyl.template", &cyl_v, &cyl_i);
+```
+
+The four ink lanes, the point buffers and the two templates: `GrowBuf::new` and `Template::new`
+instead of ninety lines of descriptors.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let pipe_cap = 1u64;
+        let segment_cap = 1u64;
+        let pipe_buffer = zeroed_buffer(
+            &device, "pipes.buffer",
+            std::mem::size_of::<CylinderSegment>() as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+        let segment_buffer =  zeroed_buffer(
+            &device, "segments.buffer",
+            std::mem::size_of::<CylinderSegment>() as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+
+        let pipe_bind_group = Self::mk_rows_group(&device, &layouts.segment, "pipes.bind_group", &pipe_buffer);
+        let segment_bind_group = Self::mk_rows_group(&device, &layouts.segment, "segments.bind_group", &segment_buffer);
+
+        // Camera-facing quad template (positions-only) - one mesh, instance per marker
+        let (sph_v, sph_i) = unit_quad();
+        let sph_index_count = sph_i.len() as u32;
+        let sph_template_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("sph.template.vbo"),
+            contents: bytemuck::cast_slice(&sph_v),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let sph_template_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("sph.template.ibo"),
+            contents: bytemuck::cast_slice(&sph_i),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let sphere_cap = 1u64;
+        let glyph_cap = 1u64;
+        let sphere_buffer = zeroed_buffer(
+            &device,
+            "spheres.buffer",
+            std::mem::size_of::<GlyphPoint>() as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+        let glyph_buffer =  zeroed_buffer(
+            &device,
+            "glyphs.buffer",
+            std::mem::size_of::<GlyphPoint>() as u64,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+        let sphere_bind_group = Self::mk_rows_group(&device, &layouts.glyph, "spheres.bind_group", &sphere_buffer);
+        let glyph_bind_group = Self::mk_rows_group(&device, &layouts.glyph, "glyphs.bind_group", &glyph_buffer);
+
+        // Line uniform - scree-constant thickness
+        let line_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("line.buffer"),
+            contents: bytemuck::bytes_of(&LineUniform {
+                thickness: 2.0,
+                proj_y: 1.0,
+                ortho_h: 0.0,
+                vp_h: config.height as f32,
+                vp_w: config.width as f32,
+                eye: [0.0; 3],   // no camera until the first frame writes one
+                anchor: [0.0; 3],   // no anchor until the first frame rebases the table
+                _pad1: 0.0,
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let line_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("line.bind_group"),
+            layout: &layouts.line,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: line_buffer.as_entire_binding()
+            }],
+        });
+
+        // Point cloud tables - empty until set_scene fill them from ArenaUpload
+        let point_count = 0u32;
+        let (point_cap, point_col_cap, point_nrm_cap) = (3u64, 1u64, 1u64);
+        let point_buffer = zeroed_buffer(&device, "points.buffer", 12, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+        let point_col_buffer = zeroed_buffer(&device, "points.col.buffer", 4, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+        let point_nrm_buffer = zeroed_buffer(&device, "points.nrm.buffer", 4, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC);
+
+        // point cloud unioform - the cloud's OWN global size + viewport (reuses line_layout)
+        let cloud_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("cloud.buffer"),
+            contents: bytemuck::bytes_of(&CloudUniform {
+                size: 4.0,
+                vp_w: config.width as f32,
+                vp_h: config.height as f32,
+                _pad: 0.0,
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let cloud_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor{
+            label: Some("cloud.bind_group"),
+            layout: &layouts.line,
+            entries: &[wgpu::BindGroupEntry {binding: 0, resource: cloud_buffer.as_entire_binding()}],
+        });
+```
+
+**Replace with:**
+
+```rust
+        let seg_stride = std::mem::size_of::<CylinderSegment>() as u64;
+        let pipes = GrowBuf::new(&ctx, "pipes.buffer", seg_stride, rows);
+        let segments = GrowBuf::new(&ctx, "segments.buffer", seg_stride, rows);
+        let pipe_bind_group = rows_group(&ctx, &layouts.segment, "pipes.bind_group", &pipes.buf);
+        let segment_bind_group = rows_group(&ctx, &layouts.segment, "segments.bind_group", &segments.buf);
+
+        // Camera-facing quad template (positions only) - one mesh, an instance per marker.
+        let (sph_v, sph_i) = unit_quad();
+        let sph_template = Template::new(&ctx, "sph.template", &sph_v, &sph_i);
+        let glyph_stride = std::mem::size_of::<GlyphPoint>() as u64;
+        let spheres = GrowBuf::new(&ctx, "spheres.buffer", glyph_stride, rows);
+        let glyphs = GrowBuf::new(&ctx, "glyphs.buffer", glyph_stride, rows);
+        let sphere_bind_group = rows_group(&ctx, &layouts.glyph, "spheres.bind_group", &spheres.buf);
+        let glyph_bind_group = rows_group(&ctx, &layouts.glyph, "glyphs.bind_group", &glyphs.buf);
+
+        // Point cloud tables - empty until set_scene fills them from the upload.
+        let point_count = 0u32;
+        let point_pos = GrowBuf::new(&ctx, "points.buffer", 4, rows);
+        let point_col = GrowBuf::new(&ctx, "points.col.buffer", 4, rows);
+        let point_nrm = GrowBuf::new(&ctx, "points.nrm.buffer", 4, rows);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let splat_depth_buf = zeroed_buffer(&device, "splat.depth", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let splat_color_buf = zeroed_buffer(&device, "splat.color", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let splat_recs = zeroed_buffer(&device, "splat.rescales", 16 + 256 * 144, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let splat_group0 = Self::mk_splat_group0(
+            &device,
+            &layouts.splat_group0,
+            &mvp_buffer,
+            &cloud_buffer,
+```
+
+**Replace with:**
+
+```rust
+        let splat_depth_buf = zeroed_buffer(&ctx.device, "splat.depth", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let splat_color_buf = zeroed_buffer(&ctx.device, "splat.color", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let splat_recs = zeroed_buffer(&ctx.device, "splat.rescales", 16 + 256 * 144, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let splat_group0 = Self::mk_splat_group0(
+            &ctx.device,
+            &layouts.splat_group0,
+            &frame.mvp_buffer,
+            &frame.cloud_buffer,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            &device,
+            &layouts.splat_group1,
+            &point_buffer,
+            &point_col_buffer,
+            &point_nrm_buffer,
+```
+
+**Replace with:**
+
+```rust
+            &ctx.device,
+            &layouts.splat_group1,
+            &point_pos.buf,
+            &point_col.buf,
+            &point_nrm.buf,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let stream_pos_buf = zeroed_buffer(&device, "stream.pos", 12, stream_usage);
+        let stream_col_buf = zeroed_buffer(&device, "stream.col", 4, stream_usage);
+        let stream_nrm_buf = zeroed_buffer(&device, "stream.nrm", 4, stream_usage);
+        let splat_stream_recs = zeroed_buffer(&device, "splat.stream.recs", 16 + 256 * 144,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let splat_group0_stream = Self::mk_splat_group0(&device, &layouts.splat_group0, &mvp_buffer, &cloud_buffer, &splat_stream_recs);
+        let splat_group1_stream = Self::mk_splat_group1(&device, &layouts.splat_group1, &stream_pos_buf, &stream_col_buf, &stream_nrm_buf, &splat_depth_buf, &splat_color_buf);
+        let splat_resolve_group = Self::mk_splat_resolve_group(
+            &device,
+```
+
+**Replace with:**
+
+```rust
+        let stream_pos_buf = zeroed_buffer(&ctx.device, "stream.pos", 12, stream_usage);
+        let stream_col_buf = zeroed_buffer(&ctx.device, "stream.col", 4, stream_usage);
+        let stream_nrm_buf = zeroed_buffer(&ctx.device, "stream.nrm", 4, stream_usage);
+        let splat_stream_recs = zeroed_buffer(&ctx.device, "splat.stream.recs", 16 + 256 * 144,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let splat_group0_stream = Self::mk_splat_group0(&ctx.device, &layouts.splat_group0, &frame.mvp_buffer, &frame.cloud_buffer, &splat_stream_recs);
+        let splat_group1_stream = Self::mk_splat_group1(&ctx.device, &layouts.splat_group1, &stream_pos_buf, &stream_col_buf, &stream_nrm_buf, &splat_depth_buf, &splat_color_buf);
+        let splat_resolve_group = Self::mk_splat_resolve_group(
+            &ctx.device,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let pipelines = Pipelines::new(&device, Target { format: config.format, samples }, &layouts);
+```
+
+**Replace with:**
+
+```rust
+        let pipelines = Pipelines::new(&ctx.device, Target { format: config.format, samples }, &layouts);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            device,
+            queue,
+            config,
+            pipelines,
             mvp_buffer, // shared: camera
             mvp_bind_group,
             line_buffer,  // shared: px-sizing for cylinders + spheres
             line_bind_group,
-            time_buffer,    // shared: animation
-            time_bind_group,
-            time: 0.0,
 ```
 
 **Replace with:**
 
 ```rust
-            frame: FrameUniforms {
-                mvp_buffer, // shared: camera
-                mvp_bind_group,
-                line_buffer,  // shared: px-sizing for cylinders + spheres
-                line_bind_group,
-                time: 0.0,
-                time_buffer,    // shared: animation
-                time_bind_group,
-                cloud_buffer,
-                cloud_bind_group,
-                mvp_f32: [0.0; 16],
-                last_ortho_h: 0.0,
-                last_eye: [0.0; 3],
-            },
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-            mvp_f32: [0.0; 16],
-            cloud_draws: Vec::new(),
-```
-
-**Replace with:**
-
-```rust
-            cloud_draws: Vec::new(),
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
+            ctx,
+            config,
+            layouts,
+            pipelines,
+            frame,
+            targets,
             view: View::from_env(),
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            arena_print_count,
+            arena_print_cap,
+            arena_ibo_text,
+            arena_text_count,
+            arena_text_cap,
+```
+
+**Replace with:**
+
+```rust
+            arena_ibo_text,
+```
+
+The struct literal follows the new field list.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            layouts,
+            instance_buffer, // was a dropped local in new(), now moved onto GPU so rebuild_instances() can write into every frame
+            instance_rows: 0,
+            instance_cap: 1,
+            instance_bind_group,
+            cyl_template_vbo,
+            cyl_template_ibo,
+            cyl_index_count,
+            pipe_buffer,
+            pipe_bind_group,
+            pipe_count,
+            pipe_cap,
+            segment_buffer,
+            segment_bind_group,
+            segment_count,
+            segment_cap,
+            sph_template_vbo,
+            sph_template_ibo,
+            sph_index_count,
+            sphere_buffer,
+            sphere_bind_group,
+            sphere_count,
+            sphere_cap,
+            glyph_buffer,
+            glyph_bind_group,
+            glyph_count,
+            glyph_cap,
+            point_buffer,
+            point_col_buffer,
+            point_nrm_buffer,
+            point_cap,
+            point_col_cap,
+            point_nrm_cap,
+```
+
+**Replace with:**
+
+```rust
+            instance_buffer,
+            instance_bind_group,
+            cyl_template,
+            pipes,
+            pipe_bind_group,
+            segments,
+            segment_bind_group,
+            sph_template,
+            spheres,
+            sphere_bind_group,
+            glyphs,
+            glyph_bind_group,
+            point_pos,
+            point_col,
+            point_nrm,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            splat_group1_stream,
+            mvp_f32: [0.0; 16],
+```
+
+**Replace with:**
+
+```rust
+            splat_group1_stream,
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            show_points: true,
+            show_lines: true,
+            show_mesh_edges: true,
+            line_style: if std::env::var("VIEWER_LINE_STYLE").map(|v| v.eq_ignore_ascii_case("tubes")).unwrap_or(false) {
+                LineStyle::Tubes
+            } else {
+                LineStyle::Flat
+            },
             cloud_buffer,
+            cloud_size: std::env::var("VIEWER_CLOUD_SCALE").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0),
             last_rebase_ms: 0.0,
+            edl_strength: std::env::var("VIEWER_EDL").ok().and_then(|v| v.parse().ok()).unwrap_or(0.25),
             last_ortho_h: 0.0,
             last_eye: [0.0; 3],
+            lod_split_px: std::env::var("VIEWER_LOD").ok().and_then(|v| v.parse().ok()).unwrap_or(1.0),
             cloud_bind_group,
+            depth_view,
+            msaa_view,
+            samples,
+            performance: Performance::new(),
+            bounds: Aabb { min: [0.0; 3], max: [0.0; 3] },
+         })
+
 ```
 
 **Replace with:**
 
 ```rust
-            view: View::from_env(),
             last_rebase_ms: 0.0,
+            performance: Performance::new(),
+            bounds: Aabb { min: [0.0; 3], max: [0.0; 3] },
+        })
 ```
-
-Last, the import. `Gpu::build` still writes both uniform literals, `write_frame_uniforms` builds
-a `FrameInput`, and the struct carries a `FrameUniforms` — four names:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-pub use upload::Upload;
+    pub fn set_scene(&mut self, up: &ArenaUpload){
+```
+
+**Replace with:**
+
+```rust
+    pub fn set_scene(&mut self, up: &Upload){
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.instance_rows = 0;
+```
+
+**Replace with:**
+
+```rust
+            self.instance_buffer.reset();
+```
+
+The instance table appends through its `GrowBuf` too; a grown buffer means a new bind group.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let mut rows = self.instance_rows;
+        let fresh = &self.instances[rows as usize..];
+        if append_rows(&self.device, &self.queue, "instance.buffer",
+            &mut self.instance_buffer, &mut rows, &mut self.instance_cap, fresh) {
+            self.instance_bind_group = Self::mk_rows_group(&self.device, &self.layouts.instance, "instances.bind_group", &self.instance_buffer);
+        }
+        self.instance_rows = rows;
+```
+
+**Replace with:**
+
+```rust
+        let fresh = &self.instances[self.instance_buffer.len() as usize..];
+        if self.instance_buffer.append(&self.ctx, fresh) {
+            self.instance_bind_group = rows_group(&self.ctx, &self.layouts.instance, "instances.bind_group", &self.instance_buffer.buf);
+        }
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                let vbo = zeroed_buffer(&self.device, "arena.vbo", cap_v * vstride, vu);
+                let vids = zeroed_buffer(&self.device, "arena.vids", cap_v * 4, vu);
+                let ibo = zeroed_buffer(&self.device, "arena.ibo", cap_i * 4, iu);
+                if self.arena_vert_count > 0 {
+                    // the prefix moves GPU-side; it never travels back through wasm memory
+                    let mut enc = self.device.create_command_encoder(&Default::default());
+```
+
+**Replace with:**
+
+```rust
+                let vbo = zeroed_buffer(&self.ctx.device, "arena.vbo", cap_v * vstride, vu);
+                let vids = zeroed_buffer(&self.ctx.device, "arena.vids", cap_v * 4, vu);
+                let ibo = zeroed_buffer(&self.ctx.device, "arena.ibo", cap_i * 4, iu);
+                if self.arena_vert_count > 0 {
+                    // the prefix moves GPU-side; it never travels back through wasm memory
+                    let mut enc = self.ctx.device.create_command_encoder(&Default::default());
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                    self.queue.submit([enc.finish()]);
+```
+
+**Replace with:**
+
+```rust
+                    self.ctx.queue.submit([enc.finish()]);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.queue.write_buffer(&self.arena_vbo, self.arena_vert_count as u64 * vstride, bytemuck::cast_slice(&up.verts));
+            self.queue.write_buffer(&self.arena_vids, self.arena_vert_count as u64 * 4, bytemuck::cast_slice(&up.vids));
+            self.queue.write_buffer(&self.arena_ibo, self.arena_index_count as u64 * 4, bytemuck::cast_slice(&up.idx));
+```
+
+**Replace with:**
+
+```rust
+            self.ctx.queue.write_buffer(&self.arena_vbo, self.arena_vert_count as u64 * vstride, bytemuck::cast_slice(&up.verts));
+            self.ctx.queue.write_buffer(&self.arena_vids, self.arena_vert_count as u64 * 4, bytemuck::cast_slice(&up.vids));
+            self.ctx.queue.write_buffer(&self.arena_ibo, self.arena_index_count as u64 * 4, bytemuck::cast_slice(&up.idx));
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            append_index_run(&self.device, &self.queue, "arena.ibo.print",
+                &mut self.arena_ibo_print, &mut self.arena_print_count, &mut self.arena_print_cap, &up.idx_print);
+            append_index_run(&self.device, &self.queue, "arena.ibo.text",
+                &mut self.arena_ibo_text, &mut self.arena_text_count, &mut self.arena_text_cap, &up.idx_text);
+```
+
+**Replace with:**
+
+```rust
+            self.arena_ibo_print.append(&self.ctx, &up.idx_print);
+            self.arena_ibo_text.append(&self.ctx, &up.idx_text);
+```
+
+Four lanes, one shape: `append` returns whether the buffer was replaced.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        if append_rows(&self.device, &self.queue, "pipes.buffer",
+            &mut self.pipe_buffer, &mut self.pipe_count, &mut self.pipe_cap, &up.pipes) {
+            self.pipe_bind_group = Self::mk_rows_group(&self.device, &self.layouts.segment, "pipes.bind_group", &self.pipe_buffer);
+        }
+        if append_rows(&self.device, &self.queue, "segments.buffer",
+            &mut self.segment_buffer, &mut self.segment_count, &mut self.segment_cap, &up.segments) {
+            self.segment_bind_group = Self::mk_rows_group(&self.device, &self.layouts.segment, "segments.bind_group", &self.segment_buffer);
+        }
+        if append_rows(&self.device, &self.queue, "spheres.buffer",
+            &mut self.sphere_buffer, &mut self.sphere_count, &mut self.sphere_cap, &up.spheres) {
+            self.sphere_bind_group = Self::mk_rows_group(&self.device, &self.layouts.glyph, "spheres.bind_group", &self.sphere_buffer);
+        }
+        if append_rows(&self.device, &self.queue, "glyphs.buffer",
+            &mut self.glyph_buffer, &mut self.glyph_count, &mut self.glyph_cap, &up.glyphs) {
+            self.glyph_bind_group = Self::mk_rows_group(&self.device, &self.layouts.glyph, "glyphs.bind_group", &self.glyph_buffer);
+```
+
+**Replace with:**
+
+```rust
+        if self.pipes.append(&self.ctx, &up.pipes) {
+            self.pipe_bind_group = rows_group(&self.ctx, &self.layouts.segment, "pipes.bind_group", &self.pipes.buf);
+        }
+        if self.segments.append(&self.ctx, &up.segments) {
+            self.segment_bind_group = rows_group(&self.ctx, &self.layouts.segment, "segments.bind_group", &self.segments.buf);
+        }
+        if self.spheres.append(&self.ctx, &up.spheres) {
+            self.sphere_bind_group = rows_group(&self.ctx, &self.layouts.glyph, "spheres.bind_group", &self.spheres.buf);
+        }
+        if self.glyphs.append(&self.ctx, &up.glyphs) {
+            self.glyph_bind_group = rows_group(&self.ctx, &self.layouts.glyph, "glyphs.bind_group", &self.glyphs.buf);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let mut pos_rows = self.point_count * 3;
+        append_rows(&self.device, &self.queue, "points.buffer",
+            &mut self.point_buffer, &mut pos_rows, &mut self.point_cap, &up.cloud_pos);
+        let mut col_rows = self.point_count;
+        append_rows(&self.device, &self.queue, "points.col.buffer",
+            &mut self.point_col_buffer, &mut col_rows, &mut self.point_col_cap, &up.cloud_col);
+        let mut nrm_rows = self.point_count;
+        append_rows(&self.device, &self.queue, "points.nrm.buffer",
+            &mut self.point_nrm_buffer, &mut nrm_rows, &mut self.point_nrm_cap, &up.cloud_nrm);
+        self.point_count = pos_rows / 3;
+```
+
+**Replace with:**
+
+```rust
+        self.point_pos.append(&self.ctx, &up.cloud_pos);
+        self.point_col.append(&self.ctx, &up.cloud_col);
+        self.point_nrm.append(&self.ctx, &up.cloud_nrm);
+        self.point_count = self.point_pos.len() / 3;
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.instances.len(), self.arena_vert_count, self.pipe_count + self.segment_count, self.pipe_count,
+            self.sphere_count + self.glyph_count, self.sphere_count, self.point_count
+```
+
+**Replace with:**
+
+```rust
+            self.instances.len(), self.arena_vert_count, self.pipes.len() + self.segments.len(), self.pipes.len(),
+            self.spheres.len() + self.glyphs.len(), self.spheres.len(), self.point_count
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        if samples != self.samples {
+            self.samples = samples;
+            self.depth_view = Self::create_depth_view(&self.device, &self.config, samples);
+            self.msaa_view = Self::create_msaa_view(&self.device, &self.config, samples);
+            self.pipelines = Pipelines::new(&self.device, Target { format: self.config.format, samples }, &self.layouts);
+```
+
+**Replace with:**
+
+```rust
+        if samples != self.targets.samples {
+            self.targets = Targets::new(&self.ctx, &self.config, samples);
+            self.pipelines = Pipelines::new(&self.ctx.device, Target { format: self.config.format, samples }, &self.layouts);
+```
+
+Remove the dead pre-anchor upload comment.
+
+**Remove** `src/engine/gpu/mod.rs` `        // let shift = Xform::translation(-origin[0], -origin[1], -origin[2]);` **through** `        // self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));`
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        }
+        self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
+```
+
+**Replace with:**
+
+```rust
+        }
+        self.ctx.queue.write_buffer(&self.instance_buffer.buf, 0, bytemuck::cast_slice(&self.instances));
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    /// One read-only storage buffer at binding 0 - the shape every ink lane's bind group has.
+    fn mk_rows_group(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, label: &str, buf: &wgpu::Buffer) -> wgpu::BindGroup {
+        device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some(label),
+            layout,
+            entries: &[wgpu::BindGroupEntry { binding: 0, resource: buf.as_entire_binding() }],
+        })
+    }
+
+    /// Re-point the five splat bind groups at the current buffers (set_scene, resize, stream growth).
+    fn rebuild_splat_groups(&mut self){
+        self.splat_group0 = Self::mk_splat_group0(&self.device, &self.layouts.splat_group0, &self.mvp_buffer, &self.cloud_buffer, &self.splat_recs);
+        self.splat_group1 = Self::mk_splat_group1(&self.device, &self.layouts.splat_group1, &self.point_buffer, &self.point_col_buffer, &self.point_nrm_buffer, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_group0_stream = Self::mk_splat_group0(&self.device, &self.layouts.splat_group0, &self.mvp_buffer, &self.cloud_buffer, &self.splat_stream_recs);
+        self.splat_group1_stream = Self::mk_splat_group1(&self.device, &self.layouts.splat_group1, &self.stream_pos_buf, &self.stream_col_buf, &self.stream_nrm_buf, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.layouts.splat_resolve, &self.splat_depth_buf, &self.splat_color_buf);
+```
+
+**Replace with:**
+
+```rust
+    /// Re-point the five splat bind groups at the current buffers (set_scene, resize, stream growth).
+    fn rebuild_splat_groups(&mut self){
+        self.splat_group0 = Self::mk_splat_group0(&self.ctx.device, &self.layouts.splat_group0, &self.frame.mvp_buffer, &self.frame.cloud_buffer, &self.splat_recs);
+        self.splat_group1 = Self::mk_splat_group1(&self.ctx.device, &self.layouts.splat_group1, &self.point_pos.buf, &self.point_col.buf, &self.point_nrm.buf, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_group0_stream = Self::mk_splat_group0(&self.ctx.device, &self.layouts.splat_group0, &self.frame.mvp_buffer, &self.frame.cloud_buffer, &self.splat_stream_recs);
+        self.splat_group1_stream = Self::mk_splat_group1(&self.ctx.device, &self.layouts.splat_group1, &self.stream_pos_buf, &self.stream_col_buf, &self.stream_nrm_buf, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_resolve_group = Self::mk_splat_resolve_group(&self.ctx.device, &self.layouts.splat_resolve, &self.splat_depth_buf, &self.splat_color_buf);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let pos = zeroed_buffer(&self.device, "stream.pos", cap * 12, usage);
+        let col = zeroed_buffer(&self.device, "stream.col", cap * 4, usage);
+        let nrm = zeroed_buffer(&self.device, "stream.nrm", cap * 4, usage);
+        if self.stream_count > 0 {
+            let mut enc = self.device.create_command_encoder(&Default::default());
+```
+
+**Replace with:**
+
+```rust
+        let pos = zeroed_buffer(&self.ctx.device, "stream.pos", cap * 12, usage);
+        let col = zeroed_buffer(&self.ctx.device, "stream.col", cap * 4, usage);
+        let nrm = zeroed_buffer(&self.ctx.device, "stream.nrm", cap * 4, usage);
+        if self.stream_count > 0 {
+            let mut enc = self.ctx.device.create_command_encoder(&Default::default());
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.queue.submit([enc.finish()]);
+```
+
+**Replace with:**
+
+```rust
+            self.ctx.queue.submit([enc.finish()]);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.queue.write_buffer(&nrm, at * 4, bytemuck::cast_slice(&fill[..n]));
+            self.queue.submit([]);
+```
+
+**Replace with:**
+
+```rust
+            self.ctx.queue.write_buffer(&nrm, at * 4, bytemuck::cast_slice(&fill[..n]));
+            self.ctx.queue.submit([]);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.queue.write_buffer(&self.stream_pos_buf, self.stream_pos_at as u64 * 12, bytemuck::cast_slice(pos));
+```
+
+**Replace with:**
+
+```rust
+        self.ctx.queue.write_buffer(&self.stream_pos_buf, self.stream_pos_at as u64 * 12, bytemuck::cast_slice(pos));
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        // flush, 165 MB of write_buffer piles 165 MB of staging on top of the destination.
+        self.queue.submit([]);
+```
+
+**Replace with:**
+
+```rust
+        // flush, 165 MB of write_buffer piles 165 MB of staging on top of the destination.
+        self.ctx.queue.submit([]);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.queue.write_buffer(&self.stream_col_buf, self.stream_col_at as u64 * 4, bytemuck::cast_slice(col));
+        self.stream_col_at += col.len() as u32;
+        self.queue.submit([]);
+```
+
+**Replace with:**
+
+```rust
+        self.ctx.queue.write_buffer(&self.stream_col_buf, self.stream_col_at as u64 * 4, bytemuck::cast_slice(col));
+        self.stream_col_at += col.len() as u32;
+        self.ctx.queue.submit([]);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if let Some(s) = &self.surface { s.configure(&self.device, &self.config); }
+            self.depth_view = Self::create_depth_view(&self.device, &self.config, self.samples);
+            self.msaa_view = Self::create_msaa_view(&self.device, &self.config, self.samples);
+            let pixels = (width * height) as u64 * 4;
+            self.splat_depth_buf = zeroed_buffer(&self.device, "splat.depth", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+            self.splat_color_buf = zeroed_buffer(&self.device, "splat.color", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+```
+
+**Replace with:**
+
+```rust
+            if let Some(s) = &self.surface { s.configure(&self.ctx.device, &self.config); }
+            self.targets = Targets::new(&self.ctx, &self.config, self.targets.samples);
+            let pixels = (width * height) as u64 * 4;
+            self.splat_depth_buf = zeroed_buffer(&self.ctx.device, "splat.depth", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+            self.splat_color_buf = zeroed_buffer(&self.ctx.device, "splat.color", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+```
+
+`clear`, `render_offscreen` and `bench_frames` live in `present.rs`. Remove through
+`write_frame_uniforms`'s last statement, leaving its closing brace; the Add below supplies the
+new two-line body up to that brace.
+
+**Remove** `src/engine/gpu/mod.rs` **through**
+
+```rust
+    /// Acquire the next frame and clear it to `color`. Chapter 1 does nothing else — geometry passes
+```
+
+```rust
+        self.update_inside_flags(view_proj);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.splat_state = None;
+
+        }
+    }
+
 ```
 
 **Add below it:**
 
 ```rust
-use frame::{CloudUniform, FrameInput, FrameUniforms, LineUniform};
+    /// Per-frame uniforms through `FrameUniforms::write`, then the inside-flag refresh, which
+    /// reads the eye it solved.
+    fn write_frame_uniforms(&mut self, input: &FrameInput) {
+        let anchor = self.last_origin.as_ref().map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3]);
+        let cx = FrameCx { view: &self.view, anchor, size: (self.config.width, self.config.height) };
+        self.frame.write(&self.ctx, input, &cx);
+        self.update_inside_flags();
 ```
-
-`frame.rs` so far:
-
-```text
-  1-  8  //! header — the three blocks that are no family's
- 10- 15  use Point · Xform · Pipelines · GpuCtx · View · the two camera solves
- 17- 31  FrameUniforms — 12 fields, all `pub(super)`
- 33- 43  FrameInput<'a> — config · view_proj · anchor · view
- 45- 57  Binds<'a> — p · mvp · time · line · cloud · instances, all shared
- 59-105  write_camera · write_cloud · binds
-107-126  LineUniform
-128-142  its 48 B assert, then CloudUniform
-144-177  line_thickness_px
-```
-
-Gate. The step with the most re-rooted call sites in the block, so compile both targets first:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-grep -c 'self.mvp_bind_group\|self.line_bind_group\|self.time_bind_group\|self.cloud_bind_group' src/engine/gpu/mod.rs
-./docs/_gate.sh
-```
-
-The grep prints `0`: every group-0-to-2 read in the frame now goes through `Binds`.
-
-### 6.6 `targets.rs` — what a pass writes into
-
-`targets.rs` already exists, whole, from §4.5. This step is three deletions and five call sites.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-pub use upload::Upload;
+    fn update_inside_flags(&mut self, view_proj: &Xform) {
+```
+
+**Replace with:**
+
+```rust
+    fn update_inside_flags(&mut self) {
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let eye = eye_from_view_proj(view_proj); // anchored world units, like instances[]
+```
+
+**Replace with:**
+
+```rust
+        let eye = self.frame.eye; // anchored world units, like instances[]
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
+```
+
+**Replace with:**
+
+```rust
+            self.ctx.queue.write_buffer(&self.instance_buffer.buf, 0, bytemuck::cast_slice(&self.instances));
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        let ortho_h = self.last_ortho_h as f64;
+        let vp_h = self.config.height as f64;
+        let aspect = self.config.width as f64 / self.config.height as f64;
+        let eye = self.last_eye;
+```
+
+**Replace with:**
+
+```rust
+        let ortho_h = self.frame.ortho_h as f64;
+        let vp_h = self.config.height as f64;
+        let aspect = self.config.width as f64 / self.config.height as f64;
+        let eye = self.frame.eye;
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * self.cloud_size;
+```
+
+**Replace with:**
+
+```rust
+            let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * self.view.cloud_size;
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            let (a, b) = (&self.mvp_f32, &row.model);
+```
+
+**Replace with:**
+
+```rust
+            let (a, b) = (&self.frame.mvp_f32, &row.model);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if self.lod_split_px > 0.0 && node_count > 0 {
+```
+
+**Replace with:**
+
+```rust
+            if self.view.lod_split_px > 0.0 && node_count > 0 {
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                    let refine = !leaf && sp_px > self.lod_split_px as f64;
+```
+
+**Replace with:**
+
+```rust
+                    let refine = !leaf && sp_px > self.view.lod_split_px as f64;
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            let state = (self.mvp_f32, self.cloud_size);
+            if self.splat_total > 0 && self.splat_state != Some(state) {
+                self.queue.write_buffer(&self.splat_recs, 0, bytemuck::bytes_of(&header));
+                self.queue.write_buffer(&self.splat_recs, 16, &recs);
+                self.queue.write_buffer(&self.splat_stream_recs, 0, bytemuck::bytes_of(&header_s));
+                self.queue.write_buffer(&self.splat_stream_recs, 16, &recs_s);
+```
+
+**Replace with:**
+
+```rust
+            let state = (self.frame.mvp_f32, self.view.cloud_size);
+            if self.splat_total > 0 && self.splat_state != Some(state) {
+                self.ctx.queue.write_buffer(&self.splat_recs, 0, bytemuck::bytes_of(&header));
+                self.ctx.queue.write_buffer(&self.splat_recs, 16, &recs);
+                self.ctx.queue.write_buffer(&self.splat_stream_recs, 0, bytemuck::bytes_of(&header_s));
+                self.ctx.queue.write_buffer(&self.splat_stream_recs, 16, &recs_s);
+```
+
+One `Binds` before the pass; every draw below reads `b.mvp`, `b.line`, `b.instances`.
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("clear pass"),
+                // MSAA off (samples == 1): draw straight to the swapchain view - a
+                // 1-sample attachment must NOT carry a resolve target.
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: if self.samples > 1 { &self.msaa_view } else { view },
+                    resolve_target: if self.samples > 1 { Some(view) } else { None },
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(color),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.depth_view,
+                    depth_ops: Some(
+                        wgpu::Operations{load: wgpu::LoadOp::Clear(0.0),
+                        store:wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+```
+
+**Replace with:**
+
+```rust
+        let b = Binds { mvp: &self.frame.mvp_group, line: &self.frame.line_group, instances: &self.instance_bind_group };
+        {
+            let mut pass = self.targets.begin_pass(encoder, view, color);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+            pass.set_bind_group(1, &self.line_bind_group, &[]);   // for the anchor
+```
+
+**Replace with:**
+
+```rust
+            pass.set_bind_group(0, b.mvp, &[]);
+            pass.set_bind_group(1, b.line, &[]);   // for the anchor
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+            pass.set_bind_group(1, &self.line_bind_group, &[]);
+            pass.set_bind_group(2, &self.instance_bind_group, &[]);
+```
+
+**Replace with:**
+
+```rust
+            pass.set_bind_group(0, b.mvp, &[]);
+            pass.set_bind_group(1, b.line, &[]);
+            pass.set_bind_group(2, b.instances, &[]);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if self.arena_print_count > 0 {
+```
+
+**Replace with:**
+
+```rust
+            if !self.arena_ibo_print.is_empty() {
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                pass.set_index_buffer(self.arena_ibo_print.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.arena_print_count, 0, 0..1);
+```
+
+**Replace with:**
+
+```rust
+                pass.set_index_buffer(self.arena_ibo_print.buf.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.arena_ibo_print.len(), 0, 0..1);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if self.pipe_count > 0 && self.show_mesh_edges {
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.pipe_bind_group, &[]);
+                match self.line_style {
+                    LineStyle::Tubes => {
+                        pass.set_pipeline(&self.pipelines.cylinder);
+                        pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
+                        pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                        pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.pipe_count); // one template, N edges
+```
+
+**Replace with:**
+
+```rust
+            if !self.pipes.is_empty() && self.view.show_mesh_edges {
+                pass.set_bind_group(0, b.mvp, &[]);
+                pass.set_bind_group(1, b.line, &[]);
+                pass.set_bind_group(2, b.instances, &[]);
+                pass.set_bind_group(3, &self.pipe_bind_group, &[]);
+                match self.view.line_style {
+                    LineStyle::Tubes => {
+                        pass.set_pipeline(&self.pipelines.cylinder);
+                        pass.set_vertex_buffer(0, self.cyl_template.vbo.slice(..));
+                        pass.set_index_buffer(self.cyl_template.ibo.slice(..), wgpu::IndexFormat::Uint32);
+                        pass.draw_indexed(0..self.cyl_template.index_count, 0, 0..self.pipes.len()); // one template, N edges
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                        pass.draw(0..4, 0..self.pipe_count);
+                        pass.set_pipeline(&self.pipelines.ribbon_solid);
+                        pass.draw(0..4, 0..self.pipe_count);
+```
+
+**Replace with:**
+
+```rust
+                        pass.draw(0..4, 0..self.pipes.len());
+                        pass.set_pipeline(&self.pipelines.ribbon_solid);
+                        pass.draw(0..4, 0..self.pipes.len());
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+                pass.set_bind_group(0, &self.cloud_bind_group, &[]);
+```
+
+**Replace with:**
+
+```rust
+                pass.set_bind_group(0, &self.frame.cloud_group, &[]);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if self.sphere_count > 0 && self.show_mesh_edges && std::env::var("BENCH_NO_MARKERS").is_err() {
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.sphere_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                // Same prepass split as the solid ribbons - see the LineStyle::Flat note above.
+                pass.set_pipeline(&self.pipelines.sphere_depth);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count);
+                pass.set_pipeline(&self.pipelines.sphere);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.sphere_count); // one template, N glyphs
+```
+
+**Replace with:**
+
+```rust
+            if !self.spheres.is_empty() && self.view.show_mesh_edges && self.view.markers {
+                pass.set_bind_group(0, b.mvp, &[]);
+                pass.set_bind_group(1, b.line, &[]);
+                pass.set_bind_group(2, b.instances, &[]);
+                pass.set_bind_group(3, &self.sphere_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.sph_template.vbo.slice(..));
+                pass.set_index_buffer(self.sph_template.ibo.slice(..), wgpu::IndexFormat::Uint32);
+                // Same prepass split as the solid ribbons - see the LineStyle::Flat note above.
+                pass.set_pipeline(&self.pipelines.sphere_depth);
+                pass.draw_indexed(0..self.sph_template.index_count, 0, 0..self.spheres.len());
+                pass.set_pipeline(&self.pipelines.sphere);
+                pass.draw_indexed(0..self.sph_template.index_count, 0, 0..self.spheres.len()); // one template, N glyphs
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if INK_DEPTH_PREPASS && self.segment_count > 0 && self.show_lines {
+                pass.set_pipeline(&self.pipelines.ribbon_depth);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.segment_bind_group, &[]);
+                pass.draw(0..4, 0..self.segment_count);
+                draws += 1;
+            }
+            if INK_DEPTH_PREPASS && self.glyph_count > 0 && self.show_points {
+                pass.set_pipeline(&self.pipelines.glyph_depth);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.draw(0..3 * self.glyph_count, 0..1);
+```
+
+**Replace with:**
+
+```rust
+            if INK_DEPTH_PREPASS && !self.segments.is_empty() && self.view.show_lines {
+                pass.set_pipeline(&self.pipelines.ribbon_depth);
+                pass.set_bind_group(0, b.mvp, &[]);
+                pass.set_bind_group(1, b.line, &[]);
+                pass.set_bind_group(2, b.instances, &[]);
+                pass.set_bind_group(3, &self.segment_bind_group, &[]);
+                pass.draw(0..4, 0..self.segments.len());
+                draws += 1;
+            }
+            if INK_DEPTH_PREPASS && !self.glyphs.is_empty() && self.view.show_points {
+                pass.set_pipeline(&self.pipelines.glyph_depth);
+                pass.set_bind_group(0, b.mvp, &[]);
+                pass.set_bind_group(1, b.line, &[]);
+                pass.set_bind_group(2, b.instances, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.draw(0..3 * self.glyphs.len(), 0..1);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if self.segment_count > 0 && self.show_lines {
+                pass.set_pipeline(&self.pipelines.ribbon);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.segment_bind_group, &[]);
+                // instance_index IS the row: this table holds nothing but flat-lane segments
+                pass.draw(0..4, 0..self.segment_count);
+```
+
+**Replace with:**
+
+```rust
+            if !self.segments.is_empty() && self.view.show_lines {
+                pass.set_pipeline(&self.pipelines.ribbon);
+                pass.set_bind_group(0, b.mvp, &[]);
+                pass.set_bind_group(1, b.line, &[]);
+                pass.set_bind_group(2, b.instances, &[]);
+                pass.set_bind_group(3, &self.segment_bind_group, &[]);
+                // instance_index IS the row: this table holds nothing but flat-lane segments
+                pass.draw(0..4, 0..self.segments.len());
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if self.arena_text_count > 0 {
+                pass.set_pipeline(&self.pipelines.triangle_sheet);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.arena_vbo.slice(..));
+                pass.set_vertex_buffer(1, self.arena_vids.slice(..));
+                pass.set_index_buffer(self.arena_ibo_text.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.arena_text_count, 0, 0..1);
+```
+
+**Replace with:**
+
+```rust
+            if !self.arena_ibo_text.is_empty() {
+                pass.set_pipeline(&self.pipelines.triangle_sheet);
+                pass.set_bind_group(0, b.mvp, &[]);
+                pass.set_bind_group(1, b.line, &[]);
+                pass.set_bind_group(2, b.instances, &[]);
+                pass.set_vertex_buffer(0, self.arena_vbo.slice(..));
+                pass.set_vertex_buffer(1, self.arena_vids.slice(..));
+                pass.set_index_buffer(self.arena_ibo_text.buf.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.arena_ibo_text.len(), 0, 0..1);
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+            if self.glyph_count > 0 && self.show_points {
+                pass.set_pipeline(&self.pipelines.glyph);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.draw(0..3 * self.glyph_count, 0..1); // 3 verts/dot, no template
+```
+
+**Replace with:**
+
+```rust
+            if !self.glyphs.is_empty() && self.view.show_points {
+                pass.set_pipeline(&self.pipelines.glyph);
+                pass.set_bind_group(0, b.mvp, &[]);
+                pass.set_bind_group(1, b.line, &[]);
+                pass.set_bind_group(2, b.instances, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.draw(0..3 * self.glyphs.len(), 0..1); // 3 verts/dot, no template
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+    }
+
+    /// MSAA sample count for a scene. It cannot be chosen per lane: sample count belongs to the
+    /// render PASS, and every pipeline drawn into a pass must match it, so 1x linework and 4x
+    /// solids in one frame would need two passes and a depth resolve between them. Pick per scene
+    /// instead - hard-edged geometry (triangles, tubes, spheres) is the only thing MSAA smooths,
+```
+
+**Replace with:**
+
+```rust
+    }
+
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.arena_print_count = 0;
+        self.arena_text_count = 0;
+```
+
+**Replace with:**
+
+```rust
+        self.arena_ibo_print.reset();
+        self.arena_ibo_text.reset();
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.pipe_count = 0;
+        self.segment_count = 0;
+        self.sphere_count = 0;
+        self.glyph_count = 0;
+```
+
+**Replace with:**
+
+```rust
+        self.pipes.reset();
+        self.segments.reset();
+        self.spheres.reset();
+        self.glyphs.reset();
+        self.point_pos.reset();
+        self.point_col.reset();
+        self.point_nrm.reset();
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.instance_rows = 0;
+```
+
+**Replace with:**
+
+```rust
+        self.instance_buffer.reset();
+```
+
+**Find** in `src/engine/gpu/mod.rs`:
+
+```rust
+        self.bounded_rows.clear();
+    }
+
 ```
 
 **Add below it:**
 
 ```rust
-use targets::Targets;
+    /// MSAA sample count for a scene. It cannot be chosen per lane: sample count belongs to the
+    /// render PASS, and every pipeline drawn into a pass must match it, so 1x linework and 4x
+    /// solids in one frame would need two passes and a depth resolve between them. Pick per scene
+    /// instead - hard-edged geometry (triangles, tubes, spheres) is the only thing MSAA smooths,
 ```
-
-The two view builders were the last two functions in `impl Gpu`; `Targets::new` is both of them
-with the textures kept:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
+        let solid = self.arena_vert_count > 0 || self.pipe_count > 0 || self.sphere_count > 0;
         if solid { 4 } else { 1 }
     }
 
@@ -1911,721 +2765,562 @@ with the textures kept:
             view_formats: &[],
         });
         texture.create_view(&wgpu::TextureViewDescriptor::default())
-    }
-}
 ```
 
 **Replace with:**
 
 ```rust
+        let solid = self.arena_vert_count > 0 || !self.pipes.is_empty() || !self.spheres.is_empty();
         if solid { 4 } else { 1 }
-    }
-}
 ```
-
-The pass descriptor. Twenty-four lines of `encode_frame` become one call, and the two `LoadOp`s
-that were literals inside it become the two parameters lesson 80's overlay pass needs:
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("clear pass"),
-                // MSAA off (samples == 1): draw straight to the swapchain view - a
-                // 1-sample attachment must NOT carry a resolve target.
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: if self.samples > 1 { &self.msaa_view } else { view },
-                    resolve_target: if self.samples > 1 { Some(view) } else { None },
-                    depth_slice: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(color),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth_view,
-                    depth_ops: Some(
-                        wgpu::Operations{load: wgpu::LoadOp::Clear(0.0),
-                        store:wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None }),
-                timestamp_writes: None,
-                occlusion_query_set: None,
-                multiview_mask: None,
-            });
+    /// Vertex spacing in world units (see `ArenaUpload::object_spacing`). The ink lanes drop
 ```
 
 **Replace with:**
 
 ```rust
-            let mut pass = self.targets.begin_pass(encoder, view, wgpu::LoadOp::Clear(color),
-                                                  Some(wgpu::LoadOp::Clear(0.0)));
+    /// Vertex spacing in world units (see `Upload::object_spacing`). The ink lanes drop
 ```
 
-Three call sites rebuild the attachments — startup, the MSAA flip, a window resize — and each
-becomes a single `Targets::new`, because the sample count now lives with the textures:
+`LineUniform` moved to `frame.rs`.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-        let depth_view = Self::create_depth_view(&device, &config, samples);
-        let msaa_view = Self::create_msaa_view(&device, &config, samples);
+}                       // 40 B
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct LineUniform{
+    thickness: f32, // on-screwwn width, px
+    proj_y: f32, // vertical projection scale x unit scale
+    ortho_h: f32, // ortho world half.heigh x unit scale
+    vp_h: f32, // framebuffer height, px
+    vp_w: f32, // framebuffer width, px - flat linework needs the aspect
+    // Camera position, in the SAME anchored frame the instance rows use - so a shader can build
+    // the view ray to a point as `eye - p`. That is what the per-edge facing test needs, and it
+    // has to be the real eye rather than a constant forward direction: at this 60 degree FOV a
+    // constant direction is off by up to 30 degrees at the frame corner, and it is precisely the
+    // near-silhouette edges - the ones whose classification is in doubt - that would flip.
+    eye: [f32; 3],   // 12 B - and it fills the pad WGSL leaves before `anchor`'s 16 B alignment
+    // The camera-relative ANCHOR, world units. Instance rows are rebased about it, so anything
+    // NOT an instance - the grid, the axes - has to subtract it too or it drifts away from the
+    // scene every time re-anchoring fires.
+    anchor: [f32; 3],
+    _pad1: f32, // 4 B - struct size rounds up to the 16 B alignment
+} // 48 B - three vec4s
+
+// The shaders declare this same struct with `anchor: vec3<f32>`, which WGSL aligns to 16 - so the
+// uniform is 48 B there, not the 32 B a naive Rust layout gives. A mismatch is not a compile error:
+// it surfaces at run time as "buffer bound with size 32 ... requires at least 48 bytes", every
+// frame, from every pipeline that binds group 1.
+const _: () = assert!(std::mem::size_of::<LineUniform>() == 48);
+
 ```
 
 **Replace with:**
 
 ```rust
-        let targets = Targets::new(&device, &config, samples);
+}                       // 40 B
+
 ```
+
+`CloudUniform` moved to `frame.rs`; the `GlyphPoint` size assert rides along with this Remove
+and comes back in the next edit.
+
+**Remove** `src/engine/gpu/mod.rs` `const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);` **through** `} // 16 B - one vec4; its own buffer + bind group`
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-        if samples != self.samples {
-            self.samples = samples;
-            self.depth_view = Self::create_depth_view(&self.ctx.device, &self.config, samples);
-            self.msaa_view = Self::create_msaa_view(&self.ctx.device, &self.config, samples);
-```
-
-**Replace with:**
-
-```rust
-        if samples != self.targets.samples {
-            self.targets = Targets::new(&self.ctx.device, &self.config, samples);
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-            self.depth_view = Self::create_depth_view(&self.ctx.device, &self.config, self.samples);
-            self.msaa_view = Self::create_msaa_view(&self.ctx.device, &self.config, self.samples);
-```
-
-**Replace with:**
-
-```rust
-            self.targets = Targets::new(&self.ctx.device, &self.config, self.targets.samples);
-```
-
-Fields last, three out and one in:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    pub frame: FrameUniforms,                // camera + pen + cloud uniforms (frame.rs)
+// array stride is the struct's, so a drift here misreads every row.
 ```
 
 **Add below it:**
 
 ```rust
-    pub targets: Targets,                    // depth + MSAA attachments (targets.rs)
+const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
 ```
+
+`line_thickness_px`, `zeroed_buffer` and `storage_buffer` are in `buffers.rs` / `view.rs` or gone.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-    pub depth_view: wgpu::TextureView,
-    pub msaa_view: wgpu::TextureView,
-    pub samples: u32, // MSAA sample count this scene chose (see `msaa_for`)
-    pub performance: Performance,
-```
-
-**Replace with:**
-
-```rust
-    pub performance: Performance,
-```
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-            depth_view,
-            msaa_view,
-            samples,
-            performance: Performance::new(),
-```
-
-**Replace with:**
-
-```rust
-            targets,
-            performance: Performance::new(),
-```
-
-Gate — the MSAA flip is the one path a golden alone would not exercise from a cold start, so run
-the mixed scene as well as the default set:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-grep -c 'begin_render_pass' src/engine/gpu/mod.rs      # 0
-./docs/_gate.sh
-```
-
-### 6.7 `present.rs` — how a frame leaves
-
-Three methods on `Gpu` are about getting an encoded frame OUT: to the swapchain, to a readback
-buffer, or round a timing loop. None of them encodes anything — all three call `encode_frame`,
-which stays in `mod.rs`. Move them first, then split the first one.
-
-**Move** `src/engine/gpu/mod.rs`
-
-```rust
-    /// Acquire the next frame and clear it to `color`. Chapter 1 does nothing else — geometry passes
-```
-
-**through** `    }` **to** `src/engine/gpu/present.rs` **at the end**
-
-**Move** `src/engine/gpu/mod.rs`
-
-```rust
-    /// Render one frame into an offscreen texture and read the pixels back (RGBA8, tightly
-```
-
-**through** `    }` **to** `src/engine/gpu/present.rs` **at the end**
-
-**Move** `src/engine/gpu/mod.rs`
-
-```rust
-    /// Time `frames` full frames (encode + submit), reusing one offscreen target, and wait for
-```
-
-**through** `    }` **to** `src/engine/gpu/present.rs` **at the end**
-
-Three cuts leave four blank lines behind:
-
-**Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-    }
-
-
-
-
-    /// Per-frame uniforms, then the per-object flags they feed.
-```
-
-**Replace with:**
-
-```rust
-    }
-
-    /// Per-frame uniforms, then the per-object flags they feed.
-```
-
-Stitch the first one into the impl:
-
-**Find** in `src/engine/gpu/present.rs`:
-
-```rust
-impl Gpu {
 }
 
-    /// Acquire the next frame and clear it to `color`. Chapter 1 does nothing else — geometry passes
+/// A fresh buffer of `size` bytes, zero-initialized by WebGPU - the write_buffer splice and the empty-category placeholders both rely on that guarantee.
+/// On-screen pen weight in px. Default 2.0.
+///
+/// It was briefly 1.0, to stop an embedded viewer reading as a blob of ink. That trades one
+/// problem for a worse one: a tube is opaque GEOMETRY, and 4x MSAA gives a pixel four coverage
+/// samples - enough to smooth the edge of a shape that covers it, nothing at all for a shape
+/// THINNER than it. A 1 px pen lands on one or two samples and resolves dim and broken, and the
+/// density taper below (`WIRE_MIN_PENS`) can thin it to 0.15 of that again on a dense mesh. Two
+/// pixels is the floor at which MSAA has something to work with.
+///
+/// Tune per embed with `?thickness=1.5` rather than rebuilding, the same query-string mechanism
+/// as `?scene=`; `VIEWER_THICKNESS` does the same for native (env vars are unreachable on wasm).
+fn line_thickness_px() -> f32 {
+    #[cfg(target_arch = "wasm32")]
+    {
+        static PX: std::sync::OnceLock<f32> = std::sync::OnceLock::new();
+        return *PX.get_or_init(|| {
+            web_sys::window()
+                .and_then(|w| w.location().search().ok())
+                .and_then(|search| {
+                    search
+                        .trim_start_matches('?')
+                        .split('&')
+                        .find_map(|pair| pair.strip_prefix("thickness=").map(str::to_owned))
+                })
+                .and_then(|value| value.parse().ok())
+                .filter(|px: &f32| px.is_finite() && *px > 0.0)
+                .unwrap_or(2.0)
+        });
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        std::env::var("VIEWER_THICKNESS").ok().and_then(|v| v.parse().ok()).unwrap_or(2.0)
+    }
+}
+
+fn zeroed_buffer(
+    device: &wgpu::Device,
+    label: &str,
+    size: u64,
+    usage: wgpu::BufferUsages
+) -> wgpu::Buffer {
+    device.create_buffer(
+        &wgpu::BufferDescriptor {
+            label: Some(label),
+            size,
+            usage,
+            mapped_at_creation: false,
+        })
+}
+
+/// A storage bufffer filled by  `write buffer`, not `create_buffer_init`: init maps the whole buffer at a creation
+/// and on wgpu's web backend that allocates a full-size mirror of the contents in the wasm heap costs three times per scene load.
+/// `ẁrite_buffer` stages through the queue instead
+/// empty data leaves the minimum buffer zeri-initialized.
+fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, queue: &wgpu::Queue, label: &str, data: &[T]) -> wgpu::Buffer{
+    let size = (data.len() * std::mem::size_of::<T>()).max(std::mem::size_of::<T>()).max(4) as u64;
+    let buf = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some(label),
+        size,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        mapped_at_creation: false,
+    });
+
+    if !data.is_empty(){
+        queue.write_buffer(&buf, 0, bytemuck::cast_slice(data));
+    }
+    buf
+}
+
+
 ```
 
 **Replace with:**
 
 ```rust
-impl Gpu {
-    /// Acquire the next frame and clear it to `color`. Chapter 1 does nothing else — geometry passes
+}
+
 ```
 
-Now the split. `clear` writes the uniforms, acquires a swapchain texture, encodes the frame, then
-submits and presents. A caller that wants its OWN pass — an egui overlay at 69, a gumball at 74 —
-must get in between the third step and the fourth, and cannot. So `clear`'s body becomes
-`begin_present`, and `clear` comes back as the two-line composition of the halves.
+## Step 9 — `src/app/scene.rs`
 
-The `Option` is not cosmetic: this body has **two** early returns meaning "there is no frame" — a
-headless `Gpu` with no surface, and a lost surface just reconfigured — and `Frame.view` has to
-hold a real `TextureView`.
+`Upload::default()` and `drop_uploaded()` replace the constructor and the fourteen `drop_rows`.
 
-**Find** in `src/engine/gpu/present.rs`:
+**Find** in `src/app/scene.rs`:
 
 ```rust
-    /// Acquire the next frame and clear it to `color`. Chapter 1 does nothing else — geometry passes
-    /// (mesh, line, grid, …) get added here in later chapters.
-    /// Draw one frame to the swapchain. The frame ENCODING lives in `encode_frame` so a
-    /// headless harness can aim the same code at an offscreen texture and read the pixels back -
-    /// see `selftest.rs`. Shader work that is only ever checked in a browser is shader work
-    /// checked by somebody else's eyes.
-    pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform) -> anyhow::Result<()> {
+use crate::engine::gpu::{ArenaUpload, CloudDraw, LodNode, Instance, CylinderSegment, GlyphPoint};
 ```
 
 **Replace with:**
 
 ```rust
-    /// Acquire the next swapchain frame and encode the scene into it.
+use crate::engine::gpu::{Upload, CloudDraw, LodNode, Instance, CylinderSegment, GlyphPoint};
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+    pub tables: ArenaUpload,
+```
+
+**Replace with:**
+
+```rust
+    pub tables: Upload,
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+        tables: ArenaUpload::new(),
+```
+
+**Replace with:**
+
+```rust
+        tables: Upload::default(),
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+        self.docs.clear();
+        self.tables = ArenaUpload::new();
+```
+
+**Replace with:**
+
+```rust
+        self.docs.clear();
+        self.tables = Upload::default();
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+        self.tables = ArenaUpload::new();
+```
+
+**Replace with:**
+
+```rust
+        self.tables = Upload::default();
+```
+
+**Find** in `src/app/scene.rs`:
+
+```rust
+    /// Upload the walked tables, then FORGET the rows: the GPU is their only holder.
     ///
-    /// `None` means there is nothing to present, for one of exactly two reasons: this `Gpu` is
-    /// headless, or the surface was lost and has just been reconfigured. Both used to be an
-    /// early `return Ok(())` inside `clear`, which is why the split needs an `Option` and not
-    /// just a `Frame`.
-    pub fn begin_present(&mut self, color: wgpu::Color, view_proj: &Xform) -> anyhow::Result<Option<Frame>> {
-```
-
-**Find** in `src/engine/gpu/present.rs`:
-
-```rust
-        let Some(surface) = &self.surface else { return Ok(()) }; // headless: nothing to present
+    /// EVERY drawn table goes, not just the arena. Nothing reads any of them back - picking goes
+    /// through the kernel Meshes in Doc.session, never through these flattened rows - and holding
+    /// them cost twice over: the wasm heap kept a full second copy of the scene for the whole
+    /// session (280 MB on a 13.8 M-point scan), and having that copy is exactly what let the ink
+    /// and cloud lanes rebuild their whole buffer per file instead of appending. Keep only the
+    /// running bases, so the next file's indices still land in the right place.
 ```
 
 **Replace with:**
 
 ```rust
-        let Some(surface) = &self.surface else { return Ok(None) }; // headless: nothing to present
+    /// Upload the walked tables, then FORGET the rows (`Upload::drop_uploaded`): the GPU is
+    /// their only holder. Only the running bases stay, so the next file's indices still land in
+    /// the right place.
 ```
 
-**Replace-all** `src/engine/gpu/present.rs` `return Ok(()); }` → `return Ok(None); }` (1 hit)
-
-**Find** in `src/engine/gpu/present.rs`:
+**Find** in `src/app/scene.rs`:
 
 ```rust
-        let (draws, objects) = self.encode_frame(&mut encoder, &view, color);
-        self.ctx.queue.submit([encoder.finish()]);
-        output.present();
-        self.performance.frame(draws, objects);
-        Ok(())
-    }
+        let t = &mut self.tables;
+        drop_rows(&mut t.verts);
+        drop_rows(&mut t.vids);
+        drop_rows(&mut t.idx);
+        drop_rows(&mut t.idx_print);
+        drop_rows(&mut t.idx_text);
+        drop_rows(&mut t.pipes);
+        drop_rows(&mut t.segments);
+        drop_rows(&mut t.spheres);
+        drop_rows(&mut t.glyphs);
+        drop_rows(&mut t.cloud_pos);
+        drop_rows(&mut t.cloud_col);
+        drop_rows(&mut t.cloud_nrm);
+        drop_rows(&mut t.cloud_draws);
+        drop_rows(&mut t.cloud_nodes);
+        // `objects`, `object_bounds` and `object_spacing` STAY: they are per-object rows the
+        // instance table is rebased from every time the camera re-anchors, and the walk indexes
+        // them by global row - they are the one table the GPU is not the only holder of.
 ```
 
 **Replace with:**
 
 ```rust
-        let (draws, objects) = self.encode_frame(&mut encoder, &view, color);
-        self.performance.frame(draws, objects);
-        Ok(Some(Frame { surface: Some(output), view, encoder }))
-    }
-
-    /// Submit the frame's commands and hand the image to the compositor.
-    pub fn end_present(&mut self, f: Frame) {
-        self.ctx.queue.submit([f.encoder.finish()]);
-        if let Some(o) = f.surface { o.present(); }
-    }
-
-    /// Acquire the next frame and clear it to `color`. Chapter 1 does nothing else — geometry passes
-    /// (mesh, line, grid, …) get added here in later chapters.
-    /// Draw one frame to the swapchain. The frame ENCODING lives in `encode_frame` so a
-    /// headless harness can aim the same code at an offscreen texture and read the pixels back -
-    /// see `selftest.rs`. Shader work that is only ever checked in a browser is shader work
-    /// checked by somebody else's eyes.
-    ///
-    /// Written as the literal composition of the two halves, so its behaviour cannot drift
-    /// away from theirs. The 2-argument signature is what `state.rs` calls.
-    pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform) -> anyhow::Result<()> {
-        if let Some(f) = self.begin_present(color, view_proj)? { self.end_present(f); }
-        Ok(())
-    }
+        self.tables.drop_uploaded();
 ```
 
-The impl is still open — the stitch ate its closing brace — so close it after the last method:
-
-**Find** in `src/engine/gpu/present.rs`:
+**Remove** `src/app/scene.rs` **up to**
 
 ```rust
-        t0.elapsed().as_secs_f64()
-    }
+/// Empty a table AND hand its allocation back. `clear()` alone keeps the capacity, which on
+```
+
+```rust
+/// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes
+```
+
+## Step 10 — `src/state.rs`
+
+`render` builds the `FrameInput`.
+
+**Find** in `src/state.rs`:
+
+```rust
+use crate::engine::gpu::Gpu;
+```
+
+**Replace with:**
+
+```rust
+use crate::engine::gpu::{FrameInput, Gpu};
+```
+
+**Find** in `src/state.rs`:
+
+```rust
+        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj)
+```
+
+**Replace with:**
+
+```rust
+        let clear = wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 };
+
+        self.gpu.clear(&FrameInput { view_proj, clear })
+```
+
+## Step 11 — `src/lib.rs`
+
+The key handlers flip `gpu.view.*`.
+
+**Find** in `src/lib.rs`:
+
+```rust
+                            state.gpu.show_points = !state.gpu.show_points;
+                            log::info!("points: {}", state.gpu.show_points);
+```
+
+**Replace with:**
+
+```rust
+                            state.gpu.view.show_points = !state.gpu.view.show_points;
+                            log::info!("points: {}", state.gpu.view.show_points);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                            state.gpu.show_lines = !state.gpu.show_lines;
+                            log::info!("lines: {}", state.gpu.show_lines);
+```
+
+**Replace with:**
+
+```rust
+                            state.gpu.view.show_lines = !state.gpu.view.show_lines;
+                            log::info!("lines: {}", state.gpu.view.show_lines);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                            state.gpu.show_mesh_edges = !state.gpu.show_mesh_edges;
+                            log::info!("mesh edges: {}", state.gpu.show_mesh_edges);
+```
+
+**Replace with:**
+
+```rust
+                            state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges;
+                            log::info!("mesh edges: {}", state.gpu.view.show_mesh_edges);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                            state.gpu.line_style = match state.gpu.line_style {
+```
+
+**Replace with:**
+
+```rust
+                            state.gpu.view.line_style = match state.gpu.view.line_style {
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                            log::info!("line style: {:?}", state.gpu.line_style);
+```
+
+**Replace with:**
+
+```rust
+                            log::info!("line style: {:?}", state.gpu.view.line_style);
+```
+
+**Find** in `src/lib.rs`:
+
+```rust
+                            state.gpu.cloud_size = (state.gpu.cloud_size - 0.25).max(0.25);
+                            log::info!("cloud size scale: x{}", state.gpu.cloud_size);
+                        }
+                        Key::Character("]") => {
+                            state.gpu.cloud_size = (state.gpu.cloud_size + 0.25).min(8.0);
+                            log::info!("cloud size scale: x{}", state.gpu.cloud_size);
+```
+
+**Replace with:**
+
+```rust
+                            state.gpu.view.cloud_size = (state.gpu.view.cloud_size - 0.25).max(0.25);
+                            log::info!("cloud size scale: x{}", state.gpu.view.cloud_size);
+                        }
+                        Key::Character("]") => {
+                            state.gpu.view.cloud_size = (state.gpu.view.cloud_size + 0.25).min(8.0);
+                            log::info!("cloud size scale: x{}", state.gpu.view.cloud_size);
+```
+
+## Step 12 — `src/selftest.rs`
+
+The harness builds `FrameInput`s and reads `gpu.ctx` / `gpu.view`.
+
+**Find** in `src/selftest.rs`:
+
+```rust
+use crate::engine::gpu::Gpu;
+```
+
+**Replace with:**
+
+```rust
+use crate::engine::gpu::{FrameInput, Gpu};
+```
+
+**Find** in `src/selftest.rs`:
+
+```rust
+    let view_proj = camera.view_proj_anchored(w as f64 / h as f64, &anchor);
 ```
 
 **Add below it:**
 
 ```rust
-}
+    let input = FrameInput { view_proj, clear: wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 } };
 ```
 
-`present.rs` so far:
-
-```text
-  1- 10  //! header — the three ways a frame leaves the encoder
- 12- 14  use Xform · Gpu
- 16- 25  Frame { surface, view, encoder }
- 27-162  impl Gpu — begin_present · end_present · clear = begin + end
-         · render_offscreen and bench_frames, both native only
-```
-
-Gate. Nothing in the goldens calls `clear`, `begin_present` or `end_present` — the harness goes
-through `render_offscreen` — so the compiler is the only automatic check here, and §7's browser
-smoke test is the other:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-./docs/_gate.sh
-```
-
-The field count prints **86**.
-
-## 7. Proving nothing changed — four ladders
-
-**Ladder 1, the compiler.** Both targets, and `--all-targets` natively so the examples and
-the headless harness are type-checked too:
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-```
-
-*What it cannot catch:* anything that type-checks. `b.line` where the old line read
-`&self.time_bind_group` compiles perfectly — both are `&wgpu::BindGroup` — and so does a
-`Targets::new` that forgot `TEXTURE_BINDING`. Nor can it see a `#[cfg]`-gated arm on the target
-you did not build, and `render_offscreen` and `bench_frames` are both behind one.
-
-**Ladder 2, `--moves`**, introduced in lesson 46 §7: the only proof a move took its lines
-byte-identically.
-
-```bash
-python3 docs/_replay_check.py --moves <end-of-45 snapshot> /tmp/w46 docs/47-gpu-floor.md
-```
-
-```text
-docs/47-gpu-floor.md: 143 ops, 0 failed
-docs/47-gpu-floor.md: 1 move source(s), 0 not byte-identical
-   ... lost-declared src/engine/gpu/mod.rs (over …) — 105 line(s)
-```
-
-The third line is informational, marked `...` not `!!`: those 105 lines left `gpu/mod.rs` and the
-doc spells each one out in a `Find` block first. `0 not byte-identical` is the verdict.
-
-All fourteen moves start in `src/engine/gpu/mod.rs` and land in five files. That is what makes the
-ladder usable: two sources into one destination would report the other source's lines as an
-undeclared gain, so the sweep out of `app/scene.rs` in 6.3 is a `Replace`, not a move.
-
-*What it catches and the other three do not:* a line dropped inside a
-`#[cfg(not(target_arch = "wasm32"))]` arm. `render_offscreen` is 52 such lines, it is what the
-pixel gate itself runs, and it is invisible to `cargo check --target wasm32-unknown-unknown`.
-
-**Ladder 3, the pixel gate, twice.**
-
-```bash
-./docs/_gate.sh && ./docs/_gate.sh
-```
-
-The same 64 rows lesson 46 §7 describes: four mandatory scenes × four configs × two passes, plus
-four advisory scenes when their gitignored `.pb` assets are present, every row gated on **ink,
-draw count and object count**, with the `nondet(splat)` and `nondet(mesh)` exemptions recorded in
-`_GOLDENS.tsv`. Neither exemption is your bug.
-
-*What it cannot catch:* everything `State` owns. The harness calls `render_offscreen` and never
-constructs a `State`, so **`clear`, `begin_present` and `end_present` are compiler-gated only** —
-and this lesson rewrote all three. That is what ladder 4 is for, and it is not optional here.
-
-**Ladder 4, the browser, once.** The only run in this lesson that exercises the swapchain path:
-
-```bash
-trunk serve --release
-```
-
-Open `http://127.0.0.1:8080`, and read the console in this order:
-
-```text
-adapter: <your GPU> (<type>, <backend>)
-viewer init OK — surface <w>x<h>, format <format>
-scene: <n> objects <n> arena verts <n> segments (<n> pipes) <n> glyphs (<n> spheres) <n> cloud points
-```
-
-Three lines in that order, and then **no** `wgpu on_uncaptured_error` line, ever — a binding whose
-size no longer matches its layout reports in that device error scope and nowhere else. Then, with
-the scene up: orbit, pan and zoom (the `clear` path); view keys **1**-**7** (`write_camera`); **E**
-(a knob gating a draw); **L** (a knob picking a pipeline); **[** and **]** (a knob the cloud block
-reads); and **resize the window**, the only gesture that runs `Targets::new` after startup. That
-exercises `present.rs`, `view.rs`, `frame.rs` and `targets.rs` on a real surface.
-
-## 8. What you can now do in one line
-
-Add a uniform the whole flat ink lane reads. Before this lesson: the struct near the bottom of a
-2,139-line file, the write that fills it 500 lines above, the buffer 800 lines above THAT, and a
-guess at which shaders declare the block. Now all of it is one 177-line file.
-
-`LineUniform` ends in `_pad1`, four bytes that exist only because WGSL rounds the block up to 48.
-Take them.
-
-**Type all ten steps below.** The first five add the uniform, the last five take it back out — a
-demonstration, not part of the end state, and `frame.rs`, `gpu/mod.rs` and `ribbon.wgsl` must be
-back to what §6 left before §10. Do **not** undo it with `git checkout`: lesson 47 is not
-committed, and that would throw it all away.
-
-**8a.** The field. **Find** in `src/engine/gpu/frame.rs`:
+**Find** in `src/selftest.rs`:
 
 ```rust
-    pub(crate) _pad1: f32, // 4 B - struct size rounds up to the 16 B alignment
+        let solved = crate::math::eye_from_view_proj(&view_proj);
 ```
 
 **Replace with:**
 
 ```rust
-    pub(crate) tint: f32, // 4 B - was _pad1; the block is still 48 B
+        let solved = crate::math::eye_from_view_proj(&input.view_proj);
 ```
 
-**8b.** The writer. **Find** in `src/engine/gpu/frame.rs`:
+**Find** in `src/selftest.rs`:
 
 ```rust
-            anchor: f.anchor.map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3]),
-            _pad1: 0.0,
+            let _ = gpu.render_offscreen(wgpu::Color {r: 0.9, g: 0.9, b:0.9, a:1.0}, &view_proj);
 ```
 
 **Replace with:**
 
 ```rust
-            anchor: f.anchor.map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3]),
-            tint: 0.35,
+            let _ = gpu.render_offscreen(&input);
 ```
 
-**8c.** The zeroed copy the first frame uploads. **Find** in `src/engine/gpu/mod.rs`:
+**Find** in `src/selftest.rs`:
 
 ```rust
-                anchor: [0.0; 3],   // no anchor until the first frame rebases the table
-                _pad1: 0.0,
+            n, ms[n / 2], 1000.0 / ms[n / 2], ms[0], ms[n - 1], gpu.cloud_size);
+    }
+
+    let rgba = gpu.render_offscreen(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj);
 ```
 
 **Replace with:**
 
 ```rust
-                anchor: [0.0; 3],   // no anchor until the first frame rebases the table
-                tint: 0.0,
+            n, ms[n / 2], 1000.0 / ms[n / 2], ms[0], ms[n - 1], gpu.view.cloud_size);
+    }
+
+    let rgba = gpu.render_offscreen(&input);
 ```
 
-**8d.** The other side of the contract. `frame.rs`'s header names the five shaders that declare
-`LineUniform`; this one is the flat ribbon lane. **Find** in `src/shaders/ribbon.wgsl`:
+**Find** in `src/selftest.rs`:
 
-```wgsl
-    anchor: vec3<f32>,   // camera-relative anchor, world units (see gpu/mod.rs)
-```
-
-**Add below it:**
-
-```wgsl
-    tint: f32,           // offset 44, the four bytes after anchor's vec3 - still 48 B
-```
-
-**8e.** **Find** in `src/shaders/ribbon.wgsl`:
-
-```wgsl
-    return vec4<f32>(in.color.rgb, in.color.a * alpha);
+```rust
+            gpu.line_style = style;
 ```
 
 **Replace with:**
 
-```wgsl
-    return vec4<f32>(mix(in.color.rgb, vec3<f32>(1.0, 0.0, 0.0), line.tint), in.color.a * alpha);
+```rust
+            gpu.view.line_style = style;
 ```
 
-Render the sheet scene, which is flat ink end to end:
+**Find** in `src/selftest.rs`:
+
+```rust
+    let tex = gpu.device.create_texture(&wgpu::TextureDescriptor {
+```
+
+**Replace with:**
+
+```rust
+    let tex = gpu.ctx.device.create_texture(&wgpu::TextureDescriptor {
+```
+
+**Find** in `src/selftest.rs`:
+
+```rust
+            let t0 = std::time::Instant::now();
+            let _ = gpu.clear(clear, &vp); // headless: uniforms, then returns
+            let t1 = std::time::Instant::now();
+            let mut encoder = gpu.device.create_command_encoder(&Default::default());
+            gpu.encode_frame(&mut encoder, &view, clear);
+            let t2 = std::time::Instant::now();
+            gpu.queue.submit([encoder.finish()]);
+            let _ = gpu.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+```
+
+**Replace with:**
+
+```rust
+            let input = FrameInput { view_proj: vp, clear };
+            let t0 = std::time::Instant::now();
+            let _ = gpu.clear(&input); // headless: uniforms, then returns
+            let t1 = std::time::Instant::now();
+            let mut encoder = gpu.ctx.device.create_command_encoder(&Default::default());
+            gpu.encode_frame(&mut encoder, &view, clear);
+            let t2 = std::time::Instant::now();
+            gpu.ctx.queue.submit([encoder.finish()]);
+            let _ = gpu.ctx.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+```
+
+## Check
 
 ```bash
-cargo run -q --example selftest --target x86_64-unknown-linux-gnu --release -- \
-    /tmp/tint.ppm assets/scenes/drawings_rotated.toml
+cargo check --lib --target wasm32-unknown-unknown            # 2 warnings (was 4)
+cargo check --all-targets --target x86_64-unknown-linux-gnu  # 9 warnings (was 11)
+grep -c 'std::env::var' src/engine/gpu/mod.rs                # 0
+grep -c ': GrowBuf' src/engine/gpu/mod.rs                    # 10 tables
+./docs/_gate.sh                                              # gate OK
 ```
 
-Most of the sheet's ink is now 35% of the way to red — reddish pixels go from 976 to 3,322. The
-ink COUNT barely moves: a colour change moves no geometry. But the frame is a different frame, and
-`drawings_rotated` is the one scene a checksum gates, so take it back out before §10. Three lines
-of Rust across two files, two lines of WGSL in one shader, and nothing else in the program knew.
-
-**8f.** **Find** in `src/shaders/ribbon.wgsl`:
-
-```wgsl
-    return vec4<f32>(mix(in.color.rgb, vec3<f32>(1.0, 0.0, 0.0), line.tint), in.color.a * alpha);
-```
-
-**Replace with:**
-
-```wgsl
-    return vec4<f32>(in.color.rgb, in.color.a * alpha);
-```
-
-**8g.** Both lines together, because a delete verb would leave a blank line behind. **Find** in
-`src/shaders/ribbon.wgsl`:
-
-```wgsl
-    anchor: vec3<f32>,   // camera-relative anchor, world units (see gpu/mod.rs)
-    tint: f32,           // offset 44, the four bytes after anchor's vec3 - still 48 B
-```
-
-**Replace with:**
-
-```wgsl
-    anchor: vec3<f32>,   // camera-relative anchor, world units (see gpu/mod.rs)
-```
-
-**8h.** **Find** in `src/engine/gpu/mod.rs`:
-
-```rust
-                anchor: [0.0; 3],   // no anchor until the first frame rebases the table
-                tint: 0.0,
-```
-
-**Replace with:**
-
-```rust
-                anchor: [0.0; 3],   // no anchor until the first frame rebases the table
-                _pad1: 0.0,
-```
-
-**8i.** **Find** in `src/engine/gpu/frame.rs`:
-
-```rust
-            anchor: f.anchor.map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3]),
-            tint: 0.35,
-```
-
-**Replace with:**
-
-```rust
-            anchor: f.anchor.map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3]),
-            _pad1: 0.0,
-```
-
-**8j.** **Find** in `src/engine/gpu/frame.rs`:
-
-```rust
-    pub(crate) tint: f32, // 4 B - was _pad1; the block is still 48 B
-```
-
-**Replace with:**
-
-```rust
-    pub(crate) _pad1: f32, // 4 B - struct size rounds up to the 16 B alignment
-```
-
-The point is the size of the diff and the number of files you had to open: the uniform, its
-writer, its `FrameInput` and the list of shaders that mirror it were all on one screen.
-
-## 9. What is deliberately not here
-
-- **`RowTable<T>`.** Each family folds its own `(buffer, count, cap)` triple in as it is created —
-  `Arena` at **47**, `SegmentLane`/`GlyphLane` at **48**, cloud and stream at **49**. The
-  CPU-mirror-plus-`guid`-map version lands at **57**, with its first honest caller.
-- **`Upload` regrouped per family.** It moved FLAT. `obj`/`arena` are **47**, `seg`/`glyph` **48**,
-  `cloud`/`span` **49** — one instalment per consumer, never one 170-site table.
-- **`upload_rows(ctx, &[u32])`**, the flip-tracked partial upload of the object table: **62**,
-  where frustum culling makes per-row updates worth the bookkeeping.
-- **`Targets::new_sized(ctx, size, format, samples)`** and the half-res effect targets: **107** and
-  **88**/**90**. `Targets` is sized from `config` today because that is all any caller needs.
-- **`render_to_texture(size, view_proj)`** — `render_offscreen` still hardcodes the surface size
-  and the surface format: **107**.
-- **The `line_uniform_mirror` test**, asserting the Rust and WGSL `LineUniform` agree field by
-  field: **47**, beside `instance_mirror`, where the `Instance` row moves.
-- **Splitting `encode_frame`** into three fenced regions plus a twelve-line `scene_list`: **49**.
-  This lesson took the pass descriptor and the bind groups out and left the draw order alone.
-- **The three `#[allow(dead_code)]`s.** `GrowBuf` comes off at 47, `Targets.depth` at 88,
-  `Frame.view` at 69 — each a field only the named lesson uses; the attribute is the receipt.
-- **Fixing anything a move carried.** `append_rows`'s doc still describes the index run below it,
-  `ArenaUpload`'s still says "owened", and lesson 46's `glyph`/`segment` layout alias is still
-  there. A body you are moving is not a body you are fixing.
-
-## 10. Expected state
-
-```bash
-cargo check --target wasm32-unknown-unknown --lib
-cargo check --all-targets
-python3 docs/_replay_check.py --moves <end-of-45 snapshot> /tmp/w46 docs/47-gpu-floor.md
-./docs/_gate.sh && ./docs/_gate.sh
-```
-
-Both gate runs print `gate OK`, and `--moves` prints `1 move source(s), 0 not byte-identical`.
-
-```bash
-wc -l src/engine/gpu/*.rs src/app/scene.rs
-```
-
-```text
-  140 src/engine/gpu/buffers.rs      NEW
-  177 src/engine/gpu/frame.rs        NEW
- 1691 src/engine/gpu/mod.rs          was 2139
-  162 src/engine/gpu/present.rs      NEW
-   88 src/engine/gpu/targets.rs      NEW
-  110 src/engine/gpu/upload.rs       NEW
-   50 src/engine/gpu/view.rs         NEW
- 1340 src/app/scene.rs               was 1365
-```
-
-```bash
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-grep -c 'wgpu::' src/engine/gpu/upload.rs
-grep -c 'begin_render_pass' src/engine/gpu/mod.rs
-grep -c '&self.device, &self.queue,' src/engine/gpu/mod.rs
-```
-
-```text
-86   Gpu fields   (was 106)
- 0   wgpu:: in upload.rs — it is app-side data
- 0   render passes opened outside targets.rs
- 0   device/queue pairs left
-```
-
-`Gpu` 106 → 86: two handles became one `ctx`, twelve uniform fields one `frame`, three attachments
-one `targets`, seven knobs one `view`. The plan predicted 88; the measured tree is 86, because
-`mvp_f32`, `last_ortho_h` and `last_eye` went with the uniforms they are computed beside.
-`gpu/mod.rs` 2139 → 1691: it still holds `build`, `set_scene`, `encode_frame` and eleven lanes'
-worth of flat fields — 47-49 take those — but nothing left in it is plumbing.
+`Gpu` has 64 fields (was 102); the goldens do not move.
 
 ## Recap
 
-> **45.** A pipeline is data. Eleven near-identical builders existed because a pipeline was
-> modelled as code, and code cannot be spread with `..`. `PipelineDesc` names the eleven settings
-> that vary, four presets name the four recipes, and one `build` holds the single
-> `create_render_pipeline` call. `Layouts` does the same one level down, and
-> `Pipelines::new(device, t, &l)` is frozen at three parameters.
->
-> **46.** A buffer, its row count and its capacity are one value; so are `device` and `queue`; so
-> are the seven things the keyboard toggles. Forty-three of `Gpu`'s 106 fields spelled
-> `(buffer, count, cap)` out longhand, ten call sites passed `&self.device, &self.queue,` as a
-> pair, and twelve fields were the three uniform blocks every shader reads. None of that is a lane
-> — a lane is a row format and a shader — so it all goes UNDER the lanes, in five files that name
-> no row type and no `.wgsl`, plus `upload.rs` on the far side naming no `wgpu::` type. Two shapes
-> fall out that 47-51 are built on: `&GpuCtx` handed to a lane instead of held by it, and
-> `Binds<'a>`, six shared reborrows taken before the pass opens, because a `RenderPass` borrows
-> the encoder for its whole life. **The law: the floor knows no lane. A buffer, its count and its
-> cap are one value; a knob is not a uniform; and nothing under the families may name a row, a
-> shader or a `Geometry::` variant.**
-
-## Edited
-
-`src/engine/gpu/buffers.rs` (NEW — `GpuCtx`, `GrowBuf`, the four free functions) ·
-`src/engine/gpu/upload.rs` (NEW — `Upload` moved flat + `drop_uploaded`) ·
-`src/engine/gpu/view.rs` (NEW — the seven knobs + `from_env`) · `src/engine/gpu/frame.rs` (NEW —
-`FrameUniforms`, `FrameInput`, `Binds`, the two writers, the two uniform structs) ·
-`src/engine/gpu/targets.rs` (NEW — `Targets` with the depth TEXTURE + `begin_pass`) ·
-`src/engine/gpu/present.rs` (NEW — `Frame`, `begin_present`/`end_present`, `clear`,
-`render_offscreen`, `bench_frames`) · `src/engine/gpu/mod.rs` (loses all six; gains `ctx`, `frame`,
-`targets`, `view`; 106 → 86) · `src/app/scene.rs` · `src/lib.rs` (five knob paths) ·
-`src/selftest.rs` (two).
-
-## Reference
-
-Built in eight checkpoints, each compiled, the last one gated twice:
-
-| checkpoint | what landed |
-|---|---|
-| 46a | `gpu/buffers.rs` — `GpuCtx`, `GrowBuf`, and the four free functions out of `gpu/mod.rs` |
-| 46b | `Gpu { device, queue }` → `ctx: GpuCtx` — 10 pairs folded, 37 + 26 re-rooted (§6.2 splits five of those out by hand and sweeps 33 + 25) |
-| 46c | `gpu/upload.rs` — `ArenaUpload` → `Upload`, moved flat (11 sites); `drop_uploaded` joins it |
-| 46d | `gpu/view.rs` — the seven runtime knobs become `View` + `View::from_env` |
-| 46e | `gpu/frame.rs` — `FrameUniforms` + `FrameInput` + `Binds` (27 re-rooted, 42 draw sites) |
-| 46f | `gpu/targets.rs` — `Targets` + `begin_pass` at 4 params; depth keeps `TEXTURE_BINDING` |
-| 46g | `gpu/present.rs` — `Frame` + `begin_present`/`end_present`/`clear` + the two native harnesses |
-| 46h | the `Gpu` head reordered to `surface, ctx, config, layouts, pipelines, frame, targets, view` |
-
-46h is folded into the steps above: 6.4, 6.5 and 6.6 each insert their field where it finally
-belongs, so the head is right the first time.
-
-`git diff end-of-45..end-of-46 -- session_viewer/src` is the whole lesson as one patch; `diff -u`
-any single file against it if a line count comes out wrong.
+- A growable table is one type, `GrowBuf`; a lane owns one and asks it to `append`.
+- Knobs are read once into `View`; nothing in the frame loop touches the environment.
+- The frame's inputs are two structs (`FrameInput`, `FrameCx`); the eye is solved once.
 
 ## Next
 
-Lesson [48](48-object-rows.md) — **one row per object.** Run the evidence:
-
-```bash
-grep -cE '^\s+(pub )?[a-z_0-9]+\s*:' <(sed -n '/^pub struct Gpu/,/^}/p' src/engine/gpu/mod.rs)
-grep -c 'instance_id' src/engine/gpu/mod.rs src/app/scene.rs
-grep -n 'objects_base\|base_f32\|bounded_rows\|object_bounds_world\|inside' src/engine/gpu/mod.rs | head
-```
-
-86 fields, and six of them are parallel arrays indexed by the same row number — `instances`,
-`objects_base`, `base_f32`, `bounded_rows`, `object_bounds_world`, `inside` — with every row
-struct in the program carrying an `instance_id` that points into them. Exactly one
-`(model, tint, flags)` per guid is the seam the whole design hangs on, and `arena.rs` is the
-worked example of the family contract that sits on top of it.
-
+Lesson [48](48-row-families.md) — row families: `objects.rs`, `arena.rs`, `segments.rs`,
+`glyphs.rs`, and the first four tests.
