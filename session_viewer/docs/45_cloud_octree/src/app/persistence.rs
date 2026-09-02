@@ -316,4 +316,3 @@ pub async fn cloud_colors(url: &str, at: u64, len: u64, count: u32) -> Option<Ve
     Some(out)
 }
 
-

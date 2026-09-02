@@ -11,7 +11,6 @@ use crate::engine::pipelines::Pipelines;
 
 use crate::engine::performance::Performance;
 
-use bytemuck::bytes_of_mut;
 use session_rust::{Xform, RenderVertex, Point};
 
 /// Re-anchor distance: the instance table is rebased about a snapped anchor.
@@ -2424,24 +2423,5 @@ fn zeroed_buffer(
             usage,
             mapped_at_creation: false,
         })
-}
-
-/// A storage bufffer filled by  `write buffer`, not `create_buffer_init`: init maps the whole buffer at a creation
-/// and on wgpu's web backend that allocates a full-size mirror of the contents in the wasm heap costs three times per scene load.
-/// `ẁrite_buffer` stages through the queue instead
-/// empty data leaves the minimum buffer zeri-initialized.
-fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, queue: &wgpu::Queue, label: &str, data: &[T]) -> wgpu::Buffer{
-    let size = (data.len() * std::mem::size_of::<T>()).max(std::mem::size_of::<T>()).max(4) as u64;
-    let buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
-
-    if !data.is_empty(){
-        queue.write_buffer(&buf, 0, bytemuck::cast_slice(data));
-    }
-    buf
 }
 

@@ -1883,8 +1883,8 @@ One comparison follows the `Aabb` rename.
 ## Check
 
 ```bash
-cargo check --lib --target wasm32-unknown-unknown            # 4 warnings, as before
-cargo check --all-targets --target x86_64-unknown-linux-gnu  # 11 warnings, as before
+cargo check --lib --target wasm32-unknown-unknown            # 0 warnings
+cargo check --all-targets --target x86_64-unknown-linux-gnu  # 0 warnings
 grep -rc 'create_render_pipeline' src | grep -v ':0'         # build.rs:1 - the only one
 grep -c 'PipelineDesc {' src/engine/pipelines/mod.rs         # 14
 ./docs/_gate.sh                                              # gate OK

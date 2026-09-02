@@ -756,6 +756,7 @@ fn is_print_fill(m: &Mesh) -> bool {
 fn env_flag(name: &str, slot: &'static std::sync::OnceLock<bool>) -> bool {
     *slot.get_or_init(|| std::env::var(name).is_ok())
 }
+#[cfg(not(target_arch = "wasm32"))]
 static VIEWER_PROFILE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
 static VIEWER_DROP_SESSIONS: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
 static VIEWER_NO_EDGES: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
@@ -907,14 +908,14 @@ fn push_mesh(
     #[cfg(not(target_arch = "wasm32"))]
     let mut lap = std::time::Instant::now();
     #[cfg(not(target_arch = "wasm32"))]
-    let mut mark = |name: &str, lap: &mut std::time::Instant| {
+    let mark = |name: &str, lap: &mut std::time::Instant| {
         if prof { eprintln!("  push_mesh {name:<20} {:?}", lap.elapsed()); *lap = std::time::Instant::now(); }
     };
     // Same signature on wasm so every `mark(..)` call site below stays identical.
     #[cfg(target_arch = "wasm32")]
     let mut lap = ();
     #[cfg(target_arch = "wasm32")]
-    let mut mark = |_name: &str, _lap: &mut ()| {};
+    let mark = |_name: &str, _lap: &mut ()| {};
     let rm = m.to_render();
     mark("to_render", &mut lap);
 

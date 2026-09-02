@@ -2570,8 +2570,8 @@ The comparison macro takes a field path.
 ## Check
 
 ```bash
-cargo check --lib --target wasm32-unknown-unknown            # 2 warnings
-cargo check --all-targets --target x86_64-unknown-linux-gnu  # 9 warnings
+cargo check --lib --target wasm32-unknown-unknown            # 0 warnings
+cargo check --all-targets --target x86_64-unknown-linux-gnu  # 0 warnings
 cargo xtest                                                  # 4 passed
 ./docs/_gate.sh                                              # gate OK
 ```

@@ -16,9 +16,10 @@ pub mod app; // App layer for file loading
 pub mod selftest; // headless render harness - see src/selftest.rs
 
 pub use state::State;
-use crate::camera::View;
 use crate::app::persistence;
-use crate::app::scene::{auto_grid, Manifest, Scene};
+use crate::app::scene::{auto_grid, Manifest};
+#[cfg(target_arch = "wasm32")]
+use crate::{camera::View, app::scene::Scene};
 
 // The scene: which sheets, and where each one sits.
 // Fetched at runtime, so re-arringing the scene is a text edit in assets/scenes, not rebuild (app/scene.rs)
@@ -118,13 +119,17 @@ where
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 use std::sync::Arc;
 use wasm_bindgen::prelude::*;
-use winit::application::ApplicationHandler;
-use winit::event::{ElementState, MouseScrollDelta, WindowEvent, MouseButton};
-use winit::keyboard::{Key, NamedKey};
-use winit::event_loop::{ActiveEventLoop, EventLoop};
-use winit::window::{Window, WindowId};
+#[cfg(target_arch = "wasm32")]
+use winit::{
+    application::ApplicationHandler,
+    event::{ElementState, MouseScrollDelta, WindowEvent, MouseButton},
+    keyboard::{Key, NamedKey},
+    event_loop::{ActiveEventLoop, EventLoop},
+    window::{Window, WindowId},
+};
 
 // ── Browser event loop ──────────────────────────────────────────────────────
 // State::new is async; winit's `resumed` is not, so we create the window, kick off async init,

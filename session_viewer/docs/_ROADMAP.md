@@ -39,24 +39,68 @@ from 116 fields to 17; `gpu/mod.rs` from 2447 lines to 259; `scene.rs` from 1382
 | 50 the walk and the shell | one producer per geometry type, narrow sinks, `Row`; loader/input/fetch/decode/stream | `app/walk/*`, `app/{manifest,knobs,loader,input,fetch,decode,stream}.rs` | 17 |
 | 51 performance and memory | render on demand, one owner per object row, MSAA policy, translation split, sliced colours, growth policy, measured before/after | — | 17 |
 
-## Phase 6 — what the archive already knows how to do (after 51)
+## Phase 6 — what returns from the archive (after 51) ⬜
 
-`session_viewer_archive/` implemented these once, badly; each returns as its own lesson on the
-refactored tree, in this order, each landing on the seam ARCHITECTURE.md names for it:
+`session_viewer_archive/` implemented all of this once, in a way the refactor rejected; the old
+lessons 63-120 taught it on the old tree and were deleted with commit b001bddf. Each bullet
+returns as its own lesson on the refactored tree, on the seam ARCHITECTURE.md names for it.
+The same list sits in `session_viewer_archive/ReadMe.md` so it is visible from both sides.
 
-1. picking: cursor→ray in kernel space, ray against the kernel BVH, object level (`Scene.order`
-   is the row → guid map)
-2. selection and visibility flags, one flag word shared by every lane (bits 2-5 are taken)
-3. the frame as an appendable pass list: an overlay pass (gumball, edit points) after the scene
-   list, an egui pass last
-4. the command line and the history (Command trait at the first mutation)
-5. draw tools (point, line, polyline, curve) with snapping
-6. gumball transform and commit
-7. sub-object picking and edit points (`Row` is the seam for a face/edge id)
-8. tree and graph panels
-9. text labels
-10. post-processing (SSAO, outline, composite) as extra targets and passes
-11. section planes; id-buffer picking (an R32Uint attachment and an async readback)
+**Picking and selection** (archive: `pick.rs`, `state_pick.rs`, `engine/gpu` id pass)
+- ⬜ scene BVH over object boxes; frustum culling per frame
+- ⬜ cursor → ray in kernel space; ray against the kernel mesh BVH; object-level pick
+  (`Scene.order` is the row → guid map)
+- ⬜ picking thin geometry (segments, glyphs) by screen distance, solid-vs-thin priority
+- ⬜ selection and hidden flags: one flag word shared by every lane (bits 2-5 are taken)
+- ⬜ sub-object picking: face / edge / vertex ids (`Row` is the seam)
+- ⬜ id-buffer picking: an R32Uint attachment and an async readback, for dense scenes
+
+**Command line, history, undo** (archive: `state_cmd.rs`, `coord_parser.rs`, `undo_state.rs`,
+`state_undo.rs`)
+- ⬜ egui HUD: status line, command prompt, options panel
+- ⬜ command bus: a `Command` trait at the first mutation; options and numeric input
+- ⬜ history with autocomplete
+- ⬜ delete + undo / redo as inverse commands
+
+**Transform and draw** (archive: `gumball.rs`, `gumball_state.rs`, `snap.rs`, `state_tool.rs`,
+`tool_state.rs`, `cad_plane.rs`, `CAD_SKETCHER_PLAN.md`)
+- ⬜ gumball: geometry, scale hit-test, translate, rotate, scale, numeric entry, commit
+- ⬜ draw tools: point, line, polyline, curve
+- ⬜ snapping: end / mid / center / grid / perpendicular
+- ⬜ work plane (`cad_plane.rs`): draw on any plane, not only the ground
+- ⬜ copy / array
+- ⬜ control-point and edit-point (Greville) editing (`edit_points.rs`, `edit_state.rs`,
+  `state_edit.rs`)
+
+**Panels and text** (archive: `tree_ui.rs`, `state_ui.rs`, `text.rs`, `text.wgsl`)
+- ⬜ scene tree panel with visibility / selection, and the tree ↔ viewport link
+- ⬜ layers
+- ⬜ text labels in the viewport
+- ⬜ measure: distance, angle, area
+
+**Files** (old lessons 64-66, 106)
+- ⬜ reconcile: reload a changed file into a live scene without rebuilding the rest
+- ⬜ save: write the edited `Session` back to `.pb` (browser download / native file)
+- ⬜ watch: reload when a file on disk changes (native)
+- ⬜ import / export: other formats through the kernel's readers
+
+**Post-processing and look** (archive: `ssao.wgsl`, `ssao_blur.wgsl`, `composite.wgsl`,
+`mask.wgsl`, `ground.wgsl`, `state_render.rs`)
+- ⬜ GTAO / SSAO, arctic global-illumination look, outline anti-aliasing, composite pass
+  (extra targets and passes after the scene list)
+- ⬜ section planes
+- ⬜ textures on meshes
+- ⬜ sheet impostors: a drawing as one textured quad at distance
+
+**GPU tessellation** (old lessons 88-91; the CDT never ports, trim-by-fragment replaces it)
+- ⬜ GPU curves, GPU surfaces, GPU trimming, GPU BRep
+
+**Scale** (old lessons 103, 114-119)
+- ⬜ compute-shader ink; segment batches; quantized meshes; meshlets; mesh LOD;
+  hierarchical-Z occlusion
+
+**Housekeeping** (old lessons 110-111)
+- ⬜ dev toolbox (perf overlay, frame capture); web polish (loading states, errors, URL state)
 
 Kernel-side work the audit named and the viewer cannot fix alone: the decode cost of the
 protobuf wire (75-79% of a native load), packed mesh arrays, the octree build.

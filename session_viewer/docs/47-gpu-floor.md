@@ -1016,7 +1016,6 @@ pub use view::{LineStyle, View};
 **Find** in `src/engine/gpu/mod.rs`:
 
 ```rust
-use bytemuck::bytes_of_mut;
 use session_rust::{Xform, RenderVertex, Point};
 use crate::math::{Mat4, mat_to_f32, eye_from_view_proj, ortho_half_height, Aabb};
 ```
@@ -2846,7 +2845,7 @@ and comes back in the next edit.
 const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
 ```
 
-`line_thickness_px`, `zeroed_buffer` and `storage_buffer` are in `buffers.rs` / `view.rs` or gone.
+`line_thickness_px` and `zeroed_buffer` are in `view.rs` / `buffers.rs` now.
 
 **Find** in `src/engine/gpu/mod.rs`:
 
@@ -2902,25 +2901,6 @@ fn zeroed_buffer(
             usage,
             mapped_at_creation: false,
         })
-}
-
-/// A storage bufffer filled by  `write buffer`, not `create_buffer_init`: init maps the whole buffer at a creation
-/// and on wgpu's web backend that allocates a full-size mirror of the contents in the wasm heap costs three times per scene load.
-/// `ẁrite_buffer` stages through the queue instead
-/// empty data leaves the minimum buffer zeri-initialized.
-fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, queue: &wgpu::Queue, label: &str, data: &[T]) -> wgpu::Buffer{
-    let size = (data.len() * std::mem::size_of::<T>()).max(std::mem::size_of::<T>()).max(4) as u64;
-    let buf = device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some(label),
-        size,
-        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
-    });
-
-    if !data.is_empty(){
-        queue.write_buffer(&buf, 0, bytemuck::cast_slice(data));
-    }
-    buf
 }
 
 
@@ -3305,8 +3285,8 @@ use crate::engine::gpu::{FrameInput, Gpu};
 ## Check
 
 ```bash
-cargo check --lib --target wasm32-unknown-unknown            # 2 warnings (was 4)
-cargo check --all-targets --target x86_64-unknown-linux-gnu  # 9 warnings (was 11)
+cargo check --lib --target wasm32-unknown-unknown            # 0 warnings
+cargo check --all-targets --target x86_64-unknown-linux-gnu  # 0 warnings
 grep -c 'std::env::var' src/engine/gpu/mod.rs                # 0
 grep -c ': GrowBuf' src/engine/gpu/mod.rs                    # 10 tables
 ./docs/_gate.sh                                              # gate OK

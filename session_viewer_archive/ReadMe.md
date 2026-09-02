@@ -1,4 +1,74 @@
-# session_viewer
+# session_viewer_archive
+
+The previous viewer, kept for reference. It is NOT built or taught any more: `session_viewer/`
+is the tree of record, rebuilt lesson by lesson (`session_viewer/docs/`). What this archive
+still knows how to do, and what is missing from the new viewer, is listed here so it is not
+forgotten; the master copy is Phase 6 of `session_viewer/docs/_ROADMAP.md`.
+
+## Next steps — what returns to session_viewer, in order
+
+**Picking and selection** (archive: `pick.rs`, `state_pick.rs`, `engine/gpu` id pass)
+- ⬜ scene BVH over object boxes; frustum culling per frame
+- ⬜ cursor → ray in kernel space; ray against the kernel mesh BVH; object-level pick
+  (`Scene.order` is the row → guid map)
+- ⬜ picking thin geometry (segments, glyphs) by screen distance, solid-vs-thin priority
+- ⬜ selection and hidden flags: one flag word shared by every lane (bits 2-5 are taken)
+- ⬜ sub-object picking: face / edge / vertex ids (`Row` is the seam)
+- ⬜ id-buffer picking: an R32Uint attachment and an async readback, for dense scenes
+
+**Command line, history, undo** (archive: `state_cmd.rs`, `coord_parser.rs`, `undo_state.rs`,
+`state_undo.rs`)
+- ⬜ egui HUD: status line, command prompt, options panel
+- ⬜ command bus: a `Command` trait at the first mutation; options and numeric input
+- ⬜ history with autocomplete
+- ⬜ delete + undo / redo as inverse commands
+
+**Transform and draw** (archive: `gumball.rs`, `gumball_state.rs`, `snap.rs`, `state_tool.rs`,
+`tool_state.rs`, `cad_plane.rs`, `CAD_SKETCHER_PLAN.md`)
+- ⬜ gumball: geometry, scale hit-test, translate, rotate, scale, numeric entry, commit
+- ⬜ draw tools: point, line, polyline, curve
+- ⬜ snapping: end / mid / center / grid / perpendicular
+- ⬜ work plane (`cad_plane.rs`): draw on any plane, not only the ground
+- ⬜ copy / array
+- ⬜ control-point and edit-point (Greville) editing (`edit_points.rs`, `edit_state.rs`,
+  `state_edit.rs`)
+
+**Panels and text** (archive: `tree_ui.rs`, `state_ui.rs`, `text.rs`, `text.wgsl`)
+- ⬜ scene tree panel with visibility / selection, and the tree ↔ viewport link
+- ⬜ layers
+- ⬜ text labels in the viewport
+- ⬜ measure: distance, angle, area
+
+**Files** (old lessons 64-66, 106)
+- ⬜ reconcile: reload a changed file into a live scene without rebuilding the rest
+- ⬜ save: write the edited `Session` back to `.pb` (browser download / native file)
+- ⬜ watch: reload when a file on disk changes (native)
+- ⬜ import / export: other formats through the kernel's readers
+
+**Post-processing and look** (archive: `ssao.wgsl`, `ssao_blur.wgsl`, `composite.wgsl`,
+`mask.wgsl`, `ground.wgsl`, `state_render.rs`)
+- ⬜ GTAO / SSAO, arctic global-illumination look, outline anti-aliasing, composite pass
+  (extra targets and passes after the scene list)
+- ⬜ section planes
+- ⬜ textures on meshes
+- ⬜ sheet impostors: a drawing as one textured quad at distance
+
+**GPU tessellation** (old lessons 88-91; the CDT never ports, trim-by-fragment replaces it)
+- ⬜ GPU curves, GPU surfaces, GPU trimming, GPU BRep
+
+**Scale** (old lessons 103, 114-119)
+- ⬜ compute-shader ink; segment batches; quantized meshes; meshlets; mesh LOD;
+  hierarchical-Z occlusion
+
+**Housekeeping** (old lessons 110-111)
+- ⬜ dev toolbox (perf overlay, frame capture); web polish (loading states, errors, URL state)
+
+Kernel-side work the audit named and the viewer cannot fix alone: the decode cost of the
+protobuf wire (75-79% of a native load), packed mesh arrays, the octree build.
+
+---
+
+# The archived viewer itself
 
 WebAssembly 3D viewer for session geometry — wgpu + winit + Trunk.
 

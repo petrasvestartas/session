@@ -179,23 +179,3 @@ pub struct CloudFields{
     pub colors_len: u64,
     pub count: u32,
 }
-
-/// One protobuf variant. Returns the value and how many bytes it ate.
-fn variant(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
-    let (mut v, mut shift) = (0u64, 0u32);
-    let start = i;
-    loop {
-        let byte = *b.get(i)?;
-        v |= ((byte & 0x7f) as u64) << shift;
-        i += 1;
-        
-        if byte & 0x80 == 0 {
-            return Some((v, i-start))
-        }
-        shift += 7;
-
-        if shift > 63 {
-            return None
-        }
-    }
-}

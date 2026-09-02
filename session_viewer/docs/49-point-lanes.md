@@ -1475,8 +1475,8 @@ Three comparisons follow the rename.
 ## Check
 
 ```bash
-cargo check --lib --target wasm32-unknown-unknown            # 2 warnings
-cargo check --all-targets --target x86_64-unknown-linux-gnu  # 9 warnings
+cargo check --lib --target wasm32-unknown-unknown            # 0 warnings
+cargo check --all-targets --target x86_64-unknown-linux-gnu  # 0 warnings
 cargo xtest                                                  # 4 passed
 grep -c 'draws +=' src/engine/gpu/render.rs                  # 14: 11 in scene_list, 2 in the prepass, 1 in encode_frame
 ./docs/_gate.sh                                              # gate OK

@@ -138,14 +138,11 @@ type nothing.
 ## Step 2 — the reader: `src/app/persistence.rs`
 
 Three edits. First, the tail of the file holds an unfinished sketch of this reader - a
-comment block, a `CloudFields` with `coord_at` fields, and a `variant` function nobody calls.
-The real reader below replaces it, so it goes first: two removes, the comment with its struct
-and then the function. (`next_tick` is already `pub`, so the loader can yield between slices
-as it is.)
+comment block and a `CloudFields` with `coord_at` fields. The real reader below replaces it,
+so it goes first: one remove, the comment with its struct. (`next_tick` is already `pub`, so
+the loader can yield between slices as it is.)
 
 **Remove** `src/app/persistence.rs` `// streaming a point cloud: HTTP Range in, GPU rows out, nothing large in between ──` **through** `}`
-
-**Remove** `src/app/persistence.rs` `/// One protobuf variant. Returns the value and how many bytes it ate.` **through** `}`
 
 Second, the block below sets a `Range` header.
 

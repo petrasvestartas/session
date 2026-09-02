@@ -64,7 +64,7 @@ fn main() {
 
     // Drop one part at a time; each delta is that part's exact live cost.
     let mut prev = live();
-    let mut step = |name: &str, now: f64, prev: &mut f64| {
+    let step = |name: &str, now: f64, prev: &mut f64| {
         println!("  {name:<28} {:>7.1} MB", *prev - now);
         *prev = now;
     };
