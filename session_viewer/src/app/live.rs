@@ -39,12 +39,38 @@
 //! `?poll=` seconds INCLUDING the files it lists, so re-running the solver redraws the page in
 //! about as long as the run takes. Nothing is committed, nothing is cached, nothing is deployed.
 //!
+//! THE NOTIFICATION LANE. Polling is bounded by the API budget, not by the network: a push is
+//! on GitHub in about a second, and everything after that is the page waiting for permission to
+//! ask. So it does not have to ask - whoever pushed already knows the sha, and says so. The
+//! publisher `curl`s the new sha to a relay topic (`bash/publish_scene.sh` in wood_research);
+//! the page holds one `EventSource` on that topic from load, and a message means: this commit,
+//! now. It goes straight to the commit-pinned raw URLs - NO API call, NO branch-path read, no
+//! cache to expire anywhere. Measured end to end: push ~1 s + relay ~0.1 s + raw fetch ~0.7 s.
+//!
+//! The relay only ever carries a 40-character sha, never geometry, and the sha is validated as
+//! hex before it becomes a URL path segment - the topic is public, so a message is untrusted
+//! input that must not be able to name anything but a commit of the repo already being watched.
+//! The worst a stranger who guesses the topic can do is name an OLD commit of that same repo and
+//! show a stale scene until the next real push.
+//!
+//! The poll above is KEPT, and stays the source of truth: a notification is an accelerator, so a
+//! missed one, a dropped connection, a page opened after the push, or a publisher that does not
+//! notify at all all still converge within API_MIN_GAP_MS. While the stream is open the poll
+//! stops reading the branch path every tick - the notification is a better change detector than
+//! a 5-minute-stale cache, and cheaper.
+//!
 //! Page query: `?live=off` disables it, `?poll=<seconds>` changes the interval (default 5),
+//! `?notify=off` turns the lane off (pure polling), `?notify=<https-sse-url>` watches another relay,
 //! `?live=gh:<owner>/<repo>@<branch>/<path.toml>` watches another branch the same way, and
 //! `?live=<url>` watches a plain manifest URL as it is - https anywhere, http on localhost. A
 //! page that pins `?scene=` gets no live source unless it also asks for one.
 
+use std::cell::RefCell;
 use std::hash::{Hash, Hasher};
+use std::rc::Rc;
+
+use wasm_bindgen::closure::Closure;
+use wasm_bindgen::JsCast;
 
 use crate::app::persistence;
 use crate::app::scene::{auto_grid, Manifest};
@@ -59,6 +85,17 @@ const DEFAULT_POLL_SECONDS: f64 = 5.0;
 /// page can be about a push that changed only a `.pb`: the branch-path manifest is byte for byte
 /// the same then, so nothing but the commit itself says anything happened.
 const API_MIN_GAP_MS: f64 = 120_000.0;
+
+/// The relay topic a publisher announces a new commit on, as an SSE endpoint. Paired with
+/// `NOTIFY_URL` in `wood_research/bash/publish_scene.sh` - the two must name the same topic,
+/// and the publisher POSTs to this URL without the trailing `/sse`. The name is random rather
+/// than descriptive because it is the only thing keeping strangers off the topic; it is not a
+/// secret worth protecting, since all it can carry is a public repo's commit sha.
+const DEFAULT_NOTIFY: &str = "https://ntfy.sh/wood-live-84eaac4a04729911/sse";
+
+/// How often the loop looks at the notification slot. This is an in-memory check, not a network
+/// request, so it is cheap to do often - it is the last term in the latency and nothing else.
+const NOTIFY_TICK_MS: i32 = 500;
 
 /// A file on a GitHub branch, as `?live=gh:<owner>/<repo>@<branch>/<path>` parses it.
 pub struct GhRef {
@@ -110,6 +147,54 @@ pub enum Source {
     Url(String),
 }
 
+/// An open connection to the relay, and the last sha it delivered.
+///
+/// The `EventSource` reconnects on its own after a drop, so nothing here retries; `connected`
+/// reports the truth at this instant and the poll fallback covers whatever the gap hid.
+struct Notify {
+    url: String,
+    source: web_sys::EventSource,
+    /// Written by the message callback, taken by the poll loop. One slot, not a queue: two
+    /// pushes in a tick means the second one wins, which is the correct scene either way.
+    slot: Rc<RefCell<Option<String>>>,
+    /// Owns the callback for as long as the connection lives - dropping it would unregister it.
+    _on_message: Closure<dyn FnMut(web_sys::MessageEvent)>,
+}
+
+impl Notify {
+    fn open(url: &str) -> Option<Self> {
+        let source = match web_sys::EventSource::new(url) {
+            Ok(s) => s,
+            Err(e) => {
+                log::warn!("live: notification lane off - {url} could not be opened ({e:?}); polling only");
+                return None;
+            }
+        };
+        let slot = Rc::new(RefCell::new(None));
+        let sink = slot.clone();
+        let on_message = Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |e: web_sys::MessageEvent| {
+            let Some(text) = e.data().as_string() else { return };
+            match sha_from_notification(&text) {
+                Some(sha) => *sink.borrow_mut() = Some(sha),
+                None => log::warn!("live: notification ignored, not a commit sha: {text}"),
+            }
+        });
+        source.set_onmessage(Some(on_message.as_ref().unchecked_ref()));
+        Some(Notify { url: url.to_string(), source, slot, _on_message: on_message })
+    }
+
+    /// The sha a publisher announced since the last look, consumed.
+    fn take(&self) -> Option<String> {
+        self.slot.borrow_mut().take()
+    }
+
+    /// True while the stream is up. False during a reconnect, which is when the poll fallback
+    /// has to go back to reading the branch path.
+    fn connected(&self) -> bool {
+        self.source.ready_state() == web_sys::EventSource::OPEN
+    }
+}
+
 /// One file the manifest asked for, fetched and decoded.
 pub struct Loaded {
     pub name: String,
@@ -133,6 +218,8 @@ pub struct LiveSource {
     /// `Date::now()` of the last GitHub API call, so the budget is spent at a known rate.
     last_api_ms: f64,
     last_warning: Option<String>,
+    /// The relay, when the page is watching one. `None` means pure polling.
+    notify: Option<Notify>,
 }
 
 impl LiveSource {
@@ -179,15 +266,38 @@ impl LiveSource {
             Source::Gh(gh) => format!("{}/{}@{} {}", gh.owner, gh.repo, gh.branch, gh.path),
             Source::Url(u) => u.clone(),
         };
+        // Only a GitHub source has anything to be notified ABOUT: a `?live=` URL is fetched
+        // whole every poll, so it is already as live as its server is.
+        let notify = match (&source, param("notify").as_deref()) {
+            (_, Some("off")) | (_, Some("0")) => None,
+            (Source::Url(_), _) => None,
+            (Source::Gh(_), Some(url)) if url.starts_with("https://") || is_local(url) => Notify::open(url),
+            (Source::Gh(_), Some(other)) => {
+                log::warn!("live: ignoring `?notify={other}` - expected an https:// SSE endpoint, `off`, or nothing");
+                Notify::open(DEFAULT_NOTIFY)
+            }
+            (Source::Gh(_), None) => Notify::open(DEFAULT_NOTIFY),
+        };
+        // A tick is only an in-memory look at the slot while the lane is up, so it can be far
+        // shorter than the poll the user asked for without costing a request. `?poll=` still
+        // governs the network fallback, through API_MIN_GAP_MS.
+        let tick_ms = match (&notify, seconds) {
+            (Some(_), _) => NOTIFY_TICK_MS.min((seconds * 1000.0) as i32),
+            (None, s) => (s * 1000.0) as i32,
+        };
+        if let Some(n) = &notify {
+            log::info!("live: notified by {}", n.url);
+        }
         Some(LiveSource {
             source,
-            poll_ms: (seconds * 1000.0) as i32,
+            poll_ms: tick_ms,
             label,
             base: String::new(),
             sha: None,
             last_hash: 0,
             last_api_ms: 0.0,
             last_warning: None,
+            notify,
         })
     }
 
@@ -236,9 +346,28 @@ impl LiveSource {
 
     /// The GitHub path: pin the tip commit, then read the manifest from that commit.
     async fn gh_manifest(&mut self) -> Option<Manifest> {
+        // FAST PATH. A publisher said which commit it just pushed, so there is nothing to
+        // detect: no API call to budget, no cached branch path to out-wait. Straight to the
+        // files of that commit.
+        if let Some(sha) = self.notify.as_ref().and_then(Notify::take) {
+            if self.sha.as_deref() == Some(sha.as_str()) {
+                return None; // already on screen - a re-notification of the same push
+            }
+            let Source::Gh(gh) = &self.source else { return None };
+            let url = gh.raw(&sha);
+            let short = sha[..7].to_string();
+            self.sha = Some(sha);
+            return self.manifest_at(&url, &format!("commit {short}, notified")).await;
+        }
+
         let Source::Gh(gh) = &self.source else { return None };
         let branch_url = gh.raw(&gh.branch);
         let first = self.sha.is_none();
+        // While the lane is open the branch path is not worth a request every tick: a
+        // notification beats a five-minute-stale cache at the one job that read was doing.
+        // The API fallback below still runs on its own clock, so a push that never notified
+        // (a web-UI edit, another machine's script) is still picked up.
+        let notified = self.notify.as_ref().is_some_and(Notify::connected);
 
         // Every poll is answered first by the free branch-path read: bytes that moved mean a
         // push, and the API is asked at once. Bytes that did not can still be hiding one - a
@@ -246,7 +375,7 @@ impl LiveSource {
         // anyway, but no more often than API_MIN_GAP_MS. On the first poll the bytes are read
         // only to seed the hash: the call below happens regardless, because a freshly loaded
         // page must show the tip, not a five-minute-old edge copy.
-        let changed = self.bytes_changed(&branch_url).await;
+        let changed = if notified { None } else { self.bytes_changed(&branch_url).await };
         let now = js_sys::Date::now();
         if !first && changed != Some(true) && now - self.last_api_ms < API_MIN_GAP_MS {
             return None;
@@ -449,9 +578,74 @@ fn sha_from_ref_json(bytes: &[u8]) -> Option<String> {
     (sha.len() == 40 && sha.bytes().all(|c| c.is_ascii_hexdigit())).then_some(sha)
 }
 
+/// The commit sha out of one relay message.
+///
+/// ntfy wraps a publish in a JSON envelope (`{"event":"message","message":"<sha>"}`) and also
+/// sends housekeeping events on the same stream; a bare body is accepted too, so a different
+/// relay needs no adapter. Anything that is not exactly 40 hex characters is REFUSED, because
+/// this string becomes a path segment of a raw.githubusercontent URL and the topic is public:
+/// a sha can only ever name a commit of the repo the page already watches, where `../..` or an
+/// absolute URL could name someone else's bytes.
+fn sha_from_notification(text: &str) -> Option<String> {
+    #[derive(serde::Deserialize)]
+    struct Envelope {
+        event: Option<String>,
+        message: Option<String>,
+    }
+
+    let candidate = match serde_json::from_str::<Envelope>(text) {
+        Ok(env) => {
+            if env.event.as_deref().is_some_and(|e| e != "message") {
+                return None; // `open`, `keepalive`, `poll_request`: not a push
+            }
+            env.message?
+        }
+        Err(_) => text.to_string(),
+    };
+    let sha = candidate.trim();
+    (sha.len() == 40 && sha.bytes().all(|c| c.is_ascii_hexdigit())).then(|| sha.to_ascii_lowercase())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_notified_sha_is_read_out_of_an_ntfy_envelope() {
+        let sha = "09b6195e6ddd2cc7911fea9437b69c062e3272b2";
+        let envelope = format!(r#"{{"id":"x","time":1,"event":"message","topic":"t","message":"{sha}"}}"#);
+        assert_eq!(sha_from_notification(&envelope).as_deref(), Some(sha));
+        // A bare body, for a relay that does not wrap.
+        assert_eq!(sha_from_notification(&format!("  {sha}
+")).as_deref(), Some(sha));
+        assert_eq!(sha_from_notification(&sha.to_ascii_uppercase()).as_deref(), Some(sha));
+    }
+
+    #[test]
+    fn the_stream_s_housekeeping_is_not_mistaken_for_a_push() {
+        assert_eq!(sha_from_notification(r#"{"event":"open","topic":"t"}"#), None);
+        assert_eq!(sha_from_notification(r#"{"event":"keepalive","topic":"t"}"#), None);
+        assert_eq!(sha_from_notification(r#"{"event":"message","topic":"t"}"#), None);
+    }
+
+    #[test]
+    fn a_notification_can_only_ever_name_a_commit() {
+        // The topic is public: everything below is what a stranger can put on it, and none of
+        // it may reach a URL.
+        for hostile in [
+            "../../../someone/else/main",
+            "main",
+            "https://evil.example/x",
+            r#"{"event":"message","message":"../../evil/repo/main"}"#,
+            r#"{"event":"message","message":"09b6195e6ddd2cc7911fea9437b69c062e3272b2/../.."}"#,
+            "09b6195e6ddd2cc7911fea9437b69c062e3272b",   // 39
+            "09b6195e6ddd2cc7911fea9437b69c062e3272b2a", // 41
+            "09b6195e6ddd2cc7911fea9437b69c062e3272bz",  // not hex
+            "",
+        ] {
+            assert_eq!(sha_from_notification(hostile), None, "accepted {hostile:?}");
+        }
+    }
 
     #[test]
     fn default_source_parses_and_builds_both_urls() {
