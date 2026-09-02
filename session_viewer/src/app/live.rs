@@ -5,8 +5,8 @@
 //! or deployed for a data push.** The page resolves the branch's tip commit through the GitHub
 //! API and fetches the manifest and every listed file from the commit-pinned raw URLs
 //! (`raw.githubusercontent.com/<owner>/<repo>/<sha>/...`), then swaps the scene in place - same
-//! canvas, same camera. So: commit the .pb and the .toml, reload the page, the geometry is
-//! there; leave the page open and it picks the push up within a poll or two.
+//! canvas, same camera. So: commit the .pb and the .toml and reload - the geometry is there
+//! within about a minute; leave the page open and it follows within about five.
 //!
 //! WHY a commit sha instead of the branch path. `raw.githubusercontent.com/<owner>/<repo>/
 //! <branch>/...` answers `cache-control: max-age=300` and its CDN keys on the path alone - a
@@ -18,8 +18,13 @@
 //! WHY the API is not simply polled. Unauthenticated it allows 60 requests an hour per address,
 //! conditional 304s included - a 5 s poll would exhaust that in five minutes. So the cheap
 //! branch path IS still read every poll, but only as a CHANGE DETECTOR (up to 5 min late, and
-//! free); the API is touched on page load and then only when those bytes actually move. A page
-//! load is therefore always current, and a push reaches an open page within ~5 minutes.
+//! free); the API is touched on page load and then only when those bytes actually move.
+//!
+//! The two latencies that leaves, both measured against the deployed page: a RELOAD is up to
+//! ~60 s behind, because GitHub answers the ref endpoint with `max-age=60`; an OPEN PAGE is up
+//! to ~5 min behind, the raw CDN's hold on the branch path. An idle tab is deliberately not
+//! spending API budget to shorten the second one - the budget is worth more at the moment
+//! someone actually reloads.
 //! When the API cannot be reached at all (rate limit, offline), the branch path is used
 //! directly - the old behaviour, stale but working.
 //!
