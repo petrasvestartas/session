@@ -8,7 +8,7 @@
 Session is a multi-language geometry kernel implemented three times over — in Python, C++ and
 Rust — with identical APIs, shared protobuf schemas, and a test suite that runs the same
 assertions in every language. It covers 47 tested classes: points, curves, surfaces, meshes,
-BReps with boolean operations, and spatial indices.
+BReps (OCCT-style topology), and spatial indices.
 
 C++ is the ground truth; Python and Rust are ported from it with matching APIs, variable names
 and test logic.
@@ -34,13 +34,10 @@ Everything else lives directly in this repository:
 |-----------|-------------|
 | `session_viewer` | Browser-only WebGPU CAD viewer (Rust → WASM via Trunk). Camera-relative f64, reverse-Z depth, CPU ray + BVH picking. `docs/` holds 100+ numbered lessons that build it from scratch. |
 | `session_tests` | Vue 3 test viewer — renders the per-class JSON results from all three languages side by side |
-| `validation` | Oracle harness that checks kernel output against OCCT and Rhino (boolean truth tables, curve/surface evaluation, Hausdorff comparisons) |
 | `bash` | Build, test and git automation — `minitest.sh` is the main entry point |
 | `serialization` | Round-trip protobuf/JSON fixtures |
-| `automation` | Long-running boolean-campaign task queue and notes |
 | `session_compas` | COMPAS framework interop |
 | `session_viewer_archive` | Previous viewer generation, kept for reference |
-| `.claude/occt` | OCCT boolean buildspec (P0–P9) and the six `OCCT_STUDY_*.md` reverse-engineering studies |
 
 `uvsession/` (Python virtualenv) and build directories (`target/`, `build/`, `dist*/`) are local
 only and never committed.
@@ -51,11 +48,11 @@ One file = one class, or one tightly-coupled group (`tree` contains `Tree` + `Tr
 contains `Graph` + `Vertex` + `Edge`).
 
 Status is computed from the latest test run: a class is ticked when all three languages
-emit the **same set of test names**. Currently **33 of 47** classes are at full parity.
+emit the **same set of test names**. Currently **31 of 47** classes are at full parity.
 
 - [x] `aabb`
 - [x] `boolean_polyline`
-- [ ] `brep` — Python missing 4; Rust missing 5; C++ missing 1
+- [x] `brep`
 - [x] `closest`
 - [x] `color`
 - [x] `convex_hull`
@@ -101,8 +98,7 @@ Regenerate this status with `./bash/minitest.sh` — it rewrites the per-class J
 `session_tests/<language>/` that the table above is derived from.
 
 Modules with no cross-language test set: `mesh_boolean`, `render_mesh` and `guid_serde` are Rust
-only; the `brep_*` internals (`bds`, `commonblock`, `massprops`, `samedomain`,
-`section`) are C++ only.
+only.
 
 `vector`'s divergence is not a C++ gap. `Polyline::interpolate_points` exists and is tested under
 `Polyline` in all three languages. Python and Rust additionally keep a *second* copy of it as a
