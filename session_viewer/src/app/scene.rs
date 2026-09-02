@@ -67,8 +67,25 @@ impl Manifest {
     /// JSON first (every existing scene), TOML as the fallback - a .toml manifest gets
     /// real comments and no trailing-comma landmines; both land in the same structs.
     pub fn parse(bytes: &[u8]) -> Option<Self> {
-        serde_json::from_slice(bytes).ok()
-            .or_else(|| std::str::from_utf8(bytes).ok().and_then(|s| toml::from_str(s).ok()))
+        Self::parse_verbose(bytes).ok()
+    }
+
+    /// As `parse`, but says WHY a manifest did not parse: the TOML error (line and column) for
+    /// text, the JSON error for a `{`-led document.
+    pub fn parse_verbose(bytes: &[u8]) -> Result<Self, String> {
+        let text = std::str::from_utf8(bytes).map_err(|e| format!("not UTF-8 text: {e}"))?;
+        if text.trim_start().starts_with('{') {
+            return serde_json::from_str(text).map_err(|e| format!("JSON: {e}"));
+        }
+        toml::from_str(text).map_err(|e| format!("TOML: {}", e.message()).replace('\n', " ") + &toml_span(&e))
+    }
+}
+
+/// " (line L, column C)" of a TOML error, or nothing when the error carries no span.
+fn toml_span(e: &toml::de::Error) -> String {
+    match e.span() {
+        Some(span) => format!(" (byte offset {}-{})", span.start, span.end),
+        None => String::new(),
     }
 }
 

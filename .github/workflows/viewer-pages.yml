@@ -16,9 +16,11 @@ permissions:
   pages: write
   id-token: write
 
+# Shared with viewer-data.yml on the data branch: two deploys never race, and a data push is
+# not cancelled by a viewer push (nor the reverse).
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   # `needs:` only reaches jobs in this file, so viewer-check runs here as a
@@ -42,6 +44,23 @@ jobs:
         run: curl -sL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf- -C "$HOME/.cargo/bin"
       - name: Build
         run: cd session_viewer && trunk build --release
+      # The build alone, for viewer-data.yml (on the session_viewer_data branch): a data push
+      # downloads it and adds its snapshot instead of rebuilding the viewer.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: viewer-dist
+          path: session_viewer/dist
+          retention-days: 90
+      # Keep the newest data snapshot on the site: without this a viewer deploy would drop the
+      # data/ tree the last data push put there. Absent branch = no data, not a failure.
+      - name: Add the current data snapshot
+        run: |
+          sha=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY.git" refs/heads/session_viewer_data | cut -f1)
+          if [ -z "$sha" ]; then echo "no session_viewer_data branch"; exit 0; fi
+          git clone -q --depth 1 --branch session_viewer_data "https://github.com/$GITHUB_REPOSITORY.git" data
+          mkdir -p "session_viewer/dist/data/$sha"
+          rsync -a --exclude .git --exclude .github data/ "session_viewer/dist/data/$sha/"
+          printf '%s' "$sha" > session_viewer/dist/data/latest
       - uses: actions/upload-pages-artifact@v3
         with:
           path: session_viewer/dist

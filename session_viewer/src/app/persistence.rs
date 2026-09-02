@@ -12,12 +12,64 @@ use session_rust::Session;
 pub struct Fetch { fut: JsFuture }
 
 pub fn fetch_start(url: &str) -> Result<Fetch, JsValue>{
+    fetch_start_mode(url, RequestMode::SameOrigin)
+}
+
+fn fetch_start_mode(url: &str, mode: RequestMode) -> Result<Fetch, JsValue>{
     let opts = RequestInit::new();
     opts.set_method("GET");
-    opts.set_mode(RequestMode::SameOrigin);
+    opts.set_mode(mode);
     let request = Request::new_with_str_and_init(url, &opts)?;
     let window = web_sys::window().ok_or_else(|| JsValue::from_str("no window"))?;
     Ok(Fetch { fut: JsFuture::from(window.fetch_with_request(&request)) })
+}
+
+/// What a cross-origin GET came back with. `bytes` is empty on a 304.
+pub struct CorsReply { pub status: u16, pub etag: Option<String>, pub bytes: Vec<u8> }
+
+/// GET a cross-origin `url` (GitHub API, raw.githubusercontent.com) past the browser's HTTP
+/// cache (`no-store`: the API answers carry `max-age=60`, which would hide a moved branch for a
+/// minute). `if_none_match` makes the request conditional. Any HTTP status is `Ok` - the caller
+/// reads it; a network failure is `Err` with the browser's message.
+pub async fn fetch_cors(url: &str, if_none_match: Option<&str>) -> Result<CorsReply, String>{
+    let describe = |e: JsValue| e.as_string().unwrap_or_else(|| format!("{e:?}"));
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::Cors);
+    opts.set_cache(web_sys::RequestCache::NoStore);
+    if let Some(tag) = if_none_match {
+        let headers = web_sys::Headers::new().map_err(describe)?;
+        headers.set("If-None-Match", tag).map_err(describe)?;
+        opts.set_headers(&headers);
+    }
+    let request = Request::new_with_str_and_init(url, &opts).map_err(describe)?;
+    let window = web_sys::window().ok_or_else(|| "no window".to_string())?;
+    let resp: Response = JsFuture::from(window.fetch_with_request(&request)).await
+        .map_err(|e| format!("network error: {}", describe(e)))?
+        .dyn_into().map_err(describe)?;
+    let etag = resp.headers().get("etag").ok().flatten();
+    let buf = JsFuture::from(resp.array_buffer().map_err(describe)?).await.map_err(describe)?;
+    Ok(CorsReply { status: resp.status(), etag, bytes: js_sys::Uint8Array::new(&buf).to_vec() })
+}
+
+/// `fetch_cors` for a file: a non-2xx status is an error carrying the status code, so the
+/// caller can say what went wrong.
+pub async fn fetch_bytes_cors(url: &str) -> Result<Vec<u8>, String>{
+    let r = fetch_cors(url, None).await?;
+    if !(200..300).contains(&r.status) {
+        return Err(format!("HTTP {}", r.status));
+    }
+    Ok(r.bytes)
+}
+
+/// Resolve after `ms` milliseconds (setTimeout), yielding to the browser meanwhile.
+pub async fn sleep_ms(ms: i32) {
+    let p = js_sys::Promise::new(&mut |resolve, _| {
+        web_sys::window().unwrap()
+            .set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, ms)
+            .unwrap();
+    });
+    let _ = JsFuture::from(p).await;
 }
 
 pub async fn fetch_finish(f: Fetch) -> Result<Vec<u8>, JsValue>{

@@ -33,6 +33,7 @@ web-sys = { version = "0.3", features = [
     "Performance",
     # Fetch-API features:
     "Request",
+    "RequestCache",
     "RequestInit",
     "RequestMode",
     "Response",

@@ -19,6 +19,8 @@ pub use state::State;
 use crate::app::persistence;
 use crate::app::scene::{auto_grid, Manifest};
 #[cfg(target_arch = "wasm32")]
+use crate::app::live::LiveSource;
+#[cfg(target_arch = "wasm32")]
 use crate::{camera::View, app::scene::Scene};
 
 // The scene: which sheets, and where each one sits.
@@ -59,6 +61,9 @@ pub enum Msg {
     File(String, session_rust::Session, session_rust::Xform, f32, bool),
     /// Drop the current documents, keeping `State` - see [`reload_scene`].
     Clear,
+    /// Frame the camera on what is loaded now - sent after a live swap, whose files replace a
+    /// scene the camera was fitted to.
+    Fit,
 }
 
 thread_local! {
@@ -166,6 +171,58 @@ impl App {
     }
 }
 
+/// Start-up path for the built-in scene (`?scene=` or the demo). Builds `State` around the
+/// first file that loads and streams the rest as `Msg::File`. Returns whether a `State` was sent.
+#[cfg(target_arch = "wasm32")]
+async fn demo_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc<Window>) -> bool {
+    // fetsch_start is eager: the brwoser request for file n+1 is in flight while file n parses
+    // and progressive - ready after the first file, every later streams in as a Msg::File
+    let t0 = crate::engine::performance::now_ms();
+    let scene_url = scene_url();
+    let manifest_bytes = persistence::fetch_bytes(&scene_url).await.unwrap_or_default();
+    let manifest = match Manifest::parse_verbose(&manifest_bytes) {
+        Ok(m) => m,
+        Err(e) => { log::error!("cannot read the scene manifest at {scene_url}: {e}"); return false; }
+    };
+    log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
+    let count = manifest.items.len();
+    let mut next = manifest.items.first().map(|it| persistence::fetch_start(&it.file));
+    let mut sent_ready = false;
+    for (i, item) in manifest.items.iter().enumerate() {
+        let f0 = crate::engine::performance::now_ms();
+        let cur = next.take();
+        next = manifest.items.get(i + 1).map(|it| persistence::fetch_start(&it.file));
+        let bytes = match cur {
+            Some(Ok(f)) => persistence::fetch_finish(f).await.unwrap_or_default(),
+            _ => Vec::new(),
+        };
+        let f1 = crate::engine::performance::now_ms();
+        let session = persistence::session_from_bytes_chunked(&item.file, &bytes).await;
+        let name = if item.name.is_empty() {
+            session.name.clone()
+        } else {
+            item.name.clone()
+        };
+        log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms", name, session.lookup.len(), bytes.len(), f1 - f0, crate::engine::performance::now_ms() - f1);
+        if session.lookup.is_empty() {
+            continue; // failed fetch - skipped file
+        }
+        let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [0.0, 0.0]));
+        if !sent_ready {
+            sent_ready = true;
+            let mut scene = Scene::new();
+            scene.add_file(name, session, place, item.point_size as f32, item.display_only);
+            let state = State::new(window.clone(), scene).await.expect("State init failed");
+            log::info!("first file on screen {:.0}ms after manifest fetch", crate::engine::performance::now_ms() - t0);
+            let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+        } else {
+            let _ = proxy.send_event(Msg::File(name, session, place, item.point_size as f32, item.display_only));
+        }
+
+    }
+    sent_ready
+}
+
 #[cfg(target_arch = "wasm32")]
 impl ApplicationHandler<Msg> for App {
 
@@ -188,50 +245,51 @@ impl ApplicationHandler<Msg> for App {
             RELOAD_PROXY.with(|slot| *slot.borrow_mut() = Some(proxy.clone()));
             wasm_bindgen_futures::spawn_local(async move {
 
-                // Manifest, then the files - pipelined
-                // fetsch_start is eager: the brwoser request for file n+1 is in flight while file n parses
-                // and progressive - ready after the first file, every later streams in as a Msg::File
-                let t0 = crate::engine::performance::now_ms();
-                let scene_url = scene_url();
-                let manifest_bytes = persistence::fetch_bytes(&scene_url).await.unwrap_or_default();
-                let manifest = Manifest::parse(&manifest_bytes).unwrap_or_else(|| panic!("cannot read the scene manifest at {scene_url}"));
-                log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
-                let count = manifest.items.len();
-                let mut next = manifest.items.first().map(|it| persistence::fetch_start(&it.file));
+                // LIVE DATA FIRST. The deployed page watches a manifest on the data branch;
+                // when it is readable and lists loadable files, that is the scene. When it is
+                // not (branch missing, nothing loads), the built-in demo scene is shown and the
+                // poll loop below picks the live data up as soon as it appears.
+                let mut live = LiveSource::from_query();
                 let mut sent_ready = false;
-                for (i, item) in manifest.items.iter().enumerate() {
-                    let f0 = crate::engine::performance::now_ms();
-                    let cur = next.take();
-                    next = manifest.items.get(i + 1).map(|it| persistence::fetch_start(&it.file));
-                    let bytes = match cur {
-                        Some(Ok(f)) => persistence::fetch_finish(f).await.unwrap_or_default(),
-                        _ => Vec::new(),
-                    };
-                    let f1 = crate::engine::performance::now_ms();
-                    let session = persistence::session_from_bytes_chunked(&item.file, &bytes).await;
-                    let name = if item.name.is_empty() {
-                        session.name.clone()
-                    } else {
-                        item.name.clone()
-                    };
-                    log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms", name, session.lookup.len(), bytes.len(), f1 - f0, crate::engine::performance::now_ms() - f1);
-                    if session.lookup.is_empty() {
-                        continue; // failed fetch - skipped file
+                if let Some(src) = live.as_mut() {
+                    log::info!("live: watching {} every {} s", src.manifest_url, src.poll_ms / 1000);
+                    if let Some(manifest) = src.fetch_manifest().await {
+                        for item in src.load_all(&manifest).await {
+                            if !sent_ready {
+                                sent_ready = true;
+                                let mut scene = Scene::new();
+                                scene.add_file(item.name, item.session, item.place, item.point_size, item.display_only);
+                                let state = State::new(window.clone(), scene).await.expect("State init failed");
+                                let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+                            } else {
+                                let _ = proxy.send_event(Msg::File(item.name, item.session, item.place, item.point_size, item.display_only));
+                            }
+                        }
+                        // `Ready` framed the first file only; frame everything the manifest listed.
+                        if sent_ready { let _ = proxy.send_event(Msg::Fit); }
                     }
-                    let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [0.0, 0.0]));
-                    if !sent_ready {
-                        sent_ready = true;
-                        let mut scene = Scene::new();
-                        scene.add_file(name, session, place, item.point_size as f32, item.display_only);
-                        let state = State::new(window.clone(), scene).await.expect("State init failed");
-                        log::info!("first file on screen {:.0}ms after manifest fetch", crate::engine::performance::now_ms() - t0);
-                        let _ = proxy.send_event(Msg::Ready(Box::new(state)));
-                    } else {
-                        let _ = proxy.send_event(Msg::File(name, session, place, item.point_size as f32, item.display_only));
-                    }
-
                 }
-
+                if !sent_ready {
+                    sent_ready = demo_scene(&proxy, window.clone()).await;
+                }
+                let Some(mut src) = live else { return };
+                if !sent_ready {
+                    log::error!("nothing could be loaded: neither the live manifest nor the demo scene");
+                    return;
+                }
+                // Poll: a changed manifest re-fetches every listed file; the scene is swapped
+                // only when at least one of them loaded, so a broken push never blanks the page.
+                loop {
+                    persistence::sleep_ms(src.poll_ms).await;
+                    let Some(manifest) = src.fetch_manifest().await else { continue };
+                    let items = src.load_all(&manifest).await;
+                    if items.is_empty() { continue; }
+                    let _ = proxy.send_event(Msg::Clear);
+                    for item in items {
+                        let _ = proxy.send_event(Msg::File(item.name, item.session, item.place, item.point_size, item.display_only));
+                    }
+                    let _ = proxy.send_event(Msg::Fit);
+                }
             });
         }
     }
@@ -253,6 +311,14 @@ impl ApplicationHandler<Msg> for App {
             Msg::Clear => {
                 if let Some(state) = &mut self.state {
                     state.scene.clear(&mut state.gpu);
+                    state.window.request_redraw();
+                }
+            }
+            Msg::Fit => {
+                if let Some(state) = &mut self.state {
+                    let s = state.window.inner_size();
+                    let aspect = s.width.max(1) as f64 / s.height.max(1) as f64;
+                    state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
                     state.window.request_redraw();
                 }
             }
