@@ -310,7 +310,12 @@ struct VsOut{
  // this - the heaviest vertex shader in the viewer - across every ribbon pass, prepasses
  // included. Strip order: 0 = e0-, 1 = e0+, 2 = e1-, 3 = e1+.
  @vertex
- fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) iid: u32) -> VsOut{
+ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
+    // ONE non-instanced draw, 6 vertices per segment (two triangles), pulled from the table by
+    // vertex index. An instanced strip of 4 vertices per segment cost ~12 ms on 258k segments
+    // (front-end instance overhead, resolution-independent); this is the same quad, same math.
+    let iid = vid / 6u;
+    let corner = select(select(select(0u, 1u, (vid % 6u) == 1u), 2u, (vid % 6u) == 2u || (vid % 6u) == 3u), select(1u, 3u, (vid % 6u) == 5u), (vid % 6u) >= 4u);
     let seg = segments[iid];
     let model = instances[seg.instance_id].model;
 
@@ -346,8 +351,8 @@ struct VsOut{
     let c0 = mvp * vec4<f32>(w0, 1.0);
     let c1 = mvp * vec4<f32>(w1, 1.0);
 
-    let at_end1 = vid >= 2u;
-    let side = select(-1.0, 1.0, (vid & 1u) == 1u);
+    let at_end1 = corner >= 2u;
+    let side = select(-1.0, 1.0, (corner & 1u) == 1u);
 
     // CLIP THE SEGMENT AGAINST THE NEAR PLANE, BEFORE ANY DIVIDE.
     //

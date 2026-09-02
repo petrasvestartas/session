@@ -25,6 +25,8 @@ const REANCHOR_MAX: f64 = 1.0e5;
 
 /// const for the unit_cylinder method
 const CYL_SIDES: u32 = 6;
+/// Linear RGBA8: the point colours are packed 8-bit values, the resolve reads them back as-is.
+const SPLAT_COLOR_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
 
 /// Linework lane is per GEOMETRY TYPE, not global (both stay screen-constant px):
 /// SOLID (cylinder + sphere) for mesh/BRep, whose ink lies ON a surface - the tube radius lifts
@@ -300,8 +302,8 @@ pub struct Gpu {
     pub point_cap: u64,     // capacity in POINTS; positions hold 3 floats each
     pub point_col_cap: u64,
     pub point_nrm_cap: u64,
-    splat_depth_buf: wgpu::Buffer, // one u32 per pixel: winning reverse-Z bits (0 = empty)
-    splat_color_buf: wgpu::Buffer, // one u32 per pixel: winner's RBGA8
+    splat_depth_view: wgpu::TextureView, // the cloud's own depth target: nearest point per pixel (0 = empty)
+    splat_color_view: wgpu::TextureView, // that point's lit RGBA8
     splat_recs: wgpu::Buffer,
     splat_group0_layout: wgpu::BindGroupLayout,
     splat_group1_layout: wgpu::BindGroupLayout,
@@ -309,8 +311,7 @@ pub struct Gpu {
     splat_group0: wgpu::BindGroup,
     splat_group1: wgpu::BindGroup,
     splat_resolve_group: wgpu::BindGroup,
-    splat_depth_pipeline: wgpu::ComputePipeline,
-    splat_color_pipeline: wgpu::ComputePipeline,
+    splat_point_pipeline: wgpu::RenderPipeline, // one quad per point into the two targets above
     splat_total: u32,
     splat_state: Option<([f32; 16], f32)>, // (mvp, cloud_size) the buffers were build for; None = stale
     mvp_f32: [f32; 16],
@@ -339,9 +340,22 @@ pub struct Gpu {
     pub msaa_view: wgpu::TextureView,
     pub samples: u32, // MSAA sample count this scene chose (see `msaa_for`)
     pub performance: Performance,
+    frame_no: u64,
+    last_frame_t: f64,
     pub scene_min: [f32; 3],
     pub scene_max: [f32; 3],
 }
+
+/// Native profiling knob: `VIEWER_SKIP=pipes,ribbon,...` leaves those lanes out of the frame so
+/// `examples/bench_frame` can price each one by subtraction. Never read on wasm.
+#[cfg(not(target_arch = "wasm32"))]
+fn skip(lane: &str) -> bool {
+    static LIST: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
+    LIST.get_or_init(|| std::env::var("VIEWER_SKIP").unwrap_or_default().split(',').map(|s| s.trim().to_string()).collect())
+        .iter().any(|l| l == lane)
+}
+#[cfg(target_arch = "wasm32")]
+fn skip(_lane: &str) -> bool { false }
 
 impl Gpu {
 
@@ -710,9 +724,7 @@ impl Gpu {
         // compute splatting - buffers, layouts, groups, pipelines.
         // the per-pixel buffers are framebuffer-sized u32s;
         // clear_buffer COPY_DST
-        let pixels = (config.width.max(1) * config.height.max(1)) as u64 * 4;
-        let splat_depth_buf = zeroed_buffer(&device, "splat.depth", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
-        let splat_color_buf = zeroed_buffer(&device, "splat.color", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let (splat_depth_view, splat_color_view) = Self::create_splat_targets(&device, &config);
         let splat_recs = zeroed_buffer(&device, "splat.rescales", 16 + 256 * 144, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
         let splat_group0_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
             label: Some("splat.group0.layout"),
@@ -728,9 +740,7 @@ impl Gpu {
             entries: &[
                 Self::splat_entry(0, wgpu::BufferBindingType::Storage { read_only: true }), // pos
                 Self::splat_entry(1, wgpu::BufferBindingType::Storage { read_only: true }), // col
-                Self::splat_entry(2, wgpu::BufferBindingType::Storage { read_only: false }), // sdepth
-                Self::splat_entry(3, wgpu::BufferBindingType::Storage { read_only: false }), // scolor
-                Self::splat_entry(4, wgpu::BufferBindingType::Storage { read_only: true }),
+                Self::splat_entry(2, wgpu::BufferBindingType::Storage { read_only: true }), // nrm
             ],
         });
 
@@ -740,20 +750,20 @@ impl Gpu {
                 wgpu::BindGroupLayoutEntry{
                     binding: 0,
                     visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Depth,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
                     },
                     count: None,
                 },
                 wgpu::BindGroupLayoutEntry{
                     binding: 1,
                     visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: true },
-                        has_dynamic_offset: false,
-                        min_binding_size: None
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
                     },
                     count: None,
                 },
@@ -775,15 +785,13 @@ impl Gpu {
             &point_buffer,
             &point_col_buffer,
             &point_nrm_buffer,
-            &splat_depth_buf,
-            &splat_color_buf,
         );
 
         let splat_resolve_group = Self::mk_splat_resolve_group(
             &device,
             &splat_resolve_layout,
-            &splat_depth_buf,
-            &splat_color_buf,
+            &splat_depth_view,
+            &splat_color_view,
         );
 
         let splat_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor{
@@ -797,21 +805,43 @@ impl Gpu {
             immediate_size: 0,
         });
 
-        let splat_depth_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor{
-            label: Some("splat.depth"),
+        let splat_point_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("splat.points"),
             layout: Some(&splat_layout),
-            module: &splat_shader,
-            entry_point: Some("cs_depth"),
-            compilation_options: Default::default(),
-            cache: None,
-        });
-
-         let splat_color_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor{
-            label: Some("splat.color"),
-            layout: Some(&splat_layout),
-            module: &splat_shader,
-            entry_point: Some("cs_color"),
-            compilation_options: Default::default(),
+            vertex: wgpu::VertexState {
+                module: &splat_shader,
+                entry_point: Some("vs_point"),
+                buffers: &[],
+                compilation_options: Default::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &splat_shader,
+                entry_point: Some("fs_point"),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: SPLAT_COLOR_FORMAT,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: Default::default(),
+            }),
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList, // 6 verts per point, pulled by index
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: None,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Greater), // reverse-Z; nearest point wins, ties keep the first
+                stencil: wgpu::StencilState::default(),
+                bias: wgpu::DepthBiasState::default(),
+            }),
+            multisample: wgpu::MultisampleState { count: 1, mask: !0, alpha_to_coverage_enabled: false },
+            multiview_mask: None,
             cache: None,
         });
 
@@ -902,8 +932,8 @@ impl Gpu {
             point_cap,
             point_col_cap,
             point_nrm_cap,
-            splat_depth_buf,
-            splat_color_buf,
+            splat_depth_view,
+            splat_color_view,
             splat_recs,
             splat_group0_layout,
             splat_group1_layout,
@@ -911,8 +941,7 @@ impl Gpu {
             splat_group0,
             splat_group1,
             splat_resolve_group,
-            splat_depth_pipeline,
-            splat_color_pipeline,
+            splat_point_pipeline,
             splat_total: 0,
             splat_state: None,
             mvp_f32: [0.0; 16],
@@ -936,6 +965,8 @@ impl Gpu {
             msaa_view,
             samples,
             performance: Performance::new(),
+            frame_no: 0,
+            last_frame_t: 0.0,
             scene_min,
             scene_max,
          })
@@ -1200,7 +1231,7 @@ impl Gpu {
         ty: wgpu::BufferBindingType) -> wgpu::BindGroupLayoutEntry{
         wgpu::BindGroupLayoutEntry {
             binding,
-            visibility: wgpu::ShaderStages::COMPUTE,
+            visibility: wgpu::ShaderStages::VERTEX,
             ty: wgpu::BindingType::Buffer { ty, has_dynamic_offset: false, min_binding_size: None },
             count: None }
     }
@@ -1231,8 +1262,6 @@ impl Gpu {
         pos: &wgpu::Buffer,
         col: &wgpu::Buffer,
         nrm: &wgpu::Buffer,
-        sdepth: &wgpu::Buffer,
-        scolor: &wgpu::Buffer,
     ) -> wgpu::BindGroup {
         device.create_bind_group(&wgpu::BindGroupDescriptor{
             label: Some("splat.group1"),
@@ -1240,9 +1269,7 @@ impl Gpu {
             entries: &[
                 wgpu::BindGroupEntry{binding: 0, resource: pos.as_entire_binding()},
                 wgpu::BindGroupEntry{binding: 1, resource: col.as_entire_binding()},
-                wgpu::BindGroupEntry{binding: 2, resource: sdepth.as_entire_binding()},
-                wgpu::BindGroupEntry{binding: 3, resource: scolor.as_entire_binding()},
-                wgpu::BindGroupEntry{binding: 4, resource: nrm.as_entire_binding()},
+                wgpu::BindGroupEntry{binding: 2, resource: nrm.as_entire_binding()},
             ],
         })
     }
@@ -1250,17 +1277,34 @@ impl Gpu {
     fn mk_splat_resolve_group(
         device: &wgpu::Device,
         layout: &wgpu::BindGroupLayout,
-        sdepth: &wgpu::Buffer,
-        scolor: &wgpu::Buffer,
+        sdepth: &wgpu::TextureView,
+        scolor: &wgpu::TextureView,
     ) -> wgpu::BindGroup{
         device.create_bind_group(&wgpu::BindGroupDescriptor{
             label: Some("splat.resolve.group"),
             layout,
             entries: &[
-                wgpu::BindGroupEntry{binding: 0, resource: sdepth.as_entire_binding()},
-                wgpu::BindGroupEntry{binding: 1, resource: scolor.as_entire_binding()},
+                wgpu::BindGroupEntry{binding: 0, resource: wgpu::BindingResource::TextureView(sdepth)},
+                wgpu::BindGroupEntry{binding: 1, resource: wgpu::BindingResource::TextureView(scolor)},
             ],
         })
+    }
+
+    /// The cloud lane's own targets: nearest-point depth and its colour, one sample per pixel,
+    /// read back by the resolve (EDL needs the neighbours). Cleared per moving frame.
+    fn create_splat_targets(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> (wgpu::TextureView, wgpu::TextureView) {
+        let size = wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1 };
+        let mk = |label: &str, format: wgpu::TextureFormat| device.create_texture(&wgpu::TextureDescriptor {
+            label: Some(label),
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: &[],
+        }).create_view(&wgpu::TextureViewDescriptor::default());
+        (mk("splat.depth", wgpu::TextureFormat::Depth32Float), mk("splat.color", SPLAT_COLOR_FORMAT))
     }
 
     /// One read-only storage buffer at binding 0 - the shape every ink lane's bind group has.
@@ -1274,8 +1318,8 @@ impl Gpu {
 
     fn rebuild_splat_groups(&mut self){
         self.splat_group0 = Self::mk_splat_group0(&self.device, &self.splat_group0_layout, &self.mvp_buffer, &self.cloud_buffer, &self.instance_buffer, &self.splat_recs);
-        self.splat_group1 = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.point_buffer, &self.point_col_buffer, &self.point_nrm_buffer, &self.splat_depth_buf, &self.splat_color_buf);
-        self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.splat_resolve_layout, &self.splat_depth_buf, &self.splat_color_buf);
+        self.splat_group1 = Self::mk_splat_group1(&self.device, &self.splat_group1_layout, &self.point_buffer, &self.point_col_buffer, &self.point_nrm_buffer);
+        self.splat_resolve_group = Self::mk_splat_resolve_group(&self.device, &self.splat_resolve_layout, &self.splat_depth_view, &self.splat_color_view);
 
     }
 
@@ -1287,9 +1331,9 @@ impl Gpu {
             if let Some(s) = &self.surface { s.configure(&self.device, &self.config); }
             self.depth_view = Self::create_depth_view(&self.device, &self.config, self.samples);
             self.msaa_view = Self::create_msaa_view(&self.device, &self.config, self.samples);
-            let pixels = (width * height) as u64 * 4;
-            self.splat_depth_buf = zeroed_buffer(&self.device, "splat.depth", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
-            self.splat_color_buf = zeroed_buffer(&self.device, "splat.color", pixels, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+            let (d, c) = Self::create_splat_targets(&self.device, &self.config);
+            self.splat_depth_view = d;
+            self.splat_color_view = c;
             self.rebuild_splat_groups();
             self.splat_state = None;
 
@@ -1315,10 +1359,35 @@ impl Gpu {
         let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("clear encoder"),
         });
+        let t0 = crate::engine::performance::now_ms();
         let (draws, objects) = self.encode_frame(&mut encoder, &view, color);
+        let t1 = crate::engine::performance::now_ms();
         self.queue.submit([encoder.finish()]);
         output.present();
+        let t2 = crate::engine::performance::now_ms();
         self.performance.frame(draws, objects);
+        self.frame_no += 1;
+        // `?perf=1`: the frame line in the page's top-left corner. Console and title are not
+        // enough - a busy page keeps DevTools from ever showing a console line, and the tab
+        // title is cached by the browser UI. A DOM element is readable from a screenshot.
+        #[cfg(target_arch = "wasm32")]
+        if crate::engine::performance::perf_logging() {
+            if let Some(doc) = web_sys::window().and_then(|w| w.document()) {
+                let line = format!("f{} gap {:.0} enc {:.0} submit {:.0} ms heap {:.0} MB", self.frame_no, t0 - self.last_frame_t, t1 - t0, t2 - t1, crate::engine::performance::heap_mb());
+                let el = match doc.get_element_by_id("perf") {
+                    Some(e) => Some(e),
+                    None => doc.create_element("pre").ok().and_then(|e| {
+                        e.set_id("perf");
+                        let _ = e.set_attribute("style", "position:fixed;left:0;top:0;margin:0;padding:2px 6px;font:12px monospace;color:#000;background:rgba(255,255,255,.7);z-index:9;pointer-events:none");
+                        doc.body().map(|b| { let _ = b.append_child(&e); e })
+                    }),
+                };
+                if let Some(el) = el { el.set_text_content(Some(&line)); }
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        let _ = (t0, t1);
+        self.last_frame_t = t2;
         Ok(())
     }
 
@@ -1611,27 +1680,36 @@ impl Gpu {
             }
             header[1] = cum;
             self.splat_total = cum;
-            // Static skip: camera still ,same sclae, nothing rebuild - the buffers already
-            // hold this example frame's splat, so the whole compute is free.
+            // Static skip: camera still, same scale, nothing rebuilt - the targets already hold
+            // this frame's points, so the whole lane costs one fullscreen resolve.
             let state = (self.mvp_f32, self.cloud_size);
-            if cum > 0 && self.splat_state != Some(state) {
+            if cum > 0 && self.splat_state != Some(state) && !skip("splat_points") {
                 self.queue.write_buffer(&self.splat_recs, 0, bytemuck::bytes_of(&header));
                 self.queue.write_buffer(&self.splat_recs, 16, &recs);
-                encoder.clear_buffer(&self.splat_depth_buf, 0, None); // 0 bits = reverse-Z far = empty
-                encoder.clear_buffer(&self.splat_color_buf, 0, None);
-                // 2D grid: a 1D dispatch caps at 65535 workgroups (~4.2M threads) and an
-                // oversized dispatch invalidates the WHOLE command buffer - the frame
-                // silently never draws. 4096-wide rows cover any point count.
-                let groups = cum.div_ceil(64);
-                let gx = groups.min(4096);
-                let gy = groups.div_ceil(4096);
-                let mut cp = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
-                cp.set_bind_group(0, &self.splat_group0, &[]);
-                cp.set_bind_group(1, &self.splat_group1, &[]);
-                cp.set_pipeline(&self.splat_depth_pipeline);
-                cp.dispatch_workgroups(gx, gy, 1);
-                cp.set_pipeline(&self.splat_color_pipeline);
-                cp.dispatch_workgroups(gx, gy, 1);
+                // One quad per point into the cloud's own depth + colour targets; the depth
+                // test picks the nearest point per pixel. Depth 0 = reverse-Z far = empty.
+                let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("splat.points"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &self.splat_color_view,
+                        resolve_target: None,
+                        depth_slice: None,
+                        ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store },
+                    })],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.splat_depth_view,
+                        depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(0.0), store: wgpu::StoreOp::Store }),
+                        stencil_ops: None,
+                    }),
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                    multiview_mask: None,
+                });
+                pass.set_pipeline(&self.splat_point_pipeline);
+                pass.set_bind_group(0, &self.splat_group0, &[]);
+                pass.set_bind_group(1, &self.splat_group1, &[]);
+                pass.draw(0..6 * cum, 0..1);
+                drop(pass);
                 self.splat_state = Some(state);
             }
         }
@@ -1670,15 +1748,17 @@ impl Gpu {
             // a vertex marker is the topmost ink at its own joint.
 
             // Background
-            pass.set_pipeline(&self.pipelines.background);
-            pass.draw(0..3, 0..1);
-            draws += 1;
+            if !skip("background") {
+                pass.set_pipeline(&self.pipelines.background);
+                pass.draw(0..3, 0..1);
+                draws += 1;
+            }
 
             // Grid first as the depth writes are off, all objects paints over it
             pass.set_pipeline(&self.pipelines.grid);
             pass.set_bind_group(0, &self.mvp_bind_group, &[]);
             pass.set_bind_group(1, &self.line_bind_group, &[]);   // for the anchor
-            pass.draw(0..50, 0..1);
+            if !skip("grid") { pass.draw(0..50, 0..1); }
             draws += 1;
 
             // Meshes - coordinates, colors and normals are inside the gb.vbo computed
@@ -1688,7 +1768,7 @@ impl Gpu {
             pass.set_bind_group(2, &self.instance_bind_group, &[]);
 
             // Arena draw
-            if self.arena_index_count > 0 {
+            if self.arena_index_count > 0 && !skip("arena") {
                 pass.set_vertex_buffer(0, self.arena_vbo.slice(..)); // slot 0 - vertices
                 pass.set_vertex_buffer(1, self.arena_vids.slice(..)); // slot 1 - per-vertex row ids
                 pass.set_index_buffer(self.arena_ibo.slice(..), wgpu::IndexFormat::Uint32);
@@ -1699,7 +1779,7 @@ impl Gpu {
             // SHEET FILLS, second. Same vertex table, depth WRITE off, so a page's exactly
             // coplanar regions composite in document order instead of flickering over one shared
             // depth value. They still depth-TEST, so 3D geometry in front of the sheet occludes.
-            if self.arena_print_count > 0 {
+            if self.arena_print_count > 0 && !skip("fills") {
                 pass.set_pipeline(&self.pipelines.triangle_sheet);
                 pass.set_vertex_buffer(0, self.arena_vbo.slice(..));
                 pass.set_vertex_buffer(1, self.arena_vids.slice(..));
@@ -1713,7 +1793,7 @@ impl Gpu {
             // surface it sits on, so silhouette edges never lose the depth test.
             // segments = line/polyline -> flat ribbons: nothing to fight with, and they stay
             // screen-constant and cheap.
-            if self.pipe_count > 0 && self.show_mesh_edges {
+            if self.pipe_count > 0 && self.show_mesh_edges && !skip("pipes") {
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
@@ -1731,9 +1811,9 @@ impl Gpu {
                     // that rejection read as pale flecks inside the bunny's wireframe.
                     LineStyle::Flat => {
                         pass.set_pipeline(&self.pipelines.ribbon_solid_depth);
-                        pass.draw(0..4, 0..self.pipe_count);
+                        pass.draw(0..6 * self.pipe_count, 0..1);
                         pass.set_pipeline(&self.pipelines.ribbon_solid);
-                        pass.draw(0..4, 0..self.pipe_count);
+                        pass.draw(0..6 * self.pipe_count, 0..1);
                         draws += 1;
                     }
                 }
@@ -1743,7 +1823,7 @@ impl Gpu {
             // The cloud lane. drawn with the solids: the compute splatter already resovled
             // every cloud into the per-pixel depth/color buffers, so the whoel lane is one fullscreen triangle
             // that composites them - depth-writing via frag_depth, so splat and solids occlude each other exactly.
-            if self.splat_total > 0 {
+            if self.splat_total > 0 && !skip("splat") {
                 pass.set_pipeline(&self.pipelines.splat_resolve);
                 pass.set_bind_group(0, &self.cloud_bind_group, &[]);
                 pass.set_bind_group(1, &self.splat_resolve_group, &[]);
@@ -1763,7 +1843,7 @@ impl Gpu {
             //
             // Faces are already down by this point, so a vertex hidden inside the solid stays
             // hidden, which was the reason markers went early in the first place.
-            if self.sphere_count > 0 && self.show_mesh_edges && std::env::var("BENCH_NO_MARKERS").is_err() {
+            if self.sphere_count > 0 && self.show_mesh_edges && !skip("spheres") {
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
@@ -1785,16 +1865,16 @@ impl Gpu {
             // COST: it draws the whole flat lane a SECOND time. On 2D sheets (600k segments, all
             // ribbons) that doubles the frame - so it is off by default and only worth enabling
             // for 3D scenes where ink-vs-ink order is actually visible.
-            if INK_DEPTH_PREPASS && self.segment_count > 0 && self.show_lines {
+            if INK_DEPTH_PREPASS && self.segment_count > 0 && self.show_lines && !skip("ribbon_depth") {
                 pass.set_pipeline(&self.pipelines.ribbon_depth);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
                 pass.set_bind_group(3, &self.segment_bind_group, &[]);
-                pass.draw(0..4, 0..self.segment_count);
+                pass.draw(0..6 * self.segment_count, 0..1); // 6 verts/segment, see ribbon.wgsl vs_main
                 draws += 1;
             }
-            if INK_DEPTH_PREPASS && self.glyph_count > 0 && self.show_points {
+            if INK_DEPTH_PREPASS && self.glyph_count > 0 && self.show_points && !skip("glyph_depth") {
                 pass.set_pipeline(&self.pipelines.glyph_depth);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
@@ -1804,21 +1884,21 @@ impl Gpu {
                 draws += 1;
             }
 
-            if self.segment_count > 0 && self.show_lines {
+            if self.segment_count > 0 && self.show_lines && !skip("ribbon") {
                 pass.set_pipeline(&self.pipelines.ribbon);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);
                 pass.set_bind_group(2, &self.instance_bind_group, &[]);
                 pass.set_bind_group(3, &self.segment_bind_group, &[]);
                 // instance_index IS the row: this table holds nothing but flat-lane segments
-                pass.draw(0..4, 0..self.segment_count);
+                pass.draw(0..6 * self.segment_count, 0..1); // 6 verts/segment, see ribbon.wgsl vs_main
                 draws += 1;
             }
 
             // LETTERING, last of everything. A page paints its text on top of its hatching AND
             // its linework, so it lands after the ink lanes above - the one thing draw order can
             // express that a depth buffer cannot, since all of it is coplanar at z = 0.
-            if self.arena_text_count > 0 {
+            if self.arena_text_count > 0 && !skip("text") {
                 pass.set_pipeline(&self.pipelines.triangle_sheet);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.time_bind_group, &[]);
@@ -1832,7 +1912,7 @@ impl Gpu {
 
             // Vertex ink, same split: the sphere table is mesh/BRep vertices -> markers (DRAWN
             // EARLIER - right after the faces; see there), this one is flat SDF dots.
-            if self.glyph_count > 0 && self.show_points {
+            if self.glyph_count > 0 && self.show_points && !skip("glyph") {
                 pass.set_pipeline(&self.pipelines.glyph);
                 pass.set_bind_group(0, &self.mvp_bind_group, &[]);
                 pass.set_bind_group(1, &self.line_bind_group, &[]);

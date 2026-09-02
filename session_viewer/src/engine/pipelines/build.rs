@@ -598,7 +598,7 @@ pub fn build_ribbon_solid_pipeline(
             compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleStrip, // 4 verts/quad, one instance/segment
+            topology: wgpu::PrimitiveTopology::TriangleList, // 6 verts/segment, ONE draw, pulled by vertex index
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: None,
@@ -676,7 +676,7 @@ pub fn build_ribbon_pipeline(
             compilation_options: Default::default(),
         }),
         primitive: wgpu::PrimitiveState {
-            topology: wgpu::PrimitiveTopology::TriangleStrip, // 4 verts/quad, one instance/segment
+            topology: wgpu::PrimitiveTopology::TriangleList, // 6 verts/segment, ONE draw, pulled by vertex index
             strip_index_format: None,
             front_face: wgpu::FrontFace::Ccw,
             cull_mode: None,

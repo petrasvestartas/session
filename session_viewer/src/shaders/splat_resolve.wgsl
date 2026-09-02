@@ -19,8 +19,8 @@ struct CloudUniform{
 
 @group(0) @binding(0) var<uniform> cloud: CloudUniform;
 
-@group(1) @binding(0) var<storage, read> sdepth: array<u32>;
-@group(1) @binding(1) var<storage, read> scolor: array<u32>;
+@group(1) @binding(0) var sdepth: texture_depth_2d; // the cloud's own depth target, 0 = empty
+@group(1) @binding(1) var scolor: texture_2d<f32>;
 
 struct VsOut {
     @builtin(position) pos: vec4<f32>
@@ -42,13 +42,13 @@ struct FsOut {
 
 @fragment
 fn fs_main(in: VsOut) -> FsOut{
-    let idx = u32(in.pos.y) * u32(cloud.vp_w) + u32(in.pos.x);
-    let d = sdepth[idx];
-    if (d == 0u) {
-        discard; // no splat landed here
+    let pix = vec2<i32>(in.pos.xy);
+    let d = textureLoad(sdepth, pix, 0);
+    if (d == 0.0) {
+        discard; // no point landed here
     }
     var o: FsOut;
-    var rgb = unpack4x8unorm(scolor[idx]).rgb;
+    var rgb = textureLoad(scolor, pix, 0).rgb;
 
     // EYE-DOM LIGHTING - Cloudcompare - potree formula.
     // Darket a pixel by how much closer its neihgbor are
@@ -60,7 +60,7 @@ fn fs_main(in: VsOut) -> FsOut{
     if (strength > 0.0) {
         let w = i32(cloud.vp_w);
         let h = i32(cloud.vp_h);
-        let me = -log2(max(bitcast<f32>(d), 1.0e-7));
+        let me = -log2(max(d, 1.0e-7));
         var sum = 0.0;
         for (var k = 0; k < 4; k++){
             var q = vec2<i32>(in.pos.xy);
@@ -78,12 +78,12 @@ fn fs_main(in: VsOut) -> FsOut{
                 continue;
             }
 
-            let nd = sdepth[u32(q.y) * u32(w) + u32(q.x)];
+            let nd = textureLoad(sdepth, q, 0);
 
-            if (nd == 0u) {
+            if (nd == 0.0) {
                 continue; // empty neighbour: no opinion;
             }
-            sum += max(0.0, me - (-log2(max(bitcast<f32>(nd), 1.0e-7))));
+            sum += max(0.0, me - (-log2(max(nd, 1.0e-7))));
         }
 
         // floor at 0.25: an edge darkens, it never goes pure black - sparse dots
@@ -93,6 +93,6 @@ fn fs_main(in: VsOut) -> FsOut{
     }
 
     o.color = vec4<f32>(rgb, 1.0);
-    o.depth = bitcast<f32>(d);
+    o.depth = d;
     return o;
 }

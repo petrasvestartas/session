@@ -345,6 +345,9 @@ impl ApplicationHandler<Msg> for App {
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::RedrawRequested => {
+                // `?spin=1`: orbit a little every frame - a moving-camera benchmark that needs no
+                // input device (frame line in the top-left corner, `?perf=1`).
+                if spin_mode() { state.camera.orbit(0.004, 0.0); }
                 // Before drawing, make the GPU surface match the canvas's real pixel size.
                 // Cheap check every frame; reconfigure only on a genuine change.
                 if let Some((w, h)) = desired_canvas_size() {
@@ -456,6 +459,12 @@ impl ApplicationHandler<Msg> for App {
 }
 
 /// The canvas's pixel size (CSS size × device-pixel-ratio), or `None` if zero or unavailable.
+#[cfg(target_arch = "wasm32")]
+fn spin_mode() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(|| web_sys::window().and_then(|w| w.location().search().ok()).is_some_and(|s| s.contains("spin=1")))
+}
+
 #[cfg(target_arch = "wasm32")]
 fn desired_canvas_size() -> Option<(u32, u32)> {
     use wasm_bindgen::JsCast;

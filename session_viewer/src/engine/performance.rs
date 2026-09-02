@@ -41,7 +41,7 @@ impl Performance {
 /// An ENV var would not do: `std::env::var` always fails on wasm32, so an
 /// env-gated flag is not "off by default" in a browser, it is unreachable.
 #[cfg(target_arch = "wasm32")]
-fn perf_logging() -> bool {
+pub fn perf_logging() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| {
         web_sys::window()
@@ -52,7 +52,7 @@ fn perf_logging() -> bool {
 
 /// Native builds have a real environment, so the harness keeps using it.
 #[cfg(not(target_arch = "wasm32"))]
-fn perf_logging() -> bool {
+pub fn perf_logging() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| std::env::var("VIEWER_PERF").is_ok())
 }
