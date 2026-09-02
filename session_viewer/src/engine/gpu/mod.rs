@@ -523,7 +523,7 @@ impl Gpu {
         let (arena_text_count, arena_text_cap) = (0u32, 1u64);
         let arena_vert_count = 0u32;
         let (arena_vert_cap, arena_index_cap) = (1u64, 1u64);
-        let (scene_min, scene_max) = ([0.0f32; 3], [0.0f32; 3]);
+        let (scene_min, scene_max) = ([f32::INFINITY; 3], [f32::NEG_INFINITY; 3]);
 
         let instance_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
             label: Some("instance.layout"),
@@ -1105,8 +1105,12 @@ impl Gpu {
         self.splat_state = None;
 
         self.last_origin = None; // force the next frame to rebase agains the new table
-        self.scene_min = up.min;
-        self.scene_max = up.max;
+        // The scene's bounds, not this upload's: every lane appends, so the box grows with each
+        // file and `reset_arena` (a clear) starts it over.
+        for k in 0..3 {
+            self.scene_min[k] = self.scene_min[k].min(up.min[k]);
+            self.scene_max[k] = self.scene_max[k].max(up.max[k]);
+        }
 
         log::info!(
             "scene: {} objects {} arena verts {} segments ({} pipes) {} glyphs ({} spheres) {} cloud points",
@@ -1850,6 +1854,8 @@ impl Gpu {
     /// Forget what the arena holds, so the next upload writes from row 0 again. The buffers
     /// and their capacity stay - only the counters move - so a rebuild costs no allocation.
     pub fn reset_arena(&mut self) {
+        self.scene_min = [f32::INFINITY; 3];
+        self.scene_max = [f32::NEG_INFINITY; 3];
         self.arena_vert_count = 0;
         self.arena_index_count = 0;
         self.arena_print_count = 0;

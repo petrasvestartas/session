@@ -268,6 +268,10 @@ impl Camera {
 
     /// Frame an AABB: center the target on it and set distance so its bounding sphere fills the FOV (+10%).
     pub fn fit(&mut self, min: [f32; 3], max: [f32; 3], aspect: f64) {
+        // An empty scene has an inverted infinite box: nothing to frame.
+        if !min.iter().chain(max.iter()).all(|v| v.is_finite()) {
+            return;
+        }
         // unit scale
         let s = self.unit.to_meters();
 

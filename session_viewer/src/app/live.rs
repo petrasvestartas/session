@@ -157,13 +157,15 @@ impl LiveSource {
                 if sha.len() == 40 && sha.bytes().all(|c| c.is_ascii_hexdigit()) {
                     Some(sha)
                 } else {
-                    self.warn(format!("{LATEST_POINTER} does not hold a commit sha ({} bytes); nothing to load until the data workflow rewrites it", r.bytes.len()));
+                    // A dev server (trunk serve) answers every unknown path with index.html.
+                    self.snapshots = false;
+                    log::info!("live: {LATEST_POINTER} is not a commit sha ({} bytes: not on GitHub Pages); polling {} instead - up to 5 min behind the branch", r.bytes.len(), self.manifest_url);
                     None
                 }
             }
             Ok(r) if r.status == 404 => {
                 self.snapshots = false;
-                log::info!("live: no {LATEST_POINTER} next to this page (not on GitHub Pages, or the data workflow has not run); polling {} instead - up to 5 min behind the branch", self.manifest_url);
+                log::info!("live: no {LATEST_POINTER} next to this page (the data workflow has not deployed yet); polling {} instead - up to 5 min behind the branch", self.manifest_url);
                 None
             }
             Ok(r) => {

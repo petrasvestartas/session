@@ -316,8 +316,8 @@ impl ApplicationHandler<Msg> for App {
             }
             Msg::Fit => {
                 if let Some(state) = &mut self.state {
-                    let s = state.window.inner_size();
-                    let aspect = s.width.max(1) as f64 / s.height.max(1) as f64;
+                    // The surface size, not `window.inner_size()` - that is 0x0 on the web.
+                    let aspect = state.gpu.config.width.max(1) as f64 / state.gpu.config.height.max(1) as f64;
                     state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
                     state.window.request_redraw();
                 }
