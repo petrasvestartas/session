@@ -270,15 +270,24 @@ impl ApplicationHandler<Msg> for App {
                         // `Ready` framed the first file only; frame everything the manifest listed.
                         if sent_ready { let _ = proxy.send_event(Msg::Fit); }
                     }
+                    if !sent_ready {
+                        // Come up as an empty grid rather than as something else's geometry. A
+                        // live page must not depend on there being anything to show at boot:
+                        // the source may be empty, unreachable or mid-push, and the poll loop
+                        // below fills the scene in as soon as it is readable. Swapping a scene
+                        // in is `Clear` + `File` + `Fit` on the running State - the canvas, the
+                        // GPU device and the camera all survive it, so this window is built
+                        // once however many times the geometry changes afterwards.
+                        let state = State::new(window.clone(), Scene::new()).await.expect("State init failed");
+                        let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+                        sent_ready = true;
+                    }
                 }
+                // No live source (`?live=off`, or a pinned `?scene=`): the built-in scene.
                 if !sent_ready {
-                    sent_ready = demo_scene(&proxy, window.clone()).await;
+                    demo_scene(&proxy, window.clone()).await;
                 }
                 let Some(mut src) = live else { return };
-                if !sent_ready {
-                    log::error!("nothing could be loaded: neither the live manifest nor the demo scene");
-                    return;
-                }
                 // Poll: a changed manifest re-fetches every listed file; the scene is swapped
                 // only when at least one of them loaded, so a broken push never blanks the page.
                 loop {

@@ -33,10 +33,16 @@
 //! The scene is only replaced when at least one file loaded, so a broken push never blanks the
 //! page.
 //!
+//! GitHub is the SLOW loop, and it is meant to be: it publishes. The fast loop is a static
+//! server on this machine over the directory a solver writes into -
+//! `?live=http://localhost:8000/scenes/face_to_face_viewer.toml` - which is polled every
+//! `?poll=` seconds INCLUDING the files it lists, so re-running the solver redraws the page in
+//! about as long as the run takes. Nothing is committed, nothing is cached, nothing is deployed.
+//!
 //! Page query: `?live=off` disables it, `?poll=<seconds>` changes the interval (default 5),
 //! `?live=gh:<owner>/<repo>@<branch>/<path.toml>` watches another branch the same way, and
-//! `?live=<https url>` watches a plain manifest URL as it is. A page that pins `?scene=` gets no
-//! live source unless it also asks for one.
+//! `?live=<url>` watches a plain manifest URL as it is - https anywhere, http on localhost. A
+//! page that pins `?scene=` gets no live source unless it also asks for one.
 
 use std::hash::{Hash, Hasher};
 
@@ -47,6 +53,12 @@ use session_rust::{Session, Xform};
 /// The branch this viewer watches unless the page says otherwise.
 pub const DEFAULT_SOURCE: &str = "gh:petrasvestartas/session@session_viewer_data/session_viewer.toml";
 const DEFAULT_POLL_SECONDS: f64 = 5.0;
+/// Shortest gap between two GitHub API calls. 60 requests an hour per address is the budget, so
+/// a page that never sees the branch bytes move still costs 30 of them - leaving room for a
+/// second tab, and for the call every page load makes. It is also what bounds how late an open
+/// page can be about a push that changed only a `.pb`: the branch-path manifest is byte for byte
+/// the same then, so nothing but the commit itself says anything happened.
+const API_MIN_GAP_MS: f64 = 120_000.0;
 
 /// A file on a GitHub branch, as `?live=gh:<owner>/<repo>@<branch>/<path>` parses it.
 pub struct GhRef {
@@ -75,8 +87,13 @@ impl GhRef {
 
     /// The API endpoint naming the branch's tip commit. Smaller than `/commits/<branch>`: one
     /// ref object, not a whole commit with its author, tree and parents.
-    fn ref_api(&self) -> String {
-        format!("https://api.github.com/repos/{}/{}/git/ref/heads/{}", self.owner, self.repo, self.branch)
+    ///
+    /// `nonce` is a cache buster. The answer carries `s-maxage=60`, so an edge that was asked a
+    /// minute ago keeps naming the commit BEFORE the push you just made - and `cache: no-store`
+    /// only skips the browser's own cache, not GitHub's. A URL nobody has asked for cannot be
+    /// answered from a shared cache.
+    fn ref_api(&self, nonce: f64) -> String {
+        format!("https://api.github.com/repos/{}/{}/git/ref/heads/{}?_={}", self.owner, self.repo, self.branch, nonce as u64)
     }
 
     /// Raw URL of the manifest at a given tree-ish (a sha, or the branch name for the fallback).
@@ -113,6 +130,8 @@ pub struct LiveSource {
     sha: Option<String>,
     /// Content hash of the last manifest bytes seen - the change detector.
     last_hash: u64,
+    /// `Date::now()` of the last GitHub API call, so the budget is spent at a known rate.
+    last_api_ms: f64,
     last_warning: Option<String>,
 }
 
@@ -137,16 +156,16 @@ impl LiveSource {
             return None;
         }
         let spec = match live {
-            Some(url) if url.starts_with("https://") || url.starts_with("gh:") => url,
+            Some(url) if url.starts_with("https://") || url.starts_with("gh:") || is_local(&url) => url,
             Some(other) => {
-                log::warn!("live: ignoring `?live={other}` - expected `gh:<owner>/<repo>@<branch>/<path>` or an https:// manifest URL; watching the default");
+                log::warn!("live: ignoring `?live={other}` - expected `gh:<owner>/<repo>@<branch>/<path>`, an https:// manifest URL, or one on http://localhost; watching the default");
                 DEFAULT_SOURCE.to_string()
             }
             None => DEFAULT_SOURCE.to_string(),
         };
         let source = match GhRef::parse(&spec) {
             Some(gh) => Source::Gh(gh),
-            None if spec.starts_with("https://") => Source::Url(spec.clone()),
+            None if spec.starts_with("https://") || is_local(&spec) => Source::Url(spec.clone()),
             None => {
                 log::warn!("live: `{spec}` is not a usable source; watching {DEFAULT_SOURCE}");
                 Source::Gh(GhRef::parse(DEFAULT_SOURCE)?)
@@ -167,6 +186,7 @@ impl LiveSource {
             base: String::new(),
             sha: None,
             last_hash: 0,
+            last_api_ms: 0.0,
             last_warning: None,
         })
     }
@@ -220,17 +240,21 @@ impl LiveSource {
         let branch_url = gh.raw(&gh.branch);
         let first = self.sha.is_none();
 
-        // Every poll but the first is answered by the free branch-path read: unchanged bytes
-        // mean nothing was pushed and the API is left alone. On the first poll the bytes are
-        // read anyway, only to seed the hash - the API call below happens regardless, because a
-        // freshly loaded page must show the tip, not a five-minute-old edge copy.
+        // Every poll is answered first by the free branch-path read: bytes that moved mean a
+        // push, and the API is asked at once. Bytes that did not can still be hiding one - a
+        // push that rewrote only a `.pb` leaves the manifest identical - so the API is asked
+        // anyway, but no more often than API_MIN_GAP_MS. On the first poll the bytes are read
+        // only to seed the hash: the call below happens regardless, because a freshly loaded
+        // page must show the tip, not a five-minute-old edge copy.
         let changed = self.bytes_changed(&branch_url).await;
-        if !first && changed != Some(true) {
+        let now = js_sys::Date::now();
+        if !first && changed != Some(true) && now - self.last_api_ms < API_MIN_GAP_MS {
             return None;
         }
+        self.last_api_ms = now;
 
         let Source::Gh(gh) = &self.source else { return None };
-        let (api, branch_raw, branch_name) = (gh.ref_api(), gh.raw(&gh.branch), gh.branch.clone());
+        let (api, branch_raw, branch_name) = (gh.ref_api(js_sys::Date::now()), gh.raw(&gh.branch), gh.branch.clone());
         match self.tip_sha(&api).await {
             Some(sha) => {
                 if self.sha.as_deref() == Some(sha.as_str()) {
@@ -319,18 +343,48 @@ impl LiveSource {
         }
     }
 
-    /// `?live=<https url>`: the manifest on its own URL, a change being different bytes.
+    /// `?live=<url>`: the manifest on its own URL, a change being different bytes.
+    ///
+    /// On a LOCAL source the listed files are hashed too, so re-running a solver that rewrites
+    /// its `.pb` without touching the manifest still swaps the scene - which is the whole point
+    /// of pointing the viewer at a directory a build writes into. That costs one GET per file
+    /// per poll, which is why it is only done for localhost: on a remote source it would
+    /// re-download the whole scene every `?poll=` seconds.
     async fn manifest_if_changed(&mut self, url: &str) -> Option<Manifest> {
-        match self.bytes_changed(url).await {
-            Some(true) => {}
-            Some(false) => return None,
-            None => {
-                self.warn(format!("manifest {url} unreachable; nothing to load until it exists"));
+        let bytes = match persistence::fetch_bytes_cors(url).await {
+            Ok(b) => b,
+            Err(e) => {
+                self.warn(format!("manifest {url} unreachable ({e}); nothing to load until it exists"));
                 return None;
             }
+        };
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        bytes.hash(&mut hasher);
+        // Parsed before the files can be hashed - the manifest is what names them.
+        let manifest = match Manifest::parse_verbose(&bytes) {
+            Ok(m) => m,
+            Err(e) => {
+                // The hash is NOT kept: a corrected file is a change and gets loaded.
+                self.warn(format!("manifest {url} is not valid TOML/JSON: {e}; the scene is left as it is"));
+                return None;
+            }
+        };
+        self.base = Self::dir_of(url);
+        if is_local(url) {
+            for item in &manifest.items {
+                if let Ok(b) = persistence::fetch_bytes_cors(&self.resolve(&item.file)).await {
+                    b.hash(&mut hasher);
+                }
+            }
         }
-        // Keep the hash on a parse error: a corrected file is a change and gets loaded.
-        self.manifest_at(url, "manifest").await
+        let hash = hasher.finish();
+        if hash == self.last_hash {
+            return None;
+        }
+        self.last_hash = hash;
+        self.recovered();
+        log::info!("live: manifest '{}' changed: {} items", manifest.name, manifest.items.len());
+        Some(manifest)
     }
 
     /// Fetch and decode every item; problems are warned about and the item is skipped.
@@ -374,6 +428,15 @@ impl LiveSource {
     }
 }
 
+/// A URL served from this machine. Such a source is polled file by file (see
+/// [`LiveSource::manifest_if_changed`]) and, unlike any other http:// URL, is accepted: browsers
+/// treat localhost as trustworthy, so an https page may read it.
+fn is_local(url: &str) -> bool {
+    url.starts_with("http://localhost:")
+        || url.starts_with("http://127.0.0.1:")
+        || url.starts_with("http://[::1]:")
+}
+
 /// The sha out of a `git/ref/heads/<branch>` answer: `{"ref":..,"object":{"sha":..}}`.
 fn sha_from_ref_json(bytes: &[u8]) -> Option<String> {
     #[derive(serde::Deserialize)]
@@ -393,7 +456,7 @@ mod tests {
     #[test]
     fn default_source_parses_and_builds_both_urls() {
         let gh = GhRef::parse(DEFAULT_SOURCE).expect("the compiled-in default must parse");
-        assert_eq!(gh.ref_api(), "https://api.github.com/repos/petrasvestartas/session/git/ref/heads/session_viewer_data");
+        assert_eq!(gh.ref_api(7.0), "https://api.github.com/repos/petrasvestartas/session/git/ref/heads/session_viewer_data?_=7");
         assert_eq!(
             gh.raw("deadbeef"),
             "https://raw.githubusercontent.com/petrasvestartas/session/deadbeef/session_viewer.toml"
@@ -413,6 +476,16 @@ mod tests {
         for spec in ["gh:owner/repo", "gh:owner/repo@branch", "gh:/repo@b/f.toml", "gh:o/r@b/../etc", "https://example.com/x.toml", ""] {
             assert!(GhRef::parse(spec).is_none(), "{spec} should not parse as a gh: source");
         }
+    }
+
+    #[test]
+    fn only_this_machine_counts_as_local() {
+        assert!(is_local("http://localhost:8000/scenes/x.toml"));
+        assert!(is_local("http://127.0.0.1:8000/x.toml"));
+        // Not local: these must never get the per-file polling, nor http past mixed content.
+        assert!(!is_local("http://evil.example.com/x.toml"));
+        assert!(!is_local("https://raw.githubusercontent.com/o/r/b/x.toml"));
+        assert!(!is_local("http://localhost.evil.com:8000/x.toml"));
     }
 
     #[test]
