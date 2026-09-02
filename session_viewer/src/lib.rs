@@ -254,7 +254,7 @@ impl ApplicationHandler<Msg> for App {
                 let mut live = LiveSource::from_query();
                 let mut sent_ready = false;
                 if let Some(src) = live.as_mut() {
-                    log::info!("live: watching {} every {} s", src.label, src.poll_ms / 1000);
+                    log::info!("live: watching {} every {} ms", src.label, src.poll_ms);
                     if let Some(manifest) = src.fetch_manifest().await {
                         for item in src.load_all(&manifest).await {
                             if !sent_ready {
