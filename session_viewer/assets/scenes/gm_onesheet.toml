@@ -1,0 +1,6 @@
+name = "one sheet"
+[[items]]
+file = "pb/30700_querschnitt_gg.pb"
+name = "Querschnitt G-G"
+at = [0, 0, 0]
+display_only = true
