@@ -245,14 +245,16 @@ impl ApplicationHandler<Msg> for App {
             RELOAD_PROXY.with(|slot| *slot.borrow_mut() = Some(proxy.clone()));
             wasm_bindgen_futures::spawn_local(async move {
 
-                // LIVE DATA FIRST. The deployed page watches a manifest on the data branch;
-                // when it is readable and lists loadable files, that is the scene. When it is
-                // not (branch missing, nothing loads), the built-in demo scene is shown and the
-                // poll loop below picks the live data up as soon as it appears.
+                // LIVE DATA FIRST. The page reads a manifest from the session_viewer_data
+                // branch at its tip commit, straight from GitHub - no build, no deploy, no
+                // workflow between a push and this page. When it is readable and lists loadable
+                // files, that is the scene. When it is not (branch missing, nothing loads), the
+                // built-in demo scene is shown and the poll loop below picks the live data up as
+                // soon as it appears.
                 let mut live = LiveSource::from_query();
                 let mut sent_ready = false;
                 if let Some(src) = live.as_mut() {
-                    log::info!("live: polling every {} s - data/latest next to this page, else {}", src.poll_ms / 1000, src.manifest_url);
+                    log::info!("live: watching {} every {} s", src.label, src.poll_ms / 1000);
                     if let Some(manifest) = src.fetch_manifest().await {
                         for item in src.load_all(&manifest).await {
                             if !sent_ready {
