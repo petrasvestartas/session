@@ -163,3 +163,6 @@ session_viewer/docs/*/assets/
 # Lesson 40's two clouds are TRACKED (assets/pb/lion.pb 18 MB, bunny_cloud.pb 21 MB) so the
 # tutorial is "open a scene", not "download and convert". Their inputs are tracked beside them -
 # assets/lion_src/ and assets/pb/mesh_bunny_grey.pb - so either can be rebuilt from source.
+
+# Editor state
+.vscode/

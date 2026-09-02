@@ -35,9 +35,8 @@ Everything else lives directly in this repository:
 | `session_viewer` | Browser-only WebGPU CAD viewer (Rust → WASM via Trunk). Camera-relative f64, reverse-Z depth, CPU ray + BVH picking. `docs/` holds 100+ numbered lessons that build it from scratch. |
 | `session_tests` | Vue 3 test viewer — renders the per-class JSON results from all three languages side by side |
 | `bash` | Build, test and git automation — `minitest.sh` is the main entry point |
-| `serialization` | Round-trip protobuf/JSON fixtures |
+| `serialization` | Round-trip artifacts written by the tests (gitignored) |
 | `session_compas` | COMPAS framework interop |
-| `session_viewer_archive` | Previous viewer generation, kept for reference |
 
 `uvsession/` (Python virtualenv) and build directories (`target/`, `build/`, `dist*/`) are local
 only and never committed.
