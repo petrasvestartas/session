@@ -135,12 +135,15 @@ use winit::{
     event_loop::{ActiveEventLoop, EventLoop},
     window::{Window, WindowId},
 };
+#[cfg(target_arch = "wasm32")]
+use crate::app::touch::{Act, Touches};
 
 // ── Browser event loop ──────────────────────────────────────────────────────
 // State::new is async; winit's `resumed` is not, so we create the window, kick off async init,
 // and deliver the finished State back as a user event (winit's documented wasm pattern).
 /// The winit application handler: owns the viewer `State` once async init completes,
-/// and tracks the mouse-orbit / modifier state between events.
+/// and tracks the mouse-orbit / modifier state between events — and, on a touchscreen,
+/// the fingers (`app/touch.rs`), which winit delivers on their own event and never as a mouse.
 #[cfg(target_arch = "wasm32")]
 pub struct App {
     state: Option<State>,
@@ -149,6 +152,7 @@ pub struct App {
     panning: bool,
     last_cursor: (f64, f64),
     ctrl: bool,
+    touch: Touches,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -165,6 +169,7 @@ impl App {
             panning: false,
             last_cursor: (0.0, 0.0),
             ctrl: false,
+            touch: Touches::new(),
          };
         event_loop.spawn_app(app);
         Ok(())
@@ -463,19 +468,43 @@ impl ApplicationHandler<Msg> for App {
             WindowEvent::ModifiersChanged(mods)=>{
                 self.ctrl = mods.state().control_key();
             }
+            // A touchscreen. One finger orbits, two pan and pinch, a double tap fits - the same
+            // four moves the right button, the middle button, the wheel and F give a mouse
+            // (app/touch.rs). Rendering is continuous, so the redraw here is belt and braces.
+            WindowEvent::Touch(t) => {
+                let vp = (state.gpu.config.width as f64, state.gpu.config.height as f64);
+                let dpr = device_pixel_ratio();
+                match self.touch.event(&mut state.camera, &t, vp, dpr) {
+                    Act::None => {}
+                    Act::Moved => state.window.request_redraw(),
+                    Act::Fit => {
+                        state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, vp.0 / vp.1);
+                        state.window.request_redraw();
+                    }
+                }
+            }
             _ => {},
         }
     }
 
 }
 
-/// The canvas's pixel size (CSS size × device-pixel-ratio), or `None` if zero or unavailable.
+/// `?spin=1`: turn the camera a little every frame, a moving-camera benchmark needing no input.
 #[cfg(target_arch = "wasm32")]
 fn spin_mode() -> bool {
     static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *ON.get_or_init(|| web_sys::window().and_then(|w| w.location().search().ok()).is_some_and(|s| s.contains("spin=1")))
 }
 
+/// Physical pixels per CSS pixel — 1 on a desktop monitor, 2-4 on a phone, and it changes under
+/// the page when the browser is zoomed or the window is dragged to another screen, so it is read
+/// per event rather than cached. Touch positions arrive multiplied by it (`app/touch.rs`).
+#[cfg(target_arch = "wasm32")]
+fn device_pixel_ratio() -> f64 {
+    web_sys::window().map(|w| w.device_pixel_ratio()).filter(|d| *d > 0.0).unwrap_or(1.0)
+}
+
+/// The canvas's pixel size (CSS size × device-pixel-ratio), or `None` if zero or unavailable.
 #[cfg(target_arch = "wasm32")]
 fn desired_canvas_size() -> Option<(u32, u32)> {
     use wasm_bindgen::JsCast;
