@@ -34,6 +34,7 @@ struct LineUniform {
     eye_y: f32,
     eye_z: f32,
     anchor: vec3<f32>,
+    feather: f32,
 };
 
 const FLAG_SELECTED: u32 = 1u;
@@ -116,7 +117,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
         lift = clamp(lift, 0.0, 0.5);
     }
     let wn = clip.w * (1.0 - lift);
-    let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
+    let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
 
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy / clip.w * wn + off, clip.z + zlift * wn, wn);
@@ -133,8 +134,8 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 }
 
 fn coverage(in: VsOut) -> f32 {
-    let d = length(in.corner) * (in.px + 0.5);
-    return clamp(in.px + 0.5 - d, 0.0, 1.0) * in.fade;
+    let d = length(in.corner) * (in.px + 0.5 * line.feather);
+    return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0) * in.fade;
 }
 
 @fragment

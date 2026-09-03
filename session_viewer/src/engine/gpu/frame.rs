@@ -52,7 +52,7 @@ pub struct LineUniform {
     pub vp_w: f32,      // framebuffer width, px
     pub eye: [f32; 3],  // camera position, anchored world units
     pub anchor: [f32; 3],
-    pub _pad: f32,
+    pub feather: f32, // antialiasing ramp of the ink lanes, px
 }
 
 const _: () = assert!(std::mem::size_of::<LineUniform>() == 48);
@@ -95,7 +95,7 @@ impl FrameUniforms {
             vp_w: size.0 as f32,
             eye: [0.0; 3],
             anchor: [0.0; 3],
-            _pad: 0.0,
+            feather: 1.5,
         };
         let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
         let cloud = CloudUniform { size: 1.0, vp_w: size.0 as f32, vp_h: size.1 as f32, edl: 0.0 };
@@ -118,13 +118,13 @@ impl FrameUniforms {
 
         let line = LineUniform {
             thickness: cx.view.thickness_px,
+            feather: cx.view.feather_px,
             proj_y: 1.0 / (FOVY_DEG as f32 * 0.5).to_radians().tan() * 0.001,
             ortho_h: self.ortho_h,
             vp_h: cx.size.1 as f32,
             vp_w: cx.size.0 as f32,
             eye: self.eye,
             anchor: cx.anchor,
-            _pad: 0.0,
         };
         ctx.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
 

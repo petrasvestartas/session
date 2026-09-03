@@ -17,6 +17,13 @@ Browser (Chrome, WebGPU, `?perf=1`, the same laptop), heap after every file has 
 |---|---|---|---|
 | view_pointclouds | 1168 MB | 264 MB | four scans and the 14 M cloud stream through their octrees instead of decoding whole |
 | view_mixed | - | 284 MB | |
+| view_lines | - | 510 MB | five PDF sheets; the kernel `Session` of each (100 k polylines with guids) is kept for editing |
+| view_lines_rotated | - | 220 MB | |
+| view_meshes | - | 429 MB | the dragon's kernel `Mesh` (halfedge maps) is most of it; `display_only = true` in the manifest releases a file's session after the walk |
+
+The GPU side of a scene is small (rows are appended once and the CPU copies dropped); what
+remains is the kernel object per file, kept so a future edit can re-walk it. A scene that
+will only be looked at should mark its heavy items `display_only = true`.
 
 Load: view_pointclouds shows its first cloud in under 2 s and every file in about 6 s; the
 431 MB cloud is a 250 k-point prefix under the 6 M page budget (`?points=` raises it).
@@ -24,6 +31,10 @@ Load: view_pointclouds shows its first cloud in under 2 s and every file in abou
 Publish turnaround (`bash/view_live.sh`, one scene + one file, 2026-09-03): 2.46 s before,
 1.16 s after (curl SigV4 instead of the aws CLI, verifies overlapped); the open page sees
 the relay within its 100 ms tick.
+
+MSAA 4x forced on the sheet-only scene view_lines: 45.1 -> 81.3 ms still, 48.1 -> 81.3 ms
+moving; that is why sheets stay at 1x (their ribbons and dots antialias themselves with the
+`?aa=` feather, 1.5 px by default).
 
 A ribbon depth prepass (lines written to depth before the colour pass, so coincident lines
 resolve by depth) was measured and rejected: view_mixed still 10.9 -> 16.1 ms, moving 22.9 -> 27.4 ms.

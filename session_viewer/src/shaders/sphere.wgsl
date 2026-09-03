@@ -34,6 +34,7 @@ struct LineUniform {
     eye_y: f32,
     eye_z: f32,
     anchor: vec3<f32>,
+    feather: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -158,7 +159,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
         let lw = px * LIFT_RADII * 2.0 * line.ortho_h / line.vp_h;
         zlift = min(lw, select(1e30, LIFT_MAX_THICK * inst.thickness, inst.thickness > 0.0)) * ozn;
     }
-    let off = tmpl.xy * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
+    let off = tmpl.xy * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
 
     // Hidden vertices never reach the rasterizer, unless the eye is inside the object.
     let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - centre;
@@ -182,8 +183,8 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
 }
 
 fn coverage(in: VsOut) -> f32 {
-    let d = length(in.corner) * (in.px + 0.5);
-    return clamp(in.px + 0.5 - d, 0.0, 1.0);
+    let d = length(in.corner) * (in.px + 0.5 * line.feather);
+    return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0);
 }
 
 @fragment

@@ -151,7 +151,10 @@ depth + colour (`Splat::prelude`), skipped while the camera, the knobs and the t
 they were; the resolve (6) composites it with `frag_depth` under the scene's depth test.
 
 MSAA is 4x only when SOLID geometry (faces, pipes, spheres) is on the GPU and the canvas is at
-most 4.2 Mpx; `?msaa=` forces. Ribbons, dots and splats antialias themselves.
+most 4.2 Mpx; `?msaa=` forces. Ribbons, dots and markers antialias themselves with a feather
+of `?aa=` px (1.5) - 4x MSAA on a sheet-only scene was measured at 45 -> 81 ms on the Intel
+iGPU for fill edges alone, so sheets stay 1x unless forced. The Flat edge style is smoother
+than Tubes, which only MSAA antialiases.
 
 ## 4. Picking
 
@@ -226,6 +229,7 @@ most 4.2 Mpx; `?msaa=` forces. Ribbons, dots and splats antialias themselves.
 | where | env (native) | query (wasm) | meaning |
 |---|---|---|---|
 | view.rs | `VIEWER_THICKNESS` | `?thickness=` | pen weight, px |
+| view.rs | `VIEWER_AA` | `?aa=` | antialiasing ramp of every ink lane, px (1.5; 1 = exact box coverage, wider = softer) |
 | view.rs | `VIEWER_LINE_STYLE=tubes` | `?style=tubes` | solid-lane style at start (`L` flips) |
 | view.rs | `VIEWER_CLOUD_SCALE` | `?cloud=` | point size scale (`[` `]`) |
 | view.rs | `VIEWER_EDL` | `?edl=` | eye-dome lighting strength, 0 off |
