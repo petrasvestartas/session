@@ -27,7 +27,8 @@ use crate::{camera::View, app::scene::Scene};
 /// The scene comes from ONE of exactly two places, and nothing is compiled in:
 ///
 ///   * the LIVE source (`app/live.rs`) - the default. Manifest and `.pb` both read from the
-///     `session_viewer_data` branch; `assets/scenes/` is never opened.
+///     `session-viewer-data` bucket on R2 (every key there starts with `view_`);
+///     `assets/scenes/` is never opened.
 ///   * `?scene=<path under assets/>` - one pinned local manifest, which turns the live source off.
 ///
 /// This returns the second: `Some(path)` when the page asked for one, `None` otherwise. A page
@@ -64,6 +65,9 @@ pub enum Msg {
     /// Frame the camera on what is loaded now - sent after a live swap, whose files replace a
     /// scene the camera was fitted to.
     Fit,
+    /// The next chunk of a streamed cloud: its index in `Scene::streamed`, the points, their
+    /// colours, and the point the cloud is resident up to once this is appended.
+    CloudChunk(usize, Vec<f32>, Vec<u32>, u32),
 }
 
 thread_local! {
@@ -109,15 +113,16 @@ async fn load_manifest<F>(url: String, mut emit: F)
 where
     F: FnMut(String, session_rust::Session, session_rust::Xform, f32, bool),
 {
-    let manifest_bytes = persistence::fetch_bytes(&url).await.unwrap_or_default();
+    let manifest_bytes = persistence::fetch_bytes(&persistence::asset_url(&url)).await.unwrap_or_default();
     let Some(manifest) = Manifest::parse(&manifest_bytes) else {
         log::error!("cannot read the scene manifest at {url}");
         return;
     };
     let count = manifest.items.len();
     for (i, item) in manifest.items.iter().enumerate() {
-        let bytes = persistence::fetch_bytes(&item.file).await.unwrap_or_default();
-        let session = persistence::session_from_bytes_chunked(&item.file, &bytes).await;
+        let file = persistence::asset_url(&item.file);
+        let bytes = persistence::fetch_bytes(&file).await.unwrap_or_default();
+        let session = persistence::session_from_bytes_chunked(&file, &bytes).await;
         if session.lookup.is_empty() {
             continue;
         }
@@ -179,6 +184,109 @@ impl App {
     }
 }
 
+/// How many points a streamed cloud brings down before the file is on screen.
+///
+/// A prefix, not the whole cloud: the points are stored in octree order, so the first N are the
+/// coarse levels and the file opens at a correct low detail whatever its size. 2 M points is
+/// 48 MB of coordinates and about 16 MB of colours - bounded, where decoding a 431 MB scan whole
+/// peaks near a gigabyte and the tab dies.
+///
+/// The REST follows: `stream_rest` keeps fetching a chunk at a time until the cloud is whole.
+/// This number only decides how soon something is on screen, never how much ends up there.
+#[cfg(target_arch = "wasm32")]
+const STREAM_PREFIX_POINTS: u32 = 2_000_000;
+
+/// Points per follow-up chunk. Same size as the prefix: each chunk is two range requests and one
+/// GPU append, and the frames between them stay interactive.
+#[cfg(target_arch = "wasm32")]
+const STREAM_CHUNK_POINTS: u32 = 2_000_000;
+
+/// Hard ceiling on how many points a streamed cloud may make resident, `?points=` to change it.
+///
+/// The GPU lanes cost 20 bytes a point (12 position, 4 colour, 4 normal) and `append_rows` grows
+/// them by DOUBLING with a GPU-side copy, so the peak during a chunk is about three times the
+/// steady size. Streaming a 13.8 M cloud to completion measured ~280 MB steady and killed the
+/// GPU process on top of the render targets. 6 M points is ~120 MB steady, ~360 MB peak.
+///
+/// A cloud past the ceiling stays a coarse-level prefix, which is a correct cloud, not a
+/// truncated one - the octree stores points coarsest-first. Raising the ceiling raises the
+/// crash risk with it; the way to see a big cloud in full detail is `?lod=4`, which draws the
+/// nodes the camera can actually resolve instead of all of them.
+#[cfg(target_arch = "wasm32")]
+const STREAM_MAX_POINTS: u32 = 6_000_000;
+
+/// `?points=` - the resident ceiling for this page load.
+#[cfg(target_arch = "wasm32")]
+fn stream_max_points() -> u32 {
+    web_sys::window()
+        .and_then(|w| w.location().search().ok())
+        .and_then(|q| q.split(['?', '&']).find_map(|p| p.strip_prefix("points=").map(str::to_string)))
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(STREAM_MAX_POINTS)
+}
+
+/// Try to open a cloud by RANGE instead of decoding it whole. `None` means the file carries no
+/// octree, or is small enough not to bother, and the caller should take the normal path.
+///
+/// Three small reads locate everything (`persistence::cloud_lod`), then one read brings the
+/// prefix. Nothing here decodes a protobuf message: `coords` is a packed double array, so the
+/// bytes ARE the numbers.
+#[cfg(target_arch = "wasm32")]
+async fn stream_cloud(url: &str) -> Option<(Vec<f32>, Vec<u32>, persistence::CloudLod, u32, u32, u64)> {
+    let (fields, lod) = persistence::cloud_lod(url).await?;
+    let resident = STREAM_PREFIX_POINTS.min(fields.count);
+    if fields.count <= resident && fields.coords_len < 64 * 1024 * 1024 {
+        return None; // small enough that the whole-file path costs nothing
+    }
+    let raw = persistence::fetch_range(url, fields.coords_at, resident as u64 * 24).await.ok()?;
+    let positions = persistence::positions_from(&raw);
+    // Colours are packed VARINTS, so unlike coords they cannot be sliced - they decode from the
+    // start, which is exactly what a prefix needs. 0-255 each, so 2 bytes a channel is generous.
+    let want = ((resident as u64) * 4 * 2).min(fields.colors_len);
+    let (colors, col_at) = persistence::cloud_colors_from(url, fields.colors_at, want, resident)
+        .await
+        .unwrap_or((Vec::new(), fields.colors_at));
+    log::info!("streamed '{url}': {resident} of {} points on screen ({:.0} MB of {:.0} MB), {} nodes",
+        fields.count, raw.len() as f64 / 1.048576e6, fields.coords_len as f64 / 1.048576e6, lod.len());
+    Some((positions, colors, lod, resident, fields.count, col_at))
+}
+
+/// Fetch the rest of a streamed cloud, a chunk at a time, and post each one into the running
+/// event loop. Spawned after `Msg::Ready`, so the file is already on screen and every chunk
+/// only makes it denser.
+///
+/// One `await` per chunk hands the browser back its main thread between fetches, which is what
+/// keeps the viewer interactive while a 316 MB scan is still coming down.
+#[cfg(target_arch = "wasm32")]
+async fn stream_rest(url: String, idx: usize, from: u32, total: u32, mut col_at: u64) {
+    let Some((fields, _)) = persistence::cloud_lod(&url).await else { return };
+    let col_end = fields.colors_at + fields.colors_len;
+    let ceiling = stream_max_points().max(from);
+    if ceiling < total {
+        log::info!("streaming to {ceiling} of {total} points (?points= to change); \
+                    the rest of the octree stays on the server");
+    }
+    let mut at = from;
+    while at < total.min(ceiling) {
+        let to = (at + STREAM_CHUNK_POINTS).min(total.min(ceiling));
+        let n = (to - at) as u64;
+        let Ok(raw) = persistence::fetch_range(&url, fields.coords_at + at as u64 * 24, n * 24).await else { return };
+        let positions = persistence::positions_from(&raw);
+        // Colours resume at the boundary the previous chunk stopped on, so each chunk reads only
+        // its own bytes. 8 bytes a point is generous for four 0-255 varints.
+        let want = (n * 4 * 2).min(col_end.saturating_sub(col_at));
+        let (colors, next) = persistence::cloud_colors_from(&url, col_at, want, n as u32)
+            .await
+            .unwrap_or((Vec::new(), col_at));
+        col_at = next;
+        let sent = RELOAD_PROXY.with(|p| {
+            p.borrow().as_ref().map(|proxy| proxy.send_event(Msg::CloudChunk(idx, positions, colors, to)).is_ok())
+        });
+        if sent != Some(true) { return } // the loop is gone - stop pulling bytes into a dead tab
+        at = to;
+    }
+}
+
 /// Start-up path for the pinned local scene: the `?scene=` manifest under `assets/`. Reached only
 /// when the live source declined the page, which `?scene=` itself is one of the two ways to do.
 /// Builds `State` around the first file that loads and streams the rest as `Msg::File`. Returns
@@ -188,25 +296,46 @@ async fn local_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc
     // fetch_start is eager: the browser request for file n+1 is in flight while file n parses,
     // and progressive - ready after the first file, every later one streams in as a Msg::File
     let t0 = crate::engine::performance::now_ms();
-    let manifest_bytes = persistence::fetch_bytes(scene_url).await.unwrap_or_default();
+    // The manifest comes from the SAME place as the files it names. Fetching it page-relative
+    // while its entries resolve to the bucket is how `?scene=scenes/lidar14.toml` 404s against
+    // an origin that was never meant to hold data.
+    let manifest_bytes = persistence::fetch_bytes(&persistence::asset_url(scene_url)).await.unwrap_or_default();
     let manifest = match Manifest::parse_verbose(&manifest_bytes) {
         Ok(m) => m,
         Err(e) => { log::error!("cannot read the scene manifest at {scene_url}: {e}"); return false; }
     };
     log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
     let count = manifest.items.len();
-    let mut next = manifest.items.first().map(|it| persistence::fetch_start(&it.file));
     let mut sent_ready = false;
     for (i, item) in manifest.items.iter().enumerate() {
         let f0 = crate::engine::performance::now_ms();
-        let cur = next.take();
-        next = manifest.items.get(i + 1).map(|it| persistence::fetch_start(&it.file));
-        let bytes = match cur {
-            Some(Ok(f)) => persistence::fetch_finish(f).await.unwrap_or_default(),
-            _ => Vec::new(),
-        };
+        let file = persistence::asset_url(&item.file);
+        let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [0.0, 0.0]));
+
+        // PROBE BEFORE FETCHING. A cloud whose file carries an octree opens by RANGE, and the
+        // probe is three reads totalling under a megabyte - so a 431 MB scan is never pulled
+        // down to discover it did not need to be. Asking after the fetch would download the
+        // file to learn it was avoidable.
+        if let Some((pos, col, lod, resident, total, col_at)) = stream_cloud(&file).await {
+            let name = if item.name.is_empty() { item.file.clone() } else { item.name.clone() };
+            if sent_ready {
+                continue; // a later streamed cloud needs a Msg of its own - not yet wired
+            }
+            let mut scene = Scene::new();
+            let idx = scene.streamed.len();
+            scene.add_streamed_cloud(name, file.clone(), place, pos, col, &lod, resident, total, item.point_size as f32);
+            let state = State::new(window.clone(), scene).await.expect("State init failed");
+            let _ = proxy.send_event(Msg::Ready(Box::new(state)));
+            sent_ready = true;
+            // The rest follows in the background - the cloud on screen is a prefix until it does.
+            let (url, t) = (file.clone(), total);
+            wasm_bindgen_futures::spawn_local(async move { stream_rest(url, idx, resident, t, col_at).await });
+            continue;
+        }
+
+        let bytes = persistence::fetch_bytes(&file).await.unwrap_or_default();
         let f1 = crate::engine::performance::now_ms();
-        let session = persistence::session_from_bytes_chunked(&item.file, &bytes).await;
+        let session = persistence::session_from_bytes_chunked(&file, &bytes).await;
         let name = if item.name.is_empty() {
             session.name.clone()
         } else {
@@ -216,7 +345,6 @@ async fn local_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc
         if session.lookup.is_empty() {
             continue; // failed fetch - skipped file
         }
-        let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [0.0, 0.0]));
         if !sent_ready {
             sent_ready = true;
             let mut scene = Scene::new();
@@ -254,10 +382,10 @@ impl ApplicationHandler<Msg> for App {
             RELOAD_PROXY.with(|slot| *slot.borrow_mut() = Some(proxy.clone()));
             wasm_bindgen_futures::spawn_local(async move {
 
-                // LIVE DATA FIRST. The page reads a manifest from the session_viewer_data
-                // branch at its tip commit, straight from GitHub - no build, no deploy, no
-                // workflow between a push and this page. When it is readable and lists loadable
-                // files, that is the scene. When it is not (branch missing, nothing loads), the
+                // LIVE DATA FIRST. The page reads a manifest straight out of the R2 bucket -
+                // no build, no deploy, no workflow between an upload and this page. When it is
+                // readable and lists loadable files, that is the scene. When it is not (bucket
+                // unreachable, nothing loads), the
                 // built-in demo scene is shown and the poll loop below picks the live data up as
                 // soon as it appears.
                 let mut live = LiveSource::from_query();
@@ -352,6 +480,17 @@ impl ApplicationHandler<Msg> for App {
                 state.camera.grow_extent(state.gpu.scene_min, state.gpu.scene_max);
                 log::info!("appended: walk {:.0}ms · upload {:.0}ms | {} docs | heap {:.0} MB",
                     t1 - t0, crate::engine::performance::now_ms() - t1, state.scene.docs.len(),
+                    crate::engine::performance::heap_mb());
+                state.window.request_redraw();
+            }
+            Msg::CloudChunk(idx, positions, colors, to) => {
+                let Some(state) = &mut self.state else { return };
+                let n = positions.len() / 3;
+                state.scene.extend_streamed_cloud(idx, positions, colors, to);
+                state.scene.upload_to(&mut state.gpu);
+                state.camera.grow_extent(state.gpu.scene_min, state.gpu.scene_max);
+                let total = state.scene.streamed.get(idx).map_or(0, |s| s.total);
+                log::info!("cloud chunk: +{n} points, {to} of {total} resident | heap {:.0} MB",
                     crate::engine::performance::heap_mb());
                 state.window.request_redraw();
             }

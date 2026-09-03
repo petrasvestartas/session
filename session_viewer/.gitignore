@@ -1,0 +1,16 @@
+
+# Scene data lives in the R2 bucket, never in the repo - `DATA_BASE` in src/app/persistence.rs
+# names the host, and every manifest and .pb resolves against it. The files stay on disk as an
+# untracked cache because docs/_gate.sh renders them locally to compare pixels.
+assets/
+dist/
+
+# Scene data lives in the R2 bucket, never in the repo. `DATA_BASE` in src/app/persistence.rs
+# names the host and every manifest and .pb resolves against it, so nothing here has to ship.
+# The files stay on disk as an UNTRACKED cache: docs/_gate.sh renders them locally to compare
+# pixels, and a gate that cannot open a scene cannot catch a rendering regression.
+# assets/fonts/ is NOT here - those are build inputs the viewer links, not scene data.
+assets/pb/
+assets/scenes/
+assets/pdf/
+assets/lion_src/

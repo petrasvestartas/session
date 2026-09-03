@@ -136,6 +136,14 @@ pub struct CloudDraw {
     pub spacing: f32,    // measured point spacing, world units (0 = unknown)
     pub node_first: u32, // first LodNode of this cloud in the nodes table
     pub node_count: u32, // 0 = the file carried no octree; the record covers the whole cloud
+    /// Row that this cloud's POINT 0 landed on, which `LodNode::first` is an offset from.
+    ///
+    /// Equal to `first` for a cloud uploaded in one go. A STREAMED cloud arrives in chunks, each
+    /// its own draw, so a later chunk's `first` is where that chunk starts - while its nodes are
+    /// still numbered from the cloud's beginning. The points are contiguous across chunks
+    /// (the lanes append in order), so one base resolves every node of the cloud, including the
+    /// ones that straddle a chunk boundary.
+    pub node_base: u32,
 }
 
 /// One octree node, read straight off the `.pb` (`PointCloud::lod_*`). `first` is RELATIVE to
@@ -156,15 +164,30 @@ pub struct LodNode {
 pub const SPLAT_MAX_RECS: usize = 4096;
 
 /// `VIEWER_LOD` (native) / `?lod=` (web): pixels of projected node spacing to descend past.
+/// 0 turns the octree walk off and draws every cloud whole.
 ///
-/// DEFAULT 0 = OFF. The selection walk runs per frame and emits one record per selected node
-/// instead of one per cloud, so on a cloud the camera is already close to - where the walk
-/// descends to every leaf anyway - it is pure cost for no fewer points. It pays on scenes with
-/// distant geometry (13.8 M scan at the fit view: 1749x fewer points at `VIEWER_LOD=4`), so it
-/// is opt-in until the selection is cached across frames.
+/// DEFAULT 4, measured. The walk runs per frame and emits one record per selected node instead
+/// of one per cloud, which was worth avoiding while each record recomputed the cloud's `mvp x
+/// model` - that product is now hoisted, and what is left is a few thousand cube tests. On the
+/// 13.8 M scan, spinning, all points resident: 60 fps with the walk against 48 without it
+/// (16.7 ms vs 20.5), drawing 1601 points of 2 M at the fit view. A cloud the camera is close
+/// to descends to raw leaves and is pixel-identical, so the walk costs nothing it does not
+/// save. 4 px of projected spacing is where a node stops being distinguishable from its parent.
+const LOD_DEFAULT_PX: f32 = 4.0;
+
+/// Clouds smaller than this draw WHOLE, whatever `lod_px` says.
+///
+/// The walk exists to stop drawing more points than the screen can resolve, and below a couple
+/// of million points there is nothing to save - the lion (342 k) holds 60 fps drawn entire. What
+/// the walk does cost on a small cloud is fidelity: a node it does not descend past is drawn at
+/// its own spacing, which is coarser and therefore fatter, and the fit view of `bunny_cloud`
+/// measured 19% MORE ink than the same cloud drawn whole - fewer, blobbier points. So the
+/// octree is for the clouds that need it, and every cloud that fits on the GPU is exact.
+const LOD_MIN_POINTS: u32 = 2_000_000;
+
 #[cfg(not(target_arch = "wasm32"))]
 fn lod_pixels() -> f32 {
-    std::env::var("VIEWER_LOD").ok().and_then(|v| v.parse().ok()).unwrap_or(0.0)
+    std::env::var("VIEWER_LOD").ok().and_then(|v| v.parse().ok()).unwrap_or(LOD_DEFAULT_PX)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -173,7 +196,7 @@ fn lod_pixels() -> f32 {
         .and_then(|w| w.location().search().ok())
         .and_then(|q| q.split(['?', '&']).find_map(|p| p.strip_prefix("lod=").map(str::to_string)))
         .and_then(|v| v.parse().ok())
-        .unwrap_or(0.0)
+        .unwrap_or(LOD_DEFAULT_PX)
 }
 
 pub struct ArenaUpload{
@@ -369,7 +392,7 @@ pub struct Gpu {
     last_ortho_h: f32, // ortho half-height this frame (0=perspective), for the plat k
     last_eye: [f32; 3], // world eye this frame, in mm - the octree walk measures distance from it
     /// Descend a node while its spacing projects wider than this many pixels. Bigger = coarser
-    /// = fewer points; 0 = LOD off, draw every cloud whole. `VIEWER_LOD`.
+    /// = fewer points; 0 = LOD off, draw every cloud whole. `VIEWER_LOD` / `?lod=`.
     pub lod_px: f32,
     pub cloud_bind_group: wgpu::BindGroup,
     pub depth_view: wgpu::TextureView,
@@ -1723,8 +1746,14 @@ impl Gpu {
             // Reused across clouds AND frames: the record loop is the hot path on a moving
             // camera (the static skip below only helps when nothing moves), so it must not
             // allocate per cloud per frame.
-            let mut ranges: Vec<(u32, u32, f32)> = Vec::new();
-            let mut stack: Vec<usize> = Vec::new();
+            // (first row, count, spacing, tile). `tile` marks a range that came from an octree
+            // NODE, whose spacing is the real distance between its points - see the radius floor.
+            let mut ranges: Vec<(u32, u32, f32, bool)> = Vec::new();
+            // (node, slot of its parent in `sel`). The parent link is what lets the finest
+            // spacing found below a node travel back up to it.
+            let mut stack: Vec<(usize, usize)> = Vec::new();
+            // Every visited node: (first row, count, spacing, parent slot).
+            let mut sel: Vec<(u32, u32, f32, usize)> = Vec::new();
             for d in &self.cloud_draws {
                 let (first, count, inst, spacing) = (d.first, d.count, d.instance, d.spacing);
                 let Some(row) = self.instances.get(inst as usize) else { continue };
@@ -1737,12 +1766,13 @@ impl Gpu {
                 // the 13.8 M scan's is 311 - and a near one reaches raw leaves, pixel-exact.
                 // node_count == 0 means the file carried no octree: one record, whole cloud.
                 ranges.clear();
-                if d.node_count > 0 && self.lod_px > 0.0 {
+                if d.node_count > 0 && self.lod_px > 0.0 && count >= LOD_MIN_POINTS {
                     let base = d.node_first as usize;
                     let mscale = ((row.model[0] as f64).powi(2) + (row.model[1] as f64).powi(2) + (row.model[2] as f64).powi(2)).sqrt();
                     stack.clear();
-                    stack.push(0usize);
-                    while let Some(n) = stack.pop() {
+                    sel.clear();
+                    stack.push((0usize, usize::MAX));
+                    while let Some((n, parent)) = stack.pop() {
                         let Some(node) = self.cloud_nodes.get(base + n) else { continue };
                         // Screen error: how wide this node's grid spacing projects, in pixels.
                         let world = (node.spacing as f64) * mscale * 0.001;
@@ -1760,20 +1790,42 @@ impl Gpu {
                         // not copies. So a visited node is always drawn - descending ADDS
                         // detail, it never replaces the parent. Skipping the parent is how a
                         // deep view silently loses the coarse layer (measured: 18% of the ink).
-                        if node.count > 0 {
-                            ranges.push((first + node.first, node.count, node.spacing));
-                        }
+                        // Every node gets a slot, `count == 0` included: a childless-looking
+                        // node still has to pass its children's spacing up to ITS parent.
+                        let slot = sel.len();
+                        sel.push((d.node_base + node.first, node.count, node.spacing, parent));
                         if proj > self.lod_px as f64 {
-                            stack.extend(node.children.iter().filter(|&&c| c >= 0).map(|&c| c as usize));
+                            stack.extend(node.children.iter().filter(|&&c| c >= 0).map(|&c| (c as usize, slot)));
                         }
                     }
+                    // SIZE EVERY NODE BY THE FINEST SPACING SELECTED BENEATH IT.
+                    //
+                    // The splat radius comes from spacing, and a node's own spacing describes
+                    // the density of ITS subsample alone. Where the walk descended, that node's
+                    // points sit among its descendants' - four, sixteen, sixty-four times
+                    // denser - so drawing them at their own spacing paints large discs over
+                    // small ones and the same surface renders at several point sizes at once.
+                    // The density a point actually sits in is the finest one selected below it.
+                    //
+                    // A DFS stack pops a parent before its children, so a child always lands at
+                    // a HIGHER slot than its parent: one reverse sweep propagates the minimum
+                    // up through every level, grandchildren included.
+                    for i in (0..sel.len()).rev() {
+                        let (_, _, fine, parent) = sel[i];
+                        if parent != usize::MAX && fine < sel[parent].2 {
+                            sel[parent].2 = fine;
+                        }
+                    }
+                    ranges.extend(sel.iter().filter(|&&(_, c, _, _)| c > 0).map(|&(f, c, sp, _)| (f, c, sp, true)));
                 } else {
-                    ranges.push((first, count, spacing));
+                    ranges.push((first, count, spacing, false));
                 }
 
-                for &(first, count, spacing) in &ranges {
-                if px > 0.0 && (header[0] as usize) < SPLAT_MAX_RECS {
-                    // column-major 4x4: combined = mvp x model
+                // PER-INSTANCE, computed once for the whole cloud. Under LOD the node loop
+                // below runs hundreds of times for one `row`, and every one of these depends
+                // only on `row` - recomputing them per node is what made LOD cost more than it
+                // saved on a near cloud, and it is why the walk was opt-in.
+                let m = {
                     let (a, b) = (&self.mvp_f32, &row.model);
                     let mut m = [0.0f32; 16];
                     for col in 0..4 {
@@ -1781,12 +1833,21 @@ impl Gpu {
                             m[col * 4 + r] = (0..4).map(|k| a[k * 4 + r] * b[col * 4 + k]).sum();
                         }
                     }
-                    recs.extend_from_slice(bytemuck::cast_slice(&m));
+                    m
+                };
+                // tint.a smuggles the minimum radius (the manifest px, halved): without a
+                // floor attenuation turns distant clouds to dust - Potree avoids that with
+                // octree LOD (far nodes have bigger spacing)
+                let tint = [row.color[0], row.color[1], row.color[2], (px * 0.5).max(0.5)];
+                let rot = {
+                    let b = &row.model;
+                    [b[0], b[1], b[2], 0.0f32, b[4], b[5], b[6], 0.0, b[8], b[9], b[10], 0.0]
+                };
+                let mscale = ((row.model[0] as f64).powi(2) + (row.model[1] as f64).powi(2) + (row.model[2] as f64).powi(2)).sqrt();
 
-                    // tint.a smuggles the minimum radius (the manifest px, halved): without a
-                    // floor attenuation turns distant clouds to dust - Potree avoids that with
-                    // octree LOD (far nodes have bigger spacing)
-                    let tint = [row.color[0], row.color[1], row.color[2], (px * 0.5).max(0.5)];
+                for &(first, count, spacing, tile) in &ranges {
+                if px > 0.0 && (header[0] as usize) < SPLAT_MAX_RECS {
+                    recs.extend_from_slice(bytemuck::cast_slice(&m));
                     recs.extend_from_slice(bytemuck::cast_slice(&tint));
                     // world radois = spacing x (px/6): manifest 6 ~ a full spacing of radius,
                     // 3 ~ half. k folds the projection so the shader only divides by clip.w:
@@ -1794,8 +1855,21 @@ impl Gpu {
                     // ortho: r_px = world_r * vp_h / (2*ortho_h), anw w = 1
                     // spacing was measured in the clouds's local units; the model may slcae
                     // col0's length is that scale so the footprint reacher world units first.
-                    let mscale = ((row.model[0] as f64).powi(2) + (row.model[1] as f64).powi(2) + (row.model[2] as f64).powi(2)).sqrt();
-                    let world_r = (spacing as f64).max(1.0e-9) * mscale * 0.001 * (px as f64) / 6.0; // metres
+                    let mut world_r = (spacing as f64).max(1.0e-9) * mscale * 0.001 * (px as f64) / 6.0; // metres
+                    // COVERAGE FLOOR for an octree node.
+                    //
+                    // `px/6` draws a point a third as wide as `spacing`, which reads as solid
+                    // only because a whole cloud has far more points than its mean spacing
+                    // suggests. A node's spacing is the REAL distance between the points it
+                    // holds - they were grid-accepted exactly that far apart - so a third-width
+                    // point cannot tile and the surface comes out full of holes. Measured: the
+                    // 14 M scan at the fit view rendered 1823 ink against 3797 drawn whole,
+                    // half the coverage. Discs on a pitch of `spacing` meet at radius
+                    // `spacing/2`, so that is the floor; a manifest asking for bigger points
+                    // still gets them.
+                    if tile {
+                        world_r = world_r.max((spacing as f64) * mscale * 0.001 * 0.5);
+                    }
                     let k = if ortho_h > 0.0 {
                         world_r / (2.0 * ortho_h)
                     } else {
@@ -1805,12 +1879,7 @@ impl Gpu {
 
                     // the model rotation columns (translation-free), so a cloud with normals
                     // can rotate them into world space for the lambrt term
-                    let b = &row.model;
-                    recs.extend_from_slice(bytemuck::cast_slice(&[
-                        b[0], b[1], b[2], 0.0f32,
-                        b[4], b[5], b[6], 0.0,
-                        b[8], b[9], b[10], 0.0,
-                    ]));
+                    recs.extend_from_slice(bytemuck::cast_slice(&rot));
 
                     header[0] += 1;
                     cum += count;

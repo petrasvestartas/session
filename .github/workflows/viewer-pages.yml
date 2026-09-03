@@ -43,9 +43,9 @@ jobs:
         run: curl -sL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf- -C "$HOME/.cargo/bin"
       - name: Build
         run: cd session_viewer && trunk build --release
-      # Scene data is NOT deployed with the site. The page reads the session_viewer_data branch
-      # at its tip commit straight from GitHub (session_viewer/src/app/live.rs), so publishing
-      # geometry is a push to that branch and nothing here has to run.
+      # Scene data is NOT deployed with the site. The page reads it from the session-viewer-data
+      # bucket on Cloudflare R2 (session_viewer/src/app/live.rs), so publishing geometry is an
+      # upload to that bucket and nothing here has to run.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: session_viewer/dist

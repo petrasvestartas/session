@@ -150,6 +150,22 @@ pub struct Scene {
     order: Vec<String>, // renderable guids, global row order across docs
     pub guid_to_row: HashMap<String, u32>,
     pub hidden: HashSet<String>,
+    /// Clouds still arriving off the wire, in the order they were added.
+    pub streamed: Vec<StreamedCloud>,
+}
+
+/// A cloud being fetched a chunk at a time, and everything `extend_streamed_cloud` needs to
+/// hang the next chunk off the object row the first one created.
+pub struct StreamedCloud {
+    /// Object row every chunk of this cloud draws against - one object, many draws.
+    pub instance: u32,
+    /// GPU row of the cloud's point 0. See `CloudDraw::node_base`.
+    pub node_base: u32,
+    pub lod: crate::app::persistence::CloudLod,
+    /// Points already resident. The next chunk starts here; `done_to == total` means whole.
+    pub done_to: u32,
+    pub total: u32,
+    pub point_px: f32,
 }
 
 impl Scene{
@@ -162,6 +178,7 @@ impl Scene{
         order: Vec::new(),
         guid_to_row: HashMap::new(),
         hidden: HashSet::new(),
+        streamed: Vec::new(),
         }
     }
 
@@ -274,6 +291,181 @@ impl Scene{
         // `objects`, `object_bounds` and `object_spacing` STAY: they are per-object rows the
         // instance table is rebased from every time the camera re-anchors, and the walk indexes
         // them by global row - they are the one table the GPU is not the only holder of.
+    }
+
+    /// Add a cloud that was STREAMED: its points came off the wire as raw rows and never became
+    /// a kernel `Session`. That is the whole point - a 431 MB scan decoded whole peaks near a
+    /// gigabyte of wasm heap and kills the tab, while this path holds one slice at a time.
+    ///
+    /// `positions`/`colors` are a PREFIX of the file, and `lod` is the node table read from its
+    /// header. Because `build_lod` stores the points in octree order, a prefix is a valid coarse
+    /// cloud on its own: every node it fully covers is complete, and the rest of the tree simply
+    /// is not resident yet. So the file opens immediately at a correct low detail, whatever its
+    /// size, and deeper nodes are ranges that can be fetched later.
+    ///
+    /// The cloud has NO CPU points, so `point_at` will not resolve a pick here - the id buffer
+    /// still identifies one, and its position has to come from the GPU.
+    #[allow(clippy::too_many_arguments)]
+    pub fn add_streamed_cloud(
+        &mut self,
+        name: String,
+        guid: String,
+        place: Xform,
+        positions: Vec<f32>,
+        colors: Vec<u32>,
+        lod: &crate::app::persistence::CloudLod,
+        resident: u32,
+        total: u32,
+        point_px: f32,
+    ) {
+        let cb = self.cloud_base;
+        let t = &mut self.tables;
+        let ri = t.objects.len() as u32;
+        t.objects.push((place.m, [1.0; 4], 0));
+        // Bounds off the RESIDENT points, not the root node's cube. The cube is padded out to a
+        // cube - up to the longest bbox edge of slack in the two short axes - and `fit` would
+        // frame that slack. The prefix is the octree's coarse levels, which are spread over the
+        // whole cloud, so its extent is the cloud's extent to within one root spacing.
+        let mut lo = [f32::INFINITY; 3];
+        let mut hi = [f32::NEG_INFINITY; 3];
+        for p in positions.chunks_exact(3) {
+            for a in 0..3 {
+                lo[a] = lo[a].min(p[a]);
+                hi[a] = hi[a].max(p[a]);
+            }
+        }
+        t.object_bounds.push(lo[0].is_finite().then_some((lo, hi)));
+        t.object_spacing.push(point_px);
+        // And the SCENE box, which is what `fit` frames. The session walk grows it for every
+        // other lane, and this cloud never enters that walk - so without this, a streamed cloud
+        // draws but F does nothing. Eight corners through the placement, not 2M points again:
+        // the world box of a transformed box is the box of its transformed corners.
+        for c in 0..8 {
+            let corner = [
+                if c & 1 == 0 { lo[0] } else { hi[0] },
+                if c & 2 == 0 { lo[1] } else { hi[1] },
+                if c & 4 == 0 { lo[2] } else { hi[2] },
+            ];
+            if lo[0].is_finite() {
+                grow_bounds(&mut t.min, &mut t.max, xform_point(&place.m, corner));
+            }
+        }
+
+        let first = cb + (t.cloud_pos.len() / 3) as u32;
+        let node_first = t.cloud_nodes.len() as u32;
+        // Only the nodes the prefix fully covers: a half-resident node would draw rows that are
+        // not there. `count` stays whatever the file said, so a later fetch completes it in place.
+        let mut kept = 0u32;
+        for k in 0..lod.len() {
+            let (f, c) = (lod.first[k], lod.count[k]);
+            if f < 0 || c < 0 || (f + c) as u32 > resident { continue }
+            t.cloud_nodes.push(crate::engine::gpu::LodNode {
+                center: [lod.min[k * 3] as f32 + lod.size[k] as f32 * 0.5,
+                         lod.min[k * 3 + 1] as f32 + lod.size[k] as f32 * 0.5,
+                         lod.min[k * 3 + 2] as f32 + lod.size[k] as f32 * 0.5],
+                size: lod.size[k] as f32,
+                spacing: lod.spacing[k] as f32,
+                first: f as u32,
+                count: c as u32,
+                children: {
+                    let mut kids = [-1i32; 8];
+                    for (slot, v) in lod.children[k * 8..k * 8 + 8].iter().enumerate() { kids[slot] = *v }
+                    kids
+                },
+            });
+            kept += 1;
+        }
+        // The splat radius wants the finest spacing that is actually resident.
+        let spacing = (0..lod.len())
+            .filter(|&k| lod.first[k] >= 0 && (lod.first[k] + lod.count[k]) as u32 <= resident)
+            .map(|k| lod.spacing[k])
+            .fold(f64::INFINITY, f64::min);
+        let count = (positions.len() / 3) as u32;
+        t.cloud_pos.extend_from_slice(&positions);
+        t.cloud_col.extend_from_slice(&colors);
+        t.cloud_nrm.resize(t.cloud_col.len(), 0);
+        t.cloud_draws.push(crate::engine::gpu::CloudDraw {
+            first,
+            count,
+            instance: ri,
+            spacing: if spacing.is_finite() { spacing as f32 } else { 20.0 },
+            node_first,
+            node_count: kept,
+            node_base: first,
+        });
+        self.streamed.push(StreamedCloud {
+            instance: ri,
+            node_base: first,
+            lod: lod.clone(),
+            done_to: resident,
+            total,
+            point_px,
+        });
+        self.order.push(guid);
+        self.docs.push(Doc {
+            name,
+            place,
+            session: Session::new("streamed"),
+            cloud_px: point_px,
+            display_only: true, // no kernel geometry behind it - `rebuild` cannot bring it back
+        });
+    }
+
+    /// Append the next chunk of a streamed cloud: `[from, to)` of its points, plus every node
+    /// the chunk completes.
+    ///
+    /// A chunk is its own draw against the SAME object row, so nothing already on the GPU is
+    /// re-uploaded and the tree keeps one entry. Nodes are emitted once, when their last point
+    /// arrives (`f + c` inside `to`, and past the previous `to`) - a node straddling a chunk
+    /// boundary is not lost, because the points behind it are contiguous whatever chunk they
+    /// came in.
+    pub fn extend_streamed_cloud(&mut self, idx: usize, positions: Vec<f32>, colors: Vec<u32>, to: u32) {
+        let Some(sc) = self.streamed.get(idx) else { return };
+        let (instance, node_base, point_px, from) = (sc.instance, sc.node_base, sc.point_px, sc.done_to);
+        if to <= from { return }
+        let lod = sc.lod.clone();
+        let cb = self.cloud_base;
+        let t = &mut self.tables;
+        let first = cb + (t.cloud_pos.len() / 3) as u32;
+        let node_first = t.cloud_nodes.len() as u32;
+        let mut kept = 0u32;
+        let mut spacing = f64::INFINITY;
+        for k in 0..lod.len() {
+            let (f, c) = (lod.first[k], lod.count[k]);
+            if f < 0 || c < 0 { continue }
+            let end = (f + c) as u32;
+            if end > to || end <= from { continue }
+            spacing = spacing.min(lod.spacing[k]);
+            t.cloud_nodes.push(crate::engine::gpu::LodNode {
+                center: [lod.min[k * 3] as f32 + lod.size[k] as f32 * 0.5,
+                         lod.min[k * 3 + 1] as f32 + lod.size[k] as f32 * 0.5,
+                         lod.min[k * 3 + 2] as f32 + lod.size[k] as f32 * 0.5],
+                size: lod.size[k] as f32,
+                spacing: lod.spacing[k] as f32,
+                first: f as u32,
+                count: c as u32,
+                children: {
+                    let mut kids = [-1i32; 8];
+                    for (slot, v) in lod.children[k * 8..k * 8 + 8].iter().enumerate() { kids[slot] = *v }
+                    kids
+                },
+            });
+            kept += 1;
+        }
+        let count = (positions.len() / 3) as u32;
+        t.cloud_pos.extend_from_slice(&positions);
+        t.cloud_col.extend_from_slice(&colors);
+        t.cloud_nrm.resize(t.cloud_col.len(), 0);
+        t.cloud_draws.push(crate::engine::gpu::CloudDraw {
+            first,
+            count,
+            instance,
+            spacing: if spacing.is_finite() { spacing as f32 } else { point_px },
+            node_first,
+            node_count: kept,
+            node_base,
+        });
+        self.streamed[idx].done_to = to;
     }
 
     /// Walk one session into the shared tables.
@@ -416,6 +608,7 @@ impl Scene{
                         spacing: cloud_spacing(pc),
                         node_first,
                         node_count: pc.lod_node_count() as u32,
+                        node_base: first,
                     });
                     let px = if cloud_px > 0.0 { cloud_px } else { pc.point_size as f32 };
                     t.object_bounds.push(None);

@@ -12,7 +12,7 @@ use session_rust::Session;
 pub struct Fetch { fut: JsFuture }
 
 pub fn fetch_start(url: &str) -> Result<Fetch, JsValue>{
-    fetch_start_mode(url, RequestMode::SameOrigin)
+    fetch_start_mode(url, RequestMode::Cors)
 }
 
 fn fetch_start_mode(url: &str, mode: RequestMode) -> Result<Fetch, JsValue>{
@@ -74,6 +74,12 @@ pub async fn sleep_ms(ms: i32) {
 
 pub async fn fetch_finish(f: Fetch) -> Result<Vec<u8>, JsValue>{
     let resp: Response = f.fut.await?.dyn_into()?;
+    // A 404 has a BODY - S3 answers one in XML, a web server in HTML - and handing those bytes
+    // back as if they were the file makes the parser report the failure instead of the fetch:
+    // a missing manifest came back as `TOML: invalid key (byte offset 0-1)`.
+    if !(200..300).contains(&resp.status()) {
+        return Err(JsValue::from_str(&format!("HTTP {} for {}", resp.status(), resp.url())));
+    }
     let buf = JsFuture::from(resp.array_buffer()?).await?;
     Ok(js_sys::Uint8Array::new(&buf).to_vec())
 }
@@ -81,6 +87,43 @@ pub async fn fetch_finish(f: Fetch) -> Result<Vec<u8>, JsValue>{
 /// GET 'url' - trunk-served, same origin as the page and return raw bytes.
 pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, JsValue>{
     fetch_finish(fetch_start(url)?).await
+}
+
+/// Where the scene files live, as a prefix with a trailing slash. Empty means the page's own
+/// origin - what `trunk serve` wants from a `dist/` it just built. A bucket base points every
+/// manifest at that bucket instead, so a scene file goes on saying `pb/lion.pb` and never has to
+/// learn a hostname: ONE place names the host, and moving the data is a one-line change.
+pub const DATA_BASE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/";
+
+/// `?data=` for this page load: another base, or `off` for the page's own origin. Anything else
+/// is ignored with a warning and `DATA_BASE` is used - a query string is untrusted input, and
+/// only https (or a localhost dev server) may name where geometry comes from.
+pub fn data_base() -> String {
+    let asked = web_sys::window()
+        .and_then(|w| w.location().search().ok())
+        .and_then(|q| q.split(['?', '&']).find_map(|p| p.strip_prefix("data=").map(str::to_string)))
+        .and_then(|v| js_sys::decode_uri_component(&v).ok())
+        .and_then(|v| v.as_string());
+    let base = match asked {
+        None => DATA_BASE.to_string(),
+        Some(v) if v == "off" || v.is_empty() => return String::new(),
+        Some(v) if v.starts_with("https://") || v.starts_with("http://localhost") => v,
+        Some(other) => {
+            log::warn!("data: ignoring `?data={other}` - expected an https:// base, one on http://localhost, or `off`; using {DATA_BASE}");
+            DATA_BASE.to_string()
+        }
+    };
+    if base.ends_with('/') { base } else { base + "/" }
+}
+
+/// The URL a manifest entry actually resolves to. An entry that already names a host is used as
+/// it stands; every other one hangs off `data_base()`, which with an empty base is byte for byte
+/// the page-relative path the viewer has always fetched.
+pub fn asset_url(file: &str) -> String {
+    if file.starts_with("https://") || file.starts_with("http://") {
+        return file.to_string();
+    }
+    format!("{}{}", data_base(), file.trim_start_matches("./"))
 }
 
 // ── chunked parsing: convert the decoded proto in slices, yielding between them ──
@@ -312,6 +355,7 @@ pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
 /// One cloud's LOD node table, read from the file's header region without touching a point.
 /// `first`/`count` index the cloud's own point rows, which are stored in octree order - so a
 /// node is one contiguous byte range in `coords` and can be fetched with a single `Range`.
+#[derive(Clone)]
 pub struct CloudLod {
     pub min: Vec<f64>,      // 3 per node
     pub size: Vec<f64>,     // 1 per node
@@ -334,7 +378,7 @@ pub fn fetch_range_start(url: &str, start: u64, len: u64) -> Result<Fetch, JsVal
     headers.set("Range", &format!("bytes={}-{}", start, start + len - 1))?;
     let opts = RequestInit::new();
     opts.set_method("GET");
-    opts.set_mode(RequestMode::SameOrigin);
+    opts.set_mode(RequestMode::Cors);
     opts.set_headers(&headers);
     let request = Request::new_with_str_and_init(url, &opts)?;
     let window = web_sys::window().ok_or_else(|| JsValue::from_str("no window"))?;
@@ -440,6 +484,16 @@ pub async fn cloud_fields(url: &str) -> Option<CloudFields> {
 /// memcpy-able the way `coords` is - so this decodes sequentially. It is 27 MB against the
 /// coords' 87 MB, and taking it in one piece buys complete freedom from split-varint handling.
 pub async fn cloud_colors(url: &str, at: u64, len: u64, count: u32) -> Option<Vec<u32>> {
+    Some(cloud_colors_from(url, at, len, count).await?.0)
+}
+
+/// The same read, also reporting the ABSOLUTE byte offset just past the last colour decoded.
+///
+/// A packed varint field can only be decoded from a boundary, so a chunked reader that started
+/// over each time would re-fetch the whole field per chunk - quadratic traffic, 448 MB of
+/// colours on a 14 M cloud fetched in sevenths. Feeding this offset back as the next `at` makes
+/// each chunk read only its own bytes, because the end of one chunk IS a boundary.
+pub async fn cloud_colors_from(url: &str, at: u64, len: u64, count: u32) -> Option<(Vec<u32>, u64)> {
     let raw = fetch_range(url, at, len).await.ok()?;
     let mut out = Vec::with_capacity(count as usize);
     let mut i = 0usize;
@@ -452,5 +506,5 @@ pub async fn cloud_colors(url: &str, at: u64, len: u64, count: u32) -> Option<Ve
         }
         out.push(u32::from_le_bytes(rgba));
     }
-    Some(out)
+    Some((out, at + i as u64))
 }
