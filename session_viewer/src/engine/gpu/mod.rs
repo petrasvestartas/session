@@ -8,6 +8,7 @@
 //! job is "hand me a cleared frame". Higher layers sit on top and only talk to this.
 
 use crate::engine::pipelines::Pipelines;
+use crate::math::{mat_to_f32, Mat4};
 
 use crate::engine::performance::Performance;
 
@@ -27,6 +28,11 @@ const REANCHOR_MAX: f64 = 1.0e5;
 const CYL_SIDES: u32 = 6;
 /// Linear RGBA8: the point colours are packed 8-bit values, the resolve reads them back as-is.
 const SPLAT_COLOR_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
+/// The pick target: the global row of the point that won the depth test, +1 (0 = background).
+/// Written by the SAME pass and the SAME depth test as the colour, so the id under a pixel is
+/// always the point actually drawn there - and it needs no CPU copy of the points, which is
+/// what makes it the right basis for picking once clouds stream.
+const SPLAT_ID_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::R32Uint;
 
 /// Linework lane is per GEOMETRY TYPE, not global (both stay screen-constant px):
 /// SOLID (cylinder + sphere) for mesh/BRep, whose ink lies ON a surface - the tube radius lifts
@@ -48,40 +54,6 @@ const INK_DEPTH_PREPASS: bool = false;
 /// `objects` holds the TRUE per-object transfrom + tint + flags.
 /// `Gpu` builds instance rows from it and rebases them as the camera moves.
 /// No Mesh, no Session, no wgpu type on the app side of this line.
-/// One object's world placement as the 16 raw column-major doubles the GPU row needs.
-///
-/// NOT a kernel `Xform`: that struct carries `typ`/`name` Strings and a guid `OnceLock`, so
-/// `Xform::identity()` heap-allocates TWICE per call and every arena row cost two more on the
-/// clone into `objects_base`. On a 90k-line sheet that was ~400k allocations - 300 ms of the
-/// walk - to carry 128 bytes of numbers nothing downstream ever reads a name off.
-pub type Mat4 = [f64; 16];
-
-/// `a * b` in the kernel's convention: column-major, index = col * 4 + row.
-/// Matches `impl Mul for &Xform` element for element - and allocates nothing.
-pub fn mat_mul(a: &Mat4, b: &Mat4) -> Mat4 {
-    let mut out = [0.0f64; 16];
-    for i in 0..4 {
-        for j in 0..4 {
-            let mut sum = 0.0;
-            for k in 0..4 {
-                sum += a[k * 4 + i] * b[j * 4 + k];
-            }
-            out[j * 4 + i] = sum;
-        }
-    }
-    out
-}
-
-/// The GPU edge: f64 world math stays CPU-side, the instance row is f32.
-pub fn mat_to_f32(m: &Mat4) -> [f32; 16] {
-    std::array::from_fn(|i| m[i] as f32)
-}
-
-/// Grow-and-append one index run. Same shape as the solid arena's own append: the existing
-/// prefix is copied GPU-side, never back through wasm memory.
-/// Append rows to a growable STORAGE buffer: double the capacity when it runs out, move the
-/// prefix GPU-side, and write only the new rows. Returns `true` when the buffer was replaced, so
-/// the caller knows to rebuild the bind group pointing at it.
 ///
 /// This is the same deal the mesh arena already struck, extended to the lanes that had not taken
 /// it: a lane that rebuilds its whole buffer per file re-sends every earlier file's rows (five
@@ -152,6 +124,58 @@ fn append_index_run(
     *count += data.len() as u32;
 }
 
+/// One cloud's contiguous point range as the record builder sees it. It was a
+/// `(first, count, instance, spacing)` tuple until the octree gave every cloud a SECOND range -
+/// its slice of the LOD node table - and six positional fields is where a tuple stops being
+/// readable.
+#[derive(Clone, Copy)]
+pub struct CloudDraw {
+    pub first: u32,      // absolute first row in the cloud tables
+    pub count: u32,
+    pub instance: u32,   // the instance row this cloud draws against
+    pub spacing: f32,    // measured point spacing, world units (0 = unknown)
+    pub node_first: u32, // first LodNode of this cloud in the nodes table
+    pub node_count: u32, // 0 = the file carried no octree; the record covers the whole cloud
+}
+
+/// One octree node, read straight off the `.pb` (`PointCloud::lod_*`). `first` is RELATIVE to
+/// the cloud's own first row and `children` are indices RELATIVE to the cloud's node slice.
+/// Nothing here is computed in the browser: the exporter built it once (`examples/add_lod.rs`).
+#[derive(Clone, Copy)]
+pub struct LodNode {
+    pub center: [f32; 3], // cube centre, cloud-LOCAL units
+    pub size: f32,        // cube edge
+    pub spacing: f32,     // grid-accept spacing, drives the splat radius
+    pub first: u32,       // row offset from the draw's own `first`
+    pub count: u32,
+    pub children: [i32; 8], // -1 = unused
+}
+
+/// Records the splat lane can hold in one frame. One per cloud before the octree; one per
+/// SELECTED NODE after it, and a close-up descends to a few hundred.
+pub const SPLAT_MAX_RECS: usize = 4096;
+
+/// `VIEWER_LOD` (native) / `?lod=` (web): pixels of projected node spacing to descend past.
+///
+/// DEFAULT 0 = OFF. The selection walk runs per frame and emits one record per selected node
+/// instead of one per cloud, so on a cloud the camera is already close to - where the walk
+/// descends to every leaf anyway - it is pure cost for no fewer points. It pays on scenes with
+/// distant geometry (13.8 M scan at the fit view: 1749x fewer points at `VIEWER_LOD=4`), so it
+/// is opt-in until the selection is cached across frames.
+#[cfg(not(target_arch = "wasm32"))]
+fn lod_pixels() -> f32 {
+    std::env::var("VIEWER_LOD").ok().and_then(|v| v.parse().ok()).unwrap_or(0.0)
+}
+
+#[cfg(target_arch = "wasm32")]
+fn lod_pixels() -> f32 {
+    web_sys::window()
+        .and_then(|w| w.location().search().ok())
+        .and_then(|q| q.split(['?', '&']).find_map(|p| p.strip_prefix("lod=").map(str::to_string)))
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0.0)
+}
+
 pub struct ArenaUpload{
     pub verts: Vec<RenderVertex>,
     pub vids: Vec<u32>,
@@ -163,7 +187,8 @@ pub struct ArenaUpload{
     pub cloud_pos: Vec<f32>, // Raw lane: 3 floats per point, 12 B
     pub cloud_col: Vec<u32>, // Raw lane: RBGA8 per point, 4 B
     pub cloud_nrm: Vec<u32>, // Raw lane: oct16 normal per point (u32::MAX = none), 4 B -> 20 B/pt
-    pub cloud_draws: Vec<(u32, u32, u32, f32)>, // first, count, instance, point spacing world units
+    pub cloud_draws: Vec<CloudDraw>,
+    pub cloud_nodes: Vec<LodNode>, // every cloud's octree nodes; a draw owns one slice
     /// Sheet lanes. A PDF's fills are exactly coplanar, so they must NOT arbitrate by depth -
     /// they are split off the solid index run and drawn in document order with depth write off.
     /// `idx_text` is the lettering, drawn LAST of all, after the ink lanes, because a page puts
@@ -195,6 +220,7 @@ impl ArenaUpload {
             cloud_col: Vec::new(),
             cloud_nrm: Vec::new(),
             cloud_draws: Vec::new(),
+            cloud_nodes: Vec::new(),
             idx_print: Vec::new(),
             idx_text: Vec::new(),
             objects: Vec::new(),
@@ -304,6 +330,11 @@ pub struct Gpu {
     pub point_nrm_cap: u64,
     splat_depth_view: wgpu::TextureView, // the cloud's own depth target: nearest point per pixel (0 = empty)
     splat_color_view: wgpu::TextureView, // that point's lit RGBA8
+    splat_id_tex: wgpu::Texture,         // that point's global row + 1, for picking
+    pick_buf: Option<wgpu::Buffer>,      // 256 B readback, reused across picks
+    pick_ready: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    pick_inflight: bool,
+    splat_id_view: wgpu::TextureView,
     splat_recs: wgpu::Buffer,
     splat_group0_layout: wgpu::BindGroupLayout,
     splat_group1_layout: wgpu::BindGroupLayout,
@@ -315,7 +346,8 @@ pub struct Gpu {
     splat_total: u32,
     splat_state: Option<([f32; 16], f32)>, // (mvp, cloud_size) the buffers were build for; None = stale
     mvp_f32: [f32; 16],
-    cloud_draws: Vec<(u32, u32, u32, f32)>, // (first, count, instance, spacing)
+    cloud_draws: Vec<CloudDraw>,
+    cloud_nodes: Vec<LodNode>,
     pub point_count: u32,
     /// Solid-lane style; `VIEWER_LINE_STYLE=flat` picks Flat at startup.
     pub line_style: LineStyle,
@@ -335,6 +367,10 @@ pub struct Gpu {
     last_rebase_ms: f64, // throttle - a 210k-row rebase costs ~25 ms, one per frame is jank
     pub edl_strength: f32, // Eye-Dome Lighting strength; 0 = off (VIEWER_EDL)
     last_ortho_h: f32, // ortho half-height this frame (0=perspective), for the plat k
+    last_eye: [f32; 3], // world eye this frame, in mm - the octree walk measures distance from it
+    /// Descend a node while its spacing projects wider than this many pixels. Bigger = coarser
+    /// = fewer points; 0 = LOD off, draw every cloud whole. `VIEWER_LOD`.
+    pub lod_px: f32,
     pub cloud_bind_group: wgpu::BindGroup,
     pub depth_view: wgpu::TextureView,
     pub msaa_view: wgpu::TextureView,
@@ -724,8 +760,8 @@ impl Gpu {
         // compute splatting - buffers, layouts, groups, pipelines.
         // the per-pixel buffers are framebuffer-sized u32s;
         // clear_buffer COPY_DST
-        let (splat_depth_view, splat_color_view) = Self::create_splat_targets(&device, &config);
-        let splat_recs = zeroed_buffer(&device, "splat.rescales", 16 + 256 * 144, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let (splat_depth_view, splat_color_view, splat_id_tex, splat_id_view) = Self::create_splat_targets(&device, &config);
+        let splat_recs = zeroed_buffer(&device, "splat.rescales", 16 + SPLAT_MAX_RECS as u64 * 144, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
         let splat_group0_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
             label: Some("splat.group0.layout"),
             entries: &[
@@ -817,11 +853,18 @@ impl Gpu {
             fragment: Some(wgpu::FragmentState {
                 module: &splat_shader,
                 entry_point: Some("fs_point"),
-                targets: &[Some(wgpu::ColorTargetState {
-                    format: SPLAT_COLOR_FORMAT,
-                    blend: None,
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
+                targets: &[
+                    Some(wgpu::ColorTargetState {
+                        format: SPLAT_COLOR_FORMAT,
+                        blend: None,
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
+                    Some(wgpu::ColorTargetState {
+                        format: SPLAT_ID_FORMAT,
+                        blend: None,
+                        write_mask: wgpu::ColorWrites::ALL,
+                    }),
+                ],
                 compilation_options: Default::default(),
             }),
             primitive: wgpu::PrimitiveState {
@@ -934,6 +977,11 @@ impl Gpu {
             point_nrm_cap,
             splat_depth_view,
             splat_color_view,
+            splat_id_tex,
+            pick_buf: None,
+            pick_ready: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            pick_inflight: false,
+            splat_id_view,
             splat_recs,
             splat_group0_layout,
             splat_group1_layout,
@@ -946,6 +994,7 @@ impl Gpu {
             splat_state: None,
             mvp_f32: [0.0; 16],
             cloud_draws: Vec::new(),
+            cloud_nodes: Vec::new(),
             point_count,
             show_points: true,
             show_lines: true,
@@ -960,6 +1009,8 @@ impl Gpu {
             last_rebase_ms: 0.0,
             edl_strength: std::env::var("VIEWER_EDL").ok().and_then(|v| v.parse().ok()).unwrap_or(0.25),
             last_ortho_h: 0.0,
+            last_eye: [0.0; 3],
+            lod_px: lod_pixels(),
             cloud_bind_group,
             depth_view,
             msaa_view,
@@ -1131,7 +1182,11 @@ impl Gpu {
         append_rows(&self.device, &self.queue, "points.nrm.buffer",
             &mut self.point_nrm_buffer, &mut nrm_rows, &mut self.point_nrm_cap, &up.cloud_nrm);
         self.point_count = pos_rows / 3;
-        self.cloud_draws.extend_from_slice(&up.cloud_draws);
+        // The walk numbers a cloud's nodes from the start of ITS upload; the lane's table is
+        // cumulative, so every draw's node slice is rebased on the way in.
+        let node_base = self.cloud_nodes.len() as u32;
+        self.cloud_nodes.extend_from_slice(&up.cloud_nodes);
+        self.cloud_draws.extend(up.cloud_draws.iter().map(|d| CloudDraw { node_first: d.node_first + node_base, ..*d }));
         self.rebuild_splat_groups();
         self.splat_state = None;
 
@@ -1292,19 +1347,114 @@ impl Gpu {
 
     /// The cloud lane's own targets: nearest-point depth and its colour, one sample per pixel,
     /// read back by the resolve (EDL needs the neighbours). Cleared per moving frame.
-    fn create_splat_targets(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> (wgpu::TextureView, wgpu::TextureView) {
+    fn create_splat_targets(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> (wgpu::TextureView, wgpu::TextureView, wgpu::Texture, wgpu::TextureView) {
         let size = wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1 };
-        let mk = |label: &str, format: wgpu::TextureFormat| device.create_texture(&wgpu::TextureDescriptor {
+        let mk_tex = |label: &str, format: wgpu::TextureFormat, extra: wgpu::TextureUsages| device.create_texture(&wgpu::TextureDescriptor {
             label: Some(label),
             size,
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING | extra,
             view_formats: &[],
-        }).create_view(&wgpu::TextureViewDescriptor::default());
-        (mk("splat.depth", wgpu::TextureFormat::Depth32Float), mk("splat.color", SPLAT_COLOR_FORMAT))
+        });
+        let mk = |l: &str, f: wgpu::TextureFormat| mk_tex(l, f, wgpu::TextureUsages::empty()).create_view(&wgpu::TextureViewDescriptor::default());
+        // COPY_SRC on the id target: pick_point copies one pixel out of it.
+        let id_tex = mk_tex("splat.id", SPLAT_ID_FORMAT, wgpu::TextureUsages::COPY_SRC);
+        let id_view = id_tex.create_view(&wgpu::TextureViewDescriptor::default());
+        (mk("splat.depth", wgpu::TextureFormat::Depth32Float), mk("splat.color", SPLAT_COLOR_FORMAT), id_tex, id_view)
+    }
+
+    /// Ask for the point under a pixel. The answer arrives from `poll_pick`, not from here.
+    ///
+    /// Reads the id target the point pass already wrote, so it costs one 256-byte copy and no
+    /// ray cast - and it needs no CPU copy of the points, which is what makes it work for a
+    /// streamed cloud where `session.ray_cast` (the pre-rebuild viewer's approach, see
+    /// `session_viewer_archive/src/pick.rs`) cannot.
+    ///
+    /// SPLIT IN TWO ON PURPOSE. Mapping a buffer is asynchronous, and on wasm nothing may block
+    /// the main thread waiting for it - a blocking readback compiles there and then reads an
+    /// unmapped buffer. Requesting now and collecting next frame also removes the GPU stall a
+    /// blocking readback costs: measured 0.40 ms a pick, against ~0 for a copy nobody waits on.
+    /// A pick is one frame late, which at 60 fps is 16 ms - under the threshold at which a
+    /// selection feels delayed.
+    pub fn request_pick(&mut self, x: u32, y: u32) {
+        if x >= self.config.width || y >= self.config.height { return }
+        if self.pick_buf.is_none() {
+            self.pick_buf = Some(self.device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pick.readback"),
+                size: 256, // one row, and 256 B is the copy alignment floor anyway
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            }));
+        }
+        let Some(buf) = &self.pick_buf else { return };
+        // One request at a time: a buffer with a map still pending cannot be a copy target, and
+        // `pick_ready` alone does not say that - it is set when the map COMPLETES, so between
+        // request and completion it is false and a second request would hit a mapped buffer.
+        if self.pick_inflight { return }
+        self.pick_inflight = true;
+        let mut enc = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("pick") });
+        enc.copy_texture_to_buffer(
+            wgpu::TexelCopyTextureInfo {
+                texture: &self.splat_id_tex,
+                mip_level: 0,
+                origin: wgpu::Origin3d { x, y, z: 0 },
+                aspect: wgpu::TextureAspect::All,
+            },
+            wgpu::TexelCopyBufferInfo {
+                buffer: buf,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(256), rows_per_image: Some(1) },
+            },
+            wgpu::Extent3d { width: 1, height: 1, depth_or_array_layers: 1 },
+        );
+        self.queue.submit(Some(enc.finish()));
+        let flag = self.pick_ready.clone();
+        buf.slice(..).map_async(wgpu::MapMode::Read, move |_| {
+            flag.store(true, std::sync::atomic::Ordering::Release);
+        });
+    }
+
+    /// Collect a pick asked for earlier, or `None` while it is still in flight.
+    ///
+    /// `Some(None)` means the pixel was background - a real answer, distinct from "not ready".
+    ///
+    /// THE ROW IS NOT A STABLE IDENTITY. `PointCloud::build_lod` reorders the points, so a row
+    /// is only meaningful against the exact file version it came from: the same pixel on the
+    /// same lion answered 118514 before an octree was attached and 248274 after, for the
+    /// identical point. Anything that must survive a re-export keys on the POSITION
+    /// (`Scene::point_at`), never on the row.
+    pub fn poll_pick(&mut self) -> Option<Option<u32>> {
+        if !self.pick_ready.load(std::sync::atomic::Ordering::Acquire) { return None }
+        let buf = self.pick_buf.as_ref()?;
+        let id = u32::from_le_bytes(buf.slice(..).get_mapped_range()[0..4].try_into().ok()?);
+        buf.unmap();
+        self.pick_ready.store(false, std::sync::atomic::Ordering::Release);
+        self.pick_inflight = false;
+        // 0 is the cleared background; the shader writes row + 1.
+        Some((id > 0).then(|| id - 1))
+    }
+
+    /// Request and collect in one call, blocking on the GPU. NATIVE ONLY - the harness and tests
+    /// want an answer now, and blocking is legal off the main thread. The browser must use
+    /// `request_pick` + `poll_pick`.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn pick_point(&mut self, x: u32, y: u32) -> Option<u32> {
+        self.request_pick(x, y);
+        let _ = self.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None });
+        self.poll_pick().flatten()
+    }
+
+    /// Resolve a picked global row to (instance row, index WITHIN that cloud).
+    ///
+    /// `poll_pick` answers in rows of the scene-wide cloud tables, which is what the shader can
+    /// cheaply write; a caller wants "which cloud, which point". Every draw owns the contiguous
+    /// span `[first, first + count)`, so the lookup is a scan of a handful of draws.
+    pub fn cloud_row_of(&self, row: u32) -> Option<(u32, u32)> {
+        self.cloud_draws.iter()
+            .find(|d| row >= d.first && row < d.first + d.count)
+            .map(|d| (d.instance, row - d.first))
     }
 
     /// One read-only storage buffer at binding 0 - the shape every ink lane's bind group has.
@@ -1331,9 +1481,11 @@ impl Gpu {
             if let Some(s) = &self.surface { s.configure(&self.device, &self.config); }
             self.depth_view = Self::create_depth_view(&self.device, &self.config, self.samples);
             self.msaa_view = Self::create_msaa_view(&self.device, &self.config, self.samples);
-            let (d, c) = Self::create_splat_targets(&self.device, &self.config);
+            let (d, c, it, iv) = Self::create_splat_targets(&self.device, &self.config);
             self.splat_depth_view = d;
             self.splat_color_view = c;
+            self.splat_id_tex = it;
+            self.splat_id_view = iv;
             self.rebuild_splat_groups();
             self.splat_state = None;
 
@@ -1482,69 +1634,6 @@ impl Gpu {
         t0.elapsed().as_secs_f64()
     }
 
-    /// The camera position, recovered from the combined view-projection alone.
-    ///
-    /// The eye is the one point that projects to nothing: it is where the clip x, y and w all
-    /// vanish at once, because every view ray passes through it. Three rows of the matrix, three
-    /// unknowns, one 3x3 solve - no camera struct needed, so this works for any caller that can
-    /// produce a view-projection, including the headless harness.
-    ///
-    /// Orthographic has no eye: rows 0, 1 and 3 are linearly dependent there (w is constant 1),
-    /// the determinant collapses, and the fallback is the view direction pushed a long way back -
-    /// which is exactly what an orthographic "eye at infinity" means.
-    pub fn eye_from_view_proj(vp: &Xform) -> [f32; 3] {
-        let r = |i: usize| [vp[(i, 0)], vp[(i, 1)], vp[(i, 2)], vp[(i, 3)]];
-        let (a, b, c) = (r(0), r(1), r(3));
-
-        // Cramer on [a b c] . p = -[a3 b3 c3]
-        let det3 = |m: [[f64; 3]; 3]| {
-            m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
-                - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
-                + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
-        };
-        let rows = [[a[0], a[1], a[2]], [b[0], b[1], b[2]], [c[0], c[1], c[2]]];
-        let rhs = [-a[3], -b[3], -c[3]];
-        let d = det3(rows);
-
-        // Scale-free singularity test: compare against the product of the row magnitudes, so it
-        // fires on genuine dependence rather than on a scene whose units make everything small.
-        let norm: f64 = rows.iter().map(|r| (r[0] * r[0] + r[1] * r[1] + r[2] * r[2]).sqrt()).product();
-        if d.abs() <= 1e-9 * norm.max(1e-30) {
-            // Orthographic: row 3 carries no direction, so take the view axis from row 2 (depth)
-            // and stand a long way back along it.
-            let f = [vp[(2, 0)], vp[(2, 1)], vp[(2, 2)]];
-            let len = (f[0] * f[0] + f[1] * f[1] + f[2] * f[2]).sqrt().max(1e-30);
-            return [0, 1, 2].map(|k| (f[k] / len * 1.0e9) as f32);
-        }
-
-        [0, 1, 2].map(|k| {
-            let mut m = rows;
-            for row in 0..3 {
-                m[row][k] = rhs[row];
-            }
-            (det3(m) / d) as f32
-        })
-    }
-
-    /// Ortho half-height in world units (mm), 0.0 in perspective. The w row of the composed
-    /// matrix says which projection this is: perspective carries the view direction there
-    /// (magnitude 1), orthographic is all zeros (w is constant 1). Row 1 of the matrix is the
-    /// y basis scaled by s/h, so 1/|row1.xyz| IS the world half-height - rotation and the
-    /// anchor (translation lives in column 3) drop out. Left as 0.0, every ink lane falls back
-    /// to the perspective pen formula with clip.w = 1, which pins pens to a zoom-independent
-    /// world size: zoom out in ortho and the density taper never fires and far-side ink
-    /// bleeds through faces.
-    fn ortho_half_height(vp: &Xform) -> f32 {
-        let w2 = vp[(3, 0)].powi(2) + vp[(3, 1)].powi(2) + vp[(3, 2)].powi(2);
-        if w2 > 1e-12 {
-            return 0.0;
-        }
-        let r1 = vp[(1, 0)].powi(2) + vp[(1, 1)].powi(2) + vp[(1, 2)].powi(2);
-        if r1 <= 1e-30 {
-            return 0.0;
-        }
-        (1.0 / r1.sqrt()) as f32
-    }
 
     /// Per-frame uniforms: time, camera, and the line/pen block.
     fn write_frame_uniforms(&mut self, view_proj: &Xform) {
@@ -1552,19 +1641,20 @@ impl Gpu {
         self.time += 1.0 / 60.0;
         self.queue.write_buffer(&self.time_buffer, 0, bytemuck::bytes_of(&self.time));
         self.mvp_f32 = view_proj.to_f32();
-        self.last_ortho_h = Self::ortho_half_height(view_proj);
+        self.last_ortho_h = crate::math::ortho_half_height(view_proj);
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&self.mvp_f32));
 
         let line = LineUniform{
             thickness: line_thickness_px(), // env VIEWER_THICKNESS; later an egui slider
             proj_y: 1.0 / (30.0_f32).to_radians().tan() * 0.001, // cot(fovy/2) mm-m unit scale
-            ortho_h: Self::ortho_half_height(view_proj),
+            ortho_h: crate::math::ortho_half_height(view_proj),
             vp_h: self.config.height as f32,
             vp_w: self.config.width as f32,
-            eye: Self::eye_from_view_proj(view_proj),
+            eye: crate::math::eye_from_view_proj(view_proj),
             anchor: self.last_origin.as_ref().map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3]),
             _pad1: 0.0,
         };
+        self.last_eye = line.eye;
         self.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
         self.queue.write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&CloudUniform{
             size: self.cloud_size,
@@ -1587,7 +1677,7 @@ impl Gpu {
             return;
         }
         let Some(origin) = self.last_origin.clone() else { return };
-        let eye = Self::eye_from_view_proj(view_proj); // anchored world units, like instances[]
+        let eye = crate::math::eye_from_view_proj(view_proj); // anchored world units, like instances[]
         let ew = [origin[0] + eye[0] as f64, origin[1] + eye[1] as f64, origin[2] + eye[2] as f64];
         // The eye outside the scene's box is outside every object in it.
         let in_scene = (0..3).all(|k| ew[k] >= self.scene_min[k] as f64 && ew[k] <= self.scene_max[k] as f64);
@@ -1630,11 +1720,59 @@ impl Gpu {
             let mut recs: Vec<u8> = Vec::new();
             let mut cum = 0u32;
             let ortho_h = self.last_ortho_h as f64;
-            for &(first, count, inst, spacing) in &self.cloud_draws {
+            // Reused across clouds AND frames: the record loop is the hot path on a moving
+            // camera (the static skip below only helps when nothing moves), so it must not
+            // allocate per cloud per frame.
+            let mut ranges: Vec<(u32, u32, f32)> = Vec::new();
+            let mut stack: Vec<usize> = Vec::new();
+            for d in &self.cloud_draws {
+                let (first, count, inst, spacing) = (d.first, d.count, d.instance, d.spacing);
                 let Some(row) = self.instances.get(inst as usize) else { continue };
                 if row.flags & Instance::FLAG_HIDDEN != 0 { continue; }
                 let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * self.cloud_size;
-                if px > 0.0 && header[0] < 256 {
+
+                // LOD: descend the octree the FILE carried while a node's spacing still projects
+                // wider than VIEWER_LOD pixels, and emit one record per selected node. A far
+                // cloud stops at coarse ancestors - the lion's root is 1,624 points of 341,989,
+                // the 13.8 M scan's is 311 - and a near one reaches raw leaves, pixel-exact.
+                // node_count == 0 means the file carried no octree: one record, whole cloud.
+                ranges.clear();
+                if d.node_count > 0 && self.lod_px > 0.0 {
+                    let base = d.node_first as usize;
+                    let mscale = ((row.model[0] as f64).powi(2) + (row.model[1] as f64).powi(2) + (row.model[2] as f64).powi(2)).sqrt();
+                    stack.clear();
+                    stack.push(0usize);
+                    while let Some(n) = stack.pop() {
+                        let Some(node) = self.cloud_nodes.get(base + n) else { continue };
+                        // Screen error: how wide this node's grid spacing projects, in pixels.
+                        let world = (node.spacing as f64) * mscale * 0.001;
+                        let dist = {
+                            let m = &row.model;
+                            let c = &node.center;
+                            let wx = (m[0] * c[0] + m[4] * c[1] + m[8] * c[2] + m[12]) as f64;
+                            let wy = (m[1] * c[0] + m[5] * c[1] + m[9] * c[2] + m[13]) as f64;
+                            let wz = (m[2] * c[0] + m[6] * c[1] + m[10] * c[2] + m[14]) as f64;
+                            let e = self.last_eye;
+                            ((wx - e[0] as f64).powi(2) + (wy - e[1] as f64).powi(2) + (wz - e[2] as f64).powi(2)).sqrt().max(1.0e-6) * 0.001
+                        };
+                        let proj = if ortho_h > 0.0 { world / (2.0 * ortho_h) } else { world * 1.7320508 * 0.5 / dist } * self.config.height as f64;
+                        // A node OWNS its accepted subsample; its children hold the leftovers,
+                        // not copies. So a visited node is always drawn - descending ADDS
+                        // detail, it never replaces the parent. Skipping the parent is how a
+                        // deep view silently loses the coarse layer (measured: 18% of the ink).
+                        if node.count > 0 {
+                            ranges.push((first + node.first, node.count, node.spacing));
+                        }
+                        if proj > self.lod_px as f64 {
+                            stack.extend(node.children.iter().filter(|&&c| c >= 0).map(|&c| c as usize));
+                        }
+                    }
+                } else {
+                    ranges.push((first, count, spacing));
+                }
+
+                for &(first, count, spacing) in &ranges {
+                if px > 0.0 && (header[0] as usize) < SPLAT_MAX_RECS {
                     // column-major 4x4: combined = mvp x model
                     let (a, b) = (&self.mvp_f32, &row.model);
                     let mut m = [0.0f32; 16];
@@ -1677,9 +1815,17 @@ impl Gpu {
                     header[0] += 1;
                     cum += count;
                 }
+                }
             }
             header[1] = cum;
             self.splat_total = cum;
+            // One line a frame, only when LOD is on: how much the octree saved. Records is the
+            // number of nodes the screen-error walk chose; points is what they cover.
+            if self.lod_px > 0.0 && !self.cloud_nodes.is_empty() && self.splat_state.is_none() {
+                let total: u32 = self.cloud_draws.iter().map(|d| d.count).sum();
+                log::info!("lod: {} records {} of {} points ({:.0}x fewer)", header[0], cum, total,
+                    if cum > 0 { total as f64 / cum as f64 } else { 0.0 });
+            }
             // Static skip: camera still, same scale, nothing rebuilt - the targets already hold
             // this frame's points, so the whole lane costs one fullscreen resolve.
             let state = (self.mvp_f32, self.cloud_size);
@@ -1690,12 +1836,20 @@ impl Gpu {
                 // test picks the nearest point per pixel. Depth 0 = reverse-Z far = empty.
                 let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("splat.points"),
-                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: &self.splat_color_view,
-                        resolve_target: None,
-                        depth_slice: None,
-                        ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store },
-                    })],
+                    color_attachments: &[
+                        Some(wgpu::RenderPassColorAttachment {
+                            view: &self.splat_color_view,
+                            resolve_target: None,
+                            depth_slice: None,
+                            ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store },
+                        }),
+                        Some(wgpu::RenderPassColorAttachment {
+                            view: &self.splat_id_view,
+                            resolve_target: None,
+                            depth_slice: None,
+                            ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store },
+                        }),
+                    ],
                     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                         view: &self.splat_depth_view,
                         depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(0.0), store: wgpu::StoreOp::Store }),
@@ -1949,6 +2103,7 @@ impl Gpu {
         self.glyph_count = 0;
         self.point_count = 0;
         self.cloud_draws.clear();
+        self.cloud_nodes.clear();
         self.objects_base.clear();
         self.object_bounds_world.clear();
         self.inside.clear();

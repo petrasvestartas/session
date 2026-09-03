@@ -40,6 +40,7 @@ struct Splat {
     r: f32,         // radius, px
     z: f32,         // reverse-Z depth
     color: u32,     // RGBA8, lit
+    row: u32,       // the point's global row - the id the pick target writes
     ok: bool,
 };
 
@@ -66,6 +67,7 @@ fn project(gid: u32) -> Splat {
         vec4<f32>(rec_f(base, 8u),  rec_f(base, 9u),  rec_f(base, 10u), rec_f(base, 11u)),
         vec4<f32>(rec_f(base, 12u), rec_f(base, 13u), rec_f(base, 14u), rec_f(base, 15u)),
     );
+    s.row = i;
     let clip = m * vec4<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u], 1.0);
     if (clip.w <= 0.0) { return s; }
     let ndc = clip.xyz / clip.w;
@@ -119,6 +121,7 @@ struct PointOut {
     @location(0) @interpolate(flat) center: vec2<i32>,
     @location(1) @interpolate(flat) rr: f32,
     @location(2) @interpolate(flat) color: vec4<f32>,
+    @location(3) @interpolate(flat) row: u32,
 };
 
 @vertex
@@ -142,15 +145,28 @@ fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
     o.center = s.px;
     o.rr = s.r * s.r;
     o.color = unpack4x8unorm(s.color);
+    o.row = s.row;
     return o;
 }
 
+// Two targets: the colour the resolve composites, and an ID buffer holding the point's global
+// row + 1 (0 = nothing here). One depth test decides both, so the id under a pixel is always
+// the point that was actually drawn there - which is what makes picking exact and, unlike a
+// CPU ray cast, independent of whether the points exist on the CPU at all.
+struct PointFrag {
+    @location(0) color: vec4<f32>,
+    @location(1) id: u32,
+};
+
 @fragment
-fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
+fn fs_point(in: PointOut) -> PointFrag {
     let q = vec2<i32>(floor(in.pos.xy));
     let d = q - in.center;
     if (f32(d.x * d.x + d.y * d.y) > in.rr) { discard; } // ROUND dot
-    return in.color;
+    var o: PointFrag;
+    o.color = in.color;
+    o.id = in.row + 1u;
+    return o;
 }
 
 fn oct16_decode(p: u32) -> vec3<f32> {

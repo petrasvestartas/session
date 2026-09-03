@@ -1,12 +1,12 @@
 # Refactoring updates — 2026-09-02
 
 What went into `src/` **after** the lessons were written, and what a future session must do to
-fold it into the 44–51 chain. Nothing in `docs/` was touched by this work: every lesson file,
-44–51 included, is byte-for-byte what it was before (the four already-dirty docs — 44, 46, 47,
+fold it into the 43–50 chain. Nothing in `docs/` was touched by this work: every lesson file,
+43–50 included, is byte-for-byte what it was before (the four already-dirty docs — 44, 46, 47,
 48 — still carry only the earlier, unrelated edits from 13:55–14:30 today).
 
-The chain's problem is structural, not accidental. Lessons 46–51 rebuild the tree by **whole-file
-`Create` ops**: lesson 50 alone re-creates `src/lib.rs` (`docs/50-walk-and-shell.md:2558`),
+The chain's problem is structural, not accidental. Lessons 44–50 rebuild the tree by **whole-file
+`Create` ops**: lesson 49 alone re-creates `src/lib.rs` (`docs/49-walk-and-shell.md:2558`),
 `src/app/mod.rs` (`:2430`) and `src/app/scene.rs` (`:2209`) from scratch. Anything typed into
 those files after the lessons were written is not *conflicted* by the chain — it is **silently
 deleted** by it. No error, no warning: an undeclared `.rs` simply stops being compiled.
@@ -88,28 +88,28 @@ nothing more.
 
 `src/app/touch.rs` was chosen over the two alternatives on measurement, not taste:
 
-- **Not inline in `lib.rs`.** That file carries 15 anchored ops before lesson 50 and 5 after it,
+- **Not inline in `lib.rs`.** That file carries 15 anchored ops before lesson 49 and 5 after it,
   and the pre-50 anchors are single lines distinguished only by indentation — e.g.
-  `docs/46-pipeline-descs.md:1854` anchors `state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);`
+  `docs/45-pipeline-descs.md:1854` anchors `state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);`
   at 28 spaces, `:1828` the same call at 20 spaces preceded by its `let aspect`. A double-tap-fit
   written inline inside `window_event` lands at 16–20 spaces and duplicates the `:1828` anchor,
-  which makes lesson 46 fail. Inline placement is one indentation level from breaking the chain.
-- **Not top-level `src/touch.rs`.** No lesson would touch it, but at end-of-51 there are exactly
+  which makes lesson 45 fail. Inline placement is one indentation level from breaking the chain.
+- **Not top-level `src/touch.rs`.** No lesson would touch it, but at end-of-50 there are exactly
   five top-level modules (`lib`, `state`, `camera`, `math`, `selftest`) and every input concern
   lives under `app/`. `ARCHITECTURE.md:47` names the seam: *"a drag, a wheel, a key →
   `app/input.rs`"*.
 - **`src/app/touch.rs`** survives all eight lessons byte-identical (no lesson creates, edits,
   deletes or anchors on that path) and lands one step from its final home, beside the
-  `src/app/input.rs` that lesson 50 creates.
+  `src/app/input.rs` that lesson 49 creates.
 
-**Anchors checked, and clear.** Nothing in 46–51 quotes `struct App`, `orbiting`, `panning`,
+**Anchors checked, and clear.** Nothing in 45–50 quotes `struct App`, `orbiting`, `panning`,
 `last_cursor`, `ctrl`, `MouseInput`, `CursorMoved`, `MouseWheel`, `ModifiersChanged`,
 `ApplicationHandler` or the `fn window_event` signature as a `Find` anchor — those strings occur
-in lesson 50 only as `Create` **output**. Lesson 48's one "panning" hit is the word *spanning*.
-Neither `index.html` nor `Cargo.toml` is the target of any op in 46–51 (grep: 0 hits in all six).
+in lesson 49 only as `Create` **output**. Lesson 47's one "panning" hit is the word *spanning*.
+Neither `index.html` nor `Cargo.toml` is the target of any op in 45–50 (grep: 0 hits in all six).
 
-**One anchor that survives by luck, and must keep surviving.** Lesson 44 *does* anchor on
-today's `App`, twice: `docs/44-streaming-cloud.md:1087` (`    ctrl: bool,`) and `:1099`
+**One anchor that survives by luck, and must keep surviving.** Lesson 43 *does* anchor on
+today's `App`, twice: `docs/43-streaming-cloud.md:1087` (`    ctrl: bool,`) and `:1099`
 (`            ctrl: false,`), each adding a `fitted` line below. `touch: Touches,` was inserted
 **after** `ctrl: bool,`, so both anchors still match exactly once (verified: `grep -c` = 1 each).
 They would NOT survive renaming `ctrl`, a second `ctrl: bool,` line, or reordering the field list.
@@ -120,7 +120,7 @@ They would NOT survive renaming `ctrl`, a second `ctrl: bool,` line, or reorderi
 
 Three items. All mechanical; none needs a design decision.
 
-### (a) Lesson 46 — one line, a hard compile break
+### (a) Lesson 45 — one line, a hard compile break
 
 `src/lib.rs:481` reads
 
@@ -128,31 +128,31 @@ Three items. All mechanical; none needs a design decision.
 state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, vp.0 / vp.1);
 ```
 
-Lesson 46 replaces `Gpu`'s two `scene_min` / `scene_max` fields with a single `bounds: Aabb`
-(`docs/51_refactored/src/engine/gpu/mod.rs:76`). No op covers the touch arm, so after lesson 46
+Lesson 45 replaces `Gpu`'s two `scene_min` / `scene_max` fields with a single `bounds: Aabb`
+(`docs/51_refactored/src/engine/gpu/mod.rs:76`). No op covers the touch arm, so after lesson 45
 the tree carries a dangling `state.gpu.scene_min` — a straight `E0609` at that lesson's **Check**
-step, and it stays red through 47, 48 and 49 until lesson 50's whole-file `Create` removes the
+step, and it stays red through 47, 48 and 49 until lesson 49's whole-file `Create` removes the
 line altogether.
 
-**Fix:** `state.gpu.bounds.min, state.gpu.bounds.max`, as a new op in lesson 46 (or stated in its
+**Fix:** `state.gpu.bounds.min, state.gpu.bounds.max`, as a new op in lesson 45 (or stated in its
 Check prose). The break is intrinsic to double-tap-fit — any fit needs scene bounds — not to the
 file choice.
 
-### (b) Lesson 50 — the wiring is deleted in silence
+### (b) Lesson 49 — the wiring is deleted in silence
 
-Lesson 50's two `Create`s wipe every reference to touch: after it,
+Lesson 49's two `Create`s wipe every reference to touch: after it,
 `grep -ci touch src/lib.rs` = 0 and `grep -c 'mod touch' src/app/mod.rs` = 0, while
 `src/app/touch.rs` sits on disk whole and orphaned. Four things to re-add:
 
-1. `docs/50-walk-and-shell.md:2430`, the `Create src/app/mod.rs` block: add `pub mod touch;`
+1. `docs/49-walk-and-shell.md:2430`, the `Create src/app/mod.rs` block: add `pub mod touch;`
    to the nine-module list. **`src/app/live.rs` is missing from that list too** — the live-data
    loader post-dates the refactor block and is orphaned by exactly the same mechanism. Fold both
    in together.
-2. `docs/50-walk-and-shell.md:2076`, Step 19's `Create src/app/input.rs`: give `struct Input`
+2. `docs/49-walk-and-shell.md:2076`, Step 19's `Create src/app/input.rs`: give `struct Input`
    a `pub touch: Touches` field and `Input::new()` its initialiser, and add a
    `WindowEvent::Touch(t) => { … }` arm to `Input::mouse`.
 3. `device_pixel_ratio()` moves with it — into `app/touch.rs` or `app/knobs.rs`.
-4. Nothing else. Lesson 50's `window_event` already ends
+4. Nothing else. Lesson 49's `window_event` already ends
    `other => self.input.mouse(state, &other)` (`docs/51_refactored/src/lib.rs:139`), so
    `WindowEvent::Touch` **already reaches `Input`** and is merely swallowed by its `_ => false`
    arm (`docs/51_refactored/src/app/input.rs`, last arm). The fold-in touches `input.rs` only;
@@ -160,16 +160,16 @@ Lesson 50's two `Create`s wipe every reference to touch: after it,
 
 ### (c) Post-50 simplification, free
 
-Lesson 51 turns the input handlers into "did anything change?" booleans feeding
+Lesson 50 turns the input handlers into "did anything change?" booleans feeding
 `state.needs_frame`. So the three `state.window.request_redraw()` calls in today's `Touch` arm
-become `true` returns, and `Act::Fit` resolves as `state.fit_all()` — the helper lesson 50 adds
+become `true` returns, and `Act::Fit` resolves as `state.fit_all()` — the helper lesson 49 adds
 at `docs/51_refactored/src/state.rs:72` — instead of naming the bounds fields at all, which also
-makes item (a) moot from lesson 50 onward.
+makes item (a) moot from lesson 49 onward.
 
 ### Not affected
 
-`src/camera.rs` — lessons 46–50 have **zero** ops on it and lesson 51 has exactly three, all
-comment typo fixes (`docs/51-performance-memory.md:478`, `:490`, `:503`). `Camera::orbit`,
+`src/camera.rs` — lessons 44–49 have **zero** ops on it and lesson 50 has exactly three, all
+comment typo fixes (`docs/50-performance-memory.md:478`, `:490`, `:503`). `Camera::orbit`,
 `pan`, `zoom_at` and `fit` are the API `touch.rs` calls, and they are the most stable surface in
 the tree: touch code written against them today keeps compiling through the whole chain.
 
@@ -216,11 +216,66 @@ as history, but any lesson that re-publishes a page should pick up the mobile ru
   no timestamp), so any stall longer than the window splits a double tap into two singles. At
   30–60 fps that stall is one frame and does not matter.
 
+## 4b. Follow-up, same day — `DEMO_SCENE_URL` is one line again
+
+`src/lib.rs` carried a live const with the previous value parked on a commented-out line
+beneath it (`// const DEMO_SCENE_URL: … cloud_mix.toml`). It read as two configured scenes when
+only the top one can ever load. The dead line is gone, and **lesson 43 was corrected in the same
+change** so the tutorial produces what the tree holds — its "The scene switcher" Replace-with no
+longer emits it, and its prose now says to edit the one string rather than park the old value.
+Nothing else referenced that line (`grep -rn '^// const DEMO_SCENE_URL'` over `src/` and all
+lesson bodies: 0 hits outside the block that was fixed).
+
+This moves the tree TOWARD the chain, not away: lesson 49's `Create src/app/loader.rs`
+(`docs/49-walk-and-shell.md:1875`) already declares a single `DEMO_SCENE_URL` with no commented
+alternative. The frozen snapshots under `docs/*/src/lib.rs` still carry the old two-line form —
+correct as history, so they were left alone.
+
+The explanation went into lesson 43's **prose**, not into a code comment: `DEMO_SCENE_URL` is a
+FALLBACK (`?scene=` beats it, the live source beats both, and with live on an unreadable branch
+comes up as an empty grid rather than this scene), and the house rule is never to anchor a lesson
+on a comment, because readers retype comments in their own words.
+
+## 4c. `DEMO_SCENE_URL` is DELETED — two scene sources, not three
+
+There is no compiled-in scene any more. `const DEMO_SCENE_URL` is gone, `scene_url()` returns
+`Option<String>` (just the `?scene=` query, or nothing), and `demo_scene` is renamed
+`local_scene` and takes the manifest path as an argument. The rule is now flat:
+
+| URL | what loads |
+|---|---|
+| `/` — no query | the `session_viewer_data` branch (`app/live.rs`) |
+| `?scene=<path under assets/>` | that one local manifest; live source off |
+| `?live=off`, no `?scene=` | **empty grid** — nothing to fall back to, by design |
+
+The third source was the whole problem: a hard-coded default is a second answer to "what does
+this viewer show", and keeping it in sync with the branch is what nobody was doing. A page that
+asks for neither source now gets an empty grid, which is what an unreadable branch already did.
+
+**The window is still built exactly once.** The empty-grid fallback moved OUT of the live-only
+branch so it covers both sources: whatever fails, `State::new` runs and `Msg::Ready` is sent, so
+the canvas, GPU device and camera exist before any geometry does and a scene arriving later is
+`Clear` + `File` + `Fit` on top of them. Without that move, deleting the const would have left
+`?live=off` with no `Msg::Ready` at all — a permanently blank page, not an empty grid.
+`reload_scene(None)` now warns and returns instead of loading a built-in default.
+
+Verified in the browser, all four cases: bare URL → `live: loaded 'plates + contact areas'`;
+`?scene=scenes/bunny.toml` → local manifest, no `live:` lines; `?live=off` → grid and axes, GPU
+up; `?live=off&scene=…` → local. Both targets build, `cargo xtest` 8/8, clippy back to the two
+pre-existing `lib.rs` warnings.
+
+**The lessons still teach the old shape**, and that is now real drift, not a wording nit:
+`docs/35-scene-struct.md:1405-1413` creates the const, and `docs/49-walk-and-shell.md:1875-1877`
+carries it into `app/loader.rs`. Both are `Create`/`Replace with` output rather than `Find`
+anchors, so nothing breaks on replay — but a reader following the chain builds a const the
+shipped viewer no longer has. Fixing that belongs to the live-data lesson, which is still
+unwritten; it is the same unwritten lesson that owes an explanation of `app/live.rs` itself.
+
 ## 5. State of the tree
 
 Changed by this work: `src/app/touch.rs` (new), `src/app/mod.rs`, `src/lib.rs`, `index.html`.
 Untouched: everything under `docs/`, `src/camera.rs`, `assets/`, `Cargo.toml`.
 
 One thing to watch for: `docs/_replay_check.py` will **write into the live tree** if it is given
-`.` as its source. During this session it silently applied lesson 51's `display_only = true` ops
+`.` as its source. During this session it silently applied lesson 50's `display_only = true` ops
 to six `assets/scenes/*.toml`; they were reverted with `git checkout`. Always replay into a copy.

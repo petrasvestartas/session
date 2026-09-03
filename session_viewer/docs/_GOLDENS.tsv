@@ -1,32 +1,16 @@
 # docs/_GOLDENS.tsv - recorded by docs/_gate.sh --record at git tag end-of-44.
 # The baseline is a TAG, not a working tree: an uncommitted edit moves these numbers.
-# assets: 1305121168
-# ^ cksum of (size, path) over every .pb the scenes reference. These numbers were measured on
-# THOSE bytes, and the gate refuses to compare across a fingerprint change rather than reporting
-# an asset swap as a code regression. That is the whole point of the line: a pixel count is only
-# comparable against the same bytes.
-#
-# Re-armed 2026-09-01 after the P6 re-encode (commit 1f7f4fcb rewrote 10 tracked .pb - mesh_bunny
-# -63%, mesh_bunny_grey -61%, floor_model -57% - without updating this line, so the gate had been
-# refusing to compare ever since). Re-armed on EVIDENCE, not convenience: the full gate was run
-# against the UNCHANGED rows below with the new fingerprint, and every mandatory row matched.
-# The re-encode moves no frame.
-#
-# An earlier version of this comment claimed the re-encoded assets render a different bunny
-# (37417 ink, not 44215). That is wrong and was the fake regression it was written during: the
-# bunny scene loads mesh_bunny_grey.pb, which IS the re-encoded 4,952,671-byte file today, and it
-# renders 44215. The 37417 came from a replay tree whose `ln -sfn` had nested rather than
-# replaced, so it was reading the OLD 12,795,331-byte bunny.
+# assets: 2360305695
 # columns: scene	config	pass	ink	draws	objects	ppm_sha256_16
 # MANDATORY - resolves entirely to tracked .pb; a fresh clone must reproduce these.
-lion	default	1	77543	4	1	nondet(splat)
-lion	default	2	77543	4	1	nondet(splat)
-lion	VIEWER_LINE_STYLE=tubes	1	77543	4	1	nondet(splat)
-lion	VIEWER_LINE_STYLE=tubes	2	77543	4	1	nondet(splat)
-lion	VIEWER_REBUILD=1	1	77543	4	1	nondet(splat)
-lion	VIEWER_REBUILD=1	2	77543	4	1	nondet(splat)
-lion	VIEWER_INCREMENTAL=1	1	77543	4	1	nondet(splat)
-lion	VIEWER_INCREMENTAL=1	2	77543	4	1	nondet(splat)
+lion	default	1	62759	4	1	nondet(splat)
+lion	default	2	62759	4	1	nondet(splat)
+lion	VIEWER_LINE_STYLE=tubes	1	62759	4	1	nondet(splat)
+lion	VIEWER_LINE_STYLE=tubes	2	62759	4	1	nondet(splat)
+lion	VIEWER_REBUILD=1	1	62759	4	1	nondet(splat)
+lion	VIEWER_REBUILD=1	2	62759	4	1	nondet(splat)
+lion	VIEWER_INCREMENTAL=1	1	62759	4	1	nondet(splat)
+lion	VIEWER_INCREMENTAL=1	2	62759	4	1	nondet(splat)
 bunny	default	1	44215	9	6	nondet(mesh)
 bunny	default	2	44215	9	6	nondet(mesh)
 bunny	VIEWER_LINE_STYLE=tubes	1	43954	8	6	nondet(mesh)
@@ -35,14 +19,14 @@ bunny	VIEWER_REBUILD=1	1	44215	9	6	nondet(mesh)
 bunny	VIEWER_REBUILD=1	2	44215	9	6	nondet(mesh)
 bunny	VIEWER_INCREMENTAL=1	1	44215	9	6	nondet(mesh)
 bunny	VIEWER_INCREMENTAL=1	2	44215	9	6	nondet(mesh)
-bunny_cloud	default	1	7511	4	1	nondet(splat)
-bunny_cloud	default	2	7511	4	1	nondet(splat)
-bunny_cloud	VIEWER_LINE_STYLE=tubes	1	7511	4	1	nondet(splat)
-bunny_cloud	VIEWER_LINE_STYLE=tubes	2	7511	4	1	nondet(splat)
-bunny_cloud	VIEWER_REBUILD=1	1	7511	4	1	nondet(splat)
-bunny_cloud	VIEWER_REBUILD=1	2	7511	4	1	nondet(splat)
-bunny_cloud	VIEWER_INCREMENTAL=1	1	7511	4	1	nondet(splat)
-bunny_cloud	VIEWER_INCREMENTAL=1	2	7511	4	1	nondet(splat)
+bunny_cloud	default	1	7689	4	1	nondet(splat)
+bunny_cloud	default	2	7689	4	1	nondet(splat)
+bunny_cloud	VIEWER_LINE_STYLE=tubes	1	7689	4	1	nondet(splat)
+bunny_cloud	VIEWER_LINE_STYLE=tubes	2	7689	4	1	nondet(splat)
+bunny_cloud	VIEWER_REBUILD=1	1	7689	4	1	nondet(splat)
+bunny_cloud	VIEWER_REBUILD=1	2	7689	4	1	nondet(splat)
+bunny_cloud	VIEWER_INCREMENTAL=1	1	7689	4	1	nondet(splat)
+bunny_cloud	VIEWER_INCREMENTAL=1	2	7689	4	1	nondet(splat)
 drawings_rotated	default	1	25043	10	155465	nondet(mesh)
 drawings_rotated	default	2	25043	10	155465	nondet(mesh)
 drawings_rotated	VIEWER_LINE_STYLE=tubes	1	24970	9	155465	nondet(mesh)
@@ -60,27 +44,27 @@ drawings	VIEWER_REBUILD=1	1	55234	9	5	422819286f0691d3
 drawings	VIEWER_REBUILD=1	2	55234	9	5	422819286f0691d3
 drawings	VIEWER_INCREMENTAL=1	1	51565	10	744040	44ddc4171fc50953
 drawings	VIEWER_INCREMENTAL=1	2	51565	10	744040	44ddc4171fc50953
-bunny_drawings	default	1	46464	11	148560	nondet(splat)
-bunny_drawings	default	2	46464	11	148560	nondet(splat)
-bunny_drawings	VIEWER_LINE_STYLE=tubes	1	46316	10	148560	nondet(splat)
-bunny_drawings	VIEWER_LINE_STYLE=tubes	2	46316	10	148560	nondet(splat)
-bunny_drawings	VIEWER_REBUILD=1	1	41997	10	8	nondet(splat)
-bunny_drawings	VIEWER_REBUILD=1	2	41997	10	8	nondet(splat)
-bunny_drawings	VIEWER_INCREMENTAL=1	1	46464	11	148560	nondet(splat)
-bunny_drawings	VIEWER_INCREMENTAL=1	2	46464	11	148560	nondet(splat)
-cloud_mix	default	1	7469	11	210892	nondet(splat)
-cloud_mix	default	2	7469	11	210892	nondet(splat)
-cloud_mix	VIEWER_LINE_STYLE=tubes	1	7455	10	210892	nondet(splat)
-cloud_mix	VIEWER_LINE_STYLE=tubes	2	7455	10	210892	nondet(splat)
-cloud_mix	VIEWER_REBUILD=1	1	7469	11	210892	nondet(splat)
-cloud_mix	VIEWER_REBUILD=1	2	7469	11	210892	nondet(splat)
-cloud_mix	VIEWER_INCREMENTAL=1	1	7469	11	210892	nondet(splat)
-cloud_mix	VIEWER_INCREMENTAL=1	2	7469	11	210892	nondet(splat)
-lidar14	default	1	3549	4	1	nondet(splat)
-lidar14	default	2	3549	4	1	nondet(splat)
-lidar14	VIEWER_LINE_STYLE=tubes	1	3549	4	1	nondet(splat)
-lidar14	VIEWER_LINE_STYLE=tubes	2	3549	4	1	nondet(splat)
-lidar14	VIEWER_REBUILD=1	1	3549	4	1	nondet(splat)
-lidar14	VIEWER_REBUILD=1	2	3549	4	1	nondet(splat)
-lidar14	VIEWER_INCREMENTAL=1	1	3549	4	1	nondet(splat)
-lidar14	VIEWER_INCREMENTAL=1	2	3549	4	1	nondet(splat)
+bunny_drawings	default	1	39255	11	148560	nondet(splat)
+bunny_drawings	default	2	39255	11	148560	nondet(splat)
+bunny_drawings	VIEWER_LINE_STYLE=tubes	1	39107	10	148560	nondet(splat)
+bunny_drawings	VIEWER_LINE_STYLE=tubes	2	39107	10	148560	nondet(splat)
+bunny_drawings	VIEWER_REBUILD=1	1	34801	10	8	nondet(splat)
+bunny_drawings	VIEWER_REBUILD=1	2	34801	10	8	nondet(splat)
+bunny_drawings	VIEWER_INCREMENTAL=1	1	39255	11	148560	nondet(splat)
+bunny_drawings	VIEWER_INCREMENTAL=1	2	39255	11	148560	nondet(splat)
+cloud_mix	default	1	7593	11	210892	nondet(splat)
+cloud_mix	default	2	7593	11	210892	nondet(splat)
+cloud_mix	VIEWER_LINE_STYLE=tubes	1	7579	10	210892	nondet(splat)
+cloud_mix	VIEWER_LINE_STYLE=tubes	2	7579	10	210892	nondet(splat)
+cloud_mix	VIEWER_REBUILD=1	1	7593	11	210892	nondet(splat)
+cloud_mix	VIEWER_REBUILD=1	2	7593	11	210892	nondet(splat)
+cloud_mix	VIEWER_INCREMENTAL=1	1	7593	11	210892	nondet(splat)
+cloud_mix	VIEWER_INCREMENTAL=1	2	7593	11	210892	nondet(splat)
+lidar14	default	1	3797	4	1	nondet(splat)
+lidar14	default	2	3797	4	1	nondet(splat)
+lidar14	VIEWER_LINE_STYLE=tubes	1	3797	4	1	nondet(splat)
+lidar14	VIEWER_LINE_STYLE=tubes	2	3797	4	1	nondet(splat)
+lidar14	VIEWER_REBUILD=1	1	3797	4	1	nondet(splat)
+lidar14	VIEWER_REBUILD=1	2	3797	4	1	nondet(splat)
+lidar14	VIEWER_INCREMENTAL=1	1	3797	4	1	nondet(splat)
+lidar14	VIEWER_INCREMENTAL=1	2	3797	4	1	nondet(splat)

@@ -1,6 +1,6 @@
 # Kernel gaps the viewer tutorials exposed
 
-Writing lessons 01–77 meant pressure-testing the kernel API from a consumer's seat. Every place a
+Writing lessons 1–77 meant pressure-testing the kernel API from a consumer's seat. Every place a
 tutorial had to *work around* the kernel instead of *calling* it is recorded here — ranked by how
 much viewer code the kernel fix would delete. Two are already fixed; the rest are proposals.
 

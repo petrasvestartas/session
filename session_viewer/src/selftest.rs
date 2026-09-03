@@ -140,7 +140,7 @@ pub fn render_scene(files: &[(&str, Xform, f32, bool)], w: u32, h: u32, out: &st
     // The facing test depends on this being the real camera, so check it against the camera the
     // frame was actually built from - anchored world units, the space the instance table uses.
     {
-        let solved = Gpu::eye_from_view_proj(&view_proj);
+        let solved = crate::math::eye_from_view_proj(&view_proj);
         let sc = camera.unit.to_meters();
         let truth = [0usize, 1, 2].map(|k| ((camera.position[k] / sc) - anchor[k]) as f32);
         let err = (0..3).map(|k| (solved[k] - truth[k]).powi(2)).sum::<f32>().sqrt();
@@ -168,6 +168,24 @@ pub fn render_scene(files: &[(&str, Xform, f32, bool)], w: u32, h: u32, out: &st
 
     let rgba = gpu.render_offscreen(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj);
     write_ppm(out, &rgba, w, h).expect("write ppm");
+
+    // VIEWER_PICK="x,y": what point is under that pixel, read from the id target the point pass
+    // wrote. Prints the row and whether the colour there is background, so a wrong answer is
+    // visible rather than plausible.
+    if let Ok(v) = std::env::var("VIEWER_PICK") {
+        let mut it = v.split(',').filter_map(|t| t.trim().parse::<u32>().ok());
+        if let (Some(px), Some(py)) = (it.next(), it.next()) {
+            let i = ((py.min(h - 1) * w + px.min(w - 1)) * 4) as usize;
+            let bg = rgba[i] >= 200 && rgba[i + 1] >= 200 && rgba[i + 2] >= 200;
+            match gpu.pick_point(px, py).and_then(|r| gpu.cloud_row_of(r).map(|c| (r, c))) {
+                Some((row, (inst, local))) => match scene.point_at(inst, local) {
+                    Some(p) => println!("pick: ({px},{py}) row={row} doc='{}' instance={} local={} id={} pos=({:.0}, {:.0}, {:.0}) bg={bg}", p.doc, p.instance, p.local, p.id, p.local_pos[0], p.local_pos[1], p.local_pos[2]),
+                    None => println!("pick: ({px},{py}) row={row} instance={inst} local={local} pos=UNRESOLVED bg={bg}"),
+                },
+                None => println!("pick: ({px},{py}) nothing bg={bg}"),
+            }
+        }
+    }
 
     let ink = rgba.chunks_exact(4).filter(|p| p[0] < 200 || p[1] < 200 || p[2] < 200).count();
     format!(

@@ -55,6 +55,20 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 - C++: never `#include "tolerance.h"` in production code. Use `std::cout << point` not manual coords.
 - Rust: `use crate::tolerance::{TOLERANCE, PI};` at top. Geometry imports inside MINI_TEST blocks.
 
+## Viewer Lesson Docs (session_viewer/docs/NN-*.md)
+- EVERY edit is a **Find** / **Replace with** pair in fenced blocks. NEVER narrate an edit
+  ("first the tail of the file holds...", "then change X to Y"). Prose says WHY; a block says WHAT.
+  Inline code-span form (``**Find** `x` and **Replace with:** `y` ``) is banned — always fenced.
+- Prose is bullets, not paragraphs. Lead with the consequence, not the mechanism: "a 431 MB
+  cloud crashes the tab" before "bounded wasm heap".
+- Never anchor on a comment or a wrapped multi-arg signature — the reader retypes those.
+  Anchor one code line and **Add below it**.
+- No tree-reconciliation ceremony. Whitespace/comment-only steps that exist so a hand-typed
+  tree matches the doc's tree do not belong in a lesson; fix the source instead.
+- Numbers are measured or absent. Never invent one, never carry one over unverified.
+- `python3 docs/_replay_check.py --audit docs/*.md` must show 0 orphaned blocks.
+  NEVER run the replay form with `.` as the source tree — it writes into the live tree.
+
 ## Custom Commands
 - `/new-class <name>` — full checklist for adding a new geometry class
 - `/build` — all build/test/git commands

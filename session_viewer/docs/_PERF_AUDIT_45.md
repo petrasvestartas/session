@@ -1,6 +1,6 @@
-# Performance and memory audit of the end-of-45 viewer — ranked synthesis
+# Performance and memory audit of the end-of-44 viewer — ranked synthesis
 
-Measured on the end-of-45 tree (`base45`), native harness, Intel iGPU (RPL-S) via
+Measured on the end-of-44 tree (`base45`), native harness, Intel iGPU (RPL-S) via
 `PowerPreference::LowPower` unless stated; every number taken at least twice. Full evidence:
 `audit_{cpu-memory,gpu-memory,frame-cpu,gpu-frame,load-path}.md`, census in `census_*.md`.
 Verification: 5 skeptic passes completed (gpu-memory 1,2,3,5,9: all CONFIRMED with corrected
@@ -10,7 +10,7 @@ the instance re-upload, the continuous redraw).
 
 Ranking is by cost on a weaker machine: a laptop iGPU at 2560x1440 DPR2 with 8 GB RAM.
 
-## A. Fixed in the refactor (lesson 51 unless noted) — ranked
+## A. Fixed in the refactor (lesson 50 unless noted) — ranked
 
 | # | finding | measured | fix | pixels |
 |---|---|---|---|---|

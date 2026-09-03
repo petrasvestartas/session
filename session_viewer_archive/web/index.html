@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session Viewer</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="toolbar">
+      <span id="session-name">—</span>
+      <label id="upload-btn">
+        Load JSON
+        <input type="file" id="file-input" accept=".json" hidden />
+      </label>
+    </header>
+    <div id="main-container">
+      <aside id="tree-panel">
+        <div id="tree-root"></div>
+      </aside>
+      <div id="divider"></div>
+      <main id="graph-panel">
+        <svg id="graph-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </main>
+    </div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

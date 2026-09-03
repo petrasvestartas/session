@@ -1662,7 +1662,7 @@ Two things follow. First, `trunk serve` builds UNOPTIMIZED wasm — 5-9× slower
 exactly this code — so judge load times with `trunk serve --release` and use the dev build only
 for iterating. Second, making the viewer stay interactive DURING a load needs the walk to become
 resumable (a job with a cursor, stepped a few ms per frame from `RedrawRequested`) and the upload
-to become append-only, which is lesson 48a's arena. Both are out of scope here: this lesson's
+to become append-only, which is lesson 47a's arena. Both are out of scope here: this lesson's
 contract is a first sheet on screen in seconds and whole documents appearing one at a time.
 
 ## Memory honesty

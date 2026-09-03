@@ -19,11 +19,11 @@ Legend: ✅ typed · ▶ next to type · ⬜ written, not yet typed.
 
 - ✅ 34a-34h load a file, walk a session, many files, flat linework, camera UX, colours and widths
 - ✅ 35 the scene struct
-- ✅ 36-43 the cloud lane: tables, memory, append-only, big scenes, compute splatting, the Potree
+- ✅ 36-42 the cloud lane: tables, memory, append-only, big scenes, compute splatting, the Potree
   look, normals, scenes
 - ▶ 44 streaming a cloud by HTTP range · ⬜ 45 the octree LOD (`docs/45_cloud_octree/` is the end state)
 
-## Phase 5 — the ground refactor (46-51) ⬜
+## Phase 5 — the ground refactor (45-50) ⬜
 
 Same viewer, same pixels, split into ~45 files with a struct for every group of inputs, a
 docstring on every function, almost no closures, and a measured performance pass. `Gpu` goes

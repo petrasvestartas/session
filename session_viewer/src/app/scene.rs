@@ -104,11 +104,27 @@ use std::collections::{HashMap, HashSet};
 use session_rust::{Session, Geometry, Mesh, Line, Point, Polyline, NurbsCurve, RenderVertex, Plane, OBB, PointCloud, Vector, Tolerance};
 use session_rust::element::ElementGeometry;
 use session_rust::mesh::ColorMode;
-use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint, Mat4, mat_mul};
+use crate::math::{grow_bounds, mat_mul, xform_point};
+use crate::engine::gpu::{ArenaUpload, Instance, CylinderSegment, GlyphPoint};
 
 /// One loaded file: the kernel `Session`
 /// kept alive - picking/undo/save need this
 /// plus the placement the manifest gave it
+/// What a pick resolved to. `local_pos` is in the cloud's own coordinates - apply the
+/// instance's placement to get world.
+#[derive(Clone, Debug)]
+pub struct PickedPoint {
+    pub doc: String,       // the file it came from
+    pub guid: String,      // the GEOMETRY's id - the same for two placements of one file
+    pub instance: u32,     // which placement: this is what distinguishes them
+    pub local: u32,        // index within that cloud, valid only for this file version
+    /// STABLE across re-exports: `build_lod` permutes the points but carries the ids with them,
+    /// so this is what a saved selection should record. `local` is not - the same point in one
+    /// test cloud was row 118514 before a tree was attached and 248274 after.
+    pub id: u32,
+    pub local_pos: [f64; 3],
+}
+
 pub struct Doc{
     pub name: String,
     pub place: Xform,
@@ -201,6 +217,41 @@ impl Scene{
     /// session (280 MB on a 13.8 M-point scan), and having that copy is exactly what let the ink
     /// and cloud lanes rebuild their whole buffer per file instead of appending. Keep only the
     /// running bases, so the next file's indices still land in the right place.
+    /// The document, guid and LOCAL coordinates of a picked point: feed it what `Gpu::cloud_row_of` gave
+    /// back. Returns the point straight out of the kernel `PointCloud`, so a pick lands on a
+    /// real object the rest of the kernel can work with, not just a row number.
+    ///
+    /// Hands back BOTH identities: `local` addresses the point in this file version, `id`
+    /// survives a re-export. Record the id, not the index.
+    ///
+    /// The GUID names the GEOMETRY, not the placement: the same file loaded twice answers with
+    /// one guid for both copies, so `instance` is what tells them apart - it is the row the
+    /// cloud draws against, and `doc` names the file it came from.
+    ///
+    /// `None` when the cloud was released (`display_only`) or the row is out of range. It is
+    /// also `None` for a cloud that only ever reached the GPU - which is why a caller that must
+    /// work for streamed clouds should keep the POSITION this returns, not the index.
+    pub fn point_at(&self, instance: u32, local: u32) -> Option<PickedPoint> {
+        let guid = self.order.get(instance as usize)?.clone();
+        for doc in &self.docs {
+            if let Some(session_rust::Geometry::PointCloud(pc)) = doc.session.lookup.get(&guid) {
+                let c = pc.coords();
+                let i = local as usize * 3;
+                if i + 2 < c.len() {
+                    return Some(PickedPoint {
+                        doc: doc.name.clone(),
+                        guid,
+                        instance,
+                        local,
+                        id: pc.point_id(local as usize),
+                        local_pos: [c[i], c[i + 1], c[i + 2]],
+                    });
+                }
+            }
+        }
+        None
+    }
+
     pub fn upload_to(&mut self, gpu: &mut crate::engine::gpu::Gpu) {
         gpu.set_scene(&self.tables);
         self.vert_base += self.tables.verts.len() as u32;
@@ -219,6 +270,7 @@ impl Scene{
         drop_rows(&mut t.cloud_col);
         drop_rows(&mut t.cloud_nrm);
         drop_rows(&mut t.cloud_draws);
+        drop_rows(&mut t.cloud_nodes);
         // `objects`, `object_bounds` and `object_spacing` STAY: they are per-object rows the
         // instance table is rebased from every time the camera re-anchors, and the walk indexes
         // them by global row - they are the one table the GPU is not the only holder of.
@@ -339,7 +391,32 @@ impl Scene{
                     // cumulative while `cloud_pos` is only this upload's delta.
                     let first = cb + (t.cloud_pos.len() / 3) as u32;
                     push_cloud(pc, &mut t.cloud_pos, &mut t.cloud_col, &mut t.cloud_nrm);
-                    t.cloud_draws.push((first, pc.len() as u32, ri, cloud_spacing(pc)));
+                    // The octree came WITH the file (PointCloud::build_lod, written offline by
+                    // examples/add_lod.rs). Points are already in node order, so a node is one
+                    // contiguous range and nothing has to be sorted or built here.
+                    let node_first = t.cloud_nodes.len() as u32;
+                    for k in 0..pc.lod_node_count() {
+                        let (c, size) = pc.lod_cube(k);
+                        let (nf, nc) = pc.lod_range(k);
+                        let mut children = [-1i32; 8];
+                        for (slot, v) in pc.lod_children(k).into_iter().enumerate().take(8) { children[slot] = v; }
+                        t.cloud_nodes.push(crate::engine::gpu::LodNode {
+                            center: [c[0] as f32, c[1] as f32, c[2] as f32],
+                            size: size as f32,
+                            spacing: pc.lod_spacing(k) as f32,
+                            first: nf as u32,
+                            count: nc as u32,
+                            children,
+                        });
+                    }
+                    t.cloud_draws.push(crate::engine::gpu::CloudDraw {
+                        first,
+                        count: pc.len() as u32,
+                        instance: ri,
+                        spacing: cloud_spacing(pc),
+                        node_first,
+                        node_count: pc.lod_node_count() as u32,
+                    });
                     let px = if cloud_px > 0.0 { cloud_px } else { pc.point_size as f32 };
                     t.object_bounds.push(None);
                     t.object_spacing.push(px);
@@ -434,7 +511,7 @@ impl Scene{
             }
         }
 
-        for &(first, count, inst, _) in t.cloud_draws.iter().skip(draw0){
+        for &crate::engine::gpu::CloudDraw { first, count, instance: inst, .. } in t.cloud_draws.iter().skip(draw0){
             let Some((xf, _, _)) = t.objects.get(inst as usize) else { continue };
             // `first` is absolute; `cloud_pos` starts at `cb`.
             for i in (first - cb) as usize..(first - cb + count) as usize {
@@ -1175,23 +1252,6 @@ fn drop_rows<T>(v: &mut Vec<T>) {
     v.shrink_to_fit();
 }
 
-pub fn xform_point(m: &Mat4, p: [f32; 3]) -> [f32; 3] {
-    let x = p[0] as f64;
-    let y = p[1] as f64;
-    let z = p[2] as f64;
-    [
-        (m[0] * x + m[4] * y + m[8] * z + m[12]) as f32,
-        (m[1] * x + m[5] * y + m[9] * z + m[13]) as f32,
-        (m[2] * x + m[6] * y + m[10] * z + m[14]) as f32,
-    ]
-}
-
-fn grow_bounds(min: &mut [f32; 3], max: &mut [f32; 3], p: [f32; 3]) {
-    for k in 0..3 {
-        min[k] = min[k].min(p[k]);
-        max[k] = max[k].max(p[k]);
-    }
-}
 
 /// A plane is infinite - draw a fix sqzare around its origin, spanned by its x/y axes
 /// Half-extent in world mm (a 1 m quare)
@@ -1287,26 +1347,36 @@ fn push_cloud(pc: &PointCloud, pos: &mut Vec<f32>, col: &mut Vec<u32>, nrm: &mut
 /// honest estimate of the clouds's point spacing (world units).
 /// Potree gets the same number from its octree, we sample it.
 /// Drives the attenuated world-sized splat radius.
+/// The cloud's point spacing, for the splat radius: a DENSITY estimate from the bounding box
+/// and the point count, `sqrt(area / n)` over the two longest edges - a scan samples a surface,
+/// not a volume.
+///
+/// It replaces a median of the gaps between points CONSECUTIVE IN STORAGE. That measured how
+/// the file happened to be ordered, not how far apart the points are: on the lion it reported
+/// 468.8 where the true pitch is 8.7, a 54x overestimate, because the file is not in spatial
+/// order. Worse, it moved whenever storage moved - so merely embedding an octree (which
+/// reorders the points) changed the rendered image with LOD switched off.
+///
+/// Density is invariant to both: reorder the file, attach a tree, split it differently - the
+/// answer is the same, because it only reads the box and the count.
 fn cloud_spacing(pc: &PointCloud) -> f32{
     let c = pc.coords();
     let n = pc.len();
     if n < 2 {
         return 20.0;
     }
-    let step = (n / 1024).max(1);
-    let mut d: Vec<f64> = Vec::with_capacity(1024);
-    let mut i = 0;
-    while i + 1 < n {
-        let  (a, b) = (i * 3, (i + 1) * 3);
-        let dd = (c[a] - c[b]).powi(2) + (c[a + 1] - c[b + 1]).powi(2) + (c[a + 2] - c[b + 2]).powi(2);
-        if dd> 0.0 {
-            d.push(dd.sqrt());
+    let (mut lo, mut hi) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
+    for p in c.chunks_exact(3) {
+        for k in 0..3 {
+            lo[k] = lo[k].min(p[k]);
+            hi[k] = hi[k].max(p[k]);
         }
-        i += step;
     }
-    if d.is_empty() {
+    let mut e = [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]];
+    e.sort_by(|a, b| b.partial_cmp(a).unwrap());
+    let area = e[0] * e[1];
+    if area <= 0.0 || !area.is_finite() {
         return 20.0;
     }
-    d.sort_by(|x, y| x.partial_cmp(y).unwrap());
-    d[d.len() / 2] as f32
+    (area / n as f64).sqrt() as f32
 }

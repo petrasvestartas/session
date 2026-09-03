@@ -566,7 +566,7 @@ costs nothing.) And in `examples/selftest.rs`, the manifest gate
 `if p.ends_with(".json")` gains `|| p.ends_with(".toml")`.
 
 The commented file already ships as `assets/scenes/bunny_drawings.toml`, so point the default
-at it — lessons [42](42-cloud-normals.md) and [43](43-cloud-scenes.md) both edit that file as
+at it — lesson [42](42-cloud-normals.md) edits that file as
 TOML. In `src/lib.rs`, **find**:
 
 ```rust

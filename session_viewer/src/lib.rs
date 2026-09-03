@@ -11,6 +11,7 @@
 mod engine;
 mod state;
 mod camera;
+pub mod math;
 pub mod app; // App layer for file loading
 #[cfg(not(target_arch = "wasm32"))]
 pub mod selftest; // headless render harness - see src/selftest.rs
@@ -23,34 +24,33 @@ use crate::app::live::LiveSource;
 #[cfg(target_arch = "wasm32")]
 use crate::{camera::View, app::scene::Scene};
 
-// The scene: which sheets, and where each one sits.
-// Fetched at runtime, so re-arringing the scene is a text edit in assets/scenes, not rebuild (app/scene.rs)
-const DEMO_SCENE_URL: &str = "scenes/bunny_drawings.toml";
-// const DEMO_SCENE_URL: &str = "scenes/cloud_mix.toml"; // was bunny_drawings.json
-
-/// The manifest to load: `?scene=<path under assets/>` when the page supplies one, else
-/// [`DEMO_SCENE_URL`]. One build can therefore serve many scenes - the docs embed a single
-/// 7.7 MB wasm in an iframe per example and vary only the query string.
+/// The scene comes from ONE of exactly two places, and nothing is compiled in:
+///
+///   * the LIVE source (`app/live.rs`) - the default. Manifest and `.pb` both read from the
+///     `session_viewer_data` branch; `assets/scenes/` is never opened.
+///   * `?scene=<path under assets/>` - one pinned local manifest, which turns the live source off.
+///
+/// This returns the second: `Some(path)` when the page asked for one, `None` otherwise. A page
+/// that asks for neither (`?live=off` with no `?scene=`) comes up as an empty grid — there is no
+/// built-in scene to fall back to, on purpose, because a hard-coded third answer is how the two
+/// real ones drifted out of sync in the first place.
 ///
 /// The value is a path under `assets/`, exactly like a manifest's own `file` entries. It is
 /// rejected unless it stays inside that tree: an absolute URL, a scheme, or any `..` segment
 /// would let a page point the viewer at another origin.
-fn scene_url() -> String {
-    fn from_query() -> Option<String> {
-        let search = web_sys::window()?.location().search().ok()?;
-        let raw = search.strip_prefix('?')?;
-        let value = raw
-            .split('&')
-            .find_map(|pair| pair.strip_prefix("scene="))?;
-        let decoded = js_sys::decode_uri_component(value).ok()?.as_string()?;
-        let safe = !decoded.is_empty()
-            && !decoded.starts_with('/')
-            && !decoded.contains("//")
-            && !decoded.contains(':')
-            && !decoded.split('/').any(|seg| seg == "..");
-        safe.then_some(decoded)
-    }
-    from_query().unwrap_or_else(|| DEMO_SCENE_URL.to_string())
+fn scene_url() -> Option<String> {
+    let search = web_sys::window()?.location().search().ok()?;
+    let raw = search.strip_prefix('?')?;
+    let value = raw
+        .split('&')
+        .find_map(|pair| pair.strip_prefix("scene="))?;
+    let decoded = js_sys::decode_uri_component(value).ok()?.as_string()?;
+    let safe = !decoded.is_empty()
+        && !decoded.starts_with('/')
+        && !decoded.contains("//")
+        && !decoded.contains(':')
+        && !decoded.split('/').any(|seg| seg == "..");
+    safe.then_some(decoded)
 }
 
 /// Async init - event-loop messages.
@@ -87,7 +87,10 @@ pub fn reload_scene(url: Option<String>) {
         log::warn!("reload_scene: viewer is not running yet");
         return;
     };
-    let url = url.unwrap_or_else(scene_url);
+    let Some(url) = url.or_else(scene_url) else {
+        log::warn!("reload_scene: no manifest given and the page has no `?scene=` - nothing to reload");
+        return;
+    };
     wasm_bindgen_futures::spawn_local(async move {
         let _ = proxy.send_event(Msg::Clear);
         load_manifest(url, move |name, session, place, px, only| {
@@ -176,15 +179,16 @@ impl App {
     }
 }
 
-/// Start-up path for the built-in scene (`?scene=` or the demo). Builds `State` around the
-/// first file that loads and streams the rest as `Msg::File`. Returns whether a `State` was sent.
+/// Start-up path for the pinned local scene: the `?scene=` manifest under `assets/`. Reached only
+/// when the live source declined the page, which `?scene=` itself is one of the two ways to do.
+/// Builds `State` around the first file that loads and streams the rest as `Msg::File`. Returns
+/// whether a `State` was sent.
 #[cfg(target_arch = "wasm32")]
-async fn demo_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc<Window>) -> bool {
-    // fetsch_start is eager: the brwoser request for file n+1 is in flight while file n parses
-    // and progressive - ready after the first file, every later streams in as a Msg::File
+async fn local_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc<Window>, scene_url: &str) -> bool {
+    // fetch_start is eager: the browser request for file n+1 is in flight while file n parses,
+    // and progressive - ready after the first file, every later one streams in as a Msg::File
     let t0 = crate::engine::performance::now_ms();
-    let scene_url = scene_url();
-    let manifest_bytes = persistence::fetch_bytes(&scene_url).await.unwrap_or_default();
+    let manifest_bytes = persistence::fetch_bytes(scene_url).await.unwrap_or_default();
     let manifest = match Manifest::parse_verbose(&manifest_bytes) {
         Ok(m) => m,
         Err(e) => { log::error!("cannot read the scene manifest at {scene_url}: {e}"); return false; }
@@ -275,22 +279,21 @@ impl ApplicationHandler<Msg> for App {
                         // `Ready` framed the first file only; frame everything the manifest listed.
                         if sent_ready { let _ = proxy.send_event(Msg::Fit); }
                     }
-                    if !sent_ready {
-                        // Come up as an empty grid rather than as something else's geometry. A
-                        // live page must not depend on there being anything to show at boot:
-                        // the source may be empty, unreachable or mid-push, and the poll loop
-                        // below fills the scene in as soon as it is readable. Swapping a scene
-                        // in is `Clear` + `File` + `Fit` on the running State - the canvas, the
-                        // GPU device and the camera all survive it, so this window is built
-                        // once however many times the geometry changes afterwards.
-                        let state = State::new(window.clone(), Scene::new()).await.expect("State init failed");
-                        let _ = proxy.send_event(Msg::Ready(Box::new(state)));
-                        sent_ready = true;
-                    }
                 }
-                // No live source (`?live=off`, or a pinned `?scene=`): the built-in scene.
+                // The other source: one pinned manifest from `assets/`, which is also what turned
+                // the live source off. No `?scene=` means there is simply nothing local to load.
+                if !sent_ready && let Some(url) = scene_url() {
+                    sent_ready = local_scene(&proxy, window.clone(), &url).await;
+                }
+                // Neither source produced geometry - a missing branch, a mid-push commit, a bad
+                // `?scene=`, or a page that asked for neither. Come up as an empty grid anyway:
+                // the window, the GPU device and the camera are built ONCE, and a scene arriving
+                // later (the poll below, or `reload_scene`) is `Clear` + `File` + `Fit` on top of
+                // them. A viewer that renders nothing until it has geometry is a viewer that
+                // renders nothing when the geometry is late.
                 if !sent_ready {
-                    demo_scene(&proxy, window.clone()).await;
+                    let state = State::new(window.clone(), Scene::new()).await.expect("State init failed");
+                    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
                 }
                 let Some(mut src) = live else { return };
                 // Poll: a changed manifest re-fetches every listed file; the scene is swapped

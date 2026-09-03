@@ -1,8 +1,8 @@
-# session_viewer — Architecture (end of lesson 51)
+# session_viewer — Architecture (end of lesson 50)
 
 A browser-only (wasm32, WebGPU/wgpu 29 + winit 0.30) viewer over `session_rust::Session`: a thin
 shell that turns kernel geometry into GPU rows and draws them, on demand. This is the map of the
-tree as it IS after the ground refactor (lessons 46-51); `docs/_ROADMAP.md` is the map of what comes next.
+tree as it IS after the ground refactor (lessons 44-50); `docs/_ROADMAP.md` is the map of what comes next.
 
 ## 0. The first hour — where anything is
 
@@ -171,7 +171,7 @@ structs) and once per frame for the camera (`Xform::to_f32`). Large scenes stay 
 rows are rebased about an anchor in f64 and only the small offset is cast. Never `as f32` inside
 a computation that feeds more math.
 
-## 5. What lesson 51 measured (both runs, load average in CHANGES.md)
+## 5. What lesson 50 measured (both runs, load average in CHANGES.md)
 
 | item | before | after |
 |---|---|---|

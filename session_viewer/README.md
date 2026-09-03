@@ -45,7 +45,7 @@ Open http://localhost:8770 in a WebGPU browser. Edits under `src/`, `Cargo.toml`
 
 ## Read the docs (build-log lessons)
 
-The step-by-step lessons that build this viewer up (`01-run` → `45-cloud-octree`, then the
+The step-by-step lessons that build this viewer up (`01-run` → `44-cloud-octree`, then the
 refactor block `46` → `51`) live in
 `docs/` as a self-contained static site — no build step, no `session_tests` dependency.
 

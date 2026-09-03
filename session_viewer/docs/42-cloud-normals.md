@@ -451,7 +451,7 @@ cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- \
 
 The octree. Potree preprocesses (PotreeConverter) into a multi-res hierarchy and streams
 nodes by screen-space error under a point budget — that is both its unbounded scale AND
-its uniform on-screen density. Lesson [45](45-cloud-octree.md) builds exactly that for
+its uniform on-screen density. Lesson [43](44-cloud-octree.md) builds exactly that for
 the WALKED lane, on the kernel's own `SpatialOctree`.
 
 ## Expected state
@@ -467,6 +467,29 @@ the WALKED lane, on the kernel's own `SpatialOctree`.
 
 ![bunny cloud closeup](img/40-bunny.png)
 
+
+## The numbers this chain ends on
+
+(The scene is `assets/scenes/cloud_mix.toml`: bunny, four sheets, the pen boxes and
+three scans at `point_size` 1 / 3 / 6 — three sizes on screen at once.)
+
+Intel RPL-S iGPU (Vulkan under BrowserWebGpu), 1332×927, rAF medians. The page was opened at
+`?scene=scenes/cloud_mix.toml` — a bare `http://localhost:8770/` watches the data branch now
+and shows whatever that branch lists, so it reproduces none of these rows:
+
+```
+        full scene, 7.5 M cloud points + 210k objects     presented fps
+        ─────────────────────────────────────────────     ─────────────
+        fit view, idle                                    60
+        fit view, orbiting                                60
+        fit view, wheel-zooming                           60
+        deep zoom inside a scan, orbiting                 60
+```
+
+The remaining known costs are NOT the clouds: the load-phase jank (1–3 fps while sheets
+parse) is the main-thread prost decode — lesson [43](43-streaming-cloud.md)'s territory —
+and the occasional 20 ms rebase blip is the 210k-object instance table, throttled to
+
 ## Next
 
-Lesson [43](43-cloud-scenes.md) — **Cloud scenes: datasets, bbox packing, and the stress test.** Several clouds in one frame, packed and measured.
+Lesson [43](43-streaming-cloud.md) — **Streaming cloud: HTTP Range in, GPU rows out.** A 431 MB file that never fits the heap, drawn while it downloads.
