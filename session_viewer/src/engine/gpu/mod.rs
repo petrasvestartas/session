@@ -166,14 +166,19 @@ pub const SPLAT_MAX_RECS: usize = 4096;
 /// `VIEWER_LOD` (native) / `?lod=` (web): pixels of projected node spacing to descend past.
 /// 0 turns the octree walk off and draws every cloud whole.
 ///
-/// DEFAULT 4, measured. The walk runs per frame and emits one record per selected node instead
-/// of one per cloud, which was worth avoiding while each record recomputed the cloud's `mvp x
-/// model` - that product is now hoisted, and what is left is a few thousand cube tests. On the
-/// 13.8 M scan, spinning, all points resident: 60 fps with the walk against 48 without it
-/// (16.7 ms vs 20.5), drawing 1601 points of 2 M at the fit view. A cloud the camera is close
-/// to descends to raw leaves and is pixel-identical, so the walk costs nothing it does not
-/// save. 4 px of projected spacing is where a node stops being distinguishable from its parent.
-const LOD_DEFAULT_PX: f32 = 4.0;
+/// DEFAULT 0 = OFF, and the reason is motion, not throughput.
+///
+/// The walk is a clear win on numbers: the 13.8 M scan spinning holds 60 fps with it against 48
+/// without (16.7 ms vs 20.5), drawing 1601 points for more ink than all 13.8 M (5711 vs 3797,
+/// once nodes tile - see the coverage floor). But a node's splat radius comes from ITS spacing,
+/// and turning the camera walks nodes across the pixel threshold, so points visibly change size
+/// as the view moves. Constant quality during motion outranks frame rate here: a viewer that
+/// re-sizes its geometry while you orbit is worse than one that draws fewer points.
+///
+/// Turn it on with `?lod=4` when a still frame of a huge cloud matters more than a steady one.
+/// Making it the default needs the radius decoupled from the node level, so descending only
+/// ADDS points and never resizes the ones already on screen.
+const LOD_DEFAULT_PX: f32 = 0.0;
 
 /// Clouds smaller than this draw WHOLE, whatever `lod_px` says.
 ///

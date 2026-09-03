@@ -1,0 +1,45 @@
+# The one scene a local `trunk serve` shows, and the only manifest read from this origin.
+#
+# Its files are the `view_local_*` set under assets/pb/ - a working copy that is uploaded
+# nowhere, so a laptop with no network still has geometry to draw. Every OTHER scene is named
+# with `?scene=` and comes from the bucket, which is what keeps a laptop and the deployed page
+# rendering the same bytes.
+#
+# One of each lane on purpose: a box set, a mesh, flat sheet linework and a cloud, so a
+# rendering change shows up here whatever it touched.
+#
+# PLACEMENT IS IN MILLIMETRES, and the numbers below are the ones the sheets were authored
+# against - the sheet row sits 4 m out in +y, the cloud 3 m out in -x. Spacing them by single
+# millimetres instead stacks all five on the origin, where the only visible one is whichever
+# draws last. The bunny additionally needs its `xform`: the mesh is authored about 0.2 units
+# across, so at native scale it is sub-millimetre and invisible next to a 3 m sheet - the 12845
+# factor is what brings it up to the size of everything else.
+name = "local working copy"
+
+[[items]]  # pen reference: 3 boxes + polyline + point
+file = "pb/view_local_boxes.pb"
+name = "boxes"
+at = [0, 0, 0]
+
+[[items]]  # the solid-lane stress: 35,947 v / 69,451 tri
+file = "pb/view_local_bunny.pb"
+name = "bunny"
+xform = [12845,0,0,0,  0,0,12845,0,  0,-12845,0,0,  3000,0,600,1]
+
+[[items]]  # flat-ink row at y = 4000
+file = "pb/view_local_sheet_querschnitt.pb"
+name = "querschnitt"
+at = [0, 4000, 0]
+display_only = true   # a sheet is looked at, never picked: release the kernel document after the walk
+
+[[items]]
+file = "pb/view_local_sheet_treppenhaus.pb"
+name = "treppenhaus"
+at = [3000, 4000, 0]
+display_only = true   # a sheet is looked at, never picked: release the kernel document after the walk
+
+[[items]]  # the splat lane: 342k points with colors + normals
+file = "pb/view_local_lion.pb"
+name = "lion"
+at = [-3000, 0, 2000]
+point_size = 4

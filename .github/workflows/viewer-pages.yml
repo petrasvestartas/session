@@ -41,11 +41,19 @@ jobs:
         run: rustup target add wasm32-unknown-unknown
       - name: Install trunk
         run: curl -sL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf- -C "$HOME/.cargo/bin"
+      # `assets/pb` is the LOCAL scene's geometry - untracked, and deliberately not deployed:
+      # the published page reads its scene from R2, never from here. index.html still copies the
+      # directory, so it has to exist; empty is exactly right.
       - name: Build
-        run: cd session_viewer && trunk build --release
+        run: cd session_viewer && mkdir -p assets/pb && trunk build --release
       # Scene data is NOT deployed with the site. The page reads it from the session-viewer-data
       # bucket on Cloudflare R2 (session_viewer/src/app/live.rs), so publishing geometry is an
       # upload to that bucket and nothing here has to run.
+      # THE SHORT URLS NEED THIS. `/session/view_lines` is one page routing on its path, but
+      # Pages only serves a file that exists - and for one that does not it serves 404.html.
+      # Making that a copy of the built index.html is what turns a 404 into the viewer.
+      - name: Serve any path with the app (short scene URLs)
+        run: cp session_viewer/dist/index.html session_viewer/dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: session_viewer/dist

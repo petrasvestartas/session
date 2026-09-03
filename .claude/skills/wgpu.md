@@ -39,7 +39,7 @@ All features below are researched. Use when the time comes to implement each.
 
 ```bash
 cargo install trunk
-trunk serve           # dev server + hot reload at localhost:8080
+trunk serve           # dev server + hot reload at localhost:8770
 trunk build --release
 ```
 

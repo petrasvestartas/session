@@ -40,8 +40,21 @@ cd session_viewer
 trunk serve        # → http://localhost:8770
 ```
 
-Open http://localhost:8770 in a WebGPU browser. Edits under `src/`, `Cargo.toml` and
-`index.html` hot-reload.
+Open http://localhost:8770 in a WebGPU browser. That shows the LOCAL scene and nothing else:
+`assets/view_local.toml` and the five `assets/pb/view_local_*.pb` it names, served by trunk, so
+the page works with the network off. Edit the manifest and reload - trunk re-copies it, no
+rebuild. Edits under `src/`, `Cargo.toml` and `index.html` hot-reload.
+
+Every other scene lives in the Cloudflare R2 bucket `session-viewer-data` and is opened by name,
+from the bucket, never from `assets/`:
+
+```
+http://localhost:8770/?scene=scenes/view_lines.toml
+```
+
+The deployed page at https://petrasvestartas.github.io/session/ takes neither of those: with no
+query it watches `view_live.toml` in the bucket and re-reads it every poll, so publishing
+geometry (`bash/view_live.sh`) redraws it without a build or a deploy.
 
 ## Read the docs (build-log lessons)
 

@@ -116,14 +116,18 @@ pub fn data_base() -> String {
     if base.ends_with('/') { base } else { base + "/" }
 }
 
-/// The URL a manifest entry actually resolves to. An entry that already names a host is used as
-/// it stands; every other one hangs off `data_base()`, which with an empty base is byte for byte
-/// the page-relative path the viewer has always fetched.
-pub fn asset_url(file: &str) -> String {
+/// `file` hung off `base`. An entry that already names a host is used as it stands; an empty
+/// base gives back the page-relative path unchanged, which is what the local scene wants.
+pub fn join(base: &str, file: &str) -> String {
     if file.starts_with("https://") || file.starts_with("http://") {
         return file.to_string();
     }
-    format!("{}{}", data_base(), file.trim_start_matches("./"))
+    format!("{}{}", base, file.trim_start_matches("./"))
+}
+
+/// The URL a manifest entry resolves to when it is being read from the bucket.
+pub fn asset_url(file: &str) -> String {
+    join(&data_base(), file)
 }
 
 // ── chunked parsing: convert the decoded proto in slices, yielding between them ──

@@ -24,9 +24,17 @@ fn main() {
             let bytes = std::fs::read(p).unwrap_or_else(|e| panic!("cannot read manifest {p}: {e}"));
             let man = session_viewer::app::scene::Manifest::parse(&bytes)
                 .unwrap_or_else(|| panic!("cannot parse manifest {p}"));
-            // Manifest paths are relative to the assets root, which is this file's grandparent.
-            let root = std::path::Path::new(p).parent().and_then(|d| d.parent())
-                .unwrap_or(std::path::Path::new(".")).to_path_buf();
+            // Manifest paths are relative to the assets root - the directory `pb/` sits in.
+            // That is the manifest's OWN directory for `assets/view_local.toml`, and its
+            // grandparent for the `assets/scenes/*.toml` layout this used to assume. Pick
+            // whichever actually holds the files instead of hard-coding one shape, or moving a
+            // manifest one level silently breaks every render with `could not read pb/...`.
+            let here = std::path::Path::new(p).parent().unwrap_or(std::path::Path::new("."));
+            let first = man.items.first().map(|i| i.file.clone()).unwrap_or_default();
+            let root = [here.to_path_buf(), here.join("..")]
+                .into_iter()
+                .find(|r| r.join(&first).exists())
+                .unwrap_or_else(|| here.to_path_buf());
             let count = man.items.len();
             for (i, item) in man.items.iter().enumerate() {
                 let place = item.placement()

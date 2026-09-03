@@ -75,7 +75,10 @@ python3 docs/_replay_check.py --render docs/*.md             # the lessons rende
 
 | knob | where | what |
 |---|---|---|
-| `?scene=` | loader | manifest path under `assets/`; default `scenes/bunny_drawings.toml` |
+| *(no query, localhost)* | loader | `view_local.toml` + `pb/view_local_*.pb`, served locally; the ONLY local scene, no network |
+| *(no query, deployed)* | live.rs | `view_live.toml` from the R2 bucket, re-read every poll |
+| `?scene=` | loader | manifest path IN THE BUCKET, e.g. `scenes/view_pointclouds.toml`; its files come from there too |
+| `?data=` | persistence.rs | override the base the `.pb` hang off; `off` forces this origin |
 | `?perf=1` / `VIEWER_PERF` | performance.rs, `State::render` | once-a-second fps line AND continuous rendering (benchmark mode) |
 | `?thickness=` / `VIEWER_THICKNESS` | view.rs | pen weight, px (default 2) |
 | `?msaa=` / `VIEWER_MSAA` | view.rs, targets.rs | force 4 = 4x, anything else 1x; unset = policy |

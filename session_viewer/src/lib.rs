@@ -18,18 +18,28 @@ pub mod selftest; // headless render harness - see src/selftest.rs
 
 pub use state::State;
 use crate::app::persistence;
+#[cfg(target_arch = "wasm32")]
 use crate::app::scene::{auto_grid, Manifest};
 #[cfg(target_arch = "wasm32")]
 use crate::app::live::LiveSource;
 #[cfg(target_arch = "wasm32")]
 use crate::{camera::View, app::scene::Scene};
 
-/// The scene comes from ONE of exactly two places, and nothing is compiled in:
+/// WHERE A SCENE COMES FROM. Three routes, and the URL alone decides which one runs:
 ///
-///   * the LIVE source (`app/live.rs`) - the default. Manifest and `.pb` both read from the
-///     `session-viewer-data` bucket on R2 (every key there starts with `view_`);
-///     `assets/scenes/` is never opened.
-///   * `?scene=<path under assets/>` - one pinned local manifest, which turns the live source off.
+///   * **no query, on localhost** - `view_local.toml` and `pb/view_local.pb`, both served by
+///     `trunk serve` out of `assets/`. NOTHING is fetched over the network, so a dev server
+///     works offline and shows the geometry being edited rather than what is published. It is
+///     the ONLY local scene; there is deliberately no second one to drift out of date.
+///   * **no query, anywhere else** - the LIVE source (`app/live.rs`): `view_live.toml` and the
+///     files it names, read from the `session-viewer-data` bucket on R2 and re-read every poll.
+///     This is what the deployed page shows.
+///   * **`?scene=<path>`** - that manifest AND its files from R2, never from this origin. Every
+///     scene but the local one lives in the bucket, so a named scene is the same bytes opened
+///     from a laptop or from the deployed page.
+///
+/// `?data=<https base>` overrides where the `.pb` come from and `?data=off` forces this origin;
+/// `?live=` overrides the live source.
 ///
 /// This returns the second: `Some(path)` when the page asked for one, `None` otherwise. A page
 /// that asks for neither (`?live=off` with no `?scene=`) comes up as an empty grid — there is no
@@ -39,6 +49,32 @@ use crate::{camera::View, app::scene::Scene};
 /// The value is a path under `assets/`, exactly like a manifest's own `file` entries. It is
 /// rejected unless it stays inside that tree: an absolute URL, a scheme, or any `..` segment
 /// would let a page point the viewer at another origin.
+/// The one scene a local `trunk serve` shows, and the only manifest ever read from this origin.
+/// Its geometry is `pb/view_local.pb`, uploaded nowhere - it is the local working copy.
+#[cfg(target_arch = "wasm32")]
+const LOCAL_SCENE: &str = "view_local.toml";
+
+#[cfg(target_arch = "wasm32")]
+/// A scene named by the PATH instead of the query: `/view_lines` means `?scene=view_lines.toml`.
+///
+/// The whole app is one page, so any path serves the same `index.html` - trunk's dev server does
+/// it already, and GitHub Pages needs `404.html` to be a copy of it (the deploy workflow makes
+/// one). That leaves the path free to name a scene, which is the short URL worth typing.
+///
+/// Only the LAST segment is read, so it works at the site root and under `/session/` alike. The
+/// same rules as `?scene=` apply: nothing that could point the viewer at another origin.
+#[cfg(target_arch = "wasm32")]
+fn path_scene() -> Option<String> {
+    let path = web_sys::window()?.location().pathname().ok()?;
+    let last = path.rsplit('/').next()?.to_string();
+    let safe = !last.is_empty()
+        && !last.ends_with(".html")
+        && !last.contains(':')
+        && last != ".."
+        && !last.starts_with('.');
+    safe.then_some(last)
+}
+
 fn scene_url() -> Option<String> {
     let search = web_sys::window()?.location().search().ok()?;
     let raw = search.strip_prefix('?')?;
@@ -52,6 +88,38 @@ fn scene_url() -> Option<String> {
         && !decoded.contains(':')
         && !decoded.split('/').any(|seg| seg == "..");
     safe.then_some(decoded)
+}
+
+/// A NAMED scene: its URL in the bucket, and the base its `file` entries hang off.
+///
+/// A named scene lives in the bucket ALWAYS - never on this origin - so it is the same bytes
+/// from a laptop and from the deployed page. The bucket is FLAT: one object per name, no
+/// prefixes, so `?scene=view_meshes.toml` is the whole path and a manifest names its geometry
+/// the same way.
+#[cfg(target_arch = "wasm32")]
+fn named_scene(path: &str) -> (String, String) {
+    // A BARE NAME MEANS `scenes/`. Every named scene lives in that one folder, so
+    // `?scene=view_lines.toml` and `?scene=scenes/view_lines.toml` are the same scene. Without
+    // this the short form asks the bucket ROOT, gets a 404, and the page comes up empty for a
+    // URL with nothing visibly wrong with it.
+    // `.toml` is implied, so `/view_lines` and `?scene=view_lines` both work.
+    let path = if path.contains('.') { path.to_string() } else { format!("{path}.toml") };
+    let path = if path.contains('/') { path } else { format!("scenes/{path}") };
+    (persistence::asset_url(&path), persistence::data_base())
+}
+
+/// The manifest to load and the base its `file` entries hang off, or `None` when this page has
+/// neither route (deployed, no `?scene=` - the live source answers instead).
+///
+/// A manifest and its files ALWAYS share a base: mixing them is how a local manifest ends up
+/// naming bucket geometry it cannot have meant.
+#[cfg(target_arch = "wasm32")]
+fn scene_route() -> Option<(String, String)> {
+    // `?scene=` first - an explicit query beats the address bar's path.
+    if let Some(path) = scene_url().or_else(path_scene) {
+        return Some(named_scene(&path));
+    }
+    crate::app::live::page_is_local().then(|| (LOCAL_SCENE.to_string(), String::new()))
 }
 
 /// Async init - event-loop messages.
@@ -68,6 +136,26 @@ pub enum Msg {
     /// The next chunk of a streamed cloud: its index in `Scene::streamed`, the points, their
     /// colours, and the point the cloud is resident up to once this is appended.
     CloudChunk(usize, Vec<f32>, Vec<u32>, u32),
+    /// A streamed cloud that is NOT the first file on screen. It cannot be added by the loader
+    /// the way the first one is, because its index in `Scene::streamed` - which every later
+    /// chunk is addressed by - exists only once the live scene has taken it.
+    StreamedCloud(Box<StreamedInit>),
+}
+
+/// Everything `Scene::add_streamed_cloud` needs for one cloud, plus what `stream_rest` needs to
+/// carry on fetching it. Boxed into `Msg::StreamedCloud` so a scene can hold any number of
+/// streamed clouds instead of the first one only.
+pub struct StreamedInit {
+    pub name: String,
+    pub url: String,
+    pub place: session_rust::Xform,
+    pub positions: Vec<f32>,
+    pub colors: Vec<u32>,
+    pub lod: persistence::CloudLod,
+    pub resident: u32,
+    pub total: u32,
+    pub point_px: f32,
+    pub col_at: u64,
 }
 
 thread_local! {
@@ -83,7 +171,9 @@ thread_local! {
 /// The page calls this after rewriting a `.pb` (see the docs' Thebe cells) so an
 /// edit redraws the MODEL instead of restarting the viewer - reloading the
 /// iframe would rebuild the WebGPU device and throw away the view you had
-/// framed. `url` is a manifest path under `assets/`, as with `?scene=`.
+/// framed. A named `url` is read from the bucket, exactly as `?scene=` is;
+/// with no argument the page reloads whatever route it came up on.
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn reload_scene(url: Option<String>) {
     let proxy = RELOAD_PROXY.with(|slot| slot.borrow().clone());
@@ -91,13 +181,18 @@ pub fn reload_scene(url: Option<String>) {
         log::warn!("reload_scene: viewer is not running yet");
         return;
     };
-    let Some(url) = url.or_else(scene_url) else {
-        log::warn!("reload_scene: no manifest given and the page has no `?scene=` - nothing to reload");
+    // A manifest and its files share a base, so the route decides both together.
+    let route = match url {
+        Some(path) => Some(named_scene(&path)),
+        None => scene_route(),
+    };
+    let Some((url, base)) = route else {
+        log::warn!("reload_scene: no manifest given and this page has no scene route - nothing to reload");
         return;
     };
     wasm_bindgen_futures::spawn_local(async move {
         let _ = proxy.send_event(Msg::Clear);
-        load_manifest(url, move |name, session, place, px, only| {
+        load_manifest(url, base, move |name, session, place, px, only| {
             let _ = proxy.send_event(Msg::File(name, session, place, px, only));
         })
         .await;
@@ -109,18 +204,19 @@ pub fn reload_scene(url: Option<String>) {
 /// Shared by start-up and [`reload_scene`]; the only difference between them is
 /// that start-up builds `State` around the first file, so it cannot use this
 /// directly for that one.
-async fn load_manifest<F>(url: String, mut emit: F)
+#[cfg(target_arch = "wasm32")]
+async fn load_manifest<F>(url: String, base: String, mut emit: F)
 where
     F: FnMut(String, session_rust::Session, session_rust::Xform, f32, bool),
 {
-    let manifest_bytes = persistence::fetch_bytes(&persistence::asset_url(&url)).await.unwrap_or_default();
+    let manifest_bytes = persistence::fetch_bytes(&url).await.unwrap_or_default();
     let Some(manifest) = Manifest::parse(&manifest_bytes) else {
         log::error!("cannot read the scene manifest at {url}");
         return;
     };
     let count = manifest.items.len();
     for (i, item) in manifest.items.iter().enumerate() {
-        let file = persistence::asset_url(&item.file);
+        let file = persistence::join(&base, &item.file);
         let bytes = persistence::fetch_bytes(&file).await.unwrap_or_default();
         let session = persistence::session_from_bytes_chunked(&file, &bytes).await;
         if session.lookup.is_empty() {
@@ -134,6 +230,7 @@ where
 
 #[cfg(target_arch = "wasm32")]
 use std::sync::Arc;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 #[cfg(target_arch = "wasm32")]
 use winit::{
@@ -215,6 +312,27 @@ const STREAM_CHUNK_POINTS: u32 = 2_000_000;
 #[cfg(target_arch = "wasm32")]
 const STREAM_MAX_POINTS: u32 = 6_000_000;
 
+thread_local! {
+    /// Points resident across EVERY streamed cloud on the page. The ceiling below is a scene
+    /// budget, not a per-cloud one: three scans streaming to 6M points each is 18M points and
+    /// the GPU process dies, which is the crash the ceiling exists to prevent. Clouds share it
+    /// in load order, so the first ones are dense and the last ones stay coarse - and a coarse
+    /// prefix is a correct cloud, not a truncated one.
+    static STREAM_RESIDENT: std::cell::Cell<u32> = const { std::cell::Cell::new(0) };
+}
+
+/// Points the scene may still make resident.
+#[cfg(target_arch = "wasm32")]
+fn stream_budget_left() -> u32 {
+    STREAM_RESIDENT.with(|r| stream_max_points().saturating_sub(r.get()))
+}
+
+/// Book `n` points against the budget.
+#[cfg(target_arch = "wasm32")]
+fn stream_budget_spend(n: u32) {
+    STREAM_RESIDENT.with(|r| r.set(r.get().saturating_add(n)));
+}
+
 /// `?points=` - the resident ceiling for this page load.
 #[cfg(target_arch = "wasm32")]
 fn stream_max_points() -> u32 {
@@ -246,6 +364,7 @@ async fn stream_cloud(url: &str) -> Option<(Vec<f32>, Vec<u32>, persistence::Clo
     let (colors, col_at) = persistence::cloud_colors_from(url, fields.colors_at, want, resident)
         .await
         .unwrap_or((Vec::new(), fields.colors_at));
+    stream_budget_spend(resident);
     log::info!("streamed '{url}': {resident} of {} points on screen ({:.0} MB of {:.0} MB), {} nodes",
         fields.count, raw.len() as f64 / 1.048576e6, fields.coords_len as f64 / 1.048576e6, lod.len());
     Some((positions, colors, lod, resident, fields.count, col_at))
@@ -261,14 +380,16 @@ async fn stream_cloud(url: &str) -> Option<(Vec<f32>, Vec<u32>, persistence::Clo
 async fn stream_rest(url: String, idx: usize, from: u32, total: u32, mut col_at: u64) {
     let Some((fields, _)) = persistence::cloud_lod(&url).await else { return };
     let col_end = fields.colors_at + fields.colors_len;
-    let ceiling = stream_max_points().max(from);
-    if ceiling < total {
-        log::info!("streaming to {ceiling} of {total} points (?points= to change); \
-                    the rest of the octree stays on the server");
-    }
     let mut at = from;
-    while at < total.min(ceiling) {
-        let to = (at + STREAM_CHUNK_POINTS).min(total.min(ceiling));
+    while at < total {
+        // Re-read the budget every chunk: the other clouds of this scene are spending it too.
+        let left = stream_budget_left();
+        if left == 0 {
+            log::info!("'{url}': {at} of {total} points resident - the scene is at its point \
+                        ceiling (?points= to change); the rest of the octree stays on the server");
+            return;
+        }
+        let to = (at + STREAM_CHUNK_POINTS.min(left)).min(total);
         let n = (to - at) as u64;
         let Ok(raw) = persistence::fetch_range(&url, fields.coords_at + at as u64 * 24, n * 24).await else { return };
         let positions = persistence::positions_from(&raw);
@@ -283,6 +404,7 @@ async fn stream_rest(url: String, idx: usize, from: u32, total: u32, mut col_at:
             p.borrow().as_ref().map(|proxy| proxy.send_event(Msg::CloudChunk(idx, positions, colors, to)).is_ok())
         });
         if sent != Some(true) { return } // the loop is gone - stop pulling bytes into a dead tab
+        stream_budget_spend(to - at);
         at = to;
     }
 }
@@ -292,14 +414,26 @@ async fn stream_rest(url: String, idx: usize, from: u32, total: u32, mut col_at:
 /// Builds `State` around the first file that loads and streams the rest as `Msg::File`. Returns
 /// whether a `State` was sent.
 #[cfg(target_arch = "wasm32")]
-async fn local_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc<Window>, scene_url: &str) -> bool {
+async fn local_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc<Window>, scene_url: &str, base: &str) -> bool {
     // fetch_start is eager: the browser request for file n+1 is in flight while file n parses,
     // and progressive - ready after the first file, every later one streams in as a Msg::File
     let t0 = crate::engine::performance::now_ms();
     // The manifest comes from the SAME place as the files it names. Fetching it page-relative
     // while its entries resolve to the bucket is how `?scene=scenes/lidar14.toml` 404s against
     // an origin that was never meant to hold data.
-    let manifest_bytes = persistence::fetch_bytes(&persistence::asset_url(scene_url)).await.unwrap_or_default();
+    // AS GIVEN: `scene_route` already resolved this - the local scene against this origin, a
+    // named scene against the bucket. Re-resolving here sent `view_local.toml` to R2 (404).
+    // The fetch error is REPORTED, not swallowed. Defaulting to empty bytes here turns "that
+    // URL 404s" into "missing field `items`", which sends you looking at the manifest instead of
+    // at the address it was asked for.
+    let manifest_bytes = match persistence::fetch_bytes(scene_url).await {
+        Ok(b) => b,
+        Err(e) => {
+            log::error!("cannot fetch the scene manifest at {scene_url}: {}",
+                        e.as_string().unwrap_or_else(|| format!("{e:?}")));
+            return false;
+        }
+    };
     let manifest = match Manifest::parse_verbose(&manifest_bytes) {
         Ok(m) => m,
         Err(e) => { log::error!("cannot read the scene manifest at {scene_url}: {e}"); return false; }
@@ -309,7 +443,7 @@ async fn local_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc
     let mut sent_ready = false;
     for (i, item) in manifest.items.iter().enumerate() {
         let f0 = crate::engine::performance::now_ms();
-        let file = persistence::asset_url(&item.file);
+        let file = persistence::join(base, &item.file);
         let place = item.placement().unwrap_or_else(|| auto_grid(i, count, [0.0, 0.0]));
 
         // PROBE BEFORE FETCHING. A cloud whose file carries an octree opens by RANGE, and the
@@ -318,8 +452,15 @@ async fn local_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc
         // file to learn it was avoidable.
         if let Some((pos, col, lod, resident, total, col_at)) = stream_cloud(&file).await {
             let name = if item.name.is_empty() { item.file.clone() } else { item.name.clone() };
+            // A LATER streamed cloud goes into the scene that is already on screen. Its index in
+            // `Scene::streamed` - what every chunk of it is addressed by - is only decided there,
+            // so the running loop adds it and spawns its own `stream_rest`.
             if sent_ready {
-                continue; // a later streamed cloud needs a Msg of its own - not yet wired
+                let _ = proxy.send_event(Msg::StreamedCloud(Box::new(StreamedInit {
+                    name, url: file.clone(), place, positions: pos, colors: col, lod,
+                    resident, total, point_px: item.point_size as f32, col_at,
+                })));
+                continue;
             }
             let mut scene = Scene::new();
             let idx = scene.streamed.len();
@@ -357,6 +498,10 @@ async fn local_scene(proxy: &winit::event_loop::EventLoopProxy<Msg>, window: Arc
         }
 
     }
+    // `Ready` framed the FIRST file only; frame everything the manifest listed. Without this a
+    // scene whose files spread out - clouds at -8000, sheets at +14100 - comes up zoomed onto
+    // whichever file happened to load first, with the rest off screen and apparently missing.
+    if sent_ready { let _ = proxy.send_event(Msg::Fit); }
     sent_ready
 }
 
@@ -408,10 +553,11 @@ impl ApplicationHandler<Msg> for App {
                         if sent_ready { let _ = proxy.send_event(Msg::Fit); }
                     }
                 }
-                // The other source: one pinned manifest from `assets/`, which is also what turned
-                // the live source off. No `?scene=` means there is simply nothing local to load.
-                if !sent_ready && let Some(url) = scene_url() {
-                    sent_ready = local_scene(&proxy, window.clone(), &url).await;
+                // The other routes: a named scene from the bucket, or - on a dev server with no
+                // query at all - the one local scene. `scene_route` decides which, and hands back
+                // the base its files hang off so both come from the same place.
+                if !sent_ready && let Some((url, base)) = scene_route() {
+                    sent_ready = local_scene(&proxy, window.clone(), &url, &base).await;
                 }
                 // Neither source produced geometry - a missing branch, a mid-push commit, a bad
                 // `?scene=`, or a page that asked for neither. Come up as an empty grid anyway:
@@ -482,6 +628,22 @@ impl ApplicationHandler<Msg> for App {
                     t1 - t0, crate::engine::performance::now_ms() - t1, state.scene.docs.len(),
                     crate::engine::performance::heap_mb());
                 state.window.request_redraw();
+            }
+            Msg::StreamedCloud(init) => {
+                let Some(state) = &mut self.state else { return };
+                let init = *init;
+                // The index the live scene gives it, NOT the one the loader guessed: every
+                // `Msg::CloudChunk` for this cloud is addressed by it.
+                let idx = state.scene.streamed.len();
+                let (url, resident, total, col_at) = (init.url.clone(), init.resident, init.total, init.col_at);
+                state.scene.add_streamed_cloud(init.name, init.url, init.place, init.positions,
+                    init.colors, &init.lod, init.resident, init.total, init.point_px);
+                state.scene.upload_to(&mut state.gpu);
+                state.camera.grow_extent(state.gpu.scene_min, state.gpu.scene_max);
+                log::info!("streamed cloud {idx} appended: {resident} of {total} points | heap {:.0} MB",
+                    crate::engine::performance::heap_mb());
+                state.window.request_redraw();
+                wasm_bindgen_futures::spawn_local(async move { stream_rest(url, idx, resident, total, col_at).await });
             }
             Msg::CloudChunk(idx, positions, colors, to) => {
                 let Some(state) = &mut self.state else { return };

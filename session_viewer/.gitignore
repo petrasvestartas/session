@@ -1,9 +1,10 @@
 
-# Scene data lives in the R2 bucket, never in the repo - `DATA_BASE` in src/app/persistence.rs
-# names the host, and every manifest and .pb resolves against it. The files stay on disk as an
-# untracked cache because docs/_gate.sh renders them locally to compare pixels.
-assets/
 dist/
+
+# NOT `assets/` wholesale. Two things under it are BUILD INPUTS that must ship: assets/fonts/,
+# which the viewer links, and assets/view_local.toml, the one scene a `trunk serve` shows - both
+# are named by index.html, so a checkout without them cannot `trunk build` at all. Only the scene
+# DATA below is untracked.
 
 # Scene data lives in the R2 bucket, never in the repo. `DATA_BASE` in src/app/persistence.rs
 # names the host and every manifest and .pb resolves against it, so nothing here has to ship.

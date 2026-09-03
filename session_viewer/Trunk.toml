@@ -23,14 +23,15 @@ no_sri = true
 public_url = "./"
 
 [watch]
-# assets included: the scene manifests are meant to be edited and reloaded WITHOUT a
-# rebuild, which only works if trunk re-copies them into dist when they change.
+# assets included: the local scene manifest is meant to be edited and reloaded WITHOUT a
+# rebuild, which only works if trunk re-copies it into dist when it changes. It is the only
+# manifest served from here - every other scene is read from the R2 bucket.
 # ../session_rust/src IS load-bearing: this list REPLACES trunk's default (the project dir), and
 # the viewer is `session_rust = { path = "../session_rust" }`. Without it a kernel edit rebuilt
 # NOTHING - the page kept serving the last wasm, so kernel work looked like it had no effect while
 # regenerated .pb assets did change. Verified: a real edit here rebuilds in ~38 s. (A bare `touch`
 # does not - the watcher filters metadata-only events; change bytes when you test this.)
-watch = ["src", "Cargo.toml", "index.html", "assets/scenes", "../session_rust/src"]
+watch = ["src", "Cargo.toml", "index.html", "assets/view_local.toml", "../session_rust/src"]
 enable_cooldown = true
 
 [serve]

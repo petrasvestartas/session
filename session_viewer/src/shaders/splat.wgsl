@@ -135,6 +135,14 @@ fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
     // Pixel-aligned box over the footprint [px - ir, px + ir]: pixel q spans [q, q + 1), so
     // every pixel is either wholly inside the quad or wholly outside - no partial coverage.
     let ir = i32(ceil(s.r - 0.5));
+    // A disc big enough to swallow its own bounding box IS a square. The box corner sits at
+    // `ir * sqrt(2)` from the centre, so for a 3x3 box (ir == 1) any radius past sqrt(2) lights
+    // all nine pixels - and the attenuation floor lands there exactly when the manifest point
+    // size is 3, which is why a fully zoomed-out cloud rendered as squares. Keeping the corners
+    // outside costs nothing at any size that already reads round: for ir >= 2 the bound
+    // 2*ir^2 is always above r^2, so this only bites in the degenerate small case, where it
+    // turns the square back into a round dot and then into a single point.
+    let corner_rr = 2.0 * f32(ir * ir) - 0.001;
     let lo = vec2<f32>(f32(s.px.x - ir), f32(s.px.y - ir));
     let hi = vec2<f32>(f32(s.px.x + ir + 1), f32(s.px.y + ir + 1));
     let c = vid % 6u;
@@ -143,7 +151,7 @@ fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
     let p = vec2<f32>(select(lo.x, hi.x, right), select(lo.y, hi.y, bottom));
     o.pos = vec4<f32>(p.x / cloud.vp_w * 2.0 - 1.0, 1.0 - p.y / cloud.vp_h * 2.0, s.z, 1.0);
     o.center = s.px;
-    o.rr = s.r * s.r;
+    o.rr = select(s.r * s.r, min(s.r * s.r, corner_rr), ir >= 1);
     o.color = unpack4x8unorm(s.color);
     o.row = s.row;
     return o;

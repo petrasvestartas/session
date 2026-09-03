@@ -47,7 +47,9 @@
        runtime URL is just the path under assets/ ("pb/draw_pf_he.pb", "scenes/drawings.json").
        EVERYTHING the viewer can load lives under assets/ - nothing is fetched from anywhere else. -->
    <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="pb"/>
-   <link data-trunk rel="copy-dir" href="assets/scenes" data-target-path="scenes"/>
+   <!-- The ONE local manifest. Every other scene is opened from the R2 bucket with
+        ?scene=scenes/view_<name>.toml and is never copied into dist. -->
+   <link data-trunk rel="copy-file" href="assets/view_local.toml"/>
   <canvas id="canvas"></canvas>
   <!-- Message telling that Webgpu is not available. -->
   <script>

@@ -1,6 +1,6 @@
 //! Live data source: the `session-viewer-data` bucket on Cloudflare R2, read over plain HTTPS.
 //!
-//! The deployed viewer watches what another tool uploads to the bucket: `view_session.toml`
+//! The deployed viewer watches what another tool uploads to the bucket: `view_live.toml`
 //! plus the Session files it lists. Every key in that bucket starts with `view_`, so a file's
 //! purpose is legible from its name alone. **Nothing is built, committed or deployed for a data push.**
 //! Publishing is one `aws s3 cp` over an existing key; the page picks the new bytes up on its
@@ -69,7 +69,7 @@ use crate::app::scene::{auto_grid, Manifest};
 use session_rust::{Session, Xform};
 
 /// The manifest this viewer watches unless the page says otherwise.
-pub const DEFAULT_SOURCE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/view_session.toml";
+pub const DEFAULT_SOURCE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.toml";
 const DEFAULT_POLL_SECONDS: f64 = 5.0;
 
 /// The relay topic a publisher announces an upload on, as an SSE endpoint. Paired with
@@ -188,6 +188,13 @@ impl LiveSource {
             return None;
         }
         if live.is_none() && param("scene").is_some() {
+            return None;
+        }
+        // A DEV SERVER DOES NOT WATCH THE BUCKET. `trunk serve` with no query shows the local
+        // scene (`LOCAL_SCENE` in lib.rs), so polling R2 here would fight it for the canvas and
+        // put published geometry on screen while the developer edits a file that never appears.
+        // `?live=` still turns the lane on locally, which is how it gets tested.
+        if live.is_none() && page_is_local() {
             return None;
         }
         let url = match live {
@@ -321,7 +328,17 @@ impl LiveSource {
     fn adopt(&mut self, bytes: Vec<u8>) -> Option<Manifest> {
         match Manifest::parse_verbose(&bytes) {
             Ok(manifest) => {
-                self.base = Self::dir_of(&self.url.clone());
+                // A manifest IN THE BUCKET names its files from the bucket ROOT (`pb/x.pb`),
+                // never from its own folder - so `scenes/view_live.toml` and a root
+                // `view_live.toml` mean exactly the same thing, and moving a manifest between
+                // them changes nothing. Any OTHER source - a localhost directory a solver
+                // writes into - keeps the ordinary rule: relative to the manifest itself.
+                let bucket = persistence::data_base();
+                self.base = if !bucket.is_empty() && self.url.starts_with(&bucket) {
+                    bucket
+                } else {
+                    Self::dir_of(&self.url.clone())
+                };
                 self.files = manifest
                     .items
                     .iter()
@@ -424,6 +441,17 @@ impl LiveSource {
     }
 }
 
+/// Is the PAGE itself served by a local dev server?
+///
+/// This is what makes a bare `http://localhost:8770/` mean "show what I am editing" while the
+/// same code deployed means "show what is published". Hostname, not port: a dev server may be on
+/// any port, and a real host that merely CONTAINS "localhost" must not qualify.
+pub fn page_is_local() -> bool {
+    web_sys::window()
+        .and_then(|w| w.location().hostname().ok())
+        .is_some_and(|h| h == "localhost" || h == "127.0.0.1" || h == "[::1]" || h == "::1")
+}
+
 /// A URL served from this machine. Unlike any other `http://` URL such a source is accepted:
 /// browsers treat localhost as trustworthy, so an https page may read it.
 fn is_local(url: &str) -> bool {
@@ -460,13 +488,35 @@ mod tests {
     #[test]
     fn the_default_source_is_the_bucket_manifest() {
         assert!(DEFAULT_SOURCE.starts_with("https://"));
-        assert!(DEFAULT_SOURCE.ends_with("/view_session.toml"));
-        // `file` entries resolve against the manifest's own directory, so that is what a
-        // relative `pb/view_live.pb` hangs off.
-        assert_eq!(
-            LiveSource::dir_of(DEFAULT_SOURCE),
-            "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/"
-        );
+        assert!(DEFAULT_SOURCE.ends_with("/scenes/view_live.toml"));
+    }
+
+    #[test]
+    fn a_bucket_manifest_names_its_files_from_the_bucket_root() {
+        // The manifest sits in `scenes/`, its files in `pb/`. Resolving `pb/view_live.pb`
+        // against the manifest's own folder would ask for `scenes/pb/view_live.pb` and 404,
+        // which is exactly what moving the live manifest into `scenes/` would have caused.
+        let bucket = "https://pub-x.r2.dev/";
+        let mut src = probe();
+        src.url = format!("{bucket}scenes/view_live.toml");
+        src.base = bucket.to_string(); // what `adopt` sets for a manifest inside the bucket
+        assert_eq!(src.resolve("pb/view_live.pb"), "https://pub-x.r2.dev/pb/view_live.pb");
+    }
+
+    /// A `LiveSource` with nothing configured, for the pure-resolution tests.
+    fn probe() -> LiveSource {
+        LiveSource {
+            url: DEFAULT_SOURCE.to_string(),
+            poll_ms: 500,
+            label: String::new(),
+            base: String::new(),
+            files: Vec::new(),
+            manifest: None,
+            etags: HashMap::new(),
+            hashes: HashMap::new(),
+            last_warning: None,
+            notify: None,
+        }
     }
 
     #[test]
@@ -496,18 +546,8 @@ mod tests {
             let _ = is_change_notification(hostile);
         }
         // ...but the only thing that can be read is what the manifest named.
-        let src = LiveSource {
-            url: DEFAULT_SOURCE.to_string(),
-            poll_ms: 500,
-            label: String::new(),
-            base: "https://pub-x.r2.dev/".to_string(),
-            files: Vec::new(),
-            manifest: None,
-            etags: HashMap::new(),
-            hashes: HashMap::new(),
-            last_warning: None,
-            notify: None,
-        };
+        let mut src = probe();
+        src.base = "https://pub-x.r2.dev/".to_string();
         assert_eq!(src.resolve("pb/view_live.pb"), "https://pub-x.r2.dev/pb/view_live.pb");
     }
 

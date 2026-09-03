@@ -24,8 +24,8 @@ cd "$(dirname "$0")/.."
 T=x86_64-unknown-linux-gnu
 OUT=${TMPDIR:-/tmp}/gate.ppm
 TSV=docs/_GOLDENS.tsv
-MANDATORY="lion bunny bunny_cloud drawings_rotated"
-ADVISORY="drawings bunny_drawings cloud_mix lidar14"
+MANDATORY="view_local"
+ADVISORY=""
 CFGS=("" "VIEWER_LINE_STYLE=tubes" "VIEWER_REBUILD=1" "VIEWER_INCREMENTAL=1")
 
 # MEASURED, 2026-08-31: the splat lane is a 2-pass ATOMIC compute rasterizer, so which point wins
@@ -77,7 +77,7 @@ done
 # Which .pb files a manifest names, and whether they are all on disk.
 missing_assets() {
   local f
-  for f in $(sed -n 's/^file = "\([^"]*\)".*/\1/p' "assets/scenes/$1.toml"); do
+  for f in $(sed -n 's/^file = "\([^"]*\)".*/\1/p' "assets/$1.toml"); do
     [ -f "assets/$f" ] || printf '%s ' "$f"
   done
 }
@@ -88,7 +88,7 @@ missing_assets() {
 measure() {
   local cfg=$1 scene=$2 r ink dro sha
   r=$(env $cfg cargo run -q --example selftest --target "$T" --release -- \
-        "$OUT" "assets/scenes/$scene.toml" 2>&1) || { printf '%s\n' "$r" >&2; return 1; }
+        "$OUT" "assets/$scene.toml" 2>&1) || { printf '%s\n' "$r" >&2; return 1; }
   ink=$(sed -n 's/.*non-background pixels: \([0-9]*\).*/\1/p' <<<"$r" | tail -1)
   dro=$(sed -n 's/.*headless frame: \([0-9]*\) draws, \([0-9]*\) objects.*/\1\t\2/p' <<<"$r" | tail -1)
   sha=$(sha256sum "$OUT" | cut -c1-16)
@@ -125,7 +125,7 @@ rows() {                                    # rows <sink> <scene>...
 # identical in source - and then the gate reports a code regression that is really a different
 # file. (Cost four wrong diagnoses on 2026-09-01.) Fingerprint what we actually read.
 asset_fingerprint() {
-    for f in $(grep -ho 'pb/[A-Za-z0-9_.-]*\.pb' assets/scenes/*.toml 2>/dev/null | sort -u); do
+    for f in $(grep -ho 'pb/[A-Za-z0-9_.-]*\.pb' assets/view_*.toml 2>/dev/null | sort -u); do
         [ -f "assets/$f" ] && printf '%s %s\n' "$(stat -c%s "assets/$f" 2>/dev/null || stat -f%z "assets/$f")" "$f"
     done | sort | cksum | cut -d' ' -f1
 }
@@ -194,10 +194,31 @@ fi
 
 pick() { awk -v set=" $2 " '!/^#/ && index(set, " " $1 " ")' "$1"; }
 
-if ! diff -u <(pick "$TSV" "$MANDATORY") "$NEW_M"; then
+# The image hash is not a stable comparator here. Every splat and mesh scene renders with a
+# nondeterministic byte order - the recorded rows say so, `nondet(splat)` / `nondet(mesh)` - and
+# the marker only appears when the TWO passes of one run happen to disagree, so an identical
+# build can record a literal hash one time and the marker the next. Comparing that column then
+# reports a changed frame when nothing changed: measured, 62759 ink against 62759 ink, differing
+# only in the hash. Ink, draws and objects are the real signal, so blank the hash on BOTH sides
+# whenever either says nondet.
+# $1 = recorded rows, $2 = rows to normalise. A row whose RECORDED twin is marked loses its
+# hash, whichever side it is on, so the two files agree exactly when ink/draws/objects agree.
+blank_nondet() {
+  awk -F'\t' -v ref="$1" 'BEGIN{
+      OFS=FS
+      while ((getline line < ref) > 0) {
+        n = split(line, f, FS)
+        if (line ~ /^#/ || n < 7) continue
+        if (f[n] ~ /^nondet\(/) skip[f[1] FS f[2] FS f[3]] = 1
+      }
+    }
+    !/^#/ { if (($1 FS $2 FS $3) in skip) $NF = "nondet"; print }' "$2"
+}
+
+if ! diff -u <(pick "$TSV" "$MANDATORY" | blank_nondet "$TSV" /dev/stdin) <(blank_nondet "$TSV" "$NEW_M"); then
   echo "gate: MANDATORY rows differ - the frame changed." >&2; FAIL=1
 fi
-if [ -s "$NEW_A" ] && ! diff -u <(pick "$TSV" "$ADVISORY") "$NEW_A"; then
+if [ -s "$NEW_A" ] && ! diff -u <(pick "$TSV" "$ADVISORY" | blank_nondet "$TSV" /dev/stdin) <(blank_nondet "$TSV" "$NEW_A"); then
   echo "gate: advisory rows differ (informational only)." >&2
 fi
 
