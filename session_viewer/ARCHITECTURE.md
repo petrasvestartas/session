@@ -177,14 +177,20 @@ most 4.2 Mpx; `?msaa=` forces. Ribbons, dots and splats antialias themselves.
   (`triangle.wgsl::push_frac`), so the wireframe drawn on them is never cut by them.
 - Ink lifts toward the eye by pen half-widths - mesh wires 1.5, free linework 0.5, markers
   2.5, dots 2.0 - capped at `0.25 x thickness` (`ribbon.wgsl::lift_capped`, sphere, glyph).
-- `thickness` = the object's thinnest local axis through the placement scale, floored at
-  0.1 % of its diagonal (`objects.rs::thickness`). A 40 mm plate 4 m long therefore never
-  recedes more than 10 mm and its back outline (at 40 mm) can never surface; a 1 m box seen
-  from 2 m keeps the uncapped values, so close-ups look as before.
-- A planar outline has a thinnest axis of 0: it gets no lift and relies on its plate's push,
-  which is exact (the same vertices) and scale-free.
-- Verified by rendering the floor model from above with the caps disabled versus enabled: the
-  lines that disappear are the back outlines; close-ups differ by anti-aliasing speckle only.
+- `thickness` is measured by the walk, orientation-free: for a mesh the smallest spread of
+  its vertices along one of its own dominant face normals (`bounds.rs::mesh_thickness`), so a
+  plate baked rotated into world coordinates measures its plate thickness, not its box; for a
+  polyline the spread across its own plane (`polyline_thickness`, 0 for any planar outline).
+  `objects.rs::thickness` scales it by the placement and floors it at 0.1 % of the diagonal.
+- A 40 mm plate 4 m long therefore never recedes more than 10 mm and its back outline (at
+  40 mm) can never surface; a 1 m box seen from 2 m keeps the uncapped values, so close-ups
+  look as before. A planar outline gets no lift and relies on its plate's push, which is
+  exact (the same vertices) and scale-free.
+- Two coincident lines of different colours resolve by draw order, not depth: a ribbon depth
+  prepass fixes that but costs a second ribbon draw (+5 ms on view_mixed), so it is not done.
+- Verified by `docs/_gate.sh`: three probe plates (one rotated 30 degrees) with an inset
+  bottom outline that must show 0 magenta pixels from above at every zoom; the gate goes red
+  with a box-based thickness (748 px on the rotated plate at the far zoom).
 
 ## 7. Point clouds
 

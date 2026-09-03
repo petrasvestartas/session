@@ -7,6 +7,7 @@ use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::CylinderSegment;
 use crate::math::Aabb;
 use super::Row;
+use super::bounds::polyline_thickness;
 use super::encode::{encode_width, pack_rgba, Pen, FACING_UNKNOWN};
 
 /// Segments between consecutive points, growing `bounds` as they go.
@@ -41,7 +42,7 @@ pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
     let pen = Pen { row, radius: encode_width(pl.width), color: pack_rgba(pl.linecolor.to_f32()) };
     let mut bounds = Aabb::empty();
     push_polyline(seg, &pts, &pen, &mut bounds);
-    Row::thin(bounds)
+    Row { thickness: polyline_thickness(&pts), ..Row::thin(bounds) }
 }
 
 /// The box of the control points (a NURBS curve never leaves its control net).

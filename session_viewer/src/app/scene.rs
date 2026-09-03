@@ -199,6 +199,7 @@ impl Scene {
             o.bounds = r.bounds;
             o.spacing = r.spacing;
             o.faces = r.faces;
+            o.thickness = r.thickness;
         }
         lap.mark("objects");
 
@@ -225,6 +226,7 @@ impl Scene {
         let o = self.tables.obj.rows.last_mut().unwrap();
         o.bounds = bounds;
         o.spacing = point_px;
+        o.thickness = bounds.thinnest();
         self.tables.bounds.union(&bounds.placed(&place.m));
         self.upload_to(gpu);
 

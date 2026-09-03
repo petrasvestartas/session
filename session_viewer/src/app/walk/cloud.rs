@@ -31,7 +31,7 @@ pub fn walk_cloud(c: &mut CloudRows, pc: &PointCloud, cx: &WalkCx) -> Row {
         nrm_first,
     });
     let px = if cx.cloud_px > 0.0 { cx.cloud_px } else { pc.point_size as f32 };
-    Row { bounds, spacing: px, flags: 0, faces: false }
+    Row { bounds, spacing: px, flags: 0, faces: false, thickness: bounds.thinnest() }
 }
 
 /// Positions, colours and (when every point has one) normals, from the kernel's flat arrays.

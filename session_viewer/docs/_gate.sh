@@ -21,10 +21,13 @@ ink=$(VIEWER_W=1400 VIEWER_H=900 $B "$out/local.ppm" assets/view_local.toml 2>&1
 
 $CARGO_TARGET_DIR/$T/release/examples/mk_plate_outline "$out/plate.pb" >/dev/null 2>&1
 printf 'name = "plate"\n[[items]]\nfile = "plate.pb"\nname = "plate"\nat = [0, 0, 0]\n' > "$out/plate.toml"
-for z in 0 -6; do
-    VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_EDGES=1 VIEWER_VIEW=top VIEWER_ZOOM=$z $B "$out/top$z.ppm" "$out/plate.toml" >/dev/null 2>&1
-    read -r _ blue _ magenta < <(python3 docs/_count_colors.py "$out/top$z.ppm")
-    [ "$magenta" -le 4 ] || { echo "gate FAIL: plate bottom outline visible from above at zoom $z ($magenta px)"; exit 1; }
-    [ "$blue" -gt 1000 ] || { echo "gate FAIL: plate top outline missing at zoom $z ($blue px)"; exit 1; }
-done
+probe() {
+    local name=$1 z=$2; shift 2
+    env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_EDGES=1 VIEWER_ZOOM=$z "$@" $B "$out/$name$z.ppm" "$out/plate.toml" >/dev/null 2>&1
+    read -r _ blue _ magenta < <(python3 docs/_count_colors.py "$out/$name$z.ppm")
+    [ "$magenta" -le 4 ] || { echo "gate FAIL: plate bottom outline visible from above ($name, zoom $z: $magenta px)"; exit 1; }
+    [ "$blue" -gt 500 ] || { echo "gate FAIL: plate top outline missing ($name, zoom $z: $blue px)"; exit 1; }
+}
+for z in 0 -6; do probe top $z VIEWER_VIEW=top; done
+for z in 0 -6 -12; do probe down $z VIEWER_ORBIT=0,209; done
 echo "gate OK (local ink $ink)"

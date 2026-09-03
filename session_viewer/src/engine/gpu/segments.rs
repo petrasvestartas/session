@@ -145,12 +145,6 @@ impl SegmentLane {
         self.draw_table(pass, b, &self.gpu.ribbon, &self.ribbons)
     }
 
-    /// The flat lane's depth prepass: the same ribbons, depth only, so two lines on one pixel
-    /// resolve by depth (the nearer wins) instead of by draw order.
-    pub fn draw_ribbon_depth(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_table(pass, b, &self.gpu.ribbon_depth, &self.ribbons)
-    }
-
     /// The id pass for the solid lane, in the style the colour pass used.
     pub fn draw_pipe_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds, style: LineStyle) -> u32 {
         match style {

@@ -43,13 +43,11 @@ impl Gpu {
 
     /// The scene list, in order:
     /// 1 background · 2 grid · 3 faces · 4 sheet fills · 5 mesh edges · 6 clouds · 7 vertex
-    /// markers · 8 [lines, depth only] · 9 lines · 10 lettering · 11 point dots.
-    /// The depth-only pass (8) runs only with solid geometry on the GPU: there two lines on
-    /// one pixel must resolve by depth; on a 2D sheet it would double the ribbon cost for
-    /// nothing, document order being the sheet's own rule.
+    /// markers · 8 lines · 9 lettering · 10 point dots. Lines write no depth: two lines on one
+    /// pixel resolve by draw order (a depth prepass costs a second ribbon draw - measured +5 ms
+    /// on view_mixed - for a case only coincident lines of different colours can show).
     fn scene_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         let v = &self.view;
-        let solid = self.arena.face_count() > 0 || self.segments.pipe_count() > 0;
         let mut draws = 0u32;
 
         draws += self.backdrop.draw_background(pass);
@@ -62,9 +60,6 @@ impl Gpu {
         draws += self.splat.draw_resolve(pass, &self.frame.cloud_group);
         if v.show_mesh_edges && v.markers {
             draws += self.glyphs.draw_spheres(pass, b);
-        }
-        if v.show_lines && solid {
-            draws += self.segments.draw_ribbon_depth(pass, b);
         }
         if v.show_lines {
             draws += self.segments.draw_ribbons(pass, b);

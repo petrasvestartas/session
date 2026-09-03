@@ -25,5 +25,8 @@ Publish turnaround (`bash/view_live.sh`, one scene + one file, 2026-09-03): 2.46
 1.16 s after (curl SigV4 instead of the aws CLI, verifies overlapped); the open page sees
 the relay within its 100 ms tick.
 
+A ribbon depth prepass (lines written to depth before the colour pass, so coincident lines
+resolve by depth) was measured and rejected: view_mixed still 10.9 -> 16.1 ms, moving 22.9 -> 27.4 ms.
+
 Rules for this file: every number is measured on the day it is written, with the command that
 produced it; a number that was not re-measured after a change is deleted, not carried over.

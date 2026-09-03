@@ -65,12 +65,15 @@ pub struct Row {
     pub flags: u32,
     /// The row drew faces: the inside test (eye within the box) applies to it.
     pub faces: bool,
+    /// The object's thickness in its own units, whatever its orientation (section 6 of
+    /// ARCHITECTURE.md): the depth budget the shaders may spend on it.
+    pub thickness: f32,
 }
 
 impl Row {
-    /// Linework, points, frames: a box, no spacing, no flags, no faces.
+    /// Linework, points, frames: a box, no spacing, no flags, no faces; as thick as the box.
     pub fn thin(bounds: Aabb) -> Self {
-        Self { bounds, spacing: 0.0, flags: 0, faces: false }
+        Self { bounds, spacing: 0.0, flags: 0, faces: false, thickness: bounds.thinnest() }
     }
 }
 

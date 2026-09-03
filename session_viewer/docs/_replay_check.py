@@ -30,12 +30,12 @@ import re, sys, pathlib, shutil, collections
 # viewer tree, not the kernel. Without them a lesson like 34d, whose every target is a .proto
 # or .py, produced zero parsed ops and the audit skipped it as "informational" - so 37 blocks
 # that teach nothing replayable looked exactly like a lesson with nothing to check.
-FILE_RE = re.compile(r'`([\w/_.-]+\.(?:rs|wgsl|toml|html|json|proto|py|cpp|h))`')
+FILE_RE = re.compile(r'`([\w/_.-]+\.(?:rs|wgsl|toml|html|json|proto|py|cpp|h|sh))`')
 SPAN_RE = re.compile(r'`([^`]+)`')
 CREATE_RE = re.compile(r'\*\*Create `([\w/_.-]+)`')
 # The counterpart of Create. Requires an EXTENSION so it can never be confused with the
 # content-level `**Delete**` that follows a Find, or with a `**Delete** `some_expr`` span.
-DELETE_FILE_RE = re.compile(r'\*\*Delete `([\w/_.-]+\.(?:rs|wgsl|toml|json|md))`\*\*')
+DELETE_FILE_RE = re.compile(r'\*\*Delete `([\w/_.-]+\.(?:rs|wgsl|toml|json|md|sh))`\*\*')
 
 def spans(line, after):
     """Code spans on `line` occurring after index `after`, excluding file paths."""

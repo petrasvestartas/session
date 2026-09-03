@@ -21,13 +21,14 @@ const REANCHOR_THROTTLE_MS: f64 = 200.0;
 /// thickness, so its faces still recede a little behind the ink drawn on them.
 const THICK_FLOOR: f32 = 0.001;
 
-/// The depth budget the shaders may spend on one object: its thinnest local axis through the
+/// The depth budget the shaders may spend on one object: the thickness the walk measured
+/// (across the mesh's own faces, so a rotated plate is as thin as it really is) through the
 /// placement scale, floored. Meshes push their faces back by at most a quarter of it and ink
 /// lifts by at most a quarter of it, so nothing on the far side of a plate can surface.
-fn thickness(bounds: &Aabb, place: &Mat4) -> f32 {
-    let scale = mat_scale(&mat_to_f32(place)) as f32;
-    let thin = bounds.thinnest() * scale;
-    thin.max(THICK_FLOOR * bounds.placed(place).diagonal())
+fn thickness(r: &ObjectRow) -> f32 {
+    let scale = mat_scale(&mat_to_f32(&r.place)) as f32;
+    let thin = r.thickness * scale;
+    thin.max(THICK_FLOOR * r.bounds.placed(&r.place).diagonal())
 }
 
 /// One object as the walk reports it: its true placement, tint, flags, mesh-local box
@@ -42,12 +43,14 @@ pub struct ObjectRow {
     pub spacing: f32,
     /// The row drew faces, so the per-frame inside test walks its box.
     pub faces: bool,
+    /// The object's thickness in local units, orientation-free (the walk measures it).
+    pub thickness: f32,
 }
 
 impl ObjectRow {
     /// A row with the file placement, white tint and no columns filled yet.
     pub fn new(place: Mat4, flags: u32) -> Self {
-        Self { place, color: [1.0; 4], flags, bounds: Aabb::empty(), spacing: 0.0, faces: false }
+        Self { place, color: [1.0; 4], flags, bounds: Aabb::empty(), spacing: 0.0, faces: false, thickness: 0.0 }
     }
 }
 
@@ -133,7 +136,7 @@ impl InstanceTable {
             model[12] = 0.0;
             model[13] = 0.0;
             model[14] = 0.0;
-            let thickness = thickness(&r.bounds, &r.place);
+            let thickness = thickness(r);
             self.rows.push(Instance { model, color: r.color, flags: r.flags, thickness, spacing: r.spacing, _pad: 0 });
         }
         if self.rows.is_empty() {

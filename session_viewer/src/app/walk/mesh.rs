@@ -2,6 +2,8 @@
 //! (`mesh_ink`) unless the mesh is dense, a print fill, or edges are switched off. The gates
 //! and thresholds live here. Nothing here reads the GPU.
 
+use super::bounds::mesh_thickness;
+use session_rust::RenderVertex;
 use session_rust::Mesh;
 use crate::app::knobs;
 use crate::engine::gpu::arena::ArenaRows;
@@ -132,7 +134,8 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     }
     lap.mark("vert+idx push");
     let flags = if o.sheet_lanes && print { Instance::FLAG_PRINT } else { 0 };
-    let row = Row { bounds, spacing: mesh_spacing(&bounds, m.number_of_vertices()), flags, faces: true };
+    let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
+    let row = Row { bounds, spacing: mesh_spacing(&bounds, m.number_of_vertices()), flags, faces: true, thickness };
 
     if rm.indices.len() / 3 > MESH_RAW_MIN || print || knobs::no_edges() {
         return row;
@@ -160,4 +163,13 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     // the hole, so the shaders skip it like FLAG_INSIDE.
     let open = o.allow_open && !topo.closed;
     Row { flags: if open { row.flags | Instance::FLAG_OPEN } else { row.flags }, ..row }
+}
+
+/// The positions of a render mesh's vertices, for the thickness measure.
+fn positions(verts: &[RenderVertex]) -> Vec<[f32; 3]> {
+    let mut out = Vec::with_capacity(verts.len());
+    for v in verts {
+        out.push(v.position);
+    }
+    out
 }

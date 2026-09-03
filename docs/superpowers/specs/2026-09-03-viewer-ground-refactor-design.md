@@ -96,8 +96,10 @@ frame; `?perf=1` / `?spin=1` keep it continuous.
 
 ## 6. Declared pixel changes (goldens re-recorded with the reason)
 
-6.1 **Penetration fix - the thickness rule.** Every object row carries `thickness` = its
-thinnest local AABB axis through the placement scale, floored at 0.1 % of its diagonal.
+6.1 **Penetration fix - the thickness rule.** Every object row carries `thickness`, measured
+by the walk orientation-free (a mesh: the smallest spread along its own dominant face normals;
+a polyline: the spread across its plane), through the placement scale, floored at 0.1 % of
+its diagonal - a local-AABB axis was 2.4x too thick (median) on the floor model's rotated plates.
 `triangle.wgsl` pushes faces back by `min(0.4 % of eye depth, 0.25 x thickness)`; the
 ribbon/sphere/glyph lifts (1.5 / 0.5 / 2.5 / 2.0 pen half-widths, the same number in both
 projections) are capped at `0.25 x thickness`. A 4 m x 40 mm plate never recedes more than
