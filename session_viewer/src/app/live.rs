@@ -187,7 +187,11 @@ impl LiveSource {
         if live.as_deref() == Some("off") || live.as_deref() == Some("0") {
             return None;
         }
-        if live.is_none() && param("scene").is_some() {
+        // A NAMED SCENE WINS, however it was named - `?scene=` or the path (`/view_lines`).
+        // Checking only the query let a bare path start the live source, which then framed
+        // `view_live.toml` and left the named scene unread: every short URL showed the same
+        // scene, and only off localhost, where `page_is_local` was not there to mask it.
+        if live.is_none() && (param("scene").is_some() || crate::path_scene().is_some()) {
             return None;
         }
         // A DEV SERVER DOES NOT WATCH THE BUCKET. `trunk serve` with no query shows the local

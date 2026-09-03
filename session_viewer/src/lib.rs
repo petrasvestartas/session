@@ -54,7 +54,6 @@ use crate::{camera::View, app::scene::Scene};
 #[cfg(target_arch = "wasm32")]
 const LOCAL_SCENE: &str = "view_local.toml";
 
-#[cfg(target_arch = "wasm32")]
 /// A scene named by the PATH instead of the query: `/view_lines` means `?scene=view_lines.toml`.
 ///
 /// The whole app is one page, so any path serves the same `index.html` - trunk's dev server does
@@ -63,8 +62,7 @@ const LOCAL_SCENE: &str = "view_local.toml";
 ///
 /// Only the LAST segment is read, so it works at the site root and under `/session/` alike. The
 /// same rules as `?scene=` apply: nothing that could point the viewer at another origin.
-#[cfg(target_arch = "wasm32")]
-fn path_scene() -> Option<String> {
+pub(crate) fn path_scene() -> Option<String> {
     let path = web_sys::window()?.location().pathname().ok()?;
     let last = path.rsplit('/').next()?.to_string();
     let safe = !last.is_empty()
