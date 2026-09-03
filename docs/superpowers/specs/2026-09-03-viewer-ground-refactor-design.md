@@ -96,17 +96,15 @@ frame; `?perf=1` / `?spin=1` keep it continuous.
 
 ## 6. Declared pixel changes (goldens re-recorded with the reason)
 
-6.1 **Penetration fix - the thickness rule.** Every object row carries `thickness`, measured
-by the walk orientation-free (a mesh: the smallest spread along its own dominant face normals;
-a polyline: the spread across its plane), through the placement scale, floored at 0.1 % of
-its diagonal - a local-AABB axis was 2.4x too thick (median) on the floor model's rotated plates.
-`triangle.wgsl` pushes faces back by `min(0.4 % of eye depth, 0.25 x thickness)`; the
-ribbon/sphere/glyph lifts (1.5 / 0.5 / 2.5 / 2.0 pen half-widths, the same number in both
-projections) are capped at `0.25 x thickness`. A 4 m x 40 mm plate never recedes more than
-10 mm, so its back outline (40 mm behind) cannot surface at any distance; a 1 m box seen from
-2 m keeps the uncapped values. A diagonal-based cap (the first attempt) was useless for long
-thin plates. Linework rows carry local bounds; a planar outline has thickness ~0, no lift, and
-relies on its plate's exact push.
+6.1 **Penetration fix - ink drawn in its face.** Faces do not move (a two-step constant bias
+breaks exact ties only): every push tried - 0.4 % of depth, a quarter of the object's thickness,
+a pixel of slope - surfaced another object's ink somewhere in the floor model (3 mm joints) or
+the plate probe (40 mm plates far away). Instead a ribbon that knows its faces is folded along
+its centre line and each side corner takes its face plane's depth at that pixel; free outlines
+lying on a plate face receive that face's normal and thickness from the walk (`walk/hosts.rs`).
+Lifts are a quarter-pixel hair capped by a quarter of the thickness and by 0.5 mm. Verified by
+`docs/_gate.sh` (probe plates, 0 bottom-outline pixels from above) and `examples/census_plates.rs`
+(23,004 ray-cast samples of the floor model, 0 failing from every perspective eye).
 6.2 **MSAA policy**: 4x only with solid geometry (faces / pipes / spheres) and ≤ 4.2 Mpx;
 `?msaa=4|1` override. Pure sheets render at 1x (they antialias in the shader).
 6.3 **Translation split**: rows carry a zero translation column; the anchored translation is

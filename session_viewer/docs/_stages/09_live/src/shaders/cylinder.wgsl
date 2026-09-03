@@ -33,6 +33,7 @@ struct LineUniform {
     eye_y: f32,
     eye_z: f32,
     anchor: vec3<f32>,
+    feather: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -80,12 +81,14 @@ fn screen_radius(clip_w: f32) -> f32 {
 struct VsOut {
     @builtin(position) pos: vec4<f32>,
     @location(0) color: vec4<f32>,
+    @location(1) @interpolate(flat) inst_id: u32,
 }
 
 fn dead_vertex() -> VsOut {
     var dead: VsOut;
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
     dead.color = vec4<f32>(0.0);
+    dead.inst_id = 0u;
     return dead;
 }
 
@@ -134,8 +137,8 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si: u32) -> Vs
     let world = center + (right * tmpl.x + up * tmpl.y) * rt;
     var o: VsOut;
     o.pos = mvp * vec4<f32>(world, 1.0);
-    var color = unpack4x8unorm(seg.color) * inst.color;
-    o.color = color;
+    o.color = unpack4x8unorm(seg.color) * inst.color;
+    o.inst_id = seg.instance_id;
     return o;
 }
 

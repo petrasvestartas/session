@@ -1,6 +1,6 @@
 //! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor;
-//! 1-7 named views, Space projection, C reset, F fit, Q/W/E lane toggles, L line style,
-//! [ ] cloud size. Fingers go to `touch.rs`.
+//! 1-7 named views, Space projection, C reset, F fit, Q/W/E lane toggles,
+//! L line style, [ ] cloud size. Fingers go to `touch.rs`.
 //! Every handler says whether the frame must be redrawn.
 
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};

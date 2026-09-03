@@ -2,6 +2,7 @@
 //! offscreen texture and read back, so a shader change can be LOOKED AT and measured here.
 //! Every number in the docs comes through this file.
 
+use crate::math::eye_from_view_proj;
 use std::rc::Rc;
 use crate::app::manifest::Manifest;
 use crate::app::scene::{FileDoc, Scene};
@@ -78,6 +79,8 @@ fn camera_from_env(gpu: &Gpu, aspect: f64) -> Camera {
             camera.zoom(if n > 0 { 1.0 } else { -1.0 });
         }
     }
+    let eye = eye_from_view_proj(&camera.view_proj(aspect));
+    log::info!("camera: eye ({:.1}, {:.1}, {:.1}) mm, target ({:.1}, {:.1}, {:.1}) mm, distance {:.1} mm", eye[0], eye[1], eye[2], camera.target[0], camera.target[1], camera.target[2], camera.distance);
     camera
 }
 

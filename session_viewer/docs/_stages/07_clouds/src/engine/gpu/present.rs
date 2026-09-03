@@ -1,5 +1,5 @@
-//! How a frame leaves `Gpu`: presented to the swapchain (`present`), which writes the
-//! uniforms, encodes through `encode_frame`, and submits.
+//! How a frame leaves `Gpu`: presented to the swapchain (`present`). It writes the uniforms,
+//! encodes through `encode_frame`, and submits.
 
 use super::frame::{FrameCx, FrameInput};
 use super::Gpu;

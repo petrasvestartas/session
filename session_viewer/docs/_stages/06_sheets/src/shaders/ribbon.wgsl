@@ -35,6 +35,7 @@ struct LineUniform {
     eye_y: f32,
     eye_z: f32,
     anchor: vec3<f32>,
+    feather: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -137,6 +138,7 @@ struct VsOut {
     @location(4) @interpolate(flat) hw0: f32,
     @location(5) @interpolate(flat) hw1: f32,
     @location(6) @interpolate(flat) solid: f32,
+    @location(7) @interpolate(flat) inst_id: u32,
 };
 
 // The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
@@ -166,6 +168,7 @@ fn dead_vertex() -> VsOut {
     dead.hw0 = 0.0;
     dead.hw1 = 0.0;
     dead.solid = 0.0;
+    dead.inst_id = 0u;
     return dead;
 }
 
@@ -229,7 +232,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let px = floor_hairline(select(raw0, raw1, at_end1));
     let crowd = density_taper(seg.facing, len, px);
     let along = select(-1.0, 1.0, at_end1);
-    let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + 0.5);
+    let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + 0.5 * line.feather);
 
     // Lift the ink toward the camera: in w for perspective, in ndc z for ortho; a sheet takes
     // none (its fills write no depth and its lettering must land on top).
@@ -255,14 +258,14 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
     o.pos = vec4<f32>(ndc * wn, select(clip.z, select(zn0, zn1, at_end1) * wn, line.ortho_h > 0.0), wn);
-    var color = unpack4x8unorm(seg.color) * inst.color;
-    o.color = color;
+    o.color = unpack4x8unorm(seg.color) * inst.color;
     o.p = p;
     o.a = s0;
     o.b = s1;
     o.hw0 = raw0 * crowd;
     o.hw1 = raw1 * crowd;
     o.solid = select(0.0, 1.0, seg.facing != FACING_UNKNOWN);
+    o.inst_id = seg.instance_id;
     return o;
 }
 
@@ -273,7 +276,7 @@ fn coverage(in: VsOut) -> f32 {
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
     let d = length(pa - ba * h);
     let hf = resolve_width(in, h);
-    return clamp(hf.x + 0.5 - d, 0.0, 1.0) * hf.y;
+    return clamp((hf.x + 0.5 * line.feather - d) / line.feather, 0.0, 1.0) * hf.y;
 }
 
 // Depth-only prepass: binary at half coverage, colour masked by the pipeline.

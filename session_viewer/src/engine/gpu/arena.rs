@@ -9,6 +9,13 @@ use super::frame::Binds;
 use super::upload::drop_rows;
 use wgpu::PrimitiveTopology::TriangleList;
 
+/// Faces do NOT recede: a push of any size - a fraction of eye depth, of the object's own
+/// thickness, or of the face's slope per pixel - brought ink through whatever sat closer
+/// behind the face (3 mm joinery contacts, thin plates far away). Two format steps (reverse-Z:
+/// negative = farther) only break the exact tie with ink drawn on the face's own vertices;
+/// the ink lifts what it needs instead (ribbon.wgsl `lift_need_px`).
+const FACE_BIAS: wgpu::DepthBiasState = wgpu::DepthBiasState { constant: -2, slope_scale: 0.0, clamp: 0.0 };
+
 /// The lane's shaders, for the mirror tests.
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[("triangle.wgsl", include_str!("../../shaders/triangle.wgsl"))];
@@ -167,9 +174,9 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, targe
     let dev = &ctx.device;
 
     ArenaPipelines {
-        faces: build(dev, target, &base.with("triangle", "fs_main")),
+        faces: build(dev, target, &base.with("triangle", "fs_main").bias(FACE_BIAS)),
         sheet: build(dev, target, &base.with("triangle.sheet", "fs_main").color(ColorWrite::Blended).depth(DepthMode::ReadOnly)),
-        id_faces: build(dev, Target::ID, &base.with("triangle.id", "fs_id")),
+        id_faces: build(dev, Target::ID, &base.with("triangle.id", "fs_id").bias(FACE_BIAS)),
         id_sheet: build(dev, Target::ID, &base.with("triangle.sheet.id", "fs_id").depth(DepthMode::ReadOnlyEqual)),
     }
 }

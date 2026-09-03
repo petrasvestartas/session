@@ -34,8 +34,8 @@ impl ArenaRows {
     }
 }
 
-/// The two pipelines over the arena: solid faces (opaque: the shader writes alpha 1), sheet
-/// runs (blended, depth read-only).
+/// The four pipelines over the arena: solid faces (opaque: the shader writes alpha 1), sheet
+/// runs (blended, depth read-only), and their id-pass twins.
 struct ArenaPipelines {
     faces: wgpu::RenderPipeline,
     sheet: wgpu::RenderPipeline,
@@ -147,7 +147,7 @@ impl ArenaLane {
     }
 }
 
-/// The two arena pipelines for `target`.
+/// The four arena pipelines for `target`.
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, target: Target) -> ArenaPipelines {
     let groups = [&l.mvp, &l.line, &l.instance];
     let buffers = [vertex_layout(), instance_id_layout()];

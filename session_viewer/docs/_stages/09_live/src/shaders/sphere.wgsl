@@ -34,6 +34,7 @@ struct LineUniform {
     eye_y: f32,
     eye_z: f32,
     anchor: vec3<f32>,
+    feather: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -91,6 +92,7 @@ struct VsOut {
     @location(0) color: vec4<f32>,
     @location(1) corner: vec2<f32>,
     @location(2) @interpolate(flat) px: f32,
+    @location(3) @interpolate(flat) inst_id: u32,
 };
 
 fn dead_dot() -> VsOut {
@@ -99,6 +101,7 @@ fn dead_dot() -> VsOut {
     dead.color = vec4<f32>(0.0);
     dead.corner = vec2<f32>(0.0);
     dead.px = 0.0;
+    dead.inst_id = 0u;
     return dead;
 }
 
@@ -154,7 +157,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
         let lw = px * LIFT_RADII * 2.0 * line.ortho_h / line.vp_h;
         zlift = min(lw, select(1e30, LIFT_MAX_THICK * inst.thickness, inst.thickness > 0.0)) * ozn;
     }
-    let off = tmpl.xy * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
+    let off = tmpl.xy * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
 
     // Hidden vertices never reach the rasterizer, unless the eye is inside the object.
     let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - centre;
@@ -166,16 +169,16 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
 
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy / clip.w * wn + off, clip.z + zlift * wn, wn);
-    var color = g.color * inst.color;
-    o.color = color;
+    o.color = g.color * inst.color;
     o.corner = tmpl.xy;
     o.px = px;
+    o.inst_id = g.instance_id;
     return o;
 }
 
 fn coverage(in: VsOut) -> f32 {
-    let d = length(in.corner) * (in.px + 0.5);
-    return clamp(in.px + 0.5 - d, 0.0, 1.0);
+    let d = length(in.corner) * (in.px + 0.5 * line.feather);
+    return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0);
 }
 
 @fragment

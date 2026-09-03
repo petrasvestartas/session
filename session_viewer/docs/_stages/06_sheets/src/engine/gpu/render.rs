@@ -1,6 +1,6 @@
 //! The frame list. `encode_frame` runs ONE scene pass whose `scene_list`
-//! is the ordered lane draws. The order is
-//! the contract: everything that writes depth first, the blended ink after, lettering last.
+//! is the ordered lane draws. The order is the contract: everything that writes depth first,
+//! the blended ink after, lettering last.
 
 use super::frame::Binds;
 use super::Gpu;
@@ -14,7 +14,6 @@ impl Gpu {
             let mut pass = self.targets.begin_pass(encoder, view, clear);
             self.scene_list(&mut pass, &b)
         };
-
         (draws, self.objects.len())
     }
 

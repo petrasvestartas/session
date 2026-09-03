@@ -1,8 +1,8 @@
 //! The URL decides where a scene comes from. ONE query parser (`query`) serves every knob,
 //! and `SceneRoute` names the two routes:
 //!
-//! - no query: `view_local.toml` + `pb/view_local_*.pb`, all from this origin;
-//! - `?scene=<name>` or a path like `/view_lines`: that manifest AND its files from the bucket.
+//! - no query on localhost: `view_local.toml` + `pb/view_local_*.pb`, all from this origin;
+//! - `?scene=<name>` or a path like `/view_lines`: that manifest AND its files from the bucket;
 //!
 //! `?data=<https base>` overrides where the `.pb` come from; `?data=off` forces this origin.
 
@@ -45,6 +45,13 @@ pub fn query(name: &str) -> Option<String> {
 /// An integer knob from the query string.
 pub fn knob_u32(name: &str) -> Option<u32> {
     query(name)?.parse().ok()
+}
+
+/// Is the page served by a local dev server? Hostname, not port.
+pub fn page_is_local() -> bool {
+    web_sys::window()
+        .and_then(|w| w.location().hostname().ok())
+        .is_some_and(|h| h == "localhost" || h == "127.0.0.1" || h == "[::1]" || h == "::1")
 }
 
 /// A scene named by the PATH: `/view_lines` means `?scene=view_lines`. Only the last segment
@@ -98,10 +105,10 @@ pub fn named_scene(path: &str) -> SceneRoute {
     SceneRoute { manifest: join(&base, &path), base }
 }
 
-/// The manifest this page asked for: a named scene from the bucket, else the local scene.
-pub fn scene_route() -> SceneRoute {
+/// The manifest this page asked for, or `None` when it has neither route (deployed, no query).
+pub fn scene_route() -> Option<SceneRoute> {
     if let Some(path) = query_scene().or_else(path_scene) {
-        return named_scene(&path);
+        return Some(named_scene(&path));
     }
-    SceneRoute { manifest: LOCAL_SCENE.to_string(), base: String::new() }
+    page_is_local().then(|| SceneRoute { manifest: LOCAL_SCENE.to_string(), base: String::new() })
 }

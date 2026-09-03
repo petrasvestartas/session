@@ -23,6 +23,7 @@ struct LineUniform {
     eye_y: f32,
     eye_z: f32,
     anchor: vec3<f32>,
+    feather: f32,
 };
 
 const FLAG_PRINT: u32 = 8u;
@@ -63,6 +64,7 @@ struct VsOut {
     @location(1) world_pos: vec3<f32>,
     @location(2) normal: vec3<f32>,
     @location(3) print: f32,
+    @location(4) @interpolate(flat) inst_id: u32,
 }
 
 @vertex
@@ -82,11 +84,11 @@ fn vs_main(in: VsIn) -> VsOut {
         let k = 1.0 + push_frac(clip.w, inst.thickness);
         o.pos = vec4<f32>(clip.xy * k, clip.z, clip.w * k);
     }
-    var color = in.color.rgb * inst.color.rgb;
-    o.color = color;
+    o.color = in.color.rgb * inst.color.rgb;
     o.world_pos = world;
     o.normal = (inst.model * vec4<f32>(in.normal, 0.0)).xyz;
     o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
+    o.inst_id = in.inst_id;
     return o;
 }
 

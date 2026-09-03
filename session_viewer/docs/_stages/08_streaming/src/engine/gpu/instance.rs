@@ -85,7 +85,7 @@ mod tests {
     /// three scalars there.
     #[test]
     fn line_uniform_mirror() {
-        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor"];
+        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather"];
         for (name, src) in lane_shaders() {
             if src.contains("struct LineUniform") {
                 assert_eq!(wgsl_fields(src, "LineUniform"), rust, "{name}: LineUniform fields");

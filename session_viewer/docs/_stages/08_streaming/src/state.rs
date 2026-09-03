@@ -97,7 +97,7 @@ impl State {
 
     /// Draw ONE frame and never ask for the next: a still scene costs nothing after this.
     /// The shell asks again when `needs_frame` is set - by an input, a message, a resize, a
-    /// throttled re-anchor still due.
+    /// throttled re-anchor still due, or a pick in flight.
     pub fn render(&mut self) {
         self.needs_frame = false;
         let now_ms = now_ms();

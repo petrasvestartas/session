@@ -31,6 +31,9 @@ pub struct View {
     pub lod_px: f32,
     /// On-screen pen weight, px (`?thickness=` / `VIEWER_THICKNESS`).
     pub thickness_px: f32,
+    /// Width of the antialiasing ramp on every ink lane, px (`?aa=` / `VIEWER_AA`): 1 is the
+    /// exact box-filter coverage, wider trades a little blur for smoother diagonals.
+    pub feather_px: f32,
     /// Force the sample count (`?msaa=` / `VIEWER_MSAA`): 4 = 4x, anything else 1x.
     pub msaa_forced: Option<u32>,
 }
@@ -50,6 +53,7 @@ impl View {
             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
             thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 2.0).max(0.1),
+            feather_px: knob_f32("VIEWER_AA", "aa", 1.5).clamp(0.5, 4.0),
             msaa_forced: knob("VIEWER_MSAA", "msaa").and_then(|v| v.parse().ok()),
         }
     }

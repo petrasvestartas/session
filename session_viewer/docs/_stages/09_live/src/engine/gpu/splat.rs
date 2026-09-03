@@ -102,7 +102,7 @@ impl SplatTargets {
     }
 }
 
-/// The point pipeline: its target, label and fragment entry.
+/// One of the two point pipelines: the colour pass or the id pass.
 struct PointVariant {
     target: Target,
     label: &'static str,
@@ -125,7 +125,7 @@ pub struct Splat {
 
 impl Splat {
     /// The record buffer, the points group over the lane's placeholder buffers, and the
-    /// two pipelines; the targets wait for the first cloud.
+    /// three pipelines; the targets wait for the first cloud.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target, bufs: PointBufs) -> Self {
         let record_buf = zeroed_buffer(&ctx.device, "splat.records", HEADER_BYTES + MAX_RECORDS as u64 * 160, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
         let points_group = points_group(ctx, l, &record_buf, &bufs);

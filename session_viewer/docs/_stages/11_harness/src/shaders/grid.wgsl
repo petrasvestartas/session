@@ -14,6 +14,7 @@ struct LineUniform {
     eye_y: f32,
     eye_z: f32,
     anchor: vec3<f32>,
+    feather: f32,
 };
 
 const STEP: f32 = 1000.0;   // mm per cell

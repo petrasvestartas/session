@@ -34,6 +34,7 @@ struct LineUniform {
     eye_y: f32,
     eye_z: f32,
     anchor: vec3<f32>,
+    feather: f32,
 };
 
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
@@ -58,6 +59,7 @@ struct VsOut {
     @location(1) corner: vec2<f32>,
     @location(2) @interpolate(linear) px: f32,
     @location(3) @interpolate(linear) fade: f32,
+    @location(4) @interpolate(flat) inst_id: u32,
 };
 
 fn dead_dot() -> VsOut {
@@ -67,6 +69,7 @@ fn dead_dot() -> VsOut {
     dead.corner = vec2<f32>(0.0);
     dead.px = 0.0;
     dead.fade = 0.0;
+    dead.inst_id = 0u;
     return dead;
 }
 
@@ -112,21 +115,21 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
         lift = clamp(lift, 0.0, 0.5);
     }
     let wn = clip.w * (1.0 - lift);
-    let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
+    let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
 
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy / clip.w * wn + off, clip.z + zlift * wn, wn);
-    var color = g.color * inst.color;
-    o.color = color;
+    o.color = g.color * inst.color;
     o.corner = corner;
     o.px = px;
     o.fade = fade;
+    o.inst_id = g.instance_id;
     return o;
 }
 
 fn coverage(in: VsOut) -> f32 {
-    let d = length(in.corner) * (in.px + 0.5);
-    return clamp(in.px + 0.5 - d, 0.0, 1.0) * in.fade;
+    let d = length(in.corner) * (in.px + 0.5 * line.feather);
+    return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0) * in.fade;
 }
 
 @fragment

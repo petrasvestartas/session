@@ -24,6 +24,8 @@ struct Splat {
     r: f32,
     z: f32,
     color: u32,
+    row: u32,
+    instance: u32,
     ok: bool,
 };
 
@@ -58,7 +60,7 @@ fn oct16_decode(p: u32) -> vec3<f32> {
     return normalize(n);
 }
 
-// Point `gid` projected: pixel centre, radius, depth, lit colour.
+// Point `gid` projected: pixel centre, radius, depth, lit colour, and its table row.
 fn project(gid: u32) -> Splat {
     var s: Splat;
     s.ok = false;
@@ -74,6 +76,8 @@ fn project(gid: u32) -> Splat {
         vec4<f32>(rec_f(base, 8u), rec_f(base, 9u), rec_f(base, 10u), rec_f(base, 11u)),
         vec4<f32>(rec_f(base, 12u), rec_f(base, 13u), rec_f(base, 14u), rec_f(base, 15u)),
     );
+    s.row = i;
+    s.instance = table[base + 37u];
     let clip = m * vec4<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u], 1.0);
     if (clip.w <= 0.0) {
         return s;
@@ -120,6 +124,8 @@ struct PointOut {
     @location(0) @interpolate(flat) center: vec2<i32>,
     @location(1) @interpolate(flat) rr: f32,
     @location(2) @interpolate(flat) color: vec4<f32>,
+    @location(3) @interpolate(flat) row: u32,
+    @location(4) @interpolate(flat) instance: u32,
 };
 
 // A pixel-aligned box over the disc's footprint; the fragment rounds it. A disc big enough
@@ -144,6 +150,8 @@ fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
     o.center = s.px;
     o.rr = select(s.r * s.r, min(s.r * s.r, corner_rr), ir >= 1);
     o.color = unpack4x8unorm(s.color);
+    o.row = s.row;
+    o.instance = s.instance;
     return o;
 }
 
