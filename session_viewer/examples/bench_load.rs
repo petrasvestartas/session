@@ -3,7 +3,7 @@ use std::time::Instant;
 use std::rc::Rc;
 use prost::Message;
 use session_rust::{proto, Session, Geometry, Polyline, Point, Line, Mesh, PointCloud, Xform};
-use session_viewer::app::scene::Scene;
+use session_viewer::app::scene::{FileDoc, Scene};
 
 fn main() {
     let path = std::env::args().nth(1).expect("usage: bench_load <file.pb>");
@@ -148,7 +148,7 @@ fn main() {
         // Do the sheet's fills share a plane? If so the depth buffer cannot order them.
         let mut zs: std::collections::BTreeMap<i64, usize> = std::collections::BTreeMap::new();
         for m in &s.objects.meshes {
-            for (_, v) in &m.vertex { *zs.entry((v.z * 1e6).round() as i64).or_insert(0) += 1; }
+            for v in m.vertex.values() { *zs.entry((v.z * 1e6).round() as i64).or_insert(0) += 1; }
         }
         let shown: Vec<String> = zs.iter().take(6).map(|(z, n)| format!("z={:.6} x{n}", *z as f64 / 1e6)).collect();
         println!("  mesh vertex Z levels: {} distinct -> {}", zs.len(), shown.join(", "));
@@ -209,7 +209,7 @@ fn main() {
     println!("  order()      {:>7.0} ms  ({} guid Strings)", t.elapsed().as_secs_f64()*1e3, ord.len());
     let t = Instant::now();
     let mut hit = 0usize;
-    for g in &ord { if s.lookup.get(g).is_some() { hit += 1; } }
+    for g in &ord { if s.lookup.contains_key(g) { hit += 1; } }
     println!("  lookup.get() {:>7.0} ms  ({hit} hits)", t.elapsed().as_secs_f64()*1e3);
     let t = Instant::now();
     let w = s.world_xforms();
@@ -217,7 +217,7 @@ fn main() {
 
     let t = Instant::now();
     let mut scene = Scene::new();
-    scene.add_file("bench".into(), s, Xform::identity(), 1.0, false);
+    scene.add_file(FileDoc { name: "bench".into(), session: std::rc::Rc::new(s), place: Xform::identity(), point_px: 1.0, display_only: false });
     println!("walk           {:>7.0} ms", t.elapsed().as_secs_f64()*1e3);
     let _ = Point::new(0.0,0.0,0.0);
     let _ = Line::default();

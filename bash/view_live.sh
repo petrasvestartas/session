@@ -70,7 +70,10 @@ files=$(grep -oE '^[[:space:]]*file[[:space:]]*=[[:space:]]*"[^"]+"' "$manifest"
 [ -n "$files" ] || { echo "ERROR: ${manifest} lists no 'file = \"...\"' entry" >&2; exit 1; }
 
 # Geometry first: a page polling in the gap must never read a manifest whose files 404.
-r2_upload "$geometry" "pb/${SLOT_PB}" || exit 1
+# The verify of the geometry runs WHILE the manifest goes up, and the relay is told the moment
+# the manifest is in the bucket - the manifest's own verify finishes behind it.
+r2_upload_start "$geometry" "pb/${SLOT_PB}" || exit 1
+verify_pb=$!
 
 # Every OTHER file the manifest names has to be in the bucket already. `pb/view_live.pb` was just
 # uploaded, so it is skipped; anything else is the author's to put there first.
@@ -87,11 +90,15 @@ while IFS= read -r entry; do
     else echo "  lists ${entry} -> HTTP ${code}"; missing="${missing} ${entry}"; fi
 done <<< "$files"
 if [ -n "$missing" ]; then
+    wait "$verify_pb"
     echo "ERROR: not published - the manifest names files the bucket does not have:${missing}" >&2
     echo "       upload them first (bash/view_put.sh <file.pb>), or fix the paths." >&2
     exit 1
 fi
 
-r2_upload "$manifest" "scenes/${SLOT_TOML}" || exit 1
+r2_upload_start "$manifest" "scenes/${SLOT_TOML}" || { wait "$verify_pb"; exit 1; }
+verify_toml=$!
 r2_notify "${SLOT_PB}"
+wait "$verify_pb" || exit 1
+wait "$verify_toml" || exit 1
 echo "=== live"

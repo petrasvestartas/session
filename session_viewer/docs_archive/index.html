@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Session Viewer — Build Log</title>
+
+  <!-- Markdown + code highlighting, vendored locally (vendor/) so the docs work offline. -->
+  <script src="vendor/marked.min.js"></script>
+  <link rel="stylesheet" href="vendor/github-dark.min.css"/>
+  <script src="vendor/highlight.min.js"></script>
+  <script src="vendor/highlight.rust.min.js"></script>
+
+  <style>
+    :root {
+      --bg:#0d0f12; --panel:#000; --fg:#d7dae0; --muted:#888; --accent:#6fb3ff; --line:#1a1a1a;
+      /* Same stack as the Vue app (session_tests/App.vue); web-safe fallbacks, no web font needed. */
+      --font:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; }
+    body { display:flex; font-family:var(--font); background:var(--bg); color:var(--fg); }
+
+    nav { width:260px; flex:0 0 260px; background:var(--panel); height:100vh; overflow-y:auto;
+          border-right:1px solid var(--line); padding:18px 0; transition:width .18s ease, flex-basis .18s ease; }
+    nav h1 { font-size:13px; font-weight:600; color:#fff; padding:0 18px 12px; letter-spacing:.04em; }
+
+    /* Collapse toggle — always visible so the sidebar can be reopened. */
+    #navToggle { position:fixed; top:12px; left:222px; z-index:10; width:26px; height:26px;
+                 display:flex; align-items:center; justify-content:center; cursor:pointer;
+                 background:#161a20; color:var(--muted); border:1px solid var(--line); border-radius:5px;
+                 font-family:var(--font); font-size:14px; line-height:1; user-select:none;
+                 transition:left .18s ease, color .12s ease; }
+    #navToggle:hover { color:#fff; border-color:#2e3a46; }
+
+    body.nav-collapsed nav { width:0; flex-basis:0; min-width:0; padding-top:18px; padding-bottom:18px;
+                             overflow:hidden; border-right:none; }
+    body.nav-collapsed #navToggle { left:12px; }
+    nav a { display:block; padding:5px 18px; color:var(--muted); text-decoration:none; font-size:13px;
+            font-weight:300; border-left:2px solid transparent; }
+    nav a:hover { color:#fff; }
+    nav a.active { color:#fff; font-weight:600; background:#141414; border-left-color:var(--accent); }
+    nav .grp { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#4a4a4a;
+               padding:16px 18px 4px; }
+
+    main { flex:1; height:100vh; overflow-y:auto; }
+    article { max-width:1100px; margin:0 auto; padding:36px 20px 120px; line-height:1.65; }
+    article h1 { font-size:26px; margin:0 0 18px; }
+    article h2 { font-size:19px; margin:30px 0 10px; color:#cdd3db; border-bottom:1px solid var(--line);
+                 padding-bottom:6px; }
+    article h3 { font-size:15px; margin:20px 0 8px; color:#cdd3db; }
+    article p, article li { margin:9px 0; }
+    article ul, article ol { padding-left:22px; }
+    article a { color:var(--accent); }
+    article blockquote { border-left:3px solid #2e3a46; margin:12px 0; padding:6px 16px; color:#9aa3af;
+                         background:#11161c; border-radius:0 6px 6px 0; }
+    article code, article pre { font-family:var(--font); }
+    article :not(pre) > code { background:#161a20; padding:1px 6px; border-radius:4px; font-size:13px; }
+    article pre { background:#161b22; border:1px solid var(--line); border-radius:8px; padding:12px 14px;
+                  overflow-x:auto; margin:12px 0; }
+    article pre code { background:transparent; padding:0; font-size:13px; }
+    article pre { position:relative; }
+    article pre .copy { position:absolute; top:6px; right:8px; font:11px var(--font); color:var(--muted);
+                        background:#161a20; border:1px solid var(--line); border-radius:4px; padding:2px 7px;
+                        cursor:pointer; opacity:.55; }
+    article pre:hover .copy, article pre .copy:focus { opacity:1; color:#fff; border-color:#2e3a46; }
+    article table { border-collapse:collapse; margin:12px 0; }
+    article th, article td { border:1px solid var(--line); padding:6px 12px; font-size:13px; }
+    .loading { color:var(--muted); padding:40px; }
+
+    @media (max-width: 900px) {
+      article { max-width:100%; padding:28px 14px 96px; }
+    }
+
+    @media (max-width: 600px) {
+      article { padding:22px 10px 84px; }
+    }
+  </style>
+</head>
+<body>
+  <button id="navToggle" title="Toggle sidebar (\)" aria-label="Toggle sidebar">«</button>
+  <nav id="nav"><h1>Session Viewer — Build Log</h1></nav>
+  <main><article id="content"><p class="loading">Loading…</p></article></main>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -154,7 +154,8 @@ session_viewer/assets/pb/mesh_dragon.pb
 # The lesson SNAPSHOT crates under docs/ are source copies, not asset copies. A snapshot that
 # also carries assets/ drags the whole 2 GB .pb set in with it - the rules above are path-
 # anchored to session_viewer/assets/, so a copy under docs/ is not covered by them.
-session_viewer/docs/*/assets/
+session_viewer/docs_archive/*/assets/
+session_viewer/docs/_stages/*/assets/
 
 
 # Editor/scratch leftovers

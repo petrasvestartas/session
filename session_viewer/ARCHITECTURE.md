@@ -1,199 +1,263 @@
-# session_viewer — Architecture (end of lesson 50)
+# session_viewer - Architecture
 
 A browser-only (wasm32, WebGPU/wgpu 29 + winit 0.30) viewer over `session_rust::Session`: a thin
-shell that turns kernel geometry into GPU rows and draws them, on demand. This is the map of the
-tree as it IS after the ground refactor (lessons 44-50); `docs/_ROADMAP.md` is the map of what comes next.
+shell that turns kernel geometry into GPU rows and draws them, on demand. The native harness
+(`src/selftest.rs`, `examples/`) runs the same tree headless through Vulkan for numbers and
+pixels. This file is the map of the tree as it is; `docs/` teaches how it was built.
 
-## 0. The first hour — where anything is
+## 0. The first hour - where anything is
 
 The viewer is two halves with one line between them. Learn the line and the rest follows.
 
 ```text
-  app/    knows what a Geometry IS      talks to session_rust, never to wgpu
-  ────────────────────────────────────  Upload: rows in, no wgpu type either side
-  engine/ knows what a ROW IS           talks to wgpu, never to session_rust
+  app/     knows what a Geometry IS     talks to session_rust, never to wgpu
+  ─────────────────────────────────────  Upload: rows in, no wgpu type either side
+  engine/  knows what a ROW IS          talks to wgpu, never to session_rust
 ```
 
-**The two halves are organised on DIFFERENT axes, and that is the single most important fact here.**
+The two halves are organised on DIFFERENT axes, and that is the most important fact here.
 
 | | `app/walk/` | `engine/gpu/` |
 |---|---|---|
-| one file per | **geometry type** | **row format** |
+| one file per | **geometry type** | **row format (a lane)** |
 | because | a producer starts from a kernel type | a shader reads a row format |
-| files | `mesh.rs` `mesh_ink.rs` `mesh_topology.rs` `brep.rs` `surface.rs` `curves.rs` `points.rs` `frames.rs` `cloud.rs` | `objects.rs` `arena.rs` `segments.rs` `glyphs.rs` `cloud.rs` `stream.rs` `splat.rs` `backdrop.rs` |
+| files | `mesh.rs` `mesh_ink.rs` `mesh_topology.rs` `brep.rs` `curves.rs` `points.rs` `frames.rs` `cloud.rs` `bounds.rs` `encode.rs` | `arena.rs` `segments.rs` `glyphs.rs` `cloud.rs`+`splat.rs`+`lod.rs` `backdrop.rs` |
 
-The mapping is **many-to-many**: one `Mesh` produces triangles AND cylinder segments AND glyph
-points; one `CylinderSegment` is produced by six types. What crosses is a **row**, and every row
-carries an `instance_id` into the one object table (`objects.rs`) - the seam picking will use.
+The mapping is many-to-many: one `Mesh` produces triangles AND segments AND glyph points; one
+`CylinderSegment` is produced by six types. What crosses is a **row**, and every row carries an
+`instance_id` into the one object table (`objects.rs`) - the seam picking and selection use.
 
 ### Symptom -> file
 
 | what you are looking at | open |
 |---|---|
 | a geometry type draws nothing / wrongly | `app/walk/<type>.rs` |
-| the wrong pixels, right geometry | `engine/gpu/<family>.rs` - the family that owns that row |
-| the wrong draw ORDER | `engine/gpu/render.rs` - `scene_list`, eleven lines |
+| the wrong pixels, right geometry | `engine/gpu/<lane>.rs` + its `.wgsl` |
+| the wrong draw ORDER, or a lane not pickable | `engine/gpu/render.rs` - `scene_list` and `id_pass`, same order, same toggles |
 | a pipeline / blend / depth setting | `engine/pipelines/mod.rs` - one `PipelineDesc` literal each |
 | a buffer that grows, a bind group, the growth policy | `engine/gpu/buffers.rs` (`GrowBuf`: `max(need, cap*3/2)`) |
-| per-object transform, tint, flags, the re-anchor, the inside test | `engine/gpu/objects.rs` + `instance.rs` |
+| per-object transform, tint, flags, thickness, the re-anchor, the inside test | `engine/gpu/objects.rs` + `instance.rs` |
 | a per-frame uniform, the eye, the ortho height | `engine/gpu/frame.rs` |
 | MSAA on or off, the sample count | `engine/gpu/targets.rs` - `samples_for` |
 | adapter, surface format, device limits | `engine/gpu/device.rs` |
-| a shader struct disagreeing with Rust | `cargo xtest` - five mirror tests name the file |
+| a click that hits the wrong thing | `engine/gpu/pick.rs` (the id pass + readback), `app/scene.rs::resolve` |
+| ink showing through a face, or cut by one | the thickness rule (section 6) - `triangle.wgsl` `push_frac`, `ribbon.wgsl` `lift_capped` |
+| a cloud too sparse / too dense / wrong in ortho | `engine/gpu/lod.rs` (the walk), `splat.rs` (records), `splat.wgsl` |
+| a shader struct disagreeing with Rust | `cargo xtest` - the mirror tests name the file |
 | memory after a Clear | `Gpu::release` (`gpu/mod.rs`) - every lane back to one row |
 | WHERE a file sits in the world | `app/manifest.rs` (`scenes/*.toml`) |
 | a URL becoming documents, a reload, a streamed scan | `app/loader.rs` (wasm) - produces `Msg`, touches no GPU |
-| bytes becoming a `Session` | `app/decode.rs` (whole file) / `app/stream.rs` (Range slices) |
-| a drag, a wheel, a key | `app/input.rs` - `Input` is the gesture state machine |
+| bytes becoming a `Session` | `app/decode.rs` (whole file) / `app/stream.rs` (Range reads) |
+| the deployed page not following a publish | `app/live.rs` (conditional reads, the relay flag) + `bash/lib/view.sh` |
+| a drag, a wheel, a key, a finger | `app/input.rs` (`Input`), `app/touch.rs` |
 | why nothing redraws / why it never stops | `State::render` + `App::request_if_needed` (`state.rs`, `lib.rs`) |
-| an env switch | `app/knobs.rs` (walk) or `engine/gpu/view.rs` (draw) - the table below |
+| an env switch or `?query` | `app/knobs.rs` (walk) or `engine/gpu/view.rs` (draw) - section 9 |
 | a number you want to trust | `src/selftest.rs` - the harness behind every `examples/*` |
 
-### The five rules the code enforces
+### The rules the code enforces
 
-1. **A family may not build or renumber an object row.** One `(model, tint, flags)` per guid, owned
-   by `InstanceTable`; everything else holds an index. `ObjectRows` is a per-upload delta.
-2. **A module is defined by the ROW it owns** - its tables, its pipelines, its draws. Not by a
-   shader: `ribbon.wgsl` is compiled once and drawn from two tables.
-3. **The frame is an ordered LIST.** `scene_list` is eleven entries; no entry reaches past its own
-   family. `grep -cE 'wgpu::Buffer|\.wgsl' engine/gpu/render.rs` is 0.
+1. **A lane may not build or renumber an object row.** One `Instance` per guid, owned by
+   `InstanceTable`; everything else holds an index. `ObjectRows` is a per-upload delta.
+2. **A lane is defined by the ROW it owns** - its tables, its groups, its pipelines, its draws,
+   its shaders. `render.rs` names lanes and toggles, never a buffer or a shader.
+3. **The frame is an ordered list**, and the id pass is the same list under the same toggles.
 4. **A producer returns its object row; it never pushes one.** `Row` (`app/walk/mod.rs`).
-5. **An option the caller must decide is a named field.** `MeshOpts`, `FrameInput`, `RecordCx` -
-   no fn takes more than four parameters, no closure holds logic, every fn carries a `///`.
+5. **Rows are appended, never rebuilt.** Every table on the GPU is append-only; a reload is
+   `release` + append from row 0.
+6. **At most four parameters.** Grouped inputs are a named struct (`MeshCx`, `StreamSlice`,
+   `RecordCx`, `TextureSpec`, `Pen`, ...).
+7. **No closures** unless they are the fastest way (`sort_by`, `find`, `retain`).
+8. **The kernel stays f64; f32 exists only at the GPU edge.** `math.rs` holds that edge: the
+   f32 `Aabb`, the f32 matrix helpers, the eye/ortho readers. They are GPU-shaped by design and
+   that is why they are not kernel code (section 10).
 
-### The gates
-
-```bash
-cargo check --lib --target wasm32-unknown-unknown            # 0 warnings in this crate
-cargo check --all-targets --target x86_64-unknown-linux-gnu  # 0 warnings in this crate
-cargo xtest                                                  # 5 Rust<->WGSL mirror tests
-./docs/_gate.sh                                              # 4 scenes x 4 configs, twice, vs docs/_GOLDENS.tsv
-python3 docs/_replay_check.py --render docs/*.md             # the lessons render as written
-```
-
-### The knobs (native `VIEWER_*` env; wasm `?name=` query where named)
-
-| knob | where | what |
-|---|---|---|
-| *(no query, localhost)* | loader | `view_local.toml` + `pb/view_local_*.pb`, served locally; the ONLY local scene, no network |
-| *(no query, deployed)* | live.rs | `view_live.toml` from the R2 bucket, re-read every poll |
-| `?scene=` | loader | manifest path IN THE BUCKET, e.g. `scenes/view_pointclouds.toml`; its files come from there too |
-| `?data=` | persistence.rs | override the base the `.pb` hang off; `off` forces this origin |
-| `?perf=1` / `VIEWER_PERF` | performance.rs, `State::render` | once-a-second fps line AND continuous rendering (benchmark mode) |
-| `?thickness=` / `VIEWER_THICKNESS` | view.rs | pen weight, px (default 2) |
-| `?msaa=` / `VIEWER_MSAA` | view.rs, targets.rs | force 4 = 4x, anything else 1x; unset = policy |
-| `VIEWER_LINE_STYLE=tubes`, `BENCH_NO_MARKERS` | view.rs | solid-lane style; no vertex markers |
-| `VIEWER_CLOUD_SCALE`, `VIEWER_EDL`, `VIEWER_LOD` | view.rs | cloud size factor, EDL strength, LOD split px |
-| `VIEWER_PROFILE`, `VIEWER_DROP_SESSIONS`, `VIEWER_NO_EDGES`, `VIEWER_NO_DOTS`, `VIEWER_ALL_EDGES` | knobs.rs | walk laps; force display_only; ink gates |
-| `VIEWER_NO_DEPTH` | pipelines/build.rs | both solid-ink colour passes with depth Always |
-| `VIEWER_W/H`, `VIEWER_ORBIT`, `VIEWER_ORTHO`, `VIEWER_VIEW`, `VIEWER_ZOOM` | selftest.rs | canvas and camera of a harness frame |
-| `VIEWER_FRAMES=N` | selftest.rs | N still-camera frames, median ms (the splat static skip applies) |
-| `VIEWER_INCREMENTAL=1`, `VIEWER_REBUILD=1` | selftest.rs | upload per file (the browser's path); re-walk from the kernel |
-| `VIEWER_GPU_REPORT=1`, `VIEWER_CLEAR=1` | selftest.rs | wgpu allocator report per label; clear after the frame and report again |
-| `BENCH_FRAMES` | bench_frame / bench_lines | frames per leg |
-
-### Deliberately left (audit section B - known, measured, not fixed here)
-
-- Kernel decode is 75-79% of native load (prost 50%); `Mesh` HashMap-of-HashMaps costs 61 B/vertex;
-  `SpatialOctree` build is 80% of a cloud walk. Kernel work, three languages.
-- Solid ink drawn twice (depth prepass + colour) = 31% of the flat bunny frame: the prepass keeps
-  the AA rim free of flecks; alpha-to-coverage changes pixels.
-- Sheet ribbons fetch the instance row five times per vertex; a `step_mode: Instance` table is a
-  shader-side redesign. `blend: ALPHA` on the opaque triangle pipeline (~1 ms on sheets) stays.
-- The splat colour pass re-projects every point; per-thread linear record search (`splat.wgsl`).
-- The background draw duplicates the pass clear (0.1 ms); deleting it changes the `draws` golden.
-- `GlyphPoint` carries 12 B the flat lane never reads; `stream.nrm` is 53 MiB of sentinel on lidar_14m.
-- `drawings_rotated` (4 sheets of similar size) gains nothing from the 3/2 growth policy: no append
-  fits the slack; `drawings` (10 sheets) gains 25%. The policy is one, measured on both.
-- The harness measures an Intel iGPU under `PowerPreference::LowPower`; numbers under CPU load
-  disagree by up to 2x, so every number in `CHANGES.md` carries its load average and both runs.
-
-## 1. The tree (lines measured on this stage)
+## 1. Tree
 
 ```text
-src/lib.rs 165        wasm shell: App (ApplicationHandler), Msg, request_if_needed - the ONLY request_redraw sites
-src/state.rs 101      State { window, gpu, camera, scene, needs_frame } - render() draws once, never requests
-src/math.rs 159       Mat4, Aabb, eye/ortho solves       src/camera.rs 356   orbit/pan/zoom, named views, fit
-src/selftest.rs 435   native harness: render_scene, bench_scene, frame_profile (+ rebase leg), object_bytes, gpu_report
-src/app/  manifest 71 · knobs 46 · fetch 82 · decode 144 (LeanSession for display_only) · stream 152 (ColorRun)
-          loader 247 (wasm: whole files + 8 MiB Range slices) · input 121 · scene 227 (Scene, Bases, Rc<str> guids)
-src/app/walk/  mod 122 (Walk, WalkCx, Row) · bounds 157 (Baselines, sweeps) · encode 79 · mesh 189 · mesh_ink 200
-          mesh_topology 128 · brep 16 · surface 17 · curves 86 · points 21 · frames 51 · cloud 114
-src/engine/pipelines/  mod 146 (16 PipelineDesc literals) · layouts 116 (8 layouts; instance = rows + translations) · build 183
-src/engine/gpu/  mod 274 (Gpu, 17 fields: set_scene, retarget, release) · device 96 · buffers 138 (GrowBuf, Template)
-          upload 74 · view 86 · frame 188 · targets 106 (samples_for) · present 136 · instance 196 (+5 mirror tests)
-          objects 288 (InstanceTable, BoundedRow, Rebase) · arena 137 · segments 222 · glyphs 176
-          cloud 113 · stream 168 · splat 422 · backdrop 23 · render 141 (splat_prelude + scene_list)
-src/engine/performance.rs 110   fps line, frame counter, perf_logging()
-src/shaders/  triangle 136 · cylinder 186 · ribbon 522 · sphere 290 · glyph 174 · grid 96 · background 28 · splat 276 · splat_resolve 98
-examples/  selftest · bench_frame · bench_lines · bench_load · probe_mem · probe_objects · check_determinism · mk_* · pb_bbox · potree_import
+src/
+  lib.rs            the shell: Msg, App (winit handler), the canvas size, run_web
+  state.rs          State: window, gpu, camera, scene; append / add_streamed / clear / fit / pick / render
+  camera.rs         orbit camera, named views, fit, projection toggle (f64)
+  math.rs           the GPU edge: Mat4 helpers, f32 Aabb, eye_from_view_proj, ortho_half_height, FOVY_DEG
+  selftest.rs       (native) the harness: SceneFile, camera knobs, load, render, pick, profile
+  app/
+    mod.rs          the app-side modules
+    manifest.rs     Item, Manifest::parse (TOML/JSON), place, name_of
+    route.rs        DATA_BASE, LOCAL_SCENE, scene_route (path / query / live), is_local_url, AUTO_GRID
+    knobs.rs        walk-time env flags, read once
+    fetch.rs        (wasm) get with GetOpts {no_store, revalidate, if_none_match, range}, sleep, next_tick
+    decode.rs       bytes -> Session, yielding to the browser between objects
+    stream.rs       the protobuf header walk: CloudFields, CloudLod, packed arrays, (wasm) range readers
+    loader.rs       (wasm) boot, load_route, stream_prefix / spawn_stream_rest, the point budget, GENERATION
+    live.rs         (wasm) LiveSource: conditional reads, Rc<Session> set, ntfy relay flag
+    input.rs        mouse + keys + the left-click pick; touch.rs the finger gestures
+    scene.rs        Scene: docs, Upload tables, object rows, streamed slots, resolve a pick
+    walk/           producers, one file per geometry type (mod.rs dispatches on Geometry)
+  engine/
+    mod.rs
+    performance.rs  now_ms, heap_mb, the perf line
+    pipelines/      Target, DepthMode, ColorWrite, PipelineDesc builder, vertex layouts; layouts.rs the bind group layouts
+    gpu/
+      mod.rs        Gpu: the lanes, build / set_scene / retarget / resize / reset / release / set_selected
+      buffers.rs    GpuCtx, GrowBuf, Template, uniform_buffer, bind_group
+      device.rs     adapter / device / surface
+      targets.rs    Targets (depth + MSAA colour), samples_for, TextureSpec, texture, texture_view
+      frame.rs      FrameInput, FrameCx, Binds, LineUniform (48 B), CloudUniform, FrameUniforms
+      view.rs       View knobs, LineStyle, knob(env, query)
+      instance.rs   Instance (96 B) + flags; the Instance/LineUniform mirror tests
+      objects.rs    ObjectRow, InstanceTable (rows, f64 translations, re-anchor, inside test, thickness)
+      upload.rs     Upload: one file's rows for every lane, dropped after upload
+      backdrop.rs   background + grid
+      arena.rs      mesh faces, sheet fills, lettering (one vertex table, three index runs)
+      segments.rs   pipes (solid lane) + ribbons (flat lane) over the 40 B CylinderSegment
+      glyphs.rs     spheres (solid lane) + dots (flat lane) over the 48 B GlyphPoint
+      cloud.rs      the point tables, the node table, Cloud {chunks}
+      lod.rs        LodWalk: which octree ranges to draw, clipped to what is resident
+      splat.rs      the point pass (own 1x targets), records, the resolve, the id pass
+      pick.rs       Picker: the id target, the copy, the async readback
+      render.rs     encode_frame: point pass -> scene_list -> id pass
+      present.rs    present / render_offscreen / bench_frames
+  shaders/          one .wgsl per lane draw: triangle, cylinder, ribbon, sphere, glyph, grid, background, splat, splat_resolve
 ```
 
-## 2. The frame (`engine/gpu/render.rs`) - the ORDER is the contract
+## 2. Data flow
 
 ```text
-compute prelude   splat.is_current(mvp, cloud_size)? -> nothing. Else: records for both lanes into
-                  the reused tables -> write, clear pixels, 2 lanes x 2 passes (narrow 2D grid)
-render pass       1 background   2 grid   3 arena.draw_faces (counts 1 even when empty)
-                  4 arena.draw_print   5 segments.draw_pipes (Tubes 1 · Flat prepass+colour 2)
-                  6 splat resolve   7 glyphs.draw_spheres (prepass+colour 2) if show_mesh_edges && markers
-                  8 [INK_DEPTH_PREPASS - const false]   9 ribbons if show_lines   10 arena.draw_text   11 dots if show_points
+  scene .toml ──► Manifest ──► loader (wasm) / selftest (native)
+                                 │  whole file: fetch ─► decode ─► Msg::File(FileDoc)
+                                 │  cloud with octree: stream_prefix ─► Msg::StreamedCloud, then CloudChunk...
+                                 ▼
+  State::append ──► Scene::add_file ──► walk_geometry per guid ──► Upload (rows) ──► Gpu::set_scene ──► lanes append
+                                                                  └── ObjectRow per guid ──► InstanceTable
 ```
-The `draws` count and the object count are what `docs/_GOLDENS.tsv` records. Bind groups: 0 = mvp,
-1 = line/cloud uniform, 2 = instances (rows at 0, anchored translations at 1), 3 = the family's rows.
 
-**Render on demand.** `State::render` clears `needs_frame`, draws one frame, and sets it again only
-when `?perf=1`/`VIEWER_PERF` (continuous, for benchmarking) or a throttled re-anchor is still due.
-`App` requests a redraw only when `needs_frame` is set: every `Msg`, every input that changed the
-camera or a knob, `Resized`. A still scene draws nothing; `frames drawn: N` logs every 60th frame.
+- A `FileDoc` carries an `Rc<Session>`: the scene keeps it for picking; the live source keeps
+  the same `Rc` as its current set, so a swap re-walks unchanged files and never re-decodes.
+- `Upload` is a delta: every table in it is THIS file's rows; `Scene.bases` numbers them
+  globally. After `set_scene` the rows are dropped - the GPU is their only holder.
+- `display_only` (manifest) or `VIEWER_DROP_SESSIONS` releases the kernel object after the
+  walk: no picking into it, no rebuild, a fraction of the heap.
 
-## 3. Memory - what lives where
+## 3. Frame order
 
-- **CPU, per document:** the kernel `Session` unless `display_only` (every shipped sheet and cloud
-  item is); then only the name and placement. `display_only` also skips `tree`/`graph`/`bvh` on the
-  wire (`LeanSession`). The fetched bytes are dropped the moment prost is done.
-- **CPU, per object:** `Instance` 96 B + `[f64; 3]` translation 24 B in `InstanceTable`, one
-  `Rc<str>` guid shared by `Scene.order` and `guid_to_row` - 303 B measured (`probe_objects`), was 997.
-  Bounded rows (meshes that drew ink) are a sparse list: 32 B each, 3 rows on a ten-sheet scene.
-- **CPU, per upload:** `Upload` = one file's rows for every family, a DELTA, dropped by
-  `drop_uploaded` after `set_scene`. The walk numbers rows from `Scene.bases` (vert, cloud, obj).
-- **GPU:** every lane is a `GrowBuf` under one policy, `max(need, cap*3/2)`, prefix copied
-  GPU-side; `StreamLane` reserves exact (the count is known before the first byte). Targets:
-  4x only with solid geometry (faces, pipes, spheres) AND <= 4.2 Mpx, no `msaa` texture at 1x.
-  `Gpu::release()` (from `Scene::clear`) puts every lane back to one row: 132 -> 26 MiB on drawings_rotated.
-- **Re-anchor:** `Instance.model` holds rotation/scale with a zero translation column; the
-  anchored translation is a 16 B/row buffer rewritten on re-anchor (11 MiB on 744k rows, was 68);
-  an inside-flag flip writes its one 96 B row. Throttled to 5/s; a deferred one asks for a frame.
-- **Streaming:** coords in 8 MiB slices (whole points), colours in 8 MiB slices with the split
-  varint carried by `ColorRun`; one `Msg` per slice, nothing whole in wasm memory.
+`render.rs::scene_list`, in order, each line one lane and one toggle:
 
-## 4. Precision boundary - f64 kernel, f32 GPU
+1. background · 2. grid · 3. faces · 4. sheet fills · 5. mesh edges (`E`) · 6. clouds (resolve) ·
+7. vertex markers (`E`, markers) · 8. lines (`W`) · 9. lettering · 10. point dots (`Q`).
 
-The kernel is f64; the GPU is f32; the cast happens once at the upload edge (`mat_to_f32`, the row
-structs) and once per frame for the camera (`Xform::to_f32`). Large scenes stay camera-relative:
-rows are rebased about an anchor in f64 and only the small offset is cast. Never `as f32` inside
-a computation that feeds more math.
+Everything that writes depth comes first; the blended flat ink after; lettering last so a page
+paints its text over its hatching. The point lane draws BEFORE the scene pass into its own 1x
+depth + colour (`Splat::prelude`), skipped while the camera, the knobs and the tables are what
+they were; the resolve (6) composites it with `frag_depth` under the scene's depth test.
 
-## 5. What lesson 50 measured (both runs, load average in CHANGES.md)
+MSAA is 4x only when SOLID geometry (faces, pipes, spheres) is on the GPU and the canvas is at
+most 4.2 Mpx; `?msaa=` forces. Ribbons, dots and splats antialias themselves.
 
-| item | before | after |
-|---|---|---|
-| render on demand | a still `drawings` scene: 85-106 ms every frame, forever | 0 frames while still |
-| per-object CPU bytes (drawings_rotated) | 997 B | 303 B |
-| MSAA on a pure sheet (900x700) | 6.05 ms, 10.7 MiB msaa + 10.2 depth | 3.45 ms, 2.9 MiB depth |
-| MSAA on bunny at 3840x2160 | 13.1 ms, 135 + 131 MiB | 5.7 ms, 36 MiB |
-| forced re-anchor, 744k rows | 21.7 ms CPU + 6.4 ms GPU (68 MiB) | 10.7 + 1.6 ms (11.4 MiB) |
-| display_only sheet decode | 194 ms | 125 ms |
-| drawings_rotated resident (5 files) | 684 MB | 285-377 MB |
-| 10-sheet incremental upload | 1883 ms | 1424 ms |
-| Clear on drawings_rotated (GPU) | 132 MiB stayed | 26 MiB |
-| streamed colours (lidar_14m) | 148 MB transient | 8 MiB slices |
+## 4. Picking
 
-## 6. Quick reference
+- A left click that did not drag calls `State::request_pick(x, y)`; the next frame runs the id
+  pass: the scene list again, opaque, at 1x, into `Rg32Uint` = (object row + 1, sub id + 1),
+  under the SAME toggles - what a lane hides it cannot pick.
+- `Picker` copies one texel, maps it asynchronously, and `poll` hands the `Pick` back a frame or
+  two later; `Scene::resolve` names the document, the guid, and for a cloud the point (row-local
+  index and the kernel's stable id).
+- `FLAG_SELECTED` on the row tints every lane's fragments; `Escape` clears.
 
-- Build target pinned to `wasm32-unknown-unknown` in `.cargo/config.toml`; `cargo xtest` and the
-  examples are native (`--target x86_64-unknown-linux-gnu`). `trunk serve --release` to run.
-- Layer rule: `app/` may name `session_rust`; `engine/` names only `RenderVertex`, `Xform`, `Point`.
-- File rule: one concern per file, `//!` header, `///` on every fn, no fn over four parameters.
-- Every number in a lesson states the load average and both runs; a gate row is a number measured
-  on SPECIFIC asset bytes (`# assets:` fingerprint in `docs/_GOLDENS.tsv`).
+## 5. Object rows and the f64 anchor
+
+- `Instance` (96 B): rotation/scale (translation zeroed), tint, flags, **thickness**, spacing.
+  The translation lives in a separate 16 B/row table, rewritten in f64 relative to the camera's
+  anchor whenever the target drifts a quarter of the view distance (`rebase_anchor`, throttled).
+- Flags: `SELECTED` `HIDDEN` `INSIDE` `PRINT` `OPEN` `SHEET`. `INSIDE` is refreshed per frame
+  for rows that drew faces only (`ObjectRow.faces`), so a pure-linework sheet costs nothing.
+
+## 6. The thickness rule (why ink never shows through a plate)
+
+- Faces recede along their view ray by `min(0.4 % of eye depth, 0.25 x thickness)`
+  (`triangle.wgsl::push_frac`), so the wireframe drawn on them is never cut by them.
+- Ink lifts toward the eye by pen half-widths - mesh wires 1.5, free linework 0.5, markers
+  2.5, dots 2.0 - capped at `0.25 x thickness` (`ribbon.wgsl::lift_capped`, sphere, glyph).
+- `thickness` = the object's thinnest local axis through the placement scale, floored at
+  0.1 % of its diagonal (`objects.rs::thickness`). A 40 mm plate 4 m long therefore never
+  recedes more than 10 mm and its back outline (at 40 mm) can never surface; a 1 m box seen
+  from 2 m keeps the uncapped values, so close-ups look as before.
+- A planar outline has a thinnest axis of 0: it gets no lift and relies on its plate's push,
+  which is exact (the same vertices) and scale-free.
+- Verified by rendering the floor model from above with the caps disabled versus enabled: the
+  lines that disappear are the back outlines; close-ups differ by anti-aliasing speckle only.
+
+## 7. Point clouds
+
+- `cloud.rs`: three append-only tables (positions, colours, oct16 normals), the node table, and
+  one `Cloud` per cloud with a **chunk list** - a whole file is one chunk; a streamed file is a
+  prefix and then slices, interleaved with other files' rows, so a cloud maps its own point
+  index to lane rows through its chunks. A draw with `from == 0` opens a cloud; a later `from`
+  extends the cloud on the same object row.
+- `lod.rs`: the walk from node 0 over the cloud's WHOLE node table (uploaded with the first
+  slice), descending while a node's spacing projects wider than `lod_px`, every node clipped to
+  the points resident so far. Clouds under 2 M points draw whole.
+- `splat.rs`: one `SplatRecord` (160 B) per range per chunk; the shader finds its record by a
+  binary search on `cum`. Targets are made on the first frame that has points, dropped on
+  resize and on release.
+- Units: spacing and radii are computed in metres; `ortho_h` (world mm) is converted where used.
+
+## 8. Streaming and the live source
+
+- A `.pb` is probed with an 8 KB Range read (`stream.rs::walk_to_coords`): a file that is one
+  cloud with an octree streams; anything else is fetched and decoded whole.
+- The node table is read by hopping field headers after the colours, fetching only the seven
+  LOD arrays - never the normals or the point ids (380 MB on a 14 M cloud).
+- The first slice is the octree's coarse prefix (2 M points, at least 250 k); the rest arrives
+  in 2 M slices under a page budget of 6 M resident points (`?points=`). A `Clear` bumps a
+  generation counter and resets the budget; a slice from an older scene stops itself.
+- The live page re-reads `view_live.toml` and each file with `If-None-Match`; an idle poll is
+  `304`s. The ntfy relay only raises a flag (`tick_ms` in memory); the conditional reads decide.
+- Publishing (`bash/view_live.sh`, `view_put.sh`): curl SigV4 PUT (credentials through a
+  0600 config file, never argv), verifies overlapped, then the relay is poked.
+
+## 9. Knobs
+
+| where | env (native) | query (wasm) | meaning |
+|---|---|---|---|
+| view.rs | `VIEWER_THICKNESS` | `?thickness=` | pen weight, px |
+| view.rs | `VIEWER_LINE_STYLE=tubes` | `?style=tubes` | solid-lane style at start (`L` flips) |
+| view.rs | `VIEWER_CLOUD_SCALE` | `?cloud=` | point size scale (`[` `]`) |
+| view.rs | `VIEWER_EDL` | `?edl=` | eye-dome lighting strength, 0 off |
+| view.rs | `VIEWER_LOD` | `?lod=` | octree cutoff in px, 0 = draw whole |
+| view.rs | `VIEWER_MSAA` | `?msaa=` | force 4 or 1 |
+| view.rs | `VIEWER_PERF` | `?perf=1` | continuous frames + the perf line |
+| view.rs | `VIEWER_SPIN` | `?spin=1` | orbit every frame (a benchmark) |
+| view.rs | `BENCH_NO_MARKERS` | `?nomarkers` | no vertex markers |
+| knobs.rs | `VIEWER_PROFILE` | - | walk laps to stderr |
+| knobs.rs | `VIEWER_DROP_SESSIONS` | - | release every kernel object after the walk |
+| knobs.rs | `VIEWER_NO_EDGES` / `VIEWER_NO_DOTS` / `VIEWER_ALL_EDGES` | - | wireframe content |
+| loader.rs | - | `?points=` | resident point budget |
+| live.rs | - | `?live=off|url` `?poll=s` `?notify=off|url` | the live source |
+| selftest.rs | `VIEWER_W/H` `VIEWER_ORBIT` `VIEWER_ZOOM` `VIEWER_VIEW` `VIEWER_ORTHO` `VIEWER_FRAMES` `VIEWER_PICK` `VIEWER_INCREMENTAL` `VIEWER_REBUILD` | - | the harness camera and modes |
+
+Keys: `1`-`7` named views, `Space` projection, `C` reset, `F` fit, `Q` `W` `E` lanes, `L` style,
+`[` `]` point size, `Esc` deselect. Mouse: right orbit, middle pan, wheel zoom, left pick.
+Touch: one finger orbit, two pan/zoom.
+
+## 10. Adding or deleting a lane
+
+A lane is `engine/gpu/<lane>.rs` plus its shaders. It touches the tree in exactly these places:
+
+1. its file (rows struct + size assert + `SHADERS` + lane struct + mirror test);
+2. one field in `Upload` (`upload.rs`) and one in `Gpu` (`gpu/mod.rs`);
+3. one line each in `Gpu::build`, `set_scene`, `retarget`, `reset`, `release`, `lane_shaders`;
+4. one line in `scene_list` and one in `id_pass` (`render.rs`);
+5. the producer(s) in `app/walk/` that fill its rows.
+
+Delete those and the rest compiles. `math.rs` is deliberately NOT kernel code: everything in
+it is f32 or reads a projection matrix; kernel math stays f64 in `session_rust` and is ported
+to C++ and Python, which these GPU-edge helpers would only burden.
+
+## 11. Measuring
+
+- `cargo xtest`: the mirror tests and the stream parser tests.
+- `cargo run --release --example selftest -- out.ppm scene.toml` renders headless and prints
+  the non-background pixel count; `examples/bench_frame.rs` times frames; `bench_load.rs` the
+  walk; `check_determinism.rs` the row bytes; `stream_decode_check.rs` the header walk.
+- In the browser: `?perf=1` puts `f<n> gap <ms> enc <ms> heap <MB>` on the page. A hidden tab
+  renders nothing (rAF is paused), so measure in a visible tab.

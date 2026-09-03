@@ -9,12 +9,12 @@
 // centroid, the same edge and halfedge topology, the same JSON. `PB_BYTES=1` additionally
 // requires the ENCODED .pb bytes to match - see the note at that check for why it is off.
 use session_rust::{Session, Xform};
-use session_viewer::app::scene::Scene;
+use session_viewer::app::scene::{FileDoc, Scene};
 
 fn tables(bytes: &[u8]) -> Scene {
     let s = Session::pb_loads(bytes).expect("pb_loads");
     let mut sc = Scene::new();
-    sc.add_file("d".into(), s, Xform::identity(), 0.0, false);
+    sc.add_file(FileDoc { name: "d".into(), session: std::rc::Rc::new(s), place: Xform::identity(), point_px: 0.0, display_only: false });
     sc
 }
 
@@ -27,14 +27,14 @@ fn main() {
 
         // 1. the GPU tables, byte for byte
         let (a, b) = (tables(&bytes), tables(&bytes));
-        macro_rules! same { ($f:ident) => {
-            if bytemuck::cast_slice::<_, u8>(&a.tables.$f) != bytemuck::cast_slice::<_, u8>(&b.tables.$f) {
-                fails.push(format!("tables.{}", stringify!($f)));
+        macro_rules! same { ($l:ident.$f:ident) => {
+            if bytemuck::cast_slice::<_, u8>(&a.tables.$l.$f) != bytemuck::cast_slice::<_, u8>(&b.tables.$l.$f) {
+                fails.push(format!("tables.{}.{}", stringify!($l), stringify!($f)));
             }
         }; }
-        same!(verts); same!(idx); same!(segments); same!(pipes); same!(spheres); same!(glyphs);
-        same!(cloud_pos); same!(cloud_col); same!(cloud_nrm);
-        if a.tables.min != b.tables.min || a.tables.max != b.tables.max { fails.push("tables.bounds".into()) }
+        same!(arena.verts); same!(arena.idx); same!(seg.ribbons); same!(seg.pipes); same!(glyph.spheres); same!(glyph.dots);
+        same!(cloud.pos); same!(cloud.col); same!(cloud.nrm);
+        if a.tables.bounds != b.tables.bounds { fails.push("tables.bounds".into()) }
 
         // 2. per-mesh kernel readers a test or an exporter would call
         let (sa, sb) = (Session::pb_loads(&bytes).unwrap(), Session::pb_loads(&bytes).unwrap());
@@ -49,7 +49,7 @@ fn main() {
                mb.edges_with_colors().iter().map(|e| (e.0, e.1))) { m("edges_with_colors") }
             if ma.edge_face_map() != mb.edge_face_map() { m("edge_face_map") }
             if ma.to_vertices_and_faces().1 != mb.to_vertices_and_faces().1 { m("to_vertices_and_faces") }
-            if ma.jsondump().to_string() != mb.jsondump().to_string() {
+            if ma.jsondump() != mb.jsondump() {
                 m("jsondump");
                 if std::env::var("DETAIL").is_ok() {
                     let (x, y) = (ma.jsondump().to_string(), mb.jsondump().to_string());

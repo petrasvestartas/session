@@ -8,7 +8,7 @@
 //!   cargo run --release --target x86_64-unknown-linux-gnu --example stream_decode_check -- <file.pb>
 
 use session_rust::{Geometry, Session};
-use session_viewer::app::persistence::{positions_from, varint, walk_to_coords};
+use session_viewer::app::stream::{positions_from, varint, walk_to_coords};
 
 fn main() {
     let path = std::env::args().nth(1).expect("usage: stream_decode_check <file.pb>");

@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Shared Cloudflare R2 settings and helpers for view_put.sh and view_live.sh.
 #
-# The bucket is the viewer's ONLY storage location. The `session_viewer_data` git branch it
-# replaced was DELETED on 2026-09-03 - geometry does not go in git. What the page does with these files is in session_viewer/src/app/live.rs,
-# and the bucket's own view_readme.md documents the layout. Every key in the bucket starts with
-# `view_` so it is obvious at a glance what a file is for.
+# The bucket is the viewer's ONLY storage location - geometry does not go in git. What the
+# page does with these files is in session_viewer/src/app/live.rs, and the bucket's own
+# view_readme.md documents the layout. Every key in the bucket starts with `view_`.
 
 R2_BUCKET="session-viewer-data"
 R2_ACCOUNT="0520459c6817bd96c1e25fcb49461c4e"
@@ -12,32 +11,24 @@ R2_ENDPOINT="https://${R2_ACCOUNT}.r2.cloudflarestorage.com"
 R2_PUBLIC="https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev"
 R2_PROFILE="r2"
 
-# The relay an open viewer listens on. Posting here is what turns "within one poll" into "within
-# about a second"; the message body is ignored by the page, only the fact of it matters.
+# The relay an open viewer listens on. Posting here turns "within one poll" into "within a
+# fraction of a second"; the message body is ignored by the page, only the fact of it matters.
 R2_NOTIFY="https://ntfy.sh/wood-live-84eaac4a04729911"
 
-# `aws` is installed per-user by `uv tool install awscli`, which on this machine lands outside
-# PATH. Prefer whatever is on PATH, fall back to that location, complain if neither exists.
-r2_aws() {
-    local bin=""
-    bin=$(command -v aws 2>/dev/null) || bin=""
-    if [ -z "$bin" ]; then
-        for c in "$HOME/.local/bin/aws" "$HOME"/snap/code/*/.local/bin/aws; do
-            [ -x "$c" ] && { bin="$c"; break; }
-        done
-    fi
-    if [ -z "$bin" ]; then
-        echo "ERROR: no 'aws' on PATH. Install it with:  uv tool install awscli" >&2
-        return 127
-    fi
-    "$bin" --profile "$R2_PROFILE" --endpoint-url "$R2_ENDPOINT" "$@"
+# One value of the `[r2]` profile in ~/.aws/credentials.
+r2_credential() {
+    awk -v want="$1" -v prof="[${R2_PROFILE}]" '
+        $0 == prof { in_prof = 1; next }
+        /^\[/ { in_prof = 0 }
+        in_prof && $1 == want { print $3; exit }
+    ' "$HOME/.aws/credentials" 2>/dev/null
 }
 
-# Fail early and say what is missing, rather than letting aws print a stack of XML.
+# Fail early and say what is missing, rather than letting a tool print a stack of XML.
 r2_require_credentials() {
-    if ! grep -q "^\[${R2_PROFILE}\]" "$HOME/.aws/credentials" 2>/dev/null; then
-        cat >&2 <<EOF
-ERROR: no [${R2_PROFILE}] profile in ~/.aws/credentials.
+    if [ -z "$(r2_credential aws_access_key_id)" ] || [ -z "$(r2_credential aws_secret_access_key)" ]; then
+        cat >&2 <<CREDS
+ERROR: no [${R2_PROFILE}] profile with keys in ~/.aws/credentials.
 
 Create an R2 API token with **Object Read & Write** at
   https://dash.cloudflare.com/${R2_ACCOUNT}/r2/api-tokens
@@ -47,23 +38,81 @@ then add its two values:
   region = auto
   aws_access_key_id = <access key id>
   aws_secret_access_key = <secret access key>
-EOF
+CREDS
         return 1
     fi
 }
 
+# A curl config file holding the credentials, mode 0600, so the secret never appears on a
+# command line (`ps` shows arguments to every user). Made once per shell, removed on exit.
+r2_curl_config() {
+    if [ -z "${R2_CURL_CONFIG:-}" ]; then
+        R2_CURL_CONFIG=$(umask 077 && mktemp) || return 1
+        trap 'rm -f "$R2_CURL_CONFIG"' EXIT
+        printf 'user = "%s:%s"\n' "$(r2_credential aws_access_key_id)" "$(r2_credential aws_secret_access_key)" > "$R2_CURL_CONFIG"
+    fi
+    printf '%s' "$R2_CURL_CONFIG"
+}
+
+# PUT one file to one key with curl's built-in SigV4 signing: one HTTPS request and no
+# Python start-up (the aws CLI cost ~0.5 s per call). Prints the HTTP status.
+r2_put() {
+    local src="$1" key="$2" cfg
+    cfg=$(r2_curl_config) || return 1
+    curl -sS -o /dev/null -w "%{http_code}" -X PUT -T "$src" \
+        --aws-sigv4 "aws:amz:auto:s3" -K "$cfg" \
+        -H "Content-Type: application/octet-stream" \
+        "${R2_ENDPOINT}/${R2_BUCKET}/${key}"
+}
+
+# The HTTP status the public URL answers a HEAD with: 200 = there, 404 = not there, anything
+# else = the store is not answering properly right now.
+r2_head_status() {
+    curl -sS -o /dev/null -w "%{http_code}" -I "${R2_PUBLIC}/${1}"
+}
+
 # Upload one file to one key, then CHECK it arrived: the public URL must answer 200 with the
 # same byte count. An upload that reports success and serves nothing is the failure worth
-# catching, because the page will keep drawing the previous scene and look fine.
+# catching, because the page keeps drawing the previous scene and looks fine.
 r2_upload() {
     local src="$1" key="$2"
-    local size
+    local size code served
     size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
 
     echo "  ${src}  ->  s3://${R2_BUCKET}/${key}  (${size} bytes)"
-    r2_aws s3 cp "$src" "s3://${R2_BUCKET}/${key}" --no-progress >/dev/null || return 1
+    code=$(r2_put "$src" "$key") || return 1
+    if [ "$code" != "200" ]; then
+        echo "ERROR: PUT ${key} answered HTTP ${code}" >&2
+        return 1
+    fi
 
-    local served
+    served=$(curl -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
+    if [ "$served" != "$size" ]; then
+        echo "ERROR: uploaded ${size} bytes but ${R2_PUBLIC}/${key} serves '${served:-nothing}'" >&2
+        return 1
+    fi
+    echo "  verified: ${R2_PUBLIC}/${key}"
+}
+
+# `r2_upload`, but the verify runs in the background: the caller `wait`s on `$!` and gets the
+# verify's exit status, so two uploads and their checks overlap instead of queueing.
+r2_upload_start() {
+    local src="$1" key="$2"
+    local size code
+    size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
+
+    echo "  ${src}  ->  s3://${R2_BUCKET}/${key}  (${size} bytes)"
+    code=$(r2_put "$src" "$key") || return 1
+    if [ "$code" != "200" ]; then
+        echo "ERROR: PUT ${key} answered HTTP ${code}" >&2
+        return 1
+    fi
+    r2_verify "$key" "$size" &
+}
+
+# The public URL must serve `size` bytes for `key`.
+r2_verify() {
+    local key="$1" size="$2" served
     served=$(curl -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
     if [ "$served" != "$size" ]; then
         echo "ERROR: uploaded ${size} bytes but ${R2_PUBLIC}/${key} serves '${served:-nothing}'" >&2

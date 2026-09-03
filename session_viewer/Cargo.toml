@@ -9,7 +9,6 @@ crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the cra
 [dependencies]
 session_rust = { path = "../session_rust" }
 anyhow = "1.0"
-# The scene manifest (assets/scenes/*.json) - pure Rust, wasm-safe, and already a session_rust dep.
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8"
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
@@ -31,10 +30,8 @@ web-sys = { version = "0.3", features = [
     "ImageData", 
     "Location",
     "Performance",
-    # The notification lane: an SSE stream carrying the sha of a push (app/live.rs).
     "EventSource",
     "MessageEvent",
-    # Fetch-API features:
     "Request",
     "RequestCache",
     "RequestInit",
@@ -47,10 +44,6 @@ getrandom = { version = "0.2", features = ["js"] }
 js-sys = "0.3"
 prost = "0.14"
 bytemuck = { version = "1", features = ["derive"] }
-egui         = { version = "0.34", default-features = false, features = ["default_fonts"] }
-egui-wgpu    = { version = "0.34", default-features = false }
-egui-winit   = { version = "0.34", default-features = false }
-egui_extras  = { version = "0.34", default-features = false, features = ["svg"] }
 
 [profile.dev.package."*"]
 opt-level = 3

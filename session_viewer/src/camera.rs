@@ -1,3 +1,4 @@
+use crate::math::{Aabb, FOVY_DEG};
 use session_rust::{Point, Quaternion, Vector, Xform};
 
 /// World unit the scene coordinates are expressed in.
@@ -116,7 +117,7 @@ impl Camera {
         let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
         // Frustum half-extents at the target plane
         // ortho h matches perspective at the target
-        let half_h = self.distance * f64::to_radians(30.0).tan();
+        let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan();
         let half_w = half_h * (viewport.0 / viewport.1);
         let right = self.orientation.rotate_vector(Vector::x_axis());
         for i in 0..3 {
@@ -143,11 +144,12 @@ impl Camera {
     /// half-height distance*tan30 at the target) and refit the perspective camera to that -
     /// orientation untouched, target recentred on the formerly visible geometry. The other
     /// direction (perspective -> ortho) only ever widens what is visible and keeps the plain flip.
-    pub fn toggle_projection_framed(&mut self, min: [f32; 3], max: [f32; 3], aspect: f64) {
+    pub fn toggle_projection_framed(&mut self, bounds: &Aabb, aspect: f64) {
         self.perspective = !self.perspective;
-        if !self.perspective {
+        if !self.perspective || !bounds.is_finite() {
             return;
         }
+        let (min, max) = (bounds.min, bounds.max);
         let s = self.unit.to_meters();
         let t = self.origin(); // target, world units
         let right = self.orientation.rotate_vector(Vector::x_axis());
@@ -157,7 +159,7 @@ impl Camera {
             (self.target[1] - self.position[1]) / self.distance,
             (self.target[2] - self.position[2]) / self.distance,
         );
-        let half_h = self.distance * f64::to_radians(30.0).tan() / s; // world units
+        let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan() / s; // world units
         let half_w = half_h * aspect;
         let mut lo = [f64::INFINITY; 3];
         let mut hi = [f64::NEG_INFINITY; 3];
@@ -176,11 +178,8 @@ impl Camera {
                 hi[i] = hi[i].max(p);
             }
         }
-        self.fit(
-            [lo[0] as f32, lo[1] as f32, lo[2] as f32],
-            [hi[0] as f32, hi[1] as f32, hi[2] as f32],
-            aspect,
-        );
+        let clipped = Aabb { min: [lo[0] as f32, lo[1] as f32, lo[2] as f32], max: [hi[0] as f32, hi[1] as f32, hi[2] as f32] };
+        self.fit(&clipped, aspect);
     }
 
     /// Build the combined `projection · view · unit-scale` matrix for the given aspect ratio.
@@ -219,9 +218,9 @@ impl Camera {
         let far = (dist * 10.0).max(dist + 2.0 * self.scene_extent);
         let projection = if self.perspective {
             //                                          far ↓   near ↓   — swapped (reverse-Z)
-            Xform::perspective(f64::to_radians(60.0), aspect, far, dist * 0.01)
+            Xform::perspective(FOVY_DEG.to_radians(), aspect, far, dist * 0.01)
         } else {
-            let h = dist * f64::to_radians(30.0).tan();
+            let h = dist * (FOVY_DEG * 0.5).to_radians().tan();
             let r = (dist * 100.0).max(dist + 2.0 * self.scene_extent); // same floor as perspective
             Xform::orthographic(-aspect * h, aspect * h, -h, h, r, -r)
         };
@@ -267,11 +266,11 @@ impl Camera {
     }
 
     /// Frame an AABB: center the target on it and set distance so its bounding sphere fills the FOV (+10%).
-    pub fn fit(&mut self, min: [f32; 3], max: [f32; 3], aspect: f64) {
-        // An empty scene has an inverted infinite box: nothing to frame.
-        if !min.iter().chain(max.iter()).all(|v| v.is_finite()) {
+    pub fn fit(&mut self, bounds: &Aabb, aspect: f64) {
+        if !bounds.is_finite() {
             return;
         }
+        let (min, max) = (bounds.min, bounds.max);
         // unit scale
         let s = self.unit.to_meters();
 
@@ -290,7 +289,7 @@ impl Camera {
         // the view only has to cover 108 m across and 29 m up. Measured on the mixed scene it
         // chose 260 m where 122 m frames everything - 2.1x too far. `sin` costs a little more
         // again: it fits a SPHERE tangentially, where a box wants `tan` on its projected extent.
-        let half_fov_y = f64::to_radians(60.0) * 0.5;
+        let half_fov_y = FOVY_DEG.to_radians() * 0.5;
         let half_fov_x = (aspect * half_fov_y.tan()).atan();
         let (tx, ty) = (half_fov_x.tan(), half_fov_y.tan());
 
@@ -308,8 +307,7 @@ impl Camera {
                 (if c & 2 == 0 { min[1] } else { max[1] }) as f64 * s - self.target[1],
                 (if c & 4 == 0 { min[2] } else { max[2] }) as f64 * s - self.target[2],
             ];
-            let dot = |v: session_rust::Vector| p[0] * v[0] + p[1] * v[1] + p[2] * v[2];
-            let (x, y, z) = (dot(right.clone()), dot(up.clone()), dot(fwd.clone()));
+            let (x, y, z) = (dot3(&p, &right), dot3(&p, &up), dot3(&p, &fwd));
             extent = extent.max((x * x + y * y + z * z).sqrt());
             distance = distance.max(x.abs() / tx + z);
             distance = distance.max(y.abs() / ty + z);
@@ -327,7 +325,11 @@ impl Camera {
 
     /// Grow the far-plane floor to cover a scene that streamed in after the last fit.
     /// without touching the view. Same definition as fit's: the farthest scene corner from the target in meters.
-    pub fn grow_extent(&mut self, min: [f32; 3], max: [f32; 3]){
+    pub fn grow_extent(&mut self, bounds: &Aabb) {
+        if !bounds.is_finite() {
+            return;
+        }
+        let (min, max) = (bounds.min, bounds.max);
         let s = self.unit.to_meters();
         let mut extent: f64 = 0.0;
         for c in 0..8u32{
@@ -357,4 +359,9 @@ impl Camera {
             self.up[i] = up[i];
         }
     }
+}
+
+/// `p . v` for a raw point and a kernel vector.
+fn dot3(p: &[f64; 3], v: &Vector) -> f64 {
+    p[0] * v[0] + p[1] * v[1] + p[2] * v[2]
 }

@@ -22,7 +22,7 @@ fn main() {
     // cumulative triangle areas for area-weighted sampling
     let tri = |i: usize| {
         let f = [rm.indices[i * 3] as usize, rm.indices[i * 3 + 1] as usize, rm.indices[i * 3 + 2] as usize];
-        f.map(|k| rm.vertices[k].clone())
+        f.map(|k| rm.vertices[k])
     };
     let ntri = rm.indices.len() / 3;
     let mut cum = Vec::with_capacity(ntri);

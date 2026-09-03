@@ -45,10 +45,14 @@ r2_upload "$src" "$key" || exit 1
 
 # The scene. Written only when there is none, so a hand-placed scene survives a re-upload of the
 # geometry it names - which is the normal case: the .pb changes, the placement does not.
-if curl -sfI "${R2_PUBLIC}/${scene}" >/dev/null 2>&1; then
+scene_status=$(r2_head_status "$scene")
+if [ "$scene_status" = "200" ]; then
     echo "  ${scene} exists - kept as it is (delete it first if you want a fresh one)"
+elif [ "$scene_status" != "404" ]; then
+    echo "ERROR: ${R2_PUBLIC}/${scene} answered HTTP ${scene_status}; not writing a scene blind" >&2
+    exit 1
 else
-    tmp=$(mktemp) && trap 'rm -f "$tmp"' EXIT
+    tmp=$(mktemp) && trap 'rm -f "$tmp" "${R2_CURL_CONFIG:-}"' EXIT
     cat > "$tmp" <<EOF
 # Written by bash/view_put.sh for ${stem}.pb. One item at the origin - edit \`at\` to place it,
 # or add more [[items]]; nothing regenerates this file, so your changes stay.
