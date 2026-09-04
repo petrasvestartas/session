@@ -41,9 +41,8 @@ const FLAG_SELECTED: u32 = 1u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 const MM_TO_M: f32 = 0.001;
-const LIFT_RADII: f32 = 0.5;
+const LIFT_RADII: f32 = 4.0;
 const LIFT_MAX_THICK: f32 = 0.25;
-const LIFT_MAX_MM: f32 = 0.5;
 
 // An equilateral triangle whose incircle (radius 1 in corner space) is the visible dot.
 const CORNERS = array<vec2<f32>, 3>(
@@ -108,15 +107,14 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     var zlift = 0.0;
     if (line.ortho_h > 0.0) {
         let lw = px * LIFT_RADII * 2.0 * line.ortho_h / line.vp_h;
-        let cap = select(LIFT_MAX_MM, min(LIFT_MAX_MM, LIFT_MAX_THICK * inst.thickness), inst.thickness > 0.0);
+        let cap = select(1e30, LIFT_MAX_THICK * inst.thickness, inst.thickness > 0.0);
         zlift = min(lw, cap) * length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
     } else {
         lift = px * LIFT_RADII * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
-        var cap_mm = LIFT_MAX_MM;
         if (inst.thickness > 0.0) {
-            cap_mm = min(cap_mm, LIFT_MAX_THICK * inst.thickness);
+            lift = min(lift, LIFT_MAX_THICK * inst.thickness * MM_TO_M / max(clip.w, 1e-9));
         }
-        lift = clamp(min(lift, cap_mm * MM_TO_M / max(clip.w, 1e-9)), 0.0, 0.5);
+        lift = clamp(lift, 0.0, 0.5);
     }
     let wn = clip.w * (1.0 - lift);
     let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;

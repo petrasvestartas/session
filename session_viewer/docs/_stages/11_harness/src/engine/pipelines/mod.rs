@@ -80,13 +80,16 @@ pub struct PipelineDesc<'a> {
     pub topology: wgpu::PrimitiveTopology,
     pub color: ColorWrite,
     pub depth: DepthMode,
+    /// Hardware depth bias (constant in format steps, slope in depth-per-pixel); faces use it
+    /// to recede by about a pixel of their own slope so the ink drawn on them wins.
+    pub bias: wgpu::DepthBiasState,
 }
 
 impl<'a> PipelineDesc<'a> {
     /// A base over `shader` with `vs_main`, opaque colour and opaque depth; the variants
     /// change the label, the fragment entry, the colour mode and the depth mode.
     pub fn new(shader: &'a wgpu::ShaderModule, groups: &'a [&'a wgpu::BindGroupLayout], vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>], topology: wgpu::PrimitiveTopology) -> Self {
-        Self { label: "", shader, vs: "vs_main", fs: "fs_main", groups, vertex_buffers, topology, color: ColorWrite::Opaque, depth: DepthMode::Opaque }
+        Self { label: "", shader, vs: "vs_main", fs: "fs_main", groups, vertex_buffers, topology, color: ColorWrite::Opaque, depth: DepthMode::Opaque, bias: wgpu::DepthBiasState::default() }
     }
 
     /// The variant `label`, drawn with fragment entry `fs`.
@@ -112,6 +115,12 @@ impl<'a> PipelineDesc<'a> {
     /// The same desc with another depth mode.
     pub fn depth(mut self, depth: DepthMode) -> Self {
         self.depth = depth;
+        self
+    }
+
+    /// The same pipeline with a hardware depth bias.
+    pub fn bias(mut self, bias: wgpu::DepthBiasState) -> Self {
+        self.bias = bias;
         self
     }
 }
@@ -158,7 +167,7 @@ fn pipeline_layout(device: &wgpu::Device, label: &str, groups: &[&wgpu::BindGrou
 }
 
 /// One render pipeline from its description. Everything not in the desc is the same for all
-/// of them: one colour target, `Depth32Float`, no cull, no hardware bias, fill mode.
+/// of them: one colour target, `Depth32Float`, no cull, the desc's depth bias, fill mode.
 pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu::RenderPipeline {
     let layout = pipeline_layout(device, desc.label, desc.groups);
     let (depth_write, depth_compare) = desc.depth.state();
@@ -193,7 +202,7 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
             depth_write_enabled: Some(depth_write),
             depth_compare: Some(depth_compare),
             stencil: wgpu::StencilState::default(),
-            bias: wgpu::DepthBiasState::default(),
+            bias: desc.bias,
         }),
         multisample: wgpu::MultisampleState { count: target.samples, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,

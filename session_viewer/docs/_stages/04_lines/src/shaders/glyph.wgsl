@@ -39,7 +39,9 @@ struct LineUniform {
 
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 const MM_TO_M: f32 = 0.001;
-const LIFT_RADII: f32 = 4.0;
+const LIFT_RADII: f32 = 0.5;
+const LIFT_MAX_THICK: f32 = 0.25;
+const LIFT_MAX_MM: f32 = 0.5;
 
 // An equilateral triangle whose incircle (radius 1 in corner space) is the visible dot.
 const CORNERS = array<vec2<f32>, 3>(
@@ -104,10 +106,15 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     var zlift = 0.0;
     if (line.ortho_h > 0.0) {
         let lw = px * LIFT_RADII * 2.0 * line.ortho_h / line.vp_h;
-        zlift = lw * length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
+        let cap = select(LIFT_MAX_MM, min(LIFT_MAX_MM, LIFT_MAX_THICK * inst.thickness), inst.thickness > 0.0);
+        zlift = min(lw, cap) * length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
     } else {
         lift = px * LIFT_RADII * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
-        lift = clamp(lift, 0.0, 0.5);
+        var cap_mm = LIFT_MAX_MM;
+        if (inst.thickness > 0.0) {
+            cap_mm = min(cap_mm, LIFT_MAX_THICK * inst.thickness);
+        }
+        lift = clamp(min(lift, cap_mm * MM_TO_M / max(clip.w, 1e-9)), 0.0, 0.5);
     }
     let wn = clip.w * (1.0 - lift);
     let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
@@ -125,14 +132,6 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 fn coverage(in: VsOut) -> f32 {
     let d = length(in.corner) * (in.px + 0.5 * line.feather);
     return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0) * in.fade;
-}
-
-@fragment
-fn fs_depth(in: VsOut) -> @location(0) vec4<f32> {
-    if (coverage(in) < 0.5) {
-        discard;
-    }
-    return vec4<f32>(0.0);
 }
 
 @fragment

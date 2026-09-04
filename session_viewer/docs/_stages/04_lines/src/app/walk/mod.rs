@@ -78,7 +78,7 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
         Geometry::BRep(_) => Row::thin(Aabb::empty()),
         Geometry::NurbsSurface(_) => Row::thin(Aabb::empty()),
         Geometry::Line(l) => walk_line(w.seg, l, cx.row),
-        Geometry::Polyline(pl) => walk_polyline(w.seg, pl, cx.row),
+        Geometry::Polyline(pl) => walk_polyline(w.seg, pl, cx),
         Geometry::NurbsCurve(c) => walk_nurbscurve(w.seg, c, cx.row),
         Geometry::Plane(p) => walk_plane(w.seg, p, cx.row),
         Geometry::OBB(b) => walk_obb(w.seg, b, cx.row),

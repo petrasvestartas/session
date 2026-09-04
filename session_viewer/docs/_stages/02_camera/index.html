@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <!-- user-scalable=no: the page's OWN pinch-zoom would otherwise fight the model's. The viewer
+       is a canvas, not a document - there is no text to enlarge, and F / double-tap already
+       frame the geometry, so nothing is lost by taking the browser's gesture away. iOS Safari
+       has IGNORED user-scalable since iOS 10, on purpose (it is an accessibility hazard on real
+       documents), which is why the canvas also carries `touch-action: none` below - that one
+       Safari does honour, and it is per-element rather than per-page.
+       viewport-fit=cover fills the notch area on phones that have one. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>Session Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* overscroll-behavior kills pull-to-refresh and the rubber band: a downward drag on the
+       canvas is an orbit, and a page that bounces under it swallows half the gesture. */
+    html, body { height: 100%; overscroll-behavior: none; }
+    body { background: #000; overflow: hidden; }
+    /* No focus ring. winit gives the canvas a tabindex so it can receive key
+       events, and the browser then rings the focused element - a black
+       rectangle around the whole viewport, drawn over the model. Both spellings
+       are needed: engines differ on which one they paint. */
+    /* touch-action: none is what actually delivers the gestures. winit does call preventDefault,
+       on `pointerdown` and on a non-passive `touchstart` (winit-0.30.13 web_sys/pointer.rs:115,
+       web_sys/canvas.rs:245), but that is a LATE veto: the compositor has already begun deciding
+       whether the gesture is a scroll, and where it decides yes the app gets a pointercancel and
+       nothing more. touch-action tells it up front, before any of that, and it is the only one
+       of the three that iOS Safari applies to page pinch-zoom.
+       The rest turns off the things a long press and a double tap mean to a DOCUMENT: the iOS
+       callout menu, text selection, the grey tap flash, and the legacy double-tap-to-zoom.
+       100dvh after 100vh: dvh follows a mobile toolbar sliding away, vh does not, and browsers
+       that never heard of dvh keep the line above. */
+    canvas { display: block; width: 100vw; height: 100vh; height: 100dvh;
+             touch-action: none; -webkit-touch-callout: none;
+             -webkit-user-select: none; user-select: none;
+             -webkit-tap-highlight-color: transparent; }
+    canvas:focus, canvas:focus-visible { outline: none; }
+    :focus, :focus-visible { outline: none; }
+    #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
+                 font:1rem system-ui; text-align:center; padding-top:40vh; }
+  </style>
+</head>
+<body>
+  <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
+  <canvas id="canvas"></canvas>
+  <!-- Message telling that Webgpu is not available. -->
+  <script>
+    // Right-drag orbits, so the browser's context menu must not open on top of
+    // it. Bound to the canvas only, so a right-click anywhere else on a page
+    // embedding this viewer still behaves normally.
+    document.addEventListener("DOMContentLoaded", function () {
+      var canvas = document.getElementById("canvas");
+      if (canvas) canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+    });
+
+    if (!navigator.gpu) {
+      document.body.insertAdjacentHTML("beforeend",
+        '<div id="no-webgpu">WebGPU required — use a recent Chrome, Edge, Firefox, or Safari 18+.</div>');
+    }
+  </script>
+</body>
+</html>

@@ -6,14 +6,10 @@ ground refactor (commit 10f527c1), "new" = after it. Scenes from the R2 bucket.
 
 | scene | base still | base moving | new still | new moving |
 |---|---|---|---|---|
-| view_lines (5 sheets) | 81.8 ms | 77.9 ms | 30.7 ms | 30.7 ms |
+| view_lines (5 sheets) | 81.8 ms | 77.9 ms | 48.1 ms | 48.0 ms |
 | view_lines_rotated | 21.4 ms | 21.5 ms | 21.0 ms | 21.1 ms |
-| view_meshes | 16.8 ms | 16.6 ms | 20.5 ms | 18.8 ms |
-| view_mixed | 10.9 ms | 26.3 ms | 6.8 ms | 19.8 ms |
-
-"new" = 2026-09-04 with ribbons drawn in their face planes (six indexed vertices per segment,
-one instance per segment). view_meshes pays 3-4 ms for the per-vertex plane math of its
-~1 M mesh wires; the sheet scene gains from the instanced indexed draw.
+| view_meshes | 16.8 ms | 16.6 ms | 17.1 ms | 16.7 ms |
+| view_mixed | 10.9 ms | 26.3 ms | 10.9 ms | 22.9 ms |
 
 Browser (Chrome, WebGPU, `?perf=1`, the same laptop), heap after every file has arrived:
 

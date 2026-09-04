@@ -96,8 +96,8 @@ impl State {
     }
 
     /// Draw ONE frame and never ask for the next: a still scene costs nothing after this.
-    /// The shell asks again when `needs_frame` is set - by an input, a message, a resize, a
-    /// throttled re-anchor still due, or a pick in flight.
+    /// The shell asks again when `needs_frame` is set - by an input, a message, a resize or a
+    /// throttled re-anchor still due.
     pub fn render(&mut self) {
         self.needs_frame = false;
         let now_ms = now_ms();
@@ -105,7 +105,7 @@ impl State {
         let rebase = self.gpu.rebase_anchor(&origin, self.camera.distance_world(), now_ms);
         let view_proj = self.camera.view_proj_anchored(self.aspect(), &rebase.anchor);
 
-        let drawn = self.gpu.present(&FrameInput { view_proj, clear: CLEAR, now_ms });
+        let drawn = self.gpu.present(&FrameInput { view_proj, clear: CLEAR });
         let dropped = drawn.is_none() && self.gpu.surface.is_some();
         self.needs_frame |= dropped || rebase.pending;
     }

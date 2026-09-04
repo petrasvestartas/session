@@ -41,28 +41,46 @@ struct LineUniform {
 const MM_TO_M: f32 = 0.001;
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 
-// The lift, in pen HALF-WIDTHS, free linework gets: it decorates nothing and faces already
-// recede, so one is enough. The same number of half-widths in both projections.
-const LIFT_RADII_FREE: f32 = 1.0;
+// Faces never move (arena.rs). A segment lifts a hair to win ties, capped by LIFT_MAX_THICK
+// of its object's thickness and by LIFT_MAX_MM outright, so even far away it cannot cross the
+// millimetres of a joint.
+const LIFT_HAIR_PX: f32 = 0.25;
+const LIFT_MAX_THICK: f32 = 0.25;
+const LIFT_MAX_MM: f32 = 0.5;
 
 fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
     return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
 }
 
-// One end's lifted w: LIFT_RADII_FREE pen radii toward the camera as a fraction of eye depth.
-fn lifted_w(raw_px: f32, e: vec4<f32>) -> f32 {
-    let lift = floor_hairline(raw_px) * LIFT_RADII_FREE * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
-    return e.w * (1.0 - clamp(lift, 0.0, 0.5));
+// The lift as a fraction of eye depth `w` (metres), capped by the object's thickness (mm) and
+// by LIFT_MAX_MM.
+fn lift_capped(lift: f32, w: f32, thickness: f32) -> f32 {
+    var cap_mm = LIFT_MAX_MM;
+    if (thickness > 0.0) {
+        cap_mm = min(cap_mm, LIFT_MAX_THICK * thickness);
+    }
+    let max_lift = cap_mm * MM_TO_M / max(w, 1e-9);
+    return clamp(min(lift, max_lift), 0.0, 0.5);
+}
+
+// One end's lifted w: `lift_px` pixels' worth of depth toward the camera, as a fraction of w.
+fn lifted_w(lift_px: f32, e: vec4<f32>, thickness: f32) -> f32 {
+    let lift = lift_px * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
+    return e.w * (1.0 - lift_capped(lift, e.w, thickness));
 }
 
 fn ndc_z_per_world() -> f32 {
     return length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
 }
 
-// The ortho lift in ndc: LIFT_RADII_FREE world pen radii through the z row.
-fn ortho_lift_ndc(raw_px: f32) -> f32 {
-    let lift = floor_hairline(raw_px) * LIFT_RADII_FREE * 2.0 * line.ortho_h / line.vp_h;
-    return lift * ndc_z_per_world();
+// The ortho lift in ndc: `lift_px` pixels' worth of world depth, capped, through the z row.
+fn ortho_lift_ndc(lift_px: f32, thickness: f32) -> f32 {
+    let lift = lift_px * 2.0 * line.ortho_h / line.vp_h;
+    var cap = LIFT_MAX_MM;
+    if (thickness > 0.0) {
+        cap = min(cap, LIFT_MAX_THICK * thickness);
+    }
+    return min(lift, cap) * ndc_z_per_world();
 }
 
 // Half-width in px at one end: half the global pen, or a world radius projected.
@@ -121,18 +139,13 @@ fn dead_vertex() -> VsOut {
 }
 
 // Which quad corner vertex `k` of 6 is: 0 = e0-, 1 = e0+, 2 = e1-, 3 = e1+.
-fn corner_of(k: u32) -> u32 {
-    if (k == 0u) { return 0u; }
-    if (k == 1u) { return 1u; }
-    if (k == 2u || k == 3u) { return 2u; }
-    if (k == 4u) { return 1u; }
-    return 3u;
-}
+// Six vertices per segment, one instance per segment, four triangles through the lane's
+// index pattern: a ribbon FOLDED along its centre line (corners 0-2 at end 0, 3-5 at end 1;
+// lane 0 = side -1, 1 = the centre at the edge's own depth, 2 = side +1), so each half can
+// lie in its own face plane at a crease.
 
 @vertex
-fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
-    let iid = vid / 6u;
-    let corner = corner_of(vid % 6u);
+fn vs_main(@builtin(vertex_index) corner: u32, @builtin(instance_index) iid: u32) -> VsOut {
     let seg = segments[iid];
     let inst = instances[seg.instance_id];
 
@@ -141,8 +154,8 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 
     let c0 = mvp * vec4<f32>(w0, 1.0);
     let c1 = mvp * vec4<f32>(w1, 1.0);
-    let at_end1 = corner >= 2u;
-    let side = select(-1.0, 1.0, (corner & 1u) == 1u);
+    let at_end1 = corner >= 3u;
+    let side = f32(corner % 3u) - 1.0;
 
     // Clip against the near plane (z - w = 0 in reverse-Z) BEFORE any divide: a hand divide
     // behind the eye mirrors the point through the screen centre.
@@ -153,7 +166,6 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     }
     let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
     let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
-    let clip = select(e0, e1, at_end1);
 
     let vp = vec2<f32>(line.vp_w, line.vp_h);
     let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
@@ -167,28 +179,36 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let raw0 = half_width_px(seg.radius, e0.w);
     let raw1 = half_width_px(seg.radius, e1.w);
     let px = floor_hairline(select(raw0, raw1, at_end1));
-    let along = select(-1.0, 1.0, at_end1);
-    let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + 0.5 * line.feather);
+    let off = px + 0.5 * line.feather;
+
+    // The round caps extend the ribbon `off` px past each end ALONG THE 3D LINE (a clip-space
+    // extrapolation), so the depth ramp along the ribbon is the edge's own; extending on
+    // screen with the end's depth shifted the ramp by `off` px and lost the tie against the
+    // faces halfway along every crease. A near-degenerate or eye-pointing segment keeps its end.
+    let ext = off / max(len, 1e-3);
+    let e_own = select(e0, e1, at_end1);
+    let e_other = select(e1, e0, at_end1);
+    var e = e_own + (e_own - e_other) * ext;
+    if (e.w < 0.5 * e_own.w || ext > 4.0) {
+        e = e_own;
+    }
+    let s_end = (e.xy / e.w * 0.5 + 0.5) * vp;
+    let p = s_end + n * side * off;
 
     // Lift the ink toward the camera: in w for perspective, in ndc z for ortho.
-    var wn0 = e0.w;
-    var wn1 = e1.w;
-    var zn0 = e0.z;
-    var zn1 = e1.z;
+    let thick = inst.thickness;
+    var wn = e.w;
+    var zn = e.z;
     if (line.ortho_h > 0.0) {
-        zn0 = e0.z + ortho_lift_ndc(raw0);
-        zn1 = e1.z + ortho_lift_ndc(raw1);
+        zn = e.z + ortho_lift_ndc(LIFT_HAIR_PX, thick);
     } else {
-        wn0 = lifted_w(raw0, e0);
-        wn1 = lifted_w(raw1, e1);
-        zn0 = e0.z / wn0;
-        zn1 = e1.z / wn1;
+        wn = lifted_w(LIFT_HAIR_PX, e, thick);
+        zn = e.z / wn;
     }
-    let wn = select(wn0, wn1, at_end1);
 
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
-    o.pos = vec4<f32>(ndc * wn, select(clip.z, select(zn0, zn1, at_end1) * wn, line.ortho_h > 0.0), wn);
+    o.pos = vec4<f32>(ndc * wn, select(e.z, zn * wn, line.ortho_h > 0.0), wn);
     o.color = unpack4x8unorm(seg.color) * inst.color;
     o.p = p;
     o.a = s0;

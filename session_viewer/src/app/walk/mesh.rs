@@ -106,7 +106,7 @@ fn index_run<'a>(arena: &'a mut ArenaRows, m: &Mesh, sheet: bool) -> &'a mut Vec
 
 /// The walk context and the options one mesh is walked with.
 pub struct MeshCx<'a> {
-    pub cx: &'a WalkCx<'a>,
+    pub cx: &'a WalkCx,
     pub opts: &'a MeshOpts,
 }
 

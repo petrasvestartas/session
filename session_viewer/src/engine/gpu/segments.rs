@@ -3,7 +3,7 @@
 //! (line/polyline/curve, the FLAT lane, blended camera-facing quads). `SegRows` is one upload.
 
 use crate::engine::pipelines::{build, module, template_layout, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
-use super::buffers::{bind_group, index_buffer, GpuCtx, GrowBuf, Template, ROWS};
+use super::buffers::{bind_group, GpuCtx, GrowBuf, Template, ROWS};
 use super::frame::Binds;
 use super::upload::drop_rows;
 use super::view::LineStyle;
@@ -16,10 +16,8 @@ pub const SHADERS: &[(&str, &str)] = &[("cylinder.wgsl", include_str!("../../sha
 /// Sides of the unit cylinder: six is the fewest that reads as round at pen widths.
 const CYL_SIDES: u32 = 6;
 
-/// A ribbon is six vertices (side, centre, side at each end - folded along its centre line so
-/// each half can lie in its own face plane at a crease) drawn as four triangles through this
-/// index pattern, one instance per segment: the vertex shader runs six times, not twelve.
-const RIBBON_INDICES: [u16; 12] = [0, 1, 4, 0, 4, 3, 1, 2, 5, 1, 5, 4];
+/// Vertices per ribbon: two triangles pulled by vertex index, no vertex buffer.
+const RIBBON_VERTS: u32 = 6;
 
 /// One segment row, 40 B, the layout cylinder.wgsl and ribbon.wgsl declare. The ends are
 /// flat f32s: a `vec3` would pad the row to 48 B.
@@ -99,13 +97,11 @@ struct SegPipelines {
     id_ribbon: wgpu::RenderPipeline,
 }
 
-/// The segment lane on the GPU: two tables, the unit cylinder, the ribbon's index pattern,
-/// the shaders, the pipelines.
+/// The segment lane on the GPU: two tables, the unit cylinder, the shaders, the pipelines.
 pub struct SegmentLane {
     pipes: SegTable,
     ribbons: SegTable,
     template: Template,
-    ribbon_ibo: wgpu::Buffer,
     shaders: SegShaders,
     gpu: SegPipelines,
 }
@@ -120,9 +116,8 @@ impl SegmentLane {
             ribbon: module(&ctx.device, "ribbon.shader", include_str!("../../shaders/ribbon.wgsl")),
         };
         let gpu = build_pipelines(ctx, l, &shaders, target);
-        let ribbon_ibo = index_buffer(ctx, "ribbon.ibo", &RIBBON_INDICES);
 
-        Self { pipes: SegTable::new(ctx, l, "pipes"), ribbons: SegTable::new(ctx, l, "ribbons"), template, ribbon_ibo, shaders, gpu }
+        Self { pipes: SegTable::new(ctx, l, "pipes"), ribbons: SegTable::new(ctx, l, "ribbons"), template, shaders, gpu }
     }
 
     /// Rebuild the pipelines for a new sample count.
@@ -184,8 +179,7 @@ impl SegmentLane {
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_bind_group(3, &table.group, &[]);
-        pass.set_index_buffer(self.ribbon_ibo.slice(..), wgpu::IndexFormat::Uint16);
-        pass.draw_indexed(0..RIBBON_INDICES.len() as u32, 0, 0..table.buf.len());
+        pass.draw(0..RIBBON_VERTS * table.buf.len(), 0..1);
         1
     }
 

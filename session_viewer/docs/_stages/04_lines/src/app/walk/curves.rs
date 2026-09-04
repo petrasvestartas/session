@@ -6,7 +6,7 @@ use session_rust::{Line, NurbsCurve, Polyline};
 use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::CylinderSegment;
 use crate::math::Aabb;
-use super::Row;
+use super::{Row, WalkCx};
 use super::bounds::polyline_thickness;
 use super::encode::{encode_width, pack_rgba, Pen, FACING_UNKNOWN};
 
@@ -34,15 +34,16 @@ pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
 }
 
 /// One segment per span, straight from the flat coordinate array.
-pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
+pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, cx: &WalkCx) -> Row {
     let mut pts: Vec<[f32; 3]> = Vec::with_capacity(pl.coords.len() / 3);
     for c in pl.coords.chunks_exact(3) {
         pts.push([c[0] as f32, c[1] as f32, c[2] as f32]);
     }
-    let pen = Pen { row, radius: encode_width(pl.width), color: pack_rgba(pl.linecolor.to_f32()) };
+    let pen = Pen { row: cx.row, radius: encode_width(pl.width), color: pack_rgba(pl.linecolor.to_f32()) };
     let mut bounds = Aabb::empty();
     push_polyline(seg, &pts, &pen, &mut bounds);
-    Row { thickness: polyline_thickness(&pts), ..Row::thin(bounds) }
+    let thickness = polyline_thickness(&pts);
+    Row { thickness, ..Row::thin(bounds) }
 }
 
 /// The box of the control points (a NURBS curve never leaves its control net).

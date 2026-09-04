@@ -6,7 +6,7 @@ use super::frame::Binds;
 use super::Gpu;
 
 impl Gpu {
-    /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
+    /// Encode the whole frame into `view`. Returns (draws, objects).
     /// Knows nothing about a surface, so it works headless.
     pub fn encode_frame(&mut self, encoder: &mut wgpu::CommandEncoder, view: &wgpu::TextureView, clear: wgpu::Color) -> (u32, u32) {
         let draws = {
@@ -18,8 +18,7 @@ impl Gpu {
     }
 
     /// The scene list, in order:
-    /// 1 background · 2 grid · 3 faces · 4 lines · 5 point dots.
-    /// Lines write no depth: two lines on one
+    /// 1 background · 2 grid · 3 faces · 4 lines · 5 point dots. Lines write no depth: two lines on one
     /// pixel resolve by draw order (a depth prepass costs a second ribbon draw - measured +5 ms
     /// on view_mixed - for a case only coincident lines of different colours can show).
     fn scene_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {

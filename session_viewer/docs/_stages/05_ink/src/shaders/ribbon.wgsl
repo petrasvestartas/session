@@ -43,14 +43,18 @@ const FLAG_INSIDE: u32 = 4u;
 const MM_TO_M: f32 = 0.001;
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 
-// The lift, in pen HALF-WIDTHS, that keeps a mesh wire in front of the faces it decorates (3
-// covers slants to ~70 deg) and the smaller one free linework gets (it decorates nothing;
-// faces already recede). The same number of half-widths in both projections. Both are capped
-// by LIFT_MAX_THICK of the object's own thickness, so a line behind a thin plate can never be
-// lifted through it.
-const LIFT_RADII_WIRE: f32 = 3.0;
-const LIFT_RADII_FREE: f32 = 1.0;
+// Faces never move (arena.rs). A segment that knows its faces is drawn IN them: each ribbon
+// corner takes the depth of the face plane at its own pixel (the deeper of the two planes at
+// a crease), so the ink lies on the surface and can never be in front of anything that covers
+// that surface. A segment that knows no face lifts a hair to win ties, capped by
+// LIFT_MAX_THICK of its object's thickness and by LIFT_MAX_MM outright, so even far away it
+// cannot cross the millimetres of a joint.
+const LIFT_HAIR_PX: f32 = 0.25;
 const LIFT_MAX_THICK: f32 = 0.25;
+const LIFT_MAX_MM: f32 = 0.5;
+// A face seen edge-on has an unbounded depth slope; the corner step stops at this many
+// half-widths of depth per half-width of screen.
+const PLANE_MAX_SLOPE: f32 = 20.0;
 
 // Density taper: a wire thins when shorter than this many pen widths; never below TAPER_MIN.
 const WIRE_MIN_PENS: f32 = 3.0;
@@ -78,18 +82,49 @@ fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32
     return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
 }
 
-// The lift as a fraction of eye depth `w` (metres), capped by the object's thickness (mm).
+// The eye's axes in world space, read off the mvp: right and up from its x and y rows,
+// forward from its w row (perspective) or its z row (ortho). Columns: right, up, forward.
+fn eye_axes() -> mat3x3<f32> {
+    let right = normalize(vec3<f32>(mvp[0].x, mvp[1].x, mvp[2].x));
+    let up = normalize(vec3<f32>(mvp[0].y, mvp[1].y, mvp[2].y));
+    let fwd_p = vec3<f32>(mvp[0].w, mvp[1].w, mvp[2].w);
+    let fwd_o = vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z);
+    let fwd = normalize(select(fwd_p, fwd_o, line.ortho_h > 0.0));
+    return mat3x3<f32>(right, up, fwd);
+}
+
+// How much deeper (mm, negative = nearer) the plane with world normal `nw` is at a point
+// `off_px` pixels from the segment along screen direction `n2` than at the segment: the
+// plane's depth slope across the ribbon. `mmpp` is the world size of one pixel there.
+fn plane_step_mm(nw: vec3<f32>, n2: vec2<f32>, off_px: f32, mmpp: f32) -> f32 {
+    let a = eye_axes();
+    let ne = vec3<f32>(dot(nw, a[0]), dot(nw, a[1]), dot(nw, a[2]));
+    let nz = select(ne.z, select(0.05, -0.05, ne.z < 0.0), abs(ne.z) < 0.05);
+    let step = -(ne.x * n2.x + ne.y * n2.y) * off_px * mmpp / nz;
+    let bound = off_px * mmpp * PLANE_MAX_SLOPE;
+    return clamp(step, -bound, bound);
+}
+
+// The corner's depth step for a segment with faces `n0`/`n1`: the deeper of the two planes,
+// so at a crease the ribbon folds onto both faces and never floats in front of either.
+fn corner_step_mm(n0: vec3<f32>, n1: vec3<f32>, n2: vec2<f32>, off_px: f32, mmpp: f32) -> f32 {
+    return max(plane_step_mm(n0, n2, off_px, mmpp), plane_step_mm(n1, n2, off_px, mmpp));
+}
+
+// The lift as a fraction of eye depth `w` (metres), capped by the object's thickness (mm) and
+// by LIFT_MAX_MM.
 fn lift_capped(lift: f32, w: f32, thickness: f32) -> f32 {
-    if (thickness <= 0.0) {
-        return clamp(lift, 0.0, 0.5);
+    var cap_mm = LIFT_MAX_MM;
+    if (thickness > 0.0) {
+        cap_mm = min(cap_mm, LIFT_MAX_THICK * thickness);
     }
-    let max_lift = LIFT_MAX_THICK * thickness * MM_TO_M / max(w, 1e-9);
+    let max_lift = cap_mm * MM_TO_M / max(w, 1e-9);
     return clamp(min(lift, max_lift), 0.0, 0.5);
 }
 
-// One end's lifted w: `radii` pen radii toward the camera as a fraction of eye depth.
-fn lifted_w(raw_px: f32, e: vec4<f32>, thickness: f32, radii: f32) -> f32 {
-    let lift = floor_hairline(raw_px) * radii * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
+// One end's lifted w: `lift_px` pixels' worth of depth toward the camera, as a fraction of w.
+fn lifted_w(lift_px: f32, e: vec4<f32>, thickness: f32) -> f32 {
+    let lift = lift_px * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
     return e.w * (1.0 - lift_capped(lift, e.w, thickness));
 }
 
@@ -97,10 +132,13 @@ fn ndc_z_per_world() -> f32 {
     return length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
 }
 
-// The ortho lift in ndc: `radii` world pen radii, capped by the thickness, through the z row.
-fn ortho_lift_ndc(raw_px: f32, thickness: f32, radii: f32) -> f32 {
-    let lift = floor_hairline(raw_px) * radii * 2.0 * line.ortho_h / line.vp_h;
-    let cap = select(1e30, LIFT_MAX_THICK * thickness, thickness > 0.0);
+// The ortho lift in ndc: `lift_px` pixels' worth of world depth, capped, through the z row.
+fn ortho_lift_ndc(lift_px: f32, thickness: f32) -> f32 {
+    let lift = lift_px * 2.0 * line.ortho_h / line.vp_h;
+    var cap = LIFT_MAX_MM;
+    if (thickness > 0.0) {
+        cap = min(cap, LIFT_MAX_THICK * thickness);
+    }
     return min(lift, cap) * ndc_z_per_world();
 }
 
@@ -148,8 +186,8 @@ fn resolve_width(in: VsOut, h: f32) -> vec2<f32> {
     return vec2<f32>(floor_hairline(raw), select(hairline_fade(raw), 1.0, in.solid > 0.5));
 }
 
-fn density_taper(facing: u32, len_px: f32, px: f32) -> f32 {
-    if (facing == FACING_UNKNOWN) {
+fn density_taper(solid: bool, len_px: f32, px: f32) -> f32 {
+    if (!solid) {
         return 1.0;
     }
     let room = WIRE_MIN_PENS * 2.0 * max(px, 1e-6);
@@ -171,18 +209,13 @@ fn dead_vertex() -> VsOut {
 }
 
 // Which quad corner vertex `k` of 6 is: 0 = e0-, 1 = e0+, 2 = e1-, 3 = e1+.
-fn corner_of(k: u32) -> u32 {
-    if (k == 0u) { return 0u; }
-    if (k == 1u) { return 1u; }
-    if (k == 2u || k == 3u) { return 2u; }
-    if (k == 4u) { return 1u; }
-    return 3u;
-}
+// Six vertices per segment, one instance per segment, four triangles through the lane's
+// index pattern: a ribbon FOLDED along its centre line (corners 0-2 at end 0, 3-5 at end 1;
+// lane 0 = side -1, 1 = the centre at the edge's own depth, 2 = side +1), so each half can
+// lie in its own face plane at a crease.
 
 @vertex
-fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
-    let iid = vid / 6u;
-    let corner = corner_of(vid % 6u);
+fn vs_main(@builtin(vertex_index) corner: u32, @builtin(instance_index) iid: u32) -> VsOut {
     let seg = segments[iid];
     let inst = instances[seg.instance_id];
     let model = inst.model;
@@ -202,8 +235,8 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 
     let c0 = mvp * vec4<f32>(w0, 1.0);
     let c1 = mvp * vec4<f32>(w1, 1.0);
-    let at_end1 = corner >= 2u;
-    let side = select(-1.0, 1.0, (corner & 1u) == 1u);
+    let at_end1 = corner >= 3u;
+    let side = f32(corner % 3u) - 1.0;
 
     // Clip against the near plane (z - w = 0 in reverse-Z) BEFORE any divide: a hand divide
     // behind the eye mirrors the point through the screen centre.
@@ -214,7 +247,6 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     }
     let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
     let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
-    let clip = select(e0, e1, at_end1);
 
     let vp = vec2<f32>(line.vp_w, line.vp_h);
     let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
@@ -228,38 +260,58 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let raw0 = half_width_px(seg.radius, e0.w);
     let raw1 = half_width_px(seg.radius, e1.w);
     let px = floor_hairline(select(raw0, raw1, at_end1));
-    let crowd = density_taper(seg.facing, len, px);
-    let along = select(-1.0, 1.0, at_end1);
-    let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + 0.5 * line.feather);
+    let solid = seg.facing != FACING_UNKNOWN && (seg.facing & 0xffffu) != (seg.facing >> 16u);
+    let crowd = density_taper(solid, len, px);
+    let off = px + 0.5 * line.feather;
+
+    // The round caps extend the ribbon `off` px past each end ALONG THE 3D LINE (a clip-space
+    // extrapolation), so the depth ramp along the ribbon is the edge's own; extending on
+    // screen with the end's depth shifted the ramp by `off` px and lost the tie against the
+    // faces halfway along every crease. A near-degenerate or eye-pointing segment keeps its end.
+    let ext = off / max(len, 1e-3);
+    let e_own = select(e0, e1, at_end1);
+    let e_other = select(e1, e0, at_end1);
+    var e = e_own + (e_own - e_other) * ext;
+    if (e.w < 0.5 * e_own.w || ext > 4.0) {
+        e = e_own;
+    }
+    let s_end = (e.xy / e.w * 0.5 + 0.5) * vp;
+    let p = s_end + n * side * off;
 
     // Lift the ink toward the camera: in w for perspective, in ndc z for ortho.
-    let radii = select(LIFT_RADII_WIRE, LIFT_RADII_FREE, seg.facing == FACING_UNKNOWN);
-    let ext = inst.thickness;
-    var wn0 = e0.w;
-    var wn1 = e1.w;
-    var zn0 = e0.z;
-    var zn1 = e1.z;
-    if (line.ortho_h > 0.0) {
-        zn0 = e0.z + ortho_lift_ndc(raw0, ext, radii);
-        zn1 = e1.z + ortho_lift_ndc(raw1, ext, radii);
+    // Depth: a segment with faces is drawn in them (each side corner at its plane's depth at
+    // that pixel, the centre at the edge's own); one without lifts a hair.
+    let thick = inst.thickness;
+    var wn = e.w;
+    var zn = e.z;
+    if (seg.facing != FACING_UNKNOWN) {
+        // Every lane takes the hair too: the flanks lie exactly in their planes and would
+        // otherwise tie with the faces on rounding alone.
+        let mmpp = select(2.0 * e.w / (line.proj_y * line.vp_h), 2.0 * line.ortho_h / line.vp_h, line.ortho_h > 0.0);
+        let step = corner_step_mm(n0, n1, n * side, off, mmpp) * abs(side);
+        if (line.ortho_h > 0.0) {
+            zn = e.z + ortho_lift_ndc(LIFT_HAIR_PX, thick) - step * ndc_z_per_world();
+        } else {
+            wn = max(lifted_w(LIFT_HAIR_PX, e, thick) + step * MM_TO_M, e.w * 0.5);
+            zn = e.z / wn;
+        }
+    } else if (line.ortho_h > 0.0) {
+        zn = e.z + ortho_lift_ndc(LIFT_HAIR_PX, thick);
     } else {
-        wn0 = lifted_w(raw0, e0, ext, radii);
-        wn1 = lifted_w(raw1, e1, ext, radii);
-        zn0 = e0.z / wn0;
-        zn1 = e1.z / wn1;
+        wn = lifted_w(LIFT_HAIR_PX, e, thick);
+        zn = e.z / wn;
     }
-    let wn = select(wn0, wn1, at_end1);
 
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
-    o.pos = vec4<f32>(ndc * wn, select(clip.z, select(zn0, zn1, at_end1) * wn, line.ortho_h > 0.0), wn);
+    o.pos = vec4<f32>(ndc * wn, select(e.z, zn * wn, line.ortho_h > 0.0), wn);
     o.color = unpack4x8unorm(seg.color) * inst.color;
     o.p = p;
     o.a = s0;
     o.b = s1;
     o.hw0 = raw0 * crowd;
     o.hw1 = raw1 * crowd;
-    o.solid = select(0.0, 1.0, seg.facing != FACING_UNKNOWN);
+    o.solid = select(0.0, 1.0, solid);
     o.inst_id = seg.instance_id;
     return o;
 }

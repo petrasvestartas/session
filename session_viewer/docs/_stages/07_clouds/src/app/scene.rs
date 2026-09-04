@@ -8,6 +8,7 @@ use std::rc::Rc;
 use session_rust::{Session, Xform};
 use crate::app::knobs;
 use crate::app::walk::bounds::{file_extent, is_planar, mark_sheet, Baselines};
+use crate::app::walk::hosts::Hosts;
 use crate::app::walk::mesh::Lap;
 use crate::app::walk::{is_drawable, walk_geometry, Walk, WalkCx};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Upload};
@@ -125,6 +126,8 @@ impl Scene {
         let from = Baselines::capture(&self.tables);
         let world = session.world_xforms();
         let mut lap = Lap::start("walk");
+        let hosts = Hosts::from_session(&session);
+        lap.mark("hosts");
         let count = session.lookup.len();
         self.tables.obj.rows.reserve(count);
         self.order.reserve(count);
@@ -137,7 +140,7 @@ impl Scene {
             }
             let flags = if self.hidden.contains(&guid) { Instance::FLAG_HIDDEN } else { 0 };
             let row = self.push_row(&guid, placement(&world, &place.m, &guid), flags);
-            let cx = WalkCx { vert_base: self.bases.vert, cloud_px: point_px, row };
+            let cx = WalkCx { vert_base: self.bases.vert, cloud_px: point_px, row, hosts: &hosts };
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
             let o = self.tables.obj.rows.last_mut().unwrap();
             o.flags |= r.flags;

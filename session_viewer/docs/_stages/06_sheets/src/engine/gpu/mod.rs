@@ -140,7 +140,7 @@ impl Gpu {
     }
 
     /// The sample count for what is ON the GPU now: 4x only with solid geometry (faces,
-    /// pipes, spheres) and a canvas MSAA can afford; a pure sheet or cloud stays at 1x.
+    /// pipes, spheres) and a canvas MSAA can afford; a pure sheet stays at 1x.
     fn msaa_now(&self) -> u32 {
         let solid = self.arena.face_count() > 0 || self.segments.pipe_count() > 0 || self.glyphs.sphere_count() > 0;
         Targets::samples_for(solid, self.config.width * self.config.height, self.view.msaa_forced)

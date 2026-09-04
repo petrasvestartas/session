@@ -6,16 +6,16 @@ use session_rust::{Line, NurbsCurve, Polyline};
 use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::CylinderSegment;
 use crate::math::Aabb;
-use super::{Row, WalkCx};
+use super::Row;
 use super::bounds::polyline_thickness;
-use super::encode::{encode_width, pack_facing, pack_rgba, Pen, FACING_UNKNOWN};
+use super::encode::{encode_width, pack_rgba, Pen, FACING_UNKNOWN};
 
 /// Segments between consecutive points, growing `bounds` as they go.
 fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut Aabb) {
     seg.ribbons.reserve(pts.len().saturating_sub(1));
     for w in pts.windows(2) {
         bounds.grow(w[0]);
-        seg.ribbons.push(CylinderSegment { p0: w[0], radius: pen.radius, p1: w[1], instance_id: pen.row, color: pen.color, facing: pen.facing });
+        seg.ribbons.push(CylinderSegment { p0: w[0], radius: pen.radius, p1: w[1], instance_id: pen.row, color: pen.color, facing: FACING_UNKNOWN });
     }
     if let Some(last) = pts.last() {
         bounds.grow(*last);
@@ -33,27 +33,16 @@ pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
     Row::thin(bounds)
 }
 
-/// One segment per span, straight from the flat coordinate array. An outline lying on a
-/// plate face takes that face's normal (it lifts off it like the plate's own wires) and the
-/// plate's thickness (so it can never be lifted through it).
-pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, cx: &WalkCx) -> Row {
+/// One segment per span, straight from the flat coordinate array.
+pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
     let mut pts: Vec<[f32; 3]> = Vec::with_capacity(pl.coords.len() / 3);
     for c in pl.coords.chunks_exact(3) {
         pts.push([c[0] as f32, c[1] as f32, c[2] as f32]);
     }
-    let host = cx.hosts.find(&pts);
-    let facing = match &host {
-        Some(h) => pack_facing(Some(&[h.normal[0] as f64, h.normal[1] as f64, h.normal[2] as f64]), None),
-        None => FACING_UNKNOWN,
-    };
-    let pen = Pen { row: cx.row, radius: encode_width(pl.width), color: pack_rgba(pl.linecolor.to_f32()), facing };
+    let pen = Pen { row, radius: encode_width(pl.width), color: pack_rgba(pl.linecolor.to_f32()) };
     let mut bounds = Aabb::empty();
     push_polyline(seg, &pts, &pen, &mut bounds);
-    let thickness = match &host {
-        Some(h) => h.thickness,
-        None => polyline_thickness(&pts),
-    };
-    Row { thickness, ..Row::thin(bounds) }
+    Row { thickness: polyline_thickness(&pts), ..Row::thin(bounds) }
 }
 
 /// The box of the control points (a NURBS curve never leaves its control net).
@@ -82,7 +71,7 @@ pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
         pts.push(c.point_at(t0 + (t1 - t0) * i as f64 / n as f64).to_f32());
     }
     let color = c.linecolors.first().map(|c| c.to_f32()).unwrap_or([0.0, 0.0, 0.0, 1.0]);
-    let pen = Pen { row, radius: encode_width(c.width), color: pack_rgba(color), facing: FACING_UNKNOWN };
+    let pen = Pen { row, radius: encode_width(c.width), color: pack_rgba(color) };
     let mut bounds = Aabb::empty();
     push_polyline(seg, &pts, &pen, &mut bounds);
     Row::thin(bounds)

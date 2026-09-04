@@ -1,5 +1,5 @@
-//! The browser's network edge: cross-origin GETs, HTTP Range reads that refuse anything but
-//! `206`, and the two ways to hand the browser its main thread back.
+//! The browser's network edge: cross-origin GETs, HTTP Range reads
+//! that refuse anything but `206`, and the two ways to hand the browser its main thread back.
 
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;

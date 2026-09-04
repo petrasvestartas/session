@@ -27,28 +27,12 @@ struct LineUniform {
 };
 
 const FLAG_PRINT: u32 = 8u;
-const MM_TO_M: f32 = 0.001;
 const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
-
-// Faces recede along their view ray so the wireframe drawn on them is never cut by them:
-// PUSH_FRAC of eye depth, but never more than PUSH_MAX_THICK of the object's own thickness -
-// at a fit view a 0.4 % push exceeds a plate's thickness and the ink on its back face shows
-// through the front.
-const PUSH_FRAC: f32 = 0.004;
-const PUSH_MAX_THICK: f32 = 0.25;
 
 // A point of object `i` in the anchored frame: rotation/scale from the row, translation
 // from the 16 B table a re-anchor rewrites.
 fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
     return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
-}
-
-// The push as a fraction of eye depth `w` (metres), capped by the object's thickness (mm).
-fn push_frac(w: f32, thickness: f32) -> f32 {
-    if (thickness <= 0.0) {
-        return PUSH_FRAC;
-    }
-    return min(PUSH_FRAC, PUSH_MAX_THICK * thickness * MM_TO_M / max(w, 1e-9));
 }
 
 struct VsIn {
@@ -71,19 +55,9 @@ struct VsOut {
 fn vs_main(in: VsIn) -> VsOut {
     let inst = instances[in.inst_id];
     let world = place(in.inst_id, in.position);
-    let clip = mvp * vec4<f32>(world, 1.0);
+    // The face recedes in the PIPELINE (a slope-scaled depth bias), not here.
     var o: VsOut;
-    if (mvp[0].w == 0.0 && mvp[1].w == 0.0 && mvp[2].w == 0.0) {
-        // Orthographic: no eye depth in w; push by a fraction of the implied view distance.
-        let ynorm = length(vec3<f32>(mvp[0].y, mvp[1].y, mvp[2].y));
-        let znorm = length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
-        let implied = 1.0 / (ynorm * 0.57735026);
-        let push = push_frac(implied * MM_TO_M, inst.thickness) * implied * znorm;
-        o.pos = vec4<f32>(clip.xy, clip.z - push, clip.w);
-    } else {
-        let k = 1.0 + push_frac(clip.w, inst.thickness);
-        o.pos = vec4<f32>(clip.xy * k, clip.z, clip.w * k);
-    }
+    o.pos = mvp * vec4<f32>(world, 1.0);
     o.color = in.color.rgb * inst.color.rgb;
     o.world_pos = world;
     o.normal = (inst.model * vec4<f32>(in.normal, 0.0)).xyz;

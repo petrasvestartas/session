@@ -35,13 +35,13 @@ fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pe
 pub fn walk_plane(seg: &mut SegRows, pl: &Plane, row: u32) -> Row {
     let (o, x, y) = (pl.origin(), pl.x_axis(), pl.y_axis());
     let c = [corner(&o, &x, &y, [1.0, 1.0]), corner(&o, &x, &y, [-1.0, 1.0]), corner(&o, &x, &y, [-1.0, -1.0]), corner(&o, &x, &y, [1.0, -1.0])];
-    let pen = Pen { row, radius: encode_width(pl.width), color: pack_rgba(pl.linecolor.to_f32()) };
+    let pen = Pen { row, radius: encode_width(pl.width), color: pack_rgba(pl.linecolor.to_f32()), facing: FACING_UNKNOWN };
     Row::thin(push_loop(seg, &c, &[[0, 1], [1, 2], [2, 3], [3, 0]], &pen))
 }
 
 /// A box is its 12 edges; the OBB type carries no pen, so they draw black at the default width.
 pub fn walk_obb(seg: &mut SegRows, b: &OBB, row: u32) -> Row {
     let c = b.corners_f32();
-    let pen = Pen { row, radius: 0.0, color: pack_rgba([0.0, 0.0, 0.0, 1.0]) };
+    let pen = Pen { row, radius: 0.0, color: pack_rgba([0.0, 0.0, 0.0, 1.0]), facing: FACING_UNKNOWN };
     Row::thin(push_loop(seg, &c, &BOX_EDGES, &pen))
 }

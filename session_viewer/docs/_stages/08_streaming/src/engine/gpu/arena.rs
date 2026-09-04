@@ -9,6 +9,13 @@ use super::frame::Binds;
 use super::upload::drop_rows;
 use wgpu::PrimitiveTopology::TriangleList;
 
+/// Faces do NOT recede: a push of any size - a fraction of eye depth, of the object's own
+/// thickness, or of the face's slope per pixel - brought ink through whatever sat closer
+/// behind the face (3 mm joinery contacts, thin plates far away). Two format steps (reverse-Z:
+/// negative = farther) only break the exact tie with ink drawn on the face's own vertices;
+/// the ink lifts what it needs instead (ribbon.wgsl `lift_need_px`).
+const FACE_BIAS: wgpu::DepthBiasState = wgpu::DepthBiasState { constant: -2, slope_scale: 0.0, clamp: 0.0 };
+
 /// The lane's shaders, for the mirror tests.
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[("triangle.wgsl", include_str!("../../shaders/triangle.wgsl"))];
@@ -34,8 +41,8 @@ impl ArenaRows {
     }
 }
 
-/// The four pipelines over the arena: solid faces (opaque: the shader writes alpha 1), sheet
-/// runs (blended, depth read-only), and their id-pass twins.
+/// The two pipelines over the arena: solid faces (opaque: the shader writes alpha 1) and sheet
+/// runs (blended, depth read-only).
 struct ArenaPipelines {
     faces: wgpu::RenderPipeline,
     sheet: wgpu::RenderPipeline,
@@ -147,7 +154,7 @@ impl ArenaLane {
     }
 }
 
-/// The four arena pipelines for `target`.
+/// The two arena pipelines for `target`.
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, target: Target) -> ArenaPipelines {
     let groups = [&l.mvp, &l.line, &l.instance];
     let buffers = [vertex_layout(), instance_id_layout()];
@@ -155,7 +162,7 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, targe
     let dev = &ctx.device;
 
     ArenaPipelines {
-        faces: build(dev, target, &base.with("triangle", "fs_main")),
+        faces: build(dev, target, &base.with("triangle", "fs_main").bias(FACE_BIAS)),
         sheet: build(dev, target, &base.with("triangle.sheet", "fs_main").color(ColorWrite::Blended).depth(DepthMode::ReadOnly)),
     }
 }

@@ -133,7 +133,7 @@ fn pipeline_layout(device: &wgpu::Device, label: &str, groups: &[&wgpu::BindGrou
 }
 
 /// One render pipeline from its description. Everything not in the desc is the same for all
-/// of them: one colour target, `Depth32Float`, no cull, no hardware bias, fill mode.
+/// of them: one colour target, `Depth32Float`, no cull, no depth bias, fill mode.
 pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu::RenderPipeline {
     let layout = pipeline_layout(device, desc.label, desc.groups);
     let (depth_write, depth_compare) = desc.depth.state();

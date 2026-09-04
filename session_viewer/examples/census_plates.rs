@@ -8,9 +8,7 @@ use std::collections::HashMap;
 // The rule under test (objects.rs, triangle.wgsl, ribbon.wgsl) and the harness pen.
 const THICK_FLOOR: f64 = 0.001;
 const PUSH_FRAC: f64 = 0.004;
-const PUSH_MAX_THICK: f64 = 0.0;
-const LIFT_HAIR_PX: f64 = 0.25;
-const LIFT_MAX_MM: f64 = 0.5;
+const PUSH_MAX_THICK: f64 = 0.25;
 const LIFT_RADII_FREE: f64 = 1.0;
 const LIFT_MAX_THICK: f64 = 0.25;
 const PEN_PX: f64 = 2.0;
@@ -418,10 +416,10 @@ fn judge(o: &Outline, s: &[f64; 3], plates: &[Plate], eye: &[f64; 3], fwd: &[f64
     // mm per pixel at the sample, the host face's slope to the ray, the lift the ribbon needs.
     let mmpp = if ortho_h > 0.0 { 2.0 * ortho_h / vp_h } else { 2.0 * w * 30.0_f64.to_radians().tan() * 1000.0 / vp_h };
     let ray = if ortho_h > 0.0 { *fwd } else { let l = norm(&to_s); [to_s[0] / l, to_s[1] / l, to_s[2] / l] };
-    // A hosted outline is drawn IN its face plane: no lift at all. An unhosted one lifts a
-    // hair, capped by a quarter of its thickness and by LIFT_MAX_MM.
+    // The shipped rule: free linework lifts LIFT_RADII_FREE pen HALF-WIDTHS toward the eye
+    // (the same number in both projections), capped by a quarter of its thickness.
     let _ = ray;
-    let lift = (LIFT_HAIR_PX * mmpp).min(LIFT_MAX_THICK * o.t_rule).min(LIFT_MAX_MM);
+    let lift = (PEN_PX * 0.5 * LIFT_RADII_FREE * 2.0 * mmpp).min(LIFT_MAX_THICK * o.t_rule);
     let mut best = Verdict { covered: false, w, sep: 0.0, push: 0.0, lift, margin: f64::INFINITY, plate: usize::MAX };
     for (t, pi) in covers(plates, eye, s) {
         let sep = (1.0 - t) * len_mm;

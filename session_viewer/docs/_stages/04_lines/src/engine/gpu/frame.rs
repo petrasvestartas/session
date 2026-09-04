@@ -8,12 +8,10 @@ use session_rust::Xform;
 use super::buffers::{bind_group, uniform_buffer, GpuCtx};
 use super::view::View;
 
-/// What one frame needs from the caller: the camera, the clear colour and the frame's ONE
-/// timestamp (ms) - the re-anchor throttle and the fps counter both read it.
+/// What one frame needs from the caller: the camera and the clear colour.
 pub struct FrameInput {
     pub view_proj: Xform,
     pub clear: wgpu::Color,
-    pub now_ms: f64,
 }
 
 /// What `FrameUniforms::write` needs besides the camera: the knobs, the anchor the instance
@@ -63,11 +61,11 @@ pub struct FrameUniforms {
     line_buffer: wgpu::Buffer,
     pub mvp_group: wgpu::BindGroup,
     pub line_group: wgpu::BindGroup,
-    /// This frame's camera matrix as f32: the point lane's static-skip key and record fold.
+    /// This frame's camera matrix as f32.
     pub mvp_f32: [f32; 16],
     /// Ortho half-height this frame (0 = perspective).
     pub ortho_h: f32,
-    /// Eye in anchored world units, for the inside test and the LOD screen-error test.
+    /// Eye in anchored world units, for the inside test.
     pub eye: [f32; 3],
 }
 

@@ -1,5 +1,5 @@
-//! The glyph lane: every vertex-sized piece of ink. One table of 48 B rows - dots (free
-//! points, the FLAT lane, three verts per dot). `GlyphRows` is one upload.
+//! The glyph lane: every vertex-sized piece of ink. One table of 48 B rows -
+//! dots (free points, the FLAT lane, three verts per dot). `GlyphRows` is one upload.
 
 use crate::engine::pipelines::{build, module, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
 use super::buffers::{bind_group, GpuCtx, GrowBuf, ROWS};
@@ -83,7 +83,7 @@ struct GlyphPipelines {
     dot: wgpu::RenderPipeline,
 }
 
-/// The glyph lane on the GPU: one table, the shader, the pipeline.
+/// The glyph lane on the GPU: the table, the shader, the pipeline.
 pub struct GlyphLane {
     dots: GlyphTable,
     shaders: GlyphShaders,
@@ -91,7 +91,7 @@ pub struct GlyphLane {
 }
 
 impl GlyphLane {
-    /// One one-row table, the shader and the pipeline.
+    /// A one-row table, the shader and the pipeline.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
         let shaders = GlyphShaders {
             dot: module(&ctx.device, "glyph.shader", include_str!("../../shaders/glyph.wgsl")),
@@ -106,7 +106,7 @@ impl GlyphLane {
         self.gpu = build_pipelines(ctx, l, &self.shaders, target);
     }
 
-    /// Append one file's rows to the table.
+    /// Append one file's rows.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &GlyphRows) {
         self.dots.append(ctx, l, &up.dots);
     }

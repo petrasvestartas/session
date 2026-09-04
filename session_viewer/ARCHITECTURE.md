@@ -36,12 +36,12 @@ The mapping is many-to-many: one `Mesh` produces triangles AND segments AND glyp
 | the wrong draw ORDER, or a lane not pickable | `engine/gpu/render.rs` - `scene_list` and `id_pass`, same order, same toggles |
 | a pipeline / blend / depth setting | `engine/pipelines/mod.rs` - one `PipelineDesc` literal each |
 | a buffer that grows, a bind group, the growth policy | `engine/gpu/buffers.rs` (`GrowBuf`: `max(need, cap*3/2)`) |
-| per-object transform, tint, flags, thickness (the lift cap), the re-anchor, the inside test | `engine/gpu/objects.rs` + `instance.rs` |
+| per-object transform, tint, flags, thickness, the re-anchor, the inside test | `engine/gpu/objects.rs` + `instance.rs` |
 | a per-frame uniform, the eye, the ortho height | `engine/gpu/frame.rs` |
 | MSAA on or off, the sample count | `engine/gpu/targets.rs` - `samples_for` |
 | adapter, surface format, device limits | `engine/gpu/device.rs` |
 | a click that hits the wrong thing | `engine/gpu/pick.rs` (the id pass + readback), `app/scene.rs::resolve` |
-| ink showing through a face, or cut by one | section 6 - `ribbon.wgsl` `plane_step_mm`/`lifted_w`, `walk/hosts.rs`, `arena.rs` `FACE_BIAS` |
+| ink showing through a face, or cut by one | the thickness rule (section 6) - `triangle.wgsl` `push_frac`, `ribbon.wgsl` `lift_capped` |
 | a cloud too sparse / too dense / wrong in ortho | `engine/gpu/lod.rs` (the walk), `splat.rs` (records), `splat.wgsl` |
 | a shader struct disagreeing with Rust | `cargo xtest` - the mirror tests name the file |
 | memory after a Clear | `Gpu::release` (`gpu/mod.rs`) - every lane back to one row |
@@ -92,7 +92,7 @@ src/
     live.rs         (wasm) LiveSource: conditional reads, Rc<Session> set, ntfy relay flag
     input.rs        mouse + keys + the left-click pick; touch.rs the finger gestures
     scene.rs        Scene: docs, Upload tables, object rows, streamed slots, resolve a pick
-    walk/           producers, one file per geometry type (mod.rs dispatches on Geometry); hosts.rs the plate faces outlines lie on
+    walk/           producers, one file per geometry type (mod.rs dispatches on Geometry)
   engine/
     mod.rs
     performance.rs  now_ms, heap_mb, the perf line
@@ -174,34 +174,26 @@ than Tubes, which only MSAA antialiases.
 - Flags: `SELECTED` `HIDDEN` `INSIDE` `PRINT` `OPEN` `SHEET`. `INSIDE` is refreshed per frame
   for rows that drew faces only (`ObjectRow.faces`), so a pure-linework sheet costs nothing.
 
-## 6. Ink on faces (why a hidden line never shows through material)
+## 6. The thickness rule (why ink never shows through a plate)
 
-- Faces are drawn exactly where they are. Every push of a face - a fraction of eye depth, a
-  fraction of the object's own thickness, a pixel of the face's slope - was measured to bring
-  another object's ink through it somewhere in a real model (a 3 mm joint, a 40 mm plate seen
-  from far away). The face pipeline carries a two-step constant depth bias only to break the
-  exact tie with ink drawn on its own vertices.
-- A segment that knows its faces is drawn IN them. The ribbon is folded along its centre line
-  (12 vertices: side, centre, side at each end); the centre lane sits at the edge's own depth
-  and each side corner takes the depth of its face plane at that pixel (`ribbon.wgsl`
-  `plane_step_mm`, the deeper of the two planes at a crease), so the strip lies on the surface
-  and cannot be in front of anything that covers that surface. The round caps extend the ribbon
-  along the 3D line in clip space, never on screen, so its depth ramp is the edge's own.
-- A mesh wire carries its two face normals in `CylinderSegment.facing`. A free polyline lying
-  on a plate face (an outline, a contact area) is given that face's normal and the plate's
-  thickness by the walk (`walk/hosts.rs`: every distinct face plane of the file's meshes), so it
-  behaves like the plate's own wire. A line with no known face lifts a quarter pixel.
-- Every lift, hair included, is capped by a quarter of the object's thickness (measured across
-  its own faces, `bounds.rs::mesh_thickness`; for a hosted outline the host's) AND by half a
-  millimetre outright, so even far away nothing crosses the millimetres of a joint. Markers and
-  dots lift the same hair under the same caps.
-- Verified two ways. `docs/_gate.sh` renders three probe plates (one rotated) with inset bottom
-  outlines and fails on any bottom-outline pixel from above. `examples/census_plates.rs`
-  ray-casts an outline sample every 50 mm of the floor model against the plates in front of it,
-  from the exact eye of any render (`CENSUS_EYE`, `CENSUS_ORTHO_H`): zero failing samples from
-  six perspective eyes and the orthographic iso, one sub-half-millimetre sample straight down.
-- The price: a wire at a concave crease (an inside corner) shows only its centre line, and a
-  line on a face seen edge-on thins to a hair. A hidden line is never shown.
+- Faces recede along their view ray by `min(0.4 % of eye depth, 0.25 x thickness)`
+  (`triangle.wgsl::push_frac`), so the wireframe drawn on them is never cut by them.
+- Ink lifts toward the eye by pen half-widths - mesh wires 1.5, free linework 0.5, markers
+  2.5, dots 2.0 - capped at `0.25 x thickness` (`ribbon.wgsl::lift_capped`, sphere, glyph).
+- `thickness` is measured by the walk, orientation-free: for a mesh the smallest spread of
+  its vertices along one of its own dominant face normals (`bounds.rs::mesh_thickness`), so a
+  plate baked rotated into world coordinates measures its plate thickness, not its box; for a
+  polyline the spread across its own plane (`polyline_thickness`, 0 for any planar outline).
+  `objects.rs::thickness` scales it by the placement and floors it at 0.1 % of the diagonal.
+- A 40 mm plate 4 m long therefore never recedes more than 10 mm and its back outline (at
+  40 mm) can never surface; a 1 m box seen from 2 m keeps the uncapped values, so close-ups
+  look as before. A planar outline gets no lift and relies on its plate's push, which is
+  exact (the same vertices) and scale-free.
+- Two coincident lines of different colours resolve by draw order, not depth: a ribbon depth
+  prepass fixes that but costs a second ribbon draw (+5 ms on view_mixed), so it is not done.
+- Verified by `docs/_gate.sh`: three probe plates (one rotated 30 degrees) with an inset
+  bottom outline that must show 0 magenta pixels from above at every zoom; the gate goes red
+  with a box-based thickness (748 px on the rotated plate at the far zoom).
 
 ## 7. Point clouds
 
@@ -238,7 +230,6 @@ than Tubes, which only MSAA antialiases.
 |---|---|---|---|
 | view.rs | `VIEWER_THICKNESS` | `?thickness=` | pen weight, px |
 | view.rs | `VIEWER_AA` | `?aa=` | antialiasing ramp of every ink lane, px (1.5; 1 = exact box coverage, wider = softer) |
-| census | `CENSUS_EYE` `CENSUS_FWD` `CENSUS_ORTHO_H` `CENSUS_RECOLOR` | - | `examples/census_plates.rs`: ray-cast a file's outlines from a given eye |
 | view.rs | `VIEWER_LINE_STYLE=tubes` | `?style=tubes` | solid-lane style at start (`L` flips) |
 | view.rs | `VIEWER_CLOUD_SCALE` | `?cloud=` | point size scale (`[` `]`) |
 | view.rs | `VIEWER_EDL` | `?edl=` | eye-dome lighting strength, 0 off |

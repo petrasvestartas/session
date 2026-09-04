@@ -2,7 +2,7 @@
 //! (line/polyline/curve, the FLAT lane, blended camera-facing quads). `SegRows` is one upload.
 
 use crate::engine::pipelines::{build, module, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
-use super::buffers::{bind_group, GpuCtx, GrowBuf, ROWS};
+use super::buffers::{bind_group, index_buffer, GpuCtx, GrowBuf, ROWS};
 use super::frame::Binds;
 use super::upload::drop_rows;
 use wgpu::PrimitiveTopology::TriangleList;
@@ -11,8 +11,10 @@ use wgpu::PrimitiveTopology::TriangleList;
 #[cfg(test)]
 pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", include_str!("../../shaders/ribbon.wgsl"))];
 
-/// Vertices per ribbon: two triangles pulled by vertex index, no vertex buffer.
-const RIBBON_VERTS: u32 = 6;
+/// A ribbon is six vertices (side, centre, side at each end - folded along its centre line so
+/// each half can lie in its own face plane at a crease) drawn as four triangles through this
+/// index pattern, one instance per segment: the vertex shader runs six times, not twelve.
+const RIBBON_INDICES: [u16; 12] = [0, 1, 4, 0, 4, 3, 1, 2, 5, 1, 5, 4];
 
 /// One segment row, 40 B, the layout ribbon.wgsl declares. The ends are
 /// flat f32s: a `vec3` would pad the row to 48 B.
@@ -84,22 +86,25 @@ struct SegPipelines {
     ribbon: wgpu::RenderPipeline,
 }
 
-/// The segment lane on the GPU: one table, the shader, the pipeline.
+/// The segment lane on the GPU: the table, the ribbon's index pattern, the shader, the
+/// pipeline.
 pub struct SegmentLane {
     ribbons: SegTable,
+    ribbon_ibo: wgpu::Buffer,
     shaders: SegShaders,
     gpu: SegPipelines,
 }
 
 impl SegmentLane {
-    /// One one-row table, the shader and the pipeline.
+    /// A one-row table, the shader and the pipeline.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
         let shaders = SegShaders {
             ribbon: module(&ctx.device, "ribbon.shader", include_str!("../../shaders/ribbon.wgsl")),
         };
         let gpu = build_pipelines(ctx, l, &shaders, target);
+        let ribbon_ibo = index_buffer(ctx, "ribbon.ibo", &RIBBON_INDICES);
 
-        Self { ribbons: SegTable::new(ctx, l, "ribbons"), shaders, gpu }
+        Self { ribbons: SegTable::new(ctx, l, "ribbons"), ribbon_ibo, shaders, gpu }
     }
 
     /// Rebuild the pipelines for a new sample count.
@@ -107,7 +112,7 @@ impl SegmentLane {
         self.gpu = build_pipelines(ctx, l, &self.shaders, target);
     }
 
-    /// Append one file's rows to the table.
+    /// Append one file's rows.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &SegRows) {
         self.ribbons.append(ctx, l, &up.ribbons);
     }
@@ -125,7 +130,8 @@ impl SegmentLane {
         pass.set_pipeline(pipeline);
         b.set(pass);
         pass.set_bind_group(3, &table.group, &[]);
-        pass.draw(0..RIBBON_VERTS * table.buf.len(), 0..1);
+        pass.set_index_buffer(self.ribbon_ibo.slice(..), wgpu::IndexFormat::Uint16);
+        pass.draw_indexed(0..RIBBON_INDICES.len() as u32, 0, 0..table.buf.len());
         1
     }
 
@@ -145,8 +151,7 @@ impl SegmentLane {
     }
 }
 
-/// Every segment pipeline for `target`. `GreaterEqual` on the ribbon is load-bearing: a mesh
-/// edge sits EXACTLY on its faces' depth, and strict `Greater` shreds it.
+/// Every segment pipeline for `target`.
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &SegShaders, target: Target) -> SegPipelines {
     let groups = [&l.mvp, &l.line, &l.instance, &l.rows];
     let quad = PipelineDesc::new(&s.ribbon, &groups, &[], TriangleList);

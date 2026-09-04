@@ -25,7 +25,9 @@ verify() {
     [ -n "$prev" ] && cp -r "$prev/." "$work/snap/"
     rm -rf "$work/snap/target"
     python3 _replay_check.py "$work/snap" "$work/w" "$md" > "$work/replay.log" 2>&1 || { echo "lesson $n: replay FAILED"; tail -20 "$work/replay.log"; return 1; }
-    grep -qiE "fail|not found|no match|ambiguous" "$work/replay.log" && { echo "lesson $n: replay reported problems"; grep -iE "fail|not found|no match|ambiguous" "$work/replay.log" | head -10; return 1; }
+    # Per-op problems are the `!!` lines ("!! doc line N  file  - why"); the summary line reads
+    # "N ops, 0 failed" on a clean run, so matching the word "fail" would go red on every lesson.
+    grep -qE '^\s*!!' "$work/replay.log" && { echo "lesson $n: replay reported problems"; grep -E '^\s*!!' "$work/replay.log" | head -10; return 1; }
     if ! diff -r -q -x target -x Cargo.lock "$work/w" "$cur" > "$work/diff.log"; then
         echo "lesson $n: replay of $md onto stage $((n - 1)) differs from stage $n:"; head -20 "$work/diff.log"; return 1
     fi

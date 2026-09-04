@@ -72,6 +72,4 @@ pub struct Pen {
     pub row: u32,
     pub radius: f32,
     pub color: u32,
-    /// `FACING_UNKNOWN`, or the host face's normal twice for an outline lying on a plate.
-    pub facing: u32,
 }

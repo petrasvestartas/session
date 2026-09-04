@@ -12,6 +12,7 @@ use crate::math::Aabb;
 use brep::{walk_brep, walk_surface};
 use curves::{walk_line, walk_nurbscurve, walk_polyline};
 use frames::{walk_obb, walk_plane};
+use hosts::Hosts;
 use mesh::{walk_mesh, MeshCx, MeshOpts};
 use mesh_ink::Ink;
 use points::walk_point;
@@ -21,6 +22,7 @@ pub mod brep;
 pub mod curves;
 pub mod encode;
 pub mod frames;
+pub mod hosts;
 pub mod mesh;
 pub mod mesh_ink;
 pub mod mesh_topology;
@@ -47,9 +49,11 @@ impl<'a> Walk<'a> {
 
 /// Where one object's rows land: the arena rows already on the GPU (`walk_mesh` bases its
 /// indices on it) and the object row.
-pub struct WalkCx {
+pub struct WalkCx<'a> {
     pub vert_base: u32,
     pub row: u32,
+    /// The file's plate faces, so a free outline lying on one inherits its normal and thickness.
+    pub hosts: &'a Hosts,
 }
 
 /// What a producer reports for its object row: the local box, the point/vertex spacing and
@@ -97,7 +101,7 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
             walk_surface(arena, &mut ink, s, cx)
         }
         Geometry::Line(l) => walk_line(w.seg, l, cx.row),
-        Geometry::Polyline(pl) => walk_polyline(w.seg, pl, cx.row),
+        Geometry::Polyline(pl) => walk_polyline(w.seg, pl, cx),
         Geometry::NurbsCurve(c) => walk_nurbscurve(w.seg, c, cx.row),
         Geometry::Plane(p) => walk_plane(w.seg, p, cx.row),
         Geometry::OBB(b) => walk_obb(w.seg, b, cx.row),

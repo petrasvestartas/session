@@ -137,11 +137,6 @@ impl Template {
     }
 }
 
-/// A static index buffer holding `indices`, for a per-instance vertex pattern.
-pub fn index_buffer(ctx: &GpuCtx, label: &str, indices: &[u16]) -> wgpu::Buffer {
-    ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor { label: Some(label), contents: bytemuck::cast_slice(indices), usage: wgpu::BufferUsages::INDEX })
-}
-
 /// A fresh buffer of `size` bytes, zero-initialized by WebGPU.
 pub fn zeroed_buffer(device: &wgpu::Device, label: &str, size: u64, usage: wgpu::BufferUsages) -> wgpu::Buffer {
     device.create_buffer(&wgpu::BufferDescriptor { label: Some(label), size, usage, mapped_at_creation: false })

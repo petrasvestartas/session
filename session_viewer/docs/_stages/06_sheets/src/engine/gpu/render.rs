@@ -6,7 +6,7 @@ use super::frame::Binds;
 use super::Gpu;
 
 impl Gpu {
-    /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
+    /// Encode the whole frame into `view`. Returns (draws, objects).
     /// Knows nothing about a surface, so it works headless.
     pub fn encode_frame(&mut self, encoder: &mut wgpu::CommandEncoder, view: &wgpu::TextureView, clear: wgpu::Color) -> (u32, u32) {
         let draws = {

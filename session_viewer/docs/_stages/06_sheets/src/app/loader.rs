@@ -16,7 +16,7 @@ use super::scene::{FileDoc, Scene};
 use super::route::AUTO_GRID;
 
 thread_local! {
-    /// The start-up proxy, kept so the stream tasks can post messages.
+    /// The start-up proxy, kept so the loader can post messages.
     static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
 }
 
@@ -30,10 +30,7 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
     PROXY.with(|p| *p.borrow_mut() = Some(proxy.clone()));
     let state = State::new(window, Scene::new()).await.expect("State init failed");
     let _ = proxy.send_event(Msg::Ready(Box::new(state)));
-
-    if let Some(route) = scene_route() {
-        load_route(&route).await;
-    }
+    load_route(&scene_route()).await;
 }
 
 /// Fetch a manifest and post every item, in manifest order, then a `Fit`.

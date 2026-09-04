@@ -41,8 +41,9 @@ const FACING_UNKNOWN: u32 = 0xffffffffu;
 const FLAG_INSIDE: u32 = 4u;
 const MM_TO_M: f32 = 0.001;
 
-// Two half-widths more than the wires' 3: the disc must clear a band running toward the eye.
-const LIFT_RADII: f32 = 5.0;
+// Half a width more than the wires: the disc must win the tie at the vertex it marks.
+const LIFT_HAIR_PX: f32 = 0.5;
+const LIFT_MAX_MM: f32 = 0.5;
 const LIFT_MAX_THICK: f32 = 0.25;
 
 // A marker thins when the object's vertex spacing is under this many marker diameters.
@@ -54,10 +55,11 @@ fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
 }
 
 fn lift_capped(lift: f32, w: f32, thickness: f32) -> f32 {
-    if (thickness <= 0.0) {
-        return clamp(lift, 0.0, 0.5);
+    var cap_mm = LIFT_MAX_MM;
+    if (thickness > 0.0) {
+        cap_mm = min(cap_mm, LIFT_MAX_THICK * thickness);
     }
-    let max_lift = LIFT_MAX_THICK * thickness * MM_TO_M / max(w, 1e-9);
+    let max_lift = cap_mm * MM_TO_M / max(w, 1e-9);
     return clamp(min(lift, max_lift), 0.0, 0.5);
 }
 
@@ -148,18 +150,18 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
 
     // Lift: in w for perspective, in ndc z for ortho, both capped by the thickness.
     let ozn = select(0.0, length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z)), line.ortho_h > 0.0);
-    let lift = px * LIFT_RADII * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
+    let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - centre;
+    let lift = LIFT_HAIR_PX * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
     var wn = clip.w * (1.0 - lift_capped(lift, clip.w, inst.thickness));
     var zlift = 0.0;
     if (line.ortho_h > 0.0) {
         wn = clip.w;
-        let lw = px * LIFT_RADII * 2.0 * line.ortho_h / line.vp_h;
-        zlift = min(lw, select(1e30, LIFT_MAX_THICK * inst.thickness, inst.thickness > 0.0)) * ozn;
+        let lw = LIFT_HAIR_PX * 2.0 * line.ortho_h / line.vp_h;
+        zlift = min(lw, select(LIFT_MAX_MM, min(LIFT_MAX_MM, LIFT_MAX_THICK * inst.thickness), inst.thickness > 0.0)) * ozn;
     }
     let off = tmpl.xy * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
 
     // Hidden vertices never reach the rasterizer, unless the eye is inside the object.
-    let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - centre;
     let inside = (inst.flags & FLAG_INSIDE) != 0u;
     let kf = faces_front(g, inst.model, to_eye);
     if (kf.x && !kf.y && !inside) {

@@ -82,7 +82,7 @@ impl Lap {
 
 /// The walk context and the options one mesh is walked with.
 pub struct MeshCx<'a> {
-    pub cx: &'a WalkCx,
+    pub cx: &'a WalkCx<'a>,
     pub opts: &'a MeshOpts,
 }
 
