@@ -79,6 +79,48 @@ in front is thinner than push + lift.
    halves of a ribbon separate and the round caps overshoot, so a zoomed-in box shows torn
    corners and doubled edges. The user rejected it. Read that commit before repeating it.
 
+## How other viewers solve this, and what we got wrong
+
+This is the classic *coincident topology* problem: an edge that lies exactly on the surface it
+decorates. Every CAD viewer hits it and there are three standard answers.
+
+1. **A depth-buffer-space offset on the FACES, not a world-space one.** The face is biased by
+   `constant x (one depth-buffer unit at that pixel) + slope_scale x (the face's depth slope per
+   pixel)`, and the result is CLAMPED. Both terms are measured in depth, so the bias is
+   automatically a few micrometres near the camera and only as large as the depth precision
+   demands far away - it never has a size in millimetres that can cross a joint. The lines then
+   need no offset of their own at all. Public implementations to read:
+   - VTK: `vtkMapper::SetResolveCoincidentTopologyToPolygonOffset`, and the relative
+     polygon/line/point offset parameters. VTK's documentation of this problem is the clearest
+     short statement of it in any open codebase.
+   - Open CASCADE: `Graphic3d_AspectFillArea3d::SetPolygonOffsets` (`Aspect_POM_Fill`), used by
+     the V3d viewer for "shaded with edges" - a real CAD kernel doing exactly this task.
+   - Coin3D / FreeCAD: the `SoPolygonOffset` node, applied to the shape, not the wireframe.
+   - OpenSceneGraph: `osg::PolygonOffset`. three.js: `Material.polygonOffset` with
+     `polygonOffsetFactor` / `polygonOffsetUnits`, as used by its wireframe-over-shaded examples.
+   - The semantics themselves: OpenGL 4.6 spec section 14.6.5 "Depth Offset", and the Vulkan
+     `depthBiasConstantFactor` / `depthBiasSlopeFactor` / `depthBiasClamp` documentation.
+2. **Edges derived from the depth and normal buffers in screen space**, with no line geometry at
+   all. An edge drawn where a depth or normal discontinuity is cannot be behind its own surface.
+   Blender's overlay engine does this, as do most engine outline passes. It costs the ability to
+   style or pick an individual edge.
+3. **Analytic hidden-line removal**, which is what a kernel does for a drawing: compute
+   visibility in exact geometry and emit visible and hidden segments. Open CASCADE's `HLRBRep`
+   is the readable open implementation. It is view-dependent CPU work, right for print output
+   and too slow to re-run per frame while orbiting.
+
+What this repository does instead: it offsets in the VERTEX SHADER, in world millimetres, by a
+fraction of eye depth and of the object's thickness. That has no relation to depth precision, so
+there is no scale at which it is both large enough to win a tie and small enough to stay inside a
+3 mm joint. The hardware path was tried once (attempt 3 above) and misused: `slope_scale` was set
+to 2.0 with `clamp` left at 0.0, so a face seen edge-on received an unbounded bias. `wgpu 29`
+exposes all three fields as `DepthBiasState { constant: i32, slope_scale: f32, clamp: f32 }`
+(`wgpu-types-29.0.3/src/render.rs:654`), and this viewer uses a reverse-Z `Depth32Float` buffer
+with a `GreaterEqual` test, so the bias must be NEGATIVE to push a face away and the clamp must
+be set. That experiment - faces on a small clamped hardware bias, ink with no lift at all,
+`DepthMode::ReadOnlyEqual` kept on the ribbon - has never been run here, and it is the one every
+product in the list above is running.
+
 ## What a fix must satisfy
 
 - **Zero surfacing samples** from the six cameras below, at 1x, 4x and 16x the fit distance.
