@@ -146,7 +146,7 @@ for cls in classes:
         (skipped if cls in not_implemented else missing).append(cls)
         continue
     seen.add(os.path.basename(f))
-    tests = json.load(open(f))
+    tests = json.load(open(f, encoding='utf-8'))
     n = len(tests)
     p = sum(1 for t in tests if t.get('passed', False))
     total += n

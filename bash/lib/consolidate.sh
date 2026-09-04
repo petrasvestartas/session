@@ -52,7 +52,7 @@ for cls in classes:
         name = cls + '_test.json'
         p = os.path.join(tests, d, name)
         if os.path.isfile(p):
-            with open(p, 'r') as f:
+            with open(p, 'r', encoding='utf-8') as f:
                 parts.append('  \"' + cls + '_test_' + lang + '\": ' + f.read().rstrip())
 
 # Artifacts
@@ -62,7 +62,7 @@ for cls in classes:
         if not os.path.isfile(p):
             p = os.path.join(repo, d, 'serialization', 'test_' + cls + '.json')
         if os.path.isfile(p):
-            with open(p, 'r') as f:
+            with open(p, 'r', encoding='utf-8') as f:
                 parts.append('  \"artifact_test_' + cls + '_' + lang + '\": ' + f.read().rstrip())
 
 # Proto schemas
@@ -70,7 +70,7 @@ proto_dir = os.path.join(repo, 'session_proto')
 if os.path.isdir(proto_dir):
     for pf in sorted(glob.glob(os.path.join(proto_dir, '*.proto'))):
         name = os.path.splitext(os.path.basename(pf))[0]
-        with open(pf, 'r') as f:
+        with open(pf, 'r', encoding='utf-8') as f:
             content = f.read().replace('\\\\', '\\\\\\\\').replace('\"', '\\\\\"').replace('\\n', '\\\\n')
         parts.append('  \"proto_' + name + '\": \"' + content + '\"')
 
@@ -82,7 +82,7 @@ out += ',\n'.join(parts)
 out += '\n};\n'
 
 op = os.path.join(tests, 'public', 'testData.js')
-with open(op, 'w') as f:
+with open(op, 'w', encoding='utf-8') as f:
     f.write(out)
 import shutil
 shutil.copy2(op, os.path.join(tests, 'testData.js'))
