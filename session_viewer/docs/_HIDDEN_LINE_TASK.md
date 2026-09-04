@@ -1,7 +1,22 @@
 # Task: a wireframe that is never cut by its own faces and never shows through other geometry
 
 Repository `session`, crate `session_viewer` (Rust, wgpu 29 + winit 0.30, wasm32 in the browser
-with a native harness). Work on `main`, currently at `7c45728f`.
+with a native harness). Work on `main`, currently at `91d898b7`.
+
+## How to see it
+
+`trunk serve`, open `http://localhost:8770/?scene=view_mixed`, hover the floor model (the timber
+deck on the right of the scene) and **zoom out with the wheel**. Lines that belong to elements
+BEHIND other elements appear over them, and the further out you go the more of them there are.
+Press `5` for the orthographic top view and the same thing happens. At the fit view (`F`) the
+model is nearly clean, which is why this is easy to miss until you pull back.
+
+The floor model alone, headless, at 2.6 times the fit distance:
+
+```bash
+VIEWER_W=1800 VIEWER_H=1400 VIEWER_ORBIT=0,209 VIEWER_ZOOM=-10 \
+cargo run --release --example selftest --target x86_64-unknown-linux-gnu -- out.ppm <floor.pb>
+```
 
 ## The defect
 
@@ -9,6 +24,11 @@ In `?scene=view_mixed` the floor model (201 timber meshes and their 290 outline 
 lines that belong to elements BEHIND other elements. It is worst looking straight down and when
 zoomed out; at the fit view it is nearly clean. The same defect exists in the orthographic top
 view (key `5`).
+
+At that zoomed-out camera the offsets are far larger than the material: the worst samples are
+covered by a 200 mm beam whose face is only 4.0 mm in front of the outline, while the face push
+is 50.1 mm and the outline's lift 6.8 mm - a margin of -52.9 mm. Of the 290 outlines, 129 are
+fully covered there and 141 partly.
 
 Measured, not guessed. `examples/census_plates.rs` ray-casts an outline sample every 50 mm
 against every plate in front of it, from the exact camera of a render:
@@ -123,6 +143,34 @@ The census models the shipped rule in its own constants at the top of the file (
 change the shaders, or the tool measures a rule that no longer exists.**
 
 `examples/dump_geometry.rs <file.pb>` prints every object of a file with its box or its points.
+
+## Where the two line styles live
+
+The same 40 B row (`CylinderSegment`: two ends, a radius, an instance id, a colour, a `facing`
+word holding its two adjacent face normals as oct16) is drawn two ways, and the depth problem
+above is present in both:
+
+| what | file |
+|---|---|
+| the lane: two row tables (`pipes` = mesh/BRep edges, `ribbons` = free linework), the pipelines, the draws, the style switch | `src/engine/gpu/segments.rs` (`draw_pipes`, `draw_ribbons`, `build_pipelines`) |
+| FLAT (the default): one camera-facing quad per segment, six vertices pulled by index, a capsule SDF in the fragment, the hairline rule, the density taper, the facing cull, the lift | `src/shaders/ribbon.wgsl` |
+| TUBES: a real 3D cylinder per segment on a 6-sided unit-cylinder template, lit like a surface; the radius is the screen pen unless the row carries a world radius | `src/shaders/cylinder.wgsl` (template built by `unit_cylinder` in `segments.rs`) |
+| the style itself: `LineStyle::{Tubes, Flat}`, `toggle_line_style` (key `L`), `VIEWER_LINE_STYLE=tubes` / `?style=tubes` | `src/engine/gpu/view.rs` |
+| where the style reaches a draw, and the frame order | `src/engine/gpu/render.rs` (`scene_list`, `id_pass`) |
+| the pen the shaders read: `thickness`, `proj_y`, `ortho_h`, viewport, eye, `feather` | `src/engine/gpu/frame.rs` (`LineUniform`, 48 B) |
+| blend and depth modes of each pipeline (`ReadOnlyEqual` on the ribbons is load-bearing) | `src/engine/pipelines/mod.rs` |
+| who produces the rows | `src/app/walk/mesh_ink.rs` (mesh edges + their `facing`), `curves.rs` (line, polyline, NURBS), `frames.rs` (plane, box), `encode.rs` (`pack_facing`, `encode_width`, `pack_rgba`) |
+| vertex markers and free points, same lift problem | `src/engine/gpu/glyphs.rs`, `src/shaders/sphere.wgsl`, `src/shaders/glyph.wgsl` |
+
+Neither style is currently reliable, and a fix has to say which one it is fixing:
+
+- **Flat** ties with the face it decorates, which is what the push and the lift exist to break,
+  and that is the defect above. It antialiases itself (`?aa=`, 1.5 px) and is the cheaper of the
+  two.
+- **Tubes** are real geometry, so they never tie - but a tube is a solid: it is shaded, it grows
+  and shrinks with the pen, its ends are flat caps that overlap at corners, and it is smoothed
+  only by MSAA, which is off for scenes with no solid geometry. `L` switches between them at
+  runtime, so both can be compared on the same camera.
 
 ## Ground rules of this repository
 
