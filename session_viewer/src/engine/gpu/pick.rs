@@ -34,6 +34,39 @@ pub struct Picker {
     targets: Option<IdTargets>,
 }
 
+/// A native full-frame ID capture awaiting queue submission and readback.
+#[cfg(not(target_arch = "wasm32"))]
+pub(super) struct IdReadback {
+    buffer: wgpu::Buffer,
+    size: (u32, u32),
+    row_bytes: u32,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl IdReadback {
+    /// Drain the submitted copy and retain each pixel's object ID, rejecting map failures.
+    pub(super) fn read(self, ctx: &GpuCtx) -> Vec<[u32; 2]> {
+        let (send, receive) = std::sync::mpsc::sync_channel(1);
+        self.buffer.slice(..).map_async(wgpu::MapMode::Read, move |result| send.send(result).expect("ID map receiver"));
+        ctx.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: None }).expect("ID GPU poll");
+        receive.recv().expect("ID map callback").expect("ID buffer map");
+        let bytes = self.buffer.slice(..).get_mapped_range();
+        let mut ids = Vec::with_capacity((self.size.0 * self.size.1) as usize);
+        for y in 0..self.size.1 {
+            let start = (y * self.row_bytes) as usize;
+            for pixel in bytes[start..start + (self.size.0 * 8) as usize].chunks_exact(8) {
+                ids.push([
+                    u32::from_le_bytes(pixel[..4].try_into().expect("object ID bytes")),
+                    u32::from_le_bytes(pixel[4..8].try_into().expect("sub-object ID bytes")),
+                ]);
+            }
+        }
+        drop(bytes);
+        self.buffer.unmap();
+        ids
+    }
+}
+
 impl Picker {
     /// Nothing requested, nothing allocated.
     pub fn new() -> Self {
@@ -98,6 +131,23 @@ impl Picker {
         );
         self.inflight = true;
         self.copied = true;
+    }
+
+    /// Capture the unchanged ID pass for a native census with exact object attribution.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(super) fn copy_frame(&self, ctx: &GpuCtx, encoder: &mut wgpu::CommandEncoder) -> IdReadback {
+        let target = self.targets.as_ref().expect("ID pass must precede capture");
+        let row_bytes = (target.size.0 * 8).div_ceil(256) * 256;
+        let buffer = ctx.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("pick.frame.readback"), size: u64::from(row_bytes) * u64::from(target.size.1),
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ, mapped_at_creation: false,
+        });
+        encoder.copy_texture_to_buffer(
+            wgpu::TexelCopyTextureInfo { texture: &target.id, mip_level: 0, origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All },
+            wgpu::TexelCopyBufferInfo { buffer: &buffer, layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(row_bytes), rows_per_image: Some(target.size.1) } },
+            wgpu::Extent3d { width: target.size.0, height: target.size.1, depth_or_array_layers: 1 },
+        );
+        IdReadback { buffer, size: target.size, row_bytes }
     }
 
     /// After the copy was submitted: map the buffer ONCE; `ready` flips when the map completes.

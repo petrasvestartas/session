@@ -8,11 +8,14 @@ pub mod backdrop;
 pub mod buffers;
 pub mod cloud;
 pub mod device;
+mod face_filter;
 pub mod frame;
 pub mod glyphs;
 pub mod instance;
 pub mod objects;
+mod occlusion_bounds;
 pub mod pick;
+mod plane_place;
 pub mod present;
 pub mod render;
 pub mod segments;
@@ -34,7 +37,7 @@ use cloud::CloudLane;
 use device::DeviceSetup;
 use frame::FrameUniforms;
 use glyphs::GlyphLane;
-use objects::InstanceTable;
+use objects::{InkScene, InstanceTable};
 use pick::Picker;
 use segments::SegmentLane;
 use splat::Splat;
@@ -94,9 +97,9 @@ impl Gpu {
         let layouts = Layouts::new(&ctx.device);
         let frame = FrameUniforms::new(&ctx, &layouts, size);
         let targets = Targets::new(&ctx, size, config.format, target.samples);
-        let objects = InstanceTable::new(&ctx, &layouts);
-        let backdrop = BackdropLane::new(&ctx, &layouts, target);
         let arena = ArenaLane::new(&ctx, &layouts, target);
+        let objects = InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets, planes: arena.face_plane_buffer() });
+        let backdrop = BackdropLane::new(&ctx, &layouts, target);
         let segments = SegmentLane::new(&ctx, &layouts, target);
         let glyphs = GlyphLane::new(&ctx, &layouts, target);
         let cloud = CloudLane::new(&ctx);
@@ -128,7 +131,8 @@ impl Gpu {
     /// when its buffer grew. An MSAA flip rebuilds the targets and every pipeline.
     pub fn set_scene(&mut self, up: &Upload) {
         self.objects.append(&self.ctx, &self.layouts, &up.obj);
-        self.arena.append(&self.ctx, &up.arena);
+        self.objects.append_occlusion(up);
+        self.arena.append(&self.ctx, &self.layouts, &up.arena);
         self.segments.append(&self.ctx, &self.layouts, &up.seg);
         self.glyphs.append(&self.ctx, &self.layouts, &up.glyph);
         if self.cloud.append(&self.ctx, &up.cloud) {
@@ -143,6 +147,7 @@ impl Gpu {
             self.glyphs.sphere_count(), self.glyphs.dot_count(), self.cloud.point_count
         );
         self.retarget(false);
+        self.objects.rebind_ink(&self.ctx, &self.layouts, &InkScene { targets: &self.targets, planes: self.arena.face_plane_buffer() });
     }
 
     /// The pass target the lanes are built for now.
@@ -157,6 +162,7 @@ impl Gpu {
         let flip = samples != self.targets.samples;
         if flip || resized {
             self.targets = Targets::new(&self.ctx, (self.config.width, self.config.height), self.config.format, samples);
+            self.objects.rebind_ink(&self.ctx, &self.layouts, &InkScene { targets: &self.targets, planes: self.arena.face_plane_buffer() });
         }
         if flip {
             let target = self.target();
@@ -215,7 +221,7 @@ impl Gpu {
     /// Forget every lane's rows AND hand the memory back, CPU mirrors and GPU buffers alike.
     pub fn release(&mut self) {
         self.objects.release(&self.ctx, &self.layouts);
-        self.arena.release(&self.ctx);
+        self.arena.release(&self.ctx, &self.layouts);
         self.segments.release(&self.ctx, &self.layouts);
         self.glyphs.release(&self.ctx, &self.layouts);
         self.cloud.release(&self.ctx);
@@ -223,6 +229,7 @@ impl Gpu {
         self.splat.rebind(&self.ctx, &self.layouts, self.cloud.buffers());
         self.bounds = Aabb::empty();
         self.retarget(false);
+        self.objects.rebind_ink(&self.ctx, &self.layouts, &InkScene { targets: &self.targets, planes: self.arena.face_plane_buffer() });
     }
 
     /// Flip the selection flag on one object row.
@@ -238,6 +245,7 @@ pub(crate) fn lane_shaders() -> Vec<(&'static str, &'static str)> {
     let mut out = Vec::new();
     out.extend_from_slice(backdrop::SHADERS);
     out.extend_from_slice(arena::SHADERS);
+    out.extend_from_slice(face_filter::SHADERS);
     out.extend_from_slice(segments::SHADERS);
     out.extend_from_slice(glyphs::SHADERS);
     out

@@ -1,101 +1,65 @@
-# wgpu Skill — Session Viewer Reference
+# wgpu viewer patterns — techniques, not signatures
 
-Web viewer for the session kernel: Rust + wgpu compiled to WebAssembly.
-All features below are researched. Use when the time comes to implement each.
+Rendering techniques researched for this viewer: thick lines, point clouds,
+colour-ID picking, gizmos, egui, instancing, wasm traps, kernel integration.
 
----
+**Read `../SKILL.md` first, and treat every API snippet below as older than the
+pin.** These were written against earlier wgpu and were not all re-verified;
+they exist to explain *which approach* to take, not to be pasted. The current
+signature comes from the vendored source, and the current working code comes
+from `session_viewer/src/engine/`. Where the two disagree, this file loses.
 
 ## Core References
 
 | Resource | URL |
 |----------|-----|
-| learn-wgpu tutorial | https://sotrh.github.io/learn-wgpu/beginner/tutorial1-window/ |
 | wgpu repo | https://github.com/gfx-rs/wgpu |
 | wgpu web examples | https://wgpu.rs/examples/ |
-| learn-wgpu source | https://github.com/sotrh/learn-wgpu |
-| WebGPU spec | https://gpuweb.github.io/gpuweb/ |
+| WebGPU spec (W3C) | https://www.w3.org/TR/webgpu/ |
 | WGSL spec (W3C) | https://www.w3.org/TR/WGSL/ |
-| WGSL spec (gpuweb) | https://gpuweb.github.io/gpuweb/wgsl/ |
+| WGSL alignment calculator | https://www.w3.org/2025/webgpu/wgsl-align.html |
 | webgpufundamentals | https://webgpufundamentals.org/ |
 
+learn-wgpu is deliberately absent — see the "Do not read" section of
+`../SKILL.md`.
+
 ## Project Location
-- `session_viewer/` — Rust wgpu viewer
-- `session_viewer/src/lib.rs` — app state and winit event loop
-
-## wgpu 29 API Notes (breaking changes from older tutorials)
-- `TextureFormat::describe().srgb()` → **removed**, use `format.is_srgb()` directly
-- `Instance::new(desc)` takes `&InstanceDescriptor` (reference), not owned
-- `request_adapter` returns `Result`, use `.await?` directly
-- No `pollster::block_on` — everything is `.await` inside `async fn new()`
-- Backends for web: `Backends::BROWSER_WEBGPU | Backends::GL` (not `Backends::all()`)
-- Limits for web: `Limits::downlevel_webgl2_defaults()` (works on both WebGPU and WebGL2)
-
----
+- `session_viewer/` — Rust wgpu viewer, wasm32 by default
+- `session_viewer/src/engine/gpu/device.rs` — instance/adapter/device negotiation
+- `session_viewer/src/engine/pipelines/mod.rs` — pipeline + layout construction
+- `session_viewer/src/shaders/*.wgsl` — the nine shader lanes
+- `session_viewer/examples/selftest.rs` — headless frame + ink count
 
 ## Build Tooling
 
-**Use Trunk** — best DX for wgpu+wasm, hot reload, automatic wasm-bindgen/wasm-opt, parallel builds.
-`wasm-pack` is 10× slower on Linux (musl allocator). `cargo-web` is abandoned.
+Trunk. `wasm-pack` is far slower on Linux; `cargo-web` is abandoned.
 
 ```bash
-cargo install trunk
-trunk serve           # dev server + hot reload at localhost:8770
+trunk serve            # dev server, live reload, port 8770
 trunk build --release
 ```
 
-Minimal `Trunk.toml`:
-```toml
-[build]
-target = "wasm32-unknown-unknown"
+`session_viewer/Trunk.toml` sets `release = true` **for `serve` too**, and the
+comment block in it holds the measured debug-vs-release load numbers — read it
+before changing the build profile or quoting a load time.
 
-[serve]
-port = 8080
-```
+`.cargo/config.toml` makes `wasm32-unknown-unknown` the default target, which
+is why the source carries no `#[cfg(target_arch = "wasm32")]` gates and why
+tests need the `cargo xtest` alias.
 
-`Cargo.toml` must have:
-```toml
-[lib]
-crate-type = ["cdylib", "rlib"]  # REQUIRED for WASM
-```
+`Cargo.toml` needs `crate-type = ["cdylib", "rlib"]` — `cdylib` for wasm,
+`rlib` so `examples/` can link the crate.
 
----
+## Dependency notes
 
-## Dependency Stack
+The manifest is the source of truth; read `session_viewer/Cargo.toml`. Two
+standing constraints that a generic tutorial will violate:
 
-### Current (session_viewer/Cargo.toml — web only, no desktop)
-```toml
-[lib]
-crate-type = ["cdylib", "rlib"]  # REQUIRED for wasm
-
-[dependencies]
-anyhow               = "1.0"
-winit                = { version = "0.30", features = ["android-native-activity"] }
-wgpu                 = { version = "29.0", features = ["webgl"] }  # webgl = WebGL2 fallback
-log                  = "0.4"
-console_error_panic_hook = "0.1.6"
-console_log          = "1.0"
-wasm-bindgen         = "0.2"
-wasm-bindgen-futures = "0.4.30"
-web-sys              = { version = "0.3", features = ["Document", "Window", "Element"] }
-
-[profile.release]
-strip = true
-```
-
-### Future additions (when needed)
-```toml
-bytemuck           = { version = "1", features = ["derive"] }
-glam               = "0.29"
-serde              = { version = "1", features = ["derive"] }
-serde_json         = "1"
-serde_wasm_bindgen = "0.6"
-prost              = "0.13"
-egui               = "0.34"
-egui-wgpu          = { version = "0.34", features = ["winit"] }
-egui-winit         = "0.34"
-```
-
----
+- **No `webgl` feature.** The browser path is WebGPU-only
+  (`Backends::BROWSER_WEBGPU`). Do not add a WebGL2 fallback or
+  `Limits::downlevel_webgl2_defaults()`.
+- **No external geometry or math crate.** Never `glam`, never `nalgebra` — the
+  kernel's own types do this work.
 
 ## Data Loading
 
@@ -122,7 +86,7 @@ let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
 ```
 
 **WGSL alignment gotcha:** `vec3f` = 16-byte aligned, NOT 12. Always pad.
-Reference: https://sotrh.github.io/learn-wgpu/showcase/alignment/
+Check any host-shareable struct with https://www.w3.org/2025/webgpu/wgsl-align.html
 
 ### B — Protobuf (prost)
 
@@ -160,15 +124,10 @@ pub fn load_scene_json(json_str: &str) -> Result<JsValue, JsValue> {
 
 ## Camera
 
-**Already implemented** in https://github.com/petrasvestartas/wgpu_viewer — use this as the reference, not generic tutorials.
-
-### Architecture (4 files)
-| File | Responsibility |
-|------|---------------|
-| `camera.rs` | Pure camera logic: position, quaternion rotation, projection |
-| `lib_render.rs` | GPU pipeline integration, matrix passing |
-| `lib_input.rs` | Input delegation to camera controller |
-| `lib_state.rs` | GPU resource + camera state management |
+The viewer has its own camera — read `session_viewer/src/` rather than the
+older standalone https://github.com/petrasvestartas/wgpu_viewer, which is kept
+only as a design record. The design decisions below still hold; the file names
+and the uniform layout are from that older repo and no longer match.
 
 ### CameraUniform (GPU buffer layout)
 ```rust
@@ -197,9 +156,6 @@ struct CameraUniform {
 - **MSAA 4×** on all pipelines, depth format `Depth32Float`, compare `Less`
 - OpenGL→wgpu coordinate system conversion applied in matrix computation
 
-### Learn-wgpu background references
-- https://sotrh.github.io/learn-wgpu/beginner/tutorial6-uniforms/
-- https://sotrh.github.io/learn-wgpu/intermediate/tutorial12-camera/
 
 ---
 
@@ -221,8 +177,6 @@ fn fs_main(in: FragmentInput) -> @location(0) vec4<f32> {
 ```
 
 ### Blinn-Phong Lighting
-
-Reference: https://sotrh.github.io/learn-wgpu/intermediate/tutorial10-lighting/
 
 ```wgsl
 fn blinn_phong(normal: vec3<f32>, view_dir: vec3<f32>, light_dir: vec3<f32>, light_color: vec3<f32>) -> vec3<f32> {
@@ -282,7 +236,6 @@ let pick_texture = device.create_texture(&wgpu::TextureDescriptor {
 
 References:
 - https://webgpufundamentals.org/webgpu/lessons/webgpu-picking.html
-- https://sotrh.github.io/learn-wgpu/showcase/windowless/
 - wgpu `render_to_texture` example: https://github.com/gfx-rs/wgpu/tree/trunk/examples
 
 **Box selection**: read all pixels in drag rect from ID texture → accumulate into `HashSet<u32>`.
@@ -337,7 +290,7 @@ egui works in wasm unchanged. `fragile-send-sync-non-atomic-wasm` makes wgpu obj
 struct Instance { transform: [[f32; 4]; 4], color: [f32; 4] }
 // render_pass.draw_indexed(0..index_count, 0, 0..instance_count)
 ```
-Reference: https://sotrh.github.io/learn-wgpu/beginner/tutorial7-instancing/
+Working example: the instance buffers in `session_viewer/src/engine/`.
 
 **Indirect draw + GPU frustum culling** (no CPU readback):
 - https://github.com/toji/webgpu-bundle-culling
@@ -359,7 +312,9 @@ Reference: https://sotrh.github.io/learn-wgpu/beginner/tutorial7-instancing/
 | SharedArrayBuffer | wgpu incompatible with wasm threads / rayon on web |
 | WebGPU browser flag | Chrome: enable "Unsafe WebGPU" for local testing |
 | Canvas context | `get_context("webgpu")` can fail silently — always error-check |
-| wgpu features | must enable both `webgpu` AND `webgl` for browser fallback |
+| wgpu features | this viewer is WebGPU-only: no `webgl` feature, no fallback |
+| no logger | wgpu reports validation errors through `log` — without a sink a broken shader is just a black frame |
+| hybrid GPUs | `PowerPreference::LowPower` on purpose: the discrete GPU renders but cannot share frames to the compositor, and the canvas stays black |
 
 ---
 

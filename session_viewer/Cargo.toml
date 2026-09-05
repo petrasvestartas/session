@@ -77,3 +77,6 @@ path = "examples/mk_facing_probe.rs"
 [[example]]
 name = "check_determinism"
 path = "examples/check_determinism.rs"
+
+[dev-dependencies]
+naga = { version = "=29.0.4", features = ["wgsl-in"] }

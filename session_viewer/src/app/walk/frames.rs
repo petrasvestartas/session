@@ -26,7 +26,7 @@ fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pe
         bounds.grow(*p);
     }
     for &[i, j] in edges {
-        seg.ribbons.push(CylinderSegment { p0: pts[i], radius: pen.radius, p1: pts[j], instance_id: pen.row, color: pen.color, facing: FACING_UNKNOWN });
+        seg.ribbons.push(CylinderSegment { p0: pts[i], radius: pen.radius, p1: pts[j], instance_id: pen.row, color: pen.color, facing: FACING_UNKNOWN, support_start: 0, support_count: 0 });
     }
     bounds
 }

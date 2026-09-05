@@ -52,8 +52,6 @@ pub enum ColorWrite {
     Opaque,
     /// Alpha-blend: ink with an AA feather.
     Blended,
-    /// Nothing: a depth-only prepass (the pass still has a colour attachment to declare).
-    Masked,
 }
 
 impl ColorWrite {
@@ -62,7 +60,6 @@ impl ColorWrite {
         match self {
             ColorWrite::Opaque => (None, wgpu::ColorWrites::ALL),
             ColorWrite::Blended => (Some(wgpu::BlendState::ALPHA_BLENDING), wgpu::ColorWrites::ALL),
-            ColorWrite::Masked => (None, wgpu::ColorWrites::empty()),
         }
     }
 }
@@ -80,13 +77,15 @@ pub struct PipelineDesc<'a> {
     pub topology: wgpu::PrimitiveTopology,
     pub color: ColorWrite,
     pub depth: DepthMode,
+    pub face_target: Option<bool>,
+    pub scene_samples: Option<u32>,
 }
 
 impl<'a> PipelineDesc<'a> {
     /// A base over `shader` with `vs_main`, opaque colour and opaque depth; the variants
     /// change the label, the fragment entry, the colour mode and the depth mode.
     pub fn new(shader: &'a wgpu::ShaderModule, groups: &'a [&'a wgpu::BindGroupLayout], vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>], topology: wgpu::PrimitiveTopology) -> Self {
-        Self { label: "", shader, vs: "vs_main", fs: "fs_main", groups, vertex_buffers, topology, color: ColorWrite::Opaque, depth: DepthMode::Opaque }
+        Self { label: "", shader, vs: "vs_main", fs: "fs_main", groups, vertex_buffers, topology, color: ColorWrite::Opaque, depth: DepthMode::Opaque, face_target: None, scene_samples: None }
     }
 
     /// The variant `label`, drawn with fragment entry `fs`.
@@ -109,6 +108,18 @@ impl<'a> PipelineDesc<'a> {
         self
     }
 
+    /// Add the physical face identity attachment; only face-writing fragments modify it.
+    pub fn face_target(mut self, write: bool) -> Self {
+        self.face_target = Some(write);
+        self
+    }
+
+    /// Specialize scene sampling independently of the output target (picking stays 1x).
+    pub fn scene_samples(mut self, samples: u32) -> Self {
+        self.scene_samples = Some(samples);
+        self
+    }
+
     /// The same desc with another depth mode.
     pub fn depth(mut self, depth: DepthMode) -> Self {
         self.depth = depth;
@@ -119,6 +130,12 @@ impl<'a> PipelineDesc<'a> {
 const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
     offset: 0,
     shader_location: 3,
+    format: wgpu::VertexFormat::Uint32,
+}];
+
+const FACE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 4,
     format: wgpu::VertexFormat::Uint32,
 }];
 
@@ -138,6 +155,11 @@ pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout { array_stride: 4, step_mode: wgpu::VertexStepMode::Vertex, attributes: &INSTANCE_ID_ATTRIBS }
 }
 
+/// One exact supporting-face token per vertex at `@location(4)`.
+pub fn face_id_layout() -> wgpu::VertexBufferLayout<'static> {
+    wgpu::VertexBufferLayout { array_stride: 4, step_mode: wgpu::VertexStepMode::Vertex, attributes: &FACE_ID_ATTRIBS }
+}
+
 /// A unit template's positions at `@location(0)` (the cylinder, the marker quad).
 pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout { array_stride: 12, step_mode: wgpu::VertexStepMode::Vertex, attributes: &TEMPLATE_ATTRIBS }
@@ -146,6 +168,12 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
 /// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
 pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
     device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some(label), source: wgpu::ShaderSource::Wgsl(source.into()) })
+}
+
+/// Compile an ink lane with the shared exact-support visibility rule.
+pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+    let source = format!("{}\n{}", source, include_str!("../../shaders/ink_visibility.wgsl"));
+    module(device, label, &source)
 }
 
 /// The pipeline layout for `groups`, in slot order.
@@ -158,11 +186,20 @@ fn pipeline_layout(device: &wgpu::Device, label: &str, groups: &[&wgpu::BindGrou
 }
 
 /// One render pipeline from its description. Everything not in the desc is the same for all
-/// of them: one colour target, `Depth32Float`, no cull, no hardware bias, fill mode.
+/// of them: `Depth32Float`, no cull, no hardware bias, fill mode.
 pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu::RenderPipeline {
     let layout = pipeline_layout(device, desc.label, desc.groups);
     let (depth_write, depth_compare) = desc.depth.state();
     let (blend, write_mask) = desc.color.state();
+    let mut targets = vec![Some(wgpu::ColorTargetState { format: target.format, blend, write_mask })];
+    if let Some(write) = desc.face_target {
+        targets.push(Some(wgpu::ColorTargetState { format: wgpu::TextureFormat::Rg16Uint, blend: None, write_mask: if write { wgpu::ColorWrites::ALL } else { wgpu::ColorWrites::empty() } }));
+    }
+    let mut constants = Vec::new();
+    if let Some(samples) = desc.scene_samples {
+        constants.push(("SCENE_MSAA", f64::from(samples > 1)));
+
+    }
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some(desc.label),
@@ -171,13 +208,13 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
             module: desc.shader,
             entry_point: Some(desc.vs),
             buffers: desc.vertex_buffers,
-            compilation_options: Default::default(),
+            compilation_options: wgpu::PipelineCompilationOptions { constants: &constants, ..Default::default() },
         },
         fragment: Some(wgpu::FragmentState {
             module: desc.shader,
             entry_point: Some(desc.fs),
-            targets: &[Some(wgpu::ColorTargetState { format: target.format, blend, write_mask })],
-            compilation_options: Default::default(),
+            targets: &targets,
+            compilation_options: wgpu::PipelineCompilationOptions { constants: &constants, ..Default::default() },
         }),
         primitive: wgpu::PrimitiveState {
             topology: desc.topology,

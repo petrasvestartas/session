@@ -21,6 +21,9 @@ struct GlyphPoint {
     instance_id: u32,
     facing: u32,
     facing_ext: vec2<u32>,
+    support_start: u32,
+    support_count: u32,
+    _pad: vec2<u32>,
 };
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
@@ -35,6 +38,7 @@ struct LineUniform {
     eye_z: f32,
     anchor: vec3<f32>,
     feather: f32,
+    occluder_rect: vec4<f32>,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -44,24 +48,12 @@ const FLAG_OPEN: u32 = 16u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 const MM_TO_M: f32 = 0.001;
 
-// Two half-widths more than the wires' 3: the disc must clear a band running toward the eye.
-const LIFT_RADII: f32 = 5.0;
-const LIFT_MAX_THICK: f32 = 0.25;
-
 // A marker thins when the object's vertex spacing is under this many marker diameters.
 const MARKER_MIN_DIAMS: f32 = 3.0;
 const TAPER_MIN: f32 = 0.15;
 
 fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
     return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
-}
-
-fn lift_capped(lift: f32, w: f32, thickness: f32) -> f32 {
-    if (thickness <= 0.0) {
-        return clamp(lift, 0.0, 0.5);
-    }
-    let max_lift = LIFT_MAX_THICK * thickness * MM_TO_M / max(w, 1e-9);
-    return clamp(min(lift, max_lift), 0.0, 0.5);
 }
 
 fn oct16_decode(p: u32) -> vec3<f32> {
@@ -95,6 +87,8 @@ struct VsOut {
     @location(1) corner: vec2<f32>,
     @location(2) @interpolate(flat) px: f32,
     @location(3) @interpolate(flat) inst_id: u32,
+    @location(4) @interpolate(flat) support: vec2<u32>,
+    @location(5) @interpolate(flat) center: vec3<f32>,
 };
 
 fn dead_dot() -> VsOut {
@@ -111,7 +105,6 @@ fn dead_dot() -> VsOut {
 fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<bool> {
     let fwords = array<u32, 3>(g.facing, g.facing_ext.x, g.facing_ext.y);
     var known = false;
-    var front = false;
     for (var w = 0u; w < 3u; w = w + 1u) {
         let fw = fwords[w];
         if (fw == FACING_UNKNOWN) {
@@ -119,13 +112,13 @@ fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<boo
         }
         known = true;
         for (var h = 0u; h < 2u; h = h + 1u) {
-            let n = (model * vec4<f32>(oct16_decode((fw >> (16u * h)) & 0xffffu), 0.0)).xyz;
+            let n = face_normal(model, oct16_decode((fw >> (16u * h)) & 0xffffu));
             if (dot(n, to_eye) > 0.0) {
-                front = true;
+                return vec2<bool>(true, true);
             }
         }
     }
-    return vec2<bool>(known, front);
+    return vec2<bool>(known, false);
 }
 
 @vertex
@@ -149,28 +142,19 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
     }
     px = max(px, 0.5);
 
-    // Lift: in w for perspective, in ndc z for ortho, both capped by the thickness.
-    let ozn = select(0.0, length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z)), line.ortho_h > 0.0);
-    let lift = px * LIFT_RADII * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
-    var wn = clip.w * (1.0 - lift_capped(lift, clip.w, inst.thickness));
-    var zlift = 0.0;
-    if (line.ortho_h > 0.0) {
-        wn = clip.w;
-        let lw = px * LIFT_RADII * 2.0 * line.ortho_h / line.vp_h;
-        zlift = min(lw, select(1e30, LIFT_MAX_THICK * inst.thickness, inst.thickness > 0.0)) * ozn;
-    }
-    let off = tmpl.xy * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
+    let off = tmpl.xy * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
 
     // Hidden vertices never reach the rasterizer, unless the eye is inside the object.
-    let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - centre;
     let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
-    let kf = faces_front(g, inst.model, to_eye);
-    if (kf.x && !kf.y && !inside) {
-        return dead_dot();
+    if (!inside) {
+        let kf = faces_front(g, inst.model, toward_eye(centre));
+        if (kf.x && !kf.y) {
+            return dead_dot();
+        }
     }
 
     var o: VsOut;
-    o.pos = vec4<f32>(clip.xy / clip.w * wn + off, clip.z + zlift * wn, wn);
+    o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = g.color * inst.color;
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = vec4<f32>(mix(color.rgb, SELECT_COLOR, 0.6), color.a);
@@ -179,6 +163,8 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
     o.corner = tmpl.xy;
     o.px = px;
     o.inst_id = g.instance_id;
+    o.support = vec2<u32>(g.support_start, g.support_count);
+    o.center = centre;
     return o;
 }
 
@@ -187,26 +173,26 @@ fn coverage(in: VsOut) -> f32 {
     return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0);
 }
 
-@fragment
-fn fs_depth(in: VsOut) -> @location(0) vec4<f32> {
-    if (coverage(in) < 0.5) {
-        discard;
-    }
-    return vec4<f32>(0.0);
+fn footprint(in: VsOut) -> InkFootprint {
+    return InkFootprint(in.support, vec3<f32>(0.0), vec3<f32>(0.0));
 }
 
 @fragment
-fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
+fn fs_main(in: VsOut) -> InkColor {
     let alpha = coverage(in);
     if (alpha <= 0.0) {
         discard;
     }
-    return vec4<f32>(in.color.rgb, in.color.a * alpha);
+    let mask = ink_visible_mask(in.pos.xy, InkSample(in.pos.z, in.center), footprint(in));
+    if (mask == 0u) {
+        discard;
+    }
+    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha), mask);
 }
 
 @fragment
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) < 0.5) {
+    if (coverage(in) < 0.5 || !ink_pick_visible(in.pos.xy, InkSample(in.pos.z, in.center), footprint(in))) {
         discard;
     }
     return vec2<u32>(in.inst_id + 1u, 0u);

@@ -22,6 +22,7 @@ pub struct FrameCx<'a> {
     pub view: &'a View,
     pub anchor: [f32; 3],
     pub size: (u32, u32),
+    pub occluder_rect: [f32; 4],
 }
 
 /// The three bind groups every lane draw needs, borrowed for one pass.
@@ -40,7 +41,7 @@ impl Binds<'_> {
     }
 }
 
-/// The line/pen block (group 1), 48 B - three vec4s; the mirror test checks the shaders' copy.
+/// The line/pen block (group 1), 64 B; the physical screen rectangle starts at byte 48.
 /// `eye` and `anchor` are in the anchored frame the instance rows use.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -53,9 +54,13 @@ pub struct LineUniform {
     pub eye: [f32; 3],  // camera position, anchored world units
     pub anchor: [f32; 3],
     pub feather: f32, // antialiasing ramp of the ink lanes, px
+    pub occluder_rect: [f32; 4], // conservative physical pixel bounds: left, top, right, bottom
 }
 
-const _: () = assert!(std::mem::size_of::<LineUniform>() == 48);
+const _: () = {
+    assert!(std::mem::size_of::<LineUniform>() == 64);
+    assert!(std::mem::offset_of!(LineUniform, occluder_rect) == 48);
+};
 
 /// The cloud block (group 1 of the point lane), 16 B.
 #[repr(C)]
@@ -84,6 +89,11 @@ pub struct FrameUniforms {
 }
 
 impl FrameUniforms {
+    /// The exact camera/line buffers shared with the angular compute filter.
+    pub(super) fn face_filter_uniforms(&self) -> (&wgpu::Buffer, &wgpu::Buffer) {
+        (&self.mvp_buffer, &self.line_buffer)
+    }
+
     /// The three buffers and bind groups with no camera yet.
     pub fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
         let mvp_buffer = uniform_buffer(&ctx.device, "mvp.buffer", &Xform::identity().to_f32());
@@ -96,6 +106,7 @@ impl FrameUniforms {
             eye: [0.0; 3],
             anchor: [0.0; 3],
             feather: 1.5,
+            occluder_rect: [1.0, 1.0, -1.0, -1.0],
         };
         let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
         let cloud = CloudUniform { size: 1.0, vp_w: size.0 as f32, vp_h: size.1 as f32, edl: 0.0 };
@@ -125,6 +136,7 @@ impl FrameUniforms {
             vp_w: cx.size.0 as f32,
             eye: self.eye,
             anchor: cx.anchor,
+            occluder_rect: cx.occluder_rect,
         };
         ctx.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
 

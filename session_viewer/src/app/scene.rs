@@ -11,6 +11,8 @@ use crate::app::stream::{CloudFields, CloudLod};
 use crate::app::walk::bounds::{file_extent, is_planar, mark_sheet, Baselines};
 use crate::app::walk::cloud::{walk_stream_slice, StreamRows, StreamSlice};
 use crate::app::walk::mesh::Lap;
+use crate::app::walk::mesh_ink::Ink;
+use crate::app::walk::hosts::{Association, Hosts};
 use crate::app::walk::{is_drawable, walk_geometry, Walk, WalkCx};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
 use crate::math::{mat_mul, Mat4};
@@ -85,6 +87,8 @@ pub struct PickedPoint {
 #[derive(Default)]
 struct Bases {
     vert: u32,
+    face: u32,
+    ribbon: u32,
     obj: u32,
 }
 
@@ -96,6 +100,7 @@ pub struct Scene {
     pub hidden: HashSet<String>,
     pub selected: Option<u32>,
     order: Vec<Rc<str>>,
+    ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,
     guid_to_row: HashMap<Rc<str>, u32>,
     bases: Bases,
 }
@@ -116,6 +121,7 @@ impl Scene {
             hidden: HashSet::new(),
             selected: None,
             order: Vec::new(),
+            ribbon_ranges: Vec::new(),
             guid_to_row: HashMap::new(),
             bases: Bases::default(),
         }
@@ -128,6 +134,7 @@ impl Scene {
         self.tables = Upload::default();
         self.streamed.clear();
         self.order.clear();
+        self.ribbon_ranges.clear();
         self.guid_to_row.clear();
         self.hidden.clear();
         self.selected = None;
@@ -142,6 +149,7 @@ impl Scene {
         self.tables = Upload::default();
         self.streamed.clear();
         self.order.clear();
+        self.ribbon_ranges.clear();
         self.guid_to_row.clear();
         self.selected = None;
         self.bases = Bases::default();
@@ -157,9 +165,12 @@ impl Scene {
 
     /// Upload the walked tables, then FORGET the rows: the GPU is their only holder.
     pub fn upload_to(&mut self, gpu: &mut Gpu) {
+        self.tables.place_face_planes(self.bases.obj);
         gpu.set_scene(&self.tables);
         self.bases.vert += self.tables.arena.verts.len() as u32;
+        self.bases.face += self.tables.arena.face_planes.len() as u32;
         self.bases.obj += self.tables.obj.rows.len() as u32;
+        self.bases.ribbon += self.tables.seg.ribbons.len() as u32;
         self.tables.drop_uploaded();
     }
 
@@ -170,6 +181,7 @@ impl Scene {
         let guid: Rc<str> = Rc::from(guid);
         self.guid_to_row.insert(Rc::clone(&guid), row);
         self.order.push(guid);
+        self.ribbon_ranges.push(None);
         row
     }
 
@@ -185,14 +197,19 @@ impl Scene {
         self.order.reserve(count);
         self.guid_to_row.reserve(count);
 
+        let mut hosts = Hosts::default();
+        let mut pending = Vec::new();
         for guid in session.order() {
             let Some(geom) = session.lookup.get(&guid) else { continue };
             if !is_drawable(geom) {
                 continue;
             }
             let flags = if self.hidden.contains(&guid) { Instance::FLAG_HIDDEN } else { 0 };
-            let row = self.push_row(&guid, placement(&world, &place.m, &guid), flags);
-            let cx = WalkCx { vert_base: self.bases.vert, cloud_px: point_px, row };
+            let object_place = placement(&world, &place.m, &guid);
+            let row = self.push_row(&guid, object_place, flags);
+            let ribbon_start = self.tables.seg.ribbons.len();
+            let dot_start = self.tables.glyph.dots.len();
+            let cx = WalkCx { vert_base: self.bases.vert, face_base: self.bases.face, cloud_px: point_px, row };
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
             let o = self.tables.obj.rows.last_mut().unwrap();
             o.flags |= r.flags;
@@ -200,6 +217,16 @@ impl Scene {
             o.spacing = r.spacing;
             o.faces = r.faces;
             o.thickness = r.thickness;
+            hosts.extend(r.host_faces, &object_place);
+            let ribbon_end = self.tables.seg.ribbons.len();
+            let dot_end = self.tables.glyph.dots.len();
+            if ribbon_start != ribbon_end { self.ribbon_ranges[row as usize] = Some(self.bases.ribbon + ribbon_start as u32..self.bases.ribbon + ribbon_end as u32); }
+            if ribbon_start != ribbon_end || dot_start != dot_end { pending.push((guid, object_place, ribbon_start..ribbon_end, dot_start..dot_end)); }
+        }
+        for (guid, object_place, ribbons, dots) in pending {
+            if let Some(geometry) = session.lookup.get(&guid) {
+                hosts.associate(&mut Ink { seg: &mut self.tables.seg, glyph: &mut self.tables.glyph }, geometry, &Association { place: &object_place, ribbons, dots });
+            }
         }
         lap.mark("objects");
 
@@ -276,6 +303,11 @@ impl Scene {
             return None;
         }
         Some(PickedPoint { local, id: pc.point_id(local as usize), position: [c[i], c[i + 1], c[i + 2]] })
+    }
+
+    /// Global ribbon segment IDs belonging to one object row, retained after upload.
+    pub fn ribbon_range(&self, row: u32) -> Option<std::ops::Range<u32>> {
+        self.ribbon_ranges.get(row as usize).cloned().flatten()
     }
 
     /// Objects in row order.

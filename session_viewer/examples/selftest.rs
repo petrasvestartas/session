@@ -5,7 +5,7 @@
 
 use session_viewer::selftest::{render_scene, SceneFile};
 
-/// wgpu reports validation errors through `log`; without a logger a broken shader renders black.
+/// Keep adapter and validation diagnostics in the render log; GPU errors also abort the run.
 struct StderrLog;
 
 impl log::Log for StderrLog {

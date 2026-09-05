@@ -20,6 +20,8 @@ struct CylinderSegment {
     instance_id: u32,
     color: u32,
     facing: u32,
+    support_start: u32,
+    support_count: u32,
 }
 @group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
 
@@ -34,6 +36,7 @@ struct LineUniform {
     eye_z: f32,
     anchor: vec3<f32>,
     feather: f32,
+    occluder_rect: vec4<f32>,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -66,9 +69,9 @@ fn edge_faces_camera(seg: CylinderSegment, model: mat4x4<f32>, mid: vec3<f32>) -
     if (seg.facing == FACING_UNKNOWN) {
         return true;
     }
-    let n0 = (model * vec4<f32>(oct16_decode(seg.facing & 0xffffu), 0.0)).xyz;
-    let n1 = (model * vec4<f32>(oct16_decode(seg.facing >> 16u), 0.0)).xyz;
-    let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - mid;
+    let n0 = face_normal(model, oct16_decode(seg.facing & 0xffffu));
+    let n1 = face_normal(model, oct16_decode(seg.facing >> 16u));
+    let to_eye = toward_eye(mid);
     return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
 }
 
@@ -84,6 +87,7 @@ struct VsOut {
     @builtin(position) pos: vec4<f32>,
     @location(0) color: vec4<f32>,
     @location(1) @interpolate(flat) inst_id: u32,
+    @location(2) @interpolate(flat) segment_index: u32,
 }
 
 fn dead_vertex() -> VsOut {
@@ -145,15 +149,80 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si: u32) -> Vs
     }
     o.color = color;
     o.inst_id = seg.instance_id;
+    o.segment_index = si;
     return o;
 }
 
+// Endpoint footprint in pixels for the unexpanded physical axis.
+fn projected_radius(radius: f32, w: f32) -> f32 {
+    if (radius <= 0.0) {
+        return line.thickness * 0.5 + 0.5 * line.feather;
+    }
+    if (line.ortho_h > 0.0) {
+        return radius * line.vp_h * 0.5 / line.ortho_h + 0.5 * line.feather;
+    }
+    return radius * line.proj_y * line.vp_h * 0.5 / w + 0.5 * line.feather;
+}
+
+// Visibility-only data is reconstructed once per fragment instead of repeated at every
+// cylinder template vertex and transported through seven flat stage-interface locations.
+struct ProjectedAxis {
+    support: vec2<u32>,
+    a: vec3<f32>,
+    b: vec3<f32>,
+    end_depth: vec2<f32>,
+    world0: vec3<f32>,
+    world1: vec3<f32>,
+    clip_w: vec2<f32>,
+};
+
+fn project_axis(segment_index: u32) -> ProjectedAxis {
+    let seg = segments[segment_index];
+    let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
+    let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
+    var o: ProjectedAxis;
+    o.support = vec2<u32>(seg.support_start, seg.support_count);
+    let c0 = mvp * vec4<f32>(w0, 1.0);
+    let c1 = mvp * vec4<f32>(w1, 1.0);
+    let f0 = c0.z - c0.w;
+    let f1 = c1.z - c1.w;
+    let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
+    let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
+    let vp = vec2<f32>(line.vp_w, line.vp_h);
+    let a = (e0.xy / e0.w * vec2<f32>(0.5, -0.5) + 0.5) * vp;
+    let b = (e1.xy / e1.w * vec2<f32>(0.5, -0.5) + 0.5) * vp;
+    o.a = vec3<f32>(a, projected_radius(seg.radius, e0.w));
+    o.b = vec3<f32>(b, projected_radius(seg.radius, e1.w));
+    o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
+    o.world0 = select(w0, mix(w0, w1, f0 / (f0 - f1)), f0 > 0.0);
+    o.world1 = select(w1, mix(w1, w0, f1 / (f1 - f0)), f1 > 0.0);
+    o.clip_w = vec2<f32>(e0.w, e1.w);
+    return o;
+}
+
+// The shell styles a line; it must not surface when its physical axis is covered.
+fn axis_sample(in: ProjectedAxis, pixel: vec2<f32>) -> InkSample {
+    let ba = in.b.xy - in.a.xy;
+    let h = clamp(dot(pixel - in.a.xy, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
+    let t = h * in.clip_w.x / mix(in.clip_w.y, in.clip_w.x, h);
+    return InkSample(mix(in.end_depth.x, in.end_depth.y, h), mix(in.world0, in.world1, t));
+}
+
 @fragment
-fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
-    return in.color;
+fn fs_main(in: VsOut) -> InkColor {
+    let axis = project_axis(in.segment_index);
+    let mask = ink_visible_mask(in.pos.xy, axis_sample(axis, in.pos.xy), InkFootprint(axis.support, axis.a, axis.b));
+    if (mask == 0u) {
+        discard;
+    }
+    return InkColor(in.color, mask);
 }
 
 @fragment
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    return vec2<u32>(in.inst_id + 1u, 0u);
+    let axis = project_axis(in.segment_index);
+    if (!ink_pick_visible(in.pos.xy, axis_sample(axis, in.pos.xy), InkFootprint(axis.support, axis.a, axis.b))) {
+        discard;
+    }
+    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
 }

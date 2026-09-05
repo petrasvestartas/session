@@ -91,7 +91,21 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
     Ok(DeviceSetup { surface, device, queue, config })
 }
 
-/// wgpu validation errors go to the log instead of a panic.
+/// A failed GPU command must never be mistaken for a valid render.
 fn report_gpu_error(e: wgpu::Error) {
-    log::error!("wgpu: {e}");
+    panic!("wgpu: {e}");
+}
+
+/// Exercise the installed callback with a real shader validation failure. Run explicitly on
+/// machines with a native adapter; ordinary CPU-only unit-test jobs need no GPU.
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[test]
+#[ignore = "requires a native GPU adapter"]
+#[should_panic(expected = "wgpu: Validation Error")]
+fn invalid_gpu_shader_is_fatal() {
+    let setup = pollster::block_on(open(None, (1, 1))).expect("open native adapter");
+    let _ = setup.device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("intentional verification failure"),
+        source: wgpu::ShaderSource::Wgsl("@compute @workgroup_size(1) fn main() { let broken: u32 = true; }".into()),
+    });
 }

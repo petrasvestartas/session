@@ -36,8 +36,7 @@ fn log_depth(d: f32) -> f32 {
     return -log2(max(d, 1.0e-7));
 }
 
-@fragment
-fn fs_main(in: VsOut) -> FsOut {
+fn shade(in: VsOut) -> FsOut {
     let pix = vec2<i32>(in.pos.xy);
     let d = textureLoad(sdepth, pix, 0);
     if (d == 0.0) {
@@ -71,4 +70,21 @@ fn fs_main(in: VsOut) -> FsOut {
     o.color = vec4<f32>(rgb, 1.0);
     o.depth = d;
     return o;
+}
+
+struct FaceOut {
+    @location(0) color: vec4<f32>,
+    @location(1) face: vec2<u32>,
+    @builtin(frag_depth) depth: f32,
+};
+
+@fragment
+fn fs_main(in: VsOut) -> FsOut {
+    return shade(in);
+}
+
+@fragment
+fn fs_face(in: VsOut) -> FaceOut {
+    let shaded = shade(in);
+    return FaceOut(shaded.color, vec2<u32>(0u), shaded.depth);
 }

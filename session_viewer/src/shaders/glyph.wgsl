@@ -21,6 +21,9 @@ struct GlyphPoint {
     instance_id: u32,
     facing: u32,
     facing_ext: vec2<u32>,
+    support_start: u32,
+    support_count: u32,
+    _pad: vec2<u32>,
 };
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
@@ -35,14 +38,13 @@ struct LineUniform {
     eye_z: f32,
     anchor: vec3<f32>,
     feather: f32,
+    occluder_rect: vec4<f32>,
 };
 
 const FLAG_SELECTED: u32 = 1u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 const MM_TO_M: f32 = 0.001;
-const LIFT_RADII: f32 = 4.0;
-const LIFT_MAX_THICK: f32 = 0.25;
 
 // An equilateral triangle whose incircle (radius 1 in corner space) is the visible dot.
 const CORNERS = array<vec2<f32>, 3>(
@@ -62,6 +64,8 @@ struct VsOut {
     @location(2) @interpolate(linear) px: f32,
     @location(3) @interpolate(linear) fade: f32,
     @location(4) @interpolate(flat) inst_id: u32,
+    @location(5) @interpolate(flat) support: vec2<u32>,
+    @location(6) @interpolate(flat) center: vec3<f32>,
 };
 
 fn dead_dot() -> VsOut {
@@ -103,24 +107,10 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     }
 
     let corner = CORNERS[vid % 3u];
-    var lift = 0.0;
-    var zlift = 0.0;
-    if (line.ortho_h > 0.0) {
-        let lw = px * LIFT_RADII * 2.0 * line.ortho_h / line.vp_h;
-        let cap = select(1e30, LIFT_MAX_THICK * inst.thickness, inst.thickness > 0.0);
-        zlift = min(lw, cap) * length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
-    } else {
-        lift = px * LIFT_RADII * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
-        if (inst.thickness > 0.0) {
-            lift = min(lift, LIFT_MAX_THICK * inst.thickness * MM_TO_M / max(clip.w, 1e-9));
-        }
-        lift = clamp(lift, 0.0, 0.5);
-    }
-    let wn = clip.w * (1.0 - lift);
-    let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * wn;
+    let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
 
     var o: VsOut;
-    o.pos = vec4<f32>(clip.xy / clip.w * wn + off, clip.z + zlift * wn, wn);
+    o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = g.color * inst.color;
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = vec4<f32>(mix(color.rgb, SELECT_COLOR, 0.6), color.a);
@@ -130,6 +120,8 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.px = px;
     o.fade = fade;
     o.inst_id = g.instance_id;
+    o.support = vec2<u32>(g.support_start, g.support_count);
+    o.center = world;
     return o;
 }
 
@@ -138,26 +130,26 @@ fn coverage(in: VsOut) -> f32 {
     return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0) * in.fade;
 }
 
-@fragment
-fn fs_depth(in: VsOut) -> @location(0) vec4<f32> {
-    if (coverage(in) < 0.5) {
-        discard;
-    }
-    return vec4<f32>(0.0);
+fn footprint(in: VsOut) -> InkFootprint {
+    return InkFootprint(in.support, vec3<f32>(0.0), vec3<f32>(0.0));
 }
 
 @fragment
-fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
+fn fs_main(in: VsOut) -> InkColor {
     let alpha = coverage(in);
     if (alpha <= 0.0) {
         discard;
     }
-    return vec4<f32>(in.color.rgb, in.color.a * alpha);
+    let mask = ink_visible_mask(in.pos.xy, InkSample(in.pos.z, in.center), footprint(in));
+    if (mask == 0u) {
+        discard;
+    }
+    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha), mask);
 }
 
 @fragment
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) < 0.5) {
+    if (coverage(in) < 0.5 || !ink_pick_visible(in.pos.xy, InkSample(in.pos.z, in.center), footprint(in))) {
         discard;
     }
     return vec2<u32>(in.inst_id + 1u, 0u);

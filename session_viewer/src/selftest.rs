@@ -2,7 +2,7 @@
 //! offscreen texture and read back, so a shader change can be LOOKED AT and measured here.
 //! Every number in the docs comes through this file.
 
-use crate::math::eye_from_view_proj;
+use crate::math::FOVY_DEG;
 use std::rc::Rc;
 use crate::app::manifest::Manifest;
 use crate::app::scene::{FileDoc, Scene};
@@ -10,6 +10,7 @@ use crate::camera::{Camera, View};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::now_ms;
 use session_rust::{Session, Xform};
+
 
 /// Background colour of a harness frame.
 const CLEAR: wgpu::Color = wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 };
@@ -53,7 +54,7 @@ fn assets_root(manifest: &str, man: &Manifest) -> std::path::PathBuf {
     if here.join(&first).exists() { here } else { here.join("..") }
 }
 
-/// The harness's camera knobs: `VIEWER_ORBIT="dx,dy"`, `VIEWER_ORTHO`, `VIEWER_VIEW`, `VIEWER_ZOOM`.
+/// The harness's camera knobs, with an exact distance multiplier for reproducible far views.
 fn camera_from_env(gpu: &Gpu, aspect: f64) -> Camera {
     let mut camera = Camera::new();
     camera.fit(&gpu.bounds, aspect);
@@ -79,9 +80,25 @@ fn camera_from_env(gpu: &Gpu, aspect: f64) -> Camera {
             camera.zoom(if n > 0 { 1.0 } else { -1.0 });
         }
     }
-    let eye = eye_from_view_proj(&camera.view_proj(aspect));
-    log::info!("camera: eye ({:.1}, {:.1}, {:.1}) mm, target ({:.1}, {:.1}, {:.1}) mm, distance {:.1} mm", eye[0], eye[1], eye[2], camera.target[0], camera.target[1], camera.target[2], camera.distance);
+    if let Ok(value) = std::env::var("VIEWER_DISTANCE_SCALE") {
+        let scale: f64 = value.parse().expect("VIEWER_DISTANCE_SCALE must be a number");
+        assert!(scale.is_finite() && scale > 0.0, "VIEWER_DISTANCE_SCALE must be positive and finite");
+        camera.distance *= scale;
+        camera.update_position();
+    }
+    report_camera(&camera);
     camera
+}
+
+/// Log absolute world coordinates and parallel-ray parameters, never the shader's virtual eye.
+fn report_camera(camera: &Camera) {
+    let units = camera.unit.to_meters();
+    let eye = camera.position.map(|v| v / units);
+    let target = camera.target.map(|v| v / units);
+    let forward = std::array::from_fn::<_, 3, _>(|i| (camera.target[i] - camera.position[i]) / camera.distance);
+    let ortho_h = if camera.perspective { 0.0 } else { camera.distance_world() * (FOVY_DEG * 0.5).to_radians().tan() };
+    log::info!("camera: eye ({:.6}, {:.6}, {:.6}) mm, target ({:.6}, {:.6}, {:.6}) mm, distance {:.6} mm", eye[0], eye[1], eye[2], target[0], target[1], target[2], camera.distance_world());
+    log::info!("census camera: CENSUS_EYE={:.12},{:.12},{:.12} CENSUS_FWD={:.12},{:.12},{:.12} CENSUS_UP={:.12},{:.12},{:.12} CENSUS_ORTHO_H={:.9}", camera.position[0], camera.position[1], camera.position[2], forward[0], forward[1], forward[2], camera.up[0], camera.up[1], camera.up[2], ortho_h);
 }
 
 /// Load every file into `scene`, uploading per file when `VIEWER_INCREMENTAL` is set (the
@@ -152,6 +169,9 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
     let input = frame_input(&mut gpu, &camera, aspect);
     let rgba = gpu.render_offscreen(&input);
     write_ppm(out, &rgba, w, h).expect("write ppm");
+    if let Ok(path) = std::env::var("VIEWER_IDS") {
+        write_ids(&mut gpu, &scene, &input, &path);
+    }
 
     if let Ok(v) = std::env::var("VIEWER_PICK") {
         let mut it = v.split(',').filter_map(|t| t.trim().parse::<u32>().ok());
@@ -162,6 +182,31 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
 
     let ink = rgba.chunks_exact(4).filter(|p| p[0] < 200 || p[1] < 200 || p[2] < 200).count();
     format!("wrote {out}  {w}x{h}  non-background pixels: {ink} ({:.1}%)\n", 100.0 * ink as f64 / (w * h) as f64)
+}
+
+/// Write versioned object/segment IDs and the GUID-to-row/ribbon mapping used by the draw.
+fn write_ids(gpu: &mut Gpu, scene: &Scene, input: &FrameInput, path: &str) {
+    use std::io::Write;
+    let ids = gpu.render_ids_offscreen(input);
+    let mut file = std::io::BufWriter::new(std::fs::File::create(path).expect("create ID frame"));
+    file.write_all(b"HLI2").expect("write ID format");
+    file.write_all(&gpu.config.width.to_le_bytes()).expect("write ID width");
+    file.write_all(&gpu.config.height.to_le_bytes()).expect("write ID height");
+    for id in ids {
+        file.write_all(&id[0].to_le_bytes()).expect("write object ID");
+        file.write_all(&id[1].to_le_bytes()).expect("write segment ID");
+    }
+    file.flush().expect("flush ID frame");
+    let mut mapping = std::collections::BTreeMap::new();
+    for row in 0..gpu.objects.len() {
+        if let Some(hit) = scene.resolve(Pick { row, sub: 0 }, gpu) {
+            let range = scene.ribbon_range(row).unwrap_or(0..0);
+            mapping.insert(hit.guid, serde_json::json!({ "object_id": row + 1, "ribbon_start": range.start, "ribbon_count": range.len() }));
+        }
+    }
+    let map = std::fs::File::create(format!("{path}.json")).expect("create ID mapping");
+    serde_json::to_writer_pretty(map, &mapping).expect("write ID mapping");
+    println!("wrote IDs {path}: {}x{}, {} object GUIDs; opaque picking core, alpha >= 0.5", gpu.config.width, gpu.config.height, mapping.len());
 }
 
 /// Pick at `at` through the id pass, blocking on the GPU, and print the answer.
@@ -204,3 +249,6 @@ pub fn frame_profile(files: &[SceneFile], w: u32, h: u32) -> String {
     }
     out
 }
+
+/// Same-device visibility, upload and picking regression harness.
+pub mod lifecycle;

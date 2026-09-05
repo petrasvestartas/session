@@ -1,6 +1,6 @@
 //! Lines, polylines and NURBS curves into the FLAT ribbon lane: one segment per span,
-//! `FACING_UNKNOWN` because free linework has no adjacent faces. Every producer reports the
-//! object's local box, which caps the ink lift so a line behind a plate stays behind it.
+//! `FACING_UNKNOWN` because free linework has no topological facing cull. Scene assembly
+//! associates exactly coplanar spans with their supporting mesh faces after the walk.
 
 use session_rust::{Line, NurbsCurve, Polyline};
 use crate::engine::gpu::segments::SegRows;
@@ -15,7 +15,7 @@ fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut Aa
     seg.ribbons.reserve(pts.len().saturating_sub(1));
     for w in pts.windows(2) {
         bounds.grow(w[0]);
-        seg.ribbons.push(CylinderSegment { p0: w[0], radius: pen.radius, p1: w[1], instance_id: pen.row, color: pen.color, facing: FACING_UNKNOWN });
+        seg.ribbons.push(CylinderSegment { p0: w[0], radius: pen.radius, p1: w[1], instance_id: pen.row, color: pen.color, facing: FACING_UNKNOWN, support_start: 0, support_count: 0 });
     }
     if let Some(last) = pts.last() {
         bounds.grow(*last);
@@ -29,7 +29,7 @@ pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
     let mut bounds = Aabb::empty();
     bounds.grow(p0);
     bounds.grow(p1);
-    seg.ribbons.push(CylinderSegment { p0, radius: encode_width(l.width), p1, instance_id: row, color: pack_rgba(l.linecolor.to_f32()), facing: FACING_UNKNOWN });
+    seg.ribbons.push(CylinderSegment { p0, radius: encode_width(l.width), p1, instance_id: row, color: pack_rgba(l.linecolor.to_f32()), facing: FACING_UNKNOWN, support_start: 0, support_count: 0 });
     Row::thin(bounds)
 }
 
@@ -59,17 +59,24 @@ fn control_box(c: &NurbsCurve) -> Option<([f64; 3], [f64; 3])> {
     if lo[0] > hi[0] { None } else { Some((lo, hi)) }
 }
 
-/// Sample the curve into a polyline whose segment count follows its size, then walk that.
-pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
-    let Some((lo, hi)) = control_box(c) else { return Row::thin(Aabb::empty()) };
+/// Keep the walk and supporting-face association on identical original f64 curve samples.
+pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
+    let Some((lo, hi)) = control_box(c) else { return Vec::new() };
     let size = ((hi[0] - lo[0]).powi(2) + (hi[1] - lo[1]).powi(2) + (hi[2] - lo[2]).powi(2)).sqrt();
     let n = ((size / 0.2).sqrt().ceil() as usize).clamp(4, 64);
 
     let (t0, t1) = c.domain();
-    let mut pts: Vec<[f32; 3]> = Vec::with_capacity(n + 1);
+    let mut pts: Vec<[f64; 3]> = Vec::with_capacity(n + 1);
     for i in 0..=n {
-        pts.push(c.point_at(t0 + (t1 - t0) * i as f64 / n as f64).to_f32());
+        let point = c.point_at(t0 + (t1 - t0) * i as f64 / n as f64);
+        pts.push([point[0], point[1], point[2]]);
     }
+    pts
+}
+
+/// Sample the curve into a polyline whose segment count follows its size, then walk that.
+pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
+    let pts: Vec<_> = sample_nurbscurve(c).into_iter().map(|point| point.map(|v| v as f32)).collect();
     let color = c.linecolors.first().map(|c| c.to_f32()).unwrap_or([0.0, 0.0, 0.0, 1.0]);
     let pen = Pen { row, radius: encode_width(c.width), color: pack_rgba(color) };
     let mut bounds = Aabb::empty();

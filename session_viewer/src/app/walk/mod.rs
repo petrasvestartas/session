@@ -25,6 +25,9 @@ pub mod curves;
 pub mod encode;
 pub mod frames;
 pub mod mesh;
+pub mod mesh_faces;
+pub mod mesh_raw_faces;
+pub mod hosts;
 pub mod mesh_ink;
 pub mod mesh_topology;
 pub mod points;
@@ -53,6 +56,7 @@ impl<'a> Walk<'a> {
 /// indices on it), the file's point-size override in px (0 = the pb's own) and the object row.
 pub struct WalkCx {
     pub vert_base: u32,
+    pub face_base: u32,
     pub cloud_px: f32,
     pub row: u32,
 }
@@ -68,12 +72,14 @@ pub struct Row {
     /// The object's thickness in its own units, whatever its orientation (section 6 of
     /// ARCHITECTURE.md): the depth budget the shaders may spend on it.
     pub thickness: f32,
+    /// Physical face identities for the file-local authored-line association sweep.
+    pub host_faces: Vec<hosts::HostFace>,
 }
 
 impl Row {
     /// Linework, points, frames: a box, no spacing, no flags, no faces; as thick as the box.
     pub fn thin(bounds: Aabb) -> Self {
-        Self { bounds, spacing: 0.0, flags: 0, faces: false, thickness: bounds.thinnest() }
+        Self { bounds, spacing: 0.0, flags: 0, faces: false, thickness: bounds.thinnest(), host_faces: Vec::new() }
     }
 }
 

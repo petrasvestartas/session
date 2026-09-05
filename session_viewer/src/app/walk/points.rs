@@ -1,5 +1,5 @@
-//! A free point into the FLAT glyph lane: one SDF dot, `FACING_UNKNOWN` because it
-//! decorates no surface.
+//! A free point into the FLAT glyph lane: one SDF dot with no topology-facing cull.
+//! Scene assembly associates coincident dots with their actual supporting mesh faces.
 
 use session_rust::Point;
 use crate::engine::gpu::glyphs::GlyphRows;
@@ -18,6 +18,9 @@ pub fn walk_point(glyph: &mut GlyphRows, p: &Point, row: u32) -> Row {
         instance_id: row,
         facing: FACING_UNKNOWN,
         facing_ext: [FACING_UNKNOWN; 2],
+        support_start: 0,
+        support_count: 0,
+        _pad: [0; 2],
     });
     let mut bounds = Aabb::empty();
     bounds.grow(center);

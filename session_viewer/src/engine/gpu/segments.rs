@@ -1,8 +1,8 @@
-//! The segment lane: every straight piece of ink. Two tables of the same 40 B row - pipes
-//! (mesh/BRep edges, the SOLID lane, tubes or flat quads with a depth prepass) and ribbons
+//! The segment lane: every straight piece of ink. Two tables of the same 48 B row - pipes
+//! (mesh/BRep edges, the SOLID lane, tubes or flat quads) and ribbons
 //! (line/polyline/curve, the FLAT lane, blended camera-facing quads). `SegRows` is one upload.
 
-use crate::engine::pipelines::{build, module, template_layout, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
+use crate::engine::pipelines::{build, ink_module, template_layout, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
 use super::buffers::{bind_group, GpuCtx, GrowBuf, Template, ROWS};
 use super::frame::Binds;
 use super::upload::drop_rows;
@@ -19,7 +19,7 @@ const CYL_SIDES: u32 = 6;
 /// Vertices per ribbon: two triangles pulled by vertex index, no vertex buffer.
 const RIBBON_VERTS: u32 = 6;
 
-/// One segment row, 40 B, the layout cylinder.wgsl and ribbon.wgsl declare. The ends are
+/// One segment row, 48 B, the layout cylinder.wgsl and ribbon.wgsl declare. The ends are
 /// flat f32s: a `vec3` would pad the row to 48 B.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -33,15 +33,29 @@ pub struct CylinderSegment {
     pub color: u32,
     /// Two oct16 adjacent face normals; `FACING_UNKNOWN` = no adjacency, always drawn.
     pub facing: u32,
+    pub support_start: u32,
+    pub support_count: u32,
 }
 
-const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
+const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 48);
+
+/// An exact supporting-face identity and the part of a stroke it supports (0 = whole,
+/// 1 = first endpoint, 2 = second endpoint). Shared WGSL layout: offsets 0/4, stride 8.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct InkSupport {
+    pub face: u32,
+    pub region: u32,
+}
+
+const _: () = assert!(std::mem::size_of::<InkSupport>() == 8);
 
 /// One upload's segments: the solid lane's pipes and the flat lane's ribbons.
 #[derive(Default)]
 pub struct SegRows {
     pub pipes: Vec<CylinderSegment>,
     pub ribbons: Vec<CylinderSegment>,
+    pub supports: Vec<InkSupport>,
 }
 
 impl SegRows {
@@ -49,6 +63,7 @@ impl SegRows {
     pub fn drop_rows(&mut self) {
         drop_rows(&mut self.pipes);
         drop_rows(&mut self.ribbons);
+        drop_rows(&mut self.supports);
     }
 }
 
@@ -60,25 +75,18 @@ struct SegTable {
 }
 
 impl SegTable {
-    /// A one-row table.
-    fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str) -> Self {
+    /// A one-row table sharing the lane's exact support identities.
+    fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str, supports: &GrowBuf) -> Self {
         let buf = GrowBuf::new(ctx, label, std::mem::size_of::<CylinderSegment>() as u64, ROWS);
-        let group = bind_group(ctx, &l.rows, label, &[&buf.buf]);
+        let group = bind_group(ctx, &l.ink_rows, label, &[&buf.buf, &supports.buf]);
         Self { label, buf, group }
     }
 
-    /// Append rows; the group is rebuilt only when the buffer grew.
-    fn append(&mut self, ctx: &GpuCtx, l: &Layouts, rows: &[CylinderSegment]) {
-        if self.buf.append(ctx, rows) {
-            self.group = bind_group(ctx, &l.rows, self.label, &[&self.buf.buf]);
-        }
+    /// Rebind both tables after either backing buffer changes.
+    fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts, supports: &GrowBuf) {
+        self.group = bind_group(ctx, &l.ink_rows, self.label, &[&self.buf.buf, &supports.buf]);
     }
 
-    /// Hand the buffer back and re-point the group at the one-row table.
-    fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
-        self.buf.release(ctx);
-        self.group = bind_group(ctx, &l.rows, self.label, &[&self.buf.buf]);
-    }
 }
 
 /// The two shader modules the lane's pipelines are built from.
@@ -92,7 +100,6 @@ struct SegShaders {
 struct SegPipelines {
     cylinder: wgpu::RenderPipeline,
     ribbon: wgpu::RenderPipeline,
-    ribbon_depth: wgpu::RenderPipeline,
     id_cylinder: wgpu::RenderPipeline,
     id_ribbon: wgpu::RenderPipeline,
 }
@@ -101,6 +108,7 @@ struct SegPipelines {
 pub struct SegmentLane {
     pipes: SegTable,
     ribbons: SegTable,
+    supports: GrowBuf,
     template: Template,
     shaders: SegShaders,
     gpu: SegPipelines,
@@ -112,12 +120,15 @@ impl SegmentLane {
         let (cyl_v, cyl_i) = unit_cylinder(CYL_SIDES);
         let template = Template::new(ctx, "cyl.template", &cyl_v, &cyl_i);
         let shaders = SegShaders {
-            cylinder: module(&ctx.device, "cylinder.shader", include_str!("../../shaders/cylinder.wgsl")),
-            ribbon: module(&ctx.device, "ribbon.shader", include_str!("../../shaders/ribbon.wgsl")),
+            cylinder: ink_module(&ctx.device, "cylinder.shader", include_str!("../../shaders/cylinder.wgsl")),
+            ribbon: ink_module(&ctx.device, "ribbon.shader", include_str!("../../shaders/ribbon.wgsl")),
         };
         let gpu = build_pipelines(ctx, l, &shaders, target);
 
-        Self { pipes: SegTable::new(ctx, l, "pipes"), ribbons: SegTable::new(ctx, l, "ribbons"), template, shaders, gpu }
+        let supports = GrowBuf::new(ctx, "segments.supports", std::mem::size_of::<InkSupport>() as u64, ROWS);
+        let pipes = SegTable::new(ctx, l, "pipes", &supports);
+        let ribbons = SegTable::new(ctx, l, "ribbons", &supports);
+        Self { pipes, ribbons, supports, template, shaders, gpu }
     }
 
     /// Rebuild the pipelines for a new sample count.
@@ -127,16 +138,25 @@ impl SegmentLane {
 
     /// Append one file's rows to both tables.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &SegRows) {
-        self.pipes.append(ctx, l, &up.pipes);
-        self.ribbons.append(ctx, l, &up.ribbons);
+        let base = self.supports.len();
+        let supports_grew = self.supports.append(ctx, &up.supports);
+        let pipes = rebase_supports(&up.pipes, base);
+        let ribbons = rebase_supports(&up.ribbons, base);
+        let pipes_grew = self.pipes.buf.append(ctx, &pipes);
+        let ribbons_grew = self.ribbons.buf.append(ctx, &ribbons);
+        if supports_grew || pipes_grew {
+            self.pipes.rebind(ctx, l, &self.supports);
+        }
+        if supports_grew || ribbons_grew {
+            self.ribbons.rebind(ctx, l, &self.supports);
+        }
     }
 
-    /// The solid lane: mesh/BRep edges as tubes (1 draw) or as flat quads with a depth prepass
-    /// (2 draws) - the prepass keeps the blended AA feather from depth-rejecting later strokes.
+    /// Mesh/BRep edges draw once as tubes or camera-facing quads against physical depth.
     pub fn draw_pipes(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds, style: LineStyle) -> u32 {
         match style {
             LineStyle::Tubes => self.draw_tubes(pass, b, &self.gpu.cylinder),
-            LineStyle::Flat => self.draw_table(pass, b, &self.gpu.ribbon_depth, &self.pipes) + self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes),
+            LineStyle::Flat => self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes),
         }
     }
 
@@ -187,12 +207,16 @@ impl SegmentLane {
     pub fn reset(&mut self) {
         self.pipes.buf.reset();
         self.ribbons.buf.reset();
+        self.supports.reset();
     }
 
     /// Hand both buffers back.
     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
-        self.pipes.release(ctx, l);
-        self.ribbons.release(ctx, l);
+        self.pipes.buf.release(ctx);
+        self.ribbons.buf.release(ctx);
+        self.supports.release(ctx);
+        self.pipes.rebind(ctx, l, &self.supports);
+        self.ribbons.rebind(ctx, l, &self.supports);
     }
 
     /// Solid-lane rows on the GPU - the MSAA policy reads it.
@@ -206,22 +230,29 @@ impl SegmentLane {
     }
 }
 
-/// Every segment pipeline for `target`. `GreaterEqual` on the ribbon is load-bearing: a mesh
-/// edge sits EXACTLY on its faces' depth, and strict `Greater` shreds it.
+/// Every segment pipeline reads physical visibility without writing or biasing that depth.
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &SegShaders, target: Target) -> SegPipelines {
-    let groups = [&l.mvp, &l.line, &l.instance, &l.rows];
+    let groups = [&l.mvp, &l.line, &l.ink_instance, &l.ink_rows];
     let template = [template_layout()];
-    let quad = PipelineDesc::new(&s.ribbon, &groups, &[], TriangleList);
-    let tube = PipelineDesc::new(&s.cylinder, &groups, &template, TriangleList);
+    let quad = PipelineDesc::new(&s.ribbon, &groups, &[], TriangleList).scene_samples(target.samples).depth(DepthMode::Always);
+    let tube = PipelineDesc::new(&s.cylinder, &groups, &template, TriangleList).scene_samples(target.samples).depth(DepthMode::Always);
     let dev = &ctx.device;
 
     SegPipelines {
         cylinder: build(dev, target, &tube.with("cylinder", "fs_main")),
-        ribbon: build(dev, target, &quad.with("ribbon", "fs_main").color(ColorWrite::Blended).depth(DepthMode::ReadOnlyEqual)),
-        ribbon_depth: build(dev, target, &quad.with("ribbon.depth", "fs_depth").color(ColorWrite::Masked)),
+        ribbon: build(dev, target, &quad.with("ribbon", "fs_main").color(ColorWrite::Blended)),
         id_cylinder: build(dev, Target::ID, &tube.with("cylinder.id", "fs_id")),
         id_ribbon: build(dev, Target::ID, &quad.with("ribbon.id", "fs_id")),
     }
+}
+
+/// Rebase upload-local support ranges while preserving the caller's append-only rows.
+fn rebase_supports(rows: &[CylinderSegment], base: u32) -> Vec<CylinderSegment> {
+    let mut rows = rows.to_vec();
+    for row in &mut rows {
+        row.support_start = row.support_start.checked_add(base).expect("segment support index overflow");
+    }
+    rows
 }
 
 /// Unit-cylinder template along +Z, radius 1, z in [0, 1], with cap fans. The shader rescales
@@ -256,13 +287,16 @@ mod tests {
     use super::*;
     use crate::engine::gpu::instance::wgsl_fields;
 
-    /// cylinder.wgsl and ribbon.wgsl read the same 40 B segment row (ends as scalars).
+    /// cylinder.wgsl and ribbon.wgsl read the same 48 B segment row (ends as scalars).
     #[test]
     fn cylinder_segment_mirror() {
-        let rust = ["p0x", "p0y", "p0z", "radius", "p1x", "p1y", "p1z", "instance_id", "color", "facing"];
+        let rust = ["p0x", "p0y", "p0z", "radius", "p1x", "p1y", "p1z", "instance_id", "color", "facing", "support_start", "support_count"];
         for (name, src) in SHADERS {
             assert_eq!(wgsl_fields(src, "CylinderSegment"), rust, "{name}: CylinderSegment fields");
         }
-        assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
+        assert_eq!(std::mem::size_of::<CylinderSegment>(), 48);
+        assert_eq!(std::mem::offset_of!(CylinderSegment, support_start), 40);
+        assert_eq!(std::mem::offset_of!(CylinderSegment, support_count), 44);
+        assert_eq!(std::mem::size_of::<InkSupport>(), 8);
     }
 }

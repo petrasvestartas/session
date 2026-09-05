@@ -1,6 +1,5 @@
-//! `Targets` - the depth and MSAA colour attachments a frame renders into, sized to the
-//! surface at the sample count the scene chose (`samples_for`), and the one render pass that
-//! clears them. Nothing here knows what is drawn; it only opens the pass.
+//! `Targets` - physical depth, face identity and colour attachments at the scene's sample
+//! count. The face pass establishes occlusion; the ink pass samples it without modifying it.
 
 use super::buffers::GpuCtx;
 
@@ -13,13 +12,18 @@ const MSAA_MAX_PIXELS: u32 = 4_200_000;
 pub struct Targets {
     pub depth: wgpu::TextureView,
     pub msaa: Option<wgpu::TextureView>,
+    pub faces: wgpu::TextureView,
+    pub depth_single: wgpu::TextureView,
+    pub depth_msaa: wgpu::TextureView,
+    pub faces_single: wgpu::TextureView,
+    pub faces_msaa: wgpu::TextureView,
     pub samples: u32,
 }
 
 impl Targets {
-    /// Both attachments for `size` and `format` at `samples` (1 or 4).
+    /// Frame attachments and opposite-sample-count placeholder bindings.
     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
-        let usage = wgpu::TextureUsages::RENDER_ATTACHMENT;
+        let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
         let depth = texture_view(ctx, "depth", &TextureSpec { size, format: wgpu::TextureFormat::Depth32Float, samples, usage });
         let msaa = if samples > 1 {
             Some(texture_view(ctx, "msaa_color", &TextureSpec { size, format, samples, usage }))
@@ -27,7 +31,16 @@ impl Targets {
             None
         };
 
-        Self { depth, msaa, samples }
+        let faces = texture_view(ctx, "physical.faces", &TextureSpec { size, format: wgpu::TextureFormat::Rg16Uint, samples, usage });
+        let other_samples = if samples == 1 { 4 } else { 1 };
+        let empty_depth = texture_view(ctx, "unused.depth", &TextureSpec { size: (1, 1), format: wgpu::TextureFormat::Depth32Float, samples: other_samples, usage });
+        let empty_faces = texture_view(ctx, "unused.faces", &TextureSpec { size: (1, 1), format: wgpu::TextureFormat::Rg16Uint, samples: other_samples, usage });
+        let (depth_single, depth_msaa, faces_single, faces_msaa) = if samples == 1 {
+            (depth.clone(), empty_depth, faces.clone(), empty_faces)
+        } else {
+            (empty_depth, depth.clone(), empty_faces, faces.clone())
+        };
+        Self { depth, msaa, faces, depth_single, depth_msaa, faces_single, faces_msaa, samples }
     }
 
     /// The sample count a frame gets: 4x only when SOLID geometry (faces, pipes, spheres) is on
@@ -40,24 +53,50 @@ impl Targets {
         if solid && pixels <= MSAA_MAX_PIXELS { 4 } else { 1 }
     }
 
-    /// Open the frame's render pass: colour cleared to `clear`, depth cleared to 0 (reverse-Z
-    /// far). At 1x the pass draws straight into `view`; at 4x it resolves into it.
-    pub fn begin_pass<'a>(&'a self, encoder: &'a mut wgpu::CommandEncoder, view: &'a wgpu::TextureView, clear: wgpu::Color) -> wgpu::RenderPass<'a> {
+    /// Clear physical depth to reverse-Z far and record the nearest face identity.
+    /// Multisampled colour resolves only after the following ink pass.
+    pub fn begin_faces<'a>(&'a self, encoder: &'a mut wgpu::CommandEncoder, view: &'a wgpu::TextureView, clear: wgpu::Color) -> wgpu::RenderPass<'a> {
+        let target = self.msaa.as_ref().unwrap_or(view);
+        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("physical face pass"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: target,
+                resolve_target: None,
+                depth_slice: None,
+                ops: wgpu::Operations { load: wgpu::LoadOp::Clear(clear), store: wgpu::StoreOp::Store },
+            }), Some(wgpu::RenderPassColorAttachment {
+                view: &self.faces,
+                resolve_target: None,
+                depth_slice: None,
+                ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &self.depth,
+                depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(0.0), store: wgpu::StoreOp::Store }),
+                stencil_ops: None,
+            }),
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        })
+    }
+    /// Ink samples physical depth while the read-only attachment preserves depth-tested sheets.
+    pub fn begin_ink<'a>(&'a self, encoder: &'a mut wgpu::CommandEncoder, view: &'a wgpu::TextureView) -> wgpu::RenderPass<'a> {
         let (target, resolve) = match &self.msaa {
             Some(msaa) => (msaa, Some(view)),
             None => (view, None),
         };
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("scene pass"),
+            label: Some("visible ink pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: target,
                 resolve_target: resolve,
                 depth_slice: None,
-                ops: wgpu::Operations { load: wgpu::LoadOp::Clear(clear), store: wgpu::StoreOp::Store },
+                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &self.depth,
-                depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(0.0), store: wgpu::StoreOp::Store }),
+                depth_ops: None,
                 stencil_ops: None,
             }),
             timestamp_writes: None,

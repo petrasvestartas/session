@@ -42,6 +42,45 @@ fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     })
 }
 
+/// Physical scene depth or face tokens sampled only after the face pass finishes.
+fn scene_texture(binding: u32, multisampled: bool, depth: bool) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::FRAGMENT,
+        ty: wgpu::BindingType::Texture {
+            sample_type: if depth { wgpu::TextureSampleType::Depth } else { wgpu::TextureSampleType::Uint },
+            view_dimension: wgpu::TextureViewDimension::D2,
+            multisampled,
+        },
+        count: None,
+    }
+}
+
+/// Ink keeps instance rows and adds the immutable physical scene attachments.
+fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("ink.instance.layout"),
+        entries: &[
+            buffer_entry(0, wgpu::ShaderStages::VERTEX_FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
+            buffer_entry(1, wgpu::ShaderStages::VERTEX_FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
+            scene_texture(2, false, true), scene_texture(3, true, true),
+            scene_texture(4, false, false), scene_texture(5, true, false),
+            buffer_entry(6, wgpu::ShaderStages::FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
+        ],
+    })
+}
+
+/// Exact support identities are a separate table shared by both representations of a lane.
+fn ink_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("ink.rows.layout"),
+        entries: &[
+            buffer_entry(0, wgpu::ShaderStages::VERTEX_FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
+            buffer_entry(1, wgpu::ShaderStages::FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
+        ],
+    })
+}
+
 /// The point lane's group: the record table at 0, then positions, colours, normals.
 fn points_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -85,6 +124,8 @@ pub struct Layouts {
     pub line: wgpu::BindGroupLayout,
     pub instance: wgpu::BindGroupLayout,
     pub rows: wgpu::BindGroupLayout,
+    pub ink_instance: wgpu::BindGroupLayout,
+    pub ink_rows: wgpu::BindGroupLayout,
     pub points: wgpu::BindGroupLayout,
     pub resolve: wgpu::BindGroupLayout,
 }
@@ -93,10 +134,12 @@ impl Layouts {
     /// Build every layout once; they outlive any pipeline or bind group made from them.
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
-            mvp: uniform_layout(device, "mvp.layout", wgpu::ShaderStages::VERTEX),
+            mvp: uniform_layout(device, "mvp.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
             line: uniform_layout(device, "line.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
             instance: instance_layout(device),
             rows: rows_layout(device, "rows.layout"),
+            ink_instance: ink_instance_layout(device),
+            ink_rows: ink_rows_layout(device),
             points: points_layout(device),
             resolve: resolve_layout(device),
         }

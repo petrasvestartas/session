@@ -10,7 +10,9 @@ use super::Gpu;
 impl Gpu {
     /// Per-frame uniforms, then the inside-flag refresh, which reads the eye just solved.
     fn write_frame_uniforms(&mut self, input: &FrameInput) {
-        let cx = FrameCx { view: &self.view, anchor: self.objects.anchor_f32(), size: (self.config.width, self.config.height) };
+        let size = (self.config.width, self.config.height);
+        let occluder_rect = self.objects.occluder_rect(&input.view_proj.to_f32(), size, self.view.cloud_size);
+        let cx = FrameCx { view: &self.view, anchor: self.objects.anchor_f32(), size, occluder_rect };
         self.frame.write(&self.ctx, input, &cx);
         self.objects.update_inside(&self.ctx, self.frame.eye, &self.bounds);
     }
@@ -80,6 +82,23 @@ impl Gpu {
         drop(data);
         readback.unmap();
         out
+    }
+
+    /// Capture picking's object IDs against this exact frame's physical surfaces and camera.
+    #[cfg(not(target_arch = "wasm32"))]
+    pub fn render_ids_offscreen(&mut self, input: &FrameInput) -> Vec<[u32; 2]> {
+        let size = (self.config.width, self.config.height);
+        let texture = texture(&self.ctx, "headless.ids.color", &TextureSpec {
+            size, format: self.config.format, samples: 1, usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        });
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        self.write_frame_uniforms(input);
+        let mut encoder = self.ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("headless.ids") });
+        self.encode_frame(&mut encoder, &view, input.clear);
+        self.id_pass(&mut encoder, None);
+        let readback = self.pick.copy_frame(&self.ctx, &mut encoder);
+        self.ctx.queue.submit([encoder.finish()]);
+        readback.read(&self.ctx)
     }
 
     /// Time `frames` full frames into one offscreen target, GPU drained after each; returns

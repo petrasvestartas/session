@@ -13,10 +13,8 @@ pub struct Instance {
     pub model: [f32; 16],
     pub color: [f32; 4],
     pub flags: u32,
-    /// World AABB diagonal, world units; the lifts and the face push are capped by a fraction
-    /// of it. 0 = unknown, no cap.
-    /// The object's thickness in world units: its thinnest local axis through the placement
-    /// scale, floored at THICK_FLOOR of the diagonal so a flat mesh still gets a push.
+    /// Retained thickness metadata, in world units. Visibility no longer spends a depth
+    /// offset based on this value; keeping the field preserves the shared instance layout.
     pub thickness: f32,
     /// Vertex spacing, world units; markers thin once it projects small. 0 = unknown.
     pub spacing: f32,
@@ -37,7 +35,7 @@ impl Instance {
     pub const FLAG_PRINT: u32 = 1 << 3;
     /// An open mesh (border edges): the facing cull's premise is void, skipped like INSIDE. Bit 4.
     pub const FLAG_OPEN: u32 = 1 << 4;
-    /// A row of a planar drawing sheet: no ink lift, fills composite in document order. Bit 5.
+    /// A row of a planar drawing sheet: fills composite in document order. Bit 5.
     pub const FLAG_SHEET: u32 = 1 << 5;
 
     /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
@@ -70,6 +68,47 @@ mod tests {
     use crate::engine::gpu::frame::LineUniform;
     use crate::engine::gpu::lane_shaders;
 
+    /// Validate the actual shader modules and every changed storage member offset, not
+    /// merely field names: a valid Rust size alone does not prove WGSL's array stride.
+    #[test]
+    fn shader_validation_and_layouts() {
+        use crate::engine::gpu::segments::{CylinderSegment, InkSupport};
+        use crate::engine::gpu::glyphs::GlyphPoint;
+        use crate::engine::gpu::arena::FacePlane;
+        use crate::engine::gpu::face_filter::FaceFilterParams;
+        use std::mem::{offset_of, size_of};
+        for (name, source) in lane_shaders() {
+            let source = if source.contains("fn footprint(") || name == "cylinder.wgsl" {
+                format!("{source}\n{}", include_str!("../../shaders/ink_visibility.wgsl"))
+            } else { source.to_string() };
+            let module = naga::front::wgsl::parse_str(&source).unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
+            naga::valid::Validator::new(naga::valid::ValidationFlags::all(), naga::valid::Capabilities::default())
+                .validate(&module).unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
+            for (_, ty) in module.types.iter() {
+                let Some(structure) = ty.name.as_deref() else { continue };
+                let (offsets, size) = match structure {
+                    "CylinderSegment" => (vec![0, 4, 8, offset_of!(CylinderSegment, radius), 16, 20, 24,
+                        offset_of!(CylinderSegment, instance_id), offset_of!(CylinderSegment, color), offset_of!(CylinderSegment, facing),
+                        offset_of!(CylinderSegment, support_start), offset_of!(CylinderSegment, support_count)], size_of::<CylinderSegment>()),
+                    "GlyphPoint" => (vec![offset_of!(GlyphPoint, center), offset_of!(GlyphPoint, radius), offset_of!(GlyphPoint, color),
+                        offset_of!(GlyphPoint, instance_id), offset_of!(GlyphPoint, facing), offset_of!(GlyphPoint, facing_ext),
+                        offset_of!(GlyphPoint, support_start), offset_of!(GlyphPoint, support_count), offset_of!(GlyphPoint, _pad)], size_of::<GlyphPoint>()),
+                    "InkSupport" => (vec![offset_of!(InkSupport, face), offset_of!(InkSupport, region)], size_of::<InkSupport>()),
+                    "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, occluder_rect)], size_of::<LineUniform>()),
+                    "FaceFilterParams" => (vec![offset_of!(FaceFilterParams, index_count), offset_of!(FaceFilterParams, row_width), offset_of!(FaceFilterParams, _pad)], size_of::<FaceFilterParams>()),
+                    "FacePlane" => (vec![offset_of!(FacePlane, point), offset_of!(FacePlane, instance_id), offset_of!(FacePlane, normal), offset_of!(FacePlane, _pad)], size_of::<FacePlane>()),
+                    _ => continue,
+                };
+                let naga::TypeInner::Struct { members, span } = &ty.inner else { panic!("{name}: {structure} is not a struct") };
+                assert_eq!(*span as usize, size, "{name}: {structure} stride");
+                assert_eq!(members.len(), offsets.len(), "{name}: {structure} members");
+                for (member, expected) in members.iter().zip(offsets) {
+                    assert_eq!(member.offset as usize, expected, "{name}: {structure}.{:?}", member.name);
+                }
+            }
+        }
+    }
+
     /// Every shader that declares `Instance` lists the Rust fields, in order.
     #[test]
     fn instance_mirror() {
@@ -85,13 +124,13 @@ mod tests {
     /// three scalars there.
     #[test]
     fn line_uniform_mirror() {
-        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather"];
+        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather", "occluder_rect"];
         for (name, src) in lane_shaders() {
             if src.contains("struct LineUniform") {
                 assert_eq!(wgsl_fields(src, "LineUniform"), rust, "{name}: LineUniform fields");
             }
         }
-        assert_eq!(std::mem::size_of::<LineUniform>(), 48);
+        assert_eq!(std::mem::size_of::<LineUniform>(), 64);
     }
 
     /// Every instance-reading shader binds the translation table at group 2 binding 1 and

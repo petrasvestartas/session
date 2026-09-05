@@ -1,6 +1,6 @@
 // Flat linework: one camera-facing quad per segment (6 verts pulled by index, no vertex
 // buffer), a capsule SDF in the fragment. Draws the ribbon table (free linework) and, with
-// a depth prepass, the pipe table (mesh edges). Group 3 = the segment table.
+// the pipe table (mesh edges). Group 3 = the segment table.
 
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 @group(1) @binding(0) var<uniform> line: LineUniform;
@@ -22,6 +22,8 @@ struct CylinderSegment {
     instance_id: u32,
     color: u32,
     facing: u32,
+    support_start: u32,
+    support_count: u32,
 }
 @group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
 
@@ -36,6 +38,7 @@ struct LineUniform {
     eye_z: f32,
     anchor: vec3<f32>,
     feather: f32,
+    occluder_rect: vec4<f32>,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -46,15 +49,6 @@ const FLAG_SHEET: u32 = 32u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 const MM_TO_M: f32 = 0.001;
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
-
-// The lift, in pen HALF-WIDTHS, that keeps a mesh wire in front of the faces it decorates (3
-// covers slants to ~70 deg) and the smaller one free linework gets (it decorates nothing;
-// faces already recede). The same number of half-widths in both projections. Both are capped
-// by LIFT_MAX_THICK of the object's own thickness, so a line behind a thin plate can never be
-// lifted through it.
-const LIFT_RADII_WIRE: f32 = 3.0;
-const LIFT_RADII_FREE: f32 = 1.0;
-const LIFT_MAX_THICK: f32 = 0.25;
 
 // Density taper: a wire thins when shorter than this many pen widths; never below TAPER_MIN.
 const WIRE_MIN_PENS: f32 = 3.0;
@@ -80,32 +74,6 @@ fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32
         return true;
     }
     return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
-}
-
-// The lift as a fraction of eye depth `w` (metres), capped by the object's thickness (mm).
-fn lift_capped(lift: f32, w: f32, thickness: f32) -> f32 {
-    if (thickness <= 0.0) {
-        return clamp(lift, 0.0, 0.5);
-    }
-    let max_lift = LIFT_MAX_THICK * thickness * MM_TO_M / max(w, 1e-9);
-    return clamp(min(lift, max_lift), 0.0, 0.5);
-}
-
-// One end's lifted w: `radii` pen radii toward the camera as a fraction of eye depth.
-fn lifted_w(raw_px: f32, e: vec4<f32>, thickness: f32, radii: f32) -> f32 {
-    let lift = floor_hairline(raw_px) * radii * 2.0 * MM_TO_M / (line.proj_y * line.vp_h);
-    return e.w * (1.0 - lift_capped(lift, e.w, thickness));
-}
-
-fn ndc_z_per_world() -> f32 {
-    return length(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
-}
-
-// The ortho lift in ndc: `radii` world pen radii, capped by the thickness, through the z row.
-fn ortho_lift_ndc(raw_px: f32, thickness: f32, radii: f32) -> f32 {
-    let lift = floor_hairline(raw_px) * radii * 2.0 * line.ortho_h / line.vp_h;
-    let cap = select(1e30, LIFT_MAX_THICK * thickness, thickness > 0.0);
-    return min(lift, cap) * ndc_z_per_world();
 }
 
 // Half-width in px at one end: half the global pen, or a world radius projected.
@@ -141,6 +109,7 @@ struct VsOut {
     @location(5) @interpolate(flat) hw1: f32,
     @location(6) @interpolate(flat) solid: f32,
     @location(7) @interpolate(flat) inst_id: u32,
+    @location(8) @interpolate(flat) segment_index: u32,
 };
 
 // The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
@@ -193,15 +162,15 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 
     let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
     let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
-    let mid = (w0 + w1) * 0.5;
-    let to_eye = vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - mid;
-    let n0 = (model * vec4<f32>(oct16_decode(seg.facing & 0xffffu), 0.0)).xyz;
-    let n1 = (model * vec4<f32>(oct16_decode(seg.facing >> 16u), 0.0)).xyz;
-
-    // Hidden edges never reach the rasterizer, unless the eye is inside the object.
+    // Free polylines and open/inside objects do not need supporting-face normal work.
     let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
-    if (!inside && !edge_faces_camera(seg.facing, n0, n1, to_eye)) {
-        return dead_vertex();
+    if (!inside && seg.facing != FACING_UNKNOWN) {
+        let to_eye = toward_eye((w0 + w1) * 0.5);
+        let n0 = face_normal(model, oct16_decode(seg.facing & 0xffffu));
+        let n1 = face_normal(model, oct16_decode(seg.facing >> 16u));
+        if (!edge_faces_camera(seg.facing, n0, n1, to_eye)) {
+            return dead_vertex();
+        }
     }
 
     let c0 = mvp * vec4<f32>(w0, 1.0);
@@ -236,30 +205,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let along = select(-1.0, 1.0, at_end1);
     let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + 0.5 * line.feather);
 
-    // Lift the ink toward the camera: in w for perspective, in ndc z for ortho; a sheet takes
-    // none (its fills write no depth and its lettering must land on top).
-    let radii = select(LIFT_RADII_WIRE, LIFT_RADII_FREE, seg.facing == FACING_UNKNOWN);
-    let ext = inst.thickness;
-    var wn0 = e0.w;
-    var wn1 = e1.w;
-    var zn0 = e0.z;
-    var zn1 = e1.z;
-    let sheet = (inst.flags & FLAG_SHEET) != 0u;
-    if (sheet) {
-    } else if (line.ortho_h > 0.0) {
-        zn0 = e0.z + ortho_lift_ndc(raw0, ext, radii);
-        zn1 = e1.z + ortho_lift_ndc(raw1, ext, radii);
-    } else {
-        wn0 = lifted_w(raw0, e0, ext, radii);
-        wn1 = lifted_w(raw1, e1, ext, radii);
-        zn0 = e0.z / wn0;
-        zn1 = e1.z / wn1;
-    }
-    let wn = select(wn0, wn1, at_end1);
-
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
-    o.pos = vec4<f32>(ndc * wn, select(clip.z, select(zn0, zn1, at_end1) * wn, line.ortho_h > 0.0), wn);
+    o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = unpack4x8unorm(seg.color) * inst.color;
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = vec4<f32>(mix(color.rgb, SELECT_COLOR, 0.6), color.a);
@@ -272,6 +220,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.hw1 = raw1 * crowd;
     o.solid = select(0.0, 1.0, seg.facing != FACING_UNKNOWN);
     o.inst_id = seg.instance_id;
+    o.segment_index = iid;
     return o;
 }
 
@@ -285,22 +234,62 @@ fn coverage(in: VsOut) -> f32 {
     return clamp((hf.x + 0.5 * line.feather - d) / line.feather, 0.0, 1.0) * hf.y;
 }
 
-// Depth-only prepass: binary at half coverage, colour masked by the pipeline.
-@fragment
-fn fs_depth(in: VsOut) -> @location(0) vec4<f32> {
-    if (coverage(in) < 0.5) {
-        discard;
-    }
-    return vec4<f32>(0.0);
+// Keep capsule coverage and screen endpoints in the original vertex stage. Only physical
+// visibility data moves to the fragment stage, avoiding five flat output locations.
+struct VisibilityAxis {
+    support: vec2<u32>,
+    end_depth: vec2<f32>,
+    world0: vec3<f32>,
+    world1: vec3<f32>,
+    clip_w: vec2<f32>,
+};
+
+fn visibility_axis(segment_index: u32) -> VisibilityAxis {
+    let seg = segments[segment_index];
+    let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
+    let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
+    let c0 = mvp * vec4<f32>(w0, 1.0);
+    let c1 = mvp * vec4<f32>(w1, 1.0);
+    let f0 = c0.z - c0.w;
+    let f1 = c1.z - c1.w;
+    let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
+    let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
+    var o: VisibilityAxis;
+    o.support = vec2<u32>(seg.support_start, seg.support_count);
+    o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
+    o.world0 = select(w0, mix(w0, w1, f0 / (f0 - f1)), f0 > 0.0);
+    o.world1 = select(w1, mix(w1, w0, f1 / (f1 - f0)), f1 > 0.0);
+    o.clip_w = vec2<f32>(e0.w, e1.w);
+    return o;
+}
+
+// The axis depth is affine in screen coordinates; cap expansion must not shift its ramp.
+fn axis_sample(in: VsOut, axis: VisibilityAxis) -> InkSample {
+    let pixel = vec2<f32>(in.pos.x, line.vp_h - in.pos.y);
+    let ba = in.b - in.a;
+    let h = clamp(dot(pixel - in.a, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
+    let t = h * axis.clip_w.x / mix(axis.clip_w.y, axis.clip_w.x, h);
+    return InkSample(mix(axis.end_depth.x, axis.end_depth.y, h), mix(axis.world0, axis.world1, t));
+}
+
+fn footprint(in: VsOut, axis: VisibilityAxis) -> InkFootprint {
+    return InkFootprint(axis.support,
+        vec3<f32>(in.a.x, line.vp_h - in.a.y, floor_hairline(in.hw0) + 0.5 * line.feather),
+        vec3<f32>(in.b.x, line.vp_h - in.b.y, floor_hairline(in.hw1) + 0.5 * line.feather));
 }
 
 @fragment
-fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
+fn fs_main(in: VsOut) -> InkColor {
     let alpha = coverage(in);
     if (alpha <= 0.0) {
         discard;
     }
-    return vec4<f32>(in.color.rgb, in.color.a * alpha);
+    let axis = visibility_axis(in.segment_index);
+    let mask = ink_visible_mask(in.pos.xy, axis_sample(in, axis), footprint(in, axis));
+    if (mask == 0u) {
+        discard;
+    }
+    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha), mask);
 }
 
 @fragment
@@ -308,5 +297,9 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) < 0.5) {
         discard;
     }
-    return vec2<u32>(in.inst_id + 1u, 0u);
+    let axis = visibility_axis(in.segment_index);
+    if (!ink_pick_visible(in.pos.xy, axis_sample(in, axis), footprint(in, axis))) {
+        discard;
+    }
+    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
 }

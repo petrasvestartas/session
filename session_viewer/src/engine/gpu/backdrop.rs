@@ -59,12 +59,12 @@ impl BackdropLane {
 /// The background pipeline: always drawn, never writes depth.
 fn build_background(ctx: &GpuCtx, shader: &wgpu::ShaderModule, target: Target) -> wgpu::RenderPipeline {
     let base = PipelineDesc::new(shader, &[], &[], TriangleList);
-    build(&ctx.device, target, &base.with("background", "fs_main").depth(DepthMode::Always))
+    build(&ctx.device, target, &base.with("background", "fs_face").depth(DepthMode::Always).face_target(true))
 }
 
 /// The grid pipeline: depth-tested lines, no depth write.
 fn build_grid(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, target: Target) -> wgpu::RenderPipeline {
     let groups = [&l.mvp, &l.line];
     let base = PipelineDesc::new(shader, &groups, &[], LineList);
-    build(&ctx.device, target, &base.with("grid", "fs_main").depth(DepthMode::ReadOnly))
+    build(&ctx.device, target, &base.with("grid", "fs_face").depth(DepthMode::ReadOnly).face_target(true))
 }

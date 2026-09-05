@@ -5,7 +5,7 @@
 /// How the SOLID lane draws mesh/BRep edges. Both read the same segment table.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum LineStyle {
-    /// A real 3D tube per edge: the radius lifts the ink off the surface it decorates.
+    /// A real 3D tube per edge, with visibility decided at its underlying axis.
     Tubes,
     /// A camera-facing quad per edge through the flat lane's shader. Cheaper.
     Flat,
@@ -13,6 +13,8 @@ pub enum LineStyle {
 
 /// The knobs one frame reads.
 pub struct View {
+    /// The construction grid; disable for color-based visibility probes.
+    pub show_grid: bool,
     /// Point markers - the FLAT lane's dots. `Q`.
     pub show_points: bool,
     /// Lines and polylines - the FLAT lane's ribbons. `W`.
@@ -48,6 +50,7 @@ impl View {
         let tubes = knob("VIEWER_LINE_STYLE", "style").map(|v| v.eq_ignore_ascii_case("tubes")).unwrap_or(false);
 
         Self {
+            show_grid: knob("VIEWER_NO_GRID", "nogrid").is_none(),
             show_points: true,
             show_lines: true,
             show_mesh_edges: true,
