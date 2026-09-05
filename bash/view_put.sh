@@ -3,8 +3,8 @@
 #
 #   bash/view_put.sh <file.pb> [name]
 #
-#   bash/view_put.sh out/scan.pb          -> pb/view_scan.pb + scenes/view_scan.toml
-#   bash/view_put.sh out/scan.pb lidar_a  -> pb/view_lidar_a.pb + scenes/view_lidar_a.toml
+#   bash/view_put.sh out/scan.pb          -> pb/view_scan.pb + scenes/view_scan.yaml
+#   bash/view_put.sh out/scan.pb lidar_a  -> pb/view_lidar_a.pb + scenes/view_lidar_a.yaml
 #
 # It prints the `?scene=` to open. A .pb on its own is not viewable - the page loads a MANIFEST
 # and draws what that names - so uploading one without writing a scene for it just leaves an
@@ -21,7 +21,7 @@ source "${SCRIPT_DIR}/lib/view.sh"
 src="${1:-}"
 if [ -z "$src" ]; then
     echo "Usage: view_put.sh <file.pb> [name]"
-    echo "       uploads pb/view_<name>.pb and writes scenes/view_<name>.toml"
+    echo "       uploads pb/view_<name>.pb and writes scenes/view_<name>.yaml"
     exit 1
 fi
 [ -f "$src" ] || { echo "ERROR: no such file: $src" >&2; exit 1; }
@@ -34,7 +34,7 @@ name="${2:-$(basename "$src" .pb)}"
 name="${name#view_}"
 stem="view_${name}"
 key="pb/${stem}.pb"
-scene="scenes/${stem}.toml"
+scene="scenes/${stem}.yaml"
 
 r2_require_credentials || exit 1
 
@@ -55,16 +55,16 @@ else
     tmp=$(mktemp) && trap 'rm -f "$tmp" "${R2_CURL_CONFIG:-}"' EXIT
     cat > "$tmp" <<EOF
 # Written by bash/view_put.sh for ${stem}.pb. One item at the origin - edit \`at\` to place it,
-# or add more [[items]]; nothing regenerates this file, so your changes stay.
-name = "${name}"
+# or add more entries under \`items\`; nothing regenerates this file, so your changes stay.
+name: "${name}"
 
-[[items]]
-file = "${key}"
-name = "${name}"
-at = [0, 0, 0]
+items:
+  - file: "${key}"
+    name: "${name}"
+    at: [0, 0, 0]
 EOF
     r2_upload "$tmp" "$scene" || exit 1
 fi
 
 echo
-echo "  open:  ?scene=${stem}.toml"
+echo "  open:  ?scene=${stem}.yaml"

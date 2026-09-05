@@ -40,7 +40,7 @@ trunk serve        # -> http://localhost:8770
 ```
 
 Open http://localhost:8770 in a WebGPU browser. That shows the LOCAL scene and nothing else:
-`assets/view_local.toml` and the `assets/pb/view_local_*.pb` it names, served by trunk, so the
+`assets/view_local.yaml` and the `assets/pb/view_local_*.pb` it names, served by trunk, so the
 page works with the network off. Edit the manifest and reload; edits under `src/`, `Cargo.toml`
 and `index.html` hot-reload.
 
@@ -48,17 +48,17 @@ Every other scene lives in the Cloudflare R2 bucket `session-viewer-data` and is
 from the bucket, never from `assets/`:
 
 ```
-http://localhost:8770/?scene=view_lines          # scenes/view_lines.toml in the bucket
+http://localhost:8770/?scene=view_lines          # scenes/view_lines.yaml in the bucket
 http://localhost:8770/view_mixed                 # the same, path form
 ```
 
 The deployed page at https://petrasvestartas.github.io/session/ takes neither of those: with no
-query it watches `view_live.toml` in the bucket and re-reads it every poll, so publishing
+query it watches `view_live.yaml` in the bucket and re-reads it every poll, so publishing
 geometry redraws it without a build or a deploy:
 
 ```bash
-bash/view_put.sh out/scan.pb              # pb/view_scan.pb + scenes/view_scan.toml, prints the ?scene=
-bash/view_live.sh scene.toml scan.pb      # replace the live scene; open pages swap in ~1 s
+bash/view_put.sh out/scan.pb              # pb/view_scan.pb + scenes/view_scan.yaml, prints the ?scene=
+bash/view_live.sh scene.yaml scan.pb      # replace the live scene; open pages swap in ~1 s
 ```
 
 ## Native harness
@@ -68,7 +68,7 @@ section 11):
 
 ```bash
 CARGO_TARGET_DIR=~/.cache/tmain REGEN_PROTO=0 \
-cargo run --release --example selftest --target x86_64-unknown-linux-gnu -- out.ppm assets/view_local.toml
+cargo run --release --example selftest --target x86_64-unknown-linux-gnu -- out.ppm assets/view_local.yaml
 cargo xtest      # the mirror and parser tests
 ```
 

@@ -14,32 +14,32 @@
 # draws last. The bunny additionally needs its `xform`: the mesh is authored about 0.2 units
 # across, so at native scale it is sub-millimetre and invisible next to a 3 m sheet - the 12845
 # factor is what brings it up to the size of everything else.
-name = "local working copy"
+name: "local working copy"
 
-[[items]]  # pen reference: 3 boxes + polyline + point
-file = "pb/view_local_boxes.pb"
-name = "boxes"
-at = [0, 0, 0]
+items:
+  # pen reference: 3 boxes + polyline + point
+  - file: "pb/view_local_boxes.pb"
+    name: "boxes"
+    at: [0, 0, 0]
 
-[[items]]  # the solid-lane stress: 35,947 v / 69,451 tri
-file = "pb/view_local_bunny.pb"
-name = "bunny"
-xform = [12845,0,0,0,  0,0,12845,0,  0,-12845,0,0,  3000,0,600,1]
+  # the solid-lane stress: 35,947 v / 69,451 tri
+  - file: "pb/view_local_bunny.pb"
+    name: "bunny"
+    xform: [12845,0,0,0,  0,0,12845,0,  0,-12845,0,0,  3000,0,600,1]
 
-[[items]]  # flat-ink row at y = 4000
-file = "pb/view_local_sheet_querschnitt.pb"
-name = "querschnitt"
-at = [0, 4000, 0]
-display_only = true   # a sheet is looked at, never picked: release the kernel document after the walk
+  # flat-ink row at y = 4000
+  - file: "pb/view_local_sheet_querschnitt.pb"
+    name: "querschnitt"
+    at: [0, 4000, 0]
+    display_only: true   # a sheet is looked at, never picked: release the kernel document after the walk
 
-[[items]]
-file = "pb/view_local_sheet_treppenhaus.pb"
-name = "treppenhaus"
-at = [3000, 4000, 0]
-display_only = true   # a sheet is looked at, never picked: release the kernel document after the walk
+  - file: "pb/view_local_sheet_treppenhaus.pb"
+    name: "treppenhaus"
+    at: [3000, 4000, 0]
+    display_only: true   # a sheet is looked at, never picked: release the kernel document after the walk
 
-[[items]]  # the splat lane: 342k points with colors + normals
-file = "pb/view_local_lion.pb"
-name = "lion"
-at = [-3000, 0, 2000]
-point_size = 4
+  # the splat lane: 342k points with colors + normals
+  - file: "pb/view_local_lion.pb"
+    name: "lion"
+    at: [-3000, 0, 2000]
+    point_size: 4

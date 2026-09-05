@@ -4,13 +4,13 @@
 #   bash/view_live.sh                 publish the view_live pair found next to each other
 #   bash/view_live.sh <dir>           look only in <dir>
 #
-# It takes NO file arguments on purpose. The live scene is one fixed pair - `view_live.toml` and
+# It takes NO file arguments on purpose. The live scene is one fixed pair - `view_live.yaml` and
 # `view_live.pb` - so naming them every time is ceremony that can only be got wrong; the script
 # finds them instead, and they must be SIDE BY SIDE in one directory. When it cannot find them it
 # lists every directory it looked in and which of the two was missing, because "publish failed"
 # without that is the message that wastes the next ten minutes.
 #
-# -> pb/view_live.pb and scenes/view_live.toml, geometry first so the manifest never names bytes
+# -> pb/view_live.pb and scenes/view_live.yaml, geometry first so the manifest never names bytes
 # that are not there yet. There is no version and no history: this replaces, and the old bytes
 # are gone. An open page picks it up on its next poll (5 s), sooner if the relay is reachable.
 set -u
@@ -20,7 +20,7 @@ source "${SCRIPT_DIR}/lib/view.sh"
 REPO_ROOT="$( cd "${SCRIPT_DIR}/.." && pwd )"
 
 SLOT_PB="view_live.pb"
-SLOT_TOML="view_live.toml"
+SLOT_YAML="view_live.yaml"
 
 # Where a pair might sit, nearest first: an explicit directory, then the working directory and
 # the places a run usually writes into, then the repo's own assets.
@@ -36,29 +36,29 @@ report=""
 for d in "${DIRS[@]}"; do
     [ -d "$d" ] || { report="${report}
   ${d}  - no such directory"; continue; }
-    have_pb=0; have_toml=0
+    have_pb=0; have_yaml=0
     [ -s "${d}/${SLOT_PB}" ]   && have_pb=1
-    [ -s "${d}/${SLOT_TOML}" ] && have_toml=1
-    if [ "$have_pb" = 1 ] && [ "$have_toml" = 1 ]; then found="$d"; break; fi
-    case "${have_pb}${have_toml}" in
+    [ -s "${d}/${SLOT_YAML}" ] && have_yaml=1
+    if [ "$have_pb" = 1 ] && [ "$have_yaml" = 1 ]; then found="$d"; break; fi
+    case "${have_pb}${have_yaml}" in
         00) report="${report}
-  ${d}  - neither ${SLOT_TOML} nor ${SLOT_PB}" ;;
+  ${d}  - neither ${SLOT_YAML} nor ${SLOT_PB}" ;;
         10) report="${report}
-  ${d}  - has ${SLOT_PB}, MISSING ${SLOT_TOML}" ;;
+  ${d}  - has ${SLOT_PB}, MISSING ${SLOT_YAML}" ;;
         01) report="${report}
-  ${d}  - has ${SLOT_TOML}, MISSING ${SLOT_PB}" ;;
+  ${d}  - has ${SLOT_YAML}, MISSING ${SLOT_PB}" ;;
     esac
 done
 
 if [ -z "$found" ]; then
-    echo "nothing published: no directory holds ${SLOT_TOML} and ${SLOT_PB} side by side." >&2
+    echo "nothing published: no directory holds ${SLOT_YAML} and ${SLOT_PB} side by side." >&2
     echo "looked in:${report}" >&2
     echo "" >&2
     echo "write both next to each other, or name their directory: bash/view_live.sh <dir>" >&2
     exit 1
 fi
 
-manifest="${found}/${SLOT_TOML}"
+manifest="${found}/${SLOT_YAML}"
 geometry="${found}/${SLOT_PB}"
 echo "=== publishing from ${found}"
 
@@ -66,8 +66,8 @@ r2_require_credentials || exit 1
 
 # A manifest that names nothing draws nothing, and the page would warn and keep the previous
 # scene - which looks like the publish silently did not happen. Catch it here instead.
-files=$(grep -oE '^[[:space:]]*file[[:space:]]*=[[:space:]]*"[^"]+"' "$manifest" | sed 's/.*"\(.*\)"/\1/')
-[ -n "$files" ] || { echo "ERROR: ${manifest} lists no 'file = \"...\"' entry" >&2; exit 1; }
+files=$(sed -nE 's/^[[:space:]]*(-[[:space:]]+)?file[[:space:]]*:[[:space:]]*"?([^"#]+)"?.*/\2/p' "$manifest" | sed 's/[[:space:]]*$//')
+[ -n "$files" ] || { echo "ERROR: ${manifest} lists no 'file:' entry" >&2; exit 1; }
 
 # Geometry first: a page polling in the gap must never read a manifest whose files 404.
 # The verify of the geometry runs WHILE the manifest goes up, and the relay is told the moment
@@ -96,9 +96,9 @@ if [ -n "$missing" ]; then
     exit 1
 fi
 
-r2_upload_start "$manifest" "scenes/${SLOT_TOML}" || { wait "$verify_pb"; exit 1; }
-verify_toml=$!
+r2_upload_start "$manifest" "scenes/${SLOT_YAML}" || { wait "$verify_pb"; exit 1; }
+verify_yaml=$!
 r2_notify "${SLOT_PB}"
 wait "$verify_pb" || exit 1
-wait "$verify_toml" || exit 1
+wait "$verify_yaml" || exit 1
 echo "=== live"

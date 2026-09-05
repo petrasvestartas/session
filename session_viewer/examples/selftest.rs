@@ -1,11 +1,11 @@
-// cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- <out.ppm> <scene.toml | file.pb>...
+// cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- <out.ppm> <scene.yaml | file.pb>...
 //
 // Renders one headless frame and prints the ink count; VIEWER_FRAMES=N times N frames first,
 // VIEWER_PICK="x,y" reports what the id pass finds under a pixel. VIEWER_W / VIEWER_H size it.
 
 use session_viewer::selftest::{render_scene, SceneFile};
 
-/// wgpu reports validation errors through `log`; without a logger a broken shader renders black.
+/// Keep adapter and validation diagnostics in the render log; GPU errors also abort the run.
 struct StderrLog;
 
 impl log::Log for StderrLog {

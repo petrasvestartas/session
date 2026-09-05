@@ -48,13 +48,11 @@ impl Item {
 }
 
 impl Manifest {
-    /// JSON for a `{`-led document, TOML otherwise; the error names the format and position.
+    /// YAML, which also covers a `{`-led JSON document - JSON is a subset of YAML, so one
+    /// parser reads both. The error names the line and column.
     pub fn parse(bytes: &[u8]) -> Result<Self, String> {
         let text = std::str::from_utf8(bytes).map_err(|e| format!("not UTF-8 text: {e}"))?;
-        if text.trim_start().starts_with('{') {
-            return serde_json::from_str(text).map_err(|e| format!("JSON: {e}"));
-        }
-        toml::from_str(text).map_err(|e| format!("TOML: {}{}", e.message().replace('\n', " "), toml_span(&e)))
+        serde_yaml_ng::from_str(text).map_err(|e| format!("YAML: {}{}", e, yaml_at(&e)))
     }
 
     /// Where item `i` sits: its own placement, else its `auto_grid` slot.
@@ -69,10 +67,10 @@ impl Manifest {
     }
 }
 
-/// " (byte offset a-b)" of a TOML error, or nothing when it carries no span.
-fn toml_span(e: &toml::de::Error) -> String {
-    match e.span() {
-        Some(span) => format!(" (byte offset {}-{})", span.start, span.end),
+/// " (line l, column c)" of a YAML error, or nothing when it carries no location.
+fn yaml_at(e: &serde_yaml_ng::Error) -> String {
+    match e.location() {
+        Some(l) => format!(" (line {}, column {})", l.line(), l.column()),
         None => String::new(),
     }
 }

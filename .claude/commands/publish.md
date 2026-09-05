@@ -1,6 +1,6 @@
 Publish viewer geometry to the Cloudflare R2 bucket `session-viewer-data`.
 
-Usage: /publish <what> — e.g. "the new lion cloud", "out/scan.pb as the live scene", "scenes/view_pointclouds.toml"
+Usage: /publish <what> — e.g. "the new lion cloud", "out/scan.pb as the live scene", "scenes/view_pointclouds.yaml"
 
 R2 is the viewer's ONLY storage. The `session_viewer_data` git branch that used to hold this data
 was **deleted on 2026-09-03** — do not look for it, do not recreate it, and do not add geometry to
@@ -8,14 +8,14 @@ git. Public base: `https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev`
 
 ## Naming: everything starts with `view_`
 
-    view_live.toml              the scene the deployed page shows
+    view_live.yaml              the scene the deployed page shows
     view_readme.md              the bucket's own instructions
     pb/view_live.pb             the slot every solver run overwrites
     pb/view_lines_*.pb          drawings: sheets, sections, plans
     pb/view_mesh_*.pb           meshes
     pb/view_pointcloud_*.pb     point clouds
     pb/view_mixed_*.pb          several geometry types in one file
-    scenes/view_*.toml          named scenes, opened with ?scene=scenes/view_<name>.toml
+    scenes/view_*.yaml          named scenes, opened with ?scene=scenes/view_<name>.yaml
 
 A `.pb` says its TYPE before its subject, so a listing sorts into lanes and a name alone says
 which renderer it exercises. `view_live.pb` is the one exception - a slot, not a type. When you
@@ -29,12 +29,12 @@ lacks one, so never hand-write an unprefixed key.
 | Goal | Command |
 |---|---|
 | Put a file in the bucket | `./bash/view_put.sh <file> [key]` (key defaults to `pb/view_<basename>`) |
-| Change what the deployed page shows | `./bash/view_live.sh <scene.toml> [file.pb]` |
+| Change what the deployed page shows | `./bash/view_live.sh <scene.yaml> [file.pb]` |
 
 `view_live.sh` picks the destination from the extension — `.pb` → `pb/view_live.pb` (the fixed slot
-every solver run overwrites), `.toml`/`.json` → `view_live.toml` (the manifest the page reads).
+every solver run overwrites), `.yaml`/`.json` → `view_live.yaml` (the manifest the page reads).
 Given both, it uploads the geometry first so the manifest never names bytes that are not there
-yet, refuses to publish a manifest whose `file =` entries are missing from the bucket, verifies
+yet, refuses to publish a manifest whose `file:` entries are missing from the bucket, verifies
 each upload against the public URL, and pings the relay so an open page reloads in ~1 s.
 
 Shared settings (bucket, endpoint, profile, relay) live in `bash/lib/view.sh` — one place.
@@ -53,9 +53,9 @@ Shared settings (bucket, endpoint, profile, relay) live in `bash/lib/view.sh` �
 
 ## The local scene is not yours to publish
 
-`session_viewer/assets/view_local.toml` and its `pb/view_local_*.pb` are a working copy that
+`session_viewer/assets/view_local.yaml` and its `pb/view_local_*.pb` are a working copy that
 lives only in the repo. A bare `http://localhost:8770/` shows them; nothing uploads them. If asked
-to "publish the local scene", upload the .pb under a NAMED key and write a `scenes/view_<name>.toml`
+to "publish the local scene", upload the .pb under a NAMED key and write a `scenes/view_<name>.yaml`
 for it — never overwrite `view_local.*` in the bucket, and never add it there.
 
 ## Renaming or removing a key

@@ -1,4 +1,4 @@
-//! The live source: the deployed page watches `view_live.toml` in the R2 bucket and every
+//! The live source: the deployed page watches `view_live.yaml` in the R2 bucket and every
 //! file it lists, re-reading each with `If-None-Match` so an idle poll is a handful of
 //! `304`s. A `200` with a new `ETag` is a change; the bytes it returned ARE the bytes decoded
 //! (one download), and an unchanged file is the same decoded `Session` again - shared with
@@ -22,7 +22,7 @@ use super::scene::FileDoc;
 use session_rust::Session;
 
 /// The manifest this viewer watches unless the page says otherwise.
-pub const DEFAULT_SOURCE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.toml";
+pub const DEFAULT_SOURCE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.yaml";
 
 /// The relay a publisher announces an upload on, as an SSE endpoint.
 const DEFAULT_NOTIFY: &str = "https://ntfy.sh/wood-live-84eaac4a04729911/sse";

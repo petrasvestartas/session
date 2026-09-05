@@ -1,9 +1,9 @@
 //! The URL decides where a scene comes from. ONE query parser (`query`) serves every knob,
 //! and `SceneRoute` names the three routes:
 //!
-//! - no query on localhost: `view_local.toml` + `pb/view_local_*.pb`, all from this origin;
+//! - no query on localhost: `view_local.yaml` + `pb/view_local_*.pb`, all from this origin;
 //! - `?scene=<name>` or a path like `/view_lines`: that manifest AND its files from the bucket;
-//! - no query elsewhere: the live source (`live.rs`), `view_live.toml` re-read every poll.
+//! - no query elsewhere: the live source (`live.rs`), `view_live.yaml` re-read every poll.
 //!
 //! `?data=<https base>` overrides where the `.pb` come from; `?data=off` forces this origin.
 
@@ -11,7 +11,7 @@
 pub const DATA_BASE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/";
 
 /// The one scene a local `trunk serve` shows, served from `assets/`.
-pub const LOCAL_SCENE: &str = "view_local.toml";
+pub const LOCAL_SCENE: &str = "view_local.yaml";
 
 /// Grid step for manifest items with no placement, world mm: zero, so they stack at the origin.
 pub const AUTO_GRID: [f64; 2] = [0.0, 0.0];
@@ -98,9 +98,9 @@ pub fn join(base: &str, file: &str) -> String {
     format!("{}{}", base, file.trim_start_matches("./"))
 }
 
-/// A named scene: `.toml` implied, `scenes/` implied for a bare name, always from the bucket.
+/// A named scene: `.yaml` implied, `scenes/` implied for a bare name, always from the bucket.
 pub fn named_scene(path: &str) -> SceneRoute {
-    let path = if path.contains('.') { path.to_string() } else { format!("{path}.toml") };
+    let path = if path.contains('.') { path.to_string() } else { format!("{path}.yaml") };
     let path = if path.contains('/') { path } else { format!("scenes/{path}") };
     let base = data_base();
     SceneRoute { manifest: join(&base, &path), base }
