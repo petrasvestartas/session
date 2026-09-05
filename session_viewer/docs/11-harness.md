@@ -703,13 +703,13 @@ pub struct SceneFile {
 }
 
 impl SceneFile {
-    /// The harness's arguments: a `.toml`/`.json` argument is a manifest resolved the way the
+    /// The harness's arguments: a `.yaml`/`.json` argument is a manifest resolved the way the
     /// browser resolves it (files relative to the directory holding `pb/`), anything else one
     /// `.pb` at its own origin.
     pub fn from_args(args: &[String]) -> Vec<SceneFile> {
         let mut out = Vec::new();
         for p in args {
-            if !(p.ends_with(".json") || p.ends_with(".toml")) {
+            if !(p.ends_with(".json") || p.ends_with(".yaml") || p.ends_with(".yml")) {
                 out.push(SceneFile { path: p.clone(), place: Xform::identity(), point_px: 0.0, display_only: false });
                 continue;
             }
@@ -907,7 +907,7 @@ _Type it._
 **Create `examples/selftest.rs`**
 
 ```rust
-// cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- <out.ppm> <scene.toml | file.pb>...
+// cargo run --example selftest --target x86_64-unknown-linux-gnu --release -- <out.ppm> <scene.yaml | file.pb>...
 //
 // Renders one headless frame and prints the ink count; VIEWER_FRAMES=N times N frames first,
 // VIEWER_PICK="x,y" reports what the id pass finds under a pixel. VIEWER_W / VIEWER_H size it.
@@ -945,7 +945,7 @@ _Type it._
 **Create `examples/bench_frame.rs`**
 
 ```rust
-// cargo run --example bench_frame --target x86_64-unknown-linux-gnu --release -- <scene.toml | file.pb>...
+// cargo run --example bench_frame --target x86_64-unknown-linux-gnu --release -- <scene.yaml | file.pb>...
 //
 // Median frame time for a still and a moving camera. BENCH_FRAMES=N frames per leg;
 // VIEWER_LINE_STYLE=tubes|flat picks the solid-lane style; VIEWER_W / VIEWER_H size it.

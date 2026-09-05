@@ -190,7 +190,7 @@ public_url = "./"
 # NOTHING - the page kept serving the last wasm, so kernel work looked like it had no effect while
 # regenerated .pb assets did change. Verified: a real edit here rebuilds in ~38 s. (A bare `touch`
 # does not - the watcher filters metadata-only events; change bytes when you test this.)
-watch = ["src", "Cargo.toml", "index.html", "assets/view_local.toml", "../session_rust/src"]
+watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "../session_rust/src"]
 enable_cooldown = true
 
 [serve]

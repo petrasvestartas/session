@@ -2095,7 +2095,7 @@ _Type it._
 trunk serve
 ```
 
-- Open `http://127.0.0.1:8770/`: the lion of `assets/view_local.toml` draws as round, Lambert-lit splats at the manifest's `point_size = 4`, edges darkened by EDL; `[` and `]` scale them, `?edl=0` turns the lighting off, `?cloud=2` doubles the size at startup.
+- Open `http://127.0.0.1:8770/`: the lion of `assets/view_local.yaml` draws as round, Lambert-lit splats at the manifest's `point_size: 4`, edges darkened by EDL; `[` and `]` scale them, `?edl=0` turns the lighting off, `?cloud=2` doubles the size at startup.
 - `?lod=<px>` turns the octree walk on for clouds over `LOD_MIN_POINTS`; the local lion is below it and draws whole, so the cutoff first shows on the streamed scan of lesson 8.
 
 ## Why

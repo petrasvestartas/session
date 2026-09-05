@@ -1,6 +1,6 @@
 # 09 The live scene and publishing to R2
 
-- At the end the deployed page - no query, not on localhost - watches `scenes/view_live.toml` in the bucket and swaps its scene when a publish lands; `trunk serve` keeps showing the local scene of lesson 3 unless `?live=` says otherwise.
+- At the end the deployed page - no query, not on localhost - watches `scenes/view_live.yaml` in the bucket and swaps its scene when a publish lands; `trunk serve` keeps showing the local scene of lesson 3 unless `?live=` says otherwise.
 - A poll is a conditional GET per file (`If-None-Match`): an idle poll is a handful of `304`s, and a change is downloaded once - the bytes that answered the conditional read are the bytes decoded.
 - Every decoded file is an `Rc<Session>` shared between the live source and the scene, so a swap re-walks the unchanged files and never re-decodes or copies them.
 - The ntfy relay is an `EventSource` that only raises a flag; the loop looks at the flag every `NOTIFY_TICK_MS` and the conditional reads still decide, so a lost, late or duplicated message costs nothing but a few `304`s.
@@ -12,7 +12,7 @@
   <defs><marker id="l9g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ed37e"/></marker><marker id="l9a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f0b35c"/></marker><marker id="l9m" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#888"/></marker></defs>
   <rect x="14" y="14" width="340" height="58" fill="none" stroke="#888"/>
   <text x="22" y="31" fill="#d7dae0">R2 bucket session-viewer-data · ntfy relay</text>
-  <text x="22" y="46" fill="#888" font-size="10">pb/view_live.pb (first) · scenes/view_live.toml (then)</text>
+  <text x="22" y="46" fill="#888" font-size="10">pb/view_live.pb (first) · scenes/view_live.yaml (then)</text>
   <text x="22" y="60" fill="#888" font-size="10">relay: POST "published" -&gt; a flag on the page, never the truth</text>
   <line x1="398" y1="43" x2="358" y2="43" stroke="#7ed37e" marker-end="url(#l9g)"/>
   <rect x="398" y="14" width="308" height="58" fill="none" stroke="#7ed37e" stroke-width="1.3"/>
@@ -283,7 +283,7 @@ _Paste it._
 **Create `src/app/live.rs`**
 
 ```rust
-//! The live source: the deployed page watches `view_live.toml` in the R2 bucket and every
+//! The live source: the deployed page watches `view_live.yaml` in the R2 bucket and every
 //! file it lists, re-reading each with `If-None-Match` so an idle poll is a handful of
 //! `304`s. A `200` with a new `ETag` is a change; the bytes it returned ARE the bytes decoded
 //! (one download), and an unchanged file is the same decoded `Session` again - shared with
@@ -307,7 +307,7 @@ use super::scene::FileDoc;
 use session_rust::Session;
 
 /// The manifest this viewer watches unless the page says otherwise.
-pub const DEFAULT_SOURCE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.toml";
+pub const DEFAULT_SOURCE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.yaml";
 
 /// The relay a publisher announces an upload on, as an SSE endpoint.
 const DEFAULT_NOTIFY: &str = "https://ntfy.sh/wood-live-84eaac4a04729911/sse";
@@ -991,7 +991,7 @@ r2_notify() {
 
 ## Step 14 - Put one file and give it a scene
 
-- A `.pb` alone is invisible - the page draws what a manifest names - so the script writes `scenes/view_<name>.toml` next to `pb/view_<name>.pb` and prints the `?scene=` to open.
+- A `.pb` alone is invisible - the page draws what a manifest names - so the script writes `scenes/view_<name>.yaml` next to `pb/view_<name>.pb` and prints the `?scene=` to open.
 - An existing scene of that name is kept: it may place several files, and a fresh one-item scene would silently drop the rest.
 
 _Paste it._
@@ -1004,8 +1004,8 @@ _Paste it._
 #
 #   bash/view_put.sh <file.pb> [name]
 #
-#   bash/view_put.sh out/scan.pb          -> pb/view_scan.pb + scenes/view_scan.toml
-#   bash/view_put.sh out/scan.pb lidar_a  -> pb/view_lidar_a.pb + scenes/view_lidar_a.toml
+#   bash/view_put.sh out/scan.pb          -> pb/view_scan.pb + scenes/view_scan.yaml
+#   bash/view_put.sh out/scan.pb lidar_a  -> pb/view_lidar_a.pb + scenes/view_lidar_a.yaml
 #
 # It prints the `?scene=` to open. A .pb on its own is not viewable - the page loads a MANIFEST
 # and draws what that names - so uploading one without writing a scene for it just leaves an
@@ -1022,7 +1022,7 @@ source "${SCRIPT_DIR}/lib/view.sh"
 src="${1:-}"
 if [ -z "$src" ]; then
     echo "Usage: view_put.sh <file.pb> [name]"
-    echo "       uploads pb/view_<name>.pb and writes scenes/view_<name>.toml"
+    echo "       uploads pb/view_<name>.pb and writes scenes/view_<name>.yaml"
     exit 1
 fi
 [ -f "$src" ] || { echo "ERROR: no such file: $src" >&2; exit 1; }
@@ -1035,7 +1035,7 @@ name="${2:-$(basename "$src" .pb)}"
 name="${name#view_}"
 stem="view_${name}"
 key="pb/${stem}.pb"
-scene="scenes/${stem}.toml"
+scene="scenes/${stem}.yaml"
 
 r2_require_credentials || exit 1
 
@@ -1056,24 +1056,24 @@ else
     tmp=$(mktemp) && trap 'rm -f "$tmp" "${R2_CURL_CONFIG:-}"' EXIT
     cat > "$tmp" <<EOF
 # Written by bash/view_put.sh for ${stem}.pb. One item at the origin - edit \`at\` to place it,
-# or add more [[items]]; nothing regenerates this file, so your changes stay.
-name = "${name}"
+# or add more entries under \`items\`; nothing regenerates this file, so your changes stay.
+name: "${name}"
 
-[[items]]
-file = "${key}"
-name = "${name}"
-at = [0, 0, 0]
+items:
+  - file: "${key}"
+    name: "${name}"
+    at: [0, 0, 0]
 EOF
     r2_upload "$tmp" "$scene" || exit 1
 fi
 
 echo
-echo "  open:  ?scene=${stem}.toml"
+echo "  open:  ?scene=${stem}.yaml"
 ```
 
 ## Step 15 - Publish the live pair
 
-- The live scene is one fixed pair, `view_live.toml` beside `view_live.pb`; the script finds them rather than taking file arguments, and says which directory lacked which half when it cannot.
+- The live scene is one fixed pair, `view_live.yaml` beside `view_live.pb`; the script finds them rather than taking file arguments, and says which directory lacked which half when it cannot.
 - Geometry goes up first and its verify overlaps the manifest upload; the relay is poked the moment the manifest is in the bucket, and every other file the manifest names must already be there.
 
 _Paste it._
@@ -1087,13 +1087,13 @@ _Paste it._
 #   bash/view_live.sh                 publish the view_live pair found next to each other
 #   bash/view_live.sh <dir>           look only in <dir>
 #
-# It takes NO file arguments on purpose. The live scene is one fixed pair - `view_live.toml` and
+# It takes NO file arguments on purpose. The live scene is one fixed pair - `view_live.yaml` and
 # `view_live.pb` - so naming them every time is ceremony that can only be got wrong; the script
 # finds them instead, and they must be SIDE BY SIDE in one directory. When it cannot find them it
 # lists every directory it looked in and which of the two was missing, because "publish failed"
 # without that is the message that wastes the next ten minutes.
 #
-# -> pb/view_live.pb and scenes/view_live.toml, geometry first so the manifest never names bytes
+# -> pb/view_live.pb and scenes/view_live.yaml, geometry first so the manifest never names bytes
 # that are not there yet. There is no version and no history: this replaces, and the old bytes
 # are gone. An open page picks it up on its next poll (5 s), sooner if the relay is reachable.
 set -u
@@ -1103,7 +1103,7 @@ source "${SCRIPT_DIR}/lib/view.sh"
 REPO_ROOT="$( cd "${SCRIPT_DIR}/.." && pwd )"
 
 SLOT_PB="view_live.pb"
-SLOT_TOML="view_live.toml"
+SLOT_YAML="view_live.yaml"
 
 # Where a pair might sit, nearest first: an explicit directory, then the working directory and
 # the places a run usually writes into, then the repo's own assets.
@@ -1214,7 +1214,7 @@ _Type it._
 ```rust
 //! and `SceneRoute` names the two routes:
 //!
-//! - no query: `view_local.toml` + `pb/view_local_*.pb`, all from this origin;
+//! - no query: `view_local.yaml` + `pb/view_local_*.pb`, all from this origin;
 //! - `?scene=<name>` or a path like `/view_lines`: that manifest AND its files from the bucket.
 ```
 
@@ -1223,9 +1223,9 @@ _Type it._
 ```rust
 //! and `SceneRoute` names the three routes:
 //!
-//! - no query on localhost: `view_local.toml` + `pb/view_local_*.pb`, all from this origin;
+//! - no query on localhost: `view_local.yaml` + `pb/view_local_*.pb`, all from this origin;
 //! - `?scene=<name>` or a path like `/view_lines`: that manifest AND its files from the bucket;
-//! - no query elsewhere: the live source (`live.rs`), `view_live.toml` re-read every poll.
+//! - no query elsewhere: the live source (`live.rs`), `view_live.yaml` re-read every poll.
 ```
 
 _Type it._
@@ -1288,8 +1288,8 @@ _Type it._
 trunk serve
 ```
 
-- Open `http://localhost:8770/?live=https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.toml`: the console prints `live: watching ... every 5000 ms` and the page draws whatever `view_live.toml` names in the bucket. Without `?live=`, localhost keeps the local scene; the deployed page needs no query at all.
-- With an `[r2]` profile in `~/.aws/credentials`, publish a pair from a directory holding `view_live.toml` and `view_live.pb`, and watch the open page swap without a reload: the console prints `live: source changed (announced); reloading the scene` - without `(announced)` when the relay was unreachable and the poll found it.
+- Open `http://localhost:8770/?live=https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.yaml`: the console prints `live: watching ... every 5000 ms` and the page draws whatever `view_live.yaml` names in the bucket. Without `?live=`, localhost keeps the local scene; the deployed page needs no query at all.
+- With an `[r2]` profile in `~/.aws/credentials`, publish a pair from a directory holding `view_live.yaml` and `view_live.pb`, and watch the open page swap without a reload: the console prints `live: source changed (announced); reloading the scene` - without `(announced)` when the relay was unreachable and the poll found it.
 
 ```bash
 bash/view_live.sh <dir>
