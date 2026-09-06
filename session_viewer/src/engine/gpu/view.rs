@@ -59,7 +59,7 @@ impl View {
             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
-            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 2.0).max(0.1),
+            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1),
             feather_px: knob_f32("VIEWER_AA", "aa", 1.5).clamp(0.5, 4.0),
             msaa_forced: knob("VIEWER_MSAA", "msaa").and_then(|v| v.parse().ok()),
             perf: knob("VIEWER_PERF", "perf").is_some(),
