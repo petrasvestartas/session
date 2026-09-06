@@ -94,7 +94,7 @@ mod tests {
                         offset_of!(GlyphPoint, instance_id), offset_of!(GlyphPoint, facing), offset_of!(GlyphPoint, facing_ext),
                         offset_of!(GlyphPoint, support_start), offset_of!(GlyphPoint, support_count), offset_of!(GlyphPoint, _pad)], size_of::<GlyphPoint>()),
                     "InkSupport" => (vec![offset_of!(InkSupport, face), offset_of!(InkSupport, region)], size_of::<InkSupport>()),
-                    "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, occluder_rect)], size_of::<LineUniform>()),
+                    "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, occluder_rect), offset_of!(LineUniform, lit)], size_of::<LineUniform>()),
                     "FaceFilterParams" => (vec![offset_of!(FaceFilterParams, index_count), offset_of!(FaceFilterParams, row_width), offset_of!(FaceFilterParams, _pad)], size_of::<FaceFilterParams>()),
                     "FacePlane" => (vec![offset_of!(FacePlane, point), offset_of!(FacePlane, instance_id), offset_of!(FacePlane, normal), offset_of!(FacePlane, _pad)], size_of::<FacePlane>()),
                     _ => continue,
@@ -124,13 +124,13 @@ mod tests {
     /// three scalars there.
     #[test]
     fn line_uniform_mirror() {
-        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather", "occluder_rect"];
+        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather", "occluder_rect", "lit"];
         for (name, src) in lane_shaders() {
             if src.contains("struct LineUniform") {
                 assert_eq!(wgsl_fields(src, "LineUniform"), rust, "{name}: LineUniform fields");
             }
         }
-        assert_eq!(std::mem::size_of::<LineUniform>(), 64);
+        assert_eq!(std::mem::size_of::<LineUniform>(), 80);
     }
 
     /// Every instance-reading shader binds the translation table at group 2 binding 1 and

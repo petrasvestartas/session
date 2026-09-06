@@ -36,6 +36,8 @@ pub struct View {
     /// Width of the antialiasing ramp on every ink lane, px (`?aa=` / `VIEWER_AA`): 1 is the
     /// exact box-filter coverage, wider trades a little blur for smoother diagonals.
     pub feather_px: f32,
+    /// Light the mesh faces; off = every face its flat colour (`?lit=1` / `VIEWER_LIT`). `S`.
+    pub lit: bool,
     /// Force the sample count (`?msaa=` / `VIEWER_MSAA`): 4 = 4x, anything else 1x.
     pub msaa_forced: Option<u32>,
     /// Continuous rendering with a frame line on the page (`?perf=1` / `VIEWER_PERF`).
@@ -61,6 +63,7 @@ impl View {
             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
             thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1),
             feather_px: knob_f32("VIEWER_AA", "aa", 1.5).clamp(0.5, 4.0),
+            lit: knob("VIEWER_LIT", "lit").is_some(),
             msaa_forced: knob("VIEWER_MSAA", "msaa").and_then(|v| v.parse().ok()),
             perf: knob("VIEWER_PERF", "perf").is_some(),
             spin: knob("VIEWER_SPIN", "spin").is_some(),

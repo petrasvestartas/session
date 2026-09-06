@@ -1,6 +1,6 @@
 //! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
 //! left click picks; 1-7 named views, Space projection, C reset, F fit, Q/W/E lane toggles,
-//! L line style, [ ] cloud size, Escape clears the selection. Fingers go to `touch.rs`.
+//! L line style, S face lighting, [ ] cloud size, Escape clears the selection. Fingers go to `touch.rs`.
 //! Every handler says whether the frame must be redrawn.
 
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
@@ -52,6 +52,7 @@ impl Input {
             Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
             Key::Character("e" | "E") => state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges,
             Key::Character("l" | "L") => state.gpu.view.toggle_line_style(),
+            Key::Character("s" | "S") => state.gpu.view.lit = !state.gpu.view.lit,
             Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
             Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
             _ => return false,
