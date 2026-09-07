@@ -39,10 +39,8 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
     // ways - the lines, not the fill, are what shows it.
     bm.orient_faces();
     bm.set_objectcolor(b.surfacecolor.clone());
-    // The tessellation is a FILL. Its triangle edges are an artifact of meshing, and the ink
-    // pass decides visibility from adjacent triangle normals - so near-coplanar triangles
-    // flip in and out as the camera turns, which is the flicker. Width 0 hides them
-    // (mesh_ink::hidden); the solid's real edges come off the BRep below.
+    // The tessellation is a FILL. Its triangle edges are an artifact of meshing: width 0
+    // hides them (mesh_ink::hidden); the solid's real edges come off the BRep below.
     bm.set_linecolors(vec![b.surfacecolor.clone()], vec![0.0]);
 
     let mut row = walk_mesh(arena, ink, &bm, &MeshCx { cx, opts: &MeshOpts::MODEL });
