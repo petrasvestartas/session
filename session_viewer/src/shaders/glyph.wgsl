@@ -67,8 +67,8 @@ struct VsOut {
     @location(2) @interpolate(linear) px: f32,
     @location(3) @interpolate(linear) fade: f32,
     @location(4) @interpolate(flat) inst_id: u32,
-    @location(5) @interpolate(flat) support: vec2<u32>,
-    @location(6) @interpolate(flat) center: vec3<f32>,
+    @location(5) @interpolate(flat) centre: vec2<f32>,
+    @location(6) @interpolate(flat) depth: f32,
 };
 
 fn dead_dot() -> VsOut {
@@ -79,6 +79,8 @@ fn dead_dot() -> VsOut {
     dead.px = 0.0;
     dead.fade = 0.0;
     dead.inst_id = 0u;
+    dead.centre = vec2<f32>(0.0);
+    dead.depth = 0.0;
     return dead;
 }
 
@@ -126,8 +128,8 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.px = px;
     o.fade = fade;
     o.inst_id = g.instance_id;
-    o.support = vec2<u32>(g.support_start, g.support_count);
-    o.center = world;
+    o.centre = vec2<f32>((clip.x / clip.w * 0.5 + 0.5) * line.vp_w, (0.5 - clip.y / clip.w * 0.5) * line.vp_h);
+    o.depth = clip.z / clip.w;
     return o;
 }
 
@@ -144,26 +146,18 @@ fn coverage(in: VsOut) -> f32 {
     return clamp((in.px + 0.5 * f - d) / f, 0.0, 1.0) * in.fade;
 }
 
-fn footprint(in: VsOut) -> InkFootprint {
-    return InkFootprint(in.support, vec3<f32>(0.0), vec3<f32>(0.0));
-}
-
 @fragment
-fn fs_main(in: VsOut) -> InkColor {
+fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     let alpha = coverage(in);
-    if (alpha <= 0.0) {
+    if (alpha <= 0.0 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample)) {
         discard;
     }
-    let mask = ink_visible_mask(in.pos.xy, InkSample(in.pos.z, in.center), footprint(in));
-    if (mask == 0u) {
-        discard;
-    }
-    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha), mask);
+    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
 }
 
 @fragment
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) < 0.5 || !ink_pick_visible(in.pos.xy, InkSample(in.pos.z, in.center), footprint(in))) {
+    if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
         discard;
     }
     return vec2<u32>(in.inst_id + 1u, 0u);
