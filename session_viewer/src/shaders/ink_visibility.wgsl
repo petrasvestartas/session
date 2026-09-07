@@ -56,28 +56,36 @@ fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
     return select(step, -step, dot(pixel - axis.at, step) < 0.0);
 }
 
-// A stroke fragment: the surface under it continues through the axis, or nothing nearer
-// than the axis covers it.
+// A stroke fragment: the surface under it, fitted from its own texel and the next one away
+// from the stroke, carried to the axis, must not be nearer than the axis. On its own face
+// or a touching neighbour the carry lands on the axis; a nearer occluder carries nearer and
+// hides the fragment even where the occluder recedes past the axis depth at this pixel; a
+// farther surface beyond a silhouette carries farther and the stroke overhangs it.
 fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) {
         return true;
     }
     let step = ink_step(pixel, axis);
-    let z_out = ink_depth(pixel + step, sample);
-    if (z_out != 0.0) {
-        // The displacement to the axis as a * along + b * step; the two are never parallel.
-        let e = axis.at - pixel;
-        let det = axis.along.x * step.y - axis.along.y * step.x;
-        let a = (e.x * step.y - e.y * step.x) / det;
-        let b = (axis.along.x * e.y - axis.along.y * e.x) / det;
-        let g = z_out - z;
-        let predicted = z + a * axis.slope + b * g;
-        if (abs(predicted - axis.depth) <= ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b))) {
-            return true;
-        }
+    // At the surface's rim the outward texel is cleared: fit toward the stroke instead, so a
+    // face two texels wide still carries its plane to the axis.
+    var side = step;
+    var z_side = ink_depth(pixel + side, sample);
+    if (z_side == 0.0) {
+        side = -step;
+        z_side = ink_depth(pixel + side, sample);
     }
-    return z <= axis.depth + abs(axis.depth) * DEPTH_REL_TOL;
+    if (z_side == 0.0) {
+        return z <= axis.depth + abs(axis.depth) * DEPTH_REL_TOL;
+    }
+    // The displacement to the axis as a * along + b * side; the two are never parallel.
+    let e = axis.at - pixel;
+    let det = axis.along.x * side.y - axis.along.y * side.x;
+    let a = (e.x * side.y - e.y * side.x) / det;
+    let b = (axis.along.x * e.y - axis.along.y * e.x) / det;
+    let g = z_side - z;
+    let predicted = z + a * axis.slope + b * g;
+    return predicted <= axis.depth + ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b));
 }
 
 // A disc fragment: the surface under it, fitted along both axes away from the centre and
