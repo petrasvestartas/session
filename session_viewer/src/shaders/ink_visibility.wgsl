@@ -47,11 +47,16 @@ fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
     return abs(depth) * DEPTH_REL_TOL + abs(slope) * SLOPE_PX * (1.0 + lever);
 }
 
-// Whether the two texels of a fit lie on one surface: on a plane the next texel out along the
-// same direction extends the slope exactly, moved only by the rasterizer's vertex snapping,
-// while a step from one surface to another is many times the slope. Cleared beyond means the
-// surface ends there and the pair is all there is to fit.
-fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, z_side: f32, sample: u32) -> bool {
+// Whether the fragment and its neighbour one texel along `dir` lie on one surface, so that
+// pair may be fitted: on a plane the next texel out extends the slope exactly, moved only by
+// the rasterizer's vertex snapping, while a step from one surface to another is many times the
+// slope. A cleared neighbour is no pair at all; cleared beyond it means the surface ends there
+// and the pair is all there is to fit.
+fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> bool {
+    let z_side = ink_depth(pixel + dir, sample);
+    if (z_side == 0.0) {
+        return false;
+    }
     let z_far = ink_depth(pixel + dir * 2.0, sample);
     if (z_far == 0.0) {
         return true;
@@ -59,6 +64,17 @@ fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, z_side: f32, sample
     let g = z_side - z;
     let g_far = z_far - z_side;
     return abs(g_far - g) <= ink_tolerance(z, abs(g) + abs(g_far), 0.0);
+}
+
+// The carry's verdict, shared by strokes and discs. A texel already nearer than the axis is
+// ink only when its surface passes THROUGH the axis, so a plane fitted in front of the axis
+// that lands behind it cannot uncover a covered stroke; a farther texel keeps the one-sided
+// compare, so a stroke still overhangs a silhouette at full width.
+fn ink_carry_visible(predicted: f32, z: f32, depth: f32, tolerance: f32) -> bool {
+    if (z > depth + abs(depth) * DEPTH_REL_TOL) {
+        return abs(predicted - depth) <= tolerance;
+    }
+    return predicted <= depth + tolerance;
 }
 
 // The unit texel step away from the stroke on this fragment's side, along the dominant
@@ -76,32 +92,28 @@ fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
 // from the stroke, carried to the axis, must not be nearer than the axis. On its own face
 // or a touching neighbour the carry lands on the axis; a nearer occluder carries nearer and
 // hides the fragment even where the occluder recedes past the axis depth at this pixel; a
-// farther surface beyond a silhouette carries farther and the stroke overhangs it. A texel
-// already nearer than the axis carries ink only when its surface passes THROUGH the axis, so
-// a plane that lands behind the axis from in front of it cannot uncover a covered stroke.
+// farther surface beyond a silhouette carries farther and the stroke overhangs it.
 fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) {
         return true;
     }
     let step = ink_step(pixel, axis);
-    // The outward texel carries the fit only while it is on the fragment's own surface: at the
-    // rim it is cleared, and where a surface's edge runs beside the stroke the next texel out
-    // is already the surface behind it, whose step the fit would read as a gradient and carry
-    // to the axis as a phantom plane. Fit toward the stroke instead, so a face two texels wide
-    // still carries its plane to the axis.
+    // Three outcomes, in this order. The pair away from the stroke is written and planar, so it
+    // holds the fragment's own surface and carries it. Else the pair toward the stroke is, and
+    // a face two texels wide, or one whose edge runs beside the stroke, still carries its own
+    // plane; a rejected outward pair never carries, because the step across a surface boundary
+    // it just failed on is exactly the phantom plane this guard exists to remove. Else the raw
+    // compare, and that is the end of the line: a texel whose neighbours disagree with each
+    // other has no surface to carry to the axis, so only its own depth can decide.
     var side = step;
-    var z_side = ink_depth(pixel + side, sample);
-    if (z_side == 0.0 || !ink_pair_planar(pixel, side, z, z_side, sample)) {
-        let back = ink_depth(pixel - step, sample);
-        if (z_side == 0.0 || back != 0.0) {
-            side = -step;
-            z_side = back;
+    if (!ink_pair_planar(pixel, side, z, sample)) {
+        side = -step;
+        if (!ink_pair_planar(pixel, side, z, sample)) {
+            return z <= axis.depth + abs(axis.depth) * DEPTH_REL_TOL;
         }
     }
-    if (z_side == 0.0) {
-        return z <= axis.depth + abs(axis.depth) * DEPTH_REL_TOL;
-    }
+    let z_side = ink_depth(pixel + side, sample);
     // The displacement to the axis as a * along + b * side; the two are never parallel.
     let e = axis.at - pixel;
     let det = axis.along.x * side.y - axis.along.y * side.x;
@@ -109,11 +121,7 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let b = (axis.along.x * e.y - axis.along.y * e.x) / det;
     let g = z_side - z;
     let predicted = z + a * axis.slope + b * g;
-    let tolerance = ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b));
-    if (z > axis.depth + abs(axis.depth) * DEPTH_REL_TOL) {
-        return abs(predicted - axis.depth) <= tolerance;
-    }
-    return predicted <= axis.depth + tolerance;
+    return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b)));
 }
 
 // A disc fragment: the surface under it, fitted along both axes away from the centre and
@@ -127,21 +135,19 @@ fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32
         return true;
     }
     let d = pixel - centre;
-    let sx = select(1.0, -1.0, d.x < 0.0);
-    let sy = select(1.0, -1.0, d.y < 0.0);
-    let zx = ink_depth(pixel + vec2<f32>(sx, 0.0), sample);
-    let zy = ink_depth(pixel + vec2<f32>(0.0, sy), sample);
-    if (zx != 0.0 && zy != 0.0) {
-        let gx = (zx - z) * sx;
-        let gy = (zy - z) * sy;
-        let predicted = z - d.x * gx - d.y * gy;
-        let tolerance = ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y));
-        if (z > depth + abs(depth) * DEPTH_REL_TOL) {
-            return abs(predicted - depth) <= tolerance;
-        }
-        return predicted <= depth + tolerance;
+    let along_x = vec2<f32>(select(1.0, -1.0, d.x < 0.0), 0.0);
+    let along_y = vec2<f32>(0.0, select(1.0, -1.0, d.y < 0.0));
+    // Both axes must sample one surface, by the same guard the stroke uses. A disc steps away
+    // from its own centre on both axes and so has no second direction to fall back on: when
+    // either tap straddles a discontinuity there is no plane, and the fragment's own depth
+    // decides rather than a phantom one carried to the centre.
+    if (!ink_pair_planar(pixel, along_x, z, sample) || !ink_pair_planar(pixel, along_y, z, sample)) {
+        return z <= depth + abs(depth) * DEPTH_REL_TOL;
     }
-    return z <= depth + abs(depth) * DEPTH_REL_TOL;
+    let gx = (ink_depth(pixel + along_x, sample) - z) * along_x.x;
+    let gy = (ink_depth(pixel + along_y, sample) - z) * along_y.y;
+    let predicted = z - d.x * gx - d.y * gy;
+    return ink_carry_visible(predicted, z, depth, ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y)));
 }
 
 // Normals transform by the inverse transpose, including nonuniform instance scales.
