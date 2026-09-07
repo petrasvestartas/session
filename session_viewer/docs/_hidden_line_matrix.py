@@ -3,6 +3,7 @@
 
 Example (executables must be built from the intended before/after source):
   python3 docs/_hidden_line_matrix.py SELFTEST CENSUS_PLATES FLOOR.pb OUT --require-zero
+  python3 docs/_hidden_line_matrix.py SELFTEST CENSUS_PLATES FLOOR.pb OUT --require-zero-scales 1,4
 
 Each census receives the camera actually logged by its render. The JSON records only
 render/census knobs, source/binary hashes, and results; it never records the process environment.
@@ -15,6 +16,8 @@ import os
 from pathlib import Path
 import subprocess
 
+
+SCALES = (1, 4, 16)
 
 CAMERAS = {
     "iso": {},
@@ -51,15 +54,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for argument in ("renderer", "census", "scene", "output"):
         parser.add_argument(argument, type=Path)
-    parser.add_argument("--require-zero", action="store_true", help="fail if any fully covered original-source core pixel surfaces")
+    parser.add_argument("--require-zero", action="store_true", help="fail if any fully covered original-source core pixel surfaces, at every scale")
+    parser.add_argument("--require-zero-scales", help="comma-separated scales to enforce that on; the rest are still rendered and recorded")
     parser.add_argument("--resume", action="store_true", help="reuse completed cases only when all executable/fixture hashes match")
     parser.add_argument("--camera", choices=CAMERAS)
-    parser.add_argument("--scale", type=int, choices=(1, 4, 16))
+    parser.add_argument("--scale", type=int, choices=SCALES)
     options = parser.parse_args()
     paths = {key: getattr(options, key).resolve() for key in ("renderer", "census", "scene", "output")}
     paths["output"].mkdir(parents=True, exist_ok=True)
     metadata = {key: {"path": str(paths[key]), "sha256": digest(paths[key])} for key in ("renderer", "census", "scene")}
-    metadata["require_zero"] = options.require_zero
+    # Which scales must surface nothing. A far enough camera shrinks the model past what the
+    # depth rule can resolve, so the near scales are the ones a regression shows up in.
+    enforced = set(SCALES) if options.require_zero else {int(part) for part in options.require_zero_scales.split(",")} if options.require_zero_scales else set()
+    if enforced - set(SCALES):
+        raise SystemExit(f"--require-zero-scales accepts only {SCALES}")
+    metadata["require_zero"] = sorted(enforced)
     destination = paths["output"] / "matrix.json"
     report = {"metadata": metadata, "results": []}
     if options.resume and destination.exists():
@@ -71,7 +80,7 @@ def main():
     for camera, settings in CAMERAS.items():
         if options.camera and camera != options.camera:
             continue
-        for scale in (1, 4, 16):
+        for scale in SCALES:
             if options.scale and scale != options.scale:
                 continue
             for style in ("flat",):
@@ -84,7 +93,7 @@ def main():
                 camera_log = next(line.split("census camera: ", 1)[1] for line in rendered.splitlines() if "census camera: " in line)
                 actual_camera = dict(part.split("=", 1) for part in camera_log.split())
                 census_knobs = dict(actual_camera, CENSUS_RENDERED_IDS=knobs["VIEWER_IDS"])
-                if options.require_zero:
+                if scale in enforced:
                     census_knobs["CENSUS_REQUIRE_ZERO"] = "1"
                 measured = execute([paths["census"], paths["scene"]], dict(environment, **knobs, **census_knobs), output / f"{stem}_census.log")
                 result = next(line for line in measured.splitlines() if line.startswith("RENDERED_IDS covered samples"))
