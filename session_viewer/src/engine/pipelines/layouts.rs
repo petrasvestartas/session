@@ -42,13 +42,13 @@ fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     })
 }
 
-/// Physical scene depth or face tokens sampled only after the face pass finishes.
-fn scene_texture(binding: u32, multisampled: bool, depth: bool) -> wgpu::BindGroupLayoutEntry {
+/// The physical depth, sampled by the ink after the face pass finishes.
+fn scene_depth(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
     wgpu::BindGroupLayoutEntry {
         binding,
         visibility: wgpu::ShaderStages::FRAGMENT,
         ty: wgpu::BindingType::Texture {
-            sample_type: if depth { wgpu::TextureSampleType::Depth } else { wgpu::TextureSampleType::Uint },
+            sample_type: wgpu::TextureSampleType::Depth,
             view_dimension: wgpu::TextureViewDimension::D2,
             multisampled,
         },
@@ -56,16 +56,15 @@ fn scene_texture(binding: u32, multisampled: bool, depth: bool) -> wgpu::BindGro
     }
 }
 
-/// Ink keeps instance rows and adds the immutable physical scene attachments.
+/// Ink keeps the instance rows and adds the immutable physical depth, single and multisampled.
 fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("ink.instance.layout"),
         entries: &[
             buffer_entry(0, wgpu::ShaderStages::VERTEX_FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
             buffer_entry(1, wgpu::ShaderStages::VERTEX_FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
-            scene_texture(2, false, true), scene_texture(3, true, true),
-            scene_texture(4, false, false), scene_texture(5, true, false),
-            buffer_entry(6, wgpu::ShaderStages::FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
+            scene_depth(2, false),
+            scene_depth(3, true),
         ],
     })
 }

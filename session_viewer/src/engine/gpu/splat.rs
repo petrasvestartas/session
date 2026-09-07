@@ -331,6 +331,6 @@ fn build_point(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, v: &Point
 /// scene's depth test.
 fn build_resolve(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, target: Target) -> wgpu::RenderPipeline {
     let groups = [&l.line, &l.resolve];
-    let desc = PipelineDesc::new(shader, &groups, &[], TriangleList).with("splat.resolve", "fs_face").depth(DepthMode::Opaque).face_target(true);
+    let desc = PipelineDesc::new(shader, &groups, &[], TriangleList).with("splat.resolve", "fs_main").depth(DepthMode::Opaque);
     build(&ctx.device, target, &desc)
 }

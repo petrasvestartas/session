@@ -72,19 +72,7 @@ fn shade(in: VsOut) -> FsOut {
     return o;
 }
 
-struct FaceOut {
-    @location(0) color: vec4<f32>,
-    @location(1) face: vec2<u32>,
-    @builtin(frag_depth) depth: f32,
-};
-
 @fragment
 fn fs_main(in: VsOut) -> FsOut {
     return shade(in);
-}
-
-@fragment
-fn fs_face(in: VsOut) -> FaceOut {
-    let shaded = shade(in);
-    return FaceOut(shaded.color, vec2<u32>(0u), shaded.depth);
 }

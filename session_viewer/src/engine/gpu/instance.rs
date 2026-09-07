@@ -72,14 +72,12 @@ mod tests {
     use crate::engine::gpu::frame::LineUniform;
     use crate::engine::gpu::lane_shaders;
 
-    /// Validate the actual shader modules and every changed storage member offset, not
-    /// merely field names: a valid Rust size alone does not prove WGSL's array stride.
+    /// Validate the actual shader modules and every storage member offset, not merely field
+    /// names: a valid Rust size alone does not prove WGSL's array stride.
     #[test]
     fn shader_validation_and_layouts() {
-        use crate::engine::gpu::segments::{CylinderSegment, InkSupport};
+        use crate::engine::gpu::segments::CylinderSegment;
         use crate::engine::gpu::glyphs::GlyphPoint;
-        use crate::engine::gpu::arena::FacePlane;
-        use crate::engine::gpu::face_filter::FaceFilterParams;
         use std::mem::{offset_of, size_of};
         for (name, source) in lane_shaders() {
             let source = if source.contains("-> InkColor") {
@@ -97,11 +95,7 @@ mod tests {
                     "GlyphPoint" => (vec![offset_of!(GlyphPoint, center), offset_of!(GlyphPoint, radius), offset_of!(GlyphPoint, color),
                         offset_of!(GlyphPoint, instance_id), offset_of!(GlyphPoint, facing), offset_of!(GlyphPoint, facing_ext),
                         offset_of!(GlyphPoint, support_start), offset_of!(GlyphPoint, support_count), offset_of!(GlyphPoint, _pad)], size_of::<GlyphPoint>()),
-                    "InkSupport" => (vec![offset_of!(InkSupport, face), offset_of!(InkSupport, region)], size_of::<InkSupport>()),
-                    "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, occluder_rect), offset_of!(LineUniform, lit),
-                        offset_of!(LineUniform, backface)], size_of::<LineUniform>()),
-                    "FaceFilterParams" => (vec![offset_of!(FaceFilterParams, index_count), offset_of!(FaceFilterParams, row_width), offset_of!(FaceFilterParams, _pad)], size_of::<FaceFilterParams>()),
-                    "FacePlane" => (vec![offset_of!(FacePlane, point), offset_of!(FacePlane, instance_id), offset_of!(FacePlane, normal), offset_of!(FacePlane, _pad)], size_of::<FacePlane>()),
+                    "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, lit), offset_of!(LineUniform, backface)], size_of::<LineUniform>()),
                     _ => continue,
                 };
                 let naga::TypeInner::Struct { members, span } = &ty.inner else { panic!("{name}: {structure} is not a struct") };
@@ -129,13 +123,13 @@ mod tests {
     /// three scalars there.
     #[test]
     fn line_uniform_mirror() {
-        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather", "occluder_rect", "lit", "backface"];
+        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather", "lit", "backface"];
         for (name, src) in lane_shaders() {
             if src.contains("struct LineUniform") {
                 assert_eq!(wgsl_fields(src, "LineUniform"), rust, "{name}: LineUniform fields");
             }
         }
-        assert_eq!(std::mem::size_of::<LineUniform>(), 80);
+        assert_eq!(std::mem::size_of::<LineUniform>(), 64);
     }
 
     /// Every instance-reading shader binds the translation table at group 2 binding 1 and

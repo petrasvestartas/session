@@ -85,7 +85,6 @@ pub struct PickedPoint {
 #[derive(Default)]
 struct Bases {
     vert: u32,
-    face: u32,
     ribbon: u32,
     obj: u32,
 }
@@ -163,10 +162,8 @@ impl Scene {
 
     /// Upload the walked tables, then FORGET the rows: the GPU is their only holder.
     pub fn upload_to(&mut self, gpu: &mut Gpu) {
-        self.tables.place_face_planes(self.bases.obj);
         gpu.set_scene(&self.tables);
         self.bases.vert += self.tables.arena.verts.len() as u32;
-        self.bases.face += self.tables.arena.face_planes.len() as u32;
         self.bases.obj += self.tables.obj.rows.len() as u32;
         self.bases.ribbon += self.tables.seg.ribbons.len() as u32;
         self.tables.drop_uploaded();
@@ -204,7 +201,7 @@ impl Scene {
             let object_place = placement(&world, &place.m, &guid);
             let row = self.push_row(&guid, object_place, flags);
             let ribbon_start = self.tables.seg.ribbons.len();
-            let cx = WalkCx { vert_base: self.bases.vert, face_base: self.bases.face, cloud_px: point_px, row };
+            let cx = WalkCx { vert_base: self.bases.vert, cloud_px: point_px, row };
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
             let o = self.tables.obj.rows.last_mut().unwrap();
             o.flags |= r.flags;

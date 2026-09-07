@@ -38,7 +38,6 @@ struct LineUniform {
     eye_z: f32,
     anchor: vec3<f32>,
     feather: f32,
-    occluder_rect: vec4<f32>,
     lit: f32,
     backface: f32,
 };

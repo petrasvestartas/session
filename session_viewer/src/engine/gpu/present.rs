@@ -11,8 +11,7 @@ impl Gpu {
     /// Per-frame uniforms, then the inside-flag refresh, which reads the eye just solved.
     fn write_frame_uniforms(&mut self, input: &FrameInput) {
         let size = (self.config.width, self.config.height);
-        let occluder_rect = self.objects.occluder_rect(&input.view_proj.to_f32(), size, self.view.cloud_size);
-        let cx = FrameCx { view: &self.view, anchor: self.objects.anchor_f32(), size, occluder_rect };
+        let cx = FrameCx { view: &self.view, anchor: self.objects.anchor_f32(), size };
         self.frame.write(&self.ctx, input, &cx);
         self.objects.update_inside(&self.ctx, self.frame.eye, &self.bounds);
     }

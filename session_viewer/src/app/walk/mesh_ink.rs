@@ -43,10 +43,10 @@ fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> 
     topo.normals[faces[side] as usize]
 }
 
-/// The two normals the facing test compares for edge `ei`. When the pair's winding disagrees
-/// - both faces walk the edge the same way - the second normal points into the solid, so it is
-/// negated here: the test wants two outward normals, and the traversal direction is the only
-/// local evidence of which of the two is the wrong way round.
+/// The two normals the facing test compares for edge `ei`. When the pair's winding disagrees,
+/// meaning both faces walk the edge the same way, the second normal points into the solid, so
+/// it is negated here: the test wants two outward normals, and the traversal direction is the
+/// only local evidence of which of the two is the wrong way round.
 fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3]>) {
     let f = topo.edge_faces[ei];
     let n0 = normal_of(topo, f, 0);
@@ -230,7 +230,7 @@ mod tests {
         let mut segments = SegRows::default();
         let mut glyphs = GlyphRows::default();
         let mut ink = Ink { seg: &mut segments, glyph: &mut glyphs };
-        let cx = WalkCx { vert_base: 50, face_base: 100, cloud_px: 0.0, row: 7 };
+        let cx = WalkCx { vert_base: 50, cloud_px: 0.0, row: 7 };
         walk_mesh(&mut arena, &mut ink, &mesh, &MeshCx { cx: &cx, opts: &MeshOpts::OBJECT });
         assert_eq!(segments.pipes.len(), 12);
         assert_eq!(glyphs.spheres.len(), 8);
@@ -238,6 +238,5 @@ mod tests {
             assert_ne!(segment.facing, FACING_UNKNOWN);
             assert_eq!(segment.instance_id, 7);
         }
-        assert_eq!(arena.face_ids.len(), arena.verts.len());
     }
 }

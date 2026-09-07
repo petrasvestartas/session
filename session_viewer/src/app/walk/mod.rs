@@ -53,7 +53,6 @@ impl<'a> Walk<'a> {
 /// indices on it), the file's point-size override in px (0 = the pb's own) and the object row.
 pub struct WalkCx {
     pub vert_base: u32,
-    pub face_base: u32,
     pub cloud_px: f32,
     pub row: u32,
 }

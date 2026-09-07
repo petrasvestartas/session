@@ -1,5 +1,5 @@
-//! The frame list: physical surfaces first, then ink against their immutable depth and exact
-//! face identities. The optional picking pass follows the same visibility rule and toggles.
+//! The frame list: physical surfaces first, then ink against their immutable depth. The
+//! optional picking pass follows the same visibility rule and toggles.
 
 use super::frame::Binds;
 use super::splat::RecordCx;
@@ -9,7 +9,6 @@ impl Gpu {
     /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
     /// Knows nothing about a surface, so it works headless.
     pub fn encode_frame(&mut self, encoder: &mut wgpu::CommandEncoder, view: &wgpu::TextureView, clear: wgpu::Color) -> (u32, u32) {
-        self.arena.prepare_faces(&self.ctx, encoder, &self.frame, &self.objects);
         self.point_pass(encoder);
 
         let mut draws = {
@@ -45,7 +44,7 @@ impl Gpu {
         self.splat.prelude(&self.ctx, &self.layouts, encoder, &cx, &self.frame.cloud_group);
     }
 
-    /// Physical faces, backdrop and cloud resolve establish immutable occlusion before ink.
+    /// Backdrop, physical faces and the cloud resolve write the depth every ink fragment reads.
     fn face_list(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         let mut draws = self.backdrop.draw_background(pass);
         if self.view.show_grid { draws += self.backdrop.draw_grid(pass, b); }

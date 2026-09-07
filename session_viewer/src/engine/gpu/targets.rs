@@ -1,5 +1,5 @@
-//! `Targets` - physical depth, face identity and colour attachments at the scene's sample
-//! count. The face pass establishes occlusion; the ink pass samples it without modifying it.
+//! `Targets` - the physical depth and colour attachments at the scene's sample count. The
+//! face pass establishes occlusion; the ink pass samples the depth without modifying it.
 
 use super::buffers::GpuCtx;
 
@@ -24,20 +24,18 @@ const MSAA_PIXELS_SHARED: u32 = 2_500_000;
 const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 
 /// The attachments of the frame's render pass and the sample count they were made at.
-/// `msaa` exists only at 4x.
+/// `msaa` exists only at 4x. The ink layout binds a single-sampled AND a multisampled depth
+/// view, so the one not in use is a 1x1 placeholder.
 pub struct Targets {
     pub depth: wgpu::TextureView,
     pub msaa: Option<wgpu::TextureView>,
-    pub faces: wgpu::TextureView,
     pub depth_single: wgpu::TextureView,
     pub depth_msaa: wgpu::TextureView,
-    pub faces_single: wgpu::TextureView,
-    pub faces_msaa: wgpu::TextureView,
     pub samples: u32,
 }
 
 impl Targets {
-    /// Frame attachments and opposite-sample-count placeholder bindings.
+    /// Frame attachments and the opposite-sample-count placeholder binding.
     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
         let depth = texture_view(ctx, "depth", &TextureSpec { size, format: wgpu::TextureFormat::Depth32Float, samples, usage });
@@ -47,16 +45,10 @@ impl Targets {
             None
         };
 
-        let faces = texture_view(ctx, "physical.faces", &TextureSpec { size, format: wgpu::TextureFormat::Rg16Uint, samples, usage });
         let other_samples = if samples == 1 { 4 } else { 1 };
         let empty_depth = texture_view(ctx, "unused.depth", &TextureSpec { size: (1, 1), format: wgpu::TextureFormat::Depth32Float, samples: other_samples, usage });
-        let empty_faces = texture_view(ctx, "unused.faces", &TextureSpec { size: (1, 1), format: wgpu::TextureFormat::Rg16Uint, samples: other_samples, usage });
-        let (depth_single, depth_msaa, faces_single, faces_msaa) = if samples == 1 {
-            (depth.clone(), empty_depth, faces.clone(), empty_faces)
-        } else {
-            (empty_depth, depth.clone(), empty_faces, faces.clone())
-        };
-        Self { depth, msaa, faces, depth_single, depth_msaa, faces_single, faces_msaa, samples }
+        let (depth_single, depth_msaa) = if samples == 1 { (depth.clone(), empty_depth) } else { (empty_depth, depth.clone()) };
+        Self { depth, msaa, depth_single, depth_msaa, samples }
     }
 
     /// How many pixels this adapter carries at 4x, or `None` when 4x is never worth it. 4x
@@ -85,8 +77,8 @@ impl Targets {
         }
     }
 
-    /// Clear physical depth to reverse-Z far and record the nearest face identity.
-    /// Multisampled colour resolves only after the following ink pass.
+    /// Clear physical depth to reverse-Z far and write the faces. Multisampled colour
+    /// resolves only after the following ink pass.
     pub fn begin_faces<'a>(&'a self, encoder: &'a mut wgpu::CommandEncoder, view: &'a wgpu::TextureView, clear: wgpu::Color) -> wgpu::RenderPass<'a> {
         let target = self.msaa.as_ref().unwrap_or(view);
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -96,11 +88,6 @@ impl Targets {
                 resolve_target: None,
                 depth_slice: None,
                 ops: wgpu::Operations { load: wgpu::LoadOp::Clear(clear), store: wgpu::StoreOp::Store },
-            }), Some(wgpu::RenderPassColorAttachment {
-                view: &self.faces,
-                resolve_target: None,
-                depth_slice: None,
-                ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &self.depth,
