@@ -77,7 +77,9 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 
 ## Reference Files
 - `.claude/skills/` — language-specific templates for common patterns
-- `.claude/skills/wgpu/` — INVOCABLE skill; read before any wgpu/WGSL/viewer-GPU edit
-  (pin is wgpu 29, grep the vendored source, learn-wgpu is banned)
+- `../.claude/skills/` — the INVOCABLE skills, one copy for every consumer of the kernel:
+  `session-viewer-wgpu` before any wgpu/WGSL/viewer-GPU edit (pin is wgpu 29, grep the vendored
+  source, learn-wgpu is banned), `session-format`, `session-comments`,
+  `session-polyline-rectangle`
 - `SKILLS_RHINO_GEOMETRY.md` — 711 C exports + ~7100 C++ methods from Rhino
 - `SKILLS_RHINO_DECOMPILE.md` — Ghidra decompilation guide
