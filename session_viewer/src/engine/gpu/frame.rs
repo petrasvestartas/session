@@ -22,7 +22,6 @@ pub struct FrameCx<'a> {
     pub view: &'a View,
     pub anchor: [f32; 3],
     pub size: (u32, u32),
-    pub occluder_rect: [f32; 4],
 }
 
 /// The three bind groups every lane draw needs, borrowed for one pass.
@@ -41,8 +40,9 @@ impl Binds<'_> {
     }
 }
 
-/// The line/pen block (group 1), 80 B; the physical screen rectangle starts at byte 48.
-/// `eye` and `anchor` are in the anchored frame the instance rows use.
+/// The line/pen block (group 1), 64 B. `eye` and `anchor` are in the anchored frame the
+/// instance rows use. Offsets: thickness 0, proj_y 4, ortho_h 8, vp_h 12, vp_w 16, eye 20,
+/// anchor 32 (vec3 aligned to 16), feather 44, lit 48, backface 52, pad 56.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct LineUniform {
@@ -54,17 +54,15 @@ pub struct LineUniform {
     pub eye: [f32; 3],  // camera position, anchored world units
     pub anchor: [f32; 3],
     pub feather: f32, // antialiasing ramp of the ink lanes, px
-    pub occluder_rect: [f32; 4], // conservative physical pixel bounds: left, top, right, bottom
     pub lit: f32,       // 1 = light the mesh faces, 0 = flat colour
     pub backface: f32,  // 1 = paint back faces red, 0 = their own colour
     pub _pad: [f32; 2],
 }
 
 const _: () = {
-    assert!(std::mem::size_of::<LineUniform>() == 80);
-    assert!(std::mem::offset_of!(LineUniform, occluder_rect) == 48);
-    assert!(std::mem::offset_of!(LineUniform, lit) == 64);
-    assert!(std::mem::offset_of!(LineUniform, backface) == 68);
+    assert!(std::mem::size_of::<LineUniform>() == 64);
+    assert!(std::mem::offset_of!(LineUniform, lit) == 48);
+    assert!(std::mem::offset_of!(LineUniform, backface) == 52);
 };
 
 /// The cloud block (group 1 of the point lane), 16 B.
@@ -94,11 +92,6 @@ pub struct FrameUniforms {
 }
 
 impl FrameUniforms {
-    /// The exact camera/line buffers shared with the angular compute filter.
-    pub(super) fn face_filter_uniforms(&self) -> (&wgpu::Buffer, &wgpu::Buffer) {
-        (&self.mvp_buffer, &self.line_buffer)
-    }
-
     /// The three buffers and bind groups with no camera yet.
     pub fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
         let mvp_buffer = uniform_buffer(&ctx.device, "mvp.buffer", &Xform::identity().to_f32());
@@ -111,7 +104,6 @@ impl FrameUniforms {
             eye: [0.0; 3],
             anchor: [0.0; 3],
             feather: 1.5,
-            occluder_rect: [1.0, 1.0, -1.0, -1.0],
             lit: 0.0,
             backface: 0.0,
             _pad: [0.0; 2],
@@ -144,7 +136,6 @@ impl FrameUniforms {
             vp_w: cx.size.0 as f32,
             eye: self.eye,
             anchor: cx.anchor,
-            occluder_rect: cx.occluder_rect,
             lit: f32::from(cx.view.lit),
             backface: f32::from(cx.view.backface),
             _pad: [0.0; 2],

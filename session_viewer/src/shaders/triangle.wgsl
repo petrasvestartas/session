@@ -24,7 +24,6 @@ struct LineUniform {
     eye_z: f32,
     anchor: vec3<f32>,
     feather: f32,
-    occluder_rect: vec4<f32>,
     lit: f32,
     backface: f32,
 };
@@ -47,7 +46,6 @@ struct VsIn {
     @location(1) normal: vec3<f32>,
     @location(2) color: vec3<f32>,
     @location(3) inst_id: u32,
-    @location(4) face_id: u32,
 }
 
 struct VsOut {
@@ -57,7 +55,6 @@ struct VsOut {
     @location(2) normal: vec3<f32>,
     @location(3) print: f32,
     @location(4) @interpolate(flat) inst_id: u32,
-    @location(5) @interpolate(flat, first) face_id: u32,
 }
 
 // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
@@ -70,7 +67,6 @@ fn dead_vertex() -> VsOut {
     dead.normal = vec3<f32>(0.0);
     dead.print = 0.0;
     dead.inst_id = 0u;
-    dead.face_id = 0u;
     return dead;
 }
 
@@ -93,7 +89,6 @@ fn vs_main(in: VsIn) -> VsOut {
     o.normal = (inst.model * vec4<f32>(in.normal, 0.0)).xyz;
     o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
     o.inst_id = in.inst_id;
-    o.face_id = in.face_id;
     return o;
 }
 
@@ -126,19 +121,7 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     return vec2<u32>(in.inst_id + 1u, 0u);
 }
 
-struct FaceOut {
-    @location(0) color: vec4<f32>,
-    @location(1) face: vec2<u32>,
-};
-
 @fragment
 fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
     return shade(in, front);
-}
-
-@fragment
-fn fs_face(in: VsOut, @builtin(front_facing) front: bool) -> FaceOut {
-    let id = in.face_id;
-    let packed = vec2<u32>(id & 65535u, id >> 16u);
-    return FaceOut(shade(in, front), packed);
 }

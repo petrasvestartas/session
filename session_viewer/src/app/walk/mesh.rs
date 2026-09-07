@@ -142,7 +142,6 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         arena.verts.push(*v);
         arena.vids.push(cx.row);
     }
-    arena.face_ids.resize(arena.face_ids.len() + rm.vertices.len(), 0);
     let idx = index_run(arena, m, o.sheet_lanes && print);
     idx.reserve(rm.indices.len());
     for &i in &rm.indices {

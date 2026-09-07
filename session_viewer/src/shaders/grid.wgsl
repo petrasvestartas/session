@@ -15,7 +15,6 @@ struct LineUniform {
     eye_z: f32,
     anchor: vec3<f32>,
     feather: f32,
-    occluder_rect: vec4<f32>,
     lit: f32,
     backface: f32,
 };
@@ -70,14 +69,4 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     return vec4<f32>(in.color, 1.0);
-}
-
-struct FaceOut {
-    @location(0) color: vec4<f32>,
-    @location(1) face: vec2<u32>,
-};
-
-@fragment
-fn fs_face(in: VsOut) -> FaceOut {
-    return FaceOut(vec4<f32>(in.color, 1.0), vec2<u32>(0u));
 }
