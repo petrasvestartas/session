@@ -90,11 +90,9 @@ mod tests {
                 let Some(structure) = ty.name.as_deref() else { continue };
                 let (offsets, size) = match structure {
                     "CylinderSegment" => (vec![0, 4, 8, offset_of!(CylinderSegment, radius), 16, 20, 24,
-                        offset_of!(CylinderSegment, instance_id), offset_of!(CylinderSegment, color), offset_of!(CylinderSegment, facing),
-                        offset_of!(CylinderSegment, support_start), offset_of!(CylinderSegment, support_count)], size_of::<CylinderSegment>()),
+                        offset_of!(CylinderSegment, instance_id), offset_of!(CylinderSegment, color), offset_of!(CylinderSegment, facing)], size_of::<CylinderSegment>()),
                     "GlyphPoint" => (vec![offset_of!(GlyphPoint, center), offset_of!(GlyphPoint, radius), offset_of!(GlyphPoint, color),
-                        offset_of!(GlyphPoint, instance_id), offset_of!(GlyphPoint, facing), offset_of!(GlyphPoint, facing_ext),
-                        offset_of!(GlyphPoint, support_start), offset_of!(GlyphPoint, support_count), offset_of!(GlyphPoint, _pad)], size_of::<GlyphPoint>()),
+                        offset_of!(GlyphPoint, instance_id), offset_of!(GlyphPoint, facing), offset_of!(GlyphPoint, facing_ext)], size_of::<GlyphPoint>()),
                     "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, lit), offset_of!(LineUniform, backface)], size_of::<LineUniform>()),
                     _ => continue,
                 };

@@ -14,7 +14,7 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
     seg.ribbons.reserve(pts.len().saturating_sub(1));
     for w in pts.windows(2) {
         bounds.grow(w[0]);
-        seg.ribbons.push(CylinderSegment { p0: w[0], radius: pen.radius, p1: w[1], instance_id: pen.row, color: pen.color, facing: FACING_UNKNOWN, support_start: 0, support_count: 0 });
+        seg.ribbons.push(CylinderSegment { p0: w[0], radius: pen.radius, p1: w[1], instance_id: pen.row, color: pen.color, facing: FACING_UNKNOWN });
     }
     if let Some(last) = pts.last() {
         bounds.grow(*last);
@@ -28,7 +28,7 @@ pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
     let mut bounds = Aabb::empty();
     bounds.grow(p0);
     bounds.grow(p1);
-    seg.ribbons.push(CylinderSegment { p0, radius: encode_width(l.width), p1, instance_id: row, color: pack_rgba(l.linecolor.to_f32()), facing: FACING_UNKNOWN, support_start: 0, support_count: 0 });
+    seg.ribbons.push(CylinderSegment { p0, radius: encode_width(l.width), p1, instance_id: row, color: pack_rgba(l.linecolor.to_f32()), facing: FACING_UNKNOWN });
     Row::thin(bounds)
 }
 

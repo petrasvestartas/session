@@ -1,6 +1,6 @@
-//! The segment lane: every straight piece of ink. Two tables of the same 48 B row - pipes
-//! (mesh/BRep edges, the SOLID lane, camera-facing quads) and ribbons
-//! (line/polyline/curve, the FLAT lane, blended camera-facing quads). `SegRows` is one upload.
+//! The segment lane: every straight piece of ink. Two tables of the same 40 B row - pipes
+//! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
+//! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
 
 use crate::engine::pipelines::{build, ink_module, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
 use super::buffers::{bind_group, GpuCtx, GrowBuf, ROWS};
@@ -15,8 +15,9 @@ pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", include_str!("../../shade
 /// Vertices per ribbon: two triangles pulled by vertex index, no vertex buffer.
 const RIBBON_VERTS: u32 = 6;
 
-/// One segment row, 48 B, the layout ribbon.wgsl declares. The ends are
-/// flat f32s: a `vec3` would pad the row to 48 B.
+/// One segment row, 40 B, the layout ribbon.wgsl declares. The ends are flat f32s: a `vec3`
+/// would pad the row to 48 B. Offsets: p0 0, radius 12, p1 16, instance_id 28, color 32,
+/// facing 36.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct CylinderSegment {
@@ -29,29 +30,15 @@ pub struct CylinderSegment {
     pub color: u32,
     /// Two oct16 adjacent face normals; `FACING_UNKNOWN` = no adjacency, always drawn.
     pub facing: u32,
-    pub support_start: u32,
-    pub support_count: u32,
 }
 
-const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 48);
-
-/// An exact supporting-face identity and the part of a stroke it supports (0 = whole,
-/// 1 = first endpoint, 2 = second endpoint). Shared WGSL layout: offsets 0/4, stride 8.
-#[repr(C)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct InkSupport {
-    pub face: u32,
-    pub region: u32,
-}
-
-const _: () = assert!(std::mem::size_of::<InkSupport>() == 8);
+const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
 
 /// One upload's segments: the solid lane's pipes and the flat lane's ribbons.
 #[derive(Default)]
 pub struct SegRows {
     pub pipes: Vec<CylinderSegment>,
     pub ribbons: Vec<CylinderSegment>,
-    pub supports: Vec<InkSupport>,
 }
 
 impl SegRows {
@@ -59,7 +46,6 @@ impl SegRows {
     pub fn drop_rows(&mut self) {
         drop_rows(&mut self.pipes);
         drop_rows(&mut self.ribbons);
-        drop_rows(&mut self.supports);
     }
 }
 
@@ -71,18 +57,17 @@ struct SegTable {
 }
 
 impl SegTable {
-    /// A one-row table sharing the lane's exact support identities.
-    fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str, supports: &GrowBuf) -> Self {
+    /// A one-row table and its bind group.
+    fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str) -> Self {
         let buf = GrowBuf::new(ctx, label, std::mem::size_of::<CylinderSegment>() as u64, ROWS);
-        let group = bind_group(ctx, &l.ink_rows, label, &[&buf.buf, &supports.buf]);
+        let group = bind_group(ctx, &l.ink_rows, label, &[&buf.buf]);
         Self { label, buf, group }
     }
 
-    /// Rebind both tables after either backing buffer changes.
-    fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts, supports: &GrowBuf) {
-        self.group = bind_group(ctx, &l.ink_rows, self.label, &[&self.buf.buf, &supports.buf]);
+    /// Rebind after the backing buffer changed.
+    fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts) {
+        self.group = bind_group(ctx, &l.ink_rows, self.label, &[&self.buf.buf]);
     }
-
 }
 
 /// The pipelines over the two tables: the same blended quad for both, and its id twin.
@@ -95,7 +80,6 @@ struct SegPipelines {
 pub struct SegmentLane {
     pipes: SegTable,
     ribbons: SegTable,
-    supports: GrowBuf,
     shader: wgpu::ShaderModule,
     gpu: SegPipelines,
 }
@@ -105,11 +89,9 @@ impl SegmentLane {
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
         let shader = ink_module(&ctx.device, "ribbon.shader", include_str!("../../shaders/ribbon.wgsl"));
         let gpu = build_pipelines(ctx, l, &shader, target);
-
-        let supports = GrowBuf::new(ctx, "segments.supports", std::mem::size_of::<InkSupport>() as u64, ROWS);
-        let pipes = SegTable::new(ctx, l, "pipes", &supports);
-        let ribbons = SegTable::new(ctx, l, "ribbons", &supports);
-        Self { pipes, ribbons, supports, shader, gpu }
+        let pipes = SegTable::new(ctx, l, "pipes");
+        let ribbons = SegTable::new(ctx, l, "ribbons");
+        Self { pipes, ribbons, shader, gpu }
     }
 
     /// Rebuild the pipelines for a new sample count.
@@ -119,17 +101,11 @@ impl SegmentLane {
 
     /// Append one file's rows to both tables.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &SegRows) {
-        let base = self.supports.len();
-        let supports_grew = self.supports.append(ctx, &up.supports);
-        let pipes = rebase_supports(&up.pipes, base);
-        let ribbons = rebase_supports(&up.ribbons, base);
-        let pipes_grew = self.pipes.buf.append(ctx, &pipes);
-        let ribbons_grew = self.ribbons.buf.append(ctx, &ribbons);
-        if supports_grew || pipes_grew {
-            self.pipes.rebind(ctx, l, &self.supports);
+        if self.pipes.buf.append(ctx, &up.pipes) {
+            self.pipes.rebind(ctx, l);
         }
-        if supports_grew || ribbons_grew {
-            self.ribbons.rebind(ctx, l, &self.supports);
+        if self.ribbons.buf.append(ctx, &up.ribbons) {
+            self.ribbons.rebind(ctx, l);
         }
     }
 
@@ -138,7 +114,7 @@ impl SegmentLane {
         self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes)
     }
 
-    /// The flat lane's colour pass: line/polyline/curve ribbons, blended, depth read-only.
+    /// The flat lane's colour pass: line/polyline/curve ribbons, blended.
     pub fn draw_ribbons(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_table(pass, b, &self.gpu.ribbon, &self.ribbons)
     }
@@ -169,16 +145,14 @@ impl SegmentLane {
     pub fn reset(&mut self) {
         self.pipes.buf.reset();
         self.ribbons.buf.reset();
-        self.supports.reset();
     }
 
     /// Hand both buffers back.
     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
         self.pipes.buf.release(ctx);
         self.ribbons.buf.release(ctx);
-        self.supports.release(ctx);
-        self.pipes.rebind(ctx, l, &self.supports);
-        self.ribbons.rebind(ctx, l, &self.supports);
+        self.pipes.rebind(ctx, l);
+        self.ribbons.rebind(ctx, l);
     }
 
     /// Solid-lane rows on the GPU - the MSAA policy reads it.
@@ -204,30 +178,19 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, targe
     }
 }
 
-/// Rebase upload-local support ranges while preserving the caller's append-only rows.
-fn rebase_supports(rows: &[CylinderSegment], base: u32) -> Vec<CylinderSegment> {
-    let mut rows = rows.to_vec();
-    for row in &mut rows {
-        row.support_start = row.support_start.checked_add(base).expect("segment support index overflow");
-    }
-    rows
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::engine::gpu::instance::wgsl_fields;
 
-    /// ribbon.wgsl reads the 48 B segment row (ends as scalars).
+    /// ribbon.wgsl reads the 40 B segment row (ends as scalars).
     #[test]
     fn cylinder_segment_mirror() {
-        let rust = ["p0x", "p0y", "p0z", "radius", "p1x", "p1y", "p1z", "instance_id", "color", "facing", "support_start", "support_count"];
+        let rust = ["p0x", "p0y", "p0z", "radius", "p1x", "p1y", "p1z", "instance_id", "color", "facing"];
         for (name, src) in SHADERS {
             assert_eq!(wgsl_fields(src, "CylinderSegment"), rust, "{name}: CylinderSegment fields");
         }
-        assert_eq!(std::mem::size_of::<CylinderSegment>(), 48);
-        assert_eq!(std::mem::offset_of!(CylinderSegment, support_start), 40);
-        assert_eq!(std::mem::offset_of!(CylinderSegment, support_count), 44);
-        assert_eq!(std::mem::size_of::<InkSupport>(), 8);
+        assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
+        assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
     }
 }
