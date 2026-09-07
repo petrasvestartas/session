@@ -76,18 +76,16 @@ fn oct16_decode(p: u32) -> vec3<f32> {
 // near-parallel seam has to stay in the table, because from the right angle it IS one.
 const CREASE_COS: f32 = 0.906;
 
-// On a tessellated surface, ink an edge only where the surface ends, where it genuinely creases,
-// or where the two faces straddle the eye direction and the edge IS the silhouette. Everything
-// between is a seam that would draw the sampling grid instead of the shape. `pack_facing` gives
-// a one-faced border edge the same code twice, which is how a border is told from a seam.
-fn is_feature_edge(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
+// On a tessellated surface, ink an edge only where the surface ends or genuinely creases.
+// Everything between is a seam that would draw the sampling grid instead of the shape, and a
+// silhouette decided per segment from two packed normals flips as the camera turns, so it is
+// not drawn either. `pack_facing` gives a one-faced border edge the same code twice, which is
+// how a border is told from a seam.
+fn is_feature_edge(facing: u32, n0: vec3<f32>, n1: vec3<f32>) -> bool {
     if ((facing & 0xffffu) == (facing >> 16u)) {
         return true;
     }
-    if (dot(n0, n1) < CREASE_COS) {
-        return true;
-    }
-    return (dot(n0, to_eye) > 0.0) != (dot(n1, to_eye) > 0.0);
+    return dot(n0, n1) < CREASE_COS;
 }
 
 // An edge whose two faces both turn away from the eye is inside the solid: not drawn.
@@ -229,7 +227,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
         if (!edge_faces_camera(seg.facing, n0, n1, to_eye)) {
             return dead_vertex();
         }
-        if ((inst.flags & FLAG_SMOOTH) != 0u && !is_feature_edge(seg.facing, n0, n1, to_eye)) {
+        if ((inst.flags & FLAG_SMOOTH) != 0u && !is_feature_edge(seg.facing, n0, n1)) {
             return dead_vertex();
         }
     }
