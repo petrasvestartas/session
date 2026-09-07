@@ -106,8 +106,6 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
             instance_id: cx.row,
             color: if black_wire { BLACK } else { *col },
             facing,
-            support_start: 0,
-            support_count: 0,
         });
     }
 }
@@ -195,9 +193,6 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
             // A truncated normal list cannot prove every incident face points away.
             facing: if codes.len() > 6 { FACING_UNKNOWN } else { facing_word(&codes, 0) },
             facing_ext: if codes.len() > 6 { [FACING_UNKNOWN; 2] } else { [facing_word(&codes, 1), facing_word(&codes, 2)] },
-            support_start: 0,
-            support_count: 0,
-            _pad: [0; 2],
         });
     }
 }

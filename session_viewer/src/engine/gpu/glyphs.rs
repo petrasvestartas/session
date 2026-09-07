@@ -1,11 +1,10 @@
-//! The glyph lane: every vertex-sized piece of ink. Two tables of the same 64 B row - spheres
+//! The glyph lane: every vertex-sized piece of ink. Two tables of the same 48 B row - spheres
 //! (mesh/BRep vertex markers, the SOLID lane, on a quad template) and
 //! dots (free points, the FLAT lane, three verts per dot). `GlyphRows` is one upload.
 
 use crate::engine::pipelines::{build, ink_module, template_layout, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
 use super::buffers::{bind_group, GpuCtx, GrowBuf, Template, ROWS};
 use super::frame::Binds;
-use super::segments::InkSupport;
 use super::upload::drop_rows;
 use wgpu::PrimitiveTopology::TriangleList;
 
@@ -16,7 +15,8 @@ pub const SHADERS: &[(&str, &str)] = &[("sphere.wgsl", include_str!("../../shade
 /// Vertices per dot: one triangle whose incircle is the disc.
 const DOT_VERTS: u32 = 3;
 
-/// One marker or dot row, 64 B, the layout sphere.wgsl and glyph.wgsl declare.
+/// One marker or dot row, 48 B, the layout sphere.wgsl and glyph.wgsl declare. Offsets:
+/// center 0 (vec3, 16-aligned), radius 12, color 16, instance_id 32, facing 36, facing_ext 40.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct GlyphPoint {
@@ -29,19 +29,15 @@ pub struct GlyphPoint {
     /// `FACING_UNKNOWN` = no adjacency / no more.
     pub facing: u32,
     pub facing_ext: [u32; 2],
-    pub support_start: u32,
-    pub support_count: u32,
-    pub _pad: [u32; 2],
 }
 
-const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 64);
+const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
 
 /// One upload's glyphs: the solid lane's vertex markers and the flat lane's dots.
 #[derive(Default)]
 pub struct GlyphRows {
     pub spheres: Vec<GlyphPoint>,
     pub dots: Vec<GlyphPoint>,
-    pub supports: Vec<InkSupport>,
 }
 
 impl GlyphRows {
@@ -49,7 +45,6 @@ impl GlyphRows {
     pub fn drop_rows(&mut self) {
         drop_rows(&mut self.spheres);
         drop_rows(&mut self.dots);
-        drop_rows(&mut self.supports);
     }
 }
 
@@ -61,18 +56,17 @@ struct GlyphTable {
 }
 
 impl GlyphTable {
-    /// A one-row table sharing the lane's exact support identities.
-    fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str, supports: &GrowBuf) -> Self {
+    /// A one-row table and its bind group.
+    fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str) -> Self {
         let buf = GrowBuf::new(ctx, label, std::mem::size_of::<GlyphPoint>() as u64, ROWS);
-        let group = bind_group(ctx, &l.ink_rows, label, &[&buf.buf, &supports.buf]);
+        let group = bind_group(ctx, &l.ink_rows, label, &[&buf.buf]);
         Self { label, buf, group }
     }
 
-    /// Rebind both tables after either backing buffer changes.
-    fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts, supports: &GrowBuf) {
-        self.group = bind_group(ctx, &l.ink_rows, self.label, &[&self.buf.buf, &supports.buf]);
+    /// Rebind after the backing buffer changed.
+    fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts) {
+        self.group = bind_group(ctx, &l.ink_rows, self.label, &[&self.buf.buf]);
     }
-
 }
 
 /// The two shader modules the lane's pipelines are built from.
@@ -93,7 +87,6 @@ struct GlyphPipelines {
 pub struct GlyphLane {
     spheres: GlyphTable,
     dots: GlyphTable,
-    supports: GrowBuf,
     template: Template,
     shaders: GlyphShaders,
     gpu: GlyphPipelines,
@@ -109,11 +102,9 @@ impl GlyphLane {
             dot: ink_module(&ctx.device, "glyph.shader", include_str!("../../shaders/glyph.wgsl")),
         };
         let gpu = build_pipelines(ctx, l, &shaders, target);
-
-        let supports = GrowBuf::new(ctx, "glyphs.supports", std::mem::size_of::<InkSupport>() as u64, ROWS);
-        let spheres = GlyphTable::new(ctx, l, "spheres", &supports);
-        let dots = GlyphTable::new(ctx, l, "dots", &supports);
-        Self { spheres, dots, supports, template, shaders, gpu }
+        let spheres = GlyphTable::new(ctx, l, "spheres");
+        let dots = GlyphTable::new(ctx, l, "dots");
+        Self { spheres, dots, template, shaders, gpu }
     }
 
     /// Rebuild the pipelines for a new sample count.
@@ -123,17 +114,11 @@ impl GlyphLane {
 
     /// Append one file's rows to both tables.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &GlyphRows) {
-        let base = self.supports.len();
-        let supports_grew = self.supports.append(ctx, &up.supports);
-        let spheres = rebase_supports(&up.spheres, base);
-        let dots = rebase_supports(&up.dots, base);
-        let spheres_grew = self.spheres.buf.append(ctx, &spheres);
-        let dots_grew = self.dots.buf.append(ctx, &dots);
-        if supports_grew || spheres_grew {
-            self.spheres.rebind(ctx, l, &self.supports);
+        if self.spheres.buf.append(ctx, &up.spheres) {
+            self.spheres.rebind(ctx, l);
         }
-        if supports_grew || dots_grew {
-            self.dots.rebind(ctx, l, &self.supports);
+        if self.dots.buf.append(ctx, &up.dots) {
+            self.dots.rebind(ctx, l);
         }
     }
 
@@ -186,16 +171,14 @@ impl GlyphLane {
     pub fn reset(&mut self) {
         self.spheres.buf.reset();
         self.dots.buf.reset();
-        self.supports.reset();
     }
 
     /// Hand both buffers back.
     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
         self.spheres.buf.release(ctx);
         self.dots.buf.release(ctx);
-        self.supports.release(ctx);
-        self.spheres.rebind(ctx, l, &self.supports);
-        self.dots.rebind(ctx, l, &self.supports);
+        self.spheres.rebind(ctx, l);
+        self.dots.rebind(ctx, l);
     }
 
     /// Solid-lane rows on the GPU - the MSAA policy reads it.
@@ -225,15 +208,6 @@ fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) 
     }
 }
 
-/// Rebase upload-local support ranges while preserving the caller's append-only rows.
-fn rebase_supports(rows: &[GlyphPoint], base: u32) -> Vec<GlyphPoint> {
-    let mut rows = rows.to_vec();
-    for row in &mut rows {
-        row.support_start = row.support_start.checked_add(base).expect("glyph support index overflow");
-    }
-    rows
-}
-
 /// Camera-facing quad template for the markers; the fragment trims it to a circle.
 fn unit_quad() -> (Vec<[f32; 3]>, Vec<u32>) {
     let v = vec![[-1.0, -1.0, 0.0], [1.0, -1.0, 0.0], [1.0, 1.0, 0.0], [-1.0, 1.0, 0.0]];
@@ -246,16 +220,14 @@ mod tests {
     use super::*;
     use crate::engine::gpu::instance::wgsl_fields;
 
-    /// sphere.wgsl and glyph.wgsl read the same 64 B glyph row.
+    /// sphere.wgsl and glyph.wgsl read the same 48 B glyph row.
     #[test]
     fn glyph_point_mirror() {
-        let rust = ["center", "radius", "color", "instance_id", "facing", "facing_ext", "support_start", "support_count", "_pad"];
+        let rust = ["center", "radius", "color", "instance_id", "facing", "facing_ext"];
         for (name, src) in SHADERS {
             assert_eq!(wgsl_fields(src, "GlyphPoint"), rust, "{name}: GlyphPoint fields");
         }
-        assert_eq!(std::mem::size_of::<GlyphPoint>(), 64);
-        assert_eq!(std::mem::offset_of!(GlyphPoint, support_start), 48);
-        assert_eq!(std::mem::offset_of!(GlyphPoint, support_count), 52);
-        assert_eq!(std::mem::offset_of!(GlyphPoint, _pad), 56);
+        assert_eq!(std::mem::size_of::<GlyphPoint>(), 48);
+        assert_eq!(std::mem::offset_of!(GlyphPoint, facing_ext), 40);
     }
 }

@@ -1,4 +1,4 @@
-//! Exercise visibility attachments, support-buffer rebasing and picking on one live device.
+//! Exercise the depth attachment bindings, row appends and picking on one live device.
 //! Usage: check_hidden_line_lifecycle /tmp/lifecycle [first.pb second.pb ...]
 //! Always checks a generated lines/points-only scene; optional files form a second scene.
 

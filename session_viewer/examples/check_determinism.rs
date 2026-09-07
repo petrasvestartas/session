@@ -33,7 +33,6 @@ fn main() {
             }
         }; }
         same!(arena.verts); same!(arena.idx); same!(seg.ribbons); same!(seg.pipes); same!(glyph.spheres); same!(glyph.dots);
-        same!(seg.supports); same!(glyph.supports);
         same!(cloud.pos); same!(cloud.col); same!(cloud.nrm);
         if a.tables.bounds != b.tables.bounds { fails.push("tables.bounds".into()) }
 

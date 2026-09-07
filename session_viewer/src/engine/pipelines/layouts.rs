@@ -25,14 +25,6 @@ fn uniform_layout(device: &wgpu::Device, label: &str, stages: wgpu::ShaderStages
     })
 }
 
-/// One read-only storage buffer at binding 0: the row table every ink lane reads.
-fn rows_layout(device: &wgpu::Device, label: &str) -> wgpu::BindGroupLayout {
-    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some(label),
-        entries: &[storage_entry(0)],
-    })
-}
-
 /// The instance group: 96 B rows at binding 0 and 16 B anchored translations at binding 1,
 /// split so a re-anchor rewrites 16 B per object instead of 96.
 fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
@@ -69,14 +61,11 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     })
 }
 
-/// Exact support identities are a separate table shared by both representations of a lane.
+/// The ink lanes' row table, read by the vertex stage (and the fragment stage of the id pass).
 fn ink_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("ink.rows.layout"),
-        entries: &[
-            buffer_entry(0, wgpu::ShaderStages::VERTEX_FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
-            buffer_entry(1, wgpu::ShaderStages::FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true }),
-        ],
+        entries: &[buffer_entry(0, wgpu::ShaderStages::VERTEX_FRAGMENT, wgpu::BufferBindingType::Storage { read_only: true })],
     })
 }
 
@@ -122,7 +111,6 @@ pub struct Layouts {
     pub mvp: wgpu::BindGroupLayout,
     pub line: wgpu::BindGroupLayout,
     pub instance: wgpu::BindGroupLayout,
-    pub rows: wgpu::BindGroupLayout,
     pub ink_instance: wgpu::BindGroupLayout,
     pub ink_rows: wgpu::BindGroupLayout,
     pub points: wgpu::BindGroupLayout,
@@ -136,7 +124,6 @@ impl Layouts {
             mvp: uniform_layout(device, "mvp.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
             line: uniform_layout(device, "line.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
             instance: instance_layout(device),
-            rows: rows_layout(device, "rows.layout"),
             ink_instance: ink_instance_layout(device),
             ink_rows: ink_rows_layout(device),
             points: points_layout(device),

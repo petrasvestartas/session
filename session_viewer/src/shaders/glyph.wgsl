@@ -21,9 +21,6 @@ struct GlyphPoint {
     instance_id: u32,
     facing: u32,
     facing_ext: vec2<u32>,
-    support_start: u32,
-    support_count: u32,
-    _pad: vec2<u32>,
 };
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 

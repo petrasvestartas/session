@@ -22,8 +22,6 @@ struct CylinderSegment {
     instance_id: u32,
     color: u32,
     facing: u32,
-    support_start: u32,
-    support_count: u32,
 }
 @group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
 
