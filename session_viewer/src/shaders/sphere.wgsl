@@ -40,12 +40,14 @@ struct LineUniform {
     feather: f32,
     occluder_rect: vec4<f32>,
     lit: f32,
+    backface: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
 const FLAG_SELECTED: u32 = 1u;
 const FLAG_INSIDE: u32 = 4u;
 const FLAG_OPEN: u32 = 16u;
+const FLAG_SMOOTH: u32 = 64u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 const MM_TO_M: f32 = 0.001;
 
@@ -145,6 +147,11 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
 
     let off = tmpl.xy * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
 
+    // A tessellation's vertices are sample positions, not corners of anything: no markers.
+    if ((inst.flags & FLAG_SMOOTH) != 0u) {
+        return dead_dot();
+    }
+
     // Hidden vertices never reach the rasterizer, unless the eye is inside the object.
     let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
     if (!inside) {
@@ -169,9 +176,17 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
     return o;
 }
 
+// The antialiasing ramp never spans more than the ink it feathers. A pen thinner than the
+// ramp otherwise spreads its coverage wider than the line it draws and never reaches full
+// opacity, so its brightness beats along the run wherever a pixel centre misses the axis.
+fn ramp(half_width: f32) -> f32 {
+    return min(line.feather, 2.0 * half_width);
+}
+
 fn coverage(in: VsOut) -> f32 {
     let d = length(in.corner) * (in.px + 0.5 * line.feather);
-    return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0);
+    let f = ramp(in.px);
+    return clamp((in.px + 0.5 * f - d) / f, 0.0, 1.0);
 }
 
 fn footprint(in: VsOut) -> InkFootprint {

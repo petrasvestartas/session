@@ -3,9 +3,25 @@
 
 use super::buffers::GpuCtx;
 
-/// Above this many pixels the frame stays at 1x: 4x colour + 4x depth scale with DPR², and at
-/// 3840x2160 they were 266 MiB against 36 at 1x.
-const MSAA_MAX_PIXELS: u32 = 4_200_000;
+/// How many pixels a discrete GPU carries at 4x: 3840x2160 and change. Measured on
+/// `view_local` at that size, 4x cost one 8.2 ms against 6.9 at 1x - a fifth of the frame.
+const MSAA_PIXELS_DISCRETE: u32 = 9_000_000;
+
+/// The same for an integrated or virtual GPU, which shares its bandwidth with the CPU: the
+/// same scene and size cost an Intel iGPU 108.9 ms against 46.5, well over twice the frame.
+/// Shrinking the canvas does not buy that back - the same adapter needed 92.4 ms for 4x at
+/// 2108x1186 - so a big canvas gives up the samples rather than the pixels.
+const MSAA_PIXELS_SHARED: u32 = 2_500_000;
+
+/// The budget when the adapter will not say what it is. THE BROWSER IS ALWAYS THIS: wgpu's
+/// WebGPU backend hardcodes `device_type: DeviceType::Other` for every adapter
+/// (`wgpu-29.0.4/src/backend/webgpu.rs:864`), because WebGPU exposes no such field. So this
+/// arm, not the ones above, is what every wasm session gets, and it may not be read as
+/// "probably integrated" - it is a discrete GPU exactly as often as it is not. It keeps the
+/// memory bound that has always governed here: 4x colour + 4x depth are 266 MiB at 3840x2160
+/// against 36 at 1x. Sending the browser to the integrated arm instead costs every canvas
+/// between 2.5 and 4.2 Mpx its samples - a 2560x1440 window, or a 1440x900 one at dpr 1.5.
+const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 
 /// The attachments of the frame's render pass and the sample count they were made at.
 /// `msaa` exists only at 4x.
@@ -43,14 +59,30 @@ impl Targets {
         Self { depth, msaa, faces, depth_single, depth_msaa, faces_single, faces_msaa, samples }
     }
 
+    /// How many pixels this adapter carries at 4x, or `None` when 4x is never worth it. 4x
+    /// colour + 4x depth scale with DPR², and at 3840x2160 they were 266 MiB against 36 at 1x,
+    /// but what decides the frame is the adapter: the same scene cost a discrete GPU a fifth
+    /// more and an integrated one more than twice as much.
+    pub fn msaa_budget(gpu: wgpu::DeviceType) -> Option<u32> {
+        match gpu {
+            wgpu::DeviceType::DiscreteGpu => Some(MSAA_PIXELS_DISCRETE),
+            wgpu::DeviceType::IntegratedGpu | wgpu::DeviceType::VirtualGpu => Some(MSAA_PIXELS_SHARED),
+            wgpu::DeviceType::Cpu => None,
+            wgpu::DeviceType::Other => Some(MSAA_PIXELS_UNKNOWN),
+        }
+    }
+
     /// The sample count a frame gets: 4x only when SOLID geometry (faces, pipes, spheres) is on
-    /// the GPU AND the canvas is at most `MSAA_MAX_PIXELS`, else 1x. Hard edges are the only
-    /// thing MSAA smooths; ribbons, dots and splats antialias themselves. `forced` wins outright.
-    pub fn samples_for(solid: bool, pixels: u32, forced: Option<u32>) -> u32 {
+    /// the GPU AND the canvas is within this adapter's `budget`, else 1x. Hard edges are the
+    /// only thing MSAA smooths; ribbons, dots and splats antialias themselves. `forced` wins.
+    pub fn samples_for(solid: bool, pixels: u32, forced: Option<u32>, budget: Option<u32>) -> u32 {
         if let Some(s) = forced {
             return if s == 4 { 4 } else { 1 };
         }
-        if solid && pixels <= MSAA_MAX_PIXELS { 4 } else { 1 }
+        match budget {
+            Some(max) if solid && pixels <= max => 4,
+            _ => 1,
+        }
     }
 
     /// Clear physical depth to reverse-Z far and record the nearest face identity.
@@ -131,4 +163,38 @@ pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
 /// A 2D texture's default view, the texture itself dropped (wgpu keeps it alive).
 pub fn texture_view(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::TextureView {
     texture(ctx, label, spec).create_view(&wgpu::TextureViewDescriptor::default())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The sample count follows the ADAPTER, not the pixel count alone: a discrete GPU keeps
+    /// 4x at 4K, a shared one gives it up well before, and a software one never has it.
+    #[test]
+    fn msaa_follows_the_adapter() {
+        let discrete = Targets::msaa_budget(wgpu::DeviceType::DiscreteGpu);
+        let shared = Targets::msaa_budget(wgpu::DeviceType::IntegratedGpu);
+        let software = Targets::msaa_budget(wgpu::DeviceType::Cpu);
+        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, discrete), 4);
+        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, shared), 1);
+        assert_eq!(Targets::samples_for(true, 1920 * 1080, None, shared), 4);
+        assert_eq!(Targets::samples_for(true, 1, None, software), 1);
+        assert_eq!(Targets::samples_for(false, 1, None, discrete), 1);
+        assert_eq!(Targets::samples_for(true, 3840 * 2160, Some(1), discrete), 1);
+        assert_eq!(Targets::samples_for(false, u32::MAX, Some(4), software), 4);
+    }
+
+    /// THE BROWSER'S ARM. wgpu's WebGPU backend reports `DeviceType::Other` for every adapter
+    /// there, so this is the only budget a wasm session can reach. Reading it as "integrated"
+    /// costs an ordinary 2560x1440 window its samples; the memory bound still takes them away
+    /// at 4K, where 4x really is 266 MiB.
+    #[test]
+    fn the_browser_arm_is_not_the_integrated_one() {
+        let browser = Targets::msaa_budget(wgpu::DeviceType::Other);
+        let shared = Targets::msaa_budget(wgpu::DeviceType::IntegratedGpu);
+        assert_eq!(Targets::samples_for(true, 2560 * 1440, None, browser), 4);
+        assert_eq!(Targets::samples_for(true, 2560 * 1440, None, shared), 1);
+        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, browser), 1);
+    }
 }

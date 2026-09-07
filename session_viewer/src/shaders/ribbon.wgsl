@@ -40,6 +40,7 @@ struct LineUniform {
     feather: f32,
     occluder_rect: vec4<f32>,
     lit: f32,
+    backface: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -47,6 +48,7 @@ const FLAG_SELECTED: u32 = 1u;
 const FLAG_INSIDE: u32 = 4u;
 const FLAG_OPEN: u32 = 16u;
 const FLAG_SHEET: u32 = 32u;
+const FLAG_SMOOTH: u32 = 64u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 const MM_TO_M: f32 = 0.001;
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
@@ -69,6 +71,27 @@ fn oct16_decode(p: u32) -> vec3<f32> {
     return normalize(n);
 }
 
+// How far two faces must turn before their shared edge is a real crease rather than a seam
+// left by sampling. cos(25 degrees); the packed normals carry about a degree of error, so the
+// threshold sits well clear of the tessellation tolerance the walk asks for. The walk already
+// drops the EXACTLY coplanar case, which no viewpoint can turn into a silhouette; a merely
+// near-parallel seam has to stay in the table, because from the right angle it IS one.
+const CREASE_COS: f32 = 0.906;
+
+// On a tessellated surface, ink an edge only where the surface ends, where it genuinely creases,
+// or where the two faces straddle the eye direction and the edge IS the silhouette. Everything
+// between is a seam that would draw the sampling grid instead of the shape. `pack_facing` gives
+// a one-faced border edge the same code twice, which is how a border is told from a seam.
+fn is_feature_edge(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
+    if ((facing & 0xffffu) == (facing >> 16u)) {
+        return true;
+    }
+    if (dot(n0, n1) < CREASE_COS) {
+        return true;
+    }
+    return (dot(n0, to_eye) > 0.0) != (dot(n1, to_eye) > 0.0);
+}
+
 // An edge whose two faces both turn away from the eye is inside the solid: not drawn.
 fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
     if (facing == FACING_UNKNOWN) {
@@ -86,6 +109,36 @@ fn half_width_px(radius: f32, w: f32) -> f32 {
         return radius * line.proj_y * line.vp_h * 0.5 / w;
     }
     return line.thickness * 0.5;
+}
+
+// Half a pixel's diagonal: the farthest a pixel's own area reaches from its centre along any
+// direction, so the exact filter below has no ink outside `half_width + this` and the quad
+// need not be expanded further.
+const FILTER_REACH: f32 = 0.70711;
+
+// The unit pixel square projected onto a direction is a trapezoid (a box of width |g.x|
+// convolved with one of |g.y|); this is that trapezoid's CDF.
+fn box_cdf(t: f32, hi: f32, lo: f32, m: f32, q: f32) -> f32 {
+    let s = clamp(t, -hi, hi);
+    let e = hi - abs(s);
+    let tail = select(e * e / q, 1.0 - e * e / q, s > 0.0);
+    return select(tail, 0.5 + s / m, abs(s) <= lo);
+}
+
+// The EXACT area of this pixel lying within `hw` of the axis, `d` from it, where `g` is the
+// unit gradient of the distance field. A ramp in `d` cannot do this: pixel centres sample it
+// at spacing cos(angle), and the sampled sum then beats with the line's subpixel phase - 22%
+// at a 1.5 px pen through a 1.5 px ramp, with a period of cot(angle) px, which is the banding
+// a shallow line shows. Pixel boxes tile the plane, so summing their true areas cannot beat:
+// measured 0.00% ripple here against 22.2% for the ramp, at every angle from 1 to 45 degrees.
+fn band_area(d: f32, hw: f32, g: vec2<f32>) -> f32 {
+    let a = abs(g.x);
+    let b = abs(g.y);
+    let hi = 0.5 * (a + b);
+    let lo = 0.5 * abs(a - b);
+    let m = max(max(a, b), 1e-6);
+    let q = max(2.0 * a * b, 1e-6);
+    return box_cdf(hw - d, hi, lo, m, q) + box_cdf(hw + d, hi, lo, m, q) - 1.0;
 }
 
 // Hairline rule: never thinner than 1 px, the deficit goes into alpha (floored).
@@ -172,6 +225,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
         if (!edge_faces_camera(seg.facing, n0, n1, to_eye)) {
             return dead_vertex();
         }
+        if ((inst.flags & FLAG_SMOOTH) != 0u && !is_feature_edge(seg.facing, n0, n1, to_eye)) {
+            return dead_vertex();
+        }
     }
 
     let c0 = mvp * vec4<f32>(w0, 1.0);
@@ -204,7 +260,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let px = floor_hairline(select(raw0, raw1, at_end1));
     let crowd = density_taper(seg.facing, len, px);
     let along = select(-1.0, 1.0, at_end1);
-    let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + 0.5 * line.feather);
+    let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + FILTER_REACH);
 
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
@@ -225,14 +281,17 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     return o;
 }
 
-// Coverage of the capsule at this fragment, in [0, 1], times the hairline fade.
+// Coverage of the capsule at this fragment, in [0, 1], times the hairline fade. The capsule's
+// gradient is the unit vector from its axis, which straightens the cap arc inside one pixel.
 fn coverage(in: VsOut) -> f32 {
     let pa = in.p - in.a;
     let ba = in.b - in.a;
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
-    let d = length(pa - ba * h);
+    let v = pa - ba * h;
+    let d = length(v);
     let hf = resolve_width(in, h);
-    return clamp((hf.x + 0.5 * line.feather - d) / line.feather, 0.0, 1.0) * hf.y;
+    let g = select(vec2<f32>(1.0, 0.0), v / d, d > 1e-6);
+    return clamp(band_area(d, hf.x, g), 0.0, 1.0) * hf.y;
 }
 
 // Keep capsule coverage and screen endpoints in the original vertex stage. Only physical
@@ -275,8 +334,8 @@ fn axis_sample(in: VsOut, axis: VisibilityAxis) -> InkSample {
 
 fn footprint(in: VsOut, axis: VisibilityAxis) -> InkFootprint {
     return InkFootprint(axis.support,
-        vec3<f32>(in.a.x, line.vp_h - in.a.y, floor_hairline(in.hw0) + 0.5 * line.feather),
-        vec3<f32>(in.b.x, line.vp_h - in.b.y, floor_hairline(in.hw1) + 0.5 * line.feather));
+        vec3<f32>(in.a.x, line.vp_h - in.a.y, floor_hairline(in.hw0) + FILTER_REACH),
+        vec3<f32>(in.b.x, line.vp_h - in.b.y, floor_hairline(in.hw1) + FILTER_REACH));
 }
 
 @fragment

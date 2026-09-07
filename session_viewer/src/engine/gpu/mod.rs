@@ -73,6 +73,8 @@ pub struct Gpu {
     pub performance: Performance,
     /// The world box of everything uploaded; the camera fits it and the inside test reads it.
     pub bounds: Aabb,
+    /// What class of GPU is drawing; the antialiasing budget is spent against it.
+    device_type: wgpu::DeviceType,
 }
 
 impl Gpu {
@@ -89,7 +91,7 @@ impl Gpu {
 
     /// Negotiate the device, make every layout, buffer, bind group and pipeline, start empty.
     async fn build(window: Option<std::sync::Arc<winit::window::Window>>, size: (u32, u32)) -> anyhow::Result<Self> {
-        let DeviceSetup { surface, device, queue, config } = device::open(window, size).await?;
+        let DeviceSetup { surface, device, queue, config, device_type } = device::open(window, size).await?;
         let ctx = GpuCtx { device, queue };
         let size = (config.width, config.height);
         let target = Target { format: config.format, samples: 1 };
@@ -124,6 +126,7 @@ impl Gpu {
             pick: Picker::new(),
             performance: Performance::new(),
             bounds: Aabb::empty(),
+            device_type,
         })
     }
 
@@ -175,11 +178,16 @@ impl Gpu {
         }
     }
 
+    /// How many pixels this adapter carries at 4x; the canvas is sized to fit inside it.
+    pub fn msaa_budget(&self) -> Option<u32> {
+        Targets::msaa_budget(self.device_type)
+    }
+
     /// The sample count for what is ON the GPU now: 4x only with solid geometry (faces,
     /// pipes, spheres) and a canvas MSAA can afford; a pure sheet or cloud stays at 1x.
     fn msaa_now(&self) -> u32 {
         let solid = self.arena.face_count() > 0 || self.segments.pipe_count() > 0 || self.glyphs.sphere_count() > 0;
-        Targets::samples_for(solid, self.config.width * self.config.height, self.view.msaa_forced)
+        Targets::samples_for(solid, self.config.width * self.config.height, self.view.msaa_forced, self.msaa_budget())
     }
 
     /// The anchor the instance table is rebased about. A rebase moves every model, so the

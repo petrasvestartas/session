@@ -44,15 +44,19 @@ pub fn is_print_fill(m: &Mesh) -> bool {
 pub struct MeshOpts {
     pub sheet_lanes: bool,
     pub allow_open: bool,
+    /// The mesh is a tessellation of a smooth surface, so its seams are not edges.
+    pub smooth: bool,
 }
 
 impl MeshOpts {
-    /// A `Mesh` object: print fills take the sheet runs; open meshes are flagged.
-    pub const OBJECT: MeshOpts = MeshOpts { sheet_lanes: true, allow_open: true };
-    /// A tessellated BRep or surface: always the depth-tested run, never `FLAG_OPEN`.
-    pub const MODEL: MeshOpts = MeshOpts { sheet_lanes: false, allow_open: false };
+    /// A `Mesh` object: print fills take the sheet runs; open meshes are flagged. Every edge
+    /// an authored mesh carries is an edge the author put there.
+    pub const OBJECT: MeshOpts = MeshOpts { sheet_lanes: true, allow_open: true, smooth: false };
+    /// A tessellated BRep or surface: always the depth-tested run, never `FLAG_OPEN`, and the
+    /// seams between its facets are sampling, not geometry.
+    pub const MODEL: MeshOpts = MeshOpts { sheet_lanes: false, allow_open: false, smooth: true };
     /// An element's mesh: sheet runs, but an element is never flagged open.
-    pub const ELEMENT: MeshOpts = MeshOpts { sheet_lanes: true, allow_open: false };
+    pub const ELEMENT: MeshOpts = MeshOpts { sheet_lanes: true, allow_open: false, smooth: false };
 }
 
 /// The clock behind VIEWER_PROFILE: `mark` prints the lap since the previous mark. A no-op
@@ -162,7 +166,10 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         idx.push(base + i);
     }
     lap.mark("vert+idx push");
-    let flags = if o.sheet_lanes && print { Instance::FLAG_PRINT } else { 0 };
+    let mut flags = if o.sheet_lanes && print { Instance::FLAG_PRINT } else { 0 };
+    if o.smooth && !knobs::seams() {
+        flags |= Instance::FLAG_SMOOTH;
+    }
     let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
     let row = Row { bounds, spacing: mesh_spacing(&bounds, m.number_of_vertices()), flags, faces: true, thickness, host_faces };
 

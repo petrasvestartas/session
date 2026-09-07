@@ -38,12 +38,14 @@ struct LineUniform {
     feather: f32,
     occluder_rect: vec4<f32>,
     lit: f32,
+    backface: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
 const FLAG_SELECTED: u32 = 1u;
 const FLAG_INSIDE: u32 = 4u;
 const FLAG_OPEN: u32 = 16u;
+const FLAG_SMOOTH: u32 = 64u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 
 // Density taper: a tube thins when its projected length is under this many pen widths.
@@ -65,15 +67,40 @@ fn oct16_decode(p: u32) -> vec3<f32> {
     return normalize(n);
 }
 
-// An edge whose two faces both turn away from the eye is inside the solid: not drawn.
-fn edge_faces_camera(seg: CylinderSegment, model: mat4x4<f32>, mid: vec3<f32>) -> bool {
+// How far two faces must turn before their shared edge is a real crease rather than a seam
+// left by sampling. cos(25 degrees); the packed normals carry about a degree of error, so the
+// threshold sits well clear of the tessellation tolerance the walk asks for. The walk already
+// drops the EXACTLY coplanar case, which no viewpoint can turn into a silhouette; a merely
+// near-parallel seam has to stay in the table, because from the right angle it IS one.
+const CREASE_COS: f32 = 0.906;
+
+// On a tessellated surface, ink an edge only where the surface ends, where it genuinely creases,
+// or where the two faces straddle the eye direction and the edge IS the silhouette. Everything
+// between is a seam that would draw the sampling grid instead of the shape. `pack_facing` gives
+// a one-faced border edge the same code twice, which is how a border is told from a seam.
+fn is_feature_edge(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
+    if ((facing & 0xffffu) == (facing >> 16u)) {
+        return true;
+    }
+    if (dot(n0, n1) < CREASE_COS) {
+        return true;
+    }
+    return (dot(n0, to_eye) > 0.0) != (dot(n1, to_eye) > 0.0);
+}
+
+// An edge whose two faces both turn away from the eye is inside the solid: not drawn, and on a
+// tessellation a seam between two near-parallel faces is not drawn either.
+fn edge_faces_camera(seg: CylinderSegment, model: mat4x4<f32>, mid: vec3<f32>, tessellated: bool) -> bool {
     if (seg.facing == FACING_UNKNOWN) {
         return true;
     }
     let n0 = face_normal(model, oct16_decode(seg.facing & 0xffffu));
     let n1 = face_normal(model, oct16_decode(seg.facing >> 16u));
     let to_eye = toward_eye(mid);
-    return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
+    if (dot(n0, to_eye) <= 0.0 && dot(n1, to_eye) <= 0.0) {
+        return false;
+    }
+    return !tessellated || is_feature_edge(seg.facing, n0, n1, to_eye);
 }
 
 // World radius that projects to `thickness` px, whatever the zoom.
@@ -107,7 +134,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si: u32) -> Vs
     let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
 
     let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
-    if (!inside && !edge_faces_camera(seg, inst.model, (w0 + w1) * 0.5)) {
+    if (!inside && !edge_faces_camera(seg, inst.model, (w0 + w1) * 0.5, (inst.flags & FLAG_SMOOTH) != 0u)) {
         return dead_vertex();
     }
 

@@ -11,7 +11,7 @@ use super::bounds::polyline_thickness;
 use super::encode::{encode_width, pack_rgba, Pen, FACING_UNKNOWN};
 
 /// Segments between consecutive points, growing `bounds` as they go.
-fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut Aabb) {
+pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut Aabb) {
     seg.ribbons.reserve(pts.len().saturating_sub(1));
     for w in pts.windows(2) {
         bounds.grow(w[0]);
@@ -45,25 +45,45 @@ pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
     Row { thickness: polyline_thickness(&pts), ..Row::thin(bounds) }
 }
 
-/// The box of the control points (a NURBS curve never leaves its control net).
-fn control_box(c: &NurbsCurve) -> Option<([f64; 3], [f64; 3])> {
-    let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
-    for i in 0..c.m_cv_count {
-        let Some(cv) = c.cv(i) else { continue };
-        let w = if c.m_is_rat && cv.len() > 3 && cv[3] != 0.0 { cv[3] } else { 1.0 };
-        for k in 0..3 {
-            lo[k] = lo[k].min(cv[k] / w);
-            hi[k] = hi[k].max(cv[k] / w);
+/// Degrees of turning one chord may hide. A chord across `a` degrees of arc sags by
+/// `r * (1 - cos(a/2))` of its own radius, so 5 degrees is a sag of 0.1% - under a pixel until
+/// the curve is a thousand pixels across, at any zoom and at any size in world units.
+const CHORD_DEGREES: f64 = 5.0;
+
+/// The control polygon turns by this much in total; a straight curve returns 0 and a full
+/// circle 360, whatever its radius. Curvature, not world size, is what a chord has to follow.
+fn turning_degrees(c: &NurbsCurve) -> f64 {
+    let cv = |i: usize| -> Option<[f64; 3]> {
+        let p = c.cv(i)?;
+        let w = if c.m_is_rat && p.len() > 3 && p[3] != 0.0 { p[3] } else { 1.0 };
+        Some([p[0] / w, p[1] / w, p[2] / w])
+    };
+    let mut total = 0.0;
+    let mut prev: Option<[f64; 3]> = None;
+    for i in 1..c.m_cv_count {
+        let (Some(a), Some(b)) = (cv(i - 1), cv(i)) else { continue };
+        let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+        let len = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+        if len < 1e-12 {
+            continue;
         }
+        let u = [d[0] / len, d[1] / len, d[2] / len];
+        if let Some(q) = prev {
+            let dot = (q[0] * u[0] + q[1] * u[1] + q[2] * u[2]).clamp(-1.0, 1.0);
+            total += dot.acos().to_degrees();
+        }
+        prev = Some(u);
     }
-    if lo[0] > hi[0] { None } else { Some((lo, hi)) }
+    total
 }
 
 /// Keep the walk and supporting-face association on identical original f64 curve samples.
 pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
-    let Some((lo, hi)) = control_box(c) else { return Vec::new() };
-    let size = ((hi[0] - lo[0]).powi(2) + (hi[1] - lo[1]).powi(2) + (hi[2] - lo[2]).powi(2)).sqrt();
-    let n = ((size / 0.2).sqrt().ceil() as usize).clamp(4, 64);
+    if c.m_cv_count < 2 {
+        return Vec::new();
+    }
+    let spans = c.span_count().max(1);
+    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512);
 
     let (t0, t1) = c.domain();
     let mut pts: Vec<[f64; 3]> = Vec::with_capacity(n + 1);

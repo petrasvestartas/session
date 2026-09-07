@@ -40,6 +40,7 @@ struct LineUniform {
     feather: f32,
     occluder_rect: vec4<f32>,
     lit: f32,
+    backface: f32,
 };
 
 const FLAG_SELECTED: u32 = 1u;
@@ -126,9 +127,17 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     return o;
 }
 
+// The antialiasing ramp never spans more than the ink it feathers. A pen thinner than the
+// ramp otherwise spreads its coverage wider than the line it draws and never reaches full
+// opacity, so its brightness beats along the run wherever a pixel centre misses the axis.
+fn ramp(half_width: f32) -> f32 {
+    return min(line.feather, 2.0 * half_width);
+}
+
 fn coverage(in: VsOut) -> f32 {
     let d = length(in.corner) * (in.px + 0.5 * line.feather);
-    return clamp((in.px + 0.5 * line.feather - d) / line.feather, 0.0, 1.0) * in.fade;
+    let f = ramp(in.px);
+    return clamp((in.px + 0.5 * f - d) / f, 0.0, 1.0) * in.fade;
 }
 
 fn footprint(in: VsOut) -> InkFootprint {

@@ -5,13 +5,15 @@
 use std::sync::Arc;
 use winit::window::Window;
 
-/// What `open` negotiated: the surface (None when headless), the device/queue pair, and the
-/// surface configuration it was configured with.
+/// What `open` negotiated: the surface (None when headless), the device/queue pair, the
+/// surface configuration it was configured with, and what class of GPU answered - the
+/// antialiasing budget is spent against the adapter, not against the pixel count alone.
 pub struct DeviceSetup {
     pub surface: Option<wgpu::Surface<'static>>,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
     pub config: wgpu::SurfaceConfiguration,
+    pub device_type: wgpu::DeviceType,
 }
 
 /// Set up the wgpu objects in order. `size` is the canvas in pixels; a zero side is clamped
@@ -88,7 +90,7 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         s.configure(&device, &config);
     }
 
-    Ok(DeviceSetup { surface, device, queue, config })
+    Ok(DeviceSetup { surface, device, queue, config, device_type: info.device_type })
 }
 
 /// A failed GPU command must never be mistaken for a valid render.

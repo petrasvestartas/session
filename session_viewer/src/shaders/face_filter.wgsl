@@ -21,6 +21,7 @@ struct LineUniform {
     feather: f32,
     occluder_rect: vec4<f32>,
     lit: f32,
+    backface: f32,
 };
 
 struct FacePlane {

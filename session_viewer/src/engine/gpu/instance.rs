@@ -37,6 +37,10 @@ impl Instance {
     pub const FLAG_OPEN: u32 = 1 << 4;
     /// A row of a planar drawing sheet: fills composite in document order. Bit 5.
     pub const FLAG_SHEET: u32 = 1 << 5;
+    /// A TESSELLATION, not an authored mesh: its interior seams are an artifact of how finely
+    /// the surface was sampled, not edges of the thing. The edge lanes ink only where such a
+    /// surface really creases or turns away from the eye. Bit 6.
+    pub const FLAG_SMOOTH: u32 = 1 << 6;
 
     /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
     pub fn placeholder() -> Self {
@@ -94,7 +98,8 @@ mod tests {
                         offset_of!(GlyphPoint, instance_id), offset_of!(GlyphPoint, facing), offset_of!(GlyphPoint, facing_ext),
                         offset_of!(GlyphPoint, support_start), offset_of!(GlyphPoint, support_count), offset_of!(GlyphPoint, _pad)], size_of::<GlyphPoint>()),
                     "InkSupport" => (vec![offset_of!(InkSupport, face), offset_of!(InkSupport, region)], size_of::<InkSupport>()),
-                    "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, occluder_rect), offset_of!(LineUniform, lit)], size_of::<LineUniform>()),
+                    "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, occluder_rect), offset_of!(LineUniform, lit),
+                        offset_of!(LineUniform, backface)], size_of::<LineUniform>()),
                     "FaceFilterParams" => (vec![offset_of!(FaceFilterParams, index_count), offset_of!(FaceFilterParams, row_width), offset_of!(FaceFilterParams, _pad)], size_of::<FaceFilterParams>()),
                     "FacePlane" => (vec![offset_of!(FacePlane, point), offset_of!(FacePlane, instance_id), offset_of!(FacePlane, normal), offset_of!(FacePlane, _pad)], size_of::<FacePlane>()),
                     _ => continue,
@@ -124,7 +129,7 @@ mod tests {
     /// three scalars there.
     #[test]
     fn line_uniform_mirror() {
-        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather", "occluder_rect", "lit"];
+        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather", "occluder_rect", "lit", "backface"];
         for (name, src) in lane_shaders() {
             if src.contains("struct LineUniform") {
                 assert_eq!(wgsl_fields(src, "LineUniform"), rust, "{name}: LineUniform fields");

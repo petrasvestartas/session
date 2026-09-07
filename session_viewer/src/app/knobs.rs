@@ -13,6 +13,7 @@ static DROP_SESSIONS: OnceLock<bool> = OnceLock::new();
 static NO_EDGES: OnceLock<bool> = OnceLock::new();
 static NO_DOTS: OnceLock<bool> = OnceLock::new();
 static ALL_EDGES: OnceLock<bool> = OnceLock::new();
+static SEAMS: OnceLock<bool> = OnceLock::new();
 
 /// VIEWER_PROFILE: print the walk's laps to stderr (native harness only).
 pub fn profile() -> bool {
@@ -37,4 +38,10 @@ pub fn no_dots() -> bool {
 /// VIEWER_ALL_EDGES: keep the coplanar interior edges the wireframe normally culls.
 pub fn all_edges() -> bool {
     env_flag("VIEWER_ALL_EDGES", &ALL_EDGES)
+}
+
+/// VIEWER_SEAMS: ink a tessellation's every seam, not only its creases and silhouette - what
+/// the sampling grid actually looks like.
+pub fn seams() -> bool {
+    env_flag("VIEWER_SEAMS", &SEAMS)
 }

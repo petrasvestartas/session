@@ -26,6 +26,7 @@ struct LineUniform {
     feather: f32,
     occluder_rect: vec4<f32>,
     lit: f32,
+    backface: f32,
 };
 
 const FLAG_SELECTED: u32 = 1u;
@@ -95,7 +96,7 @@ fn shade(in: VsOut, front: bool) -> vec4<f32> {
 
     // A back face is a flipped normal or the inside of an open solid: shown red. Print is
     // paper, read from both sides, lit flat.
-    let backface = !front && in.print <= 0.5;
+    let backface = !front && in.print <= 0.5 && line.backface > 0.5;
     let base = select(in.color, BACKFACE_COLOR, backface);
     let shaded = select(1.0, lit, line.lit > 0.5 && in.print <= 0.5);
     return vec4<f32>(base * shaded, 1.0);
