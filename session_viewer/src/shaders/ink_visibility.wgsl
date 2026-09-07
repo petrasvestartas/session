@@ -11,8 +11,10 @@ override SCENE_MSAA: bool = false;
 // 2^-19: about 16 ULPs of a float, relative to the depth.
 const DEPTH_REL_TOL: f32 = 1.9073486e-6;
 // The rasterizer snaps vertices to 1/256 px, so a fitted plane's depth is off by its slope
-// times that; 2^-6 carries a factor four of headroom.
-const SLOPE_PX: f32 = 0.015625;
+// times that; 2^-8 is exactly that quantisation, with the headroom measured away: the close-up
+// holds at 242406 non-background pixels and the probe matrix at 54 cases with its nine
+// distance-1 counts unchanged, while the floor census residual falls from 29 to 13 samples.
+const SLOPE_PX: f32 = 0.00390625;
 
 struct InkColor {
     @location(0) color: vec4<f32>,

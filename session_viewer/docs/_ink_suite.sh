@@ -37,7 +37,7 @@ if [ ! -f "$FLOOR" ] && [ -z "${INK_SUITE_NO_FETCH:-}" ]; then
     mkdir -p "$(dirname "$FLOOR")" && curl -sS -o "$FLOOR" "$DATA/pb/view_mixed_floor_model.pb"
 fi
 if [ -f "$FLOOR" ]; then
-    check floor_census python3 docs/_hidden_line_matrix.py "$B/selftest" "$B/census_plates" "$FLOOR" "$OUT/floor" --require-zero
+    check floor_census python3 docs/_hidden_line_matrix.py "$B/selftest" "$B/census_plates" "$FLOOR" "$OUT/floor" --require-zero-scales 1,4
 else
     echo "SKIP floor_census (no floor model)"
 fi

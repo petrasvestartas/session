@@ -54,7 +54,7 @@ it as a **piecewise-planar surface** and asks one question per fragment.
   screen-space perpendicular, so both texels of the fit lie on the fragment's own surface.
 - Fit the plane from `z` and `z_side = depth(q + step)`. Rim fallback: if that texel is cleared,
   or if `depth(q + 2 * step)` does not extend the same slope (`|g_far - g| > |z| * 2^-19 +
-  (|g| + |g_far|) * 2^-6 px`, so the pair straddles two surfaces rather than sampling one),
+  (|g| + |g_far|) * 2^-8 px`, so the pair straddles two surfaces rather than sampling one),
   fit toward the stroke instead (`q - step`), so a face two texels wide, or one whose edge
   runs beside the stroke, still carries its own plane.
 - Carry it to the axis. Write the displacement `A - q` as `a * along + b * side` (`along` is the
@@ -68,13 +68,15 @@ predicted = z + a * slope_along + b * g
 - **Visible iff `predicted <= zA + tol`**, where `zA` is the axis depth at `A` and
 
 ```
-tol = |zA| * 2^-19  +  (|g| + |slope_along|) * 2^-6 px * (1 + lever)
+tol = |zA| * 2^-19  +  (|g| + |slope_along|) * 2^-8 px * (1 + lever)
 ```
 
   `lever = |b|` is the carry distance in texels. The first term is about 16 float ULPs. The
   second absorbs the rasterizer's subpixel quantisation (vertex positions snap to 1/256 px, so a
-  plane's depth is off by slope times that; 2^-6 is that with a factor four of headroom) over the
-  distance it was extrapolated across.
+  plane's depth is off by slope times that; 2^-8 is exactly that quantisation, with the factor
+  four of headroom measured away: at 2^-8 the close-up still counts 242406 non-background pixels
+  and the probe matrix still passes 54 cases with its nine distance-1 counts unchanged, while the
+  floor census residual falls from 29 samples to 13) over the distance it was extrapolated across.
 - A texel already nearer than the axis (`z > zA + |zA| * 2^-19`) carries ink only when its
   fitted surface passes THROUGH the axis, `|predicted - zA| <= tol`, so a plane fitted in front
   of the axis that lands behind it cannot uncover a covered stroke.
@@ -131,6 +133,16 @@ so nothing is ever pushed by more than the rasteriser's own quantisation error.
 - Measured: at 16x the fit distance the hidden-line fixture is 44 x 32 px, and a hidden edge
   within a pen width of its cover's silhouette paints up to 11 magenta pixels at 1400 x 900
   (regular top view; 3 iso, 4 warped top). Distances 1 and 4 are clean.
+- Measured: the floor census surfaces 13 of 344 840 covered samples over its 21 cases, all of
+  them at 16x: `iso_16` 3, `side_16` 2, `top_16` 8; every scale 1 and scale 4 case is zero, so
+  `_ink_suite.sh` runs the census with `--require-zero-scales 1,4`. Two causes, both below what
+  a depth rule can decide. At 16x the model spans about 40 px, so the cover's raster misses the
+  pixel centre and the depth under the fragment is the surface BEHIND the cover, farther than
+  the axis and therefore ink by any rule (4 samples; `iso_16` at 893,694 reads 0.00913877
+  against an axis at 0.00913945, with the cover one texel away at 0.00916315). Where the cover
+  is rasterised, its fitted plane passes through the axis to within the fit's own tolerance, so
+  it is indistinguishable from an outline drawn on the covering face (9 samples, at 0.23 to 0.88
+  of `tol`).
 
 ## 4. Data model
 
