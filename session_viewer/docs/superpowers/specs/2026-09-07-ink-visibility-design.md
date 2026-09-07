@@ -144,6 +144,11 @@ so nothing is ever pushed by more than the rasteriser's own quantisation error.
   it is indistinguishable from an outline drawn on the covering face (9 samples, at 0.23 to 0.88
   of `tol`).
 
+- Headroom: `SLOPE_PX = 2^-8` equals the 1/256 px vertex snapping of every GPU measured here.
+  Vulkan guarantees only 4 subpixel bits; a device that snaps to 1/16 px needs a term 16 times
+  larger, which would reopen the far-distance leaks above. The constant is one line in
+  `ink_visibility.wgsl`; nothing else depends on it.
+
 ## 4. Data model
 
 | row | bytes | fields |
