@@ -82,7 +82,7 @@ mod tests {
         use crate::engine::gpu::face_filter::FaceFilterParams;
         use std::mem::{offset_of, size_of};
         for (name, source) in lane_shaders() {
-            let source = if source.contains("fn footprint(") {
+            let source = if source.contains("-> InkColor") {
                 format!("{source}\n{}", include_str!("../../shaders/ink_visibility.wgsl"))
             } else { source.to_string() };
             let module = naga::front::wgsl::parse_str(&source).unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));

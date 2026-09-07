@@ -1,6 +1,6 @@
-// Flat linework: one camera-facing quad per segment (6 verts pulled by index, no vertex
-// buffer), a capsule SDF in the fragment. Draws the ribbon table (free linework) and, with
-// the pipe table (mesh edges). Group 3 = the segment table.
+// Flat ink: one camera-facing quad per segment (6 verts pulled by index, no vertex buffer),
+// a capsule SDF in the fragment, visibility from the physical depth. Draws the ribbon table
+// (free linework) and the pipe table (mesh edges). Group 3 = the segment table.
 
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 @group(1) @binding(0) var<uniform> line: LineUniform;
@@ -165,6 +165,7 @@ struct VsOut {
     @location(6) @interpolate(flat) solid: f32,
     @location(7) @interpolate(flat) inst_id: u32,
     @location(8) @interpolate(flat) segment_index: u32,
+    @location(9) @interpolate(flat) end_depth: vec2<f32>,
 };
 
 // The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
@@ -195,6 +196,8 @@ fn dead_vertex() -> VsOut {
     dead.hw1 = 0.0;
     dead.solid = 0.0;
     dead.inst_id = 0u;
+    dead.segment_index = 0u;
+    dead.end_depth = vec2<f32>(0.0);
     return dead;
 }
 
@@ -282,6 +285,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.solid = select(0.0, 1.0, seg.facing != FACING_UNKNOWN);
     o.inst_id = seg.instance_id;
     o.segment_index = iid;
+    o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
     return o;
 }
 
@@ -298,71 +302,31 @@ fn coverage(in: VsOut) -> f32 {
     return clamp(band_area(d, hf.x, g), 0.0, 1.0) * hf.y;
 }
 
-// Keep capsule coverage and screen endpoints in the original vertex stage. Only physical
-// visibility data moves to the fragment stage, avoiding five flat output locations.
-struct VisibilityAxis {
-    support: vec2<u32>,
-    end_depth: vec2<f32>,
-    world0: vec3<f32>,
-    world1: vec3<f32>,
-    clip_w: vec2<f32>,
-};
-
-fn visibility_axis(segment_index: u32) -> VisibilityAxis {
-    let seg = segments[segment_index];
-    let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
-    let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
-    let c0 = mvp * vec4<f32>(w0, 1.0);
-    let c1 = mvp * vec4<f32>(w1, 1.0);
-    let f0 = c0.z - c0.w;
-    let f1 = c1.z - c1.w;
-    let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
-    let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
-    var o: VisibilityAxis;
-    o.support = vec2<u32>(seg.support_start, seg.support_count);
-    o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
-    o.world0 = select(w0, mix(w0, w1, f0 / (f0 - f1)), f0 > 0.0);
-    o.world1 = select(w1, mix(w1, w0, f1 / (f1 - f0)), f1 > 0.0);
-    o.clip_w = vec2<f32>(e0.w, e1.w);
-    return o;
-}
-
-// The axis depth is affine in screen coordinates; cap expansion must not shift its ramp.
-fn axis_sample(in: VsOut, axis: VisibilityAxis) -> InkSample {
-    let pixel = vec2<f32>(in.pos.x, line.vp_h - in.pos.y);
+// The stroke at this fragment: the closest axis point in framebuffer pixels (y down), its
+// depth (z/w is affine in screen space), the stroke direction and its depth slope per pixel.
+fn ink_axis(in: VsOut) -> InkAxis {
     let ba = in.b - in.a;
-    let h = clamp(dot(pixel - in.a, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
-    let t = h * axis.clip_w.x / mix(axis.clip_w.y, axis.clip_w.x, h);
-    return InkSample(mix(axis.end_depth.x, axis.end_depth.y, h), mix(axis.world0, axis.world1, t));
-}
-
-fn footprint(in: VsOut, axis: VisibilityAxis) -> InkFootprint {
-    return InkFootprint(axis.support,
-        vec3<f32>(in.a.x, line.vp_h - in.a.y, floor_hairline(in.hw0) + FILTER_REACH),
-        vec3<f32>(in.b.x, line.vp_h - in.b.y, floor_hairline(in.hw1) + FILTER_REACH));
+    let len2 = max(dot(ba, ba), 1e-6);
+    let h = clamp(dot(in.p - in.a, ba) / len2, 0.0, 1.0);
+    let at = in.a + ba * h;
+    let len = sqrt(len2);
+    let along = select(vec2<f32>(1.0, 0.0), vec2<f32>(ba.x, -ba.y) / len, len > 1e-3);
+    let slope = (in.end_depth.y - in.end_depth.x) / max(len, 1e-3);
+    return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), mix(in.end_depth.x, in.end_depth.y, h), along, slope);
 }
 
 @fragment
-fn fs_main(in: VsOut) -> InkColor {
+fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
     let alpha = coverage(in);
-    if (alpha <= 0.0) {
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
         discard;
     }
-    let axis = visibility_axis(in.segment_index);
-    let mask = ink_visible_mask(in.pos.xy, axis_sample(in, axis), footprint(in, axis));
-    if (mask == 0u) {
-        discard;
-    }
-    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha), mask);
+    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
 }
 
 @fragment
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    if (coverage(in) < 0.5) {
-        discard;
-    }
-    let axis = visibility_axis(in.segment_index);
-    if (!ink_pick_visible(in.pos.xy, axis_sample(in, axis), footprint(in, axis))) {
+    if (coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
         discard;
     }
     return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
