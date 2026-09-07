@@ -44,6 +44,16 @@ check brep_probe_flipped env BREP_PROBE_FLIPPED=1 "$B/mk_brep_probe" "$OUT/brep_
 check orbit_ok python3 docs/_orbit_check.py "$B/selftest" "$OUT/brep_ok.pb" "$OUT/orbit_ok"
 check orbit_flipped python3 docs/_orbit_check.py "$B/selftest" "$OUT/brep_flipped.pb" "$OUT/orbit_flipped"
 
+"$B/mk_joint_probe" "$OUT/joint.pb" > /dev/null
+for cam in "iso VIEWER_NOTHING=1" "down VIEWER_ORBIT=0,209" "front VIEWER_ORBIT=0,60" "side VIEWER_ORBIT=300,120" "top VIEWER_VIEW=top" "tilt VIEWER_ORBIT=0,5 VIEWER_VIEW=top"; do
+    set -- $cam; name=$1; shift
+    for d in 1 4; do
+        env VIEWER_W=1800 VIEWER_H=1400 VIEWER_NO_GRID=1 VIEWER_MSAA=4 VIEWER_DISTANCE_SCALE=$d "$@" "$B/selftest" "$OUT/joint_${name}_$d.ppm" "$OUT/joint.pb" > /dev/null 2>&1
+        check "joint_${name}_$d" python3 docs/_stroke_weight.py "$OUT/joint_${name}_$d.ppm"
+    done
+done
+
+
 FLOOR="${SCRATCH:-/tmp}/pb/view_mixed_floor_model.pb"
 if [ ! -f "$FLOOR" ] && [ -z "${INK_SUITE_NO_FETCH:-}" ]; then
     mkdir -p "$(dirname "$FLOOR")" && curl -sS -o "$FLOOR" "$DATA/pb/view_mixed_floor_model.pb"
