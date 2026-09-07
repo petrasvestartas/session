@@ -52,11 +52,12 @@ it as a **piecewise-planar surface** and asks one question per fragment.
   is background: visible, no fit.
 - `step` is the unit texel step AWAY from the stroke, along the dominant component of the
   screen-space perpendicular, so both texels of the fit lie on the fragment's own surface.
-- Fit the plane from `z` and `z_side = depth(q + step)`. Rim fallback: if that texel is cleared,
-  or if `depth(q + 2 * step)` does not extend the same slope (`|g_far - g| > |z| * 2^-19 +
-  (|g| + |g_far|) * 2^-8 px`, so the pair straddles two surfaces rather than sampling one),
-  fit toward the stroke instead (`q - step`), so a face two texels wide, or one whose edge
-  runs beside the stroke, still carries its own plane.
+- Three outcomes. Fit the plane from `z` and `z_side = depth(q + step)` when that texel is
+  written and `depth(q + 2 * step)` extends the same slope (`|g_far - g| <= |z| * 2^-19 +
+  (|g| + |g_far|) * 2^-8 px`; a pair that fails this straddles two surfaces). Else fit toward
+  the stroke (`q - step`, guarded the same way by `q - 2 * step`), so a face two texels wide,
+  or one whose edge runs beside the stroke, still carries its own plane. Else the raw compare
+  `z <= zA + |zA| * 2^-19`: a texel whose neighbours disagree has no surface to carry.
 - Carry it to the axis. Write the displacement `A - q` as `a * along + b * side` (`along` is the
   stroke's unit screen direction, never parallel to `side`); the axis's own depth slope along
   itself supplies the `along` term, the fitted gradient `g = z_side - z` the `side` term:
@@ -80,7 +81,7 @@ tol = |zA| * 2^-19  +  (|g| + |slope_along|) * 2^-8 px * (1 + lever)
 - A texel already nearer than the axis (`z > zA + |zA| * 2^-19`) carries ink only when its
   fitted surface passes THROUGH the axis, `|predicted - zA| <= tol`, so a plane fitted in front
   of the axis that lands behind it cannot uncover a covered stroke.
-- Raw compare only when no neighbour is written (both `q + step` and `q - step` cleared):
+- Raw compare when neither pair is written and planar (see the three outcomes above):
   visible iff `z <= zA + |zA| * 2^-19`.
 
 Why one question and not a separate centreline and fragment test:
