@@ -49,32 +49,43 @@ def execute(args, environment, log):
     return output
 
 
+def enforced_scales(options):
+    """Which scales must surface nothing. A far enough camera shrinks the model past what the
+    depth rule can resolve, so the near scales are the ones a regression shows up in. Rejecting
+    an unknown scale by name keeps a typo from silently enforcing less than it reads."""
+    if options.require_zero:
+        return set(SCALES)
+    if not options.require_zero_scales:
+        return set()
+    requested = {part.strip() for part in options.require_zero_scales.split(",")}
+    if not requested <= {str(scale) for scale in SCALES}:
+        raise SystemExit(f"--require-zero-scales accepts only {SCALES}")
+    return {int(part) for part in requested}
+
+
 def main():
     """Run all 21 cases by default; optional filters support focused diagnosis."""
     parser = argparse.ArgumentParser(description=__doc__)
     for argument in ("renderer", "census", "scene", "output"):
         parser.add_argument(argument, type=Path)
-    parser.add_argument("--require-zero", action="store_true", help="fail if any fully covered original-source core pixel surfaces, at every scale")
-    parser.add_argument("--require-zero-scales", help="comma-separated scales to enforce that on; the rest are still rendered and recorded")
+    zero = parser.add_mutually_exclusive_group()
+    zero.add_argument("--require-zero", action="store_true", help="fail if any fully covered original-source core pixel surfaces, at every scale")
+    zero.add_argument("--require-zero-scales", help="comma-separated scales to enforce that on; the rest are still rendered and recorded")
     parser.add_argument("--resume", action="store_true", help="reuse completed cases only when all executable/fixture hashes match")
     parser.add_argument("--camera", choices=CAMERAS)
     parser.add_argument("--scale", type=int, choices=SCALES)
     options = parser.parse_args()
+    enforced = enforced_scales(options)
     paths = {key: getattr(options, key).resolve() for key in ("renderer", "census", "scene", "output")}
     paths["output"].mkdir(parents=True, exist_ok=True)
     metadata = {key: {"path": str(paths[key]), "sha256": digest(paths[key])} for key in ("renderer", "census", "scene")}
-    # Which scales must surface nothing. A far enough camera shrinks the model past what the
-    # depth rule can resolve, so the near scales are the ones a regression shows up in.
-    enforced = set(SCALES) if options.require_zero else {int(part) for part in options.require_zero_scales.split(",")} if options.require_zero_scales else set()
-    if enforced - set(SCALES):
-        raise SystemExit(f"--require-zero-scales accepts only {SCALES}")
-    metadata["require_zero"] = sorted(enforced)
+    metadata["enforced_scales"] = sorted(enforced)
     destination = paths["output"] / "matrix.json"
     report = {"metadata": metadata, "results": []}
     if options.resume and destination.exists():
         report = json.loads(destination.read_text())
         if report["metadata"] != metadata:
-            raise RuntimeError("resume requires identical renderer, census, scene and zero requirement")
+            raise RuntimeError("resume requires identical renderer, census, scene and enforced scales")
     done = {(row["camera"], row["scale"], row["style"]) for row in report["results"]}
     environment = {key: value for key, value in os.environ.items() if not key.startswith(("VIEWER_", "CENSUS_"))}
     for camera, settings in CAMERAS.items():

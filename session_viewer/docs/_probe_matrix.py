@@ -8,7 +8,12 @@ clearance, and the measured residual of at most 11 magenta pixels is the accepta
 distance 1 at least 500 blue pixels must remain, 300 for the authored hairline fixture (measured
 1071/962/896, 1084/729/697, 372/386/355 at 1400x900); farther out only that blue has not
 vanished."""
-import json, os, pathlib, subprocess, sys
+import json
+import os
+import pathlib
+import subprocess
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _count_colors import read_ppm
 
@@ -16,6 +21,8 @@ CAMERAS = [("top", {"VIEWER_VIEW": "top"}), ("down", {"VIEWER_ORBIT": "0,209"}),
 
 
 def counts(path):
+    """Blue is retained visible ink, magenta is hidden ink that surfaced; the fixture paints
+    nothing else in that hue, so a single pass over the pixels separates the two."""
     w, h, px = read_ppm(path)
     blue = magenta = 0
     for k in range(0, w * h * 3, 3):
@@ -29,6 +36,8 @@ def counts(path):
 
 
 def main():
+    """Render every case, keep each render's log beside its image for diagnosis, and report all
+    failures rather than stopping at the first: which cases fail together names the cause."""
     selftest, maker, out = sys.argv[1], sys.argv[2], pathlib.Path(sys.argv[3])
     out.mkdir(parents=True, exist_ok=True)
     base = {k: v for k, v in os.environ.items() if not k.startswith(("VIEWER_", "HIDDEN_LINE_"))}
