@@ -45,6 +45,20 @@ fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
     return abs(depth) * DEPTH_REL_TOL + abs(slope) * SLOPE_PX * (1.0 + lever);
 }
 
+// Whether the two texels of a fit lie on one surface: on a plane the next texel out along the
+// same direction extends the slope exactly, moved only by the rasterizer's vertex snapping,
+// while a step from one surface to another is many times the slope. Cleared beyond means the
+// surface ends there and the pair is all there is to fit.
+fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, z_side: f32, sample: u32) -> bool {
+    let z_far = ink_depth(pixel + dir * 2.0, sample);
+    if (z_far == 0.0) {
+        return true;
+    }
+    let g = z_side - z;
+    let g_far = z_far - z_side;
+    return abs(g_far - g) <= ink_tolerance(z, abs(g) + abs(g_far), 0.0);
+}
+
 // The unit texel step away from the stroke on this fragment's side, along the dominant
 // component of the perpendicular, so both texels of the fit lie on the fragment's surface.
 fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
@@ -60,20 +74,28 @@ fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
 // from the stroke, carried to the axis, must not be nearer than the axis. On its own face
 // or a touching neighbour the carry lands on the axis; a nearer occluder carries nearer and
 // hides the fragment even where the occluder recedes past the axis depth at this pixel; a
-// farther surface beyond a silhouette carries farther and the stroke overhangs it.
+// farther surface beyond a silhouette carries farther and the stroke overhangs it. A texel
+// already nearer than the axis carries ink only when its surface passes THROUGH the axis, so
+// a plane that lands behind the axis from in front of it cannot uncover a covered stroke.
 fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) {
         return true;
     }
     let step = ink_step(pixel, axis);
-    // At the surface's rim the outward texel is cleared: fit toward the stroke instead, so a
-    // face two texels wide still carries its plane to the axis.
+    // The outward texel carries the fit only while it is on the fragment's own surface: at the
+    // rim it is cleared, and where a surface's edge runs beside the stroke the next texel out
+    // is already the surface behind it, whose step the fit would read as a gradient and carry
+    // to the axis as a phantom plane. Fit toward the stroke instead, so a face two texels wide
+    // still carries its plane to the axis.
     var side = step;
     var z_side = ink_depth(pixel + side, sample);
-    if (z_side == 0.0) {
-        side = -step;
-        z_side = ink_depth(pixel + side, sample);
+    if (z_side == 0.0 || !ink_pair_planar(pixel, side, z, z_side, sample)) {
+        let back = ink_depth(pixel - step, sample);
+        if (z_side == 0.0 || back != 0.0) {
+            side = -step;
+            z_side = back;
+        }
     }
     if (z_side == 0.0) {
         return z <= axis.depth + abs(axis.depth) * DEPTH_REL_TOL;
@@ -85,7 +107,11 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let b = (axis.along.x * e.y - axis.along.y * e.x) / det;
     let g = z_side - z;
     let predicted = z + a * axis.slope + b * g;
-    return predicted <= axis.depth + ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b));
+    let tolerance = ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b));
+    if (z > axis.depth + abs(axis.depth) * DEPTH_REL_TOL) {
+        return abs(predicted - axis.depth) <= tolerance;
+    }
+    return predicted <= axis.depth + tolerance;
 }
 
 // A disc fragment: the surface under it, fitted along both axes away from the centre and
@@ -107,7 +133,11 @@ fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32
         let gx = (zx - z) * sx;
         let gy = (zy - z) * sy;
         let predicted = z - d.x * gx - d.y * gy;
-        return predicted <= depth + ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y));
+        let tolerance = ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y));
+        if (z > depth + abs(depth) * DEPTH_REL_TOL) {
+            return abs(predicted - depth) <= tolerance;
+        }
+        return predicted <= depth + tolerance;
     }
     return z <= depth + abs(depth) * DEPTH_REL_TOL;
 }
