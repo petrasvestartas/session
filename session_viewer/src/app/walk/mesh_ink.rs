@@ -158,9 +158,16 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
     Incidence { best, vstart, vinc }
 }
 
+/// What the marker loop reads: the ink context and the vertex incidence over the topology.
+struct MarkerCx<'a, 'b> {
+    cx: &'a InkCx<'b>,
+    inc: &'a Incidence,
+}
+
 /// The marker loop: one glyph per vertex with a visible edge, carrying up to six incident
 /// face normals (widest edge's pair first) so the disc hugs every face at a corner.
-fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx, inc: &Incidence) {
+fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
+    let (cx, inc) = (input.cx, input.inc);
     let pc = m.get_pointcolors();
     let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
     let nv = cx.vpos.len();
@@ -204,7 +211,7 @@ pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) 
     if knobs::no_dots() {
         return;
     }
-    push_markers(ink, m, topo, cx, &inc);
+    push_markers(ink, m, topo, &MarkerCx { cx, inc: &inc });
     cx.lap.mark("markers");
 }
 
