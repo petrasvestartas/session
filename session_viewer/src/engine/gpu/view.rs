@@ -39,10 +39,12 @@ pub struct View {
     /// against a 1.5 px pen the beat is 22% of the ink. The ribbons no longer read this at
     /// all - they integrate the pixel box exactly, which cannot beat at any width.
     pub feather_px: f32,
-    /// Light the mesh faces; off = every face its flat colour (`?lit=1` / `VIEWER_LIT`). `S`.
+    /// Light the mesh faces; off = every face its flat colour (`?lit=1` / `VIEWER_LIT`). `D` -
+    /// `S` is the show-all half of the H/S hide pair.
     pub lit: bool,
     /// Paint a face seen from behind red - the inside of an open solid, or a flipped normal.
-    /// Off by default: a legitimately two-sided surface is not an error (`?backface=1`). `B`.
+    /// On by default: a red patch on a closed solid is a winding bug worth seeing without
+    /// being asked for (`?nobackface=1`). `B`.
     pub backface: bool,
     /// Force the sample count (`?msaa=` / `VIEWER_MSAA`): 4 = 4x, anything else 1x.
     pub msaa_forced: Option<u32>,
@@ -70,7 +72,7 @@ impl View {
             thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.5).max(0.1),
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
             lit: knob("VIEWER_LIT", "lit").is_some(),
-            backface: knob("VIEWER_BACKFACE", "backface").is_some(),
+            backface: knob("VIEWER_NO_BACKFACE", "nobackface").is_none(),
             msaa_forced: knob("VIEWER_MSAA", "msaa").and_then(|v| v.parse().ok()),
             perf: knob("VIEWER_PERF", "perf").is_some(),
             spin: knob("VIEWER_SPIN", "spin").is_some(),

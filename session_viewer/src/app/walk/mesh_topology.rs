@@ -40,12 +40,17 @@ impl SlotMap {
 pub struct MeshTopo {
     /// Unique edges as (low key, high key, packed pen colour), in first-seen order.
     pub edges: Vec<(usize, usize, u32)>,
-    /// Per edge: the face slots walking (low, high) and (high, low); u32::MAX = none. A lone
-    /// face always sits in slot 0.
+    /// Per edge: the two faces that meet there, in arrival order; u32::MAX = none. A lone face
+    /// always sits in slot 0.
     pub edge_faces: Vec<[u32; 2]>,
+    /// Per edge: the two faces walk it in OPPOSITE directions, which is what consistent
+    /// winding means locally. False says the pair disagrees, so one of the two normals points
+    /// into the solid and the facing test must negate it. A lone face is trivially true.
+    pub opposed: Vec<bool>,
     /// Per face slot, in sorted-face-key order; None for a degenerate face.
     pub normals: Vec<Option<[f64; 3]>>,
-    /// Every edge walked in both directions: no border.
+    /// Every edge has two faces: no border. Deliberately NOT "walked in both directions" -
+    /// that reading called a badly wound solid open and threw the facing cull away wholesale.
     pub closed: bool,
 }
 
@@ -54,10 +59,17 @@ fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64;
     if vs.len() < 3 {
         return None;
     }
-    let (p0, p1, p2) = (vpos[slots.slot(vs[0])], vpos[slots.slot(vs[1])], vpos[slots.slot(vs[2])]);
-    let u = [p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]];
-    let v = [p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]];
-    let n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+    // Newell, not the cross product of the first three corners: that one inverts on a face
+    // whose second corner is reflex, and the ink pass reads these normals to decide whether
+    // two faces are coplanar - an inverted one turns a flat region into a crease.
+    let mut n = [0.0f64; 3];
+    for i in 0..vs.len() {
+        let a = vpos[slots.slot(vs[i])];
+        let b = vpos[slots.slot(vs[(i + 1) % vs.len()])];
+        n[0] += (a[1] - b[1]) * (a[2] + b[2]);
+        n[1] += (a[2] - b[2]) * (a[0] + b[0]);
+        n[2] += (a[0] - b[0]) * (a[1] + b[1]);
+    }
     let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
     if len > Tolerance::ZERO_TOLERANCE { Some([n[0] / len, n[1] / len, n[2] / len]) } else { None }
 }
@@ -75,6 +87,9 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
     let mut normals: Vec<Option<[f64; 3]>> = Vec::with_capacity(faces.len());
     let mut edges: Vec<(usize, usize, u32)> = Vec::new();
     let mut edge_faces: Vec<[u32; 2]> = Vec::new();
+    // The direction slot 0's face walked the edge, and whether slot 1's face walked it back.
+    let mut dir0: Vec<u8> = Vec::new();
+    let mut opposed: Vec<bool> = Vec::new();
     let mut head: Vec<u32> = vec![u32::MAX; keys.len()];
     let mut next: Vec<u32> = Vec::new();
 
@@ -94,25 +109,31 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
                 let pen = cols.get(edges.len()).map_or(BLACK, |c| pack_rgba(c.to_f32()));
                 edges.push((lo, hi, pen));
                 edge_faces.push([u32::MAX; 2]);
+                dir0.push(dir);
+                opposed.push(true);
                 next.push(head[ls]);
                 head[ls] = ei;
             }
-            // First face wins, like the kernel's `or_insert`.
-            let f = &mut edge_faces[ei as usize][dir];
-            if *f == u32::MAX {
-                *f = fs as u32;
+            // Slot by ARRIVAL, not by direction. Slotting by direction sent two same-wound
+            // faces to the same slot and left the other empty, so an edge inside a badly wound
+            // solid read as a border: the mesh was declared open and the facing cull dropped.
+            // Here the pair survives and `opposed` records that its winding disagrees.
+            let ef = &mut edge_faces[ei as usize];
+            if ef[0] == u32::MAX {
+                ef[0] = fs as u32;
+                dir0[ei as usize] = dir;
+            } else if ef[1] == u32::MAX && ef[0] != fs as u32 {
+                ef[1] = fs as u32;
+                opposed[ei as usize] = dir != dir0[ei as usize];
             }
         }
     }
 
+    // Slot 0 is filled the moment an edge is created, so only slot 1 can be empty.
     let mut closed = !m.vertex.is_empty();
-    for f in edge_faces.iter_mut() {
-        if f[0] == u32::MAX || f[1] == u32::MAX {
+    for f in edge_faces.iter() {
+        if f[1] == u32::MAX {
             closed = false;
-        }
-        if f[0] == u32::MAX {
-            f[0] = f[1];
-            f[1] = u32::MAX;
         }
     }
     // A declared hole ring's edges are borders by this test but not by the kernel's.
@@ -120,5 +141,5 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
         closed = m.is_closed();
     }
 
-    MeshTopo { edges, edge_faces, normals, closed }
+    MeshTopo { edges, edge_faces, opposed, normals, closed }
 }

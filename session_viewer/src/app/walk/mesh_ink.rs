@@ -45,6 +45,20 @@ fn normal_of(tokens: &[Vec<FaceSupport>], faces: [u32; 2], edge: [usize; 2], sid
     tokens[faces[side] as usize].iter().find(|part| part.contains(&edge)).map(|part| &part.normal)
 }
 
+/// The two normals the facing test compares for edge `ei`. When the pair's winding disagrees
+/// - both faces walk the edge the same way - the second normal points into the solid, so it is
+/// negated here: the test wants two outward normals, and the traversal direction is the only
+/// local evidence of which of the two is the wrong way round.
+fn edge_normals(topo: &MeshTopo, tokens: &[Vec<FaceSupport>], ei: usize, edge: [usize; 2]) -> (Option<[f64; 3]>, Option<[f64; 3]>) {
+    let f = topo.edge_faces[ei];
+    let n0 = normal_of(tokens, f, edge, 0).copied();
+    let n1 = normal_of(tokens, f, edge, 1).copied();
+    if topo.opposed[ei] {
+        return (n0, n1);
+    }
+    (n0, n1.map(|n| [-n[0], -n[1], -n[2]]))
+}
+
 /// Append edge `ei`'s faces to `fkeys`, deduped.
 fn push_faces(edge_faces: &[[u32; 2]], ei: usize, fkeys: &mut Vec<usize>) {
     for &f in edge_faces[ei].iter() {
@@ -100,13 +114,13 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &SupportCx) {
     let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN;
     ink.seg.pipes.reserve(topo.edges.len());
     for (i, (a, b, col)) in topo.edges.iter().enumerate() {
-        let f = topo.edge_faces[i];
-        let facing = pack_facing(normal_of(cx.tokens, f, [*a, *b], 0), normal_of(cx.tokens, f, [*a, *b], 1));
+        let (na, nb) = edge_normals(topo, cx.tokens, i, [*a, *b]);
+        let facing = pack_facing(na.as_ref(), nb.as_ref());
         if hidden(w, i) {
             continue;
         }
         // Interior tessellation: a diagonal across a flat region shares two coplanar faces.
-        if let (Some(n0), Some(n1)) = (normal_of(cx.tokens, f, [*a, *b], 0), normal_of(cx.tokens, f, [*a, *b], 1)) {
+        if let (Some(n0), Some(n1)) = (na, nb) {
             let dot = n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2];
             if dot >= COPLANAR_DOT && !knobs::all_edges() {
                 continue;

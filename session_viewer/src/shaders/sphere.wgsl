@@ -45,6 +45,7 @@ struct LineUniform {
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
 const FLAG_SELECTED: u32 = 1u;
+const FLAG_HIDDEN: u32 = 2u;
 const FLAG_INSIDE: u32 = 4u;
 const FLAG_OPEN: u32 = 16u;
 const FLAG_SMOOTH: u32 = 64u;
@@ -128,6 +129,9 @@ fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<boo
 fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> VsOut {
     let g = glyphs[gi];
     let inst = instances[g.instance_id];
+    if ((inst.flags & FLAG_HIDDEN) != 0u) {
+        return dead_dot();
+    }
     let centre = place(g.instance_id, g.center);
     let clip = mvp * vec4<f32>(centre, 1.0);
     if (clip.z - clip.w > 0.0) {

@@ -33,6 +33,11 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
         }
     }
     let mut bm = Mesh::from_polylines(polygons, Some(1e-6));
+    // The weld inherits whatever orientation the face meshes carried, and this mesh never
+    // passes through `Mesh::from_proto`, which is where a file's winding is settled. A BRep
+    // whose face flags disagree would otherwise reach the ink lanes with normals pointing both
+    // ways - the lines, not the fill, are what shows it.
+    bm.orient_faces();
     bm.set_objectcolor(b.surfacecolor.clone());
     // The tessellation is a FILL. Its triangle edges are an artifact of meshing, and the ink
     // pass decides visibility from adjacent triangle normals - so near-coplanar triangles

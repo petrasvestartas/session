@@ -30,6 +30,7 @@ struct LineUniform {
 };
 
 const FLAG_SELECTED: u32 = 1u;
+const FLAG_HIDDEN: u32 = 2u;
 const FLAG_PRINT: u32 = 8u;
 const MM_TO_M: f32 = 0.001;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
@@ -59,9 +60,26 @@ struct VsOut {
     @location(5) @interpolate(flat, first) face_id: u32,
 }
 
+// A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
+// stage, so a hidden object stops being pickable as well as drawn.
+fn dead_vertex() -> VsOut {
+    var dead: VsOut;
+    dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
+    dead.color = vec3<f32>(0.0);
+    dead.world_pos = vec3<f32>(0.0);
+    dead.normal = vec3<f32>(0.0);
+    dead.print = 0.0;
+    dead.inst_id = 0u;
+    dead.face_id = 0u;
+    return dead;
+}
+
 @vertex
 fn vs_main(in: VsIn) -> VsOut {
     let inst = instances[in.inst_id];
+    if ((inst.flags & FLAG_HIDDEN) != 0u) {
+        return dead_vertex();
+    }
     let world = place(in.inst_id, in.position);
     let clip = mvp * vec4<f32>(world, 1.0);
     var o: VsOut;

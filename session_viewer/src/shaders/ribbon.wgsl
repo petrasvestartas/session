@@ -45,6 +45,7 @@ struct LineUniform {
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
 const FLAG_SELECTED: u32 = 1u;
+const FLAG_HIDDEN: u32 = 2u;
 const FLAG_INSIDE: u32 = 4u;
 const FLAG_OPEN: u32 = 16u;
 const FLAG_SHEET: u32 = 32u;
@@ -212,6 +213,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let corner = corner_of(vid % 6u);
     let seg = segments[iid];
     let inst = instances[seg.instance_id];
+    if ((inst.flags & FLAG_HIDDEN) != 0u) {
+        return dead_vertex();
+    }
     let model = inst.model;
 
     let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));

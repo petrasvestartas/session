@@ -245,6 +245,14 @@ impl Gpu {
         self.objects.set_flag(&self.ctx, row, Instance::FLAG_SELECTED, on);
         self.splat.invalidate();
     }
+
+    /// Hide or show `row`. Every lane's vertex stage parks a hidden row outside the clip
+    /// volume, so it leaves the picture and the ID pass together; clouds are dropped on the
+    /// CPU when the splat records are rebuilt, hence the invalidate.
+    pub fn set_hidden(&mut self, row: u32, on: bool) {
+        self.objects.set_flag(&self.ctx, row, Instance::FLAG_HIDDEN, on);
+        self.splat.invalidate();
+    }
 }
 
 /// Every lane's shaders, for the mirror tests: a lane joins by adding its `SHADERS` here.

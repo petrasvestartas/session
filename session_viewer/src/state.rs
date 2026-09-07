@@ -117,6 +117,27 @@ impl State {
         self.needs_frame = true;
     }
 
+    /// Hide the selection - `H`. The guid goes in the hide set as well as the row's flag, so
+    /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
+    /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
+    pub fn hide_selected(&mut self) {
+        let Some(row) = self.scene.selected else { return };
+        let Some(guid) = self.scene.guid_of(row) else { return };
+        self.select(None);
+        self.scene.hidden.insert(guid);
+        self.gpu.set_hidden(row, true);
+        self.needs_frame = true;
+    }
+
+    /// Show everything hidden so far - `S`.
+    pub fn show_all(&mut self) {
+        for row in self.scene.hidden_rows() {
+            self.gpu.set_hidden(row, false);
+        }
+        self.scene.hidden.clear();
+        self.needs_frame = true;
+    }
+
     /// A pick came back: log what it hit and select it (clicking the selection clears it).
     fn apply_pick(&mut self, pick: Option<Pick>) {
         let Some(p) = pick else {

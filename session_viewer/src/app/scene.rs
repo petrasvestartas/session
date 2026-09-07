@@ -310,6 +310,18 @@ impl Scene {
         self.ribbon_ranges.get(row as usize).cloned().flatten()
     }
 
+    /// The guid of a row: what the hide set stores, because a guid survives the rebuild a
+    /// live reload does and a row number does not.
+    pub fn guid_of(&self, row: u32) -> Option<String> {
+        self.order.get(row as usize).map(|g| g.to_string())
+    }
+
+    /// The rows the hide set currently resolves to. A guid whose document has since closed
+    /// resolves to nothing and is simply skipped.
+    pub fn hidden_rows(&self) -> Vec<u32> {
+        self.hidden.iter().filter_map(|g| self.guid_to_row.get(g.as_str()).copied()).collect()
+    }
+
     /// Objects in row order.
     pub fn object_count(&self) -> usize {
         self.order.len()

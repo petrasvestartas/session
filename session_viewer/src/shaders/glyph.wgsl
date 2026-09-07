@@ -44,6 +44,7 @@ struct LineUniform {
 };
 
 const FLAG_SELECTED: u32 = 1u;
+const FLAG_HIDDEN: u32 = 2u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 const MM_TO_M: f32 = 0.001;
@@ -85,6 +86,9 @@ fn dead_dot() -> VsOut {
 fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let g = glyphs[vid / 3u];
     let inst = instances[g.instance_id];
+    if ((inst.flags & FLAG_HIDDEN) != 0u) {
+        return dead_dot();
+    }
     let world = place(g.instance_id, g.center);
     let clip = mvp * vec4<f32>(world, 1.0);
     if (clip.z - clip.w > 0.0) {
