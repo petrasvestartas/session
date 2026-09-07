@@ -1,7 +1,7 @@
 // cargo run --example bench_frame --target x86_64-unknown-linux-gnu --release -- <scene.yaml | file.pb>...
 //
 // Median frame time for a still and a moving camera. BENCH_FRAMES=N frames per leg;
-// VIEWER_LINE_STYLE=tubes|flat picks the solid-lane style; VIEWER_W / VIEWER_H size it.
+// VIEWER_W / VIEWER_H size it.
 
 use session_viewer::selftest::{frame_profile, SceneFile};
 

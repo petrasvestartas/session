@@ -47,7 +47,7 @@ def execute(args, environment, log):
 
 
 def main():
-    """Run all 42 cases by default; optional filters support focused diagnosis."""
+    """Run all 21 cases by default; optional filters support focused diagnosis."""
     parser = argparse.ArgumentParser(description=__doc__)
     for argument in ("renderer", "census", "scene", "output"):
         parser.add_argument(argument, type=Path)
@@ -74,12 +74,12 @@ def main():
         for scale in (1, 4, 16):
             if options.scale and scale != options.scale:
                 continue
-            for style in ("flat", "tubes"):
+            for style in ("flat",):
                 if (camera, scale, style) in done:
                     continue
                 stem = f"{camera}_{scale}_{style}"
                 output = paths["output"]
-                knobs = dict(settings, VIEWER_W="1800", VIEWER_H="1400", VIEWER_MSAA="4", VIEWER_DISTANCE_SCALE=str(scale), VIEWER_LINE_STYLE=style, VIEWER_IDS=str(output / f"{stem}.ids"))
+                knobs = dict(settings, VIEWER_W="1800", VIEWER_H="1400", VIEWER_MSAA="4", VIEWER_DISTANCE_SCALE=str(scale), VIEWER_IDS=str(output / f"{stem}.ids"))
                 rendered = execute([paths["renderer"], output / f"{stem}.ppm", paths["scene"]], dict(environment, **knobs), output / f"{stem}.log")
                 camera_log = next(line.split("census camera: ", 1)[1] for line in rendered.splitlines() if "census camera: " in line)
                 actual_camera = dict(part.split("=", 1) for part in camera_log.split())

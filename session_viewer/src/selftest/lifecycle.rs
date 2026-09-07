@@ -7,7 +7,7 @@ use session_rust::{Color, Line, Point, Session, Xform};
 use crate::{
     app::scene::{FileDoc, Scene},
     camera::{Camera, View},
-    engine::gpu::{view::LineStyle, FrameInput, Gpu, Pick},
+    engine::gpu::{FrameInput, Gpu, Pick},
 };
 
 type Source = (String, Rc<Session>, Xform);
@@ -65,18 +65,14 @@ fn write_frame(path: &Path, frame: &Frame) {
     for pixel in frame.color.chunks_exact(4) { file.write_all(&pixel[..3]).unwrap(); }
 }
 
-/// Switch live pipelines and targets, requiring exact restoration after every round trip.
+/// Switch live targets, requiring exact restoration after every round trip.
 fn states(gpu: &mut Gpu, scene: &Scene, camera: &Camera) -> Vec<Frame> {
     let mut frames = Vec::new();
     for msaa in [1, 4] {
         gpu.view.msaa_forced = Some(msaa);
         gpu.resize(800, 600);
-        gpu.view.line_style = LineStyle::Flat;
         frames.push(render(gpu, scene, camera));
-        gpu.view.toggle_line_style();
-        frames.push(render(gpu, scene, camera));
-        gpu.view.toggle_line_style();
-        same(&format!("MSAA{msaa} FLAT→TUBE→FLAT"), &frames[frames.len() - 2], &render(gpu, scene, camera));
+        same(&format!("MSAA{msaa} repeat"), &frames[frames.len() - 1], &render(gpu, scene, camera));
     }
     gpu.view.msaa_forced = Some(1);
     gpu.resize(800, 600);
@@ -142,5 +138,5 @@ pub fn run() {
         (path, Rc::new(session), Xform::translation(i as f64 * 6000.0, 0.0, 0.0))
     }).collect();
     if !files.is_empty() { check(&mut gpu, &files, "meshes", out); }
-    println!("lifecycle OK: no-face rendering, runtime style/MSAA toggles, resize, rebuild, release, incremental uploads and picking");
+    println!("lifecycle OK: no-face rendering, runtime MSAA toggles, resize, rebuild, release, incremental uploads and picking");
 }
