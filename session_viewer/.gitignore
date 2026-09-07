@@ -11,7 +11,11 @@ dist/
 # The files stay on disk as an UNTRACKED cache: docs/_gate.sh renders them locally to compare
 # pixels, and a gate that cannot open a scene cannot catch a rendering regression.
 # assets/fonts/ is NOT here - those are build inputs the viewer links, not scene data.
-assets/pb/
+# assets/pb/* not assets/pb/: git does not descend into an excluded DIRECTORY, so a negation
+# inside one is dead. index.html declares `copy-dir href="assets/pb"`, which means a checkout
+# without that directory cannot `trunk build` AT ALL - .gitkeep is what makes a fresh clone build.
+assets/pb/*
+!assets/pb/.gitkeep
 assets/scenes/
 assets/pdf/
 assets/lion_src/
