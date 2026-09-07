@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Every `cargo` command in `session_viewer` defaults to wasm32; native tests are `cargo xtest`, native examples take `--target x86_64-unknown-linux-gnu`. Set `REGEN_PROTO=0` for every cargo command.
-- Read `.claude/skills/wgpu/SKILL.md` (restore it from git with `git show HEAD:.claude/skills/wgpu/SKILL.md` if the working copy is deleted) before editing any `.wgsl` or `engine/` file. Never write a wgpu call from memory; grep `~/.cargo/registry/src/*/wgpu-29.0.4/src/`.
+- Read the `session-viewer-wgpu` skill (`../.claude/skills/session-viewer-wgpu/SKILL.md`) before editing any `.wgsl` or `engine/` file. Never write a wgpu call from memory; grep `~/.cargo/registry/src/*/wgpu-29.0.4/src/`.
 - `vec3<T>` has size 12 and alignment 16 in WGSL. Every host-shareable struct change carries computed offsets and a mirror test.
 - The frame is reverse-Z `Depth32Float`: nearer is GREATER, cleared is 0.
 - At most four parameters per function; grouped inputs become a named struct. No closures unless they are the fastest way. A docstring on every function. Comments say WHY.
