@@ -36,13 +36,16 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
 
     // LowPower = the GPU the compositor runs on. On hybrid laptops the discrete GPU renders
     // fine but its frames cannot be shared to the compositor and the canvas stays black.
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::LowPower,
-            compatible_surface: surface.as_ref(),
-            force_fallback_adapter: false,
-        })
-        .await?;
+    let adapter = match named_adapter(&instance, backends).await {
+        Some(named) => named,
+        None => instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::LowPower,
+                compatible_surface: surface.as_ref(),
+                force_fallback_adapter: false,
+            })
+            .await?,
+    };
     let info = adapter.get_info();
     log::info!("adapter: {} ({:?}, {:?})", info.name, info.device_type, info.backend);
     if info.device_type == wgpu::DeviceType::Cpu {
@@ -91,6 +94,21 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
     }
 
     Ok(DeviceSetup { surface, device, queue, config, device_type: info.device_type })
+}
+
+/// `VIEWER_ADAPTER=<substring>` names a native adapter for a benchmark (a hybrid laptop has
+/// two); unset, or no match, falls through to the compositor's GPU. Never on wasm.
+async fn named_adapter(instance: &wgpu::Instance, backends: wgpu::Backends) -> Option<wgpu::Adapter> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let _ = (instance, backends);
+        None
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let want = std::env::var("VIEWER_ADAPTER").ok()?.to_lowercase();
+        instance.enumerate_adapters(backends).await.into_iter().find(|a| a.get_info().name.to_lowercase().contains(&want))
+    }
 }
 
 /// A failed GPU command must never be mistaken for a valid render.

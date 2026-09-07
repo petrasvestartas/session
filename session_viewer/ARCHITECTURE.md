@@ -41,7 +41,7 @@ The mapping is many-to-many: one `Mesh` produces triangles AND segments AND glyp
 | MSAA on or off, the sample count | `engine/gpu/targets.rs` - `samples_for` |
 | adapter, surface format, device limits | `engine/gpu/device.rs` |
 | a click that hits the wrong thing | `engine/gpu/pick.rs` (the id pass + readback), `app/scene.rs::resolve` |
-| ink showing through a face, or cut by one | physical face identity and supporting faces (section 6), `ink_visibility.wgsl`, `hosts.rs`, `mesh_faces.rs` |
+| ink showing through a face, or cut by one | the depth-surface rule (section 6), `ink_visibility.wgsl` |
 | a cloud too sparse / too dense / wrong in ortho | `engine/gpu/lod.rs` (the walk), `splat.rs` (records), `splat.wgsl` |
 | a shader struct disagreeing with Rust | `cargo xtest` - the mirror tests name the file |
 | memory after a Clear | `Gpu::release` (`gpu/mod.rs`) - every lane back to one row |
@@ -103,21 +103,21 @@ src/
       device.rs     adapter / device / surface
       targets.rs    Targets (depth + MSAA colour), samples_for, TextureSpec, texture, texture_view
       frame.rs      FrameInput, FrameCx, Binds, LineUniform (64 B), CloudUniform, FrameUniforms
-      view.rs       View knobs, LineStyle, knob(env, query)
+      view.rs       View knobs, knob(env, query)
       instance.rs   Instance (96 B) + flags; the Instance/LineUniform mirror tests
       objects.rs    ObjectRow, InstanceTable (rows, f64 translations, re-anchor, inside test, thickness)
       upload.rs     Upload: one file's rows for every lane, dropped after upload
       backdrop.rs   background + grid
       arena.rs      mesh faces, sheet fills, lettering (one vertex table, three index runs)
-      segments.rs   pipes (solid lane) + ribbons (flat lane) over the 48 B CylinderSegment
-      glyphs.rs     spheres (solid lane) + dots (flat lane) over the 64 B GlyphPoint
+      segments.rs   pipes (solid lane) + ribbons (flat lane) over the 40 B CylinderSegment
+      glyphs.rs     spheres (solid lane) + dots (flat lane) over the 48 B GlyphPoint
       cloud.rs      the point tables, the node table, Cloud {chunks}
       lod.rs        LodWalk: which octree ranges to draw, clipped to what is resident
       splat.rs      the point pass (own 1x targets), records, the resolve, the id pass
       pick.rs       Picker: the id target, the copy, the async readback
       render.rs     encode_frame: point pass -> physical faces -> ink scene_list -> id pass
       present.rs    present / render_offscreen / bench_frames
-  shaders/          one .wgsl per lane draw: triangle, cylinder, ribbon, sphere, glyph, grid, background, splat, splat_resolve
+  shaders/          one .wgsl per lane draw: triangle, ribbon, sphere, glyph, grid, background, splat, splat_resolve; ink_visibility is appended to every ink shader
 ```
 
 ## 2. Data flow
@@ -140,24 +140,23 @@ src/
 
 ## 3. Frame order
 
-`render.rs::encode_frame` records physical occlusion before drawing ink:
+`render.rs::encode_frame` writes physical depth before drawing ink:
 
-1. Physical pass: background, grid, mesh faces, cloud resolve. Meshes write unbiased depth
-   and an exact face token into a second colour attachment.
+1. Physical pass: background, grid, mesh faces, cloud resolve. Meshes write unbiased
+   reverse-Z depth and their colour; nothing else.
 2. Ink pass: sheet fills, mesh edges (`E`), lines (`W`), vertex markers (`E`, markers),
-   lettering, point dots (`Q`). The physical depth attachment is read-only and sampled by
-   ink; the ink cannot change subsequent ink's occlusion. Markers follow strokes so their
-   complete footprints stay on top.
+   lettering, point dots (`Q`). The physical depth is bound read-only and sampled by every
+   ink fragment; ink never writes depth, so ink cannot occlude ink. Markers follow strokes
+   so their complete footprints stay on top.
 
 The point lane draws before these passes into its own 1x depth + colour (`Splat::prelude`),
-skipped while the camera, knobs and tables are unchanged. Its resolve writes physical depth
-with face token zero. Multisampled colour resolves after the ink pass.
+skipped while the camera, knobs and tables are unchanged. Its resolve writes physical depth.
+Multisampled colour resolves after the ink pass.
 
 MSAA is 4x only when SOLID geometry (faces, pipes, spheres) is on the GPU and the canvas is at
-most 4.2 Mpx; `?msaa=` forces. Ribbons, dots and markers antialias themselves with a feather
-of `?aa=` px (1.5) - 4x MSAA on a sheet-only scene was measured at 45 -> 81 ms on the Intel
-iGPU for fill edges alone, so sheets stay 1x unless forced. The Flat edge style is smoother
-than Tubes, which only MSAA antialiases.
+most 4.2 Mpx; `?msaa=` forces. Ribbons, dots and markers antialias themselves with an exact
+box filter (strokes) or a feather of `?aa=` px (dots). Under MSAA an ink fragment shader runs
+per sample (`sample_index`), so its visibility is decided per sample.
 
 ## 4. Picking
 
@@ -177,42 +176,42 @@ than Tubes, which only MSAA antialiases.
 - Flags: `SELECTED` `HIDDEN` `INSIDE` `PRINT` `OPEN` `SHEET`. `INSIDE` is refreshed per frame
   for rows that drew faces only (`ObjectRow.faces`), so a pure-linework sheet costs nothing.
 
-## 6. Physical occlusion and full-width ink
+## 6. Ink visibility from the depth buffer
 
-- Faces and ink receive no world-distance push, lift or rasterizer bias. The previous
-  thickness cap could still exceed the clearance at a joint between different elements.
-- `mesh_faces.rs` assigns exact tokens to connected planar regions and to individual
-  triangles of warped polygons. `mesh_raw_faces.rs` supplies per-triangle tokens for large
-  meshes without constructing topology. Both paths share original vertex attributes and
-  assign each triangle's token through its provoking first corner. Face tokens are encoded losslessly in RGBA8 and
-  accompany unbiased physical depth at each raster sample.
-- Mesh edges retain their adjacent supporting face tokens. Their round endpoints also
-  retain incident faces, restricted to the endpoint footprint. Vertex markers retain their
-  incident faces. `hosts.rs` associates separately authored line/polyline spans, sampled
-  NURBS spans and points using f64 coplanarity and actual triangle containment, including
-  placement transforms. These associations are built within each file. Object identity
-  alone never grants support.
-- `ink_visibility.wgsl` accepts the full footprint over an explicitly supporting face.
-  For other faces it compares the underlying axis with the physical covering plane at that
-  axis. Comparing with a depth sample displaced sideways by the pen width would itself
-  create leaks on slopes. A centreline lookup also prevents a hidden stroke from spilling
-  across silhouettes or across a concave cover's different planes. There is no absolute
-  depth matching tolerance. Fixed face-plane rotation/scale and inverse-transpose normals
-  are baked once at upload; camera-relative translation remains in the instance table.
-- Physical face shaders discard a narrow angular band around edge-on faces, preventing
-  rasterized slivers with invalid covering depth. This can reject genuinely grazing faces;
-  the measured band and limitations are recorded in `docs/_HIDDEN_LINE_VERIFICATION.md`.
-- A conservative projected rectangle of physical meshes and resident cloud splats skips
-  lookups only outside their bounds. Uncertain or near-clipped bounds retain full visibility
-  checks. The 64 B line uniform adds this rectangle at byte 48. MSAA ink returns an explicit
-  sample mask, testing every physical sample while caching repeated face decisions.
-- FLAT remains one capsule quad per segment. TUBE retains its cylinder shape, but its
-  underlying axis decides occlusion. Both styles, free ribbons and markers use the same
-  visibility helper and immutable physical attachments, including in the picking pass.
-- `CylinderSegment` is 48 B; `GlyphPoint` is 64 B. Supporting faces occupy separate 8 B
-  `(face, endpoint region)` rows, and physical planes occupy 32 B rows. The shared instance
-  stride remains 96 B; its thickness field is retained metadata. Layout tests validate the
-  changed WGSL member offsets and strides through Naga, not only Rust sizes.
+- Faces and ink receive no world-distance push, lift or rasterizer bias: there is no face
+  identity anywhere, and the only occlusion input is the physical depth attachment.
+- `ink_visibility.wgsl` reads that depth as a piecewise-planar surface. A stroke fragment
+  reads its own texel and the next texel AWAY from the stroke's axis (along the dominant
+  component of the screen perpendicular), fits the plane through them using the axis's own
+  depth slope along the stroke, and is visible when that plane passes through the axis within
+  16 float ULPs plus the slope times 1/256 px (the rasterizer snaps vertices to 1/256 px).
+  Otherwise it is visible only when its texel is not nearer than the axis. A marker or dot
+  fits the plane along both axes away from its centre and asks the same question at the
+  centre.
+- A pair is fitted only after a planarity guard: the texel one step out and the texel two
+  steps out must extend the same slope, so a step across a surface boundary is never fitted
+  as a plane; when neither the outward nor the inward pair passes, the fragment falls back
+  to the raw compare with its own texel. And the nearer-texel rule is two-sided: a texel
+  already nearer than the axis carries ink only when its fitted plane passes THROUGH the
+  axis, so a plane fitted in front of the axis cannot uncover a covered stroke, while a
+  farther texel keeps the one-sided compare so a stroke still overhangs a silhouette at
+  full width.
+- Consequences: a stroke on its own face matches exactly; a stroke on a touching neighbour's
+  face matches exactly, so joints weigh what free edges weigh; at a concave joint the rising
+  neighbour matches because its plane contains the edge; at a silhouette the overhanging half
+  lands on the background or a farther surface and stays; a line 4 mm behind a face at 20 m
+  is a hundred times outside the tolerance and is hidden.
+- Residuals, measured by `docs/_ink_suite.sh`: a face under about 2 px wide has no same-face
+  neighbour, so its own edge falls to the raw compare and can drop out when grazing; a sliver
+  within a degree of edge-on carries depth quantised by slope/256 px. The floor census
+  surfaces 13 of 344 840 covered samples, all of them at 16x the fit distance; scales 1 and 4
+  are zero.
+- Smooth tessellations (`FLAG_SMOOTH`: BRep and NURBS fills) ink border and crease edges
+  only; there is no view-dependent silhouette term, so nothing flips as the camera turns. The
+  vertex-stage facing cull (both adjacent faces away) and `FLAG_INSIDE`/`FLAG_OPEN` are as
+  before.
+- `CylinderSegment` is 40 B; `GlyphPoint` is 48 B; `LineUniform` is 64 B; `Instance` 96 B.
+  Layout tests validate the WGSL member offsets and strides through Naga.
 - Coincident ink resolves by draw order. A GPU validation error aborts the render; the
   ignored native test `invalid_gpu_shader_is_fatal` exercises that callback deliberately.
 
@@ -250,12 +249,12 @@ than Tubes, which only MSAA antialiases.
 | where | env (native) | query (wasm) | meaning |
 |---|---|---|---|
 | view.rs | `VIEWER_THICKNESS` | `?thickness=` | pen weight, px |
-| view.rs | `VIEWER_AA` | `?aa=` | antialiasing ramp of every ink lane, px (1.5; 1 = exact box coverage, wider = softer) |
-| view.rs | `VIEWER_LINE_STYLE=tubes` | `?style=tubes` | solid-lane style at start (`L` flips) |
+| view.rs | `VIEWER_AA` | `?aa=` | antialiasing ramp of the dot lanes, px (1.0); ribbons integrate the pixel box exactly and ignore it |
 | view.rs | `VIEWER_CLOUD_SCALE` | `?cloud=` | point size scale (`[` `]`) |
 | view.rs | `VIEWER_EDL` | `?edl=` | eye-dome lighting strength, 0 off |
 | view.rs | `VIEWER_LOD` | `?lod=` | octree cutoff in px, 0 = draw whole |
 | view.rs | `VIEWER_MSAA` | `?msaa=` | force 4 or 1 |
+| device.rs | `VIEWER_ADAPTER` | - | pick the native adapter whose name contains this (benchmarks) |
 | view.rs | `VIEWER_PERF` | `?perf=1` | continuous frames + the perf line |
 | view.rs | `VIEWER_SPIN` | `?spin=1` | orbit every frame (a benchmark) |
 | view.rs | `BENCH_NO_MARKERS` | `?nomarkers` | no vertex markers |
@@ -266,8 +265,9 @@ than Tubes, which only MSAA antialiases.
 | live.rs | - | `?live=off|url` `?poll=s` `?notify=off|url` | the live source |
 | selftest.rs | `VIEWER_W/H` `VIEWER_ORBIT` `VIEWER_ZOOM` `VIEWER_VIEW` `VIEWER_ORTHO` `VIEWER_FRAMES` `VIEWER_PICK` `VIEWER_INCREMENTAL` `VIEWER_REBUILD` | - | the harness camera and modes |
 
-Keys: `1`-`7` named views, `Space` projection, `C` reset, `F` fit, `Q` `W` `E` lanes, `L` style,
-`[` `]` point size, `Esc` deselect. Mouse: right orbit, middle pan, wheel zoom, left pick.
+Keys: `1`-`7` named views, `Space` projection, `C` reset, `F` fit, `Q` `W` `E` lanes, `D` lighting,
+`B` back faces, `H` hide selection, `S` show all, `[` `]` point size, `Esc` deselect. Mouse: right
+orbit, middle pan, wheel zoom, left pick.
 Touch: one finger orbit, two pan/zoom.
 
 ## 10. Adding or deleting a lane
@@ -286,9 +286,13 @@ to C++ and Python, which these GPU-edge helpers would only burden.
 
 ## 11. Measuring
 
-- `cargo xtest`: the mirror tests and the stream parser tests.
+- `cargo xtest`: the mirror tests and the stream parser tests. `docs/_ink_suite.sh`: every
+  hidden-line, stroke-weight and orbit-stability check, one PASS/FAIL line each (24 checks).
 - `cargo run --release --example selftest -- out.ppm scene.yaml` renders headless and prints
   the non-background pixel count; `examples/bench_frame.rs` times frames; `bench_load.rs` the
   walk; `check_determinism.rs` the row bytes; `stream_decode_check.rs` the header walk.
 - In the browser: `?perf=1` puts `f<n> gap <ms> enc <ms> heap <MB>` on the page. A hidden tab
   renders nothing (rAF is paused), so measure in a visible tab.
+- `docs/_PERF.md` holds the frame-time ledger;
+  `docs/superpowers/specs/2026-09-07-ink-visibility-design.md` is the design record of the ink
+  visibility rule, with its tolerance derivation and its measured residuals.

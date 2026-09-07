@@ -1,43 +1,31 @@
 # Performance ledger
 
-Measured with `examples/bench_frame.rs` (median frame, 60 frames per leg, 1400 x 900, Intel iGPU,
-native Vulkan through the same tree the page runs). "base" = the tree before the 2026-09-03
-ground refactor (commit 10f527c1), "new" = after it. Scenes from the R2 bucket.
+Measured with `examples/bench_frame.rs` (median frame, 60 frames per leg, 1400 x 900, native
+Vulkan through the same tree the page runs; `VIEWER_ADAPTER` picks the GPU). "before" = the
+face-identity design (commit 6ec6f1fc), "after" = the depth-buffer rule (commit 0b571aad).
+Both binaries carry the `VIEWER_ADAPTER` knob, so each leg ran on the adapter it names -
+`Intel(R) Graphics (RPL-S)` and `NVIDIA GeForce RTX 4080 Laptop GPU`, both Vulkan, confirmed
+from the `adapter:` line of the matching `selftest` build. Scenes from the R2 bucket. Before
+and after ran back to back per scene per GPU on an otherwise idle desktop. Date: 2026-09-08.
 
-| scene | base still | base moving | new still | new moving |
-|---|---|---|---|---|
-| view_lines (5 sheets) | 81.8 ms | 77.9 ms | 48.1 ms | 48.0 ms |
-| view_lines_rotated | 21.4 ms | 21.5 ms | 21.0 ms | 21.1 ms |
-| view_meshes | 16.8 ms | 16.6 ms | 17.1 ms | 16.7 ms |
-| view_mixed | 10.9 ms | 26.3 ms | 10.9 ms | 22.9 ms |
+| scene | GPU | before still | before moving | after still | after moving |
+|---|---|---|---|---|---|
+| view_mixed | Intel RPL-S | 37.51 ms | 50.41 ms | 34.46 ms | 46.14 ms |
+| view_mixed | RTX 4080 | 2.60 ms | 3.02 ms | 1.91 ms | 2.36 ms |
+| view_meshes | Intel RPL-S | 139.58 ms | 142.84 ms | 35.95 ms | 36.06 ms |
+| view_meshes | RTX 4080 | 4.06 ms | 3.20 ms | 1.17 ms | 1.42 ms |
+| view_lines | Intel RPL-S | 74.63 ms | 75.16 ms | 69.81 ms | 70.05 ms |
+| view_lines | RTX 4080 | 4.32 ms | 3.28 ms | 3.70 ms | 3.15 ms |
 
-Browser (Chrome, WebGPU, `?perf=1`, the same laptop), heap after every file has arrived:
+Every leg is at least as fast after as before; view_meshes is the one that moves, from 139.58
+to 35.95 ms still on the iGPU, because the face pass no longer builds or writes face tokens.
 
-| scene | base heap | new heap | note |
-|---|---|---|---|
-| view_pointclouds | 1168 MB | 264 MB | four scans and the 14 M cloud stream through their octrees instead of decoding whole |
-| view_mixed | - | 284 MB | |
-| view_lines | - | 510 MB | five PDF sheets; the kernel `Session` of each (100 k polylines with guids) is kept for editing |
-| view_lines_rotated | - | 220 MB | |
-| view_meshes | - | 429 MB | the dragon's kernel `Mesh` (halfedge maps) is most of it; `display_only = true` in the manifest releases a file's session after the walk |
+Browser heap (Chrome, `?perf=1`, after every file arrived): not measured.
 
-The GPU side of a scene is small (rows are appended once and the CPU copies dropped); what
-remains is the kernel object per file, kept so a future edit can re-walk it. A scene that
-will only be looked at should mark its heavy items `display_only = true`.
-
-Load: view_pointclouds shows its first cloud in under 2 s and every file in about 6 s; the
-431 MB cloud is a 250 k-point prefix under the 6 M page budget (`?points=` raises it).
-
-Publish turnaround (`bash/view_live.sh`, one scene + one file, 2026-09-03): 2.46 s before,
-1.16 s after (curl SigV4 instead of the aws CLI, verifies overlapped); the open page sees
-the relay within its 100 ms tick.
-
-MSAA 4x forced on the sheet-only scene view_lines: 45.1 -> 81.3 ms still, 48.1 -> 81.3 ms
-moving; that is why sheets stay at 1x (their ribbons and dots antialias themselves with the
-`?aa=` feather, 1.5 px by default).
-
-A ribbon depth prepass (lines written to depth before the colour pass, so coincident lines
-resolve by depth) was measured and rejected: view_mixed still 10.9 -> 16.1 ms, moving 22.9 -> 27.4 ms.
+Ink fragment cost is now at most five depth texture reads per sample and no storage reads.
+The face pass writes one colour target; there is no compute pass and no face-token attachment
+(the previous design's `Rg16Uint` token target is 4 B per texel: 1400 x 900 x 4 samples =
+19.2 MiB at this size with 4x MSAA).
 
 Rules for this file: every number is measured on the day it is written, with the command that
 produced it; a number that was not re-measured after a change is deleted, not carried over.
