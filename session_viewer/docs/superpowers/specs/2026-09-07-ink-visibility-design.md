@@ -53,7 +53,10 @@ it as a **piecewise-planar surface** and asks one question per fragment.
 - `step` is the unit texel step AWAY from the stroke, along the dominant component of the
   screen-space perpendicular, so both texels of the fit lie on the fragment's own surface.
 - Fit the plane from `z` and `z_side = depth(q + step)`. Rim fallback: if that texel is cleared,
-  fit toward the stroke instead (`q - step`), so a face two texels wide still carries a plane.
+  or if `depth(q + 2 * step)` does not extend the same slope (`|g_far - g| > |z| * 2^-19 +
+  (|g| + |g_far|) * 2^-6 px`, so the pair straddles two surfaces rather than sampling one),
+  fit toward the stroke instead (`q - step`), so a face two texels wide, or one whose edge
+  runs beside the stroke, still carries its own plane.
 - Carry it to the axis. Write the displacement `A - q` as `a * along + b * side` (`along` is the
   stroke's unit screen direction, never parallel to `side`); the axis's own depth slope along
   itself supplies the `along` term, the fitted gradient `g = z_side - z` the `side` term:
@@ -72,6 +75,9 @@ tol = |zA| * 2^-19  +  (|g| + |slope_along|) * 2^-6 px * (1 + lever)
   second absorbs the rasterizer's subpixel quantisation (vertex positions snap to 1/256 px, so a
   plane's depth is off by slope times that; 2^-6 is that with a factor four of headroom) over the
   distance it was extrapolated across.
+- A texel already nearer than the axis (`z > zA + |zA| * 2^-19`) carries ink only when its
+  fitted surface passes THROUGH the axis, `|predicted - zA| <= tol`, so a plane fitted in front
+  of the axis that lands behind it cannot uncover a covered stroke.
 - Raw compare only when no neighbour is written (both `q + step` and `q - step` cleared):
   visible iff `z <= zA + |zA| * 2^-19`.
 
