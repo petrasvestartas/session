@@ -1,6 +1,5 @@
 //! Lines, polylines and NURBS curves into the FLAT ribbon lane: one segment per span,
-//! `FACING_UNKNOWN` because free linework has no topological facing cull. Scene assembly
-//! associates exactly coplanar spans with their supporting mesh faces after the walk.
+//! `FACING_UNKNOWN` because free linework has no topological facing cull.
 
 use session_rust::{Line, NurbsCurve, Polyline};
 use crate::engine::gpu::segments::SegRows;
@@ -77,7 +76,7 @@ fn turning_degrees(c: &NurbsCurve) -> f64 {
     total
 }
 
-/// Keep the walk and supporting-face association on identical original f64 curve samples.
+/// The curve's f64 samples, one chord per `CHORD_DEGREES` of turning.
 pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
     if c.m_cv_count < 2 {
         return Vec::new();

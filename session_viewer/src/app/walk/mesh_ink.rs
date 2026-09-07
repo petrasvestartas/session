@@ -6,12 +6,11 @@ use session_rust::Mesh;
 use session_rust::mesh::ColorMode;
 use crate::app::knobs;
 use crate::engine::gpu::glyphs::GlyphRows;
-use crate::engine::gpu::segments::{InkSupport, SegRows};
+use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use super::encode::{encode_width, oct16, pack_facing, BLACK, FACING_UNKNOWN};
 use super::mesh::{Lap, COPLANAR_DOT, WIREFRAME_BLACK_MIN};
 use super::mesh_topology::{MeshTopo, SlotMap};
-use super::mesh_faces::FaceSupport;
 
 /// The two ink lanes a mesh reaches: pipes for its edges, spheres for its vertices.
 pub struct Ink<'a> {
@@ -26,7 +25,6 @@ pub struct InkCx<'a> {
     pub vpos: &'a [[f32; 3]],
     pub slots: &'a SlotMap,
     pub lap: &'a mut Lap,
-    pub tokens: &'a [Vec<FaceSupport>],
 }
 
 /// Edge `i`'s pen width: one entry broadcasts to every edge, an absent one is the 1.0 default.
@@ -39,20 +37,20 @@ fn hidden(w: &[f64], i: usize) -> bool {
     width_at(w, i) == 0.0
 }
 
-/// The normal in face slot `k` of an edge's pair, borrowed.
-fn normal_of(tokens: &[Vec<FaceSupport>], faces: [u32; 2], edge: [usize; 2], side: usize) -> Option<&[f64; 3]> {
+/// The normal of the face in slot `side` of an edge's pair; None past a border.
+fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> {
     if faces[side] == u32::MAX { return None; }
-    tokens[faces[side] as usize].iter().find(|part| part.contains(&edge)).map(|part| &part.normal)
+    topo.normals[faces[side] as usize]
 }
 
 /// The two normals the facing test compares for edge `ei`. When the pair's winding disagrees
 /// - both faces walk the edge the same way - the second normal points into the solid, so it is
 /// negated here: the test wants two outward normals, and the traversal direction is the only
 /// local evidence of which of the two is the wrong way round.
-fn edge_normals(topo: &MeshTopo, tokens: &[Vec<FaceSupport>], ei: usize, edge: [usize; 2]) -> (Option<[f64; 3]>, Option<[f64; 3]>) {
+fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3]>) {
     let f = topo.edge_faces[ei];
-    let n0 = normal_of(tokens, f, edge, 0).copied();
-    let n1 = normal_of(tokens, f, edge, 1).copied();
+    let n0 = normal_of(topo, f, 0);
+    let n1 = normal_of(topo, f, 1);
     if topo.opposed[ei] {
         return (n0, n1);
     }
@@ -83,38 +81,13 @@ fn facing_word(codes: &[u32], k: usize) -> u32 {
     }
 }
 
-/// The physical vertices and segment region requesting support.
-struct SupportRequest<'a> {
-    region: u32,
-    vertices: &'a [usize],
-    start: usize,
-}
-
-/// Append unique physical face tokens, respecting warped-triangle incidence.
-fn push_supports(out: &mut Vec<InkSupport>, faces: &[usize], tokens: &[Vec<FaceSupport>], request: &SupportRequest) {
-    for &face in faces {
-        for part in &tokens[face] {
-            if part.contains(request.vertices) && !out[request.start..].iter().any(|entry| entry.face == part.token && (entry.region == 0 || entry.region == request.region)) {
-                out.push(InkSupport { face: part.token, region: request.region });
-            }
-        }
-    }
-}
-
-/// Incidence shared by edge and marker support extraction.
-struct SupportCx<'a, 'b> {
-    cx: &'a InkCx<'b>,
-    inc: &'a Incidence,
-}
-
 /// The pipe loop: one segment per visible, non-coplanar edge.
-fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &SupportCx) {
-    let cx = input.cx;
+fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     let w = m.widths();
     let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN;
     ink.seg.pipes.reserve(topo.edges.len());
     for (i, (a, b, col)) in topo.edges.iter().enumerate() {
-        let (na, nb) = edge_normals(topo, cx.tokens, i, [*a, *b]);
+        let (na, nb) = edge_normals(topo, i);
         let facing = pack_facing(na.as_ref(), nb.as_ref());
         if hidden(w, i) {
             continue;
@@ -126,19 +99,6 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &SupportCx) {
                 continue;
             }
         }
-        let support_start = ink.seg.supports.len() as u32;
-        let mut adjacent = Vec::new();
-        push_faces(&topo.edge_faces, i, &mut adjacent);
-        push_supports(&mut ink.seg.supports, &adjacent, cx.tokens, &SupportRequest { region: 0, vertices: &[*a, *b], start: support_start as usize });
-        for (end, key) in [a, b].iter().enumerate() {
-            let slot = cx.slots.slot(**key);
-            let mut faces = Vec::new();
-            for &edge in &input.inc.vinc[input.inc.vstart[slot] as usize..input.inc.vstart[slot + 1] as usize] {
-                push_faces(&topo.edge_faces, edge as usize, &mut faces);
-            }
-            push_supports(&mut ink.seg.supports, &faces, cx.tokens, &SupportRequest { region: end as u32 + 1, vertices: &[**key], start: support_start as usize });
-        }
-        let support_count = ink.seg.supports.len() as u32 - support_start;
         ink.seg.pipes.push(CylinderSegment {
             p0: cx.vpos[cx.slots.slot(*a)],
             radius: encode_width(width_at(w, i)),
@@ -146,8 +106,8 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &SupportCx) {
             instance_id: cx.row,
             color: if black_wire { BLACK } else { *col },
             facing,
-            support_start,
-            support_count,
+            support_start: 0,
+            support_count: 0,
         });
     }
 }
@@ -200,15 +160,12 @@ fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
 
 /// The marker loop: one glyph per vertex with a visible edge, carrying up to six incident
 /// face normals (widest edge's pair first) so the disc hugs every face at a corner.
-fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &SupportCx) {
-    let cx = input.cx;
-    let inc = input.inc;
+fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx, inc: &Incidence) {
     let pc = m.get_pointcolors();
     let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
     let nv = cx.vpos.len();
     let mut fkeys: Vec<usize> = Vec::new();
     let mut codes: Vec<u32> = Vec::new();
-    let vertex_keys = m.vertices();
     ink.glyph.spheres.reserve(nv);
     for (i, &(vw, ei)) in inc.best.iter().enumerate().take(nv) {
         if vw == f64::NEG_INFINITY {
@@ -221,13 +178,8 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &SupportCx) {
         }
         codes.clear();
         for fk in &fkeys {
-            for part in &cx.tokens[*fk] {
-                if part.contains(&[vertex_keys[i]]) && let Some(code) = oct16(&part.normal) && !codes.contains(&code) { codes.push(code); }
-            }
+            if let Some(n) = topo.normals[*fk] && let Some(code) = oct16(&n) && !codes.contains(&code) { codes.push(code); }
         }
-        let support_start = ink.glyph.supports.len() as u32;
-        push_supports(&mut ink.glyph.supports, &fkeys, cx.tokens, &SupportRequest { region: 0, vertices: &[vertex_keys[i]], start: support_start as usize });
-        let support_count = ink.glyph.supports.len() as u32 - support_start;
         ink.glyph.spheres.push(GlyphPoint {
             center: cx.vpos[i],
             radius: encode_width(vw),
@@ -236,8 +188,8 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &SupportCx) {
             // A truncated normal list cannot prove every incident face points away.
             facing: if codes.len() > 6 { FACING_UNKNOWN } else { facing_word(&codes, 0) },
             facing_ext: if codes.len() > 6 { [FACING_UNKNOWN; 2] } else { [facing_word(&codes, 1), facing_word(&codes, 2)] },
-            support_start,
-            support_count,
+            support_start: 0,
+            support_count: 0,
             _pad: [0; 2],
         });
     }
@@ -247,12 +199,12 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &SupportCx) {
 pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) {
     let inc = incidence(m, topo, cx);
     cx.lap.mark("incidence");
-    push_pipes(ink, m, topo, &SupportCx { cx, inc: &inc });
+    push_pipes(ink, m, topo, cx);
     cx.lap.mark("pipe loop");
     if knobs::no_dots() {
         return;
     }
-    push_markers(ink, m, topo, &SupportCx { cx, inc: &inc });
+    push_markers(ink, m, topo, cx, &inc);
     cx.lap.mark("markers");
 }
 
@@ -263,9 +215,9 @@ mod tests {
     use crate::app::walk::WalkCx;
     use crate::engine::gpu::arena::ArenaRows;
 
-    /// Endpoint-only faces never become unconditional support for an entire box edge.
+    /// A box wears twelve pipes and eight markers, every pipe with two known face normals.
     #[test]
-    fn cube_supports_keep_endpoint_regions() {
+    fn box_ink_rows() {
         let mesh = Mesh::create_box(10.0, 20.0, 30.0);
         let mut arena = ArenaRows::default();
         let mut segments = SegRows::default();
@@ -274,14 +226,11 @@ mod tests {
         let cx = WalkCx { vert_base: 50, face_base: 100, cloud_px: 0.0, row: 7 };
         walk_mesh(&mut arena, &mut ink, &mesh, &MeshCx { cx: &cx, opts: &MeshOpts::OBJECT });
         assert_eq!(segments.pipes.len(), 12);
+        assert_eq!(glyphs.spheres.len(), 8);
         for segment in &segments.pipes {
-            let start = segment.support_start as usize;
-            let supports = &segments.supports[start..start + segment.support_count as usize];
-            assert_eq!(supports.iter().filter(|entry| entry.region == 0).count(), 2);
-            assert_eq!(supports.iter().filter(|entry| entry.region == 1).count(), 1);
-            assert_eq!(supports.iter().filter(|entry| entry.region == 2).count(), 1);
-            for entry in supports { assert!(arena.face_ids.contains(&entry.face)); }
+            assert_ne!(segment.facing, FACING_UNKNOWN);
+            assert_eq!(segment.instance_id, 7);
         }
-        for marker in &glyphs.spheres { assert_eq!(marker.support_count, 3); }
+        assert_eq!(arena.face_ids.len(), arena.verts.len());
     }
 }

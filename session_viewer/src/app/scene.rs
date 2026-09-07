@@ -11,8 +11,6 @@ use crate::app::stream::{CloudFields, CloudLod};
 use crate::app::walk::bounds::{file_extent, is_planar, mark_sheet, Baselines};
 use crate::app::walk::cloud::{walk_stream_slice, StreamRows, StreamSlice};
 use crate::app::walk::mesh::Lap;
-use crate::app::walk::mesh_ink::Ink;
-use crate::app::walk::hosts::{Association, Hosts};
 use crate::app::walk::{is_drawable, walk_geometry, Walk, WalkCx};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
 use crate::math::{mat_mul, Mat4};
@@ -197,8 +195,6 @@ impl Scene {
         self.order.reserve(count);
         self.guid_to_row.reserve(count);
 
-        let mut hosts = Hosts::default();
-        let mut pending = Vec::new();
         for guid in session.order() {
             let Some(geom) = session.lookup.get(&guid) else { continue };
             if !is_drawable(geom) {
@@ -208,7 +204,6 @@ impl Scene {
             let object_place = placement(&world, &place.m, &guid);
             let row = self.push_row(&guid, object_place, flags);
             let ribbon_start = self.tables.seg.ribbons.len();
-            let dot_start = self.tables.glyph.dots.len();
             let cx = WalkCx { vert_base: self.bases.vert, face_base: self.bases.face, cloud_px: point_px, row };
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
             let o = self.tables.obj.rows.last_mut().unwrap();
@@ -217,16 +212,8 @@ impl Scene {
             o.spacing = r.spacing;
             o.faces = r.faces;
             o.thickness = r.thickness;
-            hosts.extend(r.host_faces, &object_place);
             let ribbon_end = self.tables.seg.ribbons.len();
-            let dot_end = self.tables.glyph.dots.len();
             if ribbon_start != ribbon_end { self.ribbon_ranges[row as usize] = Some(self.bases.ribbon + ribbon_start as u32..self.bases.ribbon + ribbon_end as u32); }
-            if ribbon_start != ribbon_end || dot_start != dot_end { pending.push((guid, object_place, ribbon_start..ribbon_end, dot_start..dot_end)); }
-        }
-        for (guid, object_place, ribbons, dots) in pending {
-            if let Some(geometry) = session.lookup.get(&guid) {
-                hosts.associate(&mut Ink { seg: &mut self.tables.seg, glyph: &mut self.tables.glyph }, geometry, &Association { place: &object_place, ribbons, dots });
-            }
         }
         lap.mark("objects");
 

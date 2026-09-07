@@ -1,5 +1,4 @@
 //! A free point into the FLAT glyph lane: one SDF dot with no topology-facing cull.
-//! Scene assembly associates coincident dots with their actual supporting mesh faces.
 
 use session_rust::Point;
 use crate::engine::gpu::glyphs::GlyphRows;
