@@ -4,9 +4,12 @@
 //   2. Two boxes sharing a face: the first box's four shared-face edges lie on the second
 //      box's face (red); the second box's edges are black.
 //   3. A box whose top 3 mm is inside a beam: its four top edges are 3 mm behind the beam's
-//      bottom face (magenta = must never show).
-//   4. A beam 4 mm above a plate outline polyline (magenta = must never show from above).
-// Every other edge of the red boxes is blue, the reference weight.
+//      bottom face (magenta = must never show). The beam is 600 mm across the 400 mm box.
+//   4. A 400 mm wide beam 4 mm above a 260 mm wide plate outline polyline (magenta = must
+//      never show from above).
+// Every other edge of the red boxes is blue, the reference weight. Each beam is wider than the
+// ink it must hide: an occluder narrower than its stroke leaves the ends of that stroke in
+// plain sight, which is the probe failing, not the ink rule.
 //
 // cargo run --release --target x86_64-unknown-linux-gnu --example mk_joint_probe -- <out.pb>
 use session_rust::{Color, Mesh, Point, Polyline, Session, Xform};
@@ -51,7 +54,7 @@ fn main() {
 
     // 3. box top at z = 400 inside a beam whose bottom is at z = 397.
     s.add_mesh(marked_box([4000.0, 0.0, 200.0], |p| (p[2] - 400.0).abs() < 1e-9, Color::magenta()), None);
-    s.add_mesh(slab([1200.0, 200.0, 200.0], [4000.0, 0.0, 497.0]), None);
+    s.add_mesh(slab([1200.0, 600.0, 200.0], [4000.0, 0.0, 497.0]), None);
 
     // 4. a plate whose top outline is 4 mm under a beam.
     s.add_mesh(slab([1200.0, 300.0, 40.0], [6000.0, 0.0, -20.0]), None);
@@ -61,7 +64,7 @@ fn main() {
     ]);
     outline.linecolor = Color::magenta();
     s.add_polyline(outline, None);
-    s.add_mesh(slab([1400.0, 200.0, 200.0], [6000.0, 0.0, 104.0]), None);
+    s.add_mesh(slab([1400.0, 400.0, 200.0], [6000.0, 0.0, 104.0]), None);
 
     s.pb_dump(&out);
     println!("wrote {out}");
