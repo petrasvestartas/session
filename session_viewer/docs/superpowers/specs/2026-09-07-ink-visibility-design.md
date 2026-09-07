@@ -122,6 +122,9 @@ so nothing is ever pushed by more than the rasteriser's own quantisation error.
   removed these is deleted; if the probe in section 7 shows leaks, the face fragment shader
   discards fragments whose `dpdx/dpdy` depth slope exceeds 50 px-eq per px (5 lines), and the
   gap it leaves is measured in the same probe.
+- Measured: at 16x the fit distance the hidden-line fixture is 44 x 32 px, and a hidden edge
+  within a pen width of its cover's silhouette paints up to 11 magenta pixels at 1400 x 900
+  (regular top view; 3 iso, 4 warped top). Distances 1 and 4 are clean.
 
 ## 4. Data model
 
