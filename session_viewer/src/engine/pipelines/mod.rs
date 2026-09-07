@@ -160,7 +160,7 @@ pub fn face_id_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout { array_stride: 4, step_mode: wgpu::VertexStepMode::Vertex, attributes: &FACE_ID_ATTRIBS }
 }
 
-/// A unit template's positions at `@location(0)` (the cylinder, the marker quad).
+/// A unit template's positions at `@location(0)` (the marker quad).
 pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout { array_stride: 12, step_mode: wgpu::VertexStepMode::Vertex, attributes: &TEMPLATE_ATTRIBS }
 }

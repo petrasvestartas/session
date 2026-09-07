@@ -1,15 +1,6 @@
-//! `View` - the runtime knobs a frame reads: what to show, how the solid ink is drawn, the
+//! `View` - the runtime knobs a frame reads: what to show, the
 //! cloud / EDL / LOD scalars and the pen weight. Read ONCE at startup from the query string
 //! (wasm) or the environment (native); the key handlers flip them afterwards. No GPU here.
-
-/// How the SOLID lane draws mesh/BRep edges. Both read the same segment table.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum LineStyle {
-    /// A real 3D tube per edge, with visibility decided at its underlying axis.
-    Tubes,
-    /// A camera-facing quad per edge through the flat lane's shader. Cheaper.
-    Flat,
-}
 
 /// The knobs one frame reads.
 pub struct View {
@@ -23,8 +14,6 @@ pub struct View {
     pub show_mesh_edges: bool,
     /// Vertex markers on top of the solid ink; `BENCH_NO_MARKERS` turns them off for timing.
     pub markers: bool,
-    /// Solid-lane style; `VIEWER_LINE_STYLE=tubes` picks Tubes at startup. `L`.
-    pub line_style: LineStyle,
     /// Global scale on per-cloud point sizes, `[` and `]` (`VIEWER_CLOUD_SCALE`).
     pub cloud_size: f32,
     /// Eye-Dome Lighting strength; 0 = off (`VIEWER_EDL`).
@@ -57,15 +46,12 @@ pub struct View {
 impl View {
     /// Read every knob once.
     pub fn from_env() -> Self {
-        let tubes = knob("VIEWER_LINE_STYLE", "style").map(|v| v.eq_ignore_ascii_case("tubes")).unwrap_or(false);
-
         Self {
             show_grid: knob("VIEWER_NO_GRID", "nogrid").is_none(),
             show_points: true,
             show_lines: true,
             show_mesh_edges: true,
             markers: knob("BENCH_NO_MARKERS", "nomarkers").is_none(),
-            line_style: if tubes { LineStyle::Tubes } else { LineStyle::Flat },
             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
@@ -77,14 +63,6 @@ impl View {
             perf: knob("VIEWER_PERF", "perf").is_some(),
             spin: knob("VIEWER_SPIN", "spin").is_some(),
         }
-    }
-
-    /// Flip the solid-lane style.
-    pub fn toggle_line_style(&mut self) {
-        self.line_style = match self.line_style {
-            LineStyle::Tubes => LineStyle::Flat,
-            LineStyle::Flat => LineStyle::Tubes,
-        };
     }
 }
 

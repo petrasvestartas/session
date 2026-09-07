@@ -61,7 +61,7 @@ impl Gpu {
         let b = Binds { mvp: &self.frame.mvp_group, line: &self.frame.line_group, instances: &self.objects.ink_group };
         let mut draws = self.arena.draw_print(pass, &basic);
         if v.show_mesh_edges {
-            draws += self.segments.draw_pipes(pass, &b, v.line_style);
+            draws += self.segments.draw_pipes(pass, &b);
         }
         if v.show_lines {
             draws += self.segments.draw_ribbons(pass, &b);
@@ -88,7 +88,7 @@ impl Gpu {
             self.arena.draw_face_ids(&mut pass, &basic);
             self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
             if v.show_mesh_edges {
-                self.segments.draw_pipe_ids(&mut pass, &b, v.line_style);
+                self.segments.draw_pipe_ids(&mut pass, &b);
             }
             if v.show_lines {
                 self.segments.draw_ribbon_ids(&mut pass, &b);

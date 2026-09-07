@@ -106,7 +106,7 @@ impl GrowBuf {
     }
 }
 
-/// A unit mesh drawn N times by an instanced lane (the cylinder, the marker quad).
+/// A unit mesh drawn N times by an instanced lane (the marker quad).
 pub struct Template {
     pub vbo: wgpu::Buffer,
     pub ibo: wgpu::Buffer,

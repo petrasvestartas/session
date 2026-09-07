@@ -1,5 +1,5 @@
-// Tube-lane ground truth for mk_twobox_scene: the SAME back box, but as a mesh with red
-// screen-px pens, so its edges render as real cylinder geometry with honest depth. Red on the
+// Solid-lane ground truth for mk_twobox_scene: the SAME back box, but as a mesh with red
+// screen-px pens, so its edges render as depth-tested quads with honest depth. Red on the
 // front box here = genuinely visible; red in the ribbon scene but not here = penetration.
 //
 // cargo run --example mk_twobox_mesh --target x86_64-unknown-linux-gnu --release -- <out.pb>
