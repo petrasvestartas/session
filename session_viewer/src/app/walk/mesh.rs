@@ -24,6 +24,14 @@ pub const WIREFRAME_BLACK_MIN: usize = 10_000;
 /// on a dense scan is never mistaken for tessellation.
 pub const COPLANAR_DOT: f64 = 1.0 - 1e-9;
 
+/// How far two faces of a SMOOTH tessellation must turn before their shared edge is a crease
+/// rather than a seam left by sampling. cos(25 degrees): `brep::QUALITY` asks for at most 5
+/// degrees between samples, so the threshold sits well clear of what the sampling itself
+/// produces. The test lives here because these normals are exact f64 - the 16-bit oct codes
+/// the shader reads quantise to about 1.4 degrees, which on a nearly flat patch collapses two
+/// adjacent facet normals onto one code and makes a seam look like a one-faced border.
+pub const CREASE_COS: f64 = 0.906_307_787;
+
 /// Typical distance between a mesh's vertices: the diagonal over the square root of the
 /// vertex count (a surface spreads its vertices over an area). The markers thin below it.
 fn mesh_spacing(bounds: &Aabb, verts: usize) -> f32 {
@@ -149,7 +157,8 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     }
     lap.mark("vert+idx push");
     let mut flags = if o.sheet_lanes && print { Instance::FLAG_PRINT } else { 0 };
-    if o.smooth && !knobs::seams() {
+    let smooth = o.smooth && !knobs::seams();
+    if smooth {
         flags |= Instance::FLAG_SMOOTH;
     }
     let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
@@ -161,7 +170,7 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
 
     let topo = topo.expect("decorated mesh has topology");
     lap.mark("topology");
-    let mut icx = InkCx { row: cx.row, vpos: &vpos, slots: &slots, lap: &mut lap };
+    let mut icx = InkCx { row: cx.row, vpos: &vpos, slots: &slots, smooth, lap: &mut lap };
     edges_and_dots(ink, m, &topo, &mut icx);
 
     // An open mesh is not a solid: the facing cull would strip interior surface seen through

@@ -40,8 +40,8 @@ pub fn all_edges() -> bool {
     env_flag("VIEWER_ALL_EDGES", &ALL_EDGES)
 }
 
-/// VIEWER_SEAMS: ink a tessellation's every seam, not only its creases and silhouette - what
-/// the sampling grid actually looks like.
+/// VIEWER_SEAMS: ink a tessellation's every seam, not only its borders and creases - what the
+/// sampling grid actually looks like.
 pub fn seams() -> bool {
     env_flag("VIEWER_SEAMS", &SEAMS)
 }

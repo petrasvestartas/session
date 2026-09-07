@@ -1,6 +1,7 @@
 // Flat ink: one camera-facing quad per segment (6 verts pulled by index, no vertex buffer),
 // a capsule SDF in the fragment, visibility from the physical depth. Draws the ribbon table
-// (free linework) and the pipe table (mesh edges). Group 3 = the segment table.
+// (free linework) and the pipe table (mesh edges). Group 3 = the segment table. Which edges
+// of a tessellation are ink at all is settled in the walk, on the exact normals.
 
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 @group(1) @binding(0) var<uniform> line: LineUniform;
@@ -46,7 +47,6 @@ const FLAG_HIDDEN: u32 = 2u;
 const FLAG_INSIDE: u32 = 4u;
 const FLAG_OPEN: u32 = 16u;
 const FLAG_SHEET: u32 = 32u;
-const FLAG_SMOOTH: u32 = 64u;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
 const MM_TO_M: f32 = 0.001;
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
@@ -67,25 +67,6 @@ fn oct16_decode(p: u32) -> vec3<f32> {
         n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
     }
     return normalize(n);
-}
-
-// How far two faces must turn before their shared edge is a real crease rather than a seam
-// left by sampling. cos(25 degrees); the packed normals carry about a degree of error, so the
-// threshold sits well clear of the tessellation tolerance the walk asks for. The walk already
-// drops the EXACTLY coplanar case, which no viewpoint can turn into a silhouette; a merely
-// near-parallel seam has to stay in the table, because from the right angle it IS one.
-const CREASE_COS: f32 = 0.906;
-
-// On a tessellated surface, ink an edge only where the surface ends or genuinely creases.
-// Everything between is a seam that would draw the sampling grid instead of the shape, and a
-// silhouette decided per segment from two packed normals flips as the camera turns, so it is
-// not drawn either. `pack_facing` gives a one-faced border edge the same code twice, which is
-// how a border is told from a seam.
-fn is_feature_edge(facing: u32, n0: vec3<f32>, n1: vec3<f32>) -> bool {
-    if ((facing & 0xffffu) == (facing >> 16u)) {
-        return true;
-    }
-    return dot(n0, n1) < CREASE_COS;
 }
 
 // An edge whose two faces both turn away from the eye is inside the solid: not drawn.
@@ -225,9 +206,6 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
         let n0 = face_normal(model, oct16_decode(seg.facing & 0xffffu));
         let n1 = face_normal(model, oct16_decode(seg.facing >> 16u));
         if (!edge_faces_camera(seg.facing, n0, n1, to_eye)) {
-            return dead_vertex();
-        }
-        if ((inst.flags & FLAG_SMOOTH) != 0u && !is_feature_edge(seg.facing, n0, n1)) {
             return dead_vertex();
         }
     }

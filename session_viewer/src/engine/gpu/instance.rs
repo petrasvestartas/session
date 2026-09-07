@@ -38,8 +38,9 @@ impl Instance {
     /// A row of a planar drawing sheet: fills composite in document order. Bit 5.
     pub const FLAG_SHEET: u32 = 1 << 5;
     /// A TESSELLATION, not an authored mesh: its interior seams are an artifact of how finely
-    /// the surface was sampled, not edges of the thing. The edge lanes ink only where such a
-    /// surface really creases or turns away from the eye. Bit 6.
+    /// the surface was sampled, not edges of the thing. The walk drops those seams before the
+    /// GPU sees them; this flag is what tells the marker lane its vertices are samples, not
+    /// corners. Bit 6.
     pub const FLAG_SMOOTH: u32 = 1 << 6;
 
     /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.

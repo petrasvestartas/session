@@ -9,7 +9,7 @@ use crate::engine::gpu::glyphs::GlyphRows;
 use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use super::encode::{encode_width, oct16, pack_facing, BLACK, FACING_UNKNOWN};
-use super::mesh::{Lap, COPLANAR_DOT, WIREFRAME_BLACK_MIN};
+use super::mesh::{Lap, COPLANAR_DOT, CREASE_COS, WIREFRAME_BLACK_MIN};
 use super::mesh_topology::{MeshTopo, SlotMap};
 
 /// The two ink lanes a mesh reaches: pipes for its edges, spheres for its vertices.
@@ -19,11 +19,13 @@ pub struct Ink<'a> {
 }
 
 /// What the ink pass needs from the face pass: the object row, the f32 positions by slot,
-/// the key -> slot map and the profiling clock.
+/// the key -> slot map, whether the mesh is a smooth tessellation, and the profiling clock.
 pub struct InkCx<'a> {
     pub row: u32,
     pub vpos: &'a [[f32; 3]],
     pub slots: &'a SlotMap,
+    /// The mesh samples a smooth surface, so only its borders and creases are ink.
+    pub smooth: bool,
     pub lap: &'a mut Lap,
 }
 
@@ -57,6 +59,25 @@ fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3
     (n0, n1.map(|n| [-n[0], -n[1], -n[2]]))
 }
 
+/// The cosine between two unit face normals.
+fn dot3(a: &[f64; 3], b: &[f64; 3]) -> f64 {
+    a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+}
+
+/// On a smooth tessellation only two edges are geometry: the BORDER, where the surface ends,
+/// and the CREASE, where it genuinely folds. Everything between is the sampling grid, and
+/// drawing it draws the mesher's choices instead of the shape. A pair with an unknown normal
+/// is kept: a degenerate face proves nothing either way.
+fn smooth_feature(topo: &MeshTopo, ei: usize, pair: (Option<[f64; 3]>, Option<[f64; 3]>)) -> bool {
+    if topo.edge_faces[ei][1] == u32::MAX {
+        return true;
+    }
+    match pair {
+        (Some(n0), Some(n1)) => dot3(&n0, &n1) < CREASE_COS,
+        _ => true,
+    }
+}
+
 /// Append edge `ei`'s faces to `fkeys`, deduped.
 fn push_faces(edge_faces: &[[u32; 2]], ei: usize, fkeys: &mut Vec<usize>) {
     for &f in edge_faces[ei].iter() {
@@ -81,7 +102,8 @@ fn facing_word(codes: &[u32], k: usize) -> u32 {
     }
 }
 
-/// The pipe loop: one segment per visible, non-coplanar edge.
+/// The pipe loop: one segment per visible, non-coplanar edge - and on a smooth mesh, only
+/// where that edge is a border or a crease.
 fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     let w = m.widths();
     let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN;
@@ -93,11 +115,14 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
             continue;
         }
         // Interior tessellation: a diagonal across a flat region shares two coplanar faces.
-        if let (Some(n0), Some(n1)) = (na, nb) {
-            let dot = n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2];
-            if dot >= COPLANAR_DOT && !knobs::all_edges() {
-                continue;
-            }
+        if let (Some(n0), Some(n1)) = (na, nb)
+            && dot3(&n0, &n1) >= COPLANAR_DOT
+            && !knobs::all_edges()
+        {
+            continue;
+        }
+        if cx.smooth && !smooth_feature(topo, i, (na, nb)) {
+            continue;
         }
         ink.seg.pipes.push(CylinderSegment {
             p0: cx.vpos[cx.slots.slot(*a)],
@@ -213,9 +238,53 @@ pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use session_rust::Point;
     use crate::app::walk::mesh::{MeshCx, MeshOpts, walk_mesh};
     use crate::app::walk::WalkCx;
     use crate::engine::gpu::arena::ArenaRows;
+
+    /// How many pipes one mesh pushes when walked under `opts`.
+    fn walk_pipes(mesh: &Mesh, opts: &MeshOpts) -> usize {
+        let mut arena = ArenaRows::default();
+        let mut segments = SegRows::default();
+        let mut glyphs = GlyphRows::default();
+        let mut ink = Ink { seg: &mut segments, glyph: &mut glyphs };
+        let cx = WalkCx { vert_base: 0, cloud_px: 0.0, row: 0 };
+        walk_mesh(&mut arena, &mut ink, mesh, &MeshCx { cx: &cx, opts });
+        segments.pipes.len()
+    }
+
+    /// A 3x3 grid of quads on the bulge z = 2e-4 * (x^2 + y^2), 100 mm apart: 24 edges, of
+    /// which 12 are border. Adjacent facets turn a couple of degrees - far too little for the
+    /// packed 16-bit normals to tell apart, which is what put these seams on screen.
+    fn bulged_grid() -> Mesh {
+        let mut points = Vec::with_capacity(16);
+        for i in 0..4 {
+            for j in 0..4 {
+                let (x, y) = (i as f64 * 100.0, j as f64 * 100.0);
+                points.push(Point::new(x, y, 2e-4 * (x * x + y * y)));
+            }
+        }
+        let mut faces = Vec::with_capacity(9);
+        for i in 0..3 {
+            for j in 0..3 {
+                let k = i * 4 + j;
+                faces.push(vec![k, k + 4, k + 5, k + 1]);
+            }
+        }
+        Mesh::from_vertices_and_faces(points, faces)
+    }
+
+    /// Two quads meeting at a right angle over the shared edge (1, 2): 7 edges, 6 of them
+    /// border and the seventh a fold no threshold can call sampling.
+    fn folded_pair() -> Mesh {
+        let points = vec![
+            Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0),
+            Point::new(100.0, 100.0, 0.0), Point::new(0.0, 100.0, 0.0),
+            Point::new(100.0, 0.0, 100.0), Point::new(100.0, 100.0, 100.0),
+        ];
+        Mesh::from_vertices_and_faces(points, vec![vec![0, 1, 2, 3], vec![1, 4, 5, 2]])
+    }
 
     /// A box wears twelve pipes and eight markers, every pipe with two known face normals.
     #[test]
@@ -233,5 +302,16 @@ mod tests {
             assert_ne!(segment.facing, FACING_UNKNOWN);
             assert_eq!(segment.instance_id, 7);
         }
+    }
+
+    /// A smooth tessellation inks its border and its creases, nothing else: the bulged grid
+    /// keeps all 24 edges as an authored OBJECT and only its 12 border edges as a MODEL, and
+    /// the folded pair keeps its 6 border edges plus the fold.
+    #[test]
+    fn smooth_mesh_inks_borders_and_creases_only() {
+        let grid = bulged_grid();
+        assert_eq!(walk_pipes(&grid, &MeshOpts::OBJECT), 24);
+        assert_eq!(walk_pipes(&grid, &MeshOpts::MODEL), 12);
+        assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::MODEL), 7);
     }
 }
