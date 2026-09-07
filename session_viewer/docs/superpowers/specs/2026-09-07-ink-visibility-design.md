@@ -195,7 +195,7 @@ Existing, all must pass unchanged in meaning:
 
 - `cargo xtest`, `cargo check` on wasm32 and native, clippy `-D warnings` on all targets.
 - `docs/_gate.sh`: gate OK.
-- `mk_hidden_line_probe` matrix: 108 renders (regular, warped, authored; top, down, iso; 1, 4,
+- `mk_hidden_line_probe` matrix: 54 renders (regular, warped, authored; top, down, iso; 1, 4,
   16 distance; MSAA 1 and 4), zero magenta pixels, blue strokes retained.
 - `docs/_hidden_line_matrix.py` on the floor model: 21 cases (one style now), zero covered ink pixels.
 - `check_hidden_line_lifecycle`, `check_determinism`.
