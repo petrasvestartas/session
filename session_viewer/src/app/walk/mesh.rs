@@ -119,7 +119,7 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     let (cx, o) = (mc.cx, mc.opts);
     let base = cx.vert_base + arena.verts.len() as u32;
     let mut lap = Lap::start("walk_mesh");
-    let mut rm = m.to_render();
+    let rm = m.to_render();
     lap.mark("to_render");
 
     let print = is_print_fill(m);
@@ -135,24 +135,6 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     }
     let topo = if decorated { Some(mesh_topology(m, &keys, &vpos64, &slots)) } else { None };
     let mut bounds = Aabb::empty();
-    for vertex in &rm.vertices { bounds.grow(vertex.position); }
-    let mut tokens = Vec::new();
-    let mut host_faces = Vec::new();
-    if let Some(topology) = &topo {
-        let faces = super::mesh_faces::decorate(m, &rm, topology, &super::mesh_faces::FaceCx { base: cx.face_base + arena.face_planes.len() as u32, row: cx.row });
-        rm = faces.render;
-        arena.face_ids.extend(faces.ids);
-        arena.face_planes.extend(faces.planes);
-        tokens = faces.tokens;
-        host_faces = faces.hosts;
-    } else if !(o.sheet_lanes && print) {
-        let faces = super::mesh_raw_faces::decorate(rm, &super::mesh_faces::FaceCx { base: cx.face_base + arena.face_planes.len() as u32, row: cx.row });
-        rm = faces.render;
-        arena.face_ids.extend(faces.ids);
-        arena.face_planes.extend(faces.planes);
-    } else {
-        arena.face_ids.resize(arena.face_ids.len() + rm.vertices.len(), 0);
-    }
     arena.verts.reserve(rm.vertices.len());
     arena.vids.reserve(rm.vertices.len());
     for v in &rm.vertices {
@@ -160,6 +142,7 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         arena.verts.push(*v);
         arena.vids.push(cx.row);
     }
+    arena.face_ids.resize(arena.face_ids.len() + rm.vertices.len(), 0);
     let idx = index_run(arena, m, o.sheet_lanes && print);
     idx.reserve(rm.indices.len());
     for &i in &rm.indices {
@@ -171,15 +154,15 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         flags |= Instance::FLAG_SMOOTH;
     }
     let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
-    let row = Row { bounds, spacing: mesh_spacing(&bounds, m.number_of_vertices()), flags, faces: true, thickness, host_faces };
+    let row = Row { bounds, spacing: mesh_spacing(&bounds, m.number_of_vertices()), flags, faces: true, thickness };
 
-    if rm.indices.len() / 3 > MESH_RAW_MIN || print || knobs::no_edges() {
+    if !decorated || knobs::no_edges() {
         return row;
     }
 
     let topo = topo.expect("decorated mesh has topology");
     lap.mark("topology");
-    let mut icx = InkCx { row: cx.row, vpos: &vpos, slots: &slots, lap: &mut lap, tokens: &tokens };
+    let mut icx = InkCx { row: cx.row, vpos: &vpos, slots: &slots, lap: &mut lap };
     edges_and_dots(ink, m, &topo, &mut icx);
 
     // An open mesh is not a solid: the facing cull would strip interior surface seen through

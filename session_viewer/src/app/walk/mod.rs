@@ -25,9 +25,6 @@ pub mod curves;
 pub mod encode;
 pub mod frames;
 pub mod mesh;
-pub mod mesh_faces;
-pub mod mesh_raw_faces;
-pub mod hosts;
 pub mod mesh_ink;
 pub mod mesh_topology;
 pub mod points;
@@ -69,17 +66,15 @@ pub struct Row {
     pub flags: u32,
     /// The row drew faces: the inside test (eye within the box) applies to it.
     pub faces: bool,
-    /// The object's thickness in its own units, whatever its orientation (section 6 of
-    /// ARCHITECTURE.md): the depth budget the shaders may spend on it.
+    /// The object's thickness in its own units, whatever its orientation: retained metadata
+    /// the instance row carries.
     pub thickness: f32,
-    /// Physical face identities for the file-local authored-line association sweep.
-    pub host_faces: Vec<hosts::HostFace>,
 }
 
 impl Row {
     /// Linework, points, frames: a box, no spacing, no flags, no faces; as thick as the box.
     pub fn thin(bounds: Aabb) -> Self {
-        Self { bounds, spacing: 0.0, flags: 0, faces: false, thickness: bounds.thinnest(), host_faces: Vec::new() }
+        Self { bounds, spacing: 0.0, flags: 0, faces: false, thickness: bounds.thinnest() }
     }
 }
 
