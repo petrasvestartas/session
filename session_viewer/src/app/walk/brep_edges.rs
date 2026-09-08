@@ -140,16 +140,18 @@ fn mean_normal(a: Option<[f64; 3]>, b: Option<[f64; 3]>) -> Option<[f64; 3]> {
 
 /// The normal of the face-mesh vertex nearest to `p`: the other face's surface direction at
 /// the edge, without that face having sampled the edge the same way. A minimum, not a
-/// threshold, so no tolerance enters.
+/// threshold, so no tolerance enters; an exact-distance tie breaks by the smaller vertex key,
+/// so the map's iteration order never reaches the rows.
 fn nearest_normal(fm: &Mesh, p: [f64; 3]) -> Option<[f64; 3]> {
-    let mut best: Option<(f64, [f64; 3])> = None;
-    for vd in fm.vertex.values() {
+    let mut best: Option<(f64, usize, [f64; 3])> = None;
+    for (&key, vd) in fm.vertex.iter() {
         let d = (vd.x - p[0]).powi(2) + (vd.y - p[1]).powi(2) + (vd.z - p[2]).powi(2);
-        if best.is_none_or(|(bd, _)| d < bd) && let Some(n) = vd.normal() {
-            best = Some((d, n));
+        let closer = best.is_none_or(|(bd, bk, _)| d < bd || (d == bd && key < bk));
+        if closer && let Some(n) = vd.normal() {
+            best = Some((d, key, n));
         }
     }
-    best.map(|(_, n)| n)
+    best.map(|(_, _, n)| n)
 }
 
 /// What the pipe loop reads: every face mesh (for the other face's normals) and the pen.
