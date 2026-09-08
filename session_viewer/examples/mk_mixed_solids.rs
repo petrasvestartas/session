@@ -1,6 +1,7 @@
 // Mixed solids: the curved lanes the mixed scene was missing. Seven BReps (box, cylinder, cone,
 // sphere, torus, block-with-hole, pyramid), four NURBS curves, two NURBS surfaces and one
-// polyline, in one row along x on an 800 mm grid, every solid standing on z = 0. The point is
+// polyline, in two rows 700 mm apart - the seven BReps along y = 0, the curves, surfaces and
+// the polyline along y = ROW - every solid standing on z = 0. The point is
 // coverage, not a model: a seam edge (cylinder, sphere, torus), a degenerated apex (cone,
 // pyramid), an inner wire (block-with-hole), a smooth-tessellation border (both surfaces) and a
 // curve lying exactly on a BRep face (the red one on the box top) each exercise a different path
@@ -10,20 +11,31 @@
 use session_rust::brep::BRep;
 use session_rust::{Color, NurbsCurve, NurbsSurface, Point, Polyline, Session, Xform};
 
-/// Centre-to-centre spacing of the row: every item is narrower than this, so nothing overlaps.
-const STEP: f64 = 800.0;
+/// Centre-to-centre spacing along a row: the widest item (the torus, 580 mm) leaves 120 mm.
+const STEP: f64 = 700.0;
+
+/// Distance between the two rows: the deepest items (the patches, 600 mm) leave 300 mm.
+const ROW: f64 = 900.0;
+
+/// Items per row: the seven BReps fill the first row, the six others the second.
+const PER_ROW: usize = 7;
 
 /// Half-width of both NURBS patches and of the polyline cube, so each fits inside one slot.
 const HALF: f64 = 300.0;
 
-/// The x of slot `i` of the row.
+/// The x of slot `i`: slots wrap after PER_ROW.
 fn slot(i: usize) -> f64 {
-    i as f64 * STEP
+    (i % PER_ROW) as f64 * STEP
+}
+
+/// The y of slot `i`: the first PER_ROW slots on y = 0, the rest one ROW behind.
+fn row(i: usize) -> f64 {
+    (i / PER_ROW) as f64 * ROW
 }
 
 /// Move `b` into slot `i`, lift it by `up` so its lowest point sits on z = 0, and colour it.
 fn place(b: &mut BRep, i: usize, up: f64, color: Color) {
-    b.transform(&Xform::translation(slot(i), 0.0, up));
+    b.transform(&Xform::translation(slot(i), row(i), up));
     b.surfacecolor = color;
 }
 
@@ -33,7 +45,7 @@ fn helix_points(i: usize) -> Vec<Point> {
     for k in 0..12 {
         let t = k as f64 / 11.0;
         let a = t * 4.0 * std::f64::consts::PI;
-        points.push(Point::new(slot(i) + 200.0 * a.cos(), 200.0 * a.sin(), 300.0 + 600.0 * t));
+        points.push(Point::new(slot(i) + 200.0 * a.cos(), row(i) + 200.0 * a.sin(), 300.0 + 600.0 * t));
     }
     points
 }
@@ -44,7 +56,7 @@ fn s_curve_points(i: usize) -> Vec<Point> {
     for k in 0..7 {
         let t = k as f64 / 6.0;
         let a = t * 2.0 * std::f64::consts::PI;
-        points.push(Point::new(slot(i) + 250.0 * a.sin(), 0.0, 300.0 + 600.0 * t));
+        points.push(Point::new(slot(i) + 250.0 * a.sin(), row(i), 300.0 + 600.0 * t));
     }
     points
 }
@@ -54,7 +66,7 @@ fn loop_points(i: usize) -> Vec<Point> {
     let mut points = Vec::with_capacity(13);
     for k in 0..13 {
         let a = k as f64 / 12.0 * 2.0 * std::f64::consts::PI;
-        points.push(Point::new(slot(i) + 250.0 * a.cos(), 250.0 * a.sin(), 600.0 + 120.0 * a.sin()));
+        points.push(Point::new(slot(i) + 250.0 * a.cos(), row(i) + 250.0 * a.sin(), 600.0 + 120.0 * a.sin()));
     }
     points
 }
@@ -64,7 +76,7 @@ fn box_top_points(i: usize, z: f64) -> Vec<Point> {
     let mut points = Vec::with_capacity(5);
     for k in 0..5 {
         let t = k as f64 / 4.0;
-        points.push(Point::new(slot(i) - 150.0 + 300.0 * t, 100.0 * (t * 6.0).sin(), z));
+        points.push(Point::new(slot(i) - 150.0 + 300.0 * t, row(i) + 100.0 * (t * 6.0).sin(), z));
     }
     points
 }
@@ -84,7 +96,7 @@ fn dome_points(i: usize) -> Vec<Point> {
     for &x in &coord {
         for &y in &coord {
             let r = (x * x + y * y).sqrt();
-            points.push(Point::new(slot(i) + x, y, 300.0 + 200.0 * (r / 250.0).cos()));
+            points.push(Point::new(slot(i) + x, row(i) + y, 300.0 + 200.0 * (r / 250.0).cos()));
         }
     }
     points
@@ -96,7 +108,7 @@ fn saddle_points(i: usize) -> Vec<Point> {
     let mut points = Vec::with_capacity(16);
     for &x in &coord {
         for &y in &coord {
-            points.push(Point::new(slot(i) + x, y, 250.0 + 0.0006 * (x * x - y * y)));
+            points.push(Point::new(slot(i) + x, row(i) + y, 250.0 + 0.0006 * (x * x - y * y)));
         }
     }
     points
@@ -122,7 +134,7 @@ fn cube_polyline(i: usize) -> Polyline {
     let mut points = Vec::with_capacity(route.len());
     for &v in &route {
         let c = corner[v];
-        points.push(Point::new(slot(i) + c[0], c[1], c[2]));
+        points.push(Point::new(slot(i) + c[0], row(i) + c[1], c[2]));
     }
     let mut p = Polyline::new(points);
     p.name = "cube_edges".to_string();
