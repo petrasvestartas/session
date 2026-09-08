@@ -34,7 +34,7 @@ pub const CREASE_COS: f64 = 0.906_307_787;
 
 /// Typical distance between a mesh's vertices: the diagonal over the square root of the
 /// vertex count (a surface spreads its vertices over an area). The markers thin below it.
-fn mesh_spacing(bounds: &Aabb, verts: usize) -> f32 {
+pub(super) fn mesh_spacing(bounds: &Aabb, verts: usize) -> f32 {
     if verts < 2 {
         return 0.0;
     }
