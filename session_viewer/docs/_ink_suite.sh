@@ -60,6 +60,15 @@ check render_shade env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_NO_EDG
 check shade_scanline python3 docs/_shade_scanline.py "$OUT/sphere.ppm" --max-second-diff 2.5 --max-backface 0
 check render_mixed_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/mixed_top.ppm" "$OUT/mixed.pb"
 check mixed_backface python3 docs/_shade_scanline.py "$OUT/mixed_top.ppm" --max-backface 0
+
+# A hidden line behind a curved BRep: zero magenta at distance 1 and 4, read from the whole
+# colour frame.
+check cylinder_hidden "$B/mk_cylinder_hidden_probe" "$OUT/cyl_hidden.pb"
+for d in 1 4; do
+    check "render_cylinder_hidden_$d" env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_MSAA=4 VIEWER_ORBIT=0,60 VIEWER_DISTANCE_SCALE=$d "$B/selftest" "$OUT/cyl_hidden_$d.ppm" "$OUT/cyl_hidden.pb"
+    check "cylinder_hidden_$d" bash -c "set -- \$(python3 docs/_count_colors.py '$OUT/cyl_hidden_$d.ppm'); [ \"\$4\" -eq 0 ]"
+done
+
 check closeup closeup
 check brep_probe "$B/mk_brep_probe" "$OUT/brep_ok.pb"
 check brep_probe_flipped env BREP_PROBE_FLIPPED=1 "$B/mk_brep_probe" "$OUT/brep_flipped.pb"
