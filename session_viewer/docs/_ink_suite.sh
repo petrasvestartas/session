@@ -38,6 +38,28 @@ check gate docs/_gate.sh
 check probe_matrix python3 docs/_probe_matrix.py "$B/selftest" "$B/mk_hidden_line_probe" "$OUT/matrix"
 check lifecycle "$B/check_hidden_line_lifecycle" "$OUT/lifecycle" "$OUT/matrix/regular.pb" "$OUT/matrix/warped.pb" "$OUT/matrix/authored.pb"
 check determinism "$B/check_determinism" "$OUT/matrix/regular.pb" "$OUT/matrix/warped.pb" assets/pb/view_local_boxes.pb
+check mixed_scene "$B/mk_mixed_solids" "$OUT/mixed.pb"
+# Determinism of the unwelded walk on a torus and a block with hole. NOT the sphere and NOT the
+# mixed scene: the kernel's grid mesher averages a pole's normal over its fan in HashMap order,
+# so a sphere's two pole normals differ in their last bits between loads (measured 2026-09-08,
+# five loads of sphere.pb, `verts` flaky every time; torus and hole deterministic in three
+# loads each). The weld used to drop those normals; the analytic normals now reach the GPU.
+# The fix is a sorted accumulation in the kernel (phase 2 part B), after which the sphere and
+# the mixed scene join this line.
+check probe_torus "$B/mk_shade_probe" "$OUT/torus.pb" torus
+check probe_hole "$B/mk_shade_probe" "$OUT/hole.pb" hole
+check probe_determinism "$B/check_determinism" "$OUT/torus.pb" "$OUT/hole.pb"
+
+# Smooth shading: a sphere alone, headlight on, no ink. The largest second difference of luma
+# across its centre scanline measured 1.43 with per-vertex normals against 4.07 with the
+# welded flat facets (1400x900, MSAA 4, Intel iGPU, 2026-09-08); the floor is 2.5, the
+# quantisation stair of an 8-bit gradient with room for a driver's rounding. Zero back-face
+# pixels from above: a face wound inside out shows the shader's red.
+check shade_probe "$B/mk_shade_probe" "$OUT/sphere.pb" sphere
+check render_shade env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_NO_EDGES=1 "$B/selftest" "$OUT/sphere.ppm" "$OUT/sphere.pb"
+check shade_scanline python3 docs/_shade_scanline.py "$OUT/sphere.ppm" --max-second-diff 2.5 --max-backface 0
+check render_mixed_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/mixed_top.ppm" "$OUT/mixed.pb"
+check mixed_backface python3 docs/_shade_scanline.py "$OUT/mixed_top.ppm" --max-backface 0
 check closeup closeup
 check brep_probe "$B/mk_brep_probe" "$OUT/brep_ok.pb"
 check brep_probe_flipped env BREP_PROBE_FLIPPED=1 "$B/mk_brep_probe" "$OUT/brep_flipped.pb"
