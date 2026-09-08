@@ -7,6 +7,11 @@
 use session_rust::brep::{BRep, BRepOrientation};
 use session_rust::Mesh;
 
+use super::encode::{pack_facing, Pen};
+use crate::engine::gpu::segments::SegRows;
+use crate::engine::gpu::CylinderSegment;
+use crate::math::Aabb;
+
 /// One use of an edge by a face: which edge, which face, and the orientation of that use
 /// (`BRep::edge_faces` composes it), which selects the pcurve on a seam.
 pub struct EdgeUse {
@@ -92,6 +97,103 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
     Some(keys)
 }
 
+/// One edge's ink source: the face mesh it is read from, the keys along it, and the other
+/// face that meets it (None on a seam, where both uses are the same face, or on a free edge).
+pub struct EdgeChain {
+    pub face: usize,
+    pub keys: Vec<usize>,
+    pub other: Option<usize>,
+}
+
+/// A chain for every edge of `b`, from the first use that is a grid face; a degenerated edge,
+/// or one whose every use is a CDT face, gets None and falls back to the curve.
+pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
+    let mut out = Vec::with_capacity(b.m_edges.len());
+    for (ei, e) in b.m_edges.iter().enumerate() {
+        if e.degenerated {
+            out.push(None);
+            continue;
+        }
+        let uses = b.edge_faces(ei);
+        let mut found: Option<EdgeChain> = None;
+        for (k, u) in uses.iter().enumerate() {
+            let eu = EdgeUse { edge: ei, face: u.index as usize, orientation: u.orientation };
+            let Some(keys) = iso_chain(b, &fms[eu.face], &eu) else { continue };
+            // The other face is any use on a different face - a seam's second use is the
+            // same face and lends nothing new.
+            let other = uses.iter().enumerate().find(|(j, o)| *j != k && o.index as usize != eu.face).map(|(_, o)| o.index as usize);
+            found = Some(EdgeChain { face: eu.face, keys, other });
+            break;
+        }
+        out.push(found);
+    }
+    out
+}
+
+/// The unit sum of two vertex normals: the surface direction along one chain segment.
+fn mean_normal(a: Option<[f64; 3]>, b: Option<[f64; 3]>) -> Option<[f64; 3]> {
+    let (a, b) = (a?, b?);
+    let s = [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+    let l = (s[0] * s[0] + s[1] * s[1] + s[2] * s[2]).sqrt();
+    if l > 0.0 { Some([s[0] / l, s[1] / l, s[2] / l]) } else { None }
+}
+
+/// The normal of the face-mesh vertex nearest to `p`: the other face's surface direction at
+/// the edge, without that face having sampled the edge the same way. A minimum, not a
+/// threshold, so no tolerance enters.
+fn nearest_normal(fm: &Mesh, p: [f64; 3]) -> Option<[f64; 3]> {
+    let mut best: Option<(f64, [f64; 3])> = None;
+    for vd in fm.vertex.values() {
+        let d = (vd.x - p[0]).powi(2) + (vd.y - p[1]).powi(2) + (vd.z - p[2]).powi(2);
+        if best.is_none_or(|(bd, _)| d < bd) && let Some(n) = vd.normal() {
+            best = Some((d, n));
+        }
+    }
+    best.map(|(_, n)| n)
+}
+
+/// What the pipe loop reads: every face mesh (for the other face's normals) and the pen.
+pub struct EdgePen<'a> {
+    pub fms: &'a [Mesh],
+    pub pen: Pen,
+}
+
+/// One pipe per chain segment. `facing` carries the owning face's normal along the segment
+/// and the other face's normal nearest its midpoint, so the vertex-stage cull drops the edge
+/// only when BOTH faces turn away - a cap's rim stays inked from above while the side below
+/// it faces away.
+pub fn push_edge_pipes(seg: &mut SegRows, chain: &EdgeChain, ep: &EdgePen, bounds: &mut Aabb) -> usize {
+    let fm = &ep.fms[chain.face];
+    let other = chain.other.map(|f| &ep.fms[f]);
+    seg.pipes.reserve(chain.keys.len().saturating_sub(1));
+    let mut count = 0;
+    for w in chain.keys.windows(2) {
+        let (a, b) = (&fm.vertex[&w[0]], &fm.vertex[&w[1]]);
+        let p0 = [a.x, a.y, a.z];
+        let p1 = [b.x, b.y, b.z];
+        let n0 = mean_normal(a.normal(), b.normal());
+        let mid = [(p0[0] + p1[0]) * 0.5, (p0[1] + p1[1]) * 0.5, (p0[2] + p1[2]) * 0.5];
+        let n1 = match other {
+            Some(o) => nearest_normal(o, mid),
+            None => n0,
+        };
+        let p0f = p0.map(|v| v as f32);
+        let p1f = p1.map(|v| v as f32);
+        bounds.grow(p0f);
+        bounds.grow(p1f);
+        seg.pipes.push(CylinderSegment {
+            p0: p0f,
+            radius: ep.pen.radius,
+            p1: p1f,
+            instance_id: ep.pen.row,
+            color: ep.pen.color,
+            facing: pack_facing(n0.as_ref(), n1.as_ref()),
+        });
+        count += 1;
+    }
+    count
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -170,5 +272,67 @@ mod tests {
         let cap = cyl.edge_faces(0)[1];
         let eu = EdgeUse { edge: 0, face: cap.index as usize, orientation: cap.orientation };
         assert!(iso_chain(&cyl, &cfm[eu.face], &eu).is_none());
+    }
+
+    /// Every non-degenerated edge of the mixed scene's seven solids gets a chain, owned by
+    /// whichever use is listed among `b.edge_faces`, with every other listed face as `other`
+    /// (or None on a seam, both uses on one face). The owner need not be the first use: the
+    /// pyramid's apex edges are grid-meshed on both sides but the first use's iso line holds
+    /// only one grid vertex on that side's degenerate bilinear patch, so the second use wins.
+    #[test]
+    fn every_solid_edge_has_a_chain() {
+        let solids = [
+            BRep::create_box(400.0, 300.0, 250.0),
+            BRep::create_cylinder(150.0, 400.0),
+            BRep::create_cone(150.0, 400.0),
+            BRep::create_sphere(180.0),
+            BRep::create_torus(220.0, 70.0),
+            BRep::create_block_with_hole(500.0, 300.0, 200.0, 80.0),
+            BRep::create_pyramid(400.0, 350.0),
+        ];
+        for b in &solids {
+            let fms = b.face_meshes_q(Some(QUALITY));
+            let chains = edge_chains(b, &fms);
+            assert_eq!(chains.len(), b.m_edges.len());
+            for (ei, e) in b.m_edges.iter().enumerate() {
+                let uses = b.edge_faces(ei);
+                match &chains[ei] {
+                    None => assert!(e.degenerated, "{} edge {ei}", b.name),
+                    Some(c) => {
+                        assert!(uses.iter().any(|u| u.index as usize == c.face), "{} edge {ei}", b.name);
+                        let other = uses.iter().find(|u| u.index as usize != c.face).map(|u| u.index as usize);
+                        assert_eq!(c.other, other, "{} edge {ei}", b.name);
+                    }
+                }
+            }
+        }
+    }
+
+    /// A circle edge of the cylinder packs the side's normal and the cap's normal - two
+    /// different codes - into every pipe; the seam packs the side's normal twice.
+    #[test]
+    fn pipes_face_both_adjacent_faces() {
+        use crate::app::walk::encode::{encode_width, pack_rgba, Pen, FACING_UNKNOWN};
+        use crate::engine::gpu::segments::SegRows;
+        use crate::math::Aabb;
+        let b = BRep::create_cylinder(150.0, 400.0);
+        let fms = b.face_meshes_q(Some(QUALITY));
+        let chains = edge_chains(&b, &fms);
+        let ep = EdgePen { fms: &fms, pen: Pen { row: 3, radius: encode_width(1.0), color: pack_rgba([0.0, 0.0, 0.0, 1.0]) } };
+        let mut seg = SegRows::default();
+        let mut bounds = Aabb::empty();
+        let circle = push_edge_pipes(&mut seg, chains[0].as_ref().unwrap(), &ep, &mut bounds);
+        assert_eq!(circle, chains[0].as_ref().unwrap().keys.len() - 1);
+        for p in &seg.pipes {
+            assert_ne!(p.facing, FACING_UNKNOWN);
+            assert_ne!(p.facing & 0xffff, p.facing >> 16);
+            assert_eq!(p.instance_id, 3);
+        }
+        let before = seg.pipes.len();
+        let seam = push_edge_pipes(&mut seg, chains[2].as_ref().unwrap(), &ep, &mut bounds);
+        assert_eq!(seam, 1);
+        let p = &seg.pipes[before];
+        assert_eq!(p.facing & 0xffff, p.facing >> 16);
+        assert!(seg.ribbons.is_empty());
     }
 }
