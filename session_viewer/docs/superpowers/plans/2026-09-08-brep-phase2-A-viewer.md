@@ -36,6 +36,7 @@
 | `src/app/walk/mesh.rs` | `mesh_spacing` becomes `pub(super)` |
 | `examples/mk_shade_probe.rs` | new: one BRep (sphere, torus or block-with-hole) or the dome NURBS surface, chosen by argument, alone in a file |
 | `examples/mk_cylinder_hidden_probe.rs` | new: a magenta polyline behind a BRep cylinder (design section 4) |
+| `examples/mk_teapot.rs` | new: the Utah teapot as one BRep of 32 bicubic patches, the hard case |
 | `docs/_shade_scanline.py` | new: the sphere scanline's maximum second difference and the back-face pixel count of a frame |
 | `docs/_ink_suite.sh` | the shade probe, the cylinder hidden-line probe and the mixed scene's determinism join the suite |
 | `ARCHITECTURE.md` | section 0 file list, section 6 smooth-tessellation bullet, section 11 check count |
@@ -56,7 +57,7 @@ Every face mesh carries `nx/ny/nz` on every vertex (grid faces: the analytic sur
 | block with hole | 7 | 15 | 4 grid box sides, 1 grid hole side 146 / 146 / 2 loops, 2 CDT faces 76 / 76 / loops of 72 and 4 |
 | pyramid | 5 | 12 (four degenerated) | 5 grid faces |
 
-Every non-degenerated edge of these seven solids has a grid face as its FIRST use in `edge_faces`, so the iso-chain path covers the whole mixed scene; the ribbon fallback is for BReps this scene does not contain.
+Every non-degenerated edge of these seven solids has a grid face as one of its uses in `edge_faces`, so the iso-chain path covers the whole mixed scene; the ribbon fallback is for BReps this scene does not contain.
 
 ---
 
@@ -89,7 +90,7 @@ for gpu in Intel NVIDIA; do for scene in view_mixed view_meshes view_lines; do
 done; done 2>&1 | tee "$S/bench/before.txt"
 ```
 
-Expected: six blocks, each with a `still:` and a `moving:` line. Keep `$S/bench/before.txt`; Task 8 measures `after.txt` with the same command and both go into `docs/_PERF.md`. Confirm the adapter from the `adapter:` log line of a `selftest` run under each `VIEWER_ADAPTER` (`env VIEWER_ADAPTER=Intel "$B/selftest" "$S/a.ppm" assets/view_local.yaml 2>&1 | grep -i adapter`).
+Expected: six blocks, each with a `still:` and a `moving:` line. Keep `$S/bench/before.txt`; Task 9 measures `after.txt` with the same command and both go into `docs/_PERF.md`. Confirm the adapter from the `adapter:` log line of a `selftest` run under each `VIEWER_ADAPTER` (`env VIEWER_ADAPTER=Intel "$B/selftest" "$S/a.ppm" assets/view_local.yaml 2>&1 | grep -i adapter`).
 
 - [ ] **Step 3: Write the shade probe example**
 
@@ -1124,7 +1125,16 @@ After the `check determinism ...` line, add:
 
 ```bash
 check mixed_scene "$B/mk_mixed_solids" "$OUT/mixed.pb"
-check mixed_determinism "$B/check_determinism" "$OUT/mixed.pb"
+# Determinism of the unwelded walk on a torus and a block with hole. NOT the sphere and NOT the
+# mixed scene: the kernel's grid mesher averages a pole's normal over its fan in HashMap order,
+# so a sphere's two pole normals differ in their last bits between loads (measured 2026-09-08,
+# five loads of sphere.pb, `verts` flaky every time; torus and hole deterministic in three
+# loads each). The weld used to drop those normals; the analytic normals now reach the GPU.
+# The fix is a sorted accumulation in the kernel (phase 2 part B), after which the sphere and
+# the mixed scene join this line.
+check probe_torus "$B/mk_shade_probe" "$OUT/torus.pb" torus
+check probe_hole "$B/mk_shade_probe" "$OUT/hole.pb" hole
+check probe_determinism "$B/check_determinism" "$OUT/torus.pb" "$OUT/hole.pb"
 
 # Smooth shading: a sphere alone, headlight on, no ink. The largest second difference of luma
 # across its centre scanline measured <after> with per-vertex normals against <before> with the
@@ -1243,7 +1253,352 @@ Zero magenta at distance 1 and 4 through the curved tessellation."
 
 ---
 
-### Task 8: Perf after, the ledger, the architecture map
+### Task 8: The Utah teapot as one BRep, the hard case
+
+**Files:**
+- Create: `examples/mk_teapot.rs`
+- Modify: `docs/_ink_suite.sh` (after the cylinder checks)
+
+**Interfaces:**
+- Produces: `mk_teapot <out.pb>` writes one BRep named `teapot`: 32 bicubic patches, shared boundaries as single edges, degenerate rows as degenerated edges, one shell per connected patch group; prints `teapot: faces F edges E vertices V shells S chained C degenerated D unchained U`.
+- Consumes: `session_viewer::app::walk::brep_edges::edge_chains` and `session_viewer::app::walk::brep::QUALITY` (Tasks 2-3) for the printed chain census; the kernel's public builder `BRep::add_vertex / add_curve_3d / add_curve_2d / add_edge / add_pcurve / add_wire / add_face / add_shell`, `NurbsSurface::create`, `NurbsSurface::iso_curve(dir, c)` (the curve varies along `dir` at the other parameter fixed to `c`), `NurbsSurface::domain`, `BRep::face_meshes`.
+
+Why: the seven primitives share every edge between a grid face and at most one other face and every seam is sampled once. The teapot is 32 grid faces whose neighbours sample the shared boundary each with their own span count, two exactly degenerate rows (the bottom's pole and the lid's top), a nearly degenerate row (the knob's 0.002 loop), and open shells - what a model from a CAD exchange looks like, and where any edge that is not read off the tessellation drifts visibly.
+
+- [ ] **Step 1: Write the example**
+
+The data is Newell's teapot as the GLUT sources carry it (ten input patches; rim, body, lid and bottom are turned through the four quadrants, handle and spout are mirrored in y). Copy the two tables from `$S/fg_teapot_data.h` (lines 957 to 1039): the 10 x 16 index table as `const PATCHES: [[usize; 16]; 10]` and the 129 points as `const POINTS: [[f64; 3]; 129]`, values verbatim with the `f` suffix dropped.
+
+```rust
+// The Utah teapot as a BRep: Newell's 32 bicubic Bezier patches from the ten GLUT input
+// patches - rim, body, lid and bottom turned through the four quadrants, handle and spout
+// mirrored in y - with every shared boundary one edge, every exactly degenerate row a
+// degenerated edge, and one shell per connected patch group. The hard case for the BRep walk:
+// 32 grid faces whose seams are sampled by both sides, a pole, a tip, a 0.002 loop at the knob,
+// and open shells. Scaled by SCALE so it sits with the mixed solids; the original unit is a
+// few teapot-widths.
+//
+// cargo run --release --target x86_64-unknown-linux-gnu --example mk_teapot -- <out.pb>
+use session_rust::brep::{BRep, BRepOrientation, BRepRef};
+use session_rust::{Color, NurbsCurve, NurbsSurface, Point, Session};
+use session_viewer::app::walk::brep::QUALITY;
+use session_viewer::app::walk::brep_edges::edge_chains;
+
+/// Teapot units to millimetres: the body is 4 units across, so 100 makes it 400 mm, the
+/// size of the mixed scene's box.
+const SCALE: f64 = 100.0;
+
+const F: BRepOrientation = BRepOrientation::Forward;
+const R: BRepOrientation = BRepOrientation::Reversed;
+
+const PATCHES: [[usize; 16]; 10] = [ /* the ten rows of patchdata_teapot, verbatim */ ];
+
+const POINTS: [[f64; 3]; 129] = [ /* the 129 rows of cpdata_teapot, verbatim */ ];
+
+/// A point of the data turned `q` quarter turns about z and scaled: (x, y) -> (-y, x) is
+/// exact in floating point, so patches that share a boundary share its coordinates bit for bit.
+fn turned(p: [f64; 3], q: usize) -> Point {
+    let (mut x, mut y) = (p[0], p[1]);
+    for _ in 0..q {
+        (x, y) = (-y, x);
+    }
+    Point::new(x * SCALE, y * SCALE, p[2] * SCALE)
+}
+
+/// The 32 patches as 4 x 4 control grids, u slowest. A mirrored copy (y negated) would turn
+/// its normal inward, so it is transposed as well, which turns the normal back out.
+fn patches() -> Vec<[Point; 16]> {
+    let mut out = Vec::with_capacity(32);
+    for (k, idx) in PATCHES.iter().enumerate() {
+        let grid: Vec<[f64; 3]> = idx.iter().map(|&i| POINTS[i]).collect();
+        if k < 6 {
+            for q in 0..4 {
+                out.push(std::array::from_fn(|n| turned(grid[n], q)));
+            }
+        } else {
+            out.push(std::array::from_fn(|n| turned(grid[n], 0)));
+            out.push(std::array::from_fn(|n| {
+                let (iu, iv) = (n / 4, n % 4);
+                let p = grid[iv * 4 + iu];
+                Point::new(p[0] * SCALE, -p[1] * SCALE, p[2] * SCALE)
+            }));
+        }
+    }
+    out
+}
+
+/// A point's coordinates as bits: the matching key, exact by construction.
+fn key(p: &Point) -> [u64; 3] {
+    [p[0].to_bits(), p[1].to_bits(), p[2].to_bits()]
+}
+
+/// One side of a patch: its four control points in the +parameter direction, which
+/// `iso_curve` argument draws it, and the corner parameters its pcurve runs between.
+struct Side {
+    cvs: [Point; 4],
+    iso: (usize, f64),
+    from: (f64, f64),
+    to: (f64, f64),
+}
+
+/// The four sides of a 4 x 4 grid in wire order: v = v0 along +u, u = u1 along +v, v = v1
+/// along +u (the wire walks it backwards), u = u0 along +v (backwards too).
+fn sides(g: &[Point; 16], dom: ((f64, f64), (f64, f64))) -> [Side; 4] {
+    let ((u0, u1), (v0, v1)) = dom;
+    let at = |iu: usize, iv: usize| g[iu * 4 + iv].clone();
+    [
+        Side { cvs: [at(0, 0), at(1, 0), at(2, 0), at(3, 0)], iso: (0, v0), from: (u0, v0), to: (u1, v0) },
+        Side { cvs: [at(3, 0), at(3, 1), at(3, 2), at(3, 3)], iso: (1, u1), from: (u1, v0), to: (u1, v1) },
+        Side { cvs: [at(0, 3), at(1, 3), at(2, 3), at(3, 3)], iso: (0, v1), from: (u0, v1), to: (u1, v1) },
+        Side { cvs: [at(0, 0), at(0, 1), at(0, 2), at(0, 3)], iso: (1, u0), from: (u0, v0), to: (u0, v1) },
+    ]
+}
+
+/// A straight pcurve between two corners of the domain.
+fn uv_line(a: (f64, f64), b: (f64, f64)) -> NurbsCurve {
+    NurbsCurve::create(false, 1, &[Point::new(a.0, a.1, 0.0), Point::new(b.0, b.1, 0.0)])
+}
+
+/// The builder's memory across patches: corner points to vertex indices and boundary rows
+/// to the edge that already carries them.
+struct Shared {
+    vertices: Vec<([u64; 3], usize)>,
+    edges: Vec<([[u64; 3]; 4], usize)>,
+}
+
+impl Shared {
+    /// The vertex at `p`, made on first sight.
+    fn vertex(&mut self, b: &mut BRep, p: &Point) -> usize {
+        let k = key(p);
+        if let Some((_, v)) = self.vertices.iter().find(|(kk, _)| *kk == k) {
+            return *v;
+        }
+        let v = b.add_vertex(p, 0.0);
+        self.vertices.push((k, v));
+        v
+    }
+
+    /// The edge carrying these four control points, and whether it runs the same way: +1
+    /// when the stored row reads forwards, -1 when it reads backwards, None when new.
+    fn edge(&self, cvs: &[Point; 4]) -> Option<(usize, i32)> {
+        let fwd: [[u64; 3]; 4] = std::array::from_fn(|i| key(&cvs[i]));
+        let rev: [[u64; 3]; 4] = std::array::from_fn(|i| key(&cvs[3 - i]));
+        for (k, e) in &self.edges {
+            if *k == fwd {
+                return Some((*e, 1));
+            }
+            if *k == rev {
+                return Some((*e, -1));
+            }
+        }
+        None
+    }
+}
+
+/// One side into the BRep for surface `si`: the edge (shared, new, or degenerated), its
+/// pcurve on this face in the edge's own direction, and the wire use. `walk` is +1 when the
+/// wire walks this side along +parameter, -1 backwards.
+fn add_side(b: &mut BRep, sh: &mut Shared, s: &Side, ctx: (usize, i32)) -> BRepRef {
+    let (si, walk) = ctx;
+    let degenerate = s.cvs.iter().all(|p| key(p) == key(&s.cvs[0]));
+    if degenerate {
+        let v = sh.vertex(b, &s.cvs[0]) as i32;
+        let e = b.add_edge(-1, v, v);
+        let c = b.add_curve_2d(&uv_line(s.from, s.to)) as i32;
+        b.add_pcurve(e, si, c, -1);
+        return BRepRef::new(e as i32, if walk > 0 { F } else { R });
+    }
+    let (e, dir) = match sh.edge(&s.cvs) {
+        Some(found) => found,
+        None => {
+            let v0 = sh.vertex(b, &s.cvs[0]) as i32;
+            let v1 = sh.vertex(b, &s.cvs[3]) as i32;
+            let crv = b.m_surfaces[si].iso_curve(s.iso.0, s.iso.1).expect("iso curve");
+            let c3 = b.add_curve_3d(&crv) as i32;
+            let e = b.add_edge(c3, v0, v1);
+            sh.edges.push((std::array::from_fn(|i| key(&s.cvs[i])), e));
+            (e, 1)
+        }
+    };
+    // SameParameter: the pcurve follows the edge's 3D direction, not the side's.
+    let c = if dir > 0 { uv_line(s.from, s.to) } else { uv_line(s.to, s.from) };
+    let ci = b.add_curve_2d(&c) as i32;
+    b.add_pcurve(e, si, ci, -1);
+    BRepRef::new(e as i32, if walk * dir > 0 { F } else { R })
+}
+
+/// Faces sharing a non-degenerated edge belong to one shell: union-find over the faces.
+fn components(b: &BRep) -> Vec<Vec<usize>> {
+    let nf = b.m_faces.len();
+    let mut parent: Vec<usize> = (0..nf).collect();
+    fn root(parent: &mut [usize], i: usize) -> usize {
+        let mut i = i;
+        while parent[i] != i {
+            parent[i] = parent[parent[i]];
+            i = parent[i];
+        }
+        i
+    }
+    for ei in 0..b.m_edges.len() {
+        if b.m_edges[ei].degenerated {
+            continue;
+        }
+        let uses = b.edge_faces(ei);
+        for w in uses.windows(2) {
+            let (a, c) = (root(&mut parent, w[0].index as usize), root(&mut parent, w[1].index as usize));
+            parent[a] = c;
+        }
+    }
+    let mut groups: Vec<Vec<usize>> = Vec::new();
+    let mut roots: Vec<usize> = Vec::new();
+    for f in 0..nf {
+        let r = root(&mut parent, f);
+        match roots.iter().position(|&x| x == r) {
+            Some(i) => groups[i].push(f),
+            None => {
+                roots.push(r);
+                groups.push(vec![f]);
+            }
+        }
+    }
+    groups
+}
+
+/// Six times the signed volume the faces of one group enclose, summed over their triangles
+/// about the origin: negative means the group's normals point inward and the shell is added
+/// reversed. An open group still carries the sign of the side it mostly faces.
+fn signed_volume(meshes: &[session_rust::Mesh], group: &[usize]) -> f64 {
+    let mut six_v = 0.0;
+    for &fi in group {
+        let m = &meshes[fi];
+        for verts in m.face.values() {
+            if verts.len() < 3 {
+                continue;
+            }
+            let p = |k: usize| m.vertex[&verts[k]].position();
+            let (a, b, c) = (p(0), p(1), p(2));
+            six_v += a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0]);
+        }
+    }
+    six_v
+}
+
+/// The teapot BRep: patches to faces with shared edges, then one shell per group, reversed
+/// when its volume comes out negative, and a solid for every closed shell.
+fn teapot() -> BRep {
+    let mut b = BRep::new();
+    b.name = "teapot".to_string();
+    let mut sh = Shared { vertices: Vec::new(), edges: Vec::new() };
+    for g in patches() {
+        let srf = NurbsSurface::create(false, false, 3, 3, 4, 4, &g).expect("bicubic patch");
+        let dom = (srf.domain(0).expect("u domain"), srf.domain(1).expect("v domain"));
+        let si = b.add_surface(&srf);
+        let walks = [1, 1, -1, -1];
+        let mut uses = Vec::with_capacity(4);
+        for (s, walk) in sides(&g, dom).iter().zip(walks) {
+            uses.push(add_side(&mut b, &mut sh, s, (si, walk)));
+        }
+        let wi = b.add_wire(&uses);
+        b.add_face(si as i32, &[BRepRef::new(wi as i32, F)], 0.0);
+    }
+    let meshes = b.face_meshes();
+    for group in components(&b) {
+        let o = if signed_volume(&meshes, &group) < 0.0 { R } else { F };
+        let refs: Vec<BRepRef> = group.iter().map(|&f| BRepRef::new(f as i32, o)).collect();
+        let s = b.add_shell(&refs);
+        if b.is_closed(s) {
+            b.add_solid(&[BRepRef::new(s as i32, F)]);
+        }
+    }
+    b.surfacecolor = Color::new(0.93, 0.90, 0.82, 1.0);
+    b
+}
+
+/// What the walk will find: how many edges have a chain, how many are degenerated, and how
+/// many would fall back to the curve.
+fn census(b: &BRep) -> (usize, usize, usize) {
+    let fms = b.face_meshes_q(Some(QUALITY));
+    let chains = edge_chains(b, &fms);
+    let chained = chains.iter().filter(|c| c.is_some()).count();
+    let degenerated = b.m_edges.iter().filter(|e| e.degenerated).count();
+    (chained, degenerated, b.m_edges.len() - chained - degenerated)
+}
+
+fn main() {
+    let out = std::env::args().nth(1).unwrap_or_else(|| "target/teapot.pb".into());
+    let b = teapot();
+    let (chained, degenerated, unchained) = census(&b);
+    println!(
+        "teapot: faces {} edges {} vertices {} shells {} chained {chained} degenerated {degenerated} unchained {unchained}",
+        b.m_faces.len(), b.m_edges.len(), b.m_vertices.len(), b.m_shells.len()
+    );
+    let mut s = Session::new("teapot");
+    s.add_brep(b, None);
+    s.pb_dump(&out);
+    println!("wrote {out}");
+}
+```
+
+Check before building: `BRep.m_shells` is a public field (`grep -n "pub m_shells" ../session_rust/src/brep.rs`); `BRepRef::new(i32, BRepOrientation)`; `BRep::is_closed(shell_index)`; `Point` implements `Clone` and `Index<usize>`; `NurbsSurface::create` returns `Result`. If `session_viewer::app::walk::brep_edges` is not reachable from an example (it is `pub mod`, and `app` is `pub mod` in `lib.rs`), say so and print the census from the kernel side only.
+
+- [ ] **Step 2: Build, run, read the census**
+
+```bash
+cargo build -q --release --target x86_64-unknown-linux-gnu --example mk_teapot
+"$B/mk_teapot" "$S/teapot.pb"
+```
+
+Expected: `faces 32`, `unchained 0`, `degenerated` equal to the number of exactly degenerate patch sides (the bottom's pole row in four quadrants and the lid's tip row in four: 8), `shells` at least 4 (body with bottom, lid, handle, spout - the rim's inner ring shares nothing with the lid). If `unchained` is not 0, print which edges and on which faces (their `edge_faces`), and report: it means an iso line of a grid face carries fewer than two sample vertices, the pyramid case again, and the ribbon fallback covers it - not a failure of this task, but the numbers go in the report.
+
+- [ ] **Step 3: Render and inspect**
+
+```bash
+for v in iso top front; do
+  case $v in iso) cam=() ;; top) cam=(VIEWER_VIEW=top) ;; front) cam=(VIEWER_ORBIT=0,60) ;; esac
+  env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 "${cam[@]}" "$B/selftest" "$S/teapot_$v.ppm" "$S/teapot.pb"
+  python3 docs/_shade_scanline.py "$S/teapot_$v.ppm"
+  python3 "$S/ppm2png.py" "$S/teapot_$v.ppm" "$S/teapot_$v.png"
+done
+"$B/check_determinism" "$S/teapot.pb"   # expected FLAKY on verts (pole normals), record it
+```
+
+Look at every PNG. Expected: `backface 0` on all three (a red patch means a shell's sign came out wrong: report which part), smooth shading over the body, spout and handle, every patch boundary inked once, the pole and the tip carrying no stray line, no line floating off the surface. Use `python3 "$S/crop.py" in.ppm out.png x0 y0 x1 y1 3` on the spout tip, the knob and a body seam and describe what you see in the report, honestly: a boundary that visibly leaves its neighbour's facets is the sampling mismatch part B fixes and must be named, not hidden.
+
+- [ ] **Step 4: Join the suite**
+
+After the cylinder checks in `docs/_ink_suite.sh`:
+
+```bash
+# The teapot: 32 bicubic patches, open shells, a pole and a tip. Every edge chained off the
+# tessellation, no back-face pixel from above, and two loads of the file agree.
+check teapot "$B/mk_teapot" "$OUT/teapot.pb"
+check teapot_census bash -c "'$B/mk_teapot' '$OUT/teapot.pb' | grep -q ' unchained 0'"
+check render_teapot_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/teapot_top.ppm" "$OUT/teapot.pb"
+check teapot_backface python3 docs/_shade_scanline.py "$OUT/teapot_top.ppm" --max-backface 0
+```
+
+No determinism line for the teapot: its pole and tip carry the kernel's HashMap-ordered pole normal (see the comment above the `probe_determinism` check), so `check_determinism` on it is expected FLAKY until part B; run it once in Step 3 and record the verdict in the report.
+
+If the census printed `unchained` above 0 in Step 2, the `teapot_census` line greps for the measured number instead and the comment says which edges and why.
+
+- [ ] **Step 5: Clippy, suite, commit**
+
+```bash
+cargo clippy -q --release --all-targets --target x86_64-unknown-linux-gnu -- -D warnings
+cargo check -q --target wasm32-unknown-unknown
+docs/_ink_suite.sh 2>&1 | tail -8
+git add examples/mk_teapot.rs docs/_ink_suite.sh
+git commit -m "viewer: the Utah teapot as a BRep joins the suite
+
+Thirty-two bicubic patches with shared edges, a pole, a tip and open
+shells: <E> edges, <C> chained off the tessellation, <D> degenerated."
+```
+
+Fill the numbers from the census.
+
+---
+
+### Task 9: Perf after, the ledger, the architecture map
 
 **Files:**
 - Modify: `docs/_PERF.md`, `ARCHITECTURE.md`
@@ -1260,7 +1615,7 @@ Every after leg must be at most its before leg. `view_mixed` is the only scene w
 
 - [ ] **Step 2: Rewrite the ledger**
 
-Replace the table and its paragraph in `docs/_PERF.md` with the new "before" (commit of Task 1, the weld) and "after" (commit of Task 7) columns, the date, both adapters as confirmed from the `adapter:` log line, and one sentence on the observed change in `view_mixed`. Keep the rules paragraph at the end and the ink fragment cost paragraph (unchanged by this work). Delete the previous table: a number that was not re-measured today is deleted, not carried over (`docs/_PERF.md`'s own rule).
+Replace the table and its paragraph in `docs/_PERF.md` with the new "before" (commit of Task 1, the weld) and "after" (commit of Task 8) columns, the date, both adapters as confirmed from the `adapter:` log line, and one sentence on the observed change in `view_mixed`. Keep the rules paragraph at the end and the ink fragment cost paragraph (unchanged by this work). Delete the previous table: a number that was not re-measured today is deleted, not carried over (`docs/_PERF.md`'s own rule).
 
 - [ ] **Step 3: Update the architecture map**
 
@@ -1286,7 +1641,7 @@ In `ARCHITECTURE.md`:
   cull (both adjacent faces away) and `FLAG_INSIDE`/`FLAG_OPEN` are as before.
 ```
 
-- Section 11: update the check count in `docs/_ink_suite.sh: ... one PASS/FAIL line each (24 checks)` to the count the suite now prints (count the `PASS` lines of the Task 7 run).
+- Section 11: update the check count in `docs/_ink_suite.sh: ... one PASS/FAIL line each (24 checks)` to the count the suite now prints (count the `PASS` lines of the Task 8 run).
 
 - [ ] **Step 4: Full verification, then commit**
 
@@ -1310,6 +1665,6 @@ Hand back: the before/after scanline numbers, the perf table, the suite's last l
 
 ## Self-review
 
-- **Spec coverage.** 2.2 "walk_brep no longer welds ... own vertices, analytic normals, FLAG_SMOOTH": Task 4. "BRep edges become pipes ... facing from the two adjacent facets' normals ... no FACING_UNKNOWN ribbons for BReps": Tasks 3 and 4 (the ribbon fallback exists for BReps outside the mixed scene and is named as temporary). "NURBS surfaces: walk_surface keeps the grid path's normals; its border edges come from the same attributes": deferred to part C by the user's order of work; `walk_surface` is unchanged. "The facing cull's closed test uses is_solid": Task 4. 2.3 smoothness with the 5-degree quality: Task 1/4 measure it. Section 4: orbit series before/after through the suite (Task 6), the hidden line behind the cylinder (Task 7), the scanline (Tasks 1, 4, 6). Perf and the ledger: Tasks 1 and 8. Docs: Task 8.
+- **Spec coverage.** 2.2 "walk_brep no longer welds ... own vertices, analytic normals, FLAG_SMOOTH": Task 4. "BRep edges become pipes ... facing from the two adjacent facets' normals ... no FACING_UNKNOWN ribbons for BReps": Tasks 3 and 4 (the ribbon fallback exists for BReps outside the mixed scene and is named as temporary). "NURBS surfaces: walk_surface keeps the grid path's normals; its border edges come from the same attributes": deferred to part C by the user's order of work; `walk_surface` is unchanged. "The facing cull's closed test uses is_solid": Task 4. 2.3 smoothness with the 5-degree quality: Task 1/4 measure it. Section 4: orbit series before/after through the suite (Task 6), the hidden line behind the cylinder (Task 7), the scanline (Tasks 1, 4, 6). The teapot hard case (user request of 2026-09-08): Task 8. Perf and the ledger: Tasks 1 and 9. Docs: Task 9.
 - **Placeholders.** The `<N>`, `<before>`, `<after>` markers are measurement slots the executor fills from its own runs; every other step carries its code.
 - **Type consistency.** `EdgeUse { edge, face, orientation }`, `iso_chain(&BRep, &Mesh, &EdgeUse) -> Option<Vec<usize>>`, `EdgeChain { face, keys, other }`, `edge_chains(&BRep, &[Mesh]) -> Vec<Option<EdgeChain>>`, `EdgePen { fms, pen }`, `push_edge_pipes(&mut SegRows, &EdgeChain, &EdgePen, &mut Aabb) -> usize` are used with these exact shapes in Tasks 2, 3 and 4; `QUALITY` is `pub` from Task 2 on; `mesh_spacing` is `pub(super)` from Task 4.
