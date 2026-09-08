@@ -167,3 +167,6 @@ session_viewer/docs/_stages/*/assets/
 
 # Editor state
 .vscode/
+
+# per-plan scratch of the subagent-driven-development skill
+.superpowers/
