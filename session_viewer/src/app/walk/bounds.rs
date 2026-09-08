@@ -1,9 +1,9 @@
 //! The per-file sweeps after a walk, all over the object rows (every producer reports its
 //! local box): the file's world extent, the planar test, and the sheet marking.
 
-use std::collections::HashMap;
 use crate::engine::gpu::{Instance, Upload};
 use crate::math::{Aabb, Mat4};
+use std::collections::HashMap;
 
 /// Row counts captured BEFORE a file is walked, so the sweeps read only that file's rows.
 pub struct Baselines {
@@ -15,7 +15,11 @@ pub struct Baselines {
 impl Baselines {
     /// Every table's length now.
     pub fn capture(t: &Upload) -> Self {
-        Self { obj: t.obj.rows.len(), pipe: t.seg.pipes.len(), ribbon: t.seg.ribbons.len() }
+        Self {
+            obj: t.obj.rows.len(),
+            pipe: t.seg.pipes.len(),
+            ribbon: t.seg.ribbons.len(),
+        }
     }
 }
 
@@ -52,7 +56,13 @@ pub fn mark_sheet(t: &mut Upload, from: &Baselines) {
     for o in t.obj.rows.iter_mut().skip(from.obj) {
         o.flags |= Instance::FLAG_SHEET;
     }
-    for s in t.seg.pipes.iter_mut().skip(from.pipe).chain(t.seg.ribbons.iter_mut().skip(from.ribbon)) {
+    for s in t
+        .seg
+        .pipes
+        .iter_mut()
+        .skip(from.pipe)
+        .chain(t.seg.ribbons.iter_mut().skip(from.ribbon))
+    {
         if s.radius <= 0.0 {
             s.radius = 0.5;
         }
@@ -76,8 +86,16 @@ fn extent_along(pts: &[[f32; 3]], n: [f32; 3]) -> f32 {
 
 /// A direction quantised to 1/32 per axis: one bucket per face orientation.
 fn direction_key(n: [f32; 3]) -> u32 {
-    let q = |v: f32| ((v * 31.0).round() as i32 + 32) as u32;
-    q(n[0]) | q(n[1]) << 8 | q(n[2]) << 16
+    let mut key = 0;
+    for (axis, value) in n.into_iter().enumerate() {
+        key |= (((value * 31.0).round() as i32 + 32) as u32) << (axis * 8);
+    }
+    key
+}
+
+/// Rank accumulated face-normal buckets by descending area, retaining the existing NaN tie.
+fn descending_area(a: &(f32, [f32; 3]), b: &(f32, [f32; 3])) -> std::cmp::Ordering {
+    b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal)
 }
 
 /// A mesh's thickness whatever its orientation: the smallest spread of its vertices along
@@ -87,8 +105,15 @@ pub fn mesh_thickness(pts: &[[f32; 3]], tris: &[u32]) -> f32 {
     let mut buckets: HashMap<u32, (f32, [f32; 3])> = HashMap::new();
     for t in tris.chunks_exact(3) {
         let (a, b, c) = (pts[t[0] as usize], pts[t[1] as usize], pts[t[2] as usize]);
-        let (u, v) = ([b[0] - a[0], b[1] - a[1], b[2] - a[2]], [c[0] - a[0], c[1] - a[1], c[2] - a[2]]);
-        let n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]];
+        let (u, v) = (
+            [b[0] - a[0], b[1] - a[1], b[2] - a[2]],
+            [c[0] - a[0], c[1] - a[1], c[2] - a[2]],
+        );
+        let n = [
+            u[1] * v[2] - u[2] * v[1],
+            u[2] * v[0] - u[0] * v[2],
+            u[0] * v[1] - u[1] * v[0],
+        ];
         let area = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
         if area <= 0.0 {
             continue;
@@ -99,7 +124,7 @@ pub fn mesh_thickness(pts: &[[f32; 3]], tris: &[u32]) -> f32 {
         e.0 += area;
     }
     let mut ranked: Vec<(f32, [f32; 3])> = buckets.into_values().collect();
-    ranked.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+    ranked.sort_by(descending_area);
     let mut thin = f32::MAX;
     for (_, n) in ranked.iter().take(THICK_NORMALS) {
         thin = thin.min(extent_along(pts, *n));

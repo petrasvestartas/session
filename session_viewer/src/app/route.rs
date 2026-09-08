@@ -18,7 +18,9 @@ pub const AUTO_GRID: [f64; 2] = [0.0, 0.0];
 
 /// A URL served from this machine; browsers let an https page read it.
 pub fn is_local_url(url: &str) -> bool {
-    url.starts_with("http://localhost:") || url.starts_with("http://127.0.0.1:") || url.starts_with("http://[::1]:")
+    url.starts_with("http://localhost:")
+        || url.starts_with("http://127.0.0.1:")
+        || url.starts_with("http://[::1]:")
 }
 
 /// A manifest URL and the base its `file` entries hang off - always the same place.
@@ -50,9 +52,16 @@ pub fn knob_u32(name: &str) -> Option<u32> {
 
 /// Is the page served by a local dev server? Hostname, not port.
 pub fn page_is_local() -> bool {
-    web_sys::window()
-        .and_then(|w| w.location().hostname().ok())
-        .is_some_and(|h| h == "localhost" || h == "127.0.0.1" || h == "[::1]" || h == "::1")
+    let Some(window) = web_sys::window() else {
+        return false;
+    };
+    let Ok(hostname) = window.location().hostname() else {
+        return false;
+    };
+    matches!(
+        hostname.as_str(),
+        "localhost" | "127.0.0.1" | "[::1]" | "::1"
+    )
 }
 
 /// A scene named by the PATH: `/view_lines` means `?scene=view_lines`. Only the last segment
@@ -60,18 +69,25 @@ pub fn page_is_local() -> bool {
 pub fn path_scene() -> Option<String> {
     let path = web_sys::window()?.location().pathname().ok()?;
     let last = path.rsplit('/').next()?.to_string();
-    let safe = !last.is_empty() && !last.ends_with(".html") && !last.contains(':') && !last.starts_with('.');
+    let safe = !last.is_empty()
+        && !last.ends_with(".html")
+        && !last.contains(':')
+        && !last.starts_with('.');
     safe.then_some(last)
 }
 
 /// The `?scene=` value when it stays inside one tree (no scheme, no `..`, no absolute path).
 pub fn query_scene() -> Option<String> {
     let decoded = query("scene")?;
+    for segment in decoded.split('/') {
+        if segment == ".." {
+            return None;
+        }
+    }
     let safe = !decoded.is_empty()
         && !decoded.starts_with('/')
         && !decoded.contains("//")
-        && !decoded.contains(':')
-        && !decoded.split('/').any(|seg| seg == "..");
+        && !decoded.contains(':');
     safe.then_some(decoded)
 }
 
@@ -87,7 +103,11 @@ pub fn data_base() -> String {
             DATA_BASE.to_string()
         }
     };
-    if base.ends_with('/') { base } else { base + "/" }
+    if base.ends_with('/') {
+        base
+    } else {
+        base + "/"
+    }
 }
 
 /// `file` hung off `base`; an entry that already names a host is used as it stands.
@@ -100,10 +120,21 @@ pub fn join(base: &str, file: &str) -> String {
 
 /// A named scene: `.yaml` implied, `scenes/` implied for a bare name, always from the bucket.
 pub fn named_scene(path: &str) -> SceneRoute {
-    let path = if path.contains('.') { path.to_string() } else { format!("{path}.yaml") };
-    let path = if path.contains('/') { path } else { format!("scenes/{path}") };
+    let path = if path.contains('.') {
+        path.to_string()
+    } else {
+        format!("{path}.yaml")
+    };
+    let path = if path.contains('/') {
+        path
+    } else {
+        format!("scenes/{path}")
+    };
     let base = data_base();
-    SceneRoute { manifest: join(&base, &path), base }
+    SceneRoute {
+        manifest: join(&base, &path),
+        base,
+    }
 }
 
 /// The manifest this page asked for, or `None` when it has neither route (deployed, no query:
@@ -112,5 +143,12 @@ pub fn scene_route() -> Option<SceneRoute> {
     if let Some(path) = query_scene().or_else(path_scene) {
         return Some(named_scene(&path));
     }
-    page_is_local().then(|| SceneRoute { manifest: LOCAL_SCENE.to_string(), base: String::new() })
+    if page_is_local() {
+        Some(SceneRoute {
+            manifest: LOCAL_SCENE.to_string(),
+            base: String::new(),
+        })
+    } else {
+        None
+    }
 }

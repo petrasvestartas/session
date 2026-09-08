@@ -10,13 +10,18 @@ use session_rust::{Color, Point, Polyline, Session};
 
 /// Write the cylinder and its fully-hidden line into one session at `argv[1]`.
 fn main() {
-    let out = std::env::args().nth(1).unwrap_or_else(|| "target/cylinder_hidden.pb".into());
+    let out = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "target/cylinder_hidden.pb".into());
     let mut s = Session::new("cylinder_hidden");
     let mut cylinder = BRep::create_cylinder(150.0, 400.0);
     cylinder.surfacecolor = Color::grey();
     s.add_brep(cylinder, None);
     // 60 mm behind the axis, at half height, 100 mm short of each silhouette: hidden entirely.
-    let mut line = Polyline::new(vec![Point::new(-50.0, 60.0, 200.0), Point::new(50.0, 60.0, 200.0)]);
+    let mut line = Polyline::new(vec![
+        Point::new(-50.0, 60.0, 200.0),
+        Point::new(50.0, 60.0, 200.0),
+    ]);
     line.linecolor = Color::magenta();
     line.name = "hidden".to_string();
     s.add_polyline(line, None);

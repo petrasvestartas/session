@@ -18,11 +18,17 @@ fn main() {
                     nmesh += 1;
                     let wl = m.widths().len();
                     *width_hist.entry(wl).or_default() += 1;
-                    if wl == 0 { empty_widths += 1; }
-                    if wl == 1 && m.widths()[0] == 0.0 { print_fills += 1; }
+                    if wl == 0 {
+                        empty_widths += 1;
+                    }
+                    if wl == 1 && m.widths()[0] == 0.0 {
+                        print_fills += 1;
+                    }
                     let oc = m.objectcolor();
                     *alpha_hist.entry(format!("{:.2}", oc.a)).or_default() += 1;
-                    if oc.r > 0.5 && oc.g < 0.4 && oc.b < 0.4 { red_meshes += 1; }
+                    if oc.r > 0.5 && oc.g < 0.4 && oc.b < 0.4 {
+                        red_meshes += 1;
+                    }
                 }
                 Some(Geometry::Polyline(_)) => npoly += 1,
                 Some(Geometry::Line(_)) => nline += 1,
@@ -32,7 +38,9 @@ fn main() {
         }
         println!("  meshes={nmesh} polylines={npoly} lines={nline} points={npoint} other={nother}");
         println!("  mesh widths_len histogram: {width_hist:?}");
-        println!("  print_fills(broadcast 0)={print_fills} empty_widths={empty_widths} reddish_meshes={red_meshes}");
+        println!(
+            "  print_fills(broadcast 0)={print_fills} empty_widths={empty_widths} reddish_meshes={red_meshes}"
+        );
         println!("  mesh objectcolor alpha histogram: {alpha_hist:?}");
     }
 }

@@ -43,7 +43,14 @@ impl GrowBuf {
     pub fn new(ctx: &GpuCtx, label: &'static str, stride: u64, usage: wgpu::BufferUsages) -> Self {
         let buf = zeroed_buffer(&ctx.device, label, stride, usage);
 
-        Self { buf, len: 0, cap: 1, stride, usage, label }
+        Self {
+            buf,
+            len: 0,
+            cap: 1,
+            stride,
+            usage,
+            label,
+        }
     }
 
     /// Append rows. Returns `true` when the buffer was replaced, so the caller rebuilds the
@@ -59,7 +66,11 @@ impl GrowBuf {
         if grew {
             self.grow(ctx, need.max(self.cap * 3 / 2));
         }
-        ctx.queue.write_buffer(&self.buf, self.len as u64 * self.stride, bytemuck::cast_slice(data));
+        ctx.queue.write_buffer(
+            &self.buf,
+            self.len as u64 * self.stride,
+            bytemuck::cast_slice(data),
+        );
         self.len += data.len() as u32;
         grew
     }
@@ -79,7 +90,11 @@ impl GrowBuf {
     /// Overwrite rows `[at, at + data.len())`, which must already exist.
     pub fn write_at<T: Pod>(&self, ctx: &GpuCtx, at: u32, data: &[T]) {
         debug_assert!(at as u64 + data.len() as u64 <= self.cap);
-        ctx.queue.write_buffer(&self.buf, at as u64 * self.stride, bytemuck::cast_slice(data));
+        ctx.queue.write_buffer(
+            &self.buf,
+            at as u64 * self.stride,
+            bytemuck::cast_slice(data),
+        );
     }
 
     /// Forget the rows; the buffer and its capacity stay, so a rebuild costs no allocation.
@@ -116,18 +131,26 @@ pub struct Template {
 impl Template {
     /// Upload positions and indices once.
     pub fn new(ctx: &GpuCtx, label: &str, verts: &[[f32; 3]], idx: &[u32]) -> Self {
-        let vbo = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some(&format!("{label}.vbo")),
-            contents: bytemuck::cast_slice(verts),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let ibo = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some(&format!("{label}.ibo")),
-            contents: bytemuck::cast_slice(idx),
-            usage: wgpu::BufferUsages::INDEX,
-        });
+        let vbo = ctx
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{label}.vbo")),
+                contents: bytemuck::cast_slice(verts),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+        let ibo = ctx
+            .device
+            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some(&format!("{label}.ibo")),
+                contents: bytemuck::cast_slice(idx),
+                usage: wgpu::BufferUsages::INDEX,
+            });
 
-        Self { vbo, ibo, index_count: idx.len() as u32 }
+        Self {
+            vbo,
+            ibo,
+            index_count: idx.len() as u32,
+        }
     }
 
     /// Bind the template as vertex slot 0 and the index buffer.
@@ -138,8 +161,18 @@ impl Template {
 }
 
 /// A fresh buffer of `size` bytes, zero-initialized by WebGPU.
-pub fn zeroed_buffer(device: &wgpu::Device, label: &str, size: u64, usage: wgpu::BufferUsages) -> wgpu::Buffer {
-    device.create_buffer(&wgpu::BufferDescriptor { label: Some(label), size, usage, mapped_at_creation: false })
+pub fn zeroed_buffer(
+    device: &wgpu::Device,
+    label: &str,
+    size: u64,
+    usage: wgpu::BufferUsages,
+) -> wgpu::Buffer {
+    device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some(label),
+        size,
+        usage,
+        mapped_at_creation: false,
+    })
 }
 
 /// A uniform buffer holding one `T`, writable every frame.
@@ -152,10 +185,22 @@ pub fn uniform_buffer<T: Pod>(device: &wgpu::Device, label: &str, value: &T) -> 
 }
 
 /// A bind group over `buffers` in binding order, one entry each.
-pub fn bind_group(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, label: &str, buffers: &[&wgpu::Buffer]) -> wgpu::BindGroup {
+pub fn bind_group(
+    ctx: &GpuCtx,
+    layout: &wgpu::BindGroupLayout,
+    label: &str,
+    buffers: &[&wgpu::Buffer],
+) -> wgpu::BindGroup {
     let mut entries: Vec<wgpu::BindGroupEntry> = Vec::with_capacity(buffers.len());
     for (i, b) in buffers.iter().enumerate() {
-        entries.push(wgpu::BindGroupEntry { binding: i as u32, resource: b.as_entire_binding() });
+        entries.push(wgpu::BindGroupEntry {
+            binding: i as u32,
+            resource: b.as_entire_binding(),
+        });
     }
-    ctx.device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some(label), layout, entries: &entries })
+    ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: Some(label),
+        layout,
+        entries: &entries,
+    })
 }

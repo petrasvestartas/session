@@ -67,6 +67,7 @@ struct VsOut {
     @location(4) @interpolate(flat) inst_id: u32,
     @location(5) @interpolate(flat) centre: vec2<f32>,
     @location(6) @interpolate(flat) depth: f32,
+    @location(7) @interpolate(flat) point_index: u32,
 };
 
 fn dead_dot() -> VsOut {
@@ -79,11 +80,11 @@ fn dead_dot() -> VsOut {
     dead.inst_id = 0u;
     dead.centre = vec2<f32>(0.0);
     dead.depth = 0.0;
+    dead.point_index = 0u;
     return dead;
 }
 
-@vertex
-fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+fn glyph_vertex(vid: u32) -> VsOut {
     let g = glyphs[vid / 3u];
     let inst = instances[g.instance_id];
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
@@ -96,7 +97,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     }
 
     var px = line.thickness * 0.5;
-    if (g.radius > 0.0) {
+    if (g.radius < 0.0) {
+        px = -g.radius;
+    } else if (g.radius > 0.0) {
         if (line.ortho_h > 0.0) {
             px = g.radius * line.vp_h * 0.5 / line.ortho_h;
         } else {
@@ -128,6 +131,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.inst_id = g.instance_id;
     o.centre = vec2<f32>((clip.x / clip.w * 0.5 + 0.5) * line.vp_w, (0.5 - clip.y / clip.w * 0.5) * line.vp_h);
     o.depth = clip.z / clip.w;
+    o.point_index = vid / 3u;
     return o;
 }
 
@@ -158,5 +162,25 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
         discard;
     }
-    return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);
+    return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG | (in.point_index + 1u));
+}
+
+// Source-cloud queries reuse the dot table, with a source row in facing_ext.x. These
+// temporary records have no face adjacency and never enter the displayed controls table.
+@vertex
+fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+    return glyph_vertex(vid);
+}
+
+@vertex
+fn vs_source(@builtin(vertex_index) vid: u32) -> VsOut {
+    var out = glyph_vertex(vid);
+    out.point_index = glyphs[vid / 3u].facing_ext.x;
+    return out;
+}
+
+@fragment
+fn fs_source_id(in: VsOut) -> @location(0) vec2<u32> {
+    if (coverage(in) < 0.5) { discard; }
+    return vec2<u32>(in.inst_id + 1u, in.point_index + 1u);
 }

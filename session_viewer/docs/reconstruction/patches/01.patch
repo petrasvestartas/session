@@ -1,0 +1,297 @@
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index 75d8b3a9f642e3c02a1abf045a035d36d4d7aa6f..545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1 +1,46 @@
+-<!doctype html><html><head><meta charset="utf-8"><title>Session checkpoint 00</title><link data-trunk rel="rust" data-wasm-opt="0"></head><body><output id="status">Loading WASM</output></body></html>
+\ No newline at end of file
++<!doctype html>
++<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
++<title>Session checkpoint 01</title>
++<link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
++<style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
++</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 01</output>
++<script>
++let tutorial;
++let pointer;
++/// Read the generated WASM exports after Trunk has initialized the module.
++async function start() {
++    if (!window.wasmBindings) { setTimeout(start, 20); return; }
++    try {
++        tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
++        window.tutorial = tutorial;
++        render();
++    } catch (error) { document.getElementById('status').textContent = String(error); throw error; }
++}
++/// Keep the framebuffer at the actual CSS size times browser device scale.
++function render() {
++    const canvas = document.getElementById('canvas');
++    const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
++    canvas.dataset.tutorialInspection = JSON.stringify(state);
++    document.getElementById('status').textContent = 'Checkpoint 01 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++}
++/// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
++function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
++/// Forward one CSS-pixel gesture to the production camera.
++function move(event) {
++    if (!pointer) return;
++    const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1];
++    pointer = [event.clientX, event.clientY];
++    tutorial.drag(dx, dy, event.shiftKey); render();
++}
++/// End pointer ownership without retaining a stale gesture.
++function up() { pointer = undefined; }
++/// Normalize DOM wheel pixels to the production camera step, then dolly toward the actual cursor in the same physical-pixel space as the framebuffer.
++function wheel(event) { event.preventDefault(); tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY); render(); }
++/// Schedule a resize only after initialization completed.
++function resize() { if (tutorial) render(); }
++const canvas = document.getElementById('canvas');
++canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move);
++canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
++canvas.addEventListener('wheel', wheel, {passive:false}); window.addEventListener('resize', resize);
++start();
++</script></body></html>
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index 5854c47378298ce7c7c5d7a6b8d6b2206e6e5ed7..b55dd88d9946c88077a1ca34f42d7e7e5ebc2400
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -1,18 +1,205 @@
+-//! First browser entry: report that the pinned Rust/WASM toolchain is running.
++//! Temporary direct-canvas browser shell; the production winit shell replaces it later.
+ use wasm_bindgen::prelude::*;
+-/// Mark successful WASM initialization without requesting a GPU yet.
+-#[wasm_bindgen(start)]
+-pub fn start() {
+-    console_error_panic_hook::set_once();
+-    let document = web_sys::window()
+-        .expect("browser window")
+-        .document()
+-        .expect("document");
+-    let status = document
+-        .get_element_by_id("status")
+-        .expect("status element");
+-    status.set_text_content(Some("Checkpoint 00: Rust/WASM ready"));
+-    status
+-        .set_attribute("data-checkpoint", "00")
+-        .expect("status attribute");
+-}
++use wgpu::util::DeviceExt;
++
++/// The browser owns the canvas; this teaching facade owns one GPU/device and one draw lane.
++#[wasm_bindgen]
++pub struct Tutorial {
++    canvas: web_sys::HtmlCanvasElement,
++    surface: wgpu::Surface<'static>,
++    device: wgpu::Device,
++    queue: wgpu::Queue,
++    config: wgpu::SurfaceConfiguration,
++    pipeline: wgpu::RenderPipeline,
++    group: wgpu::BindGroup,
++    scale: f64,
++}
++#[wasm_bindgen]
++impl Tutorial {
++    /// Negotiate a presentation-compatible browser adapter and build the first pipeline.
++    pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
++        console_error_panic_hook::set_once();
++        Self::open(canvas).await.map_err(js_error)
++    }
++    /// Clear and draw one invalidated frame at full device-pixel resolution.
++    pub fn render(&mut self, width: u32, height: u32, scale: f64) -> Result<String, JsValue> {
++        self.render_frame(width, height, scale).map_err(js_error)
++    }
++    /// Apply one camera gesture; the first GPU checkpoint intentionally has no camera yet.
++    pub fn drag(&mut self, dx: f32, dy: f32, pan: bool) {
++        let _ = (dx, dy, pan);
++    }
++    /// Apply one cursor-centered camera zoom when the camera checkpoint is installed.
++    pub fn zoom(&mut self, delta: f32, x: f64, y: f64) {
++        let _ = (delta, x, y);
++    }
++}
++impl Tutorial {
++    /// Create surface, device, bindings and a triangle without any scene loader.
++    async fn open(canvas: web_sys::HtmlCanvasElement) -> anyhow::Result<Self> {
++        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
++            backends: wgpu::Backends::BROWSER_WEBGPU,
++            flags: Default::default(),
++            memory_budget_thresholds: Default::default(),
++            backend_options: Default::default(),
++            display: None,
++        });
++        let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))?;
++        let adapter = instance
++            .request_adapter(&wgpu::RequestAdapterOptions {
++                compatible_surface: Some(&surface),
++                ..Default::default()
++            })
++            .await?;
++        log::info!("tutorial adapter: {:?}", adapter.get_info());
++        let (device, queue) = adapter
++            .request_device(&wgpu::DeviceDescriptor::default())
++            .await?;
++        device.on_uncaptured_error(std::sync::Arc::new(gpu_error));
++        let caps = surface.get_capabilities(&adapter);
++        let config = wgpu::SurfaceConfiguration {
++            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
++            format: caps.formats[0],
++            width: 1,
++            height: 1,
++            present_mode: caps.present_modes[0],
++            alpha_mode: caps.alpha_modes[0],
++            view_formats: vec![],
++            desired_maximum_frame_latency: 2,
++        };
++        let identity = [
++            1.0f32, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
++        ];
++        let uniform = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
++            label: Some("camera matrix"),
++            contents: bytemuck::cast_slice(&identity),
++            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
++        });
++        let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++            label: Some("camera"),
++            entries: &[wgpu::BindGroupLayoutEntry {
++                binding: 0,
++                visibility: wgpu::ShaderStages::VERTEX,
++                ty: wgpu::BindingType::Buffer {
++                    ty: wgpu::BufferBindingType::Uniform,
++                    has_dynamic_offset: false,
++                    min_binding_size: None,
++                },
++                count: None,
++            }],
++        });
++        let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
++            label: Some("camera"),
++            layout: &layout,
++            entries: &[wgpu::BindGroupEntry {
++                binding: 0,
++                resource: uniform.as_entire_binding(),
++            }],
++        });
++        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
++            label: Some("first triangle"),
++            source: wgpu::ShaderSource::Wgsl(include_str!("shaders/first.wgsl").into()),
++        });
++        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
++            label: Some("first triangle"),
++            bind_group_layouts: &[Some(&layout)],
++            immediate_size: 0,
++        });
++        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
++            label: Some("first triangle"),
++            layout: Some(&pipeline_layout),
++            vertex: wgpu::VertexState {
++                module: &shader,
++                entry_point: Some("vs_main"),
++                buffers: &[],
++                compilation_options: Default::default(),
++            },
++            fragment: Some(wgpu::FragmentState {
++                module: &shader,
++                entry_point: Some("fs_main"),
++                targets: &[Some(wgpu::ColorTargetState {
++                    format: config.format,
++                    blend: None,
++                    write_mask: wgpu::ColorWrites::ALL,
++                })],
++                compilation_options: Default::default(),
++            }),
++            primitive: Default::default(),
++            depth_stencil: None,
++            multisample: Default::default(),
++            multiview_mask: None,
++            cache: None,
++        });
++
++        Ok(Self {
++            canvas,
++            surface,
++            device,
++            queue,
++            config,
++            pipeline,
++            group,
++            scale: 1.0,
++        })
++    }
++    /// Resize once, upload the camera transform, encode the lane, submit and present.
++    fn render_frame(&mut self, width: u32, height: u32, scale: f64) -> anyhow::Result<String> {
++        anyhow::ensure!(scale.is_finite() && scale > 0.0, "invalid device scale");
++        self.scale = scale;
++        let width = (f64::from(width.max(1)) * scale).round() as u32;
++        let height = (f64::from(height.max(1)) * scale).round() as u32;
++        if self.canvas.width() != width || self.canvas.height() != height || self.config.width == 1
++        {
++            self.canvas.set_width(width);
++            self.canvas.set_height(height);
++            self.config.width = width;
++            self.config.height = height;
++            self.surface.configure(&self.device, &self.config);
++        }
++
++        let output = match self.surface.get_current_texture() {
++            wgpu::CurrentSurfaceTexture::Success(output)
++            | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
++            error => anyhow::bail!("surface unavailable: {error:?}"),
++        };
++        let view = output.texture.create_view(&Default::default());
++        let mut encoder = self.device.create_command_encoder(&Default::default());
++        {
++            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
++                label: Some("first frame"),
++                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
++                    view: &view,
++                    depth_slice: None,
++                    resolve_target: None,
++                    ops: wgpu::Operations {
++                        load: wgpu::LoadOp::Clear(wgpu::Color {
++                            r: 0.025,
++                            g: 0.035,
++                            b: 0.055,
++                            a: 1.0,
++                        }),
++                        store: wgpu::StoreOp::Store,
++                    },
++                })],
++                depth_stencil_attachment: None,
++                timestamp_writes: None,
++                occlusion_query_set: None,
++                multiview_mask: None,
++            });
++            pass.set_pipeline(&self.pipeline);
++            pass.set_bind_group(0, &self.group, &[]);
++            pass.draw(0..3, 0..1);
++        }
++        self.queue.submit([encoder.finish()]);
++        output.present();
++        Ok(serde_json::json!({"stage": 1, "objects": 1, "width":width,"height":height,"scale":scale,"drawn":true}).to_string())
++    }
++}
++/// Keep initialization/render errors visible at the browser boundary.
++fn js_error(error: impl std::fmt::Display) -> JsValue {
++    JsValue::from_str(&error.to_string())
++}
++/// A shader validation failure must fail the browser checkpoint rather than look like success.
++fn gpu_error(error: wgpu::Error) {
++    panic!("tutorial WebGPU error: {error}");
++}
+diff --git a/session_viewer/src/shaders/first.wgsl b/session_viewer/src/shaders/first.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..057f3d824c4f007af8bd24579a4a2a6a4de65607
+--- /dev/null
++++ b/session_viewer/src/shaders/first.wgsl
+@@ -0,0 +1,11 @@
++// The first lane: three vertices generated from the vertex index, then a camera transform.
++@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
++struct VertexOut { @builtin(position) position: vec4<f32>, @location(0) color: vec3<f32> };
++@vertex fn vs_main(@builtin(vertex_index) index: u32) -> VertexOut {
++    let points = array<vec3<f32>,3>(vec3<f32>(-0.7,-0.55,0.0),vec3<f32>(0.7,-0.55,0.0),vec3<f32>(0.0,0.65,0.0));
++    var output: VertexOut;
++    output.position = mvp * vec4<f32>(points[index],1.0);
++    output.color = array<vec3<f32>,3>(vec3<f32>(0.95,0.25,0.2),vec3<f32>(0.2,0.8,0.45),vec3<f32>(0.3,0.5,1.0))[index];
++    return output;
++}
++@fragment fn fs_main(input: VertexOut) -> @location(0) vec4<f32> { return vec4<f32>(input.color,1.0); }

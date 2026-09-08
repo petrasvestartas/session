@@ -1,19 +1,19 @@
 //! The document side: `Scene` owns WHAT is loaded - every kernel `Session` with its placement,
 //! the `Upload` tables, the row bookkeeping and the streamed-cloud slots. `add_file` walks one
-//! session into the tables; rows are appended, never rebuilt. This file never names a
-//! `Geometry` variant - the producers live in `walk/`.
+//! session into the tables; rows append during loading and rebuild explicitly after edits.
+//! Geometry preparation lives in `walk/`; this coordinator retains source ownership for picks.
 
-use std::collections::{HashMap, HashSet};
-use std::rc::Rc;
-use session_rust::{Geometry, Session, Xform};
 use crate::app::knobs;
 use crate::app::stream::{CloudFields, CloudLod};
-use crate::app::walk::bounds::{file_extent, is_planar, mark_sheet, Baselines};
-use crate::app::walk::cloud::{walk_stream_slice, StreamRows, StreamSlice};
+use crate::app::walk::bounds::{Baselines, file_extent, is_planar, mark_sheet};
+use crate::app::walk::cloud::{StreamRows, StreamSlice, walk_stream_slice};
 use crate::app::walk::mesh::Lap;
-use crate::app::walk::{is_drawable, walk_geometry, Walk, WalkCx};
+use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
-use crate::math::{mat_mul, Mat4};
+use crate::math::{Mat4, mat_mul};
+use session_rust::{Geometry, Session, Xform};
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 
 /// One loaded file: the kernel `Session` (kept for picking, editing and saving) plus the
 /// placement the manifest gave it.
@@ -23,7 +23,8 @@ pub struct Doc {
     /// Shared with whoever decoded it (the live source keeps its current set), never copied.
     pub session: Rc<Session>,
     pub point_px: f32,
-    /// The session was RELEASED after the walk (manifest `display_only`): an empty shell.
+    /// True only for a streamed source descriptor with an empty Session shell.
+    /// Full-file display_only hints retain geometry and become false after loading.
     pub display_only: bool,
 }
 
@@ -52,12 +53,14 @@ pub struct StreamedInit {
     pub col_at: u64,
 }
 
-/// A cloud still arriving off the wire.
+/// A bounded resident prefix plus the full source descriptor used by ranged F10 queries.
 pub struct StreamedCloud {
     pub name: String,
     pub url: String,
     pub row: u32,
     pub lod: CloudLod,
+    pub fields: CloudFields,
+    pub place: crate::math::Mat4,
     pub done_to: u32,
     pub total: u32,
     pub point_px: f32,
@@ -92,17 +95,23 @@ struct Bases {
 /// The open document set, the pending upload and the row bookkeeping.
 pub struct Scene {
     pub docs: Vec<Doc>,
+    /// Authored world-plane text from the scene manifest, independent of object annotations.
+    pub texts: Vec<super::manifest::TextItem>,
     pub tables: Upload,
     pub streamed: Vec<StreamedCloud>,
-    pub hidden: HashSet<String>,
+    pub hidden: HashSet<(usize, Rc<str>)>,
     pub selected: Option<u32>,
     order: Vec<Rc<str>>,
+    owners: Vec<usize>,
+    /// Global pipe rows resolve to original parent/edge identities after upload.
+    edge_sources: Vec<(u32, u32)>,
     ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,
-    guid_to_row: HashMap<Rc<str>, u32>,
+    guid_to_row: HashMap<(usize, Rc<str>), u32>,
     bases: Bases,
 }
 
 impl Default for Scene {
+    /// Construct the same empty document and upload state as `Scene::new`.
     fn default() -> Self {
         Self::new()
     }
@@ -113,11 +122,14 @@ impl Scene {
     pub fn new() -> Self {
         Self {
             docs: Vec::new(),
+            texts: Vec::new(),
             tables: Upload::default(),
             streamed: Vec::new(),
             hidden: HashSet::new(),
             selected: None,
             order: Vec::new(),
+            owners: Vec::new(),
+            edge_sources: Vec::new(),
             ribbon_ranges: Vec::new(),
             guid_to_row: HashMap::new(),
             bases: Bases::default(),
@@ -128,9 +140,12 @@ impl Scene {
     /// REPLACED without tearing down `State` (camera, surface and pipelines survive).
     pub fn clear(&mut self, gpu: &mut Gpu) {
         self.docs.clear();
+        self.texts.clear();
         self.tables = Upload::default();
         self.streamed.clear();
         self.order.clear();
+        self.owners.clear();
+        self.edge_sources.clear();
         self.ribbon_ranges.clear();
         self.guid_to_row.clear();
         self.hidden.clear();
@@ -146,6 +161,8 @@ impl Scene {
         self.tables = Upload::default();
         self.streamed.clear();
         self.order.clear();
+        self.owners.clear();
+        self.edge_sources.clear();
         self.ribbon_ranges.clear();
         self.guid_to_row.clear();
         self.selected = None;
@@ -153,15 +170,34 @@ impl Scene {
         gpu.reset();
         for d in docs {
             if d.display_only {
-                log::warn!("rebuild: '{}' is display_only, its geometry was released", d.name);
+                log::warn!(
+                    "rebuild: '{}' is display_only, its geometry was released",
+                    d.name
+                );
             }
-            self.add_file(FileDoc { name: d.name, session: d.session, place: d.place, point_px: d.point_px, display_only: d.display_only });
+            self.add_file(FileDoc {
+                name: d.name,
+                session: d.session,
+                place: d.place,
+                point_px: d.point_px,
+                display_only: d.display_only,
+            });
         }
         self.upload_to(gpu);
     }
 
     /// Upload the walked tables, then FORGET the rows: the GPU is their only holder.
     pub fn upload_to(&mut self, gpu: &mut Gpu) {
+        for (index, pipe) in self.tables.seg.pipes.iter().enumerate() {
+            let edge = self
+                .tables
+                .seg
+                .pipe_ids
+                .get(index)
+                .copied()
+                .unwrap_or(u32::MAX);
+            self.edge_sources.push((pipe.instance_id, edge));
+        }
         gpu.set_scene(&self.tables);
         self.bases.vert += self.tables.arena.verts.len() as u32;
         self.bases.obj += self.tables.obj.rows.len() as u32;
@@ -174,8 +210,10 @@ impl Scene {
         let row = self.bases.obj + self.tables.obj.rows.len() as u32;
         self.tables.obj.rows.push(ObjectRow::new(place, flags));
         let guid: Rc<str> = Rc::from(guid);
-        self.guid_to_row.insert(Rc::clone(&guid), row);
+        self.guid_to_row
+            .insert((self.docs.len(), Rc::clone(&guid)), row);
         self.order.push(guid);
+        self.owners.push(self.docs.len());
         self.ribbon_ranges.push(None);
         row
     }
@@ -183,7 +221,13 @@ impl Scene {
     /// Walk one session into the tables: one object row per guid in the kernel's canonical
     /// order (the row a guid gets is the row it keeps), then the per-file sweeps.
     pub fn add_file(&mut self, doc: FileDoc) {
-        let FileDoc { name, session, place, point_px, display_only } = doc;
+        let FileDoc {
+            name,
+            session,
+            place,
+            point_px,
+            display_only,
+        } = doc;
         let from = Baselines::capture(&self.tables);
         let world = session.world_xforms();
         let mut lap = Lap::start("walk");
@@ -193,15 +237,28 @@ impl Scene {
         self.guid_to_row.reserve(count);
 
         for guid in session.order() {
-            let Some(geom) = session.lookup.get(&guid) else { continue };
+            let Some(geom) = session.lookup.get(&guid) else {
+                continue;
+            };
             if !is_drawable(geom) {
                 continue;
             }
-            let flags = if self.hidden.contains(&guid) { Instance::FLAG_HIDDEN } else { 0 };
+            let flags = if self
+                .hidden
+                .contains(&(self.docs.len(), Rc::from(guid.as_str())))
+            {
+                Instance::FLAG_HIDDEN
+            } else {
+                0
+            };
             let object_place = placement(&world, &place.m, &guid);
             let row = self.push_row(&guid, object_place, flags);
             let ribbon_start = self.tables.seg.ribbons.len();
-            let cx = WalkCx { vert_base: self.bases.vert, cloud_px: point_px, row };
+            let cx = WalkCx {
+                vert_base: self.bases.vert,
+                cloud_px: point_px,
+                row,
+            };
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
             let o = self.tables.obj.rows.last_mut().unwrap();
             o.flags |= r.flags;
@@ -210,7 +267,11 @@ impl Scene {
             o.faces = r.faces;
             o.thickness = r.thickness;
             let ribbon_end = self.tables.seg.ribbons.len();
-            if ribbon_start != ribbon_end { self.ribbon_ranges[row as usize] = Some(self.bases.ribbon + ribbon_start as u32..self.bases.ribbon + ribbon_end as u32); }
+            if ribbon_start != ribbon_end {
+                self.ribbon_ranges[row as usize] = Some(
+                    self.bases.ribbon + ribbon_start as u32..self.bases.ribbon + ribbon_end as u32,
+                );
+            }
         }
         lap.mark("objects");
 
@@ -221,18 +282,44 @@ impl Scene {
         }
         lap.mark("sweeps");
 
-        let display_only = display_only || knobs::drop_sessions();
-        let session = if display_only { Rc::new(Session::new(&name)) } else { session };
-        self.docs.push(Doc { name, place, session, point_px, display_only });
+        if display_only || knobs::drop_sessions() {
+            log::info!(
+                "'{name}': retaining source geometry for controls; the legacy display_only/drop_sessions hint no longer releases it"
+            );
+        }
+        self.docs.push(Doc {
+            name,
+            place,
+            session,
+            point_px,
+            display_only: false,
+        });
     }
 
     /// Add a streamed cloud from its first slice and upload it at once, so the slot knows the
     /// absolute row its point 0 landed on. Returns the slot index later slices address.
     pub fn add_streamed_cloud(&mut self, init: StreamedInit, gpu: &mut Gpu) -> usize {
-        let StreamedInit { name, url, place, rows, lod, fields, resident, point_px, col_at: _ } = init;
+        let StreamedInit {
+            name,
+            url,
+            place,
+            rows,
+            lod,
+            fields,
+            resident,
+            point_px,
+            col_at: _,
+        } = init;
         let total = fields.count;
         let row = self.push_row(&format!("stream:{url}"), place.m, 0);
-        let slice = StreamSlice { rows, lod: &lod, from: 0, to: resident, row, point_px };
+        let slice = StreamSlice {
+            rows,
+            lod: &lod,
+            from: 0,
+            to: resident,
+            row,
+            point_px,
+        };
         let bounds = walk_stream_slice(&mut self.tables.cloud, &slice);
         let o = self.tables.obj.rows.last_mut().unwrap();
         o.bounds = bounds;
@@ -241,19 +328,48 @@ impl Scene {
         self.tables.bounds.union(&bounds.placed(&place.m));
         self.upload_to(gpu);
 
-        self.docs.push(Doc { name: name.clone(), place, session: Rc::new(Session::new(&name)), point_px, display_only: true });
-        self.streamed.push(StreamedCloud { name, url, row, lod, done_to: resident, total, point_px });
+        let model = place.m;
+        self.docs.push(Doc {
+            name: name.clone(),
+            place,
+            session: Rc::new(Session::new(&name)),
+            point_px,
+            display_only: true,
+        });
+        self.streamed.push(StreamedCloud {
+            name,
+            url,
+            row,
+            lod,
+            fields,
+            place: model,
+            done_to: resident,
+            total,
+            point_px,
+        });
         self.streamed.len() - 1
     }
 
     /// Append the next slice `[done_to, to)` of streamed cloud `idx` and upload it.
     pub fn extend_streamed_cloud(&mut self, idx: usize, rows: StreamRows, to: u32, gpu: &mut Gpu) {
-        let Some(sc) = self.streamed.get(idx) else { return };
+        let Some(sc) = self.streamed.get(idx) else {
+            return;
+        };
         if to <= sc.done_to {
             return;
         }
-        let place = self.docs.iter().find(|d| d.name == sc.name).map(|d| d.place.m).unwrap_or(Xform::identity().m);
-        let slice = StreamSlice { rows, lod: &sc.lod, from: sc.done_to, to, row: sc.row, point_px: sc.point_px };
+        let place = match self.document(sc.row) {
+            Some(document) => document.place.m,
+            None => Xform::identity().m,
+        };
+        let slice = StreamSlice {
+            rows,
+            lod: &sc.lod,
+            from: sc.done_to,
+            to,
+            row: sc.row,
+            point_px: sc.point_px,
+        };
         let bounds = walk_stream_slice(&mut self.tables.cloud, &slice);
         self.tables.bounds.union(&bounds.placed(&place));
         self.streamed[idx].done_to = to;
@@ -264,29 +380,80 @@ impl Scene {
     pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
         let guid = self.order.get(pick.row as usize)?.to_string();
         let mut point = None;
-        if let Some((_, local)) = gpu.cloud.row_of(pick.sub) {
-            point = self.point_at(&guid, local);
+        if let Some((parent, local)) = gpu.cloud.row_of(pick.sub)
+            && parent == pick.row
+        {
+            point = self.point_at(pick.row, local);
         }
-        let doc = self.doc_of(&guid).map(|d| d.name.clone()).unwrap_or_default();
-        Some(Picked { doc, guid, row: pick.row, point })
+        let doc = match self.document(pick.row) {
+            Some(document) => document.name.clone(),
+            None => String::new(),
+        };
+        Some(Picked {
+            doc,
+            guid,
+            row: pick.row,
+            point,
+        })
     }
 
-    /// The document holding `guid`.
-    fn doc_of(&self, guid: &str) -> Option<&Doc> {
-        self.docs.iter().find(|d| d.session.lookup.contains_key(guid))
+    /// An instance's exact owning document; duplicated GUIDs across files remain distinct.
+    pub fn document(&self, row: u32) -> Option<&Doc> {
+        self.docs.get(*self.owners.get(row as usize)?)
+    }
+
+    /// Source geometry for controls, without scanning every document on a click.
+    pub fn geometry(&self, row: u32) -> Option<&Geometry> {
+        self.document(row)?
+            .session
+            .lookup
+            .get(self.order.get(row as usize)?.as_ref())
+    }
+
+    /// The source object's name; unnamed geometry uses its type instead of its file name.
+    pub fn object_name(&self, row: u32) -> &str {
+        let (name, kind) = match self.geometry(row) {
+            Some(Geometry::OBB(value)) => (value.name.as_str(), "Box"),
+            Some(Geometry::BRep(value)) => (value.name.as_str(), "BRep"),
+            Some(Geometry::Element(value)) => (value.name.as_str(), "Element"),
+            Some(Geometry::Line(value)) => (value.name.as_str(), "Line"),
+            Some(Geometry::Mesh(value)) => (value.name.as_str(), "Mesh"),
+            Some(Geometry::NurbsCurve(value)) => (value.name.as_str(), "NURBS curve"),
+            Some(Geometry::NurbsSurface(value)) => (value.name.as_str(), "NURBS surface"),
+            Some(Geometry::Plane(value)) => (value.name.as_str(), "Plane"),
+            Some(Geometry::Point(value)) => (value.name.as_str(), "Point"),
+            Some(Geometry::PointCloud(value)) => (value.name.as_str(), "Point cloud"),
+            Some(Geometry::Polyline(value)) => (value.name.as_str(), "Polyline"),
+            None => ("", "Object"),
+        };
+        if name.trim().is_empty() { kind } else { name }
+    }
+
+    /// A segment pick in the edge-only pass resolves through retained producer metadata.
+    pub fn edge_at(&self, pick: Pick) -> Option<u32> {
+        if pick.sub & 0x8000_0000 == 0 {
+            return None;
+        }
+        let &(parent, edge) = self.edge_sources.get((pick.sub & 0x7fff_ffff) as usize)?;
+        (parent == pick.row && edge != u32::MAX).then_some(edge)
     }
 
     /// The kernel point `local` of cloud `guid`: its stable id and position. `None` for a
     /// released or streamed cloud (the GPU is then the only holder).
-    fn point_at(&self, guid: &str, local: u32) -> Option<PickedPoint> {
-        let doc = self.doc_of(guid)?;
-        let Some(Geometry::PointCloud(pc)) = doc.session.lookup.get(guid) else { return None };
+    pub fn point_at(&self, row: u32, local: u32) -> Option<PickedPoint> {
+        let Some(Geometry::PointCloud(pc)) = self.geometry(row) else {
+            return None;
+        };
         let c = pc.coords();
         let i = local as usize * 3;
         if i + 2 >= c.len() {
             return None;
         }
-        Some(PickedPoint { local, id: pc.point_id(local as usize), position: [c[i], c[i + 1], c[i + 2]] })
+        Some(PickedPoint {
+            local,
+            id: pc.point_id(local as usize),
+            position: [c[i], c[i + 1], c[i + 2]],
+        })
     }
 
     /// Global ribbon segment IDs belonging to one object row, retained after upload.
@@ -296,14 +463,23 @@ impl Scene {
 
     /// The guid of a row: what the hide set stores, because a guid survives the rebuild a
     /// live reload does and a row number does not.
-    pub fn guid_of(&self, row: u32) -> Option<String> {
-        self.order.get(row as usize).map(|g| g.to_string())
+    pub fn identity_of(&self, row: u32) -> Option<(usize, Rc<str>)> {
+        Some((
+            *self.owners.get(row as usize)?,
+            Rc::clone(self.order.get(row as usize)?),
+        ))
     }
 
     /// The rows the hide set currently resolves to. A guid whose document has since closed
     /// resolves to nothing and is simply skipped.
     pub fn hidden_rows(&self) -> Vec<u32> {
-        self.hidden.iter().filter_map(|g| self.guid_to_row.get(g.as_str()).copied()).collect()
+        let mut rows = Vec::new();
+        for identity in &self.hidden {
+            if let Some(&row) = self.guid_to_row.get(identity) {
+                rows.push(row);
+            }
+        }
+        rows
     }
 
     /// Objects in row order.
@@ -318,5 +494,66 @@ fn placement(world: &HashMap<String, Xform>, place: &Mat4, guid: &str) -> Mat4 {
     match world.get(guid) {
         Some(local) => mat_mul(place, &local.m),
         None => *place,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::app::selection::Controls;
+    use session_rust::{BRep, Point};
+
+    /// Deliver a retained source using the same document boundary as the real loader.
+    fn file(name: &str, session: Rc<Session>, display_only: bool) -> FileDoc {
+        FileDoc {
+            name: name.into(),
+            session,
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only,
+        }
+    }
+
+    /// Identical source GUIDs in separate documents must retain distinct controls and hide targets.
+    #[test]
+    fn duplicate_guids_keep_their_document_and_control_owners() {
+        let first = Point::new(10.0, 0.0, 0.0);
+        let guid = first.guid().to_string();
+        let mut second = first.clone();
+        second[0] = 20.0;
+        assert_eq!(second.guid(), guid);
+        let mut left = Session::new("left");
+        left.add_point(first, None);
+        let mut right = Session::new("right");
+        right.add_point(second, None);
+        let mut scene = Scene::new();
+        scene.add_file(file("left", Rc::new(left), false));
+        scene.add_file(file("right", Rc::new(right), false));
+        assert_eq!(scene.object_count(), 2);
+        assert_eq!(scene.document(0).unwrap().name, "left");
+        assert_eq!(scene.document(1).unwrap().name, "right");
+        let a = Controls::from_geometry(scene.geometry(0).unwrap());
+        let b = Controls::from_geometry(scene.geometry(1).unwrap());
+        assert_eq!(a.points[0].position, [10.0, 0.0, 0.0]);
+        assert_eq!(b.points[0].position, [20.0, 0.0, 0.0]);
+        scene.hidden.insert(scene.identity_of(1).unwrap());
+        assert_eq!(scene.hidden_rows(), vec![1]);
+        assert!(scene.document(2).is_none());
+    }
+
+    /// Legacy display hints must preserve original CAD controls without cloning the source.
+    #[test]
+    fn legacy_display_only_hint_retains_source_controls() {
+        let mut source = Session::new("retained CAD source");
+        source.add_brep(BRep::create_box(2.0, 3.0, 4.0), None);
+        let source = Rc::new(source);
+        let mut scene = Scene::new();
+        scene.add_file(file("display hint", Rc::clone(&source), true));
+        assert!(Rc::ptr_eq(&source, &scene.docs[0].session));
+        assert!(!scene.docs[0].display_only);
+        assert_eq!(scene.object_count(), 1);
+        let controls = Controls::from_geometry(scene.geometry(0).unwrap());
+        assert!(controls.points.len() >= 8);
+        assert!(!scene.tables.arena.idx.is_empty());
     }
 }

@@ -2,13 +2,13 @@
 //! the octree it carries, one draw), and the streamed form - a prefix or chunk of raw rows
 //! that never became a kernel object, with the nodes those rows complete.
 
-use session_rust::PointCloud;
+use super::encode::oct16;
+use super::{Row, WalkCx};
 use crate::app::stream::CloudLod;
 use crate::engine::gpu::cloud::CloudRows;
 use crate::engine::gpu::{CloudDraw, LodNode, NO_NORMALS};
 use crate::math::Aabb;
-use super::{Row, WalkCx};
-use super::encode::oct16;
+use session_rust::PointCloud;
 
 /// Spacing reported when a cloud is too small to measure.
 const DEFAULT_SPACING: f32 = 20.0;
@@ -17,7 +17,11 @@ const DEFAULT_SPACING: f32 = 20.0;
 pub fn walk_cloud(c: &mut CloudRows, pc: &PointCloud, cx: &WalkCx) -> Row {
     let first = c.point_count();
     let node_first = c.nodes.len() as u32;
-    let nrm_first = if pc.normals().len() >= pc.len() * 3 { c.nrm.len() as u32 } else { NO_NORMALS };
+    let nrm_first = if pc.normals().len() >= pc.len() * 3 {
+        c.nrm.len() as u32
+    } else {
+        NO_NORMALS
+    };
     let bounds = push_points(c, pc);
     push_nodes(c, pc);
     c.draws.push(CloudDraw {
@@ -30,8 +34,18 @@ pub fn walk_cloud(c: &mut CloudRows, pc: &PointCloud, cx: &WalkCx) -> Row {
         node_count: pc.lod_node_count() as u32,
         nrm_first,
     });
-    let px = if cx.cloud_px > 0.0 { cx.cloud_px } else { pc.point_size as f32 };
-    Row { bounds, spacing: px, flags: 0, faces: false, thickness: bounds.thinnest() }
+    let px = if cx.cloud_px > 0.0 {
+        cx.cloud_px
+    } else {
+        pc.point_size as f32
+    };
+    Row {
+        bounds,
+        spacing: px,
+        flags: 0,
+        faces: false,
+        thickness: bounds.thinnest(),
+    }
 }
 
 /// Positions, colours and (when every point has one) normals, from the kernel's flat arrays.
@@ -45,13 +59,23 @@ fn push_points(rows: &mut CloudRows, pc: &PointCloud) -> Aabb {
     rows.col.reserve(n);
     let mut bounds = Aabb::empty();
     for i in 0..n {
-        let p = [coords[i * 3] as f32, coords[i * 3 + 1] as f32, coords[i * 3 + 2] as f32];
+        let p = [
+            coords[i * 3] as f32,
+            coords[i * 3 + 1] as f32,
+            coords[i * 3 + 2] as f32,
+        ];
         bounds.grow(p);
         rows.pos.extend_from_slice(&p);
         let c = i * 4;
-        rows.col.push(if c + 3 < colors.len() { pack_color(&colors[c..c + 4]) } else { 0xff00_0000 });
+        rows.col.push(if c + 3 < colors.len() {
+            pack_color(&colors[c..c + 4])
+        } else {
+            0xff00_0000
+        });
         if has_normals {
-            rows.nrm.push(oct16(&[normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]]).unwrap_or(0));
+            rows.nrm.push(
+                oct16(&[normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]]).unwrap_or(0),
+            );
         }
     }
     bounds
@@ -79,7 +103,10 @@ fn push_nodes(rows: &mut CloudRows, pc: &PointCloud) {
 
 /// Four 0-255 channels to one RGBA8 word.
 fn pack_color(c: &[i32]) -> u32 {
-    (c[0] as u32 & 255) | (c[1] as u32 & 255) << 8 | (c[2] as u32 & 255) << 16 | (c[3] as u32 & 255) << 24
+    (c[0] as u32 & 255)
+        | (c[1] as u32 & 255) << 8
+        | (c[2] as u32 & 255) << 16
+        | (c[3] as u32 & 255) << 24
 }
 
 /// The cloud's point spacing from its density: `sqrt(area / n)` over the two longest box
@@ -89,8 +116,12 @@ fn cloud_spacing(pc: &PointCloud, bounds: &Aabb) -> f32 {
     if n < 2 || !bounds.is_finite() {
         return DEFAULT_SPACING;
     }
-    let mut e = [bounds.max[0] - bounds.min[0], bounds.max[1] - bounds.min[1], bounds.max[2] - bounds.min[2]];
-    e.sort_by(|a, b| b.partial_cmp(a).unwrap());
+    let mut e = [
+        bounds.max[0] - bounds.min[0],
+        bounds.max[1] - bounds.min[1],
+        bounds.max[2] - bounds.min[2],
+    ];
+    e.sort_by(descending_extent);
     let area = e[0] as f64 * e[1] as f64;
     if area <= 0.0 || !area.is_finite() {
         return DEFAULT_SPACING;
@@ -172,11 +203,20 @@ fn lod_node(lod: &CloudLod, k: usize) -> LodNode {
     }
     let half = lod.size[k] as f32 * 0.5;
     LodNode {
-        center: [lod.min[k * 3] as f32 + half, lod.min[k * 3 + 1] as f32 + half, lod.min[k * 3 + 2] as f32 + half],
+        center: [
+            lod.min[k * 3] as f32 + half,
+            lod.min[k * 3 + 1] as f32 + half,
+            lod.min[k * 3 + 2] as f32 + half,
+        ],
         size: lod.size[k] as f32,
         spacing: lod.spacing[k] as f32,
         first: lod.first[k] as u32,
         count: lod.count[k] as u32,
         children,
     }
+}
+
+/// Rank finite box extents from largest to smallest for the spacing area estimate.
+fn descending_extent(a: &f32, b: &f32) -> std::cmp::Ordering {
+    b.partial_cmp(a).unwrap()
 }

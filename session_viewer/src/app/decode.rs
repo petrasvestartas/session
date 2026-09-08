@@ -2,12 +2,15 @@
 //! objects are converted CHUNK at a time with a macrotask between chunks so a 250k-object
 //! parse never freezes the page. The bytes are taken by value and dropped after the decode.
 
-use std::rc::Rc;
+use super::fetch::next_tick;
 use prost::Message;
 use session_rust::proto;
 use session_rust::tree::{Tree, TreeNode};
-use session_rust::{BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, Plane, Point, PointCloud, Polyline, Session, Xform, OBB};
-use super::fetch::next_tick;
+use session_rust::{
+    BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, OBB, Plane, Point, PointCloud,
+    Polyline, Session, Xform,
+};
+use std::rc::Rc;
 
 /// Objects converted between two yields.
 const CHUNK: usize = 25_000;
@@ -30,7 +33,8 @@ macro_rules! convert {
     ($s:expr, $pacer:expr, $vec:expr, $ty:ident, $variant:ident, $slot:ident) => {
         for x in $vec {
             let g = Rc::new($ty::from_proto(x));
-            $s.lookup.insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
+            $s.lookup
+                .insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
             $s.objects.$slot.push(g);
             if $pacer.tick() {
                 next_tick().await;
@@ -39,9 +43,13 @@ macro_rules! convert {
     };
     (fallible $s:expr, $pacer:expr, $vec:expr, $ty:ident, $variant:ident, $slot:ident) => {
         for x in $vec {
-            let Ok(v) = $ty::from_proto(x) else { continue };
+            let v = match $ty::from_proto(x) {
+                Ok(value) => value,
+                Err(error) => return Err(format!("invalid {}: {error}", stringify!($ty))),
+            };
             let g = Rc::new(v);
-            $s.lookup.insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
+            $s.lookup
+                .insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
             $s.objects.$slot.push(g);
             if $pacer.tick() {
                 next_tick().await;
@@ -51,12 +59,32 @@ macro_rules! convert {
 }
 
 /// `Session::pb_loads`, unrolled with awaits. `.json` files take the synchronous path.
-pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Session {
-    if url.ends_with(".json") {
-        return Session::file_json_loads(&String::from_utf8_lossy(&bytes));
+pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Result<Session, String> {
+    if bytes.len() > 512 * 1024 * 1024 {
+        return Err(
+            "geometry payload exceeds the 512 MiB whole-file limit; use cloud streaming"
+                .to_string(),
+        );
     }
-    let Ok(p) = proto::Session::decode(bytes.as_slice()) else { return Session::default() };
+    if url.ends_with(".json") {
+        let text = match std::str::from_utf8(&bytes) {
+            Ok(text) => text,
+            Err(error) => return Err(format!("invalid JSON encoding: {error}")),
+        };
+        super::validate::json(text)?;
+        let session = match Session::jsonload(text) {
+            Ok(session) => session,
+            Err(error) => return Err(format!("invalid session JSON: {error}")),
+        };
+        super::validate::retained(&session)?;
+        return Ok(session);
+    }
+    let p = match proto::Session::decode(bytes.as_slice()) {
+        Ok(session) => session,
+        Err(error) => return Err(format!("invalid session protobuf: {error}")),
+    };
     drop(bytes);
+    super::validate::session(&p)?;
     let mut s = Session::new(&p.name);
     s.set_guid(p.guid.clone());
     let mut pacer = Pacer { n: 0 };
@@ -107,7 +135,7 @@ pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Session {
             s.tree.add(&root, None);
         }
     }
-    s
+    Ok(s)
 }
 
 /// One proto node and its children, recursively.

@@ -2,15 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <!-- user-scalable=no: the page's OWN pinch-zoom would otherwise fight the model's. The viewer
-       is a canvas, not a document - there is no text to enlarge, and F / double-tap already
-       frame the geometry, so nothing is lost by taking the browser's gesture away. iOS Safari
-       has IGNORED user-scalable since iOS 10, on purpose (it is an accessibility hazard on real
-       documents), which is why the canvas also carries `touch-action: none` below - that one
-       Safari does honour, and it is per-element rather than per-page.
-       viewport-fit=cover fills the notch area on phones that have one. -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Session Viewer</title>
+  <style>#viewer-error:not([hidden]) {position:fixed;inset:0;background:#111e;color:#fff;padding:25vh 15vw;font:16px/1.5 system-ui;z-index:20} #viewer-error button {padding:8px 16px;margin-top:16px}</style>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     /* overscroll-behavior kills pull-to-refresh and the rubber band: a downward drag on the
@@ -36,45 +30,49 @@
              -webkit-user-select: none; user-select: none;
              -webkit-tap-highlight-color: transparent; }
     canvas:focus, canvas:focus-visible { outline: none; }
-    :focus, :focus-visible { outline: none; }
     #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
                  font:1rem system-ui; text-align:center; padding-top:40vh; }
   </style>
 </head>
 <body>
   <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
-  <!-- Build-time: Trunk copies the whole assets tree into dist/, preserving the layout, so a
-       runtime URL is just the path under assets/ ("pb/draw_pf_he.pb", "scenes/drawings.json").
-       EVERYTHING the viewer can load lives under assets/ - nothing is fetched from anywhere else. -->
+  <!-- Trunk copies local fixtures into dist/pb. Named remote scenes resolve through
+       app/route.rs; their manifests and geometry are fetched from the configured data host. -->
    <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="pb"/>
    <!-- The ONE local manifest. Every other scene is opened from the R2 bucket with
         ?scene=scenes/view_<name>.yaml and is never copied into dist. -->
    <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
-  <canvas id="canvas"></canvas>
+  <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><button type="button" onclick="location.reload()">Reload viewer</button></div>
+  <canvas id="canvas" tabindex="0"></canvas>
+  <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
+  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+  <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
   <!-- Message telling that Webgpu is not available. -->
   <script>
-    // Right-drag orbits, so the browser's context menu must not open on top of
-    // it. Bound to the canvas only, so a right-click anywhere else on a page
-    // embedding this viewer still behaves normally.
-    document.addEventListener("DOMContentLoaded", function () {
+    // These named registrations belong to this document's lifetime and are installed once.
+    function preventContextMenu(event) { event.preventDefault(); }
+    function installCanvasHandlers() {
       var canvas = document.getElementById("canvas");
-      if (canvas) canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-    });
+      if (canvas) canvas.addEventListener("contextmenu", preventContextMenu);
+    }
+    document.addEventListener("DOMContentLoaded", installCanvasHandlers, {once:true});
 
     // Reload the scene in place when the embedding page asks for it, e.g. after
     // an example was re-run and rewrote its .pb. Reloading this whole frame
     // would restart WebGPU and reset the camera; this swaps only the geometry.
-    window.addEventListener("message", function (event) {
+    function reloadSceneMessage(event) {
+      if (event.source !== window.parent && event.origin !== window.location.origin) return;
       var data = event.data;
       if (!data || data.type !== "session-viewer:reload-scene") return;
       if (window.wasmBindings && window.wasmBindings.reload_scene) {
         window.wasmBindings.reload_scene(data.scene || undefined);
       }
-    });
+    }
+    window.addEventListener("message", reloadSceneMessage);
 
     if (!navigator.gpu) {
       document.body.insertAdjacentHTML("beforeend",
-        '<div id="no-webgpu">WebGPU required — use a recent Chrome, Edge, Firefox, or Safari 18+.</div>');
+        '<div id="no-webgpu">WebGPU is unavailable. Open this viewer in a WebGPU-enabled browser over HTTPS or localhost; check the browser’s GPU settings.</div>');
     }
   </script>
 </body>

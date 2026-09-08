@@ -25,6 +25,8 @@ struct CylinderSegment {
     facing: u32,
 }
 @group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
+@group(3) @binding(1) var<storage, read> source_edges: array<u32>;
+@group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
 
 struct LineUniform {
     thickness: f32,
@@ -142,6 +144,7 @@ struct VsOut {
     @location(7) @interpolate(flat) inst_id: u32,
     @location(8) @interpolate(flat) segment_index: u32,
     @location(9) @interpolate(flat) end_depth: vec2<f32>,
+    @location(10) @interpolate(flat) source_edge: u32,
 };
 
 // The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
@@ -246,7 +249,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let ndc = (p / vp - 0.5) * 2.0;
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = unpack4x8unorm(seg.color) * inst.color;
-    if ((inst.flags & FLAG_SELECTED) != 0u) {
+    if ((inst.flags & FLAG_SELECTED) != 0u || (edge_selection.x == seg.instance_id && edge_selection.y != 0xffffffffu && edge_selection.y == source_edges[iid])) {
         color = vec4<f32>(SELECT_COLOR, color.a);
     }
     o.color = color;
@@ -258,6 +261,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.solid = select(0.0, 1.0, seg.facing != FACING_UNKNOWN);
     o.inst_id = seg.instance_id;
     o.segment_index = iid;
+    o.source_edge = source_edges[iid];
     o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
     return o;
 }
@@ -300,6 +304,15 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
 @fragment
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
+        discard;
+    }
+    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
+}
+
+// Specialized edge picks exclude segments without a producer-provided source edge.
+@fragment
+fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
+    if (in.source_edge == 0xffffffffu || coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
         discard;
     }
     return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);

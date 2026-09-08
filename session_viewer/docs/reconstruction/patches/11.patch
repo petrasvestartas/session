@@ -1,0 +1,2618 @@
+diff --git a/session_viewer/assets/text-layout.html b/session_viewer/assets/text-layout.html
+deleted file mode 100644
+index 8ae37503797d6e008ef857eb2ab286a9bb371677..0000000000000000000000000000000000000000
+--- a/session_viewer/assets/text-layout.html
++++ /dev/null
+@@ -1,45 +0,0 @@
+-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+-<title>Checkpoint 10 — source text and shaped glyphs</title>
+-<style>
+-@font-face{font-family:'Noto Sans';src:url('./text/NotoSans-Regular.ttf')}@font-face{font-family:'Noto Sans Symbols';src:url('./text/NotoSansSymbols-Regular.ttf')}@font-face{font-family:'Noto Sans Symbols 2';src:url('./text/NotoSansSymbols2-Regular.ttf')}
+-body{background:#171717;color:white;font:14px sans-serif;margin:20px}.line{display:table;white-space:pre;background:black;color:white;font-family:'Noto Sans','Noto Sans Symbols','Noto Sans Symbols 2';font-kerning:normal;font-variant-ligatures:common-ligatures;letter-spacing:normal;margin:12px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}.failed{color:#ff8f8f}
+-</style>
+-<h1>Source text → shaped runs</h1><p>Browser reference in the same explicit fonts; chapter 11 adds the GPU coverage renderer.</p>
+-<div id="specimens"></div><output id="layout-status">Loading exact fonts and WASM…</output><details><summary>Glyph IDs, byte clusters, advances, offsets and baselines</summary><pre id="diagnostics"></pre></details>
+-<script type="module">
+-/** Reject stale/missing generated bundle discovery before interpreting HTML. */
+-function readText(response){if(!response.ok)throw Error(`HTTP ${response.status}`);return response.text();}
+-/** Shape once, measure the matching browser run, and retain assertions for browser automation. */
+-async function start(){
+- await Promise.all([document.fonts.load('16px "Noto Sans"'),document.fonts.load('16px "Noto Sans Symbols"'),document.fonts.load('16px "Noto Sans Symbols 2"')]);
+- await document.fonts.ready;
+- const html=await fetch('./index.html',{cache:'no-store'}).then(readText);
+- const js=html.match(/(?:import[^;]*?from\s*|import\s*)["']([^"']*session_viewer[^"']*\.js)["']/);
+- const wasm=html.match(/module_or_path:\s*["']([^"']+\.wasm)["']/);
+- if(!js||!wasm)throw Error('Build this checkpoint with Trunk before opening the fixture.');
+- const module=await import(new URL(js[1],location.href));
+- await module.default({module_or_path:new URL(wasm[1],location.href).href});
+- const report=JSON.parse(module.text_layout());
+- const metrics=[];
+- for(const row of report.rows){
+-  const line=document.createElement('div');line.className='line';line.style.fontSize=`${row.size}px`;line.style.lineHeight=`${row.lineHeight}px`;line.textContent=row.text;
+-  document.getElementById('specimens').append(line);
+-  let width=0;
+-  for(const glyph of report.glyphs){if(glyph.label===row.id)width=Math.max(width,glyph.line_width);if(glyph.glyph===0)throw Error('Missing font glyph');}
+-  const browser=line.getBoundingClientRect().width;
+-  const difference=Math.abs(browser-width);
+-  if(difference>0.2)throw Error(`Same-font width differs at ${row.size}px: ${difference}`);
+-  metrics.push({size:row.size,shaper:width,browser,difference});
+- }
+- if(report.shapeCount!==5||report.shapedBeforePlacementChange!==5)throw Error('Placement/color invalidated shaping');
+- let combined=false;
+- for(const glyph of report.glyphs){if(glyph.cluster[1]-glyph.cluster[0]>1)combined=true;}
+- if(!combined)throw Error('No multi-byte or combined source cluster recorded');
+- window.textLayout={...report,metrics,passed:true};
+- document.getElementById('diagnostics').textContent=JSON.stringify(window.textLayout,null,2);
+- document.getElementById('layout-status').textContent='PASS: five sizes, matched fonts/widths, clusters and unchanged shaping after placement/color edits.';
+-}
+-/** Keep a font/layout failure explicit on the fixture page and in browser logs. */
+-function failed(error){document.getElementById('layout-status').textContent=String(error);document.getElementById('layout-status').className='failed';console.error(error);}
+-start().catch(failed);
+-</script></html>
+diff --git a/session_viewer/assets/text-quality.html b/session_viewer/assets/text-quality.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..5d69ab6b4577a6350f360f3ae1a053998766fd5b
+--- /dev/null
++++ b/session_viewer/assets/text-quality.html
+@@ -0,0 +1,166 @@
++<!doctype html>
++<html lang="en">
++<meta charset="utf-8">
++<meta name="viewport" content="width=device-width,initial-scale=1">
++<title>Session Viewer — text regression</title>
++<style>
++@font-face {font-family:'Noto Sans';src:url('./text/NotoSans-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block}
++@font-face {font-family:'Noto Sans Symbols';src:url('./text/NotoSansSymbols-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block}
++@font-face {font-family:'Noto Sans Symbols 2';src:url('./text/NotoSansSymbols2-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block}
++* {box-sizing:border-box} body {margin:16px;background:#171717;color:#eee;font:14px system-ui}
++h1 {font-size:20px} .controls {display:flex;flex-wrap:wrap;gap:16px;margin:12px 0}
++.columns {display:grid;grid-template-columns:minmax(550px,1fr) minmax(550px,1fr);gap:16px}
++.panel {position:relative;background:#000;color:#fff;height:1040px;overflow:hidden}
++canvas {display:block;width:100%;height:1040px} #diagnostic-canvas {position:absolute;inset:0;pointer-events:none}
++.reference {position:absolute;white-space:pre;font-family:'Noto Sans','Noto Sans Symbols','Noto Sans Symbols 2';font-weight:400;font-style:normal;font-kerning:normal;font-variant-ligatures:common-ligatures;font-feature-settings:'kern' 1,'liga' 1,'clig' 1;letter-spacing:normal}
++pre {white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px} button,select {font:inherit}
++.caption {font-size:13px;margin:6px 0} .failure {color:#ff9d9d} #metric-result {padding:10px 0}
++</style>
++<h1>White-on-black text regression</h1>
++<p>Production WebGPU text beside browser text. Both use the bundled Noto Sans Regular (400), advanced shaping, default kerning and common ligatures. Sizes: 12, 14, 16, 18 and 24 CSS px; line height: 1.5. Inspect at normal size.</p>
++<div class="controls">
++<label>Specimen <select id="specimen"><option value="reference">Font comparison</option><option value="nameplate">Object nameplate</option></select></label>
++<label>Raster scale <select id="scale"><option value="0">Actual canvas / browser DPR</option><option>1</option><option>1.25</option><option>1.5</option><option>2</option></select></label>
++<label>Background <select id="background"><option value="0">Black</option><option value="8421504">Gray</option><option value="16777215">White</option></select></label>
++<label><input id="selected" type="checkbox">Selected yellow</label>
++<label><input id="diagnostics" type="checkbox">Baselines, origins and raster bounds</label>
++<button id="reset">Release resources and reload</button>
++<button id="download">Download diagnostic JSON</button>
++</div>
++<div class="columns"><div><p class="caption">WebGPU / Glyphon coverage atlas</p><div class="panel"><canvas id="text-quality-canvas"></canvas><canvas id="diagnostic-canvas"></canvas></div></div><div><p class="caption">Browser / same loaded font</p><div class="panel" id="reference"></div></div></div>
++<div id="metric-result" role="status">Loading fonts and WebGPU…</div>
++<details><summary>Environment, shaping and preparation counters</summary><pre id="metadata"></pre></details>
++<p>Unsupported font characters are shown as the font’s missing-glyph box and counted. Atlas packing, upload byte counts and allocation capacity are private to Glyphon; reported raster keys and active instance bytes are not substitutes for those measurements. Browser zoom should be tested separately from forced raster scale.</p>
++<script type="module">
++let fixture, rows, lastReport, lastDiagnostics, observer;
++const canvas=document.getElementById('text-quality-canvas');
++const reference=document.getElementById('reference');
++const status=document.getElementById('metric-result');
++
++/** Load the exact browser-reference fonts before opening the shared GPU text fixture. */
++async function start() {
++  if (!navigator.gpu) throw new Error('WebGPU is unavailable in this browser.');
++  await Promise.all([document.fonts.load('16px "Noto Sans"'),document.fonts.load('16px "Noto Sans Symbols 2"'),document.fonts.load('16px "Noto Sans Symbols"')]);
++  await document.fonts.ready;
++  const html=await fetch('./index.html',{cache:'no-store'}).then(readText);
++  const match=html.match(/(?:import[^;]*?from\s*|import\s*)["']([^"']*session_viewer[^"']*\.js)["']/);
++  if(!match) throw new Error('Cannot find the built viewer module in index.html. Build this fixture with Trunk.');
++  const module=await import(new URL(match[1],location.href).href);
++  const wasmMatch=html.match(/module_or_path:\s*["']([^"']+\.wasm)["']/);
++  if(!wasmMatch) throw new Error('Cannot find the built WASM path in index.html.');
++  await module.default({module_or_path:new URL(wasmMatch[1],location.href).href});
++  fixture=await module.TextQuality.create(canvas);
++  rows=JSON.parse(fixture.specimens());
++  buildReference();
++  render();
++  observer=new ResizeObserver(render);observer.observe(canvas);
++  window.addEventListener('resize',render);
++  document.getElementById('scale').addEventListener('change',render);
++  document.getElementById('specimen').addEventListener('change',render);
++  document.getElementById('background').addEventListener('change',render);
++  document.getElementById('selected').addEventListener('change',render);
++  document.getElementById('diagnostics').addEventListener('change',render);
++  document.getElementById('reset').addEventListener('click',reset);
++  document.getElementById('download').addEventListener('click',download);
++  window.addEventListener('pagehide',dispose,{once:true});
++  window.textQuality={
++    render,reset,fixture,
++    /** Read the last completed measurement without triggering another render. */
++    get report(){return lastReport},
++    /** Read the glyph origin/bitmap diagnostic from the same completed frame. */
++    get diagnostics(){return lastDiagnostics}
++  };
++}
++/** Reject failed build-asset fetches before parsing their contents. */
++function readText(response) { if(!response.ok) throw new Error(`Build asset HTTP ${response.status}`);return response.text(); }
++/** Place browser reference specimens at the same logical origins as GPU labels. */
++function buildReference() {
++  reference.replaceChildren();reference.dataset.specimen='reference';
++  for(const row of rows) {
++    const element=document.createElement('div');element.className='reference';element.dataset.id=row.id;
++    element.style.cssText=`left:${row.left}px;top:${row.top}px;font-size:${row.size}px;line-height:${row.lineHeight}px`;
++    element.textContent=row.text;reference.append(element);
++  }
++}
++/** Refresh text, metrics and diagnostics for the current fixture controls. */
++function render() {
++  if(!fixture) return;
++  try {
++    if(document.getElementById('specimen').value==='nameplate'){renderNameplate();return;}
++    if(reference.dataset.specimen!=='reference')buildReference();
++    const selected=document.getElementById('selected').checked;
++    const background=Number(document.getElementById('background').value);
++    const scale=Number(document.getElementById('scale').value);
++    const report=JSON.parse(fixture.render(scale,selected,background));
++    reference.style.background=`#${background.toString(16).padStart(6,'0')}`;
++    reference.style.color=selected?'#ffff00':'#ffffff';
++    lastDiagnostics=JSON.parse(fixture.diagnostics());
++    lastReport={...report,browser:navigator.userAgent,platform:navigator.platform,browserDpr:devicePixelRatio,fontsLoaded:document.fonts.check('16px "Noto Sans"'),lineMetrics:compareMetrics(lastDiagnostics)};
++    document.getElementById('metadata').textContent=JSON.stringify(lastReport,null,2);
++    const differences=lastReport.lineMetrics.map(widthDifference);
++    const maximum=Math.max(...differences);
++    status.className=report.stats.missing_glyphs?'failure':'';
++    status.textContent=`Ready. Maximum browser/shaper line-width difference: ${maximum.toFixed(3)} CSS px. Missing glyphs: ${report.stats.missing_glyphs}. Effective scale: ${report.effectiveScale}.`;
++    drawDiagnostics(lastDiagnostics);
++    document.documentElement.dataset.ready='true';
++  } catch(error) {fail(error)}
++}
++/** Keep a centered nameplate active through resize callbacks and compare its shaped width. */
++function renderNameplate() {
++  const scale=Number(document.getElementById('scale').value);
++  const report=JSON.parse(fixture.render_nameplate(scale));
++  reference.replaceChildren();reference.dataset.specimen='nameplate';reference.style.background='#ffffff';
++  const name=document.createElement('div');name.className='reference';name.textContent='Source sphere Ø25';
++  name.style.cssText='left:50%;top:50%;transform:translate(-50%,-50%);font-size:13.5px;line-height:19.5px;padding:3px 12.75px;border-radius:999px;background:#000;color:#fff';
++  reference.append(name);
++  lastDiagnostics=JSON.parse(fixture.diagnostics());
++  const glyph=lastDiagnostics.glyphs[0];
++  const lineMetrics=[{label:100,line:0,browser:name.getBoundingClientRect().width-25.5,shaper:glyph.line_width}];
++  lastReport={...report,browser:navigator.userAgent,browserDpr:devicePixelRatio,lineMetrics,nameplate:true};
++  document.getElementById('metadata').textContent=JSON.stringify(lastReport,null,2);
++  status.className=report.stats.missing_glyphs?'failure':'';
++  status.textContent=`Ready. Centered 13.5px rounded white-on-black nameplate. Width difference: ${widthDifference(lineMetrics[0]).toFixed(3)} CSS px. Effective scale: ${report.effectiveScale}.`;
++  drawDiagnostics({glyphs:[],bitmaps:[],scale:report.effectiveScale});
++  document.documentElement.dataset.ready='true';
++}
++/** Compare logical line advances without imposing rasterizer pixel equality. */
++function compareMetrics(diagnostics) {
++  const context=document.createElement('canvas').getContext('2d');
++  context.fontKerning='normal';const metrics=[];
++  for(const row of rows) {
++    context.font=`400 ${row.size}px "Noto Sans", "Noto Sans Symbols", "Noto Sans Symbols 2"`;
++    const lines=row.text.split('\n');
++    for(let line=0;line<lines.length;line++) {
++      let glyph;
++      for(const item of diagnostics.glyphs){if(item.label===row.id && item.line===line){glyph=item;break;}}
++      if(glyph) metrics.push({label:row.id,line,browser:context.measureText(lines[line]).width,shaper:glyph.line_width});
++    }
++  }
++  return metrics;
++}
++/** Express advance disagreement in CSS pixels. */
++function widthDifference(row){return Math.abs(row.browser-row.shaper)}
++/** Overlay original glyph baselines, origins and raster bounds. */
++function drawDiagnostics(data) {
++  const overlay=document.getElementById('diagnostic-canvas');overlay.width=canvas.width;overlay.height=canvas.height;
++  if(!document.getElementById('diagnostics').checked)return;
++  const ctx=overlay.getContext('2d');ctx.lineWidth=0.5;
++  for(const glyph of data.bitmaps){ctx.strokeStyle='#f8795270';ctx.strokeRect(...glyph.rect);ctx.fillStyle='#20dfff';ctx.fillRect(glyph.origin[0],glyph.origin[1]-2,1,4)}
++  ctx.strokeStyle='#20dfff70';
++  for(const row of rows){
++    const baselines=new Set();
++    for(const glyph of data.glyphs){if(glyph.label===row.id)baselines.add(glyph.baseline);}
++    for(const baseline of baselines){ctx.beginPath();ctx.moveTo(row.left*data.scale,(row.top+baseline)*data.scale);ctx.lineTo(canvas.width,(row.top+baseline)*data.scale);ctx.stroke()}
++  }
++}
++/** Exercise disposal and recreate the current document. */
++function reset(){fixture.reset();render()}
++/** Export the measured fixture contract for reproducible investigation. */
++function download(){const blob=new Blob([JSON.stringify({report:lastReport,diagnostics:lastDiagnostics},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='text-quality.json';a.click();URL.revokeObjectURL(url)}
++/** Release the fixture and every browser observer it owns. */
++function dispose(){observer?.disconnect();window.removeEventListener('resize',render);fixture?.free();fixture=null}
++/** Make fixture failures visible to both the reader and automated checks. */
++function fail(error){status.className='failure';status.textContent=String(error);document.documentElement.dataset.error=String(error);console.error(error)}
++start().catch(fail);
++</script>
++</html>
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index dd812577b2bba47df27134eafab8843f927d5866..b3450f005a3b0f6d7986bc0817ba83ce9ca28393
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,11 +1,11 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 10</title>
++<title>Session checkpoint 11</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+ <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
+-<link data-trunk rel="copy-file" href="assets/text-layout.html">
+-</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-layout.html" style="position:fixed;right:12px;top:12px;color:white">Inspect shaped text</a><output id="status">Starting checkpoint 10</output>
++<link data-trunk rel="copy-file" href="assets/text-quality.html">
++</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-quality.html" style="position:fixed;right:12px;top:12px;color:white">Compare GPU text</a><output id="status">Starting checkpoint 11</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -23,7 +23,7 @@
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 10 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5bf08f0096
+--- a/session_viewer/src/engine/gpu/mod.rs
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -11,6 +11,7 @@
+ pub mod segments;
+ pub mod splat;
+ pub mod targets;
++pub mod text;
+ pub mod text_outline;
+ pub mod upload;
+ pub mod view;
+@@ -39,6 +40,7 @@
+     pub arena: arena::ArenaLane,
+     pub segments: segments::SegmentLane,
+     pub glyphs: glyphs::GlyphLane,
++    pub text: text::TextLane,
+     pub cloud: cloud::CloudLane,
+     pub splat: splat::Splat,
+     pub bounds: crate::math::Aabb,
+@@ -91,6 +93,7 @@
+         let arena = arena::ArenaLane::new(&ctx, &layouts, target);
+         let segments = segments::SegmentLane::new(&ctx, &layouts, target);
+         let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
++        let text = text::TextLane::new(&ctx, target);
+         let cloud = cloud::CloudLane::new(&ctx);
+         let splat = splat::Splat::new(&ctx, &layouts, target, cloud.buffers());
+         Ok(Self {
+@@ -106,6 +109,7 @@
+             arena,
+             segments,
+             glyphs,
++            text,
+             cloud,
+             splat,
+             bounds: crate::math::Aabb::empty(),
+@@ -168,6 +172,7 @@
+             self.arena.retarget(&self.ctx, &self.layouts, target);
+             self.segments.retarget(&self.ctx, &self.layouts, target);
+             self.glyphs.retarget(&self.ctx, &self.layouts, target);
++            self.text.retarget(&self.ctx, target);
+             self.splat.retarget(&self.ctx, &self.layouts, target);
+             log::info!("msaa: {}x", samples);
+         }
+@@ -206,7 +211,7 @@
+         result
+     }
+     /// Write the camera and CSS-to-physical pen scale once for every lane in this frame.
+-    pub fn write_frame_uniforms(&mut self, input: &FrameInput) {
++    pub fn write_frame_uniforms(&mut self, input: &FrameInput) -> anyhow::Result<()> {
+         self.frame.write(
+             &self.ctx,
+             input,
+@@ -219,10 +224,21 @@
+         );
+         self.objects
+             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
++        self.text.prepare(
++            &self.ctx,
++            &text::TextFrame {
++                mvp: self.frame.mvp_f32,
++                origin: self.objects.anchor(),
++                framebuffer: [self.config.width, self.config.height],
++                logical: self.logical_size,
++                ortho_half_height: self.frame.ortho_h,
++            },
++        )?;
++        Ok(())
+     }
+     /// Encode cloud depth first, then physical mesh faces, then analytic ink.
+     pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
+-        self.write_frame_uniforms(input);
++        self.write_frame_uniforms(input)?;
+         let output = match self.surface.get_current_texture() {
+             wgpu::CurrentSurfaceTexture::Success(output)
+             | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
+@@ -279,6 +295,7 @@
+             self.segments.draw_ribbons(&mut pass, &ink);
+             self.glyphs.draw_dots(&mut pass, &ink);
+             self.arena.draw_text(&mut pass, &basic);
++            self.text.draw(&mut pass);
+         }
+         self.ctx.queue.submit([encoder.finish()]);
+         output.present();
+diff --git a/session_viewer/src/engine/gpu/text.rs b/session_viewer/src/engine/gpu/text.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..dd18218a8296e79873f40b387f2c027cfc806503
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/text.rs
+@@ -0,0 +1,947 @@
++//! Dedicated coverage-text lane, pinned to Glyphon 0.11 (wgpu 29).
++//!
++//! The maintained shader is `glyphon-0.11.0/src/shader.wgsl`: R8Unorm coverage,
++//! straight-alpha output with ALPHA_BLENDING, integer texel footprints and fractional
++//! raster cache keys. It does not use mesh lighting. `ColorMode::Web` is appropriate
++//! for non-sRGB targets; the viewer's sRGB targets use Accurate mode.
++
++use super::buffers::GpuCtx;
++#[path = "text_plane.rs"]
++mod plane;
++#[path = "text_plate.rs"]
++mod plate;
++use crate::engine::pipelines::Target;
++use crate::engine::text::{TextDocument, TextLabel, TextPlacement, TextRun};
++use glyphon::{
++    Cache, Color, ColorMode, Resolution, SwashCache, TextArea, TextAtlas, TextBounds, TextRenderer,
++    Viewport,
++};
++use serde::Serialize;
++use std::collections::{HashMap, HashSet};
++
++/// Camera matrix is column-major in the viewer's rebased frame. Logical dimensions are
++/// measured from the actual canvas CSS box, not from window.devicePixelRatio.
++#[derive(Clone, Debug, PartialEq)]
++pub struct TextFrame {
++    pub mvp: [f32; 16],
++    pub origin: [f64; 3],
++    pub framebuffer: [u32; 2],
++    pub logical: [f64; 2],
++    pub ortho_half_height: f32,
++}
++
++/// Public counters distinguish measured submissions from internals Glyphon does not expose.
++#[derive(Clone, Debug, Default, Serialize)]
++pub struct TextStats {
++    pub preparations: u64,
++    pub skipped_preparations: u64,
++    pub shape_count: u64,
++    pub shaping_ms: f64,
++    pub requested_glyphs: usize,
++    pub distinct_raster_keys: usize,
++    pub new_raster_keys: usize,
++    /// Actual CPU raster images retained by Swash, excluding empty glyphs.
++    pub raster_images: usize,
++    pub new_raster_images: usize,
++    /// Allocated byte-vector payload only; excludes hash-table/font/shaper overhead and GPU atlases.
++    pub raster_image_capacity_bytes: usize,
++    pub atlas_resets: u64,
++    pub preparation_ms: f64,
++    /// Glyphon's private packed instance is 28 bytes at the pin. This is active data only,
++    /// not a claim about its private capacity or GPU allocator overhead.
++    pub active_instance_bytes: usize,
++    pub missing_glyphs: usize,
++    /// Exact owned vertex capacity for black nameplate backgrounds, not Glyphon internals.
++    pub nameplate_capacity_bytes: u64,
++    /// Application-owned fixed-plane vertices, R8 texture payload, and cache rebuilds.
++    pub world_plane_buffer_bytes: u64,
++    pub world_plane_texture_bytes: u64,
++    pub world_plane_rasterizations: u64,
++}
++
++/// One shared atlas/font stack for all labels, with separate overlay and occluded draw lists.
++pub struct TextLane {
++    pub document: TextDocument,
++    pub stats: TextStats,
++    cache: Cache,
++    atlas: TextAtlas,
++    viewport: Viewport,
++    raster: SwashCache,
++    overlay: TextRenderer,
++    anchored: TextRenderer,
++    plates: plate::Plates,
++    planes: plane::Planes,
++    target: Target,
++    atlas_font_revision: u64,
++    prepared: Option<(u64, u64, TextFrame)>,
++    raster_keys: HashSet<glyphon::CacheKey>,
++    overlay_count: u32,
++    anchored_count: u32,
++}
++
++impl TextLane {
++    /// Exact owned nameplate buffer capacity; Glyphon's private GPU capacities are excluded.
++    pub fn allocated_bytes(&self) -> u64 {
++        self.plates.allocated_bytes() + self.planes.buffer_bytes()
++    }
++
++    /// Exact fixed-plane coverage payload, excluding Glyphon's private atlas allocations.
++    pub fn texture_bytes(&self) -> u64 {
++        self.planes.texture_bytes()
++    }
++
++    /// Reuse the viewer's device and target; no independent device or scene model is created.
++    pub fn new(ctx: &GpuCtx, target: Target) -> Self {
++        let cache = Cache::new(&ctx.device);
++        let viewport = Viewport::new(&ctx.device, &cache);
++        let mut atlas = make_atlas(ctx, &cache, target.format);
++        let overlay = renderer(ctx, &mut atlas, target, wgpu::CompareFunction::Always);
++        let anchored = renderer(ctx, &mut atlas, target, wgpu::CompareFunction::GreaterEqual);
++        Self {
++            document: TextDocument::new(),
++            stats: TextStats::default(),
++            cache,
++            atlas,
++            viewport,
++            raster: SwashCache::new(),
++            overlay,
++            anchored,
++            plates: plate::Plates::new(ctx, target),
++            planes: plane::Planes::new(ctx, target),
++            target,
++            atlas_font_revision: 1,
++            prepared: None,
++            raster_keys: HashSet::new(),
++            overlay_count: 0,
++            anchored_count: 0,
++        }
++    }
++
++    /// Replace the label document. Invalid submissions preserve the previous labels.
++    pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
++        self.document.set_labels(labels)
++    }
++
++    /// Match the scene pass sample count without reshaping text or discarding the atlas.
++    pub fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
++        self.target = target;
++        self.plates.retarget(ctx, target);
++        self.planes.retarget(ctx, target);
++        self.overlay = renderer(ctx, &mut self.atlas, target, wgpu::CompareFunction::Always);
++        self.anchored = renderer(
++            ctx,
++            &mut self.atlas,
++            target,
++            wgpu::CompareFunction::GreaterEqual,
++        );
++        self.prepared = None;
++    }
++
++    /// Invalidate placements on camera/scale changes; unchanged text never shapes here.
++    /// Glyphon may evict unused atlas entries only between complete preparations. Both draw
++    /// lists are then rebuilt together, so no prepared vertices retain an evicted allocation.
++    pub fn prepare(&mut self, ctx: &GpuCtx, frame: &TextFrame) -> anyhow::Result<()> {
++        let key = (
++            self.document.revision,
++            self.document.font_revision,
++            frame.clone(),
++        );
++        if self.prepared.as_ref() == Some(&key) {
++            self.stats.skipped_preparations += 1;
++            return Ok(());
++        }
++        self.overlay_count = 0;
++        self.anchored_count = 0;
++        self.plates.reset();
++        let scale = frame.scale()?;
++        let start = now_ms();
++        let fonts_changed = self.atlas_font_revision != self.document.font_revision;
++        if fonts_changed || self.raster_keys.len() > 4096 {
++            self.rebuild_resources(ctx);
++        }
++        let raster_images_before = self.raster.image_cache.values().flatten().count();
++        self.planes
++            .prepare(ctx, &mut self.document, &mut self.raster, frame)?;
++        self.atlas.trim();
++        self.viewport.update(
++            &ctx.queue,
++            Resolution {
++                width: frame.framebuffer[0],
++                height: frame.framebuffer[1],
++            },
++        );
++        let mut overlays = Vec::new();
++        let mut anchors = Vec::new();
++        let mut depths = HashMap::new();
++        let mut plates = Vec::new();
++        self.stats.new_raster_keys = 0;
++        self.stats.requested_glyphs = 0;
++        self.stats.missing_glyphs = 0;
++        for run in &self.document.runs {
++            let Some(mut placed) = place(&run.label, frame, scale) else {
++                continue;
++            };
++            if let Some(rectangle) = center_nameplate(run, &mut placed, frame, scale) {
++                plates.push(rectangle);
++            }
++            let area = TextArea {
++                buffer: &run.buffer,
++                left: placed.left,
++                top: placed.top,
++                scale: placed.scale,
++                bounds: clip_bounds(&run.label, frame, scale),
++                default_color: Color::rgba(
++                    run.label.color[0],
++                    run.label.color[1],
++                    run.label.color[2],
++                    run.label.color[3],
++                ),
++                custom_glyphs: &[],
++            };
++            for line in run.buffer.layout_runs() {
++                for glyph in line.glyphs {
++                    self.stats.requested_glyphs += 1;
++                    self.stats.missing_glyphs += usize::from(glyph.glyph_id == 0);
++                    let physical = glyph.physical((placed.left, placed.top), placed.scale);
++                    self.stats.new_raster_keys +=
++                        usize::from(self.raster_keys.insert(physical.cache_key));
++                }
++            }
++            if let Some(depth) = placed.depth {
++                depths.insert(run.label.id as usize, depth);
++                anchors.push(area);
++            } else {
++                overlays.push(area);
++            }
++        }
++        self.overlay.prepare(
++            &ctx.device,
++            &ctx.queue,
++            &mut self.document.fonts,
++            &mut self.atlas,
++            &self.viewport,
++            overlays,
++            &mut self.raster,
++        )?;
++        // Glyphon requires a callback to map shaped-run metadata to per-label clip depth.
++        self.anchored.prepare_with_depth(
++            &ctx.device,
++            &ctx.queue,
++            &mut self.document.fonts,
++            &mut self.atlas,
++            &self.viewport,
++            anchors,
++            &mut self.raster,
++            |id| depth_for(&depths, id),
++        )?;
++        self.plates.prepare(ctx, &plates, frame.framebuffer);
++        for run in &self.document.runs {
++            if place(&run.label, frame, scale).is_some() && !run.label.text.is_empty() {
++                match run.label.placement {
++                    TextPlacement::Screen { .. } | TextPlacement::Nameplate { .. } => {
++                        self.overlay_count = 1
++                    }
++                    _ => self.anchored_count = 1,
++                }
++            }
++        }
++        self.stats.raster_images = 0;
++        self.stats.raster_image_capacity_bytes = 0;
++        for image in self.raster.image_cache.values().flatten() {
++            self.stats.raster_images += 1;
++            self.stats.raster_image_capacity_bytes += image.data.capacity();
++        }
++        self.stats.new_raster_images = self
++            .stats
++            .raster_images
++            .saturating_sub(raster_images_before);
++        self.stats.preparations += 1;
++        self.stats.shape_count = self.document.shape_count;
++        self.stats.shaping_ms = self.document.shaping_ms;
++        self.stats.distinct_raster_keys = self.raster_keys.len();
++        self.stats.active_instance_bytes = self.stats.requested_glyphs * 28;
++        self.stats.nameplate_capacity_bytes = self.plates.allocated_bytes();
++        self.stats.world_plane_buffer_bytes = self.planes.buffer_bytes();
++        self.stats.world_plane_texture_bytes = self.planes.texture_bytes();
++        self.stats.world_plane_rasterizations = self.planes.rasterizations;
++        self.stats.preparation_ms = now_ms() - start;
++        self.prepared = Some(key);
++        Ok(())
++    }
++
++    /// Draw against the scene's read-only depth attachment after scene ink, overlays last.
++    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
++        let mut draws = self.planes.draw(pass);
++        if self.anchored_count != 0 {
++            match self.anchored.render(&self.atlas, &self.viewport, pass) {
++                Ok(()) => draws += 1,
++                Err(error) => log::error!("anchored text render: {error}"),
++            }
++        }
++        draws += self.plates.draw(pass);
++        if self.overlay_count != 0 {
++            match self.overlay.render(&self.atlas, &self.viewport, pass) {
++                Ok(()) => draws += 1,
++                Err(error) => log::error!("overlay text render: {error}"),
++            }
++        }
++        draws
++    }
++
++    /// Hide text immediately while releasing source strings and shape buffers.
++    pub fn reset(&mut self) {
++        self.document.clear();
++        self.prepared = None;
++        self.overlay_count = 0;
++        self.anchored_count = 0;
++        self.plates.reset();
++        self.planes.reset();
++    }
++
++    /// Release grown atlas and instance buffers on scene disposal, retaining only small empty resources.
++    pub fn release(&mut self, ctx: &GpuCtx) {
++        self.reset();
++        self.plates.release(ctx);
++        self.planes.release(ctx);
++        self.stats.nameplate_capacity_bytes = self.plates.allocated_bytes();
++        self.stats.world_plane_buffer_bytes = self.planes.buffer_bytes();
++        self.stats.world_plane_texture_bytes = 0;
++        self.rebuild_resources(ctx);
++    }
++
++    /// Bound continuously changing raster keys; Glyphon's atlas evicts unused glyphs between
++    /// preparations, and this reset also hands its grown allocations back to the device.
++    fn rebuild_resources(&mut self, ctx: &GpuCtx) {
++        self.atlas = make_atlas(ctx, &self.cache, self.target.format);
++        self.overlay = renderer(
++            ctx,
++            &mut self.atlas,
++            self.target,
++            wgpu::CompareFunction::Always,
++        );
++        self.anchored = renderer(
++            ctx,
++            &mut self.atlas,
++            self.target,
++            wgpu::CompareFunction::GreaterEqual,
++        );
++        self.raster = SwashCache::new();
++        self.raster_keys.clear();
++        self.stats.raster_images = 0;
++        self.stats.new_raster_images = 0;
++        self.stats.raster_image_capacity_bytes = 0;
++        self.stats.atlas_resets += 1;
++        self.atlas_font_revision = self.document.font_revision;
++        self.prepared = None;
++    }
++}
++
++impl TextFrame {
++    /// Derive one isotropic font raster scale from actual framebuffer/CSS dimensions. The
++    /// one-pixel rounding difference between axes is allowed; stretched canvases are rejected.
++    pub fn scale(&self) -> anyhow::Result<f32> {
++        anyhow::ensure!(
++            self.framebuffer[0] > 0 && self.framebuffer[1] > 0,
++            "empty text framebuffer"
++        );
++        anyhow::ensure!(
++            self.logical[0].is_finite()
++                && self.logical[1].is_finite()
++                && self.logical[0] > 0.0
++                && self.logical[1] > 0.0,
++            "empty text CSS box"
++        );
++        let x = self.framebuffer[0] as f64 / self.logical[0];
++        let y = self.framebuffer[1] as f64 / self.logical[1];
++        let tolerance = 1.0 / self.logical[0] + 1.0 / self.logical[1];
++        anyhow::ensure!(
++            (x - y).abs() <= tolerance,
++            "text canvas is stretched non-uniformly"
++        );
++        Ok(y as f32)
++    }
++}
++
++/// The glyph raster size and placement in physical framebuffer pixels.
++struct PlacedText {
++    left: f32,
++    top: f32,
++    scale: f32,
++    depth: Option<f32>,
++}
++
++/// Project only the anchor. Camera-facing glyphs keep the anchor's clip depth; near/far and
++/// behind-camera anchors are culled instead of producing inverted or infinitely large text.
++fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText> {
++    let (world, offset, world_height) = match label.placement {
++        TextPlacement::WorldPlane { .. } => return None,
++        TextPlacement::Screen { left, top } => {
++            return Some(PlacedText {
++                left: left * scale,
++                top: top * scale,
++                scale,
++                depth: None,
++            });
++        }
++        TextPlacement::Anchor { world, offset } => (world, offset, None),
++        TextPlacement::Nameplate { world, .. } => (world, [0.0; 2], None),
++        TextPlacement::WorldBillboard {
++            world,
++            world_height,
++        } => (world, [0.0; 2], Some(world_height)),
++    };
++    let p = [
++        (world[0] - frame.origin[0]) as f32,
++        (world[1] - frame.origin[1]) as f32,
++        (world[2] - frame.origin[2]) as f32,
++    ];
++    let m = &frame.mvp;
++    let w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];
++    if !w.is_finite() || w <= 0.0 {
++        return None;
++    }
++    let z = (m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14]) / w;
++    if !(0.0..=1.0).contains(&z) {
++        return None;
++    }
++    let x = (m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12]) / w;
++    let y = (m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13]) / w;
++    let raster_scale = match world_height {
++        Some(height) => {
++            let projection = (m[1] * m[1] + m[5] * m[5] + m[9] * m[9]).sqrt();
++            height as f32 * projection * frame.framebuffer[1] as f32 / (2.0 * w * label.font_size)
++        }
++        None => scale,
++    };
++    if !raster_scale.is_finite() || raster_scale <= 0.0 {
++        return None;
++    }
++    Some(PlacedText {
++        left: (x + 1.0) * 0.5 * frame.framebuffer[0] as f32 + offset[0] * scale,
++        top: (1.0 - y) * 0.5 * frame.framebuffer[1] as f32 + offset[1] * scale,
++        scale: raster_scale,
++        depth: match label.placement {
++            TextPlacement::Nameplate { .. } => None,
++            _ => Some(z),
++        },
++    })
++}
++
++/// Center the shaped line box and its padding on the projected source anchor. Both glyphs
++/// and black background obey the same CSS clip; a nameplate is an overlay annotation.
++fn center_nameplate(
++    run: &TextRun,
++    placed: &mut PlacedText,
++    frame: &TextFrame,
++    scale: f32,
++) -> Option<plate::Rectangle> {
++    let TextPlacement::Nameplate {
++        padding, rounded, ..
++    } = run.label.placement
++    else {
++        return None;
++    };
++    if run.label.text.is_empty() {
++        return None;
++    }
++    let mut width = 0.0f32;
++    let mut top = f32::INFINITY;
++    let mut bottom = f32::NEG_INFINITY;
++    for line in run.buffer.layout_runs() {
++        width = width.max(line.line_w);
++        top = top.min(line.line_top);
++        bottom = bottom.max(line.line_top + line.line_height);
++    }
++    if !top.is_finite() || !bottom.is_finite() {
++        return None;
++    }
++    placed.left -= width * scale * 0.5;
++    placed.top -= (top + bottom) * scale * 0.5;
++    let bounds = clip_bounds(&run.label, frame, scale);
++    let bounds = [
++        bounds.left as f32,
++        bounds.top as f32,
++        bounds.right as f32,
++        bounds.bottom as f32,
++    ];
++    Some(plate::Rectangle {
++        bounds: [
++            placed.left - padding[0] * scale,
++            placed.top + (top - padding[1]) * scale,
++            placed.left + (width + padding[0]) * scale,
++            placed.top + (bottom + padding[1]) * scale,
++        ],
++        clip: bounds,
++        rounded,
++    })
++}
++
++/// Convert clip edges once, conservatively enclosing fractional CSS rectangles.
++fn clip_bounds(label: &TextLabel, frame: &TextFrame, scale: f32) -> TextBounds {
++    match label.clip {
++        Some(c) => TextBounds {
++            left: (c[0] * scale).floor() as i32,
++            top: (c[1] * scale).floor() as i32,
++            right: (c[2] * scale).ceil() as i32,
++            bottom: (c[3] * scale).ceil() as i32,
++        },
++        None => TextBounds {
++            left: 0,
++            top: 0,
++            right: frame.framebuffer[0] as i32,
++            bottom: frame.framebuffer[1] as i32,
++        },
++    }
++}
++
++/// The pinned library owns all shader descriptors; the pass retains reversed-Z depth.
++fn renderer(
++    ctx: &GpuCtx,
++    atlas: &mut TextAtlas,
++    target: Target,
++    compare: wgpu::CompareFunction,
++) -> TextRenderer {
++    TextRenderer::new(
++        atlas,
++        &ctx.device,
++        wgpu::MultisampleState {
++            count: target.samples,
++            ..Default::default()
++        },
++        Some(wgpu::DepthStencilState {
++            format: wgpu::TextureFormat::Depth32Float,
++            depth_write_enabled: Some(false),
++            depth_compare: Some(compare),
++            stencil: Default::default(),
++            bias: Default::default(),
++        }),
++    )
++}
++
++/// Match color encoding to the configured render target; mask coverage always remains linear.
++fn make_atlas(ctx: &GpuCtx, cache: &Cache, format: wgpu::TextureFormat) -> TextAtlas {
++    let mode = if format.is_srgb() {
++        ColorMode::Accurate
++    } else {
++        ColorMode::Web
++    };
++    TextAtlas::with_color_mode(&ctx.device, &ctx.queue, cache, format, mode)
++}
++
++/// Adapter for Glyphon's required metadata-to-depth callback.
++fn depth_for(depths: &HashMap<usize, f32>, id: usize) -> f32 {
++    depths.get(&id).copied().unwrap_or(0.0)
++}
++
++/// Browser monotonic timing; native unit tests do not interpret preparation timing.
++fn now_ms() -> f64 {
++    #[cfg(target_arch = "wasm32")]
++    if let Some(window) = web_sys::window()
++        && let Some(performance) = window.performance()
++    {
++        return performance.now();
++    }
++    0.0
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// Build an identity camera with one known logical-to-physical scale.
++    fn frame(scale: f64) -> TextFrame {
++        TextFrame {
++            mvp: [
++                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
++            ],
++            origin: [0.0; 3],
++            framebuffer: [(800.0 * scale) as u32, (600.0 * scale) as u32],
++            logical: [800.0, 600.0],
++            ortho_half_height: 1.0,
++        }
++    }
++
++    #[test]
++    fn logical_to_physical_scale_is_applied_once() {
++        for scale in [1.0, 1.25, 1.5, 2.0] {
++            let frame = frame(scale);
++            assert_eq!(frame.scale().unwrap(), scale as f32);
++            let label = TextLabel {
++                id: 1,
++                text: "A".into(),
++                font_size: 16.0,
++                line_height: 24.0,
++                color: [255; 4],
++                placement: TextPlacement::Screen {
++                    left: 12.25,
++                    top: 8.5,
++                },
++                clip: None,
++            };
++            let placed = place(&label, &frame, frame.scale().unwrap()).unwrap();
++            assert_eq!(placed.left, 12.25 * scale as f32);
++            assert_eq!(placed.scale * label.font_size, 16.0 * scale as f32);
++        }
++    }
++
++    #[test]
++    fn scene_anchor_preserves_rebased_depth_and_culls_near_plane() {
++        let mut frame = frame(2.0);
++        frame.origin = [1_000_000.0, 0.0, 0.0];
++        let mut label = TextLabel {
++            id: 1,
++            text: "A".into(),
++            font_size: 16.0,
++            line_height: 24.0,
++            color: [255; 4],
++            placement: TextPlacement::Anchor {
++                world: [1_000_000.0, 0.0, 0.25],
++                offset: [0.0; 2],
++            },
++            clip: None,
++        };
++        let placed = place(&label, &frame, 2.0).unwrap();
++        assert_eq!((placed.left, placed.top), (800.0, 600.0));
++        assert_eq!(placed.depth, Some(0.25));
++        label.placement = TextPlacement::Anchor {
++            world: [1_000_000.0, 0.0, 1.01],
++            offset: [0.0; 2],
++        };
++        assert!(place(&label, &frame, 2.0).is_none());
++    }
++    #[test]
++    fn nameplate_center_padding_clip_and_scale_share_one_coordinate_system() {
++        let mut document = TextDocument::new();
++        let mut label = TextLabel {
++            id: 1,
++            text: "Sphere Ø25".into(),
++            font_size: 18.0,
++            line_height: 26.0,
++            color: [255; 4],
++            placement: TextPlacement::Nameplate {
++                world: [0.0, 0.0, 0.25],
++                padding: [6.0, 4.0],
++                rounded: false,
++            },
++            clip: None,
++        };
++        document.set_labels(vec![label.clone()]).unwrap();
++        for scale in [1.0, 1.25, 2.0] {
++            let frame = frame(scale);
++            let run = &document.runs[0];
++            let mut placed = place(&run.label, &frame, scale as f32).unwrap();
++            let rectangle = center_nameplate(run, &mut placed, &frame, scale as f32)
++                .unwrap()
++                .bounds;
++            assert_eq!(
++                placed.depth, None,
++                "a source-center annotation overlays its own solid"
++            );
++            assert!(((rectangle[0] + rectangle[2]) * 0.5 - 400.0 * scale as f32).abs() < 0.001);
++            assert!(((rectangle[1] + rectangle[3]) * 0.5 - 300.0 * scale as f32).abs() < 0.001);
++            assert!((rectangle[3] - rectangle[1] - 34.0 * scale as f32).abs() < 0.001);
++        }
++        label.clip = Some([390.0, 290.0, 410.0, 310.0]);
++        label.color = [255, 255, 0, 255];
++        document.set_labels(vec![label.clone()]).unwrap();
++        assert_eq!(
++            document.shape_count, 1,
++            "annotation style and clip reuse shaping"
++        );
++        let frame = frame(2.0);
++        let run = &document.runs[0];
++        let mut placed = place(&run.label, &frame, 2.0).unwrap();
++        assert_eq!(
++            center_nameplate(run, &mut placed, &frame, 2.0)
++                .unwrap()
++                .clip,
++            [780.0, 580.0, 820.0, 620.0]
++        );
++        label.placement = TextPlacement::Nameplate {
++            world: [0.0, 0.0, 0.25],
++            padding: [f32::NAN, 4.0],
++            rounded: false,
++        };
++        assert!(document.set_labels(vec![label]).is_err());
++        assert_eq!(document.shape_count, 1);
++        assert_eq!(
++            document.runs.len(),
++            1,
++            "invalid padding preserves the previous document"
++        );
++    }
++
++    #[test]
++    #[cfg(not(target_arch = "wasm32"))]
++    #[ignore = "requires a native GPU adapter"]
++    fn nameplate_has_black_background_white_ink_centering_and_clean_release() {
++        use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
++        use session_rust::{RenderVertex, Xform};
++        let mut gpu = pollster::block_on(Gpu::new_headless(320, 160)).unwrap();
++        gpu.view.show_grid = false;
++        gpu.view.lit = false;
++        let mut upload = Upload::default();
++        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
++        for position in [
++            [-1.0, -1.0, 0.7],
++            [1.0, -1.0, 0.7],
++            [1.0, 1.0, 0.7],
++            [-1.0, 1.0, 0.7],
++        ] {
++            upload.arena.verts.push(RenderVertex {
++                position,
++                normal: [0.0, 0.0, 1.0],
++                color: [0.3, 0.5, 0.7, 1.0],
++            });
++            upload.arena.vids.push(0);
++        }
++        upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
++        gpu.set_scene(&upload);
++        let mut input = FrameInput {
++            view_proj: Xform::identity(),
++            clear: wgpu::Color::WHITE,
++            now_ms: 0.0,
++        };
++        let baseline = gpu.render_offscreen(&input);
++        let label = TextLabel {
++            id: 1,
++            text: "Sphere Ø25".into(),
++            font_size: 13.5,
++            line_height: 19.5,
++            color: [255; 4],
++            placement: TextPlacement::Nameplate {
++                world: [0.0, 0.0, 0.2],
++                padding: [12.75, 3.0],
++                rounded: true,
++            },
++            clip: None,
++        };
++        gpu.text.set_labels(vec![label]).unwrap();
++        let pixels = gpu.render_offscreen(&input);
++        assert!(
++            white_pixels(&pixels) > 40,
++            "normal-sized glyphs remain visible over their solid's center"
++        );
++        let mut left = 320;
++        let mut right = 0;
++        let mut top = 160;
++        let mut bottom = 0;
++        let mut black = 0;
++        for (index, pixel) in pixels.chunks_exact(4).enumerate() {
++            if pixel[0] < 5 && pixel[1] < 5 && pixel[2] < 5 {
++                let x = index % 320;
++                let y = index / 320;
++                left = left.min(x);
++                right = right.max(x);
++                top = top.min(y);
++                bottom = bottom.max(y);
++                black += 1;
++            }
++        }
++        assert!(
++            black > 600,
++            "the nameplate has a real opaque black GPU background"
++        );
++        assert!(((left + right) as f32 * 0.5 - 160.0).abs() <= 1.0);
++        assert!(((top + bottom) as f32 * 0.5 - 80.0).abs() <= 1.0);
++        let mut line_width = 0.0f32;
++        for line in gpu.text.document.runs[0].buffer.layout_runs() {
++            line_width = line_width.max(line.line_w);
++        }
++        assert!(
++            (right - left + 1) as f32 - 25.5 >= line_width - 2.0,
++            "the complete shaped line fits in the straight section between both caps"
++        );
++        let corner = (top * 320 + left) * 4;
++        assert_eq!(
++            &pixels[corner..corner + 4],
++            &baseline[corner..corner + 4],
++            "the maximum-radius corner exposes the original solid"
++        );
++        input.view_proj.m[12] = 0.25;
++        let moved = gpu.render_offscreen(&input);
++        assert_ne!(
++            pixels, moved,
++            "the nameplate follows its projected source center"
++        );
++        assert_eq!(
++            gpu.text.stats.shape_count, 1,
++            "camera movement does not reshape"
++        );
++        gpu.text.release(&gpu.ctx);
++        input.view_proj = Xform::identity();
++        assert_eq!(
++            baseline,
++            gpu.render_offscreen(&input),
++            "clearing selection releases plate and text together"
++        );
++        assert_eq!(gpu.text.stats.nameplate_capacity_bytes, 28);
++    }
++
++    #[test]
++    #[cfg(not(target_arch = "wasm32"))]
++    #[ignore = "requires a native GPU adapter"]
++    fn actual_glyph_coverage_obeys_depth_clip_motion_and_release() {
++        use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
++        use session_rust::{RenderVertex, Xform};
++        let mut gpu = pollster::block_on(Gpu::new_headless(256, 128)).unwrap();
++        gpu.view.show_grid = false;
++        gpu.view.lit = false;
++        let mut upload = Upload::default();
++        upload
++            .obj
++            .rows
++            .push(ObjectRow::new(Xform::identity().to_f32().map(f64::from), 0));
++        for position in [
++            [-1.0, -1.0, 0.7],
++            [1.0, -1.0, 0.7],
++            [1.0, 1.0, 0.7],
++            [-1.0, 1.0, 0.7],
++        ] {
++            upload.arena.verts.push(RenderVertex {
++                position,
++                normal: [0.0, 0.0, 1.0],
++                color: [0.1, 0.1, 0.1, 1.0],
++            });
++            upload.arena.vids.push(0);
++        }
++        upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
++        gpu.set_scene(&upload);
++        let mut frame = FrameInput {
++            view_proj: Xform::identity(),
++            clear: wgpu::Color::BLACK,
++            now_ms: 0.0,
++        };
++        let baseline = gpu.render_offscreen(&frame);
++        let mut label = TextLabel {
++            id: 1,
++            text: "AV office Ø25".into(),
++            font_size: 14.0,
++            line_height: 21.0,
++            color: [255; 4],
++            placement: TextPlacement::Anchor {
++                world: [-0.8, 0.8, 0.5],
++                offset: [0.0; 2],
++            },
++            clip: None,
++        };
++        gpu.text.set_labels(vec![label.clone()]).unwrap();
++        assert_eq!(
++            baseline,
++            gpu.render_offscreen(&frame),
++            "a label behind a solid must be fully occluded"
++        );
++        label.placement = TextPlacement::Anchor {
++            world: [-0.8, 0.8, 0.9],
++            offset: [0.0; 2],
++        };
++        gpu.text.set_labels(vec![label.clone()]).unwrap();
++        let front = gpu.render_offscreen(&frame);
++        assert!(
++            white_pixels(&front) > 50,
++            "normal-size foreground glyphs must render actual opaque interiors"
++        );
++        assert_eq!(gpu.text.stats.shape_count, 1);
++        let mut translated = Xform::identity();
++        translated.m[12] = 0.125;
++        frame.view_proj = translated;
++        let moved = gpu.render_offscreen(&frame);
++        assert_ne!(front, moved, "camera motion must refresh glyph placement");
++        assert_eq!(
++            gpu.text.stats.shape_count, 1,
++            "camera motion must reuse shaping"
++        );
++        label.placement = TextPlacement::WorldBillboard {
++            world: [-0.5, 0.4, 0.9],
++            world_height: 0.25,
++        };
++        gpu.text.set_labels(vec![label.clone()]).unwrap();
++        assert!(white_pixels(&gpu.render_offscreen(&frame)) > 50);
++        label.placement = TextPlacement::Screen {
++            left: 8.25,
++            top: 8.5,
++        };
++        label.clip = Some([0.0, 0.0, 24.0, 128.0]);
++        gpu.text.set_labels(vec![label]).unwrap();
++        let clipped = gpu.render_offscreen(&frame);
++        assert!(white_pixels(&clipped) > 10);
++        for (index, pixel) in clipped.chunks_exact(4).enumerate() {
++            if index % 256 >= 24 {
++                assert!(
++                    pixel[0] < 240,
++                    "clip must exclude glyph pixels outside its CSS rectangle"
++                );
++            }
++        }
++        gpu.text.release(&gpu.ctx);
++        assert_eq!(
++            baseline,
++            gpu.render_offscreen(&FrameInput {
++                view_proj: Xform::identity(),
++                clear: wgpu::Color::BLACK,
++                now_ms: 0.0
++            })
++        );
++    }
++
++    #[test]
++    #[cfg(not(target_arch = "wasm32"))]
++    #[ignore = "requires a native GPU adapter"]
++    fn continuous_world_scale_evicts_without_reshaping_or_stale_instances() {
++        use crate::engine::gpu::{FrameInput, Gpu};
++        use session_rust::Xform;
++        let mut gpu = pollster::block_on(Gpu::new_headless(256, 128)).unwrap();
++        gpu.view.show_grid = false;
++        let frame = FrameInput {
++            view_proj: Xform::identity(),
++            clear: wgpu::Color::BLACK,
++            now_ms: 0.0,
++        };
++        let mut label = TextLabel {
++            id: 1,
++            text: (33u8..127).map(char::from).collect(),
++            font_size: 14.0,
++            line_height: 21.0,
++            color: [255; 4],
++            placement: TextPlacement::WorldBillboard {
++                world: [-0.9, 0.5, 0.5],
++                world_height: 0.2,
++            },
++            clip: None,
++        };
++        for step in 0..60 {
++            label.placement = TextPlacement::WorldBillboard {
++                world: [-0.9, 0.5, 0.5],
++                world_height: 0.2 + f64::from(step) * 0.001,
++            };
++            gpu.text.set_labels(vec![label.clone()]).unwrap();
++            assert!(
++                white_pixels(&gpu.render_offscreen(&frame)) > 20,
++                "every zoom frame must contain opaque glyph interiors"
++            );
++            assert_eq!(
++                gpu.text.stats.shape_count, 1,
++                "world zoom must not reshape unchanged text"
++            );
++            assert!(
++                gpu.text.stats.distinct_raster_keys <= 4096 + 94,
++                "cache growth is limited to the budget plus one preparation"
++            );
++        }
++        assert!(
++            gpu.text.stats.atlas_resets > 0,
++            "this continuous-scale fixture must actually cross the eviction threshold"
++        );
++        assert_eq!(gpu.text.stats.missing_glyphs, 0);
++    }
++
++    #[cfg(not(target_arch = "wasm32"))]
++    /// Count opaque interiors without treating anti-aliased edges as full glyph coverage.
++    fn white_pixels(pixels: &[u8]) -> usize {
++        let mut count = 0;
++        for pixel in pixels.chunks_exact(4) {
++            count += usize::from(pixel[0] > 240 && pixel[1] > 240 && pixel[2] > 240);
++        }
++        count
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/text_plane.rs b/session_viewer/src/engine/gpu/text_plane.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..bd912961bca0726489557761ef1ca2c0d74e59ed
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/text_plane.rs
+@@ -0,0 +1,588 @@
++//! Fixed world-plane coverage text: retained shaped glyphs, bounded raster textures, projected quads.
++use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
++use super::TextFrame;
++use crate::engine::pipelines::Target;
++use crate::engine::text::{TextDocument, TextLabel, TextPlacement, TextRun};
++use glyphon::{FontSystem, SwashCache, SwashContent};
++
++/// Hard texture payload budget, independent of adapter limits and the rest of the scene.
++const TEXTURE_BUDGET: u64 = 32 * 1024 * 1024;
++/// A coverage texture retains its source layout and grows resolution only when necessary.
++struct CachedPlane {
++    label: TextLabel,
++    font_revision: u64,
++    em_pixels: u32,
++    size: [u32; 2],
++    extent: [f32; 4],
++    _texture: wgpu::Texture,
++    bind: wgpu::BindGroup,
++}
++
++/// Application-owned fixed-plane resources; camera movement only updates quad vertices.
++pub(super) struct Planes {
++    cached: Vec<CachedPlane>,
++    draws: Vec<(usize, u32)>,
++    vertices: GrowBuf,
++    layout: wgpu::BindGroupLayout,
++    sampler: wgpu::Sampler,
++    pipeline: wgpu::RenderPipeline,
++    target: Target,
++    pub(super) rasterizations: u64,
++}
++
++impl Planes {
++    /// Share the viewer device and target while keeping coverage textures explicitly owned.
++    pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
++        let layout = ctx
++            .device
++            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++                label: Some("world text texture"),
++                entries: &[
++                    wgpu::BindGroupLayoutEntry {
++                        binding: 0,
++                        visibility: wgpu::ShaderStages::FRAGMENT,
++                        ty: wgpu::BindingType::Texture {
++                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
++                            view_dimension: wgpu::TextureViewDimension::D2,
++                            multisampled: false,
++                        },
++                        count: None,
++                    },
++                    wgpu::BindGroupLayoutEntry {
++                        binding: 1,
++                        visibility: wgpu::ShaderStages::FRAGMENT,
++                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
++                        count: None,
++                    },
++                ],
++            });
++        let sampler = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
++            label: Some("world text coverage"),
++            mag_filter: wgpu::FilterMode::Linear,
++            min_filter: wgpu::FilterMode::Linear,
++            ..Default::default()
++        });
++        let pipeline = pipeline(ctx, target, &layout);
++        Self {
++            cached: Vec::new(),
++            draws: Vec::new(),
++            vertices: GrowBuf::new(ctx, "world text vertices", 56, VERTS),
++            layout,
++            sampler,
++            pipeline,
++            target,
++            rasterizations: 0,
++        }
++    }
++
++    /// Retarget only the draw pipeline; sampled coverage survives sample-count changes.
++    pub(super) fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
++        self.target = target;
++        self.pipeline = pipeline(ctx, target, &self.layout);
++    }
++
++    /// Keep current source textures, grow resolution in powers of two, and project exact plane axes.
++    pub(super) fn prepare(
++        &mut self,
++        ctx: &GpuCtx,
++        document: &mut TextDocument,
++        raster: &mut SwashCache,
++        frame: &TextFrame,
++    ) -> anyhow::Result<()> {
++        self.draws.clear();
++        self.vertices.reset();
++        let mut retained = Vec::new();
++        for cached in self.cached.drain(..) {
++            for run in &document.runs {
++                if run.label.id == cached.label.id
++                    && matches!(run.label.placement, TextPlacement::WorldPlane { .. })
++                {
++                    retained.push(cached);
++                    break;
++                }
++            }
++        }
++        self.cached = retained;
++        let mut vertices = Vec::new();
++        for run in &document.runs {
++            if !matches!(run.label.placement, TextPlacement::WorldPlane { .. })
++                || run.label.text.is_empty()
++            {
++                continue;
++            }
++            let em_pixels = raster_em(&run.label, frame);
++            let mut index = None;
++            for (at, cached) in self.cached.iter().enumerate() {
++                if cached.label.id == run.label.id {
++                    index = Some(at);
++                    break;
++                }
++            }
++            let rebuild = match index {
++                Some(at) => !same_raster(
++                    &self.cached[at],
++                    &run.label,
++                    document.font_revision,
++                    em_pixels,
++                ),
++                None => true,
++            };
++            if rebuild {
++                let (pixels, size, extent) =
++                    rasterize(run, &mut document.fonts, raster, em_pixels)?;
++                let mut allocated = u64::from(size[0]) * u64::from(size[1]);
++                for (at, cached) in self.cached.iter().enumerate() {
++                    if Some(at) != index {
++                        allocated += u64::from(cached.size[0]) * u64::from(cached.size[1]);
++                    }
++                }
++                anyhow::ensure!(
++                    allocated <= TEXTURE_BUDGET,
++                    "world text coverage exceeds 32 MiB budget"
++                );
++                let texture = ctx.device.create_texture(&wgpu::TextureDescriptor {
++                    label: Some("world text coverage"),
++                    size: wgpu::Extent3d {
++                        width: size[0],
++                        height: size[1],
++                        depth_or_array_layers: 1,
++                    },
++                    mip_level_count: 1,
++                    sample_count: 1,
++                    dimension: wgpu::TextureDimension::D2,
++                    format: wgpu::TextureFormat::R8Unorm,
++                    usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
++                    view_formats: &[],
++                });
++                ctx.queue.write_texture(
++                    texture.as_image_copy(),
++                    &pixels,
++                    wgpu::TexelCopyBufferLayout {
++                        offset: 0,
++                        bytes_per_row: Some(size[0]),
++                        rows_per_image: Some(size[1]),
++                    },
++                    texture.size(),
++                );
++                let view = texture.create_view(&Default::default());
++                let bind = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
++                    label: Some("world text coverage"),
++                    layout: &self.layout,
++                    entries: &[
++                        wgpu::BindGroupEntry {
++                            binding: 0,
++                            resource: wgpu::BindingResource::TextureView(&view),
++                        },
++                        wgpu::BindGroupEntry {
++                            binding: 1,
++                            resource: wgpu::BindingResource::Sampler(&self.sampler),
++                        },
++                    ],
++                });
++                let cached = CachedPlane {
++                    label: run.label.clone(),
++                    font_revision: document.font_revision,
++                    em_pixels,
++                    size,
++                    extent,
++                    _texture: texture,
++                    bind,
++                };
++                match index {
++                    Some(at) => self.cached[at] = cached,
++                    None => {
++                        index = Some(self.cached.len());
++                        self.cached.push(cached);
++                    }
++                }
++                self.rasterizations += 1;
++                // Completed plane textures no longer depend on Swash images; bound the shared
++                // CPU image cache before preparing another source or Glyphon's draw lists.
++                if raster.image_cache.len() > 4096 {
++                    *raster = SwashCache::new();
++                }
++            }
++            let index = index.expect("a prepared world plane has a cache entry");
++            let start = vertices.len() as u32;
++            append_quad(
++                &mut vertices,
++                &run.label,
++                self.cached[index].extent,
++                frame,
++                self.target.format.is_srgb(),
++            );
++            self.draws.push((index, start));
++        }
++        self.vertices.append(ctx, &vertices);
++        Ok(())
++    }
++
++    /// Render fixed-plane quads with interpolated perspective UVs and physical reverse-Z occlusion.
++    pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
++        if self.draws.is_empty() {
++            return 0;
++        }
++        pass.set_pipeline(&self.pipeline);
++        pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
++        for &(index, start) in &self.draws {
++            pass.set_bind_group(0, &self.cached[index].bind, &[]);
++            pass.draw(start..start + 6, 0..1);
++        }
++        self.draws.len() as u32
++    }
++
++    /// Clear source textures immediately; retained buffers carry no live draws.
++    pub(super) fn reset(&mut self) {
++        self.cached.clear();
++        self.draws.clear();
++        self.vertices.reset();
++    }
++    /// Return both coverage textures and grown vertex capacity on scene disposal.
++    pub(super) fn release(&mut self, ctx: &GpuCtx) {
++        self.reset();
++        self.vertices.release(ctx);
++    }
++    /// Exact owned vertex-buffer capacity, separate from sampled texture payload.
++    pub(super) fn buffer_bytes(&self) -> u64 {
++        self.vertices.buf.size()
++    }
++    /// Exact R8 texture payload; excludes driver allocation granularity.
++    pub(super) fn texture_bytes(&self) -> u64 {
++        let mut total = 0;
++        for cached in &self.cached {
++            total += u64::from(cached.size[0]) * u64::from(cached.size[1]);
++        }
++        total
++    }
++}
++
++/// Placement and color changes keep coverage; source/font changes invalidate it.
++fn same_raster(cached: &CachedPlane, label: &TextLabel, revision: u64, em_pixels: u32) -> bool {
++    cached.font_revision == revision
++        && cached.label.text == label.text
++        && cached.label.font_size == label.font_size
++        && cached.label.line_height == label.line_height
++        && cached.em_pixels >= em_pixels
++}
++
++/// Project one rebased world point without discarding clip W, which the GPU needs for perspective.
++fn project(world: [f64; 3], frame: &TextFrame) -> [f32; 4] {
++    let point = [
++        (world[0] - frame.origin[0]) as f32,
++        (world[1] - frame.origin[1]) as f32,
++        (world[2] - frame.origin[2]) as f32,
++        1.0,
++    ];
++    let mut clip = [0.0; 4];
++    for (row, out) in clip.iter_mut().enumerate() {
++        for (column, value) in point.iter().enumerate() {
++            *out += frame.mvp[column * 4 + row] * value;
++        }
++    }
++    clip
++}
++
++/// Choose a bounded supersampled em bucket; small camera motion reuses the existing texture.
++fn raster_em(label: &TextLabel, frame: &TextFrame) -> u32 {
++    let TextPlacement::WorldPlane {
++        world,
++        right,
++        up,
++        world_height,
++        ..
++    } = label.placement
++    else {
++        return 32;
++    };
++    let a = project(world, frame);
++    if a[3] <= 0.0 {
++        return 32;
++    }
++    let mut projected_em = 0.0f32;
++    for direction in [right, up] {
++        let mut end = world;
++        for axis in 0..3 {
++            end[axis] += direction[axis] * world_height;
++        }
++        let b = project(end, frame);
++        if b[3] <= 0.0 {
++            continue;
++        }
++        let x = (a[0] / a[3] - b[0] / b[3]) * frame.framebuffer[0] as f32 * 0.5;
++        let y = (a[1] / a[3] - b[1] / b[3]) * frame.framebuffer[1] as f32 * 0.5;
++        projected_em = projected_em.max(x.hypot(y));
++    }
++    let needed = (projected_em * 2.0).clamp(32.0, 256.0);
++    let mut bucket = 32;
++    while (bucket as f32) < needed {
++        bucket *= 2;
++    }
++    bucket
++}
++
++/// Rasterize positioned shaped glyphs, including bearings and baseline, into one coverage texture.
++fn rasterize(
++    run: &TextRun,
++    fonts: &mut FontSystem,
++    raster: &mut SwashCache,
++    em_pixels: u32,
++) -> anyhow::Result<(Vec<u8>, [u32; 2], [f32; 4])> {
++    let scale = em_pixels as f32 / run.label.font_size;
++    let mut glyphs = Vec::new();
++    let mut bounds = [0i32; 4];
++    for line in run.buffer.layout_runs() {
++        bounds[2] = bounds[2].max((line.line_w * scale).ceil() as i32);
++        bounds[3] = bounds[3].max(((line.line_top + line.line_height) * scale).ceil() as i32);
++        anyhow::ensure!(
++            bounds[2] <= 4092 && bounds[3] <= 4092,
++            "world text layout exceeds 4096px extent"
++        );
++        for glyph in line.glyphs {
++            let physical = glyph.physical((0.0, 0.0), scale);
++            let Some(image) = raster.get_image(fonts, physical.cache_key) else {
++                continue;
++            };
++            let x = physical.x + image.placement.left;
++            let y = (line.line_y * scale).round() as i32 + physical.y - image.placement.top;
++            bounds[0] = bounds[0].min(x);
++            bounds[1] = bounds[1].min(y);
++            bounds[2] = bounds[2].max(x + image.placement.width as i32);
++            bounds[3] = bounds[3].max(y + image.placement.height as i32);
++            glyphs.push((physical.cache_key, x, y));
++        }
++    }
++    bounds[0] -= 2;
++    bounds[1] -= 2;
++    bounds[2] += 2;
++    bounds[3] += 2;
++    let size = [
++        (bounds[2] - bounds[0]) as u32,
++        (bounds[3] - bounds[1]) as u32,
++    ];
++    anyhow::ensure!(
++        size[0] <= 4096 && size[1] <= 4096,
++        "world text texture exceeds 4096px extent"
++    );
++    let mut pixels = vec![0u8; (size[0] * size[1]) as usize];
++    for (key, x, y) in glyphs {
++        let Some(image) = raster.get_image(fonts, key) else {
++            continue;
++        };
++        for row in 0..image.placement.height {
++            for column in 0..image.placement.width {
++                let source = (row * image.placement.width + column) as usize;
++                let coverage = match image.content {
++                    SwashContent::Mask => image.data[source],
++                    SwashContent::Color => image.data[source * 4 + 3],
++                    SwashContent::SubpixelMask => {
++                        ((u16::from(image.data[source * 4])
++                            + u16::from(image.data[source * 4 + 1])
++                            + u16::from(image.data[source * 4 + 2]))
++                            / 3) as u8
++                    }
++                };
++                let target = ((y - bounds[1] + row as i32) as u32 * size[0]
++                    + (x - bounds[0] + column as i32) as u32) as usize;
++                let previous = u16::from(pixels[target]);
++                pixels[target] = (previous + u16::from(coverage) * (255 - previous) / 255) as u8;
++            }
++        }
++    }
++    Ok((
++        pixels,
++        size,
++        [
++            bounds[0] as f32 / scale,
++            bounds[1] as f32 / scale,
++            bounds[2] as f32 / scale,
++            bounds[3] as f32 / scale,
++        ],
++    ))
++}
++
++/// Expand a shaped line into its fixed right/up axes; every vertex retains full clip coordinates.
++fn append_quad(
++    vertices: &mut Vec<[f32; 14]>,
++    label: &TextLabel,
++    extent: [f32; 4],
++    frame: &TextFrame,
++    srgb: bool,
++) {
++    let TextPlacement::WorldPlane {
++        world,
++        right,
++        up,
++        world_height,
++    } = label.placement
++    else {
++        return;
++    };
++    let unit = world_height / f64::from(label.font_size);
++    let mut color = [0.0; 4];
++    for (index, component) in color.iter_mut().enumerate() {
++        let value = f32::from(label.color[index]) / 255.0;
++        *component = if srgb && index < 3 {
++            if value <= 0.04045 {
++                value / 12.92
++            } else {
++                ((value + 0.055) / 1.055).powf(2.4)
++            }
++        } else {
++            value
++        };
++    }
++    let scale = frame.framebuffer[0] as f32 / frame.logical[0] as f32;
++    let mut bounds = [
++        0.0,
++        0.0,
++        frame.framebuffer[0] as f32,
++        frame.framebuffer[1] as f32,
++    ];
++    if let Some(clip) = label.clip {
++        for (index, value) in bounds.iter_mut().enumerate() {
++            *value = clip[index] * scale;
++        }
++    }
++    for [u, v] in [
++        [0.0, 0.0],
++        [0.0, 1.0],
++        [1.0, 1.0],
++        [0.0, 0.0],
++        [1.0, 1.0],
++        [1.0, 0.0],
++    ] {
++        let x = f64::from(extent[0] + (extent[2] - extent[0]) * u) * unit;
++        let y = f64::from(extent[1] + (extent[3] - extent[1]) * v) * unit;
++        let mut point = world;
++        for axis in 0..3 {
++            point[axis] += right[axis] * x - up[axis] * y;
++        }
++        let clip = project(point, frame);
++        vertices.push([
++            clip[0], clip[1], clip[2], clip[3], u, v, color[0], color[1], color[2], color[3],
++            bounds[0], bounds[1], bounds[2], bounds[3],
++        ]);
++    }
++}
++
++/// Coverage blending uses perspective-correct UVs and the same physical depth convention as solids.
++fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
++    let shader = ctx
++        .device
++        .create_shader_module(wgpu::ShaderModuleDescriptor {
++            label: Some("world text shader"),
++            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/text_plane.wgsl").into()),
++        });
++    let pipeline_layout = ctx
++        .device
++        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
++            label: Some("world text"),
++            bind_group_layouts: &[Some(layout)],
++            immediate_size: 0,
++        });
++    ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
++        label: Some("world text"), layout: Some(&pipeline_layout),
++        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 56, step_mode: wgpu::VertexStepMode::Vertex,
++            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4] }], compilation_options: Default::default() },
++        fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some("fs_main"), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: Some(wgpu::BlendState::ALPHA_BLENDING), write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
++        primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::GreaterEqual), stencil: Default::default(), bias: Default::default() }),
++        multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
++    })
++}
++
++#[cfg(all(test, not(target_arch = "wasm32")))]
++mod tests {
++    use super::*;
++    use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
++    use session_rust::{RenderVertex, Xform};
++
++    #[test]
++    #[ignore = "requires a native GPU adapter"]
++    fn fixed_plane_obeys_solid_depth_orientation_cache_and_release() {
++        let mut gpu = pollster::block_on(Gpu::new_headless(320, 160)).unwrap();
++        gpu.view.show_grid = false;
++        gpu.view.lit = false;
++        let mut upload = Upload::default();
++        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
++        for position in [
++            [-1.0, -1.0, 0.7],
++            [1.0, -1.0, 0.7],
++            [1.0, 1.0, 0.7],
++            [-1.0, 1.0, 0.7],
++        ] {
++            upload.arena.verts.push(RenderVertex {
++                position,
++                normal: [0.0, 0.0, 1.0],
++                color: [0.3, 0.5, 0.7, 1.0],
++            });
++            upload.arena.vids.push(0);
++        }
++        upload.arena.idx = vec![0, 1, 2, 0, 2, 3];
++        gpu.set_scene(&upload);
++        let input = FrameInput {
++            view_proj: Xform::identity(),
++            clear: wgpu::Color::WHITE,
++            now_ms: 0.0,
++        };
++        let baseline = gpu.render_offscreen(&input);
++        let mut label = TextLabel {
++            id: 7,
++            text: "Fixed plane".into(),
++            font_size: 18.0,
++            line_height: 26.0,
++            color: [255; 4],
++            placement: TextPlacement::WorldPlane {
++                world: [-0.8, 0.6, 0.5],
++                right: [1.0, 0.0, 0.0],
++                up: [0.0, 1.0, 0.0],
++                world_height: 0.25,
++            },
++            clip: None,
++        };
++        gpu.text.set_labels(vec![label.clone()]).unwrap();
++        assert_eq!(
++            baseline,
++            gpu.render_offscreen(&input),
++            "a solid fully hides the text plane"
++        );
++        let rasterizations = gpu.text.stats.world_plane_rasterizations;
++        label.placement = TextPlacement::WorldPlane {
++            world: [-0.8, 0.6, 0.8],
++            right: [1.0, 0.0, 0.0],
++            up: [0.0, 1.0, 0.0],
++            world_height: 0.25,
++        };
++        gpu.text.set_labels(vec![label.clone()]).unwrap();
++        let front = gpu.render_offscreen(&input);
++        let mut white = 0;
++        let mut black = 0;
++        for pixel in front.chunks_exact(4) {
++            white += usize::from(pixel[0] > 240 && pixel[1] > 240 && pixel[2] > 240);
++            black += usize::from(pixel[0] < 8 && pixel[1] < 8 && pixel[2] < 8);
++        }
++        assert!(
++            white > 40 && black > 500,
++            "foreground text has white glyphs on a black plane"
++        );
++        assert_eq!(gpu.text.stats.world_plane_rasterizations, rasterizations);
++        let diagonal = std::f64::consts::FRAC_1_SQRT_2;
++        label.placement = TextPlacement::WorldPlane {
++            world: [-0.8, 0.6, 0.8],
++            right: [diagonal, 0.0, -diagonal],
++            up: [0.0, 1.0, 0.0],
++            world_height: 0.25,
++        };
++        gpu.text.set_labels(vec![label]).unwrap();
++        assert_ne!(
++            front,
++            gpu.render_offscreen(&input),
++            "the fixed axes change projection and partial occlusion"
++        );
++        assert_eq!(gpu.text.stats.shape_count, 1);
++        assert_eq!(gpu.text.stats.world_plane_rasterizations, rasterizations);
++        assert!(gpu.text.texture_bytes() > 0);
++        gpu.text.release(&gpu.ctx);
++        assert_eq!(gpu.text.texture_bytes(), 0);
++        assert_eq!(baseline, gpu.render_offscreen(&input));
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/text_plate.rs b/session_viewer/src/engine/gpu/text_plate.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..d0f56da9423ad5ce1234ba83092b9ee44cf68c22
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/text_plate.rs
+@@ -0,0 +1,148 @@
++//! Black annotation plates share the text lane's target and overlay depth policy.
++use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
++use crate::engine::pipelines::Target;
++
++/// Original physical plate bounds and independent clip bounds preserve corner shape when clipped.
++pub(super) struct Rectangle {
++    pub(super) bounds: [f32; 4],
++    pub(super) clip: [f32; 4],
++    pub(super) rounded: bool,
++}
++
++/// Batched physical rectangles, with no DOM, source geometry or independent device ownership.
++pub(super) struct Plates {
++    vertices: GrowBuf,
++    pipeline: wgpu::RenderPipeline,
++}
++
++impl Plates {
++    /// Start with one vertex of capacity and an empty draw list.
++    pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
++        Self {
++            vertices: GrowBuf::new(ctx, "text.plates", 28, VERTS),
++            pipeline: pipeline(ctx, target),
++        }
++    }
++
++    /// Match sample count and color target when the surrounding text pass changes.
++    pub(super) fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
++        self.pipeline = pipeline(ctx, target);
++    }
++
++    /// Upload clipped quads with original center, half size and maximum corner radius.
++    pub(super) fn prepare(&mut self, ctx: &GpuCtx, rectangles: &[Rectangle], size: [u32; 2]) {
++        self.vertices.reset();
++        let mut vertices = Vec::with_capacity(rectangles.len() * 6);
++        for rectangle in rectangles {
++            let [left, top, right, bottom] = rectangle.bounds;
++            let half = [(right - left) * 0.5, (bottom - top) * 0.5];
++            let center = [(left + right) * 0.5, (top + bottom) * 0.5];
++            let radius = if rectangle.rounded {
++                half[0].min(half[1]).max(0.0)
++            } else {
++                0.0
++            };
++            let left = left.max(rectangle.clip[0]);
++            let top = top.max(rectangle.clip[1]);
++            let right = right.min(rectangle.clip[2]);
++            let bottom = bottom.min(rectangle.clip[3]);
++            if right <= left || bottom <= top {
++                continue;
++            }
++            for [x, y] in [
++                [left, top],
++                [left, bottom],
++                [right, bottom],
++                [left, top],
++                [right, bottom],
++                [right, top],
++            ] {
++                vertices.push([
++                    2.0 * x / size[0] as f32 - 1.0,
++                    1.0 - 2.0 * y / size[1] as f32,
++                    x - center[0],
++                    y - center[1],
++                    half[0],
++                    half[1],
++                    radius,
++                ]);
++            }
++        }
++        self.vertices.append(ctx, &vertices);
++    }
++
++    /// Opaque plates precede overlay glyphs and never read or modify physical scene depth.
++    pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
++        if self.vertices.is_empty() {
++            return 0;
++        }
++        pass.set_pipeline(&self.pipeline);
++        pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
++        pass.draw(0..self.vertices.len(), 0..1);
++        1
++    }
++
++    /// Hide plates immediately on label reset without waiting for another preparation.
++    pub(super) fn reset(&mut self) {
++        self.vertices.reset();
++    }
++
++    /// Return grown annotation allocation capacity when the scene is disposed.
++    pub(super) fn release(&mut self, ctx: &GpuCtx) {
++        self.vertices.release(ctx);
++    }
++
++    /// Exact application-owned GPU vertex capacity, independent of Glyphon's private atlas.
++    pub(super) fn allocated_bytes(&self) -> u64 {
++        self.vertices.buf.size()
++    }
++}
++
++/// A fixed black quad pipeline; its Always/no-write depth state matches overlay glyphs.
++fn pipeline(ctx: &GpuCtx, target: Target) -> wgpu::RenderPipeline {
++    let shader = ctx
++        .device
++        .create_shader_module(wgpu::ShaderModuleDescriptor {
++            label: Some("text plate shader"),
++            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/text_plate.wgsl").into()),
++        });
++    ctx.device
++        .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
++            label: Some("text plates"),
++            layout: None,
++            vertex: wgpu::VertexState {
++                module: &shader,
++                entry_point: Some("vs_main"),
++                buffers: &[wgpu::VertexBufferLayout {
++                    array_stride: 28,
++                    step_mode: wgpu::VertexStepMode::Vertex,
++                    attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Float32x2, 3 => Float32],
++                }],
++                compilation_options: Default::default(),
++            },
++            fragment: Some(wgpu::FragmentState {
++                module: &shader,
++                entry_point: Some("fs_main"),
++                targets: &[Some(wgpu::ColorTargetState {
++                    format: target.format,
++                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
++                    write_mask: wgpu::ColorWrites::ALL,
++                })],
++                compilation_options: Default::default(),
++            }),
++            primitive: Default::default(),
++            depth_stencil: Some(wgpu::DepthStencilState {
++                format: wgpu::TextureFormat::Depth32Float,
++                depth_write_enabled: Some(false),
++                depth_compare: Some(wgpu::CompareFunction::Always),
++                stencil: Default::default(),
++                bias: Default::default(),
++            }),
++            multisample: wgpu::MultisampleState {
++                count: target.samples,
++                ..Default::default()
++            },
++            multiview_mask: None,
++            cache: None,
++        })
++}
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5ec01a85f2
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -4,7 +4,7 @@
+ pub mod engine;
+ pub mod fixture;
+ pub mod math;
+-pub mod text_layout;
++pub mod text_quality;
+ use engine::gpu::{FrameInput, Gpu};
+ use wasm_bindgen::prelude::*;
+ /// Canvas and input ownership remain separate from GPU lane ownership.
+@@ -25,6 +25,9 @@
+         let mut fixture = fixture::build();
+         gpu.set_scene(&fixture.upload);
+         fixture.upload.drop_uploaded();
++        gpu.text
++            .set_labels(text_labels(&gpu.bounds))
++            .map_err(js_error)?;
+         let mut camera = camera::Camera::new();
+         camera.unit = camera::Unit::Millimeters;
+         camera.set_view(camera::View::Iso);
+@@ -95,7 +98,7 @@
+             now_ms: now,
+         };
+         self.gpu.render(&input).map_err(js_error)?;
+-        Ok(serde_json::json!({"stage":10,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
++        Ok(serde_json::json!({"stage":11,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"text":self.gpu.text.stats,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
+             "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
+     }
+ }
+@@ -113,3 +116,58 @@
+     let value = value.parse::<f64>().ok()?;
+     (value.is_finite() && (1.0..=16.0).contains(&value)).then_some(value)
+ }
++
++/// Distinguish a CSS-sized overlay from a source-world label sharing the scene depth.
++fn text_labels(bounds: &math::Aabb) -> Vec<engine::text::TextLabel> {
++    use engine::text::{TextLabel, TextPlacement};
++    vec![
++        TextLabel {
++            id: 1,
++            text: "AVATAR To office ffi — Ø 25 ± 0.1 mm".into(),
++            font_size: 16.0,
++            line_height: 24.0,
++            color: [255; 4],
++            placement: TextPlacement::Nameplate {
++                world: [0.0, 0.0, bounds.max[2] as f64 + 30.0],
++                padding: [6.0, 4.0],
++                rounded: false,
++            },
++            clip: None,
++        },
++        TextLabel {
++            id: 2,
++            text: "Centered white nameplate".into(),
++            font_size: 13.5,
++            line_height: 19.5,
++            color: [255; 4],
++            placement: TextPlacement::Nameplate {
++                world: [
++                    (bounds.min[0] + bounds.max[0]) as f64 * 0.5,
++                    (bounds.min[1] + bounds.max[1]) as f64 * 0.5,
++                    bounds.max[2] as f64,
++                ],
++                padding: [12.75, 3.0],
++                rounded: true,
++            },
++            clip: None,
++        },
++        TextLabel {
++            id: 3,
++            text: "text_not_oriented_to_camera".into(),
++            font_size: 18.0,
++            line_height: 26.0,
++            color: [255; 4],
++            placement: TextPlacement::WorldPlane {
++                world: [
++                    bounds.min[0] as f64 - 100.0,
++                    bounds.min[1] as f64 - 100.0,
++                    bounds.max[2] as f64,
++                ],
++                right: [1.0, 0.0, 0.0],
++                up: [0.0, 0.0, 1.0],
++                world_height: 16.0,
++            },
++            clip: None,
++        },
++    ]
++}
+diff --git a/session_viewer/src/shaders/text_plane.wgsl b/session_viewer/src/shaders/text_plane.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..83535ed7154ffc07844e1bddfadd390e1c44e6ec
+--- /dev/null
++++ b/session_viewer/src/shaders/text_plane.wgsl
+@@ -0,0 +1,25 @@
++// Fixed world-plane text keeps full homogeneous coordinates and perspective-correct UVs.
++struct Vertex {
++    @builtin(position) position: vec4<f32>,
++    @location(0) uv: vec2<f32>,
++    @location(1) color: vec4<f32>,
++    @location(2) @interpolate(flat) clip: vec4<f32>,
++}
++@group(0) @binding(0) var coverage_texture: texture_2d<f32>;
++@group(0) @binding(1) var coverage_sampler: sampler;
++
++@vertex
++fn vs_main(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
++           @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>) -> Vertex {
++    var out: Vertex;
++    out.position = position; out.uv = uv; out.color = color; out.clip = clip;
++    return out;
++}
++
++// Fixed text has an opaque black backing; physical reverse-Z hides the whole plane behind solids.
++@fragment
++fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
++    if (in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) { discard; }
++    let coverage = textureSample(coverage_texture, coverage_sampler, in.uv).r;
++    return vec4<f32>(in.color.rgb * coverage, in.color.a);
++}
+diff --git a/session_viewer/src/shaders/text_plate.wgsl b/session_viewer/src/shaders/text_plate.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..9c5bd2833fbddef489c00af9dac15abcfe304fe6
+--- /dev/null
++++ b/session_viewer/src/shaders/text_plate.wgsl
+@@ -0,0 +1,28 @@
++// Screen-space annotation vertices retain local physical coordinates for pixel coverage.
++struct PlateVertex {
++    @builtin(position) position: vec4<f32>,
++    @location(0) local: vec2<f32>,
++    @location(1) half_size: vec2<f32>,
++    @location(2) radius: f32,
++}
++
++@vertex
++fn vs_main(@location(0) position: vec2<f32>, @location(1) local: vec2<f32>,
++           @location(2) half_size: vec2<f32>, @location(3) radius: f32) -> PlateVertex {
++    var out: PlateVertex;
++    out.position = vec4<f32>(position, 0.0, 1.0);
++    out.local = local;
++    out.half_size = half_size;
++    out.radius = radius;
++    return out;
++}
++
++// The rounded rectangle's signed distance provides one-physical-pixel edge coverage.
++@fragment
++fn fs_main(in: PlateVertex) -> @location(0) vec4<f32> {
++    let radius = min(in.radius, min(in.half_size.x, in.half_size.y));
++    let q = abs(in.local) - in.half_size + vec2<f32>(radius);
++    let distance = length(max(q, vec2<f32>(0.0))) + min(max(q.x, q.y), 0.0) - radius;
++    let coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
++    return vec4<f32>(0.0, 0.0, 0.0, coverage);
++}
+diff --git a/session_viewer/src/text_layout.rs b/session_viewer/src/text_layout.rs
+deleted file mode 100644
+index 6212d9f72fb869f80ca50d47c1245878ba657e08..0000000000000000000000000000000000000000
+--- a/session_viewer/src/text_layout.rs
++++ /dev/null
+@@ -1,59 +0,0 @@
+-//! Teaching layout fixture: inspect final shaper output before any GPU text resource exists.
+-use crate::engine::text::{FONT_FAMILY, TextDocument, TextLabel, TextPlacement};
+-use wasm_bindgen::prelude::*;
+-
+-/// Shape five sizes, change only placement/color, and return source clusters and advances.
+-#[wasm_bindgen]
+-pub fn text_layout() -> Result<String, JsValue> {
+-    layout_report().map_err(js_error)
+-}
+-
+-/// Keep source strings and byte-cluster diagnostics available to the same-font DOM reference.
+-fn layout_report() -> anyhow::Result<String> {
+-    let mut document = TextDocument::new();
+-    let mut labels = Vec::new();
+-    for (index, size) in [12.0, 14.0, 16.0, 18.0, 24.0].into_iter().enumerate() {
+-        labels.push(TextLabel {
+-            id: index as u32,
+-            text: "AVATAR To office ffi • é e\u{301} • Ø 25 ± 0.1 mm • ⚙".into(),
+-            font_size: size,
+-            line_height: size * 1.5,
+-            color: [255; 4],
+-            placement: TextPlacement::Screen {
+-                left: 0.0,
+-                top: 0.0,
+-            },
+-            clip: None,
+-        });
+-    }
+-    document.set_labels(labels.clone())?;
+-    let shaped = document.shape_count;
+-    for label in &mut labels {
+-        label.color = [255, 255, 0, 255];
+-        label.placement = TextPlacement::Screen {
+-            left: 10.0,
+-            top: 20.0,
+-        };
+-    }
+-    document.set_labels(labels)?;
+-    anyhow::ensure!(
+-        document.shape_count == shaped,
+-        "placement/color unexpectedly reshaped"
+-    );
+-    let mut rows = Vec::new();
+-    for run in &document.runs {
+-        rows.push(serde_json::json!({"id":run.label.id,"text":run.label.text,
+-            "size":run.label.font_size,"lineHeight":run.label.line_height}));
+-    }
+-    Ok(
+-        serde_json::json!({"family":FONT_FAMILY,"rows":rows,"glyphs":document.diagnostics(),
+-        "shapeCount":document.shape_count,"shapedBeforePlacementChange":shaped,
+-        "revision":document.revision,"fontRevision":document.font_revision})
+-        .to_string(),
+-    )
+-}
+-
+-/// Preserve layout/font validation failures at the JavaScript boundary.
+-fn js_error(error: impl std::fmt::Display) -> JsValue {
+-    JsValue::from_str(&error.to_string())
+-}
+diff --git a/session_viewer/src/text_quality.rs b/session_viewer/src/text_quality.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..920a9b1935c2225d7e04981af5992de25eec2c31
+--- /dev/null
++++ b/session_viewer/src/text_quality.rs
+@@ -0,0 +1,355 @@
++//! Maintained same-font browser comparison. This standalone fixture uses the production
++//! text lane and explicitly releases its device resources when its JS owner calls free().
++
++use crate::engine::gpu::{
++    buffers::GpuCtx,
++    targets::{TextureSpec, texture_view},
++    text::{TextFrame, TextLane},
++};
++use crate::engine::pipelines::Target;
++use crate::engine::text::{FONT_FAMILY, TextLabel, TextPlacement};
++use wasm_bindgen::prelude::*;
++
++pub const SAMPLES: &[&str] = &[
++    "Hamburgefontsiv   Il1 O0   mmmm iii WWW   gjpqy",
++    "AVATAR To WA Yo   repeated words, repeated words.",
++    "office ffi fl   ÄÖÜ äöü ß   ĄČĘĖĮŠŲŪŽ",
++    "é e\u{301} Å A\u{30a}   X = -12.50 mm   Ø 25 ± 0.1   90°   m²",
++    "  leading spaces; punctuation: (a/b), [0.25]!  ",
++    "Fallback symbols: ⚙ ⏳ ⌘   object_012 / Surface A",
++];
++pub const SIZES: &[f32] = &[12.0, 14.0, 16.0, 18.0, 24.0];
++
++/// Separate the matched-font page from the annotation's black-background browser probe.
++enum Specimens {
++    Reference,
++    Nameplate,
++}
++
++/// The fixture owns its surface; production TextLane reuses the application's device.
++#[wasm_bindgen]
++pub struct TextQuality {
++    canvas: web_sys::HtmlCanvasElement,
++    surface: wgpu::Surface<'static>,
++    ctx: GpuCtx,
++    config: wgpu::SurfaceConfiguration,
++    lane: TextLane,
++    depth: wgpu::TextureView,
++    adapter: String,
++}
++
++#[wasm_bindgen]
++impl TextQuality {
++    /// Open browser WebGPU with baseline features and the same text pipeline as the viewer.
++    #[wasm_bindgen(js_name = create)]
++    pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<TextQuality, JsValue> {
++        console_log::init_with_level(log::Level::Warn).ok();
++        Self::open(canvas).await.map_err(js_error)
++    }
++
++    /// Render at actual browser DPR, or a positive explicit scale for deterministic fixtures.
++    /// The returned JSON contains metrics; unsupported glyphs remain .notdef and are counted.
++    pub fn render(
++        &mut self,
++        requested_scale: f64,
++        selected: bool,
++        background: u32,
++    ) -> Result<String, JsValue> {
++        self.render_inner(requested_scale, selected, background, Specimens::Reference)
++            .map_err(js_error)
++    }
++
++    /// Render a centered white-on-black source annotation over white to expose both edges.
++    pub fn render_nameplate(&mut self, requested_scale: f64) -> Result<String, JsValue> {
++        self.render_inner(requested_scale, false, 0xffffff, Specimens::Nameplate)
++            .map_err(js_error)
++    }
++
++    /// The specimen rows and layout positions are shared with the DOM reference.
++    pub fn specimens(&self) -> Result<String, JsValue> {
++        let labels = fixture_labels(false);
++        let mut rows = Vec::new();
++        for label in labels {
++            let TextPlacement::Screen { left, top } = label.placement else {
++                continue;
++            };
++            rows.push(
++                serde_json::json!({ "text": label.text, "size": label.font_size,
++                "lineHeight": label.line_height, "left": left, "top": top, "id": label.id }),
++            );
++        }
++        serde_json::to_string(&rows).map_err(js_error)
++    }
++
++    /// Logical glyph origins and raster bitmap bounds, captured before the GPU pass.
++    pub fn diagnostics(&mut self) -> Result<String, JsValue> {
++        let glyphs = self.lane.document.diagnostics();
++        let mut bitmaps = Vec::new();
++        let mut raster = glyphon::SwashCache::new();
++        let scale = self.config.height as f32 / self.canvas.client_height().max(1) as f32;
++        for run in &self.lane.document.runs {
++            let TextPlacement::Screen { left, top } = run.label.placement else {
++                continue;
++            };
++            for line in run.buffer.layout_runs() {
++                for glyph in line.glyphs {
++                    let physical = glyph.physical((left * scale, top * scale), scale);
++                    if let Some(image) =
++                        raster.get_image_uncached(&mut self.lane.document.fonts, physical.cache_key)
++                    {
++                        let rect = [
++                            physical.x + image.placement.left,
++                            physical.y + (line.line_y * scale).round() as i32 - image.placement.top,
++                            image.placement.width as i32,
++                            image.placement.height as i32,
++                        ];
++                        bitmaps.push(
++                            serde_json::json!({ "label": run.label.id, "glyph": glyph.glyph_id,
++                            "rect": rect, "baseline": (top + line.line_y) * scale,
++                            "origin": [(left + glyph.x) * scale, (top + line.line_y) * scale] }),
++                        );
++                    }
++                }
++            }
++        }
++        serde_json::to_string(&serde_json::json!({ "glyphs": glyphs, "bitmaps": bitmaps,
++            "scale": scale, "atlas": "Glyphon internal R8Unorm coverage atlas; UV allocations are private" })).map_err(js_error)
++    }
++
++    /// Exercise disposal and regeneration on the same device, keeping the browser reference.
++    pub fn reset(&mut self) {
++        self.lane.release(&self.ctx);
++    }
++}
++
++impl TextQuality {
++    /// Device setup for the isolated regression page, without native backend or optional flags.
++    async fn open(canvas: web_sys::HtmlCanvasElement) -> anyhow::Result<Self> {
++        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
++            backends: wgpu::Backends::BROWSER_WEBGPU,
++            flags: Default::default(),
++            memory_budget_thresholds: Default::default(),
++            backend_options: Default::default(),
++            display: None,
++        });
++        let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))?;
++        let adapter = instance
++            .request_adapter(&wgpu::RequestAdapterOptions {
++                compatible_surface: Some(&surface),
++                ..Default::default()
++            })
++            .await?;
++        let adapter_name = format!("{:?}", adapter.get_info());
++        let (device, queue) = adapter
++            .request_device(&wgpu::DeviceDescriptor::default())
++            .await?;
++        device.on_uncaptured_error(std::sync::Arc::new(report_fixture_gpu_error));
++        let capabilities = surface.get_capabilities(&adapter);
++        let mut format = capabilities.formats[0];
++        for candidate in capabilities.formats {
++            if !candidate.is_srgb() {
++                format = candidate;
++                break;
++            }
++        }
++        let ctx = GpuCtx { device, queue };
++        let config = wgpu::SurfaceConfiguration {
++            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
++            format,
++            width: 1,
++            height: 1,
++            present_mode: wgpu::PresentMode::Fifo,
++            desired_maximum_frame_latency: 2,
++            alpha_mode: wgpu::CompositeAlphaMode::Opaque,
++            view_formats: vec![],
++        };
++        let lane = TextLane::new(&ctx, Target { format, samples: 1 });
++        let depth = fixture_depth(&ctx, [1, 1]);
++        Ok(Self {
++            canvas,
++            surface,
++            ctx,
++            config,
++            lane,
++            depth,
++            adapter: adapter_name,
++        })
++    }
++
++    /// One complete invalidated frame, rendered into a full-resolution coverage-text target.
++    fn render_inner(
++        &mut self,
++        requested_scale: f64,
++        selected: bool,
++        background: u32,
++        specimens: Specimens,
++    ) -> anyhow::Result<String> {
++        let scale = if requested_scale > 0.0 {
++            requested_scale
++        } else {
++            web_sys::window().map_or(1.0, window_scale)
++        };
++        anyhow::ensure!(
++            scale.is_finite() && scale > 0.0 && scale <= 4.0,
++            "fixture scale must be 0 (auto) or 0..4"
++        );
++        let logical = [
++            self.canvas.client_width().max(1) as f64,
++            self.canvas.client_height().max(1) as f64,
++        ];
++        let size = [
++            (logical[0] * scale).round() as u32,
++            (logical[1] * scale).round() as u32,
++        ];
++        if self.config.width != size[0] || self.config.height != size[1] {
++            self.canvas.set_width(size[0]);
++            self.canvas.set_height(size[1]);
++            self.config.width = size[0];
++            self.config.height = size[1];
++            self.surface.configure(&self.ctx.device, &self.config);
++            self.depth = fixture_depth(&self.ctx, size);
++        }
++        let labels = match specimens {
++            Specimens::Reference => fixture_labels(selected),
++            Specimens::Nameplate => vec![TextLabel {
++                id: 100,
++                text: "Source sphere Ø25".into(),
++                font_size: 13.5,
++                line_height: 19.5,
++                color: [255; 4],
++                placement: TextPlacement::Nameplate {
++                    world: [0.0, 0.0, 0.5],
++                    padding: [12.75, 3.0],
++                    rounded: true,
++                },
++                clip: None,
++            }],
++        };
++        self.lane.set_labels(labels)?;
++        let frame = TextFrame {
++            mvp: [
++                1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
++            ],
++            origin: [0.0; 3],
++            framebuffer: size,
++            logical,
++            ortho_half_height: 0.0,
++        };
++        self.lane.prepare(&self.ctx, &frame)?;
++        let output = match self.surface.get_current_texture() {
++            wgpu::CurrentSurfaceTexture::Success(texture)
++            | wgpu::CurrentSurfaceTexture::Suboptimal(texture) => texture,
++            error => anyhow::bail!("text fixture surface unavailable: {error:?}"),
++        };
++        let view = output
++            .texture
++            .create_view(&wgpu::TextureViewDescriptor::default());
++        let mut encoder = self
++            .ctx
++            .device
++            .create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
++        let rgb = [
++            (background >> 16) & 255,
++            (background >> 8) & 255,
++            background & 255,
++        ];
++        let clear = wgpu::Color {
++            r: rgb[0] as f64 / 255.0,
++            g: rgb[1] as f64 / 255.0,
++            b: rgb[2] as f64 / 255.0,
++            a: 1.0,
++        };
++        {
++            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
++                label: Some("text-quality"),
++                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
++                    view: &view,
++                    resolve_target: None,
++                    depth_slice: None,
++                    ops: wgpu::Operations {
++                        load: wgpu::LoadOp::Clear(clear),
++                        store: wgpu::StoreOp::Store,
++                    },
++                })],
++                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
++                    view: &self.depth,
++                    depth_ops: Some(wgpu::Operations {
++                        load: wgpu::LoadOp::Clear(0.0),
++                        store: wgpu::StoreOp::Store,
++                    }),
++                    stencil_ops: None,
++                }),
++                timestamp_writes: None,
++                occlusion_query_set: None,
++                multiview_mask: None,
++            });
++            self.lane.draw(&mut pass);
++        }
++        self.ctx.queue.submit([encoder.finish()]);
++        output.present();
++        let result = serde_json::json!({ "font": FONT_FAMILY, "fontRevision": self.lane.document.font_revision,
++            "method": "Glyphon 0.11 / cosmic-text 0.18.2 advanced shaping / Swash coverage",
++            "adapter": self.adapter, "framebuffer": size, "logical": logical, "effectiveScale": frame.scale()?,
++            "stats": self.lane.stats });
++        Ok(serde_json::to_string(&result)?)
++    }
++}
++
++/// A deterministic specimen per size; CSS DOM reference consumes these exact coordinates.
++fn fixture_labels(selected: bool) -> Vec<TextLabel> {
++    let mut labels = Vec::new();
++    let mut top = 12.0;
++    for size in SIZES {
++        let line_height = size * 1.5;
++        let text = SAMPLES.join("\n");
++        labels.push(TextLabel {
++            id: labels.len() as u32,
++            text,
++            font_size: *size,
++            line_height,
++            color: if selected {
++                [255, 255, 0, 255]
++            } else {
++                [255; 4]
++            },
++            placement: TextPlacement::Screen { left: 12.25, top },
++            clip: None,
++        });
++        top += line_height * SAMPLES.len() as f32 + 28.0;
++    }
++    labels
++}
++
++/// A real read/write depth attachment makes fixture pipeline validation match production.
++fn fixture_depth(ctx: &GpuCtx, size: [u32; 2]) -> wgpu::TextureView {
++    texture_view(
++        ctx,
++        "text-quality.depth",
++        &TextureSpec {
++            size: (size[0], size[1]),
++            format: wgpu::TextureFormat::Depth32Float,
++            samples: 1,
++            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
++        },
++    )
++}
++
++/// Named adapter for the browser DPR accessor.
++fn window_scale(window: web_sys::Window) -> f64 {
++    window.device_pixel_ratio()
++}
++/// Preserve recoverable errors at the JavaScript boundary.
++fn js_error(error: impl std::fmt::Display) -> JsValue {
++    JsValue::from_str(&error.to_string())
++}
++
++/// Surface asynchronous validation errors in both browser automation and the fixture UI.
++fn report_fixture_gpu_error(error: wgpu::Error) {
++    log::error!("text fixture GPU validation: {error}");
++    if let Some(window) = web_sys::window()
++        && let Some(document) = window.document()
++        && let Some(root) = document.document_element()
++    {
++        let _ = root.set_attribute("data-gpu-error", &error.to_string());
++    }
++}

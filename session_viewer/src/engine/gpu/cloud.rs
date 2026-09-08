@@ -69,8 +69,12 @@ pub struct Cloud {
 impl Cloud {
     /// The lane row of cloud point `i`, or `None` past the resident prefix.
     pub fn row_of(&self, i: u32) -> Option<u32> {
-        let c = self.chunks.iter().find(|c| i >= c.from && i < c.to)?;
-        Some(c.row_of(i))
+        for chunk in &self.chunks {
+            if i >= chunk.from && i < chunk.to {
+                return Some(chunk.row_of(i));
+            }
+        }
+        None
     }
 }
 
@@ -118,6 +122,11 @@ pub struct CloudLane {
 }
 
 impl CloudLane {
+    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
+    pub fn allocated_bytes(&self) -> u64 {
+        self.pos.buf.size() + self.col.buf.size() + self.nrm.buf.size()
+    }
+
     /// Three one-row tables - empty until the first upload fills them.
     pub fn new(ctx: &GpuCtx) -> Self {
         Self {
@@ -146,12 +155,20 @@ impl CloudLane {
         self.nodes.extend_from_slice(&up.nodes);
 
         for d in &up.draws {
-            let chunk = Chunk { from: d.from, to: d.from + d.count, row: point_base + d.first };
+            let chunk = Chunk {
+                from: d.from,
+                to: d.from + d.count,
+                row: point_base + d.first,
+            };
             if d.from > 0 {
                 self.extend(d.instance, chunk);
                 continue;
             }
-            let nrm_first = if d.nrm_first == NO_NORMALS { NO_NORMALS } else { nrm_base + d.nrm_first };
+            let nrm_first = if d.nrm_first == NO_NORMALS {
+                NO_NORMALS
+            } else {
+                nrm_base + d.nrm_first
+            };
             self.clouds.push(Cloud {
                 instance: d.instance,
                 spacing: d.spacing,
@@ -168,16 +185,24 @@ impl CloudLane {
     /// Add a chunk to the cloud on object row `instance`; a chunk that does not continue the
     /// resident prefix is dropped with a warning (the walk cannot address it).
     fn extend(&mut self, instance: u32, chunk: Chunk) {
-        let Some(c) = self.clouds.iter_mut().find(|c| c.instance == instance) else {
-            log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
-            return;
-        };
-        if chunk.from != c.resident {
-            log::warn!("cloud chunk [{}, {}) does not continue the {} resident points; dropped", chunk.from, chunk.to, c.resident);
+        for cloud in &mut self.clouds {
+            if cloud.instance != instance {
+                continue;
+            }
+            if chunk.from != cloud.resident {
+                log::warn!(
+                    "cloud chunk [{}, {}) does not continue the {} resident points; dropped",
+                    chunk.from,
+                    chunk.to,
+                    cloud.resident
+                );
+                return;
+            }
+            cloud.resident = chunk.to;
+            cloud.chunks.push(chunk);
             return;
         }
-        c.resident = chunk.to;
-        c.chunks.push(chunk);
+        log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
     }
 
     /// Which cloud a global point row belongs to: (object row, index within that cloud).
@@ -194,12 +219,20 @@ impl CloudLane {
 
     /// The three point buffers.
     pub fn buffers(&self) -> PointBufs<'_> {
-        PointBufs { pos: &self.pos.buf, col: &self.col.buf, nrm: &self.nrm.buf }
+        PointBufs {
+            pos: &self.pos.buf,
+            col: &self.col.buf,
+            nrm: &self.nrm.buf,
+        }
     }
 
     /// Points resident across every cloud.
     pub fn resident(&self) -> u32 {
-        self.clouds.iter().map(|c| c.resident).sum()
+        let mut resident = 0;
+        for cloud in &self.clouds {
+            resident += cloud.resident;
+        }
+        resident
     }
 
     /// Forget every row and record; capacity stays.

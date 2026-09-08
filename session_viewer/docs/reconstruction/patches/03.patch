@@ -1,0 +1,455 @@
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index 276a260697ca16ec09a202c1a0688d020144f3ff..f8c1d6f40ac4dbd53b7a828561dec0b925391c00
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,9 +1,9 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 02</title>
++<title>Session checkpoint 03</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 02</output>
++</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 03</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -21,7 +21,7 @@
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 02 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 03 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..d87e98641b1ed15f457f44816a6f45b5805a85c8
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/instance.rs
+@@ -0,0 +1,234 @@
++//! `Instance` - the one object row every instance-reading shader indexes by `instance_id`,
++//! its flag bits, and the mirror tests that prove the shaders declare the same rows.
++//! No buffer and no bind group here: `objects.rs` owns both tables.
++
++use session_rust::Xform;
++
++/// One object row as the shaders see it: rotation/scale with a ZERO translation column (the
++/// anchored translation is the 16 B row at group 2 binding 1), tint, flag bits and two
++/// scalars the ink lanes read. 96 B, the storage stride.
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub struct Instance {
++    pub model: [f32; 16],
++    pub color: [f32; 4],
++    pub flags: u32,
++    /// Retained thickness metadata, in world units. Visibility no longer spends a depth
++    /// offset based on this value; keeping the field preserves the shared instance layout.
++    pub thickness: f32,
++    /// Vertex spacing, world units; markers thin once it projects small. 0 = unknown.
++    pub spacing: f32,
++    pub _pad: u32,
++}
++
++const _: () = assert!(std::mem::size_of::<Instance>() == 96);
++
++impl Instance {
++    /// The row is the current selection: the shaders tint it. Bit 0.
++    pub const FLAG_SELECTED: u32 = 1 << 0;
++    /// The row is skipped by every draw. Bit 1.
++    pub const FLAG_HIDDEN: u32 = 1 << 1;
++    /// The eye is inside this object's bounds (per-frame CPU test): the edge lanes skip the
++    /// facing cull, since from inside a solid every face points away. Bit 2.
++    pub const FLAG_INSIDE: u32 = 1 << 2;
++    /// A print fill (zero edge width): lit flat, no wireframe. Bit 3.
++    pub const FLAG_PRINT: u32 = 1 << 3;
++    /// An open mesh (border edges): the facing cull's premise is void, skipped like INSIDE. Bit 4.
++    pub const FLAG_OPEN: u32 = 1 << 4;
++    /// A row of a planar drawing sheet: fills composite in document order. Bit 5.
++    pub const FLAG_SHEET: u32 = 1 << 5;
++    /// A TESSELLATION, not an authored mesh: its interior seams are an artifact of how finely
++    /// the surface was sampled, not edges of the thing. The walk drops those seams before the
++    /// GPU sees them; this flag is what tells the marker lane its vertices are samples, not
++    /// corners. Bit 6.
++    pub const FLAG_SMOOTH: u32 = 1 << 6;
++
++    /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
++    pub fn placeholder() -> Self {
++        Self {
++            model: Xform::identity().to_f32(),
++            color: [0.5, 0.5, 0.5, 1.0],
++            flags: 0,
++            thickness: 0.0,
++            spacing: 0.0,
++            _pad: 0,
++        }
++    }
++}
++
++/// The field names of a WGSL `struct <name> { .. }`, in declaration order. Test-only.
++#[cfg(test)]
++pub(crate) fn wgsl_fields(src: &str, struct_name: &str) -> Vec<String> {
++    let at = src
++        .find(&format!("struct {struct_name}"))
++        .expect("struct declared in the shader");
++    let rest = &src[at..];
++    let open = rest.find('{').expect("struct body opens");
++    let close = rest.find('}').expect("struct body closes");
++
++    rest[open + 1..close]
++        .lines()
++        .map(|l| l.split("//").next().unwrap_or(""))
++        .flat_map(|l| l.split(','))
++        .map(|f| f.split(':').next().unwrap_or("").trim())
++        .filter(|n| !n.is_empty())
++        .map(str::to_owned)
++        .collect()
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::engine::gpu::frame::LineUniform;
++    use crate::engine::gpu::lane_shaders;
++
++    /// Validate the actual shader modules and every storage member offset, not merely field
++    /// names: a valid Rust size alone does not prove WGSL's array stride.
++    #[test]
++    fn shader_validation_and_layouts() {
++        use crate::engine::gpu::glyphs::GlyphPoint;
++        use crate::engine::gpu::segments::CylinderSegment;
++        use std::mem::{offset_of, size_of};
++        for (name, source) in lane_shaders() {
++            let source = if source.contains("-> InkColor") {
++                format!(
++                    "{source}\n{}",
++                    include_str!("../../shaders/ink_visibility.wgsl")
++                )
++            } else {
++                source.to_string()
++            };
++            let source = format!("{source}\n{}", include_str!("../../shaders/normals.wgsl"));
++            let module = naga::front::wgsl::parse_str(&source)
++                .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
++            naga::valid::Validator::new(
++                naga::valid::ValidationFlags::all(),
++                naga::valid::Capabilities::default(),
++            )
++            .validate(&module)
++            .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
++            for (_, ty) in module.types.iter() {
++                let Some(structure) = ty.name.as_deref() else {
++                    continue;
++                };
++                let (offsets, size) = match structure {
++                    "CylinderSegment" => (
++                        vec![
++                            0,
++                            4,
++                            8,
++                            offset_of!(CylinderSegment, radius),
++                            16,
++                            20,
++                            24,
++                            offset_of!(CylinderSegment, instance_id),
++                            offset_of!(CylinderSegment, color),
++                            offset_of!(CylinderSegment, facing),
++                        ],
++                        size_of::<CylinderSegment>(),
++                    ),
++                    "GlyphPoint" => (
++                        vec![
++                            offset_of!(GlyphPoint, center),
++                            offset_of!(GlyphPoint, radius),
++                            offset_of!(GlyphPoint, color),
++                            offset_of!(GlyphPoint, instance_id),
++                            offset_of!(GlyphPoint, facing),
++                            offset_of!(GlyphPoint, facing_ext),
++                        ],
++                        size_of::<GlyphPoint>(),
++                    ),
++                    "LineUniform" => (
++                        vec![
++                            0,
++                            4,
++                            8,
++                            12,
++                            16,
++                            20,
++                            24,
++                            28,
++                            32,
++                            44,
++                            offset_of!(LineUniform, lit),
++                            offset_of!(LineUniform, backface),
++                        ],
++                        size_of::<LineUniform>(),
++                    ),
++                    _ => continue,
++                };
++                let naga::TypeInner::Struct { members, span } = &ty.inner else {
++                    panic!("{name}: {structure} is not a struct")
++                };
++                assert_eq!(*span as usize, size, "{name}: {structure} stride");
++                assert_eq!(members.len(), offsets.len(), "{name}: {structure} members");
++                for (member, expected) in members.iter().zip(offsets) {
++                    assert_eq!(
++                        member.offset as usize, expected,
++                        "{name}: {structure}.{:?}",
++                        member.name
++                    );
++                }
++            }
++        }
++    }
++
++    /// Every shader that declares `Instance` lists the Rust fields, in order.
++    #[test]
++    fn instance_mirror() {
++        let rust = ["model", "color", "flags", "thickness", "spacing"];
++        for (name, src) in lane_shaders() {
++            if src.contains("struct Instance") {
++                assert_eq!(
++                    wgsl_fields(src, "Instance"),
++                    rust,
++                    "{name}: Instance fields"
++                );
++            }
++        }
++    }
++
++    /// Every shader that declares `LineUniform` lists the Rust fields; `eye: [f32; 3]` is
++    /// three scalars there.
++    #[test]
++    fn line_uniform_mirror() {
++        let rust = [
++            "thickness",
++            "proj_y",
++            "ortho_h",
++            "vp_h",
++            "vp_w",
++            "eye_x",
++            "eye_y",
++            "eye_z",
++            "anchor",
++            "feather",
++            "lit",
++            "backface",
++        ];
++        for (name, src) in lane_shaders() {
++            if src.contains("struct LineUniform") {
++                assert_eq!(
++                    wgsl_fields(src, "LineUniform"),
++                    rust,
++                    "{name}: LineUniform fields"
++                );
++            }
++        }
++        assert_eq!(std::mem::size_of::<LineUniform>(), 64);
++    }
++
++    /// Every instance-reading shader binds the translation table at group 2 binding 1 and
++    /// adds it through the `place()` helper, never to a direction.
++    #[test]
++    fn translations_mirror() {
++        let binding = "@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;";
++        for (name, src) in lane_shaders() {
++            if src.contains("struct Instance") {
++                assert!(src.contains(binding), "{name}: translations binding");
++                assert!(src.contains("fn place("), "{name}: the place() helper");
++            }
++        }
++        assert_eq!(&Instance::placeholder().model[12..15], &[0.0; 3]);
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..7f219711f9712b02aa65c38a586a761d1030fc5e
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -0,0 +1,2 @@
++//! Object record before lane ownership arrives.
++pub mod instance;
+diff --git a/session_viewer/src/engine/mod.rs b/session_viewer/src/engine/mod.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..5ee5b6c6ad95aefe624eda27f5b3e4ddddd69456
+--- /dev/null
++++ b/session_viewer/src/engine/mod.rs
+@@ -0,0 +1,2 @@
++//! First retained GPU source records.
++pub mod gpu;
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba9cf5c84f
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -2,7 +2,9 @@
+ use wasm_bindgen::prelude::*;
+ use wgpu::util::DeviceExt;
+ pub mod camera;
++pub mod engine;
+ pub mod math;
++pub mod scene;
+ /// The browser owns the canvas; this teaching facade owns one GPU/device and one draw lane.
+ #[wasm_bindgen]
+ pub struct Tutorial {
+@@ -16,6 +18,7 @@
+     group: wgpu::BindGroup,
+     scale: f64,
+     camera: camera::Camera,
++    objects: [scene::SourceObject; 2],
+ }
+ #[wasm_bindgen]
+ impl Tutorial {
+@@ -88,24 +91,48 @@
+         });
+         let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+             label: Some("camera"),
+-            entries: &[wgpu::BindGroupLayoutEntry {
+-                binding: 0,
+-                visibility: wgpu::ShaderStages::VERTEX,
+-                ty: wgpu::BindingType::Buffer {
+-                    ty: wgpu::BufferBindingType::Uniform,
+-                    has_dynamic_offset: false,
+-                    min_binding_size: None,
+-                },
+-                count: None,
+-            }],
++            entries: &[
++                wgpu::BindGroupLayoutEntry {
++                    binding: 0,
++                    visibility: wgpu::ShaderStages::VERTEX,
++                    ty: wgpu::BindingType::Buffer {
++                        ty: wgpu::BufferBindingType::Uniform,
++                        has_dynamic_offset: false,
++                        min_binding_size: None,
++                    },
++                    count: None,
++                },
++                wgpu::BindGroupLayoutEntry {
++                    binding: 1,
++                    visibility: wgpu::ShaderStages::VERTEX,
++                    ty: wgpu::BindingType::Buffer {
++                        ty: wgpu::BufferBindingType::Storage { read_only: true },
++                        has_dynamic_offset: false,
++                        min_binding_size: None,
++                    },
++                    count: None,
++                },
++            ],
++        });
++        let records = [scene::objects()[0].row, scene::objects()[1].row];
++        let rows = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
++            label: Some("source instances"),
++            contents: bytemuck::cast_slice(&records),
++            usage: wgpu::BufferUsages::STORAGE,
+         });
+         let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+             label: Some("camera"),
+             layout: &layout,
+-            entries: &[wgpu::BindGroupEntry {
+-                binding: 0,
+-                resource: uniform.as_entire_binding(),
+-            }],
++            entries: &[
++                wgpu::BindGroupEntry {
++                    binding: 0,
++                    resource: uniform.as_entire_binding(),
++                },
++                wgpu::BindGroupEntry {
++                    binding: 1,
++                    resource: rows.as_entire_binding(),
++                },
++            ],
+         });
+         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+             label: Some("first triangle"),
+@@ -151,7 +178,7 @@
+             },
+             1.5,
+         );
+-
++        let objects = scene::objects();
+         Ok(Self {
+             canvas,
+             surface,
+@@ -163,6 +190,7 @@
+             group,
+             scale: 1.0,
+             camera,
++            objects,
+         })
+     }
+     /// Resize once, upload the camera transform, encode the lane, submit and present.
+@@ -216,11 +244,13 @@
+             });
+             pass.set_pipeline(&self.pipeline);
+             pass.set_bind_group(0, &self.group, &[]);
+-            pass.draw(0..3, 0..1);
++            for row in 0..self.objects.len() as u32 {
++                pass.draw(0..3, row..row + 1);
++            }
+         }
+         self.queue.submit([encoder.finish()]);
+         output.present();
+-        Ok(serde_json::json!({"stage": 2, "objects": 1, "width":width,"height":height,"scale":scale,"drawn":true}).to_string())
++        Ok(serde_json::json!({"stage": 3, "objects": self.objects.len(), "width":width,"height":height,"scale":scale,"drawn":true}).to_string())
+     }
+ }
+ /// Keep initialization/render errors visible at the browser boundary.
+diff --git a/session_viewer/src/scene.rs b/session_viewer/src/scene.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..f71add44890e6c93d0e085bc186154e3996c5416
+--- /dev/null
++++ b/session_viewer/src/scene.rs
+@@ -0,0 +1,29 @@
++//! Stable source identity stays separate from a GPU row or triangle index.
++use crate::engine::gpu::instance::Instance;
++/// One source revision and the render instance derived from it.
++pub struct SourceObject {
++    pub guid: &'static str,
++    pub revision: u64,
++    pub row: Instance,
++}
++/// Two independently placed/tinted copies of the same local triangle.
++pub fn objects() -> [SourceObject; 2] {
++    let mut left = Instance::placeholder();
++    left.model[12] = -0.8;
++    left.color = [1.0, 0.35, 0.2, 1.0];
++    let mut right = Instance::placeholder();
++    right.model[12] = 0.8;
++    right.color = [0.2, 0.7, 1.0, 1.0];
++    [
++        SourceObject {
++            guid: "triangle-left",
++            revision: 1,
++            row: left,
++        },
++        SourceObject {
++            guid: "triangle-right",
++            revision: 1,
++            row: right,
++        },
++    ]
++}
+diff --git a/session_viewer/src/shaders/first.wgsl b/session_viewer/src/shaders/first.wgsl
+index 057f3d824c4f007af8bd24579a4a2a6a4de65607..e05e7aabbdd8c7d0e8cabf9650c99d2c37018ef8
+--- a/session_viewer/src/shaders/first.wgsl
++++ b/session_viewer/src/shaders/first.wgsl
+@@ -1,11 +1,14 @@
+ // The first lane: three vertices generated from the vertex index, then a camera transform.
+ @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
++struct Instance {model:mat4x4<f32>,color:vec4<f32>,flags:u32,thickness:f32,spacing:f32,pad:u32};
++@group(0) @binding(1) var<storage,read> instances:array<Instance>;
+ struct VertexOut { @builtin(position) position: vec4<f32>, @location(0) color: vec3<f32> };
+-@vertex fn vs_main(@builtin(vertex_index) index: u32) -> VertexOut {
++@vertex fn vs_main(@builtin(vertex_index) index: u32, @builtin(instance_index) row:u32) -> VertexOut {
+     let points = array<vec3<f32>,3>(vec3<f32>(-0.7,-0.55,0.0),vec3<f32>(0.7,-0.55,0.0),vec3<f32>(0.0,0.65,0.0));
+     var output: VertexOut;
+-    output.position = mvp * vec4<f32>(points[index],1.0);
++    output.position = mvp * instances[row].model * vec4<f32>(points[index]*0.65,1.0);
+     output.color = array<vec3<f32>,3>(vec3<f32>(0.95,0.25,0.2),vec3<f32>(0.2,0.8,0.45),vec3<f32>(0.3,0.5,1.0))[index];
++    output.color = instances[row].color.rgb;
+     return output;
+ }
+ @fragment fn fs_main(input: VertexOut) -> @location(0) vec4<f32> { return vec4<f32>(input.color,1.0); }

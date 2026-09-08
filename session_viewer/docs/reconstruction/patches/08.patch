@@ -1,0 +1,389 @@
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index ab40895e0d379a865fd2c4fc6005209ff0da1bb2..d4fae1cf80dcea5f994eb7c3acc444f95f758794
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,9 +1,9 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 07</title>
++<title>Session checkpoint 08</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 07</output>
++</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 08</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -21,7 +21,7 @@
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 07 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 08 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
+index ae315619002ab6bc16fb3e66496f432dd5253564..03cc841cb9e88f7b1d1c1269ec15a621d1b6e200
+--- a/session_viewer/src/app/walk/brep.rs
++++ b/session_viewer/src/app/walk/brep.rs
+@@ -17,7 +17,7 @@
+ use crate::engine::gpu::arena::ArenaRows;
+ use crate::math::Aabb;
+ use session_rust::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
+-use session_rust::{BRep, Color, NurbsSurface, RenderMesh};
++use session_rust::{BRep, Color, Mesh, NurbsSurface, RenderMesh};
+ 
+ /// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
+ /// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
+@@ -157,21 +157,220 @@
+     push_polyline(ink.seg, &points, out.0, out.1);
+ }
+ 
+-/// The first checkpoint uses the natural UV domain; cached trims are introduced in08.
+-pub fn walk_surface(
+-    arena: &mut ArenaRows,
+-    ink: &mut Ink,
+-    surface: &NurbsSurface,
+-    cx: &WalkCx,
+-) -> Row {
+-    let mut mesh = RemeshNurbsSurfaceGrid::from_u_v_q(surface.clone(), 0, 0, QUALITY.0, QUALITY.1);
+-    if let Some(color) = surface.facecolors.first() {
+-        mesh.set_objectcolor(color.clone());
+-    }
+-    let options = MeshOpts {
++/// Tessellate a surface with UV provenance, including planar patches with curved boundaries.
++pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
++    let mut sm = if let Some(mesh) = &s.m_mesh {
++        mesh.clone()
++    } else {
++        RemeshNurbsSurfaceGrid::from_u_v_q(s.clone(), 0, 0, QUALITY.0, QUALITY.1)
++    };
++    if let Some(c) = s.facecolors.first() {
++        sm.set_objectcolor(c.clone());
++    }
++    let opts = MeshOpts {
+         sheet_lanes: false,
+         allow_open: true,
+         smooth: true,
+     };
+-    walk_mesh(arena, ink, &mesh, &MeshCx { cx, opts: &options })
+-}
++    let first_pipe = ink.seg.pipes.len();
++    let row = walk_mesh(arena, ink, &sm, &MeshCx { cx, opts: &opts });
++    map_surface_boundaries(ink, s, &sm, first_pipe);
++    row
++}
++
++/// Name natural domain edges from the mesher's UV records: u-min, u-max, v-min, v-max.
++/// Closed directions have no physical domain edge. Creases without source topology stay
++/// unavailable for CAD edge picking; no triangulation index becomes a source edge ID.
++fn map_surface_boundaries(ink: &mut Ink, s: &NurbsSurface, mesh: &Mesh, first_pipe: usize) {
++    let mut masks = std::collections::HashMap::<[u32; 3], u8>::new();
++    for vertex in mesh.vertex.values() {
++        let mut mask = 0u8;
++        for (direction, name) in [(0, "u"), (1, "v")] {
++            if s.is_closed(direction) {
++                continue;
++            }
++            let (Some(&parameter), Some((start, end))) =
++                (vertex.attributes.get(name), s.domain(direction))
++            else {
++                continue;
++            };
++            if parameter == start {
++                mask |= 1 << (direction * 2);
++            }
++            if parameter == end {
++                mask |= 1 << (direction * 2 + 1);
++            }
++        }
++        let position = [vertex.x as f32, vertex.y as f32, vertex.z as f32];
++        *masks.entry(position.map(f32::to_bits)).or_insert(0) |= mask;
++    }
++    ink.seg.pipe_ids.resize(ink.seg.pipes.len(), u32::MAX);
++    for index in first_pipe..ink.seg.pipes.len() {
++        let pipe = &ink.seg.pipes[index];
++        let a = masks.get(&pipe.p0.map(f32::to_bits)).copied().unwrap_or(0);
++        let b = masks.get(&pipe.p1.map(f32::to_bits)).copied().unwrap_or(0);
++        let common = a & b;
++        ink.seg.pipe_ids[index] = if common.count_ones() == 1 {
++            common.trailing_zeros()
++        } else {
++            u32::MAX
++        };
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::app::walk::brep_edges::edge_chains;
++    use crate::engine::gpu::Instance;
++    use crate::engine::gpu::glyphs::GlyphRows;
++    use crate::engine::gpu::segments::SegRows;
++
++    /// The walked tables of one BRep at row 5: arena rows, pipes, ribbons, markers, flags.
++    fn walked(b: &BRep) -> (ArenaRows, SegRows, GlyphRows, Row) {
++        let mut arena = ArenaRows::default();
++        let mut seg = SegRows::default();
++        let mut glyph = GlyphRows::default();
++        let cx = WalkCx {
++            vert_base: 100,
++            cloud_px: 0.0,
++            row: 5,
++        };
++        let row = {
++            let mut ink = Ink {
++                seg: &mut seg,
++                glyph: &mut glyph,
++            };
++            walk_brep(&mut arena, &mut ink, b, &cx)
++        };
++        (arena, seg, glyph, row)
++    }
++
++    /// A cylinder uploads every face mesh's own vertices (no weld: the side's 146 plus the two
++    /// caps' 72 each, read from the kernel, not assumed), each with a unit normal, its
++    /// indices based on the file's vertex base, one pipe per chain segment and no ribbons,
++    /// no markers, FLAG_SMOOTH and not FLAG_OPEN.
++    #[test]
++    fn cylinder_walks_unwelded_with_normals() {
++        let b = BRep::create_cylinder(150.0, 400.0);
++        let fms = b.face_meshes_q(Some(QUALITY));
++        let verts: usize = fms.iter().map(|m| m.vertex.len()).sum();
++        let tris: usize = fms.iter().map(|m| m.to_render().indices.len()).sum();
++        let segments: usize = edge_chains(&b, &fms)
++            .iter()
++            .flatten()
++            .map(|c| c.keys.len() - 1)
++            .sum();
++        let (arena, seg, glyph, row) = walked(&b);
++        assert_eq!(arena.verts.len(), verts);
++        assert_eq!(arena.vids.len(), verts);
++        assert_eq!(arena.idx.len(), tris);
++        assert!(
++            arena
++                .idx
++                .iter()
++                .all(|&i| i >= 100 && i < 100 + verts as u32)
++        );
++        for v in &arena.verts {
++            let n = v.normal;
++            let l = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
++            assert!((l - 1.0).abs() < 1e-3, "normal {n:?}");
++        }
++        assert_eq!(seg.pipes.len(), segments);
++        assert!(seg.ribbons.is_empty());
++        assert!(glyph.spheres.is_empty());
++        assert_ne!(row.flags & Instance::FLAG_SMOOTH, 0);
++        assert_eq!(row.flags & Instance::FLAG_OPEN, 0);
++        assert!(row.faces);
++        assert!(row.bounds.diagonal() > 400.0);
++    }
++
++    /// A single face pulled out of a solid is not solid: it is walked FLAG_OPEN so the facing
++    /// cull, whose premise is a closed surface, is skipped.
++    #[test]
++    fn open_brep_is_flagged_open() {
++        let mut b = BRep::create_box(400.0, 300.0, 250.0);
++        b.m_solids.clear();
++        let (_, _, _, row) = walked(&b);
++        assert_ne!(row.flags & Instance::FLAG_OPEN, 0);
++    }
++
++    #[test]
++    fn reversed_solid_uses_repair_faces_and_boundaries_together() {
++        let b = BRep::create_cylinder(150.0, 400.0);
++        let mut reversed = b.clone();
++        for face in reversed.m_shells[0].faces.iter_mut().take(2) {
++            face.orientation = session_rust::brep::brep_reverse(face.orientation);
++        }
++        let (expected, _, _, _) = walked(&b);
++        let (actual, _, _, _) = walked(&reversed);
++        assert_eq!(actual.idx.len(), expected.idx.len());
++        for (a, b) in actual.idx.chunks_exact(3).zip(expected.idx.chunks_exact(3)) {
++            assert!(a == b || a == [b[1], b[2], b[0]] || a == [b[2], b[0], b[1]]);
++        }
++        assert_eq!(actual.verts.len(), expected.verts.len());
++        for (a, b) in actual.verts.iter().zip(&expected.verts) {
++            assert_eq!(a.position, b.position);
++            assert_eq!(a.normal, b.normal);
++        }
++    }
++
++    #[test]
++    fn surface_domain_edges_have_source_ids_and_open_visibility() {
++        let b = BRep::create_box(40.0, 30.0, 25.0);
++        let mut arena = ArenaRows::default();
++        let mut seg = SegRows::default();
++        let mut glyph = GlyphRows::default();
++        let mut ink = Ink {
++            seg: &mut seg,
++            glyph: &mut glyph,
++        };
++        let cx = WalkCx {
++            vert_base: 0,
++            cloud_px: 0.0,
++            row: 7,
++        };
++        let row = walk_surface(&mut arena, &mut ink, &b.m_surfaces[0], &cx);
++        assert_ne!(row.flags & Instance::FLAG_OPEN, 0);
++        assert_eq!(seg.pipe_ids.len(), seg.pipes.len());
++        let mut ids = seg.pipe_ids.clone();
++        ids.sort_unstable();
++        ids.dedup();
++        assert_eq!(ids, vec![0, 1, 2, 3]);
++    }
++
++    #[test]
++    fn poles_and_sharp_faces_keep_finite_unit_normals() {
++        for b in [
++            BRep::create_sphere(180.0),
++            BRep::create_cone(150.0, 400.0),
++            BRep::create_box(40.0, 30.0, 25.0),
++        ] {
++            let (arena, seg, _, _) = walked(&b);
++            for vertex in &arena.verts {
++                let [x, y, z] = vertex.normal;
++                assert!(
++                    (x * x + y * y + z * z - 1.0).abs() < 1e-5,
++                    "{} normal {:?}",
++                    b.name,
++                    vertex.normal
++                );
++                assert!(vertex.position.iter().all(|value| value.is_finite()));
++            }
++            for pipe in &seg.pipes {
++                assert_ne!(pipe.p0, pipe.p1);
++            }
++        }
++        let (arena, _, _, _) = walked(&BRep::create_box(40.0, 30.0, 25.0));
++        for vertex in &arena.verts {
++            assert_eq!(
++                vertex
++                    .normal
++                    .iter()
++                    .filter(|component| component.abs() > 0.0)
++                    .count(),
++                1
++            );
++        }
++    }
++}
+diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
+index ab8dbc2cfc3af0bed5c9d9fd9633e186b91537da..84f830cb6081c78d4cd9dcc449c5182ca16ea297
+--- a/session_viewer/src/fixture.rs
++++ b/session_viewer/src/fixture.rs
+@@ -4,7 +4,7 @@
+ use crate::app::walk::{Row, WalkCx};
+ use crate::engine::gpu::Upload;
+ use crate::engine::gpu::objects::ObjectRow;
+-use session_rust::{BRep, Color, Geometry, Xform};
++use session_rust::{BRep, Color, Geometry, NurbsSurface, Point, Xform};
+ use std::rc::Rc;
+ 
+ /// Retain original f64 source objects independently from their GPU row addresses.
+@@ -83,20 +83,80 @@
+     }
+ }
+ 
+-/// A cylinder and a block's inner wire exercise shared and hole boundaries.
++/// A curved source patch carrying the producer's constrained hole mesh in its supported cache.
++fn trimmed_surface() -> NurbsSurface {
++    use session_rust::{NurbsSurfaceTrimmed, TrimLoops};
++    let points = [
++        Point::new(-200.0, -150.0, 0.0),
++        Point::new(-200.0, 150.0, 0.0),
++        Point::new(0.0, -150.0, 160.0),
++        Point::new(0.0, 150.0, 160.0),
++        Point::new(200.0, -150.0, 0.0),
++        Point::new(200.0, 150.0, 0.0),
++    ];
++    let surface = NurbsSurface::create(false, false, 2, 1, 3, 2, &points).unwrap();
++    let mut trimmed = NurbsSurfaceTrimmed::new();
++    trimmed.m_surface = surface;
++    let mut loops = TrimLoops::default();
++    let mut outer = Vec::new();
++    for edge in 0..4 {
++        for sample in 0..24 {
++            let t = sample as f64 / 24.0;
++            let (u, v) = match edge {
++                0 => (t, 0.0),
++                1 => (1.0, t),
++                2 => (1.0 - t, 1.0),
++                _ => (0.0, 1.0 - t),
++            };
++            outer.push(Point::new(u, v, 0.0));
++        }
++    }
++    let mut hole = Vec::new();
++    for sample in 0..48 {
++        let angle = sample as f64 / 48.0 * std::f64::consts::TAU;
++        hole.push(Point::new(
++            0.5 + 0.2 * angle.cos(),
++            0.5 + 0.2 * angle.sin(),
++            0.0,
++        ));
++    }
++    loops.uv = vec![outer, hole];
++    for ring in &loops.uv {
++        let mut positions = Vec::with_capacity(ring.len());
++        for uv in ring {
++            positions.push(
++                trimmed
++                    .m_surface
++                    .point_at(uv[0], uv[1])
++                    .expect("fixture UV lies in the source domain"),
++            );
++        }
++        loops.xyz.push(positions);
++    }
++    let mesh = trimmed.mesh_loops(&loops, 20.0, 0.005);
++    assert!(
++        !mesh.face.is_empty(),
++        "the local constrained hole must triangulate"
++    );
++    let mut surface = trimmed.m_surface;
++    surface.m_mesh = Some(mesh);
++    surface.facecolors = vec![Color::grey()];
++    surface.name = "cached curved trim with circular hole".into();
++    surface
++}
++
++/// The cached trim and periodic torus use the same source-aware producer contract.
+ pub fn build() -> CadFixture {
+     let mut scene = CadFixture::new();
+-    let mut cylinder = BRep::create_cylinder(100.0, 220.0);
+-    cylinder.surfacecolor = Color::grey();
+     scene.add(
+-        Geometry::BRep(Rc::new(cylinder)),
+-        Xform::translation(-250.0, 0.0, 0.0),
++        Geometry::NurbsSurface(Rc::new(trimmed_surface())),
++        Xform::translation(-290.0, 0.0, 0.0),
+     );
+-    let mut hole = BRep::create_block_with_hole(320.0, 240.0, 80.0, 55.0);
+-    hole.surfacecolor = Color::grey();
++    let mut torus = BRep::create_torus(120.0, 35.0);
++    torus.surfacecolor = Color::grey();
+     scene.add(
+-        Geometry::BRep(Rc::new(hole)),
+-        Xform::translation(220.0, 0.0, 0.0),
++        Geometry::BRep(Rc::new(torus)),
++        Xform::translation(290.0, 0.0, 0.0),
+     );
+     scene
+ }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index ebafd4c14b1e8477d21538f1598634539a4a31b4..53544ae931ae9c15dfd24d4d625925b3de7eb2ef
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -92,7 +92,7 @@
+             now_ms: now,
+         };
+         self.gpu.render(&input).map_err(js_error)?;
+-        Ok(serde_json::json!({"stage":7,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
++        Ok(serde_json::json!({"stage":8,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
+             "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
+     }
+ }

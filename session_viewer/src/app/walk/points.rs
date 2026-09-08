@@ -1,11 +1,11 @@
 //! A free point into the FLAT glyph lane: one SDF dot with no topology-facing cull.
 
-use session_rust::Point;
-use crate::engine::gpu::glyphs::GlyphRows;
-use crate::engine::gpu::GlyphPoint;
-use crate::math::Aabb;
 use super::Row;
-use super::encode::{encode_width, FACING_UNKNOWN};
+use super::encode::{FACING_UNKNOWN, encode_width};
+use crate::engine::gpu::GlyphPoint;
+use crate::engine::gpu::glyphs::GlyphRows;
+use crate::math::Aabb;
+use session_rust::Point;
 
 /// One SDF dot.
 pub fn walk_point(glyph: &mut GlyphRows, p: &Point, row: u32) -> Row {

@@ -5,7 +5,9 @@ fn main() {
         let s = session_rust::Session::pb_loads(&bytes).expect("parse");
         let world = s.world_xforms();
         for g in s.order() {
-            if let Some(x) = world.get(&g) && x.m != session_rust::Xform::identity().m {
+            if let Some(x) = world.get(&g)
+                && x.m != session_rust::Xform::identity().m
+            {
                 println!("  xform t=({:.0},{:.0},{:.0})", x.m[12], x.m[13], x.m[14]);
             }
             match s.lookup.get(&g) {
@@ -17,13 +19,28 @@ fn main() {
                             hi[k] = hi[k].max(*c);
                         }
                     }
-                    println!("mesh {:?} box {:?} .. {:?} color {:?}", m.name, lo, hi, m.objectcolor());
+                    println!(
+                        "mesh {:?} box {:?} .. {:?} color {:?}",
+                        m.name,
+                        lo,
+                        hi,
+                        m.objectcolor()
+                    );
                 }
                 Some(session_rust::Geometry::Polyline(p)) => {
-                    let pts: Vec<[f64; 3]> = p.coords.chunks_exact(3).map(|c| [c[0], c[1], c[2]]).collect();
-                    println!("polyline {:?} width {} color {:?} points {:?}", p.name, p.width, p.linecolor, pts);
+                    let pts: Vec<[f64; 3]> = p
+                        .coords
+                        .chunks_exact(3)
+                        .map(|c| [c[0], c[1], c[2]])
+                        .collect();
+                    println!(
+                        "polyline {:?} width {} color {:?} points {:?}",
+                        p.name, p.width, p.linecolor, pts
+                    );
                 }
-                Some(session_rust::Geometry::Point(pt)) => println!("point {:?}", [pt[0], pt[1], pt[2]]),
+                Some(session_rust::Geometry::Point(pt)) => {
+                    println!("point {:?}", [pt[0], pt[1], pt[2]])
+                }
                 Some(other) => println!("{}", std::any::type_name_of_val(other)),
                 None => {}
             }

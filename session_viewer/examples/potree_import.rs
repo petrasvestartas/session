@@ -9,21 +9,34 @@
 
 fn main() {
     let a: Vec<String> = std::env::args().skip(1).collect();
-    let dir = a.first().cloned().unwrap_or_else(|| "assets/lion_src".into());
-    let out = a.get(1).cloned().unwrap_or_else(|| "assets/pb/lion.pb".into());
+    let dir = a
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "assets/lion_src".into());
+    let out = a
+        .get(1)
+        .cloned()
+        .unwrap_or_else(|| "assets/pb/lion.pb".into());
     let unit: f64 = a.get(2).and_then(|v| v.parse().ok()).unwrap_or(1000.0); // metres -> mm
 
-    let cloud: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(format!("{dir}/cloud.js")).expect("cloud.js")).expect("json");
+    let cloud: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(format!("{dir}/cloud.js")).expect("cloud.js"),
+    )
+    .expect("json");
     let bb = &cloud["boundingBox"];
-    let root_min = [bb["lx"].as_f64().unwrap(), bb["ly"].as_f64().unwrap(), bb["lz"].as_f64().unwrap()];
+    let root_min = [
+        bb["lx"].as_f64().unwrap(),
+        bb["ly"].as_f64().unwrap(),
+        bb["lz"].as_f64().unwrap(),
+    ];
     let root_size = bb["ux"].as_f64().unwrap() - root_min[0]; // potree root is a cube
     let scale = cloud["scale"].as_f64().unwrap();
 
     let mut coords = Vec::new();
     let mut colors = Vec::new();
     let mut normals = Vec::new();
-    let mut files: Vec<_> = std::fs::read_dir(&dir).unwrap()
+    let mut files: Vec<_> = std::fs::read_dir(&dir)
+        .unwrap()
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| p.extension().is_some_and(|e| e == "bin"))
         .collect();
@@ -34,9 +47,15 @@ fn main() {
         for d in name[1..].chars() {
             let i = d.to_digit(10).unwrap();
             size *= 0.5;
-            if i & 0b100 != 0 { min[0] += size; }
-            if i & 0b010 != 0 { min[1] += size; }
-            if i & 0b001 != 0 { min[2] += size; }
+            if i & 0b100 != 0 {
+                min[0] += size;
+            }
+            if i & 0b010 != 0 {
+                min[1] += size;
+            }
+            if i & 0b001 != 0 {
+                min[2] += size;
+            }
         }
         let data = std::fs::read(path).unwrap();
         for rec in data.chunks_exact(18) {
@@ -52,7 +71,9 @@ fn main() {
             let (x, y) = if z < 0.0 {
                 let s = |t: f64| if t < 0.0 { -1.0 } else { 1.0 };
                 ((1.0 - v.abs()) * s(u), (1.0 - u.abs()) * s(v))
-            } else { (u, v) };
+            } else {
+                (u, v)
+            };
             let l = (x * x + y * y + z * z).sqrt().max(1e-9);
             normals.extend_from_slice(&[x / l, y / l, z / l]);
         }

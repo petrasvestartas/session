@@ -45,11 +45,8 @@ use crate::engine::performance::now_ms;
 /// constant over the viewport height — the number of pan units one pixel of finger is worth.
 const PAN_PER_PX: f64 = 2.0 * 0.577_350_269_189_625_7 / 0.001_5; // 769.8 — pan is exact at that height
 
-/// `Camera::zoom_at` takes a WHEEL DETENT and scales distance by `1 - amount * 0.1`. A pinch
-/// gives a ratio `r` instead, so invert it: `1 - amount * 0.1 = 1/r`, hence `PINCH_GAIN`.
-/// Spreading the fingers (`r > 1`) shortens the distance, which is zooming in — the same sign
-/// as a wheel push.
-const PINCH_GAIN: f64 = 10.0;
+/// The wheel response is 0.9^amount; invert it so a pinch ratio r gives distance/r.
+const PINCH_LOG: f64 = -0.105_360_515_657_826_28;
 
 /// Biggest span change one event may claim. A finger the browser loses and re-delivers, or a
 /// third finger landing between two samples, otherwise teleports the camera.
@@ -101,7 +98,12 @@ pub struct Touches {
 impl Touches {
     /// No fingers down, no tap pending.
     pub fn new() -> Self {
-        Self { fingers: Vec::new(), span: 0.0, mid: (0.0, 0.0), tap: None }
+        Self {
+            fingers: Vec::new(),
+            span: 0.0,
+            mid: (0.0, 0.0),
+            tap: None,
+        }
     }
 
     /// Fold one `WindowEvent::Touch` into the gesture and move the camera. `vp` is the surface
@@ -111,7 +113,12 @@ impl Touches {
         let p = (t.location.x, t.location.y);
         match t.phase {
             TouchPhase::Started => {
-                self.fingers.push(Finger { id: t.id, pos: p, down: p, t0: now_ms() });
+                self.fingers.push(Finger {
+                    id: t.id,
+                    pos: p,
+                    down: p,
+                    t0: now_ms(),
+                });
                 self.span = 0.0; // the gesture just changed shape — re-seed on the next move
                 Act::None
             }
@@ -129,7 +136,9 @@ impl Touches {
 
     /// A finger travelled. One finger orbits; two pan by their midpoint and zoom by their span.
     fn moved(&mut self, cam: &mut Camera, id: u64, p: (f64, f64), vp: (f64, f64), dpr: f64) -> Act {
-        let Some(i) = self.fingers.iter().position(|f| f.id == id) else { return Act::None };
+        let Some(i) = self.finger_index(id) else {
+            return Act::None;
+        };
         let d = (p.0 - self.fingers[i].pos.0, p.1 - self.fingers[i].pos.1);
         self.fingers[i].pos = p;
 
@@ -152,9 +161,12 @@ impl Touches {
         // Pan first, then zoom about the NEW midpoint: the pan slides the model with the hand,
         // the zoom then keeps whatever is under the midpoint under it.
         let h = vp.1.max(1.0);
-        cam.pan(((mid.0 - self.mid.0) * PAN_PER_PX / h) as f32, ((mid.1 - self.mid.1) * PAN_PER_PX / h) as f32);
+        cam.pan(
+            ((mid.0 - self.mid.0) * PAN_PER_PX / h) as f32,
+            ((mid.1 - self.mid.1) * PAN_PER_PX / h) as f32,
+        );
         let r = (span / self.span).clamp(1.0 / PINCH_MAX, PINCH_MAX);
-        cam.zoom_at((PINCH_GAIN * (1.0 - 1.0 / r)) as f32, mid, vp);
+        cam.zoom_at((-r.ln() / PINCH_LOG) as f32, mid, vp);
 
         self.span = span;
         self.mid = mid;
@@ -164,7 +176,9 @@ impl Touches {
     /// A finger left the glass cleanly. Only the LAST one up can be a tap — a lift that leaves
     /// other fingers down is the tail of a two-finger gesture, not a tap on anything.
     fn lifted(&mut self, id: u64, p: (f64, f64), dpr: f64) -> Act {
-        let Some(f) = self.drop_finger(id) else { return Act::None };
+        let Some(f) = self.drop_finger(id) else {
+            return Act::None;
+        };
         if !self.fingers.is_empty() {
             self.tap = None;
             return Act::None;
@@ -174,9 +188,12 @@ impl Touches {
             self.tap = None; // a drag, or a press held long enough to mean something else
             return Act::None;
         }
-        let second = self.tap.take().is_some_and(|(t0, at)| {
-            now - t0 < DOUBLE_TAP_MS && (p.0 - at.0).hypot(p.1 - at.1) / dpr < DOUBLE_TAP_SLOP
-        });
+        let second = match self.tap.take() {
+            Some((t0, at)) => {
+                now - t0 < DOUBLE_TAP_MS && (p.0 - at.0).hypot(p.1 - at.1) / dpr < DOUBLE_TAP_SLOP
+            }
+            None => false,
+        };
         if second {
             return Act::Fit; // `self.tap` is already cleared, so three taps are not two doubles
         }
@@ -184,15 +201,26 @@ impl Touches {
         Act::None
     }
 
+    /// Find the first active contact with the event's stable touch identifier.
+    fn finger_index(&self, id: u64) -> Option<usize> {
+        for (index, finger) in self.fingers.iter().enumerate() {
+            if finger.id == id {
+                return Some(index);
+            }
+        }
+        None
+    }
+
     /// Forget one finger and re-seed the pinch, whatever ended it.
     fn drop_finger(&mut self, id: u64) -> Option<Finger> {
-        let i = self.fingers.iter().position(|f| f.id == id)?;
+        let i = self.finger_index(id)?;
         self.span = 0.0;
         Some(self.fingers.remove(i))
     }
 }
 
 impl Default for Touches {
+    /// Start with the same inactive gesture state as the explicit constructor.
     fn default() -> Self {
         Self::new()
     }

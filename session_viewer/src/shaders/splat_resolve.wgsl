@@ -28,6 +28,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
 
 struct FsOut {
     @location(0) color: vec4<f32>,
+    @location(1) gradient: vec2<f32>,
     @builtin(frag_depth) depth: f32,
 };
 
@@ -69,6 +70,7 @@ fn shade(in: VsOut) -> FsOut {
 
     o.color = vec4<f32>(rgb, 1.0);
     o.depth = d;
+    o.gradient = vec2<f32>(0.0);
     return o;
 }
 

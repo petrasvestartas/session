@@ -1,0 +1,1561 @@
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index db7adb7684a8e9f4aba1ecc82c375df06f6bf82f..c6c7e0dce3b12078b33d09694b8366df2b762614
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,9 +1,9 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 04</title>
++<title>Session checkpoint 05</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04</output>
++</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 05</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -21,7 +21,7 @@
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 04 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 05 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
+index bb3c25df3d803f2589f65f7adb9ca20a65bc4387..d3ac42f165b00a2396b794e1a22cf9d13209bfe7
+--- a/session_viewer/src/engine/gpu/arena.rs
++++ b/session_viewer/src/engine/gpu/arena.rs
+@@ -47,6 +47,7 @@
+ struct ArenaPipelines {
+     faces: wgpu::RenderPipeline,
+     id_faces: wgpu::RenderPipeline,
++    selection_mask: wgpu::RenderPipeline,
+ }
+ 
+ /// The arena on the GPU: five `GrowBuf`s under the one growth policy.
+@@ -117,6 +118,11 @@
+         self.draw_run(pass, b, &self.pipes.faces, &self.faces)
+     }
+ 
++    /// Visible selected faces only; replay the identical vertices against physical depth.
++    pub fn draw_selection_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_run(pass, b, &self.pipes.selection_mask, &self.faces)
++    }
++
+     /// Sheet fills: same vertex table, depth write off, so a page's exactly coplanar regions
+     /// composite in document order. 3D geometry in front still occludes them.
+     pub fn draw_print(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+@@ -135,7 +141,7 @@
+         self.draw_run(pass, b, &self.pipes.id_faces, &self.faces)
+             + self
+                 .outline_text
+-                .draw_ids(pass, b, &self.outline_buffers(&self.print))
++                .draw_physical_ids(pass, b, &self.outline_buffers(&self.print))
+     }
+ 
+     /// The id pass for the lettering, after the ink as in the colour pass.
+@@ -220,7 +226,21 @@
+     let dev = &ctx.device;
+ 
+     ArenaPipelines {
+-        faces: build(dev, target, &base.with("triangle", "fs_main")),
+-        id_faces: build(dev, Target::ID, &base.with("triangle.id", "fs_id")),
+-    }
+-}
++        faces: build(dev, target, &base.with("triangle", "fs_main").physical()),
++        id_faces: build(
++            dev,
++            Target::ID,
++            &base.with("triangle.id", "fs_id").physical(),
++        ),
++        selection_mask: build(
++            dev,
++            Target {
++                format: wgpu::TextureFormat::R8Unorm,
++                samples: target.samples,
++            },
++            &base
++                .with("triangle.selection_mask", "fs_selection_mask")
++                .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual),
++        ),
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/backdrop.rs b/session_viewer/src/engine/gpu/backdrop.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..7b654e76f5a8cc9d9c04c415326029eeebd52236
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/backdrop.rs
+@@ -0,0 +1,112 @@
++//! The backdrop lane: the fullscreen background triangle and the vertexless 50-vertex grid.
++//! No table, no upload; two pipelines and two draws that open every frame.
++
++use super::buffers::GpuCtx;
++use super::frame::Binds;
++use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
++use wgpu::PrimitiveTopology::{LineList, TriangleList};
++
++/// The lane's shaders, for the mirror tests.
++#[cfg(test)]
++pub const SHADERS: &[(&str, &str)] = &[
++    ("grid.wgsl", include_str!("../../shaders/grid.wgsl")),
++    (
++        "background.wgsl",
++        include_str!("../../shaders/background.wgsl"),
++    ),
++];
++
++/// Vertices the grid shader builds from the vertex index: 44 floor + 6 axis.
++const GRID_VERTS: u32 = 50;
++
++/// The two backdrop pipelines and their shader modules.
++pub struct BackdropLane {
++    background_shader: wgpu::ShaderModule,
++    grid_shader: wgpu::ShaderModule,
++    background: wgpu::RenderPipeline,
++    grid: wgpu::RenderPipeline,
++}
++
++impl BackdropLane {
++    /// Compile both shaders once and build the pipelines for `target`.
++    pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
++        let background_shader = module(
++            &ctx.device,
++            "background.shader",
++            include_str!("../../shaders/background.wgsl"),
++        );
++        let grid_shader = module(
++            &ctx.device,
++            "grid.shader",
++            include_str!("../../shaders/grid.wgsl"),
++        );
++        let background = build_background(ctx, &background_shader, target);
++        let grid = build_grid(ctx, l, &grid_shader, target);
++
++        Self {
++            background_shader,
++            grid_shader,
++            background,
++            grid,
++        }
++    }
++
++    /// Rebuild both pipelines for a new sample count.
++    pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
++        self.background = build_background(ctx, &self.background_shader, target);
++        self.grid = build_grid(ctx, l, &self.grid_shader, target);
++    }
++
++    /// The background: one fullscreen triangle, nothing bound. Always 1 draw.
++    pub fn draw_background(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
++        pass.set_pipeline(&self.background);
++        pass.draw(0..3, 0..1);
++        1
++    }
++
++    /// The grid draws before the geometry with depth writes off, so every object paints over
++    /// it. The line block carries the anchor it subtracts. Always 1 draw.
++    pub fn draw_grid(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        pass.set_pipeline(&self.grid);
++        pass.set_bind_group(0, b.mvp, &[]);
++        pass.set_bind_group(1, b.line, &[]);
++        pass.draw(0..GRID_VERTS, 0..1);
++        1
++    }
++}
++
++/// The background pipeline: always drawn, never writes depth.
++fn build_background(
++    ctx: &GpuCtx,
++    shader: &wgpu::ShaderModule,
++    target: Target,
++) -> wgpu::RenderPipeline {
++    let base = PipelineDesc::new(shader, &[], &[], TriangleList);
++    build(
++        &ctx.device,
++        target,
++        &base
++            .with("background", "fs_main")
++            .depth(DepthMode::Always)
++            .physical(),
++    )
++}
++
++/// The grid pipeline: depth-tested lines, no depth write.
++fn build_grid(
++    ctx: &GpuCtx,
++    l: &Layouts,
++    shader: &wgpu::ShaderModule,
++    target: Target,
++) -> wgpu::RenderPipeline {
++    let groups = [&l.mvp, &l.line];
++    let base = PipelineDesc::new(shader, &groups, &[], LineList);
++    build(
++        &ctx.device,
++        target,
++        &base
++            .with("grid", "fs_main")
++            .depth(DepthMode::ReadOnly)
++            .physical(),
++    )
++}
+diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
+index d87e98641b1ed15f457f44816a6f45b5805a85c8..8c2f5ccd21d2f3babf1e999146fe8662af95651d
+--- a/session_viewer/src/engine/gpu/instance.rs
++++ b/session_viewer/src/engine/gpu/instance.rs
+@@ -98,7 +98,11 @@
+             } else {
+                 source.to_string()
+             };
+-            let source = format!("{source}\n{}", include_str!("../../shaders/normals.wgsl"));
++            let source = format!(
++                "{source}\n{}\n{}",
++                include_str!("../../shaders/normals.wgsl"),
++                include_str!("../../shaders/physical.wgsl")
++            );
+             let module = naga::front::wgsl::parse_str(&source)
+                 .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
+             naga::valid::Validator::new(
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f1514d8c1
+--- a/session_viewer/src/engine/gpu/mod.rs
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -1,5 +1,6 @@
+ //! Teaching coordinator: independent production lanes, before backdrop, text and picking.
+ pub mod arena;
++pub mod backdrop;
+ pub mod buffers;
+ pub mod cloud;
+ pub mod frame;
+@@ -22,6 +23,7 @@
+ use objects::InkScene;
+ pub use objects::{ObjectRow, Rebase};
+ pub use segments::CylinderSegment;
++use targets::Targets;
+ pub use upload::Upload;
+ /// Each lane owns its buffers/pipelines; the coordinator owns pass order and shared resources.
+ pub struct Gpu {
+@@ -33,6 +35,7 @@
+     pub targets: targets::Targets,
+     pub view: view::View,
+     pub objects: objects::InstanceTable,
++    pub backdrop: backdrop::BackdropLane,
+     pub arena: arena::ArenaLane,
+     pub segments: segments::SegmentLane,
+     pub glyphs: glyphs::GlyphLane,
+@@ -84,6 +87,7 @@
+         let frame = frame::FrameUniforms::new(&ctx, &layouts, (1, 1));
+         let targets = targets::Targets::new(&ctx, (1, 1), config.format, 1);
+         let objects = objects::InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets });
++        let backdrop = backdrop::BackdropLane::new(&ctx, &layouts, target);
+         let arena = arena::ArenaLane::new(&ctx, &layouts, target);
+         let segments = segments::SegmentLane::new(&ctx, &layouts, target);
+         let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
+@@ -98,6 +102,7 @@
+             targets,
+             view: view::View::from_env(),
+             objects,
++            backdrop,
+             arena,
+             segments,
+             glyphs,
+@@ -120,27 +125,73 @@
+         }
+         self.splat.invalidate();
+         self.bounds.union(&up.bounds);
++        self.retarget(false);
+     }
+     /// Recreate size-dependent targets and groups; chapter05 adds budgeted multisampling.
+     pub fn resize(&mut self, width: u32, height: u32) {
+         self.config.width = width.max(1);
+         self.config.height = height.max(1);
+         self.surface.configure(&self.ctx.device, &self.config);
+-        self.targets = targets::Targets::new(
+-            &self.ctx,
+-            (self.config.width, self.config.height),
+-            self.config.format,
+-            1,
+-        );
+-        self.objects.rebind_ink(
+-            &self.ctx,
+-            &self.layouts,
+-            &InkScene {
+-                targets: &self.targets,
+-            },
+-        );
++        self.retarget(true);
+         self.splat.resize();
+     }
++    /// Keep sample counts, target attachments and lane pipelines coherent.
++    fn target(&self) -> Target {
++        Target {
++            format: self.config.format,
++            samples: self.targets.samples,
++        }
++    }
++
++    /// Keep sample counts, target attachments and lane pipelines coherent.
++    fn retarget(&mut self, resized: bool) {
++        let samples = self.msaa_now();
++        let flip = samples != self.targets.samples;
++        if flip || resized {
++            self.targets = Targets::new(
++                &self.ctx,
++                (self.config.width, self.config.height),
++                self.config.format,
++                samples,
++            );
++            self.objects.rebind_ink(
++                &self.ctx,
++                &self.layouts,
++                &InkScene {
++                    targets: &self.targets,
++                },
++            );
++        }
++        if flip {
++            let target = self.target();
++            self.backdrop.retarget(&self.ctx, &self.layouts, target);
++            self.arena.retarget(&self.ctx, &self.layouts, target);
++            self.segments.retarget(&self.ctx, &self.layouts, target);
++            self.glyphs.retarget(&self.ctx, &self.layouts, target);
++            self.splat.retarget(&self.ctx, &self.layouts, target);
++            log::info!("msaa: {}x", samples);
++        }
++    }
++
++    /// Keep sample counts, target attachments and lane pipelines coherent.
++    pub fn msaa_budget(&self) -> Option<u32> {
++        Targets::msaa_budget(self.device_type)
++    }
++
++    /// Keep sample counts, target attachments and lane pipelines coherent.
++    fn msaa_now(&self) -> u32 {
++        let solid = self.arena.face_count() > 0
++            || self.arena.sheet_count() > 0
++            || self.segments.pipe_count() > 0
++            || self.glyphs.sphere_count() > 0;
++        Targets::samples_for(
++            solid,
++            self.config.width * self.config.height,
++            self.view.msaa_forced,
++            self.msaa_budget(),
++        )
++    }
++
+     /// Preserve source precision by rebuilding f32 translations around a shared f64 anchor.
+     pub fn rebase_anchor(
+         &mut self,
+@@ -204,6 +255,10 @@
+         };
+         {
+             let mut pass = self.targets.begin_faces(&mut encoder, &target, input.clear);
++            self.backdrop.draw_background(&mut pass);
++            if self.view.show_grid {
++                self.backdrop.draw_grid(&mut pass, &basic);
++            }
+             self.arena.draw_faces(&mut pass, &basic);
+             self.splat.draw_resolve(&mut pass, &self.frame.cloud_group);
+         }
+diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
+index 64e8fac743bf28bc06009dc22e578887a002c41b..3f377bb6481e7f5a0726bd97bfdf81a31f027d74
+--- a/session_viewer/src/engine/gpu/objects.rs
++++ b/session_viewer/src/engine/gpu/objects.rs
+@@ -150,6 +150,14 @@
+                 binding: 3,
+                 resource: wgpu::BindingResource::TextureView(&targets.depth_msaa),
+             },
++            wgpu::BindGroupEntry {
++                binding: 4,
++                resource: wgpu::BindingResource::TextureView(&targets.gradient_single),
++            },
++            wgpu::BindGroupEntry {
++                binding: 5,
++                resource: wgpu::BindingResource::TextureView(&targets.gradient_msaa),
++            },
+         ],
+     })
+ }
+@@ -198,6 +206,7 @@
+         ctx: &GpuCtx,
+         layouts: &Layouts,
+         depths: [&wgpu::TextureView; 2],
++        gradients: [&wgpu::TextureView; 2],
+     ) -> wgpu::BindGroup {
+         ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+             label: Some("pick.instances"),
+@@ -218,6 +227,14 @@
+                 wgpu::BindGroupEntry {
+                     binding: 3,
+                     resource: wgpu::BindingResource::TextureView(depths[1]),
++                },
++                wgpu::BindGroupEntry {
++                    binding: 4,
++                    resource: wgpu::BindingResource::TextureView(gradients[0]),
++                },
++                wgpu::BindGroupEntry {
++                    binding: 5,
++                    resource: wgpu::BindingResource::TextureView(gradients[1]),
+                 },
+             ],
+         })
+diff --git a/session_viewer/src/engine/gpu/splat.rs b/session_viewer/src/engine/gpu/splat.rs
+index 30d9344434d1d9bf5f54e3afe84fe68ca5886e7e..816cdabda3085cb2f9f0578162a58b785999c9fd
+--- a/session_viewer/src/engine/gpu/splat.rs
++++ b/session_viewer/src/engine/gpu/splat.rs
+@@ -496,6 +496,11 @@
+     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
+         .with(v.label, v.fs)
+         .vertex("vs_point");
++    let desc = if v.target == Target::ID {
++        desc.physical()
++    } else {
++        desc
++    };
+     build(&ctx.device, v.target, &desc)
+ }
+ 
+@@ -510,6 +515,7 @@
+     let groups = [&l.line, &l.resolve];
+     let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
+         .with("splat.resolve", "fs_main")
++        .physical()
+         .depth(DepthMode::Opaque);
+     build(&ctx.device, target, &desc)
+ }
+diff --git a/session_viewer/src/engine/gpu/targets.rs b/session_viewer/src/engine/gpu/targets.rs
+index 0e020b1e3041bb5f57d715e1ceba30f215770178..6fe7a69aa6f0453b59d13cd7c2f6b4f3e566f53c
+--- a/session_viewer/src/engine/gpu/targets.rs
++++ b/session_viewer/src/engine/gpu/targets.rs
+@@ -2,6 +2,26 @@
+ //! face pass establishes occlusion; the ink pass samples the depth without modifying it.
+ 
+ use super::buffers::GpuCtx;
++
++/// How many pixels a discrete GPU carries at 4x: 3840x2160 and change. Measured on
++/// `view_local` at that size, 4x cost one 8.2 ms against 6.9 at 1x - a fifth of the frame.
++const MSAA_PIXELS_DISCRETE: u32 = 9_000_000;
++
++/// The same for an integrated or virtual GPU, which shares its bandwidth with the CPU: the
++/// same scene and size cost an Intel iGPU 108.9 ms against 46.5, well over twice the frame.
++/// Shrinking the canvas does not buy that back - the same adapter needed 92.4 ms for 4x at
++/// 2108x1186 - so a big canvas gives up the samples rather than the pixels.
++const MSAA_PIXELS_SHARED: u32 = 2_500_000;
++
++/// The budget when the adapter will not say what it is. THE BROWSER IS ALWAYS THIS: wgpu's
++/// WebGPU backend hardcodes `device_type: DeviceType::Other` for every adapter
++/// (`wgpu-29.0.4/src/backend/webgpu.rs:864`), because WebGPU exposes no such field. So this
++/// arm, not the ones above, is what every wasm session gets, and it may not be read as
++/// "probably integrated" - it is a discrete GPU exactly as often as it is not. It keeps the
++/// memory bound that has always governed here: 4x colour + 4x depth are 266 MiB at 3840x2160
++/// against 36 at 1x. Sending the browser to the integrated arm instead costs every canvas
++/// between 2.5 and 4.2 Mpx its samples - a 2560x1440 window, or a 1440x900 one at dpr 1.5.
++const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
+ 
+ /// The attachments of the frame's render pass and the sample count they were made at.
+ /// `msaa` exists only at 4x. The ink layout binds a single-sampled AND a multisampled depth
+@@ -12,6 +32,9 @@
+     pub depth_single: wgpu::TextureView,
+     pub depth_msaa: wgpu::TextureView,
+     pub samples: u32,
++    pub gradient: wgpu::TextureView,
++    pub gradient_single: wgpu::TextureView,
++    pub gradient_msaa: wgpu::TextureView,
+ }
+ 
+ impl Targets {
+@@ -59,7 +82,35 @@
+         } else {
+             (empty_depth, depth.clone())
+         };
++        let gradient = texture_view(
++            ctx,
++            "physical.gradient",
++            &TextureSpec {
++                size,
++                format: wgpu::TextureFormat::Rg16Float,
++                samples,
++                usage,
++            },
++        );
++        let empty_gradient = texture_view(
++            ctx,
++            "unused.gradient",
++            &TextureSpec {
++                size: (1, 1),
++                format: wgpu::TextureFormat::Rg16Float,
++                samples: other_samples,
++                usage,
++            },
++        );
++        let (gradient_single, gradient_msaa) = if samples == 1 {
++            (gradient.clone(), empty_gradient)
++        } else {
++            (empty_gradient, gradient.clone())
++        };
+         Self {
++            gradient,
++            gradient_single,
++            gradient_msaa,
+             depth,
+             msaa,
+             depth_single,
+@@ -68,7 +119,36 @@
+         }
+     }
+ 
+-    /// Establish physical depth; multisampled color resolves after the following ink pass.
++    /// How many pixels this adapter carries at 4x, or `None` when 4x is never worth it. 4x
++    /// colour + 4x depth scale with DPR², and at 3840x2160 they were 266 MiB against 36 at 1x,
++    /// but what decides the frame is the adapter: the same scene cost a discrete GPU a fifth
++    /// more and an integrated one more than twice as much.
++    pub fn msaa_budget(gpu: wgpu::DeviceType) -> Option<u32> {
++        match gpu {
++            wgpu::DeviceType::DiscreteGpu => Some(MSAA_PIXELS_DISCRETE),
++            wgpu::DeviceType::IntegratedGpu | wgpu::DeviceType::VirtualGpu => {
++                Some(MSAA_PIXELS_SHARED)
++            }
++            wgpu::DeviceType::Cpu => None,
++            wgpu::DeviceType::Other => Some(MSAA_PIXELS_UNKNOWN),
++        }
++    }
++
++    /// The sample count a frame gets: 4x only when SOLID geometry (faces, pipes, spheres) is on
++    /// the GPU AND the canvas is within this adapter's `budget`, else 1x. Hard edges are the
++    /// only thing MSAA smooths; ribbons, dots and splats antialias themselves. `forced` wins.
++    pub fn samples_for(solid: bool, pixels: u32, forced: Option<u32>, budget: Option<u32>) -> u32 {
++        if let Some(s) = forced {
++            return if s == 4 { 4 } else { 1 };
++        }
++        match budget {
++            Some(max) if solid && pixels <= max => 4,
++            _ => 1,
++        }
++    }
++
++    /// Clear physical depth to reverse-Z far and write the faces. Multisampled colour
++    /// resolves only after the following ink pass.
+     pub fn begin_faces<'a>(
+         &'a self,
+         encoder: &'a mut wgpu::CommandEncoder,
+@@ -78,15 +158,26 @@
+         let target = self.msaa.as_ref().unwrap_or(view);
+         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+             label: Some("physical face pass"),
+-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+-                view: target,
+-                resolve_target: None,
+-                depth_slice: None,
+-                ops: wgpu::Operations {
+-                    load: wgpu::LoadOp::Clear(clear),
+-                    store: wgpu::StoreOp::Store,
+-                },
+-            })],
++            color_attachments: &[
++                Some(wgpu::RenderPassColorAttachment {
++                    view: target,
++                    resolve_target: None,
++                    depth_slice: None,
++                    ops: wgpu::Operations {
++                        load: wgpu::LoadOp::Clear(clear),
++                        store: wgpu::StoreOp::Store,
++                    },
++                }),
++                Some(wgpu::RenderPassColorAttachment {
++                    view: &self.gradient,
++                    resolve_target: None,
++                    depth_slice: None,
++                    ops: wgpu::Operations {
++                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
++                        store: wgpu::StoreOp::Store,
++                    },
++                }),
++            ],
+             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                 view: &self.depth,
+                 depth_ops: Some(wgpu::Operations {
+@@ -163,3 +254,40 @@
+ pub fn texture_view(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::TextureView {
+     texture(ctx, label, spec).create_view(&wgpu::TextureViewDescriptor::default())
+ }
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// The sample count follows the ADAPTER, not the pixel count alone: a discrete GPU keeps
++    /// 4x at 4K, a shared one gives it up well before, and a software one never has it.
++    #[test]
++    fn msaa_follows_the_adapter() {
++        let discrete = Targets::msaa_budget(wgpu::DeviceType::DiscreteGpu);
++        let shared = Targets::msaa_budget(wgpu::DeviceType::IntegratedGpu);
++        let software = Targets::msaa_budget(wgpu::DeviceType::Cpu);
++        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, discrete), 4);
++        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, shared), 1);
++        assert_eq!(Targets::samples_for(true, 1920 * 1080, None, shared), 4);
++        assert_eq!(Targets::samples_for(true, 1, None, software), 1);
++        assert_eq!(Targets::samples_for(false, 1, None, discrete), 1);
++        assert_eq!(
++            Targets::samples_for(true, 3840 * 2160, Some(1), discrete),
++            1
++        );
++        assert_eq!(Targets::samples_for(false, u32::MAX, Some(4), software), 4);
++    }
++
++    /// THE BROWSER'S ARM. wgpu's WebGPU backend reports `DeviceType::Other` for every adapter
++    /// there, so this is the only budget a wasm session can reach. Reading it as "integrated"
++    /// costs an ordinary 2560x1440 window its samples; the memory bound still takes them away
++    /// at 4K, where 4x really is 266 MiB.
++    #[test]
++    fn the_browser_arm_is_not_the_integrated_one() {
++        let browser = Targets::msaa_budget(wgpu::DeviceType::Other);
++        let shared = Targets::msaa_budget(wgpu::DeviceType::IntegratedGpu);
++        assert_eq!(Targets::samples_for(true, 2560 * 1440, None, browser), 4);
++        assert_eq!(Targets::samples_for(true, 2560 * 1440, None, shared), 1);
++        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, browser), 1);
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/text_outline.rs b/session_viewer/src/engine/gpu/text_outline.rs
+index 65af6f1d5851e441a200983d641d31ab77c1d577..16bde2089114a13a30f850106e8c43173ce3cc0e
+--- a/session_viewer/src/engine/gpu/text_outline.rs
++++ b/session_viewer/src/engine/gpu/text_outline.rs
+@@ -23,6 +23,7 @@
+     shader: wgpu::ShaderModule,
+     color: wgpu::RenderPipeline,
+     id: wgpu::RenderPipeline,
++    physical_id: wgpu::RenderPipeline,
+ }
+ 
+ impl OutlineTextLane {
+@@ -33,13 +34,18 @@
+             "text-outline.shader",
+             include_str!("../../shaders/text_outline.wgsl"),
+         );
+-        let (color, id) = pipelines(ctx, layouts, &shader, target);
+-        Self { shader, color, id }
++        let (color, id, physical_id) = pipelines(ctx, layouts, &shader, target);
++        Self {
++            shader,
++            color,
++            id,
++            physical_id,
++        }
+     }
+ 
+     /// Follow the shared coverage sample count while retaining all source geometry.
+     pub fn retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+-        (self.color, self.id) = pipelines(ctx, layouts, &self.shader, target);
++        (self.color, self.id, self.physical_id) = pipelines(ctx, layouts, &self.shader, target);
+     }
+ 
+     /// Draw imported glyph coverage after page fills and linework; depth remains read-only.
+@@ -53,6 +59,17 @@
+         draw(pass, binds, buffers)
+     }
+ 
++    /// Sheet IDs preserve the physical depth and gradient already written by their face.
++    pub fn draw_physical_ids(
++        &self,
++        pass: &mut wgpu::RenderPass<'_>,
++        binds: &Binds,
++        buffers: &OutlineBuffers<'_>,
++    ) -> u32 {
++        pass.set_pipeline(&self.physical_id);
++        draw(pass, binds, buffers)
++    }
++
+     /// Preserve the existing exact object IDs and sheet depth comparison in the picking pass.
+     pub fn draw_ids(
+         &self,
+@@ -85,7 +102,11 @@
+     layouts: &Layouts,
+     shader: &wgpu::ShaderModule,
+     target: Target,
+-) -> (wgpu::RenderPipeline, wgpu::RenderPipeline) {
++) -> (
++    wgpu::RenderPipeline,
++    wgpu::RenderPipeline,
++    wgpu::RenderPipeline,
++) {
+     let groups = [&layouts.mvp, &layouts.line, &layouts.instance];
+     let vertices = [vertex_layout(), instance_id_layout()];
+     let base = PipelineDesc::new(
+@@ -109,7 +130,15 @@
+             .with("text-outline.id", "fs_id")
+             .depth(DepthMode::ReadOnlyEqual),
+     );
+-    (color, id)
++    let physical_id = build(
++        &ctx.device,
++        Target::ID,
++        &base
++            .with("text-outline.physical_id", "fs_physical_id")
++            .physical()
++            .depth(DepthMode::ReadOnlyEqual),
++    );
++    (color, id, physical_id)
+ }
+ 
+ #[cfg(all(test, not(target_arch = "wasm32")))]
+diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
+index 88cc89d4850a4fe6b2e10ec2d9c7362c6413567f..8cf597917a47f742b5a284f2a1c65b789c7e8e00
+--- a/session_viewer/src/engine/pipelines/layouts.rs
++++ b/session_viewer/src/engine/pipelines/layouts.rs
+@@ -57,6 +57,20 @@
+         visibility: wgpu::ShaderStages::FRAGMENT,
+         ty: wgpu::BindingType::Texture {
+             sample_type: wgpu::TextureSampleType::Depth,
++            view_dimension: wgpu::TextureViewDimension::D2,
++            multisampled,
++        },
++        count: None,
++    }
++}
++
++/// The immutable raster gradient, sampled without filtering.
++fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntry {
++    wgpu::BindGroupLayoutEntry {
++        binding,
++        visibility: wgpu::ShaderStages::FRAGMENT,
++        ty: wgpu::BindingType::Texture {
++            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+             view_dimension: wgpu::TextureViewDimension::D2,
+             multisampled,
+         },
+@@ -81,6 +95,8 @@
+             ),
+             scene_depth(2, false),
+             scene_depth(3, true),
++            scene_gradient(4, false),
++            scene_gradient(5, true),
+         ],
+     })
+ }
+diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
+index 4316b43b51af6e670a1e23c1e855c6e6aac238f6..612983fcda67f37ceaeb10c8db856f4a314b24fb
+--- a/session_viewer/src/engine/pipelines/mod.rs
++++ b/session_viewer/src/engine/pipelines/mod.rs
+@@ -87,6 +87,7 @@
+     pub color: ColorWrite,
+     pub depth: DepthMode,
+     pub scene_samples: Option<u32>,
++    pub physical: bool,
+ }
+ 
+ impl<'a> PipelineDesc<'a> {
+@@ -109,6 +110,7 @@
+             color: ColorWrite::Opaque,
+             depth: DepthMode::Opaque,
+             scene_samples: None,
++            physical: false,
+         }
+     }
+ 
+@@ -138,6 +140,12 @@
+         self
+     }
+ 
++    /// Add immutable physical-gradient output beside the primary color target.
++    pub fn physical(mut self) -> Self {
++        self.physical = true;
++        self
++    }
++
+     /// The same desc with another depth mode.
+     pub fn depth(mut self, depth: DepthMode) -> Self {
+         self.depth = depth;
+@@ -182,7 +190,12 @@
+ 
+ /// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
+ pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+-    let source = format!("{}\n{}", source, include_str!("../../shaders/normals.wgsl"));
++    let source = format!(
++        "{}\n{}\n{}",
++        source,
++        include_str!("../../shaders/normals.wgsl"),
++        include_str!("../../shaders/physical.wgsl")
++    );
+     device.create_shader_module(wgpu::ShaderModuleDescriptor {
+         label: Some(label),
+         source: wgpu::ShaderSource::Wgsl(source.into()),
+@@ -223,11 +236,22 @@
+     let layout = pipeline_layout(device, desc.label, desc.groups);
+     let (depth_write, depth_compare) = desc.depth.state();
+     let (blend, write_mask) = desc.color.state();
+-    let targets = [Some(wgpu::ColorTargetState {
++    let mut targets = vec![Some(wgpu::ColorTargetState {
+         format: target.format,
+         blend,
+         write_mask,
+     })];
++    if desc.physical {
++        targets.push(Some(wgpu::ColorTargetState {
++            format: wgpu::TextureFormat::Rg16Float,
++            blend: None,
++            write_mask: if desc.depth == DepthMode::ReadOnlyEqual {
++                wgpu::ColorWrites::empty()
++            } else {
++                wgpu::ColorWrites::ALL
++            },
++        }));
++    }
+     let mut constants = Vec::new();
+     if let Some(samples) = desc.scene_samples {
+         constants.push(("SCENE_MSAA", f64::from(samples > 1)));
+diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
+index 57b37fe15901891af2e7c8fb6575fe0ed8c19bca..221e12bee79791eff97e3101c1e811cb02f02479
+--- a/session_viewer/src/fixture.rs
++++ b/session_viewer/src/fixture.rs
+@@ -1,75 +1,150 @@
+-//! Four independent source rows exercise the mesh, segment, dot and point-cloud lanes.
+-use crate::engine::gpu::{
+-    CloudDraw, CylinderSegment, GlyphPoint, Instance, NO_NORMALS, ObjectRow, Upload,
+-};
++//! Deterministic grey box and floor depth fixtures in metre units.
++use crate::engine::gpu::{CylinderSegment, GlyphPoint, ObjectRow, Upload};
++use crate::math::Aabb;
+ use session_rust::{RenderVertex, Xform};
+-/// Build small deterministic local data; no network, private bucket or geometry decoder.
++
++/// Select a local fixture without fetching a manifest or decoding geometry.
+ pub fn scene() -> Upload {
++    if crate::app::route::query("fixture").as_deref() == Some("floor") {
++        floor()
++    } else {
++        grey_box()
++    }
++}
++
++/// Eight source corners, six exact face quads, twelve red source edges and eight black markers.
++fn grey_box() -> Upload {
+     let mut upload = Upload::default();
+-    upload.bounds = crate::math::Aabb {
+-        min: [-2.0, -1.3, -0.1],
+-        max: [2.0, 1.3, 0.1],
++    let points = [
++        [-0.5, -0.5, -0.5],
++        [0.5, -0.5, -0.5],
++        [0.5, 0.5, -0.5],
++        [-0.5, 0.5, -0.5],
++        [-0.5, -0.5, 0.5],
++        [0.5, -0.5, 0.5],
++        [0.5, 0.5, 0.5],
++        [-0.5, 0.5, 0.5],
++    ];
++    upload.bounds = Aabb {
++        min: [-0.5; 3],
++        max: [0.5; 3],
+     };
+-    for _ in 0..4 {
+-        upload
+-            .obj
+-            .rows
+-            .push(ObjectRow::new(Xform::identity().m, Instance::FLAG_OPEN));
++    row(&mut upload, true);
++    let faces = [
++        ([0, 3, 2, 1], [0., 0., -1.]),
++        ([4, 5, 6, 7], [0., 0., 1.]),
++        ([0, 1, 5, 4], [0., -1., 0.]),
++        ([3, 7, 6, 2], [0., 1., 0.]),
++        ([0, 4, 7, 3], [-1., 0., 0.]),
++        ([1, 2, 6, 5], [1., 0., 0.]),
++    ];
++    for (corners, normal) in faces {
++        let mut positions = [[0.0; 3]; 4];
++        for (slot, corner) in corners.into_iter().enumerate() {
++            positions[slot] = points[corner];
++        }
++        quad(&mut upload, 0, positions, normal);
+     }
+-    upload.obj.rows[0].faces = true;
+-    upload.obj.rows[0].bounds = upload.bounds;
+-    for position in [[-1.7, 0.1, 0.0], [-0.3, 0.1, 0.0], [-1.0, 1.1, 0.0]] {
++    for [first, last] in [
++        [0, 1],
++        [1, 2],
++        [2, 3],
++        [3, 0],
++        [4, 5],
++        [5, 6],
++        [6, 7],
++        [7, 4],
++        [0, 4],
++        [1, 5],
++        [2, 6],
++        [3, 7],
++    ] {
++        stroke(&mut upload, 0, points[first], points[last], 0xff0000ff);
++    }
++    for point in points {
++        marker(&mut upload, 0, point, [0., 0., 0., 1.]);
++    }
++    upload
++}
++
++/// Four millimetres separate hidden magenta ink from a physical sloping floor.
++fn floor() -> Upload {
++    let mut upload = Upload::default();
++    upload.bounds = Aabb {
++        min: [-2.0, -1.5, -0.504],
++        max: [2.0, 1.5, 0.5],
++    };
++    row(&mut upload, true);
++    row(&mut upload, false);
++    quad(
++        &mut upload,
++        0,
++        [
++            [-2., -1.5, -0.5],
++            [2., -1.5, 0.5],
++            [2., 1.5, 0.5],
++            [-2., 1.5, -0.5],
++        ],
++        [-0.24253562, 0., 0.9701425],
++    );
++    for y in [-0.6, 0.0, 0.6] {
++        stroke(&mut upload, 1, [-1., y, -0.254], [1., y, 0.246], 0xffff00ff);
++        marker(&mut upload, 1, [0., y, -0.004], [1., 0., 1., 1.]);
++    }
++    stroke(
++        &mut upload,
++        0,
++        [-1.3, -1., -0.325],
++        [1.3, -1., 0.325],
++        0xffff0000,
++    );
++    upload
++}
++
++/// Describe each source object once; table indices remain its rendering address.
++fn row(upload: &mut Upload, faces: bool) {
++    let mut row = ObjectRow::new(Xform::identity().m, 0);
++    row.bounds = upload.bounds;
++    row.faces = faces;
++    upload.obj.rows.push(row);
++}
++
++/// Append two triangles using the same four positions as their boundary strokes.
++fn quad(upload: &mut Upload, row: u32, points: [[f32; 3]; 4], normal: [f32; 3]) {
++    let first = upload.arena.verts.len() as u32;
++    for position in points {
+         upload.arena.verts.push(RenderVertex {
+             position,
+-            normal: [0.0, 0.0, 1.0],
+-            color: [0.2, 0.7, 1.0, 1.0],
++            normal,
++            color: [0.6, 0.6, 0.6, 1.],
+         });
+-        upload.arena.vids.push(0);
++        upload.arena.vids.push(row);
+     }
+-    upload.arena.idx.extend([0, 1, 2]);
+-    let chain = [
+-        [0.3, 0.2, 0.0],
+-        [0.7, 1.0, 0.0],
+-        [1.2, 0.4, 0.0],
+-        [1.7, 1.0, 0.0],
+-    ];
+-    for pair in chain.windows(2) {
+-        upload.seg.ribbons.push(CylinderSegment {
+-            p0: pair[0],
+-            p1: pair[1],
+-            radius: 0.0,
+-            instance_id: 1,
+-            color: 0xff55ccff,
+-            facing: 0xffffffff,
+-        });
++    for index in [0, 1, 2, 0, 2, 3] {
++        upload.arena.idx.push(first + index);
+     }
++}
++
++/// Screen-space ribbon extrusion consumes unchanged source endpoints.
++fn stroke(upload: &mut Upload, row: u32, p0: [f32; 3], p1: [f32; 3], color: u32) {
++    upload.seg.ribbons.push(CylinderSegment {
++        p0,
++        p1,
++        radius: 0.,
++        instance_id: row,
++        color,
++        facing: u32::MAX,
++    });
++}
++
++/// Source-centred markers use the same physical scene depth as the strokes.
++fn marker(upload: &mut Upload, row: u32, center: [f32; 3], color: [f32; 4]) {
+     upload.glyph.dots.push(GlyphPoint {
+-        center: [-1.0, -0.7, 0.0],
+-        radius: 0.09,
+-        color: [1.0, 0.4, 0.2, 1.0],
+-        instance_id: 2,
+-        facing: 0xffffffff,
+-        facing_ext: [0xffffffff; 2],
++        center,
++        radius: 0.018,
++        color,
++        instance_id: row,
++        facing: u32::MAX,
++        facing_ext: [u32::MAX; 2],
+     });
+-    for y in 0..9 {
+-        for x in 0..13 {
+-            upload
+-                .cloud
+-                .pos
+-                .extend([0.4 + x as f32 * 0.1, -1.1 + y as f32 * 0.07, 0.0]);
+-            upload.cloud.col.push(0xffffaa55);
+-        }
+-    }
+-    upload.cloud.draws.push(CloudDraw {
+-        instance: 3,
+-        from: 0,
+-        count: 117,
+-        first: 0,
+-        spacing: 0.07,
+-        node_first: 0,
+-        node_count: 0,
+-        nrm_first: NO_NORMALS,
+-    });
+-    upload.obj.rows[3].spacing = 2.0;
+-    upload
+ }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index 27c1006dcc6b33ffe54e9b36aecae135a1a6c906..f2fb7e08d09946d58166992f8a0da14b03e95cc1
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -25,8 +25,17 @@
+         upload.drop_uploaded();
+         let mut camera = camera::Camera::new();
+         camera.unit = camera::Unit::Meters;
+-        camera.set_view(camera::View::Top);
++        camera.set_view(camera::View::Iso);
+         camera.fit(&gpu.bounds, 1.5);
++        if app::route::query("top").is_some() {
++            camera.set_view(camera::View::Top);
++        }
++        camera.perspective = app::route::query("perspective").is_some();
++        if let Some(distance) = app::route::query("distance").and_then(parse_distance) {
++            camera.distance *= distance;
++            camera.update_position();
++        }
++        gpu.view.show_grid = false;
+         Ok(Self {
+             canvas,
+             gpu,
+@@ -81,7 +90,7 @@
+             now_ms: now,
+         };
+         self.gpu.render(&input).map_err(js_error)?;
+-        Ok(serde_json::json!({"stage":4,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,
++        Ok(serde_json::json!({"stage":5,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"samples":self.gpu.targets.samples,
+             "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
+     }
+ }
+@@ -93,3 +102,9 @@
+ fn js_error(error: impl std::fmt::Display) -> JsValue {
+     JsValue::from_str(&error.to_string())
+ }
++
++/// Limit the reproducible diagnostic distance knob to the verified range.
++fn parse_distance(value: String) -> Option<f64> {
++    let value = value.parse::<f64>().ok()?;
++    (value.is_finite() && (1.0..=16.0).contains(&value)).then_some(value)
++}
+diff --git a/session_viewer/src/shaders/background.wgsl b/session_viewer/src/shaders/background.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..f5f4758d18a284aaec1bc388699e75a9991648b8
+--- /dev/null
++++ b/session_viewer/src/shaders/background.wgsl
+@@ -0,0 +1,23 @@
++// The background: one fullscreen triangle at the far plane, flat white.
++
++struct VsOut {
++    @builtin(position) pos: vec4<f32>,
++}
++
++const CORNERS = array<vec2<f32>, 3>(
++    vec2<f32>(-1.0, -1.0),
++    vec2<f32>(3.0, -1.0),
++    vec2<f32>(-1.0, 3.0),
++);
++
++@vertex
++fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
++    var o: VsOut;
++    o.pos = vec4<f32>(CORNERS[vid], 1.0, 1.0);
++    return o;
++}
++
++@fragment
++fn fs_main(in: VsOut) -> PhysicalColor {
++    return PhysicalColor(vec4<f32>(1.0, 1.0, 1.0, 1.0), vec2<f32>(0.0));
++}
+diff --git a/session_viewer/src/shaders/grid.wgsl b/session_viewer/src/shaders/grid.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..86e40124daefc0fe34186e2161b3e1187e6e72c9
+--- /dev/null
++++ b/session_viewer/src/shaders/grid.wgsl
+@@ -0,0 +1,72 @@
++// The ground grid and axes: 50 vertices built from the vertex index, no buffer. Authored in
++// world millimetres about the origin, minus the camera anchor the instance rows are rebased on.
++
++@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
++@group(1) @binding(0) var<uniform> line: LineUniform;
++
++struct LineUniform {
++    thickness: f32,
++    proj_y: f32,
++    ortho_h: f32,
++    vp_h: f32,
++    vp_w: f32,
++    eye_x: f32,
++    eye_y: f32,
++    eye_z: f32,
++    anchor: vec3<f32>,
++    feather: f32,
++    lit: f32,
++    backface: f32,
++};
++
++const STEP: f32 = 1000.0;   // mm per cell
++const HALF: f32 = 5000.0;   // +-5 m floor
++const N: u32 = 5u;          // cells per side of the centre
++const PER_DIR: u32 = 22u;   // (2N + 1) lines x 2 endpoints
++const FLOOR: u32 = 44u;     // both directions; axes follow
++
++const GREY: vec3<f32> = vec3<f32>(0.55, 0.55, 0.55);
++const RED: vec3<f32> = vec3<f32>(0.85, 0.30, 0.30);
++const GREEN: vec3<f32> = vec3<f32>(0.30, 0.70, 0.30);
++const BLUE: vec3<f32> = vec3<f32>(0.30, 0.45, 0.85);
++
++struct VsOut {
++    @builtin(position) pos: vec4<f32>,
++    @location(0) color: vec3<f32>,
++}
++
++@vertex
++fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
++    let far = (vid % 2u) == 1u;
++    var wp: vec3<f32>;
++    var c: vec3<f32>;
++    if (vid < FLOOR) {
++        let dir = vid / PER_DIR;
++        let k = (vid % PER_DIR) / 2u;
++        let t = (f32(k) - f32(N)) * STEP;
++        let end = select(-HALF, HALF, far);
++        wp = select(vec3<f32>(end, t, 0.0), vec3<f32>(t, end, 0.0), dir == 1u);
++        c = GREY;
++    } else {
++        let axis = (vid - FLOOR) / 2u;
++        if (axis == 0u) {
++            wp = vec3<f32>(select(0.0, HALF, far), 0.0, 0.0);
++            c = RED;
++        } else if (axis == 1u) {
++            wp = vec3<f32>(0.0, select(0.0, HALF, far), 0.0);
++            c = GREEN;
++        } else {
++            wp = vec3<f32>(0.0, 0.0, select(0.0, 1000.0, far));
++            c = BLUE;
++        }
++    }
++    var o: VsOut;
++    o.pos = mvp * vec4<f32>(wp - line.anchor, 1.0);
++    o.color = c;
++    return o;
++}
++
++@fragment
++fn fs_main(in: VsOut) -> PhysicalColor {
++    return PhysicalColor(vec4<f32>(in.color, 1.0), vec2<f32>(0.0));
++}
+diff --git a/session_viewer/src/shaders/ink_visibility.wgsl b/session_viewer/src/shaders/ink_visibility.wgsl
+index 19d7c3d366cc58e4435e30cc5fd0d5d6821155ae..89690d89a160b0b419726b48372d979991b4b2ca
+--- a/session_viewer/src/shaders/ink_visibility.wgsl
++++ b/session_viewer/src/shaders/ink_visibility.wgsl
+@@ -1,29 +1,236 @@
+-// Initial pixel-center visibility; chapter05 replaces this with the tested surface-carry rule.
++// Ink compares its axis with the physical primitive depth carried by that primitive's
++// raster gradient. This retains subpixel and grazing facets without relaxing occlusion.
++// A bounded neighboring-plane fit handles gradients outside the attachment's range.
++// Reverse-Z: nearer is greater, 0 is cleared. Pixels are framebuffer coordinates, y down.
+ @group(2) @binding(2) var scene_depth_single: texture_depth_2d;
+ @group(2) @binding(3) var scene_depth_msaa: texture_depth_multisampled_2d;
++
+ override SCENE_MSAA: bool = false;
+-struct InkColor { @location(0) color: vec4<f32> };
+-struct InkAxis { at:vec2<f32>, depth:f32, along:vec2<f32>, slope:f32 };
+-fn ink_depth(pixel:vec2<f32>, sample:u32) -> f32 {
+-    if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w,line.vp_h))) { return 0.0; }
+-    if (SCENE_MSAA) { return textureLoad(scene_depth_msaa,vec2<i32>(pixel),i32(sample)); }
+-    return textureLoad(scene_depth_single,vec2<i32>(pixel),0);
+-}
+-fn ink_visible(pixel:vec2<f32>, axis:InkAxis, sample:u32) -> bool {
+-    return ink_depth(pixel,sample) <= axis.depth;
+-}
+-fn ink_disc_fragment_visible(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
+-    return ink_depth(pixel,sample) <= depth;
+-}
+-fn ink_disc_visible(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
+-    return ink_disc_fragment_visible(pixel,centre,depth,sample);
+-}
+-fn ink_disc_source_hidden(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
+-    return ink_depth(pixel,sample) > depth;
+-}
+-
+-// The rigid teaching fixture uses the same ray convention as the retained camera.
++@group(2) @binding(4) var scene_gradient_single: texture_2d<f32>;
++@group(2) @binding(5) var scene_gradient_msaa: texture_multisampled_2d<f32>;
++
++// 2^-19: about 16 ULPs of a float, relative to the depth.
++const DEPTH_REL_TOL: f32 = 1.9073486e-6;
++// The rasterizer snaps vertices to 1/256 px, so a fitted plane's depth is off by its slope
++// times that; 2^-8 is exactly that quantisation, with the headroom measured away: the close-up
++// holds at 242720 non-background pixels and the probe matrix at 54 cases with its nine
++// distance-1 counts unchanged, while the floor census residual falls from 29 to 13 samples.
++const SLOPE_PX: f32 = 0.00390625;
++// How much of the two slopes a KINK may differ by and still count as one surface. A tessellation
++// is piecewise planar and turns at every facet boundary, so a curved BRep's edge curve runs along
++// kinks and loses half its width when the guard reads one as a surface jump; a real jump changes
++// the slope by many times itself. 2^-5 is the largest fraction that keeps the floor census at
++// zero at every camera at 1x and 4x - 2^-4 leaks one sample at down_4_flat - and it leaves the
++// close-up at 242720 non-background pixels, the probe matrix at 54 cases with its nine distance-1
++// counts unchanged, and the census's 16x counts unchanged, while the BRep orbit mean rises from
++// 709 to 724. It does NOT admit a whole facet kink: 5 degrees between samples at 45 degrees of
++// incidence is about 0.09 of the slope. The rest of a sphere's meridian waits for edge and face
++// discretisation to match, which is phase 2.
++const KINK: f32 = 0.03125;
++
++struct InkColor {
++    @location(0) color: vec4<f32>,
++};
++
++// The stroke as one fragment sees it: the closest axis point, its depth, the unit screen
++// direction of the stroke and the axis's depth change per pixel along it.
++struct InkAxis {
++    at: vec2<f32>,
++    depth: f32,
++    along: vec2<f32>,
++    slope: f32,
++};
++
++// A texel's physical depth at one sample; outside the viewport counts as cleared.
++fn ink_depth(pixel: vec2<f32>, sample: u32) -> f32 {
++    if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w, line.vp_h))) {
++        return 0.0;
++    }
++    let at = vec2<i32>(pixel);
++    if (SCENE_MSAA) {
++        return textureLoad(scene_depth_msaa, at, i32(sample));
++    }
++    return textureLoad(scene_depth_single, at, 0);
++}
++
++// How far a fitted plane may miss: float precision plus the slope's snapping error over the
++// lever arm it was extrapolated across.
++fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
++    return abs(depth) * DEPTH_REL_TOL + abs(slope) * SLOPE_PX * (1.0 + lever);
++}
++
++// Whether the fragment and its neighbour one texel along `dir` lie on one surface, so that
++// pair may be fitted: on a plane the next texel out extends the slope, bent only by the
++// rasterizer's vertex snapping and by whatever kink a tessellation has there, while a step from
++// one surface to another is many times the slope. A cleared neighbour is no pair at all; cleared
++// beyond it means the surface ends there and the pair is all there is to fit.
++fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> bool {
++    let z_side = ink_depth(pixel + dir, sample);
++    if (z_side == 0.0) {
++        return false;
++    }
++    let z_far = ink_depth(pixel + dir * 2.0, sample);
++    if (z_far == 0.0) {
++        return true;
++    }
++    let g = z_side - z;
++    let g_far = z_far - z_side;
++    return abs(g_far - g) <= abs(z) * DEPTH_REL_TOL + KINK * (abs(g) + abs(g_far));
++}
++
++// The carry's verdict, shared by strokes and discs. A texel already nearer than the axis is
++// ink only when its surface passes THROUGH the axis, so a plane fitted in front of the axis
++// that lands behind it cannot uncover a covered stroke; a farther texel keeps the one-sided
++// compare, so a stroke still overhangs a silhouette at full width.
++fn ink_carry_visible(predicted: f32, z: f32, depth: f32, tolerance: f32) -> bool {
++    if (z > depth + abs(depth) * DEPTH_REL_TOL) {
++        return abs(predicted - depth) <= tolerance;
++    }
++    return predicted <= depth + tolerance;
++}
++
++// The unit texel step away from the stroke on this fragment's side, along the dominant
++// component of the perpendicular, so both texels of the fit lie on the fragment's surface.
++fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
++    let perp = vec2<f32>(-axis.along.y, axis.along.x);
++    var step = vec2<f32>(sign(perp.x), 0.0);
++    if (abs(perp.y) > abs(perp.x)) {
++        step = vec2<f32>(0.0, sign(perp.y));
++    }
++    return select(step, -step, dot(pixel - axis.at, step) < 0.0);
++}
++
++// A stroke fragment: the surface under it, fitted from its own texel and the next one away
++// from the stroke, carried to the axis, must not be nearer than the axis. On its own face
++// or a touching neighbour the carry lands on the axis; a nearer occluder carries nearer and
++// hides the fragment even where the occluder recedes past the axis depth at this pixel; a
++// farther surface beyond a silhouette carries farther and the stroke overhangs it.
++fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
++    let z = ink_depth(pixel, sample);
++    if (z == 0.0) {
++        return true;
++    }
++    let step = ink_step(pixel, axis);
++    // Three outcomes, in this order. The pair away from the stroke is written and planar, so it
++    // holds the fragment's own surface and carries it. Else the pair toward the stroke is, and
++    // a face two texels wide, or one whose edge runs beside the stroke, still carries its own
++    // plane; a rejected outward pair never carries, because the step across a surface boundary
++    // it just failed on is exactly the phantom plane this guard exists to remove. Else the raw
++    // compare, and that is the end of the line: a texel whose neighbours disagree with each
++    // other has no surface to carry to the axis, so only its own depth can decide.
++    var side = step;
++    if (!ink_pair_planar(pixel, side, z, sample)) {
++        side = -step;
++        if (!ink_pair_planar(pixel, side, z, sample)) {
++            return z <= axis.depth + abs(axis.depth) * DEPTH_REL_TOL;
++        }
++    }
++    let z_side = ink_depth(pixel + side, sample);
++    // The displacement to the axis as a * along + b * side; the two are never parallel.
++    let e = axis.at - pixel;
++    let det = axis.along.x * side.y - axis.along.y * side.x;
++    let a = (e.x * side.y - e.y * side.x) / det;
++    let b = (axis.along.x * e.y - axis.along.y * e.x) / det;
++    let g = z_side - z;
++    let predicted = z + a * axis.slope + b * g;
++    return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(g) + abs(axis.slope), abs(b)));
++}
++
++// A disc fragment: the surface under it, fitted along both axes away from the centre and
++// carried back to the centre by that plane, is not in front of the disc. A disc is a
++// camera-facing billboard, so the whole of it stands or falls with its centre; comparing at
++// the fragment instead lets a grazing surface, which crosses the disc's own depth within a
++// few pixels of its radius, uncover the rim of a marker buried behind it.
++fn ink_disc_fragment_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
++    let z = ink_depth(pixel, sample);
++    if (z == 0.0) {
++        return true;
++    }
++    let d = pixel - centre;
++    var along_x = vec2<f32>(select(1.0, -1.0, d.x < 0.0), 0.0);
++    var along_y = vec2<f32>(0.0, select(1.0, -1.0, d.y < 0.0));
++    if (!ink_pair_planar(pixel, along_x, z, sample)) {
++        along_x = -along_x;
++        if (!ink_pair_planar(pixel, along_x, z, sample)) {
++            return z <= depth + abs(depth) * DEPTH_REL_TOL;
++        }
++    }
++    if (!ink_pair_planar(pixel, along_y, z, sample)) {
++        along_y = -along_y;
++        if (!ink_pair_planar(pixel, along_y, z, sample)) {
++            return z <= depth + abs(depth) * DEPTH_REL_TOL;
++        }
++    }
++    let gx = (ink_depth(pixel + along_x, sample) - z) * along_x.x;
++    let gy = (ink_depth(pixel + along_y, sample) - z) * along_y.y;
++    let predicted = z - d.x * gx - d.y * gy;
++    return ink_carry_visible(predicted, z, depth, ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y)));
++}
++
++// Orthographic visibility uses parallel rays, independent of lateral camera position.
+ fn toward_eye(point: vec3<f32>) -> vec3<f32> {
+-    if (line.ortho_h > 0.0) { return vec3<f32>(mvp[0].z,mvp[1].z,mvp[2].z); }
+-    return vec3<f32>(line.eye_x,line.eye_y,line.eye_z) - point;
+-}
++    if (line.ortho_h > 0.0) {
++        return vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z);
++    }
++    return vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - point;
++}
++
++// Test the footprint and its source centre at the same subpixel sample position.
++// Only a verified plane can veto the centre: a raw texel at a silhouette is ambiguous.
++fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
++    if (!ink_disc_fragment_visible(pixel, centre, depth, sample)) {
++        return false;
++    }
++    let source_pixel = floor(centre) + fract(pixel);
++    return !ink_disc_source_hidden(source_pixel, centre, depth, sample);
++}
++
++// At a corner, independent x/y fits can belong to different faces. The diagonal must
++// agree too; try each quadrant so a boundary does not discard an otherwise valid fit.
++// The centre is hidden only when that complete plane lies strictly in front of it.
++fn ink_disc_source_hidden(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
++    let z = ink_depth(pixel, sample);
++    if (z == 0.0) {
++        return false;
++    }
++    let d = pixel - centre;
++    for (var x = 0u; x < 2u; x++) {
++        let dx = vec2<f32>(select(1.0, -1.0, x == 1u), 0.0);
++        if (!ink_pair_planar(pixel, dx, z, sample)) {
++            continue;
++        }
++        let gx = (ink_depth(pixel + dx, sample) - z) * dx.x;
++        for (var y = 0u; y < 2u; y++) {
++            let dy = vec2<f32>(0.0, select(1.0, -1.0, y == 1u));
++            if (!ink_pair_planar(pixel, dy, z, sample)) {
++                continue;
++            }
++            let gy = (ink_depth(pixel + dy, sample) - z) * dy.y;
++            let diagonal = ink_depth(pixel + dx + dy, sample);
++            let expected = z + gx * dx.x + gy * dy.y;
++            if (diagonal == 0.0 || abs(diagonal - expected) > ink_tolerance(z, abs(gx) + abs(gy), 2.0)) {
++                continue;
++            }
++            let predicted = z - d.x * gx - d.y * gy;
++            if (predicted > depth + ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y))) {
++                return true;
++            }
++        }
++    }
++    return false;
++}
++
++
++// Use the physical primitive's own gradient even when it covers only one sample.
++fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
++    let z = ink_depth(pixel, sample);
++    if (z == 0.0) { return true; }
++    var encoded = vec2<f32>(0.0);
++    if (SCENE_MSAA) { encoded = textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).xy; }
++    else { encoded = textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).xy; }
++    if (any(abs(encoded) >= vec2<f32>(PLANE_INVALID))) { return ink_axis_visible(pixel, axis, sample); }
++    let gradient = encoded / PLANE_SCALE;
++    let delta = axis.at - pixel;
++    let predicted = z + dot(gradient, delta);
++    return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)));
++}
+diff --git a/session_viewer/src/shaders/physical.wgsl b/session_viewer/src/shaders/physical.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..dcf68beaceb47e45b155eafef2d3267c11abac96
+--- /dev/null
++++ b/session_viewer/src/shaders/physical.wgsl
+@@ -0,0 +1,16 @@
++// Preserve the rasterizer's primitive gradient, including subpixel and grazing triangles.
++const PLANE_SCALE: f32 = 65536.0;
++const PLANE_INVALID: f32 = 65504.0;
++struct PhysicalColor {
++    @location(0) color: vec4<f32>,
++    @location(1) gradient: vec2<f32>,
++};
++struct PhysicalId {
++ @location(0) id: vec2<u32>,
++ @location(1) gradient: vec2<f32>,
++};
++fn physical_gradient(depth: f32) -> vec2<f32> {
++    let scaled = vec2<f32>(dpdx(depth), dpdy(depth)) * PLANE_SCALE;
++    if (any(abs(scaled) >= vec2<f32>(PLANE_INVALID))) { return vec2<f32>(PLANE_INVALID); }
++    return scaled;
++}
+diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
+index 9992d8634811047f37e0cc25b4a1aad3f4c29070..3b7f8a85d2e06e7ad78532254e29e4057c94b89c
+--- a/session_viewer/src/shaders/splat.wgsl
++++ b/session_viewer/src/shaders/splat.wgsl
+@@ -173,9 +173,9 @@
+ 
+ // The id pass: (object row + 1, point row + 1).
+ @fragment
+-fn fs_point_id(in: PointOut) -> @location(0) vec2<u32> {
++fn fs_point_id(in: PointOut) -> PhysicalId {
+     if (outside(in)) {
+         discard;
+     }
+-    return vec2<u32>(in.instance + 1u, in.row + 1u);
++    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<f32>(0.0));
+ }
+diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
+index 7a3b1b0507b133361cb17de61a96f7708e686207..75905e75ae11ebf1289f5a99ecbf788c81eac37f
+--- a/session_viewer/src/shaders/splat_resolve.wgsl
++++ b/session_viewer/src/shaders/splat_resolve.wgsl
+@@ -28,6 +28,7 @@
+ 
+ struct FsOut {
+     @location(0) color: vec4<f32>,
++    @location(1) gradient: vec2<f32>,
+     @builtin(frag_depth) depth: f32,
+ };
+ 
+@@ -69,6 +70,7 @@
+ 
+     o.color = vec4<f32>(rgb, 1.0);
+     o.depth = d;
++    o.gradient = vec2<f32>(0.0);
+     return o;
+ }
+ 
+diff --git a/session_viewer/src/shaders/text_outline.wgsl b/session_viewer/src/shaders/text_outline.wgsl
+index 4a0e7839f78e656685472c4ff67b24848ab7f6d0..27fa98fd5b775ee3bc637aefb09ba17e3ce3f3fa
+--- a/session_viewer/src/shaders/text_outline.wgsl
++++ b/session_viewer/src/shaders/text_outline.wgsl
+@@ -57,6 +57,11 @@
+ 
+ // Keep the exact source object row available to the shared identity pass.
+ @fragment
++fn fs_physical_id(fragment: Fragment) -> PhysicalId {
++ return PhysicalId(vec2<u32>(fragment.object+1u, 0u), vec2<f32>(0.0));
++}
++
++@fragment
+ fn fs_id(fragment: Fragment) -> @location(0) vec2<u32> {
+     return vec2<u32>(fragment.object + 1u, 0u);
+ }
+diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
+index 4fade6dfbe5644935292f035a8d81ee4504bcafd..899b43a73e51289ae7c71d1d3d68cdac3dd6d0c3
+--- a/session_viewer/src/shaders/triangle.wgsl
++++ b/session_viewer/src/shaders/triangle.wgsl
+@@ -56,6 +56,7 @@
+     @location(3) print: f32,
+     @location(4) @interpolate(flat) inst_id: u32,
+     @location(5) @interpolate(flat) mirrored: u32,
++    @location(6) @interpolate(flat) selected: u32,
+ }
+ 
+ // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
+@@ -69,6 +70,7 @@
+     dead.print = 0.0;
+     dead.inst_id = 0u;
+     dead.mirrored = 0u;
++    dead.selected = 0u;
+     return dead;
+ }
+ 
+@@ -92,6 +94,7 @@
+     o.mirrored = select(0u, 1u, dot(inst.model[0].xyz, cross(inst.model[1].xyz, inst.model[2].xyz)) < 0.0);
+     o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
+     o.inst_id = in.inst_id;
++    o.selected = inst.flags & FLAG_SELECTED;
+     return o;
+ }
+ 
+@@ -148,11 +151,17 @@
+ 
+ // The id pass: (object row + 1, 0).
+ @fragment
+-fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
+-    return vec2<u32>(in.inst_id + 1u, 0u);
++fn fs_id(in: VsOut) -> PhysicalId {
++    return PhysicalId(vec2<u32>(in.inst_id + 1u, 0u), physical_gradient(in.pos.z));
+ }
+ 
+ @fragment
+-fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
+-    return shade(in, front);
++fn fs_selection_mask(in: VsOut) -> @location(0) vec4<f32> {
++    if (in.selected == 0u) { discard; }
++    return vec4<f32>(1.0);
+ }
++
++@fragment
++fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> PhysicalColor {
++    return PhysicalColor(shade(in, front), physical_gradient(in.pos.z));
++}

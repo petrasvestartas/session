@@ -4,7 +4,9 @@
 //
 // cargo run --example mk_twobox_mesh --target x86_64-unknown-linux-gnu --release -- <out.pb>
 fn main() {
-    let out = std::env::args().nth(1).unwrap_or_else(|| "target/twobox_mesh.pb".into());
+    let out = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "target/twobox_mesh.pb".into());
     let front = session_rust::Mesh::create_box(400.0, 400.0, 400.0);
     let mut back = session_rust::Mesh::create_box(400.0, 400.0, 400.0);
     let n = back.edges_with_colors().len();

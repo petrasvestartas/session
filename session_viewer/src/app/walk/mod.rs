@@ -2,8 +2,6 @@
 //! writes. `walk_geometry` dispatches; `Row` is what a producer reports for its object row.
 //! Deleting a lane = deleting its producer file and its arm here.
 
-use session_rust::Geometry;
-use session_rust::element::ElementGeometry;
 use crate::engine::gpu::Upload;
 use crate::engine::gpu::arena::ArenaRows;
 use crate::engine::gpu::cloud::CloudRows;
@@ -14,9 +12,11 @@ use brep::{walk_brep, walk_surface};
 use cloud::walk_cloud;
 use curves::{walk_line, walk_nurbscurve, walk_polyline};
 use frames::{walk_obb, walk_plane};
-use mesh::{walk_mesh, MeshCx, MeshOpts};
+use mesh::{MeshCx, MeshOpts, walk_mesh};
 use mesh_ink::Ink;
 use points::walk_point;
+use session_rust::Geometry;
+use session_rust::element::ElementGeometry;
 
 pub mod bounds;
 pub mod brep;
@@ -42,12 +42,23 @@ pub struct Walk<'a> {
 impl<'a> Walk<'a> {
     /// Every lane table of `t`.
     pub fn of(t: &'a mut Upload) -> Self {
-        Self { arena: &mut t.arena, seg: &mut t.seg, glyph: &mut t.glyph, cloud: &mut t.cloud }
+        Self {
+            arena: &mut t.arena,
+            seg: &mut t.seg,
+            glyph: &mut t.glyph,
+            cloud: &mut t.cloud,
+        }
     }
 
     /// The SOLID lane a tessellated surface reaches: the arena for its faces and the ink pair.
     fn solid(&mut self) -> (&mut ArenaRows, Ink<'_>) {
-        (self.arena, Ink { seg: self.seg, glyph: self.glyph })
+        (
+            self.arena,
+            Ink {
+                seg: self.seg,
+                glyph: self.glyph,
+            },
+        )
     }
 }
 
@@ -75,7 +86,13 @@ pub struct Row {
 impl Row {
     /// Linework, points, frames: a box, no spacing, no flags, no faces; as thick as the box.
     pub fn thin(bounds: Aabb) -> Self {
-        Self { bounds, spacing: 0.0, flags: 0, faces: false, thickness: bounds.thinnest() }
+        Self {
+            bounds,
+            spacing: 0.0,
+            flags: 0,
+            faces: false,
+            thickness: bounds.thinnest(),
+        }
     }
 }
 
@@ -93,7 +110,15 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
     match geom {
         Geometry::Mesh(m) => {
             let (arena, mut ink) = w.solid();
-            walk_mesh(arena, &mut ink, m, &MeshCx { cx, opts: &MeshOpts::OBJECT })
+            walk_mesh(
+                arena,
+                &mut ink,
+                m,
+                &MeshCx {
+                    cx,
+                    opts: &MeshOpts::OBJECT,
+                },
+            )
         }
         Geometry::BRep(b) => {
             let (arena, mut ink) = w.solid();
@@ -113,7 +138,15 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
         Geometry::Element(e) => match e.geometry() {
             ElementGeometry::Mesh(m) => {
                 let (arena, mut ink) = w.solid();
-                walk_mesh(arena, &mut ink, m, &MeshCx { cx, opts: &MeshOpts::ELEMENT })
+                walk_mesh(
+                    arena,
+                    &mut ink,
+                    m,
+                    &MeshCx {
+                        cx,
+                        opts: &MeshOpts::ELEMENT,
+                    },
+                )
             }
             ElementGeometry::BRep(b) => {
                 let (arena, mut ink) = w.solid();

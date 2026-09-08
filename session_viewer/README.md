@@ -1,89 +1,46 @@
-# session_viewer
+# Session Viewer
 
-A browser-only, WebGPU-only CAD viewer for `session` geometry, written in Rust and compiled to
-WASM with [Trunk](https://trunkrs.dev). Draws meshes, BReps, NURBS, linework, points and point
-clouds from the geometry kernel with camera-relative f64, reverse-Z depth, an octree-streamed
-point lane and GPU id-buffer picking.
+A browser CAD viewer written in Rust, compiled to WebAssembly and rendered with WebGPU. It displays meshes, BReps, NURBS, lines, points, streamed point clouds and text while retaining original source identities.
 
-## Prerequisites
+Start with the [complete reconstruction course](docs/README.md), or read the [architecture and measured results](ARCHITECTURE.md). The [coverage table](docs/coverage.md) connects requirements to source, tests and teaching chapters.
 
-```bash
-rustup target add wasm32-unknown-unknown
-cargo install trunk
+## Run
+
+The verified toolchain is Rust/Cargo 1.97.1 and Trunk 0.21.14; use the supplied Cargo lockfile.
+
+```sh
+rustup target add --toolchain 1.97.1 wasm32-unknown-unknown
+cargo +1.97.1 install trunk --version 0.21.14 --locked
+REGEN_PROTO=0 NO_COLOR=true trunk serve
 ```
 
-A recent WebGPU browser (Chrome, Edge, Firefox, or Safari 18+).
+Open <http://localhost:8770/> in a browser exposing WebGPU. The local route loads `assets/view_local.yaml` and its local PB files. A named route such as `/view_mixed` resolves the corresponding public scene manifest. The current working session also exposes the viewer through <http://localhost:8771/view_mixed>.
 
-### WebGPU on Ubuntu
+Chrome 152 on the recorded Ubuntu/Intel Vulkan host has been tested. Browser and test-host configuration, including the Linux launch arguments used for these measurements, is documented in [course setup](docs/README.md). Other browsers and hardware are not implied to have passed.
 
-Linux browsers don't expose hardware WebGPU out of the box.
+## Interaction
 
-**Chrome** needs Vulkan features, and on Wayland desktops must run under XWayland
-(Vulkan is incompatible with Chrome's Wayland backend, the window won't open):
+| Input | Behavior |
+| --- | --- |
+| Left click | Select the original object; visible geometry turns yellow and selected surfaces gain a black silhouette. |
+| Ctrl + left click | Select an original mesh, BRep or NURBS boundary edge. |
+| F10 | Show and select the current parent's original vertices or control points. |
+| Escape | Clear sub-selection and controls while retaining the parent. |
+| T | Toggle centered white-on-black selected names; enabled by default. |
+| H / S | Hide the selected object / show hidden objects. |
 
-```bash
-google-chrome --ozone-platform=x11 --enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE
+Source text can face the camera or remain in a fixed world plane. BRep boundaries reuse the incident face mesh's exact samples; curved constrained boundaries are refined before triangulation. Per-face normals preserve planar faces, smooth interiors and sharp creases.
+
+## Publish and verify
+
+The existing scripts live in the parent Session directory. They publish verified immutable geometry before updating scene metadata:
+
+```sh
+cd ..
+bash/view_put.sh out/scan.pb
+bash/view_live.sh scene.yaml scan.pb
 ```
 
-To make it permanent, copy `/usr/share/applications/google-chrome.desktop` to
-`~/.local/share/applications/` and add the same switches to every `Exec=` line.
-Leave `chrome://flags` at defaults. If Chrome refuses to start at all, delete stale
-`~/.config/google-chrome/Singleton*` symlinks.
+See [maintained verification commands](tests/README.md) for browser interactions, text, CAD boundaries, hidden lines, lifecycle, publication and Rust/C++/Python parity. The native offscreen harness is a renderer test tool; the application remains a browser viewer.
 
-**Firefox** needs one pref: `about:config` -> `dom.webgpu.enabled` -> `true`, then restart.
-
-## Run the viewer
-
-```bash
-cd session_viewer
-trunk serve        # -> http://localhost:8770
-```
-
-Open http://localhost:8770 in a WebGPU browser. That shows the LOCAL scene and nothing else:
-`assets/view_local.yaml` and the `assets/pb/view_local_*.pb` it names, served by trunk, so the
-page works with the network off. Edit the manifest and reload; edits under `src/`, `Cargo.toml`
-and `index.html` hot-reload.
-
-Every other scene lives in the Cloudflare R2 bucket `session-viewer-data` and is opened by name,
-from the bucket, never from `assets/`:
-
-```
-http://localhost:8770/?scene=view_lines          # scenes/view_lines.yaml in the bucket
-http://localhost:8770/view_mixed                 # the same, path form
-```
-
-The deployed page at https://petrasvestartas.github.io/session/ takes neither of those: with no
-query it watches `view_live.yaml` in the bucket and re-reads it every poll, so publishing
-geometry redraws it without a build or a deploy:
-
-```bash
-bash/view_put.sh out/scan.pb              # pb/view_scan.pb + scenes/view_scan.yaml, prints the ?scene=
-bash/view_live.sh scene.yaml scan.pb      # replace the live scene; open pages swap in ~1 s
-```
-
-## Native harness
-
-The same tree renders headless through Vulkan for numbers and pixels (see `ARCHITECTURE.md`
-section 11):
-
-```bash
-CARGO_TARGET_DIR=~/.cache/tmain REGEN_PROTO=0 \
-cargo run --release --example selftest --target x86_64-unknown-linux-gnu -- out.ppm assets/view_local.yaml
-cargo xtest      # the mirror and parser tests
-```
-
-## Read the docs
-
-`docs/` is the lesson series that builds this viewer from an empty crate, one compilable step at
-a time; `docs_archive/` holds the earlier series it replaced. Serve either as a static site:
-
-```bash
-cd session_viewer/docs
-python serve.py    # -> http://localhost:8771
-```
-
-## Architecture
-
-[ARCHITECTURE.md](ARCHITECTURE.md) is the source of truth: the two halves and the line between
-them, the frame order, picking, the thickness rule, point streaming, the live source, and the
-checklist for adding or deleting a lane.
+The course supplies 17 complete source patches, pinned shared prerequisites and a clean reconstruction driver. The current tutorials are in `docs/`.

@@ -2,15 +2,15 @@
 //! Reads the fused topology and the positions by slot; writes `SegRows.pipes` and
 //! `GlyphRows.spheres`, nothing else.
 
-use session_rust::Mesh;
-use session_rust::mesh::ColorMode;
+use super::encode::{BLACK, FACING_UNKNOWN, encode_width, oct16, pack_facing};
+use super::mesh::{COPLANAR_DOT, CREASE_COS, Lap, WIREFRAME_BLACK_MIN};
+use super::mesh_topology::{MeshTopo, SlotMap};
 use crate::app::knobs;
 use crate::engine::gpu::glyphs::GlyphRows;
 use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
-use super::encode::{encode_width, oct16, pack_facing, BLACK, FACING_UNKNOWN};
-use super::mesh::{Lap, COPLANAR_DOT, CREASE_COS, WIREFRAME_BLACK_MIN};
-use super::mesh_topology::{MeshTopo, SlotMap};
+use session_rust::Mesh;
+use session_rust::mesh::ColorMode;
 
 /// The two ink lanes a mesh reaches: pipes for its edges, spheres for its vertices.
 pub struct Ink<'a> {
@@ -31,7 +31,11 @@ pub struct InkCx<'a> {
 
 /// Edge `i`'s pen width: one entry broadcasts to every edge, an absent one is the 1.0 default.
 fn width_at(w: &[f64], i: usize) -> f64 {
-    if w.len() == 1 { w[0] } else { w.get(i).copied().unwrap_or(1.0) }
+    if w.len() == 1 {
+        w[0]
+    } else {
+        w.get(i).copied().unwrap_or(1.0)
+    }
 }
 
 /// Width 0 = hidden: a triangulated fill asks for no wireframe.
@@ -41,7 +45,9 @@ fn hidden(w: &[f64], i: usize) -> bool {
 
 /// The normal of the face in slot `side` of an edge's pair; None past a border.
 fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> {
-    if faces[side] == u32::MAX { return None; }
+    if faces[side] == u32::MAX {
+        return None;
+    }
     topo.normals[faces[side] as usize]
 }
 
@@ -56,7 +62,7 @@ fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3
     if topo.opposed[ei] {
         return (n0, n1);
     }
-    (n0, n1.map(|n| [-n[0], -n[1], -n[2]]))
+    (n0, n1.map(reversed_normal))
 }
 
 /// The cosine between two unit face normals.
@@ -124,6 +130,9 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
         if cx.smooth && !smooth_feature(topo, i, (na, nb)) {
             continue;
         }
+        ink.seg
+            .pipe_ids
+            .push(if cx.smooth { u32::MAX } else { i as u32 });
         ink.seg.pipes.push(CylinderSegment {
             p0: cx.vpos[cx.slots.slot(*a)],
             radius: encode_width(width_at(w, i)),
@@ -208,16 +217,33 @@ fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
         }
         codes.clear();
         for fk in &fkeys {
-            if let Some(n) = topo.normals[*fk] && let Some(code) = oct16(&n) && !codes.contains(&code) { codes.push(code); }
+            if let Some(n) = topo.normals[*fk]
+                && let Some(code) = oct16(&n)
+                && !codes.contains(&code)
+            {
+                codes.push(code);
+            }
         }
         ink.glyph.spheres.push(GlyphPoint {
             center: cx.vpos[i],
             radius: encode_width(vw),
-            color: if dots_colored { pc[i].to_f32() } else { [0.1, 0.1, 0.1, 1.0] },
+            color: if dots_colored {
+                pc[i].to_f32()
+            } else {
+                [0.1, 0.1, 0.1, 1.0]
+            },
             instance_id: cx.row,
             // A truncated normal list cannot prove every incident face points away.
-            facing: if codes.len() > 6 { FACING_UNKNOWN } else { facing_word(&codes, 0) },
-            facing_ext: if codes.len() > 6 { [FACING_UNKNOWN; 2] } else { [facing_word(&codes, 1), facing_word(&codes, 2)] },
+            facing: if codes.len() > 6 {
+                FACING_UNKNOWN
+            } else {
+                facing_word(&codes, 0)
+            },
+            facing_ext: if codes.len() > 6 {
+                [FACING_UNKNOWN; 2]
+            } else {
+                [facing_word(&codes, 1), facing_word(&codes, 2)]
+            },
         });
     }
 }
@@ -235,21 +261,33 @@ pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) 
     cx.lap.mark("markers");
 }
 
+/// Reverse the second incident face normal to match the corrected winding.
+fn reversed_normal(n: [f64; 3]) -> [f64; 3] {
+    [-n[0], -n[1], -n[2]]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use session_rust::Point;
-    use crate::app::walk::mesh::{MeshCx, MeshOpts, walk_mesh};
     use crate::app::walk::WalkCx;
+    use crate::app::walk::mesh::{MeshCx, MeshOpts, walk_mesh};
     use crate::engine::gpu::arena::ArenaRows;
+    use session_rust::Point;
 
     /// How many pipes one mesh pushes when walked under `opts`.
     fn walk_pipes(mesh: &Mesh, opts: &MeshOpts) -> usize {
         let mut arena = ArenaRows::default();
         let mut segments = SegRows::default();
         let mut glyphs = GlyphRows::default();
-        let mut ink = Ink { seg: &mut segments, glyph: &mut glyphs };
-        let cx = WalkCx { vert_base: 0, cloud_px: 0.0, row: 0 };
+        let mut ink = Ink {
+            seg: &mut segments,
+            glyph: &mut glyphs,
+        };
+        let cx = WalkCx {
+            vert_base: 0,
+            cloud_px: 0.0,
+            row: 0,
+        };
         walk_mesh(&mut arena, &mut ink, mesh, &MeshCx { cx: &cx, opts });
         segments.pipes.len()
     }
@@ -279,9 +317,12 @@ mod tests {
     /// border and the seventh a fold no threshold can call sampling.
     fn folded_pair() -> Mesh {
         let points = vec![
-            Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0),
-            Point::new(100.0, 100.0, 0.0), Point::new(0.0, 100.0, 0.0),
-            Point::new(100.0, 0.0, 100.0), Point::new(100.0, 100.0, 100.0),
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(100.0, 0.0, 0.0),
+            Point::new(100.0, 100.0, 0.0),
+            Point::new(0.0, 100.0, 0.0),
+            Point::new(100.0, 0.0, 100.0),
+            Point::new(100.0, 100.0, 100.0),
         ];
         Mesh::from_vertices_and_faces(points, vec![vec![0, 1, 2, 3], vec![1, 4, 5, 2]])
     }
@@ -293,9 +334,24 @@ mod tests {
         let mut arena = ArenaRows::default();
         let mut segments = SegRows::default();
         let mut glyphs = GlyphRows::default();
-        let mut ink = Ink { seg: &mut segments, glyph: &mut glyphs };
-        let cx = WalkCx { vert_base: 50, cloud_px: 0.0, row: 7 };
-        walk_mesh(&mut arena, &mut ink, &mesh, &MeshCx { cx: &cx, opts: &MeshOpts::OBJECT });
+        let mut ink = Ink {
+            seg: &mut segments,
+            glyph: &mut glyphs,
+        };
+        let cx = WalkCx {
+            vert_base: 50,
+            cloud_px: 0.0,
+            row: 7,
+        };
+        walk_mesh(
+            &mut arena,
+            &mut ink,
+            &mesh,
+            &MeshCx {
+                cx: &cx,
+                opts: &MeshOpts::OBJECT,
+            },
+        );
         assert_eq!(segments.pipes.len(), 12);
         assert_eq!(glyphs.spheres.len(), 8);
         for segment in &segments.pipes {

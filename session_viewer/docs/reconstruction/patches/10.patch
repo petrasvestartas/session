@@ -1,0 +1,900 @@
+diff --git a/session_viewer/assets/text-layout.html b/session_viewer/assets/text-layout.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..8ae37503797d6e008ef857eb2ab286a9bb371677
+--- /dev/null
++++ b/session_viewer/assets/text-layout.html
+@@ -0,0 +1,45 @@
++<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
++<title>Checkpoint 10 — source text and shaped glyphs</title>
++<style>
++@font-face{font-family:'Noto Sans';src:url('./text/NotoSans-Regular.ttf')}@font-face{font-family:'Noto Sans Symbols';src:url('./text/NotoSansSymbols-Regular.ttf')}@font-face{font-family:'Noto Sans Symbols 2';src:url('./text/NotoSansSymbols2-Regular.ttf')}
++body{background:#171717;color:white;font:14px sans-serif;margin:20px}.line{display:table;white-space:pre;background:black;color:white;font-family:'Noto Sans','Noto Sans Symbols','Noto Sans Symbols 2';font-kerning:normal;font-variant-ligatures:common-ligatures;letter-spacing:normal;margin:12px 0}pre{white-space:pre-wrap;overflow-wrap:anywhere}.failed{color:#ff8f8f}
++</style>
++<h1>Source text → shaped runs</h1><p>Browser reference in the same explicit fonts; chapter 11 adds the GPU coverage renderer.</p>
++<div id="specimens"></div><output id="layout-status">Loading exact fonts and WASM…</output><details><summary>Glyph IDs, byte clusters, advances, offsets and baselines</summary><pre id="diagnostics"></pre></details>
++<script type="module">
++/** Reject stale/missing generated bundle discovery before interpreting HTML. */
++function readText(response){if(!response.ok)throw Error(`HTTP ${response.status}`);return response.text();}
++/** Shape once, measure the matching browser run, and retain assertions for browser automation. */
++async function start(){
++ await Promise.all([document.fonts.load('16px "Noto Sans"'),document.fonts.load('16px "Noto Sans Symbols"'),document.fonts.load('16px "Noto Sans Symbols 2"')]);
++ await document.fonts.ready;
++ const html=await fetch('./index.html',{cache:'no-store'}).then(readText);
++ const js=html.match(/(?:import[^;]*?from\s*|import\s*)["']([^"']*session_viewer[^"']*\.js)["']/);
++ const wasm=html.match(/module_or_path:\s*["']([^"']+\.wasm)["']/);
++ if(!js||!wasm)throw Error('Build this checkpoint with Trunk before opening the fixture.');
++ const module=await import(new URL(js[1],location.href));
++ await module.default({module_or_path:new URL(wasm[1],location.href).href});
++ const report=JSON.parse(module.text_layout());
++ const metrics=[];
++ for(const row of report.rows){
++  const line=document.createElement('div');line.className='line';line.style.fontSize=`${row.size}px`;line.style.lineHeight=`${row.lineHeight}px`;line.textContent=row.text;
++  document.getElementById('specimens').append(line);
++  let width=0;
++  for(const glyph of report.glyphs){if(glyph.label===row.id)width=Math.max(width,glyph.line_width);if(glyph.glyph===0)throw Error('Missing font glyph');}
++  const browser=line.getBoundingClientRect().width;
++  const difference=Math.abs(browser-width);
++  if(difference>0.2)throw Error(`Same-font width differs at ${row.size}px: ${difference}`);
++  metrics.push({size:row.size,shaper:width,browser,difference});
++ }
++ if(report.shapeCount!==5||report.shapedBeforePlacementChange!==5)throw Error('Placement/color invalidated shaping');
++ let combined=false;
++ for(const glyph of report.glyphs){if(glyph.cluster[1]-glyph.cluster[0]>1)combined=true;}
++ if(!combined)throw Error('No multi-byte or combined source cluster recorded');
++ window.textLayout={...report,metrics,passed:true};
++ document.getElementById('diagnostics').textContent=JSON.stringify(window.textLayout,null,2);
++ document.getElementById('layout-status').textContent='PASS: five sizes, matched fonts/widths, clusters and unchanged shaping after placement/color edits.';
++}
++/** Keep a font/layout failure explicit on the fixture page and in browser logs. */
++function failed(error){document.getElementById('layout-status').textContent=String(error);document.getElementById('layout-status').className='failed';console.error(error);}
++start().catch(failed);
++</script></html>
+diff --git a/session_viewer/assets/text/OFL.txt b/session_viewer/assets/text/OFL.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..c82d72e422e2d08c5ab439b6bac7c2177ea0c565
+--- /dev/null
++++ b/session_viewer/assets/text/OFL.txt
+@@ -0,0 +1,94 @@
++Copyright 2018 The Noto Project Authors (github.com/googlei18n/noto-fonts)
++
++This Font Software is licensed under the SIL Open Font License,
++Version 1.1.
++
++This license is copied below, and is also available with a FAQ at:
++http://scripts.sil.org/OFL
++
++-----------------------------------------------------------
++SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
++-----------------------------------------------------------
++
++PREAMBLE
++The goals of the Open Font License (OFL) are to stimulate worldwide
++development of collaborative font projects, to support the font
++creation efforts of academic and linguistic communities, and to
++provide a free and open framework in which fonts may be shared and
++improved in partnership with others.
++
++The OFL allows the licensed fonts to be used, studied, modified and
++redistributed freely as long as they are not sold by themselves. The
++fonts, including any derivative works, can be bundled, embedded,
++redistributed and/or sold with any software provided that any reserved
++names are not used by derivative works. The fonts and derivatives,
++however, cannot be released under any other type of license. The
++requirement for fonts to remain under this license does not apply to
++any document created using the fonts or their derivatives.
++
++DEFINITIONS
++"Font Software" refers to the set of files released by the Copyright
++Holder(s) under this license and clearly marked as such. This may
++include source files, build scripts and documentation.
++
++"Reserved Font Name" refers to any names specified as such after the
++copyright statement(s).
++
++"Original Version" refers to the collection of Font Software
++components as distributed by the Copyright Holder(s).
++
++"Modified Version" refers to any derivative made by adding to,
++deleting, or substituting -- in part or in whole -- any of the
++components of the Original Version, by changing formats or by porting
++the Font Software to a new environment.
++
++"Author" refers to any designer, engineer, programmer, technical
++writer or other person who contributed to the Font Software.
++
++PERMISSION & CONDITIONS
++Permission is hereby granted, free of charge, to any person obtaining
++a copy of the Font Software, to use, study, copy, merge, embed,
++modify, redistribute, and sell modified and unmodified copies of the
++Font Software, subject to the following conditions:
++
++1) Neither the Font Software nor any of its individual components, in
++Original or Modified Versions, may be sold by itself.
++
++2) Original or Modified Versions of the Font Software may be bundled,
++redistributed and/or sold with any software, provided that each copy
++contains the above copyright notice and this license. These can be
++included either as stand-alone text files, human-readable headers or
++in the appropriate machine-readable metadata fields within text or
++binary files as long as those fields can be easily viewed by the user.
++
++3) No Modified Version of the Font Software may use the Reserved Font
++Name(s) unless explicit written permission is granted by the
++corresponding Copyright Holder. This restriction only applies to the
++primary font name as presented to the users.
++
++4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
++Software shall not be used to promote, endorse or advertise any
++Modified Version, except to acknowledge the contribution(s) of the
++Copyright Holder(s) and the Author(s) or with their explicit written
++permission.
++
++5) The Font Software, modified or unmodified, in part or in whole,
++must be distributed entirely under this license, and must not be
++distributed under any other license. The requirement for fonts to
++remain under this license does not apply to any document created using
++the Font Software.
++
++TERMINATION
++This license becomes null and void if any of the above conditions are
++not met.
++
++DISCLAIMER
++THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
++MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
++OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
++COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
++DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
++OTHER DEALINGS IN THE FONT SOFTWARE.
+diff --git a/session_viewer/assets/text/README.md b/session_viewer/assets/text/README.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..ee5101c0d921260b11bc0c2e219d562e630090a5
+--- /dev/null
++++ b/session_viewer/assets/text/README.md
+@@ -0,0 +1,39 @@
++# Bundled text fonts
++
++Noto Sans Regular, Noto Sans Symbols Regular and Noto Sans Symbols 2 Regular are distributed under the adjacent
++SIL Open Font License 1.1 (`OFL.txt`). All are embedded in the WASM text document;
++Trunk also copies these exact bytes for `text-quality.html`'s browser reference.
++No machine-installed font discovery or asynchronous placeholder font is used.
++
++Upstream sources:
++- https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf
++- https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSansSymbols2/NotoSansSymbols2-Regular.ttf
++- https://github.com/notofonts/noto-fonts/blob/main/hinted/ttf/NotoSansSymbols/NotoSansSymbols-Regular.ttf
++- https://github.com/notofonts/noto-fonts/blob/main/LICENSE
++
++`src/engine/text.rs` owns advanced shaping and explicit font fallback.
++`src/engine/gpu/text.rs` integrates Glyphon **0.11.0**, compatible with the existing
++wgpu **29.0.4**. Glyphon **0.12.0** requires wgpu 30 and is intentionally not selected.
++The maintained dedicated WGSL is the pinned dependency's `src/shader.wgsl`:
++https://docs.rs/crate/glyphon/0.11.0/source/src/shader.wgsl
++
++The primary font covers the Latin, Lithuanian, German and CAD specimen characters;
++the symbols fonts are explicit fallback. Other scripts require an additional licensed
++font, loaded through `TextDocument::replace_fonts`, which invalidates every affected
++shape and GPU resource. Missing glyph IDs remain visible .notdef boxes and are counted.
++
++Existing imported PDF letters are vector meshes with per-glyph geometry already baked
++by `session_rust::pdf`; source strings and font runs are absent from that mesh contract.
++`text_outline.wgsl` preserves those exact positions and source font shapes through an
++unlit, alpha-preserving coverage pipeline. Legacy PDFs can mix letters into page fills,
++so both sheet index runs use it without guessing glyph boundaries or changing order.
++The automatic sample policy requests four coverage samples for sheet vectors as well
++as solids, within the existing adapter memory budget. Forced 1x and canvases above that
++budget retain visibly lower quality on thin outlines. Source strings/font runs are not
++reconstructed or substituted; the Glyphon lane is for actual source-text labels.
++
++`TextStats` reports actual Swash raster image counts and byte-vector capacities on the CPU,
++separately from candidate raster keys and active instance payload. The pinned Glyphon API
++does not expose GPU atlas/instance capacity, upload bytes or isolated rasterization time.
++Those are excluded from measured GPU totals; combined preparation time is not labeled as
++rasterization or upload time.
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index ae58248dd605dd88792f155e6164dc43b284513b..dd812577b2bba47df27134eafab8843f927d5866
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,9 +1,11 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 09</title>
++<title>Session checkpoint 10</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 09</output>
++<link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
++<link data-trunk rel="copy-file" href="assets/text-layout.html">
++</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-layout.html" style="position:fixed;right:12px;top:12px;color:white">Inspect shaped text</a><output id="status">Starting checkpoint 10</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -21,7 +23,7 @@
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 09 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 10 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/engine/mod.rs b/session_viewer/src/engine/mod.rs
+index e7c87b71f318b9a7aef1745531316501bdb9c040..452a01b8928b24e9b4db5618f8e745d5b557118c
+--- a/session_viewer/src/engine/mod.rs
++++ b/session_viewer/src/engine/mod.rs
+@@ -1,3 +1,5 @@
+ //! Rendering lanes and their shared pipeline contract.
+ pub mod gpu;
++pub mod performance;
+ pub mod pipelines;
++pub mod text;
+diff --git a/session_viewer/src/engine/performance.rs b/session_viewer/src/engine/performance.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..1c5c38df3a7a1f49e74aa8553ad9ccef90422104
+--- /dev/null
++++ b/session_viewer/src/engine/performance.rs
+@@ -0,0 +1,132 @@
++//! Clocks and counters: the frame timer that logs fps once a second, WASM memory capacity,
++//! and `now_ms` on both targets. Native builds read the system clock.
++
++/// Frame timing: a smoothed frame time and one log line a second when `perf` is on.
++pub struct Performance {
++    prev_frame: f64,
++    last_log: f64,
++    frame_ms: f64,
++    pub frames: u64,
++    /// Draw calls encoded for the last color frame, excluding asynchronous ID work.
++    pub draws: u32,
++}
++
++impl Performance {
++    /// Start the clock now.
++    pub fn new() -> Self {
++        let t = now_ms();
++        Self {
++            prev_frame: t,
++            last_log: t,
++            frame_ms: 0.0,
++            frames: 0,
++            draws: 0,
++        }
++    }
++
++    /// Call once at the end of every frame with the counts gathered during it.
++    pub fn frame(&mut self, draws: u32, objects: u32, now: f64, perf: bool) {
++        let dt = now - self.prev_frame;
++        self.prev_frame = now;
++        self.frames += 1;
++        self.draws = draws;
++        self.frame_ms = if self.frame_ms == 0.0 {
++            dt
++        } else {
++            self.frame_ms * 0.9 + dt * 0.1
++        };
++
++        if perf && now - self.last_log >= 1000.0 {
++            let fps = if self.frame_ms > 0.0 {
++                1000.0 / self.frame_ms
++            } else {
++                0.0
++            };
++            log::info!(
++                "perf: {:.1} fps | {:.2} ms | {} draws | {} objects | wasm capacity {:.0} MiB",
++                fps,
++                self.frame_ms,
++                draws,
++                objects,
++                heap_mb()
++            );
++            self.last_log = now;
++        }
++    }
++}
++
++/// Milliseconds now: `performance.now()` in the browser.
++#[cfg(target_arch = "wasm32")]
++pub fn now_ms() -> f64 {
++    web_sys::window().unwrap().performance().unwrap().now()
++}
++
++/// Milliseconds now: the system clock natively.
++#[cfg(not(target_arch = "wasm32"))]
++pub fn now_ms() -> f64 {
++    std::time::SystemTime::now()
++        .duration_since(std::time::UNIX_EPOCH)
++        .unwrap()
++        .as_secs_f64()
++        * 1000.0
++}
++
++/// Browser WASM linear-memory capacity in MiB; this is neither live ownership nor JavaScript heap.
++#[cfg(target_arch = "wasm32")]
++pub fn heap_mb() -> f64 {
++    use wasm_bindgen::JsCast;
++    let Ok(memory) = wasm_bindgen::memory().dyn_into::<js_sys::WebAssembly::Memory>() else {
++        return 0.0;
++    };
++    memory
++        .buffer()
++        .unchecked_into::<js_sys::ArrayBuffer>()
++        .byte_length() as f64
++        / 1.048576e6
++}
++
++/// Native Linux process RSS in MiB; this differs from the browser's WASM-capacity observation.
++#[cfg(all(not(target_arch = "wasm32"), target_os = "linux"))]
++pub fn heap_mb() -> f64 {
++    let Ok(stats) = std::fs::read_to_string("/proc/self/statm") else {
++        return 0.0;
++    };
++    let Some(resident) = stats.split_whitespace().nth(1) else {
++        return 0.0;
++    };
++    match resident.parse::<f64>() {
++        Ok(pages) => pages * 4096.0 / 1.048576e6,
++        Err(_) => 0.0,
++    }
++}
++
++/// Native, non-Linux: no cheap measure.
++#[cfg(all(not(target_arch = "wasm32"), not(target_os = "linux")))]
++pub fn heap_mb() -> f64 {
++    0.0
++}
++
++/// Write one line into the `#perf` element in the page's top-left corner, creating it on
++/// first use. A DOM line survives a busy console and shows in a screenshot.
++#[cfg(target_arch = "wasm32")]
++pub fn perf_line(text: &str) {
++    let Some(window) = web_sys::window() else {
++        return;
++    };
++    let Some(doc) = window.document() else { return };
++    let el = match doc.get_element_by_id("perf") {
++        Some(e) => e,
++        None => {
++            let Ok(e) = doc.create_element("pre") else {
++                return;
++            };
++            e.set_id("perf");
++            let _ = e.set_attribute("style", "position:fixed;left:0;top:0;margin:0;padding:2px 6px;font:12px monospace;color:#000;background:rgba(255,255,255,.7);z-index:9;pointer-events:none");
++            if let Some(b) = doc.body() {
++                let _ = b.append_child(&e);
++            }
++            e
++        }
++    };
++    el.set_text_content(Some(text));
++}
+diff --git a/session_viewer/src/engine/text.rs b/session_viewer/src/engine/text.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..046c384af125da40da337451cbce9b2876346561
+--- /dev/null
++++ b/session_viewer/src/engine/text.rs
+@@ -0,0 +1,437 @@
++//! Source-text layout, identity and physical placement. Fonts and shaped runs live here;
++//! the GPU lane owns Glyphon's atlas and draw resources. PDF outlines remain mesh data.
++
++use glyphon::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap, fontdb};
++use serde::Serialize;
++
++pub const FONT_FAMILY: &str = "Noto Sans";
++pub const FONT_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSans-Regular.ttf");
++pub const SYMBOL_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols-Regular.ttf");
++pub const FALLBACK_BYTES: &[u8] = include_bytes!("../../assets/text/NotoSansSymbols2-Regular.ttf");
++/// Bound a submitted text document independently of available GPU memory.
++const MAX_TEXT_BYTES: usize = 256 * 1024;
++
++/// Text origin, orientation and size policy; physical labels use scene depth.
++#[derive(Clone, Debug, PartialEq)]
++pub enum TextPlacement {
++    Screen {
++        left: f32,
++        top: f32,
++    },
++    Anchor {
++        world: [f64; 3],
++        offset: [f32; 2],
++    },
++    /// Center a fixed-CSS label and black plate on a world anchor. This annotation overlays
++    /// the scene, so a selected solid's interior bounds center cannot hide its own name.
++    Nameplate {
++        world: [f64; 3],
++        /// Horizontal and vertical inset around the shaped line box, in CSS pixels.
++        padding: [f32; 2],
++        /// Round all corners to half the shorter plate side when true.
++        rounded: bool,
++    },
++    /// Fixed world plane: top-left line origin, orthonormal right/up axes, and world em height.
++    WorldPlane {
++        world: [f64; 3],
++        right: [f64; 3],
++        up: [f64; 3],
++        world_height: f64,
++    },
++    /// Camera-facing text whose em height is measured in scene world units.
++    WorldBillboard {
++        world: [f64; 3],
++        world_height: f64,
++    },
++}
++
++/// One source label. Sizes, line height, offsets and optional clipping use CSS pixels.
++#[derive(Clone, Debug, PartialEq)]
++pub struct TextLabel {
++    pub id: u32,
++    pub text: String,
++    pub font_size: f32,
++    pub line_height: f32,
++    pub color: [u8; 4],
++    pub placement: TextPlacement,
++    /// Left, top, right, bottom in canvas CSS coordinates; never inferred from glyph bounds.
++    pub clip: Option<[f32; 4]>,
++}
++
++/// Retained logical glyph coordinates, independent of camera motion and framebuffer scale.
++pub struct TextRun {
++    pub label: TextLabel,
++    pub buffer: Buffer,
++}
++
++/// All explicit font resources and shaped runs for one viewer, without DOM/GPU ownership.
++pub struct TextDocument {
++    pub fonts: FontSystem,
++    pub runs: Vec<TextRun>,
++    pub revision: u64,
++    pub font_revision: u64,
++    pub shape_count: u64,
++    /// Accumulated shaping time; the GPU lane reports combined preparation time separately.
++    pub shaping_ms: f64,
++}
++
++impl TextDocument {
++    /// Load bundled OFL fonts explicitly; never scan the native machine's font directories.
++    pub fn new() -> Self {
++        Self {
++            fonts: bundled_fonts(),
++            runs: Vec::new(),
++            revision: 0,
++            font_revision: 1,
++            shape_count: 0,
++            shaping_ms: 0.0,
++        }
++    }
++
++    /// Validate the whole replacement first, then reuse unchanged source/style buffers by ID.
++    /// Placement and selection-color edits do not invoke shaping.
++    pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
++        let mut bytes = 0usize;
++        let mut ids = std::collections::HashSet::new();
++        for label in &labels {
++            bytes = bytes.saturating_add(label.text.len());
++            anyhow::ensure!(bytes <= MAX_TEXT_BYTES, "text document exceeds 256 KiB");
++            anyhow::ensure!(ids.insert(label.id), "duplicate text label ID {}", label.id);
++            validate_label(label)?;
++        }
++        if self.runs.len() == labels.len() {
++            let mut unchanged = true;
++            for (run, label) in self.runs.iter().zip(&labels) {
++                unchanged &= run.label == *label;
++            }
++            if unchanged {
++                return Ok(());
++            }
++        }
++        let previous = std::mem::take(&mut self.runs);
++        let mut previous_by_id = std::collections::HashMap::new();
++        for run in previous {
++            previous_by_id.insert(run.label.id, run);
++        }
++        for label in labels {
++            let old = previous_by_id.remove(&label.id);
++            let buffer = match old {
++                Some(run) if same_layout(&run.label, &label) => run.buffer,
++                _ => {
++                    self.shape_count += 1;
++                    let started = crate::engine::performance::now_ms();
++                    let buffer = shape(&mut self.fonts, &label);
++                    self.shaping_ms += crate::engine::performance::now_ms() - started;
++                    buffer
++                }
++            };
++            self.runs.push(TextRun { label, buffer });
++        }
++        self.revision = self.revision.wrapping_add(1);
++        Ok(())
++    }
++
++    /// Replace explicitly supplied fonts atomically. Invalid data leaves existing text intact.
++    /// The caller must supply the primary family and any desired fallback faces together.
++    pub fn replace_fonts(&mut self, sources: Vec<Vec<u8>>) -> anyhow::Result<()> {
++        let mut db = fontdb::Database::new();
++        for bytes in sources {
++            let before = db.faces().count();
++            db.load_font_data(bytes);
++            anyhow::ensure!(
++                db.faces().count() > before,
++                "font data contains no usable face"
++            );
++        }
++        anyhow::ensure!(db.faces().count() > 0, "font set is empty");
++        db.set_sans_serif_family(FONT_FAMILY);
++        self.fonts = FontSystem::new_with_locale_and_db("en-US".into(), db);
++        for run in &mut self.runs {
++            let started = crate::engine::performance::now_ms();
++            run.buffer = shape(&mut self.fonts, &run.label);
++            self.shaping_ms += crate::engine::performance::now_ms() - started;
++            self.shape_count += 1;
++        }
++        self.font_revision = self.font_revision.wrapping_add(1);
++        self.revision = self.revision.wrapping_add(1);
++        Ok(())
++    }
++
++    /// Drop source strings and shape buffers on scene replacement.
++    pub fn clear(&mut self) {
++        self.runs.clear();
++        self.runs.shrink_to_fit();
++        self.revision = self.revision.wrapping_add(1);
++    }
++
++    /// Export source clusters and logical metrics before rasterization for regression tools.
++    pub fn diagnostics(&self) -> Vec<GlyphDiagnostic> {
++        let mut out = Vec::new();
++        for run in &self.runs {
++            for line in run.buffer.layout_runs() {
++                for glyph in line.glyphs {
++                    out.push(GlyphDiagnostic {
++                        label: run.label.id,
++                        line: line.line_i,
++                        cluster: [glyph.start, glyph.end],
++                        glyph: glyph.glyph_id,
++                        font: format!("{:?}", glyph.font_id),
++                        origin: [glyph.x, glyph.y],
++                        advance: glyph.w,
++                        offset: [
++                            glyph.x_offset * glyph.font_size,
++                            glyph.y_offset * glyph.font_size,
++                        ],
++                        baseline: line.line_y,
++                        line_width: line.line_w,
++                    });
++                }
++            }
++        }
++        out
++    }
++}
++
++impl Default for TextDocument {
++    /// Construct the explicit bundled-font document.
++    fn default() -> Self {
++        Self::new()
++    }
++}
++
++/// Shaper output, with byte clusters into the original line rather than character indices.
++#[derive(Clone, Debug, Serialize)]
++pub struct GlyphDiagnostic {
++    pub label: u32,
++    pub line: usize,
++    pub cluster: [usize; 2],
++    pub glyph: u16,
++    pub font: String,
++    pub origin: [f32; 2],
++    pub advance: f32,
++    pub offset: [f32; 2],
++    pub baseline: f32,
++    pub line_width: f32,
++}
++
++/// Build a predictable font database on both WASM and native test targets.
++fn bundled_fonts() -> FontSystem {
++    let mut db = fontdb::Database::new();
++    db.load_font_data(FONT_BYTES.to_vec());
++    db.load_font_data(FALLBACK_BYTES.to_vec());
++    db.load_font_data(SYMBOL_BYTES.to_vec());
++    db.set_sans_serif_family(FONT_FAMILY);
++    FontSystem::new_with_locale_and_db("en-US".into(), db)
++}
++
++/// Reject non-finite dimensions before they reach the rasterizer or integer clip conversion.
++fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
++    anyhow::ensure!(
++        label.font_size.is_finite() && (1.0..=256.0).contains(&label.font_size),
++        "font size must be 1..256 CSS px"
++    );
++    anyhow::ensure!(
++        label.line_height.is_finite()
++            && label.line_height >= label.font_size
++            && label.line_height <= 1024.0,
++        "invalid text line height"
++    );
++    let valid_placement = match label.placement {
++        TextPlacement::Screen { left, top } => left.is_finite() && top.is_finite(),
++        TextPlacement::Anchor { world, offset } => {
++            world.iter().all(finite_f64) && offset.iter().all(finite_f32)
++        }
++        TextPlacement::Nameplate { world, padding, .. } => {
++            world.iter().all(finite_f64) && padding.iter().all(valid_padding)
++        }
++        TextPlacement::WorldPlane {
++            world,
++            right,
++            up,
++            world_height,
++        } => {
++            world.iter().all(finite_f64)
++                && valid_plane_axes(right, up)
++                && world_height.is_finite()
++                && world_height > 0.0
++        }
++        TextPlacement::WorldBillboard {
++            world,
++            world_height,
++        } => world.iter().all(finite_f64) && world_height.is_finite() && world_height > 0.0,
++    };
++    anyhow::ensure!(valid_placement, "invalid text placement");
++    if let Some(c) = label.clip {
++        anyhow::ensure!(
++            c.iter().all(finite_f32) && c[2] >= c[0] && c[3] >= c[1],
++            "invalid text clip rectangle"
++        );
++    }
++    Ok(())
++}
++
++/// Reject degenerate or scaled plane axes so world em height has one unambiguous meaning.
++fn valid_plane_axes(right: [f64; 3], up: [f64; 3]) -> bool {
++    let mut right_length = 0.0;
++    let mut up_length = 0.0;
++    let mut dot = 0.0;
++    for axis in 0..3 {
++        right_length += right[axis] * right[axis];
++        up_length += up[axis] * up[axis];
++        dot += right[axis] * up[axis];
++    }
++    (right_length.sqrt() - 1.0).abs() <= 1e-6
++        && (up_length.sqrt() - 1.0).abs() <= 1e-6
++        && dot.abs() <= 1e-6
++}
++
++/// Iterator adapter for finite coordinate validation.
++fn finite_f32(value: &f32) -> bool {
++    value.is_finite()
++}
++/// Iterator adapter for finite world coordinate validation.
++fn finite_f64(value: &f64) -> bool {
++    value.is_finite()
++}
++
++/// Keep annotation padding finite and bounded independently of document text length.
++fn valid_padding(value: &f32) -> bool {
++    value.is_finite() && (0.0..=256.0).contains(value)
++}
++
++/// Only fields affecting glyph selection and layout participate in shaping invalidation.
++fn same_layout(a: &TextLabel, b: &TextLabel) -> bool {
++    a.text == b.text && a.font_size == b.font_size && a.line_height == b.line_height
++}
++
++/// Advanced shaping handles kerning, ligatures, Unicode clusters and fallback once.
++fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
++    let mut buffer = Buffer::new(fonts, Metrics::new(label.font_size, label.line_height));
++    buffer.set_size(fonts, None, None);
++    buffer.set_wrap(fonts, Wrap::None);
++    buffer.set_text(
++        fonts,
++        &label.text,
++        &Attrs::new()
++            .family(Family::Name(FONT_FAMILY))
++            .metadata(label.id as usize),
++        Shaping::Advanced,
++        None,
++    );
++    buffer.shape_until_scroll(fonts, false);
++    buffer
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// Keep source-text tests on the same explicit screen placement and font metrics.
++    fn label(text: &str) -> TextLabel {
++        TextLabel {
++            id: 1,
++            text: text.into(),
++            font_size: 16.0,
++            line_height: 24.0,
++            color: [255; 4],
++            placement: TextPlacement::Screen {
++                left: 0.0,
++                top: 0.0,
++            },
++            clip: None,
++        }
++    }
++
++    #[test]
++    fn ligatures_accents_spaces_and_symbols_are_shaped() {
++        let mut doc = TextDocument::new();
++        doc.set_labels(vec![label(
++            "office ffi fl ÄÖÜ ĄČĘĖĮŠŲŪŽ Ø ± 90° m² e\u{301}",
++        )])
++        .unwrap();
++        let glyphs = doc.diagnostics();
++        assert!(glyphs.iter().all(has_glyph));
++        assert!(glyphs.iter().any(multi_byte_cluster));
++        doc.set_labels(vec![label("AV")]).unwrap();
++        let pair_width = doc.diagnostics()[0].line_width;
++        doc.set_labels(vec![label("A V")]).unwrap();
++        assert!(doc.diagnostics()[0].line_width > pair_width);
++        doc.set_labels(vec![label("ffi")]).unwrap();
++        assert!(
++            doc.diagnostics().len() < 3,
++            "font's ffi ligature must preserve a multi-character cluster"
++        );
++    }
++
++    /// Reject the missing-glyph sentinel in shaped output.
++    fn has_glyph(glyph: &GlyphDiagnostic) -> bool {
++        glyph.glyph != 0
++    }
++    /// Detect source clusters spanning multiple UTF-8 bytes.
++    fn multi_byte_cluster(glyph: &GlyphDiagnostic) -> bool {
++        glyph.cluster[1] - glyph.cluster[0] > 1
++    }
++
++    #[test]
++    fn placement_and_color_do_not_reshape_but_font_reload_does() {
++        let mut doc = TextDocument::new();
++        let mut item = label("AVATAR");
++        doc.set_labels(vec![item.clone()]).unwrap();
++        let before = doc.diagnostics()[0].line_width;
++        item.color = [255, 255, 0, 255];
++        item.placement = TextPlacement::Screen {
++            left: 0.375,
++            top: 1.25,
++        };
++        doc.set_labels(vec![item]).unwrap();
++        assert_eq!(doc.shape_count, 1);
++        assert_eq!(doc.diagnostics()[0].line_width, before);
++        assert!(doc.replace_fonts(vec![vec![0; 8]]).is_err());
++        assert_eq!(doc.shape_count, 1);
++        doc.replace_fonts(vec![
++            FONT_BYTES.to_vec(),
++            FALLBACK_BYTES.to_vec(),
++            SYMBOL_BYTES.to_vec(),
++        ])
++        .unwrap();
++        assert_eq!(doc.shape_count, 2);
++        assert_eq!(doc.diagnostics()[0].line_width, before);
++    }
++
++    #[test]
++    fn composed_decomposed_accents_and_multiline_baselines_match() {
++        let mut doc = TextDocument::new();
++        doc.set_labels(vec![label("é\ne\u{301}")]).unwrap();
++        let glyphs = doc.diagnostics();
++        assert_eq!(glyphs.len(), 2);
++        assert_eq!(glyphs[0].glyph, glyphs[1].glyph);
++        assert_eq!(glyphs[0].advance, glyphs[1].advance);
++        assert!((glyphs[1].baseline - glyphs[0].baseline - 24.0).abs() < 0.001);
++    }
++
++    #[test]
++    fn bundled_fallback_covers_symbols_without_system_fonts() {
++        let mut doc = TextDocument::new();
++        doc.set_labels(vec![label("CAD ⚙ ⏳ ⌘")]).unwrap();
++        let glyphs = doc.diagnostics();
++        assert!(glyphs.iter().all(has_glyph));
++        let mut faces = std::collections::HashSet::new();
++        for glyph in glyphs {
++            faces.insert(glyph.font);
++        }
++        assert!(
++            faces.len() >= 2,
++            "sample must exercise explicit font fallback"
++        );
++    }
++
++    #[test]
++    fn invalid_replacement_preserves_current_document() {
++        let mut doc = TextDocument::new();
++        doc.set_labels(vec![label("Keep")]).unwrap();
++        let mut invalid = label("Reject");
++        invalid.font_size = f32::NAN;
++        assert!(doc.set_labels(vec![invalid]).is_err());
++        assert_eq!(doc.runs[0].label.text, "Keep");
++    }
++}
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index cdcf8b3f6f7709f06be4aa46a92096da45f91444..3abb9423a8be8fe2cb2a08b235778df95ac45ca1
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -4,6 +4,7 @@
+ pub mod engine;
+ pub mod fixture;
+ pub mod math;
++pub mod text_layout;
+ use engine::gpu::{FrameInput, Gpu};
+ use wasm_bindgen::prelude::*;
+ /// Canvas and input ownership remain separate from GPU lane ownership.
+@@ -94,7 +95,7 @@
+             now_ms: now,
+         };
+         self.gpu.render(&input).map_err(js_error)?;
+-        Ok(serde_json::json!({"stage":9,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
++        Ok(serde_json::json!({"stage":10,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
+             "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
+     }
+ }
+diff --git a/session_viewer/src/text_layout.rs b/session_viewer/src/text_layout.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..6212d9f72fb869f80ca50d47c1245878ba657e08
+--- /dev/null
++++ b/session_viewer/src/text_layout.rs
+@@ -0,0 +1,59 @@
++//! Teaching layout fixture: inspect final shaper output before any GPU text resource exists.
++use crate::engine::text::{FONT_FAMILY, TextDocument, TextLabel, TextPlacement};
++use wasm_bindgen::prelude::*;
++
++/// Shape five sizes, change only placement/color, and return source clusters and advances.
++#[wasm_bindgen]
++pub fn text_layout() -> Result<String, JsValue> {
++    layout_report().map_err(js_error)
++}
++
++/// Keep source strings and byte-cluster diagnostics available to the same-font DOM reference.
++fn layout_report() -> anyhow::Result<String> {
++    let mut document = TextDocument::new();
++    let mut labels = Vec::new();
++    for (index, size) in [12.0, 14.0, 16.0, 18.0, 24.0].into_iter().enumerate() {
++        labels.push(TextLabel {
++            id: index as u32,
++            text: "AVATAR To office ffi • é e\u{301} • Ø 25 ± 0.1 mm • ⚙".into(),
++            font_size: size,
++            line_height: size * 1.5,
++            color: [255; 4],
++            placement: TextPlacement::Screen {
++                left: 0.0,
++                top: 0.0,
++            },
++            clip: None,
++        });
++    }
++    document.set_labels(labels.clone())?;
++    let shaped = document.shape_count;
++    for label in &mut labels {
++        label.color = [255, 255, 0, 255];
++        label.placement = TextPlacement::Screen {
++            left: 10.0,
++            top: 20.0,
++        };
++    }
++    document.set_labels(labels)?;
++    anyhow::ensure!(
++        document.shape_count == shaped,
++        "placement/color unexpectedly reshaped"
++    );
++    let mut rows = Vec::new();
++    for run in &document.runs {
++        rows.push(serde_json::json!({"id":run.label.id,"text":run.label.text,
++            "size":run.label.font_size,"lineHeight":run.label.line_height}));
++    }
++    Ok(
++        serde_json::json!({"family":FONT_FAMILY,"rows":rows,"glyphs":document.diagnostics(),
++        "shapeCount":document.shape_count,"shapedBeforePlacementChange":shaped,
++        "revision":document.revision,"fontRevision":document.font_revision})
++        .to_string(),
++    )
++}
++
++/// Preserve layout/font validation failures at the JavaScript boundary.
++fn js_error(error: impl std::fmt::Display) -> JsValue {
++    JsValue::from_str(&error.to_string())
++}

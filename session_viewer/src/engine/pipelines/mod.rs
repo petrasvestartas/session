@@ -17,7 +17,10 @@ pub struct Target {
 
 impl Target {
     /// The id pass: (object row + 1, sub-object id + 1) per pixel, never multisampled.
-    pub const ID: Target = Target { format: wgpu::TextureFormat::Rg32Uint, samples: 1 };
+    pub const ID: Target = Target {
+        format: wgpu::TextureFormat::Rg32Uint,
+        samples: 1,
+    };
 }
 
 /// How a pipeline treats depth. Every compare is reverse-Z: nearer is GREATER.
@@ -25,6 +28,8 @@ impl Target {
 pub enum DepthMode {
     /// Write, strict `Greater`: solids and depth-only prepasses.
     Opaque,
+    /// Source point queries write depth and accept exact ties with resident source points.
+    OpaqueEqual,
     /// Test only, strict `Greater`: sheet fills and the grid.
     ReadOnly,
     /// Test only, `GreaterEqual`: blended ink that must tie with its prepass and with faces.
@@ -38,6 +43,7 @@ impl DepthMode {
     fn state(self) -> (bool, wgpu::CompareFunction) {
         match self {
             DepthMode::Opaque => (true, wgpu::CompareFunction::Greater),
+            DepthMode::OpaqueEqual => (true, wgpu::CompareFunction::GreaterEqual),
             DepthMode::ReadOnly => (false, wgpu::CompareFunction::Greater),
             DepthMode::ReadOnlyEqual => (false, wgpu::CompareFunction::GreaterEqual),
             DepthMode::Always => (false, wgpu::CompareFunction::Always),
@@ -59,7 +65,10 @@ impl ColorWrite {
     fn state(self) -> (Option<wgpu::BlendState>, wgpu::ColorWrites) {
         match self {
             ColorWrite::Opaque => (None, wgpu::ColorWrites::ALL),
-            ColorWrite::Blended => (Some(wgpu::BlendState::ALPHA_BLENDING), wgpu::ColorWrites::ALL),
+            ColorWrite::Blended => (
+                Some(wgpu::BlendState::ALPHA_BLENDING),
+                wgpu::ColorWrites::ALL,
+            ),
         }
     }
 }
@@ -78,13 +87,31 @@ pub struct PipelineDesc<'a> {
     pub color: ColorWrite,
     pub depth: DepthMode,
     pub scene_samples: Option<u32>,
+    pub physical: bool,
 }
 
 impl<'a> PipelineDesc<'a> {
     /// A base over `shader` with `vs_main`, opaque colour and opaque depth; the variants
     /// change the label, the fragment entry, the colour mode and the depth mode.
-    pub fn new(shader: &'a wgpu::ShaderModule, groups: &'a [&'a wgpu::BindGroupLayout], vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>], topology: wgpu::PrimitiveTopology) -> Self {
-        Self { label: "", shader, vs: "vs_main", fs: "fs_main", groups, vertex_buffers, topology, color: ColorWrite::Opaque, depth: DepthMode::Opaque, scene_samples: None }
+    pub fn new(
+        shader: &'a wgpu::ShaderModule,
+        groups: &'a [&'a wgpu::BindGroupLayout],
+        vertex_buffers: &'a [wgpu::VertexBufferLayout<'a>],
+        topology: wgpu::PrimitiveTopology,
+    ) -> Self {
+        Self {
+            label: "",
+            shader,
+            vs: "vs_main",
+            fs: "fs_main",
+            groups,
+            vertex_buffers,
+            topology,
+            color: ColorWrite::Opaque,
+            depth: DepthMode::Opaque,
+            scene_samples: None,
+            physical: false,
+        }
     }
 
     /// The variant `label`, drawn with fragment entry `fs`.
@@ -110,6 +137,12 @@ impl<'a> PipelineDesc<'a> {
     /// Specialize scene sampling independently of the output target (picking stays 1x).
     pub fn scene_samples(mut self, samples: u32) -> Self {
         self.scene_samples = Some(samples);
+        self
+    }
+
+    /// Add immutable physical-gradient output beside the primary color target.
+    pub fn physical(mut self) -> Self {
+        self.physical = true;
         self
     }
 
@@ -139,33 +172,62 @@ pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
 
 /// One `u32` object row per vertex at `@location(3)`.
 pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
-    wgpu::VertexBufferLayout { array_stride: 4, step_mode: wgpu::VertexStepMode::Vertex, attributes: &INSTANCE_ID_ATTRIBS }
+    wgpu::VertexBufferLayout {
+        array_stride: 4,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &INSTANCE_ID_ATTRIBS,
+    }
 }
 
 /// A unit template's positions at `@location(0)` (the marker quad).
 pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
-    wgpu::VertexBufferLayout { array_stride: 12, step_mode: wgpu::VertexStepMode::Vertex, attributes: &TEMPLATE_ATTRIBS }
+    wgpu::VertexBufferLayout {
+        array_stride: 12,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &TEMPLATE_ATTRIBS,
+    }
 }
 
 /// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
 pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some(label), source: wgpu::ShaderSource::Wgsl(source.into()) })
+    let source = format!(
+        "{}\n{}\n{}",
+        source,
+        include_str!("../../shaders/normals.wgsl"),
+        include_str!("../../shaders/physical.wgsl")
+    );
+    device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some(label),
+        source: wgpu::ShaderSource::Wgsl(source.into()),
+    })
 }
 
 /// Compile an ink lane with the shared visibility rule appended: every ink fragment decides
 /// from the scene depth buffer alone, so all the lanes hide against one another's surfaces.
 pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    let source = format!("{}\n{}", source, include_str!("../../shaders/ink_visibility.wgsl"));
+    let source = format!(
+        "{}\n{}",
+        source,
+        include_str!("../../shaders/ink_visibility.wgsl")
+    );
     module(device, label, &source)
 }
 
 /// The pipeline layout for `groups`, in slot order.
-fn pipeline_layout(device: &wgpu::Device, label: &str, groups: &[&wgpu::BindGroupLayout]) -> wgpu::PipelineLayout {
+fn pipeline_layout(
+    device: &wgpu::Device,
+    label: &str,
+    groups: &[&wgpu::BindGroupLayout],
+) -> wgpu::PipelineLayout {
     let mut slots: Vec<Option<&wgpu::BindGroupLayout>> = Vec::with_capacity(groups.len());
     for g in groups {
         slots.push(Some(*g));
     }
-    device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor { label: Some(label), bind_group_layouts: &slots, immediate_size: 0 })
+    device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some(label),
+        bind_group_layouts: &slots,
+        immediate_size: 0,
+    })
 }
 
 /// One render pipeline from its description. Everything not in the desc is the same for all
@@ -174,7 +236,22 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
     let layout = pipeline_layout(device, desc.label, desc.groups);
     let (depth_write, depth_compare) = desc.depth.state();
     let (blend, write_mask) = desc.color.state();
-    let targets = [Some(wgpu::ColorTargetState { format: target.format, blend, write_mask })];
+    let mut targets = vec![Some(wgpu::ColorTargetState {
+        format: target.format,
+        blend,
+        write_mask,
+    })];
+    if desc.physical {
+        targets.push(Some(wgpu::ColorTargetState {
+            format: wgpu::TextureFormat::Rg16Float,
+            blend: None,
+            write_mask: if desc.depth == DepthMode::ReadOnlyEqual {
+                wgpu::ColorWrites::empty()
+            } else {
+                wgpu::ColorWrites::ALL
+            },
+        }));
+    }
     let mut constants = Vec::new();
     if let Some(samples) = desc.scene_samples {
         constants.push(("SCENE_MSAA", f64::from(samples > 1)));
@@ -187,13 +264,19 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
             module: desc.shader,
             entry_point: Some(desc.vs),
             buffers: desc.vertex_buffers,
-            compilation_options: wgpu::PipelineCompilationOptions { constants: &constants, ..Default::default() },
+            compilation_options: wgpu::PipelineCompilationOptions {
+                constants: &constants,
+                ..Default::default()
+            },
         },
         fragment: Some(wgpu::FragmentState {
             module: desc.shader,
             entry_point: Some(desc.fs),
             targets: &targets,
-            compilation_options: wgpu::PipelineCompilationOptions { constants: &constants, ..Default::default() },
+            compilation_options: wgpu::PipelineCompilationOptions {
+                constants: &constants,
+                ..Default::default()
+            },
         }),
         primitive: wgpu::PrimitiveState {
             topology: desc.topology,
@@ -211,7 +294,11 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
-        multisample: wgpu::MultisampleState { count: target.samples, mask: !0, alpha_to_coverage_enabled: false },
+        multisample: wgpu::MultisampleState {
+            count: target.samples,
+            mask: !0,
+            alpha_to_coverage_enabled: false,
+        },
         multiview_mask: None,
         cache: None,
     })

@@ -45,7 +45,11 @@ fn helix_points(i: usize) -> Vec<Point> {
     for k in 0..12 {
         let t = k as f64 / 11.0;
         let a = t * 4.0 * std::f64::consts::PI;
-        points.push(Point::new(slot(i) + 200.0 * a.cos(), row(i) + 200.0 * a.sin(), 300.0 + 600.0 * t));
+        points.push(Point::new(
+            slot(i) + 200.0 * a.cos(),
+            row(i) + 200.0 * a.sin(),
+            300.0 + 600.0 * t,
+        ));
     }
     points
 }
@@ -56,7 +60,11 @@ fn s_curve_points(i: usize) -> Vec<Point> {
     for k in 0..7 {
         let t = k as f64 / 6.0;
         let a = t * 2.0 * std::f64::consts::PI;
-        points.push(Point::new(slot(i) + 250.0 * a.sin(), row(i), 300.0 + 600.0 * t));
+        points.push(Point::new(
+            slot(i) + 250.0 * a.sin(),
+            row(i),
+            300.0 + 600.0 * t,
+        ));
     }
     points
 }
@@ -66,7 +74,11 @@ fn loop_points(i: usize) -> Vec<Point> {
     let mut points = Vec::with_capacity(13);
     for k in 0..13 {
         let a = k as f64 / 12.0 * 2.0 * std::f64::consts::PI;
-        points.push(Point::new(slot(i) + 250.0 * a.cos(), row(i) + 250.0 * a.sin(), 600.0 + 120.0 * a.sin()));
+        points.push(Point::new(
+            slot(i) + 250.0 * a.cos(),
+            row(i) + 250.0 * a.sin(),
+            600.0 + 120.0 * a.sin(),
+        ));
     }
     points
 }
@@ -76,7 +88,11 @@ fn box_top_points(i: usize, z: f64) -> Vec<Point> {
     let mut points = Vec::with_capacity(5);
     for k in 0..5 {
         let t = k as f64 / 4.0;
-        points.push(Point::new(slot(i) - 150.0 + 300.0 * t, row(i) + 100.0 * (t * 6.0).sin(), z));
+        points.push(Point::new(
+            slot(i) - 150.0 + 300.0 * t,
+            row(i) + 100.0 * (t * 6.0).sin(),
+            z,
+        ));
     }
     points
 }
@@ -96,7 +112,11 @@ fn dome_points(i: usize) -> Vec<Point> {
     for &x in &coord {
         for &y in &coord {
             let r = (x * x + y * y).sqrt();
-            points.push(Point::new(slot(i) + x, row(i) + y, 300.0 + 200.0 * (r / 250.0).cos()));
+            points.push(Point::new(
+                slot(i) + x,
+                row(i) + y,
+                300.0 + 200.0 * (r / 250.0).cos(),
+            ));
         }
     }
     points
@@ -108,7 +128,11 @@ fn saddle_points(i: usize) -> Vec<Point> {
     let mut points = Vec::with_capacity(16);
     for &x in &coord {
         for &y in &coord {
-            points.push(Point::new(slot(i) + x, row(i) + y, 250.0 + 0.0006 * (x * x - y * y)));
+            points.push(Point::new(
+                slot(i) + x,
+                row(i) + y,
+                250.0 + 0.0006 * (x * x - y * y),
+            ));
         }
     }
     points
@@ -127,8 +151,14 @@ fn surface(points: &[Point], name: &str) -> NurbsSurface {
 fn cube_polyline(i: usize) -> Polyline {
     let h = HALF;
     let corner = [
-        [-h, -h, 0.0], [h, -h, 0.0], [h, h, 0.0], [-h, h, 0.0],
-        [-h, -h, 2.0 * h], [h, -h, 2.0 * h], [h, h, 2.0 * h], [-h, h, 2.0 * h],
+        [-h, -h, 0.0],
+        [h, -h, 0.0],
+        [h, h, 0.0],
+        [-h, h, 0.0],
+        [-h, -h, 2.0 * h],
+        [h, -h, 2.0 * h],
+        [h, h, 2.0 * h],
+        [-h, h, 2.0 * h],
     ];
     let route = [0, 1, 2, 3, 0, 4, 5, 1, 5, 6, 2, 6, 7, 3, 7, 4];
     let mut points = Vec::with_capacity(route.len());
@@ -142,7 +172,9 @@ fn cube_polyline(i: usize) -> Polyline {
 }
 
 fn main() {
-    let out = std::env::args().nth(1).unwrap_or_else(|| "target/mixed_solids.pb".into());
+    let out = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "target/mixed_solids.pb".into());
     let mut s = Session::new("mixed_solids");
 
     // Slots 0..6: the BReps. create_box, create_sphere, create_torus and create_block_with_hole
@@ -181,7 +213,10 @@ fn main() {
     s.add_nurbscurve(curve(&helix_points(7), Color::blue(), "helix"), None);
     s.add_nurbscurve(curve(&s_curve_points(8), Color::blue(), "s_curve"), None);
     s.add_nurbscurve(curve(&loop_points(9), Color::blue(), "ring"), None);
-    s.add_nurbscurve(curve(&box_top_points(0, 250.0), Color::red(), "on_box_top"), None);
+    s.add_nurbscurve(
+        curve(&box_top_points(0, 250.0), Color::red(), "on_box_top"),
+        None,
+    );
 
     // Slots 10..11: the smooth lane, where the border edges are ink and the seam grid is not.
     s.add_nurbssurface(surface(&dome_points(10), "dome"), None);

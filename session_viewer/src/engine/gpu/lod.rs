@@ -2,8 +2,8 @@
 //! given how wide each node's point spacing projects on screen. Pure CPU; the point lane
 //! turns the ranges into records.
 
-use crate::math::mat_scale;
 use super::cloud::{Cloud, LodNode};
+use crate::math::mat_scale;
 
 /// Clouds smaller than this draw WHOLE whatever the LOD cutoff says: nothing to save, and a
 /// node drawn at its own coarser spacing is fatter than the whole cloud.
@@ -54,7 +54,12 @@ impl LodWalk {
     pub fn select(&mut self, p: &Projection, c: &Cloud, model: &[f32; 16]) {
         self.ranges.clear();
         if c.node_count == 0 || p.lod_px <= 0.0 || c.resident < LOD_MIN_POINTS {
-            self.ranges.push(Range { first: 0, count: c.resident, spacing: c.spacing, tile: false });
+            self.ranges.push(Range {
+                first: 0,
+                count: c.resident,
+                spacing: c.spacing,
+                tile: false,
+            });
             return;
         }
 
@@ -64,13 +69,20 @@ impl LodWalk {
         self.visits.clear();
         self.stack.push((0, usize::MAX));
         while let Some((n, parent)) = self.stack.pop() {
-            let Some(node) = p.nodes.get(base + n) else { continue };
+            let Some(node) = p.nodes.get(base + n) else {
+                continue;
+            };
             if node.first >= c.resident {
                 continue;
             }
             let count = node.count.min(c.resident - node.first);
             let slot = self.visits.len();
-            self.visits.push(Visit { first: node.first, count, spacing: node.spacing, parent });
+            self.visits.push(Visit {
+                first: node.first,
+                count,
+                spacing: node.spacing,
+                parent,
+            });
             if projected_spacing(p, node, model, scale) > p.lod_px as f64 {
                 for &child in &node.children {
                     if child >= 0 {
@@ -88,7 +100,12 @@ impl LodWalk {
         }
         for v in &self.visits {
             if v.count > 0 {
-                self.ranges.push(Range { first: v.first, count: v.count, spacing: v.spacing, tile: true });
+                self.ranges.push(Range {
+                    first: v.first,
+                    count: v.count,
+                    spacing: v.spacing,
+                    tile: true,
+                });
             }
         }
     }
@@ -103,8 +120,16 @@ fn projected_spacing(p: &Projection, node: &LodNode, model: &[f32; 16], scale: f
     let wy = (model[1] * c[0] + model[5] * c[1] + model[9] * c[2] + model[13]) as f64;
     let wz = (model[2] * c[0] + model[6] * c[1] + model[10] * c[2] + model[14]) as f64;
     let e = p.eye;
-    let dist = ((wx - e[0] as f64).powi(2) + (wy - e[1] as f64).powi(2) + (wz - e[2] as f64).powi(2)).sqrt().max(1.0e-6) * 0.001;
-    let frac = if p.ortho_h > 0.0 { world / (2.0 * p.ortho_h as f64 * 0.001) } else { world * 1.7320508 * 0.5 / dist };
+    let dist =
+        ((wx - e[0] as f64).powi(2) + (wy - e[1] as f64).powi(2) + (wz - e[2] as f64).powi(2))
+            .sqrt()
+            .max(1.0e-6)
+            * 0.001;
+    let frac = if p.ortho_h > 0.0 {
+        world / (2.0 * p.ortho_h as f64 * 0.001)
+    } else {
+        world * 1.7320508 * 0.5 / dist
+    };
     frac * p.height_px as f64
 }
 
@@ -117,6 +142,10 @@ pub fn radius_factor(r: &Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
     if r.tile {
         world_r = world_r.max(r.spacing as f64 * scale * 0.001 * 0.5);
     }
-    let k = if ortho_h > 0.0 { world_r / (2.0 * ortho_h as f64 * 0.001) } else { world_r * 1.7320508 * 0.5 };
+    let k = if ortho_h > 0.0 {
+        world_r / (2.0 * ortho_h as f64 * 0.001)
+    } else {
+        world_r * 1.7320508 * 0.5
+    };
     k as f32
 }

@@ -25,7 +25,11 @@ pub fn mat_mul(a: &Mat4, b: &Mat4) -> Mat4 {
 
 /// The GPU edge: f64 world math stays CPU-side, the instance row is f32.
 pub fn mat_to_f32(m: &Mat4) -> [f32; 16] {
-    std::array::from_fn(|i| m[i] as f32)
+    let mut output = [0.0; 16];
+    for (target, source) in output.iter_mut().zip(m) {
+        *target = *source as f32;
+    }
+    output
 }
 
 /// A point through an affine matrix, f32 in and out (the arithmetic runs in f64).
@@ -77,12 +81,20 @@ pub struct Aabb {
 impl Aabb {
     /// The inverted box nothing has grown yet.
     pub fn empty() -> Self {
-        Self { min: [f32::INFINITY; 3], max: [f32::NEG_INFINITY; 3] }
+        Self {
+            min: [f32::INFINITY; 3],
+            max: [f32::NEG_INFINITY; 3],
+        }
     }
 
     /// True once at least one point went in.
     pub fn is_finite(&self) -> bool {
-        self.min.iter().chain(self.max.iter()).all(|v| v.is_finite()) && self.min[0] <= self.max[0]
+        for value in self.min.iter().chain(self.max.iter()) {
+            if !value.is_finite() {
+                return false;
+            }
+        }
+        self.min[0] <= self.max[0]
     }
 
     /// Widen by one point.
@@ -124,7 +136,9 @@ impl Aabb {
         if !self.is_finite() {
             return 0.0;
         }
-        (self.max[0] - self.min[0]).min(self.max[1] - self.min[1]).min(self.max[2] - self.min[2])
+        (self.max[0] - self.min[0])
+            .min(self.max[1] - self.min[1])
+            .min(self.max[2] - self.min[2])
     }
 
     /// The diagonal length, 0 when empty.
@@ -132,15 +146,23 @@ impl Aabb {
         if !self.is_finite() {
             return 0.0;
         }
-        let d = [self.max[0] - self.min[0], self.max[1] - self.min[1], self.max[2] - self.min[2]];
+        let d = [
+            self.max[0] - self.min[0],
+            self.max[1] - self.min[1],
+            self.max[2] - self.min[2],
+        ];
         (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt()
     }
 
     /// Whether `p` lies inside (closed box).
     pub fn contains(&self, p: [f64; 3]) -> bool {
-        (0..3).all(|k| p[k] >= self.min[k] as f64 && p[k] <= self.max[k] as f64)
+        for (axis, value) in p.iter().enumerate() {
+            if !(*value >= self.min[axis] as f64 && *value <= self.max[axis] as f64) {
+                return false;
+            }
+        }
+        true
     }
-
 }
 
 /// The camera position recovered from the combined view-projection alone: the eye is where
@@ -154,11 +176,18 @@ pub fn eye_from_view_proj(vp: &Xform) -> [f32; 3] {
     let rhs = [-a[3], -b[3], -c[3]];
     let d = det3(&rows);
 
-    let norm: f64 = rows.iter().map(|r| (r[0] * r[0] + r[1] * r[1] + r[2] * r[2]).sqrt()).product();
+    let mut norm: f64 = 1.0;
+    for row in rows {
+        norm *= (row[0] * row[0] + row[1] * row[1] + row[2] * row[2]).sqrt();
+    }
     if d.abs() <= 1e-9 * norm.max(1e-30) {
         let f = [vp[(2, 0)], vp[(2, 1)], vp[(2, 2)]];
         let len = (f[0] * f[0] + f[1] * f[1] + f[2] * f[2]).sqrt().max(1e-30);
-        return [0, 1, 2].map(|k| (f[k] / len * 1.0e9) as f32);
+        let mut far = [0.0; 3];
+        for (target, source) in far.iter_mut().zip(f) {
+            *target = (source / len * 1.0e9) as f32;
+        }
+        return far;
     }
 
     let mut eye = [0.0f32; 3];

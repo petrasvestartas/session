@@ -55,6 +55,8 @@ struct VsOut {
     @location(2) normal: vec3<f32>,
     @location(3) print: f32,
     @location(4) @interpolate(flat) inst_id: u32,
+    @location(5) @interpolate(flat) mirrored: u32,
+    @location(6) @interpolate(flat) selected: u32,
 }
 
 // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
@@ -67,6 +69,8 @@ fn dead_vertex() -> VsOut {
     dead.normal = vec3<f32>(0.0);
     dead.print = 0.0;
     dead.inst_id = 0u;
+    dead.mirrored = 0u;
+    dead.selected = 0u;
     return dead;
 }
 
@@ -86,9 +90,11 @@ fn vs_main(in: VsIn) -> VsOut {
     }
     o.color = color;
     o.world_pos = world;
-    o.normal = (inst.model * vec4<f32>(in.normal, 0.0)).xyz;
+    o.normal = face_normal(inst.model, in.normal);
+    o.mirrored = select(0u, 1u, dot(inst.model[0].xyz, cross(inst.model[1].xyz, inst.model[2].xyz)) < 0.0);
     o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
     o.inst_id = in.inst_id;
+    o.selected = inst.flags & FLAG_SELECTED;
     return o;
 }
 
@@ -102,13 +108,17 @@ fn view_dir(world_pos: vec3<f32>) -> vec3<f32> {
     return normalize(vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - world_pos);
 }
 
-fn shade(in: VsOut, front: bool) -> vec4<f32> {
+fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
+    let front = raster_front != (in.mirrored != 0u);
     // Flat normal from screen-space derivatives when the mesh baked none (y is down).
-    let flat_n = normalize(cross(dpdy(in.world_pos), dpdx(in.world_pos)));
-    let has_normal = dot(in.normal, in.normal) > 0.5;
-    var n = select(flat_n, normalize(in.normal), has_normal);
-    if (!front) {
-        n = -n;
+    let flat_n = cross(dpdy(in.world_pos), dpdx(in.world_pos));
+    var n = vec3<f32>(0.0, 0.0, 1.0);
+    if (dot(in.normal, in.normal) > 1e-12) {
+        n = normalize(in.normal);
+        if (!front) { n = -n; }
+    } else if (dot(flat_n, flat_n) > 1e-24) {
+        n = normalize(flat_n);
+        if (!raster_front) { n = -n; }
     }
 
     // A headlight, as every CAD viewport shades: the lamp rides the camera, tilted a little
@@ -141,11 +151,17 @@ fn shade(in: VsOut, front: bool) -> vec4<f32> {
 
 // The id pass: (object row + 1, 0).
 @fragment
-fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
-    return vec2<u32>(in.inst_id + 1u, 0u);
+fn fs_id(in: VsOut) -> PhysicalId {
+    return PhysicalId(vec2<u32>(in.inst_id + 1u, 0u), physical_gradient(in.pos.z));
 }
 
 @fragment
-fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
-    return shade(in, front);
+fn fs_selection_mask(in: VsOut) -> @location(0) vec4<f32> {
+    if (in.selected == 0u) { discard; }
+    return vec4<f32>(1.0);
+}
+
+@fragment
+fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> PhysicalColor {
+    return PhysicalColor(shade(in, front), physical_gradient(in.pos.z));
 }

@@ -2,8 +2,8 @@
 //! their pen colours, each edge's two faces, the face normals, and whether the mesh is
 //! closed. Byte-identical to the kernel's four separate passes, without their hash tables.
 
+use super::encode::{BLACK, pack_rgba};
 use session_rust::{Mesh, Tolerance};
-use super::encode::{pack_rgba, BLACK};
 
 /// Vertex key -> slot (the key's position in the sorted key list). Dense keys index a Vec;
 /// a sparse key space falls back to a map.
@@ -21,18 +21,28 @@ impl SlotMap {
             for (s, &k) in keys.iter().enumerate() {
                 dense[k] = s as u32;
             }
-            return Self { dense, sparse: std::collections::HashMap::new() };
+            return Self {
+                dense,
+                sparse: std::collections::HashMap::new(),
+            };
         }
         let mut sparse = std::collections::HashMap::with_capacity(keys.len());
         for (s, &k) in keys.iter().enumerate() {
             sparse.insert(k, s as u32);
         }
-        Self { dense: Vec::new(), sparse }
+        Self {
+            dense: Vec::new(),
+            sparse,
+        }
     }
 
     /// The slot of key `k`.
     pub fn slot(&self, k: usize) -> usize {
-        if self.dense.is_empty() { self.sparse[&k] as usize } else { self.dense[k] as usize }
+        if self.dense.is_empty() {
+            self.sparse[&k] as usize
+        } else {
+            self.dense[k] as usize
+        }
     }
 }
 
@@ -71,7 +81,16 @@ fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64;
         n[2] += (a[0] - b[0]) * (a[1] + b[1]);
     }
     let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
-    if len > Tolerance::ZERO_TOLERANCE { Some([n[0] / len, n[1] / len, n[2] / len]) } else { None }
+    if len > Tolerance::ZERO_TOLERANCE {
+        Some([n[0] / len, n[1] / len, n[2] / len])
+    } else {
+        None
+    }
+}
+
+/// Sort source faces by their stable key before assigning display face slots.
+fn face_key(face: &(usize, &Vec<usize>)) -> usize {
+    face.0
 }
 
 /// The fused pass. Edges hang off their LOW vertex on an intrusive chain (`head` per slot,
@@ -81,7 +100,7 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
     for (k, v) in m.face.iter() {
         faces.push((*k, v));
     }
-    faces.sort_unstable_by_key(|f| f.0);
+    faces.sort_unstable_by_key(face_key);
     let cols = m.get_linecolors();
 
     let mut normals: Vec<Option<[f64; 3]>> = Vec::with_capacity(faces.len());
@@ -106,7 +125,10 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
             }
             if ei == u32::MAX {
                 ei = edges.len() as u32;
-                let pen = cols.get(edges.len()).map_or(BLACK, |c| pack_rgba(c.to_f32()));
+                let pen = match cols.get(edges.len()) {
+                    Some(color) => pack_rgba(color.to_f32()),
+                    None => BLACK,
+                };
                 edges.push((lo, hi, pen));
                 edge_faces.push([u32::MAX; 2]);
                 dir0.push(dir);
@@ -141,5 +163,11 @@ pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMa
         closed = m.is_closed();
     }
 
-    MeshTopo { edges, edge_faces, opposed, normals, closed }
+    MeshTopo {
+        edges,
+        edge_faces,
+        opposed,
+        normals,
+        closed,
+    }
 }

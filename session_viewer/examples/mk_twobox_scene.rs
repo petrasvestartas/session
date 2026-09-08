@@ -4,7 +4,9 @@
 //
 // cargo run --example mk_twobox_scene --target x86_64-unknown-linux-gnu --release -- <out.pb>
 fn main() {
-    let out = std::env::args().nth(1).unwrap_or_else(|| "target/twobox.pb".into());
+    let out = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "target/twobox.pb".into());
     let front = session_rust::Mesh::create_box(400.0, 400.0, 400.0);
     let back = session_rust::Mesh::create_box(400.0, 400.0, 400.0);
     let edges = back.edges();
@@ -12,7 +14,14 @@ fn main() {
     for (a, b) in &edges {
         let p0 = back.vertex_point(*a).unwrap();
         let p1 = back.vertex_point(*b).unwrap();
-        lines.push(session_rust::Line::new(p0[0] - 600.0, p0[1], p0[2], p1[0] - 600.0, p1[1], p1[2]));
+        lines.push(session_rust::Line::new(
+            p0[0] - 600.0,
+            p0[1],
+            p0[2],
+            p1[0] - 600.0,
+            p1[1],
+            p1[2],
+        ));
     }
     let mut s = session_rust::Session::new("twobox");
     s.add_mesh(front, None);

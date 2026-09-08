@@ -3,15 +3,15 @@
 //! and thresholds live here. Nothing here reads the GPU.
 
 use super::bounds::mesh_thickness;
-use session_rust::RenderVertex;
-use session_rust::Mesh;
-use crate::app::knobs;
-use crate::engine::gpu::arena::ArenaRows;
-use crate::engine::gpu::Instance;
-use crate::math::Aabb;
+use super::mesh_ink::{Ink, InkCx, edges_and_dots};
+use super::mesh_topology::{SlotMap, mesh_topology};
 use super::{Row, WalkCx};
-use super::mesh_ink::{edges_and_dots, Ink, InkCx};
-use super::mesh_topology::{mesh_topology, SlotMap};
+use crate::app::knobs;
+use crate::engine::gpu::Instance;
+use crate::engine::gpu::arena::ArenaRows;
+use crate::math::Aabb;
+use session_rust::Mesh;
+use session_rust::RenderVertex;
 
 /// Above this many triangles a mesh draws as TRIANGLES ONLY - no edges, no markers: on a
 /// scan the decoration is 90x the geometry. The bunny (69k tri) keeps its wireframe.
@@ -59,12 +59,24 @@ pub struct MeshOpts {
 impl MeshOpts {
     /// A `Mesh` object: print fills take the sheet runs; open meshes are flagged. Every edge
     /// an authored mesh carries is an edge the author put there.
-    pub const OBJECT: MeshOpts = MeshOpts { sheet_lanes: true, allow_open: true, smooth: false };
+    pub const OBJECT: MeshOpts = MeshOpts {
+        sheet_lanes: true,
+        allow_open: true,
+        smooth: false,
+    };
     /// A tessellated BRep or surface: always the depth-tested run, never `FLAG_OPEN`, and the
     /// seams between its facets are sampling, not geometry.
-    pub const MODEL: MeshOpts = MeshOpts { sheet_lanes: false, allow_open: false, smooth: true };
+    pub const MODEL: MeshOpts = MeshOpts {
+        sheet_lanes: false,
+        allow_open: false,
+        smooth: true,
+    };
     /// An element's mesh: sheet runs, but an element is never flagged open.
-    pub const ELEMENT: MeshOpts = MeshOpts { sheet_lanes: true, allow_open: false, smooth: false };
+    pub const ELEMENT: MeshOpts = MeshOpts {
+        sheet_lanes: true,
+        allow_open: false,
+        smooth: false,
+    };
 }
 
 /// The clock behind VIEWER_PROFILE: `mark` prints the lap since the previous mark. A no-op
@@ -84,7 +96,11 @@ pub struct Lap;
 impl Lap {
     /// Start the clock; `prefix` names the caller in every printed line.
     pub fn start(prefix: &'static str) -> Self {
-        Self { on: knobs::profile(), at: std::time::Instant::now(), prefix }
+        Self {
+            on: knobs::profile(),
+            at: std::time::Instant::now(),
+            prefix,
+        }
     }
 
     /// Print the lap since the previous mark under `name`, then restart.
@@ -113,7 +129,11 @@ fn index_run<'a>(arena: &'a mut ArenaRows, m: &Mesh, sheet: bool) -> &'a mut Vec
     if !sheet {
         return &mut arena.idx;
     }
-    if m.name == "text" { &mut arena.idx_text } else { &mut arena.idx_print }
+    if m.name == "text" {
+        &mut arena.idx_text
+    } else {
+        &mut arena.idx_print
+    }
 }
 
 /// The walk context and the options one mesh is walked with.
@@ -141,7 +161,11 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         vpos64.push([point.x, point.y, point.z]);
         vpos.push([point.x as f32, point.y as f32, point.z as f32]);
     }
-    let topo = if decorated { Some(mesh_topology(m, &keys, &vpos64, &slots)) } else { None };
+    let topo = if decorated {
+        Some(mesh_topology(m, &keys, &vpos64, &slots))
+    } else {
+        None
+    };
     let mut bounds = Aabb::empty();
     arena.verts.reserve(rm.vertices.len());
     arena.vids.reserve(rm.vertices.len());
@@ -156,13 +180,23 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         idx.push(base + i);
     }
     lap.mark("vert+idx push");
-    let mut flags = if o.sheet_lanes && print { Instance::FLAG_PRINT } else { 0 };
+    let mut flags = if o.sheet_lanes && print {
+        Instance::FLAG_PRINT
+    } else {
+        0
+    };
     let smooth = o.smooth && !knobs::seams();
     if smooth {
         flags |= Instance::FLAG_SMOOTH;
     }
     let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
-    let row = Row { bounds, spacing: mesh_spacing(&bounds, m.number_of_vertices()), flags, faces: true, thickness };
+    let row = Row {
+        bounds,
+        spacing: mesh_spacing(&bounds, m.number_of_vertices()),
+        flags,
+        faces: true,
+        thickness,
+    };
 
     if !decorated || knobs::no_edges() {
         return row;
@@ -170,13 +204,26 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
 
     let topo = topo.expect("decorated mesh has topology");
     lap.mark("topology");
-    let mut icx = InkCx { row: cx.row, vpos: &vpos, slots: &slots, smooth, lap: &mut lap };
+    let mut icx = InkCx {
+        row: cx.row,
+        vpos: &vpos,
+        slots: &slots,
+        smooth,
+        lap: &mut lap,
+    };
     edges_and_dots(ink, m, &topo, &mut icx);
 
     // An open mesh is not a solid: the facing cull would strip interior surface seen through
     // the hole, so the shaders skip it like FLAG_INSIDE.
     let open = o.allow_open && !topo.closed;
-    Row { flags: if open { row.flags | Instance::FLAG_OPEN } else { row.flags }, ..row }
+    Row {
+        flags: if open {
+            row.flags | Instance::FLAG_OPEN
+        } else {
+            row.flags
+        },
+        ..row
+    }
 }
 
 /// The positions of a render mesh's vertices, for the thickness measure.

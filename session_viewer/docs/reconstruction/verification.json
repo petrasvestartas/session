@@ -1,0 +1,469 @@
+{
+  "passed": true,
+  "verified_utc": "2026-09-08T18:43:13.529875+00:00",
+  "scope": "Every checkpoint reconstructed from original pinned inputs, all required source files hash checked, locked WASM compilation, optimized build and actual browser frame per checkpoint. Detailed behavior gates are listed separately. A subsequent test-only amendment preserves every viewer and kernel runtime byte; its fresh sequential reconstruction checks are recorded separately below.",
+  "production_tree": "210120d0dd7d1c0fcdd0e41cea70f1c4e29dce1577a427cb54c032dd55b1e92d",
+  "steps": [
+    {
+      "step": "00",
+      "source_files": 530,
+      "verified_dpr": [
+        1
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/00/evidence/00"
+    },
+    {
+      "step": "01",
+      "source_files": 531,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/01/evidence/01"
+    },
+    {
+      "step": "02",
+      "source_files": 533,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/02/evidence/02"
+    },
+    {
+      "step": "03",
+      "source_files": 537,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/03/evidence/03"
+    },
+    {
+      "step": "04",
+      "source_files": 562,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/04/evidence/04"
+    },
+    {
+      "step": "05",
+      "source_files": 566,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/05/evidence/05"
+    },
+    {
+      "step": "06",
+      "source_files": 576,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/06/evidence/06"
+    },
+    {
+      "step": "07",
+      "source_files": 577,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/07/evidence/07"
+    },
+    {
+      "step": "08",
+      "source_files": 577,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/08/evidence/08"
+    },
+    {
+      "step": "09",
+      "source_files": 578,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/09/evidence/09"
+    },
+    {
+      "step": "10",
+      "source_files": 587,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": true,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/10/evidence/10"
+    },
+    {
+      "step": "11",
+      "source_files": 592,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-clean/11/evidence/11"
+    },
+    {
+      "step": "12",
+      "source_files": 613,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-v4/12/evidence/12"
+    },
+    {
+      "step": "13",
+      "source_files": 615,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-v4/13/evidence/13"
+    },
+    {
+      "step": "14",
+      "source_files": 621,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-v4/14/evidence/14"
+    },
+    {
+      "step": "15",
+      "source_files": 627,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-v4/15/evidence/15"
+    },
+    {
+      "step": "16",
+      "source_files": 691,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-v4/16/evidence/16"
+    }
+  ],
+  "detailed_behavior": [
+    {
+      "passed": true,
+      "checkpoint": 13,
+      "script": "docs/reconstruction/fixtures/interaction.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2-rest/13"
+    },
+    {
+      "passed": true,
+      "checkpoint": 14,
+      "script": "tests/lifecycle.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2-rest/14"
+    },
+    {
+      "passed": true,
+      "checkpoint": 14,
+      "script": "tests/loading.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2-rest/14"
+    },
+    {
+      "passed": true,
+      "checkpoint": 11,
+      "script": "tests/nameplate.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-text-v2-reviewed/11"
+    },
+    {
+      "passed": true,
+      "checkpoint": 12,
+      "script": "docs/reconstruction/picking.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2-rest/12"
+    },
+    {
+      "passed": true,
+      "checkpoint": 14,
+      "script": "tests/nameplate-scene.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2-rest/14"
+    },
+    {
+      "passed": true,
+      "checkpoint": 13,
+      "script": "docs/reconstruction/controls.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2-rest/13"
+    },
+    {
+      "passed": true,
+      "checkpoint": 13,
+      "script": "docs/reconstruction/controls.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2-rest/13"
+    },
+    {
+      "passed": true,
+      "checkpoint": 11,
+      "script": "tests/text-quality.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-text-v2-reviewed/11"
+    },
+    {
+      "passed": true,
+      "checkpoint": 11,
+      "script": "tests/text-zoom.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-text-v2-reviewed/11"
+    },
+    {
+      "passed": true,
+      "checkpoint": 5,
+      "script": "docs/reconstruction/visibility.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2/05"
+    },
+    {
+      "passed": true,
+      "checkpoint": 14,
+      "script": "tests/world-text.cjs",
+      "source": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-clean-v2-rest/14"
+    }
+  ],
+  "detailed_behavior_scope": "Detailed chapter gates passed after implementation; the final mechanical selection-outline control-flow cleanup was verified by the repeated 12\u201316 builds/browser checks and the production eight-test GPU suite.",
+  "cad_views": {
+    "passed": 28,
+    "dpr": [
+      1,
+      2
+    ],
+    "evidence": [
+      "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-cad-dpr1/browser/results.json",
+      "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-cad-dpr2/browser/results.json"
+    ]
+  },
+  "browser_build_production_tree": "b84486f173486e5ef316d1e0ef1cd1e7d4cb9516d8da940b6f34db49c4921f7f",
+  "pre_push_amendment": {
+    "verified_utc": "2026-09-08T19:34:39.762832+00:00",
+    "source_reconstruction": "all 17 patches replayed from pinned bases; every checkpoint inventory checked; final convergence passed",
+    "evidence": "/home/petras/.cache/wood-research-github-push/reconstruction.log",
+    "steps": [
+      {
+        "step": "00",
+        "changed_files": [],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "01",
+        "changed_files": [],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "02",
+        "changed_files": [],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "03",
+        "changed_files": [],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "04",
+        "changed_files": [],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "05",
+        "changed_files": [],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "06",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "07",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "08",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "09",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "10",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "11",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "12",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "13",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "14",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "15",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      },
+      {
+        "step": "16",
+        "changed_files": [
+          "session_cpp/src/primitives_test.cpp",
+          "session_py/src/session_py/primitives_test.py",
+          "session_rust/src/primitives_test.rs"
+        ],
+        "runtime_identical": true,
+        "source_hash_check": "passed"
+      }
+    ],
+    "kernel_full_suite_gate": "bash/git_push.sh runs all C++, Rust and Python minitests and aborts before commits/pushes on any failure."
+  }
+}

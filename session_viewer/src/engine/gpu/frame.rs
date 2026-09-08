@@ -2,11 +2,11 @@
 //! and the cloud block (group 1), written once per frame from a `FrameInput`. The eye and the
 //! ortho half-height are solved here ONCE and read by the point records and the inside test.
 
-use crate::engine::pipelines::Layouts;
-use crate::math::{eye_from_view_proj, ortho_half_height, FOVY_DEG};
-use session_rust::Xform;
-use super::buffers::{bind_group, uniform_buffer, GpuCtx};
+use super::buffers::{GpuCtx, bind_group, uniform_buffer};
 use super::view::View;
+use crate::engine::pipelines::Layouts;
+use crate::math::{FOVY_DEG, eye_from_view_proj, ortho_half_height};
+use session_rust::Xform;
 
 /// What one frame needs from the caller: the camera, the clear colour and the frame's ONE
 /// timestamp (ms) - the re-anchor throttle and the fps counter both read it.
@@ -22,6 +22,8 @@ pub struct FrameCx<'a> {
     pub view: &'a View,
     pub anchor: [f32; 3],
     pub size: (u32, u32),
+    /// Actual framebuffer pixels per CSS pixel (one for native regression targets).
+    pub pixel_scale: f32,
 }
 
 /// The three bind groups every lane draw needs, borrowed for one pass.
@@ -53,9 +55,9 @@ pub struct LineUniform {
     pub vp_w: f32,      // framebuffer width, px
     pub eye: [f32; 3],  // camera position, anchored world units
     pub anchor: [f32; 3],
-    pub feather: f32, // antialiasing ramp of the ink lanes, px
-    pub lit: f32,       // 1 = light the mesh faces, 0 = flat colour
-    pub backface: f32,  // 1 = paint back faces red, 0 = their own colour
+    pub feather: f32,  // antialiasing ramp of the ink lanes, px
+    pub lit: f32,      // 1 = light the mesh faces, 0 = flat colour
+    pub backface: f32, // 1 = paint back faces red, 0 = their own colour
     pub _pad: [f32; 2],
 }
 
@@ -72,7 +74,7 @@ pub struct CloudUniform {
     pub size: f32, // global scale on per-cloud point sizes
     pub vp_w: f32,
     pub vp_h: f32,
-    pub edl: f32,  // Eye-Dome Lighting strength; 0 = off
+    pub edl: f32, // Eye-Dome Lighting strength; 0 = off
 }
 
 /// The three uniform buffers with their bind groups, plus this frame's solved camera facts.
@@ -92,6 +94,11 @@ pub struct FrameUniforms {
 }
 
 impl FrameUniforms {
+    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
+    pub fn allocated_bytes(&self) -> u64 {
+        self.mvp_buffer.size() + self.line_buffer.size() + self.cloud_buffer.size()
+    }
+
     /// The three buffers and bind groups with no camera yet.
     pub fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
         let mvp_buffer = uniform_buffer(&ctx.device, "mvp.buffer", &Xform::identity().to_f32());
@@ -109,14 +116,29 @@ impl FrameUniforms {
             _pad: [0.0; 2],
         };
         let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
-        let cloud = CloudUniform { size: 1.0, vp_w: size.0 as f32, vp_h: size.1 as f32, edl: 0.0 };
+        let cloud = CloudUniform {
+            size: 1.0,
+            vp_w: size.0 as f32,
+            vp_h: size.1 as f32,
+            edl: 0.0,
+        };
         let cloud_buffer = uniform_buffer(&ctx.device, "cloud.buffer", &cloud);
 
         let mvp_group = bind_group(ctx, &l.mvp, "mvp.bind_group", &[&mvp_buffer]);
         let line_group = bind_group(ctx, &l.line, "line.bind_group", &[&line_buffer]);
         let cloud_group = bind_group(ctx, &l.line, "cloud.bind_group", &[&cloud_buffer]);
 
-        Self { mvp_buffer, line_buffer, cloud_buffer, mvp_group, line_group, cloud_group, mvp_f32: [0.0; 16], ortho_h: 0.0, eye: [0.0; 3] }
+        Self {
+            mvp_buffer,
+            line_buffer,
+            cloud_buffer,
+            mvp_group,
+            line_group,
+            cloud_group,
+            mvp_f32: [0.0; 16],
+            ortho_h: 0.0,
+            eye: [0.0; 3],
+        }
     }
 
     /// Per-frame uniforms: camera, the line/pen block, and the cloud block. The eye and the
@@ -125,10 +147,11 @@ impl FrameUniforms {
         self.mvp_f32 = input.view_proj.to_f32();
         self.ortho_h = ortho_half_height(&input.view_proj);
         self.eye = eye_from_view_proj(&input.view_proj);
-        ctx.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&self.mvp_f32));
+        ctx.queue
+            .write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&self.mvp_f32));
 
         let line = LineUniform {
-            thickness: cx.view.thickness_px,
+            thickness: cx.view.thickness_px * cx.pixel_scale,
             feather: cx.view.feather_px,
             proj_y: 1.0 / (FOVY_DEG as f32 * 0.5).to_radians().tan() * 0.001,
             ortho_h: self.ortho_h,
@@ -140,9 +163,16 @@ impl FrameUniforms {
             backface: f32::from(cx.view.backface),
             _pad: [0.0; 2],
         };
-        ctx.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
+        ctx.queue
+            .write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
 
-        let cloud = CloudUniform { size: cx.view.cloud_size, vp_w: cx.size.0 as f32, vp_h: cx.size.1 as f32, edl: cx.view.edl_strength };
-        ctx.queue.write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&cloud));
+        let cloud = CloudUniform {
+            size: cx.view.cloud_size,
+            vp_w: cx.size.0 as f32,
+            vp_h: cx.size.1 as f32,
+            edl: cx.view.edl_strength,
+        };
+        ctx.queue
+            .write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&cloud));
     }
 }

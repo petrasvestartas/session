@@ -61,7 +61,7 @@ impl View {
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
             lit: knob("VIEWER_NO_LIT", "nolit").is_none(),
             backface: knob("VIEWER_NO_BACKFACE", "nobackface").is_none(),
-            msaa_forced: knob("VIEWER_MSAA", "msaa").and_then(|v| v.parse().ok()),
+            msaa_forced: knob_u32("VIEWER_MSAA", "msaa"),
             perf: knob("VIEWER_PERF", "perf").is_some(),
             spin: knob("VIEWER_SPIN", "spin").is_some(),
         }
@@ -84,5 +84,16 @@ pub fn knob(env: &str, query: &str) -> Option<String> {
 
 /// A float knob; `default` when unset or unparsable.
 fn knob_f32(env: &str, query: &str, default: f32) -> f32 {
-    knob(env, query).and_then(|v| v.parse().ok()).filter(|v: &f32| v.is_finite()).unwrap_or(default)
+    let Some(raw) = knob(env, query) else {
+        return default;
+    };
+    match raw.parse::<f32>() {
+        Ok(value) if value.is_finite() => value,
+        _ => default,
+    }
+}
+
+/// An unsigned integer knob; absent or invalid text leaves the setting unspecified.
+fn knob_u32(env: &str, query: &str) -> Option<u32> {
+    knob(env, query)?.parse().ok()
 }

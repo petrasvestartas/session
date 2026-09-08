@@ -1,4 +1,4 @@
-//! Clocks and counters: the frame timer that logs fps once a second, the browser heap size,
+//! Clocks and counters: the frame timer that logs fps once a second, WASM memory capacity,
 //! and `now_ms` on both targets. Native builds read the system clock.
 
 /// Frame timing: a smoothed frame time and one log line a second when `perf` is on.
@@ -7,13 +7,21 @@ pub struct Performance {
     last_log: f64,
     frame_ms: f64,
     pub frames: u64,
+    /// Draw calls encoded for the last color frame, excluding asynchronous ID work.
+    pub draws: u32,
 }
 
 impl Performance {
     /// Start the clock now.
     pub fn new() -> Self {
         let t = now_ms();
-        Self { prev_frame: t, last_log: t, frame_ms: 0.0, frames: 0 }
+        Self {
+            prev_frame: t,
+            last_log: t,
+            frame_ms: 0.0,
+            frames: 0,
+            draws: 0,
+        }
     }
 
     /// Call once at the end of every frame with the counts gathered during it.
@@ -21,11 +29,27 @@ impl Performance {
         let dt = now - self.prev_frame;
         self.prev_frame = now;
         self.frames += 1;
-        self.frame_ms = if self.frame_ms == 0.0 { dt } else { self.frame_ms * 0.9 + dt * 0.1 };
+        self.draws = draws;
+        self.frame_ms = if self.frame_ms == 0.0 {
+            dt
+        } else {
+            self.frame_ms * 0.9 + dt * 0.1
+        };
 
         if perf && now - self.last_log >= 1000.0 {
-            let fps = if self.frame_ms > 0.0 { 1000.0 / self.frame_ms } else { 0.0 };
-            log::info!("perf: {:.1} fps | {:.2} ms | {} draws | {} objects | heap {:.0} MB", fps, self.frame_ms, draws, objects, heap_mb());
+            let fps = if self.frame_ms > 0.0 {
+                1000.0 / self.frame_ms
+            } else {
+                0.0
+            };
+            log::info!(
+                "perf: {:.1} fps | {:.2} ms | {} draws | {} objects | wasm capacity {:.0} MiB",
+                fps,
+                self.frame_ms,
+                draws,
+                objects,
+                heap_mb()
+            );
             self.last_log = now;
         }
     }
@@ -40,28 +64,40 @@ pub fn now_ms() -> f64 {
 /// Milliseconds now: the system clock natively.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn now_ms() -> f64 {
-    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs_f64() * 1000.0
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs_f64()
+        * 1000.0
 }
 
-/// The wasm heap in MB - a high-water mark, since `WebAssembly.Memory` never shrinks.
+/// Browser WASM linear-memory capacity in MiB; this is neither live ownership nor JavaScript heap.
 #[cfg(target_arch = "wasm32")]
 pub fn heap_mb() -> f64 {
     use wasm_bindgen::JsCast;
-    wasm_bindgen::memory()
-        .dyn_into::<js_sys::WebAssembly::Memory>()
-        .ok()
-        .map(|m| m.buffer().unchecked_into::<js_sys::ArrayBuffer>().byte_length() as f64 / 1.048576e6)
-        .unwrap_or(0.0)
+    let Ok(memory) = wasm_bindgen::memory().dyn_into::<js_sys::WebAssembly::Memory>() else {
+        return 0.0;
+    };
+    memory
+        .buffer()
+        .unchecked_into::<js_sys::ArrayBuffer>()
+        .byte_length() as f64
+        / 1.048576e6
 }
 
-/// Native: resident set size from /proc, the closest thing to the same measure.
+/// Native Linux process RSS in MiB; this differs from the browser's WASM-capacity observation.
 #[cfg(all(not(target_arch = "wasm32"), target_os = "linux"))]
 pub fn heap_mb() -> f64 {
-    std::fs::read_to_string("/proc/self/statm")
-        .ok()
-        .and_then(|s| s.split_whitespace().nth(1).and_then(|v| v.parse::<f64>().ok()))
-        .map(|pages| pages * 4096.0 / 1.048576e6)
-        .unwrap_or(0.0)
+    let Ok(stats) = std::fs::read_to_string("/proc/self/statm") else {
+        return 0.0;
+    };
+    let Some(resident) = stats.split_whitespace().nth(1) else {
+        return 0.0;
+    };
+    match resident.parse::<f64>() {
+        Ok(pages) => pages * 4096.0 / 1.048576e6,
+        Err(_) => 0.0,
+    }
 }
 
 /// Native, non-Linux: no cheap measure.
@@ -74,11 +110,16 @@ pub fn heap_mb() -> f64 {
 /// first use. A DOM line survives a busy console and shows in a screenshot.
 #[cfg(target_arch = "wasm32")]
 pub fn perf_line(text: &str) {
-    let Some(doc) = web_sys::window().and_then(|w| w.document()) else { return };
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(doc) = window.document() else { return };
     let el = match doc.get_element_by_id("perf") {
         Some(e) => e,
         None => {
-            let Ok(e) = doc.create_element("pre") else { return };
+            let Ok(e) = doc.create_element("pre") else {
+                return;
+            };
             e.set_id("perf");
             let _ = e.set_attribute("style", "position:fixed;left:0;top:0;margin:0;padding:2px 6px;font:12px monospace;color:#000;background:rgba(255,255,255,.7);z-index:9;pointer-events:none");
             if let Some(b) = doc.body() {

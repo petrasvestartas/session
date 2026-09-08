@@ -3,7 +3,7 @@
 // Renders one headless frame and prints the ink count; VIEWER_FRAMES=N times N frames first,
 // VIEWER_PICK="x,y" reports what the id pass finds under a pixel. VIEWER_W / VIEWER_H size it.
 
-use session_viewer::selftest::{render_scene, SceneFile};
+use session_viewer::selftest::{SceneFile, render_scene};
 
 /// Keep adapter and validation diagnostics in the render log; GPU errors also abort the run.
 struct StderrLog;
@@ -26,7 +26,13 @@ fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let out = args.first().cloned().unwrap_or_else(|| "out.ppm".into());
     let files = SceneFile::from_args(&args[1.min(args.len())..]);
-    let w = std::env::var("VIEWER_W").ok().and_then(|v| v.parse().ok()).unwrap_or(900);
-    let h = std::env::var("VIEWER_H").ok().and_then(|v| v.parse().ok()).unwrap_or(700);
+    let w = std::env::var("VIEWER_W")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(900);
+    let h = std::env::var("VIEWER_H")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(700);
     print!("{}", render_scene(&files, w, h, &out));
 }

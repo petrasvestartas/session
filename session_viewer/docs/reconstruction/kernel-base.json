@@ -1,0 +1,84 @@
+{
+  "repository": "https://github.com/petrasvestartas/session_rust.git",
+  "revision": "a59c4124637e16f6a55e9c179c6f6d3d9f58d7ce",
+  "paths": [
+    "Cargo.toml",
+    "build.rs",
+    "src",
+    "AGENTS.md"
+  ],
+  "archive": "kernel-base.tar.gz",
+  "sha256": "8445e10f3af2c327f3e7252771f4c3c3eaae8cf79a1b3804b010f73193c2c1ca",
+  "purpose": "Exact unmodified shared Rust prerequisite; CAD chapters apply the consolidation changes. Generated protobuf source is included; REGEN_PROTO=0 avoids mutable sibling schemas.",
+  "parity_sources": [
+    {
+      "directory": "session_cpp",
+      "repository": "https://github.com/petrasvestartas/session_cpp.git",
+      "revision": "be936e1cad8bfe49399a401881ebc4fc154d66a5",
+      "paths": [
+        "AGENTS.md",
+        "README.md",
+        "CMakeLists.txt",
+        "main_3.cpp",
+        "generated",
+        "src",
+        "serialization"
+      ],
+      "archive": "session_cpp-base.tar.gz",
+      "sha256": "d0ca4fa50e5d9c1c3f9c8d16acb1dc8036f6de4c4f73f419bc2e7e61ea68ef4c"
+    },
+    {
+      "directory": "session_py",
+      "repository": "https://github.com/petrasvestartas/session_py.git",
+      "revision": "3cd630b717bacb7418986eeceedfba03c1fcc02f",
+      "paths": [
+        "AGENTS.md",
+        "README.md",
+        "conftest.py",
+        "pyproject.toml",
+        "uv.lock",
+        "src",
+        "serialization"
+      ],
+      "archive": "session_py-base.tar.gz",
+      "sha256": "f3fbe198e3e71237c0f308b0b910db2ec9851e9f08595cbe482e5b07603a5244"
+    },
+    {
+      "directory": "session_proto",
+      "repository": "https://github.com/petrasvestartas/session_proto.git",
+      "revision": "74439a72ced46e898fd0ada4b0f9e17d476ddbd2",
+      "paths": [
+        "README.md",
+        "boundingbox.proto",
+        "brep.proto",
+        "color.proto",
+        "edge.proto",
+        "element.proto",
+        "file_encoders.proto",
+        "graph.proto",
+        "instance_ref.proto",
+        "line.proto",
+        "matrix.proto",
+        "mesh.proto",
+        "nurbscurve.proto",
+        "nurbssurface.proto",
+        "nurbssurface_trimmed.proto",
+        "objects.proto",
+        "plane.proto",
+        "point.proto",
+        "pointcloud.proto",
+        "polyline.proto",
+        "quaternion.proto",
+        "session.proto",
+        "tolerance.proto",
+        "tree.proto",
+        "treenode.proto",
+        "vector.proto",
+        "vertex.proto",
+        "xform.proto"
+      ],
+      "archive": "session_proto-base.tar.gz",
+      "sha256": "dbe076e812241f1fb82947677b72879d460955f08ead4cb5f9a015c60dd46a4a"
+    }
+  ]
+}

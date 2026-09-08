@@ -109,11 +109,12 @@ fn project(gid: u32) -> Splat {
             vec3<f32>(rec_f(base, 28u), rec_f(base, 29u), rec_f(base, 30u)),
             vec3<f32>(rec_f(base, 32u), rec_f(base, 33u), rec_f(base, 34u)),
         );
-        let nw = normalize(rot * oct16_decode(packed_n));
+        let nw = transform_normal(rot, oct16_decode(packed_n));
         let light = normalize(vec3<f32>(0.4, 0.4, 0.8));
         let lambert = 0.25 + 0.75 * abs(dot(nw, light));
         rgba = vec4<f32>(rgba.rgb * lambert, rgba.a);
     }
+    if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) { rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0); }
     s.color = pack4x8unorm(rgba);
     s.ok = true;
     return s;
@@ -172,9 +173,9 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
 
 // The id pass: (object row + 1, point row + 1).
 @fragment
-fn fs_point_id(in: PointOut) -> @location(0) vec2<u32> {
+fn fs_point_id(in: PointOut) -> PhysicalId {
     if (outside(in)) {
         discard;
     }
-    return vec2<u32>(in.instance + 1u, in.row + 1u);
+    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<f32>(0.0));
 }

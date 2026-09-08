@@ -4,7 +4,9 @@
 //
 // cargo run --example mk_dots_scene --target x86_64-unknown-linux-gnu --release -- <out.pb>
 fn main() {
-    let out = std::env::args().nth(1).unwrap_or_else(|| "target/wedge/dots.pb".into());
+    let out = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "target/wedge/dots.pb".into());
 
     let mut s = session_rust::Session::new("dots_box");
     for &sx in &[0.0, 400.0] {

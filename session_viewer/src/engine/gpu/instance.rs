@@ -45,14 +45,23 @@ impl Instance {
 
     /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
     pub fn placeholder() -> Self {
-        Self { model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, thickness: 0.0, spacing: 0.0, _pad: 0 }
+        Self {
+            model: Xform::identity().to_f32(),
+            color: [0.5, 0.5, 0.5, 1.0],
+            flags: 0,
+            thickness: 0.0,
+            spacing: 0.0,
+            _pad: 0,
+        }
     }
 }
 
 /// The field names of a WGSL `struct <name> { .. }`, in declaration order. Test-only.
 #[cfg(test)]
 pub(crate) fn wgsl_fields(src: &str, struct_name: &str) -> Vec<String> {
-    let at = src.find(&format!("struct {struct_name}")).expect("struct declared in the shader");
+    let at = src
+        .find(&format!("struct {struct_name}"))
+        .expect("struct declared in the shader");
     let rest = &src[at..];
     let open = rest.find('{').expect("struct body opens");
     let close = rest.find('}').expect("struct body closes");
@@ -77,31 +86,92 @@ mod tests {
     /// names: a valid Rust size alone does not prove WGSL's array stride.
     #[test]
     fn shader_validation_and_layouts() {
-        use crate::engine::gpu::segments::CylinderSegment;
         use crate::engine::gpu::glyphs::GlyphPoint;
+        use crate::engine::gpu::segments::CylinderSegment;
         use std::mem::{offset_of, size_of};
         for (name, source) in lane_shaders() {
             let source = if source.contains("-> InkColor") {
-                format!("{source}\n{}", include_str!("../../shaders/ink_visibility.wgsl"))
-            } else { source.to_string() };
-            let module = naga::front::wgsl::parse_str(&source).unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
-            naga::valid::Validator::new(naga::valid::ValidationFlags::all(), naga::valid::Capabilities::default())
-                .validate(&module).unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
+                format!(
+                    "{source}\n{}",
+                    include_str!("../../shaders/ink_visibility.wgsl")
+                )
+            } else {
+                source.to_string()
+            };
+            let source = format!(
+                "{source}\n{}\n{}",
+                include_str!("../../shaders/normals.wgsl"),
+                include_str!("../../shaders/physical.wgsl")
+            );
+            let module = naga::front::wgsl::parse_str(&source)
+                .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
+            naga::valid::Validator::new(
+                naga::valid::ValidationFlags::all(),
+                naga::valid::Capabilities::default(),
+            )
+            .validate(&module)
+            .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
             for (_, ty) in module.types.iter() {
-                let Some(structure) = ty.name.as_deref() else { continue };
+                let Some(structure) = ty.name.as_deref() else {
+                    continue;
+                };
                 let (offsets, size) = match structure {
-                    "CylinderSegment" => (vec![0, 4, 8, offset_of!(CylinderSegment, radius), 16, 20, 24,
-                        offset_of!(CylinderSegment, instance_id), offset_of!(CylinderSegment, color), offset_of!(CylinderSegment, facing)], size_of::<CylinderSegment>()),
-                    "GlyphPoint" => (vec![offset_of!(GlyphPoint, center), offset_of!(GlyphPoint, radius), offset_of!(GlyphPoint, color),
-                        offset_of!(GlyphPoint, instance_id), offset_of!(GlyphPoint, facing), offset_of!(GlyphPoint, facing_ext)], size_of::<GlyphPoint>()),
-                    "LineUniform" => (vec![0, 4, 8, 12, 16, 20, 24, 28, 32, 44, offset_of!(LineUniform, lit), offset_of!(LineUniform, backface)], size_of::<LineUniform>()),
+                    "CylinderSegment" => (
+                        vec![
+                            0,
+                            4,
+                            8,
+                            offset_of!(CylinderSegment, radius),
+                            16,
+                            20,
+                            24,
+                            offset_of!(CylinderSegment, instance_id),
+                            offset_of!(CylinderSegment, color),
+                            offset_of!(CylinderSegment, facing),
+                        ],
+                        size_of::<CylinderSegment>(),
+                    ),
+                    "GlyphPoint" => (
+                        vec![
+                            offset_of!(GlyphPoint, center),
+                            offset_of!(GlyphPoint, radius),
+                            offset_of!(GlyphPoint, color),
+                            offset_of!(GlyphPoint, instance_id),
+                            offset_of!(GlyphPoint, facing),
+                            offset_of!(GlyphPoint, facing_ext),
+                        ],
+                        size_of::<GlyphPoint>(),
+                    ),
+                    "LineUniform" => (
+                        vec![
+                            0,
+                            4,
+                            8,
+                            12,
+                            16,
+                            20,
+                            24,
+                            28,
+                            32,
+                            44,
+                            offset_of!(LineUniform, lit),
+                            offset_of!(LineUniform, backface),
+                        ],
+                        size_of::<LineUniform>(),
+                    ),
                     _ => continue,
                 };
-                let naga::TypeInner::Struct { members, span } = &ty.inner else { panic!("{name}: {structure} is not a struct") };
+                let naga::TypeInner::Struct { members, span } = &ty.inner else {
+                    panic!("{name}: {structure} is not a struct")
+                };
                 assert_eq!(*span as usize, size, "{name}: {structure} stride");
                 assert_eq!(members.len(), offsets.len(), "{name}: {structure} members");
                 for (member, expected) in members.iter().zip(offsets) {
-                    assert_eq!(member.offset as usize, expected, "{name}: {structure}.{:?}", member.name);
+                    assert_eq!(
+                        member.offset as usize, expected,
+                        "{name}: {structure}.{:?}",
+                        member.name
+                    );
                 }
             }
         }
@@ -113,7 +183,11 @@ mod tests {
         let rust = ["model", "color", "flags", "thickness", "spacing"];
         for (name, src) in lane_shaders() {
             if src.contains("struct Instance") {
-                assert_eq!(wgsl_fields(src, "Instance"), rust, "{name}: Instance fields");
+                assert_eq!(
+                    wgsl_fields(src, "Instance"),
+                    rust,
+                    "{name}: Instance fields"
+                );
             }
         }
     }
@@ -122,10 +196,27 @@ mod tests {
     /// three scalars there.
     #[test]
     fn line_uniform_mirror() {
-        let rust = ["thickness", "proj_y", "ortho_h", "vp_h", "vp_w", "eye_x", "eye_y", "eye_z", "anchor", "feather", "lit", "backface"];
+        let rust = [
+            "thickness",
+            "proj_y",
+            "ortho_h",
+            "vp_h",
+            "vp_w",
+            "eye_x",
+            "eye_y",
+            "eye_z",
+            "anchor",
+            "feather",
+            "lit",
+            "backface",
+        ];
         for (name, src) in lane_shaders() {
             if src.contains("struct LineUniform") {
-                assert_eq!(wgsl_fields(src, "LineUniform"), rust, "{name}: LineUniform fields");
+                assert_eq!(
+                    wgsl_fields(src, "LineUniform"),
+                    rust,
+                    "{name}: LineUniform fields"
+                );
             }
         }
         assert_eq!(std::mem::size_of::<LineUniform>(), 64);

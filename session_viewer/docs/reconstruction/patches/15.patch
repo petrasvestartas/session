@@ -1,0 +1,809 @@
+diff --git a/bash/lib/view.sh b/bash/lib/view.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..c1adf719e5ed1f463e5a4a1fb09e1073d245d198
+--- /dev/null
++++ b/bash/lib/view.sh
+@@ -0,0 +1,170 @@
++#!/usr/bin/env bash
++# Shared Cloudflare R2 settings and helpers for view_put.sh and view_live.sh.
++#
++# Stable manifests live under scenes/, compatibility payloads under pb/view_*, and immutable
++# payloads under pb/revisions/. The viewer also supports local regression/tutorial fixtures.
++
++R2_BUCKET="${R2_BUCKET:-session-viewer-data}"
++R2_ACCOUNT="${R2_ACCOUNT:-0520459c6817bd96c1e25fcb49461c4e}"
++R2_ENDPOINT="${R2_ENDPOINT:-https://${R2_ACCOUNT}.r2.cloudflarestorage.com}"
++R2_PUBLIC="${R2_PUBLIC:-https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev}"
++R2_PROFILE="r2"
++
++# The relay an open viewer listens on. Posting here turns "within one poll" into "within a
++# fraction of a second"; the message body is ignored by the page, only the fact of it matters.
++R2_NOTIFY="https://ntfy.sh/wood-live-84eaac4a04729911"
++
++# One value of the `[r2]` profile in ~/.aws/credentials.
++r2_credential() {
++    awk -v want="$1" -v prof="[${R2_PROFILE}]" '
++        $0 == prof { in_prof = 1; next }
++        /^\[/ { in_prof = 0 }
++        in_prof && $1 == want { print $3; exit }
++    ' "$HOME/.aws/credentials" 2>/dev/null
++}
++
++# Fail early and say what is missing, rather than letting a tool print a stack of XML.
++r2_require_credentials() {
++    if [ -z "$(r2_credential aws_access_key_id)" ] || [ -z "$(r2_credential aws_secret_access_key)" ]; then
++        cat >&2 <<CREDS
++ERROR: no [${R2_PROFILE}] profile with keys in ~/.aws/credentials.
++
++Create an R2 API token with **Object Read & Write** at
++  https://dash.cloudflare.com/${R2_ACCOUNT}/r2/api-tokens
++then add its two values:
++
++  [${R2_PROFILE}]
++  region = auto
++  aws_access_key_id = <access key id>
++  aws_secret_access_key = <secret access key>
++CREDS
++        return 1
++    fi
++}
++
++# A curl config file holding the credentials, mode 0600, so the secret never appears on a
++# command line (`ps` shows arguments to every user). Made once per shell, removed on exit.
++r2_curl_config() {
++    if [ -z "${R2_CURL_CONFIG:-}" ]; then
++        R2_CURL_CONFIG=$(umask 077 && mktemp) || return 1
++        trap 'rm -f "$R2_CURL_CONFIG"' EXIT
++        printf 'user = "%s:%s"\n' "$(r2_credential aws_access_key_id)" "$(r2_credential aws_secret_access_key)" > "$R2_CURL_CONFIG"
++    fi
++}
++
++# PUT one file to one key with curl's built-in SigV4 signing: one HTTPS request and no
++# Python start-up (the aws CLI cost ~0.5 s per call). Prints the HTTP status.
++r2_put() {
++    local src="$1" key="$2" type="application/octet-stream" cache="no-cache"
++    r2_curl_config || return 1
++    case "$key" in *.toml) type="application/toml" ;; *.yaml|*.yml) type="application/yaml" ;; *.json) type="application/json" ;; esac
++    case "$key" in pb/revisions/*) cache="public, max-age=31536000, immutable" ;; esac
++    curl --connect-timeout 10 --max-time 180 --retry 2 --retry-delay 1 --retry-max-time 200 -sS -o /dev/null -w "%{http_code}" -X PUT -T "$src" \
++        --aws-sigv4 "aws:amz:auto:s3" -K "$R2_CURL_CONFIG" \
++        -H "Content-Type: $type" -H "Cache-Control: $cache" \
++        "${R2_ENDPOINT}/${R2_BUCKET}/${key}"
++}
++
++# The HTTP status the public URL answers a HEAD with: 200 = there, 404 = not there, anything
++# else = the store is not answering properly right now.
++r2_head_status() {
++    curl --connect-timeout 10 --max-time 180 --retry 2 --retry-delay 1 --retry-max-time 200 -sS -o /dev/null -w "%{http_code}" -I "${R2_PUBLIC}/${1}"
++}
++
++# Upload one file to one key, then CHECK it arrived: the public URL must answer 200 with the
++# same byte count. An upload that reports success and serves nothing is the failure worth
++# catching, because the page keeps drawing the previous scene and looks fine.
++r2_upload() {
++    local src="$1" key="$2"
++    local size code served
++    size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
++
++    echo "  ${src}  ->  s3://${R2_BUCKET}/${key}  (${size} bytes)"
++    code=$(r2_put "$src" "$key") || return 1
++    if [ "$code" != "200" ]; then
++        echo "ERROR: PUT ${key} answered HTTP ${code}" >&2
++        return 1
++    fi
++
++    served=$(curl --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 1 --retry-max-time 60 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
++    if [ "$served" != "$size" ]; then
++        echo "ERROR: uploaded ${size} bytes but ${R2_PUBLIC}/${key} serves '${served:-nothing}'" >&2
++        return 1
++    fi
++    echo "  verified: ${R2_PUBLIC}/${key}"
++}
++
++# A content-addressed key is immutable: reuse verified bytes instead of uploading them again.
++r2_revision() {
++    local src="$1" key="$2" code size
++    case "$key" in pb/revisions/*.pb) ;; *) echo 'ERROR: expected a content-addressed revision key' >&2; return 1 ;; esac
++    size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
++    code=$(r2_head_status "$key") || return 1
++    case "$code" in
++        200) r2_verify "$key" "$size" ;;
++        404) r2_upload "$src" "$key" ;;
++        *) echo "ERROR: revision lookup ${key} answered HTTP ${code}" >&2; return 1 ;;
++    esac
++}
++
++# `r2_upload`, but the verify runs in the background: the caller `wait`s on `$!` and gets the
++# verify's exit status, so two uploads and their checks overlap instead of queueing.
++r2_upload_start() {
++    local src="$1" key="$2"
++    local size code
++    size=$(stat -c%s "$src" 2>/dev/null || stat -f%z "$src")
++
++    echo "  ${src}  ->  s3://${R2_BUCKET}/${key}  (${size} bytes)"
++    code=$(r2_put "$src" "$key") || return 1
++    if [ "$code" != "200" ]; then
++        echo "ERROR: PUT ${key} answered HTTP ${code}" >&2
++        return 1
++    fi
++    r2_verify "$key" "$size" &
++}
++
++# The public URL must serve `size` bytes for `key`.
++r2_verify() {
++    local key="$1" size="$2" served
++    served=$(curl --connect-timeout 10 --max-time 30 --retry 2 --retry-delay 1 --retry-max-time 60 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
++    if [ "$served" != "$size" ]; then
++        echo "ERROR: uploaded ${size} bytes but ${R2_PUBLIC}/${key} serves '${served:-nothing}'" >&2
++        return 1
++    fi
++    echo "  verified: ${R2_PUBLIC}/${key}"
++}
++
++# Tell any open viewer to look now instead of waiting for its next poll. Best effort: the page
++# converges on its own, so a relay that is down is not a failed publish.
++r2_notify() {
++    if [ "${R2_NOTIFY_ENABLED:-1}" = 0 ]; then return 0; fi
++    if curl -fsS -m 5 -d "${1:-published}" "$R2_NOTIFY" >/dev/null 2>&1; then
++        echo "  notified ${R2_NOTIFY}"
++    else
++        echo "  (relay unreachable; open pages pick this up on their next poll)"
++    fi
++}
++
++# Copy a verified immutable object to the stable alias without uploading the payload twice.
++# R2 supports S3 CopyObject. Read the XML body too: HTTP 200 may contain an embedded error.
++r2_alias() {
++    local source="$1" key="$2" size="$3" response code
++    r2_curl_config || return 1
++    response=$(mktemp) || return 1
++    code=$(curl --connect-timeout 10 --max-time 180 --retry 2 --retry-delay 1 --retry-max-time 200 \
++        -sS -o "$response" -w '%{http_code}' -X PUT --data '' \
++        --aws-sigv4 'aws:amz:auto:s3' -K "$R2_CURL_CONFIG" \
++        -H "x-amz-copy-source: /${R2_BUCKET}/${source}" \
++        -H 'x-amz-metadata-directive: REPLACE' -H 'Content-Type: application/octet-stream' -H 'Cache-Control: no-cache' \
++        "${R2_ENDPOINT}/${R2_BUCKET}/${key}") || { rm -f "$response"; return 1; }
++    if [ "$code" != 200 ] || ! python3 -c 'import sys, xml.etree.ElementTree as E; root=E.parse(sys.argv[1]).getroot(); sys.exit(root.tag.split("}")[-1] != "CopyObjectResult")' "$response"; then
++        rm -f "$response"
++        echo "ERROR: copying ${source} to ${key} failed (HTTP ${code})" >&2
++        return 1
++    fi
++    rm -f "$response"
++    r2_verify "$key" "$size"
++}
++
++# Monotonic elapsed timing is independent of wall-clock adjustments and date formatting.
++r2_now_ms() { python3 -c 'import time; print(time.monotonic_ns() // 1000000)'; }
+diff --git a/bash/lib/view_manifest.py b/bash/lib/view_manifest.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..94c05c4812a354674022f2848963bf1df69ae002
+--- /dev/null
++++ b/bash/lib/view_manifest.py
+@@ -0,0 +1,85 @@
++#!/usr/bin/env python3
++"""Validate and materialize a scene whose uploaded payload is an immutable revision."""
++import json
++import math
++from pathlib import Path
++import sys
++import tomllib
++
++
++def read(path):
++    """Read the viewer's existing TOML, JSON or YAML manifest formats."""
++    raw = Path(path).read_bytes()
++    if len(raw) > 4 * 1024 * 1024:
++        raise ValueError("manifest exceeds 4 MiB")
++    if Path(path).suffix == ".toml":
++        data = tomllib.loads(raw.decode())
++    else:
++        try:
++            data = json.loads(raw)
++        except ValueError:
++            import yaml
++            data = yaml.safe_load(raw)
++    if not isinstance(data, dict) or not isinstance(data.get("items"), list) or not data["items"]:
++        raise ValueError("manifest must contain a nonempty items array")
++    for item in data["items"]:
++        if not isinstance(item, dict) or not isinstance(item.get("file"), str) or not item["file"].strip():
++            raise ValueError("each item must name a file")
++    return data
++
++
++def value(item):
++    """Write the finite scalar/array values used by Session TOML scene manifests."""
++    if isinstance(item, bool):
++        return "true" if item else "false"
++    if isinstance(item, str):
++        return json.dumps(item, ensure_ascii=False)
++    if isinstance(item, (int, float)) and math.isfinite(item):
++        return repr(item)
++    if isinstance(item, list):
++        return "[" + ", ".join(value(entry) for entry in item) + "]"
++    if isinstance(item, dict):
++        return "{ " + ", ".join(json.dumps(key) + " = " + value(entry) for key, entry in item.items()) + " }"
++    raise ValueError("manifest contains an unsupported or non-finite value")
++
++
++def write(data, path):
++    """Retain every authored placement/style field while changing only the payload reference."""
++    if Path(path).suffix == ".toml":
++        lines = [json.dumps(key) + " = " + value(entry) for key, entry in data.items() if key != "items"]
++        for item in data["items"]:
++            lines.extend(["", "[[items]]"])
++            lines.extend(json.dumps(key) + " = " + value(entry) for key, entry in item.items())
++        text = "\n".join(lines) + "\n"
++    else:
++        text = json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
++    Path(path).write_text(text)
++
++
++def main():
++    """Print referenced keys, or rewrite the supplied geometry reference to a content hash."""
++    data = read(sys.argv[1])
++    if len(sys.argv) == 2:
++        for item in data["items"]:
++            print(item["file"])
++        return
++    geometry, revision, output = sys.argv[2:]
++    names = {Path(geometry).name, "view_live.pb"}
++    matched = False
++    for item in data["items"]:
++        if item["file"] == revision or (Path(item["file"]).name in names and not item["file"].startswith(("http://", "https://"))):
++            item["file"] = revision
++            matched = True
++    if not matched:
++        raise ValueError("manifest does not reference the supplied geometry or view_live.pb")
++    write(data, output)
++
++
++if __name__ == "__main__":
++    try:
++        main()
++    except (ValueError, OSError, ImportError) as error:
++        sys.exit("manifest: " + str(error))
++
++# Workspace root: python3 bash/lib/view_manifest.py scene.toml scan.pb pb/revisions/<sha>.pb /tmp/view_live.toml
++# Local publisher helper; public scene URL remains ?scene=view_live.toml.
+diff --git a/bash/view_live.sh b/bash/view_live.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..745ee4a838d24ff1412cf1a97088227fb94bcc5d
+--- /dev/null
++++ b/bash/view_live.sh
+@@ -0,0 +1,70 @@
++#!/usr/bin/env bash
++# Publish a coherent live revision, preserving the existing stable scene/geometry aliases.
++set -euo pipefail
++SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
++source "${SCRIPT_DIR}/lib/view.sh"
++REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
++
++if [ "$#" = 2 ]; then
++    manifest="$1"
++    geometry="$2"
++    case "$manifest" in *.toml) suffix=toml ;; *.yaml|*.yml|*.json) suffix=yaml ;; *) echo "ERROR: expected a TOML, YAML or JSON scene" >&2; exit 1 ;; esac
++elif [ "$#" -le 1 ]; then
++    suffix=yaml
++    if [ "$#" = 1 ]; then
++        [ -d "$1" ] || { echo "ERROR: not a directory: $1" >&2; exit 1; }
++        directories=("$1")
++    else
++        directories=("." "./out" "./pb" "./data/output/pb" "${REPO_ROOT}/session_viewer/assets")
++    fi
++    manifest=""
++    for directory in "${directories[@]}"; do
++        if [ -s "${directory}/view_live.yaml" ] && [ -s "${directory}/view_live.pb" ]; then
++            manifest="${directory}/view_live.yaml"
++            geometry="${directory}/view_live.pb"
++            break
++        fi
++    done
++    [ -n "$manifest" ] || { printf 'ERROR: no view_live.yaml/view_live.pb pair in: %s\n' "${directories[*]}" >&2; exit 1; }
++else
++    echo "Usage: view_live.sh [directory] | view_live.sh scene.toml scan.pb" >&2
++    exit 1
++fi
++[ -s "$manifest" ] && [ -s "$geometry" ] || { echo "ERROR: manifest or geometry missing/empty" >&2; exit 1; }
++case "$geometry" in *.pb) ;; *) echo "ERROR: geometry must be .pb" >&2; exit 1 ;; esac
++
++scratch=$(mktemp -d)
++trap 'rm -rf "$scratch"; rm -f "${R2_CURL_CONFIG:-}"' EXIT
++revision="pb/revisions/$(sha256sum "$geometry" | cut -d' ' -f1).pb"
++prepared="${scratch}/view_live.${suffix}"
++python3 "${SCRIPT_DIR}/lib/view_manifest.py" "$manifest" "$geometry" "$revision" "$prepared"
++python3 "${SCRIPT_DIR}/lib/view_manifest.py" "$prepared" > "${scratch}/files"
++r2_require_credentials
++# Materialize credential ownership before command-substitution/background helpers run.
++r2_curl_config
++trap 'rm -rf "$scratch"; rm -f "${R2_CURL_CONFIG:-}"' EXIT
++
++# Verify other referenced payloads before any publication mutation.
++while IFS= read -r entry; do
++    [ "$entry" = "$revision" ] && continue
++    case "$entry" in https://*) url="$entry" ;; *) url="${R2_PUBLIC}/${entry#./}" ;; esac
++    code=$(curl --connect-timeout 10 --max-time 30 --retry 2 -sS -o /dev/null -w '%{http_code}' -I "$url")
++    [ "$code" = 200 ] || { echo "ERROR: referenced payload $entry returned HTTP $code" >&2; exit 1; }
++done < "${scratch}/files"
++
++started=$(r2_now_ms)
++r2_revision "$geometry" "$revision"
++# Existing consumers can still read the stable payload; the new manifest uses immutable bytes.
++r2_alias "$revision" "pb/view_live.pb" "$(stat -c%s "$geometry")"
++r2_upload "$prepared" "scenes/view_live.${suffix}"
++# Default deployed consumers poll YAML. The optional TOML alias has identical semantics.
++if [ "$suffix" = toml ]; then
++    python3 "${SCRIPT_DIR}/lib/view_manifest.py" "$prepared" "$geometry" "$revision" "${scratch}/view_live.yaml"
++    r2_upload "${scratch}/view_live.yaml" "scenes/view_live.yaml"
++fi
++published=$(r2_now_ms)
++printf 'publication verified: %s ms; open ?scene=view_live.%s\n' "$((published-started))" "$suffix"
++r2_notify "view_live.pb"
++
++# Workspace root: ./bash/view_live.sh scene.toml scan.pb (or ./bash/view_live.sh [directory]).
++# View: http://localhost:8770/?scene=view_live.toml ; credentials stay in ~/.aws/credentials.
+diff --git a/bash/view_put.sh b/bash/view_put.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..6e139ec068cc7a9dadfd34eaf26459271d4a9dc4
+--- /dev/null
++++ b/bash/view_put.sh
+@@ -0,0 +1,71 @@
++#!/usr/bin/env bash
++# Put one .pb in the bucket AND give it a scene, so it is viewable in one step.
++#
++#   bash/view_put.sh <file.pb> [name]
++#
++#   bash/view_put.sh out/scan.pb          -> pb/view_scan.pb + scenes/view_scan.yaml
++#   bash/view_put.sh out/scan.pb lidar_a  -> pb/view_lidar_a.pb + scenes/view_lidar_a.yaml
++#
++# It prints the `?scene=` to open. A .pb on its own is not viewable - the page loads a MANIFEST
++# and draws what that names - so uploading one without writing a scene for it just leaves an
++# orphan nobody can see. The scene is a single item at the origin; edit it afterwards
++# (`aws s3 cp` it down, change `at`, put it back) when the file needs placing.
++#
++# An EXISTING scene of that name is never overwritten: it may place several files, and clobbering
++# it with a one-item scene would silently drop the rest. Pass a different name instead.
++set -u
++
++SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
++source "${SCRIPT_DIR}/lib/view.sh"
++
++src="${1:-}"
++if [ -z "$src" ]; then
++    echo "Usage: view_put.sh <file.pb> [name]"
++    echo "       uploads pb/view_<name>.pb and writes scenes/view_<name>.yaml"
++    exit 1
++fi
++[ -f "$src" ] || { echo "ERROR: no such file: $src" >&2; exit 1; }
++[ -s "$src" ] || { echo "ERROR: $src is empty" >&2; exit 1; }
++case "$src" in *.pb) ;; *) echo "ERROR: $src is not a .pb" >&2; exit 1 ;; esac
++
++# view_<name>: from the second argument, else the file's own basename. Already-prefixed names are
++# left alone rather than becoming view_view_x.
++name="${2:-$(basename "$src" .pb)}"
++name="${name#view_}"
++[[ "$name" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "ERROR: scene name may contain letters, digits, underscore and hyphen" >&2; exit 1; }
++stem="view_${name}"
++key="pb/${stem}.pb"
++scene="scenes/${stem}.yaml"
++
++r2_require_credentials || exit 1
++
++existing=$(curl --connect-timeout 10 --max-time 30 --retry 2 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
++[ -n "$existing" ] && echo "  replacing ${key} (was ${existing} bytes)"
++
++r2_upload "$src" "$key" || exit 1
++
++# The scene. Written only when there is none, so a hand-placed scene survives a re-upload of the
++# geometry it names - which is the normal case: the .pb changes, the placement does not.
++scene_status=$(r2_head_status "$scene")
++if [ "$scene_status" = "200" ]; then
++    echo "  ${scene} exists - kept as it is (delete it first if you want a fresh one)"
++elif [ "$scene_status" != "404" ]; then
++    echo "ERROR: ${R2_PUBLIC}/${scene} answered HTTP ${scene_status}; not writing a scene blind" >&2
++    exit 1
++else
++    tmp=$(mktemp) && trap 'rm -f "$tmp" "${R2_CURL_CONFIG:-}"' EXIT
++    cat > "$tmp" <<EOF
++# Written by bash/view_put.sh for ${stem}.pb. One item at the origin - edit \`at\` to place it,
++# or add more entries under \`items\`; nothing regenerates this file, so your changes stay.
++name: "${name}"
++
++items:
++  - file: "${key}"
++    name: "${name}"
++    at: [0, 0, 0]
++EOF
++    r2_upload "$tmp" "$scene" || exit 1
++fi
++
++echo
++echo "  open:  ?scene=${stem}.yaml"
+diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
+index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387a04e68d0
+--- a/session_viewer/src/app/stream.rs
++++ b/session_viewer/src/app/stream.rs
+@@ -296,6 +296,33 @@
+     if next <= end { Some(next) } else { None }
+ }
+ 
++/// One bounded metadata window; skipped geometry fields never determine its allocation.
++#[cfg(any(target_arch = "wasm32", test))]
++#[derive(Default)]
++struct MetadataWindow {
++    at: u64,
++    bytes: Vec<u8>,
++}
++
++#[cfg(any(target_arch = "wasm32", test))]
++impl MetadataWindow {
++    /// Borrow an exact cached range, including a valid empty range at the window's end.
++    fn slice(&self, at: u64, length: u64) -> Option<&[u8]> {
++        let start = usize::try_from(at.checked_sub(self.at)?).ok()?;
++        let length = usize::try_from(length).ok()?;
++        self.bytes.get(start..start.checked_add(length)?)
++    }
++
++    /// Read ahead 64 KiB inside the cloud; larger packed arrays retain the existing cap.
++    fn read_length(at: u64, length: u64, end: u64) -> Option<u64> {
++        if !bounded_range(at, length) {
++            return None;
++        }
++        body_end(at, length, end)?;
++        Some(length.max(64 * 1024).min(end - at))
++    }
++}
++
+ /// A packed `int32` (varint) array in full.
+ pub fn packed_i32(raw: &[u8]) -> Vec<i32> {
+     let mut out = Vec::new();
+@@ -346,7 +373,7 @@
+ #[cfg(target_arch = "wasm32")]
+ pub use web::*;
+ 
+-/// Exact bounded metadata reads locate arrays, then point slices arrive by range.
++/// The fetching half: bounded metadata windows locate arrays, then slices arrive by range.
+ #[cfg(target_arch = "wasm32")]
+ mod web {
+     use super::*;
+@@ -354,6 +381,25 @@
+ 
+     const POINT_BYTES: u64 = 24;
+     const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
++
++    impl MetadataWindow {
++        /// Reuse adjacent headers/arrays under the same ETag; replace the window on a jump.
++        async fn read(
++            &mut self,
++            url: &str,
++            at: u64,
++            length: u64,
++            fields: &CloudFields,
++        ) -> Option<&[u8]> {
++            body_end(at, length, fields.end)?;
++            if self.slice(at, length).is_none() {
++                let read_length = Self::read_length(at, length, fields.end)?;
++                self.bytes = source_range(url, at, read_length, &fields.revision).await?;
++                self.at = at;
++            }
++            self.slice(at, length)
++        }
++    }
+ 
+     /// Exact bounded 206 bodies, tied to the metadata's exposed source validator.
+     async fn source_range(
+@@ -438,9 +484,12 @@
+         let mut seen = [false; 7];
+         let mut table_bytes = 0u64;
+         let mut ids = None;
++        let mut window = MetadataWindow::default();
+         while at < fields.end {
+-            let header = source_range(url, at, 64.min(fields.end - at), &fields.revision).await?;
+-            let (tag, used) = varint(&header, 0)?;
++            let header = window
++                .read(url, at, 64.min(fields.end - at), fields)
++                .await?;
++            let (tag, used) = varint(header, 0)?;
+             let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
+             if field == 0 {
+                 return None;
+@@ -449,11 +498,11 @@
+                 if (8..=15).contains(&field) {
+                     return None;
+                 }
+-                let skip = skip_scalar(&header, used, wire)?;
++                let skip = skip_scalar(header, used, wire)?;
+                 at = body_end(at, (used + skip) as u64, fields.end)?;
+                 continue;
+             }
+-            let (length, extra) = varint(&header, used)?;
++            let (length, extra) = varint(header, used)?;
+             let body = body_end(at, (used + extra) as u64, fields.end)?;
+             let next = body_end(body, length, fields.end)?;
+             if (8..=14).contains(&field) {
+@@ -464,8 +513,8 @@
+                 if table_bytes > MAX_TABLE_BYTES {
+                     return None;
+                 }
+-                let raw = source_range(url, body, length, &fields.revision).await?;
+-                if !lod.set_field(field, &raw) {
++                let raw = window.read(url, body, length, fields).await?;
++                if !lod.set_field(field, raw) {
+                     return None;
+                 }
+                 seen[field - 8] = true;
+@@ -532,6 +581,35 @@
+ #[cfg(test)]
+ mod tests {
+     use super::*;
++
++    /// Adjacent metadata borrows one window; jumps and boundary crossings force a refill.
++    #[test]
++    fn metadata_window_checks_ranges_without_copying_or_following_large_skips() {
++        let window = MetadataWindow {
++            at: 100,
++            bytes: vec![1, 2, 3, 4],
++        };
++        assert_eq!(window.slice(101, 2), Some(&[2, 3][..]));
++        assert_eq!(window.slice(104, 0), Some(&[][..]));
++        assert!(window.slice(99, 1).is_none());
++        assert!(window.slice(103, 2).is_none());
++        assert!(window.slice(u64::MAX, 2).is_none());
++        assert_eq!(
++            MetadataWindow::read_length(100, 64, 1_000_000_000),
++            Some(65_536)
++        );
++        assert_eq!(MetadataWindow::read_length(100, 64, 170), Some(70));
++        assert_eq!(
++            MetadataWindow::read_length(100, 70_000, 1_000_000),
++            Some(70_000)
++        );
++        assert_eq!(MetadataWindow::read_length(100, 64, 150), None);
++        assert_eq!(
++            MetadataWindow::read_length(0, 64 * 1024 * 1024 + 1, u64::MAX),
++            None
++        );
++        assert_eq!(MetadataWindow::read_length(u64::MAX - 1, 2, u64::MAX), None);
++    }
+ 
+     fn valid_lod() -> CloudLod {
+         CloudLod {
+diff --git a/session_viewer/tests/publication.py b/session_viewer/tests/publication.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..706c2ccd0ad8652ab72ba25ca5247654576c254b
+--- /dev/null
++++ b/session_viewer/tests/publication.py
+@@ -0,0 +1,106 @@
++"""Exercise the real publication scripts with local storage and failure injection."""
++from pathlib import Path
++import os
++import subprocess
++import tempfile
++import unittest
++
++SCRIPTS = Path(__file__).resolve().parents[2] / "bash"
++MOCK = '''#!/usr/bin/env python3
++import os, pathlib, shutil, sys
++args = sys.argv[1:]
++root = pathlib.Path(os.environ["MOCK_ROOT"])
++url = args[-1]
++key = url.split("/session-viewer-data/")[-1] if "/session-viewer-data/" in url else url.split("https://mock/")[-1]
++path = root / "objects" / key
++if "-T" in args:
++    config = pathlib.Path(args[args.index("-K")+1])
++    assert config.exists() and config.stat().st_mode & 0o077 == 0
++    with (root / "events").open("a") as events:
++        events.write("put " + key + "\\n")
++    if os.environ.get("MOCK_FAIL") == "put" and "/revisions/" in key:
++        print("500", end="")
++    else:
++        path.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copyfile(args[args.index("-T")+1], path)
++        print("200", end="")
++elif "-X" in args and "PUT" in args:
++    header = next(value for value in args if value.startswith("x-amz-copy-source: "))
++    source = root / "objects" / header.split("/session-viewer-data/")[-1]
++    path.parent.mkdir(parents=True, exist_ok=True)
++    shutil.copyfile(source, path)
++    with (root / "events").open("a") as events:
++        events.write("copy " + key + "\\n")
++    pathlib.Path(args[args.index("-o")+1]).write_text("<CopyObjectResult/>")
++    print("200", end="")
++elif "-I" in args:
++    print("200" if path.exists() else "404", end="")
++else:
++    if path.exists() and not (os.environ.get("MOCK_FAIL") == "verify" and "/revisions/" in key):
++        print("HTTP/1.1 200 OK\\nContent-Length: " + str(path.stat().st_size))
++    else:
++        print("HTTP/1.1 404 Not Found")
++'''
++
++
++class Publication(unittest.TestCase):
++    """A manifest cannot become visible before its immutable payload passes verification."""
++    def run_publish(self, failure="", repeat=False):
++        directory = tempfile.TemporaryDirectory(prefix="viewer-publication-")
++        self.addCleanup(directory.cleanup)
++        root = Path(directory.name)
++        (root / "curl").write_text(MOCK)
++        (root / "curl").chmod(0o700)
++        (root / "scan.pb").write_bytes(b"test-payload-v2")
++        (root / "scene.toml").write_text('name="test"\n[[items]]\nfile="scan.pb"\nat=[1,2,3]\npoint_size=4\n[[texts]]\ntext="text_not_oriented_to_camera"\nat=[23400,-420,60]\nright=[1,0,0]\nup=[0,1,0]\nheight=32\n')
++        (root / "config").write_text('user="test:test"\n')
++        (root / "config").chmod(0o600)
++        env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ["PATH"], MOCK_ROOT=str(root), MOCK_FAIL=failure,
++                   R2_ENDPOINT="https://mock", R2_PUBLIC="https://mock", R2_CURL_CONFIG=str(root / "config"), R2_NOTIFY_ENABLED="0")
++        # Only credential lookup is replaced; the real publication helpers run unchanged.
++        local = root / "bash"
++        import shutil
++        shutil.copytree(SCRIPTS, local)
++        helper = local / "lib/view.sh"
++        helper.write_text(helper.read_text() + '\nr2_require_credentials() { return 0; }\n')
++        result = subprocess.run(["bash", str(local / "view_live.sh"), str(root / "scene.toml"), str(root / "scan.pb")], env=env, text=True, capture_output=True)
++        if repeat and result.returncode == 0:
++            (root / "config").write_text('user="test:test"\n')
++            (root / "config").chmod(0o600)
++            result = subprocess.run(["bash", str(local / "view_live.sh"), str(root / "scene.toml"), str(root / "scan.pb")], env=env, text=True, capture_output=True)
++        events = (root / "events").read_text().splitlines() if (root / "events").exists() else []
++        return root, result, events
++
++    def test_toml_preserves_placement_and_publishes_verified_revision_first(self):
++        import json
++        import tomllib
++        root, result, events = self.run_publish()
++        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
++        self.assertTrue(events[0].startswith("put pb/revisions/"))
++        self.assertEqual(events[1:], ["copy pb/view_live.pb", "put scenes/view_live.toml", "put scenes/view_live.yaml"])
++        manifest = tomllib.loads((root / "objects/scenes/view_live.toml").read_text())
++        self.assertEqual(manifest["items"][0]["at"], [1, 2, 3])
++        self.assertTrue(manifest["items"][0]["file"].startswith("pb/revisions/"))
++        self.assertEqual(manifest["texts"], [{"text": "text_not_oriented_to_camera", "at": [23400,-420,60], "right": [1,0,0], "up": [0,1,0], "height": 32}])
++        self.assertEqual(manifest, json.loads((root / "objects/scenes/view_live.yaml").read_text()))
++
++    def test_failed_payload_put_leaves_manifests_untouched(self):
++        _, result, events = self.run_publish("put")
++        self.assertNotEqual(result.returncode, 0)
++        self.assertFalse(any("scenes/" in event for event in events))
++
++    def test_failed_payload_verification_leaves_manifests_untouched(self):
++        _, result, events = self.run_publish("verify")
++        self.assertNotEqual(result.returncode, 0)
++        self.assertFalse(any("scenes/" in event for event in events))
++
++    def test_unchanged_revision_reuses_payload_without_a_second_upload(self):
++        _, result, events = self.run_publish(repeat=True)
++        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
++        self.assertEqual(sum(event.startswith("put pb/revisions/") for event in events), 1)
++        self.assertEqual(events.count("put scenes/view_live.toml"), 2)
++
++
++if __name__ == "__main__":
++    unittest.main()
++# Viewer directory: python3 tests/publication.py. No remote writes, messages or credentials used.
+diff --git a/session_viewer/tests/streamed-controls.cjs b/session_viewer/tests/streamed-controls.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..3db9f1b8e36dea6cf6c18bf91741141df39b9215
+--- /dev/null
++++ b/session_viewer/tests/streamed-controls.cjs
+@@ -0,0 +1,122 @@
++/** Exhaustive streamed F10 regression. Virtual source ranges avoid writing a 192 MB fixture. */
++const assert = require('node:assert/strict');
++const http = require('node:http');
++const fs = require('node:fs/promises');
++const path = require('node:path');
++const { chromium } = require('playwright');
++
++const REMOTE = 6_000_000, PAGE = 65536, TOTAL = REMOTE + PAGE + 3, ORIGINAL = 0xfedcba98;
++function varint(value) {let n=BigInt(value), out=[];while(n>=128n){out.push(Number(n&127n)|128);n>>=7n;}out.push(Number(n));return Buffer.from(out);}
++function header(field, length) {return Buffer.concat([varint(field*8+2),varint(length)]);}
++function doubles(values) {const b=Buffer.alloc(values.length*8);values.forEach((value,i)=>b.writeDoubleLE(value,i*8));return b;}
++function packed(field, values, floats=false) {const b=floats?doubles(values):Buffer.concat(values.map(v=>varint(v<0?BigInt.asUintN(64,BigInt(v)):v)));return Buffer.concat([header(field,b.length),b]);}
++function point(row) {if(row<4)return [[-1000,-1000,0],[1000,-1000,0],[1000,1000,0],[-1000,1000,0]][row];if(row<REMOTE)return [-1000,-1000,0];if(row===REMOTE)return [0,0,0];if(row===TOTAL-1)return [-1,0,10];return row>=TOTAL-3?[0,0,-10]:[200,0,0];}
++function source() {
++  const tail=Buffer.concat([
++    packed(8,[-1000,-1000,-1000,-1000,-1000,0,-1,-1,-10],true),packed(9,[2000,1,256],true),packed(10,[1,1,1],true),
++    packed(11,[0,1,1]),packed(12,[0,4,REMOTE]),packed(13,[4,REMOTE-4,TOTAL-REMOTE]),packed(14,[1,2,-1,-1,-1,-1,-1,-1,...Array(16).fill(-1)]),header(15,TOTAL*4),
++  ]);
++  const cloudBytes=header(3,TOTAL*24).length+TOTAL*24+header(4,0).length+tail.length+TOTAL*4;
++  const objectsBytes=header(8,cloudBytes).length+cloudBytes;
++  const head=Buffer.concat([header(3,objectsBytes),header(8,cloudBytes),header(3,TOTAL*24)]);
++  const after=Buffer.concat([header(4,0),tail]);
++  const coordsAt=head.length, idsAt=head.length+TOTAL*24+after.length, length=idsAt+TOTAL*4;
++  function read(start,end) {
++    const out=Buffer.alloc(end-start);
++    for(let at=start;at<end;){
++      if(at<coordsAt){const count=Math.min(end,coordsAt)-at;head.copy(out,at-start,at,at+count);at+=count;}
++      else if(at<coordsAt+TOTAL*24){const local=Math.floor((at-coordsAt)/24), within=(at-coordsAt)%24, count=Math.min(end-at,24-within);doubles(point(local)).copy(out,at-start,within,within+count);at+=count;}
++      else if(at<idsAt){const offset=at-(coordsAt+TOTAL*24),count=Math.min(end,idsAt)-at;after.copy(out,at-start,offset,offset+count);at+=count;}
++      else {const local=Math.floor((at-idsAt)/4),within=(at-idsAt)%4,count=Math.min(end-at,4-within),value=Buffer.alloc(4);value.writeUInt32LE(local===TOTAL-1?ORIGINAL:local);value.copy(out,at-start,within,within+count);at+=count;}
++    }
++    return out;
++  }
++  return {coordsAt,idsAt,length,read};
++}
++function inspect() {return JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')||'null');}
++function ready() {const s=window.fixtureInspect();return s&&s.cloud_points===250000&&s.canvas[0]>0;}
++function controls() {const s=window.fixtureInspect();return s?.selection?.Controls?.cloud===true;}
++function selectedSource() {const s=window.fixtureInspect();return s?.selection?.Controls?.selected?.Point===0xfedcba98;}
++function projected(snapshot,position) {
++  function mul(m,p){return Array.from({length:4},(_,r)=>m[r]*p[0]+m[r+4]*p[1]+m[r+8]*p[2]+m[r+12]*p[3]);}
++  const p=mul(snapshot.mvp,mul(snapshot.model||[1,0,0,0,0,1,0,0,0,0,1,0,...snapshot.origin.map(v=>-v),1],[...position,1]));
++  return [(p[0]/p[3]+1)*snapshot.canvas[0]/2,(1-p[1]/p[3])*snapshot.canvas[1]/2];
++}
++async function main(){
++  const dpr=Number(process.env.VIEWER_DPR||1);
++  const output=process.env.VIEWER_TEST_OUTPUT||`/tmp/session-viewer-streamed-controls-dpr${dpr}`;await fs.mkdir(output,{recursive:true});
++  const fixture=source(), requests=[];let delayRemote=false, delayed=false, releaseTail=null, holdTail=true;
++  const server=http.createServer((request,response)=>{
++    const headers={'Access-Control-Allow-Origin':'*','Access-Control-Expose-Headers':'ETag, Content-Range','ETag':'"stream-fixture-v1"','Cache-Control':'no-store'};
++    if(request.url.endsWith('.yaml')){response.writeHead(200,headers);response.end('name: Stream source query\nitems:\n  - file: cloud.pb\n    name: source\n    point_size: 3\n');return;}
++    const match=/^bytes=(\d+)-(\d+)$/.exec(request.headers.range||'');
++    if(!match){response.writeHead(400,headers);response.end('Range required');return;}
++    const start=Number(match[1]),end=Math.min(Number(match[2])+1,fixture.length);requests.push({start,length:end-start});
++    if(start>=end){response.writeHead(416,headers);response.end();return;}
++    const send=()=>{response.writeHead(206,{...headers,'Content-Type':'application/octet-stream','Content-Range':`bytes ${start}-${end-1}/${fixture.length}`});response.end(fixture.read(start,end));};
++    if(holdTail&&start===fixture.coordsAt+(REMOTE+PAGE)*24){releaseTail=send;holdTail=false;}
++    else if(delayRemote&&start===fixture.coordsAt+REMOTE*24){delayed=true;setTimeout(send,700);}else send();
++  });
++  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
++  const base=`http://127.0.0.1:${server.address().port}/`;
++  const browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:process.env.VIEWER_HEADLESS==='1',args:process.env.VIEWER_CHROME_ARGS?JSON.parse(process.env.VIEWER_CHROME_ARGS):['--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE','--ozone-platform=x11']});
++  let page;const errors=[],messages=[];
++  try{
++    page=await browser.newPage({viewport:{width:1200,height:900},deviceScaleFactor:dpr});
++    page.on('pageerror',e=>errors.push(String(e)));page.on('console',m=>{messages.push(`${m.type()}: ${m.text()}`);if(m.type()==='error'){errors.push(m.text());console.error(m.text());}});
++    await page.addInitScript(() => { window.fixtureInspect = () => JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection')||'null'); });
++    await page.goto((process.env.VIEWER_URL||'http://127.0.0.1:8770/')+`?scene=stream-test.yaml&data=${encodeURIComponent(base)}&points=250000&inspect=1`);
++    await page.waitForFunction(ready,null,{timeout:60000});
++    const metadataReads=requests.filter(r=>r.start>=fixture.coordsAt+TOTAL*24&&r.start<fixture.idsAt);
++    assert.equal(metadataReads.length,2,'one color header and one cached window locate all seven LOD arrays and the ID header');
++    assert.deepEqual(metadataReads.map(r=>r.length),[16,65536],'metadata does not fetch the full fixed32 ID payload');
++    await page.locator('#canvas').focus();await page.keyboard.press('5');await page.waitForTimeout(250);
++    // The four root samples locate the parent; no source-control selection is injected.
++    let snapshot=await page.evaluate(inspect),xy=projected(snapshot,[-1000,-1000,0]);
++    const rect=await page.locator('#canvas').boundingBox();
++    await page.mouse.click(rect.x+xy[0]/dpr,rect.y+xy[1]/dpr);
++    await page.waitForFunction(()=>window.fixtureInspect()?.selected===0,null,{timeout:15000});
++    await page.keyboard.press('F10');await page.waitForFunction(controls,null,{timeout:10000});
++    snapshot=await page.evaluate(inspect);xy=projected(snapshot,[0,0,0]);
++    const before=requests.length;
++    await page.mouse.click(rect.x+xy[0]/dpr,rect.y+xy[1]/dpr);
++    for(let i=0;i<200&&!releaseTail;i++)await page.waitForTimeout(20);
++    assert(releaseTail,'all-source query reached its second bounded detail page');
++    assert.equal((await page.evaluate(inspect)).selection.Controls.selected,null,'first visible page must not commit a partial selection');
++    releaseTail();releaseTail=null;
++    await page.waitForFunction(selectedSource,null,{timeout:20000});
++    snapshot=await page.evaluate(inspect);
++    assert.equal(snapshot.cloud_points,250000,'F10 must retain bounded display residency');
++    assert.equal(snapshot.markers,1,'only the actual selected source marker remains');
++    assert.deepEqual(snapshot.controls[0].position,[-1,0,10],'front source point occludes closer-to-cursor points within and across pages');
++    const queryReads=requests.slice(before);
++    assert(queryReads.some(r=>r.start===fixture.coordsAt+REMOTE*24&&r.length===PAGE*24),'read the first nonresident source page');
++    assert(queryReads.some(r=>r.start===fixture.coordsAt+(REMOTE+PAGE)*24&&r.length===72),'read the final nonresident source page before selecting');
++    assert(queryReads.some(r=>r.start===fixture.idsAt+(TOTAL-1)*4&&r.length===4),'resolve original fixed32 source ID');
++    assert(queryReads.every(r=>r.length<=65536*24),'query reads remain page bounded');
++    const capture=await page.locator('#canvas').screenshot();
++    const yellow=await page.evaluate(async ({png,at})=>{
++      const bitmap=await createImageBitmap(await (await fetch('data:image/png;base64,'+png)).blob());
++      const canvas=document.createElement('canvas');canvas.width=bitmap.width;canvas.height=bitmap.height;
++      const context=canvas.getContext('2d');context.drawImage(bitmap,0,0);bitmap.close();
++      const pixels=context.getImageData(Math.floor(at[0])-5,Math.floor(at[1])-5,11,11).data;
++      let count=0;for(let i=0;i<pixels.length;i+=4)if(pixels[i]>200&&pixels[i+1]>180&&pixels[i+2]<80)count++;
++      return count;
++    },{png:capture.toString('base64'),at:projected(snapshot,[-1,0,10])});
++    assert(yellow>=8,'the actual nonresident source point must be visibly yellow');
++    await fs.writeFile(path.join(output,'selected-original.png'),capture);
++    // A delayed page must never restore a selection after Escape invalidates its generation.
++    delayRemote=true;await page.mouse.click(rect.x+xy[0]/dpr,rect.y+xy[1]/dpr);
++    for(let i=0;i<100&&!delayed;i++)await page.waitForTimeout(20);
++    assert(delayed,'the cancellation probe reached an asynchronous source read');
++    await page.keyboard.press('Escape');await page.waitForTimeout(1000);
++    assert.equal((await page.evaluate(inspect)).selection,'Object');
++    assert.equal((await page.evaluate(inspect)).markers,0);
++    assert.deepEqual(errors,[]);
++    await fs.writeFile(path.join(output,'result.json'),JSON.stringify({dpr,source_points:TOTAL,resident_points:250000,snapshot,metadataReads,queryReads,cancelled:true,errors},null,2));
++    await fs.writeFile(path.join(output,'console.log'),messages.join('\n'));
++    console.log('PASS streamed controls: original ID beyond6M, bounded range/GPU residency, exhaustive node completion, cancellation');
++  }catch(error){await fs.writeFile(path.join(output,'console.log'),messages.join('\n'));if(page){await page.screenshot({path:path.join(output,'failure.png')});await fs.writeFile(path.join(output,'failure.txt'),`${error}\n${await page.locator('body').innerText()}\n${JSON.stringify(await page.evaluate(inspect))}`);}throw error;}
++  finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
++}
++main().catch(error=>{console.error(error);process.exitCode=1;});

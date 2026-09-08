@@ -1,7 +1,7 @@
 //! Plate census: per-mesh AABB extents + face-normal thickness, per-polyline distance to the nearest mesh face plane, the fit camera, and the depth rule judged by ray-casting every outline sample against the plates in front of it at 1x, 4x and 16x the fit distance (VIEWER_W/H size the pen; CENSUS_RECOLOR=<out.pb> writes a copy whose outline segments are magenta when covered, blue when visible, cyan when partly covered).
 
 use session_rust::{Color, Mesh, Point, Polyline, Quaternion, Session, Vector, Xform};
-use session_viewer::math::{mat_scale, mat_to_f32, xform_point_f64, Mat4};
+use session_viewer::math::{Mat4, mat_scale, mat_to_f32, xform_point_f64};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
@@ -79,7 +79,11 @@ fn dot(a: &[f64; 3], b: &[f64; 3]) -> f64 {
 }
 
 fn cross(a: &[f64; 3], b: &[f64; 3]) -> [f64; 3] {
-    [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+    [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    ]
 }
 
 fn norm(a: &[f64; 3]) -> f64 {
@@ -157,13 +161,19 @@ fn stats(label: &str, v: &mut [f64]) {
     let p10 = v[(n - 1) * 10 / 100];
     let med = v[(n - 1) / 2];
     let p90 = v[(n - 1) * 90 / 100];
-    println!("  {label}: n={n} min {:.2} p10 {p10:.2} median {med:.2} p90 {p90:.2} max {:.2}", v[0], v[n - 1]);
+    println!(
+        "  {label}: n={n} min {:.2} p10 {p10:.2} median {med:.2} p90 {p90:.2} max {:.2}",
+        v[0],
+        v[n - 1]
+    );
 }
 
 /// Follow the renderer's authored triangulation, including nonconvex faces and holes.
 fn face_triangles(mesh: &Mesh, face: usize) -> Vec<[usize; 3]> {
     let mut triangles = Vec::new();
-    if let Some(cached) = mesh.triangulation.get(&face) && !cached.is_empty() {
+    if let Some(cached) = mesh.triangulation.get(&face)
+        && !cached.is_empty()
+    {
         triangles.extend_from_slice(cached);
     } else if let Some(vertices) = mesh.face_vertices(face) {
         for i in 2..vertices.len() {
@@ -200,16 +210,22 @@ fn plate_of(m: &Mesh, place: &Mat4) -> Plate {
                 xform_point_f64(place, [point.x, point.y, point.z])
             }));
         }
-        let Some(fpts) = m.face_points(fk) else { continue };
+        let Some(fpts) = m.face_points(fk) else {
+            continue;
+        };
         let mut pts: Vec<[f64; 3]> = Vec::with_capacity(fpts.len());
         for p in &fpts {
             pts.push(xform_point_f64(place, [p[0], p[1], p[2]]));
         }
-        if pts.len() < 3 { continue; }
+        if pts.len() < 3 {
+            continue;
+        }
         // A cross product after placement is the inverse-transpose normal transform,
         // including nonuniform scales and shears (the outward orientation follows below).
         let mut n = unit(&cross(&sub(&pts[1], &pts[0]), &sub(&pts[2], &pts[0])));
-        if norm(&n) == 0.0 { continue; }
+        if norm(&n) == 0.0 {
+            continue;
+        }
         let c = centroid(&pts);
         if dot(&n, &sub(&c, &mc)) < 0.0 {
             n = [-n[0], -n[1], -n[2]];
@@ -232,7 +248,18 @@ fn plate_of(m: &Mesh, place: &Mat4) -> Plate {
         t_real = 0.0;
     }
     let t_rule = t_real.max(THICK_FLOOR * diag);
-    Plate { verts, faces, tris, lo, hi, ext, diag, t_rule, t_real, big_nz }
+    Plate {
+        verts,
+        faces,
+        tris,
+        lo,
+        hi,
+        ext,
+        diag,
+        t_rule,
+        t_real,
+        big_nz,
+    }
 }
 
 fn newell_nz(pts: &[[f64; 3]]) -> f64 {
@@ -302,16 +329,38 @@ fn outline_of(pl: &Polyline, place: &Mat4, plates: &[Plate]) -> Outline {
         let steps = (norm(&sub(&w[1], &w[0])) / SAMPLE_MM).ceil().max(1.0) as usize;
         for k in 1..steps {
             let t = k as f64 / steps as f64;
-            samples.push([w[0][0] + (w[1][0] - w[0][0]) * t, w[0][1] + (w[1][1] - w[0][1]) * t, w[0][2] + (w[1][2] - w[0][2]) * t]);
+            samples.push([
+                w[0][0] + (w[1][0] - w[0][0]) * t,
+                w[0][1] + (w[1][1] - w[0][1]) * t,
+                w[0][2] + (w[1][2] - w[0][2]) * t,
+            ]);
         }
     }
-    if let Some(last) = pts.last() && pts.first() != Some(last) {
+    if let Some(last) = pts.last()
+        && pts.first() != Some(last)
+    {
         samples.push(*last);
     }
     let nz = newell_nz(&pts);
     let hosted = best.0 <= ON_FACE_TOL;
-    let t_rule = if hosted { plates[best.1].t_real.max(THICK_FLOOR * plates[best.1].diag) } else { t_rule };
-    Outline { pts, samples, lo, hi, ext, diag, t_rule, nz, dist: best.0, plate: best.1, face: best.2 }
+    let t_rule = if hosted {
+        plates[best.1].t_real.max(THICK_FLOOR * plates[best.1].diag)
+    } else {
+        t_rule
+    };
+    Outline {
+        pts,
+        samples,
+        lo,
+        hi,
+        ext,
+        diag,
+        t_rule,
+        nz,
+        dist: best.0,
+        plate: best.1,
+        face: best.2,
+    }
 }
 
 fn iso_frame() -> ([f64; 3], [f64; 3], [f64; 3]) {
@@ -331,7 +380,11 @@ fn fit(lo: &[f64; 3], hi: &[f64; 3], aspect: f64) -> Fit {
     let ty = 30.0_f64.to_radians().tan();
     let tx = aspect * ty;
     let s = 0.001;
-    let target = [(lo[0] + hi[0]) * 0.5 * s, (lo[1] + hi[1]) * 0.5 * s, (lo[2] + hi[2]) * 0.5 * s];
+    let target = [
+        (lo[0] + hi[0]) * 0.5 * s,
+        (lo[1] + hi[1]) * 0.5 * s,
+        (lo[2] + hi[2]) * 0.5 * s,
+    ];
     let mut distance: f64 = 0.0;
     for c in 0..8u32 {
         let p = [
@@ -344,13 +397,21 @@ fn fit(lo: &[f64; 3], hi: &[f64; 3], aspect: f64) -> Fit {
         distance = distance.max(y.abs() / ty + z);
     }
     let distance = distance * 1.05;
-    let eye = [target[0] - fwd[0] * distance, target[1] - fwd[1] * distance, target[2] - fwd[2] * distance];
+    let eye = [
+        target[0] - fwd[0] * distance,
+        target[1] - fwd[1] * distance,
+        target[2] - fwd[2] * distance,
+    ];
     Fit { eye, fwd, distance }
 }
 
 fn eye_at(f: &Fit, k: f64) -> [f64; 3] {
     let back = f.distance * (k - 1.0);
-    [f.eye[0] - f.fwd[0] * back, f.eye[1] - f.fwd[1] * back, f.eye[2] - f.fwd[2] * back]
+    [
+        f.eye[0] - f.fwd[0] * back,
+        f.eye[1] - f.fwd[1] * back,
+        f.eye[2] - f.fwd[2] * back,
+    ]
 }
 
 // Ray `o + t d` against the slab box, true when it can hit for some t in [0, 1].
@@ -378,7 +439,9 @@ fn hits_forward_box(o: &[f64; 3], d: &[f64; 3], lo: &[f64; 3], hi: &[f64; 3]) ->
     let mut t1: f64 = f64::INFINITY;
     for k in 0..3 {
         if d[k].abs() < 1e-300 {
-            if o[k] < lo[k] || o[k] > hi[k] { return false; }
+            if o[k] < lo[k] || o[k] > hi[k] {
+                return false;
+            }
             continue;
         }
         let a = (lo[k] - o[k]) / d[k];
@@ -423,7 +486,10 @@ fn covers(plates: &[Plate], eye: &[f64; 3], s: &[f64; 3]) -> Vec<(f64, usize)> {
             continue;
         }
         for tri in &p.tris {
-            if let Some(t) = hit_tri(&o, &d, tri) && t > 1e-9 && t < 1.0 - 1e-7 {
+            if let Some(t) = hit_tri(&o, &d, tri)
+                && t > 1e-9
+                && t < 1.0 - 1e-7
+            {
                 out.push((t, pi));
             }
         }
@@ -433,30 +499,78 @@ fn covers(plates: &[Plate], eye: &[f64; 3], s: &[f64; 3]) -> Vec<(f64, usize)> {
 
 // The rule at one sample: the outline surfaces only if EVERY cover is pushed behind it, so
 // the margin is the best cover's (separation - push) minus the outline's lift.
-fn judge(o: &Outline, s: &[f64; 3], plates: &[Plate], eye: &[f64; 3], fwd: &[f64; 3], vp_h: f64) -> Verdict {
+fn judge(
+    o: &Outline,
+    s: &[f64; 3],
+    plates: &[Plate],
+    eye: &[f64; 3],
+    fwd: &[f64; 3],
+    vp_h: f64,
+) -> Verdict {
     let s_m = [s[0] * 0.001, s[1] * 0.001, s[2] * 0.001];
     // CENSUS_ORTHO_H=<half height mm>: parallel rays along `fwd` from a virtual eye 1 km back;
     // the shader's implied distance is ortho_h / tan(30 deg) and the lift is the ortho formula.
     let ortho_h = env_f64("CENSUS_ORTHO_H", 0.0);
-    let eye_used = if ortho_h > 0.0 { [s_m[0] - fwd[0] * 1000.0, s_m[1] - fwd[1] * 1000.0, s_m[2] - fwd[2] * 1000.0] } else { *eye };
+    let eye_used = if ortho_h > 0.0 {
+        [
+            s_m[0] - fwd[0] * 1000.0,
+            s_m[1] - fwd[1] * 1000.0,
+            s_m[2] - fwd[2] * 1000.0,
+        ]
+    } else {
+        *eye
+    };
     let eye = &eye_used;
     let to_s = sub(&s_m, eye);
-    let w = if ortho_h > 0.0 { ortho_h / 30.0_f64.to_radians().tan() * 0.001 } else { dot(&to_s, fwd) };
+    let w = if ortho_h > 0.0 {
+        ortho_h / 30.0_f64.to_radians().tan() * 0.001
+    } else {
+        dot(&to_s, fwd)
+    };
     let len_mm = norm(&to_s) * 1000.0;
     // mm per pixel at the sample, the host face's slope to the ray, the lift the ribbon needs.
-    let mmpp = if ortho_h > 0.0 { 2.0 * ortho_h / vp_h } else { 2.0 * w * 30.0_f64.to_radians().tan() * 1000.0 / vp_h };
-    let ray = if ortho_h > 0.0 { *fwd } else { let l = norm(&to_s); [to_s[0] / l, to_s[1] / l, to_s[2] / l] };
+    let mmpp = if ortho_h > 0.0 {
+        2.0 * ortho_h / vp_h
+    } else {
+        2.0 * w * 30.0_f64.to_radians().tan() * 1000.0 / vp_h
+    };
+    let ray = if ortho_h > 0.0 {
+        *fwd
+    } else {
+        let l = norm(&to_s);
+        [to_s[0] / l, to_s[1] / l, to_s[2] / l]
+    };
     // The historical rule: free linework lifts LIFT_RADII_FREE pen HALF-WIDTHS toward the eye
     // (the same number in both projections), capped by a quarter of its thickness.
     let _ = ray;
     let lift = (PEN_PX * 0.5 * LIFT_RADII_FREE * 2.0 * mmpp).min(LIFT_MAX_THICK * o.t_rule);
-    let mut best = Verdict { covered: false, w, sep: 0.0, push: 0.0, lift, margin: f64::INFINITY, plate: usize::MAX };
+    let mut best = Verdict {
+        covered: false,
+        w,
+        sep: 0.0,
+        push: 0.0,
+        lift,
+        margin: f64::INFINITY,
+        plate: usize::MAX,
+    };
     for (t, pi) in covers(plates, eye, s) {
         let sep = (1.0 - t) * len_mm;
-        let push = if ortho_h > 0.0 { push_mm(w, plates[pi].t_rule) } else { push_mm(w * t, plates[pi].t_rule) };
+        let push = if ortho_h > 0.0 {
+            push_mm(w, plates[pi].t_rule)
+        } else {
+            push_mm(w * t, plates[pi].t_rule)
+        };
         let margin = sep - push - lift;
         if !best.covered || margin > best.margin {
-            best = Verdict { covered: true, w, sep, push, lift, margin, plate: pi };
+            best = Verdict {
+                covered: true,
+                w,
+                sep,
+                push,
+                lift,
+                margin,
+                plate: pi,
+            };
         }
     }
     best
@@ -470,7 +584,12 @@ fn placement(world: &HashMap<String, Xform>, guid: &str) -> Mat4 {
 }
 
 // The scene box the harness fits: every drawn object's placed points.
-fn scene_box(s: &Session, world: &HashMap<String, Xform>, plates: &[Plate], outlines: &[Outline]) -> ([f64; 3], [f64; 3]) {
+fn scene_box(
+    s: &Session,
+    world: &HashMap<String, Xform>,
+    plates: &[Plate],
+    outlines: &[Outline],
+) -> ([f64; 3], [f64; 3]) {
     let mut lo = [f64::INFINITY; 3];
     let mut hi = [f64::NEG_INFINITY; 3];
     for p in plates {
@@ -482,7 +601,11 @@ fn scene_box(s: &Session, world: &HashMap<String, Xform>, plates: &[Plate], outl
         grow(&mut lo, &mut hi, &o.hi);
     }
     for p in &s.objects.points {
-        grow(&mut lo, &mut hi, &xform_point_f64(&placement(world, p.guid()), [p[0], p[1], p[2]]));
+        grow(
+            &mut lo,
+            &mut hi,
+            &xform_point_f64(&placement(world, p.guid()), [p[0], p[1], p[2]]),
+        );
     }
     for l in &s.objects.lines {
         let m = placement(world, l.guid());
@@ -507,14 +630,28 @@ fn recolor(s: &Session, outlines: &[Outline], plates: &[Plate], f0: &Fit, vp_h: 
                 n += 1;
             }
         }
-        let class = if n == o.samples.len() { 0 } else if n == 0 { 1 } else { 2 };
+        let class = if n == o.samples.len() {
+            0
+        } else if n == 0 {
+            1
+        } else {
+            2
+        };
         counts[class] += 1;
         let mut p = s.objects.polylines[i].duplicate();
-        p.linecolor = [Color::new(1.0, 0.0, 1.0, 1.0), Color::new(0.0, 0.0, 1.0, 1.0), Color::new(0.0, 1.0, 1.0, 1.0)][class].clone();
+        p.linecolor = [
+            Color::new(1.0, 0.0, 1.0, 1.0),
+            Color::new(0.0, 0.0, 1.0, 1.0),
+            Color::new(0.0, 1.0, 1.0, 1.0),
+        ][class]
+            .clone();
         s2.add_polyline(p, None);
     }
     s2.pb_dump(out);
-    println!("recolored copy: {out}  magenta (fully covered at the fit view) {}  blue (visible) {}  cyan (partly covered) {}", counts[0], counts[1], counts[2]);
+    println!(
+        "recolored copy: {out}  magenta (fully covered at the fit view) {}  blue (visible) {}  cyan (partly covered) {}",
+        counts[0], counts[1], counts[2]
+    );
 }
 
 /// A world-space edge clipped against the volume behind each covering triangle.
@@ -556,15 +693,23 @@ struct RenderedObject {
 impl<'a> SampleImage<'a> {
     /// Physical triangle occlusion, independent of every historical offset and ray-distance cap.
     fn covered(&self, point: &[f64; 3], plates: &[Plate]) -> bool {
-        let view = ProbeView { eye: self.fit.eye.map(|value| value * 1000.0), parallel: (self.ortho_h > 0.0).then_some(self.fit.fwd) };
-        let edge = ProbeEdge { ends: [*point, *point] };
+        let view = ProbeView {
+            eye: self.fit.eye.map(|value| value * 1000.0),
+            parallel: (self.ortho_h > 0.0).then_some(self.fit.fwd),
+        };
+        let edge = ProbeEdge {
+            ends: [*point, *point],
+        };
         plates.iter().any(|plate| {
             let hits = if let Some(direction) = view.parallel {
                 hits_forward_box(point, &direction.map(|value| -value), &plate.lo, &plate.hi)
             } else {
                 hits_box(&view.eye, &sub(point, &view.eye), &plate.lo, &plate.hi)
             };
-            hits && plate.tris.iter().any(|triangle| triangle_interval(&edge, triangle, &view).is_some())
+            hits && plate
+                .tris
+                .iter()
+                .any(|triangle| triangle_interval(&edge, triangle, &view).is_some())
         })
     }
 
@@ -582,7 +727,10 @@ impl<'a> SampleImage<'a> {
                 }
             }
         }
-        let header: Vec<&str> = std::str::from_utf8(&bytes[..end]).expect("PPM header").split_whitespace().collect();
+        let header: Vec<&str> = std::str::from_utf8(&bytes[..end])
+            .expect("PPM header")
+            .split_whitespace()
+            .collect();
         assert_eq!(header.len(), 4, "expected harness PPM header");
         assert_eq!(header[0], "P6");
         assert_eq!(header[3], "255");
@@ -601,23 +749,49 @@ impl<'a> SampleImage<'a> {
             right = [1.0, 0.0, 0.0];
         }
         if let Ok(value) = std::env::var("CENSUS_UP") {
-            let up: Vec<f64> = value.split(',').map(str::parse).collect::<Result<_, _>>().expect("CENSUS_UP coordinates");
+            let up: Vec<f64> = value
+                .split(',')
+                .map(str::parse)
+                .collect::<Result<_, _>>()
+                .expect("CENSUS_UP coordinates");
             assert_eq!(up.len(), 3, "CENSUS_UP requires x,y,z");
             right = cross(&fit.fwd, &[up[0], up[1], up[2]]);
         }
         right = unit(&right);
         let up = unit(&cross(&right, &fit.fwd));
-        Self { pixels: Vec::new(), width, height, right, up, fit, ortho_h: env_f64("CENSUS_ORTHO_H", 0.0) }
+        Self {
+            pixels: Vec::new(),
+            width,
+            height,
+            right,
+            up,
+            fit,
+            ortho_h: env_f64("CENSUS_ORTHO_H", 0.0),
+        }
     }
 
     /// Project a point with the same positive eye depth used by the shader's axis interpolation.
     fn projected(&self, point: &[f64; 3]) -> ([f64; 2], f64) {
-        let eye = [self.fit.eye[0] * 1000.0, self.fit.eye[1] * 1000.0, self.fit.eye[2] * 1000.0];
+        let eye = [
+            self.fit.eye[0] * 1000.0,
+            self.fit.eye[1] * 1000.0,
+            self.fit.eye[2] * 1000.0,
+        ];
         let delta = sub(point, &eye);
         let depth = dot(&delta, &self.fit.fwd);
-        let half_height = if self.ortho_h > 0.0 { self.ortho_h } else { depth * 30.0f64.to_radians().tan() };
+        let half_height = if self.ortho_h > 0.0 {
+            self.ortho_h
+        } else {
+            depth * 30.0f64.to_radians().tan()
+        };
         let mmpp = 2.0 * half_height / self.height as f64;
-        ([self.width as f64 * 0.5 + dot(&delta, &self.right) / mmpp, self.height as f64 * 0.5 - dot(&delta, &self.up) / mmpp], depth)
+        (
+            [
+                self.width as f64 * 0.5 + dot(&delta, &self.right) / mmpp,
+                self.height as f64 * 0.5 - dot(&delta, &self.up) / mmpp,
+            ],
+            depth,
+        )
     }
 
     /// Recover the exact point represented by this edge at a fragment, including end-on views.
@@ -626,8 +800,13 @@ impl<'a> SampleImage<'a> {
         let (b, depth_b) = self.projected(&edge.ends[1]);
         let d = [b[0] - a[0], b[1] - a[1]];
         let length2 = d[0] * d[0] + d[1] * d[1];
-        let h = (((pixel[0] - a[0]) * d[0] + (pixel[1] - a[1]) * d[1]) / length2.max(1e-6)).clamp(0.0, 1.0);
-        let t = if self.ortho_h > 0.0 { h } else { h * depth_a / ((1.0 - h) * depth_b + h * depth_a) };
+        let h = (((pixel[0] - a[0]) * d[0] + (pixel[1] - a[1]) * d[1]) / length2.max(1e-6))
+            .clamp(0.0, 1.0);
+        let t = if self.ortho_h > 0.0 {
+            h
+        } else {
+            h * depth_a / ((1.0 - h) * depth_b + h * depth_a)
+        };
         let point = edge_point(edge, t);
         [point[0], point[1], point[2]]
     }
@@ -636,33 +815,69 @@ impl<'a> SampleImage<'a> {
     fn fragment_point(&self, edge: &ProbeEdge, pixel: [f64; 2]) -> [f64; 3] {
         let axis = self.axis_at(edge, pixel);
         let (at, depth) = self.projected(&axis);
-        let half_height = if self.ortho_h > 0.0 { self.ortho_h } else { depth * 30.0f64.to_radians().tan() };
+        let half_height = if self.ortho_h > 0.0 {
+            self.ortho_h
+        } else {
+            depth * 30.0f64.to_radians().tan()
+        };
         let mmpp = 2.0 * half_height / self.height as f64;
         let dx = (pixel[0] - at[0]) * mmpp;
         let dy = -(pixel[1] - at[1]) * mmpp;
-        [axis[0] + self.right[0] * dx + self.up[0] * dy, axis[1] + self.right[1] * dx + self.up[1] * dy, axis[2] + self.right[2] * dx + self.up[2] * dy]
+        [
+            axis[0] + self.right[0] * dx + self.up[0] * dy,
+            axis[1] + self.right[1] * dx + self.up[1] * dy,
+            axis[2] + self.right[2] * dx + self.up[2] * dy,
+        ]
     }
 
     /// Require one physical triangle to cover the represented axis and all four pixel corners.
-    fn full_pixel_cover(&self, edge: &ProbeEdge, pixel: usize, plates: &[Plate]) -> Option<(usize, usize)> {
+    fn full_pixel_cover(
+        &self,
+        edge: &ProbeEdge,
+        pixel: usize,
+        plates: &[Plate],
+    ) -> Option<(usize, usize)> {
         let x = (pixel % self.width) as f64;
         let y = (pixel / self.width) as f64;
         let points = [
             self.axis_at(edge, [x + 0.5, y + 0.5]),
-            self.fragment_point(edge, [x, y]), self.fragment_point(edge, [x + 1.0, y]),
-            self.fragment_point(edge, [x, y + 1.0]), self.fragment_point(edge, [x + 1.0, y + 1.0]),
+            self.fragment_point(edge, [x, y]),
+            self.fragment_point(edge, [x + 1.0, y]),
+            self.fragment_point(edge, [x, y + 1.0]),
+            self.fragment_point(edge, [x + 1.0, y + 1.0]),
         ];
-        let view = ProbeView { eye: [self.fit.eye[0] * 1000.0, self.fit.eye[1] * 1000.0, self.fit.eye[2] * 1000.0], parallel: if self.ortho_h > 0.0 { Some(self.fit.fwd) } else { None } };
+        let view = ProbeView {
+            eye: [
+                self.fit.eye[0] * 1000.0,
+                self.fit.eye[1] * 1000.0,
+                self.fit.eye[2] * 1000.0,
+            ],
+            parallel: if self.ortho_h > 0.0 {
+                Some(self.fit.fwd)
+            } else {
+                None
+            },
+        };
         for (index, plate) in plates.iter().enumerate() {
             for (triangle_index, triangle) in plate.tris.iter().enumerate() {
                 let mut covered = true;
                 for point in &points {
-                    if triangle_interval(&ProbeEdge { ends: [*point, *point] }, triangle, &view).is_none() {
+                    if triangle_interval(
+                        &ProbeEdge {
+                            ends: [*point, *point],
+                        },
+                        triangle,
+                        &view,
+                    )
+                    .is_none()
+                    {
                         covered = false;
                         break;
                     }
                 }
-                if covered { return Some((index, triangle_index)); }
+                if covered {
+                    return Some((index, triangle_index));
+                }
             }
         }
         None
@@ -670,13 +885,21 @@ impl<'a> SampleImage<'a> {
 
     /// Project an axis sample, then lift the pixel centre back to that sample's depth plane.
     fn sample_pixel(&self, point: &[f64; 3]) -> Option<(usize, [f64; 3])> {
-        let eye = [self.fit.eye[0] * 1000.0, self.fit.eye[1] * 1000.0, self.fit.eye[2] * 1000.0];
+        let eye = [
+            self.fit.eye[0] * 1000.0,
+            self.fit.eye[1] * 1000.0,
+            self.fit.eye[2] * 1000.0,
+        ];
         let delta = sub(point, &eye);
         let depth = dot(&delta, &self.fit.fwd);
         if self.ortho_h == 0.0 && depth <= 0.0 {
             return None;
         }
-        let half_height = if self.ortho_h > 0.0 { self.ortho_h } else { depth * 30.0f64.to_radians().tan() };
+        let half_height = if self.ortho_h > 0.0 {
+            self.ortho_h
+        } else {
+            depth * 30.0f64.to_radians().tan()
+        };
         let mmpp = 2.0 * half_height / self.height as f64;
         let x = self.width as f64 * 0.5 + dot(&delta, &self.right) / mmpp;
         let y = self.height as f64 * 0.5 - dot(&delta, &self.up) / mmpp;
@@ -701,11 +924,18 @@ fn rendered_ids(s: &Session, outlines: &[Outline], plates: &[Plate], fit: &Fit) 
     let path = std::env::var("CENSUS_RENDERED_IDS").expect("ID frame path");
     let bytes = std::fs::read(&path).expect("read ID frame");
     assert!(bytes.len() >= 12, "truncated ID header");
-    assert_eq!(&bytes[..4], b"HLI2", "expected versioned object/segment ID frame");
+    assert_eq!(
+        &bytes[..4],
+        b"HLI2",
+        "expected versioned object/segment ID frame"
+    );
     let width = u32::from_le_bytes(bytes[4..8].try_into().expect("ID width")) as usize;
     let height = u32::from_le_bytes(bytes[8..12].try_into().expect("ID height")) as usize;
     assert_eq!(bytes.len(), 12 + width * height * 8, "truncated ID frame");
-    let mapping: HashMap<String, RenderedObject> = serde_json::from_slice(&std::fs::read(format!("{path}.json")).expect("read ID GUID mapping")).expect("parse ID GUID mapping");
+    let mapping: HashMap<String, RenderedObject> = serde_json::from_slice(
+        &std::fs::read(format!("{path}.json")).expect("read ID GUID mapping"),
+    )
+    .expect("parse ID GUID mapping");
     let image = SampleImage::camera(width, height, fit);
     let mut covered = 0;
     let mut surfaced = 0;
@@ -715,46 +945,88 @@ fn rendered_ids(s: &Session, outlines: &[Outline], plates: &[Plate], fit: &Fit) 
     let mut partial_pixels = 0;
     let mut locations = Vec::new();
     for (oi, outline) in outlines.iter().enumerate() {
-        let expected = mapping.get(s.objects.polylines[oi].guid()).expect("outline GUID absent from rendered frame");
-        assert_eq!(expected.ribbon_count, outline.pts.len().saturating_sub(1), "source span count differs from actual uploaded range");
+        let expected = mapping
+            .get(s.objects.polylines[oi].guid())
+            .expect("outline GUID absent from rendered frame");
+        assert_eq!(
+            expected.ribbon_count,
+            outline.pts.len().saturating_sub(1),
+            "source span count differs from actual uploaded range"
+        );
         for (si, point) in outline.samples.iter().enumerate() {
-            if !image.covered(point, plates) { continue; }
-            let Some((pixel, centre)) = image.sample_pixel(point) else { continue };
-            if !image.covered(&centre, plates) { continue; }
+            if !image.covered(point, plates) {
+                continue;
+            }
+            let Some((pixel, centre)) = image.sample_pixel(point) else {
+                continue;
+            };
+            if !image.covered(&centre, plates) {
+                continue;
+            }
             covered += 1;
             let offset = 12 + pixel * 8;
-            let actual = u32::from_le_bytes(bytes[offset..offset + 4].try_into().expect("pixel ID"));
-            let sub = u32::from_le_bytes(bytes[offset + 4..offset + 8].try_into().expect("segment ID"));
+            let actual =
+                u32::from_le_bytes(bytes[offset..offset + 4].try_into().expect("pixel ID"));
+            let sub = u32::from_le_bytes(
+                bytes[offset + 4..offset + 8]
+                    .try_into()
+                    .expect("segment ID"),
+            );
             if actual == expected.object_id {
                 assert_ne!(sub & 0x8000_0000, 0, "outline pixel lacks segment identity");
-                let global = (sub & 0x7fff_ffff).checked_sub(1).expect("tagged zero segment");
-                let local = global.checked_sub(expected.ribbon_start).expect("segment before object range") as usize;
-                assert!(local < expected.ribbon_count, "segment outside object range");
-                let edge = ProbeEdge { ends: [outline.pts[local], outline.pts[local + 1]] };
+                let global = (sub & 0x7fff_ffff)
+                    .checked_sub(1)
+                    .expect("tagged zero segment");
+                let local = global
+                    .checked_sub(expected.ribbon_start)
+                    .expect("segment before object range") as usize;
+                assert!(
+                    local < expected.ribbon_count,
+                    "segment outside object range"
+                );
+                let edge = ProbeEdge {
+                    ends: [outline.pts[local], outline.pts[local + 1]],
+                };
                 if !point_on_edge(point, &edge) {
                     other_legs += 1;
                     continue;
                 }
                 raw_matches += 1;
-                let axis = image.axis_at(&edge, [(pixel % width) as f64 + 0.5, (pixel / width) as f64 + 0.5]);
+                let axis = image.axis_at(
+                    &edge,
+                    [(pixel % width) as f64 + 0.5, (pixel / width) as f64 + 0.5],
+                );
                 if !image.covered(&axis, plates) {
                     visible_axis += 1;
                     continue;
                 }
-                let Some((covering, triangle)) = image.full_pixel_cover(&edge, pixel, plates) else {
+                let Some((covering, triangle)) = image.full_pixel_cover(&edge, pixel, plates)
+                else {
                     partial_pixels += 1;
                     continue;
                 };
                 surfaced += 1;
-                locations.push(format!("p{oi}/s{si}@{},{}[id={actual};edge={local};cover=m{covering}/t{triangle}]", pixel % width, pixel / width));
-                println!("RENDERED_IDS geometry p{oi}/s{si}: sample={point:?} represented_axis={axis:?} edge={:?} covering_triangle={:?}", edge.ends, plates[covering].tris[triangle]);
+                locations.push(format!(
+                    "p{oi}/s{si}@{},{}[id={actual};edge={local};cover=m{covering}/t{triangle}]",
+                    pixel % width,
+                    pixel / width
+                ));
+                println!(
+                    "RENDERED_IDS geometry p{oi}/s{si}: sample={point:?} represented_axis={axis:?} edge={:?} covering_triangle={:?}",
+                    edge.ends, plates[covering].tris[triangle]
+                );
             }
         }
     }
-    println!("RENDERED_IDS covered samples {covered}, raw same-edge matches {raw_matches}, pixel-axis-visible {visible_axis}, partial-pixel matches {partial_pixels}, fully-covered-pixel matches {surfaced}, other-leg aliases {other_legs}; original geometry, exact object and segment identity, picking alpha >= 0.5");
+    println!(
+        "RENDERED_IDS covered samples {covered}, raw same-edge matches {raw_matches}, pixel-axis-visible {visible_axis}, partial-pixel matches {partial_pixels}, fully-covered-pixel matches {surfaced}, other-leg aliases {other_legs}; original geometry, exact object and segment identity, picking alpha >= 0.5"
+    );
     println!("RENDERED_IDS locations: {}", locations.join(" "));
     if std::env::var("CENSUS_REQUIRE_ZERO").is_ok_and(|value| value == "1") {
-        assert_eq!(surfaced, 0, "renderer exposed covered original-source ink; inspect RENDERED_IDS locations");
+        assert_eq!(
+            surfaced, 0,
+            "renderer exposed covered original-source ink; inspect RENDERED_IDS locations"
+        );
     }
 }
 
@@ -762,7 +1034,9 @@ fn rendered_ids(s: &Session, outlines: &[Outline], plates: &[Plate], fit: &Fit) 
 fn point_on_edge(point: &[f64; 3], edge: &ProbeEdge) -> bool {
     let direction = sub(&edge.ends[1], &edge.ends[0]);
     let length2 = dot(&direction, &direction);
-    if length2 == 0.0 { return false; }
+    if length2 == 0.0 {
+        return false;
+    }
     let t = (dot(&sub(point, &edge.ends[0]), &direction) / length2).clamp(0.0, 1.0);
     let nearest = edge_point(edge, t);
     norm(&sub(point, &[nearest[0], nearest[1], nearest[2]])) < 1e-6
@@ -774,39 +1048,86 @@ fn rendered_samples(outlines: &[Outline], plates: &[Plate], image: &SampleImage<
     let mut surfaced = 0;
     let mut faint = 0;
     let mut locations = Vec::new();
-    let probe = std::env::var("CENSUS_PROBE_OUTLINE").ok().map(|v| v.parse::<usize>().expect("CENSUS_PROBE_OUTLINE index"));
+    let probe = std::env::var("CENSUS_PROBE_OUTLINE")
+        .ok()
+        .map(|v| v.parse::<usize>().expect("CENSUS_PROBE_OUTLINE index"));
     for (oi, outline) in outlines.iter().enumerate() {
         if probe.is_some_and(|index| index != oi) {
             continue;
         }
         for (si, point) in outline.samples.iter().enumerate() {
-            if !judge(outline, point, plates, &image.fit.eye, &image.fit.fwd, image.height as f64).covered {
+            if !judge(
+                outline,
+                point,
+                plates,
+                &image.fit.eye,
+                &image.fit.fwd,
+                image.height as f64,
+            )
+            .covered
+            {
                 continue;
             }
-            let Some((pixel, centre)) = image.sample_pixel(point) else { continue };
-            if !judge(outline, &centre, plates, &image.fit.eye, &image.fit.fwd, image.height as f64).covered {
+            let Some((pixel, centre)) = image.sample_pixel(point) else {
+                continue;
+            };
+            if !judge(
+                outline,
+                &centre,
+                plates,
+                &image.fit.eye,
+                &image.fit.fwd,
+                image.height as f64,
+            )
+            .covered
+            {
                 continue;
             }
             covered += 1;
             let at = pixel * 3;
-            let (r, g, b) = (image.pixels[at] as i16, image.pixels[at + 1] as i16, image.pixels[at + 2] as i16);
+            let (r, g, b) = (
+                image.pixels[at] as i16,
+                image.pixels[at + 1] as i16,
+                image.pixels[at + 2] as i16,
+            );
             if r > g + 5 && b > g + 5 {
                 faint += 1;
             }
             if r >= 195 && b >= 195 && g <= 60 {
                 surfaced += 1;
-                let cover = judge(outline, point, plates, &image.fit.eye, &image.fit.fwd, image.height as f64);
-                locations.push(format!("p{oi}/s{si}@{},{}[world={:.6},{:.6},{:.6};cover=m{};sep={:.6}mm]", pixel % image.width, pixel / image.width, point[0], point[1], point[2], cover.plate, cover.sep));
+                let cover = judge(
+                    outline,
+                    point,
+                    plates,
+                    &image.fit.eye,
+                    &image.fit.fwd,
+                    image.height as f64,
+                );
+                locations.push(format!(
+                    "p{oi}/s{si}@{},{}[world={:.6},{:.6},{:.6};cover=m{};sep={:.6}mm]",
+                    pixel % image.width,
+                    pixel / image.width,
+                    point[0],
+                    point[1],
+                    point[2],
+                    cover.plate,
+                    cover.sep
+                ));
             }
         }
     }
-    println!("RENDERED covered samples {covered}, magenta samples {surfaced}, faint magenta samples {faint}; strict RGB >=195,<=60,>=195; faint R-G>5 and B-G>5");
+    println!(
+        "RENDERED covered samples {covered}, magenta samples {surfaced}, faint magenta samples {faint}; strict RGB >=195,<=60,>=195; faint R-G>5 and B-G>5"
+    );
     println!("RENDERED locations: {}", locations.join(" "));
 }
 
 /// Isolate one source outline without splitting its geometry or changing its legacy lift cap.
 fn recolor_single(s: &Session, index: usize, out: &str) {
-    assert!(index < s.objects.polylines.len(), "CENSUS_PROBE_OUTLINE out of range");
+    assert!(
+        index < s.objects.polylines.len(),
+        "CENSUS_PROBE_OUTLINE out of range"
+    );
     let world = s.world_xforms();
     let mut copy = Session::new("census single original outline");
     for mesh in &s.objects.meshes {
@@ -821,7 +1142,11 @@ fn recolor_single(s: &Session, index: usize, out: &str) {
         if let Some(transform) = world.get(source.guid()) {
             line.transform(transform);
         }
-        line.linecolor = if i == index { Color::magenta() } else { Color::black() };
+        line.linecolor = if i == index {
+            Color::magenta()
+        } else {
+            Color::black()
+        };
         copy.add_polyline(line, None);
     }
     copy.pb_dump(out);
@@ -876,7 +1201,10 @@ fn triangle_interval(edge: &ProbeEdge, tri: &[[f64; 3]; 3], view: &ProbeView) ->
         };
         let n = unit(&cross(&sub(&b, &a), &ray));
         let sign = dot(&n, &sub(&c, &a)).signum();
-        let values = [sign * dot(&n, &sub(&edge.ends[0], &a)), sign * dot(&n, &sub(&edge.ends[1], &a))];
+        let values = [
+            sign * dot(&n, &sub(&edge.ends[0], &a)),
+            sign * dot(&n, &sub(&edge.ends[1], &a)),
+        ];
         if !clip_interval(&mut interval, values) {
             return None;
         }
@@ -902,7 +1230,9 @@ fn hidden_intervals(edge: &ProbeEdge, plates: &[Plate], view: &ProbeView) -> Vec
     intervals.sort_by(by_interval);
     let mut merged: Vec<[f64; 2]> = Vec::new();
     for interval in intervals {
-        if let Some(last) = merged.last_mut() && interval[0] <= last[1] {
+        if let Some(last) = merged.last_mut()
+            && interval[0] <= last[1]
+        {
             last[1] = last[1].max(interval[1]);
         } else {
             merged.push(interval);
@@ -921,10 +1251,26 @@ fn edge_point(edge: &ProbeEdge, t: f64) -> Point {
 }
 
 /// Export hidden axis spans as magenta, retaining the source pen width and visible spans in blue.
-fn recolor_spans(s: &Session, outlines: &[Outline], plates: &[Plate], settings: &RecolorSettings<'_>) {
+fn recolor_spans(
+    s: &Session,
+    outlines: &[Outline],
+    plates: &[Plate],
+    settings: &RecolorSettings<'_>,
+) {
     let (fit, out) = (settings.fit, settings.out);
-    let parallel = if env_f64("CENSUS_ORTHO_H", 0.0) > 0.0 { Some(fit.fwd) } else { None };
-    let view = ProbeView { eye: [fit.eye[0] * 1000.0, fit.eye[1] * 1000.0, fit.eye[2] * 1000.0], parallel };
+    let parallel = if env_f64("CENSUS_ORTHO_H", 0.0) > 0.0 {
+        Some(fit.fwd)
+    } else {
+        None
+    };
+    let view = ProbeView {
+        eye: [
+            fit.eye[0] * 1000.0,
+            fit.eye[1] * 1000.0,
+            fit.eye[2] * 1000.0,
+        ],
+        parallel,
+    };
     let world = s.world_xforms();
     let mut copy = Session::new("census exact hidden spans");
     for mesh in &s.objects.meshes {
@@ -937,7 +1283,9 @@ fn recolor_spans(s: &Session, outlines: &[Outline], plates: &[Plate], settings: 
     let mut counts = [0usize; 2];
     for (i, outline) in outlines.iter().enumerate() {
         for points in outline.pts.windows(2) {
-            let edge = ProbeEdge { ends: [points[0], points[1]] };
+            let edge = ProbeEdge {
+                ends: [points[0], points[1]],
+            };
             let intervals = hidden_intervals(&edge, plates, &view);
             let mut cursor = 0.0;
             let mut spans = Vec::new();
@@ -952,36 +1300,70 @@ fn recolor_spans(s: &Session, outlines: &[Outline], plates: &[Plate], settings: 
                 spans.push((cursor, 1.0, false));
             }
             for (start, end, hidden) in spans {
-                let mut line = Polyline::new(vec![edge_point(&edge, start), edge_point(&edge, end)]);
+                let mut line =
+                    Polyline::new(vec![edge_point(&edge, start), edge_point(&edge, end)]);
                 line.width = s.objects.polylines[i].width;
-                line.linecolor = if hidden { Color::magenta() } else { Color::blue() };
+                line.linecolor = if hidden {
+                    Color::magenta()
+                } else {
+                    Color::blue()
+                };
                 counts[usize::from(hidden)] += 1;
                 copy.add_polyline(line, None);
             }
         }
     }
     copy.pb_dump(out);
-    println!("exact span copy: {out}; visible spans {}, hidden spans {}. Magenta classifies the underlying axis; silhouette overhang and transition caps require spatial checking.", counts[0], counts[1]);
+    println!(
+        "exact span copy: {out}; visible spans {}, hidden spans {}. Magenta classifies the underlying axis; silhouette overhang and transition caps require spatial checking.",
+        counts[0], counts[1]
+    );
 }
 
 fn census(path: &str) {
     if std::env::var("CENSUS_REQUIRE_ZERO").is_ok_and(|value| value == "1") {
-        assert!(std::env::var("CENSUS_RENDERED_IDS").is_ok(), "CENSUS_REQUIRE_ZERO requires an actual CENSUS_RENDERED_IDS frame");
+        assert!(
+            std::env::var("CENSUS_RENDERED_IDS").is_ok(),
+            "CENSUS_REQUIRE_ZERO requires an actual CENSUS_RENDERED_IDS frame"
+        );
     }
     let vp_w = env_f64("VIEWER_W", 900.0);
     let vp_h = env_f64("VIEWER_H", 700.0);
     let bytes = std::fs::read(path).expect("read pb");
     let s = Session::pb_loads(&bytes).expect("parse pb");
     let world = s.world_xforms();
-    println!("== {path}  ({:.2} MB, {} objects, {} xforms, {} meshes, {} polylines, {} points, {} lines)", bytes.len() as f64 / 1.048576e6, s.lookup.len(), s.xforms.len(), s.objects.meshes.len(), s.objects.polylines.len(), s.objects.points.len(), s.objects.lines.len());
+    println!(
+        "== {path}  ({:.2} MB, {} objects, {} xforms, {} meshes, {} polylines, {} points, {} lines)",
+        bytes.len() as f64 / 1.048576e6,
+        s.lookup.len(),
+        s.xforms.len(),
+        s.objects.meshes.len(),
+        s.objects.polylines.len(),
+        s.objects.points.len(),
+        s.objects.lines.len()
+    );
 
     let mut plates: Vec<Plate> = Vec::new();
     for m in &s.objects.meshes {
         plates.push(plate_of(m, &placement(&world, m.guid())));
     }
-    println!("meshes: i verts faces | extents sorted (thin mid long) diag | t_rule t_real ratio | big face |nz|");
+    println!(
+        "meshes: i verts faces | extents sorted (thin mid long) diag | t_rule t_real ratio | big face |nz|"
+    );
     for (i, p) in plates.iter().enumerate() {
-        println!("  m{i:<3} {:>4} {:>4} | {:8.2} {:8.2} {:8.2} {:8.2} | {:7.2} {:7.2} {:6.2} | {:.3}", p.verts.len(), p.faces.len(), p.ext[0], p.ext[1], p.ext[2], p.diag, p.t_rule, p.t_real, p.t_rule / p.t_real.max(1e-9), p.big_nz);
+        println!(
+            "  m{i:<3} {:>4} {:>4} | {:8.2} {:8.2} {:8.2} {:8.2} | {:7.2} {:7.2} {:6.2} | {:.3}",
+            p.verts.len(),
+            p.faces.len(),
+            p.ext[0],
+            p.ext[1],
+            p.ext[2],
+            p.diag,
+            p.t_rule,
+            p.t_real,
+            p.t_rule / p.t_real.max(1e-9),
+            p.big_nz
+        );
     }
 
     let mut outlines: Vec<Outline> = Vec::new();
@@ -993,7 +1375,11 @@ fn census(path: &str) {
     if let Ok(e) = std::env::var("CENSUS_EYE") {
         let v: Vec<f64> = e.split(',').filter_map(|t| t.trim().parse().ok()).collect();
         if v.len() == 3 {
-            let centre = [(lo[0] + hi[0]) * 0.0005, (lo[1] + hi[1]) * 0.0005, (lo[2] + hi[2]) * 0.0005];
+            let centre = [
+                (lo[0] + hi[0]) * 0.0005,
+                (lo[1] + hi[1]) * 0.0005,
+                (lo[2] + hi[2]) * 0.0005,
+            ];
             let to = sub(&centre, &[v[0], v[1], v[2]]);
             let d = norm(&to);
             let mut fwd = [to[0] / d, to[1] / d, to[2] / d];
@@ -1004,18 +1390,31 @@ fn census(path: &str) {
                     fwd = [fv[0] / n, fv[1] / n, fv[2] / n];
                 }
             }
-            f0 = Fit { eye: [v[0], v[1], v[2]], fwd, distance: d };
-            println!("  CENSUS_EYE override: eye ({:.2}, {:.2}, {:.2}) m, distance {:.3} m", v[0], v[1], v[2], d);
+            f0 = Fit {
+                eye: [v[0], v[1], v[2]],
+                fwd,
+                distance: d,
+            };
+            println!(
+                "  CENSUS_EYE override: eye ({:.2}, {:.2}, {:.2}) m, distance {:.3} m",
+                v[0], v[1], v[2], d
+            );
         }
     }
-    println!("polylines: i pts | extents sorted diag | t_rule | |newell nz| | nearest face plane: dist plate face, thickness normal to it | samples covered at k=1 4 16 | failing samples at k=1 4 16 | min margin mm at k=1 4 16");
+    println!(
+        "polylines: i pts | extents sorted diag | t_rule | |newell nz| | nearest face plane: dist plate face, thickness normal to it | samples covered at k=1 4 16 | failing samples at k=1 4 16 | min margin mm at k=1 4 16"
+    );
     let mut per_k: Vec<Vec<Verdict>> = Vec::new();
     for _ in SCALES {
         per_k.push(Vec::new());
     }
     for (i, o) in outlines.iter().enumerate() {
         let on = o.dist <= ON_FACE_TOL;
-        let behind = if on { plates[o.plate].faces[o.face].behind } else { f64::NAN };
+        let behind = if on {
+            plates[o.plate].faces[o.face].behind
+        } else {
+            f64::NAN
+        };
         let mut cov = String::new();
         let mut fail = String::new();
         let mut mins = String::new();
@@ -1041,11 +1440,45 @@ fn census(path: &str) {
             }
             cov.push_str(&format!(" {n_cov:>2}"));
             fail.push_str(&format!(" {n_fail:>2}"));
-            mins.push_str(&format!(" {:8.2}", if min_margin.is_finite() { min_margin } else { f64::NAN }));
+            mins.push_str(&format!(
+                " {:8.2}",
+                if min_margin.is_finite() {
+                    min_margin
+                } else {
+                    f64::NAN
+                }
+            ));
         }
-        println!("  p{i:<3} {:>2} | {:8.2} {:8.2} {:8.2} {:8.2} | {:6.2} | {:.3} | {:7.4} m{:<3} f{:<3} {:7.2} |{cov} of {:>2} |{fail} |{mins}", o.pts.len(), o.ext[0], o.ext[1], o.ext[2], o.diag, o.t_rule, o.nz, o.dist, o.plate, o.face, behind, o.samples.len());
+        println!(
+            "  p{i:<3} {:>2} | {:8.2} {:8.2} {:8.2} {:8.2} | {:6.2} | {:.3} | {:7.4} m{:<3} f{:<3} {:7.2} |{cov} of {:>2} |{fail} |{mins}",
+            o.pts.len(),
+            o.ext[0],
+            o.ext[1],
+            o.ext[2],
+            o.diag,
+            o.t_rule,
+            o.nz,
+            o.dist,
+            o.plate,
+            o.face,
+            behind,
+            o.samples.len()
+        );
         if let Some((w, smp)) = &worst1 {
-            println!("    WORST k=1 p{i}: sample ({:.0}, {:.0}, {:.0}) mm on m{} f{}  cover m{} (t_real {:.2}) push {:.2} lift {:.2} sep {:.2} margin {:.2}", smp[0], smp[1], smp[2], o.plate, o.face, w.plate, plates[w.plate].t_real, w.push, w.lift, w.sep, w.margin);
+            println!(
+                "    WORST k=1 p{i}: sample ({:.0}, {:.0}, {:.0}) mm on m{} f{}  cover m{} (t_real {:.2}) push {:.2} lift {:.2} sep {:.2} margin {:.2}",
+                smp[0],
+                smp[1],
+                smp[2],
+                o.plate,
+                o.face,
+                w.plate,
+                plates[w.plate].t_real,
+                w.push,
+                w.lift,
+                w.sep,
+                w.margin
+            );
         }
     }
 
@@ -1054,7 +1487,10 @@ fn census(path: &str) {
     for p in &plates {
         v.push(p.ext[0]);
     }
-    stats("thickness mm (thinnest AABB axis = what the rule sees)", &mut v);
+    stats(
+        "thickness mm (thinnest AABB axis = what the rule sees)",
+        &mut v,
+    );
     v.clear();
     for p in &plates {
         v.push(p.t_rule);
@@ -1064,12 +1500,18 @@ fn census(path: &str) {
     for p in &plates {
         v.push(p.t_real);
     }
-    stats("thickness mm (min extent along any face normal = real)", &mut v);
+    stats(
+        "thickness mm (min extent along any face normal = real)",
+        &mut v,
+    );
     v.clear();
     for p in &plates {
         v.push(p.t_rule / p.t_real.max(1e-9));
     }
-    stats("t_rule / t_real (rule overestimate on rotated plates)", &mut v);
+    stats(
+        "t_rule / t_real (rule overestimate on rotated plates)",
+        &mut v,
+    );
     v.clear();
     for p in &plates {
         v.push(p.ext[2]);
@@ -1102,19 +1544,27 @@ fn census(path: &str) {
         }
         tris += p.tris.len();
     }
-    println!("  flat meshes (thinnest axis < {ON_FACE_TOL} mm): {flat}   plates whose t_rule exceeds t_real by >1%: {rotated}   triangles ray-cast: {tris}");
+    println!(
+        "  flat meshes (thinnest axis < {ON_FACE_TOL} mm): {flat}   plates whose t_rule exceeds t_real by >1%: {rotated}   triangles ray-cast: {tris}"
+    );
 
     println!("polylines: {}", outlines.len());
     v.clear();
     for o in &outlines {
         v.push(o.dist);
     }
-    stats("distance to nearest mesh face plane mm (max point deviation)", &mut v);
+    stats(
+        "distance to nearest mesh face plane mm (max point deviation)",
+        &mut v,
+    );
     v.clear();
     for o in &outlines {
         v.push(o.ext[0]);
     }
-    stats("outline thinnest AABB axis mm (its lift cap is 0.25 x max(this, 0.001 x diag))", &mut v);
+    stats(
+        "outline thinnest AABB axis mm (its lift cap is 0.25 x max(this, 0.001 x diag))",
+        &mut v,
+    );
     v.clear();
     for o in &outlines {
         v.push(o.t_rule);
@@ -1128,18 +1578,47 @@ fn census(path: &str) {
             v.push(plates[o.plate].faces[o.face].behind);
         }
     }
-    println!("  on a mesh face (<= {ON_FACE_TOL} mm): {on} of {}", outlines.len());
+    println!(
+        "  on a mesh face (<= {ON_FACE_TOL} mm): {on} of {}",
+        outlines.len()
+    );
     stats("that plate's thickness normal to the face mm", &mut v);
 
-    println!("scene AABB mm: min [{:.1}, {:.1}, {:.1}] max [{:.1}, {:.1}, {:.1}]  extent {:.1} x {:.1} x {:.1}  diagonal {:.1}", lo[0], lo[1], lo[2], hi[0], hi[1], hi[2], hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2], norm(&sub(&hi, &lo)));
+    println!(
+        "scene AABB mm: min [{:.1}, {:.1}, {:.1}] max [{:.1}, {:.1}, {:.1}]  extent {:.1} x {:.1} x {:.1}  diagonal {:.1}",
+        lo[0],
+        lo[1],
+        lo[2],
+        hi[0],
+        hi[1],
+        hi[2],
+        hi[0] - lo[0],
+        hi[1] - lo[1],
+        hi[2] - lo[2],
+        norm(&sub(&hi, &lo))
+    );
     let proj_y = 1.0 / 30.0_f64.to_radians().tan() * 0.001;
     for (w, h) in [(vp_w, vp_h), (1280.0, 720.0), (1920.0, 1080.0)] {
         let f = fit(&lo, &hi, w / h);
         let px_per_mm = proj_y * h / (2.0 * f.distance);
-        println!("  fit {w:.0}x{h:.0}: distance {:.3} m  eye ({:.2}, {:.2}, {:.2}) m  fwd ({:.3}, {:.3}, {:.3})  at target {:.4} px/mm, 1 px = {:.2} mm, uncapped free lift (0.5 px) = {:.2} mm", f.distance, f.eye[0], f.eye[1], f.eye[2], f.fwd[0], f.fwd[1], f.fwd[2], px_per_mm, 1.0 / px_per_mm, 0.5 / px_per_mm * LIFT_RADII_FREE);
+        println!(
+            "  fit {w:.0}x{h:.0}: distance {:.3} m  eye ({:.2}, {:.2}, {:.2}) m  fwd ({:.3}, {:.3}, {:.3})  at target {:.4} px/mm, 1 px = {:.2} mm, uncapped free lift (0.5 px) = {:.2} mm",
+            f.distance,
+            f.eye[0],
+            f.eye[1],
+            f.eye[2],
+            f.fwd[0],
+            f.fwd[1],
+            f.fwd[2],
+            px_per_mm,
+            1.0 / px_per_mm,
+            0.5 / px_per_mm * LIFT_RADII_FREE
+        );
     }
 
-    println!("LEGACY WORLD-OFFSET ESTIMATE at k x camera distance ({vp_w:.0}x{vp_h:.0}), retained for BEFORE comparison only; margin = best cover's (separation along the ray - its face push) - the outline's lift");
+    println!(
+        "LEGACY WORLD-OFFSET ESTIMATE at k x camera distance ({vp_w:.0}x{vp_h:.0}), retained for BEFORE comparison only; margin = best cover's (separation along the ray - its face push) - the outline's lift"
+    );
     for (ki, k) in SCALES.iter().enumerate() {
         let mut n_cov = 0;
         let mut n_fail = 0;
@@ -1181,7 +1660,13 @@ fn census(path: &str) {
                 fail_outlines.push(i);
             }
         }
-        println!(" k={k:<3} distance {:.2} m  0.4% of it = {:.1} mm  samples {} covered {n_cov} FAIL {n_fail} (of which {grazing} graze a cover's edge: separation < that plate's t_real)  outlines covered {cov_outlines} with a FAIL {}: {fail_outlines:?}", f0.distance * k, PUSH_FRAC * f0.distance * k * 1000.0, per_k[ki].len(), fail_outlines.len());
+        println!(
+            " k={k:<3} distance {:.2} m  0.4% of it = {:.1} mm  samples {} covered {n_cov} FAIL {n_fail} (of which {grazing} graze a cover's edge: separation < that plate's t_real)  outlines covered {cov_outlines} with a FAIL {}: {fail_outlines:?}",
+            f0.distance * k,
+            PUSH_FRAC * f0.distance * k * 1000.0,
+            per_k[ki].len(),
+            fail_outlines.len()
+        );
         stats("separation along the ray mm", &mut seps);
         stats("cover's face push mm", &mut pushes);
         stats("outline lift mm", &mut lifts);
@@ -1202,17 +1687,39 @@ fn census(path: &str) {
     if order.is_empty() {
         return;
     }
-    let picks = [("thinnest outlined plate", order[0].1), ("median outlined plate", order[(order.len() - 1) / 2].1), ("thickest outlined plate", order[order.len() - 1].1)];
+    let picks = [
+        ("thinnest outlined plate", order[0].1),
+        ("median outlined plate", order[(order.len() - 1) / 2].1),
+        ("thickest outlined plate", order[order.len() - 1].1),
+    ];
     for (label, pi) in picks {
         let p = &plates[pi];
-        println!("{label}: m{pi}  extents {:.2} x {:.2} x {:.2}  diag {:.2}  t_rule {:.2} (push cap {:.2})  t_real {:.2}  big face |nz| {:.3}", p.ext[0], p.ext[1], p.ext[2], p.diag, p.t_rule, PUSH_MAX_THICK * p.t_rule, p.t_real, p.big_nz);
+        println!(
+            "{label}: m{pi}  extents {:.2} x {:.2} x {:.2}  diag {:.2}  t_rule {:.2} (push cap {:.2})  t_real {:.2}  big face |nz| {:.3}",
+            p.ext[0],
+            p.ext[1],
+            p.ext[2],
+            p.diag,
+            p.t_rule,
+            PUSH_MAX_THICK * p.t_rule,
+            p.t_real,
+            p.big_nz
+        );
         for (oi, o) in outlines.iter().enumerate() {
             if o.plate != pi || o.dist > ON_FACE_TOL {
                 continue;
             }
             for k in SCALES {
                 let eye = eye_at(&f0, k);
-                let mut worst = Verdict { covered: false, w: 0.0, sep: 0.0, push: 0.0, lift: 0.0, margin: f64::INFINITY, plate: usize::MAX };
+                let mut worst = Verdict {
+                    covered: false,
+                    w: 0.0,
+                    sep: 0.0,
+                    push: 0.0,
+                    lift: 0.0,
+                    margin: f64::INFINITY,
+                    plate: usize::MAX,
+                };
                 let mut n_cov = 0;
                 for smp in &o.samples {
                     let j = judge(o, smp, &plates, &eye, &f0.fwd, vp_h);
@@ -1228,7 +1735,20 @@ fn census(path: &str) {
                     continue;
                 }
                 let fail = if worst.margin < 0.0 { "FAIL" } else { "" };
-                println!("  p{oi:<3} k={k:<3} covered {n_cov}/{}  worst sample: eye depth {:6.2} m  0.4% = {:6.1} mm  cover m{} (t_rule {:.2}, t_real {:.2}) push {:6.2} mm  lift {:5.2} mm (cap {:.2})  separation {:7.2} mm  margin {:8.2} mm {fail}", o.samples.len(), worst.w, PUSH_FRAC * worst.w * 1000.0, worst.plate, plates[worst.plate].t_rule, plates[worst.plate].t_real, worst.push, worst.lift, LIFT_MAX_THICK * o.t_rule, worst.sep, worst.margin);
+                println!(
+                    "  p{oi:<3} k={k:<3} covered {n_cov}/{}  worst sample: eye depth {:6.2} m  0.4% = {:6.1} mm  cover m{} (t_rule {:.2}, t_real {:.2}) push {:6.2} mm  lift {:5.2} mm (cap {:.2})  separation {:7.2} mm  margin {:8.2} mm {fail}",
+                    o.samples.len(),
+                    worst.w,
+                    PUSH_FRAC * worst.w * 1000.0,
+                    worst.plate,
+                    plates[worst.plate].t_rule,
+                    plates[worst.plate].t_real,
+                    worst.push,
+                    worst.lift,
+                    LIFT_MAX_THICK * o.t_rule,
+                    worst.sep,
+                    worst.margin
+                );
             }
         }
     }
@@ -1236,13 +1756,24 @@ fn census(path: &str) {
         recolor(&s, &outlines, &plates, &f0, vp_h, &out);
     }
     if let Ok(out) = std::env::var("CENSUS_RECOLOR_SPANS") {
-        recolor_spans(&s, &outlines, &plates, &RecolorSettings { fit: &f0, out: &out });
+        recolor_spans(
+            &s,
+            &outlines,
+            &plates,
+            &RecolorSettings {
+                fit: &f0,
+                out: &out,
+            },
+        );
     }
     if let Ok(path) = std::env::var("CENSUS_RENDERED_SPANS") {
         rendered_samples(&outlines, &plates, &SampleImage::read(&path, &f0));
     }
     if let Ok(out) = std::env::var("CENSUS_RECOLOR_SINGLE") {
-        let index: usize = std::env::var("CENSUS_PROBE_OUTLINE").expect("CENSUS_RECOLOR_SINGLE needs CENSUS_PROBE_OUTLINE").parse().expect("outline index");
+        let index: usize = std::env::var("CENSUS_PROBE_OUTLINE")
+            .expect("CENSUS_RECOLOR_SINGLE needs CENSUS_PROBE_OUTLINE")
+            .parse()
+            .expect("outline index");
         recolor_single(&s, index, &out);
     }
     if std::env::var("CENSUS_RENDERED_IDS").is_ok() {
@@ -1257,28 +1788,75 @@ mod span_tests {
     /// A cached U-shaped face leaves its notch open; a fan would invent cover there.
     #[test]
     fn cached_concave_triangulation_preserves_notch() {
-        let vertices = [[0.0, 0.0], [3.0, 0.0], [3.0, 3.0], [2.0, 3.0], [2.0, 1.0], [1.0, 1.0], [1.0, 3.0], [0.0, 3.0]];
-        let mut mesh = Mesh::from_vertices_and_faces(vertices.map(|p| Point::new(p[0], p[1], 0.0)).to_vec(), vec![(0..8).collect()]);
-        mesh.triangulation.insert(mesh.faces()[0], vec![[0, 1, 4], [0, 4, 5], [1, 2, 3], [1, 3, 4], [0, 5, 6], [0, 6, 7]]);
+        let vertices = [
+            [0.0, 0.0],
+            [3.0, 0.0],
+            [3.0, 3.0],
+            [2.0, 3.0],
+            [2.0, 1.0],
+            [1.0, 1.0],
+            [1.0, 3.0],
+            [0.0, 3.0],
+        ];
+        let mut mesh = Mesh::from_vertices_and_faces(
+            vertices.map(|p| Point::new(p[0], p[1], 0.0)).to_vec(),
+            vec![(0..8).collect()],
+        );
+        mesh.triangulation.insert(
+            mesh.faces()[0],
+            vec![
+                [0, 1, 4],
+                [0, 4, 5],
+                [1, 2, 3],
+                [1, 3, 4],
+                [0, 5, 6],
+                [0, 6, 7],
+            ],
+        );
         let place = Xform::identity().m;
-        let view = ProbeView { eye: [0.0, 0.0, 10.0], parallel: Some([0.0, 0.0, -1.0]) };
-        let notch = ProbeEdge { ends: [[1.4, 2.0, -1.0], [1.6, 2.0, -1.0]] };
+        let view = ProbeView {
+            eye: [0.0, 0.0, 10.0],
+            parallel: Some([0.0, 0.0, -1.0]),
+        };
+        let notch = ProbeEdge {
+            ends: [[1.4, 2.0, -1.0], [1.6, 2.0, -1.0]],
+        };
         let plate = plate_of(&mesh, &place);
         assert_eq!(plate.tris.len(), 6);
-        assert!(plate.tris.iter().all(|triangle| triangle_interval(&notch, triangle, &view).is_none()));
+        assert!(
+            plate
+                .tris
+                .iter()
+                .all(|triangle| triangle_interval(&notch, triangle, &view).is_none())
+        );
         mesh.triangulation.clear();
         let fan = plate_of(&mesh, &place);
-        assert!(fan.tris.iter().any(|triangle| triangle_interval(&notch, triangle, &view).is_some()));
+        assert!(
+            fan.tris
+                .iter()
+                .any(|triangle| triangle_interval(&notch, triangle, &view).is_some())
+        );
     }
 
     /// The physical plane remains orthogonal to its transformed edges under scale and shear.
     #[test]
     fn placed_face_normal_uses_inverse_transpose() {
-        let mesh = Mesh::from_vertices_and_faces(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(0.0, 1.0, 1.0)], vec![vec![0, 1, 2]]);
-        let place = [2.0, 0.0, 0.25, 0.0, 0.5, 3.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 5.0, -2.0, 8.0, 1.0];
+        let mesh = Mesh::from_vertices_and_faces(
+            vec![
+                Point::new(0.0, 0.0, 0.0),
+                Point::new(1.0, 0.0, 0.0),
+                Point::new(0.0, 1.0, 1.0),
+            ],
+            vec![vec![0, 1, 2]],
+        );
+        let place = [
+            2.0, 0.0, 0.25, 0.0, 0.5, 3.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0, 5.0, -2.0, 8.0, 1.0,
+        ];
         let plate = plate_of(&mesh, &place);
         let face = &plate.faces[0];
-        for vertex in &plate.verts { assert!((dot(&face.n, vertex) - face.d).abs() < 1e-12); }
+        for vertex in &plate.verts {
+            assert!((dot(&face.n, vertex) - face.d).abs() < 1e-12);
+        }
         assert!((norm(&face.n) - 1.0).abs() < 1e-12);
     }
 
@@ -1286,13 +1864,20 @@ mod span_tests {
     #[test]
     fn perspective_triangle_coverage() {
         let triangle = [[-1.0, -1.0, 0.0], [1.0, -1.0, 0.0], [0.0, 1.0, 0.0]];
-        let view = ProbeView { eye: [0.0, 0.0, 10.0], parallel: None };
-        let edge = ProbeEdge { ends: [[-2.0, 0.0, -1.0], [2.0, 0.0, -1.0]] };
+        let view = ProbeView {
+            eye: [0.0, 0.0, 10.0],
+            parallel: None,
+        };
+        let edge = ProbeEdge {
+            ends: [[-2.0, 0.0, -1.0], [2.0, 0.0, -1.0]],
+        };
         let interval = triangle_interval(&edge, &triangle, &view).expect("covered centre");
         assert!((interval[0] - 0.3625).abs() < 1e-12);
         assert!((interval[1] - 0.6375).abs() < 1e-12);
         for z in [0.0, 1.0] {
-            let edge = ProbeEdge { ends: [[-2.0, 0.0, z], [2.0, 0.0, z]] };
+            let edge = ProbeEdge {
+                ends: [[-2.0, 0.0, z], [2.0, 0.0, z]],
+            };
             assert!(triangle_interval(&edge, &triangle, &view).is_none());
         }
     }
@@ -1301,8 +1886,13 @@ mod span_tests {
     #[test]
     fn orthographic_triangle_coverage() {
         let triangle = [[-1.0, -1.0, 0.0], [1.0, -1.0, 0.0], [0.0, 1.0, 0.0]];
-        let view = ProbeView { eye: [0.0, 0.0, 10.0], parallel: Some([0.0, 0.0, -1.0]) };
-        let edge = ProbeEdge { ends: [[-2.0, 0.0, -100.0], [2.0, 0.0, -100.0]] };
+        let view = ProbeView {
+            eye: [0.0, 0.0, 10.0],
+            parallel: Some([0.0, 0.0, -1.0]),
+        };
+        let edge = ProbeEdge {
+            ends: [[-2.0, 0.0, -100.0], [2.0, 0.0, -100.0]],
+        };
         let interval = triangle_interval(&edge, &triangle, &view).expect("covered centre");
         assert!((interval[0] - 0.375).abs() < 1e-12);
         assert!((interval[1] - 0.625).abs() < 1e-12);
@@ -1311,11 +1901,20 @@ mod span_tests {
     /// Pixel-centre coverage checks follow the renderer's downward image Y in both projections.
     #[test]
     fn sample_projection_and_pixel_centre() {
-        let fit = Fit { eye: [0.0, 0.0, 10.0], fwd: [0.0, 0.0, -1.0], distance: 10.0 };
+        let fit = Fit {
+            eye: [0.0, 0.0, 10.0],
+            fwd: [0.0, 0.0, -1.0],
+            distance: 10.0,
+        };
         for ortho_h in [0.0, 10000.0 * 30.0f64.to_radians().tan()] {
             let image = SampleImage {
-                pixels: Vec::new(), width: 1000, height: 800, right: [1.0, 0.0, 0.0],
-                up: [0.0, 1.0, 0.0], fit: &fit, ortho_h,
+                pixels: Vec::new(),
+                width: 1000,
+                height: 800,
+                right: [1.0, 0.0, 0.0],
+                up: [0.0, 1.0, 0.0],
+                fit: &fit,
+                ortho_h,
             };
             let (pixel, centre) = image.sample_pixel(&[0.0, 0.0, 0.0]).expect("centre pixel");
             assert_eq!(pixel, 400500);
@@ -1329,9 +1928,23 @@ mod span_tests {
     /// Fragment-axis interpolation must be perspective-correct on a segment receding from the eye.
     #[test]
     fn represented_axis_depth_is_perspective_correct() {
-        let fit = Fit { eye: [0.0, 0.0, 0.01], fwd: [0.0, 0.0, -1.0], distance: 0.01 };
-        let image = SampleImage { pixels: Vec::new(), width: 100, height: 100, right: [1.0, 0.0, 0.0], up: [0.0, 1.0, 0.0], fit: &fit, ortho_h: 0.0 };
-        let edge = ProbeEdge { ends: [[-1.0, 0.0, -1.0], [1.0, 0.0, -10.0]] };
+        let fit = Fit {
+            eye: [0.0, 0.0, 0.01],
+            fwd: [0.0, 0.0, -1.0],
+            distance: 0.01,
+        };
+        let image = SampleImage {
+            pixels: Vec::new(),
+            width: 100,
+            height: 100,
+            right: [1.0, 0.0, 0.0],
+            up: [0.0, 1.0, 0.0],
+            fit: &fit,
+            ortho_h: 0.0,
+        };
+        let edge = ProbeEdge {
+            ends: [[-1.0, 0.0, -1.0], [1.0, 0.0, -10.0]],
+        };
         let (a, _) = image.projected(&edge.ends[0]);
         let (b, _) = image.projected(&edge.ends[1]);
         let axis = image.axis_at(&edge, [(a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5]);
@@ -1342,24 +1955,73 @@ mod span_tests {
     /// A whole-pixel assertion accepts interior cover and explicitly rejects silhouette ambiguity.
     #[test]
     fn full_pixel_cover_excludes_silhouette() {
-        let fit = Fit { eye: [0.0, 0.0, 0.01], fwd: [0.0, 0.0, -1.0], distance: 0.01 };
-        let image = SampleImage { pixels: Vec::new(), width: 100, height: 100, right: [1.0, 0.0, 0.0], up: [0.0, 1.0, 0.0], fit: &fit, ortho_h: 0.0 };
-        let plate = Plate { verts: Vec::new(), faces: Vec::new(), tris: vec![[[-2.0, -2.0, 0.0], [2.0, -2.0, 0.0], [0.0, 2.0, 0.0]]], lo: [0.0; 3], hi: [0.0; 3], ext: [0.0; 3], diag: 0.0, t_rule: 0.0, t_real: 0.0, big_nz: 0.0 };
+        let fit = Fit {
+            eye: [0.0, 0.0, 0.01],
+            fwd: [0.0, 0.0, -1.0],
+            distance: 0.01,
+        };
+        let image = SampleImage {
+            pixels: Vec::new(),
+            width: 100,
+            height: 100,
+            right: [1.0, 0.0, 0.0],
+            up: [0.0, 1.0, 0.0],
+            fit: &fit,
+            ortho_h: 0.0,
+        };
+        let plate = Plate {
+            verts: Vec::new(),
+            faces: Vec::new(),
+            tris: vec![[[-2.0, -2.0, 0.0], [2.0, -2.0, 0.0], [0.0, 2.0, 0.0]]],
+            lo: [0.0; 3],
+            hi: [0.0; 3],
+            ext: [0.0; 3],
+            diag: 0.0,
+            t_rule: 0.0,
+            t_real: 0.0,
+            big_nz: 0.0,
+        };
         let plates = [plate];
-        let interior = ProbeEdge { ends: [[-0.5, 0.0, -1.0], [0.5, 0.0, -1.0]] };
-        assert_eq!(image.full_pixel_cover(&interior, 5050, &plates), Some((0, 0)));
-        let silhouette = ProbeEdge { ends: [[1.04, 0.0, -1.0], [1.12, 0.0, -1.0]] };
+        let interior = ProbeEdge {
+            ends: [[-0.5, 0.0, -1.0], [0.5, 0.0, -1.0]],
+        };
+        assert_eq!(
+            image.full_pixel_cover(&interior, 5050, &plates),
+            Some((0, 0))
+        );
+        let silhouette = ProbeEdge {
+            ends: [[1.04, 0.0, -1.0], [1.12, 0.0, -1.0]],
+        };
         assert_eq!(image.full_pixel_cover(&silhouette, 5058, &plates), None);
     }
 
     /// A submillimetre joint remains physical cover in orthographic mode at every distance.
     #[test]
     fn physical_coverage_has_no_virtual_eye_distance_tolerance() {
-        let mesh = Mesh::from_vertices_and_faces(vec![Point::new(-2.0, -2.0, 0.0), Point::new(2.0, -2.0, 0.0), Point::new(0.0, 2.0, 0.0)], vec![vec![0, 1, 2]]);
+        let mesh = Mesh::from_vertices_and_faces(
+            vec![
+                Point::new(-2.0, -2.0, 0.0),
+                Point::new(2.0, -2.0, 0.0),
+                Point::new(0.0, 2.0, 0.0),
+            ],
+            vec![vec![0, 1, 2]],
+        );
         let plates = [plate_of(&mesh, &Xform::identity().m)];
         for distance in [10.0, 1000.0] {
-            let fit = Fit { eye: [0.0, 0.0, distance], fwd: [0.0, 0.0, -1.0], distance };
-            let image = SampleImage { pixels: Vec::new(), width: 100, height: 100, right: [1.0, 0.0, 0.0], up: [0.0, 1.0, 0.0], fit: &fit, ortho_h: distance * 1000.0 };
+            let fit = Fit {
+                eye: [0.0, 0.0, distance],
+                fwd: [0.0, 0.0, -1.0],
+                distance,
+            };
+            let image = SampleImage {
+                pixels: Vec::new(),
+                width: 100,
+                height: 100,
+                right: [1.0, 0.0, 0.0],
+                up: [0.0, 1.0, 0.0],
+                fit: &fit,
+                ortho_h: distance * 1000.0,
+            };
             assert!(image.covered(&[0.0, 0.0, -0.001], &plates));
             assert!(!image.covered(&[0.0, 0.0, 0.0], &plates));
             assert!(!image.covered(&[0.0, 0.0, 0.001], &plates));

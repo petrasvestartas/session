@@ -1,14 +1,20 @@
 //! The backdrop lane: the fullscreen background triangle and the vertexless 50-vertex grid.
 //! No table, no upload; two pipelines and two draws that open every frame.
 
-use crate::engine::pipelines::{build, module, DepthMode, Layouts, PipelineDesc, Target};
 use super::buffers::GpuCtx;
 use super::frame::Binds;
+use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
 use wgpu::PrimitiveTopology::{LineList, TriangleList};
 
 /// The lane's shaders, for the mirror tests.
 #[cfg(test)]
-pub const SHADERS: &[(&str, &str)] = &[("grid.wgsl", include_str!("../../shaders/grid.wgsl")), ("background.wgsl", include_str!("../../shaders/background.wgsl"))];
+pub const SHADERS: &[(&str, &str)] = &[
+    ("grid.wgsl", include_str!("../../shaders/grid.wgsl")),
+    (
+        "background.wgsl",
+        include_str!("../../shaders/background.wgsl"),
+    ),
+];
 
 /// Vertices the grid shader builds from the vertex index: 44 floor + 6 axis.
 const GRID_VERTS: u32 = 50;
@@ -24,12 +30,25 @@ pub struct BackdropLane {
 impl BackdropLane {
     /// Compile both shaders once and build the pipelines for `target`.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        let background_shader = module(&ctx.device, "background.shader", include_str!("../../shaders/background.wgsl"));
-        let grid_shader = module(&ctx.device, "grid.shader", include_str!("../../shaders/grid.wgsl"));
+        let background_shader = module(
+            &ctx.device,
+            "background.shader",
+            include_str!("../../shaders/background.wgsl"),
+        );
+        let grid_shader = module(
+            &ctx.device,
+            "grid.shader",
+            include_str!("../../shaders/grid.wgsl"),
+        );
         let background = build_background(ctx, &background_shader, target);
         let grid = build_grid(ctx, l, &grid_shader, target);
 
-        Self { background_shader, grid_shader, background, grid }
+        Self {
+            background_shader,
+            grid_shader,
+            background,
+            grid,
+        }
     }
 
     /// Rebuild both pipelines for a new sample count.
@@ -57,14 +76,37 @@ impl BackdropLane {
 }
 
 /// The background pipeline: always drawn, never writes depth.
-fn build_background(ctx: &GpuCtx, shader: &wgpu::ShaderModule, target: Target) -> wgpu::RenderPipeline {
+fn build_background(
+    ctx: &GpuCtx,
+    shader: &wgpu::ShaderModule,
+    target: Target,
+) -> wgpu::RenderPipeline {
     let base = PipelineDesc::new(shader, &[], &[], TriangleList);
-    build(&ctx.device, target, &base.with("background", "fs_main").depth(DepthMode::Always))
+    build(
+        &ctx.device,
+        target,
+        &base
+            .with("background", "fs_main")
+            .depth(DepthMode::Always)
+            .physical(),
+    )
 }
 
 /// The grid pipeline: depth-tested lines, no depth write.
-fn build_grid(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, target: Target) -> wgpu::RenderPipeline {
+fn build_grid(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    shader: &wgpu::ShaderModule,
+    target: Target,
+) -> wgpu::RenderPipeline {
     let groups = [&l.mvp, &l.line];
     let base = PipelineDesc::new(shader, &groups, &[], LineList);
-    build(&ctx.device, target, &base.with("grid", "fs_main").depth(DepthMode::ReadOnly))
+    build(
+        &ctx.device,
+        target,
+        &base
+            .with("grid", "fs_main")
+            .depth(DepthMode::ReadOnly)
+            .physical(),
+    )
 }

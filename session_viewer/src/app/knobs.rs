@@ -5,7 +5,12 @@ use std::sync::OnceLock;
 
 /// `std::env::var(name).is_ok()`, cached in `slot` on first use. Always false on wasm.
 fn env_flag(name: &str, slot: &'static OnceLock<bool>) -> bool {
-    *slot.get_or_init(|| std::env::var(name).is_ok())
+    *slot.get_or_init(|| read_environment_flag(name))
+}
+
+/// Read a presence-only flag; the OnceLock capture adapter invokes this only on initialization.
+fn read_environment_flag(name: &str) -> bool {
+    std::env::var(name).is_ok()
 }
 
 static PROFILE: OnceLock<bool> = OnceLock::new();
@@ -20,7 +25,7 @@ pub fn profile() -> bool {
     env_flag("VIEWER_PROFILE", &PROFILE)
 }
 
-/// VIEWER_DROP_SESSIONS: force `display_only` on every file.
+/// Legacy VIEWER_DROP_SESSIONS hint; full-file sources remain retained for source controls.
 pub fn drop_sessions() -> bool {
     env_flag("VIEWER_DROP_SESSIONS", &DROP_SESSIONS)
 }

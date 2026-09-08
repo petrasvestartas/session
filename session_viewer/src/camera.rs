@@ -1,3 +1,4 @@
+//! Source-precision orbit camera, framed projection and a rebased reversed-depth view transform.
 use crate::math::{Aabb, FOVY_DEG};
 use session_rust::{Point, Quaternion, Vector, Xform};
 
@@ -17,6 +18,9 @@ impl Unit {
         }
     }
 }
+
+/// The perspective near plane as a fraction of the focus distance - see `view_proj_anchored`.
+pub const NEAR_FRACTION: f64 = 1.0e-4;
 
 /// A named standard view direction (the six orthographic faces plus isometric).
 #[derive(Clone, Copy)]
@@ -49,7 +53,7 @@ pub struct Camera {
 impl Camera {
     /// A camera at the isometric view (45° yaw, −30° pitch), distance 3, perspective, millimeters.
     pub fn new() -> Self {
-        use std::f64::consts::{FRAC_PI_6};
+        use std::f64::consts::FRAC_PI_6;
 
         // iso start: yaw 45 deg about T, pitch -30 deg about the tileted right axis
         let yaw_q = Quaternion::from_axis_angle(Vector::z_axis(), -FRAC_PI_6);
@@ -101,7 +105,7 @@ impl Camera {
     /// And near/fat planes scale with distances.
     /// Only a not-zero guard remains.
     pub fn zoom(&mut self, amount: f32) {
-        self.distance = (self.distance * (1.0 - amount as f64 * 0.1)).max(1.0e-6);
+        self.distance = zoom_distance(self.distance, amount);
         self.update_position();
     }
 
@@ -110,8 +114,12 @@ impl Camera {
     /// The cursor's world point on the target plane is computed from the view frame.
     /// Then the target is pulled toward it by the zoom factor.
     /// 'cursor'/'viewport' in physical px.
-    pub fn zoom_at(&mut self, amount: f32, cursor: (f64, f64), viewport: (f64, f64)){
-        let new_dist = (self.distance * (1.0 - amount as f64 * 0.1)).max(1.0e-6);
+    pub fn zoom_at(&mut self, amount: f32, cursor: (f64, f64), viewport: (f64, f64)) {
+        if viewport.0 <= 0.0 || viewport.1 <= 0.0 || !cursor.0.is_finite() || !cursor.1.is_finite()
+        {
+            return;
+        }
+        let new_dist = zoom_distance(self.distance, amount);
         let k = new_dist / self.distance; // actual factor after the guard
         let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
         let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
@@ -127,7 +135,6 @@ impl Camera {
         self.distance = new_dist;
         self.update_position();
     }
-
 
     /// Flip between perspective and orthographic projection.
     pub fn toggle_projection(&mut self) {
@@ -178,7 +185,10 @@ impl Camera {
                 hi[i] = hi[i].max(p);
             }
         }
-        let clipped = Aabb { min: [lo[0] as f32, lo[1] as f32, lo[2] as f32], max: [hi[0] as f32, hi[1] as f32, hi[2] as f32] };
+        let clipped = Aabb {
+            min: [lo[0] as f32, lo[1] as f32, lo[2] as f32],
+            max: [hi[0] as f32, hi[1] as f32, hi[2] as f32],
+        };
         self.fit(&clipped, aspect);
     }
 
@@ -187,7 +197,7 @@ impl Camera {
     /// instance table rebases about, and that table holds world coordinates. Mixing the two
     /// units silently disables camera-relative rendering, which is the whole defence against
     /// f32 cancellation when zooming in far from the origin.
-    pub fn origin(&self) -> Point{
+    pub fn origin(&self) -> Point {
         let s = self.unit.to_meters();
         Point::new(self.target[0] / s, self.target[1] / s, self.target[2] / s)
     }
@@ -198,6 +208,7 @@ impl Camera {
         self.distance / self.unit.to_meters()
     }
 
+    /// Project source world coordinates directly; rendering normally uses the anchored variant.
     pub fn view_proj(&self, aspect: f64) -> Xform {
         self.view_proj_anchored(aspect, &self.origin())
     }
@@ -216,19 +227,41 @@ impl Camera {
         // from any eye position via the target (triangle inequality); the `max` keeps the plain
         // distance-scaled range whenever it is already wider. Reverse-Z absorbs the larger ratio.
         let far = (dist * 10.0).max(dist + 2.0 * self.scene_extent);
+        // Near is a ten-thousandth of the focus distance, not a hundredth: the wheel dollies
+        // toward the TARGET PLANE, and a surface in front of it keeps its gap to that plane while
+        // the eye closes in, so the eye reaches the surface at whatever `dist` the gap is. At 1%
+        // the cut opened a beam's width ahead of the eye (1.2 m at the 122 m fit of the 216 m
+        // layout, 0.1 m at 10 m) and read as the model being cropped; at 0.01% it opens a
+        // millimetre ahead, when the eye is on the surface. Reverse-Z in a float buffer keeps
+        // the same relative depth resolution however small the near plane is.
         let projection = if self.perspective {
             //                                          far ↓   near ↓   — swapped (reverse-Z)
-            Xform::perspective(FOVY_DEG.to_radians(), aspect, far, dist * 0.01)
+            Xform::perspective(FOVY_DEG.to_radians(), aspect, far, dist * NEAR_FRACTION)
         } else {
             let h = dist * (FOVY_DEG * 0.5).to_radians().tan();
-            let r = (dist * 100.0).max(dist + 2.0 * self.scene_extent); // same floor as perspective
+            // Orthographic depth is linear: an arbitrary 100x range turns the ink's float
+            // tolerance into millimetres of leakage when zoomed out. Keep the scene floor.
+            let extent = if self.scene_extent > 0.0 {
+                self.scene_extent
+            } else {
+                dist
+            };
+            let r = (dist + 2.0 * extent).max(1.0e-6);
             Xform::orthographic(-aspect * h, aspect * h, -h, h, r, -r)
         };
 
-        let eye    = Point::new(self.position[0] - anchor[0], self.position[1] - anchor[1], self.position[2] - anchor[2]);
-        let target = Point::new(self.target[0]   - anchor[0], self.target[1]   - anchor[1], self.target[2]   - anchor[2]);
-        let up     = Vector::new(self.up[0], self.up[1], self.up[2]);
-        let view   = Xform::look_at_right_handed(&eye, &target, &up);
+        let eye = Point::new(
+            self.position[0] - anchor[0],
+            self.position[1] - anchor[1],
+            self.position[2] - anchor[2],
+        );
+        let target = Point::new(
+            self.target[0] - anchor[0],
+            self.target[1] - anchor[1],
+            self.target[2] - anchor[2],
+        );
+        let up = Vector::new(self.up[0], self.up[1], self.up[2]);
+        let view = Xform::look_at_right_handed(&eye, &target, &up);
 
         // units
         let s = self.unit.to_meters();
@@ -332,13 +365,13 @@ impl Camera {
         let (min, max) = (bounds.min, bounds.max);
         let s = self.unit.to_meters();
         let mut extent: f64 = 0.0;
-        for c in 0..8u32{
+        for c in 0..8u32 {
             let p = [
-                (if c & 1 == 0 {min[0]} else {max[0]}) as f64 * s - self.target[0],
-                (if c & 2 == 0 {min[1]} else {max[1]}) as f64 * s - self.target[1],
-                (if c & 4 == 0 {min[2]} else {max[2]}) as f64 * s - self.target[2],
+                (if c & 1 == 0 { min[0] } else { max[0] }) as f64 * s - self.target[0],
+                (if c & 2 == 0 { min[1] } else { max[1] }) as f64 * s - self.target[1],
+                (if c & 4 == 0 { min[2] } else { max[2] }) as f64 * s - self.target[2],
             ];
-            extent = extent.max((p[0]*p[0] + p[1]*p[1] + p[2]*p[2]).sqrt());
+            extent = extent.max((p[0] * p[0] + p[1] * p[1] + p[2] * p[2]).sqrt());
         }
         if extent.is_finite() && extent > self.scene_extent {
             self.scene_extent = extent;
@@ -364,4 +397,117 @@ impl Camera {
 /// `p . v` for a raw point and a kernel vector.
 fn dot3(p: &[f64; 3], v: &Vector) -> f64 {
     p[0] * v[0] + p[1] * v[1] + p[2] * v[2]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Where `view_proj` puts a metres point `depth` in front of the eye, on the view axis:
+    /// its reverse-Z depth, over 1 when the near plane has cut it.
+    fn ndc_depth(cam: &Camera, depth: f64) -> f64 {
+        let fwd = cam.orientation.rotate_vector(Vector::y_axis());
+        let (s, o) = (cam.unit.to_meters(), cam.origin());
+        let p = Point::new(
+            cam.position[0] + fwd[0] * depth,
+            cam.position[1] + fwd[1] * depth,
+            cam.position[2] + fwd[2] * depth,
+        );
+        cam.view_proj(1.5).transform_point(&Point::new(
+            p[0] / s - o[0],
+            p[1] / s - o[1],
+            p[2] / s - o[2],
+        ))[2]
+    }
+
+    /// Zoomed against a beam from the far side of the 216 m layout's fit, a point 2 cm ahead of
+    /// the eye still draws and one 1 mm ahead is cut: the cut opens on the surface, not a beam's
+    /// width before it. The same fraction holds at any distance.
+    #[test]
+    fn near_plane_cuts_a_millimetre_ahead_not_a_beam() {
+        let mut cam = Camera::new();
+        cam.scene_extent = 118.0;
+        for dist in [122.0, 10.0, 0.5] {
+            cam.distance = dist;
+            cam.update_position();
+            assert!(
+                ndc_depth(&cam, dist * 2.0 * NEAR_FRACTION) < 1.0,
+                "dist {dist}: cut too early"
+            );
+            assert!(
+                ndc_depth(&cam, dist * 0.5 * NEAR_FRACTION) > 1.0,
+                "dist {dist}: near plane missing"
+            );
+            assert!(
+                ndc_depth(&cam, dist + 2.0 * cam.scene_extent - 1.0e-6) > 0.0,
+                "dist {dist}: far plane short of the scene"
+            );
+        }
+    }
+
+    #[test]
+    fn distant_orthographic_depth_distinguishes_four_millimetres() {
+        let mut cam = Camera::new();
+        cam.perspective = false;
+        cam.scene_extent = 2.0;
+        for distance in [3.3, 13.2, 52.8] {
+            cam.distance = distance;
+            cam.update_position();
+            let front = ndc_depth(&cam, distance) as f32;
+            let rear = ndc_depth(&cam, distance + 0.004) as f32;
+            assert!(
+                front - rear > rear.abs() * 1.9073486e-6,
+                "distance {distance}: hidden ink falls within float tolerance"
+            );
+        }
+    }
+
+    #[test]
+    fn orthographic_depth_contains_the_scene_before_and_behind_the_eye() {
+        let mut cam = Camera::new();
+        cam.perspective = false;
+        for extent in [0.0, 2.0, 118.0] {
+            cam.scene_extent = extent;
+            for distance in [1.0e-6, 0.5, 122.0] {
+                cam.distance = distance;
+                cam.update_position();
+                for depth in [distance - extent, distance + extent] {
+                    let projected = ndc_depth(&cam, depth);
+                    assert!(
+                        (0.0..=1.0).contains(&projected),
+                        "extent {extent}, distance {distance}, depth {depth}: {projected}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// Exponential wheel response composes across event coalescing and never crosses zero.
+/// A single event is bounded to ten detents; non-finite browser deltas leave the view intact.
+fn zoom_distance(distance: f64, amount: f32) -> f64 {
+    if !amount.is_finite() {
+        return distance;
+    }
+    (distance * 0.9_f64.powf(f64::from(amount).clamp(-10.0, 10.0))).clamp(1.0e-6, 1.0e15)
+}
+
+#[cfg(test)]
+mod wheel_tests {
+    use super::*;
+    #[test]
+    fn coalesced_wheel_events_remain_positive_and_preserve_the_cursor_anchor() {
+        let mut camera = Camera::new();
+        let before = camera.distance;
+        camera.zoom_at(16.0, (800.0, 500.0), (1600.0, 1000.0));
+        assert!(camera.distance > before * 0.3);
+        assert!(camera.distance < before);
+        let distance = camera.distance;
+        camera.zoom(f32::NAN);
+        assert_eq!(camera.distance, distance);
+        assert!(
+            (zoom_distance(zoom_distance(before, 1.0), 1.0) - zoom_distance(before, 2.0)).abs()
+                < 1e-10
+        );
+    }
 }

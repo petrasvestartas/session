@@ -14,13 +14,18 @@ pub struct DeviceSetup {
     pub queue: wgpu::Queue,
     pub config: wgpu::SurfaceConfiguration,
     pub device_type: wgpu::DeviceType,
+    pub failure: Arc<std::sync::Mutex<Option<String>>>,
 }
 
 /// Set up the wgpu objects in order. `size` is the canvas in pixels; a zero side is clamped
 /// to 1 so the surface can be configured.
 pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Result<DeviceSetup> {
     // WebGPU only in the browser, never WebGL; Vulkan / Metal / DX12 for the native harness.
-    let backends = if cfg!(target_arch = "wasm32") { wgpu::Backends::BROWSER_WEBGPU } else { wgpu::Backends::PRIMARY };
+    let backends = if cfg!(target_arch = "wasm32") {
+        wgpu::Backends::BROWSER_WEBGPU
+    } else {
+        wgpu::Backends::PRIMARY
+    };
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends,
         flags: Default::default(),
@@ -34,29 +39,43 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         None => None,
     };
 
-    // LowPower = the GPU the compositor runs on. On hybrid laptops the discrete GPU renders
-    // fine but its frames cannot be shared to the compositor and the canvas stays black.
+    // Let the browser choose its presentation-compatible adapter. Forcing LowPower on a
+    // hybrid Linux system can select a different GPU and fail external-image allocation.
     let adapter = match named_adapter(&instance, backends).await {
         Some(named) => named,
-        None => instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::LowPower,
-                compatible_surface: surface.as_ref(),
-                force_fallback_adapter: false,
-            })
-            .await?,
+        None => {
+            instance
+                .request_adapter(&wgpu::RequestAdapterOptions {
+                    power_preference: if cfg!(target_arch = "wasm32") {
+                        wgpu::PowerPreference::None
+                    } else {
+                        wgpu::PowerPreference::LowPower
+                    },
+                    compatible_surface: surface.as_ref(),
+                    force_fallback_adapter: false,
+                })
+                .await?
+        }
     };
     let info = adapter.get_info();
-    log::info!("adapter: {} ({:?}, {:?})", info.name, info.device_type, info.backend);
+    log::info!(
+        "adapter: {} ({:?}, {:?})",
+        info.name,
+        info.device_type,
+        info.backend
+    );
     if info.device_type == wgpu::DeviceType::Cpu {
         log::warn!("software adapter - rendering on the CPU will be slow");
     }
 
-    // The default 128 MB storage-binding limit is smaller than one big cloud table.
-    let hw = adapter.limits();
+    // The measured point-cloud scene grows its shared position table to 157,950,000 bytes.
+    // Request a bounded 256 MiB storage binding where available, not the adapter maximum.
+    // Devices limited to standard 128 MiB still initialize; oversized scenes report a GPU error.
     let limits = wgpu::Limits {
-        max_storage_buffer_binding_size: hw.max_storage_buffer_binding_size,
-        max_buffer_size: hw.max_buffer_size,
+        max_storage_buffer_binding_size: adapter
+            .limits()
+            .max_storage_buffer_binding_size
+            .min(256 * 1024 * 1024),
         ..wgpu::Limits::default()
     };
 
@@ -69,15 +88,36 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
             ..Default::default()
         })
         .await?;
+    let failure = Arc::new(std::sync::Mutex::new(None));
+    #[cfg(target_arch = "wasm32")]
+    {
+        let errors = failure.clone();
+        device.on_uncaptured_error(Arc::new(move |error| remember_gpu_error(&errors, error)));
+        let lost = failure.clone();
+        device.set_device_lost_callback(move |reason, message| {
+            remember_device_loss(&lost, reason, &message)
+        });
+    }
+    #[cfg(not(target_arch = "wasm32"))]
     device.on_uncaptured_error(Arc::new(report_gpu_error));
 
     let (format, present_mode, alpha_mode) = match &surface {
         Some(s) => {
             let caps = s.get_capabilities(&adapter);
-            let f = caps.formats.iter().find(|f| f.is_srgb()).copied().unwrap_or(caps.formats[0]);
+            let mut f = caps.formats[0];
+            for format in &caps.formats {
+                if format.is_srgb() {
+                    f = *format;
+                    break;
+                }
+            }
             (f, caps.present_modes[0], caps.alpha_modes[0])
         }
-        None => (wgpu::TextureFormat::Rgba8UnormSrgb, wgpu::PresentMode::Fifo, wgpu::CompositeAlphaMode::Auto),
+        None => (
+            wgpu::TextureFormat::Rgba8UnormSrgb,
+            wgpu::PresentMode::Fifo,
+            wgpu::CompositeAlphaMode::Auto,
+        ),
     };
     let config = wgpu::SurfaceConfiguration {
         usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -93,12 +133,22 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         s.configure(&device, &config);
     }
 
-    Ok(DeviceSetup { surface, device, queue, config, device_type: info.device_type })
+    Ok(DeviceSetup {
+        surface,
+        device,
+        queue,
+        config,
+        device_type: info.device_type,
+        failure,
+    })
 }
 
 /// `VIEWER_ADAPTER=<substring>` names a native adapter for a benchmark (a hybrid laptop has
 /// two); unset, or no match, falls through to the compositor's GPU. Never on wasm.
-async fn named_adapter(instance: &wgpu::Instance, backends: wgpu::Backends) -> Option<wgpu::Adapter> {
+async fn named_adapter(
+    instance: &wgpu::Instance,
+    backends: wgpu::Backends,
+) -> Option<wgpu::Adapter> {
     #[cfg(target_arch = "wasm32")]
     {
         let _ = (instance, backends);
@@ -107,11 +157,27 @@ async fn named_adapter(instance: &wgpu::Instance, backends: wgpu::Backends) -> O
     #[cfg(not(target_arch = "wasm32"))]
     {
         let want = std::env::var("VIEWER_ADAPTER").ok()?.to_lowercase();
-        instance.enumerate_adapters(backends).await.into_iter().find(|a| a.get_info().name.to_lowercase().contains(&want))
+        let mut selected = None;
+        for adapter in instance.enumerate_adapters(backends).await {
+            if adapter.get_info().name.to_lowercase().contains(&want) {
+                selected = Some(adapter);
+                break;
+            }
+        }
+        selected
     }
 }
 
-/// A failed GPU command must never be mistaken for a valid render.
+/// Remember failure without unwinding through a browser callback.
+#[cfg(target_arch = "wasm32")]
+fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
+    if let Ok(mut state) = failure.lock() {
+        *state = Some(message);
+    }
+}
+
+/// A failed GPU command must never be mistaken for a valid native verification render.
+#[cfg(not(target_arch = "wasm32"))]
 fn report_gpu_error(e: wgpu::Error) {
     panic!("wgpu: {e}");
 }
@@ -124,8 +190,31 @@ fn report_gpu_error(e: wgpu::Error) {
 #[should_panic(expected = "wgpu: Validation Error")]
 fn invalid_gpu_shader_is_fatal() {
     let setup = pollster::block_on(open(None, (1, 1))).expect("open native adapter");
-    let _ = setup.device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("intentional verification failure"),
-        source: wgpu::ShaderSource::Wgsl("@compute @workgroup_size(1) fn main() { let broken: u32 = true; }".into()),
-    });
+    let _ = setup
+        .device
+        .create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("intentional verification failure"),
+            source: wgpu::ShaderSource::Wgsl(
+                "@compute @workgroup_size(1) fn main() { let broken: u32 = true; }".into(),
+            ),
+        });
+}
+
+/// Convert an uncaptured browser validation error to the recoverable failure state.
+#[cfg(target_arch = "wasm32")]
+fn remember_gpu_error(failure: &std::sync::Mutex<Option<String>>, error: wgpu::Error) {
+    remember_failure(failure, format!("WebGPU error: {error}"));
+}
+
+/// Retain the browser's device-loss reason for the next application frame to report.
+#[cfg(target_arch = "wasm32")]
+fn remember_device_loss(
+    failure: &std::sync::Mutex<Option<String>>,
+    reason: wgpu::DeviceLostReason,
+    message: &str,
+) {
+    remember_failure(
+        failure,
+        format!("WebGPU device lost ({reason:?}): {message}"),
+    );
 }

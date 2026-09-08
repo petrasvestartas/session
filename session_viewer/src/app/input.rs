@@ -1,17 +1,18 @@
 //! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
 //! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
 //! everything with none selected), Q/W/E lane toggles, D face lighting, B the back-face flag,
-//! H hides the selection and S shows everything back, [ ] cloud size, Escape clears the
+//! H hides the selection and S shows everything back, T toggles selected names,
+//! [ ] cloud size, Escape clears the
 //! selection. Fingers go to `touch.rs`.
 //! Every handler says whether the frame must be redrawn.
 
+use super::touch::{Act, Touches};
+use crate::State;
+use crate::camera::View;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
 use winit::keyboard::{Key, NamedKey};
-use crate::camera::View;
-use crate::State;
-use super::touch::{Act, Touches};
 
-/// A press that moves less than this (physical px) before release is a click.
+/// A press that moves less than this (CSS px) before release is a click.
 const CLICK_SLOP: f64 = 4.0;
 
 /// What the mouse is doing between events, plus the fingers.
@@ -25,6 +26,7 @@ pub struct Input {
 }
 
 impl Default for Input {
+    /// Start with the same inactive gesture state as the explicit constructor.
     fn default() -> Self {
         Self::new()
     }
@@ -33,14 +35,24 @@ impl Default for Input {
 impl Input {
     /// Nothing held, cursor at the origin.
     pub fn new() -> Self {
-        Self { orbiting: false, panning: false, ctrl: false, last_cursor: (0.0, 0.0), left_down: None, touch: Touches::new() }
+        Self {
+            orbiting: false,
+            panning: false,
+            ctrl: false,
+            last_cursor: (0.0, 0.0),
+            left_down: None,
+            touch: Touches::new(),
+        }
     }
 
     /// One key press (the caller filters repeats). True when the frame must be redrawn.
     pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
         match key {
-            Key::Named(NamedKey::Space) => state.camera.toggle_projection_framed(&state.gpu.bounds, state.aspect()),
-            Key::Named(NamedKey::Escape) => state.select(None),
+            Key::Named(NamedKey::Space) => state
+                .camera
+                .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
+            Key::Named(NamedKey::Escape) => state.escape_selection(),
+            Key::Named(NamedKey::F10) => state.enable_controls(),
             Key::Character("1") => state.camera.set_view(View::Front),
             Key::Character("2") => state.camera.set_view(View::Back),
             Key::Character("3") => state.camera.set_view(View::Left),
@@ -52,10 +64,13 @@ impl Input {
             Key::Character("f" | "F") => state.fit_selected_or_all(),
             Key::Character("q" | "Q") => state.gpu.view.show_points = !state.gpu.view.show_points,
             Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
-            Key::Character("e" | "E") => state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges,
+            Key::Character("e" | "E") => {
+                state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
+            }
             Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
             Key::Character("h" | "H") => state.hide_selected(),
             Key::Character("s" | "S") => state.show_all(),
+            Key::Character("t" | "T") => state.toggle_selected_names(),
             Key::Character("b" | "B") => state.gpu.view.backface = !state.gpu.view.backface,
             Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
             Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
@@ -68,20 +83,32 @@ impl Input {
     pub fn mouse(&mut self, state: &mut State, event: &WindowEvent) -> bool {
         let viewport = state.viewport();
         match event {
-            WindowEvent::MouseInput { state: btn, button: MouseButton::Right, .. } => {
+            WindowEvent::MouseInput {
+                state: btn,
+                button: MouseButton::Right,
+                ..
+            } => {
                 self.orbiting = *btn == ElementState::Pressed;
                 false
             }
-            WindowEvent::MouseInput { state: btn, button: MouseButton::Middle, .. } => {
+            WindowEvent::MouseInput {
+                state: btn,
+                button: MouseButton::Middle,
+                ..
+            } => {
                 self.panning = *btn == ElementState::Pressed;
                 false
             }
-            WindowEvent::MouseInput { state: btn, button: MouseButton::Left, .. } => self.left(state, *btn),
+            WindowEvent::MouseInput {
+                state: btn,
+                button: MouseButton::Left,
+                ..
+            } => self.left(state, *btn),
             WindowEvent::CursorMoved { position, .. } => {
                 let dragging = self.orbiting || self.panning;
                 if dragging {
-                    let dx = (position.x - self.last_cursor.0) as f32;
-                    let dy = (position.y - self.last_cursor.1) as f32;
+                    let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
+                    let dy = ((position.y - self.last_cursor.1) / device_pixel_ratio()) as f32;
                     if self.panning || self.ctrl {
                         state.camera.pan(dx, dy);
                     } else {
@@ -103,16 +130,34 @@ impl Input {
                 self.ctrl = mods.state().control_key();
                 false
             }
-            WindowEvent::Touch(t) => match self.touch.event(&mut state.camera, t, viewport, device_pixel_ratio()) {
-                Act::None => false,
-                Act::Moved => true,
-                Act::Fit => {
-                    state.fit_all();
-                    true
+            WindowEvent::Focused(false) => {
+                self.cancel();
+                true
+            }
+            WindowEvent::Touch(t) => {
+                match self
+                    .touch
+                    .event(&mut state.camera, t, viewport, device_pixel_ratio())
+                {
+                    Act::None => false,
+                    Act::Moved => true,
+                    Act::Fit => {
+                        state.fit_all();
+                        true
+                    }
                 }
-            },
+            }
             _ => false,
         }
+    }
+
+    /// Focus loss or pointer cancellation retires every incomplete mouse/touch gesture.
+    pub fn cancel(&mut self) {
+        self.orbiting = false;
+        self.panning = false;
+        self.ctrl = false;
+        self.left_down = None;
+        self.touch = Touches::new();
     }
 
     /// The left button: a press remembers where; a release within the slop is a click and
@@ -125,22 +170,79 @@ impl Input {
                 false
             }
             ElementState::Released => {
-                let Some(down) = self.left_down.take() else { return false };
-                let moved = (self.last_cursor.0 - down.0).abs().max((self.last_cursor.1 - down.1).abs());
-                if moved > CLICK_SLOP {
+                let Some(down) = self.left_down.take() else {
+                    return false;
+                };
+                let moved = (self.last_cursor.0 - down.0)
+                    .abs()
+                    .max((self.last_cursor.1 - down.1).abs());
+                if moved > CLICK_SLOP * device_pixel_ratio() {
                     return false;
                 }
-                state.request_pick(self.last_cursor.0 as u32, self.last_cursor.1 as u32);
+                state.request_selection(
+                    self.last_cursor.0 as u32,
+                    self.last_cursor.1 as u32,
+                    self.ctrl,
+                );
                 false
             }
         }
     }
 }
 
+/// Winit handles touch cancellation; this owned listener also covers mouse and pen cancellation.
+#[cfg(target_arch = "wasm32")]
+pub struct PointerCancellation {
+    canvas: web_sys::HtmlCanvasElement,
+    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl PointerCancellation {
+    /// Install once for the canvas lifetime; the required callback only forwards a message.
+    pub fn new(
+        canvas: web_sys::HtmlCanvasElement,
+        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
+    ) -> Result<Self, wasm_bindgen::JsValue> {
+        use wasm_bindgen::JsCast;
+        let callback =
+            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |_| {
+                cancel_pointer(&proxy)
+            });
+        canvas
+            .add_event_listener_with_callback("pointercancel", callback.as_ref().unchecked_ref())?;
+        Ok(Self { canvas, callback })
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Drop for PointerCancellation {
+    /// Detach before dropping the wasm callback so JavaScript cannot retain an invalid handle.
+    fn drop(&mut self) {
+        use wasm_bindgen::JsCast;
+        let _ = self.canvas.remove_event_listener_with_callback(
+            "pointercancel",
+            self.callback.as_ref().unchecked_ref(),
+        );
+    }
+}
+
+/// Pointer cancellation goes through the same event-loop owner as every other input change.
+#[cfg(target_arch = "wasm32")]
+fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
+    let _ = proxy.send_event(crate::Msg::CancelPointer);
+}
+
 /// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone.
 #[cfg(target_arch = "wasm32")]
 fn device_pixel_ratio() -> f64 {
-    web_sys::window().map(|w| w.device_pixel_ratio()).filter(|d| *d > 0.0).unwrap_or(1.0)
+    if let Some(window) = web_sys::window() {
+        let ratio = window.device_pixel_ratio();
+        if ratio > 0.0 {
+            return ratio;
+        }
+    }
+    1.0
 }
 
 /// Native windows report logical pixels already.

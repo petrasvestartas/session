@@ -2,15 +2,20 @@
 //! (mesh/BRep vertex markers, the SOLID lane, on a quad template) and
 //! dots (free points, the FLAT lane, three verts per dot). `GlyphRows` is one upload.
 
-use crate::engine::pipelines::{build, ink_module, template_layout, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
-use super::buffers::{bind_group, GpuCtx, GrowBuf, Template, ROWS};
+use super::buffers::{GpuCtx, GrowBuf, ROWS, Template, bind_group};
 use super::frame::Binds;
 use super::upload::drop_rows;
+use crate::engine::pipelines::{
+    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, ink_module, template_layout,
+};
 use wgpu::PrimitiveTopology::TriangleList;
 
 /// The lane's shaders, for the mirror tests.
 #[cfg(test)]
-pub const SHADERS: &[(&str, &str)] = &[("sphere.wgsl", include_str!("../../shaders/sphere.wgsl")), ("glyph.wgsl", include_str!("../../shaders/glyph.wgsl"))];
+pub const SHADERS: &[(&str, &str)] = &[
+    ("sphere.wgsl", include_str!("../../shaders/sphere.wgsl")),
+    ("glyph.wgsl", include_str!("../../shaders/glyph.wgsl")),
+];
 
 /// Vertices per dot: one triangle whose incircle is the disc.
 const DOT_VERTS: u32 = 3;
@@ -81,6 +86,7 @@ struct GlyphPipelines {
     dot: wgpu::RenderPipeline,
     id_sphere: wgpu::RenderPipeline,
     id_dot: wgpu::RenderPipeline,
+    source_dot: wgpu::RenderPipeline,
 }
 
 /// The glyph lane on the GPU: two tables, the marker quad, the shaders, the pipelines.
@@ -93,18 +99,40 @@ pub struct GlyphLane {
 }
 
 impl GlyphLane {
+    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
+    pub fn allocated_bytes(&self) -> u64 {
+        self.spheres.buf.buf.size()
+            + self.dots.buf.buf.size()
+            + self.template.vbo.size()
+            + self.template.ibo.size()
+    }
+
     /// Two one-row tables, the marker quad, both shaders and the pipelines.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
         let (q_v, q_i) = unit_quad();
         let template = Template::new(ctx, "quad.template", &q_v, &q_i);
         let shaders = GlyphShaders {
-            sphere: ink_module(&ctx.device, "sphere.shader", include_str!("../../shaders/sphere.wgsl")),
-            dot: ink_module(&ctx.device, "glyph.shader", include_str!("../../shaders/glyph.wgsl")),
+            sphere: ink_module(
+                &ctx.device,
+                "sphere.shader",
+                include_str!("../../shaders/sphere.wgsl"),
+            ),
+            dot: ink_module(
+                &ctx.device,
+                "glyph.shader",
+                include_str!("../../shaders/glyph.wgsl"),
+            ),
         };
         let gpu = build_pipelines(ctx, l, &shaders, target);
         let spheres = GlyphTable::new(ctx, l, "spheres");
         let dots = GlyphTable::new(ctx, l, "dots");
-        Self { spheres, dots, template, shaders, gpu }
+        Self {
+            spheres,
+            dots,
+            template,
+            shaders,
+            gpu,
+        }
     }
 
     /// Rebuild the pipelines for a new sample count.
@@ -142,8 +170,18 @@ impl GlyphLane {
         self.draw_dot_table(pass, b, &self.gpu.id_dot)
     }
 
+    /// Opaque source candidates accumulate physical depth across bounded query pages.
+    pub fn draw_source_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        self.draw_dot_table(pass, b, &self.gpu.source_dot)
+    }
+
     /// The marker table on the quad template through `pipeline`; 0 draws when empty.
-    fn draw_markers(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds, pipeline: &wgpu::RenderPipeline) -> u32 {
+    fn draw_markers(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        b: &Binds,
+        pipeline: &wgpu::RenderPipeline,
+    ) -> u32 {
         if self.spheres.buf.is_empty() {
             return 0;
         }
@@ -156,7 +194,12 @@ impl GlyphLane {
     }
 
     /// The dot table through `pipeline`; 0 draws when empty.
-    fn draw_dot_table(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds, pipeline: &wgpu::RenderPipeline) -> u32 {
+    fn draw_dot_table(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        b: &Binds,
+        pipeline: &wgpu::RenderPipeline,
+    ) -> u32 {
         if self.dots.buf.is_empty() {
             return 0;
         }
@@ -196,21 +239,55 @@ impl GlyphLane {
 fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) -> GlyphPipelines {
     let groups = [&l.mvp, &l.line, &l.ink_instance, &l.ink_rows];
     let template = [template_layout()];
-    let marker = PipelineDesc::new(&s.sphere, &groups, &template, TriangleList).scene_samples(target.samples).depth(DepthMode::Always);
-    let disc = PipelineDesc::new(&s.dot, &groups, &[], TriangleList).scene_samples(target.samples).depth(DepthMode::Always);
+    let marker = PipelineDesc::new(&s.sphere, &groups, &template, TriangleList)
+        .scene_samples(target.samples)
+        .depth(DepthMode::Always);
+    let disc = PipelineDesc::new(&s.dot, &groups, &[], TriangleList)
+        .scene_samples(target.samples)
+        .depth(DepthMode::Always);
     let dev = &ctx.device;
 
     GlyphPipelines {
-        sphere: build(dev, target, &marker.with("sphere", "fs_main").color(ColorWrite::Blended)),
-        dot: build(dev, target, &disc.with("glyph", "fs_main").color(ColorWrite::Blended)),
-        id_sphere: build(dev, Target::ID, &marker.with("sphere.id", "fs_id")),
-        id_dot: build(dev, Target::ID, &disc.with("glyph.id", "fs_id")),
+        sphere: build(
+            dev,
+            target,
+            &marker.with("sphere", "fs_main").color(ColorWrite::Blended),
+        ),
+        dot: build(
+            dev,
+            target,
+            &disc.with("glyph", "fs_main").color(ColorWrite::Blended),
+        ),
+        id_sphere: build(
+            dev,
+            Target::ID,
+            &marker.with("sphere.id", "fs_id").scene_samples(1),
+        ),
+        id_dot: build(
+            dev,
+            Target::ID,
+            &disc.with("glyph.id", "fs_id").scene_samples(1),
+        ),
+        source_dot: build(
+            dev,
+            Target::ID,
+            &disc
+                .with("glyph.source", "fs_source_id")
+                .vertex("vs_source")
+                .scene_samples(1)
+                .depth(DepthMode::OpaqueEqual),
+        ),
     }
 }
 
 /// Camera-facing quad template for the markers; the fragment trims it to a circle.
 fn unit_quad() -> (Vec<[f32; 3]>, Vec<u32>) {
-    let v = vec![[-1.0, -1.0, 0.0], [1.0, -1.0, 0.0], [1.0, 1.0, 0.0], [-1.0, 1.0, 0.0]];
+    let v = vec![
+        [-1.0, -1.0, 0.0],
+        [1.0, -1.0, 0.0],
+        [1.0, 1.0, 0.0],
+        [-1.0, 1.0, 0.0],
+    ];
     let idx = vec![0u32, 1, 2, 0, 2, 3];
     (v, idx)
 }
@@ -223,9 +300,20 @@ mod tests {
     /// sphere.wgsl and glyph.wgsl read the same 48 B glyph row.
     #[test]
     fn glyph_point_mirror() {
-        let rust = ["center", "radius", "color", "instance_id", "facing", "facing_ext"];
+        let rust = [
+            "center",
+            "radius",
+            "color",
+            "instance_id",
+            "facing",
+            "facing_ext",
+        ];
         for (name, src) in SHADERS {
-            assert_eq!(wgsl_fields(src, "GlyphPoint"), rust, "{name}: GlyphPoint fields");
+            assert_eq!(
+                wgsl_fields(src, "GlyphPoint"),
+                rust,
+                "{name}: GlyphPoint fields"
+            );
         }
         assert_eq!(std::mem::size_of::<GlyphPoint>(), 48);
         assert_eq!(std::mem::offset_of!(GlyphPoint, facing_ext), 40);

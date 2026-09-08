@@ -3,14 +3,14 @@
 //! into the scene pass with EDL and `frag_depth`. A record per visible cloud (or octree node)
 //! folds camera x placement, tint and radius; the point pass is skipped while nothing changed.
 
-use crate::engine::pipelines::{build, module, DepthMode, Layouts, PipelineDesc, Target};
-use crate::math::{mat_mul_f32, mat_scale};
-use super::buffers::{bind_group, zeroed_buffer, GpuCtx};
-use super::cloud::{Cloud, LodNode, PointBufs, NO_NORMALS};
+use super::buffers::{GpuCtx, bind_group, zeroed_buffer};
+use super::cloud::{Cloud, LodNode, NO_NORMALS, PointBufs};
 use super::instance::Instance;
-use super::lod::{radius_factor, LodWalk, Projection};
+use super::lod::{LodWalk, Projection, radius_factor};
 use super::objects::InstanceTable;
-use super::targets::{texture_view, TextureSpec};
+use super::targets::{TextureSpec, texture_view};
+use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
+use crate::math::{mat_mul_f32, mat_scale};
 use wgpu::PrimitiveTopology::TriangleList;
 
 /// Records the lane can hold in one frame: one per cloud, or one per selected octree node.
@@ -88,17 +88,46 @@ impl SplatTargets {
     /// Depth (nearest point per pixel, 0 = empty) and its colour, both bindable.
     fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
-        let depth = texture_view(ctx, "splat.depth", &TextureSpec { size, format: wgpu::TextureFormat::Depth32Float, samples: 1, usage });
-        let color = texture_view(ctx, "splat.color", &TextureSpec { size, format: COLOR_FORMAT, samples: 1, usage });
+        let depth = texture_view(
+            ctx,
+            "splat.depth",
+            &TextureSpec {
+                size,
+                format: wgpu::TextureFormat::Depth32Float,
+                samples: 1,
+                usage,
+            },
+        );
+        let color = texture_view(
+            ctx,
+            "splat.color",
+            &TextureSpec {
+                size,
+                format: COLOR_FORMAT,
+                samples: 1,
+                usage,
+            },
+        );
         let resolve_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("splat.resolve.group"),
             layout: &l.resolve,
             entries: &[
-                wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(&depth) },
-                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(&color) },
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&depth),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&color),
+                },
             ],
         });
-        Self { depth, color, size, resolve_group }
+        Self {
+            depth,
+            color,
+            size,
+            resolve_group,
+        }
     }
 }
 
@@ -111,6 +140,8 @@ struct PointVariant {
 
 /// The point lane's renderer.
 pub struct Splat {
+    control_parent: Option<u32>,
+    selected_point: Option<u32>,
     records: Vec<SplatRecord>,
     walk: LodWalk,
     record_buf: wgpu::Buffer,
@@ -125,18 +156,63 @@ pub struct Splat {
 }
 
 impl Splat {
+    /// Record-buffer capacity and point-pass texture estimate, excluding driver overhead.
+    pub fn allocated_bytes(&self) -> (u64, u64) {
+        let pixels = match &self.targets {
+            Some(target) => u64::from(target.size.0) * u64::from(target.size.1),
+            None => 0,
+        };
+        (self.record_buf.size(), pixels * 8)
+    }
+
     /// The record buffer, the points group over the lane's placeholder buffers, and the
     /// three pipelines; the targets wait for the first cloud.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target, bufs: PointBufs) -> Self {
-        let record_buf = zeroed_buffer(&ctx.device, "splat.records", HEADER_BYTES + MAX_RECORDS as u64 * 160, wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST);
+        let record_buf = zeroed_buffer(
+            &ctx.device,
+            "splat.records",
+            HEADER_BYTES + MAX_RECORDS as u64 * 160,
+            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        );
         let points_group = points_group(ctx, l, &record_buf, &bufs);
-        let point_shader = module(&ctx.device, "splat.shader", include_str!("../../shaders/splat.wgsl"));
-        let resolve_shader = module(&ctx.device, "splat.resolve.shader", include_str!("../../shaders/splat_resolve.wgsl"));
-        let point_pipeline = build_point(ctx, l, &point_shader, &PointVariant { target: Target { format: COLOR_FORMAT, samples: 1 }, label: "splat.points", fs: "fs_point" });
-        let id_pipeline = build_point(ctx, l, &point_shader, &PointVariant { target: Target::ID, label: "splat.points.id", fs: "fs_point_id" });
+        let point_shader = module(
+            &ctx.device,
+            "splat.shader",
+            include_str!("../../shaders/splat.wgsl"),
+        );
+        let resolve_shader = module(
+            &ctx.device,
+            "splat.resolve.shader",
+            include_str!("../../shaders/splat_resolve.wgsl"),
+        );
+        let point_pipeline = build_point(
+            ctx,
+            l,
+            &point_shader,
+            &PointVariant {
+                target: Target {
+                    format: COLOR_FORMAT,
+                    samples: 1,
+                },
+                label: "splat.points",
+                fs: "fs_point",
+            },
+        );
+        let id_pipeline = build_point(
+            ctx,
+            l,
+            &point_shader,
+            &PointVariant {
+                target: Target::ID,
+                label: "splat.points.id",
+                fs: "fs_point_id",
+            },
+        );
         let resolve_pipeline = build_resolve(ctx, l, &resolve_shader, target);
 
         Self {
+            control_parent: None,
+            selected_point: None,
             records: Vec::new(),
             walk: LodWalk::default(),
             record_buf,
@@ -149,6 +225,19 @@ impl Splat {
             resolve_pipeline,
             id_pipeline,
         }
+    }
+
+    /// Reuse original point buffers and disable LOD only for the active control parent.
+    pub fn set_controls(&mut self, parent: Option<u32>) {
+        self.control_parent = parent;
+        self.selected_point = None;
+        self.invalidate();
+    }
+
+    /// Highlight a single global source-point row without duplicating the cloud.
+    pub fn set_point(&mut self, point: Option<u32>) {
+        self.selected_point = point;
+        self.invalidate();
     }
 
     /// Rebuild the resolve pipeline for a new scene sample count (the point pass stays 1x).
@@ -187,12 +276,24 @@ impl Splat {
 
     /// The point pass: skipped while the key matches, else records rebuilt, written and drawn.
     /// `cloud_group` is the cloud uniform (group 0).
-    pub fn prelude(&mut self, ctx: &GpuCtx, l: &Layouts, encoder: &mut wgpu::CommandEncoder, cx: &RecordCx, cloud_group: &wgpu::BindGroup) {
+    pub fn prelude(
+        &mut self,
+        ctx: &GpuCtx,
+        l: &Layouts,
+        encoder: &mut wgpu::CommandEncoder,
+        cx: &RecordCx,
+        cloud_group: &wgpu::BindGroup,
+    ) {
         let mut point_count = 0u32;
         for c in cx.clouds {
             point_count += c.resident;
         }
-        let key = Key { mvp: *cx.mvp, cloud_size: cx.cloud_size, lod_px: cx.lod_px, point_count };
+        let key = Key {
+            mvp: *cx.mvp,
+            cloud_size: cx.cloud_size,
+            lod_px: cx.lod_px,
+            point_count,
+        };
         if self.key.as_ref() == Some(&key) {
             return;
         }
@@ -201,13 +302,18 @@ impl Splat {
         if self.total == 0 {
             return;
         }
-        if self.targets.as_ref().map(|t| t.size) != Some(cx.size) {
+        if !matches!(&self.targets, Some(targets) if targets.size == cx.size) {
             self.targets = Some(SplatTargets::new(ctx, l, cx.size));
         }
 
         let header = [self.records.len() as u32, self.total, 0, 0];
-        ctx.queue.write_buffer(&self.record_buf, 0, bytemuck::bytes_of(&header));
-        ctx.queue.write_buffer(&self.record_buf, HEADER_BYTES, bytemuck::cast_slice(&self.records));
+        ctx.queue
+            .write_buffer(&self.record_buf, 0, bytemuck::bytes_of(&header));
+        ctx.queue.write_buffer(
+            &self.record_buf,
+            HEADER_BYTES,
+            bytemuck::cast_slice(&self.records),
+        );
 
         let Some(targets) = &self.targets else { return };
         let mut pass = begin_point_pass(encoder, targets);
@@ -218,8 +324,14 @@ impl Splat {
     }
 
     /// The fullscreen resolve inside the scene pass: 1 draw, or 0 with no points.
-    pub fn draw_resolve(&self, pass: &mut wgpu::RenderPass<'_>, cloud_group: &wgpu::BindGroup) -> u32 {
-        let Some(targets) = &self.targets else { return 0 };
+    pub fn draw_resolve(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        cloud_group: &wgpu::BindGroup,
+    ) -> u32 {
+        let Some(targets) = &self.targets else {
+            return 0;
+        };
         if self.total == 0 {
             return 0;
         }
@@ -246,22 +358,49 @@ impl Splat {
     /// a range that straddles two chunks of a streamed cloud becomes two records.
     fn build_records(&mut self, cx: &RecordCx) {
         self.records.clear();
-        let p = Projection { eye: cx.eye, ortho_h: cx.ortho_h, height_px: cx.size.1, lod_px: cx.lod_px, nodes: cx.nodes };
+        let mut p = Projection {
+            eye: cx.eye,
+            ortho_h: cx.ortho_h,
+            height_px: cx.size.1,
+            lod_px: cx.lod_px,
+            nodes: cx.nodes,
+        };
         let mut cum = 0u32;
         for c in cx.clouds {
-            let Some(row) = cx.objects.row(c.instance) else { continue };
+            let Some(row) = cx.objects.row(c.instance) else {
+                continue;
+            };
             if row.flags & Instance::FLAG_HIDDEN != 0 {
                 continue;
             }
-            let Some(model) = cx.objects.anchored_model(c.instance) else { continue };
+            let Some(model) = cx.objects.anchored_model(c.instance) else {
+                continue;
+            };
             let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * cx.cloud_size;
 
+            p.lod_px = if self.control_parent == Some(c.instance) {
+                0.0
+            } else {
+                cx.lod_px
+            };
             self.walk.select(&p, c, &model);
             let m = mat_mul_f32(cx.mvp, &model);
-            let rot = [model[0], model[1], model[2], 0.0, model[4], model[5], model[6], 0.0, model[8], model[9], model[10], 0.0];
+            let rot = [
+                model[0], model[1], model[2], 0.0, model[4], model[5], model[6], 0.0, model[8],
+                model[9], model[10], 0.0,
+            ];
             let scale = mat_scale(&model);
             let selected = row.flags & Instance::FLAG_SELECTED != 0;
-            let tint = if selected { [1.0, 1.0, 0.0, (px * 0.5).max(0.5)] } else { [row.color[0], row.color[1], row.color[2], (px * 0.5).max(0.5)] };
+            let tint = if selected {
+                [1.0, 1.0, 0.0, (px * 0.5).max(0.5)]
+            } else {
+                [
+                    row.color[0],
+                    row.color[1],
+                    row.color[2],
+                    (px * 0.5).max(0.5),
+                ]
+            };
 
             for r in &self.walk.ranges {
                 let k = radius_factor(r, px, scale, cx.ortho_h);
@@ -271,7 +410,11 @@ impl Splat {
                     if a >= b || self.records.len() >= MAX_RECORDS {
                         continue;
                     }
-                    let nrm_first = if c.nrm_first == NO_NORMALS { NO_NORMALS } else { c.nrm_first + a };
+                    let nrm_first = if c.nrm_first == NO_NORMALS {
+                        NO_NORMALS
+                    } else {
+                        c.nrm_first + a
+                    };
                     self.records.push(SplatRecord {
                         mvp_model: m,
                         tint,
@@ -283,7 +426,10 @@ impl Splat {
                         nrm_first,
                         instance: c.instance,
                         flags: row.flags,
-                        _pad: 0,
+                        _pad: match self.selected_point {
+                            Some(point) => point + 1,
+                            None => 0,
+                        },
                     });
                     cum += b - a;
                 }
@@ -295,18 +441,27 @@ impl Splat {
 
 /// The point pass over the lane's own targets: colour cleared transparent, depth to 0.
 /// Group 0 (the cloud uniform) is set by the caller.
-fn begin_point_pass<'a>(encoder: &'a mut wgpu::CommandEncoder, t: &'a SplatTargets) -> wgpu::RenderPass<'a> {
+fn begin_point_pass<'a>(
+    encoder: &'a mut wgpu::CommandEncoder,
+    t: &'a SplatTargets,
+) -> wgpu::RenderPass<'a> {
     encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: Some("splat.points"),
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
             view: &t.color,
             resolve_target: None,
             depth_slice: None,
-            ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store },
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                store: wgpu::StoreOp::Store,
+            },
         })],
         depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
             view: &t.depth,
-            depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(0.0), store: wgpu::StoreOp::Store }),
+            depth_ops: Some(wgpu::Operations {
+                load: wgpu::LoadOp::Clear(0.0),
+                store: wgpu::StoreOp::Store,
+            }),
             stencil_ops: None,
         }),
         timestamp_writes: None,
@@ -316,21 +471,51 @@ fn begin_point_pass<'a>(encoder: &'a mut wgpu::CommandEncoder, t: &'a SplatTarge
 }
 
 /// Group 1 of the point pass: the records, then positions, colours, normals.
-fn points_group(ctx: &GpuCtx, l: &Layouts, records: &wgpu::Buffer, bufs: &PointBufs) -> wgpu::BindGroup {
-    bind_group(ctx, &l.points, "splat.points.group", &[records, bufs.pos, bufs.col, bufs.nrm])
+fn points_group(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    records: &wgpu::Buffer,
+    bufs: &PointBufs,
+) -> wgpu::BindGroup {
+    bind_group(
+        ctx,
+        &l.points,
+        "splat.points.group",
+        &[records, bufs.pos, bufs.col, bufs.nrm],
+    )
 }
 
 /// The point pass pipeline: quads, depth written (nearest wins), no blending.
-fn build_point(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, v: &PointVariant) -> wgpu::RenderPipeline {
+fn build_point(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    shader: &wgpu::ShaderModule,
+    v: &PointVariant,
+) -> wgpu::RenderPipeline {
     let groups = [&l.line, &l.points];
-    let desc = PipelineDesc::new(shader, &groups, &[], TriangleList).with(v.label, v.fs).vertex("vs_point");
+    let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
+        .with(v.label, v.fs)
+        .vertex("vs_point");
+    let desc = if v.target == Target::ID {
+        desc.physical()
+    } else {
+        desc
+    };
     build(&ctx.device, v.target, &desc)
 }
 
 /// The resolve pipeline: a fullscreen triangle writing colour and `frag_depth` under the
 /// scene's depth test.
-fn build_resolve(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, target: Target) -> wgpu::RenderPipeline {
+fn build_resolve(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    shader: &wgpu::ShaderModule,
+    target: Target,
+) -> wgpu::RenderPipeline {
     let groups = [&l.line, &l.resolve];
-    let desc = PipelineDesc::new(shader, &groups, &[], TriangleList).with("splat.resolve", "fs_main").depth(DepthMode::Opaque);
+    let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
+        .with("splat.resolve", "fs_main")
+        .physical()
+        .depth(DepthMode::Opaque);
     build(&ctx.device, target, &desc)
 }

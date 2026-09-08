@@ -1,21 +1,16 @@
-
 dist/
+__pycache__/
 
-# NOT `assets/` wholesale. Two things under it are BUILD INPUTS that must ship: assets/fonts/,
-# which the viewer links, and assets/view_local.toml, the one scene a `trunk serve` shows - both
-# are named by index.html, so a checkout without them cannot `trunk build` at all. Only the scene
-# DATA below is untracked.
-
-# Scene data lives in the R2 bucket, never in the repo. `DATA_BASE` in src/app/persistence.rs
-# names the host and every manifest and .pb resolves against it, so nothing here has to ship.
-# The files stay on disk as an UNTRACKED cache: docs/_gate.sh renders them locally to compare
-# pixels, and a gate that cannot open a scene cannot catch a rendering regression.
-# assets/fonts/ is NOT here - those are build inputs the viewer links, not scene data.
-# assets/pb/* not assets/pb/: git does not descend into an excluded DIRECTORY, so a negation
-# inside one is dead. index.html declares `copy-dir href="assets/pb"`, which means a checkout
-# without that directory cannot `trunk build` AT ALL - .gitkeep is what makes a fresh clone build.
+# Keep runtime inputs tracked: assets/view_local.yaml, assets/text/ fonts and license,
+# text-quality.html, and the explicit regression PB below. Local working datasets stay
+# on disk as an ignored cache; named remote scenes resolve through app/route.rs.
+# Ignore contents, not the directory, so the required .gitkeep and fixture can be included.
 assets/pb/*
 !assets/pb/.gitkeep
+!assets/pb/view_mixed_teapot.pb
 assets/scenes/
 assets/pdf/
 assets/lion_src/
+
+# The browser application and tutorials share a reproducible dependency resolution.
+!Cargo.lock

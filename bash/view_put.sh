@@ -32,13 +32,14 @@ case "$src" in *.pb) ;; *) echo "ERROR: $src is not a .pb" >&2; exit 1 ;; esac
 # left alone rather than becoming view_view_x.
 name="${2:-$(basename "$src" .pb)}"
 name="${name#view_}"
+[[ "$name" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "ERROR: scene name may contain letters, digits, underscore and hyphen" >&2; exit 1; }
 stem="view_${name}"
 key="pb/${stem}.pb"
 scene="scenes/${stem}.yaml"
 
 r2_require_credentials || exit 1
 
-existing=$(curl -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
+existing=$(curl --connect-timeout 10 --max-time 30 --retry 2 -sSI "${R2_PUBLIC}/${key}" | tr -d '\r' | awk 'tolower($1)=="content-length:" {print $2}')
 [ -n "$existing" ] && echo "  replacing ${key} (was ${existing} bytes)"
 
 r2_upload "$src" "$key" || exit 1

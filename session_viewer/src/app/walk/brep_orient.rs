@@ -4,20 +4,28 @@
 //! uses are flipped inks exactly as one whose uses are not - the orbit_flipped check of the
 //! ink suite - and a solid stored inside out is culled as if it were not.
 
-use session_rust::{BRep, Mesh};
 use super::brep_edges::EdgeChain;
+use session_rust::{BRep, Mesh};
 
 /// Whether a face of `fm` walks the directed edge `s -> n`: Some(true) when one does and none
 /// walks it back, Some(false) for the reverse, None when both or neither (an interior seam,
 /// or two keys that are not neighbours).
 fn walks(fm: &Mesh, s: usize, n: usize) -> Option<bool> {
-    let fwd = fm.halfedge.get(&s).and_then(|m| m.get(&n)).map(|f| f.is_some());
-    let back = fm.halfedge.get(&n).and_then(|m| m.get(&s)).map(|f| f.is_some());
-    match (fwd.unwrap_or(false), back.unwrap_or(false)) {
+    let fwd = occupied_halfedge(fm, s, n);
+    let back = occupied_halfedge(fm, n, s);
+    match (fwd, back) {
         (true, false) => Some(true),
         (false, true) => Some(false),
         _ => None,
     }
+}
+
+/// Whether the directed halfedge exists and belongs to a face.
+fn occupied_halfedge(fm: &Mesh, from: usize, to: usize) -> bool {
+    let Some(neighbours) = fm.halfedge.get(&from) else {
+        return false;
+    };
+    matches!(neighbours.get(&to), Some(Some(_)))
 }
 
 /// The position of vertex `k` of `fm`.
@@ -39,11 +47,14 @@ fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
             continue;
         }
         let c = (d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2]) / l;
-        if best.is_none_or(|(bc, bw)| c > bc || (c == bc && w < bw)) {
+        if match best {
+            Some((bc, bw)) => c > bc || (c == bc && w < bw),
+            None => true,
+        } {
             best = Some((c, w));
         }
     }
-    best.map(|(_, w)| w)
+    Some(best?.1)
 }
 
 /// The vertex of `fm` nearest `p`: where the other face samples the shared edge's start. Two
@@ -55,11 +66,14 @@ fn vertex_at(fm: &Mesh, p: [f64; 3]) -> Option<usize> {
     let mut best: Option<(f64, usize)> = None;
     for (&k, v) in fm.vertex.iter() {
         let d = (v.x - p[0]).powi(2) + (v.y - p[1]).powi(2) + (v.z - p[2]).powi(2);
-        if best.is_none_or(|(bd, bk)| d < bd || (d == bd && k < bk)) {
+        if match best {
+            Some((bd, bk)) => d < bd || (d == bd && k < bk),
+            None => true,
+        } {
             best = Some((d, k));
         }
     }
-    best.map(|(_, k)| k)
+    Some(best?.1)
 }
 
 /// Do the owner and the other face walk the chain's first segment in opposite directions?
@@ -91,7 +105,8 @@ fn six_volume(fm: &Mesh) -> f64 {
             continue;
         }
         let (a, b, c) = (at(fm, verts[0]), at(fm, verts[1]), at(fm, verts[2]));
-        v += a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0]);
+        v += a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0])
+            + a[2] * (b[0] * c[1] - b[1] * c[0]);
     }
     v
 }
@@ -100,8 +115,12 @@ fn six_volume(fm: &Mesh) -> f64 {
 /// A breadth-first walk over the faces through their shared edges makes neighbours agree;
 /// each connected group is then turned outward by the sign of the volume it encloses. Both
 /// steps read the tessellation, never `BRepOrientation`.
-pub fn face_signs(_b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f64> {
+pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f64> {
     let nf = fms.len();
+    // An open shell has no enclosed-volume orientation; retain its authored face uses.
+    if !b.is_solid() {
+        return vec![1.0; nf];
+    }
     let mut adjacent: Vec<Vec<(usize, bool)>> = vec![Vec::new(); nf];
     for c in chains.iter().flatten() {
         if let (Some(other), Some(opp)) = (c.other, opposed(fms, c)) {
@@ -128,7 +147,10 @@ pub fn face_signs(_b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<
             }
         }
         // Volume as the group's own winding sweeps it: negative means every face is inside out.
-        let volume: f64 = group.iter().map(|&f| sign[f] * six_volume(&fms[f])).sum();
+        let mut volume = 0.0;
+        for &face in &group {
+            volume += sign[face] * six_volume(&fms[face]);
+        }
         if volume < 0.0 {
             for &f in &group {
                 sign[f] = -sign[f];
@@ -141,9 +163,9 @@ pub fn face_signs(_b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use session_rust::brep::brep_reverse;
     use crate::app::walk::brep::QUALITY;
     use crate::app::walk::brep_edges::edge_chains;
+    use session_rust::brep::brep_reverse;
 
     /// The signs of `b`'s faces at the viewer's quality.
     fn signs_of(b: &BRep) -> Vec<f64> {
@@ -163,9 +185,21 @@ mod tests {
     /// A solid the kernel builds outward keeps every sign at +1.
     #[test]
     fn kernel_solids_keep_their_normals() {
-        for b in [BRep::create_cylinder(150.0, 400.0), BRep::create_cone(150.0, 400.0), BRep::create_box(400.0, 300.0, 250.0), BRep::create_block_with_hole(500.0, 300.0, 200.0, 80.0)] {
+        for b in [
+            BRep::create_cylinder(150.0, 400.0),
+            BRep::create_cone(150.0, 400.0),
+            BRep::create_box(400.0, 300.0, 250.0),
+            BRep::create_block_with_hole(500.0, 300.0, 200.0, 80.0),
+        ] {
             assert!(signs_of(&b).iter().all(|&s| s == 1.0), "{}", b.name);
         }
+    }
+
+    #[test]
+    fn open_shell_preserves_authored_orientation() {
+        let mut b = flipped(BRep::create_cylinder(150.0, 400.0));
+        b.m_solids.clear();
+        assert!(signs_of(&b).iter().all(|&sign| sign == 1.0));
     }
 
     /// Reversing two of the cylinder's three face uses negates those two meshes' normals in
@@ -175,7 +209,10 @@ mod tests {
     fn flipped_uses_change_no_outward_normal() {
         let ok = BRep::create_cylinder(150.0, 400.0);
         let fl = flipped(BRep::create_cylinder(150.0, 400.0));
-        let (fms_ok, fms_fl) = (ok.face_meshes_q(Some(QUALITY)), fl.face_meshes_q(Some(QUALITY)));
+        let (fms_ok, fms_fl) = (
+            ok.face_meshes_q(Some(QUALITY)),
+            fl.face_meshes_q(Some(QUALITY)),
+        );
         let signs = face_signs(&fl, &fms_fl, &edge_chains(&fl, &fms_fl));
         assert_eq!(signs[0], -1.0);
         assert_eq!(signs[1], -1.0);
@@ -184,7 +221,14 @@ mod tests {
             for (key, vd) in fms_ok[fi].vertex.iter() {
                 let n_ok = vd.normal().unwrap();
                 let n_fl = fms_fl[fi].vertex[key].normal().unwrap();
-                assert_eq!([n_fl[0] * signs[fi], n_fl[1] * signs[fi], n_fl[2] * signs[fi]], n_ok);
+                assert_eq!(
+                    [
+                        n_fl[0] * signs[fi],
+                        n_fl[1] * signs[fi],
+                        n_fl[2] * signs[fi]
+                    ],
+                    n_ok
+                );
             }
         }
     }
@@ -193,22 +237,41 @@ mod tests {
     /// facing words - what the orbit check's mask diff measures at the pixel level.
     #[test]
     fn flipped_uses_change_no_pipe() {
+        use crate::app::walk::WalkCx;
         use crate::app::walk::brep::walk_brep;
         use crate::app::walk::mesh_ink::Ink;
-        use crate::app::walk::WalkCx;
         use crate::engine::gpu::arena::ArenaRows;
         use crate::engine::gpu::glyphs::GlyphRows;
         use crate::engine::gpu::segments::SegRows;
         let mut pipes = Vec::new();
-        for b in [BRep::create_cylinder(150.0, 400.0), flipped(BRep::create_cylinder(150.0, 400.0))] {
+        for b in [
+            BRep::create_cylinder(150.0, 400.0),
+            flipped(BRep::create_cylinder(150.0, 400.0)),
+        ] {
             let mut arena = ArenaRows::default();
             let mut seg = SegRows::default();
             let mut glyph = GlyphRows::default();
-            let mut ink = Ink { seg: &mut seg, glyph: &mut glyph };
-            walk_brep(&mut arena, &mut ink, &b, &WalkCx { vert_base: 0, cloud_px: 0.0, row: 0 });
-            pipes.push(seg.pipes.iter().map(|p| (p.p0, p.p1, p.facing)).collect::<Vec<_>>());
+            let mut ink = Ink {
+                seg: &mut seg,
+                glyph: &mut glyph,
+            };
+            walk_brep(
+                &mut arena,
+                &mut ink,
+                &b,
+                &WalkCx {
+                    vert_base: 0,
+                    cloud_px: 0.0,
+                    row: 0,
+                },
+            );
+            pipes.push(
+                seg.pipes
+                    .iter()
+                    .map(|p| (p.p0, p.p1, p.facing))
+                    .collect::<Vec<_>>(),
+            );
         }
         assert_eq!(pipes[0], pipes[1]);
     }
 }
-

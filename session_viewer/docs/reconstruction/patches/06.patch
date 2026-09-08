@@ -1,0 +1,2566 @@
+diff --git a/session_cpp/src/primitives_test.cpp b/session_cpp/src/primitives_test.cpp
+index 1870fdb54ff02a86b94121e62210b63d2bd17e09..fb0d741bde584c6cd8d59df2db6dcebec362674b
+--- a/session_cpp/src/primitives_test.cpp
++++ b/session_cpp/src/primitives_test.cpp
+@@ -605,8 +605,27 @@
+     MINI_CHECK(s_wavy.is_valid());
+     MINI_CHECK(s_wavy.degree(0) == 1 && s_wavy.degree(1) == 1);
+     MINI_CHECK(s_wavy.cv_count(0) == 4 && s_wavy.cv_count(1) == 2);
+-    MINI_CHECK(m_wavy.number_of_vertices() == 8);
++    // Each planar panel owns its crease normals: eight positions, twelve shading vertices.
++    MINI_CHECK(m_wavy.number_of_vertices() == 12);
+     MINI_CHECK(m_wavy.number_of_faces() == 6);
++    for (int i = 0; i < 4; ++i) {
++        for (int j = 0; j < 2; ++j) {
++            int copies = 0;
++            for (const auto& [key, vertex] : m_wavy.vertex) {
++                if (TOLERANCE.is_point_close(vertex.position(), s_wavy.get_cv(i, j))) ++copies;
++            }
++            MINI_CHECK(copies == ((i == 0 || i == 3) ? 1 : 2));
++        }
++    }
++    for (const auto& [key, corners] : m_wavy.face) {
++        const auto normal = m_wavy.face_normal(key).value();
++        for (const auto corner : corners) {
++            const auto shading = m_wavy.vertex.at(corner).normal().value();
++            for (int axis = 0; axis < 3; ++axis) {
++                MINI_CHECK(std::abs(shading[axis] - normal[axis]) < 1e-9);
++            }
++        }
++    }
+     MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(0,0), Point(40.0, 3.0, 0.0)));
+     MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(0,1), Point(40.0, 4.0, 5.0)));
+     MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(1,0), Point(45.0, 0.0, 0.0)));
+diff --git a/session_cpp/src/remesh_nurbssurface_grid.cpp b/session_cpp/src/remesh_nurbssurface_grid.cpp
+index a4059e5f4488e12e0c2c5d1610f39c40f159196f..b9d5d535a54041c378091de225c7397c6593cd99
+--- a/session_cpp/src/remesh_nurbssurface_grid.cpp
++++ b/session_cpp/src/remesh_nurbssurface_grid.cpp
+@@ -2,8 +2,83 @@
+ #include "tolerance.h"
+ #include <cmath>
+ #include <algorithm>
++#include <set>
++#include <limits>
+ 
+ namespace session_cpp {
++
++/// Split shading vertices at internal C0 knots only when one-sided normals disagree.
++void RemeshNurbsSurfaceGrid::split_crease_normals(const NurbsSurface& s, Mesh& mesh) {
++    std::map<size_t, unsigned> candidates;
++    for (const auto& [key, vd] : mesh.vertex) {
++        if (!vd.attributes.count("u") || !vd.attributes.count("v")) continue;
++        double uv[2] = {vd.attributes.at("u"), vd.attributes.at("v")};
++        unsigned flags = 0;
++        for (int dir = 0; dir < 2; ++dir) {
++            auto [start, end] = s.domain(dir);
++            double value = uv[dir];
++            if (value <= start || value >= end) continue;
++            auto multiplicity = std::count(s.m_nurbsknot[dir].begin(), s.m_nurbsknot[dir].end(), value);
++            if (multiplicity < s.degree(dir)) continue;
++            double lo[2] = {uv[0], uv[1]}, hi[2] = {uv[0], uv[1]};
++            lo[dir] = std::nextafter(value, -std::numeric_limits<double>::infinity());
++            hi[dir] = std::nextafter(value, std::numeric_limits<double>::infinity());
++            Vector a = s.normal_at(lo[0], lo[1]), b = s.normal_at(hi[0], hi[1]);
++            double aa = a[0]*a[0]+a[1]*a[1]+a[2]*a[2], bb = b[0]*b[0]+b[1]*b[1]+b[2]*b[2];
++            double dot = (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]) / std::sqrt(aa*bb);
++            if (std::isfinite(dot) && dot < 1.0 - 64.0*std::numeric_limits<double>::epsilon()) flags |= 1u << dir;
++        }
++        if (flags) candidates[key] = flags;
++    }
++    if (candidates.empty()) return;
++    std::map<std::pair<size_t, unsigned>, size_t> copies;
++    std::set<size_t> used;
++    std::vector<size_t> face_keys;
++    for (const auto& [key, vertices] : mesh.face) face_keys.push_back(key);
++    std::sort(face_keys.begin(), face_keys.end());
++    for (size_t face_key : face_keys) {
++        auto vertices = mesh.face[face_key];
++        double center[2] = {0.0, 0.0};
++        for (size_t key : vertices) {
++            center[0] += mesh.vertex[key].attributes.at("u");
++            center[1] += mesh.vertex[key].attributes.at("v");
++        }
++        center[0] /= vertices.size(); center[1] /= vertices.size();
++        auto face_normal = mesh.face_normal(face_key);
++        auto split = vertices;
++        for (size_t corner = 0; corner < vertices.size(); ++corner) {
++            size_t key = vertices[corner];
++            if (!candidates.count(key)) continue;
++            unsigned flags = candidates[key], side = 0;
++            auto original = mesh.vertex[key];
++            double uv[2] = {original.attributes.at("u"), original.attributes.at("v")};
++            for (int dir = 0; dir < 2; ++dir) {
++                if (!(flags & (1u << dir))) continue;
++                bool high = center[dir] > uv[dir];
++                if (high) side |= 1u << dir;
++                uv[dir] = std::nextafter(uv[dir], high ? std::numeric_limits<double>::infinity() : -std::numeric_limits<double>::infinity());
++            }
++            auto identity = std::make_pair(key, side);
++            size_t target;
++            if (copies.count(identity)) target = copies[identity];
++            else {
++                if (used.insert(key).second) target = key;
++                else { target = mesh.add_vertex(original.position()); mesh.vertex[target] = original; }
++                copies[identity] = target;
++            }
++            Vector n = s.normal_at(uv[0], uv[1]);
++            double length = std::sqrt(n[0]*n[0]+n[1]*n[1]+n[2]*n[2]);
++            if (std::isfinite(length) && length > 0.0) {
++                double sign = 1.0;
++                if (face_normal && n[0]*(*face_normal)[0]+n[1]*(*face_normal)[1]+n[2]*(*face_normal)[2] < 0.0) sign = -1.0;
++                mesh.vertex[target].set_normal(sign*n[0]/length, sign*n[1]/length, sign*n[2]/length);
++            }
++            split[corner] = target;
++        }
++        mesh.face[face_key] = split;
++    }
++    mesh.rebuild_halfedges();
++}
+ 
+ Mesh RemeshNurbsSurfaceGrid::from_u_v(const NurbsSurface& s, int max_u, int max_v) {
+     return from_u_v_q(s, max_u, max_v, 20.0, 0.005);
+@@ -356,9 +431,13 @@
+     }
+ 
+     // Compute vertex normals from face normals
+-    int nv_total = (int)result.vertex.size();
++    size_t nv_total = result.vertex.size();
+     std::vector<double> vnx(nv_total, 0.0), vny(nv_total, 0.0), vnz(nv_total, 0.0);
+-    for (auto& [fi, vids] : result.face) {
++    std::vector<size_t> face_keys;
++    for (const auto& [fi, vids] : result.face) face_keys.push_back(fi);
++    std::sort(face_keys.begin(), face_keys.end());
++    for (size_t fi : face_keys) {
++        const auto& vids = result.face.at(fi);
+         if (vids.size() < 3) continue;
+         Point pos0 = result.vertex.at(vids[0]).position();
+         Point pos1 = result.vertex.at(vids[1]).position();
+@@ -368,11 +447,30 @@
+         double fnx = e1y*e2z - e1z*e2y, fny = e1z*e2x - e1x*e2z, fnz = e1x*e2y - e1y*e2x;
+         for (auto vi : vids) { vnx[vi] += fnx; vny[vi] += fny; vnz[vi] += fnz; }
+     }
+-    for (int i = 0; i < nv_total; ++i) {
++    for (size_t i = 0; i < nv_total; ++i) {
+         double len = std::sqrt(vnx[i]*vnx[i] + vny[i]*vny[i] + vnz[i]*vnz[i]);
+-        if (len > 1e-15) { vnx[i] /= len; vny[i] /= len; vnz[i] /= len; }
+-        result.vertex[i].set_normal(vnx[i], vny[i], vnz[i]);
+-    }
++        double fx = 0.0, fy = 0.0, fz = 1.0;
++        if (std::isfinite(len) && len > 0.0) {
++            fx = vnx[i] / len; fy = vny[i] / len; fz = vnz[i] / len;
++        }
++        double nx = fx, ny = fy, nz = fz;
++        auto& vd = result.vertex[i];
++        auto u = vd.attributes.find("u"), v = vd.attributes.find("v");
++        bool is_pole = (sing_v0 && i == south_pole) || (sing_v1 && i == north_pole);
++        // Surface normals preserve smooth interiors; singular poles use adjacent facets.
++        if (!is_pole && u != vd.attributes.end() && v != vd.attributes.end()) {
++            Vector na = s.normal_at(u->second, v->second);
++            double nl = std::sqrt(na[0]*na[0] + na[1]*na[1] + na[2]*na[2]);
++            if (std::isfinite(nl) && nl > 0.0) {
++                nx = na[0] / nl; ny = na[1] / nl; nz = na[2] / nl;
++                if (nx * fx + ny * fy + nz * fz < 0.0) {
++                    nx = -nx; ny = -ny; nz = -nz;
++                }
++            }
++        }
++        vd.set_normal(nx, ny, nz);
++    }
++    split_crease_normals(s, result);
+     return result;
+ }
+ 
+diff --git a/session_cpp/src/remesh_nurbssurface_grid.h b/session_cpp/src/remesh_nurbssurface_grid.h
+index 4eb010a44e3000123663ceb3e41fcfcdbb116d04..0ef5622581424f5eb64acc291f594d010b1fff17
+--- a/session_cpp/src/remesh_nurbssurface_grid.h
++++ b/session_cpp/src/remesh_nurbssurface_grid.h
+@@ -7,7 +7,13 @@
+ 
+ struct RemeshNurbsSurfaceGrid {
+     static Mesh from_u_v(const NurbsSurface& s, int max_u, int max_v);
++    /// Grid tessellation: angular tolerance in degrees, chord tolerance relative to the bbox.
++    /// Finite unit surface normals follow winding; poles use area-weighted adjacent normals
++    /// in face-key order. Zero/non-finite estimates fall back to +Z, without a world-unit gate.
+     static Mesh from_u_v_q(const NurbsSurface& s, int max_u, int max_v, double max_angle_deg, double chord_factor);
++private:
++    friend class NurbsSurfaceTrimmed;
++    static void split_crease_normals(const NurbsSurface& s, Mesh& mesh);
+ };
+ 
+ } // namespace session_cpp
+diff --git a/session_cpp/src/remesh_nurbssurface_grid_test.cpp b/session_cpp/src/remesh_nurbssurface_grid_test.cpp
+index 707d2f706d7be3c91351ef4b85fa41f8655d78cc..474f1ef31234c8e5eb61d07fa89aa6eb861f26bd
+--- a/session_cpp/src/remesh_nurbssurface_grid_test.cpp
++++ b/session_cpp/src/remesh_nurbssurface_grid_test.cpp
+@@ -1,10 +1,54 @@
+ #include "mini_test.h"
+ #include "remesh_nurbssurface_grid.h"
+ #include "primitives.h"
++#include "tolerance.h"
++#include <cmath>
+ 
+ using namespace session_cpp::mini_test;
+ 
+ namespace session_cpp {
++
++MINI_TEST("RemeshNurbsSurfaceGrid", "Crease Normals") {
++    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 3, 2, {
++        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),
++        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),
++        Point(2.0, 0.0, 1.0), Point(2.0, 1.0, 1.0),
++    });
++    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);
++    MINI_CHECK(m.vertex.size() == 8);
++    MINI_CHECK(m.face.size() == 4);
++    int flat = 0, tilted = 0;
++    for (const auto& [key, vd] : m.vertex) {
++        if (vd.x != 1.0) continue;
++        auto n = vd.normal().value();
++        if (std::abs(n[0]) < Tolerance::ZERO_TOLERANCE) ++flat;
++        if (std::abs(n[0] + std::sqrt(0.5)) < Tolerance::ZERO_TOLERANCE) ++tilted;
++    }
++    MINI_CHECK(flat == 2 && tilted == 2);
++}
++
++
++MINI_TEST("RemeshNurbsSurfaceGrid", "Analytic Normals") {
++    std::vector<NurbsSurface> surfaces = {
++        Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0),
++        Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0),
++        Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0),
++    };
++    for (size_t index = 0; index < surfaces.size(); ++index) {
++        const auto& s = surfaces[index];
++        Mesh m = RemeshNurbsSurfaceGrid::from_u_v_q(s, 0, 0, 30.0, 0.01);
++        for (const auto& [key, vd] : m.vertex) {
++            const auto n = vd.normal().value();
++            double length = n[0]*n[0] + n[1]*n[1] + n[2]*n[2];
++            MINI_CHECK(std::abs(length - 1.0) < Tolerance::ZERO_TOLERANCE);
++            if (index < 2) {
++                double z = index == 0 ? vd.z : 0.0;
++                double dot = vd.x*n[0] + vd.y*n[1] + z*n[2];
++                MINI_CHECK(std::abs(dot - 1.0) < Tolerance::ZERO_TOLERANCE);
++            }
++        }
++    }
++}
+ 
+ MINI_TEST("RemeshNurbsSurfaceGrid", "Sphere") {
+     // uncomment #include "remesh_nurbssurface_grid.h"
+diff --git a/session_py/src/session_py/primitives_test.py b/session_py/src/session_py/primitives_test.py
+index a57671fd5e9dfd98b90fb2be55b525ca22fa3bad..83b28292632e1bc84be6127b466b0930ce868bb9
+--- a/session_py/src/session_py/primitives_test.py
++++ b/session_py/src/session_py/primitives_test.py
+@@ -599,8 +599,21 @@
+     MINI_CHECK(s_wavy.is_valid())
+     MINI_CHECK(s_wavy.degree(0) == 1 and s_wavy.degree(1) == 1)
+     MINI_CHECK(s_wavy.cv_count_dir(0) == 4 and s_wavy.cv_count_dir(1) == 2)
+-    MINI_CHECK(m_wavy.number_of_vertices() == 8)
++    # Each planar panel owns its crease normals: eight positions, twelve shading vertices.
++    MINI_CHECK(m_wavy.number_of_vertices() == 12)
+     MINI_CHECK(m_wavy.number_of_faces() == 6)
++    for i in range(4):
++        for j in range(2):
++            position = s_wavy.get_cv(i, j)
++            copies = sum(TOLERANCE.is_point_close(vertex.position(), position)
++                         for vertex in m_wavy.vertex.values())
++            MINI_CHECK(copies == (1 if i in (0, 3) else 2))
++    for key, corners in m_wavy.face.items():
++        normal = m_wavy.face_normal(key)
++        for corner in corners:
++            shading = m_wavy.vertex[corner].normal()
++            for axis in range(3):
++                MINI_CHECK(abs(shading[axis] - normal[axis]) < 1e-9)
+     MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(0, 0), Point(40.0, 3.0, 0.0)))
+     MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(0, 1), Point(40.0, 4.0, 5.0)))
+     MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(1, 0), Point(45.0, 0.0, 0.0)))
+diff --git a/session_py/src/session_py/remesh_nurbssurface_grid.py b/session_py/src/session_py/remesh_nurbssurface_grid.py
+index ff741b5ccd81e0175655a6fca0742e565f1c47f2..6d9173c8efcea391c2ccca9ab8fd206ef2c78210
+--- a/session_py/src/session_py/remesh_nurbssurface_grid.py
++++ b/session_py/src/session_py/remesh_nurbssurface_grid.py
+@@ -19,6 +19,12 @@
+ 
+     @staticmethod
+     def from_u_v_q(s: "NurbsSurface", max_u: int, max_v: int, max_angle_deg: float, chord_factor: float) -> "Mesh":
++        """Mesh with angular tolerance in degrees and chord tolerance relative to the bbox.
++
++        Normals are finite unit surface normals aligned with winding. Singular poles use
++        area-weighted adjacent normals in face-key order; zero/non-finite estimates fall
++        back to +Z. No world-unit tolerance gates normal normalization.
++        """
+         from .mesh import Mesh
+         MAX_ANGLE = max_angle_deg
+         usp = list(s.get_span_vector(0))
+@@ -354,7 +360,8 @@
+             vnx = [0.0] * (max_vkey + 1)
+             vny = [0.0] * (max_vkey + 1)
+             vnz = [0.0] * (max_vkey + 1)
+-            for fi, vids in result.face.items():
++            for fi in sorted(result.face):
++                vids = result.face[fi]
+                 if len(vids) < 3:
+                     continue
+                 pos0 = result.vertex[vids[0]].position()
+@@ -371,10 +378,98 @@
+                     vnz[vi] += fnz
+             for vk in result.vertex:
+                 ln = math.sqrt(vnx[vk]**2 + vny[vk]**2 + vnz[vk]**2)
+-                if ln > 1e-15:
+-                    vnx[vk] /= ln
+-                    vny[vk] /= ln
+-                    vnz[vk] /= ln
+-                result.vertex[vk].set_normal(vnx[vk], vny[vk], vnz[vk])
+-
++                fx, fy, fz = 0.0, 0.0, 1.0
++                if math.isfinite(ln) and ln > 0.0:
++                    fx, fy, fz = vnx[vk] / ln, vny[vk] / ln, vnz[vk] / ln
++                nx, ny, nz = fx, fy, fz
++                vd = result.vertex[vk]
++                u, v = vd.attributes.get("u"), vd.attributes.get("v")
++                is_pole = (sing_v0 and vk == south_pole) or (sing_v1 and vk == north_pole)
++                # Surface normals preserve smooth interiors; singular poles use adjacent facets.
++                if not is_pole and u is not None and v is not None:
++                    na = s.normal_at(u, v)
++                    nl = math.sqrt(na[0]*na[0] + na[1]*na[1] + na[2]*na[2])
++                    if math.isfinite(nl) and nl > 0.0:
++                        nx, ny, nz = na[0] / nl, na[1] / nl, na[2] / nl
++                        if nx * fx + ny * fy + nz * fz < 0.0:
++                            nx, ny, nz = -nx, -ny, -nz
++                vd.set_normal(nx, ny, nz)
++
++        RemeshNurbsSurfaceGrid._split_crease_normals(s, result)
+         return result
++
++
++    @staticmethod
++    def _split_crease_normals(s: "NurbsSurface", mesh: "Mesh") -> None:
++        """Split shading vertices at internal C0 knots with different one-sided normals."""
++        import copy
++        import sys
++        candidates = {}
++        for key, vd in mesh.vertex.items():
++            if "u" not in vd.attributes or "v" not in vd.attributes:
++                continue
++            uv = [vd.attributes["u"], vd.attributes["v"]]
++            flags = 0
++            for direction in range(2):
++                start, end = s.domain(direction)
++                value = uv[direction]
++                if value <= start or value >= end:
++                    continue
++                multiplicity = sum(knot == value for knot in s.m_nurbsknot[direction])
++                if multiplicity < s.degree(direction):
++                    continue
++                lo, hi = list(uv), list(uv)
++                lo[direction] = math.nextafter(value, -math.inf)
++                hi[direction] = math.nextafter(value, math.inf)
++                a, b = s.normal_at(*lo), s.normal_at(*hi)
++                aa = a[0]*a[0]+a[1]*a[1]+a[2]*a[2]
++                bb = b[0]*b[0]+b[1]*b[1]+b[2]*b[2]
++                if aa <= 0.0 or bb <= 0.0:
++                    continue
++                dot = (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]) / math.sqrt(aa*bb)
++                if math.isfinite(dot) and dot < 1.0 - 64.0*sys.float_info.epsilon:
++                    flags |= 1 << direction
++            if flags:
++                candidates[key] = flags
++        if not candidates:
++            return
++        copies, used = {}, set()
++        for face_key in sorted(mesh.face):
++            vertices = mesh.face[face_key]
++            center = [sum(mesh.vertex[key].attributes[name] for key in vertices) / len(vertices) for name in ("u", "v")]
++            face_normal = mesh.face_normal(face_key)
++            split = list(vertices)
++            for corner, key in enumerate(vertices):
++                if key not in candidates:
++                    continue
++                flags, side = candidates[key], 0
++                original = copy.deepcopy(mesh.vertex[key])
++                uv = [original.attributes["u"], original.attributes["v"]]
++                for direction in range(2):
++                    if not flags & (1 << direction):
++                        continue
++                    high = center[direction] > uv[direction]
++                    if high:
++                        side |= 1 << direction
++                    uv[direction] = math.nextafter(uv[direction], math.inf if high else -math.inf)
++                identity = (key, side)
++                if identity in copies:
++                    target = copies[identity]
++                else:
++                    if key not in used:
++                        target = key
++                        used.add(key)
++                    else:
++                        target = mesh.add_vertex(original.position())
++                        mesh.vertex[target] = original
++                    copies[identity] = target
++                n = s.normal_at(*uv)
++                length = math.sqrt(n[0]*n[0]+n[1]*n[1]+n[2]*n[2])
++                if math.isfinite(length) and length > 0.0:
++                    sign = 1.0
++                    if face_normal is not None and sum(n[k]*face_normal[k] for k in range(3)) < 0.0:
++                        sign = -1.0
++                    mesh.vertex[target].set_normal(sign*n[0]/length, sign*n[1]/length, sign*n[2]/length)
++                split[corner] = target
++            mesh.face[face_key] = split
++        mesh.rebuild_halfedges()
+diff --git a/session_py/src/session_py/remesh_nurbssurface_grid_test.py b/session_py/src/session_py/remesh_nurbssurface_grid_test.py
+index 10cf2b0a903de1b138125b718eeb709a187f5323..9ac6fff229ce0a05207a0f69d01869fb2b8b20dd
+--- a/session_py/src/session_py/remesh_nurbssurface_grid_test.py
++++ b/session_py/src/session_py/remesh_nurbssurface_grid_test.py
+@@ -1,6 +1,29 @@
+ from .mini_test import MINI_TEST
+ from .mini_test import MINI_CHECK
+ from .mini_test import run_all
++from .tolerance import Tolerance
++
++
++@MINI_TEST("RemeshNurbsSurfaceGrid", "Analytic Normals")
++def test_remesh_nurbssurface_grid_analytic_normals():
++    from session_py import RemeshNurbsSurfaceGrid
++    from session_py import Primitives
++
++    surfaces = [
++        Primitives.sphere_surface(0.0, 0.0, 0.0, 1.0),
++        Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0),
++        Primitives.cone_surface(0.0, 0.0, 0.0, 1.0, 5.0),
++    ]
++    for index, s in enumerate(surfaces):
++        m = RemeshNurbsSurfaceGrid.from_u_v_q(s, 0, 0, 30.0, 0.01)
++        for vd in m.vertex.values():
++            n = vd.normal()
++            length = n[0]*n[0] + n[1]*n[1] + n[2]*n[2]
++            MINI_CHECK(abs(length - 1.0) < Tolerance.ZERO_TOLERANCE)
++            if index < 2:
++                z = vd.z if index == 0 else 0.0
++                dot = vd.x*n[0] + vd.y*n[1] + z*n[2]
++                MINI_CHECK(abs(dot - 1.0) < Tolerance.ZERO_TOLERANCE)
+ 
+ 
+ @MINI_TEST("RemeshNurbsSurfaceGrid", "Sphere")
+@@ -145,5 +168,32 @@
+     MINI_CHECK(m.number_of_faces() == 98)
+ 
+ 
++
++@MINI_TEST("RemeshNurbsSurfaceGrid", "Crease Normals")
++def test_remesh_nurbssurface_grid_crease_normals():
++    from session_py import NurbsSurface
++    from session_py import Point
++    from session_py import RemeshNurbsSurfaceGrid
++    import math
++    s = NurbsSurface.create(False, False, 1, 1, 3, 2, [
++        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),
++        Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0),
++        Point(2.0, 0.0, 1.0), Point(2.0, 1.0, 1.0),
++    ])
++    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)
++    MINI_CHECK(len(m.vertex) == 8)
++    MINI_CHECK(len(m.face) == 4)
++    flat = tilted = 0
++    for vd in m.vertex.values():
++        if vd.x != 1.0:
++            continue
++        n = vd.normal()
++        if abs(n[0]) < Tolerance.ZERO_TOLERANCE:
++            flat += 1
++        if abs(n[0] + math.sqrt(0.5)) < Tolerance.ZERO_TOLERANCE:
++            tilted += 1
++    MINI_CHECK(flat == 2 and tilted == 2)
++
++
+ if __name__ == "__main__":
+     run_all(language="python")
+diff --git a/session_rust/src/mini_test.rs b/session_rust/src/mini_test.rs
+index ce9628cb13b09a64bab024e6b841cc9f1d01bf5a..70630c6b5efa7ba123fdeb802ebc030f08cd0b8d
+--- a/session_rust/src/mini_test.rs
++++ b/session_rust/src/mini_test.rs
+@@ -3375,7 +3375,17 @@
+             name: "Double-Curved Triangle",
+             func: run_remesh_nurbssurface_adaptive_double_curved_triangle,
+         },
++        RegisteredTest {
++            group: "RemeshNurbsSurfaceGrid",
++            name: "Crease Normals",
++            func: run_remesh_nurbssurface_grid_crease_normals,
++        },
+         // RemeshNurbsSurfaceGrid tests
++        RegisteredTest {
++            group: "RemeshNurbsSurfaceGrid",
++            name: "Analytic Normals",
++            func: run_remesh_nurbssurface_grid_analytic_normals,
++        },
+         RegisteredTest {
+             group: "RemeshNurbsSurfaceGrid",
+             name: "Sphere",
+diff --git a/session_rust/src/primitives_test.rs b/session_rust/src/primitives_test.rs
+index 5e3d0fd6b798124f64e771dbc245cad95349bb4f..959db60c7135fe2f0b889f7e66eab7abae0cf18e
+--- a/session_rust/src/primitives_test.rs
++++ b/session_rust/src/primitives_test.rs
+@@ -791,8 +791,29 @@
+         MINI_CHECK!(s_wavy.is_valid());
+         MINI_CHECK!(s_wavy.degree(0) == 1 && s_wavy.degree(1) == 1);
+         MINI_CHECK!(s_wavy.cv_count_dir(Some(0)) == 4 && s_wavy.cv_count_dir(Some(1)) == 2);
+-        MINI_CHECK!(m_wavy.number_of_vertices() == 8);
++        // Each planar panel owns its crease normals: eight positions, twelve shading vertices.
++        MINI_CHECK!(m_wavy.number_of_vertices() == 12);
+         MINI_CHECK!(m_wavy.number_of_faces() == 6);
++        for i in 0..4 {
++            for j in 0..2 {
++                let position = s_wavy.get_cv(i, j).unwrap();
++                let copies = m_wavy
++                    .vertex
++                    .values()
++                    .filter(|vertex| TOLERANCE.is_point_close(&vertex.position(), &position))
++                    .count();
++                MINI_CHECK!(copies == if i == 0 || i == 3 { 1 } else { 2 });
++            }
++        }
++        for (&key, corners) in &m_wavy.face {
++            let normal = m_wavy.face_normal(key).unwrap();
++            for corner in corners {
++                let shading = m_wavy.vertex[corner].normal().unwrap();
++                for axis in 0..3 {
++                    MINI_CHECK!((shading[axis] - normal[axis]).abs() < 1e-9);
++                }
++            }
++        }
+         MINI_CHECK!(
+             TOLERANCE.is_point_close(&s_wavy.get_cv(0, 0).unwrap(), &Point::new(40.0, 3.0, 0.0))
+         );
+diff --git a/session_rust/src/remesh_nurbssurface_grid.rs b/session_rust/src/remesh_nurbssurface_grid.rs
+index 39fcefadcd45cd59ddc35b62a8f783ad640eb72e..54f27f9be05abbde5f72a5e510d260a9319b9fd2
+--- a/session_rust/src/remesh_nurbssurface_grid.rs
++++ b/session_rust/src/remesh_nurbssurface_grid.rs
+@@ -16,6 +16,9 @@
+     /// normal deviation per subdivision (smaller → denser on curved spans) and
+     /// `chord_factor` is the chord-height tolerance as a fraction of the bbox diagonal
+     /// (smaller → denser). The defaults (20.0, 0.005) reproduce `from_u_v`.
++    /// Normals are finite unit surface normals aligned with winding. Singular poles use
++    /// area-weighted adjacent normals, accumulated in face-key order; zero/non-finite
++    /// estimates fall back to +Z. No world-unit tolerance gates normal normalization.
+     pub fn from_u_v_q(
+         s: NurbsSurface,
+         max_u: usize,
+@@ -500,7 +503,8 @@
+         for vk in result.vertex.keys() {
+             vn_map.insert(*vk, (0.0, 0.0, 0.0));
+         }
+-        let face_keys: Vec<usize> = result.face.keys().cloned().collect();
++        let mut face_keys: Vec<usize> = result.face.keys().cloned().collect();
++        face_keys.sort_unstable();
+         for fk in &face_keys {
+             if let Some(vids) = result.face.get(fk) {
+                 if vids.len() < 3 {
+@@ -544,7 +548,7 @@
+             // Winding-consistent direction from the accumulated face normals.
+             let (mut fx, mut fy, mut fz) = vn_map.get(&vk).copied().unwrap_or((0.0, 0.0, 1.0));
+             let flen = (fx * fx + fy * fy + fz * fz).sqrt();
+-            if flen > 1e-15 {
++            if flen.is_finite() && flen > 0.0 {
+                 fx /= flen;
+                 fy /= flen;
+                 fz /= flen;
+@@ -572,7 +576,7 @@
+                 if let Some((u, v)) = uv {
+                     let na = s.normal_at(u, v);
+                     let nl = (na[0] * na[0] + na[1] * na[1] + na[2] * na[2]).sqrt();
+-                    if nl > 1e-9 {
++                    if nl.is_finite() && nl > 0.0 {
+                         let (mut ax, mut ay, mut az) = (na[0] / nl, na[1] / nl, na[2] / nl);
+                         if ax * fx + ay * fy + az * fz < 0.0 {
+                             ax = -ax;
+@@ -590,7 +594,123 @@
+             }
+         }
+ 
++        Self::split_crease_normals(&s, &mut result);
+         result
++    }
++    /// Split shading vertices only at internal C0 knots with different one-sided normals.
++    /// Exact positions and UV samples stay unchanged; coincident smooth knot joins stay shared.
++    pub(crate) fn split_crease_normals(s: &NurbsSurface, mesh: &mut Mesh) {
++        let mut candidates = HashMap::<usize, u8>::new();
++        for (&key, vd) in &mesh.vertex {
++            let (Some(&u), Some(&v)) = (vd.attributes.get("u"), vd.attributes.get("v")) else {
++                continue;
++            };
++            let uv = [u, v];
++            let mut flags = 0;
++            for dir in 0..2 {
++                let Some((start, end)) = s.domain(dir) else {
++                    continue;
++                };
++                let value = uv[dir];
++                if value <= start || value >= end {
++                    continue;
++                }
++                let multiplicity = s.m_nurbsknot[dir]
++                    .iter()
++                    .filter(|&&knot| knot == value)
++                    .count();
++                if multiplicity < s.degree(dir) {
++                    continue;
++                }
++                let mut lo = uv;
++                let mut hi = uv;
++                lo[dir] = value.next_down();
++                hi[dir] = value.next_up();
++                let a = s.normal_at(lo[0], lo[1]);
++                let b = s.normal_at(hi[0], hi[1]);
++                let aa = a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
++                let bb = b[0] * b[0] + b[1] * b[1] + b[2] * b[2];
++                let dot = (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) / (aa * bb).sqrt();
++                if dot.is_finite() && dot < 1.0 - 64.0 * f64::EPSILON {
++                    flags |= 1 << dir;
++                }
++            }
++            if flags != 0 {
++                candidates.insert(key, flags);
++            }
++        }
++        if candidates.is_empty() {
++            return;
++        }
++        let mut copies = HashMap::<(usize, u8), usize>::new();
++        let mut used = std::collections::HashSet::new();
++        let mut face_keys: Vec<usize> = mesh.face.keys().copied().collect();
++        face_keys.sort_unstable();
++        for face_key in face_keys {
++            let vertices = mesh.face[&face_key].clone();
++            let mut center = [0.0; 2];
++            for key in &vertices {
++                center[0] += mesh.vertex[key].attributes.get("u").copied().unwrap_or(0.0);
++                center[1] += mesh.vertex[key].attributes.get("v").copied().unwrap_or(0.0);
++            }
++            center[0] /= vertices.len() as f64;
++            center[1] /= vertices.len() as f64;
++            let face_normal = mesh.face_normal(face_key);
++            let mut split = vertices.clone();
++            for (corner, &key) in vertices.iter().enumerate() {
++                let Some(&flags) = candidates.get(&key) else {
++                    continue;
++                };
++                let original = mesh.vertex[&key].clone();
++                let mut uv = [
++                    *original.attributes.get("u").unwrap(),
++                    *original.attributes.get("v").unwrap(),
++                ];
++                let mut side = 0;
++                for dir in 0..2 {
++                    if flags & (1 << dir) == 0 {
++                        continue;
++                    }
++                    if center[dir] > uv[dir] {
++                        side |= 1 << dir;
++                        uv[dir] = uv[dir].next_up();
++                    } else {
++                        uv[dir] = uv[dir].next_down();
++                    }
++                }
++                let target = if let Some(&target) = copies.get(&(key, side)) {
++                    target
++                } else {
++                    let target = if used.insert(key) {
++                        key
++                    } else {
++                        let target = mesh.add_vertex(original.position(), None);
++                        mesh.vertex.insert(target, original);
++                        target
++                    };
++                    copies.insert((key, side), target);
++                    target
++                };
++                let n = s.normal_at(uv[0], uv[1]);
++                let length = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
++                if length.is_finite() && length > 0.0 {
++                    let mut sign = 1.0;
++                    if let Some(ref f) = face_normal {
++                        if n[0] * f[0] + n[1] * f[1] + n[2] * f[2] < 0.0 {
++                            sign = -1.0;
++                        }
++                    }
++                    mesh.vertex.get_mut(&target).unwrap().set_normal(
++                        sign * n[0] / length,
++                        sign * n[1] / length,
++                        sign * n[2] / length,
++                    );
++                }
++                split[corner] = target;
++            }
++            mesh.face.insert(face_key, split);
++        }
++        mesh.rebuild_halfedges();
+     }
+ }
+ 
+diff --git a/session_rust/src/remesh_nurbssurface_grid_test.rs b/session_rust/src/remesh_nurbssurface_grid_test.rs
+index 2840cdf41088a87a4d41d8504fac4daece0d7879..420f54df26cf6c37d199cfafb7351f741901540f
+--- a/session_rust/src/remesh_nurbssurface_grid_test.rs
++++ b/session_rust/src/remesh_nurbssurface_grid_test.rs
+@@ -1,5 +1,38 @@
+ use crate::mini_test::TestResult;
++use crate::tolerance::Tolerance;
+ use crate::{MINI_CHECK, MINI_TEST, REGISTER_MINI_TEST};
++
++pub fn run_remesh_nurbssurface_grid_analytic_normals() -> TestResult {
++    MINI_TEST!("Analytic Normals", {
++        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
++        use crate::Primitives;
++
++        let surfaces = [
++            Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0),
++            Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0),
++            Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0),
++        ];
++        for (index, s) in surfaces.into_iter().enumerate() {
++            let m = RemeshNurbsSurfaceGrid::from_u_v_q(s, 0, 0, 30.0, 0.01);
++            for vd in m.vertex.values() {
++                let n = vd.normal().unwrap();
++                let length = n[0] * n[0] + n[1] * n[1] + n[2] * n[2];
++                MINI_CHECK!((length - 1.0).abs() < Tolerance::ZERO_TOLERANCE);
++                if index < 2 {
++                    let z = if index == 0 { vd.z } else { 0.0 };
++                    let dot = vd.x * n[0] + vd.y * n[1] + z * n[2];
++                    MINI_CHECK!((dot - 1.0).abs() < Tolerance::ZERO_TOLERANCE);
++                }
++            }
++        }
++    })
++}
++
++REGISTER_MINI_TEST!(
++    "RemeshNurbsSurfaceGrid",
++    "Analytic Normals",
++    crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_analytic_normals
++);
+ 
+ pub fn run_remesh_nurbssurface_grid_sphere() -> TestResult {
+     MINI_TEST!("Sphere", {
+@@ -216,3 +249,50 @@
+     "Double-Curved Triangle",
+     crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_double_curved_triangle
+ );
++
++pub fn run_remesh_nurbssurface_grid_crease_normals() -> TestResult {
++    MINI_TEST!("Crease Normals", {
++        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
++        use crate::{NurbsSurface, Point};
++        let s = NurbsSurface::create(
++            false,
++            false,
++            1,
++            1,
++            3,
++            2,
++            &[
++                Point::new(0.0, 0.0, 0.0),
++                Point::new(0.0, 1.0, 0.0),
++                Point::new(1.0, 0.0, 0.0),
++                Point::new(1.0, 1.0, 0.0),
++                Point::new(2.0, 0.0, 1.0),
++                Point::new(2.0, 1.0, 1.0),
++            ],
++        )
++        .unwrap();
++        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);
++        MINI_CHECK!(m.vertex.len() == 8);
++        MINI_CHECK!(m.face.len() == 4);
++        let mut flat = 0;
++        let mut tilted = 0;
++        for vd in m.vertex.values() {
++            if vd.x != 1.0 {
++                continue;
++            }
++            let n = vd.normal().unwrap();
++            if n[0].abs() < Tolerance::ZERO_TOLERANCE {
++                flat += 1;
++            }
++            if (n[0] + 0.5f64.sqrt()).abs() < Tolerance::ZERO_TOLERANCE {
++                tilted += 1;
++            }
++        }
++        MINI_CHECK!(flat == 2 && tilted == 2);
++    })
++}
++REGISTER_MINI_TEST!(
++    "RemeshNurbsSurfaceGrid",
++    "Crease Normals",
++    crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_crease_normals
++);
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index c6c7e0dce3b12078b33d09694b8366df2b762614..58454b3c528ecd383b6c3bbb6fd8538bd37fef51
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,9 +1,9 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 05</title>
++<title>Session checkpoint 06</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 05</output>
++</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 06</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -21,7 +21,7 @@
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 05 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 06 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/app/knobs.rs b/session_viewer/src/app/knobs.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..f8840df36f84b1c245b7c2468cd7264032683847
+--- /dev/null
++++ b/session_viewer/src/app/knobs.rs
+@@ -0,0 +1,52 @@
++//! Launch-time harness toggles on the app side, each read ONCE per process (an env lookup
++//! scans the environment block, and a sheet holds tens of thousands of meshes). Presence-only.
++
++use std::sync::OnceLock;
++
++/// `std::env::var(name).is_ok()`, cached in `slot` on first use. Always false on wasm.
++fn env_flag(name: &str, slot: &'static OnceLock<bool>) -> bool {
++    *slot.get_or_init(|| read_environment_flag(name))
++}
++
++/// Read a presence-only flag; the OnceLock capture adapter invokes this only on initialization.
++fn read_environment_flag(name: &str) -> bool {
++    std::env::var(name).is_ok()
++}
++
++static PROFILE: OnceLock<bool> = OnceLock::new();
++static DROP_SESSIONS: OnceLock<bool> = OnceLock::new();
++static NO_EDGES: OnceLock<bool> = OnceLock::new();
++static NO_DOTS: OnceLock<bool> = OnceLock::new();
++static ALL_EDGES: OnceLock<bool> = OnceLock::new();
++static SEAMS: OnceLock<bool> = OnceLock::new();
++
++/// VIEWER_PROFILE: print the walk's laps to stderr (native harness only).
++pub fn profile() -> bool {
++    env_flag("VIEWER_PROFILE", &PROFILE)
++}
++
++/// Legacy VIEWER_DROP_SESSIONS hint; full-file sources remain retained for source controls.
++pub fn drop_sessions() -> bool {
++    env_flag("VIEWER_DROP_SESSIONS", &DROP_SESSIONS)
++}
++
++/// VIEWER_NO_EDGES: faces only, no wireframe and no markers.
++pub fn no_edges() -> bool {
++    env_flag("VIEWER_NO_EDGES", &NO_EDGES)
++}
++
++/// VIEWER_NO_DOTS: edges but no vertex markers.
++pub fn no_dots() -> bool {
++    env_flag("VIEWER_NO_DOTS", &NO_DOTS)
++}
++
++/// VIEWER_ALL_EDGES: keep the coplanar interior edges the wireframe normally culls.
++pub fn all_edges() -> bool {
++    env_flag("VIEWER_ALL_EDGES", &ALL_EDGES)
++}
++
++/// VIEWER_SEAMS: ink a tessellation's every seam, not only its borders and creases - what the
++/// sampling grid actually looks like.
++pub fn seams() -> bool {
++    env_flag("VIEWER_SEAMS", &SEAMS)
++}
+diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
+index 736418dd99b9221fbf48dc3f2816dbf0d1366d46..fa764d67ce3f13229e43eec36526aecb36aed71d
+--- a/session_viewer/src/app/mod.rs
++++ b/session_viewer/src/app/mod.rs
+@@ -1,2 +1,4 @@
+-//! Query-string support for the retained View settings.
++//! Geometry preparation introduced by the CAD checkpoints.
++pub mod knobs;
+ pub mod route;
++pub mod walk;
+diff --git a/session_viewer/src/app/walk/bounds.rs b/session_viewer/src/app/walk/bounds.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..6664656d51752ee0641542e82336bd280303cf2f
+--- /dev/null
++++ b/session_viewer/src/app/walk/bounds.rs
+@@ -0,0 +1,153 @@
++//! The per-file sweeps after a walk, all over the object rows (every producer reports its
++//! local box): the file's world extent, the planar test, and the sheet marking.
++
++use crate::engine::gpu::{Instance, Upload};
++use crate::math::{Aabb, Mat4};
++use std::collections::HashMap;
++
++/// Row counts captured BEFORE a file is walked, so the sweeps read only that file's rows.
++pub struct Baselines {
++    pub obj: usize,
++    pub pipe: usize,
++    pub ribbon: usize,
++}
++
++impl Baselines {
++    /// Every table's length now.
++    pub fn capture(t: &Upload) -> Self {
++        Self {
++            obj: t.obj.rows.len(),
++            pipe: t.seg.pipes.len(),
++            ribbon: t.seg.ribbons.len(),
++        }
++    }
++}
++
++/// This file's world extent: every new object's local box through its placement.
++pub fn file_extent(t: &Upload, from: &Baselines) -> Aabb {
++    let mut out = Aabb::empty();
++    for r in t.obj.rows.iter().skip(from.obj) {
++        out.union(&r.bounds.placed(&r.place));
++    }
++    out
++}
++
++/// A planar file: every new row sits at the FILE placement and their local boxes span less
++/// than a micron along local z - a drawing sheet authored at z = 0.
++pub fn is_planar(t: &Upload, from: &Baselines, place: &Mat4) -> bool {
++    let mut lo = f32::INFINITY;
++    let mut hi = f32::NEG_INFINITY;
++    for r in t.obj.rows.iter().skip(from.obj) {
++        if r.place != *place {
++            return false;
++        }
++        if !r.bounds.is_finite() {
++            continue;
++        }
++        lo = lo.min(r.bounds.min[2]);
++        hi = hi.max(r.bounds.max[2]);
++    }
++    lo.is_finite() && (hi - lo).abs() < 1e-3
++}
++
++/// Every row of a planar file is page content: `FLAG_SHEET` on its objects (the ink lanes
++/// drop their lift) and every unset pen becomes a 0.5 mm world hairline, like a plotter pen.
++pub fn mark_sheet(t: &mut Upload, from: &Baselines) {
++    for o in t.obj.rows.iter_mut().skip(from.obj) {
++        o.flags |= Instance::FLAG_SHEET;
++    }
++    for s in t
++        .seg
++        .pipes
++        .iter_mut()
++        .skip(from.pipe)
++        .chain(t.seg.ribbons.iter_mut().skip(from.ribbon))
++    {
++        if s.radius <= 0.0 {
++            s.radius = 0.5;
++        }
++    }
++}
++
++/// Face-normal candidates kept for the thickness measure: the largest faces by area, so a
++/// plate measures across its two big faces and chamfers do not vote.
++const THICK_NORMALS: usize = 24;
++
++/// The spread of `pts` along the unit direction `n`; 0 for no points.
++fn extent_along(pts: &[[f32; 3]], n: [f32; 3]) -> f32 {
++    let (mut lo, mut hi) = (f32::MAX, f32::MIN);
++    for p in pts {
++        let d = p[0] * n[0] + p[1] * n[1] + p[2] * n[2];
++        lo = lo.min(d);
++        hi = hi.max(d);
++    }
++    if lo <= hi { hi - lo } else { 0.0 }
++}
++
++/// A direction quantised to 1/32 per axis: one bucket per face orientation.
++fn direction_key(n: [f32; 3]) -> u32 {
++    let mut key = 0;
++    for (axis, value) in n.into_iter().enumerate() {
++        key |= (((value * 31.0).round() as i32 + 32) as u32) << (axis * 8);
++    }
++    key
++}
++
++/// Rank accumulated face-normal buckets by descending area, retaining the existing NaN tie.
++fn descending_area(a: &(f32, [f32; 3]), b: &(f32, [f32; 3])) -> std::cmp::Ordering {
++    b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal)
++}
++
++/// A mesh's thickness whatever its orientation: the smallest spread of its vertices along
++/// one of its own dominant face normals or an axis. A plate baked rotated into world
++/// coordinates measures its plate thickness, not the diagonal of its axis-aligned box.
++pub fn mesh_thickness(pts: &[[f32; 3]], tris: &[u32]) -> f32 {
++    let mut buckets: HashMap<u32, (f32, [f32; 3])> = HashMap::new();
++    for t in tris.chunks_exact(3) {
++        let (a, b, c) = (pts[t[0] as usize], pts[t[1] as usize], pts[t[2] as usize]);
++        let (u, v) = (
++            [b[0] - a[0], b[1] - a[1], b[2] - a[2]],
++            [c[0] - a[0], c[1] - a[1], c[2] - a[2]],
++        );
++        let n = [
++            u[1] * v[2] - u[2] * v[1],
++            u[2] * v[0] - u[0] * v[2],
++            u[0] * v[1] - u[1] * v[0],
++        ];
++        let area = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
++        if area <= 0.0 {
++            continue;
++        }
++        let unit = [n[0] / area, n[1] / area, n[2] / area];
++        let key = direction_key(unit).min(direction_key([-unit[0], -unit[1], -unit[2]]));
++        let e = buckets.entry(key).or_insert((0.0, unit));
++        e.0 += area;
++    }
++    let mut ranked: Vec<(f32, [f32; 3])> = buckets.into_values().collect();
++    ranked.sort_by(descending_area);
++    let mut thin = f32::MAX;
++    for (_, n) in ranked.iter().take(THICK_NORMALS) {
++        thin = thin.min(extent_along(pts, *n));
++    }
++    for axis in [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]] {
++        thin = thin.min(extent_along(pts, axis));
++    }
++    if thin == f32::MAX { 0.0 } else { thin }
++}
++
++/// A polyline's thickness: its spread across its own plane (the Newell normal of the closed
++/// run), so a planar outline measures 0 whatever its orientation; a straight run measures 0 too.
++pub fn polyline_thickness(pts: &[[f32; 3]]) -> f32 {
++    let mut n = [0.0f32; 3];
++    for i in 0..pts.len() {
++        let (a, b) = (pts[i], pts[(i + 1) % pts.len()]);
++        n[0] += (a[1] - b[1]) * (a[2] + b[2]);
++        n[1] += (a[2] - b[2]) * (a[0] + b[0]);
++        n[2] += (a[0] - b[0]) * (a[1] + b[1]);
++    }
++    let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
++    if len <= 0.0 {
++        return 0.0;
++    }
++    extent_along(pts, [n[0] / len, n[1] / len, n[2] / len])
++}
+diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..eaf5150e8ae4536be20289ffc26d8413da180c54
+--- /dev/null
++++ b/session_viewer/src/app/walk/brep.rs
+@@ -0,0 +1,91 @@
++//! CAD faces preserve their own positions, triangle indices and surface normals.
++use super::bounds::mesh_thickness;
++use super::mesh::{MeshCx, MeshOpts, mesh_spacing, walk_mesh};
++use super::mesh_ink::Ink;
++use super::{Row, WalkCx};
++use crate::engine::gpu::Instance;
++use crate::engine::gpu::arena::ArenaRows;
++use crate::math::Aabb;
++use session_rust::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
++use session_rust::{BRep, NurbsSurface, RenderMesh};
++
++/// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
++/// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
++/// degrees and 0.005, which turns a cylinder into an 18-sided prism with a visibly polygonal
++/// silhouette - tessellation quality is a display decision, so the display makes it.
++/// Measured on 25 extruded circles: 1650 -> 4050 faces, 1.6 -> 1.8 ms a frame.
++pub const QUALITY: (f64, f64) = (5.0, 0.001);
++
++/// The positions and the file-local triangle indices of every face uploaded so far: what the
++/// thickness measure reads once all faces are in.
++struct Solid {
++    pos: Vec<[f32; 3]>,
++    tris: Vec<u32>,
++    bounds: Aabb,
++}
++
++/// One face mesh into the arena under `cx.row`: its own vertices, its normals as the kernel
++/// evaluated them, its triangles based on the file's vertex base.
++fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid) {
++    let base = cx.vert_base + arena.verts.len() as u32;
++    let local = solid.pos.len() as u32;
++    arena.verts.reserve(rm.vertices.len());
++    arena.vids.reserve(rm.vertices.len());
++    for v in &rm.vertices {
++        solid.bounds.grow(v.position);
++        solid.pos.push(v.position);
++        arena.verts.push(*v);
++        arena.vids.push(cx.row);
++    }
++    arena.idx.reserve(rm.indices.len());
++    for &i in &rm.indices {
++        arena.idx.push(base + i);
++        solid.tris.push(local + i);
++    }
++}
++
++/// Upload authored face meshes independently; boundary extraction is introduced next.
++pub fn walk_brep(arena: &mut ArenaRows, _ink: &mut Ink, brep: &BRep, cx: &WalkCx) -> Row {
++    let mut solid = Solid {
++        pos: Vec::new(),
++        tris: Vec::new(),
++        bounds: Aabb::empty(),
++    };
++    let mut vertices = 0;
++    for mut face in brep.face_meshes_q(Some(QUALITY)) {
++        face.set_objectcolor(brep.surfacecolor.clone());
++        vertices += face.vertex.len();
++        push_face(arena, &face.to_render(), cx, &mut solid);
++    }
++    Row {
++        bounds: solid.bounds,
++        spacing: mesh_spacing(&solid.bounds, vertices),
++        flags: Instance::FLAG_SMOOTH
++            | if brep.is_solid() {
++                0
++            } else {
++                Instance::FLAG_OPEN
++            },
++        faces: true,
++        thickness: mesh_thickness(&solid.pos, &solid.tris),
++    }
++}
++
++/// The first checkpoint uses the natural UV domain; cached trims are introduced in08.
++pub fn walk_surface(
++    arena: &mut ArenaRows,
++    ink: &mut Ink,
++    surface: &NurbsSurface,
++    cx: &WalkCx,
++) -> Row {
++    let mut mesh = RemeshNurbsSurfaceGrid::from_u_v_q(surface.clone(), 0, 0, QUALITY.0, QUALITY.1);
++    if let Some(color) = surface.facecolors.first() {
++        mesh.set_objectcolor(color.clone());
++    }
++    let options = MeshOpts {
++        sheet_lanes: false,
++        allow_open: true,
++        smooth: true,
++    };
++    walk_mesh(arena, ink, &mesh, &MeshCx { cx, opts: &options })
++}
+diff --git a/session_viewer/src/app/walk/brep_edges.rs b/session_viewer/src/app/walk/brep_edges.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..570ddf1bee56bcedaa45044e39c89bf1f6a159e9
+--- /dev/null
++++ b/session_viewer/src/app/walk/brep_edges.rs
+@@ -0,0 +1,20 @@
++//! Source topology records; exact face sample chains are populated in checkpoint07.
++use session_rust::brep::BRepOrientation;
++
++/// One use of an edge by a face: which edge, which face, and the orientation of that use
++/// (`BRep::edge_faces` composes it), which selects the pcurve on a seam.
++pub struct EdgeUse {
++    pub edge: usize,
++    pub face: usize,
++    pub orientation: BRepOrientation,
++}
++
++/// One edge's ink source: the face mesh it is read from, the keys along it, and the other
++/// face that meets it (None on a seam, where both uses are the same face, or on a free edge).
++pub struct EdgeChain {
++    /// Index in the source BRep's edge table, independent of display subdivision.
++    pub edge: usize,
++    pub face: usize,
++    pub keys: Vec<usize>,
++    pub other: Option<usize>,
++}
+diff --git a/session_viewer/src/app/walk/curves.rs b/session_viewer/src/app/walk/curves.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..cfcaac070051b823aa07d2d14b9289cc4adf657e
+--- /dev/null
++++ b/session_viewer/src/app/walk/curves.rs
+@@ -0,0 +1,149 @@
++//! Lines, polylines and NURBS curves into the FLAT ribbon lane: one segment per span,
++//! `FACING_UNKNOWN` because free linework has no topological facing cull.
++
++use super::Row;
++use super::bounds::polyline_thickness;
++use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
++use crate::engine::gpu::CylinderSegment;
++use crate::engine::gpu::segments::SegRows;
++use crate::math::Aabb;
++use session_rust::{Line, NurbsCurve, Polyline};
++
++/// Segments between consecutive points, growing `bounds` as they go.
++pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut Aabb) {
++    seg.ribbons.reserve(pts.len().saturating_sub(1));
++    for w in pts.windows(2) {
++        bounds.grow(w[0]);
++        seg.ribbons.push(CylinderSegment {
++            p0: w[0],
++            radius: pen.radius,
++            p1: w[1],
++            instance_id: pen.row,
++            color: pen.color,
++            facing: FACING_UNKNOWN,
++        });
++    }
++    if let Some(last) = pts.last() {
++        bounds.grow(*last);
++    }
++}
++
++/// One ribbon segment; the ends are read by index (no kernel `Point` allocations).
++pub fn walk_line(seg: &mut SegRows, l: &Line, row: u32) -> Row {
++    let p0 = [l[0] as f32, l[1] as f32, l[2] as f32];
++    let p1 = [l[3] as f32, l[4] as f32, l[5] as f32];
++    let mut bounds = Aabb::empty();
++    bounds.grow(p0);
++    bounds.grow(p1);
++    seg.ribbons.push(CylinderSegment {
++        p0,
++        radius: encode_width(l.width),
++        p1,
++        instance_id: row,
++        color: pack_rgba(l.linecolor.to_f32()),
++        facing: FACING_UNKNOWN,
++    });
++    Row::thin(bounds)
++}
++
++/// One segment per span, straight from the flat coordinate array.
++pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
++    let mut pts: Vec<[f32; 3]> = Vec::with_capacity(pl.coords.len() / 3);
++    for c in pl.coords.chunks_exact(3) {
++        pts.push([c[0] as f32, c[1] as f32, c[2] as f32]);
++    }
++    let pen = Pen {
++        row,
++        radius: encode_width(pl.width),
++        color: pack_rgba(pl.linecolor.to_f32()),
++    };
++    let mut bounds = Aabb::empty();
++    push_polyline(seg, &pts, &pen, &mut bounds);
++    Row {
++        thickness: polyline_thickness(&pts),
++        ..Row::thin(bounds)
++    }
++}
++
++/// Degrees of turning one chord may hide. A chord across `a` degrees of arc sags by
++/// `r * (1 - cos(a/2))` of its own radius, so 5 degrees is a sag of 0.1% - under a pixel until
++/// the curve is a thousand pixels across, at any zoom and at any size in world units.
++const CHORD_DEGREES: f64 = 5.0;
++
++/// Read one Euclidean control position using the curve's rational storage convention.
++fn control_position(c: &NurbsCurve, i: usize) -> Option<[f64; 3]> {
++    let p = c.cv(i)?;
++    let w = if c.m_is_rat && p.len() > 3 && p[3] != 0.0 {
++        p[3]
++    } else {
++        1.0
++    };
++    Some([p[0] / w, p[1] / w, p[2] / w])
++}
++
++/// Convert sampled world coordinates only at the viewer's f32 upload boundary.
++pub(super) fn render_position(point: [f64; 3]) -> [f32; 3] {
++    [point[0] as f32, point[1] as f32, point[2] as f32]
++}
++
++/// The control polygon turns by this much in total; a straight curve returns 0 and a full
++/// circle 360, whatever its radius. Curvature, not world size, is what a chord has to follow.
++fn turning_degrees(c: &NurbsCurve) -> f64 {
++    let mut total = 0.0;
++    let mut prev: Option<[f64; 3]> = None;
++    for i in 1..c.m_cv_count {
++        let (Some(a), Some(b)) = (control_position(c, i - 1), control_position(c, i)) else {
++            continue;
++        };
++        let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
++        let len = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
++        if len < 1e-12 {
++            continue;
++        }
++        let u = [d[0] / len, d[1] / len, d[2] / len];
++        if let Some(q) = prev {
++            let dot = (q[0] * u[0] + q[1] * u[1] + q[2] * u[2]).clamp(-1.0, 1.0);
++            total += dot.acos().to_degrees();
++        }
++        prev = Some(u);
++    }
++    total
++}
++
++/// The curve's f64 samples, one chord per `CHORD_DEGREES` of turning.
++pub(super) fn sample_nurbscurve(c: &NurbsCurve) -> Vec<[f64; 3]> {
++    if c.m_cv_count < 2 {
++        return Vec::new();
++    }
++    let spans = c.span_count().max(1);
++    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512);
++
++    let (t0, t1) = c.domain();
++    let mut pts: Vec<[f64; 3]> = Vec::with_capacity(n + 1);
++    for i in 0..=n {
++        let point = c.point_at(t0 + (t1 - t0) * i as f64 / n as f64);
++        pts.push([point[0], point[1], point[2]]);
++    }
++    pts
++}
++
++/// Sample the curve into a polyline whose segment count follows its size, then walk that.
++pub fn walk_nurbscurve(seg: &mut SegRows, c: &NurbsCurve, row: u32) -> Row {
++    let pts: Vec<_> = sample_nurbscurve(c)
++        .into_iter()
++        .map(render_position)
++        .collect();
++    let color = c
++        .linecolors
++        .first()
++        .map(session_rust::Color::to_f32)
++        .unwrap_or([0.0, 0.0, 0.0, 1.0]);
++    let pen = Pen {
++        row,
++        radius: encode_width(c.width),
++        color: pack_rgba(color),
++    };
++    let mut bounds = Aabb::empty();
++    push_polyline(seg, &pts, &pen, &mut bounds);
++    Row::thin(bounds)
++}
+diff --git a/session_viewer/src/app/walk/encode.rs b/session_viewer/src/app/walk/encode.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..845dfbaf074cd1d96319e35e66375c59fd83f810
+--- /dev/null
++++ b/session_viewer/src/app/walk/encode.rs
+@@ -0,0 +1,75 @@
++//! Row encodings shared by every producer: pen widths to radii, colours to RGBA8, normals to
++//! oct16 and the packed `facing` word the ink shaders test. Pure functions on numbers.
++
++/// An authored width (kernel millimetres) as the world-mm RADIUS the shaders project; the
++/// untouched 1.0 default (and 0 / non-finite) is 0.0 = the screen-constant pen.
++pub fn encode_width(w: f64) -> f32 {
++    if w.is_finite() && w > 0.0 && (w - 1.0).abs() > 1e-9 {
++        (w as f32) * 0.5
++    } else {
++        0.0
++    }
++}
++
++/// One colour channel to a byte, rounded.
++fn quant8(v: f32) -> u32 {
++    ((v.clamp(0.0, 1.0) * 255.0 + 0.5) as u32) & 0xff
++}
++
++/// RGBA8 in one word, low byte red - the layout `unpack4x8unorm` expects in WGSL.
++pub fn pack_rgba(c: [f32; 4]) -> u32 {
++    quant8(c[0]) | quant8(c[1]) << 8 | quant8(c[2]) << 16 | quant8(c[3]) << 24
++}
++
++/// `signum` that never returns 0, so the -Z pole does not fold onto the +Z code.
++fn sign_not_zero(v: f64) -> f64 {
++    if v < 0.0 { -1.0 } else { 1.0 }
++}
++
++/// One octahedral coordinate to a signed byte.
++fn quant_snorm8(v: f64) -> u32 {
++    (((v.clamp(-1.0, 1.0) * 127.0).round() as i32) as u32) & 0xff
++}
++
++/// A unit vector in 16 bits, octahedral (~1.4 deg of error, used for the SIGN of a dot).
++pub fn oct16(n: &[f64; 3]) -> Option<u32> {
++    let l = n[0].abs() + n[1].abs() + n[2].abs();
++    if l.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater) {
++        return None;
++    }
++    let (mut x, mut y) = (n[0] / l, n[1] / l);
++    if n[2] < 0.0 {
++        let (ax, ay) = (x.abs(), y.abs());
++        (x, y) = ((1.0 - ay) * sign_not_zero(x), (1.0 - ax) * sign_not_zero(y));
++    }
++    Some(quant_snorm8(x) | quant_snorm8(y) << 8)
++}
++
++/// Opaque black, packed: the wireframe's default pen.
++pub const BLACK: u32 = 0xff00_0000;
++
++/// `facing` meaning "no adjacency, always draw". All-ones: (0, 0) is the honest code for +Z.
++pub const FACING_UNKNOWN: u32 = u32::MAX;
++
++/// The two faces an edge belongs to, packed into one word; a lone face is duplicated.
++pub fn pack_facing(n0: Option<&[f64; 3]>, n1: Option<&[f64; 3]>) -> u32 {
++    let pair = match (n0, n1) {
++        (Some(a), Some(b)) => (oct16(a), oct16(b)),
++        (Some(a), None) | (None, Some(a)) => (oct16(a), oct16(a)),
++        _ => (None, None),
++    };
++    match pair {
++        (Some(a), Some(b)) => {
++            let v = a | b << 16;
++            if v == FACING_UNKNOWN { v ^ 1 } else { v }
++        }
++        _ => FACING_UNKNOWN,
++    }
++}
++
++/// One pen for a run of segments: the object row, the encoded radius and the packed colour.
++pub struct Pen {
++    pub row: u32,
++    pub radius: f32,
++    pub color: u32,
++}
+diff --git a/session_viewer/src/app/walk/mesh.rs b/session_viewer/src/app/walk/mesh.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..160367632207dd672f2610b12bf580f021ec4a5c
+--- /dev/null
++++ b/session_viewer/src/app/walk/mesh.rs
+@@ -0,0 +1,236 @@
++//! One mesh into the tables: its faces into the arena, its local box, then the ink pass
++//! (`mesh_ink`) unless the mesh is dense, a print fill, or edges are switched off. The gates
++//! and thresholds live here. Nothing here reads the GPU.
++
++use super::bounds::mesh_thickness;
++use super::mesh_ink::{Ink, InkCx, edges_and_dots};
++use super::mesh_topology::{SlotMap, mesh_topology};
++use super::{Row, WalkCx};
++use crate::app::knobs;
++use crate::engine::gpu::Instance;
++use crate::engine::gpu::arena::ArenaRows;
++use crate::math::Aabb;
++use session_rust::Mesh;
++use session_rust::RenderVertex;
++
++/// Above this many triangles a mesh draws as TRIANGLES ONLY - no edges, no markers: on a
++/// scan the decoration is 90x the geometry. The bunny (69k tri) keeps its wireframe.
++pub const MESH_RAW_MIN: usize = 200_000;
++
++/// At or above this many edges a mesh's wireframe draws BLACK whatever the file says.
++pub const WIREFRAME_BLACK_MIN: usize = 10_000;
++
++/// Two faces count as one flat region above this normal dot: EXACT coplanarity, so curvature
++/// on a dense scan is never mistaken for tessellation.
++pub const COPLANAR_DOT: f64 = 1.0 - 1e-9;
++
++/// How far two faces of a SMOOTH tessellation must turn before their shared edge is a crease
++/// rather than a seam left by sampling. cos(25 degrees): `brep::QUALITY` asks for at most 5
++/// degrees between samples, so the threshold sits well clear of what the sampling itself
++/// produces. The test lives here because these normals are exact f64 - the 16-bit oct codes
++/// the shader reads quantise to about 1.4 degrees, which on a nearly flat patch collapses two
++/// adjacent facet normals onto one code and makes a seam look like a one-faced border.
++pub const CREASE_COS: f64 = 0.906_307_787;
++
++/// Typical distance between a mesh's vertices: the diagonal over the square root of the
++/// vertex count (a surface spreads its vertices over an area). The markers thin below it.
++pub(super) fn mesh_spacing(bounds: &Aabb, verts: usize) -> f32 {
++    if verts < 2 {
++        return 0.0;
++    }
++    bounds.diagonal() / (verts as f32).sqrt()
++}
++
++/// A fill (every PDF glyph, every poche region) broadcasts a single width of 0: print, not
++/// surface. One test drives the wireframe skip, the index run and `FLAG_PRINT`.
++pub fn is_print_fill(m: &Mesh) -> bool {
++    m.widths().len() == 1 && m.widths()[0] == 0.0
++}
++
++/// How one mesh is walked: whether a print fill takes the sheet index runs (and
++/// `FLAG_PRINT`), and whether an open mesh may raise `FLAG_OPEN`.
++pub struct MeshOpts {
++    pub sheet_lanes: bool,
++    pub allow_open: bool,
++    /// The mesh is a tessellation of a smooth surface, so its seams are not edges.
++    pub smooth: bool,
++}
++
++impl MeshOpts {
++    /// A `Mesh` object: print fills take the sheet runs; open meshes are flagged. Every edge
++    /// an authored mesh carries is an edge the author put there.
++    pub const OBJECT: MeshOpts = MeshOpts {
++        sheet_lanes: true,
++        allow_open: true,
++        smooth: false,
++    };
++    /// A tessellated BRep or surface: always the depth-tested run, never `FLAG_OPEN`, and the
++    /// seams between its facets are sampling, not geometry.
++    pub const MODEL: MeshOpts = MeshOpts {
++        sheet_lanes: false,
++        allow_open: false,
++        smooth: true,
++    };
++    /// An element's mesh: sheet runs, but an element is never flagged open.
++    pub const ELEMENT: MeshOpts = MeshOpts {
++        sheet_lanes: true,
++        allow_open: false,
++        smooth: false,
++    };
++}
++
++/// The clock behind VIEWER_PROFILE: `mark` prints the lap since the previous mark. A no-op
++/// on wasm32, where `Instant::now()` panics.
++#[cfg(not(target_arch = "wasm32"))]
++pub struct Lap {
++    on: bool,
++    at: std::time::Instant,
++    prefix: &'static str,
++}
++
++/// The browser build's clock: nothing to read, nothing to print.
++#[cfg(target_arch = "wasm32")]
++pub struct Lap;
++
++#[cfg(not(target_arch = "wasm32"))]
++impl Lap {
++    /// Start the clock; `prefix` names the caller in every printed line.
++    pub fn start(prefix: &'static str) -> Self {
++        Self {
++            on: knobs::profile(),
++            at: std::time::Instant::now(),
++            prefix,
++        }
++    }
++
++    /// Print the lap since the previous mark under `name`, then restart.
++    pub fn mark(&mut self, name: &str) {
++        if self.on {
++            eprintln!("  {} {name:<20} {:?}", self.prefix, self.at.elapsed());
++            self.at = std::time::Instant::now();
++        }
++    }
++}
++
++#[cfg(target_arch = "wasm32")]
++impl Lap {
++    /// No clock on wasm32.
++    pub fn start(_prefix: &'static str) -> Self {
++        Self
++    }
++
++    /// No clock on wasm32.
++    pub fn mark(&mut self, _name: &str) {}
++}
++
++/// Which index run a mesh's triangles join decides WHEN it is drawn: sheet fills composite
++/// in document order, lettering ("text", named by the PDF importer) goes last of all.
++fn index_run<'a>(arena: &'a mut ArenaRows, m: &Mesh, sheet: bool) -> &'a mut Vec<u32> {
++    if !sheet {
++        return &mut arena.idx;
++    }
++    if m.name == "text" {
++        &mut arena.idx_text
++    } else {
++        &mut arena.idx_print
++    }
++}
++
++/// The walk context and the options one mesh is walked with.
++pub struct MeshCx<'a> {
++    pub cx: &'a WalkCx,
++    pub opts: &'a MeshOpts,
++}
++
++/// Faces into the arena, the mesh-local box, then edges and dots unless a gate says no.
++pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) -> Row {
++    let (cx, o) = (mc.cx, mc.opts);
++    let base = cx.vert_base + arena.verts.len() as u32;
++    let mut lap = Lap::start("walk_mesh");
++    let rm = m.to_render();
++    lap.mark("to_render");
++
++    let print = is_print_fill(m);
++    let decorated = rm.indices.len() / 3 <= MESH_RAW_MIN && !print;
++    let keys = if decorated { m.vertices() } else { Vec::new() };
++    let slots = SlotMap::new(&keys);
++    let mut vpos64 = Vec::with_capacity(keys.len());
++    let mut vpos = Vec::with_capacity(keys.len());
++    for &key in &keys {
++        let point = &m.vertex[&key];
++        vpos64.push([point.x, point.y, point.z]);
++        vpos.push([point.x as f32, point.y as f32, point.z as f32]);
++    }
++    let topo = if decorated {
++        Some(mesh_topology(m, &keys, &vpos64, &slots))
++    } else {
++        None
++    };
++    let mut bounds = Aabb::empty();
++    arena.verts.reserve(rm.vertices.len());
++    arena.vids.reserve(rm.vertices.len());
++    for v in &rm.vertices {
++        bounds.grow(v.position);
++        arena.verts.push(*v);
++        arena.vids.push(cx.row);
++    }
++    let idx = index_run(arena, m, o.sheet_lanes && print);
++    idx.reserve(rm.indices.len());
++    for &i in &rm.indices {
++        idx.push(base + i);
++    }
++    lap.mark("vert+idx push");
++    let mut flags = if o.sheet_lanes && print {
++        Instance::FLAG_PRINT
++    } else {
++        0
++    };
++    let smooth = o.smooth && !knobs::seams();
++    if smooth {
++        flags |= Instance::FLAG_SMOOTH;
++    }
++    let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
++    let row = Row {
++        bounds,
++        spacing: mesh_spacing(&bounds, m.number_of_vertices()),
++        flags,
++        faces: true,
++        thickness,
++    };
++
++    if !decorated || knobs::no_edges() {
++        return row;
++    }
++
++    let topo = topo.expect("decorated mesh has topology");
++    lap.mark("topology");
++    let mut icx = InkCx {
++        row: cx.row,
++        vpos: &vpos,
++        slots: &slots,
++        smooth,
++        lap: &mut lap,
++    };
++    edges_and_dots(ink, m, &topo, &mut icx);
++
++    // An open mesh is not a solid: the facing cull would strip interior surface seen through
++    // the hole, so the shaders skip it like FLAG_INSIDE.
++    let open = o.allow_open && !topo.closed;
++    Row {
++        flags: if open {
++            row.flags | Instance::FLAG_OPEN
++        } else {
++            row.flags
++        },
++        ..row
++    }
++}
++
++/// The positions of a render mesh's vertices, for the thickness measure.
++fn positions(verts: &[RenderVertex]) -> Vec<[f32; 3]> {
++    let mut out = Vec::with_capacity(verts.len());
++    for v in verts {
++        out.push(v.position);
++    }
++    out
++}
+diff --git a/session_viewer/src/app/walk/mesh_ink.rs b/session_viewer/src/app/walk/mesh_ink.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..a0041eddc510f4e725276f12771c781cdfc347a1
+--- /dev/null
++++ b/session_viewer/src/app/walk/mesh_ink.rs
+@@ -0,0 +1,373 @@
++//! The ink a mesh wears: one pipe per visible edge, one marker per vertex - the SOLID lane.
++//! Reads the fused topology and the positions by slot; writes `SegRows.pipes` and
++//! `GlyphRows.spheres`, nothing else.
++
++use super::encode::{BLACK, FACING_UNKNOWN, encode_width, oct16, pack_facing};
++use super::mesh::{COPLANAR_DOT, CREASE_COS, Lap, WIREFRAME_BLACK_MIN};
++use super::mesh_topology::{MeshTopo, SlotMap};
++use crate::app::knobs;
++use crate::engine::gpu::glyphs::GlyphRows;
++use crate::engine::gpu::segments::SegRows;
++use crate::engine::gpu::{CylinderSegment, GlyphPoint};
++use session_rust::Mesh;
++use session_rust::mesh::ColorMode;
++
++/// The two ink lanes a mesh reaches: pipes for its edges, spheres for its vertices.
++pub struct Ink<'a> {
++    pub seg: &'a mut SegRows,
++    pub glyph: &'a mut GlyphRows,
++}
++
++/// What the ink pass needs from the face pass: the object row, the f32 positions by slot,
++/// the key -> slot map, whether the mesh is a smooth tessellation, and the profiling clock.
++pub struct InkCx<'a> {
++    pub row: u32,
++    pub vpos: &'a [[f32; 3]],
++    pub slots: &'a SlotMap,
++    /// The mesh samples a smooth surface, so only its borders and creases are ink.
++    pub smooth: bool,
++    pub lap: &'a mut Lap,
++}
++
++/// Edge `i`'s pen width: one entry broadcasts to every edge, an absent one is the 1.0 default.
++fn width_at(w: &[f64], i: usize) -> f64 {
++    if w.len() == 1 {
++        w[0]
++    } else {
++        w.get(i).copied().unwrap_or(1.0)
++    }
++}
++
++/// Width 0 = hidden: a triangulated fill asks for no wireframe.
++fn hidden(w: &[f64], i: usize) -> bool {
++    width_at(w, i) == 0.0
++}
++
++/// The normal of the face in slot `side` of an edge's pair; None past a border.
++fn normal_of(topo: &MeshTopo, faces: [u32; 2], side: usize) -> Option<[f64; 3]> {
++    if faces[side] == u32::MAX {
++        return None;
++    }
++    topo.normals[faces[side] as usize]
++}
++
++/// The two normals the facing test compares for edge `ei`. When the pair's winding disagrees,
++/// meaning both faces walk the edge the same way, the second normal points into the solid, so
++/// it is negated here: the test wants two outward normals, and the traversal direction is the
++/// only local evidence of which of the two is the wrong way round.
++fn edge_normals(topo: &MeshTopo, ei: usize) -> (Option<[f64; 3]>, Option<[f64; 3]>) {
++    let f = topo.edge_faces[ei];
++    let n0 = normal_of(topo, f, 0);
++    let n1 = normal_of(topo, f, 1);
++    if topo.opposed[ei] {
++        return (n0, n1);
++    }
++    (n0, n1.map(reversed_normal))
++}
++
++/// The cosine between two unit face normals.
++fn dot3(a: &[f64; 3], b: &[f64; 3]) -> f64 {
++    a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
++}
++
++/// On a smooth tessellation only two edges are geometry: the BORDER, where the surface ends,
++/// and the CREASE, where it genuinely folds. Everything between is the sampling grid, and
++/// drawing it draws the mesher's choices instead of the shape. A pair with an unknown normal
++/// is kept: a degenerate face proves nothing either way.
++fn smooth_feature(topo: &MeshTopo, ei: usize, pair: (Option<[f64; 3]>, Option<[f64; 3]>)) -> bool {
++    if topo.edge_faces[ei][1] == u32::MAX {
++        return true;
++    }
++    match pair {
++        (Some(n0), Some(n1)) => dot3(&n0, &n1) < CREASE_COS,
++        _ => true,
++    }
++}
++
++/// Append edge `ei`'s faces to `fkeys`, deduped.
++fn push_faces(edge_faces: &[[u32; 2]], ei: usize, fkeys: &mut Vec<usize>) {
++    for &f in edge_faces[ei].iter() {
++        if f == u32::MAX {
++            continue;
++        }
++        let fk = f as usize;
++        if !fkeys.contains(&fk) {
++            fkeys.push(fk);
++        }
++    }
++}
++
++/// Word `k` of a marker's facing triple, by `pack_facing`'s rules.
++fn facing_word(codes: &[u32], k: usize) -> u32 {
++    match (codes.get(2 * k).copied(), codes.get(2 * k + 1).copied()) {
++        (Some(a), b) => {
++            let v = a | b.unwrap_or(a) << 16;
++            if v == FACING_UNKNOWN { v ^ 1 } else { v }
++        }
++        _ => FACING_UNKNOWN,
++    }
++}
++
++/// The pipe loop: one segment per visible, non-coplanar edge - and on a smooth mesh, only
++/// where that edge is a border or a crease.
++fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
++    let w = m.widths();
++    let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN;
++    ink.seg.pipes.reserve(topo.edges.len());
++    for (i, (a, b, col)) in topo.edges.iter().enumerate() {
++        let (na, nb) = edge_normals(topo, i);
++        let facing = pack_facing(na.as_ref(), nb.as_ref());
++        if hidden(w, i) {
++            continue;
++        }
++        // Interior tessellation: a diagonal across a flat region shares two coplanar faces.
++        if let (Some(n0), Some(n1)) = (na, nb)
++            && dot3(&n0, &n1) >= COPLANAR_DOT
++            && !knobs::all_edges()
++        {
++            continue;
++        }
++        if cx.smooth && !smooth_feature(topo, i, (na, nb)) {
++            continue;
++        }
++        ink.seg
++            .pipe_ids
++            .push(if cx.smooth { u32::MAX } else { i as u32 });
++        ink.seg.pipes.push(CylinderSegment {
++            p0: cx.vpos[cx.slots.slot(*a)],
++            radius: encode_width(width_at(w, i)),
++            p1: cx.vpos[cx.slots.slot(*b)],
++            instance_id: cx.row,
++            color: if black_wire { BLACK } else { *col },
++            facing,
++        });
++    }
++}
++
++/// Per vertex: the widest visible incident edge (its width and index), and the incident
++/// edge list as CSR (`vstart`, `vinc`). Hidden edges still count for adjacency.
++struct Incidence {
++    best: Vec<(f64, usize)>,
++    vstart: Vec<u32>,
++    vinc: Vec<u32>,
++}
++
++/// Build the incidence tables over the topology.
++fn incidence(m: &Mesh, topo: &MeshTopo, cx: &InkCx) -> Incidence {
++    let w = m.widths();
++    let nv = cx.vpos.len();
++    let mut best = vec![(f64::NEG_INFINITY, 0usize); nv];
++    for (i, (a, b, _)) in topo.edges.iter().enumerate() {
++        if hidden(w, i) {
++            continue;
++        }
++        let wi = width_at(w, i);
++        for vk in [*a, *b] {
++            let e = &mut best[cx.slots.slot(vk)];
++            if wi > e.0 {
++                *e = (wi, i);
++            }
++        }
++    }
++
++    let mut vstart = vec![0u32; nv + 1];
++    for (a, b, _) in topo.edges.iter() {
++        vstart[cx.slots.slot(*a) + 1] += 1;
++        vstart[cx.slots.slot(*b) + 1] += 1;
++    }
++    for i in 0..nv {
++        vstart[i + 1] += vstart[i];
++    }
++    let mut vinc = vec![0u32; 2 * topo.edges.len()];
++    let mut cur = vstart.clone();
++    for (i, (a, b, _)) in topo.edges.iter().enumerate() {
++        for vk in [*a, *b] {
++            let s = cx.slots.slot(vk);
++            vinc[cur[s] as usize] = i as u32;
++            cur[s] += 1;
++        }
++    }
++    Incidence { best, vstart, vinc }
++}
++
++/// What the marker loop reads: the ink context and the vertex incidence over the topology.
++struct MarkerCx<'a, 'b> {
++    cx: &'a InkCx<'b>,
++    inc: &'a Incidence,
++}
++
++/// The marker loop: one glyph per vertex with a visible edge, carrying up to six incident
++/// face normals (widest edge's pair first) so the disc hugs every face at a corner.
++fn push_markers(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, input: &MarkerCx) {
++    let (cx, inc) = (input.cx, input.inc);
++    let pc = m.get_pointcolors();
++    let dots_colored = m.color_mode == ColorMode::POINTCOLORS && pc.len() == m.number_of_vertices();
++    let nv = cx.vpos.len();
++    let mut fkeys: Vec<usize> = Vec::new();
++    let mut codes: Vec<u32> = Vec::new();
++    ink.glyph.spheres.reserve(nv);
++    for (i, &(vw, ei)) in inc.best.iter().enumerate().take(nv) {
++        if vw == f64::NEG_INFINITY {
++            continue;
++        }
++        fkeys.clear();
++        push_faces(&topo.edge_faces, ei, &mut fkeys);
++        for &j in &inc.vinc[inc.vstart[i] as usize..inc.vstart[i + 1] as usize] {
++            push_faces(&topo.edge_faces, j as usize, &mut fkeys);
++        }
++        codes.clear();
++        for fk in &fkeys {
++            if let Some(n) = topo.normals[*fk]
++                && let Some(code) = oct16(&n)
++                && !codes.contains(&code)
++            {
++                codes.push(code);
++            }
++        }
++        ink.glyph.spheres.push(GlyphPoint {
++            center: cx.vpos[i],
++            radius: encode_width(vw),
++            color: if dots_colored {
++                pc[i].to_f32()
++            } else {
++                [0.1, 0.1, 0.1, 1.0]
++            },
++            instance_id: cx.row,
++            // A truncated normal list cannot prove every incident face points away.
++            facing: if codes.len() > 6 {
++                FACING_UNKNOWN
++            } else {
++                facing_word(&codes, 0)
++            },
++            facing_ext: if codes.len() > 6 {
++                [FACING_UNKNOWN; 2]
++            } else {
++                [facing_word(&codes, 1), facing_word(&codes, 2)]
++            },
++        });
++    }
++}
++
++/// Pipes, then markers unless VIEWER_NO_DOTS.
++pub fn edges_and_dots(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &mut InkCx) {
++    let inc = incidence(m, topo, cx);
++    cx.lap.mark("incidence");
++    push_pipes(ink, m, topo, cx);
++    cx.lap.mark("pipe loop");
++    if knobs::no_dots() {
++        return;
++    }
++    push_markers(ink, m, topo, &MarkerCx { cx, inc: &inc });
++    cx.lap.mark("markers");
++}
++
++/// Reverse the second incident face normal to match the corrected winding.
++fn reversed_normal(n: [f64; 3]) -> [f64; 3] {
++    [-n[0], -n[1], -n[2]]
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::app::walk::WalkCx;
++    use crate::app::walk::mesh::{MeshCx, MeshOpts, walk_mesh};
++    use crate::engine::gpu::arena::ArenaRows;
++    use session_rust::Point;
++
++    /// How many pipes one mesh pushes when walked under `opts`.
++    fn walk_pipes(mesh: &Mesh, opts: &MeshOpts) -> usize {
++        let mut arena = ArenaRows::default();
++        let mut segments = SegRows::default();
++        let mut glyphs = GlyphRows::default();
++        let mut ink = Ink {
++            seg: &mut segments,
++            glyph: &mut glyphs,
++        };
++        let cx = WalkCx {
++            vert_base: 0,
++            cloud_px: 0.0,
++            row: 0,
++        };
++        walk_mesh(&mut arena, &mut ink, mesh, &MeshCx { cx: &cx, opts });
++        segments.pipes.len()
++    }
++
++    /// A 3x3 grid of quads on the bulge z = 2e-4 * (x^2 + y^2), 100 mm apart: 24 edges, of
++    /// which 12 are border. Adjacent facets turn a couple of degrees - far too little for the
++    /// packed 16-bit normals to tell apart, which is what put these seams on screen.
++    fn bulged_grid() -> Mesh {
++        let mut points = Vec::with_capacity(16);
++        for i in 0..4 {
++            for j in 0..4 {
++                let (x, y) = (i as f64 * 100.0, j as f64 * 100.0);
++                points.push(Point::new(x, y, 2e-4 * (x * x + y * y)));
++            }
++        }
++        let mut faces = Vec::with_capacity(9);
++        for i in 0..3 {
++            for j in 0..3 {
++                let k = i * 4 + j;
++                faces.push(vec![k, k + 4, k + 5, k + 1]);
++            }
++        }
++        Mesh::from_vertices_and_faces(points, faces)
++    }
++
++    /// Two quads meeting at a right angle over the shared edge (1, 2): 7 edges, 6 of them
++    /// border and the seventh a fold no threshold can call sampling.
++    fn folded_pair() -> Mesh {
++        let points = vec![
++            Point::new(0.0, 0.0, 0.0),
++            Point::new(100.0, 0.0, 0.0),
++            Point::new(100.0, 100.0, 0.0),
++            Point::new(0.0, 100.0, 0.0),
++            Point::new(100.0, 0.0, 100.0),
++            Point::new(100.0, 100.0, 100.0),
++        ];
++        Mesh::from_vertices_and_faces(points, vec![vec![0, 1, 2, 3], vec![1, 4, 5, 2]])
++    }
++
++    /// A box wears twelve pipes and eight markers, every pipe with two known face normals.
++    #[test]
++    fn box_ink_rows() {
++        let mesh = Mesh::create_box(10.0, 20.0, 30.0);
++        let mut arena = ArenaRows::default();
++        let mut segments = SegRows::default();
++        let mut glyphs = GlyphRows::default();
++        let mut ink = Ink {
++            seg: &mut segments,
++            glyph: &mut glyphs,
++        };
++        let cx = WalkCx {
++            vert_base: 50,
++            cloud_px: 0.0,
++            row: 7,
++        };
++        walk_mesh(
++            &mut arena,
++            &mut ink,
++            &mesh,
++            &MeshCx {
++                cx: &cx,
++                opts: &MeshOpts::OBJECT,
++            },
++        );
++        assert_eq!(segments.pipes.len(), 12);
++        assert_eq!(glyphs.spheres.len(), 8);
++        for segment in &segments.pipes {
++            assert_ne!(segment.facing, FACING_UNKNOWN);
++            assert_eq!(segment.instance_id, 7);
++        }
++    }
++
++    /// A smooth tessellation inks its border and its creases, nothing else: the bulged grid
++    /// keeps all 24 edges as an authored OBJECT and only its 12 border edges as a MODEL, and
++    /// the folded pair keeps its 6 border edges plus the fold.
++    #[test]
++    fn smooth_mesh_inks_borders_and_creases_only() {
++        let grid = bulged_grid();
++        assert_eq!(walk_pipes(&grid, &MeshOpts::OBJECT), 24);
++        assert_eq!(walk_pipes(&grid, &MeshOpts::MODEL), 12);
++        assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::MODEL), 7);
++    }
++}
+diff --git a/session_viewer/src/app/walk/mesh_topology.rs b/session_viewer/src/app/walk/mesh_topology.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..e6330cc37cf2f415a4aa1ed3a0a29ece560d5c1b
+--- /dev/null
++++ b/session_viewer/src/app/walk/mesh_topology.rs
+@@ -0,0 +1,173 @@
++//! One pass over a mesh's faces for everything the ink lanes need: the unique edges with
++//! their pen colours, each edge's two faces, the face normals, and whether the mesh is
++//! closed. Byte-identical to the kernel's four separate passes, without their hash tables.
++
++use super::encode::{BLACK, pack_rgba};
++use session_rust::{Mesh, Tolerance};
++
++/// Vertex key -> slot (the key's position in the sorted key list). Dense keys index a Vec;
++/// a sparse key space falls back to a map.
++pub struct SlotMap {
++    dense: Vec<u32>,
++    sparse: std::collections::HashMap<usize, u32>,
++}
++
++impl SlotMap {
++    /// From the sorted keys `Mesh::vertices()` emits.
++    pub fn new(keys: &[usize]) -> Self {
++        let max_key = keys.last().copied().unwrap_or(0);
++        if max_key < 4 * keys.len().max(1) {
++            let mut dense = vec![u32::MAX; max_key + 1];
++            for (s, &k) in keys.iter().enumerate() {
++                dense[k] = s as u32;
++            }
++            return Self {
++                dense,
++                sparse: std::collections::HashMap::new(),
++            };
++        }
++        let mut sparse = std::collections::HashMap::with_capacity(keys.len());
++        for (s, &k) in keys.iter().enumerate() {
++            sparse.insert(k, s as u32);
++        }
++        Self {
++            dense: Vec::new(),
++            sparse,
++        }
++    }
++
++    /// The slot of key `k`.
++    pub fn slot(&self, k: usize) -> usize {
++        if self.dense.is_empty() {
++            self.sparse[&k] as usize
++        } else {
++            self.dense[k] as usize
++        }
++    }
++}
++
++/// The fused topology of one mesh.
++pub struct MeshTopo {
++    /// Unique edges as (low key, high key, packed pen colour), in first-seen order.
++    pub edges: Vec<(usize, usize, u32)>,
++    /// Per edge: the two faces that meet there, in arrival order; u32::MAX = none. A lone face
++    /// always sits in slot 0.
++    pub edge_faces: Vec<[u32; 2]>,
++    /// Per edge: the two faces walk it in OPPOSITE directions, which is what consistent
++    /// winding means locally. False says the pair disagrees, so one of the two normals points
++    /// into the solid and the facing test must negate it. A lone face is trivially true.
++    pub opposed: Vec<bool>,
++    /// Per face slot, in sorted-face-key order; None for a degenerate face.
++    pub normals: Vec<Option<[f64; 3]>>,
++    /// Every edge has two faces: no border. Deliberately NOT "walked in both directions" -
++    /// that reading called a badly wound solid open and threw the facing cull away wholesale.
++    pub closed: bool,
++}
++
++/// One face's normal from the by-slot position table, the kernel's arithmetic and cut-off.
++fn face_normal(vs: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> Option<[f64; 3]> {
++    if vs.len() < 3 {
++        return None;
++    }
++    // Newell, not the cross product of the first three corners: that one inverts on a face
++    // whose second corner is reflex, and the ink pass reads these normals to decide whether
++    // two faces are coplanar - an inverted one turns a flat region into a crease.
++    let mut n = [0.0f64; 3];
++    for i in 0..vs.len() {
++        let a = vpos[slots.slot(vs[i])];
++        let b = vpos[slots.slot(vs[(i + 1) % vs.len()])];
++        n[0] += (a[1] - b[1]) * (a[2] + b[2]);
++        n[1] += (a[2] - b[2]) * (a[0] + b[0]);
++        n[2] += (a[0] - b[0]) * (a[1] + b[1]);
++    }
++    let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
++    if len > Tolerance::ZERO_TOLERANCE {
++        Some([n[0] / len, n[1] / len, n[2] / len])
++    } else {
++        None
++    }
++}
++
++/// Sort source faces by their stable key before assigning display face slots.
++fn face_key(face: &(usize, &Vec<usize>)) -> usize {
++    face.0
++}
++
++/// The fused pass. Edges hang off their LOW vertex on an intrusive chain (`head` per slot,
++/// `next` per edge), so finding an existing (lo, hi) is a walk of two or three entries.
++pub fn mesh_topology(m: &Mesh, keys: &[usize], vpos: &[[f64; 3]], slots: &SlotMap) -> MeshTopo {
++    let mut faces: Vec<(usize, &Vec<usize>)> = Vec::with_capacity(m.face.len());
++    for (k, v) in m.face.iter() {
++        faces.push((*k, v));
++    }
++    faces.sort_unstable_by_key(face_key);
++    let cols = m.get_linecolors();
++
++    let mut normals: Vec<Option<[f64; 3]>> = Vec::with_capacity(faces.len());
++    let mut edges: Vec<(usize, usize, u32)> = Vec::new();
++    let mut edge_faces: Vec<[u32; 2]> = Vec::new();
++    // The direction slot 0's face walked the edge, and whether slot 1's face walked it back.
++    let mut dir0: Vec<u8> = Vec::new();
++    let mut opposed: Vec<bool> = Vec::new();
++    let mut head: Vec<u32> = vec![u32::MAX; keys.len()];
++    let mut next: Vec<u32> = Vec::new();
++
++    for (fs, (_, vs)) in faces.iter().enumerate() {
++        normals.push(face_normal(vs, vpos, slots));
++        let n = vs.len();
++        for i in 0..n {
++            let (u, v) = (vs[i], vs[(i + 1) % n]);
++            let (lo, hi, dir) = if u < v { (u, v, 0) } else { (v, u, 1) };
++            let ls = slots.slot(lo);
++            let mut ei = head[ls];
++            while ei != u32::MAX && edges[ei as usize].1 != hi {
++                ei = next[ei as usize];
++            }
++            if ei == u32::MAX {
++                ei = edges.len() as u32;
++                let pen = match cols.get(edges.len()) {
++                    Some(color) => pack_rgba(color.to_f32()),
++                    None => BLACK,
++                };
++                edges.push((lo, hi, pen));
++                edge_faces.push([u32::MAX; 2]);
++                dir0.push(dir);
++                opposed.push(true);
++                next.push(head[ls]);
++                head[ls] = ei;
++            }
++            // Slot by ARRIVAL, not by direction. Slotting by direction sent two same-wound
++            // faces to the same slot and left the other empty, so an edge inside a badly wound
++            // solid read as a border: the mesh was declared open and the facing cull dropped.
++            // Here the pair survives and `opposed` records that its winding disagrees.
++            let ef = &mut edge_faces[ei as usize];
++            if ef[0] == u32::MAX {
++                ef[0] = fs as u32;
++                dir0[ei as usize] = dir;
++            } else if ef[1] == u32::MAX && ef[0] != fs as u32 {
++                ef[1] = fs as u32;
++                opposed[ei as usize] = dir != dir0[ei as usize];
++            }
++        }
++    }
++
++    // Slot 0 is filled the moment an edge is created, so only slot 1 can be empty.
++    let mut closed = !m.vertex.is_empty();
++    for f in edge_faces.iter() {
++        if f[1] == u32::MAX {
++            closed = false;
++        }
++    }
++    // A declared hole ring's edges are borders by this test but not by the kernel's.
++    if !closed && !m.face_holes.is_empty() {
++        closed = m.is_closed();
++    }
++
++    MeshTopo {
++        edges,
++        edge_faces,
++        opposed,
++        normals,
++        closed,
++    }
++}
+diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..67a89cd6d50143d8292d075b0cdb7b9bd99f597b
+--- /dev/null
++++ b/session_viewer/src/app/walk/mod.rs
+@@ -0,0 +1,44 @@
++//! CPU-only producer contracts; lane buffers remain owned by the earlier GPU coordinator.
++use crate::math::Aabb;
++pub mod bounds;
++pub mod brep;
++pub mod brep_edges;
++pub mod curves;
++pub mod encode;
++pub mod mesh;
++pub mod mesh_ink;
++pub mod mesh_topology;
++
++/// Where one object's rows land: the arena rows already on the GPU (`walk_mesh` bases its
++/// indices on it), the file's point-size override in px (0 = the pb's own) and the object row.
++pub struct WalkCx {
++    pub vert_base: u32,
++    pub cloud_px: f32,
++    pub row: u32,
++}
++
++/// What a producer reports for its object row: the local box, the point/vertex spacing and
++/// the flags it earned.
++pub struct Row {
++    pub bounds: Aabb,
++    pub spacing: f32,
++    pub flags: u32,
++    /// The row drew faces: the inside test (eye within the box) applies to it.
++    pub faces: bool,
++    /// The object's thickness in its own units, whatever its orientation: retained metadata
++    /// the instance row carries.
++    pub thickness: f32,
++}
++
++impl Row {
++    /// Linework, points, frames: a box, no spacing, no flags, no faces; as thick as the box.
++    pub fn thin(bounds: Aabb) -> Self {
++        Self {
++            bounds,
++            spacing: 0.0,
++            flags: 0,
++            faces: false,
++            thickness: bounds.thinnest(),
++        }
++    }
++}
+diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
+index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606
+--- a/session_viewer/src/fixture.rs
++++ b/session_viewer/src/fixture.rs
+@@ -1,150 +1,107 @@
+-//! Deterministic grey box and floor depth fixtures in metre units.
+-use crate::engine::gpu::{CylinderSegment, GlyphPoint, ObjectRow, Upload};
+-use crate::math::Aabb;
+-use session_rust::{RenderVertex, Xform};
++//! Local source geometry and its prepared GPU rows; no fetch, credentials or baked transforms.
++use crate::app::walk::brep::{walk_brep, walk_surface};
++use crate::app::walk::mesh_ink::Ink;
++use crate::app::walk::{Row, WalkCx};
++use crate::engine::gpu::Upload;
++use crate::engine::gpu::objects::ObjectRow;
++use session_rust::{Color, Geometry, NurbsSurface, Point, Xform};
++use std::rc::Rc;
+ 
+-/// Select a local fixture without fetching a manifest or decoding geometry.
+-pub fn scene() -> Upload {
+-    if crate::app::route::query("fixture").as_deref() == Some("floor") {
+-        floor()
+-    } else {
+-        grey_box()
++/// Retain original f64 source objects independently from their GPU row addresses.
++pub struct CadFixture {
++    pub upload: Upload,
++    pub sources: Vec<Geometry>,
++    pub identities: Vec<SourceIdentity>,
++    pub pipe_source_edges: Vec<u32>,
++}
++
++/// An object row is a display address; the source GUID belongs to the retained geometry.
++#[derive(serde::Serialize)]
++pub struct SourceIdentity {
++    pub object_row: u32,
++    pub guid: String,
++    pub kind: &'static str,
++}
++
++impl CadFixture {
++    /// Allocate no geometry until the selected local case appends its source objects.
++    fn new() -> Self {
++        Self {
++            upload: Upload::default(),
++            sources: Vec::new(),
++            identities: Vec::new(),
++            pipe_source_edges: Vec::new(),
++        }
++    }
++
++    /// Prepare one source object, retaining its identity and source-space geometry together.
++    fn add(&mut self, geometry: Geometry, place: Xform) {
++        let row = self.upload.obj.rows.len() as u32;
++        let first_pipe = self.upload.seg.pipes.len();
++        let context = WalkCx {
++            vert_base: 0,
++            cloud_px: 0.0,
++            row,
++        };
++        let mut ink = Ink {
++            seg: &mut self.upload.seg,
++            glyph: &mut self.upload.glyph,
++        };
++        let (prepared, guid, kind) = match &geometry {
++            Geometry::BRep(source) => (
++                walk_brep(&mut self.upload.arena, &mut ink, source, &context),
++                source.guid().to_string(),
++                "BRep",
++            ),
++            Geometry::NurbsSurface(source) => (
++                walk_surface(&mut self.upload.arena, &mut ink, source, &context),
++                source.guid().to_string(),
++                "NurbsSurface",
++            ),
++            _ => unreachable!("the CAD fixture only constructs BRep and surface source objects"),
++        };
++        self.pipe_source_edges
++            .extend_from_slice(&self.upload.seg.pipe_ids[first_pipe..]);
++        self.push_row(prepared, place);
++        self.identities.push(SourceIdentity {
++            object_row: row,
++            guid,
++            kind,
++        });
++        self.sources.push(geometry);
++    }
++
++    /// Keep object-local bounds separate from the instance placement used for camera fitting.
++    fn push_row(&mut self, prepared: Row, place: Xform) {
++        let mut object = ObjectRow::new(place.m, prepared.flags);
++        object.bounds = prepared.bounds;
++        object.spacing = prepared.spacing;
++        object.faces = prepared.faces;
++        object.thickness = prepared.thickness;
++        self.upload.bounds.union(&prepared.bounds.placed(&place.m));
++        self.upload.obj.rows.push(object);
+     }
+ }
+ 
+-/// Eight source corners, six exact face quads, twelve red source edges and eight black markers.
+-fn grey_box() -> Upload {
+-    let mut upload = Upload::default();
++/// A planar surface with one actual source face and four natural parameter boundaries.
++fn planar_surface() -> NurbsSurface {
+     let points = [
+-        [-0.5, -0.5, -0.5],
+-        [0.5, -0.5, -0.5],
+-        [0.5, 0.5, -0.5],
+-        [-0.5, 0.5, -0.5],
+-        [-0.5, -0.5, 0.5],
+-        [0.5, -0.5, 0.5],
+-        [0.5, 0.5, 0.5],
+-        [-0.5, 0.5, 0.5],
++        Point::new(-200.0, -150.0, 0.0),
++        Point::new(-200.0, 150.0, 0.0),
++        Point::new(200.0, -150.0, 0.0),
++        Point::new(200.0, 150.0, 0.0),
+     ];
+-    upload.bounds = Aabb {
+-        min: [-0.5; 3],
+-        max: [0.5; 3],
+-    };
+-    row(&mut upload, true);
+-    let faces = [
+-        ([0, 3, 2, 1], [0., 0., -1.]),
+-        ([4, 5, 6, 7], [0., 0., 1.]),
+-        ([0, 1, 5, 4], [0., -1., 0.]),
+-        ([3, 7, 6, 2], [0., 1., 0.]),
+-        ([0, 4, 7, 3], [-1., 0., 0.]),
+-        ([1, 2, 6, 5], [1., 0., 0.]),
+-    ];
+-    for (corners, normal) in faces {
+-        let mut positions = [[0.0; 3]; 4];
+-        for (slot, corner) in corners.into_iter().enumerate() {
+-            positions[slot] = points[corner];
+-        }
+-        quad(&mut upload, 0, positions, normal);
+-    }
+-    for [first, last] in [
+-        [0, 1],
+-        [1, 2],
+-        [2, 3],
+-        [3, 0],
+-        [4, 5],
+-        [5, 6],
+-        [6, 7],
+-        [7, 4],
+-        [0, 4],
+-        [1, 5],
+-        [2, 6],
+-        [3, 7],
+-    ] {
+-        stroke(&mut upload, 0, points[first], points[last], 0xff0000ff);
+-    }
+-    for point in points {
+-        marker(&mut upload, 0, point, [0., 0., 0., 1.]);
+-    }
+-    upload
++    let mut surface = NurbsSurface::create(false, false, 1, 1, 2, 2, &points).unwrap();
++    surface.facecolors = vec![Color::grey()];
++    surface.name = "local source face".into();
++    surface
+ }
+-
+-/// Four millimetres separate hidden magenta ink from a physical sloping floor.
+-fn floor() -> Upload {
+-    let mut upload = Upload::default();
+-    upload.bounds = Aabb {
+-        min: [-2.0, -1.5, -0.504],
+-        max: [2.0, 1.5, 0.5],
+-    };
+-    row(&mut upload, true);
+-    row(&mut upload, false);
+-    quad(
+-        &mut upload,
+-        0,
+-        [
+-            [-2., -1.5, -0.5],
+-            [2., -1.5, 0.5],
+-            [2., 1.5, 0.5],
+-            [-2., 1.5, -0.5],
+-        ],
+-        [-0.24253562, 0., 0.9701425],
++/// Build the first source-face checkpoint entirely from local geometry.
++pub fn build() -> CadFixture {
++    let mut scene = CadFixture::new();
++    scene.add(
++        Geometry::NurbsSurface(Rc::new(planar_surface())),
++        Xform::identity(),
+     );
+-    for y in [-0.6, 0.0, 0.6] {
+-        stroke(&mut upload, 1, [-1., y, -0.254], [1., y, 0.246], 0xffff00ff);
+-        marker(&mut upload, 1, [0., y, -0.004], [1., 0., 1., 1.]);
+-    }
+-    stroke(
+-        &mut upload,
+-        0,
+-        [-1.3, -1., -0.325],
+-        [1.3, -1., 0.325],
+-        0xffff0000,
+-    );
+-    upload
++    scene
+ }
+-
+-/// Describe each source object once; table indices remain its rendering address.
+-fn row(upload: &mut Upload, faces: bool) {
+-    let mut row = ObjectRow::new(Xform::identity().m, 0);
+-    row.bounds = upload.bounds;
+-    row.faces = faces;
+-    upload.obj.rows.push(row);
+-}
+-
+-/// Append two triangles using the same four positions as their boundary strokes.
+-fn quad(upload: &mut Upload, row: u32, points: [[f32; 3]; 4], normal: [f32; 3]) {
+-    let first = upload.arena.verts.len() as u32;
+-    for position in points {
+-        upload.arena.verts.push(RenderVertex {
+-            position,
+-            normal,
+-            color: [0.6, 0.6, 0.6, 1.],
+-        });
+-        upload.arena.vids.push(row);
+-    }
+-    for index in [0, 1, 2, 0, 2, 3] {
+-        upload.arena.idx.push(first + index);
+-    }
+-}
+-
+-/// Screen-space ribbon extrusion consumes unchanged source endpoints.
+-fn stroke(upload: &mut Upload, row: u32, p0: [f32; 3], p1: [f32; 3], color: u32) {
+-    upload.seg.ribbons.push(CylinderSegment {
+-        p0,
+-        p1,
+-        radius: 0.,
+-        instance_id: row,
+-        color,
+-        facing: u32::MAX,
+-    });
+-}
+-
+-/// Source-centred markers use the same physical scene depth as the strokes.
+-fn marker(upload: &mut Upload, row: u32, center: [f32; 3], color: [f32; 4]) {
+-    upload.glyph.dots.push(GlyphPoint {
+-        center,
+-        radius: 0.018,
+-        color,
+-        instance_id: row,
+-        facing: u32::MAX,
+-        facing_ext: [u32::MAX; 2],
+-    });
+-}
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index f2fb7e08d09946d58166992f8a0da14b03e95cc1..3e700225c9a2e687ce460dd2bd717212e9ef47f7
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -13,18 +13,19 @@
+     gpu: Gpu,
+     camera: camera::Camera,
+     scale: f64,
++    fixture: fixture::CadFixture,
+ }
+ #[wasm_bindgen]
+ impl Tutorial {
+-    /// Build the independent lanes and upload the four local source objects once.
++    /// Retain local CAD sources while handing only prepared lane tables to the GPU.
+     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
+         console_error_panic_hook::set_once();
+         let mut gpu = Gpu::new(canvas.clone()).await.map_err(js_error)?;
+-        let mut upload = fixture::scene();
+-        gpu.set_scene(&upload);
+-        upload.drop_uploaded();
++        let mut fixture = fixture::build();
++        gpu.set_scene(&fixture.upload);
++        fixture.upload.drop_uploaded();
+         let mut camera = camera::Camera::new();
+-        camera.unit = camera::Unit::Meters;
++        camera.unit = camera::Unit::Millimeters;
+         camera.set_view(camera::View::Iso);
+         camera.fit(&gpu.bounds, 1.5);
+         if app::route::query("top").is_some() {
+@@ -41,6 +42,7 @@
+             gpu,
+             camera,
+             scale: 1.0,
++            fixture,
+         })
+     }
+     /// Orbit or pan with the same production camera methods used by the final viewer.
+@@ -90,7 +92,7 @@
+             now_ms: now,
+         };
+         self.gpu.render(&input).map_err(js_error)?;
+-        Ok(serde_json::json!({"stage":5,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"samples":self.gpu.targets.samples,
++        Ok(serde_json::json!({"stage":6,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
+             "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
+     }
+ }
+diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
+index 899b43a73e51289ae7c71d1d3d68cdac3dd6d0c3..6adbd6799d80d58e306268cb5f828112d1242ef3
+--- a/session_viewer/src/shaders/triangle.wgsl
++++ b/session_viewer/src/shaders/triangle.wgsl
+@@ -90,7 +90,8 @@
+     }
+     o.color = color;
+     o.world_pos = world;
+-    o.normal = face_normal(inst.model, in.normal);
++    // Flat preview until09: keep source normals in the arena, use the finite face fallback.
++    o.normal = vec3<f32>(0.0);
+     o.mirrored = select(0u, 1u, dot(inst.model[0].xyz, cross(inst.model[1].xyz, inst.model[2].xyz)) < 0.0);
+     o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
+     o.inst_id = in.inst_id;

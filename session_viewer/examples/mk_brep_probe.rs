@@ -6,14 +6,16 @@
 // is_feature_edge) under the same orbit check.
 //
 // cargo run --release --target x86_64-unknown-linux-gnu --example mk_brep_probe -- <out.pb>
-use session_rust::brep::{brep_reverse, BRep};
+use session_rust::brep::{BRep, brep_reverse};
 use session_rust::{Color, Mesh, NurbsSurface, Point, Session, Xform};
 
 /// Write the plate and its three solids into one session at `argv[1]`, reversing two of the
 /// cylinder's face uses when `BREP_PROBE_FLIPPED` is set so the two files differ only in
 /// orientation.
 fn main() {
-    let out = std::env::args().nth(1).unwrap_or_else(|| "target/brep_probe.pb".into());
+    let out = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "target/brep_probe.pb".into());
     let mut plate = Mesh::create_box(2800.0, 1000.0, 40.0);
     plate.transform(&Xform::translation(0.0, 0.0, -20.0));
     plate.set_objectcolor(Color::grey());
@@ -40,7 +42,8 @@ fn main() {
             points.push(Point::new(x, y, z));
         }
     }
-    let mut surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).expect("probe surface");
+    let mut surface =
+        NurbsSurface::create(false, false, 3, 3, 4, 4, &points).expect("probe surface");
     surface.facecolors = vec![Color::grey()];
 
     let mut s = Session::new("brep_probe");

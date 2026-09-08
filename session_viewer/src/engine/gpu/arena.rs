@@ -2,16 +2,25 @@
 //! index runs drawn from it - solid faces, sheet fills (depth write off, document order) and
 //! lettering (last of all). `ArenaRows` is one upload's delta; `ArenaLane` is the GPU side.
 
-use crate::engine::pipelines::{build, instance_id_layout, module, vertex_layout, ColorWrite, DepthMode, Layouts, PipelineDesc, Target};
-use session_rust::RenderVertex;
 use super::buffers::{GpuCtx, GrowBuf, INDICES, VERTS};
 use super::frame::Binds;
+use super::text_outline::{OutlineBuffers, OutlineTextLane};
 use super::upload::drop_rows;
+use crate::engine::pipelines::{
+    Layouts, PipelineDesc, Target, build, instance_id_layout, module, vertex_layout,
+};
+use session_rust::RenderVertex;
 use wgpu::PrimitiveTopology::TriangleList;
 
 /// The lane's shaders, for the mirror tests.
 #[cfg(test)]
-pub const SHADERS: &[(&str, &str)] = &[("triangle.wgsl", include_str!("../../shaders/triangle.wgsl"))];
+pub const SHADERS: &[(&str, &str)] = &[
+    ("triangle.wgsl", include_str!("../../shaders/triangle.wgsl")),
+    (
+        "text_outline.wgsl",
+        include_str!("../../shaders/text_outline.wgsl"),
+    ),
+];
 
 /// One upload's mesh rows: vertices, their object rows, and the three index runs.
 #[derive(Default)]
@@ -34,13 +43,11 @@ impl ArenaRows {
     }
 }
 
-/// The four pipelines over the arena: solid faces (opaque: the shader writes alpha 1), sheet
-/// runs (blended, depth read-only), and their id-pass twins.
+/// Solid face color and identity pipelines. Sheet vectors use the unlit outline lane.
 struct ArenaPipelines {
     faces: wgpu::RenderPipeline,
-    sheet: wgpu::RenderPipeline,
     id_faces: wgpu::RenderPipeline,
-    id_sheet: wgpu::RenderPipeline,
+    selection_mask: wgpu::RenderPipeline,
 }
 
 /// The arena on the GPU: five `GrowBuf`s under the one growth policy.
@@ -52,28 +59,49 @@ pub struct ArenaLane {
     text: GrowBuf,
     shader: wgpu::ShaderModule,
     pipes: ArenaPipelines,
+    outline_text: OutlineTextLane,
 }
 
 impl ArenaLane {
+    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
+    pub fn allocated_bytes(&self) -> u64 {
+        self.verts.buf.size()
+            + self.vids.buf.size()
+            + self.faces.buf.size()
+            + self.print.buf.size()
+            + self.text.buf.size()
+    }
+
     /// Five one-row tables; the first upload sizes them.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        let shader = module(&ctx.device, "triangle.shader", include_str!("../../shaders/triangle.wgsl"));
+        let shader = module(
+            &ctx.device,
+            "triangle.shader",
+            include_str!("../../shaders/triangle.wgsl"),
+        );
         let pipes = build_pipelines(ctx, l, &shader, target);
 
         Self {
-            verts: GrowBuf::new(ctx, "arena.vbo", std::mem::size_of::<RenderVertex>() as u64, VERTS),
+            verts: GrowBuf::new(
+                ctx,
+                "arena.vbo",
+                std::mem::size_of::<RenderVertex>() as u64,
+                VERTS,
+            ),
             vids: GrowBuf::new(ctx, "arena.vids", 4, VERTS),
             faces: GrowBuf::new(ctx, "arena.ibo", 4, INDICES),
             print: GrowBuf::new(ctx, "arena.ibo.print", 4, INDICES),
             text: GrowBuf::new(ctx, "arena.ibo.text", 4, INDICES),
             shader,
             pipes,
+            outline_text: OutlineTextLane::new(ctx, l, target),
         }
     }
 
     /// Rebuild the pipelines for a new sample count.
     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
         self.pipes = build_pipelines(ctx, l, &self.shader, target);
+        self.outline_text.retarget(ctx, l, target);
     }
 
     /// Append one file's rows. The sheet runs index the SAME vertex table.
@@ -90,29 +118,60 @@ impl ArenaLane {
         self.draw_run(pass, b, &self.pipes.faces, &self.faces)
     }
 
+    /// Visible selected faces only; replay the identical vertices against physical depth.
+    pub fn draw_selection_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        self.draw_run(pass, b, &self.pipes.selection_mask, &self.faces)
+    }
+
     /// Sheet fills: same vertex table, depth write off, so a page's exactly coplanar regions
     /// composite in document order. 3D geometry in front still occludes them.
     pub fn draw_print(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_run(pass, b, &self.pipes.sheet, &self.print)
+        self.outline_text
+            .draw(pass, b, &self.outline_buffers(&self.print))
     }
 
     /// Lettering, last of everything: a page paints its text on top of hatching and linework.
     pub fn draw_text(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_run(pass, b, &self.pipes.sheet, &self.text)
+        self.outline_text
+            .draw(pass, b, &self.outline_buffers(&self.text))
     }
 
     /// The id pass for the faces and the sheet fills, each fragment its object row.
     pub fn draw_face_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_run(pass, b, &self.pipes.id_faces, &self.faces) + self.draw_run(pass, b, &self.pipes.id_sheet, &self.print)
+        self.draw_run(pass, b, &self.pipes.id_faces, &self.faces)
+            + self
+                .outline_text
+                .draw_physical_ids(pass, b, &self.outline_buffers(&self.print))
     }
 
     /// The id pass for the lettering, after the ink as in the colour pass.
     pub fn draw_text_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_run(pass, b, &self.pipes.id_sheet, &self.text)
+        self.outline_text
+            .draw_ids(pass, b, &self.outline_buffers(&self.text))
+    }
+
+    /// Borrow the exact glyph triangles without copying the arena's vertex/object tables.
+    fn outline_buffers<'a>(&'a self, indices: &'a GrowBuf) -> OutlineBuffers<'a> {
+        OutlineBuffers {
+            vertices: &self.verts,
+            objects: &self.vids,
+            indices,
+        }
+    }
+
+    /// PDF vectors need coverage, including legacy imports that mix letters with fills.
+    pub fn sheet_count(&self) -> u32 {
+        self.text.len().saturating_add(self.print.len())
     }
 
     /// One index run through `pipeline`; 0 draws when it is empty.
-    fn draw_run(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds, pipeline: &wgpu::RenderPipeline, run: &GrowBuf) -> u32 {
+    fn draw_run(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        b: &Binds,
+        pipeline: &wgpu::RenderPipeline,
+        run: &GrowBuf,
+    ) -> u32 {
         if run.is_empty() {
             return 0;
         }
@@ -154,17 +213,34 @@ impl ArenaLane {
     }
 }
 
-/// The four arena pipelines for `target`.
-fn build_pipelines(ctx: &GpuCtx, l: &Layouts, shader: &wgpu::ShaderModule, target: Target) -> ArenaPipelines {
+/// The two solid face pipelines for `target`.
+fn build_pipelines(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    shader: &wgpu::ShaderModule,
+    target: Target,
+) -> ArenaPipelines {
     let groups = [&l.mvp, &l.line, &l.instance];
     let buffers = [vertex_layout(), instance_id_layout()];
     let base = PipelineDesc::new(shader, &groups, &buffers, TriangleList);
     let dev = &ctx.device;
 
     ArenaPipelines {
-        faces: build(dev, target, &base.with("triangle", "fs_main")),
-        sheet: build(dev, target, &base.with("triangle.sheet", "fs_main").color(ColorWrite::Blended).depth(DepthMode::ReadOnly)),
-        id_faces: build(dev, Target::ID, &base.with("triangle.id", "fs_id")),
-        id_sheet: build(dev, Target::ID, &base.with("triangle.sheet.id", "fs_id").depth(DepthMode::ReadOnlyEqual)),
+        faces: build(dev, target, &base.with("triangle", "fs_main").physical()),
+        id_faces: build(
+            dev,
+            Target::ID,
+            &base.with("triangle.id", "fs_id").physical(),
+        ),
+        selection_mask: build(
+            dev,
+            Target {
+                format: wgpu::TextureFormat::R8Unorm,
+                samples: target.samples,
+            },
+            &base
+                .with("triangle.selection_mask", "fs_selection_mask")
+                .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual),
+        ),
     }
 }

@@ -33,29 +33,47 @@ fn auto_spacing(coords: &[f64]) -> f64 {
 
 fn main() {
     let mut args = std::env::args().skip(1);
-    let path = args.next().expect("usage: add_lod <file.pb> [root_spacing] [leaf_capacity]");
+    let path = args
+        .next()
+        .expect("usage: add_lod <file.pb> [root_spacing] [leaf_capacity]");
     // The root grid is ALWAYS derived from the cloud - see `auto_spacing`. There is no manual
     // override on purpose: a per-cloud magic number is a number nobody can justify later, and
     // the derived one measured BETTER than the hand-tuned values it replaced (13.8 M scan at
     // the fit view: 492x fewer points, against 363x for the tuned tree).
-    let leaf_capacity: usize = args.next().map_or(8192, |v| v.parse().expect("leaf_capacity"));
+    let leaf_capacity: usize = args
+        .next()
+        .map_or(8192, |v| v.parse().expect("leaf_capacity"));
 
     let t = Instant::now();
     let bytes = std::fs::read(&path).expect("read");
     let mut session = Session::pb_loads(&bytes).expect("parse");
-    println!("read           {:>7.0} ms  ({:.1} MB)", t.elapsed().as_secs_f64() * 1e3, bytes.len() as f64 / 1.048576e6);
+    println!(
+        "read           {:>7.0} ms  ({:.1} MB)",
+        t.elapsed().as_secs_f64() * 1e3,
+        bytes.len() as f64 / 1.048576e6
+    );
 
     let guids: Vec<String> = session.order().to_vec();
     let mut built = 0usize;
     for g in guids {
-        let Some(Geometry::PointCloud(rc)) = session.lookup.get(&g) else { continue };
+        let Some(Geometry::PointCloud(rc)) = session.lookup.get(&g) else {
+            continue;
+        };
         let mut pc = (**rc).clone();
         let n = pc.point_count();
         let spacing = auto_spacing(pc.coords());
         let t = Instant::now();
         pc.build_lod(spacing, leaf_capacity);
-        println!("build_lod      {:>7.0} ms  ({} points -> {} nodes, spacing {:.0})", t.elapsed().as_secs_f64() * 1e3, n, pc.lod_node_count(), spacing);
-        session.lookup.insert(g, Geometry::PointCloud(std::rc::Rc::new(pc)));
+        println!(
+            "build_lod      {:>7.0} ms  ({} points -> {} nodes, spacing {:.0})",
+            t.elapsed().as_secs_f64() * 1e3,
+            n,
+            pc.lod_node_count(),
+            spacing
+        );
+        session
+            .lookup
+            .insert(g, Geometry::PointCloud(std::rc::Rc::new(pc)));
         built += 1;
     }
     if built == 0 {
@@ -66,6 +84,10 @@ fn main() {
     let t = Instant::now();
     let out = session.pb_dumps();
     std::fs::write(&path, &out).expect("write");
-    println!("write          {:>7.0} ms  ({:.1} MB, {:+.1} MB)", t.elapsed().as_secs_f64() * 1e3,
-        out.len() as f64 / 1.048576e6, (out.len() as f64 - bytes.len() as f64) / 1.048576e6);
+    println!(
+        "write          {:>7.0} ms  ({:.1} MB, {:+.1} MB)",
+        t.elapsed().as_secs_f64() * 1e3,
+        out.len() as f64 / 1.048576e6,
+        (out.len() as f64 - bytes.len() as f64) / 1.048576e6
+    );
 }

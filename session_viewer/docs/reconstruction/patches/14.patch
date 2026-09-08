@@ -1,0 +1,2437 @@
+diff --git a/session_viewer/Trunk.toml b/session_viewer/Trunk.toml
+index 5da3d919df1278843f9d07e90ab8c53342186c1a..e364ee58fa6ec91784ab3c9ec2eec0e3f2aa928e
+--- a/session_viewer/Trunk.toml
++++ b/session_viewer/Trunk.toml
+@@ -1,8 +1,16 @@
+ [build]
++# Benchmarks and tutorial checkpoints use this same optimized browser build.
+ release = true
+ no_sri = true
+ public_url = "./"
+ 
++[watch]
++# This replaces Trunk's default watch set, so the shared path dependency is explicit.
++watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "assets/text", "assets/text-quality.html", "../session_rust/src"]
++enable_cooldown = true
++
+ [serve]
++# The mutable development index must always name the current hashed WASM bundle.
++headers = { "Cache-Control" = "no-store" }
++addresses = ["127.0.0.1"]
+ port = 8770
+-addresses = ["127.0.0.1"]
+diff --git a/session_viewer/src/app/decode.rs b/session_viewer/src/app/decode.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c638200052e16
+--- /dev/null
++++ b/session_viewer/src/app/decode.rs
+@@ -0,0 +1,149 @@
++//! Bytes to a kernel `Session`, chunked: prost decodes the proto in one short block, then the
++//! objects are converted CHUNK at a time with a macrotask between chunks so a 250k-object
++//! parse never freezes the page. The bytes are taken by value and dropped after the decode.
++
++use super::fetch::next_tick;
++use prost::Message;
++use session_rust::proto;
++use session_rust::tree::{Tree, TreeNode};
++use session_rust::{
++    BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, OBB, Plane, Point, PointCloud,
++    Polyline, Session, Xform,
++};
++use std::rc::Rc;
++
++/// Objects converted between two yields.
++const CHUNK: usize = 25_000;
++
++/// Counts conversions and yields every `CHUNK`.
++struct Pacer {
++    n: usize,
++}
++
++impl Pacer {
++    /// One more object converted; true when the caller should yield now.
++    fn tick(&mut self) -> bool {
++        self.n += 1;
++        self.n.is_multiple_of(CHUNK)
++    }
++}
++
++/// The same conversion loop for every type: proto -> object, stored, paused every CHUNK.
++macro_rules! convert {
++    ($s:expr, $pacer:expr, $vec:expr, $ty:ident, $variant:ident, $slot:ident) => {
++        for x in $vec {
++            let g = Rc::new($ty::from_proto(x));
++            $s.lookup
++                .insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
++            $s.objects.$slot.push(g);
++            if $pacer.tick() {
++                next_tick().await;
++            }
++        }
++    };
++    (fallible $s:expr, $pacer:expr, $vec:expr, $ty:ident, $variant:ident, $slot:ident) => {
++        for x in $vec {
++            let v = match $ty::from_proto(x) {
++                Ok(value) => value,
++                Err(error) => return Err(format!("invalid {}: {error}", stringify!($ty))),
++            };
++            let g = Rc::new(v);
++            $s.lookup
++                .insert(g.guid().to_string(), Geometry::$variant(Rc::clone(&g)));
++            $s.objects.$slot.push(g);
++            if $pacer.tick() {
++                next_tick().await;
++            }
++        }
++    };
++}
++
++/// `Session::pb_loads`, unrolled with awaits. `.json` files take the synchronous path.
++pub async fn session_from_bytes(url: &str, bytes: Vec<u8>) -> Result<Session, String> {
++    if bytes.len() > 512 * 1024 * 1024 {
++        return Err(
++            "geometry payload exceeds the 512 MiB whole-file limit; use cloud streaming"
++                .to_string(),
++        );
++    }
++    if url.ends_with(".json") {
++        let text = match std::str::from_utf8(&bytes) {
++            Ok(text) => text,
++            Err(error) => return Err(format!("invalid JSON encoding: {error}")),
++        };
++        super::validate::json(text)?;
++        let session = match Session::jsonload(text) {
++            Ok(session) => session,
++            Err(error) => return Err(format!("invalid session JSON: {error}")),
++        };
++        super::validate::retained(&session)?;
++        return Ok(session);
++    }
++    let p = match proto::Session::decode(bytes.as_slice()) {
++        Ok(session) => session,
++        Err(error) => return Err(format!("invalid session protobuf: {error}")),
++    };
++    drop(bytes);
++    super::validate::session(&p)?;
++    let mut s = Session::new(&p.name);
++    s.set_guid(p.guid.clone());
++    let mut pacer = Pacer { n: 0 };
++
++    if let Some(o) = p.objects {
++        s.objects.set_guid(o.guid);
++        s.objects.name = o.name;
++        convert!(s, pacer, o.points, Point, Point, points);
++        convert!(s, pacer, o.lines, Line, Line, lines);
++        convert!(s, pacer, o.planes, Plane, Plane, planes);
++        convert!(fallible s, pacer, o.bboxes, OBB, OBB, bboxes);
++        convert!(s, pacer, o.polylines, Polyline, Polyline, polylines);
++        convert!(s, pacer, o.pointclouds, PointCloud, PointCloud, pointclouds);
++        convert!(s, pacer, o.meshes, Mesh, Mesh, meshes);
++        convert!(s, pacer, o.nurbscurves, NurbsCurve, NurbsCurve, nurbscurves);
++        convert!(fallible s, pacer, o.nurbssurfaces, NurbsSurface, NurbsSurface, nurbssurfaces);
++        convert!(fallible s, pacer, o.breps, BRep, BRep, breps);
++        convert!(fallible s, pacer, o.elements, Element, Element, elements);
++    }
++
++    for entry in &p.xforms {
++        let Some(xf) = &entry.xform else { continue };
++        let mut xform = Xform::identity();
++        xform.set_guid(xf.guid.clone());
++        xform.name = xf.name.clone();
++        for (i, val) in xf.matrix.iter().enumerate().take(16) {
++            xform.m[i] = *val;
++        }
++        s.xforms.insert(entry.guid.clone(), xform);
++    }
++
++    if let Some(gp) = &p.graph {
++        s.graph = session_rust::Graph::new(&gp.name);
++        s.graph.set_guid(gp.guid.clone());
++        for (name, v) in &gp.vertices {
++            s.graph.add_node(name, &v.attribute);
++        }
++        for e in &gp.edges {
++            s.graph.add_edge(&e.v0, &e.v1, &e.attribute);
++        }
++    }
++
++    if let Some(tp) = &p.tree {
++        s.tree = Tree::new(&tp.name);
++        s.tree.set_guid(tp.guid.clone());
++        if let Some(rp) = &tp.root {
++            let root = build_tree(rp);
++            s.tree.add(&root, None);
++        }
++    }
++    Ok(s)
++}
++
++/// One proto node and its children, recursively.
++fn build_tree(proto: &proto::TreeNode) -> Rc<std::cell::RefCell<TreeNode>> {
++    let node = TreeNode::new(&proto.name);
++    for c in &proto.children {
++        let child = build_tree(c);
++        node.borrow_mut().add(&child);
++    }
++    node
++}
+diff --git a/session_viewer/src/app/live.rs b/session_viewer/src/app/live.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..8849a6cd211105241722bc31271a9ad4d09425c9
+--- /dev/null
++++ b/session_viewer/src/app/live.rs
+@@ -0,0 +1,436 @@
++//! The live source: the deployed page watches `view_live.yaml` in the R2 bucket and every
++//! file it lists, re-reading each with `If-None-Match` so an idle poll is a handful of
++//! `304`s. A `200` with a new `ETag` is a change; the bytes it returned ARE the bytes decoded
++//! (one download), and an unchanged file is the same decoded `Session` again - shared with
++//! the scene through an `Rc`, so a swap re-walks the unchanged files but never re-decodes
++//! or copies them. A relay message (ntfy, `EventSource`) only says "look now" - the
++//! conditional reads still decide.
++//!
++//! Page query: `?live=off`, `?live=<manifest url>`, `?poll=<seconds>`, `?notify=off|<sse url>`.
++
++use super::decode::session_from_bytes;
++use super::fetch::{GetOpts, get};
++use super::manifest::Manifest;
++use super::route::{
++    AUTO_GRID, data_base, is_local_url, join, page_is_local, path_scene, query, query_scene,
++};
++use super::scene::FileDoc;
++use session_rust::Session;
++use std::cell::RefCell;
++use std::collections::HashMap;
++use std::hash::{Hash, Hasher};
++use std::rc::Rc;
++use wasm_bindgen::JsCast;
++use wasm_bindgen::closure::Closure;
++
++/// The manifest this viewer watches unless the page says otherwise.
++pub const DEFAULT_SOURCE: &str =
++    "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.yaml";
++
++/// The relay a publisher announces an upload on, as an SSE endpoint.
++const DEFAULT_NOTIFY: &str = "https://ntfy.sh/wood-live-84eaac4a04729911/sse";
++const DEFAULT_POLL_SECONDS: f64 = 5.0;
++
++/// How often the loop looks at the relay's flag: an in-memory check, so it is cheap.
++const NOTIFY_TICK_MS: i32 = 100;
++
++/// An open relay connection and whether it said anything since the last look.
++struct Notify {
++    _source: web_sys::EventSource,
++    flag: Rc<RefCell<bool>>,
++    _on_message: Closure<dyn FnMut(web_sys::MessageEvent)>,
++}
++
++impl Notify {
++    /// Open the stream; `None` (with a warning) when the browser refuses.
++    fn open(url: &str) -> Option<Self> {
++        let source = match web_sys::EventSource::new(url) {
++            Ok(s) => s,
++            Err(e) => {
++                log::warn!("live: relay {url} could not be opened ({e:?}); polling only");
++                return None;
++            }
++        };
++        let flag = Rc::new(RefCell::new(false));
++        let sink = flag.clone();
++        let on_message =
++            Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |e: web_sys::MessageEvent| {
++                on_relay_message(&sink, &e)
++            });
++        source.set_onmessage(Some(on_message.as_ref().unchecked_ref()));
++        log::info!("live: notified by {url}");
++        Some(Notify {
++            _source: source,
++            flag,
++            _on_message: on_message,
++        })
++    }
++
++    /// Whether a publisher announced something since the last look, consumed.
++    fn take(&self) -> bool {
++        std::mem::replace(&mut self.flag.borrow_mut(), false)
++    }
++}
++
++impl Drop for Notify {
++    /// Detach the callback before releasing its Rust closure and close the event stream.
++    fn drop(&mut self) {
++        self._source.set_onmessage(None);
++        self._source.close();
++    }
++}
++
++/// What one conditional read found.
++enum Read {
++    Changed(Vec<u8>),
++    Same,
++    Failed(String),
++}
++
++/// The watched manifest, what it names, and the change detectors. `tick_ms` is how often the
++/// loop looks at the relay flag (in memory); `poll_ms` how often it reads the network anyway.
++pub struct LiveSource {
++    pub url: String,
++    pub tick_ms: i32,
++    pub poll_ms: f64,
++    last_read_ms: f64,
++    base: String,
++    manifest: Option<Manifest>,
++    etags: HashMap<String, String>,
++    hashes: HashMap<String, u64>,
++    /// The current decoded set, one `Rc` per listed file, shared with the scene's documents.
++    sessions: HashMap<String, Rc<Session>>,
++    last_warning: Option<String>,
++    pending: bool,
++    notify: Option<Notify>,
++}
++
++impl LiveSource {
++    /// The successfully decoded revision's authored text, copied only when that revision is posted.
++    pub fn texts(&self) -> Vec<super::manifest::TextItem> {
++        match &self.manifest {
++            Some(manifest) => manifest.texts.clone(),
++            None => Vec::new(),
++        }
++    }
++
++    /// The page's live source, or `None` when the query or the route turns it off: a named
++    /// scene wins, and a dev server shows the local scene instead of the bucket.
++    pub fn from_query() -> Option<Self> {
++        let live = query("live");
++        if live.as_deref() == Some("off") || live.as_deref() == Some("0") {
++            return None;
++        }
++        if live.is_none() && (query_scene().is_some() || path_scene().is_some() || page_is_local())
++        {
++            return None;
++        }
++        let url = match live {
++            Some(u) if u.starts_with("https://") || is_local_url(&u) => u,
++            Some(other) => {
++                log::warn!("live: ignoring `?live={other}`; watching the default");
++                DEFAULT_SOURCE.to_string()
++            }
++            None => DEFAULT_SOURCE.to_string(),
++        };
++        let seconds = match query("poll") {
++            Some(value) => match value.parse::<f64>() {
++                Ok(seconds) if seconds >= 1.0 => seconds,
++                _ => DEFAULT_POLL_SECONDS,
++            },
++            None => DEFAULT_POLL_SECONDS,
++        };
++        let notify = match (is_local_url(&url), query("notify").as_deref()) {
++            (_, Some("off")) | (_, Some("0")) | (true, _) => None,
++            (false, Some(u)) if u.starts_with("https://") => Notify::open(u),
++            (false, _) => Notify::open(DEFAULT_NOTIFY),
++        };
++        let poll_ms = seconds * 1000.0;
++        let tick_ms = if notify.is_some() {
++            NOTIFY_TICK_MS.min(poll_ms as i32)
++        } else {
++            poll_ms as i32
++        };
++        Some(Self {
++            url,
++            tick_ms,
++            poll_ms,
++            last_read_ms: f64::NEG_INFINITY,
++            base: String::new(),
++            manifest: None,
++            etags: HashMap::new(),
++            hashes: HashMap::new(),
++            sessions: HashMap::new(),
++            last_warning: None,
++            pending: false,
++            notify,
++        })
++    }
++
++    /// Say a thing once per change of message.
++    fn warn(&mut self, message: String) {
++        if self.last_warning.as_deref() != Some(message.as_str()) {
++            log::warn!("live: {message}");
++            self.last_warning = Some(message);
++        }
++    }
++
++    /// Warn and forget what was known about `url`, so the next poll reads it again.
++    fn forget(&mut self, url: &str, message: String) {
++        self.etags.remove(url);
++        self.hashes.remove(url);
++        self.sessions.remove(url);
++        self.warn(message);
++    }
++
++    /// Read `url`, asking for `304` when it still holds what we last saw; a server without
++    /// ETags falls back to a content hash (one download per poll).
++    async fn read(&mut self, url: &str) -> Read {
++        let known = self.etags.get(url).cloned();
++        let opts = GetOpts {
++            no_store: false,
++            revalidate: true,
++            if_none_match: known.clone(),
++            range: None,
++        };
++        match get(url, &opts).await {
++            Err(e) => Read::Failed(e),
++            Ok(r) if r.status == 304 => Read::Same,
++            Ok(r) if !(200..300).contains(&r.status) => Read::Failed(format!("HTTP {}", r.status)),
++            Ok(r) => {
++                if let Some(tag) = r.etag {
++                    let same = known.as_deref() == Some(tag.as_str());
++                    self.etags.insert(url.to_string(), tag);
++                    return if same {
++                        Read::Same
++                    } else {
++                        Read::Changed(r.bytes)
++                    };
++                }
++                let mut hasher = std::collections::hash_map::DefaultHasher::new();
++                r.bytes.hash(&mut hasher);
++                let hash = hasher.finish();
++                let same = self.hashes.insert(url.to_string(), hash) == Some(hash);
++                if same {
++                    Read::Same
++                } else {
++                    Read::Changed(r.bytes)
++                }
++            }
++        }
++    }
++
++    /// Parse a manifest that was just read and remember what it names. A manifest IN THE
++    /// BUCKET names its files from the bucket root; any other source, from its own folder.
++    fn adopt(&mut self, bytes: &[u8]) -> bool {
++        match Manifest::parse(bytes) {
++            Ok(m) => {
++                let bucket = data_base();
++                self.base = if !bucket.is_empty() && self.url.starts_with(&bucket) {
++                    bucket
++                } else {
++                    dir_of(&self.url)
++                };
++                log::info!("live: manifest '{}' has {} items", m.name, m.items.len());
++                self.manifest = Some(m);
++                self.last_warning = None;
++                true
++            }
++            Err(e) => {
++                self.warn(format!(
++                    "the manifest at {} is not valid TOML/YAML/JSON: {e}",
++                    self.url
++                ));
++                false
++            }
++        }
++    }
++
++    /// One tick: the network is read when the relay announced a push or the poll interval is
++    /// due, else nothing happens. `Some(docs)` when the manifest or any file changed (every
++    /// listed file, changed ones freshly decoded, the rest the sessions already held), `None`
++    /// otherwise.
++    pub async fn check(&mut self) -> Option<Vec<FileDoc>> {
++        let announced = self.notify.as_ref().is_some_and(Notify::take);
++        let now = crate::engine::performance::now_ms();
++        if !announced && now - self.last_read_ms < self.poll_ms {
++            return None;
++        }
++        self.last_read_ms = now;
++        let url = self.url.clone();
++        let changed = match self.read(&url).await {
++            Read::Failed(e) => {
++                self.warn(format!("manifest {url} unreachable ({e})"));
++                return None;
++            }
++            Read::Changed(bytes) => {
++                if !self.adopt(&bytes) {
++                    self.etags.remove(&url);
++                    self.hashes.remove(&url);
++                    return None;
++                }
++                true
++            }
++            Read::Same => false,
++        };
++        self.pending |= changed;
++        let files = self.file_urls();
++        let mut failed = false;
++        for (_, file) in &files {
++            if file.contains("/pb/revisions/") && self.sessions.contains_key(file) {
++                continue;
++            }
++            match self.read(file).await {
++                Read::Changed(bytes) => {
++                    self.pending = true;
++                    self.decode(file, bytes).await;
++                }
++                Read::Same => {}
++                Read::Failed(e) => {
++                    failed = true;
++                    self.warn(format!(
++                        "{file} could not be read ({e}); retrying next poll"
++                    ));
++                }
++            }
++        }
++        if failed || !self.pending {
++            return None;
++        }
++        log::info!(
++            "live: source changed{}; reloading the scene",
++            if announced { " (announced)" } else { "" }
++        );
++        let docs = self.load_all(&files).await;
++        let mut removed = Vec::new();
++        for url in self.sessions.keys() {
++            let mut listed = false;
++            for (_, file) in &files {
++                if file == url {
++                    listed = true;
++                    break;
++                }
++            }
++            if !listed {
++                removed.push(url.clone());
++            }
++        }
++        for url in removed {
++            self.sessions.remove(&url);
++        }
++        if docs.len() != files.len() {
++            self.warn("replacement is incomplete; retaining the last valid scene".to_string());
++            return None;
++        }
++        self.pending = false;
++        Some(docs)
++    }
++
++    /// Decode one file's bytes into the current set; an empty file is forgotten with a warning.
++    async fn decode(&mut self, url: &str, bytes: Vec<u8>) {
++        let n = bytes.len();
++        let session = match session_from_bytes(url, bytes).await {
++            Ok(session) => session,
++            Err(error) => {
++                self.forget(url, format!("cannot decode {url}: {error}"));
++                return;
++            }
++        };
++        if session.lookup.is_empty() {
++            self.forget(url, format!("{url} holds no geometry ({n} bytes); skipped"));
++            return;
++        }
++        log::info!(
++            "live: decoded {url}: {} objects, {n} bytes",
++            session.lookup.len()
++        );
++        self.sessions.insert(url.to_string(), Rc::new(session));
++    }
++
++    /// (item index, absolute URL) of every file the current manifest lists; blank entries skipped.
++    fn file_urls(&self) -> Vec<(usize, String)> {
++        let Some(m) = &self.manifest else {
++            return Vec::new();
++        };
++        let mut out = Vec::with_capacity(m.items.len());
++        for (i, item) in m.items.iter().enumerate() {
++            if !item.file.trim().is_empty() {
++                out.push((i, join(&self.base, &item.file)));
++            }
++        }
++        out
++    }
++
++    /// One document per listed file from the current set, fetching and decoding a file the
++    /// set lacks; a file that cannot be had is skipped and forgotten so the next poll retries.
++    async fn load_all(&mut self, files: &[(usize, String)]) -> Vec<FileDoc> {
++        let Some(m) = self.manifest.take() else {
++            return Vec::new();
++        };
++        let mut out = Vec::new();
++        for (i, url) in files {
++            let (i, url) = (*i, url.as_str());
++            if !self.sessions.contains_key(url) {
++                match get(
++                    url,
++                    &GetOpts {
++                        revalidate: true,
++                        ..GetOpts::default()
++                    },
++                )
++                .await
++                {
++                    Ok(r) if (200..300).contains(&r.status) => self.decode(url, r.bytes).await,
++                    Ok(r) => self.forget(url, format!("{url} answered HTTP {}; skipped", r.status)),
++                    Err(e) => {
++                        self.forget(url, format!("{url} could not be fetched ({e}); skipped"))
++                    }
++                }
++            }
++            let Some(session) = self.sessions.get(url).cloned() else {
++                continue;
++            };
++            let name = m.name_of(i, &session.name);
++            out.push(FileDoc {
++                name,
++                session,
++                place: m.place(i, AUTO_GRID),
++                point_px: m.items[i].point_size as f32,
++                display_only: m.items[i].display_only,
++            });
++        }
++        self.manifest = Some(m);
++        out
++    }
++}
++
++/// The directory part of `url`: everything up to and including its last `/`.
++fn dir_of(url: &str) -> String {
++    match url.rfind('/') {
++        Some(i) => url[..=i].to_string(),
++        None => url.to_string(),
++    }
++}
++
++/// The relay callback: raise the flag when the message is a publish.
++fn on_relay_message(flag: &Rc<RefCell<bool>>, e: &web_sys::MessageEvent) {
++    let Some(text) = e.data().as_string() else {
++        return;
++    };
++    if is_change_notification(&text) {
++        *flag.borrow_mut() = true;
++    }
++}
++
++/// Whether one relay message means "something was published": ntfy's `message` events and
++/// any bare body; its `open`/`keepalive` housekeeping does not. The content is ignored.
++fn is_change_notification(text: &str) -> bool {
++    #[derive(serde::Deserialize)]
++    struct Envelope {
++        event: Option<String>,
++    }
++    match serde_json::from_str::<Envelope>(text) {
++        Ok(env) => matches!(env.event.as_deref(), None | Some("message")),
++        Err(_) => !text.trim().is_empty(),
++    }
++}
+diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
+index e90a21156f54d11731549f8ca97dc2aadc1a0602..9975f1dc758c8f514c9210677f2718a0c1d22ccb
+--- a/session_viewer/src/app/loader.rs
++++ b/session_viewer/src/app/loader.rs
+@@ -1,26 +1,67 @@
+-//! Local tutorial fixture boundary; chapter14 installs production routing and reloads.
+-
++//! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
++//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
++//! through `stream`. Live first, then the URL's route, then the poll loop. Touches no GPU.
++
++use super::decode::session_from_bytes;
++use super::fetch::{fetch_bytes, sleep_ms};
++use super::live::LiveSource;
++use super::manifest::Manifest;
++use super::route::AUTO_GRID;
++use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
+ use super::scene::{FileDoc, Scene, StreamedInit};
+-use super::stream::CloudFields;
++use super::stream::{CloudFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions};
+ use super::walk::cloud::StreamRows;
+-use crate::{Msg, State};
+-use session_rust::{Session, Xform};
+-use std::cell::RefCell;
++use crate::engine::performance::now_ms;
++use crate::{CloudChunk, Msg, State};
++use session_rust::Xform;
++use std::cell::{Cell, RefCell};
+ use std::rc::Rc;
+ use std::sync::Arc;
++use wasm_bindgen::prelude::*;
+ use winit::event_loop::EventLoopProxy;
+ use winit::window::Window;
+ 
++/// Points a streamed cloud brings down before it is on screen: the octree's coarse levels,
++/// so the file opens at a correct low detail whatever its size.
++const STREAM_PREFIX_POINTS: u32 = 2_000_000;
++
++/// Points per follow-up slice.
++const STREAM_CHUNK_POINTS: u32 = 2_000_000;
++
++/// Hard ceiling on resident streamed points across the whole page (`?points=` to change):
++/// 16 B a point on the GPU plus the growth slack, and a 14 M cloud killed the GPU process.
++const STREAM_MAX_POINTS: u32 = 6_000_000;
++
++/// Files at least this large open by range even without a count-based reason.
++const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
++
++/// The smallest prefix a streamed cloud gets even past the ceiling: the coarsest octree levels,
++/// so the cloud is on screen and correct, just sparse.
++const STREAM_MIN_PREFIX: u32 = 250_000;
++
+ thread_local! {
++    /// The start-up proxy, kept so `reload_scene` and the stream tasks can post messages.
+     static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
+-}
+-
+-/// Preserve the production query-result delivery interface across the loader checkpoint.
+-pub(super) fn post(message: Msg) -> bool {
+-    PROXY.with_borrow(|proxy| post_with_proxy(proxy, message))
+-}
+-
+-/// Deliver to the live browser event loop without retaining State in an async task.
++    /// Points resident across every streamed cloud on the page: the ceiling is a scene budget.
++    static RESIDENT: Cell<u32> = const { Cell::new(0) };
++    /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
++    static GENERATION: Cell<u32> = const { Cell::new(0) };
++    static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
++}
++
++/// Drop the scene: post `Clear`, forget the point budget, and retire every running stream.
++fn clear_scene() {
++    GENERATION.set(GENERATION.get().wrapping_add(1));
++    RESIDENT.set(0);
++    post(Msg::Clear);
++}
++
++/// Post one message into the running event loop; false when the loop is gone.
++pub(super) fn post(msg: Msg) -> bool {
++    PROXY.with_borrow(|proxy| post_with_proxy(proxy, msg))
++}
++
++/// The thread-local API adapter forwards delivery to this named operation.
+ fn post_with_proxy(proxy: &Option<EventLoopProxy<Msg>>, message: Msg) -> bool {
+     match proxy {
+         Some(proxy) => proxy.send_event(message).is_ok(),
+@@ -28,91 +69,341 @@
+     }
+ }
+ 
+-/// Own the proxy for asynchronous source-query messages.
++/// Retain the startup event proxy for later loading and streaming tasks.
+ fn retain_proxy(slot: &mut Option<EventLoopProxy<Msg>>, proxy: &EventLoopProxy<Msg>) {
+     *slot = Some(proxy.clone());
+ }
+ 
+-/// Start the production shell with one small deterministic, bundled Session fixture.
++/// The resident ceiling for this page load.
++fn max_points() -> u32 {
++    knob_u32("points").unwrap_or(STREAM_MAX_POINTS)
++}
++
++/// Points the scene may still make resident.
++fn budget_left() -> u32 {
++    max_points().saturating_sub(RESIDENT.get())
++}
++
++/// Book `n` points against the budget.
++fn budget_spend(n: u32) {
++    RESIDENT.set(RESIDENT.get().saturating_add(n));
++}
++
++/// Start-up: the live source when the page has one, else the URL's route, then the empty
++/// canvas either way; then the poll loop.
+ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
+     PROXY.with_borrow_mut(|slot| retain_proxy(slot, &proxy));
+     let state = match State::new(window, Scene::new()).await {
+         Ok(state) => state,
+         Err(error) => {
+-            super::feedback::error(&format!("Cannot initialize WebGPU: {error}"));
+-            return;
+-        }
+-    };
+-    post(Msg::Ready(Box::new(state)));
+-    if let Err(error) = fixture().await {
+-        super::feedback::error(&error);
+-        return;
+-    }
++            super::feedback::error(&format!(
++                "Unable to start WebGPU: {error}. Use a browser with an available WebGPU adapter, then reload."
++            ));
++            return;
++        }
++    };
++    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
++
++    let mut live = LiveSource::from_query();
++    let mut loaded = false;
++    if let Some(src) = live.as_mut() {
++        log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
++        loaded = post_live(src).await;
++    }
++    if !loaded && let Some(route) = scene_route() {
++        load_route(&route, None).await;
++    }
++
++    let Some(mut src) = live else { return };
++    loop {
++        sleep_ms(src.tick_ms).await;
++        post_live(&mut src).await;
++    }
++}
++
++/// One live check: when the source changed, replace the scene. True when files loaded.
++async fn post_live(src: &mut LiveSource) -> bool {
++    let generation = LOAD_GENERATION.get();
++    let Some(docs) = src.check().await else {
++        return false;
++    };
++    if stale_load(generation) {
++        return false;
++    }
++    let texts = src.texts();
++    if docs.is_empty() && texts.is_empty() {
++        return false;
++    }
++    clear_scene();
++    for doc in docs {
++        post(Msg::File(doc));
++    }
++    post(Msg::Texts(texts));
+     post(Msg::Fit);
+     super::feedback::status("");
+-}
+-
+-/// Only the explicit local streaming test selects the ranged source fixture.
+-async fn fixture() -> Result<(), String> {
+-    if super::route::query("scene").as_deref() == Some("stream-test.yaml") {
+-        return streamed_fixture().await;
+-    }
+-    let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
+-        .map_err(fixture_error)?;
+-    post(Msg::File(FileDoc {
+-        name: "Interaction fixture".to_string(),
+-        session: Rc::new(session),
+-        place: Xform::identity(),
+-        point_px: 0.0,
+-        display_only: false,
+-    }));
+-    Ok(())
+-}
+-
+-/// Keep fixture decode failures visible while production validation is introduced later.
+-fn fixture_error(error: Box<dyn std::error::Error>) -> String {
+-    format!("Bundled interaction fixture: {error}")
+-}
+-
+-/// Read one bounded display prefix while retaining every actual source row for F10.
+-async fn streamed_fixture() -> Result<(), String> {
+-    let base = super::route::query("data").ok_or("local source URL is missing")?;
+-    if !base.starts_with("http://127.0.0.1:") && !base.starts_with("http://localhost:") {
+-        return Err("The tutorial source fixture must use a local HTTP server".to_string());
+-    }
+-    let url = format!("{}/cloud.pb", base.trim_end_matches('/'));
+-    let mut fields = super::stream::cloud_fields(&url)
++    true
++}
++
++/// Reload the scene in place: same canvas, same camera, new geometry. A named `url` is read
++/// from the bucket exactly as `?scene=` is; with none the page reloads its own route.
++#[wasm_bindgen]
++pub fn reload_scene(url: Option<String>) {
++    let route = match url {
++        Some(path) => Some(named_scene(&path)),
++        None => scene_route(),
++    };
++    let Some(route) = route else {
++        log::warn!("reload_scene: this page has no scene route - nothing to reload");
++        return;
++    };
++    let generation = LOAD_GENERATION.get().wrapping_add(1);
++    LOAD_GENERATION.set(generation);
++    wasm_bindgen_futures::spawn_local(load_replacement(route, generation));
++}
++
++/// A state-capturing browser task delegates replacement to one named async operation.
++async fn load_replacement(route: SceneRoute, generation: u64) {
++    load_route(&route, Some(generation)).await;
++}
++
++/// Newer route requests win even if older network or decode operations finish later.
++fn stale_load(generation: u64) -> bool {
++    LOAD_GENERATION.get() != generation
++}
++
++/// Existing TOML bookmarks may resolve to the current YAML publication only after a 404.
++async fn fetch_manifest(route: &SceneRoute) -> Result<Vec<u8>, String> {
++    match fetch_bytes(&route.manifest).await {
++        Err(error) if error.starts_with("HTTP 404") && route.manifest.ends_with(".toml") => {
++            let yaml = format!("{}.yaml", route.manifest.trim_end_matches(".toml"));
++            super::feedback::status("Opening the current YAML scene for this TOML bookmark");
++            fetch_bytes(&yaml).await
++        }
++        result => result,
++    }
++}
++
++/// Fetch a manifest and post every item, in manifest order, then a `Fit`.
++async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
++    let generation = match replacement {
++        Some(generation) => generation,
++        None => LOAD_GENERATION.get(),
++    };
++    let mut pending = Vec::new();
++    let mut failed = false;
++    let mut staged_points = 0u32;
++    let t0 = now_ms();
++    let bytes = match fetch_manifest(route).await {
++        Ok(b) => b,
++        Err(e) => {
++            super::feedback::status(&format!("Cannot fetch the scene manifest: {e}"));
++            return;
++        }
++    };
++    if stale_load(generation) {
++        return;
++    }
++    let manifest = match Manifest::parse(&bytes) {
++        Ok(m) => m,
++        Err(e) => {
++            super::feedback::status(&format!("Cannot read the scene manifest: {e}"));
++            return;
++        }
++    };
++    log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
++
++    let mut files = 0u32;
++    for item in &manifest.items {
++        if item.file.ends_with(".pb") {
++            files += 1;
++        }
++    }
++    let files = files.max(1);
++    let share = (max_points() / files).max(STREAM_MIN_PREFIX);
++    for (i, item) in manifest.items.iter().enumerate() {
++        let url = join(&route.base, &item.file);
++        let place = manifest.place(i, AUTO_GRID);
++        let point_px = item.point_size as f32;
++        if url.ends_with(".pb") {
++            let slot = Placement {
++                name: manifest.name_of(i, &item.file),
++                place: place.clone(),
++                point_px,
++            };
++            let remaining = if replacement.is_some() {
++                max_points().saturating_sub(staged_points)
++            } else {
++                budget_left()
++            };
++            if let Some(init) =
++                stream_prefix(&url, &slot, share.min(remaining.max(STREAM_MIN_PREFIX))).await
++            {
++                if stale_load(generation) {
++                    return;
++                }
++                if init.resident == 0 {
++                    failed = true;
++                    continue;
++                }
++                if replacement.is_some() {
++                    staged_points = staged_points.saturating_add(init.resident);
++                    pending.push(PendingDocument::Streamed(Box::new(init)));
++                } else {
++                    budget_spend(init.resident);
++                    post(Msg::StreamedCloud(Box::new(init)));
++                }
++                continue;
++            }
++        }
++        let f0 = now_ms();
++        let bytes = match fetch_bytes(&url).await {
++            Ok(b) => b,
++            Err(e) => {
++                super::feedback::status(&format!("Unable to load {}: {e}", item.file));
++                failed = true;
++                continue;
++            }
++        };
++        let n = bytes.len();
++        let f1 = now_ms();
++        let session = match session_from_bytes(&url, bytes).await {
++            Ok(session) => session,
++            Err(error) => {
++                super::feedback::status(&format!("Cannot decode {}: {error}", item.file));
++                failed = true;
++                continue;
++            }
++        };
++        if stale_load(generation) {
++            return;
++        }
++        if session.lookup.is_empty() {
++            log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
++            failed = true;
++            continue;
++        }
++        let name = manifest.name_of(i, &session.name);
++        log::info!(
++            "loaded '{name}': {} objects, {n} bytes | fetch {:.0} ms, parse {:.0} ms",
++            session.lookup.len(),
++            f1 - f0,
++            now_ms() - f1
++        );
++        let doc = FileDoc {
++            name,
++            session: Rc::new(session),
++            place,
++            point_px,
++            display_only: item.display_only,
++        };
++        if replacement.is_some() {
++            pending.push(PendingDocument::Whole(doc));
++        } else {
++            post(Msg::File(doc));
++        }
++    }
++    if stale_load(generation) {
++        return;
++    }
++    if replacement.is_some() {
++        if failed {
++            super::feedback::status(
++                "Scene replacement failed; the last valid scene is still visible",
++            );
++            return;
++        }
++        clear_scene();
++        budget_spend(staged_points);
++        for document in pending {
++            match document {
++                PendingDocument::Whole(doc) => {
++                    post(Msg::File(doc));
++                }
++                PendingDocument::Streamed(stream) => {
++                    post(Msg::StreamedCloud(stream));
++                }
++            }
++        }
++    }
++    post(Msg::Texts(manifest.texts));
++    post(Msg::Fit);
++    if !failed {
++        super::feedback::status("");
++    }
++    log::info!(
++        "scene posted {:.0} ms after the manifest fetch",
++        now_ms() - t0
++    );
++}
++
++/// Replacement staging preserves manifest order across whole files and streamed clouds.
++enum PendingDocument {
++    Whole(FileDoc),
++    Streamed(Box<StreamedInit>),
++}
++
++/// Where a streamed cloud goes: its document name, placement and point size.
++struct Placement {
++    name: String,
++    place: Xform,
++    point_px: f32,
++}
++
++/// Try to open a cloud by RANGE: `None` means the file carries no octree or is small enough
++/// to decode whole. Three small reads locate everything, one read brings the prefix - at most
++/// `share` points (the budget split over the scene's files, so the first cloud cannot take it
++/// all), never fewer than `STREAM_MIN_PREFIX`.
++async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<StreamedInit> {
++    let (name, place, point_px) = (slot.name.as_str(), slot.place.clone(), slot.point_px);
++    let mut fields = cloud_fields(url).await?;
++    if fields.count <= STREAM_PREFIX_POINTS && fields.coords_len < STREAM_MIN_BYTES {
++        return None;
++    }
++    let lod = cloud_lod(url, &mut fields).await?;
++    let resident = STREAM_PREFIX_POINTS.min(share).min(fields.count);
++    let Some(positions) = fetch_positions(url, &fields, 0, resident).await else {
++        log::warn!(
++            "'{name}': the prefix range read failed - the cloud stays off screen (a whole decode would take {:.0} MB)",
++            fields.coords_len as f64 / 1.048576e6
++        );
++        return Some(StreamedInit {
++            name: name.to_string(),
++            url: url.to_string(),
++            place,
++            rows: StreamRows {
++                positions: Vec::new(),
++                colors: Vec::new(),
++            },
++            lod,
++            col_at: fields.colors_at,
++            fields,
++            resident: 0,
++            point_px,
++        });
++    };
++    let (colors, col_at) = fetch_colors(url, &fields, fields.colors_at, resident)
+         .await
+-        .ok_or("invalid cloud envelope")?;
+-    let lod = super::stream::cloud_lod(&url, &mut fields)
+-        .await
+-        .ok_or("invalid source node table")?;
+-    let resident = fields.count.min(250_000);
+-    let positions = super::stream::fetch_positions(&url, &fields, 0, resident)
+-        .await
+-        .ok_or("invalid source positions")?;
+-    let (colors, col_at) = if fields.colors_len == 0 {
+-        (Vec::new(), fields.colors_at)
+-    } else {
+-        super::stream::fetch_colors(&url, &fields, fields.colors_at, resident)
+-            .await
+-            .ok_or("invalid source colors")?
+-    };
+-    post(Msg::StreamedCloud(Box::new(StreamedInit {
+-        name: "Source query fixture".to_string(),
+-        url,
+-        place: Xform::identity(),
++        .unwrap_or((Vec::new(), fields.colors_at));
++    log::info!(
++        "streamed '{name}': {resident} of {} points on screen, {} nodes",
++        fields.count,
++        lod.len()
++    );
++    Some(StreamedInit {
++        name: name.to_string(),
++        url: url.to_string(),
++        place,
+         rows: StreamRows { positions, colors },
+         lod,
+         fields,
+         resident,
+-        point_px: 3.0,
++        point_px,
+         col_at,
+-    })));
+-    Ok(())
+-}
+-
+-/// Match the production delivery record; this checkpoint intentionally retains one display prefix.
++    })
++}
++
++/// Where a streamed cloud continues: its slot, its file layout, the next point and where the
++/// colour run continues.
+ pub struct StreamCursor {
+     pub idx: usize,
+     pub url: String,
+@@ -121,5 +412,53 @@
+     pub col_at: u64,
+ }
+ 
+-/// Display residency is fixed in this fixture; F10 paging has its own exhaustive source path.
+-pub fn spawn_stream_rest(_cursor: StreamCursor) {}
++/// Fetch the rest of a streamed cloud, a slice at a time, posting each one; spawned once the
++/// scene has given the cloud its slot. Stops when the scene it belongs to is cleared.
++pub fn spawn_stream_rest(cursor: StreamCursor) {
++    wasm_bindgen_futures::spawn_local(stream_rest(cursor));
++}
++
++/// The slice loop behind `spawn_stream_rest`.
++async fn stream_rest(c: StreamCursor) {
++    let (url, idx, fields) = (c.url, c.idx, c.fields);
++    let generation = GENERATION.get();
++    let mut col_at = c.col_at;
++    let mut at = c.from;
++    while at < fields.count {
++        if GENERATION.get() != generation {
++            return;
++        }
++        let left = budget_left();
++        if left == 0 {
++            log::info!(
++                "'{url}': {at} of {} points resident - at the page's point ceiling (?points= to raise it)",
++                fields.count
++            );
++            return;
++        }
++        let to = (at + STREAM_CHUNK_POINTS.min(left)).min(fields.count);
++        budget_spend(to - at);
++        let Some(positions) = fetch_positions(&url, &fields, at, to).await else {
++            if GENERATION.get() == generation {
++                RESIDENT.set(RESIDENT.get().saturating_sub(to - at));
++            }
++            super::feedback::status("A point-cloud range failed; reload to retry the missing data");
++            return;
++        };
++        let (colors, next) = fetch_colors(&url, &fields, col_at, to - at)
++            .await
++            .unwrap_or((Vec::new(), col_at));
++        col_at = next;
++        if GENERATION.get() != generation {
++            return;
++        }
++        if !post(Msg::CloudChunk(CloudChunk {
++            idx,
++            rows: StreamRows { positions, colors },
++            to,
++        })) {
++            return;
++        }
++        at = to;
++    }
++}
+diff --git a/session_viewer/src/app/manifest.rs b/session_viewer/src/app/manifest.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb890c317ef
+--- /dev/null
++++ b/session_viewer/src/app/manifest.rs
+@@ -0,0 +1,347 @@
++//! The scene manifest: WHICH files a scene is made of and WHERE each one sits (`at` =
++//! translation, `xform` = all 16 numbers, neither = the auto-grid). Edit, reload, no rebuild.
++
++use serde::Deserialize;
++use session_rust::Xform;
++
++/// One manifest entry: a file and its placement.
++#[derive(Clone, Deserialize)]
++pub struct Item {
++    /// Asset path, e.g. `pb/view_lines_he.pb`, relative to the scene's base.
++    pub file: String,
++    /// Display name; empty = the session's own.
++    #[serde(default)]
++    pub name: String,
++    /// Translation in world units.
++    #[serde(default)]
++    pub at: Option<[f64; 3]>,
++    /// Full 4x4 column-major (wins over `at`).
++    #[serde(default)]
++    pub xform: Option<[f64; 16]>,
++    /// Cloud point size in px for this file; 0 = the pb's own.
++    #[serde(default)]
++    pub point_size: f64,
++    /// Legacy memory hint, accepted for compatibility. Full-file sources stay retained
++    /// so original source controls remain available to F10.
++    #[serde(default)]
++    pub display_only: bool,
++}
++
++/// One fixed world-space text plane; its frame and em height use the scene's world units.
++#[derive(Clone, Debug, Deserialize)]
++pub struct TextItem {
++    /// UTF-8 text, retained verbatim after rejecting empty or whitespace-only content.
++    pub text: String,
++    /// World-space plane origin, independent of any geometry item's placement.
++    #[serde(default)]
++    pub at: [f64; 3],
++    /// Unit direction of increasing text X; defaults to world +X.
++    #[serde(default = "text_right")]
++    pub right: [f64; 3],
++    /// Unit direction of increasing text Y; defaults to world +Y.
++    #[serde(default = "text_up")]
++    pub up: [f64; 3],
++    /// Required positive finite em height in world units.
++    pub height: f64,
++}
++
++/// The parsed scene file: ordered geometry items and optional fixed world-space text planes.
++#[derive(Clone, Deserialize)]
++pub struct Manifest {
++    #[serde(default)]
++    pub name: String,
++    pub items: Vec<Item>,
++    #[serde(default)]
++    pub texts: Vec<TextItem>,
++}
++
++impl Item {
++    /// The placement this item asks for, or `None` when it wants the auto-grid.
++    pub fn placement(&self) -> Option<Xform> {
++        if let Some(m) = self.xform {
++            let mut x = Xform::identity();
++            x.m = m;
++            return Some(x);
++        }
++        self.at.map(translation)
++    }
++}
++
++impl Manifest {
++    /// Read existing YAML/JSON and compatible TOML; reject invalid transforms before upload.
++    pub fn parse(bytes: &[u8]) -> Result<Self, String> {
++        if bytes.len() > 4 * 1024 * 1024 {
++            return Err("manifest exceeds 4 MiB".to_string());
++        }
++        let text = match std::str::from_utf8(bytes) {
++            Ok(text) => text,
++            Err(error) => return Err(format!("manifest is not UTF-8: {error}")),
++        };
++        let manifest: Self = match serde_yaml_ng::from_str(text) {
++            Ok(manifest) => manifest,
++            Err(yaml) => match toml::from_str(text) {
++                Ok(manifest) => manifest,
++                Err(toml) => {
++                    return Err(format!(
++                        "Invalid manifest. YAML: {}{}. TOML: {toml}",
++                        yaml,
++                        yaml_at(&yaml)
++                    ));
++                }
++            },
++        };
++        if manifest.items.len() > 100_000 {
++            return Err("manifest exceeds 100,000 items".to_string());
++        }
++        for (index, item) in manifest.items.iter().enumerate() {
++            if item.file.trim().is_empty() {
++                return Err(format!("item {index}: missing geometry file"));
++            }
++            if !item.point_size.is_finite() || item.point_size < 0.0 {
++                return Err(format!("item {index}: invalid point size"));
++            }
++            if item.at.is_some_and(nonfinite_transform)
++                || item.xform.is_some_and(nonfinite_transform)
++            {
++                return Err(format!("item {index}: non-finite transform"));
++            }
++            if let Some(matrix) = item.xform
++                && (matrix[3] != 0.0 || matrix[7] != 0.0 || matrix[11] != 0.0 || matrix[15] != 1.0)
++            {
++                return Err(format!("item {index}: placement must be affine"));
++            }
++        }
++        if manifest.texts.len() > 1024 {
++            return Err("manifest exceeds 1,024 text records".to_string());
++        }
++        let mut text_bytes = 0usize;
++        for (index, item) in manifest.texts.iter().enumerate() {
++            text_bytes = text_bytes.saturating_add(item.text.len());
++            if text_bytes > 256 * 1024 {
++                return Err("manifest text exceeds 256 KiB of UTF-8 content".to_string());
++            }
++            item.validate(index)?;
++        }
++        Ok(manifest)
++    }
++
++    /// Where item `i` sits: its own placement, else its `auto_grid` slot.
++    pub fn place(&self, i: usize, cell: [f64; 2]) -> Xform {
++        match self.items[i].placement() {
++            Some(placement) => placement,
++            None => auto_grid(i, self.items.len(), cell),
++        }
++    }
++
++    /// Item `i`'s display name: the manifest's, else `fallback`.
++    pub fn name_of(&self, i: usize, fallback: &str) -> String {
++        let n = &self.items[i].name;
++        if n.is_empty() {
++            fallback.to_string()
++        } else {
++            n.clone()
++        }
++    }
++}
++
++impl TextItem {
++    /// Reject invalid world frames before a loader creates any text or GPU resources.
++    fn validate(&self, index: usize) -> Result<(), String> {
++        if self.text.trim().is_empty() {
++            return Err(format!("text {index}: missing text content"));
++        }
++        if !self.height.is_finite() || self.height <= 0.0 {
++            return Err(format!("text {index}: height must be positive and finite"));
++        }
++        if nonfinite_transform(self.at) {
++            return Err(format!("text {index}: non-finite position"));
++        }
++        for axis in [self.right, self.up] {
++            if nonfinite_transform(axis) {
++                return Err(format!("text {index}: non-finite plane axis"));
++            }
++            let length = (axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]).sqrt();
++            if (length - 1.0).abs() > 1e-6 {
++                return Err(format!(
++                    "text {index}: plane axes must be unit length within 1e-6"
++                ));
++            }
++        }
++        let dot =
++            self.right[0] * self.up[0] + self.right[1] * self.up[1] + self.right[2] * self.up[2];
++        if dot.abs() > 1e-6 {
++            return Err(format!(
++                "text {index}: plane axes must be orthogonal within 1e-6"
++            ));
++        }
++        Ok(())
++    }
++}
++
++/// Default text-plane horizontal direction in world coordinates.
++fn text_right() -> [f64; 3] {
++    [1.0, 0.0, 0.0]
++}
++
++/// Default text-plane vertical direction in world coordinates.
++fn text_up() -> [f64; 3] {
++    [0.0, 1.0, 0.0]
++}
++
++/// Convert the manifest's optional translation into the shared transform representation.
++fn translation(at: [f64; 3]) -> Xform {
++    Xform::translation(at[0], at[1], at[2])
++}
++
++/// Reject any non-finite component in a manifest translation or matrix.
++fn nonfinite_transform<const N: usize>(values: [f64; N]) -> bool {
++    !values.into_iter().all(f64::is_finite)
++}
++
++/// " (line l, column c)" of a YAML error, or nothing when it carries no location.
++fn yaml_at(e: &serde_yaml_ng::Error) -> String {
++    match e.location() {
++        Some(l) => format!(" (line {}, column {})", l.line(), l.column()),
++        None => String::new(),
++    }
++}
++
++/// Fallback for items with no placement: a grid of `cell` steps, in list order.
++pub fn auto_grid(index: usize, count: usize, cell: [f64; 2]) -> Xform {
++    let cols = (count as f64).sqrt().ceil().max(1.0) as usize;
++    Xform::translation(
++        (index % cols) as f64 * cell[0],
++        (index / cols) as f64 * cell[1],
++        0.0,
++    )
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn yaml_json_and_toml_have_identical_scene_semantics() {
++        let forms = [
++            "name: sample\nitems:\n  - file: pb/box.pb\n    at: [1, 2, 3]\n",
++            "{\"name\":\"sample\",\"items\":[{\"file\":\"pb/box.pb\",\"at\":[1,2,3]}]}",
++            "name = \"sample\"\n[[items]]\nfile = \"pb/box.pb\"\nat = [1, 2, 3]\n",
++        ];
++        for form in forms {
++            let manifest = Manifest::parse(form.as_bytes()).unwrap();
++            assert!(manifest.texts.is_empty());
++            assert_eq!(manifest.name, "sample");
++            assert_eq!(manifest.items[0].file, "pb/box.pb");
++            assert_eq!(manifest.items[0].at, Some([1.0, 2.0, 3.0]));
++        }
++    }
++
++    #[test]
++    fn invalid_manifest_does_not_reach_gpu_preparation() {
++        for source in [
++            "items: [{file: ''}]",
++            "items: [{file: box.pb, point_size: -.inf}]",
++            "items: [{file: box.pb, at: [.nan, 0, 0]}]",
++            "items: [",
++        ] {
++            assert!(Manifest::parse(source.as_bytes()).is_err(), "{source}");
++        }
++        assert!(Manifest::parse(&[0xff]).is_err());
++    }
++    /// Every supported syntax creates the same world frame without renderer-specific types.
++    #[test]
++    fn world_text_yaml_json_and_toml_are_equivalent() {
++        let forms = [
++            "items: []\ntexts:\n  - text: 'Fixed Ω cube'\n    at: [1, 2, 3]\n    right: [0, 1, 0]\n    up: [0, 0, -1]\n    height: 12.5\n",
++            r#"{"items":[],"texts":[{"text":"Fixed Ω cube","at":[1,2,3],"right":[0,1,0],"up":[0,0,-1],"height":12.5}]}"#,
++            "items = []\n[[texts]]\ntext = \"Fixed Ω cube\"\nat = [1, 2, 3]\nright = [0, 1, 0]\nup = [0, 0, -1]\nheight = 12.5\n",
++        ];
++        for form in forms {
++            let manifest = Manifest::parse(form.as_bytes()).unwrap();
++            assert_eq!(manifest.texts.len(), 1);
++            let text = &manifest.texts[0];
++            assert_eq!(text.text, "Fixed Ω cube");
++            assert_eq!(text.at, [1.0, 2.0, 3.0]);
++            assert_eq!(text.right, [0.0, 1.0, 0.0]);
++            assert_eq!(text.up, [0.0, 0.0, -1.0]);
++            assert_eq!(text.height, 12.5);
++        }
++    }
++
++    /// Text defaults are explicit while required geometry-list and height fields stay required.
++    #[test]
++    fn world_text_defaults_preserve_manifest_compatibility() {
++        let manifest = Manifest::parse(b"items: []\ntexts: [{text: label, height: 2}]").unwrap();
++        let text = &manifest.texts[0];
++        assert_eq!(text.at, [0.0; 3]);
++        assert_eq!(text.right, [1.0, 0.0, 0.0]);
++        assert_eq!(text.up, [0.0, 1.0, 0.0]);
++        assert!(Manifest::parse(b"texts: [{text: label, height: 2}]").is_err());
++        assert!(Manifest::parse(b"items: []\ntexts: [{text: label}]").is_err());
++    }
++
++    /// Bad values fail as parse errors, before any partially valid record can reach the loader.
++    #[test]
++    fn invalid_world_text_frames_and_heights_are_recoverable() {
++        for record in [
++            "{text: '', height: 1}",
++            "{text: '   ', height: 1}",
++            "{text: label, height: 0}",
++            "{text: label, height: -1}",
++            "{text: label, height: .inf}",
++            "{text: label, height: .nan}",
++            "{text: label, height: 1, at: [0, .inf, 0]}",
++            "{text: label, height: 1, right: [0, 0, 0]}",
++            "{text: label, height: 1, right: [2, 0, 0]}",
++            "{text: label, height: 1, right: [.nan, 0, 0]}",
++            "{text: label, height: 1, up: [1, 0, 0]}",
++            "{text: label, height: 1, up: [0, 1, .inf]}",
++        ] {
++            let source = format!("items: []\ntexts: [{record}]");
++            assert!(Manifest::parse(source.as_bytes()).is_err(), "{record}");
++        }
++        assert!(Manifest::parse(b"items: []\ntexts: [{text: valid, height: 1}]").is_ok());
++    }
++
++    /// Slight decimal rounding in an authored unit frame is accepted without silently normalizing it.
++    #[test]
++    fn world_text_axis_tolerance_is_bounded() {
++        let source = b"items: []\ntexts: [{text: label, height: 1, right: [1.0000005, 0, 0], up: [0.0000005, 1, 0]}]";
++        let manifest = Manifest::parse(source).unwrap();
++        assert_eq!(manifest.texts[0].right[0], 1.0000005);
++        for source in [
++            b"items: []\ntexts: [{text: label, height: 1, right: [1.000002, 0, 0]}]".as_slice(),
++            b"items: []\ntexts: [{text: label, height: 1, up: [0.000002, 1, 0]}]".as_slice(),
++        ] {
++            assert!(Manifest::parse(source).is_err());
++        }
++    }
++
++    /// Count UTF-8 bytes across all records, including multibyte text and the exact inclusive limit.
++    #[test]
++    fn world_text_content_and_record_limits_are_enforced() {
++        let half = "é".repeat(65_536);
++        let mut records = vec![serde_json::json!({"text":half,"height":1}); 2];
++        let accepted = serde_json::json!({"items":[],"texts":records});
++        assert!(Manifest::parse(accepted.to_string().as_bytes()).is_ok());
++        records.push(serde_json::json!({"text":"x","height":1}));
++        let rejected = serde_json::json!({"items":[],"texts":records});
++        assert!(
++            Manifest::parse(rejected.to_string().as_bytes())
++                .err()
++                .unwrap()
++                .contains("256 KiB")
++        );
++        let mut records = vec![serde_json::json!({"text":"x","height":1}); 1024];
++        let accepted = serde_json::json!({"items":[],"texts":records});
++        assert!(Manifest::parse(accepted.to_string().as_bytes()).is_ok());
++        records.push(serde_json::json!({"text":"x","height":1}));
++        let rejected = serde_json::json!({"items":[],"texts":records});
++        assert!(
++            Manifest::parse(rejected.to_string().as_bytes())
++                .err()
++                .unwrap()
++                .contains("1,024")
++        );
++    }
++}
+diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
+index e5361f826df6cfdaa4d23f172eddfe85f998b253..2ef628363bdfb35d3ddc77cde5ec5e7ce79f5e3a
+--- a/session_viewer/src/app/mod.rs
++++ b/session_viewer/src/app/mod.rs
+@@ -1,17 +1,25 @@
+-//! Source scene and selection; chapter14 replaces the local loading boundary.
++//! The app layer: what a scene IS (manifest, documents, the walk into rows) and how it gets
++//! here (route, fetch, decode, stream, the loader, the live source) and is driven (input,
++//! touch). Above the engine, below the shell in lib.rs. Never names a wgpu type.
+ 
+ pub mod cloud_query;
+ pub mod feedback;
+ pub mod input;
+ pub mod knobs;
++pub mod manifest;
+ pub mod scene;
+ pub mod selection;
+ pub mod stream;
+ pub mod touch;
++pub mod validate;
+ pub mod walk;
+ 
+ #[cfg(target_arch = "wasm32")]
++pub mod decode;
++#[cfg(target_arch = "wasm32")]
+ pub mod fetch;
++#[cfg(target_arch = "wasm32")]
++pub mod live;
+ #[cfg(target_arch = "wasm32")]
+ pub mod loader;
+ #[cfg(target_arch = "wasm32")]
+diff --git a/session_viewer/src/app/route.rs b/session_viewer/src/app/route.rs
+index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ceca80375b
+--- a/session_viewer/src/app/route.rs
++++ b/session_viewer/src/app/route.rs
+@@ -1,4 +1,33 @@
+-//! The existing query parser; routing and live publication arrive in chapter14.
++//! The URL decides where a scene comes from. ONE query parser (`query`) serves every knob,
++//! and `SceneRoute` names the three routes:
++//!
++//! - no query on localhost: `view_local.yaml` + `pb/view_local_*.pb`, all from this origin;
++//! - `?scene=<name>` or a path like `/view_lines`: that manifest AND its files from the bucket;
++//! - no query elsewhere: the live source (`live.rs`), `view_live.yaml` re-read every poll.
++//!
++//! `?data=<https base>` overrides where the `.pb` come from; `?data=off` forces this origin.
++
++/// The public bucket every named scene and its files come from.
++pub const DATA_BASE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/";
++
++/// The one scene a local `trunk serve` shows, served from `assets/`.
++pub const LOCAL_SCENE: &str = "view_local.yaml";
++
++/// Grid step for manifest items with no placement, world mm: zero, so they stack at the origin.
++pub const AUTO_GRID: [f64; 2] = [0.0, 0.0];
++
++/// A URL served from this machine; browsers let an https page read it.
++pub fn is_local_url(url: &str) -> bool {
++    url.starts_with("http://localhost:")
++        || url.starts_with("http://127.0.0.1:")
++        || url.starts_with("http://[::1]:")
++}
++
++/// A manifest URL and the base its `file` entries hang off - always the same place.
++pub struct SceneRoute {
++    pub manifest: String,
++    pub base: String,
++}
+ 
+ /// The `?name=` value of this page's query string, percent-decoded.
+ pub fn query(name: &str) -> Option<String> {
+@@ -15,3 +44,111 @@
+     }
+     None
+ }
++
++/// An integer knob from the query string.
++pub fn knob_u32(name: &str) -> Option<u32> {
++    query(name)?.parse().ok()
++}
++
++/// Is the page served by a local dev server? Hostname, not port.
++pub fn page_is_local() -> bool {
++    let Some(window) = web_sys::window() else {
++        return false;
++    };
++    let Ok(hostname) = window.location().hostname() else {
++        return false;
++    };
++    matches!(
++        hostname.as_str(),
++        "localhost" | "127.0.0.1" | "[::1]" | "::1"
++    )
++}
++
++/// A scene named by the PATH: `/view_lines` means `?scene=view_lines`. Only the last segment
++/// is read, so it works at the site root and under `/session/` alike.
++pub fn path_scene() -> Option<String> {
++    let path = web_sys::window()?.location().pathname().ok()?;
++    let last = path.rsplit('/').next()?.to_string();
++    let safe = !last.is_empty()
++        && !last.ends_with(".html")
++        && !last.contains(':')
++        && !last.starts_with('.');
++    safe.then_some(last)
++}
++
++/// The `?scene=` value when it stays inside one tree (no scheme, no `..`, no absolute path).
++pub fn query_scene() -> Option<String> {
++    let decoded = query("scene")?;
++    for segment in decoded.split('/') {
++        if segment == ".." {
++            return None;
++        }
++    }
++    let safe = !decoded.is_empty()
++        && !decoded.starts_with('/')
++        && !decoded.contains("//")
++        && !decoded.contains(':');
++    safe.then_some(decoded)
++}
++
++/// Where the `.pb` files come from: `?data=` (https, or http on localhost), `off` for this
++/// origin, else the bucket. Always ends with `/` unless empty.
++pub fn data_base() -> String {
++    let base = match query("data") {
++        None => DATA_BASE.to_string(),
++        Some(v) if v == "off" || v.is_empty() => return String::new(),
++        Some(v) if v.starts_with("https://") || is_local_url(&v) => v,
++        Some(other) => {
++            log::warn!("data: ignoring `?data={other}`; using {DATA_BASE}");
++            DATA_BASE.to_string()
++        }
++    };
++    if base.ends_with('/') {
++        base
++    } else {
++        base + "/"
++    }
++}
++
++/// `file` hung off `base`; an entry that already names a host is used as it stands.
++pub fn join(base: &str, file: &str) -> String {
++    if file.starts_with("https://") || file.starts_with("http://") {
++        return file.to_string();
++    }
++    format!("{}{}", base, file.trim_start_matches("./"))
++}
++
++/// A named scene: `.yaml` implied, `scenes/` implied for a bare name, always from the bucket.
++pub fn named_scene(path: &str) -> SceneRoute {
++    let path = if path.contains('.') {
++        path.to_string()
++    } else {
++        format!("{path}.yaml")
++    };
++    let path = if path.contains('/') {
++        path
++    } else {
++        format!("scenes/{path}")
++    };
++    let base = data_base();
++    SceneRoute {
++        manifest: join(&base, &path),
++        base,
++    }
++}
++
++/// The manifest this page asked for, or `None` when it has neither route (deployed, no query:
++/// the live source answers instead).
++pub fn scene_route() -> Option<SceneRoute> {
++    if let Some(path) = query_scene().or_else(path_scene) {
++        return Some(named_scene(&path));
++    }
++    if page_is_local() {
++        Some(SceneRoute {
++            manifest: LOCAL_SCENE.to_string(),
++            base: String::new(),
++        })
++    } else {
++        None
++    }
++}
+diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
+index ac0ed24f4ce28bb8b6f1eaa8808fcb323bfae72f..dc76687ff8839c1bd6ff2efd7e593f784f1293ef
+--- a/session_viewer/src/app/scene.rs
++++ b/session_viewer/src/app/scene.rs
+@@ -95,6 +95,8 @@
+ /// The open document set, the pending upload and the row bookkeeping.
+ pub struct Scene {
+     pub docs: Vec<Doc>,
++    /// Authored world-plane text from the scene manifest, independent of object annotations.
++    pub texts: Vec<super::manifest::TextItem>,
+     pub tables: Upload,
+     pub streamed: Vec<StreamedCloud>,
+     pub hidden: HashSet<(usize, Rc<str>)>,
+@@ -120,6 +122,7 @@
+     pub fn new() -> Self {
+         Self {
+             docs: Vec::new(),
++            texts: Vec::new(),
+             tables: Upload::default(),
+             streamed: Vec::new(),
+             hidden: HashSet::new(),
+@@ -137,6 +140,7 @@
+     /// REPLACED without tearing down `State` (camera, surface and pipelines survive).
+     pub fn clear(&mut self, gpu: &mut Gpu) {
+         self.docs.clear();
++        self.texts.clear();
+         self.tables = Upload::default();
+         self.streamed.clear();
+         self.order.clear();
+diff --git a/session_viewer/src/app/validate.rs b/session_viewer/src/app/validate.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..f58b43a405791bac29343681ebe4f5a34c0b874f
+--- /dev/null
++++ b/session_viewer/src/app/validate.rs
+@@ -0,0 +1,473 @@
++//! Viewer trust-boundary validation before kernel constructors allocate from serialized counts.
++use prost::Message;
++use session_rust::proto;
++
++/// JSON constructors allocate from declared NURBS counts; check those against actual storage first.
++pub fn json(text: &str) -> Result<(), String> {
++    let source: serde_json::Value = serde_json::from_str(text).map_err(json_error)?;
++    let mut pending = vec![(&source, 0usize)];
++    while let Some((value, depth)) = pending.pop() {
++        if depth > 64 {
++            return Err("session JSON exceeds 64 nested levels".into());
++        }
++        match value {
++            serde_json::Value::Object(fields) => {
++                if fields.contains_key("control_points")
++                    && (fields.contains_key("cv_count") || fields.contains_key("cv_count_u"))
++                {
++                    json_controls(value)?;
++                }
++                for child in fields.values() {
++                    pending.push((child, depth + 1));
++                }
++            }
++            serde_json::Value::Array(values) => {
++                for child in values {
++                    pending.push((child, depth + 1));
++                }
++            }
++            _ => {}
++        }
++    }
++    Ok(())
++}
++
++/// Keep parsing errors distinct from geometry validation errors in page feedback.
++fn json_error(error: serde_json::Error) -> String {
++    format!("invalid session JSON: {error}")
++}
++
++/// Read a bounded unsigned source count, with defaults matching the shared JSON constructors.
++fn json_count(
++    source: &serde_json::Value,
++    key: &str,
++    default: u64,
++    maximum: u64,
++) -> Result<usize, String> {
++    let count = match source.get(key) {
++        Some(value) => match value.as_u64() {
++            Some(value) => value,
++            None => return Err(format!("invalid JSON {key}")),
++        },
++        None => default,
++    };
++    if count > maximum {
++        return Err(format!("JSON {key} exceeds its supported count"));
++    }
++    Ok(count as usize)
++}
++
++/// Compute the last addressed control component without overflowing malformed strides.
++fn addressed_surface_controls(
++    rows: usize,
++    columns: usize,
++    stride_u: usize,
++    stride_v: usize,
++    size: usize,
++) -> Option<usize> {
++    (rows - 1)
++        .checked_mul(stride_u)?
++        .checked_add((columns - 1).checked_mul(stride_v)?)?
++        .checked_add(size)
++}
++
++/// JSON curves store nested controls; surfaces store a flat row-major array.
++fn json_controls(source: &serde_json::Value) -> Result<(), String> {
++    let controls = source["control_points"]
++        .as_array()
++        .ok_or("JSON controls must be an array")?;
++    let dimension = json_count(source, "dimension", 3, 3)?;
++    if dimension < 2 {
++        return Err("invalid JSON control dimension".into());
++    }
++    let size = dimension + usize::from(source["is_rational"].as_bool().unwrap_or(false));
++    if source.get("cv_count_u").is_some() {
++        let rows = json_count(source, "cv_count_u", 0, 1_000_000)?;
++        let columns = json_count(source, "cv_count_v", 0, 1_000_000)?;
++        let total = rows as u64 * columns as u64;
++        if total > 4_000_000 || controls.len() as u64 != total * size as u64 {
++            return Err("JSON surface controls disagree with their declared counts".into());
++        }
++        json_axis(source, "order_u", rows, "nurbsknots_u")?;
++        json_axis(source, "order_v", columns, "nurbsknots_v")?;
++    } else {
++        let count = json_count(source, "cv_count", 0, 1_000_000)?;
++        let stride = json_count(source, "cv_stride", size as u64, 4)?;
++        if count != controls.len() || stride != size {
++            return Err("JSON curve controls disagree with their declared count or stride".into());
++        }
++        for control in controls {
++            if control.as_array().map(Vec::len) != Some(size) {
++                return Err("incomplete JSON curve control".into());
++            }
++        }
++        json_axis(source, "order", count, "nurbsknots")?;
++    }
++    Ok(())
++}
++
++/// Apply the same knot-domain convention to JSON and protobuf records.
++fn json_axis(
++    source: &serde_json::Value,
++    order_key: &str,
++    count: usize,
++    knots_key: &str,
++) -> Result<(), String> {
++    let order = json_count(source, order_key, 4, 64)?;
++    let values = source[knots_key]
++        .as_array()
++        .ok_or("missing JSON NURBS knots")?;
++    let mut knots = Vec::with_capacity(values.len());
++    for value in values {
++        knots.push(value.as_f64().ok_or("invalid JSON NURBS knot")?);
++    }
++    axis(order as i32, count as i32, &knots)?;
++    Ok(())
++}
++
++/// JSON's serde path has no protobuf constructors; validate its prepared records before drawing.
++pub fn retained(source: &session_rust::Session) -> Result<(), String> {
++    for item in &source.objects.meshes {
++        mesh(&item.to_proto())?;
++    }
++    for item in &source.objects.pointclouds {
++        cloud(&item.to_proto())?;
++    }
++    for item in &source.objects.nurbscurves {
++        curve(&item.to_proto())?;
++    }
++    for item in &source.objects.nurbssurfaces {
++        surface(&item.to_proto())?;
++    }
++    for item in &source.objects.breps {
++        brep(&item.to_proto())?;
++    }
++    Ok(())
++}
++
++/// Reject malformed serialized records before they can reach geometry preparation or the GPU.
++pub fn session(source: &proto::Session) -> Result<(), String> {
++    if let Some(objects) = &source.objects {
++        let count = objects.points.len()
++            + objects.lines.len()
++            + objects.polylines.len()
++            + objects.meshes.len()
++            + objects.pointclouds.len()
++            + objects.nurbscurves.len()
++            + objects.nurbssurfaces.len()
++            + objects.breps.len()
++            + objects.elements.len();
++        if count > 2_000_000 {
++            return Err("scene exceeds two million source objects".into());
++        }
++        for point in &objects.points {
++            finite(&[point.x, point.y, point.z, point.width], "point")?;
++        }
++        for line in &objects.lines {
++            if line.coords.len() != 6 {
++                return Err("line needs exactly two endpoint triples".into());
++            }
++            finite(&line.coords, "line coordinates")?;
++            finite(&line.dash, "line dashes")?;
++        }
++        for polyline in &objects.polylines {
++            triples(&polyline.coords, "polyline coordinates")?;
++        }
++        for item in &objects.meshes {
++            mesh(item)?;
++        }
++        for item in &objects.pointclouds {
++            cloud(item)?;
++        }
++        for item in &objects.nurbscurves {
++            curve(item)?;
++        }
++        for item in &objects.nurbssurfaces {
++            surface(item)?;
++        }
++        for item in &objects.breps {
++            brep(item)?;
++        }
++        for item in &objects.elements {
++            match item.geometry_type.as_str() {
++                "Mesh" => mesh(
++                    &proto::Mesh::decode(item.geometry_data.as_slice()).map_err(decode_error)?,
++                )?,
++                "BRep" => brep(
++                    &proto::BRep::decode(item.geometry_data.as_slice()).map_err(decode_error)?,
++                )?,
++                _ => {}
++            }
++        }
++    }
++    for entry in &source.xforms {
++        let Some(transform) = &entry.xform else {
++            return Err("missing object transform".into());
++        };
++        finite(&transform.matrix, "object transform")?;
++        if transform.matrix.len() != 16
++            || transform.matrix[3] != 0.0
++            || transform.matrix[7] != 0.0
++            || transform.matrix[11] != 0.0
++            || transform.matrix[15] != 1.0
++        {
++            return Err("object placement must be a sixteen-value affine matrix".into());
++        }
++    }
++    if let Some(tree) = &source.tree
++        && let Some(root) = &tree.root
++    {
++        let mut pending = vec![(root, 0usize)];
++        while let Some((node, depth)) = pending.pop() {
++            if depth > 64 {
++                return Err("scene hierarchy exceeds 64 levels".into());
++            }
++            for child in &node.children {
++                pending.push((child, depth + 1));
++            }
++        }
++    }
++    Ok(())
++}
++
++/// Nested element protobuf errors keep their context at the browser boundary.
++fn decode_error(error: prost::DecodeError) -> String {
++    format!("invalid element geometry: {error}")
++}
++
++/// All stored scalars must be finite; valid degenerate geometry is handled by its producer.
++fn finite(values: &[f64], label: &str) -> Result<(), String> {
++    for value in values {
++        if !value.is_finite() {
++            return Err(format!("{label}: non-finite value"));
++        }
++    }
++    Ok(())
++}
++
++/// Packed source positions have complete triples, including a valid empty array.
++fn triples(values: &[f64], label: &str) -> Result<(), String> {
++    if !values.len().is_multiple_of(3) {
++        return Err(format!("{label}: incomplete coordinate triple"));
++    }
++    finite(values, label)
++}
++
++/// NURBS counts are checked against actual knot storage before allocation and evaluation.
++fn axis(order: i32, count: i32, knots: &[f64]) -> Result<usize, String> {
++    if !(2..=64).contains(&order) || count < order || count > 1_000_000 {
++        return Err("invalid or oversized NURBS order/control count".into());
++    }
++    if knots.len() != (order + count - 2) as usize {
++        return Err("NURBS knot count does not match its order and controls".into());
++    }
++    finite(knots, "NURBS knots")?;
++    for pair in knots.windows(2) {
++        if pair[0] > pair[1] {
++            return Err("NURBS knots are not monotonic".into());
++        }
++    }
++    if knots[(order - 2) as usize] >= knots[(count - 1) as usize] {
++        return Err("NURBS parameter domain is empty".into());
++    }
++    Ok(count as usize)
++}
++
++/// Curves use tightly packed Euclidean or homogeneous source controls.
++fn curve(source: &proto::NurbsCurve) -> Result<(), String> {
++    if !(2..=3).contains(&source.dimension) {
++        return Err("NURBS curve dimension must be 2 or 3".into());
++    }
++    let count = axis(source.order, source.cv_count, &source.nurbsknots)?;
++    let size = source.dimension as usize + usize::from(source.is_rational);
++    if source.cvs.len() != count * size {
++        return Err("NURBS curve control storage is incomplete".into());
++    }
++    finite(&source.cvs, "NURBS curve controls")
++}
++
++/// Validate both surface strides and the final addressed control before allocation.
++fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
++    if source.dimension != 3 {
++        return Err("NURBS surface dimension must be 3".into());
++    }
++    let rows = axis(source.order_u, source.cv_count_u, &source.nurbsknots_u)?;
++    let columns = axis(source.order_v, source.cv_count_v, &source.nurbsknots_v)?;
++    if rows.saturating_mul(columns) > 4_000_000 {
++        return Err("surface exceeds four million controls".into());
++    }
++    let size = 3 + usize::from(source.is_rational);
++    let stride_u = if source.cv_stride_u > 0 {
++        source.cv_stride_u as usize
++    } else {
++        columns * size
++    };
++    let stride_v = if source.cv_stride_v > 0 {
++        source.cv_stride_v as usize
++    } else {
++        size
++    };
++    let addressed = addressed_surface_controls(rows, columns, stride_u, stride_v, size);
++    if !matches!(addressed, Some(length) if length <= source.cvs.len()) {
++        return Err("NURBS surface control storage is incomplete".into());
++    }
++    finite(&source.cvs, "NURBS surface controls")?;
++    if let Some(cached) = &source.cached_mesh {
++        mesh(cached)?;
++    }
++    Ok(())
++}
++
++/// Mesh faces and cached triangles must address real source vertices, never absent keys.
++fn mesh(source: &proto::Mesh) -> Result<(), String> {
++    for (key, vertex) in &source.vertices {
++        if *key > u32::MAX as u64 {
++            return Err("mesh vertex key exceeds the browser index range".into());
++        }
++        finite(&[vertex.x, vertex.y, vertex.z], "mesh vertex")?;
++        for value in vertex.attributes.values() {
++            if !value.is_finite() {
++                return Err("mesh vertex has a non-finite attribute".into());
++            }
++        }
++    }
++    for face in source.faces.values() {
++        if face.vertices.len() < 3 {
++            return Err("mesh face has fewer than three vertices".into());
++        }
++        mesh_indices(source, &face.vertices)?;
++        for hole in &face.holes {
++            mesh_indices(source, &hole.vertices)?;
++        }
++    }
++    for (face, triangles) in &source.triangulation {
++        if !source.faces.contains_key(face) || !triangles.vertices.len().is_multiple_of(3) {
++            return Err("invalid mesh triangulation record".into());
++        }
++        mesh_indices(source, &triangles.vertices)?;
++    }
++    Ok(())
++}
++
++/// Every referenced index must exist before the shared mesher can dereference it.
++fn mesh_indices(source: &proto::Mesh, indices: &[u64]) -> Result<(), String> {
++    for index in indices {
++        if !source.vertices.contains_key(index) {
++            return Err(format!("mesh references missing vertex {index}"));
++        }
++    }
++    Ok(())
++}
++
++/// Point attributes and octree arrays must describe the same source ordering.
++fn cloud(source: &proto::PointCloud) -> Result<(), String> {
++    triples(&source.coords, "point cloud")?;
++    finite(&source.normals, "point normals")?;
++    let points = source.coords.len() / 3;
++    if (!source.normals.is_empty() && source.normals.len() != source.coords.len())
++        || (!source.colors.is_empty() && source.colors.len() != points * 4)
++        || (!source.point_ids.is_empty() && source.point_ids.len() != points)
++    {
++        return Err("point-cloud attribute counts disagree".into());
++    }
++    let nodes = source.lod_size.len();
++    if nodes > 0 {
++        if source.lod_min.len() != nodes * 3
++            || source.lod_spacing.len() != nodes
++            || source.lod_level.len() != nodes
++            || source.lod_first.len() != nodes
++            || source.lod_count.len() != nodes
++            || source.lod_children.len() != nodes * 8
++        {
++            return Err("point-cloud octree arrays disagree".into());
++        }
++        finite(&source.lod_min, "octree bounds")?;
++        finite(&source.lod_size, "octree sizes")?;
++        for node in 0..nodes {
++            if source.lod_first[node] < 0
++                || source.lod_count[node] < 0
++                || source.lod_first[node] as u64 + source.lod_count[node] as u64 > points as u64
++            {
++                return Err("octree range exceeds its source points".into());
++            }
++        }
++        for child in &source.lod_children {
++            if *child < -1 || *child >= nodes as i32 {
++                return Err("octree references an absent child".into());
++            }
++        }
++    }
++    Ok(())
++}
++
++/// BRep constructors receive structurally valid underlying analytic geometry.
++fn brep(source: &proto::BRep) -> Result<(), String> {
++    for item in &source.curves_2d {
++        curve(item)?;
++    }
++    for item in &source.curves_3d {
++        curve(item)?;
++    }
++    for item in &source.surfaces {
++        surface(item)?;
++    }
++    for vertex in &source.vertices {
++        if let Some(point) = &vertex.point {
++            finite(&[point.x, point.y, point.z], "BRep vertex")?;
++        }
++    }
++    Ok(())
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn hostile_counts_do_not_reach_kernel_allocations() {
++        let source = proto::NurbsCurve {
++            dimension: 3,
++            order: 2,
++            cv_count: i32::MAX,
++            ..Default::default()
++        };
++        assert!(curve(&source).is_err());
++        let source = proto::NurbsSurface {
++            dimension: 3,
++            order_u: 2,
++            order_v: 2,
++            cv_count_u: -1,
++            cv_count_v: 2,
++            ..Default::default()
++        };
++        assert!(surface(&source).is_err());
++    }
++    #[test]
++    fn missing_indices_and_partial_cloud_attributes_are_errors() {
++        let mut source = proto::Mesh::default();
++        source.faces.insert(
++            0,
++            proto::FaceData {
++                vertices: vec![0, 1, 2],
++                ..Default::default()
++            },
++        );
++        assert!(mesh(&source).is_err());
++        let cloud_source = proto::PointCloud {
++            coords: vec![0., 0., 0.],
++            point_ids: vec![7, 8],
++            ..Default::default()
++        };
++        assert!(cloud(&cloud_source).is_err());
++    }
++
++    #[test]
++    fn json_declared_controls_are_checked_before_constructor_allocation() {
++        assert!(
++            json(r#"{"control_points":[],"cv_count":18446744073709551615,"dimension":3}"#).is_err()
++        );
++        assert!(
++            json(r#"{"control_points":[],"cv_count_u":1000000,"cv_count_v":1000000}"#).is_err()
++        );
++        assert!(json(r#"{"control_points":[[0,0,0],[1,0,0]],"cv_count":2,"dimension":3,"order":2,"nurbsknots":[0,1]}"#).is_ok());
++    }
++}
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index 3658f3316d6684d362ff10c84039fd253031f935..e6ab54d84047af4cdc1316a576e370a45afcdf18
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -6,6 +6,8 @@
+ mod camera;
+ mod engine;
+ pub mod math;
++#[cfg(not(target_arch = "wasm32"))]
++pub mod selftest;
+ mod state;
+ #[cfg(target_arch = "wasm32")]
+ pub mod text_quality;
+@@ -26,6 +28,7 @@
+ pub enum Msg {
+     Ready(Box<State>),
+     File(FileDoc),
++    Texts(Vec<app::manifest::TextItem>),
+     Clear,
+     Fit,
+     StreamedCloud(Box<StreamedInit>),
+@@ -132,6 +135,7 @@
+             Msg::Clear => state.clear(),
+             Msg::Fit => state.fit_all(),
+             Msg::File(doc) => state.append(doc),
++            Msg::Texts(texts) => state.set_texts(texts),
+             Msg::StreamedCloud(init) => {
+                 let (url, fields, from, col_at) = (
+                     init.url.clone(),
+diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
+index a089674e92f001faeb7b0bad8e1c927f52ca5fd5..2bfa08425b7d0237f56ca4fb00513b99ea43ff5e
+--- a/session_viewer/src/state.rs
++++ b/session_viewer/src/state.rs
+@@ -110,6 +110,14 @@
+         self.touch();
+     }
+ 
++    /// Replace authored scene text after the corresponding manifest/geometry revision is ready.
++    pub fn set_texts(&mut self, texts: Vec<crate::app::manifest::TextItem>) {
++        self.scene.texts = texts;
++        self.update_label();
++        self.include_text_bounds();
++        self.touch();
++    }
++
+     /// A streamed cloud's first slice; returns the slot later slices address.
+     pub fn add_streamed(&mut self, init: StreamedInit) -> usize {
+         let idx = self.scene.add_streamed_cloud(init, &mut self.gpu);
+@@ -801,6 +809,22 @@
+     /// Source-document text and the selected object's centered name share a fixed white style.
+     fn update_label(&mut self) {
+         let mut labels = self.scene_labels.clone();
++        for (index, text) in self.scene.texts.iter().enumerate() {
++            labels.push(TextLabel {
++                id: (self.scene.docs.len() + index + 1) as u32,
++                text: text.text.clone(),
++                font_size: 18.0,
++                line_height: 26.0,
++                color: [255; 4],
++                placement: TextPlacement::WorldPlane {
++                    world: text.at,
++                    right: text.right,
++                    up: text.up,
++                    world_height: text.height,
++                },
++                clip: None,
++            });
++        }
+         if self.show_selected_names
+             && !matches!(self.selection, SelectionMode::Controls { .. })
+             && let Some(row) = self.scene.selected
+@@ -815,6 +839,40 @@
+         }
+         if let Err(error) = self.gpu.text.set_labels(labels) {
+             self.status(&format!("Text: {error}"));
++        }
++    }
++
++    /// Include authored text planes in camera fitting using shaped extents and their fixed frame.
++    fn include_text_bounds(&mut self) {
++        for run in &self.gpu.text.document.runs {
++            let TextPlacement::WorldPlane {
++                world,
++                right,
++                up,
++                world_height,
++            } = run.label.placement
++            else {
++                continue;
++            };
++            let unit = world_height / f64::from(run.label.font_size);
++            let mut width = 0.0f64;
++            let mut height = 0.0f64;
++            for line in run.buffer.layout_runs() {
++                width = width.max(f64::from(line.line_w) * unit);
++                height = height.max(f64::from(line.line_top + line.line_height) * unit);
++            }
++            let padding = world_height * 0.125;
++            for x in [-padding, width + padding] {
++                for y in [-padding, height + padding] {
++                    let mut point = [0.0f32; 3];
++                    for axis in 0..3 {
++                        point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
++                    }
++                    if point.into_iter().all(f32::is_finite) {
++                        self.gpu.bounds.grow(point);
++                    }
++                }
++            }
+         }
+     }
+ 
+diff --git a/session_viewer/tests/lifecycle.cjs b/session_viewer/tests/lifecycle.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..d4c0c685dc1693f267dc90b6e2ea8dad160efc64
+--- /dev/null
++++ b/session_viewer/tests/lifecycle.cjs
+@@ -0,0 +1,39 @@
++/** Focus, pointer cancellation, hidden canvas and unchanged-framebuffer DPR regression. */
++const assert=require('node:assert/strict');
++const fs=require('node:fs/promises');
++const {chromium}=require('playwright');
++function snapshot(){const raw=document.querySelector('#canvas')?.getAttribute('data-viewer-inspection');return raw?JSON.parse(raw):null;}
++function pointFixture(){const xyz=Buffer.alloc(27);xyz[0]=25;xyz.writeDoubleLE(0,1);xyz[9]=33;xyz.writeDoubleLE(0,10);xyz[18]=41;xyz.writeDoubleLE(0,19);const p=Buffer.concat([Buffer.from([10,1,112]),xyz,Buffer.from([49,0,0,0,0,0,0,32,64])]);const objects=Buffer.concat([Buffer.from([26,p.length]),p]);return Buffer.concat([Buffer.from([10,1,115,26,objects.length]),objects]);}
++function cancelPointer(){document.querySelector('#canvas').dispatchEvent(new PointerEvent('pointercancel',{pointerType:'mouse',pointerId:1,bubbles:true}));}
++function focusInput(){const input=document.createElement('input');input.id='focus-probe';input.style='position:fixed;top:0;left:0';document.body.append(input);input.focus();}
++function canvasVisible(visible){document.querySelector('#canvas').style.display=visible?'block':'none';}
++async function main(){
++ const output=process.env.VIEWER_TEST_OUTPUT||'/tmp/session-viewer-lifecycle';await fs.mkdir(output,{recursive:true});
++ const browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:process.env.VIEWER_HEADLESS==='1',args:process.env.VIEWER_CHROME_ARGS?JSON.parse(process.env.VIEWER_CHROME_ARGS):[]});
++ const context=await browser.newContext({viewport:{width:1000,height:700},deviceScaleFactor:1});const page=await context.newPage();const errors=[];
++ function onError(error){errors.push(String(error));}
++ async function manifest(route){await route.fulfill({status:200,contentType:'application/toml',body:'name="lifecycle"\n[[items]]\nfile="pb/lifecycle.pb"\ndisplay_only=true\n'});}
++ async function geometry(route){await route.fulfill({status:200,contentType:'application/octet-stream',body:pointFixture()});}
++ page.on('pageerror',onError);await page.route('**/scenes/lifecycle.toml',manifest);await page.route('**/pb/lifecycle.pb',geometry);
++ try{
++  await page.goto((process.env.VIEWER_URL||'http://localhost:8770/')+'?scene=lifecycle.toml&data=off&inspect=1');await page.bringToFront();
++  await page.waitForFunction(function ready(){return JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection')||'{}').objects===1;},null,{timeout:60000});
++  const initial=await page.evaluate(snapshot);await page.evaluate(focusInput);await page.keyboard.press('7');await page.waitForTimeout(100);
++  assert.deepEqual((await page.evaluate(snapshot)).mvp,initial.mvp,'typing focus must preserve camera');
++  await page.locator('#canvas').focus();await page.mouse.move(500,350);await page.mouse.down({button:'right'});await page.mouse.move(560,370);await page.waitForTimeout(100);
++  await page.evaluate(cancelPointer);await page.waitForTimeout(100);const canceled=await page.evaluate(snapshot);
++  await page.mouse.move(700,500);await page.waitForTimeout(100);await page.mouse.up({button:'right'});
++  assert.deepEqual((await page.evaluate(snapshot)).mvp,canceled.mvp,'canceled pointer must stop orbit');
++  await page.mouse.move(500,350);await page.mouse.down();await page.evaluate(cancelPointer);await page.mouse.up();await page.waitForTimeout(100);
++  assert.equal((await page.evaluate(snapshot)).selected,null,'canceled click must not select');
++  await page.evaluate(canvasVisible,false);await page.waitForTimeout(150);const hidden=await page.evaluate(snapshot);await page.waitForTimeout(300);
++  assert.equal((await page.evaluate(snapshot)).frames,hidden.frames,'hidden canvas must stop frame submission');
++  await page.evaluate(canvasVisible,true);await page.waitForTimeout(150);
++  const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setDeviceMetricsOverride',{width:500,height:350,deviceScaleFactor:2,mobile:false});
++  await page.waitForFunction(function scaled(){const state=JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection')||'{}');return state.logical_canvas?.[0]===500;});
++  const scaled=await page.evaluate(snapshot);assert.deepEqual(scaled.canvas,[1000,700]);assert.deepEqual(scaled.logical_canvas,[500,350]);
++  await page.screenshot({path:output+'/lifecycle.png'});assert.deepEqual(errors,[]);
++  await fs.writeFile(output+'/lifecycle.json',JSON.stringify({initial,canceled,hidden,scaled,errors},null,2));console.log('lifecycle: input focus, pointer cancel, hidden canvas and same-framebuffer DPR passed');
++ }finally{await browser.close();}
++}
++main().catch(function failed(error){console.error(error);process.exitCode=1;});
+diff --git a/session_viewer/tests/loading.cjs b/session_viewer/tests/loading.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..ff68846623b82b9b4143d222bdb6fa047ea1063e
+--- /dev/null
++++ b/session_viewer/tests/loading.cjs
+@@ -0,0 +1,60 @@
++/** Last-valid-scene, revision race and malformed-payload browser regression. */
++const assert=require('node:assert/strict');
++const fs=require('node:fs/promises');
++const {chromium}=require('playwright');
++function varint(value){const bytes=[];do{bytes.push((value&127)|(value>127?128:0));value=Math.floor(value/128);}while(value);return Buffer.from(bytes);}
++function field(number,body){if(typeof body==='string')body=Buffer.from(body);return Buffer.concat([varint(number*8+2),varint(body.length),body]);}
++function scalar(number,value){const bytes=Buffer.alloc(9);bytes[0]=number*8+1;bytes.writeDoubleLE(value,1);return bytes;}
++function fixture(count){const points=[];for(let index=0;index<count;index++)points.push(field(3,Buffer.concat([field(1,'point-'+index),scalar(3,index*100),scalar(4,0),scalar(5,0),scalar(6,8)])));return Buffer.concat([field(1,'load-test-'+count),field(3,Buffer.concat(points))]);}
++function inspection(){const raw=document.querySelector('#canvas')?.getAttribute('data-viewer-inspection');return raw?JSON.parse(raw):null;}
++function loaded(count){const raw=document.querySelector('#canvas')?.getAttribute('data-viewer-inspection');return raw&&JSON.parse(raw).objects===count;}
++function reload(scene){window.wasmBindings.reload_scene(scene);}
++
++async function main(){
++ const browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:process.env.VIEWER_HEADLESS==='1',args:process.env.VIEWER_CHROME_ARGS?JSON.parse(process.env.VIEWER_CHROME_ARGS):[]});
++ const context=await browser.newContext({viewport:{width:1000,height:700},deviceScaleFactor:1});
++ const page=await context.newPage();let releaseSlow;let slowRequested;const slowSeen=new Promise(resolve=>{slowRequested=resolve;});const slowGate=new Promise(resolve=>{releaseSlow=resolve;});
++ const failures=[];page.on('pageerror',error=>failures.push(String(error)));
++ async function route(request){
++   const url=new URL(request.request().url());
++   if(url.pathname==='/scenes/slow.toml'){slowRequested();await slowGate;return request.fulfill({status:200,contentType:'application/toml',body:'name="slow"\n[[items]]\nfile="pb/one.pb"\n'});}
++   if(url.pathname.startsWith('/scenes/')){
++     const name=url.pathname.split('/').at(-1).split('.')[0];
++     if(name==='missing')return request.fulfill({status:404,body:'absent'});
++     return request.fulfill({status:200,contentType:'application/toml',body:'name="'+name+'"\n[[items]]\nfile="pb/'+name+'.pb"\n'});
++   }
++   if(url.pathname.startsWith('/pb/')){
++     const name=url.pathname.split('/').at(-1).split('.')[0];
++     const body=name==='broken'?Buffer.from([0x1a,0xff]):fixture(name==='two'?2:1);
++     return request.fulfill({status:200,contentType:'application/octet-stream',body});
++   }
++   return request.continue();
++ }
++ await page.route('**/scenes/**',route);await page.route('**/pb/**',route);
++ try{
++   await page.goto((process.env.VIEWER_URL||'http://localhost:8770/')+'?scene=one.toml&data=off&inspect=1');await page.bringToFront();
++   await page.waitForFunction(loaded,1,{timeout:60000});
++   const initial=await page.evaluate(inspection);
++   await page.evaluate(reload,'broken.toml');
++   await page.waitForFunction(()=>document.getElementById('viewer-status').textContent.includes('last valid scene'));
++   assert.equal((await page.evaluate(inspection)).objects,1,'malformed replacement must retain source rows');
++   await page.evaluate(reload,'slow.toml');await slowSeen;
++   await page.evaluate(reload,'two.toml');await page.waitForFunction(loaded,2);
++   releaseSlow();await page.waitForTimeout(600);
++   assert.equal((await page.evaluate(inspection)).objects,2,'older completion must not replace the newer route');
++   const cycles=[];
++   for(let cycle=0;cycle<6;cycle++){
++     const count=cycle%2?2:1;await page.evaluate(reload,count===1?'one.toml':'two.toml');await page.waitForFunction(loaded,count);
++     await page.waitForTimeout(80);cycles.push(await page.evaluate(inspection));
++   }
++   assert.deepEqual(failures,[]);
++   const allocations=cycles.filter(value=>value.objects===2).map(value=>value.gpu_buffer_capacity_bytes+value.gpu_texture_estimate_bytes);
++   assert.equal(new Set(allocations).size,1,'same replacement workload must release prior GPU growth');
++   const report={initial,cycles,errors:failures};
++   await fs.mkdir(process.env.VIEWER_TEST_OUTPUT||'/tmp/session-viewer-loading',{recursive:true});
++   await fs.writeFile((process.env.VIEWER_TEST_OUTPUT||'/tmp/session-viewer-loading')+'/loading.json',JSON.stringify(report,null,2));
++   console.log('loading: malformed replacement, newer route wins, six resource cycles passed');
++ }finally{releaseSlow();await browser.close();}
++}
++main().catch(error=>{console.error(error);process.exitCode=1;});
++// Viewer: NODE_PATH=/tmp/viewer-browser-test/node_modules node tests/loading.cjs. Local mocked HTTP only.

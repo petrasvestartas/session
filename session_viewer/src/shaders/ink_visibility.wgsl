@@ -1,12 +1,13 @@
-// Shared by the ink lanes. Visibility comes from the physical depth alone, read as a
-// piecewise-planar surface: a fragment fits the plane of the surface under it from its own
-// texel and the next one AWAY from the stroke, and is on its surface when that plane passes
-// through the stroke's axis. Otherwise only something nearer than the axis hides it.
+// Ink compares its axis with the physical primitive depth carried by that primitive's
+// raster gradient. This retains subpixel and grazing facets without relaxing occlusion.
+// A bounded neighboring-plane fit handles gradients outside the attachment's range.
 // Reverse-Z: nearer is greater, 0 is cleared. Pixels are framebuffer coordinates, y down.
 @group(2) @binding(2) var scene_depth_single: texture_depth_2d;
 @group(2) @binding(3) var scene_depth_msaa: texture_depth_multisampled_2d;
 
 override SCENE_MSAA: bool = false;
+@group(2) @binding(4) var scene_gradient_single: texture_2d<f32>;
+@group(2) @binding(5) var scene_gradient_msaa: texture_multisampled_2d<f32>;
 
 // 2^-19: about 16 ULPs of a float, relative to the depth.
 const DEPTH_REL_TOL: f32 = 1.9073486e-6;
@@ -104,7 +105,7 @@ fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
 // or a touching neighbour the carry lands on the axis; a nearer occluder carries nearer and
 // hides the fragment even where the occluder recedes past the axis depth at this pixel; a
 // farther surface beyond a silhouette carries farther and the stroke overhangs it.
-fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
+fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) {
         return true;
@@ -140,34 +141,30 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
 // camera-facing billboard, so the whole of it stands or falls with its centre; comparing at
 // the fragment instead lets a grazing surface, which crosses the disc's own depth within a
 // few pixels of its radius, uncover the rim of a marker buried behind it.
-fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
+fn ink_disc_fragment_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) {
         return true;
     }
     let d = pixel - centre;
-    let along_x = vec2<f32>(select(1.0, -1.0, d.x < 0.0), 0.0);
-    let along_y = vec2<f32>(0.0, select(1.0, -1.0, d.y < 0.0));
-    // Both axes must sample one surface, by the same guard the stroke uses. A disc steps away
-    // from its own centre on both axes and so has no second direction to fall back on: when
-    // either tap straddles a discontinuity there is no plane, and the fragment's own depth
-    // decides rather than a phantom one carried to the centre.
-    if (!ink_pair_planar(pixel, along_x, z, sample) || !ink_pair_planar(pixel, along_y, z, sample)) {
-        return z <= depth + abs(depth) * DEPTH_REL_TOL;
+    var along_x = vec2<f32>(select(1.0, -1.0, d.x < 0.0), 0.0);
+    var along_y = vec2<f32>(0.0, select(1.0, -1.0, d.y < 0.0));
+    if (!ink_pair_planar(pixel, along_x, z, sample)) {
+        along_x = -along_x;
+        if (!ink_pair_planar(pixel, along_x, z, sample)) {
+            return z <= depth + abs(depth) * DEPTH_REL_TOL;
+        }
+    }
+    if (!ink_pair_planar(pixel, along_y, z, sample)) {
+        along_y = -along_y;
+        if (!ink_pair_planar(pixel, along_y, z, sample)) {
+            return z <= depth + abs(depth) * DEPTH_REL_TOL;
+        }
     }
     let gx = (ink_depth(pixel + along_x, sample) - z) * along_x.x;
     let gy = (ink_depth(pixel + along_y, sample) - z) * along_y.y;
     let predicted = z - d.x * gx - d.y * gy;
     return ink_carry_visible(predicted, z, depth, ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y)));
-}
-
-// Normals transform by the inverse transpose, including nonuniform instance scales.
-fn face_normal(model: mat4x4<f32>, normal: vec3<f32>) -> vec3<f32> {
-    let x = model[0].xyz;
-    let y = model[1].xyz;
-    let z = model[2].xyz;
-    let det = dot(x, cross(y, z));
-    return mat3x3<f32>(cross(y, z), cross(z, x), cross(x, y)) * normal / det;
 }
 
 // Orthographic visibility uses parallel rays, independent of lateral camera position.
@@ -176,4 +173,64 @@ fn toward_eye(point: vec3<f32>) -> vec3<f32> {
         return vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z);
     }
     return vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - point;
+}
+
+// Test the footprint and its source centre at the same subpixel sample position.
+// Only a verified plane can veto the centre: a raw texel at a silhouette is ambiguous.
+fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
+    if (!ink_disc_fragment_visible(pixel, centre, depth, sample)) {
+        return false;
+    }
+    let source_pixel = floor(centre) + fract(pixel);
+    return !ink_disc_source_hidden(source_pixel, centre, depth, sample);
+}
+
+// At a corner, independent x/y fits can belong to different faces. The diagonal must
+// agree too; try each quadrant so a boundary does not discard an otherwise valid fit.
+// The centre is hidden only when that complete plane lies strictly in front of it.
+fn ink_disc_source_hidden(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
+    let z = ink_depth(pixel, sample);
+    if (z == 0.0) {
+        return false;
+    }
+    let d = pixel - centre;
+    for (var x = 0u; x < 2u; x++) {
+        let dx = vec2<f32>(select(1.0, -1.0, x == 1u), 0.0);
+        if (!ink_pair_planar(pixel, dx, z, sample)) {
+            continue;
+        }
+        let gx = (ink_depth(pixel + dx, sample) - z) * dx.x;
+        for (var y = 0u; y < 2u; y++) {
+            let dy = vec2<f32>(0.0, select(1.0, -1.0, y == 1u));
+            if (!ink_pair_planar(pixel, dy, z, sample)) {
+                continue;
+            }
+            let gy = (ink_depth(pixel + dy, sample) - z) * dy.y;
+            let diagonal = ink_depth(pixel + dx + dy, sample);
+            let expected = z + gx * dx.x + gy * dy.y;
+            if (diagonal == 0.0 || abs(diagonal - expected) > ink_tolerance(z, abs(gx) + abs(gy), 2.0)) {
+                continue;
+            }
+            let predicted = z - d.x * gx - d.y * gy;
+            if (predicted > depth + ink_tolerance(depth, abs(gx) + abs(gy), abs(d.x) + abs(d.y))) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+// Use the physical primitive's own gradient even when it covers only one sample.
+fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
+    let z = ink_depth(pixel, sample);
+    if (z == 0.0) { return true; }
+    var encoded = vec2<f32>(0.0);
+    if (SCENE_MSAA) { encoded = textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).xy; }
+    else { encoded = textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).xy; }
+    if (any(abs(encoded) >= vec2<f32>(PLANE_INVALID))) { return ink_axis_visible(pixel, axis, sample); }
+    let gradient = encoded / PLANE_SCALE;
+    let delta = axis.at - pixel;
+    let predicted = z + dot(gradient, delta);
+    return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)));
 }

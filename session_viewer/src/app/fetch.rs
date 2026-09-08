@@ -1,13 +1,22 @@
 //! The browser's network edge: cross-origin GETs (plain and conditional), HTTP Range reads
 //! that refuse anything but `206`, and the two ways to hand the browser its main thread back.
 
+use wasm_bindgen::closure::Closure;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
 
 /// The browser's message for a JS error value.
 fn describe(e: JsValue) -> String {
-    e.as_string().unwrap_or_else(|| format!("{e:?}"))
+    match e.as_string() {
+        Some(message) => message,
+        None => format!("{e:?}"),
+    }
+}
+
+/// Fetch rejections include their network context in recoverable page feedback.
+fn network_error(error: JsValue) -> String {
+    format!("network error: {}", describe(error))
 }
 
 /// What a GET came back with. `bytes` is empty on a 304.
@@ -29,7 +38,9 @@ pub struct GetOpts {
 
 /// GET `url` with `opts`. Any HTTP status is `Ok`; a network failure is `Err`.
 pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
+    let deadline = Deadline::new()?;
     let init = RequestInit::new();
+    init.set_signal(Some(&deadline.controller.signal()));
     init.set_method("GET");
     init.set_mode(RequestMode::Cors);
     if opts.no_store {
@@ -43,30 +54,82 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
     }
     if let Some((start, len)) = opts.range {
         if len == 0 {
-            return Ok(Reply { status: 206, etag: None, bytes: Vec::new() });
+            return Ok(Reply {
+                status: 206,
+                etag: None,
+                bytes: Vec::new(),
+            });
         }
-        headers.set("Range", &format!("bytes={}-{}", start, start + len - 1)).map_err(describe)?;
+        headers
+            .set(
+                "Range",
+                &format!(
+                    "bytes={}-{}",
+                    start,
+                    start.checked_add(len - 1).ok_or("invalid byte range")?
+                ),
+            )
+            .map_err(describe)?;
     }
     init.set_headers(&headers);
     let request = Request::new_with_str_and_init(url, &init).map_err(describe)?;
-    let window = web_sys::window().ok_or_else(|| "no window".to_string())?;
-    let resp: Response = JsFuture::from(window.fetch_with_request(&request)).await.map_err(|e| format!("network error: {}", describe(e)))?.dyn_into().map_err(describe)?;
+    let window = web_sys::window().ok_or("no window")?;
+    let resp: Response = JsFuture::from(window.fetch_with_request(&request))
+        .await
+        .map_err(network_error)?
+        .dyn_into()
+        .map_err(describe)?;
     let etag = resp.headers().get("etag").ok().flatten();
     let status = resp.status();
     // A body is read only when it is the one asked for: a `Range` answered with `200` is the
     // WHOLE file, a conditional answered with `304` has none, an error page is not the file.
-    let wanted = if opts.range.is_some() { status == 206 } else { (200..300).contains(&status) };
+    let wanted = if opts.range.is_some() {
+        status == 206
+    } else {
+        (200..300).contains(&status)
+    };
     if !wanted {
-        return Ok(Reply { status, etag, bytes: Vec::new() });
+        return Ok(Reply {
+            status,
+            etag,
+            bytes: Vec::new(),
+        });
     }
-    let buf = JsFuture::from(resp.array_buffer().map_err(describe)?).await.map_err(describe)?;
-    Ok(Reply { status, etag, bytes: js_sys::Uint8Array::new(&buf).to_vec() })
+    if let Ok(Some(length)) = resp.headers().get("Content-Length")
+        && let Ok(length) = length.parse::<u64>()
+        && length > 512 * 1024 * 1024
+    {
+        return Err(
+            "payload exceeds the 512 MiB whole-file limit; use cloud streaming".to_string(),
+        );
+    }
+    let buf = JsFuture::from(resp.array_buffer().map_err(describe)?)
+        .await
+        .map_err(describe)?;
+    let bytes = js_sys::Uint8Array::new(&buf).to_vec();
+    if let Some((_, length)) = opts.range
+        && bytes.len() as u64 > length
+    {
+        return Err("range response exceeds requested bytes".to_string());
+    }
+    Ok(Reply {
+        status,
+        etag,
+        bytes,
+    })
 }
 
 /// GET a whole file, revalidating any cached copy (a re-uploaded file is never stale, an
 /// unchanged one costs one 304); a non-2xx status is an error naming it.
 pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
-    let r = get(url, &GetOpts { revalidate: true, ..GetOpts::default() }).await?;
+    let r = get(
+        url,
+        &GetOpts {
+            revalidate: true,
+            ..GetOpts::default()
+        },
+    )
+    .await?;
     if !(200..300).contains(&r.status) {
         return Err(format!("HTTP {} for {url}", r.status));
     }
@@ -76,9 +139,19 @@ pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
 /// GET a byte range. Refuses anything but `206`: a server that ignores `Range` answers `200`
 /// with the WHOLE body, which for a 431 MB scan would be catastrophic and silent.
 pub async fn fetch_range(url: &str, start: u64, len: u64) -> Result<Vec<u8>, String> {
-    let r = get(url, &GetOpts { range: Some((start, len)), ..GetOpts::default() }).await?;
+    let r = get(
+        url,
+        &GetOpts {
+            range: Some((start, len)),
+            ..GetOpts::default()
+        },
+    )
+    .await?;
     if r.status != 206 {
-        return Err(format!("server ignored Range (HTTP {}) for {url}", r.status));
+        return Err(format!(
+            "server ignored Range (HTTP {}) for {url}",
+            r.status
+        ));
     }
     Ok(r.bytes)
 }
@@ -99,4 +172,43 @@ pub async fn sleep_ms(ms: i32) {
 /// One macrotask: lets the browser paint between slices of work (a microtask would not).
 pub async fn next_tick() {
     sleep_ms(0).await;
+}
+
+/// Own a bounded fetch deadline and its callback; every return path releases the timer.
+struct Deadline {
+    controller: web_sys::AbortController,
+    timer: i32,
+    _callback: Closure<dyn FnMut()>,
+}
+impl Deadline {
+    /// Permit slow scene transfers for ninety seconds, then surface a recoverable network error.
+    fn new() -> Result<Self, String> {
+        let window = web_sys::window().ok_or("no window")?;
+        let controller = web_sys::AbortController::new().map_err(describe)?;
+        let owned = controller.clone();
+        let callback = Closure::<dyn FnMut()>::new(move || abort_request(&owned));
+        let timer = window
+            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                callback.as_ref().unchecked_ref(),
+                90_000,
+            )
+            .map_err(describe)?;
+        Ok(Self {
+            controller,
+            timer,
+            _callback: callback,
+        })
+    }
+}
+impl Drop for Deadline {
+    /// Remove the JavaScript timer before dropping its Rust callback handle.
+    fn drop(&mut self) {
+        if let Some(window) = web_sys::window() {
+            window.clear_timeout_with_handle(self.timer);
+        }
+    }
+}
+/// The browser callback adapter forwards cancellation to the request's controller.
+fn abort_request(controller: &web_sys::AbortController) {
+    controller.abort();
 }

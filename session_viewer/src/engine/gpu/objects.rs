@@ -3,12 +3,12 @@
 //! translations, the sparse bounded rows, the re-anchor, the inside test, the two buffers and
 //! their bind group.
 
-use crate::engine::pipelines::Layouts;
-use crate::math::{mat_scale, mat_to_f32, Aabb, Mat4};
-use session_rust::Point;
-use super::buffers::{bind_group, GpuCtx, GrowBuf, ROWS};
+use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
 use super::instance::Instance;
 use super::targets::Targets;
+use crate::engine::pipelines::Layouts;
+use crate::math::{Aabb, Mat4, mat_scale, mat_to_f32};
+use session_rust::Point;
 
 /// Re-anchor threshold band, world units: the table is rebased once the camera target drifts
 /// a quarter of the view distance from the anchor, clamped to [MIN, MAX].
@@ -47,7 +47,15 @@ pub struct ObjectRow {
 impl ObjectRow {
     /// A row with the file placement, white tint and no columns filled yet.
     pub fn new(place: Mat4, flags: u32) -> Self {
-        Self { place, color: [1.0; 4], flags, bounds: Aabb::empty(), spacing: 0.0, faces: false, thickness: 0.0 }
+        Self {
+            place,
+            color: [1.0; 4],
+            flags,
+            bounds: Aabb::empty(),
+            spacing: 0.0,
+            faces: false,
+            thickness: 0.0,
+        }
     }
 }
 
@@ -95,8 +103,18 @@ pub struct InstanceTable {
 }
 
 /// Group 2: the rows at binding 0, the anchored translations at binding 1.
-fn instance_group(ctx: &GpuCtx, l: &Layouts, rows: &wgpu::Buffer, translations: &wgpu::Buffer) -> wgpu::BindGroup {
-    bind_group(ctx, &l.instance, "instances.bind_group", &[rows, translations])
+fn instance_group(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    rows: &wgpu::Buffer,
+    translations: &wgpu::Buffer,
+) -> wgpu::BindGroup {
+    bind_group(
+        ctx,
+        &l.instance,
+        "instances.bind_group",
+        &[rows, translations],
+    )
 }
 
 /// The immutable physical depth bound beside each ink lane's instance columns.
@@ -105,24 +123,59 @@ pub struct InkScene<'a> {
 }
 
 /// Group 2 for ink: the instance columns plus the face pass's depth, both sample counts.
-fn ink_instance_group(ctx: &GpuCtx, l: &Layouts, buffers: [&wgpu::Buffer; 2], scene: &InkScene) -> wgpu::BindGroup {
+fn ink_instance_group(
+    ctx: &GpuCtx,
+    l: &Layouts,
+    buffers: [&wgpu::Buffer; 2],
+    scene: &InkScene,
+) -> wgpu::BindGroup {
     let targets = scene.targets;
     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("ink.instances.bind_group"),
         layout: &l.ink_instance,
         entries: &[
-            wgpu::BindGroupEntry { binding: 0, resource: buffers[0].as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 1, resource: buffers[1].as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::TextureView(&targets.depth_single) },
-            wgpu::BindGroupEntry { binding: 3, resource: wgpu::BindingResource::TextureView(&targets.depth_msaa) },
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: buffers[0].as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: buffers[1].as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: wgpu::BindingResource::TextureView(&targets.depth_single),
+            },
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: wgpu::BindingResource::TextureView(&targets.depth_msaa),
+            },
+            wgpu::BindGroupEntry {
+                binding: 4,
+                resource: wgpu::BindingResource::TextureView(&targets.gradient_single),
+            },
+            wgpu::BindGroupEntry {
+                binding: 5,
+                resource: wgpu::BindingResource::TextureView(&targets.gradient_msaa),
+            },
         ],
     })
 }
 
 impl InstanceTable {
+    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
+    pub fn allocated_bytes(&self) -> u64 {
+        self.buffer.buf.size() + self.translations.buf.size()
+    }
+
     /// One placeholder row in both tables, so the first frame binds real buffers.
     pub fn new(ctx: &GpuCtx, l: &Layouts, scene: &InkScene) -> Self {
-        let buffer = GrowBuf::new(ctx, "instance.buffer", std::mem::size_of::<Instance>() as u64, ROWS);
+        let buffer = GrowBuf::new(
+            ctx,
+            "instance.buffer",
+            std::mem::size_of::<Instance>() as u64,
+            ROWS,
+        );
         let translations = GrowBuf::new(ctx, "instance.translations", 16, ROWS);
         let group = instance_group(ctx, l, &buffer.buf, &translations.buf);
         let ink_group = ink_instance_group(ctx, l, [&buffer.buf, &translations.buf], scene);
@@ -143,7 +196,48 @@ impl InstanceTable {
 
     /// Refresh the depth and instance bindings after upload, resize, or release.
     pub fn rebind_ink(&mut self, ctx: &GpuCtx, l: &Layouts, scene: &InkScene) {
-        self.ink_group = ink_instance_group(ctx, l, [&self.buffer.buf, &self.translations.buf], scene);
+        self.ink_group =
+            ink_instance_group(ctx, l, [&self.buffer.buf, &self.translations.buf], scene);
+    }
+
+    /// Bind pixel-center picking depth separately from the multisampled display depth.
+    pub fn pick_group(
+        &self,
+        ctx: &GpuCtx,
+        layouts: &Layouts,
+        depths: [&wgpu::TextureView; 2],
+        gradients: [&wgpu::TextureView; 2],
+    ) -> wgpu::BindGroup {
+        ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("pick.instances"),
+            layout: &layouts.ink_instance,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: self.buffer.buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: self.translations.buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(depths[0]),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 3,
+                    resource: wgpu::BindingResource::TextureView(depths[1]),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 4,
+                    resource: wgpu::BindingResource::TextureView(gradients[0]),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 5,
+                    resource: wgpu::BindingResource::TextureView(gradients[1]),
+                },
+            ],
+        })
     }
 
     /// Append one upload's rows: cast once, keep the f64 translation, note the bounded ones,
@@ -162,18 +256,42 @@ impl InstanceTable {
         for (i, r) in up.rows.iter().enumerate() {
             let world = world_box(r);
             if r.faces && world.is_finite() {
-                let lo = [world.min[0] as f64, world.min[1] as f64, world.min[2] as f64];
-                let hi = [world.max[0] as f64, world.max[1] as f64, world.max[2] as f64];
-                self.bounded.push(BoundedRow { row: base + i as u32, lo, hi });
+                let lo = [
+                    world.min[0] as f64,
+                    world.min[1] as f64,
+                    world.min[2] as f64,
+                ];
+                let hi = [
+                    world.max[0] as f64,
+                    world.max[1] as f64,
+                    world.max[2] as f64,
+                ];
+                self.bounded.push(BoundedRow {
+                    row: base + i as u32,
+                    lo,
+                    hi,
+                });
             }
-            self.world_bounds.push(if world.is_finite() { world } else { Aabb::empty() });
-            self.translation.push([r.place[12], r.place[13], r.place[14]]);
+            self.world_bounds.push(if world.is_finite() {
+                world
+            } else {
+                Aabb::empty()
+            });
+            self.translation
+                .push([r.place[12], r.place[13], r.place[14]]);
             let mut model = mat_to_f32(&r.place);
             model[12] = 0.0;
             model[13] = 0.0;
             model[14] = 0.0;
             let thickness = thickness(r);
-            self.rows.push(Instance { model, color: r.color, flags: r.flags, thickness, spacing: r.spacing, _pad: 0 });
+            self.rows.push(Instance {
+                model,
+                color: r.color,
+                flags: r.flags,
+                thickness,
+                spacing: r.spacing,
+                _pad: 0,
+            });
         }
         if self.rows.is_empty() {
             self.rows.push(Instance::placeholder());
@@ -193,7 +311,13 @@ impl InstanceTable {
 
     /// The anchor the table is rebased about. A rebuild runs only when the camera target
     /// strays past the band from the current anchor; `origin` and `view_dist` are world units.
-    pub fn rebase_anchor(&mut self, ctx: &GpuCtx, origin: &Point, view_dist: f64, now: f64) -> Rebase {
+    pub fn rebase_anchor(
+        &mut self,
+        ctx: &GpuCtx,
+        origin: &Point,
+        view_dist: f64,
+        now: f64,
+    ) -> Rebase {
         let thresh = (view_dist * 0.25).clamp(REANCHOR_MIN, REANCHOR_MAX);
         let need = match &self.last_origin {
             None => true,
@@ -202,12 +326,17 @@ impl InstanceTable {
                 (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt() > thresh
             }
         };
-        let moved = need && (self.last_origin.is_none() || now - self.last_rebase_ms > REANCHOR_THROTTLE_MS);
+        let moved = need
+            && (self.last_origin.is_none() || now - self.last_rebase_ms > REANCHOR_THROTTLE_MS);
         if moved {
             self.rebuild(ctx, origin);
             self.last_rebase_ms = now;
         }
-        Rebase { anchor: self.last_origin.clone().unwrap(), moved, pending: need && !moved }
+        Rebase {
+            anchor: self.last_origin.clone().unwrap(),
+            moved,
+            pending: need && !moved,
+        }
     }
 
     /// Rebase every row's translation around `origin` in f64, cast, and rewrite the 16 B/row
@@ -216,7 +345,12 @@ impl InstanceTable {
         self.last_origin = Some(origin.clone());
         let mut anchored: Vec<[f32; 4]> = Vec::with_capacity(self.rows.len());
         for t in &self.translation {
-            anchored.push([(t[0] - origin[0]) as f32, (t[1] - origin[1]) as f32, (t[2] - origin[2]) as f32, 0.0]);
+            anchored.push([
+                (t[0] - origin[0]) as f32,
+                (t[1] - origin[1]) as f32,
+                (t[2] - origin[2]) as f32,
+                0.0,
+            ]);
         }
         anchored.resize(self.rows.len(), [0.0; 4]);
         self.translations.write_at(ctx, 0, &anchored);
@@ -239,12 +373,28 @@ impl InstanceTable {
         if self.bounded.is_empty() {
             return;
         }
-        let Some(origin) = self.last_origin.clone() else { return };
-        let ew = [origin[0] + eye[0] as f64, origin[1] + eye[1] as f64, origin[2] + eye[2] as f64];
+        let Some(origin) = self.last_origin.clone() else {
+            return;
+        };
+        let ew = [
+            origin[0] + eye[0] as f64,
+            origin[1] + eye[1] as f64,
+            origin[2] + eye[2] as f64,
+        ];
         let in_scene = scene.contains(ew);
         for b in &self.bounded {
-            let inside = in_scene && (0..3).all(|k| ew[k] >= b.lo[k] && ew[k] <= b.hi[k]);
-            let Some(row) = self.rows.get_mut(b.row as usize) else { continue };
+            let mut inside = in_scene;
+            if inside {
+                for (coordinate, (low, high)) in ew.iter().zip(b.lo.iter().zip(&b.hi)) {
+                    if !(coordinate >= low && coordinate <= high) {
+                        inside = false;
+                        break;
+                    }
+                }
+            }
+            let Some(row) = self.rows.get_mut(b.row as usize) else {
+                continue;
+            };
             if (row.flags & Instance::FLAG_INSIDE != 0) == inside {
                 continue;
             }
@@ -255,7 +405,9 @@ impl InstanceTable {
 
     /// Set or clear one flag bit on one row and write that row back.
     pub fn set_flag(&mut self, ctx: &GpuCtx, row: u32, bit: u32, on: bool) {
-        let Some(r) = self.rows.get_mut(row as usize) else { return };
+        let Some(r) = self.rows.get_mut(row as usize) else {
+            return;
+        };
         let was = r.flags & bit != 0;
         if was == on {
             return;
@@ -304,9 +456,20 @@ impl InstanceTable {
         b.is_finite().then_some(b)
     }
 
+    /// The precise origin required to project source-world labels into the rebased frame.
+    pub fn anchor(&self) -> [f64; 3] {
+        match &self.last_origin {
+            Some(point) => [point[0], point[1], point[2]],
+            None => [0.0; 3],
+        }
+    }
+
     /// The anchor the rows are rebased about, as the shaders read it; zero before the first frame.
     pub fn anchor_f32(&self) -> [f32; 3] {
-        self.last_origin.as_ref().map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3])
+        match &self.last_origin {
+            Some(origin) => [origin[0] as f32, origin[1] as f32, origin[2] as f32],
+            None => [0.0; 3],
+        }
     }
 }
 
@@ -319,7 +482,10 @@ mod tests {
     #[test]
     fn world_box_translates() {
         let mut r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
-        r.bounds = Aabb { min: [0.0, 0.0, 0.0], max: [1.0, 2.0, 3.0] };
+        r.bounds = Aabb {
+            min: [0.0, 0.0, 0.0],
+            max: [1.0, 2.0, 3.0],
+        };
         let b = world_box(&r);
         assert_eq!(b.min, [10.0, 20.0, 30.0]);
         assert_eq!(b.max, [11.0, 22.0, 33.0]);

@@ -32,23 +32,91 @@ pub struct Targets {
     pub depth_single: wgpu::TextureView,
     pub depth_msaa: wgpu::TextureView,
     pub samples: u32,
+    pub gradient: wgpu::TextureView,
+    pub gradient_single: wgpu::TextureView,
+    pub gradient_msaa: wgpu::TextureView,
 }
 
 impl Targets {
     /// Frame attachments and the opposite-sample-count placeholder binding.
     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
-        let depth = texture_view(ctx, "depth", &TextureSpec { size, format: wgpu::TextureFormat::Depth32Float, samples, usage });
+        let depth = texture_view(
+            ctx,
+            "depth",
+            &TextureSpec {
+                size,
+                format: wgpu::TextureFormat::Depth32Float,
+                samples,
+                usage,
+            },
+        );
         let msaa = if samples > 1 {
-            Some(texture_view(ctx, "msaa_color", &TextureSpec { size, format, samples, usage }))
+            Some(texture_view(
+                ctx,
+                "msaa_color",
+                &TextureSpec {
+                    size,
+                    format,
+                    samples,
+                    usage,
+                },
+            ))
         } else {
             None
         };
 
         let other_samples = if samples == 1 { 4 } else { 1 };
-        let empty_depth = texture_view(ctx, "unused.depth", &TextureSpec { size: (1, 1), format: wgpu::TextureFormat::Depth32Float, samples: other_samples, usage });
-        let (depth_single, depth_msaa) = if samples == 1 { (depth.clone(), empty_depth) } else { (empty_depth, depth.clone()) };
-        Self { depth, msaa, depth_single, depth_msaa, samples }
+        let empty_depth = texture_view(
+            ctx,
+            "unused.depth",
+            &TextureSpec {
+                size: (1, 1),
+                format: wgpu::TextureFormat::Depth32Float,
+                samples: other_samples,
+                usage,
+            },
+        );
+        let (depth_single, depth_msaa) = if samples == 1 {
+            (depth.clone(), empty_depth)
+        } else {
+            (empty_depth, depth.clone())
+        };
+        let gradient = texture_view(
+            ctx,
+            "physical.gradient",
+            &TextureSpec {
+                size,
+                format: wgpu::TextureFormat::Rg16Float,
+                samples,
+                usage,
+            },
+        );
+        let empty_gradient = texture_view(
+            ctx,
+            "unused.gradient",
+            &TextureSpec {
+                size: (1, 1),
+                format: wgpu::TextureFormat::Rg16Float,
+                samples: other_samples,
+                usage,
+            },
+        );
+        let (gradient_single, gradient_msaa) = if samples == 1 {
+            (gradient.clone(), empty_gradient)
+        } else {
+            (empty_gradient, gradient.clone())
+        };
+        Self {
+            gradient,
+            gradient_single,
+            gradient_msaa,
+            depth,
+            msaa,
+            depth_single,
+            depth_msaa,
+            samples,
+        }
     }
 
     /// How many pixels this adapter carries at 4x, or `None` when 4x is never worth it. 4x
@@ -58,7 +126,9 @@ impl Targets {
     pub fn msaa_budget(gpu: wgpu::DeviceType) -> Option<u32> {
         match gpu {
             wgpu::DeviceType::DiscreteGpu => Some(MSAA_PIXELS_DISCRETE),
-            wgpu::DeviceType::IntegratedGpu | wgpu::DeviceType::VirtualGpu => Some(MSAA_PIXELS_SHARED),
+            wgpu::DeviceType::IntegratedGpu | wgpu::DeviceType::VirtualGpu => {
+                Some(MSAA_PIXELS_SHARED)
+            }
             wgpu::DeviceType::Cpu => None,
             wgpu::DeviceType::Other => Some(MSAA_PIXELS_UNKNOWN),
         }
@@ -79,19 +149,41 @@ impl Targets {
 
     /// Clear physical depth to reverse-Z far and write the faces. Multisampled colour
     /// resolves only after the following ink pass.
-    pub fn begin_faces<'a>(&'a self, encoder: &'a mut wgpu::CommandEncoder, view: &'a wgpu::TextureView, clear: wgpu::Color) -> wgpu::RenderPass<'a> {
+    pub fn begin_faces<'a>(
+        &'a self,
+        encoder: &'a mut wgpu::CommandEncoder,
+        view: &'a wgpu::TextureView,
+        clear: wgpu::Color,
+    ) -> wgpu::RenderPass<'a> {
         let target = self.msaa.as_ref().unwrap_or(view);
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("physical face pass"),
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: target,
-                resolve_target: None,
-                depth_slice: None,
-                ops: wgpu::Operations { load: wgpu::LoadOp::Clear(clear), store: wgpu::StoreOp::Store },
-            })],
+            color_attachments: &[
+                Some(wgpu::RenderPassColorAttachment {
+                    view: target,
+                    resolve_target: None,
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(clear),
+                        store: wgpu::StoreOp::Store,
+                    },
+                }),
+                Some(wgpu::RenderPassColorAttachment {
+                    view: &self.gradient,
+                    resolve_target: None,
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                        store: wgpu::StoreOp::Store,
+                    },
+                }),
+            ],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &self.depth,
-                depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(0.0), store: wgpu::StoreOp::Store }),
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(0.0),
+                    store: wgpu::StoreOp::Store,
+                }),
                 stencil_ops: None,
             }),
             timestamp_writes: None,
@@ -100,7 +192,11 @@ impl Targets {
         })
     }
     /// Ink samples physical depth while the read-only attachment preserves depth-tested sheets.
-    pub fn begin_ink<'a>(&'a self, encoder: &'a mut wgpu::CommandEncoder, view: &'a wgpu::TextureView) -> wgpu::RenderPass<'a> {
+    pub fn begin_ink<'a>(
+        &'a self,
+        encoder: &'a mut wgpu::CommandEncoder,
+        view: &'a wgpu::TextureView,
+    ) -> wgpu::RenderPass<'a> {
         let (target, resolve) = match &self.msaa {
             Some(msaa) => (msaa, Some(view)),
             None => (view, None),
@@ -111,7 +207,10 @@ impl Targets {
                 view: target,
                 resolve_target: resolve,
                 depth_slice: None,
-                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                },
             })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: &self.depth,
@@ -137,7 +236,11 @@ pub struct TextureSpec {
 pub fn texture(ctx: &GpuCtx, label: &str, spec: &TextureSpec) -> wgpu::Texture {
     ctx.device.create_texture(&wgpu::TextureDescriptor {
         label: Some(label),
-        size: wgpu::Extent3d { width: spec.size.0.max(1), height: spec.size.1.max(1), depth_or_array_layers: 1 },
+        size: wgpu::Extent3d {
+            width: spec.size.0.max(1),
+            height: spec.size.1.max(1),
+            depth_or_array_layers: 1,
+        },
         mip_level_count: 1,
         sample_count: spec.samples,
         dimension: wgpu::TextureDimension::D2,
@@ -168,7 +271,10 @@ mod tests {
         assert_eq!(Targets::samples_for(true, 1920 * 1080, None, shared), 4);
         assert_eq!(Targets::samples_for(true, 1, None, software), 1);
         assert_eq!(Targets::samples_for(false, 1, None, discrete), 1);
-        assert_eq!(Targets::samples_for(true, 3840 * 2160, Some(1), discrete), 1);
+        assert_eq!(
+            Targets::samples_for(true, 3840 * 2160, Some(1), discrete),
+            1
+        );
         assert_eq!(Targets::samples_for(false, u32::MAX, Some(4), software), 4);
     }
 

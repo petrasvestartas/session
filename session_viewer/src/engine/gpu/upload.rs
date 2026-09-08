@@ -2,12 +2,12 @@
 //! object rows included - ALL deltas. Built by `app::scene::Scene`, borrowed by
 //! `Gpu::set_scene`, then emptied. No wgpu type and no kernel type here.
 
-use crate::math::Aabb;
 use super::arena::ArenaRows;
 use super::cloud::CloudRows;
 use super::glyphs::GlyphRows;
 use super::objects::ObjectRows;
 use super::segments::SegRows;
+use crate::math::Aabb;
 
 /// Everything `Gpu` needs to fill its buffers for one file. Deleting a lane = deleting its
 /// field here, its file under `gpu/`, its producer under `walk/` and its line in `render.rs`.
