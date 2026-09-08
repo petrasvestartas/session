@@ -9,8 +9,9 @@ Two facts about one frame of the shade probe:
                       (the antialiased silhouette). A flat-shaded sphere steps at every facet
                       boundary; a smooth one is a gradient whose 8-bit quantisation gives
                       second differences of 1 or 2.
-  backface <count>    pixels within 30 of the shader's BACKFACE_COLOR (204, 13, 13): a face
-                      wound inside out.
+  backface <count>    pixels within WINDOW of the red the frame holds for a back face,
+                      (231, 62, 62): a face wound inside out, or the inside of an open shell
+                      seen through its opening.
 
 Floors are measured, never assumed: the numbers in the ink suite are the ones this script
 printed on the day they were written. Exits 1 when a floor is exceeded."""
@@ -21,7 +22,20 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _count_colors import read_ppm
 
 TRIM = 4
-BACKFACE = (204, 13, 13)
+
+# The shader's BACKFACE_COLOR is linear (0.80, 0.05, 0.05) and the frame is sRGB, so the bytes
+# it writes are not 255 * that: measured (231, 62, 62) on the teapot's top view, 2026-09-08.
+# The old linear constant (204, 13, 13) was 49 away on green and blue and matched no pixel any
+# frame could hold, which made every back-face check blind.
+BACKFACE = (231, 62, 62)
+
+# The window is 20, not the 30 this check carried while it matched nothing: the mixed scene
+# draws a Color::red() curve on the box top, and antialiasing that pure red against the pale
+# face gives (254, 41, 39) - 23, 21 and 23 from the back-face red, inside a window of 30 and
+# outside one of 20. Measured 2026-09-08: at 30 the mixed top counts 19 curve pixels and no
+# back face at all, at 20 it counts 0; the teapot's top view keeps 6048 of its 6291, so the
+# narrower window still sees a back face wherever there is one.
+WINDOW = 20
 
 
 def luminance(px, k):
@@ -67,10 +81,10 @@ def second_diff(lum):
 
 
 def backface(px):
-    """Pixels within 30 of BACKFACE_COLOR in every channel."""
+    """Pixels within WINDOW of BACKFACE in every channel."""
     n = 0
     for k in range(0, len(px), 3):
-        if all(abs(px[k + c] - BACKFACE[c]) <= 30 for c in range(3)):
+        if all(abs(px[k + c] - BACKFACE[c]) <= WINDOW for c in range(3)):
             n += 1
     return n
 

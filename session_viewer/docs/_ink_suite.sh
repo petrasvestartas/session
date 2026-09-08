@@ -70,15 +70,14 @@ for d in 1 4; do
 done
 
 # The teapot: 32 bicubic patches, four open shells, a pole and a tip. Every one of its 72
-# non-degenerated edges chained off the tessellation, and no back-face pixel from above. The
-# red the top view does show is the shader's "inside of an open solid": the ring between the
-# pot's mouth (r = 1.4 units) and the smaller lid (r = 1.3) and the spout's open tip, both
-# openings of Newell's data. _shade_scanline.py measures BACKFACE_COLOR in linear bytes and
-# the frame is sRGB, so that red is outside its window - the line is a floor, not a proof.
+# non-degenerated edges chained off the tessellation, and its back-face red stays what its
+# openings account for. Zero is the wrong floor here: measured 6048 on 2026-09-08, the mouth
+# ring between the pot (r 1.4 units) and the lid (r 1.3) plus the spout's open tip; a shell
+# signed wrong would paint an exterior red and blow past it.
 check teapot "$B/mk_teapot" "$OUT/teapot.pb"
 check teapot_census bash -c "'$B/mk_teapot' '$OUT/teapot.pb' | grep -q ' unchained 0'"
 check render_teapot_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/teapot_top.ppm" "$OUT/teapot.pb"
-check teapot_backface python3 docs/_shade_scanline.py "$OUT/teapot_top.ppm" --max-backface 0
+check teapot_backface python3 docs/_shade_scanline.py "$OUT/teapot_top.ppm" --max-backface 6100
 
 check closeup closeup
 check brep_probe "$B/mk_brep_probe" "$OUT/brep_ok.pb"
