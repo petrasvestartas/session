@@ -22,7 +22,18 @@ to 35.95 ms still on the iGPU, because the face pass no longer builds or writes 
 
 Browser heap (Chrome, `?perf=1`, after every file arrived): not measured.
 
-Ink fragment cost is now at most five depth texture reads per sample and no storage reads.
+The spec's budget line ("view_mixed 10.9 / 22.9 ms" in the pre-hidden-line ledger of
+2026-09-03) is not comparable with the table above: those figures were taken on a different
+tree state on a different day and have not been re-measured, so the budget is read as "after
+must not be slower than before on the same day, on the same adapter" - view_mixed 37.51 / 50.41
+ms before against 34.46 / 46.14 ms after on the Intel iGPU, and every other leg the same way.
+The browser-heap clause of spec section 7 is deferred: not measured.
+
+Ink fragment cost, counted in `ink_visibility.wgsl` at commit ff8f046a: a stroke fragment makes
+at most six depth texture reads per sample - its own texel, the two the planarity guard reads
+outward, the two it reads inward when the outward pair is rejected, and one re-read of the
+accepted neighbour - and a disc fragment at most eight: its own texel, the two the guard reads
+on each of its two axes, and a re-read of each axis's neighbour. No storage reads.
 The face pass writes one colour target; there is no compute pass and no face-token attachment
 (the previous design's `Rg16Uint` token target is 4 B per texel: 1400 x 900 x 4 samples =
 19.2 MiB at this size with 4x MSAA).

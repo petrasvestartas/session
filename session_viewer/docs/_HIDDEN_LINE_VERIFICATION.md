@@ -1,3 +1,5 @@
+Superseded on 2026-09-08 by `docs/superpowers/specs/2026-09-07-ink-visibility-design.md`; kept until the phase 4 archive.
+
 # Hidden-line implementation and verification
 
 2026-09-04. This is a verification record for the changes in the **main**

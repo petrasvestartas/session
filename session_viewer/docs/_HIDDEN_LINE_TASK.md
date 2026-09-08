@@ -1,3 +1,5 @@
+Superseded on 2026-09-08 by `docs/superpowers/specs/2026-09-07-ink-visibility-design.md`; kept until the phase 4 archive.
+
 # Task: a wireframe that is never cut by its own faces and never shows through other geometry
 
 Repository `session`, crate `session_viewer` (Rust, wgpu 29 + winit 0.30, wasm32 in the browser
