@@ -38,6 +38,7 @@
 | `examples/mk_cylinder_hidden_probe.rs` | new: a magenta polyline behind a BRep cylinder (design section 4) |
 | `examples/mk_teapot.rs` | new: the Utah teapot as one BRep of 32 bicubic patches, the hard case |
 | `examples/mk_mixed_solids.rs` | two rows instead of one 10 m line (user request) |
+| `src/app/walk/brep_orient.rs` | new: outward signs per face from winding and volume, so the pipes' cull never reads a face-use flag |
 | `docs/_shade_scanline.py` | new: the sphere scanline's maximum second difference and the back-face pixel count of a frame |
 | `docs/_ink_suite.sh` | the shade probe, the cylinder hidden-line probe and the mixed scene's determinism join the suite |
 | `ARCHITECTURE.md` | section 0 file list, section 6 smooth-tessellation bullet, section 11 check count |
@@ -1814,6 +1815,370 @@ Thirteen objects 200 to 600 mm across on one 800 mm line made a 10 m
 scene; two rows make it 4.2 by 1.5 m and every object legible when the
 scene is fitted."
 ```
+
+---
+
+### Task 11: Facing signs read off the tessellation, never off the face-use flags
+
+**Files:**
+- Create: `src/app/walk/brep_orient.rs`
+- Modify: `src/app/walk/mod.rs` (add `pub mod brep_orient;`), `src/app/walk/brep_edges.rs` (`EdgePen` gains `signs`, `push_edge_pipes` applies them), `src/app/walk/brep.rs` (`walk_brep` computes the signs and hands them over)
+
+**Interfaces:**
+- Produces: `pub fn face_signs(b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f64>` in `brep_orient.rs`: one `+1.0` or `-1.0` per face mesh. `EdgePen<'a> { fms: &'a [Mesh], signs: &'a [f64], pen: Pen }`. `push_edge_pipes` packs `sign[face] * mean_normal` and `sign[other] * nearest_normal`.
+- Consumes: `EdgeChain { face, keys, other }`, `edge_chains` (Task 3); `Mesh.halfedge: HashMap<usize, HashMap<usize, Option<usize>>>` (the kernel: `halfedge[u][v]` is `Some(face)` when a face walks u -> v, `None` when only the reverse is walked); `VertexData.x/y/z`; `Mesh.face` values as vertex key lists (triangles from the tessellator).
+
+Why: the ink suite's `orbit_flipped` check renders `mk_brep_probe` twice, once with two of the cylinder's face uses reversed, and demands that the near-black masks differ by ZERO pixels over 36 orbits, because ink must read only geometry. Task 4's pipes pack the kernel's per-face normals, which the kernel negates for a Reversed use, so the flipped file culled its front circle edges: 580 differing pixels, frames 17 to 31. The signs computed here come from the tessellation's own winding (do two faces walk their shared edge in opposite directions?) and the signed volume of each connected group (does it enclose positive volume?), so a flipped use changes nothing the pipes read. A solid uploaded inside out gets its cull right by the same rule.
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `src/app/walk/brep_orient.rs`:
+
+```rust
+//! Which way each BRep face's stored normals point, read from the tessellation alone. Two
+//! faces that share an edge and walk it in opposite directions agree; a group of faces that
+//! encloses negative volume is inside out. The face-use flags are never read, so a file whose
+//! uses are flipped inks exactly as one whose uses are not - the orbit_flipped check of the
+//! ink suite - and a solid stored inside out is culled as if it were not.
+
+use session_rust::{BRep, Mesh};
+use super::brep_edges::EdgeChain;
+
+/// One `+1.0` or `-1.0` per face mesh: multiply the kernel's normal by it to point outward.
+pub fn face_signs(_b: &BRep, fms: &[Mesh], _chains: &[Option<EdgeChain>]) -> Vec<f64> {
+    vec![1.0; fms.len()]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use session_rust::brep::brep_reverse;
+    use crate::app::walk::brep::QUALITY;
+    use crate::app::walk::brep_edges::edge_chains;
+
+    /// The signs of `b`'s faces at the viewer's quality.
+    fn signs_of(b: &BRep) -> Vec<f64> {
+        let fms = b.face_meshes_q(Some(QUALITY));
+        let chains = edge_chains(b, &fms);
+        face_signs(b, &fms, &chains)
+    }
+
+    /// The probe's flip: the first two face uses of the first shell reversed (mk_brep_probe).
+    fn flipped(mut b: BRep) -> BRep {
+        for face in b.m_shells[0].faces.iter_mut().take(2) {
+            face.orientation = brep_reverse(face.orientation);
+        }
+        b
+    }
+
+    /// A solid the kernel builds outward keeps every sign at +1.
+    #[test]
+    fn kernel_solids_keep_their_normals() {
+        for b in [BRep::create_cylinder(150.0, 400.0), BRep::create_cone(150.0, 400.0), BRep::create_box(400.0, 300.0, 250.0), BRep::create_block_with_hole(500.0, 300.0, 200.0, 80.0)] {
+            assert!(signs_of(&b).iter().all(|&s| s == 1.0), "{}", b.name);
+        }
+    }
+
+    /// Reversing two of the cylinder's three face uses negates those two meshes' normals in
+    /// the kernel; the signs undo exactly that, so the outward normals the pipes read are the
+    /// same bits in both files.
+    #[test]
+    fn flipped_uses_change_no_outward_normal() {
+        let ok = BRep::create_cylinder(150.0, 400.0);
+        let fl = flipped(BRep::create_cylinder(150.0, 400.0));
+        let (fms_ok, fms_fl) = (ok.face_meshes_q(Some(QUALITY)), fl.face_meshes_q(Some(QUALITY)));
+        let signs = face_signs(&fl, &fms_fl, &edge_chains(&fl, &fms_fl));
+        assert_eq!(signs[0], -1.0);
+        assert_eq!(signs[1], -1.0);
+        assert_eq!(signs[2], 1.0);
+        for fi in 0..3 {
+            for (key, vd) in fms_ok[fi].vertex.iter() {
+                let n_ok = vd.normal().unwrap();
+                let n_fl = fms_fl[fi].vertex[key].normal().unwrap();
+                assert_eq!([n_fl[0] * signs[fi], n_fl[1] * signs[fi], n_fl[2] * signs[fi]], n_ok);
+            }
+        }
+    }
+
+    /// The pipes of the ok and the flipped cylinder are the same rows: same ends, same
+    /// facing words - what the orbit check's mask diff measures at the pixel level.
+    #[test]
+    fn flipped_uses_change_no_pipe() {
+        use crate::app::walk::brep::walk_brep;
+        use crate::app::walk::mesh_ink::Ink;
+        use crate::app::walk::WalkCx;
+        use crate::engine::gpu::arena::ArenaRows;
+        use crate::engine::gpu::glyphs::GlyphRows;
+        use crate::engine::gpu::segments::SegRows;
+        let mut pipes = Vec::new();
+        for b in [BRep::create_cylinder(150.0, 400.0), flipped(BRep::create_cylinder(150.0, 400.0))] {
+            let mut arena = ArenaRows::default();
+            let mut seg = SegRows::default();
+            let mut glyph = GlyphRows::default();
+            let mut ink = Ink { seg: &mut seg, glyph: &mut glyph };
+            walk_brep(&mut arena, &mut ink, &b, &WalkCx { vert_base: 0, cloud_px: 0.0, row: 0 });
+            pipes.push(seg.pipes.iter().map(|p| (p.p0, p.p1, p.facing)).collect::<Vec<_>>());
+        }
+        assert_eq!(pipes[0], pipes[1]);
+    }
+}
+```
+
+Add `pub mod brep_orient;` to `src/app/walk/mod.rs` after `pub mod brep_edges;`.
+
+Check that `BRep` and `Mesh` are re-exported at `session_rust::` (both are used that way in `brep.rs`); that `session_rust::brep::brep_reverse` is public (`mk_brep_probe.rs` imports it); that `CylinderSegment` derives `PartialEq` for the tuple comparison — `[f32; 3]` and `u32` do, so the tuple comparison compiles without it.
+
+- [ ] **Step 2: Run to verify the failures**
+
+```bash
+cargo xtest -q brep_orient 2>&1 | tail -20
+```
+
+Expected: `kernel_solids_keep_their_normals` passes on the stub (all +1), `flipped_uses_change_no_outward_normal` fails on `signs[0] == -1.0`, `flipped_uses_change_no_pipe` fails on the facing words (the stub leaves the flipped normals in). If `flipped_uses_change_no_pipe` fails on the ENDS rather than the facing, the flipped meshes' chains come out in a different order: report that before going on, since the sort in `iso_chain` should make the order independent of winding.
+
+- [ ] **Step 3: Implement `face_signs`**
+
+Replace the stub with:
+
+```rust
+/// Whether a face of `fm` walks the directed edge `s -> n`: Some(true) when one does and none
+/// walks it back, Some(false) for the reverse, None when both or neither (an interior seam,
+/// or two keys that are not neighbours).
+fn walks(fm: &Mesh, s: usize, n: usize) -> Option<bool> {
+    let fwd = fm.halfedge.get(&s).and_then(|m| m.get(&n)).map(|f| f.is_some());
+    let back = fm.halfedge.get(&n).and_then(|m| m.get(&s)).map(|f| f.is_some());
+    match (fwd.unwrap_or(false), back.unwrap_or(false)) {
+        (true, false) => Some(true),
+        (false, true) => Some(false),
+        _ => None,
+    }
+}
+
+/// The position of vertex `k` of `fm`.
+fn at(fm: &Mesh, k: usize) -> [f64; 3] {
+    let v = &fm.vertex[&k];
+    [v.x, v.y, v.z]
+}
+
+/// The neighbour of `s` in `fm` that leaves it most nearly along `dir`: the next sample of the
+/// same boundary curve. A maximum, not a threshold.
+fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
+    let p = at(fm, s);
+    let mut best: Option<(f64, usize)> = None;
+    for &w in fm.halfedge.get(&s)?.keys() {
+        let q = at(fm, w);
+        let d = [q[0] - p[0], q[1] - p[1], q[2] - p[2]];
+        let l = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+        if l == 0.0 {
+            continue;
+        }
+        let c = (d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2]) / l;
+        if best.is_none_or(|(bc, bw)| c > bc || (c == bc && w < bw)) {
+            best = Some((c, w));
+        }
+    }
+    best.map(|(_, w)| w)
+}
+
+/// The vertex of `fm` at exactly `p`, smallest key first; the kernel puts every BRep vertex
+/// on every face that uses it bit for bit, so equality is the right test.
+fn vertex_at(fm: &Mesh, p: [f64; 3]) -> Option<usize> {
+    let mut best: Option<usize> = None;
+    for (&k, v) in fm.vertex.iter() {
+        if [v.x, v.y, v.z] == p && best.is_none_or(|b| k < b) {
+            best = Some(k);
+        }
+    }
+    best
+}
+
+/// Do the owner and the other face walk the chain's first segment in opposite directions?
+/// Opposite is what consistent winding means; None when either side cannot say.
+fn opposed(fms: &[Mesh], c: &EdgeChain) -> Option<bool> {
+    let other = c.other?;
+    let (fa, fb) = (&fms[c.face], &fms[other]);
+    let (s, n) = (c.keys[0], c.keys[1]);
+    let away_a = walks(fa, s, n)?;
+    let (ps, pn) = (at(fa, s), at(fa, n));
+    let dir = [pn[0] - ps[0], pn[1] - ps[1], pn[2] - ps[2]];
+    let sb = vertex_at(fb, ps)?;
+    let nb = neighbour_along(fb, sb, dir)?;
+    let away_b = walks(fb, sb, nb)?;
+    Some(away_a != away_b)
+}
+
+/// Six times the signed volume the triangles of face mesh `fm` sweep about the origin.
+fn six_volume(fm: &Mesh) -> f64 {
+    let mut v = 0.0;
+    for verts in fm.face.values() {
+        if verts.len() < 3 {
+            continue;
+        }
+        let (a, b, c) = (at(fm, verts[0]), at(fm, verts[1]), at(fm, verts[2]));
+        v += a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0]);
+    }
+    v
+}
+
+/// One `+1.0` or `-1.0` per face mesh: multiply the kernel's normal by it to point outward.
+/// A breadth-first walk over the faces through their shared edges makes neighbours agree;
+/// each connected group is then turned outward by the sign of the volume it encloses. Both
+/// steps read the tessellation, never `BRepOrientation`.
+pub fn face_signs(_b: &BRep, fms: &[Mesh], chains: &[Option<EdgeChain>]) -> Vec<f64> {
+    let nf = fms.len();
+    let mut adjacent: Vec<Vec<(usize, bool)>> = vec![Vec::new(); nf];
+    for c in chains.iter().flatten() {
+        if let (Some(other), Some(opp)) = (c.other, opposed(fms, c)) {
+            adjacent[c.face].push((other, opp));
+            adjacent[other].push((c.face, opp));
+        }
+    }
+    let mut sign = vec![0.0f64; nf];
+    for start in 0..nf {
+        if sign[start] != 0.0 {
+            continue;
+        }
+        sign[start] = 1.0;
+        let mut group = vec![start];
+        let mut head = 0;
+        while head < group.len() {
+            let f = group[head];
+            head += 1;
+            for &(g, opp) in &adjacent[f] {
+                if sign[g] == 0.0 {
+                    sign[g] = if opp { sign[f] } else { -sign[f] };
+                    group.push(g);
+                }
+            }
+        }
+        // Volume as the group's own winding sweeps it: negative means every face is inside out.
+        let volume: f64 = group.iter().map(|&f| sign[f] * six_volume(&fms[f])).sum();
+        if volume < 0.0 {
+            for &f in &group {
+                sign[f] = -sign[f];
+            }
+        }
+    }
+    sign
+}
+```
+
+Then in `src/app/walk/brep_edges.rs`:
+
+Find:
+```rust
+/// What the pipe loop reads: every face mesh (for the other face's normals) and the pen.
+pub struct EdgePen<'a> {
+    pub fms: &'a [Mesh],
+    pub pen: Pen,
+}
+```
+Replace with:
+```rust
+/// What the pipe loop reads: every face mesh (for the other face's normals), the outward
+/// sign of every face (`brep_orient::face_signs`) and the pen.
+pub struct EdgePen<'a> {
+    pub fms: &'a [Mesh],
+    pub signs: &'a [f64],
+    pub pen: Pen,
+}
+```
+
+Find the two normals in `push_edge_pipes`:
+```rust
+        let n0 = mean_normal(a.normal(), b.normal());
+        let mid = [(p0[0] + p1[0]) * 0.5, (p0[1] + p1[1]) * 0.5, (p0[2] + p1[2]) * 0.5];
+        let n1 = match other {
+            Some(o) => nearest_normal(o, mid),
+            None => n0,
+        };
+```
+Replace with:
+```rust
+        let n0 = mean_normal(a.normal(), b.normal()).map(|n| scaled(n, ep.signs[chain.face]));
+        let mid = [(p0[0] + p1[0]) * 0.5, (p0[1] + p1[1]) * 0.5, (p0[2] + p1[2]) * 0.5];
+        let n1 = match (other, chain.other) {
+            (Some(o), Some(of)) => nearest_normal(o, mid).map(|n| scaled(n, ep.signs[of])),
+            _ => n0,
+        };
+```
+and add above `push_edge_pipes`:
+```rust
+/// A normal turned outward by its face's sign.
+fn scaled(n: [f64; 3], s: f64) -> [f64; 3] {
+    [n[0] * s, n[1] * s, n[2] * s]
+}
+```
+Update the `pipes_face_both_adjacent_faces` test's `EdgePen { fms: &fms, pen: ... }` to `EdgePen { fms: &fms, signs: &vec![1.0; fms.len()], pen: ... }`.
+
+In `src/app/walk/brep.rs`, `walk_brep`: compute the chains once and hand the signs over. Find:
+```rust
+    if !knobs::no_edges() {
+        let pen = Pen { row: cx.row, radius: encode_width(b.width), color: pack_rgba(Color::black().to_f32()) };
+        walk_brep_edges(ink, b, &EdgePen { fms: &fms, pen }, &mut row.bounds);
+    }
+```
+Replace with:
+```rust
+    if !knobs::no_edges() {
+        let pen = Pen { row: cx.row, radius: encode_width(b.width), color: pack_rgba(Color::black().to_f32()) };
+        let chains = edge_chains(b, &fms);
+        let signs = face_signs(b, &fms, &chains);
+        let ep = EdgePen { fms: &fms, signs: &signs, pen };
+        walk_brep_edges(ink, b, &chains, (&ep, &mut row.bounds));
+    }
+```
+and change `walk_brep_edges` to take the chains instead of recomputing them (four parameters):
+```rust
+/// The solid's own edges, one chain per BRep edge off the tessellation (pipes, culled by the
+/// two adjacent faces); an edge no grid face owns is sampled off its 3D curve as a ribbon,
+/// today's path, until the kernel supplies every edge's polygon.
+fn walk_brep_edges(ink: &mut Ink, b: &BRep, chains: &[Option<EdgeChain>], out: (&EdgePen, &mut Aabb)) {
+    let (ep, bounds) = out;
+    for (ei, chain) in chains.iter().enumerate() {
+        match chain {
+            Some(c) => {
+                push_edge_pipes(ink.seg, c, ep, bounds);
+            }
+            None => push_curve_ribbon(ink, b, ei, (&ep.pen, bounds)),
+        }
+    }
+}
+```
+with `use super::brep_edges::{edge_chains, push_edge_pipes, EdgeChain, EdgePen};` and `use super::brep_orient::face_signs;`. If the actual `walk_brep` text differs from the Find block (Task 4 may have shaped it slightly differently), keep its shape and make the same change: the chains computed once, the signs computed from them, both handed to the edge loop.
+
+- [ ] **Step 4: Run everything**
+
+```bash
+cargo xtest -q 2>&1 | tail -5
+cargo clippy -q --release --all-targets --target x86_64-unknown-linux-gnu -- -D warnings
+cargo check -q --target wasm32-unknown-unknown
+```
+
+Expected: all tests pass (`brep_orient` 3, `brep_edges` 5, `walk::brep` 2, the rest unchanged). If `kernel_solids_keep_their_normals` fails for the box or the block with hole, print the signs: a `-1` on a kernel solid means either `opposed` read a pair wrong (print `walks` for both sides of that edge) or the volume sign is negative for a correctly wound solid (impossible for a closed outward solid; check `six_volume` against `b.volume()` if the kernel has one). Do not force the test.
+
+- [ ] **Step 5: The orbit pair, then commit**
+
+```bash
+cargo build -q --release --target x86_64-unknown-linux-gnu --examples
+"$B/mk_brep_probe" "$S/brep_ok.pb"
+env BREP_PROBE_FLIPPED=1 "$B/mk_brep_probe" "$S/brep_flipped.pb"
+python3 docs/_orbit_check.py "$B/selftest" "$S/brep_ok.pb" "$S/orbit_ok"
+python3 docs/_orbit_check.py "$B/selftest" "$S/brep_flipped.pb" "$S/orbit_flipped" --compare "$S/orbit_ok"
+```
+
+Expected: both pass; the compare reports zero differing pixels. Record the ok series' mean (the script prints it) for the report - the design asks for the sphere/torus ink series before and after, and this is the number.
+
+```bash
+git add src/app/walk/brep_orient.rs src/app/walk/brep_edges.rs src/app/walk/brep.rs src/app/walk/mod.rs
+git commit -m "viewer: BRep facing signs come from the tessellation, not the face-use flags
+
+Neighbours agree when they walk their shared edge in opposite directions,
+a group faces outward when it encloses positive volume. A file with two
+face uses reversed now inks the same pixels as one without: the orbit
+compare measured 580 differing pixels before, zero after."
+```
+
 
 ---
 
