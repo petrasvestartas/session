@@ -77,10 +77,16 @@ fn opposed(fms: &[Mesh], c: &EdgeChain) -> Option<bool> {
     Some(away_a != away_b)
 }
 
-/// Six times the signed volume the triangles of face mesh `fm` sweep about the origin.
+/// Six times the signed volume the triangles of face mesh `fm` sweep about the origin. The
+/// faces are summed in key order because float addition is not associative: taken in the
+/// map's own order the total's bits, and near a flat group its sign, would depend on the
+/// hashing - the kernel's `compute_halfedges` was hardened the same way.
 fn six_volume(fm: &Mesh) -> f64 {
+    let mut keys: Vec<usize> = fm.face.keys().copied().collect();
+    keys.sort_unstable();
     let mut v = 0.0;
-    for verts in fm.face.values() {
+    for k in keys {
+        let verts = &fm.face[&k];
         if verts.len() < 3 {
             continue;
         }
