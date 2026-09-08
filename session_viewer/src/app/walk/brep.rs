@@ -17,7 +17,7 @@ use crate::math::Aabb;
 /// degrees and 0.005, which turns a cylinder into an 18-sided prism with a visibly polygonal
 /// silhouette - tessellation quality is a display decision, so the display makes it.
 /// Measured on 25 extruded circles: 1650 -> 4050 faces, 1.6 -> 1.8 ms a frame.
-const QUALITY: (f64, f64) = (5.0, 0.001);
+pub const QUALITY: (f64, f64) = (5.0, 0.001);
 
 /// Tessellate a BRep with its surface colour and walk it.
 pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
