@@ -15,6 +15,17 @@ const DEPTH_REL_TOL: f32 = 1.9073486e-6;
 // holds at 242406 non-background pixels and the probe matrix at 54 cases with its nine
 // distance-1 counts unchanged, while the floor census residual falls from 29 to 13 samples.
 const SLOPE_PX: f32 = 0.00390625;
+// How much of the two slopes a KINK may differ by and still count as one surface. A tessellation
+// is piecewise planar and turns at every facet boundary, so a curved BRep's edge curve runs along
+// kinks and loses half its width when the guard reads one as a surface jump; a real jump changes
+// the slope by many times itself. 2^-5 is the largest fraction that keeps the floor census at
+// zero at every camera at 1x and 4x - 2^-4 leaks one sample at down_4_flat - and it leaves the
+// close-up at 242720 non-background pixels, the probe matrix at 54 cases with its nine distance-1
+// counts unchanged, and the census's 16x counts unchanged, while the BRep orbit mean rises from
+// 709 to 724. It does NOT admit a whole facet kink: 5 degrees between samples at 45 degrees of
+// incidence is about 0.09 of the slope. The rest of a sphere's meridian waits for edge and face
+// discretisation to match, which is phase 2.
+const KINK: f32 = 0.03125;
 
 struct InkColor {
     @location(0) color: vec4<f32>,
@@ -48,10 +59,10 @@ fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
 }
 
 // Whether the fragment and its neighbour one texel along `dir` lie on one surface, so that
-// pair may be fitted: on a plane the next texel out extends the slope exactly, moved only by
-// the rasterizer's vertex snapping, while a step from one surface to another is many times the
-// slope. A cleared neighbour is no pair at all; cleared beyond it means the surface ends there
-// and the pair is all there is to fit.
+// pair may be fitted: on a plane the next texel out extends the slope, bent only by the
+// rasterizer's vertex snapping and by whatever kink a tessellation has there, while a step from
+// one surface to another is many times the slope. A cleared neighbour is no pair at all; cleared
+// beyond it means the surface ends there and the pair is all there is to fit.
 fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> bool {
     let z_side = ink_depth(pixel + dir, sample);
     if (z_side == 0.0) {
@@ -63,7 +74,7 @@ fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> boo
     }
     let g = z_side - z;
     let g_far = z_far - z_side;
-    return abs(g_far - g) <= ink_tolerance(z, abs(g) + abs(g_far), 0.0);
+    return abs(g_far - g) <= abs(z) * DEPTH_REL_TOL + KINK * (abs(g) + abs(g_far));
 }
 
 // The carry's verdict, shared by strokes and discs. A texel already nearer than the axis is

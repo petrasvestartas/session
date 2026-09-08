@@ -54,7 +54,10 @@ it as a **piecewise-planar surface** and asks one question per fragment.
   screen-space perpendicular, so both texels of the fit lie on the fragment's own surface.
 - Three outcomes. Fit the plane from `z` and `z_side = depth(q + step)` when that texel is
   written and `depth(q + 2 * step)` extends the same slope (`|g_far - g| <= |z| * 2^-19 +
-  (|g| + |g_far|) * 2^-8 px`; a pair that fails this straddles two surfaces). Else fit toward
+  (|g| + |g_far|) * 2^-5`; a pair that fails this straddles two surfaces. The 2^-5 admits the
+  kink a piecewise-planar tessellation has at every facet boundary, which a curved BRep's edge
+  curve runs along, and is the largest fraction that still keeps the floor census at zero at
+  every camera at 1x and 4x). Else fit toward
   the stroke (`q - step`, guarded the same way by `q - 2 * step`), so a face two texels wide,
   or one whose edge runs beside the stroke, still carries its own plane. Else the raw compare
   `z <= zA + |zA| * 2^-19`: a texel whose neighbours disagree has no surface to carry.
