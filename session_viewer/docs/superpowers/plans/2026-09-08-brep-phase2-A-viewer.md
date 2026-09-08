@@ -37,6 +37,7 @@
 | `examples/mk_shade_probe.rs` | new: one BRep (sphere, torus or block-with-hole) or the dome NURBS surface, chosen by argument, alone in a file |
 | `examples/mk_cylinder_hidden_probe.rs` | new: a magenta polyline behind a BRep cylinder (design section 4) |
 | `examples/mk_teapot.rs` | new: the Utah teapot as one BRep of 32 bicubic patches, the hard case |
+| `examples/mk_mixed_solids.rs` | two rows instead of one 10 m line (user request) |
 | `docs/_shade_scanline.py` | new: the sphere scanline's maximum second difference and the back-face pixel count of a frame |
 | `docs/_ink_suite.sh` | the shade probe, the cylinder hidden-line probe and the mixed scene's determinism join the suite |
 | `ARCHITECTURE.md` | section 0 file list, section 6 smooth-tessellation bullet, section 11 check count |
@@ -1660,6 +1661,159 @@ ms still on the Intel iGPU."
 - [ ] **Step 5: Report to the user**
 
 Hand back: the before/after scanline numbers, the perf table, the suite's last lines, the pick lines, the paths of `sphere_before`, `sphere_after`, `mixed_iso`, `mixed_top`, `torus_iso`, `hole_iso`, `dome_iso` renders, and the branch state (`git log --oneline main..brep-phase2`). Do not merge and do not push: the user looks at the renders first.
+
+---
+
+### Task 10: A compact mixed-solids scene
+
+**Files:**
+- Modify: `examples/mk_mixed_solids.rs`
+
+Why: the user's request of 2026-09-08 - the thirteen objects stand on one 800 mm grid in a single row, 10 m wide for objects 200 to 600 mm across, so the whole scene is a thin line and every object is a few pixels tall when the scene is fitted. Two rows, 700 mm apart, make it 4.2 by 1.5 m without moving any object off its slot number.
+
+- [ ] **Step 1: Two rows**
+
+In `examples/mk_mixed_solids.rs`:
+
+Find:
+```rust
+// polyline, in one row along x on an 800 mm grid, every solid standing on z = 0. The point is
+```
+Replace with:
+```rust
+// polyline, in two rows 700 mm apart - the seven BReps along y = 0, the curves, surfaces and
+// the polyline along y = ROW - every solid standing on z = 0. The point is
+```
+
+Find:
+```rust
+/// Centre-to-centre spacing of the row: every item is narrower than this, so nothing overlaps.
+const STEP: f64 = 800.0;
+```
+Replace with:
+```rust
+/// Centre-to-centre spacing along a row: the widest item (the torus, 580 mm) leaves 120 mm.
+const STEP: f64 = 700.0;
+
+/// Distance between the two rows: the deepest items (the patches, 600 mm) leave 300 mm.
+const ROW: f64 = 900.0;
+
+/// Items per row: the seven BReps fill the first row, the six others the second.
+const PER_ROW: usize = 7;
+```
+
+Find:
+```rust
+/// The x of slot `i` of the row.
+fn slot(i: usize) -> f64 {
+    i as f64 * STEP
+}
+```
+Replace with:
+```rust
+/// The x of slot `i`: slots wrap after PER_ROW.
+fn slot(i: usize) -> f64 {
+    (i % PER_ROW) as f64 * STEP
+}
+
+/// The y of slot `i`: the first PER_ROW slots on y = 0, the rest one ROW behind.
+fn row(i: usize) -> f64 {
+    (i / PER_ROW) as f64 * ROW
+}
+```
+
+Then every helper that builds points at `slot(i)` gets the row's y added. Find:
+```rust
+    b.transform(&Xform::translation(slot(i), 0.0, up));
+```
+Replace with:
+```rust
+    b.transform(&Xform::translation(slot(i), row(i), up));
+```
+Find (helix):
+```rust
+        points.push(Point::new(slot(i) + 200.0 * a.cos(), 200.0 * a.sin(), 300.0 + 600.0 * t));
+```
+Replace with:
+```rust
+        points.push(Point::new(slot(i) + 200.0 * a.cos(), row(i) + 200.0 * a.sin(), 300.0 + 600.0 * t));
+```
+Find (S curve):
+```rust
+        points.push(Point::new(slot(i) + 250.0 * a.sin(), 0.0, 300.0 + 600.0 * t));
+```
+Replace with:
+```rust
+        points.push(Point::new(slot(i) + 250.0 * a.sin(), row(i), 300.0 + 600.0 * t));
+```
+Find (ring):
+```rust
+        points.push(Point::new(slot(i) + 250.0 * a.cos(), 250.0 * a.sin(), 600.0 + 120.0 * a.sin()));
+```
+Replace with:
+```rust
+        points.push(Point::new(slot(i) + 250.0 * a.cos(), row(i) + 250.0 * a.sin(), 600.0 + 120.0 * a.sin()));
+```
+Find (box top, stays on the box in slot 0, whose row is 0):
+```rust
+        points.push(Point::new(slot(i) - 150.0 + 300.0 * t, 100.0 * (t * 6.0).sin(), z));
+```
+Replace with:
+```rust
+        points.push(Point::new(slot(i) - 150.0 + 300.0 * t, row(i) + 100.0 * (t * 6.0).sin(), z));
+```
+Find (dome):
+```rust
+            points.push(Point::new(slot(i) + x, y, 300.0 + 200.0 * (r / 250.0).cos()));
+```
+Replace with:
+```rust
+            points.push(Point::new(slot(i) + x, row(i) + y, 300.0 + 200.0 * (r / 250.0).cos()));
+```
+Find (saddle):
+```rust
+            points.push(Point::new(slot(i) + x, y, 250.0 + 0.0006 * (x * x - y * y)));
+```
+Replace with:
+```rust
+            points.push(Point::new(slot(i) + x, row(i) + y, 250.0 + 0.0006 * (x * x - y * y)));
+```
+Find (cube polyline):
+```rust
+        points.push(Point::new(slot(i) + c[0], c[1], c[2]));
+```
+Replace with:
+```rust
+        points.push(Point::new(slot(i) + c[0], row(i) + c[1], c[2]));
+```
+
+Check with `grep -n "slot(" examples/mk_mixed_solids.rs` that no point builder still passes a bare `0.0` or a bare `c[1]`-style y where the slot's row belongs; the sphere/torus/... `place` calls carry it through `row(i)`.
+
+- [ ] **Step 2: Build, render, look**
+
+```bash
+cargo build -q --release --target x86_64-unknown-linux-gnu --example mk_mixed_solids --example selftest
+"$B/mk_mixed_solids" "$S/mixed_compact.pb"
+env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 "$B/selftest" "$S/mixed_compact_iso.ppm" "$S/mixed_compact.pb"
+env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$S/mixed_compact_top.ppm" "$S/mixed_compact.pb"
+python3 docs/_shade_scanline.py "$S/mixed_compact_top.ppm"
+python3 "$S/ppm2png.py" "$S/mixed_compact_iso.ppm" "$S/mixed_compact_iso.png"
+python3 "$S/ppm2png.py" "$S/mixed_compact_top.ppm" "$S/mixed_compact_top.png"
+```
+
+Look at both PNGs: two rows, no object touching another, the red curve still on the box top, `backface 0`. The bench legs keep using the bucket's `view_mixed_solids.pb` (a before/after comparison must be on the same file); the compact file replaces it in the bucket when the user uploads it.
+
+- [ ] **Step 3: Clippy, suite's mixed checks, commit**
+
+```bash
+cargo clippy -q --release --all-targets --target x86_64-unknown-linux-gnu -- -D warnings
+git add examples/mk_mixed_solids.rs
+git commit -m "viewer: the mixed solids stand in two rows, 700 mm apart
+
+Thirteen objects 200 to 600 mm across on one 800 mm line made a 10 m
+scene; two rows make it 4.2 by 1.5 m and every object legible when the
+scene is fitted."
+```
 
 ---
 
