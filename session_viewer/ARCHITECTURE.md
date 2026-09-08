@@ -21,7 +21,7 @@ The two halves are organised on DIFFERENT axes, and that is the most important f
 |---|---|---|
 | one file per | **geometry type** | **row format (a lane)** |
 | because | a producer starts from a kernel type | a shader reads a row format |
-| files | `mesh.rs` `mesh_ink.rs` `mesh_topology.rs` `brep.rs` `curves.rs` `points.rs` `frames.rs` `cloud.rs` `bounds.rs` `encode.rs` | `arena.rs` `segments.rs` `glyphs.rs` `cloud.rs`+`splat.rs`+`lod.rs` `backdrop.rs` |
+| files | `mesh.rs` `mesh_ink.rs` `mesh_topology.rs` `brep.rs` `brep_edges.rs` `brep_orient.rs` `curves.rs` `points.rs` `frames.rs` `cloud.rs` `bounds.rs` `encode.rs` | `arena.rs` `segments.rs` `glyphs.rs` `cloud.rs`+`splat.rs`+`lod.rs` `backdrop.rs` |
 
 The mapping is many-to-many: one `Mesh` produces triangles AND segments AND glyph points; one
 `CylinderSegment` is produced by six types. What crosses is a **row**, and every row carries an
@@ -211,12 +211,21 @@ per sample (`sample_index`), so its visibility is decided per sample.
   within a degree of edge-on carries depth quantised by slope/256 px. The floor census
   surfaces 13 of 344 840 covered samples, all of them at 16x the fit distance; scales 1 and 4
   are zero.
-- Smooth tessellations (BRep and NURBS fills) ink border and crease edges only, decided on the
-  CPU by the walk (`src/app/walk/mesh_ink.rs`, `CREASE_COS` in `mesh.rs`); there is no
-  view-dependent silhouette term, so nothing flips as the camera turns. `FLAG_SMOOTH` only
-  suppresses vertex markers, since a tessellation's vertices are sample positions, not corners;
-  the vertex-stage facing cull (both adjacent faces away) and `FLAG_INSIDE`/`FLAG_OPEN` are as
-  before.
+- A BRep is uploaded face by face with the kernel's own vertices and analytic normals - no
+  weld - so the headlight shades a sphere as a gradient (`src/app/walk/brep.rs`). Its edges
+  are pipes read off the owning face's tessellation grid, one chain per BRep edge
+  (`src/app/walk/brep_edges.rs`): the grid mesher samples every boundary on an iso line and
+  tags each vertex with its exact parameter, so the chain IS the facet boundary and needs no
+  tolerance; `facing` packs the owning face's normal and the other adjacent face's nearest
+  vertex normal. An edge no grid face owns is sampled off its 3D curve as a ribbon until the
+  kernel's `edge_polygons_q` lands (phase 2 part B). `FLAG_OPEN` on a BRep is its own
+  `is_solid`. `brep_orient.rs` signs each face's normal from the tessellation's winding and
+  each group's volume, so a file with reversed face uses inks the same pixels. NURBS surface
+  fills ink border and crease edges only, decided on the CPU by the walk (`mesh_ink.rs`,
+  `CREASE_COS` in `mesh.rs`); there is no view-dependent silhouette term, so nothing flips as
+  the camera turns. `FLAG_SMOOTH` only suppresses vertex markers, since a tessellation's
+  vertices are sample positions, not corners; the vertex-stage facing cull (both adjacent
+  faces away) and `FLAG_INSIDE`/`FLAG_OPEN` are as before.
 - `CylinderSegment` is 40 B; `GlyphPoint` is 48 B; `LineUniform` is 64 B; `Instance` 96 B.
   Layout tests validate the WGSL member offsets and strides through Naga.
 - Coincident ink resolves by draw order. A GPU validation error aborts the render; the
@@ -296,7 +305,7 @@ to C++ and Python, which these GPU-edge helpers would only burden.
 ## 11. Measuring
 
 - `cargo xtest`: the mirror tests and the stream parser tests. `docs/_ink_suite.sh`: every
-  hidden-line, stroke-weight and orbit-stability check, one PASS/FAIL line each (24 checks).
+  hidden-line, stroke-weight and orbit-stability check, one PASS/FAIL line each (57 checks).
 - `cargo run --release --example selftest -- out.ppm scene.yaml` renders headless and prints
   the non-background pixel count; `examples/bench_frame.rs` times frames; `bench_load.rs` the
   walk; `check_determinism.rs` the row bytes; `stream_decode_check.rs` the header walk.
