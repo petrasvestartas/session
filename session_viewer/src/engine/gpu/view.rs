@@ -28,7 +28,9 @@ pub struct View {
     /// against a 1.5 px pen the beat is 22% of the ink. The ribbons no longer read this at
     /// all - they integrate the pixel box exactly, which cannot beat at any width.
     pub feather_px: f32,
-    /// Light the mesh faces; off = every face its flat colour (`?lit=1` / `VIEWER_LIT`). `D` -
+    /// Light the mesh faces with a camera headlight. On by default: a flat colour hides every
+    /// curve, and the fix is what a CAD viewport does anyway. Off = every face its flat colour,
+    /// which is what a colour-based visibility probe needs (`?nolit=1` / `VIEWER_NO_LIT`). `D` -
     /// `S` is the show-all half of the H/S hide pair.
     pub lit: bool,
     /// Paint a face seen from behind red - the inside of an open solid, or a flipped normal.
@@ -57,7 +59,7 @@ impl View {
             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
             thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.5).max(0.1),
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
-            lit: knob("VIEWER_LIT", "lit").is_some(),
+            lit: knob("VIEWER_NO_LIT", "nolit").is_none(),
             backface: knob("VIEWER_NO_BACKFACE", "nobackface").is_none(),
             msaa_forced: knob("VIEWER_MSAA", "msaa").and_then(|v| v.parse().ok()),
             perf: knob("VIEWER_PERF", "perf").is_some(),

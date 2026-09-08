@@ -92,6 +92,16 @@ fn vs_main(in: VsIn) -> VsOut {
     return o;
 }
 
+// The direction a fragment sees the camera in: a ray from the point under perspective,
+// one fixed direction under orthographic, where every ray is parallel (as `ink_visibility.wgsl`
+// reads it out of the same matrix row).
+fn view_dir(world_pos: vec3<f32>) -> vec3<f32> {
+    if (line.ortho_h > 0.0) {
+        return normalize(vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z));
+    }
+    return normalize(vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - world_pos);
+}
+
 fn shade(in: VsOut, front: bool) -> vec4<f32> {
     // Flat normal from screen-space derivatives when the mesh baked none (y is down).
     let flat_n = normalize(cross(dpdy(in.world_pos), dpdx(in.world_pos)));
@@ -100,12 +110,26 @@ fn shade(in: VsOut, front: bool) -> vec4<f32> {
     if (!front) {
         n = -n;
     }
-    let key_dir = normalize(vec3<f32>(-0.3, -0.5, 0.8));
-    let fill_dir = normalize(vec3<f32>(0.6, 0.3, 0.4));
-    let key = max(dot(n, key_dir), 0.0) * 0.65;
-    let fill = max(dot(n, fill_dir), 0.0) * 0.30;
-    let hemi = mix(0.20, 0.35, 0.5 + 0.5 * n.z);
-    let lit = hemi + key + fill;
+
+    // A headlight, as every CAD viewport shades: the lamp rides the camera, tilted a little
+    // above it so a horizontal face still reads brighter than a vertical one. A world-fixed key
+    // left every underside near black and made a colour unreadable from half the orbit.
+    //
+    // The diffuse is wrapped - the lit hemisphere is stretched over the whole sphere - so the
+    // terminator is a gradient across a curved surface rather than a hard edge, and the darkest
+    // a visible face can get is its silhouette, not black. Blinn-Phong on top puts a soft bloom
+    // where the normal splits the lamp and the eye; the gain leaves it room to show.
+    //
+    // Measured on the mixed-solids scene (1400x900, Intel iGPU, 2026-09-08), as the ratio of the
+    // lit frame to the same frame under `VIEWER_NO_LIT`, both linearised: a face square to the
+    // camera holds 1.00 of its colour, the sphere's silhouette - its normal square to the view -
+    // reads 0.59..0.62, and the darkest face pixel in either frame, iso or from below, is 0.47.
+    let v = view_dir(in.world_pos);
+    let l = normalize(v + vec3<f32>(0.0, 0.0, 0.35));
+    let h = normalize(l + v);
+    let wrap = clamp((dot(n, l) + 0.5) / 1.5, 0.0, 1.0);
+    let spec = pow(max(dot(n, h), 0.0), 32.0) * 0.15;
+    let lit = min(0.40 + 0.55 * wrap + spec, 1.0);
 
     // A back face is a flipped normal or the inside of an open solid: shown red. Print is
     // paper, read from both sides, lit flat.

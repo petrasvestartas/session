@@ -254,6 +254,7 @@ per sample (`sample_index`), so its visibility is decided per sample.
 | view.rs | `VIEWER_EDL` | `?edl=` | eye-dome lighting strength, 0 off |
 | view.rs | `VIEWER_LOD` | `?lod=` | octree cutoff in px, 0 = draw whole |
 | view.rs | `VIEWER_MSAA` | `?msaa=` | force 4 or 1 |
+| view.rs | `VIEWER_NO_LIT` | `?nolit=1` | flat face colour instead of the headlight (`D`) |
 | device.rs | `VIEWER_ADAPTER` | - | pick the native adapter whose name contains this (benchmarks) |
 | view.rs | `VIEWER_PERF` | `?perf=1` | continuous frames + the perf line |
 | view.rs | `VIEWER_SPIN` | `?spin=1` | orbit every frame (a benchmark) |
