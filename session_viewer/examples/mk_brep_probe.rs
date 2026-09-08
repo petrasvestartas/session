@@ -9,6 +9,9 @@
 use session_rust::brep::{brep_reverse, BRep};
 use session_rust::{Color, Mesh, NurbsSurface, Point, Session, Xform};
 
+/// Write the plate and its three solids into one session at `argv[1]`, reversing two of the
+/// cylinder's face uses when `BREP_PROBE_FLIPPED` is set so the two files differ only in
+/// orientation.
 fn main() {
     let out = std::env::args().nth(1).unwrap_or_else(|| "target/brep_probe.pb".into());
     let mut plate = Mesh::create_box(2800.0, 1000.0, 40.0);

@@ -152,7 +152,8 @@ pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderM
     device.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some(label), source: wgpu::ShaderSource::Wgsl(source.into()) })
 }
 
-/// Compile an ink lane with the shared exact-support visibility rule.
+/// Compile an ink lane with the shared visibility rule appended: every ink fragment decides
+/// from the scene depth buffer alone, so all the lanes hide against one another's surfaces.
 pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
     let source = format!("{}\n{}", source, include_str!("../../shaders/ink_visibility.wgsl"));
     module(device, label, &source)

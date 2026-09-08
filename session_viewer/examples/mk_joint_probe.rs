@@ -40,6 +40,8 @@ fn marked_box(at: [f64; 3], special: fn(&Point) -> bool, color: Color) -> Mesh {
     m
 }
 
+/// Write the four cases into one session at `argv[1]`, spaced 2000 mm apart along x so one
+/// camera frames them all and no case occludes another.
 fn main() {
     let out = std::env::args().nth(1).unwrap_or_else(|| "target/joint_probe.pb".into());
     let mut s = Session::new("joint_probe");

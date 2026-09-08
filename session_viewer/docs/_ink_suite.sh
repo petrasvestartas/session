@@ -19,7 +19,7 @@ check() {
 }
 
 # The close-up is the one check that must count its ink: it exists to catch edges thinning or
-# dropping, which a render that exits 0 still does. 242406 non-background pixels measured at
+# dropping, which a render that exits 0 still does. 242720 non-background pixels measured at
 # 1400x900, MSAA 4, zoom 5 on the Intel iGPU; the band is _gate.sh's, wide enough for a
 # driver's rounding and far narrower than a lost edge.
 closeup() {
@@ -27,7 +27,7 @@ closeup() {
     output=$(env VIEWER_W=1400 VIEWER_H=900 VIEWER_ZOOM=5 VIEWER_MSAA=4 "$B/selftest" "$OUT/close.ppm" assets/pb/view_local_boxes.pb 2>&1) || { echo "$output"; return 1; }
     echo "$output"
     ink=$(printf '%s\n' "$output" | grep -o "non-background pixels: [0-9]*" | grep -o "[0-9]*$")
-    [ "${ink:-0}" -ge 240000 ] && [ "$ink" -le 245000 ] || { echo "close-up ink ${ink:-none} (expected 240000..245000, measured 242406)"; return 1; }
+    [ "${ink:-0}" -ge 240000 ] && [ "$ink" -le 245000 ] || { echo "close-up ink ${ink:-none} (expected 240000..245000, measured 242720)"; return 1; }
 }
 
 check build cargo build -q --release --target $T --examples
@@ -42,16 +42,28 @@ check closeup closeup
 check brep_probe "$B/mk_brep_probe" "$OUT/brep_ok.pb"
 check brep_probe_flipped env BREP_PROBE_FLIPPED=1 "$B/mk_brep_probe" "$OUT/brep_flipped.pb"
 check orbit_ok python3 docs/_orbit_check.py "$B/selftest" "$OUT/brep_ok.pb" "$OUT/orbit_ok"
-check orbit_flipped python3 docs/_orbit_check.py "$B/selftest" "$OUT/brep_flipped.pb" "$OUT/orbit_flipped"
+check orbit_flipped python3 docs/_orbit_check.py "$B/selftest" "$OUT/brep_flipped.pb" "$OUT/orbit_flipped" --compare "$OUT/orbit_ok"
 
-# Five cameras, not six: VIEWER_VIEW is applied after VIEWER_ORBIT and replaces it, so a
-# "tilted top" renders byte for byte identical to top. The id frame is what the weights are
-# measured from - one group of pixels per stroke, whatever antialiasing did to its colour.
-"$B/mk_joint_probe" "$OUT/joint.pb" > /dev/null
-for cam in "iso VIEWER_NOTHING=1" "down VIEWER_ORBIT=0,209" "front VIEWER_ORBIT=0,60" "side VIEWER_ORBIT=300,120" "top VIEWER_VIEW=top"; do
-    set -- $cam; name=$1; shift
+# Six cameras. VIEWER_VIEW is applied after VIEWER_ORBIT and replaces it, so a "tilted top"
+# renders byte for byte identical to top; the near-edge-on camera is an orbit alone. `tilt` is
+# 0.60 degrees off straight down - the harness logs eye (3017.605, -56.110, 6479.761) mm
+# against target (3050, 0, 278.5) mm, an elevation of 89.40 degrees. A unit is 0.005 rad and
+# the pitch is applied to the iso camera's 30 degrees of elevation, so 207.35 units is 89.40:
+# nothing is clamped, and 312 units would pitch past vertical and come back down the far side
+# at 60.6 degrees. The id frame is what the weights are measured from - one group of pixels per
+# stroke, whatever antialiasing did to its colour.
+check joint_scene "$B/mk_joint_probe" "$OUT/joint.pb"
+for name in iso down front side top tilt; do
+    case $name in
+        iso) cam=() ;;
+        down) cam=(VIEWER_ORBIT=0,209) ;;
+        front) cam=(VIEWER_ORBIT=0,60) ;;
+        side) cam=(VIEWER_ORBIT=300,120) ;;
+        top) cam=(VIEWER_VIEW=top) ;;
+        tilt) cam=(VIEWER_ORBIT=0,207.35) ;;
+    esac
     for d in 1 4; do
-        env VIEWER_W=1800 VIEWER_H=1400 VIEWER_NO_GRID=1 VIEWER_MSAA=4 VIEWER_DISTANCE_SCALE=$d VIEWER_IDS="$OUT/joint_${name}_$d.ids" "$@" "$B/selftest" "$OUT/joint_${name}_$d.ppm" "$OUT/joint.pb" > /dev/null 2>&1
+        check "render_${name}_$d" env VIEWER_W=1800 VIEWER_H=1400 VIEWER_NO_GRID=1 VIEWER_MSAA=4 VIEWER_DISTANCE_SCALE=$d VIEWER_IDS="$OUT/joint_${name}_$d.ids" "${cam[@]}" "$B/selftest" "$OUT/joint_${name}_$d.ppm" "$OUT/joint.pb"
         check "joint_${name}_$d" python3 docs/_stroke_weight.py "$OUT/joint_${name}_$d.ppm" "$OUT/joint_${name}_$d.ids"
     done
 done

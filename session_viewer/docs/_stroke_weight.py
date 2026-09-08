@@ -21,18 +21,21 @@ The cross-section rule asks whether a stroke is even along its length, which a s
 px long cannot answer - the caps are most of it - so it applies from a projected length of
 SECTION_LENGTH px up.
 
-Floors are measured, not assumed. The run is the ten cases the joint probe covers - five
+The magenta rule is the exception: it reads the colour frame, every pixel of it, because ink
+that must never show can surface below alpha 0.5 and carry no id at all.
+
+Floors are measured, not assumed. The run is the twelve cases the joint probe covers - six
 cameras at distances 1 and 4, 1800x1400, MSAA 4.
 
-The red minimum was 87%, which is where the 85% floor comes from. A stroke on a shared vertical
-face weighs 100% of a free stroke; every red stroke but one lands between 95% and 116%; the one
-is the bottom edge of the box resting on the plate, seen from a steep camera, at 87% to 92%.
-That is occlusion and not a light pen: the box's own top face, 400 mm nearer the eye, covers
-the inner half of that edge past the foreshortened front face, so any viewer hides it.
+The red minimum over that run is 89% and the floor is 85%. The stroke on the shared vertical
+face measures 96% to 119%; the 89% is the bottom edge of the box resting on the plate, seen
+from the two steep cameras, and that edge measures 89% to 100% over the run. It is occlusion
+and not a light pen: the box's own top face, 400 mm nearer the eye, covers the inner half of
+that edge past the foreshortened front face, so any viewer hides it.
 
-The cross-section minimum was 60%, on a near-edge-on blue stroke whose core skips ten single
-steps - the residual spec 3.4 names, a face under about 2 px wide having no same-face
-neighbour and dropping out at a grazing angle. The floor below is that, rounded down.
+The cross-section minimum over that run is 63% and the floor is 60%, both on a near-edge-on
+blue stroke whose core skips single steps - the residual spec 3.4 names, a face under about
+2 px wide having no same-face neighbour and dropping out at a grazing angle.
 """
 import os
 import struct
@@ -102,30 +105,44 @@ def colour(pixels, frame):
     return max(tally, key=tally.get) if tally else None
 
 
-def fringe(core, claimed, key):
-    """The core plus its 8-connected halo, minus whatever another segment's core owns: the
-    antialiasing shoulder belongs to this stroke, the neighbour it touches at a corner does
-    not."""
+def neighbours(pixel, size):
+    """The pixel and its 8-connected halo, clipped to the frame `size` = (width, height): a
+    coordinate off the frame has no colour to read, and indexing it would fold round to some
+    other row's pixel."""
+    width, height = size
+    x, y = pixel
+    return [(x + dx, y + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)
+            if 0 <= x + dx < width and 0 <= y + dy < height]
+
+
+def fringe(core, claimed, key, size):
+    """The core plus its halo, minus whatever another segment's core owns: the antialiasing
+    shoulder belongs to this stroke, the neighbour it touches at a corner does not."""
     out = set(core)
-    for x, y in core:
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                near = (x + dx, y + dy)
-                if near not in out and claimed.get(near, key) == key:
-                    out.add(near)
+    for pixel in core:
+        for near in neighbours(pixel, size):
+            if near not in out and claimed.get(near, key) == key:
+                out.add(near)
     return out
 
 
-def dilate(core):
-    """The core plus its 8-connected halo, with no regard for who else claims a pixel. The
-    section test asks how even a stroke is, and a neighbour standing on its shoulder at a corner
-    is not that stroke thinning."""
+def dilate(core, size):
+    """The core plus its halo, with no regard for who else claims a pixel. The section test asks
+    how even a stroke is, and a neighbour standing on its shoulder at a corner is not that
+    stroke thinning."""
     out = set(core)
-    for x, y in core:
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                out.add((x + dx, y + dy))
+    for pixel in core:
+        out.update(neighbours(pixel, size))
     return out
+
+
+def magenta_pixels(px):
+    """Hidden ink that surfaced, counted over the whole colour frame and not only where the id
+    frame kept a stroke, so a leak under alpha 0.5 is still seen. The test is the pure-magenta
+    channel one `_probe_matrix.py` uses rather than this file's hue dominance: a red stroke
+    crossing a blue one blends to a purple that dominance calls magenta, measured at 1 to 11
+    such pixels in every one of the twelve joint cases against zero by this test."""
+    return sum(1 for k in range(0, len(px), 3) if px[k] >= 195 and px[k + 1] <= 60 and px[k + 2] >= 195)
 
 
 def alpha(kind, level, red, green):
@@ -182,19 +199,18 @@ def main():
     if (id_width, id_height) != (width, height):
         raise SystemExit(f"id frame is {id_width}x{id_height}, image is {width}x{height}")
     frame = (width, px)
+    size = (width, height)
     level = background(px)
+    magenta = magenta_pixels(px)
     cores = segments(width, height, ids)
     claimed = {pixel: key for key, pixels in cores.items() for pixel in pixels}
-    red, blue, magenta, skipped = [], [], 0, []
+    red, blue, skipped = [], [], []
     for key, core in sorted(cores.items()):
         kind = colour(core, frame)
-        if kind == "magenta":
-            magenta += len(core)
-            continue
         if kind not in ("red", "blue") or len(core) < COUNT_FLOOR:
             continue
-        ink = coverage(fringe(core, claimed, key), kind, level, frame)
-        weight, section, occluded = measure(core, ink, coverage(dilate(core), kind, level, frame))
+        ink = coverage(fringe(core, claimed, key, size), kind, level, frame)
+        weight, section, occluded = measure(core, ink, coverage(dilate(core, size), kind, level, frame))
         if occluded:
             skipped.append(f"obj {key[0]} seg {key[1]} {kind}")
         else:
