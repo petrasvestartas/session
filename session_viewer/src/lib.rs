@@ -139,7 +139,7 @@ impl ApplicationHandler<Msg> for App {
             other => self.input.mouse(state, &other),
         };
         if changed {
-            state.needs_frame = true;
+            state.touch();
         }
         self.request_if_needed();
     }

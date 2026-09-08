@@ -39,9 +39,11 @@ struct LineUniform {
     backface: f32,
 };
 
+// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
+const DISC_ID_TAG: u32 = 0x40000000u;
 const FLAG_SELECTED: u32 = 1u;
 const FLAG_HIDDEN: u32 = 2u;
-const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
+const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 const MM_TO_M: f32 = 0.001;
 
@@ -117,7 +119,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = g.color * inst.color;
     if ((inst.flags & FLAG_SELECTED) != 0u) {
-        color = vec4<f32>(mix(color.rgb, SELECT_COLOR, 0.6), color.a);
+        color = vec4<f32>(SELECT_COLOR, color.a);
     }
     o.color = color;
     o.corner = corner;
@@ -156,5 +158,5 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
         discard;
     }
-    return vec2<u32>(in.inst_id + 1u, 0u);
+    return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);
 }

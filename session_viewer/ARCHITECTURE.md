@@ -160,13 +160,18 @@ per sample (`sample_index`), so its visibility is decided per sample.
 
 ## 4. Picking
 
-- A left click that did not drag calls `State::request_pick(x, y)`; the next frame runs the id
+- A left click that did not drag calls `State::request_pick(x, y)`; the next `render` runs the id
   pass: the scene list again, opaque, at 1x, into `Rg32Uint` = (object row + 1, sub id + 1),
-  under the SAME toggles - what a lane hides it cannot pick.
-- `Picker` copies one texel, maps it asynchronously, and `poll` hands the `Pick` back a frame or
-  two later; `Scene::resolve` names the document, the guid, and for a cloud the point (row-local
-  index and the kernel's stable id).
-- `FLAG_SELECTED` on the row tints every lane's fragments; `Escape` clears.
+  under the SAME toggles - what a lane hides it cannot pick - scissored to a `PICK_RADIUS`
+  window about the cursor. On a still scene that is the whole submit (`Gpu::pick_frame`): no
+  colour frame is drawn until the answer lands, and `render` applies the answer BEFORE
+  presenting, so the highlight costs one frame, not three.
+- `Picker` copies the window, maps it asynchronously, and `poll` hands the `Pick` back a frame
+  or two later: ink (a stroke, a marker, a cloud point - `sub != 0`) beats a face anywhere in
+  the window, nearer beats farther, so a hairline or a point is hit from `PICK_RADIUS` px away.
+  `Scene::resolve` names the document, the guid, and for a cloud the point (row-local index and
+  the kernel's stable id).
+- `FLAG_SELECTED` on the row paints every lane's fragments yellow; `Escape` clears.
 
 ## 5. Object rows and the f64 anchor
 

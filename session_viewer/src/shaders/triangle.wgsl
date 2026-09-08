@@ -32,7 +32,7 @@ const FLAG_SELECTED: u32 = 1u;
 const FLAG_HIDDEN: u32 = 2u;
 const FLAG_PRINT: u32 = 8u;
 const MM_TO_M: f32 = 0.001;
-const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
+const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
 const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
 
 // A point of object `i` in the anchored frame: rotation/scale from the row, translation
@@ -82,7 +82,7 @@ fn vs_main(in: VsIn) -> VsOut {
     o.pos = clip;
     var color = in.color.rgb * inst.color.rgb;
     if ((inst.flags & FLAG_SELECTED) != 0u) {
-        color = mix(color, SELECT_COLOR, 0.6);
+        color = SELECT_COLOR;
     }
     o.color = color;
     o.world_pos = world;

@@ -1,6 +1,7 @@
-//! `State` - the viewer itself: the layers (`gpu`, `scene`, `camera`) and ONE bit of shell
-//! state, `needs_frame`. The viewer renders on demand, and this is the demand. Higher
-//! layers drive lower ones, never the other way round.
+//! `State` - the viewer itself: the layers (`gpu`, `scene`, `camera`) and the shell state:
+//! `needs_frame`, the demand for a redraw, and `dirty`, whether the picture changed (a pick
+//! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
+//! never the other way round.
 
 use std::sync::Arc;
 use winit::window::Window;
@@ -23,6 +24,8 @@ pub struct State {
     pub scene: Scene,
     /// Something changed since the last frame; the shell asks for a redraw when it sees this.
     pub needs_frame: bool,
+    /// The picture changed: the redraw presents a colour frame. A pending pick alone does not.
+    dirty: bool,
     last_frame_ms: f64,
 }
 
@@ -33,7 +36,7 @@ impl State {
         let mut gpu = Gpu::new(window.clone()).await?;
         scene.upload_to(&mut gpu);
         log::info!("gpu init {:.0} ms", now_ms() - t0);
-        Ok(Self { window, gpu, camera: Camera::new(), scene, needs_frame: true, last_frame_ms: 0.0 })
+        Ok(Self { window, gpu, camera: Camera::new(), scene, needs_frame: true, dirty: true, last_frame_ms: 0.0 })
     }
 
     /// The surface's width over its height (never the window's, which is 0x0 on the web).
@@ -54,14 +57,14 @@ impl State {
         self.scene.upload_to(&mut self.gpu);
         self.camera.grow_extent(&self.gpu.bounds);
         log::info!("appended: walk {:.0} ms, upload {:.0} ms | {} docs | heap {:.0} MB", t1 - t0, now_ms() - t1, self.scene.docs.len(), heap_mb());
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// A streamed cloud's first slice; returns the slot later slices address.
     pub fn add_streamed(&mut self, init: StreamedInit) -> usize {
         let idx = self.scene.add_streamed_cloud(init, &mut self.gpu);
         self.camera.grow_extent(&self.gpu.bounds);
-        self.needs_frame = true;
+        self.touch();
         idx
     }
 
@@ -70,13 +73,13 @@ impl State {
         self.scene.extend_streamed_cloud(idx, rows, to, &mut self.gpu);
         self.camera.grow_extent(&self.gpu.bounds);
         log::info!("cloud slice: {to} points resident | heap {:.0} MB", heap_mb());
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// Drop every document; the canvas, device and camera stay.
     pub fn clear(&mut self) {
         self.scene.clear(&mut self.gpu);
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// Fit the camera around everything loaded so far.
@@ -84,7 +87,7 @@ impl State {
         let b = &self.gpu.bounds;
         log::info!("fit: bounds {:?} .. {:?} aspect {:.3}", b.min, b.max, self.aspect());
         self.camera.fit(&self.gpu.bounds, self.aspect());
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// Fit the camera to the selected object's world box; falls back to `fit_all` when
@@ -97,24 +100,30 @@ impl State {
         };
         log::info!("fit selected: bounds {:?} .. {:?} aspect {:.3}", b.min, b.max, self.aspect());
         self.camera.fit(&b, self.aspect());
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// Forward a canvas resize to the GPU layer.
     pub fn resize(&mut self, width: u32, height: u32) {
         self.gpu.resize(width, height);
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// The global cloud point-size scale, clamped.
     pub fn set_cloud_size(&mut self, size: f32) {
         self.gpu.view.cloud_size = size.clamp(0.25, 8.0);
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// Ask what is under pixel (x, y); the answer lands in a later frame (`apply_pick`).
     pub fn request_pick(&mut self, x: u32, y: u32) {
         self.gpu.pick.request(x, y);
+        self.needs_frame = true;
+    }
+
+    /// The picture changed: the next redraw presents it.
+    pub fn touch(&mut self) {
+        self.dirty = true;
         self.needs_frame = true;
     }
 
@@ -127,7 +136,7 @@ impl State {
             self.gpu.set_selected(r, true);
         }
         self.scene.selected = row;
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// Hide the selection - `H`. The guid goes in the hide set as well as the row's flag, so
@@ -139,7 +148,7 @@ impl State {
         self.select(None);
         self.scene.hidden.insert(guid);
         self.gpu.set_hidden(row, true);
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// Show everything hidden so far - `S`.
@@ -148,7 +157,7 @@ impl State {
             self.gpu.set_hidden(row, false);
         }
         self.scene.hidden.clear();
-        self.needs_frame = true;
+        self.touch();
     }
 
     /// A pick came back: log what it hit and select it (clicking the selection clears it).
@@ -173,8 +182,13 @@ impl State {
 
     /// Draw ONE frame and never ask for the next: a still scene costs nothing after this.
     /// The shell asks again when `needs_frame` is set - by an input, a message, a resize, a
-    /// throttled re-anchor still due, a pick in flight, or continuous mode.
+    /// throttled re-anchor still due, a pick in flight, or continuous mode. A pick that came
+    /// back is applied first, so the same frame presents its highlight; a pick requested on
+    /// a still scene runs alone, with no colour frame to wait behind.
     pub fn render(&mut self) {
+        if let Some(pick) = self.gpu.pick.poll() {
+            self.apply_pick(pick);
+        }
         self.needs_frame = false;
         if self.gpu.view.spin {
             self.camera.orbit(SPIN_STEP, 0.0);
@@ -183,17 +197,23 @@ impl State {
         let origin = self.camera.origin();
         let rebase = self.gpu.rebase_anchor(&origin, self.camera.distance_world(), now_ms);
         let view_proj = self.camera.view_proj_anchored(self.aspect(), &rebase.anchor);
-        let gap = now_ms - self.last_frame_ms;
-        self.last_frame_ms = now_ms;
+        let input = FrameInput { view_proj, clear: CLEAR, now_ms };
+        self.dirty |= rebase.moved || self.gpu.view.perf || self.gpu.view.spin;
 
-        let drawn = self.gpu.present(&FrameInput { view_proj, clear: CLEAR, now_ms });
-        if let Some(pick) = self.gpu.pick.poll() {
-            self.apply_pick(pick);
+        let mut dropped = false;
+        if self.dirty {
+            let gap = now_ms - self.last_frame_ms;
+            self.last_frame_ms = now_ms;
+            let drawn = self.gpu.present(&input);
+            dropped = drawn.is_none() && self.gpu.surface.is_some();
+            self.dirty = dropped;
+            if let (true, Some(encode_ms)) = (self.gpu.view.perf, drawn) {
+                self.perf_line(gap, encode_ms);
+            }
         }
-        if let (true, Some(encode_ms)) = (self.gpu.view.perf, drawn) {
-            self.perf_line(gap, encode_ms);
+        if !dropped && let Some(at) = self.gpu.pick.take_pending() {
+            self.gpu.pick_frame(&input, at);
         }
-        let dropped = drawn.is_none() && self.gpu.surface.is_some();
         self.needs_frame |= dropped || rebase.pending || self.gpu.pick.busy() || self.gpu.view.perf || self.gpu.view.spin;
     }
 

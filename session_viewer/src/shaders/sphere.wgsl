@@ -40,12 +40,14 @@ struct LineUniform {
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
+// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
+const DISC_ID_TAG: u32 = 0x40000000u;
 const FLAG_SELECTED: u32 = 1u;
 const FLAG_HIDDEN: u32 = 2u;
 const FLAG_INSIDE: u32 = 4u;
 const FLAG_OPEN: u32 = 16u;
 const FLAG_SMOOTH: u32 = 64u;
-const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
+const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
 const MM_TO_M: f32 = 0.001;
 
 // A marker thins when the object's vertex spacing is under this many marker diameters.
@@ -167,7 +169,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
     o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
     var color = g.color * inst.color;
     if ((inst.flags & FLAG_SELECTED) != 0u) {
-        color = vec4<f32>(mix(color.rgb, SELECT_COLOR, 0.6), color.a);
+        color = vec4<f32>(SELECT_COLOR, color.a);
     }
     o.color = color;
     o.corner = tmpl.xy;
@@ -205,5 +207,5 @@ fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
         discard;
     }
-    return vec2<u32>(in.inst_id + 1u, 0u);
+    return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);
 }

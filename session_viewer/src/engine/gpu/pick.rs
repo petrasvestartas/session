@@ -1,7 +1,8 @@
 //! Picking by id pass: on request the lanes redraw ONCE at 1x into an `Rg32Uint` target -
-//! (object row + 1, sub-object id + 1) per pixel - and one texel is copied out and mapped
-//! asynchronously. The answer arrives a frame later from `poll`. No CPU ray cast, and it
-//! works for streamed clouds that never existed on the CPU.
+//! (object row + 1, sub-object id + 1) per pixel - scissored to a small window about the
+//! cursor, which is copied out and mapped asynchronously. `poll` answers with the nearest
+//! ink hit in the window (a hairline or a dot is hard to land on exactly), else the nearest
+//! face. No CPU ray cast, and it works for streamed clouds that never existed on the CPU.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -23,10 +24,41 @@ struct IdTargets {
     size: (u32, u32),
 }
 
+/// How far from the cursor, in physical pixels, a hit still counts.
+pub const PICK_RADIUS: u32 = 8;
+
+/// The readback window: a `PICK_RADIUS` square about the cursor, clamped into the target.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Window {
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
+    /// The cursor's place inside the window.
+    pub cx: u32,
+    pub cy: u32,
+}
+
+impl Window {
+    /// The window about `at` inside a target of `size` (both at least 1 px).
+    pub fn about(at: (u32, u32), size: (u32, u32)) -> Self {
+        let (w, h) = ((2 * PICK_RADIUS + 1).min(size.0), (2 * PICK_RADIUS + 1).min(size.1));
+        let x = at.0.saturating_sub(PICK_RADIUS).min(size.0 - w);
+        let y = at.1.saturating_sub(PICK_RADIUS).min(size.1 - h);
+        Self { x, y, w, h, cx: at.0.min(size.0 - 1) - x, cy: at.1.min(size.1 - 1) - y }
+    }
+}
+
+/// The row pitch of the window copy: `2 * PICK_RADIUS + 1` texels of 8 B, rounded up to
+/// wgpu's 256 B copy alignment.
+const ROW_BYTES: u32 = ((2 * PICK_RADIUS + 1) * 8).div_ceil(256) * 256;
+
 /// The pending request, the targets, the readback buffer and its completion flag.
 pub struct Picker {
     pending: Option<(u32, u32)>,
     inflight: bool,
+    /// The window the in-flight copy covers.
+    window: Window,
     /// A copy was encoded this frame and its buffer must be mapped once the submit is in.
     copied: bool,
     ready: Arc<AtomicBool>,
@@ -70,7 +102,7 @@ impl IdReadback {
 impl Picker {
     /// Nothing requested, nothing allocated.
     pub fn new() -> Self {
-        Self { pending: None, inflight: false, copied: false, ready: Arc::new(AtomicBool::new(false)), readback: None, targets: None }
+        Self { pending: None, inflight: false, window: Window { x: 0, y: 0, w: 1, h: 1, cx: 0, cy: 0 }, copied: false, ready: Arc::new(AtomicBool::new(false)), readback: None, targets: None }
     }
 
     /// Ask for the ids under pixel (x, y). Ignored while an earlier pick is still in flight.
@@ -119,16 +151,18 @@ impl Picker {
         })
     }
 
-    /// Copy the texel at (x, y) into the readback buffer and start mapping it.
-    pub fn copy_texel(&mut self, ctx: &GpuCtx, encoder: &mut wgpu::CommandEncoder, at: (u32, u32)) {
+    /// Copy the window about `at` into the readback buffer; `map` starts the mapping after
+    /// the submit.
+    pub fn copy_window(&mut self, ctx: &GpuCtx, encoder: &mut wgpu::CommandEncoder, at: (u32, u32)) {
         let Some(t) = &self.targets else { return };
-        let (x, y) = (at.0.min(t.size.0 - 1), at.1.min(t.size.1 - 1));
+        let win = Window::about(at, t.size);
         let buf = self.readback.get_or_insert_with(|| readback_buffer(ctx));
         encoder.copy_texture_to_buffer(
-            wgpu::TexelCopyTextureInfo { texture: &t.id, mip_level: 0, origin: wgpu::Origin3d { x, y, z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: buf, layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(256), rows_per_image: Some(1) } },
-            wgpu::Extent3d { width: 1, height: 1, depth_or_array_layers: 1 },
+            wgpu::TexelCopyTextureInfo { texture: &t.id, mip_level: 0, origin: wgpu::Origin3d { x: win.x, y: win.y, z: 0 }, aspect: wgpu::TextureAspect::All },
+            wgpu::TexelCopyBufferInfo { buffer: buf, layout: wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(ROW_BYTES), rows_per_image: Some(win.h) } },
+            wgpu::Extent3d { width: win.w, height: win.h, depth_or_array_layers: 1 },
         );
+        self.window = win;
         self.inflight = true;
         self.copied = true;
     }
@@ -164,24 +198,23 @@ impl Picker {
     }
 
     /// Collect a pick asked for earlier: `None` while in flight, `Some(None)` for background.
+    /// Ink (a stroke, a marker, a cloud point) beats a face anywhere in the window; among
+    /// equals the nearest to the cursor wins, so a click on a curve lying across a face still
+    /// picks the curve.
     pub fn poll(&mut self) -> Option<Option<Pick>> {
         if !self.inflight || !self.ready.load(Ordering::Acquire) {
             return None;
         }
         let buf = self.readback.as_ref()?;
-        let (object, sub) = {
+        let win = self.window;
+        let best = {
             let bytes = buf.slice(..).get_mapped_range();
-            let object = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
-            let sub = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
-            (object, sub)
+            nearest_hit(&bytes, win)
         };
         buf.unmap();
         self.ready.store(false, Ordering::Release);
         self.inflight = false;
-        if object == 0 {
-            return Some(None);
-        }
-        Some(Some(Pick { row: object - 1, sub: sub.saturating_sub(1) }))
+        Some(best.map(|(object, sub)| Pick { row: object - 1, sub: sub.saturating_sub(1) }))
     }
 
     /// Drop the targets (the canvas resized); they are remade on the next pick.
@@ -190,12 +223,68 @@ impl Picker {
     }
 }
 
-/// A 256 B readback buffer - one row of copy alignment holds our 8 bytes.
+/// The (object, sub) texel of `win` to answer with: ink first, then the nearest to the cursor.
+fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
+    let mut best: Option<((bool, u64), (u32, u32))> = None;
+    for y in 0..win.h {
+        for x in 0..win.w {
+            let at = (y * ROW_BYTES + x * 8) as usize;
+            let object = u32::from_le_bytes(bytes[at..at + 4].try_into().unwrap());
+            if object == 0 {
+                continue;
+            }
+            let sub = u32::from_le_bytes(bytes[at + 4..at + 8].try_into().unwrap());
+            let (dx, dy) = (x as i64 - win.cx as i64, y as i64 - win.cy as i64);
+            let key = (sub == 0, (dx * dx + dy * dy) as u64);
+            if best.is_none_or(|(k, _)| key < k) {
+                best = Some((key, (object, sub)));
+            }
+        }
+    }
+    best.map(|(_, hit)| hit)
+}
+
+/// The readback buffer: one aligned row per window line.
 fn readback_buffer(ctx: &GpuCtx) -> wgpu::Buffer {
     ctx.device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("pick.readback"),
-        size: 256,
+        size: u64::from(ROW_BYTES) * u64::from(2 * PICK_RADIUS + 1),
         usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         mapped_at_creation: false,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn texels(win: Window, hits: &[(u32, u32, u32, u32)]) -> Vec<u8> {
+        let mut bytes = vec![0u8; (ROW_BYTES * win.h) as usize];
+        for &(x, y, object, sub) in hits {
+            let at = (y * ROW_BYTES + x * 8) as usize;
+            bytes[at..at + 4].copy_from_slice(&object.to_le_bytes());
+            bytes[at + 4..at + 8].copy_from_slice(&sub.to_le_bytes());
+        }
+        bytes
+    }
+
+    /// The window hugs the target's edges and remembers where the cursor sits in it.
+    #[test]
+    fn window_clamps() {
+        let r = PICK_RADIUS;
+        assert_eq!(Window::about((100, 100), (400, 300)), Window { x: 100 - r, y: 100 - r, w: 2 * r + 1, h: 2 * r + 1, cx: r, cy: r });
+        assert_eq!(Window::about((0, 299), (400, 300)), Window { x: 0, y: 300 - (2 * r + 1), w: 2 * r + 1, h: 2 * r + 1, cx: 0, cy: 2 * r });
+        assert_eq!(Window::about((5, 5), (4, 4)), Window { x: 0, y: 0, w: 4, h: 4, cx: 3, cy: 3 });
+    }
+
+    /// Ink beats a face under the cursor; nearer ink beats farther ink; a face alone is found.
+    #[test]
+    fn ink_first_then_nearest() {
+        let win = Window::about((50, 50), (200, 200));
+        let (c, seg) = (PICK_RADIUS, 0x8000_0000 | 3);
+        assert_eq!(nearest_hit(&texels(win, &[(c, c, 7, 0), (c + 5, c, 9, seg)]), win), Some((9, seg)));
+        assert_eq!(nearest_hit(&texels(win, &[(c + 5, c, 9, seg), (c - 2, c + 1, 4, 12)]), win), Some((4, 12)));
+        assert_eq!(nearest_hit(&texels(win, &[(c + 3, c, 7, 0), (c - 1, c, 2, 0)]), win), Some((2, 0)));
+        assert_eq!(nearest_hit(&texels(win, &[]), win), None);
+    }
 }

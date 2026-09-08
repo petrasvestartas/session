@@ -116,7 +116,8 @@ impl Input {
     }
 
     /// The left button: a press remembers where; a release within the slop is a click and
-    /// asks the GPU what is under it.
+    /// asks the GPU what is under it. The picture is unchanged until the answer lands, so a
+    /// click never redraws by itself.
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
@@ -130,7 +131,7 @@ impl Input {
                     return false;
                 }
                 state.request_pick(self.last_cursor.0 as u32, self.last_cursor.1 as u32);
-                true
+                false
             }
         }
     }

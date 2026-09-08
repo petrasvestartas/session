@@ -261,7 +261,7 @@ impl Splat {
             let rot = [model[0], model[1], model[2], 0.0, model[4], model[5], model[6], 0.0, model[8], model[9], model[10], 0.0];
             let scale = mat_scale(&model);
             let selected = row.flags & Instance::FLAG_SELECTED != 0;
-            let tint = if selected { [1.0, 0.85, 0.3, (px * 0.5).max(0.5)] } else { [row.color[0], row.color[1], row.color[2], (px * 0.5).max(0.5)] };
+            let tint = if selected { [1.0, 1.0, 0.0, (px * 0.5).max(0.5)] } else { [row.color[0], row.color[1], row.color[2], (px * 0.5).max(0.5)] };
 
             for r in &self.walk.ranges {
                 let k = radius_factor(r, px, scale, cx.ortho_h);

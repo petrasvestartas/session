@@ -41,6 +41,17 @@ impl Gpu {
         Some(encode_ms)
     }
 
+    /// A pick on a still scene: the id pass alone, against the depth the last presented frame
+    /// left, submitted and mapped - no colour frame, nothing presented.
+    pub fn pick_frame(&mut self, input: &FrameInput, at: (u32, u32)) {
+        self.write_frame_uniforms(input);
+        let mut encoder = self.ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: Some("pick") });
+        self.point_pass(&mut encoder);
+        self.id_pass(&mut encoder, Some(at));
+        self.ctx.queue.submit([encoder.finish()]);
+        self.pick.map();
+    }
+
     /// Render one frame into an offscreen texture and read the pixels back (RGBA8, tightly
     /// packed, top row first). Native only: the harness behind every measured number.
     #[cfg(not(target_arch = "wasm32"))]

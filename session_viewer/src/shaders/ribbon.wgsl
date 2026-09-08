@@ -47,7 +47,7 @@ const FLAG_HIDDEN: u32 = 2u;
 const FLAG_INSIDE: u32 = 4u;
 const FLAG_OPEN: u32 = 16u;
 const FLAG_SHEET: u32 = 32u;
-const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 0.75, 0.2);
+const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
 const MM_TO_M: f32 = 0.001;
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 
@@ -247,7 +247,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = unpack4x8unorm(seg.color) * inst.color;
     if ((inst.flags & FLAG_SELECTED) != 0u) {
-        color = vec4<f32>(mix(color.rgb, SELECT_COLOR, 0.6), color.a);
+        color = vec4<f32>(SELECT_COLOR, color.a);
     }
     o.color = color;
     o.p = p;

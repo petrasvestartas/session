@@ -2,6 +2,7 @@
 //! optional picking pass follows the same visibility rule and toggles.
 
 use super::frame::Binds;
+use super::pick::Window;
 use super::splat::RecordCx;
 use super::Gpu;
 
@@ -29,7 +30,7 @@ impl Gpu {
 
     /// The point lane's own pass, skipped while the camera, the knobs and the tables are what
     /// they were - a still cloud costs one fullscreen resolve.
-    fn point_pass(&mut self, encoder: &mut wgpu::CommandEncoder) {
+    pub(super) fn point_pass(&mut self, encoder: &mut wgpu::CommandEncoder) {
         let cx = RecordCx {
             mvp: &self.frame.mvp_f32,
             ortho_h: self.frame.ortho_h,
@@ -76,7 +77,9 @@ impl Gpu {
     }
 
     /// The id pass: the scene list again, opaque, at 1x, under the same toggles and in the
-    /// same order (what a lane hides it cannot pick), then one texel copied out for `Picker`.
+    /// same order (what a lane hides it cannot pick), scissored to the pick window when there
+    /// is one (the vertex work stays; the fill is what a full frame would cost), which is then
+    /// copied out for `Picker`.
     pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
         let size = (self.config.width, self.config.height);
         {
@@ -84,6 +87,10 @@ impl Gpu {
             let basic = Binds { mvp: &self.frame.mvp_group, line: &self.frame.line_group, instances: &self.objects.group };
             let b = Binds { mvp: &self.frame.mvp_group, line: &self.frame.line_group, instances: &self.objects.ink_group };
             let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
+            if let Some(at) = at {
+                let win = Window::about(at, size);
+                pass.set_scissor_rect(win.x, win.y, win.w, win.h);
+            }
             self.arena.draw_face_ids(&mut pass, &basic);
             self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
             if v.show_mesh_edges {
@@ -101,7 +108,7 @@ impl Gpu {
             }
         }
         if let Some(at) = at {
-            self.pick.copy_texel(&self.ctx, encoder, at);
+            self.pick.copy_window(&self.ctx, encoder, at);
         }
     }
 }
