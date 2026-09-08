@@ -154,10 +154,17 @@ fn nearest_normal(fm: &Mesh, p: [f64; 3]) -> Option<[f64; 3]> {
     best.map(|(_, _, n)| n)
 }
 
-/// What the pipe loop reads: every face mesh (for the other face's normals) and the pen.
+/// What the pipe loop reads: every face mesh (for the other face's normals), the outward
+/// sign of every face (`brep_orient::face_signs`) and the pen.
 pub struct EdgePen<'a> {
     pub fms: &'a [Mesh],
+    pub signs: &'a [f64],
     pub pen: Pen,
+}
+
+/// A normal turned outward by its face's sign.
+fn scaled(n: [f64; 3], s: f64) -> [f64; 3] {
+    [n[0] * s, n[1] * s, n[2] * s]
 }
 
 /// One pipe per chain segment. `facing` carries the owning face's normal along the segment
@@ -173,11 +180,11 @@ pub fn push_edge_pipes(seg: &mut SegRows, chain: &EdgeChain, ep: &EdgePen, bound
         let (a, b) = (&fm.vertex[&w[0]], &fm.vertex[&w[1]]);
         let p0 = [a.x, a.y, a.z];
         let p1 = [b.x, b.y, b.z];
-        let n0 = mean_normal(a.normal(), b.normal());
+        let n0 = mean_normal(a.normal(), b.normal()).map(|n| scaled(n, ep.signs[chain.face]));
         let mid = [(p0[0] + p1[0]) * 0.5, (p0[1] + p1[1]) * 0.5, (p0[2] + p1[2]) * 0.5];
-        let n1 = match other {
-            Some(o) => nearest_normal(o, mid),
-            None => n0,
+        let n1 = match (other, chain.other) {
+            (Some(o), Some(of)) => nearest_normal(o, mid).map(|n| scaled(n, ep.signs[of])),
+            _ => n0,
         };
         let p0f = p0.map(|v| v as f32);
         let p1f = p1.map(|v| v as f32);
@@ -320,7 +327,8 @@ mod tests {
         let b = BRep::create_cylinder(150.0, 400.0);
         let fms = b.face_meshes_q(Some(QUALITY));
         let chains = edge_chains(&b, &fms);
-        let ep = EdgePen { fms: &fms, pen: Pen { row: 3, radius: encode_width(1.0), color: pack_rgba([0.0, 0.0, 0.0, 1.0]) } };
+        let signs = vec![1.0; fms.len()];
+        let ep = EdgePen { fms: &fms, signs: &signs, pen: Pen { row: 3, radius: encode_width(1.0), color: pack_rgba([0.0, 0.0, 0.0, 1.0]) } };
         let mut seg = SegRows::default();
         let mut bounds = Aabb::empty();
         let circle = push_edge_pipes(&mut seg, chains[0].as_ref().unwrap(), &ep, &mut bounds);

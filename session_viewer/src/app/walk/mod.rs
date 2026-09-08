@@ -21,6 +21,7 @@ use points::walk_point;
 pub mod bounds;
 pub mod brep;
 pub mod brep_edges;
+pub mod brep_orient;
 pub mod cloud;
 pub mod curves;
 pub mod encode;

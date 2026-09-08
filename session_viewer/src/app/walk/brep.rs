@@ -11,7 +11,8 @@ use crate::engine::gpu::arena::ArenaRows;
 use crate::engine::gpu::Instance;
 use super::{Row, WalkCx};
 use super::bounds::mesh_thickness;
-use super::brep_edges::{edge_chains, push_edge_pipes, EdgePen};
+use super::brep_edges::{edge_chains, push_edge_pipes, EdgeChain, EdgePen};
+use super::brep_orient::face_signs;
 use super::mesh::{mesh_spacing, walk_mesh, MeshCx, MeshOpts};
 use super::mesh_ink::Ink;
 use super::curves::{push_polyline, sample_nurbscurve};
@@ -73,7 +74,10 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
     let mut row = Row { bounds: solid.bounds, spacing: mesh_spacing(&solid.bounds, verts), flags, faces: true, thickness };
     if !knobs::no_edges() {
         let pen = Pen { row: cx.row, radius: encode_width(b.width), color: pack_rgba(Color::black().to_f32()) };
-        walk_brep_edges(ink, b, &EdgePen { fms: &fms, pen }, &mut row.bounds);
+        let chains = edge_chains(b, &fms);
+        let signs = face_signs(b, &fms, &chains);
+        let ep = EdgePen { fms: &fms, signs: &signs, pen };
+        walk_brep_edges(ink, b, &chains, (&ep, &mut row.bounds));
     }
     row
 }
@@ -81,8 +85,9 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
 /// The solid's own edges, one chain per BRep edge off the tessellation (pipes, culled by the
 /// two adjacent faces); an edge no grid face owns is sampled off its 3D curve as a ribbon,
 /// today's path, until the kernel supplies every edge's polygon.
-fn walk_brep_edges(ink: &mut Ink, b: &BRep, ep: &EdgePen, bounds: &mut Aabb) {
-    for (ei, chain) in edge_chains(b, ep.fms).iter().enumerate() {
+fn walk_brep_edges(ink: &mut Ink, b: &BRep, chains: &[Option<EdgeChain>], out: (&EdgePen, &mut Aabb)) {
+    let (ep, bounds) = out;
+    for (ei, chain) in chains.iter().enumerate() {
         match chain {
             Some(c) => {
                 push_edge_pipes(ink.seg, c, ep, bounds);
