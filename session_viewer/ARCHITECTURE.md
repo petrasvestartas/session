@@ -266,8 +266,9 @@ per sample (`sample_index`), so its visibility is decided per sample.
 | live.rs | - | `?live=off|url` `?poll=s` `?notify=off|url` | the live source |
 | selftest.rs | `VIEWER_W/H` `VIEWER_ORBIT` `VIEWER_ZOOM` `VIEWER_VIEW` `VIEWER_ORTHO` `VIEWER_FRAMES` `VIEWER_PICK` `VIEWER_INCREMENTAL` `VIEWER_REBUILD` | - | the harness camera and modes |
 
-Keys: `1`-`7` named views, `Space` projection, `C` reset, `F` fit, `Q` `W` `E` lanes, `D` lighting,
-`B` back faces, `H` hide selection, `S` show all, `[` `]` point size, `Esc` deselect. Mouse: right
+Keys: `1`-`7` named views, `Space` projection, `C` reset, `F` fit the selection, or everything,
+`Q` `W` `E` lanes, `D` lighting, `B` back faces, `H` hide selection, `S` show all, `[` `]` point
+size, `Esc` deselect. Mouse: right
 orbit, middle pan, wheel zoom, left pick.
 Touch: one finger orbit, two pan/zoom.
 

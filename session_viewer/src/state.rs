@@ -87,6 +87,19 @@ impl State {
         self.needs_frame = true;
     }
 
+    /// Fit the camera to the selected object's world box; falls back to `fit_all` when
+    /// nothing is selected or the selection has no volume.
+    pub fn fit_selected_or_all(&mut self) {
+        let row = self.scene.selected.and_then(|r| self.gpu.objects.row_bounds(r));
+        let Some(b) = row else {
+            self.fit_all();
+            return;
+        };
+        log::info!("fit selected: bounds {:?} .. {:?} aspect {:.3}", b.min, b.max, self.aspect());
+        self.camera.fit(&b, self.aspect());
+        self.needs_frame = true;
+    }
+
     /// Forward a canvas resize to the GPU layer.
     pub fn resize(&mut self, width: u32, height: u32) {
         self.gpu.resize(width, height);

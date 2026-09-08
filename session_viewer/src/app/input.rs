@@ -1,7 +1,8 @@
 //! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
-//! left click picks; 1-7 named views, Space projection, C reset, F fit, Q/W/E lane toggles,
-//! D face lighting, B the back-face flag, H hides the selection and S shows
-//! everything back, [ ] cloud size, Escape clears the selection. Fingers go to `touch.rs`.
+//! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
+//! everything with none selected), Q/W/E lane toggles, D face lighting, B the back-face flag,
+//! H hides the selection and S shows everything back, [ ] cloud size, Escape clears the
+//! selection. Fingers go to `touch.rs`.
 //! Every handler says whether the frame must be redrawn.
 
 use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
@@ -48,7 +49,7 @@ impl Input {
             Key::Character("6") => state.camera.set_view(View::Bottom),
             Key::Character("7") => state.camera.set_view(View::Iso),
             Key::Character("c" | "C") => state.camera.reset(),
-            Key::Character("f" | "F") => state.fit_all(),
+            Key::Character("f" | "F") => state.fit_selected_or_all(),
             Key::Character("q" | "Q") => state.gpu.view.show_points = !state.gpu.view.show_points,
             Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
             Key::Character("e" | "E") => state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges,

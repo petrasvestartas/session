@@ -72,12 +72,19 @@ struct BoundedRow {
     hi: [f64; 3],
 }
 
+/// The row's mesh-local box carried through its placement, in world units.
+fn world_box(r: &ObjectRow) -> Aabb {
+    r.bounds.placed(&r.place)
+}
+
 /// The object rows as the GPU sees them, the TRUE f64 translation per row, and the sparse
 /// bounded rows. The anchored translations live in their own 16 B/row buffer.
 pub struct InstanceTable {
     rows: Vec<Instance>,
     translation: Vec<[f64; 3]>,
     bounded: Vec<BoundedRow>,
+    /// Every row's world box, row order, so index = row; `Aabb::empty()` where not finite.
+    world_bounds: Vec<Aabb>,
     last_origin: Option<Point>,
     buffer: GrowBuf,
     translations: GrowBuf,
@@ -124,6 +131,7 @@ impl InstanceTable {
             rows: vec![Instance::placeholder()],
             translation: Vec::new(),
             bounded: Vec::new(),
+            world_bounds: Vec::new(),
             last_origin: None,
             buffer,
             translations,
@@ -143,19 +151,22 @@ impl InstanceTable {
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
         if self.translation.is_empty() {
             self.rows.clear();
+            self.world_bounds.clear();
             self.buffer.reset();
             self.translations.reset();
         }
         let base = self.translation.len() as u32;
         self.rows.reserve(up.rows.len());
         self.translation.reserve(up.rows.len());
+        self.world_bounds.reserve(up.rows.len());
         for (i, r) in up.rows.iter().enumerate() {
-            let world = r.bounds.placed(&r.place);
+            let world = world_box(r);
             if r.faces && world.is_finite() {
                 let lo = [world.min[0] as f64, world.min[1] as f64, world.min[2] as f64];
                 let hi = [world.max[0] as f64, world.max[1] as f64, world.max[2] as f64];
                 self.bounded.push(BoundedRow { row: base + i as u32, lo, hi });
             }
+            self.world_bounds.push(if world.is_finite() { world } else { Aabb::empty() });
             self.translation.push([r.place[12], r.place[13], r.place[14]]);
             let mut model = mat_to_f32(&r.place);
             model[12] = 0.0;
@@ -258,6 +269,7 @@ impl InstanceTable {
         self.rows.clear();
         self.translation.clear();
         self.bounded.clear();
+        self.world_bounds.clear();
         self.buffer.reset();
         self.translations.reset();
         self.last_origin = None;
@@ -269,6 +281,7 @@ impl InstanceTable {
         self.rows.shrink_to_fit();
         self.translation.shrink_to_fit();
         self.bounded.shrink_to_fit();
+        self.world_bounds.shrink_to_fit();
         self.rows.push(Instance::placeholder());
         self.buffer.release(ctx);
         self.translations.release(ctx);
@@ -285,8 +298,37 @@ impl InstanceTable {
         self.rows.len() as u32
     }
 
+    /// Row `row`'s world box, `None` when the row has no volume (or does not exist).
+    pub fn row_bounds(&self, row: u32) -> Option<Aabb> {
+        let b = *self.world_bounds.get(row as usize)?;
+        b.is_finite().then_some(b)
+    }
+
     /// The anchor the rows are rebased about, as the shaders read it; zero before the first frame.
     pub fn anchor_f32(&self) -> [f32; 3] {
         self.last_origin.as_ref().map(|o| [o[0] as f32, o[1] as f32, o[2] as f32]).unwrap_or([0.0; 3])
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use session_rust::Xform;
+
+    /// A translated local box lands at the translated world position.
+    #[test]
+    fn world_box_translates() {
+        let mut r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
+        r.bounds = Aabb { min: [0.0, 0.0, 0.0], max: [1.0, 2.0, 3.0] };
+        let b = world_box(&r);
+        assert_eq!(b.min, [10.0, 20.0, 30.0]);
+        assert_eq!(b.max, [11.0, 22.0, 33.0]);
+    }
+
+    /// A row with no local box stays empty, translated or not.
+    #[test]
+    fn world_box_empty_stays_empty() {
+        let r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
+        assert!(!world_box(&r).is_finite());
     }
 }
