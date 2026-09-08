@@ -206,9 +206,11 @@ per sample (`sample_index`), so its visibility is decided per sample.
   within a degree of edge-on carries depth quantised by slope/256 px. The floor census
   surfaces 13 of 344 840 covered samples, all of them at 16x the fit distance; scales 1 and 4
   are zero.
-- Smooth tessellations (`FLAG_SMOOTH`: BRep and NURBS fills) ink border and crease edges
-  only; there is no view-dependent silhouette term, so nothing flips as the camera turns. The
-  vertex-stage facing cull (both adjacent faces away) and `FLAG_INSIDE`/`FLAG_OPEN` are as
+- Smooth tessellations (BRep and NURBS fills) ink border and crease edges only, decided on the
+  CPU by the walk (`src/app/walk/mesh_ink.rs`, `CREASE_COS` in `mesh.rs`); there is no
+  view-dependent silhouette term, so nothing flips as the camera turns. `FLAG_SMOOTH` only
+  suppresses vertex markers, since a tessellation's vertices are sample positions, not corners;
+  the vertex-stage facing cull (both adjacent faces away) and `FLAG_INSIDE`/`FLAG_OPEN` are as
   before.
 - `CylinderSegment` is 40 B; `GlyphPoint` is 48 B; `LineUniform` is 64 B; `Instance` 96 B.
   Layout tests validate the WGSL member offsets and strides through Naga.

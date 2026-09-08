@@ -12,7 +12,7 @@ override SCENE_MSAA: bool = false;
 const DEPTH_REL_TOL: f32 = 1.9073486e-6;
 // The rasterizer snaps vertices to 1/256 px, so a fitted plane's depth is off by its slope
 // times that; 2^-8 is exactly that quantisation, with the headroom measured away: the close-up
-// holds at 242406 non-background pixels and the probe matrix at 54 cases with its nine
+// holds at 242720 non-background pixels and the probe matrix at 54 cases with its nine
 // distance-1 counts unchanged, while the floor census residual falls from 29 to 13 samples.
 const SLOPE_PX: f32 = 0.00390625;
 // How much of the two slopes a KINK may differ by and still count as one surface. A tessellation

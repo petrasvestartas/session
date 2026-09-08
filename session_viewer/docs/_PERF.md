@@ -32,7 +32,7 @@ The browser-heap clause of spec section 7 is deferred: not measured.
 Ink fragment cost, counted in `ink_visibility.wgsl` at commit ff8f046a: a stroke fragment makes
 at most six depth texture reads per sample - its own texel, the two the planarity guard reads
 outward, the two it reads inward when the outward pair is rejected, and one re-read of the
-accepted neighbour - and a disc fragment at most eight: its own texel, the two the guard reads
+accepted neighbour - and a disc fragment at most seven: its own texel, the two the guard reads
 on each of its two axes, and a re-read of each axis's neighbour. No storage reads.
 The face pass writes one colour target; there is no compute pass and no face-token attachment
 (the previous design's `Rg16Uint` token target is 4 B per texel: 1400 x 900 x 4 samples =
