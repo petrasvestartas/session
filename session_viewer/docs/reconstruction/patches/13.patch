@@ -809,18 +809,6 @@ index 0000000000000000000000000000000000000000..d1e07cdbd0779867c66a3de4e2308ce8
 +fn abort_request(controller: &web_sys::AbortController) {
 +    controller.abort();
 +}
-diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
-index 9a5607922b72b09d30c2edbdf027026c63da9301..675ff5acf7a4b43ed793f1689f2481c22fa13457
---- a/session_viewer/src/app/input.rs
-+++ b/session_viewer/src/app/input.rs
-@@ -52,6 +52,7 @@
-                 .camera
-                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
-             Key::Named(NamedKey::Escape) => state.escape_selection(),
-+            Key::Named(NamedKey::F10) => state.enable_controls(),
-             Key::Character("1") => state.camera.set_view(View::Front),
-             Key::Character("2") => state.camera.set_view(View::Back),
-             Key::Character("3") => state.camera.set_view(View::Left),
 diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
 index a17fd97b039d992827fb8edcefc5e1ef004159a2..f31db8bae111e86d20416b432407b4f8427e1fb7
 --- a/session_viewer/src/app/inspection.rs
@@ -2637,3 +2625,15 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
  fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
      let scale = if id == 0 { 0.75 } else { 1.0 };
      let line_height = 26.0 * scale;
+diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
+index 8f407222abdaf2c34c89b742bee5fd4c27c3bfe7..b39e95c8d1693551143efaad60a735c40ed0a8e1 100644
+--- a/session_viewer/src/app/input.rs
++++ b/session_viewer/src/app/input.rs
+@@ -52,6 +52,7 @@ impl Input {
+                 .camera
+                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
+             Key::Named(NamedKey::Escape) => state.escape_selection(),
++            Key::Named(NamedKey::F10) => state.enable_controls(),
+             Key::Character("1") => state.camera.set_view(View::Front),
+             Key::Character("2") => state.camera.set_view(View::Back),
+             Key::Character("3") => state.camera.set_view(View::Left),

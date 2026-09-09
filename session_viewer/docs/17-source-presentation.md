@@ -175,7 +175,7 @@ flowchart TB
 
 - Input tracks Shift; Ctrl+Shift requests a component pick.
 
-<!-- file: 17 session_viewer/src/app/input.rs type hunks=2,3,8,9,10 -->
+<!-- file: 17 session_viewer/src/app/input.rs type hunks=2,3,8,9,10,11 -->
 
 - State maps the answer back through `Faces::source`, selects the parent, then narrows the highlight to the face.
 
@@ -528,7 +528,7 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 17 session_viewer/src/app/input.rs type hunks=1,5,6,7,11 -->
+<!-- file: 17 session_viewer/src/app/input.rs type hunks=1,5,6,7,12 -->
 
 <!-- file: 17 session_viewer/src/lib.rs type -->
 

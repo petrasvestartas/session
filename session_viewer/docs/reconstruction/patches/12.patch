@@ -151,263 +151,6 @@ index 0000000000000000000000000000000000000000..8e846d19d6fcef5720ef60d9e580cbe7
 +    }
 +    log::error!("{message}");
 +}
-diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..9a5607922b72b09d30c2edbdf027026c63da9301
---- /dev/null
-+++ b/session_viewer/src/app/input.rs
-@@ -0,0 +1,251 @@
-+//! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
-+//! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
-+//! everything with none selected), Q/W/E lane toggles, D face lighting, B the back-face flag,
-+//! H hides the selection and S shows everything back, T toggles selected names,
-+//! [ ] cloud size, Escape clears the
-+//! selection. Fingers go to `touch.rs`.
-+//! Every handler says whether the frame must be redrawn.
-+
-+use super::touch::{Act, Touches};
-+use crate::State;
-+use crate::camera::View;
-+use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
-+use winit::keyboard::{Key, NamedKey};
-+
-+/// A press that moves less than this (CSS px) before release is a click.
-+const CLICK_SLOP: f64 = 4.0;
-+
-+/// What the mouse is doing between events, plus the fingers.
-+pub struct Input {
-+    orbiting: bool,
-+    panning: bool,
-+    ctrl: bool,
-+    last_cursor: (f64, f64),
-+    left_down: Option<(f64, f64)>,
-+    touch: Touches,
-+}
-+
-+impl Default for Input {
-+    /// Start with the same inactive gesture state as the explicit constructor.
-+    fn default() -> Self {
-+        Self::new()
-+    }
-+}
-+
-+impl Input {
-+    /// Nothing held, cursor at the origin.
-+    pub fn new() -> Self {
-+        Self {
-+            orbiting: false,
-+            panning: false,
-+            ctrl: false,
-+            last_cursor: (0.0, 0.0),
-+            left_down: None,
-+            touch: Touches::new(),
-+        }
-+    }
-+
-+    /// One key press (the caller filters repeats). True when the frame must be redrawn.
-+    pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
-+        match key {
-+            Key::Named(NamedKey::Space) => state
-+                .camera
-+                .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
-+            Key::Named(NamedKey::Escape) => state.escape_selection(),
-+            Key::Character("1") => state.camera.set_view(View::Front),
-+            Key::Character("2") => state.camera.set_view(View::Back),
-+            Key::Character("3") => state.camera.set_view(View::Left),
-+            Key::Character("4") => state.camera.set_view(View::Right),
-+            Key::Character("5") => state.camera.set_view(View::Top),
-+            Key::Character("6") => state.camera.set_view(View::Bottom),
-+            Key::Character("7") => state.camera.set_view(View::Iso),
-+            Key::Character("c" | "C") => state.camera.reset(),
-+            Key::Character("f" | "F") => state.fit_selected_or_all(),
-+            Key::Character("q" | "Q") => state.gpu.view.show_points = !state.gpu.view.show_points,
-+            Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
-+            Key::Character("e" | "E") => {
-+                state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
-+            }
-+            Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
-+            Key::Character("h" | "H") => state.hide_selected(),
-+            Key::Character("s" | "S") => state.show_all(),
-+            Key::Character("t" | "T") => state.toggle_selected_names(),
-+            Key::Character("b" | "B") => state.gpu.view.backface = !state.gpu.view.backface,
-+            Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
-+            Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
-+            _ => return false,
-+        }
-+        true
-+    }
-+
-+    /// Buttons, motion, wheel, modifiers and fingers. True when the frame must be redrawn.
-+    pub fn mouse(&mut self, state: &mut State, event: &WindowEvent) -> bool {
-+        let viewport = state.viewport();
-+        match event {
-+            WindowEvent::MouseInput {
-+                state: btn,
-+                button: MouseButton::Right,
-+                ..
-+            } => {
-+                self.orbiting = *btn == ElementState::Pressed;
-+                false
-+            }
-+            WindowEvent::MouseInput {
-+                state: btn,
-+                button: MouseButton::Middle,
-+                ..
-+            } => {
-+                self.panning = *btn == ElementState::Pressed;
-+                false
-+            }
-+            WindowEvent::MouseInput {
-+                state: btn,
-+                button: MouseButton::Left,
-+                ..
-+            } => self.left(state, *btn),
-+            WindowEvent::CursorMoved { position, .. } => {
-+                let dragging = self.orbiting || self.panning;
-+                if dragging {
-+                    let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
-+                    let dy = ((position.y - self.last_cursor.1) / device_pixel_ratio()) as f32;
-+                    if self.panning || self.ctrl {
-+                        state.camera.pan(dx, dy);
-+                    } else {
-+                        state.camera.orbit(dx, dy);
-+                    }
-+                }
-+                self.last_cursor = (position.x, position.y);
-+                dragging
-+            }
-+            WindowEvent::MouseWheel { delta, .. } => {
-+                let amount = match delta {
-+                    MouseScrollDelta::LineDelta(_, y) => *y,
-+                    MouseScrollDelta::PixelDelta(p) => p.y as f32 / 100.0,
-+                };
-+                state.camera.zoom_at(amount, self.last_cursor, viewport);
-+                true
-+            }
-+            WindowEvent::ModifiersChanged(mods) => {
-+                self.ctrl = mods.state().control_key();
-+                false
-+            }
-+            WindowEvent::Focused(false) => {
-+                self.cancel();
-+                true
-+            }
-+            WindowEvent::Touch(t) => {
-+                match self
-+                    .touch
-+                    .event(&mut state.camera, t, viewport, device_pixel_ratio())
-+                {
-+                    Act::None => false,
-+                    Act::Moved => true,
-+                    Act::Fit => {
-+                        state.fit_all();
-+                        true
-+                    }
-+                }
-+            }
-+            _ => false,
-+        }
-+    }
-+
-+    /// Focus loss or pointer cancellation retires every incomplete mouse/touch gesture.
-+    pub fn cancel(&mut self) {
-+        self.orbiting = false;
-+        self.panning = false;
-+        self.ctrl = false;
-+        self.left_down = None;
-+        self.touch = Touches::new();
-+    }
-+
-+    /// The left button: a press remembers where; a release within the slop is a click and
-+    /// asks the GPU what is under it. The picture is unchanged until the answer lands, so a
-+    /// click never redraws by itself.
-+    fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
-+        match btn {
-+            ElementState::Pressed => {
-+                self.left_down = Some(self.last_cursor);
-+                false
-+            }
-+            ElementState::Released => {
-+                let Some(down) = self.left_down.take() else {
-+                    return false;
-+                };
-+                let moved = (self.last_cursor.0 - down.0)
-+                    .abs()
-+                    .max((self.last_cursor.1 - down.1).abs());
-+                if moved > CLICK_SLOP * device_pixel_ratio() {
-+                    return false;
-+                }
-+                state.request_selection(
-+                    self.last_cursor.0 as u32,
-+                    self.last_cursor.1 as u32,
-+                    self.ctrl,
-+                );
-+                false
-+            }
-+        }
-+    }
-+}
-+
-+/// Winit handles touch cancellation; this owned listener also covers mouse and pen cancellation.
-+#[cfg(target_arch = "wasm32")]
-+pub struct PointerCancellation {
-+    canvas: web_sys::HtmlCanvasElement,
-+    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
-+}
-+
-+#[cfg(target_arch = "wasm32")]
-+impl PointerCancellation {
-+    /// Install once for the canvas lifetime; the required callback only forwards a message.
-+    pub fn new(
-+        canvas: web_sys::HtmlCanvasElement,
-+        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
-+    ) -> Result<Self, wasm_bindgen::JsValue> {
-+        use wasm_bindgen::JsCast;
-+        let callback =
-+            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |_| {
-+                cancel_pointer(&proxy)
-+            });
-+        canvas
-+            .add_event_listener_with_callback("pointercancel", callback.as_ref().unchecked_ref())?;
-+        Ok(Self { canvas, callback })
-+    }
-+}
-+
-+#[cfg(target_arch = "wasm32")]
-+impl Drop for PointerCancellation {
-+    /// Detach before dropping the wasm callback so JavaScript cannot retain an invalid handle.
-+    fn drop(&mut self) {
-+        use wasm_bindgen::JsCast;
-+        let _ = self.canvas.remove_event_listener_with_callback(
-+            "pointercancel",
-+            self.callback.as_ref().unchecked_ref(),
-+        );
-+    }
-+}
-+
-+/// Pointer cancellation goes through the same event-loop owner as every other input change.
-+#[cfg(target_arch = "wasm32")]
-+fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
-+    let _ = proxy.send_event(crate::Msg::CancelPointer);
-+}
-+
-+/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone.
-+#[cfg(target_arch = "wasm32")]
-+fn device_pixel_ratio() -> f64 {
-+    if let Some(window) = web_sys::window() {
-+        let ratio = window.device_pixel_ratio();
-+        if ratio > 0.0 {
-+            return ratio;
-+        }
-+    }
-+    1.0
-+}
-+
-+/// Native windows report logical pixels already.
-+#[cfg(not(target_arch = "wasm32"))]
-+fn device_pixel_ratio() -> f64 {
-+    1.0
-+}
 diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..a17fd97b039d992827fb8edcefc5e1ef004159a2
@@ -1252,239 +995,6 @@ index 0000000000000000000000000000000000000000..920f036f77b250d98108579b6788c6e8
 +    /// Whether the source carries a node table.
 +    pub fn is_empty(&self) -> bool {
 +        self.size.is_empty()
-+    }
-+}
-diff --git a/session_viewer/src/app/touch.rs b/session_viewer/src/app/touch.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..b1455f24112a43da1befd17c805ce63e2c9ac8c7
---- /dev/null
-+++ b/session_viewer/src/app/touch.rs
-@@ -0,0 +1,227 @@
-+//! Touch gestures — the phone half of the camera bindings.
-+//!
-+//! winit's web backend splits pointers by `pointerType`: a pointer whose type is `"touch"` is
-+//! routed to `WindowEvent::Touch` and NEVER to `CursorMoved` / `MouseInput`
-+//! (`winit-0.30.13/src/platform_impl/web/web_sys/pointer.rs`, the `match pointer_type` arms —
-+//! the comment there says duplicate mouse events would be "inconsistent with other platforms").
-+//! So a finger cannot also reach the mouse arms in `lib.rs`, and the two sets of bindings can be
-+//! read, and changed, independently. (The runner registers a SECOND, unfiltered set of pointer
-+//! listeners on the window — `event_loop/runner.rs`, "pointermove"/"pointerdown"/"pointerup" —
-+//! but those raise `DeviceEvent`, which this viewer does not implement, and they return early
-+//! unless device events are switched on. They are not a second route into anything here.)
-+//!
-+//! | gesture | camera | the mouse binding it mirrors |
-+//! |---|---|---|
-+//! | one finger, drag | `orbit` | right-drag |
-+//! | two fingers, slide | `pan` | middle-drag |
-+//! | two fingers, spread / close | `zoom_at` their midpoint | wheel |
-+//! | double tap | `fit` | `F` |
-+//!
-+//! Two conversions have to happen here, or the same hand movement means different things on
-+//! different phones.
-+//!
-+//! FINGER TRAVEL IS IN CSS PIXELS. winit reports PHYSICAL pixels (`to_physical(scale_factor)`,
-+//! same file), so one centimetre of glass is three times the number on a dpr-3 phone that it is
-+//! on a dpr-1 laptop. Orbit is a fixed radians-per-unit, so the raw figure would spin the model
-+//! three times as fast for the same movement — and differently again on the next phone. Dividing
-+//! by the device pixel ratio makes the gesture mean one thing everywhere; on a dpr-1 screen it
-+//! is then exactly the mouse.
-+//!
-+//! PAN IS FINGER-EXACT. `Camera::pan` scales its argument by a hard-coded `distance * 0.0015`,
-+//! which equals the `2·tan(30°)` the projection really spans only when the viewport is 770 px
-+//! tall — anywhere else the model slides faster or slower than the hand holding it. A mouse does
-+//! not notice, because the cursor is not the thing being dragged. A finger IS on the thing, so
-+//! the error reads as the model slipping. Scaling by the real viewport height (`PAN_PER_PX`)
-+//! removes it, in both projections: the orthographic branch of `view_proj_anchored` uses the
-+//! same `distance * tan(30°)` half-height as the perspective one.
-+
-+use winit::event::{Touch, TouchPhase};
-+
-+use crate::camera::Camera;
-+use crate::engine::performance::now_ms;
-+
-+/// `Camera::pan` moves the target by `arg * distance * 0.0015`, while one physical pixel is
-+/// worth `distance * 2·tan(30°) / viewport_height` of target motion. Their ratio is this
-+/// constant over the viewport height — the number of pan units one pixel of finger is worth.
-+const PAN_PER_PX: f64 = 2.0 * 0.577_350_269_189_625_7 / 0.001_5; // 769.8 — pan is exact at that height
-+
-+/// The wheel response is 0.9^amount; invert it so a pinch ratio r gives distance/r.
-+const PINCH_LOG: f64 = -0.105_360_515_657_826_28;
-+
-+/// Biggest span change one event may claim. A finger the browser loses and re-delivers, or a
-+/// third finger landing between two samples, otherwise teleports the camera.
-+const PINCH_MAX: f64 = 2.0;
-+
-+/// A finger that never travelled this far (CSS px) and lifted within `TAP_MS` is a tap …
-+///
-+/// Both clocks are read when the event is HANDLED, not when it happened — winit's `Touch` carries
-+/// no timestamp — so a main thread stalled longer than the window turns a real double tap into
-+/// two singles. At 30-60 fps the stall is a frame and it does not matter; in a BACKGROUND tab,
-+/// where the browser throttles the frame loop to 1 Hz, it always will. That is a measurement
-+/// trap, not a bug: a viewer nobody is looking at has no gestures to miss.
-+const TAP_SLOP: f64 = 12.0;
-+const TAP_MS: f64 = 300.0;
-+/// … and a second tap this soon after it, and this near it, is a double tap. Both windows are
-+/// wider than the single-tap ones: the second tap of a real double tap is the sloppier of the two.
-+const DOUBLE_TAP_MS: f64 = 320.0;
-+const DOUBLE_TAP_SLOP: f64 = 40.0;
-+
-+/// What one touch event asked for. `Fit` needs the scene bounds, which live a layer up, so it is
-+/// reported rather than done here — this file knows the camera and nothing else.
-+pub enum Act {
-+    None,
-+    Moved,
-+    Fit,
-+}
-+
-+/// One finger, from its `Started` to its `Ended`. Physical pixels throughout.
-+struct Finger {
-+    id: u64,
-+    pos: (f64, f64),  // where it is now
-+    down: (f64, f64), // where it landed — a tap is a finger that never left this
-+    t0: f64,          // when it landed, ms
-+}
-+
-+/// Every finger on the glass, plus what the last two-finger sample measured.
-+pub struct Touches {
-+    fingers: Vec<Finger>,
-+    /// Distance between the first two fingers at the previous event, and their midpoint.
-+    /// `span == 0.0` means NOT SEEDED: the next two-finger move records and does nothing else.
-+    /// Every change in finger count clears it, and that is what stops the model jumping when a
-+    /// second finger joins or leaves halfway through a gesture.
-+    span: f64,
-+    mid: (f64, f64),
-+    /// When and where the last tap lifted, for the double tap.
-+    tap: Option<(f64, (f64, f64))>,
-+}
-+
-+impl Touches {
-+    /// No fingers down, no tap pending.
-+    pub fn new() -> Self {
-+        Self {
-+            fingers: Vec::new(),
-+            span: 0.0,
-+            mid: (0.0, 0.0),
-+            tap: None,
-+        }
-+    }
-+
-+    /// Fold one `WindowEvent::Touch` into the gesture and move the camera. `vp` is the surface
-+    /// size and `t.location` the finger, both in physical pixels; `dpr` is the device pixel
-+    /// ratio that turns physical travel back into the CSS pixels a hand feels.
-+    pub fn event(&mut self, cam: &mut Camera, t: &Touch, vp: (f64, f64), dpr: f64) -> Act {
-+        let p = (t.location.x, t.location.y);
-+        match t.phase {
-+            TouchPhase::Started => {
-+                self.fingers.push(Finger {
-+                    id: t.id,
-+                    pos: p,
-+                    down: p,
-+                    t0: now_ms(),
-+                });
-+                self.span = 0.0; // the gesture just changed shape — re-seed on the next move
-+                Act::None
-+            }
-+            TouchPhase::Moved => self.moved(cam, t.id, p, vp, dpr),
-+            TouchPhase::Ended => self.lifted(t.id, p, dpr),
-+            // A cancel is the browser taking the gesture away — a scroll it decided to own, a
-+            // system edge swipe, a call arriving. Drop the finger, and never read it as a tap.
-+            TouchPhase::Cancelled => {
-+                self.drop_finger(t.id);
-+                self.tap = None;
-+                Act::None
-+            }
-+        }
-+    }
-+
-+    /// A finger travelled. One finger orbits; two pan by their midpoint and zoom by their span.
-+    fn moved(&mut self, cam: &mut Camera, id: u64, p: (f64, f64), vp: (f64, f64), dpr: f64) -> Act {
-+        let Some(i) = self.finger_index(id) else {
-+            return Act::None;
-+        };
-+        let d = (p.0 - self.fingers[i].pos.0, p.1 - self.fingers[i].pos.1);
-+        self.fingers[i].pos = p;
-+
-+        if self.fingers.len() == 1 {
-+            cam.orbit((d.0 / dpr) as f32, (d.1 / dpr) as f32);
-+            return Act::Moved;
-+        }
-+
-+        // Three fingers or more still drive the two-finger gesture, off the first two down: a
-+        // hand resting a third finger on the glass should not stop the pan it is already doing.
-+        let (a, b) = (self.fingers[0].pos, self.fingers[1].pos);
-+        let span = (b.0 - a.0).hypot(b.1 - a.1).max(1.0);
-+        let mid = ((a.0 + b.0) * 0.5, (a.1 + b.1) * 0.5);
-+        if self.span == 0.0 {
-+            self.span = span; // first sample of this shape: record, do not act
-+            self.mid = mid;
-+            return Act::None;
-+        }
-+
-+        // Pan first, then zoom about the NEW midpoint: the pan slides the model with the hand,
-+        // the zoom then keeps whatever is under the midpoint under it.
-+        let h = vp.1.max(1.0);
-+        cam.pan(
-+            ((mid.0 - self.mid.0) * PAN_PER_PX / h) as f32,
-+            ((mid.1 - self.mid.1) * PAN_PER_PX / h) as f32,
-+        );
-+        let r = (span / self.span).clamp(1.0 / PINCH_MAX, PINCH_MAX);
-+        cam.zoom_at((-r.ln() / PINCH_LOG) as f32, mid, vp);
-+
-+        self.span = span;
-+        self.mid = mid;
-+        Act::Moved
-+    }
-+
-+    /// A finger left the glass cleanly. Only the LAST one up can be a tap — a lift that leaves
-+    /// other fingers down is the tail of a two-finger gesture, not a tap on anything.
-+    fn lifted(&mut self, id: u64, p: (f64, f64), dpr: f64) -> Act {
-+        let Some(f) = self.drop_finger(id) else {
-+            return Act::None;
-+        };
-+        if !self.fingers.is_empty() {
-+            self.tap = None;
-+            return Act::None;
-+        }
-+        let now = now_ms();
-+        if (p.0 - f.down.0).hypot(p.1 - f.down.1) / dpr > TAP_SLOP || now - f.t0 > TAP_MS {
-+            self.tap = None; // a drag, or a press held long enough to mean something else
-+            return Act::None;
-+        }
-+        let second = match self.tap.take() {
-+            Some((t0, at)) => {
-+                now - t0 < DOUBLE_TAP_MS && (p.0 - at.0).hypot(p.1 - at.1) / dpr < DOUBLE_TAP_SLOP
-+            }
-+            None => false,
-+        };
-+        if second {
-+            return Act::Fit; // `self.tap` is already cleared, so three taps are not two doubles
-+        }
-+        self.tap = Some((now, p));
-+        Act::None
-+    }
-+
-+    /// Find the first active contact with the event's stable touch identifier.
-+    fn finger_index(&self, id: u64) -> Option<usize> {
-+        for (index, finger) in self.fingers.iter().enumerate() {
-+            if finger.id == id {
-+                return Some(index);
-+            }
-+        }
-+        None
-+    }
-+
-+    /// Forget one finger and re-seed the pinch, whatever ended it.
-+    fn drop_finger(&mut self, id: u64) -> Option<Finger> {
-+        let i = self.finger_index(id)?;
-+        self.span = 0.0;
-+        Some(self.fingers.remove(i))
-+    }
-+}
-+
-+impl Default for Touches {
-+    /// Start with the same inactive gesture state as the explicit constructor.
-+    fn default() -> Self {
-+        Self::new()
 +    }
 +}
 diff --git a/session_viewer/src/app/walk/cloud.rs b/session_viewer/src/app/walk/cloud.rs
@@ -5766,4 +5276,500 @@ index 0000000000000000000000000000000000000000..12bef051ae9f530045492f50cd7b0b4b
 +        failure,
 +        format!("WebGPU device lost ({reason:?}): {message}"),
 +    );
++}
+diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..8f407222abdaf2c34c89b742bee5fd4c27c3bfe7
+--- /dev/null
++++ b/session_viewer/src/app/input.rs
+@@ -0,0 +1,255 @@
++//! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
++//! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
++//! everything with none selected), Q/W/E lane toggles, D face lighting, B the back-face flag,
++//! H hides the selection and S shows everything back, T toggles selected names,
++//! [ ] cloud size, Escape clears the
++//! selection. Fingers go to `touch.rs`.
++//! Every handler says whether the frame must be redrawn.
++
++use super::touch::{Act, Touches};
++use crate::State;
++use crate::camera::View;
++use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
++use winit::keyboard::{Key, NamedKey};
++
++/// A press that moves less than this (CSS px) before release is a click.
++const CLICK_SLOP: f64 = 4.0;
++
++/// What the mouse is doing between events, plus the fingers.
++pub struct Input {
++    orbiting: bool,
++    panning: bool,
++    ctrl: bool,
++    last_cursor: (f64, f64),
++    left_down: Option<(f64, f64)>,
++    touch: Touches,
++}
++
++impl Default for Input {
++    /// Start with the same inactive gesture state as the explicit constructor.
++    fn default() -> Self {
++        Self::new()
++    }
++}
++
++impl Input {
++    /// Nothing held, cursor at the origin.
++    pub fn new() -> Self {
++        Self {
++            orbiting: false,
++            panning: false,
++            ctrl: false,
++            last_cursor: (0.0, 0.0),
++            left_down: None,
++            touch: Touches::new(),
++        }
++    }
++
++    /// One key press (the caller filters repeats). True when the frame must be redrawn.
++    pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
++        match key {
++            Key::Named(NamedKey::Space) => state
++                .camera
++                .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
++            Key::Named(NamedKey::Escape) => state.escape_selection(),
++            Key::Character("1") => state.camera.set_view(View::Front),
++            Key::Character("2") => state.camera.set_view(View::Back),
++            Key::Character("3") => state.camera.set_view(View::Left),
++            Key::Character("4") => state.camera.set_view(View::Right),
++            Key::Character("5") => state.camera.set_view(View::Top),
++            Key::Character("6") => state.camera.set_view(View::Bottom),
++            Key::Character("7") => state.camera.set_view(View::Iso),
++            Key::Character("c" | "C") => state.camera.reset(),
++            Key::Character("f" | "F") => state.fit_selected_or_all(),
++            Key::Character("q" | "Q") => state.gpu.view.show_points = !state.gpu.view.show_points,
++            Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
++            Key::Character("e" | "E") => {
++                state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
++            }
++            Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
++            Key::Character("h" | "H") => state.hide_selected(),
++            Key::Character("s" | "S") => state.show_all(),
++            Key::Character("t" | "T") => state.toggle_selected_names(),
++            Key::Character("b" | "B") => state.gpu.view.backface = !state.gpu.view.backface,
++            Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
++            Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
++            _ => return false,
++        }
++        true
++    }
++
++    /// Buttons, motion, wheel, modifiers and fingers. True when the frame must be redrawn.
++    pub fn mouse(&mut self, state: &mut State, event: &WindowEvent) -> bool {
++        let viewport = state.viewport();
++        match event {
++            WindowEvent::MouseInput {
++                state: btn,
++                button: MouseButton::Right,
++                ..
++            } => {
++                self.orbiting = *btn == ElementState::Pressed;
++                false
++            }
++            WindowEvent::MouseInput {
++                state: btn,
++                button: MouseButton::Middle,
++                ..
++            } => {
++                self.panning = *btn == ElementState::Pressed;
++                false
++            }
++            WindowEvent::MouseInput {
++                state: btn,
++                button: MouseButton::Left,
++                ..
++            } => self.left(state, *btn),
++            WindowEvent::CursorMoved { position, .. } => {
++                let dragging = self.orbiting || self.panning;
++                if dragging {
++                    let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
++                    let dy = ((position.y - self.last_cursor.1) / device_pixel_ratio()) as f32;
++                    if self.panning || self.ctrl {
++                        state.camera.pan(dx, dy);
++                    } else {
++                        state.camera.orbit(dx, dy);
++                    }
++                }
++                self.last_cursor = (position.x, position.y);
++                dragging
++            }
++            WindowEvent::MouseWheel { delta, .. } => {
++                let amount = match delta {
++                    MouseScrollDelta::LineDelta(_, y) => *y,
++                    MouseScrollDelta::PixelDelta(p) => p.y as f32 / 100.0,
++                };
++                state.camera.zoom_at(amount, self.last_cursor, viewport);
++                true
++            }
++            WindowEvent::ModifiersChanged(mods) => {
++                self.ctrl = mods.state().control_key();
++                false
++            }
++            WindowEvent::Focused(false) => {
++                self.cancel();
++                true
++            }
++            WindowEvent::Touch(t) => {
++                match self
++                    .touch
++                    .event(&mut state.camera, t, viewport, device_pixel_ratio())
++                {
++                    Act::None => false,
++                    Act::Moved => true,
++                    Act::Tap(at) => {
++                        state.request_selection(at.0 as u32, at.1 as u32, false);
++                        false
++                    }
++                    Act::Fit => {
++                        state.fit_all();
++                        true
++                    }
++                }
++            }
++            _ => false,
++        }
++    }
++
++    /// Focus loss or pointer cancellation retires every incomplete mouse/touch gesture.
++    pub fn cancel(&mut self) {
++        self.orbiting = false;
++        self.panning = false;
++        self.ctrl = false;
++        self.left_down = None;
++        self.touch = Touches::new();
++    }
++
++    /// The left button: a press remembers where; a release within the slop is a click and
++    /// asks the GPU what is under it. The picture is unchanged until the answer lands, so a
++    /// click never redraws by itself.
++    fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
++        match btn {
++            ElementState::Pressed => {
++                self.left_down = Some(self.last_cursor);
++                false
++            }
++            ElementState::Released => {
++                let Some(down) = self.left_down.take() else {
++                    return false;
++                };
++                let moved = (self.last_cursor.0 - down.0)
++                    .abs()
++                    .max((self.last_cursor.1 - down.1).abs());
++                if moved > CLICK_SLOP * device_pixel_ratio() {
++                    return false;
++                }
++                state.request_selection(
++                    self.last_cursor.0 as u32,
++                    self.last_cursor.1 as u32,
++                    self.ctrl,
++                );
++                false
++            }
++        }
++    }
++}
++
++/// Winit handles touch cancellation; this owned listener also covers mouse and pen cancellation.
++#[cfg(target_arch = "wasm32")]
++pub struct PointerCancellation {
++    canvas: web_sys::HtmlCanvasElement,
++    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
++}
++
++#[cfg(target_arch = "wasm32")]
++impl PointerCancellation {
++    /// Install once for the canvas lifetime; the required callback only forwards a message.
++    pub fn new(
++        canvas: web_sys::HtmlCanvasElement,
++        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
++    ) -> Result<Self, wasm_bindgen::JsValue> {
++        use wasm_bindgen::JsCast;
++        let callback =
++            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |_| {
++                cancel_pointer(&proxy)
++            });
++        canvas
++            .add_event_listener_with_callback("pointercancel", callback.as_ref().unchecked_ref())?;
++        Ok(Self { canvas, callback })
++    }
++}
++
++#[cfg(target_arch = "wasm32")]
++impl Drop for PointerCancellation {
++    /// Detach before dropping the wasm callback so JavaScript cannot retain an invalid handle.
++    fn drop(&mut self) {
++        use wasm_bindgen::JsCast;
++        let _ = self.canvas.remove_event_listener_with_callback(
++            "pointercancel",
++            self.callback.as_ref().unchecked_ref(),
++        );
++    }
++}
++
++/// Pointer cancellation goes through the same event-loop owner as every other input change.
++#[cfg(target_arch = "wasm32")]
++fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
++    let _ = proxy.send_event(crate::Msg::CancelPointer);
++}
++
++/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone.
++#[cfg(target_arch = "wasm32")]
++fn device_pixel_ratio() -> f64 {
++    if let Some(window) = web_sys::window() {
++        let ratio = window.device_pixel_ratio();
++        if ratio > 0.0 {
++            return ratio;
++        }
++    }
++    1.0
++}
++
++/// Native windows report logical pixels already.
++#[cfg(not(target_arch = "wasm32"))]
++fn device_pixel_ratio() -> f64 {
++    1.0
++}
+diff --git a/session_viewer/src/app/touch.rs b/session_viewer/src/app/touch.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..d5d7ca8a69de29f3428276801a3926f3e8797a82
+--- /dev/null
++++ b/session_viewer/src/app/touch.rs
+@@ -0,0 +1,229 @@
++//! Touch gestures — the phone half of the camera bindings.
++//!
++//! winit's web backend splits pointers by `pointerType`: a pointer whose type is `"touch"` is
++//! routed to `WindowEvent::Touch` and NEVER to `CursorMoved` / `MouseInput`
++//! (`winit-0.30.13/src/platform_impl/web/web_sys/pointer.rs`, the `match pointer_type` arms —
++//! the comment there says duplicate mouse events would be "inconsistent with other platforms").
++//! So a finger cannot also reach the mouse arms in `lib.rs`, and the two sets of bindings can be
++//! read, and changed, independently. (The runner registers a SECOND, unfiltered set of pointer
++//! listeners on the window — `event_loop/runner.rs`, "pointermove"/"pointerdown"/"pointerup" —
++//! but those raise `DeviceEvent`, which this viewer does not implement, and they return early
++//! unless device events are switched on. They are not a second route into anything here.)
++//!
++//! | gesture | camera | the mouse binding it mirrors |
++//! |---|---|---|
++//! | one finger, drag | `orbit` | right-drag |
++//! | two fingers, slide | `pan` | middle-drag |
++//! | two fingers, spread / close | `zoom_at` their midpoint | wheel |
++//! | double tap | `fit` | `F` |
++//!
++//! Two conversions have to happen here, or the same hand movement means different things on
++//! different phones.
++//!
++//! FINGER TRAVEL IS IN CSS PIXELS. winit reports PHYSICAL pixels (`to_physical(scale_factor)`,
++//! same file), so one centimetre of glass is three times the number on a dpr-3 phone that it is
++//! on a dpr-1 laptop. Orbit is a fixed radians-per-unit, so the raw figure would spin the model
++//! three times as fast for the same movement — and differently again on the next phone. Dividing
++//! by the device pixel ratio makes the gesture mean one thing everywhere; on a dpr-1 screen it
++//! is then exactly the mouse.
++//!
++//! PAN IS FINGER-EXACT. `Camera::pan` scales its argument by a hard-coded `distance * 0.0015`,
++//! which equals the `2·tan(30°)` the projection really spans only when the viewport is 770 px
++//! tall — anywhere else the model slides faster or slower than the hand holding it. A mouse does
++//! not notice, because the cursor is not the thing being dragged. A finger IS on the thing, so
++//! the error reads as the model slipping. Scaling by the real viewport height (`PAN_PER_PX`)
++//! removes it, in both projections: the orthographic branch of `view_proj_anchored` uses the
++//! same `distance * tan(30°)` half-height as the perspective one.
++
++use winit::event::{Touch, TouchPhase};
++
++use crate::camera::Camera;
++use crate::engine::performance::now_ms;
++
++/// `Camera::pan` moves the target by `arg * distance * 0.0015`, while one physical pixel is
++/// worth `distance * 2·tan(30°) / viewport_height` of target motion. Their ratio is this
++/// constant over the viewport height — the number of pan units one pixel of finger is worth.
++const PAN_PER_PX: f64 = 2.0 * 0.577_350_269_189_625_7 / 0.001_5; // 769.8 — pan is exact at that height
++
++/// The wheel response is 0.9^amount; invert it so a pinch ratio r gives distance/r.
++const PINCH_LOG: f64 = -0.105_360_515_657_826_28;
++
++/// Biggest span change one event may claim. A finger the browser loses and re-delivers, or a
++/// third finger landing between two samples, otherwise teleports the camera.
++const PINCH_MAX: f64 = 2.0;
++
++/// A finger that never travelled this far (CSS px) and lifted within `TAP_MS` is a tap …
++///
++/// Both clocks are read when the event is HANDLED, not when it happened — winit's `Touch` carries
++/// no timestamp — so a main thread stalled longer than the window turns a real double tap into
++/// two singles. At 30-60 fps the stall is a frame and it does not matter; in a BACKGROUND tab,
++/// where the browser throttles the frame loop to 1 Hz, it always will. That is a measurement
++/// trap, not a bug: a viewer nobody is looking at has no gestures to miss.
++const TAP_SLOP: f64 = 12.0;
++const TAP_MS: f64 = 300.0;
++/// … and a second tap this soon after it, and this near it, is a double tap. Both windows are
++/// wider than the single-tap ones: the second tap of a real double tap is the sloppier of the two.
++const DOUBLE_TAP_MS: f64 = 320.0;
++const DOUBLE_TAP_SLOP: f64 = 40.0;
++
++/// What one touch event asked for. `Fit` needs the scene bounds, which live a layer up, so it is
++/// reported rather than done here — this file knows the camera and nothing else.
++pub enum Act {
++    None,
++    Moved,
++    Fit,
++    /// A single tap, in surface pixels: the finger's pick.
++    Tap((f64, f64)),
++}
++
++/// One finger, from its `Started` to its `Ended`. Physical pixels throughout.
++struct Finger {
++    id: u64,
++    pos: (f64, f64),  // where it is now
++    down: (f64, f64), // where it landed — a tap is a finger that never left this
++    t0: f64,          // when it landed, ms
++}
++
++/// Every finger on the glass, plus what the last two-finger sample measured.
++pub struct Touches {
++    fingers: Vec<Finger>,
++    /// Distance between the first two fingers at the previous event, and their midpoint.
++    /// `span == 0.0` means NOT SEEDED: the next two-finger move records and does nothing else.
++    /// Every change in finger count clears it, and that is what stops the model jumping when a
++    /// second finger joins or leaves halfway through a gesture.
++    span: f64,
++    mid: (f64, f64),
++    /// When and where the last tap lifted, for the double tap.
++    tap: Option<(f64, (f64, f64))>,
++}
++
++impl Touches {
++    /// No fingers down, no tap pending.
++    pub fn new() -> Self {
++        Self {
++            fingers: Vec::new(),
++            span: 0.0,
++            mid: (0.0, 0.0),
++            tap: None,
++        }
++    }
++
++    /// Fold one `WindowEvent::Touch` into the gesture and move the camera. `vp` is the surface
++    /// size and `t.location` the finger, both in physical pixels; `dpr` is the device pixel
++    /// ratio that turns physical travel back into the CSS pixels a hand feels.
++    pub fn event(&mut self, cam: &mut Camera, t: &Touch, vp: (f64, f64), dpr: f64) -> Act {
++        let p = (t.location.x, t.location.y);
++        match t.phase {
++            TouchPhase::Started => {
++                self.fingers.push(Finger {
++                    id: t.id,
++                    pos: p,
++                    down: p,
++                    t0: now_ms(),
++                });
++                self.span = 0.0; // the gesture just changed shape — re-seed on the next move
++                Act::None
++            }
++            TouchPhase::Moved => self.moved(cam, t.id, p, vp, dpr),
++            TouchPhase::Ended => self.lifted(t.id, p, dpr),
++            // A cancel is the browser taking the gesture away — a scroll it decided to own, a
++            // system edge swipe, a call arriving. Drop the finger, and never read it as a tap.
++            TouchPhase::Cancelled => {
++                self.drop_finger(t.id);
++                self.tap = None;
++                Act::None
++            }
++        }
++    }
++
++    /// A finger travelled. One finger orbits; two pan by their midpoint and zoom by their span.
++    fn moved(&mut self, cam: &mut Camera, id: u64, p: (f64, f64), vp: (f64, f64), dpr: f64) -> Act {
++        let Some(i) = self.finger_index(id) else {
++            return Act::None;
++        };
++        let d = (p.0 - self.fingers[i].pos.0, p.1 - self.fingers[i].pos.1);
++        self.fingers[i].pos = p;
++
++        if self.fingers.len() == 1 {
++            cam.orbit((d.0 / dpr) as f32, (d.1 / dpr) as f32);
++            return Act::Moved;
++        }
++
++        // Three fingers or more still drive the two-finger gesture, off the first two down: a
++        // hand resting a third finger on the glass should not stop the pan it is already doing.
++        let (a, b) = (self.fingers[0].pos, self.fingers[1].pos);
++        let span = (b.0 - a.0).hypot(b.1 - a.1).max(1.0);
++        let mid = ((a.0 + b.0) * 0.5, (a.1 + b.1) * 0.5);
++        if self.span == 0.0 {
++            self.span = span; // first sample of this shape: record, do not act
++            self.mid = mid;
++            return Act::None;
++        }
++
++        // Pan first, then zoom about the NEW midpoint: the pan slides the model with the hand,
++        // the zoom then keeps whatever is under the midpoint under it.
++        let h = vp.1.max(1.0);
++        cam.pan(
++            ((mid.0 - self.mid.0) * PAN_PER_PX / h) as f32,
++            ((mid.1 - self.mid.1) * PAN_PER_PX / h) as f32,
++        );
++        let r = (span / self.span).clamp(1.0 / PINCH_MAX, PINCH_MAX);
++        cam.zoom_at((-r.ln() / PINCH_LOG) as f32, mid, vp);
++
++        self.span = span;
++        self.mid = mid;
++        Act::Moved
++    }
++
++    /// A finger left the glass cleanly. Only the LAST one up can be a tap — a lift that leaves
++    /// other fingers down is the tail of a two-finger gesture, not a tap on anything.
++    fn lifted(&mut self, id: u64, p: (f64, f64), dpr: f64) -> Act {
++        let Some(f) = self.drop_finger(id) else {
++            return Act::None;
++        };
++        if !self.fingers.is_empty() {
++            self.tap = None;
++            return Act::None;
++        }
++        let now = now_ms();
++        if (p.0 - f.down.0).hypot(p.1 - f.down.1) / dpr > TAP_SLOP || now - f.t0 > TAP_MS {
++            self.tap = None; // a drag, or a press held long enough to mean something else
++            return Act::None;
++        }
++        let second = match self.tap.take() {
++            Some((t0, at)) => {
++                now - t0 < DOUBLE_TAP_MS && (p.0 - at.0).hypot(p.1 - at.1) / dpr < DOUBLE_TAP_SLOP
++            }
++            None => false,
++        };
++        if second {
++            return Act::Fit; // `self.tap` is already cleared, so three taps are not two doubles
++        }
++        self.tap = Some((now, p));
++        Act::Tap(p)
++    }
++
++    /// Find the first active contact with the event's stable touch identifier.
++    fn finger_index(&self, id: u64) -> Option<usize> {
++        for (index, finger) in self.fingers.iter().enumerate() {
++            if finger.id == id {
++                return Some(index);
++            }
++        }
++        None
++    }
++
++    /// Forget one finger and re-seed the pinch, whatever ended it.
++    fn drop_finger(&mut self, id: u64) -> Option<Finger> {
++        let i = self.finger_index(id)?;
++        self.span = 0.0;
++        Some(self.fingers.remove(i))
++    }
++}
++
++impl Default for Touches {
++    /// Start with the same inactive gesture state as the explicit constructor.
++    fn default() -> Self {
++        Self::new()
++    }
 +}

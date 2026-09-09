@@ -180,7 +180,7 @@
     "session_viewer/src/app/decode.rs": "5c490d05d7fbe9982ec801f4bbf90f3b660d03c1ab3c6046de6af6b1c0c82b99",
     "session_viewer/src/app/feedback.rs": "4cad8fc90f8a60ba31ea895a82e8837571c6a34d77fb73d007c14dd581790be8",
     "session_viewer/src/app/fetch.rs": "bebd5d7911f749f49a744027c351675d3ae9c267c29c79b4bfb526b4ae8afb97",
-    "session_viewer/src/app/input.rs": "24e3215f62b83c1edb1f643cc71559d74afd7e6909a40dd9901807294579d1c5",
+    "session_viewer/src/app/input.rs": "29155c4a250aa194358a95923afc6ba4569444f267c5287e0418d2ca3c9740a7",
     "session_viewer/src/app/inspection.rs": "8d408c8d585cad185934e68d717a064c9b5ec1a759fc19a876f4edd025044edf",
     "session_viewer/src/app/inspection/source_memory.rs": "396bcdd5b3a4971810a6dea51717c131b11a82036f3c28c9597bf56173a3512c",
     "session_viewer/src/app/knobs.rs": "015242df04052b99aff979ef85f9664e010ef80dfb56634b94be3dde9cb5a04a",
@@ -193,7 +193,7 @@
     "session_viewer/src/app/scene_text.rs": "0c6f0f53397d873e63c14214ecb5edd1f89103fbb5697b10023a68d75dbbaca7",
     "session_viewer/src/app/selection.rs": "a4da8ad66b235010b51a0f57ee55158187bda60931b97cfa6b2159852096b0a7",
     "session_viewer/src/app/stream.rs": "e9608ff747d286e8d1707046cc5997ad260531fece06128a6aeac6c123cad579",
-    "session_viewer/src/app/touch.rs": "cbcbba79e40799b81cddf57f890ab7b0ded993cc283317c112120ee76c3147fe",
+    "session_viewer/src/app/touch.rs": "468d8e1a28e7f6e06d992718e59f067c01b16c8a3b1d7d62a3536549d8b7afce",
     "session_viewer/src/app/validate.rs": "d57af241e0583ddc988756f07cd1436a85520b65e378021254c1cf9a9692fae9",
     "session_viewer/src/app/walk/bounds.rs": "443d5143cca5da0309f2a9efc2b7bfd02815fef4153025bd6387270558325e84",
     "session_viewer/src/app/walk/brep.rs": "b47da1231e65277fed3bbfe4c0c6f6312e426a2453b9d1905bd6b1f39ed51052",
@@ -333,7 +333,7 @@
     "session_viewer/assets/view_local.yaml": "Deterministic local interaction scene replaces the user's local working datasets."
   },
   "passed": true,
-  "production_tree": "5fe3cc7ec1b74b6dcaa6d3ff0b4172dcc9deb58e214588da6863d41a2b712bd2",
+  "production_tree": "d8baeb6ae4b8ae660e8341941900b9321e106f3a8b703ca142d1afc38a7130d1",
   "runtime_source_files": 91,
   "tutorial_input_additions": [
     "session_viewer/assets/pb/interaction.pb",

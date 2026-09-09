@@ -5272,136 +5272,6 @@ index 0000000000000000000000000000000000000000..6eae1c096c6d0de3698393fe62532e52
 +        clip: None,
 +    }
 +}
-diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
-index 675ff5acf7a4b43ed793f1689f2481c22fa13457..5dc2ef045a0ddebdb0f5b46c179b7b596324b29e 100644
---- a/session_viewer/src/app/input.rs
-+++ b/session_viewer/src/app/input.rs
-@@ -9,7 +9,7 @@
- use super::touch::{Act, Touches};
- use crate::State;
- use crate::camera::View;
--use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
-+use winit::event::{ElementState, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent};
- use winit::keyboard::{Key, NamedKey};
- 
- /// A press that moves less than this (CSS px) before release is a click.
-@@ -20,6 +20,7 @@ pub struct Input {
-     orbiting: bool,
-     panning: bool,
-     ctrl: bool,
-+    shift: bool,
-     last_cursor: (f64, f64),
-     left_down: Option<(f64, f64)>,
-     touch: Touches,
-@@ -39,6 +40,7 @@ impl Input {
-             orbiting: false,
-             panning: false,
-             ctrl: false,
-+            shift: false,
-             last_cursor: (0.0, 0.0),
-             left_down: None,
-             touch: Touches::new(),
-@@ -67,6 +69,9 @@ impl Input {
-             Key::Character("e" | "E") => {
-                 state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
-             }
-+            Key::Character("o" | "O") => {
-+                state.gpu.view.show_outlines = !state.gpu.view.show_outlines
-+            }
-             Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
-             Key::Character("h" | "H") => state.hide_selected(),
-             Key::Character("s" | "S") => state.show_all(),
-@@ -89,6 +94,7 @@ impl Input {
-                 ..
-             } => {
-                 self.orbiting = *btn == ElementState::Pressed;
-+                state.interacting = self.orbiting || self.panning;
-                 false
-             }
-             WindowEvent::MouseInput {
-@@ -97,6 +103,7 @@ impl Input {
-                 ..
-             } => {
-                 self.panning = *btn == ElementState::Pressed;
-+                state.interacting = self.orbiting || self.panning;
-                 false
-             }
-             WindowEvent::MouseInput {
-@@ -105,6 +112,9 @@ impl Input {
-                 ..
-             } => self.left(state, *btn),
-             WindowEvent::CursorMoved { position, .. } => {
-+                let scale = crate::engine::gpu::view::surface_per_physical();
-+                let position =
-+                    winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
-                 let dragging = self.orbiting || self.panning;
-                 if dragging {
-                     let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
-@@ -128,13 +138,24 @@ impl Input {
-             }
-             WindowEvent::ModifiersChanged(mods) => {
-                 self.ctrl = mods.state().control_key();
-+                self.shift = mods.state().shift_key();
-                 false
-             }
-             WindowEvent::Focused(false) => {
-                 self.cancel();
-+                state.interacting = false;
-                 true
-             }
-             WindowEvent::Touch(t) => {
-+                let scale = crate::engine::gpu::view::surface_per_physical();
-+                let t = &winit::event::Touch {
-+                    location: winit::dpi::PhysicalPosition::new(
-+                        t.location.x * scale,
-+                        t.location.y * scale,
-+                    ),
-+                    ..*t
-+                };
-+                state.interacting = matches!(t.phase, TouchPhase::Started | TouchPhase::Moved);
-                 match self
-                     .touch
-                     .event(&mut state.camera, t, viewport, device_pixel_ratio())
-@@ -156,6 +177,7 @@ impl Input {
-         self.orbiting = false;
-         self.panning = false;
-         self.ctrl = false;
-+        self.shift = false;
-         self.left_down = None;
-         self.touch = Touches::new();
-     }
-@@ -183,6 +205,7 @@ impl Input {
-                     self.last_cursor.0 as u32,
-                     self.last_cursor.1 as u32,
-                     self.ctrl,
-+                    self.ctrl && self.shift,
-                 );
-                 false
-             }
-@@ -233,20 +256,8 @@ fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
-     let _ = proxy.send_event(crate::Msg::CancelPointer);
- }
- 
--/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone.
--#[cfg(target_arch = "wasm32")]
--fn device_pixel_ratio() -> f64 {
--    if let Some(window) = web_sys::window() {
--        let ratio = window.device_pixel_ratio();
--        if ratio > 0.0 {
--            return ratio;
--        }
--    }
--    1.0
--}
--
--/// Native windows report logical pixels already.
--#[cfg(not(target_arch = "wasm32"))]
-+/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone, the same capped
-+/// ratio the canvas is rendered at. Native windows report logical pixels already.
- fn device_pixel_ratio() -> f64 {
--    1.0
-+    crate::engine::gpu::view::device_pixel_ratio()
- }
 diff --git a/session_viewer/src/engine/gpu/targets.rs b/session_viewer/src/engine/gpu/targets.rs
 index 6fe7a69aa6f0453b59d13cd7c2f6b4f3e566f53c..ac6920bd833acb52ca6d75f4b9da5e2df06680c5 100644
 --- a/session_viewer/src/engine/gpu/targets.rs
@@ -6143,3 +6013,142 @@ index 2bfa08425b7d0237f56ca4fb00513b99ea43ff5e..a3417325254519d246070a65f02d6ab2
 -        clip: None,
 -    }
 -}
+diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
+index b39e95c8d1693551143efaad60a735c40ed0a8e1..54e2c216983440c0d6ec8d8239faaed0a8020919 100644
+--- a/session_viewer/src/app/input.rs
++++ b/session_viewer/src/app/input.rs
+@@ -9,7 +9,7 @@
+ use super::touch::{Act, Touches};
+ use crate::State;
+ use crate::camera::View;
+-use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
++use winit::event::{ElementState, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent};
+ use winit::keyboard::{Key, NamedKey};
+ 
+ /// A press that moves less than this (CSS px) before release is a click.
+@@ -20,6 +20,7 @@ pub struct Input {
+     orbiting: bool,
+     panning: bool,
+     ctrl: bool,
++    shift: bool,
+     last_cursor: (f64, f64),
+     left_down: Option<(f64, f64)>,
+     touch: Touches,
+@@ -39,6 +40,7 @@ impl Input {
+             orbiting: false,
+             panning: false,
+             ctrl: false,
++            shift: false,
+             last_cursor: (0.0, 0.0),
+             left_down: None,
+             touch: Touches::new(),
+@@ -67,6 +69,9 @@ impl Input {
+             Key::Character("e" | "E") => {
+                 state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
+             }
++            Key::Character("o" | "O") => {
++                state.gpu.view.show_outlines = !state.gpu.view.show_outlines
++            }
+             Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
+             Key::Character("h" | "H") => state.hide_selected(),
+             Key::Character("s" | "S") => state.show_all(),
+@@ -89,6 +94,7 @@ impl Input {
+                 ..
+             } => {
+                 self.orbiting = *btn == ElementState::Pressed;
++                state.interacting = self.orbiting || self.panning;
+                 false
+             }
+             WindowEvent::MouseInput {
+@@ -97,6 +103,7 @@ impl Input {
+                 ..
+             } => {
+                 self.panning = *btn == ElementState::Pressed;
++                state.interacting = self.orbiting || self.panning;
+                 false
+             }
+             WindowEvent::MouseInput {
+@@ -105,6 +112,9 @@ impl Input {
+                 ..
+             } => self.left(state, *btn),
+             WindowEvent::CursorMoved { position, .. } => {
++                let scale = crate::engine::gpu::view::surface_per_physical();
++                let position =
++                    winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
+                 let dragging = self.orbiting || self.panning;
+                 if dragging {
+                     let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
+@@ -128,13 +138,24 @@ impl Input {
+             }
+             WindowEvent::ModifiersChanged(mods) => {
+                 self.ctrl = mods.state().control_key();
++                self.shift = mods.state().shift_key();
+                 false
+             }
+             WindowEvent::Focused(false) => {
+                 self.cancel();
++                state.interacting = false;
+                 true
+             }
+             WindowEvent::Touch(t) => {
++                let scale = crate::engine::gpu::view::surface_per_physical();
++                let t = &winit::event::Touch {
++                    location: winit::dpi::PhysicalPosition::new(
++                        t.location.x * scale,
++                        t.location.y * scale,
++                    ),
++                    ..*t
++                };
++                state.interacting = matches!(t.phase, TouchPhase::Started | TouchPhase::Moved);
+                 match self
+                     .touch
+                     .event(&mut state.camera, t, viewport, device_pixel_ratio())
+@@ -142,7 +163,7 @@ impl Input {
+                     Act::None => false,
+                     Act::Moved => true,
+                     Act::Tap(at) => {
+-                        state.request_selection(at.0 as u32, at.1 as u32, false);
++                        state.request_selection(at.0 as u32, at.1 as u32, false, false);
+                         false
+                     }
+                     Act::Fit => {
+@@ -160,6 +181,7 @@ impl Input {
+         self.orbiting = false;
+         self.panning = false;
+         self.ctrl = false;
++        self.shift = false;
+         self.left_down = None;
+         self.touch = Touches::new();
+     }
+@@ -187,6 +209,7 @@ impl Input {
+                     self.last_cursor.0 as u32,
+                     self.last_cursor.1 as u32,
+                     self.ctrl,
++                    self.ctrl && self.shift,
+                 );
+                 false
+             }
+@@ -237,20 +260,8 @@ fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
+     let _ = proxy.send_event(crate::Msg::CancelPointer);
+ }
+ 
+-/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone.
+-#[cfg(target_arch = "wasm32")]
+-fn device_pixel_ratio() -> f64 {
+-    if let Some(window) = web_sys::window() {
+-        let ratio = window.device_pixel_ratio();
+-        if ratio > 0.0 {
+-            return ratio;
+-        }
+-    }
+-    1.0
+-}
+-
+-/// Native windows report logical pixels already.
+-#[cfg(not(target_arch = "wasm32"))]
++/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone, the same capped
++/// ratio the canvas is rendered at. Native windows report logical pixels already.
+ fn device_pixel_ratio() -> f64 {
+-    1.0
++    crate::engine::gpu::view::device_pixel_ratio()
+ }

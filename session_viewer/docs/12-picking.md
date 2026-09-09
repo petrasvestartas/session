@@ -130,32 +130,36 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=48-80 -->
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=81-163 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=81-167 -->
 
 - A press that moved more than `CLICK_SLOP` before release is a drag, so a camera gesture never selects on release.
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=164-191 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=168-195 -->
 
 - The owned `pointercancel` listener detaches on drop; a forgotten closure would outlive the canvas.
 
-<!-- file: 12 session_viewer/src/app/input.rs copy lines=192-251 -->
+<!-- file: 12 session_viewer/src/app/input.rs copy lines=196-255 -->
 
 ### Step 5 · Touch
 
 - winit routes `pointerType == "touch"` to `WindowEvent::Touch` only, so fingers never reach the mouse arms.
 - Finger travel is divided by the device pixel ratio; otherwise one centimetre of glass orbits three times faster on a DPR 3 phone.
+- A finger that lifts within 12 px and 300 ms of where it landed is a tap: `Act::Tap` carries the point and the input layer requests a selection there, the same pick a click makes. A second tap within 320 ms and 40 px is `Act::Fit`, which needs the scene bounds a layer up.
 
 ```mermaid
-flowchart LR
-    E["WindowEvent::Touch"] --> T["Touch"] -- "÷ DPR" --> C["orbit · pan · zoom"]
+flowchart TB
+    E["WindowEvent::Touch"] --> T["Touch"]
+    T -- "÷ DPR" --> C["orbit · pan · zoom"]
+    T -- "tap" --> P["request_selection"]
+    T -- "double tap" --> F["fit"]
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/app/touch.rs copy lines=1-68 -->
 
-<!-- file: 12 session_viewer/src/app/touch.rs type lines=69-136 -->
+<!-- file: 12 session_viewer/src/app/touch.rs type lines=69-138 -->
 
-<!-- file: 12 session_viewer/src/app/touch.rs copy lines=137-227 -->
+<!-- file: 12 session_viewer/src/app/touch.rs copy lines=139-229 -->
 
 ### Step 6 · Scene: source documents and row bookkeeping
 
