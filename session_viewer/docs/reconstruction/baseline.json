@@ -207,13 +207,13 @@
     "session_viewer/src/app/cloud_query.rs": "ce73128045ab5abf3ccb2e23f72f57d2145043aee5c9e7d4e4688684dbdf3414",
     "session_viewer/src/app/decode.rs": "5c490d05d7fbe9982ec801f4bbf90f3b660d03c1ab3c6046de6af6b1c0c82b99",
     "session_viewer/src/app/feedback.rs": "4cad8fc90f8a60ba31ea895a82e8837571c6a34d77fb73d007c14dd581790be8",
-    "session_viewer/src/app/fetch.rs": "bebd5d7911f749f49a744027c351675d3ae9c267c29c79b4bfb526b4ae8afb97",
+    "session_viewer/src/app/fetch.rs": "cae52e0d759f790476a7d7760a24184506fd24b1a38b5891112787ecc66887e6",
     "session_viewer/src/app/input.rs": "29155c4a250aa194358a95923afc6ba4569444f267c5287e0418d2ca3c9740a7",
     "session_viewer/src/app/inspection.rs": "8d408c8d585cad185934e68d717a064c9b5ec1a759fc19a876f4edd025044edf",
     "session_viewer/src/app/inspection/source_memory.rs": "396bcdd5b3a4971810a6dea51717c131b11a82036f3c28c9597bf56173a3512c",
     "session_viewer/src/app/knobs.rs": "015242df04052b99aff979ef85f9664e010ef80dfb56634b94be3dde9cb5a04a",
     "session_viewer/src/app/live.rs": "52073d401cf4ac41bb6fc61eab2229e568e7c0e3ab74be950a6fcec1a815aa10",
-    "session_viewer/src/app/loader.rs": "c6a5a2f5b7af2f453ae1ef82eb8689ee23c5eec889f746dcbc9c03fcab269534",
+    "session_viewer/src/app/loader.rs": "67de820ed89218402d37d1bc57e2c5981c858ad1624860b8dfcf96dcaadf64a0",
     "session_viewer/src/app/manifest.rs": "f4a93a8e371bd7d7b3dc8f7d92265adaa906adfa22248bcc0409eb6742316547",
     "session_viewer/src/app/mod.rs": "f9cbbf967974b2eb8293b56853be4b8222dfe41f6de692b481251fe219b02bda",
     "session_viewer/src/app/route.rs": "3c2459b086dead3c9606713449bf61a4e6cb8dfbcf96ff96878343b1a6134eb1",
@@ -334,7 +334,7 @@
   "frozen_utc": "2026-09-09T07:40:00+00:00",
   "model": "gpt-6-astra",
   "name": "production-2026-09-09-rounded-text-and-pen",
-  "scope": "Current viewer runtime after source-face selection, selectable source text, union/selected silhouettes, canonical joined strokes and finite-triangle visibility. Shared kernel bytes are unchanged from the previous verified freeze. Earlier timing evidence remains scoped to its recorded baseline. Docs and disposable build outputs are outside this inventory. 9 Sep follow-up: index.html gains the documentation corner link and Trunk copies the built course into dist/docs (docs/build_site.sh pre-build hook). Test oracles pinned to the 1.5 px pen and title-row object counts folded into checkpoint 18 on 9 Sep. Test oracles pinned to the 1.5 px pen and title-row object counts folded into checkpoint 18 on 9 Sep. Surface silhouettes default off (O / ?outlines=1); folded on 9 Sep. Picks render into a window-sized attachment, the visibility pool is scene-sized, MSAA stops at device scale 2, and a lost device reloads at reduced settings. The silhouette compositor skips pixels whose coarse blocks are empty. Both coverage masks come from one rasterization and are reused while the view stands still. Lesson 18's appended production changes now live in the lessons that teach their files; the documentation corner grows with a short eased transition. Cursor and touch positions are scaled to the capped surface. Picks follow the capped surface; slow drags reduce the device scale; ?gpu=high. A single tap selects.",
+  "scope": "Current viewer runtime after source-face selection, selectable source text, union/selected silhouettes, canonical joined strokes and finite-triangle visibility. Shared kernel bytes are unchanged from the previous verified freeze. Earlier timing evidence remains scoped to its recorded baseline. Docs and disposable build outputs are outside this inventory. 9 Sep follow-up: index.html gains the documentation corner link and Trunk copies the built course into dist/docs (docs/build_site.sh pre-build hook). Test oracles pinned to the 1.5 px pen and title-row object counts folded into checkpoint 18 on 9 Sep. Test oracles pinned to the 1.5 px pen and title-row object counts folded into checkpoint 18 on 9 Sep. Surface silhouettes default off (O / ?outlines=1); folded on 9 Sep. Picks render into a window-sized attachment, the visibility pool is scene-sized, MSAA stops at device scale 2, and a lost device reloads at reduced settings. The silhouette compositor skips pixels whose coarse blocks are empty. Both coverage masks come from one rasterization and are reused while the view stands still. Lesson 18's appended production changes now live in the lessons that teach their files; the documentation corner grows with a short eased transition. Cursor and touch positions are scaled to the capped surface. Picks follow the capped surface; slow drags reduce the device scale; ?gpu=high. A single tap selects. A scene budget skips files the device cannot hold.",
   "shared": {
     "session_cpp": {
       "changed_files": {
@@ -383,7 +383,7 @@
   },
   "supersedes": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
   "tree_encoding": "sha256 of sorted path + NUL + file sha256 + newline records",
-  "tree_sha256": "d8baeb6ae4b8ae660e8341941900b9321e106f3a8b703ca142d1afc38a7130d1",
+  "tree_sha256": "df55b50af94457c2de35a13fe2dd0cbdda0812bea222120e2727c209c75682c0",
   "verification": {
     "cad_captures": 12,
     "cleanup": "empty npm lock and three generated Python caches removed; retained running build outputs and local/user assets",

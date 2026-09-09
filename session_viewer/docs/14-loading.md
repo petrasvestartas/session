@@ -127,6 +127,7 @@ flowchart TB
 - A slow old response arriving last must not replace a newer scene, so every load carries a generation and `stale_load` is checked after each await.
 - Network responses finish in any order; `PendingDocument` keeps manifest order, and `clear_scene` runs only after every item succeeded.
 - Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
+- Whole files have a budget too: `scene_budget_bytes` is `?budget=<MB>` or 16 MB per GB of `navigator.deviceMemory`, 64 MB when the browser says nothing, because a decoded file costs the wasm heap about five times its size. Each file's size is asked by HEAD first; one that would put the scene over the budget is skipped, and the status line names it and the knob instead of the page dying without a word.
 
 ```mermaid
 flowchart TB

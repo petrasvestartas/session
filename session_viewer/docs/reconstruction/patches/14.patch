@@ -595,558 +595,6 @@ index 0000000000000000000000000000000000000000..8849a6cd211105241722bc31271a9ad4
 +        Err(_) => !text.trim().is_empty(),
 +    }
 +}
-diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index e90a21156f54d11731549f8ca97dc2aadc1a0602..9975f1dc758c8f514c9210677f2718a0c1d22ccb
---- a/session_viewer/src/app/loader.rs
-+++ b/session_viewer/src/app/loader.rs
-@@ -1,26 +1,67 @@
--//! Local tutorial fixture boundary; chapter14 installs production routing and reloads.
--
-+//! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
-+//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
-+//! through `stream`. Live first, then the URL's route, then the poll loop. Touches no GPU.
-+
-+use super::decode::session_from_bytes;
-+use super::fetch::{fetch_bytes, sleep_ms};
-+use super::live::LiveSource;
-+use super::manifest::Manifest;
-+use super::route::AUTO_GRID;
-+use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
- use super::scene::{FileDoc, Scene, StreamedInit};
--use super::stream::CloudFields;
-+use super::stream::{CloudFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions};
- use super::walk::cloud::StreamRows;
--use crate::{Msg, State};
--use session_rust::{Session, Xform};
--use std::cell::RefCell;
-+use crate::engine::performance::now_ms;
-+use crate::{CloudChunk, Msg, State};
-+use session_rust::Xform;
-+use std::cell::{Cell, RefCell};
- use std::rc::Rc;
- use std::sync::Arc;
-+use wasm_bindgen::prelude::*;
- use winit::event_loop::EventLoopProxy;
- use winit::window::Window;
- 
-+/// Points a streamed cloud brings down before it is on screen: the octree's coarse levels,
-+/// so the file opens at a correct low detail whatever its size.
-+const STREAM_PREFIX_POINTS: u32 = 2_000_000;
-+
-+/// Points per follow-up slice.
-+const STREAM_CHUNK_POINTS: u32 = 2_000_000;
-+
-+/// Hard ceiling on resident streamed points across the whole page (`?points=` to change):
-+/// 16 B a point on the GPU plus the growth slack, and a 14 M cloud killed the GPU process.
-+const STREAM_MAX_POINTS: u32 = 6_000_000;
-+
-+/// Files at least this large open by range even without a count-based reason.
-+const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
-+
-+/// The smallest prefix a streamed cloud gets even past the ceiling: the coarsest octree levels,
-+/// so the cloud is on screen and correct, just sparse.
-+const STREAM_MIN_PREFIX: u32 = 250_000;
-+
- thread_local! {
-+    /// The start-up proxy, kept so `reload_scene` and the stream tasks can post messages.
-     static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
--}
--
--/// Preserve the production query-result delivery interface across the loader checkpoint.
--pub(super) fn post(message: Msg) -> bool {
--    PROXY.with_borrow(|proxy| post_with_proxy(proxy, message))
--}
--
--/// Deliver to the live browser event loop without retaining State in an async task.
-+    /// Points resident across every streamed cloud on the page: the ceiling is a scene budget.
-+    static RESIDENT: Cell<u32> = const { Cell::new(0) };
-+    /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
-+    static GENERATION: Cell<u32> = const { Cell::new(0) };
-+    static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
-+}
-+
-+/// Drop the scene: post `Clear`, forget the point budget, and retire every running stream.
-+fn clear_scene() {
-+    GENERATION.set(GENERATION.get().wrapping_add(1));
-+    RESIDENT.set(0);
-+    post(Msg::Clear);
-+}
-+
-+/// Post one message into the running event loop; false when the loop is gone.
-+pub(super) fn post(msg: Msg) -> bool {
-+    PROXY.with_borrow(|proxy| post_with_proxy(proxy, msg))
-+}
-+
-+/// The thread-local API adapter forwards delivery to this named operation.
- fn post_with_proxy(proxy: &Option<EventLoopProxy<Msg>>, message: Msg) -> bool {
-     match proxy {
-         Some(proxy) => proxy.send_event(message).is_ok(),
-@@ -28,91 +69,341 @@
-     }
- }
- 
--/// Own the proxy for asynchronous source-query messages.
-+/// Retain the startup event proxy for later loading and streaming tasks.
- fn retain_proxy(slot: &mut Option<EventLoopProxy<Msg>>, proxy: &EventLoopProxy<Msg>) {
-     *slot = Some(proxy.clone());
- }
- 
--/// Start the production shell with one small deterministic, bundled Session fixture.
-+/// The resident ceiling for this page load.
-+fn max_points() -> u32 {
-+    knob_u32("points").unwrap_or(STREAM_MAX_POINTS)
-+}
-+
-+/// Points the scene may still make resident.
-+fn budget_left() -> u32 {
-+    max_points().saturating_sub(RESIDENT.get())
-+}
-+
-+/// Book `n` points against the budget.
-+fn budget_spend(n: u32) {
-+    RESIDENT.set(RESIDENT.get().saturating_add(n));
-+}
-+
-+/// Start-up: the live source when the page has one, else the URL's route, then the empty
-+/// canvas either way; then the poll loop.
- pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
-     PROXY.with_borrow_mut(|slot| retain_proxy(slot, &proxy));
-     let state = match State::new(window, Scene::new()).await {
-         Ok(state) => state,
-         Err(error) => {
--            super::feedback::error(&format!("Cannot initialize WebGPU: {error}"));
--            return;
--        }
--    };
--    post(Msg::Ready(Box::new(state)));
--    if let Err(error) = fixture().await {
--        super::feedback::error(&error);
--        return;
--    }
-+            super::feedback::error(&format!(
-+                "Unable to start WebGPU: {error}. Use a browser with an available WebGPU adapter, then reload."
-+            ));
-+            return;
-+        }
-+    };
-+    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
-+
-+    let mut live = LiveSource::from_query();
-+    let mut loaded = false;
-+    if let Some(src) = live.as_mut() {
-+        log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
-+        loaded = post_live(src).await;
-+    }
-+    if !loaded && let Some(route) = scene_route() {
-+        load_route(&route, None).await;
-+    }
-+
-+    let Some(mut src) = live else { return };
-+    loop {
-+        sleep_ms(src.tick_ms).await;
-+        post_live(&mut src).await;
-+    }
-+}
-+
-+/// One live check: when the source changed, replace the scene. True when files loaded.
-+async fn post_live(src: &mut LiveSource) -> bool {
-+    let generation = LOAD_GENERATION.get();
-+    let Some(docs) = src.check().await else {
-+        return false;
-+    };
-+    if stale_load(generation) {
-+        return false;
-+    }
-+    let texts = src.texts();
-+    if docs.is_empty() && texts.is_empty() {
-+        return false;
-+    }
-+    clear_scene();
-+    for doc in docs {
-+        post(Msg::File(doc));
-+    }
-+    post(Msg::Texts(texts));
-     post(Msg::Fit);
-     super::feedback::status("");
--}
--
--/// Only the explicit local streaming test selects the ranged source fixture.
--async fn fixture() -> Result<(), String> {
--    if super::route::query("scene").as_deref() == Some("stream-test.yaml") {
--        return streamed_fixture().await;
--    }
--    let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
--        .map_err(fixture_error)?;
--    post(Msg::File(FileDoc {
--        name: "Interaction fixture".to_string(),
--        session: Rc::new(session),
--        place: Xform::identity(),
--        point_px: 0.0,
--        display_only: false,
--    }));
--    Ok(())
--}
--
--/// Keep fixture decode failures visible while production validation is introduced later.
--fn fixture_error(error: Box<dyn std::error::Error>) -> String {
--    format!("Bundled interaction fixture: {error}")
--}
--
--/// Read one bounded display prefix while retaining every actual source row for F10.
--async fn streamed_fixture() -> Result<(), String> {
--    let base = super::route::query("data").ok_or("local source URL is missing")?;
--    if !base.starts_with("http://127.0.0.1:") && !base.starts_with("http://localhost:") {
--        return Err("The tutorial source fixture must use a local HTTP server".to_string());
--    }
--    let url = format!("{}/cloud.pb", base.trim_end_matches('/'));
--    let mut fields = super::stream::cloud_fields(&url)
-+    true
-+}
-+
-+/// Reload the scene in place: same canvas, same camera, new geometry. A named `url` is read
-+/// from the bucket exactly as `?scene=` is; with none the page reloads its own route.
-+#[wasm_bindgen]
-+pub fn reload_scene(url: Option<String>) {
-+    let route = match url {
-+        Some(path) => Some(named_scene(&path)),
-+        None => scene_route(),
-+    };
-+    let Some(route) = route else {
-+        log::warn!("reload_scene: this page has no scene route - nothing to reload");
-+        return;
-+    };
-+    let generation = LOAD_GENERATION.get().wrapping_add(1);
-+    LOAD_GENERATION.set(generation);
-+    wasm_bindgen_futures::spawn_local(load_replacement(route, generation));
-+}
-+
-+/// A state-capturing browser task delegates replacement to one named async operation.
-+async fn load_replacement(route: SceneRoute, generation: u64) {
-+    load_route(&route, Some(generation)).await;
-+}
-+
-+/// Newer route requests win even if older network or decode operations finish later.
-+fn stale_load(generation: u64) -> bool {
-+    LOAD_GENERATION.get() != generation
-+}
-+
-+/// Existing TOML bookmarks may resolve to the current YAML publication only after a 404.
-+async fn fetch_manifest(route: &SceneRoute) -> Result<Vec<u8>, String> {
-+    match fetch_bytes(&route.manifest).await {
-+        Err(error) if error.starts_with("HTTP 404") && route.manifest.ends_with(".toml") => {
-+            let yaml = format!("{}.yaml", route.manifest.trim_end_matches(".toml"));
-+            super::feedback::status("Opening the current YAML scene for this TOML bookmark");
-+            fetch_bytes(&yaml).await
-+        }
-+        result => result,
-+    }
-+}
-+
-+/// Fetch a manifest and post every item, in manifest order, then a `Fit`.
-+async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
-+    let generation = match replacement {
-+        Some(generation) => generation,
-+        None => LOAD_GENERATION.get(),
-+    };
-+    let mut pending = Vec::new();
-+    let mut failed = false;
-+    let mut staged_points = 0u32;
-+    let t0 = now_ms();
-+    let bytes = match fetch_manifest(route).await {
-+        Ok(b) => b,
-+        Err(e) => {
-+            super::feedback::status(&format!("Cannot fetch the scene manifest: {e}"));
-+            return;
-+        }
-+    };
-+    if stale_load(generation) {
-+        return;
-+    }
-+    let manifest = match Manifest::parse(&bytes) {
-+        Ok(m) => m,
-+        Err(e) => {
-+            super::feedback::status(&format!("Cannot read the scene manifest: {e}"));
-+            return;
-+        }
-+    };
-+    log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
-+
-+    let mut files = 0u32;
-+    for item in &manifest.items {
-+        if item.file.ends_with(".pb") {
-+            files += 1;
-+        }
-+    }
-+    let files = files.max(1);
-+    let share = (max_points() / files).max(STREAM_MIN_PREFIX);
-+    for (i, item) in manifest.items.iter().enumerate() {
-+        let url = join(&route.base, &item.file);
-+        let place = manifest.place(i, AUTO_GRID);
-+        let point_px = item.point_size as f32;
-+        if url.ends_with(".pb") {
-+            let slot = Placement {
-+                name: manifest.name_of(i, &item.file),
-+                place: place.clone(),
-+                point_px,
-+            };
-+            let remaining = if replacement.is_some() {
-+                max_points().saturating_sub(staged_points)
-+            } else {
-+                budget_left()
-+            };
-+            if let Some(init) =
-+                stream_prefix(&url, &slot, share.min(remaining.max(STREAM_MIN_PREFIX))).await
-+            {
-+                if stale_load(generation) {
-+                    return;
-+                }
-+                if init.resident == 0 {
-+                    failed = true;
-+                    continue;
-+                }
-+                if replacement.is_some() {
-+                    staged_points = staged_points.saturating_add(init.resident);
-+                    pending.push(PendingDocument::Streamed(Box::new(init)));
-+                } else {
-+                    budget_spend(init.resident);
-+                    post(Msg::StreamedCloud(Box::new(init)));
-+                }
-+                continue;
-+            }
-+        }
-+        let f0 = now_ms();
-+        let bytes = match fetch_bytes(&url).await {
-+            Ok(b) => b,
-+            Err(e) => {
-+                super::feedback::status(&format!("Unable to load {}: {e}", item.file));
-+                failed = true;
-+                continue;
-+            }
-+        };
-+        let n = bytes.len();
-+        let f1 = now_ms();
-+        let session = match session_from_bytes(&url, bytes).await {
-+            Ok(session) => session,
-+            Err(error) => {
-+                super::feedback::status(&format!("Cannot decode {}: {error}", item.file));
-+                failed = true;
-+                continue;
-+            }
-+        };
-+        if stale_load(generation) {
-+            return;
-+        }
-+        if session.lookup.is_empty() {
-+            log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
-+            failed = true;
-+            continue;
-+        }
-+        let name = manifest.name_of(i, &session.name);
-+        log::info!(
-+            "loaded '{name}': {} objects, {n} bytes | fetch {:.0} ms, parse {:.0} ms",
-+            session.lookup.len(),
-+            f1 - f0,
-+            now_ms() - f1
-+        );
-+        let doc = FileDoc {
-+            name,
-+            session: Rc::new(session),
-+            place,
-+            point_px,
-+            display_only: item.display_only,
-+        };
-+        if replacement.is_some() {
-+            pending.push(PendingDocument::Whole(doc));
-+        } else {
-+            post(Msg::File(doc));
-+        }
-+    }
-+    if stale_load(generation) {
-+        return;
-+    }
-+    if replacement.is_some() {
-+        if failed {
-+            super::feedback::status(
-+                "Scene replacement failed; the last valid scene is still visible",
-+            );
-+            return;
-+        }
-+        clear_scene();
-+        budget_spend(staged_points);
-+        for document in pending {
-+            match document {
-+                PendingDocument::Whole(doc) => {
-+                    post(Msg::File(doc));
-+                }
-+                PendingDocument::Streamed(stream) => {
-+                    post(Msg::StreamedCloud(stream));
-+                }
-+            }
-+        }
-+    }
-+    post(Msg::Texts(manifest.texts));
-+    post(Msg::Fit);
-+    if !failed {
-+        super::feedback::status("");
-+    }
-+    log::info!(
-+        "scene posted {:.0} ms after the manifest fetch",
-+        now_ms() - t0
-+    );
-+}
-+
-+/// Replacement staging preserves manifest order across whole files and streamed clouds.
-+enum PendingDocument {
-+    Whole(FileDoc),
-+    Streamed(Box<StreamedInit>),
-+}
-+
-+/// Where a streamed cloud goes: its document name, placement and point size.
-+struct Placement {
-+    name: String,
-+    place: Xform,
-+    point_px: f32,
-+}
-+
-+/// Try to open a cloud by RANGE: `None` means the file carries no octree or is small enough
-+/// to decode whole. Three small reads locate everything, one read brings the prefix - at most
-+/// `share` points (the budget split over the scene's files, so the first cloud cannot take it
-+/// all), never fewer than `STREAM_MIN_PREFIX`.
-+async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<StreamedInit> {
-+    let (name, place, point_px) = (slot.name.as_str(), slot.place.clone(), slot.point_px);
-+    let mut fields = cloud_fields(url).await?;
-+    if fields.count <= STREAM_PREFIX_POINTS && fields.coords_len < STREAM_MIN_BYTES {
-+        return None;
-+    }
-+    let lod = cloud_lod(url, &mut fields).await?;
-+    let resident = STREAM_PREFIX_POINTS.min(share).min(fields.count);
-+    let Some(positions) = fetch_positions(url, &fields, 0, resident).await else {
-+        log::warn!(
-+            "'{name}': the prefix range read failed - the cloud stays off screen (a whole decode would take {:.0} MB)",
-+            fields.coords_len as f64 / 1.048576e6
-+        );
-+        return Some(StreamedInit {
-+            name: name.to_string(),
-+            url: url.to_string(),
-+            place,
-+            rows: StreamRows {
-+                positions: Vec::new(),
-+                colors: Vec::new(),
-+            },
-+            lod,
-+            col_at: fields.colors_at,
-+            fields,
-+            resident: 0,
-+            point_px,
-+        });
-+    };
-+    let (colors, col_at) = fetch_colors(url, &fields, fields.colors_at, resident)
-         .await
--        .ok_or("invalid cloud envelope")?;
--    let lod = super::stream::cloud_lod(&url, &mut fields)
--        .await
--        .ok_or("invalid source node table")?;
--    let resident = fields.count.min(250_000);
--    let positions = super::stream::fetch_positions(&url, &fields, 0, resident)
--        .await
--        .ok_or("invalid source positions")?;
--    let (colors, col_at) = if fields.colors_len == 0 {
--        (Vec::new(), fields.colors_at)
--    } else {
--        super::stream::fetch_colors(&url, &fields, fields.colors_at, resident)
--            .await
--            .ok_or("invalid source colors")?
--    };
--    post(Msg::StreamedCloud(Box::new(StreamedInit {
--        name: "Source query fixture".to_string(),
--        url,
--        place: Xform::identity(),
-+        .unwrap_or((Vec::new(), fields.colors_at));
-+    log::info!(
-+        "streamed '{name}': {resident} of {} points on screen, {} nodes",
-+        fields.count,
-+        lod.len()
-+    );
-+    Some(StreamedInit {
-+        name: name.to_string(),
-+        url: url.to_string(),
-+        place,
-         rows: StreamRows { positions, colors },
-         lod,
-         fields,
-         resident,
--        point_px: 3.0,
-+        point_px,
-         col_at,
--    })));
--    Ok(())
--}
--
--/// Match the production delivery record; this checkpoint intentionally retains one display prefix.
-+    })
-+}
-+
-+/// Where a streamed cloud continues: its slot, its file layout, the next point and where the
-+/// colour run continues.
- pub struct StreamCursor {
-     pub idx: usize,
-     pub url: String,
-@@ -121,5 +412,53 @@
-     pub col_at: u64,
- }
- 
--/// Display residency is fixed in this fixture; F10 paging has its own exhaustive source path.
--pub fn spawn_stream_rest(_cursor: StreamCursor) {}
-+/// Fetch the rest of a streamed cloud, a slice at a time, posting each one; spawned once the
-+/// scene has given the cloud its slot. Stops when the scene it belongs to is cleared.
-+pub fn spawn_stream_rest(cursor: StreamCursor) {
-+    wasm_bindgen_futures::spawn_local(stream_rest(cursor));
-+}
-+
-+/// The slice loop behind `spawn_stream_rest`.
-+async fn stream_rest(c: StreamCursor) {
-+    let (url, idx, fields) = (c.url, c.idx, c.fields);
-+    let generation = GENERATION.get();
-+    let mut col_at = c.col_at;
-+    let mut at = c.from;
-+    while at < fields.count {
-+        if GENERATION.get() != generation {
-+            return;
-+        }
-+        let left = budget_left();
-+        if left == 0 {
-+            log::info!(
-+                "'{url}': {at} of {} points resident - at the page's point ceiling (?points= to raise it)",
-+                fields.count
-+            );
-+            return;
-+        }
-+        let to = (at + STREAM_CHUNK_POINTS.min(left)).min(fields.count);
-+        budget_spend(to - at);
-+        let Some(positions) = fetch_positions(&url, &fields, at, to).await else {
-+            if GENERATION.get() == generation {
-+                RESIDENT.set(RESIDENT.get().saturating_sub(to - at));
-+            }
-+            super::feedback::status("A point-cloud range failed; reload to retry the missing data");
-+            return;
-+        };
-+        let (colors, next) = fetch_colors(&url, &fields, col_at, to - at)
-+            .await
-+            .unwrap_or((Vec::new(), col_at));
-+        col_at = next;
-+        if GENERATION.get() != generation {
-+            return;
-+        }
-+        if !post(Msg::CloudChunk(CloudChunk {
-+            idx,
-+            rows: StreamRows { positions, colors },
-+            to,
-+        })) {
-+            return;
-+        }
-+        at = to;
-+    }
-+}
 diff --git a/session_viewer/src/app/manifest.rs b/session_viewer/src/app/manifest.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..1e2a350a62ad2de66a89d65dd72a1eb890c317ef
@@ -2470,3 +1918,577 @@ index 0000000000000000000000000000000000000000..c7ad4c310ac1e4bb31708fc0e5622b85
 +HTML
 +    echo "docs/build_site.sh: course sources or uvx not found; wrote a placeholder page" >&2
 +fi
+diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
+index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb860642853378769157a 100644
+--- a/session_viewer/src/app/loader.rs
++++ b/session_viewer/src/app/loader.rs
+@@ -1,26 +1,67 @@
+-//! Local tutorial fixture boundary; chapter14 installs production routing and reloads.
++//! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
++//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
++//! through `stream`. Live first, then the URL's route, then the poll loop. Touches no GPU.
+ 
++use super::decode::session_from_bytes;
++use super::fetch::{fetch_bytes, sleep_ms};
++use super::live::LiveSource;
++use super::manifest::Manifest;
++use super::route::AUTO_GRID;
++use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
+ use super::scene::{FileDoc, Scene, StreamedInit};
+-use super::stream::CloudFields;
++use super::stream::{CloudFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions};
+ use super::walk::cloud::StreamRows;
+-use crate::{Msg, State};
+-use session_rust::{Session, Xform};
+-use std::cell::RefCell;
++use crate::engine::performance::now_ms;
++use crate::{CloudChunk, Msg, State};
++use session_rust::Xform;
++use std::cell::{Cell, RefCell};
+ use std::rc::Rc;
+ use std::sync::Arc;
++use wasm_bindgen::prelude::*;
+ use winit::event_loop::EventLoopProxy;
+ use winit::window::Window;
+ 
++/// Points a streamed cloud brings down before it is on screen: the octree's coarse levels,
++/// so the file opens at a correct low detail whatever its size.
++const STREAM_PREFIX_POINTS: u32 = 2_000_000;
++
++/// Points per follow-up slice.
++const STREAM_CHUNK_POINTS: u32 = 2_000_000;
++
++/// Hard ceiling on resident streamed points across the whole page (`?points=` to change):
++/// 16 B a point on the GPU plus the growth slack, and a 14 M cloud killed the GPU process.
++const STREAM_MAX_POINTS: u32 = 6_000_000;
++
++/// Files at least this large open by range even without a count-based reason.
++const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
++
++/// The smallest prefix a streamed cloud gets even past the ceiling: the coarsest octree levels,
++/// so the cloud is on screen and correct, just sparse.
++const STREAM_MIN_PREFIX: u32 = 250_000;
++
+ thread_local! {
++    /// The start-up proxy, kept so `reload_scene` and the stream tasks can post messages.
+     static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
++    /// Points resident across every streamed cloud on the page: the ceiling is a scene budget.
++    static RESIDENT: Cell<u32> = const { Cell::new(0) };
++    /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
++    static GENERATION: Cell<u32> = const { Cell::new(0) };
++    static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
++}
++
++/// Drop the scene: post `Clear`, forget the point budget, and retire every running stream.
++fn clear_scene() {
++    GENERATION.set(GENERATION.get().wrapping_add(1));
++    RESIDENT.set(0);
++    post(Msg::Clear);
+ }
+ 
+-/// Preserve the production query-result delivery interface across the loader checkpoint.
+-pub(super) fn post(message: Msg) -> bool {
+-    PROXY.with_borrow(|proxy| post_with_proxy(proxy, message))
++/// Post one message into the running event loop; false when the loop is gone.
++pub(super) fn post(msg: Msg) -> bool {
++    PROXY.with_borrow(|proxy| post_with_proxy(proxy, msg))
+ }
+ 
+-/// Deliver to the live browser event loop without retaining State in an async task.
++/// The thread-local API adapter forwards delivery to this named operation.
+ fn post_with_proxy(proxy: &Option<EventLoopProxy<Msg>>, message: Msg) -> bool {
+     match proxy {
+         Some(proxy) => proxy.send_event(message).is_ok(),
+@@ -28,91 +69,353 @@ fn post_with_proxy(proxy: &Option<EventLoopProxy<Msg>>, message: Msg) -> bool {
+     }
+ }
+ 
+-/// Own the proxy for asynchronous source-query messages.
++/// Retain the startup event proxy for later loading and streaming tasks.
+ fn retain_proxy(slot: &mut Option<EventLoopProxy<Msg>>, proxy: &EventLoopProxy<Msg>) {
+     *slot = Some(proxy.clone());
+ }
+ 
+-/// Start the production shell with one small deterministic, bundled Session fixture.
++/// The resident ceiling for this page load.
++fn max_points() -> u32 {
++    knob_u32("points").unwrap_or(STREAM_MAX_POINTS)
++}
++
++/// Points the scene may still make resident.
++fn budget_left() -> u32 {
++    max_points().saturating_sub(RESIDENT.get())
++}
++
++/// Book `n` points against the budget.
++fn budget_spend(n: u32) {
++    RESIDENT.set(RESIDENT.get().saturating_add(n));
++}
++
++/// Start-up: the live source when the page has one, else the URL's route, then the empty
++/// canvas either way; then the poll loop.
+ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
+     PROXY.with_borrow_mut(|slot| retain_proxy(slot, &proxy));
+     let state = match State::new(window, Scene::new()).await {
+         Ok(state) => state,
+         Err(error) => {
+-            super::feedback::error(&format!("Cannot initialize WebGPU: {error}"));
++            super::feedback::error(&format!(
++                "Unable to start WebGPU: {error}. Use a browser with an available WebGPU adapter, then reload."
++            ));
+             return;
+         }
+     };
+-    post(Msg::Ready(Box::new(state)));
+-    if let Err(error) = fixture().await {
+-        super::feedback::error(&error);
+-        return;
++    let _ = proxy.send_event(Msg::Ready(Box::new(state)));
++
++    let mut live = LiveSource::from_query();
++    let mut loaded = false;
++    if let Some(src) = live.as_mut() {
++        log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
++        loaded = post_live(src).await;
++    }
++    if !loaded && let Some(route) = scene_route() {
++        load_route(&route, None).await;
++    }
++
++    let Some(mut src) = live else { return };
++    loop {
++        sleep_ms(src.tick_ms).await;
++        post_live(&mut src).await;
++    }
++}
++
++/// One live check: when the source changed, replace the scene. True when files loaded.
++async fn post_live(src: &mut LiveSource) -> bool {
++    let generation = LOAD_GENERATION.get();
++    let Some(docs) = src.check().await else {
++        return false;
++    };
++    if stale_load(generation) {
++        return false;
++    }
++    let texts = src.texts();
++    if docs.is_empty() && texts.is_empty() {
++        return false;
+     }
++    clear_scene();
++    for doc in docs {
++        post(Msg::File(doc));
++    }
++    post(Msg::Texts(texts));
+     post(Msg::Fit);
+     super::feedback::status("");
++    true
++}
++
++/// Reload the scene in place: same canvas, same camera, new geometry. A named `url` is read
++/// from the bucket exactly as `?scene=` is; with none the page reloads its own route.
++#[wasm_bindgen]
++pub fn reload_scene(url: Option<String>) {
++    let route = match url {
++        Some(path) => Some(named_scene(&path)),
++        None => scene_route(),
++    };
++    let Some(route) = route else {
++        log::warn!("reload_scene: this page has no scene route - nothing to reload");
++        return;
++    };
++    let generation = LOAD_GENERATION.get().wrapping_add(1);
++    LOAD_GENERATION.set(generation);
++    wasm_bindgen_futures::spawn_local(load_replacement(route, generation));
++}
++
++/// A state-capturing browser task delegates replacement to one named async operation.
++async fn load_replacement(route: SceneRoute, generation: u64) {
++    load_route(&route, Some(generation)).await;
++}
++
++/// Newer route requests win even if older network or decode operations finish later.
++fn stale_load(generation: u64) -> bool {
++    LOAD_GENERATION.get() != generation
++}
++
++/// Existing TOML bookmarks may resolve to the current YAML publication only after a 404.
++async fn fetch_manifest(route: &SceneRoute) -> Result<Vec<u8>, String> {
++    match fetch_bytes(&route.manifest).await {
++        Err(error) if error.starts_with("HTTP 404") && route.manifest.ends_with(".toml") => {
++            let yaml = format!("{}.yaml", route.manifest.trim_end_matches(".toml"));
++            super::feedback::status("Opening the current YAML scene for this TOML bookmark");
++            fetch_bytes(&yaml).await
++        }
++        result => result,
++    }
+ }
+ 
+-/// Only the explicit local streaming test selects the ranged source fixture.
+-async fn fixture() -> Result<(), String> {
+-    if super::route::query("scene").as_deref() == Some("stream-test.yaml") {
+-        return streamed_fixture().await;
++/// Fetch a manifest and post every item, in manifest order, then a `Fit`.
++async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
++    let generation = match replacement {
++        Some(generation) => generation,
++        None => LOAD_GENERATION.get(),
++    };
++    let mut pending = Vec::new();
++    let mut failed = false;
++    let budget = scene_budget_bytes();
++    let mut spent = 0u64;
++    let mut skipped: Vec<String> = Vec::new();
++    let mut staged_points = 0u32;
++    let t0 = now_ms();
++    let bytes = match fetch_manifest(route).await {
++        Ok(b) => b,
++        Err(e) => {
++            super::feedback::status(&format!("Cannot fetch the scene manifest: {e}"));
++            return;
++        }
++    };
++    if stale_load(generation) {
++        return;
++    }
++    let manifest = match Manifest::parse(&bytes) {
++        Ok(m) => m,
++        Err(e) => {
++            super::feedback::status(&format!("Cannot read the scene manifest: {e}"));
++            return;
++        }
++    };
++    log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
++
++    let mut files = 0u32;
++    for item in &manifest.items {
++        if item.file.ends_with(".pb") {
++            files += 1;
++        }
++    }
++    let files = files.max(1);
++    let share = (max_points() / files).max(STREAM_MIN_PREFIX);
++    for (i, item) in manifest.items.iter().enumerate() {
++        let url = join(&route.base, &item.file);
++        let place = manifest.place(i, AUTO_GRID);
++        let point_px = item.point_size as f32;
++        if url.ends_with(".pb") {
++            let slot = Placement {
++                name: manifest.name_of(i, &item.file),
++                place: place.clone(),
++                point_px,
++            };
++            let remaining = if replacement.is_some() {
++                max_points().saturating_sub(staged_points)
++            } else {
++                budget_left()
++            };
++            if let Some(init) =
++                stream_prefix(&url, &slot, share.min(remaining.max(STREAM_MIN_PREFIX))).await
++            {
++                if stale_load(generation) {
++                    return;
++                }
++                if init.resident == 0 {
++                    failed = true;
++                    continue;
++                }
++                if replacement.is_some() {
++                    staged_points = staged_points.saturating_add(init.resident);
++                    pending.push(PendingDocument::Streamed(Box::new(init)));
++                } else {
++                    budget_spend(init.resident);
++                    post(Msg::StreamedCloud(Box::new(init)));
++                }
++                continue;
++            }
++        }
++        // A whole file is decoded into the wasm heap several times over; past the device's
++        // budget the page would die without a word, so the file is skipped with one instead.
++        let length = super::fetch::content_length(&url).await.unwrap_or(0);
++        if spent + length > budget {
++            log::warn!("skipped '{}': {} MB over the {} MB scene budget", item.file, length >> 20, budget >> 20);
++            skipped.push(format!("{} ({} MB)", item.file, length >> 20));
++            continue;
++        }
++        spent += length;
++        let f0 = now_ms();
++        let bytes = match fetch_bytes(&url).await {
++            Ok(b) => b,
++            Err(e) => {
++                super::feedback::status(&format!("Unable to load {}: {e}", item.file));
++                failed = true;
++                continue;
++            }
++        };
++        let n = bytes.len();
++        let f1 = now_ms();
++        let session = match session_from_bytes(&url, bytes).await {
++            Ok(session) => session,
++            Err(error) => {
++                super::feedback::status(&format!("Cannot decode {}: {error}", item.file));
++                failed = true;
++                continue;
++            }
++        };
++        if stale_load(generation) {
++            return;
++        }
++        if session.lookup.is_empty() {
++            log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
++            failed = true;
++            continue;
++        }
++        let name = manifest.name_of(i, &session.name);
++        log::info!(
++            "loaded '{name}': {} objects, {n} bytes | fetch {:.0} ms, parse {:.0} ms",
++            session.lookup.len(),
++            f1 - f0,
++            now_ms() - f1
++        );
++        let doc = FileDoc {
++            name,
++            session: Rc::new(session),
++            place,
++            point_px,
++            display_only: item.display_only,
++        };
++        if replacement.is_some() {
++            pending.push(PendingDocument::Whole(doc));
++        } else {
++            post(Msg::File(doc));
++        }
++    }
++    if stale_load(generation) {
++        return;
+     }
+-    let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
+-        .map_err(fixture_error)?;
+-    post(Msg::File(FileDoc {
+-        name: "Interaction fixture".to_string(),
+-        session: Rc::new(session),
+-        place: Xform::identity(),
+-        point_px: 0.0,
+-        display_only: false,
+-    }));
+-    Ok(())
++    if replacement.is_some() {
++        if failed {
++            super::feedback::status(
++                "Scene replacement failed; the last valid scene is still visible",
++            );
++            return;
++        }
++        clear_scene();
++        budget_spend(staged_points);
++        for document in pending {
++            match document {
++                PendingDocument::Whole(doc) => {
++                    post(Msg::File(doc));
++                }
++                PendingDocument::Streamed(stream) => {
++                    post(Msg::StreamedCloud(stream));
++                }
++            }
++        }
++    }
++    post(Msg::Texts(manifest.texts));
++    post(Msg::Fit);
++    if !failed {
++        super::feedback::status(&skipped_notice(&skipped, budget));
++    }
++    log::info!(
++        "scene posted {:.0} ms after the manifest fetch",
++        now_ms() - t0
++    );
+ }
+ 
+-/// Keep fixture decode failures visible while production validation is introduced later.
+-fn fixture_error(error: Box<dyn std::error::Error>) -> String {
+-    format!("Bundled interaction fixture: {error}")
++/// Replacement staging preserves manifest order across whole files and streamed clouds.
++enum PendingDocument {
++    Whole(FileDoc),
++    Streamed(Box<StreamedInit>),
+ }
+ 
+-/// Read one bounded display prefix while retaining every actual source row for F10.
+-async fn streamed_fixture() -> Result<(), String> {
+-    let base = super::route::query("data").ok_or("local source URL is missing")?;
+-    if !base.starts_with("http://127.0.0.1:") && !base.starts_with("http://localhost:") {
+-        return Err("The tutorial source fixture must use a local HTTP server".to_string());
++/// Where a streamed cloud goes: its document name, placement and point size.
++struct Placement {
++    name: String,
++    place: Xform,
++    point_px: f32,
++}
++
++/// Try to open a cloud by RANGE: `None` means the file carries no octree or is small enough
++/// to decode whole. Three small reads locate everything, one read brings the prefix - at most
++/// `share` points (the budget split over the scene's files, so the first cloud cannot take it
++/// all), never fewer than `STREAM_MIN_PREFIX`.
++async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<StreamedInit> {
++    let (name, place, point_px) = (slot.name.as_str(), slot.place.clone(), slot.point_px);
++    let mut fields = cloud_fields(url).await?;
++    if fields.count <= STREAM_PREFIX_POINTS && fields.coords_len < STREAM_MIN_BYTES {
++        return None;
+     }
+-    let url = format!("{}/cloud.pb", base.trim_end_matches('/'));
+-    let mut fields = super::stream::cloud_fields(&url)
+-        .await
+-        .ok_or("invalid cloud envelope")?;
+-    let lod = super::stream::cloud_lod(&url, &mut fields)
+-        .await
+-        .ok_or("invalid source node table")?;
+-    let resident = fields.count.min(250_000);
+-    let positions = super::stream::fetch_positions(&url, &fields, 0, resident)
+-        .await
+-        .ok_or("invalid source positions")?;
+-    let (colors, col_at) = if fields.colors_len == 0 {
+-        (Vec::new(), fields.colors_at)
+-    } else {
+-        super::stream::fetch_colors(&url, &fields, fields.colors_at, resident)
+-            .await
+-            .ok_or("invalid source colors")?
++    let lod = cloud_lod(url, &mut fields).await?;
++    let resident = STREAM_PREFIX_POINTS.min(share).min(fields.count);
++    let Some(positions) = fetch_positions(url, &fields, 0, resident).await else {
++        log::warn!(
++            "'{name}': the prefix range read failed - the cloud stays off screen (a whole decode would take {:.0} MB)",
++            fields.coords_len as f64 / 1.048576e6
++        );
++        return Some(StreamedInit {
++            name: name.to_string(),
++            url: url.to_string(),
++            place,
++            rows: StreamRows {
++                positions: Vec::new(),
++                colors: Vec::new(),
++            },
++            lod,
++            col_at: fields.colors_at,
++            fields,
++            resident: 0,
++            point_px,
++        });
+     };
+-    post(Msg::StreamedCloud(Box::new(StreamedInit {
+-        name: "Source query fixture".to_string(),
+-        url,
+-        place: Xform::identity(),
++    let (colors, col_at) = fetch_colors(url, &fields, fields.colors_at, resident)
++        .await
++        .unwrap_or((Vec::new(), fields.colors_at));
++    log::info!(
++        "streamed '{name}': {resident} of {} points on screen, {} nodes",
++        fields.count,
++        lod.len()
++    );
++    Some(StreamedInit {
++        name: name.to_string(),
++        url: url.to_string(),
++        place,
+         rows: StreamRows { positions, colors },
+         lod,
+         fields,
+         resident,
+-        point_px: 3.0,
++        point_px,
+         col_at,
+-    })));
+-    Ok(())
++    })
+ }
+ 
+-/// Match the production delivery record; this checkpoint intentionally retains one display prefix.
++/// Where a streamed cloud continues: its slot, its file layout, the next point and where the
++/// colour run continues.
+ pub struct StreamCursor {
+     pub idx: usize,
+     pub url: String,
+@@ -121,5 +424,82 @@ pub struct StreamCursor {
+     pub col_at: u64,
+ }
+ 
+-/// Display residency is fixed in this fixture; F10 paging has its own exhaustive source path.
+-pub fn spawn_stream_rest(_cursor: StreamCursor) {}
++/// Fetch the rest of a streamed cloud, a slice at a time, posting each one; spawned once the
++/// scene has given the cloud its slot. Stops when the scene it belongs to is cleared.
++pub fn spawn_stream_rest(cursor: StreamCursor) {
++    wasm_bindgen_futures::spawn_local(stream_rest(cursor));
++}
++
++/// The slice loop behind `spawn_stream_rest`.
++async fn stream_rest(c: StreamCursor) {
++    let (url, idx, fields) = (c.url, c.idx, c.fields);
++    let generation = GENERATION.get();
++    let mut col_at = c.col_at;
++    let mut at = c.from;
++    while at < fields.count {
++        if GENERATION.get() != generation {
++            return;
++        }
++        let left = budget_left();
++        if left == 0 {
++            log::info!(
++                "'{url}': {at} of {} points resident - at the page's point ceiling (?points= to raise it)",
++                fields.count
++            );
++            return;
++        }
++        let to = (at + STREAM_CHUNK_POINTS.min(left)).min(fields.count);
++        budget_spend(to - at);
++        let Some(positions) = fetch_positions(&url, &fields, at, to).await else {
++            if GENERATION.get() == generation {
++                RESIDENT.set(RESIDENT.get().saturating_sub(to - at));
++            }
++            super::feedback::status("A point-cloud range failed; reload to retry the missing data");
++            return;
++        };
++        let (colors, next) = fetch_colors(&url, &fields, col_at, to - at)
++            .await
++            .unwrap_or((Vec::new(), col_at));
++        col_at = next;
++        if GENERATION.get() != generation {
++            return;
++        }
++        if !post(Msg::CloudChunk(CloudChunk {
++            idx,
++            rows: StreamRows { positions, colors },
++            to,
++        })) {
++            return;
++        }
++        at = to;
++    }
++}
++
++/// Whole-file bytes a scene may load: `?budget=<MB>` / `VIEWER_BUDGET`, else 16 MB per GB the
++/// browser reports (`navigator.deviceMemory`), 64 MB when it says
++/// nothing. A decoded file costs the wasm heap about five times its size.
++fn scene_budget_bytes() -> u64 {
++    if let Some(mb) = crate::engine::gpu::view::knob("VIEWER_BUDGET", "budget")
++        && let Ok(mb) = mb.parse::<u64>()
++    {
++        return mb << 20;
++    }
++    let gigabytes = web_sys::window()
++        .map(|window| window.navigator())
++        .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok())
++        .and_then(|value| value.as_f64())
++        .unwrap_or(4.0);
++    ((gigabytes * 16.0) as u64) << 20
++}
++
++/// The status line after a load: empty, or which files stayed out and how to let them in.
++fn skipped_notice(skipped: &[String], budget: u64) -> String {
++    if skipped.is_empty() {
++        return String::new();
++    }
++    format!(
++        "Skipped over the {} MB scene budget: {}. Add ?budget=<MB> to raise it.",
++        budget >> 20,
++        skipped.join(", ")
++    )
++}

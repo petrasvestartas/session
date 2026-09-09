@@ -66,9 +66,11 @@ flowchart LR
 
 <!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-121 -->
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-158 -->
+- `content_length` is a HEAD request: the size a whole file would download, before a byte of it is fetched, so a scene can refuse what the device cannot hold.
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=159-214 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-174 -->
+
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=175-230 -->
 
 - `QueryView` freezes the click's projection; every page is tested against the same matrix and pixel window.
 - A cube crossing the eye plane cannot be excluded, so `intersects` returns true for it.
