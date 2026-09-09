@@ -19,6 +19,8 @@ flowchart TB
 
 ## Step 1 · A bounded window over the metadata
 
+![The file is small fields between huge arrays; checkpoint 14 fetched each small field separately, the window fetches them once and skips the arrays by length.](illustrations/metadata-window.svg)
+
 - Skipped geometry fields never decide the window's size: `read_length` reads at least 64 KiB inside the file, larger only for an array that is itself larger, and never past `end`.
 - `slice` borrows an exact cached range, including a valid empty range at the window's end.
 
@@ -87,6 +89,8 @@ Expected:
 - The local scene loads exactly as at checkpoint 14.
 - A streamed cloud (`?scene=stream-test.yaml` with a local `?data=` server) still shows its display prefix and F10 still reaches source points beyond it.
 
+![Checkpoint 15: the local scene is unchanged; the difference is in the network panel of a streamed cloud, where the header reads collapse into one window request.](screenshots/15.png)
+
 ## What changed
 
 <!-- tree: 15 session_viewer/src/app -->
@@ -95,6 +99,12 @@ Expected:
 - Publication scripts under `bash/` write geometry, verify, alias, then manifest.
 
 **Production equivalent:** `src/app/stream.rs`; `bash/view_put.sh`, `bash/view_live.sh`, `bash/lib/`.
+
+## Try
+
+- Open the browser's network panel while a streamed cloud loads and count the `Range` requests against the same scene at checkpoint 14: the header and node-table reads collapse into one window read.
+- Lower the 64 KiB minimum in `read_length` to 1 KiB: the walk still succeeds, but every small field past the first kilobyte refills the window and the request count climbs back.
+- Change the served file while the viewer is open so its ETag changes: the next read outside the window fails instead of mixing two revisions, and the status says so.
 
 ## Next
 
