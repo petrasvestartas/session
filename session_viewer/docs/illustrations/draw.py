@@ -772,7 +772,85 @@ def controls():
     c.h = 500
     c.write("controls.svg")
 
+def loading():
+    c = Canvas("Staged replacement with generations",
+               "A route change starts a new request generation. Every fetched document is validated and decoded, then staged in manifest order; nothing on screen changes until the whole set is ready, when the staged set replaces the scene in one step. Documents that finish after a newer generation started are dropped, so a slow first request can never overwrite a faster second one.",
+               1180, 470)
+    navy, pink, green, yellow, orange, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["orange"], PAL["grey"]
+    c.text(28, 40, "Two requests in flight: the older generation loses", "h")
+    x0, x1 = 150, 1150
+    for i, (label, y) in enumerate([("generation 1", 120), ("generation 2", 230), ("screen", 340)]):
+        c.text(28, y + 5, label, "l")
+        c.raw(f'<line x1="{x0}" y1="{y}" x2="{x1}" y2="{y}" stroke="{grey}" stroke-width="1"/>')
+    c.raw(f'<polygon points="{x1},{340} {x1 - 8},{335} {x1 - 8},{345}" fill="{grey}"/>')
+    c.text(x1 - 28, 364, "time", "s")
+    # generation 1: three files, one slow
+    def seg(x, w, y, color, text):
+        c.raw(f'<rect x="{x}" y="{y - 14}" width="{w}" height="28" rx="4" fill="{color}"/>')
+        c.text(x + w / 2, y + 5, text, "s", anchor="middle", fill="#ffffff")
+    seg(160, 120, 120, navy, "manifest a.yaml")
+    seg(290, 110, 120, navy, "mesh.pb ✓")
+    seg(410, 110, 120, navy, "brep.pb ✓")
+    seg(530, 300, 120, grey, "cloud.pb (slow) → dropped")
+    c.raw(f'<line x1="600" y1="150" x2="600" y2="210" stroke="{pink}" stroke-width="1.5" stroke-dasharray="4 3"/>')
+    c.text(608, 184, "route changes: generation 2 starts", "s", fill=pink)
+    seg(600, 120, 230, pink, "manifest b.yaml")
+    seg(730, 110, 230, pink, "mesh.pb ✓")
+    seg(850, 110, 230, pink, "text items ✓")
+    c.raw(f'<rect x="970" y="216" width="130" height="28" rx="4" fill="{green}"/>')
+    c.text(1035, 235, "staged → swap", "s", anchor="middle", fill="#ffffff")
+    c.raw(f'<line x1="1035" y1="244" x2="1035" y2="326" stroke="{green}" stroke-width="1.5"/>')
+    c.raw(f'<polygon points="1035,326 1030,318 1040,318" fill="{green}"/>')
+    seg(160, 860, 340, "#d9dbe0", "previous scene stays visible and interactive")
+    seg(1035, 64, 340, green, "scene b")
+    c.text(160, 392, "A document is accepted only if its generation is still the current one; decoding yields between slices, so the page never freezes while a large file is read.", "s")
+    c.w = 1180
+    c.h = 430
+    c.write("loading.svg")
+
+
+def metadata_window():
+    c = Canvas("One window instead of one request per field",
+               "A streamed cloud file is a sequence of length-delimited protobuf fields: a few small fields (count, bounds, the LOD node table) between very large arrays (coordinates, colours, IDs). The LOD walk reads the small fields only. Checkpoint 14 issued one HTTP Range request per header and one per array body; the MetadataWindow reads at least 64 KiB once, serves every small field inside it from the cache, and skips a large array by its declared length without fetching it.",
+               1180, 470)
+    navy, pink, green, yellow, orange, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["orange"], PAL["grey"]
+    c.text(28, 40, "The file on the server, and what the LOD walk touches", "h")
+    fields = [("count", 40, navy), ("bounds", 60, navy), ("coords · 96 MiB", 300, grey), ("colors · 24 MiB", 170, grey), ("nodes", 90, navy), ("ids · 32 MiB", 200, grey), ("levels", 70, navy)]
+    x = 180; y = 110; h = 36; starts = []
+    for name, w, color in fields:
+        starts.append((x, w, color))
+        c.raw(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{color}" stroke="#eef0f2" stroke-width="2"/>')
+        if w >= 60:
+            c.text(x + w / 2, y + 23, name, "s", anchor="middle", fill="#ffffff")
+        x += w
+    c.text(180, y + 60, "count", "s", fill=navy)
+    c.text(180, y - 10, "tag · length · payload for every field; a large array is skipped by its length, never read", "s")
+    # checkpoint 14 row
+    y14 = 210
+    c.text(28, y14 + 5, "checkpoint 14", "l")
+    c.text(180, y14 - 16, "one Range request per header and one per small array body", "s", fill=pink)
+    for (x, w, color) in starts:
+        if color == navy:
+            for k in (0, 1):
+                c.raw(f'<rect x="{x + 4 + k * (w - 8) / 2}" y="{y14 - 6}" width="{(w - 8) / 2 - 2}" height="12" rx="2" fill="{pink}"/>')
+    c.text(1125, y14 + 5, "8 requests", "s", fill=pink)
+    # checkpoint 15 row
+    y15 = 290
+    c.text(28, y15 + 5, "checkpoint 15", "l")
+    c.text(180, y15 - 16, "MetadataWindow: one read of at least 64 KiB, small fields served from the cache", "s", fill=green)
+    c.raw(f'<rect x="{starts[0][0]}" y="{y15 - 8}" width="{starts[1][0] + starts[1][1] - starts[0][0] + 70}" height="16" rx="3" fill="{green}"/>')
+    c.text(starts[0][0] + 6, y15 + 4, "window", "s", fill="#ffffff")
+    c.raw(f'<rect x="{starts[4][0]}" y="{y15 - 8}" width="{starts[4][1]}" height="16" rx="3" fill="{green}"/>')
+    c.raw(f'<rect x="{starts[6][0]}" y="{y15 - 8}" width="{starts[6][1]}" height="16" rx="3" fill="{green}"/>')
+    c.text(1125, y15 + 5, "3 requests", "s", fill=green)
+    c.text(28, 350, "A read outside the window refills it under the same ETag; a changed ETag fails the read rather than mixing two revisions of the file.", "s")
+    c.text(28, 376, "Skipped arrays never decide the window size: the 64 KiB minimum applies to the small fields, and a small array larger than that reads its own length.", "s")
+    c.w = 1220
+    c.h = 410
+    c.write("metadata-window.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window):
         draw()
-    print("wrote 17 illustrations")
+    print("wrote 19 illustrations")

@@ -120,6 +120,8 @@ flowchart LR
 
 ## Step 6 · Stage a replacement, then swap it in whole
 
+![Two request generations in flight: the older one is dropped, the newer one is staged in manifest order and swapped in whole while the previous scene stays on screen.](illustrations/loading.svg)
+
 - A slow old response arriving last must not replace a newer scene, so every load carries a generation and `stale_load` is checked after each await.
 - Network responses finish in any order; `PendingDocument` keeps manifest order, and `clear_scene` runs only after every item succeeded.
 - Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
@@ -175,6 +177,10 @@ Expected:
 
 If nothing loads, read the status text: it names the failing stage (manifest fetch, manifest parse, file fetch, decode).
 
+![Checkpoint 14: the same interaction fixture, now fetched through the manifest and protobuf path.](screenshots/14.png)
+
+![Left: a manifest that lists the same file twice, the second with `at: [0, 12, 0]`, plus a fixed-plane text item; one download, two placements. Right: a manifest naming a missing file, and the status names the stage that failed.](screenshots/14-manifest.png)
+
 ## What changed
 
 <!-- tree: 14 session_viewer/src/app -->
@@ -183,6 +189,13 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 - A `LiveSource` re-reads a published manifest with ETags and replaces the scene only when every file is readable.
 
 **Production equivalent:** `src/app/manifest.rs`, `validate.rs`, `decode.rs`, `route.rs`, `live.rs`, `loader.rs` are the production files.
+
+## Try
+
+- Write `dist/scenes/two.yaml` listing `pb/interaction.pb` twice, the second entry with `at: [0, 12, 0]`, and open `?scene=two.yaml&data=off`: the file is fetched once and placed twice.
+- Add a `texts` entry with `at`, `right`, `up` and `height`: the label sits in that world plane and foreshortens with the view.
+- Point an item at a file that does not exist: the status reads which stage failed and the previous scene stays on screen.
+- Give an item a non-orthogonal `xform`: `Manifest::parse` rejects it before any file is fetched.
 
 ## Next
 
