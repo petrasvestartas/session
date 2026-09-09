@@ -461,6 +461,10 @@ Expected:
 
 If an object highlights but the status names another GUID, the row → identity map is wrong; fix `Scene`, not the shader colour.
 
+![Checkpoint 12: the seven-object interaction fixture in the production shell, nothing selected.](screenshots/12.png)
+
+![Left: nothing selected. Middle: one click on the BRep, the whole object turns yellow and its name appears. Right: Ctrl + click on the mesh's top edge, only that source edge highlights and the status names it.](screenshots/12-select.png)
+
 ## What changed
 
 <!-- tree: 12 session_viewer/src -->
@@ -469,6 +473,13 @@ If an object highlights but the status names another GUID, the row → identity 
 - Data flow for a click: CSS pixel → physical window → ID pass → readback → `Pick { row, sub }` → `Scene::resolve` → `State::select` → `FLAG_SELECTED` → yellow.
 
 **Production equivalent:** every file in this lesson is a production file: `src/lib.rs`, `src/state.rs`, `src/app/{input,touch,scene,selection}.rs`, `src/engine/gpu/{device,present,render,pick}.rs`. Only `selection_outline.rs` is superseded, in lesson 17.
+
+## Try
+
+- Click the empty background: the selection clears, because the ID pass wrote 0 there.
+- Press the right button on the BRep, drag one pixel and release: nothing is selected, so a small drag never counts as a click.
+- Raise `PICK_RADIUS` in `pick.rs` and click just beside the curve: the nearest ID inside the window wins, so the curve is selected from further away.
+- Make `Picker::poll` skip its `submitted != generation` comparison and orbit while a click is pending: a late answer selects against the new camera, which is the bug the check prevents.
 
 ## Next
 
