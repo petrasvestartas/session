@@ -4,6 +4,12 @@ release = true
 no_sri = true
 public_url = "./"
 
+# Build the documentation site before the bundle so dist/docs serves it next to the viewer.
+[[hooks]]
+stage = "pre_build"
+command = "bash"
+command_arguments = ["docs/build_site.sh"]
+
 [watch]
 # This replaces Trunk's default watch set, so the shared path dependency is explicit.
 watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "assets/text", "assets/text-quality.html", "../session_rust/src"]

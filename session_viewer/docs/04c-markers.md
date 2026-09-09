@@ -1,0 +1,124 @@
+# 04c · Markers
+
+## You are building
+
+```mermaid
+flowchart TB
+    R["fixture: GlyphPoint rows"] --> G["GlyphRows<br/>spheres · dots"]
+    G -- "GlyphLane::append" --> G3["group 3<br/>glyphs: array&lt;GlyphPoint&gt;"]
+    G3 --> SP["sphere.wgsl<br/>quad Template × instance_index<br/>culled by incident faces"]
+    G3 --> DT["glyph.wgsl<br/>3 verts per dot, incircle is the disc"]
+    SP --> FS["coverage · ink_disc_visible"]
+    DT --> FS
+```
+
+Vertex input of the marker pipeline (`pipelines::template_layout`):
+
+| Slot | Rust | WGSL |
+|---|---|---|
+| 0 | `Template.vbo`, 12-byte positions, `step_mode: Vertex` | `@location(0) tmpl: vec3<f32>` |
+| — | `draw_indexed(.., 0..spheres.len())` | `@builtin(instance_index) gi` selects the glyph row |
+
+The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row.
+
+## Starting point
+
+- Checkpoint 04b: meshes and strokes. Both ink lanes share the visibility rule appended by `ink_module`.
+- Markers are the vertex-sized ink: mesh vertex markers (solid lane) and free points (flat lane), one 48-byte row for both.
+
+## Step 1 · The glyph row
+
+- `center` is a `vec3` in WGSL, so the row is 48 bytes with `radius` in the padding slot.
+- `facing` plus `facing_ext` hold up to six incident face normals as oct16 pairs; a marker hides when every incident face turns away.
+
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-56 -->
+
+## Step 2 · The lane
+
+- One table per kind, one bind group each, two shader modules, five pipelines.
+
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=57-100 -->
+
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=101-153 -->
+
+- Markers draw the template `spheres.len()` times; dots draw `DOT_VERTS * dots.len()` vertices with no template.
+
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=154-238 -->
+
+- `source_dot` is the pipeline lesson 13 uses for streamed source queries; it is declared with the others so the lane never grows a second pipeline set.
+
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=239-294 -->
+
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs copy lines=295-321 -->
+
+## Step 3 · Vertex markers
+
+- Same bindings as the ribbon shader; the row is `GlyphPoint`.
+
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-56 -->
+
+- `screen_radius` and `to_px` turn a world or pen radius into pixels; `faces_front` decodes the packed normals.
+
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=57-127 -->
+
+- The template corner is offset in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc.
+
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=128-185 -->
+
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=186-211 -->
+
+## Step 4 · Free dots
+
+- One equilateral triangle per dot; its incircle is the visible disc, so three vertices cover it without a template.
+
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-56 -->
+
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=57-140 -->
+
+- The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries later.
+
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=141-186 -->
+
+<!-- check: 04c -->
+
+## Step 5 · Wire the lane
+
+- A template vertex slot and the `ink_rows` layout (one storage buffer at group 3).
+
+<!-- file: 04c session_viewer/src/engine/pipelines/mod.rs type -->
+
+<!-- file: 04c session_viewer/src/engine/pipelines/layouts.rs type -->
+
+<!-- file: 04c session_viewer/src/engine/gpu/upload.rs type -->
+
+- Markers draw after strokes so their full footprint stays on top of the edges they sit on.
+
+<!-- file: 04c session_viewer/src/engine/gpu/mod.rs type -->
+
+<!-- file: 04c session_viewer/src/fixture.rs copy -->
+
+<!-- file: 04c session_viewer/src/lib.rs type -->
+
+<!-- file: 04c session_viewer/index.html copy -->
+
+## Check
+
+<!-- checkpoint: 04c -->
+
+Expected:
+
+- Triangle, polyline, and one orange dot below the triangle.
+- Status reads **Checkpoint 04c · 3 objects**.
+- Zoom out: the dot shrinks with its world radius, then holds at the pen width.
+
+## What changed
+
+<!-- tree: 04c session_viewer/src/engine -->
+
+- Data flow: `GlyphRows` → `GlyphTable` → group 3 → `sphere.wgsl` (instanced template) or `glyph.wgsl` (vertex-pulled triangles).
+
+**Production equivalent:** `src/engine/gpu/glyphs.rs`, `src/shaders/sphere.wgsl`, `src/shaders/glyph.wgsl`.
+
+## Next
+
+[04d · Point clouds](04d-clouds.md): the cloud tables, the LOD walk, and the splat prelude that resolves into the face pass.

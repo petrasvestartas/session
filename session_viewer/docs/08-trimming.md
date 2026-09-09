@@ -1,49 +1,74 @@
-# 08 · Respect holes and periodic seams
+# 08 · Trims, holes and periodic seams
 
-**Start:** checkpoint 07. **Finish:** trimmed surfaces, natural boundaries and repeated seam uses retain correct geometry and source mappings.
+## You are building
 
-## A parameter rectangle is not always a face
-
-An untrimmed NURBS surface has a natural parameter domain. A trimmed face uses outer and inner loops to select part of that domain. Triangulating the whole rectangular grid and merely drawing a hole curve on top does not create a hole; the fill must exclude the trimmed-out region.
-
-```text
-surface domain + outer loop + inner loops
-                     ↓ constrained UV triangulation
-             triangles inside the allowed region
-                     ↓ evaluate/lift with boundary XYZ constraints
-                 trimmed 3D face and source chains
+```mermaid
+flowchart TB
+    A["surface domain<br/>+ outer loop + inner loops"] -- "constrained UV triangulation" --> B["triangles inside the allowed region"]
+    B -- "lift with boundary XYZ" --> C["trimmed 3D face + chains"]
+    C -- "walk_surface" --> D["arena rows + pipes"]
+    D -- "map_surface_boundaries" --> E["pipe_ids: u-min / u-max / v-min / v-max"]
 ```
 
-The constrained mesher inserts trim segments as constraints, classifies allowed regions and preserves boundary provenance. The viewer consumes the resulting face triangles and chains; it does not infer holes from screen-space linework.
+## Starting point
 
-## Periodic surfaces repeat coordinates
+- Checkpoint 07: BRep faces share one canonical boundary polygon; every pipe of a BRep edge carries its source edge ID.
+- A standalone NURBS surface still tessellates its whole natural UV rectangle and its pipes have no source IDs.
+- This lesson changes only the viewer consumer. The constrained mesher and `TrimLoops` already exist in the kernel.
 
-A cylinder's seam can be the same 3D curve used on two sides of the parameter domain. Those uses may have opposite orientation and different UV coordinates. Keep both face-use meanings even when their XYZ samples coincide.
+## Step 1 · Prefer the producer's cached trim mesh
 
-A collapsed pole is another special case: multiple parameter samples can map to one point. A zero-length geometric edge should not become a long invalid stroke. Its topology can still exist in source data. Distinguish unavailable display length from missing source identity.
+- Triangulating the full rectangle and drawing a hole curve on top does not make a hole. The fill must exclude the region, so the constrained mesh cached on the surface wins over a fresh grid.
+- `first_pipe` remembers where this surface's pipes start so only those get boundary IDs.
 
-Natural boundaries belong to untrimmed surface limits. Trimmed loops belong to actual trim uses. Do not invent visible trim curves for a region the source never defined.
+<!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1 -->
 
-## Keep identity independent of triangle order
+## Step 2 · Name natural boundaries from UV, not from triangle order
 
-Reordering triangles for storage or rebuilding a constrained mesh must not change which source edge is selected. Boundary intervals and original edge tables supply that identity. Approximate nearest-position matching cannot distinguish repeated seam uses reliably.
+- A natural boundary is a domain limit: `u == start`, `u == end`, `v == start`, `v == end`. A closed direction has no physical edge there, so a periodic seam never gets a boundary ID.
+- Two vertices of one pipe share exactly one boundary bit → that bit is the source ID. Interior creases and seams stay `u32::MAX`: unavailable, never invented from a triangulation index.
+- Keys are exact position bits; no weld tolerance enters.
+- Everything from `#[cfg(test)]` down is the module's unit tests: COPY.
 
-The same logic applies to F10: control points come from the original surface/curve definition, not from every display subdivision inserted by the mesher.
+<!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2 -->
 
-## Write the files
+<!-- check: 08 -->
 
-Follow [Complete file changes for 08](../lessons/08/index.md). This stage updates the surface/boundary consumer using the producer contract already established in lesson 07. Read the handling of natural boundaries, trims and periodic uses beside the returned chain IDs.
+## Step 3 · Fixture: a curved trimmed patch and a torus
 
-## Checkpoint
+- The patch is a degree-2 surface with a square outer loop and a circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
+- The torus is periodic in both directions: same XYZ curve, two face uses, different UV.
 
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
-```
+<!-- file: 08 session_viewer/src/fixture.rs copy -->
 
-At <http://localhost:8780/?data=off&inspect=1>, inspect the trimmed fixture from above and obliquely. The hole must remain empty in the fill, not merely outlined. Boundaries should remain attached while orbiting. A seam can be visible ink even though the surface is geometrically smooth across it.
+## Step 4 · Stage bump
 
-If a periodic boundary crosses the wrong part of the surface, inspect UV branch choice and oriented use mapping before changing stroke depth.
+<!-- file: 08 session_viewer/src/lib.rs type -->
 
-**Before continuing:** explain why a seam and a sharp shading crease are different concepts. Continue to [normals and shading](09-normals.md).
+<!-- file: 08 session_viewer/index.html copy -->
+
+## Check
+
+<!-- checkpoint: 08 -->
+
+Expected:
+
+- The patch shows a real hole in the fill, not a drawn circle over a filled surface.
+- Orbit: boundary ink stays attached to the patch and to the torus.
+- The torus seam is visible as ink on a geometrically smooth surface; the surface has no lighting break there.
+- Status shows **2 objects**.
+
+If a periodic boundary crosses the wrong part of the surface, inspect the UV branch and the oriented use mapping before touching stroke depth.
+
+## What changed
+
+<!-- tree: 08 session_viewer/src/app -->
+
+- Data flow: cached `m_mesh` → `walk_mesh` → pipes → `map_surface_boundaries` → `pipe_ids`.
+- A seam and a shading crease are different things: a seam is repeated parameter coordinates, a crease is a lighting discontinuity. Lesson 09 handles the second.
+
+**Production equivalent:** `src/app/walk/brep.rs` (`walk_surface`, `map_surface_boundaries`), kernel `session_rust/src/nurbssurface_trimmed.rs`.
+
+## Next
+
+[09 · Normals and shading](09-normals.md): analytic normals, singular fallbacks, C0 splits and the affine normal transform.

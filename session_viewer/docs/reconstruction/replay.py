@@ -101,6 +101,44 @@ def copy_assets(workspace, step):
         shutil.copy2(source, target)
 
 
+def copy_supplied(workspace, steps):
+    """Materialize the series in a scratch tree and copy only the files the course supplies."""
+    import importlib.util
+    import tempfile
+    spec = importlib.util.spec_from_file_location("course_pages", HERE.parent / "course_pages.py")
+    course = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(course)
+    scratch = HERE.parent.parent / "target/docs"
+    scratch.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="course-supplied-", dir=scratch) as temporary:
+        scratch = Path(temporary) / "workspace"
+        initialize(scratch)
+        run(["git", "init", "--quiet"], scratch, dict(os.environ), Path(temporary) / "logs/init.log")
+        env = dict(os.environ)
+        for step in steps:
+            apply_step(scratch, step, env, Path(temporary) / "logs" / step["id"])
+        for step in steps:
+            copy_assets(workspace, step)
+            names = [name for name in step["files"] if course.supplied(name)]
+            for name in names:
+                source = scratch / name
+                if not source.is_file():
+                    continue
+                target = safe_path(workspace, name)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
+        removed = set()
+        for index, step in enumerate(steps[1:], 1):
+            for name in steps[index - 1]["files"]:
+                if name not in step["files"] and course.supplied(name):
+                    removed.add(name)
+        for name in removed:
+            if name not in steps[-1]["files"]:
+                target = safe_path(workspace, name)
+                if target.is_file():
+                    target.unlink()
+
+
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
     """Serve a checkpoint without mixing resource requests into build diagnostics."""
 
@@ -152,6 +190,8 @@ def main():
                         help="extract pinned shared prerequisites before typing checkpoint 00")
     parser.add_argument("--copy-assets", action="store_true",
                         help="copy only the hash-checked binary inputs before adopting manual edits")
+    parser.add_argument("--copy-supplied", action="store_true",
+                        help="copy binary inputs plus the supplied tooling files (tests, examples, parity ports) through --through")
     parser.add_argument("--advance", action="store_true",
                         help="advance a previously reconstructed, unchanged workspace")
     parser.add_argument("--adopt", action="store_true",
@@ -166,7 +206,7 @@ def main():
     args = parser.parse_args()
     if args.from_step and not args.verify_clean:
         parser.error("--from-step requires --verify-clean")
-    if sum((args.advance, args.verify_clean, args.adopt, args.initialize_only, args.copy_assets)) > 1:
+    if sum((args.advance, args.verify_clean, args.adopt, args.initialize_only, args.copy_assets, args.copy_supplied)) > 1:
         parser.error("choose one reconstruction mode")
     workspace = args.output.resolve()
     if args.initialize_only:
@@ -183,6 +223,12 @@ def main():
         for step in steps:
             copy_assets(workspace, step)
         print(f"Binary inputs copied through {steps[-1]['id']}; source edits remain untouched")
+        return
+    if args.copy_supplied:
+        if not (workspace / "session_viewer").is_dir():
+            parser.error("--copy-supplied requires an existing manual viewer workspace")
+        copy_supplied(workspace, steps)
+        print(f"Supplied tooling and binary inputs copied through {steps[-1]['id']}; taught sources remain untouched")
         return
     env = dict(os.environ, REGEN_PROTO="0", NO_COLOR="true", PYTHONDONTWRITEBYTECODE="1")
     if args.target_dir:

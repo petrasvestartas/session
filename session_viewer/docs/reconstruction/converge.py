@@ -4,7 +4,10 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-import replay
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import replay  # noqa: E402
 
 
 HERE = Path(__file__).resolve().parent

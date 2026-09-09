@@ -159,7 +159,7 @@ def main():
         for name, settings in CAMERAS.items():
             for samples in (1, 4):
                 stem = f'{case["kind"]}-{name}-{samples}'
-                knobs = dict(environment, VIEWER_SELECT="selected target", VIEWER_NO_GRID="1",
+                knobs = dict(environment, VIEWER_SELECT="selected target", VIEWER_NO_GRID="1", VIEWER_OUTLINES="1",
                              BENCH_NO_MARKERS="1", VIEWER_NO_BACKFACE="1", VIEWER_MSAA=str(samples),
                              VIEWER_W=str(WIDTH), VIEWER_H=str(HEIGHT), **settings)
                 actual, reference, camera = captures(options, fixtures, case, stem, knobs)

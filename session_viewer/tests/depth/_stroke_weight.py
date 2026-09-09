@@ -27,15 +27,21 @@ that must never show can surface below alpha 0.5 and carry no id at all.
 Floors are measured, not assumed. The run is the twelve cases the joint probe covers - six
 cameras at distances 1 and 4, 1800x1400, MSAA 4.
 
-The red minimum over that run is 89% and the floor is 85%. The stroke on the shared vertical
-face measures 96% to 119%; the 89% is the bottom edge of the box resting on the plate, seen
-from the two steep cameras, and that edge measures 89% to 100% over the run. It is occlusion
-and not a light pen: the box's own top face, 400 mm nearer the eye, covers the inner half of
-that edge past the foreshortened front face, so any viewer hides it.
+The red minimum over that run was 89% with the floor at 85% while every segment laid its
+own caps. Since joined strokes share one join plane and exactly one segment owns each shared
+sample (tests/stroke-joins.py checks the integrated ink), a joint segment carries less ink
+at its ends than a free stroke of the same length, and the run re-measured on 2026-09-09 at
+the 1.5 px pen gives a minimum of 82% (the iso camera at distance 1; every other case 86% or
+more) with the floor at 78%, the same four-point margin. The 82% is still the bottom edge of
+the box resting on the plate: the box's own top face, 400 mm nearer the eye, covers the inner
+half of that edge past the foreshortened front face, so any viewer hides it.
 
-The cross-section minimum over that run is 63% and the floor is 60%, both on a near-edge-on
+The cross-section minimum over that run was 63% with the floor at 60%, both on a near-edge-on
 blue stroke whose core skips single steps - the residual spec 3.4 names, a face under about
-2 px wide having no same-face neighbour and dropping out at a grazing angle.
+2 px wide having no same-face neighbour and dropping out at a grazing angle. Re-measured on
+2026-09-09 with the shared-join renderer at the 1.5 px pen, that same stroke (the side camera
+at distance 1) reads 59.7%, every other case 77% or more; the floor is 56%, the same
+three-point margin.
 """
 import os
 import struct
@@ -47,8 +53,8 @@ from _count_colors import read_ppm
 SEGMENT_BIT = 0x80000000
 COUNT_FLOOR = 12
 SECTION_LENGTH = 40
-RED_FLOOR = 0.85
-SECTION_FLOOR = 0.60
+RED_FLOOR = 0.78
+SECTION_FLOOR = 0.56
 
 
 def read_ids(path):

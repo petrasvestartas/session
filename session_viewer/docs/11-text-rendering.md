@@ -1,61 +1,191 @@
-# 11 · Render readable text at the right size
+# 11 · Text rendering
 
-**Start:** checkpoint 10. **Finish:** shaped text draws with correct coverage, white-on-black backing, placement and resource lifetime.
+## You are building
 
-## Three decisions happen after shaping
+```mermaid
+flowchart TB
+    R["shaped runs<br/>(lesson 10)"] --> P["place()<br/>anchor → physical px + depth"]
+    F["TextFrame<br/>mvp · origin · framebuffer · logical"] --> P
+    P --> G["Glyphon atlas<br/>R8 coverage per raster key"]
+    P --> B["Plates<br/>black rounded quads"]
+    R --> W["Planes<br/>one R8 texture per fixed-plane label"]
+    B -- "draw first" --> pass
+    G -- "anchored (depth GreaterEqual) · overlay (Always)" --> pass
+    W -- "perspective UV quad, depth GreaterEqual" --> pass
+```
+
+## Starting point
+
+- Checkpoint 10: labels are shaped and measured, nothing drawn.
+- Three GPU owners appear: plates (black backing), planes (fixed world text), and the lane that drives Glyphon and both of them.
+
+## Step 1 · Supplied comparison page
+
+The same-font white-on-black comparison page and its WASM export are supplied. Install them first; `lib.rs` declares the module in the last step.
+
+<!-- supplied: 11 -->
+
+## Step 2 · Black plates
+
+- A plate is six vertices in clip space plus the local offset, half size and corner radius the fragment shader needs for a rounded edge.
+- Depth compare `Always`, no depth write: a plate is an overlay and never occludes geometry.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-100 -->
+
+Vertex layout ↔ shader locations:
 
 ```text
-shaped glyphs → place the line → choose physical raster size → coverage atlas
-                        ↓                                  ↓
-                    black plate                    dedicated text drawing
-                        └────────── composite into the frame ──────────┘
+Rust vertex_attr_array (stride 28)          WGSL vs_main
+0 => Float32x2  clip position          ↔  @location(0) position: vec2<f32>
+1 => Float32x2  local offset           ↔  @location(1) local: vec2<f32>
+2 => Float32x2  half size              ↔  @location(2) half_size: vec2<f32>
+3 => Float32    radius                 ↔  @location(3) radius: f32
 ```
 
-Placement determines where the line belongs. Raster size determines how much physical detail its glyphs need. Compositing determines how coverage blends with the black backing and scene. Do not solve a placement or blending bug by changing the original glyph advances.
+<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=101-148 -->
 
-`TextFrame` carries logical/physical viewport information and camera inputs. Apply CSS-to-framebuffer scale once. A label at 14 CSS pixels should remain the same apparent size on a DPR 2 display while receiving roughly twice the raster resolution.
+The signed distance to a rounded rectangle gives one physical pixel of edge coverage; the colour is always black.
 
-## Placement is explicit
+<!-- file: 11 session_viewer/src/shaders/text_plate.wgsl type -->
 
-| Placement | What remains fixed |
-|---|---|
-| Screen | A screen-space position and CSS size |
-| Anchor / Nameplate | A world anchor with screen-oriented presentation |
-| WorldBillboard | World location and height, with orientation following the camera |
-| WorldPlane | World location, right/up axes and height |
+## Step 3 · Fixed world planes: records and resources
 
-A world-plane label foreshortens as you orbit. A billboard turns to face the camera. The original label record keeps those intentions separate; the camera transform does not mutate source text.
+- A `WorldPlane` label keeps one coverage texture per label; the camera only rewrites six vertices.
+- The texture budget is a hard cap independent of the adapter, so one huge label cannot take the scene's memory.
 
-A selected-object name is later placed at the object's bounds center. That center can be inside a solid, so this derived annotation uses its explicit overlay placement. Authored world text retains its own depth/identity behavior.
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-83 -->
 
-## Coverage, padding and rounded plates
+## Step 4 · Planes: prepare
 
-The glyph shader samples actual glyph coverage and composites white letters. A black plate must extend beyond the first/last glyph, including enough horizontal padding for rounded ends. Changing selection must not recolor the glyph fill yellow.
+- Placement and colour changes keep the texture; text, font or a larger projected em rebuilds it.
+- Resolution grows in power-of-two em buckets, so small camera motion never re-rasterizes.
 
-An antialiased fringe is partial coverage, not a gray font color baked into the shape. Its blend mode must match whether color is straight or premultiplied alpha. Compare output against black and gray backgrounds to expose incorrect blending.
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=84-142 -->
 
-Imported PDF outline text has a separate path: its source already contains vector geometry. Preserve those outlines and source positions; do not guess a replacement string/font from the triangles.
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=143-258 -->
 
-## Keep caches bounded and owned
+## Step 5 · Planes: projection, raster and the quad
 
-`TextLane::prepare` updates placement/raster data as needed. `reset` clears current content; `release` returns scene-sized resources. Repeated world-scale changes can generate many raster keys, so the integration evicts safely after its bounded budget without retaining stale draw instances or reshaping unchanged content.
+- `project` keeps clip `w`; the shader divides, so UVs stay perspective-correct across the plane.
+- `rasterize` composites Swash glyph images into one R8 texture at the chosen em size, bearings and baseline included.
+- `append_quad` walks the label's right/up axes in world units; every vertex carries full clip coordinates and the CSS clip in physical pixels.
 
-Resource accounting reports exposed allocations. Glyphon's private GPU capacities are not measured VRAM and must not be reported as though they were directly counted.
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=259-322 -->
 
-## Write the files
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=323-402 -->
 
-Follow [Complete file changes for 11](../lessons/11/index.md). Read the placement records, frame-scale conversion, plate/plane shader inputs and TextLane prepare/draw/release sequence. The complete listings include the dedicated shader and library integration; no text implementation is deferred to a reference link.
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=403-467 -->
 
-## Checkpoint
+Bindings and vertex layout ↔ shader:
 
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
+```text
+Rust bind group layout (group 0)             WGSL
+binding 0  Texture 2D float             ↔  @group(0) @binding(0) var coverage_texture: texture_2d<f32>
+binding 1  Sampler filtering            ↔  @group(0) @binding(1) var coverage_sampler: sampler
+
+vertex_attr_array (stride 56)
+0 => Float32x4  clip position           ↔  @location(0) position: vec4<f32>
+1 => Float32x2  uv                      ↔  @location(1) uv: vec2<f32>
+2 => Float32x4  colour                  ↔  @location(2) color: vec4<f32>
+3 => Float32x4  clip rectangle          ↔  @location(3) clip: vec4<f32>
 ```
 
-Open <http://localhost:8780/?data=off&inspect=1> and the included text-quality reference. Inspect 12/14/16/18/24 CSS-pixel text at normal viewing size. Change browser zoom and resize; letters should retain correct shapes, spacing and unclipped backing.
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=468-492 -->
 
-Orbit a fixed-plane label and a camera-facing label. Content should not reshape merely because the camera moved. Chapter 17 adds source-object identity to every authored orientation, so they can all be selected and hidden.
+<!-- file: 11 session_viewer/src/shaders/text_plane.wgsl type -->
 
-**Before continuing:** distinguish source text, shaped layout, raster cache and placed draw instances. Continue to [picking](12-picking.md).
+A native GPU check for the plane path sits at the end of the file.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs copy lines=493-588 -->
+
+## Step 6 · The text lane: frame input and counters
+
+- `TextFrame` is everything placement needs from the frame: the rebased camera, the anchor origin, physical and logical sizes.
+- `logical` comes from the canvas CSS box, not `devicePixelRatio`; that is what makes browser zoom and DPR both work.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=1-61 -->
+
+## Step 7 · The lane owns Glyphon
+
+- Two renderers share one atlas: `anchored` compares depth `GreaterEqual` (reversed Z, occluded by solids), `overlay` is `Always`.
+- `retarget` follows the scene's sample count without reshaping or dropping the atlas.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-142 -->
+
+## Step 8 · Prepare: place, rasterize, build both draw lists
+
+- The key `(document revision, font revision, frame)` skips the whole preparation when nothing moved.
+- Raster keys are bounded: past the budget the atlas and Swash cache are rebuilt together, so no prepared vertex can point at an evicted glyph.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=143-216 -->
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=217-271 -->
+
+## Step 9 · Draw order, reset, release
+
+Planes first (they are in the scene), then anchored glyphs, then plates, then overlay glyphs on top of their plates.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=272-338 -->
+
+## Step 10 · CSS to physical, once
+
+- `scale()` derives one isotropic raster scale from framebuffer ÷ CSS box and rejects a stretched canvas.
+- `place()` projects only the anchor; behind-camera and out-of-range anchors are culled instead of producing inverted text.
+- A `Nameplate` is centred on the shaped line box and gets no depth: the annotation overlays the solid it names.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=339-429 -->
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=430-546 -->
+
+Native checks for scale, depth, nameplates and cache eviction live in the same file.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs copy lines=547-947 -->
+
+<!-- check: 11 -->
+
+## Step 11 · Wire the lane into the frame
+
+- `write_frame_uniforms` now also prepares text and can fail (a stretched canvas), so it returns a `Result`.
+- Text draws after mesh ink in the same pass, against the same read-only depth.
+
+<!-- file: 11 session_viewer/src/engine/gpu/mod.rs type -->
+
+Three fixture labels: a nameplate above the model, a rounded centred nameplate, and one fixed world plane.
+
+<!-- file: 11 session_viewer/src/lib.rs type -->
+
+The lesson-10 fixture is replaced by the supplied comparison page.
+
+<!-- file: 11 session_viewer/src/text_layout.rs -->
+
+<!-- file: 11 session_viewer/assets/text-layout.html -->
+
+<!-- file: 11 session_viewer/assets/text-quality.html copy -->
+
+<!-- file: 11 session_viewer/index.html copy -->
+
+## Check
+
+<!-- checkpoint: 11 -->
+
+Expected:
+
+- White text on black plates above the model; one rounded plate centred on the scene.
+- Orbit: the fixed-plane label foreshortens and is hidden by solids; the nameplates stay upright and screen-sized.
+- Resize or change browser zoom: glyphs keep their shape and spacing, the plate keeps its padding.
+- The **Compare GPU text** link opens the supplied page with the same fonts side by side.
+
+If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate clips its last glyph, check the padding in `center_nameplate`.
+
+## What changed
+
+<!-- tree: 11 session_viewer/src/engine/gpu -->
+
+- `TextLane` owns Glyphon's atlas, two renderers, plates and planes.
+- Data flow: shaped run → `place()` → physical position + depth → atlas / R8 texture → three draws in the scene pass.
+
+**Production equivalent:** `src/engine/gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `src/shaders/text_plate.wgsl`, `text_plane.wgsl`. Lesson 17 gives authored text a source row; lesson 18 changes the selected colours and rounds every plate.
+
+## Next
+
+[12 · Production shell and picking](12-picking.md): the winit application, `State`, and GPU picking with an integer ID pass.

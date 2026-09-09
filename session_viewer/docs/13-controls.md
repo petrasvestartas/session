@@ -1,57 +1,168 @@
-# 13 · Select original controls, including streamed points
+# 13 · Source controls
 
-**Start:** checkpoint 12. **Finish:** F10 exposes original source controls for one parent; streamed clouds query all relevant source ranges independently of display LOD.
+## You are building
 
-## A control point is not a display vertex
-
-A curve may draw hundreds of segment endpoints from a few NURBS controls. F10 must show the original controls. The same distinction applies to mesh source vertices, BRep topology and surface control grids.
-
-`ControlId` records the source kind and index. `Controls` retains original positions and any control-net connections. Uploading temporary marker rows preserves those IDs; reading back a marker must map to the source control, not its temporary GPU slot.
-
-```text
-Object selection → F10 → Controls { parent, selected source control }
-      ↑                         │
-      └──── Esc keeps parent ───┘
-      └──── next Esc clears selection
+```mermaid
+flowchart TB
+    sel["selected parent"] -- "F10" --> ctl["Controls { points, links } from the source geometry"]
+    ctl -- "upload_controls" --> lanes["controls glyph lane · control_net segment lane"]
+    lanes -- "click → ID pass (PickMode::Controls)" --> pick["Pick { row = parent, sub = control index }"]
+    pick --> id["ControlId::Vertex / Curve / Surface / Point"]
+    id --> yellow["selected marker turns yellow"]
 ```
 
-Repeated F10 is idempotent: it does not append duplicate markers. Entering another parent's mode replaces the old one. Hiding/replacing a parent invalidates controls and pending answers.
+Streamed clouds display a bounded prefix, so a click must ask the source, not the screen:
 
-## Display LOD is not a selection cutoff
-
-A cloud may display a bounded subset of millions of points. Selecting source points must not silently ignore everything beyond that subset. The source-query coordinator traverses every relevant node range in bounded pages and tests candidate visibility.
-
-The GPU accumulates the closest visible source answer across pages. A later page can contain a nearer occluder, so the application does not announce a final winner until all eligible pages finish. It then reads the original ID and exact source position for the winner.
-
-```text
-click + camera + source revision
-          ↓ eligible source node ranges
-          ↓ bounded page fetch
-          ↓ candidate ID visibility (repeat for every page)
-          ↓ final original ID / position
-       selected control, even outside displayed LOD
+```mermaid
+flowchart TD
+    click --> ranges["eligible source node ranges (octree ∩ click window)"]
+    ranges --> page["fetch one bounded page (HTTP Range)"]
+    page --> cand["candidates within the window"]
+    cand --> gpu["GPU ID pass accumulates nearest visible point"]
+    gpu -- "more pages" --> page
+    gpu -- "all pages done" --> resolve["range-read original fixed32 ID + exact position"]
+    resolve --> marker["one yellow marker at the source position"]
 ```
 
-Cancellation belongs to the query generation. A camera change retires both HTTP completions and GPU readback. Candidate pages are ID targets, not temporary color frames shown to the user.
+## Starting point
 
-## Keep source query and ordinary input understandable
+- Checkpoint 12: clicks select objects and edges. `Gpu` already owns empty `controls` and `control_net` lanes.
+- A display vertex is not a control: a curve draws hundreds of chords from a few control points. F10 must show the original ones.
 
-In the final architecture, `state/cloud_query.rs` contains the page/query coordination methods; `app/cloud_query.rs` owns the source query data and range logic. The mechanical split appears with final convergence in chapter 18. State still owns the operation, so there is no second scene or selection controller.
+## Step 1 · Control identities
 
-## Write the files
+- `ControlId` names a control within its parent's source geometry; the GPU slot it was uploaded to is temporary.
+- `enable_controls` is idempotent: pressing F10 on the same parent does nothing, so markers are never duplicated.
 
-Follow [Complete file changes for 13](../lessons/13/index.md). Read source control collection first, then the selection mode transitions and marker upload. Finally trace one cloud page from request to candidate visibility to original-ID resolution.
+<!-- file: 13 session_viewer/src/app/selection.rs type hunks=1 -->
 
-## Checkpoint
+- `Controls::from_geometry` reads real source data: mesh vertex keys, BRep vertices, curve and surface control nets with their links. Tessellation vertices are never substituted.
 
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
-```
+<!-- file: 13 session_viewer/src/app/selection.rs type hunks=2 -->
 
-Select each family in the local fixture, press F10, click a source control, press F10 again and verify no duplication. Escape returns to the parent; the next Escape clears it. Switch parents and confirm old controls disappear.
+## Step 2 · Fetching and source-query records
 
-The maintained streamed fixture selects original ID `0xfedcba98` beyond row six million while displaying 250,000 points. It also delays a page, changes input and verifies cancellation. The fixture is a virtual range server, so it does not need to write a huge cloud file to disk.
+These two modules are new and undeclared, so the crate still builds after them.
 
-**Before continuing:** explain why the query cannot stop after its first apparently visible point. Continue to [loading](14-loading.md).
+- `fetch::get` refuses a `200` answer to a `Range` request: that would be the whole file.
+- Every request owns a deadline; dropping it clears the timer.
+
+<!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-121 -->
+
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-158 -->
+
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=159-214 -->
+
+- `QueryView` freezes the click's projection; every page is tested against the same matrix and pixel window.
+- A cube crossing the eye plane cannot be excluded, so `intersects` returns true for it.
+
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=1-124 -->
+
+- `eligible_ranges` walks every octree node, resident or not, and falls back to a full bounded scan when the node table does not cover all rows.
+
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=125-195 -->
+
+- `Query` owns the cancellation token; superseding input drops the query and every callback in flight checks the token before posting.
+
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=196-270 -->
+
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-455 -->
+
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=456-585 -->
+
+<!-- check: 13 -->
+
+## Step 3 · Wire parsing for streamed clouds
+
+The protobuf headers sit in the first few kilobytes and `coords` is packed, so the point count is known before a byte of payload is read. Mechanical, so copy it.
+
+<!-- file: 13 session_viewer/src/app/stream.rs copy -->
+
+## Step 4 · Picking controls
+
+- `PickMode::Controls` restricts the ID pass to the temporary control markers of one parent.
+- A source query keeps the physical depth and accumulates point IDs across pages: the first page clears the IDs, later pages load them.
+
+<!-- file: 13 session_viewer/src/engine/gpu/pick.rs type -->
+
+- Control markers draw after the silhouette; a source-query page draws only source-point IDs and returns before the ordinary ink IDs.
+
+<!-- file: 13 session_viewer/src/engine/gpu/render.rs type -->
+
+## Step 5 · State transitions
+
+- `controls` are the current parent's source controls; `cloud_query` is the in-flight page loop.
+
+<!-- file: 13 session_viewer/src/state.rs type hunks=1-3 -->
+
+- Clearing, resizing, touching and selecting all reset controls; the marker size depends on the logical-to-physical scale, so a resize re-uploads them.
+
+<!-- file: 13 session_viewer/src/state.rs type hunks=4-8 -->
+
+- A control answer is accepted only when its row is still the active parent.
+
+<!-- file: 13 session_viewer/src/state.rs type hunks=9-10 -->
+
+- While a source-query page owns the GPU readback, no colour frame is presented: the candidate page is an ID target, not a picture.
+
+<!-- file: 13 session_viewer/src/state.rs type hunks=11-13 -->
+
+- A click in control mode picks controls; a click on a streamed cloud's controls starts the page loop instead.
+
+<!-- file: 13 session_viewer/src/state.rs type hunks=14 -->
+
+- `enable_controls` reads the source geometry once; a display-only object without source reports that instead of inventing controls.
+
+<!-- file: 13 session_viewer/src/state.rs type hunks=15 -->
+
+- `upload_controls` resets both lanes before appending, which is what makes repeated F10 idempotent.
+- `apply_control` decodes the marker's sub-ID tag; a cloud control resolves through the cloud lane's row map.
+- The page loop: `start_cloud_query` → `advance_cloud_query` → `cloud_query_batch` (upload candidates as ID targets, request a pick) → `apply_cloud_query_pick` (fold the winner) → next page → `cloud_query_resolved`.
+
+<!-- file: 13 session_viewer/src/state.rs type hunks=16 -->
+
+- The selected name is hidden while controls are shown; the inspection snapshot lists the controls.
+
+<!-- file: 13 session_viewer/src/state.rs type hunks=17-19 -->
+
+## Step 6 · Key, message and loader wiring
+
+<!-- file: 13 session_viewer/src/app/input.rs type -->
+
+<!-- file: 13 session_viewer/src/lib.rs type -->
+
+<!-- file: 13 session_viewer/src/app/mod.rs type -->
+
+<!-- file: 13 session_viewer/src/app/inspection.rs copy -->
+
+- The streamed fixture is opt-in (`?scene=stream-test.yaml`) and reads a bounded display prefix while keeping every source row reachable.
+
+<!-- file: 13 session_viewer/src/app/loader.rs type -->
+
+<!-- file: 13 session_viewer/src/app/scene.rs copy -->
+
+## Check
+
+<!-- checkpoint: 13 -->
+
+Expected:
+
+- Select the curve, press F10: its control points appear as blue markers joined by the control polygon.
+- Click a marker: it turns yellow and the status names its `ControlId`.
+- Press F10 again: nothing is added.
+- Escape: markers disappear, the parent stays selected. Escape again: nothing selected.
+- Select the surface and press F10: a control net, not the tessellation grid.
+
+## What changed
+
+<!-- tree: 13 session_viewer/src -->
+
+- `SelectionMode::Controls` joins `Object` and `Edge`; all three keep exactly one parent.
+- Data flow: source geometry → `Controls` → temporary marker rows → ID pass → `ControlId`.
+- Streamed clouds: click → eligible source ranges → bounded pages → GPU visibility per page → original fixed32 ID.
+
+**Production equivalent:** `src/app/selection.rs`, `src/app/cloud_query.rs`, `src/app/fetch.rs`, `src/app/stream.rs`; the page-loop methods move from `state.rs` into `src/state/cloud_query.rs` in lesson 18.
+
+## Next
+
+[14 · Loading scenes](14-loading.md): manifests, protobuf documents, validation and safe replacement through the real loader.

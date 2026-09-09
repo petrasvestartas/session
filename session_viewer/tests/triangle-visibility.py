@@ -77,7 +77,7 @@ def main():
     # The exact 766-sample oracle was measured with a 1.5 px pen, independent of UI defaults.
     knobs = {"VIEWER_W": str(WIDTH), "VIEWER_H": str(HEIGHT), "VIEWER_MSAA": "1",
              "VIEWER_THICKNESS": "1.5",
-             "VIEWER_NO_OUTLINES": "1", "VIEWER_NO_GRID": "1", "VIEWER_NO_BACKFACE": "1",
+             "VIEWER_NO_GRID": "1", "VIEWER_NO_BACKFACE": "1",
              "BENCH_NO_MARKERS": "1"}
     environment = {key: value for key, value in os.environ.items() if not key.startswith("VIEWER_")}
     environment.update(knobs)

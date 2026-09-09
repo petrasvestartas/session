@@ -1,43 +1,102 @@
-# 03 · Keep source identity while batching drawing
+# 03 · Object rows and identity
 
-**Start:** checkpoint 02. **Finish:** two styled instances share the rendering machinery and retain distinct identities.
+## You are building
 
-## An object is more than its triangles
-
-A source object has an identity, placement, style and bounds. Its display can contain many triangles or segments. A GPU row is an efficient address within the current scene revision; it is not a persistent CAD identifier.
-
-![Source, display preparation and GPU resources have separate owners.](illustrations/ownership.svg)
-
-Read the instance record as the contract between source objects and drawing. Positions can share a geometry buffer while an object row supplies the model transform, color and flags. That allows selection and hiding to update a small row without regenerating a mesh.
-
-`struct` groups named fields. `impl` defines operations on that type. `Vec<T>` owns a growable sequence of `T`; a slice such as `&[T]` borrows a sequence without taking ownership. Passing grouped records makes call sites easier to understand than passing many unrelated scalars.
-
-## Track both directions
-
-Preparation maps source identity to a row and appends display data. Picking will later return that row, and Scene must map it back to the original document/object. Multiple placed instances of one source document still need distinct instance addresses.
-
-Do not search for an object by approximately matching triangle positions. Coincident objects can have different identities; one object can have many tessellation vertices. Preserve explicit source maps as data is produced.
-
-## Rust memory is not automatically WGSL memory
-
-`#[repr(C)]` makes Rust field layout predictable, but WGSL has its own alignment rules. A three-component vector can occupy sixteen-byte aligned space in a shader record. Read field sizes, padding, array stride and binding size together. The final layout tests validate offsets as well as total record size.
-
-Flags are bit fields: selecting an object sets a bit while preserving its other flags. Later visibility caching must distinguish a hidden-state change from a color/selection change, because only the former changes physical occluders.
-
-## Write the files
-
-Follow [Complete file changes for 03](../lessons/03/index.md). Add the instance contract and source-to-row mapping, then wire the uploads and drawing. Read the complete shader bindings alongside their Rust layouts.
-
-## Checkpoint
-
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
+```mermaid
+flowchart TB
+    src["SourceObject<br/>guid · revision"] -- "row" --> inst["Instance<br/>model · color · flags"]
+    inst -- "bytemuck · STORAGE buffer" --> buf["instances[]"]
+    buf -- "@group(0) @binding(1)" --> vs["vs_main(instance_index)"]
+    draw["draw(0..3, row..row+1)"] --> vs
+    vs --> px["two tinted, placed triangles"]
 ```
 
-At <http://localhost:8780/?data=off&inspect=1>, expect two independently styled objects. Orbit and zoom: their relative placement remains fixed while the camera moves. The checkpoint inspection reports two objects.
+![A repr(C) struct is cast to bytes, written to a buffer, attached by a bind group at a group and binding, and declared again in WGSL.](illustrations/gpu-data.svg)
 
-A wrong stride commonly makes the first object correct and later objects corrupt. A wrong source map can look visually correct until selection returns another object. Both are representation bugs, so preserve the explicit mapping now.
+![The 96-byte Instance layout and the vec3 alignment trap.](illustrations/vertex-layout.svg)
 
-**Before continuing:** explain why a row can change after scene replacement while a source GUID remains stable. Continue to [drawing modules](04-modules.md).
+## Starting point
+
+- Checkpoint 02: one triangle, one camera uniform.
+- Same geometry drawn twice with different placement and tint. Identity lives on the CPU; the GPU only sees rows.
+
+## Step 1 · The object row
+
+- One 96-byte record per object, indexed by `instance_index` in every instance-reading shader. Flags are bits: selecting sets bit 0 and keeps the rest.
+- The translation column of `model` is zero; the anchored translation gets its own table later (group 2, binding 1).
+- The size assertion is compile-time: a wrong stride fails `cargo check`, not the picture.
+
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
+
+The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones. Those lanes arrive in the next lessons; the browser build never compiles this block.
+
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=58-234 -->
+
+## Step 2 · Declare the engine module tree
+
+<!-- file: 03 session_viewer/src/engine/gpu/mod.rs type -->
+
+<!-- file: 03 session_viewer/src/engine/mod.rs type -->
+
+## Step 3 · Source identity is separate from the row
+
+- A `guid` and `revision` identify what the object *is*; the row says how it is drawn this revision.
+- Picking will return a row; the scene must map it back. Never search for an object by matching triangle positions.
+
+<!-- file: 03 session_viewer/src/scene.rs type -->
+
+<!-- check: 03 -->
+
+## Step 4 · Rust layout ↔ WGSL layout
+
+Same bytes on both sides, read through different type systems:
+
+```text
+Rust `Instance`            offset   WGSL `struct Instance`
+model: [f32; 16]              0     model: mat4x4<f32>
+color: [f32; 4]              64     color: vec4<f32>
+flags: u32                   80     flags: u32
+thickness: f32               84     thickness: f32
+spacing: f32                 88     spacing: f32
+_pad: u32                    92     pad: u32
+size                         96     array stride
+```
+
+- `@builtin(instance_index)` is the `row` of `draw(0..3, row..row + 1)`.
+- `@group(0) @binding(1) var<storage, read>` mirrors the `BufferBindingType::Storage { read_only: true }` entry added in the next step.
+
+<!-- file: 03 session_viewer/src/shaders/first.wgsl type -->
+
+## Step 5 · Bind the rows and draw each one
+
+- The layout gains binding 1; the bind group supplies the storage buffer; one draw per row.
+- `objects` stays on the CPU side of the shell, so the status can report a count that comes from source data rather than from the GPU.
+
+<!-- file: 03 session_viewer/src/lib.rs type -->
+
+<!-- file: 03 session_viewer/index.html copy -->
+
+## Check
+
+<!-- checkpoint: 03 -->
+
+Expected:
+
+- Two triangles, one orange on the left, one blue on the right.
+- Status reads **Checkpoint 03 · 2 objects**.
+- Orbit and zoom: the two keep their relative placement.
+
+A wrong stride shows as a correct first object and a corrupt second one. A wrong source map looks fine until selection returns the other object.
+
+## What changed
+
+<!-- tree: 03 session_viewer/src -->
+
+- `engine::gpu::instance::Instance` is the row contract between scene and shaders.
+- Data flow: `SourceObject.row` → storage buffer → `instances[instance_index]` → placed, tinted vertex.
+
+**Production equivalent:** `src/engine/gpu/instance.rs` is production. `src/scene.rs` is a teaching stand-in for `src/app/scene.rs`, which replaces it in lesson 12.
+
+## Next
+
+[04a · Meshes on the GPU](04a-meshes.md): vertex and index buffers, the mesh arena, and the first real drawing module.

@@ -41,6 +41,11 @@ jobs:
         run: rustup target add wasm32-unknown-unknown
       - name: Install trunk
         run: curl -sL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf- -C "$HOME/.cargo/bin"
+      # The course site is served next to the viewer at /docs/. docs/build_site.sh (Trunk's
+      # pre-build hook) needs uvx to render MkDocs; without it the hook writes a placeholder.
+      - uses: astral-sh/setup-uv@v6
+      - name: Build the course site
+        run: cd session_viewer && docs/serve.sh build --quiet
       # `assets/pb` is the LOCAL scene's geometry - untracked, and deliberately not deployed:
       # the published page reads its scene from R2, never from here. index.html still copies the
       # directory, so it has to exist; empty is exactly right.

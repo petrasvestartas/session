@@ -1,57 +1,70 @@
-# 15 · Publish immutable geometry and reuse it
+# 15 · Publication and streamed reads
 
-**Start:** checkpoint 14. **Finish:** geometry revisions are verified before manifests refer to them, and streamed metadata reads avoid needless serial requests.
+## You are building
 
-## Publish references only after their target is valid
-
-```text
-local geometry → content hash → upload immutable revision → verify bytes
-                                                            ↓
-                                           stable alias when needed
-                                                            ↓
-                                                publish scene manifest
-                                                            ↓
-                                                browser revalidation
+```mermaid
+flowchart TB
+    C["cloud .pb<br/>length-delimited fields"] -- "header read at `at`" --> W["MetadataWindow<br/>at · bytes"]
+    W -- "slice hit" --> P["parse tag · length"]
+    W -- "slice miss → source_range(at, ≥64 KiB)" --> W
+    P -- "large geometry field" --> S["skip by length"]
+    P -- "small LOD array" --> L["lod.set_field"]
+    S --> P
 ```
 
-A mutable manifest can change placement or style while continuing to reference the same immutable geometry hash. The browser can then reuse the decoded document. Publishing the manifest first creates a window where it refers to missing or incomplete geometry.
+## Starting point
 
-The existing `view_put.sh` and `view_live.sh` workflows remain the user-facing commands. Their local helpers perform upload, verification and alias/manifest updates. Write credentials stay on the local side; they do not belong in WASM assets or a browser manifest.
+- Checkpoint 14: a streamed cloud locates its arrays with one small range request per protobuf header and one per array body.
+- This lesson keeps the same parse and adds a bounded read-ahead window, so adjacent small fields share one request while large arrays are still skipped by length.
 
-## Failure must preserve the prior valid scene
+## Step 1 · A bounded window over the metadata
 
-A failed geometry upload or verification prevents the manifest update. Repeated unchanged geometry verifies and reuses its revision instead of sending another full payload. Placement/style metadata remains intact rather than being rebuilt from a lossy minimal manifest.
+- Skipped geometry fields never decide the window's size: `read_length` reads at least 64 KiB inside the file, larger only for an array that is itself larger, and never past `end`.
+- `slice` borrows an exact cached range, including a valid empty range at the window's end.
 
-The course includes local mock publication tests for ordering, failed upload, failed verification and unchanged-content reuse. Run those without an R2 account. Real publication is an external action and is not required to learn or verify this checkpoint.
+<!-- file: 15 session_viewer/src/app/stream.rs type hunks=1,2 -->
 
-## Reduce requests without guessing the file layout
+## Step 2 · Refill only on a jump
 
-Streamed protobuf metadata contains length-delimited fields. The loader can skip large payload ranges after reading their headers. Small metadata fields near the end can share a bounded cached range instead of requesting each header and body serially.
+- `read` reuses the window when the requested range is inside it and replaces it under the same exposed revision otherwise; a changed ETag fails the read instead of mixing two revisions.
 
-`MetadataWindow` retains a bounded tail/read window and validates the exposed source revision. Larger arrays keep their explicit per-array/total bounds. The optimization must not accidentally request an entire point/ID payload just to locate a later field.
+<!-- file: 15 session_viewer/src/app/stream.rs type hunks=3 -->
 
-The earlier matched-density benchmark reduced source requests from 118 to 51 and improved observed loading time. Those historical loading measurements are in [Measurements](measurements.md); they do not establish faster GPU navigation.
+## Step 3 · Route the LOD walk through the window
 
-## Write the files
+The loop is unchanged: headers, skips and array bodies now borrow from `window` instead of issuing their own requests.
 
-Follow [Complete file changes for 15](../lessons/15/index.md). Read metadata range parsing and revision validation, then the local publication helpers. Paths starting `bash/` are siblings of `session_viewer` beneath `$COURSE_WORK`, as shown in the file list.
+<!-- file: 15 session_viewer/src/app/stream.rs type hunks=4,5,6 -->
 
-## Checkpoint
+A unit test of the range rules, part of the file:
 
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
-```
+<!-- file: 15 session_viewer/src/app/stream.rs copy hunks=7 -->
 
-Verify the local viewer still loads, then stop Trunk and run the supplied mock publication test:
+## Step 4 · Publication helpers
 
-```sh
-python3 tests/publication.py
-```
+- Publishing writes the immutable geometry revision first, verifies it, then updates the alias and the mutable manifest, so a manifest never points at missing bytes.
+- Credentials stay in the local shell helpers; nothing in the browser bundle can write to the bucket.
 
- No remote write is needed. A failed verification must leave the old manifest untouched; an unchanged revision must avoid another geometry PUT.
+<!-- supplied: 15 -->
 
-Run the streamed-control fixture from lesson 13 after metadata changes: all source pages and original IDs must remain correct. A lower request count is not a success if source selection becomes incomplete.
+## Check
 
-**Before continuing:** explain how a placement-only update can change the scene with zero new geometry bytes. Continue to [resource accounting](16-verification.md).
+<!-- checkpoint: 15 -->
+
+Expected:
+
+- The local scene loads exactly as at checkpoint 14.
+- A streamed cloud (`?scene=stream-test.yaml` with a local `?data=` server) still shows its display prefix and F10 still reaches source points beyond it.
+
+## What changed
+
+<!-- tree: 15 session_viewer/src/app -->
+
+- `MetadataWindow` sits between `cloud_lod` and `source_range`; header and small-array reads share one cached range.
+- Publication scripts under `bash/` write geometry, verify, alias, then manifest.
+
+**Production equivalent:** `src/app/stream.rs`; `bash/view_put.sh`, `bash/view_live.sh`, `bash/lib/`.
+
+## Next
+
+[16 · Resource accounting](16-accounting.md): what the viewer can and cannot measure about its own memory.

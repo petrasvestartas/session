@@ -1,0 +1,1548 @@
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index 916b554e3a81d47dd7c25468eb20d57fcab8901f..db7adb7684a8e9f4aba1ecc82c375df06f6bf82f 100644
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,9 +1,9 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 04c</title>
++<title>Session checkpoint 04</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04c</output>
++</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -21,7 +21,7 @@ function render() {
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 04c · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 04 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/engine/gpu/cloud.rs b/session_viewer/src/engine/gpu/cloud.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..2d0d147bb20b75f2a9104a4828aa7843ce98ddfd
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/cloud.rs
+@@ -0,0 +1,257 @@
++//! The cloud lane's tables: positions, colours, optional normals, the octree nodes, and one
++//! `Cloud` record per cloud. A cloud's points arrive in CHUNKS (a whole file is one chunk; a
++//! streamed file is a prefix and then slices, interleaved with other files' rows), so a
++//! cloud maps its own point index to lane rows through its chunk list. `CloudRows` is one
++//! upload's delta; `CloudLane` is the GPU side.
++
++use super::buffers::{GpuCtx, GrowBuf, ROWS};
++use super::upload::drop_rows;
++
++/// `nrm_first` value of a cloud without normals.
++pub const NO_NORMALS: u32 = u32::MAX;
++
++/// One upload's contribution to a cloud: points `[from, from + count)` of the cloud, landing
++/// at upload-local row `first`. `from == 0` opens a cloud (and carries its node table and
++/// spacing); a later `from` extends the cloud already open on the same object row.
++pub struct CloudDraw {
++    pub instance: u32,
++    pub from: u32,
++    pub count: u32,
++    pub first: u32,
++    /// Measured point spacing, cloud-local units (drives the splat radius).
++    pub spacing: f32,
++    /// This cloud's slice of the upload's node table; `node_count` 0 = no octree.
++    pub node_first: u32,
++    pub node_count: u32,
++    /// Upload-local first row in the normals table, or `NO_NORMALS`.
++    pub nrm_first: u32,
++}
++
++/// One octree node, read off the file: `first`/`count` are RELATIVE to the cloud's point 0
++/// and `children` are indices RELATIVE to the cloud's node slice (-1 = none).
++#[derive(Clone, Copy)]
++pub struct LodNode {
++    pub center: [f32; 3],
++    pub size: f32,
++    pub spacing: f32,
++    pub first: u32,
++    pub count: u32,
++    pub children: [i32; 8],
++}
++
++/// Points `[from, to)` of a cloud, resident at lane rows starting at `row`.
++#[derive(Clone, Copy)]
++pub struct Chunk {
++    pub from: u32,
++    pub to: u32,
++    pub row: u32,
++}
++
++impl Chunk {
++    /// The lane row of cloud point `i`, which must lie in the chunk.
++    pub fn row_of(&self, i: u32) -> u32 {
++        self.row + (i - self.from)
++    }
++}
++
++/// One cloud as the lane knows it: its object row, its node slice, and the chunks resident
++/// so far. `resident` is the point count the chunks cover, contiguous from 0.
++pub struct Cloud {
++    pub instance: u32,
++    pub spacing: f32,
++    pub node_first: u32,
++    pub node_count: u32,
++    pub nrm_first: u32,
++    pub resident: u32,
++    pub chunks: Vec<Chunk>,
++}
++
++impl Cloud {
++    /// The lane row of cloud point `i`, or `None` past the resident prefix.
++    pub fn row_of(&self, i: u32) -> Option<u32> {
++        for chunk in &self.chunks {
++            if i >= chunk.from && i < chunk.to {
++                return Some(chunk.row_of(i));
++            }
++        }
++        None
++    }
++}
++
++/// One upload's clouds: this file's rows only.
++#[derive(Default)]
++pub struct CloudRows {
++    pub pos: Vec<f32>,
++    pub col: Vec<u32>,
++    pub nrm: Vec<u32>,
++    pub draws: Vec<CloudDraw>,
++    pub nodes: Vec<LodNode>,
++}
++
++impl CloudRows {
++    /// Points in this upload so far - the `first` of the next draw.
++    pub fn point_count(&self) -> u32 {
++        (self.pos.len() / 3) as u32
++    }
++
++    /// Empty every table and hand the allocations back.
++    pub fn drop_rows(&mut self) {
++        drop_rows(&mut self.pos);
++        drop_rows(&mut self.col);
++        drop_rows(&mut self.nrm);
++        drop_rows(&mut self.draws);
++        drop_rows(&mut self.nodes);
++    }
++}
++
++/// The three point buffers as the point lane binds them.
++pub struct PointBufs<'a> {
++    pub pos: &'a wgpu::Buffer,
++    pub col: &'a wgpu::Buffer,
++    pub nrm: &'a wgpu::Buffer,
++}
++
++/// The cloud lane on the GPU: three append-only tables, the node table, the clouds.
++pub struct CloudLane {
++    pos: GrowBuf,
++    col: GrowBuf,
++    nrm: GrowBuf,
++    pub clouds: Vec<Cloud>,
++    pub nodes: Vec<LodNode>,
++    pub point_count: u32,
++}
++
++impl CloudLane {
++    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
++    pub fn allocated_bytes(&self) -> u64 {
++        self.pos.buf.size() + self.col.buf.size() + self.nrm.buf.size()
++    }
++
++    /// Three one-row tables - empty until the first upload fills them.
++    pub fn new(ctx: &GpuCtx) -> Self {
++        Self {
++            pos: GrowBuf::new(ctx, "points.buffer", 4, ROWS),
++            col: GrowBuf::new(ctx, "points.col.buffer", 4, ROWS),
++            nrm: GrowBuf::new(ctx, "points.nrm.buffer", 4, ROWS),
++            clouds: Vec::new(),
++            nodes: Vec::new(),
++            point_count: 0,
++        }
++    }
++
++    /// Append one upload: rows to the tables, nodes to the node table, and each draw either
++    /// opens a cloud or adds a chunk to the one on its object row. Returns whether a buffer
++    /// moved (the point lane must rebind).
++    pub fn append(&mut self, ctx: &GpuCtx, up: &CloudRows) -> bool {
++        debug_assert_eq!(up.col.len() * 3, up.pos.len());
++        let point_base = self.point_count;
++        let nrm_base = self.nrm.len();
++        let node_base = self.nodes.len() as u32;
++
++        let mut moved = self.pos.append(ctx, &up.pos);
++        moved |= self.col.append(ctx, &up.col);
++        moved |= self.nrm.append(ctx, &up.nrm);
++        self.point_count = self.pos.len() / 3;
++        self.nodes.extend_from_slice(&up.nodes);
++
++        for d in &up.draws {
++            let chunk = Chunk {
++                from: d.from,
++                to: d.from + d.count,
++                row: point_base + d.first,
++            };
++            if d.from > 0 {
++                self.extend(d.instance, chunk);
++                continue;
++            }
++            let nrm_first = if d.nrm_first == NO_NORMALS {
++                NO_NORMALS
++            } else {
++                nrm_base + d.nrm_first
++            };
++            self.clouds.push(Cloud {
++                instance: d.instance,
++                spacing: d.spacing,
++                node_first: d.node_first + node_base,
++                node_count: d.node_count,
++                nrm_first,
++                resident: chunk.to,
++                chunks: vec![chunk],
++            });
++        }
++        moved
++    }
++
++    /// Add a chunk to the cloud on object row `instance`; a chunk that does not continue the
++    /// resident prefix is dropped with a warning (the walk cannot address it).
++    fn extend(&mut self, instance: u32, chunk: Chunk) {
++        for cloud in &mut self.clouds {
++            if cloud.instance != instance {
++                continue;
++            }
++            if chunk.from != cloud.resident {
++                log::warn!(
++                    "cloud chunk [{}, {}) does not continue the {} resident points; dropped",
++                    chunk.from,
++                    chunk.to,
++                    cloud.resident
++                );
++                return;
++            }
++            cloud.resident = chunk.to;
++            cloud.chunks.push(chunk);
++            return;
++        }
++        log::warn!("cloud chunk for row {instance} arrived before its cloud; dropped");
++    }
++
++    /// Which cloud a global point row belongs to: (object row, index within that cloud).
++    pub fn row_of(&self, row: u32) -> Option<(u32, u32)> {
++        for c in &self.clouds {
++            for k in &c.chunks {
++                if row >= k.row && row < k.row + (k.to - k.from) {
++                    return Some((c.instance, k.from + (row - k.row)));
++                }
++            }
++        }
++        None
++    }
++
++    /// The three point buffers.
++    pub fn buffers(&self) -> PointBufs<'_> {
++        PointBufs {
++            pos: &self.pos.buf,
++            col: &self.col.buf,
++            nrm: &self.nrm.buf,
++        }
++    }
++
++    /// Points resident across every cloud.
++    pub fn resident(&self) -> u32 {
++        let mut resident = 0;
++        for cloud in &self.clouds {
++            resident += cloud.resident;
++        }
++        resident
++    }
++
++    /// Forget every row and record; capacity stays.
++    pub fn reset(&mut self) {
++        self.pos.reset();
++        self.col.reset();
++        self.nrm.reset();
++        self.point_count = 0;
++        self.clouds.clear();
++        self.nodes.clear();
++    }
++
++    /// Hand every buffer and both lists back; the caller rebinds the point lane.
++    pub fn release(&mut self, ctx: &GpuCtx) {
++        self.reset();
++        self.pos.release(ctx);
++        self.col.release(ctx);
++        self.nrm.release(ctx);
++        self.clouds.shrink_to_fit();
++        self.nodes.shrink_to_fit();
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/lod.rs b/session_viewer/src/engine/gpu/lod.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..c73ec80a6a9f76ecc7d85accd5a281b2c3c5f1ad
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/lod.rs
+@@ -0,0 +1,151 @@
++//! The level-of-detail walk over one cloud's octree: which node ranges to draw this frame,
++//! given how wide each node's point spacing projects on screen. Pure CPU; the point lane
++//! turns the ranges into records.
++
++use super::cloud::{Cloud, LodNode};
++use crate::math::mat_scale;
++
++/// Clouds smaller than this draw WHOLE whatever the LOD cutoff says: nothing to save, and a
++/// node drawn at its own coarser spacing is fatter than the whole cloud.
++const LOD_MIN_POINTS: u32 = 2_000_000;
++
++/// A point range one record covers, cloud-local: rows, spacing, and whether it is an octree
++/// NODE (whose spacing is the real pitch between its points, so the radius has a coverage floor).
++pub struct Range {
++    pub first: u32,
++    pub count: u32,
++    pub spacing: f32,
++    pub tile: bool,
++}
++
++/// One visited octree node during the walk: its range and its parent's slot, so the finest
++/// spacing found below a node can travel back up to it.
++struct Visit {
++    first: u32,
++    count: u32,
++    spacing: f32,
++    parent: usize,
++}
++
++/// What the walk needs from the frame: the eye, the projection, the viewport height, the
++/// cutoff in pixels, and the lane's node table.
++pub struct Projection<'a> {
++    pub eye: [f32; 3],
++    /// Ortho half-height in world mm; 0 in perspective.
++    pub ortho_h: f32,
++    pub height_px: u32,
++    pub lod_px: f32,
++    pub nodes: &'a [LodNode],
++}
++
++/// The walk's scratch and its output, kept between frames so nothing is reallocated.
++#[derive(Default)]
++pub struct LodWalk {
++    pub ranges: Vec<Range>,
++    stack: Vec<(usize, usize)>,
++    visits: Vec<Visit>,
++}
++
++impl LodWalk {
++    /// The ranges one cloud contributes: the whole resident prefix, or the octree nodes whose
++    /// spacing still projects wider than `lod_px` pixels (each node OWNS its subsample, so
++    /// descending only adds detail), every node sized by the finest spacing selected beneath
++    /// it and clipped to the points resident so far.
++    pub fn select(&mut self, p: &Projection, c: &Cloud, model: &[f32; 16]) {
++        self.ranges.clear();
++        if c.node_count == 0 || p.lod_px <= 0.0 || c.resident < LOD_MIN_POINTS {
++            self.ranges.push(Range {
++                first: 0,
++                count: c.resident,
++                spacing: c.spacing,
++                tile: false,
++            });
++            return;
++        }
++
++        let base = c.node_first as usize;
++        let scale = mat_scale(model);
++        self.stack.clear();
++        self.visits.clear();
++        self.stack.push((0, usize::MAX));
++        while let Some((n, parent)) = self.stack.pop() {
++            let Some(node) = p.nodes.get(base + n) else {
++                continue;
++            };
++            if node.first >= c.resident {
++                continue;
++            }
++            let count = node.count.min(c.resident - node.first);
++            let slot = self.visits.len();
++            self.visits.push(Visit {
++                first: node.first,
++                count,
++                spacing: node.spacing,
++                parent,
++            });
++            if projected_spacing(p, node, model, scale) > p.lod_px as f64 {
++                for &child in &node.children {
++                    if child >= 0 {
++                        self.stack.push((child as usize, slot));
++                    }
++                }
++            }
++        }
++
++        for i in (0..self.visits.len()).rev() {
++            let (fine, parent) = (self.visits[i].spacing, self.visits[i].parent);
++            if parent != usize::MAX && fine < self.visits[parent].spacing {
++                self.visits[parent].spacing = fine;
++            }
++        }
++        for v in &self.visits {
++            if v.count > 0 {
++                self.ranges.push(Range {
++                    first: v.first,
++                    count: v.count,
++                    spacing: v.spacing,
++                    tile: true,
++                });
++            }
++        }
++    }
++}
++
++/// How wide a node's spacing projects on screen, in pixels. Everything in metres: the
++/// spacing through the placement scale, the eye distance, and the ortho half-height.
++fn projected_spacing(p: &Projection, node: &LodNode, model: &[f32; 16], scale: f64) -> f64 {
++    let world = node.spacing as f64 * scale * 0.001;
++    let c = node.center;
++    let wx = (model[0] * c[0] + model[4] * c[1] + model[8] * c[2] + model[12]) as f64;
++    let wy = (model[1] * c[0] + model[5] * c[1] + model[9] * c[2] + model[13]) as f64;
++    let wz = (model[2] * c[0] + model[6] * c[1] + model[10] * c[2] + model[14]) as f64;
++    let e = p.eye;
++    let dist =
++        ((wx - e[0] as f64).powi(2) + (wy - e[1] as f64).powi(2) + (wz - e[2] as f64).powi(2))
++            .sqrt()
++            .max(1.0e-6)
++            * 0.001;
++    let frac = if p.ortho_h > 0.0 {
++        world / (2.0 * p.ortho_h as f64 * 0.001)
++    } else {
++        world * 1.7320508 * 0.5 / dist
++    };
++    frac * p.height_px as f64
++}
++
++/// The radius factor `k` of a range: world radius = spacing x scale x px / 6 (a manifest
++/// size of 6 is a full spacing), floored to spacing / 2 for an octree node so discs on a
++/// pitch of `spacing` still tile; then folded with the projection so the shader divides once.
++/// `ortho_h` is in world mm, the radius in metres.
++pub fn radius_factor(r: &Range, px: f32, scale: f64, ortho_h: f32) -> f32 {
++    let mut world_r = (r.spacing as f64).max(1.0e-9) * scale * 0.001 * (px as f64) / 6.0;
++    if r.tile {
++        world_r = world_r.max(r.spacing as f64 * scale * 0.001 * 0.5);
++    }
++    let k = if ortho_h > 0.0 {
++        world_r / (2.0 * ortho_h as f64 * 0.001)
++    } else {
++        world_r * 1.7320508 * 0.5
++    };
++    k as f32
++}
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+index 26518f03a28887e94ae44b83eca59d02c997dbe7..82cadb28703147f7a4de933c9bd845bf9eeb5b9d 100644
+--- a/session_viewer/src/engine/gpu/mod.rs
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -1,17 +1,21 @@
+ //! Teaching coordinator: independent production lanes, before backdrop, text and picking.
+ pub mod arena;
+ pub mod buffers;
++pub mod cloud;
+ pub mod frame;
+ pub mod glyphs;
+ pub mod instance;
++pub mod lod;
+ pub mod objects;
+ pub mod segments;
++pub mod splat;
+ pub mod targets;
+ pub mod text_outline;
+ pub mod upload;
+ pub mod view;
+ use crate::engine::pipelines::{Layouts, Target};
+ use buffers::GpuCtx;
++pub use cloud::{CloudDraw, LodNode, NO_NORMALS};
+ pub use frame::FrameInput;
+ pub use glyphs::GlyphPoint;
+ pub use instance::Instance;
+@@ -32,6 +36,8 @@ pub struct Gpu {
+     pub arena: arena::ArenaLane,
+     pub segments: segments::SegmentLane,
+     pub glyphs: glyphs::GlyphLane,
++    pub cloud: cloud::CloudLane,
++    pub splat: splat::Splat,
+     pub bounds: crate::math::Aabb,
+     pub logical_size: [f64; 2],
+     pub device_type: wgpu::DeviceType,
+@@ -81,6 +87,8 @@ impl Gpu {
+         let arena = arena::ArenaLane::new(&ctx, &layouts, target);
+         let segments = segments::SegmentLane::new(&ctx, &layouts, target);
+         let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
++        let cloud = cloud::CloudLane::new(&ctx);
++        let splat = splat::Splat::new(&ctx, &layouts, target, cloud.buffers());
+         Ok(Self {
+             surface,
+             ctx,
+@@ -93,17 +101,24 @@ impl Gpu {
+             arena,
+             segments,
+             glyphs,
++            cloud,
++            splat,
+             bounds: crate::math::Aabb::empty(),
+             logical_size: [1.0; 2],
+             device_type,
+         })
+     }
+-    /// Append each upload delta once; every lane keeps its own rows.
++    /// Append each upload delta once; only moved cloud buffers require a point-lane rebind.
+     pub fn set_scene(&mut self, up: &Upload) {
+         self.objects.append(&self.ctx, &self.layouts, &up.obj);
+         self.arena.append(&self.ctx, &up.arena);
+         self.segments.append(&self.ctx, &self.layouts, &up.seg);
+         self.glyphs.append(&self.ctx, &self.layouts, &up.glyph);
++        if self.cloud.append(&self.ctx, &up.cloud) {
++            self.splat
++                .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
++        }
++        self.splat.invalidate();
+         self.bounds.union(&up.bounds);
+     }
+     /// Recreate size-dependent targets and groups; chapter05 adds budgeted multisampling.
+@@ -124,6 +139,7 @@ impl Gpu {
+                 targets: &self.targets,
+             },
+         );
++        self.splat.resize();
+     }
+     /// Preserve source precision by rebuilding f32 translations around a shared f64 anchor.
+     pub fn rebase_anchor(
+@@ -132,7 +148,11 @@ impl Gpu {
+         distance: f64,
+         now: f64,
+     ) -> Rebase {
+-        self.objects.rebase_anchor(&self.ctx, origin, distance, now)
++        let result = self.objects.rebase_anchor(&self.ctx, origin, distance, now);
++        if result.moved {
++            self.splat.invalidate();
++        }
++        result
+     }
+     /// Write the camera and CSS-to-physical pen scale once for every lane in this frame.
+     pub fn write_frame_uniforms(&mut self, input: &FrameInput) {
+@@ -149,7 +169,7 @@ impl Gpu {
+         self.objects
+             .update_inside(&self.ctx, self.frame.eye, &self.bounds);
+     }
+-    /// Encode physical mesh faces, then the ink pass over their depth.
++    /// Encode cloud depth first, then physical mesh faces, then analytic ink.
+     pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
+         self.write_frame_uniforms(input);
+         let output = match self.surface.get_current_texture() {
+@@ -159,6 +179,24 @@ impl Gpu {
+         };
+         let target = output.texture.create_view(&Default::default());
+         let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
++        self.splat.prelude(
++            &self.ctx,
++            &self.layouts,
++            &mut encoder,
++            &splat::RecordCx {
++                mvp: &self.frame.mvp_f32,
++                ortho_h: self.frame.ortho_h,
++                eye: self.frame.eye,
++                size: (self.config.width, self.config.height),
++                cloud_size: self.view.cloud_size * self.config.width as f32
++                    / self.logical_size[0] as f32,
++                lod_px: self.view.lod_px,
++                objects: &self.objects,
++                clouds: &self.cloud.clouds,
++                nodes: &self.cloud.nodes,
++            },
++            &self.frame.cloud_group,
++        );
+         let basic = frame::Binds {
+             mvp: &self.frame.mvp_group,
+             line: &self.frame.line_group,
+@@ -167,6 +205,7 @@ impl Gpu {
+         {
+             let mut pass = self.targets.begin_faces(&mut encoder, &target, input.clear);
+             self.arena.draw_faces(&mut pass, &basic);
++            self.splat.draw_resolve(&mut pass, &self.frame.cloud_group);
+         }
+         {
+             let mut pass = self.targets.begin_ink(&mut encoder, &target);
+diff --git a/session_viewer/src/engine/gpu/splat.rs b/session_viewer/src/engine/gpu/splat.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..30d9344434d1d9bf5f54e3afe84fe68ca5886e7e
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/splat.rs
+@@ -0,0 +1,515 @@
++//! The point lane's renderer: one pixel-aligned quad per point into the lane's OWN 1x depth +
++//! colour targets (the hardware depth test keeps the nearest point), then a fullscreen resolve
++//! into the scene pass with EDL and `frag_depth`. A record per visible cloud (or octree node)
++//! folds camera x placement, tint and radius; the point pass is skipped while nothing changed.
++
++use super::buffers::{GpuCtx, bind_group, zeroed_buffer};
++use super::cloud::{Cloud, LodNode, NO_NORMALS, PointBufs};
++use super::instance::Instance;
++use super::lod::{LodWalk, Projection, radius_factor};
++use super::objects::InstanceTable;
++use super::targets::{TextureSpec, texture_view};
++use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
++use crate::math::{mat_mul_f32, mat_scale};
++use wgpu::PrimitiveTopology::TriangleList;
++
++/// Records the lane can hold in one frame: one per cloud, or one per selected octree node.
++pub const MAX_RECORDS: usize = 4096;
++
++/// The point pass draws into linear RGBA8; the resolve reads it back as-is.
++const COLOR_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
++
++/// Vertices per point: one quad pulled by vertex index.
++const POINT_VERTS: u32 = 6;
++
++/// Header words before the records: {count, total points, 0, 0}.
++const HEADER_BYTES: u64 = 16;
++
++/// One record, 160 B (40 words), read as raw words by splat.wgsl.
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub struct SplatRecord {
++    /// mvp x anchored model: one mat-vec per point.
++    pub mvp_model: [f32; 16],
++    /// Instance tint; `.a` = the minimum radius in px.
++    pub tint: [f32; 4],
++    pub first: u32,
++    pub count: u32,
++    /// Points before this record: the vertex index minus `cum` is the offset into the range.
++    pub cum: u32,
++    /// Radius factor: screen radius = k * vp_h / clip.w (perspective) or k * vp_h (ortho).
++    pub k: f32,
++    /// The model's rotation columns (translation-free), three vec4 slots, for the normals.
++    pub rot: [f32; 12],
++    /// First row in the normals table, or `NO_NORMALS`.
++    pub nrm_first: u32,
++    /// The object row, written by the id pass.
++    pub instance: u32,
++    pub flags: u32,
++    pub _pad: u32,
++}
++
++const _: () = assert!(std::mem::size_of::<SplatRecord>() == 160);
++
++/// What the record builder needs from the frame: camera facts, size, the two cloud knobs,
++/// the object rows and the cloud lane's clouds and nodes.
++pub struct RecordCx<'a> {
++    pub mvp: &'a [f32; 16],
++    pub ortho_h: f32,
++    pub eye: [f32; 3],
++    pub size: (u32, u32),
++    pub cloud_size: f32,
++    pub lod_px: f32,
++    pub objects: &'a InstanceTable,
++    pub clouds: &'a [Cloud],
++    pub nodes: &'a [LodNode],
++}
++
++/// The key the point pass was last drawn for; a frame with the same key skips it.
++#[derive(Clone, PartialEq)]
++struct Key {
++    mvp: [f32; 16],
++    cloud_size: f32,
++    lod_px: f32,
++    point_count: u32,
++}
++
++/// The two point-pass targets, 1x, sized to the surface, and the resolve group over them.
++/// Made on the first frame that has points and dropped on resize, so a scene without a
++/// cloud never pays 8 B/px for them.
++struct SplatTargets {
++    depth: wgpu::TextureView,
++    color: wgpu::TextureView,
++    size: (u32, u32),
++    resolve_group: wgpu::BindGroup,
++}
++
++impl SplatTargets {
++    /// Depth (nearest point per pixel, 0 = empty) and its colour, both bindable.
++    fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
++        let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
++        let depth = texture_view(
++            ctx,
++            "splat.depth",
++            &TextureSpec {
++                size,
++                format: wgpu::TextureFormat::Depth32Float,
++                samples: 1,
++                usage,
++            },
++        );
++        let color = texture_view(
++            ctx,
++            "splat.color",
++            &TextureSpec {
++                size,
++                format: COLOR_FORMAT,
++                samples: 1,
++                usage,
++            },
++        );
++        let resolve_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
++            label: Some("splat.resolve.group"),
++            layout: &l.resolve,
++            entries: &[
++                wgpu::BindGroupEntry {
++                    binding: 0,
++                    resource: wgpu::BindingResource::TextureView(&depth),
++                },
++                wgpu::BindGroupEntry {
++                    binding: 1,
++                    resource: wgpu::BindingResource::TextureView(&color),
++                },
++            ],
++        });
++        Self {
++            depth,
++            color,
++            size,
++            resolve_group,
++        }
++    }
++}
++
++/// One of the two point pipelines: the colour pass or the id pass.
++struct PointVariant {
++    target: Target,
++    label: &'static str,
++    fs: &'static str,
++}
++
++/// The point lane's renderer.
++pub struct Splat {
++    control_parent: Option<u32>,
++    selected_point: Option<u32>,
++    records: Vec<SplatRecord>,
++    walk: LodWalk,
++    record_buf: wgpu::Buffer,
++    total: u32,
++    key: Option<Key>,
++    targets: Option<SplatTargets>,
++    points_group: wgpu::BindGroup,
++    resolve_shader: wgpu::ShaderModule,
++    point_pipeline: wgpu::RenderPipeline,
++    resolve_pipeline: wgpu::RenderPipeline,
++    id_pipeline: wgpu::RenderPipeline,
++}
++
++impl Splat {
++    /// Record-buffer capacity and point-pass texture estimate, excluding driver overhead.
++    pub fn allocated_bytes(&self) -> (u64, u64) {
++        let pixels = match &self.targets {
++            Some(target) => u64::from(target.size.0) * u64::from(target.size.1),
++            None => 0,
++        };
++        (self.record_buf.size(), pixels * 8)
++    }
++
++    /// The record buffer, the points group over the lane's placeholder buffers, and the
++    /// three pipelines; the targets wait for the first cloud.
++    pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target, bufs: PointBufs) -> Self {
++        let record_buf = zeroed_buffer(
++            &ctx.device,
++            "splat.records",
++            HEADER_BYTES + MAX_RECORDS as u64 * 160,
++            wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
++        );
++        let points_group = points_group(ctx, l, &record_buf, &bufs);
++        let point_shader = module(
++            &ctx.device,
++            "splat.shader",
++            include_str!("../../shaders/splat.wgsl"),
++        );
++        let resolve_shader = module(
++            &ctx.device,
++            "splat.resolve.shader",
++            include_str!("../../shaders/splat_resolve.wgsl"),
++        );
++        let point_pipeline = build_point(
++            ctx,
++            l,
++            &point_shader,
++            &PointVariant {
++                target: Target {
++                    format: COLOR_FORMAT,
++                    samples: 1,
++                },
++                label: "splat.points",
++                fs: "fs_point",
++            },
++        );
++        let id_pipeline = build_point(
++            ctx,
++            l,
++            &point_shader,
++            &PointVariant {
++                target: Target::ID,
++                label: "splat.points.id",
++                fs: "fs_point_id",
++            },
++        );
++        let resolve_pipeline = build_resolve(ctx, l, &resolve_shader, target);
++
++        Self {
++            control_parent: None,
++            selected_point: None,
++            records: Vec::new(),
++            walk: LodWalk::default(),
++            record_buf,
++            total: 0,
++            key: None,
++            targets: None,
++            points_group,
++            resolve_shader,
++            point_pipeline,
++            resolve_pipeline,
++            id_pipeline,
++        }
++    }
++
++    /// Reuse original point buffers and disable LOD only for the active control parent.
++    pub fn set_controls(&mut self, parent: Option<u32>) {
++        self.control_parent = parent;
++        self.selected_point = None;
++        self.invalidate();
++    }
++
++    /// Highlight a single global source-point row without duplicating the cloud.
++    pub fn set_point(&mut self, point: Option<u32>) {
++        self.selected_point = point;
++        self.invalidate();
++    }
++
++    /// Rebuild the resolve pipeline for a new scene sample count (the point pass stays 1x).
++    pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
++        self.resolve_pipeline = build_resolve(ctx, l, &self.resolve_shader, target);
++    }
++
++    /// Drop the targets: the next point pass makes them at the new size.
++    pub fn resize(&mut self) {
++        self.targets = None;
++        self.key = None;
++    }
++
++    /// Re-point the points group at the lane's current buffers (a table grew or was released).
++    pub fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts, bufs: PointBufs) {
++        self.points_group = points_group(ctx, l, &self.record_buf, &bufs);
++        self.key = None;
++    }
++
++    /// Force the next frame to rebuild the records and redraw the point pass.
++    pub fn invalidate(&mut self) {
++        self.key = None;
++    }
++
++    /// Drop the targets with the scene.
++    pub fn release(&mut self) {
++        self.targets = None;
++        self.total = 0;
++        self.key = None;
++    }
++
++    /// Points the last point pass drew; 0 = nothing to resolve.
++    pub fn total(&self) -> u32 {
++        self.total
++    }
++
++    /// The point pass: skipped while the key matches, else records rebuilt, written and drawn.
++    /// `cloud_group` is the cloud uniform (group 0).
++    pub fn prelude(
++        &mut self,
++        ctx: &GpuCtx,
++        l: &Layouts,
++        encoder: &mut wgpu::CommandEncoder,
++        cx: &RecordCx,
++        cloud_group: &wgpu::BindGroup,
++    ) {
++        let mut point_count = 0u32;
++        for c in cx.clouds {
++            point_count += c.resident;
++        }
++        let key = Key {
++            mvp: *cx.mvp,
++            cloud_size: cx.cloud_size,
++            lod_px: cx.lod_px,
++            point_count,
++        };
++        if self.key.as_ref() == Some(&key) {
++            return;
++        }
++        self.key = Some(key);
++        self.build_records(cx);
++        if self.total == 0 {
++            return;
++        }
++        if !matches!(&self.targets, Some(targets) if targets.size == cx.size) {
++            self.targets = Some(SplatTargets::new(ctx, l, cx.size));
++        }
++
++        let header = [self.records.len() as u32, self.total, 0, 0];
++        ctx.queue
++            .write_buffer(&self.record_buf, 0, bytemuck::bytes_of(&header));
++        ctx.queue.write_buffer(
++            &self.record_buf,
++            HEADER_BYTES,
++            bytemuck::cast_slice(&self.records),
++        );
++
++        let Some(targets) = &self.targets else { return };
++        let mut pass = begin_point_pass(encoder, targets);
++        pass.set_pipeline(&self.point_pipeline);
++        pass.set_bind_group(0, cloud_group, &[]);
++        pass.set_bind_group(1, &self.points_group, &[]);
++        pass.draw(0..POINT_VERTS * self.total, 0..1);
++    }
++
++    /// The fullscreen resolve inside the scene pass: 1 draw, or 0 with no points.
++    pub fn draw_resolve(
++        &self,
++        pass: &mut wgpu::RenderPass<'_>,
++        cloud_group: &wgpu::BindGroup,
++    ) -> u32 {
++        let Some(targets) = &self.targets else {
++            return 0;
++        };
++        if self.total == 0 {
++            return 0;
++        }
++        pass.set_pipeline(&self.resolve_pipeline);
++        pass.set_bind_group(0, cloud_group, &[]);
++        pass.set_bind_group(1, &targets.resolve_group, &[]);
++        pass.draw(0..3, 0..1);
++        1
++    }
++
++    /// The id pass: the same quads, writing (object row, point row) instead of colour.
++    pub fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>, cloud_group: &wgpu::BindGroup) -> u32 {
++        if self.total == 0 {
++            return 0;
++        }
++        pass.set_pipeline(&self.id_pipeline);
++        pass.set_bind_group(0, cloud_group, &[]);
++        pass.set_bind_group(1, &self.points_group, &[]);
++        pass.draw(0..POINT_VERTS * self.total, 0..1);
++        1
++    }
++
++    /// One record per visible cloud, or per selected octree node when the LOD walk is on;
++    /// a range that straddles two chunks of a streamed cloud becomes two records.
++    fn build_records(&mut self, cx: &RecordCx) {
++        self.records.clear();
++        let mut p = Projection {
++            eye: cx.eye,
++            ortho_h: cx.ortho_h,
++            height_px: cx.size.1,
++            lod_px: cx.lod_px,
++            nodes: cx.nodes,
++        };
++        let mut cum = 0u32;
++        for c in cx.clouds {
++            let Some(row) = cx.objects.row(c.instance) else {
++                continue;
++            };
++            if row.flags & Instance::FLAG_HIDDEN != 0 {
++                continue;
++            }
++            let Some(model) = cx.objects.anchored_model(c.instance) else {
++                continue;
++            };
++            let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * cx.cloud_size;
++
++            p.lod_px = if self.control_parent == Some(c.instance) {
++                0.0
++            } else {
++                cx.lod_px
++            };
++            self.walk.select(&p, c, &model);
++            let m = mat_mul_f32(cx.mvp, &model);
++            let rot = [
++                model[0], model[1], model[2], 0.0, model[4], model[5], model[6], 0.0, model[8],
++                model[9], model[10], 0.0,
++            ];
++            let scale = mat_scale(&model);
++            let selected = row.flags & Instance::FLAG_SELECTED != 0;
++            let tint = if selected {
++                [1.0, 1.0, 0.0, (px * 0.5).max(0.5)]
++            } else {
++                [
++                    row.color[0],
++                    row.color[1],
++                    row.color[2],
++                    (px * 0.5).max(0.5),
++                ]
++            };
++
++            for r in &self.walk.ranges {
++                let k = radius_factor(r, px, scale, cx.ortho_h);
++                for chunk in &c.chunks {
++                    let a = r.first.max(chunk.from);
++                    let b = (r.first + r.count).min(chunk.to);
++                    if a >= b || self.records.len() >= MAX_RECORDS {
++                        continue;
++                    }
++                    let nrm_first = if c.nrm_first == NO_NORMALS {
++                        NO_NORMALS
++                    } else {
++                        c.nrm_first + a
++                    };
++                    self.records.push(SplatRecord {
++                        mvp_model: m,
++                        tint,
++                        first: chunk.row_of(a),
++                        count: b - a,
++                        cum,
++                        k,
++                        rot,
++                        nrm_first,
++                        instance: c.instance,
++                        flags: row.flags,
++                        _pad: match self.selected_point {
++                            Some(point) => point + 1,
++                            None => 0,
++                        },
++                    });
++                    cum += b - a;
++                }
++            }
++        }
++        self.total = cum;
++    }
++}
++
++/// The point pass over the lane's own targets: colour cleared transparent, depth to 0.
++/// Group 0 (the cloud uniform) is set by the caller.
++fn begin_point_pass<'a>(
++    encoder: &'a mut wgpu::CommandEncoder,
++    t: &'a SplatTargets,
++) -> wgpu::RenderPass<'a> {
++    encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
++        label: Some("splat.points"),
++        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
++            view: &t.color,
++            resolve_target: None,
++            depth_slice: None,
++            ops: wgpu::Operations {
++                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
++                store: wgpu::StoreOp::Store,
++            },
++        })],
++        depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
++            view: &t.depth,
++            depth_ops: Some(wgpu::Operations {
++                load: wgpu::LoadOp::Clear(0.0),
++                store: wgpu::StoreOp::Store,
++            }),
++            stencil_ops: None,
++        }),
++        timestamp_writes: None,
++        occlusion_query_set: None,
++        multiview_mask: None,
++    })
++}
++
++/// Group 1 of the point pass: the records, then positions, colours, normals.
++fn points_group(
++    ctx: &GpuCtx,
++    l: &Layouts,
++    records: &wgpu::Buffer,
++    bufs: &PointBufs,
++) -> wgpu::BindGroup {
++    bind_group(
++        ctx,
++        &l.points,
++        "splat.points.group",
++        &[records, bufs.pos, bufs.col, bufs.nrm],
++    )
++}
++
++/// The point pass pipeline: quads, depth written (nearest wins), no blending.
++fn build_point(
++    ctx: &GpuCtx,
++    l: &Layouts,
++    shader: &wgpu::ShaderModule,
++    v: &PointVariant,
++) -> wgpu::RenderPipeline {
++    let groups = [&l.line, &l.points];
++    let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
++        .with(v.label, v.fs)
++        .vertex("vs_point");
++    build(&ctx.device, v.target, &desc)
++}
++
++/// The resolve pipeline: a fullscreen triangle writing colour and `frag_depth` under the
++/// scene's depth test.
++fn build_resolve(
++    ctx: &GpuCtx,
++    l: &Layouts,
++    shader: &wgpu::ShaderModule,
++    target: Target,
++) -> wgpu::RenderPipeline {
++    let groups = [&l.line, &l.resolve];
++    let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
++        .with("splat.resolve", "fs_main")
++        .depth(DepthMode::Opaque);
++    build(&ctx.device, target, &desc)
++}
+diff --git a/session_viewer/src/engine/gpu/upload.rs b/session_viewer/src/engine/gpu/upload.rs
+index 5f4266bef87d488f7e3bd0ad91362766851c20ee..8ed85bebd968111288e6da8631b9e2e856c216a7 100644
+--- a/session_viewer/src/engine/gpu/upload.rs
++++ b/session_viewer/src/engine/gpu/upload.rs
+@@ -3,6 +3,7 @@
+ //! `Gpu::set_scene`, then emptied. No wgpu type and no kernel type here.
+ 
+ use super::arena::ArenaRows;
++use super::cloud::CloudRows;
+ use super::glyphs::GlyphRows;
+ use super::objects::ObjectRows;
+ use super::segments::SegRows;
+@@ -15,6 +16,7 @@ pub struct Upload {
+     pub arena: ArenaRows,
+     pub seg: SegRows,
+     pub glyph: GlyphRows,
++    pub cloud: CloudRows,
+     /// The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
+     pub bounds: Aabb,
+ }
+@@ -27,6 +29,7 @@ impl Default for Upload {
+             arena: ArenaRows::default(),
+             seg: SegRows::default(),
+             glyph: GlyphRows::default(),
++            cloud: CloudRows::default(),
+             bounds: Aabb::empty(),
+         }
+     }
+@@ -39,6 +42,7 @@ impl Upload {
+         self.arena.drop_rows();
+         self.seg.drop_rows();
+         self.glyph.drop_rows();
++        self.cloud.drop_rows();
+         self.bounds = Aabb::empty();
+     }
+ }
+diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
+index d021d4ac68c4066eecf029892f2e87de4c89d438..88cc89d4850a4fe6b2e10ec2d9c7362c6413567f 100644
+--- a/session_viewer/src/engine/pipelines/layouts.rs
++++ b/session_viewer/src/engine/pipelines/layouts.rs
+@@ -113,6 +113,48 @@ fn segment_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+     })
+ }
+ 
++/// The point lane's group: the record table at 0, then positions, colours, normals.
++fn points_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
++    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++        label: Some("points.layout"),
++        entries: &[
++            storage_entry(0),
++            storage_entry(1),
++            storage_entry(2),
++            storage_entry(3),
++        ],
++    })
++}
++
++/// The resolve pass reads the point lane's depth and colour targets from its fragment stage.
++fn resolve_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
++    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++        label: Some("splat.resolve.layout"),
++        entries: &[
++            wgpu::BindGroupLayoutEntry {
++                binding: 0,
++                visibility: wgpu::ShaderStages::FRAGMENT,
++                ty: wgpu::BindingType::Texture {
++                    sample_type: wgpu::TextureSampleType::Depth,
++                    view_dimension: wgpu::TextureViewDimension::D2,
++                    multisampled: false,
++                },
++                count: None,
++            },
++            wgpu::BindGroupLayoutEntry {
++                binding: 1,
++                visibility: wgpu::ShaderStages::FRAGMENT,
++                ty: wgpu::BindingType::Texture {
++                    sample_type: wgpu::TextureSampleType::Float { filterable: false },
++                    view_dimension: wgpu::TextureViewDimension::D2,
++                    multisampled: false,
++                },
++                count: None,
++            },
++        ],
++    })
++}
++
+ /// The bind-group layouts every lane shares.
+ pub struct Layouts {
+     pub mvp: wgpu::BindGroupLayout,
+@@ -121,6 +163,8 @@ pub struct Layouts {
+     pub ink_instance: wgpu::BindGroupLayout,
+     pub ink_rows: wgpu::BindGroupLayout,
+     pub segment_rows: wgpu::BindGroupLayout,
++    pub points: wgpu::BindGroupLayout,
++    pub resolve: wgpu::BindGroupLayout,
+ }
+ 
+ impl Layouts {
+@@ -133,6 +177,8 @@ impl Layouts {
+             ink_instance: ink_instance_layout(device),
+             ink_rows: ink_rows_layout(device),
+             segment_rows: segment_rows_layout(device),
++            points: points_layout(device),
++            resolve: resolve_layout(device),
+         }
+     }
+ }
+diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
+index 2b0c588afa11f74b70222fb43791eeeac983e868..57b37fe15901891af2e7c8fb6575fe0ed8c19bca 100644
+--- a/session_viewer/src/fixture.rs
++++ b/session_viewer/src/fixture.rs
+@@ -1,5 +1,7 @@
+-//! Independent source rows exercise each drawing lane as it arrives: mesh, polyline, dot.
+-use crate::engine::gpu::{CylinderSegment, GlyphPoint, Instance, ObjectRow, Upload};
++//! Four independent source rows exercise the mesh, segment, dot and point-cloud lanes.
++use crate::engine::gpu::{
++    CloudDraw, CylinderSegment, GlyphPoint, Instance, NO_NORMALS, ObjectRow, Upload,
++};
+ use session_rust::{RenderVertex, Xform};
+ /// Build small deterministic local data; no network, private bucket or geometry decoder.
+ pub fn scene() -> Upload {
+@@ -8,7 +10,7 @@ pub fn scene() -> Upload {
+         min: [-2.0, -1.3, -0.1],
+         max: [2.0, 1.3, 0.1],
+     };
+-    for _ in 0..3 {
++    for _ in 0..4 {
+         upload
+             .obj
+             .rows
+@@ -49,5 +51,25 @@ pub fn scene() -> Upload {
+         facing: 0xffffffff,
+         facing_ext: [0xffffffff; 2],
+     });
++    for y in 0..9 {
++        for x in 0..13 {
++            upload
++                .cloud
++                .pos
++                .extend([0.4 + x as f32 * 0.1, -1.1 + y as f32 * 0.07, 0.0]);
++            upload.cloud.col.push(0xffffaa55);
++        }
++    }
++    upload.cloud.draws.push(CloudDraw {
++        instance: 3,
++        from: 0,
++        count: 117,
++        first: 0,
++        spacing: 0.07,
++        node_first: 0,
++        node_count: 0,
++        nrm_first: NO_NORMALS,
++    });
++    upload.obj.rows[3].spacing = 2.0;
+     upload
+ }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index 3b8ae641cd8f1948d586195561be4a903d3a7fbf..27c1006dcc6b33ffe54e9b36aecae135a1a6c906 100644
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -16,7 +16,7 @@ pub struct Tutorial {
+ }
+ #[wasm_bindgen]
+ impl Tutorial {
+-    /// Build the lanes assembled so far and upload the local source objects once.
++    /// Build the independent lanes and upload the four local source objects once.
+     pub async fn create(canvas: web_sys::HtmlCanvasElement) -> Result<Tutorial, JsValue> {
+         console_error_panic_hook::set_once();
+         let mut gpu = Gpu::new(canvas.clone()).await.map_err(js_error)?;
+@@ -82,7 +82,7 @@ impl Tutorial {
+         };
+         self.gpu.render(&input).map_err(js_error)?;
+         Ok(serde_json::json!({"stage":4,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,
+-            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count()}).to_string())
++            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
+     }
+ }
+ /// Read a monotonic frame time from the browser when available.
+diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..9992d8634811047f37e0cc25b4a1aad3f4c29070
+--- /dev/null
++++ b/session_viewer/src/shaders/splat.wgsl
+@@ -0,0 +1,181 @@
++// The point lane: one pixel-aligned quad per point, pulled by vertex index, into the lane's
++// own 1x depth + colour targets. Group 0 = the cloud uniform, group 1 = records + tables.
++
++struct CloudUniform {
++    size: f32,
++    vp_w: f32,
++    vp_h: f32,
++    edl: f32,
++};
++@group(0) @binding(0) var<uniform> cloud: CloudUniform;
++
++// The record table as raw words: a 4-word header {n, total, 0, 0}, then REC_WORDS per record:
++// 0-15 mvp x model (column-major), 16-19 tint (.a = min radius px), 20 first, 21 count,
++// 22 cum, 23 k bits, 24-35 rotation columns (3 x vec4), 36 nrm_first, 37 instance, 38 flags.
++const REC_WORDS: u32 = 40u;
++const NO_NORMALS: u32 = 0xffffffffu;
++@group(1) @binding(0) var<storage, read> table: array<u32>;
++@group(1) @binding(1) var<storage, read> positions: array<f32>;
++@group(1) @binding(2) var<storage, read> colors: array<u32>;
++@group(1) @binding(3) var<storage, read> normals: array<u32>;
++
++struct Splat {
++    px: vec2<i32>,
++    r: f32,
++    z: f32,
++    color: u32,
++    row: u32,
++    instance: u32,
++    ok: bool,
++};
++
++fn rec_f(base: u32, w: u32) -> f32 {
++    return bitcast<f32>(table[base + w]);
++}
++
++// The record holding global point index `gid`: records are in `cum` order, so a binary
++// search over the header count finds it in log steps.
++fn record_of(gid: u32) -> u32 {
++    let n = table[0];
++    var lo = 0u;
++    var hi = n;
++    while (hi - lo > 1u) {
++        let mid = (lo + hi) / 2u;
++        if (table[4u + mid * REC_WORDS + 22u] <= gid) {
++            lo = mid;
++        } else {
++            hi = mid;
++        }
++    }
++    return lo;
++}
++
++fn oct16_decode(p: u32) -> vec3<f32> {
++    let e = vec2<f32>(f32(i32(p << 24u) >> 24u) / 127.0, f32(i32(p << 16u) >> 24u) / 127.0);
++    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
++    if (n.z < 0.0) {
++        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
++        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
++    }
++    return normalize(n);
++}
++
++// Point `gid` projected: pixel centre, radius, depth, lit colour, and its table row.
++fn project(gid: u32) -> Splat {
++    var s: Splat;
++    s.ok = false;
++    if (gid >= table[1]) {
++        return s;
++    }
++    let base = 4u + record_of(gid) * REC_WORDS;
++    let offset = gid - table[base + 22u];
++    let i = table[base + 20u] + offset;
++    let m = mat4x4<f32>(
++        vec4<f32>(rec_f(base, 0u), rec_f(base, 1u), rec_f(base, 2u), rec_f(base, 3u)),
++        vec4<f32>(rec_f(base, 4u), rec_f(base, 5u), rec_f(base, 6u), rec_f(base, 7u)),
++        vec4<f32>(rec_f(base, 8u), rec_f(base, 9u), rec_f(base, 10u), rec_f(base, 11u)),
++        vec4<f32>(rec_f(base, 12u), rec_f(base, 13u), rec_f(base, 14u), rec_f(base, 15u)),
++    );
++    s.row = i;
++    s.instance = table[base + 37u];
++    let clip = m * vec4<f32>(positions[i * 3u], positions[i * 3u + 1u], positions[i * 3u + 2u], 1.0);
++    if (clip.w <= 0.0) {
++        return s;
++    }
++    let ndc = clip.xyz / clip.w;
++    if (ndc.z < 0.0 || ndc.z > 1.0) {
++        return s;
++    }
++
++    // Attenuated radius: k folds the world footprint and the projection; floored at the
++    // manifest px so a far cloud never turns to dust, capped at 8 px.
++    let r_min = rec_f(base, 19u);
++    s.r = clamp(bitcast<f32>(table[base + 23u]) * cloud.vp_h / clip.w, r_min, 8.0);
++    let x = (ndc.x * 0.5 + 0.5) * cloud.vp_w;
++    let y = (0.5 - ndc.y * 0.5) * cloud.vp_h;
++    if (x < -s.r || y < -s.r || x >= cloud.vp_w + s.r || y >= cloud.vp_h + s.r) {
++        return s;
++    }
++    s.px = vec2<i32>(i32(x), i32(y));
++    s.z = ndc.z;
++
++    let tint = vec4<f32>(rec_f(base, 16u), rec_f(base, 17u), rec_f(base, 18u), 1.0);
++    var rgba = unpack4x8unorm(colors[i]) * tint;
++    let nrm_first = table[base + 36u];
++    if (nrm_first != NO_NORMALS) {
++        let packed_n = normals[nrm_first + offset];
++        let rot = mat3x3<f32>(
++            vec3<f32>(rec_f(base, 24u), rec_f(base, 25u), rec_f(base, 26u)),
++            vec3<f32>(rec_f(base, 28u), rec_f(base, 29u), rec_f(base, 30u)),
++            vec3<f32>(rec_f(base, 32u), rec_f(base, 33u), rec_f(base, 34u)),
++        );
++        let nw = transform_normal(rot, oct16_decode(packed_n));
++        let light = normalize(vec3<f32>(0.4, 0.4, 0.8));
++        let lambert = 0.25 + 0.75 * abs(dot(nw, light));
++        rgba = vec4<f32>(rgba.rgb * lambert, rgba.a);
++    }
++    if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) { rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0); }
++    s.color = pack4x8unorm(rgba);
++    s.ok = true;
++    return s;
++}
++
++struct PointOut {
++    @builtin(position) pos: vec4<f32>,
++    @location(0) @interpolate(flat) center: vec2<i32>,
++    @location(1) @interpolate(flat) rr: f32,
++    @location(2) @interpolate(flat) color: vec4<f32>,
++    @location(3) @interpolate(flat) row: u32,
++    @location(4) @interpolate(flat) instance: u32,
++};
++
++// A pixel-aligned box over the disc's footprint; the fragment rounds it. A disc big enough
++// to swallow its own box is a square, so the corners are kept outside the radius.
++@vertex
++fn vs_point(@builtin(vertex_index) vid: u32) -> PointOut {
++    var o: PointOut;
++    let s = project(vid / 6u);
++    if (!s.ok) {
++        o.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
++        return o;
++    }
++    let ir = i32(ceil(s.r - 0.5));
++    let corner_rr = 2.0 * f32(ir * ir) - 0.001;
++    let lo = vec2<f32>(f32(s.px.x - ir), f32(s.px.y - ir));
++    let hi = vec2<f32>(f32(s.px.x + ir + 1), f32(s.px.y + ir + 1));
++    let c = vid % 6u;
++    let right = c == 1u || c == 4u || c == 5u;
++    let bottom = c == 2u || c == 3u || c == 5u;
++    let p = vec2<f32>(select(lo.x, hi.x, right), select(lo.y, hi.y, bottom));
++    o.pos = vec4<f32>(p.x / cloud.vp_w * 2.0 - 1.0, 1.0 - p.y / cloud.vp_h * 2.0, s.z, 1.0);
++    o.center = s.px;
++    o.rr = select(s.r * s.r, min(s.r * s.r, corner_rr), ir >= 1);
++    o.color = unpack4x8unorm(s.color);
++    o.row = s.row;
++    o.instance = s.instance;
++    return o;
++}
++
++// Round dot: pixels outside the radius are discarded.
++fn outside(in: PointOut) -> bool {
++    let q = vec2<i32>(floor(in.pos.xy));
++    let d = q - in.center;
++    return f32(d.x * d.x + d.y * d.y) > in.rr;
++}
++
++@fragment
++fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
++    if (outside(in)) {
++        discard;
++    }
++    return in.color;
++}
++
++// The id pass: (object row + 1, point row + 1).
++@fragment
++fn fs_point_id(in: PointOut) -> @location(0) vec2<u32> {
++    if (outside(in)) {
++        discard;
++    }
++    return vec2<u32>(in.instance + 1u, in.row + 1u);
++}
+diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..7a3b1b0507b133361cb17de61a96f7708e686207
+--- /dev/null
++++ b/session_viewer/src/shaders/splat_resolve.wgsl
+@@ -0,0 +1,78 @@
++// Composite the point pass into the scene: one fullscreen triangle looks up its pixel in the
++// lane's depth + colour targets, discards empties, applies Eye-Dome Lighting from the four
++// neighbouring depths, and exports the point's depth through frag_depth so points and solids
++// occlude each other exactly.
++
++struct CloudUniform {
++    size: f32,
++    vp_w: f32,
++    vp_h: f32,
++    edl: f32,
++};
++@group(0) @binding(0) var<uniform> cloud: CloudUniform;
++@group(1) @binding(0) var sdepth: texture_depth_2d;
++@group(1) @binding(1) var scolor: texture_2d<f32>;
++
++struct VsOut {
++    @builtin(position) pos: vec4<f32>,
++};
++
++@vertex
++fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
++    var o: VsOut;
++    let x = f32(i32(vid & 1u) * 4 - 1);
++    let y = f32(i32(vid >> 1u) * 4 - 1);
++    o.pos = vec4<f32>(x, y, 0.0, 1.0);
++    return o;
++}
++
++struct FsOut {
++    @location(0) color: vec4<f32>,
++    @builtin(frag_depth) depth: f32,
++};
++
++// -log2 of a reverse-Z depth grows with distance, like Potree's log depth.
++fn log_depth(d: f32) -> f32 {
++    return -log2(max(d, 1.0e-7));
++}
++
++fn shade(in: VsOut) -> FsOut {
++    let pix = vec2<i32>(in.pos.xy);
++    let d = textureLoad(sdepth, pix, 0);
++    if (d == 0.0) {
++        discard;
++    }
++    var o: FsOut;
++    var rgb = textureLoad(scolor, pix, 0).rgb;
++
++    if (cloud.edl > 0.0) {
++        let w = i32(cloud.vp_w);
++        let h = i32(cloud.vp_h);
++        let me = log_depth(d);
++        var sum = 0.0;
++        var taps = array<vec2<i32>, 4>(vec2<i32>(-1, 0), vec2<i32>(1, 0), vec2<i32>(0, -1), vec2<i32>(0, 1));
++        for (var k = 0; k < 4; k++) {
++            let q = pix + taps[k];
++            if (q.x < 0 || q.y < 0 || q.x >= w || q.y >= h) {
++                continue;
++            }
++            let nd = textureLoad(sdepth, q, 0);
++            if (nd == 0.0) {
++                continue;
++            }
++            sum += max(0.0, me - log_depth(nd));
++        }
++        // Floored at 0.25: an edge darkens, it never goes black.
++        let shade = max(exp(-sum * 75.0 * cloud.edl), 0.25);
++        rgb *= shade;
++    }
++
++    o.color = vec4<f32>(rgb, 1.0);
++    o.depth = d;
++    return o;
++}
++
++@fragment
++fn fs_main(in: VsOut) -> FsOut {
++    return shade(in);
++}

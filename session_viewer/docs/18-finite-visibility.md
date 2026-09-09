@@ -1,142 +1,313 @@
-# 18 · Test finite triangles, then converge on production
+# 18 · Finite-triangle visibility and production convergence
 
-**Start:** checkpoint 17. **Finish:** teapot concavities and touching-solid edges use finite occluders, with bounded GPU storage and correct cache invalidation. This is the current production runtime.
+## You are building
 
-## Reproduce the exact failure
+```mermaid
+flowchart TB
+    P["physical pass<br/>depth · gradient · primitive id"] --> Q{"plane test<br/>accepts?"}
+    Q -- yes --> V["visible"]
+    Q -- no --> W["finite test:<br/>winning + neighbour triangles"]
+    W -- "nearer hit" --> H["hidden"]
+    W -- "no hit" --> T["finite test:<br/>every triangle in the axis tile"]
+    T -- "nearer hit" --> H
+    T -- "no hit" --> V
+```
 
-Two faces meet along `x = z = 0`. A narrow neighboring strip lies at `z = 0.2`, with x spanning `[-4, -1]`. In the fixture's perspective camera, the seam ray reaches that plane around `x = -0.181`: outside the actual strip.
+Built once per camera and geometry revision, read by the tile test:
 
-The old visibility test transferred the strip's plane depth to the seam axis and rejected visible ink. It kept only 513 of 766 reference core pixels. The finite test keeps all 766. A wider strip that really covers the seam must still produce zero hidden black pixels.
+```mermaid
+flowchart LR
+    c1["project_triangles.wgsl<br/>96-byte records"] --> c2["triangle_tiles.wgsl<br/>count per tile"] --> c3["scan_triangle_tiles.wgsl<br/>prefix sums"] --> c4["fill<br/>(primitive, max depth)"]
+```
+
+## Starting point
+
+- Checkpoint 17. The ink shader hides a stroke sample when the surface's depth plane, carried to the stroke axis through the stored gradient, lies in front of the axis.
+- That plane is infinite. A narrow strip beside a seam has a plane that crosses the seam ray outside the strip, so the seam disappeared at teapot concavities and where solids touch.
+- This lesson ends at the current production runtime.
+
+<!-- supplied: 18 -->
 
 ![The depth plane continues beyond the finite triangle; only a finite nearer hit can hide the axis.](illustrations/finite-triangle.svg)
 
-This is independent of CAD meshing quality. Shared curve/face samples repaired a geometry mismatch earlier. The remaining error came from the meaning of the screen-space occlusion test.
+## Part A · Remember which triangle won
 
-## Keep the inexpensive test, refine its rejection
+### Step 1 · Metadata carries the primitive
 
-`ink_visible` first runs the existing physical depth/gradient rule. When that rule accepts the ink, no triangle-list search is needed. When it rejects, a finite nearer hit is required before treating a triangle plane as an occluder.
+- The physical metadata target grows from two to four half floats: gradient in `xy`, a lossless triangle address in `zw`.
+- Each 14-bit half of the address skips exponent zero, so it survives `Rgba16Float` without NaNs or denormals.
 
-The physical metadata now carries the exact winning primitive identity. Test that triangle at the stroke axis, then nearby sample-matched witnesses. Any finite nearer hit confirms real occlusion immediately.
+<!-- file: 18 session_viewer/src/shaders/physical.wgsl type -->
 
-Those nearby witnesses are not a complete candidate set. A thin triangle can intersect the axis while winning none of the sampled depth locations. Accepting ink merely because the few sampled owners miss it leaked hidden floor lines. The fallback therefore includes **all triangles intersecting the axis's screen tile**.
+- `pull_triangle` numbers every triangle; `vs_triangle` is the plain physical draw, `vs_face` adds the source face on top.
 
-## Project each triangle once per changed view
+<!-- file: 18 session_viewer/src/shaders/triangle.wgsl type -->
 
-`project_triangles.wgsl` reads the exact uploaded vertex/index/object columns, applies the same model/rebased translation and camera transform as drawing, and clips against the near plane before dividing by `w`.
+- Every other physical writer widens its metadata to `vec4` with a zero address, keeping the conservative plane rule.
 
-A clipped triangle has zero, three or four corners. The shader computes inward edge equations, a reference screen position/depth, an affine depth gradient and screen bounds. `ProjectedTriangle` stores six `vec4<f32>` values: **96 bytes**. The Rust/WGSL layout assertions check this stride and all offsets.
+<!-- file: 18 session_viewer/src/shaders/background.wgsl type -->
 
-For a test point, evaluate the inward edge equations. A point outside any edge is outside the finite polygon. For an inside point, evaluate depth from the reference and gradient. Under reversed depth, a sufficiently larger depth is nearer. The small relative tolerance handles floating-point precision; it is not a world-space extrusion of the edge.
+<!-- file: 18 session_viewer/src/shaders/grid.wgsl type -->
 
-## Build a compact screen index
+<!-- file: 18 session_viewer/src/shaders/splat.wgsl type -->
 
-The CPU `TileLayout` and WGSL `visibility_tile_span` start with four framebuffer pixels per tile. They double the span until there are at most 262,144 tiles. At high resolution the grid grows coarser instead of allocating an unbounded number of headers.
+<!-- file: 18 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
-```text
-projected triangles
-        ↓ conservative bounding quads + edge/box overlap test
-count references per tile
-        ↓ parallel prefix sums
-assign contiguous ranges in a shared pool
-        ↓ same conservative rasterization
-fill (primitive ID, maximum possible depth) pairs
-        ↓
-ink query checks only its tile's finite candidates
-```
+<!-- file: 18 session_viewer/src/shaders/text_outline.wgsl type -->
 
-Counting and filling use the same coverage rule. Prefix sums convert counts into offsets without a fixed capacity for each tile. The pool budgets 32 references per viewport tile overall; a dense tile can borrow unused space elsewhere.
+## Part B · Project each triangle once
 
-Each reference also stores a conservative maximum depth for that triangle in the tile. A triangle that cannot be nearer than the line is skipped before the more expensive finite test. This is a safe rejection bound, not a replacement for checking containment.
+### Step 2 · The projected record
 
-## Handle limits without leaking hidden geometry
+`ProjectedTriangle` is six `vec4<f32>`; the Rust mirror test asserts the same offsets and `PROJECTED_BYTES`:
 
-The tile header stores count, offset, fill cursor and overflow. Before trusting a list, require no overflow and `cursor == count`. Prefix sums saturate instead of wrapping; filling cannot write beyond the counted range.
+| Offset | Field | Meaning |
+|---|---|---|
+| 0 | `edge0` | inward edge equation `xyz`; `w` = reference x |
+| 16 | `edge1` | edge equation; `w` = reference y |
+| 32 | `edge2` | edge equation; `w` = reference depth |
+| 48 | `edge3` | fourth edge of a near-clipped quad; `w` = corner count |
+| 64 | `gradient` | screen depth gradient `xy`, nearest corner depth `z` |
+| 80 | `bounds` | screen min `xy`, max `zw` |
 
-If projected storage exceeds the device binding limit, or a tile list is incomplete/oversubscribed, retain the physical depth rejection. This favors missing ink over showing geometry through a solid. The algorithm is bounded and does not promise unlimited exact visibility for arbitrary overdraw.
+- `projected_triangle_at` returns `(depth, 1)` when the point is inside every edge, else `(0, 0)`.
+- `visibility_tile_span` doubles the tile size until the grid has at most `262144` tiles; the CPU `TileLayout` uses the same rule.
 
-Non-triangle physical geometry writes zero primitive identity and keeps its conservative visibility rule. Metadata uses `Rgba16Float`: xy holds the gradient; zw encodes an exact primitive ID using core WGSL packing operations. The ID pass owns matching single-sample depth/metadata, so it does not borrow incompatible display MSAA sample positions.
+<!-- file: 18 session_viewer/src/shaders/projected_triangle.wgsl type -->
 
-## Own the cache and its invalidation
+### Step 3 · The projection shader
 
-`TriangleTiles` owns projected records, tile storage, the small raster target and immutable pipelines. It is called explicitly before ink rendering. A key tracks the camera matrix and geometry/visibility revision.
+- One compute invocation per triangle reads the arena's vertex, object and index columns through the same instance and translation rows the draw uses.
+- Near-plane clipping happens before the divide, so a triangle crossing the eye becomes a quad or vanishes, never a garbage projection.
 
-| Event | Rebuild projection/binning? |
-|---|---|
-| Same camera and same geometry | No |
-| Select or recolor an object | No |
-| Hide/show, placement, rebase or geometry replacement | Yes |
-| Camera or relevant framebuffer/grid change | Yes |
-| Replace geometry with the same triangle count | Yes |
+| Group · binding | Rust | WGSL |
+|---|---|---|
+| 0 · 0 | `Layouts::mvp` | `mvp` |
+| 1 · 0 | `Layouts::line` | `line` (viewport size) |
+| 2 · 0, 1 | `Layouts::instance` | `instances`, `translations` |
+| 3 · 0–2 | arena vertices, object ids, indices | `physical_vertices`, `physical_objects`, `physical_indices` |
+| 3 · 3 | `TriangleTiles::projected` | `projected` (read_write) |
+| 3 · 4 | `live_count` uniform | `live_count` |
 
-Changing the buffer allocation rebinds readers. Scene release removes the large storage/texture and leaves 128 bytes of placeholders. An ID-only request can prepare visibility even when no color frame is submitted.
+<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-60 -->
 
-The final State split moves unchanged streamed-query coordination into `state/cloud_query.rs`. It gives that asynchronous workflow one readable location while preserving State's ownership. The source text companion remains `state/text.rs`.
+<!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=61-127 -->
 
-## Finish the presentation defaults
+## Part C · A compact screen index
 
-Set the default `thickness_px` in `engine/gpu/view.rs` to `1.0`. This controls screen-sized mesh/BRep/NURBS edges, lines and polylines. Explicit authored world-space widths keep their dimensions. The black silhouette radii are separate and stay unchanged.
+### Step 4 · Count and fill
 
-Selected source text now uses a fully yellow backing and black letters. `TextLabel::ink_color()` derives black ink from the source selection flag without modifying the authored color or reshaping the text. Glyphon and the fixed-plane renderer both read it. `text_plate.wgsl` colors the whole rounded plate yellow; `text_plane.wgsl` blends yellow backing with black ink using the existing glyph coverage texture. Neither path adds a yellow border. Picking, depth and clipping keep the same geometry.
+- One quad per projected triangle covers its tile bounds; `covered_tile` discards tiles the polygon cannot touch.
+- `fs_count` counts references per tile. `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
 
-Deselecting restores the original text colors. Every scene text backing now has maximum rounded corners, matching the selected-object name. Horizontal padding reserves a complete cap outside each end of the shaped line; vertical padding scales with the text size. The fixed-plane shader evaluates a rounded rectangle in perspective-correct texture coordinates and uses that same shape for ID picking. Transparent corners therefore remain unpickable, and the antialiasing width follows the projected shape.
+<!-- file: 18 session_viewer/src/shaders/triangle_tiles.wgsl type -->
 
-Derived selected-object names have no source owner and remain white on black. The updated native text tests check actual yellow backing/black glyph pixels and exact color restoration; the browser text tests exercise both orientations at DPR 1 and 2.
+### Step 5 · Prefix sums instead of a per-tile cap
 
-## Write the files
+- Tile records are `count / offset / cursor / overflow`; block records are `sum / prefix`.
+- Sums saturate at the buffer capacity, so an oversubscribed pool can never wrap into a plausible offset.
 
-Follow [Complete file changes for 18](../lessons/18/index.md). Read the projected record and finite test, projection shader, count/scan/fill stages, Rust resource owner, then frame/binding integration. Copy the maintained counterexample generator and checker.
+<!-- file: 18 session_viewer/src/shaders/scan_triangle_tiles.wgsl type -->
 
-## Checkpoint
+### Step 6 · The owner
 
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
-```
+- `TileLayout` mirrors `visibility_tile_span`; the reference pool budgets `REFERENCES_PER_TILE` per tile overall, and a dense tile borrows spare space.
 
-Inspect the local scene at <http://localhost:8780/?data=off&inspect=1>. Use the supplied teapot and selected-solid tests to inspect perspective/orthographic seams, concave foot boundaries and black selection silhouettes. A hidden edge should stay hidden; a visible seam should not acquire broken intervals as a neighboring face moves over its stroke fringe.
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-52 -->
 
-Stop Trunk and run the exact counterexample:
+- `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
-```sh
-cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_triangle_visibility
-python3 tests/triangle-visibility.py
-```
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=53-82 -->
 
-Expected output includes **766/766 visible core samples** and **0 covered black pixels**. This exact pixel oracle explicitly uses its original 1.5-pixel pen, independently of the viewer's new 1-pixel default. It disables ordinary silhouettes so a legitimate solid border cannot be counted as leaked hidden source ink. The separate floor and selected-overlap checks retain ordinary silhouettes.
+- `prepare` resizes storage for the triangle count and framebuffer; beyond the device's storage binding limit it releases the tables and reports so the ink shader keeps the plane rule.
 
-Run the final correctness gates:
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=83-165 -->
+
+- `encode` runs project → clear headers → count → three scan dispatches → fill, then records the key.
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=166-239 -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=240-301 -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=302-327 -->
+
+- Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=328-417 -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=418-497 -->
+
+Copy the rest of the file:
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=498-595 -->
+
+<!-- check: 18 -->
+
+## Part D · The ink query
+
+### Step 7 · Refine the rejection, keep the cheap test
+
+- `ink_visible_plane` is the old test. When it accepts, nothing else runs.
+- When it rejects: test the winning primitive at the axis, then the four sample-matched neighbours. A finite nearer hit confirms occlusion.
+- Otherwise walk the axis pixel's tile list: skip references whose nearest possible depth cannot beat the axis, skip triangles whose bounds miss the point, then run the finite test. An overflowing or incomplete list keeps the rejection.
+
+The blank lines separate the helpers; type them so the file matches production:
+
+<!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=1-11 -->
+
+<!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=12,13 -->
+
+## Part E · Rust owners and wiring
+
+### Step 8 · Faces draws the physical pass
+
+- The physical and object-ID triangle pipelines move into `Faces`, so the primitive numbers written by the color pass are the same numbers the projection shader uses.
+
+<!-- file: 18 session_viewer/src/engine/gpu/faces.rs type -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/arena.rs type -->
+
+### Step 9 · Bindings 6 and 7
+
+- The ink instance group gains the projected table and the tile buffer; the mvp, line and instance layouts become visible to compute.
+
+<!-- file: 18 session_viewer/src/engine/pipelines/layouts.rs type -->
+
+<!-- file: 18 session_viewer/src/engine/pipelines/mod.rs type -->
+
+- `geometry_revision` counts placement, rebase and hidden-state changes; selection flags do not bump it.
+
+<!-- file: 18 session_viewer/src/engine/gpu/objects.rs type -->
+
+- Metadata textures and the pick copy widen to four channels.
+
+<!-- file: 18 session_viewer/src/engine/gpu/targets.rs type -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/instance.rs type -->
+
+### Step 10 · The tile pass runs before ink
+
+- `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
+
+<!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/mod.rs type -->
+
+<!-- check: 18 -->
+
+## Part F · State split and presentation defaults
+
+### Step 11 · Streamed queries move out of `state.rs`
+
+- The methods are unchanged; `State` still owns the query. The file only groups the page/answer/resolve workflow.
+
+<!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=1-38 -->
+
+<!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=39-101 -->
+
+<!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=102-159 -->
+
+<!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=160-212 -->
+
+<!-- file: 18 session_viewer/src/state.rs type -->
+
+### Step 12 · Selected text is black on yellow
+
+- `ink_color` derives black ink from the selection flag without touching the authored color; both text renderers read it.
+- Plates and planes fill the whole rounded backing yellow instead of drawing a border; every backing reserves a full cap at each end.
+
+<!-- file: 18 session_viewer/src/engine/text.rs type -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/text.rs type -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/text_plate.rs type -->
+
+<!-- file: 18 session_viewer/src/shaders/text_plate.wgsl type -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/text_plane.rs type -->
+
+<!-- file: 18 session_viewer/src/shaders/text_plane.wgsl type -->
+
+<!-- file: 18 session_viewer/src/state/text.rs type -->
+
+<!-- file: 18 session_viewer/src/app/inspection.rs type -->
+
+### Step 13 · The default pen
+
+- Silhouettes start **off**: the two coverage masks and the compositor are a full-screen pass per frame, which is slow on integrated GPUs. `O` turns them on; `?outlines=1` starts with them on.
+
+<!-- file: 18 session_viewer/src/engine/gpu/view.rs type -->
+
+The silhouette unit block of the outline owner opts in explicitly, since the default no longer does:
+
+<!-- file: 18 session_viewer/src/engine/gpu/surface_outline.rs copy -->
+
+## Part G · The documentation corner
+
+### Step 14 · One click from the viewer to the course
+
+- A black folded corner at the top right of the page links to `docs/`; it opens the course in a new tab and never covers the canvas' input.
+- Trunk copies the built site into `dist/docs`, so `trunk serve` serves the viewer and its documentation together.
+- The pre-build hook rebuilds the site only when a documentation source is newer than the built page; without the course sources it writes a one-line placeholder instead of failing the build.
+
+<!-- file: 18 session_viewer/index.html copy -->
+
+<!-- file: 18 session_viewer/Trunk.toml copy -->
+
+<!-- file: 18 session_viewer/docs/build_site.sh copy -->
+
+## Check
+
+<!-- checkpoint: 18 -->
+
+Expected:
+
+- With the supplied teapot fixture (`assets/pb/view_mixed_teapot.pb`) or the local scene loaded: the concave foot boundary stays continuous while orbiting; edges where two solids touch stay visible.
+- A genuinely covered edge stays hidden; a visible seam does not break up as a neighbouring face moves over its stroke fringe.
+- Click a manifest text: black letters on a yellow rounded backing; click away: original colors return.
+- Source edges and lines draw with a one-pixel pen; `?thickness=1.5` restores the older weight.
+
+Optional lint gates:
 
 ```sh
 cargo fmt --package session_viewer -- --check
 cargo clippy --locked --target wasm32-unknown-unknown --lib -- -D warnings
-cargo clippy --locked --target x86_64-unknown-linux-gnu --all-targets -- -D warnings
-cargo test --locked --target x86_64-unknown-linux-gnu -- --include-ignored --test-threads=1
 ```
 
-The recorded native suite passes 89 tests including GPU tests. The image suites cover 54 hidden-line cases, 21 floor views, 40 stroke checks and 40 selected-overlap checks; the high-resolution 2800×1800 four-sample floor case also passes. [Measurements](measurements.md) explains evidence and platform limits.
+## The result, served
 
-## Verify that you reached the current viewer
+The same source you just finished is what the repository publishes:
 
-After reproducing the complete files exactly, record and compare the final source:
+- **Served viewer**: <https://petrasvestartas.github.io/session/> — the GitHub Pages build of `session_viewer`; its documentation corner opens this course at <https://petrasvestartas.github.io/session/docs/>.
+- **Source code**: <https://github.com/petrasvestartas/session/tree/main/session_viewer> — the folder this course reconstructs, byte for byte at checkpoint 18.
+- **Locally**: `trunk serve` in `session_viewer` serves the viewer at <http://localhost:8770/> and the course at <http://localhost:8770/docs/>; the black corner at the top right links the two.
+
+## Verify you reached production
+
+Record the checkpoint and compare every runtime file against the frozen production inventory:
 
 ```sh
 python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output "$COURSE_WORK" --through 18 --adopt
 python3 "$COURSE_REPO/docs/reconstruction/converge.py" --workspace "$COURSE_WORK"
 ```
 
-The checker requires all **91 runtime files**, rejects extra/missing implementations, and compares the frozen file hashes. The verified reconstruction has **299 identical frozen files** overall. Packaging differences are limited to the documented local input fixture and imported-document font artifacts; the renderer and application source match production.
+Expected:
 
-To rebuild and browser-check every stage independently from original inputs, use a new output path:
+- `converge.py` reports every runtime file identical to production; the only listed differences are the documented packaging ones (the local input manifest and imported-document font artifacts).
 
-```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output "$HOME/viewer-course-clean" --through 18 --verify-clean
-```
+## What changed
 
-The maintained [verification record](reconstruction/verification.json) keeps historical 00–16 evidence separate from the fresh 17/18 reconstructions. This is a source/build/browser claim, not a promise that every possible model and GPU has been tested.
+<!-- tree: 18 session_viewer/src/engine -->
 
-For future changes, use [Architecture](../ARCHITECTURE.md) to locate the owner and [Coverage](coverage.md) to find the relevant regression. Keep the source → display → GPU boundary explicit when experimenting with a different implementation.
+- Data flow: arena columns → `project_triangles.wgsl` → `projected` → `fs_count` → scan → `fs_fill` → `triangle_tiles` → `ink_visible`.
+- Metadata: `Rgba16Float` with gradient in `xy` and the packed primitive in `zw`; the ID pass owns matching single-sample targets.
+- Cache: rebuilt on camera, hide/show, placement, rebase or geometry replacement; reused across selection and color changes.
+- `State` keeps its ownership; `state/cloud_query.rs` and `state/text.rs` are its companions.
 
-## Repository cleanup
+**Production equivalent:** this checkpoint is the current production runtime.
 
-The obsolete selection-outline implementation and the one-off teapot investigation example are removed. Maintained depth, stroke, selection and text regressions remain, along with fonts, licenses, source fixtures and reconstruction inputs. The old `docs_archive` was removed at the user's request; `session_viewer_archive` remains the separate historical reference. Generated site/listing/build output stays under ignored `target`, and the final source inventory is checked again after cleanup.
+## Next
+
+[Architecture reference](../ARCHITECTURE.md): the finished module graph, frame lifecycle and Rust ↔ WGSL interfaces.

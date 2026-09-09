@@ -281,6 +281,7 @@ mod tests {
         use std::rc::Rc;
 
         let mut gpu = pollster::block_on(Gpu::new_headless(480, 480)).unwrap();
+        gpu.view.show_outlines = true;
         gpu.view.show_grid = false;
         gpu.view.markers = false;
         for shape in [
@@ -345,6 +346,7 @@ mod tests {
     #[ignore = "requires a native GPU adapter"]
     fn touching_and_overlapping_solids_have_one_continuous_outline() {
         let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
+        gpu.view.show_outlines = true;
         gpu.view.show_grid = false;
         gpu.view.lit = false;
         let input = FrameInput {
@@ -421,6 +423,7 @@ mod tests {
     #[ignore = "requires a native GPU adapter"]
     fn selected_silhouette_is_black_visible_only_and_releases_coverage() {
         let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
+        gpu.view.show_outlines = true;
         gpu.view.show_grid = false;
         gpu.view.lit = false;
         let mut upload = Upload::default();

@@ -1,67 +1,86 @@
-# 00 · Start Rust in the browser
+# 00 · Empty project to a WASM message
 
-**Start:** the empty viewer directory created after the [course setup](README.md#prepare-one-workspace). **Finish:** a browser message written by Rust. No GPU is requested yet.
+## You are building
 
-## The tools have different jobs
-
-Cargo reads `Cargo.toml` and compiles Rust. `Cargo.lock` records exact dependency versions. The `wasm32-unknown-unknown` target produces WebAssembly instead of a native executable. Trunk prepares that module and its JavaScript bindings, copies browser assets and serves the page. The browser loads `index.html`, then calls the WASM start function.
-
-```text
-Cargo.toml + Cargo.lock + src/lib.rs
-                 ↓ Cargo / wasm-bindgen / Trunk
-        index.html + JavaScript + .wasm
-                 ↓ browser
-          Rust changes the page status
+```mermaid
+flowchart TB
+    A["Cargo.toml<br/>src/lib.rs"] -- "cargo (wasm32)" --> B[".wasm"]
+    B -- "wasm-bindgen" --> C["JS glue"]
+    C -- "Trunk" --> D["index.html + bundle"]
+    D -- "browser" --> E["start() writes the page status"]
 ```
 
-`Cargo.toml` is TOML configuration, not Rust code. This portion declares a library that can become browser WASM and can also be linked by native test tools:
+## Starting point
 
-```toml
-[package]
-name = "session_viewer"
-version = "0.1.0"
-edition = "2024"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-```
-
-Read this as a configuration explanation. Write the **complete** checkpoint file from the file list below; it also includes dependencies and build settings.
-
-## Read the first Rust function
-
-Open the complete `src/lib.rs` listing. `use` brings names into scope. `pub fn start()` declares a public function with no parameters. The `#[wasm_bindgen(start)]` attribute tells the generated browser binding to call it when the module loads.
-
-`let document = ...` binds a local value. Chained calls retrieve the browser window, its document and the status element. `expect("...")` stops with a useful message if a required value is absent. Later lessons use recoverable error handling for adapter and network failures. The semicolon ends a statement. Braces group a function body.
-
-The final calls set both visible status text and a `data-checkpoint` attribute. The test checks that Rust changed the attribute, so a static HTML message cannot falsely pass.
-
-This is the complete first Rust file, also supplied in the ordered file list:
-
-<!-- include-code: 00 session_viewer/src/lib.rs -->
-
-## Write the files
-
-Open [Complete file changes for 00](../lessons/00/index.md). Create all six files in order. Copy `Cargo.lock` exactly; it is dependency data, not useful code to transcribe. Type `src/lib.rs` yourself and read the complete browser page once.
-
-`.cargo/config.toml` chooses the WASM target for ordinary Cargo commands. `Trunk.toml` defines the optimized build. `index.html` supplies the element IDs expected by Rust. Spelling the status ID differently in HTML and Rust produces an initialization error.
-
-## Checkpoint
+- `$COURSE_WORK/session_rust`, `session_cpp`, `session_py`, `session_proto`: the pinned kernel, extracted by the [setup](README.md#prepare-one-workspace).
+- `$COURSE_WORK/session_viewer`: does not exist yet. Create it:
 
 ```sh
+mkdir -p "$COURSE_WORK/session_viewer/src"
 cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
 ```
 
-Open <http://localhost:8780/?data=off&inspect=1>. You should see **Checkpoint 00: Rust/WASM ready**. The lack of a triangle is expected at this stage. Stop the server with Ctrl+C before lesson 01.
+## Step 1 · Declare the crate
 
-For an exact manual-source check after completing the files:
+- `cdylib` is what wasm-bindgen turns into a browser module; `rlib` lets native tools link the same crate later.
+- Every version here is pinned by `Cargo.lock` in step 4; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
+- The `[target.'cfg(not(wasm32))']` table stays at the end: a target table in the middle silently swallows every `[dependencies]` line after it.
 
-```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output "$COURSE_WORK" --through 00 --adopt
-```
+<!-- file: 00 session_viewer/Cargo.toml copy -->
 
-If Cargo cannot find `../session_rust`, the initial extraction ran in a different workspace. If the status never changes, inspect the browser console and confirm you opened the Trunk address rather than an HTML file directly from disk.
+## Step 2 · Make wasm32 the default target
 
-**Before continuing:** explain why `Cargo.toml`, Rust and WGSL are different files. WGSL will first appear in [lesson 01](01-first-frame.md).
+One line makes every `cargo` command build for the browser, so the code needs no `#[cfg(target_arch = "wasm32")]` gates. `xtest` is the native alias tests will use.
+
+<!-- file: 00 session_viewer/.cargo/config.toml type -->
+
+## Step 3 · Tell Trunk what to bundle
+
+Release builds, no subresource hashes, and a watch list that includes the kernel next door.
+
+<!-- file: 00 session_viewer/Trunk.toml copy -->
+
+## Step 4 · Pin the dependency graph
+
+Dependency data, not code. The course was verified against exactly these versions, so install the lockfile with the supplied-files command instead of typing it.
+
+<!-- supplied: 00 -->
+
+## Step 5 · The page
+
+One element with `id="status"`; Rust looks it up by that name.
+
+<!-- file: 00 session_viewer/index.html copy -->
+
+## Step 6 · The first Rust function
+
+- `#[wasm_bindgen(start)]` runs this function when the browser finishes loading the module.
+- `web_sys` is the browser DOM seen from Rust; `expect` aborts with a readable message if an element is missing.
+- The `data-checkpoint` attribute is what the automatic checkpoint test reads, so a static HTML message cannot pass for Rust.
+
+<!-- file: 00 session_viewer/src/lib.rs type -->
+
+## Check
+
+<!-- checkpoint: 00 -->
+
+Expected:
+
+- `cargo check` finishes with no errors and no warnings.
+- The page shows **Checkpoint 00: Rust/WASM ready**.
+- No canvas yet. That is the next lesson.
+
+If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WORK`. If the status never changes, open the browser console and check that you opened the Trunk address, not the file from disk.
+
+## What changed
+
+<!-- tree: 00 session_viewer -->
+
+- New crate that compiles to WebAssembly and runs in the browser.
+- Data flow: `lib.rs::start` → DOM.
+
+**Production equivalent:** `Cargo.toml`, `.cargo/config.toml`, `Trunk.toml` are already the production files. `src/lib.rs` is replaced in lesson 01 and again in lesson 12.
+
+## Next
+
+[01 · First WebGPU frame](01-first-frame.md): adapter, device, surface, one pipeline, one triangle.

@@ -1,0 +1,928 @@
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index 829b46440c2e3f8d022f58edeb34fe5c3cb0b0a8..d93141370ff7af53632904d891f518ad7b416944 100644
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,9 +1,9 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 04a</title>
++<title>Session checkpoint 04b</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04a</output>
++</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04b</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -21,7 +21,7 @@ function render() {
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 04a · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 04b · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+index 67bba8bbe84aef6895f7bb10f70d8eca668f3b1f..19904d7ef063b4dd3570c64846ddea431a25c45a 100644
+--- a/session_viewer/src/engine/gpu/mod.rs
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -4,6 +4,7 @@ pub mod buffers;
+ pub mod frame;
+ pub mod instance;
+ pub mod objects;
++pub mod segments;
+ pub mod targets;
+ pub mod text_outline;
+ pub mod upload;
+@@ -14,6 +15,7 @@ pub use frame::FrameInput;
+ pub use instance::Instance;
+ use objects::InkScene;
+ pub use objects::{ObjectRow, Rebase};
++pub use segments::CylinderSegment;
+ pub use upload::Upload;
+ /// Each lane owns its buffers/pipelines; the coordinator owns pass order and shared resources.
+ pub struct Gpu {
+@@ -26,6 +28,7 @@ pub struct Gpu {
+     pub view: view::View,
+     pub objects: objects::InstanceTable,
+     pub arena: arena::ArenaLane,
++    pub segments: segments::SegmentLane,
+     pub bounds: crate::math::Aabb,
+     pub logical_size: [f64; 2],
+     pub device_type: wgpu::DeviceType,
+@@ -73,6 +76,7 @@ impl Gpu {
+         let targets = targets::Targets::new(&ctx, (1, 1), config.format, 1);
+         let objects = objects::InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets });
+         let arena = arena::ArenaLane::new(&ctx, &layouts, target);
++        let segments = segments::SegmentLane::new(&ctx, &layouts, target);
+         Ok(Self {
+             surface,
+             ctx,
+@@ -83,6 +87,7 @@ impl Gpu {
+             view: view::View::from_env(),
+             objects,
+             arena,
++            segments,
+             bounds: crate::math::Aabb::empty(),
+             logical_size: [1.0; 2],
+             device_type,
+@@ -92,6 +97,7 @@ impl Gpu {
+     pub fn set_scene(&mut self, up: &Upload) {
+         self.objects.append(&self.ctx, &self.layouts, &up.obj);
+         self.arena.append(&self.ctx, &up.arena);
++        self.segments.append(&self.ctx, &self.layouts, &up.seg);
+         self.bounds.union(&up.bounds);
+     }
+     /// Recreate size-dependent targets and groups; chapter05 adds budgeted multisampling.
+@@ -158,7 +164,14 @@ impl Gpu {
+         }
+         {
+             let mut pass = self.targets.begin_ink(&mut encoder, &target);
++            let ink = frame::Binds {
++                mvp: &self.frame.mvp_group,
++                line: &self.frame.line_group,
++                instances: &self.objects.ink_group,
++            };
+             self.arena.draw_print(&mut pass, &basic);
++            self.segments.draw_pipes(&mut pass, &ink);
++            self.segments.draw_ribbons(&mut pass, &ink);
+             self.arena.draw_text(&mut pass, &basic);
+         }
+         self.ctx.queue.submit([encoder.finish()]);
+diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..553822bcc45011c7e158c5d6db836f272ac2fe29
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/segments.rs
+@@ -0,0 +1,314 @@
++//! The segment lane: every straight piece of ink. Two tables of the same 40 B row - pipes
++//! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
++//! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
++
++use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
++use super::frame::Binds;
++use super::upload::drop_rows;
++use crate::engine::pipelines::{
++    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, ink_module,
++};
++use wgpu::PrimitiveTopology::TriangleList;
++
++/// The lane's shaders, for the mirror tests.
++#[cfg(test)]
++pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", include_str!("../../shaders/ribbon.wgsl"))];
++
++/// Vertices per ribbon: two triangles pulled by vertex index, no vertex buffer.
++const RIBBON_VERTS: u32 = 6;
++
++/// One segment row, 40 B, the layout ribbon.wgsl declares. The ends are flat f32s: a `vec3`
++/// would pad the row to 48 B. Offsets: p0 0, radius 12, p1 16, instance_id 28, color 32,
++/// facing 36.
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub struct CylinderSegment {
++    pub p0: [f32; 3],
++    /// 0 = the screen-constant pen; > 0 = a world-mm radius.
++    pub radius: f32,
++    pub p1: [f32; 3],
++    pub instance_id: u32,
++    /// RGBA8, low byte red.
++    pub color: u32,
++    /// Two oct16 adjacent face normals; `FACING_UNKNOWN` = no adjacency, always drawn.
++    pub facing: u32,
++}
++
++const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
++
++/// One upload's segments: the solid lane's pipes and the flat lane's ribbons.
++#[derive(Default)]
++pub struct SegRows {
++    pub pipes: Vec<CylinderSegment>,
++    /// Source edge index per pipe, or u32::MAX when no CAD edge identity is available.
++    pub pipe_ids: Vec<u32>,
++    pub ribbons: Vec<CylinderSegment>,
++}
++
++impl SegRows {
++    /// Empty both tables and hand the allocations back.
++    pub fn drop_rows(&mut self) {
++        drop_rows(&mut self.pipes);
++        drop_rows(&mut self.pipe_ids);
++        drop_rows(&mut self.ribbons);
++    }
++}
++
++/// One segment table on the GPU with the group 3 that binds it.
++struct SegTable {
++    label: &'static str,
++    buf: GrowBuf,
++    ids: GrowBuf,
++    group: wgpu::BindGroup,
++}
++
++impl SegTable {
++    /// A one-row table and its bind group.
++    fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str, selection: &wgpu::Buffer) -> Self {
++        let buf = GrowBuf::new(
++            ctx,
++            label,
++            std::mem::size_of::<CylinderSegment>() as u64,
++            ROWS,
++        );
++        let ids = GrowBuf::new(ctx, "segment.sources", 4, ROWS);
++        let group = bind_group(
++            ctx,
++            &l.segment_rows,
++            label,
++            &[&buf.buf, &ids.buf, selection],
++        );
++        Self {
++            label,
++            buf,
++            ids,
++            group,
++        }
++    }
++
++    /// Rebind after the backing buffer changed.
++    fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts, selection: &wgpu::Buffer) {
++        self.group = bind_group(
++            ctx,
++            &l.segment_rows,
++            self.label,
++            &[&self.buf.buf, &self.ids.buf, selection],
++        );
++    }
++}
++
++/// The pipelines over the two tables: the same blended quad for both, and its id twin.
++struct SegPipelines {
++    ribbon: wgpu::RenderPipeline,
++    id_ribbon: wgpu::RenderPipeline,
++    id_edge: wgpu::RenderPipeline,
++}
++
++/// The segment lane on the GPU: two tables, the shader, the pipelines.
++pub struct SegmentLane {
++    pipes: SegTable,
++    ribbons: SegTable,
++    shader: wgpu::ShaderModule,
++    gpu: SegPipelines,
++    selection: wgpu::Buffer,
++}
++
++impl SegmentLane {
++    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
++    pub fn allocated_bytes(&self) -> u64 {
++        self.pipes.buf.buf.size()
++            + self.pipes.ids.buf.size()
++            + self.ribbons.buf.buf.size()
++            + self.ribbons.ids.buf.size()
++            + self.selection.size()
++    }
++
++    /// Two one-row tables, the shader and the pipelines.
++    pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
++        let shader = ink_module(
++            &ctx.device,
++            "ribbon.shader",
++            include_str!("../../shaders/ribbon.wgsl"),
++        );
++        let gpu = build_pipelines(ctx, l, &shader, target);
++        let selection = uniform_buffer(&ctx.device, "edge.selection", &[u32::MAX; 4]);
++        let pipes = SegTable::new(ctx, l, "pipes", &selection);
++        let ribbons = SegTable::new(ctx, l, "ribbons", &selection);
++        Self {
++            pipes,
++            ribbons,
++            shader,
++            gpu,
++            selection,
++        }
++    }
++
++    /// Rebuild the pipelines for a new sample count.
++    pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
++        self.gpu = build_pipelines(ctx, l, &self.shader, target);
++    }
++
++    /// Append one file's rows to both tables.
++    pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &SegRows) {
++        let mut ids = up.pipe_ids.clone();
++        ids.resize(up.pipes.len(), u32::MAX);
++        let pipes_changed = self.pipes.buf.append(ctx, &up.pipes);
++        if self.pipes.ids.append(ctx, &ids) || pipes_changed {
++            self.pipes.rebind(ctx, l, &self.selection);
++        }
++        let ribbons_changed = self.ribbons.buf.append(ctx, &up.ribbons);
++        if self
++            .ribbons
++            .ids
++            .append(ctx, &vec![u32::MAX; up.ribbons.len()])
++            || ribbons_changed
++        {
++            self.ribbons.rebind(ctx, l, &self.selection);
++        }
++    }
++
++    /// Highlight one source edge without reuploading its tessellation or the parent geometry.
++    pub fn set_edge(&self, ctx: &GpuCtx, edge: Option<(u32, u32)>) {
++        let (parent, edge) = edge.unwrap_or((u32::MAX, u32::MAX));
++        ctx.queue.write_buffer(
++            &self.selection,
++            0,
++            bytemuck::cast_slice(&[parent, edge, 0, 0]),
++        );
++    }
++
++    /// Mesh/BRep edges: camera-facing quads against physical depth.
++    pub fn draw_pipes(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes)
++    }
++
++    /// The flat lane's colour pass: line/polyline/curve ribbons, blended.
++    pub fn draw_ribbons(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_table(pass, b, &self.gpu.ribbon, &self.ribbons)
++    }
++
++    /// The id pass for the solid lane: opaque quads.
++    pub fn draw_pipe_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_table(pass, b, &self.gpu.id_ribbon, &self.pipes)
++    }
++
++    /// Ctrl selection includes only edges with original source identity.
++    pub fn draw_edge_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_table(pass, b, &self.gpu.id_edge, &self.pipes)
++    }
++
++    /// The id pass for the flat lane: opaque quads.
++    pub fn draw_ribbon_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_table(pass, b, &self.gpu.id_ribbon, &self.ribbons)
++    }
++
++    /// One table as ribbons through `pipeline`; 0 draws when empty.
++    fn draw_table(
++        &self,
++        pass: &mut wgpu::RenderPass<'_>,
++        b: &Binds,
++        pipeline: &wgpu::RenderPipeline,
++        table: &SegTable,
++    ) -> u32 {
++        if table.buf.is_empty() {
++            return 0;
++        }
++        pass.set_pipeline(pipeline);
++        b.set(pass);
++        pass.set_bind_group(3, &table.group, &[]);
++        pass.draw(0..RIBBON_VERTS * table.buf.len(), 0..1);
++        1
++    }
++
++    /// Forget every row; capacity stays.
++    pub fn reset(&mut self) {
++        self.pipes.buf.reset();
++        self.pipes.ids.reset();
++        self.ribbons.buf.reset();
++        self.ribbons.ids.reset();
++    }
++
++    /// Hand both buffers back.
++    pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
++        self.pipes.buf.release(ctx);
++        self.pipes.ids.release(ctx);
++        self.ribbons.buf.release(ctx);
++        self.ribbons.ids.release(ctx);
++        self.pipes.rebind(ctx, l, &self.selection);
++        self.ribbons.rebind(ctx, l, &self.selection);
++    }
++
++    /// Solid-lane rows on the GPU - the MSAA policy reads it.
++    pub fn pipe_count(&self) -> u32 {
++        self.pipes.buf.len()
++    }
++
++    /// Flat-lane rows on the GPU.
++    pub fn ribbon_count(&self) -> u32 {
++        self.ribbons.buf.len()
++    }
++}
++
++/// Both segment pipelines read physical visibility without writing or biasing that depth.
++fn build_pipelines(
++    ctx: &GpuCtx,
++    l: &Layouts,
++    shader: &wgpu::ShaderModule,
++    target: Target,
++) -> SegPipelines {
++    let groups = [&l.mvp, &l.line, &l.ink_instance, &l.segment_rows];
++    let quad = PipelineDesc::new(shader, &groups, &[], TriangleList)
++        .scene_samples(target.samples)
++        .depth(DepthMode::Always);
++    let dev = &ctx.device;
++
++    SegPipelines {
++        ribbon: build(
++            dev,
++            target,
++            &quad.with("ribbon", "fs_main").color(ColorWrite::Blended),
++        ),
++        id_ribbon: build(
++            dev,
++            Target::ID,
++            &quad.with("ribbon.id", "fs_id").scene_samples(1),
++        ),
++        id_edge: build(
++            dev,
++            Target::ID,
++            &quad.with("edge.id", "fs_edge_id").scene_samples(1),
++        ),
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::engine::gpu::instance::wgsl_fields;
++
++    /// ribbon.wgsl reads the 40 B segment row (ends as scalars).
++    #[test]
++    fn cylinder_segment_mirror() {
++        let rust = [
++            "p0x",
++            "p0y",
++            "p0z",
++            "radius",
++            "p1x",
++            "p1y",
++            "p1z",
++            "instance_id",
++            "color",
++            "facing",
++        ];
++        for (name, src) in SHADERS {
++            assert_eq!(
++                wgsl_fields(src, "CylinderSegment"),
++                rust,
++                "{name}: CylinderSegment fields"
++            );
++        }
++        assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
++        assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/upload.rs b/session_viewer/src/engine/gpu/upload.rs
+index 930d39d146a2d265e210a0b2c4d57eede1e07fd8..785696ae38d77933d303b64534f295b8d9001dea 100644
+--- a/session_viewer/src/engine/gpu/upload.rs
++++ b/session_viewer/src/engine/gpu/upload.rs
+@@ -4,6 +4,7 @@
+ 
+ use super::arena::ArenaRows;
+ use super::objects::ObjectRows;
++use super::segments::SegRows;
+ use crate::math::Aabb;
+ 
+ /// Everything `Gpu` needs to fill its buffers for one file. Deleting a lane = deleting its
+@@ -11,6 +12,7 @@ use crate::math::Aabb;
+ pub struct Upload {
+     pub obj: ObjectRows,
+     pub arena: ArenaRows,
++    pub seg: SegRows,
+     /// The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
+     pub bounds: Aabb,
+ }
+@@ -21,6 +23,7 @@ impl Default for Upload {
+         Self {
+             obj: ObjectRows::default(),
+             arena: ArenaRows::default(),
++            seg: SegRows::default(),
+             bounds: Aabb::empty(),
+         }
+     }
+@@ -31,6 +34,7 @@ impl Upload {
+     pub fn drop_uploaded(&mut self) {
+         drop_rows(&mut self.obj.rows);
+         self.arena.drop_rows();
++        self.seg.drop_rows();
+         self.bounds = Aabb::empty();
+     }
+ }
+diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
+index 9ca1665bc17dc1da45e0b56b61b9dc35fc70f0e0..98aeca7e7150fb1a754effdaab1131d69a2fe772 100644
+--- a/session_viewer/src/engine/pipelines/layouts.rs
++++ b/session_viewer/src/engine/pipelines/layouts.rs
+@@ -85,12 +85,29 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+     })
+ }
+ 
++/// Segment rows retain source-edge IDs and one shared selection uniform.
++fn segment_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
++    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++        label: Some("segment.rows.layout"),
++        entries: &[
++            storage_entry(0),
++            storage_entry(1),
++            buffer_entry(
++                2,
++                wgpu::ShaderStages::VERTEX,
++                wgpu::BufferBindingType::Uniform,
++            ),
++        ],
++    })
++}
++
+ /// The bind-group layouts every lane shares.
+ pub struct Layouts {
+     pub mvp: wgpu::BindGroupLayout,
+     pub line: wgpu::BindGroupLayout,
+     pub instance: wgpu::BindGroupLayout,
+     pub ink_instance: wgpu::BindGroupLayout,
++    pub segment_rows: wgpu::BindGroupLayout,
+ }
+ 
+ impl Layouts {
+@@ -101,6 +118,7 @@ impl Layouts {
+             line: uniform_layout(device, "line.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
+             instance: instance_layout(device),
+             ink_instance: ink_instance_layout(device),
++            segment_rows: segment_rows_layout(device),
+         }
+     }
+ }
+diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
+index ac8a6af75cbd6a94055ba5b6d10a15ccb90700f7..43c4a320003093ef280ccbbeb256e1d363deba51 100644
+--- a/session_viewer/src/engine/pipelines/mod.rs
++++ b/session_viewer/src/engine/pipelines/mod.rs
+@@ -174,6 +174,17 @@ pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderM
+     })
+ }
+ 
++/// Compile an ink lane with the shared visibility rule appended: every ink fragment decides
++/// from the scene depth buffer alone, so all the lanes hide against one another's surfaces.
++pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
++    let source = format!(
++        "{}\n{}",
++        source,
++        include_str!("../../shaders/ink_visibility.wgsl")
++    );
++    module(device, label, &source)
++}
++
+ /// The pipeline layout for `groups`, in slot order.
+ fn pipeline_layout(
+     device: &wgpu::Device,
+diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
+index f66678367b5990a9410b211d7fc906642f01f2bc..690f50f7f98b3dc4e40764a4dee8e8f239df6e6b 100644
+--- a/session_viewer/src/fixture.rs
++++ b/session_viewer/src/fixture.rs
+@@ -1,5 +1,5 @@
+-//! Independent source rows exercise each drawing lane as it arrives; one mesh row first.
+-use crate::engine::gpu::{Instance, ObjectRow, Upload};
++//! Independent source rows exercise each drawing lane as it arrives: a mesh and a polyline.
++use crate::engine::gpu::{CylinderSegment, Instance, ObjectRow, Upload};
+ use session_rust::{RenderVertex, Xform};
+ /// Build small deterministic local data; no network, private bucket or geometry decoder.
+ pub fn scene() -> Upload {
+@@ -8,7 +8,7 @@ pub fn scene() -> Upload {
+         min: [-2.0, -1.3, -0.1],
+         max: [2.0, 1.3, 0.1],
+     };
+-    for _ in 0..1 {
++    for _ in 0..2 {
+         upload
+             .obj
+             .rows
+@@ -25,5 +25,21 @@ pub fn scene() -> Upload {
+         upload.arena.vids.push(0);
+     }
+     upload.arena.idx.extend([0, 1, 2]);
++    let chain = [
++        [0.3, 0.2, 0.0],
++        [0.7, 1.0, 0.0],
++        [1.2, 0.4, 0.0],
++        [1.7, 1.0, 0.0],
++    ];
++    for pair in chain.windows(2) {
++        upload.seg.ribbons.push(CylinderSegment {
++            p0: pair[0],
++            p1: pair[1],
++            radius: 0.0,
++            instance_id: 1,
++            color: 0xff55ccff,
++            facing: 0xffffffff,
++        });
++    }
+     upload
+ }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index ab90acc4bb8074f5a77e7dc9f2a33e28e756fdf0..d33b9d82bf9813b8b6693191a5575b3dd8fdf141 100644
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -82,7 +82,7 @@ impl Tutorial {
+         };
+         self.gpu.render(&input).map_err(js_error)?;
+         Ok(serde_json::json!({"stage":4,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,
+-            "meshVertices":self.gpu.arena.vert_count()}).to_string())
++            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count()}).to_string())
+     }
+ }
+ /// Read a monotonic frame time from the browser when available.
+diff --git a/session_viewer/src/shaders/ink_visibility.wgsl b/session_viewer/src/shaders/ink_visibility.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..19d7c3d366cc58e4435e30cc5fd0d5d6821155ae
+--- /dev/null
++++ b/session_viewer/src/shaders/ink_visibility.wgsl
+@@ -0,0 +1,29 @@
++// Initial pixel-center visibility; chapter05 replaces this with the tested surface-carry rule.
++@group(2) @binding(2) var scene_depth_single: texture_depth_2d;
++@group(2) @binding(3) var scene_depth_msaa: texture_depth_multisampled_2d;
++override SCENE_MSAA: bool = false;
++struct InkColor { @location(0) color: vec4<f32> };
++struct InkAxis { at:vec2<f32>, depth:f32, along:vec2<f32>, slope:f32 };
++fn ink_depth(pixel:vec2<f32>, sample:u32) -> f32 {
++    if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w,line.vp_h))) { return 0.0; }
++    if (SCENE_MSAA) { return textureLoad(scene_depth_msaa,vec2<i32>(pixel),i32(sample)); }
++    return textureLoad(scene_depth_single,vec2<i32>(pixel),0);
++}
++fn ink_visible(pixel:vec2<f32>, axis:InkAxis, sample:u32) -> bool {
++    return ink_depth(pixel,sample) <= axis.depth;
++}
++fn ink_disc_fragment_visible(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
++    return ink_depth(pixel,sample) <= depth;
++}
++fn ink_disc_visible(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
++    return ink_disc_fragment_visible(pixel,centre,depth,sample);
++}
++fn ink_disc_source_hidden(pixel:vec2<f32>, centre:vec2<f32>, depth:f32, sample:u32) -> bool {
++    return ink_depth(pixel,sample) > depth;
++}
++
++// The rigid teaching fixture uses the same ray convention as the retained camera.
++fn toward_eye(point: vec3<f32>) -> vec3<f32> {
++    if (line.ortho_h > 0.0) { return vec3<f32>(mvp[0].z,mvp[1].z,mvp[2].z); }
++    return vec3<f32>(line.eye_x,line.eye_y,line.eye_z) - point;
++}
+diff --git a/session_viewer/src/shaders/ribbon.wgsl b/session_viewer/src/shaders/ribbon.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..e1a70c85759c455b24ee5abc06053739e9d9d0ac
+--- /dev/null
++++ b/session_viewer/src/shaders/ribbon.wgsl
+@@ -0,0 +1,319 @@
++// Flat ink: one camera-facing quad per segment (6 verts pulled by index, no vertex buffer),
++// a capsule SDF in the fragment, visibility from the physical depth. Draws the ribbon table
++// (free linework) and the pipe table (mesh edges). Group 3 = the segment table. Which edges
++// of a tessellation are ink at all is settled in the walk, on the exact normals.
++
++@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
++@group(1) @binding(0) var<uniform> line: LineUniform;
++
++struct Instance {
++    model: mat4x4<f32>,
++    color: vec4<f32>,
++    flags: u32,
++    thickness: f32,
++    spacing: f32,
++};
++@group(2) @binding(0) var<storage, read> instances: array<Instance>;
++@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
++
++struct CylinderSegment {
++    p0x: f32, p0y: f32, p0z: f32,
++    radius: f32,
++    p1x: f32, p1y: f32, p1z: f32,
++    instance_id: u32,
++    color: u32,
++    facing: u32,
++}
++@group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
++@group(3) @binding(1) var<storage, read> source_edges: array<u32>;
++@group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
++
++struct LineUniform {
++    thickness: f32,
++    proj_y: f32,
++    ortho_h: f32,
++    vp_h: f32,
++    vp_w: f32,
++    eye_x: f32,
++    eye_y: f32,
++    eye_z: f32,
++    anchor: vec3<f32>,
++    feather: f32,
++    lit: f32,
++    backface: f32,
++};
++
++const FACING_UNKNOWN: u32 = 0xffffffffu;
++const FLAG_SELECTED: u32 = 1u;
++const FLAG_HIDDEN: u32 = 2u;
++const FLAG_INSIDE: u32 = 4u;
++const FLAG_OPEN: u32 = 16u;
++const FLAG_SHEET: u32 = 32u;
++const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
++const MM_TO_M: f32 = 0.001;
++const HAIRLINE_MIN_ALPHA: f32 = 0.5;
++
++// Density taper: a wire thins when shorter than this many pen widths; never below TAPER_MIN.
++const WIRE_MIN_PENS: f32 = 3.0;
++const TAPER_MIN: f32 = 0.15;
++
++fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
++    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
++}
++
++fn oct16_decode(p: u32) -> vec3<f32> {
++    let e = vec2<f32>(f32(i32(p << 24u) >> 24u) / 127.0, f32(i32(p << 16u) >> 24u) / 127.0);
++    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
++    if (n.z < 0.0) {
++        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
++        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
++    }
++    return normalize(n);
++}
++
++// An edge whose two faces both turn away from the eye is inside the solid: not drawn.
++fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
++    if (facing == FACING_UNKNOWN) {
++        return true;
++    }
++    return dot(n0, to_eye) > 0.0 || dot(n1, to_eye) > 0.0;
++}
++
++// Half-width in px at one end: half the global pen, or a world radius projected.
++fn half_width_px(radius: f32, w: f32) -> f32 {
++    if (radius > 0.0) {
++        if (line.ortho_h > 0.0) {
++            return radius * line.vp_h * 0.5 / line.ortho_h;
++        }
++        return radius * line.proj_y * line.vp_h * 0.5 / w;
++    }
++    return line.thickness * 0.5;
++}
++
++// Half a pixel's diagonal: the farthest a pixel's own area reaches from its centre along any
++// direction, so the exact filter below has no ink outside `half_width + this` and the quad
++// need not be expanded further.
++const FILTER_REACH: f32 = 0.70711;
++
++// The unit pixel square projected onto a direction is a trapezoid (a box of width |g.x|
++// convolved with one of |g.y|); this is that trapezoid's CDF.
++fn box_cdf(t: f32, hi: f32, lo: f32, m: f32, q: f32) -> f32 {
++    let s = clamp(t, -hi, hi);
++    let e = hi - abs(s);
++    let tail = select(e * e / q, 1.0 - e * e / q, s > 0.0);
++    return select(tail, 0.5 + s / m, abs(s) <= lo);
++}
++
++// The EXACT area of this pixel lying within `hw` of the axis, `d` from it, where `g` is the
++// unit gradient of the distance field. A ramp in `d` cannot do this: pixel centres sample it
++// at spacing cos(angle), and the sampled sum then beats with the line's subpixel phase - 22%
++// at a 1.5 px pen through a 1.5 px ramp, with a period of cot(angle) px, which is the banding
++// a shallow line shows. Pixel boxes tile the plane, so summing their true areas cannot beat:
++// measured 0.00% ripple here against 22.2% for the ramp, at every angle from 1 to 45 degrees.
++fn band_area(d: f32, hw: f32, g: vec2<f32>) -> f32 {
++    let a = abs(g.x);
++    let b = abs(g.y);
++    let hi = 0.5 * (a + b);
++    let lo = 0.5 * abs(a - b);
++    let m = max(max(a, b), 1e-6);
++    let q = max(2.0 * a * b, 1e-6);
++    return box_cdf(hw - d, hi, lo, m, q) + box_cdf(hw + d, hi, lo, m, q) - 1.0;
++}
++
++// Hairline rule: never thinner than 1 px, the deficit goes into alpha (floored).
++fn floor_hairline(px: f32) -> f32 {
++    return max(px, 0.5);
++}
++
++fn hairline_fade(px: f32) -> f32 {
++    if (px < 0.5) {
++        return max(px / 0.5, HAIRLINE_MIN_ALPHA);
++    }
++    return 1.0;
++}
++
++struct VsOut {
++    @builtin(position) pos: vec4<f32>,
++    @location(0) color: vec4<f32>,
++    @location(1) @interpolate(linear) p: vec2<f32>,
++    @location(2) @interpolate(flat) a: vec2<f32>,
++    @location(3) @interpolate(flat) b: vec2<f32>,
++    @location(4) @interpolate(flat) hw0: f32,
++    @location(5) @interpolate(flat) hw1: f32,
++    @location(6) @interpolate(flat) solid: f32,
++    @location(7) @interpolate(flat) inst_id: u32,
++    @location(8) @interpolate(flat) segment_index: u32,
++    @location(9) @interpolate(flat) end_depth: vec2<f32>,
++    @location(10) @interpolate(flat) source_edge: u32,
++};
++
++// The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
++// two flat end values: a per-vertex width is projective over a trapezoid and the two
++// triangles disagree along the diagonal. Solid-lane wires never fade: they blend under a
++// depth write and half-alpha strokes resolve by draw-order luck.
++fn resolve_width(in: VsOut, h: f32) -> vec2<f32> {
++    let raw = mix(in.hw0, in.hw1, h);
++    return vec2<f32>(floor_hairline(raw), select(hairline_fade(raw), 1.0, in.solid > 0.5));
++}
++
++fn density_taper(facing: u32, len_px: f32, px: f32) -> f32 {
++    if (facing == FACING_UNKNOWN) {
++        return 1.0;
++    }
++    let room = WIRE_MIN_PENS * 2.0 * max(px, 1e-6);
++    return clamp(len_px / room, TAPER_MIN, 1.0);
++}
++
++fn dead_vertex() -> VsOut {
++    var dead: VsOut;
++    dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
++    dead.color = vec4<f32>(0.0);
++    dead.p = vec2<f32>(0.0);
++    dead.a = vec2<f32>(0.0);
++    dead.b = vec2<f32>(0.0);
++    dead.hw0 = 0.0;
++    dead.hw1 = 0.0;
++    dead.solid = 0.0;
++    dead.inst_id = 0u;
++    dead.segment_index = 0u;
++    dead.end_depth = vec2<f32>(0.0);
++    return dead;
++}
++
++// Which quad corner vertex `k` of 6 is: 0 = e0-, 1 = e0+, 2 = e1-, 3 = e1+.
++fn corner_of(k: u32) -> u32 {
++    if (k == 0u) { return 0u; }
++    if (k == 1u) { return 1u; }
++    if (k == 2u || k == 3u) { return 2u; }
++    if (k == 4u) { return 1u; }
++    return 3u;
++}
++
++@vertex
++fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
++    let iid = vid / 6u;
++    let corner = corner_of(vid % 6u);
++    let seg = segments[iid];
++    let inst = instances[seg.instance_id];
++    if ((inst.flags & FLAG_HIDDEN) != 0u) {
++        return dead_vertex();
++    }
++    let model = inst.model;
++
++    let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
++    let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
++    // Free polylines and open/inside objects do not need supporting-face normal work.
++    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
++    if (!inside && seg.facing != FACING_UNKNOWN) {
++        let to_eye = toward_eye((w0 + w1) * 0.5);
++        let n0 = face_normal(model, oct16_decode(seg.facing & 0xffffu));
++        let n1 = face_normal(model, oct16_decode(seg.facing >> 16u));
++        if (!edge_faces_camera(seg.facing, n0, n1, to_eye)) {
++            return dead_vertex();
++        }
++    }
++
++    let c0 = mvp * vec4<f32>(w0, 1.0);
++    let c1 = mvp * vec4<f32>(w1, 1.0);
++    let at_end1 = corner >= 2u;
++    let side = select(-1.0, 1.0, (corner & 1u) == 1u);
++
++    // Clip against the near plane (z - w = 0 in reverse-Z) BEFORE any divide: a hand divide
++    // behind the eye mirrors the point through the screen centre.
++    let f0 = c0.z - c0.w;
++    let f1 = c1.z - c1.w;
++    if (f0 > 0.0 && f1 > 0.0) {
++        return dead_vertex();
++    }
++    let e0 = select(c0, mix(c0, c1, f0 / (f0 - f1)), f0 > 0.0);
++    let e1 = select(c1, mix(c1, c0, f1 / (f1 - f0)), f1 > 0.0);
++    let clip = select(e0, e1, at_end1);
++
++    let vp = vec2<f32>(line.vp_w, line.vp_h);
++    let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
++    let s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
++    let d = s1 - s0;
++    let len = length(d);
++    let dir = select(vec2<f32>(1.0, 0.0), d / len, len > 1e-6);
++    let n = vec2<f32>(-dir.y, dir.x);
++
++    // The quad is a trapezoid under perspective: both end widths go down flat.
++    let raw0 = half_width_px(seg.radius, e0.w);
++    let raw1 = half_width_px(seg.radius, e1.w);
++    let px = floor_hairline(select(raw0, raw1, at_end1));
++    let crowd = density_taper(seg.facing, len, px);
++    let along = select(-1.0, 1.0, at_end1);
++    let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + FILTER_REACH);
++
++    var o: VsOut;
++    let ndc = (p / vp - 0.5) * 2.0;
++    o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
++    var color = unpack4x8unorm(seg.color) * inst.color;
++    if ((inst.flags & FLAG_SELECTED) != 0u || (edge_selection.x == seg.instance_id && edge_selection.y != 0xffffffffu && edge_selection.y == source_edges[iid])) {
++        color = vec4<f32>(SELECT_COLOR, color.a);
++    }
++    o.color = color;
++    o.p = p;
++    o.a = s0;
++    o.b = s1;
++    o.hw0 = raw0 * crowd;
++    o.hw1 = raw1 * crowd;
++    o.solid = select(0.0, 1.0, seg.facing != FACING_UNKNOWN);
++    o.inst_id = seg.instance_id;
++    o.segment_index = iid;
++    o.source_edge = source_edges[iid];
++    o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
++    return o;
++}
++
++// Coverage of the capsule at this fragment, in [0, 1], times the hairline fade. The capsule's
++// gradient is the unit vector from its axis, which straightens the cap arc inside one pixel.
++fn coverage(in: VsOut) -> f32 {
++    let pa = in.p - in.a;
++    let ba = in.b - in.a;
++    let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
++    let v = pa - ba * h;
++    let d = length(v);
++    let hf = resolve_width(in, h);
++    let g = select(vec2<f32>(1.0, 0.0), v / d, d > 1e-6);
++    return clamp(band_area(d, hf.x, g), 0.0, 1.0) * hf.y;
++}
++
++// The stroke at this fragment: the closest axis point in framebuffer pixels (y down), its
++// depth (z/w is affine in screen space), the stroke direction and its depth slope per pixel.
++fn ink_axis(in: VsOut) -> InkAxis {
++    let ba = in.b - in.a;
++    let len2 = max(dot(ba, ba), 1e-6);
++    let h = clamp(dot(in.p - in.a, ba) / len2, 0.0, 1.0);
++    let at = in.a + ba * h;
++    let len = sqrt(len2);
++    let along = select(vec2<f32>(1.0, 0.0), vec2<f32>(ba.x, -ba.y) / len, len > 1e-3);
++    let slope = (in.end_depth.y - in.end_depth.x) / max(len, 1e-3);
++    return InkAxis(vec2<f32>(at.x, line.vp_h - at.y), mix(in.end_depth.x, in.end_depth.y, h), along, slope);
++}
++
++@fragment
++fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
++    let alpha = coverage(in);
++    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) {
++        discard;
++    }
++    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
++}
++
++@fragment
++fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
++    if (coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
++        discard;
++    }
++    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
++}
++
++// Specialized edge picks exclude segments without a producer-provided source edge.
++@fragment
++fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
++    if (in.source_edge == 0xffffffffu || coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
++        discard;
++    }
++    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
++}

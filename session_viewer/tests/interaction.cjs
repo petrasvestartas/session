@@ -28,17 +28,20 @@ async function run(browser,dpr,bytes,cases,output){
   /** Serve the generated source bytes through the real loader path. */
   function serveFixture(route){return route.fulfill({status:200,contentType:'application/octet-stream',body:bytes});}
   try{
-    await page.goto(new URL('?data=off&inspect=1',process.env.VIEWER_URL || 'http://127.0.0.1:8770/').href,{waitUntil:'networkidle'});
+    // The yellow-coverage oracles (three pure-yellow pixels) were measured with the 1.5 px pen;
+    // the viewer's 1 px default leaves a Ctrl-selected solid edge almost entirely under the
+    // black silhouette. Pin the oracle's pen through the same knob the native fixtures use.
+    await page.goto(new URL('?data=off&inspect=1&thickness=1.5',process.env.VIEWER_URL || 'http://127.0.0.1:8770/').href,{waitUntil:'networkidle'});
     await page.waitForFunction(sceneReady);
     await page.bringToFront();
     await page.locator('canvas').focus();
     await page.waitForFunction(function focusedCanvas(){return document.hasFocus() && document.activeElement?.id==='canvas';});
     await key(page,'5');
-    assert.equal((await snapshot(page)).outlines,true,'combined solid outline is enabled by default');
+    assert.equal((await snapshot(page)).outlines,false,'surface silhouettes are off by default');
     await key(page,'o');
-    assert.equal((await snapshot(page)).outlines,false,'O hides surface silhouettes');
+    assert.equal((await snapshot(page)).outlines,true,'O shows surface silhouettes');
     await key(page,'o');
-    assert.equal((await snapshot(page)).outlines,true,'O restores surface silhouettes');
+    assert.equal((await snapshot(page)).outlines,false,'O hides them again');
     // Hide centered names to inspect short strokes; nameplate-scene.cjs checks their default display.
     await key(page,'t');
     await page.screenshot({path:path.join(output,`scene-dpr-${dpr}.png`)});

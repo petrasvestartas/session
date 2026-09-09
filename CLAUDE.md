@@ -56,18 +56,32 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 - Rust: `use crate::tolerance::{TOLERANCE, PI};` at top. Geometry imports inside MINI_TEST blocks.
 
 ## Viewer Lesson Docs (session_viewer/docs/NN-*.md)
-- EVERY edit is a **Find** / **Replace with** pair in fenced blocks. NEVER narrate an edit
-  ("first the tail of the file holds...", "then change X to Y"). Prose says WHY; a block says WHAT.
-  Inline code-span form (``**Find** `x` and **Replace with:** `y` ``) is banned — always fenced.
-- Prose is bullets, not paragraphs. Lead with the consequence, not the mechanism: "a 431 MB
-  cloud crashes the tab" before "bounded wasm heap".
-- Never anchor on a comment or a wrapped multi-arg signature — the reader retypes those.
-  Anchor one code line and **Add below it**.
-- No tree-reconciliation ceremony. Whitespace/comment-only steps that exist so a hand-typed
-  tree matches the doc's tree do not belong in a lesson; fix the source instead.
-- Numbers are measured or absent. Never invent one, never carry one over unverified.
-- `python3 docs/_replay_check.py --audit docs/*.md` must show 0 orphaned blocks.
-  NEVER run the replay form with `.` as the source tree — it writes into the live tree.
+- Lesson code is NEVER written in the Markdown. A lesson is prose plus directives that
+  `docs/course_pages.py` expands from the verified checkpoint patches under
+  `docs/reconstruction/`: `<!-- file: NN path [type|copy] [hunks=..] [lines=A-B] [whole] -->`
+  renders CURRENT / REPLACE WITH, CURRENT / ADD BELOW, NEW FILE or DELETE blocks;
+  `<!-- supplied: NN -->`, `<!-- tree: NN prefix -->`, `<!-- listing: NN path -->`,
+  `<!-- check: NN -->`, `<!-- checkpoint: NN -->` are the other directives.
+- Prose is bullets, one idea per step, code first; a block says WHAT, prose says WHY. Never
+  narrate an edit. Label TYPE THIS / COPY deliberately. Numbers only when visible in shown code.
+- Tests are not documented in docs/: test files, examples and parity ports are "supplied"
+  (installed by `replay.py --copy-supplied`), never explained.
+- `python3 docs/course_pages.py --audit` must pass: every checkpoint change taught or supplied
+  exactly once, and typing the lesson literally reproduces the checkpoint hashes. Every
+  `<!-- check: NN -->` marker must be recorded by `docs/reconstruction/compile_points.py`
+  (it runs cargo check on the typed state; one cargo process at a time, -j4).
+- Changing viewer source that the final checkpoint covers: reconstruct it
+  (`replay.py --output <new> --through 18`), then `docs/reconstruction/refreeze.py --workspace <new>`
+  folds the production diff into patch 18, series/baseline hashes and the tree hash; add a
+  directive in lesson 18 for taught files; then audit + compile points + `docs/serve.sh build`
+  + `docs/check_site.py` + `converge.py --workspace <fresh replay> --production .`.
+- The viewer page carries a black folded-corner link to `docs/`; Trunk copies `target/docs/site`
+  into `dist/docs` and `docs/build_site.sh` (pre-build hook) rebuilds the site when stale.
+- Mermaid: `flowchart TB` for chains longer than five nodes (LR gets shrunk to unreadable size);
+  several small diagrams beat one tangled one; edge labels stay short.
+- Illustrations come from `docs/illustrations/draw.py` (BRG Equilibrium palette; boxes sized
+  from text). Never hand-place SVG text: regenerate, then `node docs/check_illustrations.cjs
+  --write` must PASS (real Chrome metrics, no overflow, no collisions, pinned textLength).
 
 ## Custom Commands
 - `/new-class <name>` — full checklist for adding a new geometry class

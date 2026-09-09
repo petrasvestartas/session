@@ -1,148 +1,154 @@
 # Session Viewer architecture
 
-Session Viewer is one browser application: Rust compiles to WebAssembly, winit delivers input, and wgpu draws through browser WebGPU. The native offscreen executable uses the same renderer for tests. Start the learning sequence at [Build the viewer](docs/README.md).
+Reference for the finished viewer: one browser application, Rust compiled to WebAssembly, winit for input, wgpu over browser WebGPU. The [course](docs/README.md) builds it from an empty crate; this page describes the result.
 
-## Read the application in this order
+## Module graph
 
-1. `src/lib.rs` owns the application and receives events and asynchronous messages.
-2. `src/state.rs` coordinates camera, selection, scene changes and requested frames.
-3. `src/app/scene.rs` retains source documents and stable identities. `app/walk/` converts each geometry family into display data.
-4. `src/engine/gpu/upload.rs` is the typed handoff to GPU storage.
-5. `src/engine/gpu/render.rs` lists the drawing passes in their actual order.
-6. Read the resource owner for the feature being changed, then its WGSL shader.
+```mermaid
+graph TD
+    lib["lib.rs · App<br/>winit events, Msg handlers"] --> state["state.rs · State<br/>camera · selection · frame demand"]
+    state --> camera["camera.rs"]
+    state --> scene["app/scene.rs · Scene<br/>Rc&lt;Session&gt; documents, placements, row maps"]
+    state --> gpu["engine/gpu/mod.rs · Gpu<br/>device, layouts, targets, lanes"]
+    state --> text_state["state/text.rs · labels"]
+    state --> cq["state/cloud_query.rs · source pages"]
+    lib --> loader["app/loader.rs · fetch, validate, stage"]
+    loader --> manifest["app/manifest.rs · validate.rs · decode.rs · stream.rs"]
+    scene --> walk["app/walk/* · producers<br/>mesh · brep · curves · cloud · points · text"]
+    walk --> upload["engine/gpu/upload.rs · Upload<br/>typed rows, no wgpu types"]
+    upload --> gpu
+    gpu --> lanes["lanes: arena · segments · glyphs · cloud+splat · text · surface_outline · triangle_tiles"]
+    gpu --> pick["gpu/pick.rs · Picker"]
+    gpu --> render["gpu/render.rs · frame list"]
+    lanes --> shaders["shaders/*.wgsl"]
+    input["app/input.rs · touch.rs"] --> state
+```
 
-![Source documents become display data; input and picking share the same scene identity.](docs/illustrations/ownership.svg)
+The one upward flow is a pick answer: `Picker` returns a row and sub-ID, `Scene` maps them to a source identity, `State` selects.
 
-GPU code knows how to draw an object row; Scene knows which source object that row represents. A shader never owns CAD topology. An input handler asks State to select or hide an object; it does not reach into a GPU buffer.
+Higher layers drive lower ones, never the reverse: a shader knows an object row, `Scene` knows which source object that row is, and input asks `State` to select rather than touching a buffer.
 
-## Why these files exist
-
-The split follows ownership and lifetime. A drawing module owns its buffers, pipelines, changed-data upload, drawing and release. It borrows the shared device and compatible frame targets. Keeping these operations together makes it possible to change one representation without searching through unrelated geometry types.
+## Owners
 
 | Owner | Responsibility |
 |---|---|
-| `lib.rs::App` | Window/event loop, application messages, redraw delivery |
-| `state.rs::State` | Camera and ordinary selection transitions, frame invalidation |
-| `state/text.rs` | Derive selection labels, present source text and fit shaped bounds |
-| `state/cloud_query.rs` | Coordinate source-query pages, GPU answers and original-ID resolution |
-| `app/scene.rs::Scene` | Retain `Rc<Session>` documents, placements and source row mappings |
-| `app/scene_text.rs` | Stable authored-text/document-title rows and hidden state |
-| `app/selection.rs` | Selection modes and original source control identities |
-| `app/walk/` | Produce display triangles, strokes, points and source maps using shared geometry |
-| `engine/gpu/mod.rs::Gpu` | One device/queue, frame resources and drawing modules |
-| `gpu/arena.rs` | Mesh vertex/index/object columns and their capacity |
-| `gpu/faces.rs` | Physical triangle/source-face pipelines and face identity rows |
-| `gpu/segments.rs` | Joined boundary pipes and standalone ribbons |
-| `gpu/surface_outline.rs` | Ordinary/selected coverage masks and one black compositor |
-| `gpu/triangle_tiles.rs` | Projected finite triangles, compact screen-tile lists and their cache |
-| `gpu/text.rs` | Prepared glyph runs, Glyphon resources and text drawing |
-| `gpu/pick.rs` | ID targets, bounded asynchronous readback windows and cancellation |
-| `app/loader.rs`, `live.rs`, `stream.rs` | Validated loading, replacement and bounded source ranges |
+| `lib.rs::App` | Window and event loop, `Msg` handlers, the one place a redraw is requested |
+| `state.rs::State` | Camera and selection transitions, `needs_frame` / `dirty`, pick requests |
+| `state/text.rs` | Selected-object names, source text presentation |
+| `state/cloud_query.rs` | Streamed-cloud source queries across pages, original-ID resolution |
+| `app/scene.rs::Scene` | Retained `Rc<Session>` documents, placements, row → source maps |
+| `app/scene_text.rs` | Stable rows for authored text and document titles |
+| `app/selection.rs` | `SelectionMode`, `ControlId`, `Controls` |
+| `app/walk/` | Source geometry → typed `Upload` rows with source identity and bounds |
+| `engine/gpu/mod.rs::Gpu` | One device and queue, layouts, frame uniforms, targets, every lane |
+| `gpu/arena.rs` | Mesh vertex, index and object columns; `faces.rs` source-face rows; `triangle_tiles.rs` finite-visibility cache |
+| `gpu/segments.rs` | Joined boundary pipes and standalone ribbons with source-edge IDs |
+| `gpu/glyphs.rs`, `cloud.rs`, `splat.rs` | Markers and control dots; cloud LOD nodes; point splat prelude and resolve |
+| `gpu/surface_outline.rs` | Ordinary and selected coverage masks, one black compositor |
+| `gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `text_outline.rs` | Shaped glyph runs, plates, fixed-plane text, imported outlines |
+| `gpu/pick.rs::Picker` | ID targets, bounded readback windows, generations and cancellation |
+| `app/loader.rs`, `fetch.rs`, `live.rs`, `stream.rs` | Fetching, validation, staged replacement, bounded ranged reads |
 
-State has companion modules because text presentation and multi-page source queries have distinct transitions. They remain methods on one State. The GPU text file includes substantial regression tests, so total line count overstates runtime size. `triangle_tiles.rs` keeps its resource owner and pipeline descriptors together; four shaders implement projection, shared equations, binning and prefix sums. There is no generic render graph or speculative service framework.
+![Source documents become display data; input and picking share the same scene identity.](docs/illustrations/ownership.svg)
 
 ## Three representations of an object
 
 | Representation | Example | Lifetime and precision |
 |---|---|---|
-| Source geometry | One BRep face, trim uses and original edge IDs | Retained Session data; f64 coordinates |
-| Display geometry | Many triangles and ordered boundary node chains | Rebuilt on geometry changes; source mappings retained |
-| GPU representation | Packed vertices, object rows and draw ranges | Object-relative f32 values plus rebased transforms |
+| Source | One BRep face, its trim uses, original edge IDs | Retained `Session` data, f64 |
+| Display | Triangles, ordered boundary node chains, markers | Rebuilt on geometry change; source maps kept |
+| GPU | Packed vertices, `Instance` rows, draw ranges | Object-relative f32 plus rebased translations |
 
-One source face may produce thousands of triangles. Ctrl+Shift selects that source face, not an arbitrary tessellation triangle. Every segment of one BRep edge keeps its original edge ID. Standalone polylines remain objects; subdivisions do not become invented CAD edges. F10 reads original vertices or control points.
+Selecting a source face (Ctrl+Shift) selects the face, not a tessellation triangle. Every segment of one BRep edge carries the original edge ID. F10 shows original vertices or control points, not display subdivisions.
 
-The kernel supplies matching face/boundary samples and independent face normals. Planar BRep faces do not share smoothed normals across boundaries. Curved interiors use analytic normals with explicit singular fallbacks and crease splits. See [the CAD design record](docs/cad-design.md) for trims, pcurves, provenance and the OCCT comparison.
+## A frame
 
-Projected triangles are a temporary visibility representation of the exact uploaded triangles. They are not another CAD tessellator or shared geometry API.
+`Gpu::encode_frame` in `gpu/render.rs`:
 
-## A displayed frame
+```mermaid
+flowchart TD
+    A["triangle_tile_pass<br/>project triangles, bin into screen tiles<br/>(only when camera or geometry changed)"] --> B["point_pass<br/>cloud splat prelude"]
+    B --> C["begin_faces: backdrop, grid, opaque faces, cloud resolve<br/>writes Depth32Float + Rgba16Float gradient/primitive metadata"]
+    C --> D["selection mask · solid mask<br/>R8Unorm coverage against physical depth"]
+    D --> E["begin_ink: face highlight, print geometry, unselected strokes,<br/>selected solid strokes, black silhouette, selected standalone curves,<br/>markers, text"]
+    E --> F{"pick pending?"}
+    F -- yes --> G["id_pass: same lists, Rg32Uint IDs, scissored window, copy out"]
+    F -- no --> H["submit · present"]
+    G --> H
+```
+
+Order matters twice in the ink pass: selected solid strokes go below the silhouette so their yellow fringe cannot narrow its black border, and selected standalone curves go above it so a coincident mesh edge cannot erase them. Both obey physical occlusion.
 
 ![Physical surfaces, readable source ink, one black silhouette, then foreground annotations.](docs/illustrations/frame.svg)
 
-`Gpu::encode_frame` coordinates these operations:
+## Depth and visible ink
 
-1. Prepare clouds and, when camera or geometry changed, finite triangle visibility.
-2. Draw background, grid, opaque faces and cloud resolve into physical depth and metadata.
-3. Draw selected and ordinary solid coverage masks against that depth.
-4. Draw source-face highlights, print geometry and ordinary strokes.
-5. Draw selected **solid boundary** strokes, then composite the black silhouette.
-6. Draw selected **standalone** curves, so coincident mesh edges cannot erase their yellow highlight.
-7. Draw markers, imported outline text, controls and authored/derived labels.
-8. When requested, draw the separate ID pass and schedule its small asynchronous readback.
-
-Steps 5 and 6 have different ordering requirements. A yellow solid edge must not paint over its black silhouette. A selected standalone polyline must remain visible over coincident mesh ink. Both obey physical occlusion: a genuinely nearer solid hides the covered line.
-
-Ordinary outlines describe the union of visible opaque solids. Selected and ordinary masks use **maximum coverage**, not two alpha blends; selected interiors suppress the ordinary contour. The selected radius is 3.375 CSS pixels; ordinary is 2.25 CSS pixels. Multisample mask coverage and a one-pixel transition soften the border. `O` toggles the effect, independently of source BRep seams and mesh edges.
-
-## Why the wrong triangle can hide an edge
-
-Physical depth is reversed: near is larger, depth clears to zero, and opaque surfaces compare `Greater`. A thick line covers samples beside its mathematical axis. Testing a nearby surface at that offset sample can incorrectly hide a line on the surface. The first test transfers the surface's depth to the line axis using the rasterized primitive's gradient.
-
-That test alone has a finite-geometry problem. A neighboring triangle's plane may intersect the axis even when the triangle ends before it. This caused interrupted seams at concavities and touching solids.
+- Depth is reversed: near is larger, the clear value is zero, opaque faces compare `Greater`.
+- A stroke covers samples beside its axis. The ink shader transfers the winning primitive's depth to the axis through the stored gradient before comparing, so a line on a surface is not hidden by the surface beside it.
+- A neighbouring triangle's plane can cross the axis outside the triangle. The finite fallback in `triangle_tiles.rs` then tests the actual triangles that intersect the axis's screen tile: projected records (six `vec4<f32>` each), per-tile counts, a prefix scan, and filled `(primitive, max depth)` lists. Overflowing or incomplete lists keep the conservative rejection.
 
 ![A triangle's plane extends beyond its footprint; the line is visible outside the actual triangle.](docs/illustrations/finite-triangle.svg)
 
-The fallback now checks finite triangles:
+## Rust ↔ WGSL interfaces
 
-1. Keep the inexpensive physical-depth test when it accepts the line.
-2. If it rejects, test the actual winning triangle and nearby primitive witnesses. A finite, nearer hit confirms real occlusion.
-3. Otherwise examine every triangle intersecting the line-axis screen tile, including triangles that won no physical sample.
-4. Reject only when a finite triangle contains the axis and is nearer there.
+Bind group scheme for every draw (`engine/pipelines/layouts.rs`):
 
-Physical `Rgba16Float` metadata stores the gradient in xy and an exact packed primitive identity in zw. Non-triangle geometry writes zero identity and retains the conservative visibility rule. Picking has its own single-sample depth and matching metadata; it never mixes sample locations with display MSAA.
+| Group | Binding | Rust layout | WGSL |
+|---|---|---|---|
+| 0 | 0 | `Layouts::mvp`, uniform | `@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>` |
+| 1 | 0 | `Layouts::line`, uniform | `@group(1) @binding(0) var<uniform> line: LineUniform` |
+| 2 | 0 | `Layouts::instance`, storage | `@group(2) @binding(0) var<storage, read> instances: array<Instance>` |
+| 2 | 1 | anchored translations, storage | `@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>` |
+| 2 | 2–5 | `Layouts::ink_instance`: physical depth and gradient, single and multisampled | depth and float textures sampled by the ink fragment stage |
+| 2 | 6–7 | projected triangles and tile lists | finite-visibility storage read by `ink_visibility.wgsl` |
+| 3 | n | the lane's own rows (`ink_rows`, `segment_rows`, `points`) | e.g. `@group(3) @binding(0) var<storage, read> segments: array<StrokeSegment>` |
 
-The fallback uses a 96-byte projected record per triangle. Tiles start at four framebuffer pixels and grow to keep at most 262,144 headers. A pooled budget of 32 references per viewport tile lets dense tiles borrow spare space; it is not a per-tile cap. Count, prefix scan and fill construct contiguous lists. Oversized, overflowing or incomplete lists retain depth rejection, so workloads beyond the budget can still have missing ink rather than hidden-line leaks.
+`Instance` (`gpu/instance.rs`) is one 96-byte row: `model: [f32;16]`, `color: [f32;4]`, `flags: u32`, `thickness`, `spacing`, `_pad`. The translation column is zero; the rebased translation is the 16-byte row at group 2 binding 1, so a re-anchor rewrites 16 bytes per object. Flag bits: selected, hidden, inside, print, open, sheet, smooth. Layout tests in `instance.rs` compare the Rust size and offsets with the WGSL declaration.
 
-Camera, hiding, placement, rebasing and geometry changes invalidate projection. Selection/color changes do not. Buffer replacement rebinds readers. Scene release drops the tile texture and leaves 128 bytes of placeholders. [Chapter 18](docs/18-finite-visibility.md) reconstructs these contracts and the counterexample.
+Meshes are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects`, `face_indices` from storage at group 3 instead of a vertex buffer. Textures: color surface format, `Depth32Float` physical depth, `Rgba16Float` metadata (gradient in xy, packed primitive ID in zw), `R8Unorm` coverage masks, `Rg32Uint` pick IDs with their own `Depth32Float` and metadata.
 
-## Selection, text and asynchronous answers
+## Flows
 
-| Action | Result |
-|---|---|
-| Left click | Select/toggle one source object |
-| Ctrl+left click | Select an original mesh/BRep/NURBS edge |
-| Ctrl+Shift+left click | Select an original face; nearby eligible edges retain precedence |
-| F10 | Show one parent's original controls; repeat without duplication |
-| Escape | Leave component/control mode keeping the parent; next Escape clears it |
-| H / S | Hide the selection / show hidden objects, including authored text |
-| T | Toggle derived selected-object names; authored text remains an object |
-| O | Toggle black solid silhouettes |
+**Camera.** Pointer delta → `Input` → `Camera::orbit / pan / zoom_at` (f64, target + distance + quaternion) → `view_proj_anchored(aspect, anchor)` with reversed depth and a near plane at a fraction of the focus distance → `FrameUniforms` (`mvp`, eye, ortho half-height) → group 0.
 
-Camera-facing and fixed-plane text both have source rows. Selecting a source text object gives it black glyphs on a yellow backing; deselecting restores its authored ink and black backing. `TextLabel::ink_color()` supplies the same selection color to both rendering paths. The centered rounded selection name remains white on black: it is a derived annotation without a source row, so it cannot intercept its parent's click. `engine/text.rs` owns shaping and metrics; GPU code places/draws the result without advancing the pen by bitmap width.
+**Geometry.** `Msg::File` → `Scene` retains the document → `app/walk/*` produce `Upload` rows (arena, segments, glyphs, cloud, object rows, bounds) with source maps → `Gpu::set_scene` appends rows to lane buffers and rebinds → `render.rs` draws ranges.
 
-Every scene text backing uses fully rounded corners, with each end cap outside the shaped glyph box. World-plane text evaluates its rounded coverage in perspective-correct UV coordinates and uses the same shape for picking. Camera-facing plates use physical pixel coordinates. Both use antialiased coverage, including while selected.
+**Picking.** Pointer up without a drag → `State::request_selection` records mode, generation, camera → `id_pass` renders IDs into a scissored window around the cursor → `Picker` maps a bounded copy asynchronously → row and sub-ID → `Scene::object_at / edge_at / face_at` → `SelectionMode` → `Instance::FLAG_SELECTED` uploaded → redraw. A camera, scene or mode change retires answers from an older generation.
 
-Default mesh/BRep/NURBS edges and standalone lines/polylines use a 1 CSS-pixel pen (`View.thickness_px`, `?thickness=` or `VIEWER_THICKNESS`). Explicit authored world-space widths retain their dimensions. This pen setting is independent of the black silhouette radii.
+**Controls.** F10 → `Controls` collects original vertices or control points of the selected parent → marker rows uploaded with `ControlId` → a control pick returns the original identity, not the marker slot. Streamed clouds query every eligible source page (`state/cloud_query.rs`) independently of display LOD and apply the final visible original ID.
 
-Picking returns revision-local GPU addresses that Scene maps to source identity. Camera/scene/mode changes retire stale readbacks. Streamed F10 queries every eligible source page independently of display LOD, then applies the final visible original ID. A delayed page cannot replace a newer selection.
+**Text.** String, font, size → `engine/text.rs` shapes glyph runs with the bundled Noto fonts → `TextPlacement` (Screen, Anchor, Nameplate, WorldPlane, WorldBillboard) → `TextLane::prepare` chooses the physical raster size once per DPR → coverage atlas → plate pass and glyph pass; fixed-plane text uses `text_plane.wgsl` with perspective-correct rounded plates that also serve the ID pass.
 
-## What invalidates what
+**Loading.** Route → manifest (TOML, YAML or JSON) → `validate.rs` checks counts, indices, transforms → protobuf decode → `PendingDocument` staged with a request generation → `Msg::File` in manifest order. Stale generations are dropped; a malformed document keeps the last valid scene.
+
+## Lifecycles
 
 | Change | Required work | Reused work |
 |---|---|---|
-| Camera or DPR/resize | Uniforms, placement, visibility projection/targets; cancel stale picks | Source documents, tessellation, shaped text |
-| Selection/color | Object flags/style, selected labels, redraw/masks | Mesh buffers, projected triangle cache |
-| Hide/show | Visibility flags, projection invalidation, text visibility, redraw | Source geometry and identity |
-| Geometry/document replacement | Source mapping, display data, bounds, caches; cancel stale work | Device and compatible pipelines |
-| Text content/font | Shape changed runs, raster data and bounds | Unchanged glyph resources |
-| Idle with no pending work | No submitted color frame | All retained resources |
+| Camera, DPR or resize | Uniforms, placement, finite-visibility projection, targets; cancel stale picks | Documents, tessellation, shaped text |
+| Selection or color | Object flags, selected labels, masks, redraw | Mesh buffers, projected-triangle cache |
+| Hide or show | Visibility flags, projection invalidation, text visibility | Source geometry and identity |
+| Document replacement | Source maps, display data, bounds, caches; cancel stale work | Device and pipelines |
+| Text content or font | Reshape changed runs, raster, bounds | Unchanged glyph resources |
+| Idle | Nothing submitted | Everything |
 
-`reset` can retain capacity for an edit rebuild. `release` returns scene-sized storage on replacement. Source-cache weak references do not retain old documents. Owned GPU capacity, estimated texture payload, source payload and WASM memory capacity are different measurements; see [results and limits](docs/measurements.md).
+`reset` keeps capacity for an edit rebuild; `release` returns scene-sized storage on replacement. `SourceCache` (`app/inspection/source_memory.rs`) holds `Weak<Session>` identities, so measuring retained source payload never extends a document's lifetime.
 
-## Add a feature without spreading it through the renderer
+## Input
 
-For a geometry family, add a Scene/walk producer emitting the existing typed Upload representation where possible. Preserve bounds and source identity. Add a GPU owner only if storage or drawing behavior differs. Wire lifecycle and drawing position in Gpu, then exercise selection, hide/show, replacement and release.
+| Input | Result |
+|---|---|
+| Left drag / right drag / middle drag / wheel | Orbit / pan / pan / zoom toward the cursor |
+| Left click | Select or toggle one source object |
+| Ctrl + left click | Select an original mesh, BRep or NURBS edge |
+| Ctrl + Shift + left click | Select an original face; a nearby eligible edge wins |
+| F10 / Escape | Show the parent's original controls / leave the mode, then clear |
+| 1–7, C, F, Space | Standard views, reset, fit, projection toggle |
+| Q, W, E, O, D, B | Points, lines, mesh edges, silhouettes, lighting, back faces |
+| H / S / T | Hide selection / show all / toggle selected names |
 
-For a layer panel, read Scene hierarchy and issue the same selection/visibility actions as keyboard input. For future editing, replace the affected immutable source document or explicitly invalidate geometry/bounds/source caches. Mutating a vertex buffer behind Scene loses the source of truth needed by controls, picking and undo.
+## Adding a feature
 
-For a shader change, inspect its Rust mirror, bindings, color/ID entry points, sample count and release path together. `instance.rs` checks sizes/offsets and assembled WGSL. Native/browser fixtures check pixels and identities; a WASM compile alone does not validate a WebGPU shader.
+For a new geometry family: a `walk/` producer that emits existing `Upload` rows with bounds and source identity; a new lane only when storage or drawing differs; one line in `render.rs`; then exercise select, hide, replace and release. For a shader change: read its Rust mirror, bindings, color and ID entry points, sample count and release path together, and check the layout test in `instance.rs`. Never mutate a vertex buffer behind `Scene`: it is the source of truth for picking, controls and any future undo.
 
-## Archive feature map
-
-The archive is a reference, not a runtime dependency. Gumball, snapping, command history, layer and graph UIs remain future work, with no placeholder implementations. Current scope preserves drawing, shading controls, source selection and text. Inspected archive paths are in [the coverage table](docs/coverage.md#archive-reference).
-
-## Build and documentation owners
-
-`Cargo.lock` pins Rust dependencies; `Trunk.toml` builds the browser app and watches the kernel. Native examples are test tools checked on the native target. The browser check uses `wasm32-unknown-unknown --lib`.
-
-The documentation uses Markdown, Material for MkDocs and explicit language lexers. Small Python build/replay tools assemble exact lesson sources and verify checksums; they do not infer Rust APIs from Python signatures. Rust, WGSL and TOML listings use their own syntax rules. The course's final checkpoint is compared byte-for-byte with the frozen runtime inventory.
+The CAD geometry contract (shared boundaries, trims, pcurves, provenance) is in the [CAD design record](docs/cad-design.md).

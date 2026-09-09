@@ -1,51 +1,182 @@
-# 06 · Preserve CAD faces in display data
+# 06 · CAD face contract
 
-**Start:** checkpoint 05. **Finish:** the CAD fixture passes through source geometry, face meshes and stable boundary records.
+## You are building
 
-## What a BRep contributes
-
-A boundary representation separates topology from surface geometry. A face refers to a supporting surface and oriented boundary uses. An edge has a source identity and can belong to multiple faces. A NURBS surface maps parameters `(u, v)` to a 3D point; a trim curve describes the region of that parameter domain that belongs to the face.
-
-```text
-BRep face + surface + trim uses
-              ↓ shared geometry producer
-positions / triangles / UVs / normals / boundary provenance
-              ↓ viewer preparation
-display rows carrying parent + source face/edge identities
+```mermaid
+flowchart TB
+    S["BRep / NurbsSurface<br/>(f64 source)"] -- "face_meshes_q / from_u_v_q" --> M["kernel Mesh per face<br/>positions · u,v · normals"]
+    M -- "to_render" --> R["RenderMesh (f32)"]
+    R -- "push_face" --> A["ArenaRows<br/>verts · vids · idx"]
+    M -- "mesh_topology" --> T["MeshTopo<br/>edges · edge_faces · normals"]
+    T -- "edges_and_dots" --> I["SegRows pipes<br/>GlyphRows spheres"]
+    A & I -- "Upload" --> G["GPU"]
 ```
 
-The viewer needs more than an anonymous triangle soup. A face's source index must survive triangulation. A rendered boundary chain must identify the original edge. Shading vertices can be duplicated at a crease without creating new CAD vertices.
+## Starting point
 
-## Read the mesh contract before the mesher
+- Checkpoint 05: hand-built quads, strokes and markers in `fixture.rs`; physical depth and visible ink work.
+- Nothing yet reads a Session `Mesh`, `BRep` or `NurbsSurface`. This lesson adds the whole `app/walk` producer layer and its first CAD consumer.
+- A shading crease is a kernel decision; the viewer only carries it. One kernel edit comes first.
 
-The shared mesh records carry positions and indexed triangles. UV values connect samples back to the supporting surface. Boundary metadata connects original loop samples and inserted interval samples to their source use. These fields let the consumer reuse actual face mesh nodes for ink.
+<!-- supplied: 06 -->
 
-The GPU vertex layout is a separate packed contract. Geometry remains f64 until preparation converts it to the object's local display representation. Boundary endpoints and triangle positions must use the same conversion; independent rounding can reintroduce a gap even if source coordinates matched.
+## Step 1 · Kernel: one-sided normals at a C0 knot
 
-Normals also have a source meaning. A valid analytic surface normal can describe a curved interior better than an average of coarse triangles. A singular derivative needs a real fallback; an arbitrary default vector must not masquerade as a valid derivative.
+- A knot repeated `degree` times folds the surface; averaging normals across that fold makes a sharp edge look rounded.
+- The grid mesher now splits a shading vertex on the crease side: same position and `u`/`v`, different normal, so the split never invents a CAD vertex.
+- Face keys are sorted before accumulation: float sums are order-dependent, and map order must not reach the mesh bytes.
 
-## Shared code is a dependency with a contract
+<!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=1-4 -->
 
-This lesson changes the supplied Rust geometry producer and its independent C++/Python equivalents. The Rust version is the one used by this browser build. The other implementations demonstrate parity of the geometry API and are provided in full for verification.
+`split_crease_normals` is also called by the trimmed mesher in the next lesson, hence `pub(crate)`.
 
-Keep rendering-only decisions in the viewer. CSS widths, projected visibility tiles and GPU buffer packing are not changes to the CAD file format or geometry kernel.
+<!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=5 -->
 
-## Write the files
+<!-- check: 06 -->
 
-Follow [Complete file changes for 06](../lessons/06/index.md). Source paths beginning `session_rust/`, `session_cpp/` or `session_py/` are siblings of `session_viewer`, beneath `$COURSE_WORK`. Do not create them inside the viewer's `src` directory.
+## Step 2 · Row encodings
 
-Type the Rust mesh/face contract and follow how the producer fills it. Copy the independent parity files and fixture tools. Then wire the viewer consumer. The complete file pages include all required imports and module exports.
+- Every producer packs the same four things: pen width → world radius, colour → RGBA8, unit normal → 16-bit octahedral code, two normals → one `facing` word.
+- `FACING_UNKNOWN` is all ones and means "no adjacency, always draw"; `pack_facing` steps around that value.
 
-## Checkpoint
+<!-- file: 06 session_viewer/src/app/walk/encode.rs type -->
 
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
-```
+## Step 3 · What a producer reports
 
-The local CAD fixture at <http://localhost:8780/?data=off&inspect=1> should show a substantial shaded model, with boundaries separate from fill. The browser check deliberately tests shaded pixels rather than assuming every CAD fixture is brightly colored.
+- `WalkCx`: where an object's rows land (vertex base, object row). `Row`: what the producer measured (local box, spacing, flags, thickness).
+- The `mod.rs` also declares the modules you type in the following steps; nothing compiles them until `app/mod.rs` names `walk` in step 11.
 
-Inspect a boundary chain's source ID and its referenced mesh nodes. If the chain is unavailable, record it as unavailable; do not invent an edge ID from a triangle's index.
+<!-- file: 06 session_viewer/src/app/walk/mod.rs type -->
 
-**Before continuing:** explain how one topological edge can have multiple oriented face uses. Continue to [coherent boundaries](07-boundaries.md).
+## Step 4 · Per-file sweeps and thickness
+
+- A sheet (planar file) is detected after the walk from the object rows, so producers stay ignorant of documents.
+- Thickness is measured along the mesh's own dominant face normals, not the axis-aligned box: a rotated plate measures its plate thickness.
+
+<!-- file: 06 session_viewer/src/app/walk/bounds.rs type lines=1-71 -->
+
+<!-- file: 06 session_viewer/src/app/walk/bounds.rs type lines=72-153 -->
+
+## Step 5 · Fused mesh topology
+
+- One pass over the faces gives the ink lanes everything: unique edges with pen colours, the two faces at each edge, face normals, closedness.
+- Edges hang off their low vertex on an intrusive chain; a mesh with sparse vertex keys still indexes in O(1) through `SlotMap`.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=1-48 -->
+
+- Newell normals, not the first three corners: a reflex second corner would invert the normal and turn a flat region into a crease.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=49-95 -->
+
+- Faces are slotted by arrival, not by direction; `opposed` records a winding disagreement instead of declaring the solid open.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=96-173 -->
+
+## Step 6 · Ink: pipes for edges, spheres for vertices
+
+- The ink pass reads the topology and the f32 positions by slot, and writes only `SegRows.pipes` and `GlyphRows.spheres`.
+- When a pair's winding disagrees, the second normal is negated: the facing test needs two outward normals.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-110 -->
+
+- A smooth tessellation inks only borders and creases; a coplanar diagonal is dropped unless `VIEWER_ALL_EDGES` asks for it.
+- `pipe_ids` gets the source edge index for an authored mesh and `u32::MAX` for a tessellation seam: selection must never return an invented edge.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=111-146 -->
+
+- Incidence is CSR over the edges: each vertex knows its widest visible edge and every incident edge, so a marker can carry up to six face normals.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=147-192 -->
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=193-268 -->
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs copy lines=269-373 -->
+
+## Step 7 · One mesh into the tables
+
+- Gates first: above `MESH_RAW_MIN` triangles a mesh is faces only; a print fill (single width 0) takes the sheet index runs.
+- `MeshOpts::MODEL` marks a tessellation: `FLAG_SMOOTH` tells the marker lane its vertices are samples, and its seams are not geometry.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-81 -->
+
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=82-144 -->
+
+- Faces go into the arena with `vids = cx.row`; the ink pass runs only on decorated meshes with a topology.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=145-236 -->
+
+## Step 8 · Curves into the ribbon lane
+
+- Lines and polylines become one flat ribbon per span with `FACING_UNKNOWN`: free linework has no faces to cull against.
+
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-67 -->
+
+- A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
+- `render_position` is the single f64 → f32 boundary; the same function will convert boundary chain endpoints in the next lesson.
+
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=68-149 -->
+
+## Step 9 · Edge records and the first BRep consumer
+
+- Topology records only: which edge, which face, which orientation. Exact chains arrive in lesson 07.
+
+<!-- file: 06 session_viewer/src/app/walk/brep_edges.rs type -->
+
+- Each BRep face keeps its own vertices and the kernel's normals; nothing is welded across faces, so a planar face never inherits a neighbour's normal.
+- `QUALITY` is a display decision: the viewer asks for finer sampling than the kernel default.
+
+<!-- file: 06 session_viewer/src/app/walk/brep.rs type -->
+
+## Step 10 · Launch-time knobs
+
+Presence-only environment flags, read once per process; always false in the browser.
+
+<!-- file: 06 session_viewer/src/app/knobs.rs copy -->
+
+## Step 11 · Wire the producers
+
+<!-- file: 06 session_viewer/src/app/mod.rs type -->
+
+<!-- check: 06 -->
+
+## Step 12 · The fixture becomes a source scene
+
+- `CadFixture` retains the f64 source objects and a `SourceIdentity` per object row; the GPU only receives prepared tables.
+- The same `add` path serves BRep and surface sources, so picking will map a row back to a GUID without searching triangles.
+
+<!-- file: 06 session_viewer/src/fixture.rs copy -->
+
+<!-- file: 06 session_viewer/src/lib.rs type -->
+
+## Step 13 · Flat preview shading
+
+Until lesson 09 the shader ignores vertex normals and uses the finite face fallback, so a wrong normal contract cannot hide behind lighting.
+
+<!-- file: 06 session_viewer/src/shaders/triangle.wgsl type -->
+
+<!-- file: 06 session_viewer/index.html copy -->
+
+## Check
+
+<!-- checkpoint: 06 -->
+
+Expected:
+
+- A grey shaded planar face fills a large part of the canvas; its four natural boundaries draw as black ink separate from the fill.
+- The status reads one object; the inspection JSON lists `sourceObjects` with a GUID and `sourceEdgeIds`.
+- Orbit: fill and boundary move together.
+
+If the face is missing, follow producer → `Upload` → arena → draw range. If boundaries float off the face, the two f64 → f32 conversions differ.
+
+## What changed
+
+<!-- tree: 06 session_viewer/src/app -->
+
+- New producer layer: kernel mesh → `ArenaRows` faces + `SegRows`/`GlyphRows` ink, with source identity kept beside every row.
+- Data flow: f64 source → kernel `Mesh` with `u`/`v`/normal attributes → f32 `RenderMesh` → arena; topology → pipes and spheres.
+
+**Production equivalent:** `src/app/walk/{mod,bounds,encode,mesh,mesh_ink,mesh_topology,curves,brep,brep_edges}.rs` and `src/app/knobs.rs` are production files from here on. The [CAD design record](cad-design.md) documents the producer contract.
+
+## Next
+
+[07 · Shared boundaries](07-boundaries.md): one canonical chain per BRep edge, constrained into every incident face, drawn from the exact mesh nodes.

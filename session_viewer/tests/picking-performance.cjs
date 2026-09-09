@@ -264,6 +264,12 @@ async function main() {
   assert(Number.isInteger(count) && count>0,'sample count must be positive');
   const versions = [{name:'baseline',url:process.env.VIEWER_BASELINE_URL || 'http://127.0.0.1:45693/'},
     {name:'current',url:process.env.VIEWER_URL || 'http://127.0.0.1:18772/'}];
+  // Both builds are prerequisites this runner cannot supply: say which one is missing before
+  // a browser is launched, instead of failing inside a navigation timeout.
+  for (const version of versions) {
+    try { await fetch(version.url); }
+    catch (error) { throw new Error(`${version.name} viewer is not reachable at ${version.url}; serve a controlled baseline build (VIEWER_BASELINE_URL) and the current build (VIEWER_URL) before running this comparison`); }
+  }
   const browser = await chromium.launch({executablePath:process.env.CHROME_BIN || '/usr/bin/google-chrome',
     headless:process.env.VIEWER_HEADLESS==='1',args:JSON.parse(process.env.VIEWER_CHROME_ARGS || '[]')});
   const reports = [];

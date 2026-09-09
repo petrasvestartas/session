@@ -44,8 +44,26 @@ checks actual solid occlusion, projection, cache reuse and texture release.
 
 `node tests/teapot.cjs` uses the intentionally retained `assets/pb/view_mixed_teapot.pb`:
 the existing 32-patch Utah teapot, preserved byte-for-byte from the archive worktree.
-It checks source hash, GUID, visible surfaces and all 512 surface controls at DPR 1/2.
+It checks source hash, GUID, visible surfaces, all 512 surface controls at DPR 1/2, and,
+seen from below, that the concave foot boundary is drawn along its whole cubic outline.
 The asset has no verified 3ds Max export provenance. Its original four open shells are retained.
+
+Object counts in the browser checks include the document-title text object, which is a
+source row of its own: the seven-family interaction fixture reports eight objects and the
+teapot manifest two.
+
+Pixel oracles were measured with the 1.5 px pen. The viewer's default pen is now 1 px, so the
+checks whose thresholds depend on stroke coverage pin `VIEWER_THICKNESS=1.5` (natively) or
+`?thickness=1.5` (in the browser) rather than lowering their thresholds: the interaction
+fixture's yellow coverage, the stroke-join and selected-overlap captures, the triangle
+visibility counterexample, the depth gate's plate outline, the hidden-line probe matrix, the
+teapot back-face census, the joint stroke weights and the orbit probe. The close-up box and
+orbit probes rely on the default silhouette-off setting, because the black solid
+silhouette is near-black ink that belongs to a separate check. Two floors were re-measured
+after joined strokes gained one owner per shared sample: the joint-to-free weight ratio
+(minimum 82%, floor 78%) and the near-edge-on cross-section (59.7%, floor 56%); the
+orientation diff of the flipped BRep probe allows 0.5% of the near-black pixels, the few edge
+pixels whose winning triangle changes with triangle order under finite-triangle visibility.
 
 The native ignored GPU test `selected_silhouette_is_black_visible_only_and_releases_coverage`
 checks black selected-surface silhouettes against physical occlusion, unchanged picking
@@ -62,7 +80,7 @@ python3 tests/selection-overlap.py
 The runner compares five fixtures with identical-geometry controls at four cameras and
 MSAA 1/4: forty cases, including both polyline upload orders and a tight crossing-point
 check. It requires at least 97% yellow-core retention and zero yellow in the covered span.
-Ordinary surface outlines remain enabled. Captures, original source GUIDs and measurements
+The runner starts the renderer with `VIEWER_OUTLINES=1`, so the selected solid's black silhouette is present as designed. Captures, original source GUIDs and measurements
 go under `target/selection-overlap` (`--output` overrides it); `--renderer` and `--generator`
 accept separately built native executables. The generator also records exposed picking
 leads for manual or browser selection of the intended source.
@@ -165,7 +183,9 @@ one-sided C0 normals, trimmed holes and exact shared boundary XYZ. This is a Ses
 rendering regression, not an OCCT pixel comparison.
 
 `python3 tests/parity.py` rebuilds and runs the existing shared CAD mini-tests without a
-GPU: `RemeshNurbsSurfaceGrid`, `NurbsSurfaceTrimmed` and `BRep`. The expected totals are
+GPU: `RemeshNurbsSurfaceGrid`, `NurbsSurfaceTrimmed` and `BRep`. Run it with a Python that
+has `session_py`'s dependencies (numpy and protobuf) and with the CMake the C++ build directory
+was configured with on `PATH`; the Python suite is executed by the same interpreter. The expected totals are
 51 Rust, 59 C++ and 51 Python tests; C++ has eight additional preexisting trimmed-surface
 tests. Rust uses the maintained `check_shared_geometry` example and the normal Cargo
 dependency resolver. C++ uses the existing `point_minitest` CMake target's compiler flags
@@ -210,7 +230,7 @@ python3 tests/triangle-visibility.py
 
 It requires all 766 exposed seam-core pixels beside a nearby non-occluding strip and
 zero black pixels anywhere behind the genuinely covering strip. All three captures use
-`VIEWER_NO_OUTLINES=1` to isolate source ink from separately tested surface silhouettes.
+the default silhouette-off setting, so source ink is measured apart from the separately tested surface silhouettes.
 The nearby strip's infinite depth plane crosses the seam ray outside its finite triangle;
 this fixture fails when that extrapolated plane is allowed to hide the seam. Use
 `--renderer` for an independently built native executable and `--output` to override

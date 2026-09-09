@@ -30,6 +30,11 @@
              -webkit-user-select: none; user-select: none;
              -webkit-tap-highlight-color: transparent; }
     canvas:focus, canvas:focus-visible { outline: none; }
+    /* The documentation corner: a black folded-corner triangle, always above the canvas. */
+    #viewer-docs { position:fixed; top:0; right:0; width:0; height:0; z-index:10; display:block;
+                   border-top:40px solid #111; border-left:40px solid transparent;
+                   filter: drop-shadow(-1px 1px 0 #ffffff99); }
+    #viewer-docs:hover, #viewer-docs:focus-visible { border-top-color:#1a1eb2; border-top-width:52px; border-left-width:52px; outline:none; }
     #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
                  font:1rem system-ui; text-align:center; padding-top:40vh; }
   </style>
@@ -44,9 +49,12 @@
    <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
   <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><button type="button" onclick="location.reload()">Reload viewer</button></div>
   <canvas id="canvas" tabindex="0"></canvas>
+  <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
+  <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
+  <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
   <!-- Message telling that Webgpu is not available. -->
   <script>
     // These named registrations belong to this document's lifetime and are installed once.

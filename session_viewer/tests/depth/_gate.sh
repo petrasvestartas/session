@@ -28,7 +28,9 @@ $CARGO_TARGET_DIR/$T/release/examples/mk_plate_outline "$out/plate.pb" >/dev/nul
 printf 'name: "plate"\nitems:\n  - file: "plate.pb"\n    name: "plate"\n    at: [0, 0, 0]\n' > "$out/plate.yaml"
 probe() {
     local name=$1 z=$2; shift 2
-    if ! env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_EDGES=1 VIEWER_ZOOM=$z "$@" "$B" "$out/$name$z.ppm" "$out/plate.yaml" >"$out/$name$z.log" 2>&1; then
+    # The blue/magenta counts were measured with the 1.5 px pen; the viewer's default pen is
+    # now 1 px, whose antialiased outline misses the colour tolerance. Pin the oracle's pen.
+    if ! env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_EDGES=1 VIEWER_THICKNESS=1.5 VIEWER_ZOOM=$z "$@" "$B" "$out/$name$z.ppm" "$out/plate.yaml" >"$out/$name$z.log" 2>&1; then
         cat "$out/$name$z.log"
         echo "gate FAIL: plate render ($name, zoom $z)"
         return 1

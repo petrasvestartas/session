@@ -49,7 +49,9 @@ def main():
                 for msaa in (1, 4):
                     stem = f"{fixture}_{camera}_{distance}_{msaa}"
                     ppm = out / f"{stem}.ppm"
-                    env = dict(base, VIEWER_W="1400", VIEWER_H="900", VIEWER_NO_GRID="1", VIEWER_DISTANCE_SCALE=str(distance), VIEWER_MSAA=str(msaa), **settings)
+                    # Retain the original 1.5px core-count oracle independently of
+                    # the application's 1px default; do not lower its thresholds.
+                    env = dict(base, VIEWER_W="1400", VIEWER_H="900", VIEWER_NO_GRID="1", VIEWER_THICKNESS="1.5", VIEWER_DISTANCE_SCALE=str(distance), VIEWER_MSAA=str(msaa), **settings)
                     run = subprocess.run([selftest, str(ppm), str(out / f"{fixture}.pb")], env=env, capture_output=True, text=True)
                     (out / f"{stem}.log").write_text(run.stdout + run.stderr)
                     run.check_returncode()

@@ -100,7 +100,9 @@ def main():
                     stem = f'{case["name"]}-{view}-{samples}-{int(selected)}'
                     image, log = output / (stem + ".ppm"), output / (stem + ".log")
                     if not options.check_only:
-                        knobs = dict(VIEWER_W=str(WIDTH), VIEWER_H=str(HEIGHT), VIEWER_NO_GRID="1",
+                        # These core-color/opacity oracles were calibrated at 1.5px.
+                        # Keep their geometry explicit when the application default changes.
+                        knobs = dict(VIEWER_W=str(WIDTH), VIEWER_H=str(HEIGHT), VIEWER_NO_GRID="1", VIEWER_THICKNESS="1.5",
                                      BENCH_NO_MARKERS="1", VIEWER_MSAA=str(samples), **camera_knobs)
                         if selected:
                             knobs["VIEWER_SELECT"] = "joined stroke"

@@ -25,6 +25,9 @@ async function checkContext(browser, dpr, output) {
   const errors = [];
   page.on('pageerror', capturePageError);
   page.on('console', captureConsoleError);
+  // A static build has no favicon; Chrome's own favicon fetch is invisible to Playwright's
+  // response events but still logs a 404 console error. Answer it here, like smoke.cjs does.
+  await page.route('**/favicon.ico', function favicon(route) { return route.fulfill({status:204}); });
   /** Retain browser exceptions for the final assertion. */
   function capturePageError(error) {errors.push(String(error));}
   /** Treat GPU and application console errors as regression failures. */

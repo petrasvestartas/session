@@ -1,0 +1,978 @@
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index d93141370ff7af53632904d891f518ad7b416944..916b554e3a81d47dd7c25468eb20d57fcab8901f 100644
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,9 +1,9 @@
+ <!doctype html>
+ <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 04b</title>
++<title>Session checkpoint 04c</title>
+ <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+ <style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04b</output>
++</head><body><canvas id="canvas" tabindex="0"></canvas><output id="status">Starting checkpoint 04c</output>
+ <script>
+ let tutorial;
+ let pointer;
+@@ -21,7 +21,7 @@ function render() {
+     const canvas = document.getElementById('canvas');
+     const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+     canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 04b · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
++    document.getElementById('status').textContent = 'Checkpoint 04c · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+ }
+ /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+ function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+diff --git a/session_viewer/src/engine/gpu/glyphs.rs b/session_viewer/src/engine/gpu/glyphs.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b167f88f67051697dd6ae9e2df00669b0ced23ee
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/glyphs.rs
+@@ -0,0 +1,321 @@
++//! The glyph lane: every vertex-sized piece of ink. Two tables of the same 48 B row - spheres
++//! (mesh/BRep vertex markers, the SOLID lane, on a quad template) and
++//! dots (free points, the FLAT lane, three verts per dot). `GlyphRows` is one upload.
++
++use super::buffers::{GpuCtx, GrowBuf, ROWS, Template, bind_group};
++use super::frame::Binds;
++use super::upload::drop_rows;
++use crate::engine::pipelines::{
++    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, ink_module, template_layout,
++};
++use wgpu::PrimitiveTopology::TriangleList;
++
++/// The lane's shaders, for the mirror tests.
++#[cfg(test)]
++pub const SHADERS: &[(&str, &str)] = &[
++    ("sphere.wgsl", include_str!("../../shaders/sphere.wgsl")),
++    ("glyph.wgsl", include_str!("../../shaders/glyph.wgsl")),
++];
++
++/// Vertices per dot: one triangle whose incircle is the disc.
++const DOT_VERTS: u32 = 3;
++
++/// One marker or dot row, 48 B, the layout sphere.wgsl and glyph.wgsl declare. Offsets:
++/// center 0 (vec3, 16-aligned), radius 12, color 16, instance_id 32, facing 36, facing_ext 40.
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub struct GlyphPoint {
++    pub center: [f32; 3],
++    /// 0 = the screen-constant pen; > 0 = a world-mm radius.
++    pub radius: f32,
++    pub color: [f32; 4],
++    pub instance_id: u32,
++    /// Up to SIX incident face normals as oct16 pairs, widest edge's two first;
++    /// `FACING_UNKNOWN` = no adjacency / no more.
++    pub facing: u32,
++    pub facing_ext: [u32; 2],
++}
++
++const _: () = assert!(std::mem::size_of::<GlyphPoint>() == 48);
++
++/// One upload's glyphs: the solid lane's vertex markers and the flat lane's dots.
++#[derive(Default)]
++pub struct GlyphRows {
++    pub spheres: Vec<GlyphPoint>,
++    pub dots: Vec<GlyphPoint>,
++}
++
++impl GlyphRows {
++    /// Empty both tables and hand the allocations back.
++    pub fn drop_rows(&mut self) {
++        drop_rows(&mut self.spheres);
++        drop_rows(&mut self.dots);
++    }
++}
++
++/// One glyph table on the GPU with the group 3 that binds it.
++struct GlyphTable {
++    label: &'static str,
++    buf: GrowBuf,
++    group: wgpu::BindGroup,
++}
++
++impl GlyphTable {
++    /// A one-row table and its bind group.
++    fn new(ctx: &GpuCtx, l: &Layouts, label: &'static str) -> Self {
++        let buf = GrowBuf::new(ctx, label, std::mem::size_of::<GlyphPoint>() as u64, ROWS);
++        let group = bind_group(ctx, &l.ink_rows, label, &[&buf.buf]);
++        Self { label, buf, group }
++    }
++
++    /// Rebind after the backing buffer changed.
++    fn rebind(&mut self, ctx: &GpuCtx, l: &Layouts) {
++        self.group = bind_group(ctx, &l.ink_rows, self.label, &[&self.buf.buf]);
++    }
++}
++
++/// The two shader modules the lane's pipelines are built from.
++struct GlyphShaders {
++    sphere: wgpu::ShaderModule,
++    dot: wgpu::ShaderModule,
++}
++
++/// The pipelines over the two tables.
++struct GlyphPipelines {
++    sphere: wgpu::RenderPipeline,
++    dot: wgpu::RenderPipeline,
++    id_sphere: wgpu::RenderPipeline,
++    id_dot: wgpu::RenderPipeline,
++    source_dot: wgpu::RenderPipeline,
++}
++
++/// The glyph lane on the GPU: two tables, the marker quad, the shaders, the pipelines.
++pub struct GlyphLane {
++    spheres: GlyphTable,
++    dots: GlyphTable,
++    template: Template,
++    shaders: GlyphShaders,
++    gpu: GlyphPipelines,
++}
++
++impl GlyphLane {
++    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
++    pub fn allocated_bytes(&self) -> u64 {
++        self.spheres.buf.buf.size()
++            + self.dots.buf.buf.size()
++            + self.template.vbo.size()
++            + self.template.ibo.size()
++    }
++
++    /// Two one-row tables, the marker quad, both shaders and the pipelines.
++    pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
++        let (q_v, q_i) = unit_quad();
++        let template = Template::new(ctx, "quad.template", &q_v, &q_i);
++        let shaders = GlyphShaders {
++            sphere: ink_module(
++                &ctx.device,
++                "sphere.shader",
++                include_str!("../../shaders/sphere.wgsl"),
++            ),
++            dot: ink_module(
++                &ctx.device,
++                "glyph.shader",
++                include_str!("../../shaders/glyph.wgsl"),
++            ),
++        };
++        let gpu = build_pipelines(ctx, l, &shaders, target);
++        let spheres = GlyphTable::new(ctx, l, "spheres");
++        let dots = GlyphTable::new(ctx, l, "dots");
++        Self {
++            spheres,
++            dots,
++            template,
++            shaders,
++            gpu,
++        }
++    }
++
++    /// Rebuild the pipelines for a new sample count.
++    pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
++        self.gpu = build_pipelines(ctx, l, &self.shaders, target);
++    }
++
++    /// Append one file's rows to both tables.
++    pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &GlyphRows) {
++        if self.spheres.buf.append(ctx, &up.spheres) {
++            self.spheres.rebind(ctx, l);
++        }
++        if self.dots.buf.append(ctx, &up.dots) {
++            self.dots.rebind(ctx, l);
++        }
++    }
++
++    /// Vertex markers draw after mesh edges so their complete footprint remains on top.
++    pub fn draw_spheres(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_markers(pass, b, &self.gpu.sphere)
++    }
++
++    /// The flat lane's colour pass: SDF dots, three verts each, no template.
++    pub fn draw_dots(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_dot_table(pass, b, &self.gpu.dot)
++    }
++
++    /// The id pass for the markers: the template, opaque.
++    pub fn draw_sphere_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_markers(pass, b, &self.gpu.id_sphere)
++    }
++
++    /// The id pass for the dots: triangles, opaque.
++    pub fn draw_dot_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_dot_table(pass, b, &self.gpu.id_dot)
++    }
++
++    /// Opaque source candidates accumulate physical depth across bounded query pages.
++    pub fn draw_source_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_dot_table(pass, b, &self.gpu.source_dot)
++    }
++
++    /// The marker table on the quad template through `pipeline`; 0 draws when empty.
++    fn draw_markers(
++        &self,
++        pass: &mut wgpu::RenderPass<'_>,
++        b: &Binds,
++        pipeline: &wgpu::RenderPipeline,
++    ) -> u32 {
++        if self.spheres.buf.is_empty() {
++            return 0;
++        }
++        pass.set_pipeline(pipeline);
++        b.set(pass);
++        pass.set_bind_group(3, &self.spheres.group, &[]);
++        self.template.bind(pass);
++        pass.draw_indexed(0..self.template.index_count, 0, 0..self.spheres.buf.len());
++        1
++    }
++
++    /// The dot table through `pipeline`; 0 draws when empty.
++    fn draw_dot_table(
++        &self,
++        pass: &mut wgpu::RenderPass<'_>,
++        b: &Binds,
++        pipeline: &wgpu::RenderPipeline,
++    ) -> u32 {
++        if self.dots.buf.is_empty() {
++            return 0;
++        }
++        pass.set_pipeline(pipeline);
++        b.set(pass);
++        pass.set_bind_group(3, &self.dots.group, &[]);
++        pass.draw(0..DOT_VERTS * self.dots.buf.len(), 0..1);
++        1
++    }
++
++    /// Forget every row; capacity stays.
++    pub fn reset(&mut self) {
++        self.spheres.buf.reset();
++        self.dots.buf.reset();
++    }
++
++    /// Hand both buffers back.
++    pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
++        self.spheres.buf.release(ctx);
++        self.dots.buf.release(ctx);
++        self.spheres.rebind(ctx, l);
++        self.dots.rebind(ctx, l);
++    }
++
++    /// Solid-lane rows on the GPU - the MSAA policy reads it.
++    pub fn sphere_count(&self) -> u32 {
++        self.spheres.buf.len()
++    }
++
++    /// Flat-lane rows on the GPU.
++    pub fn dot_count(&self) -> u32 {
++        self.dots.buf.len()
++    }
++}
++
++/// Every glyph pipeline for `target`.
++fn build_pipelines(ctx: &GpuCtx, l: &Layouts, s: &GlyphShaders, target: Target) -> GlyphPipelines {
++    let groups = [&l.mvp, &l.line, &l.ink_instance, &l.ink_rows];
++    let template = [template_layout()];
++    let marker = PipelineDesc::new(&s.sphere, &groups, &template, TriangleList)
++        .scene_samples(target.samples)
++        .depth(DepthMode::Always);
++    let disc = PipelineDesc::new(&s.dot, &groups, &[], TriangleList)
++        .scene_samples(target.samples)
++        .depth(DepthMode::Always);
++    let dev = &ctx.device;
++
++    GlyphPipelines {
++        sphere: build(
++            dev,
++            target,
++            &marker.with("sphere", "fs_main").color(ColorWrite::Blended),
++        ),
++        dot: build(
++            dev,
++            target,
++            &disc.with("glyph", "fs_main").color(ColorWrite::Blended),
++        ),
++        id_sphere: build(
++            dev,
++            Target::ID,
++            &marker.with("sphere.id", "fs_id").scene_samples(1),
++        ),
++        id_dot: build(
++            dev,
++            Target::ID,
++            &disc.with("glyph.id", "fs_id").scene_samples(1),
++        ),
++        source_dot: build(
++            dev,
++            Target::ID,
++            &disc
++                .with("glyph.source", "fs_source_id")
++                .vertex("vs_source")
++                .scene_samples(1)
++                .depth(DepthMode::OpaqueEqual),
++        ),
++    }
++}
++
++/// Camera-facing quad template for the markers; the fragment trims it to a circle.
++fn unit_quad() -> (Vec<[f32; 3]>, Vec<u32>) {
++    let v = vec![
++        [-1.0, -1.0, 0.0],
++        [1.0, -1.0, 0.0],
++        [1.0, 1.0, 0.0],
++        [-1.0, 1.0, 0.0],
++    ];
++    let idx = vec![0u32, 1, 2, 0, 2, 3];
++    (v, idx)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::engine::gpu::instance::wgsl_fields;
++
++    /// sphere.wgsl and glyph.wgsl read the same 48 B glyph row.
++    #[test]
++    fn glyph_point_mirror() {
++        let rust = [
++            "center",
++            "radius",
++            "color",
++            "instance_id",
++            "facing",
++            "facing_ext",
++        ];
++        for (name, src) in SHADERS {
++            assert_eq!(
++                wgsl_fields(src, "GlyphPoint"),
++                rust,
++                "{name}: GlyphPoint fields"
++            );
++        }
++        assert_eq!(std::mem::size_of::<GlyphPoint>(), 48);
++        assert_eq!(std::mem::offset_of!(GlyphPoint, facing_ext), 40);
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+index 19904d7ef063b4dd3570c64846ddea431a25c45a..26518f03a28887e94ae44b83eca59d02c997dbe7 100644
+--- a/session_viewer/src/engine/gpu/mod.rs
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -2,6 +2,7 @@
+ pub mod arena;
+ pub mod buffers;
+ pub mod frame;
++pub mod glyphs;
+ pub mod instance;
+ pub mod objects;
+ pub mod segments;
+@@ -12,6 +13,7 @@ pub mod view;
+ use crate::engine::pipelines::{Layouts, Target};
+ use buffers::GpuCtx;
+ pub use frame::FrameInput;
++pub use glyphs::GlyphPoint;
+ pub use instance::Instance;
+ use objects::InkScene;
+ pub use objects::{ObjectRow, Rebase};
+@@ -29,6 +31,7 @@ pub struct Gpu {
+     pub objects: objects::InstanceTable,
+     pub arena: arena::ArenaLane,
+     pub segments: segments::SegmentLane,
++    pub glyphs: glyphs::GlyphLane,
+     pub bounds: crate::math::Aabb,
+     pub logical_size: [f64; 2],
+     pub device_type: wgpu::DeviceType,
+@@ -77,6 +80,7 @@ impl Gpu {
+         let objects = objects::InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets });
+         let arena = arena::ArenaLane::new(&ctx, &layouts, target);
+         let segments = segments::SegmentLane::new(&ctx, &layouts, target);
++        let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
+         Ok(Self {
+             surface,
+             ctx,
+@@ -88,6 +92,7 @@ impl Gpu {
+             objects,
+             arena,
+             segments,
++            glyphs,
+             bounds: crate::math::Aabb::empty(),
+             logical_size: [1.0; 2],
+             device_type,
+@@ -98,6 +103,7 @@ impl Gpu {
+         self.objects.append(&self.ctx, &self.layouts, &up.obj);
+         self.arena.append(&self.ctx, &up.arena);
+         self.segments.append(&self.ctx, &self.layouts, &up.seg);
++        self.glyphs.append(&self.ctx, &self.layouts, &up.glyph);
+         self.bounds.union(&up.bounds);
+     }
+     /// Recreate size-dependent targets and groups; chapter05 adds budgeted multisampling.
+@@ -172,6 +178,8 @@ impl Gpu {
+             self.arena.draw_print(&mut pass, &basic);
+             self.segments.draw_pipes(&mut pass, &ink);
+             self.segments.draw_ribbons(&mut pass, &ink);
++            self.glyphs.draw_spheres(&mut pass, &ink);
++            self.glyphs.draw_dots(&mut pass, &ink);
+             self.arena.draw_text(&mut pass, &basic);
+         }
+         self.ctx.queue.submit([encoder.finish()]);
+diff --git a/session_viewer/src/engine/gpu/upload.rs b/session_viewer/src/engine/gpu/upload.rs
+index 785696ae38d77933d303b64534f295b8d9001dea..5f4266bef87d488f7e3bd0ad91362766851c20ee 100644
+--- a/session_viewer/src/engine/gpu/upload.rs
++++ b/session_viewer/src/engine/gpu/upload.rs
+@@ -3,6 +3,7 @@
+ //! `Gpu::set_scene`, then emptied. No wgpu type and no kernel type here.
+ 
+ use super::arena::ArenaRows;
++use super::glyphs::GlyphRows;
+ use super::objects::ObjectRows;
+ use super::segments::SegRows;
+ use crate::math::Aabb;
+@@ -13,6 +14,7 @@ pub struct Upload {
+     pub obj: ObjectRows,
+     pub arena: ArenaRows,
+     pub seg: SegRows,
++    pub glyph: GlyphRows,
+     /// The world box of this upload's rows; `Gpu::set_scene` unions it into the scene box.
+     pub bounds: Aabb,
+ }
+@@ -24,6 +26,7 @@ impl Default for Upload {
+             obj: ObjectRows::default(),
+             arena: ArenaRows::default(),
+             seg: SegRows::default(),
++            glyph: GlyphRows::default(),
+             bounds: Aabb::empty(),
+         }
+     }
+@@ -35,6 +38,7 @@ impl Upload {
+         drop_rows(&mut self.obj.rows);
+         self.arena.drop_rows();
+         self.seg.drop_rows();
++        self.glyph.drop_rows();
+         self.bounds = Aabb::empty();
+     }
+ }
+diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
+index 98aeca7e7150fb1a754effdaab1131d69a2fe772..d021d4ac68c4066eecf029892f2e87de4c89d438 100644
+--- a/session_viewer/src/engine/pipelines/layouts.rs
++++ b/session_viewer/src/engine/pipelines/layouts.rs
+@@ -85,6 +85,18 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+     })
+ }
+ 
++/// The ink lanes' row table, read by the vertex stage (and the fragment stage of the id pass).
++fn ink_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
++    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++        label: Some("ink.rows.layout"),
++        entries: &[buffer_entry(
++            0,
++            wgpu::ShaderStages::VERTEX_FRAGMENT,
++            wgpu::BufferBindingType::Storage { read_only: true },
++        )],
++    })
++}
++
+ /// Segment rows retain source-edge IDs and one shared selection uniform.
+ fn segment_rows_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+@@ -107,6 +119,7 @@ pub struct Layouts {
+     pub line: wgpu::BindGroupLayout,
+     pub instance: wgpu::BindGroupLayout,
+     pub ink_instance: wgpu::BindGroupLayout,
++    pub ink_rows: wgpu::BindGroupLayout,
+     pub segment_rows: wgpu::BindGroupLayout,
+ }
+ 
+@@ -118,6 +131,7 @@ impl Layouts {
+             line: uniform_layout(device, "line.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
+             instance: instance_layout(device),
+             ink_instance: ink_instance_layout(device),
++            ink_rows: ink_rows_layout(device),
+             segment_rows: segment_rows_layout(device),
+         }
+     }
+diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
+index 43c4a320003093ef280ccbbeb256e1d363deba51..4316b43b51af6e670a1e23c1e855c6e6aac238f6 100644
+--- a/session_viewer/src/engine/pipelines/mod.rs
++++ b/session_viewer/src/engine/pipelines/mod.rs
+@@ -151,6 +151,12 @@ const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+     format: wgpu::VertexFormat::Uint32,
+ }];
+ 
++const TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
++    offset: 0,
++    shader_location: 0,
++    format: wgpu::VertexFormat::Float32x3,
++}];
++
+ /// The mesh vertex slot: the kernel's interleaved `RenderVertex` (pos, normal, colour).
+ pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
+     RenderVertex::layout()
+@@ -165,6 +171,15 @@ pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
+     }
+ }
+ 
++/// A unit template's positions at `@location(0)` (the marker quad).
++pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
++    wgpu::VertexBufferLayout {
++        array_stride: 12,
++        step_mode: wgpu::VertexStepMode::Vertex,
++        attributes: &TEMPLATE_ATTRIBS,
++    }
++}
++
+ /// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
+ pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+     let source = format!("{}\n{}", source, include_str!("../../shaders/normals.wgsl"));
+diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
+index 690f50f7f98b3dc4e40764a4dee8e8f239df6e6b..2b0c588afa11f74b70222fb43791eeeac983e868 100644
+--- a/session_viewer/src/fixture.rs
++++ b/session_viewer/src/fixture.rs
+@@ -1,5 +1,5 @@
+-//! Independent source rows exercise each drawing lane as it arrives: a mesh and a polyline.
+-use crate::engine::gpu::{CylinderSegment, Instance, ObjectRow, Upload};
++//! Independent source rows exercise each drawing lane as it arrives: mesh, polyline, dot.
++use crate::engine::gpu::{CylinderSegment, GlyphPoint, Instance, ObjectRow, Upload};
+ use session_rust::{RenderVertex, Xform};
+ /// Build small deterministic local data; no network, private bucket or geometry decoder.
+ pub fn scene() -> Upload {
+@@ -8,7 +8,7 @@ pub fn scene() -> Upload {
+         min: [-2.0, -1.3, -0.1],
+         max: [2.0, 1.3, 0.1],
+     };
+-    for _ in 0..2 {
++    for _ in 0..3 {
+         upload
+             .obj
+             .rows
+@@ -41,5 +41,13 @@ pub fn scene() -> Upload {
+             facing: 0xffffffff,
+         });
+     }
++    upload.glyph.dots.push(GlyphPoint {
++        center: [-1.0, -0.7, 0.0],
++        radius: 0.09,
++        color: [1.0, 0.4, 0.2, 1.0],
++        instance_id: 2,
++        facing: 0xffffffff,
++        facing_ext: [0xffffffff; 2],
++    });
+     upload
+ }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index d33b9d82bf9813b8b6693191a5575b3dd8fdf141..3b8ae641cd8f1948d586195561be4a903d3a7fbf 100644
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -82,7 +82,7 @@ impl Tutorial {
+         };
+         self.gpu.render(&input).map_err(js_error)?;
+         Ok(serde_json::json!({"stage":4,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,
+-            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count()}).to_string())
++            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count()}).to_string())
+     }
+ }
+ /// Read a monotonic frame time from the browser when available.
+diff --git a/session_viewer/src/shaders/glyph.wgsl b/session_viewer/src/shaders/glyph.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..25b5f619da94bd351af636184d44f741b6a414a8
+--- /dev/null
++++ b/session_viewer/src/shaders/glyph.wgsl
+@@ -0,0 +1,186 @@
++// Free points as SDF dots: one triangle per dot (its incircle is the disc), no template.
++// Group 3 = the glyph table.
++
++@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
++@group(1) @binding(0) var<uniform> line: LineUniform;
++
++struct Instance {
++    model: mat4x4<f32>,
++    color: vec4<f32>,
++    flags: u32,
++    thickness: f32,
++    spacing: f32,
++};
++@group(2) @binding(0) var<storage, read> instances: array<Instance>;
++@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
++
++struct GlyphPoint {
++    center: vec3<f32>,
++    radius: f32,
++    color: vec4<f32>,
++    instance_id: u32,
++    facing: u32,
++    facing_ext: vec2<u32>,
++};
++@group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
++
++struct LineUniform {
++    thickness: f32,
++    proj_y: f32,
++    ortho_h: f32,
++    vp_h: f32,
++    vp_w: f32,
++    eye_x: f32,
++    eye_y: f32,
++    eye_z: f32,
++    anchor: vec3<f32>,
++    feather: f32,
++    lit: f32,
++    backface: f32,
++};
++
++// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
++const DISC_ID_TAG: u32 = 0x40000000u;
++const FLAG_SELECTED: u32 = 1u;
++const FLAG_HIDDEN: u32 = 2u;
++const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
++const HAIRLINE_MIN_ALPHA: f32 = 0.5;
++const MM_TO_M: f32 = 0.001;
++
++// An equilateral triangle whose incircle (radius 1 in corner space) is the visible dot.
++const CORNERS = array<vec2<f32>, 3>(
++    vec2<f32>(0.0, 2.0),
++    vec2<f32>(-1.7320508, -1.0),
++    vec2<f32>(1.7320508, -1.0),
++);
++
++fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
++    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
++}
++
++struct VsOut {
++    @builtin(position) pos: vec4<f32>,
++    @location(0) color: vec4<f32>,
++    @location(1) corner: vec2<f32>,
++    @location(2) @interpolate(linear) px: f32,
++    @location(3) @interpolate(linear) fade: f32,
++    @location(4) @interpolate(flat) inst_id: u32,
++    @location(5) @interpolate(flat) centre: vec2<f32>,
++    @location(6) @interpolate(flat) depth: f32,
++    @location(7) @interpolate(flat) point_index: u32,
++};
++
++fn dead_dot() -> VsOut {
++    var dead: VsOut;
++    dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
++    dead.color = vec4<f32>(0.0);
++    dead.corner = vec2<f32>(0.0);
++    dead.px = 0.0;
++    dead.fade = 0.0;
++    dead.inst_id = 0u;
++    dead.centre = vec2<f32>(0.0);
++    dead.depth = 0.0;
++    dead.point_index = 0u;
++    return dead;
++}
++
++fn glyph_vertex(vid: u32) -> VsOut {
++    let g = glyphs[vid / 3u];
++    let inst = instances[g.instance_id];
++    if ((inst.flags & FLAG_HIDDEN) != 0u) {
++        return dead_dot();
++    }
++    let world = place(g.instance_id, g.center);
++    let clip = mvp * vec4<f32>(world, 1.0);
++    if (clip.z - clip.w > 0.0) {
++        return dead_dot();
++    }
++
++    var px = line.thickness * 0.5;
++    if (g.radius < 0.0) {
++        px = -g.radius;
++    } else if (g.radius > 0.0) {
++        if (line.ortho_h > 0.0) {
++            px = g.radius * line.vp_h * 0.5 / line.ortho_h;
++        } else {
++            px = g.radius * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6);
++        }
++    }
++    if (px > max(line.vp_w, line.vp_h)) {
++        return dead_dot();
++    }
++    var fade = 1.0;
++    if (px < 0.5) {
++        fade = max(px / 0.5, HAIRLINE_MIN_ALPHA);
++        px = 0.5;
++    }
++
++    let corner = CORNERS[vid % 3u];
++    let off = corner * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
++
++    var o: VsOut;
++    o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
++    var color = g.color * inst.color;
++    if ((inst.flags & FLAG_SELECTED) != 0u) {
++        color = vec4<f32>(SELECT_COLOR, color.a);
++    }
++    o.color = color;
++    o.corner = corner;
++    o.px = px;
++    o.fade = fade;
++    o.inst_id = g.instance_id;
++    o.centre = vec2<f32>((clip.x / clip.w * 0.5 + 0.5) * line.vp_w, (0.5 - clip.y / clip.w * 0.5) * line.vp_h);
++    o.depth = clip.z / clip.w;
++    o.point_index = vid / 3u;
++    return o;
++}
++
++// The antialiasing ramp never spans more than the ink it feathers. A pen thinner than the
++// ramp otherwise spreads its coverage wider than the line it draws and never reaches full
++// opacity, so its brightness beats along the run wherever a pixel centre misses the axis.
++fn ramp(half_width: f32) -> f32 {
++    return min(line.feather, 2.0 * half_width);
++}
++
++fn coverage(in: VsOut) -> f32 {
++    let d = length(in.corner) * (in.px + 0.5 * line.feather);
++    let f = ramp(in.px);
++    return clamp((in.px + 0.5 * f - d) / f, 0.0, 1.0) * in.fade;
++}
++
++@fragment
++fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
++    let alpha = coverage(in);
++    if (alpha <= 0.0 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample)) {
++        discard;
++    }
++    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
++}
++
++@fragment
++fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
++    if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
++        discard;
++    }
++    return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG | (in.point_index + 1u));
++}
++
++// Source-cloud queries reuse the dot table, with a source row in facing_ext.x. These
++// temporary records have no face adjacency and never enter the displayed controls table.
++@vertex
++fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
++    return glyph_vertex(vid);
++}
++
++@vertex
++fn vs_source(@builtin(vertex_index) vid: u32) -> VsOut {
++    var out = glyph_vertex(vid);
++    out.point_index = glyphs[vid / 3u].facing_ext.x;
++    return out;
++}
++
++@fragment
++fn fs_source_id(in: VsOut) -> @location(0) vec2<u32> {
++    if (coverage(in) < 0.5) { discard; }
++    return vec2<u32>(in.inst_id + 1u, in.point_index + 1u);
++}
+diff --git a/session_viewer/src/shaders/sphere.wgsl b/session_viewer/src/shaders/sphere.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..61c961926a60d78a2e5ae059029e92b0f68eeb96
+--- /dev/null
++++ b/session_viewer/src/shaders/sphere.wgsl
+@@ -0,0 +1,211 @@
++// Mesh vertex markers: a camera-facing quad template per glyph, trimmed to a disc by the
++// fragment SDF, hidden when every incident face turns away. Group 3 = the glyph table.
++
++@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
++@group(1) @binding(0) var<uniform> line: LineUniform;
++
++struct Instance {
++    model: mat4x4<f32>,
++    color: vec4<f32>,
++    flags: u32,
++    thickness: f32,
++    spacing: f32,
++};
++@group(2) @binding(0) var<storage, read> instances: array<Instance>;
++@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
++
++struct GlyphPoint {
++    center: vec3<f32>,
++    radius: f32,
++    color: vec4<f32>,
++    instance_id: u32,
++    facing: u32,
++    facing_ext: vec2<u32>,
++};
++@group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
++
++struct LineUniform {
++    thickness: f32,
++    proj_y: f32,
++    ortho_h: f32,
++    vp_h: f32,
++    vp_w: f32,
++    eye_x: f32,
++    eye_y: f32,
++    eye_z: f32,
++    anchor: vec3<f32>,
++    feather: f32,
++    lit: f32,
++    backface: f32,
++};
++
++const FACING_UNKNOWN: u32 = 0xffffffffu;
++// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
++const DISC_ID_TAG: u32 = 0x40000000u;
++const FLAG_SELECTED: u32 = 1u;
++const FLAG_HIDDEN: u32 = 2u;
++const FLAG_INSIDE: u32 = 4u;
++const FLAG_OPEN: u32 = 16u;
++const FLAG_SMOOTH: u32 = 64u;
++const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
++const MM_TO_M: f32 = 0.001;
++
++// A marker thins when the object's vertex spacing is under this many marker diameters.
++const MARKER_MIN_DIAMS: f32 = 3.0;
++const TAPER_MIN: f32 = 0.15;
++
++fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
++    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
++}
++
++fn oct16_decode(p: u32) -> vec3<f32> {
++    let e = vec2<f32>(f32(i32(p << 24u) >> 24u) / 127.0, f32(i32(p << 16u) >> 24u) / 127.0);
++    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
++    if (n.z < 0.0) {
++        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
++        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
++    }
++    return normalize(n);
++}
++
++fn screen_radius(clip_w: f32) -> f32 {
++    if (line.ortho_h > 0.0) {
++        return line.thickness * line.ortho_h / line.vp_h;
++    }
++    return line.thickness * clip_w / (line.proj_y * line.vp_h);
++}
++
++// A world length in px at eye depth `w`.
++fn to_px(world: f32, w: f32) -> f32 {
++    if (line.ortho_h > 0.0) {
++        return world * line.vp_h * 0.5 / line.ortho_h;
++    }
++    return world * line.proj_y * line.vp_h * 0.5 / max(w, 1e-6);
++}
++
++struct VsOut {
++    @builtin(position) pos: vec4<f32>,
++    @location(0) color: vec4<f32>,
++    @location(1) corner: vec2<f32>,
++    @location(2) @interpolate(flat) px: f32,
++    @location(3) @interpolate(flat) inst_id: u32,
++    @location(4) @interpolate(flat) centre: vec2<f32>,
++    @location(5) @interpolate(flat) depth: f32,
++};
++
++fn dead_dot() -> VsOut {
++    var dead: VsOut;
++    dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
++    dead.color = vec4<f32>(0.0);
++    dead.corner = vec2<f32>(0.0);
++    dead.px = 0.0;
++    dead.inst_id = 0u;
++    dead.centre = vec2<f32>(0.0);
++    dead.depth = 0.0;
++    return dead;
++}
++
++// Whether any of the vertex's incident faces turns toward the eye; `known` = it has any.
++fn faces_front(g: GlyphPoint, model: mat4x4<f32>, to_eye: vec3<f32>) -> vec2<bool> {
++    let fwords = array<u32, 3>(g.facing, g.facing_ext.x, g.facing_ext.y);
++    var known = false;
++    for (var w = 0u; w < 3u; w = w + 1u) {
++        let fw = fwords[w];
++        if (fw == FACING_UNKNOWN) {
++            continue;
++        }
++        known = true;
++        for (var h = 0u; h < 2u; h = h + 1u) {
++            let n = face_normal(model, oct16_decode((fw >> (16u * h)) & 0xffffu));
++            if (dot(n, to_eye) > 0.0) {
++                return vec2<bool>(true, true);
++            }
++        }
++    }
++    return vec2<bool>(known, false);
++}
++
++@vertex
++fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> VsOut {
++    let g = glyphs[gi];
++    let inst = instances[g.instance_id];
++    if ((inst.flags & FLAG_HIDDEN) != 0u) {
++        return dead_dot();
++    }
++    let centre = place(g.instance_id, g.center);
++    let clip = mvp * vec4<f32>(centre, 1.0);
++    if (clip.z - clip.w > 0.0) {
++        return dead_dot();
++    }
++
++    let r = select(screen_radius(clip.w), g.radius, g.radius > 0.0);
++    var px = to_px(r, clip.w);
++    if (inst.spacing > 0.0) {
++        let sp_px = to_px(inst.spacing, clip.w);
++        px = px * clamp(sp_px / max(MARKER_MIN_DIAMS * 2.0 * px, 1e-6), TAPER_MIN, 1.0);
++    }
++    if (px > max(line.vp_w, line.vp_h)) {
++        return dead_dot();
++    }
++    px = max(px, 0.5);
++
++    let off = tmpl.xy * (px + 0.5 * line.feather) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
++
++    // A tessellation's vertices are sample positions, not corners of anything: no markers.
++    if ((inst.flags & FLAG_SMOOTH) != 0u) {
++        return dead_dot();
++    }
++
++    // Hidden vertices never reach the rasterizer, unless the eye is inside the object.
++    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
++    if (!inside) {
++        let kf = faces_front(g, inst.model, toward_eye(centre));
++        if (kf.x && !kf.y) {
++            return dead_dot();
++        }
++    }
++
++    var o: VsOut;
++    o.pos = vec4<f32>(clip.xy + off, clip.z, clip.w);
++    var color = g.color * inst.color;
++    if ((inst.flags & FLAG_SELECTED) != 0u) {
++        color = vec4<f32>(SELECT_COLOR, color.a);
++    }
++    o.color = color;
++    o.corner = tmpl.xy;
++    o.px = px;
++    o.inst_id = g.instance_id;
++    o.centre = vec2<f32>((clip.x / clip.w * 0.5 + 0.5) * line.vp_w, (0.5 - clip.y / clip.w * 0.5) * line.vp_h);
++    o.depth = clip.z / clip.w;
++    return o;
++}
++
++// The antialiasing ramp never spans more than the ink it feathers. A pen thinner than the
++// ramp otherwise spreads its coverage wider than the line it draws and never reaches full
++// opacity, so its brightness beats along the run wherever a pixel centre misses the axis.
++fn ramp(half_width: f32) -> f32 {
++    return min(line.feather, 2.0 * half_width);
++}
++
++fn coverage(in: VsOut) -> f32 {
++    let d = length(in.corner) * (in.px + 0.5 * line.feather);
++    let f = ramp(in.px);
++    return clamp((in.px + 0.5 * f - d) / f, 0.0, 1.0);
++}
++
++@fragment
++fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
++    let alpha = coverage(in);
++    if (alpha <= 0.0 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, sample)) {
++        discard;
++    }
++    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
++}
++
++@fragment
++fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
++    if (coverage(in) < 0.5 || !ink_disc_visible(in.pos.xy, in.centre, in.depth, 0u)) {
++        discard;
++    }
++    return vec2<u32>(in.inst_id + 1u, DISC_ID_TAG);
++}

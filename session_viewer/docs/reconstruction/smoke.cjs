@@ -56,7 +56,7 @@ async function rasterStatistics(base64) {
 /** Build evidence for one source-hashed checkpoint at both required device scales. */
 async function main() {
   const id = process.env.VIEWER_TUTORIAL_STEP;
-  assert.match(id || '', /^\d\d$/);
+  assert.match(id || '', /^\d\d[a-z]?$/);
   const series = JSON.parse(await fs.readFile(path.join(__dirname, 'series.json'), 'utf8'));
   const step = series.steps.find(function sameStep(value) { return value.id === id; });
   assert.ok(step, 'checkpoint must be in the maintained series');

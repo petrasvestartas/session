@@ -89,7 +89,7 @@ def main():
     assert not (viewer / "src/app/walk/points.rs").exists()
     assert hashlib.sha256(original_point.read_bytes()).hexdigest() == original_hash, "production point producer must remain untouched"
     metadata = {"removed": "src/app/walk/points.rs", "source_point_module_sha256": original_hash,
-                "serialized_objects": 8, "expected_drawable_objects": 7, "fixture": str(fixture),
+                "serialized_objects": 8, "expected_drawable_objects": 7, "document_title_rows": 1, "fixture": str(fixture),
                 "policy": "skip standalone Geometry::Point before row allocation; retain shared marker/cloud GPU lanes"}
     (scratch / "removal.json").write_text(json.dumps(metadata, indent=2))
     if args.prepare_only:
@@ -107,7 +107,9 @@ def main():
     for dpr in (1, 2):
         cases = json.loads((scratch / f"browser/interaction-dpr-{dpr}.json").read_text())
         assert len(cases) == 7
-        assert all(case["state"]["objects"] == 7 for case in cases), "standalone point probe must not allocate a row"
+        # Seven geometry families plus the document-title text object, itself a source row;
+        # a ninth row would mean the removed point producer still allocated one.
+        assert all(case["state"]["objects"] == 8 for case in cases), "standalone point probe must not allocate a row"
     metadata["browser_verified_dpr"] = [1, 2]
     (scratch / "removal.json").write_text(json.dumps(metadata, indent=2))
     print(f"PASS standalone point producer removed; seven remaining source families render/select at DPR1/2. Scratch: {scratch}")

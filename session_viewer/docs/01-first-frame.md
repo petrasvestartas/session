@@ -1,59 +1,114 @@
-# 01 · Draw one WebGPU frame
+# 01 · First WebGPU frame
 
-**Start:** checkpoint 00. **Finish:** a red/green/blue triangle on a dark canvas. Camera gestures arrive in the next lesson.
+## You are building
 
-## From a canvas to a submitted frame
+```mermaid
+flowchart TB
+    canvas -- "create_surface" --> surface
+    surface -- "request_adapter(compatible_surface)" --> adapter
+    adapter -- "request_device" --> device["device + queue"]
+    device -- "create_render_pipeline" --> pipeline
+    device -- "create_command_encoder" --> encoder
+    encoder -- "begin_render_pass(clear, draw 3)" --> tex["surface texture"]
+    tex -- "queue.submit · present" --> screen
+```
 
-A **surface** is the connection to the canvas. An **adapter** represents an available GPU implementation. A **device** creates resources and pipelines; its **queue** submits work. A pipeline describes how a particular drawing operation reads data and runs shaders.
+## Starting point
+
+- Checkpoint 00: Rust runs in the page, no GPU.
+- `src/lib.rs` is replaced in full during this lesson, in five appended pieces. Each piece is one idea; the file compiles when the last piece is in.
+
+## Step 1 · One struct owns the GPU
+
+- `Tutorial` is a temporary teaching shell; lesson 12 replaces it with the production `App`/`State`.
+- `#[wasm_bindgen]` on the struct and its `impl` exports `create`, `render`, `drag`, `zoom` to JavaScript.
+- `drag` and `zoom` are placeholders until the camera lesson.
+
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=1-36 -->
+
+## Step 2 · Instance, surface, adapter, device
+
+- `Backends::BROWSER_WEBGPU`: only the browser's WebGPU, never WebGL.
+- The adapter must be `compatible_surface`; otherwise the device may not be able to present to this canvas.
+- `on_uncaptured_error` turns a shader validation failure into a visible panic instead of a silent black canvas.
+
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=37-58 -->
+
+## Step 3 · Surface configuration and the camera uniform
+
+- `width: 1, height: 1` marks "not configured yet"; `render_frame` resizes on first use.
+- A **uniform** is one small buffer every vertex reads. Today it holds an identity matrix; the camera lesson writes a real one.
 
 ```text
-canvas → compatible adapter → device + queue
-                                ↓
-                     shader + render pipeline
-                                ↓
-surface texture ← render pass ← command encoder
-                                ↓
-                         queue submission
+[f32; 16]  ──bytemuck::cast_slice──▶  wgpu::Buffer (UNIFORM | COPY_DST)
+                                           │ bind group 0, binding 0
+                                           ▼
+                            @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>
 ```
 
-`Tutorial::open` creates these long-lived resources once. `render_frame` obtains the next surface texture, begins a pass that clears it, draws three vertices, submits the encoder and presents the texture. A render pass borrows its encoder while recording commands; Rust prevents using that borrowed encoder incompatibly at the same time.
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=59-98 -->
 
-The asynchronous adapter/device requests use `.await`. They allow initialization to wait for the browser without a blocking loop. Error paths set an explicit status message instead of leaving a silent blank canvas.
+## Step 4 · Shader module, pipeline layout, render pipeline
 
-## The first shader
+- `include_str!` bakes the WGSL into the binary; a missing shader file is a compile error, not a runtime one.
+- Entry-point names `vs_main`/`fs_main` and the color target `format` are the contract with the shader and the surface.
+- `buffers: &[]`: this triangle is generated from `vertex_index`, no vertex buffer yet.
 
-`src/shaders/first.wgsl` has a vertex entry point and a fragment entry point. The vertex stage runs three times. `@builtin(vertex_index)` supplies 0, 1 and 2, which index fixed arrays of positions and colors. This first triangle needs no vertex buffer.
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=99-144 -->
 
-`@builtin(position)` is clip-space position, including its fourth component `w`. `@location(0)` carries color from the vertex output to the fragment input. Rasterization interpolates that color across the triangle. The fragment stage returns it to color attachment zero.
+## Step 5 · One frame
 
-Read the complete shader beside that description; the ordered file list supplies these same bytes:
+- Resize once when the CSS size or device scale changed; configure the surface only then.
+- A render pass borrows the encoder; the inner braces end the borrow before `encoder.finish()`.
+- Reversed-depth and depth attachments come in lesson 05; this pass has color only.
 
-<!-- include-code: 01 session_viewer/src/shaders/first.wgsl -->
+<!-- file: 01 session_viewer/src/lib.rs type whole lines=145-205 -->
 
-The matrix at `@group(0) @binding(0)` is a **uniform**: the same input is available to every vertex. Its Rust bind-group layout, uploaded size and WGSL type must agree. A binding mismatch can compile as Rust and still fail when the browser creates the GPU pipeline.
+## Step 6 · The shader
 
-## Connect Rust and WGSL
+Rust and WGSL agree on three things:
 
-Read `device.create_render_pipeline` in the complete Rust file beside the shader. Its `vs_main` and `fs_main` names must match the WGSL functions. Its target format must match the surface. The empty vertex-buffer list is intentional because the shader uses vertex indices.
-
-`Some(value)` supplies an optional descriptor field; `None` means no value. `Default::default()` fills a descriptor with the library's defaults. We spell out fields when they establish this viewer's behavior and use defaults for unchanged options.
-
-## Write the files
-
-Follow [Complete file changes for 01](../lessons/01/index.md): replace the full browser entry and page, and create the shader. Do not append the new entry beneath checkpoint 00's `start`; the file page explicitly says to replace the whole file.
-
-The direct-canvas teaching shell keeps this first frame small. Lesson 12 replaces it with the production winit/State shell; that transition is supplied as complete files and explicit removals.
-
-## Checkpoint
-
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
+```text
+Rust                                             WGSL
+bind_group_layouts: [group 0 { binding 0 }]  ↔  @group(0) @binding(0) var<uniform> mvp
+entry_point: "vs_main" / "fs_main"           ↔  @vertex fn vs_main / @fragment fn fs_main
+targets: [surface format]                    ↔  @location(0) vec4<f32> return
 ```
 
-Open <http://localhost:8780/?data=off&inspect=1>. Expect a colored triangle and a one-object status. Resize the window: the canvas and surface must resize together. The automated `--verify` check captures actual pixels at DPR 1 and 2 and rejects page/GPU errors.
+- `@builtin(vertex_index)` is 0, 1, 2 for `draw(0..3, 0..1)`.
+- `@location(0) color` leaves the vertex stage and is interpolated into the fragment stage.
 
-If the background appears without the triangle, compare entry-point names, draw vertex count and the uniform binding against the complete files. If initialization fails, read the page's adapter/device error before changing shaders.
+<!-- file: 01 session_viewer/src/shaders/first.wgsl type -->
 
-**Before continuing:** identify which function creates the pipeline and which function uses it each frame. Continue to [camera and spaces](02-camera.md).
+<!-- check: 01 -->
+
+## Step 7 · The page drives the shell
+
+JavaScript owns the canvas and pointer events; it calls the four exported methods. Replace the page in full.
+
+<!-- file: 01 session_viewer/index.html copy -->
+
+## Check
+
+<!-- checkpoint: 01 -->
+
+Expected:
+
+- A red/green/blue triangle on a dark canvas.
+- Status reads **Checkpoint 01 · 1 objects · W×H** where W×H is the physical framebuffer size.
+- Resize the window: the triangle keeps its shape.
+
+If the background appears without the triangle, compare the entry-point names, `draw(0..3, ..)` and the uniform binding. If initialization fails, read the adapter/device error in the status text before touching shaders.
+
+## What changed
+
+<!-- tree: 01 session_viewer/src -->
+
+- `Tutorial` owns surface, device, queue, one pipeline, one bind group.
+- Data flow: identity `[f32;16]` → uniform buffer → `mvp` in the vertex shader → clip position.
+
+**Production equivalent:** `src/engine/gpu/device.rs` (adapter and device), `src/engine/gpu/present.rs` (surface), `src/engine/gpu/render.rs` (the frame). The shell you just wrote is temporary.
+
+## Next
+
+[02 · Camera](02-camera.md): the production camera and math, wired to orbit, pan and zoom.

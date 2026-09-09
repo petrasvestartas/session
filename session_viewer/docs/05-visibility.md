@@ -1,47 +1,192 @@
-# 05 · Separate physical surfaces from readable ink
+# 05 · Depth and visible ink
 
-**Start:** checkpoint 04. **Finish:** hidden lines stay hidden while visible thick lines and close-up corners remain readable. Chapter 18 will refine the finite-triangle case that this first visibility model cannot resolve.
+## You are building
 
-## A thick line is not its centerline
+```mermaid
+flowchart TB
+    faces["opaque faces<br/>triangle.wgsl"] -- "fs_main → PhysicalColor" --> phys["physical pass<br/>depth + gradient targets"]
+    back["background + grid<br/>backdrop.rs"] -- "depth Always / ReadOnly" --> phys
+    phys -- "textureLoad depth, gradient" --> ink["ink pass<br/>ink_visibility.wgsl"]
+    ink -- "carry depth to the stroke axis" --> test{"ink_visible"}
+    test -- "true" --> cov["stroke coverage color"]
+    test -- "false" --> discard
+```
 
-The mathematical line has zero width. The displayed stroke covers a strip of samples around that line. At a grazing angle, those samples can lie over triangles whose depth changes sharply across a pixel.
+![Reversed depth, and why a thick stroke must transfer the surface depth to its axis before comparing.](illustrations/ink-visibility.svg)
+
+## Starting point
+
+- Checkpoint 04d (all drawing modules present): faces, strokes, markers and clouds draw into one color target with a single-sample depth buffer, and every stroke fragment compares its own depth at its own pixel.
+- Rear edges shine through solids at grazing angles: a thick stroke covers samples beside its axis, and those samples belong to a surface whose depth changes sharply within one pixel.
+- Depth is already reversed (lesson 04): near is larger, far approaches zero.
+
+## Step 1 · The physical contract shared by every shader
+
+Two constants and two output structs, appended to every shader module. `physical_gradient` is the rasterizer's own depth slope of the winning primitive, scaled so `Rg16Float` keeps it.
+
+| Contract | Where it lives |
+|---|---|
+| `Depth32Float` attachment, cleared to `0.0` (reverse-Z far) | `targets.rs::begin_faces` |
+| Solids write with `CompareFunction::Greater` (`DepthMode::Opaque`) | `pipelines/mod.rs` (lesson 04) |
+| Grid tests without writing (`DepthMode::ReadOnly`), background `DepthMode::Always` | `backdrop.rs` below |
+| `@location(1) gradient: vec2<f32>` beside every physical color/ID | `physical.wgsl` below |
+
+<!-- file: 05 session_viewer/src/shaders/physical.wgsl type -->
+
+## Step 2 · Backdrop shaders
+
+- The background is one oversized triangle at `w = 1.0`, depth `Always`, so it never occludes.
+- The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor (lesson 03).
+- Both return `PhysicalColor` with a zero gradient: neither is a surface ink can be carried across.
+
+<!-- file: 05 session_viewer/src/shaders/background.wgsl type -->
+
+<!-- file: 05 session_viewer/src/shaders/grid.wgsl type -->
+
+## Step 3 · The backdrop lane
+
+- One owner for two pipelines; no buffers, no upload, `retarget` when the sample count changes.
+- `draw_grid` binds `mvp` and the `line` block, matching `@group(0)`/`@group(1)` in `grid.wgsl`.
+
+<!-- file: 05 session_viewer/src/engine/gpu/backdrop.rs type -->
+
+<!-- check: 05 -->
+
+## Step 4 · The ink visibility test
+
+A stroke is drawn as a ribbon of fragments around its mathematical axis. The physical depth at a fragment beside the axis belongs to whatever surface is there, not to the axis:
 
 ```text
-physical pass: opaque surfaces → immutable depth + visibility metadata
-                                                   ↓
-ink pass: segment footprint → axis position → visibility test → coverage color
+      fragment ●─────── stroke footprint ───────● fragment
+                 \                              /
+                  \      axis (depth d)        /
+   surface ────────●─────────────────────────●──────── surface
+                   z0            depth varies across the footprint
 ```
 
-Drawing all lines with depth disabled makes rear edges visible through solids. Adding a large global depth offset can do the same and changes with scale/projection. This viewer instead keeps physical depth and asks whether the line axis is visible at the covered sample.
+Comparing `z0` with `d` directly hides ink on its own face. Instead the physical gradient carries the surface depth from the fragment to the axis point, and only that predicted depth is compared with the axis.
 
-## Read the depth contract as one unit
+Replace the whole shader in five pieces.
 
-The camera uses reversed depth: near is larger, far approaches zero. Opaque depth clears to zero and compares `Greater`. A shader's calculated depth must use the same projection. The physical attachment is read during ink rendering without allowing each decorative stroke to rewrite the scene's occluders.
+### 4a · Bindings, tolerances and the axis record
 
-The physical gradient describes how the winning primitive's depth changes across screen x/y. Transferring its depth to the line axis avoids comparing the line against the wrong offset location. Keep the bounded fallback for gradients that cannot be represented reliably.
+- `scene_gradient_*` are the new attachments from step 1; `SCENE_MSAA` picks the multisampled view.
+- Tolerances are expressed in float precision and rasterizer snapping, not in world units.
 
-At this stage, a neighboring triangle can still be interpreted as an infinite plane. Do not assume that passing a floor test proves every concave CAD edge correct. The final course step adds the finite footprint and all-candidate tile test while preserving this physical-depth foundation.
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-43 -->
 
-## Coverage and joins are separate from visibility
+### 4b · Reading depth and fitting a neighbouring pair
 
-Visibility decides whether a sample belongs to a visible stroke. Coverage decides how much that stroke covers the sample and blends its antialiased fringe. Increasing the pen width or darkening overlap does not repair a wrong occlusion decision.
+- Outside the viewport counts as cleared, so a stroke overhangs the canvas edge.
+- `ink_pair_planar` accepts two adjacent texels as one surface only when their slopes agree within `KINK`; a step to another surface is many times the slope.
 
-Likewise, independent segment caps can overlap or leave gaps where a curve was subdivided. Chapter 17 gives both incident segments the same join plane and complementary ownership at their common endpoint.
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=44-101 -->
 
-## Write the files
+### 4c · Carrying a stroke fragment's surface to the axis
 
-Follow [Complete file changes for 05](../lessons/05/index.md). Read `physical.wgsl`, `ink_visibility.wgsl` and the stroke shader beside the target formats and pass setup. Keep the color and ID visibility contracts aligned; a visible line that cannot be picked is still a defect.
+- `ink_axis_visible` fits a plane from the fragment's texel and one neighbour away from the stroke, then evaluates it at the axis.
+- `ink_carry_visible` is one-sided: a farther texel can never hide, a nearer texel hides unless its surface passes through the axis.
 
-## Checkpoint
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=102-137 -->
 
-```sh
-cd "$COURSE_WORK/session_viewer"
-cargo check --locked --lib
-trunk serve --port 8780
-```
+### 4d · Discs: markers stand or fall with their centre
 
-Open the local checkpoint at <http://localhost:8780/?data=off&inspect=1>. Inspect crossing lines and covered geometry while orbiting. Foreground ink should stay legible; genuinely covered spans should not shine through. Use the complete fixture and checks supplied with this stage rather than substituting an unrelated simple triangle.
+A marker is a camera-facing disc; its rim must not be uncovered by a grazing surface that crosses the disc's depth within a few pixels.
 
-The later maintained depth suite separately checks 54 synthetic views, the real floor census and a close-up box's nine visible edges/seven vertices. These are complementary checks: fixing a hidden floor edge must not erase a nearby box corner.
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=138-187 -->
 
-**Before continuing:** distinguish a visibility failure, a coverage failure and an incorrect source curve. Continue to [the CAD contract](06-cad-contract.md).
+### 4e · Corner fits and the fast path
+
+- `ink_disc_source_hidden` tries each quadrant so a face boundary cannot discard a valid fit.
+- `ink_visible` is the entry point strokes call: when the primitive's own gradient is valid, one `textureLoad` and a dot product decide; the neighbouring-pair fit is the fallback for gradients outside the attachment's range.
+- A neighbouring triangle is still treated here as an infinite plane; lesson 18 restricts the carry to finite triangles.
+
+<!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=188-236 -->
+
+## Step 5 · Shaders emit the gradient
+
+Every fragment that writes physical depth now also returns its gradient. Face shaders return the real slope; splats, sheets and ID passes return zero because they are not surfaces ink can be carried across.
+
+<!-- file: 05 session_viewer/src/shaders/triangle.wgsl type -->
+
+<!-- file: 05 session_viewer/src/shaders/splat.wgsl type -->
+
+<!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
+
+<!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
+
+## Step 6 · Targets: the gradient attachment and a sample budget
+
+- `Rg16Float` gradient texture beside depth; single/multisampled views are swapped exactly like the depth views so bind groups stay valid at both sample counts.
+- `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
+- `msaa_budget`/`samples_for` decide the sample count from the adapter type and pixel count; multisampling smooths hard face edges only, ribbons and discs antialias themselves.
+
+<!-- file: 05 session_viewer/src/engine/gpu/targets.rs type -->
+
+## Step 7 · Pipelines: one flag adds the second color target
+
+- `PipelineDesc::physical()` appends the `Rg16Float` target; `ReadOnlyEqual` pipelines keep the gradient their face already wrote by masking their writes.
+- `module` appends `physical.wgsl` after `normals.wgsl`, so every shader sees `PhysicalColor`.
+
+<!-- file: 05 session_viewer/src/engine/pipelines/mod.rs type -->
+
+<!-- file: 05 session_viewer/src/engine/pipelines/layouts.rs type -->
+
+<!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
+
+## Step 8 · Lanes read and write the gradient
+
+- The ink bind group gains bindings 4 and 5: `@group(2) @binding(4/5)` in step 4a.
+- The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline reused by later lessons.
+
+<!-- file: 05 session_viewer/src/engine/gpu/objects.rs type -->
+
+<!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
+
+<!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
+
+<!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
+
+## Step 9 · Wire the lane and the sample count
+
+- `retarget` rebuilds targets, ink bind groups and every lane's pipelines when the sample count flips, and only then.
+- The backdrop draws first inside `begin_faces`, before any geometry.
+
+<!-- file: 05 session_viewer/src/engine/gpu/mod.rs type -->
+
+## Step 10 · The fixture and the page
+
+The grey box and the sloping floor are the shapes the visibility test is judged on.
+
+<!-- file: 05 session_viewer/src/fixture.rs copy -->
+
+<!-- file: 05 session_viewer/src/lib.rs type -->
+
+<!-- file: 05 session_viewer/index.html copy -->
+
+## Check
+
+<!-- checkpoint: 05 -->
+
+Expected:
+
+- A grey box on a white background, twelve red edges, black corner markers.
+- Orbit: edges on the far side of the box disappear behind its faces; front edges stay at full width up to the corners.
+- `?fixture=floor`: magenta lines just under the sloping floor stay hidden; the red line on the floor stays visible.
+- `?top`, `?perspective`, `?distance=N` select the view for repeatable inspection.
+
+If every edge disappears, compare the depth clear and compare function against the table in step 1. If hidden edges show through, check that the face pipeline uses `.physical()` and that `fs_main` returns `physical_gradient(in.pos.z)`.
+
+## What changed
+
+<!-- tree: 05 session_viewer/src -->
+
+- Data flow: face fragment → depth + gradient attachments → stroke fragment loads both → `ink_visible` predicts the surface depth at the axis → coverage or discard.
+- New lane: `BackdropLane` (background, grid).
+- Sample count is chosen per frame from geometry and adapter budget.
+
+**Production equivalent:** `src/engine/gpu/targets.rs`, `backdrop.rs`, `src/shaders/physical.wgsl`, `ink_visibility.wgsl`, `grid.wgsl`, `background.wgsl` are production files. `src/lib.rs` and `src/fixture.rs` remain the teaching shell.
+
+## Next
+
+[06 · CAD face contract](06-cad-contract.md): BRep faces, surfaces and boundary records flow from the shared kernel into display data.
