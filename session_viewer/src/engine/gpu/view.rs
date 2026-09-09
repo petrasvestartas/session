@@ -92,6 +92,24 @@ pub fn device_pixel_ratio() -> f64 {
     }
 }
 
+/// Surface pixels per physical pixel winit reports: 1 until `?dpr=` caps the canvas below the
+/// browser's ratio, then the cap over the ratio. Cursor and touch positions arrive at the
+/// browser's ratio and every pick, zoom and drag reads them against the capped surface.
+pub fn surface_per_physical() -> f64 {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let browser = web_sys::window()
+            .map(|window| window.device_pixel_ratio())
+            .filter(|ratio| *ratio > 0.0)
+            .unwrap_or(1.0);
+        device_pixel_ratio() / browser
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        1.0
+    }
+}
+
 /// One knob's raw text: the `?name=` query value on wasm, the `ENV` variable natively.
 pub fn knob(env: &str, query: &str) -> Option<String> {
     #[cfg(target_arch = "wasm32")]

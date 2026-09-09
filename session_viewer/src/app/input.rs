@@ -110,6 +110,9 @@ impl Input {
                 ..
             } => self.left(state, *btn),
             WindowEvent::CursorMoved { position, .. } => {
+                let scale = crate::engine::gpu::view::surface_per_physical();
+                let position =
+                    winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
                 let dragging = self.orbiting || self.panning;
                 if dragging {
                     let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
@@ -141,6 +144,14 @@ impl Input {
                 true
             }
             WindowEvent::Touch(t) => {
+                let scale = crate::engine::gpu::view::surface_per_physical();
+                let t = &winit::event::Touch {
+                    location: winit::dpi::PhysicalPosition::new(
+                        t.location.x * scale,
+                        t.location.y * scale,
+                    ),
+                    ..*t
+                };
                 match self
                     .touch
                     .event(&mut state.camera, t, viewport, device_pixel_ratio())

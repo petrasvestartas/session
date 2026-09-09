@@ -3256,3 +3256,61 @@ index a3861823f02abae877e26f4614651bc76d73d8a8..77f50b0393c86c46aba9973af3f504b0
 +fn fs_masks(in: VsOut) -> MaskPair {
 +    return MaskPair(vec4<f32>(1.0), vec4<f32>(f32(in.selected != 0u)));
 +}
+diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
+index 09d8578a2d073e03eae68e19e4b94183c8c1f708..5ef8ba27f3a032f072106a1d76f417ac003abe65 100644
+--- a/session_viewer/src/app/input.rs
++++ b/session_viewer/src/app/input.rs
+@@ -110,6 +110,9 @@ impl Input {
+                 ..
+             } => self.left(state, *btn),
+             WindowEvent::CursorMoved { position, .. } => {
++                let scale = crate::engine::gpu::view::surface_per_physical();
++                let position =
++                    winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
+                 let dragging = self.orbiting || self.panning;
+                 if dragging {
+                     let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
+@@ -141,6 +144,14 @@ impl Input {
+                 true
+             }
+             WindowEvent::Touch(t) => {
++                let scale = crate::engine::gpu::view::surface_per_physical();
++                let t = &winit::event::Touch {
++                    location: winit::dpi::PhysicalPosition::new(
++                        t.location.x * scale,
++                        t.location.y * scale,
++                    ),
++                    ..*t
++                };
+                 match self
+                     .touch
+                     .event(&mut state.camera, t, viewport, device_pixel_ratio())
+diff --git a/session_viewer/src/engine/gpu/view.rs b/session_viewer/src/engine/gpu/view.rs
+index 8449af44257b46d8984cd157675b58563e9e0f92..303570500b27b9229179353bd0f8605b33325dbe 100644
+--- a/session_viewer/src/engine/gpu/view.rs
++++ b/session_viewer/src/engine/gpu/view.rs
+@@ -92,6 +92,24 @@ pub fn device_pixel_ratio() -> f64 {
+     }
+ }
+ 
++/// Surface pixels per physical pixel winit reports: 1 until `?dpr=` caps the canvas below the
++/// browser's ratio, then the cap over the ratio. Cursor and touch positions arrive at the
++/// browser's ratio and every pick, zoom and drag reads them against the capped surface.
++pub fn surface_per_physical() -> f64 {
++    #[cfg(target_arch = "wasm32")]
++    {
++        let browser = web_sys::window()
++            .map(|window| window.device_pixel_ratio())
++            .filter(|ratio| *ratio > 0.0)
++            .unwrap_or(1.0);
++        device_pixel_ratio() / browser
++    }
++    #[cfg(not(target_arch = "wasm32"))]
++    {
++        1.0
++    }
++}
++
+ /// One knob's raw text: the `?name=` query value on wasm, the `ENV` variable natively.
+ pub fn knob(env: &str, query: &str) -> Option<String> {
+     #[cfg(target_arch = "wasm32")]

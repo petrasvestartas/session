@@ -324,6 +324,21 @@ flowchart TB
 
 <!-- file: 18 session_viewer/src/engine/gpu/mod.rs type -->
 
+### Step 12 · Pointer positions on a capped surface
+
+- `?dpr=` renders the canvas below the browser's ratio, but winit still reports cursor and touch positions at the browser's ratio. `surface_per_physical` is that cap over the ratio, 1 without a cap, and the input handler scales every position by it before a drag, a zoom or a pick reads it.
+
+```mermaid
+flowchart LR
+    W["winit position · browser ratio"] -- "× surface_per_physical" --> S["surface pixels"]
+    S --> P["pick · zoom · drag"]
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
+```
+
+<!-- file: 18 session_viewer/src/engine/gpu/view.rs type -->
+
+<!-- file: 18 session_viewer/src/app/input.rs type -->
+
 <!-- check: 18 -->
 
 ## Check
