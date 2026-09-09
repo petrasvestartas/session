@@ -13,6 +13,8 @@ flowchart TD
     N -- "face_signs" --> O["outward normals"]
 ```
 
+![Before: face A, face B and the ink each chord the same edge differently. After: one canonical chain constrains both meshes and the ink is drawn from those nodes.](illustrations/shared-boundary.svg)
+
 ## Starting point
 
 - Checkpoint 06: each BRep face is tessellated on its own; boundaries are records without geometry.
@@ -212,6 +214,8 @@ Expected:
 
 If a boundary floats or doubles, compare the f64 chains of both faces first, then the f32 endpoints, then visibility.
 
+![Checkpoint 07: a cylinder and a block with a hole; every CAD edge is ink drawn from the shared face-mesh nodes.](screenshots/07.png)
+
 ## What changed
 
 <!-- tree: 07 session_viewer/src/app/walk -->
@@ -220,6 +224,12 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 - Viewer: chains are read from those nodes; pipes keep source edge IDs and both faces' outward normals.
 
 **Production equivalent:** `session_rust/src/{brep,nurbssurface_trimmed}.rs`, `src/app/walk/{brep,brep_edges,brep_orient}.rs`. The [CAD design record](cad-design.md) records the OCCT comparison behind this contract.
+
+## Try
+
+- Append `?top=1`: the cylinder's seam and both circles are seen edge-on; the seam is still one line, because both incident face meshes were built from the same chain.
+- Append `?thickness=4` and orbit: the pipes widen but never detach from the faces, which only holds because their endpoints are mesh nodes.
+- Zoom close to the hole rim with `?distance=0.4`: the rim stays attached to the inner face; a separately sampled circle would float above or sink below it.
 
 ## Next
 

@@ -502,7 +502,60 @@ def cad_contract():
     c.write("cad-contract.svg")
 
 
+def shared_boundary():
+    c = Canvas("Independent chords versus one shared boundary chain",
+               "Left: two faces sample their common edge independently and the ink samples it a third time, so three polylines approximate one curve and cross, separate or hide each other as the camera moves. Right: one canonical chain of samples is chosen for the edge, both face meshes are constrained to those exact points, and the ink is drawn from the same mesh nodes, so the seam is one curve everywhere.",
+               1000, 470)
+    navy, pink, green, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"]
+    import math
+    def arc(x0, y0, w, h, n, wobble=0.0, phase=0.0):
+        pts = []
+        for i in range(n + 1):
+            t = i / n
+            a = math.pi * (0.15 + 0.7 * t)
+            x = x0 + w * t
+            y = y0 - h * math.sin(a) + wobble * math.sin(6 * t * math.pi + phase)
+            pts.append((x, y))
+        return pts
+    def poly(pts, stroke, width=2, dash=None, dots=None):
+        d = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+        extra = f' stroke-dasharray="{dash}"' if dash else ""
+        c.raw(f'<polyline points="{d}" fill="none" stroke="{stroke}" stroke-width="{width}"{extra}/>')
+        if dots:
+            for x, y in pts:
+                c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.2" fill="{dots}"/>')
+    # left panel: before
+    c.text(28, 40, "Before: three approximations of one edge", "h")
+    c.raw(f'<rect x="40" y="70" width="420" height="250" rx="10" fill="{PAL["white"]}" stroke="{grey}" stroke-width="1"/>')
+    c.raw(f'<polygon points="60,300 60,120 250,140 250,290" fill="{PAL["blue_band"]}" fill-opacity="0.6" stroke="none"/>')
+    c.raw(f'<polygon points="250,140 440,110 440,300 250,290" fill="{PAL["pink_band"]}" fill-opacity="0.6" stroke="none"/>')
+    poly(arc(120, 300, 250, 120, 5, 0, 0), navy, 2, dots=navy)
+    poly(arc(120, 300, 250, 120, 7, 6, 1.0), pink, 2, dots=pink)
+    poly(arc(120, 300, 250, 120, 12, 4, 2.0), "#111111", 1.6, dash="6 4")
+    c.text(60, 335, "face A chords (5)", "s", fill=navy)
+    c.text(200, 335, "face B chords (7)", "s", fill=pink)
+    c.text(340, 335, "ink sampled apart", "s")
+    c.text(60, 358, "they cross and separate; the seam z-fights and breaks as the camera moves", "s")
+    # right panel: after
+    x0 = 520
+    c.text(x0, 40, "After: one canonical chain", "h")
+    c.raw(f'<rect x="{x0 + 12}" y="70" width="420" height="250" rx="10" fill="{PAL["white"]}" stroke="{grey}" stroke-width="1"/>')
+    c.raw(f'<polygon points="{x0 + 32},300 {x0 + 32},120 {x0 + 222},140 {x0 + 222},290" fill="{PAL["blue_band"]}" fill-opacity="0.6" stroke="none"/>')
+    c.raw(f'<polygon points="{x0 + 222},140 {x0 + 412},110 {x0 + 412},300 {x0 + 222},290" fill="{PAL["pink_band"]}" fill-opacity="0.6" stroke="none"/>')
+    chain = arc(x0 + 92, 300, 250, 120, 8, 0, 0)
+    poly(chain, "#111111", 2.4, dots=green)
+    c.text(x0 + 32, 335, "one chain, refined once; both meshes constrained to it", "s")
+    c.text(x0 + 32, 358, "ink drawn from those same mesh nodes: one curve, no seam", "s")
+    c.box(28, 390, ["Where it lives",
+                    "`brep.rs phase 2      chooses and refines the chain, once per edge`",
+                    "`TrimLoops            carries the given XYZ into mesh_loops`",
+                    "`brep_edges.rs        reads the chain back as pipes with the original edge id`"], "note", w=944)
+    c.w = 1000
+    c.h = 390 + 104 + 20
+    c.write("shared-boundary.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary):
         draw()
-    print("wrote 11 illustrations")
+    print("wrote 12 illustrations")
