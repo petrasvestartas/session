@@ -607,7 +607,61 @@ def trims_seams():
     c.write("trims-seams.svg")
 
 
+def normals():
+    c = Canvas("Where a shading normal comes from, and how it moves",
+               "Left: inside a smooth face the normal is the normalized cross product of the surface derivatives; where that cross product vanishes, at a pole or apex, the fallback averages the incident triangle normals. Middle: at a C0 crease the same position carries two normals on two shading vertices, so the fold stays sharp; sharing one averaged normal smears it. Right: a nonuniform scale tilts a normal transformed like a position; the cofactor matrix keeps it perpendicular to the transformed surface.",
+               1250, 480)
+    navy, pink, green, orange, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["orange"], PAL["grey"]
+    def arrow(x1, y1, x2, y2, color, w=2):
+        c.raw(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{color}" stroke-width="{w}"/>')
+        import math
+        a = math.atan2(y2 - y1, x2 - x1)
+        for sgn in (1, -1):
+            c.raw(f'<line x1="{x2}" y1="{y2}" x2="{x2 - 9 * math.cos(a - sgn * 0.45):.1f}" y2="{y2 - 9 * math.sin(a - sgn * 0.45):.1f}" stroke="{color}" stroke-width="{w}"/>')
+    # panel 1: analytic vs fallback
+    c.text(28, 40, "1 · Analytic normal or fallback", "h")
+    c.raw(f'<path d="M50,230 Q180,90 330,220" fill="none" stroke="{navy}" stroke-width="2.5"/>')
+    c.raw(f'<circle cx="190" cy="150" r="4" fill="{navy}"/>')
+    arrow(190, 150, 250, 138, grey, 1.6); c.text(256, 142, "∂u", "s")
+    arrow(190, 150, 176, 100, grey, 1.6); c.text(150, 96, "∂v", "s")
+    arrow(190, 150, 230, 84, green, 2.4); c.text(236, 82, "n = normalize(∂u × ∂v)", "s", fill=green)
+    c.text(50, 250, "smooth interior: derivatives define the normal", "s")
+    c.raw(f'<polygon points="90,410 130,330 170,410" fill="{PAL["blue_band"]}" stroke="{navy}" stroke-width="1.5"/>')
+    c.raw(f'<polygon points="130,330 170,410 220,390" fill="{PAL["blue_band"]}" stroke="{navy}" stroke-width="1.5"/>')
+    c.raw(f'<circle cx="130" cy="330" r="4" fill="{orange}"/>')
+    arrow(130, 330, 130, 284, orange, 2.4)
+    c.text(232, 352, "pole: ∂u × ∂v = 0", "s", fill=orange)
+    c.text(232, 370, "fallback: mean of the", "s", fill=orange)
+    c.text(232, 388, "fan's face normals", "s", fill=orange)
+    c.text(50, 446, "a sentinel +Z is never accepted as a derivative", "s")
+    # panel 2: crease
+    X = 440
+    c.text(X, 40, "2 · A crease keeps two normals", "h")
+    c.raw(f'<path d="M{X + 20},220 L{X + 150},120 L{X + 290},210" fill="none" stroke="{navy}" stroke-width="2.5"/>')
+    c.raw(f'<circle cx="{X + 150}" cy="120" r="4.5" fill="{pink}"/>')
+    arrow(X + 150, 120, X + 118, 75, green, 2.4); c.text(X + 40, 70, "left side normal", "s", fill=green)
+    arrow(X + 150, 120, X + 186, 70, green, 2.4); c.text(X + 192, 66, "right side normal", "s", fill=green)
+    c.text(X + 20, 250, "two shading vertices at one XYZ, one per side", "s")
+    c.raw(f'<path d="M{X + 20},430 L{X + 150},330 L{X + 290},420" fill="none" stroke="{navy}" stroke-width="2.5"/>')
+    c.raw(f'<circle cx="{X + 150}" cy="330" r="4.5" fill="{grey}"/>')
+    arrow(X + 150, 330, X + 156, 282, orange, 2.4); c.text(X + 164, 288, "one averaged normal", "s", fill=orange)
+    c.text(X + 20, 462, "shared vertex: the fold is lit as if round", "s")
+    # panel 3: transform
+    Y = 860
+    c.text(Y, 40, "3 · Transforming a normal", "h")
+    c.raw(f'<polygon points="{Y + 20},200 {Y + 120},140 {Y + 220},200" fill="none" stroke="{navy}" stroke-width="2.5"/>')
+    arrow(Y + 120, 140, Y + 120, 84, green, 2.4); c.text(Y + 128, 88, "n", "s", fill=green)
+    c.text(Y + 20, 222, "before: n ⟂ surface", "s")
+    c.raw(f'<polygon points="{Y + 20},410 {Y + 120},310 {Y + 220},410" fill="none" stroke="{navy}" stroke-width="2.5"/>')
+    arrow(Y + 120, 310, Y + 120, 254, orange, 2.4); c.text(Y + 128, 262, "M·n", "s", fill=orange)
+    arrow(Y + 120, 310, Y + 158, 270, green, 2.4); c.text(Y + 166, 276, "cofactor(M)·n", "s", fill=green)
+    c.text(Y + 20, 444, "after a stretch in y: only the cofactor form stays ⟂", "s")
+    c.text(Y + 20, 464, "normalize in the fragment stage: interpolation shrinks it", "s")
+    c.h = 480
+    c.write("normals.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals):
         draw()
-    print("wrote 13 illustrations")
+    print("wrote 14 illustrations")

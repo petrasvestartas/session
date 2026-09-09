@@ -14,6 +14,8 @@ flowchart TD
     T -- "@location(2) interpolated" --> L["normalize · headlight shade"]
 ```
 
+![Analytic normal or finite fallback at a pole; two shading normals at a C0 crease; the cofactor transform keeps a normal perpendicular under nonuniform scale.](illustrations/normals.svg)
+
 ## Starting point
 
 - Checkpoint 08: trimmed faces and seams are correct; every face mesh carries its own vertices and normals.
@@ -158,6 +160,8 @@ Open these views (the `cad` query selects the fixture, `affine=1` applies the pl
 
 A subtle crease under one light is not proof that normals are separate; identical XYZ with two normals is.
 
+![Checkpoint 09: smooth interiors, separate cap normals and a sharp crease under one headlight.](screenshots/09.png)
+
 ## What changed
 
 <!-- tree: 09 session_viewer/src -->
@@ -166,6 +170,12 @@ A subtle crease under one light is not proof that normals are separate; identica
 - Edge culling reads physical facet normals; shading normals never enter visibility.
 
 **Production equivalent:** `src/shaders/normals.wgsl`, `src/shaders/triangle.wgsl`, `src/app/walk/brep_edges.rs`, kernel `session_rust/src/remesh_nurbssurface_grid.rs` and `nurbssurface_trimmed.rs`.
+
+## Try
+
+- Open `?cad=sphere` and then `?cad=sphere&nolit=1`: the shading is the only difference, the mesh is the same; a normal bug shows in the first view only.
+- Open `?cad=crease` and orbit until the light grazes the fold: one side goes dark while the other stays lit, because the two sides own different normals at the same positions.
+- Open `?cad=cylinder&affine=1`: the stretched copy shades like the original. Replace `transform_normal` in `normals.wgsl` with a plain `mat3x3(model) * n` and reload: the stretched copy's lighting tilts.
 
 ## Next
 
