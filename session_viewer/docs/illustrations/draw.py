@@ -734,7 +734,45 @@ def text_placement():
     c.write("text-placement.svg")
 
 
+def controls():
+    c = Canvas("Display vertices are not controls",
+               "The screen shows a curve as many short chords and a surface as a tessellation grid. F10 asks the source geometry for its real controls: the few control points and the control polygon of the curve, the control net of the surface, the original vertices of a mesh. A picked marker answers with a ControlId into the source, never with the temporary marker slot.",
+               1180, 500)
+    navy, pink, green, yellow, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
+    c.text(28, 40, "What the screen draws versus what F10 shows", "h")
+    P = [(60, 290), (170, 130), (330, 350), (470, 170)]
+    def bez(t):
+        u = 1 - t
+        return (u**3 * P[0][0] + 3 * u * u * t * P[1][0] + 3 * u * t * t * P[2][0] + t**3 * P[3][0],
+                u**3 * P[0][1] + 3 * u * u * t * P[1][1] + 3 * u * t * t * P[2][1] + t**3 * P[3][1])
+    pts = [bez(i / 40) for i in range(41)]
+    c.text(60, 84, "display: 40 chords, 41 vertices", "l")
+    c.raw('<polyline points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in pts) + '" fill="none" stroke="#111111" stroke-width="1.5"/>')
+    for x, y in pts:
+        c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.6" fill="{grey}"/>')
+    dx = 600
+    c.text(60 + dx, 84, "F10: 4 control points, one control polygon", "l")
+    pts2 = [(x + dx, y) for x, y in pts]
+    c.raw('<polyline points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in pts2) + '" fill="none" stroke="#111111" stroke-width="1.5"/>')
+    c.raw('<polyline points="' + " ".join(f"{x + dx},{y}" for x, y in P) + f'" fill="none" stroke="{navy}" stroke-width="1.5" stroke-dasharray="5 4"/>')
+    for i, (x, y) in enumerate(P):
+        fill = yellow if i == 2 else navy
+        c.raw(f'<rect x="{x + dx - 6}" y="{y - 6}" width="12" height="12" fill="{fill}" stroke="#111111" stroke-width="1"/>')
+    c.text(P[2][0] + dx + 12, P[2][1] + 4, "picked: ControlId::Curve { index: 2 }", "s", fill=pink)
+    c.text(P[0][0] + dx - 4, P[0][1] + 24, "index 0", "s", fill=navy)
+    c.text(P[1][0] + dx + 12, P[1][1] + 4, "index 1", "s", fill=navy)
+    c.text(P[3][0] + dx - 4, P[3][1] - 12, "index 3", "s", fill=navy)
+    c.text(28, 392, "What each family reports as its controls", "l")
+    x = 28
+    for lines, kind in [(["Mesh", "original vertex keys"], "cpu"), (["Curve · Surface", "control points · control net", "links = control polygon"], "cpu"),
+                        (["BRep", "topological vertices"], "cpu"), (["Cloud", "source rows by page (HTTP Range)"], "gpu")]:
+        rect = c.box(x, 404, lines, kind)
+        x = rect[0] + rect[2] + 24
+    c.w = max(int(x + 4), 1180)
+    c.h = 500
+    c.write("controls.svg")
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls):
         draw()
-    print("wrote 16 illustrations")
+    print("wrote 17 illustrations")

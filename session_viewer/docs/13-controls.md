@@ -24,6 +24,8 @@ flowchart TD
     resolve --> marker["one yellow marker at the source position"]
 ```
 
+![The screen draws a curve as chords and a surface as a grid; F10 shows the source controls, and a picked marker answers with a ControlId into the source.](illustrations/controls.svg)
+
 ## Starting point
 
 - Checkpoint 12: clicks select objects and edges. `Gpu` already owns empty `controls` and `control_net` lanes.
@@ -195,6 +197,8 @@ Expected:
 - Escape: markers disappear, the parent stays selected. Escape again: nothing selected.
 - Select the surface and press F10: a control net, not the tessellation grid.
 
+![Checkpoint 13, left to right: F10 on the curve shows its three control points and control polygon; F10 on the surface shows the four corners of its control net; a clicked corner turns yellow and the status reads `Surface { surface: 0, u: 0, v: 1 }`; F10 on the mesh shows its original vertices, not the tessellation.](screenshots/13-controls.png)
+
 ## What changed
 
 <!-- tree: 13 session_viewer/src -->
@@ -204,6 +208,13 @@ Expected:
 - Streamed clouds: click → eligible source ranges → bounded pages → GPU visibility per page → original fixed32 ID.
 
 **Production equivalent:** `src/app/selection.rs`, `src/app/cloud_query.rs`, `src/app/fetch.rs`, `src/app/stream.rs`; the page-loop methods move from `state.rs` into `src/state/cloud_query.rs` in lesson 18.
+
+## Try
+
+- Select the polyline and press F10: every vertex is a control, so the markers sit on the display corners; select the line: two markers.
+- With controls shown, drag the window edge to resize: the markers are re-uploaded at the new logical-to-physical scale and keep their size.
+- Serve a directory holding a large `cloud.pb` locally and open `?scene=stream-test.yaml&data=http://127.0.0.1:PORT`; select the cloud, press F10 and click a point: the status names an original fixed32 ID that the display prefix never loaded.
+- Clear the selection while a page loop is running (Escape twice): the query token is dropped and no late page selects anything.
 
 ## Next
 
