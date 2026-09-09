@@ -12,6 +12,8 @@ flowchart TB
     A & I -- "Upload" --> G["GPU"]
 ```
 
+![One face, three representations: BRep source in f64, kernel mesh with u,v, normals and boundary tags, viewer rows in f32 that keep the face and edge identities.](illustrations/cad-contract.svg)
+
 ## Starting point
 
 - Checkpoint 05: hand-built quads, strokes and markers in `fixture.rs`; physical depth and visible ink work.
@@ -274,6 +276,8 @@ Expected:
 
 If the face is missing, follow producer → `Upload` → arena → draw range. If boundaries float off the face, the two f64 → f32 conversions differ.
 
+![Checkpoint 06: the CAD fixture shaded flat, boundaries drawn as pipes from the face mesh nodes.](screenshots/06.png)
+
 ## What changed
 
 <!-- tree: 06 session_viewer/src/app -->
@@ -282,6 +286,12 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 - Data flow: f64 source → kernel `Mesh` with `u`/`v`/normal attributes → f32 `RenderMesh` → arena; topology → pipes and spheres.
 
 **Production equivalent:** `src/app/walk/{mod,bounds,encode,mesh,mesh_ink,mesh_topology,curves,brep,brep_edges}.rs` and `src/app/knobs.rs` are production files from here on. The [CAD design record](cad-design.md) documents the producer contract.
+
+## Try
+
+- Append `?top=1` or `?perspective=1`: the fixture is viewed from a fixed camera, which makes a boundary that drifts off its face easy to spot.
+- Append `?distance=3` then `?distance=0.3`: the pipes keep their pixel width while the faces grow; the boundary nodes move with the mesh because they are the mesh.
+- Append `?thickness=3`: the boundary pipes widen on screen but stay glued to their faces, because their endpoints are face-mesh nodes, not a separately sampled curve.
 
 ## Next
 

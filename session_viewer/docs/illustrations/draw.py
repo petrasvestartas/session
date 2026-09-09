@@ -481,7 +481,28 @@ def first_frame():
     c.write("first-frame.svg")
 
 
+def cad_contract():
+    c = Canvas("A CAD face from source to GPU rows",
+               "A BRep face is a surface with trim loops and edge identities in f64. The kernel meshes each face into positions with u,v, per-face normals and boundary provenance tags. The viewer converts once to object-relative f32 and produces arena rows for triangles, pipe rows for boundary strokes carrying source edge ids, and glyph rows for vertices.",
+               1000, 470)
+    c.text(28, 40, "One face, three representations", "h")
+    r = row(c, 66, [(["Source · BRep face (f64)", "surface + trim loops", "oriented edge uses", "original edge ids"], "cpu"),
+                    (["Kernel · Mesh per face", "`positions · u,v · normals`", "`boundary/{loop}/{sample}`", "`boundary_interval/{loop}/{seg}`", "one normal set per face"], "cpu"),
+                    (["Viewer · rows for the lanes", "`ArenaRows  verts · idx`", "`SegRows    pipes + edge ids`", "`GlyphRows  vertex spheres`", "f32, object-relative"], "gpu")],
+            labels=["face_meshes_q", "walk/brep · mesh"])
+    y = max(x[1] + x[3] for x in r) + 30
+    c.box(28, y, ["The same conversion for triangles and boundary endpoints",
+                  "a boundary stroke reuses the face mesh's own nodes, converted by the same f64 → f32 step;",
+                  "converting the two independently reintroduces the gap the shared samples removed"], "note", w=r[-1][0] + r[-1][2] - 28)
+    c.box(28, y + 96, ["Identity survives every arrow",
+                       "parent row → source face index → original edge id: picking maps a triangle or pipe back to CAD,",
+                       "never to a tessellation artefact"], "note", w=r[-1][0] + r[-1][2] - 28)
+    c.w = int(r[-1][0] + r[-1][2] + 28)
+    c.h = int(y + 96 + 96 + 20)
+    c.write("cad-contract.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract):
         draw()
-    print("wrote 10 illustrations")
+    print("wrote 11 illustrations")
