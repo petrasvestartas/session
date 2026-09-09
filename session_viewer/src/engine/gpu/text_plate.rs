@@ -110,11 +110,16 @@ impl Plates {
     }
 
     /// The same clipped, rounded quads provide IDs for every selectable camera-facing label.
-    pub(super) fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+    pub(super) fn draw_ids(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        pick_transform: &wgpu::BindGroup,
+    ) -> u32 {
         if self.vertices.is_empty() {
             return 0;
         }
         pass.set_pipeline(&self.id_pipeline);
+        pass.set_bind_group(0, pick_transform, &[]);
         pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
         pass.draw(0..self.vertices.len(), 0..1);
         1
@@ -138,6 +143,7 @@ impl Plates {
 }
 
 /// Read-only physical depth; overlays use near depth 1 and source labels use their anchor depth.
+/// The ID pipeline maps its clip-space vertices through the pick pass's window transform.
 fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
     let shader = ctx
         .device
@@ -145,13 +151,21 @@ fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
             label: Some("text plate shader"),
             source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/text_plate.wgsl").into()),
         });
+    let pick = crate::engine::gpu::frame::pick_transform_layout(ctx);
+    let id_layout = ctx
+        .device
+        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("text plate ids"),
+            bind_group_layouts: &[Some(&pick)],
+            immediate_size: 0,
+        });
     ctx.device
         .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("text plates"),
-            layout: None,
+            layout: if ids { Some(&id_layout) } else { None },
             vertex: wgpu::VertexState {
                 module: &shader,
-                entry_point: Some("vs_main"),
+                entry_point: Some(if ids { "vs_id" } else { "vs_main" }),
                 buffers: &[wgpu::VertexBufferLayout {
                     array_stride: 40,
                     step_mode: wgpu::VertexStepMode::Vertex,

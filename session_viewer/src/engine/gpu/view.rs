@@ -73,6 +73,25 @@ impl View {
     }
 }
 
+/// Physical pixels per CSS pixel the canvas is rendered at: the browser's ratio, capped by the
+/// opt-in `?dpr=` knob for people who prefer memory over crispness (never raised above the
+/// browser's, never below 0.5). Native windows already report logical pixels.
+pub fn device_pixel_ratio() -> f64 {
+    #[cfg(target_arch = "wasm32")]
+    {
+        let ratio = web_sys::window()
+            .map(|window| window.device_pixel_ratio())
+            .filter(|ratio| *ratio > 0.0)
+            .unwrap_or(1.0);
+        let cap = f64::from(knob_f32("VIEWER_DPR", "dpr", 0.0));
+        if cap >= 0.5 { ratio.min(cap) } else { ratio }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        1.0
+    }
+}
+
 /// One knob's raw text: the `?name=` query value on wasm, the `ENV` variable natively.
 pub fn knob(env: &str, query: &str) -> Option<String> {
     #[cfg(target_arch = "wasm32")]

@@ -27,12 +27,14 @@ fn projected_triangle_at(triangle: ProjectedTriangle, at: vec2<f32>) -> vec2<f32
 // Bound the header and pooled-reference allocations at large framebuffer sizes.
 // The CPU TileLayout uses the same integer rule; the common case is four pixels.
 
-fn visibility_tile_span() -> u32 {
-    let width = u32(line.vp_w);
-    let height = u32(line.vp_h);
+fn visibility_tile_span_of(width: u32, height: u32) -> u32 {
     var span = 4u;
     while (((width+span-1u)/span)*((height+span-1u)/span)>262144u) {
         span*=2u;
     }
     return span;
+}
+
+fn visibility_tile_span() -> u32 {
+    return visibility_tile_span_of(u32(line.vp_w), u32(line.vp_h));
 }

@@ -270,8 +270,12 @@ impl TextLane {
     }
 
     /// Authored text IDs use the same retained plane vertices as their visible quads.
-    pub fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
-        self.planes.draw_ids(pass) + self.plates.draw_ids(pass)
+    pub fn draw_ids(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        pick_transform: &wgpu::BindGroup,
+    ) -> u32 {
+        self.planes.draw_ids(pass, pick_transform) + self.plates.draw_ids(pass, pick_transform)
     }
 
     /// Draw against the scene's read-only depth attachment after scene ink, overlays last.

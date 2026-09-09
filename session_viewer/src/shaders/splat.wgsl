@@ -6,6 +6,10 @@ struct CloudUniform {
     vp_w: f32,
     vp_h: f32,
     edl: f32,
+    _pad0: f32,
+    _pad1: f32,
+    origin: vec2<f32>,
+    frame: vec2<f32>,
 };
 @group(0) @binding(0) var<uniform> cloud: CloudUniform;
 
@@ -90,9 +94,11 @@ fn project(gid: u32) -> Splat {
     // Attenuated radius: k folds the world footprint and the projection; floored at the
     // manifest px so a far cloud never turns to dust, capped at 8 px.
     let r_min = rec_f(base, 19u);
-    s.r = clamp(bitcast<f32>(table[base + 23u]) * cloud.vp_h / clip.w, r_min, 8.0);
-    let x = (ndc.x * 0.5 + 0.5) * cloud.vp_w;
-    let y = (0.5 - ndc.y * 0.5) * cloud.vp_h;
+    // The record matrices project onto the canvas; the pick pass draws a window of it into
+    // an attachment of its own, offset by `origin` (zero in a frame).
+    s.r = clamp(bitcast<f32>(table[base + 23u]) * cloud.frame.y / clip.w, r_min, 8.0);
+    let x = (ndc.x * 0.5 + 0.5) * cloud.frame.x - cloud.origin.x;
+    let y = (0.5 - ndc.y * 0.5) * cloud.frame.y - cloud.origin.y;
     if (x < -s.r || y < -s.r || x >= cloud.vp_w + s.r || y >= cloud.vp_h + s.r) {
         return s;
     }

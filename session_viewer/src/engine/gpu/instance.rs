@@ -169,6 +169,8 @@ mod tests {
                             44,
                             offset_of!(LineUniform, lit),
                             offset_of!(LineUniform, backface),
+                            offset_of!(LineUniform, origin),
+                            offset_of!(LineUniform, frame),
                         ],
                         size_of::<LineUniform>(),
                     ),
@@ -222,6 +224,8 @@ mod tests {
             "feather",
             "lit",
             "backface",
+            "origin",
+            "frame",
         ];
         for (name, src) in lane_shaders() {
             if src.contains("struct LineUniform") {
@@ -232,7 +236,7 @@ mod tests {
                 );
             }
         }
-        assert_eq!(std::mem::size_of::<LineUniform>(), 64);
+        assert_eq!(std::mem::size_of::<LineUniform>(), 80);
     }
 
     /// Every instance-reading shader binds the translation table at group 2 binding 1 and

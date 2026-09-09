@@ -89,4 +89,8 @@ fn prefix(lane: u32, value: u32) -> u32 {
     let start = pool+offset;
     records[tile].values[1] = start;
     records[tile].values[3] = select(0u, 1u, start+records[tile].values[0]*2u>arrayLength(&records)*4u);
+    // The last tile's end is what every list needs: the CPU reads it back and grows the pool.
+    if (id.x==count-1u) {
+        records[0].values[1] = start+records[tile].values[0]*2u;
+    }
 }

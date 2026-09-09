@@ -37,6 +37,8 @@ struct LineUniform {
     feather: f32,
     lit: f32,
     backface: f32,
+    origin: vec2<f32>,
+    frame: vec2<f32>,
 };
 
 // The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
@@ -106,7 +108,7 @@ fn glyph_vertex(vid: u32) -> VsOut {
             px = g.radius * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6);
         }
     }
-    if (px > max(line.vp_w, line.vp_h)) {
+    if (px > max(line.frame.x, line.frame.y)) {
         return dead_dot();
     }
     var fade = 1.0;

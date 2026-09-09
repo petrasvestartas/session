@@ -237,11 +237,11 @@ fn page_hidden() -> bool {
     }
 }
 
-/// The canvas's pixel size (CSS size x device-pixel-ratio), or `None` if zero or unavailable.
+/// The canvas's pixel size (CSS size x device-pixel-ratio, capped by `?dpr=`), or `None` if
+/// zero or unavailable.
 #[cfg(target_arch = "wasm32")]
 fn desired_canvas_size() -> Option<(u32, u32)> {
-    let win = web_sys::window()?;
-    let dpr = win.device_pixel_ratio();
+    let dpr = engine::gpu::view::device_pixel_ratio();
     let canvas = viewer_canvas()?;
     let w = (canvas.client_width() as f64 * dpr).round() as u32;
     let h = (canvas.client_height() as f64 * dpr).round() as u32;

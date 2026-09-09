@@ -2,6 +2,13 @@
 
 /// Show a non-disruptive message in the focused viewer's status area.
 pub fn status(message: &str) {
+    // A page that reloaded after a device loss keeps saying so whenever the line is cleared.
+    #[cfg(target_arch = "wasm32")]
+    let message = if message.is_empty() {
+        super::route::recovered_notice().unwrap_or(message)
+    } else {
+        message
+    };
     #[cfg(target_arch = "wasm32")]
     if let Some(window) = web_sys::window()
         && let Some(document) = window.document()

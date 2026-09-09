@@ -8,18 +8,34 @@ struct PlateVertex {
     @location(4) @interpolate(flat) selected: f32,
 }
 
-@vertex
-fn vs_main(@location(0) position: vec3<f32>, @location(1) local: vec2<f32>,
-           @location(2) half_size: vec2<f32>, @location(3) radius: f32, @location(4) object: u32,
-           @location(5) selected: f32) -> PlateVertex {
+// The pick pass renders a window of the canvas into a window-sized attachment: this is the
+// clip-space map from the canvas projection the vertices were placed with to that window.
+@group(0) @binding(0) var<uniform> pick: mat4x4<f32>;
+
+fn plate_vertex(position: vec4<f32>, local: vec2<f32>, half_size: vec2<f32>, radius: f32,
+                object: u32, selected: f32) -> PlateVertex {
     var out: PlateVertex;
-    out.position = vec4<f32>(position, 1.0);
+    out.position = position;
     out.local = local;
     out.half_size = half_size;
     out.radius = radius;
     out.object = object;
     out.selected = selected;
     return out;
+}
+
+@vertex
+fn vs_main(@location(0) position: vec3<f32>, @location(1) local: vec2<f32>,
+           @location(2) half_size: vec2<f32>, @location(3) radius: f32, @location(4) object: u32,
+           @location(5) selected: f32) -> PlateVertex {
+    return plate_vertex(vec4<f32>(position, 1.0), local, half_size, radius, object, selected);
+}
+
+@vertex
+fn vs_id(@location(0) position: vec3<f32>, @location(1) local: vec2<f32>,
+         @location(2) half_size: vec2<f32>, @location(3) radius: f32, @location(4) object: u32,
+         @location(5) selected: f32) -> PlateVertex {
+    return plate_vertex(pick * vec4<f32>(position, 1.0), local, half_size, radius, object, selected);
 }
 
 // One distance defines visible coverage and picking, independent of selection color.

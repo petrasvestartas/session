@@ -241,20 +241,8 @@ fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
     let _ = proxy.send_event(crate::Msg::CancelPointer);
 }
 
-/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone.
-#[cfg(target_arch = "wasm32")]
+/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone, the same capped
+/// ratio the canvas is rendered at. Native windows report logical pixels already.
 fn device_pixel_ratio() -> f64 {
-    if let Some(window) = web_sys::window() {
-        let ratio = window.device_pixel_ratio();
-        if ratio > 0.0 {
-            return ratio;
-        }
-    }
-    1.0
-}
-
-/// Native windows report logical pixels already.
-#[cfg(not(target_arch = "wasm32"))]
-fn device_pixel_ratio() -> f64 {
-    1.0
+    crate::engine::gpu::view::device_pixel_ratio()
 }

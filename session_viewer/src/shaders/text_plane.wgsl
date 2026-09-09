@@ -9,15 +9,29 @@ struct Vertex {
 }
 @group(0) @binding(0) var coverage_texture: texture_2d<f32>;
 @group(0) @binding(1) var coverage_sampler: sampler;
+// The pick pass's clip-space map from the canvas projection to its window-sized attachment.
+@group(1) @binding(0) var<uniform> pick: mat4x4<f32>;
+
+fn plane_vertex(position: vec4<f32>, uv: vec2<f32>, color: vec4<f32>, clip: vec4<f32>,
+                object: u32, selected: f32) -> Vertex {
+    var out: Vertex;
+    out.position = position; out.uv = uv; out.color = color; out.clip = clip;
+    out.object = object; out.selected = selected;
+    return out;
+}
 
 @vertex
 fn vs_main(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
            @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>,
            @location(4) object: u32, @location(5) selected: f32) -> Vertex {
-    var out: Vertex;
-    out.position = position; out.uv = uv; out.color = color; out.clip = clip;
-    out.object = object; out.selected = selected;
-    return out;
+    return plane_vertex(position, uv, color, clip, object, selected);
+}
+
+@vertex
+fn vs_id(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
+         @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>,
+         @location(4) object: u32, @location(5) selected: f32) -> Vertex {
+    return plane_vertex(pick * position, uv, color, clip, object, selected);
 }
 
 // Rounded plate in texture coordinates; perspective-correct UVs keep it in the authored plane.

@@ -5,6 +5,7 @@
 //! face. No CPU ray cast, and it works for streamed clouds that never existed on the CPU.
 
 use super::buffers::GpuCtx;
+use super::frame::PickView;
 use super::targets::{TextureSpec, texture, texture_view};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
@@ -16,7 +17,8 @@ pub struct Pick {
     pub sub: u32,
 }
 
-/// The id pass's attachments, made on the first pick and kept until the canvas resizes.
+/// The id pass's attachments: the size of the pick window plus its halo, not the canvas,
+/// made on the first pick and kept while the window keeps that size.
 struct IdTargets {
     id: wgpu::Texture,
     id_view: wgpu::TextureView,
@@ -27,6 +29,9 @@ struct IdTargets {
 
 /// Default selection tolerance in CSS pixels, independent of display stroke width.
 pub const PICK_RADIUS: u32 = 6;
+/// Texels rendered around the readback window: the ink visibility test fits planes from
+/// neighbouring texels, so the attachment extends this far past what is copied out.
+pub const PICK_HALO: u32 = 3;
 /// Bounds readback allocations even at unusual browser zoom factors.
 const MAX_RADIUS: u32 = 128;
 
@@ -88,6 +93,21 @@ impl Window {
             radius,
         }
     }
+
+    /// The attachment that serves this window: the window and its halo, inside the canvas.
+    pub fn view(&self, size: (u32, u32)) -> PickView {
+        let size = (size.0.max(1), size.1.max(1));
+        let x = self.x.saturating_sub(PICK_HALO);
+        let y = self.y.saturating_sub(PICK_HALO);
+        let right = (self.x + self.w + PICK_HALO).min(size.0);
+        let bottom = (self.y + self.h + PICK_HALO).min(size.1);
+        PickView {
+            x,
+            y,
+            w: (right - x).max(1),
+            h: (bottom - y).max(1),
+        }
+    }
 }
 
 /// The row pitch of the window copy: `2 * PICK_RADIUS + 1` texels of 8 B, rounded up to
@@ -110,6 +130,8 @@ pub struct Picker {
     source_phase: SourcePhase,
     readback: Option<wgpu::Buffer>,
     targets: Option<IdTargets>,
+    /// Where the targets sit in the canvas, set by `begin_pass`.
+    view: PickView,
 }
 
 /// A native full-frame ID capture awaiting queue submission and readback.
@@ -194,6 +216,7 @@ impl Picker {
             source_phase: SourcePhase::Inactive,
             readback: None,
             targets: None,
+            view: PickView::whole((1, 1)),
         }
     }
 
@@ -278,6 +301,14 @@ impl Picker {
         Window::with_radius(at, size, self.radius)
     }
 
+    /// The attachment rectangle the pass draws for a pick at `at`, or the whole canvas.
+    pub fn view_for(&self, at: Option<(u32, u32)>, size: (u32, u32)) -> PickView {
+        match at {
+            Some(at) => self.window(at, size).view(size),
+            None => PickView::whole(size),
+        }
+    }
+
     /// Whether a pick is waiting for its answer (the shell keeps frames coming until it lands).
     pub fn busy(&self) -> bool {
         self.inflight || self.pending.is_some()
@@ -292,13 +323,16 @@ impl Picker {
         }
     }
 
-    /// Open the id pass over targets of `size`, cleared to 0 (= nothing) and reverse-Z far.
+    /// Open the id pass over targets the size of `view`, cleared to 0 (= nothing) and
+    /// reverse-Z far.
     pub fn begin_pass<'a>(
         &'a mut self,
         ctx: &GpuCtx,
         encoder: &'a mut wgpu::CommandEncoder,
-        size: (u32, u32),
+        view: PickView,
     ) -> wgpu::RenderPass<'a> {
+        let size = (view.w, view.h);
+        self.view = view;
         if !matches!(&self.targets, Some(targets) if targets.size == size) {
             let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC;
             let id = texture(
@@ -420,16 +454,17 @@ impl Picker {
         })
     }
 
-    /// Copy the window about `at` into the readback buffer; `map` starts the mapping after
-    /// the submit.
+    /// Copy the window about `at` (in canvas pixels of a `size` canvas) into the readback
+    /// buffer; `map` starts the mapping after the submit.
     pub fn copy_window(
         &mut self,
         ctx: &GpuCtx,
         encoder: &mut wgpu::CommandEncoder,
         at: (u32, u32),
+        size: (u32, u32),
     ) {
         let Some(t) = &self.targets else { return };
-        let win = self.window(at, t.size);
+        let win = self.window(at, size);
         if self.readback.is_none() {
             self.readback = Some(readback_buffer(ctx));
         }
@@ -439,8 +474,8 @@ impl Picker {
                 texture: &t.id,
                 mip_level: 0,
                 origin: wgpu::Origin3d {
-                    x: win.x,
-                    y: win.y,
+                    x: win.x.saturating_sub(self.view.x),
+                    y: win.y.saturating_sub(self.view.y),
                     z: 0,
                 },
                 aspect: wgpu::TextureAspect::All,

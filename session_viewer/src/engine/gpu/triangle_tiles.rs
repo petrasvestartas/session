@@ -6,10 +6,17 @@
 use super::buffers::{GpuCtx, ROWS, bind_group, uniform_buffer, zeroed_buffer};
 use super::frame::Binds;
 use crate::engine::pipelines::Layouts;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 pub(super) const PROJECTED_BYTES: u64 = 96;
 const MAX_TILES: u32 = 262_144;
+/// The most references a tile may hold on average: the pool's ceiling, never its size.
 const REFERENCES_PER_TILE: u64 = 32;
+/// Words per (triangle, depth) reference.
+const REFERENCE_WORDS: u64 = 2;
+/// The smallest pool: enough for a screen-filling triangle in every tile of a small canvas.
+const MIN_POOL_WORDS: u64 = 32 * 1024;
 
 /// Framebuffer pixels per tile grow only when needed to bound the grid's storage.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -44,9 +51,95 @@ impl TileLayout {
         1 + self.count() as u64 + blocks as u64 + blocks.div_ceil(256) as u64
     }
 
-    /// Pooled capacity, rather than a per-tile cap: dense tiles may use spare space anywhere.
-    fn buffer_bytes(self) -> u64 {
-        self.header_records() * 16 + self.count() as u64 * REFERENCES_PER_TILE * 8
+    /// The headers plus a pool of `pool_words` reference words: dense tiles may use spare
+    /// space anywhere, so the pool is sized for the scene, not per tile.
+    fn buffer_bytes(self, pool_words: u64) -> u64 {
+        self.header_records() * 16 + pool_words * 4
+    }
+
+    /// The pool's ceiling: the former fixed allocation.
+    fn max_pool_words(self) -> u64 {
+        self.count() as u64 * REFERENCES_PER_TILE * REFERENCE_WORDS
+    }
+
+    /// A first pool that fits a screen-filling triangle in every tile plus eight tiles per
+    /// triangle; the scan reports what it really needs and the pool grows to that.
+    fn initial_pool_words(self, triangles: u32) -> u64 {
+        let references = self.count() as u64 * 2 + u64::from(triangles) * 8;
+        (references * REFERENCE_WORDS)
+            .max(MIN_POOL_WORDS)
+            .min(self.max_pool_words())
+    }
+}
+
+/// The scan's own report of the words its lists need, read back a frame later: a pool too
+/// small keeps the conservative rejection for that frame and grows before the next.
+struct PoolReport {
+    buffer: wgpu::Buffer,
+    ready: Arc<AtomicU8>,
+    copied: bool,
+    inflight: bool,
+}
+
+impl PoolReport {
+    fn new(ctx: &GpuCtx) -> Self {
+        Self {
+            buffer: ctx.device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("triangle.tiles.report"),
+                size: 16,
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            }),
+            ready: Arc::new(AtomicU8::new(0)),
+            copied: false,
+            inflight: false,
+        }
+    }
+
+    /// Copy the first record (valid flag, words needed) once the fill has run.
+    fn copy(&mut self, encoder: &mut wgpu::CommandEncoder, tiles: &wgpu::Buffer) {
+        if self.inflight {
+            return;
+        }
+        encoder.copy_buffer_to_buffer(tiles, 0, &self.buffer, 0, 16);
+        self.copied = true;
+    }
+
+    /// After the submit: map the copy once.
+    fn map(&mut self) {
+        if !self.copied || self.inflight {
+            return;
+        }
+        self.copied = false;
+        self.inflight = true;
+        let flag = self.ready.clone();
+        self.buffer
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |result| {
+                flag.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
+            });
+    }
+
+    /// The words the last scan needed, when its report has landed.
+    fn poll(&mut self) -> Option<u64> {
+        if !self.inflight {
+            return None;
+        }
+        let status = self.ready.load(Ordering::Acquire);
+        if status == 0 {
+            return None;
+        }
+        self.ready.store(0, Ordering::Release);
+        self.inflight = false;
+        if status != 1 {
+            return None;
+        }
+        let words = {
+            let bytes = self.buffer.slice(..).get_mapped_range();
+            u32::from_le_bytes(bytes[4..8].try_into().expect("report words"))
+        };
+        self.buffer.unmap();
+        Some(u64::from(words))
     }
 }
 
@@ -78,6 +171,9 @@ pub struct TriangleTiles {
     live_count: wgpu::Buffer,
     key: Option<ProjectionKey>,
     pipes: TilePipelines,
+    /// Reference words the pool holds; grows from the scan's report, resets with the scene.
+    pool_words: u64,
+    report: PoolReport,
 }
 
 impl TriangleTiles {
@@ -92,7 +188,19 @@ impl TriangleTiles {
             live_count: uniform_buffer(&ctx.device, "triangle.project.count", &[0u32; 4]),
             key: None,
             pipes: TilePipelines::new(ctx, layouts),
+            pool_words: 0,
+            report: PoolReport::new(ctx),
         }
+    }
+
+    /// After a submit that ran the scan: start reading its report.
+    pub fn map_report(&mut self) {
+        self.report.map();
+    }
+
+    /// The words the header and pool occupy for `layout` at the current pool size.
+    fn pool_capacity(&self, layout: TileLayout) -> u64 {
+        layout.header_records() * 4 + self.pool_words
     }
 
     /// Geometry may change without changing its count; never reuse a previous projection then.
@@ -114,6 +222,24 @@ impl TriangleTiles {
             return changed;
         }
         let mut changed = false;
+        let layout = TileLayout::new(size);
+        // The scan reported what its lists needed last time: grow past it with headroom, and
+        // a saturated report (the lists did not fit) doubles instead.
+        let mut pool_words = self.pool_words.max(layout.initial_pool_words(triangles));
+        if let Some(needed) = self.report.poll()
+            && self.layout == Some(layout)
+            && needed > self.pool_capacity(layout)
+        {
+            let saturated = needed >= self.pool_capacity(layout);
+            let grown = if saturated {
+                self.pool_words * 2
+            } else {
+                (needed - layout.header_records() * 4) * 3 / 2
+            };
+            pool_words = pool_words.max(grown);
+        }
+        let pool_words = pool_words.min(layout.max_pool_words());
+        let grow = pool_words > self.pool_words;
         if triangles != self.requested_triangles || self.layout.is_none() {
             self.projected = zeroed_buffer(
                 &ctx.device,
@@ -130,12 +256,12 @@ impl TriangleTiles {
             self.invalidate();
             changed = true;
         }
-        let layout = TileLayout::new(size);
-        if self.layout != Some(layout) {
+        if self.layout != Some(layout) || grow {
+            self.pool_words = pool_words;
             self.buffer = zeroed_buffer(
                 &ctx.device,
                 "triangle.tiles",
-                layout.buffer_bytes().min(limit),
+                layout.buffer_bytes(pool_words).min(limit),
                 ROWS,
             );
             self.target = Some(
@@ -234,6 +360,7 @@ impl TriangleTiles {
             pass.dispatch_workgroups(count, 1, 1);
         }
         self.bin(encoder, input.binds, &raster, &self.pipes.fill);
+        self.report.copy(encoder, &self.buffer);
         self.key = Some(key);
     }
 
@@ -286,6 +413,7 @@ impl TriangleTiles {
     pub fn release(&mut self, ctx: &GpuCtx) {
         self.release_data(ctx);
         self.requested_triangles = 0;
+        self.pool_words = 0;
         self.invalidate();
     }
 
@@ -293,7 +421,10 @@ impl TriangleTiles {
     pub fn allocated_bytes(&self) -> (u64, u64) {
         let pixels = self.layout.map_or(0, TileLayout::count) as u64;
         (
-            self.buffer.size() + self.projected.size() + self.live_count.size(),
+            self.buffer.size()
+                + self.projected.size()
+                + self.live_count.size()
+                + self.report.buffer.size(),
             pixels,
         )
     }
@@ -511,11 +642,25 @@ mod tests {
         ] {
             let layout = TileLayout::new(size);
             assert!(layout.count() <= MAX_TILES);
-            assert!(layout.buffer_bytes() < 128 * 1024 * 1024);
+            assert!(layout.buffer_bytes(layout.max_pool_words()) < 128 * 1024 * 1024);
             assert!(layout.width * layout.span >= size.0 && layout.height * layout.span >= size.1);
         }
         assert_eq!(TileLayout::new((1800, 1400)).span, 4);
         assert_eq!(TileLayout::new((2800, 1800)).span, 8);
+    }
+
+    /// A small scene starts far below the ceiling; the ceiling is the former fixed pool.
+    #[test]
+    fn pool_starts_small_and_is_capped() {
+        let layout = TileLayout::new((3200, 2000));
+        let small = layout.initial_pool_words(6_000);
+        assert!(small < layout.max_pool_words() / 8);
+        assert_eq!(layout.initial_pool_words(u32::MAX), layout.max_pool_words());
+        assert!(layout.buffer_bytes(small) < 4 * 1024 * 1024);
+        assert_eq!(
+            layout.buffer_bytes(layout.max_pool_words()),
+            layout.header_records() * 16 + layout.count() as u64 * REFERENCES_PER_TILE * 8
+        );
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -527,7 +672,8 @@ mod tests {
         let mut gpu = pollster::block_on(Gpu::new_headless(128, 128)).unwrap();
         gpu.view.show_grid = false;
         let initial = gpu.arena.tiles.allocated_bytes();
-        assert_eq!(initial, (128, 0));
+        // Placeholders: 16 B tiles, one projected record, the live count and the pool report.
+        assert_eq!(initial, (16 + PROJECTED_BYTES + 16 + 16, 0));
         let mut upload = Upload::default();
         upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
         for position in [[-0.7, -0.7, 0.5], [0.7, -0.7, 0.5], [0.0, 0.7, 0.5]] {

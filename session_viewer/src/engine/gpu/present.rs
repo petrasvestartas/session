@@ -60,6 +60,7 @@ impl Gpu {
         let encode_ms = crate::engine::performance::now_ms() - t0;
         self.ctx.queue.submit([encoder.finish()]);
         self.pick.map();
+        self.arena.tiles.map_report();
         output.present();
         self.performance
             .frame(draws, objects, input.now_ms, self.view.perf);
@@ -80,6 +81,7 @@ impl Gpu {
         self.id_pass(&mut encoder, Some(at));
         self.ctx.queue.submit([encoder.finish()]);
         self.pick.map();
+        self.arena.tiles.map_report();
     }
 
     /// Render one frame into an offscreen texture and read the pixels back (RGBA8, tightly
@@ -133,6 +135,7 @@ impl Gpu {
         );
         self.ctx.queue.submit([encoder.finish()]);
         self.pick.map();
+        self.arena.tiles.map_report();
         log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
 
         let slice = readback.slice(..);

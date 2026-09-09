@@ -149,43 +149,51 @@ flowchart LR
 
 ### Step 6 · The owner
 
-- `TileLayout` mirrors `visibility_tile_span`; the reference pool budgets `REFERENCES_PER_TILE` per tile overall, and a dense tile borrows spare space.
+- `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall. A dense tile borrows spare space anywhere in the pool.
 
 ```mermaid
 flowchart LR
     K["ProjectionKey<br/>camera · geometry revision"] -- "changed" --> E["encode<br/>project · count · scan · fill"]
-    L["TileLayout · REFERENCES_PER_TILE"] --> P["prepare storage"]
+    L["TileLayout · initial_pool_words"] --> P["prepare storage"]
     P --> E
+    E -- "words needed" --> R["PoolReport · read back"]
+    R -- "grow" --> P
     style E fill:#1a1eb2,color:#fff
 ```
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-52 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-73 -->
+
+- `PoolReport` reads the scan's first record back one frame later: the words every list needed. A pool that was too small keeps the conservative rejection for that one frame and is reallocated before the next projection.
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=74-145 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=53-82 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=146-178 -->
 
-- `prepare` resizes storage for the triangle count and framebuffer; beyond the device's storage binding limit it releases the tables and reports so the ink shader keeps the plane rule.
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=179-211 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=83-165 -->
+- `prepare` resizes storage for the triangle count, the framebuffer and the last report; beyond the device's storage binding limit it releases the tables and reports so the ink shader keeps the plane rule.
 
-- `encode` runs project → clear headers → count → three scan dispatches → fill, then records the key.
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=212-293 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=166-239 -->
+- `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=240-301 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=294-400 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=302-327 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=401-432 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=328-417 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=433-458 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=418-497 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=459-548 -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=549-628 -->
 
 Copy the rest of the file:
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=498-595 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=629-741 -->
 
 <!-- check: 18 -->
 
@@ -250,9 +258,11 @@ flowchart LR
 
 <!-- file: 18 session_viewer/src/engine/gpu/objects.rs type -->
 
-- Metadata textures and the pick copy widen to four channels.
+- Metadata textures and the pick copy widen to four channels; 4x antialiasing stops at two physical pixels per CSS pixel, where the pixel density already halves the stair-steps.
 
 <!-- file: 18 session_viewer/src/engine/gpu/targets.rs type -->
+
+- `Picker` renders into an attachment the size of the pick window plus a three-texel halo, never the canvas: `Window::view` is that rectangle, and the copy reads the window from inside it. Part H writes the uniforms that make the scene fit it.
 
 <!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
 
@@ -261,6 +271,7 @@ flowchart LR
 ### Step 10 · The tile pass runs before ink
 
 - `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
+- `id_pass` computes the window's view, writes the pick uniforms, and scissors the ink and source passes to the window inside the attachment.
 
 ```mermaid
 flowchart LR
@@ -273,8 +284,6 @@ flowchart LR
 <!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
 
 <!-- file: 18 session_viewer/src/engine/gpu/mod.rs type -->
-
-<!-- check: 18 -->
 
 ## Part F · State split and presentation defaults
 
@@ -368,6 +377,61 @@ flowchart LR
 
 <!-- file: 18 session_viewer/docs/build_site.sh copy -->
 
+## Part H · Memory
+
+Per-pixel attachments are where video memory goes. At 4x the colour, depth and metadata targets cost 64 bytes per physical pixel; the pick targets used to cost another 20 per pixel after the first click, and the finite-visibility pool was allocated at its 64 MB ceiling for any scene. Three changes keep every pixel the same and remove all of that.
+
+### Step 15 · The pick window
+
+- The pick pass sees the scene through the sub-frustum of the window about the cursor: `PickView::clip_transform` maps the canvas projection onto the window, `write_pick` scales the projection factors with the attachment height so a pen or a marker keeps its pixel size, and `origin` and `frame` let the visibility test address the canvas-wide tiles.
+- `LineUniform` and `CloudUniform` grow by the window origin and the canvas size; every shader copy lists the same fields, and the layout test pins them.
+
+```mermaid
+flowchart LR
+    F["frame uniforms"] -- "write_pick(view)" --> P["pick uniforms<br/>mvp' · line' · cloud'"]
+    P --> I["id_pass · window-sized attachment"]
+    T["pick transform"] --> X["text plates and planes · vs_id"]
+    style P fill:#1a1eb2,color:#fff
+```
+
+<!-- file: 18 session_viewer/src/engine/gpu/frame.rs type -->
+
+- Markers cull against the canvas, not the attachment, so a large marker stays pickable; ribbons and spheres only list the new fields.
+
+<!-- file: 18 session_viewer/src/shaders/glyph.wgsl type -->
+
+<!-- file: 18 session_viewer/src/shaders/ribbon.wgsl type -->
+
+<!-- file: 18 session_viewer/src/shaders/sphere.wgsl type -->
+
+- After every submit the picker maps its copy and the tiles map their report.
+
+<!-- file: 18 session_viewer/src/engine/gpu/present.rs type -->
+
+### Step 16 · Device scale
+
+- `device_pixel_ratio` is the one place the browser's ratio is read; `?dpr=` caps it for people who prefer memory over crispness, and input and canvas sizing share the capped value.
+- When the browser loses the device because video memory ran out, `recover_from_device_loss` reloads the page once at device scale 1 without antialiasing; the status line keeps saying so on the reloaded page.
+
+```mermaid
+flowchart LR
+    B["browser ratio"] -- "min(?dpr=)" --> D["device_pixel_ratio"]
+    D --> C["canvas size"]
+    D --> N["pointer and touch input"]
+    L["device lost"] -- "once" --> R["reload ?dpr=1&msaa=1&recovered=1"]
+    style D fill:#1a1eb2,color:#fff
+```
+
+<!-- file: 18 session_viewer/src/lib.rs type -->
+
+<!-- file: 18 session_viewer/src/app/input.rs type -->
+
+<!-- file: 18 session_viewer/src/app/route.rs type -->
+
+<!-- file: 18 session_viewer/src/app/feedback.rs type -->
+
+<!-- check: 18 -->
+
 ## Check
 
 <!-- checkpoint: 18 -->
@@ -419,6 +483,7 @@ Expected:
 - Metadata: `Rgba16Float` with gradient in `xy` and the packed primitive in `zw`; the ID pass owns matching single-sample targets.
 - Cache: rebuilt on camera, hide/show, placement, rebase or geometry replacement; reused across selection and color changes.
 - `State` keeps its ownership; `state/cloud_query.rs` and `state/text.rs` are its companions.
+- Memory: the pick pass renders a window-sized attachment, the visibility pool is sized for the scene and grows from the scan's report, 4x antialiasing stops at device scale 2, and a lost device reloads once at reduced settings.
 
 **Production equivalent:** this checkpoint is the current production runtime.
 

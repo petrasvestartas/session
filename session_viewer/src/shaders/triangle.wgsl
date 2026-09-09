@@ -26,6 +26,8 @@ struct LineUniform {
     feather: f32,
     lit: f32,
     backface: f32,
+    origin: vec2<f32>,
+    frame: vec2<f32>,
 };
 
 const FLAG_SELECTED: u32 = 1u;

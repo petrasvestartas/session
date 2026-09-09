@@ -358,6 +358,11 @@ impl State {
             Err(_) => None,
         };
         if let Some(message) = failure {
+            #[cfg(target_arch = "wasm32")]
+            if crate::app::route::recover_from_device_loss(&message) {
+                self.needs_frame = false;
+                return;
+            }
             crate::app::feedback::error(&message);
             self.cancel_cloud_query();
             self.gpu.pick.cancel();

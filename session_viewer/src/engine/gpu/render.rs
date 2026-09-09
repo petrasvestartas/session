@@ -182,58 +182,60 @@ impl Gpu {
         self.triangle_tile_pass(encoder);
         let size = (self.config.width, self.config.height);
         let mode = self.pick.mode;
-        let window = match at {
-            Some(position) => Some(self.pick.window(position, size)),
-            None => None,
-        };
+        // The pass draws the window about the cursor (plus the halo the plane fit reads) into
+        // an attachment of that size; the uniforms see the scene through that window.
+        let window = at.map(|position| self.pick.window(position, size));
+        let view = self.pick.view_for(at, size);
+        self.frame.write_pick(&self.ctx, view, size);
+        let inner = window.map(|window| {
+            (
+                window.x.saturating_sub(view.x),
+                window.y.saturating_sub(view.y),
+                window.w.min(view.w),
+                window.h.min(view.h),
+            )
+        });
         let basic = Binds {
-            mvp: &self.frame.mvp_group,
-            line: &self.frame.line_group,
+            mvp: &self.frame.pick_mvp_group,
+            line: &self.frame.pick_line_group,
             instances: &self.objects.group,
         };
         if self.pick.source_query() {
             if !self.pick.source_initialized() {
-                let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
-                if let Some(window) = window {
-                    pass.set_scissor_rect(window.x, window.y, window.w, window.h);
+                let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
+                if let Some((x, y, w, h)) = inner {
+                    pass.set_scissor_rect(x, y, w, h);
                 }
                 self.arena.draw_face_ids(&mut pass, &basic);
-                self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
+                self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
             }
             {
                 let mut pass = self.pick.begin_source(encoder);
-                if let Some(window) = window {
-                    pass.set_scissor_rect(window.x, window.y, window.w, window.h);
+                if let Some((x, y, w, h)) = inner {
+                    pass.set_scissor_rect(x, y, w, h);
                 }
                 let source = Binds {
-                    mvp: &self.frame.mvp_group,
-                    line: &self.frame.line_group,
+                    mvp: &self.frame.pick_mvp_group,
+                    line: &self.frame.pick_line_group,
                     instances: &self.objects.ink_group,
                 };
                 self.controls.draw_source_ids(&mut pass, &source);
             }
             if let Some(at) = at {
-                self.pick.copy_window(&self.ctx, encoder, at);
+                self.pick.copy_window(&self.ctx, encoder, at, size);
             }
             return;
         }
         {
-            let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
-            // Plane reconstruction also reads neighboring texels: render a small halo around
-            // the readback window instead of leaving these occlusion samples cleared.
-            if let Some(window) = window {
-                let left = window.x.saturating_sub(3);
-                let top = window.y.saturating_sub(3);
-                let right = (window.x + window.w + 3).min(size.0);
-                let bottom = (window.y + window.h + 3).min(size.1);
-                pass.set_scissor_rect(left, top, right - left, bottom - top);
-            }
+            // The whole attachment, halo included: the plane reconstruction reads neighbouring
+            // texels, which must be occlusion samples rather than cleared ones.
+            let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
             if mode == PickMode::Component {
                 self.arena.draw_component_ids(&mut pass, &basic);
             } else {
                 self.arena.draw_face_ids(&mut pass, &basic);
             }
-            self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
+            self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
         }
         let depth = self.pick.depth().expect("physical ID pass creates depth");
         let group = self.objects.pick_group(
@@ -244,14 +246,14 @@ impl Gpu {
             &self.arena.tiles,
         );
         let ink = Binds {
-            mvp: &self.frame.mvp_group,
-            line: &self.frame.line_group,
+            mvp: &self.frame.pick_mvp_group,
+            line: &self.frame.pick_line_group,
             instances: &group,
         };
         {
             let mut pass = self.pick.begin_ink(encoder);
-            if let Some(window) = window {
-                pass.set_scissor_rect(window.x, window.y, window.w, window.h);
+            if let Some((x, y, w, h)) = inner {
+                pass.set_scissor_rect(x, y, w, h);
             }
             match mode {
                 PickMode::Edge | PickMode::Component => {
@@ -280,10 +282,11 @@ impl Gpu {
                 }
             }
             // Authored text covers geometry in every pick mode, just as its visible plane does.
-            self.text.draw_ids(&mut pass);
+            self.text
+                .draw_ids(&mut pass, &self.frame.pick_transform_group);
         }
         if let Some(at) = at {
-            self.pick.copy_window(&self.ctx, encoder, at);
+            self.pick.copy_window(&self.ctx, encoder, at, size);
         }
     }
 }

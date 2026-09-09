@@ -152,3 +152,53 @@ pub fn scene_route() -> Option<SceneRoute> {
         None
     }
 }
+
+/// After the GPU ran out of memory: reload once at device scale 1 without antialiasing, the
+/// smallest attachments the viewer can draw with, keeping every other query. `false` when
+/// this is already the reduced page (the message then stays on the error panel) or the
+/// failure is not a device loss.
+#[cfg(target_arch = "wasm32")]
+pub fn recover_from_device_loss(message: &str) -> bool {
+    if !message.contains("device lost") || query("recovered").is_some() {
+        return false;
+    }
+    let Some(window) = web_sys::window() else {
+        return false;
+    };
+    let location = window.location();
+    let Ok(search) = location.search() else {
+        return false;
+    };
+    let kept: Vec<&str> = search
+        .strip_prefix('?')
+        .unwrap_or("")
+        .split('&')
+        .filter(|pair| {
+            !pair.is_empty()
+                && !["dpr", "msaa", "recovered"]
+                    .iter()
+                    .any(|name| pair.starts_with(&format!("{name}=")) || *pair == *name)
+        })
+        .collect();
+    let mut query = kept.join("&");
+    if !query.is_empty() {
+        query.push('&');
+    }
+    query.push_str("dpr=1&msaa=1&recovered=1");
+    let Ok(hash) = location.hash() else {
+        return false;
+    };
+    let Ok(path) = location.pathname() else {
+        return false;
+    };
+    log::warn!("{message}; reloading at device scale 1 without antialiasing");
+    location.replace(&format!("{path}?{query}{hash}")).is_ok()
+}
+
+/// What the status line says on the page a device loss reloaded into.
+#[cfg(target_arch = "wasm32")]
+pub fn recovered_notice() -> Option<&'static str> {
+    query("recovered").map(|_| {
+        "The GPU ran out of memory at full resolution: drawing at device scale 1 without antialiasing"
+    })
+}

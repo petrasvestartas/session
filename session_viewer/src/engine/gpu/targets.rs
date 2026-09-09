@@ -6,6 +6,8 @@ use super::buffers::GpuCtx;
 /// How many pixels a discrete GPU carries at 4x: 3840x2160 and change. Measured on
 /// `view_local` at that size, 4x cost one 8.2 ms against 6.9 at 1x - a fifth of the frame.
 const MSAA_PIXELS_DISCRETE: u32 = 9_000_000;
+/// From this many physical pixels per CSS pixel the canvas stays at 1x unless forced.
+const MSAA_MAX_PIXEL_SCALE: f32 = 2.0;
 
 /// The same for an integrated or virtual GPU, which shares its bandwidth with the CPU: the
 /// same scene and size cost an Intel iGPU 108.9 ms against 46.5, well over twice the frame.
@@ -135,11 +137,22 @@ impl Targets {
     }
 
     /// The sample count a frame gets: 4x only when SOLID geometry (faces, pipes, spheres) is on
-    /// the GPU AND the canvas is within this adapter's `budget`, else 1x. Hard edges are the
-    /// only thing MSAA smooths; ribbons, dots and splats antialias themselves. `forced` wins.
-    pub fn samples_for(solid: bool, pixels: u32, forced: Option<u32>, budget: Option<u32>) -> u32 {
+    /// the GPU AND the canvas is within this adapter's `budget` AND the canvas is below two
+    /// physical pixels per CSS pixel, else 1x. Hard edges are the only thing MSAA smooths;
+    /// ribbons, dots and splats antialias themselves, and at device scale 2 the pixel density
+    /// already halves the stair-steps, for a quarter of the attachment memory. `forced` wins.
+    pub fn samples_for(
+        solid: bool,
+        pixels: u32,
+        forced: Option<u32>,
+        budget: Option<u32>,
+        pixel_scale: f32,
+    ) -> u32 {
         if let Some(s) = forced {
             return if s == 4 { 4 } else { 1 };
+        }
+        if pixel_scale >= MSAA_MAX_PIXEL_SCALE {
+            return 1;
         }
         match budget {
             Some(max) if solid && pixels <= max => 4,
@@ -266,16 +279,41 @@ mod tests {
         let discrete = Targets::msaa_budget(wgpu::DeviceType::DiscreteGpu);
         let shared = Targets::msaa_budget(wgpu::DeviceType::IntegratedGpu);
         let software = Targets::msaa_budget(wgpu::DeviceType::Cpu);
-        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, discrete), 4);
-        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, shared), 1);
-        assert_eq!(Targets::samples_for(true, 1920 * 1080, None, shared), 4);
-        assert_eq!(Targets::samples_for(true, 1, None, software), 1);
-        assert_eq!(Targets::samples_for(false, 1, None, discrete), 1);
         assert_eq!(
-            Targets::samples_for(true, 3840 * 2160, Some(1), discrete),
+            Targets::samples_for(true, 3840 * 2160, None, discrete, 1.0),
+            4
+        );
+        assert_eq!(
+            Targets::samples_for(true, 3840 * 2160, None, shared, 1.0),
             1
         );
-        assert_eq!(Targets::samples_for(false, u32::MAX, Some(4), software), 4);
+        assert_eq!(
+            Targets::samples_for(true, 1920 * 1080, None, shared, 1.0),
+            4
+        );
+        assert_eq!(Targets::samples_for(true, 1, None, software, 1.0), 1);
+        assert_eq!(Targets::samples_for(false, 1, None, discrete, 1.0), 1);
+        assert_eq!(
+            Targets::samples_for(true, 3840 * 2160, Some(1), discrete, 1.0),
+            1
+        );
+        assert_eq!(
+            Targets::samples_for(false, u32::MAX, Some(4), software, 1.0),
+            4
+        );
+        // Device scale 2 halves the stair-steps already: 1x unless forced.
+        assert_eq!(
+            Targets::samples_for(true, 1920 * 1080, None, discrete, 2.0),
+            1
+        );
+        assert_eq!(
+            Targets::samples_for(true, 1920 * 1080, None, discrete, 1.5),
+            4
+        );
+        assert_eq!(
+            Targets::samples_for(true, 1920 * 1080, Some(4), discrete, 2.0),
+            4
+        );
     }
 
     /// THE BROWSER'S ARM. wgpu's WebGPU backend reports `DeviceType::Other` for every adapter
@@ -286,8 +324,17 @@ mod tests {
     fn the_browser_arm_is_not_the_integrated_one() {
         let browser = Targets::msaa_budget(wgpu::DeviceType::Other);
         let shared = Targets::msaa_budget(wgpu::DeviceType::IntegratedGpu);
-        assert_eq!(Targets::samples_for(true, 2560 * 1440, None, browser), 4);
-        assert_eq!(Targets::samples_for(true, 2560 * 1440, None, shared), 1);
-        assert_eq!(Targets::samples_for(true, 3840 * 2160, None, browser), 1);
+        assert_eq!(
+            Targets::samples_for(true, 2560 * 1440, None, browser, 1.0),
+            4
+        );
+        assert_eq!(
+            Targets::samples_for(true, 2560 * 1440, None, shared, 1.0),
+            1
+        );
+        assert_eq!(
+            Targets::samples_for(true, 3840 * 2160, None, browser, 1.0),
+            1
+        );
     }
 }

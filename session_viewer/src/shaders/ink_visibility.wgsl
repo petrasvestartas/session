@@ -268,11 +268,15 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     if (triangle_tiles[0].x==0u) {
         return false;
     }
+    // The projected triangles and their tiles are in canvas pixels; the pick pass renders a
+    // window of the canvas into an attachment of its own, so its fragments are offset by
+    // `origin` (zero in a frame).
+    let at = axis.at + line.origin;
     let fringe = ink_primitive(pixel, sample);
     if (fringe==0u) {
         return false;
     }
-    let fringe_hit = projected_triangle_at(projected[fringe-1u], axis.at);
+    let fringe_hit = projected_triangle_at(projected[fringe-1u], at);
     if (fringe_hit.y>0.5 && fringe_hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
         return false;
     }
@@ -282,16 +286,17 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
         if (primitive==0u || primitive==fringe) {
             continue;
         }
-        let hit = projected_triangle_at(projected[primitive-1u], axis.at);
+        let hit = projected_triangle_at(projected[primitive-1u], at);
         if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
             return false;
         }
     }
-    if (any(axis.at<vec2<f32>(0.0)) || any(axis.at>=vec2<f32>(line.vp_w, line.vp_h))) {
+    if (any(at<vec2<f32>(0.0)) || any(at>=line.frame)) {
         return false;
     }
-    let size = vec2<u32>(ceil(vec2<f32>(line.vp_w, line.vp_h)/f32(visibility_tile_span())));
-    let cell = vec2<u32>(axis.at/f32(visibility_tile_span()));
+    let span = f32(visibility_tile_span_of(u32(line.frame.x), u32(line.frame.y)));
+    let size = vec2<u32>(ceil(line.frame/span));
+    let cell = vec2<u32>(at/span);
     let head = triangle_tiles[1u+cell.y*size.x+cell.x];
     // An incomplete or overflowing list cannot prove that the axis is clear.
     if (head.w!=0u || head.z!=head.x) {
@@ -305,10 +310,10 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
         }
         let primitive = triangle_tiles[offset/4u][offset%4u];
         let bounds = projected[primitive-1u].bounds;
-        if (any(axis.at<bounds.xy-0.00390625) || any(axis.at>bounds.zw+0.00390625)) {
+        if (any(at<bounds.xy-0.00390625) || any(at>bounds.zw+0.00390625)) {
             continue;
         }
-        let hit = projected_triangle_at(projected[primitive-1u], axis.at);
+        let hit = projected_triangle_at(projected[primitive-1u], at);
         if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
             return false;
         }

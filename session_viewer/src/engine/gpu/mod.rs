@@ -318,6 +318,7 @@ impl Gpu {
             self.config.width * self.config.height,
             self.view.msaa_forced,
             self.msaa_budget(),
+            self.config.width as f32 / self.logical_size[0].max(1.0) as f32,
         )
     }
 

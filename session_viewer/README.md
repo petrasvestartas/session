@@ -32,6 +32,10 @@ Chrome on Linux with Vulkan is the tested browser. Other browsers and hardware a
 
 Source text can face the camera or remain in a fixed world plane. BRep boundaries reuse the incident face mesh's exact samples; curved constrained boundaries are refined before triangulation. Per-face normals preserve planar faces, smooth interiors and sharp creases.
 
+## Memory
+
+Video memory goes to per-pixel attachments, not to geometry. Antialiasing is 4x only for solid geometry, inside the adapter's pixel budget and below two physical pixels per CSS pixel; `?msaa=4` or `?msaa=1` forces it. Picking renders a window around the cursor into an attachment of that size, and the finite-visibility pool is sized for the scene and grows on demand. `?dpr=1.5` caps the device pixel ratio the canvas is rendered at, for people who prefer memory over crispness; nothing caps it by default. If the browser loses the WebGPU device because video memory ran out, the page reloads itself once at device scale 1 without antialiasing and says so in the status line. `?inspect=1` publishes the exact texture and buffer bytes the viewer owns.
+
 ## Publish and verify
 
 The existing scripts live in the parent Session directory. They publish verified immutable geometry before updating scene metadata:

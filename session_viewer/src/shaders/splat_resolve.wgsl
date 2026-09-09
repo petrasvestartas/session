@@ -8,6 +8,10 @@ struct CloudUniform {
     vp_w: f32,
     vp_h: f32,
     edl: f32,
+    _pad0: f32,
+    _pad1: f32,
+    origin: vec2<f32>,
+    frame: vec2<f32>,
 };
 @group(0) @binding(0) var<uniform> cloud: CloudUniform;
 @group(1) @binding(0) var sdepth: texture_depth_2d;
