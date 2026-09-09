@@ -19,6 +19,8 @@ pub struct Faces {
     ids: GrowBuf,
     selected: wgpu::Buffer,
     active: Option<u32>,
+    /// Counts highlight changes, so a cached coverage mask knows it is stale.
+    revision: u64,
     layout: wgpu::BindGroupLayout,
     group: Option<wgpu::BindGroup>,
     pipes: FacePipelines,
@@ -31,6 +33,7 @@ struct FacePipelines {
     pick: wgpu::RenderPipeline,
     highlight: wgpu::RenderPipeline,
     mask: wgpu::RenderPipeline,
+    masks: wgpu::RenderPipeline,
 }
 
 impl Faces {
@@ -75,6 +78,7 @@ impl Faces {
             ids: GrowBuf::new(ctx, "source face ids", 4, ROWS),
             selected,
             active: None,
+            revision: 0,
             layout,
             group: None,
             pipes,
@@ -143,6 +147,7 @@ impl Faces {
     /// Switch the highlighted source face without editing geometry or normals.
     pub fn select(&mut self, ctx: &GpuCtx, face: Option<u32>) {
         self.active = face;
+        self.revision = self.revision.wrapping_add(1);
         ctx.queue.write_buffer(
             &self.selected,
             0,
@@ -175,6 +180,19 @@ impl Faces {
             return 0;
         }
         self.draw(pass, binds, &self.pipes.mask)
+    }
+
+    /// The highlighted face into both coverage masks of the combined pass.
+    pub fn draw_masks(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
+        if self.active.is_none() {
+            return 0;
+        }
+        self.draw(pass, binds, &self.pipes.masks)
+    }
+
+    /// How many times the highlight changed.
+    pub fn revision(&self) -> u64 {
+        self.revision
     }
     /// Vertex pulling uses the arena's exact position, normal, color and triangle indices.
     fn draw(
@@ -247,6 +265,17 @@ fn pipelines(
             .with("selected face mask", "fs_selection_mask")
             .depth(DepthMode::ReadOnlyEqual),
     );
+    let masks = build(
+        &ctx.device,
+        Target {
+            format: wgpu::TextureFormat::R8Unorm,
+            samples: target.samples,
+        },
+        &base
+            .with("selected face masks", "fs_masks")
+            .depth(DepthMode::ReadOnlyEqual)
+            .masks(),
+    );
     let object_base = base.vertex("vs_triangle");
     let physical = build(
         &ctx.device,
@@ -262,6 +291,7 @@ fn pipelines(
         pick,
         highlight,
         mask,
+        masks,
         physical,
         object_ids,
     }

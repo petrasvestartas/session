@@ -216,3 +216,15 @@ fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location
 fn fs_solid_mask(in: VsOut) -> @location(0) vec4<f32> {
     return vec4<f32>(1.0);
 }
+
+// Both masks from one rasterization: every visible solid face is coverage, the selected
+// ones also select. The targets blend with MAX, so a 0 here is the discard above.
+struct MaskPair {
+    @location(0) solid: vec4<f32>,
+    @location(1) selected: vec4<f32>,
+};
+
+@fragment
+fn fs_masks(in: VsOut) -> MaskPair {
+    return MaskPair(vec4<f32>(1.0), vec4<f32>(f32(in.selected != 0u)));
+}

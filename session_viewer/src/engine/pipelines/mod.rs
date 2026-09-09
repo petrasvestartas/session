@@ -88,6 +88,9 @@ pub struct PipelineDesc<'a> {
     pub depth: DepthMode,
     pub scene_samples: Option<u32>,
     pub physical: bool,
+    /// Two `R8Unorm` coverage targets (solid, selected) written in one pass with MAX
+    /// blending, so writing 0 is the same as discarding.
+    pub masks: bool,
 }
 
 impl<'a> PipelineDesc<'a> {
@@ -111,6 +114,7 @@ impl<'a> PipelineDesc<'a> {
             depth: DepthMode::Opaque,
             scene_samples: None,
             physical: false,
+            masks: false,
         }
     }
 
@@ -143,6 +147,12 @@ impl<'a> PipelineDesc<'a> {
     /// Add immutable physical-gradient output beside the primary color target.
     pub fn physical(mut self) -> Self {
         self.physical = true;
+        self
+    }
+
+    /// The same desc writing the solid and selected coverage masks together.
+    pub fn masks(mut self) -> Self {
+        self.masks = true;
         self
     }
 
@@ -245,6 +255,22 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
         blend,
         write_mask,
     })];
+    if desc.masks {
+        let max = wgpu::BlendComponent {
+            src_factor: wgpu::BlendFactor::One,
+            dst_factor: wgpu::BlendFactor::One,
+            operation: wgpu::BlendOperation::Max,
+        };
+        let coverage = Some(wgpu::ColorTargetState {
+            format: target.format,
+            blend: Some(wgpu::BlendState {
+                color: max,
+                alpha: max,
+            }),
+            write_mask: wgpu::ColorWrites::ALL,
+        });
+        targets = vec![coverage.clone(), coverage];
+    }
     if desc.physical {
         targets.push(Some(wgpu::ColorTargetState {
             format: wgpu::TextureFormat::Rgba16Float,

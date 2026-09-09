@@ -74,6 +74,8 @@ pub struct Gpu {
     pub text: text::TextLane,
     pub selection_outline: surface_outline::SurfaceOutline,
     pub solid_outline: surface_outline::SurfaceOutline,
+    /// Counts selection flag changes: part of the coverage masks' cache key.
+    pub selection_revision: u64,
     pub logical_size: [f64; 2],
     pub cloud: CloudLane,
     pub splat: Splat,
@@ -209,6 +211,7 @@ impl Gpu {
             text,
             selection_outline,
             solid_outline,
+            selection_revision: 0,
             logical_size: [size.0 as f64, size.1 as f64],
             cloud,
             splat,
@@ -398,6 +401,7 @@ impl Gpu {
 
     /// Flip the selection flag on one object row.
     pub fn set_selected(&mut self, row: u32, on: bool) {
+        self.selection_revision = self.selection_revision.wrapping_add(1);
         self.segments.set_selected(row, on);
         self.selection_outline.set_selected(row, on);
         self.objects

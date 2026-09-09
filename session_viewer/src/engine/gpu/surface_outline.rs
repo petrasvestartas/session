@@ -24,6 +24,18 @@ struct Mask {
 /// Mask texels per coarse texel; matches `POOL` in the shader and exceeds the largest kernel.
 const POOL: u32 = 16;
 
+/// What a coverage mask depends on. While none of it changes, the mask passes are skipped
+/// and the previous masks are composited again: a still view costs no rasterization.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct MaskKey {
+    pub mvp: [f32; 16],
+    pub geometry: u64,
+    pub selection: u64,
+    pub faces: u64,
+    pub size: (u32, u32),
+    pub samples: u32,
+}
+
 /// Which visible surfaces contribute to a shared, antialiased coverage mask.
 #[derive(Clone, Copy, PartialEq)]
 pub enum OutlineKind {
@@ -41,6 +53,8 @@ pub struct SurfaceOutline {
     pipeline: wgpu::RenderPipeline,
     pool_pipeline: wgpu::RenderPipeline,
     mask: Option<Mask>,
+    /// The key the current mask contents were rendered for.
+    valid_for: Option<MaskKey>,
 }
 
 impl SurfaceOutline {
@@ -115,7 +129,59 @@ impl SurfaceOutline {
             pipeline,
             pool_pipeline,
             mask: None,
+            valid_for: None,
         }
+    }
+
+    /// Whether the mask holds the coverage for `key`.
+    pub fn is_valid(&self, key: &MaskKey) -> bool {
+        self.mask.is_some() && self.valid_for.as_ref() == Some(key)
+    }
+
+    /// The mask was just rendered for `key`.
+    pub fn mark_valid(&mut self, key: MaskKey) {
+        self.valid_for = Some(key);
+    }
+
+    /// This mask's attachment: the multisampled view when there is one, resolving into the
+    /// single-sample view the compositor reads.
+    fn attachment(&self) -> Option<wgpu::RenderPassColorAttachment<'_>> {
+        let mask = self.mask.as_ref()?;
+        Some(wgpu::RenderPassColorAttachment {
+            view: mask.multisampled.as_ref().unwrap_or(&mask.resolved),
+            resolve_target: if mask.multisampled.is_some() {
+                Some(&mask.resolved)
+            } else {
+                None
+            },
+            depth_slice: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                store: wgpu::StoreOp::Store,
+            },
+        })
+    }
+
+    /// One pass writing the solid mask and the selected mask together, so the faces are
+    /// rasterized once for both.
+    pub fn begin_masks<'a>(
+        solid: &'a Self,
+        selected: &'a Self,
+        encoder: &'a mut wgpu::CommandEncoder,
+        targets: &'a Targets,
+    ) -> wgpu::RenderPass<'a> {
+        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("visible coverage masks"),
+            color_attachments: &[solid.attachment(), selected.attachment()],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &targets.depth,
+                depth_ops: None,
+                stencil_ops: None,
+            }),
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        })
     }
 
     /// Track selected source rows; clearing the final row releases coverage immediately.
@@ -153,6 +219,7 @@ impl SurfaceOutline {
     ) -> bool {
         if (self.kind == OutlineKind::Selected && self.selected.is_empty()) || !faces {
             self.mask = None;
+            self.valid_for = None;
             return false;
         }
         let changed = match &self.mask {
@@ -223,6 +290,7 @@ impl SurfaceOutline {
                 size,
                 samples,
             });
+            self.valid_for = None;
         }
         let css_radius = if self.kind == OutlineKind::AllSolids {
             2.25

@@ -434,6 +434,7 @@ flowchart LR
 
 - The compositor dilates each coverage mask by reading every texel within the radius, up to 27 × 27 per pixel, over the whole canvas; on an integrated GPU that read traffic is what made O slow.
 - A pooling pass reduces each resolved mask to the maximum of every 16 × 16 block. A pixel whose block and its eight neighbours are all empty cannot reach a covered texel, so the compositor returns zero without the loop; the answer is unchanged to the bit, and most of the frame is such pixels.
+- Both masks come from one rasterization of the faces: `fs_masks` writes the solid coverage and the selected coverage to two attachments that blend with MAX, so a written zero is the old discard. `MaskKey` records the camera, the geometry and selection revisions and the highlighted face; while none of them changes, the masks are composited again without being redrawn.
 
 ```mermaid
 flowchart LR

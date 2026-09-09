@@ -52,6 +52,7 @@ impl ArenaRows {
 struct ArenaPipelines {
     selection_mask: wgpu::RenderPipeline,
     solid_mask: wgpu::RenderPipeline,
+    masks: wgpu::RenderPipeline,
 }
 
 /// The arena on the GPU: five `GrowBuf`s under the one growth policy.
@@ -193,6 +194,11 @@ impl ArenaLane {
         self.draw_run(pass, b, &self.pipes.solid_mask, &self.faces)
     }
 
+    /// Both coverage masks from one pass over the faces.
+    pub fn draw_masks(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        self.draw_run(pass, b, &self.pipes.masks, &self.faces)
+    }
+
     /// The id pass for the lettering, after the ink as in the colour pass.
     pub fn draw_text_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.outline_text
@@ -298,6 +304,17 @@ fn build_pipelines(
             &base
                 .with("triangle.selection_mask", "fs_selection_mask")
                 .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual),
+        ),
+        masks: build(
+            dev,
+            Target {
+                format: wgpu::TextureFormat::R8Unorm,
+                samples: target.samples,
+            },
+            &base
+                .with("triangle.masks", "fs_masks")
+                .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual)
+                .masks(),
         ),
     }
 }

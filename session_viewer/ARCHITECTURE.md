@@ -44,7 +44,7 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | `gpu/arena.rs` | Mesh vertex, index and object columns; `faces.rs` source-face rows; `triangle_tiles.rs` finite-visibility cache |
 | `gpu/segments.rs` | Joined boundary pipes and standalone ribbons with source-edge IDs |
 | `gpu/glyphs.rs`, `cloud.rs`, `splat.rs` | Markers and control dots; cloud LOD nodes; point splat prelude and resolve |
-| `gpu/surface_outline.rs` | Ordinary and selected coverage masks, block maxima of each, one black compositor that skips every pixel no covered texel can reach |
+| `gpu/surface_outline.rs` | Ordinary and selected coverage masks rasterized in one pass, block maxima of each, one black compositor that skips every pixel no covered texel can reach; the masks are reused while camera, geometry and selection stand still |
 | `gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `text_outline.rs` | Shaped glyph runs, plates, fixed-plane text, imported outlines |
 | `gpu/pick.rs::Picker` | ID targets, bounded readback windows, generations and cancellation |
 | `app/loader.rs`, `fetch.rs`, `live.rs`, `stream.rs` | Fetching, validation, staged replacement, bounded ranged reads |

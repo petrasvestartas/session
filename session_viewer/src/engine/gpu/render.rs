@@ -5,6 +5,7 @@ use super::Gpu;
 use super::frame::Binds;
 use super::pick::PickMode;
 use super::splat::RecordCx;
+use super::surface_outline;
 
 impl Gpu {
     /// Reconstruct finite triangle visibility before color or ID ink samples it.
@@ -57,42 +58,66 @@ impl Gpu {
             let mut pass = self.targets.begin_faces(encoder, view, clear);
             self.face_list(&mut pass, &b)
         };
-        if self.selection_outline.prepare(
+        let size = (self.config.width, self.config.height);
+        let faces = self.view.show_outlines && self.arena.face_count() > 0;
+        let selected = self.selection_outline.prepare(
             &self.ctx,
-            (self.config.width, self.config.height),
+            size,
             self.targets.samples,
             self.logical_size[0],
-            self.view.show_outlines && self.arena.face_count() > 0,
-        ) {
+            faces,
+        );
+        let solid = self.solid_outline.prepare(
+            &self.ctx,
+            size,
+            self.targets.samples,
+            self.logical_size[0],
+            faces,
+        );
+        // The masks depend on the camera, the geometry, the selection and the highlighted
+        // source face; while those stand still the previous masks are composited again.
+        let key = surface_outline::MaskKey {
+            mvp: self.frame.mvp_f32,
+            geometry: self.objects.geometry_revision(),
+            selection: self.selection_revision,
+            faces: self.arena.source_faces.revision(),
+            size,
+            samples: self.targets.samples,
+        };
+        let stale = (solid && !self.solid_outline.is_valid(&key))
+            || (selected && !self.selection_outline.is_valid(&key));
+        if stale {
             let b = Binds {
                 mvp: &self.frame.mvp_group,
                 line: &self.frame.line_group,
                 instances: &self.objects.group,
             };
-            {
+            if solid && selected {
+                // One rasterization of the faces writes both masks.
+                let mut pass = surface_outline::SurfaceOutline::begin_masks(
+                    &self.solid_outline,
+                    &self.selection_outline,
+                    encoder,
+                    &self.targets,
+                );
+                draws += self.arena.draw_masks(&mut pass, &b);
+                draws += self.arena.source_faces.draw_masks(&mut pass, &b);
+            } else if solid {
+                let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
+                draws += self.arena.draw_solid_mask(&mut pass, &b);
+            } else if selected {
                 let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
                 draws += self.arena.draw_selection_mask(&mut pass, &b);
                 draws += self.arena.source_faces.draw_mask(&mut pass, &b);
             }
-            self.selection_outline.encode_pool(encoder);
-        }
-        if self.solid_outline.prepare(
-            &self.ctx,
-            (self.config.width, self.config.height),
-            self.targets.samples,
-            self.logical_size[0],
-            self.view.show_outlines && self.arena.face_count() > 0,
-        ) {
-            let b = Binds {
-                mvp: &self.frame.mvp_group,
-                line: &self.frame.line_group,
-                instances: &self.objects.group,
-            };
-            {
-                let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
-                draws += self.arena.draw_solid_mask(&mut pass, &b);
+            if solid {
+                self.solid_outline.encode_pool(encoder);
+                self.solid_outline.mark_valid(key);
             }
-            self.solid_outline.encode_pool(encoder);
+            if selected {
+                self.selection_outline.encode_pool(encoder);
+                self.selection_outline.mark_valid(key);
+            }
         }
         {
             let mut pass = self.targets.begin_ink(encoder, view);
