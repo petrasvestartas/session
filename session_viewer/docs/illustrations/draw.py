@@ -661,7 +661,80 @@ def normals():
     c.write("normals.svg")
 
 
+def shaping():
+    c = Canvas("Shaping: characters become positioned glyphs",
+               "A string is not a row of glyph bitmaps. Shaping chooses glyphs and pen advances: a kerning pair pulls the second glyph back, a ligature turns two characters into one glyph, a combining accent adds a glyph with no advance, and a space advances the pen without any pixels. Clusters map each glyph back to the source characters.",
+               1100, 470)
+    navy, pink, green, orange, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["orange"], PAL["grey"]
+    c.text(28, 40, "The pen moves by advances, not by bitmap widths", "h")
+    base = 200
+    c.raw(f'<line x1="60" y1="{base}" x2="1040" y2="{base}" stroke="{grey}" stroke-width="1"/>')
+    c.text(1040, base + 18, "baseline", "s", anchor="end")
+    # pen boxes: (x, advance, glyph text, note, color)
+    cells = [(60, 92, "A", "advance 92", navy), (152, 84, "V", "kerned: −14", pink), (236, 64, "e", "", navy), (300, 44, " ", "space: advance, no ink", orange),
+             (344, 96, "ﬁ", "ligature: 2 chars → 1 glyph", green), (440, 70, "n", "", navy), (510, 66, "é", "e + combining ´ (advance 0)", green), (576, 60, "s", "", navy)]
+    for x, adv, glyph, note, color in cells:
+        c.raw(f'<rect x="{x}" y="{base - 110}" width="{adv}" height="110" fill="none" stroke="{grey}" stroke-width="1" stroke-dasharray="3 3"/>')
+        if glyph.strip():
+            c.raw(f'<text x="{x + adv / 2}" y="{base - 8}" text-anchor="middle" style="font-family:serif;font-size:96px;fill:{color}">{glyph}</text>')
+        c.raw(f'<line x1="{x}" y1="{base + 4}" x2="{x}" y2="{base + 14}" stroke="{color}" stroke-width="2"/>')
+    c.text(60, base + 40, "advance 92", "s", fill=navy)
+    c.text(152, base + 40, "V kerned −14", "s", fill=pink)
+    c.text(300, base + 40, "space: pen moves, no ink", "s", fill=orange)
+    c.text(344, base + 62, "ligature: two chars, one glyph", "s", fill=green)
+    c.text(510, base + 84, "combining accent: a glyph with advance 0", "s", fill=green)
+    c.text(60, base + 110, "Each dashed box is one pen advance; a glyph's ink may overhang it (V, ﬁ) or be empty (space).", "s")
+    r = row(c, 350, [(["TextLabel", "text · font · CSS size"], "cpu"),
+                     (["Cosmic Text shaping", "bundled Noto bytes", "kerning · ligatures · fallback"], "cpu"),
+                     (["TextRun · glyph runs", "`glyph id · advance · offset`", "`cluster → source char`"], "cpu"),
+                     (["TextDocument", "cached until text or font changes"], "gpu")],
+            labels=["shape", "", ""])
+    c.w = int(max(x[0] + x[2] for x in r) + 28)
+    c.h = 470
+    c.write("shaping.svg")
+
+
+def text_placement():
+    c = Canvas("Five placements, one shaped line",
+               "The same shaped runs are placed five ways: Screen at a fixed CSS position; Anchor at a world point with a screen offset; Nameplate centered on a world anchor with a rounded plate; WorldPlane inside a fixed plane with world-space height, so it foreshortens; WorldBillboard at a world point turning to face the camera. Rasterization happens per device scale, so a 14 CSS px label keeps its size on a DPR 2 screen and gets twice the pixels.",
+               1100, 470)
+    navy, pink, green, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"]
+    c.text(28, 40, "Placement decides where; raster size decides how many pixels", "h")
+    kinds = [("Screen", "fixed CSS position", "left · top"), ("Anchor", "world point + screen offset", "follows the object"), ("Nameplate", "centered on a world anchor", "rounded plate, overlay depth"),
+             ("WorldPlane", "in a fixed plane, world height", "foreshortens with the view"), ("WorldBillboard", "world point, world height", "turns to face the camera")]
+    x = 28
+    rects = []
+    for title, a, b in kinds:
+        rect = c.box(x, 66, [title, a, b], "cpu")
+        rects.append(rect); x = rect[0] + rect[2] + 16
+    # sketches: a plate per kind
+    for (title, _, _), rect in zip(kinds, rects):
+        cx = rect[0] + rect[2] / 2
+        y = 200
+        if title == "WorldPlane":
+            c.raw(f'<polygon points="{cx - 50},{y + 24} {cx + 40},{y + 4} {cx + 40},{y + 34} {cx - 50},{y + 54}" fill="#111111"/>')
+            c.raw(f'<text x="{cx - 4}" y="{y + 34}" text-anchor="middle" style="fill:#fff;font-size:12px" transform="skewY(-12) translate(0,{-( -12) * 0})">Beam 04</text>')
+        else:
+            c.raw(f'<rect x="{cx - 46}" y="{y + 10}" width="92" height="30" rx="{15 if title == "Nameplate" else 4}" fill="#111111"/>')
+            c.raw(f'<text x="{cx}" y="{y + 30}" text-anchor="middle" style="fill:#fff;font-size:13px;font-family:system-ui,sans-serif">Beam 04</text>')
+        if title in ("Anchor", "Nameplate", "WorldPlane", "WorldBillboard"):
+            c.raw(f'<circle cx="{cx}" cy="{y + 70}" r="4" fill="{green}"/>')
+            c.raw(f'<line x1="{cx}" y1="{y + 40}" x2="{cx}" y2="{y + 66}" stroke="{green}" stroke-width="1.4"/>')
+            c.text(cx, y + 92, "world anchor", "s", anchor="middle", fill=green)
+    # DPR row
+    y = 330
+    c.text(28, y, "Same label, two device scales", "l")
+    c.raw(f'<rect x="28" y="{y + 14}" width="140" height="34" rx="17" fill="#111111"/><text x="98" y="{y + 36}" text-anchor="middle" style="fill:#fff;font-size:14px;font-family:system-ui,sans-serif">Beam 04</text>')
+    c.text(28, y + 70, "DPR 1: 14 CSS px = 14 physical px", "s")
+    c.raw(f'<rect x="300" y="{y + 14}" width="140" height="34" rx="17" fill="#111111"/><text x="370" y="{y + 36}" text-anchor="middle" style="fill:#fff;font-size:14px;font-family:system-ui,sans-serif">Beam 04</text>')
+    c.text(300, y + 70, "DPR 2: 14 CSS px = 28 physical px, rasterized once at that size", "s")
+    c.text(28, y + 100, "The shaped runs are identical; TextFrame::scale applies the device scale exactly once, in TextLane::prepare.", "s")
+    c.w = int(rects[-1][0] + rects[-1][2] + 28)
+    c.h = 470
+    c.write("text-placement.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement):
         draw()
-    print("wrote 14 illustrations")
+    print("wrote 16 illustrations")

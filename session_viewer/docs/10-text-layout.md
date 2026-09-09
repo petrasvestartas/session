@@ -68,6 +68,8 @@ flowchart LR
 
 ## Step 4 · Label, run, document
 
+![The pen moves by advances: a kerned pair, a space without ink, a two-character ligature and a zero-advance accent; clusters map glyphs back to characters.](illustrations/shaping.svg)
+
 - A `TextRun` keeps the source label next to its shaped `Buffer`, so editing and selection can map glyphs back to characters.
 - `TextDocument` owns the `FontSystem`; the GPU lane in lesson 11 borrows it and owns nothing here.
 
@@ -173,6 +175,10 @@ Expected:
 
 If the status shows a width difference, compare font bytes, size and the kerning/ligature settings on both sides before adjusting any spacing.
 
+![Checkpoint 10: the reference page shapes one string at five sizes; the browser row behind each specimen has the same width, and the report lists every glyph with its cluster, advance and baseline.](screenshots/10-text-layout.png)
+
+![Checkpoint 10: the canvas itself is unchanged from checkpoint 09.](screenshots/10.png)
+
 ## What changed
 
 <!-- tree: 10 session_viewer/src/engine -->
@@ -181,6 +187,13 @@ If the status shows a width difference, compare font bytes, size and the kerning
 - Data flow: `TextLabel` → `shape()` → `Buffer` → `diagnostics()` → browser comparison.
 
 **Production equivalent:** `src/engine/text.rs`, `src/engine/performance.rs` (lesson 17 adds selection colours to the label).
+
+## Try
+
+- Open `text-layout.html`, expand the glyph report and find the `AV` of `AVATAR`: the second advance is smaller than a lone `V`, because the pair is kerned.
+- Count the glyphs shaped for `ffi`: one glyph, three bytes in its cluster; the browser row has the same width, so the ligature is not a viewer invention.
+- Compare `é` with the decomposed `e` + combining accent that follows it: the first is one glyph, the second is two, and the accent glyph carries advance 0.
+- Change the sample string in `src/text_layout.rs` to `AVATAR AV AT`: the width of `AV` alone shows the kerning without the rest of the line.
 
 ## Next
 
