@@ -49,6 +49,8 @@ flowchart LR
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
+- `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict that the renderer reads to lower its resolution.
+
 <!-- file: 10 session_viewer/src/engine/performance.rs type -->
 
 ## Step 3 · Where a label lives: `TextPlacement`

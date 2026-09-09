@@ -56,11 +56,13 @@ flowchart TB
     style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-145 -->
+- The browser picks the presentation-compatible adapter; `?gpu=high` asks for the high-performance one on a hybrid machine and falls back to the browser's choice when that adapter is refused.
+
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-156 -->
 
 Native-only adapter naming and the error callbacks:
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=146-220 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=157-229 -->
 
 ### Step 2 · Presenting a frame
 

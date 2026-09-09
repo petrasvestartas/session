@@ -175,11 +175,11 @@ flowchart TB
 
 - Input tracks Shift; Ctrl+Shift requests a component pick.
 
-<!-- file: 17 session_viewer/src/app/input.rs type hunks=1,2,4,5,6 -->
+<!-- file: 17 session_viewer/src/app/input.rs type hunks=2,3,8,9,10 -->
 
 - State maps the answer back through `Faces::source`, selects the parent, then narrows the highlight to the face.
 
-<!-- file: 17 session_viewer/src/state.rs type hunks=6,7,10,11,13,14 -->
+<!-- file: 17 session_viewer/src/state.rs type hunks=7,8,11,12,15,16 -->
 
 ## Part B · Authored text is an object
 
@@ -267,7 +267,7 @@ flowchart LR
 
 - `state.rs` declares both modules and keeps only ownership; hide and show refresh labels.
 
-<!-- file: 17 session_viewer/src/state.rs type hunks=1,2,3,4,5,8,9,15,16 -->
+<!-- file: 17 session_viewer/src/state.rs type hunks=1,3,4,5,6,9,10,17,18 -->
 
 <!-- file: 17 session_viewer/src/engine/gpu/objects.rs type -->
 
@@ -395,7 +395,7 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/engine/gpu/view.rs type -->
 
-<!-- file: 17 session_viewer/src/app/input.rs type hunks=3 -->
+<!-- file: 17 session_viewer/src/app/input.rs type hunks=4 -->
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1 -->
 
@@ -517,7 +517,18 @@ flowchart TB
     style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 17 session_viewer/src/app/input.rs type hunks=7 -->
+- winit reports cursor and touch positions at the browser's ratio even when `?dpr=` renders the canvas below it. `surface_per_physical` is the cap over the ratio, 1 without a cap, and every pointer and touch position is multiplied by it on arrival, so picks, zooms and drags read against the surface that is actually drawn.
+- The input layer sets `State::interacting` while a button or finger drags. Frames during a drag come back to back, so their spacing is the cost of a frame: thirty in a row slower than 40 ms tell `reduce_for_slow_frames` to render at device scale 1 without antialiasing from then on, the same attachments a device loss reloads into, without waiting for the loss. The status line says so.
+
+```mermaid
+flowchart TB
+    W["winit position · browser ratio"] -- "× surface_per_physical" --> S["surface pixels"]
+    S --> P["pick · zoom · drag"]
+    I["30 drag frames > 40 ms"] --> R2["reduce_for_slow_frames<br/>scale 1 · MSAA off"]
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
+```
+
+<!-- file: 17 session_viewer/src/app/input.rs type hunks=1,5,6,7,11 -->
 
 <!-- file: 17 session_viewer/src/lib.rs type -->
 
@@ -529,7 +540,7 @@ flowchart TB
 
 - A device-loss failure returns before the error panel; every other failure still reports.
 
-<!-- file: 17 session_viewer/src/state.rs type hunks=12 -->
+<!-- file: 17 session_viewer/src/state.rs type hunks=2,13,14 -->
 
 ## Step 17 · Wire the frame
 
