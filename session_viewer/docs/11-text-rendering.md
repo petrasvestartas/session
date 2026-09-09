@@ -14,6 +14,8 @@ flowchart TB
     W -- "perspective UV quad, depth GreaterEqual" --> pass
 ```
 
+![Five placements of one shaped line, and the same label rasterized once per device scale.](illustrations/text-placement.svg)
+
 ## Starting point
 
 - Checkpoint 10: labels are shaped and measured, nothing drawn.
@@ -202,6 +204,8 @@ flowchart LR
 - `place()` projects only the anchor; behind-camera and out-of-range anchors are culled instead of producing inverted text.
 - A `Nameplate` is centred on the shaped line box and gets no depth: the annotation overlays the solid it names.
 
+![The same nameplate at device scale 1 (left) and 2 (right), both magnified six times in CSS pixels: the plate and glyphs occupy the same CSS box, the second has four times the pixels.](screenshots/11-dpr.png)
+
 ```mermaid
 flowchart LR
     A["framebuffer ÷ CSS box"] --> B["TextFrame::scale"]
@@ -261,6 +265,10 @@ Expected:
 
 If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate clips its last glyph, check the padding in `center_nameplate`.
 
+![Checkpoint 11: two nameplates above the sphere, one rounded, and a fixed-plane label foreshortened on its own plane.](screenshots/11.png)
+
+![Checkpoint 11: the supplied comparison page draws the same specimens through the Glyphon coverage atlas (left) and the browser (right) at 12, 14, 16, 18 and 24 CSS px.](screenshots/11-text-quality.png)
+
 ## What changed
 
 <!-- tree: 11 session_viewer/src/engine/gpu -->
@@ -269,6 +277,13 @@ If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate 
 - Data flow: shaped run → `place()` → physical position + depth → atlas / R8 texture → three draws in the scene pass.
 
 **Production equivalent:** `src/engine/gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `src/shaders/text_plate.wgsl`, `text_plane.wgsl`. Lesson 17 gives authored text a source row; lesson 18 changes the selected colours and rounds every plate.
+
+## Try
+
+- Add `?perspective` to the URL: the fixed-plane label converges with the view while the nameplates keep their screen size.
+- Change `padding: [6.0, 4.0]` of the first nameplate in `src/lib.rs` to `[20.0, 4.0]`: the plate grows around the same glyphs.
+- Set the browser zoom to 200 percent: the raster key changes, glyphs stay sharp, and no plate clips its last letter.
+- On the comparison page, tick **Baselines, origins and raster bounds** and switch the raster scale: the raster box scales, the CSS box does not.
 
 ## Next
 

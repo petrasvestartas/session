@@ -713,7 +713,7 @@ def text_placement():
         y = 200
         if title == "WorldPlane":
             c.raw(f'<polygon points="{cx - 50},{y + 24} {cx + 40},{y + 4} {cx + 40},{y + 34} {cx - 50},{y + 54}" fill="#111111"/>')
-            c.raw(f'<text x="{cx - 4}" y="{y + 34}" text-anchor="middle" style="fill:#fff;font-size:12px" transform="skewY(-12) translate(0,{-( -12) * 0})">Beam 04</text>')
+            c.raw(f'<text x="{cx - 5}" y="{y + 33}" text-anchor="middle" style="fill:#fff;font-size:12px;font-family:system-ui,sans-serif" transform="rotate(-12.5 {cx - 5} {y + 29})">Beam 04</text>')
         else:
             c.raw(f'<rect x="{cx - 46}" y="{y + 10}" width="92" height="30" rx="{15 if title == "Nameplate" else 4}" fill="#111111"/>')
             c.raw(f'<text x="{cx}" y="{y + 30}" text-anchor="middle" style="fill:#fff;font-size:13px;font-family:system-ui,sans-serif">Beam 04</text>')
