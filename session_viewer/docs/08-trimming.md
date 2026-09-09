@@ -10,6 +10,8 @@ flowchart TB
     D -- "map_surface_boundaries" --> E["pipe_ids: u-min / u-max / v-min / v-max"]
 ```
 
+![Left: outer and inner loops select the face in u,v and the hole stays empty. Right: a cylinder's seam is one XYZ curve used at u=0 and u=1.](illustrations/trims-seams.svg)
+
 ## Starting point
 
 - Checkpoint 07: BRep faces share one canonical boundary polygon; every pipe of a BRep edge carries its source edge ID.
@@ -89,6 +91,8 @@ Expected:
 
 If a periodic boundary crosses the wrong part of the surface, inspect the UV branch and the oriented use mapping before touching stroke depth.
 
+![Checkpoint 08: a trimmed patch with its hole left empty and a torus whose seams are drawn once.](screenshots/08.png)
+
 ## What changed
 
 <!-- tree: 08 session_viewer/src/app -->
@@ -97,6 +101,12 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 - A seam and a shading crease are different things: a seam is repeated parameter coordinates, a crease is a lighting discontinuity. Lesson 09 handles the second.
 
 **Production equivalent:** `src/app/walk/brep.rs` (`walk_surface`, `map_surface_boundaries`), kernel `session_rust/src/nurbssurface_trimmed.rs`.
+
+## Try
+
+- Append `?top=1` and look through the hole: the fill is absent there, not merely covered by a curve.
+- Orbit around the torus seam with `?thickness=3`: the seam stays one line, drawn from one face use, although two parameter uses share it.
+- Append `?distance=0.5` near a natural boundary of the trimmed patch: the rim is still ink from the mesh nodes, so it cannot detach when you zoom.
 
 ## Next
 

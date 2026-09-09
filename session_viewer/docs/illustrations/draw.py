@@ -555,7 +555,59 @@ def shared_boundary():
     c.write("shared-boundary.svg")
 
 
+def trims_seams():
+    c = Canvas("Trim loops select part of a surface; a periodic seam is one curve used twice",
+               "Left: in the surface's u,v rectangle the outer loop and an inner loop select the face; the constrained triangulation keeps loop edges as triangle edges and leaves the hole empty. Right: a cylinder unrolled in u,v has its seam curve at u=0 and again at u=1: two face uses with different parameters map to the same XYZ points.",
+               1100, 470)
+    navy, pink, green, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"]
+    c.text(28, 40, "Trims: the u,v rectangle is not the face", "h")
+    # uv rectangle
+    x0, y0, w, h = 60, 90, 360, 230
+    c.raw(f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" fill="{PAL["white"]}" stroke="{grey}" stroke-width="1"/>')
+    # outer loop (trimmed region) as a polygon, inner loop as a hole
+    outer = [(x0+30,y0+200),(x0+40,y0+40),(x0+200,y0+20),(x0+330,y0+60),(x0+320,y0+210),(x0+150,y0+215)]
+    inner = [(x0+150,y0+90),(x0+230,y0+80),(x0+245,y0+140),(x0+170,y0+155)]
+    pts=lambda ps: " ".join(f"{x},{y}" for x,y in ps)
+    c.raw(f'<path d="M{pts(outer).replace(" "," L")} Z M{pts(inner).replace(" "," L")} Z" fill="{PAL["blue_band"]}" fill-opacity="0.7" fill-rule="evenodd" stroke="none"/>')
+    # a few interior triangles hinting constrained triangulation
+    tri = [((x0+40,y0+40),(x0+150,y0+90),(x0+30,y0+200)),((x0+200,y0+20),(x0+150,y0+90),(x0+40,y0+40)),((x0+200,y0+20),(x0+230,y0+80),(x0+150,y0+90)),((x0+330,y0+60),(x0+245,y0+140),(x0+230,y0+80)),((x0+320,y0+210),(x0+245,y0+140),(x0+330,y0+60)),((x0+150,y0+215),(x0+170,y0+155),(x0+320,y0+210)),((x0+30,y0+200),(x0+150,y0+90),(x0+170,y0+155)),((x0+30,y0+200),(x0+170,y0+155),(x0+150,y0+215))]
+    for a,b,d in tri:
+        c.raw(f'<polygon points="{pts([a,b,d])}" fill="none" stroke="{grey}" stroke-width="0.8"/>')
+    c.raw(f'<polygon points="{pts(outer)}" fill="none" stroke="{navy}" stroke-width="2.2"/>')
+    c.raw(f'<polygon points="{pts(inner)}" fill="none" stroke="{pink}" stroke-width="2.2"/>')
+    c.text(x0, y0 + h + 24, "outer loop", "s", fill=navy)
+    c.text(x0 + 110, y0 + h + 24, "inner loop = hole, left empty", "s", fill=pink)
+    c.text(x0, y0 + h + 46, "loop edges are triangle edges; grey diagonals are", "s")
+    c.text(x0, y0 + h + 64, "interior and never drawn as CAD edges", "s")
+    c.text(x0 + w - 12, y0 - 8, "u →", "s", anchor="end")
+    c.text(x0 - 8, y0 + 14, "v", "s", anchor="end")
+    # right: seam
+    X = 560
+    c.text(X, 40, "Seam: one XYZ curve, two parameter uses", "h")
+    c.raw(f'<rect x="{X + 20}" y="{y0}" width="200" height="{h}" fill="{PAL["pink_band"]}" fill-opacity="0.6" stroke="{grey}" stroke-width="1"/>')
+    c.raw(f'<line x1="{X + 20}" y1="{y0}" x2="{X + 20}" y2="{y0 + h}" stroke="{green}" stroke-width="3"/>')
+    c.raw(f'<line x1="{X + 220}" y1="{y0}" x2="{X + 220}" y2="{y0 + h}" stroke="{green}" stroke-width="3"/>')
+    c.text(X + 20, y0 - 8, "u = 0", "s", anchor="middle", fill=green)
+    c.text(X + 220, y0 - 8, "u = 1", "s", anchor="middle", fill=green)
+    c.text(X + 120, y0 + h / 2, "unrolled cylinder face", "s", anchor="middle")
+    # cylinder sketch
+    cx, cy = X + 340, y0 + h / 2
+    c.raw(f'<ellipse cx="{cx}" cy="{y0 + 30}" rx="60" ry="18" fill="none" stroke="{grey}" stroke-width="1.2"/>')
+    c.raw(f'<line x1="{cx - 60}" y1="{y0 + 30}" x2="{cx - 60}" y2="{y0 + h - 30}" stroke="{grey}" stroke-width="1.2"/>')
+    c.raw(f'<line x1="{cx + 60}" y1="{y0 + 30}" x2="{cx + 60}" y2="{y0 + h - 30}" stroke="{grey}" stroke-width="1.2"/>')
+    c.raw(f'<path d="M{cx - 60},{y0 + h - 30} A60,18 0 0 0 {cx + 60},{y0 + h - 30}" fill="none" stroke="{grey}" stroke-width="1.2"/>')
+    c.raw(f'<line x1="{cx}" y1="{y0 + 48}" x2="{cx}" y2="{y0 + h - 12}" stroke="{green}" stroke-width="3"/>')
+    c.text(cx, y0 + h + 24, "the seam in 3D", "s", anchor="middle", fill=green)
+    c.text(X, y0 + h + 46, "same XYZ, different (u,v): keep both face uses;", "s")
+    c.text(X, y0 + h + 64, "a pole collapses many (u,v) onto one point", "s")
+    c.box(28, 402, ["The consumer's rule",
+                    "walk_surface keeps the producer's constrained mesh and its loop provenance; map_surface_boundaries names natural",
+                    "boundaries from u/v extremes, so a repeated seam use or a zero-length pole edge never becomes an invented CAD edge."], "note", w=1044)
+    c.h = 402 + 84 + 20
+    c.write("trims-seams.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams):
         draw()
-    print("wrote 12 illustrations")
+    print("wrote 13 illustrations")
