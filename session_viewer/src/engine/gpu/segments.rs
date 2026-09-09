@@ -1,4 +1,4 @@
-//! The segment lane: every straight piece of ink. Two tables of the same 40 B row - pipes
+//! The segment lane: every straight piece of ink. Two tables of the same connected stroke row - pipes
 //! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
 //! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
 
@@ -8,6 +8,7 @@ use super::upload::drop_rows;
 use crate::engine::pipelines::{
     ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, ink_module,
 };
+use std::collections::HashSet;
 use wgpu::PrimitiveTopology::TriangleList;
 
 /// The lane's shaders, for the mirror tests.
@@ -17,7 +18,7 @@ pub const SHADERS: &[(&str, &str)] = &[("ribbon.wgsl", include_str!("../../shade
 /// Vertices per ribbon: two triangles pulled by vertex index, no vertex buffer.
 const RIBBON_VERTS: u32 = 6;
 
-/// One segment row, 40 B, the layout ribbon.wgsl declares. The ends are flat f32s: a `vec3`
+/// One source segment row, 40 B. Upload adds two GPU neighbor indices. The ends are flat f32s: a `vec3`
 /// would pad the row to 48 B. Offsets: p0 0, radius 12, p1 16, instance_id 28, color 32,
 /// facing 36.
 #[repr(C)]
@@ -42,6 +43,10 @@ pub struct SegRows {
     pub pipes: Vec<CylinderSegment>,
     /// Source edge index per pipe, or u32::MAX when no CAD edge identity is available.
     pub pipe_ids: Vec<u32>,
+    /// Source curve ranges in this upload; independent mesh wires remain unjoined.
+    pub pipe_chains: Vec<std::ops::Range<u32>>,
+    /// Consecutive spans belonging to one source polyline or NURBS curve.
+    pub ribbon_chains: Vec<std::ops::Range<u32>>,
     pub ribbons: Vec<CylinderSegment>,
 }
 
@@ -50,8 +55,58 @@ impl SegRows {
     pub fn drop_rows(&mut self) {
         drop_rows(&mut self.pipes);
         drop_rows(&mut self.pipe_ids);
+        drop_rows(&mut self.pipe_chains);
+        drop_rows(&mut self.ribbon_chains);
         drop_rows(&mut self.ribbons);
     }
+}
+
+/// GPU connectivity partitions the shared rounded cap instead of blending it twice.
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+pub(super) struct StrokeSegment {
+    pub(super) segment: CylinderSegment,
+    pub(super) previous: u32,
+    pub(super) next: u32,
+}
+
+/// Only explicitly connected source chains join; separate wires keep their own end caps.
+fn joined_rows(
+    rows: &[CylinderSegment],
+    chains: &[std::ops::Range<u32>],
+    base: u32,
+) -> Vec<StrokeSegment> {
+    let mut result = Vec::with_capacity(rows.len());
+    for segment in rows {
+        result.push(StrokeSegment {
+            segment: *segment,
+            previous: u32::MAX,
+            next: u32::MAX,
+        });
+    }
+    for chain in chains {
+        if chain.end > rows.len() as u32 || chain.end.saturating_sub(chain.start) < 2 {
+            continue;
+        }
+        for index in chain.clone() {
+            let next = if index + 1 == chain.end {
+                chain.start
+            } else {
+                index + 1
+            };
+            let a = &rows[index as usize];
+            let b = &rows[next as usize];
+            if a.p1 == b.p0
+                && a.instance_id == b.instance_id
+                && a.color == b.color
+                && a.radius == b.radius
+            {
+                result[index as usize].next = next + base;
+                result[next as usize].previous = index + base;
+            }
+        }
+    }
+    result
 }
 
 /// One segment table on the GPU with the group 3 that binds it.
@@ -68,7 +123,7 @@ impl SegTable {
         let buf = GrowBuf::new(
             ctx,
             label,
-            std::mem::size_of::<CylinderSegment>() as u64,
+            std::mem::size_of::<StrokeSegment>() as u64,
             ROWS,
         );
         let ids = GrowBuf::new(ctx, "segment.sources", 4, ROWS);
@@ -100,6 +155,8 @@ impl SegTable {
 /// The pipelines over the two tables: the same blended quad for both, and its id twin.
 struct SegPipelines {
     ribbon: wgpu::RenderPipeline,
+    unselected: wgpu::RenderPipeline,
+    selected: wgpu::RenderPipeline,
     id_ribbon: wgpu::RenderPipeline,
     id_edge: wgpu::RenderPipeline,
 }
@@ -111,6 +168,8 @@ pub struct SegmentLane {
     shader: wgpu::ShaderModule,
     gpu: SegPipelines,
     selection: wgpu::Buffer,
+    selected_rows: HashSet<u32>,
+    selected_edge: bool,
 }
 
 impl SegmentLane {
@@ -140,6 +199,8 @@ impl SegmentLane {
             shader,
             gpu,
             selection,
+            selected_rows: HashSet::new(),
+            selected_edge: false,
         }
     }
 
@@ -152,11 +213,13 @@ impl SegmentLane {
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &SegRows) {
         let mut ids = up.pipe_ids.clone();
         ids.resize(up.pipes.len(), u32::MAX);
-        let pipes_changed = self.pipes.buf.append(ctx, &up.pipes);
+        let pipes = joined_rows(&up.pipes, &up.pipe_chains, self.pipes.buf.len());
+        let pipes_changed = self.pipes.buf.append(ctx, &pipes);
         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
             self.pipes.rebind(ctx, l, &self.selection);
         }
-        let ribbons_changed = self.ribbons.buf.append(ctx, &up.ribbons);
+        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, self.ribbons.buf.len());
+        let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
         if self
             .ribbons
             .ids
@@ -168,13 +231,62 @@ impl SegmentLane {
     }
 
     /// Highlight one source edge without reuploading its tessellation or the parent geometry.
-    pub fn set_edge(&self, ctx: &GpuCtx, edge: Option<(u32, u32)>) {
+    pub fn set_edge(&mut self, ctx: &GpuCtx, edge: Option<(u32, u32)>) {
+        self.selected_edge = edge.is_some();
         let (parent, edge) = edge.unwrap_or((u32::MAX, u32::MAX));
         ctx.queue.write_buffer(
             &self.selection,
             0,
             bytemuck::cast_slice(&[parent, edge, 0, 0]),
         );
+    }
+
+    /// Skip the final selection pass when no source object or edge is selected.
+    pub fn set_selected(&mut self, row: u32, selected: bool) {
+        if selected {
+            self.selected_rows.insert(row);
+        } else {
+            self.selected_rows.remove(&row);
+        }
+    }
+
+    /// Ordinary scene ink precedes silhouettes and the selected stroke overlay.
+    pub fn draw_unselected(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        b: &Binds,
+        pipes: bool,
+        ribbons: bool,
+    ) -> u32 {
+        let mut draws = 0;
+        if pipes {
+            draws += self.draw_table(pass, b, &self.gpu.unselected, &self.pipes);
+        }
+        if ribbons {
+            draws += self.draw_table(pass, b, &self.gpu.unselected, &self.ribbons);
+        }
+        draws
+    }
+
+    /// Selected ink wins coincident stroke coverage, while still testing physical occlusion.
+    pub fn draw_selected(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        b: &Binds,
+        pipes: bool,
+        ribbons: bool,
+    ) -> u32 {
+        if self.selected_rows.is_empty() && !self.selected_edge {
+            return 0;
+        }
+        let mut draws = 0;
+        if pipes {
+            draws += self.draw_table(pass, b, &self.gpu.selected, &self.pipes);
+        }
+        if ribbons {
+            draws += self.draw_table(pass, b, &self.gpu.selected, &self.ribbons);
+        }
+        draws
     }
 
     /// Mesh/BRep edges: camera-facing quads against physical depth.
@@ -222,6 +334,8 @@ impl SegmentLane {
 
     /// Forget every row; capacity stays.
     pub fn reset(&mut self) {
+        self.selected_rows.clear();
+        self.selected_edge = false;
         self.pipes.buf.reset();
         self.pipes.ids.reset();
         self.ribbons.buf.reset();
@@ -230,6 +344,8 @@ impl SegmentLane {
 
     /// Hand both buffers back.
     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
+        self.selected_rows.clear();
+        self.selected_edge = false;
         self.pipes.buf.release(ctx);
         self.pipes.ids.release(ctx);
         self.ribbons.buf.release(ctx);
@@ -263,6 +379,22 @@ fn build_pipelines(
     let dev = &ctx.device;
 
     SegPipelines {
+        unselected: build(
+            dev,
+            target,
+            &quad
+                .with("ribbon.unselected", "fs_main")
+                .vertex("vs_unselected")
+                .color(ColorWrite::Blended),
+        ),
+        selected: build(
+            dev,
+            target,
+            &quad
+                .with("ribbon.selected", "fs_main")
+                .vertex("vs_selected")
+                .color(ColorWrite::Blended),
+        ),
         ribbon: build(
             dev,
             target,
@@ -286,7 +418,7 @@ mod tests {
     use super::*;
     use crate::engine::gpu::instance::wgsl_fields;
 
-    /// ribbon.wgsl reads the 40 B segment row (ends as scalars).
+    /// ribbon.wgsl reads the 48 B connected GPU row (ends as scalars).
     #[test]
     fn cylinder_segment_mirror() {
         let rust = [
@@ -300,15 +432,18 @@ mod tests {
             "instance_id",
             "color",
             "facing",
+            "previous",
+            "next",
         ];
         for (name, src) in SHADERS {
             assert_eq!(
-                wgsl_fields(src, "CylinderSegment"),
+                wgsl_fields(src, "StrokeSegment"),
                 rust,
-                "{name}: CylinderSegment fields"
+                "{name}: StrokeSegment fields"
             );
         }
         assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
+        assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
     }
 }

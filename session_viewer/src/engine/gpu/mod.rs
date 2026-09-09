@@ -8,6 +8,7 @@ pub mod backdrop;
 pub mod buffers;
 pub mod cloud;
 pub mod device;
+pub mod faces;
 pub mod frame;
 pub mod glyphs;
 pub mod instance;
@@ -17,11 +18,12 @@ pub mod pick;
 pub mod present;
 pub mod render;
 pub mod segments;
-pub mod selection_outline;
 pub mod splat;
+pub mod surface_outline;
 pub mod targets;
 pub mod text;
 pub mod text_outline;
+mod triangle_tiles;
 pub mod upload;
 pub mod view;
 
@@ -70,7 +72,8 @@ pub struct Gpu {
     pub controls: GlyphLane,
     pub control_net: SegmentLane,
     pub text: text::TextLane,
-    pub selection_outline: selection_outline::SelectionOutline,
+    pub selection_outline: surface_outline::SurfaceOutline,
+    pub solid_outline: surface_outline::SurfaceOutline,
     pub logical_size: [f64; 2],
     pub cloud: CloudLane,
     pub splat: Splat,
@@ -89,7 +92,10 @@ impl Gpu {
     pub fn allocated_bytes(&self) -> (u64, u64) {
         let (splat_buffers, splat_textures) = self.splat.allocated_bytes();
         let (pick_buffers, pick_textures) = self.pick.allocated_bytes();
-        let (outline_buffers, outline_textures) = self.selection_outline.allocated_bytes();
+        let (mut outline_buffers, mut outline_textures) = self.selection_outline.allocated_bytes();
+        let (buffers, textures) = self.solid_outline.allocated_bytes();
+        outline_buffers += buffers;
+        outline_textures += textures;
         let buffers = self.arena.allocated_bytes()
             + self.segments.allocated_bytes()
             + self.glyphs.allocated_bytes()
@@ -104,11 +110,12 @@ impl Gpu {
             + outline_buffers;
         let pixels = u64::from(self.config.width) * u64::from(self.config.height);
         let samples = u64::from(self.targets.samples);
-        let frame_textures =
-            pixels * if samples > 1 { samples * 12 } else { 8 } + if samples > 1 { 8 } else { 32 };
+        let frame_textures = pixels * if samples > 1 { samples * 16 } else { 12 }
+            + if samples > 1 { 12 } else { 48 };
         (
             buffers,
             frame_textures
+                + self.arena.tiles.allocated_bytes().1
                 + splat_textures
                 + pick_textures
                 + self.text.texture_bytes()
@@ -151,14 +158,30 @@ impl Gpu {
         let frame = FrameUniforms::new(&ctx, &layouts, size);
         let targets = Targets::new(&ctx, size, config.format, target.samples);
         let arena = ArenaLane::new(&ctx, &layouts, target);
-        let objects = InstanceTable::new(&ctx, &layouts, &InkScene { targets: &targets });
+        let objects = InstanceTable::new(
+            &ctx,
+            &layouts,
+            &InkScene {
+                targets: &targets,
+                tiles: &arena.tiles,
+            },
+        );
         let backdrop = BackdropLane::new(&ctx, &layouts, target);
         let segments = SegmentLane::new(&ctx, &layouts, target);
         let glyphs = GlyphLane::new(&ctx, &layouts, target);
         let controls = GlyphLane::new(&ctx, &layouts, target);
         let control_net = SegmentLane::new(&ctx, &layouts, target);
         let text = text::TextLane::new(&ctx, target);
-        let selection_outline = selection_outline::SelectionOutline::new(&ctx, target);
+        let selection_outline = surface_outline::SurfaceOutline::new(
+            &ctx,
+            target,
+            surface_outline::OutlineKind::Selected,
+        );
+        let solid_outline = surface_outline::SurfaceOutline::new(
+            &ctx,
+            target,
+            surface_outline::OutlineKind::AllSolids,
+        );
         let cloud = CloudLane::new(&ctx);
         let splat = Splat::new(&ctx, &layouts, target, cloud.buffers());
 
@@ -185,6 +208,7 @@ impl Gpu {
             control_net,
             text,
             selection_outline,
+            solid_outline,
             logical_size: [size.0 as f64, size.1 as f64],
             cloud,
             splat,
@@ -226,6 +250,7 @@ impl Gpu {
             &self.layouts,
             &InkScene {
                 targets: &self.targets,
+                tiles: &self.arena.tiles,
             },
         );
     }
@@ -255,6 +280,7 @@ impl Gpu {
                 &self.layouts,
                 &InkScene {
                     targets: &self.targets,
+                    tiles: &self.arena.tiles,
                 },
             );
         }
@@ -268,6 +294,7 @@ impl Gpu {
             self.control_net.retarget(&self.ctx, &self.layouts, target);
             self.text.retarget(&self.ctx, target);
             self.selection_outline.retarget(&self.ctx, target);
+            self.solid_outline.retarget(&self.ctx, target);
             self.splat.retarget(&self.ctx, &self.layouts, target);
             log::info!("msaa: {}x", samples);
         }
@@ -324,13 +351,14 @@ impl Gpu {
     /// Forget every lane's rows so the next upload writes from row 0; capacity stays.
     pub fn reset(&mut self) {
         self.objects.reset();
-        self.arena.reset();
+        self.arena.reset(&self.ctx);
         self.segments.reset();
         self.glyphs.reset();
         self.controls.reset();
         self.control_net.reset();
         self.text.reset();
         self.selection_outline.reset();
+        self.solid_outline.reset();
         self.pick.cancel();
         self.segments.set_edge(&self.ctx, None);
         self.cloud.reset();
@@ -348,6 +376,7 @@ impl Gpu {
         self.control_net.release(&self.ctx, &self.layouts);
         self.text.release(&self.ctx);
         self.selection_outline.reset();
+        self.solid_outline.reset();
         self.pick.cancel();
         self.segments.set_edge(&self.ctx, None);
         self.cloud.release(&self.ctx);
@@ -361,12 +390,14 @@ impl Gpu {
             &self.layouts,
             &InkScene {
                 targets: &self.targets,
+                tiles: &self.arena.tiles,
             },
         );
     }
 
     /// Flip the selection flag on one object row.
     pub fn set_selected(&mut self, row: u32, on: bool) {
+        self.segments.set_selected(row, on);
         self.selection_outline.set_selected(row, on);
         self.objects
             .set_flag(&self.ctx, row, Instance::FLAG_SELECTED, on);

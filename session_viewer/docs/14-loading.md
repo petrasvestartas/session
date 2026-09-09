@@ -1,157 +1,51 @@
-# 14 — Load and replace complete scene revisions
+# 14 · Load and replace complete scenes
 
-A replacement becomes visible only after all its documents are ready and its request generation is still current. Whole documents and streamed descriptors share one ordered staging list.
+**Start:** checkpoint 13. **Finish:** manifests and protobuf data load through the production path; invalid or stale replacements do not destroy the last valid scene.
 
-```mermaid
-flowchart LR
-    Route[route.rs URL] --> Manifest[manifest.rs bounded ordered items]
-    Manifest --> Fetch[fetch.rs owned deadline]
-    Fetch --> Validate[validate.rs before constructors]
-    Validate --> Decode[decode.rs Session]
-    Decode --> Pending[loader.rs PendingDocument]
-    Pending --> Guard{current generation and all valid?}
-    Guard -->|yes| Scene[Clear then ordered File / StreamedCloud]
-    Guard -->|no| Retain[keep last valid Scene]
+## A manifest describes placement; protobuf carries geometry
+
+The loader accepts the existing TOML/YAML/JSON scene descriptions and Session protobuf payloads. A manifest can refer to several geometry files with different placements and styles. Keep these concerns separate so placement-only changes can reuse immutable decoded geometry later.
+
+```text
+route → fetch manifest → validate items → fetch/decode source payload
+                                                 ↓
+                                    staged PendingDocument
+                                                 ↓ generation still current?
+                               Scene replacement / typed uploads
 ```
 
-Text: resolve, validate and stage in order; only the current complete revision replaces the scene.
+Validate before allocating from untrusted counts or indexing geometry. Check payload storage lengths, indices, transforms and required fields. A malformed document should report an error and preserve the last valid scene, not leave half a replacement installed.
 
-## Implement checkpoint 14
+## Two orders matter
 
-- Start in the reconstructed workspace from the previous checkpoint; `COURSE_REPO` is the absolute production viewer directory recorded in [setup](README.md).
-- The complete patch is the exact edit ledger: every import, module registration, helper, shader and configuration change is present. For manual reconstruction, type the marked blocks and copy the remaining patch hunks; apply each change once.
-- Automatic reconstruction applies the same complete patch. `--adopt` checks a manually completed tree against exactly the same file hashes.
+The manifest establishes document order. Network responses can finish in another order. Stage results with their intended positions rather than letting response timing reorder source identities.
 
-- Starting checkpoint: **13**.
-- **COPY/PASTE:** [complete 14.patch](reconstruction/patches/14.patch).
+Request generations establish which replacement is newest. An older slow response arriving last must not replace a newer completed scene. Cancellation reduces wasted work, but generation checks are still required because a completion can race with cancellation.
 
-| Exact path beneath the reconstruction workspace | Action and unique owner | Purpose |
-|---|---|---|
-| `session_viewer/src/app/loader.rs` | Replace the fixture adapter with `boot`, `load_route`, `post_live`, `reload_scene` and `StreamCursor` | Ordered documents, bounded display prefixes and superseded work. |
-| `session_viewer/src/app/route.rs` | Create/replace the complete route module | Local default; explicit data host for named scenes; TOML aliases fall back only after 404. |
-| `session_viewer/src/app/manifest.rs` | Create `Item`, `Manifest` and complete parsing/placement helpers | TOML/YAML/JSON; finite affine transforms; 4 MiB and 100,000-item bounds. |
-| `session_viewer/src/app/validate.rs` | Create the complete validation module | Check protobuf/JSON storage before constructors; retain format and original identities. |
-| `session_viewer/src/app/decode.rs` | Create `session_from_bytes`, `Pacer`, conversion macro and tree conversion | Whole-file cap and yielding object conversion; recoverable errors. |
-| `session_viewer/src/app/live.rs` | Create `LiveSource` and owned `Notify` | Revalidate mutable metadata, reuse immutable geometry, retry failed revisions. |
-| `session_viewer/src/app/fetch.rs` | Replace the complete fetch module | Checked 206 ranges, byte limits, request cancellation and callback ownership. |
-| `session_viewer/src/app/mod.rs`, `session_viewer/src/lib.rs` | Apply all registration and browser-message hunks | Actual production application shell. |
-| `session_viewer/index.html`, `session_viewer/Trunk.toml` | Replace with the complete page/build configuration | Focus, explicit errors/reload, local assets, release build, port 8770. |
-| `session_viewer/tests/loading.cjs`, `session_viewer/tests/lifecycle.cjs` | Create complete browser fixtures | Last-valid-scene, race, repeated replacement, focus, pointer cancellation and DPR. |
+## Callbacks have owners
 
-**TYPE BY HAND — `session_viewer/src/app/loader.rs`:** insert the complete `PendingDocument` declaration immediately before `struct Placement` and the complete `stale_load` function before `fetch_manifest`; use the imports included in the patch.
+Winit owns browser input registration. Fetch/deadline and live-source helpers retain their callback handles, abort controllers and registrations. Dropping the owner detaches or cancels them. Repeated `Closure::forget()` is not a lifecycle strategy for reloadable work.
 
-```rust
-/// Replacement staging preserves manifest order across whole files and streamed clouds.
-enum PendingDocument {
-    Whole(FileDoc),
-    Streamed(Box<StreamedInit>),
-}
-```
+An asynchronous completion posts a named application message and requests a redraw. Idle scenes do not continuously submit color frames merely to poll for potential work.
 
-```rust
-/// Newer route requests win even if older network or decode operations finish later.
-fn stale_load(generation: u64) -> bool {
-    LOAD_GENERATION.get() != generation
-}
-```
+## Text belongs in the same scene model
 
-**TYPE BY HAND — `session_viewer/src/app/loader.rs`, `load_route`:** replace the final application block after the last `stale_load(generation)` return and before `post(Msg::Fit)` with this complete block.
+At checkpoint 14, manifest text includes content, world position and height and creates fixed-plane text. Chapter 17 adds the `camera_facing: true` billboard option, along with stable source rows for authored text and generated document titles. Both orientations then share geometry's selection/hide lifecycle.
 
-```rust
-    if replacement.is_some() {
-        if failed {
-            super::feedback::status(
-                "Scene replacement failed; the last valid scene is still visible",
-            );
-            return;
-        }
-        clear_scene();
-        budget_spend(staged_points);
-        for document in pending {
-            match document {
-                PendingDocument::Whole(doc) => {
-                    post(Msg::File(doc));
-                }
-                PendingDocument::Streamed(stream) => {
-                    post(Msg::StreamedCloud(stream));
-                }
-            }
-        }
-    }
-    post(Msg::Texts(manifest.texts));
-```
+## Write the files
 
-**TYPE BY HAND — `session_viewer/src/app/fetch.rs`:** create the complete `Deadline`, its constructor/drop implementation, and `abort_request` at module scope after `next_tick`; copy the `Closure`, `JsCast` and `JsFuture` imports from the patch.
+Follow [Complete file changes for 14](../lessons/14/index.md). Read the manifest records and validation, then the fetch/decode functions, staged loader and application message handling. Keep the provided local teaching manifest; personal remote credentials are not required.
 
-```rust
-/// Own a bounded fetch deadline and its callback; every return path releases the timer.
-struct Deadline {
-    controller: web_sys::AbortController,
-    timer: i32,
-    _callback: Closure<dyn FnMut()>,
-}
-impl Deadline {
-    /// Permit slow scene transfers for ninety seconds, then surface a recoverable network error.
-    fn new() -> Result<Self, String> {
-        let window = web_sys::window().ok_or("no window")?;
-        let controller = web_sys::AbortController::new().map_err(describe)?;
-        let owned = controller.clone();
-        let callback = Closure::<dyn FnMut()>::new(move || abort_request(&owned));
-        let timer = window
-            .set_timeout_with_callback_and_timeout_and_arguments_0(
-                callback.as_ref().unchecked_ref(),
-                90_000,
-            )
-            .map_err(describe)?;
-        Ok(Self {
-            controller,
-            timer,
-            _callback: callback,
-        })
-    }
-}
-impl Drop for Deadline {
-    /// Remove the JavaScript timer before dropping its Rust callback handle.
-    fn drop(&mut self) {
-        if let Some(window) = web_sys::window() {
-            window.clear_timeout_with_handle(self.timer);
-        }
-    }
-}
-/// The browser callback adapter forwards cancellation to the request's controller.
-fn abort_request(controller: &web_sys::AbortController) {
-    controller.abort();
-}
-```
-
-**COPY/PASTE — remaining hunks:** finish every addition/replacement in [14.patch](reconstruction/patches/14.patch), including validation before `from_proto`/JSON construction and the named browser callback adapters. The 25,000-object conversion yield does not make the initial protobuf decode or geometry preparation asynchronous; the measured long tasks remain in [the results](../ARCHITECTURE.md#measured-browser-results--8-september-2026).
-
-**COPY/PASTE — verify the complete manual checkpoint:**
+## Checkpoint
 
 ```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output /tmp/viewer-course --through 14 --adopt --verify --target-dir "$COURSE_REPO/target"
-cd /tmp/viewer-course/session_viewer
-REGEN_PROTO=0 NO_COLOR=true trunk serve
+cd "$COURSE_WORK/session_viewer"
+cargo check --locked --lib
+trunk serve --port 8780
 ```
 
-- Open `http://localhost:8770/?data=off&inspect=1`: the bundled source fixture draws through the real manifest/PB loader.
-- With that server running, run `VIEWER_URL=http://localhost:8770/ node tests/loading.cjs` and `VIEWER_URL=http://localhost:8770/ node tests/lifecycle.cjs` using the browser environment from setup.
-- Expected: malformed replacement keeps the old scene; a delayed older response never replaces the newer route; six replacements retain equal GPU capacities for equal workloads; focused inputs, pointer cancellation and DPR changes pass.
-- Automatic alternative from unchanged 13: replace `--adopt` with `--advance` in the replay command.
+Open <http://localhost:8780/?data=off&inspect=1>. The local fixture loads through the real manifest/protobuf path. Verify selection and controls still work after loading.
 
-**COPY/PASTE — authored fixed-plane text from 14.patch.** `Manifest::texts` contains bounded `TextItem` records (`text`, `at`, `right`, `up`, `height`). Parsing validates finite unit orthogonal axes, positive height, at most 1024 labels and at most 256 KiB of UTF-8 text. `Msg::Texts` applies the records with their scene revision, and `State::set_texts/include_text_bounds` includes shaped plane corners when fitting. A malformed replacement preserves the last valid scene and its labels.
+The maintained loading test supplies a malformed replacement, deliberately reverses response completion order and alternates scenes repeatedly. The final visible scene must be the newest valid one, and equal replacement workloads must settle at equal owned GPU capacities. The browser allocator retaining WASM pages is not itself evidence that source documents are still alive.
 
-For a local scene, add this complete YAML entry alongside `items` (it uses world units):
-
-```yaml
-texts:
-  - text: text_not_oriented_to_camera
-    at: [0, -20, 40]
-    right: [1, 0, 0]
-    up: [0, 1, 0]
-    height: 8
-```
-
-TOML uses `[[texts]]` with the same fields; JSON uses a `texts` array. These are source annotations and remain visible when `T` hides selected-object names. Chapter 15's publication parity test preserves these records across TOML and YAML.
-
-[Previous: controls](13-controls.md) · [Next: publication and bounded reads](15-publication.md)
+**Before continuing:** explain the difference between canceling a request and rejecting a stale completion. Continue to [publication and reuse](15-publication.md).

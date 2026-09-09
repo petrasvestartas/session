@@ -208,7 +208,11 @@ pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::Sha
     let source = format!(
         "{}\n{}",
         source,
-        include_str!("../../shaders/ink_visibility.wgsl")
+        concat!(
+            include_str!("../../shaders/ink_visibility.wgsl"),
+            "\n",
+            include_str!("../../shaders/projected_triangle.wgsl")
+        )
     );
     module(device, label, &source)
 }
@@ -243,7 +247,7 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
     })];
     if desc.physical {
         targets.push(Some(wgpu::ColorTargetState {
-            format: wgpu::TextureFormat::Rg16Float,
+            format: wgpu::TextureFormat::Rgba16Float,
             blend: None,
             write_mask: if desc.depth == DepthMode::ReadOnlyEqual {
                 wgpu::ColorWrites::empty()

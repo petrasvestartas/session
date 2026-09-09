@@ -16,15 +16,17 @@ struct Instance {
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;
 @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
 
-struct CylinderSegment {
+struct StrokeSegment {
     p0x: f32, p0y: f32, p0z: f32,
     radius: f32,
     p1x: f32, p1y: f32, p1z: f32,
     instance_id: u32,
     color: u32,
     facing: u32,
+    previous: u32,
+    next: u32,
 }
-@group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
+@group(3) @binding(0) var<storage, read> segments: array<StrokeSegment>;
 @group(3) @binding(1) var<storage, read> source_edges: array<u32>;
 @group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
 
@@ -145,6 +147,8 @@ struct VsOut {
     @location(8) @interpolate(flat) segment_index: u32,
     @location(9) @interpolate(flat) end_depth: vec2<f32>,
     @location(10) @interpolate(flat) source_edge: u32,
+    @location(11) @interpolate(flat) start_join: vec4<f32>,
+    @location(12) @interpolate(flat) end_join: vec4<f32>,
 };
 
 // The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
@@ -189,12 +193,54 @@ fn corner_of(k: u32) -> u32 {
     return 3u;
 }
 
-@vertex
-fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+// A connected neighbor contributes only while its own physical facets can face the eye.
+fn neighbor_visible(seg: StrokeSegment) -> bool {
+    let inst = instances[seg.instance_id];
+    if ((inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || seg.facing == FACING_UNKNOWN) { return true; }
+    let p0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
+    let p1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
+    let n0 = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
+    let n1 = face_normal(inst.model, oct16_decode(seg.facing >> 16u));
+    return edge_faces_camera(seg.facing, n0, n1, toward_eye((p0+p1)*0.5));
+}
+
+// Both segments calculate this plane from the same ordered source pair and shared
+// projected vertex. Identical arithmetic makes the start-inclusive/end-exclusive
+// partition watertight, including pixels exactly on the angle bisector.
+// Zero disables a join at a clipped, reversed or invisible neighbor.
+fn join_plane(before: u32, after: u32) -> vec4<f32> {
+    if (before == 0xffffffffu || after == 0xffffffffu || before >= arrayLength(&segments) || after >= arrayLength(&segments)) { return vec4<f32>(0.0); }
+    let a = segments[before];
+    let b = segments[after];
+    if (!neighbor_visible(a) || !neighbor_visible(b)) { return vec4<f32>(0.0); }
+    let c0 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p0x,a.p0y,a.p0z)),1.0);
+    let c1 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p1x,a.p1y,a.p1z)),1.0);
+    let c2 = mvp * vec4<f32>(place(b.instance_id, vec3<f32>(b.p1x,b.p1y,b.p1z)),1.0);
+    if (c0.w <= 0.0 || c1.w <= 0.0 || c2.w <= 0.0 || c0.z > c0.w || c1.z > c1.w || c2.z > c2.w) { return vec4<f32>(0.0); }
+    let vp = vec2<f32>(line.vp_w,line.vp_h);
+    let p0 = (c0.xy/c0.w*0.5+0.5)*vp;
+    let p1 = (c1.xy/c1.w*0.5+0.5)*vp;
+    let p2 = (c2.xy/c2.w*0.5+0.5)*vp;
+    let d0 = p1-p0;
+    let d1 = p2-p1;
+    if (dot(d0,d0) < 1e-8 || dot(d1,d1) < 1e-8) { return vec4<f32>(0.0); }
+    let normal = normalize(d0)+normalize(d1);
+    if (dot(normal,normal) < 1e-8) { return vec4<f32>(0.0); }
+    return vec4<f32>(normalize(normal),p1);
+}
+
+// 0 includes all strokes (picking/control nets), 1 excludes selection, 2 is its final pass.
+fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let iid = vid / 6u;
     let corner = corner_of(vid % 6u);
     let seg = segments[iid];
     let inst = instances[seg.instance_id];
+    let selected = (inst.flags & FLAG_SELECTED) != 0u ||
+        (edge_selection.x == seg.instance_id && edge_selection.y != 0xffffffffu &&
+         edge_selection.y == source_edges[iid]);
+    if ((layer == 1u && selected) || (layer == 2u && !selected)) {
+        return dead_vertex();
+    }
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
         return dead_vertex();
     }
@@ -238,10 +284,15 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let n = vec2<f32>(-dir.y, dir.x);
 
     // The quad is a trapezoid under perspective: both end widths go down flat.
-    let raw0 = half_width_px(seg.radius, e0.w);
-    let raw1 = half_width_px(seg.radius, e1.w);
+    // A selected stroke has an opaque yellow core covering the ordinary black pen.
+    // Its axis and visibility test stay on the source geometry.
+    let raw0 = max(half_width_px(seg.radius, e0.w), select(0.0, line.thickness, selected));
+    let raw1 = max(half_width_px(seg.radius, e1.w), select(0.0, line.thickness, selected));
     let px = floor_hairline(select(raw0, raw1, at_end1));
-    let crowd = density_taper(seg.facing, len, px);
+    // CAD boundary segments are samples of one curve, not independent mesh wires.
+    // Refining the surface must not shrink the pen at its short boundary intervals.
+    let cad_boundary = (inst.flags & 64u) != 0u && source_edges[iid] != 0xffffffffu;
+    let crowd = select(density_taper(seg.facing, len, px), 1.0, cad_boundary || selected);
     let along = select(-1.0, 1.0, at_end1);
     let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + FILTER_REACH);
 
@@ -249,7 +300,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     let ndc = (p / vp - 0.5) * 2.0;
     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
     var color = unpack4x8unorm(seg.color) * inst.color;
-    if ((inst.flags & FLAG_SELECTED) != 0u || (edge_selection.x == seg.instance_id && edge_selection.y != 0xffffffffu && edge_selection.y == source_edges[iid])) {
+    if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
     }
     o.color = color;
@@ -263,12 +314,32 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
     o.segment_index = iid;
     o.source_edge = source_edges[iid];
     o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
+    o.start_join = join_plane(seg.previous, iid);
+    o.end_join = join_plane(iid, seg.next);
     return o;
+}
+
+@vertex
+fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+    return stroke_vertex(vid, 0u);
+}
+
+@vertex
+fn vs_unselected(@builtin(vertex_index) vid: u32) -> VsOut {
+    return stroke_vertex(vid, 1u);
+}
+
+@vertex
+fn vs_selected(@builtin(vertex_index) vid: u32) -> VsOut {
+    return stroke_vertex(vid, 2u);
 }
 
 // Coverage of the capsule at this fragment, in [0, 1], times the hairline fade. The capsule's
 // gradient is the unit vector from its axis, which straightens the cap arc inside one pixel.
 fn coverage(in: VsOut) -> f32 {
+    let pixel = vec2<f32>(in.pos.x, line.vp_h-in.pos.y);
+    if (dot(pixel-in.start_join.zw, in.start_join.xy) < 0.0) { return 0.0; }
+    if (any(in.end_join.xy != vec2<f32>(0.0)) && dot(pixel-in.end_join.zw, in.end_join.xy) >= 0.0) { return 0.0; }
     let pa = in.p - in.a;
     let ba = in.b - in.a;
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);

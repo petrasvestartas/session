@@ -26,6 +26,7 @@ pub(super) struct Planes {
     layout: wgpu::BindGroupLayout,
     sampler: wgpu::Sampler,
     pipeline: wgpu::RenderPipeline,
+    id_pipeline: wgpu::RenderPipeline,
     target: Target,
     pub(super) rasterizations: u64,
 }
@@ -62,14 +63,16 @@ impl Planes {
             min_filter: wgpu::FilterMode::Linear,
             ..Default::default()
         });
-        let pipeline = pipeline(ctx, target, &layout);
+        let id_pipeline = pipeline(ctx, Target::ID, &layout, true);
+        let pipeline = pipeline(ctx, target, &layout, false);
         Self {
             cached: Vec::new(),
             draws: Vec::new(),
-            vertices: GrowBuf::new(ctx, "world text vertices", 56, VERTS),
+            vertices: GrowBuf::new(ctx, "world text vertices", 68, VERTS),
             layout,
             sampler,
             pipeline,
+            id_pipeline,
             target,
             rasterizations: 0,
         }
@@ -78,7 +81,7 @@ impl Planes {
     /// Retarget only the draw pipeline; sampled coverage survives sample-count changes.
     pub(super) fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
         self.target = target;
-        self.pipeline = pipeline(ctx, target, &self.layout);
+        self.pipeline = pipeline(ctx, target, &self.layout, false);
     }
 
     /// Keep current source textures, grow resolution in powers of two, and project exact plane axes.
@@ -222,7 +225,20 @@ impl Planes {
         if self.draws.is_empty() {
             return 0;
         }
-        pass.set_pipeline(&self.pipeline);
+        self.draw_run(pass, &self.pipeline)
+    }
+
+    /// Picking uses exactly the visible plane footprint, excluding annotations with no owner.
+    pub(super) fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        self.draw_run(pass, &self.id_pipeline)
+    }
+
+    /// Both passes use retained projected vertices and the same clipping/depth test.
+    fn draw_run(&self, pass: &mut wgpu::RenderPass<'_>, pipeline: &wgpu::RenderPipeline) -> u32 {
+        if self.draws.is_empty() {
+            return 0;
+        }
+        pass.set_pipeline(pipeline);
         pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
         for &(index, start) in &self.draws {
             pass.set_bind_group(0, &self.cached[index].bind, &[]);
@@ -402,7 +418,7 @@ fn rasterize(
 
 /// Expand a shaped line into its fixed right/up axes; every vertex retains full clip coordinates.
 fn append_quad(
-    vertices: &mut Vec<[f32; 14]>,
+    vertices: &mut Vec<[f32; 17]>,
     label: &TextLabel,
     extent: [f32; 4],
     frame: &TextFrame,
@@ -459,14 +475,38 @@ fn append_quad(
         }
         let clip = project(point, frame);
         vertices.push([
-            clip[0], clip[1], clip[2], clip[3], u, v, color[0], color[1], color[2], color[3],
-            bounds[0], bounds[1], bounds[2], bounds[3],
+            clip[0],
+            clip[1],
+            clip[2],
+            clip[3],
+            u,
+            v,
+            color[0],
+            color[1],
+            color[2],
+            color[3],
+            bounds[0],
+            bounds[1],
+            bounds[2],
+            bounds[3],
+            f32::from_bits(label.object.map_or(0, |object| object.row + 1)),
+            if label.object.is_some_and(|object| object.selected) {
+                1.0
+            } else {
+                0.0
+            },
+            scale,
         ]);
     }
 }
 
 /// Coverage blending uses perspective-correct UVs and the same physical depth convention as solids.
-fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
+fn pipeline(
+    ctx: &GpuCtx,
+    target: Target,
+    layout: &wgpu::BindGroupLayout,
+    ids: bool,
+) -> wgpu::RenderPipeline {
     let shader = ctx
         .device
         .create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -482,9 +522,9 @@ fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout) -> wgp
         });
     ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("world text"), layout: Some(&pipeline_layout),
-        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 56, step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4] }], compilation_options: Default::default() },
-        fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some("fs_main"), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: Some(wgpu::BlendState::ALPHA_BLENDING), write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
+        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 68, step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32, 6 => Float32] }], compilation_options: Default::default() },
+        fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some(if ids { "fs_id" } else { "fs_main" }), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) }, write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
         primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::GreaterEqual), stencil: Default::default(), bias: Default::default() }),
         multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
     })
@@ -526,6 +566,7 @@ mod tests {
         };
         let baseline = gpu.render_offscreen(&input);
         let mut label = TextLabel {
+            object: None,
             id: 7,
             text: "Fixed plane".into(),
             font_size: 18.0,

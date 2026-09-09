@@ -58,7 +58,7 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
 // Keep the exact source object row available to the shared identity pass.
 @fragment
 fn fs_physical_id(fragment: Fragment) -> PhysicalId {
- return PhysicalId(vec2<u32>(fragment.object+1u, 0u), vec2<f32>(0.0));
+ return PhysicalId(vec2<u32>(fragment.object+1u, 0u), vec4<f32>(0.0));
 }
 
 @fragment

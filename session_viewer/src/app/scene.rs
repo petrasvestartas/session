@@ -3,6 +3,10 @@
 //! session into the tables; rows append during loading and rebuild explicitly after edits.
 //! Geometry preparation lives in `walk/`; this coordinator retains source ownership for picks.
 
+#[path = "scene_text.rs"]
+mod text;
+pub use text::SceneText;
+
 use crate::app::knobs;
 use crate::app::stream::{CloudFields, CloudLod};
 use crate::app::walk::bounds::{Baselines, file_extent, is_planar, mark_sheet};
@@ -95,8 +99,8 @@ struct Bases {
 /// The open document set, the pending upload and the row bookkeeping.
 pub struct Scene {
     pub docs: Vec<Doc>,
-    /// Authored world-plane text from the scene manifest, independent of object annotations.
-    pub texts: Vec<super::manifest::TextItem>,
+    /// Every source text placement shares ordinary scene identity and visibility.
+    pub texts: Vec<SceneText>,
     pub tables: Upload,
     pub streamed: Vec<StreamedCloud>,
     pub hidden: HashSet<(usize, Rc<str>)>,
@@ -158,6 +162,7 @@ impl Scene {
     /// path an edit commit takes. Streamed clouds cannot come back (no kernel object).
     pub fn rebuild(&mut self, gpu: &mut Gpu) {
         let docs = std::mem::take(&mut self.docs);
+        let texts = std::mem::take(&mut self.texts);
         self.tables = Upload::default();
         self.streamed.clear();
         self.order.clear();
@@ -183,7 +188,11 @@ impl Scene {
                 display_only: d.display_only,
             });
         }
+        for text in texts {
+            self.register_text(text.key, text.label, text.active);
+        }
         self.upload_to(gpu);
+        self.restore_text_visibility(gpu);
     }
 
     /// Upload the walked tables, then FORGET the rows: the GPU is their only holder.
@@ -412,6 +421,9 @@ impl Scene {
 
     /// The source object's name; unnamed geometry uses its type instead of its file name.
     pub fn object_name(&self, row: u32) -> &str {
+        if let Some(text) = self.text_at(row) {
+            return &text.label.text;
+        }
         let (name, kind) = match self.geometry(row) {
             Some(Geometry::OBB(value)) => (value.name.as_str(), "Box"),
             Some(Geometry::BRep(value)) => (value.name.as_str(), "BRep"),

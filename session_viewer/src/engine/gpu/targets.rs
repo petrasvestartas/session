@@ -87,7 +87,7 @@ impl Targets {
             "physical.gradient",
             &TextureSpec {
                 size,
-                format: wgpu::TextureFormat::Rg16Float,
+                format: wgpu::TextureFormat::Rgba16Float,
                 samples,
                 usage,
             },
@@ -97,7 +97,7 @@ impl Targets {
             "unused.gradient",
             &TextureSpec {
                 size: (1, 1),
-                format: wgpu::TextureFormat::Rg16Float,
+                format: wgpu::TextureFormat::Rgba16Float,
                 samples: other_samples,
                 usage,
             },

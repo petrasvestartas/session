@@ -57,6 +57,8 @@ struct VsOut {
     @location(4) @interpolate(flat) inst_id: u32,
     @location(5) @interpolate(flat) mirrored: u32,
     @location(6) @interpolate(flat) selected: u32,
+    @location(7) @interpolate(flat) source_face: u32,
+    @location(8) @interpolate(flat) primitive: u32,
 }
 
 // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
@@ -71,11 +73,11 @@ fn dead_vertex() -> VsOut {
     dead.inst_id = 0u;
     dead.mirrored = 0u;
     dead.selected = 0u;
+    dead.source_face = 0xffffffffu;
     return dead;
 }
 
-@vertex
-fn vs_main(in: VsIn) -> VsOut {
+fn transform_vertex(in: VsIn) -> VsOut {
     let inst = instances[in.inst_id];
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
         return dead_vertex();
@@ -95,7 +97,40 @@ fn vs_main(in: VsIn) -> VsOut {
     o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
     o.inst_id = in.inst_id;
     o.selected = inst.flags & FLAG_SELECTED;
+    o.source_face = 0xffffffffu;
     return o;
+}
+
+@vertex
+fn vs_main(in: VsIn) -> VsOut { return transform_vertex(in); }
+
+@group(3) @binding(0) var<storage, read> face_vertices: array<f32>;
+@group(3) @binding(1) var<storage, read> face_objects: array<u32>;
+@group(3) @binding(2) var<storage, read> face_indices: array<u32>;
+@group(3) @binding(3) var<storage, read> source_faces: array<u32>;
+@group(3) @binding(4) var<uniform> selected_face: vec4<u32>;
+
+fn pull_triangle(index: u32) -> VsOut {
+    let vertex = face_indices[index];
+    let start = vertex * 10u; // RenderVertex is ten tightly packed f32 values.
+    let position = vec3<f32>(face_vertices[start], face_vertices[start+1u], face_vertices[start+2u]);
+    let normal = vec3<f32>(face_vertices[start+3u], face_vertices[start+4u], face_vertices[start+5u]);
+    let color = vec3<f32>(face_vertices[start+6u], face_vertices[start+7u], face_vertices[start+8u]);
+    var out = transform_vertex(VsIn(position, normal, color, face_objects[vertex]));
+    out.primitive = index/3u+1u;
+    return out;
+}
+
+@vertex
+fn vs_triangle(@builtin(vertex_index) index: u32) -> VsOut { return pull_triangle(index); }
+
+@vertex
+fn vs_face(@builtin(vertex_index) index: u32) -> VsOut {
+    var out=pull_triangle(index);
+    out.source_face = source_faces[index/3u];
+    out.selected = select(0u, 1u, out.source_face != 0xffffffffu && out.source_face == selected_face.x);
+    if (out.selected != 0u) { out.color = SELECT_COLOR; }
+    return out;
 }
 
 // The direction a fragment sees the camera in: a ray from the point under perspective,
@@ -152,7 +187,8 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
 // The id pass: (object row + 1, 0).
 @fragment
 fn fs_id(in: VsOut) -> PhysicalId {
-    return PhysicalId(vec2<u32>(in.inst_id + 1u, 0u), physical_gradient(in.pos.z));
+    let sub = select((0x20000000u | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
+    return PhysicalId(vec2<u32>(in.inst_id + 1u, sub), physical_triangle(in.pos.z, in.primitive));
 }
 
 @fragment
@@ -163,5 +199,18 @@ fn fs_selection_mask(in: VsOut) -> @location(0) vec4<f32> {
 
 @fragment
 fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> PhysicalColor {
-    return PhysicalColor(shade(in, front), physical_gradient(in.pos.z));
+    return PhysicalColor(shade(in, front), physical_triangle(in.pos.z, in.primitive));
+}
+
+@fragment
+fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
+    if (in.selected == 0u) { discard; }
+    return shade(in, front);
+}
+
+// All visible solid faces contribute to one coverage mask. Touching or overlapping
+// objects create no artificial seam in the group's outside silhouette.
+@fragment
+fn fs_solid_mask(in: VsOut) -> @location(0) vec4<f32> {
+    return vec4<f32>(1.0);
 }

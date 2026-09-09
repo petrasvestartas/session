@@ -34,6 +34,7 @@ struct InkColor {
 
 // The stroke as one fragment sees it: the closest axis point, its depth, the unit screen
 // direction of the stroke and the axis's depth change per pixel along it.
+
 struct InkAxis {
     at: vec2<f32>,
     depth: f32,
@@ -42,6 +43,7 @@ struct InkAxis {
 };
 
 // A texel's physical depth at one sample; outside the viewport counts as cleared.
+
 fn ink_depth(pixel: vec2<f32>, sample: u32) -> f32 {
     if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w, line.vp_h))) {
         return 0.0;
@@ -55,6 +57,7 @@ fn ink_depth(pixel: vec2<f32>, sample: u32) -> f32 {
 
 // How far a fitted plane may miss: float precision plus the slope's snapping error over the
 // lever arm it was extrapolated across.
+
 fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
     return abs(depth) * DEPTH_REL_TOL + abs(slope) * SLOPE_PX * (1.0 + lever);
 }
@@ -64,6 +67,7 @@ fn ink_tolerance(depth: f32, slope: f32, lever: f32) -> f32 {
 // rasterizer's vertex snapping and by whatever kink a tessellation has there, while a step from
 // one surface to another is many times the slope. A cleared neighbour is no pair at all; cleared
 // beyond it means the surface ends there and the pair is all there is to fit.
+
 fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> bool {
     let z_side = ink_depth(pixel + dir, sample);
     if (z_side == 0.0) {
@@ -82,6 +86,7 @@ fn ink_pair_planar(pixel: vec2<f32>, dir: vec2<f32>, z: f32, sample: u32) -> boo
 // ink only when its surface passes THROUGH the axis, so a plane fitted in front of the axis
 // that lands behind it cannot uncover a covered stroke; a farther texel keeps the one-sided
 // compare, so a stroke still overhangs a silhouette at full width.
+
 fn ink_carry_visible(predicted: f32, z: f32, depth: f32, tolerance: f32) -> bool {
     if (z > depth + abs(depth) * DEPTH_REL_TOL) {
         return abs(predicted - depth) <= tolerance;
@@ -91,6 +96,7 @@ fn ink_carry_visible(predicted: f32, z: f32, depth: f32, tolerance: f32) -> bool
 
 // The unit texel step away from the stroke on this fragment's side, along the dominant
 // component of the perpendicular, so both texels of the fit lie on the fragment's surface.
+
 fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
     let perp = vec2<f32>(-axis.along.y, axis.along.x);
     var step = vec2<f32>(sign(perp.x), 0.0);
@@ -105,6 +111,7 @@ fn ink_step(pixel: vec2<f32>, axis: InkAxis) -> vec2<f32> {
 // or a touching neighbour the carry lands on the axis; a nearer occluder carries nearer and
 // hides the fragment even where the occluder recedes past the axis depth at this pixel; a
 // farther surface beyond a silhouette carries farther and the stroke overhangs it.
+
 fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) {
@@ -141,6 +148,7 @@ fn ink_axis_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
 // camera-facing billboard, so the whole of it stands or falls with its centre; comparing at
 // the fragment instead lets a grazing surface, which crosses the disc's own depth within a
 // few pixels of its radius, uncover the rim of a marker buried behind it.
+
 fn ink_disc_fragment_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) {
@@ -168,6 +176,7 @@ fn ink_disc_fragment_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sa
 }
 
 // Orthographic visibility uses parallel rays, independent of lateral camera position.
+
 fn toward_eye(point: vec3<f32>) -> vec3<f32> {
     if (line.ortho_h > 0.0) {
         return vec3<f32>(mvp[0].z, mvp[1].z, mvp[2].z);
@@ -177,6 +186,7 @@ fn toward_eye(point: vec3<f32>) -> vec3<f32> {
 
 // Test the footprint and its source centre at the same subpixel sample position.
 // Only a verified plane can veto the centre: a raw texel at a silhouette is ambiguous.
+
 fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
     if (!ink_disc_fragment_visible(pixel, centre, depth, sample)) {
         return false;
@@ -188,6 +198,7 @@ fn ink_disc_visible(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32
 // At a corner, independent x/y fits can belong to different faces. The diagonal must
 // agree too; try each quadrant so a boundary does not discard an otherwise valid fit.
 // The centre is hidden only when that complete plane lies strictly in front of it.
+
 fn ink_disc_source_hidden(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) {
@@ -222,7 +233,8 @@ fn ink_disc_source_hidden(pixel: vec2<f32>, centre: vec2<f32>, depth: f32, sampl
 
 
 // Use the physical primitive's own gradient even when it covers only one sample.
-fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
+
+fn ink_visible_plane(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let z = ink_depth(pixel, sample);
     if (z == 0.0) { return true; }
     var encoded = vec2<f32>(0.0);
@@ -233,4 +245,81 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let delta = axis.at - pixel;
     let predicted = z + dot(gradient, delta);
     return ink_carry_visible(predicted, z, axis.depth, ink_tolerance(axis.depth, abs(gradient.x)+abs(gradient.y), abs(delta.x)+abs(delta.y)));
+}
+@group(2) @binding(6) var<storage,read> projected: array<ProjectedTriangle>;
+
+// Return the index+1 of the exact opaque triangle that won this depth sample.
+
+fn ink_primitive(pixel: vec2<f32>, sample: u32) -> u32 {
+    if (any(pixel < vec2<f32>(0.0)) || any(pixel >= vec2<f32>(line.vp_w, line.vp_h))) {
+        return 0u;
+    }
+    if (SCENE_MSAA) {
+        return ink_decode_primitive(textureLoad(scene_gradient_msaa, vec2<i32>(pixel), i32(sample)).zw);
+    }
+    return ink_decode_primitive(textureLoad(scene_gradient_single, vec2<i32>(pixel), 0).zw);
+}
+@group(2) @binding(7) var<storage, read> triangle_tiles: array<vec4<u32>>;
+
+fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
+    if (ink_visible_plane(pixel, axis, sample)) {
+        return true;
+    }
+    if (triangle_tiles[0].x==0u) {
+        return false;
+    }
+    let fringe = ink_primitive(pixel, sample);
+    if (fringe==0u) {
+        return false;
+    }
+    let fringe_hit = projected_triangle_at(projected[fringe-1u], axis.at);
+    if (fringe_hit.y>0.5 && fringe_hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+        return false;
+    }
+    let source_base = floor(axis.at-fract(pixel))+fract(pixel);
+    for (var i = 0u;i<4u;i++) {
+        let primitive = ink_primitive(source_base+vec2<f32>(f32(i&1u), f32(i>>1u)), sample);
+        if (primitive==0u || primitive==fringe) {
+            continue;
+        }
+        let hit = projected_triangle_at(projected[primitive-1u], axis.at);
+        if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+            return false;
+        }
+    }
+    if (any(axis.at<vec2<f32>(0.0)) || any(axis.at>=vec2<f32>(line.vp_w, line.vp_h))) {
+        return false;
+    }
+    let size = vec2<u32>(ceil(vec2<f32>(line.vp_w, line.vp_h)/f32(visibility_tile_span())));
+    let cell = vec2<u32>(axis.at/f32(visibility_tile_span()));
+    let head = triangle_tiles[1u+cell.y*size.x+cell.x];
+    // An incomplete or overflowing list cannot prove that the axis is clear.
+    if (head.w!=0u || head.z!=head.x) {
+        return false;
+    }
+    for (var i = 0u;i<head.x;i++) {
+        let offset = head.y+i*2u;
+        let nearest = bitcast<f32>(triangle_tiles[(offset+1u)/4u][(offset+1u)%4u]);
+        if (nearest<=axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+            continue;
+        }
+        let primitive = triangle_tiles[offset/4u][offset%4u];
+        let bounds = projected[primitive-1u].bounds;
+        if (any(axis.at<bounds.xy-0.00390625) || any(axis.at>bounds.zw+0.00390625)) {
+            continue;
+        }
+        let hit = projected_triangle_at(projected[primitive-1u], axis.at);
+        if (hit.y>0.5 && hit.x>axis.depth+abs(axis.depth)*DEPTH_REL_TOL) {
+            return false;
+        }
+    }
+    return true;
+}
+
+fn ink_decode_primitive(encoded: vec2<f32>) -> u32 {
+    if (any(encoded==vec2<f32>(0.0))) {
+        return 0u;
+    }
+    let packed = pack2x16float(encoded);
+    return ((packed&0xffffu)-0x400u) | (((packed>>16u)-0x400u)<<14u);
 }

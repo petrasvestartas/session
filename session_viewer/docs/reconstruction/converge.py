@@ -26,8 +26,8 @@ def verify(workspace, production=None):
     if series["production_tree"] != baseline["tree_sha256"]:
         raise ValueError("tutorial series targets a different production freeze")
     final = series["steps"][-1]
-    if final["id"] != "16":
-        raise ValueError("production convergence requires checkpoint 16")
+    if final["id"] != baseline.get("final_checkpoint", "16"):
+        raise ValueError("final checkpoint differs from the production inventory")
     replay.check_files(workspace, final["files"])
     same, packaging = {}, {}
     for name, checksum in sorted(baseline["files"].items()):

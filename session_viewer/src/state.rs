@@ -14,7 +14,8 @@ use crate::engine::gpu::segments::SegRows;
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
-use crate::engine::text::{TextLabel, TextPlacement};
+mod cloud_query;
+mod text;
 use std::sync::Arc;
 use winit::window::Window;
 
@@ -44,8 +45,6 @@ pub struct State {
     controls: Controls,
     requested: PickMode,
     pub selection_radius_css: f64,
-    /// Document annotations are prepared only when documents change, never on camera motion.
-    scene_labels: Vec<TextLabel>,
     /// A view preference retained across selections and scene reloads; T toggles it.
     show_selected_names: bool,
     cloud_query: Option<crate::app::cloud_query::Query>,
@@ -72,7 +71,6 @@ impl State {
             controls: Controls::default(),
             requested: PickMode::Object,
             selection_radius_css: 6.0,
-            scene_labels: Vec::new(),
             show_selected_names: true,
             cloud_query: None,
             #[cfg(target_arch = "wasm32")]
@@ -112,9 +110,8 @@ impl State {
 
     /// Replace authored scene text after the corresponding manifest/geometry revision is ready.
     pub fn set_texts(&mut self, texts: Vec<crate::app::manifest::TextItem>) {
-        self.scene.texts = texts;
+        self.scene.set_texts(texts, &mut self.gpu);
         self.update_label();
-        self.include_text_bounds();
         self.touch();
     }
 
@@ -141,8 +138,8 @@ impl State {
     /// Drop every document; the canvas, device and camera stay.
     pub fn clear(&mut self) {
         self.selection = SelectionMode::Object;
+        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
-        self.scene_labels.clear();
         self.scene.clear(&mut self.gpu);
         self.touch();
     }
@@ -198,7 +195,7 @@ impl State {
 
     /// Ask what is under pixel (x, y); the answer lands in a later frame (`apply_pick`).
     pub fn request_pick(&mut self, x: u32, y: u32) {
-        self.request_selection(x, y, false);
+        self.request_selection(x, y, false, false);
     }
 
     /// The picture changed: the next redraw presents it.
@@ -212,6 +209,7 @@ impl State {
     /// Make `row` the selection (or none), moving the highlight.
     pub fn select(&mut self, row: Option<u32>) {
         self.selection = SelectionMode::Object;
+        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
         self.gpu.controls.reset();
         self.gpu.control_net.reset();
@@ -248,6 +246,7 @@ impl State {
         self.select(None);
         self.scene.hidden.insert(guid);
         self.gpu.set_hidden(row, true);
+        self.update_label();
         self.touch();
     }
 
@@ -257,6 +256,7 @@ impl State {
             self.gpu.set_hidden(row, false);
         }
         self.scene.hidden.clear();
+        self.update_label();
         self.touch();
     }
 
@@ -268,7 +268,7 @@ impl State {
             return;
         }
         match self.requested {
-            PickMode::Edge => {
+            PickMode::Edge | PickMode::Component => {
                 if let Some(pick) = pick
                     && let Some(edge) = self.scene.edge_at(pick)
                 {
@@ -279,6 +279,23 @@ impl State {
                         .segments
                         .set_edge(&self.gpu.ctx, Some((pick.row, edge)));
                     self.status(&format!("Edge {edge} selected"));
+                } else if self.requested == PickMode::Component
+                    && let Some(pick) = pick
+                    && let Some((address, source)) =
+                        self.gpu.arena.source_faces.source(pick.row, pick.sub)
+                {
+                    self.select(Some(source.parent));
+                    self.gpu.set_selected(source.parent, false);
+                    self.gpu.selection_outline.set_selected(source.parent, true);
+                    self.selection = SelectionMode::Face {
+                        parent: source.parent,
+                        face: source.face,
+                    };
+                    self.gpu
+                        .arena
+                        .source_faces
+                        .select(&self.gpu.ctx, Some(address));
+                    self.status(&format!("Face {} selected", source.face));
                 }
                 return;
             }
@@ -418,14 +435,16 @@ impl State {
     }
 
     /// A pointer gesture chooses one pass; Ctrl never also performs ordinary selection.
-    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool) {
+    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
         self.cancel_cloud_query();
         self.gpu.pick.cancel();
         #[cfg(target_arch = "wasm32")]
         if !edge && self.start_cloud_query(x, y) {
             return;
         }
-        let mode = if edge {
+        let mode = if face {
+            PickMode::Component
+        } else if edge {
             PickMode::Edge
         } else {
             match self.selection {
@@ -471,6 +490,7 @@ impl State {
             return;
         }
         self.selection.enable_controls(Some(parent), controls.cloud);
+        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.gpu.segments.set_edge(&self.gpu.ctx, None);
         self.gpu.set_selected(parent, false);
         self.gpu
@@ -576,306 +596,6 @@ impl State {
         self.touch();
     }
 
-    /// A source-query page owns GPU readback while ordinary color rendering is paused.
-    fn cloud_query_awaiting_gpu(&self) -> bool {
-        match &self.cloud_query {
-            Some(query) => query.awaiting_gpu,
-            None => false,
-        }
-    }
-
-    /// Locate the streamed descriptor belonging to the active source parent.
-    fn streamed_slot(&self, parent: u32) -> Option<usize> {
-        for (slot, cloud) in self.scene.streamed.iter().enumerate() {
-            if cloud.row == parent {
-                return Some(slot);
-            }
-        }
-        None
-    }
-
-    /// Superseding input invalidates both HTTP callbacks and GPU readback for the query.
-    fn cancel_cloud_query(&mut self) {
-        if self.cloud_query.take().is_some() {
-            self.gpu.pick.cancel();
-            self.upload_controls();
-            self.status("Point query cancelled because the view or selection changed");
-        }
-    }
-
-    /// F10 on a streamed cloud queries source ranges independently of display residency.
-    #[cfg(target_arch = "wasm32")]
-    fn start_cloud_query(&mut self, x: u32, y: u32) -> bool {
-        use crate::app::cloud_query::{Query, QueryView};
-        let SelectionMode::Controls {
-            parent,
-            cloud: true,
-            ..
-        } = self.selection
-        else {
-            return false;
-        };
-        let Some(slot) = self.streamed_slot(parent) else {
-            return false;
-        };
-        self.gpu.pick.cancel();
-        self.query_generation = self.query_generation.wrapping_add(1);
-        let cloud = &self.scene.streamed[slot];
-        let projection = self
-            .camera
-            .view_proj_anchored(self.aspect(), &session_rust::Point::new(0.0, 0.0, 0.0));
-        let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
-        let view = QueryView {
-            matrix: crate::math::mat_mul(&projection.m, &cloud.place),
-            size: [
-                f64::from(self.gpu.config.width),
-                f64::from(self.gpu.config.height),
-            ],
-            at: [x, y],
-            radius: (self.selection_radius_css * scale).ceil().clamp(1.0, 128.0) + 3.5 * scale,
-        };
-        self.cloud_query = Some(Query::new(self.query_generation, cloud, view));
-        self.gpu.pick.start_source_query();
-        self.advance_cloud_query();
-        true
-    }
-
-    /// Fetch one page, or resolve the final winner only after all eligible pages finished.
-    #[cfg(target_arch = "wasm32")]
-    fn advance_cloud_query(&mut self) {
-        let Some(query) = self.cloud_query.as_mut() else {
-            return;
-        };
-        query.awaiting_gpu = false;
-        query.candidates.clear();
-        if let Some(page) = query.next_page() {
-            let progress = format!(
-                "Checking source points: {} / {} (display LOD remains bounded)",
-                query.checked, query.total
-            );
-            crate::app::cloud_query::fetch_page(query, page);
-            self.status(&progress);
-        } else if let Some(best) = query.best {
-            crate::app::cloud_query::resolve_id(query, best);
-            self.status("All eligible source points checked; resolving original point ID…");
-        } else {
-            self.cloud_query = None;
-            self.gpu.pick.cancel();
-            self.status("No visible source point in the selection window");
-        }
-        self.upload_controls();
-    }
-
-    /// A range callback belongs to exactly one camera/scene/parent generation.
-    #[cfg(target_arch = "wasm32")]
-    pub fn cloud_query_batch(&mut self, batch: crate::app::cloud_query::Batch) {
-        let Some(query) = self.cloud_query.as_mut() else {
-            return;
-        };
-        if query.id != batch.query || query.cancelled.get() {
-            return;
-        }
-        let (candidates, revision) = match batch.result {
-            Ok(result) => result,
-            Err(error) => {
-                self.cloud_query = None;
-                self.gpu.pick.cancel();
-                self.upload_controls();
-                self.status(&format!("Point query failed: {error}"));
-                return;
-            }
-        };
-        query.checked += batch.count;
-        query.revision = revision;
-        if candidates.is_empty() {
-            self.advance_cloud_query();
-            return;
-        }
-        query.candidates = candidates;
-        query.awaiting_gpu = true;
-        let parent = query.parent;
-        let at = query.view.at;
-        let scale = f64::from(self.gpu.config.width) / self.logical_size()[0];
-        let query = self.cloud_query.as_ref().unwrap();
-        let mut glyphs = GlyphRows::default();
-        for candidate in &query.candidates {
-            glyphs.dots.push(GlyphPoint {
-                center: render_position(candidate.position),
-                radius: -3.5 * scale as f32,
-                color: [0.15, 0.35, 0.9, 1.0],
-                instance_id: parent,
-                facing: FACING_UNKNOWN,
-                facing_ext: [candidate.local, FACING_UNKNOWN],
-            });
-        }
-        self.gpu.controls.reset();
-        self.gpu
-            .controls
-            .append(&self.gpu.ctx, &self.gpu.layouts, &glyphs);
-        // These candidates are ID targets only. The normal frame never presents this page.
-        self.requested = PickMode::Controls {
-            parent,
-            cloud: false,
-        };
-        self.gpu
-            .pick
-            .configure(self.requested, self.selection_radius_css, scale);
-        self.gpu.pick.request(at[0], at[1]);
-        self.needs_frame = true;
-    }
-
-    /// Fold this page's GPU-visible answer, then continue through every remaining node.
-    #[cfg(target_arch = "wasm32")]
-    fn apply_cloud_query_pick(&mut self, pick: Option<Pick>) {
-        let Some(query) = self.cloud_query.as_mut() else {
-            return;
-        };
-        // This is the winner of the accumulated physical source-point depth, including
-        // previous pages. Its exact source position is range-read after the final page.
-        query.best = match pick {
-            Some(pick) if pick.row == query.parent && pick.sub < query.fields.count => {
-                Some(pick.sub)
-            }
-            _ => None,
-        };
-        self.advance_cloud_query();
-    }
-
-    /// Keep the actual chosen source position visible, even when it is outside the resident LOD.
-    #[cfg(target_arch = "wasm32")]
-    pub fn cloud_query_resolved(&mut self, resolved: crate::app::cloud_query::Resolved) {
-        let Some(query) = self.cloud_query.as_ref() else {
-            return;
-        };
-        if query.id != resolved.query || query.cancelled.get() {
-            return;
-        }
-        let query = self.cloud_query.take().unwrap();
-        let (source, position) = match resolved.result {
-            Ok(result) => result,
-            Err(error) => {
-                self.gpu.pick.cancel();
-                self.upload_controls();
-                self.status(&format!("Point query failed: {error}"));
-                return;
-            }
-        };
-        let Some(best) = query.best else { return };
-        let id = ControlId::Point(source);
-        self.selection = SelectionMode::Controls {
-            parent: query.parent,
-            selected: Some(id),
-            cloud: true,
-        };
-        self.controls.points = vec![crate::app::selection::Control { id, position }];
-        self.gpu.splat.set_point(None);
-        self.upload_controls();
-        self.status(&format!(
-            "Selected source point {source} (row {}); all {} eligible points checked",
-            best, query.total
-        ));
-        self.touch();
-    }
-
-    /// Keep one readable source-document title above each loaded CAD group.
-    /// Only the newly appended rows are visited; large scenes are not scanned on selection.
-    fn annotate_document(&mut self, first_row: usize) {
-        let mut bounds = crate::math::Aabb::empty();
-        for index in first_row..self.scene.object_count() {
-            let row = index as u32;
-            if matches!(
-                self.scene.geometry(row),
-                Some(session_rust::Geometry::BRep(_) | session_rust::Geometry::NurbsSurface(_))
-            ) && let Some(object) = self.gpu.objects.row_bounds(row)
-            {
-                bounds.union(&object);
-            }
-        }
-        if !bounds.is_finite() {
-            return;
-        }
-        let Some(document) = self.scene.docs.last() else {
-            return;
-        };
-        let mut anchor = label_center(&bounds);
-        anchor[2] = f64::from(bounds.max[2]) + f64::from(bounds.diagonal()) * 0.08;
-        self.scene_labels.push(nameplate(
-            self.scene.docs.len() as u32,
-            document.name.clone(),
-            anchor,
-        ));
-    }
-
-    /// Source-document text and the selected object's centered name share a fixed white style.
-    fn update_label(&mut self) {
-        let mut labels = self.scene_labels.clone();
-        for (index, text) in self.scene.texts.iter().enumerate() {
-            labels.push(TextLabel {
-                id: (self.scene.docs.len() + index + 1) as u32,
-                text: text.text.clone(),
-                font_size: 18.0,
-                line_height: 26.0,
-                color: [255; 4],
-                placement: TextPlacement::WorldPlane {
-                    world: text.at,
-                    right: text.right,
-                    up: text.up,
-                    world_height: text.height,
-                },
-                clip: None,
-            });
-        }
-        if self.show_selected_names
-            && !matches!(self.selection, SelectionMode::Controls { .. })
-            && let Some(row) = self.scene.selected
-            && let Some(bounds) = self.gpu.objects.row_bounds(row)
-        {
-            // Text ID 0 belongs to selection; document IDs start at 1, independent of rows.
-            labels.push(nameplate(
-                0,
-                self.scene.object_name(row).to_string(),
-                label_center(&bounds),
-            ));
-        }
-        if let Err(error) = self.gpu.text.set_labels(labels) {
-            self.status(&format!("Text: {error}"));
-        }
-    }
-
-    /// Include authored text planes in camera fitting using shaped extents and their fixed frame.
-    fn include_text_bounds(&mut self) {
-        for run in &self.gpu.text.document.runs {
-            let TextPlacement::WorldPlane {
-                world,
-                right,
-                up,
-                world_height,
-            } = run.label.placement
-            else {
-                continue;
-            };
-            let unit = world_height / f64::from(run.label.font_size);
-            let mut width = 0.0f64;
-            let mut height = 0.0f64;
-            for line in run.buffer.layout_runs() {
-                width = width.max(f64::from(line.line_w) * unit);
-                height = height.max(f64::from(line.line_top + line.line_height) * unit);
-            }
-            let padding = world_height * 0.125;
-            for x in [-padding, width + padding] {
-                for y in [-padding, height + padding] {
-                    let mut point = [0.0f32; 3];
-                    for axis in 0..3 {
-                        point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
-                    }
-                    if point.into_iter().all(f32::is_finite) {
-                        self.gpu.bounds.grow(point);
-                    }
-                }
-            }
-        }
-    }
-
     /// Non-disruptive interaction feedback also remains available to native diagnostics.
     fn status(&self, message: &str) {
         #[cfg(target_arch = "wasm32")]
@@ -919,39 +639,4 @@ impl State {
 /// Convert a retained source position at the temporary GPU-control upload boundary.
 fn render_position(position: [f64; 3]) -> [f32; 3] {
     [position[0] as f32, position[1] as f32, position[2] as f32]
-}
-
-/// Center a viewer annotation in the object's world-space bounds before camera projection.
-fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
-    let mut center = [0.0; 3];
-    for (axis, coordinate) in center.iter_mut().enumerate() {
-        *coordinate = (f64::from(bounds.min[axis]) + f64::from(bounds.max[axis])) * 0.5;
-    }
-    center
-}
-
-/// White-on-black annotations; selection ID 0 uses 75% of the document title size.
-fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
-    let scale = if id == 0 { 0.75 } else { 1.0 };
-    let line_height = 26.0 * scale;
-    let vertical_padding = 4.0 * scale;
-    // A full cap radius at each end keeps the entire text line inside the straight section.
-    let horizontal_padding = if id == 0 {
-        line_height * 0.5 + vertical_padding
-    } else {
-        6.0 * scale
-    };
-    TextLabel {
-        id,
-        text,
-        font_size: 18.0 * scale,
-        line_height,
-        color: [255; 4],
-        placement: TextPlacement::Nameplate {
-            world,
-            padding: [horizontal_padding, vertical_padding],
-            rounded: id == 0,
-        },
-        clip: None,
-    }
 }

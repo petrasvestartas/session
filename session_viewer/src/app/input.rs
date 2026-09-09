@@ -20,6 +20,7 @@ pub struct Input {
     orbiting: bool,
     panning: bool,
     ctrl: bool,
+    shift: bool,
     last_cursor: (f64, f64),
     left_down: Option<(f64, f64)>,
     touch: Touches,
@@ -39,6 +40,7 @@ impl Input {
             orbiting: false,
             panning: false,
             ctrl: false,
+            shift: false,
             last_cursor: (0.0, 0.0),
             left_down: None,
             touch: Touches::new(),
@@ -66,6 +68,9 @@ impl Input {
             Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
             Key::Character("e" | "E") => {
                 state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
+            }
+            Key::Character("o" | "O") => {
+                state.gpu.view.show_outlines = !state.gpu.view.show_outlines
             }
             Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
             Key::Character("h" | "H") => state.hide_selected(),
@@ -128,6 +133,7 @@ impl Input {
             }
             WindowEvent::ModifiersChanged(mods) => {
                 self.ctrl = mods.state().control_key();
+                self.shift = mods.state().shift_key();
                 false
             }
             WindowEvent::Focused(false) => {
@@ -156,6 +162,7 @@ impl Input {
         self.orbiting = false;
         self.panning = false;
         self.ctrl = false;
+        self.shift = false;
         self.left_down = None;
         self.touch = Touches::new();
     }
@@ -183,6 +190,7 @@ impl Input {
                     self.last_cursor.0 as u32,
                     self.last_cursor.1 as u32,
                     self.ctrl,
+                    self.ctrl && self.shift,
                 );
                 false
             }

@@ -1,0 +1,4562 @@
+diff --git a/session_viewer/examples/mk_mixed_solids.rs b/session_viewer/examples/mk_mixed_solids.rs
+index fb721009f58d790cc96d3ef10fd00ac0c830b826..ac5e29a60c6c0fbc597833ee5d8f24d9e8c39745
+--- a/session_viewer/examples/mk_mixed_solids.rs
++++ b/session_viewer/examples/mk_mixed_solids.rs
+@@ -69,18 +69,14 @@
+     points
+ }
+ 
+-/// 13 points of a closed-ish ring of radius 250 mm at z = 600 in slot `i`, tilted in z.
+-fn loop_points(i: usize) -> Vec<Point> {
+-    let mut points = Vec::with_capacity(13);
+-    for k in 0..13 {
+-        let a = k as f64 / 12.0 * 2.0 * std::f64::consts::PI;
+-        points.push(Point::new(
+-            slot(i) + 250.0 * a.cos(),
+-            row(i) + 250.0 * a.sin(),
+-            600.0 + 120.0 * a.sin(),
+-        ));
+-    }
+-    points
++/// An exact rational circle, tilted as one rigid plane with a smooth closed seam.
++fn circle(i: usize) -> NurbsCurve {
++    let mut circle = session_rust::Primitives::circle(0.0, 0.0, 0.0, 250.0);
++    circle.transform(&Xform::rotation_x((120.0_f64 / 250.0).atan(), false));
++    circle.transform(&Xform::translation(slot(i), row(i), 600.0));
++    circle.linecolors = vec![Color::blue()];
++    circle.name = "circle".into();
++    circle
+ }
+ 
+ /// 5 points lying exactly on the top face of the box in slot `i`, whose top is at `z`.
+@@ -212,7 +208,7 @@
+     // the box top at z = 250, so its ink must survive the face it sits on.
+     s.add_nurbscurve(curve(&helix_points(7), Color::blue(), "helix"), None);
+     s.add_nurbscurve(curve(&s_curve_points(8), Color::blue(), "s_curve"), None);
+-    s.add_nurbscurve(curve(&loop_points(9), Color::blue(), "ring"), None);
++    s.add_nurbscurve(circle(9), None);
+     s.add_nurbscurve(
+         curve(&box_top_points(0, 250.0), Color::red(), "on_box_top"),
+         None,
+diff --git a/session_viewer/examples/mk_selection_overlap.rs b/session_viewer/examples/mk_selection_overlap.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..1b18058839d10cd5d437e0533ca1d4daf26c85ee
+--- /dev/null
++++ b/session_viewer/examples/mk_selection_overlap.rs
+@@ -0,0 +1,184 @@
++//! Selected-stroke fixtures with identical-geometry controls and original source identities.
++//! Run with an output directory; the native check uses `VIEWER_SELECT=selected target`.
++
++use serde::Serialize;
++use session_rust::{Color, Mesh, Point, Polyline, Session, Xform};
++use std::path::{Path, PathBuf};
++
++type Position = [f64; 3];
++type Segment = [Position; 2];
++
++/// Original coordinates let both native captures and real browser clicks inspect one source.
++#[derive(Serialize)]
++struct Case {
++    kind: &'static str,
++    guid: String,
++    pick: Position,
++    segments: Vec<Segment>,
++    focus: Option<Position>,
++    hidden: Option<Segment>,
++}
++
++/// A black source polyline, with an exposed lead when its inspected part overlaps another row.
++fn line(points: &[Position], name: &str) -> Polyline {
++    let mut polyline = Polyline::new(
++        points
++            .iter()
++            .map(|point| Point::new(point[0], point[1], point[2]))
++            .collect(),
++    );
++    polyline.name = name.into();
++    polyline.linecolor = Color::black();
++    polyline
++}
++
++/// Controls suppress mesh ink while retaining exactly the same solid and physical occlusion.
++fn mesh(size: Position, at: Position, reference: bool) -> Mesh {
++    let mut mesh = Mesh::create_box(size[0], size[1], size[2]);
++    mesh.transform(&Xform::translation(at[0], at[1], at[2]));
++    mesh.set_objectcolor(Color::grey());
++    let count = mesh.edges_with_colors().len();
++    // One width per edge avoids the single-zero-width convention for print fills.
++    mesh.set_linecolors(
++        vec![Color::black(); count],
++        vec![if reference { 0.0 } else { 1.0 }; count],
++    );
++    mesh
++}
++
++/// Perimeter, straight covered span, or a straight overlap with a unique picking lead.
++fn target_points(kind: &str) -> Vec<Position> {
++    match kind {
++        "mesh_perimeter" => vec![
++            [-420.0, -300.0, 0.0],
++            [-300.0, -200.0, 0.0],
++            [300.0, -200.0, 0.0],
++            [300.0, 200.0, 0.0],
++            [-300.0, 200.0, 0.0],
++            [-300.0, -200.0, 0.0],
++        ],
++        "covered" => vec![[-450.0, 0.0, 0.0], [450.0, 0.0, 0.0]],
++        _ => vec![[-420.0, -100.0, 0.0], [-300.0, 0.0, 0.0], [300.0, 0.0, 0.0]],
++    }
++}
++
++/// Preserve source order and target GUID in the actual and transparent-ink control scenes.
++fn scene(kind: &str, target: &Polyline, reference: bool) -> Session {
++    let mut scene = Session::new(kind);
++    let mut other = line(
++        if kind == "crossing" {
++            &[[0.0, -180.0, 0.0], [0.0, 180.0, 0.0]]
++        } else {
++            &[[-300.0, 0.0, 0.0], [300.0, 0.0, 0.0]]
++        },
++        "unselected black stroke",
++    );
++    if reference {
++        other.linecolor = Color::new(0.0, 0.0, 0.0, 0.0);
++    }
++    match kind {
++        "mesh_perimeter" => {
++            scene.add_mesh(
++                mesh([600.0, 400.0, 100.0], [0.0, 0.0, -50.0], reference),
++                None,
++            );
++            scene.add_polyline(target.clone(), None);
++        }
++        "covered" => {
++            scene.add_mesh(
++                mesh([400.0, 250.0, 120.0], [0.0, 0.0, 80.0], reference),
++                None,
++            );
++            scene.add_polyline(target.clone(), None);
++        }
++        "coincident_target_last" => {
++            scene.add_polyline(other, None);
++            scene.add_polyline(target.clone(), None);
++        }
++        _ => {
++            scene.add_polyline(target.clone(), None);
++            scene.add_polyline(other, None);
++        }
++    }
++    scene
++}
++
++/// Measure long overlap cores, the exact crossing, and a strictly covered interior span.
++fn specification(kind: &'static str, target: &Polyline) -> Case {
++    let (pick, segments, focus, hidden) = match kind {
++        "mesh_perimeter" => (
++            [-390.0, -275.0, 0.0],
++            vec![
++                [[-280.0, -200.0, 0.0], [280.0, -200.0, 0.0]],
++                [[300.0, -180.0, 0.0], [300.0, 180.0, 0.0]],
++                [[280.0, 200.0, 0.0], [-280.0, 200.0, 0.0]],
++                [[-300.0, 180.0, 0.0], [-300.0, -180.0, 0.0]],
++            ],
++            None,
++            None,
++        ),
++        "covered" => (
++            [-350.0, 0.0, 0.0],
++            vec![
++                [[-430.0, 0.0, 0.0], [-240.0, 0.0, 0.0]],
++                [[240.0, 0.0, 0.0], [430.0, 0.0, 0.0]],
++            ],
++            None,
++            Some([[-170.0, 0.0, 0.0], [170.0, 0.0, 0.0]]),
++        ),
++        _ => (
++            [-390.0, -75.0, 0.0],
++            vec![[[-280.0, 0.0, 0.0], [280.0, 0.0, 0.0]]],
++            if kind == "crossing" {
++                Some([0.0; 3])
++            } else {
++                None
++            },
++            None,
++        ),
++    };
++    Case {
++        kind,
++        guid: target.guid().to_string(),
++        pick,
++        segments,
++        focus,
++        hidden,
++    }
++}
++
++/// Write five paired PB fixtures and the source-coordinate inspection manifest.
++fn generate(output: &Path) -> anyhow::Result<()> {
++    std::fs::create_dir_all(output)?;
++    let mut cases = Vec::new();
++    for kind in [
++        "mesh_perimeter",
++        "coincident_target_first",
++        "coincident_target_last",
++        "crossing",
++        "covered",
++    ] {
++        let target = line(&target_points(kind), "selected target");
++        // Force the GUID before cloning so both files retain the same producer identity.
++        cases.push(specification(kind, &target));
++        for reference in [false, true] {
++            let suffix = if reference { "-reference" } else { "" };
++            let path = output.join(format!("{kind}{suffix}.pb"));
++            scene(kind, &target, reference).pb_dump(path.to_str().expect("UTF-8 fixture path"));
++        }
++    }
++    std::fs::write(
++        output.join("cases.json"),
++        serde_json::to_vec_pretty(&cases)?,
++    )?;
++    Ok(())
++}
++
++/// The test runner normally supplies its own output directory under Cargo's target tree.
++fn main() -> anyhow::Result<()> {
++    let output = std::env::args_os()
++        .nth(1)
++        .map(PathBuf::from)
++        .unwrap_or_else(|| PathBuf::from("target/selection-overlap/fixtures"));
++    generate(&output)
++}
+diff --git a/session_viewer/examples/mk_stroke_joins.rs b/session_viewer/examples/mk_stroke_joins.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b73420db32bd9daa36f1483c57a0541214924276
+--- /dev/null
++++ b/session_viewer/examples/mk_stroke_joins.rs
+@@ -0,0 +1,66 @@
++//! Source-coordinate fixtures for joined-stroke continuity and subdivision opacity.
++
++use serde::Serialize;
++use session_rust::{Color, Point, Polyline, Session};
++use std::path::PathBuf;
++
++/// The checker projects these original vertices using each capture's actual camera.
++#[derive(Serialize)]
++struct Case {
++    name: &'static str,
++    points: Vec<[f64; 3]>,
++}
++
++fn main() -> anyhow::Result<()> {
++    let output = PathBuf::from(
++        std::env::args()
++            .nth(1)
++            .unwrap_or_else(|| "stroke-joins".into()),
++    );
++    std::fs::create_dir_all(&output)?;
++    let mut circle: Vec<_> = (0..24)
++        .map(|index| {
++            let angle = std::f64::consts::TAU * index as f64 / 24.0;
++            [200.0 * angle.cos(), 200.0 * angle.sin(), 0.0]
++        })
++        .collect();
++    circle.push(circle[0]); // Exact closure also tests the last-to-first adjacency.
++    let cases = [
++        Case {
++            name: "straight",
++            points: vec![[-200.0, 0.0, 0.0], [200.0, 0.0, 0.0]],
++        },
++        Case {
++            name: "dense_straight",
++            points: (0..=2048)
++                .map(|index| [-200.0 + 400.0 * index as f64 / 2048.0, 0.0, 0.0])
++                .collect(),
++        },
++        Case {
++            name: "circle",
++            points: circle,
++        },
++        Case {
++            name: "acute",
++            points: vec![[-200.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-180.0, 20.0, 0.0]],
++        },
++    ];
++    for case in &cases {
++        let mut scene = Session::new(case.name);
++        let mut line = Polyline::new(
++            case.points
++                .iter()
++                .map(|point| Point::new(point[0], point[1], point[2]))
++                .collect(),
++        );
++        line.name = "joined stroke".into();
++        line.linecolor = Color::blue();
++        scene.add_polyline(line, None);
++        scene.pb_dump(output.join(format!("{}.pb", case.name)).to_str().unwrap());
++    }
++    std::fs::write(
++        output.join("cases.json"),
++        serde_json::to_vec_pretty(&cases)?,
++    )?;
++    Ok(())
++}
+diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
+index 675ff5acf7a4b43ed793f1689f2481c22fa13457..0eaadd59b1f6243fc4ba7f43e5a8752a115b0ca2
+--- a/session_viewer/src/app/input.rs
++++ b/session_viewer/src/app/input.rs
+@@ -20,6 +20,7 @@
+     orbiting: bool,
+     panning: bool,
+     ctrl: bool,
++    shift: bool,
+     last_cursor: (f64, f64),
+     left_down: Option<(f64, f64)>,
+     touch: Touches,
+@@ -39,6 +40,7 @@
+             orbiting: false,
+             panning: false,
+             ctrl: false,
++            shift: false,
+             last_cursor: (0.0, 0.0),
+             left_down: None,
+             touch: Touches::new(),
+@@ -67,6 +69,9 @@
+             Key::Character("e" | "E") => {
+                 state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
+             }
++            Key::Character("o" | "O") => {
++                state.gpu.view.show_outlines = !state.gpu.view.show_outlines
++            }
+             Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
+             Key::Character("h" | "H") => state.hide_selected(),
+             Key::Character("s" | "S") => state.show_all(),
+@@ -128,6 +133,7 @@
+             }
+             WindowEvent::ModifiersChanged(mods) => {
+                 self.ctrl = mods.state().control_key();
++                self.shift = mods.state().shift_key();
+                 false
+             }
+             WindowEvent::Focused(false) => {
+@@ -156,6 +162,7 @@
+         self.orbiting = false;
+         self.panning = false;
+         self.ctrl = false;
++        self.shift = false;
+         self.left_down = None;
+         self.touch = Touches::new();
+     }
+@@ -183,6 +190,7 @@
+                     self.last_cursor.0 as u32,
+                     self.last_cursor.1 as u32,
+                     self.ctrl,
++                    self.ctrl && self.shift,
+                 );
+                 false
+             }
+diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
+index 201bb720e18e4150a9a224e32c9d789f35f65604..f117af87c56947351a7eceaf41d29a3831e6823b
+--- a/session_viewer/src/app/inspection.rs
++++ b/session_viewer/src/app/inspection.rs
+@@ -53,6 +53,7 @@
+         "canvas": [state.gpu.config.width, state.gpu.config.height],
+         "logical_canvas": state.gpu.logical_size,
+         "samples": state.gpu.targets.samples,
++        "outlines": state.gpu.view.show_outlines,
+         "source_cpu_known_payload_bytes": source_memory.known_bytes(),
+         "source_cpu_known_payload": source_memory,
+         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
+@@ -100,12 +101,17 @@
+         }
+         labels.push(serde_json::json!({
+             "id": run.label.id,
++            "object": run.label.object.map(|object| object.row),
+             "text": run.label.text,
+             "font_size": run.label.font_size,
+             "line_height": run.label.line_height,
+             "color": run.label.color,
+             "placement": kind,
+             "world": world,
++            "world_height": match run.label.placement {
++                TextPlacement::WorldBillboard { world_height, .. } => Some(world_height),
++                _ => None,
++            },
+             "padding": padding,
+             "rounded": matches!(run.label.placement, TextPlacement::Nameplate { rounded: true, .. }),
+             "line_box": [width, height],
+diff --git a/session_viewer/src/app/manifest.rs b/session_viewer/src/app/manifest.rs
+index 1e2a350a62ad2de66a89d65dd72a1eb890c317ef..741a96e0a99919062320db5a9f8747daf4796d60
+--- a/session_viewer/src/app/manifest.rs
++++ b/session_viewer/src/app/manifest.rs
+@@ -43,6 +43,9 @@
+     pub up: [f64; 3],
+     /// Required positive finite em height in world units.
+     pub height: f64,
++    /// Face the camera while keeping the supplied world em height.
++    #[serde(default)]
++    pub camera_facing: bool,
+ }
+ 
+ /// The parsed scene file: ordered geometry items and optional fixed world-space text planes.
+diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
+index dc76687ff8839c1bd6ff2efd7e593f784f1293ef..72a3ef4914faa0013c53eb1ee1ba45e6d838cb53
+--- a/session_viewer/src/app/scene.rs
++++ b/session_viewer/src/app/scene.rs
+@@ -2,6 +2,10 @@
+ //! the `Upload` tables, the row bookkeeping and the streamed-cloud slots. `add_file` walks one
+ //! session into the tables; rows append during loading and rebuild explicitly after edits.
+ //! Geometry preparation lives in `walk/`; this coordinator retains source ownership for picks.
++
++#[path = "scene_text.rs"]
++mod text;
++pub use text::SceneText;
+ 
+ use crate::app::knobs;
+ use crate::app::stream::{CloudFields, CloudLod};
+@@ -95,8 +99,8 @@
+ /// The open document set, the pending upload and the row bookkeeping.
+ pub struct Scene {
+     pub docs: Vec<Doc>,
+-    /// Authored world-plane text from the scene manifest, independent of object annotations.
+-    pub texts: Vec<super::manifest::TextItem>,
++    /// Every source text placement shares ordinary scene identity and visibility.
++    pub texts: Vec<SceneText>,
+     pub tables: Upload,
+     pub streamed: Vec<StreamedCloud>,
+     pub hidden: HashSet<(usize, Rc<str>)>,
+@@ -158,6 +162,7 @@
+     /// path an edit commit takes. Streamed clouds cannot come back (no kernel object).
+     pub fn rebuild(&mut self, gpu: &mut Gpu) {
+         let docs = std::mem::take(&mut self.docs);
++        let texts = std::mem::take(&mut self.texts);
+         self.tables = Upload::default();
+         self.streamed.clear();
+         self.order.clear();
+@@ -183,7 +188,11 @@
+                 display_only: d.display_only,
+             });
+         }
++        for text in texts {
++            self.register_text(text.key, text.label, text.active);
++        }
+         self.upload_to(gpu);
++        self.restore_text_visibility(gpu);
+     }
+ 
+     /// Upload the walked tables, then FORGET the rows: the GPU is their only holder.
+@@ -412,6 +421,9 @@
+ 
+     /// The source object's name; unnamed geometry uses its type instead of its file name.
+     pub fn object_name(&self, row: u32) -> &str {
++        if let Some(text) = self.text_at(row) {
++            return &text.label.text;
++        }
+         let (name, kind) = match self.geometry(row) {
+             Some(Geometry::OBB(value)) => (value.name.as_str(), "Box"),
+             Some(Geometry::BRep(value)) => (value.name.as_str(), "BRep"),
+diff --git a/session_viewer/src/app/scene_text.rs b/session_viewer/src/app/scene_text.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..4cf9686b6d62f989811d8941c7760f0eb874648e
+--- /dev/null
++++ b/session_viewer/src/app/scene_text.rs
+@@ -0,0 +1,163 @@
++//! Source text registration. Placement never changes object identity or hide/select behavior.
++//! Document titles and manifest text use this same path; the selected-name annotation does not.
++
++use super::Scene;
++use crate::engine::gpu::{Gpu, ObjectRow};
++use crate::engine::text::{TextLabel, TextObject, TextPlacement};
++use session_rust::Xform;
++use std::rc::Rc;
++
++/// Retained source text and its ordinary scene row. Inactive slots survive replacement so
++/// a manifest reload cannot accidentally reassign another text's hidden identity.
++pub struct SceneText {
++    pub label: TextLabel,
++    pub row: u32,
++    pub(super) key: String,
++    pub(super) active: bool,
++}
++
++impl Scene {
++    /// Replace manifest-owned text while preserving document titles and stable object rows.
++    pub fn set_texts(&mut self, texts: Vec<super::super::manifest::TextItem>, gpu: &mut Gpu) {
++        for text in &mut self.texts {
++            if text.key.starts_with("manifest-text/") {
++                text.active = false;
++            }
++        }
++        for (index, text) in texts.into_iter().enumerate() {
++            let placement = if text.camera_facing {
++                TextPlacement::WorldBillboard {
++                    world: text.at,
++                    world_height: text.height,
++                }
++            } else {
++                TextPlacement::WorldPlane {
++                    world: text.at,
++                    right: text.right,
++                    up: text.up,
++                    world_height: text.height,
++                }
++            };
++            self.register_text(
++                format!("manifest-text/{index}"),
++                TextLabel {
++                    id: 0,
++                    object: None,
++                    text: text.text,
++                    font_size: 18.0,
++                    line_height: 26.0,
++                    color: [255; 4],
++                    placement,
++                    clip: None,
++                },
++                true,
++            );
++        }
++        self.upload_to(gpu);
++        self.restore_text_visibility(gpu);
++    }
++
++    /// A camera-facing title is a source object, independent of the geometry it describes.
++    pub fn set_document_title(&mut self, label: TextLabel, gpu: &mut Gpu) {
++        self.register_text(
++            format!("document-title/{}", self.docs.len() - 1),
++            label,
++            true,
++        );
++        self.upload_to(gpu);
++        self.restore_text_visibility(gpu);
++    }
++
++    /// Reuse the row for this source key, or append one ordinary identity/instance pair.
++    pub(super) fn register_text(&mut self, key: String, mut label: TextLabel, active: bool) {
++        for text in &mut self.texts {
++            if text.key == key {
++                label.id = text.row + 1;
++                label.object = Some(TextObject {
++                    row: text.row,
++                    selected: false,
++                });
++                text.label = label;
++                text.active = active;
++                return;
++            }
++        }
++        let row = self.bases.obj + self.tables.obj.rows.len() as u32;
++        let guid: Rc<str> = Rc::from(key.as_str());
++        self.order.push(Rc::clone(&guid));
++        self.owners.push(usize::MAX);
++        self.guid_to_row.insert((usize::MAX, guid), row);
++        self.ribbon_ranges.push(None);
++        self.tables
++            .obj
++            .rows
++            .push(ObjectRow::new(Xform::identity().m, 0));
++        label.id = row + 1;
++        label.object = Some(TextObject {
++            row,
++            selected: false,
++        });
++        self.texts.push(SceneText {
++            label,
++            row,
++            key,
++            active,
++        });
++    }
++
++    /// Apply source visibility after the instance rows have reached the renderer.
++    pub(super) fn restore_text_visibility(&self, gpu: &mut Gpu) {
++        for text in &self.texts {
++            let hidden = self
++                .identity_of(text.row)
++                .is_some_and(|id| self.hidden.contains(&id));
++            gpu.set_hidden(text.row, !text.active || hidden);
++        }
++    }
++
++    /// Current manifest row, retained for source lookup independently of title insertion order.
++    pub fn text_row(&self, index: usize) -> Option<u32> {
++        let key = format!("manifest-text/{index}");
++        for text in &self.texts {
++            if text.active && text.key == key {
++                return Some(text.row);
++            }
++        }
++        None
++    }
++
++    /// Resolve a source text independently of geometry document indices.
++    #[expect(
++        clippy::manual_find,
++        reason = "Scene identity lookup deliberately uses explicit control flow"
++    )]
++    pub fn text_at(&self, row: u32) -> Option<&SceneText> {
++        for text in &self.texts {
++            if text.active && text.row == row {
++                return Some(text);
++            }
++        }
++        None
++    }
++
++    /// Build the text lane's visible submission with the current ordinary selection flags.
++    pub fn visible_texts(&self) -> Vec<TextLabel> {
++        let mut labels = Vec::new();
++        for text in &self.texts {
++            if !text.active
++                || self
++                    .identity_of(text.row)
++                    .is_some_and(|id| self.hidden.contains(&id))
++            {
++                continue;
++            }
++            let mut label = text.label.clone();
++            label.object = Some(TextObject {
++                row: text.row,
++                selected: self.selected == Some(text.row),
++            });
++            labels.push(label);
++        }
++        labels
++    }
++}
+diff --git a/session_viewer/src/app/selection.rs b/session_viewer/src/app/selection.rs
+index 05d407d426220e3c2331a291b8c4177efe2e78d6..89b1c285ee6aa06063a1cc1dcfc07e29cef28851
+--- a/session_viewer/src/app/selection.rs
++++ b/session_viewer/src/app/selection.rs
+@@ -21,6 +21,10 @@
+         parent: u32,
+         edge: u32,
+     },
++    Face {
++        parent: u32,
++        face: usize,
++    },
+     Controls {
+         parent: u32,
+         selected: Option<ControlId>,
+@@ -33,7 +37,9 @@
+     pub fn parent(&self) -> Option<u32> {
+         match self {
+             Self::Object => None,
+-            Self::Edge { parent, .. } | Self::Controls { parent, .. } => Some(*parent),
++            Self::Edge { parent, .. }
++            | Self::Face { parent, .. }
++            | Self::Controls { parent, .. } => Some(*parent),
+         }
+     }
+ 
+diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
+index a483961f7b31e253929ac87df36a833d8398891c..c8c8a5158aedd4a798ccd6e956a195cdafb64cef
+--- a/session_viewer/src/app/walk/brep.rs
++++ b/session_viewer/src/app/walk/brep.rs
+@@ -36,7 +36,17 @@
+ 
+ /// One face mesh into the arena under `cx.row`: its own vertices, its normals as the kernel
+ /// evaluated them, its triangles based on the file's vertex base.
+-fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid) {
++fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid, face: usize) {
++    let address = arena.face_sources.len() as u32;
++    arena
++        .face_sources
++        .push(crate::engine::gpu::faces::FaceSource {
++            parent: cx.row,
++            face,
++        });
++    arena
++        .face_ids
++        .extend(std::iter::repeat_n(address, rm.indices.len() / 3));
+     let base = cx.vert_base + arena.verts.len() as u32;
+     let local = solid.pos.len() as u32;
+     arena.verts.reserve(rm.vertices.len());
+@@ -82,7 +92,7 @@
+                 triangle.swap(1, 2);
+             }
+         }
+-        push_face(arena, &rm, cx, &mut solid);
++        push_face(arena, &rm, cx, &mut solid, fi);
+     }
+     let mut flags = Instance::FLAG_SMOOTH;
+     if !b.is_solid() {
+diff --git a/session_viewer/src/app/walk/brep_edges.rs b/session_viewer/src/app/walk/brep_edges.rs
+index 8c91d0a15043e26118fe02816534e4a9fb6062e2..8c0692877bc954bf762831e4669f5cbe5bf19196
+--- a/session_viewer/src/app/walk/brep_edges.rs
++++ b/session_viewer/src/app/walk/brep_edges.rs
+@@ -425,6 +425,7 @@
+ ) -> usize {
+     let fm = &ep.fms[chain.face];
+ 
++    let first = seg.pipes.len() as u32;
+     seg.pipes.reserve(chain.keys.len().saturating_sub(1));
+     let mut count = 0;
+     for w in chain.keys.windows(2) {
+@@ -451,6 +452,7 @@
+             .push(u32::try_from(chain.edge).unwrap_or(u32::MAX));
+         count += 1;
+     }
++    seg.pipe_chains.push(first..seg.pipes.len() as u32);
+     count
+ }
+ 
+diff --git a/session_viewer/src/app/walk/curves.rs b/session_viewer/src/app/walk/curves.rs
+index cfcaac070051b823aa07d2d14b9289cc4adf657e..a7526dd4498d26df8475851f1201560508b782a1
+--- a/session_viewer/src/app/walk/curves.rs
++++ b/session_viewer/src/app/walk/curves.rs
+@@ -11,6 +11,7 @@
+ 
+ /// Segments between consecutive points, growing `bounds` as they go.
+ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut Aabb) {
++    let first = seg.ribbons.len() as u32;
+     seg.ribbons.reserve(pts.len().saturating_sub(1));
+     for w in pts.windows(2) {
+         bounds.grow(w[0]);
+@@ -23,6 +24,7 @@
+             facing: FACING_UNKNOWN,
+         });
+     }
++    seg.ribbon_chains.push(first..seg.ribbons.len() as u32);
+     if let Some(last) = pts.last() {
+         bounds.grow(*last);
+     }
+diff --git a/session_viewer/src/app/walk/mesh.rs b/session_viewer/src/app/walk/mesh.rs
+index 160367632207dd672f2610b12bf580f021ec4a5c..cc8b4a977dbcf34dfaded212640516b3567e6719
+--- a/session_viewer/src/app/walk/mesh.rs
++++ b/session_viewer/src/app/walk/mesh.rs
+@@ -179,6 +179,9 @@
+     for &i in &rm.indices {
+         idx.push(base + i);
+     }
++    if !(o.sheet_lanes && print) {
++        append_face_ids(arena, m, cx.row, o.smooth, rm.indices.len() / 3);
++    }
+     lap.mark("vert+idx push");
+     let mut flags = if o.sheet_lanes && print {
+         Instance::FLAG_PRINT
+@@ -234,3 +237,49 @@
+     }
+     out
+ }
++
++/// Match the kernel render contract: sorted source faces, cached triangles or a valid fan.
++fn append_face_ids(
++    arena: &mut ArenaRows,
++    mesh: &Mesh,
++    parent: u32,
++    surface: bool,
++    triangles: usize,
++) {
++    use crate::engine::gpu::faces::FaceSource;
++    if surface {
++        let address = arena.face_sources.len() as u32;
++        arena.face_sources.push(FaceSource { parent, face: 0 });
++        arena
++            .face_ids
++            .extend(std::iter::repeat_n(address, triangles));
++        return;
++    }
++    let start = arena.face_ids.len();
++    let mut keys: Vec<_> = mesh.face.keys().copied().collect();
++    keys.sort_unstable();
++    for face in keys {
++        let address = arena.face_sources.len() as u32;
++        arena.face_sources.push(FaceSource { parent, face });
++        let valid =
++            |triangle: &[usize; 3]| triangle.iter().all(|key| mesh.vertex.contains_key(key));
++        let count = if let Some(cached) = mesh
++            .triangulation
++            .get(&face)
++            .filter(|tris| !tris.is_empty())
++        {
++            cached.iter().filter(|tri| valid(tri)).count()
++        } else {
++            let corners = &mesh.face[&face];
++            (1..corners.len().saturating_sub(1))
++                .filter(|&i| valid(&[corners[0], corners[i], corners[i + 1]]))
++                .count()
++        };
++        arena.face_ids.extend(std::iter::repeat_n(address, count));
++    }
++    assert_eq!(
++        arena.face_ids.len() - start,
++        triangles,
++        "source face IDs must match the kernel triangle stream"
++    );
++}
+diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
+index d3ac42f165b00a2396b794e1a22cf9d13209bfe7..fcbe11a8d4ae992d44eec0313ecdd325b93187bc
+--- a/session_viewer/src/engine/gpu/arena.rs
++++ b/session_viewer/src/engine/gpu/arena.rs
+@@ -30,6 +30,9 @@
+     pub idx: Vec<u32>,
+     pub idx_print: Vec<u32>,
+     pub idx_text: Vec<u32>,
++    /// One upload-local original face address per solid triangle.
++    pub face_ids: Vec<u32>,
++    pub face_sources: Vec<super::faces::FaceSource>,
+ }
+ 
+ impl ArenaRows {
+@@ -40,6 +43,8 @@
+         drop_rows(&mut self.idx);
+         drop_rows(&mut self.idx_print);
+         drop_rows(&mut self.idx_text);
++        drop_rows(&mut self.face_ids);
++        drop_rows(&mut self.face_sources);
+     }
+ }
+ 
+@@ -48,6 +53,7 @@
+     faces: wgpu::RenderPipeline,
+     id_faces: wgpu::RenderPipeline,
+     selection_mask: wgpu::RenderPipeline,
++    solid_mask: wgpu::RenderPipeline,
+ }
+ 
+ /// The arena on the GPU: five `GrowBuf`s under the one growth policy.
+@@ -60,6 +66,7 @@
+     shader: wgpu::ShaderModule,
+     pipes: ArenaPipelines,
+     outline_text: OutlineTextLane,
++    pub source_faces: super::faces::Faces,
+ }
+ 
+ impl ArenaLane {
+@@ -70,6 +77,7 @@
+             + self.faces.buf.size()
+             + self.print.buf.size()
+             + self.text.buf.size()
++            + self.source_faces.allocated_bytes()
+     }
+ 
+     /// Five one-row tables; the first upload sizes them.
+@@ -81,15 +89,17 @@
+         );
+         let pipes = build_pipelines(ctx, l, &shader, target);
+ 
++        let source_faces = super::faces::Faces::new(ctx, l, &shader, target);
+         Self {
++            source_faces,
+             verts: GrowBuf::new(
+                 ctx,
+                 "arena.vbo",
+                 std::mem::size_of::<RenderVertex>() as u64,
+-                VERTS,
++                VERTS | wgpu::BufferUsages::STORAGE,
+             ),
+-            vids: GrowBuf::new(ctx, "arena.vids", 4, VERTS),
+-            faces: GrowBuf::new(ctx, "arena.ibo", 4, INDICES),
++            vids: GrowBuf::new(ctx, "arena.vids", 4, VERTS | wgpu::BufferUsages::STORAGE),
++            faces: GrowBuf::new(ctx, "arena.ibo", 4, INDICES | wgpu::BufferUsages::STORAGE),
+             print: GrowBuf::new(ctx, "arena.ibo.print", 4, INDICES),
+             text: GrowBuf::new(ctx, "arena.ibo.text", 4, INDICES),
+             shader,
+@@ -102,6 +112,7 @@
+     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
+         self.pipes = build_pipelines(ctx, l, &self.shader, target);
+         self.outline_text.retarget(ctx, l, target);
++        self.source_faces.retarget(ctx, l, &self.shader, target);
+     }
+ 
+     /// Append one file's rows. The sheet runs index the SAME vertex table.
+@@ -111,6 +122,8 @@
+         self.faces.append(ctx, &up.idx);
+         self.print.append(ctx, &up.idx_print);
+         self.text.append(ctx, &up.idx_text);
++        self.source_faces
++            .append(ctx, up, [&self.verts.buf, &self.vids.buf, &self.faces.buf]);
+     }
+ 
+     /// The solid faces, one indexed draw: the physical depth every ink fragment reads.
+@@ -142,6 +155,19 @@
+             + self
+                 .outline_text
+                 .draw_physical_ids(pass, b, &self.outline_buffers(&self.print))
++    }
++
++    /// Component picks retain sheet occlusion alongside the original solid-face IDs.
++    pub fn draw_component_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.source_faces.draw_ids(pass, b)
++            + self
++                .outline_text
++                .draw_physical_ids(pass, b, &self.outline_buffers(&self.print))
++    }
++
++    /// Combined visible coverage for the solid-group silhouette, using the existing triangle run.
++    pub fn draw_solid_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_run(pass, b, &self.pipes.solid_mask, &self.faces)
+     }
+ 
+     /// The id pass for the lettering, after the ink as in the colour pass.
+@@ -185,7 +211,8 @@
+     }
+ 
+     /// Forget every row; capacity stays.
+-    pub fn reset(&mut self) {
++    pub fn reset(&mut self, ctx: &GpuCtx) {
++        self.source_faces.reset(ctx);
+         self.verts.reset();
+         self.vids.reset();
+         self.faces.reset();
+@@ -195,6 +222,7 @@
+ 
+     /// Hand every buffer back: five one-row tables again.
+     pub fn release(&mut self, ctx: &GpuCtx) {
++        self.source_faces.release(ctx);
+         self.verts.release(ctx);
+         self.vids.release(ctx);
+         self.faces.release(ctx);
+@@ -232,6 +260,16 @@
+             Target::ID,
+             &base.with("triangle.id", "fs_id").physical(),
+         ),
++        solid_mask: build(
++            dev,
++            Target {
++                format: wgpu::TextureFormat::R8Unorm,
++                samples: target.samples,
++            },
++            &base
++                .with("triangle.solid_mask", "fs_solid_mask")
++                .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual),
++        ),
+         selection_mask: build(
+             dev,
+             Target {
+diff --git a/session_viewer/src/engine/gpu/faces.rs b/session_viewer/src/engine/gpu/faces.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..7b669a260ac66c7163138102af31349c55a93304
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/faces.rs
+@@ -0,0 +1,243 @@
++//! Original face identities over the arena's unchanged indexed triangles.
++use super::buffers::{GpuCtx, GrowBuf, ROWS};
++use super::frame::Binds;
++use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build};
++
++/// Sub-selection tag; source face addresses remain separate from edges and controls.
++pub const FACE_TAG: u32 = 0x2000_0000;
++
++/// One source face, shared by every display triangle belonging to it.
++#[derive(Clone, Copy)]
++pub struct FaceSource {
++    pub parent: u32,
++    pub face: usize,
++}
++
++/// Face picking pulls existing vertices by index: no duplicate mesh or per-face draw calls.
++pub struct Faces {
++    pub sources: Vec<FaceSource>,
++    ids: GrowBuf,
++    selected: wgpu::Buffer,
++    active: Option<u32>,
++    layout: wgpu::BindGroupLayout,
++    group: Option<wgpu::BindGroup>,
++    pick: wgpu::RenderPipeline,
++    highlight: wgpu::RenderPipeline,
++    mask: wgpu::RenderPipeline,
++}
++
++impl Faces {
++    /// Compile source-face passes using the same transforms and physical triangle positions.
++    pub fn new(
++        ctx: &GpuCtx,
++        layouts: &Layouts,
++        shader: &wgpu::ShaderModule,
++        target: Target,
++    ) -> Self {
++        let entries: Vec<_> = (0..5)
++            .map(|binding| wgpu::BindGroupLayoutEntry {
++                binding,
++                visibility: wgpu::ShaderStages::VERTEX,
++                ty: wgpu::BindingType::Buffer {
++                    ty: if binding == 4 {
++                        wgpu::BufferBindingType::Uniform
++                    } else {
++                        wgpu::BufferBindingType::Storage { read_only: true }
++                    },
++                    has_dynamic_offset: false,
++                    min_binding_size: None,
++                },
++                count: None,
++            })
++            .collect();
++        let layout = ctx
++            .device
++            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++                label: Some("source faces"),
++                entries: &entries,
++            });
++        let selected = super::buffers::zeroed_buffer(
++            &ctx.device,
++            "selected source face",
++            16,
++            wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
++        );
++        let (pick, highlight, mask) = pipelines(ctx, layouts, shader, target, &layout);
++        Self {
++            sources: Vec::new(),
++            ids: GrowBuf::new(ctx, "source face ids", 4, ROWS),
++            selected,
++            active: None,
++            layout,
++            group: None,
++            pick,
++            highlight,
++            mask,
++        }
++    }
++
++    /// Rebuild only sample-dependent passes after the target changes.
++    pub fn retarget(
++        &mut self,
++        ctx: &GpuCtx,
++        layouts: &Layouts,
++        shader: &wgpu::ShaderModule,
++        target: Target,
++    ) {
++        (self.pick, self.highlight, self.mask) =
++            pipelines(ctx, layouts, shader, target, &self.layout);
++    }
++
++    /// Map upload-local source addresses into the append-only scene address space.
++    pub fn append(
++        &mut self,
++        ctx: &GpuCtx,
++        up: &super::arena::ArenaRows,
++        buffers: [&wgpu::Buffer; 3],
++    ) {
++        let base = self.sources.len() as u32;
++        self.sources.extend_from_slice(&up.face_sources);
++        let ids: Vec<u32> = (0..up.idx.len() / 3)
++            .map(|i| match up.face_ids.get(i) {
++                Some(&id) if id != u32::MAX => base + id,
++                _ => u32::MAX,
++            })
++            .collect();
++        self.ids.append(ctx, &ids);
++        let buffers = [
++            buffers[0],
++            buffers[1],
++            buffers[2],
++            &self.ids.buf,
++            &self.selected,
++        ];
++        let entries: Vec<_> = buffers
++            .iter()
++            .enumerate()
++            .map(|(binding, buffer)| wgpu::BindGroupEntry {
++                binding: binding as u32,
++                resource: buffer.as_entire_binding(),
++            })
++            .collect();
++        self.group = Some(ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
++            label: Some("source faces"),
++            layout: &self.layout,
++            entries: &entries,
++        }));
++    }
++
++    /// Resolve a GPU face address back to its original parent and source key.
++    pub fn source(&self, row: u32, sub: u32) -> Option<(u32, FaceSource)> {
++        if sub & 0xe000_0000 != FACE_TAG {
++            return None;
++        }
++        let address = sub & !FACE_TAG;
++        let source = *self.sources.get(address as usize)?;
++        (source.parent == row).then_some((address, source))
++    }
++
++    /// Switch the highlighted source face without editing geometry or normals.
++    pub fn select(&mut self, ctx: &GpuCtx, face: Option<u32>) {
++        self.active = face;
++        ctx.queue.write_buffer(
++            &self.selected,
++            0,
++            bytemuck::cast_slice(&[face.unwrap_or(u32::MAX), 0, 0, 0]),
++        );
++    }
++
++    /// One source-ID draw over the shared index run.
++    pub fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
++        self.draw(pass, binds, &self.pick)
++    }
++    /// Color only the selected source face, against immutable physical depth.
++    pub fn draw_highlight(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
++        if self.active.is_none() {
++            return 0;
++        }
++        self.draw(pass, binds, &self.highlight)
++    }
++    /// Add just the selected face to the normal selection outline mask.
++    pub fn draw_mask(&self, pass: &mut wgpu::RenderPass<'_>, binds: &Binds) -> u32 {
++        if self.active.is_none() {
++            return 0;
++        }
++        self.draw(pass, binds, &self.mask)
++    }
++    /// Vertex pulling uses the arena's exact position, normal, color and triangle indices.
++    fn draw(
++        &self,
++        pass: &mut wgpu::RenderPass<'_>,
++        binds: &Binds,
++        pipeline: &wgpu::RenderPipeline,
++    ) -> u32 {
++        let Some(group) = &self.group else {
++            return 0;
++        };
++        if self.ids.is_empty() {
++            return 0;
++        }
++        pass.set_pipeline(pipeline);
++        binds.set(pass);
++        pass.set_bind_group(3, group, &[]);
++        pass.draw(0..self.ids.len() * 3, 0..1);
++        1
++    }
++    /// Forget scene identities and references before arena buffers are reused.
++    pub fn reset(&mut self, ctx: &GpuCtx) {
++        self.select(ctx, None);
++        self.ids.reset();
++        self.sources.clear();
++        self.group = None;
++    }
++    /// Release all variable-size storage with the rest of the arena.
++    pub fn release(&mut self, ctx: &GpuCtx) {
++        self.reset(ctx);
++        self.ids.release(ctx);
++        self.sources.shrink_to_fit();
++    }
++    /// Exact owned GPU buffer capacity; the vertex/index buffers remain owned by the arena.
++    pub fn allocated_bytes(&self) -> u64 {
++        self.ids.buf.size() + self.selected.size()
++    }
++}
++
++/// Shared shader entries retain identical clip-space arithmetic for color and ID passes.
++fn pipelines(
++    ctx: &GpuCtx,
++    layouts: &Layouts,
++    shader: &wgpu::ShaderModule,
++    target: Target,
++    layout: &wgpu::BindGroupLayout,
++) -> (
++    wgpu::RenderPipeline,
++    wgpu::RenderPipeline,
++    wgpu::RenderPipeline,
++) {
++    let groups = [&layouts.mvp, &layouts.line, &layouts.instance, layout];
++    let base = PipelineDesc::new(shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
++        .vertex("vs_face");
++    let pick = build(
++        &ctx.device,
++        Target::ID,
++        &base.with("source face IDs", "fs_id").physical(),
++    );
++    let highlight = build(
++        &ctx.device,
++        target,
++        &base
++            .with("selected face", "fs_face_highlight")
++            .depth(DepthMode::ReadOnlyEqual),
++    );
++    let mask = build(
++        &ctx.device,
++        Target {
++            format: wgpu::TextureFormat::R8Unorm,
++            samples: target.samples,
++        },
++        &base
++            .with("selected face mask", "fs_selection_mask")
++            .depth(DepthMode::ReadOnlyEqual),
++    );
++    (pick, highlight, mask)
++}
+diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
+index 8c2f5ccd21d2f3babf1e999146fe8662af95651d..57cfb208668941178c886b1df12304f4ac2208a6
+--- a/session_viewer/src/engine/gpu/instance.rs
++++ b/session_viewer/src/engine/gpu/instance.rs
+@@ -87,7 +87,7 @@
+     #[test]
+     fn shader_validation_and_layouts() {
+         use crate::engine::gpu::glyphs::GlyphPoint;
+-        use crate::engine::gpu::segments::CylinderSegment;
++        use crate::engine::gpu::segments::{CylinderSegment, StrokeSegment};
+         use std::mem::{offset_of, size_of};
+         for (name, source) in lane_shaders() {
+             let source = if source.contains("-> InkColor") {
+@@ -116,7 +116,7 @@
+                     continue;
+                 };
+                 let (offsets, size) = match structure {
+-                    "CylinderSegment" => (
++                    "StrokeSegment" => (
+                         vec![
+                             0,
+                             4,
+@@ -128,8 +128,10 @@
+                             offset_of!(CylinderSegment, instance_id),
+                             offset_of!(CylinderSegment, color),
+                             offset_of!(CylinderSegment, facing),
++                            offset_of!(StrokeSegment, previous),
++                            offset_of!(StrokeSegment, next),
+                         ],
+-                        size_of::<CylinderSegment>(),
++                        size_of::<StrokeSegment>(),
+                     ),
+                     "GlyphPoint" => (
+                         vec![
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+index def66bdb1660f9015f1b7455e124cb81a5f42b35..4495530971d3130cf5c930ca4b0bca7a47ed652b
+--- a/session_viewer/src/engine/gpu/mod.rs
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -8,6 +8,7 @@
+ pub mod buffers;
+ pub mod cloud;
+ pub mod device;
++pub mod faces;
+ pub mod frame;
+ pub mod glyphs;
+ pub mod instance;
+@@ -17,8 +18,8 @@
+ pub mod present;
+ pub mod render;
+ pub mod segments;
+-pub mod selection_outline;
+ pub mod splat;
++pub mod surface_outline;
+ pub mod targets;
+ pub mod text;
+ pub mod text_outline;
+@@ -70,7 +71,8 @@
+     pub controls: GlyphLane,
+     pub control_net: SegmentLane,
+     pub text: text::TextLane,
+-    pub selection_outline: selection_outline::SelectionOutline,
++    pub selection_outline: surface_outline::SurfaceOutline,
++    pub solid_outline: surface_outline::SurfaceOutline,
+     pub logical_size: [f64; 2],
+     pub cloud: CloudLane,
+     pub splat: Splat,
+@@ -89,7 +91,10 @@
+     pub fn allocated_bytes(&self) -> (u64, u64) {
+         let (splat_buffers, splat_textures) = self.splat.allocated_bytes();
+         let (pick_buffers, pick_textures) = self.pick.allocated_bytes();
+-        let (outline_buffers, outline_textures) = self.selection_outline.allocated_bytes();
++        let (mut outline_buffers, mut outline_textures) = self.selection_outline.allocated_bytes();
++        let (buffers, textures) = self.solid_outline.allocated_bytes();
++        outline_buffers += buffers;
++        outline_textures += textures;
+         let buffers = self.arena.allocated_bytes()
+             + self.segments.allocated_bytes()
+             + self.glyphs.allocated_bytes()
+@@ -158,7 +163,16 @@
+         let controls = GlyphLane::new(&ctx, &layouts, target);
+         let control_net = SegmentLane::new(&ctx, &layouts, target);
+         let text = text::TextLane::new(&ctx, target);
+-        let selection_outline = selection_outline::SelectionOutline::new(&ctx, target);
++        let selection_outline = surface_outline::SurfaceOutline::new(
++            &ctx,
++            target,
++            surface_outline::OutlineKind::Selected,
++        );
++        let solid_outline = surface_outline::SurfaceOutline::new(
++            &ctx,
++            target,
++            surface_outline::OutlineKind::AllSolids,
++        );
+         let cloud = CloudLane::new(&ctx);
+         let splat = Splat::new(&ctx, &layouts, target, cloud.buffers());
+ 
+@@ -185,6 +199,7 @@
+             control_net,
+             text,
+             selection_outline,
++            solid_outline,
+             logical_size: [size.0 as f64, size.1 as f64],
+             cloud,
+             splat,
+@@ -268,6 +283,7 @@
+             self.control_net.retarget(&self.ctx, &self.layouts, target);
+             self.text.retarget(&self.ctx, target);
+             self.selection_outline.retarget(&self.ctx, target);
++            self.solid_outline.retarget(&self.ctx, target);
+             self.splat.retarget(&self.ctx, &self.layouts, target);
+             log::info!("msaa: {}x", samples);
+         }
+@@ -324,13 +340,14 @@
+     /// Forget every lane's rows so the next upload writes from row 0; capacity stays.
+     pub fn reset(&mut self) {
+         self.objects.reset();
+-        self.arena.reset();
++        self.arena.reset(&self.ctx);
+         self.segments.reset();
+         self.glyphs.reset();
+         self.controls.reset();
+         self.control_net.reset();
+         self.text.reset();
+         self.selection_outline.reset();
++        self.solid_outline.reset();
+         self.pick.cancel();
+         self.segments.set_edge(&self.ctx, None);
+         self.cloud.reset();
+@@ -348,6 +365,7 @@
+         self.control_net.release(&self.ctx, &self.layouts);
+         self.text.release(&self.ctx);
+         self.selection_outline.reset();
++        self.solid_outline.reset();
+         self.pick.cancel();
+         self.segments.set_edge(&self.ctx, None);
+         self.cloud.release(&self.ctx);
+@@ -367,6 +385,7 @@
+ 
+     /// Flip the selection flag on one object row.
+     pub fn set_selected(&mut self, row: u32, on: bool) {
++        self.segments.set_selected(row, on);
+         self.selection_outline.set_selected(row, on);
+         self.objects
+             .set_flag(&self.ctx, row, Instance::FLAG_SELECTED, on);
+diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
+index 3f377bb6481e7f5a0726bd97bfdf81a31f027d74..53e19cc71f075e65d8383d4b31249b7af56ccc45
+--- a/session_viewer/src/engine/gpu/objects.rs
++++ b/session_viewer/src/engine/gpu/objects.rs
+@@ -456,6 +456,13 @@
+         b.is_finite().then_some(b)
+     }
+ 
++    /// Text has no solid volume; its shaped world box still supports fitting and annotations.
++    pub fn set_text_bounds(&mut self, row: u32, bounds: Aabb) {
++        if let Some(target) = self.world_bounds.get_mut(row as usize) {
++            *target = bounds;
++        }
++    }
++
+     /// The precise origin required to project source-world labels into the rebased frame.
+     pub fn anchor(&self) -> [f64; 3] {
+         match &self.last_origin {
+diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
+index f862d238f5f8301ce0463150fa1380402244c695..3bae289a633128391b3781d7e0842af7f3046983
+--- a/session_viewer/src/engine/gpu/pick.rs
++++ b/session_viewer/src/engine/gpu/pick.rs
+@@ -36,6 +36,8 @@
+     #[default]
+     Object,
+     Edge,
++    /// Original edges take precedence; otherwise pick the visible source face.
++    Component,
+     Controls {
+         parent: u32,
+         cloud: bool,
+@@ -573,7 +575,8 @@
+             if distance > u64::from(win.radius).pow(2) {
+                 continue;
+             }
+-            let key = (sub == 0, distance, object, sub);
++            let face = sub == 0 || sub.wrapping_sub(1) & 0xe000_0000 == super::faces::FACE_TAG;
++            let key = (face, distance, object, sub);
+             match best {
+                 Some(previous) if key >= previous => {}
+                 _ => best = Some(key),
+diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
+index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..1ead65b82388f2d34e2a270b89277ecfb23b8b08
+--- a/session_viewer/src/engine/gpu/render.rs
++++ b/session_viewer/src/engine/gpu/render.rs
+@@ -31,7 +31,7 @@
+             (self.config.width, self.config.height),
+             self.targets.samples,
+             self.logical_size[0],
+-            self.arena.face_count() > 0,
++            self.view.show_outlines && self.arena.face_count() > 0,
+         ) {
+             let b = Binds {
+                 mvp: &self.frame.mvp_group,
+@@ -40,6 +40,22 @@
+             };
+             let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
+             draws += self.arena.draw_selection_mask(&mut pass, &b);
++            draws += self.arena.source_faces.draw_mask(&mut pass, &b);
++        }
++        if self.solid_outline.prepare(
++            &self.ctx,
++            (self.config.width, self.config.height),
++            self.targets.samples,
++            self.logical_size[0],
++            self.view.show_outlines && self.arena.face_count() > 0,
++        ) {
++            let b = Binds {
++                mvp: &self.frame.mvp_group,
++                line: &self.frame.line_group,
++                instances: &self.objects.group,
++            };
++            let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
++            draws += self.arena.draw_solid_mask(&mut pass, &b);
+         }
+         {
+             let mut pass = self.targets.begin_ink(encoder, view);
+@@ -100,13 +116,20 @@
+             line: &self.frame.line_group,
+             instances: &self.objects.ink_group,
+         };
+-        let mut draws = self.arena.draw_print(pass, &basic);
+-        if v.show_mesh_edges {
+-            draws += self.segments.draw_pipes(pass, &b);
+-        }
+-        if v.show_lines {
+-            draws += self.segments.draw_ribbons(pass, &b);
+-        }
++        let mut draws = self.arena.source_faces.draw_highlight(pass, &basic);
++        draws += self.arena.draw_print(pass, &basic);
++        draws += self
++            .segments
++            .draw_unselected(pass, &b, v.show_mesh_edges, v.show_lines);
++        draws += self
++            .segments
++            .draw_selected(pass, &b, v.show_mesh_edges, false);
++        draws += self
++            .solid_outline
++            .draw_combined(&self.selection_outline, pass);
++        // Standalone selected curves cover coincident mesh ink. Solid boundary strokes
++        // stay below the silhouette so their yellow fringe cannot narrow its black border.
++        draws += self.segments.draw_selected(pass, &b, false, v.show_lines);
+         if v.show_mesh_edges && v.markers {
+             draws += self.glyphs.draw_spheres(pass, &b);
+         }
+@@ -114,7 +137,6 @@
+         if v.show_points {
+             draws += self.glyphs.draw_dots(pass, &b);
+         }
+-        draws += self.selection_outline.draw(pass);
+         draws += self.control_net.draw_ribbons(pass, &b);
+         draws += self.controls.draw_dots(pass, &b);
+         draws += self.text.draw(pass);
+@@ -174,7 +196,11 @@
+                 let bottom = (window.y + window.h + 3).min(size.1);
+                 pass.set_scissor_rect(left, top, right - left, bottom - top);
+             }
+-            self.arena.draw_face_ids(&mut pass, &basic);
++            if mode == PickMode::Component {
++                self.arena.draw_component_ids(&mut pass, &basic);
++            } else {
++                self.arena.draw_face_ids(&mut pass, &basic);
++            }
+             self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
+         }
+         let depth = self.pick.depth().expect("physical ID pass creates depth");
+@@ -195,7 +221,7 @@
+                 pass.set_scissor_rect(window.x, window.y, window.w, window.h);
+             }
+             match mode {
+-                PickMode::Edge => {
++                PickMode::Edge | PickMode::Component => {
+                     if self.view.show_mesh_edges {
+                         self.segments.draw_edge_ids(&mut pass, &ink);
+                     }
+@@ -220,6 +246,8 @@
+                     }
+                 }
+             }
++            // Authored text covers geometry in every pick mode, just as its visible plane does.
++            self.text.draw_ids(&mut pass);
+         }
+         if let Some(at) = at {
+             self.pick.copy_window(&self.ctx, encoder, at);
+diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
+index 553822bcc45011c7e158c5d6db836f272ac2fe29..dcf9ee00fbb97f4c57ca056f56ca0107c923a689
+--- a/session_viewer/src/engine/gpu/segments.rs
++++ b/session_viewer/src/engine/gpu/segments.rs
+@@ -1,4 +1,4 @@
+-//! The segment lane: every straight piece of ink. Two tables of the same 40 B row - pipes
++//! The segment lane: every straight piece of ink. Two tables of the same connected stroke row - pipes
+ //! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
+ //! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
+ 
+@@ -8,6 +8,7 @@
+ use crate::engine::pipelines::{
+     ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, ink_module,
+ };
++use std::collections::HashSet;
+ use wgpu::PrimitiveTopology::TriangleList;
+ 
+ /// The lane's shaders, for the mirror tests.
+@@ -17,7 +18,7 @@
+ /// Vertices per ribbon: two triangles pulled by vertex index, no vertex buffer.
+ const RIBBON_VERTS: u32 = 6;
+ 
+-/// One segment row, 40 B, the layout ribbon.wgsl declares. The ends are flat f32s: a `vec3`
++/// One source segment row, 40 B. Upload adds two GPU neighbor indices. The ends are flat f32s: a `vec3`
+ /// would pad the row to 48 B. Offsets: p0 0, radius 12, p1 16, instance_id 28, color 32,
+ /// facing 36.
+ #[repr(C)]
+@@ -42,6 +43,10 @@
+     pub pipes: Vec<CylinderSegment>,
+     /// Source edge index per pipe, or u32::MAX when no CAD edge identity is available.
+     pub pipe_ids: Vec<u32>,
++    /// Source curve ranges in this upload; independent mesh wires remain unjoined.
++    pub pipe_chains: Vec<std::ops::Range<u32>>,
++    /// Consecutive spans belonging to one source polyline or NURBS curve.
++    pub ribbon_chains: Vec<std::ops::Range<u32>>,
+     pub ribbons: Vec<CylinderSegment>,
+ }
+ 
+@@ -50,8 +55,58 @@
+     pub fn drop_rows(&mut self) {
+         drop_rows(&mut self.pipes);
+         drop_rows(&mut self.pipe_ids);
++        drop_rows(&mut self.pipe_chains);
++        drop_rows(&mut self.ribbon_chains);
+         drop_rows(&mut self.ribbons);
+     }
++}
++
++/// GPU connectivity partitions the shared rounded cap instead of blending it twice.
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub(super) struct StrokeSegment {
++    pub(super) segment: CylinderSegment,
++    pub(super) previous: u32,
++    pub(super) next: u32,
++}
++
++/// Only explicitly connected source chains join; separate wires keep their own end caps.
++fn joined_rows(
++    rows: &[CylinderSegment],
++    chains: &[std::ops::Range<u32>],
++    base: u32,
++) -> Vec<StrokeSegment> {
++    let mut result = Vec::with_capacity(rows.len());
++    for segment in rows {
++        result.push(StrokeSegment {
++            segment: *segment,
++            previous: u32::MAX,
++            next: u32::MAX,
++        });
++    }
++    for chain in chains {
++        if chain.end > rows.len() as u32 || chain.end.saturating_sub(chain.start) < 2 {
++            continue;
++        }
++        for index in chain.clone() {
++            let next = if index + 1 == chain.end {
++                chain.start
++            } else {
++                index + 1
++            };
++            let a = &rows[index as usize];
++            let b = &rows[next as usize];
++            if a.p1 == b.p0
++                && a.instance_id == b.instance_id
++                && a.color == b.color
++                && a.radius == b.radius
++            {
++                result[index as usize].next = next + base;
++                result[next as usize].previous = index + base;
++            }
++        }
++    }
++    result
+ }
+ 
+ /// One segment table on the GPU with the group 3 that binds it.
+@@ -68,7 +123,7 @@
+         let buf = GrowBuf::new(
+             ctx,
+             label,
+-            std::mem::size_of::<CylinderSegment>() as u64,
++            std::mem::size_of::<StrokeSegment>() as u64,
+             ROWS,
+         );
+         let ids = GrowBuf::new(ctx, "segment.sources", 4, ROWS);
+@@ -100,6 +155,8 @@
+ /// The pipelines over the two tables: the same blended quad for both, and its id twin.
+ struct SegPipelines {
+     ribbon: wgpu::RenderPipeline,
++    unselected: wgpu::RenderPipeline,
++    selected: wgpu::RenderPipeline,
+     id_ribbon: wgpu::RenderPipeline,
+     id_edge: wgpu::RenderPipeline,
+ }
+@@ -111,6 +168,8 @@
+     shader: wgpu::ShaderModule,
+     gpu: SegPipelines,
+     selection: wgpu::Buffer,
++    selected_rows: HashSet<u32>,
++    selected_edge: bool,
+ }
+ 
+ impl SegmentLane {
+@@ -140,6 +199,8 @@
+             shader,
+             gpu,
+             selection,
++            selected_rows: HashSet::new(),
++            selected_edge: false,
+         }
+     }
+ 
+@@ -152,11 +213,13 @@
+     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &SegRows) {
+         let mut ids = up.pipe_ids.clone();
+         ids.resize(up.pipes.len(), u32::MAX);
+-        let pipes_changed = self.pipes.buf.append(ctx, &up.pipes);
++        let pipes = joined_rows(&up.pipes, &up.pipe_chains, self.pipes.buf.len());
++        let pipes_changed = self.pipes.buf.append(ctx, &pipes);
+         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
+             self.pipes.rebind(ctx, l, &self.selection);
+         }
+-        let ribbons_changed = self.ribbons.buf.append(ctx, &up.ribbons);
++        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, self.ribbons.buf.len());
++        let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
+         if self
+             .ribbons
+             .ids
+@@ -168,13 +231,62 @@
+     }
+ 
+     /// Highlight one source edge without reuploading its tessellation or the parent geometry.
+-    pub fn set_edge(&self, ctx: &GpuCtx, edge: Option<(u32, u32)>) {
++    pub fn set_edge(&mut self, ctx: &GpuCtx, edge: Option<(u32, u32)>) {
++        self.selected_edge = edge.is_some();
+         let (parent, edge) = edge.unwrap_or((u32::MAX, u32::MAX));
+         ctx.queue.write_buffer(
+             &self.selection,
+             0,
+             bytemuck::cast_slice(&[parent, edge, 0, 0]),
+         );
++    }
++
++    /// Skip the final selection pass when no source object or edge is selected.
++    pub fn set_selected(&mut self, row: u32, selected: bool) {
++        if selected {
++            self.selected_rows.insert(row);
++        } else {
++            self.selected_rows.remove(&row);
++        }
++    }
++
++    /// Ordinary scene ink precedes silhouettes and the selected stroke overlay.
++    pub fn draw_unselected(
++        &self,
++        pass: &mut wgpu::RenderPass<'_>,
++        b: &Binds,
++        pipes: bool,
++        ribbons: bool,
++    ) -> u32 {
++        let mut draws = 0;
++        if pipes {
++            draws += self.draw_table(pass, b, &self.gpu.unselected, &self.pipes);
++        }
++        if ribbons {
++            draws += self.draw_table(pass, b, &self.gpu.unselected, &self.ribbons);
++        }
++        draws
++    }
++
++    /// Selected ink wins coincident stroke coverage, while still testing physical occlusion.
++    pub fn draw_selected(
++        &self,
++        pass: &mut wgpu::RenderPass<'_>,
++        b: &Binds,
++        pipes: bool,
++        ribbons: bool,
++    ) -> u32 {
++        if self.selected_rows.is_empty() && !self.selected_edge {
++            return 0;
++        }
++        let mut draws = 0;
++        if pipes {
++            draws += self.draw_table(pass, b, &self.gpu.selected, &self.pipes);
++        }
++        if ribbons {
++            draws += self.draw_table(pass, b, &self.gpu.selected, &self.ribbons);
++        }
++        draws
+     }
+ 
+     /// Mesh/BRep edges: camera-facing quads against physical depth.
+@@ -222,6 +334,8 @@
+ 
+     /// Forget every row; capacity stays.
+     pub fn reset(&mut self) {
++        self.selected_rows.clear();
++        self.selected_edge = false;
+         self.pipes.buf.reset();
+         self.pipes.ids.reset();
+         self.ribbons.buf.reset();
+@@ -230,6 +344,8 @@
+ 
+     /// Hand both buffers back.
+     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
++        self.selected_rows.clear();
++        self.selected_edge = false;
+         self.pipes.buf.release(ctx);
+         self.pipes.ids.release(ctx);
+         self.ribbons.buf.release(ctx);
+@@ -263,6 +379,22 @@
+     let dev = &ctx.device;
+ 
+     SegPipelines {
++        unselected: build(
++            dev,
++            target,
++            &quad
++                .with("ribbon.unselected", "fs_main")
++                .vertex("vs_unselected")
++                .color(ColorWrite::Blended),
++        ),
++        selected: build(
++            dev,
++            target,
++            &quad
++                .with("ribbon.selected", "fs_main")
++                .vertex("vs_selected")
++                .color(ColorWrite::Blended),
++        ),
+         ribbon: build(
+             dev,
+             target,
+@@ -286,7 +418,7 @@
+     use super::*;
+     use crate::engine::gpu::instance::wgsl_fields;
+ 
+-    /// ribbon.wgsl reads the 40 B segment row (ends as scalars).
++    /// ribbon.wgsl reads the 48 B connected GPU row (ends as scalars).
+     #[test]
+     fn cylinder_segment_mirror() {
+         let rust = [
+@@ -300,15 +432,18 @@
+             "instance_id",
+             "color",
+             "facing",
++            "previous",
++            "next",
+         ];
+         for (name, src) in SHADERS {
+             assert_eq!(
+-                wgsl_fields(src, "CylinderSegment"),
++                wgsl_fields(src, "StrokeSegment"),
+                 rust,
+-                "{name}: CylinderSegment fields"
++                "{name}: StrokeSegment fields"
+             );
+         }
+         assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
++        assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
+         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
+     }
+ }
+diff --git a/session_viewer/src/engine/gpu/selection_outline.rs b/session_viewer/src/engine/gpu/selection_outline.rs
+deleted file mode 100644
+index 5269d8551a1794ea8472199a7e75d7a5582234a6..0000000000000000000000000000000000000000
+--- a/session_viewer/src/engine/gpu/selection_outline.rs
++++ /dev/null
+@@ -1,341 +0,0 @@
+-//! Selected surface silhouettes, following the archive's coverage-mask algorithm.
+-//! Source mesh positions, physical depth and picking are unchanged. Only a visible
+-//! selected surface contributes to the mask; curves and control markers do not.
+-
+-use std::collections::HashSet;
+-
+-use super::buffers::GpuCtx;
+-use super::targets::{Targets, TextureSpec, texture_view};
+-use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
+-
+-struct Mask {
+-    resolved: wgpu::TextureView,
+-    multisampled: Option<wgpu::TextureView>,
+-    group: wgpu::BindGroup,
+-    size: (u32, u32),
+-    samples: u32,
+-}
+-
+-/// Allocates full-frame coverage only while a selection exists. One R8 byte per
+-/// sample, plus the resolved R8 image at MSAA, with no copied mesh or ID table.
+-pub struct SelectionOutline {
+-    selected: HashSet<u32>,
+-    layout: wgpu::BindGroupLayout,
+-    uniform: wgpu::Buffer,
+-    pipeline: wgpu::RenderPipeline,
+-    mask: Option<Mask>,
+-}
+-
+-impl SelectionOutline {
+-    /// Create the shared mask layout and compositor without allocating framebuffer textures.
+-    pub fn new(ctx: &GpuCtx, target: Target) -> Self {
+-        let layout = ctx
+-            .device
+-            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+-                label: Some("selection outline"),
+-                entries: &[
+-                    wgpu::BindGroupLayoutEntry {
+-                        binding: 0,
+-                        visibility: wgpu::ShaderStages::FRAGMENT,
+-                        ty: wgpu::BindingType::Texture {
+-                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+-                            view_dimension: wgpu::TextureViewDimension::D2,
+-                            multisampled: false,
+-                        },
+-                        count: None,
+-                    },
+-                    wgpu::BindGroupLayoutEntry {
+-                        binding: 1,
+-                        visibility: wgpu::ShaderStages::FRAGMENT,
+-                        ty: wgpu::BindingType::Buffer {
+-                            ty: wgpu::BufferBindingType::Uniform,
+-                            has_dynamic_offset: false,
+-                            min_binding_size: wgpu::BufferSize::new(16),
+-                        },
+-                        count: None,
+-                    },
+-                ],
+-            });
+-        let uniform = ctx.device.create_buffer(&wgpu::BufferDescriptor {
+-            label: Some("selection outline radius"),
+-            size: 16,
+-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+-            mapped_at_creation: false,
+-        });
+-        let pipeline = pipeline(ctx, &layout, target);
+-        Self {
+-            selected: HashSet::new(),
+-            layout,
+-            uniform,
+-            pipeline,
+-            mask: None,
+-        }
+-    }
+-
+-    /// Track selected source rows; clearing the final row releases coverage immediately.
+-    pub fn set_selected(&mut self, row: u32, selected: bool) {
+-        if selected {
+-            self.selected.insert(row);
+-        } else {
+-            self.selected.remove(&row);
+-        }
+-        if self.selected.is_empty() {
+-            self.mask = None;
+-        }
+-    }
+-
+-    /// Clear source selection and its size-dependent coverage resources.
+-    pub fn reset(&mut self) {
+-        self.selected.clear();
+-        self.mask = None;
+-    }
+-
+-    /// Rebuild the compositor for the current sample count and discard obsolete coverage.
+-    pub fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
+-        self.pipeline = pipeline(ctx, &self.layout, target);
+-        self.mask = None;
+-    }
+-
+-    /// Return whether to render selected surface coverage this frame.
+-    pub fn prepare(
+-        &mut self,
+-        ctx: &GpuCtx,
+-        size: (u32, u32),
+-        samples: u32,
+-        css_width: f64,
+-        faces: bool,
+-    ) -> bool {
+-        if self.selected.is_empty() || !faces {
+-            self.mask = None;
+-            return false;
+-        }
+-        let changed = match &self.mask {
+-            Some(mask) => mask.size != size || mask.samples != samples,
+-            None => true,
+-        };
+-        if changed {
+-            let usage =
+-                wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
+-            let spec = TextureSpec {
+-                size,
+-                format: wgpu::TextureFormat::R8Unorm,
+-                samples: 1,
+-                usage,
+-            };
+-            let resolved = texture_view(ctx, "selection coverage", &spec);
+-            let multisampled = if samples > 1 {
+-                Some(texture_view(
+-                    ctx,
+-                    "selection coverage MSAA",
+-                    &TextureSpec { samples, ..spec },
+-                ))
+-            } else {
+-                None
+-            };
+-            let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+-                label: Some("selection outline"),
+-                layout: &self.layout,
+-                entries: &[
+-                    wgpu::BindGroupEntry {
+-                        binding: 0,
+-                        resource: wgpu::BindingResource::TextureView(&resolved),
+-                    },
+-                    wgpu::BindGroupEntry {
+-                        binding: 1,
+-                        resource: self.uniform.as_entire_binding(),
+-                    },
+-                ],
+-            });
+-            self.mask = Some(Mask {
+-                resolved,
+-                multisampled,
+-                group,
+-                size,
+-                samples,
+-            });
+-        }
+-        let radius = (1.5 * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 8.0) as f32;
+-        ctx.queue.write_buffer(
+-            &self.uniform,
+-            0,
+-            bytemuck::cast_slice(&[radius, 0.0, 0.0, 0.0]),
+-        );
+-        true
+-    }
+-
+-    /// Clear coverage while testing the same immutable depth used by the color frame.
+-    pub fn begin_mask<'a>(
+-        &'a self,
+-        encoder: &'a mut wgpu::CommandEncoder,
+-        targets: &'a Targets,
+-    ) -> wgpu::RenderPass<'a> {
+-        let mask = self
+-            .mask
+-            .as_ref()
+-            .expect("prepare enabled selected coverage");
+-        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+-            label: Some("visible selection coverage"),
+-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+-                view: mask.multisampled.as_ref().unwrap_or(&mask.resolved),
+-                resolve_target: if mask.multisampled.is_some() {
+-                    Some(&mask.resolved)
+-                } else {
+-                    None
+-                },
+-                depth_slice: None,
+-                ops: wgpu::Operations {
+-                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+-                    store: wgpu::StoreOp::Store,
+-                },
+-            })],
+-            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+-                view: &targets.depth,
+-                depth_ops: None,
+-                stencil_ops: None,
+-            }),
+-            timestamp_writes: None,
+-            occlusion_query_set: None,
+-            multiview_mask: None,
+-        })
+-    }
+-
+-    /// Composite the outside border before control markers and labels.
+-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+-        let Some(mask) = &self.mask else {
+-            return 0;
+-        };
+-        pass.set_pipeline(&self.pipeline);
+-        pass.set_bind_group(0, &mask.group, &[]);
+-        pass.draw(0..3, 0..1);
+-        1
+-    }
+-
+-    /// Exact owned buffer and texture payload, excluding driver allocation overhead.
+-    pub fn allocated_bytes(&self) -> (u64, u64) {
+-        let textures = match &self.mask {
+-            Some(mask) => {
+-                let samples = if mask.samples > 1 {
+-                    u64::from(mask.samples) + 1
+-                } else {
+-                    1
+-                };
+-                u64::from(mask.size.0) * u64::from(mask.size.1) * samples
+-            }
+-            None => 0,
+-        };
+-        (self.uniform.size(), textures)
+-    }
+-}
+-
+-/// Build outside-coverage compositing for the pass's color format and sample count.
+-fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgpu::RenderPipeline {
+-    let shader = module(
+-        &ctx.device,
+-        "selection outline",
+-        include_str!("../../shaders/selection_outline.wgsl"),
+-    );
+-    let groups = [layout];
+-    let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
+-        .with("black selection outline", "fs_main")
+-        .depth(DepthMode::Always)
+-        .color(ColorWrite::Blended);
+-    build(&ctx.device, target, &desc)
+-}
+-
+-#[cfg(all(test, not(target_arch = "wasm32")))]
+-mod tests {
+-    use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
+-    use session_rust::{RenderVertex, Xform};
+-
+-    fn quad(upload: &mut Upload, extent: f32, depth: f32) {
+-        let row = upload.obj.rows.len() as u32;
+-        let first = upload.arena.verts.len() as u32;
+-        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
+-        for [x, y] in [
+-            [-extent, -extent],
+-            [extent, -extent],
+-            [extent, extent],
+-            [-extent, extent],
+-        ] {
+-            upload.arena.verts.push(RenderVertex {
+-                position: [x, y, depth],
+-                normal: [0.0, 0.0, 1.0],
+-                color: [0.3, 0.5, 0.7, 1.0],
+-            });
+-            upload.arena.vids.push(row);
+-        }
+-        upload
+-            .arena
+-            .idx
+-            .extend([0, 1, 2, 0, 2, 3].map(|i| first + i));
+-    }
+-
+-    #[test]
+-    #[ignore = "requires a native GPU adapter"]
+-    fn selected_silhouette_is_black_visible_only_and_releases_coverage() {
+-        let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
+-        gpu.view.show_grid = false;
+-        gpu.view.lit = false;
+-        let mut upload = Upload::default();
+-        quad(&mut upload, 0.5, 0.5);
+-        quad(&mut upload, 0.8, 0.7);
+-        gpu.set_scene(&upload);
+-        let input = FrameInput {
+-            view_proj: Xform::identity(),
+-            clear: wgpu::Color::WHITE,
+-            now_ms: 0.0,
+-        };
+-        for samples in [1, 4, 1] {
+-            gpu.view.msaa_forced = Some(samples);
+-            gpu.resize(200, 200);
+-            let hidden = gpu.render_offscreen(&input);
+-            gpu.set_selected(0, true);
+-            assert_eq!(
+-                hidden,
+-                gpu.render_offscreen(&input),
+-                "an entirely occluded selection has no outline or yellow pixels"
+-            );
+-            gpu.set_hidden(1, true);
+-            let selected = gpu.render_offscreen(&input);
+-            let black = selected
+-                .chunks_exact(4)
+-                .filter(|p| p[..3].iter().all(|c| *c < 8))
+-                .count();
+-            let yellow = selected
+-                .chunks_exact(4)
+-                .filter(|p| p[0] > 240 && p[1] > 240 && p[2] < 8)
+-                .count();
+-            assert!(
+-                black > 350,
+-                "selected silhouette must have a continuous black border: {black}"
+-            );
+-            assert!(
+-                yellow > 9500,
+-                "the original selection fill stays yellow: {yellow}"
+-            );
+-            let selected_ids = gpu.render_ids_offscreen(&input);
+-            let capacity = gpu.selection_outline.allocated_bytes().1;
+-            assert_eq!(capacity, 200 * 200 * if samples > 1 { 5 } else { 1 });
+-            gpu.set_selected(0, false);
+-            assert_eq!(
+-                gpu.selection_outline.allocated_bytes().1,
+-                0,
+-                "clearing selection releases coverage immediately"
+-            );
+-            let plain = gpu.render_offscreen(&input);
+-            assert_eq!(
+-                selected_ids,
+-                gpu.render_ids_offscreen(&input),
+-                "a visual border must not add pickable geometry"
+-            );
+-            assert!(
+-                plain
+-                    .chunks_exact(4)
+-                    .all(|p| p[0] > 8 || p[1] > 8 || p[2] > 8)
+-            );
+-            gpu.set_hidden(1, false);
+-        }
+-        gpu.release();
+-        assert_eq!(gpu.selection_outline.allocated_bytes(), (16, 0));
+-    }
+-}
+diff --git a/session_viewer/src/engine/gpu/surface_outline.rs b/session_viewer/src/engine/gpu/surface_outline.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..341ff7efa6bf89e9cfac4fb4ea480958fcf35f32
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/surface_outline.rs
+@@ -0,0 +1,513 @@
++//! Black surface silhouettes from visible coverage. Combined solid silhouettes and
++//! thicker selected boundaries share allocation, depth testing and compositing.
++//! The mask never changes geometry or picking, and cannot include hidden surfaces.
++
++use std::collections::HashSet;
++
++use super::buffers::GpuCtx;
++use super::targets::{Targets, TextureSpec, texture_view};
++use crate::engine::pipelines::{ColorWrite, DepthMode, PipelineDesc, Target, build, module};
++
++struct Mask {
++    resolved: wgpu::TextureView,
++    multisampled: Option<wgpu::TextureView>,
++    group: wgpu::BindGroup,
++    size: (u32, u32),
++    samples: u32,
++}
++
++/// Which visible surfaces contribute to a shared, antialiased coverage mask.
++#[derive(Clone, Copy, PartialEq)]
++pub enum OutlineKind {
++    Selected,
++    AllSolids,
++}
++
++/// Visible surface coverage uses the existing arena geometry and read-only physical depth.
++pub struct SurfaceOutline {
++    kind: OutlineKind,
++    selected: HashSet<u32>,
++    layout: wgpu::BindGroupLayout,
++    uniform: wgpu::Buffer,
++    pipeline: wgpu::RenderPipeline,
++    mask: Option<Mask>,
++}
++
++impl SurfaceOutline {
++    /// Create the shared mask layout and compositor without allocating framebuffer textures.
++    pub fn new(ctx: &GpuCtx, target: Target, kind: OutlineKind) -> Self {
++        let layout = ctx
++            .device
++            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++                label: Some("selection outline"),
++                entries: &[
++                    wgpu::BindGroupLayoutEntry {
++                        binding: 0,
++                        visibility: wgpu::ShaderStages::FRAGMENT,
++                        ty: wgpu::BindingType::Texture {
++                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
++                            view_dimension: wgpu::TextureViewDimension::D2,
++                            multisampled: false,
++                        },
++                        count: None,
++                    },
++                    wgpu::BindGroupLayoutEntry {
++                        binding: 1,
++                        visibility: wgpu::ShaderStages::FRAGMENT,
++                        ty: wgpu::BindingType::Buffer {
++                            ty: wgpu::BufferBindingType::Uniform,
++                            has_dynamic_offset: false,
++                            min_binding_size: wgpu::BufferSize::new(16),
++                        },
++                        count: None,
++                    },
++                ],
++            });
++        let uniform = ctx.device.create_buffer(&wgpu::BufferDescriptor {
++            label: Some("selection outline radius"),
++            size: 16,
++            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
++            mapped_at_creation: false,
++        });
++        let pipeline = pipeline(ctx, &layout, target);
++        Self {
++            kind,
++            selected: HashSet::new(),
++            layout,
++            uniform,
++            pipeline,
++            mask: None,
++        }
++    }
++
++    /// Track selected source rows; clearing the final row releases coverage immediately.
++    pub fn set_selected(&mut self, row: u32, selected: bool) {
++        if selected {
++            self.selected.insert(row);
++        } else {
++            self.selected.remove(&row);
++        }
++        if self.kind == OutlineKind::Selected && self.selected.is_empty() {
++            self.mask = None;
++        }
++    }
++
++    /// Clear source selection and its size-dependent coverage resources.
++    pub fn reset(&mut self) {
++        self.selected.clear();
++        self.mask = None;
++    }
++
++    /// Rebuild the compositor for the current sample count and discard obsolete coverage.
++    pub fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
++        self.pipeline = pipeline(ctx, &self.layout, target);
++        self.mask = None;
++    }
++
++    /// Allocate one R8 byte per sample plus its MSAA resolve while this outline is enabled.
++    pub fn prepare(
++        &mut self,
++        ctx: &GpuCtx,
++        size: (u32, u32),
++        samples: u32,
++        css_width: f64,
++        faces: bool,
++    ) -> bool {
++        if (self.kind == OutlineKind::Selected && self.selected.is_empty()) || !faces {
++            self.mask = None;
++            return false;
++        }
++        let changed = match &self.mask {
++            Some(mask) => mask.size != size || mask.samples != samples,
++            None => true,
++        };
++        if changed {
++            let usage =
++                wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
++            let spec = TextureSpec {
++                size,
++                format: wgpu::TextureFormat::R8Unorm,
++                samples: 1,
++                usage,
++            };
++            let resolved = texture_view(ctx, "selection coverage", &spec);
++            let multisampled = if samples > 1 {
++                Some(texture_view(
++                    ctx,
++                    "selection coverage MSAA",
++                    &TextureSpec { samples, ..spec },
++                ))
++            } else {
++                None
++            };
++            let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
++                label: Some("selection outline"),
++                layout: &self.layout,
++                entries: &[
++                    wgpu::BindGroupEntry {
++                        binding: 0,
++                        resource: wgpu::BindingResource::TextureView(&resolved),
++                    },
++                    wgpu::BindGroupEntry {
++                        binding: 1,
++                        resource: self.uniform.as_entire_binding(),
++                    },
++                ],
++            });
++            self.mask = Some(Mask {
++                resolved,
++                multisampled,
++                group,
++                size,
++                samples,
++            });
++        }
++        let css_radius = if self.kind == OutlineKind::AllSolids {
++            2.25
++        } else {
++            3.375
++        };
++        let radius = (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32;
++        ctx.queue.write_buffer(
++            &self.uniform,
++            0,
++            bytemuck::cast_slice(&[
++                radius,
++                if self.kind == OutlineKind::Selected {
++                    1.0
++                } else {
++                    0.0
++                },
++                0.0,
++                0.0,
++            ]),
++        );
++        true
++    }
++
++    /// Clear coverage while testing the same immutable depth used by the color frame.
++    pub fn begin_mask<'a>(
++        &'a self,
++        encoder: &'a mut wgpu::CommandEncoder,
++        targets: &'a Targets,
++    ) -> wgpu::RenderPass<'a> {
++        let mask = self
++            .mask
++            .as_ref()
++            .expect("prepare enabled selected coverage");
++        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
++            label: Some("visible selection coverage"),
++            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
++                view: mask.multisampled.as_ref().unwrap_or(&mask.resolved),
++                resolve_target: if mask.multisampled.is_some() {
++                    Some(&mask.resolved)
++                } else {
++                    None
++                },
++                depth_slice: None,
++                ops: wgpu::Operations {
++                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
++                    store: wgpu::StoreOp::Store,
++                },
++            })],
++            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
++                view: &targets.depth,
++                depth_ops: None,
++                stencil_ops: None,
++            }),
++            timestamp_writes: None,
++            occlusion_query_set: None,
++            multiview_mask: None,
++        })
++    }
++
++    /// Composite both silhouettes once. Maximum coverage lets the thicker selected
++    /// border win without painting the overlapping antialias fringe twice.
++    pub fn draw_combined(&self, selected: &Self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
++        let Some(normal) = self.mask.as_ref().or(selected.mask.as_ref()) else {
++            return 0;
++        };
++        let selection = selected.mask.as_ref().unwrap_or(normal);
++        pass.set_pipeline(&self.pipeline);
++        pass.set_bind_group(0, &normal.group, &[]);
++        pass.set_bind_group(1, &selection.group, &[]);
++        pass.draw(0..3, 0..1);
++        1
++    }
++
++    /// Exact owned buffer and texture payload, excluding driver allocation overhead.
++    pub fn allocated_bytes(&self) -> (u64, u64) {
++        let textures = match &self.mask {
++            Some(mask) => {
++                let samples = if mask.samples > 1 {
++                    u64::from(mask.samples) + 1
++                } else {
++                    1
++                };
++                u64::from(mask.size.0) * u64::from(mask.size.1) * samples
++            }
++            None => 0,
++        };
++        (self.uniform.size(), textures)
++    }
++}
++
++/// Build outside-coverage compositing for the pass's color format and sample count.
++fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgpu::RenderPipeline {
++    let shader = module(
++        &ctx.device,
++        "selection outline",
++        include_str!("../../shaders/surface_outline.wgsl"),
++    );
++    let groups = [layout, layout];
++    let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
++        .with("black selection outline", "fs_main")
++        .depth(DepthMode::Always)
++        .color(ColorWrite::Blended);
++    build(&ctx.device, target, &desc)
++}
++
++#[cfg(all(test, not(target_arch = "wasm32")))]
++mod tests {
++    use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
++    use session_rust::{RenderVertex, Xform};
++
++    #[test]
++    #[ignore = "requires a native GPU adapter"]
++    fn selected_cad_edges_do_not_paint_over_the_black_silhouette() {
++        use crate::app::scene::{FileDoc, Scene};
++        use crate::camera::Camera;
++        use session_rust::{BRep, Session};
++        use std::rc::Rc;
++
++        let mut gpu = pollster::block_on(Gpu::new_headless(480, 480)).unwrap();
++        gpu.view.show_grid = false;
++        gpu.view.markers = false;
++        for shape in [
++            BRep::create_cone(150.0, 400.0),
++            BRep::create_cylinder(150.0, 400.0),
++        ] {
++            gpu.reset();
++            let mut source = Session::new("selected silhouette regression");
++            source.add_brep(shape, None);
++            let mut scene = Scene::new();
++            scene.add_file(FileDoc {
++                name: "solid".into(),
++                session: Rc::new(source),
++                place: Xform::identity(),
++                point_px: 0.0,
++                display_only: false,
++            });
++            scene.upload_to(&mut gpu);
++            gpu.set_selected(0, true);
++            for samples in [1, 4] {
++                for dpr in [1.0, 2.0] {
++                    gpu.logical_size = [480.0 / dpr; 2];
++                    gpu.view.msaa_forced = Some(samples);
++                    gpu.resize(480, 480);
++                    for orbit in [(0.0, 0.0), (95.0, -65.0), (-80.0, 130.0)] {
++                        let mut camera = Camera::new();
++                        camera.fit(&gpu.bounds, 1.0);
++                        camera.orbit(orbit.0, orbit.1);
++                        let rebase =
++                            gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
++                        let input = FrameInput {
++                            view_proj: camera.view_proj_anchored(1.0, &rebase.anchor),
++                            clear: wgpu::Color::WHITE,
++                            now_ms: 0.0,
++                        };
++                        gpu.view.show_mesh_edges = false;
++                        let silhouette = gpu.render_offscreen(&input);
++                        gpu.view.show_mesh_edges = true;
++                        let edged = gpu.render_offscreen(&input);
++                        let mut black = 0;
++                        for (plain, inked) in silhouette.chunks_exact(4).zip(edged.chunks_exact(4))
++                        {
++                            if plain[..3].iter().all(|channel| *channel < 8) {
++                                black += 1;
++                                assert!(
++                                    inked[..3].iter().all(|channel| *channel < 12),
++                                    "yellow CAD strokes must not narrow the black border: {plain:?} -> {inked:?}; samples={samples}, DPR={dpr}, orbit={orbit:?}"
++                                );
++                            }
++                        }
++                        assert!(
++                            black > 500,
++                            "the perspective silhouette must remain visible"
++                        );
++                    }
++                }
++            }
++        }
++    }
++
++    #[test]
++    #[ignore = "requires a native GPU adapter"]
++    fn touching_and_overlapping_solids_have_one_continuous_outline() {
++        let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
++        gpu.view.show_grid = false;
++        gpu.view.lit = false;
++        let input = FrameInput {
++            view_proj: Xform::identity(),
++            clear: wgpu::Color::WHITE,
++            now_ms: 0.0,
++        };
++        for samples in [1, 4] {
++            gpu.view.msaa_forced = Some(samples);
++            gpu.resize(200, 200);
++            for overlap in [false, true] {
++                gpu.reset();
++                let mut upload = Upload::default();
++                quad(&mut upload, 0.4, 0.5);
++                quad(&mut upload, 0.4, 0.6);
++                for (i, vertex) in upload.arena.verts.iter_mut().enumerate() {
++                    vertex.position[0] += if i < 4 {
++                        -0.4
++                    } else if overlap {
++                        0.2
++                    } else {
++                        0.4
++                    };
++                }
++                gpu.set_scene(&upload);
++                let outlined = gpu.render_offscreen(&input);
++                gpu.view.show_outlines = false;
++                let plain = gpu.render_offscreen(&input);
++                let ids = gpu.render_ids_offscreen(&input);
++                gpu.view.show_outlines = true;
++                assert_eq!(ids, gpu.render_ids_offscreen(&input));
++                for y in 65..135 {
++                    for x in 45..150 {
++                        let at = (y * 200 + x) * 4;
++                        assert_eq!(
++                            &outlined[at..at + 4],
++                            &plain[at..at + 4],
++                            "no outline inside the combined silhouette, including object joins"
++                        );
++                    }
++                }
++                assert_ne!(
++                    outlined, plain,
++                    "the combined outside silhouette must still be outlined"
++                );
++            }
++        }
++    }
++
++    fn quad(upload: &mut Upload, extent: f32, depth: f32) {
++        let row = upload.obj.rows.len() as u32;
++        let first = upload.arena.verts.len() as u32;
++        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
++        for [x, y] in [
++            [-extent, -extent],
++            [extent, -extent],
++            [extent, extent],
++            [-extent, extent],
++        ] {
++            upload.arena.verts.push(RenderVertex {
++                position: [x, y, depth],
++                normal: [0.0, 0.0, 1.0],
++                color: [0.3, 0.5, 0.7, 1.0],
++            });
++            upload.arena.vids.push(row);
++        }
++        upload
++            .arena
++            .idx
++            .extend([0, 1, 2, 0, 2, 3].map(|i| first + i));
++    }
++
++    #[test]
++    #[ignore = "requires a native GPU adapter"]
++    fn selected_silhouette_is_black_visible_only_and_releases_coverage() {
++        let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
++        gpu.view.show_grid = false;
++        gpu.view.lit = false;
++        let mut upload = Upload::default();
++        quad(&mut upload, 0.5, 0.5);
++        quad(&mut upload, 0.8, 0.7);
++        gpu.set_scene(&upload);
++        let input = FrameInput {
++            view_proj: Xform::identity(),
++            clear: wgpu::Color::WHITE,
++            now_ms: 0.0,
++        };
++        for samples in [1, 4, 1] {
++            gpu.view.msaa_forced = Some(samples);
++            gpu.resize(200, 200);
++            let hidden = gpu.render_offscreen(&input);
++            gpu.set_selected(0, true);
++            assert_eq!(
++                hidden,
++                gpu.render_offscreen(&input),
++                "an entirely occluded selection has no outline or yellow pixels"
++            );
++            gpu.set_hidden(1, true);
++            let selected = gpu.render_offscreen(&input);
++            // Suppress only the ordinary mask: the selected object's pixels must stay
++            // identical, including fractional antialias coverage along its silhouette.
++            gpu.solid_outline.kind = super::OutlineKind::Selected;
++            assert_eq!(
++                selected,
++                gpu.render_offscreen(&input),
++                "selection must not receive a second overlapping outline"
++            );
++            gpu.solid_outline.kind = super::OutlineKind::AllSolids;
++            let black = selected
++                .chunks_exact(4)
++                .filter(|p| p[..3].iter().all(|c| *c < 8))
++                .count();
++            let yellow = selected
++                .chunks_exact(4)
++                .filter(|p| p[0] > 240 && p[1] > 240 && p[2] < 8)
++                .count();
++            assert!(
++                black > 350,
++                "selected silhouette must have a continuous black border: {black}"
++            );
++            assert!(
++                yellow > 9500,
++                "the original selection fill stays yellow: {yellow}"
++            );
++            let selected_ids = gpu.render_ids_offscreen(&input);
++            let capacity = gpu.selection_outline.allocated_bytes().1;
++            assert_eq!(capacity, 200 * 200 * if samples > 1 { 5 } else { 1 });
++            gpu.set_selected(0, false);
++            assert_eq!(
++                gpu.selection_outline.allocated_bytes().1,
++                0,
++                "clearing selection releases coverage immediately"
++            );
++            let plain = gpu.render_offscreen(&input);
++            assert_eq!(
++                selected_ids,
++                gpu.render_ids_offscreen(&input),
++                "a visual border must not add pickable geometry"
++            );
++            let plain_black = plain
++                .chunks_exact(4)
++                .filter(|p| p[..3].iter().all(|c| *c < 8))
++                .count();
++            assert!(
++                plain_black > 0 && plain_black < black,
++                "ordinary outlines stay visible and selected ones are thicker"
++            );
++            gpu.view.show_outlines = false;
++            let disabled = gpu.render_offscreen(&input);
++            assert!(
++                disabled
++                    .chunks_exact(4)
++                    .all(|p| p[0] > 8 || p[1] > 8 || p[2] > 8)
++            );
++            assert_eq!(
++                selected_ids,
++                gpu.render_ids_offscreen(&input),
++                "outline toggling never changes source picking"
++            );
++            gpu.view.show_outlines = true;
++            gpu.set_hidden(1, false);
++        }
++        gpu.release();
++        assert_eq!(gpu.selection_outline.allocated_bytes(), (16, 0));
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/text.rs b/session_viewer/src/engine/gpu/text.rs
+index dd18218a8296e79873f40b387f2c027cfc806503..616dcf963dce16bfda4776b4d6b232524372f431
+--- a/session_viewer/src/engine/gpu/text.rs
++++ b/session_viewer/src/engine/gpu/text.rs
+@@ -181,7 +181,7 @@
+             let Some(mut placed) = place(&run.label, frame, scale) else {
+                 continue;
+             };
+-            if let Some(rectangle) = center_nameplate(run, &mut placed, frame, scale) {
++            if let Some(rectangle) = text_rectangle(run, &mut placed, frame, scale) {
+                 plates.push(rectangle);
+             }
+             let area = TextArea {
+@@ -269,16 +269,22 @@
+         Ok(())
+     }
+ 
++    /// Authored text IDs use the same retained plane vertices as their visible quads.
++    pub fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
++        self.planes.draw_ids(pass) + self.plates.draw_ids(pass)
++    }
++
+     /// Draw against the scene's read-only depth attachment after scene ink, overlays last.
+     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+         let mut draws = self.planes.draw(pass);
++        draws += self.plates.draw(pass, false);
+         if self.anchored_count != 0 {
+             match self.anchored.render(&self.atlas, &self.viewport, pass) {
+                 Ok(()) => draws += 1,
+                 Err(error) => log::error!("anchored text render: {error}"),
+             }
+         }
+-        draws += self.plates.draw(pass);
++        draws += self.plates.draw(pass, true);
+         if self.overlay_count != 0 {
+             match self.overlay.render(&self.atlas, &self.viewport, pass) {
+                 Ok(()) => draws += 1,
+@@ -429,17 +435,18 @@
+ 
+ /// Center the shaped line box and its padding on the projected source anchor. Both glyphs
+ /// and black background obey the same CSS clip; a nameplate is an overlay annotation.
+-fn center_nameplate(
++fn text_rectangle(
+     run: &TextRun,
+     placed: &mut PlacedText,
+     frame: &TextFrame,
+     scale: f32,
+ ) -> Option<plate::Rectangle> {
+-    let TextPlacement::Nameplate {
+-        padding, rounded, ..
+-    } = run.label.placement
+-    else {
+-        return None;
++    let (padding, rounded, centered) = match run.label.placement {
++        TextPlacement::Nameplate {
++            padding, rounded, ..
++        } => (padding, rounded, true),
++        _ if run.label.object.is_some() => ([4.0, 4.0], false, false),
++        _ => return None,
+     };
+     if run.label.text.is_empty() {
+         return None;
+@@ -455,8 +462,11 @@
+     if !top.is_finite() || !bottom.is_finite() {
+         return None;
+     }
+-    placed.left -= width * scale * 0.5;
+-    placed.top -= (top + bottom) * scale * 0.5;
++    let raster = placed.scale;
++    if centered {
++        placed.left -= width * raster * 0.5;
++        placed.top -= (top + bottom) * raster * 0.5;
++    }
+     let bounds = clip_bounds(&run.label, frame, scale);
+     let bounds = [
+         bounds.left as f32,
+@@ -466,13 +476,16 @@
+     ];
+     Some(plate::Rectangle {
+         bounds: [
+-            placed.left - padding[0] * scale,
+-            placed.top + (top - padding[1]) * scale,
+-            placed.left + (width + padding[0]) * scale,
+-            placed.top + (bottom + padding[1]) * scale,
++            placed.left - padding[0] * raster,
++            placed.top + (top - padding[1]) * raster,
++            placed.left + (width + padding[0]) * raster,
++            placed.top + (bottom + padding[1]) * raster,
+         ],
+         clip: bounds,
+         rounded,
++        depth: placed.depth,
++        object: run.label.object,
++        border: 2.0 * scale,
+     })
+ }
+ 
+@@ -567,6 +580,7 @@
+             let frame = frame(scale);
+             assert_eq!(frame.scale().unwrap(), scale as f32);
+             let label = TextLabel {
++                object: None,
+                 id: 1,
+                 text: "A".into(),
+                 font_size: 16.0,
+@@ -589,6 +603,7 @@
+         let mut frame = frame(2.0);
+         frame.origin = [1_000_000.0, 0.0, 0.0];
+         let mut label = TextLabel {
++            object: None,
+             id: 1,
+             text: "A".into(),
+             font_size: 16.0,
+@@ -613,6 +628,7 @@
+     fn nameplate_center_padding_clip_and_scale_share_one_coordinate_system() {
+         let mut document = TextDocument::new();
+         let mut label = TextLabel {
++            object: None,
+             id: 1,
+             text: "Sphere Ø25".into(),
+             font_size: 18.0,
+@@ -630,7 +646,7 @@
+             let frame = frame(scale);
+             let run = &document.runs[0];
+             let mut placed = place(&run.label, &frame, scale as f32).unwrap();
+-            let rectangle = center_nameplate(run, &mut placed, &frame, scale as f32)
++            let rectangle = text_rectangle(run, &mut placed, &frame, scale as f32)
+                 .unwrap()
+                 .bounds;
+             assert_eq!(
+@@ -652,9 +668,7 @@
+         let run = &document.runs[0];
+         let mut placed = place(&run.label, &frame, 2.0).unwrap();
+         assert_eq!(
+-            center_nameplate(run, &mut placed, &frame, 2.0)
+-                .unwrap()
+-                .clip,
++            text_rectangle(run, &mut placed, &frame, 2.0).unwrap().clip,
+             [780.0, 580.0, 820.0, 620.0]
+         );
+         label.placement = TextPlacement::Nameplate {
+@@ -704,6 +718,7 @@
+         };
+         let baseline = gpu.render_offscreen(&input);
+         let label = TextLabel {
++            object: None,
+             id: 1,
+             text: "Sphere Ø25".into(),
+             font_size: 13.5,
+@@ -775,7 +790,7 @@
+             gpu.render_offscreen(&input),
+             "clearing selection releases plate and text together"
+         );
+-        assert_eq!(gpu.text.stats.nameplate_capacity_bytes, 28);
++        assert_eq!(gpu.text.stats.nameplate_capacity_bytes, 40);
+     }
+ 
+     #[test]
+@@ -814,6 +829,7 @@
+         };
+         let baseline = gpu.render_offscreen(&frame);
+         let mut label = TextLabel {
++            object: None,
+             id: 1,
+             text: "AV office Ø25".into(),
+             font_size: 14.0,
+@@ -898,6 +914,7 @@
+             now_ms: 0.0,
+         };
+         let mut label = TextLabel {
++            object: None,
+             id: 1,
+             text: (33u8..127).map(char::from).collect(),
+             font_size: 14.0,
+diff --git a/session_viewer/src/engine/gpu/text_plane.rs b/session_viewer/src/engine/gpu/text_plane.rs
+index bd912961bca0726489557761ef1ca2c0d74e59ed..9accaa6860ebd638b6eb63d3141a25bcda722652
+--- a/session_viewer/src/engine/gpu/text_plane.rs
++++ b/session_viewer/src/engine/gpu/text_plane.rs
+@@ -26,6 +26,7 @@
+     layout: wgpu::BindGroupLayout,
+     sampler: wgpu::Sampler,
+     pipeline: wgpu::RenderPipeline,
++    id_pipeline: wgpu::RenderPipeline,
+     target: Target,
+     pub(super) rasterizations: u64,
+ }
+@@ -62,14 +63,16 @@
+             min_filter: wgpu::FilterMode::Linear,
+             ..Default::default()
+         });
+-        let pipeline = pipeline(ctx, target, &layout);
++        let id_pipeline = pipeline(ctx, Target::ID, &layout, true);
++        let pipeline = pipeline(ctx, target, &layout, false);
+         Self {
+             cached: Vec::new(),
+             draws: Vec::new(),
+-            vertices: GrowBuf::new(ctx, "world text vertices", 56, VERTS),
++            vertices: GrowBuf::new(ctx, "world text vertices", 68, VERTS),
+             layout,
+             sampler,
+             pipeline,
++            id_pipeline,
+             target,
+             rasterizations: 0,
+         }
+@@ -78,7 +81,7 @@
+     /// Retarget only the draw pipeline; sampled coverage survives sample-count changes.
+     pub(super) fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
+         self.target = target;
+-        self.pipeline = pipeline(ctx, target, &self.layout);
++        self.pipeline = pipeline(ctx, target, &self.layout, false);
+     }
+ 
+     /// Keep current source textures, grow resolution in powers of two, and project exact plane axes.
+@@ -222,7 +225,20 @@
+         if self.draws.is_empty() {
+             return 0;
+         }
+-        pass.set_pipeline(&self.pipeline);
++        self.draw_run(pass, &self.pipeline)
++    }
++
++    /// Picking uses exactly the visible plane footprint, excluding annotations with no owner.
++    pub(super) fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
++        self.draw_run(pass, &self.id_pipeline)
++    }
++
++    /// Both passes use retained projected vertices and the same clipping/depth test.
++    fn draw_run(&self, pass: &mut wgpu::RenderPass<'_>, pipeline: &wgpu::RenderPipeline) -> u32 {
++        if self.draws.is_empty() {
++            return 0;
++        }
++        pass.set_pipeline(pipeline);
+         pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
+         for &(index, start) in &self.draws {
+             pass.set_bind_group(0, &self.cached[index].bind, &[]);
+@@ -402,7 +418,7 @@
+ 
+ /// Expand a shaped line into its fixed right/up axes; every vertex retains full clip coordinates.
+ fn append_quad(
+-    vertices: &mut Vec<[f32; 14]>,
++    vertices: &mut Vec<[f32; 17]>,
+     label: &TextLabel,
+     extent: [f32; 4],
+     frame: &TextFrame,
+@@ -459,14 +475,38 @@
+         }
+         let clip = project(point, frame);
+         vertices.push([
+-            clip[0], clip[1], clip[2], clip[3], u, v, color[0], color[1], color[2], color[3],
+-            bounds[0], bounds[1], bounds[2], bounds[3],
++            clip[0],
++            clip[1],
++            clip[2],
++            clip[3],
++            u,
++            v,
++            color[0],
++            color[1],
++            color[2],
++            color[3],
++            bounds[0],
++            bounds[1],
++            bounds[2],
++            bounds[3],
++            f32::from_bits(label.object.map_or(0, |object| object.row + 1)),
++            if label.object.is_some_and(|object| object.selected) {
++                1.0
++            } else {
++                0.0
++            },
++            scale,
+         ]);
+     }
+ }
+ 
+ /// Coverage blending uses perspective-correct UVs and the same physical depth convention as solids.
+-fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
++fn pipeline(
++    ctx: &GpuCtx,
++    target: Target,
++    layout: &wgpu::BindGroupLayout,
++    ids: bool,
++) -> wgpu::RenderPipeline {
+     let shader = ctx
+         .device
+         .create_shader_module(wgpu::ShaderModuleDescriptor {
+@@ -482,9 +522,9 @@
+         });
+     ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+         label: Some("world text"), layout: Some(&pipeline_layout),
+-        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 56, step_mode: wgpu::VertexStepMode::Vertex,
+-            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4] }], compilation_options: Default::default() },
+-        fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some("fs_main"), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: Some(wgpu::BlendState::ALPHA_BLENDING), write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
++        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 68, step_mode: wgpu::VertexStepMode::Vertex,
++            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32, 6 => Float32] }], compilation_options: Default::default() },
++        fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some(if ids { "fs_id" } else { "fs_main" }), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) }, write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
+         primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::GreaterEqual), stencil: Default::default(), bias: Default::default() }),
+         multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
+     })
+@@ -526,6 +566,7 @@
+         };
+         let baseline = gpu.render_offscreen(&input);
+         let mut label = TextLabel {
++            object: None,
+             id: 7,
+             text: "Fixed plane".into(),
+             font_size: 18.0,
+diff --git a/session_viewer/src/engine/gpu/text_plate.rs b/session_viewer/src/engine/gpu/text_plate.rs
+index d0f56da9423ad5ce1234ba83092b9ee44cf68c22..fe82a56bfdf755529df9f0a61f8bee5f33122a27
+--- a/session_viewer/src/engine/gpu/text_plate.rs
++++ b/session_viewer/src/engine/gpu/text_plate.rs
+@@ -7,76 +7,115 @@
+     pub(super) bounds: [f32; 4],
+     pub(super) clip: [f32; 4],
+     pub(super) rounded: bool,
++    pub(super) depth: Option<f32>,
++    pub(super) object: Option<crate::engine::text::TextObject>,
++    pub(super) border: f32,
+ }
+ 
+ /// Batched physical rectangles, with no DOM, source geometry or independent device ownership.
+ pub(super) struct Plates {
+     vertices: GrowBuf,
+     pipeline: wgpu::RenderPipeline,
++    id_pipeline: wgpu::RenderPipeline,
++    physical_vertices: u32,
+ }
+ 
+ impl Plates {
+     /// Start with one vertex of capacity and an empty draw list.
+     pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
+         Self {
+-            vertices: GrowBuf::new(ctx, "text.plates", 28, VERTS),
+-            pipeline: pipeline(ctx, target),
++            vertices: GrowBuf::new(ctx, "text.plates", 40, VERTS),
++            pipeline: pipeline(ctx, target, false),
++            id_pipeline: pipeline(ctx, Target::ID, true),
++            physical_vertices: 0,
+         }
+     }
+ 
+     /// Match sample count and color target when the surrounding text pass changes.
+     pub(super) fn retarget(&mut self, ctx: &GpuCtx, target: Target) {
+-        self.pipeline = pipeline(ctx, target);
++        self.pipeline = pipeline(ctx, target, false);
+     }
+ 
+     /// Upload clipped quads with original center, half size and maximum corner radius.
+     pub(super) fn prepare(&mut self, ctx: &GpuCtx, rectangles: &[Rectangle], size: [u32; 2]) {
+         self.vertices.reset();
+         let mut vertices = Vec::with_capacity(rectangles.len() * 6);
+-        for rectangle in rectangles {
+-            let [left, top, right, bottom] = rectangle.bounds;
+-            let half = [(right - left) * 0.5, (bottom - top) * 0.5];
+-            let center = [(left + right) * 0.5, (top + bottom) * 0.5];
+-            let radius = if rectangle.rounded {
+-                half[0].min(half[1]).max(0.0)
+-            } else {
+-                0.0
+-            };
+-            let left = left.max(rectangle.clip[0]);
+-            let top = top.max(rectangle.clip[1]);
+-            let right = right.min(rectangle.clip[2]);
+-            let bottom = bottom.min(rectangle.clip[3]);
+-            if right <= left || bottom <= top {
+-                continue;
++        self.physical_vertices = 0;
++        for overlay in [false, true] {
++            for rectangle in rectangles {
++                if rectangle.depth.is_none() != overlay {
++                    continue;
++                }
++                let [left, top, right, bottom] = rectangle.bounds;
++                let half = [(right - left) * 0.5, (bottom - top) * 0.5];
++                let center = [(left + right) * 0.5, (top + bottom) * 0.5];
++                let radius = if rectangle.rounded {
++                    half[0].min(half[1]).max(0.0)
++                } else {
++                    0.0
++                };
++                let left = left.max(rectangle.clip[0]);
++                let top = top.max(rectangle.clip[1]);
++                let right = right.min(rectangle.clip[2]);
++                let bottom = bottom.min(rectangle.clip[3]);
++                if right <= left || bottom <= top {
++                    continue;
++                }
++                for [x, y] in [
++                    [left, top],
++                    [left, bottom],
++                    [right, bottom],
++                    [left, top],
++                    [right, bottom],
++                    [right, top],
++                ] {
++                    vertices.push([
++                        2.0 * x / size[0] as f32 - 1.0,
++                        1.0 - 2.0 * y / size[1] as f32,
++                        rectangle.depth.unwrap_or(1.0),
++                        x - center[0],
++                        y - center[1],
++                        half[0],
++                        half[1],
++                        radius,
++                        f32::from_bits(rectangle.object.map_or(0, |object| object.row + 1)),
++                        if rectangle.object.is_some_and(|object| object.selected) {
++                            rectangle.border
++                        } else {
++                            0.0
++                        },
++                    ]);
++                }
+             }
+-            for [x, y] in [
+-                [left, top],
+-                [left, bottom],
+-                [right, bottom],
+-                [left, top],
+-                [right, bottom],
+-                [right, top],
+-            ] {
+-                vertices.push([
+-                    2.0 * x / size[0] as f32 - 1.0,
+-                    1.0 - 2.0 * y / size[1] as f32,
+-                    x - center[0],
+-                    y - center[1],
+-                    half[0],
+-                    half[1],
+-                    radius,
+-                ]);
++            if !overlay {
++                self.physical_vertices = vertices.len() as u32;
+             }
+         }
+         self.vertices.append(ctx, &vertices);
+     }
+ 
+-    /// Opaque plates precede overlay glyphs and never read or modify physical scene depth.
+-    pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
++    /// Draw the depth-tested plates before anchored glyphs, then overlay plates before overlay glyphs.
++    pub(super) fn draw(&self, pass: &mut wgpu::RenderPass<'_>, overlay: bool) -> u32 {
++        let range = if overlay {
++            self.physical_vertices..self.vertices.len()
++        } else {
++            0..self.physical_vertices
++        };
++        if range.is_empty() {
++            return 0;
++        }
++        pass.set_pipeline(&self.pipeline);
++        pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
++        pass.draw(range, 0..1);
++        1
++    }
++
++    /// The same clipped, rounded quads provide IDs for every selectable camera-facing label.
++    pub(super) fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+         if self.vertices.is_empty() {
+             return 0;
+         }
+-        pass.set_pipeline(&self.pipeline);
++        pass.set_pipeline(&self.id_pipeline);
+         pass.set_vertex_buffer(0, self.vertices.buf.slice(..));
+         pass.draw(0..self.vertices.len(), 0..1);
+         1
+@@ -85,6 +124,7 @@
+     /// Hide plates immediately on label reset without waiting for another preparation.
+     pub(super) fn reset(&mut self) {
+         self.vertices.reset();
++        self.physical_vertices = 0;
+     }
+ 
+     /// Return grown annotation allocation capacity when the scene is disposed.
+@@ -98,8 +138,8 @@
+     }
+ }
+ 
+-/// A fixed black quad pipeline; its Always/no-write depth state matches overlay glyphs.
+-fn pipeline(ctx: &GpuCtx, target: Target) -> wgpu::RenderPipeline {
++/// Read-only physical depth; overlays use near depth 1 and source labels use their anchor depth.
++fn pipeline(ctx: &GpuCtx, target: Target, ids: bool) -> wgpu::RenderPipeline {
+     let shader = ctx
+         .device
+         .create_shader_module(wgpu::ShaderModuleDescriptor {
+@@ -114,18 +154,18 @@
+                 module: &shader,
+                 entry_point: Some("vs_main"),
+                 buffers: &[wgpu::VertexBufferLayout {
+-                    array_stride: 28,
++                    array_stride: 40,
+                     step_mode: wgpu::VertexStepMode::Vertex,
+-                    attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2, 2 => Float32x2, 3 => Float32],
++                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Float32x2, 3 => Float32, 4 => Uint32, 5 => Float32],
+                 }],
+                 compilation_options: Default::default(),
+             },
+             fragment: Some(wgpu::FragmentState {
+                 module: &shader,
+-                entry_point: Some("fs_main"),
++                entry_point: Some(if ids { "fs_id" } else { "fs_main" }),
+                 targets: &[Some(wgpu::ColorTargetState {
+                     format: target.format,
+-                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
++                    blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) },
+                     write_mask: wgpu::ColorWrites::ALL,
+                 })],
+                 compilation_options: Default::default(),
+@@ -134,7 +174,7 @@
+             depth_stencil: Some(wgpu::DepthStencilState {
+                 format: wgpu::TextureFormat::Depth32Float,
+                 depth_write_enabled: Some(false),
+-                depth_compare: Some(wgpu::CompareFunction::Always),
++                depth_compare: Some(wgpu::CompareFunction::GreaterEqual),
+                 stencil: Default::default(),
+                 bias: Default::default(),
+             }),
+diff --git a/session_viewer/src/engine/gpu/view.rs b/session_viewer/src/engine/gpu/view.rs
+index 14ba594c1e26923b99561d52784dd54870cd7927..ace9049924096c7470f2f922d8c1ee88fa9962e6
+--- a/session_viewer/src/engine/gpu/view.rs
++++ b/session_viewer/src/engine/gpu/view.rs
+@@ -12,6 +12,8 @@
+     pub show_lines: bool,
+     /// Mesh/BRep edges and their vertex markers - the SOLID lane. `E`.
+     pub show_mesh_edges: bool,
++    /// Black visible-surface silhouettes, including unselected objects. `O`.
++    pub show_outlines: bool,
+     /// Vertex markers on top of the solid ink; `BENCH_NO_MARKERS` turns them off for timing.
+     pub markers: bool,
+     /// Global scale on per-cloud point sizes, `[` and `]` (`VIEWER_CLOUD_SCALE`).
+@@ -53,6 +55,7 @@
+             show_points: true,
+             show_lines: true,
+             show_mesh_edges: true,
++            show_outlines: knob("VIEWER_NO_OUTLINES", "nooutlines").is_none(),
+             markers: knob("BENCH_NO_MARKERS", "nomarkers").is_none(),
+             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
+             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
+diff --git a/session_viewer/src/engine/text.rs b/session_viewer/src/engine/text.rs
+index 046c384af125da40da337451cbce9b2876346561..c41c36e2bc94694791a83741bfb5c7b082d4fe09
+--- a/session_viewer/src/engine/text.rs
++++ b/session_viewer/src/engine/text.rs
+@@ -45,10 +45,18 @@
+     },
+ }
+ 
++/// Authored text participates in ordinary object selection; annotations have no owner.
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub struct TextObject {
++    pub row: u32,
++    pub selected: bool,
++}
++
+ /// One source label. Sizes, line height, offsets and optional clipping use CSS pixels.
+ #[derive(Clone, Debug, PartialEq)]
+ pub struct TextLabel {
+     pub id: u32,
++    pub object: Option<TextObject>,
+     pub text: String,
+     pub font_size: f32,
+     pub line_height: f32,
+@@ -329,6 +337,7 @@
+     /// Keep source-text tests on the same explicit screen placement and font metrics.
+     fn label(text: &str) -> TextLabel {
+         TextLabel {
++            object: None,
+             id: 1,
+             text: text.into(),
+             font_size: 16.0,
+diff --git a/session_viewer/src/selftest.rs b/session_viewer/src/selftest.rs
+index fb53ba0841444960de131c1ff66a7156d72fd6a4..a9f5f324cc4a3d186e291c8bda556ae67fb3f819
+--- a/session_viewer/src/selftest.rs
++++ b/session_viewer/src/selftest.rs
+@@ -226,6 +226,13 @@
+     let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
+     let mut scene = Scene::new();
+     load_files(&mut scene, &mut gpu, files);
++    if let Ok(name) = std::env::var("VIEWER_SELECT") {
++        let row = (0..scene.object_count() as u32)
++            .find(|row| scene.object_name(*row) == name)
++            .unwrap_or_else(|| panic!("VIEWER_SELECT object not found: {name}"));
++        scene.selected = Some(row);
++        gpu.set_selected(row, true);
++    }
+     let aspect = w as f64 / h as f64;
+     let camera = camera_from_env(&gpu, aspect);
+ 
+diff --git a/session_viewer/src/shaders/ribbon.wgsl b/session_viewer/src/shaders/ribbon.wgsl
+index e1a70c85759c455b24ee5abc06053739e9d9d0ac..a61fe9f64bd70f16e9b1bc964766b7d3ae548a90
+--- a/session_viewer/src/shaders/ribbon.wgsl
++++ b/session_viewer/src/shaders/ribbon.wgsl
+@@ -16,15 +16,17 @@
+ @group(2) @binding(0) var<storage, read> instances: array<Instance>;
+ @group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
+ 
+-struct CylinderSegment {
++struct StrokeSegment {
+     p0x: f32, p0y: f32, p0z: f32,
+     radius: f32,
+     p1x: f32, p1y: f32, p1z: f32,
+     instance_id: u32,
+     color: u32,
+     facing: u32,
+-}
+-@group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
++    previous: u32,
++    next: u32,
++}
++@group(3) @binding(0) var<storage, read> segments: array<StrokeSegment>;
+ @group(3) @binding(1) var<storage, read> source_edges: array<u32>;
+ @group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
+ 
+@@ -145,6 +147,8 @@
+     @location(8) @interpolate(flat) segment_index: u32,
+     @location(9) @interpolate(flat) end_depth: vec2<f32>,
+     @location(10) @interpolate(flat) source_edge: u32,
++    @location(11) @interpolate(flat) start_join: vec4<f32>,
++    @location(12) @interpolate(flat) end_join: vec4<f32>,
+ };
+ 
+ // The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
+@@ -189,12 +193,54 @@
+     return 3u;
+ }
+ 
+-@vertex
+-fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
++// A connected neighbor contributes only while its own physical facets can face the eye.
++fn neighbor_visible(seg: StrokeSegment) -> bool {
++    let inst = instances[seg.instance_id];
++    if ((inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || seg.facing == FACING_UNKNOWN) { return true; }
++    let p0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
++    let p1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
++    let n0 = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
++    let n1 = face_normal(inst.model, oct16_decode(seg.facing >> 16u));
++    return edge_faces_camera(seg.facing, n0, n1, toward_eye((p0+p1)*0.5));
++}
++
++// Both segments calculate this plane from the same ordered source pair and shared
++// projected vertex. Identical arithmetic makes the start-inclusive/end-exclusive
++// partition watertight, including pixels exactly on the angle bisector.
++// Zero disables a join at a clipped, reversed or invisible neighbor.
++fn join_plane(before: u32, after: u32) -> vec4<f32> {
++    if (before == 0xffffffffu || after == 0xffffffffu || before >= arrayLength(&segments) || after >= arrayLength(&segments)) { return vec4<f32>(0.0); }
++    let a = segments[before];
++    let b = segments[after];
++    if (!neighbor_visible(a) || !neighbor_visible(b)) { return vec4<f32>(0.0); }
++    let c0 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p0x,a.p0y,a.p0z)),1.0);
++    let c1 = mvp * vec4<f32>(place(a.instance_id, vec3<f32>(a.p1x,a.p1y,a.p1z)),1.0);
++    let c2 = mvp * vec4<f32>(place(b.instance_id, vec3<f32>(b.p1x,b.p1y,b.p1z)),1.0);
++    if (c0.w <= 0.0 || c1.w <= 0.0 || c2.w <= 0.0 || c0.z > c0.w || c1.z > c1.w || c2.z > c2.w) { return vec4<f32>(0.0); }
++    let vp = vec2<f32>(line.vp_w,line.vp_h);
++    let p0 = (c0.xy/c0.w*0.5+0.5)*vp;
++    let p1 = (c1.xy/c1.w*0.5+0.5)*vp;
++    let p2 = (c2.xy/c2.w*0.5+0.5)*vp;
++    let d0 = p1-p0;
++    let d1 = p2-p1;
++    if (dot(d0,d0) < 1e-8 || dot(d1,d1) < 1e-8) { return vec4<f32>(0.0); }
++    let normal = normalize(d0)+normalize(d1);
++    if (dot(normal,normal) < 1e-8) { return vec4<f32>(0.0); }
++    return vec4<f32>(normalize(normal),p1);
++}
++
++// 0 includes all strokes (picking/control nets), 1 excludes selection, 2 is its final pass.
++fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
+     let iid = vid / 6u;
+     let corner = corner_of(vid % 6u);
+     let seg = segments[iid];
+     let inst = instances[seg.instance_id];
++    let selected = (inst.flags & FLAG_SELECTED) != 0u ||
++        (edge_selection.x == seg.instance_id && edge_selection.y != 0xffffffffu &&
++         edge_selection.y == source_edges[iid]);
++    if ((layer == 1u && selected) || (layer == 2u && !selected)) {
++        return dead_vertex();
++    }
+     if ((inst.flags & FLAG_HIDDEN) != 0u) {
+         return dead_vertex();
+     }
+@@ -238,10 +284,15 @@
+     let n = vec2<f32>(-dir.y, dir.x);
+ 
+     // The quad is a trapezoid under perspective: both end widths go down flat.
+-    let raw0 = half_width_px(seg.radius, e0.w);
+-    let raw1 = half_width_px(seg.radius, e1.w);
++    // A selected stroke has an opaque yellow core covering the ordinary black pen.
++    // Its axis and visibility test stay on the source geometry.
++    let raw0 = max(half_width_px(seg.radius, e0.w), select(0.0, line.thickness, selected));
++    let raw1 = max(half_width_px(seg.radius, e1.w), select(0.0, line.thickness, selected));
+     let px = floor_hairline(select(raw0, raw1, at_end1));
+-    let crowd = density_taper(seg.facing, len, px);
++    // CAD boundary segments are samples of one curve, not independent mesh wires.
++    // Refining the surface must not shrink the pen at its short boundary intervals.
++    let cad_boundary = (inst.flags & 64u) != 0u && source_edges[iid] != 0xffffffffu;
++    let crowd = select(density_taper(seg.facing, len, px), 1.0, cad_boundary || selected);
+     let along = select(-1.0, 1.0, at_end1);
+     let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + FILTER_REACH);
+ 
+@@ -249,7 +300,7 @@
+     let ndc = (p / vp - 0.5) * 2.0;
+     o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
+     var color = unpack4x8unorm(seg.color) * inst.color;
+-    if ((inst.flags & FLAG_SELECTED) != 0u || (edge_selection.x == seg.instance_id && edge_selection.y != 0xffffffffu && edge_selection.y == source_edges[iid])) {
++    if (selected) {
+         color = vec4<f32>(SELECT_COLOR, color.a);
+     }
+     o.color = color;
+@@ -263,12 +314,32 @@
+     o.segment_index = iid;
+     o.source_edge = source_edges[iid];
+     o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
++    o.start_join = join_plane(seg.previous, iid);
++    o.end_join = join_plane(iid, seg.next);
+     return o;
++}
++
++@vertex
++fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
++    return stroke_vertex(vid, 0u);
++}
++
++@vertex
++fn vs_unselected(@builtin(vertex_index) vid: u32) -> VsOut {
++    return stroke_vertex(vid, 1u);
++}
++
++@vertex
++fn vs_selected(@builtin(vertex_index) vid: u32) -> VsOut {
++    return stroke_vertex(vid, 2u);
+ }
+ 
+ // Coverage of the capsule at this fragment, in [0, 1], times the hairline fade. The capsule's
+ // gradient is the unit vector from its axis, which straightens the cap arc inside one pixel.
+ fn coverage(in: VsOut) -> f32 {
++    let pixel = vec2<f32>(in.pos.x, line.vp_h-in.pos.y);
++    if (dot(pixel-in.start_join.zw, in.start_join.xy) < 0.0) { return 0.0; }
++    if (any(in.end_join.xy != vec2<f32>(0.0)) && dot(pixel-in.end_join.zw, in.end_join.xy) >= 0.0) { return 0.0; }
+     let pa = in.p - in.a;
+     let ba = in.b - in.a;
+     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
+diff --git a/session_viewer/src/shaders/selection_outline.wgsl b/session_viewer/src/shaders/selection_outline.wgsl
+deleted file mode 100644
+index 10e1a2640887ed82608ae64c78ce48011bdd0759..0000000000000000000000000000000000000000
+--- a/session_viewer/src/shaders/selection_outline.wgsl
++++ /dev/null
+@@ -1,31 +0,0 @@
+-// A visible selected-surface mask, resolved at the scene's sample count, supplies
+-// fractional silhouette coverage. The border is measured in physical pixels.
+-@group(0) @binding(0) var mask: texture_2d<f32>;
+-@group(0) @binding(1) var<uniform> radius: vec4<f32>;
+-
+-@vertex
+-fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+-    let xy = vec2<f32>(f32((i << 1u) & 2u), f32(i & 2u));
+-    return vec4<f32>(xy * 2.0 - 1.0, 0.0, 1.0);
+-}
+-
+-@fragment
+-fn fs_main(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
+-    let size = vec2<i32>(textureDimensions(mask));
+-    let p = vec2<i32>(position.xy);
+-    let center = textureLoad(mask, p, 0).r;
+-    if (center >= 0.999) { discard; }
+-    let r = radius.x;
+-    let extent = i32(ceil(r + 0.5));
+-    var coverage = 0.0;
+-    for (var y = -extent; y <= extent; y++) {
+-        for (var x = -extent; x <= extent; x++) {
+-            let q = p + vec2<i32>(x, y);
+-            if (any(q < vec2<i32>(0)) || any(q >= size)) { continue; }
+-            let distance = length(vec2<f32>(f32(x), f32(y)));
+-            let weight = 1.0 - smoothstep(r - 0.5, r + 0.5, distance);
+-            coverage = max(coverage, textureLoad(mask, q, 0).r * weight);
+-        }
+-    }
+-    return vec4<f32>(0.0, 0.0, 0.0, coverage * (1.0 - center));
+-}
+diff --git a/session_viewer/src/shaders/surface_outline.wgsl b/session_viewer/src/shaders/surface_outline.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..68cea919e1acd799d17f34be1d028cd0cb6ef37d
+--- /dev/null
++++ b/session_viewer/src/shaders/surface_outline.wgsl
+@@ -0,0 +1,41 @@
++// Dilate combined visible coverage. MSAA resolves the source silhouette before this
++// screen-space pass; a one-pixel radial filter smooths the outside border at every DPR.
++@group(0) @binding(0) var mask: texture_2d<f32>;
++@group(0) @binding(1) var<uniform> radius: vec4<f32>;
++@group(1) @binding(0) var selected_mask: texture_2d<f32>;
++@group(1) @binding(1) var<uniform> selected_radius: vec4<f32>;
++
++@vertex
++fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
++    let xy = vec2<f32>(f32((i << 1u) & 2u), f32(i & 2u));
++    return vec4<f32>(xy * 2.0 - 1.0, 0.0, 1.0);
++}
++
++fn boundary_coverage(coverage_mask: texture_2d<f32>, r: f32, position: vec2<f32>) -> f32 {
++    let size = vec2<i32>(textureDimensions(coverage_mask));
++    let p = vec2<i32>(position);
++    let center = textureLoad(coverage_mask, p, 0).r;
++    if (center >= 0.999) { return 0.0; }
++    let extent = i32(ceil(r + 0.5));
++    var coverage = 0.0;
++    for (var y = -extent; y <= extent; y++) {
++        for (var x = -extent; x <= extent; x++) {
++            let q = p + vec2<i32>(x, y);
++            if (any(q < vec2<i32>(0)) || any(q >= size)) { continue; }
++            let distance = length(vec2<f32>(f32(x), f32(y)));
++            if (distance >= r + 0.5) { continue; }
++            let weight = 1.0 - smoothstep(r - 0.5, r + 0.5, distance);
++            coverage = max(coverage, textureLoad(coverage_mask, q, 0).r * weight);
++        }
++    }
++    return coverage * (1.0 - center);
++}
++
++@fragment
++fn fs_main(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
++    var coverage = boundary_coverage(mask, radius.x, position.xy);
++    if (radius.y != selected_radius.y) {
++        coverage = max(coverage, boundary_coverage(selected_mask, selected_radius.x, position.xy));
++    }
++    return vec4<f32>(0.0, 0.0, 0.0, coverage);
++}
+diff --git a/session_viewer/src/shaders/text_plane.wgsl b/session_viewer/src/shaders/text_plane.wgsl
+index 83535ed7154ffc07844e1bddfadd390e1c44e6ec..5f47464c389ba878229faab9d4b007ddc4a00233
+--- a/session_viewer/src/shaders/text_plane.wgsl
++++ b/session_viewer/src/shaders/text_plane.wgsl
+@@ -4,15 +4,20 @@
+     @location(0) uv: vec2<f32>,
+     @location(1) color: vec4<f32>,
+     @location(2) @interpolate(flat) clip: vec4<f32>,
++    @location(3) @interpolate(flat) object: u32,
++    @location(4) @interpolate(flat) selected: f32,
++    @location(5) @interpolate(flat) scale: f32,
+ }
+ @group(0) @binding(0) var coverage_texture: texture_2d<f32>;
+ @group(0) @binding(1) var coverage_sampler: sampler;
+ 
+ @vertex
+ fn vs_main(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
+-           @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>) -> Vertex {
++           @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>,
++           @location(4) object: u32, @location(5) selected: f32, @location(6) scale: f32) -> Vertex {
+     var out: Vertex;
+     out.position = position; out.uv = uv; out.color = color; out.clip = clip;
++    out.object = object; out.selected = selected; out.scale = scale;
+     return out;
+ }
+ 
+@@ -21,5 +26,15 @@
+ fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
+     if (in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) { discard; }
+     let coverage = textureSample(coverage_texture, coverage_sampler, in.uv).r;
++    let border = min(in.uv, vec2<f32>(1.0) - in.uv) / max(fwidth(in.uv), vec2<f32>(1e-7));
++    if (in.selected > 0.5 && min(border.x, border.y) < 2.25 * in.scale) {
++        return vec4<f32>(1.0, 1.0, 0.0, 1.0);
++    }
+     return vec4<f32>(in.color.rgb * coverage, in.color.a);
+ }
++
++@fragment
++fn fs_id(in: Vertex) -> @location(0) vec2<u32> {
++    if (in.object == 0u || in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) { discard; }
++    return vec2<u32>(in.object, 0u);
++}
+diff --git a/session_viewer/src/shaders/text_plate.wgsl b/session_viewer/src/shaders/text_plate.wgsl
+index 9c5bd2833fbddef489c00af9dac15abcfe304fe6..d8c78c8140dfa7d6fddca761a1b1ce716ce7d032
+--- a/session_viewer/src/shaders/text_plate.wgsl
++++ b/session_viewer/src/shaders/text_plate.wgsl
+@@ -4,25 +4,41 @@
+     @location(0) local: vec2<f32>,
+     @location(1) half_size: vec2<f32>,
+     @location(2) radius: f32,
++    @location(3) @interpolate(flat) object: u32,
++    @location(4) border: f32,
+ }
+ 
+ @vertex
+-fn vs_main(@location(0) position: vec2<f32>, @location(1) local: vec2<f32>,
+-           @location(2) half_size: vec2<f32>, @location(3) radius: f32) -> PlateVertex {
++fn vs_main(@location(0) position: vec3<f32>, @location(1) local: vec2<f32>,
++           @location(2) half_size: vec2<f32>, @location(3) radius: f32, @location(4) object: u32,
++           @location(5) border: f32) -> PlateVertex {
+     var out: PlateVertex;
+-    out.position = vec4<f32>(position, 0.0, 1.0);
++    out.position = vec4<f32>(position, 1.0);
+     out.local = local;
+     out.half_size = half_size;
+     out.radius = radius;
++    out.object = object;
++    out.border = border;
+     return out;
+ }
+ 
+-// The rounded rectangle's signed distance provides one-physical-pixel edge coverage.
++// One distance defines visible coverage, selection border and picking.
++fn plate_distance(in: PlateVertex) -> f32 {
++    let radius = min(in.radius, min(in.half_size.x, in.half_size.y));
++    let q = abs(in.local) - in.half_size + vec2<f32>(radius);
++    return length(max(q, vec2<f32>(0.0))) + min(max(q.x, q.y), 0.0) - radius;
++}
++
+ @fragment
+ fn fs_main(in: PlateVertex) -> @location(0) vec4<f32> {
+-    let radius = min(in.radius, min(in.half_size.x, in.half_size.y));
+-    let q = abs(in.local) - in.half_size + vec2<f32>(radius);
+-    let distance = length(max(q, vec2<f32>(0.0))) + min(max(q.x, q.y), 0.0) - radius;
++    let distance = plate_distance(in);
+     let coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
+-    return vec4<f32>(0.0, 0.0, 0.0, coverage);
++    let border = select(0.0, clamp(distance + in.border + 0.5, 0.0, 1.0), in.border > 0.0);
++    return vec4<f32>(border, border, 0.0, coverage);
+ }
++
++@fragment
++fn fs_id(in: PlateVertex) -> @location(0) vec2<u32> {
++    if (in.object == 0u || plate_distance(in) > 0.0) { discard; }
++    return vec2<u32>(in.object, 0u);
++}
+diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
+index 899b43a73e51289ae7c71d1d3d68cdac3dd6d0c3..8b3bac363b904fb829d0fea73f86fde81380c390
+--- a/session_viewer/src/shaders/triangle.wgsl
++++ b/session_viewer/src/shaders/triangle.wgsl
+@@ -57,6 +57,7 @@
+     @location(4) @interpolate(flat) inst_id: u32,
+     @location(5) @interpolate(flat) mirrored: u32,
+     @location(6) @interpolate(flat) selected: u32,
++    @location(7) @interpolate(flat) source_face: u32,
+ }
+ 
+ // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
+@@ -71,11 +72,11 @@
+     dead.inst_id = 0u;
+     dead.mirrored = 0u;
+     dead.selected = 0u;
++    dead.source_face = 0xffffffffu;
+     return dead;
+ }
+ 
+-@vertex
+-fn vs_main(in: VsIn) -> VsOut {
++fn transform_vertex(in: VsIn) -> VsOut {
+     let inst = instances[in.inst_id];
+     if ((inst.flags & FLAG_HIDDEN) != 0u) {
+         return dead_vertex();
+@@ -95,7 +96,31 @@
+     o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
+     o.inst_id = in.inst_id;
+     o.selected = inst.flags & FLAG_SELECTED;
++    o.source_face = 0xffffffffu;
+     return o;
++}
++
++@vertex
++fn vs_main(in: VsIn) -> VsOut { return transform_vertex(in); }
++
++@group(3) @binding(0) var<storage, read> face_vertices: array<f32>;
++@group(3) @binding(1) var<storage, read> face_objects: array<u32>;
++@group(3) @binding(2) var<storage, read> face_indices: array<u32>;
++@group(3) @binding(3) var<storage, read> source_faces: array<u32>;
++@group(3) @binding(4) var<uniform> selected_face: vec4<u32>;
++
++@vertex
++fn vs_face(@builtin(vertex_index) index: u32) -> VsOut {
++    let vertex = face_indices[index];
++    let start = vertex * 10u; // RenderVertex is ten tightly packed f32 values.
++    let position = vec3<f32>(face_vertices[start], face_vertices[start+1u], face_vertices[start+2u]);
++    let normal = vec3<f32>(face_vertices[start+3u], face_vertices[start+4u], face_vertices[start+5u]);
++    let color = vec3<f32>(face_vertices[start+6u], face_vertices[start+7u], face_vertices[start+8u]);
++    var out = transform_vertex(VsIn(position, normal, color, face_objects[vertex]));
++    out.source_face = source_faces[index/3u];
++    out.selected = select(0u, 1u, out.source_face != 0xffffffffu && out.source_face == selected_face.x);
++    if (out.selected != 0u) { out.color = SELECT_COLOR; }
++    return out;
+ }
+ 
+ // The direction a fragment sees the camera in: a ray from the point under perspective,
+@@ -152,7 +177,8 @@
+ // The id pass: (object row + 1, 0).
+ @fragment
+ fn fs_id(in: VsOut) -> PhysicalId {
+-    return PhysicalId(vec2<u32>(in.inst_id + 1u, 0u), physical_gradient(in.pos.z));
++    let sub = select((0x20000000u | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
++    return PhysicalId(vec2<u32>(in.inst_id + 1u, sub), physical_gradient(in.pos.z));
+ }
+ 
+ @fragment
+@@ -165,3 +191,16 @@
+ fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> PhysicalColor {
+     return PhysicalColor(shade(in, front), physical_gradient(in.pos.z));
+ }
++
++@fragment
++fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
++    if (in.selected == 0u) { discard; }
++    return shade(in, front);
++}
++
++// All visible solid faces contribute to one coverage mask. Touching or overlapping
++// objects create no artificial seam in the group's outside silhouette.
++@fragment
++fn fs_solid_mask(in: VsOut) -> @location(0) vec4<f32> {
++    return vec4<f32>(1.0);
++}
+diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
+index 2bfa08425b7d0237f56ca4fb00513b99ea43ff5e..1bbc85408b71e5cb0d1d0a7a6d8e66a988fea65a
+--- a/session_viewer/src/state.rs
++++ b/session_viewer/src/state.rs
+@@ -14,7 +14,7 @@
+ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
+ use crate::engine::gpu::{FrameInput, Gpu, Pick};
+ use crate::engine::performance::{heap_mb, now_ms};
+-use crate::engine::text::{TextLabel, TextPlacement};
++mod text;
+ use std::sync::Arc;
+ use winit::window::Window;
+ 
+@@ -45,7 +45,6 @@
+     requested: PickMode,
+     pub selection_radius_css: f64,
+     /// Document annotations are prepared only when documents change, never on camera motion.
+-    scene_labels: Vec<TextLabel>,
+     /// A view preference retained across selections and scene reloads; T toggles it.
+     show_selected_names: bool,
+     cloud_query: Option<crate::app::cloud_query::Query>,
+@@ -72,7 +71,6 @@
+             controls: Controls::default(),
+             requested: PickMode::Object,
+             selection_radius_css: 6.0,
+-            scene_labels: Vec::new(),
+             show_selected_names: true,
+             cloud_query: None,
+             #[cfg(target_arch = "wasm32")]
+@@ -112,9 +110,8 @@
+ 
+     /// Replace authored scene text after the corresponding manifest/geometry revision is ready.
+     pub fn set_texts(&mut self, texts: Vec<crate::app::manifest::TextItem>) {
+-        self.scene.texts = texts;
++        self.scene.set_texts(texts, &mut self.gpu);
+         self.update_label();
+-        self.include_text_bounds();
+         self.touch();
+     }
+ 
+@@ -141,8 +138,8 @@
+     /// Drop every document; the canvas, device and camera stay.
+     pub fn clear(&mut self) {
+         self.selection = SelectionMode::Object;
++        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.controls = Controls::default();
+-        self.scene_labels.clear();
+         self.scene.clear(&mut self.gpu);
+         self.touch();
+     }
+@@ -198,7 +195,7 @@
+ 
+     /// Ask what is under pixel (x, y); the answer lands in a later frame (`apply_pick`).
+     pub fn request_pick(&mut self, x: u32, y: u32) {
+-        self.request_selection(x, y, false);
++        self.request_selection(x, y, false, false);
+     }
+ 
+     /// The picture changed: the next redraw presents it.
+@@ -212,6 +209,7 @@
+     /// Make `row` the selection (or none), moving the highlight.
+     pub fn select(&mut self, row: Option<u32>) {
+         self.selection = SelectionMode::Object;
++        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.controls = Controls::default();
+         self.gpu.controls.reset();
+         self.gpu.control_net.reset();
+@@ -248,6 +246,7 @@
+         self.select(None);
+         self.scene.hidden.insert(guid);
+         self.gpu.set_hidden(row, true);
++        self.update_label();
+         self.touch();
+     }
+ 
+@@ -257,6 +256,7 @@
+             self.gpu.set_hidden(row, false);
+         }
+         self.scene.hidden.clear();
++        self.update_label();
+         self.touch();
+     }
+ 
+@@ -268,7 +268,7 @@
+             return;
+         }
+         match self.requested {
+-            PickMode::Edge => {
++            PickMode::Edge | PickMode::Component => {
+                 if let Some(pick) = pick
+                     && let Some(edge) = self.scene.edge_at(pick)
+                 {
+@@ -279,6 +279,23 @@
+                         .segments
+                         .set_edge(&self.gpu.ctx, Some((pick.row, edge)));
+                     self.status(&format!("Edge {edge} selected"));
++                } else if self.requested == PickMode::Component
++                    && let Some(pick) = pick
++                    && let Some((address, source)) =
++                        self.gpu.arena.source_faces.source(pick.row, pick.sub)
++                {
++                    self.select(Some(source.parent));
++                    self.gpu.set_selected(source.parent, false);
++                    self.gpu.selection_outline.set_selected(source.parent, true);
++                    self.selection = SelectionMode::Face {
++                        parent: source.parent,
++                        face: source.face,
++                    };
++                    self.gpu
++                        .arena
++                        .source_faces
++                        .select(&self.gpu.ctx, Some(address));
++                    self.status(&format!("Face {} selected", source.face));
+                 }
+                 return;
+             }
+@@ -418,14 +435,16 @@
+     }
+ 
+     /// A pointer gesture chooses one pass; Ctrl never also performs ordinary selection.
+-    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool) {
++    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
+         self.cancel_cloud_query();
+         self.gpu.pick.cancel();
+         #[cfg(target_arch = "wasm32")]
+         if !edge && self.start_cloud_query(x, y) {
+             return;
+         }
+-        let mode = if edge {
++        let mode = if face {
++            PickMode::Component
++        } else if edge {
+             PickMode::Edge
+         } else {
+             match self.selection {
+@@ -471,6 +490,7 @@
+             return;
+         }
+         self.selection.enable_controls(Some(parent), controls.cloud);
++        self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.gpu.segments.set_edge(&self.gpu.ctx, None);
+         self.gpu.set_selected(parent, false);
+         self.gpu
+@@ -777,105 +797,6 @@
+         self.touch();
+     }
+ 
+-    /// Keep one readable source-document title above each loaded CAD group.
+-    /// Only the newly appended rows are visited; large scenes are not scanned on selection.
+-    fn annotate_document(&mut self, first_row: usize) {
+-        let mut bounds = crate::math::Aabb::empty();
+-        for index in first_row..self.scene.object_count() {
+-            let row = index as u32;
+-            if matches!(
+-                self.scene.geometry(row),
+-                Some(session_rust::Geometry::BRep(_) | session_rust::Geometry::NurbsSurface(_))
+-            ) && let Some(object) = self.gpu.objects.row_bounds(row)
+-            {
+-                bounds.union(&object);
+-            }
+-        }
+-        if !bounds.is_finite() {
+-            return;
+-        }
+-        let Some(document) = self.scene.docs.last() else {
+-            return;
+-        };
+-        let mut anchor = label_center(&bounds);
+-        anchor[2] = f64::from(bounds.max[2]) + f64::from(bounds.diagonal()) * 0.08;
+-        self.scene_labels.push(nameplate(
+-            self.scene.docs.len() as u32,
+-            document.name.clone(),
+-            anchor,
+-        ));
+-    }
+-
+-    /// Source-document text and the selected object's centered name share a fixed white style.
+-    fn update_label(&mut self) {
+-        let mut labels = self.scene_labels.clone();
+-        for (index, text) in self.scene.texts.iter().enumerate() {
+-            labels.push(TextLabel {
+-                id: (self.scene.docs.len() + index + 1) as u32,
+-                text: text.text.clone(),
+-                font_size: 18.0,
+-                line_height: 26.0,
+-                color: [255; 4],
+-                placement: TextPlacement::WorldPlane {
+-                    world: text.at,
+-                    right: text.right,
+-                    up: text.up,
+-                    world_height: text.height,
+-                },
+-                clip: None,
+-            });
+-        }
+-        if self.show_selected_names
+-            && !matches!(self.selection, SelectionMode::Controls { .. })
+-            && let Some(row) = self.scene.selected
+-            && let Some(bounds) = self.gpu.objects.row_bounds(row)
+-        {
+-            // Text ID 0 belongs to selection; document IDs start at 1, independent of rows.
+-            labels.push(nameplate(
+-                0,
+-                self.scene.object_name(row).to_string(),
+-                label_center(&bounds),
+-            ));
+-        }
+-        if let Err(error) = self.gpu.text.set_labels(labels) {
+-            self.status(&format!("Text: {error}"));
+-        }
+-    }
+-
+-    /// Include authored text planes in camera fitting using shaped extents and their fixed frame.
+-    fn include_text_bounds(&mut self) {
+-        for run in &self.gpu.text.document.runs {
+-            let TextPlacement::WorldPlane {
+-                world,
+-                right,
+-                up,
+-                world_height,
+-            } = run.label.placement
+-            else {
+-                continue;
+-            };
+-            let unit = world_height / f64::from(run.label.font_size);
+-            let mut width = 0.0f64;
+-            let mut height = 0.0f64;
+-            for line in run.buffer.layout_runs() {
+-                width = width.max(f64::from(line.line_w) * unit);
+-                height = height.max(f64::from(line.line_top + line.line_height) * unit);
+-            }
+-            let padding = world_height * 0.125;
+-            for x in [-padding, width + padding] {
+-                for y in [-padding, height + padding] {
+-                    let mut point = [0.0f32; 3];
+-                    for axis in 0..3 {
+-                        point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
+-                    }
+-                    if point.into_iter().all(f32::is_finite) {
+-                        self.gpu.bounds.grow(point);
+-                    }
+-                }
+-            }
+-        }
+-    }
+-
+     /// Non-disruptive interaction feedback also remains available to native diagnostics.
+     fn status(&self, message: &str) {
+         #[cfg(target_arch = "wasm32")]
+@@ -920,38 +841,3 @@
+ fn render_position(position: [f64; 3]) -> [f32; 3] {
+     [position[0] as f32, position[1] as f32, position[2] as f32]
+ }
+-
+-/// Center a viewer annotation in the object's world-space bounds before camera projection.
+-fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
+-    let mut center = [0.0; 3];
+-    for (axis, coordinate) in center.iter_mut().enumerate() {
+-        *coordinate = (f64::from(bounds.min[axis]) + f64::from(bounds.max[axis])) * 0.5;
+-    }
+-    center
+-}
+-
+-/// White-on-black annotations; selection ID 0 uses 75% of the document title size.
+-fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
+-    let scale = if id == 0 { 0.75 } else { 1.0 };
+-    let line_height = 26.0 * scale;
+-    let vertical_padding = 4.0 * scale;
+-    // A full cap radius at each end keeps the entire text line inside the straight section.
+-    let horizontal_padding = if id == 0 {
+-        line_height * 0.5 + vertical_padding
+-    } else {
+-        6.0 * scale
+-    };
+-    TextLabel {
+-        id,
+-        text,
+-        font_size: 18.0 * scale,
+-        line_height,
+-        color: [255; 4],
+-        placement: TextPlacement::Nameplate {
+-            world,
+-            padding: [horizontal_padding, vertical_padding],
+-            rounded: id == 0,
+-        },
+-        clip: None,
+-    }
+-}
+diff --git a/session_viewer/src/state/text.rs b/session_viewer/src/state/text.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..6646ca2351ef45ce375f89c30076a8a23aa49ab0
+--- /dev/null
++++ b/session_viewer/src/state/text.rs
+@@ -0,0 +1,147 @@
++//! Scene-text presentation: source labels, the derived selection name, and fit bounds.
++
++use super::State;
++use crate::app::selection::SelectionMode;
++use crate::engine::text::{TextLabel, TextPlacement};
++
++impl State {
++    /// Keep one readable source-document title above each loaded CAD group.
++    /// Only the newly appended rows are visited; large scenes are not scanned on selection.
++    pub(super) fn annotate_document(&mut self, first_row: usize) {
++        let mut bounds = crate::math::Aabb::empty();
++        for index in first_row..self.scene.object_count() {
++            let row = index as u32;
++            if matches!(
++                self.scene.geometry(row),
++                Some(session_rust::Geometry::BRep(_) | session_rust::Geometry::NurbsSurface(_))
++            ) && let Some(object) = self.gpu.objects.row_bounds(row)
++            {
++                bounds.union(&object);
++            }
++        }
++        if !bounds.is_finite() {
++            return;
++        }
++        let Some(document) = self.scene.docs.last() else {
++            return;
++        };
++        let mut anchor = label_center(&bounds);
++        anchor[2] = f64::from(bounds.max[2]) + f64::from(bounds.diagonal()) * 0.08;
++        let label = nameplate(1, document.name.clone(), anchor);
++        self.scene.set_document_title(label, &mut self.gpu);
++    }
++
++    /// Source-document text and the selected object's centered name share a fixed white style.
++    pub(super) fn update_label(&mut self) {
++        let mut labels = self.scene.visible_texts();
++        if self.show_selected_names
++            && !matches!(self.selection, SelectionMode::Controls { .. })
++            && let Some(row) = self.scene.selected
++            && let Some(bounds) = self.gpu.objects.row_bounds(row)
++        {
++            // Only this derived annotation has no selectable source row.
++            labels.push(nameplate(
++                0,
++                self.scene.object_name(row).to_string(),
++                label_center(&bounds),
++            ));
++        }
++        if let Err(error) = self.gpu.text.set_labels(labels) {
++            self.status(&format!("Text: {error}"));
++        }
++        self.include_text_bounds();
++    }
++
++    /// Include authored text planes in camera fitting using shaped extents and their fixed frame.
++    pub(super) fn include_text_bounds(&mut self) {
++        for run in &self.gpu.text.document.runs {
++            let (world, right, up, world_height) = match run.label.placement {
++                TextPlacement::WorldPlane {
++                    world,
++                    right,
++                    up,
++                    world_height,
++                } => (world, right, up, world_height),
++                TextPlacement::WorldBillboard {
++                    world,
++                    world_height,
++                } => (world, [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], world_height),
++                TextPlacement::Nameplate { world, .. } | TextPlacement::Anchor { world, .. } => (
++                    world,
++                    [1.0, 0.0, 0.0],
++                    [0.0, 1.0, 0.0],
++                    f64::from(self.gpu.bounds.diagonal()).max(1.0) * 0.002,
++                ),
++                TextPlacement::Screen { .. } => continue,
++            };
++            if run.label.object.is_none() {
++                continue;
++            }
++            let unit = world_height / f64::from(run.label.font_size);
++            let mut width = 0.0f64;
++            let mut height = 0.0f64;
++            for line in run.buffer.layout_runs() {
++                width = width.max(f64::from(line.line_w) * unit);
++                height = height.max(f64::from(line.line_top + line.line_height) * unit);
++            }
++            let padding = world_height * 0.125;
++            let mut bounds = crate::math::Aabb::empty();
++            for x in [-padding, width + padding] {
++                for y in [-padding, height + padding] {
++                    let mut point = [0.0f32; 3];
++                    for axis in 0..3 {
++                        point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
++                    }
++                    if point.into_iter().all(f32::is_finite) {
++                        if matches!(
++                            run.label.placement,
++                            TextPlacement::WorldPlane { .. } | TextPlacement::WorldBillboard { .. }
++                        ) {
++                            self.gpu.bounds.grow(point);
++                        }
++                        bounds.grow(point);
++                    }
++                }
++            }
++            if let Some(object) = run.label.object {
++                self.gpu.objects.set_text_bounds(object.row, bounds);
++            }
++        }
++    }
++}
++
++/// Center a viewer annotation in the object's world-space bounds before camera projection.
++fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
++    let mut center = [0.0; 3];
++    for (axis, coordinate) in center.iter_mut().enumerate() {
++        *coordinate = (f64::from(bounds.min[axis]) + f64::from(bounds.max[axis])) * 0.5;
++    }
++    center
++}
++
++/// White-on-black annotations; selection ID 0 uses 75% of the document title size.
++fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
++    let scale = if id == 0 { 0.75 } else { 1.0 };
++    let line_height = 26.0 * scale;
++    let vertical_padding = 4.0 * scale;
++    // A full cap radius at each end keeps the entire text line inside the straight section.
++    let horizontal_padding = if id == 0 {
++        line_height * 0.5 + vertical_padding
++    } else {
++        6.0 * scale
++    };
++    TextLabel {
++        object: None,
++        id,
++        text,
++        font_size: 18.0 * scale,
++        line_height,
++        color: [255; 4],
++        placement: TextPlacement::Nameplate {
++            world,
++            padding: [horizontal_padding, vertical_padding],
++            rounded: id == 0,
++        },
++        clip: None,
++    }
++}
+diff --git a/session_viewer/src/text_quality.rs b/session_viewer/src/text_quality.rs
+index 920a9b1935c2225d7e04981af5992de25eec2c31..e14717b4bfb4291c60ef8233da71262903d42ccf
+--- a/session_viewer/src/text_quality.rs
++++ b/session_viewer/src/text_quality.rs
+@@ -212,6 +212,7 @@
+         let labels = match specimens {
+             Specimens::Reference => fixture_labels(selected),
+             Specimens::Nameplate => vec![TextLabel {
++                object: None,
+                 id: 100,
+                 text: "Source sphere Ø25".into(),
+                 font_size: 13.5,
+@@ -303,6 +304,7 @@
+         let line_height = size * 1.5;
+         let text = SAMPLES.join("\n");
+         labels.push(TextLabel {
++            object: None,
+             id: labels.len() as u32,
+             text,
+             font_size: *size,
+diff --git a/session_viewer/tests/interaction.cjs b/session_viewer/tests/interaction.cjs
+index 0ee45dff28ad166e46e2228ea08563f472474fce..15b19d9bce396b42bbebfd3c37bbb689e76ddc60
+--- a/session_viewer/tests/interaction.cjs
++++ b/session_viewer/tests/interaction.cjs
+@@ -34,6 +34,11 @@
+     await page.locator('canvas').focus();
+     await page.waitForFunction(function focusedCanvas(){return document.hasFocus() && document.activeElement?.id==='canvas';});
+     await key(page,'5');
++    assert.equal((await snapshot(page)).outlines,true,'combined solid outline is enabled by default');
++    await key(page,'o');
++    assert.equal((await snapshot(page)).outlines,false,'O hides surface silhouettes');
++    await key(page,'o');
++    assert.equal((await snapshot(page)).outlines,true,'O restores surface silhouettes');
+     // Hide centered names to inspect short strokes; nameplate-scene.cjs checks their default display.
+     await key(page,'t');
+     await page.screenshot({path:path.join(output,`scene-dpr-${dpr}.png`)});
+@@ -48,6 +53,25 @@
+       if(state.selected_guid)assert.equal(state.selected_guid,spec.guid);
+       assert.equal(state.selection,'Object');
+       await visibleYellow(page,output,`${spec.kind}-object-dpr-${dpr}`);
++      if(['mesh','surface','brep'].includes(spec.kind)){
++        await page.keyboard.down('Shift');
++        await click(page,project(state,spec.pick),true);
++        await page.keyboard.up('Shift');
++        state=await snapshot(page);
++        assert.equal(state.selection.Face?.parent,parent,`${spec.kind}: Ctrl+Shift selects a source face`);
++        const face=state.selection.Face.face;
++        assert(Number.isInteger(face));
++        await visibleYellow(page,output,`${spec.kind}-face-dpr-${dpr}`);
++        await page.keyboard.down('Shift');
++        await click(page,project(state,spec.pick),true);
++        await page.keyboard.up('Shift');
++        assert.equal((await snapshot(page)).selection.Face?.face,face,'source face identity remains stable');
++        await page.keyboard.down('Shift');
++        await click(page,project(state,spec.edge),true);
++        await page.keyboard.up('Shift');
++        assert.equal((await snapshot(page)).selection.Edge?.parent,parent,'Ctrl+Shift keeps edge precedence');
++        await key(page,'Escape');
++      }
+       if(spec.edge && ['mesh','surface','brep'].includes(spec.kind)){
+         await click(page,project(state,spec.edge),true);
+         state=await snapshot(page);
+diff --git a/session_viewer/tests/scene-text.cjs b/session_viewer/tests/scene-text.cjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..55bdfa6b65a3f2e55f2a27c8ebfb5cf94bdd850f
+--- /dev/null
++++ b/session_viewer/tests/scene-text.cjs
+@@ -0,0 +1,83 @@
++/** Source text has the same select/hide lifecycle regardless of camera orientation. */
++const assert = require('node:assert/strict');
++const fs = require('node:fs/promises');
++const path = require('node:path');
++const {chromium} = require('playwright');
++
++/** Read the actual last submitted source labels and camera, without mutating app state. */
++function snapshot() {
++  return JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection') || '{}');
++}
++
++/** Project the center of a shaped camera-facing plate into canvas CSS coordinates. */
++function center(state, label) {
++  const p = [...label.world.map((v, i) => v - state.origin[i]), 1];
++  const m = state.mvp, clip = [0,0,0,0];
++  for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) clip[r] += m[c*4+r]*p[c];
++  const at = [(clip[0]/clip[3]*.5+.5)*state.logical_canvas[0], (.5-clip[1]/clip[3]*.5)*state.logical_canvas[1]];
++  if (label.placement === 'world_billboard') {
++    const scale = label.world_height * Math.hypot(m[1],m[5],m[9]) * state.logical_canvas[1] / (2*clip[3]*label.font_size);
++    at[0] += label.line_box[0]*scale/2;
++    at[1] += label.line_box[1]*scale/2;
++  }
++  return at;
++}
++
++/** Exercise authored world billboards and automatically supplied CAD document titles. */
++async function main() {
++  const output = process.env.VIEWER_TEST_OUTPUT || '/tmp/session-viewer-scene-text';
++  await fs.mkdir(output,{recursive:true});
++  const teapot = await fs.readFile(path.join(__dirname,'../assets/pb/view_mixed_teapot.pb'));
++  const browser = await chromium.launch({executablePath:process.env.CHROME_BIN || '/usr/bin/google-chrome',
++    headless:process.env.VIEWER_HEADLESS === '1',args:JSON.parse(process.env.VIEWER_CHROME_ARGS || '[]')});
++  const reports = [];
++  try {
++    for (const dpr of [1,2]) for (const kind of ['world_billboard','nameplate']) {
++      const context = await browser.newContext({viewport:{width:1000,height:700},deviceScaleFactor:dpr});
++      const page = await context.newPage(), errors = [];
++      page.on('pageerror',function failed(error) { errors.push(String(error)); });
++      await page.route('**/view_local.yaml',function manifest(route) {
++        const body = kind === 'world_billboard'
++          ? 'name: Camera text\nitems: []\ntexts:\n  - text: selectable_camera_text\n    at: [0,0,10]\n    height: 32\n    camera_facing: true\n'
++          : 'name: Camera title\nitems:\n  - file: pb/text-teapot.pb\n';
++        return route.fulfill({status:200,contentType:'application/yaml',body});
++      });
++      await page.route('**/pb/text-teapot.pb',function fixture(route) {
++        return route.fulfill({status:200,contentType:'application/octet-stream',body:teapot});
++      });
++      await page.goto(new URL('?data=off&inspect=1',process.env.VIEWER_URL || 'http://localhost:8771/').href);
++      await page.bringToFront();
++      await page.waitForFunction(kind => {
++        const s = JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection') || '{}');
++        return s.frames > 0 && s.text_labels?.some(label => label.placement === kind && label.object !== null);
++      },kind,{timeout:60000});
++      await page.locator('#canvas').focus();
++      await page.keyboard.press('t');
++      let state = await page.evaluate(snapshot);
++      const label = state.text_labels.find(label => label.placement === kind && label.object !== null);
++      const at = center(state,label);
++      assert(at[0] > 0 && at[0] < 1000 && at[1] > 0 && at[1] < 700,'source plate must be visible');
++      await page.mouse.click(...at);
++      await page.waitForFunction(row => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected === row,label.object);
++      state = await page.evaluate(snapshot);
++      assert.equal(state.selection,'Object');
++      assert.deepEqual(state.text_labels.find(item => item.id === label.id).color,[255,255,255,255]);
++      await page.locator('#canvas').screenshot({path:path.join(output,`${kind}-selected-dpr${dpr}.png`)});
++      await page.keyboard.press('h');
++      await page.waitForFunction(id => !JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.id === id),label.id);
++      await page.mouse.click(...at); await page.waitForTimeout(100);
++      assert.notEqual((await page.evaluate(snapshot)).selected,label.object,'hidden source text cannot pick');
++      await page.keyboard.press('s');
++      await page.waitForFunction(id => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.id === id),label.id);
++      await page.mouse.click(...at);
++      await page.waitForFunction(row => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected === row,label.object);
++      await page.keyboard.press('f'); await page.waitForTimeout(100);
++      assert.deepEqual(errors,[]);
++      reports.push({kind,dpr,row:label.object,at,errors});
++      await context.close();
++    }
++  } finally { await browser.close(); }
++  await fs.writeFile(path.join(output,'results.json'),JSON.stringify(reports,null,2)+'\n');
++  console.log('PASS camera-facing source text: real picks, white glyphs, hide/show, F and DPR1/2');
++}
++main().catch(function failed(error) { console.error(error); process.exitCode = 1; });
+diff --git a/session_viewer/tests/selection-overlap.py b/session_viewer/tests/selection-overlap.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..069829233a25c44cd7ab41f5753492efad11b2dd
+--- /dev/null
++++ b/session_viewer/tests/selection-overlap.py
+@@ -0,0 +1,177 @@
++#!/usr/bin/env python3
++"""Compare selected yellow cores with identical-geometry controls in forty native views."""
++import argparse
++import json
++import math
++import os
++from pathlib import Path
++import subprocess
++
++
++ROOT = Path(__file__).resolve().parents[1]
++WIDTH, HEIGHT = 1200, 800
++RETENTION = 0.97
++CAMERAS = {
++    "top": {"VIEWER_VIEW": "top"},
++    "iso": {},
++    "steep": {"VIEWER_ORBIT": "0,80"},
++    "side": {"VIEWER_ORBIT": "300,120"},
++}
++
++
++def run_logged(command, log, environment):
++    """Retain native adapter/validation evidence even if fixture generation or rendering fails."""
++    with log.open("w") as handle:
++        subprocess.run(command, env=environment, stdout=handle, stderr=handle, check=True)
++
++
++def read_ppm(path):
++    """Read the native RGB8 capture without a third-party image dependency."""
++    magic, size, maximum, data = path.read_bytes().split(b"\n", 3)
++    assert magic == b"P6" and maximum == b"255"
++    assert tuple(map(int, size.split())) == (WIDTH, HEIGHT)
++    assert len(data) == WIDTH * HEIGHT * 3
++    return data
++
++
++def yellow(data, index):
++    """Require actual yellow core coverage, excluding white backgrounds and black silhouettes."""
++    red, green, blue = data[index * 3:index * 3 + 3]
++    return red >= 220 and green >= 220 and blue <= 100
++
++
++def dot(first, second):
++    """The camera log and fixture coordinates share one Cartesian projection."""
++    return sum(a * b for a, b in zip(first, second))
++
++
++class Camera:
++    """Project original millimetre coordinates using the camera actually rendered."""
++
++    def __init__(self, log):
++        """Eye coordinates are logged in metres; orthographic half-height is already in mm."""
++        line = next(line.split("census camera: ", 1)[1] for line in log.splitlines()
++                    if "census camera: " in line)
++        knobs = dict(part.split("=") for part in line.split())
++        self.eye = [float(value) * 1000 for value in knobs["CENSUS_EYE"].split(",")]
++        self.forward = [float(value) for value in knobs["CENSUS_FWD"].split(",")]
++        self.up = [float(value) for value in knobs["CENSUS_UP"].split(",")]
++        forward, up = self.forward, self.up
++        self.right = [forward[1] * up[2] - forward[2] * up[1],
++                      forward[2] * up[0] - forward[0] * up[2],
++                      forward[0] * up[1] - forward[1] * up[0]]
++        self.half_height = float(knobs["CENSUS_ORTHO_H"])
++
++    def project(self, point):
++        """Return a source position in physical framebuffer pixels."""
++        delta = [point[index] - self.eye[index] for index in range(3)]
++        half_height = self.half_height or dot(delta, self.forward) * math.tan(math.pi / 6)
++        return [WIDTH * 0.5 + HEIGHT * 0.5 * dot(delta, self.right) / half_height,
++                HEIGHT * 0.5 - HEIGHT * 0.5 * dot(delta, self.up) / half_height]
++
++    def segment_pixels(self, segment, radius=2):
++        """Inspect a bounded strip around the source axis, excluding endpoints by fixture design."""
++        first, second = [self.project(point) for point in segment]
++        dx, dy = second[0] - first[0], second[1] - first[1]
++        length_squared = dx * dx + dy * dy
++        assert length_squared > 0
++        columns = range(max(0, int(min(first[0], second[0]) - radius - 1)),
++                        min(WIDTH, int(max(first[0], second[0]) + radius + 2)))
++        rows = range(max(0, int(min(first[1], second[1]) - radius - 1)),
++                     min(HEIGHT, int(max(first[1], second[1]) + radius + 2)))
++        for y in rows:
++            for x in columns:
++                along = ((x + 0.5 - first[0]) * dx + (y + 0.5 - first[1]) * dy) / length_squared
++                distance_squared = ((x + 0.5 - first[0] - along * dx) ** 2
++                                    + (y + 0.5 - first[1] - along * dy) ** 2)
++                if 0 <= along <= 1 and distance_squared <= radius * radius:
++                    yield y * WIDTH + x
++
++
++def retained_core(actual, reference, pixels):
++    """Black competing strokes must not remove the yellow present in the control capture."""
++    core = [index for index in pixels if yellow(reference, index)]
++    retained = sum(yellow(actual, index) for index in core)
++    return {"reference": len(core), "retained": retained,
++            "fraction": retained / max(1, len(core))}
++
++
++def measure(case, actual, reference, camera):
++    """Check every overlap, a tight crossing window, and strictly zero yellow behind the solid."""
++    scores = [retained_core(actual, reference, camera.segment_pixels(segment))
++              for segment in case["segments"]]
++    if case["focus"]:
++        x, y = camera.project(case["focus"])
++        pixels = [row * WIDTH + column
++                  for row in range(max(0, int(y) - 2), min(HEIGHT, int(y) + 3))
++                  for column in range(max(0, int(x) - 2), min(WIDTH, int(x) + 3))]
++        scores.append(dict(focus=True, **retained_core(actual, reference, pixels)))
++    leaks = 0
++    if case["hidden"]:
++        leaks = sum(yellow(actual, index)
++                    for index in camera.segment_pixels(case["hidden"], radius=1.25))
++    passed = all(score["reference"] >= 3 and score["fraction"] >= RETENTION
++                 for score in scores) and leaks == 0
++    return {"passed": passed, "segments": scores, "hidden_yellow": leaks}
++
++
++def captures(options, fixtures, case, stem, environment):
++    """Reference geometry and occlusion stay identical; only competing unselected ink changes."""
++    images, cameras = [], []
++    for suffix in ("", "-reference"):
++        label = stem + suffix
++        image = options.output / f"{label}.ppm"
++        log = options.output / f"{label}.log"
++        if not options.check_only:
++            run_logged([options.renderer, image, fixtures / f'{case["kind"]}{suffix}.pb'],
++                       log, environment)
++        text = log.read_text()
++        assert "[ERROR]" not in text and "panicked" not in text, log
++        images.append(read_ppm(image))
++        cameras.append(Camera(text))
++    assert vars(cameras[0]) == vars(cameras[1]), "control changed the framing or physical geometry"
++    return images[0], images[1], cameras[0]
++
++
++def main():
++    """Generate through the maintained Cargo example, then run all five fixtures in eight views."""
++    target = Path(os.environ.get("CARGO_TARGET_DIR", ROOT / "target")).resolve()
++    binaries = target / "x86_64-unknown-linux-gnu/debug/examples"
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--renderer", type=Path, default=binaries / "selftest")
++    parser.add_argument("--generator", type=Path, default=binaries / "mk_selection_overlap")
++    parser.add_argument("--output", type=Path, default=target / "selection-overlap")
++    parser.add_argument("--check-only", action="store_true", help="recheck retained captures without rendering")
++    options = parser.parse_args()
++    options.renderer = options.renderer.resolve()
++    options.generator = options.generator.resolve()
++    options.output = options.output.resolve()
++    options.output.mkdir(parents=True, exist_ok=True)
++    fixtures = options.output / "fixtures"
++    # Do not inherit a camera, selection or outline-disable knob from an unrelated harness.
++    environment = {key: value for key, value in os.environ.items() if not key.startswith("VIEWER_")}
++    if not options.check_only:
++        run_logged([options.generator, fixtures], options.output / "fixture.log", environment)
++    cases = json.loads((fixtures / "cases.json").read_text())
++    assert len(cases) == 5
++    results = []
++    for case in cases:
++        for name, settings in CAMERAS.items():
++            for samples in (1, 4):
++                stem = f'{case["kind"]}-{name}-{samples}'
++                knobs = dict(environment, VIEWER_SELECT="selected target", VIEWER_NO_GRID="1",
++                             BENCH_NO_MARKERS="1", VIEWER_NO_BACKFACE="1", VIEWER_MSAA=str(samples),
++                             VIEWER_W=str(WIDTH), VIEWER_H=str(HEIGHT), **settings)
++                actual, reference, camera = captures(options, fixtures, case, stem, knobs)
++                row = dict(case=case["kind"], camera=name, msaa=samples,
++                           **measure(case, actual, reference, camera))
++                results.append(row)
++                print(json.dumps(row), flush=True)
++                (options.output / "results.json").write_text(json.dumps(results, indent=2) + "\n")
++    passed = sum(row["passed"] for row in results)
++    print(f"{passed}/{len(results)} selected-overlap cases pass")
++    raise SystemExit(passed != len(results))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/session_viewer/tests/stroke-joins.py b/session_viewer/tests/stroke-joins.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..b70f96b31a1f8724ceaec8abd04484eb5d7b8353
+--- /dev/null
++++ b/session_viewer/tests/stroke-joins.py
+@@ -0,0 +1,132 @@
++#!/usr/bin/env python3
++"""Check joined vertices and subdivision opacity against source geometry, without goldens."""
++import argparse
++import json
++import math
++import os
++from pathlib import Path
++import subprocess
++
++ROOT = Path(__file__).resolve().parents[1]
++WIDTH, HEIGHT = 1200, 800
++
++
++def dot(first, second):
++    return sum(a * b for a, b in zip(first, second))
++
++
++class Camera:
++    """The native log supplies metres for the eye and millimetres for orthographic height."""
++    def __init__(self, log):
++        line = next(line.split("census camera: ", 1)[1] for line in log.splitlines()
++                    if "census camera: " in line)
++        fields = dict(part.split("=") for part in line.split())
++        self.eye = [float(value) * 1000 for value in fields["CENSUS_EYE"].split(",")]
++        self.forward = [float(value) for value in fields["CENSUS_FWD"].split(",")]
++        self.up = [float(value) for value in fields["CENSUS_UP"].split(",")]
++        f, u = self.forward, self.up
++        self.right = [f[1]*u[2]-f[2]*u[1], f[2]*u[0]-f[0]*u[2], f[0]*u[1]-f[1]*u[0]]
++        self.half_height = float(fields["CENSUS_ORTHO_H"])
++
++    def project(self, point):
++        delta = [value - eye for value, eye in zip(point, self.eye)]
++        half_height = self.half_height or dot(delta, self.forward) * math.tan(math.pi / 6)
++        return (WIDTH / 2 + HEIGHT / 2 * dot(delta, self.right) / half_height,
++                HEIGHT / 2 - HEIGHT / 2 * dot(delta, self.up) / half_height)
++
++
++def read_ppm(path):
++    magic, size, maximum, pixels = path.read_bytes().split(b"\n", 3)
++    assert magic == b"P6" and maximum == b"255"
++    assert tuple(map(int, size.split())) == (WIDTH, HEIGHT)
++    assert len(pixels) == WIDTH * HEIGHT * 3
++    return pixels
++
++
++def vertex_coverage(case, camera, pixels, selected):
++    """Inspect actual joint cores, including the circle's historically missing diagonal tie."""
++    inspected = set()
++    for point in case["points"]:
++        px, py = camera.project(point)
++        # Ordinary one-pixel pens have weaker corner coverage; selected cores are wider.
++        radius = 0.71 if selected else 0.55
++        for y in range(math.floor(py) - 1, math.floor(py) + 2):
++            for x in range(math.floor(px) - 1, math.floor(px) + 2):
++                if not (0 <= x < WIDTH and 0 <= y < HEIGHT):
++                    continue
++                if math.hypot(x + 0.5 - px, y + 0.5 - py) <= radius:
++                    inspected.add(y * WIDTH + x)
++    assert inspected, "fixture has no projected vertex samples"
++    missing = []
++    for index in inspected:
++        red, green, blue = pixels[index*3:index*3+3]
++        visible = red >= 220 and green >= 220 and blue <= 100 if selected else min(red, green) < 247
++        if not visible:
++            missing.append([index % WIDTH, index // WIDTH])
++    return {"samples": len(inspected), "missing": missing}
++
++
++def render(command, environment, log):
++    result = subprocess.run(command, env=environment, capture_output=True, text=True)
++    output = result.stdout + result.stderr
++    log.write_text(output)
++    result.check_returncode()
++    assert "[ERROR]" not in output and "panicked" not in output, log
++    return output
++
++
++def main():
++    target = Path(os.environ.get("CARGO_TARGET_DIR", ROOT / "target"))
++    examples = target / "x86_64-unknown-linux-gnu/debug/examples"
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--renderer", type=Path, default=examples / "selftest")
++    parser.add_argument("--generator", type=Path, default=examples / "mk_stroke_joins")
++    parser.add_argument("--output", type=Path, default=target / "stroke-joins")
++    parser.add_argument("--check-only", action="store_true", help="recheck existing captures")
++    options = parser.parse_args()
++    output = options.output.resolve()
++    output.mkdir(parents=True, exist_ok=True)
++    fixtures = output / "fixtures"
++    environment = {key: value for key, value in os.environ.items() if not key.startswith("VIEWER_")}
++    if not options.check_only:
++        render([str(options.generator.resolve()), str(fixtures)], environment, output / "generator.log")
++    cases = json.loads((fixtures / "cases.json").read_text())
++    rows = []
++    for view, camera_knobs in [("top", {"VIEWER_VIEW": "top"}), ("iso", {})]:
++        for samples in [1, 4]:
++            for selected in [False, True]:
++                captures = {}
++                for case in cases:
++                    stem = f'{case["name"]}-{view}-{samples}-{int(selected)}'
++                    image, log = output / (stem + ".ppm"), output / (stem + ".log")
++                    if not options.check_only:
++                        knobs = dict(VIEWER_W=str(WIDTH), VIEWER_H=str(HEIGHT), VIEWER_NO_GRID="1",
++                                     BENCH_NO_MARKERS="1", VIEWER_MSAA=str(samples), **camera_knobs)
++                        if selected:
++                            knobs["VIEWER_SELECT"] = "joined stroke"
++                        render([str(options.renderer.resolve()), str(image),
++                                str(fixtures / (case["name"] + ".pb"))],
++                               dict(environment, **knobs), log)
++                    pixels, camera = read_ppm(image), Camera(log.read_text())
++                    measured = vertex_coverage(case, camera, pixels, selected)
++                    rows.append(dict(case=stem, passed=not measured["missing"], **measured))
++                    captures[case["name"]] = (pixels, camera)
++                single, dense = captures["straight"], captures["dense_straight"]
++                assert vars(single[1]) == vars(dense[1]), "paired fixtures changed camera"
++                # Integrated ink detects cap overlap that gets darker when a straight line
++                # is subdivided. A bounded allowance includes existing MSAA fringe thinning.
++                def ink(data):
++                    return sum(255 - min(data[index:index+3]) for index in range(0, len(data), 3))
++                ratio = ink(dense[0]) / ink(single[0])
++                rows.append(dict(case=f"opacity-{view}-{samples}-{int(selected)}",
++                                 passed=0.90 <= ratio <= 1.08, dense_single_ink_ratio=ratio))
++    (output / "results.json").write_text(json.dumps(rows, indent=2) + "\n")
++    failures = [row for row in rows if not row["passed"]]
++    for row in failures:
++        print(json.dumps(row))
++    print(f"{len(rows) - len(failures)}/{len(rows)} stroke-join checks pass (32 captures)")
++    raise SystemExit(bool(failures))
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/session_viewer/tests/world-text.cjs b/session_viewer/tests/world-text.cjs
+index c02285dda854d5a394faf05e6b1d9f9402d01995..0b119d653ff18df6408aed4386d73b6782a76afd
+--- a/session_viewer/tests/world-text.cjs
++++ b/session_viewer/tests/world-text.cjs
+@@ -86,7 +86,25 @@
+       await page.keyboard.press('t'); await page.waitForTimeout(100);
+       assert.equal(plane(await page.evaluate(snapshot)).text,label.text,'T only toggles selected-item annotations');
+       await page.locator('#canvas').screenshot({path:path.join(output,`plane-top-dpr${dpr}.png`)});
+-      assert.deepEqual(errors,[]); reports.push({dpr,first,top,pixels,errors}); await context.close();
++      const unit = label.plane[2] / label.font_size;
++      const center = label.world.map((value, axis) => value + label.plane[0][axis]*label.line_box[0]*unit/2 - label.plane[1][axis]*label.line_box[1]*unit/2);
++      const ndc = project(top, center), at = [(ndc[0]*.5+.5)*1000,(.5-ndc[1]*.5)*700];
++      await page.mouse.click(...at);
++      await page.waitForFunction(() => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected !== null);
++      const selected = await page.evaluate(snapshot);
++      assert.equal(selected.selection, 'Object');
++      assert.deepEqual(plane(selected).color,[255,255,255,255], 'selection preserves white glyphs');
++      await page.keyboard.press('h');
++      await page.waitForFunction(() => !JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.placement === 'world_plane'));
++      await page.mouse.click(...at); await page.waitForTimeout(100);
++      assert.equal((await page.evaluate(snapshot)).selected,null,'hidden text cannot be picked');
++      await page.keyboard.press('s');
++      await page.waitForFunction(() => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.placement === 'world_plane'));
++      await page.mouse.click(...at);
++      await page.waitForFunction(row => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected === row, selected.selected);
++      await page.keyboard.press('f'); await page.waitForTimeout(100);
++      await page.locator('#canvas').screenshot({path:path.join(output,`plane-selected-dpr${dpr}.png`)});
++      assert.deepEqual(errors,[]); reports.push({dpr,first,top,pixels,selected,errors}); await context.close();
+     }
+   } finally { await browser.close(); }
+   await fs.writeFile(path.join(output,'world-text.json'),JSON.stringify(reports,null,2) + '\n');

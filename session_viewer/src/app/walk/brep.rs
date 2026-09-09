@@ -36,7 +36,17 @@ struct Solid {
 
 /// One face mesh into the arena under `cx.row`: its own vertices, its normals as the kernel
 /// evaluated them, its triangles based on the file's vertex base.
-fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid) {
+fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut Solid, face: usize) {
+    let address = arena.face_sources.len() as u32;
+    arena
+        .face_sources
+        .push(crate::engine::gpu::faces::FaceSource {
+            parent: cx.row,
+            face,
+        });
+    arena
+        .face_ids
+        .extend(std::iter::repeat_n(address, rm.indices.len() / 3));
     let base = cx.vert_base + arena.verts.len() as u32;
     let local = solid.pos.len() as u32;
     arena.verts.reserve(rm.vertices.len());
@@ -82,7 +92,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
                 triangle.swap(1, 2);
             }
         }
-        push_face(arena, &rm, cx, &mut solid);
+        push_face(arena, &rm, cx, &mut solid, fi);
     }
     let mut flags = Instance::FLAG_SMOOTH;
     if !b.is_solid() {

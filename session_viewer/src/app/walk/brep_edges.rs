@@ -425,6 +425,7 @@ pub fn push_edge_pipes(
 ) -> usize {
     let fm = &ep.fms[chain.face];
 
+    let first = seg.pipes.len() as u32;
     seg.pipes.reserve(chain.keys.len().saturating_sub(1));
     let mut count = 0;
     for w in chain.keys.windows(2) {
@@ -451,6 +452,7 @@ pub fn push_edge_pipes(
             .push(u32::try_from(chain.edge).unwrap_or(u32::MAX));
         count += 1;
     }
+    seg.pipe_chains.push(first..seg.pipes.len() as u32);
     count
 }
 

@@ -1,0 +1,9 @@
+/* Keep the course readable beside a code editor, including long shader declarations. */
+:root { --md-text-font: system-ui, sans-serif; --md-code-font: "DejaVu Sans Mono", "Liberation Mono", monospace; }
+.md-grid { max-width: 92rem; }
+.md-typeset { font-size: .84rem; line-height: 1.65; }
+.md-typeset pre > code { font-size: .75rem; line-height: 1.55; }
+.md-typeset .highlight { margin: 1.2em 0; }
+.md-typeset .highlight pre { border: 1px solid #dbe2e9; border-radius: .35rem; }
+.md-typeset table:not([class]) th { background: #eef2f6; }
+.md-typeset .mermaid { overflow-x: auto; }

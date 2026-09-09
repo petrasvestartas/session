@@ -36,6 +36,8 @@ pub enum PickMode {
     #[default]
     Object,
     Edge,
+    /// Original edges take precedence; otherwise pick the visible source face.
+    Component,
     Controls {
         parent: u32,
         cloud: bool,
@@ -166,7 +168,7 @@ impl Picker {
             Some(target) => u64::from(target.size.0) * u64::from(target.size.1),
             None => 0,
         };
-        (buffer, pixels * 16)
+        (buffer, pixels * 20)
     }
 
     /// Nothing requested, nothing allocated.
@@ -326,7 +328,7 @@ impl Picker {
                 "pick.gradient",
                 &TextureSpec {
                     size,
-                    format: wgpu::TextureFormat::Rg16Float,
+                    format: wgpu::TextureFormat::Rgba16Float,
                     samples: 1,
                     usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                         | wgpu::TextureUsages::TEXTURE_BINDING,
@@ -573,7 +575,8 @@ fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
             if distance > u64::from(win.radius).pow(2) {
                 continue;
             }
-            let key = (sub == 0, distance, object, sub);
+            let face = sub == 0 || sub.wrapping_sub(1) & 0xe000_0000 == super::faces::FACE_TAG;
+            let key = (face, distance, object, sub);
             match best {
                 Some(previous) if key >= previous => {}
                 _ => best = Some(key),

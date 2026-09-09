@@ -43,6 +43,9 @@ pub struct TextItem {
     pub up: [f64; 3],
     /// Required positive finite em height in world units.
     pub height: f64,
+    /// Face the camera while keeping the supplied world em height.
+    #[serde(default)]
+    pub camera_facing: bool,
 }
 
 /// The parsed scene file: ordered geometry items and optional fixed world-space text planes.

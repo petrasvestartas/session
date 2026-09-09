@@ -179,6 +179,9 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     for &i in &rm.indices {
         idx.push(base + i);
     }
+    if !(o.sheet_lanes && print) {
+        append_face_ids(arena, m, cx.row, o.smooth, rm.indices.len() / 3);
+    }
     lap.mark("vert+idx push");
     let mut flags = if o.sheet_lanes && print {
         Instance::FLAG_PRINT
@@ -233,4 +236,50 @@ fn positions(verts: &[RenderVertex]) -> Vec<[f32; 3]> {
         out.push(v.position);
     }
     out
+}
+
+/// Match the kernel render contract: sorted source faces, cached triangles or a valid fan.
+fn append_face_ids(
+    arena: &mut ArenaRows,
+    mesh: &Mesh,
+    parent: u32,
+    surface: bool,
+    triangles: usize,
+) {
+    use crate::engine::gpu::faces::FaceSource;
+    if surface {
+        let address = arena.face_sources.len() as u32;
+        arena.face_sources.push(FaceSource { parent, face: 0 });
+        arena
+            .face_ids
+            .extend(std::iter::repeat_n(address, triangles));
+        return;
+    }
+    let start = arena.face_ids.len();
+    let mut keys: Vec<_> = mesh.face.keys().copied().collect();
+    keys.sort_unstable();
+    for face in keys {
+        let address = arena.face_sources.len() as u32;
+        arena.face_sources.push(FaceSource { parent, face });
+        let valid =
+            |triangle: &[usize; 3]| triangle.iter().all(|key| mesh.vertex.contains_key(key));
+        let count = if let Some(cached) = mesh
+            .triangulation
+            .get(&face)
+            .filter(|tris| !tris.is_empty())
+        {
+            cached.iter().filter(|tri| valid(tri)).count()
+        } else {
+            let corners = &mesh.face[&face];
+            (1..corners.len().saturating_sub(1))
+                .filter(|&i| valid(&[corners[0], corners[i], corners[i + 1]]))
+                .count()
+        };
+        arena.face_ids.extend(std::iter::repeat_n(address, count));
+    }
+    assert_eq!(
+        arena.face_ids.len() - start,
+        triangles,
+        "source face IDs must match the kernel triangle stream"
+    );
 }

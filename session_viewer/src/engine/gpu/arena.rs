@@ -30,6 +30,9 @@ pub struct ArenaRows {
     pub idx: Vec<u32>,
     pub idx_print: Vec<u32>,
     pub idx_text: Vec<u32>,
+    /// One upload-local original face address per solid triangle.
+    pub face_ids: Vec<u32>,
+    pub face_sources: Vec<super::faces::FaceSource>,
 }
 
 impl ArenaRows {
@@ -40,18 +43,20 @@ impl ArenaRows {
         drop_rows(&mut self.idx);
         drop_rows(&mut self.idx_print);
         drop_rows(&mut self.idx_text);
+        drop_rows(&mut self.face_ids);
+        drop_rows(&mut self.face_sources);
     }
 }
 
 /// Solid face color and identity pipelines. Sheet vectors use the unlit outline lane.
 struct ArenaPipelines {
-    faces: wgpu::RenderPipeline,
-    id_faces: wgpu::RenderPipeline,
     selection_mask: wgpu::RenderPipeline,
+    solid_mask: wgpu::RenderPipeline,
 }
 
 /// The arena on the GPU: five `GrowBuf`s under the one growth policy.
 pub struct ArenaLane {
+    pub tiles: super::triangle_tiles::TriangleTiles,
     verts: GrowBuf,
     vids: GrowBuf,
     faces: GrowBuf,
@@ -60,9 +65,31 @@ pub struct ArenaLane {
     shader: wgpu::ShaderModule,
     pipes: ArenaPipelines,
     outline_text: OutlineTextLane,
+    pub source_faces: super::faces::Faces,
 }
 
 impl ArenaLane {
+    /// Refresh the projected visibility data using this arena's exact buffers.
+    pub fn prepare_visibility(
+        &mut self,
+        ctx: &GpuCtx,
+        encoder: &mut wgpu::CommandEncoder,
+        binds: &Binds,
+        matrix: [f32; 16],
+        objects_revision: u64,
+    ) {
+        self.tiles.encode(
+            ctx,
+            encoder,
+            super::triangle_tiles::TileInput {
+                binds,
+                geometry: [&self.verts.buf, &self.vids.buf, &self.faces.buf],
+                matrix,
+                objects_revision,
+            },
+        );
+    }
+
     /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
     pub fn allocated_bytes(&self) -> u64 {
         self.verts.buf.size()
@@ -70,6 +97,8 @@ impl ArenaLane {
             + self.faces.buf.size()
             + self.print.buf.size()
             + self.text.buf.size()
+            + self.source_faces.allocated_bytes()
+            + self.tiles.allocated_bytes().0
     }
 
     /// Five one-row tables; the first upload sizes them.
@@ -81,15 +110,18 @@ impl ArenaLane {
         );
         let pipes = build_pipelines(ctx, l, &shader, target);
 
+        let source_faces = super::faces::Faces::new(ctx, l, &shader, target);
         Self {
+            source_faces,
+            tiles: super::triangle_tiles::TriangleTiles::new(ctx, l),
             verts: GrowBuf::new(
                 ctx,
                 "arena.vbo",
                 std::mem::size_of::<RenderVertex>() as u64,
-                VERTS,
+                VERTS | wgpu::BufferUsages::STORAGE,
             ),
-            vids: GrowBuf::new(ctx, "arena.vids", 4, VERTS),
-            faces: GrowBuf::new(ctx, "arena.ibo", 4, INDICES),
+            vids: GrowBuf::new(ctx, "arena.vids", 4, VERTS | wgpu::BufferUsages::STORAGE),
+            faces: GrowBuf::new(ctx, "arena.ibo", 4, INDICES | wgpu::BufferUsages::STORAGE),
             print: GrowBuf::new(ctx, "arena.ibo.print", 4, INDICES),
             text: GrowBuf::new(ctx, "arena.ibo.text", 4, INDICES),
             shader,
@@ -102,20 +134,24 @@ impl ArenaLane {
     pub fn retarget(&mut self, ctx: &GpuCtx, l: &Layouts, target: Target) {
         self.pipes = build_pipelines(ctx, l, &self.shader, target);
         self.outline_text.retarget(ctx, l, target);
+        self.source_faces.retarget(ctx, l, &self.shader, target);
     }
 
     /// Append one file's rows. The sheet runs index the SAME vertex table.
     pub fn append(&mut self, ctx: &GpuCtx, up: &ArenaRows) {
+        self.tiles.invalidate();
         self.verts.append(ctx, &up.verts);
         self.vids.append(ctx, &up.vids);
         self.faces.append(ctx, &up.idx);
         self.print.append(ctx, &up.idx_print);
         self.text.append(ctx, &up.idx_text);
+        self.source_faces
+            .append(ctx, up, [&self.verts.buf, &self.vids.buf, &self.faces.buf]);
     }
 
     /// The solid faces, one indexed draw: the physical depth every ink fragment reads.
     pub fn draw_faces(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_run(pass, b, &self.pipes.faces, &self.faces)
+        self.source_faces.draw_physical(pass, b)
     }
 
     /// Visible selected faces only; replay the identical vertices against physical depth.
@@ -138,10 +174,23 @@ impl ArenaLane {
 
     /// The id pass for the faces and the sheet fills, each fragment its object row.
     pub fn draw_face_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
-        self.draw_run(pass, b, &self.pipes.id_faces, &self.faces)
+        self.source_faces.draw_object_ids(pass, b)
             + self
                 .outline_text
                 .draw_physical_ids(pass, b, &self.outline_buffers(&self.print))
+    }
+
+    /// Component picks retain sheet occlusion alongside the original solid-face IDs.
+    pub fn draw_component_ids(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        self.source_faces.draw_ids(pass, b)
+            + self
+                .outline_text
+                .draw_physical_ids(pass, b, &self.outline_buffers(&self.print))
+    }
+
+    /// Combined visible coverage for the solid-group silhouette, using the existing triangle run.
+    pub fn draw_solid_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        self.draw_run(pass, b, &self.pipes.solid_mask, &self.faces)
     }
 
     /// The id pass for the lettering, after the ink as in the colour pass.
@@ -185,7 +234,9 @@ impl ArenaLane {
     }
 
     /// Forget every row; capacity stays.
-    pub fn reset(&mut self) {
+    pub fn reset(&mut self, ctx: &GpuCtx) {
+        self.tiles.invalidate();
+        self.source_faces.reset(ctx);
         self.verts.reset();
         self.vids.reset();
         self.faces.reset();
@@ -195,6 +246,8 @@ impl ArenaLane {
 
     /// Hand every buffer back: five one-row tables again.
     pub fn release(&mut self, ctx: &GpuCtx) {
+        self.tiles.release(ctx);
+        self.source_faces.release(ctx);
         self.verts.release(ctx);
         self.vids.release(ctx);
         self.faces.release(ctx);
@@ -226,11 +279,15 @@ fn build_pipelines(
     let dev = &ctx.device;
 
     ArenaPipelines {
-        faces: build(dev, target, &base.with("triangle", "fs_main").physical()),
-        id_faces: build(
+        solid_mask: build(
             dev,
-            Target::ID,
-            &base.with("triangle.id", "fs_id").physical(),
+            Target {
+                format: wgpu::TextureFormat::R8Unorm,
+                samples: target.samples,
+            },
+            &base
+                .with("triangle.solid_mask", "fs_solid_mask")
+                .depth(crate::engine::pipelines::DepthMode::ReadOnlyEqual),
         ),
         selection_mask: build(
             dev,

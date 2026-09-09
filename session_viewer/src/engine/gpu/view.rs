@@ -12,6 +12,8 @@ pub struct View {
     pub show_lines: bool,
     /// Mesh/BRep edges and their vertex markers - the SOLID lane. `E`.
     pub show_mesh_edges: bool,
+    /// Black visible-surface silhouettes, including unselected objects. `O`.
+    pub show_outlines: bool,
     /// Vertex markers on top of the solid ink; `BENCH_NO_MARKERS` turns them off for timing.
     pub markers: bool,
     /// Global scale on per-cloud point sizes, `[` and `]` (`VIEWER_CLOUD_SCALE`).
@@ -53,6 +55,7 @@ impl View {
             show_points: true,
             show_lines: true,
             show_mesh_edges: true,
+            show_outlines: knob("VIEWER_NO_OUTLINES", "nooutlines").is_none(),
             markers: knob("BENCH_NO_MARKERS", "nomarkers").is_none(),
             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),

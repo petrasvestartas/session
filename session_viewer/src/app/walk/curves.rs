@@ -11,6 +11,7 @@ use session_rust::{Line, NurbsCurve, Polyline};
 
 /// Segments between consecutive points, growing `bounds` as they go.
 pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, bounds: &mut Aabb) {
+    let first = seg.ribbons.len() as u32;
     seg.ribbons.reserve(pts.len().saturating_sub(1));
     for w in pts.windows(2) {
         bounds.grow(w[0]);
@@ -23,6 +24,7 @@ pub(super) fn push_polyline(seg: &mut SegRows, pts: &[[f32; 3]], pen: &Pen, boun
             facing: FACING_UNKNOWN,
         });
     }
+    seg.ribbon_chains.push(first..seg.ribbons.len() as u32);
     if let Some(last) = pts.last() {
         bounds.grow(*last);
     }

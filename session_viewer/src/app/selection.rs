@@ -21,6 +21,10 @@ pub enum SelectionMode {
         parent: u32,
         edge: u32,
     },
+    Face {
+        parent: u32,
+        face: usize,
+    },
     Controls {
         parent: u32,
         selected: Option<ControlId>,
@@ -33,7 +37,9 @@ impl SelectionMode {
     pub fn parent(&self) -> Option<u32> {
         match self {
             Self::Object => None,
-            Self::Edge { parent, .. } | Self::Controls { parent, .. } => Some(*parent),
+            Self::Edge { parent, .. }
+            | Self::Face { parent, .. }
+            | Self::Controls { parent, .. } => Some(*parent),
         }
     }
 

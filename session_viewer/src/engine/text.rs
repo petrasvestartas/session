@@ -45,10 +45,18 @@ pub enum TextPlacement {
     },
 }
 
+/// Authored text participates in ordinary object selection; annotations have no owner.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TextObject {
+    pub row: u32,
+    pub selected: bool,
+}
+
 /// One source label. Sizes, line height, offsets and optional clipping use CSS pixels.
 #[derive(Clone, Debug, PartialEq)]
 pub struct TextLabel {
     pub id: u32,
+    pub object: Option<TextObject>,
     pub text: String,
     pub font_size: f32,
     pub line_height: f32,
@@ -329,6 +337,7 @@ mod tests {
     /// Keep source-text tests on the same explicit screen placement and font metrics.
     fn label(text: &str) -> TextLabel {
         TextLabel {
+            object: None,
             id: 1,
             text: text.into(),
             font_size: 16.0,

@@ -1,0 +1,42 @@
+site_name: Session Viewer — Build the Browser CAD Viewer
+site_description: A complete Rust, WebAssembly, WebGPU and WGSL reconstruction course.
+docs_dir: target/docs/source
+site_dir: target/docs/site
+dev_addr: 127.0.0.1:8772
+theme:
+  name: material
+  font: false
+  palette:
+    scheme: default
+    primary: blue grey
+    accent: indigo
+  features:
+    - navigation.footer
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+plugins:
+  - search
+hooks:
+  - docs/lesson_pages.py
+validation:
+  nav:
+    omitted_files: ignore
+markdown_extensions:
+  - tables
+  - attr_list
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+      guess_lang: false
+  - pymdownx.superfences
+extra_css:
+  - docs/stylesheets/course.css
+watch:
+  - docs
+  - ARCHITECTURE.md
+  - tests/README.md
+nav: [{"Start here": "docs/README.md"}, {"00 · Start Rust in the browser": "docs/00-environment.md"}, {"01 · Draw one WebGPU frame": "docs/01-first-frame.md"}, {"02 · Move a camera through coordinate spaces": "docs/02-camera.md"}, {"03 · Keep source identity while batching drawing": "docs/03-identity.md"}, {"04 · Add independent drawing modules": "docs/04-modules.md"}, {"05 · Separate physical surfaces from readable ink": "docs/05-visibility.md"}, {"06 · Preserve CAD faces in display data": "docs/06-cad-contract.md"}, {"07 · Make boundaries belong to the face mesh": "docs/07-boundaries.md"}, {"08 · Respect holes and periodic seams": "docs/08-trimming.md"}, {"09 · Shade curved interiors and preserve sharp faces": "docs/09-normals.md"}, {"10 · Shape text before drawing it": "docs/10-text-layout.md"}, {"11 · Render readable text at the right size": "docs/11-text-rendering.md"}, {"12 · Pick visible source objects and edges": "docs/12-picking.md"}, {"13 · Select original controls, including streamed points": "docs/13-controls.md"}, {"14 · Load and replace complete scenes": "docs/14-loading.md"}, {"15 · Publish immutable geometry and reuse it": "docs/15-publication.md"}, {"16 · Account for resources and keep useful tests": "docs/16-verification.md"}, {"17 · Select source faces and text; draw one clean silhouette": "docs/17-source-presentation.md"}, {"18 · Test finite triangles, then converge on production": "docs/18-finite-visibility.md"}, {"Architecture": "ARCHITECTURE.md"}, {"CAD design": "docs/cad-design.md"}, {"Measurements": "docs/measurements.md"}, {"Coverage": "docs/coverage.md"}, {"Verification tools": "tests/README.md"}]

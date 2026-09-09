@@ -86,7 +86,25 @@ async function main() {
       await page.keyboard.press('t'); await page.waitForTimeout(100);
       assert.equal(plane(await page.evaluate(snapshot)).text,label.text,'T only toggles selected-item annotations');
       await page.locator('#canvas').screenshot({path:path.join(output,`plane-top-dpr${dpr}.png`)});
-      assert.deepEqual(errors,[]); reports.push({dpr,first,top,pixels,errors}); await context.close();
+      const unit = label.plane[2] / label.font_size;
+      const center = label.world.map((value, axis) => value + label.plane[0][axis]*label.line_box[0]*unit/2 - label.plane[1][axis]*label.line_box[1]*unit/2);
+      const ndc = project(top, center), at = [(ndc[0]*.5+.5)*1000,(.5-ndc[1]*.5)*700];
+      await page.mouse.click(...at);
+      await page.waitForFunction(() => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected !== null);
+      const selected = await page.evaluate(snapshot);
+      assert.equal(selected.selection, 'Object');
+      assert.deepEqual(plane(selected).color,[255,255,255,255], 'selection preserves white glyphs');
+      await page.keyboard.press('h');
+      await page.waitForFunction(() => !JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.placement === 'world_plane'));
+      await page.mouse.click(...at); await page.waitForTimeout(100);
+      assert.equal((await page.evaluate(snapshot)).selected,null,'hidden text cannot be picked');
+      await page.keyboard.press('s');
+      await page.waitForFunction(() => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.placement === 'world_plane'));
+      await page.mouse.click(...at);
+      await page.waitForFunction(row => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected === row, selected.selected);
+      await page.keyboard.press('f'); await page.waitForTimeout(100);
+      await page.locator('#canvas').screenshot({path:path.join(output,`plane-selected-dpr${dpr}.png`)});
+      assert.deepEqual(errors,[]); reports.push({dpr,first,top,pixels,selected,errors}); await context.close();
     }
   } finally { await browser.close(); }
   await fs.writeFile(path.join(output,'world-text.json'),JSON.stringify(reports,null,2) + '\n');

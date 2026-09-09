@@ -53,6 +53,7 @@ pub fn publish(state: &State) {
         "canvas": [state.gpu.config.width, state.gpu.config.height],
         "logical_canvas": state.gpu.logical_size,
         "samples": state.gpu.targets.samples,
+        "outlines": state.gpu.view.show_outlines,
         "source_cpu_known_payload_bytes": source_memory.known_bytes(),
         "source_cpu_known_payload": source_memory,
         "source_cpu_scope": "retained Session arrays/strings/values; Rc objects deduplicated; not RSS or total heap",
@@ -100,12 +101,17 @@ fn text_labels(state: &State) -> Vec<serde_json::Value> {
         }
         labels.push(serde_json::json!({
             "id": run.label.id,
+            "object": run.label.object.map(|object| object.row),
             "text": run.label.text,
             "font_size": run.label.font_size,
             "line_height": run.label.line_height,
             "color": run.label.color,
             "placement": kind,
             "world": world,
+            "world_height": match run.label.placement {
+                TextPlacement::WorldBillboard { world_height, .. } => Some(world_height),
+                _ => None,
+            },
             "padding": padding,
             "rounded": matches!(run.label.placement, TextPlacement::Nameplate { rounded: true, .. }),
             "line_box": [width, height],

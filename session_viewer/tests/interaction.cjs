@@ -34,6 +34,11 @@ async function run(browser,dpr,bytes,cases,output){
     await page.locator('canvas').focus();
     await page.waitForFunction(function focusedCanvas(){return document.hasFocus() && document.activeElement?.id==='canvas';});
     await key(page,'5');
+    assert.equal((await snapshot(page)).outlines,true,'combined solid outline is enabled by default');
+    await key(page,'o');
+    assert.equal((await snapshot(page)).outlines,false,'O hides surface silhouettes');
+    await key(page,'o');
+    assert.equal((await snapshot(page)).outlines,true,'O restores surface silhouettes');
     // Hide centered names to inspect short strokes; nameplate-scene.cjs checks their default display.
     await key(page,'t');
     await page.screenshot({path:path.join(output,`scene-dpr-${dpr}.png`)});
@@ -48,6 +53,25 @@ async function run(browser,dpr,bytes,cases,output){
       if(state.selected_guid)assert.equal(state.selected_guid,spec.guid);
       assert.equal(state.selection,'Object');
       await visibleYellow(page,output,`${spec.kind}-object-dpr-${dpr}`);
+      if(['mesh','surface','brep'].includes(spec.kind)){
+        await page.keyboard.down('Shift');
+        await click(page,project(state,spec.pick),true);
+        await page.keyboard.up('Shift');
+        state=await snapshot(page);
+        assert.equal(state.selection.Face?.parent,parent,`${spec.kind}: Ctrl+Shift selects a source face`);
+        const face=state.selection.Face.face;
+        assert(Number.isInteger(face));
+        await visibleYellow(page,output,`${spec.kind}-face-dpr-${dpr}`);
+        await page.keyboard.down('Shift');
+        await click(page,project(state,spec.pick),true);
+        await page.keyboard.up('Shift');
+        assert.equal((await snapshot(page)).selection.Face?.face,face,'source face identity remains stable');
+        await page.keyboard.down('Shift');
+        await click(page,project(state,spec.edge),true);
+        await page.keyboard.up('Shift');
+        assert.equal((await snapshot(page)).selection.Edge?.parent,parent,'Ctrl+Shift keeps edge precedence');
+        await key(page,'Escape');
+      }
       if(spec.edge && ['mesh','surface','brep'].includes(spec.kind)){
         await click(page,project(state,spec.edge),true);
         state=await snapshot(page);

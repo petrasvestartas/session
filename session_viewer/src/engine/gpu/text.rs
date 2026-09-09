@@ -181,7 +181,7 @@ impl TextLane {
             let Some(mut placed) = place(&run.label, frame, scale) else {
                 continue;
             };
-            if let Some(rectangle) = center_nameplate(run, &mut placed, frame, scale) {
+            if let Some(rectangle) = text_rectangle(run, &mut placed, frame, scale) {
                 plates.push(rectangle);
             }
             let area = TextArea {
@@ -269,16 +269,22 @@ impl TextLane {
         Ok(())
     }
 
+    /// Authored text IDs use the same retained plane vertices as their visible quads.
+    pub fn draw_ids(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        self.planes.draw_ids(pass) + self.plates.draw_ids(pass)
+    }
+
     /// Draw against the scene's read-only depth attachment after scene ink, overlays last.
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         let mut draws = self.planes.draw(pass);
+        draws += self.plates.draw(pass, false);
         if self.anchored_count != 0 {
             match self.anchored.render(&self.atlas, &self.viewport, pass) {
                 Ok(()) => draws += 1,
                 Err(error) => log::error!("anchored text render: {error}"),
             }
         }
-        draws += self.plates.draw(pass);
+        draws += self.plates.draw(pass, true);
         if self.overlay_count != 0 {
             match self.overlay.render(&self.atlas, &self.viewport, pass) {
                 Ok(()) => draws += 1,
@@ -429,17 +435,18 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
 
 /// Center the shaped line box and its padding on the projected source anchor. Both glyphs
 /// and black background obey the same CSS clip; a nameplate is an overlay annotation.
-fn center_nameplate(
+fn text_rectangle(
     run: &TextRun,
     placed: &mut PlacedText,
     frame: &TextFrame,
     scale: f32,
 ) -> Option<plate::Rectangle> {
-    let TextPlacement::Nameplate {
-        padding, rounded, ..
-    } = run.label.placement
-    else {
-        return None;
+    let (padding, rounded, centered) = match run.label.placement {
+        TextPlacement::Nameplate {
+            padding, rounded, ..
+        } => (padding, rounded, true),
+        _ if run.label.object.is_some() => ([4.0, 4.0], false, false),
+        _ => return None,
     };
     if run.label.text.is_empty() {
         return None;
@@ -455,8 +462,11 @@ fn center_nameplate(
     if !top.is_finite() || !bottom.is_finite() {
         return None;
     }
-    placed.left -= width * scale * 0.5;
-    placed.top -= (top + bottom) * scale * 0.5;
+    let raster = placed.scale;
+    if centered {
+        placed.left -= width * raster * 0.5;
+        placed.top -= (top + bottom) * raster * 0.5;
+    }
     let bounds = clip_bounds(&run.label, frame, scale);
     let bounds = [
         bounds.left as f32,
@@ -466,13 +476,16 @@ fn center_nameplate(
     ];
     Some(plate::Rectangle {
         bounds: [
-            placed.left - padding[0] * scale,
-            placed.top + (top - padding[1]) * scale,
-            placed.left + (width + padding[0]) * scale,
-            placed.top + (bottom + padding[1]) * scale,
+            placed.left - padding[0] * raster,
+            placed.top + (top - padding[1]) * raster,
+            placed.left + (width + padding[0]) * raster,
+            placed.top + (bottom + padding[1]) * raster,
         ],
         clip: bounds,
         rounded,
+        depth: placed.depth,
+        object: run.label.object,
+        border: 2.0 * scale,
     })
 }
 
@@ -567,6 +580,7 @@ mod tests {
             let frame = frame(scale);
             assert_eq!(frame.scale().unwrap(), scale as f32);
             let label = TextLabel {
+                object: None,
                 id: 1,
                 text: "A".into(),
                 font_size: 16.0,
@@ -589,6 +603,7 @@ mod tests {
         let mut frame = frame(2.0);
         frame.origin = [1_000_000.0, 0.0, 0.0];
         let mut label = TextLabel {
+            object: None,
             id: 1,
             text: "A".into(),
             font_size: 16.0,
@@ -613,6 +628,7 @@ mod tests {
     fn nameplate_center_padding_clip_and_scale_share_one_coordinate_system() {
         let mut document = TextDocument::new();
         let mut label = TextLabel {
+            object: None,
             id: 1,
             text: "Sphere Ø25".into(),
             font_size: 18.0,
@@ -630,7 +646,7 @@ mod tests {
             let frame = frame(scale);
             let run = &document.runs[0];
             let mut placed = place(&run.label, &frame, scale as f32).unwrap();
-            let rectangle = center_nameplate(run, &mut placed, &frame, scale as f32)
+            let rectangle = text_rectangle(run, &mut placed, &frame, scale as f32)
                 .unwrap()
                 .bounds;
             assert_eq!(
@@ -652,9 +668,7 @@ mod tests {
         let run = &document.runs[0];
         let mut placed = place(&run.label, &frame, 2.0).unwrap();
         assert_eq!(
-            center_nameplate(run, &mut placed, &frame, 2.0)
-                .unwrap()
-                .clip,
+            text_rectangle(run, &mut placed, &frame, 2.0).unwrap().clip,
             [780.0, 580.0, 820.0, 620.0]
         );
         label.placement = TextPlacement::Nameplate {
@@ -704,6 +718,7 @@ mod tests {
         };
         let baseline = gpu.render_offscreen(&input);
         let label = TextLabel {
+            object: None,
             id: 1,
             text: "Sphere Ø25".into(),
             font_size: 13.5,
@@ -775,7 +790,7 @@ mod tests {
             gpu.render_offscreen(&input),
             "clearing selection releases plate and text together"
         );
-        assert_eq!(gpu.text.stats.nameplate_capacity_bytes, 28);
+        assert_eq!(gpu.text.stats.nameplate_capacity_bytes, 40);
     }
 
     #[test]
@@ -814,6 +829,7 @@ mod tests {
         };
         let baseline = gpu.render_offscreen(&frame);
         let mut label = TextLabel {
+            object: None,
             id: 1,
             text: "AV office Ø25".into(),
             font_size: 14.0,
@@ -898,6 +914,7 @@ mod tests {
             now_ms: 0.0,
         };
         let mut label = TextLabel {
+            object: None,
             id: 1,
             text: (33u8..127).map(char::from).collect(),
             font_size: 14.0,

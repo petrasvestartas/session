@@ -1,163 +1,51 @@
-# 10 — Font resources and shaped source text
+# 10 · Shape text before drawing it
 
-Starting checkpoint: 09. Keep the CAD scene running while adding the final CPU text owner and an independent same-font layout inspection page.
+**Start:** checkpoint 09. **Finish:** source text is shaped with explicit fonts and measured against the same-font browser reference. GPU placement follows in lesson 11.
 
-```mermaid
-flowchart LR
-  Font["explicit OFL font bytes"] --> FontSystem
-  Label["TextLabel: source UTF-8 + CSS metrics"] --> Shape["advanced shaping"]
-  FontSystem --> Shape
-  Shape --> Run["glyph ID + source cluster + advance/offset/baseline"]
-  Run --> Reference["same-font browser width comparison"]
+## Characters are not positioned glyphs
+
+A string contains characters. A font provides glyph shapes. Shaping chooses glyphs and their positions, including kerning, ligatures, combining marks and fallback fonts. Counting characters or adding bitmap widths is not enough to lay out a line.
+
+```text
+UTF-8 string + font + size
+             ↓ Cosmic Text shaping
+ glyph IDs / advances / offsets / source clusters
+             ↓ TextDocument retains the shaped runs
+       line box, baseline and layout metrics
 ```
 
-Text alternative: explicit font bytes and source labels enter advanced shaping, producing positioned glyphs whose metrics are compared with the same-font browser run.
+An **advance** tells where the next glyph's pen position goes. A glyph's bitmap bounds describe the pixels it needs. A space may advance without producing visible pixels; a letter may extend outside its advance. Preserve fractional positions instead of rounding every character to integer pixels.
 
-1. Load fonts, shape source runs and inspect their coordinates before GPU rasterization.
+A **cluster** associates shaped output with source text. One character need not produce one glyph, and several characters can form one ligature. Keeping source strings separate from glyph instances makes future editing and selection possible.
 
-**COPY/PASTE — binary inputs for the manual route.** After the source edits, run this before `--adopt`; it copies only the hash-checked font/PB inputs that cannot be typed or represented in the plain-text patch. Automatic `--advance` already performs this step.
+## Explicit fonts make the result reproducible
+
+The browser cannot rely on a native system-font lookup path. Load the bundled licensed Noto font bytes into the font system. Use the same font, size and shaping options for the HTML reference, or a width comparison is meaningless.
+
+`engine/text.rs` owns the text document and shaping state. A label contains content, style and placement intent. Camera movement changes placement, not the string or its glyph advances, so it should not reshape every line.
+
+## Learn the cache boundary
+
+Store the shaped result until text, font or layout constraints change. Rasterization has another cache because a glyph may need different pixel coverage at a different physical size. A camera-facing world label can keep the same shape while its screen size changes.
+
+The pinned Glyphon integration uses the shaping stack compatible with this viewer's wgpu version. Keep the supplied lockfile. Swapping a text dependency independently can change wgpu types and break pipeline/atlas compatibility.
+
+## Write the files
+
+Follow [Complete file changes for 10](../lessons/10/index.md). Read the source label and shaped-run records, the font initialization and the layout function in that order. Copy the licensed fonts using the listed binary-input command; do not recreate font files from a code block.
+
+The reference page is part of the lesson. Its same-font measurements make a spacing defect observable before camera placement and compositing complicate the result.
+
+## Checkpoint
 
 ```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output /tmp/viewer-course --through 10 --copy-assets
+cd "$COURSE_WORK/session_viewer"
+cargo check --locked --lib
+trunk serve --port 8780
 ```
 
-**COPY/PASTE — complete additions and a verified checkpoint.** Starting at 09, [the complete patch](reconstruction/patches/10.patch) supplies every listed file/import, WGSL registration and HTML asset link; binary font files come from the hash-checked font store listed by the replay driver.
+Open <http://localhost:8780/?data=off&inspect=1>, then <http://localhost:8780/text-layout.html>. The layout reference must report passing measurements for its sample strings. Check spaces, punctuation, accented text and CAD symbols, not just a row of identical letters.
 
-```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output /tmp/viewer-course --through 10 --advance --verify --target-dir "$COURSE_REPO/target"
-```
+If metrics disagree, compare the actual font bytes, size, kerning/ligature settings and baseline convention. Adding arbitrary spacing to every character can hide one sample's error while breaking another.
 
-For manual reconstruction, apply each complete patch change while substituting the **TYPE BY HAND** blocks below for their corresponding additions; finish with `--adopt --verify` instead of `--advance --verify` to verify the exact source tree.
-
-**COPY/PASTE — exact font and shaper integration.** Add complete `src/engine/text.rs`, `src/engine/performance.rs`, `src/text_layout.rs`, module registrations, `assets/text-layout.html` and its Trunk links from 10.patch; the three TTF files and `OFL.txt` are the same [bundled font resources](../assets/text/README.md) as production.
-
-Glyphon 0.11.0 exposes the pinned cosmic-text/Swash stack compatible with wgpu 29.0.4; `bundled_fonts` creates a database from these bytes only, with explicit symbol fallback.
-
-**TYPE BY HAND — in `src/engine/text.rs`, add the complete `TextLabel` and `GlyphDiagnostic` records with their derives.** Label dimensions are CSS pixels; diagnostic clusters are UTF-8 byte ranges, so glyph count is not character count.
-
-```rust
-#[derive(Clone, Debug, PartialEq)]
-pub struct TextLabel {
-    pub id: u32,
-    pub text: String,
-    pub font_size: f32,
-    pub line_height: f32,
-    pub color: [u8; 4],
-    pub placement: TextPlacement,
-    /// Left, top, right, bottom in canvas CSS coordinates; never inferred from glyph bounds.
-    pub clip: Option<[f32; 4]>,
-}
-```
-```rust
-#[derive(Clone, Debug, Serialize)]
-pub struct GlyphDiagnostic {
-    pub label: u32,
-    pub line: usize,
-    pub cluster: [usize; 2],
-    pub glyph: u16,
-    pub font: String,
-    pub origin: [f32; 2],
-    pub advance: f32,
-    pub offset: [f32; 2],
-    pub baseline: f32,
-    pub line_width: f32,
-}
-```
-
-**TYPE BY HAND — replace the complete `shape` helper in `src/engine/text.rs`.** The library chooses glyphs, kerning, ligatures and fallback; the viewer never spaces individual Unicode characters itself.
-
-```rust
-fn shape(fonts: &mut FontSystem, label: &TextLabel) -> Buffer {
-    let mut buffer = Buffer::new(fonts, Metrics::new(label.font_size, label.line_height));
-    buffer.set_size(fonts, None, None);
-    buffer.set_wrap(fonts, Wrap::None);
-    buffer.set_text(
-        fonts,
-        &label.text,
-        &Attrs::new()
-            .family(Family::Name(FONT_FAMILY))
-            .metadata(label.id as usize),
-        Shaping::Advanced,
-        None,
-    );
-    buffer.shape_until_scroll(fonts, false);
-    buffer
-}
-```
-
-**TYPE BY HAND — replace the complete `same_layout` helper and `TextDocument::set_labels` method.** Source/metrics affect shaping; placement/color affect document revision while reusing the shaped buffer.
-
-```rust
-fn same_layout(a: &TextLabel, b: &TextLabel) -> bool {
-    a.text == b.text && a.font_size == b.font_size && a.line_height == b.line_height
-}
-```
-```rust
-pub fn set_labels(&mut self, labels: Vec<TextLabel>) -> anyhow::Result<()> {
-        let mut bytes = 0usize;
-        let mut ids = std::collections::HashSet::new();
-        for label in &labels {
-            bytes = bytes.saturating_add(label.text.len());
-            anyhow::ensure!(bytes <= MAX_TEXT_BYTES, "text document exceeds 256 KiB");
-            anyhow::ensure!(ids.insert(label.id), "duplicate text label ID {}", label.id);
-            validate_label(label)?;
-        }
-        if self.runs.len() == labels.len() {
-            let mut unchanged = true;
-            for (run, label) in self.runs.iter().zip(&labels) {
-                unchanged &= run.label == *label;
-            }
-            if unchanged {
-                return Ok(());
-            }
-        }
-        let previous = std::mem::take(&mut self.runs);
-        let mut previous_by_id = std::collections::HashMap::new();
-        for run in previous {
-            previous_by_id.insert(run.label.id, run);
-        }
-        for label in labels {
-            let old = previous_by_id.remove(&label.id);
-            let buffer = match old {
-                Some(run) if same_layout(&run.label, &label) => run.buffer,
-                _ => {
-                    self.shape_count += 1;
-                    let started = crate::engine::performance::now_ms();
-                    let buffer = shape(&mut self.fonts, &label);
-                    self.shaping_ms += crate::engine::performance::now_ms() - started;
-                    buffer
-                }
-            };
-            self.runs.push(TextRun { label, buffer });
-        }
-        self.revision = self.revision.wrapping_add(1);
-        Ok(())
-    }
-```
-
-**COPY/PASTE — inspect and assert the positioned result.** The full `TextDocument::diagnostics` implementation records `glyph.x/y`, `glyph.w`, normalized bearing offsets multiplied by font size, and `line.line_y`; `src/text_layout.rs` changes only placement/color and asserts the shape count stays five.
-
-| Field | Meaning |
-| --- | --- |
-| `cluster` | Original source byte interval; ligatures/combining text may share a glyph. |
-| `origin`, `advance` | Logical glyph origin and horizontal advance, before framebuffer scale. |
-| `offset` | Shaper offsets multiplied by font size; these are not arbitrary inter-letter gaps. |
-| `baseline`, `line_width` | Line coordinates used by the matching browser reference. |
-| `font`, `glyph` | Actual fallback face and glyph ID; zero remains an explicit missing glyph. |
-
-**TYPE BY HAND — in `assets/text-layout.html`, find the `start` function and replace this complete metric assertion statement after `const difference = Math.abs(browser-width);`.** The tolerance covers browser floating-point font metrics, not subjective raster similarity.
-
-```javascript
-if (difference > 0.2) throw Error(`Same-font width differs at ${row.size}px: ${difference}`);
-```
-
-**COPY/PASTE — run both the scene and the layout page.**
-
-```sh
-cd /tmp/viewer-course/session_viewer
-REGEN_PROTO=0 NO_COLOR=true trunk serve
-```
-
-Open <http://127.0.0.1:8770/> and its **Inspect shaped text** link. `/text-layout.html` must report five matched sizes (12/14/16/18/24), nonmissing glyph IDs and unchanged shaping after placement/color edits; open the diagnostic disclosure to compare `ffi`, accents, CAD symbols and fallback face IDs.
-
-The page exposes read-only `window.textLayout.passed` and all measured widths for browser verification. It deliberately uses DOM reference text here; chapter 11 replaces this temporary fixture with the maintained GPU/browser comparison.
+**Before continuing:** explain why the bitmap width of a space cannot drive the pen. Continue to [text rendering](11-text-rendering.md).

@@ -69,18 +69,14 @@ fn s_curve_points(i: usize) -> Vec<Point> {
     points
 }
 
-/// 13 points of a closed-ish ring of radius 250 mm at z = 600 in slot `i`, tilted in z.
-fn loop_points(i: usize) -> Vec<Point> {
-    let mut points = Vec::with_capacity(13);
-    for k in 0..13 {
-        let a = k as f64 / 12.0 * 2.0 * std::f64::consts::PI;
-        points.push(Point::new(
-            slot(i) + 250.0 * a.cos(),
-            row(i) + 250.0 * a.sin(),
-            600.0 + 120.0 * a.sin(),
-        ));
-    }
-    points
+/// An exact rational circle, tilted as one rigid plane with a smooth closed seam.
+fn circle(i: usize) -> NurbsCurve {
+    let mut circle = session_rust::Primitives::circle(0.0, 0.0, 0.0, 250.0);
+    circle.transform(&Xform::rotation_x((120.0_f64 / 250.0).atan(), false));
+    circle.transform(&Xform::translation(slot(i), row(i), 600.0));
+    circle.linecolors = vec![Color::blue()];
+    circle.name = "circle".into();
+    circle
 }
 
 /// 5 points lying exactly on the top face of the box in slot `i`, whose top is at `z`.
@@ -212,7 +208,7 @@ fn main() {
     // the box top at z = 250, so its ink must survive the face it sits on.
     s.add_nurbscurve(curve(&helix_points(7), Color::blue(), "helix"), None);
     s.add_nurbscurve(curve(&s_curve_points(8), Color::blue(), "s_curve"), None);
-    s.add_nurbscurve(curve(&loop_points(9), Color::blue(), "ring"), None);
+    s.add_nurbscurve(circle(9), None);
     s.add_nurbscurve(
         curve(&box_top_points(0, 250.0), Color::red(), "on_box_top"),
         None,

@@ -46,7 +46,18 @@ fn uniform_layout(
 fn instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("instance.layout"),
-        entries: &[storage_entry(0), storage_entry(1)],
+        entries: &[
+            buffer_entry(
+                0,
+                wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::COMPUTE,
+                wgpu::BufferBindingType::Storage { read_only: true },
+            ),
+            buffer_entry(
+                1,
+                wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::COMPUTE,
+                wgpu::BufferBindingType::Storage { read_only: true },
+            ),
+        ],
     })
 }
 
@@ -97,6 +108,16 @@ fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
             scene_depth(3, true),
             scene_gradient(4, false),
             scene_gradient(5, true),
+            buffer_entry(
+                6,
+                wgpu::ShaderStages::FRAGMENT,
+                wgpu::BufferBindingType::Storage { read_only: true },
+            ),
+            buffer_entry(
+                7,
+                wgpu::ShaderStages::FRAGMENT,
+                wgpu::BufferBindingType::Storage { read_only: true },
+            ),
         ],
     })
 }
@@ -187,8 +208,16 @@ impl Layouts {
     /// Build every layout once; they outlive any pipeline or bind group made from them.
     pub fn new(device: &wgpu::Device) -> Self {
         Self {
-            mvp: uniform_layout(device, "mvp.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
-            line: uniform_layout(device, "line.layout", wgpu::ShaderStages::VERTEX_FRAGMENT),
+            mvp: uniform_layout(
+                device,
+                "mvp.layout",
+                wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
+            ),
+            line: uniform_layout(
+                device,
+                "line.layout",
+                wgpu::ShaderStages::VERTEX_FRAGMENT | wgpu::ShaderStages::COMPUTE,
+            ),
             instance: instance_layout(device),
             ink_instance: ink_instance_layout(device),
             ink_rows: ink_rows_layout(device),

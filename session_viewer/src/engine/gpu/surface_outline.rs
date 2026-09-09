@@ -1,6 +1,6 @@
-//! Selected surface silhouettes, following the archive's coverage-mask algorithm.
-//! Source mesh positions, physical depth and picking are unchanged. Only a visible
-//! selected surface contributes to the mask; curves and control markers do not.
+//! Black surface silhouettes from visible coverage. Combined solid silhouettes and
+//! thicker selected boundaries share allocation, depth testing and compositing.
+//! The mask never changes geometry or picking, and cannot include hidden surfaces.
 
 use std::collections::HashSet;
 
@@ -16,9 +16,16 @@ struct Mask {
     samples: u32,
 }
 
-/// Allocates full-frame coverage only while a selection exists. One R8 byte per
-/// sample, plus the resolved R8 image at MSAA, with no copied mesh or ID table.
-pub struct SelectionOutline {
+/// Which visible surfaces contribute to a shared, antialiased coverage mask.
+#[derive(Clone, Copy, PartialEq)]
+pub enum OutlineKind {
+    Selected,
+    AllSolids,
+}
+
+/// Visible surface coverage uses the existing arena geometry and read-only physical depth.
+pub struct SurfaceOutline {
+    kind: OutlineKind,
     selected: HashSet<u32>,
     layout: wgpu::BindGroupLayout,
     uniform: wgpu::Buffer,
@@ -26,9 +33,9 @@ pub struct SelectionOutline {
     mask: Option<Mask>,
 }
 
-impl SelectionOutline {
+impl SurfaceOutline {
     /// Create the shared mask layout and compositor without allocating framebuffer textures.
-    pub fn new(ctx: &GpuCtx, target: Target) -> Self {
+    pub fn new(ctx: &GpuCtx, target: Target, kind: OutlineKind) -> Self {
         let layout = ctx
             .device
             .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -64,6 +71,7 @@ impl SelectionOutline {
         });
         let pipeline = pipeline(ctx, &layout, target);
         Self {
+            kind,
             selected: HashSet::new(),
             layout,
             uniform,
@@ -79,7 +87,7 @@ impl SelectionOutline {
         } else {
             self.selected.remove(&row);
         }
-        if self.selected.is_empty() {
+        if self.kind == OutlineKind::Selected && self.selected.is_empty() {
             self.mask = None;
         }
     }
@@ -96,7 +104,7 @@ impl SelectionOutline {
         self.mask = None;
     }
 
-    /// Return whether to render selected surface coverage this frame.
+    /// Allocate one R8 byte per sample plus its MSAA resolve while this outline is enabled.
     pub fn prepare(
         &mut self,
         ctx: &GpuCtx,
@@ -105,7 +113,7 @@ impl SelectionOutline {
         css_width: f64,
         faces: bool,
     ) -> bool {
-        if self.selected.is_empty() || !faces {
+        if (self.kind == OutlineKind::Selected && self.selected.is_empty()) || !faces {
             self.mask = None;
             return false;
         }
@@ -154,11 +162,25 @@ impl SelectionOutline {
                 samples,
             });
         }
-        let radius = (1.5 * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 8.0) as f32;
+        let css_radius = if self.kind == OutlineKind::AllSolids {
+            2.25
+        } else {
+            3.375
+        };
+        let radius = (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32;
         ctx.queue.write_buffer(
             &self.uniform,
             0,
-            bytemuck::cast_slice(&[radius, 0.0, 0.0, 0.0]),
+            bytemuck::cast_slice(&[
+                radius,
+                if self.kind == OutlineKind::Selected {
+                    1.0
+                } else {
+                    0.0
+                },
+                0.0,
+                0.0,
+            ]),
         );
         true
     }
@@ -199,13 +221,16 @@ impl SelectionOutline {
         })
     }
 
-    /// Composite the outside border before control markers and labels.
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
-        let Some(mask) = &self.mask else {
+    /// Composite both silhouettes once. Maximum coverage lets the thicker selected
+    /// border win without painting the overlapping antialias fringe twice.
+    pub fn draw_combined(&self, selected: &Self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+        let Some(normal) = self.mask.as_ref().or(selected.mask.as_ref()) else {
             return 0;
         };
+        let selection = selected.mask.as_ref().unwrap_or(normal);
         pass.set_pipeline(&self.pipeline);
-        pass.set_bind_group(0, &mask.group, &[]);
+        pass.set_bind_group(0, &normal.group, &[]);
+        pass.set_bind_group(1, &selection.group, &[]);
         pass.draw(0..3, 0..1);
         1
     }
@@ -232,9 +257,9 @@ fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgp
     let shader = module(
         &ctx.device,
         "selection outline",
-        include_str!("../../shaders/selection_outline.wgsl"),
+        include_str!("../../shaders/surface_outline.wgsl"),
     );
-    let groups = [layout];
+    let groups = [layout, layout];
     let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
         .with("black selection outline", "fs_main")
         .depth(DepthMode::Always)
@@ -246,6 +271,128 @@ fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgp
 mod tests {
     use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
     use session_rust::{RenderVertex, Xform};
+
+    #[test]
+    #[ignore = "requires a native GPU adapter"]
+    fn selected_cad_edges_do_not_paint_over_the_black_silhouette() {
+        use crate::app::scene::{FileDoc, Scene};
+        use crate::camera::Camera;
+        use session_rust::{BRep, Session};
+        use std::rc::Rc;
+
+        let mut gpu = pollster::block_on(Gpu::new_headless(480, 480)).unwrap();
+        gpu.view.show_grid = false;
+        gpu.view.markers = false;
+        for shape in [
+            BRep::create_cone(150.0, 400.0),
+            BRep::create_cylinder(150.0, 400.0),
+        ] {
+            gpu.reset();
+            let mut source = Session::new("selected silhouette regression");
+            source.add_brep(shape, None);
+            let mut scene = Scene::new();
+            scene.add_file(FileDoc {
+                name: "solid".into(),
+                session: Rc::new(source),
+                place: Xform::identity(),
+                point_px: 0.0,
+                display_only: false,
+            });
+            scene.upload_to(&mut gpu);
+            gpu.set_selected(0, true);
+            for samples in [1, 4] {
+                for dpr in [1.0, 2.0] {
+                    gpu.logical_size = [480.0 / dpr; 2];
+                    gpu.view.msaa_forced = Some(samples);
+                    gpu.resize(480, 480);
+                    for orbit in [(0.0, 0.0), (95.0, -65.0), (-80.0, 130.0)] {
+                        let mut camera = Camera::new();
+                        camera.fit(&gpu.bounds, 1.0);
+                        camera.orbit(orbit.0, orbit.1);
+                        let rebase =
+                            gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
+                        let input = FrameInput {
+                            view_proj: camera.view_proj_anchored(1.0, &rebase.anchor),
+                            clear: wgpu::Color::WHITE,
+                            now_ms: 0.0,
+                        };
+                        gpu.view.show_mesh_edges = false;
+                        let silhouette = gpu.render_offscreen(&input);
+                        gpu.view.show_mesh_edges = true;
+                        let edged = gpu.render_offscreen(&input);
+                        let mut black = 0;
+                        for (plain, inked) in silhouette.chunks_exact(4).zip(edged.chunks_exact(4))
+                        {
+                            if plain[..3].iter().all(|channel| *channel < 8) {
+                                black += 1;
+                                assert!(
+                                    inked[..3].iter().all(|channel| *channel < 12),
+                                    "yellow CAD strokes must not narrow the black border: {plain:?} -> {inked:?}; samples={samples}, DPR={dpr}, orbit={orbit:?}"
+                                );
+                            }
+                        }
+                        assert!(
+                            black > 500,
+                            "the perspective silhouette must remain visible"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    #[ignore = "requires a native GPU adapter"]
+    fn touching_and_overlapping_solids_have_one_continuous_outline() {
+        let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
+        gpu.view.show_grid = false;
+        gpu.view.lit = false;
+        let input = FrameInput {
+            view_proj: Xform::identity(),
+            clear: wgpu::Color::WHITE,
+            now_ms: 0.0,
+        };
+        for samples in [1, 4] {
+            gpu.view.msaa_forced = Some(samples);
+            gpu.resize(200, 200);
+            for overlap in [false, true] {
+                gpu.reset();
+                let mut upload = Upload::default();
+                quad(&mut upload, 0.4, 0.5);
+                quad(&mut upload, 0.4, 0.6);
+                for (i, vertex) in upload.arena.verts.iter_mut().enumerate() {
+                    vertex.position[0] += if i < 4 {
+                        -0.4
+                    } else if overlap {
+                        0.2
+                    } else {
+                        0.4
+                    };
+                }
+                gpu.set_scene(&upload);
+                let outlined = gpu.render_offscreen(&input);
+                gpu.view.show_outlines = false;
+                let plain = gpu.render_offscreen(&input);
+                let ids = gpu.render_ids_offscreen(&input);
+                gpu.view.show_outlines = true;
+                assert_eq!(ids, gpu.render_ids_offscreen(&input));
+                for y in 65..135 {
+                    for x in 45..150 {
+                        let at = (y * 200 + x) * 4;
+                        assert_eq!(
+                            &outlined[at..at + 4],
+                            &plain[at..at + 4],
+                            "no outline inside the combined silhouette, including object joins"
+                        );
+                    }
+                }
+                assert_ne!(
+                    outlined, plain,
+                    "the combined outside silhouette must still be outlined"
+                );
+            }
+        }
+    }
 
     fn quad(upload: &mut Upload, extent: f32, depth: f32) {
         let row = upload.obj.rows.len() as u32;
@@ -297,6 +444,15 @@ mod tests {
             );
             gpu.set_hidden(1, true);
             let selected = gpu.render_offscreen(&input);
+            // Suppress only the ordinary mask: the selected object's pixels must stay
+            // identical, including fractional antialias coverage along its silhouette.
+            gpu.solid_outline.kind = super::OutlineKind::Selected;
+            assert_eq!(
+                selected,
+                gpu.render_offscreen(&input),
+                "selection must not receive a second overlapping outline"
+            );
+            gpu.solid_outline.kind = super::OutlineKind::AllSolids;
             let black = selected
                 .chunks_exact(4)
                 .filter(|p| p[..3].iter().all(|c| *c < 8))
@@ -328,11 +484,27 @@ mod tests {
                 gpu.render_ids_offscreen(&input),
                 "a visual border must not add pickable geometry"
             );
+            let plain_black = plain
+                .chunks_exact(4)
+                .filter(|p| p[..3].iter().all(|c| *c < 8))
+                .count();
             assert!(
-                plain
+                plain_black > 0 && plain_black < black,
+                "ordinary outlines stay visible and selected ones are thicker"
+            );
+            gpu.view.show_outlines = false;
+            let disabled = gpu.render_offscreen(&input);
+            assert!(
+                disabled
                     .chunks_exact(4)
                     .all(|p| p[0] > 8 || p[1] > 8 || p[2] > 8)
             );
+            assert_eq!(
+                selected_ids,
+                gpu.render_ids_offscreen(&input),
+                "outline toggling never changes source picking"
+            );
+            gpu.view.show_outlines = true;
             gpu.set_hidden(1, false);
         }
         gpu.release();

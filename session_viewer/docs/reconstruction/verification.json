@@ -1,8 +1,8 @@
 {
   "passed": true,
-  "verified_utc": "2026-09-08T18:43:13.529875+00:00",
-  "scope": "Every checkpoint reconstructed from original pinned inputs, all required source files hash checked, locked WASM compilation, optimized build and actual browser frame per checkpoint. Detailed behavior gates are listed separately. A subsequent test-only amendment preserves every viewer and kernel runtime byte; its fresh sequential reconstruction checks are recorded separately below.",
-  "production_tree": "210120d0dd7d1c0fcdd0e41cea70f1c4e29dce1577a427cb54c032dd55b1e92d",
+  "verified_utc": "2026-09-08T23:52:46.788812+00:00",
+  "scope": "Checkpoints 00\u201316 retain their historical source, build and browser evidence, scoped in historical_validation. Checkpoints 17 and 18 were each freshly reconstructed from the original pinned inputs, with the entire required prefix applied and its source inventory hash checked, then passed locked WASM compilation, an optimized Trunk build and headed Chrome rendering at DPR 1 and 2. Final checkpoint 18 converges to the current production runtime. Historical behavior results and timings were not rerun for this follow-up.",
+  "production_tree": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
   "steps": [
     {
       "step": "00",
@@ -223,6 +223,38 @@
       "browser": "Chrome 152.0.7977.82",
       "errors": 0,
       "evidence": "/home/petras/.cache/session-viewer-astra-y8kd1hog/tutorial-final-v4/16/evidence/16"
+    },
+    {
+      "step": "17",
+      "source_files": 699,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/viewer-followup-20260908/tutorial-followup-check-17-18/17/evidence/17",
+      "clean_prefix_reconstruction": true,
+      "patch_sha256": "e2b4c6f43368e5733ec7f02c34c333e02c7640256c0bf0ee74e379c1fbe3791f",
+      "production_tree": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643"
+    },
+    {
+      "step": "18",
+      "source_files": 707,
+      "verified_dpr": [
+        1,
+        2
+      ],
+      "layout_reference": false,
+      "build": "locked WASM check and optimized Trunk build",
+      "browser": "Chrome 152.0.7977.82",
+      "errors": 0,
+      "evidence": "/home/petras/.cache/viewer-followup-20260908/tutorial-followup-check-17-18/18/evidence/18",
+      "clean_prefix_reconstruction": true,
+      "patch_sha256": "870c9b4a67cee0f988821aff0818893d9522e1dd66b35fc2957b8e273eeef7f2",
+      "production_tree": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643"
     }
   ],
   "detailed_behavior": [
@@ -465,5 +497,66 @@
       }
     ],
     "kernel_full_suite_gate": "bash/git_push.sh runs all C++, Rust and Python minitests and aborts before commits/pushes on any failure."
+  },
+  "historical_validation": {
+    "verified_utc": "2026-09-08T18:43:13.529875+00:00",
+    "production_tree": "210120d0dd7d1c0fcdd0e41cea70f1c4e29dce1577a427cb54c032dd55b1e92d",
+    "browser_build_production_tree": "b84486f173486e5ef316d1e0ef1cd1e7d4cb9516d8da940b6f34db49c4921f7f",
+    "scope": "Every checkpoint reconstructed from original pinned inputs, all required source files hash checked, locked WASM compilation, optimized build and actual browser frame per checkpoint. Detailed behavior gates are listed separately. A subsequent test-only amendment preserves every viewer and kernel runtime byte; its fresh sequential reconstruction checks are recorded separately below.",
+    "evidence_scope": "The existing steps 00\u201316, detailed_behavior, detailed_behavior_scope, cad_views, browser_build_production_tree and pre_push_amendment records are retained from the earlier validation. Their behavior results and timings apply only to the historical source revisions identified by those records; they are not fresh measurements of the current production tree."
+  },
+  "followup_17_18": {
+    "passed": true,
+    "production_tree": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
+    "replay_log": "/home/petras/.cache/viewer-followup-20260908/tutorial-followup-check-17-18.log",
+    "command": "python3 docs/reconstruction/replay.py --output <fresh-output> --through 18 --verify-clean --from-step 17 --target-dir <shared-target>",
+    "environment": {
+      "REGEN_PROTO": "0",
+      "NO_COLOR": "true",
+      "DISPLAY": ":0",
+      "VIEWER_HEADLESS": "0",
+      "VIEWER_CHROME_ARGS": [
+        "--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE",
+        "--ozone-platform=x11"
+      ]
+    },
+    "convergence": "convergence.json",
+    "identical_frozen_files": 299,
+    "runtime_inventory": {
+      "production_files": 91,
+      "checkpoint_18_files": 91,
+      "extra": [],
+      "missing": [],
+      "hash_mismatches": []
+    },
+    "packaging_scope": "Only the input configuration and imported font artifacts documented in convergence.json differ; the deterministic tutorial interaction fixture is an explicit input addition."
+  },
+  "documentation_site": {
+    "verified_utc": "2026-09-09T00:14:05.114297+00:00",
+    "check": "docs/serve.sh build; python3 docs/check_site.py; actual Chrome syntax-color/download/redirect checks",
+    "steps": 19,
+    "complete_text_listings": 361,
+    "runtime_convergence_files": 91,
+    "language_lexers": [
+      "rust",
+      "wgsl",
+      "toml"
+    ],
+    "site_url": "http://localhost:8772/",
+    "evidence": "/home/petras/.cache/viewer-followup-20260908/docs-browser-report.json",
+    "cleanup": "Removed obsolete selection outline implementation and one-off teapot investigation example; retained maintained fixtures, fonts/licenses and course source inputs."
+  },
+  "followup_main_after_cleanup": {
+    "native_tests": 89,
+    "ignored_remaining": 0,
+    "native_all_targets_clippy": true,
+    "wasm_lib_clippy": true,
+    "viewer_format": true,
+    "convergence": "91 runtime files, 299 identical frozen files",
+    "selected_solid_browser_dpr": [
+      1,
+      2
+    ],
+    "evidence": "/home/petras/.cache/viewer-followup-20260908/final-main-tests.log"
   }
 }

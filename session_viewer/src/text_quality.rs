@@ -212,6 +212,7 @@ impl TextQuality {
         let labels = match specimens {
             Specimens::Reference => fixture_labels(selected),
             Specimens::Nameplate => vec![TextLabel {
+                object: None,
                 id: 100,
                 text: "Source sphere Ø25".into(),
                 font_size: 13.5,
@@ -303,6 +304,7 @@ fn fixture_labels(selected: bool) -> Vec<TextLabel> {
         let line_height = size * 1.5;
         let text = SAMPLES.join("\n");
         labels.push(TextLabel {
+            object: None,
             id: labels.len() as u32,
             text,
             font_size: *size,

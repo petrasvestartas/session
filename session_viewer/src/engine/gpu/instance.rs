@@ -87,13 +87,17 @@ mod tests {
     #[test]
     fn shader_validation_and_layouts() {
         use crate::engine::gpu::glyphs::GlyphPoint;
-        use crate::engine::gpu::segments::CylinderSegment;
+        use crate::engine::gpu::segments::{CylinderSegment, StrokeSegment};
         use std::mem::{offset_of, size_of};
         for (name, source) in lane_shaders() {
             let source = if source.contains("-> InkColor") {
                 format!(
                     "{source}\n{}",
-                    include_str!("../../shaders/ink_visibility.wgsl")
+                    concat!(
+                        include_str!("../../shaders/ink_visibility.wgsl"),
+                        "\n",
+                        include_str!("../../shaders/projected_triangle.wgsl")
+                    )
                 )
             } else {
                 source.to_string()
@@ -107,7 +111,10 @@ mod tests {
                 .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
             naga::valid::Validator::new(
                 naga::valid::ValidationFlags::all(),
-                naga::valid::Capabilities::default(),
+                // Core WGSL pack2x16float/unpack2x16float, also enabled unconditionally
+                // by wgpu-naga-bridge; this does not enable shader-f16.
+                naga::valid::Capabilities::default()
+                    | naga::valid::Capabilities::SHADER_FLOAT16_IN_FLOAT32,
             )
             .validate(&module)
             .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
@@ -116,7 +123,7 @@ mod tests {
                     continue;
                 };
                 let (offsets, size) = match structure {
-                    "CylinderSegment" => (
+                    "StrokeSegment" => (
                         vec![
                             0,
                             4,
@@ -128,8 +135,14 @@ mod tests {
                             offset_of!(CylinderSegment, instance_id),
                             offset_of!(CylinderSegment, color),
                             offset_of!(CylinderSegment, facing),
+                            offset_of!(StrokeSegment, previous),
+                            offset_of!(StrokeSegment, next),
                         ],
-                        size_of::<CylinderSegment>(),
+                        size_of::<StrokeSegment>(),
+                    ),
+                    "ProjectedTriangle" => (
+                        vec![0, 16, 32, 48, 64, 80],
+                        super::super::triangle_tiles::PROJECTED_BYTES as usize,
                     ),
                     "GlyphPoint" => (
                         vec![

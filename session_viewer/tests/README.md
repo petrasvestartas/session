@@ -51,6 +51,37 @@ The native ignored GPU test `selected_silhouette_is_black_visible_only_and_relea
 checks black selected-surface silhouettes against physical occlusion, unchanged picking
 IDs, 1x/4x transitions and immediate coverage-texture release when selection clears.
 
+Selected strokes must retain their yellow core over coincident mesh edges, other polylines
+and crossing strokes, while genuinely covered spans stay hidden:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_selection_overlap
+python3 tests/selection-overlap.py
+```
+
+The runner compares five fixtures with identical-geometry controls at four cameras and
+MSAA 1/4: forty cases, including both polyline upload orders and a tight crossing-point
+check. It requires at least 97% yellow-core retention and zero yellow in the covered span.
+Ordinary surface outlines remain enabled. Captures, original source GUIDs and measurements
+go under `target/selection-overlap` (`--output` overrides it); `--renderer` and `--generator`
+accept separately built native executables. The generator also records exposed picking
+leads for manual or browser selection of the intended source.
+
+Joined strokes must cover shared vertices without getting darker when subdivided:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_stroke_joins
+python3 tests/stroke-joins.py
+```
+
+The runner makes 32 captures of a closed circle, acute bend, single straight segment and
+the same straight line split into 2048 segments, in top/perspective views, MSAA 1/4 and
+ordinary/selected states. Forty checks use projected source vertices (including the
+diagonal circle joint and closing seam) and require dense/single integrated ink between
+90% and 108%. This detects missing joint cores and repeated cap opacity without historical
+golden images. Output goes to `target/stroke-joins`; `--output`, `--renderer`, `--generator`
+and `--check-only` support isolated builds and rechecking retained captures.
+
 `node tests/pdf-text-quality.cjs` compares the checked local PDF asset at forced 1x and
 budget-selected 4x. It checks the source SHA-256, automatic sheet coverage, and three
 normal-size glyph crops for partial coverage, retained ink mass, bounds and word position.
@@ -170,6 +201,21 @@ The script passes an explicit file list and `skip_children=true`, so it never tr
 or reformats the shared Session packages.
 
 The maintained depth scripts are in `tests/depth/`; they moved out of the archived lessons.
+The focused finite-triangle counterexample is generated and checked with:
+
+```sh
+REGEN_PROTO=0 cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --example mk_triangle_visibility
+python3 tests/triangle-visibility.py
+```
+
+It requires all 766 exposed seam-core pixels beside a nearby non-occluding strip and
+zero black pixels anywhere behind the genuinely covering strip. All three captures use
+`VIEWER_NO_OUTLINES=1` to isolate source ink from separately tested surface silhouettes.
+The nearby strip's infinite depth plane crosses the seam ray outside its finite triangle;
+this fixture fails when that extrapolated plane is allowed to hide the seam. Use
+`--renderer` for an independently built native executable and `--output` to override
+`target/triangle-visibility`; `results.json` records the fixed capture settings and counts.
+
 The strict hidden-ink matrix renders 54 combinations and the original floor census renders
 21 views, including distance ×16. Both require zero hidden ink in their stated masks:
 

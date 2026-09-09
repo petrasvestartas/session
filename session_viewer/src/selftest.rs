@@ -226,6 +226,13 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
     let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
     let mut scene = Scene::new();
     load_files(&mut scene, &mut gpu, files);
+    if let Ok(name) = std::env::var("VIEWER_SELECT") {
+        let row = (0..scene.object_count() as u32)
+            .find(|row| scene.object_name(*row) == name)
+            .unwrap_or_else(|| panic!("VIEWER_SELECT object not found: {name}"));
+        scene.selected = Some(row);
+        gpu.set_selected(row, true);
+    }
     let aspect = w as f64 / h as f64;
     let camera = camera_from_env(&gpu, aspect);
 

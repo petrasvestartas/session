@@ -1,6 +1,6 @@
 # Requirement coverage
 
-Paths are relative to the production viewer unless prefixed with `../`; chapter links describe the reconstruction that supplies the complete implementation. “Unverified” remains a coverage limit rather than a passing test.
+Paths below omit `src/` for brevity unless they name tests/configuration. Chapters 00–18 reconstruct the complete implementation. Historical timing evidence remains tied to its measured revision in [Measurements](measurements.md). “Unverified” is a coverage limit, not a passing test.
 
 | Requirement | Actual source / contract | Evidence / maintained check | Chapters |
 |---|---|---|---|
@@ -12,7 +12,7 @@ Paths are relative to the production viewer unless prefixed with `../`; chapter 
 | Format, topology IDs, ordering, units and tolerance compatibility | `app/validate.rs`, `manifest.rs`, source control mappings; shared protobuf schema retained | Malformed/truncated/storage/count/transform tests; same original source IDs | 03, 06–09, 13–14 |
 | Current and archive feature analysis | [Actual archive map](../ARCHITECTURE.md#archive-feature-map) | Inspected archive paths and implemented/future classifications; no claim archived app was run | 03, 16 |
 | Every available named scene and route aliases | `app/route.rs`, `loader::fetch_manifest` | Seven public YAML scenes cold/warm; requested TOML aliases use 404-only fallback; absent `view_drawings.toml` explicitly unverified | 14, 16 |
-| Separate loading, navigation, memory and picking metrics | `engine/performance.rs`, `app/inspection.rs` | `tests/scenes.cjs`, `tests/picking-performance.cjs`; [measurement scope and costs](../ARCHITECTURE.md#measured-browser-results--8-september-2026) | 04, 12, 15–16 |
+| Separate loading, navigation, memory and picking metrics | `engine/performance.rs`, `app/inspection.rs` | `tests/scenes.cjs`, `tests/picking-performance.cjs`; [measurement scope and costs](measurements.md) | 04, 12, 15–16 |
 | Hidden floor lines without broken close-up box ink | `ink_visibility.wgsl`, `gpu/render.rs`, `gpu/targets.rs` | `tests/depth/_probe_matrix.py`: 54 zero-leak views; `_hidden_line_matrix.py`: 21 floor census views; `_closeup_box.py`: nine edges/seven vertices | 05, 16 |
 | Smoother strokes and source edges | `ribbon.wgsl`, `glyph.wgsl`, `gpu/segments.rs` | Depth/corner/grazing/width fixtures; actual DPR interaction checks | 04–05 |
 | Easy yellow object selection and measured latency | `gpu/pick.rs::Picker`, `State::request_selection`, `Instance::FLAG_SELECTED` | Seven families: 70/70 actual yellow results; 6 CSS px circular tolerance; measured submission/next-rAF proxies, not physical display timing | 12 |
@@ -29,10 +29,18 @@ Paths are relative to the production viewer unless prefixed with `../`; chapter 
 | Text DPI, clipping, anchoring, camera motion and invalidation | `TextPlacement::{Screen,Anchor,Nameplate,WorldBillboard,WorldPlane}`, `TextFrame`, bounded cache reset | DPR 1/1.25/2; actual page zoom 100/125/150/200%; world motion without reshaping; clipping/occlusion | 10–11 |
 | Normal-size white-on-black readability and browser reference | `assets/text-quality.html`, `src/text_quality.rs`, same licensed fonts | `tests/text-quality.cjs`, `tests/text-zoom.cjs`; inspected 12/14/16/18/24 CSS px; maximum width drift 0.0026 px | 10–11, 16 |
 | Real PDF text remains correct and crisp | `gpu/text_outline.rs` borrows original outline buffers; coverage budget includes mixed print runs | `tests/pdf-text-quality.cjs`: source hash, normal-size words, restored partial coverage, stable positions | 11, 16 |
-| Selected source names and T toggle | `State::scene_labels`, `TextPlacement::Nameplate`, `text_plate.wgsl` | Centered white/black rounded labels; persistent T preference; DPR 1/2 and F10/Esc browser checks | 11–13 |
+| Selected source names and T toggle | `state/text.rs`, `app/scene_text.rs`, `TextPlacement::Nameplate`, `text_plate.wgsl` | Centered white/black rounded labels; persistent T preference; DPR 1/2 and F10/Esc browser checks | 11–13 |
 | Fixed world text in the mixed scene | Manifest `TextItem`, `TextPlacement::WorldPlane`, `gpu/text_plane.rs` | Authored axes, depth, orbit, 32 MiB cache/release, T independence; `tests/world-text.cjs` | 11, 14–15 |
-| Black selected surface silhouette | `gpu/selection_outline.rs`, `selection_outline.wgsl` | Actual depth-tested coverage; black outside/yellow inside; unchanged IDs; 1x/4x and release | 12 |
+| Black selected surface silhouette | `gpu/surface_outline.rs`, `surface_outline.wgsl` | Actual depth-tested coverage; black outside/yellow inside; unchanged IDs; 1x/4x and release | 12 |
 | Teapot boundary self-occlusion | Shared BRep boundary refinement and pcurve mapping; `physical.wgsl` | Previous-kernel failing/current passing exposed-meridian ray regression; exact incidence audit; `tests/teapot.cjs` | 07–09, 16 |
+| Ctrl+Shift original face selection | `SelectionMode::Face`, `gpu/faces.rs::FaceSource`, `walk/{mesh,brep}.rs` | Real interior clicks and edge precedence for mesh/BRep/surface at DPR 1/2 | 17 |
+| All source text selectable/hideable | `app/scene_text.rs`, `state/text.rs`, text color/ID passes | `tests/scene-text.cjs`, `tests/world-text.cjs`: camera-facing titles, billboards and fixed planes, H/S/F and T independence | 17 |
+| Ordinary union outlines, O and no doubled selection | `gpu/surface_outline.rs`, `render.rs`, `surface_outline.wgsl` | Mask union, max coverage, physical occlusion, selected cone/cylinder 1x/4x and DPR 1/2 | 17 |
+| Selected coincident polyline stays yellow | Selected standalone pass after silhouette, canonical `StrokeSegment` chains | `tests/selection-overlap.py`: 40 checks, 69,820/69,820 core pixels, zero covered yellow | 17 |
+| Subdivision-independent joins | `SegRows` explicit chain ranges, `ribbon.wgsl::join_plane` | `tests/stroke-joins.py`: circle closure, acute corner, one versus 2048 straight segments, 40 checks | 17 |
+| Finite occluders at concave/touching boundaries | `gpu/triangle_tiles.rs`, projected/count/scan/fill WGSL, `ink_visibility.wgsl` | `tests/triangle-visibility.py`: old 513/766, final 766/766; hidden0; teapot foot/pole views, floor21/hidden54 | 18 |
+| Bounded visibility storage and correct cache lifetime | `TriangleTiles`, `InstanceTable::geometry_revision` | Grid/mirror tests; GPU camera/hiding/replacement/ID-only/release test; 2800×1800 adaptive-grid floor check | 18 |
+| Exact final blue circle | `examples/mk_mixed_solids.rs`, shared `Primitives::circle` | Radius/tangent audit; original source GUID and styles retained in published mixed scene | 17 |
 | Text cache and resource lifetimes | `TextLane::{prepare,reset,release}`; finite raster-key budget | >4,096 world-scale keys trigger safe eviction without reshaping or stale instances; Glyphon private GPU capacities explicitly unmeasured | 11, 16 |
 | Browser initialization and recovery | `gpu/device.rs::open`, `app/feedback.rs`, `index.html` | Explicit missing-WebGPU/adapter errors and Reload action; native invalid-shader failure test | 01, 14, 16 |
 | Focus, pointer cancel, resize, DPR and idle scheduling | `App`, `Input`, `PointerCancellation`, `State::render` | `tests/lifecycle.cjs`: unchanged physical framebuffer with changed logical size, canceled gestures and zero hidden/idle frames | 02, 12, 14 |
@@ -42,10 +50,27 @@ Paths are relative to the production viewer unless prefixed with `../`; chapter 
 | Immutable bytes, cache policy, exposed validators and safe publication order | `r2_revision`, `r2_alias`, mutable manifest revalidation, `MetadataWindow` | Actual CORS/ETag headers; matched density requests 118→51; placement-only update reused geometry | 13–15 |
 | Accounted ownership and bounded resource growth | `Gpu::allocated_bytes`, `inspection/source_memory.rs`, weak Session identity cache | Source payload/Rc dedup tests, repeated source replacement, actual buffer capacities separated from estimated texture payloads | 16 |
 | Future CAD/UI extension points without speculative implementation | Scene identity, selection and geometry revisions; [archive extension owners](../ARCHITECTURE.md#archive-feature-map) | Gumball, edit/snapping, command line, layers, graph and richer annotation explicitly future; current toggles retained | 03, 12–13, 16 |
-| Verified source before fresh tutorials | [Frozen inventory](reconstruction/baseline.json), current 17 tutorial chapters | Stage 1 gate precedes the new tutorials; obsolete `docs_archive` removed afterward at the user’s request | 00, 16 |
-| Complete low-prose teaching with exact edits and every checkpoint runnable | Plain complete numbered patches, exact file hashes, TYPE BY HAND blocks, local fixtures | `reconstruction/replay.py --verify-clean`; `--adopt` validates manual source convergence | 00–16 |
-| Actual diagrams and textual alternatives | Ownership, spaces, source identities, depth, CAD, text, state and publication diagrams | Mapped to real source and each chapter's added behavior; future systems labeled | 00–16 |
+| Verified source before fresh tutorials | [Frozen inventory](reconstruction/baseline.json), current 19 tutorial chapters | Stage 1 gate precedes the new tutorials; obsolete `docs_archive` removed afterward at the user’s request | 00, 16 |
+| Complete low-prose teaching with exact edits and every checkpoint runnable | Ordered complete-file pages with create/replace/remove instructions, exact file hashes, local fixtures | `reconstruction/replay.py --verify-clean`; `--adopt` validates manual source convergence | 00–18 |
+| Actual diagrams and textual alternatives | Ownership, spaces, source identities, depth, CAD, text, state and publication diagrams | Mapped to real source and each chapter's added behavior; future systems labeled | 00–18 |
 | Frontier model without fallback | Execution and freeze metadata identify `gpt-6-astra` | Root and all delegated work used GPT-6 Astra | Stage 1 / Stage 2 |
-| Cleanup only after source and tutorials, then revalidation | Maintained source/assets/tests and tutorial reconstruction inputs | Final deletion/reference audit and repeated verification recorded in chapter 16 | 16 |
+| Cleanup only after source and tutorials, then revalidation | Maintained source/assets/tests and tutorial reconstruction inputs | Final deletion/reference audit and repeated verification recorded in chapter 18 | 16 |
 
 The shared surface refinement is a bounded quality heuristic, not a general certified chord-error guarantee. Navigation rAF and selection submission are browser scheduling observations, not GPU timestamps or physical display latency; increased retained-source memory and incomplete browser/hardware coverage are explicit in the measured results.
+
+## Archive reference
+
+
+Paths below are inspected source evidence, not claims that the archived application was run successfully during consolidation.
+
+| Feature | Current status | Archive evidence | Required now / future | Owner / validation |
+|---|---|---|---|---|
+| Picking and yellow source selection | Implemented and verified | `src/state_pick.rs`, `src/edit_points.rs` | Required | `State`, `selection.rs`, `gpu/pick.rs`; browser interaction fixture. |
+| Gumball / transform editing | Archive only | `src/gumball_state.rs`, `state_update.rs::Gumball::new` | Future | Interaction emits an edit transaction; Scene rebuilds changed geometry. No placeholder module. |
+| Snapping and move tools | Archive only | `tool_state.rs::snap_cache`, `snap_edges`, `src/snap.rs` | Future | Source query cache keyed by document/geometry revision; overlay lane for feedback. |
+| Command line/history | Archive only | `state_ui.rs` command TextEdit/history; `state_cmd.rs` | Future | Browser shell commands call interaction actions; text inputs retain keyboard focus. |
+| Buttons/undo toolbar | Archive only | `state_ui.rs::arrow_button`, `src/undo_state.rs` | Future | Browser shell and edit transaction history. |
+| Right-side layer tree | Archive only | `tree_ui.rs::render_tree_node`; `web/src/tree-panel.ts` | Future | Read Scene hierarchy/identity; issue selection and visibility actions. |
+| Graph UI | Archive only | `web/src/graph-panel.ts::renderGraph`, `web/src/main.ts` | Future | Browser presentation over retained Session graph. |
+| Shading and visibility toggles | Existing viewer behavior retained | `state_ui.rs`, `state_update.rs` | Preserve now | `gpu/view.rs`, triangle/splat shading; keyboard regression. |
+| Overlays / dimensions / annotations | Shaped labels present; richer annotations future | `state_ui.rs::draw_snap_marker`, archived `src/text.rs` | Text required; other tools future | Explicit text placements and typed source IDs; text-quality fixture. |

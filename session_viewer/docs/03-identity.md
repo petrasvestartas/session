@@ -1,90 +1,43 @@
-# 03 — Source identity and render instances
+# 03 · Keep source identity while batching drawing
 
-Starting checkpoint: 02. Two source identities share one local triangle while keeping independent placements and colors.
+**Start:** checkpoint 02. **Finish:** two styled instances share the rendering machinery and retain distinct identities.
 
-```mermaid
-flowchart LR
-  Source["guid + revision"] --> Row["Instance: model + tint + flags"]
-  Row --> Storage["96-byte storage row"] --> Vertex["instance_index → source row"] --> Pixel
-```
+## An object is more than its triangles
 
-Text alternative: Source GUID and revision identify a 96-byte render instance row used by the vertex stage.
+A source object has an identity, placement, style and bounds. Its display can contain many triangles or segments. A GPU row is an efficient address within the current scene revision; it is not a persistent CAD identifier.
 
-1. Add explicit source records and the first instance table.
+![Source, display preparation and GPU resources have separate owners.](illustrations/ownership.svg)
 
-**COPY/PASTE — complete mechanical additions and exact reconstruction.** Starting at checkpoint 02, [the complete patch](reconstruction/patches/03.patch) identifies every file and unique replacement context; it contains all imports, shader entries and descriptors.
+Read the instance record as the contract between source objects and drawing. Positions can share a geometry buffer while an object row supplies the model transform, color and flags. That allows selection and hiding to update a small row without regenerating a mesh.
 
-```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output /tmp/viewer-course --through 03 --advance --verify --target-dir "$COURSE_REPO/target"
-```
+`struct` groups named fields. `impl` defines operations on that type. `Vec<T>` owns a growable sequence of `T`; a slice such as `&[T]` borrows a sequence without taking ownership. Passing grouped records makes call sites easier to understand than passing many unrelated scalars.
 
-For the manual route, use the patch's complete file changes, substitute the following **TYPE BY HAND** blocks for their corresponding additions, then record the exact result with `--adopt --verify` instead of `--advance --verify`; `--adopt` checks every source byte against this checkpoint.
+## Track both directions
 
-**TYPE BY HAND — create the complete `src/scene.rs` module.** A source GUID/revision is neither a triangle index nor a transient GPU buffer offset.
+Preparation maps source identity to a row and appends display data. Picking will later return that row, and Scene must map it back to the original document/object. Multiple placed instances of one source document still need distinct instance addresses.
 
-```rust
-//! Stable source identity stays separate from a GPU row or triangle index.
-use crate::engine::gpu::instance::Instance;
-/// One source revision and the render instance derived from it.
-pub struct SourceObject {
-    pub guid: &'static str,
-    pub revision: u64,
-    pub row: Instance,
-}
-/// Two independently placed/tinted copies of the same local triangle.
-pub fn objects() -> [SourceObject; 2] {
-    let mut left = Instance::placeholder();
-    left.model[12] = -0.8;
-    left.color = [1.0, 0.35, 0.2, 1.0];
-    let mut right = Instance::placeholder();
-    right.model[12] = 0.8;
-    right.color = [0.2, 0.7, 1.0, 1.0];
-    [
-        SourceObject {
-            guid: "triangle-left",
-            revision: 1,
-            row: left,
-        },
-        SourceObject {
-            guid: "triangle-right",
-            revision: 1,
-            row: right,
-        },
-    ]
-}
-```
+Do not search for an object by approximately matching triangle positions. Coincident objects can have different identities; one object can have many tessellation vertices. Preserve explicit source maps as data is produced.
 
-**TYPE BY HAND — in `src/engine/gpu/instance.rs`, add the complete `Instance` record below the existing `use session_rust::Xform;` import.** Keep `#[repr(C)]` and the derives immediately above it; the following size assertion is part of the layout contract.
+## Rust memory is not automatically WGSL memory
 
-```rust
-#[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct Instance {
-    pub model: [f32; 16],
-    pub color: [f32; 4],
-    pub flags: u32,
-    /// Retained thickness metadata, in world units. Visibility no longer spends a depth
-    /// offset based on this value; keeping the field preserves the shared instance layout.
-    pub thickness: f32,
-    /// Vertex spacing, world units; markers thin once it projects small. 0 = unknown.
-    pub spacing: f32,
-    pub _pad: u32,
-}
+`#[repr(C)]` makes Rust field layout predictable, but WGSL has its own alignment rules. A three-component vector can occupy sixteen-byte aligned space in a shader record. Read field sizes, padding, array stride and binding size together. The final layout tests validate offsets as well as total record size.
 
-const _: () = assert!(std::mem::size_of::<Instance>() == 96);
-```
+Flags are bit fields: selecting an object sets a bit while preserving its other flags. Later visibility caching must distinguish a hidden-state change from a color/selection change, because only the former changes physical occluders.
 
-**COPY/PASTE — complete GPU integration.** 03.patch adds the module registrations and instance constants, adds storage binding 1 to the teaching camera layout, uploads the two records, and changes `first.wgsl` to index the matching WGSL `Instance` by `@builtin(instance_index)`.
+## Write the files
 
-The temporary `SourceObject`/single-group table is replaced by production `ObjectRow`/`InstanceTable` in 04; source geometry ownership then becomes explicit in the CAD producer chapters and final `Scene`.
+Follow [Complete file changes for 03](../lessons/03/index.md). Add the instance contract and source-to-row mapping, then wire the uploads and drawing. Read the complete shader bindings alongside their Rust layouts.
 
-**COPY/PASTE — run this completed checkpoint.**
+## Checkpoint
 
 ```sh
-cd /tmp/viewer-course/session_viewer
-REGEN_PROTO=0 NO_COLOR=true trunk serve
+cd "$COURSE_WORK/session_viewer"
+cargo check --locked --lib
+trunk serve --port 8780
 ```
 
-Open <http://127.0.0.1:8770/>. Two flat-colored triangles appear: orange on the left and blue on the right. Orbiting moves both consistently; their model translations and tint rows remain independent.
+At <http://localhost:8780/?data=off&inspect=1>, expect two independently styled objects. Orbit and zoom: their relative placement remains fixed while the camera moves. The checkpoint inspection reports two objects.
 
-The maintained `--verify` check builds WASM and captures actual browser pixels at DPR 1 and 2; it rejects page/GPU errors and framebuffer scaling mismatches. Checkpoint 03 deliberately retains the temporary direct-canvas shell, which chapter 12 replaces with the final winit/State ownership.
+A wrong stride commonly makes the first object correct and later objects corrupt. A wrong source map can look visually correct until selection returns another object. Both are representation bugs, so preserve the explicit mapping now.
+
+**Before continuing:** explain why a row can change after scene replacement while a source GUID remains stable. Continue to [drawing modules](04-modules.md).

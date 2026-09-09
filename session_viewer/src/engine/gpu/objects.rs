@@ -88,6 +88,7 @@ fn world_box(r: &ObjectRow) -> Aabb {
 /// The object rows as the GPU sees them, the TRUE f64 translation per row, and the sparse
 /// bounded rows. The anchored translations live in their own 16 B/row buffer.
 pub struct InstanceTable {
+    geometry_revision: u64,
     rows: Vec<Instance>,
     translation: Vec<[f64; 3]>,
     bounded: Vec<BoundedRow>,
@@ -119,6 +120,7 @@ fn instance_group(
 
 /// The immutable physical depth bound beside each ink lane's instance columns.
 pub struct InkScene<'a> {
+    pub tiles: &'a super::triangle_tiles::TriangleTiles,
     pub targets: &'a Targets,
 }
 
@@ -158,11 +160,24 @@ fn ink_instance_group(
                 binding: 5,
                 resource: wgpu::BindingResource::TextureView(&targets.gradient_msaa),
             },
+            wgpu::BindGroupEntry {
+                binding: 6,
+                resource: scene.tiles.projected.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 7,
+                resource: scene.tiles.buffer.as_entire_binding(),
+            },
         ],
     })
 }
 
 impl InstanceTable {
+    /// Revision of placement, rebased translations or hidden state used by finite visibility.
+    pub fn geometry_revision(&self) -> u64 {
+        self.geometry_revision
+    }
+
     /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
     pub fn allocated_bytes(&self) -> u64 {
         self.buffer.buf.size() + self.translations.buf.size()
@@ -181,6 +196,7 @@ impl InstanceTable {
         let ink_group = ink_instance_group(ctx, l, [&buffer.buf, &translations.buf], scene);
 
         Self {
+            geometry_revision: 0,
             rows: vec![Instance::placeholder()],
             translation: Vec::new(),
             bounded: Vec::new(),
@@ -207,6 +223,7 @@ impl InstanceTable {
         layouts: &Layouts,
         depths: [&wgpu::TextureView; 2],
         gradients: [&wgpu::TextureView; 2],
+        tiles: &super::triangle_tiles::TriangleTiles,
     ) -> wgpu::BindGroup {
         ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("pick.instances"),
@@ -236,6 +253,14 @@ impl InstanceTable {
                     binding: 5,
                     resource: wgpu::BindingResource::TextureView(gradients[1]),
                 },
+                wgpu::BindGroupEntry {
+                    binding: 6,
+                    resource: tiles.projected.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 7,
+                    resource: tiles.buffer.as_entire_binding(),
+                },
             ],
         })
     }
@@ -243,6 +268,7 @@ impl InstanceTable {
     /// Append one upload's rows: cast once, keep the f64 translation, note the bounded ones,
     /// send only the new rows. The next frame rebases the whole table.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
         if self.translation.is_empty() {
             self.rows.clear();
             self.world_bounds.clear();
@@ -342,6 +368,7 @@ impl InstanceTable {
     /// Rebase every row's translation around `origin` in f64, cast, and rewrite the 16 B/row
     /// translation table; the 96 B rows are not touched.
     fn rebuild(&mut self, ctx: &GpuCtx, origin: &Point) {
+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
         self.last_origin = Some(origin.clone());
         let mut anchored: Vec<[f32; 4]> = Vec::with_capacity(self.rows.len());
         for t in &self.translation {
@@ -413,11 +440,15 @@ impl InstanceTable {
             return;
         }
         r.flags ^= bit;
+        if bit & Instance::FLAG_HIDDEN != 0 {
+            self.geometry_revision = self.geometry_revision.wrapping_add(1);
+        }
         self.buffer.write_at(ctx, row, std::slice::from_ref(r));
     }
 
     /// Forget every row; the buffers keep their capacity.
     pub fn reset(&mut self) {
+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
         self.rows.clear();
         self.translation.clear();
         self.bounded.clear();
@@ -454,6 +485,13 @@ impl InstanceTable {
     pub fn row_bounds(&self, row: u32) -> Option<Aabb> {
         let b = *self.world_bounds.get(row as usize)?;
         b.is_finite().then_some(b)
+    }
+
+    /// Text has no solid volume; its shaped world box still supports fitting and annotations.
+    pub fn set_text_bounds(&mut self, row: u32, bounds: Aabb) {
+        if let Some(target) = self.world_bounds.get_mut(row as usize) {
+            *target = bounds;
+        }
     }
 
     /// The precise origin required to project source-world labels into the rebased frame.

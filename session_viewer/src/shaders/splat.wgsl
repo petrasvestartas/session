@@ -177,5 +177,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
     if (outside(in)) {
         discard;
     }
-    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<f32>(0.0));
+    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec4<f32>(0.0));
 }
