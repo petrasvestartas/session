@@ -191,6 +191,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
     };
     let mut pending = Vec::new();
     let mut failed = false;
+    let budget = scene_budget_bytes();
+    let mut spent = 0u64;
+    let mut skipped: Vec<String> = Vec::new();
     let mut staged_points = 0u32;
     let t0 = now_ms();
     let bytes = match fetch_manifest(route).await {
@@ -255,6 +258,15 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                 continue;
             }
         }
+        // A whole file is decoded into the wasm heap several times over; past the device's
+        // budget the page would die without a word, so the file is skipped with one instead.
+        let length = super::fetch::content_length(&url).await.unwrap_or(0);
+        if spent + length > budget {
+            log::warn!("skipped '{}': {} MB over the {} MB scene budget", item.file, length >> 20, budget >> 20);
+            skipped.push(format!("{} ({} MB)", item.file, length >> 20));
+            continue;
+        }
+        spent += length;
         let f0 = now_ms();
         let bytes = match fetch_bytes(&url).await {
             Ok(b) => b,
@@ -328,7 +340,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
     post(Msg::Texts(manifest.texts));
     post(Msg::Fit);
     if !failed {
-        super::feedback::status("");
+        super::feedback::status(&skipped_notice(&skipped, budget));
     }
     log::info!(
         "scene posted {:.0} ms after the manifest fetch",
@@ -461,4 +473,33 @@ async fn stream_rest(c: StreamCursor) {
         }
         at = to;
     }
+}
+
+/// Whole-file bytes a scene may load: `?budget=<MB>` / `VIEWER_BUDGET`, else 16 MB per GB the
+/// browser reports (`navigator.deviceMemory`), 64 MB when it says
+/// nothing. A decoded file costs the wasm heap about five times its size.
+fn scene_budget_bytes() -> u64 {
+    if let Some(mb) = crate::engine::gpu::view::knob("VIEWER_BUDGET", "budget")
+        && let Ok(mb) = mb.parse::<u64>()
+    {
+        return mb << 20;
+    }
+    let gigabytes = web_sys::window()
+        .map(|window| window.navigator())
+        .and_then(|navigator| js_sys::Reflect::get(&navigator, &"deviceMemory".into()).ok())
+        .and_then(|value| value.as_f64())
+        .unwrap_or(4.0);
+    ((gigabytes * 16.0) as u64) << 20
+}
+
+/// The status line after a load: empty, or which files stayed out and how to let them in.
+fn skipped_notice(skipped: &[String], budget: u64) -> String {
+    if skipped.is_empty() {
+        return String::new();
+    }
+    format!(
+        "Skipped over the {} MB scene budget: {}. Add ?budget=<MB> to raise it.",
+        budget >> 20,
+        skipped.join(", ")
+    )
 }

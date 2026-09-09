@@ -119,6 +119,22 @@ pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
     })
 }
 
+/// The size a whole file would download, from a HEAD request; `None` when the server does not
+/// say. Asked before a file is fetched, so a scene can refuse what the device cannot hold.
+pub async fn content_length(url: &str) -> Option<u64> {
+    let init = RequestInit::new();
+    init.set_method("HEAD");
+    init.set_mode(RequestMode::Cors);
+    let request = Request::new_with_str_and_init(url, &init).ok()?;
+    let window = web_sys::window()?;
+    let resp: Response = JsFuture::from(window.fetch_with_request(&request))
+        .await
+        .ok()?
+        .dyn_into()
+        .ok()?;
+    resp.headers().get("Content-Length").ok().flatten()?.parse().ok()
+}
+
 /// GET a whole file, revalidating any cached copy (a re-uploaded file is never stale, an
 /// unchanged one costs one 304); a non-2xx status is an error naming it.
 pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
