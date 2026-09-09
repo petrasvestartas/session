@@ -771,7 +771,7 @@ def reload_steps(cache):
     return series, steps
 
 
-MERMAID_INIT = '%%{init: {"flowchart": {"useMaxWidth": false}, "themeVariables": {"primaryColor": "#ffffff", "primaryTextColor": "#111111", "primaryBorderColor": "#111111", "lineColor": "#ffffff", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#111111"}}}%%'
+MERMAID_INIT = '%%{init: {"flowchart": {"useMaxWidth": false, "wrappingWidth": 320}, "themeVariables": {"primaryColor": "#ffffff", "primaryTextColor": "#111111", "primaryBorderColor": "#111111", "lineColor": "#ffffff", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#111111"}}}%%'
 
 
 def mermaid_natural_size(markdown):
