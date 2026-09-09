@@ -373,6 +373,8 @@ flowchart LR
 
 ### Step 14 · One join plane per shared vertex
 
+![Two independent ribbons overlap on the inner side of a bend and open a wedge on the outer side; cutting both at one join plane through the shared vertex gives uniform coverage.](illustrations/joins.svg)
+
 - Both segments at a shared vertex call `join_plane(before, after)` with the same ordered pair, so both compute the same bisector plane.
 - The start side keeps pixels on its side of the plane, the end side excludes them: exactly one segment owns each pixel of the shared cap.
 - `stroke_vertex(vid, layer)` culls the other layer's strokes, so the selected pass draws only selected ink.
@@ -437,6 +439,10 @@ Expected:
 - Click a manifest text or a document title: it selects like geometry; **H** hides it, **S** shows it; **T** still toggles only the derived selected-object name.
 - A dense polyline and the same curve with few segments look the same at their joints: no darker dots, no gaps.
 
+![Checkpoint 17. Left: Ctrl + Shift + click inside the mesh selects one source face, the rest of the object stays grey. Middle: the selected BRep with its silhouette, one black border of uniform width around the yellow fill. Right: after pressing O the border is gone and only the yellow strokes remain.](screenshots/17-face-silhouette.png)
+
+![The document title is a scene row: a click selects it with a yellow frame and its derived name; H hides it like any geometry.](screenshots/17-text.png)
+
 ## What changed
 
 <!-- tree: 17 session_viewer/src -->
@@ -447,6 +453,14 @@ Expected:
 - GPU resources: face id buffer + selected-face uniform; two `R8Unorm` coverage masks; strokes are 48-byte rows.
 
 **Production equivalent:** every file in this lesson is the production file at this revision. Lesson 18 changes `faces.rs`, `segments.rs` is final, and `surface_outline.rs` is final.
+
+## Try
+
+- Ctrl + Shift + click on the surface and then on the BRep's top: `Face N selected` names a source face in each; on the BRep the number is a face of the solid, not a triangle.
+- Ctrl + Shift + click exactly on a mesh edge: the edge wins, because a nearby eligible edge is preferred over the face behind it.
+- Select the BRep, press O, then orbit: the yellow fringe of the strokes now defines the object's outline, and it is not uniform where strokes meet.
+- Load a manifest with two `texts` entries and hide one with H: the other stays, and S brings the hidden one back.
+- Open `?thickness=6` and look at a corner of the polyline: no darker dot and no notch at the shared vertex, at any pen width.
 
 ## Next
 

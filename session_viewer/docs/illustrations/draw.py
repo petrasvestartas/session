@@ -883,7 +883,64 @@ def source_cache():
     c.write("source-cache.svg")
 
 
+def joins():
+    c = Canvas("One join plane per shared vertex",
+               "A stroke is drawn as one ribbon per segment. Where two segments meet, two independent ribbons either overlap, which darkens the joint where coverage adds up, or leave a wedge open on the outer side of the bend. The joined lane gives every segment its neighbours and cuts both ribbons at the same join plane through the shared vertex, so a dense polyline and a coarse one look identical at their joints.",
+               1180, 470)
+    navy, pink, green, yellow, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
+    c.text(28, 40, "Two ribbons at a bend, before and after the join plane", "h")
+    import math
+    def ribbon(ax, ay, bx, by, w, fill, opacity):
+        dx, dy = bx - ax, by - ay
+        n = math.hypot(dx, dy)
+        nx, ny = -dy / n * w / 2, dx / n * w / 2
+        c.raw(f'<polygon points="{ax + nx:.1f},{ay + ny:.1f} {bx + nx:.1f},{by + ny:.1f} {bx - nx:.1f},{by - ny:.1f} {ax - nx:.1f},{ay - ny:.1f}" fill="{fill}" fill-opacity="{opacity}"/>')
+    # left: independent ribbons (overlap darkens, outer wedge opens)
+    c.text(60, 84, "independent ribbons", "l")
+    A, V, B = (80, 300), (260, 150), (440, 300)
+    ribbon(*A, *V, 36, "#111111", 0.55)
+    ribbon(*V, *B, 36, "#111111", 0.55)
+    c.raw(f'<circle cx="{V[0]}" cy="{V[1]}" r="4" fill="{pink}"/>')
+    c.text(V[0] + 30, V[1] - 46, "overlap adds coverage: a darker dot", "s", fill=pink)
+    c.text(V[0] + 30, V[1] - 30, "outer side: an open wedge", "s", fill=pink)
+    c.text(60, 350, "the same stroke with 40 short segments shows 39 such dots", "s")
+    # right: joined ribbons cut at the join plane
+    c.text(660, 84, "joined lane: cut at the join plane", "l")
+    A2, V2, B2 = (680, 300), (860, 150), (1040, 300)
+    def unit(p, q):
+        dx, dy = q[0] - p[0], q[1] - p[1]
+        n = math.hypot(dx, dy)
+        return dx / n, dy / n
+    d1 = unit(A2, V2); d2 = unit(V2, B2)
+    bis = (d1[0] - d2[0], d1[1] - d2[1])
+    nb = math.hypot(*bis); bis = (bis[0] / nb, bis[1] / nb)
+    # miter extent along the bisector so the outer edges meet
+    cos_half = (-(d1[0] * d2[0] + d1[1] * d2[1]) + 1) / 2
+    w = 36
+    ml = (w / 2) / max(math.sqrt(max(cos_half, 1e-6)), 0.2)
+    def side(p, d, sgn):
+        return (p[0] - d[1] * sgn * w / 2, p[1] + d[0] * sgn * w / 2)
+    a_in, a_out = side(A2, d1, 1), side(A2, d1, -1)
+    b_in, b_out = side(B2, d2, 1), side(B2, d2, -1)
+    m_out = (V2[0] + bis[0] * ml, V2[1] + bis[1] * ml)
+    m_in = (V2[0] - bis[0] * ml, V2[1] - bis[1] * ml)
+    # choose orientation so that m_out is on the outer side (above the vertex)
+    if m_out[1] > V2[1]:
+        m_out, m_in = m_in, m_out
+    c.raw(f'<polygon points="{a_out[0]:.1f},{a_out[1]:.1f} {m_out[0]:.1f},{m_out[1]:.1f} {m_in[0]:.1f},{m_in[1]:.1f} {a_in[0]:.1f},{a_in[1]:.1f}" fill="#111111" fill-opacity="0.55"/>')
+    c.raw(f'<polygon points="{m_out[0]:.1f},{m_out[1]:.1f} {b_out[0]:.1f},{b_out[1]:.1f} {b_in[0]:.1f},{b_in[1]:.1f} {m_in[0]:.1f},{m_in[1]:.1f}" fill="#111111" fill-opacity="0.55"/>')
+    c.raw(f'<line x1="{m_out[0]:.1f}" y1="{m_out[1]:.1f}" x2="{m_in[0]:.1f}" y2="{m_in[1]:.1f}" stroke="{green}" stroke-width="2" stroke-dasharray="5 4"/>')
+    c.raw(f'<circle cx="{V2[0]}" cy="{V2[1]}" r="4" fill="{green}"/>')
+    c.text(V2[0] + 30, V2[1] - 46, "join plane through the shared vertex", "s", fill=green)
+    c.text(V2[0] + 30, V2[1] - 30, "no overlap, no wedge, uniform coverage", "s", fill=green)
+    c.text(660, 350, "each GPU row carries prev and next; the shader clips its ribbon at both join planes", "s")
+    c.text(28, 400, "Chains are marked by the producers (Step 12), the row gains neighbours (Step 13), and the shader computes one plane per shared vertex (Step 14).", "s")
+    c.w = 1180
+    c.h = 430
+    c.write("joins.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins):
         draw()
-    print("wrote 20 illustrations")
+    print("wrote 21 illustrations")
