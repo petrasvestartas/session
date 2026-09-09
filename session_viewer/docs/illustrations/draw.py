@@ -850,7 +850,40 @@ def metadata_window():
     c.write("metadata-window.svg")
 
 
+def source_cache():
+    c = Canvas("Measuring retained documents without retaining them",
+               "Scene owns each source document through an Rc. SourceCache remembers a Weak handle to the same allocation next to the payload figure it computed. On every snapshot it compares identities: the same pointers mean the cached figure is reused; a replaced document means one new walk. Because the cache holds only Weak handles, a document dropped by Scene is freed at once, and the cache reports the drop instead of keeping the bytes alive.",
+               1180, 470)
+    navy, pink, green, yellow, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
+    c.text(28, 40, "Strong ownership in Scene, weak identity in the cache", "h")
+    a = c.box(28, 80, ["Scene", "documents: Vec<Rc<Session>>", "owns the bytes"], "cpu")
+    d1 = c.box(360, 80, ["Session A · Rc count 1", "meshes · breps · clouds"], "gpu")
+    d2 = c.box(360, 170, ["Session B · Rc count 1", "curves · text"], "gpu")
+    k = c.box(700, 80, ["SourceCache", "Weak<Session> per document", "Payload { known bytes, scans }"], "cpu")
+    def arrow(x1, y1, x2, y2, color, dash=""):
+        c.raw(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{color}" stroke-width="1.6"{dash}/>')
+        c.raw(f'<polygon points="{x2},{y2} {x2 - 9},{y2 - 5} {x2 - 9},{y2 + 5}" fill="{color}"/>')
+    arrow(a[0] + a[2], a[1] + 40, d1[0], d1[1] + 30, navy)
+    arrow(a[0] + a[2], a[1] + 52, d2[0], d2[1] + 30, navy)
+    c.text(a[0] + a[2] + 12, a[1] + 28, "Rc (strong)", "s", fill=navy)
+    dash = ' stroke-dasharray="5 4"'
+    c.raw(f'<line x1="{k[0]}" y1="{k[1] + 30}" x2="{d1[0] + d1[2]}" y2="{d1[1] + 30}" stroke="{grey}" stroke-width="1.6"{dash}/>')
+    c.raw(f'<polygon points="{d1[0] + d1[2]},{d1[1] + 30} {d1[0] + d1[2] + 9},{d1[1] + 25} {d1[0] + d1[2] + 9},{d1[1] + 35}" fill="{grey}"/>')
+    c.raw(f'<line x1="{k[0]}" y1="{k[1] + 52}" x2="{d2[0] + d2[2]}" y2="{d2[1] + 30}" stroke="{grey}" stroke-width="1.6"{dash}/>')
+    c.raw(f'<polygon points="{d2[0] + d2[2]},{d2[1] + 30} {d2[0] + d2[2] + 9},{d2[1] + 25} {d2[0] + d2[2] + 9},{d2[1] + 35}" fill="{grey}"/>')
+    c.text(d2[0] + d2[2] + 12, d2[1] + d2[3] + 18, "Weak (no ownership), dashed", "s", fill=grey)
+    y = 290
+    c.text(28, y, "Three snapshots", "l")
+    r1 = c.box(28, y + 14, ["snapshot 1", "identities new → walk A, walk B", "scans = 2"], "note")
+    r2 = c.box(r1[0] + r1[2] + 24, y + 14, ["snapshot 2 · same Rc pointers", "cached figures reused", "scans = 2"], "note")
+    r3 = c.box(r2[0] + r2[2] + 24, y + 14, ["snapshot 3 · B replaced by B'", "A reused, B' walked once", "scans = 3; B freed immediately"], "note")
+    c.text(28, y + 130, "The figure is a known payload: geometry arrays the walk can size exactly; anything it cannot size is listed under exclusions, never guessed.", "s")
+    c.w = max(int(r3[0] + r3[2] + 28), 1180)
+    c.h = 450
+    c.write("source-cache.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache):
         draw()
-    print("wrote 19 illustrations")
+    print("wrote 20 illustrations")
