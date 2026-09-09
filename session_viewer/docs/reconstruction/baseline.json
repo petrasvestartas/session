@@ -203,7 +203,7 @@
     "session_viewer/examples/probe_mesh.rs": "0359ffbae67035a68b6fe28eb3044ae428a3b1d6709908862e044ec57efc90e1",
     "session_viewer/examples/selftest.rs": "4113e37cf074c4d98b861f2a4d679d8cb327e80588e1a0f5e088e3490334e2fd",
     "session_viewer/examples/stream_decode_check.rs": "2e82500c30f7d151ffe49f77d09ea4edbb55148fee507ef4de1c256e5af7d683",
-    "session_viewer/index.html": "3cb23bb8cf4d6625104c18cbf4d3e1167125a3ee6f096e7062a970986759e773",
+    "session_viewer/index.html": "92ea9a5108f00913870f1d9ad765977b90f5309396c134cfcc430c26c24d6b41",
     "session_viewer/src/app/cloud_query.rs": "ce73128045ab5abf3ccb2e23f72f57d2145043aee5c9e7d4e4688684dbdf3414",
     "session_viewer/src/app/decode.rs": "5c490d05d7fbe9982ec801f4bbf90f3b660d03c1ab3c6046de6af6b1c0c82b99",
     "session_viewer/src/app/feedback.rs": "4cad8fc90f8a60ba31ea895a82e8837571c6a34d77fb73d007c14dd581790be8",
@@ -251,10 +251,10 @@
     "session_viewer/src/engine/gpu/objects.rs": "957f28ecb6d700712e1e487f300c26c3a3fec02e7ff9d53192becb68349c9d2e",
     "session_viewer/src/engine/gpu/pick.rs": "b52a5cfde2a1d0fa453d0ec9aed8b0d281a5bb468469207e179308dd0600e2c8",
     "session_viewer/src/engine/gpu/present.rs": "98c2b16fa6f1cf2eaeb69bb167746d08b35f7c823a2a3465edcccb0a3d5a2580",
-    "session_viewer/src/engine/gpu/render.rs": "d78a94e43e2ba3e5a420b2f6c93d513a5bf0adfe626fe65bfd6f92718c44a8c9",
+    "session_viewer/src/engine/gpu/render.rs": "f435dc393acdab3b2834a573900daa9103750913be56738f298806a43234b350",
     "session_viewer/src/engine/gpu/segments.rs": "07175c4ca018a7c2d19ff40d54db5661cbaf5a6c65fca93c460481719660e17c",
     "session_viewer/src/engine/gpu/splat.rs": "30fda97fb7d5c855cbd150d0a59a5104cf11e6a781c259989604c5a78757f14e",
-    "session_viewer/src/engine/gpu/surface_outline.rs": "cee96040912fb57c79015cfc7f95c97c1c65568f473e1e1c3f3b994a15e9fdea",
+    "session_viewer/src/engine/gpu/surface_outline.rs": "d3cb81f2223804ed7539e5515c0809527af26abc505bbe188e6529e95c27812c",
     "session_viewer/src/engine/gpu/targets.rs": "87886f43939635da174913f0b65f083501ae647e29e9996fe759756b8137458b",
     "session_viewer/src/engine/gpu/text.rs": "173ba8270917e9a378eb4bae193db2a4724a27d8814b4b12fa59d874b9756d14",
     "session_viewer/src/engine/gpu/text_outline.rs": "12a2ee2492ab758859b12593eb6047529f9c336ea48f698e24d27e8271cd8390",
@@ -285,7 +285,7 @@
     "session_viewer/src/shaders/sphere.wgsl": "4e43c166cb671600790d7605ed98efd6d580b68175f401c8333170f8a36b833c",
     "session_viewer/src/shaders/splat.wgsl": "88f98973973c6a441c8b7e1ebc8dd737fe0150a26be3f295c2d26fa84d73b233",
     "session_viewer/src/shaders/splat_resolve.wgsl": "3de1808ff23818c374ad7144fb6d05b60d3ddf3d4b781cabc31f852bf3168dfd",
-    "session_viewer/src/shaders/surface_outline.wgsl": "7fb060c95bc03a601f5241542534fe876efbc54e05346b8b652fa6a7a8ba0cbe",
+    "session_viewer/src/shaders/surface_outline.wgsl": "bdbc305f80e843a644a448ff01b786254e58bb266a566c7e347b4c504fca8be0",
     "session_viewer/src/shaders/text_outline.wgsl": "544d3cff58d028ad51b979667e1c34a2bac7a85c41e6bd3031f74e076a0cba83",
     "session_viewer/src/shaders/text_plane.wgsl": "ad6e38331fb560d9b4fd25d49f35b25f0c7f45ed2713f27505d9ec45dd30862d",
     "session_viewer/src/shaders/text_plate.wgsl": "c6a102b146ad8975d736e95cf6ea78a62904984f5c52c383e5edc996408d3ae8",
@@ -334,7 +334,7 @@
   "frozen_utc": "2026-09-09T07:40:00+00:00",
   "model": "gpt-6-astra",
   "name": "production-2026-09-09-rounded-text-and-pen",
-  "scope": "Current viewer runtime after source-face selection, selectable source text, union/selected silhouettes, canonical joined strokes and finite-triangle visibility. Shared kernel bytes are unchanged from the previous verified freeze. Earlier timing evidence remains scoped to its recorded baseline. Docs and disposable build outputs are outside this inventory. 9 Sep follow-up: index.html gains the documentation corner link and Trunk copies the built course into dist/docs (docs/build_site.sh pre-build hook). Test oracles pinned to the 1.5 px pen and title-row object counts folded into checkpoint 18 on 9 Sep. Test oracles pinned to the 1.5 px pen and title-row object counts folded into checkpoint 18 on 9 Sep. Surface silhouettes default off (O / ?outlines=1); folded on 9 Sep. Picks render into a window-sized attachment, the visibility pool is scene-sized, MSAA stops at device scale 2, and a lost device reloads at reduced settings.",
+  "scope": "Current viewer runtime after source-face selection, selectable source text, union/selected silhouettes, canonical joined strokes and finite-triangle visibility. Shared kernel bytes are unchanged from the previous verified freeze. Earlier timing evidence remains scoped to its recorded baseline. Docs and disposable build outputs are outside this inventory. 9 Sep follow-up: index.html gains the documentation corner link and Trunk copies the built course into dist/docs (docs/build_site.sh pre-build hook). Test oracles pinned to the 1.5 px pen and title-row object counts folded into checkpoint 18 on 9 Sep. Test oracles pinned to the 1.5 px pen and title-row object counts folded into checkpoint 18 on 9 Sep. Surface silhouettes default off (O / ?outlines=1); folded on 9 Sep. Picks render into a window-sized attachment, the visibility pool is scene-sized, MSAA stops at device scale 2, and a lost device reloads at reduced settings. The silhouette compositor skips pixels whose coarse blocks are empty.",
   "shared": {
     "session_cpp": {
       "changed_files": {
@@ -383,7 +383,7 @@
   },
   "supersedes": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
   "tree_encoding": "sha256 of sorted path + NUL + file sha256 + newline records",
-  "tree_sha256": "45cea2d64f7d1053f4e2c4791ac30a4534c00a61abe953f0354070bd0731e913",
+  "tree_sha256": "970bb90a9c7f5cae764dd87e65ba4866e2ef8b52eecec36a70ea32857e0acdb1",
   "verification": {
     "cad_captures": 12,
     "cleanup": "empty npm lock and three generated Python caches removed; retained running build outputs and local/user assets",

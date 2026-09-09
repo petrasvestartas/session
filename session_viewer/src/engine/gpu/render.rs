@@ -69,9 +69,12 @@ impl Gpu {
                 line: &self.frame.line_group,
                 instances: &self.objects.group,
             };
-            let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
-            draws += self.arena.draw_selection_mask(&mut pass, &b);
-            draws += self.arena.source_faces.draw_mask(&mut pass, &b);
+            {
+                let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
+                draws += self.arena.draw_selection_mask(&mut pass, &b);
+                draws += self.arena.source_faces.draw_mask(&mut pass, &b);
+            }
+            self.selection_outline.encode_pool(encoder);
         }
         if self.solid_outline.prepare(
             &self.ctx,
@@ -85,8 +88,11 @@ impl Gpu {
                 line: &self.frame.line_group,
                 instances: &self.objects.group,
             };
-            let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
-            draws += self.arena.draw_solid_mask(&mut pass, &b);
+            {
+                let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
+                draws += self.arena.draw_solid_mask(&mut pass, &b);
+            }
+            self.solid_outline.encode_pool(encoder);
         }
         {
             let mut pass = self.targets.begin_ink(encoder, view);

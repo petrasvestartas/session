@@ -1206,35 +1206,6 @@ index 0000000000000000000000000000000000000000..c7ad4c310ac1e4bb31708fc0e5622b85
 +HTML
 +    echo "docs/build_site.sh: course sources or uvx not found; wrote a placeholder page" >&2
 +fi
-diff --git a/session_viewer/index.html b/session_viewer/index.html
-index 1e485e89a7d9c0662fd43ccc7515e9efab43a56b..d538bc5a988791a944ae1612f5c0f7110551c5af 100644
---- a/session_viewer/index.html
-+++ b/session_viewer/index.html
-@@ -30,6 +30,11 @@
-              -webkit-user-select: none; user-select: none;
-              -webkit-tap-highlight-color: transparent; }
-     canvas:focus, canvas:focus-visible { outline: none; }
-+    /* The documentation corner: a black folded-corner triangle, always above the canvas. */
-+    #viewer-docs { position:fixed; top:0; right:0; width:0; height:0; z-index:10; display:block;
-+                   border-top:40px solid #111; border-left:40px solid transparent;
-+                   filter: drop-shadow(-1px 1px 0 #ffffff99); }
-+    #viewer-docs:hover, #viewer-docs:focus-visible { border-top-color:#1a1eb2; border-top-width:52px; border-left-width:52px; outline:none; }
-     #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
-                  font:1rem system-ui; text-align:center; padding-top:40vh; }
-   </style>
-@@ -44,9 +49,12 @@
-    <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
-   <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><button type="button" onclick="location.reload()">Reload viewer</button></div>
-   <canvas id="canvas" tabindex="0"></canvas>
-+  <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
-   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
-   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
-   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
-+  <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
-+  <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
-   <!-- Message telling that Webgpu is not available. -->
-   <script>
-     // These named registrations belong to this document's lifetime and are installed once.
 diff --git a/session_viewer/tests/depth/_gate.sh b/session_viewer/tests/depth/_gate.sh
 index 90317e48eb9a7d0be247a08b761c7f6325e11bca..a22abca0a4557bba6cc7cc30a1761f00ea0dcdca 100644
 --- a/session_viewer/tests/depth/_gate.sh
@@ -1821,34 +1792,6 @@ index ff5f9d6f98a0fa21995cba4ded7ed3494be9acc7..f3f2123b3b60fbf68b9fb20e5dd2dac7
  The strict hidden-ink matrix renders 54 combinations and the original floor census renders
  21 views, including distance ×16. Both require zero hidden ink in their stated masks:
  
-diff --git a/session_viewer/src/engine/gpu/surface_outline.rs b/session_viewer/src/engine/gpu/surface_outline.rs
-index 341ff7efa6bf89e9cfac4fb4ea480958fcf35f32..897a4e05e20f19da5bc62aa21d3ca0cefa262694 100644
---- a/session_viewer/src/engine/gpu/surface_outline.rs
-+++ b/session_viewer/src/engine/gpu/surface_outline.rs
-@@ -281,6 +281,7 @@ mod tests {
-         use std::rc::Rc;
- 
-         let mut gpu = pollster::block_on(Gpu::new_headless(480, 480)).unwrap();
-+        gpu.view.show_outlines = true;
-         gpu.view.show_grid = false;
-         gpu.view.markers = false;
-         for shape in [
-@@ -345,6 +346,7 @@ mod tests {
-     #[ignore = "requires a native GPU adapter"]
-     fn touching_and_overlapping_solids_have_one_continuous_outline() {
-         let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
-+        gpu.view.show_outlines = true;
-         gpu.view.show_grid = false;
-         gpu.view.lit = false;
-         let input = FrameInput {
-@@ -421,6 +423,7 @@ mod tests {
-     #[ignore = "requires a native GPU adapter"]
-     fn selected_silhouette_is_black_visible_only_and_releases_coverage() {
-         let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
-+        gpu.view.show_outlines = true;
-         gpu.view.show_grid = false;
-         gpu.view.lit = false;
-         let mut upload = Upload::default();
 diff --git a/session_viewer/src/app/feedback.rs b/session_viewer/src/app/feedback.rs
 index 8e846d19d6fcef5720ef60d9e580cbe77bca6d19..16a4d0c84d9b58463243f1affcd6987ea9376cdb 100644
 --- a/session_viewer/src/app/feedback.rs
@@ -2600,181 +2543,6 @@ index 796b49bbe22fb604926d7d316b250d9e96869408..5c8e7c03d469fee48a6edb74f7263853
          log::info!("headless frame: {draws} draws, {objects} objects, {w}x{h}");
  
          let slice = readback.slice(..);
-diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
-index 1ead65b82388f2d34e2a270b89277ecfb23b8b08..8f4f6fe90e6f198ac683cfff70e1415424a3d124 100644
---- a/session_viewer/src/engine/gpu/render.rs
-+++ b/session_viewer/src/engine/gpu/render.rs
-@@ -7,6 +7,36 @@ use super::pick::PickMode;
- use super::splat::RecordCx;
- 
- impl Gpu {
-+    /// Reconstruct finite triangle visibility before color or ID ink samples it.
-+    fn triangle_tile_pass(&mut self, encoder: &mut wgpu::CommandEncoder) {
-+        if self.arena.tiles.prepare(
-+            &self.ctx,
-+            (self.config.width, self.config.height),
-+            self.arena.face_count() / 3,
-+        ) {
-+            self.objects.rebind_ink(
-+                &self.ctx,
-+                &self.layouts,
-+                &super::objects::InkScene {
-+                    tiles: &self.arena.tiles,
-+                    targets: &self.targets,
-+                },
-+            );
-+        }
-+        let b = Binds {
-+            mvp: &self.frame.mvp_group,
-+            line: &self.frame.line_group,
-+            instances: &self.objects.group,
-+        };
-+        self.arena.prepare_visibility(
-+            &self.ctx,
-+            encoder,
-+            &b,
-+            self.frame.mvp_f32,
-+            self.objects.geometry_revision(),
-+        );
-+    }
-+
-     /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
-     /// Knows nothing about a surface, so it works headless.
-     pub fn encode_frame(
-@@ -15,6 +45,7 @@ impl Gpu {
-         view: &wgpu::TextureView,
-         clear: wgpu::Color,
-     ) -> (u32, u32) {
-+        self.triangle_tile_pass(encoder);
-         self.point_pass(encoder);
- 
-         let mut draws = {
-@@ -148,60 +179,63 @@ impl Gpu {
-     /// is one (the vertex work stays; the fill is what a full frame would cost), which is then
-     /// copied out for `Picker`.
-     pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
-+        self.triangle_tile_pass(encoder);
-         let size = (self.config.width, self.config.height);
-         let mode = self.pick.mode;
--        let window = match at {
--            Some(position) => Some(self.pick.window(position, size)),
--            None => None,
--        };
-+        // The pass draws the window about the cursor (plus the halo the plane fit reads) into
-+        // an attachment of that size; the uniforms see the scene through that window.
-+        let window = at.map(|position| self.pick.window(position, size));
-+        let view = self.pick.view_for(at, size);
-+        self.frame.write_pick(&self.ctx, view, size);
-+        let inner = window.map(|window| {
-+            (
-+                window.x.saturating_sub(view.x),
-+                window.y.saturating_sub(view.y),
-+                window.w.min(view.w),
-+                window.h.min(view.h),
-+            )
-+        });
-         let basic = Binds {
--            mvp: &self.frame.mvp_group,
--            line: &self.frame.line_group,
-+            mvp: &self.frame.pick_mvp_group,
-+            line: &self.frame.pick_line_group,
-             instances: &self.objects.group,
-         };
-         if self.pick.source_query() {
-             if !self.pick.source_initialized() {
--                let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
--                if let Some(window) = window {
--                    pass.set_scissor_rect(window.x, window.y, window.w, window.h);
-+                let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
-+                if let Some((x, y, w, h)) = inner {
-+                    pass.set_scissor_rect(x, y, w, h);
-                 }
-                 self.arena.draw_face_ids(&mut pass, &basic);
--                self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
-+                self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
-             }
-             {
-                 let mut pass = self.pick.begin_source(encoder);
--                if let Some(window) = window {
--                    pass.set_scissor_rect(window.x, window.y, window.w, window.h);
-+                if let Some((x, y, w, h)) = inner {
-+                    pass.set_scissor_rect(x, y, w, h);
-                 }
-                 let source = Binds {
--                    mvp: &self.frame.mvp_group,
--                    line: &self.frame.line_group,
-+                    mvp: &self.frame.pick_mvp_group,
-+                    line: &self.frame.pick_line_group,
-                     instances: &self.objects.ink_group,
-                 };
-                 self.controls.draw_source_ids(&mut pass, &source);
-             }
-             if let Some(at) = at {
--                self.pick.copy_window(&self.ctx, encoder, at);
-+                self.pick.copy_window(&self.ctx, encoder, at, size);
-             }
-             return;
-         }
-         {
--            let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
--            // Plane reconstruction also reads neighboring texels: render a small halo around
--            // the readback window instead of leaving these occlusion samples cleared.
--            if let Some(window) = window {
--                let left = window.x.saturating_sub(3);
--                let top = window.y.saturating_sub(3);
--                let right = (window.x + window.w + 3).min(size.0);
--                let bottom = (window.y + window.h + 3).min(size.1);
--                pass.set_scissor_rect(left, top, right - left, bottom - top);
--            }
-+            // The whole attachment, halo included: the plane reconstruction reads neighbouring
-+            // texels, which must be occlusion samples rather than cleared ones.
-+            let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
-             if mode == PickMode::Component {
-                 self.arena.draw_component_ids(&mut pass, &basic);
-             } else {
-                 self.arena.draw_face_ids(&mut pass, &basic);
-             }
--            self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
-+            self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
-         }
-         let depth = self.pick.depth().expect("physical ID pass creates depth");
-         let group = self.objects.pick_group(
-@@ -209,16 +243,17 @@ impl Gpu {
-             &self.layouts,
-             [depth, &self.targets.depth_msaa],
-             [self.pick.gradient(), &self.targets.gradient_msaa],
-+            &self.arena.tiles,
-         );
-         let ink = Binds {
--            mvp: &self.frame.mvp_group,
--            line: &self.frame.line_group,
-+            mvp: &self.frame.pick_mvp_group,
-+            line: &self.frame.pick_line_group,
-             instances: &group,
-         };
-         {
-             let mut pass = self.pick.begin_ink(encoder);
--            if let Some(window) = window {
--                pass.set_scissor_rect(window.x, window.y, window.w, window.h);
-+            if let Some((x, y, w, h)) = inner {
-+                pass.set_scissor_rect(x, y, w, h);
-             }
-             match mode {
-                 PickMode::Edge | PickMode::Component => {
-@@ -247,10 +282,11 @@ impl Gpu {
-                 }
-             }
-             // Authored text covers geometry in every pick mode, just as its visible plane does.
--            self.text.draw_ids(&mut pass);
-+            self.text
-+                .draw_ids(&mut pass, &self.frame.pick_transform_group);
-         }
-         if let Some(at) = at {
--            self.pick.copy_window(&self.ctx, encoder, at);
-+            self.pick.copy_window(&self.ctx, encoder, at, size);
-         }
-     }
- }
 diff --git a/session_viewer/src/engine/gpu/targets.rs b/session_viewer/src/engine/gpu/targets.rs
 index 6fe7a69aa6f0453b59d13cd7c2f6b4f3e566f53c..c85262370b0f6b6f61ac3a9aad806e5b885342a4 100644
 --- a/session_viewer/src/engine/gpu/targets.rs
@@ -4982,3 +4750,571 @@ index 1bbc85408b71e5cb0d1d0a7a6d8e66a988fea65a..061b318d819335010abb2e32f10da509
      /// Non-disruptive interaction feedback also remains available to native diagnostics.
      fn status(&self, message: &str) {
          #[cfg(target_arch = "wasm32")]
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index 1e485e89a7d9c0662fd43ccc7515e9efab43a56b..5732fae5d9c589e931b7774f93eda0e04f79ad48 100644
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -30,6 +30,11 @@
+              -webkit-user-select: none; user-select: none;
+              -webkit-tap-highlight-color: transparent; }
+     canvas:focus, canvas:focus-visible { outline: none; }
++    /* The documentation corner: a black folded-corner triangle, always above the canvas. */
++    #viewer-docs { position:fixed; top:0; right:0; width:0; height:0; z-index:10; display:block;
++                   border-top:40px solid #111; border-left:40px solid transparent;
++                   filter: drop-shadow(-1px 1px 0 #ffffff99); }
++    #viewer-docs:hover, #viewer-docs:focus-visible { border-top-width:52px; border-left-width:52px; outline:none; }
+     #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
+                  font:1rem system-ui; text-align:center; padding-top:40vh; }
+   </style>
+@@ -44,9 +49,12 @@
+    <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
+   <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><button type="button" onclick="location.reload()">Reload viewer</button></div>
+   <canvas id="canvas" tabindex="0"></canvas>
++  <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
+   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
+   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
++  <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
++  <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
+   <!-- Message telling that Webgpu is not available. -->
+   <script>
+     // These named registrations belong to this document's lifetime and are installed once.
+diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
+index 1ead65b82388f2d34e2a270b89277ecfb23b8b08..e8991c5c9d32f7b7beda679dedfae4bd2c1973ad 100644
+--- a/session_viewer/src/engine/gpu/render.rs
++++ b/session_viewer/src/engine/gpu/render.rs
+@@ -7,6 +7,36 @@ use super::pick::PickMode;
+ use super::splat::RecordCx;
+ 
+ impl Gpu {
++    /// Reconstruct finite triangle visibility before color or ID ink samples it.
++    fn triangle_tile_pass(&mut self, encoder: &mut wgpu::CommandEncoder) {
++        if self.arena.tiles.prepare(
++            &self.ctx,
++            (self.config.width, self.config.height),
++            self.arena.face_count() / 3,
++        ) {
++            self.objects.rebind_ink(
++                &self.ctx,
++                &self.layouts,
++                &super::objects::InkScene {
++                    tiles: &self.arena.tiles,
++                    targets: &self.targets,
++                },
++            );
++        }
++        let b = Binds {
++            mvp: &self.frame.mvp_group,
++            line: &self.frame.line_group,
++            instances: &self.objects.group,
++        };
++        self.arena.prepare_visibility(
++            &self.ctx,
++            encoder,
++            &b,
++            self.frame.mvp_f32,
++            self.objects.geometry_revision(),
++        );
++    }
++
+     /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
+     /// Knows nothing about a surface, so it works headless.
+     pub fn encode_frame(
+@@ -15,6 +45,7 @@ impl Gpu {
+         view: &wgpu::TextureView,
+         clear: wgpu::Color,
+     ) -> (u32, u32) {
++        self.triangle_tile_pass(encoder);
+         self.point_pass(encoder);
+ 
+         let mut draws = {
+@@ -38,9 +69,12 @@ impl Gpu {
+                 line: &self.frame.line_group,
+                 instances: &self.objects.group,
+             };
+-            let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
+-            draws += self.arena.draw_selection_mask(&mut pass, &b);
+-            draws += self.arena.source_faces.draw_mask(&mut pass, &b);
++            {
++                let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
++                draws += self.arena.draw_selection_mask(&mut pass, &b);
++                draws += self.arena.source_faces.draw_mask(&mut pass, &b);
++            }
++            self.selection_outline.encode_pool(encoder);
+         }
+         if self.solid_outline.prepare(
+             &self.ctx,
+@@ -54,8 +88,11 @@ impl Gpu {
+                 line: &self.frame.line_group,
+                 instances: &self.objects.group,
+             };
+-            let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
+-            draws += self.arena.draw_solid_mask(&mut pass, &b);
++            {
++                let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
++                draws += self.arena.draw_solid_mask(&mut pass, &b);
++            }
++            self.solid_outline.encode_pool(encoder);
+         }
+         {
+             let mut pass = self.targets.begin_ink(encoder, view);
+@@ -148,60 +185,63 @@ impl Gpu {
+     /// is one (the vertex work stays; the fill is what a full frame would cost), which is then
+     /// copied out for `Picker`.
+     pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
++        self.triangle_tile_pass(encoder);
+         let size = (self.config.width, self.config.height);
+         let mode = self.pick.mode;
+-        let window = match at {
+-            Some(position) => Some(self.pick.window(position, size)),
+-            None => None,
+-        };
++        // The pass draws the window about the cursor (plus the halo the plane fit reads) into
++        // an attachment of that size; the uniforms see the scene through that window.
++        let window = at.map(|position| self.pick.window(position, size));
++        let view = self.pick.view_for(at, size);
++        self.frame.write_pick(&self.ctx, view, size);
++        let inner = window.map(|window| {
++            (
++                window.x.saturating_sub(view.x),
++                window.y.saturating_sub(view.y),
++                window.w.min(view.w),
++                window.h.min(view.h),
++            )
++        });
+         let basic = Binds {
+-            mvp: &self.frame.mvp_group,
+-            line: &self.frame.line_group,
++            mvp: &self.frame.pick_mvp_group,
++            line: &self.frame.pick_line_group,
+             instances: &self.objects.group,
+         };
+         if self.pick.source_query() {
+             if !self.pick.source_initialized() {
+-                let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
+-                if let Some(window) = window {
+-                    pass.set_scissor_rect(window.x, window.y, window.w, window.h);
++                let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
++                if let Some((x, y, w, h)) = inner {
++                    pass.set_scissor_rect(x, y, w, h);
+                 }
+                 self.arena.draw_face_ids(&mut pass, &basic);
+-                self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
++                self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
+             }
+             {
+                 let mut pass = self.pick.begin_source(encoder);
+-                if let Some(window) = window {
+-                    pass.set_scissor_rect(window.x, window.y, window.w, window.h);
++                if let Some((x, y, w, h)) = inner {
++                    pass.set_scissor_rect(x, y, w, h);
+                 }
+                 let source = Binds {
+-                    mvp: &self.frame.mvp_group,
+-                    line: &self.frame.line_group,
++                    mvp: &self.frame.pick_mvp_group,
++                    line: &self.frame.pick_line_group,
+                     instances: &self.objects.ink_group,
+                 };
+                 self.controls.draw_source_ids(&mut pass, &source);
+             }
+             if let Some(at) = at {
+-                self.pick.copy_window(&self.ctx, encoder, at);
++                self.pick.copy_window(&self.ctx, encoder, at, size);
+             }
+             return;
+         }
+         {
+-            let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
+-            // Plane reconstruction also reads neighboring texels: render a small halo around
+-            // the readback window instead of leaving these occlusion samples cleared.
+-            if let Some(window) = window {
+-                let left = window.x.saturating_sub(3);
+-                let top = window.y.saturating_sub(3);
+-                let right = (window.x + window.w + 3).min(size.0);
+-                let bottom = (window.y + window.h + 3).min(size.1);
+-                pass.set_scissor_rect(left, top, right - left, bottom - top);
+-            }
++            // The whole attachment, halo included: the plane reconstruction reads neighbouring
++            // texels, which must be occlusion samples rather than cleared ones.
++            let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
+             if mode == PickMode::Component {
+                 self.arena.draw_component_ids(&mut pass, &basic);
+             } else {
+                 self.arena.draw_face_ids(&mut pass, &basic);
+             }
+-            self.splat.draw_ids(&mut pass, &self.frame.cloud_group);
++            self.splat.draw_ids(&mut pass, &self.frame.pick_cloud_group);
+         }
+         let depth = self.pick.depth().expect("physical ID pass creates depth");
+         let group = self.objects.pick_group(
+@@ -209,16 +249,17 @@ impl Gpu {
+             &self.layouts,
+             [depth, &self.targets.depth_msaa],
+             [self.pick.gradient(), &self.targets.gradient_msaa],
++            &self.arena.tiles,
+         );
+         let ink = Binds {
+-            mvp: &self.frame.mvp_group,
+-            line: &self.frame.line_group,
++            mvp: &self.frame.pick_mvp_group,
++            line: &self.frame.pick_line_group,
+             instances: &group,
+         };
+         {
+             let mut pass = self.pick.begin_ink(encoder);
+-            if let Some(window) = window {
+-                pass.set_scissor_rect(window.x, window.y, window.w, window.h);
++            if let Some((x, y, w, h)) = inner {
++                pass.set_scissor_rect(x, y, w, h);
+             }
+             match mode {
+                 PickMode::Edge | PickMode::Component => {
+@@ -247,10 +288,11 @@ impl Gpu {
+                 }
+             }
+             // Authored text covers geometry in every pick mode, just as its visible plane does.
+-            self.text.draw_ids(&mut pass);
++            self.text
++                .draw_ids(&mut pass, &self.frame.pick_transform_group);
+         }
+         if let Some(at) = at {
+-            self.pick.copy_window(&self.ctx, encoder, at);
++            self.pick.copy_window(&self.ctx, encoder, at, size);
+         }
+     }
+ }
+diff --git a/session_viewer/src/engine/gpu/surface_outline.rs b/session_viewer/src/engine/gpu/surface_outline.rs
+index 341ff7efa6bf89e9cfac4fb4ea480958fcf35f32..cb5f975efa14ce18e56b88c81a3cd8cabe4a1bcc 100644
+--- a/session_viewer/src/engine/gpu/surface_outline.rs
++++ b/session_viewer/src/engine/gpu/surface_outline.rs
+@@ -12,10 +12,18 @@ struct Mask {
+     resolved: wgpu::TextureView,
+     multisampled: Option<wgpu::TextureView>,
+     group: wgpu::BindGroup,
++    /// The maximum of each `POOL`-square block of `resolved`: the compositor skips every
++    /// pixel whose neighbourhood of blocks is empty, which is most of the frame.
++    coarse: wgpu::TextureView,
++    coarse_size: (u32, u32),
++    pool_group: wgpu::BindGroup,
+     size: (u32, u32),
+     samples: u32,
+ }
+ 
++/// Mask texels per coarse texel; matches `POOL` in the shader and exceeds the largest kernel.
++const POOL: u32 = 16;
++
+ /// Which visible surfaces contribute to a shared, antialiased coverage mask.
+ #[derive(Clone, Copy, PartialEq)]
+ pub enum OutlineKind {
+@@ -28,8 +36,10 @@ pub struct SurfaceOutline {
+     kind: OutlineKind,
+     selected: HashSet<u32>,
+     layout: wgpu::BindGroupLayout,
++    pool_layout: wgpu::BindGroupLayout,
+     uniform: wgpu::Buffer,
+     pipeline: wgpu::RenderPipeline,
++    pool_pipeline: wgpu::RenderPipeline,
+     mask: Option<Mask>,
+ }
+ 
+@@ -61,8 +71,33 @@ impl SurfaceOutline {
+                         },
+                         count: None,
+                     },
++                    wgpu::BindGroupLayoutEntry {
++                        binding: 2,
++                        visibility: wgpu::ShaderStages::FRAGMENT,
++                        ty: wgpu::BindingType::Texture {
++                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
++                            view_dimension: wgpu::TextureViewDimension::D2,
++                            multisampled: false,
++                        },
++                        count: None,
++                    },
+                 ],
+             });
++        let pool_layout = ctx
++            .device
++            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++                label: Some("selection outline pool"),
++                entries: &[wgpu::BindGroupLayoutEntry {
++                    binding: 0,
++                    visibility: wgpu::ShaderStages::FRAGMENT,
++                    ty: wgpu::BindingType::Texture {
++                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
++                        view_dimension: wgpu::TextureViewDimension::D2,
++                        multisampled: false,
++                    },
++                    count: None,
++                }],
++            });
+         let uniform = ctx.device.create_buffer(&wgpu::BufferDescriptor {
+             label: Some("selection outline radius"),
+             size: 16,
+@@ -70,12 +105,15 @@ impl SurfaceOutline {
+             mapped_at_creation: false,
+         });
+         let pipeline = pipeline(ctx, &layout, target);
++        let pool_pipeline = pool_pipeline(ctx, &pool_layout);
+         Self {
+             kind,
+             selected: HashSet::new(),
+             layout,
++            pool_layout,
+             uniform,
+             pipeline,
++            pool_pipeline,
+             mask: None,
+         }
+     }
+@@ -140,6 +178,15 @@ impl SurfaceOutline {
+             } else {
+                 None
+             };
++            let coarse_size = (size.0.div_ceil(POOL).max(1), size.1.div_ceil(POOL).max(1));
++            let coarse = texture_view(
++                ctx,
++                "selection coverage coarse",
++                &TextureSpec {
++                    size: coarse_size,
++                    ..spec
++                },
++            );
+             let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                 label: Some("selection outline"),
+                 layout: &self.layout,
+@@ -152,12 +199,27 @@ impl SurfaceOutline {
+                         binding: 1,
+                         resource: self.uniform.as_entire_binding(),
+                     },
++                    wgpu::BindGroupEntry {
++                        binding: 2,
++                        resource: wgpu::BindingResource::TextureView(&coarse),
++                    },
+                 ],
+             });
++            let pool_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
++                label: Some("selection outline pool"),
++                layout: &self.pool_layout,
++                entries: &[wgpu::BindGroupEntry {
++                    binding: 0,
++                    resource: wgpu::BindingResource::TextureView(&resolved),
++                }],
++            });
+             self.mask = Some(Mask {
+                 resolved,
+                 multisampled,
+                 group,
++                coarse,
++                coarse_size,
++                pool_group,
+                 size,
+                 samples,
+             });
+@@ -221,6 +283,33 @@ impl SurfaceOutline {
+         })
+     }
+ 
++    /// After the mask pass: reduce the resolved mask to its block maxima, so the compositor
++    /// can skip the pixels that no covered texel can reach.
++    pub fn encode_pool(&self, encoder: &mut wgpu::CommandEncoder) {
++        let Some(mask) = self.mask.as_ref() else {
++            return;
++        };
++        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
++            label: Some("selection coverage pool"),
++            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
++                view: &mask.coarse,
++                resolve_target: None,
++                depth_slice: None,
++                ops: wgpu::Operations {
++                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
++                    store: wgpu::StoreOp::Store,
++                },
++            })],
++            depth_stencil_attachment: None,
++            timestamp_writes: None,
++            occlusion_query_set: None,
++            multiview_mask: None,
++        });
++        pass.set_pipeline(&self.pool_pipeline);
++        pass.set_bind_group(0, &mask.pool_group, &[]);
++        pass.draw(0..3, 0..1);
++    }
++
+     /// Composite both silhouettes once. Maximum coverage lets the thicker selected
+     /// border win without painting the overlapping antialias fringe twice.
+     pub fn draw_combined(&self, selected: &Self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
+@@ -245,6 +334,7 @@ impl SurfaceOutline {
+                     1
+                 };
+                 u64::from(mask.size.0) * u64::from(mask.size.1) * samples
++                    + u64::from(mask.coarse_size.0) * u64::from(mask.coarse_size.1)
+             }
+             None => 0,
+         };
+@@ -267,6 +357,48 @@ fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgp
+     build(&ctx.device, target, &desc)
+ }
+ 
++/// The block-maximum reduction: a full-screen triangle over the coarse texture, no depth.
++fn pool_pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
++    let shader = module(
++        &ctx.device,
++        "selection outline pool",
++        include_str!("../../shaders/surface_outline.wgsl"),
++    );
++    let pipeline_layout = ctx
++        .device
++        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
++            label: Some("selection outline pool"),
++            bind_group_layouts: &[Some(layout)],
++            immediate_size: 0,
++        });
++    ctx.device
++        .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
++            label: Some("selection outline pool"),
++            layout: Some(&pipeline_layout),
++            vertex: wgpu::VertexState {
++                module: &shader,
++                entry_point: Some("vs_main"),
++                buffers: &[],
++                compilation_options: Default::default(),
++            },
++            fragment: Some(wgpu::FragmentState {
++                module: &shader,
++                entry_point: Some("fs_pool"),
++                targets: &[Some(wgpu::ColorTargetState {
++                    format: wgpu::TextureFormat::R8Unorm,
++                    blend: None,
++                    write_mask: wgpu::ColorWrites::ALL,
++                })],
++                compilation_options: Default::default(),
++            }),
++            primitive: Default::default(),
++            depth_stencil: None,
++            multisample: Default::default(),
++            multiview_mask: None,
++            cache: None,
++        })
++}
++
+ #[cfg(all(test, not(target_arch = "wasm32")))]
+ mod tests {
+     use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
+@@ -281,6 +413,7 @@ mod tests {
+         use std::rc::Rc;
+ 
+         let mut gpu = pollster::block_on(Gpu::new_headless(480, 480)).unwrap();
++        gpu.view.show_outlines = true;
+         gpu.view.show_grid = false;
+         gpu.view.markers = false;
+         for shape in [
+@@ -345,6 +478,7 @@ mod tests {
+     #[ignore = "requires a native GPU adapter"]
+     fn touching_and_overlapping_solids_have_one_continuous_outline() {
+         let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
++        gpu.view.show_outlines = true;
+         gpu.view.show_grid = false;
+         gpu.view.lit = false;
+         let input = FrameInput {
+@@ -421,6 +555,7 @@ mod tests {
+     #[ignore = "requires a native GPU adapter"]
+     fn selected_silhouette_is_black_visible_only_and_releases_coverage() {
+         let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
++        gpu.view.show_outlines = true;
+         gpu.view.show_grid = false;
+         gpu.view.lit = false;
+         let mut upload = Upload::default();
+@@ -471,7 +606,10 @@ mod tests {
+             );
+             let selected_ids = gpu.render_ids_offscreen(&input);
+             let capacity = gpu.selection_outline.allocated_bytes().1;
+-            assert_eq!(capacity, 200 * 200 * if samples > 1 { 5 } else { 1 });
++            assert_eq!(
++                capacity,
++                200 * 200 * if samples > 1 { 5 } else { 1 } + 13 * 13
++            );
+             gpu.set_selected(0, false);
+             assert_eq!(
+                 gpu.selection_outline.allocated_bytes().1,
+diff --git a/session_viewer/src/shaders/surface_outline.wgsl b/session_viewer/src/shaders/surface_outline.wgsl
+index 68cea919e1acd799d17f34be1d028cd0cb6ef37d..5d31911c8c1395908d03711bf53b98722d0b6da1 100644
+--- a/session_viewer/src/shaders/surface_outline.wgsl
++++ b/session_viewer/src/shaders/surface_outline.wgsl
+@@ -1,9 +1,34 @@
+ // Dilate combined visible coverage. MSAA resolves the source silhouette before this
+ // screen-space pass; a one-pixel radial filter smooths the outside border at every DPR.
++//
++// The dilation reads every texel within the radius, up to 27 x 27 per pixel, but almost
++// every pixel of a frame is nowhere near a silhouette. `coarse` holds the maximum of each
++// POOL x POOL block of the mask; when the block under a pixel and its eight neighbours are
++// all empty, no texel the kernel could reach is set and the loop is skipped. The answer is
++// the same to the bit: the skip only ever replaces a maximum over zeros.
+ @group(0) @binding(0) var mask: texture_2d<f32>;
+ @group(0) @binding(1) var<uniform> radius: vec4<f32>;
++@group(0) @binding(2) var coarse: texture_2d<f32>;
+ @group(1) @binding(0) var selected_mask: texture_2d<f32>;
+ @group(1) @binding(1) var<uniform> selected_radius: vec4<f32>;
++@group(1) @binding(2) var selected_coarse: texture_2d<f32>;
++
++// Mask texels per coarse texel; the kernel radius is clamped to 12 on the CPU, so the eight
++// neighbouring blocks always contain the whole kernel.
++const POOL: i32 = 16;
++
++fn near_any_coverage(coarse_mask: texture_2d<f32>, p: vec2<i32>) -> bool {
++    let size = vec2<i32>(textureDimensions(coarse_mask));
++    let c = p / POOL;
++    for (var y = -1; y <= 1; y++) {
++        for (var x = -1; x <= 1; x++) {
++            let q = c + vec2<i32>(x, y);
++            if (any(q < vec2<i32>(0)) || any(q >= size)) { continue; }
++            if (textureLoad(coarse_mask, q, 0).r > 0.0) { return true; }
++        }
++    }
++    return false;
++}
+ 
+ @vertex
+ fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+@@ -11,9 +36,10 @@ fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+     return vec4<f32>(xy * 2.0 - 1.0, 0.0, 1.0);
+ }
+ 
+-fn boundary_coverage(coverage_mask: texture_2d<f32>, r: f32, position: vec2<f32>) -> f32 {
++fn boundary_coverage(coverage_mask: texture_2d<f32>, coarse_mask: texture_2d<f32>, r: f32, position: vec2<f32>) -> f32 {
+     let size = vec2<i32>(textureDimensions(coverage_mask));
+     let p = vec2<i32>(position);
++    if (!near_any_coverage(coarse_mask, p)) { return 0.0; }
+     let center = textureLoad(coverage_mask, p, 0).r;
+     if (center >= 0.999) { return 0.0; }
+     let extent = i32(ceil(r + 0.5));
+@@ -33,9 +59,25 @@ fn boundary_coverage(coverage_mask: texture_2d<f32>, r: f32, position: vec2<f32>
+ 
+ @fragment
+ fn fs_main(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
+-    var coverage = boundary_coverage(mask, radius.x, position.xy);
++    var coverage = boundary_coverage(mask, coarse, radius.x, position.xy);
+     if (radius.y != selected_radius.y) {
+-        coverage = max(coverage, boundary_coverage(selected_mask, selected_radius.x, position.xy));
++        coverage = max(coverage, boundary_coverage(selected_mask, selected_coarse, selected_radius.x, position.xy));
+     }
+     return vec4<f32>(0.0, 0.0, 0.0, coverage);
+ }
++
++// One coarse texel: the maximum of its POOL x POOL block of the resolved mask.
++@fragment
++fn fs_pool(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
++    let size = vec2<i32>(textureDimensions(mask));
++    let base = vec2<i32>(position.xy) * POOL;
++    var highest = 0.0;
++    for (var y = 0; y < POOL; y++) {
++        for (var x = 0; x < POOL; x++) {
++            let q = base + vec2<i32>(x, y);
++            if (any(q >= size)) { continue; }
++            highest = max(highest, textureLoad(mask, q, 0).r);
++        }
++    }
++    return vec4<f32>(highest, 0.0, 0.0, 1.0);
++}

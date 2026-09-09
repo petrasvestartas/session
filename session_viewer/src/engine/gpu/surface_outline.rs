@@ -12,9 +12,17 @@ struct Mask {
     resolved: wgpu::TextureView,
     multisampled: Option<wgpu::TextureView>,
     group: wgpu::BindGroup,
+    /// The maximum of each `POOL`-square block of `resolved`: the compositor skips every
+    /// pixel whose neighbourhood of blocks is empty, which is most of the frame.
+    coarse: wgpu::TextureView,
+    coarse_size: (u32, u32),
+    pool_group: wgpu::BindGroup,
     size: (u32, u32),
     samples: u32,
 }
+
+/// Mask texels per coarse texel; matches `POOL` in the shader and exceeds the largest kernel.
+const POOL: u32 = 16;
 
 /// Which visible surfaces contribute to a shared, antialiased coverage mask.
 #[derive(Clone, Copy, PartialEq)]
@@ -28,8 +36,10 @@ pub struct SurfaceOutline {
     kind: OutlineKind,
     selected: HashSet<u32>,
     layout: wgpu::BindGroupLayout,
+    pool_layout: wgpu::BindGroupLayout,
     uniform: wgpu::Buffer,
     pipeline: wgpu::RenderPipeline,
+    pool_pipeline: wgpu::RenderPipeline,
     mask: Option<Mask>,
 }
 
@@ -61,7 +71,32 @@ impl SurfaceOutline {
                         },
                         count: None,
                     },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 2,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
                 ],
+            });
+        let pool_layout = ctx
+            .device
+            .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("selection outline pool"),
+                entries: &[wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: false,
+                    },
+                    count: None,
+                }],
             });
         let uniform = ctx.device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("selection outline radius"),
@@ -70,12 +105,15 @@ impl SurfaceOutline {
             mapped_at_creation: false,
         });
         let pipeline = pipeline(ctx, &layout, target);
+        let pool_pipeline = pool_pipeline(ctx, &pool_layout);
         Self {
             kind,
             selected: HashSet::new(),
             layout,
+            pool_layout,
             uniform,
             pipeline,
+            pool_pipeline,
             mask: None,
         }
     }
@@ -140,6 +178,15 @@ impl SurfaceOutline {
             } else {
                 None
             };
+            let coarse_size = (size.0.div_ceil(POOL).max(1), size.1.div_ceil(POOL).max(1));
+            let coarse = texture_view(
+                ctx,
+                "selection coverage coarse",
+                &TextureSpec {
+                    size: coarse_size,
+                    ..spec
+                },
+            );
             let group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("selection outline"),
                 layout: &self.layout,
@@ -152,12 +199,27 @@ impl SurfaceOutline {
                         binding: 1,
                         resource: self.uniform.as_entire_binding(),
                     },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: wgpu::BindingResource::TextureView(&coarse),
+                    },
                 ],
+            });
+            let pool_group = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("selection outline pool"),
+                layout: &self.pool_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&resolved),
+                }],
             });
             self.mask = Some(Mask {
                 resolved,
                 multisampled,
                 group,
+                coarse,
+                coarse_size,
+                pool_group,
                 size,
                 samples,
             });
@@ -221,6 +283,33 @@ impl SurfaceOutline {
         })
     }
 
+    /// After the mask pass: reduce the resolved mask to its block maxima, so the compositor
+    /// can skip the pixels that no covered texel can reach.
+    pub fn encode_pool(&self, encoder: &mut wgpu::CommandEncoder) {
+        let Some(mask) = self.mask.as_ref() else {
+            return;
+        };
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("selection coverage pool"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &mask.coarse,
+                resolve_target: None,
+                depth_slice: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        });
+        pass.set_pipeline(&self.pool_pipeline);
+        pass.set_bind_group(0, &mask.pool_group, &[]);
+        pass.draw(0..3, 0..1);
+    }
+
     /// Composite both silhouettes once. Maximum coverage lets the thicker selected
     /// border win without painting the overlapping antialias fringe twice.
     pub fn draw_combined(&self, selected: &Self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
@@ -245,6 +334,7 @@ impl SurfaceOutline {
                     1
                 };
                 u64::from(mask.size.0) * u64::from(mask.size.1) * samples
+                    + u64::from(mask.coarse_size.0) * u64::from(mask.coarse_size.1)
             }
             None => 0,
         };
@@ -265,6 +355,48 @@ fn pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout, target: Target) -> wgp
         .depth(DepthMode::Always)
         .color(ColorWrite::Blended);
     build(&ctx.device, target, &desc)
+}
+
+/// The block-maximum reduction: a full-screen triangle over the coarse texture, no depth.
+fn pool_pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
+    let shader = module(
+        &ctx.device,
+        "selection outline pool",
+        include_str!("../../shaders/surface_outline.wgsl"),
+    );
+    let pipeline_layout = ctx
+        .device
+        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("selection outline pool"),
+            bind_group_layouts: &[Some(layout)],
+            immediate_size: 0,
+        });
+    ctx.device
+        .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("selection outline pool"),
+            layout: Some(&pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vs_main"),
+                buffers: &[],
+                compilation_options: Default::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fs_pool"),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: wgpu::TextureFormat::R8Unorm,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: Default::default(),
+            }),
+            primitive: Default::default(),
+            depth_stencil: None,
+            multisample: Default::default(),
+            multiview_mask: None,
+            cache: None,
+        })
 }
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
@@ -474,7 +606,10 @@ mod tests {
             );
             let selected_ids = gpu.render_ids_offscreen(&input);
             let capacity = gpu.selection_outline.allocated_bytes().1;
-            assert_eq!(capacity, 200 * 200 * if samples > 1 { 5 } else { 1 });
+            assert_eq!(
+                capacity,
+                200 * 200 * if samples > 1 { 5 } else { 1 } + 13 * 13
+            );
             gpu.set_selected(0, false);
             assert_eq!(
                 gpu.selection_outline.allocated_bytes().1,

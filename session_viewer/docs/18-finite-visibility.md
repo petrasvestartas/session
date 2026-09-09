@@ -430,6 +430,22 @@ flowchart LR
 
 <!-- file: 18 session_viewer/src/app/feedback.rs type -->
 
+### Step 17 · The silhouette skips empty blocks
+
+- The compositor dilates each coverage mask by reading every texel within the radius, up to 27 × 27 per pixel, over the whole canvas; on an integrated GPU that read traffic is what made O slow.
+- A pooling pass reduces each resolved mask to the maximum of every 16 × 16 block. A pixel whose block and its eight neighbours are all empty cannot reach a covered texel, so the compositor returns zero without the loop; the answer is unchanged to the bit, and most of the frame is such pixels.
+
+```mermaid
+flowchart LR
+    M["mask pass · resolve"] --> P["fs_pool · 16 × 16 maxima"]
+    P --> C["compositor · near_any_coverage?"]
+    C -- "no" --> Z["0, no loop"]
+    C -- "yes" --> L["radial dilation as before"]
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
+```
+
+<!-- file: 18 session_viewer/src/shaders/surface_outline.wgsl type -->
+
 <!-- check: 18 -->
 
 ## Check
