@@ -149,19 +149,6 @@ flowchart TB
 
 Open <http://localhost:8780/?scene=view_sheets&inspect=1>. Two sheets stream in; the console reports each as "N of N segments on screen, M entities". Click a line: the status reads "Selected entity … fetching…" and within a second names the entity; `data-viewer-inspection` carries `sheet_entity` with its guid, name and kind. The wasm heap stays near 20 MiB where the same sheets as objects took 340 MiB.
 
-## Verify you reached production
-
-Record the checkpoint and compare every runtime file against the frozen production inventory:
-
-```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output "$COURSE_WORK" --through 19 --adopt
-python3 "$COURSE_REPO/docs/reconstruction/converge.py" --workspace "$COURSE_WORK"
-```
-
-Expected:
-
-- `converge.py` reports every runtime file identical to production; the only listed differences are the documented packaging ones (the local input manifest and imported-document font artifacts).
-
 ## What changed
 
 <!-- tree: 19 session_viewer/src -->
@@ -178,4 +165,4 @@ Expected:
 
 ## Next
 
-[Architecture reference](../ARCHITECTURE.md): the finished module graph, frame lifecycle and Rust ↔ WGSL interfaces.
+[20 · The document](20-history.md): undo, redo and save in the kernel.

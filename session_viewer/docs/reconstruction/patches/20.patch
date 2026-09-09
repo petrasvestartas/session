@@ -1,0 +1,4484 @@
+diff --git a/session_cpp/CMakeLists.txt b/session_cpp/CMakeLists.txt
+index d973d1cb926a2442664c6d4593127e99818d275b..5b93589f5e1e5ba5f1776c4aa7d862b33162f0b2 100644
+--- a/session_cpp/CMakeLists.txt
++++ b/session_cpp/CMakeLists.txt
+@@ -322,6 +322,7 @@ set(MINITEST_SOURCES
+     src/objects_test.cpp
+     src/quaternion_test.cpp
+     src/session_test.cpp
++    src/history_test.cpp
+     src/tree_test.cpp
+     src/brep_test.cpp
+     src/element_test.cpp
+diff --git a/session_cpp/src/graph.cpp b/session_cpp/src/graph.cpp
+index 6646fb4af43259548994cb141a8fedffda4bfb34..807ac9801663572172f3b9bde3b64136f278f783 100644
+--- a/session_cpp/src/graph.cpp
++++ b/session_cpp/src/graph.cpp
+@@ -438,6 +438,16 @@ std::vector<std::string> Graph::get_neighbors(const std::string &node) {
+   return neighbors(node);
+ }
+ 
++std::vector<std::tuple<std::string, std::string, bool>> Graph::edges_of(const std::string &node) const {
++  std::vector<std::tuple<std::string, std::string, bool>> out;
++  auto it = edges.find(node);
++  if (it == edges.end())
++    return out;
++  for (const auto &[other, edge] : it->second)
++    out.emplace_back(other, edge.attribute, edge.v0 == node);
++  return out;
++}
++
+ int Graph::number_of_vertices() const {
+   return static_cast<int>(vertices.size());
+ }
+diff --git a/session_cpp/src/graph.h b/session_cpp/src/graph.h
+index e86d6e98a8a14071958e38ce4f3f565bde243f2b..b8bff5a2e796ceb04cfea36ea275ed7f72bc6f68 100644
+--- a/session_cpp/src/graph.h
++++ b/session_cpp/src/graph.h
+@@ -254,6 +254,11 @@ public:
+   /// Alias for neighbors()
+   std::vector<std::string> get_neighbors(const std::string &node);
+ 
++  /// The edges incident to a node, with what it takes to add each one back: one
++  /// (other, attribute, forward) per edge, forward when `node` is the edge's v0, so add_edge can
++  /// be replayed with the vertices in their original order. An unknown node has no edges.
++  std::vector<std::tuple<std::string, std::string, bool>> edges_of(const std::string &node) const;
++
+   /// Number of vertices in the graph
+   int number_of_vertices() const;
+ 
+diff --git a/session_cpp/src/history.cpp b/session_cpp/src/history.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..2c71d2f4b89eff2a85ea76a1571c426e6811787a
+--- /dev/null
++++ b/session_cpp/src/history.cpp
+@@ -0,0 +1,159 @@
++#include "history.h"
++#include "session.h"
++#include "fmt/core.h"
++
++namespace session_cpp {
++
++Item clone(const Item& obj) {
++  return std::visit([](const auto& stored) -> Item {
++    using T = std::decay_t<decltype(stored)>;
++    if constexpr (std::is_same_v<T, Component>) {
++      Component snapshot = stored;
++      snapshot.guid() = stored.guid();
++      return snapshot;
++    } else {
++      return std::visit([](const auto& live) -> Geometry {
++        using P = typename std::decay_t<decltype(live)>::element_type;
++        std::string guid = live->guid();
++        auto snapshot = std::make_shared<P>(*live);
++        snapshot->guid() = guid;
++        return snapshot;
++      }, stored);
++    }
++  }, obj);
++}
++
++// ═══════════════════════════════════════════════════════════════════════════
++// Records
++// ═══════════════════════════════════════════════════════════════════════════
++
++Tombstone::Tombstone(const std::string& guid, const Item& obj, const std::string& collection, int obj_index, const std::optional<Xform>& xform, const std::optional<std::string>& parent_guid, int index, std::shared_ptr<TreeNode> node, const std::string& attribute, const std::vector<std::tuple<std::string, std::string, bool>>& edges)
++    : guid(guid), obj(obj), collection(collection), obj_index(obj_index), xform(xform), parent_guid(parent_guid), index(index), node(std::move(node)), attribute(attribute), edges(edges) {}
++
++std::string Tombstone::str() const { return fmt::format("{}({})", kind, guid); }
++
++std::string Tombstone::repr() const { return fmt::format("{}({}, {}[{}])", kind, guid, collection, obj_index); }
++
++AddOp::AddOp(const std::string& guid, const Item& obj, const std::string& collection, int obj_index, const std::optional<Xform>& xform, const std::optional<std::string>& parent_guid, int index, std::shared_ptr<TreeNode> node, const std::string& attribute, const std::vector<std::tuple<std::string, std::string, bool>>& edges)
++    : Tombstone(guid, obj, collection, obj_index, xform, parent_guid, index, std::move(node), attribute, edges) {
++  kind = "add";
++}
++
++RemoveOp::RemoveOp(const std::string& guid, const Item& obj, const std::string& collection, int obj_index, const std::optional<Xform>& xform, const std::optional<std::string>& parent_guid, int index, std::shared_ptr<TreeNode> node, const std::string& attribute, const std::vector<std::tuple<std::string, std::string, bool>>& edges)
++    : Tombstone(guid, obj, collection, obj_index, xform, parent_guid, index, std::move(node), attribute, edges) {
++  kind = "remove";
++}
++
++ReplaceOp::ReplaceOp(const std::string& guid, const Item& before, const Item& after) : guid(guid), before(before), after(after) {}
++
++std::string ReplaceOp::str() const { return fmt::format("replace({})", guid); }
++
++std::string ReplaceOp::repr() const { return fmt::format("replace({})", guid); }
++
++XformOp::XformOp(const std::string& guid, const std::optional<Xform>& before, const std::optional<Xform>& after) : guid(guid), before(before), after(after) {}
++
++std::string XformOp::str() const { return fmt::format("xform({})", guid); }
++
++std::string XformOp::repr() const { return fmt::format("xform({})", guid); }
++
++Transaction::Transaction(std::string label) : label(std::move(label)) {}
++
++std::string Transaction::str() const { return fmt::format("Transaction({}, {} ops)", label, ops.size()); }
++
++std::string Transaction::repr() const { return fmt::format("Transaction({}, {} ops)", label, ops.size()); }
++
++// ═══════════════════════════════════════════════════════════════════════════
++// History
++// ═══════════════════════════════════════════════════════════════════════════
++
++bool History::can_undo() const { return !undo_stack.empty(); }
++
++bool History::can_redo() const { return !redo_stack.empty(); }
++
++int History::depth() const { return static_cast<int>(undo_stack.size()); }
++
++void History::begin(const std::string& label) {
++  commit();
++  current = Transaction(label);
++}
++
++void History::commit() {
++  std::optional<Transaction> transaction = std::move(current);
++  current.reset();
++  if (!transaction || transaction->ops.empty())
++    return;
++  undo_stack.push_back(std::move(*transaction));
++  redo_stack.clear();
++  if (depth() > CAPACITY)
++    undo_stack.erase(undo_stack.begin());
++}
++
++void History::record(const Op& op) {
++  if (!current)
++    return;
++  current->ops.push_back(op);
++}
++
++bool History::undo(Session& session) {
++  commit();
++  if (undo_stack.empty())
++    return false;
++  Transaction transaction = std::move(undo_stack.back());
++  undo_stack.pop_back();
++  for (int i = static_cast<int>(transaction.ops.size()) - 1; i >= 0; --i)
++    _revert(transaction.ops[i], session);
++  redo_stack.push_back(std::move(transaction));
++  return true;
++}
++
++bool History::redo(Session& session) {
++  commit();
++  if (redo_stack.empty())
++    return false;
++  Transaction transaction = std::move(redo_stack.back());
++  redo_stack.pop_back();
++  for (size_t i = 0; i < transaction.ops.size(); ++i)
++    _apply(transaction.ops[i], session);
++  undo_stack.push_back(std::move(transaction));
++  return true;
++}
++
++void History::clear() {
++  undo_stack.clear();
++  redo_stack.clear();
++  current.reset();
++}
++
++void History::_revert(const Op& op, Session& session) {
++  std::visit([&](const auto& record) {
++    using T = std::decay_t<decltype(record)>;
++    if constexpr (std::is_same_v<T, AddOp>)
++      session._detach(record.guid);
++    else if constexpr (std::is_same_v<T, RemoveOp>)
++      session._attach(record);
++    else if constexpr (std::is_same_v<T, ReplaceOp>)
++      session._swap(record.guid, clone(record.before));
++    else
++      session._place(record.guid, record.before);
++  }, op);
++}
++
++void History::_apply(const Op& op, Session& session) {
++  std::visit([&](const auto& record) {
++    using T = std::decay_t<decltype(record)>;
++    if constexpr (std::is_same_v<T, AddOp>)
++      session._attach(record);
++    else if constexpr (std::is_same_v<T, RemoveOp>)
++      session._detach(record.guid);
++    else if constexpr (std::is_same_v<T, ReplaceOp>)
++      session._swap(record.guid, clone(record.after));
++    else
++      session._place(record.guid, record.after);
++  }, op);
++}
++
++std::string History::str() const { return fmt::format("History({} undo, {} redo)", undo_stack.size(), redo_stack.size()); }
++
++std::string History::repr() const { return fmt::format("History({} undo, {} redo)", undo_stack.size(), redo_stack.size()); }
++
++} // namespace session_cpp
+diff --git a/session_cpp/src/history.h b/session_cpp/src/history.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..80a437ca164b0263318e6f1b770372be45506463
+--- /dev/null
++++ b/session_cpp/src/history.h
+@@ -0,0 +1,153 @@
++#pragma once
++#include "objects.h"
++#include "tree.h"
++#include "xform.h"
++#include <memory>
++#include <optional>
++#include <string>
++#include <tuple>
++#include <variant>
++#include <vector>
++
++namespace session_cpp {
++
++class Session;
++
++inline constexpr int CAPACITY = 64; ///< Committed transactions kept; past it the oldest is dropped
++
++/// A deep copy that KEEPS the guid: a snapshot must still name the object it stands for.
++/// `duplicate()` mints a fresh guid on purpose, and so does the copy constructor of most
++/// geometry types, which is why the guid is put back after the copy.
++Item clone(const Item& obj);
++
++// ═══════════════════════════════════════════════════════════════════════════
++// Records
++// ═══════════════════════════════════════════════════════════════════════════
++
++/**
++ * @class Tombstone
++ * @brief Everything needed to put ONE object back into every live table of a session.
++ */
++class Tombstone {
++public:
++  std::string kind = "";                  ///< "add" or "remove"
++  std::string guid;                       ///< The object's guid; the clone carries the same one
++  Item obj;                               ///< A clone() of the object, never the live instance
++  std::string collection;                 ///< The Objects list it lives in: "points", "lines", ... "components"
++  int obj_index;                          ///< Its position in that list, so the order() sequence survives a round trip
++  std::optional<Xform> xform;             ///< Its local transform, nullopt when none was set
++  std::optional<std::string> parent_guid; ///< Name of its tree parent, nullopt when it was added without one
++  int index;                              ///< Its position among the parent's children
++  std::shared_ptr<TreeNode> node;         ///< The detached tree node with its whole subtree, nullptr for an add
++  std::string attribute;                  ///< Its graph node attribute
++  std::vector<std::tuple<std::string, std::string, bool>> edges; ///< Incident edges as (other_guid, attribute, forward), forward when the object was the edge's v0
++
++  Tombstone(const std::string& guid, const Item& obj, const std::string& collection, int obj_index, const std::optional<Xform>& xform, const std::optional<std::string>& parent_guid, int index, std::shared_ptr<TreeNode> node, const std::string& attribute, const std::vector<std::tuple<std::string, std::string, bool>>& edges);
++
++  std::string str() const;
++  std::string repr() const;
++};
++
++/// An object entered the session; undo detaches it, redo attaches the kit again.
++class AddOp : public Tombstone {
++public:
++  AddOp(const std::string& guid, const Item& obj, const std::string& collection, int obj_index, const std::optional<Xform>& xform, const std::optional<std::string>& parent_guid, int index, std::shared_ptr<TreeNode> node, const std::string& attribute, const std::vector<std::tuple<std::string, std::string, bool>>& edges);
++};
++
++/// An object left the session; the kit is what brings it back on undo.
++class RemoveOp : public Tombstone {
++public:
++  RemoveOp(const std::string& guid, const Item& obj, const std::string& collection, int obj_index, const std::optional<Xform>& xform, const std::optional<std::string>& parent_guid, int index, std::shared_ptr<TreeNode> node, const std::string& attribute, const std::vector<std::tuple<std::string, std::string, bool>>& edges);
++};
++
++/// The object under `guid` was swapped: absolute before/after snapshots, never deltas.
++class ReplaceOp {
++public:
++  std::string kind = "replace";
++  std::string guid;
++  Item before;
++  Item after;
++
++  ReplaceOp(const std::string& guid, const Item& before, const Item& after);
++
++  std::string str() const;
++  std::string repr() const;
++};
++
++/// The local transform under `guid` changed; nullopt on either side means "none set".
++class XformOp {
++public:
++  std::string kind = "xform";
++  std::string guid;
++  std::optional<Xform> before;
++  std::optional<Xform> after;
++
++  XformOp(const std::string& guid, const std::optional<Xform>& before, const std::optional<Xform>& after);
++
++  std::string str() const;
++  std::string repr() const;
++};
++
++using Op = std::variant<AddOp, RemoveOp, ReplaceOp, XformOp>;
++
++/// One undoable step: a label and the ops it made, in the order they happened.
++class Transaction {
++public:
++  std::string label;
++  std::vector<Op> ops;
++
++  Transaction(std::string label = "my_transaction");
++
++  std::string str() const;
++  std::string repr() const;
++};
++
++// ═══════════════════════════════════════════════════════════════════════════
++// History
++// ═══════════════════════════════════════════════════════════════════════════
++
++/**
++ * @class History
++ * @brief CAD-style undo/redo over a Session, in memory only.
++ *
++ * A removed object leaves every live table at once; its RemoveOp is the tombstone that
++ * carries the resurrection kit. Records are only written while a transaction is open
++ * (`begin` ... `commit`), and every save purges the buffer, as Rhino does: history never
++ * crosses pb or JSON, and a loaded session starts with an empty one.
++ */
++class History {
++public:
++  std::vector<Transaction> undo_stack;  ///< Committed transactions, oldest first; capped at CAPACITY
++  std::vector<Transaction> redo_stack;  ///< Undone transactions, cleared the moment a new transaction commits
++  std::optional<Transaction> current;   ///< The open transaction, nullopt between commit and the next begin
++
++  bool can_undo() const;
++  bool can_redo() const;
++  int depth() const;
++
++  /// Open a transaction; an already open one is committed first so no op is lost.
++  void begin(const std::string& label);
++
++  /// Close the open transaction. An empty one is dropped; a real one clears redo.
++  void commit();
++
++  /// Append an op to the open transaction; a no-op when none is open.
++  void record(const Op& op);
++
++  /// Revert the newest transaction, ops in reverse order, and park it for redo.
++  bool undo(Session& session);
++
++  /// Re-apply the newest undone transaction, ops in their original order.
++  bool redo(Session& session);
++
++  void clear();
++
++  std::string str() const;
++  std::string repr() const;
++
++private:
++  void _revert(const Op& op, Session& session);
++  void _apply(const Op& op, Session& session);
++};
++
++} // namespace session_cpp
+diff --git a/session_cpp/src/history_test.cpp b/session_cpp/src/history_test.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..47a8d6805b562b5feea33ee296c1c45a35e7ac64
+--- /dev/null
++++ b/session_cpp/src/history_test.cpp
+@@ -0,0 +1,93 @@
++#include "mini_test.h"
++#include "history.h"
++#include "session.h"
++#include "point.h"
++#include "tolerance.h"
++
++namespace session_cpp {
++using namespace session_cpp::mini_test;
++
++MINI_TEST("History", "Constructor") {
++    // uncomment #include "history.h"
++
++    History history;
++    std::string hstr = history.str();
++    std::string hrepr = history.repr();
++
++    MINI_CHECK(!history.can_undo());
++    MINI_CHECK(!history.can_redo());
++    MINI_CHECK(history.depth() == 0);
++    MINI_CHECK(hstr == "History(0 undo, 0 redo)");
++    MINI_CHECK(hrepr == "History(0 undo, 0 redo)");
++}
++
++MINI_TEST("History", "Begin Commit") {
++    // uncomment #include "history.h"
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++
++    Session session;
++    History& history = session.history;
++
++    // An empty transaction is dropped, and nothing is recorded while none is open.
++    history.begin("empty");
++    history.commit();
++    session.add_point(std::make_shared<Point>(0.0, 0.0, 0.0));
++
++    history.begin("add");
++    session.add_point(std::make_shared<Point>(1.0, 0.0, 0.0));
++    history.commit();
++
++    MINI_CHECK(history.depth() == 1);
++    MINI_CHECK(history.can_undo());
++    MINI_CHECK(history.undo_stack[0].ops.size() == 1);
++    MINI_CHECK(history.undo_stack[0].label == "add");
++    MINI_CHECK(std::visit([](const auto& op) { return op.kind; }, history.undo_stack[0].ops[0]) == "add");
++}
++
++MINI_TEST("History", "Undo Redo") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++
++    Session session;
++    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);
++    std::string guid = point->guid();
++
++    session.history.begin("add");
++    session.add_point(point);
++    session.history.commit();
++    bool undone = session.history.undo(session);
++    bool absent = session.lookup.count(guid) == 0;
++    bool redone = session.history.redo(session);
++
++    MINI_CHECK(undone);
++    MINI_CHECK(absent);
++    MINI_CHECK(redone);
++    MINI_CHECK(session.lookup.count(guid) == 1);
++    MINI_CHECK(TOLERANCE.is_close((*std::get<std::shared_ptr<Point>>(session.lookup[guid]))[2], 3.0));
++    MINI_CHECK(!session.history.can_redo());
++    MINI_CHECK(!session.history.redo(session));
++}
++
++MINI_TEST("History", "Clear") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++
++    Session session;
++
++    session.history.begin("a");
++    session.add_point(std::make_shared<Point>(0.0, 0.0, 0.0));
++    session.history.commit();
++    session.history.begin("b");
++    session.add_point(std::make_shared<Point>(1.0, 0.0, 0.0));
++    session.history.commit();
++    session.history.undo(session);
++    session.history.clear();
++
++    MINI_CHECK(!session.history.can_undo());
++    MINI_CHECK(!session.history.can_redo());
++    MINI_CHECK(session.history.depth() == 0);
++    MINI_CHECK(session.objects.points->size() == 1);
++}
++
++} // namespace session_cpp
+diff --git a/session_cpp/src/objects.h b/session_cpp/src/objects.h
+index d39bc0be633cba9b07a2864d90a877818d4a6a86..482fbd2f664dd8ab9fbe1896d67fdc7421be4f7e 100644
+--- a/session_cpp/src/objects.h
++++ b/session_cpp/src/objects.h
+@@ -16,6 +16,7 @@
+ #include <fstream>
+ #include <memory>
+ #include <string>
++#include <variant>
+ #include <vector>
+ 
+ namespace session_cpp {
+@@ -138,6 +139,26 @@ public:
+ private:
+   mutable std::string _guid;
+ };
++
++/// All geometry types as a variant. A new type joins here and in the checklist at the top of
++/// session.cpp.
++using Geometry = std::variant<
++    std::shared_ptr<OBB>,
++    std::shared_ptr<Line>,
++    std::shared_ptr<Mesh>,
++    std::shared_ptr<Plane>,
++    std::shared_ptr<Point>,
++    std::shared_ptr<PointCloud>,
++    std::shared_ptr<NurbsCurve>,
++    std::shared_ptr<NurbsSurface>,
++    std::shared_ptr<Polyline>,
++    std::shared_ptr<BRep>,
++    std::shared_ptr<Element>
++>;
++
++/// Anything an Objects collection holds: geometry, or a Component.
++using Item = std::variant<Geometry, Component>;
++
+ /**
+  * @brief  To use this operator, you can do:
+  *         Point point(1.5, 2.5, 3.5);
+diff --git a/session_cpp/src/session.cpp b/session_cpp/src/session.cpp
+index a06568b688e8938389317da2f13c157c75a3f879..c55d8b12c6ac147e014e4d248b059f83077c63c7 100644
+--- a/session_cpp/src/session.cpp
++++ b/session_cpp/src/session.cpp
+@@ -33,123 +33,137 @@ std::string Session::str() const {
+ // The check lives here so no caller has to write it, and so a scene never holds an object a
+ // viewer cannot render.
+ 
++namespace {
++
++/// getattr(objects, collection): calls f on the Objects vector of that name.
++template <typename F> void with_collection(const Objects &objects, const std::string &collection, F &&f) {
++  if (collection == "points") f(*objects.points);
++  else if (collection == "lines") f(*objects.lines);
++  else if (collection == "planes") f(*objects.planes);
++  else if (collection == "bboxes") f(*objects.bboxes);
++  else if (collection == "polylines") f(*objects.polylines);
++  else if (collection == "pointclouds") f(*objects.pointclouds);
++  else if (collection == "meshes") f(*objects.meshes);
++  else if (collection == "nurbscurves") f(*objects.nurbscurves);
++  else if (collection == "nurbssurfaces") f(*objects.nurbssurfaces);
++  else if (collection == "breps") f(*objects.breps);
++  else if (collection == "elements") f(*objects.elements);
++  else if (collection == "components") f(*objects.components);
++}
++
++/// Calls f on the live object behind an item, geometry or component.
++template <typename F> auto with_item(const Item &item, F &&f) {
++  return std::visit([&](const auto &stored) {
++    if constexpr (std::is_same_v<std::decay_t<decltype(stored)>, Component>)
++      return f(stored);
++    else
++      return std::visit([&](const auto &live) { return f(*live); }, stored);
++  }, item);
++}
++
++/// The element an Objects vector of value type E stores for an item.
++template <typename E> E element_of(const Item &item) {
++  if constexpr (std::is_same_v<E, Component>)
++    return std::get<Component>(item);
++  else
++    return std::get<E>(std::get<Geometry>(item));
++}
++
++/// The guid of an Objects vector element, a shared_ptr or a Component.
++template <typename E> std::string guid_of(const E &element) {
++  if constexpr (std::is_same_v<E, Component>)
++    return element.guid();
++  else
++    return element->guid();
++}
++
++} // namespace
++
++std::shared_ptr<TreeNode> Session::_add_object(const std::string &collection, const Item &obj, const std::string &type_prefix, std::shared_ptr<TreeNode> parent) {
++  std::string guid = with_item(obj, [](const auto &live) { return live.guid(); });
++  int obj_index = 0;
++  with_collection(objects, collection, [&](auto &items) {
++    items.push_back(element_of<typename std::decay_t<decltype(items)>::value_type>(obj));
++    obj_index = static_cast<int>(items.size()) - 1;
++  });
++  if (const Geometry *geometry = std::get_if<Geometry>(&obj))
++    lookup[guid] = *geometry;
++  else
++    component_lookup[guid] = std::get<Component>(obj);
++  std::string attribute = type_prefix + "_" + with_item(obj, [](const auto &live) { return live.name; });
++  graph.add_node(guid, attribute);
++  bvh_cache_dirty = true;
++  auto node = std::make_shared<TreeNode>(guid);
++  std::optional<std::string> parent_guid;
++  int index = 0;
++  if (parent) {
++    add(node, parent);
++    parent_guid = parent->name;
++    index = static_cast<int>(parent->children().size()) - 1;
++  }
++  if (history.current)
++    history.record(AddOp(guid, clone(obj), collection, obj_index, std::nullopt, parent_guid, index, nullptr, attribute, {}));
++  return node;
++}
++
+ std::shared_ptr<TreeNode> Session::add_point(std::shared_ptr<Point> point, std::shared_ptr<TreeNode> parent) {
+   if (!point)
+     return nullptr;
+-  objects.points->push_back(point);
+-  lookup[point->guid()] = point;
+-  graph.add_node(point->guid(), "point_" + point->name);
+-  cache_geometry_aabb(point->guid(), point);
+-  auto node = std::make_shared<TreeNode>(point->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("points", point, "point", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_line(std::shared_ptr<Line> line, std::shared_ptr<TreeNode> parent) {
+   if (!line)
+     return nullptr;
+-  objects.lines->push_back(line);
+-  lookup[line->guid()] = line;
+-  graph.add_node(line->guid(), "line_" + line->name);
+-  cache_geometry_aabb(line->guid(), line);
+-  auto node = std::make_shared<TreeNode>(line->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("lines", line, "line", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_plane(std::shared_ptr<Plane> plane, std::shared_ptr<TreeNode> parent) {
+   if (!plane)
+     return nullptr;
+-  objects.planes->push_back(plane);
+-  lookup[plane->guid()] = plane;
+-  graph.add_node(plane->guid(), "plane_" + plane->name);
+-  cache_geometry_aabb(plane->guid(), plane);
+-  auto node = std::make_shared<TreeNode>(plane->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("planes", plane, "plane", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_obb(std::shared_ptr<OBB> bbox) {
+   if (!bbox)
+     return nullptr;
+-  objects.bboxes->push_back(bbox);
+-  lookup[bbox->guid()] = bbox;
+-  graph.add_node(bbox->guid(), "bbox_" + bbox->name);
+-  cache_geometry_aabb(bbox->guid(), bbox);
+-  auto node = std::make_shared<TreeNode>(bbox->guid());
+-  return node;
++  return _add_object("bboxes", bbox, "bbox", nullptr);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_polyline(std::shared_ptr<Polyline> polyline, std::shared_ptr<TreeNode> parent) {
+   if (!polyline || polyline->point_count() < 2)
+     return nullptr;
+-  objects.polylines->push_back(polyline);
+-  lookup[polyline->guid()] = polyline;
+-  graph.add_node(polyline->guid(), "polyline_" + polyline->name);
+-  cache_geometry_aabb(polyline->guid(), polyline);
+-  auto node = std::make_shared<TreeNode>(polyline->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("polylines", polyline, "polyline", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_pointcloud(std::shared_ptr<PointCloud> pointcloud, std::shared_ptr<TreeNode> parent) {
+   if (!pointcloud || pointcloud->is_empty())
+     return nullptr;
+-  objects.pointclouds->push_back(pointcloud);
+-  lookup[pointcloud->guid()] = pointcloud;
+-  graph.add_node(pointcloud->guid(), "pointcloud_" + pointcloud->name);
+-  cache_geometry_aabb(pointcloud->guid(), pointcloud);
+-  auto node = std::make_shared<TreeNode>(pointcloud->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("pointclouds", pointcloud, "pointcloud", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_mesh(std::shared_ptr<Mesh> mesh, std::shared_ptr<TreeNode> parent) {
+   if (!mesh || mesh->is_empty() || mesh->number_of_faces() == 0)
+     return nullptr;
+-  objects.meshes->push_back(mesh);
+-  lookup[mesh->guid()] = mesh;
+-  graph.add_node(mesh->guid(), "mesh_" + mesh->name);
+-  cache_geometry_aabb(mesh->guid(), mesh);
+-  auto node = std::make_shared<TreeNode>(mesh->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("meshes", mesh, "mesh", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_nurbscurve(std::shared_ptr<NurbsCurve> nurbscurve, std::shared_ptr<TreeNode> parent) {
+   if (!nurbscurve || nurbscurve->cv_count() < 2)
+     return nullptr;
+-  objects.nurbscurves->push_back(nurbscurve);
+-  lookup[nurbscurve->guid()] = nurbscurve;
+-  graph.add_node(nurbscurve->guid(), "nurbscurve_" + nurbscurve->name);
+-  cache_geometry_aabb(nurbscurve->guid(), nurbscurve);
+-  auto node = std::make_shared<TreeNode>(nurbscurve->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("nurbscurves", nurbscurve, "nurbscurve", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_nurbssurface(std::shared_ptr<NurbsSurface> nurbssurface, std::shared_ptr<TreeNode> parent) {
+   if (!nurbssurface || nurbssurface->cv_count() == 0)
+     return nullptr;
+-  objects.nurbssurfaces->push_back(nurbssurface);
+-  lookup[nurbssurface->guid()] = nurbssurface;
+-  graph.add_node(nurbssurface->guid(), "nurbssurface_" + nurbssurface->name);
+-  cache_geometry_aabb(nurbssurface->guid(), nurbssurface);
+-  auto node = std::make_shared<TreeNode>(nurbssurface->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("nurbssurfaces", nurbssurface, "nurbssurface", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_brep(std::shared_ptr<BRep> brep, std::shared_ptr<TreeNode> parent) {
+   if (!brep || (brep->face_count() == 0 && brep->vertex_count() == 0))
+     return nullptr;
+-  objects.breps->push_back(brep);
+-  lookup[brep->guid()] = brep;
+-  bvh_cache_dirty = true;
+-  graph.add_node(brep->guid(), "brep_" + brep->name);
+-  auto node = std::make_shared<TreeNode>(brep->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("breps", brep, "brep", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_element(std::shared_ptr<Element> element, std::shared_ptr<TreeNode> parent) {
+@@ -157,22 +171,11 @@ std::shared_ptr<TreeNode> Session::add_element(std::shared_ptr<Element> element,
+   // element_data a consumer reads back - and dropping one would lose that on a round trip.
+   if (!element)
+     return nullptr;
+-  objects.elements->push_back(element);
+-  lookup[element->guid()] = element;
+-  bvh_cache_dirty = true;
+-  graph.add_node(element->guid(), "element_" + element->name);
+-  auto node = std::make_shared<TreeNode>(element->guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("elements", element, "element", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_component(Component component, std::shared_ptr<TreeNode> parent) {
+-  component_lookup[component.guid()] = component;
+-  objects.components->push_back(component);
+-  graph.add_node(component.guid(), "component_" + component.name);
+-  auto node = std::make_shared<TreeNode>(component.guid());
+-  if (parent) add(node, parent);
+-  return node;
++  return _add_object("components", component, "component", parent);
+ }
+ 
+ std::shared_ptr<TreeNode> Session::add_group(const std::string& group_name) {
+@@ -233,6 +236,12 @@ std::vector<std::string> Session::order() const {
+ // ═══════════════════════════════════════════════════════════════════════════
+ 
+ void Session::set_xform(const std::string &guid, const Xform &xform) {
++  if (history.current) {
++    std::optional<Xform> before;
++    if (auto it = xforms.find(guid); it != xforms.end())
++      before = it->second;
++    history.record(XformOp(guid, before, xform));
++  }
+   xforms[guid] = xform;
+   bvh_cache_dirty = true;
+ }
+@@ -243,11 +252,14 @@ Xform Session::xform(const std::string &guid) const {
+ }
+ 
+ bool Session::remove_xform(const std::string &guid) {
+-  bool removed = xforms.erase(guid) > 0;
+-  if (removed) {
+-    bvh_cache_dirty = true;
+-  }
+-  return removed;
++  auto before = xforms.find(guid);
++  if (before == xforms.end())
++    return false;
++  if (history.current)
++    history.record(XformOp(guid, before->second, std::nullopt));
++  xforms.erase(before);
++  bvh_cache_dirty = true;
++  return true;
+ }
+ 
+ Xform Session::world_xform(const std::string &guid) const {
+@@ -322,76 +334,159 @@ std::vector<std::pair<std::string, Xform>> Session::xforms_ordered() const {
+ }
+ 
+ bool Session::remove_object(const std::string &obj_guid) {
+-  bvh_cache_dirty = true; // removed objects must vanish from the ray BVH
+-  auto it = lookup.find(obj_guid);
+-  if (it == lookup.end()) {
++  std::optional<RemoveOp> op = _detach(obj_guid);
++  if (!op)
+     return false;
++  history.record(*op);
++  return true;
++}
++
++bool Session::replace(const std::string &guid, const Geometry &obj) {
++  auto before = lookup.find(guid);
++  if (before == lookup.end())
++    return false;
++  std::visit([&](const auto &live) { live->guid() = guid; }, obj);
++  if (history.current)
++    history.record(ReplaceOp(guid, clone(before->second), clone(obj)));
++  _swap(guid, obj);
++  return true;
++}
++
++// ═══════════════════════════════════════════════════════════════════════════
++// History
++// ═══════════════════════════════════════════════════════════════════════════
++
++void Session::begin(const std::string &label) { history.begin(label); }
++
++void Session::commit() { history.commit(); }
++
++bool Session::undo() { return history.undo(*this); }
++
++bool Session::redo() { return history.redo(*this); }
++
++std::pair<std::string, int> Session::_locate(const std::string &guid) const {
++  for (const auto &[collection, prefix] : COLLECTIONS) {
++    int found = -1;
++    with_collection(objects, collection, [&](const auto &items) {
++      for (size_t i = 0; i < items.size(); ++i)
++        if (guid_of(items[i]) == guid)
++          found = static_cast<int>(i);
++    });
++    if (found >= 0)
++      return {collection, found};
+   }
++  return {"", -1};
++}
+ 
+-  invalidate_bvh_cache();
+-
+-  // Determine type and remove from typed collection
+-  std::visit(
+-      [this](const auto &ptr) {
+-        using T = std::decay_t<decltype(*ptr)>;
+-        auto erase_by_guid = [&](auto &vec) {
+-          vec.erase(std::remove_if(
+-                        vec.begin(), vec.end(),
+-                        [&](const auto &p) { return p->guid() == ptr->guid(); }),
+-                    vec.end());
+-        };
+-        if constexpr (std::is_same_v<T, Point>) {
+-          erase_by_guid(*objects.points);
+-        }
+-        else if constexpr (std::is_same_v<T, Line>) {
+-          erase_by_guid(*objects.lines);
+-        }
+-        else if constexpr (std::is_same_v<T, Plane>) {
+-          erase_by_guid(*objects.planes);
+-        }
+-        else if constexpr (std::is_same_v<T, OBB>) {
+-          erase_by_guid(*objects.bboxes);
+-        }
+-        else if constexpr (std::is_same_v<T, Polyline>) {
+-          erase_by_guid(*objects.polylines);
+-        }
+-        else if constexpr (std::is_same_v<T, PointCloud>) {
+-          erase_by_guid(*objects.pointclouds);
+-        }
+-        else if constexpr (std::is_same_v<T, Mesh>) {
+-          erase_by_guid(*objects.meshes);
+-        }
+-        else if constexpr (std::is_same_v<T, NurbsCurve>) {
+-          erase_by_guid(*objects.nurbscurves);
+-        }
+-        else if constexpr (std::is_same_v<T, NurbsSurface>) {
+-          erase_by_guid(*objects.nurbssurfaces);
+-        }
+-        else if constexpr (std::is_same_v<T, BRep>) {
+-          erase_by_guid(*objects.breps);
+-        }
+-        else if constexpr (std::is_same_v<T, Element>) {
+-          erase_by_guid(*objects.elements);
+-        }
+-      },
+-      it->second);
++std::optional<RemoveOp> Session::_detach(const std::string &guid) {
++  std::optional<Item> obj;
++  if (auto it = lookup.find(guid); it != lookup.end())
++    obj = it->second;
++  else if (auto it = component_lookup.find(guid); it != component_lookup.end())
++    obj = it->second;
++  if (!obj)
++    return std::nullopt;
++  auto [collection, obj_index] = _locate(guid);
++  if (obj_index >= 0)
++    with_collection(objects, collection, [&](auto &items) { items.erase(items.begin() + obj_index); });
++  lookup.erase(guid);
++  component_lookup.erase(guid);
++  std::optional<Xform> xform;
++  if (auto it = xforms.find(guid); it != xforms.end()) {
++    xform = it->second;
++    xforms.erase(it);
++  }
++  bvh_cache_dirty = true;
+ 
+-  // Remove from lookup table
+-  lookup.erase(it);
+-  xforms.erase(obj_guid);
++  std::optional<std::string> parent_guid;
++  int index = 0;
++  std::shared_ptr<TreeNode> node = tree.get_node_by_name(guid);
++  if (node) {
++    if (std::shared_ptr<TreeNode> parent = node->parent()) {
++      parent_guid = parent->name;
++      std::vector<TreeNode *> children = parent->children();
++      index = static_cast<int>(std::find(children.begin(), children.end(), node.get()) - children.begin());
++    }
++    node = tree.remove(node);
++  }
+ 
+-  // Remove from tree
+-  auto tree_node = tree.find_node_by_guid(obj_guid);
+-  if (tree_node) {
+-    tree.remove(tree_node);
++  std::string attribute;
++  std::vector<std::tuple<std::string, std::string, bool>> edges;
++  if (graph.has_node(guid)) {
++    attribute = graph.node_attribute(guid);
++    edges = graph.edges_of(guid);
++    graph.remove_node(guid);
+   }
+ 
+-  // Remove from graph
+-  if (graph.has_node(obj_guid)) {
+-    graph.remove_node(obj_guid);
++  return RemoveOp(guid, clone(*obj), collection, obj_index, xform, parent_guid, index, node, attribute, edges);
++}
++
++void Session::_attach(const Tombstone &op) {
++  Item obj = clone(op.obj);
++  with_collection(objects, op.collection, [&](auto &items) {
++    using E = typename std::decay_t<decltype(items)>::value_type;
++    items.insert(items.begin() + std::min<size_t>(op.obj_index, items.size()), element_of<E>(obj));
++  });
++  if (const Geometry *geometry = std::get_if<Geometry>(&obj))
++    lookup[op.guid] = *geometry;
++  else
++    component_lookup[op.guid] = std::get<Component>(obj);
++  if (op.xform)
++    xforms[op.guid] = *op.xform;
++  bvh_cache_dirty = true;
++
++  std::shared_ptr<TreeNode> node = op.node;
++  if (!node)
++    node = std::make_shared<TreeNode>(op.guid);
++  if (op.parent_guid) {
++    std::shared_ptr<TreeNode> parent = tree.get_node_by_name(*op.parent_guid);
++    if (parent) {
++      tree.add(node, parent);
++      // A TreeNode owns its children privately, so the node moves from the end to op.index by
++      // re-adding every sibling that should follow it.
++      std::vector<TreeNode *> children = parent->children();
++      for (size_t i = std::min<size_t>(op.index, children.size() - 1); i + 1 < children.size(); ++i)
++        parent->add(parent->remove(children[i]->shared_from_this()));
++    }
+   }
+ 
+-  return true;
++  graph.add_node(op.guid, op.attribute);
++  for (const auto &[other, attribute, forward] : op.edges) {
++    if (!graph.has_node(other))
++      continue;
++    if (forward)
++      graph.add_edge(op.guid, other, attribute);
++    else
++      graph.add_edge(other, op.guid, attribute);
++  }
++}
++
++void Session::_swap(const std::string &guid, const Item &obj) {
++  auto [collection, obj_index] = _locate(guid);
++  if (obj_index < 0)
++    return;
++  with_collection(objects, collection, [&](auto &items) {
++    items[obj_index] = element_of<typename std::decay_t<decltype(items)>::value_type>(obj);
++  });
++  if (const Geometry *geometry = std::get_if<Geometry>(&obj))
++    lookup[guid] = *geometry;
++  else
++    component_lookup[guid] = std::get<Component>(obj);
++  bvh_cache_dirty = true;
++  std::string attribute;
++  for (const auto &[name, prefix] : COLLECTIONS)
++    if (name == collection)
++      attribute = prefix + "_" + with_item(obj, [](const auto &live) { return live.name; });
++  if (graph.has_node(guid))
++    graph.node_attribute(guid, attribute);
++}
++
++void Session::_place(const std::string &guid, const std::optional<Xform> &xform) {
++  if (xform)
++    xforms[guid] = *xform;
++  else
++    xforms.erase(guid);
++  bvh_cache_dirty = true;
+ }
+ 
+ // ═══════════════════════════════════════════════════════════════════════════
+@@ -723,25 +818,28 @@ Session Session::jsonload(const nlohmann::json &data) {
+ }
+ 
+ std::string Session::file_json_dumps() const {
++  history.clear();
+   return jsondump().dump();
+ }
+ 
+-Session Session::file_json_loads(const std::string& json_string) {
+-  return jsonload(nlohmann::ordered_json::parse(json_string));
++std::shared_ptr<Session> Session::file_json_loads(const std::string& json_string) {
++  return std::make_shared<Session>(jsonload(nlohmann::ordered_json::parse(json_string)));
+ }
+ 
+ void Session::file_json_dump(const std::string& filename) const {
++  history.clear();
+   std::ofstream file(filename);
+   file << jsondump().dump(4);
+ }
+ 
+-Session Session::file_json_load(const std::string& filename) {
++std::shared_ptr<Session> Session::file_json_load(const std::string& filename) {
+   std::ifstream file(filename);
+   nlohmann::json data = nlohmann::json::parse(file);
+-  return jsonload(data);
++  return std::make_shared<Session>(jsonload(data));
+ }
+ 
+ std::string Session::pb_dumps() const {
++  history.clear();
+   session_proto::Session proto;
+   proto.set_name(name);
+   if (has_guid()) { proto.set_guid(guid()); }
+@@ -757,49 +855,50 @@ std::string Session::pb_dumps() const {
+   return proto.SerializeAsString();
+ }
+ 
+-Session Session::pb_loads(const std::string& data) {
++std::shared_ptr<Session> Session::pb_loads(const std::string& data) {
+   session_proto::Session proto;
+   proto.ParseFromString(data);
+ 
+-  Session session(proto.name());
+-  if (!proto.guid().empty()) { session.guid() = proto.guid(); }
++  auto session = std::make_shared<Session>(proto.name());
++  if (!proto.guid().empty()) { session->guid() = proto.guid(); }
+ 
+   if (proto.has_objects()) {
+-    session.objects = Objects::pb_loads(proto.objects().SerializeAsString());
++    session->objects = Objects::pb_loads(proto.objects().SerializeAsString());
+   }
+   if (proto.has_tree()) {
+-    session.tree = Tree::pb_loads(proto.tree().SerializeAsString());
++    session->tree = Tree::pb_loads(proto.tree().SerializeAsString());
+   }
+   if (proto.has_graph()) {
+-    session.graph = Graph::pb_loads(proto.graph().SerializeAsString());
++    session->graph = Graph::pb_loads(proto.graph().SerializeAsString());
+   }
+ 
+-  for (const auto& p : *session.objects.points) session.lookup[p->guid()] = p;
+-  for (const auto& l : *session.objects.lines) session.lookup[l->guid()] = l;
+-  for (const auto& pl : *session.objects.planes) session.lookup[pl->guid()] = pl;
+-  for (const auto& b : *session.objects.bboxes) session.lookup[b->guid()] = b;
+-  for (const auto& pl : *session.objects.polylines) session.lookup[pl->guid()] = pl;
+-  for (const auto& pc : *session.objects.pointclouds) session.lookup[pc->guid()] = pc;
+-  for (const auto& m : *session.objects.meshes) session.lookup[m->guid()] = m;
+-  for (const auto& nc : *session.objects.nurbscurves) session.lookup[nc->guid()] = nc;
+-  for (const auto& ns : *session.objects.nurbssurfaces) session.lookup[ns->guid()] = ns;
+-  for (const auto& b : *session.objects.breps) session.lookup[b->guid()] = b;
+-  for (const auto& e : *session.objects.elements) session.lookup[e->guid()] = e;
++  for (const auto& p : *session->objects.points) session->lookup[p->guid()] = p;
++  for (const auto& l : *session->objects.lines) session->lookup[l->guid()] = l;
++  for (const auto& pl : *session->objects.planes) session->lookup[pl->guid()] = pl;
++  for (const auto& b : *session->objects.bboxes) session->lookup[b->guid()] = b;
++  for (const auto& pl : *session->objects.polylines) session->lookup[pl->guid()] = pl;
++  for (const auto& pc : *session->objects.pointclouds) session->lookup[pc->guid()] = pc;
++  for (const auto& m : *session->objects.meshes) session->lookup[m->guid()] = m;
++  for (const auto& nc : *session->objects.nurbscurves) session->lookup[nc->guid()] = nc;
++  for (const auto& ns : *session->objects.nurbssurfaces) session->lookup[ns->guid()] = ns;
++  for (const auto& b : *session->objects.breps) session->lookup[b->guid()] = b;
++  for (const auto& e : *session->objects.elements) session->lookup[e->guid()] = e;
+ 
+   for (const auto& entry : proto.xforms()) {
+-    session.xforms[entry.guid()] = Xform::pb_loads(entry.xform().SerializeAsString());
++    session->xforms[entry.guid()] = Xform::pb_loads(entry.xform().SerializeAsString());
+   }
+ 
+   return session;
+ }
+ 
+ void Session::pb_dump(const std::string& filename) const {
++  history.clear();
+   std::string data = pb_dumps();
+   std::ofstream file(filename, std::ios::binary);
+   file.write(data.data(), data.size());
+ }
+ 
+-Session Session::pb_load(const std::string& filename) {
++std::shared_ptr<Session> Session::pb_load(const std::string& filename) {
+   std::ifstream file(filename, std::ios::binary);
+   std::string data((std::istreambuf_iterator<char>(file)),
+                     std::istreambuf_iterator<char>());
+diff --git a/session_cpp/src/session.h b/session_cpp/src/session.h
+index 7f77df7b36874d4395dd0de118063078fc344d96..75b9b346c384d47e4c83e467a008ced122ff30f9 100644
+--- a/session_cpp/src/session.h
++++ b/session_cpp/src/session.h
+@@ -18,6 +18,7 @@
+ #include "nurbssurface.h"
+ #include "brep.h"
+ #include "tree.h"
++#include "history.h"
+ #include "spatial_bvh.h"
+ #include <fstream>
+ #include <iostream>
+@@ -26,25 +27,25 @@
+ #include <string>
+ #include <unordered_map>
+ #include <variant>
++#include <memory>
+ 
+ namespace session_cpp {
+ 
+-/// A new type joins here and in the checklist at the top of session.cpp.
+-
+-// All geometry types as a variant
+-using Geometry = std::variant<
+-    std::shared_ptr<OBB>,
+-    std::shared_ptr<Line>,
+-    std::shared_ptr<Mesh>,
+-    std::shared_ptr<Plane>,
+-    std::shared_ptr<Point>,
+-    std::shared_ptr<PointCloud>,
+-    std::shared_ptr<NurbsCurve>,
+-    std::shared_ptr<NurbsSurface>,
+-    std::shared_ptr<Polyline>,
+-    std::shared_ptr<BRep>,
+-    std::shared_ptr<Element>
+->;
++/// The Objects lists in order() sequence, each with the prefix of its graph node attribute.
++inline const std::vector<std::pair<std::string, std::string>> COLLECTIONS = {
++    {"points", "point"},
++    {"lines", "line"},
++    {"planes", "plane"},
++    {"bboxes", "bbox"},
++    {"polylines", "polyline"},
++    {"pointclouds", "pointcloud"},
++    {"meshes", "mesh"},
++    {"nurbscurves", "nurbscurve"},
++    {"nurbssurfaces", "nurbssurface"},
++    {"breps", "brep"},
++    {"elements", "element"},
++    {"components", "component"},
++};
+ 
+ /// A session containing geometry objects.
+ class Session {
+@@ -65,6 +66,10 @@ public:
+   /// world_xform(), which multiplies down the tree. Serialized explicitly by
+   /// jsondump/pb_dumps in order() sequence (a map has no deterministic order).
+   std::unordered_map<std::string, Xform> xforms;
++  /// Undo/redo buffer, in memory only. Ops are recorded ONLY while a transaction is open
++  /// (begin ... commit), and every save purges it, as Rhino does - which is why it is mutable:
++  /// the const dumps clear it.
++  mutable History history;
+   SpatialBVH bvh;    ///< Bounding volume hierarchy for collision detection
+   
+   // SpatialBVH caching for ray casting performance
+@@ -186,9 +191,18 @@ public:
+   /// Compute face-to-face contacts between all elements.
+   /// Uses SpatialBVH + OBB for adjacency, then boolean intersection for contact areas.
+ 
+-  /// Remove an object from the session
++  /// Remove an object by its GUID from every live table at once: its typed list, lookup, its
++  /// xform, its tree node (with the subtree) and its graph node with every incident edge. The
++  /// removal record is the tombstone that undo restores from.
+   bool remove_object(const std::string &obj_guid);
+ 
++  /// Swap the object stored under guid for obj, which takes over that guid, in its typed list
++  /// and lookup, and refresh its graph node attribute. This is the recorded edit: undo restores
++  /// the previous object, redo the new one, as absolute snapshots. Mutating an object in place
++  /// through lookup stays possible and is NOT recorded - history only sees what goes through
++  /// replace. Returns false when the guid is not found.
++  bool replace(const std::string &guid, const Geometry &obj);
++
+   /// Canonical object order: the objects vectors walked in one fixed type sequence —
+   std::vector<std::string> order() const;
+ 
+@@ -216,6 +230,17 @@ public:
+   /// is quadratic over a session.
+   std::unordered_map<std::string, Xform> world_xforms() const;
+ 
++  // ═══════════════════════════════════════════════════════════════════════════
++  // History
++  // ═══════════════════════════════════════════════════════════════════════════
++
++  /// Open a history transaction: every add, remove, replace and xform change until commit
++  /// becomes one undo step.
++  void begin(const std::string &label);
++  void commit();
++  bool undo();
++  bool redo();
++
+   // ═══════════════════════════════════════════════════════════════════════════
+   // Tree Operations
+   // ═══════════════════════════════════════════════════════════════════════════
+@@ -280,17 +305,39 @@ public:
+   /// Creates a Session instance from JSON data.
+   static Session jsonload(const nlohmann::json &data);
+   std::string file_json_dumps() const;
+-  static Session file_json_loads(const std::string& json_string);
++  static std::shared_ptr<Session> file_json_loads(const std::string& json_string);
+   void file_json_dump(const std::string& filename) const;
+-  static Session file_json_load(const std::string& filename);
++  static std::shared_ptr<Session> file_json_load(const std::string& filename);
+   std::string pb_dumps() const;
+-  static Session pb_loads(const std::string& data);
++  static std::shared_ptr<Session> pb_loads(const std::string& data);
+   void pb_dump(const std::string& filename) const;
+-  static Session pb_load(const std::string& filename);
++  static std::shared_ptr<Session> pb_load(const std::string& filename);
+ 
+ private:
++  friend class History;
+   mutable std::string _guid;
+ 
++  /// Store an object in its typed list, lookup, graph and tree, recording an AddOp when a
++  /// transaction is open.
++  std::shared_ptr<TreeNode> _add_object(const std::string &collection, const Item &obj, const std::string &type_prefix, std::shared_ptr<TreeNode> parent);
++
++  /// Which Objects list holds a guid, and where; ("", -1) when none does.
++  std::pair<std::string, int> _locate(const std::string &guid) const;
++
++  /// Take an object out of every live table, unrecorded, returning its tombstone.
++  std::optional<RemoveOp> _detach(const std::string &guid);
++
++  /// Put an object back from its tombstone, unrecorded: typed list at its old index, lookup,
++  /// xform, tree node under the same parent at the same index with its subtree, graph node and
++  /// every incident edge whose other end is still present.
++  void _attach(const Tombstone &op);
++
++  /// Store obj under guid in its typed list and lookup, unrecorded.
++  void _swap(const std::string &guid, const Item &obj);
++
++  /// Set or drop (nullopt) the local transform under guid, unrecorded.
++  void _place(const std::string &guid, const std::optional<Xform> &xform);
++
+   /// The xforms in canonical order() sequence, identity entries omitted - the exact sequence
+   /// jsondump and pb_dumps write, so both formats share one order.
+   std::vector<std::pair<std::string, Xform>> xforms_ordered() const;
+diff --git a/session_cpp/src/session_test.cpp b/session_cpp/src/session_test.cpp
+index 910a158c29fddb9df498ff9b50b797693392f715..a4c1650547c508d531976107c63eb0e909e773dd 100644
+--- a/session_cpp/src/session_test.cpp
++++ b/session_cpp/src/session_test.cpp
+@@ -397,13 +397,13 @@ MINI_TEST("Session", "Remove Object") {
+ 
+     std::string fname = "serialization/test_session_remove.bin";
+     session.pb_dump(fname);
+-    Session loaded = Session::pb_load(fname);
++    std::shared_ptr<Session> loaded = Session::pb_load(fname);
+ 
+     MINI_CHECK(removed);
+     MINI_CHECK(session.lookup.count(point->guid()) == 0);
+     MINI_CHECK(eremoved);
+     MINI_CHECK(session.objects.elements->size() == 0);
+-    MINI_CHECK(loaded.lookup.count(eguid) == 0); // removed objects must not resurrect on save/load
++    MINI_CHECK(loaded->lookup.count(eguid) == 0); // removed objects must not resurrect on save/load
+ }
+ 
+ MINI_TEST("Session", "Get Geometry") {
+@@ -460,11 +460,11 @@ MINI_TEST("Session", "Json Roundtrip") {
+ 
+     std::string fname = "serialization/test_session.json";
+     session.file_json_dump(fname);
+-    Session loaded = Session::file_json_load(fname);
++    std::shared_ptr<Session> loaded = Session::file_json_load(fname);
+ 
+-    MINI_CHECK(loaded.name == session.name);
+-    MINI_CHECK(loaded.lookup.size() == session.lookup.size());
+-    MINI_CHECK(loaded.graph.number_of_vertices() == session.graph.number_of_vertices());
++    MINI_CHECK(loaded->name == session.name);
++    MINI_CHECK(loaded->lookup.size() == session.lookup.size());
++    MINI_CHECK(loaded->graph.number_of_vertices() == session.graph.number_of_vertices());
+ }
+ 
+ MINI_TEST("Session", "Protobuf Roundtrip") {
+@@ -480,10 +480,10 @@ MINI_TEST("Session", "Protobuf Roundtrip") {
+ 
+     std::string fname = "serialization/test_session.bin";
+     session.pb_dump(fname);
+-    Session loaded = Session::pb_load(fname);
++    std::shared_ptr<Session> loaded = Session::pb_load(fname);
+ 
+-    MINI_CHECK(loaded.name == session.name);
+-    MINI_CHECK(loaded.lookup.size() == session.lookup.size());
++    MINI_CHECK(loaded->name == session.name);
++    MINI_CHECK(loaded->lookup.size() == session.lookup.size());
+ }
+ 
+ MINI_TEST("Session", "Lookup Mutation Roundtrip") {
+@@ -499,10 +499,10 @@ MINI_TEST("Session", "Lookup Mutation Roundtrip") {
+ 
+     std::string fname = "serialization/test_session_lookup.bin";
+     session.pb_dump(fname);
+-    Session loaded = Session::pb_load(fname);
++    std::shared_ptr<Session> loaded = Session::pb_load(fname);
+ 
+-    MINI_CHECK(loaded.objects.lines->at(0)->width == 5.0);
+-    MINI_CHECK(std::get<std::shared_ptr<Line>>(loaded.lookup[guid])->width == 5.0);
++    MINI_CHECK(loaded->objects.lines->at(0)->width == 5.0);
++    MINI_CHECK(std::get<std::shared_ptr<Line>>(loaded->lookup[guid])->width == 5.0);
+ }
+ 
+ MINI_TEST("Session", "Order") {
+@@ -522,12 +522,12 @@ MINI_TEST("Session", "Order") {
+ 
+     std::string fname = "serialization/test_session_order.bin";
+     session.pb_dump(fname);
+-    Session loaded = Session::pb_load(fname);
++    std::shared_ptr<Session> loaded = Session::pb_load(fname);
+ 
+     MINI_CHECK(order.size() == 2);
+     MINI_CHECK(order[0] == point_guid);
+     MINI_CHECK(order[1] == line_guid);
+-    MINI_CHECK(loaded.order() == order);
++    MINI_CHECK(loaded->order() == order);
+ }
+ 
+ MINI_TEST("Session", "Set Xform") {
+@@ -602,13 +602,13 @@ MINI_TEST("Session", "Xform Roundtrip") {
+ 
+     std::string fname = "serialization/test_session_xform.bin";
+     session.pb_dump(fname);
+-    Session loaded = Session::pb_load(fname);
+-    Session json_loaded = Session::file_json_loads(session.file_json_dumps());
++    std::shared_ptr<Session> loaded = Session::pb_load(fname);
++    std::shared_ptr<Session> json_loaded = Session::file_json_loads(session.file_json_dumps());
+ 
+-    MINI_CHECK(loaded.xform(guid) == session.xform(guid));
+-    MINI_CHECK(loaded.xforms.size() == 1);
+-    MINI_CHECK(json_loaded.xform(guid) == session.xform(guid));
+-    MINI_CHECK(json_loaded.xforms.size() == 1);
++    MINI_CHECK(loaded->xform(guid) == session.xform(guid));
++    MINI_CHECK(loaded->xforms.size() == 1);
++    MINI_CHECK(json_loaded->xform(guid) == session.xform(guid));
++    MINI_CHECK(json_loaded->xforms.size() == 1);
+ }
+ 
+ MINI_TEST("Session", "Tree Transformation Hierarchy") {
+@@ -720,4 +720,205 @@ MINI_TEST("Session", "Component Json Roundtrip") {
+     MINI_CHECK(loaded.objects.components->at(0).guid()        == guid);
+ }
+ 
++MINI_TEST("Session", "Document Workflow") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++    // uncomment #include "xform.h"
++
++    Session session;
++    auto a = std::make_shared<Point>(1.0, 0.0, 0.0);
++    auto b = std::make_shared<Point>(2.0, 0.0, 0.0);
++    auto c = std::make_shared<Point>(3.0, 0.0, 0.0);
++    std::string a_guid = a->guid();
++    std::string b_guid = b->guid();
++    std::string c_guid = c->guid();
++    session.add_point(a);
++    session.add_point(b);
++    session.add_point(c);
++
++    session.replace(b_guid, std::make_shared<Point>(20.0, 0.0, 0.0));
++    session.remove_object(c_guid);
++    Xform shift = Xform::translation(0.0, 5.0, 0.0);
++    session.set_xform(a_guid, shift);
++
++    std::string fname = "serialization/test_session_document.bin";
++    session.pb_dump(fname);
++    std::shared_ptr<Session> loaded = Session::pb_load(fname);
++
++    MINI_CHECK(loaded->lookup.size() == 2);
++    MINI_CHECK(loaded->lookup.count(a_guid) == 1);
++    MINI_CHECK(loaded->lookup.count(b_guid) == 1);
++    MINI_CHECK(loaded->lookup.count(c_guid) == 0);
++    MINI_CHECK(TOLERANCE.is_close((*std::get<std::shared_ptr<Point>>(loaded->lookup[b_guid]))[0], 20.0));
++    MINI_CHECK(loaded->xform(a_guid) == shift);
++    MINI_CHECK(loaded->history.depth() == 0);
++}
++
++MINI_TEST("Session", "Undo Remove") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++    // uncomment #include "xform.h"
++
++    Session session;
++    auto group = session.add_group("g");
++    auto a = std::make_shared<Point>(1.0, 0.0, 0.0);
++    auto b = std::make_shared<Point>(2.0, 0.0, 0.0);
++    auto c = std::make_shared<Point>(3.0, 0.0, 0.0);
++    std::string a_guid = a->guid();
++    std::string b_guid = b->guid();
++    std::string c_guid = c->guid();
++    session.add_point(a, group);
++    auto b_node = session.add_point(b, group);
++    session.add_point(c, b_node);
++    session.add_edge(a_guid, b_guid, "connection");
++    Xform shift = Xform::translation(0.0, 5.0, 0.0);
++    session.set_xform(b_guid, shift);
++
++    session.begin("remove");
++    session.remove_object(b_guid);
++    session.commit();
++    bool gone = session.lookup.count(b_guid) == 0 && group->children().size() == 1;
++    session.undo();
++
++    MINI_CHECK(gone);
++    MINI_CHECK(session.lookup.count(b_guid) == 1);
++    MINI_CHECK(session.objects.points->at(1)->guid() == b_guid);
++    MINI_CHECK(group->children()[1]->name == b_guid);
++    MINI_CHECK(group->children()[1]->children()[0]->name == c_guid);
++    MINI_CHECK(session.graph.has_edge({a_guid, b_guid}));
++    MINI_CHECK(session.graph.edge_attribute(a_guid, b_guid) == "connection");
++    MINI_CHECK(session.xform(b_guid) == shift);
++
++    session.redo();
++
++    MINI_CHECK(session.lookup.count(b_guid) == 0);
++    MINI_CHECK(session.objects.points->size() == 2);
++    MINI_CHECK(group->children().size() == 1);
++    MINI_CHECK(!session.graph.has_edge({a_guid, b_guid}));
++    MINI_CHECK(session.xform(b_guid) == Xform::identity());
++}
++
++MINI_TEST("Session", "Undo Add") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++
++    Session session;
++    auto group = session.add_group("g");
++    session.add_point(std::make_shared<Point>(0.0, 0.0, 0.0), group);
++    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);
++    std::string guid = point->guid();
++
++    session.begin("add");
++    session.add_point(point, group);
++    session.commit();
++    session.undo();
++    bool gone = session.lookup.count(guid) == 0 && session.objects.points->size() == 1;
++    session.redo();
++
++    MINI_CHECK(gone);
++    MINI_CHECK(session.lookup.count(guid) == 1);
++    MINI_CHECK(session.objects.points->at(1)->guid() == guid);
++    MINI_CHECK(group->children()[1]->name == guid);
++    MINI_CHECK(session.graph.has_node(guid));
++    MINI_CHECK(TOLERANCE.is_close((*std::get<std::shared_ptr<Point>>(session.lookup[guid]))[2], 3.0));
++}
++
++MINI_TEST("Session", "Undo Replace") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++
++    Session session;
++    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);
++    std::string guid = point->guid();
++    session.add_point(point);
++
++    session.begin("replace");
++    session.replace(guid, std::make_shared<Point>(9.0, 9.0, 9.0));
++    session.commit();
++    double replaced = (*std::get<std::shared_ptr<Point>>(session.lookup[guid]))[0];
++    session.undo();
++    double restored = (*std::get<std::shared_ptr<Point>>(session.lookup[guid]))[0];
++    session.redo();
++
++    MINI_CHECK(TOLERANCE.is_close(replaced, 9.0));
++    MINI_CHECK(TOLERANCE.is_close(restored, 1.0));
++    MINI_CHECK(TOLERANCE.is_close((*std::get<std::shared_ptr<Point>>(session.lookup[guid]))[0], 9.0));
++    MINI_CHECK(session.objects.points->at(0)->guid() == guid);
++    MINI_CHECK(session.objects.points->size() == 1);
++}
++
++MINI_TEST("Session", "Undo Xform") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++    // uncomment #include "xform.h"
++
++    Session session;
++    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);
++    std::string guid = point->guid();
++    session.add_point(point);
++    Xform shift = Xform::translation(5.0, 0.0, 0.0);
++
++    session.begin("move");
++    session.set_xform(guid, shift);
++    session.commit();
++    session.undo();
++    bool cleared = session.xform(guid) == Xform::identity();
++    session.redo();
++
++    session.begin("reset");
++    session.remove_xform(guid);
++    session.commit();
++    session.undo();
++
++    MINI_CHECK(cleared);
++    MINI_CHECK(session.xform(guid) == shift);
++    MINI_CHECK(session.xforms.size() == 1);
++}
++
++MINI_TEST("Session", "History Purged On Save") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++
++    Session session;
++
++    session.begin("add");
++    session.add_point(std::make_shared<Point>(0.0, 0.0, 0.0));
++    session.commit();
++    int before_pb = session.history.depth();
++    session.pb_dumps();
++    int after_pb = session.history.depth();
++
++    session.begin("add");
++    session.add_point(std::make_shared<Point>(1.0, 0.0, 0.0));
++    session.commit();
++    int before_json = session.history.depth();
++    session.file_json_dumps();
++
++    MINI_CHECK(before_pb == 1);
++    MINI_CHECK(after_pb == 0);
++    MINI_CHECK(before_json == 1);
++    MINI_CHECK(session.history.depth() == 0);
++    MINI_CHECK(!session.undo());
++    MINI_CHECK(session.objects.points->size() == 2);
++}
++
++MINI_TEST("Session", "History Capacity") {
++    // uncomment #include "session.h"
++    // uncomment #include "point.h"
++
++    Session session;
++    for (int i = 0; i < 70; ++i) {
++        session.begin("add");
++        session.add_point(std::make_shared<Point>(double(i), 0.0, 0.0));
++        session.commit();
++    }
++    int depth = session.history.depth();
++    while (session.undo()) {}
++
++    MINI_CHECK(depth == 64);
++    MINI_CHECK(!session.history.can_undo());
++    MINI_CHECK(session.objects.points->size() == 6);
++    MINI_CHECK(TOLERANCE.is_close((*session.objects.points->at(5))[0], 5.0));
++}
++
+ } // namespace session_cpp
+diff --git a/session_py/src/session_py/__init__.py b/session_py/src/session_py/__init__.py
+index 991483e112a447f8ac7037b1bed2d0839a09551f..10b226dd7172821c1dece7e4a6cf3fbf5864173a 100644
+--- a/session_py/src/session_py/__init__.py
++++ b/session_py/src/session_py/__init__.py
+@@ -25,6 +25,7 @@ from .graph import Graph
+ from .graph import Vertex
+ from .graph import Edge
+ from .objects import Objects
++from .history import History
+ from .session import Session
+ from .mesh import Mesh
+ from .mesh import NormalWeighting
+@@ -84,6 +85,7 @@ __all__ = [
+     "Vertex",
+     "Edge",
+     "Objects",
++    "History",
+     "Session",
+     "Mesh",
+     "NormalWeighting",
+diff --git a/session_py/src/session_py/graph.py b/session_py/src/session_py/graph.py
+index b235c3d6d7fa57d2366507cd14147b34d962a9fb..36beb67b74c1ee9d9e63146ff1a64eefb490bac3 100644
+--- a/session_py/src/session_py/graph.py
++++ b/session_py/src/session_py/graph.py
+@@ -669,6 +669,26 @@ class Graph:
+     def get_neighbors(self, node: str) -> list[str]:
+         return list(self.neighbors(node))
+ 
++    def edges_of(self, node: str) -> list[tuple[str, str, bool]]:
++        """The edges incident to a node, with what it takes to add each one back.
++
++        Parameters
++        ----------
++        node : str
++            The node identifier.
++
++        Returns
++        -------
++        list[tuple[str, str, bool]]
++            One (other, attribute, forward) per edge; forward is True when ``node`` is the
++            edge's v0, so ``add_edge`` can be replayed with the vertices in their original
++            order. An unknown node has no edges.
++        """
++        out = []
++        for other, edge in self.edges.get(node, {}).items():
++            out.append((other, edge.attribute, edge.v0 == node))
++        return out
++
+     def number_of_vertices(self) -> int:
+         """Get the number of vertices in the graph.
+ 
+diff --git a/session_py/src/session_py/history.py b/session_py/src/session_py/history.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..053933d075495be69296febe81ee7930445d29dc
+--- /dev/null
++++ b/session_py/src/session_py/history.py
+@@ -0,0 +1,258 @@
++from __future__ import annotations
++from typing import Any
++from typing import TYPE_CHECKING
++import copy
++
++if TYPE_CHECKING:
++    from .session import Session
++    from .tree import TreeNode
++    from .xform import Xform
++
++CAPACITY = 64
++
++
++def clone(obj: Any) -> Any:
++    """A deep copy that KEEPS the guid: a snapshot must still name the object it stands for.
++    `duplicate()` mints a fresh guid on purpose, and so does a bare deepcopy of Point and
++    Element, which is why the guid is put back after the copy."""
++    snapshot = copy.deepcopy(obj)
++    if snapshot.guid != obj.guid:
++        snapshot.guid = obj.guid
++    return snapshot
++
++
++# ═══════════════════════════════════════════════════════════════════════════
++# Records
++# ═══════════════════════════════════════════════════════════════════════════
++
++class Tombstone:
++    """Everything needed to put ONE object back into every live table of a session.
++
++    Attributes
++    ----------
++    guid : str
++        The object's guid; the clone carries the same one.
++    obj : Any
++        A `clone()` of the object, never the live instance.
++    collection : str
++        The `Objects` list it lives in: "points", "lines", ... "components".
++    obj_index : int
++        Its position in that list, so the `order()` sequence survives a round trip.
++    xform : Xform | None
++        Its local transform, None when none was set.
++    parent_guid : str | None
++        Name of its tree parent, None when it was added without one.
++    index : int
++        Its position among the parent's children.
++    node : TreeNode | None
++        The detached tree node with its whole subtree, None for an add.
++    attribute : str
++        Its graph node attribute.
++    edges : list[tuple[str, str, bool]]
++        Incident graph edges as (other_guid, attribute, forward), forward when the
++        object was the edge's v0.
++    """
++
++    kind = ""
++
++    def __init__(
++        self,
++        guid: str,
++        obj: Any,
++        collection: str,
++        obj_index: int,
++        xform: "Xform | None",
++        parent_guid: str | None,
++        index: int,
++        node: "TreeNode | None",
++        attribute: str,
++        edges: list[tuple[str, str, bool]],
++    ):
++        self.guid = guid
++        self.obj = obj
++        self.collection = collection
++        self.obj_index = obj_index
++        self.xform = xform
++        self.parent_guid = parent_guid
++        self.index = index
++        self.node = node
++        self.attribute = attribute
++        self.edges = edges
++
++    def __str__(self) -> str:
++        return f"{self.kind}({self.guid})"
++
++    def __repr__(self) -> str:
++        return f"{self.kind}({self.guid}, {self.collection}[{self.obj_index}])"
++
++
++class AddOp(Tombstone):
++    """An object entered the session; undo detaches it, redo attaches the kit again."""
++
++    kind = "add"
++
++
++class RemoveOp(Tombstone):
++    """An object left the session; the kit is what brings it back on undo."""
++
++    kind = "remove"
++
++
++class ReplaceOp:
++    """The object under `guid` was swapped: absolute before/after snapshots, never deltas."""
++
++    kind = "replace"
++
++    def __init__(self, guid: str, before: Any, after: Any):
++        self.guid = guid
++        self.before = before
++        self.after = after
++
++    def __str__(self) -> str:
++        return f"replace({self.guid})"
++
++    def __repr__(self) -> str:
++        return f"replace({self.guid})"
++
++
++class XformOp:
++    """The local transform under `guid` changed; None on either side means "none set"."""
++
++    kind = "xform"
++
++    def __init__(self, guid: str, before: "Xform | None", after: "Xform | None"):
++        self.guid = guid
++        self.before = before
++        self.after = after
++
++    def __str__(self) -> str:
++        return f"xform({self.guid})"
++
++    def __repr__(self) -> str:
++        return f"xform({self.guid})"
++
++
++class Transaction:
++    """One undoable step: a label and the ops it made, in the order they happened."""
++
++    def __init__(self, label: str = "my_transaction"):
++        self.label = label
++        self.ops: list = []
++
++    def __str__(self) -> str:
++        return f"Transaction({self.label}, {len(self.ops)} ops)"
++
++    def __repr__(self) -> str:
++        return f"Transaction({self.label}, {len(self.ops)} ops)"
++
++
++# ═══════════════════════════════════════════════════════════════════════════
++# History
++# ═══════════════════════════════════════════════════════════════════════════
++
++class History:
++    """CAD-style undo/redo over a Session, in memory only.
++
++    A removed object leaves every live table at once; its RemoveOp is the tombstone that
++    carries the resurrection kit. Records are only written while a transaction is open
++    (`begin` ... `commit`), and every save purges the buffer, as Rhino does: history never
++    crosses pb or JSON, and a loaded session starts with an empty one.
++
++    Attributes
++    ----------
++    undo_stack : list[Transaction]
++        Committed transactions, oldest first; capped at CAPACITY, the oldest dropped.
++    redo_stack : list[Transaction]
++        Undone transactions, cleared the moment a new transaction commits.
++    current : Transaction | None
++        The open transaction, None between `commit` and the next `begin`.
++    """
++
++    def __init__(self):
++        self.undo_stack: list[Transaction] = []
++        self.redo_stack: list[Transaction] = []
++        self.current: Transaction | None = None
++
++    def can_undo(self) -> bool:
++        return len(self.undo_stack) > 0
++
++    def can_redo(self) -> bool:
++        return len(self.redo_stack) > 0
++
++    def depth(self) -> int:
++        return len(self.undo_stack)
++
++    def begin(self, label: str) -> None:
++        """Open a transaction; an already open one is committed first so no op is lost."""
++        self.commit()
++        self.current = Transaction(label)
++
++    def commit(self) -> None:
++        """Close the open transaction. An empty one is dropped; a real one clears redo."""
++        transaction = self.current
++        self.current = None
++        if transaction is None or len(transaction.ops) == 0:
++            return
++        self.undo_stack.append(transaction)
++        self.redo_stack.clear()
++        if len(self.undo_stack) > CAPACITY:
++            self.undo_stack.pop(0)
++
++    def record(self, op: Any) -> None:
++        """Append an op to the open transaction; a no-op when none is open."""
++        if self.current is None:
++            return
++        self.current.ops.append(op)
++
++    def undo(self, session: "Session") -> bool:
++        """Revert the newest transaction, ops in reverse order, and park it for redo."""
++        self.commit()
++        if len(self.undo_stack) == 0:
++            return False
++        transaction = self.undo_stack.pop()
++        for i in range(len(transaction.ops) - 1, -1, -1):
++            self._revert(transaction.ops[i], session)
++        self.redo_stack.append(transaction)
++        return True
++
++    def redo(self, session: "Session") -> bool:
++        """Re-apply the newest undone transaction, ops in their original order."""
++        self.commit()
++        if len(self.redo_stack) == 0:
++            return False
++        transaction = self.redo_stack.pop()
++        for i in range(len(transaction.ops)):
++            self._apply(transaction.ops[i], session)
++        self.undo_stack.append(transaction)
++        return True
++
++    def clear(self) -> None:
++        self.undo_stack.clear()
++        self.redo_stack.clear()
++        self.current = None
++
++    def _revert(self, op: Any, session: "Session") -> None:
++        if op.kind == "add":
++            session._detach(op.guid)
++        elif op.kind == "remove":
++            session._attach(op)
++        elif op.kind == "replace":
++            session._swap(op.guid, clone(op.before))
++        elif op.kind == "xform":
++            session._place(op.guid, op.before)
++
++    def _apply(self, op: Any, session: "Session") -> None:
++        if op.kind == "add":
++            session._attach(op)
++        elif op.kind == "remove":
++            session._detach(op.guid)
++        elif op.kind == "replace":
++            session._swap(op.guid, clone(op.after))
++        elif op.kind == "xform":
++            session._place(op.guid, op.after)
++
++    def __str__(self) -> str:
++        return f"History({len(self.undo_stack)} undo, {len(self.redo_stack)} redo)"
++
++    def __repr__(self) -> str:
++        return f"History({len(self.undo_stack)} undo, {len(self.redo_stack)} redo)"
+diff --git a/session_py/src/session_py/history_test.py b/session_py/src/session_py/history_test.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..4a3430a0e36b5c0f8153ac8d28678607eb0e7bf5
+--- /dev/null
++++ b/session_py/src/session_py/history_test.py
+@@ -0,0 +1,95 @@
++from .mini_test import MINI_TEST
++from .mini_test import MINI_CHECK
++from .mini_test import run_all
++from .tolerance import TOLERANCE
++
++
++@MINI_TEST("History", "Constructor")
++def test_history_constructor():
++    from session_py import History
++
++    history = History()
++    hstr = str(history)
++    hrepr = repr(history)
++
++    MINI_CHECK(not history.can_undo())
++    MINI_CHECK(not history.can_redo())
++    MINI_CHECK(history.depth() == 0)
++    MINI_CHECK(hstr == "History(0 undo, 0 redo)")
++    MINI_CHECK(hrepr == "History(0 undo, 0 redo)")
++
++
++@MINI_TEST("History", "Begin Commit")
++def test_history_begin_commit():
++    from session_py import History
++    from session_py import Session
++    from session_py import Point
++
++    session = Session()
++    history = session.history
++
++    # An empty transaction is dropped, and nothing is recorded while none is open.
++    history.begin("empty")
++    history.commit()
++    session.add_point(Point(0.0, 0.0, 0.0))
++
++    history.begin("add")
++    session.add_point(Point(1.0, 0.0, 0.0))
++    history.commit()
++
++    MINI_CHECK(history.depth() == 1)
++    MINI_CHECK(history.can_undo())
++    MINI_CHECK(len(history.undo_stack[0].ops) == 1)
++    MINI_CHECK(history.undo_stack[0].label == "add")
++    MINI_CHECK(history.undo_stack[0].ops[0].kind == "add")
++
++
++@MINI_TEST("History", "Undo Redo")
++def test_history_undo_redo():
++    from session_py import Session
++    from session_py import Point
++
++    session = Session()
++    point = Point(1.0, 2.0, 3.0)
++    guid = point.guid
++
++    session.history.begin("add")
++    session.add_point(point)
++    session.history.commit()
++    undone = session.history.undo(session)
++    absent = guid not in session.lookup
++    redone = session.history.redo(session)
++
++    MINI_CHECK(undone)
++    MINI_CHECK(absent)
++    MINI_CHECK(redone)
++    MINI_CHECK(guid in session.lookup)
++    MINI_CHECK(TOLERANCE.is_close(session.lookup[guid][2], 3.0))
++    MINI_CHECK(not session.history.can_redo())
++    MINI_CHECK(not session.history.redo(session))
++
++
++@MINI_TEST("History", "Clear")
++def test_history_clear():
++    from session_py import Session
++    from session_py import Point
++
++    session = Session()
++
++    session.history.begin("a")
++    session.add_point(Point(0.0, 0.0, 0.0))
++    session.history.commit()
++    session.history.begin("b")
++    session.add_point(Point(1.0, 0.0, 0.0))
++    session.history.commit()
++    session.history.undo(session)
++    session.history.clear()
++
++    MINI_CHECK(not session.history.can_undo())
++    MINI_CHECK(not session.history.can_redo())
++    MINI_CHECK(session.history.depth() == 0)
++    MINI_CHECK(len(session.objects.points) == 1)
++
++
++if __name__ == "__main__":
++    run_all(language="python")
+diff --git a/session_py/src/session_py/session.py b/session_py/src/session_py/session.py
+index e9cb48c3a66fe785d83853683354ffb9bfce6ea8..47ce5746471f59ca6b7d9ffe006fe358fad91762 100644
+--- a/session_py/src/session_py/session.py
++++ b/session_py/src/session_py/session.py
+@@ -13,6 +13,12 @@ from .point import Point
+ from .tree import Tree
+ from .tree import TreeNode
+ from .graph import Graph
++from .history import History
++from .history import AddOp
++from .history import RemoveOp
++from .history import ReplaceOp
++from .history import XformOp
++from .history import clone
+ from .spatial_bvh import SpatialBVH
+ from .obb import OBB
+ from .tolerance import Tolerance
+@@ -38,6 +44,23 @@ class RayHit(NamedTuple):
+     distance: float
+ 
+ 
++# The Objects lists in `order()` sequence, each with the prefix of its graph node attribute.
++COLLECTIONS = [
++    ("points", "point"),
++    ("lines", "line"),
++    ("planes", "plane"),
++    ("bboxes", "bbox"),
++    ("polylines", "polyline"),
++    ("pointclouds", "pointcloud"),
++    ("meshes", "mesh"),
++    ("nurbscurves", "nurbscurve"),
++    ("nurbssurfaces", "nurbssurface"),
++    ("breps", "brep"),
++    ("elements", "element"),
++    ("components", "component"),
++]
++
++
+ class Session:
+     """A Session containing geometry objects with hierarchical and graph structures.
+ 
+@@ -67,6 +90,9 @@ class Session:
+         stored: geometry types carry no transformation member. Cumulative placement comes from
+         `world_xform`, which multiplies down the tree. Serialized explicitly by
+         __jsondump__/pb_dumps in `order()` sequence (a dict has no deterministic order).
++    history : :class:`History`
++        Undo/redo buffer, in memory only. Ops are recorded ONLY while a transaction is open
++        (`begin` ... `commit`), and every save purges it, as Rhino does.
+     name : str
+         Name of the Session.
+ 
+@@ -80,6 +106,7 @@ class Session:
+         self.tree = Tree(name=f"{name}_tree")
+         self.graph = Graph(name=f"{name}_graph")
+         self.xforms: dict[str, Xform] = {}
++        self.history = History()
+         # SpatialBVH for collision detection (auto-computed world size)
+         self.bvh = SpatialBVH()
+ 
+@@ -110,6 +137,8 @@ class Session:
+ 
+     def set_xform(self, guid: str, xform: Xform) -> None:
+         """Set the LOCAL transform of an object, relative to its tree parent."""
++        if self.history.current is not None:
++            self.history.record(XformOp(guid, self.xforms.get(guid), xform))
+         self.xforms[guid] = xform
+ 
+     def xform(self, guid: str) -> Xform:
+@@ -118,6 +147,9 @@ class Session:
+ 
+     def remove_xform(self, guid: str) -> bool:
+         """Remove an object's local transform, returning whether one was present."""
++        before = self.xforms.get(guid)
++        if before is not None and self.history.current is not None:
++            self.history.record(XformOp(guid, before, None))
+         return self.xforms.pop(guid, None) is not None
+ 
+     def world_xform(self, guid: str) -> Xform:
+@@ -254,6 +286,7 @@ class Session:
+ 
+     def file_json_dumps(self) -> str:
+         import json
++        self.history.clear()
+         return json.dumps(self.__jsondump__())
+ 
+     @classmethod
+@@ -263,6 +296,7 @@ class Session:
+ 
+     def file_json_dump(self, filepath: Union[str, "Path"]) -> None:
+         import json
++        self.history.clear()
+         with open(filepath, 'w') as f:
+             json.dump(self.__jsondump__(), f, indent=2)
+ 
+@@ -274,6 +308,7 @@ class Session:
+ 
+     def pb_dumps(self) -> bytes:
+         from .proto import session_pb2
++        self.history.clear()
+         proto = session_pb2.Session()
+         proto.name = self.name
+         if self.has_guid():
+@@ -332,6 +367,7 @@ class Session:
+         return session
+ 
+     def pb_dump(self, filepath: Union[str, "Path"]) -> None:
++        self.history.clear()
+         with open(filepath, 'wb') as f:
+             f.write(self.pb_dumps())
+ 
+@@ -342,13 +378,23 @@ class Session:
+ 
+     # ═══════════════════════════════════════════════════════════════════════════
+ 
+-    def _add_object(self, collection, obj, type_prefix, parent=None):
+-        collection.append(obj)
++    def _add_object(self, collection: str, obj, type_prefix: str, parent=None):
++        items = getattr(self.objects, collection)
++        items.append(obj)
+         self.lookup[obj.guid] = obj
+-        self.graph.add_node(obj.guid, f"{type_prefix}_{obj.name}")
++        attribute = f"{type_prefix}_{obj.name}"
++        self.graph.add_node(obj.guid, attribute)
+         node = TreeNode(name=obj.guid)
++        parent_guid = None
++        index = 0
+         if parent is not None:
+             self.add(node, parent)
++            parent_guid = parent.name
++            index = len(parent.children) - 1
++        if self.history.current is not None:
++            self.history.record(
++                AddOp(obj.guid, clone(obj), collection, len(items) - 1, None, parent_guid, index, None, attribute, [])
++            )
+         return node
+ 
+     def order(self) -> list[str]:
+@@ -372,63 +418,63 @@ class Session:
+     def add_point(self, point: Point, parent: TreeNode | None = None) -> TreeNode | None:
+         if point is None:
+             return None
+-        return self._add_object(self.objects.points, point, "point", parent)
++        return self._add_object("points", point, "point", parent)
+ 
+     def add_line(self, line: "Line", parent: TreeNode | None = None) -> TreeNode | None:
+         if line is None:
+             return None
+-        return self._add_object(self.objects.lines, line, "line", parent)
++        return self._add_object("lines", line, "line", parent)
+ 
+     def add_plane(self, plane: "Plane", parent: TreeNode | None = None) -> TreeNode | None:
+         if plane is None:
+             return None
+-        return self._add_object(self.objects.planes, plane, "plane", parent)
++        return self._add_object("planes", plane, "plane", parent)
+ 
+     def add_obb(self, bbox: "OBB", parent: TreeNode | None = None) -> TreeNode | None:
+         if bbox is None:
+             return None
+-        return self._add_object(self.objects.bboxes, bbox, "bbox", parent)
++        return self._add_object("bboxes", bbox, "bbox", parent)
+ 
+     def add_polyline(self, polyline: "Polyline", parent: TreeNode | None = None) -> TreeNode | None:
+         if polyline is None or polyline.point_count() < 2:
+             return None
+-        return self._add_object(self.objects.polylines, polyline, "polyline", parent)
++        return self._add_object("polylines", polyline, "polyline", parent)
+ 
+     def add_pointcloud(self, pointcloud: "PointCloud", parent: TreeNode | None = None) -> TreeNode | None:
+         if pointcloud is None or pointcloud.is_empty():
+             return None
+-        return self._add_object(self.objects.pointclouds, pointcloud, "pointcloud", parent)
++        return self._add_object("pointclouds", pointcloud, "pointcloud", parent)
+ 
+     def add_mesh(self, mesh: "Mesh", parent: TreeNode | None = None) -> TreeNode | None:
+         if mesh is None or mesh.is_empty() or mesh.number_of_faces() == 0:
+             return None
+-        return self._add_object(self.objects.meshes, mesh, "mesh", parent)
++        return self._add_object("meshes", mesh, "mesh", parent)
+ 
+     def add_nurbscurve(self, nurbscurve: "NurbsCurve", parent: TreeNode | None = None) -> TreeNode | None:
+         if nurbscurve is None or nurbscurve.cv_count() < 2:
+             return None
+-        return self._add_object(self.objects.nurbscurves, nurbscurve, "nurbscurve", parent)
++        return self._add_object("nurbscurves", nurbscurve, "nurbscurve", parent)
+ 
+     def add_nurbssurface(self, nurbssurface: "NurbsSurface", parent: TreeNode | None = None) -> TreeNode | None:
+         if nurbssurface is None or nurbssurface.cv_count() == 0:
+             return None
+-        return self._add_object(self.objects.nurbssurfaces, nurbssurface, "nurbssurface", parent)
++        return self._add_object("nurbssurfaces", nurbssurface, "nurbssurface", parent)
+ 
+     def add_brep(self, brep: "BRep", parent: TreeNode | None = None) -> TreeNode | None:
+         if brep is None or (brep.face_count() == 0 and brep.vertex_count() == 0):
+             return None
+-        return self._add_object(self.objects.breps, brep, "brep", parent)
++        return self._add_object("breps", brep, "brep", parent)
+ 
+     def add_element(self, element: "Element", parent: TreeNode | None = None) -> TreeNode | None:
+         # Kept even with no geometry: an Element is a data record - features, insertion vectors,
+         # element_data a consumer reads back - and dropping one would lose that on a round trip.
+         if element is None:
+             return None
+-        return self._add_object(self.objects.elements, element, "element", parent)
++        return self._add_object("elements", element, "element", parent)
+ 
+     def add_component(self, component: Any, parent: TreeNode | None = None) -> TreeNode:
+         """Add a custom component (any object with guid, name, __jsondump__, __jsonload__)."""
+-        return self._add_object(self.objects.components, component, "component", parent)
++        return self._add_object("components", component, "component", parent)
+ 
+     def add_group(self, name: str) -> TreeNode:
+         node = TreeNode(name=name)
+@@ -526,48 +572,162 @@ class Session:
+         return groups
+ 
+     def remove_object(self, guid: str) -> bool:
+-        """Remove a geometry object by its GUID.
++        """Remove an object by its GUID from every live table at once: its typed list,
++        `lookup`, its xform, its tree node (with the subtree) and its graph node with every
++        incident edge. The removal record is the tombstone that undo restores from.
+ 
+-        Args:
+-            guid: The UUID of the geometry object to remove.
++        Parameters
++        ----------
++        guid : str
++            The GUID of the object to remove.
+ 
+-        Returns:
++        Returns
++        -------
++        bool
+             True if the object was removed, False if not found.
+         """
+-        geometry = self.lookup.get(guid)
+-        if not geometry:
++        op = self._detach(guid)
++        if op is None:
+             return False
++        self.history.record(op)
++        return True
+ 
+-        # Remove from all object collections
+-        self.objects.points = [p for p in self.objects.points if p.guid != guid]
+-        self.objects.lines = [l for l in self.objects.lines if l.guid != guid]
+-        self.objects.polylines = [p for p in self.objects.polylines if p.guid != guid]
+-        self.objects.planes = [p for p in self.objects.planes if p.guid != guid]
+-        self.objects.bboxes = [b for b in self.objects.bboxes if b.guid != guid]
+-        self.objects.meshes = [m for m in self.objects.meshes if m.guid != guid]
+-        self.objects.pointclouds = [p for p in self.objects.pointclouds if p.guid != guid]
+-        self.objects.nurbscurves = [c for c in self.objects.nurbscurves if c.guid != guid]
+-        self.objects.nurbssurfaces = [s for s in self.objects.nurbssurfaces if s.guid != guid]
+-        self.objects.breps = [b for b in self.objects.breps if b.guid != guid]
+-        self.objects.elements = [e for e in self.objects.elements if e.guid != guid]
+-
+-        # Remove from lookup table
+-        del self.lookup[guid]
+-        self.xforms.pop(guid, None)
++    def replace(self, guid: str, obj: Any) -> bool:
++        """Swap the object stored under ``guid`` for ``obj``, which takes over that guid, in
++        its typed list and `lookup`, and refresh its graph node attribute.
+ 
+-        # Remove from tree - find node by guid first
+-        node = self.tree.find_node_by_guid(guid)
+-        if node is not None:
+-            self.tree.remove(node)
++        This is the recorded edit: undo restores the previous object, redo the new one, as
++        absolute snapshots. Mutating an object in place through `lookup` stays possible and
++        is NOT recorded - history only sees what goes through `replace`.
+ 
+-        # Remove from graph using string GUID
+-        if self.graph.has_node(str(guid)):
+-            self.graph.remove_node(str(guid))
++        Parameters
++        ----------
++        guid : str
++            The GUID of the object to replace.
++        obj : Any
++            The replacement; its guid is set to ``guid``.
+ 
++        Returns
++        -------
++        bool
++            True if the object was replaced, False if not found.
++        """
++        before = self.lookup.get(guid)
++        if before is None:
++            return False
++        obj.guid = guid
++        if self.history.current is not None:
++            self.history.record(ReplaceOp(guid, clone(before), clone(obj)))
++        self._swap(guid, obj)
+         return True
+ 
+     # ═══════════════════════════════════════════════════════════════════════════
+ 
++    def begin(self, label: str) -> None:
++        """Open a history transaction: every add, remove, replace and xform change until
++        `commit` becomes one undo step."""
++        self.history.begin(label)
++
++    def commit(self) -> None:
++        self.history.commit()
++
++    def undo(self) -> bool:
++        return self.history.undo(self)
++
++    def redo(self) -> bool:
++        return self.history.redo(self)
++
++    def _locate(self, guid: str) -> tuple[str, int]:
++        """Which Objects list holds a guid, and where; ("", -1) when none does."""
++        for collection, _ in COLLECTIONS:
++            items = getattr(self.objects, collection)
++            for i in range(len(items)):
++                if items[i].guid == guid:
++                    return collection, i
++        return "", -1
++
++    def _detach(self, guid: str) -> RemoveOp | None:
++        """Take an object out of every live table, unrecorded, returning its tombstone."""
++        obj = self.lookup.get(guid)
++        if obj is None:
++            return None
++        collection, obj_index = self._locate(guid)
++        if obj_index >= 0:
++            getattr(self.objects, collection).pop(obj_index)
++        del self.lookup[guid]
++        xform = self.xforms.pop(guid, None)
++
++        parent_guid = None
++        index = 0
++        node = self.tree.get_node_by_name(guid)
++        if node is not None:
++            if node.parent is not None:
++                parent_guid = node.parent.name
++                index = node.parent.children.index(node)
++            node = self.tree.remove(node)
++
++        attribute = ""
++        edges = []
++        if self.graph.has_node(guid):
++            attribute = self.graph.node_attribute(guid)
++            edges = self.graph.edges_of(guid)
++            self.graph.remove_node(guid)
++
++        return RemoveOp(guid, clone(obj), collection, obj_index, xform, parent_guid, index, node, attribute, edges)
++
++    def _attach(self, op) -> None:
++        """Put an object back from its tombstone, unrecorded: typed list at its old index,
++        `lookup`, xform, tree node under the same parent at the same index with its subtree,
++        graph node and every incident edge whose other end is still present."""
++        items = getattr(self.objects, op.collection)
++        obj = clone(op.obj)
++        items.insert(min(op.obj_index, len(items)), obj)
++        self.lookup[op.guid] = obj
++        if op.xform is not None:
++            self.xforms[op.guid] = op.xform
++
++        node = op.node
++        if node is None:
++            node = TreeNode(name=op.guid)
++        if op.parent_guid is not None:
++            parent = self.tree.get_node_by_name(op.parent_guid)
++            if parent is not None:
++                self.tree.add(node, parent)
++                parent.children.remove(node)
++                parent.children.insert(min(op.index, len(parent.children)), node)
++
++        self.graph.add_node(op.guid, op.attribute)
++        for other, attribute, forward in op.edges:
++            if not self.graph.has_node(other):
++                continue
++            if forward:
++                self.graph.add_edge(op.guid, other, attribute)
++            else:
++                self.graph.add_edge(other, op.guid, attribute)
++
++    def _swap(self, guid: str, obj: Any) -> None:
++        """Store ``obj`` under ``guid`` in its typed list and `lookup`, unrecorded."""
++        collection, obj_index = self._locate(guid)
++        if obj_index < 0:
++            return
++        getattr(self.objects, collection)[obj_index] = obj
++        self.lookup[guid] = obj
++        attribute = ""
++        for name, prefix in COLLECTIONS:
++            if name == collection:
++                attribute = f"{prefix}_{obj.name}"
++        if self.graph.has_node(guid):
++            self.graph.node_attribute(guid, attribute)
++
++    def _place(self, guid: str, xform: Xform | None) -> None:
++        """Set or drop (None) the local transform under ``guid``, unrecorded."""
++        if xform is None:
++            self.xforms.pop(guid, None)
++        else:
++            self.xforms[guid] = xform
++
++    # ═══════════════════════════════════════════════════════════════════════════
++
+     @staticmethod
+     def _compute_bounding_box(geometry, xform: Xform) -> OBB:
+         """Bounding box of an object in WORLD placement, inflated by tolerance.
+diff --git a/session_py/src/session_py/session_test.py b/session_py/src/session_py/session_test.py
+index 605a5031354e88e0028e036f7e9ef0e5ed45f253..b40e6bfcce9e5e0557bd68c0c23c5bbbf0ae8fa7 100644
+--- a/session_py/src/session_py/session_test.py
++++ b/session_py/src/session_py/session_test.py
+@@ -465,6 +465,29 @@ def test_session_get_geometry():
+     MINI_CHECK(len(geom.points) == 1)
+ 
+ 
++@MINI_TEST("Session", "Get Geometry Is Pure")
++def test_session_get_geometry_is_pure():
++    # get_geometry() returns a flattened SNAPSHOT and must never touch the session's own
++    # geometry, so calling it twice gives the same answer.
++    from session_py import Session
++    from session_py import Point
++    from session_py import Xform
++
++    session = Session()
++    point = Point(1.0, 2.0, 3.0)
++    guid = point.guid
++    session.add_point(point)
++    session.set_xform(guid, Xform.translation(10.0, 0.0, 0.0))
++
++    first = session.get_geometry().points[0]
++    second = session.get_geometry().points[0]
++
++    MINI_CHECK(TOLERANCE.is_close(first[0], 11.0))
++    MINI_CHECK(TOLERANCE.is_close(second[0], 11.0))
++    MINI_CHECK(TOLERANCE.is_close(point[0], 1.0))
++    MINI_CHECK(TOLERANCE.is_close(session.objects.points[0][0], 1.0))
++
++
+ @MINI_TEST("Session", "Json Roundtrip")
+ def test_session_json_roundtrip():
+     from session_py import Session
+@@ -794,5 +817,214 @@ def test_session_component_json_roundtrip():
+     MINI_CHECK(loaded.objects.components[0].guid == guid)
+ 
+ 
++@MINI_TEST("Session", "Document Workflow")
++def test_session_document_workflow():
++    from session_py import Session
++    from session_py import Point
++    from session_py import Xform
++    from pathlib import Path
++
++    session = Session()
++    a = Point(1.0, 0.0, 0.0)
++    b = Point(2.0, 0.0, 0.0)
++    c = Point(3.0, 0.0, 0.0)
++    a_guid = a.guid
++    b_guid = b.guid
++    c_guid = c.guid
++    session.add_point(a)
++    session.add_point(b)
++    session.add_point(c)
++
++    session.replace(b_guid, Point(20.0, 0.0, 0.0))
++    session.remove_object(c_guid)
++    shift = Xform.translation(0.0, 5.0, 0.0)
++    session.set_xform(a_guid, shift)
++
++    fname = Path(__file__).resolve().parents[2] / "serialization" / "test_session_document.bin"
++    session.pb_dump(fname)
++    loaded = Session.pb_load(fname)
++
++    MINI_CHECK(len(loaded.lookup) == 2)
++    MINI_CHECK(a_guid in loaded.lookup)
++    MINI_CHECK(b_guid in loaded.lookup)
++    MINI_CHECK(c_guid not in loaded.lookup)
++    MINI_CHECK(TOLERANCE.is_close(loaded.lookup[b_guid][0], 20.0))
++    MINI_CHECK(loaded.xform(a_guid) == shift)
++    MINI_CHECK(loaded.history.depth() == 0)
++
++
++@MINI_TEST("Session", "Undo Remove")
++def test_session_undo_remove():
++    from session_py import Session
++    from session_py import Point
++    from session_py import Xform
++
++    session = Session()
++    group = session.add_group("g")
++    a = Point(1.0, 0.0, 0.0)
++    b = Point(2.0, 0.0, 0.0)
++    c = Point(3.0, 0.0, 0.0)
++    a_guid = a.guid
++    b_guid = b.guid
++    c_guid = c.guid
++    session.add_point(a, group)
++    b_node = session.add_point(b, group)
++    session.add_point(c, b_node)
++    session.add_edge(a_guid, b_guid, "connection")
++    shift = Xform.translation(0.0, 5.0, 0.0)
++    session.set_xform(b_guid, shift)
++
++    session.begin("remove")
++    session.remove_object(b_guid)
++    session.commit()
++    gone = b_guid not in session.lookup and len(group.children) == 1
++    session.undo()
++
++    MINI_CHECK(gone)
++    MINI_CHECK(b_guid in session.lookup)
++    MINI_CHECK(session.objects.points[1].guid == b_guid)
++    MINI_CHECK(group.children[1].name == b_guid)
++    MINI_CHECK(group.children[1].children[0].name == c_guid)
++    MINI_CHECK(session.graph.has_edge((a_guid, b_guid)))
++    MINI_CHECK(session.graph.edge_attribute(a_guid, b_guid) == "connection")
++    MINI_CHECK(session.xform(b_guid) == shift)
++
++    session.redo()
++
++    MINI_CHECK(b_guid not in session.lookup)
++    MINI_CHECK(len(session.objects.points) == 2)
++    MINI_CHECK(len(group.children) == 1)
++    MINI_CHECK(not session.graph.has_edge((a_guid, b_guid)))
++    MINI_CHECK(session.xform(b_guid) == Xform.identity())
++
++
++@MINI_TEST("Session", "Undo Add")
++def test_session_undo_add():
++    from session_py import Session
++    from session_py import Point
++
++    session = Session()
++    group = session.add_group("g")
++    session.add_point(Point(0.0, 0.0, 0.0), group)
++    point = Point(1.0, 2.0, 3.0)
++    guid = point.guid
++
++    session.begin("add")
++    session.add_point(point, group)
++    session.commit()
++    session.undo()
++    gone = guid not in session.lookup and len(session.objects.points) == 1
++    session.redo()
++
++    MINI_CHECK(gone)
++    MINI_CHECK(guid in session.lookup)
++    MINI_CHECK(session.objects.points[1].guid == guid)
++    MINI_CHECK(group.children[1].name == guid)
++    MINI_CHECK(session.graph.has_node(guid))
++    MINI_CHECK(TOLERANCE.is_close(session.lookup[guid][2], 3.0))
++
++
++@MINI_TEST("Session", "Undo Replace")
++def test_session_undo_replace():
++    from session_py import Session
++    from session_py import Point
++
++    session = Session()
++    point = Point(1.0, 2.0, 3.0)
++    guid = point.guid
++    session.add_point(point)
++
++    session.begin("replace")
++    session.replace(guid, Point(9.0, 9.0, 9.0))
++    session.commit()
++    replaced = session.lookup[guid][0]
++    session.undo()
++    restored = session.lookup[guid][0]
++    session.redo()
++
++    MINI_CHECK(TOLERANCE.is_close(replaced, 9.0))
++    MINI_CHECK(TOLERANCE.is_close(restored, 1.0))
++    MINI_CHECK(TOLERANCE.is_close(session.lookup[guid][0], 9.0))
++    MINI_CHECK(session.objects.points[0].guid == guid)
++    MINI_CHECK(len(session.objects.points) == 1)
++
++
++@MINI_TEST("Session", "Undo Xform")
++def test_session_undo_xform():
++    from session_py import Session
++    from session_py import Point
++    from session_py import Xform
++
++    session = Session()
++    point = Point(1.0, 2.0, 3.0)
++    guid = point.guid
++    session.add_point(point)
++    shift = Xform.translation(5.0, 0.0, 0.0)
++
++    session.begin("move")
++    session.set_xform(guid, shift)
++    session.commit()
++    session.undo()
++    cleared = session.xform(guid) == Xform.identity()
++    session.redo()
++
++    session.begin("reset")
++    session.remove_xform(guid)
++    session.commit()
++    session.undo()
++
++    MINI_CHECK(cleared)
++    MINI_CHECK(session.xform(guid) == shift)
++    MINI_CHECK(len(session.xforms) == 1)
++
++
++@MINI_TEST("Session", "History Purged On Save")
++def test_session_history_purged_on_save():
++    from session_py import Session
++    from session_py import Point
++
++    session = Session()
++
++    session.begin("add")
++    session.add_point(Point(0.0, 0.0, 0.0))
++    session.commit()
++    before_pb = session.history.depth()
++    session.pb_dumps()
++    after_pb = session.history.depth()
++
++    session.begin("add")
++    session.add_point(Point(1.0, 0.0, 0.0))
++    session.commit()
++    before_json = session.history.depth()
++    session.file_json_dumps()
++
++    MINI_CHECK(before_pb == 1)
++    MINI_CHECK(after_pb == 0)
++    MINI_CHECK(before_json == 1)
++    MINI_CHECK(session.history.depth() == 0)
++    MINI_CHECK(not session.undo())
++    MINI_CHECK(len(session.objects.points) == 2)
++
++
++@MINI_TEST("Session", "History Capacity")
++def test_session_history_capacity():
++    from session_py import Session
++    from session_py import Point
++
++    session = Session()
++    for i in range(70):
++        session.begin("add")
++        session.add_point(Point(float(i), 0.0, 0.0))
++        session.commit()
++    depth = session.history.depth()
++    while session.undo():
++        pass
++
++    MINI_CHECK(depth == 64)
++    MINI_CHECK(not session.history.can_undo())
++    MINI_CHECK(len(session.objects.points) == 6)
++    MINI_CHECK(TOLERANCE.is_close(session.objects.points[5][0], 5.0))
++
++
+ if __name__ == "__main__":
+     run_all(language="python")
+diff --git a/session_py/src/session_py/tree.py b/session_py/src/session_py/tree.py
+index c18562d97b929ab76007032d5ddfba827ea2fc4a..ebaa05e43dc36cd6b08a7d81b0ece91fa675c1ea 100644
+--- a/session_py/src/session_py/tree.py
++++ b/session_py/src/session_py/tree.py
+@@ -413,7 +413,7 @@ class Tree:
+         if self.root:
+             yield from self.root.traverse()
+ 
+-    def remove(self, node: "TreeNode") -> None:
++    def remove(self, node: "TreeNode") -> "TreeNode":
+         """Remove a node from the tree.
+ 
+         Parameters
+@@ -421,12 +421,18 @@ class Tree:
+         node : :class:`TreeNode`
+             The node to remove.
+ 
++        Returns
++        -------
++        :class:`TreeNode`
++            The detached node, its subtree intact, so a caller can keep or re-add it.
++
+         """
+         if node == self.root:
+             self._root = None
+             node._tree = None
+         else:
+             node.parent.remove(node)
++        return node
+ 
+     @property
+     def leaves(self) -> Iterator["TreeNode"]:
+diff --git a/session_rust/src/element.rs b/session_rust/src/element.rs
+index 31cf86fb2cf77a33752dfe1be8a401a8fa16e576..38f97f09af4ea0995c9c14ceec8d7f1bac4c75b9 100644
+--- a/session_rust/src/element.rs
++++ b/session_rust/src/element.rs
+@@ -367,6 +367,11 @@ impl Element {
+         let _ = self.guid.set(g);
+     }
+ 
++    /// Clear the guid so a FRESH one mints lazily on next read — the duplicate/copy enabler.
++    pub fn refresh_guid(&mut self) {
++        self.guid = std::sync::OnceLock::new();
++    }
++
+     pub fn duplicate(&self) -> Self {
+         let mut result = self.clone();
+         result.guid = std::sync::OnceLock::new();
+diff --git a/session_rust/src/graph.rs b/session_rust/src/graph.rs
+index 7535db6b5fd250dd5317f42f8a861ba847c25647..1f145809e8d4aa1a614d43e7be64f60cd8379168 100644
+--- a/session_rust/src/graph.rs
++++ b/session_rust/src/graph.rs
+@@ -403,6 +403,19 @@ impl Graph {
+         self.neighbors(node)
+     }
+ 
++    /// The edges incident to a node as (other, attribute, forward); forward is true when
++    /// `node` is the edge's v0, so `add_edge` can be replayed with the vertices in their
++    /// original order. An unknown node has no edges.
++    pub fn edges_of(&self, node: &str) -> Vec<(String, String, bool)> {
++        let mut out = Vec::new();
++        if let Some(neighbors) = self.edges.get(node) {
++            for (other, edge) in neighbors {
++                out.push((other.clone(), edge.attribute.clone(), edge.v0 == node));
++            }
++        }
++        out
++    }
++
+     /// Removes a node and all its edges from the graph.
+     pub fn remove_node(&mut self, key: &str) {
+         if !self.has_node(key) {
+diff --git a/session_rust/src/history.rs b/session_rust/src/history.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..a2ac18dee0e825a85aa502d26fce81499e4c01d9
+--- /dev/null
++++ b/session_rust/src/history.rs
+@@ -0,0 +1,320 @@
++use crate::session::{Geometry, Session};
++use crate::tree::TreeNode;
++use crate::xform::Xform;
++use std::cell::RefCell;
++use std::fmt;
++use std::rc::Rc;
++
++pub const CAPACITY: usize = 64;
++
++/// A deep copy that KEEPS the guid: a snapshot must still name the object it stands for.
++/// `Geometry::clone` only bumps the Rc, so the inner value is cloned into a fresh Rc; every
++/// geometry's `clone()` preserves the guid (`duplicate()` is what mints a new one).
++pub fn clone(obj: &Geometry) -> Geometry {
++    match obj {
++        Geometry::OBB(g) => Geometry::OBB(Rc::new((**g).clone())),
++        Geometry::BRep(g) => Geometry::BRep(Rc::new((**g).clone())),
++        Geometry::Element(g) => Geometry::Element(Rc::new((**g).clone())),
++        Geometry::Line(g) => Geometry::Line(Rc::new((**g).clone())),
++        Geometry::Mesh(g) => Geometry::Mesh(Rc::new((**g).clone())),
++        Geometry::NurbsCurve(g) => Geometry::NurbsCurve(Rc::new((**g).clone())),
++        Geometry::NurbsSurface(g) => Geometry::NurbsSurface(Rc::new((**g).clone())),
++        Geometry::Plane(g) => Geometry::Plane(Rc::new((**g).clone())),
++        Geometry::Point(g) => Geometry::Point(Rc::new((**g).clone())),
++        Geometry::PointCloud(g) => Geometry::PointCloud(Rc::new((**g).clone())),
++        Geometry::Polyline(g) => Geometry::Polyline(Rc::new((**g).clone())),
++    }
++}
++
++// ═══════════════════════════════════════════════════════════════════════════
++// Records
++// ═══════════════════════════════════════════════════════════════════════════
++
++/// Everything needed to put ONE object back into every live table of a session.
++///
++/// * `guid` - The object's guid; the clone carries the same one.
++/// * `obj` - A `clone()` of the object, never the live instance.
++/// * `collection` - The `Objects` vector it lives in: "points", "lines", ... "components".
++/// * `obj_index` - Its position in that vector, so the `order()` sequence survives a round trip.
++/// * `xform` - Its local transform, None when none was set.
++/// * `parent_guid` - Name of its tree parent, None when it was added without one.
++/// * `index` - Its position among the parent's children.
++/// * `node` - The detached tree node with its whole subtree, None for an add.
++/// * `attribute` - Its graph node attribute.
++/// * `edges` - Incident graph edges as (other_guid, attribute, forward), forward when the
++///   object was the edge's v0.
++#[derive(Debug, Clone)]
++pub struct Tombstone {
++    pub guid: String,
++    pub obj: Geometry,
++    pub collection: String,
++    pub obj_index: i64,
++    pub xform: Option<Xform>,
++    pub parent_guid: Option<String>,
++    pub index: usize,
++    pub node: Option<Rc<RefCell<TreeNode>>>,
++    pub attribute: String,
++    pub edges: Vec<(String, String, bool)>,
++}
++
++impl Tombstone {
++    #[allow(clippy::too_many_arguments)]
++    pub fn new(
++        guid: String,
++        obj: Geometry,
++        collection: String,
++        obj_index: i64,
++        xform: Option<Xform>,
++        parent_guid: Option<String>,
++        index: usize,
++        node: Option<Rc<RefCell<TreeNode>>>,
++        attribute: String,
++        edges: Vec<(String, String, bool)>,
++    ) -> Self {
++        Self {
++            guid,
++            obj,
++            collection,
++            obj_index,
++            xform,
++            parent_guid,
++            index,
++            node,
++            attribute,
++            edges,
++        }
++    }
++}
++
++/// The object under `guid` was swapped: absolute before/after snapshots, never deltas.
++#[derive(Debug, Clone)]
++pub struct ReplaceOp {
++    pub guid: String,
++    pub before: Geometry,
++    pub after: Geometry,
++}
++
++impl ReplaceOp {
++    pub fn new(guid: String, before: Geometry, after: Geometry) -> Self {
++        Self {
++            guid,
++            before,
++            after,
++        }
++    }
++}
++
++/// The local transform under `guid` changed; None on either side means "none set".
++#[derive(Debug, Clone)]
++pub struct XformOp {
++    pub guid: String,
++    pub before: Option<Xform>,
++    pub after: Option<Xform>,
++}
++
++impl XformOp {
++    pub fn new(guid: String, before: Option<Xform>, after: Option<Xform>) -> Self {
++        Self {
++            guid,
++            before,
++            after,
++        }
++    }
++}
++
++/// One recorded op. `Add` and `Remove` share the tombstone shape: an add is undone by
++/// detaching the kit, a remove by attaching it again.
++#[derive(Debug, Clone)]
++pub enum Op {
++    Add(Tombstone),
++    Remove(Tombstone),
++    Replace(ReplaceOp),
++    Xform(XformOp),
++}
++
++impl Op {
++    pub fn kind(&self) -> &str {
++        match self {
++            Op::Add(_) => "add",
++            Op::Remove(_) => "remove",
++            Op::Replace(_) => "replace",
++            Op::Xform(_) => "xform",
++        }
++    }
++
++    pub fn guid(&self) -> &str {
++        match self {
++            Op::Add(op) | Op::Remove(op) => &op.guid,
++            Op::Replace(op) => &op.guid,
++            Op::Xform(op) => &op.guid,
++        }
++    }
++}
++
++impl fmt::Display for Op {
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        write!(f, "{}({})", self.kind(), self.guid())
++    }
++}
++
++/// One undoable step: a label and the ops it made, in the order they happened.
++#[derive(Debug, Clone)]
++pub struct Transaction {
++    pub label: String,
++    pub ops: Vec<Op>,
++}
++
++impl Transaction {
++    pub fn new(label: &str) -> Self {
++        Self {
++            label: label.to_string(),
++            ops: Vec::new(),
++        }
++    }
++}
++
++impl Default for Transaction {
++    fn default() -> Self {
++        Self::new("my_transaction")
++    }
++}
++
++impl fmt::Display for Transaction {
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        write!(f, "Transaction({}, {} ops)", self.label, self.ops.len())
++    }
++}
++
++// ═══════════════════════════════════════════════════════════════════════════
++// History
++// ═══════════════════════════════════════════════════════════════════════════
++
++/// CAD-style undo/redo over a Session, in memory only.
++///
++/// A removed object leaves every live table at once; its `Op::Remove` is the tombstone that
++/// carries the resurrection kit. Records are only written while a transaction is open
++/// (`begin` ... `commit`), and every save purges the buffer, as Rhino does: history never
++/// crosses pb or JSON, and a loaded session starts with an empty one.
++///
++/// * `undo_stack` - Committed transactions, oldest first; capped at CAPACITY, the oldest dropped.
++/// * `redo_stack` - Undone transactions, cleared the moment a new transaction commits.
++/// * `current` - The open transaction, None between `commit` and the next `begin`.
++#[derive(Debug, Clone, Default)]
++pub struct History {
++    pub undo_stack: Vec<Transaction>,
++    pub redo_stack: Vec<Transaction>,
++    pub current: Option<Transaction>,
++}
++
++impl History {
++    pub fn new() -> Self {
++        Self::default()
++    }
++
++    pub fn can_undo(&self) -> bool {
++        !self.undo_stack.is_empty()
++    }
++
++    pub fn can_redo(&self) -> bool {
++        !self.redo_stack.is_empty()
++    }
++
++    pub fn depth(&self) -> usize {
++        self.undo_stack.len()
++    }
++
++    /// Open a transaction; an already open one is committed first so no op is lost.
++    pub fn begin(&mut self, label: &str) {
++        self.commit();
++        self.current = Some(Transaction::new(label));
++    }
++
++    /// Close the open transaction. An empty one is dropped; a real one clears redo.
++    pub fn commit(&mut self) {
++        let transaction = self.current.take();
++        let Some(transaction) = transaction else {
++            return;
++        };
++        if transaction.ops.is_empty() {
++            return;
++        }
++        self.undo_stack.push(transaction);
++        self.redo_stack.clear();
++        if self.undo_stack.len() > CAPACITY {
++            self.undo_stack.remove(0);
++        }
++    }
++
++    /// Append an op to the open transaction; a no-op when none is open.
++    pub fn record(&mut self, op: Op) {
++        let Some(current) = self.current.as_mut() else {
++            return;
++        };
++        current.ops.push(op);
++    }
++
++    /// Revert the newest transaction, ops in reverse order, and park it for redo.
++    pub fn undo(&mut self, session: &mut Session) -> bool {
++        self.commit();
++        let Some(transaction) = self.undo_stack.pop() else {
++            return false;
++        };
++        for op in transaction.ops.iter().rev() {
++            self._revert(op, session);
++        }
++        self.redo_stack.push(transaction);
++        true
++    }
++
++    /// Re-apply the newest undone transaction, ops in their original order.
++    pub fn redo(&mut self, session: &mut Session) -> bool {
++        self.commit();
++        let Some(transaction) = self.redo_stack.pop() else {
++            return false;
++        };
++        for op in transaction.ops.iter() {
++            self._apply(op, session);
++        }
++        self.undo_stack.push(transaction);
++        true
++    }
++
++    pub fn clear(&mut self) {
++        self.undo_stack.clear();
++        self.redo_stack.clear();
++        self.current = None;
++    }
++
++    fn _revert(&self, op: &Op, session: &mut Session) {
++        match op {
++            Op::Add(op) => {
++                session._detach(&op.guid);
++            }
++            Op::Remove(op) => session._attach(op),
++            Op::Replace(op) => session._swap(&op.guid, clone(&op.before)),
++            Op::Xform(op) => session._place(&op.guid, op.before.as_ref()),
++        }
++    }
++
++    fn _apply(&self, op: &Op, session: &mut Session) {
++        match op {
++            Op::Add(op) => session._attach(op),
++            Op::Remove(op) => {
++                session._detach(&op.guid);
++            }
++            Op::Replace(op) => session._swap(&op.guid, clone(&op.after)),
++            Op::Xform(op) => session._place(&op.guid, op.after.as_ref()),
++        }
++    }
++}
++
++impl fmt::Display for History {
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        write!(
++            f,
++            "History({} undo, {} redo)",
++            self.undo_stack.len(),
++            self.redo_stack.len()
++        )
++    }
++}
+diff --git a/session_rust/src/history_test.rs b/session_rust/src/history_test.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..c08bde9f69cb3e782a8cef4a2d1ba5cfaee96cd3
+--- /dev/null
++++ b/session_rust/src/history_test.rs
+@@ -0,0 +1,110 @@
++use crate::mini_test::TestResult;
++use crate::tolerance::TOLERANCE;
++use crate::{MINI_CHECK, MINI_TEST, REGISTER_MINI_TEST};
++
++pub fn run_history_constructor() -> TestResult {
++    MINI_TEST!("Constructor", {
++        use crate::History;
++
++        let history = History::new();
++        let hstr = history.to_string();
++        let hrepr = format!("{history}");
++
++        MINI_CHECK!(!history.can_undo());
++        MINI_CHECK!(!history.can_redo());
++        MINI_CHECK!(history.depth() == 0);
++        MINI_CHECK!(hstr == "History(0 undo, 0 redo)");
++        MINI_CHECK!(hrepr == "History(0 undo, 0 redo)");
++    })
++}
++
++pub fn run_history_begin_commit() -> TestResult {
++    MINI_TEST!("Begin Commit", {
++        use crate::{Point, Session};
++
++        let mut session = Session::default();
++
++        // An empty transaction is dropped, and nothing is recorded while none is open.
++        session.history.begin("empty");
++        session.history.commit();
++        session.add_point(Point::new(0.0, 0.0, 0.0), None);
++
++        session.history.begin("add");
++        session.add_point(Point::new(1.0, 0.0, 0.0), None);
++        session.history.commit();
++
++        MINI_CHECK!(session.history.depth() == 1);
++        MINI_CHECK!(session.history.can_undo());
++        MINI_CHECK!(session.history.undo_stack[0].ops.len() == 1);
++        MINI_CHECK!(session.history.undo_stack[0].label == "add");
++        MINI_CHECK!(session.history.undo_stack[0].ops[0].kind() == "add");
++    })
++}
++
++pub fn run_history_undo_redo() -> TestResult {
++    MINI_TEST!("Undo Redo", {
++        use crate::session::FromGeometry;
++        use crate::{Point, Session};
++
++        let mut session = Session::default();
++        let point = Point::new(1.0, 2.0, 3.0);
++        let guid = point.guid().to_string();
++
++        session.history.begin("add");
++        session.add_point(point, None);
++        session.history.commit();
++        let undone = session.undo();
++        let absent = !session.lookup.contains_key(&guid);
++        let redone = session.redo();
++
++        MINI_CHECK!(undone);
++        MINI_CHECK!(absent);
++        MINI_CHECK!(redone);
++        MINI_CHECK!(session.lookup.contains_key(&guid));
++        MINI_CHECK!(TOLERANCE.is_close(
++            Point::from_geometry(&session.lookup[&guid]).unwrap()[2],
++            3.0
++        ));
++        MINI_CHECK!(!session.history.can_redo());
++        MINI_CHECK!(!session.redo());
++    })
++}
++
++pub fn run_history_clear() -> TestResult {
++    MINI_TEST!("Clear", {
++        use crate::{Point, Session};
++
++        let mut session = Session::default();
++
++        session.history.begin("a");
++        session.add_point(Point::new(0.0, 0.0, 0.0), None);
++        session.history.commit();
++        session.history.begin("b");
++        session.add_point(Point::new(1.0, 0.0, 0.0), None);
++        session.history.commit();
++        session.undo();
++        session.history.clear();
++
++        MINI_CHECK!(!session.history.can_undo());
++        MINI_CHECK!(!session.history.can_redo());
++        MINI_CHECK!(session.history.depth() == 0);
++        MINI_CHECK!(session.objects.points.len() == 1);
++    })
++}
++
++REGISTER_MINI_TEST!(
++    "History",
++    "Constructor",
++    crate::history_test::run_history_constructor
++);
++REGISTER_MINI_TEST!(
++    "History",
++    "Begin Commit",
++    crate::history_test::run_history_begin_commit
++);
++REGISTER_MINI_TEST!(
++    "History",
++    "Undo Redo",
++    crate::history_test::run_history_undo_redo
++);
++REGISTER_MINI_TEST!("History", "Clear", crate::history_test::run_history_clear);
+diff --git a/session_rust/src/lib.rs b/session_rust/src/lib.rs
+index e55e261c2a622b7fcd67bafb4713de7b7535f2b3..583b008bd9b8b37e539c2fb6e68bed40b1229175 100644
+--- a/session_rust/src/lib.rs
++++ b/session_rust/src/lib.rs
+@@ -38,6 +38,8 @@ pub mod file_obj_test;
+ pub mod graph;
+ pub mod graph_test;
+ pub mod guid_serde;
++pub mod history;
++pub mod history_test;
+ pub mod instance_ref;
+ pub mod instance_ref_test;
+ pub mod intersection;
+@@ -121,6 +123,7 @@ pub use element::Element;
+ pub use file_obj::{read_file_obj, read_file_obj_polylines, write_file_obj};
+ pub use graph::Vertex;
+ pub use graph::{Edge, Graph};
++pub use history::History;
+ pub use instance_ref::InstanceRef;
+ pub use io::{read_xyz, read_xyz_from_str, write_xyz, write_xyz_to_string};
+ pub use line::Line;
+diff --git a/session_rust/src/mini_test.rs b/session_rust/src/mini_test.rs
+index c6f9b49b15068d3f3bd454b265adc1d005cdd236..0e636302431ee8872e9a08c54ba422385fc7374f 100644
+--- a/session_rust/src/mini_test.rs
++++ b/session_rust/src/mini_test.rs
+@@ -368,6 +368,7 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
+     use crate::file_encoders_test::*;
+     use crate::file_obj_test::*;
+     use crate::graph_test::*;
++    use crate::history_test::*;
+     use crate::instance_ref_test::*;
+     use crate::intersection_test::*;
+     use crate::io_test::*;
+@@ -2556,6 +2557,72 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
+             name: "Component Json Roundtrip",
+             func: run_session_component_json_roundtrip,
+         },
++        RegisteredTest {
++            group: "Session",
++            name: "Select By Type",
++            func: run_session_select_by_type,
++        },
++        RegisteredTest {
++            group: "Session",
++            name: "Get Geometry Is Pure",
++            func: run_session_get_geometry_is_pure,
++        },
++        RegisteredTest {
++            group: "Session",
++            name: "Document Workflow",
++            func: run_session_document_workflow,
++        },
++        RegisteredTest {
++            group: "Session",
++            name: "Undo Remove",
++            func: run_session_undo_remove,
++        },
++        RegisteredTest {
++            group: "Session",
++            name: "Undo Add",
++            func: run_session_undo_add,
++        },
++        RegisteredTest {
++            group: "Session",
++            name: "Undo Replace",
++            func: run_session_undo_replace,
++        },
++        RegisteredTest {
++            group: "Session",
++            name: "Undo Xform",
++            func: run_session_undo_xform,
++        },
++        RegisteredTest {
++            group: "Session",
++            name: "History Purged On Save",
++            func: run_session_history_purged_on_save,
++        },
++        RegisteredTest {
++            group: "Session",
++            name: "History Capacity",
++            func: run_session_history_capacity,
++        },
++        // History tests
++        RegisteredTest {
++            group: "History",
++            name: "Constructor",
++            func: run_history_constructor,
++        },
++        RegisteredTest {
++            group: "History",
++            name: "Begin Commit",
++            func: run_history_begin_commit,
++        },
++        RegisteredTest {
++            group: "History",
++            name: "Undo Redo",
++            func: run_history_undo_redo,
++        },
++        RegisteredTest {
++            group: "History",
++            name: "Clear",
++            func: run_history_clear,
++        },
+         // SessionConfig tests
+         RegisteredTest {
+             group: "SessionConfig",
+diff --git a/session_rust/src/obb.rs b/session_rust/src/obb.rs
+index 32e237c98c6ca8e1f3d13dbb43993a980d77314c..0abe7f7a873d22d550cf024d8f38c280d45aeb7e 100644
+--- a/session_rust/src/obb.rs
++++ b/session_rust/src/obb.rs
+@@ -295,6 +295,11 @@ impl OBB {
+         let _ = self.guid.set(g);
+     }
+ 
++    /// Clear the guid so a FRESH one mints lazily on next read — the duplicate/copy enabler.
++    pub fn refresh_guid(&mut self) {
++        self.guid = std::sync::OnceLock::new();
++    }
++
+     pub fn aabb(&self) -> AABB {
+         let ex = self.half_size[0];
+         let ey = self.half_size[1];
+diff --git a/session_rust/src/plane.rs b/session_rust/src/plane.rs
+index be9c252edee35f064d2456092c8694852df99ba2..e4784e638f9db145406a721f02928ffde00feab4 100644
+--- a/session_rust/src/plane.rs
++++ b/session_rust/src/plane.rs
+@@ -528,6 +528,11 @@ impl Plane {
+         let _ = self.guid.set(g);
+     }
+ 
++    /// Clear the guid so a FRESH one mints lazily on next read — the duplicate/copy enabler.
++    pub fn refresh_guid(&mut self) {
++        self.guid = std::sync::OnceLock::new();
++    }
++
+     pub fn origin(&self) -> Point {
+         self._origin.clone()
+     }
+diff --git a/session_rust/src/pointcloud.rs b/session_rust/src/pointcloud.rs
+index f126b3dee17503e9a220b451af21eb61d35b90d0..479173b6e499c2923b89e458377068ea778d6ea8 100644
+--- a/session_rust/src/pointcloud.rs
++++ b/session_rust/src/pointcloud.rs
+@@ -120,6 +120,11 @@ impl PointCloud {
+         let _ = self.guid.set(g);
+     }
+ 
++    /// Clear the guid so a FRESH one mints lazily on next read — the duplicate/copy enabler.
++    pub fn refresh_guid(&mut self) {
++        self.guid = std::sync::OnceLock::new();
++    }
++
+     // ═══════════════════════════════════════════════════════════════════════════
+     // Point Access
+     // ═══════════════════════════════════════════════════════════════════════════
+diff --git a/session_rust/src/session.rs b/session_rust/src/session.rs
+index 721e3ad278cf19a467f6ebc8a4281b239f4dc124..2b9b9992b66203411cd20098767d0b95ef941f41 100644
+--- a/session_rust/src/session.rs
++++ b/session_rust/src/session.rs
+@@ -1,3 +1,4 @@
++use crate::history::{clone, History, Op, ReplaceOp, Tombstone, XformOp};
+ use crate::{
+     BRep, Element, Graph, Line, Mesh, NurbsCurve, NurbsSurface, Objects, Plane, Point, PointCloud,
+     Polyline, SpatialBVH, Tolerance, Tree, TreeNode, Xform, OBB,
+@@ -41,6 +42,46 @@ impl Geometry {
+             Geometry::Polyline(g) => g.guid(),
+         }
+     }
++
++    pub fn name(&self) -> &str {
++        match self {
++            Geometry::OBB(g) => &g.name,
++            Geometry::BRep(g) => &g.name,
++            Geometry::Element(g) => &g.name,
++            Geometry::Line(g) => &g.name,
++            Geometry::Mesh(g) => &g.name,
++            Geometry::NurbsCurve(g) => &g.name,
++            Geometry::NurbsSurface(g) => &g.name,
++            Geometry::Plane(g) => &g.name,
++            Geometry::Point(g) => &g.name,
++            Geometry::PointCloud(g) => &g.name,
++            Geometry::Polyline(g) => &g.name,
++        }
++    }
++
++    /// Overwrite the guid: a minted one is cleared first, since `set_guid` never replaces one.
++    pub fn set_guid(&mut self, guid: &str) {
++        macro_rules! reset {
++            ($rc:expr) => {{
++                let g = Rc::make_mut($rc);
++                g.refresh_guid();
++                g.set_guid(guid.to_string());
++            }};
++        }
++        match self {
++            Geometry::OBB(g) => reset!(g),
++            Geometry::BRep(g) => reset!(g),
++            Geometry::Element(g) => reset!(g),
++            Geometry::Line(g) => reset!(g),
++            Geometry::Mesh(g) => reset!(g),
++            Geometry::NurbsCurve(g) => reset!(g),
++            Geometry::NurbsSurface(g) => reset!(g),
++            Geometry::Plane(g) => reset!(g),
++            Geometry::Point(g) => reset!(g),
++            Geometry::PointCloud(g) => reset!(g),
++            Geometry::Polyline(g) => reset!(g),
++        }
++    }
+ }
+ 
+ /// Extracts a concrete geometry type out of a `Geometry` variant. C++ gets this for free from
+@@ -76,6 +117,44 @@ impl_from_geometry!(
+     Polyline => Polyline,
+ );
+ 
++/// The Objects vectors in `order()` sequence, each with the prefix of its graph node attribute.
++pub const COLLECTIONS: [(&str, &str); 12] = [
++    ("points", "point"),
++    ("lines", "line"),
++    ("planes", "plane"),
++    ("bboxes", "bbox"),
++    ("polylines", "polyline"),
++    ("pointclouds", "pointcloud"),
++    ("meshes", "mesh"),
++    ("nurbscurves", "nurbscurve"),
++    ("nurbssurfaces", "nurbssurface"),
++    ("breps", "brep"),
++    ("elements", "element"),
++    ("components", "component"),
++];
++
++/// Python reaches a typed vector by collection NAME (`getattr(objects, collection)`); Rust
++/// needs the vector and its `Geometry` variant spelled out, so `$op!(vec, Variant)` runs once
++/// for the named collection. Components are not geometry and have no arm.
++macro_rules! typed {
++    ($collection:expr, $objects:expr, $op:ident) => {
++        match $collection {
++            "points" => $op!($objects.points, Point),
++            "lines" => $op!($objects.lines, Line),
++            "planes" => $op!($objects.planes, Plane),
++            "bboxes" => $op!($objects.bboxes, OBB),
++            "polylines" => $op!($objects.polylines, Polyline),
++            "pointclouds" => $op!($objects.pointclouds, PointCloud),
++            "meshes" => $op!($objects.meshes, Mesh),
++            "nurbscurves" => $op!($objects.nurbscurves, NurbsCurve),
++            "nurbssurfaces" => $op!($objects.nurbssurfaces, NurbsSurface),
++            "breps" => $op!($objects.breps, BRep),
++            "elements" => $op!($objects.elements, Element),
++            _ => {}
++        }
++    };
++}
++
+ /// A Session containing geometry objects with hierarchical and graph structures.
+ #[derive(Debug, Clone, Serialize, Deserialize)]
+ #[serde(tag = "type", rename = "Session")]
+@@ -103,6 +182,10 @@ pub struct Session {
+     /// Guid → LOCAL transform, relative to the tree parent. THE only place a transform is
+     #[serde(skip)]
+     pub xforms: HashMap<String, Xform>,
++    /// Undo/redo buffer, in memory only. Ops are recorded ONLY while a transaction is open
++    /// (`begin` ... `commit`), and every save purges it, as Rhino does.
++    #[serde(skip)]
++    pub history: History,
+     /// Boundary Volume Hierarchy for spatial collision detection
+     #[serde(skip)]
+     pub bvh: SpatialBVH,
+@@ -179,6 +262,7 @@ impl Session {
+             tree,
+             graph,
+             xforms: HashMap::new(),
++            history: History::new(),
+             bvh,
+             cached_ray_bvh: None,
+             cached_guids: Vec::new(),
+@@ -260,6 +344,14 @@ impl Session {
+ 
+     /// Sets the LOCAL transform of an object, relative to its tree parent.
+     pub fn set_xform(&mut self, guid: &str, xform: Xform) {
++        if self.history.current.is_some() {
++            let before = self.xforms.get(guid).cloned();
++            self.history.record(Op::Xform(XformOp::new(
++                guid.to_string(),
++                before,
++                Some(xform.clone()),
++            )));
++        }
+         self.xforms.insert(guid.to_string(), xform);
+         self.bvh_cache_dirty = true;
+     }
+@@ -274,6 +366,11 @@ impl Session {
+ 
+     /// Removes an object's local transform, returning whether one was present.
+     pub fn remove_xform(&mut self, guid: &str) -> bool {
++        let before = self.xforms.get(guid).cloned();
++        if before.is_some() && self.history.current.is_some() {
++            self.history
++                .record(Op::Xform(XformOp::new(guid.to_string(), before, None)));
++        }
+         let removed = self.xforms.remove(guid).is_some();
+         if removed {
+             self.bvh_cache_dirty = true;
+@@ -470,6 +567,7 @@ impl Session {
+             tree,
+             graph,
+             xforms,
++            history: History::new(),
+             bvh: SpatialBVH::new(),
+             cached_ray_bvh: None,
+             cached_guids: Vec::new(),
+@@ -480,7 +578,8 @@ impl Session {
+         Ok(session)
+     }
+ 
+-    pub fn file_json_dumps(&self) -> String {
++    pub fn file_json_dumps(&mut self) -> String {
++        self.history.clear();
+         self.jsondump().unwrap_or_default()
+     }
+ 
+@@ -488,7 +587,8 @@ impl Session {
+         Self::jsonload(s).unwrap_or_else(|_| Self::default())
+     }
+ 
+-    pub fn file_json_dump(&self, filepath: &str) {
++    pub fn file_json_dump(&mut self, filepath: &str) {
++        self.history.clear();
+         let json = self.jsondump().unwrap_or_default();
+         fs::write(filepath, json).expect("Failed to write JSON file");
+     }
+@@ -502,8 +602,9 @@ impl Session {
+     // Protobuf
+     // ═══════════════════════════════════════════════════════════════════════════
+ 
+-    pub fn pb_dumps(&self) -> Vec<u8> {
++    pub fn pb_dumps(&mut self) -> Vec<u8> {
+         use prost::Message;
++        self.history.clear();
+ 
+         // Build Objects proto — from the lookup-synced view (lookup is the mutable truth)
+         let objects = self.objects_synced();
+@@ -770,7 +871,8 @@ impl Session {
+         Ok(session)
+     }
+ 
+-    pub fn pb_dump(&self, path: &str) {
++    pub fn pb_dump(&mut self, path: &str) {
++        self.history.clear();
+         std::fs::write(path, self.pb_dumps()).expect("Failed to write protobuf file");
+     }
+ 
+@@ -1197,43 +1299,69 @@ impl Session {
+     // Every add_* below SKIPS an object that carries nothing to draw, and returns None
+     // ═══════════════════════════════════════════════════════════════════════════
+ 
+-    /// Adds a point to the Session.
+-    pub fn add_point(
++    fn _add_object(
+         &mut self,
+-        point: Point,
++        collection: &str,
++        obj: Geometry,
++        type_prefix: &str,
+         parent: Option<&Rc<RefCell<TreeNode>>>,
+     ) -> Rc<RefCell<TreeNode>> {
+-        let guid = point.guid().to_string();
+-        let name = point.name.clone();
+-        let point = Rc::new(point);
+-        self.objects.points.push(Rc::clone(&point));
+-        self.lookup.insert(guid.clone(), Geometry::Point(point));
++        let guid = obj.guid().to_string();
++        let attribute = format!("{type_prefix}_{}", obj.name());
++        let mut obj_index = 0;
++        macro_rules! push {
++            ($vec:expr, $variant:ident) => {
++                if let Geometry::$variant(g) = &obj {
++                    $vec.push(Rc::clone(g));
++                    obj_index = $vec.len() as i64 - 1;
++                }
++            };
++        }
++        typed!(collection, self.objects, push);
++        let snapshot = self.history.current.is_some().then(|| clone(&obj));
++        self.lookup.insert(guid.clone(), obj);
+         self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("point_{name}"));
++        self.graph.add_node(&guid, &attribute);
+         let node = TreeNode::new(&guid);
++        let mut parent_guid = None;
++        let mut index = 0;
+         if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
++            self.add(&node, Some(p));
++            parent_guid = Some(p.borrow().name.clone());
++            index = p.borrow().children().len() - 1;
++        }
++        if let Some(obj) = snapshot {
++            self.history.record(Op::Add(Tombstone::new(
++                guid,
++                obj,
++                collection.to_string(),
++                obj_index,
++                None,
++                parent_guid,
++                index,
++                None,
++                attribute,
++                Vec::new(),
++            )));
+         }
+         node
+     }
+ 
++    /// Adds a point to the Session.
++    pub fn add_point(
++        &mut self,
++        point: Point,
++        parent: Option<&Rc<RefCell<TreeNode>>>,
++    ) -> Rc<RefCell<TreeNode>> {
++        self._add_object("points", Geometry::Point(Rc::new(point)), "point", parent)
++    }
++
+     pub fn add_line(
+         &mut self,
+         line: Line,
+         parent: Option<&Rc<RefCell<TreeNode>>>,
+     ) -> Rc<RefCell<TreeNode>> {
+-        let guid = line.guid().to_string();
+-        let name = line.name.clone();
+-        let line = Rc::new(line);
+-        self.objects.lines.push(Rc::clone(&line));
+-        self.lookup.insert(guid.clone(), Geometry::Line(line));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("line_{name}"));
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        node
++        self._add_object("lines", Geometry::Line(Rc::new(line)), "line", parent)
+     }
+ 
+     pub fn add_plane(
+@@ -1241,29 +1369,11 @@ impl Session {
+         plane: Plane,
+         parent: Option<&Rc<RefCell<TreeNode>>>,
+     ) -> Rc<RefCell<TreeNode>> {
+-        let guid = plane.guid().to_string();
+-        let name = plane.name.clone();
+-        let plane = Rc::new(plane);
+-        self.objects.planes.push(Rc::clone(&plane));
+-        self.lookup.insert(guid.clone(), Geometry::Plane(plane));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("plane_{name}"));
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        node
++        self._add_object("planes", Geometry::Plane(Rc::new(plane)), "plane", parent)
+     }
+ 
+     pub fn add_obb(&mut self, bbox: OBB) -> Rc<RefCell<TreeNode>> {
+-        let guid = bbox.guid().to_string();
+-        let name = bbox.name.clone();
+-        let bbox = Rc::new(bbox);
+-        self.objects.bboxes.push(Rc::clone(&bbox));
+-        self.lookup.insert(guid.clone(), Geometry::OBB(bbox));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("bbox_{name}"));
+-        TreeNode::new(&guid)
++        self._add_object("bboxes", Geometry::OBB(Rc::new(bbox)), "bbox", None)
+     }
+ 
+     pub fn add_polyline(
+@@ -1274,21 +1384,12 @@ impl Session {
+         if polyline.point_count() < 2 {
+             return None;
+         }
+-        let guid = polyline.guid().to_string();
+-        // Boxes are computed lazily in rebuild_ray_bvh_cache (from the canonical order) —
+-        // adds only mark the cache dirty.
+-        let label = format!("polyline_{}", polyline.name);
+-        let polyline = Rc::new(polyline);
+-        self.objects.polylines.push(Rc::clone(&polyline));
+-        self.lookup
+-            .insert(guid.clone(), Geometry::Polyline(polyline));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &label);
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        Some(node)
++        Some(self._add_object(
++            "polylines",
++            Geometry::Polyline(Rc::new(polyline)),
++            "polyline",
++            parent,
++        ))
+     }
+ 
+     pub fn add_pointcloud(
+@@ -1299,19 +1400,12 @@ impl Session {
+         if pointcloud.is_empty() {
+             return None;
+         }
+-        let guid = pointcloud.guid().to_string();
+-        let name = pointcloud.name.clone();
+-        let pointcloud = Rc::new(pointcloud);
+-        self.objects.pointclouds.push(Rc::clone(&pointcloud));
+-        self.lookup
+-            .insert(guid.clone(), Geometry::PointCloud(pointcloud));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("pointcloud_{name}"));
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        Some(node)
++        Some(self._add_object(
++            "pointclouds",
++            Geometry::PointCloud(Rc::new(pointcloud)),
++            "pointcloud",
++            parent,
++        ))
+     }
+ 
+     pub fn add_mesh(
+@@ -1322,18 +1416,7 @@ impl Session {
+         if mesh.is_empty() || mesh.number_of_faces() == 0 {
+             return None;
+         }
+-        let guid = mesh.guid().to_string();
+-        let name = mesh.name.clone();
+-        let mesh = Rc::new(mesh);
+-        self.objects.meshes.push(Rc::clone(&mesh));
+-        self.lookup.insert(guid.clone(), Geometry::Mesh(mesh));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("mesh_{name}"));
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        Some(node)
++        Some(self._add_object("meshes", Geometry::Mesh(Rc::new(mesh)), "mesh", parent))
+     }
+ 
+     pub fn add_nurbscurve(
+@@ -1344,19 +1427,12 @@ impl Session {
+         if nurbscurve.cv_count() < 2 {
+             return None;
+         }
+-        let guid = nurbscurve.guid().to_string();
+-        let name = nurbscurve.name.clone();
+-        let nurbscurve = Rc::new(nurbscurve);
+-        self.objects.nurbscurves.push(Rc::clone(&nurbscurve));
+-        self.lookup
+-            .insert(guid.clone(), Geometry::NurbsCurve(nurbscurve));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("nurbscurve_{name}"));
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        Some(node)
++        Some(self._add_object(
++            "nurbscurves",
++            Geometry::NurbsCurve(Rc::new(nurbscurve)),
++            "nurbscurve",
++            parent,
++        ))
+     }
+ 
+     pub fn add_nurbssurface(
+@@ -1367,19 +1443,12 @@ impl Session {
+         if nurbssurface.cv_count_dir(None) == 0 {
+             return None;
+         }
+-        let guid = nurbssurface.guid().to_string();
+-        let name = nurbssurface.name.clone();
+-        let nurbssurface = Rc::new(nurbssurface);
+-        self.objects.nurbssurfaces.push(Rc::clone(&nurbssurface));
+-        self.lookup
+-            .insert(guid.clone(), Geometry::NurbsSurface(nurbssurface));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("nurbssurface_{name}"));
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        Some(node)
++        Some(self._add_object(
++            "nurbssurfaces",
++            Geometry::NurbsSurface(Rc::new(nurbssurface)),
++            "nurbssurface",
++            parent,
++        ))
+     }
+ 
+     pub fn add_brep(
+@@ -1390,20 +1459,26 @@ impl Session {
+         if brep.face_count() == 0 && brep.vertex_count() == 0 {
+             return None;
+         }
+-        let guid = brep.guid().to_string();
+-        let name = brep.name.clone();
+-        let brep = Rc::new(brep);
+-        self.objects.breps.push(Rc::clone(&brep));
+-        self.lookup.insert(guid.clone(), Geometry::BRep(brep));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("brep_{name}"));
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        Some(node)
++        Some(self._add_object("breps", Geometry::BRep(Rc::new(brep)), "brep", parent))
+     }
+ 
++    /// Kept even with no geometry: an Element is a data record - features, insertion vectors,
++    /// element_data a consumer reads back - and dropping one would lose that on a round trip.
++    pub fn add_element(
++        &mut self,
++        element: Element,
++        parent: Option<&Rc<RefCell<TreeNode>>>,
++    ) -> Rc<RefCell<TreeNode>> {
++        self._add_object(
++            "elements",
++            Geometry::Element(Rc::new(element)),
++            "element",
++            parent,
++        )
++    }
++
++    /// A component is not geometry: it has no `Geometry` variant, so it lives in
++    /// `objects.components` only and is outside the history.
+     pub fn add_component(
+         &mut self,
+         component: crate::objects::Component,
+@@ -1420,25 +1495,6 @@ impl Session {
+         node
+     }
+ 
+-    pub fn add_element(
+-        &mut self,
+-        element: Element,
+-        parent: Option<&Rc<RefCell<TreeNode>>>,
+-    ) -> Rc<RefCell<TreeNode>> {
+-        let guid = element.guid().to_string();
+-        let name = element.name.clone();
+-        let element = Rc::new(element);
+-        self.objects.elements.push(Rc::clone(&element));
+-        self.lookup.insert(guid.clone(), Geometry::Element(element));
+-        self.bvh_cache_dirty = true;
+-        self.graph.add_node(&guid, &format!("element_{name}"));
+-        let node = TreeNode::new(&guid);
+-        if let Some(p) = parent {
+-            self.tree.add(&node, Some(p));
+-        }
+-        node
+-    }
+-
+     /// Adds a TreeNode to the tree hierarchy.
+     pub fn add<'a>(
+         &mut self,
+@@ -1513,42 +1569,230 @@ impl Session {
+         groups
+     }
+ 
+-    /// Remove a geometry object by its GUID.
++    /// Remove an object by its GUID from every live table at once: its typed vector,
++    /// `lookup`, its xform, its tree node (with the subtree) and its graph node with every
++    /// incident edge. The removal record is the tombstone that undo restores from.
+     pub fn remove_object(&mut self, guid: &str) -> bool {
+-        // Check if object exists in lookup table
+-        if !self.lookup.contains_key(guid) {
++        let Some(op) = self._detach(guid) else {
++            return false;
++        };
++        self.history.record(Op::Remove(op));
++        true
++    }
++
++    /// Swap the object stored under `guid` for `obj`, which takes over that guid, in its typed
++    /// vector and `lookup`, and refresh its graph node attribute.
++    ///
++    /// This is the recorded edit: undo restores the previous object, redo the new one, as
++    /// absolute snapshots. Mutating an object in place through `lookup` stays possible and
++    /// is NOT recorded - history only sees what goes through `replace`.
++    pub fn replace(&mut self, guid: &str, obj: Geometry) -> bool {
++        let Some(before) = self.lookup.get(guid) else {
+             return false;
++        };
++        let mut obj = obj;
++        obj.set_guid(guid);
++        if self.history.current.is_some() {
++            self.history.record(Op::Replace(ReplaceOp::new(
++                guid.to_string(),
++                clone(before),
++                clone(&obj),
++            )));
++        }
++        self._swap(guid, obj);
++        true
++    }
++
++    // ═══════════════════════════════════════════════════════════════════════════
++    // Details - History
++    // ═══════════════════════════════════════════════════════════════════════════
++
++    /// Open a history transaction: every add, remove, replace and xform change until
++    /// `commit` becomes one undo step.
++    pub fn begin(&mut self, label: &str) {
++        self.history.begin(label);
++    }
++
++    pub fn commit(&mut self) {
++        self.history.commit();
++    }
++
++    /// `History::undo` walks the session it belongs to, which the borrow checker forbids
++    /// through `self.history`; the buffer is taken out for the call and put back after.
++    pub fn undo(&mut self) -> bool {
++        let mut history = std::mem::take(&mut self.history);
++        let undone = history.undo(self);
++        self.history = history;
++        undone
++    }
++
++    pub fn redo(&mut self) -> bool {
++        let mut history = std::mem::take(&mut self.history);
++        let redone = history.redo(self);
++        self.history = history;
++        redone
++    }
++
++    /// Which Objects vector holds a guid, and where; ("", -1) when none does.
++    fn _locate(&self, guid: &str) -> (String, i64) {
++        macro_rules! find {
++            ($vec:expr, $name:expr) => {
++                if let Some(i) = $vec.iter().position(|item| item.guid() == guid) {
++                    return ($name.to_string(), i as i64);
++                }
++            };
+         }
++        find!(self.objects.points, "points");
++        find!(self.objects.lines, "lines");
++        find!(self.objects.planes, "planes");
++        find!(self.objects.bboxes, "bboxes");
++        find!(self.objects.polylines, "polylines");
++        find!(self.objects.pointclouds, "pointclouds");
++        find!(self.objects.meshes, "meshes");
++        find!(self.objects.nurbscurves, "nurbscurves");
++        find!(self.objects.nurbssurfaces, "nurbssurfaces");
++        find!(self.objects.breps, "breps");
++        find!(self.objects.elements, "elements");
++        find!(self.objects.components, "components");
++        (String::new(), -1)
++    }
+ 
+-        // Remove from all object collections
+-        self.objects.points.retain(|p| p.guid() != guid);
+-        self.objects.lines.retain(|l| l.guid() != guid);
+-        self.objects.polylines.retain(|p| p.guid() != guid);
+-        self.objects.planes.retain(|p| p.guid() != guid);
+-        self.objects.bboxes.retain(|b| b.guid() != guid);
+-        self.objects.meshes.retain(|m| m.guid() != guid);
+-        self.objects.pointclouds.retain(|p| p.guid() != guid);
+-        self.objects.nurbscurves.retain(|c| c.guid() != guid);
+-        self.objects.nurbssurfaces.retain(|s| s.guid() != guid);
+-        self.objects.breps.retain(|b| b.guid() != guid);
+-        self.objects.elements.retain(|e| e.guid() != guid);
+-
+-        // Remove from lookup table
++    /// Take an object out of every live table, unrecorded, returning its tombstone.
++    pub(crate) fn _detach(&mut self, guid: &str) -> Option<Tombstone> {
++        let obj = clone(self.lookup.get(guid)?);
++        let (collection, obj_index) = self._locate(guid);
++        if obj_index >= 0 {
++            macro_rules! pop {
++                ($vec:expr, $variant:ident) => {{
++                    $vec.remove(obj_index as usize);
++                }};
++            }
++            typed!(collection.as_str(), self.objects, pop);
++        }
+         self.lookup.remove(guid);
+-        self.xforms.remove(guid);
+-        self.invalidate_bvh_cache();
++        let xform = self.xforms.remove(guid);
++        self.bvh_cache_dirty = true;
+ 
+-        // Remove from tree - find node by GUID and remove it
+-        if let Some(node) = self.tree.find_node_by_guid(&guid.to_string()) {
+-            self.tree.remove(&node);
++        let mut parent_guid = None;
++        let mut index = 0;
++        let mut node = self.tree.get_node_by_name(guid);
++        if let Some(found) = node.take() {
++            if let Some(parent) = found.borrow().parent() {
++                parent_guid = Some(parent.borrow().name.clone());
++                let children = parent.borrow().children();
++                index = children
++                    .iter()
++                    .position(|c| Rc::ptr_eq(c, &found))
++                    .unwrap_or(0);
++            }
++            node = self.tree.remove(&found);
+         }
+ 
+-        // Remove from graph using string GUID
++        let mut attribute = String::new();
++        let mut edges = Vec::new();
+         if self.graph.has_node(guid) {
++            attribute = self.graph.node_attribute(guid, None).unwrap_or_default();
++            edges = self.graph.edges_of(guid);
+             self.graph.remove_node(guid);
+         }
+ 
+-        true
++        Some(Tombstone::new(
++            guid.to_string(),
++            obj,
++            collection,
++            obj_index,
++            xform,
++            parent_guid,
++            index,
++            node,
++            attribute,
++            edges,
++        ))
++    }
++
++    /// Put an object back from its tombstone, unrecorded: typed vector at its old index,
++    /// `lookup`, xform, tree node under the same parent at the same index with its subtree,
++    /// graph node and every incident edge whose other end is still present.
++    pub(crate) fn _attach(&mut self, op: &Tombstone) {
++        let obj = clone(&op.obj);
++        let obj_index = op.obj_index.max(0) as usize;
++        macro_rules! insert {
++            ($vec:expr, $variant:ident) => {
++                if let Geometry::$variant(g) = &obj {
++                    $vec.insert(obj_index.min($vec.len()), Rc::clone(g));
++                }
++            };
++        }
++        typed!(op.collection.as_str(), self.objects, insert);
++        self.lookup.insert(op.guid.clone(), obj);
++        if let Some(xform) = &op.xform {
++            self.xforms.insert(op.guid.clone(), xform.clone());
++        }
++        self.bvh_cache_dirty = true;
++
++        let node = match &op.node {
++            Some(node) => Rc::clone(node),
++            None => TreeNode::new(&op.guid),
++        };
++        if let Some(parent_guid) = &op.parent_guid {
++            if let Some(parent) = self.tree.get_node_by_name(parent_guid) {
++                let count = parent.borrow().children().len();
++                parent.borrow_mut().insert(op.index.min(count), &node);
++            }
++        }
++
++        self.graph.add_node(&op.guid, &op.attribute);
++        for (other, attribute, forward) in &op.edges {
++            if !self.graph.has_node(other) {
++                continue;
++            }
++            if *forward {
++                self.graph.add_edge(&op.guid, other, attribute);
++            } else {
++                self.graph.add_edge(other, &op.guid, attribute);
++            }
++        }
++    }
++
++    /// Store `obj` under `guid` in its typed vector and `lookup`, unrecorded.
++    pub(crate) fn _swap(&mut self, guid: &str, obj: Geometry) {
++        let (collection, obj_index) = self._locate(guid);
++        if obj_index < 0 {
++            return;
++        }
++        let obj_index = obj_index as usize;
++        macro_rules! store {
++            ($vec:expr, $variant:ident) => {
++                if let Geometry::$variant(g) = &obj {
++                    $vec[obj_index] = Rc::clone(g);
++                }
++            };
++        }
++        typed!(collection.as_str(), self.objects, store);
++        let mut attribute = String::new();
++        for (name, prefix) in COLLECTIONS {
++            if name == collection {
++                attribute = format!("{prefix}_{}", obj.name());
++            }
++        }
++        self.lookup.insert(guid.to_string(), obj);
++        self.bvh_cache_dirty = true;
++        if self.graph.has_node(guid) {
++            self.graph.node_attribute(guid, Some(&attribute));
++        }
++    }
++
++    /// Set or drop (None) the local transform under `guid`, unrecorded.
++    pub(crate) fn _place(&mut self, guid: &str, xform: Option<&Xform>) {
++        match xform {
++            None => {
++                self.xforms.remove(guid);
++            }
++            Some(xform) => {
++                self.xforms.insert(guid.to_string(), xform.clone());
++            }
++        }
++        self.bvh_cache_dirty = true;
+     }
+ 
+     // ═══════════════════════════════════════════════════════════════════════════
+diff --git a/session_rust/src/session_test.rs b/session_rust/src/session_test.rs
+index bbe989e5e5fa4bed0962bfaf725dee1f2a5d723a..e8c4d6879a1aaf7d4b9c45063b478ca16e042d9d 100644
+--- a/session_rust/src/session_test.rs
++++ b/session_rust/src/session_test.rs
+@@ -91,6 +91,40 @@ pub fn run_session_add_polyline() -> TestResult {
+     })
+ }
+ 
++pub fn run_session_select_by_type() -> TestResult {
++    MINI_TEST!("Select By Type", {
++        use crate::{Mesh, Point, Polyline, Session};
++
++        let mut session = Session::default();
++        let g0 = session.add_group("g0");
++        let g1 = session.add_group("g1");
++        let g2 = session.add_group("g2");
++
++        session.add_polyline(
++            Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]),
++            Some(&g0),
++        );
++        session.add_polyline(
++            Polyline::new(vec![Point::new(0.0, 1.0, 0.0), Point::new(1.0, 1.0, 0.0)]),
++            Some(&g0),
++        );
++        session.add_polyline(
++            Polyline::new(vec![Point::new(0.0, 2.0, 0.0), Point::new(1.0, 2.0, 0.0)]),
++            Some(&g1),
++        );
++        session.add_point(Point::new(9.0, 9.0, 9.0), Some(&g2));
++
++        let groups = session.select_by_type::<Polyline>();
++
++        MINI_CHECK!(groups.len() == 2);
++        MINI_CHECK!(groups[0].len() == 2);
++        MINI_CHECK!(groups[1].len() == 1);
++        MINI_CHECK!(TOLERANCE.is_close(groups[1][0].get_point(0).unwrap()[1], 2.0));
++
++        MINI_CHECK!(session.select_by_type::<Mesh>().is_empty());
++    })
++}
++
+ pub fn run_session_add_pointcloud() -> TestResult {
+     MINI_TEST!("Add Pointcloud", {
+         use crate::{Point, PointCloud, Session};
+@@ -452,6 +486,28 @@ pub fn run_session_get_geometry() -> TestResult {
+     })
+ }
+ 
++pub fn run_session_get_geometry_is_pure() -> TestResult {
++    MINI_TEST!("Get Geometry Is Pure", {
++        // get_geometry() returns a flattened SNAPSHOT and must never touch the session's own
++        // geometry, so calling it twice gives the same answer.
++        use crate::{Point, Session, Xform};
++
++        let mut session = Session::default();
++        let point = Point::new(1.0, 2.0, 3.0);
++        let guid = point.guid().to_string();
++        session.add_point(point.clone(), None);
++        session.set_xform(&guid, Xform::translation(10.0, 0.0, 0.0));
++
++        let first = session.get_geometry().points[0].clone();
++        let second = session.get_geometry().points[0].clone();
++
++        MINI_CHECK!(TOLERANCE.is_close(first[0], 11.0));
++        MINI_CHECK!(TOLERANCE.is_close(second[0], 11.0));
++        MINI_CHECK!(TOLERANCE.is_close(point[0], 1.0));
++        MINI_CHECK!(TOLERANCE.is_close(session.objects.points[0][0], 1.0));
++    })
++}
++
+ pub fn run_session_json_roundtrip() -> TestResult {
+     MINI_TEST!("Json Roundtrip", {
+         use crate::{Point, Session};
+@@ -761,6 +817,235 @@ pub fn run_session_component_json_roundtrip() -> TestResult {
+     })
+ }
+ 
++pub fn run_session_document_workflow() -> TestResult {
++    MINI_TEST!("Document Workflow", {
++        use crate::session::FromGeometry;
++        use crate::{Geometry, Point, Session, Xform};
++        use std::rc::Rc;
++
++        let mut session = Session::default();
++        let a = Point::new(1.0, 0.0, 0.0);
++        let b = Point::new(2.0, 0.0, 0.0);
++        let c = Point::new(3.0, 0.0, 0.0);
++        let a_guid = a.guid().to_string();
++        let b_guid = b.guid().to_string();
++        let c_guid = c.guid().to_string();
++        session.add_point(a, None);
++        session.add_point(b, None);
++        session.add_point(c, None);
++
++        session.replace(
++            &b_guid,
++            Geometry::Point(Rc::new(Point::new(20.0, 0.0, 0.0))),
++        );
++        session.remove_object(&c_guid);
++        let shift = Xform::translation(0.0, 5.0, 0.0);
++        session.set_xform(&a_guid, shift.clone());
++
++        let fname = "serialization/test_session_document.bin";
++        session.pb_dump(fname);
++        let loaded = Session::pb_load(fname);
++
++        MINI_CHECK!(loaded.lookup.len() == 2);
++        MINI_CHECK!(loaded.lookup.contains_key(&a_guid));
++        MINI_CHECK!(loaded.lookup.contains_key(&b_guid));
++        MINI_CHECK!(!loaded.lookup.contains_key(&c_guid));
++        MINI_CHECK!(TOLERANCE.is_close(
++            Point::from_geometry(&loaded.lookup[&b_guid]).unwrap()[0],
++            20.0
++        ));
++        MINI_CHECK!(loaded.xform(&a_guid) == shift);
++        MINI_CHECK!(loaded.history.depth() == 0);
++    })
++}
++
++pub fn run_session_undo_remove() -> TestResult {
++    MINI_TEST!("Undo Remove", {
++        use crate::{Point, Session, Xform};
++
++        let mut session = Session::default();
++        let group = session.add_group("g");
++        let a = Point::new(1.0, 0.0, 0.0);
++        let b = Point::new(2.0, 0.0, 0.0);
++        let c = Point::new(3.0, 0.0, 0.0);
++        let a_guid = a.guid().to_string();
++        let b_guid = b.guid().to_string();
++        let c_guid = c.guid().to_string();
++        session.add_point(a, Some(&group));
++        let b_node = session.add_point(b, Some(&group));
++        session.add_point(c, Some(&b_node));
++        session.add_edge(&a_guid, &b_guid, "connection");
++        let shift = Xform::translation(0.0, 5.0, 0.0);
++        session.set_xform(&b_guid, shift.clone());
++
++        session.begin("remove");
++        session.remove_object(&b_guid);
++        session.commit();
++        let gone = !session.lookup.contains_key(&b_guid) && group.borrow().children().len() == 1;
++        session.undo();
++
++        MINI_CHECK!(gone);
++        MINI_CHECK!(session.lookup.contains_key(&b_guid));
++        MINI_CHECK!(session.objects.points[1].guid() == b_guid);
++        MINI_CHECK!(group.borrow().children()[1].borrow().name == b_guid);
++        MINI_CHECK!(
++            group.borrow().children()[1].borrow().children()[0]
++                .borrow()
++                .name
++                == c_guid
++        );
++        MINI_CHECK!(session.graph.has_edge((&a_guid, &b_guid)));
++        MINI_CHECK!(
++            session.graph.edge_attribute(&a_guid, &b_guid, None) == Some("connection".to_string())
++        );
++        MINI_CHECK!(session.xform(&b_guid) == shift);
++
++        session.redo();
++
++        MINI_CHECK!(!session.lookup.contains_key(&b_guid));
++        MINI_CHECK!(session.objects.points.len() == 2);
++        MINI_CHECK!(group.borrow().children().len() == 1);
++        MINI_CHECK!(!session.graph.has_edge((&a_guid, &b_guid)));
++        MINI_CHECK!(session.xform(&b_guid) == Xform::identity());
++    })
++}
++
++pub fn run_session_undo_add() -> TestResult {
++    MINI_TEST!("Undo Add", {
++        use crate::session::FromGeometry;
++        use crate::{Point, Session};
++
++        let mut session = Session::default();
++        let group = session.add_group("g");
++        session.add_point(Point::new(0.0, 0.0, 0.0), Some(&group));
++        let point = Point::new(1.0, 2.0, 3.0);
++        let guid = point.guid().to_string();
++
++        session.begin("add");
++        session.add_point(point, Some(&group));
++        session.commit();
++        session.undo();
++        let gone = !session.lookup.contains_key(&guid) && session.objects.points.len() == 1;
++        session.redo();
++
++        MINI_CHECK!(gone);
++        MINI_CHECK!(session.lookup.contains_key(&guid));
++        MINI_CHECK!(session.objects.points[1].guid() == guid);
++        MINI_CHECK!(group.borrow().children()[1].borrow().name == guid);
++        MINI_CHECK!(session.graph.has_node(&guid));
++        MINI_CHECK!(TOLERANCE.is_close(
++            Point::from_geometry(&session.lookup[&guid]).unwrap()[2],
++            3.0
++        ));
++    })
++}
++
++pub fn run_session_undo_replace() -> TestResult {
++    MINI_TEST!("Undo Replace", {
++        use crate::session::FromGeometry;
++        use crate::{Geometry, Point, Session};
++        use std::rc::Rc;
++
++        let mut session = Session::default();
++        let point = Point::new(1.0, 2.0, 3.0);
++        let guid = point.guid().to_string();
++        session.add_point(point, None);
++
++        session.begin("replace");
++        session.replace(&guid, Geometry::Point(Rc::new(Point::new(9.0, 9.0, 9.0))));
++        session.commit();
++        let replaced = Point::from_geometry(&session.lookup[&guid]).unwrap()[0];
++        session.undo();
++        let restored = Point::from_geometry(&session.lookup[&guid]).unwrap()[0];
++        session.redo();
++
++        MINI_CHECK!(TOLERANCE.is_close(replaced, 9.0));
++        MINI_CHECK!(TOLERANCE.is_close(restored, 1.0));
++        MINI_CHECK!(TOLERANCE.is_close(
++            Point::from_geometry(&session.lookup[&guid]).unwrap()[0],
++            9.0
++        ));
++        MINI_CHECK!(session.objects.points[0].guid() == guid);
++        MINI_CHECK!(session.objects.points.len() == 1);
++    })
++}
++
++pub fn run_session_undo_xform() -> TestResult {
++    MINI_TEST!("Undo Xform", {
++        use crate::{Point, Session, Xform};
++
++        let mut session = Session::default();
++        let point = Point::new(1.0, 2.0, 3.0);
++        let guid = point.guid().to_string();
++        session.add_point(point, None);
++        let shift = Xform::translation(5.0, 0.0, 0.0);
++
++        session.begin("move");
++        session.set_xform(&guid, shift.clone());
++        session.commit();
++        session.undo();
++        let cleared = session.xform(&guid) == Xform::identity();
++        session.redo();
++
++        session.begin("reset");
++        session.remove_xform(&guid);
++        session.commit();
++        session.undo();
++
++        MINI_CHECK!(cleared);
++        MINI_CHECK!(session.xform(&guid) == shift);
++        MINI_CHECK!(session.xforms.len() == 1);
++    })
++}
++
++pub fn run_session_history_purged_on_save() -> TestResult {
++    MINI_TEST!("History Purged On Save", {
++        use crate::{Point, Session};
++
++        let mut session = Session::default();
++
++        session.begin("add");
++        session.add_point(Point::new(0.0, 0.0, 0.0), None);
++        session.commit();
++        let before_pb = session.history.depth();
++        session.pb_dumps();
++        let after_pb = session.history.depth();
++
++        session.begin("add");
++        session.add_point(Point::new(1.0, 0.0, 0.0), None);
++        session.commit();
++        let before_json = session.history.depth();
++        session.file_json_dumps();
++
++        MINI_CHECK!(before_pb == 1);
++        MINI_CHECK!(after_pb == 0);
++        MINI_CHECK!(before_json == 1);
++        MINI_CHECK!(session.history.depth() == 0);
++        MINI_CHECK!(!session.undo());
++        MINI_CHECK!(session.objects.points.len() == 2);
++    })
++}
++
++pub fn run_session_history_capacity() -> TestResult {
++    MINI_TEST!("History Capacity", {
++        use crate::{Point, Session};
++
++        let mut session = Session::default();
++        for i in 0..70 {
++            session.begin("add");
++            session.add_point(Point::new(i as f64, 0.0, 0.0), None);
++            session.commit();
++        }
++        let depth = session.history.depth();
++        while session.undo() {}
++
++        MINI_CHECK!(depth == 64);
++        MINI_CHECK!(!session.history.can_undo());
++        MINI_CHECK!(session.objects.points.len() == 6);
++        MINI_CHECK!(TOLERANCE.is_close(session.objects.points[5][0], 5.0));
++    })
++}
++
+ REGISTER_MINI_TEST!(
+     "Session",
+     "Constructor",
+@@ -791,6 +1076,11 @@ REGISTER_MINI_TEST!(
+     "Add Polyline",
+     crate::session_test::run_session_add_polyline
+ );
++REGISTER_MINI_TEST!(
++    "Session",
++    "Select By Type",
++    crate::session_test::run_session_select_by_type
++);
+ REGISTER_MINI_TEST!(
+     "Session",
+     "Add Pointcloud",
+@@ -881,6 +1171,11 @@ REGISTER_MINI_TEST!(
+     "Get Geometry",
+     crate::session_test::run_session_get_geometry
+ );
++REGISTER_MINI_TEST!(
++    "Session",
++    "Get Geometry Is Pure",
++    crate::session_test::run_session_get_geometry_is_pure
++);
+ REGISTER_MINI_TEST!(
+     "Session",
+     "Json Roundtrip",
+@@ -927,3 +1222,38 @@ REGISTER_MINI_TEST!(
+     "Component Json Roundtrip",
+     crate::session_test::run_session_component_json_roundtrip
+ );
++REGISTER_MINI_TEST!(
++    "Session",
++    "Document Workflow",
++    crate::session_test::run_session_document_workflow
++);
++REGISTER_MINI_TEST!(
++    "Session",
++    "Undo Remove",
++    crate::session_test::run_session_undo_remove
++);
++REGISTER_MINI_TEST!(
++    "Session",
++    "Undo Add",
++    crate::session_test::run_session_undo_add
++);
++REGISTER_MINI_TEST!(
++    "Session",
++    "Undo Replace",
++    crate::session_test::run_session_undo_replace
++);
++REGISTER_MINI_TEST!(
++    "Session",
++    "Undo Xform",
++    crate::session_test::run_session_undo_xform
++);
++REGISTER_MINI_TEST!(
++    "Session",
++    "History Purged On Save",
++    crate::session_test::run_session_history_purged_on_save
++);
++REGISTER_MINI_TEST!(
++    "Session",
++    "History Capacity",
++    crate::session_test::run_session_history_capacity
++);
+diff --git a/session_rust/src/tree.rs b/session_rust/src/tree.rs
+index eff587adff103e8dd737eec5e712a91bc806fed2..8b0f2f6c5ca5cf47720fd423af70ead53b1c77a0 100644
+--- a/session_rust/src/tree.rs
++++ b/session_rust/src/tree.rs
+@@ -104,6 +104,12 @@ impl TreeNode {
+         self.children.push(Rc::clone(child));
+     }
+ 
++    /// Add a child node at a position among the children
++    pub fn insert(&mut self, index: usize, child: &Rc<RefCell<TreeNode>>) {
++        child.borrow_mut().parent = Some(self.weak_self.clone());
++        self.children.insert(index, Rc::clone(child));
++    }
++
+     /// Remove a child node, returning true if it was found and removed
+     pub fn remove(&mut self, child: &Rc<RefCell<TreeNode>>) -> bool {
+         if let Some(pos) = self.children.iter().position(|c| Rc::ptr_eq(c, child)) {
+@@ -378,23 +384,17 @@ impl Tree {
+         }
+     }
+ 
+-    /// Remove a node from the tree
+-    pub fn remove(&mut self, node: &Rc<RefCell<TreeNode>>) -> bool {
+-        if let Some(root) = &self.root_node {
+-            if Rc::ptr_eq(root, node) {
+-                self.root_node = None;
+-                true
+-            } else {
+-                let parent = node.borrow().parent();
+-                if let Some(parent) = parent {
+-                    parent.borrow_mut().remove(node)
+-                } else {
+-                    false
+-                }
+-            }
+-        } else {
+-            false
++    /// Remove a node from the tree, returning the detached node with its subtree intact so a
++    /// caller can keep or re-add it; None when the node is not in the tree
++    pub fn remove(&mut self, node: &Rc<RefCell<TreeNode>>) -> Option<Rc<RefCell<TreeNode>>> {
++        let root = self.root_node.as_ref()?;
++        if Rc::ptr_eq(root, node) {
++            self.root_node = None;
++            return Some(Rc::clone(node));
+         }
++        let parent = node.borrow().parent()?;
++        let removed = parent.borrow_mut().remove(node);
++        removed.then(|| Rc::clone(node))
+     }
+ 
+     /// All leaf nodes

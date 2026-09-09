@@ -60,6 +60,7 @@ emit the **same set of test names**. Currently **31 of 47** classes are at full 
 - [x] `file_obj`
 - [ ] `file_step` — only C++
 - [x] `graph`
+- [x] `history`
 - [x] `instance_ref`
 - [ ] `intersection` — Python missing 1; C++ missing 1
 - [ ] `io` — Python missing 1; C++ missing 1 ("Read Colors"); "Import Minimal" (PDF) is Rust-only behind `--features pdf`
@@ -104,6 +105,47 @@ only.
 free function in the `vector` module (`vector.py:1274`, `vector.rs:1338`) with its own
 `Vector / Interpolate Points` test. That copy is exported from neither `__init__.py` nor `lib.rs`
 and is referenced only by its own test — dead duplicate code that C++ never had.
+
+## Document workflow
+
+A `Session` is a CAD document: objects are added, edited, deleted, undone, saved to a file and
+opened again. Editing goes through `replace(guid, obj)`, which swaps the object stored under a
+guid for a new one and is the only edit history sees; mutating an object in place through
+`lookup` still works but is not recorded. Deleting with `remove_object` takes the object out of
+every live table at once — its typed list, `lookup`, its xform, its tree node with the subtree,
+its graph node and edges — and the removal record is the tombstone undo restores from.
+Undo/redo is grouped into transactions with `begin(label)` ... `commit()`; nothing is recorded
+outside one. History lives in memory only: it never crosses pb or JSON, every save
+(`pb_dump`, `pb_dumps`, `file_json_dump`, `file_json_dumps`) purges it, as Rhino does, and an
+opened file starts with an empty one. The buffer keeps the last 64 transactions.
+
+```python
+from session_py import Session, Point, Xform
+
+session = Session()
+a = Point(1.0, 0.0, 0.0)
+b = Point(2.0, 0.0, 0.0)
+c = Point(3.0, 0.0, 0.0)
+session.add_point(a)
+session.add_point(b)
+session.add_point(c)
+
+session.begin("edit")
+session.replace(b.guid, Point(20.0, 0.0, 0.0))
+session.remove_object(c.guid)
+session.set_xform(a.guid, Xform.translation(0.0, 5.0, 0.0))
+session.commit()
+
+session.undo()                      # c is back, b is (2, 0, 0) again, a has no xform
+session.redo()                      # the edit is applied again
+
+session.pb_dump("model.pb")         # purges the undo buffer
+opened = Session.pb_load("model.pb")
+opened.lookup[b.guid]               # Point(20, 0, 0); c.guid is absent
+```
+
+Rust and C++ use the same names: `begin`, `commit`, `undo`, `redo`, `replace`, `remove_object`,
+and a `History` with `can_undo`, `can_redo`, `depth`, `record`, `clear`.
 
 ## Prerequisites
 

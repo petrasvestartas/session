@@ -71,5 +71,6 @@ nav:
     - 17 · Faces, text objects and silhouettes: docs/17-source-presentation.md
     - 18 · Finite-triangle visibility: docs/18-finite-visibility.md
     - 19 · Sheets: docs/19-sheets.md
+    - 20 · The document: docs/20-history.md
   - Architecture reference: ARCHITECTURE.md
   - CAD design record: docs/cad-design.md

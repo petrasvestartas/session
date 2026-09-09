@@ -418,7 +418,6 @@ fn bounded_range(at: u64, length: u64) -> bool {
 }
 
 /// Checked body bounds, shared by metadata, position and color ranges.
-#[cfg(any(target_arch = "wasm32", test))]
 fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
     let next = at.checked_add(length)?;
     if next <= end { Some(next) } else { None }
