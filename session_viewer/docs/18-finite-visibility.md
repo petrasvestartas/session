@@ -353,19 +353,6 @@ The same source you just finished is what the repository publishes:
 - **Source code**: <https://github.com/petrasvestartas/session/tree/main/session_viewer> — the folder this course reconstructs, byte for byte at checkpoint 18.
 - **Locally**: `trunk serve` in `session_viewer` serves the viewer at <http://localhost:8770/> and the course at <http://localhost:8770/docs/>; the black corner at the top right links the two.
 
-## Verify you reached production
-
-Record the checkpoint and compare every runtime file against the frozen production inventory:
-
-```sh
-python3 "$COURSE_REPO/docs/reconstruction/replay.py" --output "$COURSE_WORK" --through 18 --adopt
-python3 "$COURSE_REPO/docs/reconstruction/converge.py" --workspace "$COURSE_WORK"
-```
-
-Expected:
-
-- `converge.py` reports every runtime file identical to production; the only listed differences are the documented packaging ones (the local input manifest and imported-document font artifacts).
-
 ## What changed
 
 <!-- tree: 18 session_viewer/src/engine -->
@@ -387,4 +374,4 @@ Expected:
 
 ## Next
 
-[Architecture reference](../ARCHITECTURE.md): the finished module graph, frame lifecycle and Rust ↔ WGSL interfaces.
+[19 · Sheets](19-sheets.md): drawings as one segment batch with lazy metadata.

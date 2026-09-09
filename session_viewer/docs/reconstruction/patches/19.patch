@@ -1,0 +1,2260 @@
+diff --git a/session_proto/objects.proto b/session_proto/objects.proto
+index e40744b85105815f8bba47c6f06b62e66e441189..4a531c56eb2b10d48986918642594ed90c872a79 100644
+--- a/session_proto/objects.proto
++++ b/session_proto/objects.proto
+@@ -13,6 +13,7 @@ import "nurbscurve.proto";
+ import "nurbssurface.proto";
+ import "brep.proto";
+ import "element.proto";
++import "sheet.proto";
+ 
+ // Component message for custom domain objects (e.g. FloorBuilder, WallBuilder)
+ // Allows external packages to store arbitrary serializable objects in a Session.
+@@ -39,4 +40,5 @@ message Objects {
+   repeated BRep breps = 14;                 // Collection of BReps
+   repeated Element elements = 15;           // Collection of elements
+   repeated Component components = 16;       // Collection of custom domain objects
++  repeated Sheet sheets = 17;               // Collection of sheets
+ }
+diff --git a/session_proto/sheet.proto b/session_proto/sheet.proto
+new file mode 100644
+index 0000000000000000000000000000000000000000..044fcdaf8a521610ce8b1af24f7dc810c3d3e11e
+--- /dev/null
++++ b/session_proto/sheet.proto
+@@ -0,0 +1,31 @@
++syntax = "proto3";
++
++package session_proto;
++
++
++// Sheet: one drawing's linework flattened to segments, published for RANGE reads.
++//
++// The viewer never needs the whole file to start drawing. Every big array is a packed
++// FIXED-WIDTH field - double, fixed32, float - so a reader that scans the protobuf tags in
++// the first kilobytes knows the byte offset and length of every array, and can fetch any
++// slice of it with one HTTP Range request: segment i is bytes [48*i, 48*i+48) of `coords`,
++// [4*i, 4*i+4) of `colors`, `widths` and `source_ids`. `uint32` (varint) would break this -
++// 1 to 5 bytes each, no way to seek - so it is only used for the two scalar counts, which
++// are read once from the header. Field numbers are wire order, so `source_ids` at 15 is the
++// LAST array in the file: everything a first paint needs comes before it.
++//
++// Per-entity metadata (guid, name, kind, authored pen) is NOT in this message. It lives in a
++// side table named by `meta`: magic `SHM1`, u32 LE count, count records of u64 LE offset and
++// u64 LE length relative to the byte after the table, then UTF-8 JSON blobs. A segment's
++// `source_ids` entry is its record index, so a pick resolves to one blob by one more Range.
++message Sheet {
++  string guid = 1;                                  // Unique identifier
++  string name = 2;                                  // Sheet name
++  repeated double coords = 3 [packed = true];       // 6 per segment: x0 y0 z0 x1 y1 z1, world mm
++  repeated fixed32 colors = 4 [packed = true];      // one RGBA8 per segment, low byte red
++  repeated float widths = 5 [packed = true];        // pen width in mm per segment, 0 = hairline
++  uint32 segment_count = 6;                         // number of segments
++  uint32 entity_count = 7;                          // records in the side table
++  string meta = 8;                                  // side-table file name relative to this file, empty = none
++  repeated fixed32 source_ids = 15 [packed = true]; // entity id per segment, index into the side table; the LAST field
++}
+diff --git a/session_rust/src/objects.rs b/session_rust/src/objects.rs
+index a84c4885b02539267805b6b1b81ba5ca496c4029..b41765a7b82c69b97a97d213d926271eba6ff222 100644
+--- a/session_rust/src/objects.rs
++++ b/session_rust/src/objects.rs
+@@ -230,6 +230,7 @@ impl Objects {
+                 .iter()
+                 .map(|c| crate::proto::Component::decode(c.pb_dumps().as_slice()).unwrap())
+                 .collect(),
++            sheets: Vec::new(),
+         };
+         proto.encode_to_vec()
+     }
+diff --git a/session_rust/src/proto/session_proto.rs b/session_rust/src/proto/session_proto.rs
+index 20c69007f34c4dd76166e14926de51be47cfd0ff..089dd58dddb460b2c63b4af8df5741b79f61c757 100644
+--- a/session_rust/src/proto/session_proto.rs
++++ b/session_rust/src/proto/session_proto.rs
+@@ -881,6 +881,51 @@ pub struct PointCloud {
+     #[prost(fixed32, repeated, tag = "15")]
+     pub point_ids: ::prost::alloc::vec::Vec<u32>,
+ }
++/// Sheet: one drawing's linework flattened to segments, published for RANGE reads.
++///
++/// The viewer never needs the whole file to start drawing. Every big array is a packed
++/// FIXED-WIDTH field - double, fixed32, float - so a reader that scans the protobuf tags in
++/// the first kilobytes knows the byte offset and length of every array, and can fetch any
++/// slice of it with one HTTP Range request: segment i is bytes [48*i, 48*i+48) of `coords`,
++/// [4*i, 4*i+4) of `colors`, `widths` and `source_ids`. `uint32` (varint) would break this -
++/// 1 to 5 bytes each, no way to seek - so it is only used for the two scalar counts, which
++/// are read once from the header. Field numbers are wire order, so `source_ids` at 15 is the
++/// LAST array in the file: everything a first paint needs comes before it.
++///
++/// Per-entity metadata (guid, name, kind, authored pen) is NOT in this message. It lives in a
++/// side table named by `meta`: magic `SHM1`, u32 LE count, count records of u64 LE offset and
++/// u64 LE length relative to the byte after the table, then UTF-8 JSON blobs. A segment's
++/// `source_ids` entry is its record index, so a pick resolves to one blob by one more Range.
++#[derive(Clone, PartialEq, ::prost::Message)]
++pub struct Sheet {
++    /// Unique identifier
++    #[prost(string, tag = "1")]
++    pub guid: ::prost::alloc::string::String,
++    /// Sheet name
++    #[prost(string, tag = "2")]
++    pub name: ::prost::alloc::string::String,
++    /// 6 per segment: x0 y0 z0 x1 y1 z1, world mm
++    #[prost(double, repeated, tag = "3")]
++    pub coords: ::prost::alloc::vec::Vec<f64>,
++    /// one RGBA8 per segment, low byte red
++    #[prost(fixed32, repeated, tag = "4")]
++    pub colors: ::prost::alloc::vec::Vec<u32>,
++    /// pen width in mm per segment, 0 = hairline
++    #[prost(float, repeated, tag = "5")]
++    pub widths: ::prost::alloc::vec::Vec<f32>,
++    /// number of segments
++    #[prost(uint32, tag = "6")]
++    pub segment_count: u32,
++    /// records in the side table
++    #[prost(uint32, tag = "7")]
++    pub entity_count: u32,
++    /// side-table file name relative to this file, empty = none
++    #[prost(string, tag = "8")]
++    pub meta: ::prost::alloc::string::String,
++    /// entity id per segment, index into the side table; the LAST field
++    #[prost(fixed32, repeated, tag = "15")]
++    pub source_ids: ::prost::alloc::vec::Vec<u32>,
++}
+ /// Component message for custom domain objects (e.g. FloorBuilder, WallBuilder)
+ /// Allows external packages to store arbitrary serializable objects in a Session.
+ #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+@@ -943,6 +988,9 @@ pub struct Objects {
+     /// Collection of custom domain objects
+     #[prost(message, repeated, tag = "16")]
+     pub components: ::prost::alloc::vec::Vec<Component>,
++    /// Collection of sheets
++    #[prost(message, repeated, tag = "17")]
++    pub sheets: ::prost::alloc::vec::Vec<Sheet>,
+ }
+ /// Quaternion message for representing rotations
+ #[derive(Clone, PartialEq, ::prost::Message)]
+diff --git a/session_viewer/examples/mk_sheet.rs b/session_viewer/examples/mk_sheet.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..a113207cb472d40706184a0772077f8167ccb08d
+--- /dev/null
++++ b/session_viewer/examples/mk_sheet.rs
+@@ -0,0 +1,210 @@
++use std::collections::BTreeMap;
++use std::path::Path;
++
++use prost::Message;
++use session_rust::{Color, Geometry, NurbsCurve, Session, Xform, proto};
++
++const CHORD_DEGREES: f64 = 5.0;
++
++struct Sheet {
++    coords: Vec<f64>,
++    colors: Vec<u32>,
++    widths: Vec<f32>,
++    ids: Vec<u32>,
++    meta: Vec<Vec<u8>>,
++}
++
++fn quant8(v: f32) -> u32 {
++    ((v.clamp(0.0, 1.0) * 255.0 + 0.5) as u32) & 0xff
++}
++
++fn pack_rgba(c: [f32; 4]) -> u32 {
++    quant8(c[0]) | quant8(c[1]) << 8 | quant8(c[2]) << 16 | quant8(c[3]) << 24
++}
++
++fn publish_width(w: f64) -> f32 {
++    if w.is_finite() && w > 0.0 && (w - 1.0).abs() > 1e-9 {
++        w as f32
++    } else {
++        0.0
++    }
++}
++
++fn control_position(c: &NurbsCurve, i: usize) -> Option<[f64; 3]> {
++    let p = c.cv(i)?;
++    let w = if c.m_is_rat && p.len() > 3 && p[3] != 0.0 {
++        p[3]
++    } else {
++        1.0
++    };
++    Some([p[0] / w, p[1] / w, p[2] / w])
++}
++
++fn turning_degrees(c: &NurbsCurve) -> f64 {
++    let mut total = 0.0;
++    let mut prev: Option<[f64; 3]> = None;
++    for i in 1..c.m_cv_count {
++        let (Some(a), Some(b)) = (control_position(c, i - 1), control_position(c, i)) else {
++            continue;
++        };
++        let d = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
++        let len = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
++        if len < 1e-12 {
++            continue;
++        }
++        let u = [d[0] / len, d[1] / len, d[2] / len];
++        if let Some(q) = prev {
++            let dot = (q[0] * u[0] + q[1] * u[1] + q[2] * u[2]).clamp(-1.0, 1.0);
++            total += dot.acos().to_degrees();
++        }
++        prev = Some(u);
++    }
++    total
++}
++
++fn sample_nurbscurve(c: &NurbsCurve) -> Vec<f64> {
++    if c.m_cv_count < 2 {
++        return Vec::new();
++    }
++    let spans = c.span_count().max(1);
++    let n = ((turning_degrees(c) / CHORD_DEGREES).ceil() as usize).clamp(spans, 512);
++    let (t0, t1) = c.domain();
++    let mut pts = Vec::with_capacity((n + 1) * 3);
++    for i in 0..=n {
++        let p = c.point_at(t0 + (t1 - t0) * i as f64 / n as f64);
++        pts.extend_from_slice(&[p[0], p[1], p[2]]);
++    }
++    pts
++}
++
++impl Sheet {
++    fn push(&mut self, pts: &[f64], guid: &str, name: &str, kind: &str, width: f64, color: &Color) {
++        let id = self.meta.len() as u32;
++        let rgba = pack_rgba(color.to_f32());
++        let w = publish_width(width);
++        for s in pts.windows(6).step_by(3) {
++            self.coords.extend_from_slice(s);
++            self.colors.push(rgba);
++            self.widths.push(w);
++            self.ids.push(id);
++        }
++        let record = serde_json::json!({
++            "guid": guid, "name": name, "kind": kind, "width": width,
++            "color": [color.r, color.g, color.b, color.a],
++        });
++        self.meta.push(record.to_string().into_bytes());
++    }
++
++    fn meta_bytes(&self) -> Vec<u8> {
++        let mut out = b"SHM1".to_vec();
++        out.extend_from_slice(&(self.meta.len() as u32).to_le_bytes());
++        let mut offset = 0u64;
++        for blob in &self.meta {
++            out.extend_from_slice(&offset.to_le_bytes());
++            out.extend_from_slice(&(blob.len() as u64).to_le_bytes());
++            offset += blob.len() as u64;
++        }
++        for blob in &self.meta {
++            out.extend_from_slice(blob);
++        }
++        out
++    }
++}
++
++fn main() {
++    let a: Vec<String> = std::env::args().skip(1).collect();
++    let src = a.first().expect("mk_sheet <in.pb> <out.pb>");
++    let out = Path::new(a.get(1).expect("mk_sheet <in.pb> <out.pb>"));
++    let meta_path = out.with_extension("meta");
++    let meta_name = meta_path.file_name().unwrap().to_string_lossy().to_string();
++
++    let session = Session::pb_load(src);
++    let world = session.world_xforms();
++    let identity = Xform::identity();
++    let mut sheet = Sheet {
++        coords: Vec::new(),
++        colors: Vec::new(),
++        widths: Vec::new(),
++        ids: Vec::new(),
++        meta: Vec::new(),
++    };
++    let mut skipped: BTreeMap<&str, usize> = BTreeMap::new();
++    for guid in session.order() {
++        let xf = world.get(&guid).unwrap_or(&identity);
++        match &session.lookup[&guid] {
++            Geometry::Line(l) => {
++                let l = l.transformed(xf);
++                let pts = [l[0], l[1], l[2], l[3], l[4], l[5]];
++                sheet.push(&pts, &guid, &l.name, "line", l.width, &l.linecolor);
++            }
++            Geometry::Polyline(p) => {
++                let p = p.transformed(xf);
++                sheet.push(&p.coords, &guid, &p.name, "polyline", p.width, &p.linecolor);
++            }
++            Geometry::NurbsCurve(c) => {
++                let c = c.transformed(xf);
++                let color = c.linecolors.first().cloned().unwrap_or(Color::new(0.0, 0.0, 0.0, 1.0));
++                sheet.push(&sample_nurbscurve(&c), &guid, &c.name, "nurbscurve", c.width, &color);
++            }
++            g => *skipped.entry(kind_name(g)).or_default() += 1,
++        }
++    }
++
++    let segments = sheet.ids.len();
++    let entities = sheet.meta.len();
++    let meta = sheet.meta_bytes();
++    let pb = proto::Session {
++        name: session.name.clone(),
++        guid: session.guid().to_string(),
++        objects: Some(proto::Objects {
++            sheets: vec![proto::Sheet {
++                guid: session_rust::Objects::new().guid().to_string(),
++                name: session.name.clone(),
++                coords: sheet.coords,
++                colors: sheet.colors,
++                widths: sheet.widths,
++                segment_count: segments as u32,
++                entity_count: entities as u32,
++                meta: meta_name,
++                source_ids: sheet.ids,
++            }],
++            ..Default::default()
++        }),
++        ..Default::default()
++    }
++    .encode_to_vec();
++    std::fs::write(out, &pb).expect("write pb");
++    std::fs::write(&meta_path, &meta).expect("write meta");
++    let skipped: Vec<String> = skipped.iter().map(|(k, n)| format!("{k} {n}")).collect();
++    println!(
++        "{}: {segments} segments, {entities} entities, {} B pb, {} B meta, skipped [{}]",
++        out.display(),
++        pb.len(),
++        meta.len(),
++        skipped.join(", ")
++    );
++}
++
++fn kind_name(g: &Geometry) -> &'static str {
++    match g {
++        Geometry::OBB(_) => "OBB",
++        Geometry::BRep(_) => "BRep",
++        Geometry::Element(_) => "Element",
++        Geometry::Line(_) => "Line",
++        Geometry::Mesh(_) => "Mesh",
++        Geometry::NurbsCurve(_) => "NurbsCurve",
++        Geometry::NurbsSurface(_) => "NurbsSurface",
++        Geometry::Plane(_) => "Plane",
++        Geometry::Point(_) => "Point",
++        Geometry::PointCloud(_) => "PointCloud",
++        Geometry::Polyline(_) => "Polyline",
++    }
++}
++
++/*
++description: flatten every Line, Polyline and NurbsCurve of a session into one range-addressable Sheet plus its .meta side table.
++
++directory: cd ~/code/code_cpp/wood_research/session/session_viewer
++run: cargo run --example mk_sheet --target x86_64-unknown-linux-gnu --release -- assets/pb/view_local_sheet_querschnitt.pb /tmp/sheets/querschnitt.pb
++view: https://petrasvestartas.github.io/session/
++*/
+diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
+index 7b2d9fce0e96b545651baa408d609c0b31554823..d59a2a4baca686a586f6913b0ce3856049120473 100644
+--- a/session_viewer/src/app/inspection.rs
++++ b/session_viewer/src/app/inspection.rs
+@@ -39,6 +39,7 @@ pub fn publish(state: &State) {
+         "identity": identity,
+         "selection": state.selection,
+         "controls": state.inspected_controls(),
++        "sheet_entity": sheet_entity(state),
+         "markers": state.gpu.controls.dot_count(),
+         "control_segments": state.gpu.control_net.ribbon_count(),
+         "pick_busy": state.gpu.pick.busy(),
+@@ -78,6 +79,17 @@ fn selected_identity(state: &State) -> Option<(usize, String)> {
+     Some((document, guid.to_string()))
+ }
+ 
++/// The entity the selected sheet's last pick resolved to, once its side-table record arrived.
++#[cfg(target_arch = "wasm32")]
++fn sheet_entity(state: &State) -> Option<serde_json::Value> {
++    let (id, meta) = state
++        .scene
++        .sheet_at(state.scene.selected?)?
++        .resolved
++        .as_ref()?;
++    Some(serde_json::json!({"id": id, "guid": meta.guid, "name": meta.name, "kind": meta.kind}))
++}
++
+ /// Expose the actual shaped label contract for centered-nameplate pixel regressions.
+ #[cfg(target_arch = "wasm32")]
+ fn text_labels(state: &State) -> Vec<serde_json::Value> {
+diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
+index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e2208b4ecd4 100644
+--- a/session_viewer/src/app/loader.rs
++++ b/session_viewer/src/app/loader.rs
+@@ -1,6 +1,7 @@
+ //! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
+-//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
+-//! through `stream`. Live first, then the URL's route, then the poll loop. Touches no GPU.
++//! event loop as a `Msg` - whole files through `decode`, big clouds and every sheet a slice
++//! at a time through `stream`. Live first, then the URL's route, then the poll loop. Touches
++//! no GPU.
+ 
+ use super::decode::session_from_bytes;
+ use super::fetch::{fetch_bytes, sleep_ms};
+@@ -8,11 +9,15 @@ use super::live::LiveSource;
+ use super::manifest::Manifest;
+ use super::route::AUTO_GRID;
+ use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
+-use super::scene::{FileDoc, Scene, StreamedInit};
+-use super::stream::{CloudFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions};
++use super::scene::{FileDoc, Scene, SheetInit, StreamedInit};
++use super::stream::{
++    CloudFields, SheetFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions,
++    fetch_sheet_slice, sheet_fields,
++};
+ use super::walk::cloud::StreamRows;
++use super::walk::sheet::SheetRows;
+ use crate::engine::performance::now_ms;
+-use crate::{CloudChunk, Msg, State};
++use crate::{CloudChunk, Msg, SheetChunk, State};
+ use session_rust::Xform;
+ use std::cell::{Cell, RefCell};
+ use std::rc::Rc;
+@@ -39,11 +44,23 @@ const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
+ /// so the cloud is on screen and correct, just sparse.
+ const STREAM_MIN_PREFIX: u32 = 250_000;
+ 
++/// Segments a sheet brings down before it is on screen (24 MB of wire doubles).
++const SHEET_PREFIX_SEGMENTS: u32 = 500_000;
++
++/// Segments per follow-up slice.
++const SHEET_CHUNK_SEGMENTS: u32 = 500_000;
++
++/// Hard ceiling on resident sheet segments across the whole page (`?segments=` to change):
++/// 48 B a segment on the GPU plus the growth slack.
++const SHEET_MAX_SEGMENTS: u32 = 3_000_000;
++
+ thread_local! {
+     /// The start-up proxy, kept so `reload_scene` and the stream tasks can post messages.
+     static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
+     /// Points resident across every streamed cloud on the page: the ceiling is a scene budget.
+     static RESIDENT: Cell<u32> = const { Cell::new(0) };
++    /// Segments resident across every sheet on the page, under its own ceiling.
++    static SHEET_RESIDENT: Cell<u32> = const { Cell::new(0) };
+     /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
+     static GENERATION: Cell<u32> = const { Cell::new(0) };
+     static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
+@@ -53,6 +70,7 @@ thread_local! {
+ fn clear_scene() {
+     GENERATION.set(GENERATION.get().wrapping_add(1));
+     RESIDENT.set(0);
++    SHEET_RESIDENT.set(0);
+     post(Msg::Clear);
+ }
+ 
+@@ -89,6 +107,21 @@ fn budget_spend(n: u32) {
+     RESIDENT.set(RESIDENT.get().saturating_add(n));
+ }
+ 
++/// The resident segment ceiling for this page load.
++fn max_segments() -> u32 {
++    knob_u32("segments").unwrap_or(SHEET_MAX_SEGMENTS)
++}
++
++/// Segments the scene may still make resident.
++fn sheet_budget_left() -> u32 {
++    max_segments().saturating_sub(SHEET_RESIDENT.get())
++}
++
++/// Book `n` segments against the sheet budget.
++fn sheet_budget_spend(n: u32) {
++    SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_add(n));
++}
++
+ /// Start-up: the live source when the page has one, else the URL's route, then the empty
+ /// canvas either way; then the poll loop.
+ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
+@@ -195,6 +228,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+     let mut spent = 0u64;
+     let mut skipped: Vec<String> = Vec::new();
+     let mut staged_points = 0u32;
++    let mut staged_segments = 0u32;
+     let t0 = now_ms();
+     let bytes = match fetch_manifest(route).await {
+         Ok(b) => b,
+@@ -257,6 +291,28 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+                 }
+                 continue;
+             }
++            let remaining = if replacement.is_some() {
++                max_segments().saturating_sub(staged_segments)
++            } else {
++                sheet_budget_left()
++            };
++            if let Some(init) = sheet_prefix(&url, &slot, remaining).await {
++                if stale_load(generation) {
++                    return;
++                }
++                if init.resident == 0 {
++                    failed = true;
++                    continue;
++                }
++                if replacement.is_some() {
++                    staged_segments = staged_segments.saturating_add(init.resident);
++                    pending.push(PendingDocument::Sheet(Box::new(init)));
++                } else {
++                    sheet_budget_spend(init.resident);
++                    post(Msg::Sheet(Box::new(init)));
++                }
++                continue;
++            }
+         }
+         // A whole file is decoded into the wasm heap several times over; past the device's
+         // budget the page would die without a word, so the file is skipped with one instead.
+@@ -326,6 +382,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+         }
+         clear_scene();
+         budget_spend(staged_points);
++        sheet_budget_spend(staged_segments);
+         for document in pending {
+             match document {
+                 PendingDocument::Whole(doc) => {
+@@ -334,6 +391,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+                 PendingDocument::Streamed(stream) => {
+                     post(Msg::StreamedCloud(stream));
+                 }
++                PendingDocument::Sheet(sheet) => {
++                    post(Msg::Sheet(sheet));
++                }
+             }
+         }
+     }
+@@ -348,10 +408,11 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+     );
+ }
+ 
+-/// Replacement staging preserves manifest order across whole files and streamed clouds.
++/// Replacement staging preserves manifest order across whole files, streamed clouds and sheets.
+ enum PendingDocument {
+     Whole(FileDoc),
+     Streamed(Box<StreamedInit>),
++    Sheet(Box<SheetInit>),
+ }
+ 
+ /// Where a streamed cloud goes: its document name, placement and point size.
+@@ -414,6 +475,102 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
+     })
+ }
+ 
++/// The file beside `url`: the side table named relative to the sheet.
++fn sibling(url: &str, name: &str) -> String {
++    let dir = url.rfind('/').map_or(0, |at| at + 1);
++    format!("{}{name}", &url[..dir])
++}
++
++/// Try to open a sheet by RANGE: `None` when the file is not a single-sheet file. A sheet is
++/// ALWAYS streamed - the kernel has no object for it - so the prefix is the first paint: at
++/// most `share` segments (what the page's segment budget still allows).
++async fn sheet_prefix(url: &str, slot: &Placement, share: u32) -> Option<SheetInit> {
++    let name = slot.name.as_str();
++    let fields = sheet_fields(url).await?;
++    let meta_url = (!fields.meta.is_empty()).then(|| sibling(url, &fields.meta));
++    let mut resident = SHEET_PREFIX_SEGMENTS.min(share).min(fields.count);
++    let rows = match fetch_sheet_slice(url, &fields, 0, resident).await {
++        Some(rows) if resident > 0 => rows,
++        _ => {
++            log::warn!(
++                "'{name}': no sheet prefix - {resident} of {} segments allowed (?segments= to raise the ceiling) or the range read failed",
++                fields.count
++            );
++            resident = 0;
++            SheetRows {
++                positions: Vec::new(),
++                colors: Vec::new(),
++                widths: Vec::new(),
++                ids: Vec::new(),
++            }
++        }
++    };
++    log::info!(
++        "sheet '{name}': {resident} of {} segments on screen, {} entities",
++        fields.count,
++        fields.entities
++    );
++    Some(SheetInit {
++        name: name.to_string(),
++        url: url.to_string(),
++        meta_url,
++        place: slot.place.clone(),
++        rows,
++        fields,
++        resident,
++    })
++}
++
++/// Where a sheet continues: its slot, its file layout and the next segment.
++pub struct SheetCursor {
++    pub idx: usize,
++    pub url: String,
++    pub fields: SheetFields,
++    pub from: u32,
++}
++
++/// Fetch the rest of a sheet, a slice at a time, posting each one; spawned once the scene has
++/// given the sheet its slot. Stops when the scene it belongs to is cleared.
++pub fn spawn_sheet_rest(cursor: SheetCursor) {
++    wasm_bindgen_futures::spawn_local(sheet_rest(cursor));
++}
++
++/// The slice loop behind `spawn_sheet_rest`.
++async fn sheet_rest(c: SheetCursor) {
++    let (url, idx, fields) = (c.url, c.idx, c.fields);
++    let generation = GENERATION.get();
++    let mut at = c.from;
++    while at < fields.count {
++        if GENERATION.get() != generation {
++            return;
++        }
++        let left = sheet_budget_left();
++        if left == 0 {
++            log::info!(
++                "'{url}': {at} of {} segments resident - at the page's segment ceiling (?segments= to raise it)",
++                fields.count
++            );
++            return;
++        }
++        let to = (at + SHEET_CHUNK_SEGMENTS.min(left)).min(fields.count);
++        sheet_budget_spend(to - at);
++        let Some(rows) = fetch_sheet_slice(&url, &fields, at, to).await else {
++            if GENERATION.get() == generation {
++                SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_sub(to - at));
++            }
++            super::feedback::status("A sheet range failed; reload to retry the missing data");
++            return;
++        };
++        if GENERATION.get() != generation {
++            return;
++        }
++        if !post(Msg::SheetChunk(SheetChunk { idx, rows, to })) {
++            return;
++        }
++        at = to;
++    }
++}
++
+ /// Where a streamed cloud continues: its slot, its file layout, the next point and where the
+ /// colour run continues.
+ pub struct StreamCursor {
+diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
+index 2ef628363bdfb35d3ddc77cde5ec5e7ce79f5e3a..3cc9933bb164535f05d4f5107d41cb1b7f3a7bff 100644
+--- a/session_viewer/src/app/mod.rs
++++ b/session_viewer/src/app/mod.rs
+@@ -9,6 +9,7 @@ pub mod knobs;
+ pub mod manifest;
+ pub mod scene;
+ pub mod selection;
++pub mod sheet_query;
+ pub mod stream;
+ pub mod touch;
+ pub mod validate;
+diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
+index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9eb141bd1 100644
+--- a/session_viewer/src/app/scene.rs
++++ b/session_viewer/src/app/scene.rs
+@@ -8,10 +8,12 @@ mod text;
+ pub use text::SceneText;
+ 
+ use crate::app::knobs;
+-use crate::app::stream::{CloudFields, CloudLod};
++use crate::app::sheet_query::{EntityMeta, SheetTable};
++use crate::app::stream::{CloudFields, CloudLod, SheetFields};
+ use crate::app::walk::bounds::{Baselines, file_extent, is_planar, mark_sheet};
+ use crate::app::walk::cloud::{StreamRows, StreamSlice, walk_stream_slice};
+ use crate::app::walk::mesh::Lap;
++use crate::app::walk::sheet::{SheetRows, SheetSlice, walk_sheet_slice};
+ use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
+ use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
+ use crate::math::{Mat4, mat_mul};
+@@ -70,14 +72,43 @@ pub struct StreamedCloud {
+     pub point_px: f32,
+ }
+ 
+-/// What a pick resolved to: the document, the geometry's guid, its object row, and for a
+-/// cloud the point index and its stable id.
++/// A streamed sheet's first slice and what later slices need: the file layout, how many
++/// segments are resident, and where its side table is.
++pub struct SheetInit {
++    pub name: String,
++    pub url: String,
++    pub meta_url: Option<String>,
++    pub place: Xform,
++    pub rows: SheetRows,
++    pub fields: SheetFields,
++    pub resident: u32,
++}
++
++/// A sheet's slot: its one object row, the file layout later slices and picks read, and the
++/// entity a pick last resolved to (the nameplate names it).
++pub struct SheetBatch {
++    pub name: String,
++    pub url: String,
++    pub meta_url: Option<String>,
++    pub row: u32,
++    pub fields: SheetFields,
++    pub place: Mat4,
++    pub done_to: u32,
++    pub total: u32,
++    pub resolved: Option<(u32, EntityMeta)>,
++    /// The side table's validated head, read once.
++    pub table: Option<SheetTable>,
++}
++
++/// What a pick resolved to: the document, the geometry's guid, its object row, for a cloud
++/// the point index and its stable id, and for a sheet the segment's entity id.
+ #[derive(Clone, Debug)]
+ pub struct Picked {
+     pub doc: String,
+     pub guid: String,
+     pub row: u32,
+     pub point: Option<PickedPoint>,
++    pub entity: Option<u32>,
+ }
+ 
+ /// A picked cloud point: the row-local index (this file version only) and the stable id.
+@@ -103,6 +134,7 @@ pub struct Scene {
+     pub texts: Vec<SceneText>,
+     pub tables: Upload,
+     pub streamed: Vec<StreamedCloud>,
++    pub sheets: Vec<SheetBatch>,
+     pub hidden: HashSet<(usize, Rc<str>)>,
+     pub selected: Option<u32>,
+     order: Vec<Rc<str>>,
+@@ -129,6 +161,7 @@ impl Scene {
+             texts: Vec::new(),
+             tables: Upload::default(),
+             streamed: Vec::new(),
++            sheets: Vec::new(),
+             hidden: HashSet::new(),
+             selected: None,
+             order: Vec::new(),
+@@ -147,6 +180,7 @@ impl Scene {
+         self.texts.clear();
+         self.tables = Upload::default();
+         self.streamed.clear();
++        self.sheets.clear();
+         self.order.clear();
+         self.owners.clear();
+         self.edge_sources.clear();
+@@ -159,12 +193,13 @@ impl Scene {
+     }
+ 
+     /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
+-    /// path an edit commit takes. Streamed clouds cannot come back (no kernel object).
++    /// path an edit commit takes. Streamed clouds and sheets cannot come back (no kernel object).
+     pub fn rebuild(&mut self, gpu: &mut Gpu) {
+         let docs = std::mem::take(&mut self.docs);
+         let texts = std::mem::take(&mut self.texts);
+         self.tables = Upload::default();
+         self.streamed.clear();
++        self.sheets.clear();
+         self.order.clear();
+         self.owners.clear();
+         self.edge_sources.clear();
+@@ -385,7 +420,89 @@ impl Scene {
+         self.upload_to(gpu);
+     }
+ 
+-    /// What a pick means: the document, the guid, and for a cloud the point behind the row.
++    /// Add a streamed sheet from its first slice and upload it at once, so the slot knows the
++    /// row its segments land on. One planar object row: `FLAG_SHEET`, hairline pens as
++    /// authored, no `mark_sheet` sweep. Returns the slot index later slices address.
++    pub fn add_sheet(&mut self, init: SheetInit, gpu: &mut Gpu) -> usize {
++        let SheetInit {
++            name,
++            url,
++            meta_url,
++            place,
++            rows,
++            fields,
++            resident,
++        } = init;
++        let total = fields.count;
++        let row = self.push_row(&format!("sheet:{url}"), place.m, Instance::FLAG_SHEET);
++        let slice = SheetSlice { rows, from: 0, row };
++        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
++        let o = self.tables.obj.rows.last_mut().unwrap();
++        o.bounds = bounds;
++        o.thickness = bounds.thinnest();
++        self.tables.bounds.union(&bounds.placed(&place.m));
++        self.upload_to(gpu);
++
++        let model = place.m;
++        self.docs.push(Doc {
++            name: name.clone(),
++            place,
++            session: Rc::new(Session::new(&name)),
++            point_px: 0.0,
++            display_only: true,
++        });
++        self.sheets.push(SheetBatch {
++            name,
++            url,
++            meta_url,
++            row,
++            fields,
++            place: model,
++            done_to: resident,
++            total,
++            resolved: None,
++            table: None,
++        });
++        self.sheets.len() - 1
++    }
++
++    /// Append the next slice `[done_to, to)` of sheet `idx` and upload it.
++    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32, gpu: &mut Gpu) {
++        let Some(sheet) = self.sheets.get(idx) else {
++            return;
++        };
++        if to <= sheet.done_to {
++            return;
++        }
++        let place = sheet.place;
++        let slice = SheetSlice {
++            rows,
++            from: sheet.done_to,
++            row: sheet.row,
++        };
++        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
++        self.tables.bounds.union(&bounds.placed(&place));
++        self.sheets[idx].done_to = to;
++        self.upload_to(gpu);
++    }
++
++    /// The sheet slot on object row `row`, if that row is a sheet.
++    pub fn sheet_slot(&self, row: u32) -> Option<usize> {
++        for (slot, sheet) in self.sheets.iter().enumerate() {
++            if sheet.row == row {
++                return Some(slot);
++            }
++        }
++        None
++    }
++
++    /// The sheet on object row `row`.
++    pub fn sheet_at(&self, row: u32) -> Option<&SheetBatch> {
++        self.sheets.get(self.sheet_slot(row)?)
++    }
++
++    /// What a pick means: the document, the guid, for a cloud the point behind the row, and
++    /// for a sheet the entity behind the ribbon.
+     pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
+         let guid = self.order.get(pick.row as usize)?.to_string();
+         let mut point = None;
+@@ -394,6 +511,15 @@ impl Scene {
+         {
+             point = self.point_at(pick.row, local);
+         }
++        let mut entity = None;
++        let ribbon = pick.sub & 0x7fff_ffff;
++        if pick.sub & 0x8000_0000 != 0
++            && self.sheet_at(pick.row).is_some()
++            && let Some((parent, _)) = gpu.segments.row_of(ribbon)
++            && parent == pick.row
++        {
++            entity = gpu.segments.source_id(ribbon).filter(|id| *id != u32::MAX);
++        }
+         let doc = match self.document(pick.row) {
+             Some(document) => document.name.clone(),
+             None => String::new(),
+@@ -403,6 +529,7 @@ impl Scene {
+             guid,
+             row: pick.row,
+             point,
++            entity,
+         })
+     }
+ 
+@@ -419,11 +546,19 @@ impl Scene {
+             .get(self.order.get(row as usize)?.as_ref())
+     }
+ 
+-    /// The source object's name; unnamed geometry uses its type instead of its file name.
++    /// The source object's name; unnamed geometry uses its type instead of its file name. A
++    /// sheet names the entity its last pick resolved to, else itself.
+     pub fn object_name(&self, row: u32) -> &str {
+         if let Some(text) = self.text_at(row) {
+             return &text.label.text;
+         }
++        if let Some(sheet) = self.sheet_at(row) {
++            return match &sheet.resolved {
++                Some((_, meta)) if !meta.name.trim().is_empty() => &meta.name,
++                Some((_, meta)) if !meta.kind.trim().is_empty() => &meta.kind,
++                _ => &sheet.name,
++            };
++        }
+         let (name, kind) = match self.geometry(row) {
+             Some(Geometry::OBB(value)) => (value.name.as_str(), "Box"),
+             Some(Geometry::BRep(value)) => (value.name.as_str(), "BRep"),
+diff --git a/session_viewer/src/app/sheet_query.rs b/session_viewer/src/app/sheet_query.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b4aaf1a62fbb58e25b68dfcb36d14418c5c5b446
+--- /dev/null
++++ b/session_viewer/src/app/sheet_query.rs
+@@ -0,0 +1,273 @@
++//! Sheet entity lookup by bounded range reads of the side table: the 8-byte head once per
++//! sheet, then one 16-byte record and one JSON blob per pick. The segment itself was picked
++//! on the GPU; only its entity's identity comes off the wire.
++
++use serde::Deserialize;
++use std::cell::Cell;
++use std::rc::Rc;
++
++/// The side table's head: magic `SHM1`, u32 LE record count.
++pub const HEAD_BYTES: u64 = 8;
++/// One record: u64 LE offset, u64 LE length, relative to the byte after the table.
++pub const RECORD_BYTES: u64 = 16;
++/// A blob longer than this is not one entity's record.
++pub const MAX_BLOB: u64 = 64 * 1024;
++
++/// One entity's authored identity: the side table's JSON blob.
++#[derive(Clone, Debug, Default, Deserialize, PartialEq)]
++pub struct EntityMeta {
++    #[serde(default)]
++    pub guid: String,
++    #[serde(default)]
++    pub name: String,
++    #[serde(default)]
++    pub kind: String,
++    #[serde(default)]
++    pub width: f32,
++    #[serde(default)]
++    pub color: Vec<f32>,
++}
++
++/// The validated head, cached per sheet with the revision every later read must match.
++#[derive(Clone, Debug)]
++pub struct SheetTable {
++    pub count: u32,
++    pub revision: Option<String>,
++}
++
++/// The record count behind a valid magic.
++pub fn table_count(raw: &[u8]) -> Result<u32, String> {
++    if raw.len() != HEAD_BYTES as usize || &raw[..4] != b"SHM1" {
++        return Err("Side table head is not SHM1".to_string());
++    }
++    Ok(u32::from_le_bytes(
++        raw[4..8].try_into().expect("exact head checked above"),
++    ))
++}
++
++/// One record's (offset, length).
++pub fn record(raw: &[u8]) -> Result<(u64, u64), String> {
++    if raw.len() != RECORD_BYTES as usize {
++        return Err("Side table record must contain exactly 16 bytes".to_string());
++    }
++    Ok((
++        u64::from_le_bytes(raw[..8].try_into().expect("exact record checked above")),
++        u64::from_le_bytes(raw[8..].try_into().expect("exact record checked above")),
++    ))
++}
++
++/// Where record `id` sits; `record_at(count)` is where the blobs start.
++pub fn record_at(id: u32) -> u64 {
++    HEAD_BYTES + RECORD_BYTES * u64::from(id)
++}
++
++/// The JSON blob as an entity; unknown keys are ignored, missing ones default.
++pub fn entity_from(raw: &[u8]) -> Result<EntityMeta, String> {
++    serde_json::from_slice(raw).map_err(|error| format!("Entity record is not valid JSON: {error}"))
++}
++
++/// One entity lookup in flight. A superseding selection cancels the token even while HTTP awaits.
++pub struct Query {
++    pub id: u64,
++    pub row: u32,
++    pub entity: u32,
++    pub cancelled: Rc<Cell<bool>>,
++}
++
++impl Query {
++    /// A fresh token for entity `entity` of the sheet on `row`.
++    pub fn new(id: u64, row: u32, entity: u32) -> Self {
++        Self {
++            id,
++            row,
++            entity,
++            cancelled: Rc::new(Cell::new(false)),
++        }
++    }
++}
++
++impl Drop for Query {
++    /// Retire the callback when the query completes, fails, or is replaced by new input.
++    fn drop(&mut self) {
++        self.cancelled.set(true);
++    }
++}
++
++/// The answer for one query generation: the entity and the table head to cache.
++pub struct Resolved {
++    pub query: u64,
++    pub result: Result<(EntityMeta, SheetTable), String>,
++}
++
++#[cfg(target_arch = "wasm32")]
++mod web {
++    use super::*;
++    use crate::app::{
++        fetch::{GetOpts, get},
++        loader::post,
++    };
++
++    /// Validate the exact ranged body and any exposed revision; never consume a whole-file 200.
++    async fn range(
++        url: &str,
++        at: u64,
++        len: u64,
++        revision: &Option<String>,
++    ) -> Result<(Vec<u8>, Option<String>), String> {
++        let reply = get(
++            url,
++            &GetOpts {
++                range: Some((at, len)),
++                revalidate: true,
++                ..Default::default()
++            },
++        )
++        .await?;
++        if reply.status != 206 || reply.bytes.len() as u64 != len {
++            return Err(format!(
++                "Side table range failed (HTTP {}, {} of {len} bytes)",
++                reply.status,
++                reply.bytes.len()
++            ));
++        }
++        if revision.is_some() && revision != &reply.etag {
++            return Err("Side table changed during selection; reload the sheet".to_string());
++        }
++        Ok((reply.bytes, reply.etag))
++    }
++
++    /// Schedule one entity read; the named task posts its completion to the event loop.
++    pub fn fetch_entity(query: &Query, url: String, table: Option<SheetTable>, entities: u32) {
++        wasm_bindgen_futures::spawn_local(post_entity(
++            query.id,
++            query.entity,
++            query.cancelled.clone(),
++            url,
++            table,
++            entities,
++        ));
++    }
++
++    /// Complete or fail exactly one lookup, unless a newer selection retired its generation.
++    async fn post_entity(
++        query: u64,
++        entity: u32,
++        cancelled: Rc<Cell<bool>>,
++        url: String,
++        table: Option<SheetTable>,
++        entities: u32,
++    ) {
++        let result = read_entity(&url, entity, table, entities, &cancelled).await;
++        if !cancelled.get() {
++            post(crate::Msg::SheetEntity(Resolved { query, result }));
++        }
++    }
++
++    /// The head (once per sheet, checked against the sheet's `entity_count`), the record,
++    /// then the blob, all under the side table's own revision.
++    pub async fn read_entity(
++        url: &str,
++        id: u32,
++        table: Option<SheetTable>,
++        entities: u32,
++        cancelled: &Cell<bool>,
++    ) -> Result<(EntityMeta, SheetTable), String> {
++        let table = match table {
++            Some(table) => table,
++            None => {
++                let (raw, revision) = range(url, 0, HEAD_BYTES, &None).await?;
++                let count = table_count(&raw)?;
++                if count != entities {
++                    return Err(format!(
++                        "Side table holds {count} records; the sheet says {entities}"
++                    ));
++                }
++                SheetTable { count, revision }
++            }
++        };
++        if cancelled.get() {
++            return Err("Entity lookup cancelled".to_string());
++        }
++        if id >= table.count {
++            return Err(format!(
++                "Entity {id} is outside the {}-record side table",
++                table.count
++            ));
++        }
++        let (raw, _) = range(url, record_at(id), RECORD_BYTES, &table.revision).await?;
++        if cancelled.get() {
++            return Err("Entity lookup cancelled".to_string());
++        }
++        let (offset, length) = record(&raw)?;
++        if length > MAX_BLOB {
++            return Err(format!(
++                "Entity {id} record is {length} bytes, over the {MAX_BLOB} limit"
++            ));
++        }
++        let at = record_at(table.count)
++            .checked_add(offset)
++            .ok_or("Entity record offset overflows")?;
++        let (blob, _) = range(url, at, length, &table.revision).await?;
++        Ok((entity_from(&blob)?, table))
++    }
++}
++#[cfg(target_arch = "wasm32")]
++pub use web::fetch_entity;
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// A side table with two blobs: head, records, then the blobs the records address.
++    fn table(blobs: &[&str]) -> Vec<u8> {
++        let mut out = b"SHM1".to_vec();
++        out.extend((blobs.len() as u32).to_le_bytes());
++        let mut offset = 0u64;
++        for blob in blobs {
++            out.extend(offset.to_le_bytes());
++            out.extend((blob.len() as u64).to_le_bytes());
++            offset += blob.len() as u64;
++        }
++        for blob in blobs {
++            out.extend(blob.as_bytes());
++        }
++        out
++    }
++
++    /// The head, the records and the blobs parse from a hand-built buffer; junk is refused.
++    #[test]
++    fn side_table_head_records_and_blobs_parse_from_a_hand_built_buffer() {
++        let raw = table(&[
++            r#"{"guid":"g0","name":"Wall A","kind":"wall","width":0.35,"color":[0,0,0,255]}"#,
++            r#"{"name":"Door","kind":"door","extra":true}"#,
++        ]);
++        let count = table_count(&raw[..HEAD_BYTES as usize]).unwrap();
++        assert_eq!(count, 2);
++        let blobs = record_at(count) as usize;
++        let at = record_at(1) as usize;
++        let (offset, length) = record(&raw[at..at + RECORD_BYTES as usize]).unwrap();
++        let door = entity_from(&raw[blobs + offset as usize..][..length as usize]).unwrap();
++        assert_eq!(door.name, "Door");
++        assert_eq!(door.kind, "door");
++        assert_eq!(door.guid, "");
++        let at = record_at(0) as usize;
++        let (offset, length) = record(&raw[at..at + RECORD_BYTES as usize]).unwrap();
++        let wall = entity_from(&raw[blobs + offset as usize..][..length as usize]).unwrap();
++        assert_eq!(wall.guid, "g0");
++        assert_eq!(wall.width, 0.35);
++        assert_eq!(wall.color, [0.0, 0.0, 0.0, 255.0]);
++        assert!(table_count(b"SHM2\0\0\0\0").is_err());
++        assert!(table_count(&raw[..7]).is_err());
++        assert!(record(&raw[..15]).is_err());
++        assert!(entity_from(b"{").is_err());
++    }
++
++    /// Dropping a query retires its token, so a late answer is ignored.
++    #[test]
++    fn dropping_a_query_cancels_its_token() {
++        let query = Query::new(3, 1, 9);
++        let token = query.cancelled.clone();
++        drop(query);
++        assert!(token.get());
++    }
++}
+diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
+index ca48bf66ca83f6baeaba0e8458090387a04e68d0..166965af3d90c623a009e14a071677a46ab7692f 100644
+--- a/session_viewer/src/app/stream.rs
++++ b/session_viewer/src/app/stream.rs
+@@ -1,8 +1,9 @@
+-//! Reading a cloud by HTTP Range, without decoding the file whole. Two facts about the wire
+-//! format make it possible: every hop `Session.3 -> Objects.8 -> PointCloud` is
+-//! length-delimited, so the headers sit in the first few KB; and `coords` is packed double,
+-//! so its length prefix gives the exact point count before a byte of payload is read. The
+-//! byte-level parsing here is pure and tested natively; the fetching half is wasm-only.
++//! Reading a cloud or a sheet by HTTP Range, without decoding the file whole. Two facts about
++//! the wire format make it possible: every hop `Session.3 -> Objects.8 -> PointCloud` (or
++//! `Objects.17 -> Sheet`) is length-delimited, so the headers sit in the first few KB; and
++//! `coords` is packed double, so its length prefix gives the exact count before a byte of
++//! payload is read. The byte-level parsing here is pure and tested natively; the fetching
++//! half is wasm-only.
+ 
+ /// Where the packed source arrays live in the file, as absolute byte offsets.
+ #[derive(Clone, Debug)]
+@@ -21,6 +22,109 @@ pub struct CloudFields {
+     pub revision: Option<String>,
+ }
+ 
++/// Where a sheet's fixed-width arrays live in the file, as absolute byte offsets; a zero
++/// length means the field is absent (default colour, hairline pens, no entity ids).
++#[derive(Clone, Debug, Default)]
++pub struct SheetFields {
++    /// End of the enclosing Sheet message, exclusive.
++    pub end: u64,
++    pub coords_at: u64,
++    pub coords_len: u64,
++    pub colors_at: u64,
++    pub colors_len: u64,
++    pub widths_at: u64,
++    pub widths_len: u64,
++    pub ids_at: u64,
++    pub ids_len: u64,
++    /// Segments, from the coords length; `segment_count` (field 6) must agree.
++    pub count: u32,
++    /// Records in the side table (field 7).
++    pub entities: u32,
++    /// Side-table file name relative to the sheet URL; empty = none.
++    pub meta: String,
++    pub revision: Option<String>,
++}
++
++/// One field header inside a message: what it is, its varint value or body length, where
++/// the body starts and where the next field does.
++#[derive(Clone, Copy)]
++pub struct Field {
++    pub field: u32,
++    pub wire: u32,
++    pub value: u64,
++    pub body: u64,
++    pub next: u64,
++}
++
++/// The field at `at`, whose header is the start of `header`; bodies never cross `end`.
++pub fn field_at(header: &[u8], at: u64, end: u64) -> Option<Field> {
++    let (tag, used) = varint(header, 0)?;
++    let (field, wire) = (u32::try_from(tag >> 3).ok()?, (tag & 7) as u32);
++    if field == 0 {
++        return None;
++    }
++    let body = body_end(at, used as u64, end)?;
++    if wire != 2 {
++        let (value, _) = if wire == 0 {
++            varint(header, used)?
++        } else {
++            (0, 0)
++        };
++        let skip = skip_scalar(header, used, wire)?;
++        return Some(Field {
++            field,
++            wire,
++            value,
++            body,
++            next: body_end(body, skip as u64, end)?,
++        });
++    }
++    let (length, extra) = varint(header, used)?;
++    let body = body_end(body, extra as u64, end)?;
++    Some(Field {
++        field,
++        wire,
++        value: length,
++        body,
++        next: body_end(body, length, end)?,
++    })
++}
++
++impl SheetFields {
++    /// Bytes per segment in `coords`: six doubles.
++    pub const SEGMENT_BYTES: u64 = 48;
++
++    /// Record one field found after `coords`; `body` is the bytes of a small string field.
++    /// False for a repeated array, a count that disagrees with `coords`, or a field of the
++    /// wrong wire type.
++    pub fn set(&mut self, f: &Field, body: &[u8]) -> bool {
++        let per_segment = u64::from(self.count) * 4;
++        match (f.field, f.wire) {
++            (4, 2) if self.colors_len == 0 && f.value == per_segment => {
++                (self.colors_at, self.colors_len) = (f.body, f.value)
++            }
++            (5, 2) if self.widths_len == 0 && f.value == per_segment => {
++                (self.widths_at, self.widths_len) = (f.body, f.value)
++            }
++            (15, 2) if self.ids_len == 0 && f.value == per_segment => {
++                (self.ids_at, self.ids_len) = (f.body, f.value)
++            }
++            (6, 0) => return f.value == u64::from(self.count),
++            (7, 0) => match u32::try_from(f.value) {
++                Ok(entities) => self.entities = entities,
++                Err(_) => return false,
++            },
++            (8, 2) if f.value <= NAME_BYTES => match std::str::from_utf8(body) {
++                Ok(meta) => self.meta = meta.to_string(),
++                Err(_) => return false,
++            },
++            (1..=8, _) | (15, _) => return false,
++            _ => {}
++        }
++        true
++    }
++}
++
+ /// One cloud's LOD node table, read from the file's tail without touching a point.
+ /// `first`/`count` index the cloud's rows, which are stored in octree order.
+ #[derive(Clone, Default)]
+@@ -200,6 +304,21 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+     let mut at = 0usize;
+     let objects_end = descend_message(head, &mut at, None, 3)?;
+     let end = descend_message(head, &mut at, Some(objects_end), 8)?;
++    first_array(head, at, end)
++}
++
++/// The same walk down `Session.3 -> Objects.17 -> Sheet`: where `coords` starts, how long it
++/// is, and where the sheet message ends.
++pub fn sheet_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
++    let mut at = 0usize;
++    let objects_end = descend_message(head, &mut at, None, 3)?;
++    let end = descend_message(head, &mut at, Some(objects_end), 17)?;
++    first_array(head, at, end)
++}
++
++/// The message's `coords` (field 3), which only small names may precede: a later field or a
++/// geometry-sized one before it means the file is not laid out for ranged reads.
++fn first_array(head: &[u8], mut at: usize, end: u64) -> Option<(u64, u64, u64)> {
+     while (at as u64) < end {
+         let (tag, used) = varint(head, at)?;
+         at = at.checked_add(used)?;
+@@ -223,7 +342,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+         if field == 3 {
+             return Some((at as u64, length, end));
+         }
+-        if field == 4 || length > NAME_BYTES {
++        if field > 3 || length > NAME_BYTES {
+             return None;
+         }
+         at = usize::try_from(next).ok()?;
+@@ -232,6 +351,7 @@ fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
+ }
+ 
+ /// Descend one length-delimited envelope, skipping only small names before its target field.
++/// Inside a bounded parent (`Objects`) the target must close the parent: a single-object file.
+ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u32) -> Option<u64> {
+     loop {
+         let (tag, used) = varint(head, *at)?;
+@@ -249,7 +369,9 @@ fn descend_message(head: &[u8], at: &mut usize, parent_end: Option<u64>, want: u
+             return None;
+         }
+         if field == want {
+-            if want == 8 && parent_end != Some(next) {
++            if let Some(end) = parent_end
++                && end != next
++            {
+                 return None;
+             }
+             return Some(next);
+@@ -269,7 +391,13 @@ fn finite_float(value: f64) -> bool {
+ /// Exact packed triples only; truncated reads and nonrepresentable coordinates never upload.
+ #[cfg(any(target_arch = "wasm32", test))]
+ fn checked_positions(raw: &[u8], count: u32) -> Option<Vec<f32>> {
+-    if raw.len() as u64 != u64::from(count).checked_mul(24)? {
++    checked_doubles(raw, u64::from(count).checked_mul(3)?)
++}
++
++/// Exactly `n` finite doubles as f32; anything else never uploads.
++#[cfg(any(target_arch = "wasm32", test))]
++fn checked_doubles(raw: &[u8], n: u64) -> Option<Vec<f32>> {
++    if raw.len() as u64 != n.checked_mul(8)? {
+         return None;
+     }
+     let mut out = Vec::with_capacity(raw.len() / 8);
+@@ -313,7 +441,7 @@ impl MetadataWindow {
+         self.bytes.get(start..start.checked_add(length)?)
+     }
+ 
+-    /// Read ahead 64 KiB inside the cloud; larger packed arrays retain the existing cap.
++    /// Read ahead 64 KiB inside the message; larger packed arrays retain the existing cap.
+     fn read_length(at: u64, length: u64, end: u64) -> Option<u64> {
+         if !bounded_range(at, length) {
+             return None;
+@@ -344,6 +472,25 @@ pub fn packed_f64(raw: &[u8]) -> Vec<f64> {
+     out
+ }
+ 
++/// A packed `fixed32` array in full.
++pub fn packed_u32(raw: &[u8]) -> Vec<u32> {
++    let mut out = Vec::with_capacity(raw.len() / 4);
++    for c in raw.chunks_exact(4) {
++        out.push(u32::from_le_bytes(c.try_into().unwrap()));
++    }
++    out
++}
++
++/// A packed `float` array in full; a non-finite value becomes 0 (the hairline pen).
++pub fn packed_f32(raw: &[u8]) -> Vec<f32> {
++    let mut out = Vec::with_capacity(raw.len() / 4);
++    for c in raw.chunks_exact(4) {
++        let v = f32::from_le_bytes(c.try_into().unwrap());
++        out.push(if v.is_finite() { v } else { 0.0 });
++    }
++    out
++}
++
+ /// An already-fetched coords slice as f32 triples.
+ pub fn positions_from(raw: &[u8]) -> Vec<f32> {
+     let mut out = Vec::with_capacity(raw.len() / 8);
+@@ -378,6 +525,7 @@ pub use web::*;
+ mod web {
+     use super::*;
+     use crate::app::fetch::{GetOpts, get};
++    use crate::app::walk::sheet::SheetRows;
+ 
+     const POINT_BYTES: u64 = 24;
+     const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
+@@ -389,12 +537,13 @@ mod web {
+             url: &str,
+             at: u64,
+             length: u64,
+-            fields: &CloudFields,
++            end: u64,
++            revision: &Option<String>,
+         ) -> Option<&[u8]> {
+-            body_end(at, length, fields.end)?;
++            body_end(at, length, end)?;
+             if self.slice(at, length).is_none() {
+-                let read_length = Self::read_length(at, length, fields.end)?;
+-                self.bytes = source_range(url, at, read_length, &fields.revision).await?;
++                let read_length = Self::read_length(at, length, end)?;
++                self.bytes = source_range(url, at, read_length, revision).await?;
+                 self.at = at;
+             }
+             self.slice(at, length)
+@@ -487,7 +636,13 @@ mod web {
+         let mut window = MetadataWindow::default();
+         while at < fields.end {
+             let header = window
+-                .read(url, at, 64.min(fields.end - at), fields)
++                .read(
++                    url,
++                    at,
++                    64.min(fields.end - at),
++                    fields.end,
++                    &fields.revision,
++                )
+                 .await?;
+             let (tag, used) = varint(header, 0)?;
+             let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
+@@ -513,7 +668,9 @@ mod web {
+                 if table_bytes > MAX_TABLE_BYTES {
+                     return None;
+                 }
+-                let raw = window.read(url, body, length, fields).await?;
++                let raw = window
++                    .read(url, body, length, fields.end, &fields.revision)
++                    .await?;
+                 if !lod.set_field(field, raw) {
+                     return None;
+                 }
+@@ -576,6 +733,105 @@ mod web {
+         let (colors, used) = colors_from(&raw, count)?;
+         Some((colors, body_end(at, used as u64, end)?))
+     }
++
++    /// Locate a sheet's arrays: one head read finds `coords`, one bounded window walk after it
++    /// records the rest without reading a segment.
++    pub async fn sheet_fields(url: &str) -> Option<SheetFields> {
++        let reply = get(
++            url,
++            &GetOpts {
++                range: Some((0, 8192)),
++                revalidate: true,
++                ..Default::default()
++            },
++        )
++        .await
++        .ok()?;
++        if reply.status != 206 || reply.bytes.len() > 8192 {
++            return None;
++        }
++        let (coords_at, coords_len, end) = sheet_layout(&reply.bytes)?;
++        if coords_len == 0 || !coords_len.is_multiple_of(SheetFields::SEGMENT_BYTES) {
++            return None;
++        }
++        let mut fields = SheetFields {
++            end,
++            coords_at,
++            coords_len,
++            count: u32::try_from(coords_len / SheetFields::SEGMENT_BYTES).ok()?,
++            revision: reply.etag,
++            ..Default::default()
++        };
++        let mut at = body_end(coords_at, coords_len, end)?;
++        let mut window = MetadataWindow::default();
++        while at < end {
++            let header = window
++                .read(url, at, 64.min(end - at), end, &fields.revision)
++                .await?;
++            let f = field_at(header, at, end)?;
++            let body = if (f.field, f.wire) == (8, 2) {
++                if f.value > NAME_BYTES {
++                    return None;
++                }
++                window
++                    .read(url, f.body, f.value, end, &fields.revision)
++                    .await?
++            } else {
++                &[]
++            };
++            if !fields.set(&f, body) {
++                return None;
++            }
++            at = f.next;
++        }
++        Some(fields)
++    }
++
++    /// Segments `[from, to)` of one fixed-width array: `stride` bytes each, by one range read.
++    async fn sheet_array(
++        url: &str,
++        fields: &SheetFields,
++        (at, len): (u64, u64),
++        from: u32,
++        to: u32,
++        stride: u64,
++    ) -> Option<Vec<u8>> {
++        if len == 0 {
++            return Some(Vec::new());
++        }
++        let start = at.checked_add(u64::from(from).checked_mul(stride)?)?;
++        let length = u64::from(to - from).checked_mul(stride)?;
++        body_end(start, length, body_end(at, len, fields.end)?)?;
++        source_range(url, start, length, &fields.revision).await
++    }
++
++    /// Segments `[from, to)` of a sheet: four range reads under one revision. An absent array
++    /// comes back empty and the walk pads it.
++    pub async fn fetch_sheet_slice(
++        url: &str,
++        fields: &SheetFields,
++        from: u32,
++        to: u32,
++    ) -> Option<SheetRows> {
++        if from > to || to > fields.count {
++            return None;
++        }
++        let coords = (fields.coords_at, fields.coords_len);
++        let raw = sheet_array(url, fields, coords, from, to, SheetFields::SEGMENT_BYTES).await?;
++        let positions = checked_doubles(&raw, u64::from(to - from) * 6)?;
++        let colors = (fields.colors_at, fields.colors_len);
++        let colors = packed_u32(&sheet_array(url, fields, colors, from, to, 4).await?);
++        let widths = (fields.widths_at, fields.widths_len);
++        let widths = packed_f32(&sheet_array(url, fields, widths, from, to, 4).await?);
++        let ids = (fields.ids_at, fields.ids_len);
++        let ids = packed_u32(&sheet_array(url, fields, ids, from, to, 4).await?);
++        Some(SheetRows {
++            positions,
++            colors,
++            widths,
++            ids,
++        })
++    }
+ }
+ 
+ #[cfg(test)]
+@@ -714,6 +970,116 @@ mod tests {
+         );
+     }
+ 
++    /// One protobuf varint.
++    fn uvarint(mut v: u64) -> Vec<u8> {
++        let mut out = Vec::new();
++        loop {
++            let byte = (v & 0x7f) as u8;
++            v >>= 7;
++            if v == 0 {
++                out.push(byte);
++                return out;
++            }
++            out.push(byte | 0x80);
++        }
++    }
++
++    /// One length-delimited field: tag, length, body.
++    fn bytes_field(field: u32, body: &[u8]) -> Vec<u8> {
++        let mut out = uvarint(u64::from(field << 3 | 2));
++        out.extend(uvarint(body.len() as u64));
++        out.extend_from_slice(body);
++        out
++    }
++
++    /// One varint field.
++    fn uint_field(field: u32, value: u32) -> Vec<u8> {
++        let mut out = uvarint(u64::from(field << 3));
++        out.extend(uvarint(u64::from(value)));
++        out
++    }
++
++    /// A one-segment sheet with every array present, wrapped in Objects and Session.
++    fn sheet_file() -> Vec<u8> {
++        let coords: Vec<u8> = [0.0f64, 1.0, 2.0, 3.0, 4.0, 5.0]
++            .into_iter()
++            .flat_map(f64::to_le_bytes)
++            .collect();
++        let mut sheet = bytes_field(1, b"guid");
++        sheet.extend(bytes_field(2, b"plan"));
++        sheet.extend(bytes_field(3, &coords));
++        sheet.extend(bytes_field(4, &0xff00_00ffu32.to_le_bytes()));
++        sheet.extend(bytes_field(5, &0.35f32.to_le_bytes()));
++        sheet.extend(uint_field(6, 1));
++        sheet.extend(uint_field(7, 9));
++        sheet.extend(bytes_field(8, b"plan.shm"));
++        sheet.extend(bytes_field(15, &7u32.to_le_bytes()));
++        let objects = bytes_field(17, &sheet);
++        bytes_field(3, &objects)
++    }
++
++    /// The tail scan the fetching half runs, over bytes already in memory.
++    fn scan_tail(file: &[u8], fields: &mut SheetFields, mut at: u64) -> bool {
++        while at < fields.end {
++            let Some(f) = field_at(&file[at as usize..], at, fields.end) else {
++                return false;
++            };
++            let body = if f.wire == 2 {
++                &file[f.body as usize..(f.body + f.value.min(NAME_BYTES)) as usize]
++            } else {
++                &[]
++            };
++            if !fields.set(&f, body) {
++                return false;
++            }
++            at = f.next;
++        }
++        true
++    }
++
++    /// The sheet walk finds Objects field 17 and records every fixed-width array after coords.
++    #[test]
++    fn sheet_layout_walks_objects_field_17_and_locates_every_array() {
++        let file = sheet_file();
++        let (coords_at, coords_len, end) = sheet_layout(&file).unwrap();
++        assert_eq!(coords_len, 48);
++        assert_eq!(end, file.len() as u64);
++        assert_eq!(
++            packed_f64(&file[coords_at as usize..(coords_at + 48) as usize])[5],
++            5.0
++        );
++        let mut fields = SheetFields {
++            end,
++            coords_at,
++            coords_len,
++            count: 1,
++            ..Default::default()
++        };
++        assert!(scan_tail(&file, &mut fields, coords_at + coords_len));
++        assert_eq!(fields.colors_len, 4);
++        assert_eq!(fields.widths_len, 4);
++        assert_eq!(fields.ids_len, 4);
++        assert_eq!(fields.entities, 9);
++        assert_eq!(fields.meta, "plan.shm");
++        assert_eq!(
++            packed_u32(&file[fields.colors_at as usize..][..4]),
++            [0xff00_00ff]
++        );
++        assert_eq!(packed_f32(&file[fields.widths_at as usize..][..4]), [0.35]);
++        assert_eq!(packed_u32(&file[fields.ids_at as usize..][..4]), [7]);
++        assert_eq!(fields.ids_at + 4, end);
++        // The cloud walk does not accept a sheet, and a sheet followed by another object is
++        // not a single-object file.
++        assert!(walk_to_coords(&file).is_none());
++        let mut two = bytes_field(17, &file[4..]);
++        two.extend(bytes_field(17, b""));
++        assert!(sheet_layout(&bytes_field(3, &two)).is_none());
++        // A segment_count that disagrees with coords is refused.
++        let mut wrong = fields.clone();
++        wrong.count = 2;
++        assert!(!scan_tail(&file, &mut wrong, coords_at + coords_len));
++    }
++
+     /// Colours decode sequentially and report the boundary the next slice starts on.
+     #[test]
+     fn colors_decode_and_report_their_end() {
+diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
+index db68239e5d43b22635febac638e540aa09664fc3..d1279a98c82d64a723ffd8a2cc3b9d319b376306 100644
+--- a/session_viewer/src/app/walk/mod.rs
++++ b/session_viewer/src/app/walk/mod.rs
+@@ -30,6 +30,7 @@ pub mod mesh;
+ pub mod mesh_ink;
+ pub mod mesh_topology;
+ pub mod points;
++pub mod sheet;
+ 
+ /// The lane tables a producer may write, borrowed from one `Upload` for one object.
+ pub struct Walk<'a> {
+diff --git a/session_viewer/src/app/walk/sheet.rs b/session_viewer/src/app/walk/sheet.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc31420b40d665
+--- /dev/null
++++ b/session_viewer/src/app/walk/sheet.rs
+@@ -0,0 +1,109 @@
++//! Sheets into the ribbon table: a streamed slice of flattened drawing segments that never
++//! became a kernel object, each carrying the entity id a pick resolves through the side table.
++
++use super::encode::{BLACK, FACING_UNKNOWN};
++use crate::engine::gpu::segments::{CylinderSegment, SegDraw, SegRows};
++use crate::math::Aabb;
++
++/// A streamed slice: raw rows off the wire, already converted. A short column (an absent
++/// array) is padded by the walk: black, hairline, no entity.
++pub struct SheetRows {
++    pub positions: Vec<f32>,
++    pub colors: Vec<u32>,
++    pub widths: Vec<f32>,
++    pub ids: Vec<u32>,
++}
++
++/// One streamed slice into the lane: segments `[from, ..)` of the sheet on object row `row`.
++pub struct SheetSlice {
++    pub rows: SheetRows,
++    pub from: u32,
++    pub row: u32,
++}
++
++/// An authored pen width in mm as the world radius the shaders project; 0 = the hairline pen.
++/// Unlike `encode_width`, 1 mm is a real pen here: the publisher writes 0 for hairline.
++fn sheet_radius(width: f32) -> f32 {
++    if width.is_finite() && width > 0.0 {
++        width * 0.5
++    } else {
++        0.0
++    }
++}
++
++/// Append one slice as unjoined ribbons; returns the slice's local box.
++pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> Aabb {
++    seg.ribbon_ids.resize(seg.ribbons.len(), u32::MAX);
++    let first = seg.ribbons.len() as u32;
++    let count = (s.rows.positions.len() / 6) as u32;
++    seg.ribbons.reserve(count as usize);
++    seg.ribbon_ids.reserve(count as usize);
++    let mut bounds = Aabb::empty();
++    for (i, p) in s.rows.positions.chunks_exact(6).enumerate() {
++        let (p0, p1) = ([p[0], p[1], p[2]], [p[3], p[4], p[5]]);
++        bounds.grow(p0);
++        bounds.grow(p1);
++        seg.ribbons.push(CylinderSegment {
++            p0,
++            radius: sheet_radius(s.rows.widths.get(i).copied().unwrap_or(0.0)),
++            p1,
++            instance_id: s.row,
++            color: s.rows.colors.get(i).copied().unwrap_or(BLACK),
++            facing: FACING_UNKNOWN,
++        });
++        seg.ribbon_ids
++            .push(s.rows.ids.get(i).copied().unwrap_or(u32::MAX));
++    }
++    seg.sheets.push(SegDraw {
++        instance: s.row,
++        from: s.from,
++        count,
++        first,
++    });
++    bounds
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// Short colour, width and id columns pad; the box spans both ends of every segment.
++    #[test]
++    fn sheet_slice_pads_short_columns_and_reports_its_box() {
++        let mut seg = SegRows::default();
++        seg.ribbons.push(CylinderSegment {
++            p0: [0.0; 3],
++            radius: 0.0,
++            p1: [1.0; 3],
++            instance_id: 2,
++            color: BLACK,
++            facing: FACING_UNKNOWN,
++        });
++        let slice = SheetSlice {
++            rows: SheetRows {
++                positions: vec![0.0, 0.0, 0.0, 10.0, 0.0, 0.0, -5.0, 2.0, 0.0, 1.0, 1.0, 0.0],
++                colors: vec![0xff00_00ff],
++                widths: vec![1.0, f32::NAN],
++                ids: vec![4],
++            },
++            from: 3,
++            row: 7,
++        };
++        let bounds = walk_sheet_slice(&mut seg, &slice);
++        assert_eq!(bounds.min, [-5.0, 0.0, 0.0]);
++        assert_eq!(bounds.max, [10.0, 2.0, 0.0]);
++        assert_eq!(seg.ribbons.len(), 3);
++        assert_eq!(seg.ribbon_ids, [u32::MAX, 4, u32::MAX]);
++        assert_eq!(seg.ribbons[1].radius, 0.5);
++        assert_eq!(seg.ribbons[2].radius, 0.0);
++        assert_eq!(seg.ribbons[1].color, 0xff00_00ff);
++        assert_eq!(seg.ribbons[2].color, BLACK);
++        assert_eq!(seg.ribbons[2].instance_id, 7);
++        assert_eq!(seg.ribbons[2].p1, [1.0, 1.0, 0.0]);
++        let draw = &seg.sheets[0];
++        assert_eq!(
++            (draw.instance, draw.from, draw.count, draw.first),
++            (7, 3, 2, 1)
++        );
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
+index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..b79bb8a10301860435d6eb8a23cee0a1f6f61002 100644
+--- a/session_viewer/src/engine/gpu/segments.rs
++++ b/session_viewer/src/engine/gpu/segments.rs
+@@ -1,6 +1,8 @@
+ //! The segment lane: every straight piece of ink. Two tables of the same connected stroke row - pipes
+ //! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
+ //! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
++//! A streamed sheet's ribbons arrive in CHUNKS interleaved with other uploads, so the lane
++//! maps a global ribbon row back to (sheet row, segment index) through the sheet's chunk list.
+ 
+ use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
+ use super::frame::Binds;
+@@ -37,6 +39,16 @@ pub struct CylinderSegment {
+ 
+ const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
+ 
++/// One upload's contribution to a sheet: segments `[from, from + count)` of the sheet on
++/// object row `instance`, landing at upload-local ribbon row `first`. `from == 0` opens the
++/// sheet; a later `from` extends the one already open on the same row.
++pub struct SegDraw {
++    pub instance: u32,
++    pub from: u32,
++    pub count: u32,
++    pub first: u32,
++}
++
+ /// One upload's segments: the solid lane's pipes and the flat lane's ribbons.
+ #[derive(Default)]
+ pub struct SegRows {
+@@ -48,6 +60,10 @@ pub struct SegRows {
+     /// Consecutive spans belonging to one source polyline or NURBS curve.
+     pub ribbon_chains: Vec<std::ops::Range<u32>>,
+     pub ribbons: Vec<CylinderSegment>,
++    /// Source entity id per ribbon, or u32::MAX; shorter than `ribbons` means no identity.
++    pub ribbon_ids: Vec<u32>,
++    /// The sheet slices among this upload's ribbons.
++    pub sheets: Vec<SegDraw>,
+ }
+ 
+ impl SegRows {
+@@ -58,7 +74,71 @@ impl SegRows {
+         drop_rows(&mut self.pipe_chains);
+         drop_rows(&mut self.ribbon_chains);
+         drop_rows(&mut self.ribbons);
++        drop_rows(&mut self.ribbon_ids);
++        drop_rows(&mut self.sheets);
++    }
++}
++
++/// Segments `[from, to)` of a sheet, resident at global ribbon rows starting at `row`.
++#[derive(Clone, Copy)]
++pub struct SegChunk {
++    pub from: u32,
++    pub to: u32,
++    pub row: u32,
++}
++
++/// One sheet as the lane knows it: its object row, the chunks resident so far (contiguous
++/// from 0) and the entity id of every resident segment, for picks.
++pub struct SegSheet {
++    pub instance: u32,
++    pub resident: u32,
++    pub chunks: Vec<SegChunk>,
++    pub ids: Vec<u32>,
++}
++
++/// Open a sheet, or add a chunk to the one on its object row; a chunk that does not continue
++/// the resident prefix is dropped with a warning (the walk cannot address it).
++fn push_chunk(sheets: &mut Vec<SegSheet>, instance: u32, chunk: SegChunk, ids: &[u32]) {
++    if chunk.from == 0 {
++        sheets.push(SegSheet {
++            instance,
++            resident: chunk.to,
++            chunks: vec![chunk],
++            ids: ids.to_vec(),
++        });
++        return;
++    }
++    for sheet in sheets.iter_mut() {
++        if sheet.instance != instance {
++            continue;
++        }
++        if chunk.from != sheet.resident {
++            log::warn!(
++                "sheet chunk [{}, {}) does not continue the {} resident segments; dropped",
++                chunk.from,
++                chunk.to,
++                sheet.resident
++            );
++            return;
++        }
++        sheet.resident = chunk.to;
++        sheet.chunks.push(chunk);
++        sheet.ids.extend_from_slice(ids);
++        return;
+     }
++    log::warn!("sheet chunk for row {instance} arrived before its sheet; dropped");
++}
++
++/// Which sheet a global ribbon row belongs to: (sheet index, segment index within it).
++fn sheet_of(sheets: &[SegSheet], row: u32) -> Option<(usize, u32)> {
++    for (index, sheet) in sheets.iter().enumerate() {
++        for k in &sheet.chunks {
++            if row >= k.row && row < k.row + (k.to - k.from) {
++                return Some((index, k.from + (row - k.row)));
++            }
++        }
++    }
++    None
+ }
+ 
+ /// GPU connectivity partitions the shared rounded cap instead of blending it twice.
+@@ -161,7 +241,7 @@ struct SegPipelines {
+     id_edge: wgpu::RenderPipeline,
+ }
+ 
+-/// The segment lane on the GPU: two tables, the shader, the pipelines.
++/// The segment lane on the GPU: two tables, the shader, the pipelines, the sheets.
+ pub struct SegmentLane {
+     pipes: SegTable,
+     ribbons: SegTable,
+@@ -170,6 +250,7 @@ pub struct SegmentLane {
+     selection: wgpu::Buffer,
+     selected_rows: HashSet<u32>,
+     selected_edge: bool,
++    sheets: Vec<SegSheet>,
+ }
+ 
+ impl SegmentLane {
+@@ -201,6 +282,7 @@ impl SegmentLane {
+             selection,
+             selected_rows: HashSet::new(),
+             selected_edge: false,
++            sheets: Vec::new(),
+         }
+     }
+ 
+@@ -218,16 +300,37 @@ impl SegmentLane {
+         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
+             self.pipes.rebind(ctx, l, &self.selection);
+         }
+-        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, self.ribbons.buf.len());
++        let ribbon_base = self.ribbons.buf.len();
++        let mut ribbon_ids = up.ribbon_ids.clone();
++        ribbon_ids.resize(up.ribbons.len(), u32::MAX);
++        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, ribbon_base);
+         let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
+-        if self
+-            .ribbons
+-            .ids
+-            .append(ctx, &vec![u32::MAX; up.ribbons.len()])
+-            || ribbons_changed
+-        {
++        if self.ribbons.ids.append(ctx, &ribbon_ids) || ribbons_changed {
+             self.ribbons.rebind(ctx, l, &self.selection);
+         }
++        for d in &up.sheets {
++            let Some(ids) = ribbon_ids.get(d.first as usize..(d.first + d.count) as usize) else {
++                continue;
++            };
++            let chunk = SegChunk {
++                from: d.from,
++                to: d.from + d.count,
++                row: ribbon_base + d.first,
++            };
++            push_chunk(&mut self.sheets, d.instance, chunk, ids);
++        }
++    }
++
++    /// Which sheet a global ribbon row belongs to: (object row, segment index within it).
++    pub fn row_of(&self, row: u32) -> Option<(u32, u32)> {
++        let (index, local) = sheet_of(&self.sheets, row)?;
++        Some((self.sheets[index].instance, local))
++    }
++
++    /// The entity id of the segment at a global ribbon row; `None` off every sheet.
++    pub fn source_id(&self, row: u32) -> Option<u32> {
++        let (index, local) = sheet_of(&self.sheets, row)?;
++        self.sheets[index].ids.get(local as usize).copied()
+     }
+ 
+     /// Highlight one source edge without reuploading its tessellation or the parent geometry.
+@@ -336,6 +439,7 @@ impl SegmentLane {
+     pub fn reset(&mut self) {
+         self.selected_rows.clear();
+         self.selected_edge = false;
++        self.sheets.clear();
+         self.pipes.buf.reset();
+         self.pipes.ids.reset();
+         self.ribbons.buf.reset();
+@@ -346,6 +450,7 @@ impl SegmentLane {
+     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
+         self.selected_rows.clear();
+         self.selected_edge = false;
++        self.sheets = Vec::new();
+         self.pipes.buf.release(ctx);
+         self.pipes.ids.release(ctx);
+         self.ribbons.buf.release(ctx);
+@@ -446,4 +551,27 @@ mod tests {
+         assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
+         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
+     }
++
++    /// Chunks interleaved with other uploads still map global rows to sheet segments and
++    /// their ids; a chunk that skips ahead is dropped, one for an unknown sheet too.
++    #[test]
++    fn sheet_chunks_map_global_ribbon_rows_to_segments_and_ids() {
++        let mut sheets = Vec::new();
++        let chunk = |from, to, row| SegChunk { from, to, row };
++        push_chunk(&mut sheets, 7, chunk(0, 3, 10), &[100, 101, 102]);
++        push_chunk(&mut sheets, 9, chunk(0, 1, 13), &[u32::MAX]);
++        push_chunk(&mut sheets, 7, chunk(3, 5, 20), &[103, 104]);
++        push_chunk(&mut sheets, 7, chunk(6, 8, 30), &[9, 9]);
++        push_chunk(&mut sheets, 8, chunk(2, 4, 40), &[9, 9]);
++        assert_eq!(sheets.len(), 2);
++        assert_eq!(sheets[0].resident, 5);
++        assert_eq!(sheet_of(&sheets, 12), Some((0, 2)));
++        assert_eq!(sheet_of(&sheets, 13), Some((1, 0)));
++        assert_eq!(sheet_of(&sheets, 21), Some((0, 4)));
++        assert_eq!(sheet_of(&sheets, 9), None);
++        assert_eq!(sheet_of(&sheets, 22), None);
++        assert_eq!(sheet_of(&sheets, 30), None);
++        assert_eq!(sheets[0].ids[4], 104);
++        assert_eq!(sheets[1].ids[0], u32::MAX);
++    }
+ }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf08d7a1334 100644
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -12,8 +12,9 @@ mod state;
+ #[cfg(target_arch = "wasm32")]
+ pub mod text_quality;
+ 
+-use crate::app::scene::{FileDoc, StreamedInit};
++use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
+ use crate::app::walk::cloud::StreamRows;
++use crate::app::walk::sheet::SheetRows;
+ pub use state::State;
+ 
+ /// One more slice of streamed cloud `idx`: its rows and the point the cloud is resident up to.
+@@ -23,6 +24,13 @@ pub struct CloudChunk {
+     pub to: u32,
+ }
+ 
++/// One more slice of sheet `idx`: its rows and the segment the sheet is resident up to.
++pub struct SheetChunk {
++    pub idx: usize,
++    pub rows: SheetRows,
++    pub to: u32,
++}
++
+ /// Async loader -> event-loop messages. `Ready` carries the `State` built around an empty
+ /// scene; everything after it changes the scene in place.
+ pub enum Msg {
+@@ -35,6 +43,9 @@ pub enum Msg {
+     CloudChunk(CloudChunk),
+     CloudQueryBatch(app::cloud_query::Batch),
+     CloudQueryResolved(app::cloud_query::Resolved),
++    Sheet(Box<SheetInit>),
++    SheetChunk(SheetChunk),
++    SheetEntity(app::sheet_query::Resolved),
+     CancelPointer,
+ }
+ 
+@@ -155,6 +166,18 @@ impl ApplicationHandler<Msg> for App {
+             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
+             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
+             Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
++            Msg::Sheet(init) => {
++                let (url, fields, from) = (init.url.clone(), init.fields.clone(), init.resident);
++                let idx = state.add_sheet(*init);
++                loader::spawn_sheet_rest(loader::SheetCursor {
++                    idx,
++                    url,
++                    fields,
++                    from,
++                });
++            }
++            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
++            Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
+             Msg::CancelPointer => {
+                 self.input.cancel();
+                 state.touch();
+diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
+index a3417325254519d246070a65f02d6ab2625f309b..7e1f67d276b71958e9d5b4d19e77e8a24f16e0b1 100644
+--- a/session_viewer/src/state.rs
++++ b/session_viewer/src/state.rs
+@@ -3,10 +3,11 @@
+ //! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
+ //! never the other way round.
+ 
+-use crate::app::scene::{FileDoc, Scene, StreamedInit};
++use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
+ use crate::app::selection::{ControlId, Controls, SelectionMode};
+ use crate::app::walk::cloud::StreamRows;
+ use crate::app::walk::encode::FACING_UNKNOWN;
++use crate::app::walk::sheet::SheetRows;
+ use crate::camera::Camera;
+ use crate::engine::gpu::glyphs::GlyphRows;
+ use crate::engine::gpu::pick::PickMode;
+@@ -15,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
+ use crate::engine::gpu::{FrameInput, Gpu, Pick};
+ use crate::engine::performance::{heap_mb, now_ms};
+ mod cloud_query;
++mod sheet_query;
+ mod text;
+ use std::sync::Arc;
+ use winit::window::Window;
+@@ -52,6 +54,8 @@ pub struct State {
+     cloud_query: Option<crate::app::cloud_query::Query>,
+     #[cfg(target_arch = "wasm32")]
+     query_generation: u64,
++    sheet_query: Option<crate::app::sheet_query::Query>,
++    sheet_generation: u64,
+ }
+ 
+ impl State {
+@@ -78,6 +82,8 @@ impl State {
+             cloud_query: None,
+             #[cfg(target_arch = "wasm32")]
+             query_generation: 0,
++            sheet_query: None,
++            sheet_generation: 0,
+         })
+     }
+ 
+@@ -138,9 +144,29 @@ impl State {
+         self.touch();
+     }
+ 
++    /// A sheet's first slice; returns the slot later slices address.
++    pub fn add_sheet(&mut self, init: SheetInit) -> usize {
++        let idx = self.scene.add_sheet(init, &mut self.gpu);
++        self.camera.grow_extent(&self.gpu.bounds);
++        self.touch();
++        idx
++    }
++
++    /// One more slice of sheet `idx`.
++    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32) {
++        self.scene.extend_sheet(idx, rows, to, &mut self.gpu);
++        self.camera.grow_extent(&self.gpu.bounds);
++        log::info!(
++            "sheet slice: {to} segments resident | heap {:.0} MB",
++            heap_mb()
++        );
++        self.touch();
++    }
++
+     /// Drop every document; the canvas, device and camera stay.
+     pub fn clear(&mut self) {
+         self.selection = SelectionMode::Object;
++        self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.controls = Controls::default();
+         self.scene.clear(&mut self.gpu);
+@@ -212,6 +238,7 @@ impl State {
+     /// Make `row` the selection (or none), moving the highlight.
+     pub fn select(&mut self, row: Option<u32>) {
+         self.selection = SelectionMode::Object;
++        self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.controls = Controls::default();
+         self.gpu.controls.reset();
+@@ -333,6 +360,10 @@ impl State {
+                     ),
+                     None => log::info!("pick: '{}' {} row {}", hit.doc, hit.guid, hit.row),
+                 }
++                if let Some(entity) = hit.entity {
++                    self.apply_sheet_pick(hit.row, entity);
++                    return;
++                }
+                 let toggle = if self.scene.selected == Some(hit.row) {
+                     None
+                 } else {
+diff --git a/session_viewer/src/state/sheet_query.rs b/session_viewer/src/state/sheet_query.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5420d3317
+--- /dev/null
++++ b/session_viewer/src/state/sheet_query.rs
+@@ -0,0 +1,79 @@
++//! Sheet entity selection: a ribbon pick on a sheet row highlights every segment of that
++//! entity through the edge-selection uniform, then one bounded side-table read names it.
++
++use super::State;
++use crate::app::selection::SelectionMode;
++use crate::app::sheet_query::{Query, Resolved};
++
++impl State {
++    /// Select entity `entity` of the sheet on `row`; the same entity again clears it.
++    pub(super) fn apply_sheet_pick(&mut self, row: u32, entity: u32) {
++        let Some(slot) = self.scene.sheet_slot(row) else {
++            return;
++        };
++        if self.selection
++            == (SelectionMode::Edge {
++                parent: row,
++                edge: entity,
++            })
++        {
++            self.select(None);
++            self.status("");
++            return;
++        }
++        self.select(Some(row));
++        self.gpu.set_selected(row, false);
++        self.selection.select_edge(row, entity);
++        self.gpu
++            .segments
++            .set_edge(&self.gpu.ctx, Some((row, entity)));
++        self.scene.sheets[slot].resolved = None;
++        self.sheet_generation = self.sheet_generation.wrapping_add(1);
++        let query = Query::new(self.sheet_generation, row, entity);
++        match self.scene.sheets[slot].meta_url.clone() {
++            None => self.status(&format!("Selected entity {entity}")),
++            Some(url) => {
++                self.status(&format!("Selected entity {entity}, fetching…"));
++                #[cfg(target_arch = "wasm32")]
++                crate::app::sheet_query::fetch_entity(
++                    &query,
++                    url,
++                    self.scene.sheets[slot].table.clone(),
++                    self.scene.sheets[slot].fields.entities,
++                );
++                #[cfg(not(target_arch = "wasm32"))]
++                let _ = url;
++            }
++        }
++        self.sheet_query = Some(query);
++        self.touch();
++    }
++
++    /// The side-table answer for the still-current query: cache it and name the selection.
++    pub fn sheet_entity(&mut self, resolved: Resolved) {
++        let Some(query) = self.sheet_query.as_ref() else {
++            return;
++        };
++        if query.id != resolved.query || query.cancelled.get() {
++            return;
++        }
++        let query = self.sheet_query.take().unwrap();
++        let Some(slot) = self.scene.sheet_slot(query.row) else {
++            return;
++        };
++        match resolved.result {
++            Ok((meta, table)) => {
++                self.status(&format!(
++                    "Selected entity {}: {} ({})",
++                    query.entity, meta.name, meta.kind
++                ));
++                let sheet = &mut self.scene.sheets[slot];
++                sheet.table = Some(table);
++                sheet.resolved = Some((query.entity, meta));
++                self.update_label();
++                self.touch();
++            }
++            Err(error) => self.status(&format!("Entity {}: {error}", query.entity)),
++        }
++    }
++}

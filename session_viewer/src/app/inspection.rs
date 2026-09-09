@@ -39,6 +39,7 @@ pub fn publish(state: &State) {
         "identity": identity,
         "selection": state.selection,
         "controls": state.inspected_controls(),
+        "sheet_entity": sheet_entity(state),
         "markers": state.gpu.controls.dot_count(),
         "control_segments": state.gpu.control_net.ribbon_count(),
         "pick_busy": state.gpu.pick.busy(),
@@ -76,6 +77,17 @@ fn selected_identity(state: &State) -> Option<(usize, String)> {
     let row = state.scene.selected?;
     let (document, guid) = state.scene.identity_of(row)?;
     Some((document, guid.to_string()))
+}
+
+/// The entity the selected sheet's last pick resolved to, once its side-table record arrived.
+#[cfg(target_arch = "wasm32")]
+fn sheet_entity(state: &State) -> Option<serde_json::Value> {
+    let (id, meta) = state
+        .scene
+        .sheet_at(state.scene.selected?)?
+        .resolved
+        .as_ref()?;
+    Some(serde_json::json!({"id": id, "guid": meta.guid, "name": meta.name, "kind": meta.kind}))
 }
 
 /// Expose the actual shaped label contract for centered-nameplate pixel regressions.

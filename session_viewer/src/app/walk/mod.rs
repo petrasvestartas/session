@@ -30,6 +30,7 @@ pub mod mesh;
 pub mod mesh_ink;
 pub mod mesh_topology;
 pub mod points;
+pub mod sheet;
 
 /// The lane tables a producer may write, borrowed from one `Upload` for one object.
 pub struct Walk<'a> {

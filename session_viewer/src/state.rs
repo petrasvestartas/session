@@ -3,10 +3,11 @@
 //! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
 //! never the other way round.
 
-use crate::app::scene::{FileDoc, Scene, StreamedInit};
+use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
 use crate::app::walk::cloud::StreamRows;
 use crate::app::walk::encode::FACING_UNKNOWN;
+use crate::app::walk::sheet::SheetRows;
 use crate::camera::Camera;
 use crate::engine::gpu::glyphs::GlyphRows;
 use crate::engine::gpu::pick::PickMode;
@@ -15,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
 mod cloud_query;
+mod sheet_query;
 mod text;
 use std::sync::Arc;
 use winit::window::Window;
@@ -52,6 +54,8 @@ pub struct State {
     cloud_query: Option<crate::app::cloud_query::Query>,
     #[cfg(target_arch = "wasm32")]
     query_generation: u64,
+    sheet_query: Option<crate::app::sheet_query::Query>,
+    sheet_generation: u64,
 }
 
 impl State {
@@ -78,6 +82,8 @@ impl State {
             cloud_query: None,
             #[cfg(target_arch = "wasm32")]
             query_generation: 0,
+            sheet_query: None,
+            sheet_generation: 0,
         })
     }
 
@@ -138,9 +144,29 @@ impl State {
         self.touch();
     }
 
+    /// A sheet's first slice; returns the slot later slices address.
+    pub fn add_sheet(&mut self, init: SheetInit) -> usize {
+        let idx = self.scene.add_sheet(init, &mut self.gpu);
+        self.camera.grow_extent(&self.gpu.bounds);
+        self.touch();
+        idx
+    }
+
+    /// One more slice of sheet `idx`.
+    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32) {
+        self.scene.extend_sheet(idx, rows, to, &mut self.gpu);
+        self.camera.grow_extent(&self.gpu.bounds);
+        log::info!(
+            "sheet slice: {to} segments resident | heap {:.0} MB",
+            heap_mb()
+        );
+        self.touch();
+    }
+
     /// Drop every document; the canvas, device and camera stay.
     pub fn clear(&mut self) {
         self.selection = SelectionMode::Object;
+        self.sheet_query = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
         self.scene.clear(&mut self.gpu);
@@ -212,6 +238,7 @@ impl State {
     /// Make `row` the selection (or none), moving the highlight.
     pub fn select(&mut self, row: Option<u32>) {
         self.selection = SelectionMode::Object;
+        self.sheet_query = None;
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
         self.gpu.controls.reset();
@@ -332,6 +359,10 @@ impl State {
                         pt.position[2]
                     ),
                     None => log::info!("pick: '{}' {} row {}", hit.doc, hit.guid, hit.row),
+                }
+                if let Some(entity) = hit.entity {
+                    self.apply_sheet_pick(hit.row, entity);
+                    return;
                 }
                 let toggle = if self.scene.selected == Some(hit.row) {
                     None

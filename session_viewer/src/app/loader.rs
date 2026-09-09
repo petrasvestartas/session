@@ -1,6 +1,7 @@
 //! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
-//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
-//! through `stream`. Live first, then the URL's route, then the poll loop. Touches no GPU.
+//! event loop as a `Msg` - whole files through `decode`, big clouds and every sheet a slice
+//! at a time through `stream`. Live first, then the URL's route, then the poll loop. Touches
+//! no GPU.
 
 use super::decode::session_from_bytes;
 use super::fetch::{fetch_bytes, sleep_ms};
@@ -8,11 +9,15 @@ use super::live::LiveSource;
 use super::manifest::Manifest;
 use super::route::AUTO_GRID;
 use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
-use super::scene::{FileDoc, Scene, StreamedInit};
-use super::stream::{CloudFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions};
+use super::scene::{FileDoc, Scene, SheetInit, StreamedInit};
+use super::stream::{
+    CloudFields, SheetFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions,
+    fetch_sheet_slice, sheet_fields,
+};
 use super::walk::cloud::StreamRows;
+use super::walk::sheet::SheetRows;
 use crate::engine::performance::now_ms;
-use crate::{CloudChunk, Msg, State};
+use crate::{CloudChunk, Msg, SheetChunk, State};
 use session_rust::Xform;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -39,11 +44,23 @@ const STREAM_MIN_BYTES: u64 = 64 * 1024 * 1024;
 /// so the cloud is on screen and correct, just sparse.
 const STREAM_MIN_PREFIX: u32 = 250_000;
 
+/// Segments a sheet brings down before it is on screen (24 MB of wire doubles).
+const SHEET_PREFIX_SEGMENTS: u32 = 500_000;
+
+/// Segments per follow-up slice.
+const SHEET_CHUNK_SEGMENTS: u32 = 500_000;
+
+/// Hard ceiling on resident sheet segments across the whole page (`?segments=` to change):
+/// 48 B a segment on the GPU plus the growth slack.
+const SHEET_MAX_SEGMENTS: u32 = 3_000_000;
+
 thread_local! {
     /// The start-up proxy, kept so `reload_scene` and the stream tasks can post messages.
     static PROXY: RefCell<Option<EventLoopProxy<Msg>>> = const { RefCell::new(None) };
     /// Points resident across every streamed cloud on the page: the ceiling is a scene budget.
     static RESIDENT: Cell<u32> = const { Cell::new(0) };
+    /// Segments resident across every sheet on the page, under its own ceiling.
+    static SHEET_RESIDENT: Cell<u32> = const { Cell::new(0) };
     /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
     static GENERATION: Cell<u32> = const { Cell::new(0) };
     static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
@@ -53,6 +70,7 @@ thread_local! {
 fn clear_scene() {
     GENERATION.set(GENERATION.get().wrapping_add(1));
     RESIDENT.set(0);
+    SHEET_RESIDENT.set(0);
     post(Msg::Clear);
 }
 
@@ -87,6 +105,21 @@ fn budget_left() -> u32 {
 /// Book `n` points against the budget.
 fn budget_spend(n: u32) {
     RESIDENT.set(RESIDENT.get().saturating_add(n));
+}
+
+/// The resident segment ceiling for this page load.
+fn max_segments() -> u32 {
+    knob_u32("segments").unwrap_or(SHEET_MAX_SEGMENTS)
+}
+
+/// Segments the scene may still make resident.
+fn sheet_budget_left() -> u32 {
+    max_segments().saturating_sub(SHEET_RESIDENT.get())
+}
+
+/// Book `n` segments against the sheet budget.
+fn sheet_budget_spend(n: u32) {
+    SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_add(n));
 }
 
 /// Start-up: the live source when the page has one, else the URL's route, then the empty
@@ -195,6 +228,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
     let mut spent = 0u64;
     let mut skipped: Vec<String> = Vec::new();
     let mut staged_points = 0u32;
+    let mut staged_segments = 0u32;
     let t0 = now_ms();
     let bytes = match fetch_manifest(route).await {
         Ok(b) => b,
@@ -254,6 +288,28 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                 } else {
                     budget_spend(init.resident);
                     post(Msg::StreamedCloud(Box::new(init)));
+                }
+                continue;
+            }
+            let remaining = if replacement.is_some() {
+                max_segments().saturating_sub(staged_segments)
+            } else {
+                sheet_budget_left()
+            };
+            if let Some(init) = sheet_prefix(&url, &slot, remaining).await {
+                if stale_load(generation) {
+                    return;
+                }
+                if init.resident == 0 {
+                    failed = true;
+                    continue;
+                }
+                if replacement.is_some() {
+                    staged_segments = staged_segments.saturating_add(init.resident);
+                    pending.push(PendingDocument::Sheet(Box::new(init)));
+                } else {
+                    sheet_budget_spend(init.resident);
+                    post(Msg::Sheet(Box::new(init)));
                 }
                 continue;
             }
@@ -326,6 +382,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
         }
         clear_scene();
         budget_spend(staged_points);
+        sheet_budget_spend(staged_segments);
         for document in pending {
             match document {
                 PendingDocument::Whole(doc) => {
@@ -333,6 +390,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                 }
                 PendingDocument::Streamed(stream) => {
                     post(Msg::StreamedCloud(stream));
+                }
+                PendingDocument::Sheet(sheet) => {
+                    post(Msg::Sheet(sheet));
                 }
             }
         }
@@ -348,10 +408,11 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
     );
 }
 
-/// Replacement staging preserves manifest order across whole files and streamed clouds.
+/// Replacement staging preserves manifest order across whole files, streamed clouds and sheets.
 enum PendingDocument {
     Whole(FileDoc),
     Streamed(Box<StreamedInit>),
+    Sheet(Box<SheetInit>),
 }
 
 /// Where a streamed cloud goes: its document name, placement and point size.
@@ -412,6 +473,102 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
         point_px,
         col_at,
     })
+}
+
+/// The file beside `url`: the side table named relative to the sheet.
+fn sibling(url: &str, name: &str) -> String {
+    let dir = url.rfind('/').map_or(0, |at| at + 1);
+    format!("{}{name}", &url[..dir])
+}
+
+/// Try to open a sheet by RANGE: `None` when the file is not a single-sheet file. A sheet is
+/// ALWAYS streamed - the kernel has no object for it - so the prefix is the first paint: at
+/// most `share` segments (what the page's segment budget still allows).
+async fn sheet_prefix(url: &str, slot: &Placement, share: u32) -> Option<SheetInit> {
+    let name = slot.name.as_str();
+    let fields = sheet_fields(url).await?;
+    let meta_url = (!fields.meta.is_empty()).then(|| sibling(url, &fields.meta));
+    let mut resident = SHEET_PREFIX_SEGMENTS.min(share).min(fields.count);
+    let rows = match fetch_sheet_slice(url, &fields, 0, resident).await {
+        Some(rows) if resident > 0 => rows,
+        _ => {
+            log::warn!(
+                "'{name}': no sheet prefix - {resident} of {} segments allowed (?segments= to raise the ceiling) or the range read failed",
+                fields.count
+            );
+            resident = 0;
+            SheetRows {
+                positions: Vec::new(),
+                colors: Vec::new(),
+                widths: Vec::new(),
+                ids: Vec::new(),
+            }
+        }
+    };
+    log::info!(
+        "sheet '{name}': {resident} of {} segments on screen, {} entities",
+        fields.count,
+        fields.entities
+    );
+    Some(SheetInit {
+        name: name.to_string(),
+        url: url.to_string(),
+        meta_url,
+        place: slot.place.clone(),
+        rows,
+        fields,
+        resident,
+    })
+}
+
+/// Where a sheet continues: its slot, its file layout and the next segment.
+pub struct SheetCursor {
+    pub idx: usize,
+    pub url: String,
+    pub fields: SheetFields,
+    pub from: u32,
+}
+
+/// Fetch the rest of a sheet, a slice at a time, posting each one; spawned once the scene has
+/// given the sheet its slot. Stops when the scene it belongs to is cleared.
+pub fn spawn_sheet_rest(cursor: SheetCursor) {
+    wasm_bindgen_futures::spawn_local(sheet_rest(cursor));
+}
+
+/// The slice loop behind `spawn_sheet_rest`.
+async fn sheet_rest(c: SheetCursor) {
+    let (url, idx, fields) = (c.url, c.idx, c.fields);
+    let generation = GENERATION.get();
+    let mut at = c.from;
+    while at < fields.count {
+        if GENERATION.get() != generation {
+            return;
+        }
+        let left = sheet_budget_left();
+        if left == 0 {
+            log::info!(
+                "'{url}': {at} of {} segments resident - at the page's segment ceiling (?segments= to raise it)",
+                fields.count
+            );
+            return;
+        }
+        let to = (at + SHEET_CHUNK_SEGMENTS.min(left)).min(fields.count);
+        sheet_budget_spend(to - at);
+        let Some(rows) = fetch_sheet_slice(&url, &fields, at, to).await else {
+            if GENERATION.get() == generation {
+                SHEET_RESIDENT.set(SHEET_RESIDENT.get().saturating_sub(to - at));
+            }
+            super::feedback::status("A sheet range failed; reload to retry the missing data");
+            return;
+        };
+        if GENERATION.get() != generation {
+            return;
+        }
+        if !post(Msg::SheetChunk(SheetChunk { idx, rows, to })) {
+            return;
+        }
+        at = to;
+    }
 }
 
 /// Where a streamed cloud continues: its slot, its file layout, the next point and where the

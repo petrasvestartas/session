@@ -8,10 +8,12 @@ mod text;
 pub use text::SceneText;
 
 use crate::app::knobs;
-use crate::app::stream::{CloudFields, CloudLod};
+use crate::app::sheet_query::{EntityMeta, SheetTable};
+use crate::app::stream::{CloudFields, CloudLod, SheetFields};
 use crate::app::walk::bounds::{Baselines, file_extent, is_planar, mark_sheet};
 use crate::app::walk::cloud::{StreamRows, StreamSlice, walk_stream_slice};
 use crate::app::walk::mesh::Lap;
+use crate::app::walk::sheet::{SheetRows, SheetSlice, walk_sheet_slice};
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
 use crate::math::{Mat4, mat_mul};
@@ -70,14 +72,43 @@ pub struct StreamedCloud {
     pub point_px: f32,
 }
 
-/// What a pick resolved to: the document, the geometry's guid, its object row, and for a
-/// cloud the point index and its stable id.
+/// A streamed sheet's first slice and what later slices need: the file layout, how many
+/// segments are resident, and where its side table is.
+pub struct SheetInit {
+    pub name: String,
+    pub url: String,
+    pub meta_url: Option<String>,
+    pub place: Xform,
+    pub rows: SheetRows,
+    pub fields: SheetFields,
+    pub resident: u32,
+}
+
+/// A sheet's slot: its one object row, the file layout later slices and picks read, and the
+/// entity a pick last resolved to (the nameplate names it).
+pub struct SheetBatch {
+    pub name: String,
+    pub url: String,
+    pub meta_url: Option<String>,
+    pub row: u32,
+    pub fields: SheetFields,
+    pub place: Mat4,
+    pub done_to: u32,
+    pub total: u32,
+    pub resolved: Option<(u32, EntityMeta)>,
+    /// The side table's validated head, read once.
+    pub table: Option<SheetTable>,
+}
+
+/// What a pick resolved to: the document, the geometry's guid, its object row, for a cloud
+/// the point index and its stable id, and for a sheet the segment's entity id.
 #[derive(Clone, Debug)]
 pub struct Picked {
     pub doc: String,
     pub guid: String,
     pub row: u32,
     pub point: Option<PickedPoint>,
+    pub entity: Option<u32>,
 }
 
 /// A picked cloud point: the row-local index (this file version only) and the stable id.
@@ -103,6 +134,7 @@ pub struct Scene {
     pub texts: Vec<SceneText>,
     pub tables: Upload,
     pub streamed: Vec<StreamedCloud>,
+    pub sheets: Vec<SheetBatch>,
     pub hidden: HashSet<(usize, Rc<str>)>,
     pub selected: Option<u32>,
     order: Vec<Rc<str>>,
@@ -129,6 +161,7 @@ impl Scene {
             texts: Vec::new(),
             tables: Upload::default(),
             streamed: Vec::new(),
+            sheets: Vec::new(),
             hidden: HashSet::new(),
             selected: None,
             order: Vec::new(),
@@ -147,6 +180,7 @@ impl Scene {
         self.texts.clear();
         self.tables = Upload::default();
         self.streamed.clear();
+        self.sheets.clear();
         self.order.clear();
         self.owners.clear();
         self.edge_sources.clear();
@@ -159,12 +193,13 @@ impl Scene {
     }
 
     /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
-    /// path an edit commit takes. Streamed clouds cannot come back (no kernel object).
+    /// path an edit commit takes. Streamed clouds and sheets cannot come back (no kernel object).
     pub fn rebuild(&mut self, gpu: &mut Gpu) {
         let docs = std::mem::take(&mut self.docs);
         let texts = std::mem::take(&mut self.texts);
         self.tables = Upload::default();
         self.streamed.clear();
+        self.sheets.clear();
         self.order.clear();
         self.owners.clear();
         self.edge_sources.clear();
@@ -385,7 +420,89 @@ impl Scene {
         self.upload_to(gpu);
     }
 
-    /// What a pick means: the document, the guid, and for a cloud the point behind the row.
+    /// Add a streamed sheet from its first slice and upload it at once, so the slot knows the
+    /// row its segments land on. One planar object row: `FLAG_SHEET`, hairline pens as
+    /// authored, no `mark_sheet` sweep. Returns the slot index later slices address.
+    pub fn add_sheet(&mut self, init: SheetInit, gpu: &mut Gpu) -> usize {
+        let SheetInit {
+            name,
+            url,
+            meta_url,
+            place,
+            rows,
+            fields,
+            resident,
+        } = init;
+        let total = fields.count;
+        let row = self.push_row(&format!("sheet:{url}"), place.m, Instance::FLAG_SHEET);
+        let slice = SheetSlice { rows, from: 0, row };
+        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
+        let o = self.tables.obj.rows.last_mut().unwrap();
+        o.bounds = bounds;
+        o.thickness = bounds.thinnest();
+        self.tables.bounds.union(&bounds.placed(&place.m));
+        self.upload_to(gpu);
+
+        let model = place.m;
+        self.docs.push(Doc {
+            name: name.clone(),
+            place,
+            session: Rc::new(Session::new(&name)),
+            point_px: 0.0,
+            display_only: true,
+        });
+        self.sheets.push(SheetBatch {
+            name,
+            url,
+            meta_url,
+            row,
+            fields,
+            place: model,
+            done_to: resident,
+            total,
+            resolved: None,
+            table: None,
+        });
+        self.sheets.len() - 1
+    }
+
+    /// Append the next slice `[done_to, to)` of sheet `idx` and upload it.
+    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32, gpu: &mut Gpu) {
+        let Some(sheet) = self.sheets.get(idx) else {
+            return;
+        };
+        if to <= sheet.done_to {
+            return;
+        }
+        let place = sheet.place;
+        let slice = SheetSlice {
+            rows,
+            from: sheet.done_to,
+            row: sheet.row,
+        };
+        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
+        self.tables.bounds.union(&bounds.placed(&place));
+        self.sheets[idx].done_to = to;
+        self.upload_to(gpu);
+    }
+
+    /// The sheet slot on object row `row`, if that row is a sheet.
+    pub fn sheet_slot(&self, row: u32) -> Option<usize> {
+        for (slot, sheet) in self.sheets.iter().enumerate() {
+            if sheet.row == row {
+                return Some(slot);
+            }
+        }
+        None
+    }
+
+    /// The sheet on object row `row`.
+    pub fn sheet_at(&self, row: u32) -> Option<&SheetBatch> {
+        self.sheets.get(self.sheet_slot(row)?)
+    }
+
+    /// What a pick means: the document, the guid, for a cloud the point behind the row, and
+    /// for a sheet the entity behind the ribbon.
     pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
         let guid = self.order.get(pick.row as usize)?.to_string();
         let mut point = None;
@@ -393,6 +510,15 @@ impl Scene {
             && parent == pick.row
         {
             point = self.point_at(pick.row, local);
+        }
+        let mut entity = None;
+        let ribbon = pick.sub & 0x7fff_ffff;
+        if pick.sub & 0x8000_0000 != 0
+            && self.sheet_at(pick.row).is_some()
+            && let Some((parent, _)) = gpu.segments.row_of(ribbon)
+            && parent == pick.row
+        {
+            entity = gpu.segments.source_id(ribbon).filter(|id| *id != u32::MAX);
         }
         let doc = match self.document(pick.row) {
             Some(document) => document.name.clone(),
@@ -403,6 +529,7 @@ impl Scene {
             guid,
             row: pick.row,
             point,
+            entity,
         })
     }
 
@@ -419,10 +546,18 @@ impl Scene {
             .get(self.order.get(row as usize)?.as_ref())
     }
 
-    /// The source object's name; unnamed geometry uses its type instead of its file name.
+    /// The source object's name; unnamed geometry uses its type instead of its file name. A
+    /// sheet names the entity its last pick resolved to, else itself.
     pub fn object_name(&self, row: u32) -> &str {
         if let Some(text) = self.text_at(row) {
             return &text.label.text;
+        }
+        if let Some(sheet) = self.sheet_at(row) {
+            return match &sheet.resolved {
+                Some((_, meta)) if !meta.name.trim().is_empty() => &meta.name,
+                Some((_, meta)) if !meta.kind.trim().is_empty() => &meta.kind,
+                _ => &sheet.name,
+            };
         }
         let (name, kind) = match self.geometry(row) {
             Some(Geometry::OBB(value)) => (value.name.as_str(), "Box"),

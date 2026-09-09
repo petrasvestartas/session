@@ -70,9 +70,10 @@ Every block is cut from the verified patch of that checkpoint. A replay audit ty
 | [15 · Publication and streamed reads](15-publication.md) | Immutable revisions, bounded metadata window | |
 | [16 · Resource accounting](16-accounting.md) | Weak source cache, owned-capacity numbers | |
 | [17 · Faces, text objects, silhouettes](17-source-presentation.md) | Source faces, selectable text, one black outline, joined strokes | |
-| [18 · Finite-triangle visibility](18-finite-visibility.md) | Projected triangles, tile lists, cache, final defaults | **5 · Full viewer** |
+| [18 · Finite-triangle visibility](18-finite-visibility.md) | Projected triangles, tile lists, cache | |
+| [19 · Sheets](19-sheets.md) | Batched drawings, ranged slices, lazy entity metadata | **5 · Full viewer** |
 
-Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06–09 change the shared kernel and only need 05. 10–11 need 04c. 12 builds the production shell and needs everything before it. 13–16 extend `State` and loading. 17–18 refine presentation and visibility on top of 12.
+Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06–09 change the shared kernel and only need 05. 10–11 need 04c. 12 builds the production shell and needs everything before it. 13–16 extend `State` and loading. 17–18 refine presentation and visibility on top of 12. 19 streams drawing sheets on top of 15 and 17.
 
 ## Prepare one workspace
 
@@ -111,7 +112,7 @@ A passing `cargo check` proves Rust. A Trunk build proves the WASM bundle. Pixel
 - `replay.py --output "$COURSE_WORK" --through NN --copy-supplied` installs the supplied files for a lesson.
 - `replay.py --output "$COURSE_WORK" --through NN --adopt` verifies your typed sources against the checkpoint hashes.
 - `replay.py --output "$HOME/viewer-course-auto" --through NN` writes a lesson for you in a separate workspace.
-- Lesson 18 ends with `converge.py`, which compares the final workspace with the frozen production inventory.
+- Lesson 19 ends with `converge.py`, which compares the final workspace with the frozen production inventory.
 
 ## The result
 

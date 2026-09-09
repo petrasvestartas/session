@@ -36,6 +36,8 @@ Higher layers drive lower ones, never the reverse: a shader knows an object row,
 | `state.rs::State` | Camera and selection transitions, `needs_frame` / `dirty`, pick requests |
 | `state/text.rs` | Selected-object names, source text presentation |
 | `state/cloud_query.rs` | Streamed-cloud source queries across pages, original-ID resolution |
+| `state/sheet_query.rs`, `app/sheet_query.rs` | Sheet entity metadata: two ranged reads of the side table on selection |
+| `app/walk/sheet.rs` | A sheet slice into ribbon segments with per-segment source ids |
 | `app/scene.rs::Scene` | Retained `Rc<Session>` documents, placements, row → source maps |
 | `app/scene_text.rs` | Stable rows for authored text and document titles |
 | `app/selection.rs` | `SelectionMode`, `ControlId`, `Controls` |
@@ -118,6 +120,8 @@ Meshes are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects`,
 **Geometry.** `Msg::File` → `Scene` retains the document → `app/walk/*` produce `Upload` rows (arena, segments, glyphs, cloud, object rows, bounds) with source maps → `Gpu::set_scene` appends rows to lane buffers and rebinds → `render.rs` draws ranges.
 
 **Picking.** Pointer up without a drag → `State::request_selection` records mode, generation, camera → `id_pass` renders IDs into an attachment the size of the window around the cursor plus a three-texel halo, not the canvas: the pick pass sees the scene through the sub-frustum of that window (`PickView::clip_transform`), with the projection factors scaled so pens and markers keep their pixel size, and the visibility test addresses the canvas-wide tiles through `LineUniform::origin` → `Picker` maps a bounded copy asynchronously → row and sub-ID → `Scene::object_at / edge_at / face_at` → `SelectionMode` → `Instance::FLAG_SELECTED` uploaded → redraw. A camera, scene or mode change retires answers from an older generation. The ID, depth and metadata targets therefore cost a few kilobytes instead of 20 bytes per canvas pixel.
+
+**Sheets.** A drawing publishes as one `Sheet` message (`Objects.sheets`, field 17): packed fixed-width `coords`, `colors`, `widths` and `source_ids`, so `stream.rs` locates the arrays from the first kilobytes and the loader streams segments by byte range under a segment budget. The whole sheet is one object row and one ribbon draw; every segment carries its entity id through `SegRows.ribbon_ids`. A pick resolves row plus segment to the entity, and `sheet_query.rs` reads its GUID, name and kind from the `.meta` side table in two ranged reads, cached per sheet with the table's ETag. The kernel never decodes a sheet.
 
 **Controls.** F10 → `Controls` collects original vertices or control points of the selected parent → marker rows uploaded with `ControlId` → a control pick returns the original identity, not the marker slot. Streamed clouds query every eligible source page (`state/cloud_query.rs`) independently of display LOD and apply the final visible original ID.
 

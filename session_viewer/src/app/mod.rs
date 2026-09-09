@@ -9,6 +9,7 @@ pub mod knobs;
 pub mod manifest;
 pub mod scene;
 pub mod selection;
+pub mod sheet_query;
 pub mod stream;
 pub mod touch;
 pub mod validate;

@@ -1,6 +1,8 @@
 //! The segment lane: every straight piece of ink. Two tables of the same connected stroke row - pipes
 //! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
 //! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
+//! A streamed sheet's ribbons arrive in CHUNKS interleaved with other uploads, so the lane
+//! maps a global ribbon row back to (sheet row, segment index) through the sheet's chunk list.
 
 use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
 use super::frame::Binds;
@@ -37,6 +39,16 @@ pub struct CylinderSegment {
 
 const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
 
+/// One upload's contribution to a sheet: segments `[from, from + count)` of the sheet on
+/// object row `instance`, landing at upload-local ribbon row `first`. `from == 0` opens the
+/// sheet; a later `from` extends the one already open on the same row.
+pub struct SegDraw {
+    pub instance: u32,
+    pub from: u32,
+    pub count: u32,
+    pub first: u32,
+}
+
 /// One upload's segments: the solid lane's pipes and the flat lane's ribbons.
 #[derive(Default)]
 pub struct SegRows {
@@ -48,6 +60,10 @@ pub struct SegRows {
     /// Consecutive spans belonging to one source polyline or NURBS curve.
     pub ribbon_chains: Vec<std::ops::Range<u32>>,
     pub ribbons: Vec<CylinderSegment>,
+    /// Source entity id per ribbon, or u32::MAX; shorter than `ribbons` means no identity.
+    pub ribbon_ids: Vec<u32>,
+    /// The sheet slices among this upload's ribbons.
+    pub sheets: Vec<SegDraw>,
 }
 
 impl SegRows {
@@ -58,7 +74,71 @@ impl SegRows {
         drop_rows(&mut self.pipe_chains);
         drop_rows(&mut self.ribbon_chains);
         drop_rows(&mut self.ribbons);
+        drop_rows(&mut self.ribbon_ids);
+        drop_rows(&mut self.sheets);
     }
+}
+
+/// Segments `[from, to)` of a sheet, resident at global ribbon rows starting at `row`.
+#[derive(Clone, Copy)]
+pub struct SegChunk {
+    pub from: u32,
+    pub to: u32,
+    pub row: u32,
+}
+
+/// One sheet as the lane knows it: its object row, the chunks resident so far (contiguous
+/// from 0) and the entity id of every resident segment, for picks.
+pub struct SegSheet {
+    pub instance: u32,
+    pub resident: u32,
+    pub chunks: Vec<SegChunk>,
+    pub ids: Vec<u32>,
+}
+
+/// Open a sheet, or add a chunk to the one on its object row; a chunk that does not continue
+/// the resident prefix is dropped with a warning (the walk cannot address it).
+fn push_chunk(sheets: &mut Vec<SegSheet>, instance: u32, chunk: SegChunk, ids: &[u32]) {
+    if chunk.from == 0 {
+        sheets.push(SegSheet {
+            instance,
+            resident: chunk.to,
+            chunks: vec![chunk],
+            ids: ids.to_vec(),
+        });
+        return;
+    }
+    for sheet in sheets.iter_mut() {
+        if sheet.instance != instance {
+            continue;
+        }
+        if chunk.from != sheet.resident {
+            log::warn!(
+                "sheet chunk [{}, {}) does not continue the {} resident segments; dropped",
+                chunk.from,
+                chunk.to,
+                sheet.resident
+            );
+            return;
+        }
+        sheet.resident = chunk.to;
+        sheet.chunks.push(chunk);
+        sheet.ids.extend_from_slice(ids);
+        return;
+    }
+    log::warn!("sheet chunk for row {instance} arrived before its sheet; dropped");
+}
+
+/// Which sheet a global ribbon row belongs to: (sheet index, segment index within it).
+fn sheet_of(sheets: &[SegSheet], row: u32) -> Option<(usize, u32)> {
+    for (index, sheet) in sheets.iter().enumerate() {
+        for k in &sheet.chunks {
+            if row >= k.row && row < k.row + (k.to - k.from) {
+                return Some((index, k.from + (row - k.row)));
+            }
+        }
+    }
+    None
 }
 
 /// GPU connectivity partitions the shared rounded cap instead of blending it twice.
@@ -161,7 +241,7 @@ struct SegPipelines {
     id_edge: wgpu::RenderPipeline,
 }
 
-/// The segment lane on the GPU: two tables, the shader, the pipelines.
+/// The segment lane on the GPU: two tables, the shader, the pipelines, the sheets.
 pub struct SegmentLane {
     pipes: SegTable,
     ribbons: SegTable,
@@ -170,6 +250,7 @@ pub struct SegmentLane {
     selection: wgpu::Buffer,
     selected_rows: HashSet<u32>,
     selected_edge: bool,
+    sheets: Vec<SegSheet>,
 }
 
 impl SegmentLane {
@@ -201,6 +282,7 @@ impl SegmentLane {
             selection,
             selected_rows: HashSet::new(),
             selected_edge: false,
+            sheets: Vec::new(),
         }
     }
 
@@ -218,16 +300,37 @@ impl SegmentLane {
         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
             self.pipes.rebind(ctx, l, &self.selection);
         }
-        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, self.ribbons.buf.len());
+        let ribbon_base = self.ribbons.buf.len();
+        let mut ribbon_ids = up.ribbon_ids.clone();
+        ribbon_ids.resize(up.ribbons.len(), u32::MAX);
+        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, ribbon_base);
         let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
-        if self
-            .ribbons
-            .ids
-            .append(ctx, &vec![u32::MAX; up.ribbons.len()])
-            || ribbons_changed
-        {
+        if self.ribbons.ids.append(ctx, &ribbon_ids) || ribbons_changed {
             self.ribbons.rebind(ctx, l, &self.selection);
         }
+        for d in &up.sheets {
+            let Some(ids) = ribbon_ids.get(d.first as usize..(d.first + d.count) as usize) else {
+                continue;
+            };
+            let chunk = SegChunk {
+                from: d.from,
+                to: d.from + d.count,
+                row: ribbon_base + d.first,
+            };
+            push_chunk(&mut self.sheets, d.instance, chunk, ids);
+        }
+    }
+
+    /// Which sheet a global ribbon row belongs to: (object row, segment index within it).
+    pub fn row_of(&self, row: u32) -> Option<(u32, u32)> {
+        let (index, local) = sheet_of(&self.sheets, row)?;
+        Some((self.sheets[index].instance, local))
+    }
+
+    /// The entity id of the segment at a global ribbon row; `None` off every sheet.
+    pub fn source_id(&self, row: u32) -> Option<u32> {
+        let (index, local) = sheet_of(&self.sheets, row)?;
+        self.sheets[index].ids.get(local as usize).copied()
     }
 
     /// Highlight one source edge without reuploading its tessellation or the parent geometry.
@@ -336,6 +439,7 @@ impl SegmentLane {
     pub fn reset(&mut self) {
         self.selected_rows.clear();
         self.selected_edge = false;
+        self.sheets.clear();
         self.pipes.buf.reset();
         self.pipes.ids.reset();
         self.ribbons.buf.reset();
@@ -346,6 +450,7 @@ impl SegmentLane {
     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
         self.selected_rows.clear();
         self.selected_edge = false;
+        self.sheets = Vec::new();
         self.pipes.buf.release(ctx);
         self.pipes.ids.release(ctx);
         self.ribbons.buf.release(ctx);
@@ -445,5 +550,28 @@ mod tests {
         assert_eq!(std::mem::size_of::<CylinderSegment>(), 40);
         assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
+    }
+
+    /// Chunks interleaved with other uploads still map global rows to sheet segments and
+    /// their ids; a chunk that skips ahead is dropped, one for an unknown sheet too.
+    #[test]
+    fn sheet_chunks_map_global_ribbon_rows_to_segments_and_ids() {
+        let mut sheets = Vec::new();
+        let chunk = |from, to, row| SegChunk { from, to, row };
+        push_chunk(&mut sheets, 7, chunk(0, 3, 10), &[100, 101, 102]);
+        push_chunk(&mut sheets, 9, chunk(0, 1, 13), &[u32::MAX]);
+        push_chunk(&mut sheets, 7, chunk(3, 5, 20), &[103, 104]);
+        push_chunk(&mut sheets, 7, chunk(6, 8, 30), &[9, 9]);
+        push_chunk(&mut sheets, 8, chunk(2, 4, 40), &[9, 9]);
+        assert_eq!(sheets.len(), 2);
+        assert_eq!(sheets[0].resident, 5);
+        assert_eq!(sheet_of(&sheets, 12), Some((0, 2)));
+        assert_eq!(sheet_of(&sheets, 13), Some((1, 0)));
+        assert_eq!(sheet_of(&sheets, 21), Some((0, 4)));
+        assert_eq!(sheet_of(&sheets, 9), None);
+        assert_eq!(sheet_of(&sheets, 22), None);
+        assert_eq!(sheet_of(&sheets, 30), None);
+        assert_eq!(sheets[0].ids[4], 104);
+        assert_eq!(sheets[1].ids[0], u32::MAX);
     }
 }

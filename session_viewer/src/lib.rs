@@ -12,14 +12,22 @@ mod state;
 #[cfg(target_arch = "wasm32")]
 pub mod text_quality;
 
-use crate::app::scene::{FileDoc, StreamedInit};
+use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
 use crate::app::walk::cloud::StreamRows;
+use crate::app::walk::sheet::SheetRows;
 pub use state::State;
 
 /// One more slice of streamed cloud `idx`: its rows and the point the cloud is resident up to.
 pub struct CloudChunk {
     pub idx: usize,
     pub rows: StreamRows,
+    pub to: u32,
+}
+
+/// One more slice of sheet `idx`: its rows and the segment the sheet is resident up to.
+pub struct SheetChunk {
+    pub idx: usize,
+    pub rows: SheetRows,
     pub to: u32,
 }
 
@@ -35,6 +43,9 @@ pub enum Msg {
     CloudChunk(CloudChunk),
     CloudQueryBatch(app::cloud_query::Batch),
     CloudQueryResolved(app::cloud_query::Resolved),
+    Sheet(Box<SheetInit>),
+    SheetChunk(SheetChunk),
+    SheetEntity(app::sheet_query::Resolved),
     CancelPointer,
 }
 
@@ -155,6 +166,18 @@ impl ApplicationHandler<Msg> for App {
             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
             Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
+            Msg::Sheet(init) => {
+                let (url, fields, from) = (init.url.clone(), init.fields.clone(), init.resident);
+                let idx = state.add_sheet(*init);
+                loader::spawn_sheet_rest(loader::SheetCursor {
+                    idx,
+                    url,
+                    fields,
+                    from,
+                });
+            }
+            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
+            Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
             Msg::CancelPointer => {
                 self.input.cancel();
                 state.touch();
