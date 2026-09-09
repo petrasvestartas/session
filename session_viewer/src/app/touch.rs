@@ -72,6 +72,8 @@ pub enum Act {
     None,
     Moved,
     Fit,
+    /// A single tap, in surface pixels: the finger's pick.
+    Tap((f64, f64)),
 }
 
 /// One finger, from its `Started` to its `Ended`. Physical pixels throughout.
@@ -198,7 +200,7 @@ impl Touches {
             return Act::Fit; // `self.tap` is already cleared, so three taps are not two doubles
         }
         self.tap = Some((now, p));
-        Act::None
+        Act::Tap(p)
     }
 
     /// Find the first active contact with the event's stable touch identifier.

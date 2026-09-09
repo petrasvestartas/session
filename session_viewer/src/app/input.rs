@@ -162,6 +162,10 @@ impl Input {
                 {
                     Act::None => false,
                     Act::Moved => true,
+                    Act::Tap(at) => {
+                        state.request_selection(at.0 as u32, at.1 as u32, false, false);
+                        false
+                    }
                     Act::Fit => {
                         state.fit_all();
                         true
