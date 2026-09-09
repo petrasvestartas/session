@@ -380,6 +380,11 @@ class Renderer:
     def download(self, step_id, name):
         return f"{self.download_base}/{step_id}/raw/{name.replace('/', '--')}.txt"
 
+    def finished(self, step_id, name):
+        """A link to the file as it stands when this lesson is complete."""
+        return f'[finished file ↓]({self.download(step_id, name)}){{ download="{Path(name).name}" }}'
+
+
     def file(self, step_id, options):
         step = self.steps[step_id]
         name = options["path"]
@@ -403,10 +408,10 @@ class Renderer:
                 if first > 1:
                     verb = "ADD BELOW (append at the end of the file)"
                 self.note_use(step_id, name, lines=(first, last))
-                head = f"**File:** `{name}` · **{verb}** · lines {first}–{last} of {len(all_lines)} · {label}\n\n"
+                head = f"**File:** `{name}` · **{verb}** · lines {first}–{last} of {len(all_lines)} · {label} · {self.finished(step_id, name)}\n\n"
                 return head + fence(name, chunk, title)
             self.note_use(step_id, name)
-            head = f"**File:** `{name}` · **{verb}** · {label}\n\n"
+            head = f"**File:** `{name}` · **{verb}** · {label} · {self.finished(step_id, name)}\n\n"
             if label == "COPY" and text.count("\n") > COLLAPSE_COPY_LINES:
                 return head + collapsible(verb, name, text, self.download(step_id, name))
             return head + fence(name, text, title)
@@ -415,7 +420,7 @@ class Renderer:
             if number < 1 or number > len(change.hunks):
                 raise ValueError(f"{name} at {step_id} has {len(change.hunks)} hunks, not {number}")
         self.note_use(step_id, name, hunks=hunks)
-        parts = [f"**File:** `{name}` · **EDIT** · {label}\n"]
+        parts = [f"**File:** `{name}` · **EDIT** · {label} · {self.finished(step_id, name)}\n"]
         current = self.working.get((step_id, name), change.old_text)
         for number in hunks:
             hunk = change.hunks[number - 1]
@@ -489,7 +494,12 @@ class Renderer:
 
     def checkpoint(self, step_id):
         self.order.setdefault(step_id, []).append(("checkpoint", None))
-        return ("```sh\ncd \"$COURSE_WORK/session_viewer\"\ncargo check --locked --lib\n"
+        # Raw HTML is not rewritten by MkDocs: from a directory URL the lesson page sits one level deeper.
+        banner = (f'<div class="source-banner"><strong>Source at this step.</strong> '
+                  f'<a href="../{self.download_base}/{step_id}/">Every file at checkpoint {step_id}</a>, each downloadable '
+                  f'exactly as the checkpoint has it. The finished viewer is on '
+                  f'<a href="{GITHUB_SOURCE}">GitHub</a>.</div>\n\n')
+        return banner + ("```sh\ncd \"$COURSE_WORK/session_viewer\"\ncargo check --locked --lib\n"
                 "trunk serve --port 8780\n```\n\n"
                 "Open <http://localhost:8780/?data=off&inspect=1>. Stop the server with Ctrl+C before the next lesson.\n")
 
@@ -685,6 +695,34 @@ def write_downloads(steps, output):
             (raw / (name.replace("/", "--") + ".txt")).write_text(change.new_text)
 
 
+GITHUB_SOURCE = "https://github.com/petrasvestartas/session/tree/main/session_viewer"
+
+
+def write_source_index(steps, output):
+    """One page per checkpoint listing every file it contains, each linked to its exact bytes."""
+    last_changed = {}
+    for step in steps:
+        for name, change in step.changes.items():
+            if change.new_text is not None:
+                last_changed[name] = step.id
+            elif name in last_changed:
+                del last_changed[name]
+        lines = [f"# Source at checkpoint {step.id}", "",
+                 f"Every file of the viewer as it stands at the end of lesson {step.id}. Each link downloads the exact "
+                 "bytes the checkpoint hash was recorded from; files this lesson did not touch link to the checkpoint "
+                 f"that last changed them. The finished production source is on [GitHub]({GITHUB_SOURCE}).", "",
+                 "[Back to the course](../../docs/)", ""]
+        for name in sorted(step.texts):
+            origin = last_changed.get(name)
+            if origin is None:
+                continue
+            target = f"raw/{name.replace('/', '--')}.txt" if origin == step.id else f"../{origin}/raw/{name.replace('/', '--')}.txt"
+            mark = " · changed in this lesson" if origin == step.id else ""
+            lines.append(f"- [`{name}`]({target}){{ download=\"{Path(name).name}\" }}{mark}")
+        (output / step.id).mkdir(parents=True, exist_ok=True)
+        (output / step.id / "index.md").write_text("\n".join(lines) + "\n")
+
+
 STATE = {}
 
 
@@ -708,6 +746,7 @@ def on_pre_build(config):
         stamp.write_text(json.dumps({"key": key, "production_tree": series["production_tree"]}) + "\n")
     else:
         series, steps = reload_steps(cache)
+    write_source_index(steps, output)
     STATE["steps"] = steps
     STATE["points"] = load_points()
 
@@ -732,8 +771,17 @@ def reload_steps(cache):
     return series, steps
 
 
+MERMAID_INIT = '%%{init: {"flowchart": {"useMaxWidth": false}, "themeVariables": {"primaryColor": "#ffffff", "primaryTextColor": "#111111", "primaryBorderColor": "#111111", "lineColor": "#e4e4e7", "secondaryColor": "#ffffff", "tertiaryColor": "#ffffff", "edgeLabelBackground": "#111111"}}}%%'
+
+
+def mermaid_natural_size(markdown):
+    """Every Mermaid block keeps its natural size (it scrolls instead of shrinking) and white nodes."""
+    return re.sub(r"(?m)^```mermaid[ \t]*\n(?!%%\{init)", "```mermaid\n" + MERMAID_INIT + "\n", markdown)
+
+
 def on_page_markdown(markdown, page, config, files):
     """Expand directives in maintained lesson pages."""
+    markdown = mermaid_natural_size(markdown)
     if "steps" not in STATE or not DIRECTIVE.search(markdown):
         return markdown
     depth = page.file.src_path.count("/")

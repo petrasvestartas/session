@@ -18,12 +18,19 @@ PAL = {
 # Box kinds: (fill, stroke). CPU/Rust = blue band, GPU/WGSL = pink band, note = zero band,
 # selection = yellow light, warning = orange stroke.
 KIND = {
-    "cpu": (PAL["blue_band"], PAL["navy"]),
-    "gpu": (PAL["pink_band"], PAL["pink"]),
-    "note": (PAL["zero_band"], PAL["zero"]),
+    "cpu": (PAL["white"], PAL["blue_band"]),
+    "gpu": (PAL["white"], PAL["pink_band"]),
+    "note": (PAL["white"], PAL["zero"]),
     "sel": (PAL["yellow_light"], PAL["yellow"]),
     "warn": (PAL["white"], PAL["orange"]),
     "plain": (PAL["white"], PAL["grey"]),
+}
+# The page is black like the Mermaid diagrams; boxes are white with black text, free labels are
+# light. Colours named for the light palette are remapped when they would vanish on black.
+ON_BLACK = {
+    PAL["navy"]: "#bdbfe8", PAL["pink"]: "#f0bcdb", PAL["green"]: "#8fd36a", PAL["text2"]: "#c9ccd6",
+    PAL["black"]: "#f4f4f6", "#111": "#f4f4f6", PAL["grey"]: "#b9b9bd", PAL["zero"]: "#b9b9bd",
+    PAL["white"]: "#111111",
 }
 # Average glyph advance per em, calibrated against Chrome on the build host; the checker
 # writes `textLength` from real measurements so other machines cannot overflow either.
@@ -31,14 +38,14 @@ EM = {"sans": 0.53, "sansb": 0.59, "mono": 0.605}
 SIZE = {"h": 20, "l": 15, "s": 13, "m": 12.5}
 FONT = {"sans": "system-ui, sans-serif", "mono": '"DejaVu Sans Mono", "Liberation Mono", monospace'}
 STYLE = (
-    "text{font-family:system-ui,sans-serif;fill:#111111;font-size:13px}"
+    "text{font-family:system-ui,sans-serif;fill:#f4f4f6;font-size:13px}"
     ".h{font-size:20px;font-weight:700}.l{font-size:15px;font-weight:650}"
-    ".s{font-size:13px;fill:#455b6b}.m{font-family:\"DejaVu Sans Mono\",\"Liberation Mono\",monospace;font-size:12.5px;fill:#111111}"
-    ".ar{fill:none;stroke:#111111;stroke-width:1.6;marker-end:url(#a)}"
+    ".s{font-size:13px;fill:#c9ccd6}.m{font-family:\"DejaVu Sans Mono\",\"Liberation Mono\",monospace;font-size:12.5px;fill:#f4f4f6}"
+    ".ar{fill:none;stroke:#e4e4e7;stroke-width:1.6;marker-end:url(#a)}"
     ".dash{fill:none;stroke:#e07a26;stroke-width:1.8;stroke-dasharray:7 5}"
 )
 MARKER = ('<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">'
-          '<path d="M0,0 L7,3 L0,6" fill="#111111"/></marker></defs>')
+          '<path d="M0,0 L7,3 L0,6" fill="#e4e4e7"/></marker></defs>')
 
 
 def width(text, cls):
@@ -64,7 +71,10 @@ class Canvas:
         self.parts = []
         self.box_count = 0
 
-    def text(self, x, y, s, cls="s", anchor="start", fill=None, box=None):
+    def text(self, x, y, s, cls="s", anchor="start", fill=None, box=None, keep=False):
+        """`keep` leaves an explicit fill alone: for a label that sits on a light shape."""
+        if fill and box is None and not keep:
+            fill = ON_BLACK.get(fill, fill)
         extra = f' style="fill:{fill}"' if fill else ""
         attr = f' text-anchor="{anchor}"' if anchor != "start" else ""
         data = f' data-box="{box}"' if box is not None else ""
@@ -88,11 +98,12 @@ class Canvas:
         self.box_count += 1
         self.parts.append(f'<rect data-box="{ident}" x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{r}" fill="{fill}" stroke="{stroke}" stroke-width="1.5"/>')
         ty = y + pad + SIZE["l"] - 3
-        self.text(x + pad, ty, title, title_cls, box=ident)
+        dark = PAL["yellow_light"] if kind == "sel" else PAL["white"]
+        self.text(x + pad, ty, title, title_cls, fill=PAL["black"], box=ident)
         for b in body:
             ty += line_h if b is not body[0] else gap + line_h - 2
             cls = "m" if b.startswith("`") else body_cls
-            self.text(x + pad, ty, b.replace("`", ""), cls, box=ident)
+            self.text(x + pad, ty, b.replace("`", ""), cls, fill=PAL["black"] if cls == "m" else PAL["text2"], box=ident)
         return x, y, w, h
 
     def arrow(self, x1, y1, x2, y2, label=None, cls="ar", above=True):
@@ -105,12 +116,18 @@ class Canvas:
                 self.text(mx + 8, my + 4, label, "s")
 
     def raw(self, svg):
+        swap = {'"#111111"': '"#f4f4f6"', "fill:#fff;": "fill:#111111;", "fill:#ffffff": "fill:#111111", '"#ffffff"': '"#111111"'}
+        for old, new in swap.items():
+            svg = svg.replace(old, new)
+        for old, new in ON_BLACK.items():
+            if old not in (PAL["black"], "#111", PAL["white"]):
+                svg = svg.replace(f'"{old}"', f'"{new}"').replace(f"fill:{old}", f"fill:{new}").replace(f"stroke:{old}", f"stroke:{new}")
         self.parts.append(svg)
 
     def write(self, name):
         head = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {self.w} {self.h}" role="img" aria-labelledby="t d">'
                 f'<title id="t">{esc(self.title)}</title><desc id="d">{esc(self.desc)}</desc>{MARKER}<style>{STYLE}</style>'
-                f'<rect width="100%" height="100%" rx="14" fill="{PAL["page"]}"/>')
+                f'<rect width="100%" height="100%" rx="14" fill="{PAL["black"]}"/>')
         (HERE / name).write_text(head + "".join(self.parts) + "</svg>\n")
 
 
@@ -225,15 +242,15 @@ def ink_visibility():
     x0 = 540
     c.text(x0, 40, "A thick line is not its axis", "h")
     c.raw(f'<polygon points="{x0 + 20},130 {x0 + 500},80 {x0 + 500},310 {x0 + 20},330" fill="{PAL["blue_band"]}" stroke="{navy}" stroke-width="1.5"/>')
-    c.text(x0 + 40, 160, "surface: depth changes across x (gradient ∂d/∂x)", "s")
+    c.text(x0 + 40, 160, "surface: depth changes across x (gradient ∂d/∂x)", "s", fill=PAL["black"], keep=True)
     c.raw(f'<rect x="{x0 + 40}" y="234" width="460" height="32" fill="{PAL["pink_band"]}" stroke="{pink}" stroke-width="1.5"/>')
     c.raw(f'<line x1="{x0 + 40}" y1="250" x2="{x0 + 500}" y2="250" stroke="{pink}" stroke-width="2"/>')
-    c.text(x0 + 40, 290, "stroke footprint covers samples beside the axis", "s")
+    c.text(x0 + 40, 290, "stroke footprint covers samples beside the axis", "s", fill=PAL["black"], keep=True)
     c.raw(f'<circle cx="{x0 + 250}" cy="261" r="4" fill="{orange}"/>')
-    c.text(x0 + 40, 306, "sample here: the surface is nearer → the line is wrongly hidden", "s", fill=orange)
+    c.text(x0 + 40, 306, "sample here: the surface is nearer → the line is wrongly hidden", "s", fill="#b45a10", keep=True)
     c.raw(f'<line x1="{x0 + 250}" y1="261" x2="{x0 + 250}" y2="250" stroke="{green}" stroke-width="2"/>')
     c.raw(f'<circle cx="{x0 + 250}" cy="250" r="4" fill="{green}"/>')
-    c.text(x0 + 40, 222, "transfer the surface depth to the axis with the gradient, then compare", "s", fill=green)
+    c.text(x0 + 40, 222, "transfer the surface depth to the axis with the gradient, then compare", "s", fill="#2d7a14", keep=True)
     c.box(x0 - 20, 350, ["The test, as the shader spells it",
                          "`physical pass writes  depth + (∂d/∂x, ∂d/∂y, primitive id)`",
                          "`d_axis = d_sample + g · (axis − sample)       ink_visibility.wgsl`",

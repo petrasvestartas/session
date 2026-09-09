@@ -21,8 +21,8 @@
 [data-md-color-scheme="default"], [data-md-color-scheme="slate"] {
   /* Diagrams: black ground, white text, the BRG pale-blue for borders. */
   --md-mermaid-font-family: system-ui, sans-serif;
-  --md-mermaid-node-bg-color: #1c1c1e;
-  --md-mermaid-node-fg-color: #bdbfe8;
+  --md-mermaid-node-bg-color: #ffffff;
+  --md-mermaid-node-fg-color: #111111;
   --md-mermaid-edge-color: #e4e4e7;
   --md-mermaid-label-bg-color: #111111;
   --md-mermaid-label-fg-color: #ffffff;
@@ -30,8 +30,6 @@
 .md-typeset .mermaid { background: #111111; border-radius: 12px; padding: 1rem; }
 .md-typeset .mermaid svg { background: #111111; }
 .md-typeset .mermaid .edgeLabel { background: #111111; color: #ffffff; }
-.md-typeset .mermaid .cluster rect { fill: #1c1c1e !important; stroke: #444 !important; }
-.md-typeset .mermaid .cluster-label text, .md-typeset .mermaid .nodeLabel, .md-typeset .mermaid .edgeLabel, .md-typeset .mermaid text { fill: #ffffff !important; color: #ffffff !important; }
 .md-typeset .mermaid svg { font-size: 14px !important; }
 .md-typeset .mermaid .edgeLabel { background: #eef0f2; padding: 0 .2rem; }
 .md-typeset .highlight pre { border-color: #bdbfe8; }
@@ -39,3 +37,6 @@
 .md-typeset details.note > summary { background: #bdbfe8; }
 .md-typeset details.example > summary { background: #f0bcdb; }
 .md-typeset img[src$=".svg"] { border: 1px solid #b9b9bd; border-radius: 12px; }
+
+.md-typeset .source-banner { background: #f0bcdb; border-left: .4rem solid #ce4095; border-radius: 8px; padding: .7rem 1rem; margin: 1rem 0; color: #111111; font-size: .9rem; }
+.md-typeset .source-banner a { color: #111111; text-decoration: underline; font-weight: 600; }
