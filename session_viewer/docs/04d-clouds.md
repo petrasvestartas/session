@@ -34,7 +34,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 - A cloud's points arrive in chunks; `Chunk` maps cloud-local indices to lane rows.
 
 ```mermaid
-flowchart LR
+flowchart TB
     CR["CloudRows<br/>positions · colors"] -- "append · Chunk" --> CL["CloudLane"]
     CL --> PB["PointBufs<br/>pos · col · nrm"]
     PB -- "moved? rebind" --> BG["points group"]
@@ -58,7 +58,7 @@ flowchart LR
 - Pure CPU: which octree ranges to draw, given how wide each node's point spacing projects. Small clouds draw whole.
 
 ```mermaid
-flowchart LR
+flowchart TB
     N["LodNode octree"] -- "projected_spacing" --> W["LodWalk::select"]
     C["camera · lod_px"] --> W
     W -- "ranges · finest spacing" --> R["records to draw"]
@@ -120,7 +120,7 @@ flowchart TB
 - `record_of` finds the record whose cumulative range contains the vertex index; `project` folds one mat-vec per point.
 
 ```mermaid
-flowchart LR
+flowchart TB
     V["vertex_index"] -- "record_of" --> R["SplatRecord"]
     R -- "project · vs_point" --> P["point disc · fs_point"]
     P -- "lane depth + color" --> S["splat_resolve<br/>EDL · frag_depth"]
@@ -142,10 +142,10 @@ flowchart LR
 ## Step 5 · Wire the lane
 
 ```mermaid
-flowchart LR
+flowchart TB
     U["Upload.cloud"] -- "set_scene" --> G["Gpu.cloud · Gpu.splat"]
     G -- "prelude · before faces" --> PP["point pass"]
-    PP -- "draw_resolve · in face pass" --> F["scene depth"]
+    PP -- "draw_resolve · face pass" --> F["scene depth"]
     style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -175,14 +175,13 @@ Expected:
 - Status reads **Checkpoint 04 · 4 objects**.
 - Orbit: the points stay round and keep their size on screen.
 
-![Checkpoint 04d: a point cloud through the splat prelude and resolve, next to the earlier lanes.](screenshots/04d.png)
+![Checkpoint 04d: a point cloud through the splat prelude and resolve, beside the mesh, stroke and marker lanes.](screenshots/04d.png)
 
 ## What changed
 
 <!-- tree: 04d session_viewer/src/engine -->
 
 - Data flow: `CloudRows` → point buffers + records → point pass into private targets → resolve into the face pass.
-- This checkpoint is the former checkpoint 04: every file now matches it byte for byte.
 
 **Production equivalent:** `src/engine/gpu/cloud.rs`, `lod.rs`, `splat.rs`, `src/shaders/splat.wgsl`, `splat_resolve.wgsl`.
 

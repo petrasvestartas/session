@@ -18,7 +18,7 @@ flowchart TB
 
 - Checkpoint 04d (all drawing modules present): faces, strokes, markers and clouds draw into one color target with a single-sample depth buffer, and every stroke fragment compares its own depth at its own pixel.
 - Rear edges shine through solids at grazing angles: a thick stroke covers samples beside its axis, and those samples belong to a surface whose depth changes sharply within one pixel.
-- Depth is already reversed (lesson 04): near is larger, far approaches zero.
+- Depth is reversed: near is larger, far approaches zero.
 
 ## Step 1 · The physical contract shared by every shader
 
@@ -27,7 +27,7 @@ Two constants and two output structs, appended to every shader module. `physical
 | Contract | Where it lives |
 |---|---|
 | `Depth32Float` attachment, cleared to `0.0` (reverse-Z far) | `targets.rs::begin_faces` |
-| Solids write with `CompareFunction::Greater` (`DepthMode::Opaque`) | `pipelines/mod.rs` (lesson 04) |
+| Solids write with `CompareFunction::Greater` (`DepthMode::Opaque`) | `pipelines/mod.rs` |
 | Grid tests without writing (`DepthMode::ReadOnly`), background `DepthMode::Always` | `backdrop.rs` below |
 | `@location(1) gradient: vec2<f32>` beside every physical color/ID | `physical.wgsl` below |
 
@@ -44,7 +44,7 @@ flowchart LR
 ## Step 2 · Backdrop shaders
 
 - The background is one oversized triangle at `w = 1.0`, depth `Always`, so it never occludes.
-- The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor (lesson 03).
+- The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor.
 - Both return `PhysicalColor` with a zero gradient: neither is a surface ink can be carried across.
 
 ```mermaid
@@ -115,7 +115,7 @@ flowchart LR
 - `ink_pair_planar` accepts two adjacent texels as one surface only when their slopes agree within `KINK`; a step to another surface is many times the slope.
 
 ```mermaid
-flowchart LR
+flowchart TB
     P["pixel + sample"] -- "textureLoad" --> D["ink_depth"]
     D --> T["ink_tolerance"]
     D -- "two texels" --> N["ink_pair_planar"]
@@ -132,7 +132,7 @@ flowchart LR
 - `ink_carry_visible` is one-sided: a farther texel can never hide, a nearer texel hides unless its surface passes through the axis.
 
 ```mermaid
-flowchart LR
+flowchart TB
     F["fragment texel"] -- "ink_step" --> N["neighbour texel"]
     F & N -- "fit plane" --> A["ink_axis_visible"]
     A -- "predicted depth" --> C["ink_carry_visible"]
@@ -160,7 +160,7 @@ flowchart LR
 
 - `ink_disc_source_hidden` tries each quadrant so a face boundary cannot discard a valid fit.
 - `ink_visible` is the entry point strokes call: when the primitive's own gradient is valid, one `textureLoad` and a dot product decide; the neighbouring-pair fit is the fallback for gradients outside the attachment's range.
-- A neighbouring triangle is still treated here as an infinite plane; lesson 18 restricts the carry to finite triangles.
+- A neighbouring triangle is treated as an infinite plane: the fit extends its slope past its edges.
 
 ```mermaid
 flowchart LR
@@ -175,7 +175,7 @@ flowchart LR
 
 ## Step 5 · Shaders emit the gradient
 
-Every fragment that writes physical depth now also returns its gradient. Face shaders return the real slope; splats, sheets and ID passes return zero because they are not surfaces ink can be carried across.
+Every fragment that writes physical depth also returns its gradient. Face shaders return the real slope; splats, sheets and ID passes return zero because they are not surfaces ink can be carried across.
 
 ```mermaid
 flowchart LR
@@ -201,7 +201,7 @@ flowchart LR
 - `msaa_budget`/`samples_for` decide the sample count from the adapter type and pixel count; multisampling smooths hard face edges only, ribbons and discs antialias themselves.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["adapter type + pixels"] -- "msaa_budget" --> S["samples_for"]
     S --> T["Targets<br/>depth + Rg16Float gradient"]
     T -- "begin_faces clears" --> F["faces pass"]
@@ -233,10 +233,10 @@ flowchart LR
 ## Step 8 · Lanes read and write the gradient
 
 - The ink bind group gains bindings 4 and 5: `@group(2) @binding(4/5)` in step 4a.
-- The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline reused by later lessons.
+- The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline.
 
 ```mermaid
-flowchart LR
+flowchart TB
     G["gradient views"] -- "bindings 4 and 5" --> O["objects.rs ink group"]
     O --> A["arena · draw_selection_mask"]
     O --> S["splat"]
@@ -308,7 +308,7 @@ If every edge disappears, compare the depth clear and compare function against t
 - New lane: `BackdropLane` (background, grid).
 - Sample count is chosen per frame from geometry and adapter budget.
 
-**Production equivalent:** `src/engine/gpu/targets.rs`, `backdrop.rs`, `src/shaders/physical.wgsl`, `ink_visibility.wgsl`, `grid.wgsl`, `background.wgsl` are production files. `src/lib.rs` and `src/fixture.rs` remain the teaching shell.
+**Production equivalent:** `src/engine/gpu/targets.rs`, `backdrop.rs`, `src/shaders/physical.wgsl`, `ink_visibility.wgsl`, `grid.wgsl`, `background.wgsl`; the page entry and the fixture live in `src/lib.rs` and `src/fixture.rs`.
 
 ## Try
 

@@ -25,11 +25,11 @@ flowchart TB
 ## Step 1 · Kernel: one-sided normals at a C0 knot
 
 - A knot repeated `degree` times folds the surface; averaging normals across that fold makes a sharp edge look rounded.
-- The grid mesher now splits a shading vertex on the crease side: same position and `u`/`v`, different normal, so the split never invents a CAD vertex.
+- The grid mesher splits a shading vertex on the crease side: same position and `u`/`v`, different normal, so the split never invents a CAD vertex.
 - Face keys are sorted before accumulation: float sums are order-dependent, and map order must not reach the mesh bytes.
 
 ```mermaid
-flowchart LR
+flowchart TB
     K["repeated knot"] -- "sorted face keys" --> N["accumulated normals"]
     N -- "split_crease_normals" --> V["two shading vertices<br/>same u,v"]
     style V fill:#f0bcdb,stroke:#ce4095,color:#111
@@ -37,7 +37,7 @@ flowchart LR
 
 <!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=1-4 -->
 
-`split_crease_normals` is also called by the trimmed mesher in the next lesson, hence `pub(crate)`.
+`split_crease_normals` is `pub(crate)`: the trimmed mesher in `nurbssurface_trimmed.rs` shares it.
 
 <!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=5 -->
 
@@ -171,7 +171,7 @@ flowchart LR
 - Lines and polylines become one flat ribbon per span with `FACING_UNKNOWN`: free linework has no faces to cull against.
 
 ```mermaid
-flowchart LR
+flowchart TB
     L["Line · Polyline"] -- "walk_line · walk_polyline" --> S["SegRows ribbons"]
     C["NurbsCurve"] -- "turning_degrees" --> N["walk_nurbscurve"]
     N -- "render_position" --> S
@@ -181,13 +181,13 @@ flowchart LR
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-67 -->
 
 - A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
-- `render_position` is the single f64 → f32 boundary; the same function will convert boundary chain endpoints in the next lesson.
+- `render_position` is the single f64 → f32 boundary for every producer.
 
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=68-149 -->
 
 ## Step 9 · Edge records and the first BRep consumer
 
-- Topology records only: which edge, which face, which orientation. Exact chains arrive in lesson 07.
+- Topology records only: which edge, which face, which orientation. The records carry no geometry.
 
 ```mermaid
 flowchart LR
@@ -234,7 +234,7 @@ flowchart LR
 ## Step 12 · The fixture becomes a source scene
 
 - `CadFixture` retains the f64 source objects and a `SourceIdentity` per object row; the GPU only receives prepared tables.
-- The same `add` path serves BRep and surface sources, so picking will map a row back to a GUID without searching triangles.
+- The same `add` path serves BRep and surface sources, so a row maps back to a GUID without searching triangles.
 
 ```mermaid
 flowchart LR
@@ -250,11 +250,11 @@ flowchart LR
 
 ## Step 13 · Flat preview shading
 
-Until lesson 09 the shader ignores vertex normals and uses the finite face fallback, so a wrong normal contract cannot hide behind lighting.
+The shader ignores vertex normals and shades from the finite face fallback, so a wrong normal contract cannot hide behind lighting.
 
 ```mermaid
 flowchart LR
-    V["vertex normal"] -. "ignored until lesson 09" .-> S["fs_main"]
+    V["vertex normal"] -. "ignored" .-> S["fs_main"]
     F["finite face fallback"] --> S
     S --> C["PhysicalColor"]
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
@@ -285,7 +285,7 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 - New producer layer: kernel mesh → `ArenaRows` faces + `SegRows`/`GlyphRows` ink, with source identity kept beside every row.
 - Data flow: f64 source → kernel `Mesh` with `u`/`v`/normal attributes → f32 `RenderMesh` → arena; topology → pipes and spheres.
 
-**Production equivalent:** `src/app/walk/{mod,bounds,encode,mesh,mesh_ink,mesh_topology,curves,brep,brep_edges}.rs` and `src/app/knobs.rs` are production files from here on. The [CAD design record](cad-design.md) documents the producer contract.
+**Production equivalent:** Production keeps this in `src/app/walk/{mod,bounds,encode,mesh,mesh_ink,mesh_topology,curves,brep,brep_edges}.rs` and `src/app/knobs.rs`. The [CAD design record](cad-design.md) documents the producer contract.
 
 ## Try
 

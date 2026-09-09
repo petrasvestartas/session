@@ -16,7 +16,7 @@ flowchart TB
 
 - Checkpoint 07: BRep faces share one canonical boundary polygon; every pipe of a BRep edge carries its source edge ID.
 - A standalone NURBS surface still tessellates its whole natural UV rectangle and its pipes have no source IDs.
-- This lesson changes only the viewer consumer. The constrained mesher and `TrimLoops` already exist in the kernel.
+- This lesson changes only the viewer consumer; the kernel's constrained mesher and `TrimLoops` supply the trimmed mesh.
 
 ## Step 1 · Prefer the producer's cached trim mesh
 
@@ -24,7 +24,7 @@ flowchart TB
 - `first_pipe` remembers where this surface's pipes start so only those get boundary IDs.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["NurbsSurface · m_mesh"] -- "cached trim mesh" --> B["walk_surface"]
     C["from_u_v_q grid"] -- "fallback" --> B
     B -- "first_pipe" --> D["map_surface_boundaries"]
@@ -41,7 +41,7 @@ flowchart LR
 - Everything from `#[cfg(test)]` down is the module's unit tests: COPY.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["mesh vertex u, v"] -- "domain limit bits" --> B["map_surface_boundaries"]
     B -- "one shared bit" --> C["pipe_ids · source ID"]
     B -- "seam or crease" --> D["u32::MAX"]
@@ -98,9 +98,9 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 <!-- tree: 08 session_viewer/src/app -->
 
 - Data flow: cached `m_mesh` → `walk_mesh` → pipes → `map_surface_boundaries` → `pipe_ids`.
-- A seam and a shading crease are different things: a seam is repeated parameter coordinates, a crease is a lighting discontinuity. Lesson 09 handles the second.
+- A seam and a shading crease are different things: a seam is repeated parameter coordinates, a crease is a lighting discontinuity, and this lesson touches only the first.
 
-**Production equivalent:** `src/app/walk/brep.rs` (`walk_surface`, `map_surface_boundaries`), kernel `session_rust/src/nurbssurface_trimmed.rs`.
+**Production equivalent:** Production keeps this in `src/app/walk/brep.rs` (`walk_surface`, `map_surface_boundaries`) and the kernel's `session_rust/src/nurbssurface_trimmed.rs`.
 
 ## Try
 

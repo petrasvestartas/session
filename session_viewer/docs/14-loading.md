@@ -94,8 +94,10 @@ flowchart LR
 - `Notify` owns its closure handle and detaches it in `Drop`; nothing is leaked with `forget()`.
 
 ```mermaid
-flowchart LR
-    E["EventSource"] --> N["Notify flag"] --> C["LiveSource::check"] -- "If-None-Match" --> R["read: Changed · Same"]
+flowchart TB
+    E["EventSource"] --> N["Notify flag"]
+    N --> C["LiveSource::check"]
+    C -- "If-None-Match" --> R["read: Changed · Same"]
     style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -127,8 +129,9 @@ flowchart LR
 - Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
 
 ```mermaid
-flowchart LR
-    F["responses, any order"] --> P["pending, manifest order"] -- "stale_load?" --> S["clear_scene · Msg::File"]
+flowchart TB
+    F["responses, any order"] --> P["pending, manifest order"]
+    P -- "stale_load?" --> S["clear_scene · Msg::File"]
     style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -159,9 +162,21 @@ flowchart LR
 
 <!-- file: 14 session_viewer/src/state.rs type -->
 
-Trunk now watches the kernel next door and serves the index uncached, so a rebuilt bundle is never hidden behind a stale page.
+- Trunk watches the kernel next door and serves the index uncached, so a rebuilt bundle is never hidden behind a stale page.
+- A `pre_build` hook runs `docs/build_site.sh` before every bundle: it builds the documentation site into `target/docs/site`, which the page's `copy-dir` link publishes as `dist/docs`, so the black corner opens the course from the same `dist/` the viewer is served from.
+- The hook rebuilds only when a documentation source is newer than the built `index.html`; a checkout without the course sources or without `uvx` gets a placeholder page instead of a failed build.
+
+```mermaid
+flowchart TB
+    H["pre_build hook"] -- "docs/build_site.sh" --> S["target/docs/site"]
+    S -- "copy-dir" --> D["dist/docs"]
+    C["#viewer-docs corner"] -- "docs/" --> D
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
+```
 
 <!-- file: 14 session_viewer/Trunk.toml copy -->
+
+<!-- file: 14 session_viewer/docs/build_site.sh copy -->
 
 <!-- supplied: 14 -->
 
@@ -171,7 +186,7 @@ Trunk now watches the kernel next door and serves the index uncached, so a rebui
 
 Expected:
 
-- The local fixture loads through the manifest and protobuf path instead of a bundled byte array.
+- The local fixture loads through the manifest and protobuf path.
 - Click an object: selection still highlights; F10 still shows controls.
 - The status line clears once the last item is posted.
 
@@ -187,6 +202,7 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 
 - `SceneRoute` → `Manifest` → validated `Session` → staged `PendingDocument` → `Msg::File`/`Msg::StreamedCloud`/`Msg::Texts`/`Msg::Fit`.
 - A `LiveSource` re-reads a published manifest with ETags and replaces the scene only when every file is readable.
+- `docs/build_site.sh` runs as Trunk's pre-build hook and keeps `dist/docs` current, so the page's documentation corner works in a served build.
 
 **Production equivalent:** `src/app/manifest.rs`, `validate.rs`, `decode.rs`, `route.rs`, `live.rs`, `loader.rs` are the production files.
 
@@ -196,6 +212,7 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 - Add a `texts` entry with `at`, `right`, `up` and `height`: the label sits in that world plane and foreshortens with the view.
 - Point an item at a file that does not exist: the status reads which stage failed and the previous scene stays on screen.
 - Give an item a non-orthogonal `xform`: `Manifest::parse` rejects it before any file is fetched.
+- Touch a file under `docs/` and run `trunk serve` again: the hook rebuilds the site, and the black corner opens the fresh page from `dist/docs`.
 
 ## Next
 

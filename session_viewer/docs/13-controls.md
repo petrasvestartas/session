@@ -124,8 +124,10 @@ flowchart LR
 - `controls` are the current parent's source controls; `cloud_query` is the in-flight page loop.
 
 ```mermaid
-flowchart LR
-    F["F10"] -- "enable_controls" --> U["upload_controls"] --> A["apply_control"] --> S["selected control"]
+flowchart TB
+    F["F10"] -- "enable_controls" --> U["upload_controls"]
+    U --> A["apply_control"]
+    A --> S["selected control"]
     style U fill:#f0bcdb,stroke:#ce4095,color:#111
     style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
@@ -207,7 +209,7 @@ Expected:
 - Data flow: source geometry → `Controls` → temporary marker rows → ID pass → `ControlId`.
 - Streamed clouds: click → eligible source ranges → bounded pages → GPU visibility per page → original fixed32 ID.
 
-**Production equivalent:** `src/app/selection.rs`, `src/app/cloud_query.rs`, `src/app/fetch.rs`, `src/app/stream.rs`; the page-loop methods move from `state.rs` into `src/state/cloud_query.rs` in lesson 18.
+**Production equivalent:** `src/app/selection.rs`, `src/app/cloud_query.rs`, `src/app/fetch.rs`, `src/app/stream.rs`; production keeps the page-loop methods in `src/state/cloud_query.rs`.
 
 ## Try
 

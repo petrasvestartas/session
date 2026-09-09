@@ -5,9 +5,9 @@
 ```mermaid
 flowchart TB
     F["fixture.rs<br/>ObjectRow + RenderVertex"] --> U["Upload<br/>obj rows · arena rows"]
-    U -- "Gpu::set_scene" --> T["InstanceTable<br/>group 2: rows + translations"]
-    U -- "Gpu::set_scene" --> A["ArenaLane<br/>vertex · id · index GrowBufs"]
-    FR["FrameUniforms<br/>group 0 mvp · group 1 line"] --> P
+    U -- "Gpu::set_scene" --> T["InstanceTable<br/>group 2"]
+    U -- "Gpu::set_scene" --> A["ArenaLane<br/>GrowBufs"]
+    FR["FrameUniforms<br/>groups 0, 1"] --> P
     T --> P["triangle.wgsl<br/>vs_main · fs_main"]
     A --> P
     P --> TG["Targets<br/>color + Depth32Float"]
@@ -31,7 +31,7 @@ Bind groups every lane shares (`Layouts`):
 ## Starting point
 
 - Checkpoint 03: two instances drawn from one hard-coded triangle; the object row lives in `instance.rs`.
-- This lesson replaces the ad-hoc shell in `lib.rs` with the production engine: buffers, layouts, pipelines, targets, frame uniforms, the object table and the mesh lane. The old `scene.rs` and `first.wgsl` are deleted.
+- This lesson builds the engine behind `lib.rs`: buffers, layouts, pipelines, targets, frame uniforms, the object table and the mesh lane. `scene.rs` and `first.wgsl` are deleted.
 - New files first. Nothing references them until the wiring at the end, so the crate keeps compiling after each step.
 
 ## Step 1 · The floor: device, growable buffers, helpers
@@ -51,7 +51,7 @@ flowchart LR
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=40-123 -->
 
-- `Template` is a unit mesh drawn N times; the marker lane uses it in lesson 04c.
+- `Template` is a unit mesh drawn N times, one instance per row.
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=124-206 -->
 
@@ -81,7 +81,7 @@ flowchart LR
 - Every compare is reverse-Z: nearer is `Greater`.
 
 ```mermaid
-flowchart LR
+flowchart TB
     S["shader source"] -- "module + normals.wgsl" --> M["ShaderModule"]
     D["PipelineDesc<br/>Target · DepthMode · ColorWrite"] -- "build" --> P["RenderPipeline"]
     M --> P
@@ -112,7 +112,7 @@ flowchart LR
 - The ink pass loads color, keeps depth read-only and samples it through group 2.
 
 ```mermaid
-flowchart LR
+flowchart TB
     T["Targets<br/>color · Depth32Float"] -- "begin_faces · clear" --> F["face pass<br/>writes depth"]
     T -- "begin_ink · load" --> I["ink pass<br/>depth read-only"]
     F -- "depth view · group 2" --> I
@@ -127,18 +127,19 @@ flowchart LR
 
 ## Step 5 · Frame uniforms
 
-- `FrameInput` is what one frame needs from the caller; `Binds` sets groups 0, 1, 2 before every lane draw.
+- `FrameInput` is what one frame needs from the caller; `FrameCx` adds the knobs, the anchor and the framebuffer, with `pixel_scale` the framebuffer pixels per CSS pixel; `Binds` sets groups 0, 1, 2 before every lane draw.
 
 ```mermaid
-flowchart LR
-    FI["FrameInput<br/>view_proj · clear"] -- "write" --> FU["FrameUniforms<br/>mvp · LineUniform"]
+flowchart TB
+    FI["FrameInput<br/>view_proj · clear"] -- "write" --> FU["FrameUniforms<br/>mvp · line · cloud"]
     FU -- "Binds · groups 0 1 2" --> D["every lane draw"]
+    FU -- "write_pick · PickView" --> PK["pick blocks<br/>window-sized attachment"]
     style FU fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-47 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-44 -->
 
-`LineUniform` is 64 bytes; the WGSL struct in `triangle.wgsl` declares the same offsets:
+`LineUniform` is 80 bytes; a WGSL mirror declares the same offsets, and `triangle.wgsl` reads nothing past `backface`, so its struct stops there:
 
 | Offset | Rust | WGSL |
 |---|---|---|
@@ -152,16 +153,37 @@ flowchart LR
 | 44 | `feather` | `feather` |
 | 48 | `lit` | `lit` |
 | 52 | `backface` | `backface` |
+| 56 | `origin: [f32; 2]` | `origin: vec2<f32>` |
+| 64 | `frame: [f32; 2]` | `frame: vec2<f32>` |
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=48-95 -->
+- `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected for and `origin` where the attachment's top-left sits in it. They differ only in the pick pass, which renders the window about the cursor into a window-sized target: pixel arithmetic stays in attachment coordinates, and only what was laid out for the whole canvas is addressed through `origin`.
+- `CloudUniform` is the point lane's 48-byte block with the same `origin` and `frame` pair.
 
-- `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result.
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=45-102 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=96-178 -->
+- `PickView` is a window of the canvas rendered into an attachment of its own size, so a pick costs the window, not the canvas. `clip_transform` maps the canvas projection onto the window's sub-frustum; `pick_transform_layout` is the one uniform the text ID pipelines bind, since the text lanes do not see `Layouts`.
+
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=103-173 -->
+
+- `FrameUniforms` owns the three frame blocks, the same three for the pick pass plus the bare transform, and the frame's solved camera facts: `mvp_f32`, `ortho_h`, `eye`.
+
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=174-202 -->
+
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=203-289 -->
+
+- `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result. The pen is `thickness_px * pixel_scale`, so it keeps its CSS width at every device scale; `origin` is zero and `frame` is the framebuffer.
+
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=290-333 -->
+
+- `write_pick` derives the pick blocks from the frame's after `write`: the camera premultiplied by the window's clip transform, `proj_y` and `ortho_h` scaled by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
+
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=334-369 -->
+
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=370-394 -->
 
 ## Step 6 · Runtime knobs and the query string
 
-- `View` is read once from `?name=` on wasm or `ENV` natively; key handlers flip it later.
+- `View` is read once from `?name=` on wasm or `ENV` natively and consulted every frame.
 
 ```mermaid
 flowchart LR
@@ -224,7 +246,7 @@ flowchart TB
 - Groups 0, 1, 2 and the `LineUniform` mirror; `place` applies the row's rotation/scale and the anchored translation.
 
 ```mermaid
-flowchart LR
+flowchart TB
     V["vertex · @location"] -- "vs_main · place" --> C["clip position"]
     C -- "rasterize" --> F["fs_main<br/>headlight · back face red"]
     C -- "same vertex stage" --> I["fs_id"]
@@ -264,7 +286,7 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=161-226 -->
 
-- The outline lane borrows the arena's buffers and draws imported PDF lettering unlit; it exists now because the arena's print and text runs call it.
+- The outline lane borrows the arena's buffers and draws imported PDF lettering unlit; it exists because the arena's print and text runs call it.
 
 <!-- file: 04a session_viewer/src/shaders/text_outline.wgsl copy -->
 
@@ -307,7 +329,7 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=1-33 -->
 
-- `new` is lesson 01's device setup, then every shared resource once.
+- `new` is the device setup, then every shared resource once.
 
 <!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=34-96 -->
 
@@ -354,7 +376,7 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 - Data flow: `fixture::scene()` → `Upload` → `InstanceTable` + `ArenaLane` → `triangle.wgsl` → color and depth targets.
 - One growth policy for every GPU table; one `build` for every pipeline.
 
-**Production equivalent:** every file in `src/engine/gpu/` and `src/engine/pipelines/` from this lesson is the production file; `gpu/mod.rs` and `lib.rs` are still the teaching shell until lesson 12.
+**Production equivalent:** every file in `src/engine/gpu/` and `src/engine/pipelines/` from this lesson. Production keeps the shell in `src/lib.rs` and `src/app/`.
 
 ## Try
 

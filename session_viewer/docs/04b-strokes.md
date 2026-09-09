@@ -31,7 +31,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 - `radius` 0 means the screen-constant pen; `facing` packs two face normals for the solid lane's back-edge cull.
 
 ```mermaid
-flowchart LR
+flowchart TB
     W["walk · segment endpoints"] --> R["CylinderSegment<br/>a · b · radius · facing"]
     R -- "40 B · storage" --> T["segment table"]
     style R fill:#f0bcdb,stroke:#ce4095,color:#111
@@ -67,7 +67,7 @@ flowchart LR
 
 ## Step 3 · The shared visibility rule
 
-- Appended to every ink shader by `ink_module`. This version compares the scene depth at the pixel with the axis depth; lesson 05 replaces it with the surface-carry rule.
+- Appended to every ink shader by `ink_module`. It compares the scene depth at the pixel with the axis depth.
 
 ```mermaid
 flowchart LR
@@ -84,7 +84,7 @@ flowchart LR
 - Bindings and constants. `LineUniform` is the same block as `triangle.wgsl`.
 
 ```mermaid
-flowchart LR
+flowchart TB
     S["segments · @group(3)"] -- "vs_main · 6 verts" --> Q["camera-facing quad"]
     Q -- "fs_main · band_area" --> C["coverage"]
     C -- "ink_visible" --> O["stroke pixel"]
@@ -116,7 +116,7 @@ flowchart LR
 - `ink_module` compiles a lane shader with the visibility rule appended.
 
 ```mermaid
-flowchart LR
+flowchart TB
     U["Upload.seg"] -- "set_scene" --> G["Gpu.segments"]
     L["segment_rows layout"] --> G
     G -- "ink pass · ink_group" --> P["strokes drawn"]
@@ -159,7 +159,7 @@ Expected:
 
 - Data flow: `SegRows` → `SegTable` buffers → group 3 → `ribbon.wgsl` → blended ink over the face pass's depth.
 
-**Production equivalent:** `src/engine/gpu/segments.rs`, `src/shaders/ribbon.wgsl`. `ink_visibility.wgsl` is replaced in lesson 05 and again in lesson 18.
+**Production equivalent:** `src/engine/gpu/segments.rs`, `src/shaders/ribbon.wgsl`. Production keeps the visibility rule in `src/shaders/ink_visibility.wgsl`.
 
 ## Try
 

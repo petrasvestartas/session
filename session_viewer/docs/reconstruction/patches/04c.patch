@@ -569,10 +569,10 @@ index d33b9d82bf9813b8b6693191a5575b3dd8fdf141..3b8ae641cd8f1948d586195561be4a90
  /// Read a monotonic frame time from the browser when available.
 diff --git a/session_viewer/src/shaders/glyph.wgsl b/session_viewer/src/shaders/glyph.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..25b5f619da94bd351af636184d44f741b6a414a8
+index 0000000000000000000000000000000000000000..852aaaebc33ca3792a8ffcfa5e9cf529a74279cb
 --- /dev/null
 +++ b/session_viewer/src/shaders/glyph.wgsl
-@@ -0,0 +1,186 @@
+@@ -0,0 +1,188 @@
 +// Free points as SDF dots: one triangle per dot (its incircle is the disc), no template.
 +// Group 3 = the glyph table.
 +
@@ -612,6 +612,8 @@ index 0000000000000000000000000000000000000000..25b5f619da94bd351af636184d44f741
 +    feather: f32,
 +    lit: f32,
 +    backface: f32,
++    origin: vec2<f32>,
++    frame: vec2<f32>,
 +};
 +
 +// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
@@ -681,7 +683,7 @@ index 0000000000000000000000000000000000000000..25b5f619da94bd351af636184d44f741
 +            px = g.radius * line.proj_y * line.vp_h * 0.5 / max(clip.w, 1e-6);
 +        }
 +    }
-+    if (px > max(line.vp_w, line.vp_h)) {
++    if (px > max(line.frame.x, line.frame.y)) {
 +        return dead_dot();
 +    }
 +    var fade = 1.0;
@@ -761,10 +763,10 @@ index 0000000000000000000000000000000000000000..25b5f619da94bd351af636184d44f741
 +}
 diff --git a/session_viewer/src/shaders/sphere.wgsl b/session_viewer/src/shaders/sphere.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..61c961926a60d78a2e5ae059029e92b0f68eeb96
+index 0000000000000000000000000000000000000000..b686c29712d8d1ca8a50f252b079969ae5d19ebc
 --- /dev/null
 +++ b/session_viewer/src/shaders/sphere.wgsl
-@@ -0,0 +1,211 @@
+@@ -0,0 +1,213 @@
 +// Mesh vertex markers: a camera-facing quad template per glyph, trimmed to a disc by the
 +// fragment SDF, hidden when every incident face turns away. Group 3 = the glyph table.
 +
@@ -804,6 +806,8 @@ index 0000000000000000000000000000000000000000..61c961926a60d78a2e5ae059029e92b0
 +    feather: f32,
 +    lit: f32,
 +    backface: f32,
++    origin: vec2<f32>,
++    frame: vec2<f32>,
 +};
 +
 +const FACING_UNKNOWN: u32 = 0xffffffffu;

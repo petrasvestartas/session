@@ -2,7 +2,7 @@
 
 ## You are building
 
-Part A replaces the teaching shell with the production application: winit owns the canvas and events, `App` routes them, `State` coordinates camera, scene and GPU.
+Part A builds the production application: winit owns the canvas and events, `App` routes them, `State` coordinates camera, scene and GPU.
 
 ```mermaid
 flowchart TB
@@ -49,7 +49,7 @@ Install the binary interaction fixture and the supplied native harness file firs
 - Uncaptured errors and device loss are remembered in `failure`; `State::render` reads it and shows the reload panel instead of drawing garbage.
 
 ```mermaid
-flowchart LR
+flowchart TB
     B["BROWSER_WEBGPU adapter"] -- "open" --> D["DeviceSetup"]
     D --> Q["device · queue"]
     Q -- "uncaptured error" --> F["failure"]
@@ -69,7 +69,7 @@ Native-only adapter naming and the error callbacks:
 - `pick_frame` is the ID pass alone, against the depth the last presented frame left: a pick on a still scene costs no colour frame.
 
 ```mermaid
-flowchart LR
+flowchart TB
     C["camera · eye"] --> U["write_frame_uniforms"]
     U --> P["present"] --> S["surface texture"]
     U --> K["pick_frame"]
@@ -215,10 +215,10 @@ flowchart LR
 
 ### Step 9 · Stream records, feedback, inspection and the fixture loader
 
-- `stream.rs` holds only the wire-layout records at this checkpoint; ranged reads arrive in lesson 13.
+- `stream.rs` holds the wire-layout records of a streamed cloud.
 - `feedback` writes `textContent`, never HTML.
 - `inspection` publishes a read-only JSON snapshot on `?inspect=1`; it is how the checkpoint is observed.
-- `loader` decodes the bundled fixture and posts `Msg::File` then `Msg::Fit`; lesson 14 replaces it with routing.
+- `loader` decodes the bundled fixture and posts `Msg::File` then `Msg::Fit`.
 
 ```mermaid
 flowchart LR
@@ -239,7 +239,7 @@ flowchart LR
 
 <!-- check: 12 -->
 
-The new modules are not declared yet, so the crate still builds as checkpoint 11.
+The new modules are not declared yet, so the crate still builds unchanged.
 
 ## Part B · Picking
 
@@ -258,8 +258,10 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 - `ROW_BYTES` is the copy pitch rounded to the required alignment.
 
 ```mermaid
-flowchart LR
-    C["cursor window"] --> T["IdTargets<br/>Rg32Uint · Depth32Float"] -- "copy_window" --> B["readback buffer"] -- "map · poll" --> P["Picker answer"]
+flowchart TB
+    C["cursor window"] --> T["IdTargets<br/>Rg32Uint · Depth32Float"]
+    T -- "copy_window" --> B["readback buffer"]
+    B -- "map · poll" --> P["Picker answer"]
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
     style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
@@ -304,11 +306,12 @@ flowchart LR
 
 - A visible selected surface writes an R8 coverage mask against the frame's depth; a fullscreen pass darkens the ring just outside it.
 - Coverage is allocated only while a selection exists and released the moment it clears.
-- Lesson 17 replaces this owner with `surface_outline.rs`, which also draws the ordinary union outline.
 
 ```mermaid
-flowchart LR
-    S["selected faces"] --> M["R8 coverage mask"] --> O["SelectionOutline pass"] --> R["black ring"]
+flowchart TB
+    S["selected faces"] --> M["R8 coverage mask"]
+    M --> O["SelectionOutline pass"]
+    O --> R["black ring"]
     style O fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -340,8 +343,10 @@ Still undeclared modules; the check passes for the same reason as before.
 - `touch` cancels any pick in flight: the camera or scene it was asked against no longer exists.
 
 ```mermaid
-flowchart LR
-    I["Input"] --> R["State::request_selection"] --> G["Gpu pick"] -- "apply_pick" --> F["FLAG_SELECTED"]
+flowchart TB
+    I["Input"] --> R["State::request_selection"]
+    R --> G["Gpu pick"]
+    G -- "apply_pick" --> F["FLAG_SELECTED"]
     style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -374,7 +379,7 @@ Document titles and the selected name are derived labels; they have no source ro
 ### Step 14 · Gpu owns device, presentation and picking
 
 - The surface becomes optional so the same `Gpu` renders headless.
-- `controls` and `control_net` are second glyph/segment lanes reserved for lesson 13.
+- `controls` and `control_net` are second glyph and segment lanes for source control markers.
 - `set_selected` and `set_hidden` flip one row's flag; hiding also invalidates the cloud records.
 
 ```mermaid
@@ -433,11 +438,17 @@ flowchart LR
 
 ### Step 17 · Page, manifest and the removed teaching fixture
 
+- The page is one canvas, a status line and a hidden error panel; `touch-action: none` on the canvas hands every gesture to winit before the browser can claim it as a scroll.
+- `#viewer-docs` is the documentation corner: a fixed 40 px black folded-corner triangle at the top right, drawn from the borders of a zero-size anchor, that opens `docs/` in a new tab. Hover or keyboard focus grows it to 52 px through a 250 ms eased transition, so it reads as a page corner lifting; it sits above the canvas and covers nothing but its own triangle.
+- The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner's link resolves in a served build.
+
 ```mermaid
 flowchart LR
     I["index.html"] --> C["#canvas"]
+    I --> K["#viewer-docs"] -- "docs/" --> D["dist/docs"]
     Y["view_local.yaml"] --> B["loader::boot"]
     style I fill:#f0bcdb,stroke:#ce4095,color:#111
+    style K fill:#f0bcdb,stroke:#ce4095,color:#111
     style Y fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -469,16 +480,17 @@ If an object highlights but the status names another GUID, the row → identity 
 
 <!-- tree: 12 session_viewer/src -->
 
-- The teaching `Tutorial` is gone; `App` → `Input` → `State` → `Gpu` is the production ownership chain.
+- `Tutorial` and `src/fixture.rs` are removed; `App` → `Input` → `State` → `Gpu` is the production ownership chain.
 - Data flow for a click: CSS pixel → physical window → ID pass → readback → `Pick { row, sub }` → `Scene::resolve` → `State::select` → `FLAG_SELECTED` → yellow.
 
-**Production equivalent:** every file in this lesson is a production file: `src/lib.rs`, `src/state.rs`, `src/app/{input,touch,scene,selection}.rs`, `src/engine/gpu/{device,present,render,pick}.rs`. Only `selection_outline.rs` is superseded, in lesson 17.
+**Production equivalent:** `src/lib.rs`, `src/state.rs`, `src/app/{input,touch,scene,selection}.rs`, `src/engine/gpu/{device,present,render,pick}.rs`; production draws the selection ring from `src/engine/gpu/surface_outline.rs`.
 
 ## Try
 
 - Click the empty background: the selection clears, because the ID pass wrote 0 there.
 - Press the right button on the BRep, drag one pixel and release: nothing is selected, so a small drag never counts as a click.
 - Raise `PICK_RADIUS` in `pick.rs` and click just beside the curve: the nearest ID inside the window wins, so the curve is selected from further away.
+- Hover the black corner at the top right: it grows; click it and the course opens in a new tab from `dist/docs`.
 - Make `Picker::poll` skip its `submitted != generation` comparison and orbit while a click is pending: a late answer selects against the new camera, which is the bug the check prevents.
 
 ## Next

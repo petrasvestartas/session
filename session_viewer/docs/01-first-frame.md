@@ -22,14 +22,14 @@ flowchart TB
 
 ## Step 1 · One struct owns the GPU
 
-- `Tutorial` is a temporary teaching shell; lesson 12 replaces it with the production `App`/`State`.
+- `Tutorial` is the shell: one struct that owns the GPU objects and is exported to the page.
 - `#[wasm_bindgen]` on the struct and its `impl` exports `create`, `render`, `drag`, `zoom` to JavaScript.
-- `drag` and `zoom` are placeholders until the camera lesson.
+- `drag` and `zoom` are exported with empty bodies, so the page wires all four methods at once.
 
 ```mermaid
-flowchart LR
+flowchart TB
     J["JavaScript page"] -- "Tutorial.create" --> T["struct Tutorial"]
-    T -- "owns" --> R["surface · device · queue · pipeline"]
+    T -- "owns" --> R["surface · device<br>queue · pipeline"]
     J -- "render · drag · zoom" --> T
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
@@ -55,7 +55,7 @@ flowchart LR
 ## Step 3 · Surface configuration and the camera uniform
 
 - `width: 1, height: 1` marks "not configured yet"; `render_frame` resizes on first use.
-- A **uniform** is one small buffer every vertex reads. Today it holds an identity matrix; the camera lesson writes a real one.
+- A **uniform** is one small buffer every vertex reads. It holds an identity matrix, so clip position equals the shader's vertex position.
 
 ```text
 [f32; 16]  ──bytemuck::cast_slice──▶  wgpu::Buffer (UNIFORM | COPY_DST)
@@ -65,7 +65,7 @@ flowchart LR
 ```
 
 ```mermaid
-flowchart LR
+flowchart TB
     C["SurfaceConfiguration"] -- "width 1 · height 1" --> S["Surface"]
     M["identity [f32; 16]"] -- "create_buffer_init" --> U["uniform buffer"]
     U -- "binding 0" --> G["BindGroup"]
@@ -78,7 +78,7 @@ flowchart LR
 
 - `include_str!` bakes the WGSL into the binary; a missing shader file is a compile error, not a runtime one.
 - Entry-point names `vs_main`/`fs_main` and the color target `format` are the contract with the shader and the surface.
-- `buffers: &[]`: this triangle is generated from `vertex_index`, no vertex buffer yet.
+- `buffers: &[]`: this triangle is generated from `vertex_index`, so no vertex buffer is bound.
 
 ```mermaid
 flowchart LR
@@ -95,10 +95,10 @@ flowchart LR
 
 - Resize once when the CSS size or device scale changed; configure the surface only then.
 - A render pass borrows the encoder; the inner braces end the borrow before `encoder.finish()`.
-- Reversed-depth and depth attachments come in lesson 05; this pass has color only.
+- This pass has a color attachment only, no depth.
 
 ```mermaid
-flowchart LR
+flowchart TB
     S["get_current_texture"] --> V["TextureView"]
     E["CommandEncoder"] -- "begin_render_pass" --> P["clear · draw(0..3)"]
     P -- "queue.submit" --> Q["present"]
@@ -138,7 +138,7 @@ flowchart LR
 JavaScript owns the canvas and pointer events; it calls the four exported methods. Replace the page in full.
 
 ```mermaid
-flowchart LR
+flowchart TB
     P["pointer · wheel · resize"] --> J["index.html script"]
     J -- "tutorial.render" --> T["Tutorial"]
     T -- "inspection JSON" --> S["#status"]
@@ -168,7 +168,7 @@ If the background appears without the triangle, compare the entry-point names, `
 - `Tutorial` owns surface, device, queue, one pipeline, one bind group.
 - Data flow: identity `[f32;16]` → uniform buffer → `mvp` in the vertex shader → clip position.
 
-**Production equivalent:** `src/engine/gpu/device.rs` (adapter and device), `src/engine/gpu/present.rs` (surface), `src/engine/gpu/render.rs` (the frame). The shell you just wrote is temporary.
+**Production equivalent:** `src/engine/gpu/device.rs` (adapter and device), `src/engine/gpu/present.rs` (surface), `src/engine/gpu/render.rs` (the frame).
 
 ## Try
 

@@ -22,7 +22,7 @@ cd "$COURSE_WORK/session_viewer"
 
 ## Step 1 · Declare the crate
 
-- `cdylib` is what wasm-bindgen turns into a browser module; `rlib` lets native tools link the same crate later.
+- `cdylib` is what wasm-bindgen turns into a browser module; `rlib` lets native tools link the same crate.
 - Every version here is pinned by `Cargo.lock` in step 4; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
 - The `[target.'cfg(not(wasm32))']` table stays at the end: a target table in the middle silently swallows every `[dependencies]` line after it.
 
@@ -38,7 +38,7 @@ flowchart LR
 
 ## Step 2 · Make wasm32 the default target
 
-One line makes every `cargo` command build for the browser, so the code needs no `#[cfg(target_arch = "wasm32")]` gates. `xtest` is the native alias tests will use.
+One line makes every `cargo` command build for the browser, so the code needs no `#[cfg(target_arch = "wasm32")]` gates. `xtest` is the native alias that runs the tests.
 
 ```mermaid
 flowchart LR
@@ -95,7 +95,7 @@ flowchart LR
 - The `data-checkpoint` attribute is what the automatic checkpoint test reads, so a static HTML message cannot pass for Rust.
 
 ```mermaid
-flowchart LR
+flowchart TB
     B["browser loads module"] -- "wasm_bindgen start" --> F["start()"]
     F -- "get_element_by_id" --> S["#status"]
     F -- "set_text_content" --> S
@@ -112,7 +112,7 @@ Expected:
 
 - `cargo check` finishes with no errors and no warnings.
 - The page shows **Checkpoint 00: Rust/WASM ready**.
-- No canvas yet. That is the next lesson.
+- No canvas: this checkpoint is one line of text written by Rust.
 
 ![Checkpoint 00 in Chrome: the status line written by Rust.](screenshots/00.png)
 
@@ -125,7 +125,7 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 - New crate that compiles to WebAssembly and runs in the browser.
 - Data flow: `lib.rs::start` → DOM.
 
-**Production equivalent:** `Cargo.toml`, `.cargo/config.toml`, `Trunk.toml` are already the production files. `src/lib.rs` is replaced in lesson 01 and again in lesson 12.
+**Production equivalent:** `Cargo.toml`, `.cargo/config.toml`, `Trunk.toml` are the production files. Production keeps its entry point in `src/lib.rs`.
 
 ## Try
 

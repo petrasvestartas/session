@@ -3,11 +3,11 @@
 ## You are building
 
 ```mermaid
-flowchart LR
-    A["TextLabel<br/>string · size · line height"] -- "Cosmic Text · bundled Noto fonts" --> B["shaped Buffer<br/>glyph IDs · advances · offsets · clusters"]
-    B --> C["TextDocument<br/>runs cached by label id"]
-    C -- "diagnostics()" --> D["same-font browser reference page"]
-    C -. "lesson 11" .-> E["placement · raster · GPU"]
+flowchart TB
+    A["TextLabel<br>string · size · line height"] -- "Cosmic Text · Noto fonts" --> B["shaped Buffer<br>glyph IDs · advances · clusters"]
+    B --> C["TextDocument<br>runs cached by id"]
+    C -- "diagnostics()" --> D["browser reference page"]
+    C -.-> E["placement · raster · GPU"]
 ```
 
 ![Shape once, place per frame, raster per device scale, then a plate pass and a glyph pass.](illustrations/text-pipeline.svg)
@@ -15,7 +15,7 @@ flowchart LR
 ## Starting point
 
 - Checkpoint 09: the CAD fixture shades correctly; no text anywhere.
-- This lesson shapes text and measures it against the browser. Nothing is drawn on the canvas yet.
+- This lesson shapes text and measures it against the browser. Nothing is drawn on the canvas.
 
 ## Step 1 · Bundled fonts
 
@@ -23,7 +23,7 @@ flowchart LR
 - Install the three font files now; the shaping module cannot compile without them.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["NotoSans · Symbols · Symbols2"] -- "include_bytes!" --> B["FONT_BYTES … FALLBACK_BYTES"]
     B --> C["bundled_fonts · FontSystem"]
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
@@ -39,7 +39,7 @@ The fonts' licence and provenance travel with them.
 
 ## Step 2 · A clock
 
-Shaping is timed and later frames are timed; both read the same `now_ms`. Native builds read the system clock so the same module compiles for tests.
+Shaping is timed and every frame is timed; both read the same `now_ms`. Native builds read the system clock so the same module compiles for tests.
 
 ```mermaid
 flowchart LR
@@ -71,7 +71,7 @@ flowchart LR
 ![The pen moves by advances: a kerned pair, a space without ink, a two-character ligature and a zero-advance accent; clusters map glyphs back to characters.](illustrations/shaping.svg)
 
 - A `TextRun` keeps the source label next to its shaped `Buffer`, so editing and selection can map glyphs back to characters.
-- `TextDocument` owns the `FontSystem`; the GPU lane in lesson 11 borrows it and owns nothing here.
+- `TextDocument` owns the `FontSystem`; the GPU side borrows it and owns nothing here.
 
 ```mermaid
 flowchart LR
@@ -88,10 +88,10 @@ flowchart LR
 - Only `text`, `font_size` and `line_height` participate in shaping; a colour or placement edit reuses the buffer by id.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["Vec of TextLabel"] -- "validate_label" --> B["set_labels"]
     B -- "same_layout" --> C["reuse Buffer by id"]
-    B -- "text or size changed" --> D["shape"]
+    B -- "layout changed" --> D["shape"]
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -103,9 +103,9 @@ flowchart LR
 - A cluster is a byte range into the source string: `ffi` may be one glyph, `e` + combining accent one cluster.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["replace_fonts · clear"] --> B["TextDocument"]
-    B -- "diagnostics" --> C["GlyphDiagnostic · id, cluster, advance"]
+    B -- "diagnostics" --> C["GlyphDiagnostic<br>id · cluster · advance"]
     style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -117,9 +117,9 @@ flowchart LR
 - `Shaping::Advanced` is what makes kerning, ligatures and font fallback happen once, at shape time.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["validate_label · valid_plane_axes"] --> B["shape · Shaping::Advanced"]
-    B -- "kerning, ligatures, fallback" --> C["Buffer"]
+    B -- "kerning · ligatures · fallback" --> C["Buffer"]
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -148,7 +148,7 @@ flowchart LR
 - The WASM export shapes five sizes, then changes only colour and placement and asserts the shape count did not move.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["text_layout · WASM export"] -- "line_width" --> B["text-layout.html"]
     C["@font-face · same bytes"] --> B
     B -- "compare widths" --> D["textLayout.passed"]
@@ -169,7 +169,7 @@ flowchart LR
 
 Expected:
 
-- The canvas shows the same CAD fixture as checkpoint 09, plus an **Inspect shaped text** link at the top right.
+- The canvas shows the CAD fixture unchanged, plus an **Inspect shaped text** link at the top right.
 - <http://localhost:8780/text-layout.html> shows five white-on-black specimen lines and a status beginning **PASS**.
 - The details block lists glyph ids, clusters, advances and baselines for every line.
 
@@ -177,16 +177,16 @@ If the status shows a width difference, compare font bytes, size and the kerning
 
 ![Checkpoint 10: the reference page shapes one string at five sizes; the browser row behind each specimen has the same width, and the report lists every glyph with its cluster, advance and baseline.](screenshots/10-text-layout.png)
 
-![Checkpoint 10: the canvas itself is unchanged from checkpoint 09.](screenshots/10.png)
+![Checkpoint 10: the canvas itself is unchanged.](screenshots/10.png)
 
 ## What changed
 
 <!-- tree: 10 session_viewer/src/engine -->
 
-- `engine/text.rs` owns fonts, labels and shaped runs; nothing GPU-side yet.
+- `engine/text.rs` owns fonts, labels and shaped runs and touches nothing GPU-side.
 - Data flow: `TextLabel` → `shape()` → `Buffer` → `diagnostics()` → browser comparison.
 
-**Production equivalent:** `src/engine/text.rs`, `src/engine/performance.rs` (lesson 17 adds selection colours to the label).
+**Production equivalent:** `src/engine/text.rs`, `src/engine/performance.rs`.
 
 ## Try
 

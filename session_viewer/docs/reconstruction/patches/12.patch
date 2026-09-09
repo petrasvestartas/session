@@ -117,138 +117,6 @@ index 0000000000000000000000000000000000000000..9d1d682ef0d8d743db8942425cbe93f9
 +name: Selection fixture
 +items:
 +  - file: pb/interaction.pb
-diff --git a/session_viewer/index.html b/session_viewer/index.html
-index b3450f005a3b0f6d7986bc0817ba83ce9ca28393..1e485e89a7d9c0662fd43ccc7515e9efab43a56b
---- a/session_viewer/index.html
-+++ b/session_viewer/index.html
-@@ -1,48 +1,79 @@
--<!doctype html>
--<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 11</title>
--<link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
--<style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--<link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
--<link data-trunk rel="copy-file" href="assets/text-quality.html">
--</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-quality.html" style="position:fixed;right:12px;top:12px;color:white">Compare GPU text</a><output id="status">Starting checkpoint 11</output>
--<script>
--let tutorial;
--let pointer;
--/// Read the generated WASM exports after Trunk has initialized the module.
--async function start() {
--    if (!window.wasmBindings) { setTimeout(start, 20); return; }
--    try {
--        tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
--        window.tutorial = tutorial;
--        render();
--    } catch (error) { document.getElementById('status').textContent = String(error); throw error; }
--}
--/// Keep the framebuffer at the actual CSS size times browser device scale.
--function render() {
--    const canvas = document.getElementById('canvas');
--    const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
--    canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
--}
--/// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
--function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
--/// Forward one CSS-pixel gesture to the production camera.
--function move(event) {
--    if (!pointer) return;
--    const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1];
--    pointer = [event.clientX, event.clientY];
--    tutorial.drag(dx, dy, event.shiftKey); render();
--}
--/// End pointer ownership without retaining a stale gesture.
--function up() { pointer = undefined; }
--/// Normalize DOM wheel pixels to the production camera step, then dolly toward the actual cursor in the same physical-pixel space as the framebuffer.
--function wheel(event) { event.preventDefault(); tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY); render(); }
--/// Schedule a resize only after initialization completed.
--function resize() { if (tutorial) render(); }
--const canvas = document.getElementById('canvas');
--canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move);
--canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
--canvas.addEventListener('wheel', wheel, {passive:false}); window.addEventListener('resize', resize);
--start();
--</script></body></html>
-+<!DOCTYPE html>
-+<html lang="en">
-+<head>
-+  <meta charset="UTF-8"/>
-+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-+  <title>Session Viewer</title>
-+  <style>#viewer-error:not([hidden]) {position:fixed;inset:0;background:#111e;color:#fff;padding:25vh 15vw;font:16px/1.5 system-ui;z-index:20} #viewer-error button {padding:8px 16px;margin-top:16px}</style>
-+  <style>
-+    * { margin: 0; padding: 0; box-sizing: border-box; }
-+    /* overscroll-behavior kills pull-to-refresh and the rubber band: a downward drag on the
-+       canvas is an orbit, and a page that bounces under it swallows half the gesture. */
-+    html, body { height: 100%; overscroll-behavior: none; }
-+    body { background: #000; overflow: hidden; }
-+    /* No focus ring. winit gives the canvas a tabindex so it can receive key
-+       events, and the browser then rings the focused element - a black
-+       rectangle around the whole viewport, drawn over the model. Both spellings
-+       are needed: engines differ on which one they paint. */
-+    /* touch-action: none is what actually delivers the gestures. winit does call preventDefault,
-+       on `pointerdown` and on a non-passive `touchstart` (winit-0.30.13 web_sys/pointer.rs:115,
-+       web_sys/canvas.rs:245), but that is a LATE veto: the compositor has already begun deciding
-+       whether the gesture is a scroll, and where it decides yes the app gets a pointercancel and
-+       nothing more. touch-action tells it up front, before any of that, and it is the only one
-+       of the three that iOS Safari applies to page pinch-zoom.
-+       The rest turns off the things a long press and a double tap mean to a DOCUMENT: the iOS
-+       callout menu, text selection, the grey tap flash, and the legacy double-tap-to-zoom.
-+       100dvh after 100vh: dvh follows a mobile toolbar sliding away, vh does not, and browsers
-+       that never heard of dvh keep the line above. */
-+    canvas { display: block; width: 100vw; height: 100vh; height: 100dvh;
-+             touch-action: none; -webkit-touch-callout: none;
-+             -webkit-user-select: none; user-select: none;
-+             -webkit-tap-highlight-color: transparent; }
-+    canvas:focus, canvas:focus-visible { outline: none; }
-+    #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
-+                 font:1rem system-ui; text-align:center; padding-top:40vh; }
-+  </style>
-+</head>
-+<body>
-+  <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
-+  <!-- Trunk copies local fixtures into dist/pb. Named remote scenes resolve through
-+       app/route.rs; their manifests and geometry are fetched from the configured data host. -->
-+   <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="pb"/>
-+   <!-- The ONE local manifest. Every other scene is opened from the R2 bucket with
-+        ?scene=scenes/view_<name>.yaml and is never copied into dist. -->
-+   <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
-+  <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><button type="button" onclick="location.reload()">Reload viewer</button></div>
-+  <canvas id="canvas" tabindex="0"></canvas>
-+  <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
-+  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
-+  <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
-+  <!-- Message telling that Webgpu is not available. -->
-+  <script>
-+    // These named registrations belong to this document's lifetime and are installed once.
-+    function preventContextMenu(event) { event.preventDefault(); }
-+    function installCanvasHandlers() {
-+      var canvas = document.getElementById("canvas");
-+      if (canvas) canvas.addEventListener("contextmenu", preventContextMenu);
-+    }
-+    document.addEventListener("DOMContentLoaded", installCanvasHandlers, {once:true});
-+
-+    // Reload the scene in place when the embedding page asks for it, e.g. after
-+    // an example was re-run and rewrote its .pb. Reloading this whole frame
-+    // would restart WebGPU and reset the camera; this swaps only the geometry.
-+    function reloadSceneMessage(event) {
-+      if (event.source !== window.parent && event.origin !== window.location.origin) return;
-+      var data = event.data;
-+      if (!data || data.type !== "session-viewer:reload-scene") return;
-+      if (window.wasmBindings && window.wasmBindings.reload_scene) {
-+        window.wasmBindings.reload_scene(data.scene || undefined);
-+      }
-+    }
-+    window.addEventListener("message", reloadSceneMessage);
-+
-+    if (!navigator.gpu) {
-+      document.body.insertAdjacentHTML("beforeend",
-+        '<div id="no-webgpu">WebGPU is unavailable. Open this viewer in a WebGPU-enabled browser over HTTPS or localhost; check the browser’s GPU settings.</div>');
-+    }
-+  </script>
-+</body>
-+</html>
 diff --git a/session_viewer/src/app/feedback.rs b/session_viewer/src/app/feedback.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..8e846d19d6fcef5720ef60d9e580cbe77bca6d19
@@ -5749,3 +5617,144 @@ index 0000000000000000000000000000000000000000..a976db0dccd70cec1d69bff2d7ba3966
 +        clip: None,
 +    }
 +}
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index b3450f005a3b0f6d7986bc0817ba83ce9ca28393..2217bc15b2ead11de37725414dda387d819b6189 100644
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,48 +1,88 @@
+-<!doctype html>
+-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 11</title>
+-<link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+-<style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-<link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
+-<link data-trunk rel="copy-file" href="assets/text-quality.html">
+-</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-quality.html" style="position:fixed;right:12px;top:12px;color:white">Compare GPU text</a><output id="status">Starting checkpoint 11</output>
+-<script>
+-let tutorial;
+-let pointer;
+-/// Read the generated WASM exports after Trunk has initialized the module.
+-async function start() {
+-    if (!window.wasmBindings) { setTimeout(start, 20); return; }
+-    try {
+-        tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
+-        window.tutorial = tutorial;
+-        render();
+-    } catch (error) { document.getElementById('status').textContent = String(error); throw error; }
+-}
+-/// Keep the framebuffer at the actual CSS size times browser device scale.
+-function render() {
+-    const canvas = document.getElementById('canvas');
+-    const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+-    canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+-}
+-/// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+-function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+-/// Forward one CSS-pixel gesture to the production camera.
+-function move(event) {
+-    if (!pointer) return;
+-    const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1];
+-    pointer = [event.clientX, event.clientY];
+-    tutorial.drag(dx, dy, event.shiftKey); render();
+-}
+-/// End pointer ownership without retaining a stale gesture.
+-function up() { pointer = undefined; }
+-/// Normalize DOM wheel pixels to the production camera step, then dolly toward the actual cursor in the same physical-pixel space as the framebuffer.
+-function wheel(event) { event.preventDefault(); tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY); render(); }
+-/// Schedule a resize only after initialization completed.
+-function resize() { if (tutorial) render(); }
+-const canvas = document.getElementById('canvas');
+-canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move);
+-canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
+-canvas.addEventListener('wheel', wheel, {passive:false}); window.addEventListener('resize', resize);
+-start();
+-</script></body></html>
++<!DOCTYPE html>
++<html lang="en">
++<head>
++  <meta charset="UTF-8"/>
++  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
++  <title>Session Viewer</title>
++  <style>#viewer-error:not([hidden]) {position:fixed;inset:0;background:#111e;color:#fff;padding:25vh 15vw;font:16px/1.5 system-ui;z-index:20} #viewer-error button {padding:8px 16px;margin-top:16px}</style>
++  <style>
++    * { margin: 0; padding: 0; box-sizing: border-box; }
++    /* overscroll-behavior kills pull-to-refresh and the rubber band: a downward drag on the
++       canvas is an orbit, and a page that bounces under it swallows half the gesture. */
++    html, body { height: 100%; overscroll-behavior: none; }
++    body { background: #000; overflow: hidden; }
++    /* No focus ring. winit gives the canvas a tabindex so it can receive key
++       events, and the browser then rings the focused element - a black
++       rectangle around the whole viewport, drawn over the model. Both spellings
++       are needed: engines differ on which one they paint. */
++    /* touch-action: none is what actually delivers the gestures. winit does call preventDefault,
++       on `pointerdown` and on a non-passive `touchstart` (winit-0.30.13 web_sys/pointer.rs:115,
++       web_sys/canvas.rs:245), but that is a LATE veto: the compositor has already begun deciding
++       whether the gesture is a scroll, and where it decides yes the app gets a pointercancel and
++       nothing more. touch-action tells it up front, before any of that, and it is the only one
++       of the three that iOS Safari applies to page pinch-zoom.
++       The rest turns off the things a long press and a double tap mean to a DOCUMENT: the iOS
++       callout menu, text selection, the grey tap flash, and the legacy double-tap-to-zoom.
++       100dvh after 100vh: dvh follows a mobile toolbar sliding away, vh does not, and browsers
++       that never heard of dvh keep the line above. */
++    canvas { display: block; width: 100vw; height: 100vh; height: 100dvh;
++             touch-action: none; -webkit-touch-callout: none;
++             -webkit-user-select: none; user-select: none;
++             -webkit-tap-highlight-color: transparent; }
++    canvas:focus, canvas:focus-visible { outline: none; }
++    /* The documentation corner: a black folded-corner triangle, always above the canvas. */
++    #viewer-docs { position:fixed; top:0; right:0; width:0; height:0; z-index:10; display:block;
++                   border-top:40px solid #111; border-left:40px solid transparent;
++                   filter: drop-shadow(-1px 1px 0 #ffffff99);
++                   transition: border-top-width .25s cubic-bezier(.2,.8,.3,1.25), border-left-width .25s cubic-bezier(.2,.8,.3,1.25); }
++    #viewer-docs:hover, #viewer-docs:focus-visible { border-top-width:52px; border-left-width:52px; outline:none; }
++    #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
++                 font:1rem system-ui; text-align:center; padding-top:40vh; }
++  </style>
++</head>
++<body>
++  <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
++  <!-- Trunk copies local fixtures into dist/pb. Named remote scenes resolve through
++       app/route.rs; their manifests and geometry are fetched from the configured data host. -->
++   <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="pb"/>
++   <!-- The ONE local manifest. Every other scene is opened from the R2 bucket with
++        ?scene=scenes/view_<name>.yaml and is never copied into dist. -->
++   <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
++  <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><button type="button" onclick="location.reload()">Reload viewer</button></div>
++  <canvas id="canvas" tabindex="0"></canvas>
++  <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
++  <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
++  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
++  <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
++  <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
++  <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
++  <!-- Message telling that Webgpu is not available. -->
++  <script>
++    // These named registrations belong to this document's lifetime and are installed once.
++    function preventContextMenu(event) { event.preventDefault(); }
++    function installCanvasHandlers() {
++      var canvas = document.getElementById("canvas");
++      if (canvas) canvas.addEventListener("contextmenu", preventContextMenu);
++    }
++    document.addEventListener("DOMContentLoaded", installCanvasHandlers, {once:true});
++
++    // Reload the scene in place when the embedding page asks for it, e.g. after
++    // an example was re-run and rewrote its .pb. Reloading this whole frame
++    // would restart WebGPU and reset the camera; this swaps only the geometry.
++    function reloadSceneMessage(event) {
++      if (event.source !== window.parent && event.origin !== window.location.origin) return;
++      var data = event.data;
++      if (!data || data.type !== "session-viewer:reload-scene") return;
++      if (window.wasmBindings && window.wasmBindings.reload_scene) {
++        window.wasmBindings.reload_scene(data.scene || undefined);
++      }
++    }
++    window.addEventListener("message", reloadSceneMessage);
++
++    if (!navigator.gpu) {
++      document.body.insertAdjacentHTML("beforeend",
++        '<div id="no-webgpu">WebGPU is unavailable. Open this viewer in a WebGPU-enabled browser over HTTPS or localhost; check the browser’s GPU settings.</div>');
++    }
++  </script>
++</body>
++</html>

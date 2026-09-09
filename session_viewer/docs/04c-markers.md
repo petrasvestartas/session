@@ -60,7 +60,7 @@ flowchart LR
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=154-238 -->
 
-- `source_dot` is the pipeline lesson 13 uses for streamed source queries; it is declared with the others so the lane never grows a second pipeline set.
+- `source_dot` is the pipeline for streamed source queries; it is declared with the others so the lane never grows a second pipeline set.
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=239-294 -->
 
@@ -68,47 +68,49 @@ flowchart LR
 
 ## Step 3 · Vertex markers
 
-- Same bindings as the ribbon shader; the row is `GlyphPoint`.
+- Same bindings as the ribbon shader; the row is `GlyphPoint`. The `LineUniform` mirror lists the whole 80-byte block, `origin` and `frame` included; a sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
 
 ```mermaid
-flowchart LR
+flowchart TB
     G["glyphs · @group(3)"] -- "faces_front" --> K["keep or hide"]
     T["template corner"] -- "vs_main · screen_radius" --> Q["quad around disc"]
     Q -- "fs_main" --> D["antialiased disc"]
     style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-56 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-58 -->
 
 - `screen_radius` and `to_px` turn a world or pen radius into pixels; `faces_front` decodes the packed normals.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=57-127 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=59-129 -->
 
 - The template corner is offset in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=128-185 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=130-184 -->
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=186-211 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=185-213 -->
 
 ## Step 4 · Free dots
 
 - One equilateral triangle per dot; its incircle is the visible disc, so three vertices cover it without a template.
 
 ```mermaid
-flowchart LR
+flowchart TB
     G["glyphs · @group(3)"] -- "vs_main · 3 verts" --> T["equilateral triangle"]
     T -- "fs_main · incircle" --> D["dot disc"]
-    G -- "vs_source · fs_source_id" --> S["source queries later"]
+    G -- "vs_source · fs_source_id" --> S["source id pass"]
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-56 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-58 -->
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=57-140 -->
+- A dot wider than the canvas is dropped before it is placed. The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment: a large dot survives when the pass renders only a window of the canvas, so it stays pickable.
 
-- The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries later.
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=59-139 -->
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=141-186 -->
+- The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries.
+
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=140-188 -->
 
 <!-- check: 04c -->
 
@@ -117,7 +119,7 @@ flowchart LR
 - A template vertex slot and the `ink_rows` layout (one storage buffer at group 3).
 
 ```mermaid
-flowchart LR
+flowchart TB
     U["Upload.glyph"] -- "set_scene" --> G["Gpu.glyphs"]
     L["template_layout · ink_rows"] --> G
     G -- "after strokes" --> P["markers on top"]

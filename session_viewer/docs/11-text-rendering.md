@@ -4,14 +4,14 @@
 
 ```mermaid
 flowchart TB
-    R["shaped runs<br/>(lesson 10)"] --> P["place()<br/>anchor → physical px + depth"]
-    F["TextFrame<br/>mvp · origin · framebuffer · logical"] --> P
-    P --> G["Glyphon atlas<br/>R8 coverage per raster key"]
-    P --> B["Plates<br/>black rounded quads"]
-    R --> W["Planes<br/>one R8 texture per fixed-plane label"]
+    R["shaped runs"] --> P["place()<br>anchor to physical px + depth"]
+    F["TextFrame<br>mvp · origin · sizes"] --> P
+    P --> G["Glyphon atlas<br>R8 coverage per raster key"]
+    P --> B["Plates<br>black rounded quads"]
+    R --> W["Planes<br>one R8 texture per label"]
     B -- "draw first" --> pass
-    G -- "anchored (depth GreaterEqual) · overlay (Always)" --> pass
-    W -- "perspective UV quad, depth GreaterEqual" --> pass
+    G -- "GreaterEqual · Always" --> pass
+    W -- "perspective UV · GreaterEqual" --> pass
 ```
 
 ![Five placements of one shaped line, and the same label rasterized once per device scale.](illustrations/text-placement.svg)
@@ -39,7 +39,7 @@ flowchart LR
 - Depth compare `Always`, no depth write: a plate is an overlay and never occludes geometry.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["placed line box"] -- "6 vertices" --> B["Plates · PlateVertex"]
     B -- "depth Always" --> C["text_plate.wgsl · rounded SDF"]
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
@@ -190,9 +190,11 @@ flowchart LR
 Planes first (they are in the scene), then anchored glyphs, then plates, then overlay glyphs on top of their plates.
 
 ```mermaid
-flowchart LR
-    A["planes"] --> B["anchored glyphs"] --> C["plates"] --> D["overlay glyphs"]
-    E["TextLane::draw"] --> A
+flowchart TB
+    E["TextLane::draw"] --> A["planes"]
+    A --> B["anchored glyphs"]
+    B --> C["plates"]
+    C --> D["overlay glyphs"]
     style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
@@ -207,7 +209,7 @@ flowchart LR
 ![The same nameplate at device scale 1 (left) and 2 (right), both magnified six times in CSS pixels: the plate and glyphs occupy the same CSS box, the second has four times the pixels.](screenshots/11-dpr.png)
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["framebuffer ÷ CSS box"] --> B["TextFrame::scale"]
     B --> C["place · anchor only"]
     C -- "Nameplate" --> D["center_nameplate"]
@@ -226,7 +228,7 @@ Native checks for scale, depth, nameplates and cache eviction live in the same f
 
 ## Step 11 · Wire the lane into the frame
 
-- `write_frame_uniforms` now also prepares text and can fail (a stretched canvas), so it returns a `Result`.
+- `write_frame_uniforms` also prepares text and can fail (a stretched canvas), so it returns a `Result`.
 - Text draws after mesh ink in the same pass, against the same read-only depth.
 
 ```mermaid
@@ -242,7 +244,7 @@ Three fixture labels: a nameplate above the model, a rounded centred nameplate, 
 
 <!-- file: 11 session_viewer/src/lib.rs type -->
 
-The lesson-10 fixture is replaced by the supplied comparison page.
+The supplied comparison page takes the place of the shaping reference page and its export.
 
 <!-- file: 11 session_viewer/src/text_layout.rs -->
 
@@ -276,7 +278,7 @@ If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate 
 - `TextLane` owns Glyphon's atlas, two renderers, plates and planes.
 - Data flow: shaped run → `place()` → physical position + depth → atlas / R8 texture → three draws in the scene pass.
 
-**Production equivalent:** `src/engine/gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `src/shaders/text_plate.wgsl`, `text_plane.wgsl`. Lesson 17 gives authored text a source row; lesson 18 changes the selected colours and rounds every plate.
+**Production equivalent:** `src/engine/gpu/text.rs`, `text_plate.rs`, `text_plane.rs`, `src/shaders/text_plate.wgsl`, `text_plane.wgsl`.
 
 ## Try
 

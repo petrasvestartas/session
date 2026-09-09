@@ -1,25 +1,3 @@
-diff --git a/session_viewer/Trunk.toml b/session_viewer/Trunk.toml
-index 5da3d919df1278843f9d07e90ab8c53342186c1a..e364ee58fa6ec91784ab3c9ec2eec0e3f2aa928e
---- a/session_viewer/Trunk.toml
-+++ b/session_viewer/Trunk.toml
-@@ -1,8 +1,16 @@
- [build]
-+# Benchmarks and tutorial checkpoints use this same optimized browser build.
- release = true
- no_sri = true
- public_url = "./"
- 
-+[watch]
-+# This replaces Trunk's default watch set, so the shared path dependency is explicit.
-+watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "assets/text", "assets/text-quality.html", "../session_rust/src"]
-+enable_cooldown = true
-+
- [serve]
-+# The mutable development index must always name the current hashed WASM bundle.
-+headers = { "Cache-Control" = "no-store" }
-+addresses = ["127.0.0.1"]
- port = 8770
--addresses = ["127.0.0.1"]
 diff --git a/session_viewer/src/app/decode.rs b/session_viewer/src/app/decode.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c638200052e16
@@ -2435,3 +2413,60 @@ index 0000000000000000000000000000000000000000..ff68846623b82b9b4143d222bdb6fa04
 +}
 +main().catch(error=>{console.error(error);process.exitCode=1;});
 +// Viewer: NODE_PATH=/tmp/viewer-browser-test/node_modules node tests/loading.cjs. Local mocked HTTP only.
+diff --git a/session_viewer/Trunk.toml b/session_viewer/Trunk.toml
+index 5da3d919df1278843f9d07e90ab8c53342186c1a..77413fcf552085b8330b6337a67d0f3bacb72228 100644
+--- a/session_viewer/Trunk.toml
++++ b/session_viewer/Trunk.toml
+@@ -1,8 +1,22 @@
+ [build]
++# Benchmarks and tutorial checkpoints use this same optimized browser build.
+ release = true
+ no_sri = true
+ public_url = "./"
+ 
++# Build the documentation site before the bundle so dist/docs serves it next to the viewer.
++[[hooks]]
++stage = "pre_build"
++command = "bash"
++command_arguments = ["docs/build_site.sh"]
++
++[watch]
++# This replaces Trunk's default watch set, so the shared path dependency is explicit.
++watch = ["src", "Cargo.toml", "index.html", "assets/view_local.yaml", "assets/text", "assets/text-quality.html", "../session_rust/src"]
++enable_cooldown = true
++
+ [serve]
+-port = 8770
++# The mutable development index must always name the current hashed WASM bundle.
++headers = { "Cache-Control" = "no-store" }
+ addresses = ["127.0.0.1"]
++port = 8770
+diff --git a/session_viewer/docs/build_site.sh b/session_viewer/docs/build_site.sh
+new file mode 100644
+index 0000000000000000000000000000000000000000..c7ad4c310ac1e4bb31708fc0e5622b8592a96ae7
+--- /dev/null
++++ b/session_viewer/docs/build_site.sh
+@@ -0,0 +1,23 @@
++#!/usr/bin/env bash
++# Trunk pre-build hook: keep target/docs/site current so the viewer can copy it into dist/docs.
++# Rebuilds only when a documentation source is newer than the built site; quiet otherwise.
++set -euo pipefail
++root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
++site="$root/target/docs/site"
++stamp="$site/index.html"
++newer=$(find "$root/docs" "$root/ARCHITECTURE.md" "$root/mkdocs.yml" -newer "$stamp" -type f -not -path '*/__pycache__/*' 2>/dev/null | head -1 || true)
++if [ -f "$stamp" ] && [ -z "$newer" ]; then
++    exit 0
++fi
++if command -v uvx >/dev/null 2>&1 && [ -x "$root/docs/serve.sh" ] && [ -f "$root/mkdocs.yml" ]; then
++    "$root/docs/serve.sh" build --quiet
++else
++    mkdir -p "$site"
++    cat > "$stamp" <<'HTML'
++<!doctype html><html lang="en"><meta charset="utf-8"><title>Session Viewer course</title>
++<body style="font:16px system-ui;padding:3rem"><h1>Documentation not built</h1>
++<p>The course sources are not in this checkout, or <a href="https://docs.astral.sh/uv/">uv</a> is missing.
++Run <code>docs/serve.sh build</code> in the maintained viewer checkout, then rebuild.</p></body></html>
++HTML
++    echo "docs/build_site.sh: course sources or uvx not found; wrote a placeholder page" >&2
++fi

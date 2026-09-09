@@ -27,7 +27,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 ## Step 1 · Matrix helpers
 
 - A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here follows that rule, and so does the kernel's `Xform`.
-- The f64 → f32 edge is one function, `mat_to_f32`, so it is easy to find later when a large model jitters.
+- The f64 → f32 edge is one function, `mat_to_f32`, so it is easy to find when a large model jitters.
 
 ```mermaid
 flowchart LR
@@ -56,10 +56,10 @@ flowchart LR
 
 ## Step 3 · Recover camera facts from the matrix
 
-Later lanes receive only the view-projection. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
+Draw lanes receive only the view-projection, never the camera. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
 
 ```mermaid
-flowchart LR
+flowchart TB
     V["view-projection Xform"] -- "eye_from_view_proj" --> E["eye position"]
     V -- "ortho_half_height" --> H["ortho half-height"]
     style E fill:#f0bcdb,stroke:#ce4095,color:#111
@@ -74,7 +74,7 @@ flowchart LR
 - `scene_extent` floors the far plane so zooming into one detail cannot clip the rest of the scene.
 
 ```mermaid
-flowchart LR
+flowchart TB
     C["struct Camera"] -- "target · distance · orientation" --> S["source of truth"]
     C -- "update_position" --> D["position · up"]
     U["enum Unit"] -- "to_meters" --> C
@@ -115,13 +115,13 @@ flowchart LR
 
 ## Step 7 · The view-projection
 
-- **Reversed depth:** near and far are swapped in `perspective(...)`, so near is 1 and far approaches 0. Lesson 05 clears depth to 0 and compares `Greater`; all three must agree.
+- **Reversed depth:** near and far are swapped in `perspective(...)`, so near is 1 and far approaches 0. The depth pass clears to 0 and compares `Greater`; all three must agree.
 - **Anchor:** eye and target are expressed relative to a caller anchor in world units before any f32 exists, so a model far from the origin does not cancel to noise.
 - Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
 
 ```mermaid
-flowchart LR
-    P["projection · far near swapped"] --> M["view_proj_anchored"]
+flowchart TB
+    P["projection<br>far · near swapped"] --> M["view_proj_anchored"]
     V["look_at_right_handed"] --> M
     A["anchor · unit scale"] --> M
     M --> X["Xform · reversed depth"]
@@ -137,7 +137,7 @@ flowchart LR
 - Every mutation ends in `update_position`.
 
 ```mermaid
-flowchart LR
+flowchart TB
     S["set_view"] -- "quaternion" --> C["Camera"]
     F["fit(Aabb, aspect)"] -- "distance · scene_extent" --> C
     G["grow_extent"] --> C
@@ -165,12 +165,12 @@ flowchart LR
 
 ## Step 10 · Wire the shell
 
-- The uniform buffer is now kept, and each frame writes a fresh matrix into it.
-- The anchor passed to `view_proj_anchored` is the world origin for now; lesson 03 and later rebase about the camera target.
+- The uniform buffer is kept in the struct, and each frame writes a fresh matrix into it.
+- The anchor passed to `view_proj_anchored` is the world origin, where the triangle sits.
 - Gestures arrive in CSS pixels and are scaled by `self.scale` before the camera sees them.
 
 ```mermaid
-flowchart LR
+flowchart TB
     J["drag · zoom from JS"] --> T["Tutorial"]
     T -- "orbit · pan · zoom_at" --> C["Camera"]
     C -- "view_proj_anchored" --> U["uniform · write_buffer"]
@@ -191,7 +191,7 @@ Expected:
 - Drag orbits the triangle; Shift-drag pans; the wheel zooms toward the cursor and the point under it stays put.
 - Resize the page and repeat: no stretching, no jump.
 
-If dragging moves twice as far on a high-DPI display, look at the `self.scale` conversion, not at the camera speeds. If a large translated model later jitters, look for an f64 → f32 conversion that happens before rebasing.
+If dragging moves twice as far on a high-DPI display, look at the `self.scale` conversion, not at the camera speeds. If a large translated model jitters, look for an f64 → f32 conversion that happens before rebasing.
 
 ![Checkpoint 02: the same triangle seen from the production camera; drag to orbit, Shift-drag to pan, wheel to zoom at the cursor.](screenshots/02.png)
 
@@ -202,7 +202,7 @@ If dragging moves twice as far on a high-DPI display, look at the `self.scale` c
 - `Camera` owns view state; `math.rs` owns the matrix and box helpers both sides of the crate use.
 - Data flow: gesture → `Camera` → `Xform` → `[f32; 16]` → uniform → `mvp` in the shader.
 
-**Production equivalent:** `src/camera.rs` and `src/math.rs` are the production files, unchanged from here on.
+**Production equivalent:** `src/camera.rs` and `src/math.rs` are the production files.
 
 ## Try
 

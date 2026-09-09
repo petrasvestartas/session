@@ -63,7 +63,7 @@ sign(det)                        →     mirrored instances keep outward normals
 - Normalize after the transform. The cofactor form never divides by a small determinant.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["instances[row].model"] -- "3×3 columns" --> B["transform_normal · cofactors"]
     B -- "sign(det)" --> C["face_normal"]
     C -- "normalize in shade" --> D["triangle.wgsl fragment"]
@@ -81,7 +81,7 @@ color    [f32;4] @24   ↔  @location(2) color
 inst_id  u32 (2nd buffer) ↔ @location(3) inst_id
 ```
 
-The vertex stage now transforms the baked normal; `shade` already normalizes `in.normal` because interpolation does not preserve unit length.
+The vertex stage transforms the baked normal; `shade` normalizes `in.normal` because interpolation does not preserve unit length.
 
 <!-- file: 09 session_viewer/src/shaders/triangle.wgsl type -->
 
@@ -92,7 +92,7 @@ The vertex stage now transforms the baked normal; `shade` already normalizes `in
 - Missing or ambiguous incidence disables the cull instead of guessing.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["face triangles"] -- "position bits" --> B["face_facets · FacetPair"]
     B --> C["EdgePen::facing"]
     C -- "cull or keep" --> D["push_edge_pipes"]
@@ -156,7 +156,7 @@ Open these views (the `cad` query selects the fixture, `affine=1` applies the pl
 - `?cad=crease` — one-sided shading on each side of the fold.
 - `?cad=cylinder&affine=1` — the mirrored, nonuniformly scaled copy shades like the original.
 - `?cad=cylinder&fill=1` — lighting only.
-- `?cad=hole`, `?cad=trimmed`, `?cad=torus` — the earlier fixtures under the new normals.
+- `?cad=hole`, `?cad=trimmed`, `?cad=torus` — the hole, trimmed patch and torus fixtures under these normals.
 
 A subtle crease under one light is not proof that normals are separate; identical XYZ with two normals is.
 
@@ -169,7 +169,7 @@ A subtle crease under one light is not proof that normals are separate; identica
 - Data flow: derivatives → `RenderVertex.normal` → `@location(1)` → `transform_normal(model)` → interpolated `@location(2)` → `normalize` → headlight.
 - Edge culling reads physical facet normals; shading normals never enter visibility.
 
-**Production equivalent:** `src/shaders/normals.wgsl`, `src/shaders/triangle.wgsl`, `src/app/walk/brep_edges.rs`, kernel `session_rust/src/remesh_nurbssurface_grid.rs` and `nurbssurface_trimmed.rs`.
+**Production equivalent:** Production keeps this in `src/shaders/normals.wgsl`, `src/shaders/triangle.wgsl`, `src/app/walk/brep_edges.rs` and the kernel's `session_rust/src/remesh_nurbssurface_grid.rs` and `nurbssurface_trimmed.rs`.
 
 ## Try
 

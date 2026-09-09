@@ -33,7 +33,8 @@
     /* The documentation corner: a black folded-corner triangle, always above the canvas. */
     #viewer-docs { position:fixed; top:0; right:0; width:0; height:0; z-index:10; display:block;
                    border-top:40px solid #111; border-left:40px solid transparent;
-                   filter: drop-shadow(-1px 1px 0 #ffffff99); }
+                   filter: drop-shadow(-1px 1px 0 #ffffff99);
+                   transition: border-top-width .25s cubic-bezier(.2,.8,.3,1.25), border-left-width .25s cubic-bezier(.2,.8,.3,1.25); }
     #viewer-docs:hover, #viewer-docs:focus-visible { border-top-width:52px; border-left-width:52px; outline:none; }
     #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
                  font:1rem system-ui; text-align:center; padding-top:40vh; }

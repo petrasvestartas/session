@@ -19,13 +19,13 @@ flowchart TB
 
 ## Step 1 · A bounded window over the metadata
 
-![The file is small fields between huge arrays; checkpoint 14 fetched each small field separately, the window fetches them once and skips the arrays by length.](illustrations/metadata-window.svg)
+![The file is small fields between huge arrays; the window fetches the small fields once and skips the arrays by length.](illustrations/metadata-window.svg)
 
 - Skipped geometry fields never decide the window's size: `read_length` reads at least 64 KiB inside the file, larger only for an array that is itself larger, and never past `end`.
 - `slice` borrows an exact cached range, including a valid empty range at the window's end.
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["cloud .pb bytes"] -- "read_length ≥ 64 KiB" --> W["MetadataWindow<br/>at · bytes"]
     W -- "slice(at, length)" --> S["exact borrowed range"]
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
@@ -38,7 +38,7 @@ flowchart LR
 - `read` reuses the window when the requested range is inside it and replaces it under the same exposed revision otherwise; a changed ETag fails the read instead of mixing two revisions.
 
 ```mermaid
-flowchart LR
+flowchart TB
     R["read(at, length)"] -- "inside window" --> H["reuse cached bytes"]
     R -- "outside window" --> F["refill · same ETag"]
     F -- "ETag changed" --> E["fail the read"]
@@ -52,7 +52,7 @@ flowchart LR
 The loop is unchanged: headers, skips and array bodies now borrow from `window` instead of issuing their own requests.
 
 ```mermaid
-flowchart LR
+flowchart TB
     L["LOD walk loop"] -- "headers · skips · arrays" --> W["window.read"]
     W --> B["borrowed bytes"]
     B --> P["parsed LOD fields"]
@@ -71,7 +71,7 @@ A unit test of the range rules, part of the file:
 - Credentials stay in the local shell helpers; nothing in the browser bundle can write to the bucket.
 
 ```mermaid
-flowchart LR
+flowchart TB
     G["geometry bytes"] -- "put + verify" --> R["immutable revision"]
     R -- "copy" --> A["stable alias"]
     A -- "then" --> M["mutable manifest"]
@@ -86,7 +86,7 @@ flowchart LR
 
 Expected:
 
-- The local scene loads exactly as at checkpoint 14.
+- The local scene loads unchanged.
 - A streamed cloud (`?scene=stream-test.yaml` with a local `?data=` server) still shows its display prefix and F10 still reaches source points beyond it.
 
 ![Checkpoint 15: the local scene is unchanged; the difference is in the network panel of a streamed cloud, where the header reads collapse into one window request.](screenshots/15.png)
@@ -102,7 +102,7 @@ Expected:
 
 ## Try
 
-- Open the browser's network panel while a streamed cloud loads and count the `Range` requests against the same scene at checkpoint 14: the header and node-table reads collapse into one window read.
+- Open the browser's network panel while a streamed cloud loads and count the `Range` requests with and without the window: the header and node-table reads collapse into one window read.
 - Lower the 64 KiB minimum in `read_length` to 1 KiB: the walk still succeeds, but every small field past the first kilobyte refills the window and the request count climbs back.
 - Change the served file while the viewer is open so its ETag changes: the next read outside the window fails instead of mixing two revisions, and the status says so.
 

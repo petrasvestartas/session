@@ -41,7 +41,7 @@ flowchart LR
 
 ## Step 2 · Kernel: one triangulation body
 
-- `mesh_q` (untrimmed entry) and `mesh_loops` (BRep entry) now share `triangulate`; the bounding-box diagonal moves into its own helper.
+- `mesh_q` (untrimmed entry) and `mesh_loops` (BRep entry) share `triangulate`; the bounding-box diagonal moves into its own helper.
 - `mesh_loops` rejects invalid input and lost boundary provenance with an empty mesh instead of manufacturing a face.
 
 ```mermaid
@@ -76,7 +76,7 @@ flowchart LR
 - With given XYZ the weld tolerance is zero; interval nodes interpolate on the supplied chord, so both faces see the same inserted point.
 
 ```mermaid
-flowchart LR
+flowchart TB
     T["triangles"] -- "lift to given XYZ" --> V["vertices<br/>u · v · provenance"]
     V -- "crease_side_normal" --> S["split creases"]
     style V fill:#f0bcdb,stroke:#ce4095,color:#111
@@ -90,12 +90,12 @@ flowchart LR
 
 ## Step 5 · Kernel: BRep phases
 
-- Phase 2: the first incident grid face supplies the canonical polygon and its pcurve parameters; a later grid whose samples differ is marked for rebuild rather than left incompatible.
+- Phase 2: the first incident grid face supplies the canonical polygon and its pcurve parameters; any other grid whose samples differ is marked for rebuild rather than left incompatible.
 - Curved boundaries are refined before any interior refinement, then every incident face is rebuilt with the refined polygon.
 - Phase 3: shared XYZ is mapped onto each face's actual pcurve and checked against edge/face tolerance; a wrong periodic branch falls back to a bounded search on that pcurve.
 
 ```mermaid
-flowchart LR
+flowchart TB
     G["first grid face"] -- "phase 2" --> P["canonical polygon"]
     P -- "refine_surface_boundary" --> R["refined polygon"]
     R -- "phase 3 · boundary_parameter" --> F["every incident face"]
@@ -112,10 +112,10 @@ flowchart LR
 
 ## Step 6 · Viewer: chains from the face meshes
 
-- Replace the record-only file. Grid faces give an iso-parametric chain read straight off `u`/`v` attributes; constrained faces give the `brep_edge/{edge}/{use}/{sample}` nodes.
+- Grid faces give an iso-parametric chain read straight off `u`/`v` attributes; constrained faces give the `brep_edge/{edge}/{use}/{sample}` nodes.
 
 ```mermaid
-flowchart LR
+flowchart TB
     F["face Mesh"] -- "iso_chain" --> C["node chain"]
     F -- "constrained_chain" --> C
     C -- "edge_chains" --> E["EdgeChain"]
@@ -223,7 +223,7 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 - Kernel: `TrimLoops`, `mesh_loops`, boundary refinement and pcurve mapping give every incident face the same boundary nodes with provenance.
 - Viewer: chains are read from those nodes; pipes keep source edge IDs and both faces' outward normals.
 
-**Production equivalent:** `session_rust/src/{brep,nurbssurface_trimmed}.rs`, `src/app/walk/{brep,brep_edges,brep_orient}.rs`. The [CAD design record](cad-design.md) records the OCCT comparison behind this contract.
+**Production equivalent:** Production keeps this in `session_rust/src/{brep,nurbssurface_trimmed}.rs` and `src/app/walk/{brep,brep_edges,brep_orient}.rs`. The [CAD design record](cad-design.md) records the OCCT comparison behind this contract.
 
 ## Try
 

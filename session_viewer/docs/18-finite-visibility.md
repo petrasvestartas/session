@@ -16,14 +16,25 @@ flowchart TB
 Built once per camera and geometry revision, read by the tile test:
 
 ```mermaid
-flowchart LR
-    c1["project_triangles.wgsl<br/>96-byte records"] --> c2["triangle_tiles.wgsl<br/>count per tile"] --> c3["scan_triangle_tiles.wgsl<br/>prefix sums"] --> c4["fill<br/>(primitive, max depth)"]
+flowchart TB
+    c1["project_triangles.wgsl<br/>96-byte records"] --> c2["triangle_tiles.wgsl<br/>count per tile"]
+    c2 --> c3["scan_triangle_tiles.wgsl<br/>prefix sums"]
+    c3 --> c4["fill<br/>(primitive, max depth)"]
+```
+
+The same revision counter tells the silhouette when its masks are stale:
+
+```mermaid
+flowchart TB
+    r1["geometry_revision · selection_revision · face revision"] --> r2["MaskKey"]
+    r2 -- "changed" --> r3["one rasterization: both masks"]
+    r2 -- "same" --> r4["composite the previous masks"]
 ```
 
 ## Starting point
 
 - Checkpoint 17. The ink shader hides a stroke sample when the surface's depth plane, carried to the stroke axis through the stored gradient, lies in front of the axis.
-- That plane is infinite. A narrow strip beside a seam has a plane that crosses the seam ray outside the strip, so the seam disappeared at teapot concavities and where solids touch.
+- That plane is infinite. A narrow strip beside a seam has a plane that crosses the seam ray outside the strip, so a seam disappears at teapot concavities and where solids touch.
 - This lesson ends at the current production runtime.
 
 <!-- supplied: 18 -->
@@ -47,6 +58,7 @@ flowchart LR
 <!-- file: 18 session_viewer/src/shaders/physical.wgsl type -->
 
 - `pull_triangle` numbers every triangle; `vs_triangle` is the plain physical draw, `vs_face` adds the source face on top.
+- `fs_masks` writes the solid coverage and the selected coverage to two attachments from one rasterization; the targets blend with MAX, so a written zero acts as a discard.
 
 <!-- file: 18 session_viewer/src/shaders/triangle.wgsl type -->
 
@@ -104,7 +116,7 @@ flowchart LR
 | 3 · 4 | `live_count` uniform | `live_count` |
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["arena columns · instances"] -- "cs_main per triangle" --> C["near-plane clip"]
     C --> Q["quad or nothing"]
     Q --> P["projected[] record"]
@@ -123,7 +135,7 @@ flowchart LR
 - `fs_count` counts references per tile. `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
 
 ```mermaid
-flowchart LR
+flowchart TB
     Q["quad per projected triangle"] -- "covered_tile" --> C["fs_count · tile counts"]
     C -- "after scan" --> F["fs_fill<br/>(primitive, max depth)"]
     F -- "cursor past count" --> O["overflow flag"]
@@ -138,7 +150,7 @@ flowchart LR
 - Sums saturate at the buffer capacity, so an oversubscribed pool can never wrap into a plausible offset.
 
 ```mermaid
-flowchart LR
+flowchart TB
     C["tile counts"] -- "scan_tiles" --> B["block sums"]
     B -- "scan_blocks" --> P["block prefixes"]
     P -- "finish_offsets" --> O["tile offsets · saturating"]
@@ -152,7 +164,7 @@ flowchart LR
 - `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall. A dense tile borrows spare space anywhere in the pool.
 
 ```mermaid
-flowchart LR
+flowchart TB
     K["ProjectionKey<br/>camera · geometry revision"] -- "changed" --> E["encode<br/>project · count · scan · fill"]
     L["TileLayout · initial_pool_words"] --> P["prepare storage"]
     P --> E
@@ -201,14 +213,15 @@ Copy the rest of the file:
 
 ### Step 7 · Refine the rejection, keep the cheap test
 
-- `ink_visible_plane` is the old test. When it accepts, nothing else runs.
+- `ink_visible_plane` is the plane test. When it accepts, nothing else runs.
 - When it rejects: test the winning primitive at the axis, then the four sample-matched neighbours. A finite nearer hit confirms occlusion.
 - Otherwise walk the axis pixel's tile list: skip references whose nearest possible depth cannot beat the axis, skip triangles whose bounds miss the point, then run the finite test. An overflowing or incomplete list keeps the rejection.
+- The projected triangles and their tiles are in canvas pixels; a pick pass draws a window of the canvas into an attachment of its own, so the axis is offset by `line.origin` before the lookup.
 
 The blank lines separate the helpers; type them so the file matches production:
 
 ```mermaid
-flowchart LR
+flowchart TB
     A["ink_visible_plane"] -- "accepts" --> V["visible"]
     A -- "rejects" --> W["ink_primitive + neighbours<br/>finite test"]
     W -- "no hit" --> T["tile list of the pixel"]
@@ -226,15 +239,19 @@ flowchart LR
 ### Step 8 · Faces draws the physical pass
 
 - The physical and object-ID triangle pipelines move into `Faces`, so the primitive numbers written by the color pass are the same numbers the projection shader uses.
+- `revision` counts highlight changes, and `draw_masks` writes the highlighted face into both coverage masks of the combined pass: the silhouette's cache key reads the counter, and its one rasterization draws the face through this entry.
 
 ```mermaid
 flowchart LR
     F["Faces<br/>draw_physical · draw_object_ids"] -- "same primitive numbers" --> C["color pass"]
     F --> J["projection shader"]
+    F -- "draw_masks · revision" --> M["coverage masks"]
     style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/engine/gpu/faces.rs type -->
+
+- The arena owns the `TriangleTiles`; `prepare_visibility` encodes them over the arena's exact buffers, and every append, reset or release invalidates them. `draw_masks` is the arena's side of the one-pass mask rasterization.
 
 <!-- file: 18 session_viewer/src/engine/gpu/arena.rs type -->
 
@@ -252,17 +269,17 @@ flowchart LR
 
 <!-- file: 18 session_viewer/src/engine/pipelines/layouts.rs type -->
 
+- The ink module concatenates `projected_triangle.wgsl` after `ink_visibility.wgsl`; a desc marked `masks` targets two `R8Unorm` coverage attachments blended with MAX; the metadata attachment is `Rgba16Float`.
+
 <!-- file: 18 session_viewer/src/engine/pipelines/mod.rs type -->
 
 - `geometry_revision` counts placement, rebase and hidden-state changes; selection flags do not bump it.
 
 <!-- file: 18 session_viewer/src/engine/gpu/objects.rs type -->
 
-- Metadata textures and the pick copy widen to four channels; 4x antialiasing stops at two physical pixels per CSS pixel, where the pixel density already halves the stair-steps.
+- Metadata textures and the pick copy widen to four channels; the readback row is 20 bytes per texel.
 
 <!-- file: 18 session_viewer/src/engine/gpu/targets.rs type -->
-
-- `Picker` renders into an attachment the size of the pick window plus a three-texel halo, never the canvas: `Window::view` is that rectangle, and the copy reads the window from inside it. Part H writes the uniforms that make the scene fit it.
 
 <!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
 
@@ -271,7 +288,7 @@ flowchart LR
 ### Step 10 · The tile pass runs before ink
 
 - `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
-- `id_pass` computes the window's view, writes the pick uniforms, and scissors the ink and source passes to the window inside the attachment.
+- After every submit the picker maps its copy and the tiles map their report.
 
 ```mermaid
 flowchart LR
@@ -281,171 +298,31 @@ flowchart LR
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
-
-<!-- file: 18 session_viewer/src/engine/gpu/mod.rs type -->
-
-## Part F · State split and presentation defaults
-
-### Step 11 · Streamed queries move out of `state.rs`
-
-- The methods are unchanged; `State` still owns the query. The file only groups the page/answer/resolve workflow.
-
-```mermaid
-flowchart LR
-    S["state.rs"] -- "unchanged methods" --> Q["state/cloud_query.rs<br/>page · answer · resolve"]
-    Q -- "owned by" --> S
-    style Q fill:#f0bcdb,stroke:#ce4095,color:#111
-```
-
-<!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=1-38 -->
-
-<!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=39-101 -->
-
-<!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=102-159 -->
-
-<!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=160-212 -->
-
-<!-- file: 18 session_viewer/src/state.rs type -->
-
-### Step 12 · Selected text is black on yellow
-
-- `ink_color` derives black ink from the selection flag without touching the authored color; both text renderers read it.
-- Plates and planes fill the whole rounded backing yellow instead of drawing a border; every backing reserves a full cap at each end.
-
-```mermaid
-flowchart LR
-    L["TextLabel selected"] -- "ink_color()" --> B["black ink"]
-    L --> Y["yellow rounded backing"]
-    B --> G["glyph pass"]
-    Y --> P["text_plate · text_plane"]
-    style B fill:#f0bcdb,stroke:#ce4095,color:#111
-```
-
-<!-- file: 18 session_viewer/src/engine/text.rs type -->
-
-<!-- file: 18 session_viewer/src/engine/gpu/text.rs type -->
-
-<!-- file: 18 session_viewer/src/engine/gpu/text_plate.rs type -->
-
-<!-- file: 18 session_viewer/src/shaders/text_plate.wgsl type -->
-
-<!-- file: 18 session_viewer/src/engine/gpu/text_plane.rs type -->
-
-<!-- file: 18 session_viewer/src/shaders/text_plane.wgsl type -->
-
-<!-- file: 18 session_viewer/src/state/text.rs type -->
-
-<!-- file: 18 session_viewer/src/app/inspection.rs type -->
-
-### Step 13 · The default pen
-
-- Silhouettes start **off**: the two coverage masks and the compositor are a full-screen pass per frame, which is slow on integrated GPUs. `O` turns them on; `?outlines=1` starts with them on.
-
-```mermaid
-flowchart LR
-    V["View::from_env"] -- "show_outlines false" --> O["silhouettes off"]
-    K["O key · ?outlines=1"] --> N["silhouettes on"]
-    style V fill:#f0bcdb,stroke:#ce4095,color:#111
-```
-
-<!-- file: 18 session_viewer/src/engine/gpu/view.rs type -->
-
-The silhouette unit block of the outline owner opts in explicitly, since the default no longer does:
-
-<!-- file: 18 session_viewer/src/engine/gpu/surface_outline.rs copy -->
-
-## Part G · The documentation corner
-
-### Step 14 · One click from the viewer to the course
-
-- A black folded corner at the top right of the page links to `docs/`; it opens the course in a new tab and never covers the canvas' input.
-- Trunk copies the built site into `dist/docs`, so `trunk serve` serves the viewer and its documentation together.
-- The pre-build hook rebuilds the site only when a documentation source is newer than the built page; without the course sources it writes a one-line placeholder instead of failing the build.
-
-```mermaid
-flowchart LR
-    C["#viewer-docs corner"] -- "docs/" --> D["dist/docs · built site"]
-    H["docs/build_site.sh hook"] -- "when stale" --> D
-    T["Trunk copy-dir"] --> D
-    style C fill:#f0bcdb,stroke:#ce4095,color:#111
-```
-
-<!-- file: 18 session_viewer/index.html copy -->
-
-<!-- file: 18 session_viewer/Trunk.toml copy -->
-
-<!-- file: 18 session_viewer/docs/build_site.sh copy -->
-
-## Part H · Memory
-
-Per-pixel attachments are where video memory goes. At 4x the colour, depth and metadata targets cost 64 bytes per physical pixel; the pick targets used to cost another 20 per pixel after the first click, and the finite-visibility pool was allocated at its 64 MB ceiling for any scene. Three changes keep every pixel the same and remove all of that.
-
-### Step 15 · The pick window
-
-- The pick pass sees the scene through the sub-frustum of the window about the cursor: `PickView::clip_transform` maps the canvas projection onto the window, `write_pick` scales the projection factors with the attachment height so a pen or a marker keeps its pixel size, and `origin` and `frame` let the visibility test address the canvas-wide tiles.
-- `LineUniform` and `CloudUniform` grow by the window origin and the canvas size; every shader copy lists the same fields, and the layout test pins them.
-
-```mermaid
-flowchart LR
-    F["frame uniforms"] -- "write_pick(view)" --> P["pick uniforms<br/>mvp' · line' · cloud'"]
-    P --> I["id_pass · window-sized attachment"]
-    T["pick transform"] --> X["text plates and planes · vs_id"]
-    style P fill:#f0bcdb,stroke:#ce4095,color:#111
-```
-
-<!-- file: 18 session_viewer/src/engine/gpu/frame.rs type -->
-
-- Markers cull against the canvas, not the attachment, so a large marker stays pickable; ribbons and spheres only list the new fields.
-
-<!-- file: 18 session_viewer/src/shaders/glyph.wgsl type -->
-
-<!-- file: 18 session_viewer/src/shaders/ribbon.wgsl type -->
-
-<!-- file: 18 session_viewer/src/shaders/sphere.wgsl type -->
-
-- After every submit the picker maps its copy and the tiles map their report.
-
 <!-- file: 18 session_viewer/src/engine/gpu/present.rs type -->
 
-### Step 16 · Device scale
+### Step 11 · Masks rasterized once, reused while the view stands still
 
-- `device_pixel_ratio` is the one place the browser's ratio is read; `?dpr=` caps it for people who prefer memory over crispness, and input and canvas sizing share the capped value.
-- When the browser loses the device because video memory ran out, `recover_from_device_loss` reloads the page once at device scale 1 without antialiasing; the status line keeps saying so on the reloaded page.
-
-```mermaid
-flowchart LR
-    B["browser ratio"] -- "min(?dpr=)" --> D["device_pixel_ratio"]
-    D --> C["canvas size"]
-    D --> N["pointer and touch input"]
-    L["device lost"] -- "once" --> R["reload ?dpr=1&msaa=1&recovered=1"]
-    style D fill:#f0bcdb,stroke:#ce4095,color:#111
-```
-
-<!-- file: 18 session_viewer/src/lib.rs type -->
-
-<!-- file: 18 session_viewer/src/app/input.rs type -->
-
-<!-- file: 18 session_viewer/src/app/route.rs type -->
-
-<!-- file: 18 session_viewer/src/app/feedback.rs type -->
-
-### Step 17 · The silhouette skips empty blocks
-
-- The compositor dilates each coverage mask by reading every texel within the radius, up to 27 × 27 per pixel, over the whole canvas; on an integrated GPU that read traffic is what made O slow.
-- A pooling pass reduces each resolved mask to the maximum of every 16 × 16 block. A pixel whose block and its eight neighbours are all empty cannot reach a covered texel, so the compositor returns zero without the loop; the answer is unchanged to the bit, and most of the frame is such pixels.
-- Both masks come from one rasterization of the faces: `fs_masks` writes the solid coverage and the selected coverage to two attachments that blend with MAX, so a written zero is the old discard. `MaskKey` records the camera, the geometry and selection revisions and the highlighted face; while none of them changes, the masks are composited again without being redrawn.
+- `MaskKey` is what a coverage mask depends on: the camera matrix, the geometry revision, the selection revision, the highlighted face's revision, the size and the sample count. While none of them changes, the mask passes are skipped and the previous masks are composited again: a still view costs no rasterization.
+- When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments, and the faces are rasterized once for both masks; a single outline keeps its own pass.
+- `selection_revision` counts selection flag changes, so a selection change rebuilds the masks without touching the tile index.
 
 ```mermaid
-flowchart LR
-    M["mask pass · resolve"] --> P["fs_pool · 16 × 16 maxima"]
-    P --> C["compositor · near_any_coverage?"]
-    C -- "no" --> Z["0, no loop"]
-    C -- "yes" --> L["radial dilation as before"]
-    style P fill:#f0bcdb,stroke:#ce4095,color:#111
+flowchart TB
+    K["MaskKey<br/>mvp · geometry · selection · faces · size · samples"] -- "is_valid?" --> S{"stale?"}
+    S -- no --> R["draw_combined · previous masks"]
+    S -- yes --> P["begin_masks · one pass · both attachments"]
+    P --> Q["encode_pool · mark_valid"]
+    Q --> R
+    style K fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 18 session_viewer/src/shaders/surface_outline.wgsl type -->
+<!-- file: 18 session_viewer/src/engine/gpu/surface_outline.rs type -->
+
+<!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
+
+- The `Gpu` accounts for the wider targets and the tile pool, binds the tiles into every ink scene, and bumps `selection_revision` in `set_selected`.
+
+<!-- file: 18 session_viewer/src/engine/gpu/mod.rs type -->
 
 <!-- check: 18 -->
 
@@ -457,12 +334,11 @@ Expected:
 
 - With the supplied teapot fixture (`assets/pb/view_mixed_teapot.pb`) or the local scene loaded: the concave foot boundary stays continuous while orbiting; edges where two solids touch stay visible.
 - A genuinely covered edge stays hidden; a visible seam does not break up as a neighbouring face moves over its stroke fringe.
-- Click a manifest text: black letters on a yellow rounded backing; click away: original colors return.
-- Source edges and lines draw with a one-pixel pen; `?thickness=1.5` restores the older weight.
+- Press **O**, select a solid and hold the camera still: the perf line shows the mask passes only on the frame after a change; orbit and they run again.
 
 ![Checkpoint 18 with the supplied teapot: the rim and foot boundaries stay continuous from two camera positions, and the seams where the lid meets the body remain visible while a neighbouring face passes over their stroke fringe.](screenshots/18-teapot.png)
 
-![Left: a selected manifest text is black on a yellow rounded backing. Middle: the default one-pixel pen on the polyline, magnified five times. Right: `?thickness=1.5`, the older, heavier weight, at the same magnification.](screenshots/18-text-pen.png)
+![A selected manifest text on its yellow backing beside the one-pixel pen at two weights, magnified five times: the finite test changes which samples are hidden, not how the ink is drawn.](screenshots/18-text-pen.png)
 
 Optional lint gates:
 
@@ -499,17 +375,17 @@ Expected:
 - Data flow: arena columns → `project_triangles.wgsl` → `projected` → `fs_count` → scan → `fs_fill` → `triangle_tiles` → `ink_visible`.
 - Metadata: `Rgba16Float` with gradient in `xy` and the packed primitive in `zw`; the ID pass owns matching single-sample targets.
 - Cache: rebuilt on camera, hide/show, placement, rebase or geometry replacement; reused across selection and color changes.
-- `State` keeps its ownership; `state/cloud_query.rs` and `state/text.rs` are its companions.
-- Memory: the pick pass renders a window-sized attachment, the visibility pool is sized for the scene and grows from the scan's report, 4x antialiasing stops at device scale 2, and a lost device reloads once at reduced settings.
+- Silhouette: `MaskKey` reuses both coverage masks while the view stands still; a change rasterizes the faces once for both.
+- Memory: the visibility pool is sized for the scene and grows from the scan's report.
 
 **Production equivalent:** this checkpoint is the current production runtime.
 
 ## Try
 
-- Orbit the teapot slowly around its foot and watch the bottom boundary: at checkpoint 17 the same view broke the line into dashes where the body's planes crossed the stroke axis.
+- Orbit the teapot slowly around its foot and watch the bottom boundary: it stays continuous where the body's planes cross the stroke axis, which is exactly where the plane test alone would break it into dashes.
 - Set `?thickness=3` and repeat: the finite test is on the stroke axis, so a wider fringe changes the look, not the visibility decision.
 - Overflow a tile on purpose by loading a dense mesh and lowering the tile size in `triangle_tiles.rs`: overflowing lists keep the conservative rejection, and hidden edges never leak through.
-- Click the folded corner of the canvas: the course opens in a new tab from the same `dist/` the viewer is served from.
+- Open `?outlines=1`, select the BRep and click another object: the masks are rebuilt because `selection_revision` moved, while the tile index, keyed on geometry only, is reused.
 
 ## Next
 

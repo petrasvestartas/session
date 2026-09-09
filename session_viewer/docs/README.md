@@ -4,24 +4,35 @@ A code-first course. Start from an empty Rust crate, type the parts worth unders
 
 ## What you build
 
+App side, from the window to the upload rows:
+
 ```mermaid
-graph TD
+flowchart TB
     App["lib.rs · App (winit)"] --> State["state.rs · State"]
+    App --> Loader["app/loader.rs<br>manifest · protobuf"]
     State --> Camera["camera.rs"]
-    State --> Scene["app/scene.rs · source documents + identity"]
-    State --> Gpu["engine/gpu · Gpu"]
-    State --> Input["app/input.rs · touch.rs"]
-    App --> Loader["app/loader.rs · manifest · protobuf"]
+    State --> Input["app/input.rs<br>touch.rs"]
+    State --> Scene["app/scene.rs<br>source documents<br>+ identity"]
     Scene --> Walk["app/walk · producers"]
     Walk --> Upload["Upload rows"]
-    Upload --> Gpu
-    Gpu --> Faces["arena · faces · triangle.wgsl"]
-    Gpu --> Ink["segments · ribbon.wgsl · ink_visibility.wgsl"]
-    Gpu --> Points["glyphs · cloud · splat"]
-    Gpu --> Text["text · text_plate · text_plane"]
-    Gpu --> Outline["surface_outline"]
-    Gpu --> Tiles["triangle_tiles · finite visibility"]
-    Gpu --> Pick["pick · IDs → Scene"]
+    Upload --> Gpu["engine/gpu · Gpu"]
+    State --> Gpu
+```
+
+GPU side, from `Gpu` to its passes:
+
+```mermaid
+flowchart TB
+    Gpu["engine/gpu · Gpu"] --> Faces
+    Gpu --> Text
+    Gpu --> Tiles
+    subgraph Lanes["engine/gpu"]
+        direction TB
+        Faces["arena · faces<br>triangle.wgsl"] ~~~ Ink["segments<br>ribbon.wgsl<br>ink_visibility.wgsl"]
+        Ink ~~~ Points["glyphs · cloud · splat"]
+        Text["text · text_plate<br>text_plane"] ~~~ Outline["surface_outline"]
+        Tiles["triangle_tiles<br>finite visibility"] ~~~ Pick["pick · IDs → Scene"]
+    end
 ```
 
 ## How a lesson reads
@@ -61,7 +72,7 @@ Every block is cut from the verified patch of that checkpoint. A replay audit ty
 | [17 · Faces, text objects, silhouettes](17-source-presentation.md) | Source faces, selectable text, one black outline, joined strokes | |
 | [18 · Finite-triangle visibility](18-finite-visibility.md) | Projected triangles, tile lists, cache, final defaults | **5 · Full viewer** |
 
-Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06–09 change the shared kernel and only need 05. 10–11 need 04c. 12 replaces the teaching shell and needs everything before it. 13–16 extend `State` and loading. 17–18 refine presentation and visibility on top of 12.
+Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06–09 change the shared kernel and only need 05. 10–11 need 04c. 12 builds the production shell and needs everything before it. 13–16 extend `State` and loading. 17–18 refine presentation and visibility on top of 12.
 
 ## Prepare one workspace
 

@@ -23,27 +23,27 @@ flowchart TB
 ## Step 1 · The object row
 
 - One 96-byte record per object, indexed by `instance_index` in every instance-reading shader. Flags are bits: selecting sets bit 0 and keeps the rest.
-- The translation column of `model` is zero; the anchored translation gets its own table later (group 2, binding 1).
+- The translation column of `model` is zero; the anchored translation belongs to its own table (group 2, binding 1).
 - The size assertion is compile-time: a wrong stride fails `cargo check`, not the picture.
 
 ```mermaid
-flowchart LR
-    I["struct Instance · 96 B"] -- "model · color" --> R["one object row"]
-    I -- "FLAG_SELECTED · FLAG_HIDDEN" --> F["flags bits"]
-    P["Instance::placeholder"] --> I
+flowchart TB
+    P["Instance::placeholder"] --> I["struct Instance<br/>96 B"]
+    I -- "model · color" --> R["one object row"]
+    I -- "FLAG_ bits" --> F["flags"]
     style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
 
-The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones. Those lanes arrive in the next lessons; the browser build never compiles this block.
+The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones; the browser build never compiles this block.
 
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=58-234 -->
 
 ## Step 2 · Declare the engine module tree
 
 ```mermaid
-flowchart LR
+flowchart TB
     L["lib.rs"] -- "pub mod engine" --> E["engine/mod.rs"]
     E -- "pub mod gpu" --> G["engine/gpu/mod.rs"]
     G -- "pub mod instance" --> I["instance.rs"]
@@ -57,7 +57,7 @@ flowchart LR
 ## Step 3 · Source identity is separate from the row
 
 - A `guid` and `revision` identify what the object *is*; the row says how it is drawn this revision.
-- Picking will return a row; the scene must map it back. Never search for an object by matching triangle positions.
+- Picking returns a row; the scene maps it back. Never search for an object by matching triangle positions.
 
 ```mermaid
 flowchart LR
@@ -89,8 +89,8 @@ size                         96     array stride
 - `@group(0) @binding(1) var<storage, read>` mirrors the `BufferBindingType::Storage { read_only: true }` entry added in the next step.
 
 ```mermaid
-flowchart LR
-    I["Instance rows"] -- "group 0 · binding 1" --> B["var storage read instances"]
+flowchart TB
+    I["Instance rows"] -- "group 0 · binding 1" --> B["storage instances[]"]
     R["instance_index"] --> V["vs_main"]
     B --> V
     V -- "model × point · color" --> F["fs_main"]
@@ -105,7 +105,7 @@ flowchart LR
 - `objects` stays on the CPU side of the shell, so the status can report a count that comes from source data rather than from the GPU.
 
 ```mermaid
-flowchart LR
+flowchart TB
     O["scene::objects()"] -- "cast_slice" --> S["STORAGE buffer"]
     S -- "binding 1" --> G["BindGroup"]
     G --> D["draw(0..3, row..row+1)"]
@@ -137,7 +137,7 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 - `engine::gpu::instance::Instance` is the row contract between scene and shaders.
 - Data flow: `SourceObject.row` → storage buffer → `instances[instance_index]` → placed, tinted vertex.
 
-**Production equivalent:** `src/engine/gpu/instance.rs` is production. `src/scene.rs` is a teaching stand-in for `src/app/scene.rs`, which replaces it in lesson 12.
+**Production equivalent:** `src/engine/gpu/instance.rs`. Production keeps the scene in `src/app/scene.rs`.
 
 ## Try
 

@@ -76,7 +76,7 @@ Unit tests, part of the file:
 - The snapshot names its scope and exclusions in the JSON itself, so a reader of `?inspect=1` cannot mistake the payload for total heap.
 
 ```mermaid
-flowchart LR
+flowchart TB
     K["known_bytes()"] --> J["?inspect=1 JSON<br/>source_cpu_known_payload"]
     G["Gpu::allocated_bytes"] --> J
     J --> X["scope + exclusions named"]

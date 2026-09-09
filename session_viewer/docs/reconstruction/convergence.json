@@ -175,7 +175,7 @@
     "session_viewer/examples/probe_mesh.rs": "0359ffbae67035a68b6fe28eb3044ae428a3b1d6709908862e044ec57efc90e1",
     "session_viewer/examples/selftest.rs": "4113e37cf074c4d98b861f2a4d679d8cb327e80588e1a0f5e088e3490334e2fd",
     "session_viewer/examples/stream_decode_check.rs": "2e82500c30f7d151ffe49f77d09ea4edbb55148fee507ef4de1c256e5af7d683",
-    "session_viewer/index.html": "92ea9a5108f00913870f1d9ad765977b90f5309396c134cfcc430c26c24d6b41",
+    "session_viewer/index.html": "07458b7f18fcfdf0e9a272b01125f98a794ca1bccc8cd166b90555153dedaabf",
     "session_viewer/src/app/cloud_query.rs": "ce73128045ab5abf3ccb2e23f72f57d2145043aee5c9e7d4e4688684dbdf3414",
     "session_viewer/src/app/decode.rs": "5c490d05d7fbe9982ec801f4bbf90f3b660d03c1ab3c6046de6af6b1c0c82b99",
     "session_viewer/src/app/feedback.rs": "4cad8fc90f8a60ba31ea895a82e8837571c6a34d77fb73d007c14dd581790be8",
@@ -333,7 +333,7 @@
     "session_viewer/assets/view_local.yaml": "Deterministic local interaction scene replaces the user's local working datasets."
   },
   "passed": true,
-  "production_tree": "fe04255c9ad010d4059ad23cd56add263d12da6c33c432dac768d686813a5812",
+  "production_tree": "d6564819c3f82f8d76e530accd34c4ea98bfa8ff6f8fae1aa915853c5fdb9b2e",
   "runtime_source_files": 91,
   "tutorial_input_additions": [
     "session_viewer/assets/pb/interaction.pb",
