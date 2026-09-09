@@ -35,7 +35,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 flowchart LR
     W["walk · vertex or point"] --> R["GlyphPoint<br/>center · radius · facing"]
     R -- "48 B · storage" --> T["glyph table"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-56 -->
@@ -49,7 +49,7 @@ flowchart LR
     GR["GlyphRows<br/>spheres · dots"] -- "append" --> GL["GlyphLane"]
     GL -- "draw_spheres · template" --> P["ink pass"]
     GL -- "draw_dots · 3 verts" --> P
-    style GL fill:#1a1eb2,color:#fff
+    style GL fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=57-100 -->
@@ -75,7 +75,7 @@ flowchart LR
     G["glyphs · @group(3)"] -- "faces_front" --> K["keep or hide"]
     T["template corner"] -- "vs_main · screen_radius" --> Q["quad around disc"]
     Q -- "fs_main" --> D["antialiased disc"]
-    style Q fill:#1a1eb2,color:#fff
+    style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-56 -->
@@ -99,7 +99,7 @@ flowchart LR
     G["glyphs · @group(3)"] -- "vs_main · 3 verts" --> T["equilateral triangle"]
     T -- "fs_main · incircle" --> D["dot disc"]
     G -- "vs_source · fs_source_id" --> S["source queries later"]
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-56 -->
@@ -121,7 +121,7 @@ flowchart LR
     U["Upload.glyph"] -- "set_scene" --> G["Gpu.glyphs"]
     L["template_layout · ink_rows"] --> G
     G -- "after strokes" --> P["markers on top"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04c session_viewer/src/engine/pipelines/mod.rs type -->

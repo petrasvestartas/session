@@ -53,7 +53,7 @@ flowchart LR
     B["BROWSER_WEBGPU adapter"] -- "open" --> D["DeviceSetup"]
     D --> Q["device · queue"]
     Q -- "uncaptured error" --> F["failure"]
-    style D fill:#1a1eb2,color:#fff
+    style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-145 -->
@@ -73,8 +73,8 @@ flowchart LR
     C["camera · eye"] --> U["write_frame_uniforms"]
     U --> P["present"] --> S["surface texture"]
     U --> K["pick_frame"]
-    style U fill:#1a1eb2,color:#fff
-    style P fill:#1a1eb2,color:#fff
+    style U fill:#f0bcdb,stroke:#ce4095,color:#111
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=1-68 -->
@@ -93,7 +93,7 @@ The offscreen and benchmark paths used by native tools:
 ```mermaid
 flowchart LR
     E["encode_frame"] --> F["face_list · depth"] --> I["scene_list · ink"] --> D["id_pass"]
-    style E fill:#1a1eb2,color:#fff
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=1-54 -->
@@ -121,7 +121,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 flowchart LR
     W["winit event"] --> I["Input"] -- "named action" --> S["State"]
     I -- "CLICK_SLOP" --> D["drag, not a click"]
-    style I fill:#1a1eb2,color:#fff
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=1-47 -->
@@ -146,7 +146,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     E["WindowEvent::Touch"] --> T["Touch"] -- "÷ DPR" --> C["orbit · pan · zoom"]
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/app/touch.rs copy lines=1-68 -->
@@ -164,7 +164,7 @@ flowchart LR
 flowchart LR
     D["Session documents"] --> S["Scene"] -- "upload_to" --> R["object rows"]
     R -- "resolve · edge_at" --> S
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=1-86 -->
@@ -190,7 +190,7 @@ Exactly one parent owns a specialized selection; `escape` returns that parent so
 ```mermaid
 flowchart LR
     C["click"] --> M["SelectionMode"] -- "escape" --> P["parent kept"]
-    style M fill:#1a1eb2,color:#fff
+    style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/app/selection.rs type -->
@@ -202,7 +202,7 @@ The walk gains three producers so every kernel geometry type has a lane.
 ```mermaid
 flowchart LR
     G["clouds · planes · points"] --> W["walk_cloud · walk_plane · walk_point"] --> U["Upload rows"]
-    style W fill:#1a1eb2,color:#fff
+    style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-131 -->
@@ -225,8 +225,8 @@ flowchart LR
     L["loader::boot"] -- "Msg::File" --> A["App"]
     A -- "?inspect=1" --> I["inspection::publish"]
     A -- "textContent" --> F["feedback"]
-    style L fill:#1a1eb2,color:#fff
-    style I fill:#1a1eb2,color:#fff
+    style L fill:#f0bcdb,stroke:#ce4095,color:#111
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/app/stream.rs type -->
@@ -260,8 +260,8 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 ```mermaid
 flowchart LR
     C["cursor window"] --> T["IdTargets<br/>Rg32Uint · Depth32Float"] -- "copy_window" --> B["readback buffer"] -- "map · poll" --> P["Picker answer"]
-    style T fill:#1a1eb2,color:#fff
-    style P fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-82 -->
@@ -295,7 +295,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     E["encode_frame"] -- "pick pending" --> D["id_pass"] --> T["ID targets"]
-    style D fill:#1a1eb2,color:#fff
+    style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=124-196 -->
@@ -309,7 +309,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     S["selected faces"] --> M["R8 coverage mask"] --> O["SelectionOutline pass"] --> R["black ring"]
-    style O fill:#1a1eb2,color:#fff
+    style O fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-98 -->
@@ -342,7 +342,7 @@ Still undeclared modules; the check passes for the same reason as before.
 ```mermaid
 flowchart LR
     I["Input"] --> R["State::request_selection"] --> G["Gpu pick"] -- "apply_pick" --> F["FLAG_SELECTED"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/state.rs type lines=1-45 -->
@@ -382,7 +382,7 @@ flowchart LR
     G["Gpu"] --> D["DeviceSetup"]
     G --> P["present"]
     G --> K["Picker"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/engine/gpu/mod.rs type -->
@@ -393,8 +393,8 @@ flowchart LR
 flowchart LR
     L["lib.rs"] --> A["app::*"] --> W["walk::*"]
     L --> E["engine::*"]
-    style A fill:#1a1eb2,color:#fff
-    style E fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/engine/mod.rs type -->
@@ -418,7 +418,7 @@ flowchart LR
 flowchart LR
     W["winit events"] --> A["App"] -- "Msg" --> S["State"]
     A -- "request_if_needed" --> R["redraw"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=1-35 -->
@@ -437,8 +437,8 @@ flowchart LR
 flowchart LR
     I["index.html"] --> C["#canvas"]
     Y["view_local.yaml"] --> B["loader::boot"]
-    style I fill:#1a1eb2,color:#fff
-    style Y fill:#1a1eb2,color:#fff
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
+    style Y fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 12 session_viewer/index.html copy -->

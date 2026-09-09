@@ -28,7 +28,7 @@ The same-font white-on-black comparison page and its WASM export are supplied. I
 ```mermaid
 flowchart LR
     A["text_quality.rs · WASM export"] --> B["text-quality.html"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- supplied: 11 -->
@@ -42,7 +42,7 @@ flowchart LR
 flowchart LR
     A["placed line box"] -- "6 vertices" --> B["Plates · PlateVertex"]
     B -- "depth Always" --> C["text_plate.wgsl · rounded SDF"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-100 -->
@@ -72,7 +72,7 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 flowchart LR
     A["WorldPlane label"] --> B["CachedPlane · R8 texture"]
     B --> C["Planes · budget"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-83 -->
@@ -87,7 +87,7 @@ flowchart LR
     A["TextFrame · camera"] --> B["Planes::prepare"]
     B -- "same_raster" --> C["keep texture"]
     B -- "raster_em grew" --> D["rasterize again"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=84-142 -->
@@ -105,7 +105,7 @@ flowchart LR
     A["project · clip w"] --> D["append_quad · Vertex"]
     B["rasterize · Swash to R8"] --> D
     D --> C["text_plane.wgsl"]
-    style D fill:#1a1eb2,color:#fff
+    style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=259-322 -->
@@ -146,7 +146,7 @@ flowchart LR
     A["camera · rebase anchor"] --> B["TextFrame"]
     C["physical + logical size"] --> B
     B --> D["TextStats"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=1-61 -->
@@ -162,7 +162,7 @@ flowchart LR
     A --> C["overlay · Always"]
     B --> D["one TextAtlas"]
     C --> D
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-142 -->
@@ -178,7 +178,7 @@ flowchart LR
     B -- "place" --> C["PlacedText"]
     B -- "rasterize" --> D["atlas · raster keys"]
     B --> E["two draw lists"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=143-216 -->
@@ -193,7 +193,7 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 flowchart LR
     A["planes"] --> B["anchored glyphs"] --> C["plates"] --> D["overlay glyphs"]
     E["TextLane::draw"] --> A
-    style E fill:#1a1eb2,color:#fff
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=272-338 -->
@@ -211,7 +211,7 @@ flowchart LR
     A["framebuffer ÷ CSS box"] --> B["TextFrame::scale"]
     B --> C["place · anchor only"]
     C -- "Nameplate" --> D["center_nameplate"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=339-429 -->
@@ -233,7 +233,7 @@ Native checks for scale, depth, nameplates and cache eviction live in the same f
 flowchart LR
     A["write_frame_uniforms"] -- "TextFrame" --> B["TextLane::prepare"]
     C["mesh ink pass"] --> D["TextLane::draw"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 11 session_viewer/src/engine/gpu/mod.rs type -->

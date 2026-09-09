@@ -24,7 +24,7 @@ flowchart TB
 flowchart LR
     S["supplied examples/ · tests/"] --> C["Cargo.toml<br/>[[example]] entries"]
     C --> N["native tooling builds"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- supplied: 16 -->
@@ -42,7 +42,7 @@ flowchart LR
 flowchart LR
     D["Doc · Rc&lt;Session&gt;"] -- "walk once per Rc" --> P["Payload<br/>known_bytes"]
     P -- "seen set" --> U["no double count"]
-    style P fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-52 -->
@@ -54,7 +54,7 @@ flowchart LR
 flowchart LR
     C["SourceCache<br/>Weak&lt;Session&gt; ids"] -- "same Rc pointers" --> H["cached Payload"]
     C -- "identity changed" --> S["snapshot(docs) walk"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
@@ -80,7 +80,7 @@ flowchart LR
     K["known_bytes()"] --> J["?inspect=1 JSON<br/>source_cpu_known_payload"]
     G["Gpu::allocated_bytes"] --> J
     J --> X["scope + exclusions named"]
-    style J fill:#1a1eb2,color:#fff
+    style J fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 16 session_viewer/src/app/inspection.rs type -->

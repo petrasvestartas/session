@@ -31,7 +31,7 @@ flowchart LR
     T["Cargo.toml"] -- "cdylib + rlib" --> C["session_viewer crate"]
     T -- "path dep" --> K["../session_rust"]
     T -- "wgpu 29 · glyphon 0.11" --> C
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 00 session_viewer/Cargo.toml copy -->
@@ -44,7 +44,7 @@ One line makes every `cargo` command build for the browser, so the code needs no
 flowchart LR
     G[".cargo/config.toml"] -- "build.target" --> W["wasm32-unknown-unknown"]
     G -- "alias xtest" --> N["native test target"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 00 session_viewer/.cargo/config.toml type -->
@@ -57,7 +57,7 @@ Release builds, no subresource hashes, and a watch list that includes the kernel
 flowchart LR
     T["Trunk.toml"] -- "release · public_url ./" --> D["dist/"]
     T -- "watch list" --> S["src · index.html · ../session_rust"]
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 00 session_viewer/Trunk.toml copy -->
@@ -70,7 +70,7 @@ Dependency data, not code. The course was verified against exactly these version
 flowchart LR
     L["Cargo.lock"] -- "pins every version" --> C["cargo --locked"]
     C --> B["reproducible build"]
-    style L fill:#1a1eb2,color:#fff
+    style L fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- supplied: 00 -->
@@ -83,7 +83,7 @@ One element with `id="status"`; Rust looks it up by that name.
 flowchart LR
     H["index.html"] -- "data-trunk rel=rust" --> W[".wasm + JS glue"]
     H -- "output id=status" --> S["status element"]
-    style H fill:#1a1eb2,color:#fff
+    style H fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 00 session_viewer/index.html copy -->
@@ -99,7 +99,7 @@ flowchart LR
     B["browser loads module"] -- "wasm_bindgen start" --> F["start()"]
     F -- "get_element_by_id" --> S["#status"]
     F -- "set_text_content" --> S
-    style F fill:#1a1eb2,color:#fff
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 00 session_viewer/src/lib.rs type -->

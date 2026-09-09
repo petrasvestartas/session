@@ -31,7 +31,7 @@ flowchart LR
     I["struct Instance · 96 B"] -- "model · color" --> R["one object row"]
     I -- "FLAG_SELECTED · FLAG_HIDDEN" --> F["flags bits"]
     P["Instance::placeholder"] --> I
-    style I fill:#1a1eb2,color:#fff
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
@@ -47,7 +47,7 @@ flowchart LR
     L["lib.rs"] -- "pub mod engine" --> E["engine/mod.rs"]
     E -- "pub mod gpu" --> G["engine/gpu/mod.rs"]
     G -- "pub mod instance" --> I["instance.rs"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 03 session_viewer/src/engine/gpu/mod.rs type -->
@@ -63,7 +63,7 @@ flowchart LR
 flowchart LR
     S["SourceObject · guid · revision"] -- "row" --> I["Instance"]
     O["scene::objects()"] -- "two placements" --> S
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 03 session_viewer/src/scene.rs type -->
@@ -94,7 +94,7 @@ flowchart LR
     R["instance_index"] --> V["vs_main"]
     B --> V
     V -- "model × point · color" --> F["fs_main"]
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 03 session_viewer/src/shaders/first.wgsl type -->
@@ -109,7 +109,7 @@ flowchart LR
     O["scene::objects()"] -- "cast_slice" --> S["STORAGE buffer"]
     S -- "binding 1" --> G["BindGroup"]
     G --> D["draw(0..3, row..row+1)"]
-    style D fill:#1a1eb2,color:#fff
+    style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 03 session_viewer/src/lib.rs type -->

@@ -38,7 +38,7 @@ flowchart LR
     CR["CloudRows<br/>positions · colors"] -- "append · Chunk" --> CL["CloudLane"]
     CL --> PB["PointBufs<br/>pos · col · nrm"]
     PB -- "moved? rebind" --> BG["points group"]
-    style CL fill:#1a1eb2,color:#fff
+    style CL fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=1-57 -->
@@ -62,7 +62,7 @@ flowchart LR
     N["LodNode octree"] -- "projected_spacing" --> W["LodWalk::select"]
     C["camera · lod_px"] --> W
     W -- "ranges · finest spacing" --> R["records to draw"]
-    style W fill:#1a1eb2,color:#fff
+    style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=1-48 -->
@@ -90,7 +90,7 @@ flowchart TB
     RC["RecordCx<br/>camera · clouds · nodes"] -- "prelude · key changed" --> SR["SplatRecord × N<br/>160 B"]
     SR -- "point pass" --> PT["1× depth + color targets"]
     PT -- "draw_resolve" --> FP["face pass"]
-    style SR fill:#1a1eb2,color:#fff
+    style SR fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-68 -->
@@ -124,7 +124,7 @@ flowchart LR
     V["vertex_index"] -- "record_of" --> R["SplatRecord"]
     R -- "project · vs_point" --> P["point disc · fs_point"]
     P -- "lane depth + color" --> S["splat_resolve<br/>EDL · frag_depth"]
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-63 -->
@@ -146,7 +146,7 @@ flowchart LR
     U["Upload.cloud"] -- "set_scene" --> G["Gpu.cloud · Gpu.splat"]
     G -- "prelude · before faces" --> PP["point pass"]
     PP -- "draw_resolve · in face pass" --> F["scene depth"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04d session_viewer/src/engine/pipelines/layouts.rs type -->

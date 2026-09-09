@@ -32,7 +32,7 @@ flowchart TB
 flowchart LR
     K["repeated knot"] -- "sorted face keys" --> N["accumulated normals"]
     N -- "split_crease_normals" --> V["two shading vertices<br/>same u,v"]
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=1-4 -->
@@ -54,8 +54,8 @@ flowchart LR
     C["colour"] -- "pack_rgba" --> A["RGBA8"]
     N["unit normal"] -- "oct16" --> O["16-bit code"]
     P["two normals"] -- "pack_facing" --> F["facing word"]
-    style R fill:#1a1eb2,color:#fff
-    style F fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/walk/encode.rs type -->
@@ -69,8 +69,8 @@ flowchart LR
 flowchart LR
     C["WalkCx<br/>vertex base · row"] --> P["producer"]
     P --> R["Row<br/>bounds · spacing · flags"]
-    style C fill:#1a1eb2,color:#fff
-    style R fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/walk/mod.rs type -->
@@ -85,8 +85,8 @@ flowchart LR
     U["Upload rows"] -- "Baselines::capture" --> B["file_extent"]
     B -- "is_planar" --> S["mark_sheet"]
     T["tris + normals"] -- "mesh_thickness" --> K["thickness"]
-    style S fill:#1a1eb2,color:#fff
-    style K fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
+    style K fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/walk/bounds.rs type lines=1-71 -->
@@ -102,7 +102,7 @@ flowchart LR
 flowchart LR
     M["Mesh faces"] -- "SlotMap" --> T["mesh_topology"]
     T --> E["MeshTopo<br/>edges · edge_faces · normals"]
-    style E fill:#1a1eb2,color:#fff
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=1-48 -->
@@ -125,8 +125,8 @@ flowchart LR
     T["MeshTopo"] -- "push_pipes" --> P["SegRows.pipes"]
     T -- "incidence" --> I["Incidence CSR"]
     I -- "push_markers" --> S["GlyphRows.spheres"]
-    style P fill:#1a1eb2,color:#fff
-    style S fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-110 -->
@@ -155,7 +155,7 @@ flowchart LR
     W -- "faces" --> A["ArenaRows"]
     W -- "edges_and_dots" --> I["Ink"]
     W --> R["Row"]
-    style W fill:#1a1eb2,color:#fff
+    style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-81 -->
@@ -175,7 +175,7 @@ flowchart LR
     L["Line · Polyline"] -- "walk_line · walk_polyline" --> S["SegRows ribbons"]
     C["NurbsCurve"] -- "turning_degrees" --> N["walk_nurbscurve"]
     N -- "render_position" --> S
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-67 -->
@@ -194,8 +194,8 @@ flowchart LR
     B["BRep"] -- "face_meshes_q · QUALITY" --> F["face Mesh"]
     F -- "push_face" --> A["ArenaRows"]
     B --> E["EdgeUse · EdgeChain<br/>records only"]
-    style A fill:#1a1eb2,color:#fff
-    style E fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/walk/brep_edges.rs type -->
@@ -213,7 +213,7 @@ Presence-only environment flags, read once per process; always false in the brow
 flowchart LR
     E["environment flag"] -- "OnceLock" --> K["knobs.rs<br/>all_edges · seams"]
     K --> P["producers"]
-    style K fill:#1a1eb2,color:#fff
+    style K fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/knobs.rs copy -->
@@ -224,7 +224,7 @@ flowchart LR
 flowchart LR
     A["app/mod.rs"] -- "pub mod walk" --> W["walk producers"]
     A -- "pub mod knobs" --> K["knobs"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/app/mod.rs type -->
@@ -241,7 +241,7 @@ flowchart LR
     S["f64 source objects"] -- "CadFixture::add" --> I["SourceIdentity per row"]
     S -- "walk_brep · walk_surface" --> U["Upload"]
     U --> L["lib.rs"]
-    style I fill:#1a1eb2,color:#fff
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/fixture.rs copy -->
@@ -257,7 +257,7 @@ flowchart LR
     V["vertex normal"] -. "ignored until lesson 09" .-> S["fs_main"]
     F["finite face fallback"] --> S
     S --> C["PhysicalColor"]
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 06 session_viewer/src/shaders/triangle.wgsl type -->

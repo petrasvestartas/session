@@ -28,7 +28,7 @@ flowchart TB
 flowchart LR
     F["yaml · json · toml"] -- "Manifest::parse" --> M["Manifest"] --> I["Item · at · xform"]
     M --> T["TextItem"]
-    style M fill:#1a1eb2,color:#fff
+    style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=1-57 -->
@@ -50,7 +50,7 @@ Parser unit tests, part of the file:
 flowchart LR
     P["decoded protobuf"] -- "validate::session" --> O["counts ≤ storage"]
     J["JSON document"] -- "validate::json" --> O
-    style O fill:#1a1eb2,color:#fff
+    style O fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 14 session_viewer/src/app/validate.rs copy lines=1-147 -->
@@ -67,7 +67,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     B["bytes"] -- "prost" --> M["message"] -- "Pacer::tick" --> K["kernel objects"]
-    style M fill:#1a1eb2,color:#fff
+    style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=1-60 -->
@@ -82,7 +82,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     U["?scene= · path"] -- "scene_route" --> R["SceneRoute"] --> S["bucket · local · live"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 14 session_viewer/src/app/route.rs type -->
@@ -96,7 +96,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     E["EventSource"] --> N["Notify flag"] --> C["LiveSource::check"] -- "If-None-Match" --> R["read: Changed · Same"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=1-90 -->
@@ -129,7 +129,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     F["responses, any order"] --> P["pending, manifest order"] -- "stale_load?" --> S["clear_scene · Msg::File"]
-    style P fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 14 session_viewer/src/app/loader.rs type hunks=1 -->
@@ -147,8 +147,8 @@ flowchart LR
 flowchart LR
     M["app::mod"] --> D["decode · fetch · live"]
     T["Msg::Texts"] --> S["set_texts"]
-    style M fill:#1a1eb2,color:#fff
-    style S fill:#1a1eb2,color:#fff
+    style M fill:#f0bcdb,stroke:#ce4095,color:#111
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 14 session_viewer/src/app/mod.rs type -->

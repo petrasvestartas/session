@@ -31,7 +31,7 @@ flowchart LR
     J["JavaScript page"] -- "Tutorial.create" --> T["struct Tutorial"]
     T -- "owns" --> R["surface · device · queue · pipeline"]
     J -- "render · drag · zoom" --> T
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=1-36 -->
@@ -47,7 +47,7 @@ flowchart LR
     I["wgpu::Instance"] -- "create_surface" --> S["Surface"]
     I -- "request_adapter" --> A["Adapter"]
     A -- "request_device" --> D["device + queue"]
-    style D fill:#1a1eb2,color:#fff
+    style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=37-58 -->
@@ -69,7 +69,7 @@ flowchart LR
     C["SurfaceConfiguration"] -- "width 1 · height 1" --> S["Surface"]
     M["identity [f32; 16]"] -- "create_buffer_init" --> U["uniform buffer"]
     U -- "binding 0" --> G["BindGroup"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=59-98 -->
@@ -86,7 +86,7 @@ flowchart LR
     L["BindGroupLayout"] -- "create_pipeline_layout" --> P["PipelineLayout"]
     S --> R["RenderPipeline"]
     P --> R
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=99-144 -->
@@ -102,7 +102,7 @@ flowchart LR
     S["get_current_texture"] --> V["TextureView"]
     E["CommandEncoder"] -- "begin_render_pass" --> P["clear · draw(0..3)"]
     P -- "queue.submit" --> Q["present"]
-    style P fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=145-205 -->
@@ -126,7 +126,7 @@ flowchart LR
     I["vertex_index 0..3"] --> V["vs_main"]
     U["mvp uniform"] -- "group 0 · binding 0" --> V
     V -- "position + color" --> F["fs_main"]
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 01 session_viewer/src/shaders/first.wgsl type -->
@@ -142,7 +142,7 @@ flowchart LR
     P["pointer · wheel · resize"] --> J["index.html script"]
     J -- "tutorial.render" --> T["Tutorial"]
     T -- "inspection JSON" --> S["#status"]
-    style J fill:#1a1eb2,color:#fff
+    style J fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 01 session_viewer/index.html copy -->

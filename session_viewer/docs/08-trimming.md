@@ -28,7 +28,7 @@ flowchart LR
     A["NurbsSurface · m_mesh"] -- "cached trim mesh" --> B["walk_surface"]
     C["from_u_v_q grid"] -- "fallback" --> B
     B -- "first_pipe" --> D["map_surface_boundaries"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1 -->
@@ -45,7 +45,7 @@ flowchart LR
     A["mesh vertex u, v"] -- "domain limit bits" --> B["map_surface_boundaries"]
     B -- "one shared bit" --> C["pipe_ids · source ID"]
     B -- "seam or crease" --> D["u32::MAX"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2 -->
@@ -61,7 +61,7 @@ flowchart LR
 flowchart LR
     A["trimmed_surface · square + hole"] --> C["build · CadFixture"]
     B["torus · periodic u, v"] --> C
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 08 session_viewer/src/fixture.rs copy -->
@@ -71,7 +71,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     A["lib.rs · stage"] --> B["index.html · title"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 08 session_viewer/src/lib.rs type -->

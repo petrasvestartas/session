@@ -28,7 +28,7 @@ flowchart TB
 flowchart LR
     A["cloud .pb bytes"] -- "read_length ≥ 64 KiB" --> W["MetadataWindow<br/>at · bytes"]
     W -- "slice(at, length)" --> S["exact borrowed range"]
-    style W fill:#1a1eb2,color:#fff
+    style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=1,2 -->
@@ -42,7 +42,7 @@ flowchart LR
     R["read(at, length)"] -- "inside window" --> H["reuse cached bytes"]
     R -- "outside window" --> F["refill · same ETag"]
     F -- "ETag changed" --> E["fail the read"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=3 -->
@@ -56,7 +56,7 @@ flowchart LR
     L["LOD walk loop"] -- "headers · skips · arrays" --> W["window.read"]
     W --> B["borrowed bytes"]
     B --> P["parsed LOD fields"]
-    style L fill:#1a1eb2,color:#fff
+    style L fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=4,5,6 -->
@@ -75,7 +75,7 @@ flowchart LR
     G["geometry bytes"] -- "put + verify" --> R["immutable revision"]
     R -- "copy" --> A["stable alias"]
     A -- "then" --> M["mutable manifest"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- supplied: 15 -->

@@ -34,7 +34,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 flowchart LR
     W["walk · segment endpoints"] --> R["CylinderSegment<br/>a · b · radius · facing"]
     R -- "40 B · storage" --> T["segment table"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=1-56 -->
@@ -48,7 +48,7 @@ flowchart LR
     SR["SegRows<br/>pipes · ribbons"] -- "append" --> SL["SegmentLane"]
     SL -- "draw_pipes · culled" --> P["ink pass"]
     SL -- "draw_ribbons · always" --> P
-    style SL fill:#1a1eb2,color:#fff
+    style SL fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=57-115 -->
@@ -74,7 +74,7 @@ flowchart LR
     D["scene depth · group 2"] --> V["ink_visible"]
     A["axis depth"] --> V
     V -- "keep / discard" --> F["ink fragment"]
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04b session_viewer/src/shaders/ink_visibility.wgsl type -->
@@ -88,7 +88,7 @@ flowchart LR
     S["segments · @group(3)"] -- "vs_main · 6 verts" --> Q["camera-facing quad"]
     Q -- "fs_main · band_area" --> C["coverage"]
     C -- "ink_visible" --> O["stroke pixel"]
-    style Q fill:#1a1eb2,color:#fff
+    style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-58 -->
@@ -120,7 +120,7 @@ flowchart LR
     U["Upload.seg"] -- "set_scene" --> G["Gpu.segments"]
     L["segment_rows layout"] --> G
     G -- "ink pass · ink_group" --> P["strokes drawn"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04b session_viewer/src/engine/pipelines/mod.rs type -->

@@ -51,7 +51,7 @@ flowchart LR
     T["display triangles"] -- "one address each" --> I["ids · source_faces"]
     I --> F["FaceSource<br/>parent · face"]
     P["FACE_TAG sub-ID"] --> F
-    style F fill:#1a1eb2,color:#fff
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=1-28 -->
@@ -94,7 +94,7 @@ flowchart LR
     V --> A["fs_id · FACE_TAG"]
     V --> B["fs_face_highlight"]
     V --> C["fs_solid_mask"]
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/shaders/triangle.wgsl type -->
@@ -110,7 +110,7 @@ flowchart LR
 flowchart LR
     M["Mesh faces · BRep faces"] -- "push_face" --> A["append_face_ids"]
     A -- "one per triangle" --> R["ArenaRows · face ids"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/app/walk/mesh.rs type -->
@@ -126,7 +126,7 @@ flowchart LR
 flowchart LR
     B["vertex · id · index buffers"] -- "STORAGE usage" --> L["Faces lane"]
     L -- "component mode" --> D["draw_component_ids"]
-    style L fill:#1a1eb2,color:#fff
+    style L fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=1,2,4,5,6,7,8,9,10,11 -->
@@ -141,7 +141,7 @@ flowchart LR
     K["Ctrl+Shift click"] --> P["PickMode::Component"]
     P -- "edge first, then face" --> S["SelectionMode::Face<br/>parent · face"]
     S -- "Faces::source" --> H["face highlight"]
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/app/selection.rs type -->
@@ -167,7 +167,7 @@ flowchart LR
     L["TextLabel"] -- "object: Some" --> O["TextObject<br/>row · selected"]
     L -- "object: None" --> D["derived annotation"]
     C["manifest camera_facing"] --> L
-    style O fill:#1a1eb2,color:#fff
+    style O fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/engine/text.rs type -->
@@ -186,7 +186,7 @@ flowchart LR
     M["manifest text · document title"] -- "key" --> S["SceneText row"]
     S -- "ObjectRow" --> G["hide · select · pick"]
     S -- "reload" --> K["same row, hidden kept"]
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-18 -->
@@ -210,7 +210,7 @@ flowchart LR
     N["derived nameplate"] --> U
     U --> T["TextLane labels"]
     B["include_text_bounds"] --> F["fit · selection name"]
-    style U fill:#1a1eb2,color:#fff
+    style U fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=1-33 -->
@@ -237,7 +237,7 @@ flowchart LR
     P["Plates<br/>depth · object · selected"] --> C["fs_main coverage"]
     P --> I["fs_id · object row"]
     W["text_plane.rs"] --> I
-    style P fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/engine/gpu/text_plate.rs type -->
@@ -274,7 +274,7 @@ flowchart LR
     O["ordinary mask · R8"] --> X["max(ordinary, selected)"]
     S["selected mask · thicker"] --> X
     X --> B["one black border"]
-    style X fill:#1a1eb2,color:#fff
+    style X fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=1-35 -->
@@ -319,7 +319,7 @@ Copy the rest of the file:
 flowchart LR
     A["ArenaLane"] -- "draw_solid_mask" --> M["solid coverage mask"]
     K["O key"] -- "show_outlines" --> M
-    style M fill:#1a1eb2,color:#fff
+    style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=3,12 -->
@@ -342,7 +342,7 @@ flowchart LR
 flowchart LR
     C["one curve · one BRep edge"] -- "push" --> R["ribbon_chains · pipe_chains<br/>Range&lt;u32&gt;"]
     W["separate mesh wires"] -- "no chain" --> E["own end caps"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/app/walk/curves.rs type -->
@@ -358,7 +358,7 @@ flowchart LR
     R["segment rows"] -- "joined_rows(chains)" --> S["StrokeSegment<br/>previous · next"]
     S --> U["draw_unselected"]
     S --> D["draw_selected"]
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=1-6 -->
@@ -384,7 +384,7 @@ flowchart LR
     V["shared vertex"] -- "join_plane(before, after)" --> P["one bisector plane"]
     P -- "start keeps · end excludes" --> O["one owner per cap pixel"]
     L["stroke_vertex(vid, layer)"] --> O
-    style P fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-3 -->
@@ -402,7 +402,7 @@ The reference page and native fixtures for this checkpoint use the text-object f
 ```mermaid
 flowchart LR
     S["supplied fixtures · reference page"] -- "use TextObject" --> W["workspace"]
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- supplied: 17 -->
@@ -416,7 +416,7 @@ flowchart LR
 flowchart LR
     X["selection_outline lane"] -- "deleted" --> Y["two SurfaceOutline"]
     Y --> F["render.rs order<br/>solid strokes · silhouette · curves"]
-    style Y fill:#1a1eb2,color:#fff
+    style Y fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 17 session_viewer/src/engine/gpu/selection_outline.rs -->

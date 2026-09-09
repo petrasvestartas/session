@@ -35,8 +35,8 @@ Two constants and two output structs, appended to every shader module. `physical
 flowchart LR
     A["fs_main depth"] -- "physical_gradient" --> B["PhysicalColor<br/>color + gradient"]
     C["fs_id"] --> E["PhysicalId<br/>id + gradient"]
-    style B fill:#1a1eb2,color:#fff
-    style E fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/shaders/physical.wgsl type -->
@@ -52,8 +52,8 @@ flowchart LR
     V["vertex_index"] -- "CORNERS" --> B["background.wgsl<br/>depth Always"]
     V -- "FLOOR lines" --> G["grid.wgsl<br/>line.anchor"]
     B & G -- "zero gradient" --> P["PhysicalColor"]
-    style B fill:#1a1eb2,color:#fff
-    style G fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/shaders/background.wgsl type -->
@@ -71,7 +71,7 @@ flowchart LR
     S -- "build_grid" --> L
     L -- "draw_background" --> F["faces pass"]
     L -- "draw_grid · Binds" --> F
-    style L fill:#1a1eb2,color:#fff
+    style L fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/engine/gpu/backdrop.rs type -->
@@ -104,7 +104,7 @@ flowchart LR
     G["scene_gradient_*<br/>@group(2) @binding(4/5)"] --> K["ink_visibility.wgsl"]
     T["DEPTH_REL_TOL · SLOPE_PX · KINK"] --> K
     K --> X["InkAxis record"]
-    style X fill:#1a1eb2,color:#fff
+    style X fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-43 -->
@@ -120,8 +120,8 @@ flowchart LR
     D --> T["ink_tolerance"]
     D -- "two texels" --> N["ink_pair_planar"]
     N -- "slopes within KINK" --> C["ink_carry_visible"]
-    style N fill:#1a1eb2,color:#fff
-    style C fill:#1a1eb2,color:#fff
+    style N fill:#f0bcdb,stroke:#ce4095,color:#111
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=44-101 -->
@@ -136,7 +136,7 @@ flowchart LR
     F["fragment texel"] -- "ink_step" --> N["neighbour texel"]
     F & N -- "fit plane" --> A["ink_axis_visible"]
     A -- "predicted depth" --> C["ink_carry_visible"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=102-137 -->
@@ -150,8 +150,8 @@ flowchart LR
     C["disc centre + depth"] --> F["ink_disc_fragment_visible"]
     C -- "toward_eye" --> V["ink_disc_visible"]
     F --> V
-    style F fill:#1a1eb2,color:#fff
-    style V fill:#1a1eb2,color:#fff
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=138-187 -->
@@ -168,7 +168,7 @@ flowchart LR
     G["own gradient valid"] -- "one textureLoad" --> V["ink_visible"]
     G -- "else" --> P["ink_axis_visible fallback"]
     P --> V
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=188-236 -->
@@ -182,8 +182,8 @@ flowchart LR
     T["triangle.wgsl fs_main"] -- "real slope" --> P["PhysicalColor"]
     S["splat · splat_resolve"] -- "zero gradient" --> P
     O["text_outline.wgsl"] -- "fs_physical_id" --> I["PhysicalId"]
-    style P fill:#1a1eb2,color:#fff
-    style I fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/shaders/triangle.wgsl type -->
@@ -205,7 +205,7 @@ flowchart LR
     A["adapter type + pixels"] -- "msaa_budget" --> S["samples_for"]
     S --> T["Targets<br/>depth + Rg16Float gradient"]
     T -- "begin_faces clears" --> F["faces pass"]
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/engine/gpu/targets.rs type -->
@@ -220,8 +220,8 @@ flowchart LR
     D["PipelineDesc"] -- ".physical()" --> P["second target<br/>Rg16Float"]
     M["module()"] -- "append physical.wgsl" --> S["shader source"]
     L["scene_gradient entry"] --> B["ink bind group layout"]
-    style P fill:#1a1eb2,color:#fff
-    style L fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
+    style L fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/engine/pipelines/mod.rs type -->
@@ -241,7 +241,7 @@ flowchart LR
     O --> A["arena · draw_selection_mask"]
     O --> S["splat"]
     O --> X["text_outline retarget"]
-    style O fill:#1a1eb2,color:#fff
+    style O fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/engine/gpu/objects.rs type -->
@@ -262,7 +262,7 @@ flowchart LR
     R["resize"] -- "samples_for" --> T["retarget"]
     T --> P["targets · ink groups · lanes"]
     B["BackdropLane"] -- "first in begin_faces" --> F["frame"]
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/engine/gpu/mod.rs type -->
@@ -276,7 +276,7 @@ flowchart LR
     X["fixture.rs<br/>grey_box · floor"] -- "scene()" --> U["Upload"]
     Q["?fixture · ?distance"] -- "parse_distance" --> L["lib.rs"]
     U --> L
-    style X fill:#1a1eb2,color:#fff
+    style X fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 05 session_viewer/src/fixture.rs copy -->

@@ -26,7 +26,7 @@ flowchart LR
 flowchart LR
     A["NotoSans · Symbols · Symbols2"] -- "include_bytes!" --> B["FONT_BYTES … FALLBACK_BYTES"]
     B --> C["bundled_fonts · FontSystem"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- supplied: 10 -->
@@ -46,7 +46,7 @@ flowchart LR
     A["performance.now · browser"] --> B["now_ms"]
     C["SystemTime · native"] --> B
     B --> D["Performance::frame"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 10 session_viewer/src/engine/performance.rs type -->
@@ -61,7 +61,7 @@ flowchart LR
     A["TextPlacement"] --> B["Screen · CSS px"]
     A --> C["Anchor · Nameplate"]
     A --> D["WorldBillboard · WorldPlane"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=1-47 -->
@@ -77,7 +77,7 @@ flowchart LR
 flowchart LR
     A["TextLabel"] -- "shape" --> B["TextRun · Buffer"]
     B --> C["TextDocument · FontSystem"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=48-77 -->
@@ -92,7 +92,7 @@ flowchart LR
     A["Vec of TextLabel"] -- "validate_label" --> B["set_labels"]
     B -- "same_layout" --> C["reuse Buffer by id"]
     B -- "text or size changed" --> D["shape"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=78-133 -->
@@ -106,7 +106,7 @@ flowchart LR
 flowchart LR
     A["replace_fonts · clear"] --> B["TextDocument"]
     B -- "diagnostics" --> C["GlyphDiagnostic · id, cluster, advance"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=134-226 -->
@@ -120,7 +120,7 @@ flowchart LR
 flowchart LR
     A["validate_label · valid_plane_axes"] --> B["shape · Shaping::Advanced"]
     B -- "kerning, ligatures, fallback" --> C["Buffer"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=227-324 -->
@@ -135,7 +135,7 @@ Unit checks for the shaper live in the same file.
 flowchart LR
     A["engine/mod.rs"] -- "pub mod" --> B["performance"]
     A -- "pub mod" --> C["text"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 10 session_viewer/src/engine/mod.rs type -->
@@ -152,7 +152,7 @@ flowchart LR
     A["text_layout · WASM export"] -- "line_width" --> B["text-layout.html"]
     C["@font-face · same bytes"] --> B
     B -- "compare widths" --> D["textLayout.passed"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 10 session_viewer/src/text_layout.rs copy -->

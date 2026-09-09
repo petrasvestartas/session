@@ -39,8 +39,8 @@ flowchart TD
 ```mermaid
 flowchart LR
     P["selected parent"] -- "from_geometry" --> C["Controls"] --> I["ControlId"]
-    style C fill:#1a1eb2,color:#fff
-    style I fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 13 session_viewer/src/app/selection.rs type hunks=1 -->
@@ -60,8 +60,8 @@ These two modules are new and undeclared, so the crate still builds after them.
 flowchart LR
     K["click"] --> V["QueryView"] --> E["eligible_ranges"] -- "fetch::get" --> P["source page"]
     Q["Query token"] --> P
-    style V fill:#1a1eb2,color:#fff
-    style Q fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
+    style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-121 -->
@@ -96,7 +96,7 @@ The protobuf headers sit in the first few kilobytes and `coords` is packed, so t
 ```mermaid
 flowchart LR
     H["cloud .pb header"] -- "cloud_fields" --> F["CloudFields"] --> N["point count"]
-    style F fill:#1a1eb2,color:#fff
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 13 session_viewer/src/app/stream.rs copy -->
@@ -110,7 +110,7 @@ flowchart LR
 flowchart LR
     M["PickMode::Controls"] --> D["id_pass · control markers"] --> P["pick"]
     S["source page"] -- "accumulate" --> D
-    style M fill:#1a1eb2,color:#fff
+    style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 13 session_viewer/src/engine/gpu/pick.rs type -->
@@ -126,8 +126,8 @@ flowchart LR
 ```mermaid
 flowchart LR
     F["F10"] -- "enable_controls" --> U["upload_controls"] --> A["apply_control"] --> S["selected control"]
-    style U fill:#1a1eb2,color:#fff
-    style A fill:#1a1eb2,color:#fff
+    style U fill:#f0bcdb,stroke:#ce4095,color:#111
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=1-3 -->
@@ -168,7 +168,7 @@ flowchart LR
 flowchart LR
     K["F10 · Escape"] --> I["Input"] --> S["State"]
     L["loader"] -- "?scene=stream-test.yaml" --> S
-    style I fill:#1a1eb2,color:#fff
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 13 session_viewer/src/app/input.rs type -->

@@ -44,7 +44,7 @@ flowchart LR
     R["new rows"] -- "append" --> G["GrowBuf<br/>cap · len"]
     C["GpuCtx<br/>device · queue"] -- "create_buffer" --> G
     G -- "grew? rebuild" --> B["bind group"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=1-39 -->
@@ -66,7 +66,7 @@ flowchart LR
     L --> G1["group 1 · line"]
     L --> G2["group 2 · rows + translations"]
     G2 -- "+ depth views" --> GI["ink_instance"]
-    style L fill:#1a1eb2,color:#fff
+    style L fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=1-52 -->
@@ -85,7 +85,7 @@ flowchart LR
     S["shader source"] -- "module + normals.wgsl" --> M["ShaderModule"]
     D["PipelineDesc<br/>Target · DepthMode · ColorWrite"] -- "build" --> P["RenderPipeline"]
     M --> P
-    style D fill:#1a1eb2,color:#fff
+    style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-52 -->
@@ -116,7 +116,7 @@ flowchart LR
     T["Targets<br/>color · Depth32Float"] -- "begin_faces · clear" --> F["face pass<br/>writes depth"]
     T -- "begin_ink · load" --> I["ink pass<br/>depth read-only"]
     F -- "depth view · group 2" --> I
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=1-70 -->
@@ -133,7 +133,7 @@ flowchart LR
 flowchart LR
     FI["FrameInput<br/>view_proj · clear"] -- "write" --> FU["FrameUniforms<br/>mvp · LineUniform"]
     FU -- "Binds · groups 0 1 2" --> D["every lane draw"]
-    style FU fill:#1a1eb2,color:#fff
+    style FU fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-47 -->
@@ -168,7 +168,7 @@ flowchart LR
     Q["?name= · route::query"] -- "knob" --> V["View<br/>show_* · thickness_px"]
     E["ENV · native"] -- "knob" --> V
     V -- "read each frame" --> F["frame"]
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/gpu/view.rs copy -->
@@ -190,7 +190,7 @@ flowchart TB
     R --> G["group 2"]
     A --> G
     C["camera drift"] -- "rebase_anchor" --> A
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-61 -->
@@ -228,7 +228,7 @@ flowchart LR
     V["vertex · @location"] -- "vs_main · place" --> C["clip position"]
     C -- "rasterize" --> F["fs_main<br/>headlight · back face red"]
     C -- "same vertex stage" --> I["fs_id"]
-    style F fill:#1a1eb2,color:#fff
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-38 -->
@@ -251,7 +251,7 @@ flowchart TB
     AL -- "draw_faces" --> FP["face pass"]
     AL -- "draw_print · draw_text" --> OL["OutlineTextLane<br/>unlit"]
     OL --> IP["ink pass"]
-    style AL fill:#1a1eb2,color:#fff
+    style AL fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=1-63 -->
@@ -283,7 +283,7 @@ flowchart LR
     FX["fixture.rs<br/>one mesh row"] --> U["Upload<br/>obj · arena · bounds"]
     U -- "set_scene" --> G["Gpu"]
     U -- "drop_uploaded" --> X["rows freed"]
-    style U fill:#1a1eb2,color:#fff
+    style U fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/gpu/upload.rs type -->
@@ -302,7 +302,7 @@ flowchart TB
     G --> O["InstanceTable"]
     G --> A["ArenaLane"]
     G -- "write · face pass · ink pass · present" --> W["frame"]
-    style G fill:#1a1eb2,color:#fff
+    style G fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=1-33 -->

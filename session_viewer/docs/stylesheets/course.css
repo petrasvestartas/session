@@ -19,19 +19,19 @@
   --md-code-hl-color: #f9e08a;
 }
 [data-md-color-scheme="default"], [data-md-color-scheme="slate"] {
-  /* Diagrams: black ground, white text, the BRG pale-blue for borders. */
+  /* Diagrams: black ground; white nodes with black text; white arrows and white edge labels
+     on the ground. In Material's theme `node-fg` is the node border, `label-fg` the node
+     text and `edge` both the arrows and the edge-label text. */
   --md-mermaid-font-family: system-ui, sans-serif;
   --md-mermaid-node-bg-color: #ffffff;
   --md-mermaid-node-fg-color: #111111;
-  --md-mermaid-edge-color: #e4e4e7;
+  --md-mermaid-edge-color: #ffffff;
   --md-mermaid-label-bg-color: #111111;
-  --md-mermaid-label-fg-color: #ffffff;
+  --md-mermaid-label-fg-color: #111111;
 }
 .md-typeset .mermaid { background: #111111; border-radius: 12px; padding: 1rem; }
 .md-typeset .mermaid svg { background: #111111; }
-.md-typeset .mermaid .edgeLabel { background: #111111; color: #ffffff; }
 .md-typeset .mermaid svg { font-size: 14px !important; }
-.md-typeset .mermaid .edgeLabel { background: #eef0f2; padding: 0 .2rem; }
 .md-typeset .highlight pre { border-color: #bdbfe8; }
 .md-typeset table:not([class]) th { background: #e4e4e7; }
 .md-typeset details.note > summary { background: #bdbfe8; }

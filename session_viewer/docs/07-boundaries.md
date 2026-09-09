@@ -32,7 +32,7 @@ flowchart TD
 flowchart LR
     B["BRep face"] -- "uv · xyz · interior_uv" --> T["TrimLoops"]
     T --> M["mesher"]
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=1 -->
@@ -49,7 +49,7 @@ flowchart LR
     Q["mesh_q"] --> T["triangulate"]
     L["mesh_loops"] --> T
     T --> M["Mesh or empty"]
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=2-6 -->
@@ -65,7 +65,7 @@ flowchart LR
     L["loop vertices"] -- "Delaunay id" --> C["constraints"]
     K["C0 knot line"] -- "boundary_interval tag" --> C
     C --> T["triangulate"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=7-8 -->
@@ -79,7 +79,7 @@ flowchart LR
 flowchart LR
     T["triangles"] -- "lift to given XYZ" --> V["vertices<br/>u · v · provenance"]
     V -- "crease_side_normal" --> S["split creases"]
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=9-10 -->
@@ -99,7 +99,7 @@ flowchart LR
     G["first grid face"] -- "phase 2" --> P["canonical polygon"]
     P -- "refine_surface_boundary" --> R["refined polygon"]
     R -- "phase 3 · boundary_parameter" --> F["every incident face"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_rust/src/brep.rs type hunks=1-3 -->
@@ -120,7 +120,7 @@ flowchart LR
     F -- "constrained_chain" --> C
     C -- "edge_chains" --> E["EdgeChain"]
     E -- "push_edge_pipes" --> P["pipes + pipe_ids"]
-    style E fill:#1a1eb2,color:#fff
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=1-39 -->
@@ -154,7 +154,7 @@ flowchart LR
     C["EdgeChain"] -- "opposed" --> S["face_signs"]
     M["face Mesh"] -- "six_volume" --> S
     S --> O["outward normals"]
-    style S fill:#1a1eb2,color:#fff
+    style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=1-78 -->
@@ -179,8 +179,8 @@ flowchart LR
     S["face sign"] -- "flip normals + winding" --> A["ArenaRows"]
     C["chain"] -- "walk_brep_edges" --> P["pipes"]
     N["no chain"] -- "push_curve_ribbon" --> R["sampled ribbon"]
-    style A fill:#1a1eb2,color:#fff
-    style P fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_viewer/src/app/walk/brep.rs type -->
@@ -193,7 +193,7 @@ A cylinder (closed seam, two circles) and a block with a hole (inner wire) exerc
 flowchart LR
     X["fixture.rs<br/>cylinder · block with hole"] -- "build()" --> F["CadFixture"]
     F --> L["lib.rs status"]
-    style X fill:#1a1eb2,color:#fff
+    style X fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 07 session_viewer/src/fixture.rs copy -->

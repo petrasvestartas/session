@@ -34,7 +34,7 @@ flowchart LR
     A["Mat4 · [f64; 16]"] -- "mat_mul" --> B["Mat4"]
     A -- "xform_point_f64" --> P["placed point"]
     A -- "mat_to_f32" --> G["[f32; 16] for the GPU"]
-    style A fill:#1a1eb2,color:#fff
+    style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/math.rs type lines=1-71 -->
@@ -49,7 +49,7 @@ flowchart LR
     E["Aabb::empty"] -- "grow · union" --> B["Aabb min · max"]
     B -- "placed(Mat4)" --> W["world box"]
     B -- "diagonal · contains" --> Q["queries"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/math.rs type lines=72-166 -->
@@ -62,7 +62,7 @@ Later lanes receive only the view-projection. The eye is where clip x, y and w v
 flowchart LR
     V["view-projection Xform"] -- "eye_from_view_proj" --> E["eye position"]
     V -- "ortho_half_height" --> H["ortho half-height"]
-    style E fill:#1a1eb2,color:#fff
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/math.rs type lines=167-224 -->
@@ -78,7 +78,7 @@ flowchart LR
     C["struct Camera"] -- "target · distance · orientation" --> S["source of truth"]
     C -- "update_position" --> D["position · up"]
     U["enum Unit"] -- "to_meters" --> C
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=1-52 -->
@@ -94,7 +94,7 @@ flowchart LR
     C -- "orbit" --> O["orientation"]
     C -- "pan" --> T["target"]
     C -- "zoom · zoom_at" --> D["distance"]
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=53-138 -->
@@ -108,7 +108,7 @@ flowchart LR
     B["scene Aabb"] -- "clip to view rect" --> R["visible box"]
     R -- "fit" --> C["perspective camera"]
     T["toggle_projection_framed"] --> R
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=139-198 -->
@@ -125,7 +125,7 @@ flowchart LR
     V["look_at_right_handed"] --> M
     A["anchor · unit scale"] --> M
     M --> X["Xform · reversed depth"]
-    style M fill:#1a1eb2,color:#fff
+    style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=199-272 -->
@@ -142,7 +142,7 @@ flowchart LR
     F["fit(Aabb, aspect)"] -- "distance · scene_extent" --> C
     G["grow_extent"] --> C
     C -- "update_position" --> D["position · up"]
-    style F fill:#1a1eb2,color:#fff
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=273-401 -->
@@ -156,7 +156,7 @@ flowchart LR
 flowchart LR
     W["wheel detent"] -- "zoom_distance" --> D["distance × 0.9"]
     D -- "never zero" --> C["Camera"]
-    style D fill:#1a1eb2,color:#fff
+    style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/camera.rs copy lines=402-513 -->
@@ -174,7 +174,7 @@ flowchart LR
     J["drag · zoom from JS"] --> T["Tutorial"]
     T -- "orbit · pan · zoom_at" --> C["Camera"]
     C -- "view_proj_anchored" --> U["uniform · write_buffer"]
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 02 session_viewer/src/lib.rs type -->

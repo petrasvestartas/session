@@ -41,7 +41,7 @@ flowchart LR
 flowchart LR
     D["physical depth"] --> M["Rgba16Float metadata<br/>xy gradient · zw primitive"]
     P["pull_triangle index"] -- "physical_triangle" --> M
-    style M fill:#1a1eb2,color:#fff
+    style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/shaders/physical.wgsl type -->
@@ -84,7 +84,7 @@ flowchart LR
 flowchart LR
     R["ProjectedTriangle<br/>6 × vec4 · 96 B"] -- "projected_triangle_at" --> H["(depth, inside)"]
     T["visibility_tile_span"] --> G["≤ 262144 tiles"]
-    style R fill:#1a1eb2,color:#fff
+    style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/shaders/projected_triangle.wgsl type -->
@@ -108,7 +108,7 @@ flowchart LR
     A["arena columns · instances"] -- "cs_main per triangle" --> C["near-plane clip"]
     C --> Q["quad or nothing"]
     Q --> P["projected[] record"]
-    style P fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-60 -->
@@ -127,7 +127,7 @@ flowchart LR
     Q["quad per projected triangle"] -- "covered_tile" --> C["fs_count · tile counts"]
     C -- "after scan" --> F["fs_fill<br/>(primitive, max depth)"]
     F -- "cursor past count" --> O["overflow flag"]
-    style F fill:#1a1eb2,color:#fff
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/shaders/triangle_tiles.wgsl type -->
@@ -142,7 +142,7 @@ flowchart LR
     C["tile counts"] -- "scan_tiles" --> B["block sums"]
     B -- "scan_blocks" --> P["block prefixes"]
     P -- "finish_offsets" --> O["tile offsets · saturating"]
-    style O fill:#1a1eb2,color:#fff
+    style O fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/shaders/scan_triangle_tiles.wgsl type -->
@@ -158,7 +158,7 @@ flowchart LR
     P --> E
     E -- "words needed" --> R["PoolReport · read back"]
     R -- "grow" --> P
-    style E fill:#1a1eb2,color:#fff
+    style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-73 -->
@@ -214,7 +214,7 @@ flowchart LR
     W -- "no hit" --> T["tile list of the pixel"]
     T --> V
     T -- "nearer finite hit" --> H["hidden"]
-    style W fill:#1a1eb2,color:#fff
+    style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=1-11 -->
@@ -231,7 +231,7 @@ flowchart LR
 flowchart LR
     F["Faces<br/>draw_physical · draw_object_ids"] -- "same primitive numbers" --> C["color pass"]
     F --> J["projection shader"]
-    style F fill:#1a1eb2,color:#fff
+    style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/engine/gpu/faces.rs type -->
@@ -247,7 +247,7 @@ flowchart LR
     I["ink_instance layout"] -- "binding 6" --> P["projected table"]
     I -- "binding 7" --> T["tile buffer"]
     G["geometry_revision"] --> K["cache key"]
-    style I fill:#1a1eb2,color:#fff
+    style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/engine/pipelines/layouts.rs type -->
@@ -278,7 +278,7 @@ flowchart LR
     T["triangle_tile_pass"] -- "prepare · rebind · encode" --> I["ink passes"]
     C["color frame"] --> T
     D["ID-only frame"] --> T
-    style T fill:#1a1eb2,color:#fff
+    style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
@@ -295,7 +295,7 @@ flowchart LR
 flowchart LR
     S["state.rs"] -- "unchanged methods" --> Q["state/cloud_query.rs<br/>page · answer · resolve"]
     Q -- "owned by" --> S
-    style Q fill:#1a1eb2,color:#fff
+    style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=1-38 -->
@@ -319,7 +319,7 @@ flowchart LR
     L --> Y["yellow rounded backing"]
     B --> G["glyph pass"]
     Y --> P["text_plate · text_plane"]
-    style B fill:#1a1eb2,color:#fff
+    style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/engine/text.rs type -->
@@ -346,7 +346,7 @@ flowchart LR
 flowchart LR
     V["View::from_env"] -- "show_outlines false" --> O["silhouettes off"]
     K["O key · ?outlines=1"] --> N["silhouettes on"]
-    style V fill:#1a1eb2,color:#fff
+    style V fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/engine/gpu/view.rs type -->
@@ -368,7 +368,7 @@ flowchart LR
     C["#viewer-docs corner"] -- "docs/" --> D["dist/docs · built site"]
     H["docs/build_site.sh hook"] -- "when stale" --> D
     T["Trunk copy-dir"] --> D
-    style C fill:#1a1eb2,color:#fff
+    style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/index.html copy -->
@@ -391,7 +391,7 @@ flowchart LR
     F["frame uniforms"] -- "write_pick(view)" --> P["pick uniforms<br/>mvp' · line' · cloud'"]
     P --> I["id_pass · window-sized attachment"]
     T["pick transform"] --> X["text plates and planes · vs_id"]
-    style P fill:#1a1eb2,color:#fff
+    style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/engine/gpu/frame.rs type -->
@@ -419,7 +419,7 @@ flowchart LR
     D --> C["canvas size"]
     D --> N["pointer and touch input"]
     L["device lost"] -- "once" --> R["reload ?dpr=1&msaa=1&recovered=1"]
-    style D fill:#1a1eb2,color:#fff
+    style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
 <!-- file: 18 session_viewer/src/lib.rs type -->
