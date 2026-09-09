@@ -151,7 +151,7 @@ impl Targets {
         if let Some(s) = forced {
             return if s == 4 { 4 } else { 1 };
         }
-        if pixel_scale >= MSAA_MAX_PIXEL_SCALE {
+        if super::view::reduced() || pixel_scale >= MSAA_MAX_PIXEL_SCALE {
             return 1;
         }
         match budget {

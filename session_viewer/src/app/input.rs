@@ -9,7 +9,7 @@
 use super::touch::{Act, Touches};
 use crate::State;
 use crate::camera::View;
-use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
+use winit::event::{ElementState, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent};
 use winit::keyboard::{Key, NamedKey};
 
 /// A press that moves less than this (CSS px) before release is a click.
@@ -94,6 +94,7 @@ impl Input {
                 ..
             } => {
                 self.orbiting = *btn == ElementState::Pressed;
+                state.interacting = self.orbiting || self.panning;
                 false
             }
             WindowEvent::MouseInput {
@@ -102,6 +103,7 @@ impl Input {
                 ..
             } => {
                 self.panning = *btn == ElementState::Pressed;
+                state.interacting = self.orbiting || self.panning;
                 false
             }
             WindowEvent::MouseInput {
@@ -141,6 +143,7 @@ impl Input {
             }
             WindowEvent::Focused(false) => {
                 self.cancel();
+                state.interacting = false;
                 true
             }
             WindowEvent::Touch(t) => {
@@ -152,6 +155,7 @@ impl Input {
                     ),
                     ..*t
                 };
+                state.interacting = matches!(t.phase, TouchPhase::Started | TouchPhase::Moved);
                 match self
                     .touch
                     .event(&mut state.camera, t, viewport, device_pixel_ratio())

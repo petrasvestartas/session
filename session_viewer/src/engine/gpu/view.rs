@@ -84,12 +84,26 @@ pub fn device_pixel_ratio() -> f64 {
             .filter(|ratio| *ratio > 0.0)
             .unwrap_or(1.0);
         let cap = f64::from(knob_f32("VIEWER_DPR", "dpr", 0.0));
-        if cap >= 0.5 { ratio.min(cap) } else { ratio }
+        let ratio = if cap >= 0.5 { ratio.min(cap) } else { ratio };
+        if reduced() { ratio.min(1.0) } else { ratio }
     }
     #[cfg(not(target_arch = "wasm32"))]
     {
         1.0
     }
+}
+
+static REDUCED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Interaction frames stayed slow: from now on the canvas renders at device scale 1 without
+/// antialiasing, the same attachments a device loss reloads into, without the reload.
+pub fn reduce_for_slow_frames() {
+    REDUCED.store(true, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Whether the slow-frame reduction is in force.
+pub fn reduced() -> bool {
+    REDUCED.load(std::sync::atomic::Ordering::Relaxed)
 }
 
 /// Surface pixels per physical pixel winit reports: 1 until `?dpr=` caps the canvas below the

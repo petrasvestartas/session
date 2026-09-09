@@ -38,6 +38,8 @@ pub struct State {
     pub scene: Scene,
     /// Something changed since the last frame; the shell asks for a redraw when it sees this.
     pub needs_frame: bool,
+    /// A drag or pinch is in progress (set by the input layer).
+    pub interacting: bool,
     /// The picture changed: the redraw presents a colour frame. A pending pick alone does not.
     dirty: bool,
     last_frame_ms: f64,
@@ -65,6 +67,7 @@ impl State {
             camera: Camera::new(),
             scene,
             needs_frame: true,
+            interacting: false,
             dirty: true,
             last_frame_ms: 0.0,
             selection: SelectionMode::Object,
@@ -402,7 +405,15 @@ impl State {
         if self.dirty && !self.cloud_query_awaiting_gpu() {
             let gap = now_ms - self.last_frame_ms;
             self.last_frame_ms = now_ms;
+            self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input);
+            if self.gpu.performance.take_slow_interaction()
+                && crate::engine::gpu::view::device_pixel_ratio() > 1.0
+            {
+                crate::engine::gpu::view::reduce_for_slow_frames();
+                log::warn!("slow interaction frames; rendering at device scale 1 without antialiasing");
+                self.status("Slow frames: rendering at device scale 1 without antialiasing");
+            }
             dropped = drawn.is_none() && self.gpu.surface.is_some();
             self.dirty = dropped;
             if let (true, Some(encode_ms)) = (self.gpu.view.perf, drawn) {

@@ -9,7 +9,17 @@ pub struct Performance {
     pub frames: u64,
     /// Draw calls encoded for the last color frame, excluding asynchronous ID work.
     pub draws: u32,
+    /// A drag or pinch is in progress, so frames are back to back and their spacing is the
+    /// cost of a frame.
+    pub interacting: bool,
+    slow_run: u32,
+    slow: bool,
 }
+
+/// An interaction frame slower than this counts as slow ...
+const SLOW_FRAME_MS: f64 = 40.0;
+/// ... and this many in a row mean the GPU cannot keep up at this resolution.
+const SLOW_FRAMES: u32 = 30;
 
 impl Performance {
     /// Start the clock now.
@@ -21,7 +31,15 @@ impl Performance {
             frame_ms: 0.0,
             frames: 0,
             draws: 0,
+            interacting: false,
+            slow_run: 0,
+            slow: false,
         }
+    }
+
+    /// True once, after SLOW_FRAMES consecutive interaction frames slower than SLOW_FRAME_MS.
+    pub fn take_slow_interaction(&mut self) -> bool {
+        std::mem::take(&mut self.slow)
     }
 
     /// Call once at the end of every frame with the counts gathered during it.
@@ -30,6 +48,10 @@ impl Performance {
         self.prev_frame = now;
         self.frames += 1;
         self.draws = draws;
+        self.slow_run = if self.interacting && dt > SLOW_FRAME_MS { self.slow_run + 1 } else { 0 };
+        if self.slow_run == SLOW_FRAMES {
+            self.slow = true;
+        }
         self.frame_ms = if self.frame_ms == 0.0 {
             dt
         } else {
@@ -129,4 +151,32 @@ pub fn perf_line(text: &str) {
         }
     };
     el.set_text_content(Some(text));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn frames(perf: &mut Performance, count: u32, step_ms: f64, interacting: bool) -> bool {
+        perf.interacting = interacting;
+        let mut now = perf.prev_frame;
+        let mut slow = false;
+        for _ in 0..count {
+            now += step_ms;
+            perf.frame(1, 1, now, false);
+            slow |= perf.take_slow_interaction();
+        }
+        slow
+    }
+
+    #[test]
+    fn slow_interaction_needs_a_run_of_slow_drag_frames() {
+        let mut perf = Performance::new();
+        assert!(!frames(&mut perf, 100, 60.0, false), "idle gaps are not slow frames");
+        assert!(!frames(&mut perf, 100, 16.7, true), "a smooth drag is fine");
+        assert!(!frames(&mut perf, SLOW_FRAMES - 1, 60.0, true), "one frame short of the run");
+        assert!(!frames(&mut perf, 1, 16.7, true), "a fast frame resets the run");
+        assert!(frames(&mut perf, SLOW_FRAMES, 60.0, true), "the run fires");
+        assert!(!frames(&mut perf, 10, 60.0, true), "and fires once");
+    }
 }

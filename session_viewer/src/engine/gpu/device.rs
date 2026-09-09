@@ -41,21 +41,30 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
 
     // Let the browser choose its presentation-compatible adapter. Forcing LowPower on a
     // hybrid Linux system can select a different GPU and fail external-image allocation.
+    // `?gpu=high` asks for the discrete GPU on a hybrid machine; the browser's choice remains
+    // the fallback when that adapter is refused.
+    let default_power = if cfg!(target_arch = "wasm32") {
+        wgpu::PowerPreference::None
+    } else {
+        wgpu::PowerPreference::LowPower
+    };
+    let preferred = if super::view::knob("VIEWER_GPU", "gpu").as_deref() == Some("high") {
+        wgpu::PowerPreference::HighPerformance
+    } else {
+        default_power
+    };
+    let options = |power_preference| wgpu::RequestAdapterOptions {
+        power_preference,
+        compatible_surface: surface.as_ref(),
+        force_fallback_adapter: false,
+    };
     let adapter = match named_adapter(&instance, backends).await {
         Some(named) => named,
-        None => {
-            instance
-                .request_adapter(&wgpu::RequestAdapterOptions {
-                    power_preference: if cfg!(target_arch = "wasm32") {
-                        wgpu::PowerPreference::None
-                    } else {
-                        wgpu::PowerPreference::LowPower
-                    },
-                    compatible_surface: surface.as_ref(),
-                    force_fallback_adapter: false,
-                })
-                .await?
-        }
+        None => match instance.request_adapter(&options(preferred)).await {
+            Ok(adapter) => adapter,
+            Err(_) if preferred != default_power => instance.request_adapter(&options(default_power)).await?,
+            Err(error) => return Err(error.into()),
+        },
     };
     let info = adapter.get_info();
     log::info!(
