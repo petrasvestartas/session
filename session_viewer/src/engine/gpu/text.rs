@@ -191,10 +191,10 @@ impl TextLane {
                 scale: placed.scale,
                 bounds: clip_bounds(&run.label, frame, scale),
                 default_color: Color::rgba(
-                    run.label.color[0],
-                    run.label.color[1],
-                    run.label.color[2],
-                    run.label.color[3],
+                    run.label.ink_color()[0],
+                    run.label.ink_color()[1],
+                    run.label.ink_color()[2],
+                    run.label.ink_color()[3],
                 ),
                 custom_glyphs: &[],
             };
@@ -434,18 +434,18 @@ fn place(label: &TextLabel, frame: &TextFrame, scale: f32) -> Option<PlacedText>
 }
 
 /// Center the shaped line box and its padding on the projected source anchor. Both glyphs
-/// and black background obey the same CSS clip; a nameplate is an overlay annotation.
+/// and background obey the same CSS clip; a nameplate is an overlay annotation.
 fn text_rectangle(
     run: &TextRun,
     placed: &mut PlacedText,
     frame: &TextFrame,
     scale: f32,
 ) -> Option<plate::Rectangle> {
-    let (padding, rounded, centered) = match run.label.placement {
+    let (mut padding, rounded, centered) = match run.label.placement {
         TextPlacement::Nameplate {
             padding, rounded, ..
         } => (padding, rounded, true),
-        _ if run.label.object.is_some() => ([4.0, 4.0], false, false),
+        _ if run.label.object.is_some() => ([0.0, run.label.font_size * 2.0 / 9.0], true, false),
         _ => return None,
     };
     if run.label.text.is_empty() {
@@ -461,6 +461,10 @@ fn text_rectangle(
     }
     if !top.is_finite() || !bottom.is_finite() {
         return None;
+    }
+    if rounded {
+        // Reserve an entire cap at either end so rounding never intersects the shaped line.
+        padding[0] = padding[0].max((bottom - top) * 0.5 + padding[1]);
     }
     let raster = placed.scale;
     if centered {
@@ -485,7 +489,6 @@ fn text_rectangle(
         rounded,
         depth: placed.depth,
         object: run.label.object,
-        border: 2.0 * scale,
     })
 }
 
@@ -731,7 +734,7 @@ mod tests {
             },
             clip: None,
         };
-        gpu.text.set_labels(vec![label]).unwrap();
+        gpu.text.set_labels(vec![label.clone()]).unwrap();
         let pixels = gpu.render_offscreen(&input);
         assert!(
             white_pixels(&pixels) > 40,
@@ -772,6 +775,36 @@ mod tests {
             &pixels[corner..corner + 4],
             &baseline[corner..corner + 4],
             "the maximum-radius corner exposes the original solid"
+        );
+        let mut selected = label.clone();
+        selected.object = Some(crate::engine::text::TextObject {
+            row: 0,
+            selected: true,
+        });
+        gpu.text.set_labels(vec![selected]).unwrap();
+        let selected_pixels = gpu.render_offscreen(&input);
+        let yellow = selected_pixels
+            .chunks_exact(4)
+            .filter(|pixel| pixel[0] > 240 && pixel[1] > 240 && pixel[2] < 8)
+            .count();
+        let black_ink = selected_pixels
+            .chunks_exact(4)
+            .filter(|pixel| pixel[0] < 8 && pixel[1] < 8 && pixel[2] < 8)
+            .count();
+        assert!(
+            yellow > 600 && black_ink > 40,
+            "selected source text fills the plate yellow and glyphs black"
+        );
+        assert_eq!(
+            white_pixels(&selected_pixels),
+            0,
+            "selected source glyphs are no longer white"
+        );
+        gpu.text.set_labels(vec![label]).unwrap();
+        assert_eq!(
+            pixels,
+            gpu.render_offscreen(&input),
+            "unselected annotation colors are restored exactly"
         );
         input.view_proj.m[12] = 0.25;
         let moved = gpu.render_offscreen(&input);

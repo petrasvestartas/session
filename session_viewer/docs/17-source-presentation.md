@@ -14,7 +14,7 @@ Ctrl+Shift requests eligible faces as well as edges. A nearby source edge keeps 
 
 `state/text.rs` turns visible source rows into labels and derives the centered selection name. That derived name has no source row, so it cannot steal the parent's click. `T` changes only derived selected-object names; an authored label remains selectable even when names are hidden.
 
-White glyphs remain white when a text object is selected. The selected object's name uses 13.5 CSS-pixel text, black backing, generous horizontal padding and maximum rounded corners. Padding belongs to the shaped line box; it must include the rounded ends without clipping the first or last glyph.
+At this checkpoint, source text selection uses white glyphs and a yellow plate border. Chapter 18 changes that presentation to black glyphs on a fully yellow backing. The selected object's derived name uses 13.5 CSS-pixel text, black backing, generous horizontal padding and maximum rounded corners throughout. Padding belongs to the shaped line box; it must include the rounded ends without clipping the first or last glyph.
 
 ## Two masks, one black result
 

@@ -22,7 +22,7 @@ pub struct View {
     pub edl_strength: f32,
     /// Octree LOD cutoff in projected pixels; 0 = off, draw every cloud whole (`?lod=` / `VIEWER_LOD`).
     pub lod_px: f32,
-    /// On-screen pen weight, px (`?thickness=` / `VIEWER_THICKNESS`).
+    /// Default source edge/line pen weight in CSS px (`?thickness=` / `VIEWER_THICKNESS`).
     pub thickness_px: f32,
     /// Width of the antialiasing ramp on the DOT lanes, px (`?aa=` / `VIEWER_AA`). Only 1 is
     /// phase-invariant: a ramp of width f sampled at pixel centres spaced cos(angle) apart
@@ -60,7 +60,7 @@ impl View {
             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
-            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.5).max(0.1),
+            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1),
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
             lit: knob("VIEWER_NO_LIT", "nolit").is_none(),
             backface: knob("VIEWER_NO_BACKFACE", "nobackface").is_none(),

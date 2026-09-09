@@ -66,6 +66,17 @@ pub struct TextLabel {
     pub clip: Option<[f32; 4]>,
 }
 
+impl TextLabel {
+    /// Selected source text uses black ink on yellow; derived annotations retain their color.
+    pub fn ink_color(&self) -> [u8; 4] {
+        if self.object.is_some_and(|object| object.selected) {
+            [0, 0, 0, 255]
+        } else {
+            self.color
+        }
+    }
+}
+
 /// Retained logical glyph coordinates, independent of camera motion and framebuffer scale.
 pub struct TextRun {
     pub label: TextLabel,

@@ -97,6 +97,19 @@ index 0000000000000000000000000000000000000000..a5b4931c448dc4d21cb02dfac6ba0804
 +    }
 +    Ok(())
 +}
+diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
+index f117af87c56947351a7eceaf41d29a3831e6823b..7b2d9fce0e96b545651baa408d609c0b31554823
+--- a/session_viewer/src/app/inspection.rs
++++ b/session_viewer/src/app/inspection.rs
+@@ -105,7 +105,7 @@
+             "text": run.label.text,
+             "font_size": run.label.font_size,
+             "line_height": run.label.line_height,
+-            "color": run.label.color,
++            "color": run.label.ink_color(),
+             "placement": kind,
+             "world": world,
+             "world_height": match run.label.placement {
 diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
 index fcbe11a8d4ae992d44eec0313ecdd325b93187bc..449e71eef97867e55e65dd6b0bae208dcfa9e167
 --- a/session_viewer/src/engine/gpu/arena.rs
@@ -667,6 +680,243 @@ index 6fe7a69aa6f0453b59d13cd7c2f6b4f3e566f53c..1db7acc168cc1b55db1ac63baf422309
                  samples: other_samples,
                  usage,
              },
+diff --git a/session_viewer/src/engine/gpu/text.rs b/session_viewer/src/engine/gpu/text.rs
+index 616dcf963dce16bfda4776b4d6b232524372f431..57328c82a156df0c63b3aef252a69768aa8cb9bb
+--- a/session_viewer/src/engine/gpu/text.rs
++++ b/session_viewer/src/engine/gpu/text.rs
+@@ -191,10 +191,10 @@
+                 scale: placed.scale,
+                 bounds: clip_bounds(&run.label, frame, scale),
+                 default_color: Color::rgba(
+-                    run.label.color[0],
+-                    run.label.color[1],
+-                    run.label.color[2],
+-                    run.label.color[3],
++                    run.label.ink_color()[0],
++                    run.label.ink_color()[1],
++                    run.label.ink_color()[2],
++                    run.label.ink_color()[3],
+                 ),
+                 custom_glyphs: &[],
+             };
+@@ -434,18 +434,18 @@
+ }
+ 
+ /// Center the shaped line box and its padding on the projected source anchor. Both glyphs
+-/// and black background obey the same CSS clip; a nameplate is an overlay annotation.
++/// and background obey the same CSS clip; a nameplate is an overlay annotation.
+ fn text_rectangle(
+     run: &TextRun,
+     placed: &mut PlacedText,
+     frame: &TextFrame,
+     scale: f32,
+ ) -> Option<plate::Rectangle> {
+-    let (padding, rounded, centered) = match run.label.placement {
++    let (mut padding, rounded, centered) = match run.label.placement {
+         TextPlacement::Nameplate {
+             padding, rounded, ..
+         } => (padding, rounded, true),
+-        _ if run.label.object.is_some() => ([4.0, 4.0], false, false),
++        _ if run.label.object.is_some() => ([0.0, run.label.font_size * 2.0 / 9.0], true, false),
+         _ => return None,
+     };
+     if run.label.text.is_empty() {
+@@ -461,6 +461,10 @@
+     }
+     if !top.is_finite() || !bottom.is_finite() {
+         return None;
++    }
++    if rounded {
++        // Reserve an entire cap at either end so rounding never intersects the shaped line.
++        padding[0] = padding[0].max((bottom - top) * 0.5 + padding[1]);
+     }
+     let raster = placed.scale;
+     if centered {
+@@ -485,7 +489,6 @@
+         rounded,
+         depth: placed.depth,
+         object: run.label.object,
+-        border: 2.0 * scale,
+     })
+ }
+ 
+@@ -731,7 +734,7 @@
+             },
+             clip: None,
+         };
+-        gpu.text.set_labels(vec![label]).unwrap();
++        gpu.text.set_labels(vec![label.clone()]).unwrap();
+         let pixels = gpu.render_offscreen(&input);
+         assert!(
+             white_pixels(&pixels) > 40,
+@@ -772,6 +775,36 @@
+             &pixels[corner..corner + 4],
+             &baseline[corner..corner + 4],
+             "the maximum-radius corner exposes the original solid"
++        );
++        let mut selected = label.clone();
++        selected.object = Some(crate::engine::text::TextObject {
++            row: 0,
++            selected: true,
++        });
++        gpu.text.set_labels(vec![selected]).unwrap();
++        let selected_pixels = gpu.render_offscreen(&input);
++        let yellow = selected_pixels
++            .chunks_exact(4)
++            .filter(|pixel| pixel[0] > 240 && pixel[1] > 240 && pixel[2] < 8)
++            .count();
++        let black_ink = selected_pixels
++            .chunks_exact(4)
++            .filter(|pixel| pixel[0] < 8 && pixel[1] < 8 && pixel[2] < 8)
++            .count();
++        assert!(
++            yellow > 600 && black_ink > 40,
++            "selected source text fills the plate yellow and glyphs black"
++        );
++        assert_eq!(
++            white_pixels(&selected_pixels),
++            0,
++            "selected source glyphs are no longer white"
++        );
++        gpu.text.set_labels(vec![label]).unwrap();
++        assert_eq!(
++            pixels,
++            gpu.render_offscreen(&input),
++            "unselected annotation colors are restored exactly"
+         );
+         input.view_proj.m[12] = 0.25;
+         let moved = gpu.render_offscreen(&input);
+diff --git a/session_viewer/src/engine/gpu/text_plane.rs b/session_viewer/src/engine/gpu/text_plane.rs
+index 9accaa6860ebd638b6eb63d3141a25bcda722652..f1c9be61f20340216ba7a599d258f38ca1614f26
+--- a/session_viewer/src/engine/gpu/text_plane.rs
++++ b/session_viewer/src/engine/gpu/text_plane.rs
+@@ -68,7 +68,7 @@
+         Self {
+             cached: Vec::new(),
+             draws: Vec::new(),
+-            vertices: GrowBuf::new(ctx, "world text vertices", 68, VERTS),
++            vertices: GrowBuf::new(ctx, "world text vertices", 64, VERTS),
+             layout,
+             sampler,
+             pipeline,
+@@ -367,10 +367,13 @@
+             glyphs.push((physical.cache_key, x, y));
+         }
+     }
+-    bounds[0] -= 2;
+-    bounds[1] -= 2;
+-    bounds[2] += 2;
+-    bounds[3] += 2;
++    // Match the selection-name plate proportions. Whole caps stay outside the glyph box.
++    let vertical_padding = (run.label.font_size * (2.0 / 9.0) * scale).ceil() as i32;
++    let horizontal_padding = (bounds[3] - bounds[1] + 2 * vertical_padding + 1) / 2;
++    bounds[0] -= horizontal_padding;
++    bounds[1] -= vertical_padding;
++    bounds[2] += horizontal_padding;
++    bounds[3] += vertical_padding;
+     let size = [
+         (bounds[2] - bounds[0]) as u32,
+         (bounds[3] - bounds[1]) as u32,
+@@ -418,7 +421,7 @@
+ 
+ /// Expand a shaped line into its fixed right/up axes; every vertex retains full clip coordinates.
+ fn append_quad(
+-    vertices: &mut Vec<[f32; 17]>,
++    vertices: &mut Vec<[f32; 16]>,
+     label: &TextLabel,
+     extent: [f32; 4],
+     frame: &TextFrame,
+@@ -436,7 +439,7 @@
+     let unit = world_height / f64::from(label.font_size);
+     let mut color = [0.0; 4];
+     for (index, component) in color.iter_mut().enumerate() {
+-        let value = f32::from(label.color[index]) / 255.0;
++        let value = f32::from(label.ink_color()[index]) / 255.0;
+         *component = if srgb && index < 3 {
+             if value <= 0.04045 {
+                 value / 12.92
+@@ -495,7 +498,6 @@
+             } else {
+                 0.0
+             },
+-            scale,
+         ]);
+     }
+ }
+@@ -522,8 +524,8 @@
+         });
+     ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+         label: Some("world text"), layout: Some(&pipeline_layout),
+-        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 68, step_mode: wgpu::VertexStepMode::Vertex,
+-            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32, 6 => Float32] }], compilation_options: Default::default() },
++        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 64, step_mode: wgpu::VertexStepMode::Vertex,
++            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32] }], compilation_options: Default::default() },
+         fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some(if ids { "fs_id" } else { "fs_main" }), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) }, write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
+         primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::GreaterEqual), stencil: Default::default(), bias: Default::default() }),
+         multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
+@@ -606,6 +608,35 @@
+             "foreground text has white glyphs on a black plane"
+         );
+         assert_eq!(gpu.text.stats.world_plane_rasterizations, rasterizations);
++        label.object = Some(crate::engine::text::TextObject {
++            row: 0,
++            selected: true,
++        });
++        gpu.text.set_labels(vec![label.clone()]).unwrap();
++        let selected = gpu.render_offscreen(&input);
++        let yellow = selected
++            .chunks_exact(4)
++            .filter(|pixel| pixel[0] > 240 && pixel[1] > 240 && pixel[2] < 8)
++            .count();
++        let black_ink = selected
++            .chunks_exact(4)
++            .filter(|pixel| pixel[0] < 8 && pixel[1] < 8 && pixel[2] < 8)
++            .count();
++        assert!(
++            yellow > 500 && black_ink > 40,
++            "selected fixed text has a yellow backing and black glyphs"
++        );
++        assert_eq!(
++            gpu.text.stats.world_plane_rasterizations, rasterizations,
++            "selection reuses the coverage texture"
++        );
++        label.object = None;
++        gpu.text.set_labels(vec![label.clone()]).unwrap();
++        assert_eq!(
++            front,
++            gpu.render_offscreen(&input),
++            "deselect restores the original text colors"
++        );
+         let diagonal = std::f64::consts::FRAC_1_SQRT_2;
+         label.placement = TextPlacement::WorldPlane {
+             world: [-0.8, 0.6, 0.8],
+diff --git a/session_viewer/src/engine/gpu/text_plate.rs b/session_viewer/src/engine/gpu/text_plate.rs
+index fe82a56bfdf755529df9f0a61f8bee5f33122a27..5aa55d8e9e18090457022ddd8d576b87eee7cb7f
+--- a/session_viewer/src/engine/gpu/text_plate.rs
++++ b/session_viewer/src/engine/gpu/text_plate.rs
+@@ -1,4 +1,4 @@
+-//! Black annotation plates share the text lane's target and overlay depth policy.
++//! Annotation plates share the text lane's target and depth policy; selected sources are yellow.
+ use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
+ use crate::engine::pipelines::Target;
+ 
+@@ -9,7 +9,6 @@
+     pub(super) rounded: bool,
+     pub(super) depth: Option<f32>,
+     pub(super) object: Option<crate::engine::text::TextObject>,
+-    pub(super) border: f32,
+ }
+ 
+ /// Batched physical rectangles, with no DOM, source geometry or independent device ownership.
+@@ -80,7 +79,7 @@
+                         radius,
+                         f32::from_bits(rectangle.object.map_or(0, |object| object.row + 1)),
+                         if rectangle.object.is_some_and(|object| object.selected) {
+-                            rectangle.border
++                            1.0
+                         } else {
+                             0.0
+                         },
 diff --git a/session_viewer/src/engine/gpu/triangle_tiles.rs b/session_viewer/src/engine/gpu/triangle_tiles.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..b591774928ad3c582645e9076021366138539ba7
@@ -1268,6 +1518,28 @@ index 0000000000000000000000000000000000000000..b591774928ad3c582645e90760213661
 +        assert!(gpu.arena.tiles.key.is_none());
 +    }
 +}
+diff --git a/session_viewer/src/engine/gpu/view.rs b/session_viewer/src/engine/gpu/view.rs
+index ace9049924096c7470f2f922d8c1ee88fa9962e6..b09d12615f3e7bfdab278588dc89ccebea52e06d
+--- a/session_viewer/src/engine/gpu/view.rs
++++ b/session_viewer/src/engine/gpu/view.rs
+@@ -22,7 +22,7 @@
+     pub edl_strength: f32,
+     /// Octree LOD cutoff in projected pixels; 0 = off, draw every cloud whole (`?lod=` / `VIEWER_LOD`).
+     pub lod_px: f32,
+-    /// On-screen pen weight, px (`?thickness=` / `VIEWER_THICKNESS`).
++    /// Default source edge/line pen weight in CSS px (`?thickness=` / `VIEWER_THICKNESS`).
+     pub thickness_px: f32,
+     /// Width of the antialiasing ramp on the DOT lanes, px (`?aa=` / `VIEWER_AA`). Only 1 is
+     /// phase-invariant: a ramp of width f sampled at pixel centres spaced cos(angle) apart
+@@ -60,7 +60,7 @@
+             cloud_size: knob_f32("VIEWER_CLOUD_SCALE", "cloud", 1.0),
+             edl_strength: knob_f32("VIEWER_EDL", "edl", 0.25),
+             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
+-            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.5).max(0.1),
++            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1),
+             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
+             lit: knob("VIEWER_NO_LIT", "nolit").is_none(),
+             backface: knob("VIEWER_NO_BACKFACE", "nobackface").is_none(),
 diff --git a/session_viewer/src/engine/pipelines/layouts.rs b/session_viewer/src/engine/pipelines/layouts.rs
 index 8cf597917a47f742b5a284f2a1c65b789c7e8e00..19e2b8d3263e13213f8e897e60573caa712a3c50
 --- a/session_viewer/src/engine/pipelines/layouts.rs
@@ -1354,6 +1626,28 @@ index 612983fcda67f37ceaeb10c8db856f4a314b24fb..e996b84f7c931ad1fe92982670136427
              blend: None,
              write_mask: if desc.depth == DepthMode::ReadOnlyEqual {
                  wgpu::ColorWrites::empty()
+diff --git a/session_viewer/src/engine/text.rs b/session_viewer/src/engine/text.rs
+index c41c36e2bc94694791a83741bfb5c7b082d4fe09..81ddf449dc197bf854bfb4ba0f88da3cff77f87e
+--- a/session_viewer/src/engine/text.rs
++++ b/session_viewer/src/engine/text.rs
+@@ -66,6 +66,17 @@
+     pub clip: Option<[f32; 4]>,
+ }
+ 
++impl TextLabel {
++    /// Selected source text uses black ink on yellow; derived annotations retain their color.
++    pub fn ink_color(&self) -> [u8; 4] {
++        if self.object.is_some_and(|object| object.selected) {
++            [0, 0, 0, 255]
++        } else {
++            self.color
++        }
++    }
++}
++
+ /// Retained logical glyph coordinates, independent of camera motion and framebuffer scale.
+ pub struct TextRun {
+     pub label: TextLabel,
 diff --git a/session_viewer/src/shaders/background.wgsl b/session_viewer/src/shaders/background.wgsl
 index f5f4758d18a284aaec1bc388699e75a9991648b8..c21b160a52f636b53893dcaef78cc2efe22a17be
 --- a/session_viewer/src/shaders/background.wgsl
@@ -1912,6 +2206,106 @@ index 27fa98fd5b775ee3bc637aefb09ba17e3ce3f3fa..c19dabf1c701195a9f3e71fe0a9947b0
  fn fs_physical_id(fragment: Fragment) -> PhysicalId {
 - return PhysicalId(vec2<u32>(fragment.object+1u, 0u), vec2<f32>(0.0));
 + return PhysicalId(vec2<u32>(fragment.object+1u, 0u), vec4<f32>(0.0));
+ }
+ 
+ @fragment
+diff --git a/session_viewer/src/shaders/text_plane.wgsl b/session_viewer/src/shaders/text_plane.wgsl
+index 5f47464c389ba878229faab9d4b007ddc4a00233..abf8ea4bf33671f6ffbfa741aab29e2a4fc9feb9
+--- a/session_viewer/src/shaders/text_plane.wgsl
++++ b/session_viewer/src/shaders/text_plane.wgsl
+@@ -6,7 +6,6 @@
+     @location(2) @interpolate(flat) clip: vec4<f32>,
+     @location(3) @interpolate(flat) object: u32,
+     @location(4) @interpolate(flat) selected: f32,
+-    @location(5) @interpolate(flat) scale: f32,
+ }
+ @group(0) @binding(0) var coverage_texture: texture_2d<f32>;
+ @group(0) @binding(1) var coverage_sampler: sampler;
+@@ -14,27 +13,36 @@
+ @vertex
+ fn vs_main(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
+            @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>,
+-           @location(4) object: u32, @location(5) selected: f32, @location(6) scale: f32) -> Vertex {
++           @location(4) object: u32, @location(5) selected: f32) -> Vertex {
+     var out: Vertex;
+     out.position = position; out.uv = uv; out.color = color; out.clip = clip;
+-    out.object = object; out.selected = selected; out.scale = scale;
++    out.object = object; out.selected = selected;
+     return out;
+ }
+ 
+-// Fixed text has an opaque black backing; physical reverse-Z hides the whole plane behind solids.
++// Rounded plate in texture coordinates; perspective-correct UVs keep it in the authored plane.
++// The same shape also clips picking, so transparent corners cannot steal a click.
++fn plate_distance(uv: vec2<f32>) -> f32 {
++    let half_size = vec2<f32>(textureDimensions(coverage_texture)) * 0.5;
++    let radius = min(half_size.x, half_size.y);
++    let q = abs((uv * 2.0 - 1.0) * half_size) - half_size + radius;
++    return length(max(q, vec2<f32>(0.0))) + min(max(q.x, q.y), 0.0) - radius;
++}
++
++// Selection changes the whole backing to yellow; physical reverse-Z still hides covered text.
+ @fragment
+ fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
+     if (in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) { discard; }
+     let coverage = textureSample(coverage_texture, coverage_sampler, in.uv).r;
+-    let border = min(in.uv, vec2<f32>(1.0) - in.uv) / max(fwidth(in.uv), vec2<f32>(1e-7));
+-    if (in.selected > 0.5 && min(border.x, border.y) < 2.25 * in.scale) {
+-        return vec4<f32>(1.0, 1.0, 0.0, 1.0);
+-    }
+-    return vec4<f32>(in.color.rgb * coverage, in.color.a);
++    let distance = plate_distance(in.uv);
++    let plate_coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
++    let background = vec3<f32>(in.selected, in.selected, 0.0);
++    return vec4<f32>(mix(background, in.color.rgb, coverage), in.color.a * plate_coverage);
+ }
+ 
+ @fragment
+ fn fs_id(in: Vertex) -> @location(0) vec2<u32> {
+     if (in.object == 0u || in.position.x < in.clip.x || in.position.y < in.clip.y || in.position.x >= in.clip.z || in.position.y >= in.clip.w) { discard; }
++    if (plate_distance(in.uv) > 0.0) { discard; }
+     return vec2<u32>(in.object, 0u);
+ }
+diff --git a/session_viewer/src/shaders/text_plate.wgsl b/session_viewer/src/shaders/text_plate.wgsl
+index d8c78c8140dfa7d6fddca761a1b1ce716ce7d032..748e15094e8f2c4c28b1524294e23fc0b638a8e8
+--- a/session_viewer/src/shaders/text_plate.wgsl
++++ b/session_viewer/src/shaders/text_plate.wgsl
+@@ -5,24 +5,24 @@
+     @location(1) half_size: vec2<f32>,
+     @location(2) radius: f32,
+     @location(3) @interpolate(flat) object: u32,
+-    @location(4) border: f32,
++    @location(4) @interpolate(flat) selected: f32,
+ }
+ 
+ @vertex
+ fn vs_main(@location(0) position: vec3<f32>, @location(1) local: vec2<f32>,
+            @location(2) half_size: vec2<f32>, @location(3) radius: f32, @location(4) object: u32,
+-           @location(5) border: f32) -> PlateVertex {
++           @location(5) selected: f32) -> PlateVertex {
+     var out: PlateVertex;
+     out.position = vec4<f32>(position, 1.0);
+     out.local = local;
+     out.half_size = half_size;
+     out.radius = radius;
+     out.object = object;
+-    out.border = border;
++    out.selected = selected;
+     return out;
+ }
+ 
+-// One distance defines visible coverage, selection border and picking.
++// One distance defines visible coverage and picking, independent of selection color.
+ fn plate_distance(in: PlateVertex) -> f32 {
+     let radius = min(in.radius, min(in.half_size.x, in.half_size.y));
+     let q = abs(in.local) - in.half_size + vec2<f32>(radius);
+@@ -33,8 +33,7 @@
+ fn fs_main(in: PlateVertex) -> @location(0) vec4<f32> {
+     let distance = plate_distance(in);
+     let coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
+-    let border = select(0.0, clamp(distance + in.border + 0.5, 0.0, 1.0), in.border > 0.0);
+-    return vec4<f32>(border, border, 0.0, coverage);
++    return vec4<f32>(in.selected, in.selected, 0.0, coverage);
  }
  
  @fragment
@@ -2511,6 +2905,56 @@ index 0000000000000000000000000000000000000000..e5f4c3d176e5ba5039844dd4aca56b50
 +        self.touch();
 +    }
 +}
+diff --git a/session_viewer/src/state/text.rs b/session_viewer/src/state/text.rs
+index 6646ca2351ef45ce375f89c30076a8a23aa49ab0..6eae1c096c6d0de3698393fe62532e52f779960b
+--- a/session_viewer/src/state/text.rs
++++ b/session_viewer/src/state/text.rs
+@@ -31,7 +31,7 @@
+         self.scene.set_document_title(label, &mut self.gpu);
+     }
+ 
+-    /// Source-document text and the selected object's centered name share a fixed white style.
++    /// Submit selectable source text and the derived white-on-black selection name.
+     pub(super) fn update_label(&mut self) {
+         let mut labels = self.scene.visible_texts();
+         if self.show_selected_names
+@@ -84,10 +84,11 @@
+                 width = width.max(f64::from(line.line_w) * unit);
+                 height = height.max(f64::from(line.line_top + line.line_height) * unit);
+             }
+-            let padding = world_height * 0.125;
++            let vertical_padding = world_height * 2.0 / 9.0;
++            let horizontal_padding = height * 0.5 + vertical_padding;
+             let mut bounds = crate::math::Aabb::empty();
+-            for x in [-padding, width + padding] {
+-                for y in [-padding, height + padding] {
++            for x in [-horizontal_padding, width + horizontal_padding] {
++                for y in [-vertical_padding, height + vertical_padding] {
+                     let mut point = [0.0f32; 3];
+                     for axis in 0..3 {
+                         point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
+@@ -125,11 +126,7 @@
+     let line_height = 26.0 * scale;
+     let vertical_padding = 4.0 * scale;
+     // A full cap radius at each end keeps the entire text line inside the straight section.
+-    let horizontal_padding = if id == 0 {
+-        line_height * 0.5 + vertical_padding
+-    } else {
+-        6.0 * scale
+-    };
++    let horizontal_padding = line_height * 0.5 + vertical_padding;
+     TextLabel {
+         object: None,
+         id,
+@@ -140,7 +137,7 @@
+         placement: TextPlacement::Nameplate {
+             world,
+             padding: [horizontal_padding, vertical_padding],
+-            rounded: id == 0,
++            rounded: true,
+         },
+         clip: None,
+     }
 diff --git a/session_viewer/tests/README.md b/session_viewer/tests/README.md
 index ff5f9d6f98a0fa21995cba4ded7ed3494be9acc7..26c21a69fc1a888dbb0239957ecfd5b3fde45ce3
 --- a/session_viewer/tests/README.md
@@ -2575,12 +3019,33 @@ index ff5f9d6f98a0fa21995cba4ded7ed3494be9acc7..26c21a69fc1a888dbb0239957ecfd5b3
  The strict hidden-ink matrix renders 54 combinations and the original floor census renders
  21 views, including distance ×16. Both require zero hidden ink in their stated masks:
  
+diff --git a/session_viewer/tests/scene-text.cjs b/session_viewer/tests/scene-text.cjs
+index 55bdfa6b65a3f2e55f2a27c8ebfb5cf94bdd850f..8a78a21207b9a43ce7600cbe9aa76392e31c95ce
+--- a/session_viewer/tests/scene-text.cjs
++++ b/session_viewer/tests/scene-text.cjs
+@@ -61,7 +61,7 @@
+       await page.waitForFunction(row => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected === row,label.object);
+       state = await page.evaluate(snapshot);
+       assert.equal(state.selection,'Object');
+-      assert.deepEqual(state.text_labels.find(item => item.id === label.id).color,[255,255,255,255]);
++      assert.deepEqual(state.text_labels.find(item => item.id === label.id).color,[0,0,0,255]);
+       await page.locator('#canvas').screenshot({path:path.join(output,`${kind}-selected-dpr${dpr}.png`)});
+       await page.keyboard.press('h');
+       await page.waitForFunction(id => !JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.id === id),label.id);
+@@ -78,6 +78,6 @@
+     }
+   } finally { await browser.close(); }
+   await fs.writeFile(path.join(output,'results.json'),JSON.stringify(reports,null,2)+'\n');
+-  console.log('PASS camera-facing source text: real picks, white glyphs, hide/show, F and DPR1/2');
++  console.log('PASS camera-facing source text: real picks, black selected glyphs, hide/show, F and DPR1/2');
+ }
+ main().catch(function failed(error) { console.error(error); process.exitCode = 1; });
 diff --git a/session_viewer/tests/triangle-visibility.py b/session_viewer/tests/triangle-visibility.py
 new file mode 100644
-index 0000000000000000000000000000000000000000..8adcec0f88251f49eae64797fff982866530c009
+index 0000000000000000000000000000000000000000..dee8a0dbed59820f9801188408d6f2ab3c07bca8
 --- /dev/null
 +++ b/session_viewer/tests/triangle-visibility.py
-@@ -0,0 +1,96 @@
+@@ -0,0 +1,98 @@
 +#!/usr/bin/env python3
 +"""Require 766/766 exposed seam pixels and zero hidden ink for finite-triangle visibility."""
 +import argparse
@@ -2657,7 +3122,9 @@ index 0000000000000000000000000000000000000000..8adcec0f88251f49eae64797fff98286
 +    options = parser.parse_args()
 +    output = options.output.resolve()
 +    output.mkdir(parents=True, exist_ok=True)
++    # The exact 766-sample oracle was measured with a 1.5 px pen, independent of UI defaults.
 +    knobs = {"VIEWER_W": str(WIDTH), "VIEWER_H": str(HEIGHT), "VIEWER_MSAA": "1",
++             "VIEWER_THICKNESS": "1.5",
 +             "VIEWER_NO_OUTLINES": "1", "VIEWER_NO_GRID": "1", "VIEWER_NO_BACKFACE": "1",
 +             "BENCH_NO_MARKERS": "1"}
 +    environment = {key: value for key, value in os.environ.items() if not key.startswith("VIEWER_")}
@@ -2677,3 +3144,16 @@ index 0000000000000000000000000000000000000000..8adcec0f88251f49eae64797fff98286
 +
 +if __name__ == "__main__":
 +    main()
+diff --git a/session_viewer/tests/world-text.cjs b/session_viewer/tests/world-text.cjs
+index 0b119d653ff18df6408aed4386d73b6782a76afd..0e2f152d8e0c01de4edb43cbaec83ae8a5c6b930
+--- a/session_viewer/tests/world-text.cjs
++++ b/session_viewer/tests/world-text.cjs
+@@ -93,7 +93,7 @@
+       await page.waitForFunction(() => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected !== null);
+       const selected = await page.evaluate(snapshot);
+       assert.equal(selected.selection, 'Object');
+-      assert.deepEqual(plane(selected).color,[255,255,255,255], 'selection preserves white glyphs');
++      assert.deepEqual(plane(selected).color,[0,0,0,255], 'selection changes glyphs to black');
+       await page.keyboard.press('h');
+       await page.waitForFunction(() => !JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.placement === 'world_plane'));
+       await page.mouse.click(...at); await page.waitForTimeout(100);

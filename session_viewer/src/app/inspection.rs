@@ -105,7 +105,7 @@ fn text_labels(state: &State) -> Vec<serde_json::Value> {
             "text": run.label.text,
             "font_size": run.label.font_size,
             "line_height": run.label.line_height,
-            "color": run.label.color,
+            "color": run.label.ink_color(),
             "placement": kind,
             "world": world,
             "world_height": match run.label.placement {

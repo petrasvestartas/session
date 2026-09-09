@@ -1,4 +1,4 @@
-//! Black annotation plates share the text lane's target and overlay depth policy.
+//! Annotation plates share the text lane's target and depth policy; selected sources are yellow.
 use super::super::buffers::{GpuCtx, GrowBuf, VERTS};
 use crate::engine::pipelines::Target;
 
@@ -9,7 +9,6 @@ pub(super) struct Rectangle {
     pub(super) rounded: bool,
     pub(super) depth: Option<f32>,
     pub(super) object: Option<crate::engine::text::TextObject>,
-    pub(super) border: f32,
 }
 
 /// Batched physical rectangles, with no DOM, source geometry or independent device ownership.
@@ -80,7 +79,7 @@ impl Plates {
                         radius,
                         f32::from_bits(rectangle.object.map_or(0, |object| object.row + 1)),
                         if rectangle.object.is_some_and(|object| object.selected) {
-                            rectangle.border
+                            1.0
                         } else {
                             0.0
                         },

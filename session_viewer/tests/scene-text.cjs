@@ -61,7 +61,7 @@ async function main() {
       await page.waitForFunction(row => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected === row,label.object);
       state = await page.evaluate(snapshot);
       assert.equal(state.selection,'Object');
-      assert.deepEqual(state.text_labels.find(item => item.id === label.id).color,[255,255,255,255]);
+      assert.deepEqual(state.text_labels.find(item => item.id === label.id).color,[0,0,0,255]);
       await page.locator('#canvas').screenshot({path:path.join(output,`${kind}-selected-dpr${dpr}.png`)});
       await page.keyboard.press('h');
       await page.waitForFunction(id => !JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.id === id),label.id);
@@ -78,6 +78,6 @@ async function main() {
     }
   } finally { await browser.close(); }
   await fs.writeFile(path.join(output,'results.json'),JSON.stringify(reports,null,2)+'\n');
-  console.log('PASS camera-facing source text: real picks, white glyphs, hide/show, F and DPR1/2');
+  console.log('PASS camera-facing source text: real picks, black selected glyphs, hide/show, F and DPR1/2');
 }
 main().catch(function failed(error) { console.error(error); process.exitCode = 1; });

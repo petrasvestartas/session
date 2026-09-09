@@ -68,7 +68,7 @@ impl Planes {
         Self {
             cached: Vec::new(),
             draws: Vec::new(),
-            vertices: GrowBuf::new(ctx, "world text vertices", 68, VERTS),
+            vertices: GrowBuf::new(ctx, "world text vertices", 64, VERTS),
             layout,
             sampler,
             pipeline,
@@ -367,10 +367,13 @@ fn rasterize(
             glyphs.push((physical.cache_key, x, y));
         }
     }
-    bounds[0] -= 2;
-    bounds[1] -= 2;
-    bounds[2] += 2;
-    bounds[3] += 2;
+    // Match the selection-name plate proportions. Whole caps stay outside the glyph box.
+    let vertical_padding = (run.label.font_size * (2.0 / 9.0) * scale).ceil() as i32;
+    let horizontal_padding = (bounds[3] - bounds[1] + 2 * vertical_padding + 1) / 2;
+    bounds[0] -= horizontal_padding;
+    bounds[1] -= vertical_padding;
+    bounds[2] += horizontal_padding;
+    bounds[3] += vertical_padding;
     let size = [
         (bounds[2] - bounds[0]) as u32,
         (bounds[3] - bounds[1]) as u32,
@@ -418,7 +421,7 @@ fn rasterize(
 
 /// Expand a shaped line into its fixed right/up axes; every vertex retains full clip coordinates.
 fn append_quad(
-    vertices: &mut Vec<[f32; 17]>,
+    vertices: &mut Vec<[f32; 16]>,
     label: &TextLabel,
     extent: [f32; 4],
     frame: &TextFrame,
@@ -436,7 +439,7 @@ fn append_quad(
     let unit = world_height / f64::from(label.font_size);
     let mut color = [0.0; 4];
     for (index, component) in color.iter_mut().enumerate() {
-        let value = f32::from(label.color[index]) / 255.0;
+        let value = f32::from(label.ink_color()[index]) / 255.0;
         *component = if srgb && index < 3 {
             if value <= 0.04045 {
                 value / 12.92
@@ -495,7 +498,6 @@ fn append_quad(
             } else {
                 0.0
             },
-            scale,
         ]);
     }
 }
@@ -522,8 +524,8 @@ fn pipeline(
         });
     ctx.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("world text"), layout: Some(&pipeline_layout),
-        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 68, step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32, 6 => Float32] }], compilation_options: Default::default() },
+        vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs_main"), buffers: &[wgpu::VertexBufferLayout { array_stride: 64, step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32x4, 4 => Uint32, 5 => Float32] }], compilation_options: Default::default() },
         fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some(if ids { "fs_id" } else { "fs_main" }), targets: &[Some(wgpu::ColorTargetState { format: target.format, blend: if ids { None } else { Some(wgpu::BlendState::ALPHA_BLENDING) }, write_mask: wgpu::ColorWrites::ALL })], compilation_options: Default::default() }),
         primitive: Default::default(), depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::GreaterEqual), stencil: Default::default(), bias: Default::default() }),
         multisample: wgpu::MultisampleState { count: target.samples, ..Default::default() }, multiview_mask: None, cache: None,
@@ -606,6 +608,35 @@ mod tests {
             "foreground text has white glyphs on a black plane"
         );
         assert_eq!(gpu.text.stats.world_plane_rasterizations, rasterizations);
+        label.object = Some(crate::engine::text::TextObject {
+            row: 0,
+            selected: true,
+        });
+        gpu.text.set_labels(vec![label.clone()]).unwrap();
+        let selected = gpu.render_offscreen(&input);
+        let yellow = selected
+            .chunks_exact(4)
+            .filter(|pixel| pixel[0] > 240 && pixel[1] > 240 && pixel[2] < 8)
+            .count();
+        let black_ink = selected
+            .chunks_exact(4)
+            .filter(|pixel| pixel[0] < 8 && pixel[1] < 8 && pixel[2] < 8)
+            .count();
+        assert!(
+            yellow > 500 && black_ink > 40,
+            "selected fixed text has a yellow backing and black glyphs"
+        );
+        assert_eq!(
+            gpu.text.stats.world_plane_rasterizations, rasterizations,
+            "selection reuses the coverage texture"
+        );
+        label.object = None;
+        gpu.text.set_labels(vec![label.clone()]).unwrap();
+        assert_eq!(
+            front,
+            gpu.render_offscreen(&input),
+            "deselect restores the original text colors"
+        );
         let diagonal = std::f64::consts::FRAC_1_SQRT_2;
         label.placement = TextPlacement::WorldPlane {
             world: [-0.8, 0.6, 0.8],

@@ -72,6 +72,16 @@ Changing the buffer allocation rebinds readers. Scene release removes the large 
 
 The final State split moves unchanged streamed-query coordination into `state/cloud_query.rs`. It gives that asynchronous workflow one readable location while preserving State's ownership. The source text companion remains `state/text.rs`.
 
+## Finish the presentation defaults
+
+Set the default `thickness_px` in `engine/gpu/view.rs` to `1.0`. This controls screen-sized mesh/BRep/NURBS edges, lines and polylines. Explicit authored world-space widths keep their dimensions. The black silhouette radii are separate and stay unchanged.
+
+Selected source text now uses a fully yellow backing and black letters. `TextLabel::ink_color()` derives black ink from the source selection flag without modifying the authored color or reshaping the text. Glyphon and the fixed-plane renderer both read it. `text_plate.wgsl` colors the whole rounded plate yellow; `text_plane.wgsl` blends yellow backing with black ink using the existing glyph coverage texture. Neither path adds a yellow border. Picking, depth and clipping keep the same geometry.
+
+Deselecting restores the original text colors. Every scene text backing now has maximum rounded corners, matching the selected-object name. Horizontal padding reserves a complete cap outside each end of the shaped line; vertical padding scales with the text size. The fixed-plane shader evaluates a rounded rectangle in perspective-correct texture coordinates and uses that same shape for ID picking. Transparent corners therefore remain unpickable, and the antialiasing width follows the projected shape.
+
+Derived selected-object names have no source owner and remain white on black. The updated native text tests check actual yellow backing/black glyph pixels and exact color restoration; the browser text tests exercise both orientations at DPR 1 and 2.
+
 ## Write the files
 
 Follow [Complete file changes for 18](../lessons/18/index.md). Read the projected record and finite test, projection shader, count/scan/fill stages, Rust resource owner, then frame/binding integration. Copy the maintained counterexample generator and checker.
@@ -93,7 +103,7 @@ cargo build --locked --target x86_64-unknown-linux-gnu --example selftest --exam
 python3 tests/triangle-visibility.py
 ```
 
-Expected output includes **766/766 visible core samples** and **0 covered black pixels**. This checker disables ordinary silhouettes so a legitimate solid border cannot be counted as leaked hidden source ink. The separate floor and selected-overlap checks retain ordinary silhouettes.
+Expected output includes **766/766 visible core samples** and **0 covered black pixels**. This exact pixel oracle explicitly uses its original 1.5-pixel pen, independently of the viewer's new 1-pixel default. It disables ordinary silhouettes so a legitimate solid border cannot be counted as leaked hidden source ink. The separate floor and selected-overlap checks retain ordinary silhouettes.
 
 Run the final correctness gates:
 

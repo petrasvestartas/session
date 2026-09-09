@@ -2,7 +2,7 @@
   "passed": true,
   "verified_utc": "2026-09-08T23:52:46.788812+00:00",
   "scope": "Checkpoints 00\u201316 retain their historical source, build and browser evidence, scoped in historical_validation. Checkpoints 17 and 18 were each freshly reconstructed from the original pinned inputs, with the entire required prefix applied and its source inventory hash checked, then passed locked WASM compilation, an optimized Trunk build and headed Chrome rendering at DPR 1 and 2. Final checkpoint 18 converges to the current production runtime. Historical behavior results and timings were not rerun for this follow-up.",
-  "production_tree": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
+  "production_tree": "1dd13fe8ea19ca5a8e89e89fb0ac292eeda16614d8b38cc8bfcfa0d64ba262c9",
   "steps": [
     {
       "step": "00",
@@ -558,5 +558,37 @@
       2
     ],
     "evidence": "/home/petras/.cache/viewer-followup-20260908/final-main-tests.log"
+  },
+  "presentation_followup": {
+    "production_tree": "1dd13fe8ea19ca5a8e89e89fb0ac292eeda16614d8b38cc8bfcfa0d64ba262c9",
+    "previous_evidence_tree": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
+    "native_tests": 89,
+    "wasm_lib_clippy": true,
+    "text_browser_dpr": [
+      1,
+      2
+    ],
+    "evidence_directory": "/home/petras/.cache/viewer-followup-20260908",
+    "scope": "Default source pen 1 CSS px; all scene text backings fully rounded; selected authored text black on yellow; derived names white on black and black silhouette radii unchanged. Earlier replay and geometry measurements retain their recorded source revisions.",
+    "native_all_targets_clippy": true,
+    "all_scene_text_rounded": true,
+    "source_reconstruction": "Fresh replay from pinned bases through 18; locked WASM compilation; 91 runtime files and 299 frozen files identical to production.",
+    "reconstruction_evidence": "/home/petras/.cache/viewer-followup-20260908/rounded-text-replay.log",
+    "documentation_check": {
+      "passed": true,
+      "lesson_indexes": 19,
+      "complete_files": 372,
+      "html_pages": 419,
+      "explicit_languages": [
+        "rust",
+        "wgsl",
+        "toml"
+      ],
+      "evidence": "/home/petras/.cache/viewer-followup-20260908/rounded-text-docs-check.log"
+    },
+    "browser_evidence": [
+      "/home/petras/.cache/viewer-followup-20260908/rounded-text-browser.log",
+      "/home/petras/.cache/viewer-followup-20260908/rounded-text-world.log"
+    ]
   }
 }

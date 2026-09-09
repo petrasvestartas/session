@@ -31,7 +31,7 @@ impl State {
         self.scene.set_document_title(label, &mut self.gpu);
     }
 
-    /// Source-document text and the selected object's centered name share a fixed white style.
+    /// Submit selectable source text and the derived white-on-black selection name.
     pub(super) fn update_label(&mut self) {
         let mut labels = self.scene.visible_texts();
         if self.show_selected_names
@@ -84,10 +84,11 @@ impl State {
                 width = width.max(f64::from(line.line_w) * unit);
                 height = height.max(f64::from(line.line_top + line.line_height) * unit);
             }
-            let padding = world_height * 0.125;
+            let vertical_padding = world_height * 2.0 / 9.0;
+            let horizontal_padding = height * 0.5 + vertical_padding;
             let mut bounds = crate::math::Aabb::empty();
-            for x in [-padding, width + padding] {
-                for y in [-padding, height + padding] {
+            for x in [-horizontal_padding, width + horizontal_padding] {
+                for y in [-vertical_padding, height + vertical_padding] {
                     let mut point = [0.0f32; 3];
                     for axis in 0..3 {
                         point[axis] = (world[axis] + right[axis] * x - up[axis] * y) as f32;
@@ -125,11 +126,7 @@ fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
     let line_height = 26.0 * scale;
     let vertical_padding = 4.0 * scale;
     // A full cap radius at each end keeps the entire text line inside the straight section.
-    let horizontal_padding = if id == 0 {
-        line_height * 0.5 + vertical_padding
-    } else {
-        6.0 * scale
-    };
+    let horizontal_padding = line_height * 0.5 + vertical_padding;
     TextLabel {
         object: None,
         id,
@@ -140,7 +137,7 @@ fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
         placement: TextPlacement::Nameplate {
             world,
             padding: [horizontal_padding, vertical_padding],
-            rounded: id == 0,
+            rounded: true,
         },
         clip: None,
     }

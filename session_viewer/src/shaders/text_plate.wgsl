@@ -5,24 +5,24 @@ struct PlateVertex {
     @location(1) half_size: vec2<f32>,
     @location(2) radius: f32,
     @location(3) @interpolate(flat) object: u32,
-    @location(4) border: f32,
+    @location(4) @interpolate(flat) selected: f32,
 }
 
 @vertex
 fn vs_main(@location(0) position: vec3<f32>, @location(1) local: vec2<f32>,
            @location(2) half_size: vec2<f32>, @location(3) radius: f32, @location(4) object: u32,
-           @location(5) border: f32) -> PlateVertex {
+           @location(5) selected: f32) -> PlateVertex {
     var out: PlateVertex;
     out.position = vec4<f32>(position, 1.0);
     out.local = local;
     out.half_size = half_size;
     out.radius = radius;
     out.object = object;
-    out.border = border;
+    out.selected = selected;
     return out;
 }
 
-// One distance defines visible coverage, selection border and picking.
+// One distance defines visible coverage and picking, independent of selection color.
 fn plate_distance(in: PlateVertex) -> f32 {
     let radius = min(in.radius, min(in.half_size.x, in.half_size.y));
     let q = abs(in.local) - in.half_size + vec2<f32>(radius);
@@ -33,8 +33,7 @@ fn plate_distance(in: PlateVertex) -> f32 {
 fn fs_main(in: PlateVertex) -> @location(0) vec4<f32> {
     let distance = plate_distance(in);
     let coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
-    let border = select(0.0, clamp(distance + in.border + 0.5, 0.0, 1.0), in.border > 0.0);
-    return vec4<f32>(border, border, 0.0, coverage);
+    return vec4<f32>(in.selected, in.selected, 0.0, coverage);
 }
 
 @fragment

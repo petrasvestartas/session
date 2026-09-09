@@ -108,7 +108,11 @@ Camera, hiding, placement, rebasing and geometry changes invalidate projection. 
 | T | Toggle derived selected-object names; authored text remains an object |
 | O | Toggle black solid silhouettes |
 
-Camera-facing and fixed-plane text both have source rows. Glyphs stay white on black while selected. The centered rounded selection name is a derived annotation without a source row, so it cannot intercept its parent's click. `engine/text.rs` owns shaping and metrics; GPU code places/draws the result without advancing the pen by bitmap width.
+Camera-facing and fixed-plane text both have source rows. Selecting a source text object gives it black glyphs on a yellow backing; deselecting restores its authored ink and black backing. `TextLabel::ink_color()` supplies the same selection color to both rendering paths. The centered rounded selection name remains white on black: it is a derived annotation without a source row, so it cannot intercept its parent's click. `engine/text.rs` owns shaping and metrics; GPU code places/draws the result without advancing the pen by bitmap width.
+
+Every scene text backing uses fully rounded corners, with each end cap outside the shaped glyph box. World-plane text evaluates its rounded coverage in perspective-correct UV coordinates and uses the same shape for picking. Camera-facing plates use physical pixel coordinates. Both use antialiased coverage, including while selected.
+
+Default mesh/BRep/NURBS edges and standalone lines/polylines use a 1 CSS-pixel pen (`View.thickness_px`, `?thickness=` or `VIEWER_THICKNESS`). Explicit authored world-space widths retain their dimensions. This pen setting is independent of the black silhouette radii.
 
 Picking returns revision-local GPU addresses that Scene maps to source identity. Camera/scene/mode changes retire stale readbacks. Streamed F10 queries every eligible source page independently of display LOD, then applies the final visible original ID. A delayed page cannot replace a newer selection.
 
