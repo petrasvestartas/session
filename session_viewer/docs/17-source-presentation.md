@@ -46,6 +46,14 @@ flowchart LR
 - Picking pulls the arena's existing vertices by index: no duplicate mesh, no per-face draw call.
 - `FACE_TAG` keeps face addresses apart from edge and control sub-IDs in the same pick channel.
 
+```mermaid
+flowchart LR
+    T["display triangles"] -- "one address each" --> I["ids · source_faces"]
+    I --> F["FaceSource<br/>parent · face"]
+    P["FACE_TAG sub-ID"] --> F
+    style F fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 17 session_viewer/src/engine/gpu/faces.rs type lines=1-28 -->
 
 The bind group at group 3 borrows the arena's buffers and adds the face table and the selected-face uniform:
@@ -80,6 +88,15 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 - `fs_id` writes `FACE_TAG | address` as the sub-ID; `fs_face_highlight` discards everything but the selected face.
 - `fs_solid_mask` writes plain coverage; part C reads it.
 
+```mermaid
+flowchart LR
+    S["storage · group 3"] -- "vertex pulling" --> V["vs_face"]
+    V --> A["fs_id · FACE_TAG"]
+    V --> B["fs_face_highlight"]
+    V --> C["fs_solid_mask"]
+    style V fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 17 session_viewer/src/shaders/triangle.wgsl type -->
 
 <!-- check: 17 -->
@@ -88,6 +105,13 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 - Meshes: sorted source face keys, cached triangulation or the fan the kernel would build; the assertion ties the address stream to the triangle stream.
 - BReps: `push_face` records the face index it is tessellating.
+
+```mermaid
+flowchart LR
+    M["Mesh faces · BRep faces"] -- "push_face" --> A["append_face_ids"]
+    A -- "one per triangle" --> R["ArenaRows · face ids"]
+    style A fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 17 session_viewer/src/app/walk/mesh.rs type -->
 
@@ -98,12 +122,27 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 - Vertex, id and index buffers gain `STORAGE` usage so `vs_face` can read them.
 - `draw_component_ids` replaces the object-ID draw only in component pick mode.
 
+```mermaid
+flowchart LR
+    B["vertex · id · index buffers"] -- "STORAGE usage" --> L["Faces lane"]
+    L -- "component mode" --> D["draw_component_ids"]
+    style L fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=1,2,4,5,6,7,8,9,10,11 -->
 
 ### Step 5 · A third selection mode
 
 - `SelectionMode::Face` carries parent and face, so Escape returns to the parent like edges do.
 - `PickMode::Component`: the pick sorter prefers a nearby edge, then a face, then the object.
+
+```mermaid
+flowchart LR
+    K["Ctrl+Shift click"] --> P["PickMode::Component"]
+    P -- "edge first, then face" --> S["SelectionMode::Face<br/>parent · face"]
+    S -- "Faces::source" --> H["face highlight"]
+    style S fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 17 session_viewer/src/app/selection.rs type -->
 
@@ -123,6 +162,14 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 - `TextObject { row, selected }` on a label means "this text is a scene object"; `None` means a derived annotation such as the selected-object name.
 
+```mermaid
+flowchart LR
+    L["TextLabel"] -- "object: Some" --> O["TextObject<br/>row · selected"]
+    L -- "object: None" --> D["derived annotation"]
+    C["manifest camera_facing"] --> L
+    style O fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 17 session_viewer/src/engine/text.rs type -->
 
 - Manifest text may face the camera instead of lying in a fixed plane.
@@ -133,6 +180,14 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 - A key (`manifest-text/{index}`, `document-title/{doc}`) finds its previous row on reload, so hidden state survives replacement.
 - The row is an ordinary `ObjectRow`; hide, select and pick treat it like geometry.
+
+```mermaid
+flowchart LR
+    M["manifest text · document title"] -- "key" --> S["SceneText row"]
+    S -- "ObjectRow" --> G["hide · select · pick"]
+    S -- "reload" --> K["same row, hidden kept"]
+    style S fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-18 -->
 
@@ -148,6 +203,15 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 - `update_label` submits the visible source texts plus the one derived name; the derived name has no row and cannot steal its parent's click.
 - `include_text_bounds` records each text object's shaped world box so fitting and the selection name can use it.
+
+```mermaid
+flowchart LR
+    V["visible_texts()"] --> U["update_label"]
+    N["derived nameplate"] --> U
+    U --> T["TextLane labels"]
+    B["include_text_bounds"] --> F["fit · selection name"]
+    style U fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=1-33 -->
 
@@ -167,6 +231,14 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 - Camera-facing text: `Plates` gains a depth per rectangle, an object row and an ID pipeline; physical plates draw before glyphs, overlays after.
 - Every plate vertex carries `object` and a selection flag; the plate's signed distance defines coverage, the yellow border and the pick footprint.
+
+```mermaid
+flowchart LR
+    P["Plates<br/>depth · object · selected"] --> C["fs_main coverage"]
+    P --> I["fs_id · object row"]
+    W["text_plane.rs"] --> I
+    style P fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 17 session_viewer/src/engine/gpu/text_plate.rs type -->
 
@@ -196,6 +268,14 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 - The selected mask is thicker. The compositor takes `max(ordinary, selected)`, so the overlap is never blended twice, and a selected interior suppresses the ordinary contour.
 
 ![The selected solid's yellow strokes are below the black silhouette; standalone selected curves are above it.](illustrations/frame.svg)
+
+```mermaid
+flowchart LR
+    O["ordinary mask · R8"] --> X["max(ordinary, selected)"]
+    S["selected mask · thicker"] --> X
+    X --> B["one black border"]
+    style X fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=1-35 -->
 
@@ -235,6 +315,13 @@ Copy the rest of the file:
 
 ### Step 11 · The arena draws the solid mask
 
+```mermaid
+flowchart LR
+    A["ArenaLane"] -- "draw_solid_mask" --> M["solid coverage mask"]
+    K["O key"] -- "show_outlines" --> M
+    style M fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=3,12 -->
 
 - `O` toggles silhouettes; `VIEWER_NO_OUTLINES` / `?nooutlines` disable them for captures.
@@ -251,6 +338,13 @@ Copy the rest of the file:
 
 - A chain is one authored curve or one BRep edge; independent mesh wires never join just because endpoints coincide.
 
+```mermaid
+flowchart LR
+    C["one curve · one BRep edge"] -- "push" --> R["ribbon_chains · pipe_chains<br/>Range&lt;u32&gt;"]
+    W["separate mesh wires"] -- "no chain" --> E["own end caps"]
+    style R fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 17 session_viewer/src/app/walk/curves.rs type -->
 
 <!-- file: 17 session_viewer/src/app/walk/brep_edges.rs type -->
@@ -258,6 +352,14 @@ Copy the rest of the file:
 ### Step 13 · The GPU row gains neighbours
 
 - `StrokeSegment` wraps the source row with `previous` and `next` GPU indices; `joined_rows` links consecutive chain members whose endpoints, instance, color and radius agree, and wraps a closed chain.
+
+```mermaid
+flowchart LR
+    R["segment rows"] -- "joined_rows(chains)" --> S["StrokeSegment<br/>previous · next"]
+    S --> U["draw_unselected"]
+    S --> D["draw_selected"]
+    style S fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=1-6 -->
 
@@ -275,6 +377,14 @@ Copy the rest of the file:
 - The start side keeps pixels on its side of the plane, the end side excludes them: exactly one segment owns each pixel of the shared cap.
 - `stroke_vertex(vid, layer)` culls the other layer's strokes, so the selected pass draws only selected ink.
 
+```mermaid
+flowchart LR
+    V["shared vertex"] -- "join_plane(before, after)" --> P["one bisector plane"]
+    P -- "start keeps · end excludes" --> O["one owner per cap pixel"]
+    L["stroke_vertex(vid, layer)"] --> O
+    style P fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-3 -->
 
 - A selected stroke keeps an opaque yellow core at least `line.thickness` wide; CAD boundary samples never taper with density.
@@ -287,12 +397,25 @@ Copy the rest of the file:
 
 The reference page and native fixtures for this checkpoint use the text-object field from Part B, so they are copied now:
 
+```mermaid
+flowchart LR
+    S["supplied fixtures · reference page"] -- "use TextObject" --> W["workspace"]
+    style S fill:#1a1eb2,color:#fff
+```
+
 <!-- supplied: 17 -->
 
 ## Step 15 · Wire the frame
 
 - The old `selection_outline` lane goes away; two `SurfaceOutline` instances take its place.
 - Frame order: face highlight, print geometry, unselected strokes, selected **solid** strokes, the combined black silhouette, then selected **standalone** curves over coincident mesh ink.
+
+```mermaid
+flowchart LR
+    X["selection_outline lane"] -- "deleted" --> Y["two SurfaceOutline"]
+    Y --> F["render.rs order<br/>solid strokes · silhouette · curves"]
+    style Y fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 17 session_viewer/src/engine/gpu/selection_outline.rs -->
 

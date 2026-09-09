@@ -15,7 +15,7 @@ Streamed clouds display a bounded prefix, so a click must ask the source, not th
 
 ```mermaid
 flowchart TD
-    click --> ranges["eligible source node ranges (octree ∩ click window)"]
+    c0["click"] --> ranges["eligible source node ranges (octree ∩ click window)"]
     ranges --> page["fetch one bounded page (HTTP Range)"]
     page --> cand["candidates within the window"]
     cand --> gpu["GPU ID pass accumulates nearest visible point"]
@@ -34,6 +34,13 @@ flowchart TD
 - `ControlId` names a control within its parent's source geometry; the GPU slot it was uploaded to is temporary.
 - `enable_controls` is idempotent: pressing F10 on the same parent does nothing, so markers are never duplicated.
 
+```mermaid
+flowchart LR
+    P["selected parent"] -- "from_geometry" --> C["Controls"] --> I["ControlId"]
+    style C fill:#1a1eb2,color:#fff
+    style I fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 13 session_viewer/src/app/selection.rs type hunks=1 -->
 
 - `Controls::from_geometry` reads real source data: mesh vertex keys, BRep vertices, curve and surface control nets with their links. Tessellation vertices are never substituted.
@@ -46,6 +53,14 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 - `fetch::get` refuses a `200` answer to a `Range` request: that would be the whole file.
 - Every request owns a deadline; dropping it clears the timer.
+
+```mermaid
+flowchart LR
+    K["click"] --> V["QueryView"] --> E["eligible_ranges"] -- "fetch::get" --> P["source page"]
+    Q["Query token"] --> P
+    style V fill:#1a1eb2,color:#fff
+    style Q fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-121 -->
 
@@ -76,12 +91,25 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 The protobuf headers sit in the first few kilobytes and `coords` is packed, so the point count is known before a byte of payload is read. Mechanical, so copy it.
 
+```mermaid
+flowchart LR
+    H["cloud .pb header"] -- "cloud_fields" --> F["CloudFields"] --> N["point count"]
+    style F fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 13 session_viewer/src/app/stream.rs copy -->
 
 ## Step 4 · Picking controls
 
 - `PickMode::Controls` restricts the ID pass to the temporary control markers of one parent.
 - A source query keeps the physical depth and accumulates point IDs across pages: the first page clears the IDs, later pages load them.
+
+```mermaid
+flowchart LR
+    M["PickMode::Controls"] --> D["id_pass · control markers"] --> P["pick"]
+    S["source page"] -- "accumulate" --> D
+    style M fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 13 session_viewer/src/engine/gpu/pick.rs type -->
 
@@ -92,6 +120,13 @@ The protobuf headers sit in the first few kilobytes and `coords` is packed, so t
 ## Step 5 · State transitions
 
 - `controls` are the current parent's source controls; `cloud_query` is the in-flight page loop.
+
+```mermaid
+flowchart LR
+    F["F10"] -- "enable_controls" --> U["upload_controls"] --> A["apply_control"] --> S["selected control"]
+    style U fill:#1a1eb2,color:#fff
+    style A fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=1-3 -->
 
@@ -126,6 +161,13 @@ The protobuf headers sit in the first few kilobytes and `coords` is packed, so t
 <!-- file: 13 session_viewer/src/state.rs type hunks=17-19 -->
 
 ## Step 6 · Key, message and loader wiring
+
+```mermaid
+flowchart LR
+    K["F10 · Escape"] --> I["Input"] --> S["State"]
+    L["loader"] -- "?scene=stream-test.yaml" --> S
+    style I fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 13 session_viewer/src/app/input.rs type -->
 

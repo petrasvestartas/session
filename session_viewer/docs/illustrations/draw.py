@@ -443,7 +443,45 @@ def finite_triangle():
     c.write("finite-triangle.svg")
 
 
+def first_frame():
+    c = Canvas("One WebGPU frame, CPU side and GPU side",
+               "Long-lived objects are created once: instance, surface, adapter, device and queue, then a pipeline and a bind group. Every frame the CPU records commands into an encoder inside a render pass and submits them; the GPU executes them against the surface texture, which is then presented.",
+               1000, 470)
+    c.text(28, 40, "Created once, recorded every frame, executed by the GPU", "h")
+    once = row(c, 66, [(["Instance", "`Backends::BROWSER_WEBGPU`"], "cpu"),
+                       (["Surface", "`create_surface(canvas)`"], "cpu"),
+                       (["Adapter", "`compatible_surface`"], "cpu"),
+                       (["Device + Queue", "`request_device`"], "cpu")],
+               labels=["", "", ""])
+    last = once[-1]
+    pipe = c.box(last[0] + last[2] + 44, 66, ["Pipeline · BindGroup", "immutable, reused every frame"], "gpu")
+    c.arrow(last[0] + last[2], 66 + 30, pipe[0], 66 + 30)
+    c.text(28, 150, "once", "l", fill=PAL["text2"])
+    y = 190
+    c.text(28, y, "every frame", "l", fill=PAL["text2"])
+    cpu = c.box(28, y + 14, ["CPU · render_frame()",
+                             "`resize once → configure surface`",
+                             "`get_current_texture()`",
+                             "`encoder.begin_render_pass { clear }`",
+                             "`  set_pipeline · set_bind_group · draw(0..3)`",
+                             "`queue.submit([encoder.finish()])`"], "cpu")
+    gpu = c.box(cpu[0] + cpu[2] + 70, y + 14, ["GPU · executes the submitted list",
+                                                "clear the surface texture",
+                                                "run vs_main three times",
+                                                "rasterize, run fs_main per pixel",
+                                                "write the color attachment"], "gpu", h=cpu[3])
+    c.arrow(cpu[0] + cpu[2], y + 14 + 40, gpu[0], y + 14 + 40, "submit")
+    c.arrow(gpu[0] + gpu[2] / 2, gpu[1] + gpu[3], gpu[0] + gpu[2] / 2, gpu[1] + gpu[3] + 40)
+    c.text(gpu[0] + gpu[2] / 2 + 10, gpu[1] + gpu[3] + 30, "output.present()", "s")
+    c.box(28, gpu[1] + gpu[3] + 52, ["The pass borrows the encoder",
+                                      "the braces around `begin_render_pass` end the borrow before `encoder.finish()`;",
+                                      "a pipeline is expensive to create and never changes, so it lives on the struct"], "note", w=gpu[0] + gpu[2] - 28)
+    c.w = int(max(pipe[0] + pipe[2], gpu[0] + gpu[2]) + 28)
+    c.h = int(gpu[1] + gpu[3] + 52 + 96 + 20)
+    c.write("first-frame.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame):
         draw()
-    print("wrote 9 illustrations")
+    print("wrote 10 illustrations")

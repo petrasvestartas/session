@@ -48,6 +48,14 @@ Install the binary interaction fixture and the supplied native harness file firs
 - A storage-binding limit is requested explicitly, so a large cloud fails with a GPU error instead of a silent driver fallback.
 - Uncaptured errors and device loss are remembered in `failure`; `State::render` reads it and shows the reload panel instead of drawing garbage.
 
+```mermaid
+flowchart LR
+    B["BROWSER_WEBGPU adapter"] -- "open" --> D["DeviceSetup"]
+    D --> Q["device · queue"]
+    Q -- "uncaptured error" --> F["failure"]
+    style D fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-145 -->
 
 Native-only adapter naming and the error callbacks:
@@ -59,6 +67,15 @@ Native-only adapter naming and the error callbacks:
 - `write_frame_uniforms` runs once per frame: camera matrices, then the inside-flag refresh that reads the eye just solved, then text placement.
 - `present` returns `None` when the surface had no texture; the caller asks for another frame instead of panicking.
 - `pick_frame` is the ID pass alone, against the depth the last presented frame left: a pick on a still scene costs no colour frame.
+
+```mermaid
+flowchart LR
+    C["camera · eye"] --> U["write_frame_uniforms"]
+    U --> P["present"] --> S["surface texture"]
+    U --> K["pick_frame"]
+    style U fill:#1a1eb2,color:#fff
+    style P fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/src/engine/gpu/present.rs type lines=1-68 -->
 
@@ -72,6 +89,12 @@ The offscreen and benchmark paths used by native tools:
 
 - Pass order is the whole contract: physical surfaces write depth, the selection mask reads it, ink reads it, the ID pass repeats the same toggles.
 - `encode_frame` knows nothing about a surface, so the same list renders headless.
+
+```mermaid
+flowchart LR
+    E["encode_frame"] --> F["face_list · depth"] --> I["scene_list · ink"] --> D["id_pass"]
+    style E fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=1-54 -->
 
@@ -94,6 +117,13 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 | T | toggle selected names |
 | Escape | leave edge mode, then clear |
 
+```mermaid
+flowchart LR
+    W["winit event"] --> I["Input"] -- "named action" --> S["State"]
+    I -- "CLICK_SLOP" --> D["drag, not a click"]
+    style I fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 12 session_viewer/src/app/input.rs type lines=1-47 -->
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=48-80 -->
@@ -113,6 +143,12 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 - winit routes `pointerType == "touch"` to `WindowEvent::Touch` only, so fingers never reach the mouse arms.
 - Finger travel is divided by the device pixel ratio; otherwise one centimetre of glass orbits three times faster on a DPR 3 phone.
 
+```mermaid
+flowchart LR
+    E["WindowEvent::Touch"] --> T["Touch"] -- "÷ DPR" --> C["orbit · pan · zoom"]
+    style T fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 12 session_viewer/src/app/touch.rs copy lines=1-68 -->
 
 <!-- file: 12 session_viewer/src/app/touch.rs type lines=69-136 -->
@@ -123,6 +159,13 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 - `Scene` owns every kernel `Session` plus its placement; the GPU only holds rows. A pick returns a row, `Scene::resolve` returns the document and GUID.
 - `order` maps row → GUID and `guid_to_row` maps back; both survive an upload because the rows are forgotten only after `upload_to`.
+
+```mermaid
+flowchart LR
+    D["Session documents"] --> S["Scene"] -- "upload_to" --> R["object rows"]
+    R -- "resolve · edge_at" --> S
+    style S fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=1-86 -->
 
@@ -144,11 +187,23 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 Exactly one parent owns a specialized selection; `escape` returns that parent so it stays highlighted.
 
+```mermaid
+flowchart LR
+    C["click"] --> M["SelectionMode"] -- "escape" --> P["parent kept"]
+    style M fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 12 session_viewer/src/app/selection.rs type -->
 
 ### Step 8 · Producers for clouds, frames and points
 
 The walk gains three producers so every kernel geometry type has a lane.
+
+```mermaid
+flowchart LR
+    G["clouds · planes · points"] --> W["walk_cloud · walk_plane · walk_point"] --> U["Upload rows"]
+    style W fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-131 -->
 
@@ -164,6 +219,15 @@ The walk gains three producers so every kernel geometry type has a lane.
 - `feedback` writes `textContent`, never HTML.
 - `inspection` publishes a read-only JSON snapshot on `?inspect=1`; it is how the checkpoint is observed.
 - `loader` decodes the bundled fixture and posts `Msg::File` then `Msg::Fit`; lesson 14 replaces it with routing.
+
+```mermaid
+flowchart LR
+    L["loader::boot"] -- "Msg::File" --> A["App"]
+    A -- "?inspect=1" --> I["inspection::publish"]
+    A -- "textContent" --> F["feedback"]
+    style L fill:#1a1eb2,color:#fff
+    style I fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/src/app/stream.rs type -->
 
@@ -193,6 +257,13 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 - The pass is scissored to a small window about the cursor and only that window is copied out; the vertex work stays, the fill does not.
 - `ROW_BYTES` is the copy pitch rounded to the required alignment.
 
+```mermaid
+flowchart LR
+    C["cursor window"] --> T["IdTargets<br/>Rg32Uint · Depth32Float"] -- "copy_window" --> B["readback buffer"] -- "map · poll" --> P["Picker answer"]
+    style T fill:#1a1eb2,color:#fff
+    style P fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-82 -->
 
 - `generation` counts requests; `submitted` records which generation the in-flight copy belongs to. A camera move bumps `generation`, so the answer is discarded when it lands.
@@ -221,6 +292,12 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 - Same toggles, same order as the colour list: what a lane hides it cannot pick.
 - Edge mode draws only source-edge IDs; object mode draws faces, then ink with ink-first precedence.
 
+```mermaid
+flowchart LR
+    E["encode_frame"] -- "pick pending" --> D["id_pass"] --> T["ID targets"]
+    style D fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=124-196 -->
 
 ### Step 12 · Selected-surface silhouette
@@ -228,6 +305,12 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 - A visible selected surface writes an R8 coverage mask against the frame's depth; a fullscreen pass darkens the ring just outside it.
 - Coverage is allocated only while a selection exists and released the moment it clears.
 - Lesson 17 replaces this owner with `surface_outline.rs`, which also draws the ordinary union outline.
+
+```mermaid
+flowchart LR
+    S["selected faces"] --> M["R8 coverage mask"] --> O["SelectionOutline pass"] --> R["black ring"]
+    style O fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-98 -->
 
@@ -255,6 +338,12 @@ Still undeclared modules; the check passes for the same reason as before.
 
 - `needs_frame` is the demand for a redraw; `dirty` says the picture changed. A pending pick sets the first without the second.
 - `touch` cancels any pick in flight: the camera or scene it was asked against no longer exists.
+
+```mermaid
+flowchart LR
+    I["Input"] --> R["State::request_selection"] --> G["Gpu pick"] -- "apply_pick" --> F["FLAG_SELECTED"]
+    style R fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/src/state.rs type lines=1-45 -->
 
@@ -288,9 +377,25 @@ Document titles and the selected name are derived labels; they have no source ro
 - `controls` and `control_net` are second glyph/segment lanes reserved for lesson 13.
 - `set_selected` and `set_hidden` flip one row's flag; hiding also invalidates the cloud records.
 
+```mermaid
+flowchart LR
+    G["Gpu"] --> D["DeviceSetup"]
+    G --> P["present"]
+    G --> K["Picker"]
+    style G fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 12 session_viewer/src/engine/gpu/mod.rs type -->
 
 ### Step 15 · Declare the modules
+
+```mermaid
+flowchart LR
+    L["lib.rs"] --> A["app::*"] --> W["walk::*"]
+    L --> E["engine::*"]
+    style A fill:#1a1eb2,color:#fff
+    style E fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/src/engine/mod.rs type -->
 
@@ -309,6 +414,13 @@ Document titles and the selected name are derived labels; they have no source ro
 - `Msg` is every asynchronous message the loader can post; `Ready` carries the `State` built around an empty scene.
 - `request_if_needed` is the one place a frame is asked for.
 
+```mermaid
+flowchart LR
+    W["winit events"] --> A["App"] -- "Msg" --> S["State"]
+    A -- "request_if_needed" --> R["redraw"]
+    style A fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=1-35 -->
 
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=36-92 -->
@@ -320,6 +432,14 @@ Document titles and the selected name are derived labels; they have no source ro
 <!-- file: 12 session_viewer/src/lib.rs copy whole lines=195-258 -->
 
 ### Step 17 · Page, manifest and the removed teaching fixture
+
+```mermaid
+flowchart LR
+    I["index.html"] --> C["#canvas"]
+    Y["view_local.yaml"] --> B["loader::boot"]
+    style I fill:#1a1eb2,color:#fff
+    style Y fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 12 session_viewer/index.html copy -->
 

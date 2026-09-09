@@ -39,6 +39,14 @@ Bind groups every lane shares (`Layouts`):
 - `GpuCtx` is the device/queue pair every lane is made with.
 - `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written. It returns `true` when the buffer moved so the caller rebuilds its bind group.
 
+```mermaid
+flowchart LR
+    R["new rows"] -- "append" --> G["GrowBuf<br/>cap · len"]
+    C["GpuCtx<br/>device · queue"] -- "create_buffer" --> G
+    G -- "grew? rebuild" --> B["bind group"]
+    style G fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=1-39 -->
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=40-123 -->
@@ -52,6 +60,15 @@ Bind groups every lane shares (`Layouts`):
 - A layout is the shape of a bind group; the buffers live in the lanes.
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
 
+```mermaid
+flowchart LR
+    L["Layouts"] --> G0["group 0 · mvp"]
+    L --> G1["group 1 · line"]
+    L --> G2["group 2 · rows + translations"]
+    G2 -- "+ depth views" --> GI["ink_instance"]
+    style L fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=1-52 -->
 
 - The ink layout adds the physical depth at bindings 2 and 3, one single-sampled and one multisampled view; the one not in use is a 1×1 placeholder.
@@ -62,6 +79,14 @@ Bind groups every lane shares (`Layouts`):
 
 - `Target` is where a pipeline draws; `DepthMode` and `ColorWrite` name the only depth and blend states the viewer uses.
 - Every compare is reverse-Z: nearer is `Greater`.
+
+```mermaid
+flowchart LR
+    S["shader source"] -- "module + normals.wgsl" --> M["ShaderModule"]
+    D["PipelineDesc<br/>Target · DepthMode · ColorWrite"] -- "build" --> P["RenderPipeline"]
+    M --> P
+    style D fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-52 -->
 
@@ -86,6 +111,14 @@ Bind groups every lane shares (`Layouts`):
 - The face pass clears color and depth (to `0.0`, reverse-Z) and writes both.
 - The ink pass loads color, keeps depth read-only and samples it through group 2.
 
+```mermaid
+flowchart LR
+    T["Targets<br/>color · Depth32Float"] -- "begin_faces · clear" --> F["face pass<br/>writes depth"]
+    T -- "begin_ink · load" --> I["ink pass<br/>depth read-only"]
+    F -- "depth view · group 2" --> I
+    style T fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=1-70 -->
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=71-135 -->
@@ -95,6 +128,13 @@ Bind groups every lane shares (`Layouts`):
 ## Step 5 · Frame uniforms
 
 - `FrameInput` is what one frame needs from the caller; `Binds` sets groups 0, 1, 2 before every lane draw.
+
+```mermaid
+flowchart LR
+    FI["FrameInput<br/>view_proj · clear"] -- "write" --> FU["FrameUniforms<br/>mvp · LineUniform"]
+    FU -- "Binds · groups 0 1 2" --> D["every lane draw"]
+    style FU fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-47 -->
 
@@ -123,6 +163,14 @@ Bind groups every lane shares (`Layouts`):
 
 - `View` is read once from `?name=` on wasm or `ENV` natively; key handlers flip it later.
 
+```mermaid
+flowchart LR
+    Q["?name= · route::query"] -- "knob" --> V["View<br/>show_* · thickness_px"]
+    E["ENV · native"] -- "knob" --> V
+    V -- "read each frame" --> F["frame"]
+    style V fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04a session_viewer/src/engine/gpu/view.rs copy -->
 
 <!-- file: 04a session_viewer/src/app/mod.rs type -->
@@ -133,6 +181,17 @@ Bind groups every lane shares (`Layouts`):
 
 - `ObjectRow` is one object as the producer reports it: f64 placement, tint, flags, local box, spacing.
 - `InstanceTable` owns the rows the GPU reads, the true f64 translations, and the two buffers behind group 2.
+
+```mermaid
+flowchart TB
+    O["ObjectRow<br/>f64 placement"] -- "append" --> T["InstanceTable"]
+    T --> R["rows · 96 B"]
+    T --> A["translations · 16 B"]
+    R --> G["group 2"]
+    A --> G
+    C["camera drift"] -- "rebase_anchor" --> A
+    style T fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-61 -->
 
@@ -164,6 +223,14 @@ Bind groups every lane shares (`Layouts`):
 
 - Groups 0, 1, 2 and the `LineUniform` mirror; `place` applies the row's rotation/scale and the anchored translation.
 
+```mermaid
+flowchart LR
+    V["vertex · @location"] -- "vs_main · place" --> C["clip position"]
+    C -- "rasterize" --> F["fs_main<br/>headlight · back face red"]
+    C -- "same vertex stage" --> I["fs_id"]
+    style F fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-38 -->
 
 - A hidden row's triangle is parked outside the clip volume; the ID pass shares this vertex stage, so a hidden object is unpickable too.
@@ -177,6 +244,15 @@ Bind groups every lane shares (`Layouts`):
 ## Step 9 · The mesh lane
 
 - `ArenaRows` is one upload's delta; `ArenaLane` is five `GrowBuf`s under one growth policy and the pipelines over them.
+
+```mermaid
+flowchart TB
+    AR["ArenaRows<br/>verts · vids · idx"] -- "append" --> AL["ArenaLane<br/>five GrowBufs"]
+    AL -- "draw_faces" --> FP["face pass"]
+    AL -- "draw_print · draw_text" --> OL["OutlineTextLane<br/>unlit"]
+    OL --> IP["ink pass"]
+    style AL fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04a session_viewer/src/engine/gpu/arena.rs type lines=1-63 -->
 
@@ -202,6 +278,14 @@ Bind groups every lane shares (`Layouts`):
 
 - `Upload` carries every lane's rows for one file and nothing GPU-typed. Deleting a lane means deleting its field here.
 
+```mermaid
+flowchart LR
+    FX["fixture.rs<br/>one mesh row"] --> U["Upload<br/>obj · arena · bounds"]
+    U -- "set_scene" --> G["Gpu"]
+    U -- "drop_uploaded" --> X["rows freed"]
+    style U fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04a session_viewer/src/engine/gpu/upload.rs type -->
 
 - One local mesh row: three vertices, one triangle, no loader.
@@ -211,6 +295,15 @@ Bind groups every lane shares (`Layouts`):
 ## Step 11 · Wire the coordinator
 
 - `Gpu` owns the surface, one device, the layouts, frame uniforms, targets, the object table and the lanes; the lanes never see each other.
+
+```mermaid
+flowchart TB
+    S["Tutorial · lib.rs"] -- "set_scene · render" --> G["Gpu<br/>ctx · layouts · targets"]
+    G --> O["InstanceTable"]
+    G --> A["ArenaLane"]
+    G -- "write · face pass · ink pass · present" --> W["frame"]
+    style G fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04a session_viewer/src/engine/gpu/mod.rs type whole lines=1-33 -->
 
@@ -252,6 +345,8 @@ Expected:
 
 If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: the surface must be configured before the first frame and the arena must have rows.
 
+![Checkpoint 04a: the first mesh drawn from arena buffers through the object table.](screenshots/04a.png)
+
 ## What changed
 
 <!-- tree: 04a session_viewer/src -->
@@ -260,6 +355,12 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 - One growth policy for every GPU table; one `build` for every pipeline.
 
 **Production equivalent:** every file in `src/engine/gpu/` and `src/engine/pipelines/` from this lesson is the production file; `gpu/mod.rs` and `lib.rs` are still the teaching shell until lesson 12.
+
+## Try
+
+- Append `?nolit=1` to the URL: the face loses its headlight shading and shows its flat row color, which is what a color-based probe needs.
+- Add a second `ObjectRow` in `fixture.rs` with a different `place`: the same vertex range draws twice, once per row.
+- Set `msaa=1` in the query string and look at the edge of the mesh against the background: the antialiasing budget is a knob, not a constant.
 
 ## Next
 

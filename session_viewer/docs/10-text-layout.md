@@ -22,6 +22,13 @@ flowchart LR
 - Fonts are compiled into the WASM with `include_bytes!`; the browser never scans system fonts, so every machine shapes identically.
 - Install the three font files now; the shaping module cannot compile without them.
 
+```mermaid
+flowchart LR
+    A["NotoSans · Symbols · Symbols2"] -- "include_bytes!" --> B["FONT_BYTES … FALLBACK_BYTES"]
+    B --> C["bundled_fonts · FontSystem"]
+    style B fill:#1a1eb2,color:#fff
+```
+
 <!-- supplied: 10 -->
 
 The fonts' licence and provenance travel with them.
@@ -34,12 +41,28 @@ The fonts' licence and provenance travel with them.
 
 Shaping is timed and later frames are timed; both read the same `now_ms`. Native builds read the system clock so the same module compiles for tests.
 
+```mermaid
+flowchart LR
+    A["performance.now · browser"] --> B["now_ms"]
+    C["SystemTime · native"] --> B
+    B --> D["Performance::frame"]
+    style B fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 10 session_viewer/src/engine/performance.rs type -->
 
 ## Step 3 · Where a label lives: `TextPlacement`
 
 - The placement is intent, not pixels: a camera move changes where the text lands, never its string or its glyphs.
 - `Screen` is CSS pixels; `Anchor`/`Nameplate` follow a world point with screen-sized glyphs; `WorldBillboard` and `WorldPlane` have a world em height.
+
+```mermaid
+flowchart LR
+    A["TextPlacement"] --> B["Screen · CSS px"]
+    A --> C["Anchor · Nameplate"]
+    A --> D["WorldBillboard · WorldPlane"]
+    style A fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=1-47 -->
 
@@ -48,12 +71,27 @@ Shaping is timed and later frames are timed; both read the same `now_ms`. Native
 - A `TextRun` keeps the source label next to its shaped `Buffer`, so editing and selection can map glyphs back to characters.
 - `TextDocument` owns the `FontSystem`; the GPU lane in lesson 11 borrows it and owns nothing here.
 
+```mermaid
+flowchart LR
+    A["TextLabel"] -- "shape" --> B["TextRun · Buffer"]
+    B --> C["TextDocument · FontSystem"]
+    style C fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=48-77 -->
 
 ## Step 5 · Replace labels without reshaping unchanged ones
 
 - Validate the whole replacement before touching the current runs; a bad label leaves the old document intact.
 - Only `text`, `font_size` and `line_height` participate in shaping; a colour or placement edit reuses the buffer by id.
+
+```mermaid
+flowchart LR
+    A["Vec of TextLabel"] -- "validate_label" --> B["set_labels"]
+    B -- "same_layout" --> C["reuse Buffer by id"]
+    B -- "text or size changed" --> D["shape"]
+    style B fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=78-133 -->
 
@@ -62,12 +100,26 @@ Shaping is timed and later frames are timed; both read the same `now_ms`. Native
 - Diagnostics export what the shaper decided: glyph id, source byte cluster, advance, offset, baseline. The reference page compares these to the browser.
 - A cluster is a byte range into the source string: `ffi` may be one glyph, `e` + combining accent one cluster.
 
+```mermaid
+flowchart LR
+    A["replace_fonts · clear"] --> B["TextDocument"]
+    B -- "diagnostics" --> C["GlyphDiagnostic · id, cluster, advance"]
+    style C fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=134-226 -->
 
 ## Step 7 · Validation and the shaping call
 
 - Non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion sees them.
 - `Shaping::Advanced` is what makes kerning, ligatures and font fallback happen once, at shape time.
+
+```mermaid
+flowchart LR
+    A["validate_label · valid_plane_axes"] --> B["shape · Shaping::Advanced"]
+    B -- "kerning, ligatures, fallback" --> C["Buffer"]
+    style B fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=227-324 -->
 
@@ -77,6 +129,13 @@ Unit checks for the shaper live in the same file.
 
 ## Step 8 · Declare the modules
 
+```mermaid
+flowchart LR
+    A["engine/mod.rs"] -- "pub mod" --> B["performance"]
+    A -- "pub mod" --> C["text"]
+    style A fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 10 session_viewer/src/engine/mod.rs type -->
 
 <!-- check: 10 -->
@@ -85,6 +144,14 @@ Unit checks for the shaper live in the same file.
 
 - The page loads the identical font bytes with `@font-face`, sets the same kerning and ligature options, and compares line widths with the shaper's `line_width`.
 - The WASM export shapes five sizes, then changes only colour and placement and asserts the shape count did not move.
+
+```mermaid
+flowchart LR
+    A["text_layout · WASM export"] -- "line_width" --> B["text-layout.html"]
+    C["@font-face · same bytes"] --> B
+    B -- "compare widths" --> D["textLayout.passed"]
+    style A fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 10 session_viewer/src/text_layout.rs copy -->
 

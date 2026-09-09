@@ -30,11 +30,26 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 - 40 bytes, ends as flat `f32`s: a `vec3` would pad the row to 48.
 - `radius` 0 means the screen-constant pen; `facing` packs two face normals for the solid lane's back-edge cull.
 
+```mermaid
+flowchart LR
+    W["walk · segment endpoints"] --> R["CylinderSegment<br/>a · b · radius · facing"]
+    R -- "40 B · storage" --> T["segment table"]
+    style R fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=1-56 -->
 
 ## Step 2 · The lane
 
 - Two tables of the same row: pipes (mesh edges, culled by facing) and ribbons (free linework, always drawn).
+
+```mermaid
+flowchart LR
+    SR["SegRows<br/>pipes · ribbons"] -- "append" --> SL["SegmentLane"]
+    SL -- "draw_pipes · culled" --> P["ink pass"]
+    SL -- "draw_ribbons · always" --> P
+    style SL fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=57-115 -->
 
@@ -54,11 +69,27 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 - Appended to every ink shader by `ink_module`. This version compares the scene depth at the pixel with the axis depth; lesson 05 replaces it with the surface-carry rule.
 
+```mermaid
+flowchart LR
+    D["scene depth · group 2"] --> V["ink_visible"]
+    A["axis depth"] --> V
+    V -- "keep / discard" --> F["ink fragment"]
+    style V fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04b session_viewer/src/shaders/ink_visibility.wgsl type -->
 
 ## Step 4 · The ribbon shader
 
 - Bindings and constants. `LineUniform` is the same block as `triangle.wgsl`.
+
+```mermaid
+flowchart LR
+    S["segments · @group(3)"] -- "vs_main · 6 verts" --> Q["camera-facing quad"]
+    Q -- "fs_main · band_area" --> C["coverage"]
+    C -- "ink_visible" --> O["stroke pixel"]
+    style Q fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-58 -->
 
@@ -83,6 +114,14 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 ## Step 5 · Wire the lane
 
 - `ink_module` compiles a lane shader with the visibility rule appended.
+
+```mermaid
+flowchart LR
+    U["Upload.seg"] -- "set_scene" --> G["Gpu.segments"]
+    L["segment_rows layout"] --> G
+    G -- "ink pass · ink_group" --> P["strokes drawn"]
+    style G fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04b session_viewer/src/engine/pipelines/mod.rs type -->
 
@@ -112,6 +151,8 @@ Expected:
 - Status reads **Checkpoint 04b · 2 objects**.
 - Zoom in: the line keeps its on-screen width.
 
+![Checkpoint 04b: strokes expanded on the GPU into screen-space ribbons beside the mesh.](screenshots/04b.png)
+
 ## What changed
 
 <!-- tree: 04b session_viewer/src/engine -->
@@ -119,6 +160,12 @@ Expected:
 - Data flow: `SegRows` → `SegTable` buffers → group 3 → `ribbon.wgsl` → blended ink over the face pass's depth.
 
 **Production equivalent:** `src/engine/gpu/segments.rs`, `src/shaders/ribbon.wgsl`. `ink_visibility.wgsl` is replaced in lesson 05 and again in lesson 18.
+
+## Try
+
+- Append `?thickness=4` to the URL: every stroke widens on screen while the geometry stays put, because the pen is applied in `ribbon.wgsl`, not in the vertex data.
+- Zoom far out: the strokes keep their pixel width. A world-space width would vanish; a screen-space pen does not.
+- Set `aa=0.5` and compare an edge-on stroke with `aa=2`: the antialiasing ramp is the only thing that changed.
 
 ## Next
 

@@ -6,26 +6,32 @@
 .md-typeset .highlight { margin: 1.2em 0; }
 .md-typeset .highlight pre { border: 1px solid #dbe2e9; border-radius: .35rem; }
 .md-typeset table:not([class]) th { background: #eef2f6; }
-.md-typeset .mermaid { overflow-x: auto; padding: .4rem 0; }
+.md-typeset .mermaid { overflow-x: auto; }
 .md-typeset .mermaid svg { width: auto !important; max-width: none !important; height: auto; }
 
 /* Palette: the BRG Equilibrium drawing library (navy, pink, green, yellow; pale bands). */
 :root {
-  --md-primary-fg-color: #1a1eb2;
-  --md-primary-fg-color--light: #bdbfe8;
-  --md-primary-fg-color--dark: #14177f;
+  --md-primary-fg-color: #111111;
+  --md-primary-fg-color--light: #444444;
+  --md-primary-fg-color--dark: #000000;
   --md-accent-fg-color: #ce4095;
   --md-typeset-a-color: #1b7fc4;
   --md-code-hl-color: #f9e08a;
 }
 [data-md-color-scheme="default"], [data-md-color-scheme="slate"] {
+  /* Diagrams: black ground, white text, the BRG pale-blue for borders. */
   --md-mermaid-font-family: system-ui, sans-serif;
-  --md-mermaid-node-bg-color: #bdbfe8;
-  --md-mermaid-node-fg-color: #1a1eb2;
-  --md-mermaid-edge-color: #111111;
-  --md-mermaid-label-bg-color: #eef0f2;
-  --md-mermaid-label-fg-color: #111111;
+  --md-mermaid-node-bg-color: #1c1c1e;
+  --md-mermaid-node-fg-color: #bdbfe8;
+  --md-mermaid-edge-color: #e4e4e7;
+  --md-mermaid-label-bg-color: #111111;
+  --md-mermaid-label-fg-color: #ffffff;
 }
+.md-typeset .mermaid { background: #111111; border-radius: 12px; padding: 1rem; }
+.md-typeset .mermaid svg { background: #111111; }
+.md-typeset .mermaid .edgeLabel { background: #111111; color: #ffffff; }
+.md-typeset .mermaid .cluster rect { fill: #1c1c1e !important; stroke: #444 !important; }
+.md-typeset .mermaid .cluster-label text, .md-typeset .mermaid .nodeLabel, .md-typeset .mermaid .edgeLabel, .md-typeset .mermaid text { fill: #ffffff !important; color: #ffffff !important; }
 .md-typeset .mermaid svg { font-size: 14px !important; }
 .md-typeset .mermaid .edgeLabel { background: #eef0f2; padding: 0 .2rem; }
 .md-typeset .highlight pre { border-color: #bdbfe8; }

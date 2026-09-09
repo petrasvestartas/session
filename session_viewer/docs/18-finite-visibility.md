@@ -37,6 +37,13 @@ flowchart LR
 - The physical metadata target grows from two to four half floats: gradient in `xy`, a lossless triangle address in `zw`.
 - Each 14-bit half of the address skips exponent zero, so it survives `Rgba16Float` without NaNs or denormals.
 
+```mermaid
+flowchart LR
+    D["physical depth"] --> M["Rgba16Float metadata<br/>xy gradient · zw primitive"]
+    P["pull_triangle index"] -- "physical_triangle" --> M
+    style M fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/shaders/physical.wgsl type -->
 
 - `pull_triangle` numbers every triangle; `vs_triangle` is the plain physical draw, `vs_face` adds the source face on top.
@@ -73,6 +80,13 @@ flowchart LR
 - `projected_triangle_at` returns `(depth, 1)` when the point is inside every edge, else `(0, 0)`.
 - `visibility_tile_span` doubles the tile size until the grid has at most `262144` tiles; the CPU `TileLayout` uses the same rule.
 
+```mermaid
+flowchart LR
+    R["ProjectedTriangle<br/>6 × vec4 · 96 B"] -- "projected_triangle_at" --> H["(depth, inside)"]
+    T["visibility_tile_span"] --> G["≤ 262144 tiles"]
+    style R fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/shaders/projected_triangle.wgsl type -->
 
 ### Step 3 · The projection shader
@@ -89,6 +103,14 @@ flowchart LR
 | 3 · 3 | `TriangleTiles::projected` | `projected` (read_write) |
 | 3 · 4 | `live_count` uniform | `live_count` |
 
+```mermaid
+flowchart LR
+    A["arena columns · instances"] -- "cs_main per triangle" --> C["near-plane clip"]
+    C --> Q["quad or nothing"]
+    Q --> P["projected[] record"]
+    style P fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-60 -->
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=61-127 -->
@@ -100,6 +122,14 @@ flowchart LR
 - One quad per projected triangle covers its tile bounds; `covered_tile` discards tiles the polygon cannot touch.
 - `fs_count` counts references per tile. `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
 
+```mermaid
+flowchart LR
+    Q["quad per projected triangle"] -- "covered_tile" --> C["fs_count · tile counts"]
+    C -- "after scan" --> F["fs_fill<br/>(primitive, max depth)"]
+    F -- "cursor past count" --> O["overflow flag"]
+    style F fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/shaders/triangle_tiles.wgsl type -->
 
 ### Step 5 · Prefix sums instead of a per-tile cap
@@ -107,11 +137,27 @@ flowchart LR
 - Tile records are `count / offset / cursor / overflow`; block records are `sum / prefix`.
 - Sums saturate at the buffer capacity, so an oversubscribed pool can never wrap into a plausible offset.
 
+```mermaid
+flowchart LR
+    C["tile counts"] -- "scan_tiles" --> B["block sums"]
+    B -- "scan_blocks" --> P["block prefixes"]
+    P -- "finish_offsets" --> O["tile offsets · saturating"]
+    style O fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/shaders/scan_triangle_tiles.wgsl type -->
 
 ### Step 6 · The owner
 
 - `TileLayout` mirrors `visibility_tile_span`; the reference pool budgets `REFERENCES_PER_TILE` per tile overall, and a dense tile borrows spare space.
+
+```mermaid
+flowchart LR
+    K["ProjectionKey<br/>camera · geometry revision"] -- "changed" --> E["encode<br/>project · count · scan · fill"]
+    L["TileLayout · REFERENCES_PER_TILE"] --> P["prepare storage"]
+    P --> E
+    style E fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-52 -->
 
@@ -153,6 +199,16 @@ Copy the rest of the file:
 
 The blank lines separate the helpers; type them so the file matches production:
 
+```mermaid
+flowchart LR
+    A["ink_visible_plane"] -- "accepts" --> V["visible"]
+    A -- "rejects" --> W["ink_primitive + neighbours<br/>finite test"]
+    W -- "no hit" --> T["tile list of the pixel"]
+    T --> V
+    T -- "nearer finite hit" --> H["hidden"]
+    style W fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=1-11 -->
 
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=12,13 -->
@@ -163,6 +219,13 @@ The blank lines separate the helpers; type them so the file matches production:
 
 - The physical and object-ID triangle pipelines move into `Faces`, so the primitive numbers written by the color pass are the same numbers the projection shader uses.
 
+```mermaid
+flowchart LR
+    F["Faces<br/>draw_physical · draw_object_ids"] -- "same primitive numbers" --> C["color pass"]
+    F --> J["projection shader"]
+    style F fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/engine/gpu/faces.rs type -->
 
 <!-- file: 18 session_viewer/src/engine/gpu/arena.rs type -->
@@ -170,6 +233,14 @@ The blank lines separate the helpers; type them so the file matches production:
 ### Step 9 · Bindings 6 and 7
 
 - The ink instance group gains the projected table and the tile buffer; the mvp, line and instance layouts become visible to compute.
+
+```mermaid
+flowchart LR
+    I["ink_instance layout"] -- "binding 6" --> P["projected table"]
+    I -- "binding 7" --> T["tile buffer"]
+    G["geometry_revision"] --> K["cache key"]
+    style I fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 18 session_viewer/src/engine/pipelines/layouts.rs type -->
 
@@ -191,6 +262,14 @@ The blank lines separate the helpers; type them so the file matches production:
 
 - `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
 
+```mermaid
+flowchart LR
+    T["triangle_tile_pass"] -- "prepare · rebind · encode" --> I["ink passes"]
+    C["color frame"] --> T
+    D["ID-only frame"] --> T
+    style T fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
 
 <!-- file: 18 session_viewer/src/engine/gpu/mod.rs type -->
@@ -202,6 +281,13 @@ The blank lines separate the helpers; type them so the file matches production:
 ### Step 11 · Streamed queries move out of `state.rs`
 
 - The methods are unchanged; `State` still owns the query. The file only groups the page/answer/resolve workflow.
+
+```mermaid
+flowchart LR
+    S["state.rs"] -- "unchanged methods" --> Q["state/cloud_query.rs<br/>page · answer · resolve"]
+    Q -- "owned by" --> S
+    style Q fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 18 session_viewer/src/state/cloud_query.rs type lines=1-38 -->
 
@@ -217,6 +303,15 @@ The blank lines separate the helpers; type them so the file matches production:
 
 - `ink_color` derives black ink from the selection flag without touching the authored color; both text renderers read it.
 - Plates and planes fill the whole rounded backing yellow instead of drawing a border; every backing reserves a full cap at each end.
+
+```mermaid
+flowchart LR
+    L["TextLabel selected"] -- "ink_color()" --> B["black ink"]
+    L --> Y["yellow rounded backing"]
+    B --> G["glyph pass"]
+    Y --> P["text_plate · text_plane"]
+    style B fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 18 session_viewer/src/engine/text.rs type -->
 
@@ -238,6 +333,13 @@ The blank lines separate the helpers; type them so the file matches production:
 
 - Silhouettes start **off**: the two coverage masks and the compositor are a full-screen pass per frame, which is slow on integrated GPUs. `O` turns them on; `?outlines=1` starts with them on.
 
+```mermaid
+flowchart LR
+    V["View::from_env"] -- "show_outlines false" --> O["silhouettes off"]
+    K["O key · ?outlines=1"] --> N["silhouettes on"]
+    style V fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 18 session_viewer/src/engine/gpu/view.rs type -->
 
 The silhouette unit block of the outline owner opts in explicitly, since the default no longer does:
@@ -251,6 +353,14 @@ The silhouette unit block of the outline owner opts in explicitly, since the def
 - A black folded corner at the top right of the page links to `docs/`; it opens the course in a new tab and never covers the canvas' input.
 - Trunk copies the built site into `dist/docs`, so `trunk serve` serves the viewer and its documentation together.
 - The pre-build hook rebuilds the site only when a documentation source is newer than the built page; without the course sources it writes a one-line placeholder instead of failing the build.
+
+```mermaid
+flowchart LR
+    C["#viewer-docs corner"] -- "docs/" --> D["dist/docs · built site"]
+    H["docs/build_site.sh hook"] -- "when stale" --> D
+    T["Trunk copy-dir"] --> D
+    style C fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 18 session_viewer/index.html copy -->
 

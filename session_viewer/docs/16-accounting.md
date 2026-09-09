@@ -20,6 +20,13 @@ flowchart TB
 
 `Cargo.toml` will name native examples; their sources and the offscreen harness are supplied, not taught. Install them now so the manifest can refer to them.
 
+```mermaid
+flowchart LR
+    S["supplied examples/ · tests/"] --> C["Cargo.toml<br/>[[example]] entries"]
+    C --> N["native tooling builds"]
+    style C fill:#1a1eb2,color:#fff
+```
+
 <!-- supplied: 16 -->
 
 <!-- file: 16 session_viewer/Cargo.toml copy -->
@@ -29,10 +36,24 @@ flowchart TB
 - The number is a lower bound: exact `Vec`/`String` capacities, occupied map entries and exposed slice lengths, never allocator overhead or RSS.
 - Shared values are counted once: each `Rc` object is recorded by pointer in a `seen` set, so a document listed twice or a geometry in both a typed list and the lookup adds nothing twice.
 
+```mermaid
+flowchart LR
+    D["Doc · Rc&lt;Session&gt;"] -- "walk once per Rc" --> P["Payload<br/>known_bytes"]
+    P -- "seen set" --> U["no double count"]
+    style P fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-52 -->
 
 - A `Weak<Session>` recognizes a document without keeping it alive; if every `Rc` pointer matches the last snapshot, the cached payload is returned without a walk.
 - In-place editing of a document would make this cache stale; replacement and append change identity, which is what the cache keys on.
+
+```mermaid
+flowchart LR
+    C["SourceCache<br/>Weak&lt;Session&gt; ids"] -- "same Rc pointers" --> H["cached Payload"]
+    C -- "identity changed" --> S["snapshot(docs) walk"]
+    style C fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
 
@@ -51,6 +72,14 @@ Unit tests, part of the file:
 ## Step 3 · Report it beside the GPU figures
 
 - The snapshot names its scope and exclusions in the JSON itself, so a reader of `?inspect=1` cannot mistake the payload for total heap.
+
+```mermaid
+flowchart LR
+    K["known_bytes()"] --> J["?inspect=1 JSON<br/>source_cpu_known_payload"]
+    G["Gpu::allocated_bytes"] --> J
+    J --> X["scope + exclusions named"]
+    style J fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 16 session_viewer/src/app/inspection.rs type -->
 

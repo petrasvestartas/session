@@ -23,12 +23,25 @@ flowchart TB
 
 The same-font white-on-black comparison page and its WASM export are supplied. Install them first; `lib.rs` declares the module in the last step.
 
+```mermaid
+flowchart LR
+    A["text_quality.rs · WASM export"] --> B["text-quality.html"]
+    style A fill:#1a1eb2,color:#fff
+```
+
 <!-- supplied: 11 -->
 
 ## Step 2 · Black plates
 
 - A plate is six vertices in clip space plus the local offset, half size and corner radius the fragment shader needs for a rounded edge.
 - Depth compare `Always`, no depth write: a plate is an overlay and never occludes geometry.
+
+```mermaid
+flowchart LR
+    A["placed line box"] -- "6 vertices" --> B["Plates · PlateVertex"]
+    B -- "depth Always" --> C["text_plate.wgsl · rounded SDF"]
+    style B fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-100 -->
 
@@ -53,12 +66,27 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 - A `WorldPlane` label keeps one coverage texture per label; the camera only rewrites six vertices.
 - The texture budget is a hard cap independent of the adapter, so one huge label cannot take the scene's memory.
 
+```mermaid
+flowchart LR
+    A["WorldPlane label"] --> B["CachedPlane · R8 texture"]
+    B --> C["Planes · budget"]
+    style C fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-83 -->
 
 ## Step 4 · Planes: prepare
 
 - Placement and colour changes keep the texture; text, font or a larger projected em rebuilds it.
 - Resolution grows in power-of-two em buckets, so small camera motion never re-rasterizes.
+
+```mermaid
+flowchart LR
+    A["TextFrame · camera"] --> B["Planes::prepare"]
+    B -- "same_raster" --> C["keep texture"]
+    B -- "raster_em grew" --> D["rasterize again"]
+    style B fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=84-142 -->
 
@@ -69,6 +97,14 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 - `project` keeps clip `w`; the shader divides, so UVs stay perspective-correct across the plane.
 - `rasterize` composites Swash glyph images into one R8 texture at the chosen em size, bearings and baseline included.
 - `append_quad` walks the label's right/up axes in world units; every vertex carries full clip coordinates and the CSS clip in physical pixels.
+
+```mermaid
+flowchart LR
+    A["project · clip w"] --> D["append_quad · Vertex"]
+    B["rasterize · Swash to R8"] --> D
+    D --> C["text_plane.wgsl"]
+    style D fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=259-322 -->
 
@@ -103,6 +139,14 @@ A native GPU check for the plane path sits at the end of the file.
 - `TextFrame` is everything placement needs from the frame: the rebased camera, the anchor origin, physical and logical sizes.
 - `logical` comes from the canvas CSS box, not `devicePixelRatio`; that is what makes browser zoom and DPR both work.
 
+```mermaid
+flowchart LR
+    A["camera · rebase anchor"] --> B["TextFrame"]
+    C["physical + logical size"] --> B
+    B --> D["TextStats"]
+    style B fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=1-61 -->
 
 ## Step 7 · The lane owns Glyphon
@@ -110,12 +154,30 @@ A native GPU check for the plane path sits at the end of the file.
 - Two renderers share one atlas: `anchored` compares depth `GreaterEqual` (reversed Z, occluded by solids), `overlay` is `Always`.
 - `retarget` follows the scene's sample count without reshaping or dropping the atlas.
 
+```mermaid
+flowchart LR
+    A["TextLane::new"] --> B["anchored · GreaterEqual"]
+    A --> C["overlay · Always"]
+    B --> D["one TextAtlas"]
+    C --> D
+    style A fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-142 -->
 
 ## Step 8 · Prepare: place, rasterize, build both draw lists
 
 - The key `(document revision, font revision, frame)` skips the whole preparation when nothing moved.
 - Raster keys are bounded: past the budget the atlas and Swash cache are rebuilt together, so no prepared vertex can point at an evicted glyph.
+
+```mermaid
+flowchart LR
+    A["key · revision, font, frame"] --> B["TextLane::prepare"]
+    B -- "place" --> C["PlacedText"]
+    B -- "rasterize" --> D["atlas · raster keys"]
+    B --> E["two draw lists"]
+    style B fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=143-216 -->
 
@@ -125,6 +187,13 @@ A native GPU check for the plane path sits at the end of the file.
 
 Planes first (they are in the scene), then anchored glyphs, then plates, then overlay glyphs on top of their plates.
 
+```mermaid
+flowchart LR
+    A["planes"] --> B["anchored glyphs"] --> C["plates"] --> D["overlay glyphs"]
+    E["TextLane::draw"] --> A
+    style E fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=272-338 -->
 
 ## Step 10 · CSS to physical, once
@@ -132,6 +201,14 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 - `scale()` derives one isotropic raster scale from framebuffer ÷ CSS box and rejects a stretched canvas.
 - `place()` projects only the anchor; behind-camera and out-of-range anchors are culled instead of producing inverted text.
 - A `Nameplate` is centred on the shaped line box and gets no depth: the annotation overlays the solid it names.
+
+```mermaid
+flowchart LR
+    A["framebuffer ÷ CSS box"] --> B["TextFrame::scale"]
+    B --> C["place · anchor only"]
+    C -- "Nameplate" --> D["center_nameplate"]
+    style C fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=339-429 -->
 
@@ -147,6 +224,13 @@ Native checks for scale, depth, nameplates and cache eviction live in the same f
 
 - `write_frame_uniforms` now also prepares text and can fail (a stretched canvas), so it returns a `Result`.
 - Text draws after mesh ink in the same pass, against the same read-only depth.
+
+```mermaid
+flowchart LR
+    A["write_frame_uniforms"] -- "TextFrame" --> B["TextLane::prepare"]
+    C["mesh ink pass"] --> D["TextLane::draw"]
+    style A fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 11 session_viewer/src/engine/gpu/mod.rs type -->
 

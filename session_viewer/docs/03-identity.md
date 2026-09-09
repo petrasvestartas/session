@@ -26,6 +26,14 @@ flowchart TB
 - The translation column of `model` is zero; the anchored translation gets its own table later (group 2, binding 1).
 - The size assertion is compile-time: a wrong stride fails `cargo check`, not the picture.
 
+```mermaid
+flowchart LR
+    I["struct Instance · 96 B"] -- "model · color" --> R["one object row"]
+    I -- "FLAG_SELECTED · FLAG_HIDDEN" --> F["flags bits"]
+    P["Instance::placeholder"] --> I
+    style I fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
 
 The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones. Those lanes arrive in the next lessons; the browser build never compiles this block.
@@ -33,6 +41,14 @@ The rest of the file is `#[cfg(test)]` only: it parses every lane shader with na
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=58-234 -->
 
 ## Step 2 · Declare the engine module tree
+
+```mermaid
+flowchart LR
+    L["lib.rs"] -- "pub mod engine" --> E["engine/mod.rs"]
+    E -- "pub mod gpu" --> G["engine/gpu/mod.rs"]
+    G -- "pub mod instance" --> I["instance.rs"]
+    style G fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 03 session_viewer/src/engine/gpu/mod.rs type -->
 
@@ -42,6 +58,13 @@ The rest of the file is `#[cfg(test)]` only: it parses every lane shader with na
 
 - A `guid` and `revision` identify what the object *is*; the row says how it is drawn this revision.
 - Picking will return a row; the scene must map it back. Never search for an object by matching triangle positions.
+
+```mermaid
+flowchart LR
+    S["SourceObject · guid · revision"] -- "row" --> I["Instance"]
+    O["scene::objects()"] -- "two placements" --> S
+    style S fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 03 session_viewer/src/scene.rs type -->
 
@@ -65,12 +88,29 @@ size                         96     array stride
 - `@builtin(instance_index)` is the `row` of `draw(0..3, row..row + 1)`.
 - `@group(0) @binding(1) var<storage, read>` mirrors the `BufferBindingType::Storage { read_only: true }` entry added in the next step.
 
+```mermaid
+flowchart LR
+    I["Instance rows"] -- "group 0 · binding 1" --> B["var storage read instances"]
+    R["instance_index"] --> V["vs_main"]
+    B --> V
+    V -- "model × point · color" --> F["fs_main"]
+    style V fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 03 session_viewer/src/shaders/first.wgsl type -->
 
 ## Step 5 · Bind the rows and draw each one
 
 - The layout gains binding 1; the bind group supplies the storage buffer; one draw per row.
 - `objects` stays on the CPU side of the shell, so the status can report a count that comes from source data rather than from the GPU.
+
+```mermaid
+flowchart LR
+    O["scene::objects()"] -- "cast_slice" --> S["STORAGE buffer"]
+    S -- "binding 1" --> G["BindGroup"]
+    G --> D["draw(0..3, row..row+1)"]
+    style D fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 03 session_viewer/src/lib.rs type -->
 
@@ -88,6 +128,8 @@ Expected:
 
 A wrong stride shows as a correct first object and a corrupt second one. A wrong source map looks fine until selection returns the other object.
 
+![Checkpoint 03: one triangle geometry drawn twice through two object rows, each with its own placement and tint.](screenshots/03.png)
+
 ## What changed
 
 <!-- tree: 03 session_viewer/src -->
@@ -96,6 +138,12 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 - Data flow: `SourceObject.row` → storage buffer → `instances[instance_index]` → placed, tinted vertex.
 
 **Production equivalent:** `src/engine/gpu/instance.rs` is production. `src/scene.rs` is a teaching stand-in for `src/app/scene.rs`, which replaces it in lesson 12.
+
+## Try
+
+- Change the second row's `color` in `scene.rs`: only that triangle changes, because tint lives in the row, not in the geometry.
+- Set the same `model[12]` for both rows: they overlap exactly, proving the geometry buffer is shared.
+- Draw with `draw(0..3, 0..1)` only: the second row vanishes, because `instance_index` never reaches 1.
 
 ## Next
 

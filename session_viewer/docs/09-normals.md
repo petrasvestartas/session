@@ -25,6 +25,14 @@ flowchart TD
 - `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.
 - Read the derivatives directly: a zero-length cross means "singular here", so the incident-triangle fan decides.
 
+```mermaid
+flowchart LR
+    A["derivatives du, dv"] -- "cross" --> B{"length > 0?"}
+    B -- "yes" --> C["analytic normal"]
+    B -- "no" --> D["incident-triangle fan"]
+    style B fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 09 session_rust/src/nurbssurface_trimmed.rs type -->
 
 Same rule for the grid remesher (U poles of spheres and cones):
@@ -52,6 +60,14 @@ sign(det)                        →     mirrored instances keep outward normals
 - A singular matrix has no unique normal: return the zero sentinel and let the fragment stage fall back to flat shading.
 - Normalize after the transform. The cofactor form never divides by a small determinant.
 
+```mermaid
+flowchart LR
+    A["instances[row].model"] -- "3×3 columns" --> B["transform_normal · cofactors"]
+    B -- "sign(det)" --> C["face_normal"]
+    C -- "normalize in shade" --> D["triangle.wgsl fragment"]
+    style B fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 09 session_viewer/src/shaders/normals.wgsl type -->
 
 Vertex attributes ↔ shader locations, from `RenderVertex::ATTRIBS`:
@@ -73,6 +89,14 @@ The vertex stage now transforms the baked normal; `shade` already normalizes `in
 - Index every triangle's geometric normal by its exact edge (position bits, winding-free). A seam of one periodic face keeps both incident facets.
 - Missing or ambiguous incidence disables the cull instead of guessing.
 
+```mermaid
+flowchart LR
+    A["face triangles"] -- "position bits" --> B["face_facets · FacetPair"]
+    B --> C["EdgePen::facing"]
+    C -- "cull or keep" --> D["push_edge_pipes"]
+    style C fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 09 session_viewer/src/app/walk/brep_edges.rs type hunks=1-4 -->
 
 Module unit tests: COPY.
@@ -91,6 +115,13 @@ The BRep walk builds the incidence once per upload:
 
 Mesh edges and markers become toggles so shading can be judged without boundary ink.
 
+```mermaid
+flowchart LR
+    A["?fill=1"] -- "show_mesh_edges = false" --> B["View knobs"]
+    B --> C["frame · faces only"]
+    style B fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 09 session_viewer/src/engine/gpu/mod.rs type -->
 
 <!-- file: 09 session_viewer/src/lib.rs type -->
@@ -99,6 +130,14 @@ Mesh edges and markers become toggles so shading can be judged without boundary 
 
 - The placement has a negative determinant and three distinct scales: the sign and cofactor paths are exercised.
 - The crease surface is degree one in U with a shared knot: two shading normals at identical XYZ.
+
+```mermaid
+flowchart LR
+    A["?cad=sphere … torus"] --> B["solid · BRep"]
+    C["?affine=1 · affine_placement"] --> B
+    B --> D["build · CadFixture"]
+    style D fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 09 session_viewer/src/fixture.rs copy -->
 

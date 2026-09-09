@@ -21,6 +21,14 @@ flowchart TB
 - Triangulating the full rectangle and drawing a hole curve on top does not make a hole. The fill must exclude the region, so the constrained mesh cached on the surface wins over a fresh grid.
 - `first_pipe` remembers where this surface's pipes start so only those get boundary IDs.
 
+```mermaid
+flowchart LR
+    A["NurbsSurface · m_mesh"] -- "cached trim mesh" --> B["walk_surface"]
+    C["from_u_v_q grid"] -- "fallback" --> B
+    B -- "first_pipe" --> D["map_surface_boundaries"]
+    style B fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1 -->
 
 ## Step 2 · Name natural boundaries from UV, not from triangle order
@@ -29,6 +37,14 @@ flowchart TB
 - Two vertices of one pipe share exactly one boundary bit → that bit is the source ID. Interior creases and seams stay `u32::MAX`: unavailable, never invented from a triangulation index.
 - Keys are exact position bits; no weld tolerance enters.
 - Everything from `#[cfg(test)]` down is the module's unit tests: COPY.
+
+```mermaid
+flowchart LR
+    A["mesh vertex u, v"] -- "domain limit bits" --> B["map_surface_boundaries"]
+    B -- "one shared bit" --> C["pipe_ids · source ID"]
+    B -- "seam or crease" --> D["u32::MAX"]
+    style B fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2 -->
 
@@ -39,9 +55,22 @@ flowchart TB
 - The patch is a degree-2 surface with a square outer loop and a circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
 - The torus is periodic in both directions: same XYZ curve, two face uses, different UV.
 
+```mermaid
+flowchart LR
+    A["trimmed_surface · square + hole"] --> C["build · CadFixture"]
+    B["torus · periodic u, v"] --> C
+    style C fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 08 session_viewer/src/fixture.rs copy -->
 
 ## Step 4 · Stage bump
+
+```mermaid
+flowchart LR
+    A["lib.rs · stage"] --> B["index.html · title"]
+    style A fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 08 session_viewer/src/lib.rs type -->
 

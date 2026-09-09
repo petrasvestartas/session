@@ -26,6 +26,13 @@ flowchart TD
 - `TrimLoops` is what a BRep hands the mesher for one face: UV polygons, the 3D point each polygon vertex must lift to, and interior seeds.
 - Loop vertices keep their positions exactly; a neighbouring face fed the same polygon lifts to the same bits.
 
+```mermaid
+flowchart LR
+    B["BRep face"] -- "uv · xyz · interior_uv" --> T["TrimLoops"]
+    T --> M["mesher"]
+    style T fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=1 -->
 
 <!-- file: 07 session_rust/src/lib.rs type -->
@@ -35,6 +42,14 @@ flowchart TD
 - `mesh_q` (untrimmed entry) and `mesh_loops` (BRep entry) now share `triangulate`; the bounding-box diagonal moves into its own helper.
 - `mesh_loops` rejects invalid input and lost boundary provenance with an empty mesh instead of manufacturing a face.
 
+```mermaid
+flowchart LR
+    Q["mesh_q"] --> T["triangulate"]
+    L["mesh_loops"] --> T
+    T --> M["Mesh or empty"]
+    style T fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=2-6 -->
 
 ## Step 3 · Kernel: constrain boundaries and C0 knot lines
@@ -43,12 +58,27 @@ flowchart TD
 - Where a loop segment crosses an interior C0 knot line, a node is inserted with a `boundary_interval/{loop}/{segment}` fraction: a polygon interval, not a curve parameter.
 - Knot lines inside the trim are constrained too; the refinement test evaluates normals on the triangle's own side of a crease.
 
+```mermaid
+flowchart LR
+    L["loop vertices"] -- "Delaunay id" --> C["constraints"]
+    K["C0 knot line"] -- "boundary_interval tag" --> C
+    C --> T["triangulate"]
+    style C fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=7-8 -->
 
 ## Step 4 · Kernel: lift to the given points, tag, split creases
 
 - A triangle straddling a crease knot means the constraint failed: the result is an empty mesh, never a smeared crease.
 - With given XYZ the weld tolerance is zero; interval nodes interpolate on the supplied chord, so both faces see the same inserted point.
+
+```mermaid
+flowchart LR
+    T["triangles"] -- "lift to given XYZ" --> V["vertices<br/>u · v · provenance"]
+    V -- "crease_side_normal" --> S["split creases"]
+    style V fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=9-10 -->
 
@@ -62,6 +92,14 @@ flowchart TD
 - Curved boundaries are refined before any interior refinement, then every incident face is rebuilt with the refined polygon.
 - Phase 3: shared XYZ is mapped onto each face's actual pcurve and checked against edge/face tolerance; a wrong periodic branch falls back to a bounded search on that pcurve.
 
+```mermaid
+flowchart LR
+    G["first grid face"] -- "phase 2" --> P["canonical polygon"]
+    P -- "refine_surface_boundary" --> R["refined polygon"]
+    R -- "phase 3 · boundary_parameter" --> F["every incident face"]
+    style R fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 07 session_rust/src/brep.rs type hunks=1-3 -->
 
 - The helpers: bounded golden-section search on the lifted pcurve, one-sided boundary normals at singular ends, and refinement that keeps original samples exact.
@@ -73,6 +111,15 @@ flowchart TD
 ## Step 6 · Viewer: chains from the face meshes
 
 - Replace the record-only file. Grid faces give an iso-parametric chain read straight off `u`/`v` attributes; constrained faces give the `brep_edge/{edge}/{use}/{sample}` nodes.
+
+```mermaid
+flowchart LR
+    F["face Mesh"] -- "iso_chain" --> C["node chain"]
+    F -- "constrained_chain" --> C
+    C -- "edge_chains" --> E["EdgeChain"]
+    E -- "push_edge_pipes" --> P["pipes + pipe_ids"]
+    style E fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=1-39 -->
 
@@ -100,6 +147,14 @@ flowchart TD
 
 - Face-use flags are never read: two faces that walk a shared edge in opposite directions agree, and a group enclosing negative volume is inside out.
 
+```mermaid
+flowchart LR
+    C["EdgeChain"] -- "opposed" --> S["face_signs"]
+    M["face Mesh"] -- "six_volume" --> S
+    S --> O["outward normals"]
+    style S fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=1-78 -->
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=79-113 -->
@@ -117,11 +172,27 @@ flowchart TD
 - A negative face sign flips normals and winding before upload, so shading, culling and boundary facing agree.
 - An edge without a chain is drawn as a sampled ribbon and logged: a display fallback, not a coherent CAD boundary.
 
+```mermaid
+flowchart LR
+    S["face sign"] -- "flip normals + winding" --> A["ArenaRows"]
+    C["chain"] -- "walk_brep_edges" --> P["pipes"]
+    N["no chain"] -- "push_curve_ribbon" --> R["sampled ribbon"]
+    style A fill:#1a1eb2,color:#fff
+    style P fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 07 session_viewer/src/app/walk/brep.rs type -->
 
 ## Step 9 · Fixture and status
 
 A cylinder (closed seam, two circles) and a block with a hole (inner wire) exercise shared and trimmed boundaries.
+
+```mermaid
+flowchart LR
+    X["fixture.rs<br/>cylinder · block with hole"] -- "build()" --> F["CadFixture"]
+    F --> L["lib.rs status"]
+    style X fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 07 session_viewer/src/fixture.rs copy -->
 

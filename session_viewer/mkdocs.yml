@@ -8,8 +8,8 @@ theme:
   font: false
   palette:
     scheme: default
-    primary: blue grey
-    accent: indigo
+    primary: custom
+    accent: custom
   features:
     - navigation.footer
     - navigation.top

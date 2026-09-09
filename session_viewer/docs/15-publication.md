@@ -22,17 +22,40 @@ flowchart TB
 - Skipped geometry fields never decide the window's size: `read_length` reads at least 64 KiB inside the file, larger only for an array that is itself larger, and never past `end`.
 - `slice` borrows an exact cached range, including a valid empty range at the window's end.
 
+```mermaid
+flowchart LR
+    A["cloud .pb bytes"] -- "read_length ≥ 64 KiB" --> W["MetadataWindow<br/>at · bytes"]
+    W -- "slice(at, length)" --> S["exact borrowed range"]
+    style W fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=1,2 -->
 
 ## Step 2 · Refill only on a jump
 
 - `read` reuses the window when the requested range is inside it and replaces it under the same exposed revision otherwise; a changed ETag fails the read instead of mixing two revisions.
 
+```mermaid
+flowchart LR
+    R["read(at, length)"] -- "inside window" --> H["reuse cached bytes"]
+    R -- "outside window" --> F["refill · same ETag"]
+    F -- "ETag changed" --> E["fail the read"]
+    style R fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=3 -->
 
 ## Step 3 · Route the LOD walk through the window
 
 The loop is unchanged: headers, skips and array bodies now borrow from `window` instead of issuing their own requests.
+
+```mermaid
+flowchart LR
+    L["LOD walk loop"] -- "headers · skips · arrays" --> W["window.read"]
+    W --> B["borrowed bytes"]
+    B --> P["parsed LOD fields"]
+    style L fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=4,5,6 -->
 
@@ -44,6 +67,14 @@ A unit test of the range rules, part of the file:
 
 - Publishing writes the immutable geometry revision first, verifies it, then updates the alias and the mutable manifest, so a manifest never points at missing bytes.
 - Credentials stay in the local shell helpers; nothing in the browser bundle can write to the bucket.
+
+```mermaid
+flowchart LR
+    G["geometry bytes"] -- "put + verify" --> R["immutable revision"]
+    R -- "copy" --> A["stable alias"]
+    A -- "then" --> M["mutable manifest"]
+    style R fill:#1a1eb2,color:#fff
+```
 
 <!-- supplied: 15 -->
 

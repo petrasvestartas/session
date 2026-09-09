@@ -33,6 +33,14 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 - A cloud's points arrive in chunks; `Chunk` maps cloud-local indices to lane rows.
 
+```mermaid
+flowchart LR
+    CR["CloudRows<br/>positions · colors"] -- "append · Chunk" --> CL["CloudLane"]
+    CL --> PB["PointBufs<br/>pos · col · nrm"]
+    PB -- "moved? rebind" --> BG["points group"]
+    style CL fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=1-57 -->
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=58-114 -->
@@ -48,6 +56,14 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 ## Step 2 · The LOD walk
 
 - Pure CPU: which octree ranges to draw, given how wide each node's point spacing projects. Small clouds draw whole.
+
+```mermaid
+flowchart LR
+    N["LodNode octree"] -- "projected_spacing" --> W["LodWalk::select"]
+    C["camera · lod_px"] --> W
+    W -- "ranges · finest spacing" --> R["records to draw"]
+    style W fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=1-48 -->
 
@@ -68,6 +84,14 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 | 80 | `first`, `count`, `cum`, `k` |
 | 96 | `rot: [f32; 12]` |
 | 144 | `nrm_first`, `instance`, `flags`, `_pad` |
+
+```mermaid
+flowchart TB
+    RC["RecordCx<br/>camera · clouds · nodes"] -- "prelude · key changed" --> SR["SplatRecord × N<br/>160 B"]
+    SR -- "point pass" --> PT["1× depth + color targets"]
+    PT -- "draw_resolve" --> FP["face pass"]
+    style SR fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-68 -->
 
@@ -95,6 +119,14 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 - `record_of` finds the record whose cumulative range contains the vertex index; `project` folds one mat-vec per point.
 
+```mermaid
+flowchart LR
+    V["vertex_index"] -- "record_of" --> R["SplatRecord"]
+    R -- "project · vs_point" --> P["point disc · fs_point"]
+    P -- "lane depth + color" --> S["splat_resolve<br/>EDL · frag_depth"]
+    style S fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-63 -->
 
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=64-122 -->
@@ -108,6 +140,14 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 <!-- check: 04d -->
 
 ## Step 5 · Wire the lane
+
+```mermaid
+flowchart LR
+    U["Upload.cloud"] -- "set_scene" --> G["Gpu.cloud · Gpu.splat"]
+    G -- "prelude · before faces" --> PP["point pass"]
+    PP -- "draw_resolve · in face pass" --> F["scene depth"]
+    style G fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 04d session_viewer/src/engine/pipelines/layouts.rs type -->
 
@@ -135,6 +175,8 @@ Expected:
 - Status reads **Checkpoint 04 · 4 objects**.
 - Orbit: the points stay round and keep their size on screen.
 
+![Checkpoint 04d: a point cloud through the splat prelude and resolve, next to the earlier lanes.](screenshots/04d.png)
+
 ## What changed
 
 <!-- tree: 04d session_viewer/src/engine -->
@@ -143,6 +185,12 @@ Expected:
 - This checkpoint is the former checkpoint 04: every file now matches it byte for byte.
 
 **Production equivalent:** `src/engine/gpu/cloud.rs`, `lod.rs`, `splat.rs`, `src/shaders/splat.wgsl`, `splat_resolve.wgsl`.
+
+## Try
+
+- Append `?cloud=3`: every point grows on screen; `cloud_size` scales the per-cloud size in the record, the buffers are untouched.
+- Append `?edl=0`: the eye-dome lighting goes away and the cloud reads flat; it is a resolve-pass effect, not stored colour.
+- Append `?lod=64`: fewer octree nodes qualify and the cloud thins with distance; `LodWalk::select` is the only code that changed behaviour.
 
 ## Next
 

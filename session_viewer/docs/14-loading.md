@@ -24,6 +24,13 @@ flowchart TB
 - `parse` accepts YAML, JSON and TOML with one set of semantics and rejects non-finite or non-affine transforms before anything is fetched.
 - `TextItem` is a fixed world-plane label authored in the manifest; its frame must be unit and orthogonal, checked here rather than in a renderer.
 
+```mermaid
+flowchart LR
+    F["yaml · json · toml"] -- "Manifest::parse" --> M["Manifest"] --> I["Item · at · xform"]
+    M --> T["TextItem"]
+    style M fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=1-57 -->
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=58-146 -->
@@ -39,6 +46,13 @@ Parser unit tests, part of the file:
 - A hostile `cv_count` would make a kernel constructor allocate from a declared number; every count is checked against the actual storage length first.
 - `session` walks a decoded protobuf; `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds objects.
 
+```mermaid
+flowchart LR
+    P["decoded protobuf"] -- "validate::session" --> O["counts ≤ storage"]
+    J["JSON document"] -- "validate::json" --> O
+    style O fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 14 session_viewer/src/app/validate.rs copy lines=1-147 -->
 
 <!-- file: 14 session_viewer/src/app/validate.rs type lines=148-232 -->
@@ -50,6 +64,12 @@ Parser unit tests, part of the file:
 - prost decodes the whole message in one call; converting objects into kernel types is the slow part, so `Pacer` yields to the browser every `CHUNK` objects through `next_tick`.
 - The bytes are taken by value and dropped right after prost is done, before the conversion loop starts.
 
+```mermaid
+flowchart LR
+    B["bytes"] -- "prost" --> M["message"] -- "Pacer::tick" --> K["kernel objects"]
+    style M fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=1-60 -->
 
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=61-149 -->
@@ -59,6 +79,12 @@ Parser unit tests, part of the file:
 - Three routes: a named scene (`?scene=` or the last path segment) from the bucket, the local manifest on a dev server, and no route at all on a deployed page, which hands over to the live source.
 - `?data=` overrides where `.pb` files come from; `query_scene` refuses `..`, absolute paths and schemes so a manifest name stays inside one tree.
 
+```mermaid
+flowchart LR
+    U["?scene= · path"] -- "scene_route" --> R["SceneRoute"] --> S["bucket · local · live"]
+    style R fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 14 session_viewer/src/app/route.rs type -->
 
 ## Step 5 · A live source polls with ETags
@@ -66,6 +92,12 @@ Parser unit tests, part of the file:
 - An idle poll must stay cheap: every file is re-read with `If-None-Match`, so an unchanged file answers `304` and is never downloaded or decoded again.
 - A relay message (`EventSource`) only raises a flag that says "look now"; the conditional reads still decide what changed.
 - `Notify` owns its closure handle and detaches it in `Drop`; nothing is leaked with `forget()`.
+
+```mermaid
+flowchart LR
+    E["EventSource"] --> N["Notify flag"] --> C["LiveSource::check"] -- "If-None-Match" --> R["read: Changed · Same"]
+    style C fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=1-90 -->
 
@@ -92,6 +124,12 @@ Parser unit tests, part of the file:
 - Network responses finish in any order; `PendingDocument` keeps manifest order, and `clear_scene` runs only after every item succeeded.
 - Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
 
+```mermaid
+flowchart LR
+    F["responses, any order"] --> P["pending, manifest order"] -- "stale_load?" --> S["clear_scene · Msg::File"]
+    style P fill:#1a1eb2,color:#fff
+```
+
 <!-- file: 14 session_viewer/src/app/loader.rs type hunks=1 -->
 
 <!-- file: 14 session_viewer/src/app/loader.rs type hunks=2 -->
@@ -102,6 +140,14 @@ Parser unit tests, part of the file:
 
 - `decode`, `fetch` and `live` are browser-only; `manifest` and `validate` compile natively too.
 - Manifest text reaches State through one `Msg::Texts`; `set_texts` builds fixed-plane labels and grows the fit bounds by the shaped text extents.
+
+```mermaid
+flowchart LR
+    M["app::mod"] --> D["decode · fetch · live"]
+    T["Msg::Texts"] --> S["set_texts"]
+    style M fill:#1a1eb2,color:#fff
+    style S fill:#1a1eb2,color:#fff
+```
 
 <!-- file: 14 session_viewer/src/app/mod.rs type -->
 
