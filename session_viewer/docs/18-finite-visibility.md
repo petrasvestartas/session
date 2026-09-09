@@ -379,6 +379,10 @@ Expected:
 - Click a manifest text: black letters on a yellow rounded backing; click away: original colors return.
 - Source edges and lines draw with a one-pixel pen; `?thickness=1.5` restores the older weight.
 
+![Checkpoint 18 with the supplied teapot: the rim and foot boundaries stay continuous from two camera positions, and the seams where the lid meets the body remain visible while a neighbouring face passes over their stroke fringe.](screenshots/18-teapot.png)
+
+![Left: a selected manifest text is black on a yellow rounded backing. Middle: the default one-pixel pen on the polyline, magnified five times. Right: `?thickness=1.5`, the older, heavier weight, at the same magnification.](screenshots/18-text-pen.png)
+
 Optional lint gates:
 
 ```sh
@@ -417,6 +421,13 @@ Expected:
 - `State` keeps its ownership; `state/cloud_query.rs` and `state/text.rs` are its companions.
 
 **Production equivalent:** this checkpoint is the current production runtime.
+
+## Try
+
+- Orbit the teapot slowly around its foot and watch the bottom boundary: at checkpoint 17 the same view broke the line into dashes where the body's planes crossed the stroke axis.
+- Set `?thickness=3` and repeat: the finite test is on the stroke axis, so a wider fringe changes the look, not the visibility decision.
+- Overflow a tile on purpose by loading a dense mesh and lowering the tile size in `triangle_tiles.rs`: overflowing lists keep the conservative rejection, and hidden edges never leak through.
+- Click the folded corner of the canvas: the course opens in a new tab from the same `dist/` the viewer is served from.
 
 ## Next
 
