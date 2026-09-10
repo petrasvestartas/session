@@ -15,20 +15,9 @@ impl Gpu {
             (self.config.width, self.config.height),
             self.arena.face_count() / 3,
         ) {
-            self.objects.rebind_ink(
-                &self.ctx,
-                &self.layouts,
-                &super::objects::InkScene {
-                    tiles: &self.arena.tiles,
-                    targets: &self.targets,
-                },
-            );
+            self.rebind_ink();
         }
-        let b = Binds {
-            mvp: &self.frame.mvp_group,
-            line: &self.frame.line_group,
-            instances: &self.objects.group,
-        };
+        let b = self.frame.binds(&self.objects.group);
         self.arena.prepare_visibility(
             &self.ctx,
             encoder,
@@ -50,11 +39,7 @@ impl Gpu {
         self.point_pass(encoder);
 
         let mut draws = {
-            let b = Binds {
-                mvp: &self.frame.mvp_group,
-                line: &self.frame.line_group,
-                instances: &self.objects.group,
-            };
+            let b = self.frame.binds(&self.objects.group);
             let mut pass = self.targets.begin_faces(encoder, view, clear);
             self.face_list(&mut pass, &b)
         };
@@ -89,18 +74,10 @@ impl Gpu {
         let stale = (solid && !self.solid_outline.is_valid(&key))
             || (selected && !self.selection_outline.is_valid(&key));
         if stale {
-            let b = Binds {
-                mvp: &self.frame.mvp_group,
-                line: &self.frame.line_group,
-                instances: &self.objects.group,
-            };
+            let b = self.frame.binds(&self.objects.group);
             // The edges extend the coverage by their own footprint, tested against the same
             // physical depth the ink pass reads, so the ring wraps them.
-            let ink = Binds {
-                mvp: &self.frame.mvp_group,
-                line: &self.frame.line_group,
-                instances: &self.objects.ink_group,
-            };
+            let ink = self.frame.binds(&self.objects.ink_group);
             let edges = self.view.show_mesh_edges;
             if solid && selected {
                 // One rasterization of the faces writes both masks.
@@ -187,16 +164,8 @@ impl Gpu {
     /// Markers follow all strokes so their complete footprints remain on top.
     fn scene_list(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         let v = &self.view;
-        let basic = Binds {
-            mvp: &self.frame.mvp_group,
-            line: &self.frame.line_group,
-            instances: &self.objects.group,
-        };
-        let b = Binds {
-            mvp: &self.frame.mvp_group,
-            line: &self.frame.line_group,
-            instances: &self.objects.ink_group,
-        };
+        let basic = self.frame.binds(&self.objects.group);
+        let b = self.frame.binds(&self.objects.ink_group);
         let mut draws = self.arena.source_faces.draw_highlight(pass, &basic);
         draws += self.arena.draw_print(pass, &basic);
         draws += self
@@ -245,11 +214,7 @@ impl Gpu {
                 window.h.min(view.h),
             )
         });
-        let basic = Binds {
-            mvp: &self.frame.pick_mvp_group,
-            line: &self.frame.pick_line_group,
-            instances: &self.objects.group,
-        };
+        let basic = self.frame.pick_binds(&self.objects.group);
         if self.pick.source_query() {
             if !self.pick.source_initialized() {
                 let mut pass = self.pick.begin_pass(&self.ctx, encoder, view);
@@ -264,11 +229,7 @@ impl Gpu {
                 if let Some((x, y, w, h)) = inner {
                     pass.set_scissor_rect(x, y, w, h);
                 }
-                let source = Binds {
-                    mvp: &self.frame.pick_mvp_group,
-                    line: &self.frame.pick_line_group,
-                    instances: &self.objects.ink_group,
-                };
+                let source = self.frame.pick_binds(&self.objects.ink_group);
                 self.controls.draw_source_ids(&mut pass, &source);
             }
             if let Some(at) = at {
@@ -295,11 +256,7 @@ impl Gpu {
             [self.pick.gradient(), &self.targets.gradient_msaa],
             &self.arena.tiles,
         );
-        let ink = Binds {
-            mvp: &self.frame.pick_mvp_group,
-            line: &self.frame.pick_line_group,
-            instances: &group,
-        };
+        let ink = self.frame.pick_binds(&group);
         {
             let mut pass = self.pick.begin_ink(encoder);
             if let Some((x, y, w, h)) = inner {

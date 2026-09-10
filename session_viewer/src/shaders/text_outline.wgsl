@@ -1,19 +1,5 @@
 // Imported PDF lettering retains the producer's exact positioned outlines. Coverage comes
 // from the pass samples; this shader never lights, thickens or re-spaces the glyphs.
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-
-// Same 96-byte instance record as the arena: model 0, color 64, flags 80,
-// pad 84, spacing 88; the storage-array stride rounds up to 96 bytes.
-struct Instance {
-    model: mat4x4<f32>,
-    color: vec4<f32>,
-    flags: u32,
-    _pad0: f32,
-    spacing: f32,
-}
-@group(2) @binding(0) var<storage, read> instances: array<Instance>;
-@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
-
 struct Vertex {
     @location(0) position: vec3<f32>,
     @location(2) color: vec4<f32>,
@@ -23,11 +9,6 @@ struct Fragment {
     @builtin(position) position: vec4<f32>,
     @location(0) color: vec4<f32>,
     @location(1) @interpolate(flat) object: u32,
-}
-
-// Object-local point to the camera's rebased world frame.
-fn place(object: u32, point: vec3<f32>) -> vec3<f32> {
-    return (instances[object].model * vec4<f32>(point, 1.0)).xyz + translations[object].xyz;
 }
 
 // Apply the original object placement and unlit source/selection color.

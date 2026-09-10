@@ -54,16 +54,6 @@ fn record_of(gid: u32) -> u32 {
     return lo;
 }
 
-fn oct16_decode(p: u32) -> vec3<f32> {
-    let e = vec2<f32>(f32(i32(p << 24u) >> 24u) / 127.0, f32(i32(p << 16u) >> 24u) / 127.0);
-    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
-    if (n.z < 0.0) {
-        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
-        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
-    }
-    return normalize(n);
-}
-
 // Point `gid` projected: pixel centre, radius, depth, lit colour, and its table row.
 fn project(gid: u32) -> Splat {
     var s: Splat;

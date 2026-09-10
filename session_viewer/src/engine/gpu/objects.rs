@@ -111,51 +111,40 @@ pub struct InkScene<'a> {
     pub targets: &'a Targets,
 }
 
-/// Group 2 for ink: the instance columns plus the face pass's depth, both sample counts.
+/// Group 2 for ink: the instance columns, the physical depth and gradient at both sample
+/// counts, and the finite-visibility tables.
 fn ink_instance_group(
     ctx: &GpuCtx,
     l: &Layouts,
+    label: &str,
     buffers: [&wgpu::Buffer; 2],
-    scene: &InkScene,
+    depths: [&wgpu::TextureView; 2],
+    gradients: [&wgpu::TextureView; 2],
+    tiles: &super::triangle_tiles::TriangleTiles,
 ) -> wgpu::BindGroup {
-    let targets = scene.targets;
+    let view = wgpu::BindingResource::TextureView;
+    let entries = [
+        buffers[0].as_entire_binding(),
+        buffers[1].as_entire_binding(),
+        view(depths[0]),
+        view(depths[1]),
+        view(gradients[0]),
+        view(gradients[1]),
+        tiles.projected.as_entire_binding(),
+        tiles.buffer.as_entire_binding(),
+    ];
+    let entries: Vec<wgpu::BindGroupEntry> = entries
+        .into_iter()
+        .enumerate()
+        .map(|(binding, resource)| wgpu::BindGroupEntry {
+            binding: binding as u32,
+            resource,
+        })
+        .collect();
     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("ink.instances.bind_group"),
+        label: Some(label),
         layout: &l.ink_instance,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: buffers[0].as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: buffers[1].as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: wgpu::BindingResource::TextureView(&targets.depth_single),
-            },
-            wgpu::BindGroupEntry {
-                binding: 3,
-                resource: wgpu::BindingResource::TextureView(&targets.depth_msaa),
-            },
-            wgpu::BindGroupEntry {
-                binding: 4,
-                resource: wgpu::BindingResource::TextureView(&targets.gradient_single),
-            },
-            wgpu::BindGroupEntry {
-                binding: 5,
-                resource: wgpu::BindingResource::TextureView(&targets.gradient_msaa),
-            },
-            wgpu::BindGroupEntry {
-                binding: 6,
-                resource: scene.tiles.projected.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 7,
-                resource: scene.tiles.buffer.as_entire_binding(),
-            },
-        ],
+        entries: &entries,
     })
 }
 
@@ -180,7 +169,16 @@ impl InstanceTable {
         );
         let translations = GrowBuf::new(ctx, "instance.translations", 16, ROWS);
         let group = instance_group(ctx, l, &buffer.buf, &translations.buf);
-        let ink_group = ink_instance_group(ctx, l, [&buffer.buf, &translations.buf], scene);
+        let t = scene.targets;
+        let ink_group = ink_instance_group(
+            ctx,
+            l,
+            "ink.instances.bind_group",
+            [&buffer.buf, &translations.buf],
+            [&t.depth_single, &t.depth_msaa],
+            [&t.gradient_single, &t.gradient_msaa],
+            scene.tiles,
+        );
 
         Self {
             geometry_revision: 0,
@@ -199,8 +197,16 @@ impl InstanceTable {
 
     /// Refresh the depth and instance bindings after upload, resize, or release.
     pub fn rebind_ink(&mut self, ctx: &GpuCtx, l: &Layouts, scene: &InkScene) {
-        self.ink_group =
-            ink_instance_group(ctx, l, [&self.buffer.buf, &self.translations.buf], scene);
+        let t = scene.targets;
+        self.ink_group = ink_instance_group(
+            ctx,
+            l,
+            "ink.instances.bind_group",
+            [&self.buffer.buf, &self.translations.buf],
+            [&t.depth_single, &t.depth_msaa],
+            [&t.gradient_single, &t.gradient_msaa],
+            scene.tiles,
+        );
     }
 
     /// Bind pixel-center picking depth separately from the multisampled display depth.
@@ -212,44 +218,15 @@ impl InstanceTable {
         gradients: [&wgpu::TextureView; 2],
         tiles: &super::triangle_tiles::TriangleTiles,
     ) -> wgpu::BindGroup {
-        ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("pick.instances"),
-            layout: &layouts.ink_instance,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: self.buffer.buf.as_entire_binding(),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: self.translations.buf.as_entire_binding(),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 2,
-                    resource: wgpu::BindingResource::TextureView(depths[0]),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 3,
-                    resource: wgpu::BindingResource::TextureView(depths[1]),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 4,
-                    resource: wgpu::BindingResource::TextureView(gradients[0]),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 5,
-                    resource: wgpu::BindingResource::TextureView(gradients[1]),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 6,
-                    resource: tiles.projected.as_entire_binding(),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 7,
-                    resource: tiles.buffer.as_entire_binding(),
-                },
-            ],
-        })
+        ink_instance_group(
+            ctx,
+            layouts,
+            "pick.instances",
+            [&self.buffer.buf, &self.translations.buf],
+            depths,
+            gradients,
+            tiles,
+        )
     }
 
     /// Append one upload's rows: cast once, keep the f64 translation, note the bounded ones,

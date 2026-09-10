@@ -1,19 +1,6 @@
 // Mesh vertex markers: a camera-facing quad template per glyph, trimmed to a disc by the
 // fragment SDF, hidden when every incident face turns away. Group 3 = the glyph table.
 
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-@group(1) @binding(0) var<uniform> line: LineUniform;
-
-struct Instance {
-    model: mat4x4<f32>,
-    color: vec4<f32>,
-    flags: u32,
-    _pad0: f32,
-    spacing: f32,
-};
-@group(2) @binding(0) var<storage, read> instances: array<Instance>;
-@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
-
 struct GlyphPoint {
     center: vec3<f32>,
     radius: f32,
@@ -24,52 +11,10 @@ struct GlyphPoint {
 };
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
-struct LineUniform {
-    thickness: f32,
-    proj_y: f32,
-    ortho_h: f32,
-    vp_h: f32,
-    vp_w: f32,
-    eye_x: f32,
-    eye_y: f32,
-    eye_z: f32,
-    anchor: vec3<f32>,
-    feather: f32,
-    lit: f32,
-    backface: f32,
-    origin: vec2<f32>,
-    frame: vec2<f32>,
-    opacity: f32,
-};
-
-const FACING_UNKNOWN: u32 = 0xffffffffu;
-// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
-const DISC_ID_TAG: u32 = 0x40000000u;
-const FLAG_SELECTED: u32 = 1u;
-const FLAG_HIDDEN: u32 = 2u;
-const FLAG_INSIDE: u32 = 4u;
-const FLAG_OPEN: u32 = 16u;
-const FLAG_SMOOTH: u32 = 64u;
-const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
-const MM_TO_M: f32 = 0.001;
 
 // A marker thins when the object's vertex spacing is under this many marker diameters.
 const MARKER_MIN_DIAMS: f32 = 3.0;
 const TAPER_MIN: f32 = 0.15;
-
-fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
-    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
-}
-
-fn oct16_decode(p: u32) -> vec3<f32> {
-    let e = vec2<f32>(f32(i32(p << 24u) >> 24u) / 127.0, f32(i32(p << 16u) >> 24u) / 127.0);
-    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
-    if (n.z < 0.0) {
-        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
-        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
-    }
-    return normalize(n);
-}
 
 fn screen_radius(clip_w: f32) -> f32 {
     if (line.ortho_h > 0.0) {
@@ -97,14 +42,8 @@ struct VsOut {
 };
 
 fn dead_dot() -> VsOut {
-    var dead: VsOut;
+    var dead: VsOut;  // zero-valued; only the position matters
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
-    dead.color = vec4<f32>(0.0);
-    dead.corner = vec2<f32>(0.0);
-    dead.px = 0.0;
-    dead.inst_id = 0u;
-    dead.centre = vec2<f32>(0.0);
-    dead.depth = 0.0;
     return dead;
 }
 

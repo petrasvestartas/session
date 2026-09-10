@@ -433,39 +433,15 @@ fn pool_pipeline(ctx: &GpuCtx, layout: &wgpu::BindGroupLayout) -> wgpu::RenderPi
         "selection outline pool",
         include_str!("../../shaders/surface_outline.wgsl"),
     );
-    let pipeline_layout = ctx
-        .device
-        .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("selection outline pool"),
-            bind_group_layouts: &[Some(layout)],
-            immediate_size: 0,
-        });
-    ctx.device
-        .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("selection outline pool"),
-            layout: Some(&pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vs_main"),
-                buffers: &[],
-                compilation_options: Default::default(),
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fs_pool"),
-                targets: &[Some(wgpu::ColorTargetState {
-                    format: wgpu::TextureFormat::R8Unorm,
-                    blend: None,
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-                compilation_options: Default::default(),
-            }),
-            primitive: Default::default(),
-            depth_stencil: None,
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        })
+    let groups = [layout];
+    let desc = PipelineDesc::new(&shader, &groups, &[], wgpu::PrimitiveTopology::TriangleList)
+        .with("selection outline pool", "fs_pool")
+        .depth(DepthMode::Detached);
+    let target = Target {
+        format: wgpu::TextureFormat::R8Unorm,
+        samples: 1,
+    };
+    build(&ctx.device, target, &desc)
 }
 
 #[cfg(all(test, not(target_arch = "wasm32")))]

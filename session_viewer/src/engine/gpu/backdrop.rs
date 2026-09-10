@@ -3,7 +3,9 @@
 
 use super::buffers::GpuCtx;
 use super::frame::Binds;
-use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
+use crate::engine::pipelines::{
+    DepthMode, Layouts, PipelineDesc, Target, build, module, scene_module,
+};
 use wgpu::PrimitiveTopology::{LineList, TriangleList};
 
 /// The lane's shaders, for the mirror tests.
@@ -35,7 +37,7 @@ impl BackdropLane {
             "background.shader",
             include_str!("../../shaders/background.wgsl"),
         );
-        let grid_shader = module(
+        let grid_shader = scene_module(
             &ctx.device,
             "grid.shader",
             include_str!("../../shaders/grid.wgsl"),

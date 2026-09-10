@@ -7,7 +7,7 @@
 use super::buffers::{GpuCtx, GrowBuf};
 use super::frame::Binds;
 use crate::engine::pipelines::{
-    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, instance_id_layout, module,
+    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, instance_id_layout, scene_module,
     vertex_layout,
 };
 
@@ -29,7 +29,7 @@ pub struct OutlineTextLane {
 impl OutlineTextLane {
     /// Compile the exact-outline shader against the viewer's shared layouts and device.
     pub fn new(ctx: &GpuCtx, layouts: &Layouts, target: Target) -> Self {
-        let shader = module(
+        let shader = scene_module(
             &ctx.device,
             "text-outline.shader",
             include_str!("../../shaders/text_outline.wgsl"),

@@ -92,23 +92,10 @@ mod tests {
         use crate::engine::gpu::segments::{CylinderSegment, StrokeSegment};
         use std::mem::{offset_of, size_of};
         for (name, source) in lane_shaders() {
-            let source = if source.contains("-> InkColor") {
-                format!(
-                    "{source}\n{}",
-                    concat!(
-                        include_str!("../../shaders/ink_visibility.wgsl"),
-                        "\n",
-                        include_str!("../../shaders/projected_triangle.wgsl")
-                    )
-                )
-            } else {
-                source.to_string()
-            };
-            let source = format!(
-                "{source}\n{}\n{}",
-                include_str!("../../shaders/normals.wgsl"),
-                include_str!("../../shaders/physical.wgsl")
-            );
+            // The backdrop declares no scene binding; every other lane is on the contract.
+            let scene = source.contains("mvp") || source.contains("line.");
+            let source =
+                crate::engine::pipelines::assemble(source, scene, source.contains("-> InkColor"));
             let module = naga::front::wgsl::parse_str(&source)
                 .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
             naga::valid::Validator::new(
@@ -195,19 +182,13 @@ mod tests {
         }
     }
 
-    /// Every shader that declares `Instance` lists the Rust fields, in order.
+    const SCENE: &str = include_str!("../../shaders/scene.wgsl");
+
+    /// The scene contract declares `Instance` with the Rust fields, in order.
     #[test]
     fn instance_mirror() {
         let rust = ["model", "color", "flags", "_pad0", "spacing"];
-        for (name, src) in lane_shaders() {
-            if src.contains("struct Instance") {
-                assert_eq!(
-                    wgsl_fields(src, "Instance"),
-                    rust,
-                    "{name}: Instance fields"
-                );
-            }
-        }
+        assert_eq!(wgsl_fields(SCENE, "Instance"), rust, "Instance fields");
     }
 
     /// Every shader that declares `LineUniform` lists the Rust fields; `eye: [f32; 3]` is
@@ -231,28 +212,30 @@ mod tests {
             "frame",
             "opacity",
         ];
-        for (name, src) in lane_shaders() {
-            if src.contains("struct LineUniform") {
-                assert_eq!(
-                    wgsl_fields(src, "LineUniform"),
-                    rust,
-                    "{name}: LineUniform fields"
-                );
-            }
-        }
+        assert_eq!(
+            wgsl_fields(SCENE, "LineUniform"),
+            rust,
+            "LineUniform fields"
+        );
         assert_eq!(std::mem::size_of::<LineUniform>(), 80);
     }
 
-    /// Every instance-reading shader binds the translation table at group 2 binding 1 and
-    /// adds it through the `place()` helper, never to a direction.
+    /// The translation table is bound at group 2 binding 1 and added through `place()`, never
+    /// to a direction; no lane declares its own copy of the contract.
     #[test]
     fn translations_mirror() {
         let binding = "@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;";
+        assert!(SCENE.contains(binding), "translations binding");
+        assert!(SCENE.contains("fn place("), "the place() helper");
         for (name, src) in lane_shaders() {
-            if src.contains("struct Instance") {
-                assert!(src.contains(binding), "{name}: translations binding");
-                assert!(src.contains("fn place("), "{name}: the place() helper");
-            }
+            assert!(
+                !src.contains("struct Instance"),
+                "{name}: redeclares Instance"
+            );
+            assert!(
+                !src.contains("struct LineUniform"),
+                "{name}: redeclares LineUniform"
+            );
         }
         assert_eq!(&Instance::placeholder().model[12..15], &[0.0; 3]);
     }

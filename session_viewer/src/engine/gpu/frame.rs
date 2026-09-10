@@ -204,6 +204,24 @@ pub struct FrameUniforms {
 }
 
 impl FrameUniforms {
+    /// Groups 0-2 for a scene draw over `instances` (the plain or the ink instance group).
+    pub fn binds<'a>(&'a self, instances: &'a wgpu::BindGroup) -> Binds<'a> {
+        Binds {
+            mvp: &self.mvp_group,
+            line: &self.line_group,
+            instances,
+        }
+    }
+
+    /// Groups 0-2 for the pick pass: the window's uniforms over `instances`.
+    pub fn pick_binds<'a>(&'a self, instances: &'a wgpu::BindGroup) -> Binds<'a> {
+        Binds {
+            mvp: &self.pick_mvp_group,
+            line: &self.pick_line_group,
+            instances,
+        }
+    }
+
     /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
     pub fn allocated_bytes(&self) -> u64 {
         self.mvp_buffer.size()

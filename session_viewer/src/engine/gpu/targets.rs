@@ -43,66 +43,46 @@ impl Targets {
     /// Frame attachments and the opposite-sample-count placeholder binding.
     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
-        let depth = texture_view(
-            ctx,
-            "depth",
-            &TextureSpec {
-                size,
-                format: wgpu::TextureFormat::Depth32Float,
-                samples,
-                usage,
-            },
-        );
-        let msaa = if samples > 1 {
-            Some(texture_view(
+        let attachment = |label, size, format, samples| {
+            texture_view(
                 ctx,
-                "msaa_color",
+                label,
                 &TextureSpec {
                     size,
                     format,
                     samples,
                     usage,
                 },
-            ))
-        } else {
-            None
+            )
         };
+        let depth = attachment("depth", size, wgpu::TextureFormat::Depth32Float, samples);
+        let msaa = (samples > 1).then(|| attachment("msaa_color", size, format, samples));
 
+        // The ink layout binds a single-sampled and a multisampled view of both physical
+        // targets; the pair not in use is a 1x1 placeholder.
         let other_samples = if samples == 1 { 4 } else { 1 };
-        let empty_depth = texture_view(
-            ctx,
+        let empty_depth = attachment(
             "unused.depth",
-            &TextureSpec {
-                size: (1, 1),
-                format: wgpu::TextureFormat::Depth32Float,
-                samples: other_samples,
-                usage,
-            },
+            (1, 1),
+            wgpu::TextureFormat::Depth32Float,
+            other_samples,
         );
         let (depth_single, depth_msaa) = if samples == 1 {
             (depth.clone(), empty_depth)
         } else {
             (empty_depth, depth.clone())
         };
-        let gradient = texture_view(
-            ctx,
+        let gradient = attachment(
             "physical.gradient",
-            &TextureSpec {
-                size,
-                format: wgpu::TextureFormat::Rgba16Float,
-                samples,
-                usage,
-            },
+            size,
+            wgpu::TextureFormat::Rgba16Float,
+            samples,
         );
-        let empty_gradient = texture_view(
-            ctx,
+        let empty_gradient = attachment(
             "unused.gradient",
-            &TextureSpec {
-                size: (1, 1),
-                format: wgpu::TextureFormat::Rgba16Float,
-                samples: other_samples,
-                usage,
-            },
+            (1, 1),
+            wgpu::TextureFormat::Rgba16Float,
+            other_samples,
         );
         let (gradient_single, gradient_msaa) = if samples == 1 {
             (gradient.clone(), empty_gradient)

@@ -3,19 +3,6 @@
 // (free linework) and the pipe table (mesh edges). Group 3 = the segment table. Which edges
 // of a tessellation are ink at all is settled in the walk, on the exact normals.
 
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-@group(1) @binding(0) var<uniform> line: LineUniform;
-
-struct Instance {
-    model: mat4x4<f32>,
-    color: vec4<f32>,
-    flags: u32,
-    _pad0: f32,
-    spacing: f32,
-};
-@group(2) @binding(0) var<storage, read> instances: array<Instance>;
-@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
-
 struct StrokeSegment {
     p0x: f32, p0y: f32, p0z: f32,
     radius: f32,
@@ -30,51 +17,10 @@ struct StrokeSegment {
 @group(3) @binding(1) var<storage, read> source_edges: array<u32>;
 @group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
 
-struct LineUniform {
-    thickness: f32,
-    proj_y: f32,
-    ortho_h: f32,
-    vp_h: f32,
-    vp_w: f32,
-    eye_x: f32,
-    eye_y: f32,
-    eye_z: f32,
-    anchor: vec3<f32>,
-    feather: f32,
-    lit: f32,
-    backface: f32,
-    origin: vec2<f32>,
-    frame: vec2<f32>,
-    opacity: f32,
-};
-
-const FACING_UNKNOWN: u32 = 0xffffffffu;
-const FLAG_SELECTED: u32 = 1u;
-const FLAG_HIDDEN: u32 = 2u;
-const FLAG_INSIDE: u32 = 4u;
-const FLAG_OPEN: u32 = 16u;
-const FLAG_SHEET: u32 = 32u;
-const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
-const MM_TO_M: f32 = 0.001;
-const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 
 // Density taper: a wire thins when shorter than this many pen widths; never below TAPER_MIN.
 const WIRE_MIN_PENS: f32 = 3.0;
 const TAPER_MIN: f32 = 0.15;
-
-fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
-    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
-}
-
-fn oct16_decode(p: u32) -> vec3<f32> {
-    let e = vec2<f32>(f32(i32(p << 24u) >> 24u) / 127.0, f32(i32(p << 16u) >> 24u) / 127.0);
-    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
-    if (n.z < 0.0) {
-        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
-        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
-    }
-    return normalize(n);
-}
 
 // An edge whose two faces both turn away from the eye is inside the solid: not drawn.
 fn edge_faces_camera(facing: u32, n0: vec3<f32>, n1: vec3<f32>, to_eye: vec3<f32>) -> bool {
@@ -172,18 +118,8 @@ fn density_taper(facing: u32, len_px: f32, px: f32) -> f32 {
 }
 
 fn dead_vertex() -> VsOut {
-    var dead: VsOut;
+    var dead: VsOut;  // zero-valued; only the position matters
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
-    dead.color = vec4<f32>(0.0);
-    dead.p = vec2<f32>(0.0);
-    dead.a = vec2<f32>(0.0);
-    dead.b = vec2<f32>(0.0);
-    dead.hw0 = 0.0;
-    dead.hw1 = 0.0;
-    dead.solid = 0.0;
-    dead.inst_id = 0u;
-    dead.segment_index = 0u;
-    dead.end_depth = vec2<f32>(0.0);
     return dead;
 }
 
@@ -247,21 +183,13 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     if ((inst.flags & FLAG_HIDDEN) != 0u) {
         return dead_vertex();
     }
+    if (!neighbor_visible(seg)) {
+        return dead_vertex();
+    }
     let model = inst.model;
 
     let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
     let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
-    // Free polylines and open/inside objects do not need supporting-face normal work; in
-    // x-ray (`P`) every edge shows, back ones included.
-    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0;
-    if (!inside && seg.facing != FACING_UNKNOWN) {
-        let to_eye = toward_eye((w0 + w1) * 0.5);
-        let n0 = face_normal(model, oct16_decode(seg.facing & 0xffffu));
-        let n1 = face_normal(model, oct16_decode(seg.facing >> 16u));
-        if (!edge_faces_camera(seg.facing, n0, n1, to_eye)) {
-            return dead_vertex();
-        }
-    }
 
     let c0 = mvp * vec4<f32>(w0, 1.0);
     let c1 = mvp * vec4<f32>(w1, 1.0);

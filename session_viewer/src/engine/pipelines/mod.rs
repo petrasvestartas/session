@@ -36,6 +36,8 @@ pub enum DepthMode {
     ReadOnlyEqual,
     /// No test, no write: the background.
     Always,
+    /// No depth attachment at all: a full-screen pass over a texture.
+    Detached,
 }
 
 impl DepthMode {
@@ -46,7 +48,7 @@ impl DepthMode {
             DepthMode::OpaqueEqual => (true, wgpu::CompareFunction::GreaterEqual),
             DepthMode::ReadOnly => (false, wgpu::CompareFunction::Greater),
             DepthMode::ReadOnlyEqual => (false, wgpu::CompareFunction::GreaterEqual),
-            DepthMode::Always => (false, wgpu::CompareFunction::Always),
+            DepthMode::Always | DepthMode::Detached => (false, wgpu::CompareFunction::Always),
         }
     }
 }
@@ -60,6 +62,8 @@ pub enum ColorWrite {
     Blended,
     /// Keep the larger value: coverage masks, where a stroke's feather must not dent a face.
     Max,
+    /// No colour at all: a rasterization run for its fragment side effects.
+    Nothing,
 }
 
 impl ColorWrite {
@@ -71,6 +75,7 @@ impl ColorWrite {
                 Some(wgpu::BlendState::ALPHA_BLENDING),
                 wgpu::ColorWrites::ALL,
             ),
+            ColorWrite::Nothing => (None, wgpu::ColorWrites::empty()),
             ColorWrite::Max => {
                 let max = wgpu::BlendComponent {
                     src_factor: wgpu::BlendFactor::One,
@@ -214,37 +219,55 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
     }
 }
 
-/// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
-pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    let source = format!(
-        "{}\n{}\n{}",
-        source,
-        include_str!("../../shaders/normals.wgsl"),
-        include_str!("../../shaders/physical.wgsl")
-    );
+/// The complete WGSL a lane is compiled from: its own source, then the shared files it
+/// relies on. `scene` adds the scene contract (groups 0-2, `Instance`, `LineUniform`, the
+/// flags, `place`); `ink` adds the visibility rule every ink fragment decides with. Every
+/// module gets the normal transform and the physical output struct. The layout test compiles
+/// exactly this text, so what naga validates is what the GPU runs.
+pub fn assemble(source: &str, scene: bool, ink: bool) -> String {
+    let mut text = source.to_string();
+    if scene {
+        text.push('\n');
+        text.push_str(include_str!("../../shaders/scene.wgsl"));
+    }
+    if ink {
+        text.push('\n');
+        text.push_str(include_str!("../../shaders/ink_visibility.wgsl"));
+        text.push('\n');
+        text.push_str(include_str!("../../shaders/projected_triangle.wgsl"));
+    }
+    text.push('\n');
+    text.push_str(include_str!("../../shaders/normals.wgsl"));
+    text.push('\n');
+    text.push_str(include_str!("../../shaders/physical.wgsl"));
+    text
+}
+
+fn compile(device: &wgpu::Device, label: &str, source: String) -> wgpu::ShaderModule {
     device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some(label),
         source: wgpu::ShaderSource::Wgsl(source.into()),
     })
 }
 
-/// Compile an ink lane with the shared visibility rule appended: every ink fragment decides
-/// from the scene depth buffer alone, so all the lanes hide against one another's surfaces.
+/// A shader with its own bindings (the backdrop, the point splats, the silhouettes).
+pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+    compile(device, label, assemble(source, false, false))
+}
+
+/// A lane on the scene contract: faces, lettering, the grid.
+pub fn scene_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+    compile(device, label, assemble(source, true, false))
+}
+
+/// An ink lane: the scene contract plus the shared visibility rule, so every ink fragment
+/// decides from the scene depth buffer alone and all the lanes hide against one another.
 pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    let source = format!(
-        "{}\n{}",
-        source,
-        concat!(
-            include_str!("../../shaders/ink_visibility.wgsl"),
-            "\n",
-            include_str!("../../shaders/projected_triangle.wgsl")
-        )
-    );
-    module(device, label, &source)
+    compile(device, label, assemble(source, true, true))
 }
 
 /// The pipeline layout for `groups`, in slot order.
-fn pipeline_layout(
+pub fn pipeline_layout(
     device: &wgpu::Device,
     label: &str,
     groups: &[&wgpu::BindGroupLayout],
@@ -333,7 +356,7 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
             unclipped_depth: false,
             conservative: false,
         },
-        depth_stencil: Some(wgpu::DepthStencilState {
+        depth_stencil: (desc.depth != DepthMode::Detached).then_some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
             depth_write_enabled: Some(depth_write),
             depth_compare: Some(depth_compare),

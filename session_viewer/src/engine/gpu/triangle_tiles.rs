@@ -5,7 +5,9 @@
 //! pairs. Projection, count, prefix scan and fill run only when their inputs change.
 use super::buffers::{GpuCtx, ROWS, bind_group, uniform_buffer, zeroed_buffer};
 use super::frame::Binds;
-use crate::engine::pipelines::Layouts;
+use crate::engine::pipelines::{
+    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, pipeline_layout,
+};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
 
@@ -505,18 +507,28 @@ impl TilePipelines {
             "triangle.tiles",
             include_str!("../../shaders/triangle_tiles.wgsl"),
         );
-        let raster_pipeline_layout = pipeline_layout(
-            device,
-            "triangle.tiles",
-            &[
-                &layouts.mvp,
-                &layouts.line,
-                &layouts.instance,
-                &raster_layout,
-            ],
-        );
-        let count = raster_pipeline(device, &raster_pipeline_layout, &raster_shader, "fs_count");
-        let fill = raster_pipeline(device, &raster_pipeline_layout, &raster_shader, "fs_fill");
+        // The tile passes rasterize into an R8 target they never write: the fragment side
+        // effects (counts, then list fills) are the output.
+        let raster_groups = [
+            &layouts.mvp,
+            &layouts.line,
+            &layouts.instance,
+            &raster_layout,
+        ];
+        let raster = PipelineDesc::new(
+            &raster_shader,
+            &raster_groups,
+            &[],
+            wgpu::PrimitiveTopology::TriangleList,
+        )
+        .depth(DepthMode::Detached)
+        .color(ColorWrite::Nothing);
+        let tile_target = Target {
+            format: wgpu::TextureFormat::R8Unorm,
+            samples: 1,
+        };
+        let count = build(device, tile_target, &raster.with("fs_count", "fs_count"));
+        let fill = build(device, tile_target, &raster.with("fs_fill", "fs_fill"));
         let scan_shader = shader(
             device,
             "triangle.scan",
@@ -558,23 +570,6 @@ fn shader(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModul
     })
 }
 
-/// Keep pipeline group order visible at each call site.
-fn pipeline_layout(
-    device: &wgpu::Device,
-    label: &str,
-    layouts: &[&wgpu::BindGroupLayout],
-) -> wgpu::PipelineLayout {
-    let mut groups = Vec::with_capacity(layouts.len());
-    for layout in layouts {
-        groups.push(Some(*layout));
-    }
-    device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some(label),
-        bind_group_layouts: &groups,
-        immediate_size: 0,
-    })
-}
-
 /// One named compute entry; no optional features or atomics beyond core WebGPU are needed.
 fn compute_pipeline(
     device: &wgpu::Device,
@@ -593,39 +588,6 @@ fn compute_pipeline(
 }
 
 /// Tile binning is an ordinary single-sample raster pass without a depth attachment.
-fn raster_pipeline(
-    device: &wgpu::Device,
-    layout: &wgpu::PipelineLayout,
-    shader: &wgpu::ShaderModule,
-    entry: &str,
-) -> wgpu::RenderPipeline {
-    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some(entry),
-        layout: Some(layout),
-        vertex: wgpu::VertexState {
-            module: shader,
-            entry_point: Some("vs_main"),
-            compilation_options: Default::default(),
-            buffers: &[],
-        },
-        primitive: Default::default(),
-        depth_stencil: None,
-        multisample: Default::default(),
-        fragment: Some(wgpu::FragmentState {
-            module: shader,
-            entry_point: Some(entry),
-            compilation_options: Default::default(),
-            targets: &[Some(wgpu::ColorTargetState {
-                format: wgpu::TextureFormat::R8Unorm,
-                blend: None,
-                write_mask: wgpu::ColorWrites::empty(),
-            })],
-        }),
-        multiview_mask: None,
-        cache: None,
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

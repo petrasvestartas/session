@@ -1,51 +1,6 @@
-// Mesh faces: lit triangles from the arena. Group 0 camera, 1 line/pen block, 2 instances.
+// Mesh faces: lit triangles from the arena, on the scene contract of scene.wgsl.
 
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-@group(1) @binding(0) var<uniform> line: LineUniform;
-
-struct Instance {
-    model: mat4x4<f32>,
-    color: vec4<f32>,
-    flags: u32,
-    _pad0: f32,
-    spacing: f32,
-}
-@group(2) @binding(0) var<storage, read> instances: array<Instance>;
-@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
-
-struct LineUniform {
-    thickness: f32,
-    proj_y: f32,
-    ortho_h: f32,
-    vp_h: f32,
-    vp_w: f32,
-    eye_x: f32,
-    eye_y: f32,
-    eye_z: f32,
-    anchor: vec3<f32>,
-    feather: f32,
-    lit: f32,
-    backface: f32,
-    origin: vec2<f32>,
-    frame: vec2<f32>,
-    opacity: f32,
-};
-
-const FLAG_SELECTED: u32 = 1u;
-const FLAG_HIDDEN: u32 = 2u;
-const FLAG_PRINT: u32 = 8u;
-const FLAG_OPEN: u32 = 16u;
-const FLAG_SHEET: u32 = 32u;
-const FLAG_SINGLE: u32 = 128u;
-const MM_TO_M: f32 = 0.001;
-const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
 const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
-
-// A point of object `i` in the anchored frame: rotation/scale from the row, translation
-// from the 16 B table a re-anchor rewrites.
-fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
-    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
-}
 
 struct VsIn {
     @location(0) position: vec3<f32>,
@@ -76,15 +31,8 @@ struct VsOut {
 // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
 // stage, so a hidden object stops being pickable as well as drawn.
 fn dead_vertex() -> VsOut {
-    var dead: VsOut;
+    var dead: VsOut;  // zero-valued; the position parks it, no source face is 0xffffffff
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
-    dead.color = vec3<f32>(0.0);
-    dead.world_pos = vec3<f32>(0.0);
-    dead.normal = vec3<f32>(0.0);
-    dead.print = 0.0;
-    dead.inst_id = 0u;
-    dead.mirrored = 0u;
-    dead.selected = 0u;
     dead.source_face = 0xffffffffu;
     return dead;
 }

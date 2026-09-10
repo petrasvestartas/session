@@ -7,7 +7,7 @@ use super::frame::Binds;
 use super::text_outline::{OutlineBuffers, OutlineTextLane};
 use super::upload::drop_rows;
 use crate::engine::pipelines::{
-    Layouts, PipelineDesc, Target, build, instance_id_layout, module, vertex_layout,
+    Layouts, PipelineDesc, Target, build, instance_id_layout, scene_module, vertex_layout,
 };
 use session_rust::RenderVertex;
 use wgpu::PrimitiveTopology::TriangleList;
@@ -104,7 +104,7 @@ impl ArenaLane {
 
     /// Five one-row tables; the first upload sizes them.
     pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-        let shader = module(
+        let shader = scene_module(
             &ctx.device,
             "triangle.shader",
             include_str!("../../shaders/triangle.wgsl"),

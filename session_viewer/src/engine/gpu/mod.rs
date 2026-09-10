@@ -248,6 +248,11 @@ impl Gpu {
             self.cloud.point_count
         );
         self.retarget(false);
+        self.rebind_ink();
+    }
+
+    /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
+    fn rebind_ink(&mut self) {
         self.objects.rebind_ink(
             &self.ctx,
             &self.layouts,
@@ -278,14 +283,7 @@ impl Gpu {
                 self.config.format,
                 samples,
             );
-            self.objects.rebind_ink(
-                &self.ctx,
-                &self.layouts,
-                &InkScene {
-                    targets: &self.targets,
-                    tiles: &self.arena.tiles,
-                },
-            );
+            self.rebind_ink();
         }
         if flip {
             let target = self.target();
@@ -389,14 +387,7 @@ impl Gpu {
             .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
         self.bounds = Aabb::empty();
         self.retarget(false);
-        self.objects.rebind_ink(
-            &self.ctx,
-            &self.layouts,
-            &InkScene {
-                targets: &self.targets,
-                tiles: &self.arena.tiles,
-            },
-        );
+        self.rebind_ink();
     }
 
     /// Flip the selection flag on one object row.

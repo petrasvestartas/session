@@ -1,19 +1,6 @@
 // Free points as SDF dots: one triangle per dot (its incircle is the disc), no template.
 // Group 3 = the glyph table.
 
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-@group(1) @binding(0) var<uniform> line: LineUniform;
-
-struct Instance {
-    model: mat4x4<f32>,
-    color: vec4<f32>,
-    flags: u32,
-    _pad0: f32,
-    spacing: f32,
-};
-@group(2) @binding(0) var<storage, read> instances: array<Instance>;
-@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
-
 struct GlyphPoint {
     center: vec3<f32>,
     radius: f32,
@@ -24,31 +11,6 @@ struct GlyphPoint {
 };
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
-struct LineUniform {
-    thickness: f32,
-    proj_y: f32,
-    ortho_h: f32,
-    vp_h: f32,
-    vp_w: f32,
-    eye_x: f32,
-    eye_y: f32,
-    eye_z: f32,
-    anchor: vec3<f32>,
-    feather: f32,
-    lit: f32,
-    backface: f32,
-    origin: vec2<f32>,
-    frame: vec2<f32>,
-    opacity: f32,
-};
-
-// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
-const DISC_ID_TAG: u32 = 0x40000000u;
-const FLAG_SELECTED: u32 = 1u;
-const FLAG_HIDDEN: u32 = 2u;
-const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
-const HAIRLINE_MIN_ALPHA: f32 = 0.5;
-const MM_TO_M: f32 = 0.001;
 
 // An equilateral triangle whose incircle (radius 1 in corner space) is the visible dot.
 const CORNERS = array<vec2<f32>, 3>(
@@ -56,10 +18,6 @@ const CORNERS = array<vec2<f32>, 3>(
     vec2<f32>(-1.7320508, -1.0),
     vec2<f32>(1.7320508, -1.0),
 );
-
-fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
-    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
-}
 
 struct VsOut {
     @builtin(position) pos: vec4<f32>,
@@ -74,16 +32,8 @@ struct VsOut {
 };
 
 fn dead_dot() -> VsOut {
-    var dead: VsOut;
+    var dead: VsOut;  // zero-valued; only the position matters
     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
-    dead.color = vec4<f32>(0.0);
-    dead.corner = vec2<f32>(0.0);
-    dead.px = 0.0;
-    dead.fade = 0.0;
-    dead.inst_id = 0u;
-    dead.centre = vec2<f32>(0.0);
-    dead.depth = 0.0;
-    dead.point_index = 0u;
     return dead;
 }
 

@@ -1,27 +1,6 @@
 // The ground grid and axes: 50 vertices built from the vertex index, no buffer. Authored in
 // world millimetres about the origin, minus the camera anchor the instance rows are rebased on.
 
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-@group(1) @binding(0) var<uniform> line: LineUniform;
-
-struct LineUniform {
-    thickness: f32,
-    proj_y: f32,
-    ortho_h: f32,
-    vp_h: f32,
-    vp_w: f32,
-    eye_x: f32,
-    eye_y: f32,
-    eye_z: f32,
-    anchor: vec3<f32>,
-    feather: f32,
-    lit: f32,
-    backface: f32,
-    origin: vec2<f32>,
-    frame: vec2<f32>,
-    opacity: f32,
-};
-
 const STEP: f32 = 1000.0;   // mm per cell
 const HALF: f32 = 5000.0;   // +-5 m floor
 const N: u32 = 5u;          // cells per side of the centre
