@@ -219,22 +219,15 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
     }
 }
 
-/// The complete WGSL a lane is compiled from: its own source, then the shared files it
-/// relies on. `scene` adds the scene contract (groups 0-2, `Instance`, `LineUniform`, the
-/// flags, `place`); `ink` adds the visibility rule every ink fragment decides with. Every
-/// module gets the normal transform and the physical output struct. The layout test compiles
+/// The complete WGSL a shader is compiled from: its own source, the scene contract when it
+/// is on it (groups 0-2, `Instance`, `LineUniform`, the flags, `place`), then the normal
+/// transform and the physical output struct every module gets. The layout test compiles
 /// exactly this text, so what naga validates is what the GPU runs.
-pub fn assemble(source: &str, scene: bool, ink: bool) -> String {
+pub fn assemble(source: &str, scene: bool) -> String {
     let mut text = source.to_string();
     if scene {
         text.push('\n');
         text.push_str(include_str!("../../shaders/scene.wgsl"));
-    }
-    if ink {
-        text.push('\n');
-        text.push_str(include_str!("../../shaders/ink_visibility.wgsl"));
-        text.push('\n');
-        text.push_str(include_str!("../../shaders/projected_triangle.wgsl"));
     }
     text.push('\n');
     text.push_str(include_str!("../../shaders/normals.wgsl"));
@@ -252,18 +245,25 @@ fn compile(device: &wgpu::Device, label: &str, source: String) -> wgpu::ShaderMo
 
 /// A shader with its own bindings (the backdrop, the point splats, the silhouettes).
 pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    compile(device, label, assemble(source, false, false))
+    compile(device, label, assemble(source, false))
 }
 
 /// A lane on the scene contract: faces, lettering, the grid.
 pub fn scene_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    compile(device, label, assemble(source, true, false))
+    compile(device, label, assemble(source, true))
 }
 
-/// An ink lane: the scene contract plus the shared visibility rule, so every ink fragment
-/// decides from the scene depth buffer alone and all the lanes hide against one another.
+/// The shared visibility rule and the projected-triangle records every ink fragment decides
+/// with, so all the ink lanes hide against one another's surfaces.
+pub const INK: &str = concat!(
+    include_str!("../../shaders/ink_visibility.wgsl"),
+    "\n",
+    include_str!("../../shaders/projected_triangle.wgsl")
+);
+
+/// An ink lane: the scene contract plus the ink rule.
 pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    compile(device, label, assemble(source, true, true))
+    compile(device, label, assemble(&format!("{source}\n{INK}"), true))
 }
 
 /// The pipeline layout for `groups`, in slot order.

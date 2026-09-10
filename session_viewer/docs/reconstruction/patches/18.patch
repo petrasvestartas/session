@@ -2989,30 +2989,6 @@ index 15b19d9bce396b42bbebfd3c37bbb689e76ddc60..246bcffd9e9dd0a0ee19f55a26376867
      // Hide centered names to inspect short strokes; nameplate-scene.cjs checks their default display.
      await key(page,'t');
      await page.screenshot({path:path.join(output,`scene-dpr-${dpr}.png`)});
-diff --git a/session_viewer/tests/modularity.py b/session_viewer/tests/modularity.py
-index a8c8fedeb3bad81226968303d92010fe69b9e99a..9c9e545434fc5b26e30440666ce7c55517291cd8 100644
---- a/session_viewer/tests/modularity.py
-+++ b/session_viewer/tests/modularity.py
-@@ -89,7 +89,7 @@ def main():
-     assert not (viewer / "src/app/walk/points.rs").exists()
-     assert hashlib.sha256(original_point.read_bytes()).hexdigest() == original_hash, "production point producer must remain untouched"
-     metadata = {"removed": "src/app/walk/points.rs", "source_point_module_sha256": original_hash,
--                "serialized_objects": 8, "expected_drawable_objects": 7, "fixture": str(fixture),
-+                "serialized_objects": 8, "expected_drawable_objects": 7, "document_title_rows": 1, "fixture": str(fixture),
-                 "policy": "skip standalone Geometry::Point before row allocation; retain shared marker/cloud GPU lanes"}
-     (scratch / "removal.json").write_text(json.dumps(metadata, indent=2))
-     if args.prepare_only:
-@@ -107,7 +107,9 @@ def main():
-     for dpr in (1, 2):
-         cases = json.loads((scratch / f"browser/interaction-dpr-{dpr}.json").read_text())
-         assert len(cases) == 7
--        assert all(case["state"]["objects"] == 7 for case in cases), "standalone point probe must not allocate a row"
-+        # Seven geometry families plus the document-title text object, itself a source row;
-+        # a ninth row would mean the removed point producer still allocated one.
-+        assert all(case["state"]["objects"] == 8 for case in cases), "standalone point probe must not allocate a row"
-     metadata["browser_verified_dpr"] = [1, 2]
-     (scratch / "removal.json").write_text(json.dumps(metadata, indent=2))
-     print(f"PASS standalone point producer removed; seven remaining source families render/select at DPR1/2. Scratch: {scratch}")
 diff --git a/session_viewer/tests/nameplate-scene.cjs b/session_viewer/tests/nameplate-scene.cjs
 index 2c2457ccce3eabffcc9fd33df9c2a5347607b4df..64f285451a52535fd3f0c955d8f4435ccfdcb6ce 100644
 --- a/session_viewer/tests/nameplate-scene.cjs
@@ -3038,44 +3014,6 @@ index 2c2457ccce3eabffcc9fd33df9c2a5347607b4df..64f285451a52535fd3f0c955d8f4435c
    if(label.rounded)assert.ok(label.padding[0]>=label.line_box[1]/2+label.padding[1], 'the complete shaped line must fit between the rounded caps');
    const center=project(state,label.world);
    const width=(label.line_box[0]+2*label.padding[0])*dpr,height=(label.line_box[1]+2*label.padding[1])*dpr;
-diff --git a/session_viewer/tests/picking-performance.cjs b/session_viewer/tests/picking-performance.cjs
-index 6934db3bf8bf88d26a5234022eb1d69be8a61980..662a0a5a0c2fbd1fcce926e49ec913b1895d5c09 100644
---- a/session_viewer/tests/picking-performance.cjs
-+++ b/session_viewer/tests/picking-performance.cjs
-@@ -264,6 +264,12 @@ async function main() {
-   assert(Number.isInteger(count) && count>0,'sample count must be positive');
-   const versions = [{name:'baseline',url:process.env.VIEWER_BASELINE_URL || 'http://127.0.0.1:45693/'},
-     {name:'current',url:process.env.VIEWER_URL || 'http://127.0.0.1:18772/'}];
-+  // Both builds are prerequisites this runner cannot supply: say which one is missing before
-+  // a browser is launched, instead of failing inside a navigation timeout.
-+  for (const version of versions) {
-+    try { await fetch(version.url); }
-+    catch (error) { throw new Error(`${version.name} viewer is not reachable at ${version.url}; serve a controlled baseline build (VIEWER_BASELINE_URL) and the current build (VIEWER_URL) before running this comparison`); }
-+  }
-   const browser = await chromium.launch({executablePath:process.env.CHROME_BIN || '/usr/bin/google-chrome',
-     headless:process.env.VIEWER_HEADLESS==='1',args:JSON.parse(process.env.VIEWER_CHROME_ARGS || '[]')});
-   const reports = [];
-diff --git a/session_viewer/tests/scene-text.cjs b/session_viewer/tests/scene-text.cjs
-index 55bdfa6b65a3f2e55f2a27c8ebfb5cf94bdd850f..8a78a21207b9a43ce7600cbe9aa76392e31c95ce 100644
---- a/session_viewer/tests/scene-text.cjs
-+++ b/session_viewer/tests/scene-text.cjs
-@@ -61,7 +61,7 @@ async function main() {
-       await page.waitForFunction(row => JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).selected === row,label.object);
-       state = await page.evaluate(snapshot);
-       assert.equal(state.selection,'Object');
--      assert.deepEqual(state.text_labels.find(item => item.id === label.id).color,[255,255,255,255]);
-+      assert.deepEqual(state.text_labels.find(item => item.id === label.id).color,[0,0,0,255]);
-       await page.locator('#canvas').screenshot({path:path.join(output,`${kind}-selected-dpr${dpr}.png`)});
-       await page.keyboard.press('h');
-       await page.waitForFunction(id => !JSON.parse(document.querySelector('#canvas').getAttribute('data-viewer-inspection')).text_labels.some(label => label.id === id),label.id);
-@@ -78,6 +78,6 @@ async function main() {
-     }
-   } finally { await browser.close(); }
-   await fs.writeFile(path.join(output,'results.json'),JSON.stringify(reports,null,2)+'\n');
--  console.log('PASS camera-facing source text: real picks, white glyphs, hide/show, F and DPR1/2');
-+  console.log('PASS camera-facing source text: real picks, black selected glyphs, hide/show, F and DPR1/2');
- }
- main().catch(function failed(error) { console.error(error); process.exitCode = 1; });
 diff --git a/session_viewer/tests/selection-overlap.py b/session_viewer/tests/selection-overlap.py
 index 069829233a25c44cd7ab41f5753492efad11b2dd..26ae2cd85ae2a2a2f5a5db767276115e3221f9e6 100644
 --- a/session_viewer/tests/selection-overlap.py

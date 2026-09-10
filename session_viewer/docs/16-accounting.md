@@ -18,12 +18,12 @@ flowchart TB
 
 ## Step 1 · Native tooling the crate declares
 
-`Cargo.toml` will name native examples; their sources and the offscreen harness are supplied, not taught. Install them now so the manifest can refer to them.
+Cargo discovers every file under `examples/` as a native example; their sources and the offscreen harness are supplied, not taught. Install them now, and give the manifest its native-only dependency.
 
 ```mermaid
 flowchart LR
-    S["supplied examples/ · tests/"] --> C["Cargo.toml<br/>[[example]] entries"]
-    C --> N["native tooling builds"]
+    S["supplied examples/ · tests/"] --> C["Cargo.toml<br/>native-only pollster"]
+    C --> N["cargo xtest · examples build"]
     style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 

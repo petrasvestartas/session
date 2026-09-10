@@ -96,9 +96,13 @@ def plan(repo, ref, production):
     return final_id, assignment
 
 
-def apply_to_step(repo, commit, assigned):
+def apply_to_step(repo, commit, assigned, additions=()):
     """Check out the step, apply its hunks against the current file text, amend."""
     git(repo, "checkout", "-q", commit)
+    for name, source in additions:
+        target = repo / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
     for name, bodies in assigned.items():
         path = repo / name
         patch = f"--- a/{name}\n+++ b/{name}\n" + "".join(bodies)
@@ -118,23 +122,48 @@ def main():
     parser.add_argument("--production", type=Path, default=HERE.parent.parent.parent)
     parser.add_argument("--plan", action="store_true", help="print the hunk assignment and stop")
     parser.add_argument("--only", action="append", help="fold only these files (repeatable)")
+    parser.add_argument("--pin", action="append", default=[], metavar="FILE:FROM=TO",
+                        help="move the hunks blame assigned to step FROM for FILE into step TO (repeatable)")
+    parser.add_argument("--add", action="append", default=[], metavar="FILE=STEP",
+                        help="a file new to production: create it at STEP with its production bytes (repeatable)")
     args = parser.parse_args()
     repo = args.repo.resolve()
-    final_id, assignment = plan(repo, args.ref, args.production.resolve())
+    production = args.production.resolve()
+    final_id, assignment = plan(repo, args.ref, production)
+    for pin in args.pin:
+        spec, to = pin.split("=")
+        name, source = spec.rsplit(":", 1)
+        bodies = assignment.get(source, {}).pop(name, None)
+        if bodies is None:
+            sys.exit(f"nothing assigned to {name} at {source}")
+        assignment[to][name].extend(bodies)
+    additions = {}
+    for add in args.add:
+        name, step = add.split("=")
+        additions.setdefault(step, []).append(name)
     if args.only:
         assignment = {step: {name: bodies for name, bodies in files.items() if name in args.only}
                       for step, files in assignment.items()}
         assignment = {step: files for step, files in assignment.items() if files}
     order = [step_id for _, step_id in steps(repo, args.ref)]
+    assignment = {step: files for step, files in assignment.items() if files}
+    for step in additions:
+        assignment.setdefault(step, {})
     for step in sorted(assignment, key=order.index):
         for name, bodies in sorted(assignment[step].items()):
             print(f"{step}  {name}  {len(bodies)} hunk(s)")
+            if args.plan:
+                for body in bodies:
+                    first = next((line[1:].strip() for line in body.splitlines()[1:] if line.startswith(("+", "-")) and line[1:].strip()), "")
+                    print(f"        {body.splitlines()[0].split(' @@')[0]}  {first[:90]}")
+        for name in additions.get(step, []):
+            print(f"{step}  {name}  new file")
     if args.plan or not assignment:
         return
     for step in sorted(assignment, key=order.index):
         commits = dict((step_id, commit) for commit, step_id in steps(repo, args.ref))
         old = commits[step]
-        new = apply_to_step(repo, old, assignment[step])
+        new = apply_to_step(repo, old, assignment[step], [(name, production / name) for name in additions.get(step, [])])
         result = git(repo, "rebase", "--onto", new, old, args.ref, check=False)
         if result.returncode != 0:
             print(result.stdout, result.stderr)

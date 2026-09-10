@@ -94,8 +94,12 @@ mod tests {
         for (name, source) in lane_shaders() {
             // The backdrop declares no scene binding; every other lane is on the contract.
             let scene = source.contains("mvp") || source.contains("line.");
-            let source =
-                crate::engine::pipelines::assemble(source, scene, source.contains("-> InkColor"));
+            let source = if source.contains("-> InkColor") {
+                format!("{source}\n{}", crate::engine::pipelines::INK)
+            } else {
+                source.to_string()
+            };
+            let source = crate::engine::pipelines::assemble(&source, scene);
             let module = naga::front::wgsl::parse_str(&source)
                 .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
             naga::valid::Validator::new(
