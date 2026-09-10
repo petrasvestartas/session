@@ -11,7 +11,6 @@ struct GlyphPoint {
 };
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
-
 // An equilateral triangle whose incircle (radius 1 in corner space) is the visible dot.
 const CORNERS = array<vec2<f32>, 3>(
     vec2<f32>(0.0, 2.0),

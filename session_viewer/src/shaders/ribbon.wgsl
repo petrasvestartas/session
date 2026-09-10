@@ -17,7 +17,6 @@ struct StrokeSegment {
 @group(3) @binding(1) var<storage, read> source_edges: array<u32>;
 @group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
 
-
 // Density taper: a wire thins when shorter than this many pen widths; never below TAPER_MIN.
 const WIRE_MIN_PENS: f32 = 3.0;
 const TAPER_MIN: f32 = 0.15;

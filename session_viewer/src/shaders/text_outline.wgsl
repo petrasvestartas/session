@@ -1,5 +1,6 @@
 // Imported PDF lettering retains the producer's exact positioned outlines. Coverage comes
 // from the pass samples; this shader never lights, thickens or re-spaces the glyphs.
+
 struct Vertex {
     @location(0) position: vec3<f32>,
     @location(2) color: vec4<f32>,

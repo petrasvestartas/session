@@ -11,7 +11,6 @@ struct GlyphPoint {
 };
 @group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
 
-
 // A marker thins when the object's vertex spacing is under this many marker diameters.
 const MARKER_MIN_DIAMS: f32 = 3.0;
 const TAPER_MIN: f32 = 0.15;
