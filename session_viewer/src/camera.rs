@@ -156,7 +156,6 @@ impl Camera {
         if !self.perspective || !bounds.is_finite() {
             return;
         }
-        let (min, max) = (bounds.min, bounds.max);
         let s = self.unit.to_meters();
         let t = self.origin(); // target, world units
         let right = self.orientation.rotate_vector(Vector::x_axis());
@@ -170,11 +169,11 @@ impl Camera {
         let half_w = half_h * aspect;
         let mut lo = [f64::INFINITY; 3];
         let mut hi = [f64::NEG_INFINITY; 3];
-        for k in 0..8u32 {
+        for corner in bounds.corners() {
             let c = [
-                (if k & 1 == 0 { min[0] } else { max[0] }) as f64 - t[0],
-                (if k & 2 == 0 { min[1] } else { max[1] }) as f64 - t[1],
-                (if k & 4 == 0 { min[2] } else { max[2] }) as f64 - t[2],
+                corner[0] as f64 - t[0],
+                corner[1] as f64 - t[1],
+                corner[2] as f64 - t[2],
             ];
             let dx = (c[0] * right[0] + c[1] * right[1] + c[2] * right[2]).clamp(-half_w, half_w);
             let dy = (c[0] * up[0] + c[1] * up[1] + c[2] * up[2]).clamp(-half_h, half_h);
@@ -334,12 +333,7 @@ impl Camera {
         // proportionally more distance, hence the `+ z` rather than a max of the two separately.
         let mut distance: f64 = 0.0;
         let mut extent: f64 = 0.0;
-        for c in 0..8u32 {
-            let p = [
-                (if c & 1 == 0 { min[0] } else { max[0] }) as f64 * s - self.target[0],
-                (if c & 2 == 0 { min[1] } else { max[1] }) as f64 * s - self.target[1],
-                (if c & 4 == 0 { min[2] } else { max[2] }) as f64 * s - self.target[2],
-            ];
+        for p in self.offsets(bounds) {
             let (x, y, z) = (dot3(&p, &right), dot3(&p, &up), dot3(&p, &fwd));
             extent = extent.max((x * x + y * y + z * z).sqrt());
             distance = distance.max(x.abs() / tx + z);
@@ -358,19 +352,24 @@ impl Camera {
 
     /// Grow the far-plane floor to cover a scene that streamed in after the last fit.
     /// without touching the view. Same definition as fit's: the farthest scene corner from the target in meters.
+    /// The box's corners in metres, relative to the current target.
+    fn offsets(&self, bounds: &Aabb) -> [[f64; 3]; 8] {
+        let s = self.unit.to_meters();
+        bounds.corners().map(|c| {
+            [
+                c[0] as f64 * s - self.target[0],
+                c[1] as f64 * s - self.target[1],
+                c[2] as f64 * s - self.target[2],
+            ]
+        })
+    }
+
     pub fn grow_extent(&mut self, bounds: &Aabb) {
         if !bounds.is_finite() {
             return;
         }
-        let (min, max) = (bounds.min, bounds.max);
-        let s = self.unit.to_meters();
         let mut extent: f64 = 0.0;
-        for c in 0..8u32 {
-            let p = [
-                (if c & 1 == 0 { min[0] } else { max[0] }) as f64 * s - self.target[0],
-                (if c & 2 == 0 { min[1] } else { max[1] }) as f64 * s - self.target[1],
-                (if c & 4 == 0 { min[2] } else { max[2] }) as f64 * s - self.target[2],
-            ];
+        for p in self.offsets(bounds) {
             extent = extent.max((p[0] * p[0] + p[1] * p[1] + p[2] * p[2]).sqrt());
         }
         if extent.is_finite() && extent > self.scene_extent {

@@ -132,7 +132,12 @@ pub async fn content_length(url: &str) -> Option<u64> {
         .ok()?
         .dyn_into()
         .ok()?;
-    resp.headers().get("Content-Length").ok().flatten()?.parse().ok()
+    resp.headers()
+        .get("Content-Length")
+        .ok()
+        .flatten()?
+        .parse()
+        .ok()
 }
 
 /// GET a whole file, revalidating any cached copy (a re-uploaded file is never stale, an
@@ -154,22 +159,35 @@ pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
 
 /// GET a byte range. Refuses anything but `206`: a server that ignores `Range` answers `200`
 /// with the WHOLE body, which for a 431 MB scan would be catastrophic and silent.
-pub async fn fetch_range(url: &str, start: u64, len: u64) -> Result<Vec<u8>, String> {
-    let r = get(
+/// One revision-checked range read: HTTP 206 with exactly `len` bytes, revalidated, and when
+/// `revision` is known the ETag must still match it, so a source republished mid-read is
+/// refused rather than mixed. Returns the bytes and the ETag they came with.
+pub async fn fetch_range(
+    url: &str,
+    start: u64,
+    len: u64,
+    revision: &Option<String>,
+) -> Result<(Vec<u8>, Option<String>), String> {
+    let reply = get(
         url,
         &GetOpts {
             range: Some((start, len)),
+            revalidate: true,
             ..GetOpts::default()
         },
     )
     .await?;
-    if r.status != 206 {
+    if reply.status != 206 || reply.bytes.len() as u64 != len {
         return Err(format!(
-            "server ignored Range (HTTP {}) for {url}",
-            r.status
+            "Range read failed for {url} (HTTP {}, {} of {len} bytes)",
+            reply.status,
+            reply.bytes.len()
         ));
     }
-    Ok(r.bytes)
+    if revision.is_some() && revision != &reply.etag {
+        return Err(format!("{url} changed during the read; reload it"));
+    }
+    Ok((reply.bytes, reply.etag))
 }
 
 /// `setTimeout(resolve, ms)` as the executor `Promise::new` wants.

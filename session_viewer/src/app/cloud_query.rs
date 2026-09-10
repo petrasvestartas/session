@@ -271,39 +271,10 @@ pub struct Resolved {
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
-    use crate::app::{
-        fetch::{GetOpts, get},
-        loader::post,
-    };
+    use crate::app::loader::post;
 
     /// Validate the exact ranged body and any exposed revision; never consume a whole-file 200.
-    async fn range(
-        url: &str,
-        at: u64,
-        len: u64,
-        revision: &Option<String>,
-    ) -> Result<(Vec<u8>, Option<String>), String> {
-        let reply = get(
-            url,
-            &GetOpts {
-                range: Some((at, len)),
-                revalidate: true,
-                ..Default::default()
-            },
-        )
-        .await?;
-        if reply.status != 206 || reply.bytes.len() as u64 != len {
-            return Err(format!(
-                "Source range failed (HTTP {}, {} of {len} bytes)",
-                reply.status,
-                reply.bytes.len()
-            ));
-        }
-        if revision.is_some() && revision != &reply.etag {
-            return Err("Source changed during point selection; reload the cloud".to_string());
-        }
-        Ok((reply.bytes, reply.etag))
-    }
+    use crate::app::fetch::fetch_range as range;
 
     /// Owned request data outlives the event-loop borrow, with one shared cancellation token.
     struct SourceRequest {

@@ -2,10 +2,9 @@
 //! Document titles and manifest text use this same path; the selected-name annotation does not.
 
 use super::Scene;
-use crate::engine::gpu::{Gpu, ObjectRow};
+use crate::engine::gpu::Gpu;
 use crate::engine::text::{TextLabel, TextObject, TextPlacement};
 use session_rust::Xform;
-use std::rc::Rc;
 
 /// Retained source text and its ordinary scene row. Inactive slots survive replacement so
 /// a manifest reload cannot accidentally reassign another text's hidden identity.
@@ -82,16 +81,7 @@ impl Scene {
                 return;
             }
         }
-        let row = self.bases.obj + self.tables.obj.rows.len() as u32;
-        let guid: Rc<str> = Rc::from(key.as_str());
-        self.order.push(Rc::clone(&guid));
-        self.owners.push(usize::MAX);
-        self.guid_to_row.insert((usize::MAX, guid), row);
-        self.ribbon_ranges.push(None);
-        self.tables
-            .obj
-            .rows
-            .push(ObjectRow::new(Xform::identity().m, 0));
+        let row = self.push_row(usize::MAX, &key, Xform::identity().m, 0);
         label.id = row + 1;
         label.object = Some(TextObject {
             row,
@@ -113,17 +103,6 @@ impl Scene {
                 .is_some_and(|id| self.hidden.contains(&id));
             gpu.set_hidden(text.row, !text.active || hidden);
         }
-    }
-
-    /// Current manifest row, retained for source lookup independently of title insertion order.
-    pub fn text_row(&self, index: usize) -> Option<u32> {
-        let key = format!("manifest-text/{index}");
-        for text in &self.texts {
-            if text.active && text.key == key {
-                return Some(text.row);
-            }
-        }
-        None
     }
 
     /// Resolve a source text independently of geometry document indices.

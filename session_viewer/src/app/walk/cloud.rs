@@ -44,7 +44,6 @@ pub fn walk_cloud(c: &mut CloudRows, pc: &PointCloud, cx: &WalkCx) -> Row {
         spacing: px,
         flags: 0,
         faces: false,
-        thickness: bounds.thinnest(),
     }
 }
 

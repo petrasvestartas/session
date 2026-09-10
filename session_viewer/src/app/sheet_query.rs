@@ -102,39 +102,10 @@ pub struct Resolved {
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
-    use crate::app::{
-        fetch::{GetOpts, get},
-        loader::post,
-    };
+    use crate::app::loader::post;
 
     /// Validate the exact ranged body and any exposed revision; never consume a whole-file 200.
-    async fn range(
-        url: &str,
-        at: u64,
-        len: u64,
-        revision: &Option<String>,
-    ) -> Result<(Vec<u8>, Option<String>), String> {
-        let reply = get(
-            url,
-            &GetOpts {
-                range: Some((at, len)),
-                revalidate: true,
-                ..Default::default()
-            },
-        )
-        .await?;
-        if reply.status != 206 || reply.bytes.len() as u64 != len {
-            return Err(format!(
-                "Side table range failed (HTTP {}, {} of {len} bytes)",
-                reply.status,
-                reply.bytes.len()
-            ));
-        }
-        if revision.is_some() && revision != &reply.etag {
-            return Err("Side table changed during selection; reload the sheet".to_string());
-        }
-        Ok((reply.bytes, reply.etag))
-    }
+    use crate::app::fetch::fetch_range as range;
 
     /// Schedule one entity read; the named task posts its completion to the event loop.
     pub fn fetch_entity(query: &Query, url: String, table: Option<SheetTable>, entities: u32) {

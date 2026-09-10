@@ -523,7 +523,7 @@ pub use web::*;
 #[cfg(target_arch = "wasm32")]
 mod web {
     use super::*;
-    use crate::app::fetch::{GetOpts, get};
+    use crate::app::fetch::{GetOpts, fetch_range, get};
     use crate::app::walk::sheet::SheetRows;
 
     const POINT_BYTES: u64 = 24;
@@ -562,23 +562,7 @@ mod web {
         if length == 0 {
             return Some(Vec::new());
         }
-        let reply = get(
-            url,
-            &GetOpts {
-                range: Some((at, length)),
-                revalidate: true,
-                ..Default::default()
-            },
-        )
-        .await
-        .ok()?;
-        if reply.status != 206 || reply.bytes.len() as u64 != length {
-            return None;
-        }
-        if revision.is_some() && revision != &reply.etag {
-            return None;
-        }
-        Some(reply.bytes)
+        Some(fetch_range(url, at, length, revision).await.ok()?.0)
     }
 
     /// Locate the coordinate/color runs without crossing the enclosing cloud message.

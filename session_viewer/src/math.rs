@@ -120,25 +120,21 @@ impl Aabb {
         if !self.is_finite() {
             return out;
         }
-        for c in 0..8u32 {
-            let p = [
-                if c & 1 == 0 { self.min[0] } else { self.max[0] },
-                if c & 2 == 0 { self.min[1] } else { self.max[1] },
-                if c & 4 == 0 { self.min[2] } else { self.max[2] },
-            ];
+        for p in self.corners() {
             out.grow(xform_point(m, p));
         }
         out
     }
 
-    /// The smallest axis length - a plate's thickness - 0 when empty.
-    pub fn thinnest(&self) -> f32 {
-        if !self.is_finite() {
-            return 0.0;
-        }
-        (self.max[0] - self.min[0])
-            .min(self.max[1] - self.min[1])
-            .min(self.max[2] - self.min[2])
+    /// The eight corners, bit k of the index choosing min or max on axis k.
+    pub fn corners(&self) -> [[f32; 3]; 8] {
+        std::array::from_fn(|c| {
+            [
+                if c & 1 == 0 { self.min[0] } else { self.max[0] },
+                if c & 2 == 0 { self.min[1] } else { self.max[1] },
+                if c & 4 == 0 { self.min[2] } else { self.max[2] },
+            ]
+        })
     }
 
     /// The diagonal length, 0 when empty.

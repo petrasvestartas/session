@@ -62,7 +62,9 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         Some(named) => named,
         None => match instance.request_adapter(&options(preferred)).await {
             Ok(adapter) => adapter,
-            Err(_) if preferred != default_power => instance.request_adapter(&options(default_power)).await?,
+            Err(_) if preferred != default_power => {
+                instance.request_adapter(&options(default_power)).await?
+            }
             Err(error) => return Err(error.into()),
         },
     };

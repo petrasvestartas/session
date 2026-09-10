@@ -9,12 +9,12 @@
 // centroid, the same edge and halfedge topology, the same JSON. `PB_BYTES=1` additionally
 // requires the ENCODED .pb bytes to match - see the note at that check for why it is off.
 use session_rust::{Session, Xform};
-use session_viewer::app::scene::{FileDoc, Scene};
+use session_viewer::app::scene::{Doc, Scene};
 
 fn tables(bytes: &[u8]) -> Scene {
     let s = Session::pb_loads(bytes).expect("pb_loads");
     let mut sc = Scene::new();
-    sc.add_file(FileDoc {
+    sc.add_file(Doc {
         name: "d".into(),
         session: std::rc::Rc::new(s),
         place: Xform::identity(),

@@ -3,12 +3,12 @@
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 
 // Same 96-byte instance record as the arena: model 0, color 64, flags 80,
-// thickness 84, spacing 88; the storage-array stride rounds up to 96 bytes.
+// pad 84, spacing 88; the storage-array stride rounds up to 96 bytes.
 struct Instance {
     model: mat4x4<f32>,
     color: vec4<f32>,
     flags: u32,
-    thickness: f32,
+    _pad0: f32,
     spacing: f32,
 }
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;

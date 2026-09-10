@@ -94,6 +94,19 @@ impl SourceCache {
 }
 
 /// Count each shared value once across typed collections, lookup and repeated documents.
+/// A typed collection: its vector, then every shared value it holds.
+fn shared_all<T>(
+    values: &Vec<Rc<T>>,
+    payload: &mut Payload,
+    seen: &mut HashSet<usize>,
+    children: fn(&T, &mut Payload),
+) {
+    payload.vector(values);
+    for value in values {
+        shared(value, payload, seen, children);
+    }
+}
+
 fn shared<T>(
     value: &Rc<T>,
     payload: &mut Payload,
@@ -113,54 +126,18 @@ fn session_payload(session: &Session, p: &mut Payload, seen: &mut HashSet<usize>
     p.string(&session.name);
     p.string(&session.objects.name);
     let objects = &session.objects;
-    p.vector(&objects.points);
-    for value in &objects.points {
-        shared(value, p, seen, point_payload);
-    }
-    p.vector(&objects.lines);
-    for value in &objects.lines {
-        shared(value, p, seen, line_payload);
-    }
-    p.vector(&objects.planes);
-    for value in &objects.planes {
-        shared(value, p, seen, plane_payload);
-    }
-    p.vector(&objects.bboxes);
-    for value in &objects.bboxes {
-        shared(value, p, seen, box_payload);
-    }
-    p.vector(&objects.polylines);
-    for value in &objects.polylines {
-        shared(value, p, seen, polyline_payload);
-    }
-    p.vector(&objects.pointclouds);
-    for value in &objects.pointclouds {
-        shared(value, p, seen, cloud_payload);
-    }
-    p.vector(&objects.meshes);
-    for value in &objects.meshes {
-        shared(value, p, seen, mesh_payload);
-    }
-    p.vector(&objects.nurbscurves);
-    for value in &objects.nurbscurves {
-        shared(value, p, seen, curve_payload);
-    }
-    p.vector(&objects.nurbssurfaces);
-    for value in &objects.nurbssurfaces {
-        shared(value, p, seen, surface_payload);
-    }
-    p.vector(&objects.nurbssurfacetrimmeds);
-    for value in &objects.nurbssurfacetrimmeds {
-        shared(value, p, seen, trimmed_payload);
-    }
-    p.vector(&objects.breps);
-    for value in &objects.breps {
-        shared(value, p, seen, brep_payload);
-    }
-    p.vector(&objects.elements);
-    for value in &objects.elements {
-        shared(value, p, seen, element_payload);
-    }
+    shared_all(&objects.points, p, seen, point_payload);
+    shared_all(&objects.lines, p, seen, line_payload);
+    shared_all(&objects.planes, p, seen, plane_payload);
+    shared_all(&objects.bboxes, p, seen, box_payload);
+    shared_all(&objects.polylines, p, seen, polyline_payload);
+    shared_all(&objects.pointclouds, p, seen, cloud_payload);
+    shared_all(&objects.meshes, p, seen, mesh_payload);
+    shared_all(&objects.nurbscurves, p, seen, curve_payload);
+    shared_all(&objects.nurbssurfaces, p, seen, surface_payload);
+    shared_all(&objects.nurbssurfacetrimmeds, p, seen, trimmed_payload);
+    shared_all(&objects.breps, p, seen, brep_payload);
+    shared_all(&objects.elements, p, seen, element_payload);
     p.vector(&objects.components);
     for component in &objects.components {
         p.string(&component.name);

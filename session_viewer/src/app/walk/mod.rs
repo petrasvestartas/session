@@ -79,20 +79,16 @@ pub struct Row {
     pub flags: u32,
     /// The row drew faces: the inside test (eye within the box) applies to it.
     pub faces: bool,
-    /// The object's thickness in its own units, whatever its orientation: retained metadata
-    /// the instance row carries.
-    pub thickness: f32,
 }
 
 impl Row {
-    /// Linework, points, frames: a box, no spacing, no flags, no faces; as thick as the box.
+    /// Linework, points, frames: a box, no spacing, no flags, no faces.
     pub fn thin(bounds: Aabb) -> Self {
         Self {
             bounds,
             spacing: 0.0,
             flags: 0,
             faces: false,
-            thickness: bounds.thinnest(),
         }
     }
 }

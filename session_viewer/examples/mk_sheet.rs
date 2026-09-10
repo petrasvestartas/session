@@ -143,8 +143,19 @@ fn main() {
             }
             Geometry::NurbsCurve(c) => {
                 let c = c.transformed(xf);
-                let color = c.linecolors.first().cloned().unwrap_or(Color::new(0.0, 0.0, 0.0, 1.0));
-                sheet.push(&sample_nurbscurve(&c), &guid, &c.name, "nurbscurve", c.width, &color);
+                let color = c
+                    .linecolors
+                    .first()
+                    .cloned()
+                    .unwrap_or(Color::new(0.0, 0.0, 0.0, 1.0));
+                sheet.push(
+                    &sample_nurbscurve(&c),
+                    &guid,
+                    &c.name,
+                    "nurbscurve",
+                    c.width,
+                    &color,
+                );
             }
             g => *skipped.entry(kind_name(g)).or_default() += 1,
         }

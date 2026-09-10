@@ -2,7 +2,6 @@
 //! `FACING_UNKNOWN` because free linework has no topological facing cull.
 
 use super::Row;
-use super::bounds::polyline_thickness;
 use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
 use crate::engine::gpu::CylinderSegment;
 use crate::engine::gpu::segments::SegRows;
@@ -62,7 +61,6 @@ pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
     let mut bounds = Aabb::empty();
     push_polyline(seg, &pts, &pen, &mut bounds);
     Row {
-        thickness: polyline_thickness(&pts),
         ..Row::thin(bounds)
     }
 }

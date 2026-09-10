@@ -4,7 +4,6 @@
 //! tessellations (`brep_edges`). No sheet lanes; `FLAG_OPEN` only when the BRep is not a
 //! solid, from its own topology rather than from a welded mesh.
 
-use super::bounds::mesh_thickness;
 use super::brep_edges::{EdgeChain, EdgePen, edge_chains, push_edge_pipes};
 use super::brep_orient::face_signs;
 use super::curves::{push_polyline, sample_nurbscurve};
@@ -101,13 +100,11 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
     if b.face_count() == 1 {
         flags |= Instance::FLAG_SINGLE;
     }
-    let thickness = mesh_thickness(&solid.pos, &solid.tris);
     let mut row = Row {
         bounds: solid.bounds,
         spacing: mesh_spacing(&solid.bounds, verts),
         flags,
         faces: true,
-        thickness,
     };
     if !knobs::no_edges() {
         let pen = Pen {
@@ -176,13 +173,16 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
     if let Some(c) = s.facecolors.first() {
         sm.set_objectcolor(c.clone());
     }
-    let opts = MeshOpts {
-        sheet_lanes: false,
-        allow_open: true,
-        smooth: true,
-    };
     let first_pipe = ink.seg.pipes.len();
-    let mut row = walk_mesh(arena, ink, &sm, &MeshCx { cx, opts: &opts });
+    let mut row = walk_mesh(
+        arena,
+        ink,
+        &sm,
+        &MeshCx {
+            cx,
+            opts: &MeshOpts::SURFACE,
+        },
+    );
     row.flags |= Instance::FLAG_SINGLE;
     map_surface_boundaries(ink, s, &sm, first_pipe);
     row

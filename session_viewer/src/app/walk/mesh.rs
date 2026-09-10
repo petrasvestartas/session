@@ -2,7 +2,6 @@
 //! (`mesh_ink`) unless the mesh is dense, a print fill, or edges are switched off. The gates
 //! and thresholds live here. Nothing here reads the GPU.
 
-use super::bounds::mesh_thickness;
 use super::mesh_ink::{Ink, InkCx, edges_and_dots};
 use super::mesh_topology::{SlotMap, mesh_topology};
 use super::{Row, WalkCx};
@@ -11,7 +10,6 @@ use crate::engine::gpu::Instance;
 use crate::engine::gpu::arena::ArenaRows;
 use crate::math::Aabb;
 use session_rust::Mesh;
-use session_rust::RenderVertex;
 
 /// Above this many triangles a mesh draws as TRIANGLES ONLY - no edges, no markers: on a
 /// scan the decoration is 90x the geometry. The bunny (69k tri) keeps its wireframe.
@@ -64,11 +62,11 @@ impl MeshOpts {
         allow_open: true,
         smooth: false,
     };
-    /// A tessellated BRep or surface: always the depth-tested run, never `FLAG_OPEN`, and the
-    /// seams between its facets are sampling, not geometry.
-    pub const MODEL: MeshOpts = MeshOpts {
+    /// A tessellated NURBS surface: the depth-tested run, open when its grid is, and the seams
+    /// between its facets are sampling, not geometry.
+    pub const SURFACE: MeshOpts = MeshOpts {
         sheet_lanes: false,
-        allow_open: false,
+        allow_open: true,
         smooth: true,
     };
     /// An element's mesh: sheet runs, but an element is never flagged open.
@@ -195,13 +193,11 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     if m.number_of_faces() == 1 {
         flags |= Instance::FLAG_SINGLE;
     }
-    let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
     let row = Row {
         bounds,
         spacing: mesh_spacing(&bounds, m.number_of_vertices()),
         flags,
         faces: true,
-        thickness,
     };
 
     if !decorated || knobs::no_edges() {
@@ -230,15 +226,6 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         },
         ..row
     }
-}
-
-/// The positions of a render mesh's vertices, for the thickness measure.
-fn positions(verts: &[RenderVertex]) -> Vec<[f32; 3]> {
-    let mut out = Vec::with_capacity(verts.len());
-    for v in verts {
-        out.push(v.position);
-    }
-    out
 }
 
 /// Match the kernel render contract: sorted source faces, cached triangles or a valid fan.

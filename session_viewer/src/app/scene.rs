@@ -34,15 +34,6 @@ pub struct Doc {
     pub display_only: bool,
 }
 
-/// One parsed file on its way into the scene.
-pub struct FileDoc {
-    pub name: String,
-    pub session: Rc<Session>,
-    pub place: Xform,
-    pub point_px: f32,
-    pub display_only: bool,
-}
-
 /// A streamed cloud's first slice and what later slices need: its file's node table, how
 /// many points are resident, and the total.
 pub struct StreamedInit {
@@ -178,6 +169,13 @@ impl Scene {
     pub fn clear(&mut self, gpu: &mut Gpu) {
         self.docs.clear();
         self.texts.clear();
+        self.hidden.clear();
+        self.reset_rows();
+        gpu.release();
+    }
+
+    /// Forget every row and its identity; the documents and the hidden set are the caller's.
+    fn reset_rows(&mut self) {
         self.tables = Upload::default();
         self.streamed.clear();
         self.sheets.clear();
@@ -186,10 +184,8 @@ impl Scene {
         self.edge_sources.clear();
         self.ribbon_ranges.clear();
         self.guid_to_row.clear();
-        self.hidden.clear();
         self.selected = None;
         self.bases = Bases::default();
-        gpu.release();
     }
 
     /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
@@ -197,16 +193,7 @@ impl Scene {
     pub fn rebuild(&mut self, gpu: &mut Gpu) {
         let docs = std::mem::take(&mut self.docs);
         let texts = std::mem::take(&mut self.texts);
-        self.tables = Upload::default();
-        self.streamed.clear();
-        self.sheets.clear();
-        self.order.clear();
-        self.owners.clear();
-        self.edge_sources.clear();
-        self.ribbon_ranges.clear();
-        self.guid_to_row.clear();
-        self.selected = None;
-        self.bases = Bases::default();
+        self.reset_rows();
         gpu.reset();
         for d in docs {
             if d.display_only {
@@ -215,13 +202,7 @@ impl Scene {
                     d.name
                 );
             }
-            self.add_file(FileDoc {
-                name: d.name,
-                session: d.session,
-                place: d.place,
-                point_px: d.point_px,
-                display_only: d.display_only,
-            });
+            self.add_file(d);
         }
         for text in texts {
             self.register_text(text.key, text.label, text.active);
@@ -250,22 +231,22 @@ impl Scene {
     }
 
     /// The next object row and its guid bookkeeping.
-    fn push_row(&mut self, guid: &str, place: Mat4, flags: u32) -> u32 {
+    /// One object row for `guid` owned by document `owner` (`usize::MAX` for a text object).
+    pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Mat4, flags: u32) -> u32 {
         let row = self.bases.obj + self.tables.obj.rows.len() as u32;
         self.tables.obj.rows.push(ObjectRow::new(place, flags));
         let guid: Rc<str> = Rc::from(guid);
-        self.guid_to_row
-            .insert((self.docs.len(), Rc::clone(&guid)), row);
+        self.guid_to_row.insert((owner, Rc::clone(&guid)), row);
         self.order.push(guid);
-        self.owners.push(self.docs.len());
+        self.owners.push(owner);
         self.ribbon_ranges.push(None);
         row
     }
 
     /// Walk one session into the tables: one object row per guid in the kernel's canonical
     /// order (the row a guid gets is the row it keeps), then the per-file sweeps.
-    pub fn add_file(&mut self, doc: FileDoc) {
-        let FileDoc {
+    pub fn add_file(&mut self, doc: Doc) {
+        let Doc {
             name,
             session,
             place,
@@ -296,7 +277,7 @@ impl Scene {
                 0
             };
             let object_place = placement(&world, &place.m, &guid);
-            let row = self.push_row(&guid, object_place, flags);
+            let row = self.push_row(self.docs.len(), &guid, object_place, flags);
             let ribbon_start = self.tables.seg.ribbons.len();
             let cx = WalkCx {
                 vert_base: self.bases.vert,
@@ -309,7 +290,6 @@ impl Scene {
             o.bounds = r.bounds;
             o.spacing = r.spacing;
             o.faces = r.faces;
-            o.thickness = r.thickness;
             let ribbon_end = self.tables.seg.ribbons.len();
             if ribbon_start != ribbon_end {
                 self.ribbon_ranges[row as usize] = Some(
@@ -355,7 +335,7 @@ impl Scene {
             col_at: _,
         } = init;
         let total = fields.count;
-        let row = self.push_row(&format!("stream:{url}"), place.m, 0);
+        let row = self.push_row(self.docs.len(), &format!("stream:{url}"), place.m, 0);
         let slice = StreamSlice {
             rows,
             lod: &lod,
@@ -368,7 +348,6 @@ impl Scene {
         let o = self.tables.obj.rows.last_mut().unwrap();
         o.bounds = bounds;
         o.spacing = point_px;
-        o.thickness = bounds.thinnest();
         self.tables.bounds.union(&bounds.placed(&place.m));
         self.upload_to(gpu);
 
@@ -434,12 +413,16 @@ impl Scene {
             resident,
         } = init;
         let total = fields.count;
-        let row = self.push_row(&format!("sheet:{url}"), place.m, Instance::FLAG_SHEET);
+        let row = self.push_row(
+            self.docs.len(),
+            &format!("sheet:{url}"),
+            place.m,
+            Instance::FLAG_SHEET,
+        );
         let slice = SheetSlice { rows, from: 0, row };
         let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
         let o = self.tables.obj.rows.last_mut().unwrap();
         o.bounds = bounds;
-        o.thickness = bounds.thinnest();
         self.tables.bounds.union(&bounds.placed(&place.m));
         self.upload_to(gpu);
 
@@ -651,8 +634,8 @@ mod tests {
     use session_rust::{BRep, Point};
 
     /// Deliver a retained source using the same document boundary as the real loader.
-    fn file(name: &str, session: Rc<Session>, display_only: bool) -> FileDoc {
-        FileDoc {
+    fn file(name: &str, session: Rc<Session>, display_only: bool) -> Doc {
+        Doc {
             name: name.into(),
             session,
             place: Xform::identity(),

@@ -9,7 +9,7 @@ use super::live::LiveSource;
 use super::manifest::Manifest;
 use super::route::AUTO_GRID;
 use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
-use super::scene::{FileDoc, Scene, SheetInit, StreamedInit};
+use super::scene::{Doc, Scene, SheetInit, StreamedInit};
 use super::stream::{
     CloudFields, SheetFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions,
     fetch_sheet_slice, sheet_fields,
@@ -76,20 +76,11 @@ fn clear_scene() {
 
 /// Post one message into the running event loop; false when the loop is gone.
 pub(super) fn post(msg: Msg) -> bool {
-    PROXY.with_borrow(|proxy| post_with_proxy(proxy, msg))
-}
-
-/// The thread-local API adapter forwards delivery to this named operation.
-fn post_with_proxy(proxy: &Option<EventLoopProxy<Msg>>, message: Msg) -> bool {
-    match proxy {
-        Some(proxy) => proxy.send_event(message).is_ok(),
-        None => false,
-    }
-}
-
-/// Retain the startup event proxy for later loading and streaming tasks.
-fn retain_proxy(slot: &mut Option<EventLoopProxy<Msg>>, proxy: &EventLoopProxy<Msg>) {
-    *slot = Some(proxy.clone());
+    PROXY.with_borrow(|proxy| {
+        proxy
+            .as_ref()
+            .is_some_and(|proxy| proxy.send_event(msg).is_ok())
+    })
 }
 
 /// The resident ceiling for this page load.
@@ -125,7 +116,7 @@ fn sheet_budget_spend(n: u32) {
 /// Start-up: the live source when the page has one, else the URL's route, then the empty
 /// canvas either way; then the poll loop.
 pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
-    PROXY.with_borrow_mut(|slot| retain_proxy(slot, &proxy));
+    PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
     let state = match State::new(window, Scene::new()).await {
         Ok(state) => state,
         Err(error) => {
@@ -318,7 +309,12 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
         // budget the page would die without a word, so the file is skipped with one instead.
         let length = super::fetch::content_length(&url).await.unwrap_or(0);
         if spent + length > budget {
-            log::warn!("skipped '{}': {} MB over the {} MB scene budget", item.file, length >> 20, budget >> 20);
+            log::warn!(
+                "skipped '{}': {} MB over the {} MB scene budget",
+                item.file,
+                length >> 20,
+                budget >> 20
+            );
             skipped.push(format!("{} ({} MB)", item.file, length >> 20));
             continue;
         }
@@ -357,7 +353,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             f1 - f0,
             now_ms() - f1
         );
-        let doc = FileDoc {
+        let doc = Doc {
             name,
             session: Rc::new(session),
             place,
@@ -410,7 +406,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
 
 /// Replacement staging preserves manifest order across whole files, streamed clouds and sheets.
 enum PendingDocument {
-    Whole(FileDoc),
+    Whole(Doc),
     Streamed(Box<StreamedInit>),
     Sheet(Box<SheetInit>),
 }

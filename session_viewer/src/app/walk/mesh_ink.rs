@@ -367,7 +367,7 @@ mod tests {
     fn smooth_mesh_inks_borders_and_creases_only() {
         let grid = bulged_grid();
         assert_eq!(walk_pipes(&grid, &MeshOpts::OBJECT), 24);
-        assert_eq!(walk_pipes(&grid, &MeshOpts::MODEL), 12);
-        assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::MODEL), 7);
+        assert_eq!(walk_pipes(&grid, &MeshOpts::SURFACE), 12);
+        assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::SURFACE), 7);
     }
 }

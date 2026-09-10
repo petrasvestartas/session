@@ -3,7 +3,7 @@
 //! Every number in the docs comes through this file.
 
 use crate::app::manifest::Manifest;
-use crate::app::scene::{FileDoc, Scene};
+use crate::app::scene::{Doc, Scene};
 use crate::camera::{Camera, View};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::now_ms;
@@ -171,7 +171,7 @@ fn load_files(scene: &mut Scene, gpu: &mut Gpu, files: &[SceneFile]) {
             Session::pb_loads(&bytes).unwrap_or_else(|e| panic!("cannot parse {}: {e:?}", f.path));
         let t1 = t0.elapsed();
         let name = f.path.rsplit('/').next().unwrap_or(&f.path).to_string();
-        scene.add_file(FileDoc {
+        scene.add_file(Doc {
             name: name.clone(),
             session: Rc::new(session),
             place: f.place.clone(),
@@ -354,7 +354,7 @@ fn check_cad_edge_file(scene: &mut Scene, gpu: &mut Gpu, path: &str) {
     scene.clear(gpu);
     let bytes = std::fs::read(path).unwrap();
     let session = Session::pb_loads(&bytes).unwrap();
-    scene.add_file(FileDoc {
+    scene.add_file(Doc {
         name: path.into(),
         session: Rc::new(session),
         place: Xform::identity(),

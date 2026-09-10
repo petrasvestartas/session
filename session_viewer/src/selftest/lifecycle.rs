@@ -3,7 +3,7 @@
 //! Always checks a generated lines/points-only scene; optional files form a second scene.
 
 use crate::{
-    app::scene::{FileDoc, Scene},
+    app::scene::{Doc, Scene},
     camera::{Camera, View},
     engine::gpu::{FrameInput, Gpu, Pick},
 };
@@ -21,7 +21,7 @@ struct Frame {
 /// Exercise the browser's append path and the harness's deferred upload with identical rows.
 fn load(scene: &mut Scene, gpu: &mut Gpu, sources: &[Source], incremental: bool) {
     for (name, session, place) in sources {
-        scene.add_file(FileDoc {
+        scene.add_file(Doc {
             name: name.clone(),
             session: Rc::clone(session),
             place: place.clone(),

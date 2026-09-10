@@ -13,9 +13,8 @@ pub struct Instance {
     pub model: [f32; 16],
     pub color: [f32; 4],
     pub flags: u32,
-    /// Retained thickness metadata, in world units. Visibility no longer spends a depth
-    /// offset based on this value; keeping the field preserves the shared instance layout.
-    pub thickness: f32,
+    /// Unused; keeps `spacing` at offset 88 and the row at 96 bytes.
+    pub _pad0: f32,
     /// Vertex spacing, world units; markers thin once it projects small. 0 = unknown.
     pub spacing: f32,
     pub _pad: u32,
@@ -52,7 +51,7 @@ impl Instance {
             model: Xform::identity().to_f32(),
             color: [0.5, 0.5, 0.5, 1.0],
             flags: 0,
-            thickness: 0.0,
+            _pad0: 0.0,
             spacing: 0.0,
             _pad: 0,
         }
@@ -199,7 +198,7 @@ mod tests {
     /// Every shader that declares `Instance` lists the Rust fields, in order.
     #[test]
     fn instance_mirror() {
-        let rust = ["model", "color", "flags", "thickness", "spacing"];
+        let rust = ["model", "color", "flags", "_pad0", "spacing"];
         for (name, src) in lane_shaders() {
             if src.contains("struct Instance") {
                 assert_eq!(

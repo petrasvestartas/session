@@ -7,7 +7,7 @@ use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group};
 use super::instance::Instance;
 use super::targets::Targets;
 use crate::engine::pipelines::Layouts;
-use crate::math::{Aabb, Mat4, mat_scale, mat_to_f32};
+use crate::math::{Aabb, Mat4, mat_to_f32};
 use session_rust::Point;
 
 /// Re-anchor threshold band, world units: the table is rebased once the camera target drifts
@@ -17,16 +17,6 @@ const REANCHOR_MAX: f64 = 1.0e5;
 
 /// Re-anchors are throttled to this interval so a wheel-zoom gesture does not rebuild every tick.
 const REANCHOR_THROTTLE_MS: f64 = 200.0;
-
-/// Preserve the historical floor on the instance's thickness metadata.
-const THICK_FLOOR: f32 = 0.001;
-
-/// Scale the walk's thickness metadata into world units. Physical occlusion does not use it.
-fn thickness(r: &ObjectRow) -> f32 {
-    let scale = mat_scale(&mat_to_f32(&r.place)) as f32;
-    let thin = r.thickness * scale;
-    thin.max(THICK_FLOOR * r.bounds.placed(&r.place).diagonal())
-}
 
 /// One object as the walk reports it: its true placement, tint, flags, mesh-local box
 /// (empty when the object has no volume the ink lanes care about) and vertex spacing.
@@ -40,8 +30,6 @@ pub struct ObjectRow {
     pub spacing: f32,
     /// The row drew faces, so the per-frame inside test walks its box.
     pub faces: bool,
-    /// The object's thickness in local units, orientation-free (the walk measures it).
-    pub thickness: f32,
 }
 
 impl ObjectRow {
@@ -54,7 +42,6 @@ impl ObjectRow {
             bounds: Aabb::empty(),
             spacing: 0.0,
             faces: false,
-            thickness: 0.0,
         }
     }
 }
@@ -309,12 +296,11 @@ impl InstanceTable {
             model[12] = 0.0;
             model[13] = 0.0;
             model[14] = 0.0;
-            let thickness = thickness(r);
             self.rows.push(Instance {
                 model,
                 color: r.color,
                 flags: r.flags,
-                thickness,
+                _pad0: 0.0,
                 spacing: r.spacing,
                 _pad: 0,
             });

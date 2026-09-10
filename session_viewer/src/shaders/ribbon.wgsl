@@ -10,7 +10,7 @@ struct Instance {
     model: mat4x4<f32>,
     color: vec4<f32>,
     flags: u32,
-    thickness: f32,
+    _pad0: f32,
     spacing: f32,
 };
 @group(2) @binding(0) var<storage, read> instances: array<Instance>;

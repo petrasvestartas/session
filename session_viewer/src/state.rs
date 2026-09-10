@@ -3,7 +3,7 @@
 //! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
 //! never the other way round.
 
-use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
+use crate::app::scene::{Doc, Scene, SheetInit, StreamedInit};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
 use crate::app::walk::cloud::StreamRows;
 use crate::app::walk::encode::FACING_UNKNOWN;
@@ -98,7 +98,7 @@ impl State {
     }
 
     /// Append one parsed document: walk it into the tables, upload the delta.
-    pub fn append(&mut self, doc: FileDoc) {
+    pub fn append(&mut self, doc: Doc) {
         let t0 = now_ms();
         let first_row = self.scene.object_count();
         self.scene.add_file(doc);
@@ -225,7 +225,11 @@ impl State {
     /// `P`: shaded faces <-> x-ray. In x-ray every mesh, NURBS and BRep face is gone and only
     /// its edges, points and text remain; lines and points are never affected.
     pub fn toggle_xray(&mut self) {
-        self.gpu.view.opacity = if self.gpu.view.opacity > 0.0 { 0.0 } else { 1.0 };
+        self.gpu.view.opacity = if self.gpu.view.opacity > 0.0 {
+            0.0
+        } else {
+            1.0
+        };
         self.touch();
     }
 
@@ -449,7 +453,9 @@ impl State {
                 && crate::engine::gpu::view::device_pixel_ratio() > 1.0
             {
                 crate::engine::gpu::view::reduce_for_slow_frames();
-                log::warn!("slow interaction frames; rendering at device scale 1 without antialiasing");
+                log::warn!(
+                    "slow interaction frames; rendering at device scale 1 without antialiasing"
+                );
                 self.status("Slow frames: rendering at device scale 1 without antialiasing");
             }
             dropped = drawn.is_none() && self.gpu.surface.is_some();
@@ -652,14 +658,7 @@ impl State {
 
     /// Non-disruptive interaction feedback also remains available to native diagnostics.
     fn status(&self, message: &str) {
-        #[cfg(target_arch = "wasm32")]
-        if let Some(window) = web_sys::window()
-            && let Some(document) = window.document()
-            && let Some(status) = document.get_element_by_id("viewer-status")
-        {
-            status.set_text_content(Some(message));
-        }
-        log::info!("{message}");
+        crate::app::feedback::status(message);
     }
 
     /// The `?perf=1` line: frame number, gap since the previous frame, encode time, heap.

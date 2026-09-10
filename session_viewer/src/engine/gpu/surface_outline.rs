@@ -476,7 +476,7 @@ mod tests {
     #[test]
     #[ignore = "requires a native GPU adapter"]
     fn selected_cad_edges_do_not_paint_over_the_black_silhouette() {
-        use crate::app::scene::{FileDoc, Scene};
+        use crate::app::scene::{Doc, Scene};
         use crate::camera::Camera;
         use session_rust::{BRep, Session};
         use std::rc::Rc;
@@ -493,7 +493,7 @@ mod tests {
             let mut source = Session::new("selected silhouette regression");
             source.add_brep(shape, None);
             let mut scene = Scene::new();
-            scene.add_file(FileDoc {
+            scene.add_file(Doc {
                 name: "solid".into(),
                 session: Rc::new(source),
                 place: Xform::identity(),

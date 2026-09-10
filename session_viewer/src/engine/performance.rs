@@ -48,7 +48,11 @@ impl Performance {
         self.prev_frame = now;
         self.frames += 1;
         self.draws = draws;
-        self.slow_run = if self.interacting && dt > SLOW_FRAME_MS { self.slow_run + 1 } else { 0 };
+        self.slow_run = if self.interacting && dt > SLOW_FRAME_MS {
+            self.slow_run + 1
+        } else {
+            0
+        };
         if self.slow_run == SLOW_FRAMES {
             self.slow = true;
         }
@@ -172,10 +176,19 @@ mod tests {
     #[test]
     fn slow_interaction_needs_a_run_of_slow_drag_frames() {
         let mut perf = Performance::new();
-        assert!(!frames(&mut perf, 100, 60.0, false), "idle gaps are not slow frames");
+        assert!(
+            !frames(&mut perf, 100, 60.0, false),
+            "idle gaps are not slow frames"
+        );
         assert!(!frames(&mut perf, 100, 16.7, true), "a smooth drag is fine");
-        assert!(!frames(&mut perf, SLOW_FRAMES - 1, 60.0, true), "one frame short of the run");
-        assert!(!frames(&mut perf, 1, 16.7, true), "a fast frame resets the run");
+        assert!(
+            !frames(&mut perf, SLOW_FRAMES - 1, 60.0, true),
+            "one frame short of the run"
+        );
+        assert!(
+            !frames(&mut perf, 1, 16.7, true),
+            "a fast frame resets the run"
+        );
         assert!(frames(&mut perf, SLOW_FRAMES, 60.0, true), "the run fires");
         assert!(!frames(&mut perf, 10, 60.0, true), "and fires once");
     }
