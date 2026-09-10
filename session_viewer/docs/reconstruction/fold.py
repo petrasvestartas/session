@@ -130,6 +130,9 @@ def main():
     repo = args.repo.resolve()
     production = args.production.resolve()
     final_id, assignment = plan(repo, args.ref, production)
+    # Indices in --pin refer to the list --plan printed, so resolve every pin against the
+    # untouched lists before moving anything.
+    moves = collections.defaultdict(list)
     for pin in args.pin:
         spec, to = pin.split("=")
         name, source = spec.rsplit(":", 1)
@@ -140,12 +143,18 @@ def main():
         bodies = assignment.get(source, {}).get(name)
         if not bodies:
             sys.exit(f"nothing assigned to {name} at {source}")
-        moved = [bodies.pop(index)] if index is not None else list(bodies)
-        if index is None:
-            bodies.clear()
-        if not bodies:
+        indices = [index] if index is not None else list(range(len(bodies)))
+        for i in indices:
+            moves[(source, name)].append((i, to))
+    for (source, name), moved in moves.items():
+        bodies = assignment[source][name]
+        keep = [body for i, body in enumerate(bodies) if i not in {i for i, _ in moved}]
+        for i, to in moved:
+            assignment[to][name].append(bodies[i])
+        if keep:
+            assignment[source][name] = keep
+        else:
             assignment[source].pop(name)
-        assignment[to][name].extend(moved)
     additions = {}
     for add in args.add:
         name, step = add.split("=")

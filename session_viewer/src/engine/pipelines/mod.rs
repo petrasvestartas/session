@@ -184,6 +184,15 @@ impl<'a> PipelineDesc<'a> {
     }
 }
 
+/// The scene contract (`scene.wgsl`: groups 0-2, `Instance`, `LineUniform`, the flags,
+/// `place`) that every lane on it is compiled with.
+pub const SCENE: &str = include_str!("../../shaders/scene.wgsl");
+
+/// A lane on the scene contract: faces, lettering, the grid.
+pub fn scene_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+    module(device, label, &format!("{source}\n{SCENE}"))
+}
+
 const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
     offset: 0,
     shader_location: 3,
@@ -219,38 +228,22 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
     }
 }
 
-/// The complete WGSL a shader is compiled from: its own source, the scene contract when it
-/// is on it (groups 0-2, `Instance`, `LineUniform`, the flags, `place`), then the normal
-/// transform and the physical output struct every module gets. The layout test compiles
-/// exactly this text, so what naga validates is what the GPU runs.
-pub fn assemble(source: &str, scene: bool) -> String {
-    let mut text = source.to_string();
-    if scene {
-        text.push('\n');
-        text.push_str(include_str!("../../shaders/scene.wgsl"));
-    }
-    text.push('\n');
-    text.push_str(include_str!("../../shaders/normals.wgsl"));
-    text.push('\n');
-    text.push_str(include_str!("../../shaders/physical.wgsl"));
-    text
-}
-
-fn compile(device: &wgpu::Device, label: &str, source: String) -> wgpu::ShaderModule {
-    device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some(label),
-        source: wgpu::ShaderSource::Wgsl(source.into()),
-    })
+/// The WGSL every module ends with: the normal transform and the physical output struct.
+/// The layout test compiles exactly this text, so what naga validates is what the GPU runs.
+pub fn shared(source: &str) -> String {
+    format!(
+        "{source}\n{}\n{}",
+        include_str!("../../shaders/normals.wgsl"),
+        include_str!("../../shaders/physical.wgsl")
+    )
 }
 
 /// A shader with its own bindings (the backdrop, the point splats, the silhouettes).
 pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    compile(device, label, assemble(source, false))
-}
-
-/// A lane on the scene contract: faces, lettering, the grid.
-pub fn scene_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    compile(device, label, assemble(source, true))
+    device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some(label),
+        source: wgpu::ShaderSource::Wgsl(shared(source).into()),
+    })
 }
 
 /// The shared visibility rule and the projected-triangle records every ink fragment decides
@@ -263,7 +256,7 @@ pub const INK: &str = concat!(
 
 /// An ink lane: the scene contract plus the ink rule.
 pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
-    compile(device, label, assemble(&format!("{source}\n{INK}"), true))
+    scene_module(device, label, &format!("{source}\n{INK}"))
 }
 
 /// The pipeline layout for `groups`, in slot order.

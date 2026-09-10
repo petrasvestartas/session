@@ -94,12 +94,14 @@ mod tests {
         for (name, source) in lane_shaders() {
             // The backdrop declares no scene binding; every other lane is on the contract.
             let scene = source.contains("mvp") || source.contains("line.");
-            let source = if source.contains("-> InkColor") {
-                format!("{source}\n{}", crate::engine::pipelines::INK)
-            } else {
-                source.to_string()
-            };
-            let source = crate::engine::pipelines::assemble(&source, scene);
+            let mut source = source.to_string();
+            if source.contains("-> InkColor") {
+                source = format!("{source}\n{}", crate::engine::pipelines::INK);
+            }
+            if scene {
+                source = format!("{source}\n{}", crate::engine::pipelines::SCENE);
+            }
+            let source = crate::engine::pipelines::shared(&source);
             let module = naga::front::wgsl::parse_str(&source)
                 .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
             naga::valid::Validator::new(
@@ -186,7 +188,7 @@ mod tests {
         }
     }
 
-    const SCENE: &str = include_str!("../../shaders/scene.wgsl");
+    use crate::engine::pipelines::SCENE;
 
     /// The scene contract declares `Instance` with the Rust fields, in order.
     #[test]
