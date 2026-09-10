@@ -199,7 +199,7 @@ fn frame_input(gpu: &mut Gpu, camera: &Camera, aspect: f64) -> FrameInput {
 }
 
 /// Write RGBA8 rows as a binary PPM (P6).
-fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
+pub(crate) fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
     use std::io::Write;
     let mut f = std::io::BufWriter::new(std::fs::File::create(path)?);
     write!(f, "P6\n{w} {h}\n255\n")?;

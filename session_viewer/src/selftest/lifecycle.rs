@@ -8,7 +8,7 @@ use crate::{
     engine::gpu::{FrameInput, Gpu, Pick},
 };
 use session_rust::{Color, Line, Point, Session, Xform};
-use std::{collections::HashSet, io::Write, path::Path, rc::Rc};
+use std::{collections::HashSet, path::Path, rc::Rc};
 
 type Source = (String, Rc<Session>, Xform);
 
@@ -111,11 +111,7 @@ fn same(label: &str, reference: &Frame, current: &Frame) {
 
 /// Retain a reference image for visual continuity and marker inspection.
 fn write_frame(path: &Path, frame: &Frame) {
-    let mut file = std::io::BufWriter::new(std::fs::File::create(path).unwrap());
-    write!(file, "P6\n800 600\n255\n").unwrap();
-    for pixel in frame.color.chunks_exact(4) {
-        file.write_all(&pixel[..3]).unwrap();
-    }
+    super::write_ppm(path.to_str().unwrap(), &frame.color, 800, 600).unwrap();
 }
 
 /// Switch live targets, requiring exact restoration after every round trip.
