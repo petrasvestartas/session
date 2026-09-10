@@ -84,7 +84,7 @@ async function main() {
       await page.route('**/pb/view_mixed_teapot.pb', function source(route) {
         return route.fulfill({status:200,contentType:'application/octet-stream',body:bytes});
       });
-      await page.goto(new URL('?data=off&inspect=1', process.env.VIEWER_URL || 'http://127.0.0.1:8771/').href);
+      await page.goto(new URL('?data=off&inspect=1', process.env.VIEWER_URL || 'http://127.0.0.1:8770/').href);
       await page.bringToFront();
       await page.waitForFunction(function loaded() {
         const s = JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection') || '{}');

@@ -100,13 +100,6 @@ diagonal circle joint and closing seam) and require dense/single integrated ink 
 golden images. Output goes to `target/stroke-joins`; `--output`, `--renderer`, `--generator`
 and `--check-only` support isolated builds and rechecking retained captures.
 
-`node tests/pdf-text-quality.cjs` compares the checked local PDF asset at forced 1x and
-budget-selected 4x. It checks the source SHA-256, automatic sheet coverage, and three
-normal-size glyph crops for partial coverage, retained ink mass, bounds and word position.
-The test preserves the original PDF outline/font geometry. It captures both full drawings
-and crops; it is deliberately tied to that source and camera. Run on a stable production
-bundle to avoid a development rebuild overlay contaminating the screenshots.
-
 Generate the seven-object interaction source fixture outside the repository, then drive
 real canvas clicks and keyboard events against the opt-in read-only inspection snapshot:
 
@@ -127,12 +120,6 @@ The runner foregrounds and focuses the canvas, then waits for a newer submitted 
 with completed picking after each action. A fixed delay followed by an already-idle snapshot
 can otherwise observe the state before the browser dispatches the action.
 
-`node tests/text-zoom.cjs` uses Chrome's actual Settings → Appearance → Page zoom control
-at 100%, 125%, 150% and 200% in a disposable persistent profile. It checks actual
-`devicePixelRatio` and canvas scale changes, retains logical shaping, compares same-font
-metrics and captures visible white glyph pixels. This is separate from emulated DPR and
-forced raster-scale checks; the runner deletes its own temporary profile on completion.
-
 Native GPU regressions run explicitly on a machine with a supported adapter:
 
 ```sh
@@ -146,6 +133,12 @@ These verify actual glyph occlusion/foreground/billboard/overlay coverage, clip 
 placement changes without reshaping, cache eviction, release, exact imported outline IDs,
 selection/hidden behavior, legacy mixed-print equivalence, and canceled GPU completions.
 
+`node tests/loading.cjs` is the last-valid-scene, revision-race and malformed-payload check:
+a bad document keeps the previous scene, a stale revision is dropped, and the same replacement
+workload releases the GPU growth of the previous one. `node tests/lifecycle.cjs` covers focus,
+pointer cancellation, the hidden canvas and an unchanged framebuffer at a changed DPR. Both use
+the interaction fixture and the same Chrome/Playwright environment as `interaction.cjs`.
+
 `node tests/streamed-controls.cjs` serves a virtual ranged protobuf source with 6,065,539
 points and caps display residency at 250,000. It holds the second detail page to verify
 that an early visible hit is not committed before every eligible source page finishes.
@@ -157,14 +150,6 @@ It uses the same Chrome/Playwright environment variables as the text checks; the
 capture directory is `/tmp/session-viewer-streamed-controls-dpr1`. Run again with
 `VIEWER_DPR=2` to check physical/CSS conversion and point visibility at DPR 2. Display LOD and residency
 remain bounded while F10 source queries examine every intersecting source node.
-
-`python3 tests/modularity.py` prepares a scratch copy, removes the standalone point
-producer and its registration, and applies an explicit skip-before-row-allocation policy.
-It compiles the WASM build and runs the same seven-family interaction checks with one
-additional standalone-point probe in the source. Exactly seven drawable rows must remain.
-The maintained production source is never edited; shared GPU markers still serve controls
-and other geometry. `--target-dir /path/to/cargo/target` can reuse build artifacts, and
-`--prepare-only` stops after compilation when another GPU regression is running.
 
 CAD fixtures use the production native render path and preserve source topology through
 rotated, mirrored and nonuniform instance transforms:
@@ -181,39 +166,6 @@ checks cover smooth sphere variation, unlit uniformity, reversed-face diagnostic
 six post-upload source-edge mappings. Shared geometry minitests separately verify
 one-sided C0 normals, trimmed holes and exact shared boundary XYZ. This is a Session
 rendering regression, not an OCCT pixel comparison.
-
-`python3 tests/parity.py` rebuilds and runs the existing shared CAD mini-tests without a
-GPU: `RemeshNurbsSurfaceGrid`, `NurbsSurfaceTrimmed` and `BRep`. Run it with a Python that
-has `session_py`'s dependencies (numpy and protobuf) and with the CMake the C++ build directory
-was configured with on `PATH`; the Python suite is executed by the same interpreter. The expected totals are
-51 Rust, 59 C++ and 51 Python tests; C++ has eight additional preexisting trimmed-surface
-tests. Rust uses the maintained `check_shared_geometry` example and the normal Cargo
-dependency resolver. C++ uses the existing `point_minitest` CMake target's compiler flags
-and link inputs, selecting only those three test registration objects. A generated main
-calls the existing registry, with only report paths redirected outside the source tree.
-Python runs the three original modules with their report destination redirected.
-
-The default C++ build directory is `../session_cpp/build` and must use Unix Makefiles;
-`--cpp-build /tmp/cad-cpp-build` creates a separate build with the same generator. Building
-from scratch requires the shared package's documented compiler and dependency tooling,
-including network access for CMake's pinned dependencies. `--jobs 4` controls C++ build
-parallelism. Commands, compiler versions, assertions, counts and logs go under
-`/tmp/session-viewer-parity` (override with `--output`); no test report is written into
-the source tree. A changed or missing suite count fails the gate for review.
-
-`node tests/picking-performance.cjs` compares real mouse-release selection on a controlled
-baseline (`VIEWER_BASELINE_URL`, default port 45693) and the current viewer (`VIEWER_URL`,
-default port 18772). Set `VIEWER_INTERACTION_FIXTURE` to the same generated seven-family
-fixture used by `interaction.cjs`; the runner mocks identical YAML and protobuf bytes for
-both builds and records their SHA-256. Both builds need the inspection attributes used by
-the controlled baseline: selected row, frame count, submission timestamp and camera matrix.
-The default is ten measured samples per family after one warmup, using actual Escape and
-mouse input. Submission, the following browser frame callback and screenshot completion
-are reported separately as median and p95; none measures physical display presentation.
-Every sample must also show yellow screenshot pixels. Failed highlights remain failures
-and are excluded from successful-highlight timing summaries. There is no fixed sleep in
-the measured path. `--self-test` checks timestamp/summary logic without Chrome; browser
-runs use the same Playwright installation and Chrome settings as `interaction.cjs`.
 
 `python3 tests/format.py` checks all handwritten Rust files under the viewer's `src/`
 and `examples/` with Rust 2024 defaults. Use `--write` to apply the same formatting.
@@ -276,7 +228,7 @@ edges; a displayed chord must still be an exact edge of each incident triangle m
 The planar pyramid upload and cone seam-facing regressions run with
 `cargo test --target x86_64-unknown-linux-gnu --lib app::walk::brep` (set `REGEN_PROTO=0`).
 The shared `Singular Planar Normal` cases cover both trimmed and U-collapsed grid surfaces
-through `python3 tests/parity.py --output /tmp/cad-parity` (53 Rust / 61 C++ / 53 Python).
+in the kernels' own mini-tests (`bash/minitest.sh` in the parent directory).
 
 The BRep front-meridian unit regression ray-tests the teapot’s exposed authored edge against
 all face triangles; it fails with the earlier kernel that buried its lower-body chord.

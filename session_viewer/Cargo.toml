@@ -13,8 +13,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml_ng = "0.10"
 toml = "=0.8.23"
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
-winit = { version = "0.30", features = ["android-native-activity"] }
-wgpu = { version = "29.0"}
+winit = "0.30"
+wgpu = "29.0"
 glyphon = "=0.11.0" # The maintained text renderer release compatible with wgpu 29.
 log = "0.4"
 console_error_panic_hook = "0.1.6"
@@ -22,14 +22,12 @@ console_log = "1.0"
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
-    "Document", 
-    "Window", 
-    "Element", 
-    "HtmlCanvasElement", 
-    "EventTarget", 
-    "Event", 
-    "CanvasRenderingContext2d", 
-    "ImageData", 
+    "Document",
+    "Window",
+    "Element",
+    "HtmlCanvasElement",
+    "EventTarget",
+    "Event",
     "Location",
     "Performance",
     "EventSource",
@@ -43,44 +41,25 @@ web-sys = { version = "0.3", features = [
     "AbortController",
     "AbortSignal",
     ] }
+# No use site here: session_rust -> rand 0.8 -> getrandom 0.2, which refuses wasm32-unknown-unknown
+# without the `js` feature.
 getrandom = { version = "0.2", features = ["js"] }
-
 js-sys = "0.3"
 prost = "0.14"
 bytemuck = { version = "1", features = ["derive"] }
 
+# Optimized dependencies keep debug builds fast enough to parse real scenes.
 [profile.dev.package."*"]
 opt-level = 3
 
-# parse speed in debug builds
 [profile.release]
 strip = true
 
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = false
-
-[[example]]
-name = "selftest"
-path = "examples/selftest.rs"
+[dev-dependencies]
+naga = { version = "=29.0.4", features = ["wgsl-in"] }
 
 # Native-only: the headless verification harness (examples/selftest.rs). MUST stay at the end -
 # a target table placed mid-file silently swallows every [dependencies] entry after it, which is
 # how prost and bytemuck vanished from the wasm build.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 pollster = "0.4"
-
-[[example]]
-name = "bench_load"
-path = "examples/bench_load.rs"
-
-[[example]]
-name = "mk_facing_probe"
-path = "examples/mk_facing_probe.rs"
-
-
-[[example]]
-name = "check_determinism"
-path = "examples/check_determinism.rs"
-
-[dev-dependencies]
-naga = { version = "=29.0.4", features = ["wgsl-in"] }

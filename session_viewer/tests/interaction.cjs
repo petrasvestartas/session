@@ -53,7 +53,7 @@ async function run(browser,dpr,bytes,cases,output){
       state=await snapshot(page);
       assert.notEqual(state.selected,null,`${spec.kind}: ordinary object click`);
       const parent=state.selected;parents.add(parent);
-      if(state.selected_guid)assert.equal(state.selected_guid,spec.guid);
+      assert.equal(state.identity[1],spec.guid,'source GUID survives object picking');
       assert.equal(state.selection,'Object');
       await visibleYellow(page,output,`${spec.kind}-object-dpr-${dpr}`);
       if(['mesh','surface','brep'].includes(spec.kind)){

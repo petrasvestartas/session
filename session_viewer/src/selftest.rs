@@ -160,10 +160,9 @@ fn report_camera(camera: &Camera) {
     );
 }
 
-/// Load every file into `scene`, uploading per file when `VIEWER_INCREMENTAL` is set (the
-/// browser's path) and once at the end otherwise. Prints per-file load costs.
+/// Load every file into `scene` and upload once at the end (the per-file path the browser
+/// takes is exercised by `lifecycle`). Prints per-file load costs.
 fn load_files(scene: &mut Scene, gpu: &mut Gpu, files: &[SceneFile]) {
-    let incremental = std::env::var("VIEWER_INCREMENTAL").is_ok();
     for f in files {
         let t0 = std::time::Instant::now();
         let bytes =
@@ -184,18 +183,8 @@ fn load_files(scene: &mut Scene, gpu: &mut Gpu, files: &[SceneFile]) {
             bytes.len() as f64 / 1.048576e6,
             t0.elapsed() - t1
         );
-        if incremental {
-            scene.upload_to(gpu);
-        }
     }
-    if !incremental {
-        scene.upload_to(gpu);
-    }
-    if std::env::var("VIEWER_REBUILD").is_ok() {
-        let t = std::time::Instant::now();
-        scene.rebuild(gpu);
-        println!("rebuild {:?}", t.elapsed());
-    }
+    scene.upload_to(gpu);
 }
 
 /// The frame input for `camera` on `gpu`, re-anchoring first.
@@ -346,38 +335,6 @@ fn report_pick(gpu: &mut Gpu, scene: &Scene, input: &FrameInput, at: (u32, u32))
         },
         None => println!("pick: ({},{}) nothing", at.0, at.1),
     }
-}
-
-/// Where a frame's milliseconds go - uniforms, encode, GPU - for a still and a moving camera.
-pub fn frame_profile(files: &[SceneFile], w: u32, h: u32) -> String {
-    let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
-    let mut scene = Scene::new();
-    load_files(&mut scene, &mut gpu, files);
-    let aspect = w as f64 / h as f64;
-    let n: usize = std::env::var("BENCH_FRAMES")
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(120);
-    let mut camera = camera_from_env(&gpu, aspect);
-    let mut out = String::new();
-    for (label, spin) in [("still", 0.0f32), ("moving", 0.35f32)] {
-        let mut ms: Vec<f64> = Vec::new();
-        for i in 0..n + 5 {
-            camera.orbit(spin, 0.0);
-            let input = frame_input(&mut gpu, &camera, aspect);
-            let secs = gpu.bench_frames(&input, 1);
-            if i >= 5 {
-                ms.push(secs * 1000.0);
-            }
-        }
-        ms.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        let med = ms[ms.len() / 2];
-        out.push_str(&format!(
-            "{label:>6}: {med:6.2} ms/frame ({:5.0} fps)\n",
-            1000.0 / med
-        ));
-    }
-    out
 }
 
 /// Same-device visibility, upload and picking regression harness.

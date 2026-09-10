@@ -62,7 +62,7 @@ async function main() {
         return route.fulfill({status:200,contentType:'application/yaml',body:
           'name: Fixed text\nitems: []\ntexts:\n  - text: text_not_oriented_to_camera\n    at: [0,0,10]\n    height: 32\n'});
       });
-      await page.goto(new URL('?data=off&inspect=1',process.env.VIEWER_URL || 'http://127.0.0.1:8771/').href);
+      await page.goto(new URL('?data=off&inspect=1',process.env.VIEWER_URL || 'http://127.0.0.1:8770/').href);
       await page.bringToFront();
       await page.waitForFunction(function ready() {
         const s = JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection') || '{}');

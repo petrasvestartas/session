@@ -8,9 +8,6 @@ __pycache__/
 assets/pb/*
 !assets/pb/.gitkeep
 !assets/pb/view_mixed_teapot.pb
-assets/scenes/
-assets/pdf/
-assets/lion_src/
 
 # The browser application and tutorials share a reproducible dependency resolution.
 !Cargo.lock

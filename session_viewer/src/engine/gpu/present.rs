@@ -1,6 +1,6 @@
-//! The three ways a frame leaves `Gpu`: presented to the swapchain (`present`), read back from
-//! an offscreen texture (`render_offscreen`, the native harness), or timed in a batch
-//! (`bench_frames`). Each writes the uniforms, encodes through `encode_frame`, and submits.
+//! The two ways a frame leaves `Gpu`: presented to the swapchain (`present`) or read back from
+//! an offscreen texture (`render_offscreen`, the native harness). Each writes the uniforms,
+//! encodes through `encode_frame`, and submits.
 
 use super::Gpu;
 use super::frame::{FrameCx, FrameInput};
@@ -182,36 +182,5 @@ impl Gpu {
         let readback = self.pick.copy_frame(&self.ctx, &mut encoder);
         self.ctx.queue.submit([encoder.finish()]);
         readback.read(&self.ctx)
-    }
-
-    /// Time `frames` full frames into one offscreen target, GPU drained after each; returns
-    /// seconds for the batch. The caller warms the caches with a first call it discards.
-    #[cfg(not(target_arch = "wasm32"))]
-    pub fn bench_frames(&mut self, input: &FrameInput, frames: u32) -> f64 {
-        let (w, h) = (self.config.width, self.config.height);
-        let tex = texture(
-            &self.ctx,
-            "bench.color",
-            &TextureSpec {
-                size: (w, h),
-                format: self.config.format,
-                samples: 1,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            },
-        );
-        let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
-        self.write_frame_uniforms(input);
-
-        let t0 = std::time::Instant::now();
-        for _ in 0..frames {
-            let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
-            self.encode_frame(&mut encoder, &view, input.clear);
-            self.ctx.queue.submit([encoder.finish()]);
-            let _ = self.ctx.device.poll(wgpu::PollType::Wait {
-                submission_index: None,
-                timeout: None,
-            });
-        }
-        t0.elapsed().as_secs_f64()
     }
 }

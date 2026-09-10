@@ -17,8 +17,6 @@ def packaging_reason(name):
     """Allow only the documented local-input packaging differences."""
     if name == "session_viewer/assets/view_local.yaml":
         return "Deterministic local interaction scene replaces the user's local working datasets."
-    if name.startswith("session_viewer/assets/fonts/"):
-        return "Retained imported-document font artifacts; PDF outline geometry is baked into the source meshes."
     return None
 
 
