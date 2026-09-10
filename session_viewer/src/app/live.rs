@@ -14,7 +14,7 @@ use super::manifest::Manifest;
 use super::route::{
     AUTO_GRID, data_base, is_local_url, join, page_is_local, path_scene, query, query_scene,
 };
-use super::scene::Doc;
+use super::scene::FileDoc;
 use session_rust::Session;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -255,7 +255,7 @@ impl LiveSource {
     /// due, else nothing happens. `Some(docs)` when the manifest or any file changed (every
     /// listed file, changed ones freshly decoded, the rest the sessions already held), `None`
     /// otherwise.
-    pub async fn check(&mut self) -> Option<Vec<Doc>> {
+    pub async fn check(&mut self) -> Option<Vec<FileDoc>> {
         let announced = self.notify.as_ref().is_some_and(Notify::take);
         let now = crate::engine::performance::now_ms();
         if !announced && now - self.last_read_ms < self.poll_ms {
@@ -368,7 +368,7 @@ impl LiveSource {
 
     /// One document per listed file from the current set, fetching and decoding a file the
     /// set lacks; a file that cannot be had is skipped and forgotten so the next poll retries.
-    async fn load_all(&mut self, files: &[(usize, String)]) -> Vec<Doc> {
+    async fn load_all(&mut self, files: &[(usize, String)]) -> Vec<FileDoc> {
         let Some(m) = self.manifest.take() else {
             return Vec::new();
         };
@@ -396,7 +396,7 @@ impl LiveSource {
                 continue;
             };
             let name = m.name_of(i, &session.name);
-            out.push(Doc {
+            out.push(FileDoc {
                 name,
                 session,
                 place: m.place(i, AUTO_GRID),

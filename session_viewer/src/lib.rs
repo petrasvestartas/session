@@ -12,7 +12,7 @@ mod state;
 #[cfg(target_arch = "wasm32")]
 pub mod text_quality;
 
-use crate::app::scene::{Doc, SheetInit, StreamedInit};
+use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
 use crate::app::walk::cloud::StreamRows;
 use crate::app::walk::sheet::SheetRows;
 pub use state::State;
@@ -35,7 +35,7 @@ pub struct SheetChunk {
 /// scene; everything after it changes the scene in place.
 pub enum Msg {
     Ready(Box<State>),
-    File(Doc),
+    File(FileDoc),
     Texts(Vec<app::manifest::TextItem>),
     Clear,
     Fit,

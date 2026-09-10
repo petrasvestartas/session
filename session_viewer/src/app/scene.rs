@@ -23,7 +23,7 @@ use std::rc::Rc;
 
 /// One loaded file: the kernel `Session` (kept for picking, editing and saving) plus the
 /// placement the manifest gave it.
-pub struct Doc {
+pub struct FileDoc {
     pub name: String,
     pub place: Xform,
     /// Shared with whoever decoded it (the live source keeps its current set), never copied.
@@ -120,7 +120,7 @@ struct Bases {
 
 /// The open document set, the pending upload and the row bookkeeping.
 pub struct Scene {
-    pub docs: Vec<Doc>,
+    pub docs: Vec<FileDoc>,
     /// Every source text placement shares ordinary scene identity and visibility.
     pub texts: Vec<SceneText>,
     pub tables: Upload,
@@ -245,8 +245,8 @@ impl Scene {
 
     /// Walk one session into the tables: one object row per guid in the kernel's canonical
     /// order (the row a guid gets is the row it keeps), then the per-file sweeps.
-    pub fn add_file(&mut self, doc: Doc) {
-        let Doc {
+    pub fn add_file(&mut self, doc: FileDoc) {
+        let FileDoc {
             name,
             session,
             place,
@@ -311,7 +311,7 @@ impl Scene {
                 "'{name}': retaining source geometry for controls; the legacy display_only/drop_sessions hint no longer releases it"
             );
         }
-        self.docs.push(Doc {
+        self.docs.push(FileDoc {
             name,
             place,
             session,
@@ -352,7 +352,7 @@ impl Scene {
         self.upload_to(gpu);
 
         let model = place.m;
-        self.docs.push(Doc {
+        self.docs.push(FileDoc {
             name: name.clone(),
             place,
             session: Rc::new(Session::new(&name)),
@@ -427,7 +427,7 @@ impl Scene {
         self.upload_to(gpu);
 
         let model = place.m;
-        self.docs.push(Doc {
+        self.docs.push(FileDoc {
             name: name.clone(),
             place,
             session: Rc::new(Session::new(&name)),
@@ -517,7 +517,7 @@ impl Scene {
     }
 
     /// An instance's exact owning document; duplicated GUIDs across files remain distinct.
-    pub fn document(&self, row: u32) -> Option<&Doc> {
+    pub fn document(&self, row: u32) -> Option<&FileDoc> {
         self.docs.get(*self.owners.get(row as usize)?)
     }
 
@@ -634,8 +634,8 @@ mod tests {
     use session_rust::{BRep, Point};
 
     /// Deliver a retained source using the same document boundary as the real loader.
-    fn file(name: &str, session: Rc<Session>, display_only: bool) -> Doc {
-        Doc {
+    fn file(name: &str, session: Rc<Session>, display_only: bool) -> FileDoc {
+        FileDoc {
             name: name.into(),
             session,
             place: Xform::identity(),

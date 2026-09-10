@@ -9,7 +9,7 @@ use super::live::LiveSource;
 use super::manifest::Manifest;
 use super::route::AUTO_GRID;
 use super::route::{SceneRoute, join, knob_u32, named_scene, scene_route};
-use super::scene::{Doc, Scene, SheetInit, StreamedInit};
+use super::scene::{FileDoc, Scene, SheetInit, StreamedInit};
 use super::stream::{
     CloudFields, SheetFields, cloud_fields, cloud_lod, fetch_colors, fetch_positions,
     fetch_sheet_slice, sheet_fields,
@@ -353,7 +353,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
             f1 - f0,
             now_ms() - f1
         );
-        let doc = Doc {
+        let doc = FileDoc {
             name,
             session: Rc::new(session),
             place,
@@ -406,7 +406,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
 
 /// Replacement staging preserves manifest order across whole files, streamed clouds and sheets.
 enum PendingDocument {
-    Whole(Doc),
+    Whole(FileDoc),
     Streamed(Box<StreamedInit>),
     Sheet(Box<SheetInit>),
 }

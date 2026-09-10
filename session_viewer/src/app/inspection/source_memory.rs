@@ -1,7 +1,7 @@
 //! Known retained source payloads, not RSS, allocator usage or total heap ownership.
 //! Vec/String capacities are exact payload capacities. Slice and map-entry figures use
 //! exposed occupied lengths; private spare capacity and allocator metadata are excluded.
-use super::super::scene::Doc;
+use super::super::scene::FileDoc;
 use session_rust::{
     BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, NurbsSurfaceTrimmed, OBB, Plane,
     Point, PointCloud, Polyline, Session,
@@ -60,7 +60,7 @@ pub(super) struct SourceCache {
 impl SourceCache {
     /// Current viewer sources are immutable Rc sessions: replacement/append changes identity.
     /// Future in-place source editing must invalidate this cache or replace the Rc session.
-    pub fn snapshot(&mut self, docs: &[Doc]) -> Payload {
+    pub fn snapshot(&mut self, docs: &[FileDoc]) -> Payload {
         let mut matches = docs.len() == self.documents.len();
         if matches {
             for (old, doc) in self.documents.iter().zip(docs) {
@@ -413,8 +413,8 @@ mod tests {
     use session_rust::Xform;
 
     /// A document shares the source exactly as the loader and scene coordinator do.
-    fn document(session: Rc<Session>) -> Doc {
-        Doc {
+    fn document(session: Rc<Session>) -> FileDoc {
+        FileDoc {
             name: "memory fixture".into(),
             place: Xform::identity(),
             session,

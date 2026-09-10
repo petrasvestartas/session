@@ -3,7 +3,7 @@
 //! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
 //! never the other way round.
 
-use crate::app::scene::{Doc, Scene, SheetInit, StreamedInit};
+use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
 use crate::app::selection::{ControlId, Controls, SelectionMode};
 use crate::app::walk::cloud::StreamRows;
 use crate::app::walk::encode::FACING_UNKNOWN;
@@ -98,7 +98,7 @@ impl State {
     }
 
     /// Append one parsed document: walk it into the tables, upload the delta.
-    pub fn append(&mut self, doc: Doc) {
+    pub fn append(&mut self, doc: FileDoc) {
         let t0 = now_ms();
         let first_row = self.scene.object_count();
         self.scene.add_file(doc);

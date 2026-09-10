@@ -122,8 +122,8 @@ def main():
     parser.add_argument("--production", type=Path, default=HERE.parent.parent.parent)
     parser.add_argument("--plan", action="store_true", help="print the hunk assignment and stop")
     parser.add_argument("--only", action="append", help="fold only these files (repeatable)")
-    parser.add_argument("--pin", action="append", default=[], metavar="FILE:FROM=TO",
-                        help="move the hunks blame assigned to step FROM for FILE into step TO (repeatable)")
+    parser.add_argument("--pin", action="append", default=[], metavar="FILE:FROM[#N]=TO",
+                        help="move the hunks (or hunk N of --plan's list) blame assigned to step FROM for FILE into step TO")
     parser.add_argument("--add", action="append", default=[], metavar="FILE=STEP",
                         help="a file new to production: create it at STEP with its production bytes (repeatable)")
     args = parser.parse_args()
@@ -133,10 +133,19 @@ def main():
     for pin in args.pin:
         spec, to = pin.split("=")
         name, source = spec.rsplit(":", 1)
-        bodies = assignment.get(source, {}).pop(name, None)
-        if bodies is None:
+        index = None
+        if "#" in source:
+            source, number = source.split("#")
+            index = int(number) - 1
+        bodies = assignment.get(source, {}).get(name)
+        if not bodies:
             sys.exit(f"nothing assigned to {name} at {source}")
-        assignment[to][name].extend(bodies)
+        moved = [bodies.pop(index)] if index is not None else list(bodies)
+        if index is None:
+            bodies.clear()
+        if not bodies:
+            assignment[source].pop(name)
+        assignment[to][name].extend(moved)
     additions = {}
     for add in args.add:
         name, step = add.split("=")
