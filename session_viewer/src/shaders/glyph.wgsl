@@ -39,6 +39,7 @@ struct LineUniform {
     backface: f32,
     origin: vec2<f32>,
     frame: vec2<f32>,
+    opacity: f32,
 };
 
 // The sub id a marker answers: ink, not a face, to the pick window; no row behind it.

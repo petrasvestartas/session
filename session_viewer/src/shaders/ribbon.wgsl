@@ -45,6 +45,7 @@ struct LineUniform {
     backface: f32,
     origin: vec2<f32>,
     frame: vec2<f32>,
+    opacity: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -198,7 +199,7 @@ fn corner_of(k: u32) -> u32 {
 // A connected neighbor contributes only while its own physical facets can face the eye.
 fn neighbor_visible(seg: StrokeSegment) -> bool {
     let inst = instances[seg.instance_id];
-    if ((inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || seg.facing == FACING_UNKNOWN) { return true; }
+    if ((inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || seg.facing == FACING_UNKNOWN || line.opacity <= 0.0) { return true; }
     let p0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
     let p1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
     let n0 = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
@@ -250,8 +251,9 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
 
     let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
     let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
-    // Free polylines and open/inside objects do not need supporting-face normal work.
-    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
+    // Free polylines and open/inside objects do not need supporting-face normal work; in
+    // x-ray (`P`) every edge shows, back ones included.
+    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0;
     if (!inside && seg.facing != FACING_UNKNOWN) {
         let to_eye = toward_eye((w0 + w1) * 0.5);
         let n0 = face_normal(model, oct16_decode(seg.facing & 0xffffu));
@@ -372,6 +374,36 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
         discard;
     }
     return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
+}
+
+// Silhouette coverage: a visible stroke extends the mask by its own antialiased footprint,
+// so the black ring wraps the edges of a solid instead of running under them.
+@fragment
+fn fs_mask(in: VsOut, @builtin(sample_index) sample: u32) -> @location(0) vec4<f32> {
+    let alpha = coverage(in);
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
+    return vec4<f32>(alpha);
+}
+
+struct MaskPair {
+    @location(0) solid: vec4<f32>,
+    @location(1) selected: vec4<f32>,
+};
+
+// Both masks from one rasterization: `fs_masks` for ordinary strokes, `fs_masks_selected`
+// for the strokes of a selected object, which also feed the selected mask.
+@fragment
+fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
+    let alpha = coverage(in);
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
+    return MaskPair(vec4<f32>(alpha), vec4<f32>(0.0));
+}
+
+@fragment
+fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
+    let alpha = coverage(in);
+    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
+    return MaskPair(vec4<f32>(alpha), vec4<f32>(alpha));
 }
 
 @fragment

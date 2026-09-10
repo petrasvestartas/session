@@ -19,6 +19,7 @@ struct LineUniform {
     backface: f32,
     origin: vec2<f32>,
     frame: vec2<f32>,
+    opacity: f32,
 };
 
 const STEP: f32 = 1000.0;   // mm per cell

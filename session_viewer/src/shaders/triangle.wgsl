@@ -28,11 +28,15 @@ struct LineUniform {
     backface: f32,
     origin: vec2<f32>,
     frame: vec2<f32>,
+    opacity: f32,
 };
 
 const FLAG_SELECTED: u32 = 1u;
 const FLAG_HIDDEN: u32 = 2u;
 const FLAG_PRINT: u32 = 8u;
+const FLAG_OPEN: u32 = 16u;
+const FLAG_SHEET: u32 = 32u;
+const FLAG_SINGLE: u32 = 128u;
 const MM_TO_M: f32 = 0.001;
 const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
 const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
@@ -61,6 +65,12 @@ struct VsOut {
     @location(6) @interpolate(flat) selected: u32,
     @location(7) @interpolate(flat) source_face: u32,
     @location(8) @interpolate(flat) primitive: u32,
+    // A closed solid dims with `line.opacity`; an open sheet (a flat contact polygon, a hole
+    // boundary) stays opaque, or looking through it would just show its own back face.
+    @location(9) @interpolate(flat) closed: u32,
+    // X-ray (`P`, opacity 0): a multi-face solid loses its faces; a single face (a surface, a
+    // flat polygon, a sheet or print fill) has no inside to show and keeps its shading.
+    @location(10) @interpolate(flat) xray: u32,
 }
 
 // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
@@ -100,6 +110,8 @@ fn transform_vertex(in: VsIn) -> VsOut {
     o.inst_id = in.inst_id;
     o.selected = inst.flags & FLAG_SELECTED;
     o.source_face = 0xffffffffu;
+    o.closed = select(1u, 0u, (inst.flags & FLAG_OPEN) != 0u);
+    o.xray = select(0u, 1u, line.opacity <= 0.0 && (inst.flags & (FLAG_PRINT | FLAG_SHEET | FLAG_SINGLE)) == 0u);
     return o;
 }
 
@@ -152,10 +164,8 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     var n = vec3<f32>(0.0, 0.0, 1.0);
     if (dot(in.normal, in.normal) > 1e-12) {
         n = normalize(in.normal);
-        if (!front) { n = -n; }
     } else if (dot(flat_n, flat_n) > 1e-24) {
         n = normalize(flat_n);
-        if (!raster_front) { n = -n; }
     }
 
     // A headlight, as every CAD viewport shades: the lamp rides the camera, tilted a little
@@ -168,10 +178,15 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     // where the normal splits the lamp and the eye; the gain leaves it room to show.
     //
     // Measured on the mixed-solids scene (1400x900, Intel iGPU, 2026-09-08), as the ratio of the
-    // lit frame to the same frame under `VIEWER_NO_LIT`, both linearised: a face square to the
+    // lit frame to the same frame under `VIEWER_LIT off`, both linearised: a face square to the
     // camera holds 1.00 of its colour, the sphere's silhouette - its normal square to the view -
     // reads 0.59..0.62, and the darkest face pixel in either frame, iso or from below, is 0.47.
     let v = view_dir(in.world_pos);
+    // Face the normal toward the eye by its own dot product, not by winding: `front`/`mirrored`
+    // answer which side of the WINDING is visible, so a flipped authored normal on an
+    // otherwise-front triangle used to light as if seen from behind it. Two coplanar flat
+    // polygons that differ only in which way their normal was authored now shade identically.
+    if (dot(n, v) < 0.0) { n = -n; }
     let l = normalize(v + vec3<f32>(0.0, 0.0, 0.35));
     let h = normalize(l + v);
     let wrap = clamp((dot(n, l) + 0.5) / 1.5, 0.0, 1.0);
@@ -183,30 +198,33 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
     let backface = !front && in.print <= 0.5 && line.backface > 0.5;
     let base = select(in.color, BACKFACE_COLOR, backface);
     let shaded = select(1.0, lit, line.lit > 0.5 && in.print <= 0.5);
-    return vec4<f32>(base * shaded, 1.0);
+    let alpha = select(1.0, line.opacity, in.closed != 0u);
+    return vec4<f32>(base * shaded, alpha);
 }
 
 // The id pass: (object row + 1, 0).
 @fragment
 fn fs_id(in: VsOut) -> PhysicalId {
+    if (in.xray != 0u) { discard; }
     let sub = select((0x20000000u | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
     return PhysicalId(vec2<u32>(in.inst_id + 1u, sub), physical_triangle(in.pos.z, in.primitive));
 }
 
 @fragment
 fn fs_selection_mask(in: VsOut) -> @location(0) vec4<f32> {
-    if (in.selected == 0u) { discard; }
+    if (in.selected == 0u || in.xray != 0u) { discard; }
     return vec4<f32>(1.0);
 }
 
 @fragment
 fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> PhysicalColor {
+    if (in.xray != 0u) { discard; }
     return PhysicalColor(shade(in, front), physical_triangle(in.pos.z, in.primitive));
 }
 
 @fragment
 fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
-    if (in.selected == 0u) { discard; }
+    if (in.selected == 0u || in.xray != 0u) { discard; }
     return shade(in, front);
 }
 
@@ -214,6 +232,7 @@ fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location
 // objects create no artificial seam in the group's outside silhouette.
 @fragment
 fn fs_solid_mask(in: VsOut) -> @location(0) vec4<f32> {
+    if (in.xray != 0u) { discard; }
     return vec4<f32>(1.0);
 }
 
@@ -226,5 +245,6 @@ struct MaskPair {
 
 @fragment
 fn fs_masks(in: VsOut) -> MaskPair {
+    if (in.xray != 0u) { discard; }
     return MaskPair(vec4<f32>(1.0), vec4<f32>(f32(in.selected != 0u)));
 }

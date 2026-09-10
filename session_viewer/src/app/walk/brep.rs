@@ -98,6 +98,9 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
     if !b.is_solid() {
         flags |= Instance::FLAG_OPEN;
     }
+    if b.face_count() == 1 {
+        flags |= Instance::FLAG_SINGLE;
+    }
     let thickness = mesh_thickness(&solid.pos, &solid.tris);
     let mut row = Row {
         bounds: solid.bounds,
@@ -179,7 +182,8 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
         smooth: true,
     };
     let first_pipe = ink.seg.pipes.len();
-    let row = walk_mesh(arena, ink, &sm, &MeshCx { cx, opts: &opts });
+    let mut row = walk_mesh(arena, ink, &sm, &MeshCx { cx, opts: &opts });
+    row.flags |= Instance::FLAG_SINGLE;
     map_surface_boundaries(ink, s, &sm, first_pipe);
     row
 }

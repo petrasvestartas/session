@@ -58,6 +58,8 @@ pub enum ColorWrite {
     Opaque,
     /// Alpha-blend: ink with an AA feather.
     Blended,
+    /// Keep the larger value: coverage masks, where a stroke's feather must not dent a face.
+    Max,
 }
 
 impl ColorWrite {
@@ -69,6 +71,20 @@ impl ColorWrite {
                 Some(wgpu::BlendState::ALPHA_BLENDING),
                 wgpu::ColorWrites::ALL,
             ),
+            ColorWrite::Max => {
+                let max = wgpu::BlendComponent {
+                    src_factor: wgpu::BlendFactor::One,
+                    dst_factor: wgpu::BlendFactor::One,
+                    operation: wgpu::BlendOperation::Max,
+                };
+                (
+                    Some(wgpu::BlendState {
+                        color: max,
+                        alpha: max,
+                    }),
+                    wgpu::ColorWrites::ALL,
+                )
+            }
         }
     }
 }

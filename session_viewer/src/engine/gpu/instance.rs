@@ -42,6 +42,9 @@ impl Instance {
     /// GPU sees them; this flag is what tells the marker lane its vertices are samples, not
     /// corners. Bit 6.
     pub const FLAG_SMOOTH: u32 = 1 << 6;
+    /// One face only (a NURBS surface, a one-face mesh or BRep): x-ray leaves it shaded, since
+    /// it has no interior to look into.
+    pub const FLAG_SINGLE: u32 = 1 << 7;
 
     /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
     pub fn placeholder() -> Self {
@@ -171,6 +174,7 @@ mod tests {
                             offset_of!(LineUniform, backface),
                             offset_of!(LineUniform, origin),
                             offset_of!(LineUniform, frame),
+                            offset_of!(LineUniform, opacity),
                         ],
                         size_of::<LineUniform>(),
                     ),
@@ -226,6 +230,7 @@ mod tests {
             "backface",
             "origin",
             "frame",
+            "opacity",
         ];
         for (name, src) in lane_shaders() {
             if src.contains("struct LineUniform") {

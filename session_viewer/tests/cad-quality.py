@@ -79,8 +79,8 @@ def main():
         for kind in ["sphere", "crease"]:
             for style in ["fill", "unlit"]:
                 draw = dict(environment, VIEWER_NO_EDGES="1")
-                if style == "unlit":
-                    draw["VIEWER_NO_LIT"] = "1"
+                if style == "fill":
+                    draw["VIEWER_LIT"] = "1"
                 stem = f"{kind}-{style}"
                 run_logged([str(args.binary_dir / "selftest"), str(args.output / f"{stem}.ppm"),
                             str(args.output / f"{kind}-source.pb")], args.output / f"{stem}.log", draw)

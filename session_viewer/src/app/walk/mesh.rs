@@ -192,6 +192,9 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
     if smooth {
         flags |= Instance::FLAG_SMOOTH;
     }
+    if m.number_of_faces() == 1 {
+        flags |= Instance::FLAG_SINGLE;
+    }
     let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
     let row = Row {
         bounds,

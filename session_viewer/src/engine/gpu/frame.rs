@@ -44,7 +44,8 @@ impl Binds<'_> {
 
 /// The line/pen block (group 1), 80 B. `eye` and `anchor` are in the anchored frame the
 /// instance rows use. Offsets: thickness 0, proj_y 4, ortho_h 8, vp_h 12, vp_w 16, eye 20,
-/// anchor 32 (vec3 aligned to 16), feather 44, lit 48, backface 52, origin 56, frame 64.
+/// anchor 32 (vec3 aligned to 16), feather 44, lit 48, backface 52, origin 56, frame 64,
+/// opacity 72.
 ///
 /// `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected
 /// for and `origin` where this attachment's top-left sits in it. They differ only in the
@@ -66,7 +67,8 @@ pub struct LineUniform {
     pub backface: f32,    // 1 = paint back faces red, 0 = their own colour
     pub origin: [f32; 2], // this attachment's top-left in canvas pixels (0 except in a pick)
     pub frame: [f32; 2],  // the canvas the tiles were binned for, px
-    pub _pad: [f32; 2],
+    pub opacity: f32,     // alpha on shaded mesh faces only; lines and points ignore it
+    pub _pad: f32,
 }
 
 const _: () = {
@@ -75,6 +77,7 @@ const _: () = {
     assert!(std::mem::offset_of!(LineUniform, backface) == 52);
     assert!(std::mem::offset_of!(LineUniform, origin) == 56);
     assert!(std::mem::offset_of!(LineUniform, frame) == 64);
+    assert!(std::mem::offset_of!(LineUniform, opacity) == 72);
 };
 
 /// The cloud block (group 1 of the point lane), 16 B.
@@ -228,7 +231,8 @@ impl FrameUniforms {
             backface: 0.0,
             origin: [0.0; 2],
             frame: [size.0 as f32, size.1 as f32],
-            _pad: [0.0; 2],
+            opacity: 1.0,
+            _pad: 0.0,
         };
         let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
         let cloud = CloudUniform {
@@ -309,7 +313,8 @@ impl FrameUniforms {
             backface: f32::from(cx.view.backface),
             origin: [0.0; 2],
             frame: [cx.size.0 as f32, cx.size.1 as f32],
-            _pad: [0.0; 2],
+            opacity: cx.view.opacity,
+            _pad: 0.0,
         };
         ctx.queue
             .write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));

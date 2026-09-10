@@ -115,13 +115,18 @@ impl LiveSource {
     }
 
     /// The page's live source, or `None` when the query or the route turns it off: a named
-    /// scene wins, and a dev server shows the local scene instead of the bucket.
+    /// scene wins, and a dev server shows the local scene instead of the bucket - except the
+    /// name `view_live` itself, which asks for the live source under any host, so a local
+    /// `/view_live` polls (and gets notified) exactly as the deployed root page does.
     pub fn from_query() -> Option<Self> {
         let live = query("live");
         if live.as_deref() == Some("off") || live.as_deref() == Some("0") {
             return None;
         }
-        if live.is_none() && (query_scene().is_some() || path_scene().is_some() || page_is_local())
+        let named = query_scene().or_else(path_scene);
+        if live.is_none()
+            && named.as_deref() != Some("view_live")
+            && (named.is_some() || page_is_local())
         {
             return None;
         }

@@ -32,15 +32,17 @@ pub struct View {
     /// against a 1.5 px pen the beat is 22% of the ink. The ribbons no longer read this at
     /// all - they integrate the pixel box exactly, which cannot beat at any width.
     pub feather_px: f32,
-    /// Light the mesh faces with a camera headlight. On by default: a flat colour hides every
-    /// curve, and the fix is what a CAD viewport does anyway. Off = every face its flat colour,
-    /// which is what a colour-based visibility probe needs (`?nolit=1` / `VIEWER_NO_LIT`). `D` -
-    /// `S` is the show-all half of the H/S hide pair.
+    /// Light the mesh faces with a camera headlight. Off by default: every face its flat
+    /// colour, which reads as a drawing and is what a colour-based visibility probe needs; `D`
+    /// (`?lit=1` / `VIEWER_LIT`) turns the headlight on when a curved surface needs its shading.
     pub lit: bool,
     /// Paint a face seen from behind red - the inside of an open solid, or a flipped normal.
-    /// On by default: a red patch on a closed solid is a winding bug worth seeing without
-    /// being asked for (`?nobackface=1`). `B`.
+    /// Off by default: it doubles as a selection-style highlight, not a warning, so it only
+    /// shows once asked for, with `B` (`?backface=1` / `VIEWER_BACKFACE`).
     pub backface: bool,
+    /// Alpha on every closed shaded solid; 0 is x-ray, where every face is discarded and only
+    /// edges remain. `P` toggles 1 <-> 0 (`?opacity=` / `VIEWER_OPACITY` set any value).
+    pub opacity: f32,
     /// Force the sample count (`?msaa=` / `VIEWER_MSAA`): 4 = 4x, anything else 1x.
     pub msaa_forced: Option<u32>,
     /// Continuous rendering with a frame line on the page (`?perf=1` / `VIEWER_PERF`).
@@ -64,8 +66,9 @@ impl View {
             lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
             thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.0).max(0.1),
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
-            lit: knob("VIEWER_NO_LIT", "nolit").is_none(),
-            backface: knob("VIEWER_NO_BACKFACE", "nobackface").is_none(),
+            lit: knob("VIEWER_LIT", "lit").is_some(),
+            backface: knob("VIEWER_BACKFACE", "backface").is_some(),
+            opacity: knob_f32("VIEWER_OPACITY", "opacity", 1.0).clamp(0.0, 1.0),
             msaa_forced: knob_u32("VIEWER_MSAA", "msaa"),
             perf: knob("VIEWER_PERF", "perf").is_some(),
             spin: knob("VIEWER_SPIN", "spin").is_some(),

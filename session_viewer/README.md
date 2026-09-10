@@ -28,7 +28,10 @@ Chrome on Linux with Vulkan is the tested browser. Other browsers and hardware a
 | Escape | Clear sub-selection and controls while retaining the parent. |
 | T | Toggle centered white-on-black selected names; enabled by default. |
 | H / S | Hide the selected object / show hidden objects. |
+| D | Toggle the headlight (off by default: flat colours; `?lit=1`). |
 | O | Toggle black surface silhouettes (off by default; two extra mask passes over the solid geometry). |
+| P | Toggle x-ray: every mesh, NURBS and BRep face disappears, only edges, points and text remain. |
+| B | Toggle red back faces (off by default; `?backface=1`). |
 
 Source text can face the camera or remain in a fixed world plane. BRep boundaries reuse the incident face mesh's exact samples; curved constrained boundaries are refined before triangulation. Per-face normals preserve planar faces, smooth interiors and sharp creases.
 

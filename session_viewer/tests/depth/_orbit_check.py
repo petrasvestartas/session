@@ -66,9 +66,9 @@ def main():
         # Flat fills, because the mask must read ink and nothing else: the headlight shades a
         # face from its normal, so reversing a face use darkens it - measured 82 to 56 on the
         # cylinder's two reversed faces - and grey fill pixels cross the near-black threshold
-        # where no ink moved at all. VIEWER_NO_LIT is the knob for a colour-based probe.
+        # where no ink moved at all. The headlight is off unless VIEWER_LIT asks for it.
         env = dict(base, VIEWER_W="1000", VIEWER_H="700", VIEWER_NO_GRID="1", VIEWER_NO_BACKFACE="1",
-                   VIEWER_NO_LIT="1", VIEWER_THICKNESS="1.5",
+                   VIEWER_THICKNESS="1.5",
                    VIEWER_ORBIT=f"{i * STEP},0")
         subprocess.run([binary, str(ppm), scene], env=env, check=True, capture_output=True)
         series.append(sum(black_mask(ppm)))

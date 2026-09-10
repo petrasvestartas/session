@@ -222,6 +222,13 @@ impl State {
         self.touch();
     }
 
+    /// `P`: shaded faces <-> x-ray. In x-ray every mesh, NURBS and BRep face is gone and only
+    /// its edges, points and text remain; lines and points are never affected.
+    pub fn toggle_xray(&mut self) {
+        self.gpu.view.opacity = if self.gpu.view.opacity > 0.0 { 0.0 } else { 1.0 };
+        self.touch();
+    }
+
     /// Ask what is under pixel (x, y); the answer lands in a later frame (`apply_pick`).
     pub fn request_pick(&mut self, x: u32, y: u32) {
         self.request_selection(x, y, false, false);

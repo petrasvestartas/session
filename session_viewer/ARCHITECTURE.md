@@ -154,7 +154,7 @@ Meshes are vertex-pulled: `triangle.wgsl` reads `face_vertices`, `face_objects`,
 | Ctrl + Shift + left click | Select an original face; a nearby eligible edge wins |
 | F10 / Escape | Show the parent's original controls / leave the mode, then clear |
 | 1–7, C, F, Space | Standard views, reset, fit, projection toggle |
-| Q, W, E, O, D, B | Points, lines, mesh edges, silhouettes, lighting, back faces |
+| Q, W, E, O, P, D, B | Points, lines, mesh edges, silhouettes, x-ray, lighting, back faces |
 | H / S / T | Hide selection / show all / toggle selected names |
 
 ## Adding a feature

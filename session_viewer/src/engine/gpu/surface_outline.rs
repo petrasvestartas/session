@@ -1,5 +1,5 @@
 //! Black surface silhouettes from visible coverage. Combined solid silhouettes and
-//! thicker selected boundaries share allocation, depth testing and compositing.
+//! selected boundaries share allocation, depth testing and compositing.
 //! The mask never changes geometry or picking, and cannot include hidden surfaces.
 
 use std::collections::HashSet;
@@ -34,6 +34,9 @@ pub struct MaskKey {
     pub faces: u64,
     pub size: (u32, u32),
     pub samples: u32,
+    /// The edges are part of the coverage, so the mask follows their toggle and pen.
+    pub edges: bool,
+    pub pen: u32,
 }
 
 /// Which visible surfaces contribute to a shared, antialiased coverage mask.
@@ -292,11 +295,9 @@ impl SurfaceOutline {
             });
             self.valid_for = None;
         }
-        let css_radius = if self.kind == OutlineKind::AllSolids {
-            2.25
-        } else {
-            3.375
-        };
+        // One radius for every silhouette: an ordinary solid's outline is as heavy as a
+        // selected one's, the selection differing by its yellow fill, not its border.
+        let css_radius = 3.375;
         let radius = (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32;
         ctx.queue.write_buffer(
             &self.uniform,
@@ -378,7 +379,7 @@ impl SurfaceOutline {
         pass.draw(0..3, 0..1);
     }
 
-    /// Composite both silhouettes once. Maximum coverage lets the thicker selected
+    /// Composite both silhouettes once. Maximum coverage lets the selected
     /// border win without painting the overlapping antialias fringe twice.
     pub fn draw_combined(&self, selected: &Self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
         let Some(normal) = self.mask.as_ref().or(selected.mask.as_ref()) else {
@@ -696,7 +697,7 @@ mod tests {
                 .count();
             assert!(
                 plain_black > 0 && plain_black < black,
-                "ordinary outlines stay visible and selected ones are thicker"
+                "ordinary and selected outlines both stay visible"
             );
             gpu.view.show_outlines = false;
             let disabled = gpu.render_offscreen(&input);

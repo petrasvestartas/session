@@ -2,7 +2,7 @@
 //! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
 //! everything with none selected), Q/W/E lane toggles, D face lighting, B the back-face flag,
 //! H hides the selection and S shows everything back, T toggles selected names,
-//! [ ] cloud size, Escape clears the
+//! P toggles x-ray (faces gone, edges stay), [ ] cloud size, Escape clears the
 //! selection. Fingers go to `touch.rs`.
 //! Every handler says whether the frame must be redrawn.
 
@@ -77,6 +77,7 @@ impl Input {
             Key::Character("s" | "S") => state.show_all(),
             Key::Character("t" | "T") => state.toggle_selected_names(),
             Key::Character("b" | "B") => state.gpu.view.backface = !state.gpu.view.backface,
+            Key::Character("p" | "P") => state.toggle_xray(),
             Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
             Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
             _ => return false,

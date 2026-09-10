@@ -39,6 +39,7 @@ struct LineUniform {
     backface: f32,
     origin: vec2<f32>,
     frame: vec2<f32>,
+    opacity: f32,
 };
 
 const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -158,8 +159,9 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
         return dead_dot();
     }
 
-    // Hidden vertices never reach the rasterizer, unless the eye is inside the object.
-    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
+    // Hidden vertices never reach the rasterizer, unless the eye is inside the object or
+    // x-ray (`P`) shows every vertex.
+    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0;
     if (!inside) {
         let kf = faces_front(g, inst.model, toward_eye(centre));
         if (kf.x && !kf.y) {

@@ -83,6 +83,8 @@ impl Gpu {
             faces: self.arena.source_faces.revision(),
             size,
             samples: self.targets.samples,
+            edges: self.view.show_mesh_edges,
+            pen: self.view.thickness_px.to_bits(),
         };
         let stale = (solid && !self.solid_outline.is_valid(&key))
             || (selected && !self.selection_outline.is_valid(&key));
@@ -92,6 +94,14 @@ impl Gpu {
                 line: &self.frame.line_group,
                 instances: &self.objects.group,
             };
+            // The edges extend the coverage by their own footprint, tested against the same
+            // physical depth the ink pass reads, so the ring wraps them.
+            let ink = Binds {
+                mvp: &self.frame.mvp_group,
+                line: &self.frame.line_group,
+                instances: &self.objects.ink_group,
+            };
+            let edges = self.view.show_mesh_edges;
             if solid && selected {
                 // One rasterization of the faces writes both masks.
                 let mut pass = surface_outline::SurfaceOutline::begin_masks(
@@ -102,13 +112,22 @@ impl Gpu {
                 );
                 draws += self.arena.draw_masks(&mut pass, &b);
                 draws += self.arena.source_faces.draw_masks(&mut pass, &b);
+                if edges {
+                    draws += self.segments.draw_masks(&mut pass, &ink);
+                }
             } else if solid {
                 let mut pass = self.solid_outline.begin_mask(encoder, &self.targets);
                 draws += self.arena.draw_solid_mask(&mut pass, &b);
+                if edges {
+                    draws += self.segments.draw_solid_mask(&mut pass, &ink);
+                }
             } else if selected {
                 let mut pass = self.selection_outline.begin_mask(encoder, &self.targets);
                 draws += self.arena.draw_selection_mask(&mut pass, &b);
                 draws += self.arena.source_faces.draw_mask(&mut pass, &b);
+                if edges {
+                    draws += self.segments.draw_selection_mask(&mut pass, &ink);
+                }
             }
             if solid {
                 self.solid_outline.encode_pool(encoder);

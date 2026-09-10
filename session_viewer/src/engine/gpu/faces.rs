@@ -1,7 +1,7 @@
 //! Physical face drawing and original face identities over the arena's shared triangles.
 use super::buffers::{GpuCtx, GrowBuf, ROWS};
 use super::frame::Binds;
-use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build};
+use crate::engine::pipelines::{ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build};
 
 /// Sub-selection tag; source face addresses remain separate from edges and controls.
 pub const FACE_TAG: u32 = 0x2000_0000;
@@ -280,7 +280,10 @@ fn pipelines(
     let physical = build(
         &ctx.device,
         target,
-        &object_base.with("physical triangle", "fs_main").physical(),
+        &object_base
+            .with("physical triangle", "fs_main")
+            .color(ColorWrite::Blended)
+            .physical(),
     );
     let object_ids = build(
         &ctx.device,

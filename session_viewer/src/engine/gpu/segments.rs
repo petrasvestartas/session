@@ -239,6 +239,12 @@ struct SegPipelines {
     selected: wgpu::RenderPipeline,
     id_ribbon: wgpu::RenderPipeline,
     id_edge: wgpu::RenderPipeline,
+    /// Solid-edge coverage into one silhouette mask, ordinary and selected strokes.
+    mask_unselected: wgpu::RenderPipeline,
+    mask_selected: wgpu::RenderPipeline,
+    /// The same into the solid and selected masks together.
+    masks_unselected: wgpu::RenderPipeline,
+    masks_selected: wgpu::RenderPipeline,
 }
 
 /// The segment lane on the GPU: two tables, the shader, the pipelines, the sheets.
@@ -392,6 +398,26 @@ impl SegmentLane {
         draws
     }
 
+    /// Every visible solid edge into the solid silhouette mask.
+    pub fn draw_solid_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        self.draw_table(pass, b, &self.gpu.mask_unselected, &self.pipes)
+            + self.draw_table(pass, b, &self.gpu.mask_selected, &self.pipes)
+    }
+
+    /// The selected objects' edges into the selected silhouette mask.
+    pub fn draw_selection_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        if self.selected_rows.is_empty() {
+            return 0;
+        }
+        self.draw_table(pass, b, &self.gpu.mask_selected, &self.pipes)
+    }
+
+    /// Both masks at once: ordinary edges cover, selected edges cover and select.
+    pub fn draw_masks(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+        self.draw_table(pass, b, &self.gpu.masks_unselected, &self.pipes)
+            + self.draw_table(pass, b, &self.gpu.masks_selected, &self.pipes)
+    }
+
     /// Mesh/BRep edges: camera-facing quads against physical depth.
     pub fn draw_pipes(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
         self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes)
@@ -481,6 +507,10 @@ fn build_pipelines(
     let quad = PipelineDesc::new(shader, &groups, &[], TriangleList)
         .scene_samples(target.samples)
         .depth(DepthMode::Always);
+    let mask = Target {
+        format: wgpu::TextureFormat::R8Unorm,
+        samples: target.samples,
+    };
     let dev = &ctx.device;
 
     SegPipelines {
@@ -514,6 +544,38 @@ fn build_pipelines(
             dev,
             Target::ID,
             &quad.with("edge.id", "fs_edge_id").scene_samples(1),
+        ),
+        mask_unselected: build(
+            dev,
+            mask,
+            &quad
+                .with("ribbon.mask", "fs_mask")
+                .vertex("vs_unselected")
+                .color(ColorWrite::Max),
+        ),
+        mask_selected: build(
+            dev,
+            mask,
+            &quad
+                .with("ribbon.mask.selected", "fs_mask")
+                .vertex("vs_selected")
+                .color(ColorWrite::Max),
+        ),
+        masks_unselected: build(
+            dev,
+            mask,
+            &quad
+                .with("ribbon.masks", "fs_masks")
+                .vertex("vs_unselected")
+                .masks(),
+        ),
+        masks_selected: build(
+            dev,
+            mask,
+            &quad
+                .with("ribbon.masks.selected", "fs_masks_selected")
+                .vertex("vs_selected")
+                .masks(),
         ),
     }
 }

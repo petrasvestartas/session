@@ -56,9 +56,9 @@ check probe_determinism "$B/check_determinism" "$OUT/torus.pb" "$OUT/hole.pb"
 # quantisation stair of an 8-bit gradient with room for a driver's rounding. Zero back-face
 # pixels from above: a face wound inside out shows the shader's red.
 check shade_probe "$B/mk_shade_probe" "$OUT/sphere.pb" sphere
-check render_shade env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_NO_EDGES=1 "$B/selftest" "$OUT/sphere.ppm" "$OUT/sphere.pb"
+check render_shade env VIEWER_W=1400 VIEWER_H=900 VIEWER_LIT=1 VIEWER_NO_GRID=1 VIEWER_NO_EDGES=1 "$B/selftest" "$OUT/sphere.ppm" "$OUT/sphere.pb"
 check shade_scanline python3 tests/depth/_shade_scanline.py "$OUT/sphere.ppm" --max-second-diff 2.5 --max-backface 0
-check render_mixed_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/mixed_top.ppm" "$OUT/mixed.pb"
+check render_mixed_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_LIT=1 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/mixed_top.ppm" "$OUT/mixed.pb"
 check mixed_backface python3 tests/depth/_shade_scanline.py "$OUT/mixed_top.ppm" --max-backface 0
 
 # A hidden line behind a curved BRep: zero magenta at distance 1 and 4, read from the whole
