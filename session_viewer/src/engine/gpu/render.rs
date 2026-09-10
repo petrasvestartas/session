@@ -44,7 +44,10 @@ impl Gpu {
             self.face_list(&mut pass, &b)
         };
         let size = (self.config.width, self.config.height);
-        let faces = self.view.show_outlines && self.arena.face_count() > 0;
+        // No silhouettes in x-ray: with the faces gone they would only paint over the edges
+        // and vertices that are the picture.
+        let faces =
+            self.view.show_outlines && self.view.opacity > 0.0 && self.arena.face_count() > 0;
         let selected = self.selection_outline.prepare(
             &self.ctx,
             size,
