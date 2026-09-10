@@ -1,0 +1,12 @@
+{
+  "note": "Roboto is the viewer's own label font, so the course is set in it too and the docs match the app. Type is deliberately NOT taken from the design system: theme.json names a display and a body face, and this repo ignores both. The latin subset is committed rather than hot-linked; it is a variable file covering its whole weight range. Apache License 2.0.",
+  "faces": [
+    {
+      "family": "Roboto",
+      "file": "Roboto-latin.woff2",
+      "weights": "100 900",
+      "url": "https://fonts.gstatic.com/s/roboto/v51/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3yUBA.woff2",
+      "sha256": "1404ca348bd75ef836f4dd8b6f2cc719458642d1237c368296b2fc652dca47dc"
+    }
+  ]
+}

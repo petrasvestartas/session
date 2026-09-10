@@ -1,8 +1,8 @@
 diff --git a/session_cpp/src/brep.cpp b/session_cpp/src/brep.cpp
-index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc46490bfd1
+index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc46490bfd1 100644
 --- a/session_cpp/src/brep.cpp
 +++ b/session_cpp/src/brep.cpp
-@@ -9,8 +9,109 @@
+@@ -9,9 +9,110 @@
  #include <cmath>
  #include <map>
  #include <algorithm>
@@ -11,7 +11,7 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +#include <tuple>
  
  namespace session_cpp {
-+
+ 
 +/// Locate a point on this lifted pcurve when surface inversion reaches another branch.
 +static double boundary_parameter(const NurbsSurface& surface, const NurbsCurve& curve, const Point& point) {
 +    const auto [start,end]=curve.domain();
@@ -109,10 +109,11 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +    return a[0]==b[0] && a[1]==b[1] && a[2]==b[2];
 +}
 +
- 
++
  // ═══════════════════════════════════════════════════════════════════════════
  // Orientation
-@@ -906,10 +1007,13 @@
+ // ═══════════════════════════════════════════════════════════════════════════
+@@ -906,10 +1007,13 @@ std::vector<Mesh> BRep::face_meshes_q(bool has_quality, double max_angle_deg, do
          face_direct[fi] = std::abs(std::abs(area) * 0.5 - domain_area) < 1e-3 * domain_area;
      }
  
@@ -128,7 +129,7 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
      for (int fi = 0; fi < nf; ++fi) {
          if (!face_direct[fi]) continue;
          const auto& face = m_faces[fi];
-@@ -922,10 +1026,9 @@
+@@ -922,10 +1026,9 @@ std::vector<Mesh> BRep::face_meshes_q(bool has_quality, double max_angle_deg, do
          double utol = (u1 - u0) * 0.001, vtol = (v1 - v0) * 0.001;
          for (const auto& er : wire_edges(face.wires[0])) {
              int eidx = er.index;
@@ -140,7 +141,7 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
              if (!shared) continue;
              int ci = pcurve_index(eidx, fi, er.orientation);
              if (ci < 0) continue;
-@@ -946,58 +1049,176 @@
+@@ -946,58 +1049,176 @@ std::vector<Mesh> BRep::face_meshes_q(bool has_quality, double max_angle_deg, do
                  else if (at_u1 && std::abs(iu->second - u1) < utol * 0.1) pts.push_back({iv->second, vd.position()});
              }
              std::sort(pts.begin(), pts.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
@@ -161,12 +162,10 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +                    bool matches=canonical.size()==bnd.size() && (std::equal(canonical.begin(),canonical.end(),bnd.begin(),same_boundary_point) || std::equal(canonical.begin(),canonical.end(),bnd.rbegin(),same_boundary_point));
 +                    rebuild_grid[fi] = rebuild_grid[fi] || !matches;
 +                } else { edge_bnd[eidx] = bnd; edge_basis[eidx]={fi,ci,parameters}; }
-             }
-         }
-     }
- 
--    // Phase 3: CDT faces. Shared edges reuse the direct face's boundary points projected into
--    // this face's planar patch; every other edge samples its own pcurve.
++            }
++        }
++    }
++
 +    // Refine canonical boundary endpoints before constrained interior refinement.
 +    // Every incident face is rebuilt with the same refined source polygon.
 +    for (const auto& [edge,basis] : edge_basis) {
@@ -193,12 +192,14 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +            for (const auto& sample:refined) {
 +                points.push_back(std::get<2>(sample));
 +                edge_samples[edge].emplace_back(std::get<0>(sample),std::get<1>(sample));
-+            }
+             }
 +            edge_bnd[edge]=points;
 +            for (const auto& incident:edge_faces(edge)) rebuild_grid[incident.index]=true;
-+        }
-+    }
-+
+         }
+     }
+ 
+-    // Phase 3: CDT faces. Shared edges reuse the direct face's boundary points projected into
+-    // this face's planar patch; every other edge samples its own pcurve.
 +    for (int fi=0;fi<nf;++fi) if (rebuild_grid[fi]) face_direct[fi]=false;
 +
 +    // Phase 3: CDT faces preserve their supplied boundary-node identities. Shared
@@ -213,6 +214,8 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 -        double eu2 = eu[0]*eu[0]+eu[1]*eu[1]+eu[2]*eu[2], ev2 = ev[0]*ev[0]+ev[1]*ev[1]+ev[2]*ev[2];
 -        bool can_project = srf.degree(0) == 1 && srf.degree(1) == 1 && eu2 > 1e-28 && ev2 > 1e-28;
 -
+-        NurbsSurfaceTrimmed ts;
+-        ts.m_surface = srf;
 +        const auto& srf = m_surfaces[face.surface_index];
 +        double angle = has_quality ? max_angle_deg : 20.0;
 +        double chord = has_quality ? chord_factor : 0.005;
@@ -227,9 +230,18 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +        }
 +        std::vector<std::tuple<int, size_t, size_t, size_t>> uses;
 +        bool valid = true;
-+        for (size_t wi = 0; wi < face.wires.size(); ++wi) {
+         for (size_t wi = 0; wi < face.wires.size(); ++wi) {
+-            std::vector<Point> loop_pts;
 +            std::vector<Point> uv, xyz;
-+            for (const auto& er : wire_edges(face.wires[wi])) {
+             for (const auto& er : wire_edges(face.wires[wi])) {
+-                int ci = pcurve_index(er.index, fi, er.orientation);
+-                if (ci < 0) continue;
+-                const NurbsCurve& crv = m_curves_2d[ci];
+-                std::vector<Point> seg;
+-                if (can_project && edge_bnd.count(er.index)) {
+-                    for (const auto& pt : edge_bnd[er.index]) {
+-                        double dx = pt[0]-p00[0], dy = pt[1]-p00[1], dz = pt[2]-p00[2];
+-                        seg.push_back(Point((dx*eu[0]+dy*eu[1]+dz*eu[2]) / eu2, (dx*ev[0]+dy*ev[1]+dz*ev[2]) / ev2, 0));
 +                int ei = er.index;
 +                const auto& edge = m_edges[ei];
 +                int ci = pcurve_index(ei, fi, er.orientation);
@@ -256,10 +268,14 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +                            if (srf.point_at(q[0],q[1]).distance(p)>tolerance) { valid=false; break; }
 +                        }
 +                        samples.push_back({t, q, p});
-+                    }
+                     }
+-                    Point start = crv.point_at(er.orientation == BRepOrientation::Reversed ? crv.domain().second : crv.domain().first);
+-                    if (seg.front().distance(start) > seg.back().distance(start)) std::reverse(seg.begin(), seg.end());
 +                    std::sort(samples.begin(), samples.end(), [](const auto& a, const auto& b) { return std::get<0>(a) < std::get<0>(b); });
 +                    samples.erase(std::unique(samples.begin(), samples.end(), [](const auto& a, const auto& b) { return std::get<0>(a) == std::get<0>(b); }), samples.end());
-+                } else {
+                 } else {
+-                    if (crv.degree() <= 1 && !crv.is_rational()) {
+-                        for (int k = 0; k < crv.cv_count(); ++k) seg.push_back(crv.get_cv(k));
 +                    int count = std::min(std::max(crv.cv_count() * 4, (int)std::ceil(360.0 / std::max(angle, 0.1))), 4096);
 +                    std::vector<Point> points;
 +                    std::vector<double> parameters;
@@ -268,7 +284,8 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +                            points.push_back(crv.get_cv(k));
 +                            parameters.push_back(crv.greville_abcissa(k));
 +                        }
-+                    } else {
+                     } else {
+-                        seg = crv.divide_by_count(std::max(crv.cv_count() * 4, 16), true).first;
 +                        auto divided = crv.divide_by_count(count, true);
 +                        points = divided.first;
 +                        parameters = divided.second;
@@ -277,7 +294,8 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +                        const Point& q = points[k];
 +                        Point p = srf.point_at(q[0], q[1]);
 +                        samples.push_back({parameters[k], q, p});
-+                    }
+                     }
+-                    if (er.orientation == BRepOrientation::Reversed) std::reverse(seg.begin(), seg.end());
 +                    std::vector<Point> positions;
 +                    for (const auto& sample : samples) positions.push_back(std::get<2>(sample));
 +                    samples = refine_surface_boundary(srf, crv, samples, angle, chord);
@@ -303,29 +321,8 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +            loops.xyz.push_back(xyz);
 +        }
 +        if (!valid) continue;
-         NurbsSurfaceTrimmed ts;
-         ts.m_surface = srf;
--        for (size_t wi = 0; wi < face.wires.size(); ++wi) {
--            std::vector<Point> loop_pts;
--            for (const auto& er : wire_edges(face.wires[wi])) {
--                int ci = pcurve_index(er.index, fi, er.orientation);
--                if (ci < 0) continue;
--                const NurbsCurve& crv = m_curves_2d[ci];
--                std::vector<Point> seg;
--                if (can_project && edge_bnd.count(er.index)) {
--                    for (const auto& pt : edge_bnd[er.index]) {
--                        double dx = pt[0]-p00[0], dy = pt[1]-p00[1], dz = pt[2]-p00[2];
--                        seg.push_back(Point((dx*eu[0]+dy*eu[1]+dz*eu[2]) / eu2, (dx*ev[0]+dy*ev[1]+dz*ev[2]) / ev2, 0));
--                    }
--                    Point start = crv.point_at(er.orientation == BRepOrientation::Reversed ? crv.domain().second : crv.domain().first);
--                    if (seg.front().distance(start) > seg.back().distance(start)) std::reverse(seg.begin(), seg.end());
--                } else {
--                    if (crv.degree() <= 1 && !crv.is_rational()) {
--                        for (int k = 0; k < crv.cv_count(); ++k) seg.push_back(crv.get_cv(k));
--                    } else {
--                        seg = crv.divide_by_count(std::max(crv.cv_count() * 4, 16), true).first;
--                    }
--                    if (er.orientation == BRepOrientation::Reversed) std::reverse(seg.begin(), seg.end());
++        NurbsSurfaceTrimmed ts;
++        ts.m_surface = srf;
 +        // Map order must not change constrained refinement or boundary visibility.
 +        std::sort(loops.interior_uv.begin(),loops.interior_uv.end(),[](const Point& a,const Point& b){ return a[0]<b[0] || (a[0]==b[0] && a[1]<b[1]); });
 +        fmesh[fi] = ts.mesh_loops(loops, angle, chord);
@@ -338,26 +335,25 @@ index d3744f5cc256df7df0143d5ecf6a0aaa8fc4b27b..0f9ab375c68600253e46f87d1a2ddbc4
 +                std::string key = "boundary/" + std::to_string(li) + "/" + std::to_string((start + sample) % length);
 +                for (auto& [vk, vd] : fmesh[fi].vertex) {
 +                    if (vd.attributes.count(key)) vd.attributes["brep_edge/" + std::to_string(edge) + "/" + std::to_string(use_id) + "/" + std::to_string(sample)] = 1.0;
-                 }
--                for (size_t k = 0; k + 1 < seg.size(); ++k) loop_pts.push_back(seg[k]);
++                }
 +                if (sample + 1 < count) {
 +                    std::string interval = "boundary_interval/" + std::to_string(li) + "/" + std::to_string((start + sample) % length);
 +                    for (auto& [vk, vd] : fmesh[fi].vertex)
 +                        if (vd.attributes.count(interval)) vd.attributes["brep_edge_interval/" + std::to_string(edge) + "/" + std::to_string(use_id) + "/" + std::to_string(sample)] = vd.attributes[interval];
-+                }
+                 }
+-                for (size_t k = 0; k + 1 < seg.size(); ++k) loop_pts.push_back(seg[k]);
              }
 -            if (loop_pts.size() < 3) continue;
 -            NurbsCurve loop_crv = NurbsCurve::create(true, 1, loop_pts);
 -            if (wi == 0) ts.m_outer_loop = loop_crv;
 -            else ts.m_inner_loops.push_back(loop_crv);
--        }
+         }
 -        fmesh[fi] = ts.mesh();
-+        }
      }
  
      // A Reversed face has its outward normal opposite to the surface normal: flip winding
 diff --git a/session_cpp/src/brep_test.cpp b/session_cpp/src/brep_test.cpp
-index 635a49192c9f2a4287bd4a568475edd7b4af69da..a81d18d2c9a3b0fdf9b8e0ccbdf67888811fa954
+index 635a49192c9f2a4287bd4a568475edd7b4af69da..a81d18d2c9a3b0fdf9b8e0ccbdf67888811fa954 100644
 --- a/session_cpp/src/brep_test.cpp
 +++ b/session_cpp/src/brep_test.cpp
 @@ -1,3 +1,4 @@
@@ -373,12 +369,10 @@ index 635a49192c9f2a4287bd4a568475edd7b4af69da..a81d18d2c9a3b0fdf9b8e0ccbdf67888
  #include <filesystem>
  
  using namespace session_cpp::mini_test;
-@@ -28,6 +30,63 @@
-             if (uses[0].orientation == uses[1].orientation) return false;
-         }
+@@ -30,6 +32,63 @@ namespace session_cpp {
          return true;
-+    }
-+
+     }
+ 
 +    MINI_TEST("BRep", "Shared Grid Boundary") {
 +        BRep b; std::vector<NurbsSurface> surfaces;
 +        for (int face=0;face<2;++face) {
@@ -434,11 +428,13 @@ index 635a49192c9f2a4287bd4a568475edd7b4af69da..a81d18d2c9a3b0fdf9b8e0ccbdf67888
 +            const Vector a=surfaces[0].normal_at(first[i][0],0.0), z=surfaces[0].normal_at(first[i+1][0],0.0);
 +            MINI_CHECK(a.dot(z)>=cosine-64.0*std::numeric_limits<double>::epsilon());
 +        }
-     }
- 
++    }
++
      MINI_TEST("BRep", "Constructor") {
+         // uncomment #include "brep.h"
+         // uncomment #include "point.h"
 diff --git a/session_cpp/src/nurbssurface_trimmed.cpp b/session_cpp/src/nurbssurface_trimmed.cpp
-index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e2678ba511b
+index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e2678ba511b 100644
 --- a/session_cpp/src/nurbssurface_trimmed.cpp
 +++ b/session_cpp/src/nurbssurface_trimmed.cpp
 @@ -1,7 +1,7 @@
@@ -467,7 +463,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
  bool point_in_polygon_2d(double, double, const std::vector<double>&);
  namespace {
  
-@@ -1180,10 +1190,7 @@
+@@ -1180,10 +1190,7 @@ Mesh NurbsSurfaceTrimmed::mesh() const { return mesh_q(20.0, 0.005); }
  //   4. Delete exterior triangles, lift to 3D, set per-vertex analytic normals.
  // Planar surfaces need no interior refinement (deflection is ~0), so step 3 exits immediately
  // and the same code path yields the minimal boundary triangulation.
@@ -479,7 +475,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
      double bmin[3] = {1e30, 1e30, 1e30}, bmax[3] = {-1e30, -1e30, -1e30};
      for (int i = 0; i < m_surface.cv_count(0); ++i)
          for (int j = 0; j < m_surface.cv_count(1); ++j) {
-@@ -1195,9 +1202,13 @@
+@@ -1195,9 +1202,13 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
          }
      double bbox_diag = std::sqrt((bmax[0]-bmin[0])*(bmax[0]-bmin[0])+
          (bmax[1]-bmin[1])*(bmax[1]-bmin[1])+(bmax[2]-bmin[2])*(bmax[2]-bmin[2]));
@@ -496,7 +492,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
  
      auto eval3 = [&](double u, double v) -> std::array<double,3> {
          Point p = m_surface.point_at(u, v);
-@@ -1256,11 +1267,46 @@
+@@ -1256,11 +1267,46 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
          return out;
      };
  
@@ -547,7 +543,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
  
      double bb_umin = 1e30, bb_vmin = 1e30, bb_umax = -1e30, bb_vmax = -1e30;
      for (const auto& p : outer_uv) {
-@@ -1278,7 +1324,7 @@
+@@ -1278,7 +1324,7 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
      };
      auto outer_coords = to_flat(outer_uv);
      std::vector<std::vector<double>> hole_coords;
@@ -556,7 +552,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
  
      auto inside_trim = [&](double u, double v) -> bool {
          if (!point_in_polygon_2d(u, v, outer_coords)) return false;
-@@ -1288,24 +1334,73 @@
+@@ -1288,24 +1334,73 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
      };
  
      // ---- 2. Constrained Delaunay of the trim wire ----
@@ -584,10 +580,6 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
              size_t j = (i + 1) % vis.size();
 -            if (vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j])
 -                dt.insert_constraint(vis[i], vis[j]);
--        }
--    };
--    insert_loop(outer_uv);
--    for (const auto& hp : hole_uvs) insert_loop(hp);
 +            std::vector<std::pair<double, int>> events = {{0.0, vis[i]}, {1.0, vis[j]}};
 +            for (int dir = 0; dir < 2; ++dir) {
 +                double delta = pts[j][dir] - pts[i][dir];
@@ -606,7 +598,10 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
 +            for (size_t k = 1; k < events.size(); ++k)
 +                if (events[k-1].second >= 0 && events[k].second >= 0 && events[k-1].second != events[k].second)
 +                    dt.insert_constraint(events[k-1].second, events[k].second);
-+        }
+         }
+-    };
+-    insert_loop(outer_uv);
+-    for (const auto& hp : hole_uvs) insert_loop(hp);
 +        loop_vids.push_back(vis);
 +    }
 +    for (double u : crease_knots[0]) for (double v : crease_knots[1])
@@ -639,7 +634,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
          std::vector<std::array<double,2>> to_insert;
          for (const auto& tri : dt.triangles) {
              if (!tri.alive) continue;
-@@ -1323,9 +1418,9 @@
+@@ -1323,9 +1418,9 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
              double dev = std::abs(((pm[0]-pa[0])*nx+(pm[1]-pa[1])*ny+(pm[2]-pa[2])*nz)/nl);
              bool refine = dev > deflection;
              if (!refine) {
@@ -652,7 +647,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
                  double d1 = na[0]*nb[0]+na[1]*nb[1]+na[2]*nb[2];
                  double d2 = nb[0]*nc2[0]+nb[1]*nc2[1]+nb[2]*nc2[2];
                  double d3 = na[0]*nc2[0]+na[1]*nc2[1]+na[2]*nc2[2];
-@@ -1352,7 +1447,22 @@
+@@ -1352,7 +1447,22 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
      }
  
      auto tris = dt.get_triangles();
@@ -676,7 +671,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
  
      Mesh result;
      std::vector<size_t> vert_map(dt.vertices.size(), SIZE_MAX);
-@@ -1361,8 +1471,8 @@
+@@ -1361,8 +1471,8 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
      // torus, sphere) stitches at its seam: distinct UV columns u0 and u1 (or rows v0/v1)
      // evaluate to the SAME 3D point, so they must share one mesh vertex. Spatial hash on a
      // weld-tolerance grid; new points scan the 3x3x3 neighbour cells.
@@ -687,7 +682,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
      std::map<std::tuple<long long,long long,long long>,
               std::vector<std::pair<std::array<double,3>, size_t>>> cell_map;
      auto weld_vertex = [&](double x, double y, double z) -> size_t {
-@@ -1388,7 +1498,14 @@
+@@ -1388,7 +1498,14 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
          for (int k = 0; k < 3; ++k) {
              int vi = tri[k];
              if (vert_map[vi] != SIZE_MAX) continue;
@@ -703,7 +698,7 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
              vert_map[vi] = weld_vertex(p[0], p[1], p[2]);
          }
      for (const auto& tri : tris) {
-@@ -1396,11 +1513,49 @@
+@@ -1396,11 +1513,49 @@ Mesh NurbsSurfaceTrimmed::mesh_q(double max_angle_deg, double chord_factor) cons
          if (v0 == v1 || v1 == v2 || v2 == v0) continue;
          result.add_face({v0, v1, v2});
      }
@@ -728,7 +723,6 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
 +        VertexData& vd = result.vertex[vert_map[vi]];
          Vector nrm = m_surface.normal_at(dt.vertices[vi].x, dt.vertices[vi].y);
 -        result.vertex[vert_map[vi]].set_normal(nrm[0], nrm[1], nrm[2]);
--    }
 +        double nl = std::sqrt(nrm[0]*nrm[0] + nrm[1]*nrm[1] + nrm[2]*nrm[2]);
 +        if (!std::isfinite(nl) || nl <= 0.0) {
 +            auto f = fan.count(vert_map[vi]) ? fan[vert_map[vi]] : std::array<double,3>{0.0, 0.0, 1.0};
@@ -750,20 +744,19 @@ index 186883d00510d4296d2e4dedf7eb64c2c7822b50..5b72bb6ffe767a168716ede83f491e26
 +    for (const auto& [vi, interval] : boundary_intervals) {
 +        auto [li, k, t] = interval;
 +        if (vert_map[vi] != SIZE_MAX) result.vertex[vert_map[vi]].attributes["boundary_interval/" + std::to_string(li) + "/" + std::to_string(k)] = t;
-+    }
+     }
 +    RemeshNurbsSurfaceGrid::split_crease_normals(m_surface, result);
      return result;
  }
  
 diff --git a/session_cpp/src/nurbssurface_trimmed.h b/session_cpp/src/nurbssurface_trimmed.h
-index 6e1a654dd8b83289a54bc386ec032a4374d252f5..ed4832979050f60be2afba8eb0c2173af2eb1753
+index 6e1a654dd8b83289a54bc386ec032a4374d252f5..ed4832979050f60be2afba8eb0c2173af2eb1753 100644
 --- a/session_cpp/src/nurbssurface_trimmed.h
 +++ b/session_cpp/src/nurbssurface_trimmed.h
-@@ -13,6 +13,18 @@
- #include <array>
+@@ -14,6 +14,18 @@
  
  namespace session_cpp {
-+
+ 
 +
 +/// What a BRep hands the mesher for one face: every wire as a UV polygon whose vertices lift
 +/// to a given 3D point (the edge polygon's, shared bit for bit with the neighbouring face) and
@@ -775,10 +768,11 @@ index 6e1a654dd8b83289a54bc386ec032a4374d252f5..ed4832979050f60be2afba8eb0c2173a
 +    std::vector<std::vector<Point>> xyz;
 +    std::vector<Point> interior_uv;
 +};
- 
++
  /**
   * @class NurbsSurfaceTrimmed
-@@ -143,6 +155,18 @@
+  * @brief A NURBS surface bounded by a closed outer loop and optional inner loops (holes).
+@@ -143,6 +155,18 @@ public:
      /// Unified deflection-refined constrained-Delaunay pipeline (BRepMesh / OpenNURBS style).
      Mesh mesh_q(double max_angle_deg, double chord_factor) const;
  
@@ -797,7 +791,7 @@ index 6e1a654dd8b83289a54bc386ec032a4374d252f5..ed4832979050f60be2afba8eb0c2173a
      /// Mesh the surface trimmed by a plane (q0, normal), keeping the half where (S-q0).n <= 0.
      /// OCCT path-A algorithm: span-adaptive UV grid + marching-squares clip where the signed
      /// distance field f(u,v)=(S(u,v)-q0).n changes sign, with every boundary crossing
-@@ -221,6 +245,14 @@
+@@ -221,6 +245,14 @@ public:
      friend std::ostream& operator<<(std::ostream& os, const NurbsSurfaceTrimmed& ts);
  
  private:
@@ -813,14 +807,13 @@ index 6e1a654dd8b83289a54bc386ec032a4374d252f5..ed4832979050f60be2afba8eb0c2173a
  
      // ═══════════════════════════════════════════════════════════════════════════
 diff --git a/session_cpp/src/nurbssurface_trimmed_test.cpp b/session_cpp/src/nurbssurface_trimmed_test.cpp
-index 30a3515bd721902d6398f883fb638b6222edfbf7..c4c16508dd6d86dde27edd1beed91c5bd7ee1442
+index 30a3515bd721902d6398f883fb638b6222edfbf7..c4c16508dd6d86dde27edd1beed91c5bd7ee1442 100644
 --- a/session_cpp/src/nurbssurface_trimmed_test.cpp
 +++ b/session_cpp/src/nurbssurface_trimmed_test.cpp
-@@ -16,6 +16,89 @@
- using namespace session_cpp::mini_test;
+@@ -17,6 +17,89 @@ using namespace session_cpp::mini_test;
  
  namespace session_cpp {
-+
+ 
 +MINI_TEST("NurbsSurfaceTrimmed", "Crease Loops") {
 +    NurbsSurfaceTrimmed ts;
 +    ts.m_surface = NurbsSurface::create(false, false, 1, 1, 3, 2, {
@@ -903,14 +896,15 @@ index 30a3515bd721902d6398f883fb638b6222edfbf7..c4c16508dd6d86dde27edd1beed91c5b
 +    }
 +}
 +
- 
++
      MINI_TEST("NurbsSurfaceTrimmed", "Constructor") {
          // uncomment #include "nurbssurface_trimmed.h"
+         // uncomment #include "nurbssurface.h"
 diff --git a/session_py/src/session_py/__init__.py b/session_py/src/session_py/__init__.py
-index ae6a1108c452a5496f3eb602f1011166b9f81809..991483e112a447f8ac7037b1bed2d0839a09551f
+index ae6a1108c452a5496f3eb602f1011166b9f81809..991483e112a447f8ac7037b1bed2d0839a09551f 100644
 --- a/session_py/src/session_py/__init__.py
 +++ b/session_py/src/session_py/__init__.py
-@@ -51,6 +51,7 @@
+@@ -51,6 +51,7 @@ from .nurbscurve import NurbsCurve
  from .nurbssurface import NurbsSurface
  from .primitives import Primitives
  from .nurbssurface_trimmed import NurbsSurfaceTrimmed
@@ -918,7 +912,7 @@ index ae6a1108c452a5496f3eb602f1011166b9f81809..991483e112a447f8ac7037b1bed2d083
  from .brep import BRep
  from .brep import BRepOrientation
  from .brep import BRepRef
-@@ -108,6 +109,7 @@
+@@ -108,6 +109,7 @@ __all__ = [
      "NurbsSurface",
      "Primitives",
      "NurbsSurfaceTrimmed",
@@ -927,15 +921,13 @@ index ae6a1108c452a5496f3eb602f1011166b9f81809..991483e112a447f8ac7037b1bed2d083
      "BRepOrientation",
      "BRepRef",
 diff --git a/session_py/src/session_py/brep.py b/session_py/src/session_py/brep.py
-index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1bbd7c60c
+index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1bbd7c60c 100644
 --- a/session_py/src/session_py/brep.py
 +++ b/session_py/src/session_py/brep.py
-@@ -15,6 +15,102 @@
-     from .xform import Xform
-     from .mesh import Mesh
+@@ -17,6 +17,102 @@ if TYPE_CHECKING:
      from .polyline import Polyline
-+
-+
+ 
+ 
 +def _boundary_parameter(surface, curve, point):
 +    """Locate a point on this lifted pcurve if inversion reaches another branch."""
 +    start, end = curve.domain()
@@ -1030,10 +1022,12 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
 +                result.append(a)
 +    result.append(samples[-1])
 +    return result
- 
- 
++
++
  class BRepOrientation:
-@@ -973,10 +1069,13 @@
+     """TopAbs_Orientation: carried by the parent -> child reference, never by the shape."""
+     Forward = 0
+@@ -973,10 +1069,13 @@ class BRep:
              domain_area = (u1 - u0) * (v1 - v0)
              face_direct[fi] = abs(abs(_polygon_signed_area(outer)) - domain_area) < 1e-3 * domain_area
  
@@ -1049,7 +1043,7 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
          for fi in range(nf):
              if not face_direct[fi]:
                  continue
-@@ -992,9 +1091,7 @@
+@@ -992,9 +1091,7 @@ class BRep:
              vtol = (v1 - v0) * 0.001
              for er in self.wire_edges(face.wires[0]):
                  eidx = er.index
@@ -1060,16 +1054,13 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
                  if not shared:
                      continue
                  ci = self.pcurve_index(eidx, fi, er.orientation)
-@@ -1024,60 +1121,146 @@
+@@ -1024,60 +1121,146 @@ class BRep:
                      elif at_u1 and abs(iu - u1) < utol * 0.1:
                          pts.append((iv, vd.position()))
                  pts.sort(key=lambda a: a[0])
 +                pts = list(dict(pts).items())
                  if len(pts) >= 2:
 -                    edge_bnd[eidx] = [p for _, p in pts]
--
--        # Phase 3: CDT faces. Shared edges reuse the direct face's boundary points projected into
--        # this face's planar patch; every other edge samples its own pcurve.
 +                    varying = 0 if at_v0 or at_v1 else 1
 +                    t0, t1 = c2d.domain()
 +                    parameters = [t0 + (t-sp[varying])/(ep[varying]-sp[varying])*(t1-t0) for t,_ in pts]
@@ -1103,7 +1094,9 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
 +                edge_bnd[edge] = [sample[2] for sample in refined]
 +                for incident in self.edge_faces(edge):
 +                    rebuild_grid[incident.index] = True
-+
+ 
+-        # Phase 3: CDT faces. Shared edges reuse the direct face's boundary points projected into
+-        # this face's planar patch; every other edge samples its own pcurve.
 +        for fi in range(nf):
 +            if rebuild_grid[fi]:
 +                face_direct[fi] = False
@@ -1127,6 +1120,8 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
 -            ev2 = ev[0] * ev[0] + ev[1] * ev[1] + ev[2] * ev[2]
 -            can_project = srf.degree(0) == 1 and srf.degree(1) == 1 and eu2 > 1e-28 and ev2 > 1e-28
 -
+-            ts = NurbsSurfaceTrimmed()
+-            ts.m_surface = srf
 +            angle, chord = quality if quality is not None else (20.0, 0.005)
 +            loops = TrimLoops()
 +            if rebuild_grid[fi]:
@@ -1138,16 +1133,29 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
 +                        loops.interior_uv.append(Point(u,v,0.0))
 +            uses = []
 +            valid = True
-+            for wi, wr in enumerate(face.wires):
+             for wi, wr in enumerate(face.wires):
+-                loop_pts = []
 +                uv, xyz = [], []
-+                for er in self.wire_edges(wr):
+                 for er in self.wire_edges(wr):
+-                    ci = self.pcurve_index(er.index, fi, er.orientation)
 +                    ei = er.index
 +                    edge = self.m_edges[ei]
 +                    ci = self.pcurve_index(ei, fi, er.orientation)
-+                    if ci < 0:
+                     if ci < 0:
+-                        continue
 +                        valid = False
 +                        break
-+                    crv = self.m_curves_2d[ci]
+                     crv = self.m_curves_2d[ci]
+-                    if can_project and er.index in edge_bnd:
+-                        seg = []
+-                        for pt in edge_bnd[er.index]:
+-                            dx, dy, dz = pt[0] - p00[0], pt[1] - p00[1], pt[2] - p00[2]
+-                            seg.append(Point((dx * eu[0] + dy * eu[1] + dz * eu[2]) / eu2,
+-                                             (dx * ev[0] + dy * ev[1] + dz * ev[2]) / ev2, 0.0))
+-                        d0, d1 = crv.domain()
+-                        start = crv.point_at(d1 if er.orientation == BRepOrientation.Reversed else d0)
+-                        if seg[0].distance(start) > seg[-1].distance(start):
+-                            seg.reverse()
 +                    samples = []
 +                    if ei in edge_bnd:
 +                        for index, p in enumerate(edge_bnd[ei]):
@@ -1168,12 +1176,19 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
 +                            samples.append((t, q, p))
 +                        samples.sort(key=lambda sample: sample[0])
 +                        samples = [sample for index, sample in enumerate(samples) if index == 0 or sample[0] != samples[index - 1][0]]
-+                    else:
+                     else:
+-                        if crv.degree() <= 1 and not crv.is_rational():
+-                            seg = [crv.get_cv(k) for k in range(crv.cv_count())]
 +                        count = min(max(crv.cv_count() * 4, math.ceil(360.0 / max(angle, 0.1))), 4096)
 +                        if crv.degree() <= 1 and not crv.is_rational() and srf.is_planar(tolerance=0.0):
 +                            points = [crv.get_cv(k) for k in range(crv.cv_count())]
 +                            parameters = [crv.greville_abcissa(k) for k in range(crv.cv_count())]
-+                        else:
+                         else:
+-                            seg, _ = crv.divide_by_count(max(crv.cv_count() * 4, 16))
+-                        if er.orientation == BRepOrientation.Reversed:
+-                            seg.reverse()
+-                    loop_pts.extend(seg[:-1])
+-                if len(loop_pts) < 3:
 +                            points, parameters = crv.divide_by_count(count, True)
 +                        for q, t in zip(points, parameters):
 +                            p = srf.point_at(q[0], q[1])
@@ -1197,34 +1212,8 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
 +                loops.xyz.append(xyz)
 +            if not valid:
 +                continue
-             ts = NurbsSurfaceTrimmed()
-             ts.m_surface = srf
--            for wi, wr in enumerate(face.wires):
--                loop_pts = []
--                for er in self.wire_edges(wr):
--                    ci = self.pcurve_index(er.index, fi, er.orientation)
--                    if ci < 0:
--                        continue
--                    crv = self.m_curves_2d[ci]
--                    if can_project and er.index in edge_bnd:
--                        seg = []
--                        for pt in edge_bnd[er.index]:
--                            dx, dy, dz = pt[0] - p00[0], pt[1] - p00[1], pt[2] - p00[2]
--                            seg.append(Point((dx * eu[0] + dy * eu[1] + dz * eu[2]) / eu2,
--                                             (dx * ev[0] + dy * ev[1] + dz * ev[2]) / ev2, 0.0))
--                        d0, d1 = crv.domain()
--                        start = crv.point_at(d1 if er.orientation == BRepOrientation.Reversed else d0)
--                        if seg[0].distance(start) > seg[-1].distance(start):
--                            seg.reverse()
--                    else:
--                        if crv.degree() <= 1 and not crv.is_rational():
--                            seg = [crv.get_cv(k) for k in range(crv.cv_count())]
--                        else:
--                            seg, _ = crv.divide_by_count(max(crv.cv_count() * 4, 16))
--                        if er.orientation == BRepOrientation.Reversed:
--                            seg.reverse()
--                    loop_pts.extend(seg[:-1])
--                if len(loop_pts) < 3:
++            ts = NurbsSurfaceTrimmed()
++            ts.m_surface = srf
 +            # Map order must not change constrained refinement or boundary visibility.
 +            loops.interior_uv.sort(key=lambda point: (point[0], point[1]))
 +            fmesh[fi] = ts.mesh_loops(loops, angle, chord)
@@ -1253,10 +1242,10 @@ index 52d2a93a8faf763ac6b7d5e2018d947c3a3627ec..5539b6700c3c0d79b367b2114b2bf2e1
          # A Reversed face has its outward normal opposite to the surface normal: flip winding
          # and stored normals together so shading agrees with the geometry.
 diff --git a/session_py/src/session_py/brep_test.py b/session_py/src/session_py/brep_test.py
-index 49200fc5cf15cb86dc5bd6d10bf8dc31b39366f3..0c29b797ee383301e7431a117e3a6bba464b17d3
+index 49200fc5cf15cb86dc5bd6d10bf8dc31b39366f3..0c29b797ee383301e7431a117e3a6bba464b17d3 100644
 --- a/session_py/src/session_py/brep_test.py
 +++ b/session_py/src/session_py/brep_test.py
-@@ -709,5 +709,62 @@
+@@ -709,5 +709,62 @@ def test_brep_volume():
      MINI_CHECK(abs(vsph - (4.0 / 3.0) * PI * 8) / ((4.0 / 3.0) * PI * 8) < 0.05)
  
  
@@ -1320,10 +1309,10 @@ index 49200fc5cf15cb86dc5bd6d10bf8dc31b39366f3..0c29b797ee383301e7431a117e3a6bba
  if __name__ == "__main__":
      run_all()
 diff --git a/session_py/src/session_py/nurbssurface_trimmed.py b/session_py/src/session_py/nurbssurface_trimmed.py
-index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d2c037cdd
+index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d2c037cdd 100644
 --- a/session_py/src/session_py/nurbssurface_trimmed.py
 +++ b/session_py/src/session_py/nurbssurface_trimmed.py
-@@ -403,6 +403,19 @@
+@@ -403,6 +403,19 @@ class _Delaunay2D:
          return result
  
  
@@ -1343,7 +1332,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
  class NurbsSurfaceTrimmed:
  
      def __init__(self):
-@@ -1007,13 +1020,9 @@
+@@ -1007,13 +1020,9 @@ class NurbsSurfaceTrimmed:
      #   4. Delete exterior triangles, lift to 3D, set per-vertex analytic normals.
      # Planar surfaces need no interior refinement (deflection is ~0), so step 3 exits immediately
      # and the same code path yields the minimal boundary triangulation.
@@ -1359,7 +1348,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
          bmin = [1e30, 1e30, 1e30]
          bmax = [-1e30, -1e30, -1e30]
          for i in range(self.m_surface.cv_count(0)):
-@@ -1026,10 +1035,15 @@
+@@ -1026,10 +1035,15 @@ class NurbsSurfaceTrimmed:
                      if c > bmax[k]:
                          bmax[k] = c
          bbox_diag = math.sqrt(sum((bmax[k]-bmin[k])**2 for k in range(3)))
@@ -1379,7 +1368,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
  
          def eval3(u, v):
              p = self.m_surface.point_at(u, v)
-@@ -1051,7 +1065,7 @@
+@@ -1051,7 +1065,7 @@ class NurbsSurfaceTrimmed:
                  else:
                      break
              if len(raw) < 2:
@@ -1388,7 +1377,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
              out = []
              m = len(raw)
              for i in range(m):
-@@ -1077,13 +1091,65 @@
+@@ -1077,13 +1091,65 @@ class NurbsSurfaceTrimmed:
                          stack.append(((mu, mv), sb, depth+1))
                          stack.append((sa, (mu, mv), depth+1))
                      else:
@@ -1458,7 +1447,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
  
          bb_umin = min(p[0] for p in outer_uv)
          bb_umax = max(p[0] for p in outer_uv)
-@@ -1113,23 +1179,71 @@
+@@ -1113,23 +1179,71 @@ class NurbsSurfaceTrimmed:
              return True
  
          # ---- 2. Constrained Delaunay of the trim wire ----
@@ -1540,7 +1529,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
              to_insert = []
              for tri in dt.triangles:
                  if not tri.alive:
-@@ -1156,9 +1270,15 @@
+@@ -1156,9 +1270,15 @@ class NurbsSurfaceTrimmed:
                  dev = abs(((pm[0]-pa[0])*nx + (pm[1]-pa[1])*ny + (pm[2]-pa[2])*nz) / nl)
                  refine = dev > deflection
                  if not refine:
@@ -1559,11 +1548,12 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
                      d1 = na[0]*nb[0] + na[1]*nb[1] + na[2]*nb[2]
                      d2 = nb[0]*nc2[0] + nb[1]*nc2[1] + nb[2]*nc2[2]
                      d3 = na[0]*nc2[0] + na[1]*nc2[1] + na[2]*nc2[2]
-@@ -1189,16 +1309,32 @@
+@@ -1189,16 +1309,32 @@ class NurbsSurfaceTrimmed:
  
          tris = dt.get_triangles()
          if not tris:
 -            return self.m_surface.mesh()
+-        result = Mesh()
 +            return Mesh()
 +        for tri in tris:
 +            for direction in range(2):
@@ -1573,7 +1563,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
 +
 +        # A loop vertex given a 3D point lifts to it, not through the surface: that point is the
 +        # edge polygon's and the neighbouring face lifts to the same bits.
-+        nverts = len(dt.vertices)
+         nverts = len(dt.vertices)
 +        given = [None] * nverts
 +        for li, vids in enumerate(loop_vids):
 +            if li >= len(loops.xyz):
@@ -1582,8 +1572,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
 +                if vi >= 0 and k < len(loops.xyz[li]):
 +                    given[vi] = (li, k)
 +
-         result = Mesh()
--        nverts = len(dt.vertices)
++        result = Mesh()
          vert_map = [None] * nverts
          # Lift to 3D, welding coincident vertices so a closed/periodic surface (cylinder,
          # cone, torus, sphere) stitches at its seam: distinct UV columns u0 and u1 (or rows
@@ -1596,7 +1585,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
          cell_map = {}
  
          def weld_vertex(x, y, z):
-@@ -1219,7 +1355,14 @@
+@@ -1219,7 +1355,14 @@ class NurbsSurfaceTrimmed:
          for (a, b, c) in tris:
              for vi in (a, b, c):
                  if vert_map[vi] is None:
@@ -1612,7 +1601,7 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
                      vert_map[vi] = weld_vertex(p3d[0], p3d[1], p3d[2])
          for (a, b, c) in tris:
              v0 = vert_map[a]
-@@ -1228,10 +1371,42 @@
+@@ -1228,10 +1371,42 @@ class NurbsSurfaceTrimmed:
              if v0 == v1 or v1 == v2 or v2 == v0:
                  continue
              result.add_face([v0, v1, v2])
@@ -1658,10 +1647,10 @@ index f8efc08fa75095a176319ed417cca54c3d278695..be23339fdcedd12524753896f18ae91d
  
      def mesh_by_plane(self, q0: "Point", normal: "Vector", max_angle_deg: float, chord_factor: float) -> "Mesh":
 diff --git a/session_py/src/session_py/nurbssurface_trimmed_test.py b/session_py/src/session_py/nurbssurface_trimmed_test.py
-index d0331396c17f489f2c3911369f1215d41a9941de..8bff7ef7f450971e8687f0412228a7b98fa66bd6
+index d0331396c17f489f2c3911369f1215d41a9941de..8bff7ef7f450971e8687f0412228a7b98fa66bd6 100644
 --- a/session_py/src/session_py/nurbssurface_trimmed_test.py
 +++ b/session_py/src/session_py/nurbssurface_trimmed_test.py
-@@ -484,5 +484,75 @@
+@@ -484,5 +484,75 @@ def test_nurbssurface_trimmed_protobuf_roundtrip():
      MINI_CHECK(loaded == ts)
  
  
@@ -1738,10 +1727,10 @@ index d0331396c17f489f2c3911369f1215d41a9941de..8bff7ef7f450971e8687f0412228a7b9
  if __name__ == "__main__":
      run_all("python")
 diff --git a/session_rust/src/brep.rs b/session_rust/src/brep.rs
-index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243faba2d88
+index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243faba2d88 100644
 --- a/session_rust/src/brep.rs
 +++ b/session_rust/src/brep.rs
-@@ -1342,11 +1342,14 @@
+@@ -1342,11 +1342,14 @@ impl BRep {
                  (polygon_signed_area(&outer).abs() - domain_area).abs() < 1e-3 * domain_area;
          }
  
@@ -1758,7 +1747,7 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
          for fi in 0..nf {
              if !face_direct[fi] {
                  continue;
-@@ -1371,13 +1374,10 @@
+@@ -1371,13 +1374,10 @@ impl BRep {
              let vtol = (v1 - v0) * 0.001;
              for er in self.wire_edges(&face.wires[0]) {
                  let eidx = er.index as usize;
@@ -1773,19 +1762,13 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
                  if !shared {
                      continue;
                  }
-@@ -1414,94 +1414,252 @@
+@@ -1414,94 +1414,252 @@ impl BRep {
                      }
                  }
                  pts.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
 +                pts.dedup_by(|a, b| a.0 == b.0);
                  if pts.len() >= 2 {
 -                    edge_bnd.insert(eidx, pts.into_iter().map(|(_, p)| p).collect());
--                }
--            }
--        }
--
--        // Phase 3: CDT faces. Shared edges reuse the direct face's boundary points projected into
--        // this face's planar patch; every other edge samples its own pcurve.
 +                    let varying = if at_v0 || at_v1 { 0 } else { 1 };
 +                    let (t0, t1) = c2d.domain();
 +                    let parameters: Vec<f64> = pts
@@ -1855,10 +1838,12 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
 +                edge_bnd.insert(edge, refined.into_iter().map(|sample| sample.2).collect());
 +                for incident in self.edge_faces(edge) {
 +                    rebuild_grid[incident.index as usize] = true;
-+                }
-+            }
-+        }
-+
+                 }
+             }
+         }
+ 
+-        // Phase 3: CDT faces. Shared edges reuse the direct face's boundary points projected into
+-        // this face's planar patch; every other edge samples its own pcurve.
 +        for fi in 0..nf {
 +            if rebuild_grid[fi] {
 +                face_direct[fi] = false;
@@ -1899,22 +1884,50 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
                      }
 -                    _ => None,
 -                };
+-            let mut ts = NurbsSurfaceTrimmed::new();
+-            ts.m_surface = srf.clone();
 +                }
 +            }
 +            let mut uses: Vec<(usize, usize, usize, usize)> = Vec::new();
 +            let mut valid = true;
-+            for (wi, wr) in face.wires.iter().enumerate() {
+             for (wi, wr) in face.wires.iter().enumerate() {
+-                let mut loop_pts: Vec<Point> = Vec::new();
 +                let mut uv = Vec::new();
 +                let mut xyz = Vec::new();
-+                for er in self.wire_edges(wr) {
+                 for er in self.wire_edges(wr) {
+-                    let ci = self.pcurve_index(er.index as usize, fi, er.orientation);
 +                    let ei = er.index as usize;
 +                    let edge = &self.m_edges[ei];
 +                    let ci = self.pcurve_index(ei, fi, er.orientation);
-+                    if ci < 0 {
+                     if ci < 0 {
+-                        continue;
 +                        valid = false;
 +                        break;
-+                    }
-+                    let crv = &self.m_curves_2d[ci as usize];
+                     }
+                     let crv = &self.m_curves_2d[ci as usize];
+-                    let mut seg: Vec<Point>;
+-                    if let (Some((a, eu, ev, eu2, ev2)), Some(bnd)) =
+-                        (proj.as_ref(), edge_bnd.get(&(er.index as usize)))
+-                    {
+-                        seg = bnd
+-                            .iter()
+-                            .map(|pt| {
+-                                let d = [pt[0] - a[0], pt[1] - a[1], pt[2] - a[2]];
+-                                Point::new(
+-                                    (d[0] * eu[0] + d[1] * eu[1] + d[2] * eu[2]) / *eu2,
+-                                    (d[0] * ev[0] + d[1] * ev[1] + d[2] * ev[2]) / *ev2,
+-                                    0.0,
+-                                )
+-                            })
+-                            .collect();
+-                        let start = crv.point_at(if er.orientation == BRepOrientation::Reversed {
+-                            crv.domain().1
+-                        } else {
+-                            crv.domain().0
+-                        });
+-                        if seg[0].distance(&start, None) > seg[seg.len() - 1].distance(&start, None)
+-                        {
+-                            seg.reverse();
 +                    let mut samples: Vec<(f64, Point, Point)> = Vec::new();
 +                    if let Some(points) = edge_bnd.get(&ei) {
 +                        for (index, p) in points.iter().enumerate() {
@@ -1950,10 +1963,17 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
 +                                }
 +                            }
 +                            samples.push((t, q, p.clone()));
-+                        }
+                         }
 +                        samples.sort_by(|a, b| a.0.total_cmp(&b.0));
 +                        samples.dedup_by(|a, b| a.0 == b.0);
-+                    } else {
+                     } else {
+-                        seg = if crv.degree() <= 1 && !crv.is_rational() {
+-                            (0..crv.cv_count()).filter_map(|k| crv.get_cv(k)).collect()
+-                        } else {
+-                            crv.divide_by_count((crv.cv_count() * 4).max(16), true).0
+-                        };
+-                        if er.orientation == BRepOrientation::Reversed {
+-                            seg.reverse();
 +                        let count = (crv.cv_count() * 4)
 +                            .max((360.0 / angle.max(0.1)).ceil() as usize)
 +                            .min(4096);
@@ -1987,8 +2007,10 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
 +                            || last.2[2] != first.2[2]
 +                        {
 +                            samples.push((crv.domain().1, first.1, first.2));
-+                        }
-+                    }
+                         }
+                     }
+-                    for k in 0..seg.len().saturating_sub(1) {
+-                        loop_pts.push(seg[k].clone());
 +                    if er.orientation == BRepOrientation::Reversed {
 +                        samples.reverse();
 +                    }
@@ -2000,56 +2022,17 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
 +                    for (_, q, p) in samples.into_iter().take(uses.last().unwrap().3 - 1) {
 +                        uv.push(q);
 +                        xyz.push(p);
-+                    }
-+                }
+                     }
+                 }
+-                if loop_pts.len() < 3 {
 +                loops.uv.push(uv);
 +                loops.xyz.push(xyz);
 +            }
 +            if !valid {
 +                continue;
 +            }
-             let mut ts = NurbsSurfaceTrimmed::new();
-             ts.m_surface = srf.clone();
--            for (wi, wr) in face.wires.iter().enumerate() {
--                let mut loop_pts: Vec<Point> = Vec::new();
--                for er in self.wire_edges(wr) {
--                    let ci = self.pcurve_index(er.index as usize, fi, er.orientation);
--                    if ci < 0 {
--                        continue;
--                    }
--                    let crv = &self.m_curves_2d[ci as usize];
--                    let mut seg: Vec<Point>;
--                    if let (Some((a, eu, ev, eu2, ev2)), Some(bnd)) =
--                        (proj.as_ref(), edge_bnd.get(&(er.index as usize)))
--                    {
--                        seg = bnd
--                            .iter()
--                            .map(|pt| {
--                                let d = [pt[0] - a[0], pt[1] - a[1], pt[2] - a[2]];
--                                Point::new(
--                                    (d[0] * eu[0] + d[1] * eu[1] + d[2] * eu[2]) / *eu2,
--                                    (d[0] * ev[0] + d[1] * ev[1] + d[2] * ev[2]) / *ev2,
--                                    0.0,
--                                )
--                            })
--                            .collect();
--                        let start = crv.point_at(if er.orientation == BRepOrientation::Reversed {
--                            crv.domain().1
--                        } else {
--                            crv.domain().0
--                        });
--                        if seg[0].distance(&start, None) > seg[seg.len() - 1].distance(&start, None)
--                        {
--                            seg.reverse();
--                        }
--                    } else {
--                        seg = if crv.degree() <= 1 && !crv.is_rational() {
--                            (0..crv.cv_count()).filter_map(|k| crv.get_cv(k)).collect()
--                        } else {
--                            crv.divide_by_count((crv.cv_count() * 4).max(16), true).0
--                        };
--                        if er.orientation == BRepOrientation::Reversed {
--                            seg.reverse();
++            let mut ts = NurbsSurfaceTrimmed::new();
++            ts.m_surface = srf.clone();
 +            // Hash-map order must not change constrained refinement or boundary visibility.
 +            loops
 +                .interior_uv
@@ -2059,18 +2042,21 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
 +            for (use_id, &(edge, li, start, count)) in uses.iter().enumerate() {
 +                let length = loops.uv[li].len();
 +                if length == 0 {
-+                    continue;
-+                }
+                     continue;
+                 }
+-                let loop_crv = NurbsCurve::create(true, 1, &loop_pts);
+-                if wi == 0 {
+-                    ts.m_outer_loop = Some(loop_crv);
+-                } else {
+-                    ts.m_inner_loops.push(loop_crv);
 +                for sample in 0..count {
 +                    let key = format!("boundary/{li}/{}", (start + sample) % length);
 +                    for vd in fmesh[fi].vertex.values_mut() {
 +                        if vd.attributes.contains_key(&key) {
 +                            vd.attributes
 +                                .insert(format!("brep_edge/{edge}/{use_id}/{sample}"), 1.0);
-                         }
-                     }
--                    for k in 0..seg.len().saturating_sub(1) {
--                        loop_pts.push(seg[k].clone());
++                        }
++                    }
 +                    if sample + 1 < count {
 +                        let interval =
 +                            format!("boundary_interval/{li}/{}", (start + sample) % length);
@@ -2082,24 +2068,14 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
 +                                );
 +                            }
 +                        }
-                     }
++                    }
                  }
--                if loop_pts.len() < 3 {
--                    continue;
--                }
--                let loop_crv = NurbsCurve::create(true, 1, &loop_pts);
--                if wi == 0 {
--                    ts.m_outer_loop = Some(loop_crv);
--                } else {
--                    ts.m_inner_loops.push(loop_crv);
--                }
--            }
+             }
 -            fmesh[fi] = ts.mesh();
-+            }
          }
  
          // A Reversed face has its outward normal opposite to the surface normal: flip winding
-@@ -2123,3 +2281,167 @@
+@@ -2123,3 +2281,167 @@ impl std::fmt::Display for BRep {
          write!(f, "{}", self.str())
      }
  }
@@ -2268,10 +2244,10 @@ index 02bb07884c190d689bf89ba6a8ffa8b38c6d344d..fee4c2b5e94a43e425ffad103e215243
 +    a[0] == b[0] && a[1] == b[1] && a[2] == b[2]
 +}
 diff --git a/session_rust/src/brep_test.rs b/session_rust/src/brep_test.rs
-index 7797b21a749f9f0d1a9bcde45654d2f8a04e8b50..44260fde11203d967d3d4554af16002c797c8c9b
+index 7797b21a749f9f0d1a9bcde45654d2f8a04e8b50..44260fde11203d967d3d4554af16002c797c8c9b 100644
 --- a/session_rust/src/brep_test.rs
 +++ b/session_rust/src/brep_test.rs
-@@ -871,3 +871,126 @@
+@@ -871,3 +871,126 @@ REGISTER_MINI_TEST!(
      crate::brep_test::run_brep_protobuf_roundtrip
  );
  REGISTER_MINI_TEST!("BRep", "Volume", crate::brep_test::run_brep_volume);
@@ -2399,10 +2375,10 @@ index 7797b21a749f9f0d1a9bcde45654d2f8a04e8b50..44260fde11203d967d3d4554af16002c
 +    crate::brep_test::run_brep_shared_grid_boundary
 +);
 diff --git a/session_rust/src/lib.rs b/session_rust/src/lib.rs
-index 3c61ec434e8968f32823b5f85cd85fd4b5600328..e55e261c2a622b7fcd67bafb4713de7b7535f2b3
+index 3c61ec434e8968f32823b5f85cd85fd4b5600328..e55e261c2a622b7fcd67bafb4713de7b7535f2b3 100644
 --- a/session_rust/src/lib.rs
 +++ b/session_rust/src/lib.rs
-@@ -129,7 +129,7 @@
+@@ -129,7 +129,7 @@ pub use mesh::{LoftPanel, LoftWallFace, Mesh};
  pub use mesh_offset::{MeshOffset, MeshOffsetLayers};
  pub use nurbscurve::NurbsCurve;
  pub use nurbssurface::NurbsSurface;
@@ -2412,10 +2388,10 @@ index 3c61ec434e8968f32823b5f85cd85fd4b5600328..e55e261c2a622b7fcd67bafb4713de7b
  pub use objects::{Component, Objects};
  pub use plane::Plane;
 diff --git a/session_rust/src/mini_test.rs b/session_rust/src/mini_test.rs
-index 70630c6b5efa7ba123fdeb802ebc030f08cd0b8d..b9fefd5e07e82f208ee9e1722d0c36e6bd3440f3
+index 70630c6b5efa7ba123fdeb802ebc030f08cd0b8d..b9fefd5e07e82f208ee9e1722d0c36e6bd3440f3 100644
 --- a/session_rust/src/mini_test.rs
 +++ b/session_rust/src/mini_test.rs
-@@ -404,6 +404,7 @@
+@@ -404,6 +404,7 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
  
      let tests = vec![
          // BRep tests
@@ -2423,7 +2399,7 @@ index 70630c6b5efa7ba123fdeb802ebc030f08cd0b8d..b9fefd5e07e82f208ee9e1722d0c36e6
          RegisteredTest {
              group: "BRep",
              name: "Constructor",
-@@ -1861,6 +1862,12 @@
+@@ -1861,6 +1862,12 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
              func: run_solve_banded_spd,
          },
          // NurbsSurfaceTrimmed tests
@@ -2437,15 +2413,13 @@ index 70630c6b5efa7ba123fdeb802ebc030f08cd0b8d..b9fefd5e07e82f208ee9e1722d0c36e6
              group: "NurbsSurfaceTrimmed",
              name: "Constructor",
 diff --git a/session_rust/src/nurbssurface_trimmed.rs b/session_rust/src/nurbssurface_trimmed.rs
-index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c99c8887a
+index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c99c8887a 100644
 --- a/session_rust/src/nurbssurface_trimmed.rs
 +++ b/session_rust/src/nurbssurface_trimmed.rs
-@@ -612,6 +612,18 @@
-         }
-         result
+@@ -614,6 +614,18 @@ impl Delaunay2D {
      }
-+}
-+
+ }
+ 
 +/// What a BRep hands the mesher for one face: every wire as a UV polygon whose vertices lift
 +/// to a given 3D point (the edge polygon's, shared bit for bit with the neighbouring face) and
 +/// retain loop/sample identities; plus interior UV points inserted before refinement. The
@@ -2456,10 +2430,12 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +    pub uv: Vec<Vec<Point>>,
 +    pub xyz: Vec<Vec<Point>>,
 +    pub interior_uv: Vec<Point>,
- }
- 
++}
++
  #[derive(Debug, Serialize, Deserialize, Clone)]
-@@ -1591,12 +1603,8 @@
+ #[serde(tag = "type", rename = "NurbsSurfaceTrimmed")]
+ pub struct NurbsSurfaceTrimmed {
+@@ -1591,12 +1603,8 @@ impl NurbsSurfaceTrimmed {
      //   4. Delete exterior triangles, lift to 3D, set per-vertex analytic normals.
      // Planar surfaces need no interior refinement (deflection is ~0), so step 3 exits immediately
      // and the same code path yields the minimal boundary triangulation.
@@ -2474,7 +2450,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
          let mut bmin = [1e30f64; 3];
          let mut bmax = [-1e30f64; 3];
          for i in 0..self.m_surface.cv_count_dir(Some(0)) {
-@@ -1614,16 +1622,19 @@
+@@ -1614,16 +1622,19 @@ impl NurbsSurfaceTrimmed {
                  }
              }
          }
@@ -2485,23 +2461,22 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
              .sqrt();
 -        if bbox_diag < 1e-12 {
 -            bbox_diag = 1.0;
--        }
--        let deflection = bbox_diag * chord_factor;
--        let cos_max_angle =
--            (max_angle_deg.max(0.1).min(179.0) * std::f64::consts::PI / 180.0).cos();
 +        if bbox_diag < 1e-12 { 1.0 } else { bbox_diag }
 +    }
 +
 +    pub fn mesh_q(&self, max_angle_deg: f64, chord_factor: f64) -> Mesh {
 +        if !self.is_trimmed() {
 +            return self.m_surface.mesh();
-+        }
+         }
+-        let deflection = bbox_diag * chord_factor;
+-        let cos_max_angle =
+-            (max_angle_deg.max(0.1).min(179.0) * std::f64::consts::PI / 180.0).cos();
 +
 +        let deflection = self.bbox_diagonal() * chord_factor;
  
          let eval3 = |u: f64, v: f64| -> [f64; 3] {
              let p = self
-@@ -1634,7 +1645,7 @@
+@@ -1634,7 +1645,7 @@ impl NurbsSurfaceTrimmed {
          };
  
          // ---- 1. Adaptive trim-wire discretization in UV ----
@@ -2510,7 +2485,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
              let mut raw: Vec<[f64; 2]> = if crv.degree() <= 1 && !crv.is_rational() {
                  (0..crv.cv_count())
                      .filter_map(|i| crv.get_cv(i))
-@@ -1655,11 +1666,11 @@
+@@ -1655,11 +1666,11 @@ impl NurbsSurfaceTrimmed {
                  }
              }
              if raw.len() < 2 {
@@ -2524,7 +2499,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
              let m = raw.len();
              for i in 0..m {
                  let a = raw[i];
-@@ -1690,22 +1701,101 @@
+@@ -1690,22 +1701,101 @@ impl NurbsSurfaceTrimmed {
                          stack.push(([mu, mv], sb, depth + 1));
                          stack.push((sa, [mu, mv], depth + 1));
                      } else {
@@ -2542,6 +2517,8 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +        match self.m_outer_loop.as_ref() {
 +            Some(c) => loops.uv.push(disc_loop(c)),
              None => return self.m_surface.mesh(),
+-        };
+-        if outer_uv.len() < 3 {
 +        }
 +        for inner in &self.m_inner_loops {
 +            loops.uv.push(disc_loop(inner));
@@ -2607,8 +2584,10 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +    /// the surface.
 +    fn triangulate(&self, loops: &TrimLoops, max_angle_deg: f64, chord_factor: f64) -> Mesh {
 +        if loops.uv.is_empty() || loops.uv[0].len() < 3 {
-+            return self.m_surface.mesh();
-+        }
+             return self.m_surface.mesh();
+         }
+-        let hole_uvs: Vec<Vec<[f64; 2]>> =
+-            self.m_inner_loops.iter().map(|c| disc_loop(c)).collect();
 +        let outer_uv: Vec<[f64; 2]> = loops.uv[0].iter().map(|p| [p[0], p[1]]).collect();
 +        let hole_uvs: Vec<Vec<[f64; 2]>> = loops.uv[1..]
 +            .iter()
@@ -2625,16 +2604,11 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +                .point_at(u, v)
 +                .unwrap_or(Point::new(0.0, 0.0, 0.0));
 +            [p[0] as f64, p[1] as f64, p[2] as f64]
-         };
--        if outer_uv.len() < 3 {
--            return self.m_surface.mesh();
--        }
--        let hole_uvs: Vec<Vec<[f64; 2]>> =
--            self.m_inner_loops.iter().map(|c| disc_loop(c)).collect();
++        };
  
          let mut bb_umin = 1e30_f64;
          let mut bb_vmin = 1e30_f64;
-@@ -1756,31 +1846,102 @@
+@@ -1756,31 +1846,102 @@ impl NurbsSurfaceTrimmed {
          };
  
          // ---- 2. Constrained Delaunay of the trim wire ----
@@ -2642,6 +2616,10 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 -            crate::nurbssurface_trimmed::Delaunay2D::new(bb_umin, bb_vmin, bb_umax, bb_vmax);
 -        {
 -            let vis: Vec<i32> = outer_uv.iter().map(|p| dt.insert(p[0], p[1])).collect();
+-            for i in 0..vis.len() {
+-                let j = (i + 1) % vis.len();
+-                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] {
+-                    dt.insert_constraint(vis[i], vis[j]);
 +        // Every loop vertex keeps its Delaunay id, so a 3D point and a tag the caller gave it
 +        // reach the mesh vertex it becomes.
 +        let mut crease_knots = [Vec::new(), Vec::new()];
@@ -2658,9 +2636,11 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +                    >= self.m_surface.degree(dir)
 +                {
 +                    crease_knots[dir].push(knot);
-+                }
-+            }
-+        }
+                 }
+             }
+         }
+-        for h in hole_uvs.iter() {
+-            let vis: Vec<i32> = h.iter().map(|p| dt.insert(p[0], p[1])).collect();
 +        let mut dt = Delaunay2D::new(bb_umin, bb_vmin, bb_umax, bb_vmax);
 +        let mut loop_vids: Vec<Vec<i32>> = Vec::new();
 +        let mut boundary_intervals = std::collections::HashMap::<usize, (usize, usize, f64)>::new();
@@ -2670,16 +2650,6 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
                  let j = (i + 1) % vis.len();
 -                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] {
 -                    dt.insert_constraint(vis[i], vis[j]);
--                }
--            }
--        }
--        for h in hole_uvs.iter() {
--            let vis: Vec<i32> = h.iter().map(|p| dt.insert(p[0], p[1])).collect();
--            for i in 0..vis.len() {
--                let j = (i + 1) % vis.len();
--                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] {
--                    dt.insert_constraint(vis[i], vis[j]);
--                }
 +                let mut events = vec![(0.0, vis[i]), (1.0, vis[j])];
 +                for dir in 0..2 {
 +                    let delta = pts[j][dir] - pts[i][dir];
@@ -2716,9 +2686,9 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +            for &v in &crease_knots[1] {
 +                if inside_trim(u, v) {
 +                    dt.insert(u, v);
-+                }
-+            }
-+        }
+                 }
+             }
+         }
 +        for dir in 0..2 {
 +            for &knot in &crease_knots[dir] {
 +                let mut nodes = Vec::new();
@@ -2741,8 +2711,8 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +        for p in &loops.interior_uv {
 +            if inside_trim(p[0], p[1]) {
 +                dt.insert(p[0], p[1]);
-             }
-         }
++            }
++        }
  
          // ---- 3. Interior refinement by surface deflection ----
 +        // Interior seeds still undergo the same deflection and normal-angle checks.
@@ -2754,7 +2724,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
              let mut to_insert: Vec<[f64; 2]> = Vec::new();
              for tri in &dt.triangles {
                  if !tri.alive {
-@@ -1816,9 +1977,12 @@
+@@ -1816,9 +1977,12 @@ impl NurbsSurfaceTrimmed {
                      .abs();
                  let mut refine = dev > deflection;
                  if !refine {
@@ -2770,14 +2740,14 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
                      let d1 = na[0] * nb[0] + na[1] * nb[1] + na[2] * nb[2];
                      let d2 = nb[0] * nc2[0] + nb[1] * nc2[1] + nb[2] * nc2[2];
                      let d3 = na[0] * nc2[0] + na[1] * nc2[1] + na[2] * nc2[2];
-@@ -1865,18 +2029,56 @@
+@@ -1865,18 +2029,56 @@ impl NurbsSurfaceTrimmed {
          }
          let tris = dt.get_triangles();
          if tris.is_empty() {
 -            return self.m_surface.mesh();
--        }
 +            return Mesh::new();
-+        }
+         }
+-        let mut result = Mesh::new();
 +        for tri in &tris {
 +            for dir in 0..2 {
 +                let coordinates = tri.map(|vi| {
@@ -2800,7 +2770,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +
 +        // A loop vertex given a 3D point lifts to it, not through the surface: that point is the
 +        // edge polygon's and the neighbouring face lifts to the same bits.
-+        let nv = dt.vertices.len();
+         let nv = dt.vertices.len();
 +        let mut given: Vec<Option<(usize, usize)>> = vec![None; nv];
 +        for (li, vids) in loop_vids.iter().enumerate() {
 +            if li >= loops.xyz.len() {
@@ -2813,8 +2783,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +            }
 +        }
 +
-         let mut result = Mesh::new();
--        let nv = dt.vertices.len();
++        let mut result = Mesh::new();
          let mut vert_map: Vec<Option<usize>> = vec![None; nv];
  
          // Lift to 3D, welding coincident vertices so a closed/periodic surface (cylinder, cone,
@@ -2832,7 +2801,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
          let mut cell_map: std::collections::HashMap<(i64, i64, i64), Vec<([f64; 3], usize)>> =
              std::collections::HashMap::new();
          for &[a, b, c] in &tris {
-@@ -1884,10 +2086,30 @@
+@@ -1884,10 +2086,30 @@ impl NurbsSurfaceTrimmed {
                  if vert_map[vi as usize].is_none() {
                      let u = dt.vertices[vi as usize].x;
                      let v = dt.vertices[vi as usize].y;
@@ -2867,7 +2836,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
                      let x = p3d[0] as f64;
                      let y = p3d[1] as f64;
                      let z = p3d[2] as f64;
-@@ -1936,16 +2158,81 @@
+@@ -1936,16 +2158,81 @@ impl NurbsSurfaceTrimmed {
              }
              result.add_face(vec![v0, v1, v2], None);
          }
@@ -2916,9 +2885,6 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +                }
                  if let Some(vd) = result.vertex.get_mut(&vk) {
                      vd.set_normal(nrm[0], nrm[1], nrm[2]);
--                }
--            }
--        }
 +                    vd.attributes.insert("u".to_string(), u);
 +                    vd.attributes.insert("v".to_string(), v);
 +                }
@@ -2933,9 +2899,9 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +                    if let Some(vd) = result.vertex.get_mut(&vk) {
 +                        vd.attributes.insert(format!("boundary/{li}/{k}"), 1.0);
 +                    }
-+                }
-+            }
-+        }
+                 }
+             }
+         }
 +        for (&vi, &(li, k, t)) in &boundary_intervals {
 +            if let Some(vk) = vert_map[vi] {
 +                result
@@ -2953,7 +2919,7 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
          result
      }
  
-@@ -2696,3 +2983,23 @@
+@@ -2696,3 +2983,23 @@ impl std::fmt::Display for NurbsSurfaceTrimmed {
          )
      }
  }
@@ -2978,40 +2944,35 @@ index 18b8dcce5f30d21a915af55ebb29fdc9038c6aa3..931147093526fc816b0f905fe2daa81c
 +    surface.normal_at(uv[0], uv[1])
 +}
 diff --git a/session_rust/src/nurbssurface_trimmed_test.rs b/session_rust/src/nurbssurface_trimmed_test.rs
-index 25b82d755118a747228d52a6e7a7458e58961400..3a3245644e144aa43969ff6888e3647b24d9260e
+index 25b82d755118a747228d52a6e7a7458e58961400..3a3245644e144aa43969ff6888e3647b24d9260e 100644
 --- a/session_rust/src/nurbssurface_trimmed_test.rs
 +++ b/session_rust/src/nurbssurface_trimmed_test.rs
-@@ -52,10 +52,10 @@
+@@ -52,10 +52,10 @@ pub fn run_nurbssurface_trimmed_constructor() -> TestResult {
  
  pub fn run_nurbssurface_trimmed_constructor_planar() -> TestResult {
      MINI_TEST!("Constructor Planar", {
-+        use crate::NurbsCurve;
-+        use crate::NurbsSurfaceTrimmed;
-+        use crate::Point;
-         use crate::tolerance::PI;
--        use crate::NurbsCurve;
--        use crate::NurbsSurfaceTrimmed;
--        use crate::Point;
+-        use crate::tolerance::PI;
+         use crate::NurbsCurve;
+         use crate::NurbsSurfaceTrimmed;
+         use crate::Point;
++        use crate::tolerance::PI;
  
          // Planar curve boundary
          let pts = vec![
-@@ -367,11 +367,11 @@
+@@ -367,11 +367,11 @@ pub fn run_nurbssurface_trimmed_point_at() -> TestResult {
  
  pub fn run_nurbssurface_trimmed_mesh() -> TestResult {
      MINI_TEST!("Mesh", {
-+        use crate::NurbsCurve;
-+        use crate::NurbsSurface;
-+        use crate::NurbsSurfaceTrimmed;
-+        use crate::Point;
-         use crate::tolerance::PI;
--        use crate::NurbsCurve;
--        use crate::NurbsSurface;
--        use crate::NurbsSurfaceTrimmed;
--        use crate::Point;
+-        use crate::tolerance::PI;
+         use crate::NurbsCurve;
+         use crate::NurbsSurface;
+         use crate::NurbsSurfaceTrimmed;
+         use crate::Point;
++        use crate::tolerance::PI;
  
          // Planar rectangle: bilinear 6x6 surface, outer loop at 0.05..0.95
          let mut srf =
-@@ -736,3 +736,161 @@
+@@ -736,3 +736,161 @@ REGISTER_MINI_TEST!(
      "Protobuf Roundtrip",
      crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip
  );
@@ -3174,7 +3135,7 @@ index 25b82d755118a747228d52a6e7a7458e58961400..3a3245644e144aa43969ff6888e3647b
 +    crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_crease_loops
 +);
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index 58454b3c528ecd383b6c3bbb6fd8538bd37fef51..ab40895e0d379a865fd2c4fc6005209ff0da1bb2
+index 58454b3c528ecd383b6c3bbb6fd8538bd37fef51..ab40895e0d379a865fd2c4fc6005209ff0da1bb2 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
 @@ -1,9 +1,9 @@
@@ -3189,7 +3150,7 @@ index 58454b3c528ecd383b6c3bbb6fd8538bd37fef51..ab40895e0d379a865fd2c4fc6005209f
  <script>
  let tutorial;
  let pointer;
-@@ -21,7 +21,7 @@
+@@ -21,7 +21,7 @@ function render() {
      const canvas = document.getElementById('canvas');
      const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
      canvas.dataset.tutorialInspection = JSON.stringify(state);
@@ -3199,7 +3160,7 @@ index 58454b3c528ecd383b6c3bbb6fd8538bd37fef51..ab40895e0d379a865fd2c4fc6005209f
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index eaf5150e8ae4536be20289ffc26d8413da180c54..ae315619002ab6bc16fb3e66496f432dd5253564
+index eaf5150e8ae4536be20289ffc26d8413da180c54..2fbca951ff8a19a9a685de0b4b3828ff7d552832 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
 @@ -1,13 +1,23 @@
@@ -3228,7 +3189,7 @@ index eaf5150e8ae4536be20289ffc26d8413da180c54..ae315619002ab6bc16fb3e66496f432d
  
  /// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
  /// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
-@@ -44,31 +54,107 @@
+@@ -44,31 +54,110 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
      }
  }
  
@@ -3268,12 +3229,15 @@ index eaf5150e8ae4536be20289ffc26d8413da180c54..ae315619002ab6bc16fb3e66496f432d
 +            }
 +        }
 +        push_face(arena, &rm, cx, &mut solid);
-     }
--    Row {
++    }
 +    let mut flags = Instance::FLAG_SMOOTH;
 +    if !b.is_solid() {
 +        flags |= Instance::FLAG_OPEN;
 +    }
++    if b.face_count() == 1 {
++        flags |= Instance::FLAG_SINGLE;
+     }
+-    Row {
 +    let thickness = mesh_thickness(&solid.pos, &solid.tris);
 +    let mut row = Row {
          bounds: solid.bounds,
@@ -3302,7 +3266,7 @@ index eaf5150e8ae4536be20289ffc26d8413da180c54..ae315619002ab6bc16fb3e66496f432d
 +            pen,
 +        };
 +        walk_brep_edges(ink, b, &chains, (&ep, &mut row.bounds));
-     }
++    }
 +    row
 +}
 +
@@ -3347,13 +3311,13 @@ index eaf5150e8ae4536be20289ffc26d8413da180c54..ae315619002ab6bc16fb3e66496f432d
 +        .collect();
 +    if points.len() < 2 {
 +        return;
-+    }
+     }
 +    push_polyline(ink.seg, &points, out.0, out.1);
  }
  
  /// The first checkpoint uses the natural UV domain; cached trims are introduced in08.
 diff --git a/session_viewer/src/app/walk/brep_edges.rs b/session_viewer/src/app/walk/brep_edges.rs
-index 570ddf1bee56bcedaa45044e39c89bf1f6a159e9..ea971e27a14fc2adea17e65c114584dc9de55c0d
+index 570ddf1bee56bcedaa45044e39c89bf1f6a159e9..ea971e27a14fc2adea17e65c114584dc9de55c0d 100644
 --- a/session_viewer/src/app/walk/brep_edges.rs
 +++ b/session_viewer/src/app/walk/brep_edges.rs
 @@ -1,5 +1,41 @@
@@ -3400,12 +3364,10 @@ index 570ddf1bee56bcedaa45044e39c89bf1f6a159e9..ea971e27a14fc2adea17e65c114584dc
  
  /// One use of an edge by a face: which edge, which face, and the orientation of that use
  /// (`BRep::edge_faces` composes it), which selects the pcurve on a seam.
-@@ -7,6 +43,124 @@
-     pub edge: usize,
-     pub face: usize,
+@@ -9,6 +45,124 @@ pub struct EdgeUse {
      pub orientation: BRepOrientation,
-+}
-+
+ }
+ 
 +/// A pcurve's two ends in UV, from its first and last control point. The primitives' pcurves
 +/// are straight iso lines, which is also the condition under which the kernel grid-meshes a
 +/// face; a curved pcurve never reaches here because its face has no `u`/`v` attributes.
@@ -3522,10 +3484,12 @@ index 570ddf1bee56bcedaa45044e39c89bf1f6a159e9..ea971e27a14fc2adea17e65c114584dc
 +        keys.push(keys[0]);
 +    }
 +    Some(keys)
- }
- 
++}
++
  /// One edge's ink source: the face mesh it is read from, the keys along it, and the other
-@@ -18,3 +172,541 @@
+ /// face that meets it (None on a seam, where both uses are the same face, or on a free edge).
+ pub struct EdgeChain {
+@@ -18,3 +172,541 @@ pub struct EdgeChain {
      pub keys: Vec<usize>,
      pub other: Option<usize>,
  }
@@ -4351,10 +4315,10 @@ index 0000000000000000000000000000000000000000..52681174ee7efb303b441dbc5b0bf0c6
 +    }
 +}
 diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
-index 67a89cd6d50143d8292d075b0cdb7b9bd99f597b..8a62d8e3ad59ad0d4d9017b103e0c511e7be6ba5
+index 67a89cd6d50143d8292d075b0cdb7b9bd99f597b..8a62d8e3ad59ad0d4d9017b103e0c511e7be6ba5 100644
 --- a/session_viewer/src/app/walk/mod.rs
 +++ b/session_viewer/src/app/walk/mod.rs
-@@ -3,6 +3,7 @@
+@@ -3,6 +3,7 @@ use crate::math::Aabb;
  pub mod bounds;
  pub mod brep;
  pub mod brep_edges;
@@ -4363,10 +4327,10 @@ index 67a89cd6d50143d8292d075b0cdb7b9bd99f597b..8a62d8e3ad59ad0d4d9017b103e0c511
  pub mod encode;
  pub mod mesh;
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606..ab8dbc2cfc3af0bed5c9d9fd9633e186b91537da
+index c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606..ab8dbc2cfc3af0bed5c9d9fd9633e186b91537da 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -4,7 +4,7 @@
+@@ -4,7 +4,7 @@ use crate::app::walk::mesh_ink::Ink;
  use crate::app::walk::{Row, WalkCx};
  use crate::engine::gpu::Upload;
  use crate::engine::gpu::objects::ObjectRow;
@@ -4375,7 +4339,7 @@ index c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606..ab8dbc2cfc3af0bed5c9d9fd9633e186
  use std::rc::Rc;
  
  /// Retain original f64 source objects independently from their GPU row addresses.
-@@ -83,25 +83,20 @@
+@@ -83,25 +83,20 @@ impl CadFixture {
      }
  }
  
@@ -4398,25 +4362,25 @@ index c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606..ab8dbc2cfc3af0bed5c9d9fd9633e186
      let mut scene = CadFixture::new();
 +    let mut cylinder = BRep::create_cylinder(100.0, 220.0);
 +    cylinder.surfacecolor = Color::grey();
-     scene.add(
--        Geometry::NurbsSurface(Rc::new(planar_surface())),
--        Xform::identity(),
++    scene.add(
 +        Geometry::BRep(Rc::new(cylinder)),
 +        Xform::translation(-250.0, 0.0, 0.0),
 +    );
 +    let mut hole = BRep::create_block_with_hole(320.0, 240.0, 80.0, 55.0);
 +    hole.surfacecolor = Color::grey();
-+    scene.add(
+     scene.add(
+-        Geometry::NurbsSurface(Rc::new(planar_surface())),
+-        Xform::identity(),
 +        Geometry::BRep(Rc::new(hole)),
 +        Xform::translation(220.0, 0.0, 0.0),
      );
      scene
  }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 3e700225c9a2e687ce460dd2bd717212e9ef47f7..ebafd4c14b1e8477d21538f1598634539a4a31b4
+index 3e700225c9a2e687ce460dd2bd717212e9ef47f7..ebafd4c14b1e8477d21538f1598634539a4a31b4 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -92,7 +92,7 @@
+@@ -92,7 +92,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;

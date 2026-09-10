@@ -117,6 +117,147 @@ index 0000000000000000000000000000000000000000..9d1d682ef0d8d743db8942425cbe93f9
 +name: Selection fixture
 +items:
 +  - file: pb/interaction.pb
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index b3450f005a3b0f6d7986bc0817ba83ce9ca28393..2217bc15b2ead11de37725414dda387d819b6189 100644
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -1,48 +1,88 @@
+-<!doctype html>
+-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+-<title>Session checkpoint 11</title>
+-<link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
+-<style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
+-<link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
+-<link data-trunk rel="copy-file" href="assets/text-quality.html">
+-</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-quality.html" style="position:fixed;right:12px;top:12px;color:white">Compare GPU text</a><output id="status">Starting checkpoint 11</output>
+-<script>
+-let tutorial;
+-let pointer;
+-/// Read the generated WASM exports after Trunk has initialized the module.
+-async function start() {
+-    if (!window.wasmBindings) { setTimeout(start, 20); return; }
+-    try {
+-        tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
+-        window.tutorial = tutorial;
+-        render();
+-    } catch (error) { document.getElementById('status').textContent = String(error); throw error; }
+-}
+-/// Keep the framebuffer at the actual CSS size times browser device scale.
+-function render() {
+-    const canvas = document.getElementById('canvas');
+-    const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
+-    canvas.dataset.tutorialInspection = JSON.stringify(state);
+-    document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
+-}
+-/// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
+-function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
+-/// Forward one CSS-pixel gesture to the production camera.
+-function move(event) {
+-    if (!pointer) return;
+-    const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1];
+-    pointer = [event.clientX, event.clientY];
+-    tutorial.drag(dx, dy, event.shiftKey); render();
+-}
+-/// End pointer ownership without retaining a stale gesture.
+-function up() { pointer = undefined; }
+-/// Normalize DOM wheel pixels to the production camera step, then dolly toward the actual cursor in the same physical-pixel space as the framebuffer.
+-function wheel(event) { event.preventDefault(); tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY); render(); }
+-/// Schedule a resize only after initialization completed.
+-function resize() { if (tutorial) render(); }
+-const canvas = document.getElementById('canvas');
+-canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move);
+-canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
+-canvas.addEventListener('wheel', wheel, {passive:false}); window.addEventListener('resize', resize);
+-start();
+-</script></body></html>
++<!DOCTYPE html>
++<html lang="en">
++<head>
++  <meta charset="UTF-8"/>
++  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
++  <title>Session Viewer</title>
++  <style>#viewer-error:not([hidden]) {position:fixed;inset:0;background:#111e;color:#fff;padding:25vh 15vw;font:16px/1.5 system-ui;z-index:20} #viewer-error button {padding:8px 16px;margin-top:16px}</style>
++  <style>
++    * { margin: 0; padding: 0; box-sizing: border-box; }
++    /* overscroll-behavior kills pull-to-refresh and the rubber band: a downward drag on the
++       canvas is an orbit, and a page that bounces under it swallows half the gesture. */
++    html, body { height: 100%; overscroll-behavior: none; }
++    body { background: #000; overflow: hidden; }
++    /* No focus ring. winit gives the canvas a tabindex so it can receive key
++       events, and the browser then rings the focused element - a black
++       rectangle around the whole viewport, drawn over the model. Both spellings
++       are needed: engines differ on which one they paint. */
++    /* touch-action: none is what actually delivers the gestures. winit does call preventDefault,
++       on `pointerdown` and on a non-passive `touchstart` (winit-0.30.13 web_sys/pointer.rs:115,
++       web_sys/canvas.rs:245), but that is a LATE veto: the compositor has already begun deciding
++       whether the gesture is a scroll, and where it decides yes the app gets a pointercancel and
++       nothing more. touch-action tells it up front, before any of that, and it is the only one
++       of the three that iOS Safari applies to page pinch-zoom.
++       The rest turns off the things a long press and a double tap mean to a DOCUMENT: the iOS
++       callout menu, text selection, the grey tap flash, and the legacy double-tap-to-zoom.
++       100dvh after 100vh: dvh follows a mobile toolbar sliding away, vh does not, and browsers
++       that never heard of dvh keep the line above. */
++    canvas { display: block; width: 100vw; height: 100vh; height: 100dvh;
++             touch-action: none; -webkit-touch-callout: none;
++             -webkit-user-select: none; user-select: none;
++             -webkit-tap-highlight-color: transparent; }
++    canvas:focus, canvas:focus-visible { outline: none; }
++    /* The documentation corner: a black folded-corner triangle, always above the canvas. */
++    #viewer-docs { position:fixed; top:0; right:0; width:0; height:0; z-index:10; display:block;
++                   border-top:40px solid #111; border-left:40px solid transparent;
++                   filter: drop-shadow(-1px 1px 0 #ffffff99);
++                   transition: border-top-width .25s cubic-bezier(.2,.8,.3,1.25), border-left-width .25s cubic-bezier(.2,.8,.3,1.25); }
++    #viewer-docs:hover, #viewer-docs:focus-visible { border-top-width:52px; border-left-width:52px; outline:none; }
++    #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
++                 font:1rem system-ui; text-align:center; padding-top:40vh; }
++  </style>
++</head>
++<body>
++  <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
++  <!-- Trunk copies local fixtures into dist/pb. Named remote scenes resolve through
++       app/route.rs; their manifests and geometry are fetched from the configured data host. -->
++   <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="pb"/>
++   <!-- The ONE local manifest. Every other scene is opened from the R2 bucket with
++        ?scene=scenes/view_<name>.yaml and is never copied into dist. -->
++   <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
++  <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><button type="button" onclick="location.reload()">Reload viewer</button></div>
++  <canvas id="canvas" tabindex="0"></canvas>
++  <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
++  <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
++  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
++  <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
++  <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
++  <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
++  <!-- Message telling that Webgpu is not available. -->
++  <script>
++    // These named registrations belong to this document's lifetime and are installed once.
++    function preventContextMenu(event) { event.preventDefault(); }
++    function installCanvasHandlers() {
++      var canvas = document.getElementById("canvas");
++      if (canvas) canvas.addEventListener("contextmenu", preventContextMenu);
++    }
++    document.addEventListener("DOMContentLoaded", installCanvasHandlers, {once:true});
++
++    // Reload the scene in place when the embedding page asks for it, e.g. after
++    // an example was re-run and rewrote its .pb. Reloading this whole frame
++    // would restart WebGPU and reset the camera; this swaps only the geometry.
++    function reloadSceneMessage(event) {
++      if (event.source !== window.parent && event.origin !== window.location.origin) return;
++      var data = event.data;
++      if (!data || data.type !== "session-viewer:reload-scene") return;
++      if (window.wasmBindings && window.wasmBindings.reload_scene) {
++        window.wasmBindings.reload_scene(data.scene || undefined);
++      }
++    }
++    window.addEventListener("message", reloadSceneMessage);
++
++    if (!navigator.gpu) {
++      document.body.insertAdjacentHTML("beforeend",
++        '<div id="no-webgpu">WebGPU is unavailable. Open this viewer in a WebGPU-enabled browser over HTTPS or localhost; check the browser’s GPU settings.</div>');
++    }
++  </script>
++</body>
++</html>
 diff --git a/session_viewer/src/app/feedback.rs b/session_viewer/src/app/feedback.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..8e846d19d6fcef5720ef60d9e580cbe77bca6d19
@@ -150,6 +291,268 @@ index 0000000000000000000000000000000000000000..8e846d19d6fcef5720ef60d9e580cbe7
 +        let _ = panel.remove_attribute("hidden");
 +    }
 +    log::error!("{message}");
++}
+diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..139e9bc7ecc0bc531534a6f496f1a23665379c3a
+--- /dev/null
++++ b/session_viewer/src/app/input.rs
+@@ -0,0 +1,256 @@
++//! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
++//! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
++//! everything with none selected), Q/W/E lane toggles, D face lighting, B the back-face flag,
++//! H hides the selection and S shows everything back, T toggles selected names,
++//! P toggles x-ray (faces gone, edges stay), [ ] cloud size, Escape clears the
++//! selection. Fingers go to `touch.rs`.
++//! Every handler says whether the frame must be redrawn.
++
++use super::touch::{Act, Touches};
++use crate::State;
++use crate::camera::View;
++use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
++use winit::keyboard::{Key, NamedKey};
++
++/// A press that moves less than this (CSS px) before release is a click.
++const CLICK_SLOP: f64 = 4.0;
++
++/// What the mouse is doing between events, plus the fingers.
++pub struct Input {
++    orbiting: bool,
++    panning: bool,
++    ctrl: bool,
++    last_cursor: (f64, f64),
++    left_down: Option<(f64, f64)>,
++    touch: Touches,
++}
++
++impl Default for Input {
++    /// Start with the same inactive gesture state as the explicit constructor.
++    fn default() -> Self {
++        Self::new()
++    }
++}
++
++impl Input {
++    /// Nothing held, cursor at the origin.
++    pub fn new() -> Self {
++        Self {
++            orbiting: false,
++            panning: false,
++            ctrl: false,
++            last_cursor: (0.0, 0.0),
++            left_down: None,
++            touch: Touches::new(),
++        }
++    }
++
++    /// One key press (the caller filters repeats). True when the frame must be redrawn.
++    pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
++        match key {
++            Key::Named(NamedKey::Space) => state
++                .camera
++                .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
++            Key::Named(NamedKey::Escape) => state.escape_selection(),
++            Key::Character("1") => state.camera.set_view(View::Front),
++            Key::Character("2") => state.camera.set_view(View::Back),
++            Key::Character("3") => state.camera.set_view(View::Left),
++            Key::Character("4") => state.camera.set_view(View::Right),
++            Key::Character("5") => state.camera.set_view(View::Top),
++            Key::Character("6") => state.camera.set_view(View::Bottom),
++            Key::Character("7") => state.camera.set_view(View::Iso),
++            Key::Character("c" | "C") => state.camera.reset(),
++            Key::Character("f" | "F") => state.fit_selected_or_all(),
++            Key::Character("q" | "Q") => state.gpu.view.show_points = !state.gpu.view.show_points,
++            Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
++            Key::Character("e" | "E") => {
++                state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
++            }
++            Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
++            Key::Character("h" | "H") => state.hide_selected(),
++            Key::Character("s" | "S") => state.show_all(),
++            Key::Character("t" | "T") => state.toggle_selected_names(),
++            Key::Character("b" | "B") => state.gpu.view.backface = !state.gpu.view.backface,
++            Key::Character("p" | "P") => state.toggle_xray(),
++            Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
++            Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
++            _ => return false,
++        }
++        true
++    }
++
++    /// Buttons, motion, wheel, modifiers and fingers. True when the frame must be redrawn.
++    pub fn mouse(&mut self, state: &mut State, event: &WindowEvent) -> bool {
++        let viewport = state.viewport();
++        match event {
++            WindowEvent::MouseInput {
++                state: btn,
++                button: MouseButton::Right,
++                ..
++            } => {
++                self.orbiting = *btn == ElementState::Pressed;
++                false
++            }
++            WindowEvent::MouseInput {
++                state: btn,
++                button: MouseButton::Middle,
++                ..
++            } => {
++                self.panning = *btn == ElementState::Pressed;
++                false
++            }
++            WindowEvent::MouseInput {
++                state: btn,
++                button: MouseButton::Left,
++                ..
++            } => self.left(state, *btn),
++            WindowEvent::CursorMoved { position, .. } => {
++                let dragging = self.orbiting || self.panning;
++                if dragging {
++                    let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
++                    let dy = ((position.y - self.last_cursor.1) / device_pixel_ratio()) as f32;
++                    if self.panning || self.ctrl {
++                        state.camera.pan(dx, dy);
++                    } else {
++                        state.camera.orbit(dx, dy);
++                    }
++                }
++                self.last_cursor = (position.x, position.y);
++                dragging
++            }
++            WindowEvent::MouseWheel { delta, .. } => {
++                let amount = match delta {
++                    MouseScrollDelta::LineDelta(_, y) => *y,
++                    MouseScrollDelta::PixelDelta(p) => p.y as f32 / 100.0,
++                };
++                state.camera.zoom_at(amount, self.last_cursor, viewport);
++                true
++            }
++            WindowEvent::ModifiersChanged(mods) => {
++                self.ctrl = mods.state().control_key();
++                false
++            }
++            WindowEvent::Focused(false) => {
++                self.cancel();
++                true
++            }
++            WindowEvent::Touch(t) => {
++                match self
++                    .touch
++                    .event(&mut state.camera, t, viewport, device_pixel_ratio())
++                {
++                    Act::None => false,
++                    Act::Moved => true,
++                    Act::Tap(at) => {
++                        state.request_selection(at.0 as u32, at.1 as u32, false);
++                        false
++                    }
++                    Act::Fit => {
++                        state.fit_all();
++                        true
++                    }
++                }
++            }
++            _ => false,
++        }
++    }
++
++    /// Focus loss or pointer cancellation retires every incomplete mouse/touch gesture.
++    pub fn cancel(&mut self) {
++        self.orbiting = false;
++        self.panning = false;
++        self.ctrl = false;
++        self.left_down = None;
++        self.touch = Touches::new();
++    }
++
++    /// The left button: a press remembers where; a release within the slop is a click and
++    /// asks the GPU what is under it. The picture is unchanged until the answer lands, so a
++    /// click never redraws by itself.
++    fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
++        match btn {
++            ElementState::Pressed => {
++                self.left_down = Some(self.last_cursor);
++                false
++            }
++            ElementState::Released => {
++                let Some(down) = self.left_down.take() else {
++                    return false;
++                };
++                let moved = (self.last_cursor.0 - down.0)
++                    .abs()
++                    .max((self.last_cursor.1 - down.1).abs());
++                if moved > CLICK_SLOP * device_pixel_ratio() {
++                    return false;
++                }
++                state.request_selection(
++                    self.last_cursor.0 as u32,
++                    self.last_cursor.1 as u32,
++                    self.ctrl,
++                );
++                false
++            }
++        }
++    }
++}
++
++/// Winit handles touch cancellation; this owned listener also covers mouse and pen cancellation.
++#[cfg(target_arch = "wasm32")]
++pub struct PointerCancellation {
++    canvas: web_sys::HtmlCanvasElement,
++    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
++}
++
++#[cfg(target_arch = "wasm32")]
++impl PointerCancellation {
++    /// Install once for the canvas lifetime; the required callback only forwards a message.
++    pub fn new(
++        canvas: web_sys::HtmlCanvasElement,
++        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
++    ) -> Result<Self, wasm_bindgen::JsValue> {
++        use wasm_bindgen::JsCast;
++        let callback =
++            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |_| {
++                cancel_pointer(&proxy)
++            });
++        canvas
++            .add_event_listener_with_callback("pointercancel", callback.as_ref().unchecked_ref())?;
++        Ok(Self { canvas, callback })
++    }
++}
++
++#[cfg(target_arch = "wasm32")]
++impl Drop for PointerCancellation {
++    /// Detach before dropping the wasm callback so JavaScript cannot retain an invalid handle.
++    fn drop(&mut self) {
++        use wasm_bindgen::JsCast;
++        let _ = self.canvas.remove_event_listener_with_callback(
++            "pointercancel",
++            self.callback.as_ref().unchecked_ref(),
++        );
++    }
++}
++
++/// Pointer cancellation goes through the same event-loop owner as every other input change.
++#[cfg(target_arch = "wasm32")]
++fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
++    let _ = proxy.send_event(crate::Msg::CancelPointer);
++}
++
++/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone.
++#[cfg(target_arch = "wasm32")]
++fn device_pixel_ratio() -> f64 {
++    if let Some(window) = web_sys::window() {
++        let ratio = window.device_pixel_ratio();
++        if ratio > 0.0 {
++            return ratio;
++        }
++    }
++    1.0
++}
++
++/// Native windows report logical pixels already.
++#[cfg(not(target_arch = "wasm32"))]
++fn device_pixel_ratio() -> f64 {
++    1.0
 +}
 diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
 new file mode 100644
@@ -355,7 +758,7 @@ index 0000000000000000000000000000000000000000..9f18a09947cdd41eaf4c22bbe19626b6
 +/// Display residency is fixed in this fixture; F10 paging has its own exhaustive source path.
 +pub fn spawn_stream_rest(_cursor: StreamCursor) {}
 diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
-index fa764d67ce3f13229e43eec36526aecb36aed71d..90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c
+index fa764d67ce3f13229e43eec36526aecb36aed71d..90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c 100644
 --- a/session_viewer/src/app/mod.rs
 +++ b/session_viewer/src/app/mod.rs
 @@ -1,4 +1,18 @@
@@ -365,22 +768,22 @@ index fa764d67ce3f13229e43eec36526aecb36aed71d..90c0e7a788c1956a46eaf24dd2f099b9
 +pub mod feedback;
 +pub mod input;
  pub mod knobs;
+-pub mod route;
 +pub mod scene;
 +pub mod selection;
 +pub mod stream;
 +pub mod touch;
-+pub mod walk;
+ pub mod walk;
 +
 +#[cfg(target_arch = "wasm32")]
 +pub mod loader;
 +#[cfg(target_arch = "wasm32")]
- pub mod route;
--pub mod walk;
++pub mod route;
 +
 +#[cfg(any(target_arch = "wasm32", test))]
 +pub mod inspection;
 diff --git a/session_viewer/src/app/route.rs b/session_viewer/src/app/route.rs
-index 5680f6b8b3ff7a4e72f76d908b472bea4c118580..063956142744d66d8c68003efec676e0f18464ce
+index 5680f6b8b3ff7a4e72f76d908b472bea4c118580..063956142744d66d8c68003efec676e0f18464ce 100644
 --- a/session_viewer/src/app/route.rs
 +++ b/session_viewer/src/app/route.rs
 @@ -1,11 +1,16 @@
@@ -997,6 +1400,241 @@ index 0000000000000000000000000000000000000000..920f036f77b250d98108579b6788c6e8
 +        self.size.is_empty()
 +    }
 +}
+diff --git a/session_viewer/src/app/touch.rs b/session_viewer/src/app/touch.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..d5d7ca8a69de29f3428276801a3926f3e8797a82
+--- /dev/null
++++ b/session_viewer/src/app/touch.rs
+@@ -0,0 +1,229 @@
++//! Touch gestures — the phone half of the camera bindings.
++//!
++//! winit's web backend splits pointers by `pointerType`: a pointer whose type is `"touch"` is
++//! routed to `WindowEvent::Touch` and NEVER to `CursorMoved` / `MouseInput`
++//! (`winit-0.30.13/src/platform_impl/web/web_sys/pointer.rs`, the `match pointer_type` arms —
++//! the comment there says duplicate mouse events would be "inconsistent with other platforms").
++//! So a finger cannot also reach the mouse arms in `lib.rs`, and the two sets of bindings can be
++//! read, and changed, independently. (The runner registers a SECOND, unfiltered set of pointer
++//! listeners on the window — `event_loop/runner.rs`, "pointermove"/"pointerdown"/"pointerup" —
++//! but those raise `DeviceEvent`, which this viewer does not implement, and they return early
++//! unless device events are switched on. They are not a second route into anything here.)
++//!
++//! | gesture | camera | the mouse binding it mirrors |
++//! |---|---|---|
++//! | one finger, drag | `orbit` | right-drag |
++//! | two fingers, slide | `pan` | middle-drag |
++//! | two fingers, spread / close | `zoom_at` their midpoint | wheel |
++//! | double tap | `fit` | `F` |
++//!
++//! Two conversions have to happen here, or the same hand movement means different things on
++//! different phones.
++//!
++//! FINGER TRAVEL IS IN CSS PIXELS. winit reports PHYSICAL pixels (`to_physical(scale_factor)`,
++//! same file), so one centimetre of glass is three times the number on a dpr-3 phone that it is
++//! on a dpr-1 laptop. Orbit is a fixed radians-per-unit, so the raw figure would spin the model
++//! three times as fast for the same movement — and differently again on the next phone. Dividing
++//! by the device pixel ratio makes the gesture mean one thing everywhere; on a dpr-1 screen it
++//! is then exactly the mouse.
++//!
++//! PAN IS FINGER-EXACT. `Camera::pan` scales its argument by a hard-coded `distance * 0.0015`,
++//! which equals the `2·tan(30°)` the projection really spans only when the viewport is 770 px
++//! tall — anywhere else the model slides faster or slower than the hand holding it. A mouse does
++//! not notice, because the cursor is not the thing being dragged. A finger IS on the thing, so
++//! the error reads as the model slipping. Scaling by the real viewport height (`PAN_PER_PX`)
++//! removes it, in both projections: the orthographic branch of `view_proj_anchored` uses the
++//! same `distance * tan(30°)` half-height as the perspective one.
++
++use winit::event::{Touch, TouchPhase};
++
++use crate::camera::Camera;
++use crate::engine::performance::now_ms;
++
++/// `Camera::pan` moves the target by `arg * distance * 0.0015`, while one physical pixel is
++/// worth `distance * 2·tan(30°) / viewport_height` of target motion. Their ratio is this
++/// constant over the viewport height — the number of pan units one pixel of finger is worth.
++const PAN_PER_PX: f64 = 2.0 * 0.577_350_269_189_625_7 / 0.001_5; // 769.8 — pan is exact at that height
++
++/// The wheel response is 0.9^amount; invert it so a pinch ratio r gives distance/r.
++const PINCH_LOG: f64 = -0.105_360_515_657_826_28;
++
++/// Biggest span change one event may claim. A finger the browser loses and re-delivers, or a
++/// third finger landing between two samples, otherwise teleports the camera.
++const PINCH_MAX: f64 = 2.0;
++
++/// A finger that never travelled this far (CSS px) and lifted within `TAP_MS` is a tap …
++///
++/// Both clocks are read when the event is HANDLED, not when it happened — winit's `Touch` carries
++/// no timestamp — so a main thread stalled longer than the window turns a real double tap into
++/// two singles. At 30-60 fps the stall is a frame and it does not matter; in a BACKGROUND tab,
++/// where the browser throttles the frame loop to 1 Hz, it always will. That is a measurement
++/// trap, not a bug: a viewer nobody is looking at has no gestures to miss.
++const TAP_SLOP: f64 = 12.0;
++const TAP_MS: f64 = 300.0;
++/// … and a second tap this soon after it, and this near it, is a double tap. Both windows are
++/// wider than the single-tap ones: the second tap of a real double tap is the sloppier of the two.
++const DOUBLE_TAP_MS: f64 = 320.0;
++const DOUBLE_TAP_SLOP: f64 = 40.0;
++
++/// What one touch event asked for. `Fit` needs the scene bounds, which live a layer up, so it is
++/// reported rather than done here — this file knows the camera and nothing else.
++pub enum Act {
++    None,
++    Moved,
++    Fit,
++    /// A single tap, in surface pixels: the finger's pick.
++    Tap((f64, f64)),
++}
++
++/// One finger, from its `Started` to its `Ended`. Physical pixels throughout.
++struct Finger {
++    id: u64,
++    pos: (f64, f64),  // where it is now
++    down: (f64, f64), // where it landed — a tap is a finger that never left this
++    t0: f64,          // when it landed, ms
++}
++
++/// Every finger on the glass, plus what the last two-finger sample measured.
++pub struct Touches {
++    fingers: Vec<Finger>,
++    /// Distance between the first two fingers at the previous event, and their midpoint.
++    /// `span == 0.0` means NOT SEEDED: the next two-finger move records and does nothing else.
++    /// Every change in finger count clears it, and that is what stops the model jumping when a
++    /// second finger joins or leaves halfway through a gesture.
++    span: f64,
++    mid: (f64, f64),
++    /// When and where the last tap lifted, for the double tap.
++    tap: Option<(f64, (f64, f64))>,
++}
++
++impl Touches {
++    /// No fingers down, no tap pending.
++    pub fn new() -> Self {
++        Self {
++            fingers: Vec::new(),
++            span: 0.0,
++            mid: (0.0, 0.0),
++            tap: None,
++        }
++    }
++
++    /// Fold one `WindowEvent::Touch` into the gesture and move the camera. `vp` is the surface
++    /// size and `t.location` the finger, both in physical pixels; `dpr` is the device pixel
++    /// ratio that turns physical travel back into the CSS pixels a hand feels.
++    pub fn event(&mut self, cam: &mut Camera, t: &Touch, vp: (f64, f64), dpr: f64) -> Act {
++        let p = (t.location.x, t.location.y);
++        match t.phase {
++            TouchPhase::Started => {
++                self.fingers.push(Finger {
++                    id: t.id,
++                    pos: p,
++                    down: p,
++                    t0: now_ms(),
++                });
++                self.span = 0.0; // the gesture just changed shape — re-seed on the next move
++                Act::None
++            }
++            TouchPhase::Moved => self.moved(cam, t.id, p, vp, dpr),
++            TouchPhase::Ended => self.lifted(t.id, p, dpr),
++            // A cancel is the browser taking the gesture away — a scroll it decided to own, a
++            // system edge swipe, a call arriving. Drop the finger, and never read it as a tap.
++            TouchPhase::Cancelled => {
++                self.drop_finger(t.id);
++                self.tap = None;
++                Act::None
++            }
++        }
++    }
++
++    /// A finger travelled. One finger orbits; two pan by their midpoint and zoom by their span.
++    fn moved(&mut self, cam: &mut Camera, id: u64, p: (f64, f64), vp: (f64, f64), dpr: f64) -> Act {
++        let Some(i) = self.finger_index(id) else {
++            return Act::None;
++        };
++        let d = (p.0 - self.fingers[i].pos.0, p.1 - self.fingers[i].pos.1);
++        self.fingers[i].pos = p;
++
++        if self.fingers.len() == 1 {
++            cam.orbit((d.0 / dpr) as f32, (d.1 / dpr) as f32);
++            return Act::Moved;
++        }
++
++        // Three fingers or more still drive the two-finger gesture, off the first two down: a
++        // hand resting a third finger on the glass should not stop the pan it is already doing.
++        let (a, b) = (self.fingers[0].pos, self.fingers[1].pos);
++        let span = (b.0 - a.0).hypot(b.1 - a.1).max(1.0);
++        let mid = ((a.0 + b.0) * 0.5, (a.1 + b.1) * 0.5);
++        if self.span == 0.0 {
++            self.span = span; // first sample of this shape: record, do not act
++            self.mid = mid;
++            return Act::None;
++        }
++
++        // Pan first, then zoom about the NEW midpoint: the pan slides the model with the hand,
++        // the zoom then keeps whatever is under the midpoint under it.
++        let h = vp.1.max(1.0);
++        cam.pan(
++            ((mid.0 - self.mid.0) * PAN_PER_PX / h) as f32,
++            ((mid.1 - self.mid.1) * PAN_PER_PX / h) as f32,
++        );
++        let r = (span / self.span).clamp(1.0 / PINCH_MAX, PINCH_MAX);
++        cam.zoom_at((-r.ln() / PINCH_LOG) as f32, mid, vp);
++
++        self.span = span;
++        self.mid = mid;
++        Act::Moved
++    }
++
++    /// A finger left the glass cleanly. Only the LAST one up can be a tap — a lift that leaves
++    /// other fingers down is the tail of a two-finger gesture, not a tap on anything.
++    fn lifted(&mut self, id: u64, p: (f64, f64), dpr: f64) -> Act {
++        let Some(f) = self.drop_finger(id) else {
++            return Act::None;
++        };
++        if !self.fingers.is_empty() {
++            self.tap = None;
++            return Act::None;
++        }
++        let now = now_ms();
++        if (p.0 - f.down.0).hypot(p.1 - f.down.1) / dpr > TAP_SLOP || now - f.t0 > TAP_MS {
++            self.tap = None; // a drag, or a press held long enough to mean something else
++            return Act::None;
++        }
++        let second = match self.tap.take() {
++            Some((t0, at)) => {
++                now - t0 < DOUBLE_TAP_MS && (p.0 - at.0).hypot(p.1 - at.1) / dpr < DOUBLE_TAP_SLOP
++            }
++            None => false,
++        };
++        if second {
++            return Act::Fit; // `self.tap` is already cleared, so three taps are not two doubles
++        }
++        self.tap = Some((now, p));
++        Act::Tap(p)
++    }
++
++    /// Find the first active contact with the event's stable touch identifier.
++    fn finger_index(&self, id: u64) -> Option<usize> {
++        for (index, finger) in self.fingers.iter().enumerate() {
++            if finger.id == id {
++                return Some(index);
++            }
++        }
++        None
++    }
++
++    /// Forget one finger and re-seed the pinch, whatever ended it.
++    fn drop_finger(&mut self, id: u64) -> Option<Finger> {
++        let i = self.finger_index(id)?;
++        self.span = 0.0;
++        Some(self.fingers.remove(i))
++    }
++}
++
++impl Default for Touches {
++    /// Start with the same inactive gesture state as the explicit constructor.
++    fn default() -> Self {
++        Self::new()
++    }
++}
 diff --git a/session_viewer/src/app/walk/cloud.rs b/session_viewer/src/app/walk/cloud.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..d5dba20c967990dbd72de410fc33f9fa549065af
@@ -1316,7 +1954,7 @@ index 0000000000000000000000000000000000000000..83429b8f1e6be620a8d290098532f7cb
 +    Row::thin(push_loop(seg, &c, &BOX_EDGES, &pen))
 +}
 diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
-index 8a62d8e3ad59ad0d4d9017b103e0c511e7be6ba5..db68239e5d43b22635febac638e540aa09664fc3
+index 8a62d8e3ad59ad0d4d9017b103e0c511e7be6ba5..db68239e5d43b22635febac638e540aa09664fc3 100644
 --- a/session_viewer/src/app/walk/mod.rs
 +++ b/session_viewer/src/app/walk/mod.rs
 @@ -1,14 +1,66 @@
@@ -1387,7 +2025,7 @@ index 8a62d8e3ad59ad0d4d9017b103e0c511e7be6ba5..db68239e5d43b22635febac638e540aa
  
  /// Where one object's rows land: the arena rows already on the GPU (`walk_mesh` bases its
  /// indices on it), the file's point-size override in px (0 = the pb's own) and the object row.
-@@ -43,3 +95,64 @@
+@@ -43,3 +95,64 @@ impl Row {
          }
      }
  }
@@ -1482,8 +2120,243 @@ index 0000000000000000000000000000000000000000..6365b56b7c45b796df0acf4580fd6794
 +    bounds.grow(center);
 +    Row::thin(bounds)
 +}
+diff --git a/session_viewer/src/engine/gpu/device.rs b/session_viewer/src/engine/gpu/device.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..12bef051ae9f530045492f50cd7b0b4b17059123
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/device.rs
+@@ -0,0 +1,229 @@
++//! Device negotiation: instance -> surface -> adapter -> device + queue -> surface format.
++//! Produces one `DeviceSetup` and owns nothing afterwards. Headless callers pass no window
++//! and get no surface.
++
++use std::sync::Arc;
++use winit::window::Window;
++
++/// What `open` negotiated: the surface (None when headless), the device/queue pair, the
++/// surface configuration it was configured with, and what class of GPU answered - the
++/// antialiasing budget is spent against the adapter, not against the pixel count alone.
++pub struct DeviceSetup {
++    pub surface: Option<wgpu::Surface<'static>>,
++    pub device: wgpu::Device,
++    pub queue: wgpu::Queue,
++    pub config: wgpu::SurfaceConfiguration,
++    pub device_type: wgpu::DeviceType,
++    pub failure: Arc<std::sync::Mutex<Option<String>>>,
++}
++
++/// Set up the wgpu objects in order. `size` is the canvas in pixels; a zero side is clamped
++/// to 1 so the surface can be configured.
++pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Result<DeviceSetup> {
++    // WebGPU only in the browser, never WebGL; Vulkan / Metal / DX12 for the native harness.
++    let backends = if cfg!(target_arch = "wasm32") {
++        wgpu::Backends::BROWSER_WEBGPU
++    } else {
++        wgpu::Backends::PRIMARY
++    };
++    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
++        backends,
++        flags: Default::default(),
++        memory_budget_thresholds: Default::default(),
++        backend_options: Default::default(),
++        display: None,
++    });
++
++    let surface = match &window {
++        Some(w) => Some(instance.create_surface(w.clone())?),
++        None => None,
++    };
++
++    // Let the browser choose its presentation-compatible adapter. Forcing LowPower on a
++    // hybrid Linux system can select a different GPU and fail external-image allocation.
++    // `?gpu=high` asks for the discrete GPU on a hybrid machine; the browser's choice remains
++    // the fallback when that adapter is refused.
++    let default_power = if cfg!(target_arch = "wasm32") {
++        wgpu::PowerPreference::None
++    } else {
++        wgpu::PowerPreference::LowPower
++    };
++    let preferred = if super::view::knob("VIEWER_GPU", "gpu").as_deref() == Some("high") {
++        wgpu::PowerPreference::HighPerformance
++    } else {
++        default_power
++    };
++    let options = |power_preference| wgpu::RequestAdapterOptions {
++        power_preference,
++        compatible_surface: surface.as_ref(),
++        force_fallback_adapter: false,
++    };
++    let adapter = match named_adapter(&instance, backends).await {
++        Some(named) => named,
++        None => match instance.request_adapter(&options(preferred)).await {
++            Ok(adapter) => adapter,
++            Err(_) if preferred != default_power => instance.request_adapter(&options(default_power)).await?,
++            Err(error) => return Err(error.into()),
++        },
++    };
++    let info = adapter.get_info();
++    log::info!(
++        "adapter: {} ({:?}, {:?})",
++        info.name,
++        info.device_type,
++        info.backend
++    );
++    if info.device_type == wgpu::DeviceType::Cpu {
++        log::warn!("software adapter - rendering on the CPU will be slow");
++    }
++
++    // The measured point-cloud scene grows its shared position table to 157,950,000 bytes.
++    // Request a bounded 256 MiB storage binding where available, not the adapter maximum.
++    // Devices limited to standard 128 MiB still initialize; oversized scenes report a GPU error.
++    let limits = wgpu::Limits {
++        max_storage_buffer_binding_size: adapter
++            .limits()
++            .max_storage_buffer_binding_size
++            .min(256 * 1024 * 1024),
++        ..wgpu::Limits::default()
++    };
++
++    let (device, queue) = adapter
++        .request_device(&wgpu::DeviceDescriptor {
++            label: None,
++            required_features: wgpu::Features::empty(),
++            required_limits: limits,
++            memory_hints: Default::default(),
++            ..Default::default()
++        })
++        .await?;
++    let failure = Arc::new(std::sync::Mutex::new(None));
++    #[cfg(target_arch = "wasm32")]
++    {
++        let errors = failure.clone();
++        device.on_uncaptured_error(Arc::new(move |error| remember_gpu_error(&errors, error)));
++        let lost = failure.clone();
++        device.set_device_lost_callback(move |reason, message| {
++            remember_device_loss(&lost, reason, &message)
++        });
++    }
++    #[cfg(not(target_arch = "wasm32"))]
++    device.on_uncaptured_error(Arc::new(report_gpu_error));
++
++    let (format, present_mode, alpha_mode) = match &surface {
++        Some(s) => {
++            let caps = s.get_capabilities(&adapter);
++            let mut f = caps.formats[0];
++            for format in &caps.formats {
++                if format.is_srgb() {
++                    f = *format;
++                    break;
++                }
++            }
++            (f, caps.present_modes[0], caps.alpha_modes[0])
++        }
++        None => (
++            wgpu::TextureFormat::Rgba8UnormSrgb,
++            wgpu::PresentMode::Fifo,
++            wgpu::CompositeAlphaMode::Auto,
++        ),
++    };
++    let config = wgpu::SurfaceConfiguration {
++        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
++        format,
++        width: size.0.max(1),
++        height: size.1.max(1),
++        present_mode,
++        alpha_mode,
++        view_formats: vec![],
++        desired_maximum_frame_latency: 2,
++    };
++    if let Some(s) = &surface {
++        s.configure(&device, &config);
++    }
++
++    Ok(DeviceSetup {
++        surface,
++        device,
++        queue,
++        config,
++        device_type: info.device_type,
++        failure,
++    })
++}
++
++/// `VIEWER_ADAPTER=<substring>` names a native adapter for a benchmark (a hybrid laptop has
++/// two); unset, or no match, falls through to the compositor's GPU. Never on wasm.
++async fn named_adapter(
++    instance: &wgpu::Instance,
++    backends: wgpu::Backends,
++) -> Option<wgpu::Adapter> {
++    #[cfg(target_arch = "wasm32")]
++    {
++        let _ = (instance, backends);
++        None
++    }
++    #[cfg(not(target_arch = "wasm32"))]
++    {
++        let want = std::env::var("VIEWER_ADAPTER").ok()?.to_lowercase();
++        let mut selected = None;
++        for adapter in instance.enumerate_adapters(backends).await {
++            if adapter.get_info().name.to_lowercase().contains(&want) {
++                selected = Some(adapter);
++                break;
++            }
++        }
++        selected
++    }
++}
++
++/// Remember failure without unwinding through a browser callback.
++#[cfg(target_arch = "wasm32")]
++fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
++    if let Ok(mut state) = failure.lock() {
++        *state = Some(message);
++    }
++}
++
++/// A failed GPU command must never be mistaken for a valid native verification render.
++#[cfg(not(target_arch = "wasm32"))]
++fn report_gpu_error(e: wgpu::Error) {
++    panic!("wgpu: {e}");
++}
++
++/// Exercise the installed callback with a real shader validation failure. Run explicitly on
++/// machines with a native adapter; ordinary CPU-only unit-test jobs need no GPU.
++#[cfg(all(test, not(target_arch = "wasm32")))]
++#[test]
++#[ignore = "requires a native GPU adapter"]
++#[should_panic(expected = "wgpu: Validation Error")]
++fn invalid_gpu_shader_is_fatal() {
++    let setup = pollster::block_on(open(None, (1, 1))).expect("open native adapter");
++    let _ = setup
++        .device
++        .create_shader_module(wgpu::ShaderModuleDescriptor {
++            label: Some("intentional verification failure"),
++            source: wgpu::ShaderSource::Wgsl(
++                "@compute @workgroup_size(1) fn main() { let broken: u32 = true; }".into(),
++            ),
++        });
++}
++
++/// Convert an uncaptured browser validation error to the recoverable failure state.
++#[cfg(target_arch = "wasm32")]
++fn remember_gpu_error(failure: &std::sync::Mutex<Option<String>>, error: wgpu::Error) {
++    remember_failure(failure, format!("WebGPU error: {error}"));
++}
++
++/// Retain the browser's device-loss reason for the next application frame to report.
++#[cfg(target_arch = "wasm32")]
++fn remember_device_loss(
++    failure: &std::sync::Mutex<Option<String>>,
++    reason: wgpu::DeviceLostReason,
++    message: &str,
++) {
++    remember_failure(
++        failure,
++        format!("WebGPU device lost ({reason:?}): {message}"),
++    );
++}
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81a5f42b35
+index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81a5f42b35 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
 @@ -1,101 +1,173 @@
@@ -1718,7 +2591,7 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
          Ok(Self {
              surface,
              ctx,
-@@ -103,21 +175,29 @@
+@@ -103,21 +175,29 @@ impl Gpu {
              layouts,
              frame,
              targets,
@@ -1752,7 +2625,7 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
      pub fn set_scene(&mut self, up: &Upload) {
          self.objects.append(&self.ctx, &self.layouts, &up.obj);
          self.arena.append(&self.ctx, &up.arena);
-@@ -129,17 +209,28 @@
+@@ -129,17 +209,28 @@ impl Gpu {
          }
          self.splat.invalidate();
          self.bounds.union(&up.bounds);
@@ -1768,7 +2641,14 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
 +            self.cloud.point_count
 +        );
          self.retarget(false);
--    }
++        self.objects.rebind_ink(
++            &self.ctx,
++            &self.layouts,
++            &InkScene {
++                targets: &self.targets,
++            },
++        );
+     }
 -    /// Recreate size-dependent targets and groups; chapter05 adds budgeted multisampling.
 -    pub fn resize(&mut self, width: u32, height: u32) {
 -        self.config.width = width.max(1);
@@ -1778,20 +2658,12 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
 -        self.splat.resize();
 -    }
 -    /// Keep sample counts, target attachments and lane pipelines coherent.
-+        self.objects.rebind_ink(
-+            &self.ctx,
-+            &self.layouts,
-+            &InkScene {
-+                targets: &self.targets,
-+            },
-+        );
-+    }
 +
 +    /// The pass target the lanes are built for now.
      fn target(&self) -> Target {
          Target {
              format: self.config.format,
-@@ -147,7 +238,8 @@
+@@ -147,7 +238,8 @@ impl Gpu {
          }
      }
  
@@ -1801,7 +2673,7 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
      fn retarget(&mut self, resized: bool) {
          let samples = self.msaa_now();
          let flip = samples != self.targets.samples;
-@@ -172,18 +264,23 @@
+@@ -172,18 +264,23 @@ impl Gpu {
              self.arena.retarget(&self.ctx, &self.layouts, target);
              self.segments.retarget(&self.ctx, &self.layouts, target);
              self.glyphs.retarget(&self.ctx, &self.layouts, target);
@@ -1827,7 +2699,7 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
      fn msaa_now(&self) -> u32 {
          let solid = self.arena.face_count() > 0
              || self.arena.sheet_count() > 0
-@@ -197,112 +294,102 @@
+@@ -197,112 +294,102 @@ impl Gpu {
          )
      }
  
@@ -1850,12 +2722,33 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
              self.splat.invalidate();
          }
 -        result
--    }
++        rebase
+     }
 -    /// Write the camera and CSS-to-physical pen scale once for every lane in this frame.
 -    pub fn write_frame_uniforms(&mut self, input: &FrameInput) -> anyhow::Result<()> {
 -        self.frame.write(
-+        rebase
-+    }
+-            &self.ctx,
+-            input,
+-            &frame::FrameCx {
+-                view: &self.view,
+-                anchor: self.objects.anchor_f32(),
+-                size: (self.config.width, self.config.height),
+-                pixel_scale: self.config.width as f32 / self.logical_size[0] as f32,
+-            },
+-        );
+-        self.objects
+-            .update_inside(&self.ctx, self.frame.eye, &self.bounds);
+-        self.text.prepare(
+-            &self.ctx,
+-            &text::TextFrame {
+-                mvp: self.frame.mvp_f32,
+-                origin: self.objects.anchor(),
+-                framebuffer: [self.config.width, self.config.height],
+-                logical: self.logical_size,
+-                ortho_half_height: self.frame.ortho_h,
+-            },
+-        )?;
+-        Ok(())
 +
 +    /// Reconfigure the surface and remake every size-bound target.
 +    pub fn resize(&mut self, width: u32, height: u32) {
@@ -1870,7 +2763,18 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
 +        self.retarget(true);
 +        self.splat.resize();
 +        self.pick.resize();
-+    }
+     }
+-    /// Encode cloud depth first, then physical mesh faces, then analytic ink.
+-    pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
+-        self.write_frame_uniforms(input)?;
+-        let output = match self.surface.get_current_texture() {
+-            wgpu::CurrentSurfaceTexture::Success(output)
+-            | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
+-            error => anyhow::bail!("surface unavailable: {error:?}"),
+-        };
+-        let target = output.texture.create_view(&Default::default());
+-        let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
+-        self.splat.prelude(
 +
 +    /// Forget every lane's rows so the next upload writes from row 0; capacity stays.
 +    pub fn reset(&mut self) {
@@ -1909,49 +2813,7 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
 +        self.retarget(false);
 +        self.objects.rebind_ink(
              &self.ctx,
--            input,
--            &frame::FrameCx {
--                view: &self.view,
--                anchor: self.objects.anchor_f32(),
--                size: (self.config.width, self.config.height),
--                pixel_scale: self.config.width as f32 / self.logical_size[0] as f32,
-+            &self.layouts,
-+            &InkScene {
-+                targets: &self.targets,
-             },
-         );
-+    }
-+
-+    /// Flip the selection flag on one object row.
-+    pub fn set_selected(&mut self, row: u32, on: bool) {
-+        self.selection_outline.set_selected(row, on);
-         self.objects
--            .update_inside(&self.ctx, self.frame.eye, &self.bounds);
--        self.text.prepare(
--            &self.ctx,
--            &text::TextFrame {
--                mvp: self.frame.mvp_f32,
--                origin: self.objects.anchor(),
--                framebuffer: [self.config.width, self.config.height],
--                logical: self.logical_size,
--                ortho_half_height: self.frame.ortho_h,
--            },
--        )?;
--        Ok(())
--    }
--    /// Encode cloud depth first, then physical mesh faces, then analytic ink.
--    pub fn render(&mut self, input: &FrameInput) -> anyhow::Result<()> {
--        self.write_frame_uniforms(input)?;
--        let output = match self.surface.get_current_texture() {
--            wgpu::CurrentSurfaceTexture::Success(output)
--            | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
--            error => anyhow::bail!("surface unavailable: {error:?}"),
--        };
--        let target = output.texture.create_view(&Default::default());
--        let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
--        self.splat.prelude(
--            &self.ctx,
--            &self.layouts,
+             &self.layouts,
 -            &mut encoder,
 -            &splat::RecordCx {
 -                mvp: &self.frame.mvp_f32,
@@ -1964,9 +2826,11 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
 -                objects: &self.objects,
 -                clouds: &self.cloud.clouds,
 -                nodes: &self.cloud.nodes,
--            },
++            &InkScene {
++                targets: &self.targets,
+             },
 -            &self.frame.cloud_group,
--        );
+         );
 -        let basic = frame::Binds {
 -            mvp: &self.frame.mvp_group,
 -            line: &self.frame.line_group,
@@ -2003,6 +2867,12 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
 -        self.ctx.queue.submit([encoder.finish()]);
 -        output.present();
 -        Ok(())
++    }
++
++    /// Flip the selection flag on one object row.
++    pub fn set_selected(&mut self, row: u32, on: bool) {
++        self.selection_outline.set_selected(row, on);
++        self.objects
 +            .set_flag(&self.ctx, row, Instance::FLAG_SELECTED, on);
 +        self.splat.invalidate();
 +    }
@@ -3438,7 +4308,7 @@ index 0000000000000000000000000000000000000000..5269d8551a1794ea8472199a7e75d7a5
 +    }
 +}
 diff --git a/session_viewer/src/engine/mod.rs b/session_viewer/src/engine/mod.rs
-index 452a01b8928b24e9b4db5618f8e745d5b557118c..740b88f1770a515acaf77e79ac9f1ddba0405d5d
+index 452a01b8928b24e9b4db5618f8e745d5b557118c..740b88f1770a515acaf77e79ac9f1ddba0405d5d 100644
 --- a/session_viewer/src/engine/mod.rs
 +++ b/session_viewer/src/engine/mod.rs
 @@ -1,5 +1,9 @@
@@ -3683,7 +4553,7 @@ index 614b48d0d83f878f17b1bfcaf2ad4629976cf676..00000000000000000000000000000000
 -    scene
 -}
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d091004a9
+index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d091004a9 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
 @@ -1,173 +1,258 @@
@@ -3712,7 +4582,17 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 -    camera: camera::Camera,
 -    scale: f64,
 -    fixture: fixture::CadFixture,
--}
++
++use crate::app::scene::{FileDoc, StreamedInit};
++use crate::app::walk::cloud::StreamRows;
++pub use state::State;
++
++/// One more slice of streamed cloud `idx`: its rows and the point the cloud is resident up to.
++pub struct CloudChunk {
++    pub idx: usize,
++    pub rows: StreamRows,
++    pub to: u32,
+ }
 -#[wasm_bindgen]
 -impl Tutorial {
 -    /// Retain local CAD sources while handing only prepared lane tables to the GPU.
@@ -3747,138 +4627,6 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 -            scale: 1.0,
 -            fixture,
 -        })
--    }
--    /// Orbit or pan with the same production camera methods used by the final viewer.
--    pub fn drag(&mut self, dx: f32, dy: f32, pan: bool) {
--        if pan {
--            self.camera.pan(dx, dy)
--        } else {
--            self.camera.orbit(dx, dy)
--        }
--    }
--    /// Keep cursor and viewport in the physical coordinate system expected by zoom_at.
--    pub fn zoom(&mut self, delta: f32, x: f64, y: f64) {
--        self.camera.zoom_at(
--            delta,
--            (x * self.scale, y * self.scale),
--            (self.gpu.config.width as f64, self.gpu.config.height as f64),
--        );
--    }
--    /// Resize physical targets, share one precise anchor, then submit one invalidated frame.
--    pub fn render(&mut self, width: u32, height: u32, scale: f64) -> Result<String, JsValue> {
--        if !scale.is_finite() || scale <= 0.0 {
--            return Err(JsValue::from_str("invalid scale"));
--        }
--        self.scale = scale;
--        self.gpu.logical_size = [width.max(1) as f64, height.max(1) as f64];
--        let w = (width.max(1) as f64 * scale).round() as u32;
--        let h = (height.max(1) as f64 * scale).round() as u32;
--        if self.canvas.width() != w || self.canvas.height() != h || self.gpu.config.width == 1 {
--            self.canvas.set_width(w);
--            self.canvas.set_height(h);
--            self.gpu.resize(w, h);
--        }
--        let now = web_sys::window().and_then(window_time).unwrap_or(0.0);
--        let rebase =
--            self.gpu
--                .rebase_anchor(&self.camera.origin(), self.camera.distance_world(), now);
--        let input = FrameInput {
--            view_proj: self
--                .camera
--                .view_proj_anchored(w as f64 / h as f64, &rebase.anchor),
--            clear: wgpu::Color {
--                r: 0.025,
--                g: 0.035,
--                b: 0.055,
--                a: 1.0,
--            },
--            now_ms: now,
--        };
--        self.gpu.render(&input).map_err(js_error)?;
--        Ok(serde_json::json!({"stage":11,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"text":self.gpu.text.stats,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
--            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
--    }
--}
--/// Read a monotonic frame time from the browser when available.
--fn window_time(window: web_sys::Window) -> Option<f64> {
--    Some(window.performance()?.now())
--}
--/// Preserve a useful error string at the browser boundary.
--fn js_error(error: impl std::fmt::Display) -> JsValue {
--    JsValue::from_str(&error.to_string())
--}
--
--/// Limit the reproducible diagnostic distance knob to the verified range.
--fn parse_distance(value: String) -> Option<f64> {
--    let value = value.parse::<f64>().ok()?;
--    (value.is_finite() && (1.0..=16.0).contains(&value)).then_some(value)
--}
--
--/// Distinguish a CSS-sized overlay from a source-world label sharing the scene depth.
--fn text_labels(bounds: &math::Aabb) -> Vec<engine::text::TextLabel> {
--    use engine::text::{TextLabel, TextPlacement};
--    vec![
--        TextLabel {
--            id: 1,
--            text: "AVATAR To office ffi — Ø 25 ± 0.1 mm".into(),
--            font_size: 16.0,
--            line_height: 24.0,
--            color: [255; 4],
--            placement: TextPlacement::Nameplate {
--                world: [0.0, 0.0, bounds.max[2] as f64 + 30.0],
--                padding: [6.0, 4.0],
--                rounded: false,
--            },
--            clip: None,
--        },
--        TextLabel {
--            id: 2,
--            text: "Centered white nameplate".into(),
--            font_size: 13.5,
--            line_height: 19.5,
--            color: [255; 4],
--            placement: TextPlacement::Nameplate {
--                world: [
--                    (bounds.min[0] + bounds.max[0]) as f64 * 0.5,
--                    (bounds.min[1] + bounds.max[1]) as f64 * 0.5,
--                    bounds.max[2] as f64,
--                ],
--                padding: [12.75, 3.0],
--                rounded: true,
--            },
--            clip: None,
--        },
--        TextLabel {
--            id: 3,
--            text: "text_not_oriented_to_camera".into(),
--            font_size: 18.0,
--            line_height: 26.0,
--            color: [255; 4],
--            placement: TextPlacement::WorldPlane {
--                world: [
--                    bounds.min[0] as f64 - 100.0,
--                    bounds.min[1] as f64 - 100.0,
--                    bounds.max[2] as f64,
--                ],
--                right: [1.0, 0.0, 0.0],
--                up: [0.0, 0.0, 1.0],
--                world_height: 16.0,
--            },
--            clip: None,
--        },
--    ]
--}
-+
-+use crate::app::scene::{FileDoc, StreamedInit};
-+use crate::app::walk::cloud::StreamRows;
-+pub use state::State;
-+
-+/// One more slice of streamed cloud `idx`: its rows and the point the cloud is resident up to.
-+pub struct CloudChunk {
-+    pub idx: usize,
-+    pub rows: StreamRows,
-+    pub to: u32,
-+}
 +
 +/// Async loader -> event-loop messages. `Ready` carries the `State` built around an empty
 +/// scene; everything after it changes the scene in place.
@@ -3928,16 +4676,29 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +        };
 +        event_loop.spawn_app(app);
 +        Ok(())
-+    }
+     }
+-    /// Orbit or pan with the same production camera methods used by the final viewer.
+-    pub fn drag(&mut self, dx: f32, dy: f32, pan: bool) {
+-        if pan {
+-            self.camera.pan(dx, dy)
+-        } else {
+-            self.camera.orbit(dx, dy)
 +
 +    /// `Ready`: adopt the State, size it to the canvas, draw.
 +    fn adopt(&mut self, mut state: State) {
 +        if let Some((w, h)) = desired_canvas_size() {
 +            state.resize(w, h);
-+        }
+         }
 +        state.window.request_redraw();
 +        self.state = Some(state);
-+    }
+     }
+-    /// Keep cursor and viewport in the physical coordinate system expected by zoom_at.
+-    pub fn zoom(&mut self, delta: f32, x: f64, y: f64) {
+-        self.camera.zoom_at(
+-            delta,
+-            (x * self.scale, y * self.scale),
+-            (self.gpu.config.width as f64, self.gpu.config.height as f64),
+-        );
 +
 +    /// The one place a frame is asked for: whenever a handler left `needs_frame` set.
 +    fn request_if_needed(&self) {
@@ -3946,7 +4707,11 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +        {
 +            state.window.request_redraw();
 +        }
-+    }
+     }
+-    /// Resize physical targets, share one precise anchor, then submit one invalidated frame.
+-    pub fn render(&mut self, width: u32, height: u32, scale: f64) -> Result<String, JsValue> {
+-        if !scale.is_finite() || scale <= 0.0 {
+-            return Err(JsValue::from_str("invalid scale"));
 +}
 +
 +#[cfg(target_arch = "wasm32")]
@@ -3955,7 +4720,15 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
 +        if self.state.is_some() || self.proxy.is_none() {
 +            return;
-+        }
+         }
+-        self.scale = scale;
+-        self.gpu.logical_size = [width.max(1) as f64, height.max(1) as f64];
+-        let w = (width.max(1) as f64 * scale).round() as u32;
+-        let h = (height.max(1) as f64 * scale).round() as u32;
+-        if self.canvas.width() != w || self.canvas.height() != h || self.gpu.config.width == 1 {
+-            self.canvas.set_width(w);
+-            self.canvas.set_height(h);
+-            self.gpu.resize(w, h);
 +        let Some(canvas) = viewer_canvas() else {
 +            app::feedback::error("The viewer canvas is missing or invalid");
 +            return;
@@ -3974,7 +4747,22 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +                Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
 +            }
 +            wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
-+        }
+         }
+-        let now = web_sys::window().and_then(window_time).unwrap_or(0.0);
+-        let rebase =
+-            self.gpu
+-                .rebase_anchor(&self.camera.origin(), self.camera.distance_world(), now);
+-        let input = FrameInput {
+-            view_proj: self
+-                .camera
+-                .view_proj_anchored(w as f64 / h as f64, &rebase.anchor),
+-            clear: wgpu::Color {
+-                r: 0.025,
+-                g: 0.035,
+-                b: 0.055,
+-                a: 1.0,
+-            },
+-            now_ms: now,
 +    }
 +
 +    /// Every message after `Ready` changes the scene, so each one leaves `needs_frame` set.
@@ -3982,7 +4770,10 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +        let msg = match msg {
 +            Msg::Ready(state) => return self.adopt(*state),
 +            other => other,
-+        };
+         };
+-        self.gpu.render(&input).map_err(js_error)?;
+-        Ok(serde_json::json!({"stage":11,"objects":self.gpu.objects.len(),"width":w,"height":h,"scale":scale,"drawn":true,"text":self.gpu.text.stats,"sourceObjects":self.fixture.identities,"sourceEdgeIds":self.fixture.pipe_source_edges,"samples":self.gpu.targets.samples,
+-            "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
 +        let Some(state) = &mut self.state else { return };
 +        match msg {
 +            Msg::Ready(_) => {}
@@ -4048,8 +4839,11 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +            state.touch();
 +        }
 +        self.request_if_needed();
-+    }
-+}
+     }
+ }
+-/// Read a monotonic frame time from the browser when available.
+-fn window_time(window: web_sys::Window) -> Option<f64> {
+-    Some(window.performance()?.now())
 +
 +/// The shell owns one canvas; no browser event handler searches unrelated page elements.
 +#[cfg(target_arch = "wasm32")]
@@ -4074,7 +4868,10 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +        Some(element) => element.id() == "canvas",
 +        None => false,
 +    }
-+}
+ }
+-/// Preserve a useful error string at the browser boundary.
+-fn js_error(error: impl std::fmt::Display) -> JsValue {
+-    JsValue::from_str(&error.to_string())
 +
 +/// Hidden tabs stop issuing rendering work; winit resumes redraw delivery when visible.
 +#[cfg(target_arch = "wasm32")]
@@ -4086,8 +4883,12 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +        Some(document) => document.hidden(),
 +        None => true,
 +    }
-+}
-+
+ }
+ 
+-/// Limit the reproducible diagnostic distance knob to the verified range.
+-fn parse_distance(value: String) -> Option<f64> {
+-    let value = value.parse::<f64>().ok()?;
+-    (value.is_finite() && (1.0..=16.0).contains(&value)).then_some(value)
 +/// The canvas's pixel size (CSS size x device-pixel-ratio), or `None` if zero or unavailable.
 +#[cfg(target_arch = "wasm32")]
 +fn desired_canvas_size() -> Option<(u32, u32)> {
@@ -4097,8 +4898,61 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +    let w = (canvas.client_width() as f64 * dpr).round() as u32;
 +    let h = (canvas.client_height() as f64 * dpr).round() as u32;
 +    (w > 0 && h > 0).then_some((w, h))
-+}
-+
+ }
+ 
+-/// Distinguish a CSS-sized overlay from a source-world label sharing the scene depth.
+-fn text_labels(bounds: &math::Aabb) -> Vec<engine::text::TextLabel> {
+-    use engine::text::{TextLabel, TextPlacement};
+-    vec![
+-        TextLabel {
+-            id: 1,
+-            text: "AVATAR To office ffi — Ø 25 ± 0.1 mm".into(),
+-            font_size: 16.0,
+-            line_height: 24.0,
+-            color: [255; 4],
+-            placement: TextPlacement::Nameplate {
+-                world: [0.0, 0.0, bounds.max[2] as f64 + 30.0],
+-                padding: [6.0, 4.0],
+-                rounded: false,
+-            },
+-            clip: None,
+-        },
+-        TextLabel {
+-            id: 2,
+-            text: "Centered white nameplate".into(),
+-            font_size: 13.5,
+-            line_height: 19.5,
+-            color: [255; 4],
+-            placement: TextPlacement::Nameplate {
+-                world: [
+-                    (bounds.min[0] + bounds.max[0]) as f64 * 0.5,
+-                    (bounds.min[1] + bounds.max[1]) as f64 * 0.5,
+-                    bounds.max[2] as f64,
+-                ],
+-                padding: [12.75, 3.0],
+-                rounded: true,
+-            },
+-            clip: None,
+-        },
+-        TextLabel {
+-            id: 3,
+-            text: "text_not_oriented_to_camera".into(),
+-            font_size: 18.0,
+-            line_height: 26.0,
+-            color: [255; 4],
+-            placement: TextPlacement::WorldPlane {
+-                world: [
+-                    bounds.min[0] as f64 - 100.0,
+-                    bounds.min[1] as f64 - 100.0,
+-                    bounds.max[2] as f64,
+-                ],
+-                right: [1.0, 0.0, 0.0],
+-                up: [0.0, 0.0, 1.0],
+-                world_height: 16.0,
+-            },
+-            clip: None,
+-        },
+-    ]
 +/// wasm entry point: install the panic hook and run the app.
 +#[cfg(target_arch = "wasm32")]
 +#[wasm_bindgen(start)]
@@ -4114,7 +4968,7 @@ index a30be1c32c84d3e70e5560b90817cb5ec01a85f2..4c1a982f8d71fb1096f6ed1da5ce956d
 +        app::feedback::error(&format!("Cannot start the viewer: {error}"));
 +    }
 +    Ok(())
-+}
+ }
 diff --git a/session_viewer/src/selftest/lifecycle.rs b/session_viewer/src/selftest/lifecycle.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..aff764f138fe0cf3b57fa29a7b932a2a517a32b0
@@ -4899,877 +5753,5 @@ index 0000000000000000000000000000000000000000..a976db0dccd70cec1d69bff2d7ba3966
 +            rounded: id == 0,
 +        },
 +        clip: None,
-+    }
-+}
-diff --git a/session_viewer/index.html b/session_viewer/index.html
-index b3450f005a3b0f6d7986bc0817ba83ce9ca28393..2217bc15b2ead11de37725414dda387d819b6189 100644
---- a/session_viewer/index.html
-+++ b/session_viewer/index.html
-@@ -1,48 +1,88 @@
--<!doctype html>
--<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
--<title>Session checkpoint 11</title>
--<link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0">
--<style>html,body{margin:0;width:100%;height:100%;background:#171b23;color:white;font:14px sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}#status{position:fixed;left:12px;top:12px;background:#171b23cc;padding:8px;pointer-events:none}</style>
--<link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
--<link data-trunk rel="copy-file" href="assets/text-quality.html">
--</head><body><canvas id="canvas" tabindex="0"></canvas><a href="./text-quality.html" style="position:fixed;right:12px;top:12px;color:white">Compare GPU text</a><output id="status">Starting checkpoint 11</output>
--<script>
--let tutorial;
--let pointer;
--/// Read the generated WASM exports after Trunk has initialized the module.
--async function start() {
--    if (!window.wasmBindings) { setTimeout(start, 20); return; }
--    try {
--        tutorial = await window.wasmBindings.Tutorial.create(document.getElementById('canvas'));
--        window.tutorial = tutorial;
--        render();
--    } catch (error) { document.getElementById('status').textContent = String(error); throw error; }
--}
--/// Keep the framebuffer at the actual CSS size times browser device scale.
--function render() {
--    const canvas = document.getElementById('canvas');
--    const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
--    canvas.dataset.tutorialInspection = JSON.stringify(state);
--    document.getElementById('status').textContent = 'Checkpoint 11 · ' + state.objects + ' objects · ' + state.width + '×' + state.height;
--}
--/// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
--function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
--/// Forward one CSS-pixel gesture to the production camera.
--function move(event) {
--    if (!pointer) return;
--    const dx = event.clientX - pointer[0], dy = event.clientY - pointer[1];
--    pointer = [event.clientX, event.clientY];
--    tutorial.drag(dx, dy, event.shiftKey); render();
--}
--/// End pointer ownership without retaining a stale gesture.
--function up() { pointer = undefined; }
--/// Normalize DOM wheel pixels to the production camera step, then dolly toward the actual cursor in the same physical-pixel space as the framebuffer.
--function wheel(event) { event.preventDefault(); tutorial.zoom(-event.deltaY / 100, event.offsetX, event.offsetY); render(); }
--/// Schedule a resize only after initialization completed.
--function resize() { if (tutorial) render(); }
--const canvas = document.getElementById('canvas');
--canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move);
--canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
--canvas.addEventListener('wheel', wheel, {passive:false}); window.addEventListener('resize', resize);
--start();
--</script></body></html>
-+<!DOCTYPE html>
-+<html lang="en">
-+<head>
-+  <meta charset="UTF-8"/>
-+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-+  <title>Session Viewer</title>
-+  <style>#viewer-error:not([hidden]) {position:fixed;inset:0;background:#111e;color:#fff;padding:25vh 15vw;font:16px/1.5 system-ui;z-index:20} #viewer-error button {padding:8px 16px;margin-top:16px}</style>
-+  <style>
-+    * { margin: 0; padding: 0; box-sizing: border-box; }
-+    /* overscroll-behavior kills pull-to-refresh and the rubber band: a downward drag on the
-+       canvas is an orbit, and a page that bounces under it swallows half the gesture. */
-+    html, body { height: 100%; overscroll-behavior: none; }
-+    body { background: #000; overflow: hidden; }
-+    /* No focus ring. winit gives the canvas a tabindex so it can receive key
-+       events, and the browser then rings the focused element - a black
-+       rectangle around the whole viewport, drawn over the model. Both spellings
-+       are needed: engines differ on which one they paint. */
-+    /* touch-action: none is what actually delivers the gestures. winit does call preventDefault,
-+       on `pointerdown` and on a non-passive `touchstart` (winit-0.30.13 web_sys/pointer.rs:115,
-+       web_sys/canvas.rs:245), but that is a LATE veto: the compositor has already begun deciding
-+       whether the gesture is a scroll, and where it decides yes the app gets a pointercancel and
-+       nothing more. touch-action tells it up front, before any of that, and it is the only one
-+       of the three that iOS Safari applies to page pinch-zoom.
-+       The rest turns off the things a long press and a double tap mean to a DOCUMENT: the iOS
-+       callout menu, text selection, the grey tap flash, and the legacy double-tap-to-zoom.
-+       100dvh after 100vh: dvh follows a mobile toolbar sliding away, vh does not, and browsers
-+       that never heard of dvh keep the line above. */
-+    canvas { display: block; width: 100vw; height: 100vh; height: 100dvh;
-+             touch-action: none; -webkit-touch-callout: none;
-+             -webkit-user-select: none; user-select: none;
-+             -webkit-tap-highlight-color: transparent; }
-+    canvas:focus, canvas:focus-visible { outline: none; }
-+    /* The documentation corner: a black folded-corner triangle, always above the canvas. */
-+    #viewer-docs { position:fixed; top:0; right:0; width:0; height:0; z-index:10; display:block;
-+                   border-top:40px solid #111; border-left:40px solid transparent;
-+                   filter: drop-shadow(-1px 1px 0 #ffffff99);
-+                   transition: border-top-width .25s cubic-bezier(.2,.8,.3,1.25), border-left-width .25s cubic-bezier(.2,.8,.3,1.25); }
-+    #viewer-docs:hover, #viewer-docs:focus-visible { border-top-width:52px; border-left-width:52px; outline:none; }
-+    #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
-+                 font:1rem system-ui; text-align:center; padding-top:40vh; }
-+  </style>
-+</head>
-+<body>
-+  <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
-+  <!-- Trunk copies local fixtures into dist/pb. Named remote scenes resolve through
-+       app/route.rs; their manifests and geometry are fetched from the configured data host. -->
-+   <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="pb"/>
-+   <!-- The ONE local manifest. Every other scene is opened from the R2 bucket with
-+        ?scene=scenes/view_<name>.yaml and is never copied into dist. -->
-+   <link data-trunk rel="copy-file" href="assets/view_local.yaml"/>
-+  <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><button type="button" onclick="location.reload()">Reload viewer</button></div>
-+  <canvas id="canvas" tabindex="0"></canvas>
-+  <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
-+  <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
-+  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
-+  <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
-+  <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
-+  <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
-+  <!-- Message telling that Webgpu is not available. -->
-+  <script>
-+    // These named registrations belong to this document's lifetime and are installed once.
-+    function preventContextMenu(event) { event.preventDefault(); }
-+    function installCanvasHandlers() {
-+      var canvas = document.getElementById("canvas");
-+      if (canvas) canvas.addEventListener("contextmenu", preventContextMenu);
-+    }
-+    document.addEventListener("DOMContentLoaded", installCanvasHandlers, {once:true});
-+
-+    // Reload the scene in place when the embedding page asks for it, e.g. after
-+    // an example was re-run and rewrote its .pb. Reloading this whole frame
-+    // would restart WebGPU and reset the camera; this swaps only the geometry.
-+    function reloadSceneMessage(event) {
-+      if (event.source !== window.parent && event.origin !== window.location.origin) return;
-+      var data = event.data;
-+      if (!data || data.type !== "session-viewer:reload-scene") return;
-+      if (window.wasmBindings && window.wasmBindings.reload_scene) {
-+        window.wasmBindings.reload_scene(data.scene || undefined);
-+      }
-+    }
-+    window.addEventListener("message", reloadSceneMessage);
-+
-+    if (!navigator.gpu) {
-+      document.body.insertAdjacentHTML("beforeend",
-+        '<div id="no-webgpu">WebGPU is unavailable. Open this viewer in a WebGPU-enabled browser over HTTPS or localhost; check the browser’s GPU settings.</div>');
-+    }
-+  </script>
-+</body>
-+</html>
-diff --git a/session_viewer/src/engine/gpu/device.rs b/session_viewer/src/engine/gpu/device.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..12bef051ae9f530045492f50cd7b0b4b17059123
---- /dev/null
-+++ b/session_viewer/src/engine/gpu/device.rs
-@@ -0,0 +1,229 @@
-+//! Device negotiation: instance -> surface -> adapter -> device + queue -> surface format.
-+//! Produces one `DeviceSetup` and owns nothing afterwards. Headless callers pass no window
-+//! and get no surface.
-+
-+use std::sync::Arc;
-+use winit::window::Window;
-+
-+/// What `open` negotiated: the surface (None when headless), the device/queue pair, the
-+/// surface configuration it was configured with, and what class of GPU answered - the
-+/// antialiasing budget is spent against the adapter, not against the pixel count alone.
-+pub struct DeviceSetup {
-+    pub surface: Option<wgpu::Surface<'static>>,
-+    pub device: wgpu::Device,
-+    pub queue: wgpu::Queue,
-+    pub config: wgpu::SurfaceConfiguration,
-+    pub device_type: wgpu::DeviceType,
-+    pub failure: Arc<std::sync::Mutex<Option<String>>>,
-+}
-+
-+/// Set up the wgpu objects in order. `size` is the canvas in pixels; a zero side is clamped
-+/// to 1 so the surface can be configured.
-+pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Result<DeviceSetup> {
-+    // WebGPU only in the browser, never WebGL; Vulkan / Metal / DX12 for the native harness.
-+    let backends = if cfg!(target_arch = "wasm32") {
-+        wgpu::Backends::BROWSER_WEBGPU
-+    } else {
-+        wgpu::Backends::PRIMARY
-+    };
-+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-+        backends,
-+        flags: Default::default(),
-+        memory_budget_thresholds: Default::default(),
-+        backend_options: Default::default(),
-+        display: None,
-+    });
-+
-+    let surface = match &window {
-+        Some(w) => Some(instance.create_surface(w.clone())?),
-+        None => None,
-+    };
-+
-+    // Let the browser choose its presentation-compatible adapter. Forcing LowPower on a
-+    // hybrid Linux system can select a different GPU and fail external-image allocation.
-+    // `?gpu=high` asks for the discrete GPU on a hybrid machine; the browser's choice remains
-+    // the fallback when that adapter is refused.
-+    let default_power = if cfg!(target_arch = "wasm32") {
-+        wgpu::PowerPreference::None
-+    } else {
-+        wgpu::PowerPreference::LowPower
-+    };
-+    let preferred = if super::view::knob("VIEWER_GPU", "gpu").as_deref() == Some("high") {
-+        wgpu::PowerPreference::HighPerformance
-+    } else {
-+        default_power
-+    };
-+    let options = |power_preference| wgpu::RequestAdapterOptions {
-+        power_preference,
-+        compatible_surface: surface.as_ref(),
-+        force_fallback_adapter: false,
-+    };
-+    let adapter = match named_adapter(&instance, backends).await {
-+        Some(named) => named,
-+        None => match instance.request_adapter(&options(preferred)).await {
-+            Ok(adapter) => adapter,
-+            Err(_) if preferred != default_power => instance.request_adapter(&options(default_power)).await?,
-+            Err(error) => return Err(error.into()),
-+        },
-+    };
-+    let info = adapter.get_info();
-+    log::info!(
-+        "adapter: {} ({:?}, {:?})",
-+        info.name,
-+        info.device_type,
-+        info.backend
-+    );
-+    if info.device_type == wgpu::DeviceType::Cpu {
-+        log::warn!("software adapter - rendering on the CPU will be slow");
-+    }
-+
-+    // The measured point-cloud scene grows its shared position table to 157,950,000 bytes.
-+    // Request a bounded 256 MiB storage binding where available, not the adapter maximum.
-+    // Devices limited to standard 128 MiB still initialize; oversized scenes report a GPU error.
-+    let limits = wgpu::Limits {
-+        max_storage_buffer_binding_size: adapter
-+            .limits()
-+            .max_storage_buffer_binding_size
-+            .min(256 * 1024 * 1024),
-+        ..wgpu::Limits::default()
-+    };
-+
-+    let (device, queue) = adapter
-+        .request_device(&wgpu::DeviceDescriptor {
-+            label: None,
-+            required_features: wgpu::Features::empty(),
-+            required_limits: limits,
-+            memory_hints: Default::default(),
-+            ..Default::default()
-+        })
-+        .await?;
-+    let failure = Arc::new(std::sync::Mutex::new(None));
-+    #[cfg(target_arch = "wasm32")]
-+    {
-+        let errors = failure.clone();
-+        device.on_uncaptured_error(Arc::new(move |error| remember_gpu_error(&errors, error)));
-+        let lost = failure.clone();
-+        device.set_device_lost_callback(move |reason, message| {
-+            remember_device_loss(&lost, reason, &message)
-+        });
-+    }
-+    #[cfg(not(target_arch = "wasm32"))]
-+    device.on_uncaptured_error(Arc::new(report_gpu_error));
-+
-+    let (format, present_mode, alpha_mode) = match &surface {
-+        Some(s) => {
-+            let caps = s.get_capabilities(&adapter);
-+            let mut f = caps.formats[0];
-+            for format in &caps.formats {
-+                if format.is_srgb() {
-+                    f = *format;
-+                    break;
-+                }
-+            }
-+            (f, caps.present_modes[0], caps.alpha_modes[0])
-+        }
-+        None => (
-+            wgpu::TextureFormat::Rgba8UnormSrgb,
-+            wgpu::PresentMode::Fifo,
-+            wgpu::CompositeAlphaMode::Auto,
-+        ),
-+    };
-+    let config = wgpu::SurfaceConfiguration {
-+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-+        format,
-+        width: size.0.max(1),
-+        height: size.1.max(1),
-+        present_mode,
-+        alpha_mode,
-+        view_formats: vec![],
-+        desired_maximum_frame_latency: 2,
-+    };
-+    if let Some(s) = &surface {
-+        s.configure(&device, &config);
-+    }
-+
-+    Ok(DeviceSetup {
-+        surface,
-+        device,
-+        queue,
-+        config,
-+        device_type: info.device_type,
-+        failure,
-+    })
-+}
-+
-+/// `VIEWER_ADAPTER=<substring>` names a native adapter for a benchmark (a hybrid laptop has
-+/// two); unset, or no match, falls through to the compositor's GPU. Never on wasm.
-+async fn named_adapter(
-+    instance: &wgpu::Instance,
-+    backends: wgpu::Backends,
-+) -> Option<wgpu::Adapter> {
-+    #[cfg(target_arch = "wasm32")]
-+    {
-+        let _ = (instance, backends);
-+        None
-+    }
-+    #[cfg(not(target_arch = "wasm32"))]
-+    {
-+        let want = std::env::var("VIEWER_ADAPTER").ok()?.to_lowercase();
-+        let mut selected = None;
-+        for adapter in instance.enumerate_adapters(backends).await {
-+            if adapter.get_info().name.to_lowercase().contains(&want) {
-+                selected = Some(adapter);
-+                break;
-+            }
-+        }
-+        selected
-+    }
-+}
-+
-+/// Remember failure without unwinding through a browser callback.
-+#[cfg(target_arch = "wasm32")]
-+fn remember_failure(failure: &std::sync::Mutex<Option<String>>, message: String) {
-+    if let Ok(mut state) = failure.lock() {
-+        *state = Some(message);
-+    }
-+}
-+
-+/// A failed GPU command must never be mistaken for a valid native verification render.
-+#[cfg(not(target_arch = "wasm32"))]
-+fn report_gpu_error(e: wgpu::Error) {
-+    panic!("wgpu: {e}");
-+}
-+
-+/// Exercise the installed callback with a real shader validation failure. Run explicitly on
-+/// machines with a native adapter; ordinary CPU-only unit-test jobs need no GPU.
-+#[cfg(all(test, not(target_arch = "wasm32")))]
-+#[test]
-+#[ignore = "requires a native GPU adapter"]
-+#[should_panic(expected = "wgpu: Validation Error")]
-+fn invalid_gpu_shader_is_fatal() {
-+    let setup = pollster::block_on(open(None, (1, 1))).expect("open native adapter");
-+    let _ = setup
-+        .device
-+        .create_shader_module(wgpu::ShaderModuleDescriptor {
-+            label: Some("intentional verification failure"),
-+            source: wgpu::ShaderSource::Wgsl(
-+                "@compute @workgroup_size(1) fn main() { let broken: u32 = true; }".into(),
-+            ),
-+        });
-+}
-+
-+/// Convert an uncaptured browser validation error to the recoverable failure state.
-+#[cfg(target_arch = "wasm32")]
-+fn remember_gpu_error(failure: &std::sync::Mutex<Option<String>>, error: wgpu::Error) {
-+    remember_failure(failure, format!("WebGPU error: {error}"));
-+}
-+
-+/// Retain the browser's device-loss reason for the next application frame to report.
-+#[cfg(target_arch = "wasm32")]
-+fn remember_device_loss(
-+    failure: &std::sync::Mutex<Option<String>>,
-+    reason: wgpu::DeviceLostReason,
-+    message: &str,
-+) {
-+    remember_failure(
-+        failure,
-+        format!("WebGPU device lost ({reason:?}): {message}"),
-+    );
-+}
-diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..8f407222abdaf2c34c89b742bee5fd4c27c3bfe7
---- /dev/null
-+++ b/session_viewer/src/app/input.rs
-@@ -0,0 +1,255 @@
-+//! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
-+//! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
-+//! everything with none selected), Q/W/E lane toggles, D face lighting, B the back-face flag,
-+//! H hides the selection and S shows everything back, T toggles selected names,
-+//! [ ] cloud size, Escape clears the
-+//! selection. Fingers go to `touch.rs`.
-+//! Every handler says whether the frame must be redrawn.
-+
-+use super::touch::{Act, Touches};
-+use crate::State;
-+use crate::camera::View;
-+use winit::event::{ElementState, MouseButton, MouseScrollDelta, WindowEvent};
-+use winit::keyboard::{Key, NamedKey};
-+
-+/// A press that moves less than this (CSS px) before release is a click.
-+const CLICK_SLOP: f64 = 4.0;
-+
-+/// What the mouse is doing between events, plus the fingers.
-+pub struct Input {
-+    orbiting: bool,
-+    panning: bool,
-+    ctrl: bool,
-+    last_cursor: (f64, f64),
-+    left_down: Option<(f64, f64)>,
-+    touch: Touches,
-+}
-+
-+impl Default for Input {
-+    /// Start with the same inactive gesture state as the explicit constructor.
-+    fn default() -> Self {
-+        Self::new()
-+    }
-+}
-+
-+impl Input {
-+    /// Nothing held, cursor at the origin.
-+    pub fn new() -> Self {
-+        Self {
-+            orbiting: false,
-+            panning: false,
-+            ctrl: false,
-+            last_cursor: (0.0, 0.0),
-+            left_down: None,
-+            touch: Touches::new(),
-+        }
-+    }
-+
-+    /// One key press (the caller filters repeats). True when the frame must be redrawn.
-+    pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
-+        match key {
-+            Key::Named(NamedKey::Space) => state
-+                .camera
-+                .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
-+            Key::Named(NamedKey::Escape) => state.escape_selection(),
-+            Key::Character("1") => state.camera.set_view(View::Front),
-+            Key::Character("2") => state.camera.set_view(View::Back),
-+            Key::Character("3") => state.camera.set_view(View::Left),
-+            Key::Character("4") => state.camera.set_view(View::Right),
-+            Key::Character("5") => state.camera.set_view(View::Top),
-+            Key::Character("6") => state.camera.set_view(View::Bottom),
-+            Key::Character("7") => state.camera.set_view(View::Iso),
-+            Key::Character("c" | "C") => state.camera.reset(),
-+            Key::Character("f" | "F") => state.fit_selected_or_all(),
-+            Key::Character("q" | "Q") => state.gpu.view.show_points = !state.gpu.view.show_points,
-+            Key::Character("w" | "W") => state.gpu.view.show_lines = !state.gpu.view.show_lines,
-+            Key::Character("e" | "E") => {
-+                state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
-+            }
-+            Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
-+            Key::Character("h" | "H") => state.hide_selected(),
-+            Key::Character("s" | "S") => state.show_all(),
-+            Key::Character("t" | "T") => state.toggle_selected_names(),
-+            Key::Character("b" | "B") => state.gpu.view.backface = !state.gpu.view.backface,
-+            Key::Character("[") => state.set_cloud_size(state.gpu.view.cloud_size - 0.25),
-+            Key::Character("]") => state.set_cloud_size(state.gpu.view.cloud_size + 0.25),
-+            _ => return false,
-+        }
-+        true
-+    }
-+
-+    /// Buttons, motion, wheel, modifiers and fingers. True when the frame must be redrawn.
-+    pub fn mouse(&mut self, state: &mut State, event: &WindowEvent) -> bool {
-+        let viewport = state.viewport();
-+        match event {
-+            WindowEvent::MouseInput {
-+                state: btn,
-+                button: MouseButton::Right,
-+                ..
-+            } => {
-+                self.orbiting = *btn == ElementState::Pressed;
-+                false
-+            }
-+            WindowEvent::MouseInput {
-+                state: btn,
-+                button: MouseButton::Middle,
-+                ..
-+            } => {
-+                self.panning = *btn == ElementState::Pressed;
-+                false
-+            }
-+            WindowEvent::MouseInput {
-+                state: btn,
-+                button: MouseButton::Left,
-+                ..
-+            } => self.left(state, *btn),
-+            WindowEvent::CursorMoved { position, .. } => {
-+                let dragging = self.orbiting || self.panning;
-+                if dragging {
-+                    let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
-+                    let dy = ((position.y - self.last_cursor.1) / device_pixel_ratio()) as f32;
-+                    if self.panning || self.ctrl {
-+                        state.camera.pan(dx, dy);
-+                    } else {
-+                        state.camera.orbit(dx, dy);
-+                    }
-+                }
-+                self.last_cursor = (position.x, position.y);
-+                dragging
-+            }
-+            WindowEvent::MouseWheel { delta, .. } => {
-+                let amount = match delta {
-+                    MouseScrollDelta::LineDelta(_, y) => *y,
-+                    MouseScrollDelta::PixelDelta(p) => p.y as f32 / 100.0,
-+                };
-+                state.camera.zoom_at(amount, self.last_cursor, viewport);
-+                true
-+            }
-+            WindowEvent::ModifiersChanged(mods) => {
-+                self.ctrl = mods.state().control_key();
-+                false
-+            }
-+            WindowEvent::Focused(false) => {
-+                self.cancel();
-+                true
-+            }
-+            WindowEvent::Touch(t) => {
-+                match self
-+                    .touch
-+                    .event(&mut state.camera, t, viewport, device_pixel_ratio())
-+                {
-+                    Act::None => false,
-+                    Act::Moved => true,
-+                    Act::Tap(at) => {
-+                        state.request_selection(at.0 as u32, at.1 as u32, false);
-+                        false
-+                    }
-+                    Act::Fit => {
-+                        state.fit_all();
-+                        true
-+                    }
-+                }
-+            }
-+            _ => false,
-+        }
-+    }
-+
-+    /// Focus loss or pointer cancellation retires every incomplete mouse/touch gesture.
-+    pub fn cancel(&mut self) {
-+        self.orbiting = false;
-+        self.panning = false;
-+        self.ctrl = false;
-+        self.left_down = None;
-+        self.touch = Touches::new();
-+    }
-+
-+    /// The left button: a press remembers where; a release within the slop is a click and
-+    /// asks the GPU what is under it. The picture is unchanged until the answer lands, so a
-+    /// click never redraws by itself.
-+    fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
-+        match btn {
-+            ElementState::Pressed => {
-+                self.left_down = Some(self.last_cursor);
-+                false
-+            }
-+            ElementState::Released => {
-+                let Some(down) = self.left_down.take() else {
-+                    return false;
-+                };
-+                let moved = (self.last_cursor.0 - down.0)
-+                    .abs()
-+                    .max((self.last_cursor.1 - down.1).abs());
-+                if moved > CLICK_SLOP * device_pixel_ratio() {
-+                    return false;
-+                }
-+                state.request_selection(
-+                    self.last_cursor.0 as u32,
-+                    self.last_cursor.1 as u32,
-+                    self.ctrl,
-+                );
-+                false
-+            }
-+        }
-+    }
-+}
-+
-+/// Winit handles touch cancellation; this owned listener also covers mouse and pen cancellation.
-+#[cfg(target_arch = "wasm32")]
-+pub struct PointerCancellation {
-+    canvas: web_sys::HtmlCanvasElement,
-+    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
-+}
-+
-+#[cfg(target_arch = "wasm32")]
-+impl PointerCancellation {
-+    /// Install once for the canvas lifetime; the required callback only forwards a message.
-+    pub fn new(
-+        canvas: web_sys::HtmlCanvasElement,
-+        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
-+    ) -> Result<Self, wasm_bindgen::JsValue> {
-+        use wasm_bindgen::JsCast;
-+        let callback =
-+            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |_| {
-+                cancel_pointer(&proxy)
-+            });
-+        canvas
-+            .add_event_listener_with_callback("pointercancel", callback.as_ref().unchecked_ref())?;
-+        Ok(Self { canvas, callback })
-+    }
-+}
-+
-+#[cfg(target_arch = "wasm32")]
-+impl Drop for PointerCancellation {
-+    /// Detach before dropping the wasm callback so JavaScript cannot retain an invalid handle.
-+    fn drop(&mut self) {
-+        use wasm_bindgen::JsCast;
-+        let _ = self.canvas.remove_event_listener_with_callback(
-+            "pointercancel",
-+            self.callback.as_ref().unchecked_ref(),
-+        );
-+    }
-+}
-+
-+/// Pointer cancellation goes through the same event-loop owner as every other input change.
-+#[cfg(target_arch = "wasm32")]
-+fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
-+    let _ = proxy.send_event(crate::Msg::CancelPointer);
-+}
-+
-+/// Physical pixels per CSS pixel: 1 on a desktop monitor, 2-4 on a phone.
-+#[cfg(target_arch = "wasm32")]
-+fn device_pixel_ratio() -> f64 {
-+    if let Some(window) = web_sys::window() {
-+        let ratio = window.device_pixel_ratio();
-+        if ratio > 0.0 {
-+            return ratio;
-+        }
-+    }
-+    1.0
-+}
-+
-+/// Native windows report logical pixels already.
-+#[cfg(not(target_arch = "wasm32"))]
-+fn device_pixel_ratio() -> f64 {
-+    1.0
-+}
-diff --git a/session_viewer/src/app/touch.rs b/session_viewer/src/app/touch.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..d5d7ca8a69de29f3428276801a3926f3e8797a82
---- /dev/null
-+++ b/session_viewer/src/app/touch.rs
-@@ -0,0 +1,229 @@
-+//! Touch gestures — the phone half of the camera bindings.
-+//!
-+//! winit's web backend splits pointers by `pointerType`: a pointer whose type is `"touch"` is
-+//! routed to `WindowEvent::Touch` and NEVER to `CursorMoved` / `MouseInput`
-+//! (`winit-0.30.13/src/platform_impl/web/web_sys/pointer.rs`, the `match pointer_type` arms —
-+//! the comment there says duplicate mouse events would be "inconsistent with other platforms").
-+//! So a finger cannot also reach the mouse arms in `lib.rs`, and the two sets of bindings can be
-+//! read, and changed, independently. (The runner registers a SECOND, unfiltered set of pointer
-+//! listeners on the window — `event_loop/runner.rs`, "pointermove"/"pointerdown"/"pointerup" —
-+//! but those raise `DeviceEvent`, which this viewer does not implement, and they return early
-+//! unless device events are switched on. They are not a second route into anything here.)
-+//!
-+//! | gesture | camera | the mouse binding it mirrors |
-+//! |---|---|---|
-+//! | one finger, drag | `orbit` | right-drag |
-+//! | two fingers, slide | `pan` | middle-drag |
-+//! | two fingers, spread / close | `zoom_at` their midpoint | wheel |
-+//! | double tap | `fit` | `F` |
-+//!
-+//! Two conversions have to happen here, or the same hand movement means different things on
-+//! different phones.
-+//!
-+//! FINGER TRAVEL IS IN CSS PIXELS. winit reports PHYSICAL pixels (`to_physical(scale_factor)`,
-+//! same file), so one centimetre of glass is three times the number on a dpr-3 phone that it is
-+//! on a dpr-1 laptop. Orbit is a fixed radians-per-unit, so the raw figure would spin the model
-+//! three times as fast for the same movement — and differently again on the next phone. Dividing
-+//! by the device pixel ratio makes the gesture mean one thing everywhere; on a dpr-1 screen it
-+//! is then exactly the mouse.
-+//!
-+//! PAN IS FINGER-EXACT. `Camera::pan` scales its argument by a hard-coded `distance * 0.0015`,
-+//! which equals the `2·tan(30°)` the projection really spans only when the viewport is 770 px
-+//! tall — anywhere else the model slides faster or slower than the hand holding it. A mouse does
-+//! not notice, because the cursor is not the thing being dragged. A finger IS on the thing, so
-+//! the error reads as the model slipping. Scaling by the real viewport height (`PAN_PER_PX`)
-+//! removes it, in both projections: the orthographic branch of `view_proj_anchored` uses the
-+//! same `distance * tan(30°)` half-height as the perspective one.
-+
-+use winit::event::{Touch, TouchPhase};
-+
-+use crate::camera::Camera;
-+use crate::engine::performance::now_ms;
-+
-+/// `Camera::pan` moves the target by `arg * distance * 0.0015`, while one physical pixel is
-+/// worth `distance * 2·tan(30°) / viewport_height` of target motion. Their ratio is this
-+/// constant over the viewport height — the number of pan units one pixel of finger is worth.
-+const PAN_PER_PX: f64 = 2.0 * 0.577_350_269_189_625_7 / 0.001_5; // 769.8 — pan is exact at that height
-+
-+/// The wheel response is 0.9^amount; invert it so a pinch ratio r gives distance/r.
-+const PINCH_LOG: f64 = -0.105_360_515_657_826_28;
-+
-+/// Biggest span change one event may claim. A finger the browser loses and re-delivers, or a
-+/// third finger landing between two samples, otherwise teleports the camera.
-+const PINCH_MAX: f64 = 2.0;
-+
-+/// A finger that never travelled this far (CSS px) and lifted within `TAP_MS` is a tap …
-+///
-+/// Both clocks are read when the event is HANDLED, not when it happened — winit's `Touch` carries
-+/// no timestamp — so a main thread stalled longer than the window turns a real double tap into
-+/// two singles. At 30-60 fps the stall is a frame and it does not matter; in a BACKGROUND tab,
-+/// where the browser throttles the frame loop to 1 Hz, it always will. That is a measurement
-+/// trap, not a bug: a viewer nobody is looking at has no gestures to miss.
-+const TAP_SLOP: f64 = 12.0;
-+const TAP_MS: f64 = 300.0;
-+/// … and a second tap this soon after it, and this near it, is a double tap. Both windows are
-+/// wider than the single-tap ones: the second tap of a real double tap is the sloppier of the two.
-+const DOUBLE_TAP_MS: f64 = 320.0;
-+const DOUBLE_TAP_SLOP: f64 = 40.0;
-+
-+/// What one touch event asked for. `Fit` needs the scene bounds, which live a layer up, so it is
-+/// reported rather than done here — this file knows the camera and nothing else.
-+pub enum Act {
-+    None,
-+    Moved,
-+    Fit,
-+    /// A single tap, in surface pixels: the finger's pick.
-+    Tap((f64, f64)),
-+}
-+
-+/// One finger, from its `Started` to its `Ended`. Physical pixels throughout.
-+struct Finger {
-+    id: u64,
-+    pos: (f64, f64),  // where it is now
-+    down: (f64, f64), // where it landed — a tap is a finger that never left this
-+    t0: f64,          // when it landed, ms
-+}
-+
-+/// Every finger on the glass, plus what the last two-finger sample measured.
-+pub struct Touches {
-+    fingers: Vec<Finger>,
-+    /// Distance between the first two fingers at the previous event, and their midpoint.
-+    /// `span == 0.0` means NOT SEEDED: the next two-finger move records and does nothing else.
-+    /// Every change in finger count clears it, and that is what stops the model jumping when a
-+    /// second finger joins or leaves halfway through a gesture.
-+    span: f64,
-+    mid: (f64, f64),
-+    /// When and where the last tap lifted, for the double tap.
-+    tap: Option<(f64, (f64, f64))>,
-+}
-+
-+impl Touches {
-+    /// No fingers down, no tap pending.
-+    pub fn new() -> Self {
-+        Self {
-+            fingers: Vec::new(),
-+            span: 0.0,
-+            mid: (0.0, 0.0),
-+            tap: None,
-+        }
-+    }
-+
-+    /// Fold one `WindowEvent::Touch` into the gesture and move the camera. `vp` is the surface
-+    /// size and `t.location` the finger, both in physical pixels; `dpr` is the device pixel
-+    /// ratio that turns physical travel back into the CSS pixels a hand feels.
-+    pub fn event(&mut self, cam: &mut Camera, t: &Touch, vp: (f64, f64), dpr: f64) -> Act {
-+        let p = (t.location.x, t.location.y);
-+        match t.phase {
-+            TouchPhase::Started => {
-+                self.fingers.push(Finger {
-+                    id: t.id,
-+                    pos: p,
-+                    down: p,
-+                    t0: now_ms(),
-+                });
-+                self.span = 0.0; // the gesture just changed shape — re-seed on the next move
-+                Act::None
-+            }
-+            TouchPhase::Moved => self.moved(cam, t.id, p, vp, dpr),
-+            TouchPhase::Ended => self.lifted(t.id, p, dpr),
-+            // A cancel is the browser taking the gesture away — a scroll it decided to own, a
-+            // system edge swipe, a call arriving. Drop the finger, and never read it as a tap.
-+            TouchPhase::Cancelled => {
-+                self.drop_finger(t.id);
-+                self.tap = None;
-+                Act::None
-+            }
-+        }
-+    }
-+
-+    /// A finger travelled. One finger orbits; two pan by their midpoint and zoom by their span.
-+    fn moved(&mut self, cam: &mut Camera, id: u64, p: (f64, f64), vp: (f64, f64), dpr: f64) -> Act {
-+        let Some(i) = self.finger_index(id) else {
-+            return Act::None;
-+        };
-+        let d = (p.0 - self.fingers[i].pos.0, p.1 - self.fingers[i].pos.1);
-+        self.fingers[i].pos = p;
-+
-+        if self.fingers.len() == 1 {
-+            cam.orbit((d.0 / dpr) as f32, (d.1 / dpr) as f32);
-+            return Act::Moved;
-+        }
-+
-+        // Three fingers or more still drive the two-finger gesture, off the first two down: a
-+        // hand resting a third finger on the glass should not stop the pan it is already doing.
-+        let (a, b) = (self.fingers[0].pos, self.fingers[1].pos);
-+        let span = (b.0 - a.0).hypot(b.1 - a.1).max(1.0);
-+        let mid = ((a.0 + b.0) * 0.5, (a.1 + b.1) * 0.5);
-+        if self.span == 0.0 {
-+            self.span = span; // first sample of this shape: record, do not act
-+            self.mid = mid;
-+            return Act::None;
-+        }
-+
-+        // Pan first, then zoom about the NEW midpoint: the pan slides the model with the hand,
-+        // the zoom then keeps whatever is under the midpoint under it.
-+        let h = vp.1.max(1.0);
-+        cam.pan(
-+            ((mid.0 - self.mid.0) * PAN_PER_PX / h) as f32,
-+            ((mid.1 - self.mid.1) * PAN_PER_PX / h) as f32,
-+        );
-+        let r = (span / self.span).clamp(1.0 / PINCH_MAX, PINCH_MAX);
-+        cam.zoom_at((-r.ln() / PINCH_LOG) as f32, mid, vp);
-+
-+        self.span = span;
-+        self.mid = mid;
-+        Act::Moved
-+    }
-+
-+    /// A finger left the glass cleanly. Only the LAST one up can be a tap — a lift that leaves
-+    /// other fingers down is the tail of a two-finger gesture, not a tap on anything.
-+    fn lifted(&mut self, id: u64, p: (f64, f64), dpr: f64) -> Act {
-+        let Some(f) = self.drop_finger(id) else {
-+            return Act::None;
-+        };
-+        if !self.fingers.is_empty() {
-+            self.tap = None;
-+            return Act::None;
-+        }
-+        let now = now_ms();
-+        if (p.0 - f.down.0).hypot(p.1 - f.down.1) / dpr > TAP_SLOP || now - f.t0 > TAP_MS {
-+            self.tap = None; // a drag, or a press held long enough to mean something else
-+            return Act::None;
-+        }
-+        let second = match self.tap.take() {
-+            Some((t0, at)) => {
-+                now - t0 < DOUBLE_TAP_MS && (p.0 - at.0).hypot(p.1 - at.1) / dpr < DOUBLE_TAP_SLOP
-+            }
-+            None => false,
-+        };
-+        if second {
-+            return Act::Fit; // `self.tap` is already cleared, so three taps are not two doubles
-+        }
-+        self.tap = Some((now, p));
-+        Act::Tap(p)
-+    }
-+
-+    /// Find the first active contact with the event's stable touch identifier.
-+    fn finger_index(&self, id: u64) -> Option<usize> {
-+        for (index, finger) in self.fingers.iter().enumerate() {
-+            if finger.id == id {
-+                return Some(index);
-+            }
-+        }
-+        None
-+    }
-+
-+    /// Forget one finger and re-seed the pinch, whatever ended it.
-+    fn drop_finger(&mut self, id: u64) -> Option<Finger> {
-+        let i = self.finger_index(id)?;
-+        self.span = 0.0;
-+        Some(self.fingers.remove(i))
-+    }
-+}
-+
-+impl Default for Touches {
-+    /// Start with the same inactive gesture state as the explicit constructor.
-+    fn default() -> Self {
-+        Self::new()
 +    }
 +}

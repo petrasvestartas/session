@@ -1,5 +1,5 @@
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index 276a260697ca16ec09a202c1a0688d020144f3ff..f8c1d6f40ac4dbd53b7a828561dec0b925391c00
+index 276a260697ca16ec09a202c1a0688d020144f3ff..f8c1d6f40ac4dbd53b7a828561dec0b925391c00 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
 @@ -1,9 +1,9 @@
@@ -14,7 +14,7 @@ index 276a260697ca16ec09a202c1a0688d020144f3ff..f8c1d6f40ac4dbd53b7a828561dec0b9
  <script>
  let tutorial;
  let pointer;
-@@ -21,7 +21,7 @@
+@@ -21,7 +21,7 @@ function render() {
      const canvas = document.getElementById('canvas');
      const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
      canvas.dataset.tutorialInspection = JSON.stringify(state);
@@ -25,10 +25,10 @@ index 276a260697ca16ec09a202c1a0688d020144f3ff..f8c1d6f40ac4dbd53b7a828561dec0b9
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d87e98641b1ed15f457f44816a6f45b5805a85c8
+index 0000000000000000000000000000000000000000..83c90cf106cdf4f1aa00e9a73225e2e53ab07599
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/instance.rs
-@@ -0,0 +1,234 @@
+@@ -0,0 +1,237 @@
 +//! `Instance` - the one object row every instance-reading shader indexes by `instance_id`,
 +//! its flag bits, and the mirror tests that prove the shaders declare the same rows.
 +//! No buffer and no bind group here: `objects.rs` owns both tables.
@@ -73,6 +73,9 @@ index 0000000000000000000000000000000000000000..d87e98641b1ed15f457f44816a6f45b5
 +    /// GPU sees them; this flag is what tells the marker lane its vertices are samples, not
 +    /// corners. Bit 6.
 +    pub const FLAG_SMOOTH: u32 = 1 << 6;
++    /// One face only (a NURBS surface, a one-face mesh or BRep): x-ray leaves it shaded, since
++    /// it has no interior to look into.
++    pub const FLAG_SINGLE: u32 = 1 << 7;
 +
 +    /// The one-row placeholder an empty scene binds: identity, mid grey, no flags.
 +    pub fn placeholder() -> Self {
@@ -280,7 +283,7 @@ index 0000000000000000000000000000000000000000..5ee5b6c6ad95aefe624eda27f5b3e4dd
 +//! First retained GPU source records.
 +pub mod gpu;
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba9cf5c84f
+index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba9cf5c84f 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
 @@ -2,7 +2,9 @@
@@ -293,7 +296,7 @@ index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba
  /// The browser owns the canvas; this teaching facade owns one GPU/device and one draw lane.
  #[wasm_bindgen]
  pub struct Tutorial {
-@@ -16,6 +18,7 @@
+@@ -16,6 +18,7 @@ pub struct Tutorial {
      group: wgpu::BindGroup,
      scale: f64,
      camera: camera::Camera,
@@ -301,7 +304,7 @@ index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba
  }
  #[wasm_bindgen]
  impl Tutorial {
-@@ -88,24 +91,48 @@
+@@ -88,24 +91,48 @@ impl Tutorial {
          });
          let layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
              label: Some("camera"),
@@ -312,9 +315,6 @@ index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba
 -                    ty: wgpu::BufferBindingType::Uniform,
 -                    has_dynamic_offset: false,
 -                    min_binding_size: None,
--                },
--                count: None,
--            }],
 +            entries: &[
 +                wgpu::BindGroupLayoutEntry {
 +                    binding: 0,
@@ -335,7 +335,9 @@ index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba
 +                        min_binding_size: None,
 +                    },
 +                    count: None,
-+                },
+                 },
+-                count: None,
+-            }],
 +            ],
 +        });
 +        let records = [scene::objects()[0].row, scene::objects()[1].row];
@@ -364,7 +366,7 @@ index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba
          });
          let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
              label: Some("first triangle"),
-@@ -151,7 +178,7 @@
+@@ -151,7 +178,7 @@ impl Tutorial {
              },
              1.5,
          );
@@ -373,7 +375,7 @@ index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba
          Ok(Self {
              canvas,
              surface,
-@@ -163,6 +190,7 @@
+@@ -163,6 +190,7 @@ impl Tutorial {
              group,
              scale: 1.0,
              camera,
@@ -381,7 +383,7 @@ index d54b76882d25d637063590bbb55bf75c1178d54b..bf7396941bc966462d0977e01ebbbbba
          })
      }
      /// Resize once, upload the camera transform, encode the lane, submit and present.
-@@ -216,11 +244,13 @@
+@@ -216,11 +244,13 @@ impl Tutorial {
              });
              pass.set_pipeline(&self.pipeline);
              pass.set_bind_group(0, &self.group, &[]);
@@ -433,7 +435,7 @@ index 0000000000000000000000000000000000000000..f71add44890e6c93d0e085bc186154e3
 +    ]
 +}
 diff --git a/session_viewer/src/shaders/first.wgsl b/session_viewer/src/shaders/first.wgsl
-index 057f3d824c4f007af8bd24579a4a2a6a4de65607..e05e7aabbdd8c7d0e8cabf9650c99d2c37018ef8
+index 057f3d824c4f007af8bd24579a4a2a6a4de65607..e05e7aabbdd8c7d0e8cabf9650c99d2c37018ef8 100644
 --- a/session_viewer/src/shaders/first.wgsl
 +++ b/session_viewer/src/shaders/first.wgsl
 @@ -1,11 +1,14 @@

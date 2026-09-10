@@ -222,7 +222,7 @@ index 0000000000000000000000000000000000000000..5d69ab6b4577a6350f360f3ae1a05399
 +</script>
 +</html>
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index dd812577b2bba47df27134eafab8843f927d5866..b3450f005a3b0f6d7986bc0817ba83ce9ca28393
+index dd812577b2bba47df27134eafab8843f927d5866..b3450f005a3b0f6d7986bc0817ba83ce9ca28393 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
 @@ -1,11 +1,11 @@
@@ -240,7 +240,7 @@ index dd812577b2bba47df27134eafab8843f927d5866..b3450f005a3b0f6d7986bc0817ba83ce
  <script>
  let tutorial;
  let pointer;
-@@ -23,7 +23,7 @@
+@@ -23,7 +23,7 @@ function render() {
      const canvas = document.getElementById('canvas');
      const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
      canvas.dataset.tutorialInspection = JSON.stringify(state);
@@ -250,10 +250,10 @@ index dd812577b2bba47df27134eafab8843f927d5866..b3450f005a3b0f6d7986bc0817ba83ce
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5bf08f0096
+index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5bf08f0096 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
-@@ -11,6 +11,7 @@
+@@ -11,6 +11,7 @@ pub mod objects;
  pub mod segments;
  pub mod splat;
  pub mod targets;
@@ -261,7 +261,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
  pub mod text_outline;
  pub mod upload;
  pub mod view;
-@@ -39,6 +40,7 @@
+@@ -39,6 +40,7 @@ pub struct Gpu {
      pub arena: arena::ArenaLane,
      pub segments: segments::SegmentLane,
      pub glyphs: glyphs::GlyphLane,
@@ -269,7 +269,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
      pub cloud: cloud::CloudLane,
      pub splat: splat::Splat,
      pub bounds: crate::math::Aabb,
-@@ -91,6 +93,7 @@
+@@ -91,6 +93,7 @@ impl Gpu {
          let arena = arena::ArenaLane::new(&ctx, &layouts, target);
          let segments = segments::SegmentLane::new(&ctx, &layouts, target);
          let glyphs = glyphs::GlyphLane::new(&ctx, &layouts, target);
@@ -277,7 +277,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
          let cloud = cloud::CloudLane::new(&ctx);
          let splat = splat::Splat::new(&ctx, &layouts, target, cloud.buffers());
          Ok(Self {
-@@ -106,6 +109,7 @@
+@@ -106,6 +109,7 @@ impl Gpu {
              arena,
              segments,
              glyphs,
@@ -285,7 +285,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
              cloud,
              splat,
              bounds: crate::math::Aabb::empty(),
-@@ -168,6 +172,7 @@
+@@ -168,6 +172,7 @@ impl Gpu {
              self.arena.retarget(&self.ctx, &self.layouts, target);
              self.segments.retarget(&self.ctx, &self.layouts, target);
              self.glyphs.retarget(&self.ctx, &self.layouts, target);
@@ -293,7 +293,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
              self.splat.retarget(&self.ctx, &self.layouts, target);
              log::info!("msaa: {}x", samples);
          }
-@@ -206,7 +211,7 @@
+@@ -206,7 +211,7 @@ impl Gpu {
          result
      }
      /// Write the camera and CSS-to-physical pen scale once for every lane in this frame.
@@ -302,7 +302,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
          self.frame.write(
              &self.ctx,
              input,
-@@ -219,10 +224,21 @@
+@@ -219,10 +224,21 @@ impl Gpu {
          );
          self.objects
              .update_inside(&self.ctx, self.frame.eye, &self.bounds);
@@ -325,7 +325,7 @@ index 835229a9a206867bf1d218d7609f5878a4e4a08b..d3796431438d7c3e2c8aa65d6c35dd5b
          let output = match self.surface.get_current_texture() {
              wgpu::CurrentSurfaceTexture::Success(output)
              | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
-@@ -279,6 +295,7 @@
+@@ -279,6 +295,7 @@ impl Gpu {
              self.segments.draw_ribbons(&mut pass, &ink);
              self.glyphs.draw_dots(&mut pass, &ink);
              self.arena.draw_text(&mut pass, &basic);
@@ -2035,10 +2035,10 @@ index 0000000000000000000000000000000000000000..d0f56da9423ad5ce1234ba83092b9ee4
 +        })
 +}
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5ec01a85f2
+index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5ec01a85f2 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -4,7 +4,7 @@
+@@ -4,7 +4,7 @@ pub mod camera;
  pub mod engine;
  pub mod fixture;
  pub mod math;
@@ -2047,7 +2047,7 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
  use engine::gpu::{FrameInput, Gpu};
  use wasm_bindgen::prelude::*;
  /// Canvas and input ownership remain separate from GPU lane ownership.
-@@ -25,6 +25,9 @@
+@@ -25,6 +25,9 @@ impl Tutorial {
          let mut fixture = fixture::build();
          gpu.set_scene(&fixture.upload);
          fixture.upload.drop_uploaded();
@@ -2057,7 +2057,7 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
          let mut camera = camera::Camera::new();
          camera.unit = camera::Unit::Millimeters;
          camera.set_view(camera::View::Iso);
-@@ -95,7 +98,7 @@
+@@ -95,7 +98,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;
@@ -2066,7 +2066,7 @@ index 3abb9423a8be8fe2cb2a08b235778df95ac45ca1..a30be1c32c84d3e70e5560b90817cb5e
              "meshVertices":self.gpu.arena.vert_count(),"segments":self.gpu.segments.ribbon_count(),"dots":self.gpu.glyphs.dot_count(),"cloudPoints":self.gpu.cloud.point_count}).to_string())
      }
  }
-@@ -113,3 +116,58 @@
+@@ -113,3 +116,58 @@ fn parse_distance(value: String) -> Option<f64> {
      let value = value.parse::<f64>().ok()?;
      (value.is_finite() && (1.0..=16.0).contains(&value)).then_some(value)
  }

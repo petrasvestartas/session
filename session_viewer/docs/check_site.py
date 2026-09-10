@@ -1,14 +1,37 @@
 #!/usr/bin/env python3
-"""Check the built course site: local links and anchors, downloads, explicit lexers, no test docs."""
+"""Check the built course site: theme, local links and anchors, downloads, explicit lexers, no test docs."""
 import argparse
 from html.parser import HTMLParser
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
 from urllib.parse import unquote, urlsplit
 
 HERE = Path(__file__).resolve().parent
+THEME = importlib.util.spec_from_file_location("theme", HERE / "stylesheets/theme.py")
+
+
+def check_theme(errors):
+    """theme.css must still be what theme.py renders from the exported design system."""
+    module = importlib.util.module_from_spec(THEME)
+    THEME.loader.exec_module(module)
+    theme = json.loads((HERE / "stylesheets/theme.json").read_text())
+    if module.render(theme) != (HERE / "stylesheets/theme.css").read_text():
+        errors.append("theme.css is stale: run python3 docs/stylesheets/theme.py")
+    faces = json.loads((HERE / "stylesheets/fonts/fonts.json").read_text())["faces"]
+    families = {face["family"] for face in faces}
+    css = (HERE / "stylesheets/course.css").read_text()
+    for family in families:
+        if f'font-family: "{family}"' not in css:
+            errors.append(f'"{family}" is committed but course.css does not declare it')
+    if "Roboto" not in families:
+        errors.append("the course is set in Roboto: it must stay committed under stylesheets/fonts")
+    for face in faces:
+        path = HERE / "stylesheets/fonts" / face["file"]
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != face["sha256"]:
+            errors.append(f'{face["file"]} is missing or differs from fonts.json')
 
 
 class Page(HTMLParser):
@@ -35,6 +58,7 @@ def check(site):
     series = json.loads((HERE / "reconstruction/series.json").read_text())
     pages = {path.resolve(): Page(path) for path in site.rglob("*.html") if path.is_file()}
     errors, languages, downloads = [], set(), 0
+    check_theme(errors)
     for step in series["steps"]:
         raw = site / "lessons" / step["id"] / "raw"
         for path in raw.glob("*.txt"):
@@ -63,7 +87,8 @@ def check(site):
             errors.append(f"test documentation is published: {path.relative_to(site)}")
     if errors:
         raise ValueError("\n".join(errors))
-    print(f"PASS {len(pages)} pages, {downloads} exact downloads, local links and Rust/WGSL/TOML lexers")
+    theme = json.loads((HERE / "stylesheets/theme.json").read_text())["name"]
+    print(f'PASS {len(pages)} pages, {downloads} exact downloads, local links, Rust/WGSL/TOML lexers, "{theme}" theme')
 
 
 def main():

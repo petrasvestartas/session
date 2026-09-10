@@ -34,11 +34,11 @@ flowchart TB
     style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-60 -->
 
 The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones; the browser build never compiles this block.
 
-<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=58-234 -->
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=61-237 -->
 
 ## Step 2 · Declare the engine module tree
 

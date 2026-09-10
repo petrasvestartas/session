@@ -150,17 +150,17 @@ flowchart TB
 
 - A click in control mode picks controls; a click on a streamed cloud's controls starts the page loop instead.
 
-<!-- file: 13 session_viewer/src/state.rs type hunks=14 -->
+<!-- file: 13 session_viewer/src/state.rs type hunks=14-14 -->
 
 - `enable_controls` reads the source geometry once; a display-only object without source reports that instead of inventing controls.
 
-<!-- file: 13 session_viewer/src/state.rs type hunks=15 -->
+<!-- file: 13 session_viewer/src/state.rs type hunks=15-15 -->
 
 - `upload_controls` resets both lanes before appending, which is what makes repeated F10 idempotent.
 - `apply_control` decodes the marker's sub-ID tag; a cloud control resolves through the cloud lane's row map.
 - The page loop: `start_cloud_query` → `advance_cloud_query` → `cloud_query_batch` (upload candidates as ID targets, request a pick) → `apply_cloud_query_pick` (fold the winner) → next page → `cloud_query_resolved`.
 
-<!-- file: 13 session_viewer/src/state.rs type hunks=16 -->
+<!-- file: 13 session_viewer/src/state.rs type hunks=16-16 -->
 
 - The selected name is hidden while controls are shown; the inspection snapshot lists the controls.
 

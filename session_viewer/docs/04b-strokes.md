@@ -20,6 +20,8 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 | 1 | `SegTable.ids` one `u32` per row | `@group(3) @binding(1) var<storage, read> source_edges: array<u32>` |
 | 2 | `SegmentLane.selection` uniform | `@group(3) @binding(2) var<uniform> edge_selection: vec4<u32>` |
 
+![Six vertices place a camera-facing quad around the projected axis, and band_area integrates one pixel box against the capsule so coverage is an area rather than a distance ramp.](illustrations/ribbon.svg)
+
 ## Starting point
 
 - Checkpoint 04a: one mesh drawn through the arena; the ink pass exists but draws nothing of its own.
@@ -61,9 +63,9 @@ flowchart LR
 
 - `DepthMode::Always` with blending: the shader decides visibility itself, so no hardware depth test can hide a stroke that lies on a surface.
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-283 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-319 -->
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=284-314 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=320-350 -->
 
 ## Step 3 · The shared visibility rule
 
@@ -83,13 +85,7 @@ flowchart LR
 
 - Bindings and constants. `LineUniform` is the same block as `triangle.wgsl`.
 
-```mermaid
-flowchart TB
-    S["segments · @group(3)"] -- "vs_main · 6 verts" --> Q["camera-facing quad"]
-    Q -- "fs_main · band_area" --> C["coverage"]
-    C -- "ink_visible" --> O["stroke pixel"]
-    style Q fill:#f0bcdb,stroke:#ce4095,color:#111
-```
+![A value handed from the vertex shader to the fragment shader is blended perspective-correctly; marked flat it is not blended at all, which is how a stroke's half-width travels.](illustrations/interpolate.svg)
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-58 -->
 
@@ -103,11 +99,11 @@ flowchart TB
 
 - Clip against the near plane before any divide; a hand divide behind the eye mirrors the point through the screen centre.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=192-270 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=192-271 -->
 
 - The fragment: coverage times fade, then `ink_visible` at the closest axis point. `fs_id` and `fs_edge_id` write `(row + 1, segment + 1)` for picking.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=271-319 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=272-350 -->
 
 <!-- check: 04b -->
 

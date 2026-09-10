@@ -38,24 +38,12 @@ flowchart LR
 - The number is a lower bound: exact `Vec`/`String` capacities, occupied map entries and exposed slice lengths, never allocator overhead or RSS.
 - Shared values are counted once: each `Rc` object is recorded by pointer in a `seen` set, so a document listed twice or a geometry in both a typed list and the lookup adds nothing twice.
 
-```mermaid
-flowchart LR
-    D["Doc · Rc&lt;Session&gt;"] -- "walk once per Rc" --> P["Payload<br/>known_bytes"]
-    P -- "seen set" --> U["no double count"]
-    style P fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-52 -->
 
 - A `Weak<Session>` recognizes a document without keeping it alive; if every `Rc` pointer matches the last snapshot, the cached payload is returned without a walk.
 - In-place editing of a document would make this cache stale; replacement and append change identity, which is what the cache keys on.
 
-```mermaid
-flowchart LR
-    C["SourceCache<br/>Weak&lt;Session&gt; ids"] -- "same Rc pointers" --> H["cached Payload"]
-    C -- "identity changed" --> S["snapshot(docs) walk"]
-    style C fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
 

@@ -28,6 +28,8 @@ Bind groups every lane shares (`Layouts`):
 | 1 | `Layouts::line` uniform | `@group(1) @binding(0) var<uniform> line: LineUniform` |
 | 2 | `Layouts::instance` two storage buffers | `@group(2) @binding(0) instances`, `@binding(1) translations` |
 
+![One growable arena holds every mesh, the object table holds each mesh's base row, and the shader pulls a position with its own vertex index. No vertex buffer is bound.](illustrations/arena.svg)
+
 ## Starting point
 
 - Checkpoint 03: two instances drawn from one hard-coded triangle; the object row lives in `instance.rs`.
@@ -92,15 +94,15 @@ flowchart TB
 
 - `PipelineDesc` is one base per shader; `with`, `vertex`, `color`, `depth` derive the variants.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=53-147 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=53-163 -->
 
 - `module` appends `normals.wgsl` to every shader source, so one normal transform serves all lanes.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=148-177 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=164-193 -->
 
 - `build` is the only place wgpu is asked for a render pipeline: `Depth32Float`, no cull, fill mode, the desc supplies the rest.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=178-255 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=194-271 -->
 
 <!-- file: 04a session_viewer/src/shaders/normals.wgsl type -->
 
@@ -159,27 +161,27 @@ flowchart TB
 - `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected for and `origin` where the attachment's top-left sits in it. They differ only in the pick pass, which renders the window about the cursor into a window-sized target: pixel arithmetic stays in attachment coordinates, and only what was laid out for the whole canvas is addressed through `origin`.
 - `CloudUniform` is the point lane's 48-byte block with the same `origin` and `frame` pair.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=45-102 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=45-105 -->
 
 - `PickView` is a window of the canvas rendered into an attachment of its own size, so a pick costs the window, not the canvas. `clip_transform` maps the canvas projection onto the window's sub-frustum; `pick_transform_layout` is the one uniform the text ID pipelines bind, since the text lanes do not see `Layouts`.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=103-173 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=106-176 -->
 
 - `FrameUniforms` owns the three frame blocks, the same three for the pick pass plus the bare transform, and the frame's solved camera facts: `mvp_f32`, `ortho_h`, `eye`.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=174-202 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=177-205 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=203-289 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-293 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result. The pen is `thickness_px * pixel_scale`, so it keeps its CSS width at every device scale; `origin` is zero and `frame` is the framebuffer.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=290-333 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=294-338 -->
 
 - `write_pick` derives the pick blocks from the frame's after `write`: the camera premultiplied by the window's clip transform, `proj_y` and `ortho_h` scaled by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=334-369 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=339-374 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=370-394 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=375-399 -->
 
 ## Step 6 · Runtime knobs and the query string
 
@@ -245,13 +247,7 @@ flowchart TB
 
 - Groups 0, 1, 2 and the `LineUniform` mirror; `place` applies the row's rotation/scale and the anchored translation.
 
-```mermaid
-flowchart TB
-    V["vertex · @location"] -- "vs_main · place" --> C["clip position"]
-    C -- "rasterize" --> F["fs_main<br/>headlight · back face red"]
-    C -- "same vertex stage" --> I["fs_id"]
-    style F fill:#f0bcdb,stroke:#ce4095,color:#111
-```
+![vs_main runs once per vertex, the rasterizer works out which pixels the triangle covers and blends the vertex outputs across them, and fs_main runs once per covered pixel and never sees a vertex.](illustrations/stages.svg)
 
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-38 -->
 
@@ -261,7 +257,7 @@ flowchart TB
 
 - A camera headlight with wrapped diffuse: the darkest visible face is its silhouette, never black. Back faces paint red unless the object is print.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=101-158 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=101-161 -->
 
 ## Step 9 · The mesh lane
 
@@ -380,7 +376,7 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 
 ## Try
 
-- Append `?nolit=1` to the URL: the face loses its headlight shading and shows its flat row color, which is what a color-based probe needs.
+- Append `?lit=1` to the URL (or press `D` later): the face gains its headlight shading; without it every face is its flat row color, which is what a color-based probe needs.
 - Add a second `ObjectRow` in `fixture.rs` with a different `place`: the same vertex range draws twice, once per row.
 - Set `msaa=1` in the query string and look at the edge of the mesh against the background: the antialiasing budget is a knob, not a constant.
 

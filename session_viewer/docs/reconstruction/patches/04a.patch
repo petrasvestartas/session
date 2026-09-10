@@ -493,6 +493,411 @@ index 0000000000000000000000000000000000000000..a6b436e4a08402b08ce39480e9d533ba
 +        entries: &entries,
 +    })
 +}
+diff --git a/session_viewer/src/engine/gpu/frame.rs b/session_viewer/src/engine/gpu/frame.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..9c08cec6ab815c15ed2e68166b7745b4d5eb22cd
+--- /dev/null
++++ b/session_viewer/src/engine/gpu/frame.rs
+@@ -0,0 +1,399 @@
++//! The per-frame uniforms every shader reads: the camera matrix (group 0), the line/pen block
++//! and the cloud block (group 1), written once per frame from a `FrameInput`. The eye and the
++//! ortho half-height are solved here ONCE and read by the point records and the inside test.
++
++use super::buffers::{GpuCtx, bind_group, uniform_buffer};
++use super::view::View;
++use crate::engine::pipelines::Layouts;
++use crate::math::{FOVY_DEG, eye_from_view_proj, ortho_half_height};
++use session_rust::Xform;
++
++/// What one frame needs from the caller: the camera, the clear colour and the frame's ONE
++/// timestamp (ms) - the re-anchor throttle and the fps counter both read it.
++pub struct FrameInput {
++    pub view_proj: Xform,
++    pub clear: wgpu::Color,
++    pub now_ms: f64,
++}
++
++/// What `FrameUniforms::write` needs besides the camera: the knobs, the anchor the instance
++/// rows are rebased about, and the framebuffer size in pixels.
++pub struct FrameCx<'a> {
++    pub view: &'a View,
++    pub anchor: [f32; 3],
++    pub size: (u32, u32),
++    /// Actual framebuffer pixels per CSS pixel (one for native regression targets).
++    pub pixel_scale: f32,
++}
++
++/// The three bind groups every lane draw needs, borrowed for one pass.
++pub struct Binds<'a> {
++    pub mvp: &'a wgpu::BindGroup,
++    pub line: &'a wgpu::BindGroup,
++    pub instances: &'a wgpu::BindGroup,
++}
++
++impl Binds<'_> {
++    /// Bind groups 0, 1 and 2 - the prefix of every lane draw.
++    pub fn set(&self, pass: &mut wgpu::RenderPass<'_>) {
++        pass.set_bind_group(0, self.mvp, &[]);
++        pass.set_bind_group(1, self.line, &[]);
++        pass.set_bind_group(2, self.instances, &[]);
++    }
++}
++
++/// The line/pen block (group 1), 80 B. `eye` and `anchor` are in the anchored frame the
++/// instance rows use. Offsets: thickness 0, proj_y 4, ortho_h 8, vp_h 12, vp_w 16, eye 20,
++/// anchor 32 (vec3 aligned to 16), feather 44, lit 48, backface 52, origin 56, frame 64,
++/// opacity 72.
++///
++/// `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected
++/// for and `origin` where this attachment's top-left sits in it. They differ only in the
++/// pick pass, which renders the window about the cursor into a window-sized target: pixel
++/// arithmetic stays in attachment coordinates, and only the finite-triangle tiles, which were
++/// binned for the whole canvas, are addressed through `origin`.
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub struct LineUniform {
++    pub thickness: f32, // on-screen pen width, px
++    pub proj_y: f32,    // cot(fovy/2) x unit scale
++    pub ortho_h: f32,   // ortho half-height x unit scale, 0 = perspective
++    pub vp_h: f32,      // framebuffer height, px
++    pub vp_w: f32,      // framebuffer width, px
++    pub eye: [f32; 3],  // camera position, anchored world units
++    pub anchor: [f32; 3],
++    pub feather: f32,     // antialiasing ramp of the ink lanes, px
++    pub lit: f32,         // 1 = light the mesh faces, 0 = flat colour
++    pub backface: f32,    // 1 = paint back faces red, 0 = their own colour
++    pub origin: [f32; 2], // this attachment's top-left in canvas pixels (0 except in a pick)
++    pub frame: [f32; 2],  // the canvas the tiles were binned for, px
++    pub opacity: f32,     // alpha on shaded mesh faces only; lines and points ignore it
++    pub _pad: f32,
++}
++
++const _: () = {
++    assert!(std::mem::size_of::<LineUniform>() == 80);
++    assert!(std::mem::offset_of!(LineUniform, lit) == 48);
++    assert!(std::mem::offset_of!(LineUniform, backface) == 52);
++    assert!(std::mem::offset_of!(LineUniform, origin) == 56);
++    assert!(std::mem::offset_of!(LineUniform, frame) == 64);
++    assert!(std::mem::offset_of!(LineUniform, opacity) == 72);
++};
++
++/// The cloud block (group 1 of the point lane), 16 B.
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub struct CloudUniform {
++    pub size: f32, // global scale on per-cloud point sizes
++    pub vp_w: f32,
++    pub vp_h: f32,
++    pub edl: f32, // Eye-Dome Lighting strength; 0 = off
++    pub _pad0: f32,
++    pub _pad1: f32,
++    /// As in `LineUniform`: the canvas the point records were projected for, and where this
++    /// attachment's top-left sits in it (zero except in a pick).
++    pub origin: [f32; 2],
++    pub frame: [f32; 2],
++    pub _pad: [f32; 2],
++}
++
++const _: () = {
++    assert!(std::mem::size_of::<CloudUniform>() == 48);
++    assert!(std::mem::offset_of!(CloudUniform, origin) == 24);
++    assert!(std::mem::offset_of!(CloudUniform, frame) == 32);
++};
++
++/// Where the pick pass draws: a window of the canvas rendered into an attachment of its own
++/// size, so the ID targets cost the window, not the canvas.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub struct PickView {
++    /// Top-left of the attachment in canvas pixels.
++    pub x: u32,
++    pub y: u32,
++    /// Attachment size.
++    pub w: u32,
++    pub h: u32,
++}
++
++impl PickView {
++    /// The whole canvas: the pick uniforms then equal the frame's.
++    pub fn whole(size: (u32, u32)) -> Self {
++        Self {
++            x: 0,
++            y: 0,
++            w: size.0.max(1),
++            h: size.1.max(1),
++        }
++    }
++
++    /// The clip-space map from the canvas projection to this window's: the same scene, seen
++    /// through the sub-frustum whose viewport is the window. Column-major, like `mvp`.
++    pub fn clip_transform(&self, frame: (u32, u32)) -> [f32; 16] {
++        let (fw, fh) = (frame.0.max(1) as f32, frame.1.max(1) as f32);
++        let (w, h) = (self.w.max(1) as f32, self.h.max(1) as f32);
++        let sx = fw / w;
++        let sy = fh / h;
++        let tx = sx - 2.0 * self.x as f32 / w - 1.0;
++        let ty = 1.0 - (fh - 2.0 * self.y as f32) / h;
++        [
++            sx, 0.0, 0.0, 0.0, //
++            0.0, sy, 0.0, 0.0, //
++            0.0, 0.0, 1.0, 0.0, //
++            tx, ty, 0.0, 1.0,
++        ]
++    }
++}
++
++/// The one uniform the text ID pipelines bind: the pick pass's clip-space map. Its own layout,
++/// shared by those pipelines and the bind group, since the text lanes do not see `Layouts`.
++pub fn pick_transform_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
++    ctx.device
++        .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++            label: Some("pick.transform.layout"),
++            entries: &[wgpu::BindGroupLayoutEntry {
++                binding: 0,
++                visibility: wgpu::ShaderStages::VERTEX,
++                ty: wgpu::BindingType::Buffer {
++                    ty: wgpu::BufferBindingType::Uniform,
++                    has_dynamic_offset: false,
++                    min_binding_size: None,
++                },
++                count: None,
++            }],
++        })
++}
++
++/// `left * right` for column-major 4x4 matrices.
++fn mat4_mul(left: &[f32; 16], right: &[f32; 16]) -> [f32; 16] {
++    let mut out = [0.0; 16];
++    for col in 0..4 {
++        for row in 0..4 {
++            out[col * 4 + row] = (0..4).map(|k| left[k * 4 + row] * right[col * 4 + k]).sum();
++        }
++    }
++    out
++}
++
++/// The three uniform buffers with their bind groups, plus this frame's solved camera facts.
++pub struct FrameUniforms {
++    mvp_buffer: wgpu::Buffer,
++    line_buffer: wgpu::Buffer,
++    cloud_buffer: wgpu::Buffer,
++    pub mvp_group: wgpu::BindGroup,
++    pub line_group: wgpu::BindGroup,
++    pub cloud_group: wgpu::BindGroup,
++    /// The same three blocks for the pick pass, written per pick from the frame's values and
++    /// the pick window; `pick_transform_group` is the bare clip-space map for the text lanes,
++    /// whose vertices are already in clip space.
++    pick_mvp_buffer: wgpu::Buffer,
++    pick_line_buffer: wgpu::Buffer,
++    pick_cloud_buffer: wgpu::Buffer,
++    pick_transform_buffer: wgpu::Buffer,
++    pub pick_mvp_group: wgpu::BindGroup,
++    pub pick_line_group: wgpu::BindGroup,
++    pub pick_cloud_group: wgpu::BindGroup,
++    pub pick_transform_group: wgpu::BindGroup,
++    line: LineUniform,
++    cloud: CloudUniform,
++    /// This frame's camera matrix as f32: the point lane's static-skip key and record fold.
++    pub mvp_f32: [f32; 16],
++    /// Ortho half-height this frame (0 = perspective).
++    pub ortho_h: f32,
++    /// Eye in anchored world units, for the inside test and the LOD screen-error test.
++    pub eye: [f32; 3],
++}
++
++impl FrameUniforms {
++    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
++    pub fn allocated_bytes(&self) -> u64 {
++        self.mvp_buffer.size()
++            + self.line_buffer.size()
++            + self.cloud_buffer.size()
++            + self.pick_mvp_buffer.size()
++            + self.pick_line_buffer.size()
++            + self.pick_cloud_buffer.size()
++            + self.pick_transform_buffer.size()
++    }
++
++    /// The three buffers and bind groups with no camera yet.
++    pub fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
++        let mvp_buffer = uniform_buffer(&ctx.device, "mvp.buffer", &Xform::identity().to_f32());
++        let line = LineUniform {
++            thickness: 2.0,
++            proj_y: 1.0,
++            ortho_h: 0.0,
++            vp_h: size.1 as f32,
++            vp_w: size.0 as f32,
++            eye: [0.0; 3],
++            anchor: [0.0; 3],
++            feather: 1.5,
++            lit: 0.0,
++            backface: 0.0,
++            origin: [0.0; 2],
++            frame: [size.0 as f32, size.1 as f32],
++            opacity: 1.0,
++            _pad: 0.0,
++        };
++        let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
++        let cloud = CloudUniform {
++            size: 1.0,
++            vp_w: size.0 as f32,
++            vp_h: size.1 as f32,
++            edl: 0.0,
++            _pad0: 0.0,
++            _pad1: 0.0,
++            origin: [0.0; 2],
++            frame: [size.0 as f32, size.1 as f32],
++            _pad: [0.0; 2],
++        };
++        let cloud_buffer = uniform_buffer(&ctx.device, "cloud.buffer", &cloud);
++        let identity = Xform::identity().to_f32();
++        let pick_mvp_buffer = uniform_buffer(&ctx.device, "pick.mvp.buffer", &identity);
++        let pick_line_buffer = uniform_buffer(&ctx.device, "pick.line.buffer", &line);
++        let pick_cloud_buffer = uniform_buffer(&ctx.device, "pick.cloud.buffer", &cloud);
++        let pick_transform_buffer = uniform_buffer(&ctx.device, "pick.transform.buffer", &identity);
++
++        let mvp_group = bind_group(ctx, &l.mvp, "mvp.bind_group", &[&mvp_buffer]);
++        let line_group = bind_group(ctx, &l.line, "line.bind_group", &[&line_buffer]);
++        let cloud_group = bind_group(ctx, &l.line, "cloud.bind_group", &[&cloud_buffer]);
++        let pick_mvp_group = bind_group(ctx, &l.mvp, "pick.mvp.bind_group", &[&pick_mvp_buffer]);
++        let pick_line_group =
++            bind_group(ctx, &l.line, "pick.line.bind_group", &[&pick_line_buffer]);
++        let pick_cloud_group =
++            bind_group(ctx, &l.line, "pick.cloud.bind_group", &[&pick_cloud_buffer]);
++        let pick_transform_group = bind_group(
++            ctx,
++            &pick_transform_layout(ctx),
++            "pick.transform.bind_group",
++            &[&pick_transform_buffer],
++        );
++
++        Self {
++            mvp_buffer,
++            line_buffer,
++            cloud_buffer,
++            mvp_group,
++            line_group,
++            cloud_group,
++            pick_mvp_buffer,
++            pick_line_buffer,
++            pick_cloud_buffer,
++            pick_transform_buffer,
++            pick_mvp_group,
++            pick_line_group,
++            pick_cloud_group,
++            pick_transform_group,
++            line,
++            cloud,
++            mvp_f32: [0.0; 16],
++            ortho_h: 0.0,
++            eye: [0.0; 3],
++        }
++    }
++
++    /// Per-frame uniforms: camera, the line/pen block, and the cloud block. The eye and the
++    /// ortho half-height are solved once here and kept for the rest of the frame.
++    pub fn write(&mut self, ctx: &GpuCtx, input: &FrameInput, cx: &FrameCx) {
++        self.mvp_f32 = input.view_proj.to_f32();
++        self.ortho_h = ortho_half_height(&input.view_proj);
++        self.eye = eye_from_view_proj(&input.view_proj);
++        ctx.queue
++            .write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&self.mvp_f32));
++
++        let line = LineUniform {
++            thickness: cx.view.thickness_px * cx.pixel_scale,
++            feather: cx.view.feather_px,
++            proj_y: 1.0 / (FOVY_DEG as f32 * 0.5).to_radians().tan() * 0.001,
++            ortho_h: self.ortho_h,
++            vp_h: cx.size.1 as f32,
++            vp_w: cx.size.0 as f32,
++            eye: self.eye,
++            anchor: cx.anchor,
++            lit: f32::from(cx.view.lit),
++            backface: f32::from(cx.view.backface),
++            origin: [0.0; 2],
++            frame: [cx.size.0 as f32, cx.size.1 as f32],
++            opacity: cx.view.opacity,
++            _pad: 0.0,
++        };
++        ctx.queue
++            .write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
++        self.line = line;
++
++        let cloud = CloudUniform {
++            size: cx.view.cloud_size,
++            vp_w: cx.size.0 as f32,
++            vp_h: cx.size.1 as f32,
++            edl: cx.view.edl_strength,
++            _pad0: 0.0,
++            _pad1: 0.0,
++            origin: [0.0; 2],
++            frame: [cx.size.0 as f32, cx.size.1 as f32],
++            _pad: [0.0; 2],
++        };
++        ctx.queue
++            .write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&cloud));
++        self.cloud = cloud;
++    }
++
++    /// The pick pass's blocks: this frame's camera seen through `view`'s sub-frustum. Pixel
++    /// sizes are preserved by scaling the projection factors with the attachment height, so a
++    /// marker or a pen is as wide in the window as on the canvas; `origin` and `frame` let the
++    /// visibility test address the canvas-wide tiles. Call after `write` for the same frame.
++    pub fn write_pick(&self, ctx: &GpuCtx, view: PickView, frame: (u32, u32)) {
++        let transform = view.clip_transform(frame);
++        let mvp = mat4_mul(&transform, &self.mvp_f32);
++        ctx.queue
++            .write_buffer(&self.pick_mvp_buffer, 0, bytemuck::cast_slice(&mvp));
++        ctx.queue.write_buffer(
++            &self.pick_transform_buffer,
++            0,
++            bytemuck::cast_slice(&transform),
++        );
++        let ratio = frame.1.max(1) as f32 / view.h.max(1) as f32;
++        let line = LineUniform {
++            proj_y: self.line.proj_y * ratio,
++            ortho_h: self.line.ortho_h / ratio,
++            vp_w: view.w as f32,
++            vp_h: view.h as f32,
++            origin: [view.x as f32, view.y as f32],
++            ..self.line
++        };
++        ctx.queue
++            .write_buffer(&self.pick_line_buffer, 0, bytemuck::bytes_of(&line));
++        let cloud = CloudUniform {
++            vp_w: view.w as f32,
++            vp_h: view.h as f32,
++            origin: [view.x as f32, view.y as f32],
++            ..self.cloud
++        };
++        ctx.queue
++            .write_buffer(&self.pick_cloud_buffer, 0, bytemuck::bytes_of(&cloud));
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// The whole canvas is the identity; a window maps its own corners to the clip square.
++    #[test]
++    fn pick_view_clip_transform() {
++        let whole = PickView::whole((1600, 1000)).clip_transform((1600, 1000));
++        assert_eq!(whole, Xform::identity().to_f32());
++        let view = PickView {
++            x: 100,
++            y: 250,
++            w: 19,
++            h: 19,
++        };
++        let t = view.clip_transform((1600, 1000));
++        // A canvas pixel `p` has ndc x = p / 800 - 1 and ndc y = 1 - p / 500.
++        let ndc = |px: f32, py: f32| [px / 800.0 - 1.0, 1.0 - py / 500.0];
++        let apply = |ndc: [f32; 2]| [t[0] * ndc[0] + t[12], t[5] * ndc[1] + t[13]];
++        let left_top = apply(ndc(100.0, 250.0));
++        let right_bottom = apply(ndc(119.0, 269.0));
++        assert!((left_top[0] + 1.0).abs() < 1e-4 && (left_top[1] - 1.0).abs() < 1e-4);
++        assert!((right_bottom[0] - 1.0).abs() < 1e-4 && (right_bottom[1] + 1.0).abs() < 1e-4);
++    }
++}
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
 index 7f219711f9712b02aa65c38a586a761d1030fc5e..67bba8bbe84aef6895f7bb10f70d8eca668f3b1f 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
@@ -1633,10 +2038,10 @@ index 0000000000000000000000000000000000000000..930d39d146a2d265e210a0b2c4d57eed
 +}
 diff --git a/session_viewer/src/engine/gpu/view.rs b/session_viewer/src/engine/gpu/view.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..14ba594c1e26923b99561d52784dd54870cd7927
+index 0000000000000000000000000000000000000000..b69a9094c291c06064f0f01bca92747c831fcac0
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/view.rs
-@@ -0,0 +1,99 @@
+@@ -0,0 +1,101 @@
 +//! `View` - the runtime knobs a frame reads: what to show, the
 +//! cloud / EDL / LOD scalars and the pen weight. Read ONCE at startup from the query string
 +//! (wasm) or the environment (native); the key handlers flip them afterwards. No GPU here.
@@ -1667,15 +2072,17 @@ index 0000000000000000000000000000000000000000..14ba594c1e26923b99561d52784dd548
 +    /// against a 1.5 px pen the beat is 22% of the ink. The ribbons no longer read this at
 +    /// all - they integrate the pixel box exactly, which cannot beat at any width.
 +    pub feather_px: f32,
-+    /// Light the mesh faces with a camera headlight. On by default: a flat colour hides every
-+    /// curve, and the fix is what a CAD viewport does anyway. Off = every face its flat colour,
-+    /// which is what a colour-based visibility probe needs (`?nolit=1` / `VIEWER_NO_LIT`). `D` -
-+    /// `S` is the show-all half of the H/S hide pair.
++    /// Light the mesh faces with a camera headlight. Off by default: every face its flat
++    /// colour, which reads as a drawing and is what a colour-based visibility probe needs; `D`
++    /// (`?lit=1` / `VIEWER_LIT`) turns the headlight on when a curved surface needs its shading.
 +    pub lit: bool,
 +    /// Paint a face seen from behind red - the inside of an open solid, or a flipped normal.
-+    /// On by default: a red patch on a closed solid is a winding bug worth seeing without
-+    /// being asked for (`?nobackface=1`). `B`.
++    /// Off by default: it doubles as a selection-style highlight, not a warning, so it only
++    /// shows once asked for, with `B` (`?backface=1` / `VIEWER_BACKFACE`).
 +    pub backface: bool,
++    /// Alpha on every closed shaded solid; 0 is x-ray, where every face is discarded and only
++    /// edges remain. `P` toggles 1 <-> 0 (`?opacity=` / `VIEWER_OPACITY` set any value).
++    pub opacity: f32,
 +    /// Force the sample count (`?msaa=` / `VIEWER_MSAA`): 4 = 4x, anything else 1x.
 +    pub msaa_forced: Option<u32>,
 +    /// Continuous rendering with a frame line on the page (`?perf=1` / `VIEWER_PERF`).
@@ -1859,10 +2266,10 @@ index 0000000000000000000000000000000000000000..9ca1665bc17dc1da45e0b56b61b9dc35
 +}
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..ac8a6af75cbd6a94055ba5b6d10a15ccb90700f7
+index 0000000000000000000000000000000000000000..6e4c92d50855126321c786830c74345384860625
 --- /dev/null
 +++ b/session_viewer/src/engine/pipelines/mod.rs
-@@ -0,0 +1,255 @@
+@@ -0,0 +1,271 @@
 +//! Pipelines are data. `PipelineDesc` names what differs between the viewer's render
 +//! pipelines and `build` is the only place wgpu is asked for one. Every lane owns its own
 +//! descs and rebuilds them through `retarget` when the MSAA sample count flips.
@@ -1923,6 +2330,8 @@ index 0000000000000000000000000000000000000000..ac8a6af75cbd6a94055ba5b6d10a15cc
 +    Opaque,
 +    /// Alpha-blend: ink with an AA feather.
 +    Blended,
++    /// Keep the larger value: coverage masks, where a stroke's feather must not dent a face.
++    Max,
 +}
 +
 +impl ColorWrite {
@@ -1934,6 +2343,20 @@ index 0000000000000000000000000000000000000000..ac8a6af75cbd6a94055ba5b6d10a15cc
 +                Some(wgpu::BlendState::ALPHA_BLENDING),
 +                wgpu::ColorWrites::ALL,
 +            ),
++            ColorWrite::Max => {
++                let max = wgpu::BlendComponent {
++                    src_factor: wgpu::BlendFactor::One,
++                    dst_factor: wgpu::BlendFactor::One,
++                    operation: wgpu::BlendOperation::Max,
++                };
++                (
++                    Some(wgpu::BlendState {
++                        color: max,
++                        alpha: max,
++                    }),
++                    wgpu::ColorWrites::ALL,
++                )
++            }
 +        }
 +    }
 +}
@@ -2624,10 +3047,10 @@ index 0000000000000000000000000000000000000000..4a0e7839f78e656685472c4ff67b2484
 +}
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..4fade6dfbe5644935292f035a8d81ee4504bcafd
+index 0000000000000000000000000000000000000000..4be1b9ac14f9838abdc74c3c0696e822d29e2107
 --- /dev/null
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -0,0 +1,158 @@
+@@ -0,0 +1,161 @@
 +// Mesh faces: lit triangles from the arena. Group 0 camera, 1 line/pen block, 2 instances.
 +
 +@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
@@ -2742,10 +3165,8 @@ index 0000000000000000000000000000000000000000..4fade6dfbe5644935292f035a8d81ee4
 +    var n = vec3<f32>(0.0, 0.0, 1.0);
 +    if (dot(in.normal, in.normal) > 1e-12) {
 +        n = normalize(in.normal);
-+        if (!front) { n = -n; }
 +    } else if (dot(flat_n, flat_n) > 1e-24) {
 +        n = normalize(flat_n);
-+        if (!raster_front) { n = -n; }
 +    }
 +
 +    // A headlight, as every CAD viewport shades: the lamp rides the camera, tilted a little
@@ -2758,10 +3179,15 @@ index 0000000000000000000000000000000000000000..4fade6dfbe5644935292f035a8d81ee4
 +    // where the normal splits the lamp and the eye; the gain leaves it room to show.
 +    //
 +    // Measured on the mixed-solids scene (1400x900, Intel iGPU, 2026-09-08), as the ratio of the
-+    // lit frame to the same frame under `VIEWER_NO_LIT`, both linearised: a face square to the
++    // lit frame to the same frame under `VIEWER_LIT off`, both linearised: a face square to the
 +    // camera holds 1.00 of its colour, the sphere's silhouette - its normal square to the view -
 +    // reads 0.59..0.62, and the darkest face pixel in either frame, iso or from below, is 0.47.
 +    let v = view_dir(in.world_pos);
++    // Face the normal toward the eye by its own dot product, not by winding: `front`/`mirrored`
++    // answer which side of the WINDING is visible, so a flipped authored normal on an
++    // otherwise-front triangle used to light as if seen from behind it. Two coplanar flat
++    // polygons that differ only in which way their normal was authored now shade identically.
++    if (dot(n, v) < 0.0) { n = -n; }
 +    let l = normalize(v + vec3<f32>(0.0, 0.0, 0.35));
 +    let h = normalize(l + v);
 +    let wrap = clamp((dot(n, l) + 0.5) / 1.5, 0.0, 1.0);
@@ -2785,404 +3211,4 @@ index 0000000000000000000000000000000000000000..4fade6dfbe5644935292f035a8d81ee4
 +@fragment
 +fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
 +    return shade(in, front);
-+}
-diff --git a/session_viewer/src/engine/gpu/frame.rs b/session_viewer/src/engine/gpu/frame.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..1f71d5197f589130e96d9f95bda714efe5964fa9
---- /dev/null
-+++ b/session_viewer/src/engine/gpu/frame.rs
-@@ -0,0 +1,394 @@
-+//! The per-frame uniforms every shader reads: the camera matrix (group 0), the line/pen block
-+//! and the cloud block (group 1), written once per frame from a `FrameInput`. The eye and the
-+//! ortho half-height are solved here ONCE and read by the point records and the inside test.
-+
-+use super::buffers::{GpuCtx, bind_group, uniform_buffer};
-+use super::view::View;
-+use crate::engine::pipelines::Layouts;
-+use crate::math::{FOVY_DEG, eye_from_view_proj, ortho_half_height};
-+use session_rust::Xform;
-+
-+/// What one frame needs from the caller: the camera, the clear colour and the frame's ONE
-+/// timestamp (ms) - the re-anchor throttle and the fps counter both read it.
-+pub struct FrameInput {
-+    pub view_proj: Xform,
-+    pub clear: wgpu::Color,
-+    pub now_ms: f64,
-+}
-+
-+/// What `FrameUniforms::write` needs besides the camera: the knobs, the anchor the instance
-+/// rows are rebased about, and the framebuffer size in pixels.
-+pub struct FrameCx<'a> {
-+    pub view: &'a View,
-+    pub anchor: [f32; 3],
-+    pub size: (u32, u32),
-+    /// Actual framebuffer pixels per CSS pixel (one for native regression targets).
-+    pub pixel_scale: f32,
-+}
-+
-+/// The three bind groups every lane draw needs, borrowed for one pass.
-+pub struct Binds<'a> {
-+    pub mvp: &'a wgpu::BindGroup,
-+    pub line: &'a wgpu::BindGroup,
-+    pub instances: &'a wgpu::BindGroup,
-+}
-+
-+impl Binds<'_> {
-+    /// Bind groups 0, 1 and 2 - the prefix of every lane draw.
-+    pub fn set(&self, pass: &mut wgpu::RenderPass<'_>) {
-+        pass.set_bind_group(0, self.mvp, &[]);
-+        pass.set_bind_group(1, self.line, &[]);
-+        pass.set_bind_group(2, self.instances, &[]);
-+    }
-+}
-+
-+/// The line/pen block (group 1), 80 B. `eye` and `anchor` are in the anchored frame the
-+/// instance rows use. Offsets: thickness 0, proj_y 4, ortho_h 8, vp_h 12, vp_w 16, eye 20,
-+/// anchor 32 (vec3 aligned to 16), feather 44, lit 48, backface 52, origin 56, frame 64.
-+///
-+/// `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected
-+/// for and `origin` where this attachment's top-left sits in it. They differ only in the
-+/// pick pass, which renders the window about the cursor into a window-sized target: pixel
-+/// arithmetic stays in attachment coordinates, and only the finite-triangle tiles, which were
-+/// binned for the whole canvas, are addressed through `origin`.
-+#[repr(C)]
-+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-+pub struct LineUniform {
-+    pub thickness: f32, // on-screen pen width, px
-+    pub proj_y: f32,    // cot(fovy/2) x unit scale
-+    pub ortho_h: f32,   // ortho half-height x unit scale, 0 = perspective
-+    pub vp_h: f32,      // framebuffer height, px
-+    pub vp_w: f32,      // framebuffer width, px
-+    pub eye: [f32; 3],  // camera position, anchored world units
-+    pub anchor: [f32; 3],
-+    pub feather: f32,     // antialiasing ramp of the ink lanes, px
-+    pub lit: f32,         // 1 = light the mesh faces, 0 = flat colour
-+    pub backface: f32,    // 1 = paint back faces red, 0 = their own colour
-+    pub origin: [f32; 2], // this attachment's top-left in canvas pixels (0 except in a pick)
-+    pub frame: [f32; 2],  // the canvas the tiles were binned for, px
-+    pub _pad: [f32; 2],
-+}
-+
-+const _: () = {
-+    assert!(std::mem::size_of::<LineUniform>() == 80);
-+    assert!(std::mem::offset_of!(LineUniform, lit) == 48);
-+    assert!(std::mem::offset_of!(LineUniform, backface) == 52);
-+    assert!(std::mem::offset_of!(LineUniform, origin) == 56);
-+    assert!(std::mem::offset_of!(LineUniform, frame) == 64);
-+};
-+
-+/// The cloud block (group 1 of the point lane), 16 B.
-+#[repr(C)]
-+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-+pub struct CloudUniform {
-+    pub size: f32, // global scale on per-cloud point sizes
-+    pub vp_w: f32,
-+    pub vp_h: f32,
-+    pub edl: f32, // Eye-Dome Lighting strength; 0 = off
-+    pub _pad0: f32,
-+    pub _pad1: f32,
-+    /// As in `LineUniform`: the canvas the point records were projected for, and where this
-+    /// attachment's top-left sits in it (zero except in a pick).
-+    pub origin: [f32; 2],
-+    pub frame: [f32; 2],
-+    pub _pad: [f32; 2],
-+}
-+
-+const _: () = {
-+    assert!(std::mem::size_of::<CloudUniform>() == 48);
-+    assert!(std::mem::offset_of!(CloudUniform, origin) == 24);
-+    assert!(std::mem::offset_of!(CloudUniform, frame) == 32);
-+};
-+
-+/// Where the pick pass draws: a window of the canvas rendered into an attachment of its own
-+/// size, so the ID targets cost the window, not the canvas.
-+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-+pub struct PickView {
-+    /// Top-left of the attachment in canvas pixels.
-+    pub x: u32,
-+    pub y: u32,
-+    /// Attachment size.
-+    pub w: u32,
-+    pub h: u32,
-+}
-+
-+impl PickView {
-+    /// The whole canvas: the pick uniforms then equal the frame's.
-+    pub fn whole(size: (u32, u32)) -> Self {
-+        Self {
-+            x: 0,
-+            y: 0,
-+            w: size.0.max(1),
-+            h: size.1.max(1),
-+        }
-+    }
-+
-+    /// The clip-space map from the canvas projection to this window's: the same scene, seen
-+    /// through the sub-frustum whose viewport is the window. Column-major, like `mvp`.
-+    pub fn clip_transform(&self, frame: (u32, u32)) -> [f32; 16] {
-+        let (fw, fh) = (frame.0.max(1) as f32, frame.1.max(1) as f32);
-+        let (w, h) = (self.w.max(1) as f32, self.h.max(1) as f32);
-+        let sx = fw / w;
-+        let sy = fh / h;
-+        let tx = sx - 2.0 * self.x as f32 / w - 1.0;
-+        let ty = 1.0 - (fh - 2.0 * self.y as f32) / h;
-+        [
-+            sx, 0.0, 0.0, 0.0, //
-+            0.0, sy, 0.0, 0.0, //
-+            0.0, 0.0, 1.0, 0.0, //
-+            tx, ty, 0.0, 1.0,
-+        ]
-+    }
-+}
-+
-+/// The one uniform the text ID pipelines bind: the pick pass's clip-space map. Its own layout,
-+/// shared by those pipelines and the bind group, since the text lanes do not see `Layouts`.
-+pub fn pick_transform_layout(ctx: &GpuCtx) -> wgpu::BindGroupLayout {
-+    ctx.device
-+        .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-+            label: Some("pick.transform.layout"),
-+            entries: &[wgpu::BindGroupLayoutEntry {
-+                binding: 0,
-+                visibility: wgpu::ShaderStages::VERTEX,
-+                ty: wgpu::BindingType::Buffer {
-+                    ty: wgpu::BufferBindingType::Uniform,
-+                    has_dynamic_offset: false,
-+                    min_binding_size: None,
-+                },
-+                count: None,
-+            }],
-+        })
-+}
-+
-+/// `left * right` for column-major 4x4 matrices.
-+fn mat4_mul(left: &[f32; 16], right: &[f32; 16]) -> [f32; 16] {
-+    let mut out = [0.0; 16];
-+    for col in 0..4 {
-+        for row in 0..4 {
-+            out[col * 4 + row] = (0..4).map(|k| left[k * 4 + row] * right[col * 4 + k]).sum();
-+        }
-+    }
-+    out
-+}
-+
-+/// The three uniform buffers with their bind groups, plus this frame's solved camera facts.
-+pub struct FrameUniforms {
-+    mvp_buffer: wgpu::Buffer,
-+    line_buffer: wgpu::Buffer,
-+    cloud_buffer: wgpu::Buffer,
-+    pub mvp_group: wgpu::BindGroup,
-+    pub line_group: wgpu::BindGroup,
-+    pub cloud_group: wgpu::BindGroup,
-+    /// The same three blocks for the pick pass, written per pick from the frame's values and
-+    /// the pick window; `pick_transform_group` is the bare clip-space map for the text lanes,
-+    /// whose vertices are already in clip space.
-+    pick_mvp_buffer: wgpu::Buffer,
-+    pick_line_buffer: wgpu::Buffer,
-+    pick_cloud_buffer: wgpu::Buffer,
-+    pick_transform_buffer: wgpu::Buffer,
-+    pub pick_mvp_group: wgpu::BindGroup,
-+    pub pick_line_group: wgpu::BindGroup,
-+    pub pick_cloud_group: wgpu::BindGroup,
-+    pub pick_transform_group: wgpu::BindGroup,
-+    line: LineUniform,
-+    cloud: CloudUniform,
-+    /// This frame's camera matrix as f32: the point lane's static-skip key and record fold.
-+    pub mvp_f32: [f32; 16],
-+    /// Ortho half-height this frame (0 = perspective).
-+    pub ortho_h: f32,
-+    /// Eye in anchored world units, for the inside test and the LOD screen-error test.
-+    pub eye: [f32; 3],
-+}
-+
-+impl FrameUniforms {
-+    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
-+    pub fn allocated_bytes(&self) -> u64 {
-+        self.mvp_buffer.size()
-+            + self.line_buffer.size()
-+            + self.cloud_buffer.size()
-+            + self.pick_mvp_buffer.size()
-+            + self.pick_line_buffer.size()
-+            + self.pick_cloud_buffer.size()
-+            + self.pick_transform_buffer.size()
-+    }
-+
-+    /// The three buffers and bind groups with no camera yet.
-+    pub fn new(ctx: &GpuCtx, l: &Layouts, size: (u32, u32)) -> Self {
-+        let mvp_buffer = uniform_buffer(&ctx.device, "mvp.buffer", &Xform::identity().to_f32());
-+        let line = LineUniform {
-+            thickness: 2.0,
-+            proj_y: 1.0,
-+            ortho_h: 0.0,
-+            vp_h: size.1 as f32,
-+            vp_w: size.0 as f32,
-+            eye: [0.0; 3],
-+            anchor: [0.0; 3],
-+            feather: 1.5,
-+            lit: 0.0,
-+            backface: 0.0,
-+            origin: [0.0; 2],
-+            frame: [size.0 as f32, size.1 as f32],
-+            _pad: [0.0; 2],
-+        };
-+        let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
-+        let cloud = CloudUniform {
-+            size: 1.0,
-+            vp_w: size.0 as f32,
-+            vp_h: size.1 as f32,
-+            edl: 0.0,
-+            _pad0: 0.0,
-+            _pad1: 0.0,
-+            origin: [0.0; 2],
-+            frame: [size.0 as f32, size.1 as f32],
-+            _pad: [0.0; 2],
-+        };
-+        let cloud_buffer = uniform_buffer(&ctx.device, "cloud.buffer", &cloud);
-+        let identity = Xform::identity().to_f32();
-+        let pick_mvp_buffer = uniform_buffer(&ctx.device, "pick.mvp.buffer", &identity);
-+        let pick_line_buffer = uniform_buffer(&ctx.device, "pick.line.buffer", &line);
-+        let pick_cloud_buffer = uniform_buffer(&ctx.device, "pick.cloud.buffer", &cloud);
-+        let pick_transform_buffer = uniform_buffer(&ctx.device, "pick.transform.buffer", &identity);
-+
-+        let mvp_group = bind_group(ctx, &l.mvp, "mvp.bind_group", &[&mvp_buffer]);
-+        let line_group = bind_group(ctx, &l.line, "line.bind_group", &[&line_buffer]);
-+        let cloud_group = bind_group(ctx, &l.line, "cloud.bind_group", &[&cloud_buffer]);
-+        let pick_mvp_group = bind_group(ctx, &l.mvp, "pick.mvp.bind_group", &[&pick_mvp_buffer]);
-+        let pick_line_group =
-+            bind_group(ctx, &l.line, "pick.line.bind_group", &[&pick_line_buffer]);
-+        let pick_cloud_group =
-+            bind_group(ctx, &l.line, "pick.cloud.bind_group", &[&pick_cloud_buffer]);
-+        let pick_transform_group = bind_group(
-+            ctx,
-+            &pick_transform_layout(ctx),
-+            "pick.transform.bind_group",
-+            &[&pick_transform_buffer],
-+        );
-+
-+        Self {
-+            mvp_buffer,
-+            line_buffer,
-+            cloud_buffer,
-+            mvp_group,
-+            line_group,
-+            cloud_group,
-+            pick_mvp_buffer,
-+            pick_line_buffer,
-+            pick_cloud_buffer,
-+            pick_transform_buffer,
-+            pick_mvp_group,
-+            pick_line_group,
-+            pick_cloud_group,
-+            pick_transform_group,
-+            line,
-+            cloud,
-+            mvp_f32: [0.0; 16],
-+            ortho_h: 0.0,
-+            eye: [0.0; 3],
-+        }
-+    }
-+
-+    /// Per-frame uniforms: camera, the line/pen block, and the cloud block. The eye and the
-+    /// ortho half-height are solved once here and kept for the rest of the frame.
-+    pub fn write(&mut self, ctx: &GpuCtx, input: &FrameInput, cx: &FrameCx) {
-+        self.mvp_f32 = input.view_proj.to_f32();
-+        self.ortho_h = ortho_half_height(&input.view_proj);
-+        self.eye = eye_from_view_proj(&input.view_proj);
-+        ctx.queue
-+            .write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&self.mvp_f32));
-+
-+        let line = LineUniform {
-+            thickness: cx.view.thickness_px * cx.pixel_scale,
-+            feather: cx.view.feather_px,
-+            proj_y: 1.0 / (FOVY_DEG as f32 * 0.5).to_radians().tan() * 0.001,
-+            ortho_h: self.ortho_h,
-+            vp_h: cx.size.1 as f32,
-+            vp_w: cx.size.0 as f32,
-+            eye: self.eye,
-+            anchor: cx.anchor,
-+            lit: f32::from(cx.view.lit),
-+            backface: f32::from(cx.view.backface),
-+            origin: [0.0; 2],
-+            frame: [cx.size.0 as f32, cx.size.1 as f32],
-+            _pad: [0.0; 2],
-+        };
-+        ctx.queue
-+            .write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
-+        self.line = line;
-+
-+        let cloud = CloudUniform {
-+            size: cx.view.cloud_size,
-+            vp_w: cx.size.0 as f32,
-+            vp_h: cx.size.1 as f32,
-+            edl: cx.view.edl_strength,
-+            _pad0: 0.0,
-+            _pad1: 0.0,
-+            origin: [0.0; 2],
-+            frame: [cx.size.0 as f32, cx.size.1 as f32],
-+            _pad: [0.0; 2],
-+        };
-+        ctx.queue
-+            .write_buffer(&self.cloud_buffer, 0, bytemuck::bytes_of(&cloud));
-+        self.cloud = cloud;
-+    }
-+
-+    /// The pick pass's blocks: this frame's camera seen through `view`'s sub-frustum. Pixel
-+    /// sizes are preserved by scaling the projection factors with the attachment height, so a
-+    /// marker or a pen is as wide in the window as on the canvas; `origin` and `frame` let the
-+    /// visibility test address the canvas-wide tiles. Call after `write` for the same frame.
-+    pub fn write_pick(&self, ctx: &GpuCtx, view: PickView, frame: (u32, u32)) {
-+        let transform = view.clip_transform(frame);
-+        let mvp = mat4_mul(&transform, &self.mvp_f32);
-+        ctx.queue
-+            .write_buffer(&self.pick_mvp_buffer, 0, bytemuck::cast_slice(&mvp));
-+        ctx.queue.write_buffer(
-+            &self.pick_transform_buffer,
-+            0,
-+            bytemuck::cast_slice(&transform),
-+        );
-+        let ratio = frame.1.max(1) as f32 / view.h.max(1) as f32;
-+        let line = LineUniform {
-+            proj_y: self.line.proj_y * ratio,
-+            ortho_h: self.line.ortho_h / ratio,
-+            vp_w: view.w as f32,
-+            vp_h: view.h as f32,
-+            origin: [view.x as f32, view.y as f32],
-+            ..self.line
-+        };
-+        ctx.queue
-+            .write_buffer(&self.pick_line_buffer, 0, bytemuck::bytes_of(&line));
-+        let cloud = CloudUniform {
-+            vp_w: view.w as f32,
-+            vp_h: view.h as f32,
-+            origin: [view.x as f32, view.y as f32],
-+            ..self.cloud
-+        };
-+        ctx.queue
-+            .write_buffer(&self.pick_cloud_buffer, 0, bytemuck::bytes_of(&cloud));
-+    }
-+}
-+
-+#[cfg(test)]
-+mod tests {
-+    use super::*;
-+
-+    /// The whole canvas is the identity; a window maps its own corners to the clip square.
-+    #[test]
-+    fn pick_view_clip_transform() {
-+        let whole = PickView::whole((1600, 1000)).clip_transform((1600, 1000));
-+        assert_eq!(whole, Xform::identity().to_f32());
-+        let view = PickView {
-+            x: 100,
-+            y: 250,
-+            w: 19,
-+            h: 19,
-+        };
-+        let t = view.clip_transform((1600, 1000));
-+        // A canvas pixel `p` has ndc x = p / 800 - 1 and ndc y = 1 - p / 500.
-+        let ndc = |px: f32, py: f32| [px / 800.0 - 1.0, 1.0 - py / 500.0];
-+        let apply = |ndc: [f32; 2]| [t[0] * ndc[0] + t[12], t[5] * ndc[1] + t[13]];
-+        let left_top = apply(ndc(100.0, 250.0));
-+        let right_bottom = apply(ndc(119.0, 269.0));
-+        assert!((left_top[0] + 1.0).abs() < 1e-4 && (left_top[1] - 1.0).abs() < 1e-4);
-+        assert!((right_bottom[0] - 1.0).abs() < 1e-4 && (right_bottom[1] + 1.0).abs() < 1e-4);
-+    }
 +}

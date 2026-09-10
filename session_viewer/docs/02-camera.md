@@ -2,14 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    drag["pointer drag / wheel<br/>(CSS px)"] -- "× device scale" --> gest["Camera::orbit / pan / zoom_at"]
-    gest --> state["target · distance · orientation<br/>(f64, metres)"]
-    state -- "view_proj_anchored" --> mvp["Xform (projection · view · unit)"]
-    mvp -- "to_f32 · write_buffer" --> uni["uniform buffer"]
-    uni -- "@group(0) @binding(0)" --> vs["vs_main: mvp * position"]
-```
+![Orbit turns the orientation about the target, pan slides the target across the camera's own plane, and the wheel scales the distance; the view-projection is rebuilt from those three every frame.](illustrations/camera-basis.svg)
 
 Four spaces, one conversion each:
 
@@ -58,12 +51,6 @@ flowchart LR
 
 Draw lanes receive only the view-projection, never the camera. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
 
-```mermaid
-flowchart TB
-    V["view-projection Xform"] -- "eye_from_view_proj" --> E["eye position"]
-    V -- "ortho_half_height" --> H["ortho half-height"]
-    style E fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 02 session_viewer/src/math.rs type lines=167-224 -->
 
@@ -73,13 +60,6 @@ flowchart TB
 - Internal units are metres; `Unit` converts scene millimetres at the matrix edge.
 - `scene_extent` floors the far plane so zooming into one detail cannot clip the rest of the scene.
 
-```mermaid
-flowchart TB
-    C["struct Camera"] -- "target · distance · orientation" --> S["source of truth"]
-    C -- "update_position" --> D["position · up"]
-    U["enum Unit"] -- "to_meters" --> C
-    style C fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=1-52 -->
 
@@ -88,14 +68,6 @@ flowchart TB
 - Orbit is yaw about `world_up`, then pitch about the current right axis; no Euler singularity.
 - `zoom_at` keeps the world point under the cursor fixed: the target moves toward it by the zoom factor. Cursor and viewport are physical pixels, the same space as the framebuffer.
 
-```mermaid
-flowchart LR
-    N["Camera::new"] --> C["Camera"]
-    C -- "orbit" --> O["orientation"]
-    C -- "pan" --> T["target"]
-    C -- "zoom · zoom_at" --> D["distance"]
-    style C fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=53-138 -->
 
@@ -103,13 +75,7 @@ flowchart LR
 
 Orthographic shows content off-axis and nearer than the target plane; a naive flip to perspective would present sky. The framed toggle clips the bounds to the rectangle the orthographic view was showing and refits.
 
-```mermaid
-flowchart LR
-    B["scene Aabb"] -- "clip to view rect" --> R["visible box"]
-    R -- "fit" --> C["perspective camera"]
-    T["toggle_projection_framed"] --> R
-    style T fill:#f0bcdb,stroke:#ce4095,color:#111
-```
+![The projection and the divide by w land the frustum in a cube. With near and far swapped, distant points crowd into a thin band at zero, which is where float32 is densest.](illustrations/frustum.svg)
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=139-198 -->
 
@@ -119,14 +85,6 @@ flowchart LR
 - **Anchor:** eye and target are expressed relative to a caller anchor in world units before any f32 exists, so a model far from the origin does not cancel to noise.
 - Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
 
-```mermaid
-flowchart TB
-    P["projection<br>far · near swapped"] --> M["view_proj_anchored"]
-    V["look_at_right_handed"] --> M
-    A["anchor · unit scale"] --> M
-    M --> X["Xform · reversed depth"]
-    style M fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=199-272 -->
 
@@ -152,12 +110,6 @@ flowchart TB
 - `zoom_distance` is exponential per detent and clamps a single event to ten detents, so coalesced wheel events compose and never cross zero.
 - The two `#[cfg(test)]` modules are native-only unit checks; they are not part of the browser build.
 
-```mermaid
-flowchart LR
-    W["wheel detent"] -- "zoom_distance" --> D["distance × 0.9"]
-    D -- "never zero" --> C["Camera"]
-    style D fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 02 session_viewer/src/camera.rs copy lines=402-513 -->
 

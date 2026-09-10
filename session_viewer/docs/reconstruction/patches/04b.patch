@@ -92,10 +92,10 @@ index 67bba8bbe84aef6895f7bb10f70d8eca668f3b1f..19904d7ef063b4dd3570c64846ddea43
          self.ctx.queue.submit([encoder.finish()]);
 diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..553822bcc45011c7e158c5d6db836f272ac2fe29
+index 0000000000000000000000000000000000000000..0280d2bcca735ee4b559c7cb499ccc62318c876c
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/segments.rs
-@@ -0,0 +1,314 @@
+@@ -0,0 +1,350 @@
 +//! The segment lane: every straight piece of ink. Two tables of the same 40 B row - pipes
 +//! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
 +//! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
@@ -358,6 +358,10 @@ index 0000000000000000000000000000000000000000..553822bcc45011c7e158c5d6db836f27
 +    let quad = PipelineDesc::new(shader, &groups, &[], TriangleList)
 +        .scene_samples(target.samples)
 +        .depth(DepthMode::Always);
++    let mask = Target {
++        format: wgpu::TextureFormat::R8Unorm,
++        samples: target.samples,
++    };
 +    let dev = &ctx.device;
 +
 +    SegPipelines {
@@ -375,6 +379,38 @@ index 0000000000000000000000000000000000000000..553822bcc45011c7e158c5d6db836f27
 +            dev,
 +            Target::ID,
 +            &quad.with("edge.id", "fs_edge_id").scene_samples(1),
++        ),
++        mask_unselected: build(
++            dev,
++            mask,
++            &quad
++                .with("ribbon.mask", "fs_mask")
++                .vertex("vs_unselected")
++                .color(ColorWrite::Max),
++        ),
++        mask_selected: build(
++            dev,
++            mask,
++            &quad
++                .with("ribbon.mask.selected", "fs_mask")
++                .vertex("vs_selected")
++                .color(ColorWrite::Max),
++        ),
++        masks_unselected: build(
++            dev,
++            mask,
++            &quad
++                .with("ribbon.masks", "fs_masks")
++                .vertex("vs_unselected")
++                .masks(),
++        ),
++        masks_selected: build(
++            dev,
++            mask,
++            &quad
++                .with("ribbon.masks.selected", "fs_masks_selected")
++                .vertex("vs_selected")
++                .masks(),
 +        ),
 +    }
 +}
@@ -489,10 +525,10 @@ index 9ca1665bc17dc1da45e0b56b61b9dc35fc70f0e0..98aeca7e7150fb1a754effdaab1131d6
      }
  }
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
-index ac8a6af75cbd6a94055ba5b6d10a15ccb90700f7..43c4a320003093ef280ccbbeb256e1d363deba51 100644
+index 6e4c92d50855126321c786830c74345384860625..1da0ad8842c41462610896ced7bdcf94e5823f64 100644
 --- a/session_viewer/src/engine/pipelines/mod.rs
 +++ b/session_viewer/src/engine/pipelines/mod.rs
-@@ -174,6 +174,17 @@ pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderM
+@@ -190,6 +190,17 @@ pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderM
      })
  }
  
@@ -603,10 +639,10 @@ index 0000000000000000000000000000000000000000..19d7c3d366cc58e4435e30cc5fd0d5d6
 +}
 diff --git a/session_viewer/src/shaders/ribbon.wgsl b/session_viewer/src/shaders/ribbon.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..e1a70c85759c455b24ee5abc06053739e9d9d0ac
+index 0000000000000000000000000000000000000000..2445f4d27d9a91585214dbb03c851fbd6997eb81
 --- /dev/null
 +++ b/session_viewer/src/shaders/ribbon.wgsl
-@@ -0,0 +1,319 @@
+@@ -0,0 +1,350 @@
 +// Flat ink: one camera-facing quad per segment (6 verts pulled by index, no vertex buffer),
 +// a capsule SDF in the fragment, visibility from the physical depth. Draws the ribbon table
 +// (free linework) and the pipe table (mesh edges). Group 3 = the segment table. Which edges
@@ -811,8 +847,9 @@ index 0000000000000000000000000000000000000000..e1a70c85759c455b24ee5abc06053739
 +
 +    let w0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
 +    let w1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
-+    // Free polylines and open/inside objects do not need supporting-face normal work.
-+    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
++    // Free polylines and open/inside objects do not need supporting-face normal work; in
++    // x-ray (`P`) every edge shows, back ones included.
++    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0;
 +    if (!inside && seg.facing != FACING_UNKNOWN) {
 +        let to_eye = toward_eye((w0 + w1) * 0.5);
 +        let n0 = face_normal(model, oct16_decode(seg.facing & 0xffffu));
@@ -908,6 +945,36 @@ index 0000000000000000000000000000000000000000..e1a70c85759c455b24ee5abc06053739
 +        discard;
 +    }
 +    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
++}
++
++// Silhouette coverage: a visible stroke extends the mask by its own antialiased footprint,
++// so the black ring wraps the edges of a solid instead of running under them.
++@fragment
++fn fs_mask(in: VsOut, @builtin(sample_index) sample: u32) -> @location(0) vec4<f32> {
++    let alpha = coverage(in);
++    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
++    return vec4<f32>(alpha);
++}
++
++struct MaskPair {
++    @location(0) solid: vec4<f32>,
++    @location(1) selected: vec4<f32>,
++};
++
++// Both masks from one rasterization: `fs_masks` for ordinary strokes, `fs_masks_selected`
++// for the strokes of a selected object, which also feed the selected mask.
++@fragment
++fn fs_masks(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
++    let alpha = coverage(in);
++    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
++    return MaskPair(vec4<f32>(alpha), vec4<f32>(0.0));
++}
++
++@fragment
++fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair {
++    let alpha = coverage(in);
++    if (alpha <= 0.0 || !ink_visible(in.pos.xy, ink_axis(in), sample)) { discard; }
++    return MaskPair(vec4<f32>(alpha), vec4<f32>(alpha));
 +}
 +
 +@fragment

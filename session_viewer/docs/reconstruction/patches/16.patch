@@ -21,10 +21,10 @@ index 0000000000000000000000000000000000000000..eaf3cb20831cd96a4ffdb69bbb62f2d2
 +# The browser application and tutorials share a reproducible dependency resolution.
 +!Cargo.lock
 diff --git a/session_viewer/Cargo.toml b/session_viewer/Cargo.toml
-index dc9bf07a615daf7177e2ee9f59e2a841e6819702..1db525cfba5fdbe196beead6eb875b977c48c93d
+index dc9bf07a615daf7177e2ee9f59e2a841e6819702..1db525cfba5fdbe196beead6eb875b977c48c93d 100644
 --- a/session_viewer/Cargo.toml
 +++ b/session_viewer/Cargo.toml
-@@ -59,6 +59,9 @@
+@@ -59,6 +59,9 @@ strip = true
  [package.metadata.wasm-pack.profile.release]
  wasm-opt = false
  
@@ -34,20 +34,19 @@ index dc9bf07a615daf7177e2ee9f59e2a841e6819702..1db525cfba5fdbe196beead6eb875b97
  
  # Native-only: the headless verification harness (examples/selftest.rs). MUST stay at the end -
  # a target table placed mid-file silently swallows every [dependencies] entry after it, which is
-@@ -66,9 +69,18 @@
+@@ -66,9 +69,18 @@ wasm-opt = false
  [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
  pollster = "0.4"
  
 +[[example]]
 +name = "bench_load"
 +path = "examples/bench_load.rs"
-+
+ 
 +[[example]]
 +name = "mk_facing_probe"
 +path = "examples/mk_facing_probe.rs"
  
  
--
 +[[example]]
 +name = "check_determinism"
 +path = "examples/check_determinism.rs"
@@ -5807,7 +5806,7 @@ index 0000000000000000000000000000000000000000..d3a559c5f81ff0908dd50bd4b429a7b2
 +    println!("bounds: the 2 M-point prefix spans {cover:.4} of the full box");
 +}
 diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
-index f31db8bae111e86d20416b432407b4f8427e1fb7..201bb720e18e4150a9a224e32c9d789f35f65604
+index f31db8bae111e86d20416b432407b4f8427e1fb7..201bb720e18e4150a9a224e32c9d789f35f65604 100644
 --- a/session_viewer/src/app/inspection.rs
 +++ b/session_viewer/src/app/inspection.rs
 @@ -1,6 +1,11 @@
@@ -5822,7 +5821,7 @@ index f31db8bae111e86d20416b432407b4f8427e1fb7..201bb720e18e4150a9a224e32c9d789f
  
  /// Publish the last submitted frame and source selection for repeatable browser checks.
  #[cfg(target_arch = "wasm32")]
-@@ -18,6 +23,8 @@
+@@ -18,6 +23,8 @@ pub fn publish(state: &State) {
          return;
      };
      let (buffers, textures) = state.gpu.allocated_bytes();
@@ -5831,7 +5830,7 @@ index f31db8bae111e86d20416b432407b4f8427e1fb7..201bb720e18e4150a9a224e32c9d789f
      let parent = state.scene.selected;
      let model = match parent {
          Some(row) => state.gpu.objects.anchored_model(row),
-@@ -46,6 +53,10 @@
+@@ -46,6 +53,10 @@ pub fn publish(state: &State) {
          "canvas": [state.gpu.config.width, state.gpu.config.height],
          "logical_canvas": state.gpu.logical_size,
          "samples": state.gpu.targets.samples,
@@ -7107,7 +7106,7 @@ index 0000000000000000000000000000000000000000..0f8b20603fd1747e9de33d48077a3bba
 +    main()
 diff --git a/session_viewer/tests/cad-quality.py b/session_viewer/tests/cad-quality.py
 new file mode 100644
-index 0000000000000000000000000000000000000000..7e4206e2fa67665f0f7e5493019dcc97c65f51a8
+index 0000000000000000000000000000000000000000..5e9b05c4e5e91fd14b5c3cd1f5749928922577a2
 --- /dev/null
 +++ b/session_viewer/tests/cad-quality.py
 @@ -0,0 +1,91 @@
@@ -7192,8 +7191,8 @@ index 0000000000000000000000000000000000000000..7e4206e2fa67665f0f7e5493019dcc97
 +        for kind in ["sphere", "crease"]:
 +            for style in ["fill", "unlit"]:
 +                draw = dict(environment, VIEWER_NO_EDGES="1")
-+                if style == "unlit":
-+                    draw["VIEWER_NO_LIT"] = "1"
++                if style == "fill":
++                    draw["VIEWER_LIT"] = "1"
 +                stem = f"{kind}-{style}"
 +                run_logged([str(args.binary_dir / "selftest"), str(args.output / f"{stem}.ppm"),
 +                            str(args.output / f"{kind}-source.pb")], args.output / f"{stem}.log", draw)
@@ -7503,7 +7502,7 @@ index 0000000000000000000000000000000000000000..ef85e339fd39377ea095ba569830da62
 +    main()
 diff --git a/session_viewer/tests/depth/_ink_suite.sh b/session_viewer/tests/depth/_ink_suite.sh
 new file mode 100755
-index 0000000000000000000000000000000000000000..32af084db604967dc3134d7b5909e721247b612d
+index 0000000000000000000000000000000000000000..24917618f23486ee756255a18a48e784196d9e5a
 --- /dev/null
 +++ b/session_viewer/tests/depth/_ink_suite.sh
 @@ -0,0 +1,126 @@
@@ -7565,9 +7564,9 @@ index 0000000000000000000000000000000000000000..32af084db604967dc3134d7b5909e721
 +# quantisation stair of an 8-bit gradient with room for a driver's rounding. Zero back-face
 +# pixels from above: a face wound inside out shows the shader's red.
 +check shade_probe "$B/mk_shade_probe" "$OUT/sphere.pb" sphere
-+check render_shade env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_NO_EDGES=1 "$B/selftest" "$OUT/sphere.ppm" "$OUT/sphere.pb"
++check render_shade env VIEWER_W=1400 VIEWER_H=900 VIEWER_LIT=1 VIEWER_NO_GRID=1 VIEWER_NO_EDGES=1 "$B/selftest" "$OUT/sphere.ppm" "$OUT/sphere.pb"
 +check shade_scanline python3 tests/depth/_shade_scanline.py "$OUT/sphere.ppm" --max-second-diff 2.5 --max-backface 0
-+check render_mixed_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/mixed_top.ppm" "$OUT/mixed.pb"
++check render_mixed_top env VIEWER_W=1400 VIEWER_H=900 VIEWER_LIT=1 VIEWER_NO_GRID=1 VIEWER_VIEW=top "$B/selftest" "$OUT/mixed_top.ppm" "$OUT/mixed.pb"
 +check mixed_backface python3 tests/depth/_shade_scanline.py "$OUT/mixed_top.ppm" --max-backface 0
 +
 +# A hidden line behind a curved BRep: zero magenta at distance 1 and 4, read from the whole

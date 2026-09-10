@@ -1165,595 +1165,6 @@ index 0000000000000000000000000000000000000000..b4aaf1a62fbb58e25b68dfcb36d14418
 +        assert!(token.get());
 +    }
 +}
-diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
-index db68239e5d43b22635febac638e540aa09664fc3..d1279a98c82d64a723ffd8a2cc3b9d319b376306 100644
---- a/session_viewer/src/app/walk/mod.rs
-+++ b/session_viewer/src/app/walk/mod.rs
-@@ -30,6 +30,7 @@ pub mod mesh;
- pub mod mesh_ink;
- pub mod mesh_topology;
- pub mod points;
-+pub mod sheet;
- 
- /// The lane tables a producer may write, borrowed from one `Upload` for one object.
- pub struct Walk<'a> {
-diff --git a/session_viewer/src/app/walk/sheet.rs b/session_viewer/src/app/walk/sheet.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc31420b40d665
---- /dev/null
-+++ b/session_viewer/src/app/walk/sheet.rs
-@@ -0,0 +1,109 @@
-+//! Sheets into the ribbon table: a streamed slice of flattened drawing segments that never
-+//! became a kernel object, each carrying the entity id a pick resolves through the side table.
-+
-+use super::encode::{BLACK, FACING_UNKNOWN};
-+use crate::engine::gpu::segments::{CylinderSegment, SegDraw, SegRows};
-+use crate::math::Aabb;
-+
-+/// A streamed slice: raw rows off the wire, already converted. A short column (an absent
-+/// array) is padded by the walk: black, hairline, no entity.
-+pub struct SheetRows {
-+    pub positions: Vec<f32>,
-+    pub colors: Vec<u32>,
-+    pub widths: Vec<f32>,
-+    pub ids: Vec<u32>,
-+}
-+
-+/// One streamed slice into the lane: segments `[from, ..)` of the sheet on object row `row`.
-+pub struct SheetSlice {
-+    pub rows: SheetRows,
-+    pub from: u32,
-+    pub row: u32,
-+}
-+
-+/// An authored pen width in mm as the world radius the shaders project; 0 = the hairline pen.
-+/// Unlike `encode_width`, 1 mm is a real pen here: the publisher writes 0 for hairline.
-+fn sheet_radius(width: f32) -> f32 {
-+    if width.is_finite() && width > 0.0 {
-+        width * 0.5
-+    } else {
-+        0.0
-+    }
-+}
-+
-+/// Append one slice as unjoined ribbons; returns the slice's local box.
-+pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> Aabb {
-+    seg.ribbon_ids.resize(seg.ribbons.len(), u32::MAX);
-+    let first = seg.ribbons.len() as u32;
-+    let count = (s.rows.positions.len() / 6) as u32;
-+    seg.ribbons.reserve(count as usize);
-+    seg.ribbon_ids.reserve(count as usize);
-+    let mut bounds = Aabb::empty();
-+    for (i, p) in s.rows.positions.chunks_exact(6).enumerate() {
-+        let (p0, p1) = ([p[0], p[1], p[2]], [p[3], p[4], p[5]]);
-+        bounds.grow(p0);
-+        bounds.grow(p1);
-+        seg.ribbons.push(CylinderSegment {
-+            p0,
-+            radius: sheet_radius(s.rows.widths.get(i).copied().unwrap_or(0.0)),
-+            p1,
-+            instance_id: s.row,
-+            color: s.rows.colors.get(i).copied().unwrap_or(BLACK),
-+            facing: FACING_UNKNOWN,
-+        });
-+        seg.ribbon_ids
-+            .push(s.rows.ids.get(i).copied().unwrap_or(u32::MAX));
-+    }
-+    seg.sheets.push(SegDraw {
-+        instance: s.row,
-+        from: s.from,
-+        count,
-+        first,
-+    });
-+    bounds
-+}
-+
-+#[cfg(test)]
-+mod tests {
-+    use super::*;
-+
-+    /// Short colour, width and id columns pad; the box spans both ends of every segment.
-+    #[test]
-+    fn sheet_slice_pads_short_columns_and_reports_its_box() {
-+        let mut seg = SegRows::default();
-+        seg.ribbons.push(CylinderSegment {
-+            p0: [0.0; 3],
-+            radius: 0.0,
-+            p1: [1.0; 3],
-+            instance_id: 2,
-+            color: BLACK,
-+            facing: FACING_UNKNOWN,
-+        });
-+        let slice = SheetSlice {
-+            rows: SheetRows {
-+                positions: vec![0.0, 0.0, 0.0, 10.0, 0.0, 0.0, -5.0, 2.0, 0.0, 1.0, 1.0, 0.0],
-+                colors: vec![0xff00_00ff],
-+                widths: vec![1.0, f32::NAN],
-+                ids: vec![4],
-+            },
-+            from: 3,
-+            row: 7,
-+        };
-+        let bounds = walk_sheet_slice(&mut seg, &slice);
-+        assert_eq!(bounds.min, [-5.0, 0.0, 0.0]);
-+        assert_eq!(bounds.max, [10.0, 2.0, 0.0]);
-+        assert_eq!(seg.ribbons.len(), 3);
-+        assert_eq!(seg.ribbon_ids, [u32::MAX, 4, u32::MAX]);
-+        assert_eq!(seg.ribbons[1].radius, 0.5);
-+        assert_eq!(seg.ribbons[2].radius, 0.0);
-+        assert_eq!(seg.ribbons[1].color, 0xff00_00ff);
-+        assert_eq!(seg.ribbons[2].color, BLACK);
-+        assert_eq!(seg.ribbons[2].instance_id, 7);
-+        assert_eq!(seg.ribbons[2].p1, [1.0, 1.0, 0.0]);
-+        let draw = &seg.sheets[0];
-+        assert_eq!(
-+            (draw.instance, draw.from, draw.count, draw.first),
-+            (7, 3, 2, 1)
-+        );
-+    }
-+}
-diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
-index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..b79bb8a10301860435d6eb8a23cee0a1f6f61002 100644
---- a/session_viewer/src/engine/gpu/segments.rs
-+++ b/session_viewer/src/engine/gpu/segments.rs
-@@ -1,6 +1,8 @@
- //! The segment lane: every straight piece of ink. Two tables of the same connected stroke row - pipes
- //! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
- //! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
-+//! A streamed sheet's ribbons arrive in CHUNKS interleaved with other uploads, so the lane
-+//! maps a global ribbon row back to (sheet row, segment index) through the sheet's chunk list.
- 
- use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
- use super::frame::Binds;
-@@ -37,6 +39,16 @@ pub struct CylinderSegment {
- 
- const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
- 
-+/// One upload's contribution to a sheet: segments `[from, from + count)` of the sheet on
-+/// object row `instance`, landing at upload-local ribbon row `first`. `from == 0` opens the
-+/// sheet; a later `from` extends the one already open on the same row.
-+pub struct SegDraw {
-+    pub instance: u32,
-+    pub from: u32,
-+    pub count: u32,
-+    pub first: u32,
-+}
-+
- /// One upload's segments: the solid lane's pipes and the flat lane's ribbons.
- #[derive(Default)]
- pub struct SegRows {
-@@ -48,6 +60,10 @@ pub struct SegRows {
-     /// Consecutive spans belonging to one source polyline or NURBS curve.
-     pub ribbon_chains: Vec<std::ops::Range<u32>>,
-     pub ribbons: Vec<CylinderSegment>,
-+    /// Source entity id per ribbon, or u32::MAX; shorter than `ribbons` means no identity.
-+    pub ribbon_ids: Vec<u32>,
-+    /// The sheet slices among this upload's ribbons.
-+    pub sheets: Vec<SegDraw>,
- }
- 
- impl SegRows {
-@@ -58,7 +74,71 @@ impl SegRows {
-         drop_rows(&mut self.pipe_chains);
-         drop_rows(&mut self.ribbon_chains);
-         drop_rows(&mut self.ribbons);
-+        drop_rows(&mut self.ribbon_ids);
-+        drop_rows(&mut self.sheets);
-+    }
-+}
-+
-+/// Segments `[from, to)` of a sheet, resident at global ribbon rows starting at `row`.
-+#[derive(Clone, Copy)]
-+pub struct SegChunk {
-+    pub from: u32,
-+    pub to: u32,
-+    pub row: u32,
-+}
-+
-+/// One sheet as the lane knows it: its object row, the chunks resident so far (contiguous
-+/// from 0) and the entity id of every resident segment, for picks.
-+pub struct SegSheet {
-+    pub instance: u32,
-+    pub resident: u32,
-+    pub chunks: Vec<SegChunk>,
-+    pub ids: Vec<u32>,
-+}
-+
-+/// Open a sheet, or add a chunk to the one on its object row; a chunk that does not continue
-+/// the resident prefix is dropped with a warning (the walk cannot address it).
-+fn push_chunk(sheets: &mut Vec<SegSheet>, instance: u32, chunk: SegChunk, ids: &[u32]) {
-+    if chunk.from == 0 {
-+        sheets.push(SegSheet {
-+            instance,
-+            resident: chunk.to,
-+            chunks: vec![chunk],
-+            ids: ids.to_vec(),
-+        });
-+        return;
-+    }
-+    for sheet in sheets.iter_mut() {
-+        if sheet.instance != instance {
-+            continue;
-+        }
-+        if chunk.from != sheet.resident {
-+            log::warn!(
-+                "sheet chunk [{}, {}) does not continue the {} resident segments; dropped",
-+                chunk.from,
-+                chunk.to,
-+                sheet.resident
-+            );
-+            return;
-+        }
-+        sheet.resident = chunk.to;
-+        sheet.chunks.push(chunk);
-+        sheet.ids.extend_from_slice(ids);
-+        return;
-     }
-+    log::warn!("sheet chunk for row {instance} arrived before its sheet; dropped");
-+}
-+
-+/// Which sheet a global ribbon row belongs to: (sheet index, segment index within it).
-+fn sheet_of(sheets: &[SegSheet], row: u32) -> Option<(usize, u32)> {
-+    for (index, sheet) in sheets.iter().enumerate() {
-+        for k in &sheet.chunks {
-+            if row >= k.row && row < k.row + (k.to - k.from) {
-+                return Some((index, k.from + (row - k.row)));
-+            }
-+        }
-+    }
-+    None
- }
- 
- /// GPU connectivity partitions the shared rounded cap instead of blending it twice.
-@@ -161,7 +241,7 @@ struct SegPipelines {
-     id_edge: wgpu::RenderPipeline,
- }
- 
--/// The segment lane on the GPU: two tables, the shader, the pipelines.
-+/// The segment lane on the GPU: two tables, the shader, the pipelines, the sheets.
- pub struct SegmentLane {
-     pipes: SegTable,
-     ribbons: SegTable,
-@@ -170,6 +250,7 @@ pub struct SegmentLane {
-     selection: wgpu::Buffer,
-     selected_rows: HashSet<u32>,
-     selected_edge: bool,
-+    sheets: Vec<SegSheet>,
- }
- 
- impl SegmentLane {
-@@ -201,6 +282,7 @@ impl SegmentLane {
-             selection,
-             selected_rows: HashSet::new(),
-             selected_edge: false,
-+            sheets: Vec::new(),
-         }
-     }
- 
-@@ -218,16 +300,37 @@ impl SegmentLane {
-         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
-             self.pipes.rebind(ctx, l, &self.selection);
-         }
--        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, self.ribbons.buf.len());
-+        let ribbon_base = self.ribbons.buf.len();
-+        let mut ribbon_ids = up.ribbon_ids.clone();
-+        ribbon_ids.resize(up.ribbons.len(), u32::MAX);
-+        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, ribbon_base);
-         let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
--        if self
--            .ribbons
--            .ids
--            .append(ctx, &vec![u32::MAX; up.ribbons.len()])
--            || ribbons_changed
--        {
-+        if self.ribbons.ids.append(ctx, &ribbon_ids) || ribbons_changed {
-             self.ribbons.rebind(ctx, l, &self.selection);
-         }
-+        for d in &up.sheets {
-+            let Some(ids) = ribbon_ids.get(d.first as usize..(d.first + d.count) as usize) else {
-+                continue;
-+            };
-+            let chunk = SegChunk {
-+                from: d.from,
-+                to: d.from + d.count,
-+                row: ribbon_base + d.first,
-+            };
-+            push_chunk(&mut self.sheets, d.instance, chunk, ids);
-+        }
-+    }
-+
-+    /// Which sheet a global ribbon row belongs to: (object row, segment index within it).
-+    pub fn row_of(&self, row: u32) -> Option<(u32, u32)> {
-+        let (index, local) = sheet_of(&self.sheets, row)?;
-+        Some((self.sheets[index].instance, local))
-+    }
-+
-+    /// The entity id of the segment at a global ribbon row; `None` off every sheet.
-+    pub fn source_id(&self, row: u32) -> Option<u32> {
-+        let (index, local) = sheet_of(&self.sheets, row)?;
-+        self.sheets[index].ids.get(local as usize).copied()
-     }
- 
-     /// Highlight one source edge without reuploading its tessellation or the parent geometry.
-@@ -336,6 +439,7 @@ impl SegmentLane {
-     pub fn reset(&mut self) {
-         self.selected_rows.clear();
-         self.selected_edge = false;
-+        self.sheets.clear();
-         self.pipes.buf.reset();
-         self.pipes.ids.reset();
-         self.ribbons.buf.reset();
-@@ -346,6 +450,7 @@ impl SegmentLane {
-     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
-         self.selected_rows.clear();
-         self.selected_edge = false;
-+        self.sheets = Vec::new();
-         self.pipes.buf.release(ctx);
-         self.pipes.ids.release(ctx);
-         self.ribbons.buf.release(ctx);
-@@ -446,4 +551,27 @@ mod tests {
-         assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
-         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
-     }
-+
-+    /// Chunks interleaved with other uploads still map global rows to sheet segments and
-+    /// their ids; a chunk that skips ahead is dropped, one for an unknown sheet too.
-+    #[test]
-+    fn sheet_chunks_map_global_ribbon_rows_to_segments_and_ids() {
-+        let mut sheets = Vec::new();
-+        let chunk = |from, to, row| SegChunk { from, to, row };
-+        push_chunk(&mut sheets, 7, chunk(0, 3, 10), &[100, 101, 102]);
-+        push_chunk(&mut sheets, 9, chunk(0, 1, 13), &[u32::MAX]);
-+        push_chunk(&mut sheets, 7, chunk(3, 5, 20), &[103, 104]);
-+        push_chunk(&mut sheets, 7, chunk(6, 8, 30), &[9, 9]);
-+        push_chunk(&mut sheets, 8, chunk(2, 4, 40), &[9, 9]);
-+        assert_eq!(sheets.len(), 2);
-+        assert_eq!(sheets[0].resident, 5);
-+        assert_eq!(sheet_of(&sheets, 12), Some((0, 2)));
-+        assert_eq!(sheet_of(&sheets, 13), Some((1, 0)));
-+        assert_eq!(sheet_of(&sheets, 21), Some((0, 4)));
-+        assert_eq!(sheet_of(&sheets, 9), None);
-+        assert_eq!(sheet_of(&sheets, 22), None);
-+        assert_eq!(sheet_of(&sheets, 30), None);
-+        assert_eq!(sheets[0].ids[4], 104);
-+        assert_eq!(sheets[1].ids[0], u32::MAX);
-+    }
- }
-diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf08d7a1334 100644
---- a/session_viewer/src/lib.rs
-+++ b/session_viewer/src/lib.rs
-@@ -12,8 +12,9 @@ mod state;
- #[cfg(target_arch = "wasm32")]
- pub mod text_quality;
- 
--use crate::app::scene::{FileDoc, StreamedInit};
-+use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
- use crate::app::walk::cloud::StreamRows;
-+use crate::app::walk::sheet::SheetRows;
- pub use state::State;
- 
- /// One more slice of streamed cloud `idx`: its rows and the point the cloud is resident up to.
-@@ -23,6 +24,13 @@ pub struct CloudChunk {
-     pub to: u32,
- }
- 
-+/// One more slice of sheet `idx`: its rows and the segment the sheet is resident up to.
-+pub struct SheetChunk {
-+    pub idx: usize,
-+    pub rows: SheetRows,
-+    pub to: u32,
-+}
-+
- /// Async loader -> event-loop messages. `Ready` carries the `State` built around an empty
- /// scene; everything after it changes the scene in place.
- pub enum Msg {
-@@ -35,6 +43,9 @@ pub enum Msg {
-     CloudChunk(CloudChunk),
-     CloudQueryBatch(app::cloud_query::Batch),
-     CloudQueryResolved(app::cloud_query::Resolved),
-+    Sheet(Box<SheetInit>),
-+    SheetChunk(SheetChunk),
-+    SheetEntity(app::sheet_query::Resolved),
-     CancelPointer,
- }
- 
-@@ -155,6 +166,18 @@ impl ApplicationHandler<Msg> for App {
-             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
-             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
-             Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
-+            Msg::Sheet(init) => {
-+                let (url, fields, from) = (init.url.clone(), init.fields.clone(), init.resident);
-+                let idx = state.add_sheet(*init);
-+                loader::spawn_sheet_rest(loader::SheetCursor {
-+                    idx,
-+                    url,
-+                    fields,
-+                    from,
-+                });
-+            }
-+            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
-+            Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
-             Msg::CancelPointer => {
-                 self.input.cancel();
-                 state.touch();
-diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index a3417325254519d246070a65f02d6ab2625f309b..7e1f67d276b71958e9d5b4d19e77e8a24f16e0b1 100644
---- a/session_viewer/src/state.rs
-+++ b/session_viewer/src/state.rs
-@@ -3,10 +3,11 @@
- //! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
- //! never the other way round.
- 
--use crate::app::scene::{FileDoc, Scene, StreamedInit};
-+use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
- use crate::app::selection::{ControlId, Controls, SelectionMode};
- use crate::app::walk::cloud::StreamRows;
- use crate::app::walk::encode::FACING_UNKNOWN;
-+use crate::app::walk::sheet::SheetRows;
- use crate::camera::Camera;
- use crate::engine::gpu::glyphs::GlyphRows;
- use crate::engine::gpu::pick::PickMode;
-@@ -15,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
- use crate::engine::gpu::{FrameInput, Gpu, Pick};
- use crate::engine::performance::{heap_mb, now_ms};
- mod cloud_query;
-+mod sheet_query;
- mod text;
- use std::sync::Arc;
- use winit::window::Window;
-@@ -52,6 +54,8 @@ pub struct State {
-     cloud_query: Option<crate::app::cloud_query::Query>,
-     #[cfg(target_arch = "wasm32")]
-     query_generation: u64,
-+    sheet_query: Option<crate::app::sheet_query::Query>,
-+    sheet_generation: u64,
- }
- 
- impl State {
-@@ -78,6 +82,8 @@ impl State {
-             cloud_query: None,
-             #[cfg(target_arch = "wasm32")]
-             query_generation: 0,
-+            sheet_query: None,
-+            sheet_generation: 0,
-         })
-     }
- 
-@@ -138,9 +144,29 @@ impl State {
-         self.touch();
-     }
- 
-+    /// A sheet's first slice; returns the slot later slices address.
-+    pub fn add_sheet(&mut self, init: SheetInit) -> usize {
-+        let idx = self.scene.add_sheet(init, &mut self.gpu);
-+        self.camera.grow_extent(&self.gpu.bounds);
-+        self.touch();
-+        idx
-+    }
-+
-+    /// One more slice of sheet `idx`.
-+    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32) {
-+        self.scene.extend_sheet(idx, rows, to, &mut self.gpu);
-+        self.camera.grow_extent(&self.gpu.bounds);
-+        log::info!(
-+            "sheet slice: {to} segments resident | heap {:.0} MB",
-+            heap_mb()
-+        );
-+        self.touch();
-+    }
-+
-     /// Drop every document; the canvas, device and camera stay.
-     pub fn clear(&mut self) {
-         self.selection = SelectionMode::Object;
-+        self.sheet_query = None;
-         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-         self.controls = Controls::default();
-         self.scene.clear(&mut self.gpu);
-@@ -212,6 +238,7 @@ impl State {
-     /// Make `row` the selection (or none), moving the highlight.
-     pub fn select(&mut self, row: Option<u32>) {
-         self.selection = SelectionMode::Object;
-+        self.sheet_query = None;
-         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
-         self.controls = Controls::default();
-         self.gpu.controls.reset();
-@@ -333,6 +360,10 @@ impl State {
-                     ),
-                     None => log::info!("pick: '{}' {} row {}", hit.doc, hit.guid, hit.row),
-                 }
-+                if let Some(entity) = hit.entity {
-+                    self.apply_sheet_pick(hit.row, entity);
-+                    return;
-+                }
-                 let toggle = if self.scene.selected == Some(hit.row) {
-                     None
-                 } else {
-diff --git a/session_viewer/src/state/sheet_query.rs b/session_viewer/src/state/sheet_query.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5420d3317
---- /dev/null
-+++ b/session_viewer/src/state/sheet_query.rs
-@@ -0,0 +1,79 @@
-+//! Sheet entity selection: a ribbon pick on a sheet row highlights every segment of that
-+//! entity through the edge-selection uniform, then one bounded side-table read names it.
-+
-+use super::State;
-+use crate::app::selection::SelectionMode;
-+use crate::app::sheet_query::{Query, Resolved};
-+
-+impl State {
-+    /// Select entity `entity` of the sheet on `row`; the same entity again clears it.
-+    pub(super) fn apply_sheet_pick(&mut self, row: u32, entity: u32) {
-+        let Some(slot) = self.scene.sheet_slot(row) else {
-+            return;
-+        };
-+        if self.selection
-+            == (SelectionMode::Edge {
-+                parent: row,
-+                edge: entity,
-+            })
-+        {
-+            self.select(None);
-+            self.status("");
-+            return;
-+        }
-+        self.select(Some(row));
-+        self.gpu.set_selected(row, false);
-+        self.selection.select_edge(row, entity);
-+        self.gpu
-+            .segments
-+            .set_edge(&self.gpu.ctx, Some((row, entity)));
-+        self.scene.sheets[slot].resolved = None;
-+        self.sheet_generation = self.sheet_generation.wrapping_add(1);
-+        let query = Query::new(self.sheet_generation, row, entity);
-+        match self.scene.sheets[slot].meta_url.clone() {
-+            None => self.status(&format!("Selected entity {entity}")),
-+            Some(url) => {
-+                self.status(&format!("Selected entity {entity}, fetching…"));
-+                #[cfg(target_arch = "wasm32")]
-+                crate::app::sheet_query::fetch_entity(
-+                    &query,
-+                    url,
-+                    self.scene.sheets[slot].table.clone(),
-+                    self.scene.sheets[slot].fields.entities,
-+                );
-+                #[cfg(not(target_arch = "wasm32"))]
-+                let _ = url;
-+            }
-+        }
-+        self.sheet_query = Some(query);
-+        self.touch();
-+    }
-+
-+    /// The side-table answer for the still-current query: cache it and name the selection.
-+    pub fn sheet_entity(&mut self, resolved: Resolved) {
-+        let Some(query) = self.sheet_query.as_ref() else {
-+            return;
-+        };
-+        if query.id != resolved.query || query.cancelled.get() {
-+            return;
-+        }
-+        let query = self.sheet_query.take().unwrap();
-+        let Some(slot) = self.scene.sheet_slot(query.row) else {
-+            return;
-+        };
-+        match resolved.result {
-+            Ok((meta, table)) => {
-+                self.status(&format!(
-+                    "Selected entity {}: {} ({})",
-+                    query.entity, meta.name, meta.kind
-+                ));
-+                let sheet = &mut self.scene.sheets[slot];
-+                sheet.table = Some(table);
-+                sheet.resolved = Some((query.entity, meta));
-+                self.update_label();
-+                self.touch();
-+            }
-+            Err(error) => self.status(&format!("Entity {}: {error}", query.entity)),
-+        }
-+    }
-+}
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
 index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c4440b3c2cb 100644
 --- a/session_viewer/src/app/stream.rs
@@ -2266,3 +1677,600 @@ index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c44
      /// Colours decode sequentially and report the boundary the next slice starts on.
      #[test]
      fn colors_decode_and_report_their_end() {
+diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
+index db68239e5d43b22635febac638e540aa09664fc3..d1279a98c82d64a723ffd8a2cc3b9d319b376306 100644
+--- a/session_viewer/src/app/walk/mod.rs
++++ b/session_viewer/src/app/walk/mod.rs
+@@ -30,6 +30,7 @@ pub mod mesh;
+ pub mod mesh_ink;
+ pub mod mesh_topology;
+ pub mod points;
++pub mod sheet;
+ 
+ /// The lane tables a producer may write, borrowed from one `Upload` for one object.
+ pub struct Walk<'a> {
+diff --git a/session_viewer/src/app/walk/sheet.rs b/session_viewer/src/app/walk/sheet.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc31420b40d665
+--- /dev/null
++++ b/session_viewer/src/app/walk/sheet.rs
+@@ -0,0 +1,109 @@
++//! Sheets into the ribbon table: a streamed slice of flattened drawing segments that never
++//! became a kernel object, each carrying the entity id a pick resolves through the side table.
++
++use super::encode::{BLACK, FACING_UNKNOWN};
++use crate::engine::gpu::segments::{CylinderSegment, SegDraw, SegRows};
++use crate::math::Aabb;
++
++/// A streamed slice: raw rows off the wire, already converted. A short column (an absent
++/// array) is padded by the walk: black, hairline, no entity.
++pub struct SheetRows {
++    pub positions: Vec<f32>,
++    pub colors: Vec<u32>,
++    pub widths: Vec<f32>,
++    pub ids: Vec<u32>,
++}
++
++/// One streamed slice into the lane: segments `[from, ..)` of the sheet on object row `row`.
++pub struct SheetSlice {
++    pub rows: SheetRows,
++    pub from: u32,
++    pub row: u32,
++}
++
++/// An authored pen width in mm as the world radius the shaders project; 0 = the hairline pen.
++/// Unlike `encode_width`, 1 mm is a real pen here: the publisher writes 0 for hairline.
++fn sheet_radius(width: f32) -> f32 {
++    if width.is_finite() && width > 0.0 {
++        width * 0.5
++    } else {
++        0.0
++    }
++}
++
++/// Append one slice as unjoined ribbons; returns the slice's local box.
++pub fn walk_sheet_slice(seg: &mut SegRows, s: &SheetSlice) -> Aabb {
++    seg.ribbon_ids.resize(seg.ribbons.len(), u32::MAX);
++    let first = seg.ribbons.len() as u32;
++    let count = (s.rows.positions.len() / 6) as u32;
++    seg.ribbons.reserve(count as usize);
++    seg.ribbon_ids.reserve(count as usize);
++    let mut bounds = Aabb::empty();
++    for (i, p) in s.rows.positions.chunks_exact(6).enumerate() {
++        let (p0, p1) = ([p[0], p[1], p[2]], [p[3], p[4], p[5]]);
++        bounds.grow(p0);
++        bounds.grow(p1);
++        seg.ribbons.push(CylinderSegment {
++            p0,
++            radius: sheet_radius(s.rows.widths.get(i).copied().unwrap_or(0.0)),
++            p1,
++            instance_id: s.row,
++            color: s.rows.colors.get(i).copied().unwrap_or(BLACK),
++            facing: FACING_UNKNOWN,
++        });
++        seg.ribbon_ids
++            .push(s.rows.ids.get(i).copied().unwrap_or(u32::MAX));
++    }
++    seg.sheets.push(SegDraw {
++        instance: s.row,
++        from: s.from,
++        count,
++        first,
++    });
++    bounds
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// Short colour, width and id columns pad; the box spans both ends of every segment.
++    #[test]
++    fn sheet_slice_pads_short_columns_and_reports_its_box() {
++        let mut seg = SegRows::default();
++        seg.ribbons.push(CylinderSegment {
++            p0: [0.0; 3],
++            radius: 0.0,
++            p1: [1.0; 3],
++            instance_id: 2,
++            color: BLACK,
++            facing: FACING_UNKNOWN,
++        });
++        let slice = SheetSlice {
++            rows: SheetRows {
++                positions: vec![0.0, 0.0, 0.0, 10.0, 0.0, 0.0, -5.0, 2.0, 0.0, 1.0, 1.0, 0.0],
++                colors: vec![0xff00_00ff],
++                widths: vec![1.0, f32::NAN],
++                ids: vec![4],
++            },
++            from: 3,
++            row: 7,
++        };
++        let bounds = walk_sheet_slice(&mut seg, &slice);
++        assert_eq!(bounds.min, [-5.0, 0.0, 0.0]);
++        assert_eq!(bounds.max, [10.0, 2.0, 0.0]);
++        assert_eq!(seg.ribbons.len(), 3);
++        assert_eq!(seg.ribbon_ids, [u32::MAX, 4, u32::MAX]);
++        assert_eq!(seg.ribbons[1].radius, 0.5);
++        assert_eq!(seg.ribbons[2].radius, 0.0);
++        assert_eq!(seg.ribbons[1].color, 0xff00_00ff);
++        assert_eq!(seg.ribbons[2].color, BLACK);
++        assert_eq!(seg.ribbons[2].instance_id, 7);
++        assert_eq!(seg.ribbons[2].p1, [1.0, 1.0, 0.0]);
++        let draw = &seg.sheets[0];
++        assert_eq!(
++            (draw.instance, draw.from, draw.count, draw.first),
++            (7, 3, 2, 1)
++        );
++    }
++}
+diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
+index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b323bea9cd 100644
+--- a/session_viewer/src/engine/gpu/segments.rs
++++ b/session_viewer/src/engine/gpu/segments.rs
+@@ -1,6 +1,8 @@
+ //! The segment lane: every straight piece of ink. Two tables of the same connected stroke row - pipes
+ //! (mesh/BRep edges, the SOLID lane, culled by facing) and ribbons (line/polyline/curve, the
+ //! FLAT lane, always drawn) - through one blended camera-facing quad. `SegRows` is one upload.
++//! A streamed sheet's ribbons arrive in CHUNKS interleaved with other uploads, so the lane
++//! maps a global ribbon row back to (sheet row, segment index) through the sheet's chunk list.
+ 
+ use super::buffers::{GpuCtx, GrowBuf, ROWS, bind_group, uniform_buffer};
+ use super::frame::Binds;
+@@ -37,6 +39,16 @@ pub struct CylinderSegment {
+ 
+ const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
+ 
++/// One upload's contribution to a sheet: segments `[from, from + count)` of the sheet on
++/// object row `instance`, landing at upload-local ribbon row `first`. `from == 0` opens the
++/// sheet; a later `from` extends the one already open on the same row.
++pub struct SegDraw {
++    pub instance: u32,
++    pub from: u32,
++    pub count: u32,
++    pub first: u32,
++}
++
+ /// One upload's segments: the solid lane's pipes and the flat lane's ribbons.
+ #[derive(Default)]
+ pub struct SegRows {
+@@ -48,6 +60,10 @@ pub struct SegRows {
+     /// Consecutive spans belonging to one source polyline or NURBS curve.
+     pub ribbon_chains: Vec<std::ops::Range<u32>>,
+     pub ribbons: Vec<CylinderSegment>,
++    /// Source entity id per ribbon, or u32::MAX; shorter than `ribbons` means no identity.
++    pub ribbon_ids: Vec<u32>,
++    /// The sheet slices among this upload's ribbons.
++    pub sheets: Vec<SegDraw>,
+ }
+ 
+ impl SegRows {
+@@ -58,7 +74,71 @@ impl SegRows {
+         drop_rows(&mut self.pipe_chains);
+         drop_rows(&mut self.ribbon_chains);
+         drop_rows(&mut self.ribbons);
++        drop_rows(&mut self.ribbon_ids);
++        drop_rows(&mut self.sheets);
++    }
++}
++
++/// Segments `[from, to)` of a sheet, resident at global ribbon rows starting at `row`.
++#[derive(Clone, Copy)]
++pub struct SegChunk {
++    pub from: u32,
++    pub to: u32,
++    pub row: u32,
++}
++
++/// One sheet as the lane knows it: its object row, the chunks resident so far (contiguous
++/// from 0) and the entity id of every resident segment, for picks.
++pub struct SegSheet {
++    pub instance: u32,
++    pub resident: u32,
++    pub chunks: Vec<SegChunk>,
++    pub ids: Vec<u32>,
++}
++
++/// Open a sheet, or add a chunk to the one on its object row; a chunk that does not continue
++/// the resident prefix is dropped with a warning (the walk cannot address it).
++fn push_chunk(sheets: &mut Vec<SegSheet>, instance: u32, chunk: SegChunk, ids: &[u32]) {
++    if chunk.from == 0 {
++        sheets.push(SegSheet {
++            instance,
++            resident: chunk.to,
++            chunks: vec![chunk],
++            ids: ids.to_vec(),
++        });
++        return;
++    }
++    for sheet in sheets.iter_mut() {
++        if sheet.instance != instance {
++            continue;
++        }
++        if chunk.from != sheet.resident {
++            log::warn!(
++                "sheet chunk [{}, {}) does not continue the {} resident segments; dropped",
++                chunk.from,
++                chunk.to,
++                sheet.resident
++            );
++            return;
++        }
++        sheet.resident = chunk.to;
++        sheet.chunks.push(chunk);
++        sheet.ids.extend_from_slice(ids);
++        return;
+     }
++    log::warn!("sheet chunk for row {instance} arrived before its sheet; dropped");
++}
++
++/// Which sheet a global ribbon row belongs to: (sheet index, segment index within it).
++fn sheet_of(sheets: &[SegSheet], row: u32) -> Option<(usize, u32)> {
++    for (index, sheet) in sheets.iter().enumerate() {
++        for k in &sheet.chunks {
++            if row >= k.row && row < k.row + (k.to - k.from) {
++                return Some((index, k.from + (row - k.row)));
++            }
++        }
++    }
++    None
+ }
+ 
+ /// GPU connectivity partitions the shared rounded cap instead of blending it twice.
+@@ -159,9 +239,15 @@ struct SegPipelines {
+     selected: wgpu::RenderPipeline,
+     id_ribbon: wgpu::RenderPipeline,
+     id_edge: wgpu::RenderPipeline,
++    /// Solid-edge coverage into one silhouette mask, ordinary and selected strokes.
++    mask_unselected: wgpu::RenderPipeline,
++    mask_selected: wgpu::RenderPipeline,
++    /// The same into the solid and selected masks together.
++    masks_unselected: wgpu::RenderPipeline,
++    masks_selected: wgpu::RenderPipeline,
+ }
+ 
+-/// The segment lane on the GPU: two tables, the shader, the pipelines.
++/// The segment lane on the GPU: two tables, the shader, the pipelines, the sheets.
+ pub struct SegmentLane {
+     pipes: SegTable,
+     ribbons: SegTable,
+@@ -170,6 +256,7 @@ pub struct SegmentLane {
+     selection: wgpu::Buffer,
+     selected_rows: HashSet<u32>,
+     selected_edge: bool,
++    sheets: Vec<SegSheet>,
+ }
+ 
+ impl SegmentLane {
+@@ -201,6 +288,7 @@ impl SegmentLane {
+             selection,
+             selected_rows: HashSet::new(),
+             selected_edge: false,
++            sheets: Vec::new(),
+         }
+     }
+ 
+@@ -218,16 +306,37 @@ impl SegmentLane {
+         if self.pipes.ids.append(ctx, &ids) || pipes_changed {
+             self.pipes.rebind(ctx, l, &self.selection);
+         }
+-        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, self.ribbons.buf.len());
++        let ribbon_base = self.ribbons.buf.len();
++        let mut ribbon_ids = up.ribbon_ids.clone();
++        ribbon_ids.resize(up.ribbons.len(), u32::MAX);
++        let ribbons = joined_rows(&up.ribbons, &up.ribbon_chains, ribbon_base);
+         let ribbons_changed = self.ribbons.buf.append(ctx, &ribbons);
+-        if self
+-            .ribbons
+-            .ids
+-            .append(ctx, &vec![u32::MAX; up.ribbons.len()])
+-            || ribbons_changed
+-        {
++        if self.ribbons.ids.append(ctx, &ribbon_ids) || ribbons_changed {
+             self.ribbons.rebind(ctx, l, &self.selection);
+         }
++        for d in &up.sheets {
++            let Some(ids) = ribbon_ids.get(d.first as usize..(d.first + d.count) as usize) else {
++                continue;
++            };
++            let chunk = SegChunk {
++                from: d.from,
++                to: d.from + d.count,
++                row: ribbon_base + d.first,
++            };
++            push_chunk(&mut self.sheets, d.instance, chunk, ids);
++        }
++    }
++
++    /// Which sheet a global ribbon row belongs to: (object row, segment index within it).
++    pub fn row_of(&self, row: u32) -> Option<(u32, u32)> {
++        let (index, local) = sheet_of(&self.sheets, row)?;
++        Some((self.sheets[index].instance, local))
++    }
++
++    /// The entity id of the segment at a global ribbon row; `None` off every sheet.
++    pub fn source_id(&self, row: u32) -> Option<u32> {
++        let (index, local) = sheet_of(&self.sheets, row)?;
++        self.sheets[index].ids.get(local as usize).copied()
+     }
+ 
+     /// Highlight one source edge without reuploading its tessellation or the parent geometry.
+@@ -356,6 +465,7 @@ impl SegmentLane {
+     pub fn reset(&mut self) {
+         self.selected_rows.clear();
+         self.selected_edge = false;
++        self.sheets.clear();
+         self.pipes.buf.reset();
+         self.pipes.ids.reset();
+         self.ribbons.buf.reset();
+@@ -366,6 +476,7 @@ impl SegmentLane {
+     pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
+         self.selected_rows.clear();
+         self.selected_edge = false;
++        self.sheets = Vec::new();
+         self.pipes.buf.release(ctx);
+         self.pipes.ids.release(ctx);
+         self.ribbons.buf.release(ctx);
+@@ -502,4 +613,27 @@ mod tests {
+         assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
+         assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
+     }
++
++    /// Chunks interleaved with other uploads still map global rows to sheet segments and
++    /// their ids; a chunk that skips ahead is dropped, one for an unknown sheet too.
++    #[test]
++    fn sheet_chunks_map_global_ribbon_rows_to_segments_and_ids() {
++        let mut sheets = Vec::new();
++        let chunk = |from, to, row| SegChunk { from, to, row };
++        push_chunk(&mut sheets, 7, chunk(0, 3, 10), &[100, 101, 102]);
++        push_chunk(&mut sheets, 9, chunk(0, 1, 13), &[u32::MAX]);
++        push_chunk(&mut sheets, 7, chunk(3, 5, 20), &[103, 104]);
++        push_chunk(&mut sheets, 7, chunk(6, 8, 30), &[9, 9]);
++        push_chunk(&mut sheets, 8, chunk(2, 4, 40), &[9, 9]);
++        assert_eq!(sheets.len(), 2);
++        assert_eq!(sheets[0].resident, 5);
++        assert_eq!(sheet_of(&sheets, 12), Some((0, 2)));
++        assert_eq!(sheet_of(&sheets, 13), Some((1, 0)));
++        assert_eq!(sheet_of(&sheets, 21), Some((0, 4)));
++        assert_eq!(sheet_of(&sheets, 9), None);
++        assert_eq!(sheet_of(&sheets, 22), None);
++        assert_eq!(sheet_of(&sheets, 30), None);
++        assert_eq!(sheets[0].ids[4], 104);
++        assert_eq!(sheets[1].ids[0], u32::MAX);
++    }
+ }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf08d7a1334 100644
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -12,8 +12,9 @@ mod state;
+ #[cfg(target_arch = "wasm32")]
+ pub mod text_quality;
+ 
+-use crate::app::scene::{FileDoc, StreamedInit};
++use crate::app::scene::{FileDoc, SheetInit, StreamedInit};
+ use crate::app::walk::cloud::StreamRows;
++use crate::app::walk::sheet::SheetRows;
+ pub use state::State;
+ 
+ /// One more slice of streamed cloud `idx`: its rows and the point the cloud is resident up to.
+@@ -23,6 +24,13 @@ pub struct CloudChunk {
+     pub to: u32,
+ }
+ 
++/// One more slice of sheet `idx`: its rows and the segment the sheet is resident up to.
++pub struct SheetChunk {
++    pub idx: usize,
++    pub rows: SheetRows,
++    pub to: u32,
++}
++
+ /// Async loader -> event-loop messages. `Ready` carries the `State` built around an empty
+ /// scene; everything after it changes the scene in place.
+ pub enum Msg {
+@@ -35,6 +43,9 @@ pub enum Msg {
+     CloudChunk(CloudChunk),
+     CloudQueryBatch(app::cloud_query::Batch),
+     CloudQueryResolved(app::cloud_query::Resolved),
++    Sheet(Box<SheetInit>),
++    SheetChunk(SheetChunk),
++    SheetEntity(app::sheet_query::Resolved),
+     CancelPointer,
+ }
+ 
+@@ -155,6 +166,18 @@ impl ApplicationHandler<Msg> for App {
+             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
+             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
+             Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
++            Msg::Sheet(init) => {
++                let (url, fields, from) = (init.url.clone(), init.fields.clone(), init.resident);
++                let idx = state.add_sheet(*init);
++                loader::spawn_sheet_rest(loader::SheetCursor {
++                    idx,
++                    url,
++                    fields,
++                    from,
++                });
++            }
++            Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
++            Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
+             Msg::CancelPointer => {
+                 self.input.cancel();
+                 state.touch();
+diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
+index 586fcff008a70ad03a5413c637d5a6d887cd3497..af4d9bac516b156f3d316bb9e53011a52af203ab 100644
+--- a/session_viewer/src/state.rs
++++ b/session_viewer/src/state.rs
+@@ -3,10 +3,11 @@
+ //! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
+ //! never the other way round.
+ 
+-use crate::app::scene::{FileDoc, Scene, StreamedInit};
++use crate::app::scene::{FileDoc, Scene, SheetInit, StreamedInit};
+ use crate::app::selection::{ControlId, Controls, SelectionMode};
+ use crate::app::walk::cloud::StreamRows;
+ use crate::app::walk::encode::FACING_UNKNOWN;
++use crate::app::walk::sheet::SheetRows;
+ use crate::camera::Camera;
+ use crate::engine::gpu::glyphs::GlyphRows;
+ use crate::engine::gpu::pick::PickMode;
+@@ -15,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
+ use crate::engine::gpu::{FrameInput, Gpu, Pick};
+ use crate::engine::performance::{heap_mb, now_ms};
+ mod cloud_query;
++mod sheet_query;
+ mod text;
+ use std::sync::Arc;
+ use winit::window::Window;
+@@ -52,6 +54,8 @@ pub struct State {
+     cloud_query: Option<crate::app::cloud_query::Query>,
+     #[cfg(target_arch = "wasm32")]
+     query_generation: u64,
++    sheet_query: Option<crate::app::sheet_query::Query>,
++    sheet_generation: u64,
+ }
+ 
+ impl State {
+@@ -78,6 +82,8 @@ impl State {
+             cloud_query: None,
+             #[cfg(target_arch = "wasm32")]
+             query_generation: 0,
++            sheet_query: None,
++            sheet_generation: 0,
+         })
+     }
+ 
+@@ -138,9 +144,29 @@ impl State {
+         self.touch();
+     }
+ 
++    /// A sheet's first slice; returns the slot later slices address.
++    pub fn add_sheet(&mut self, init: SheetInit) -> usize {
++        let idx = self.scene.add_sheet(init, &mut self.gpu);
++        self.camera.grow_extent(&self.gpu.bounds);
++        self.touch();
++        idx
++    }
++
++    /// One more slice of sheet `idx`.
++    pub fn extend_sheet(&mut self, idx: usize, rows: SheetRows, to: u32) {
++        self.scene.extend_sheet(idx, rows, to, &mut self.gpu);
++        self.camera.grow_extent(&self.gpu.bounds);
++        log::info!(
++            "sheet slice: {to} segments resident | heap {:.0} MB",
++            heap_mb()
++        );
++        self.touch();
++    }
++
+     /// Drop every document; the canvas, device and camera stay.
+     pub fn clear(&mut self) {
+         self.selection = SelectionMode::Object;
++        self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.controls = Controls::default();
+         self.scene.clear(&mut self.gpu);
+@@ -219,6 +245,7 @@ impl State {
+     /// Make `row` the selection (or none), moving the highlight.
+     pub fn select(&mut self, row: Option<u32>) {
+         self.selection = SelectionMode::Object;
++        self.sheet_query = None;
+         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
+         self.controls = Controls::default();
+         self.gpu.controls.reset();
+@@ -340,6 +367,10 @@ impl State {
+                     ),
+                     None => log::info!("pick: '{}' {} row {}", hit.doc, hit.guid, hit.row),
+                 }
++                if let Some(entity) = hit.entity {
++                    self.apply_sheet_pick(hit.row, entity);
++                    return;
++                }
+                 let toggle = if self.scene.selected == Some(hit.row) {
+                     None
+                 } else {
+diff --git a/session_viewer/src/state/sheet_query.rs b/session_viewer/src/state/sheet_query.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..a7dbd7ac2eb075e5aab4664c8fec79a5420d3317
+--- /dev/null
++++ b/session_viewer/src/state/sheet_query.rs
+@@ -0,0 +1,79 @@
++//! Sheet entity selection: a ribbon pick on a sheet row highlights every segment of that
++//! entity through the edge-selection uniform, then one bounded side-table read names it.
++
++use super::State;
++use crate::app::selection::SelectionMode;
++use crate::app::sheet_query::{Query, Resolved};
++
++impl State {
++    /// Select entity `entity` of the sheet on `row`; the same entity again clears it.
++    pub(super) fn apply_sheet_pick(&mut self, row: u32, entity: u32) {
++        let Some(slot) = self.scene.sheet_slot(row) else {
++            return;
++        };
++        if self.selection
++            == (SelectionMode::Edge {
++                parent: row,
++                edge: entity,
++            })
++        {
++            self.select(None);
++            self.status("");
++            return;
++        }
++        self.select(Some(row));
++        self.gpu.set_selected(row, false);
++        self.selection.select_edge(row, entity);
++        self.gpu
++            .segments
++            .set_edge(&self.gpu.ctx, Some((row, entity)));
++        self.scene.sheets[slot].resolved = None;
++        self.sheet_generation = self.sheet_generation.wrapping_add(1);
++        let query = Query::new(self.sheet_generation, row, entity);
++        match self.scene.sheets[slot].meta_url.clone() {
++            None => self.status(&format!("Selected entity {entity}")),
++            Some(url) => {
++                self.status(&format!("Selected entity {entity}, fetching…"));
++                #[cfg(target_arch = "wasm32")]
++                crate::app::sheet_query::fetch_entity(
++                    &query,
++                    url,
++                    self.scene.sheets[slot].table.clone(),
++                    self.scene.sheets[slot].fields.entities,
++                );
++                #[cfg(not(target_arch = "wasm32"))]
++                let _ = url;
++            }
++        }
++        self.sheet_query = Some(query);
++        self.touch();
++    }
++
++    /// The side-table answer for the still-current query: cache it and name the selection.
++    pub fn sheet_entity(&mut self, resolved: Resolved) {
++        let Some(query) = self.sheet_query.as_ref() else {
++            return;
++        };
++        if query.id != resolved.query || query.cancelled.get() {
++            return;
++        }
++        let query = self.sheet_query.take().unwrap();
++        let Some(slot) = self.scene.sheet_slot(query.row) else {
++            return;
++        };
++        match resolved.result {
++            Ok((meta, table)) => {
++                self.status(&format!(
++                    "Selected entity {}: {} ({})",
++                    query.entity, meta.name, meta.kind
++                ));
++                let sheet = &mut self.scene.sheets[slot];
++                sheet.table = Some(table);
++                sheet.resolved = Some((query.entity, meta));
++                self.update_label();
++                self.touch();
++            }
++            Err(error) => self.status(&format!("Entity {}: {error}", query.entity)),
++        }
++    }
++}

@@ -1,8 +1,8 @@
 diff --git a/session_cpp/src/primitives_test.cpp b/session_cpp/src/primitives_test.cpp
-index 1870fdb54ff02a86b94121e62210b63d2bd17e09..fb0d741bde584c6cd8d59df2db6dcebec362674b
+index 1870fdb54ff02a86b94121e62210b63d2bd17e09..fb0d741bde584c6cd8d59df2db6dcebec362674b 100644
 --- a/session_cpp/src/primitives_test.cpp
 +++ b/session_cpp/src/primitives_test.cpp
-@@ -605,8 +605,27 @@
+@@ -605,8 +605,27 @@ MINI_TEST("Primitives", "Nurbssurface Extrusion") {
      MINI_CHECK(s_wavy.is_valid());
      MINI_CHECK(s_wavy.degree(0) == 1 && s_wavy.degree(1) == 1);
      MINI_CHECK(s_wavy.cv_count(0) == 4 && s_wavy.cv_count(1) == 2);
@@ -32,10 +32,10 @@ index 1870fdb54ff02a86b94121e62210b63d2bd17e09..fb0d741bde584c6cd8d59df2db6dcebe
      MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(0,1), Point(40.0, 4.0, 5.0)));
      MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(1,0), Point(45.0, 0.0, 0.0)));
 diff --git a/session_cpp/src/remesh_nurbssurface_grid.cpp b/session_cpp/src/remesh_nurbssurface_grid.cpp
-index a4059e5f4488e12e0c2c5d1610f39c40f159196f..b9d5d535a54041c378091de225c7397c6593cd99
+index a4059e5f4488e12e0c2c5d1610f39c40f159196f..b9d5d535a54041c378091de225c7397c6593cd99 100644
 --- a/session_cpp/src/remesh_nurbssurface_grid.cpp
 +++ b/session_cpp/src/remesh_nurbssurface_grid.cpp
-@@ -2,8 +2,83 @@
+@@ -2,9 +2,84 @@
  #include "tolerance.h"
  #include <cmath>
  #include <algorithm>
@@ -43,7 +43,7 @@ index a4059e5f4488e12e0c2c5d1610f39c40f159196f..b9d5d535a54041c378091de225c7397c
 +#include <limits>
  
  namespace session_cpp {
-+
+ 
 +/// Split shading vertices at internal C0 knots only when one-sided normals disagree.
 +void RemeshNurbsSurfaceGrid::split_crease_normals(const NurbsSurface& s, Mesh& mesh) {
 +    std::map<size_t, unsigned> candidates;
@@ -116,10 +116,11 @@ index a4059e5f4488e12e0c2c5d1610f39c40f159196f..b9d5d535a54041c378091de225c7397c
 +    }
 +    mesh.rebuild_halfedges();
 +}
- 
++
  Mesh RemeshNurbsSurfaceGrid::from_u_v(const NurbsSurface& s, int max_u, int max_v) {
      return from_u_v_q(s, max_u, max_v, 20.0, 0.005);
-@@ -356,9 +431,13 @@
+ }
+@@ -356,9 +431,13 @@ Mesh RemeshNurbsSurfaceGrid::from_u_v_q(const NurbsSurface& s, int max_u, int ma
      }
  
      // Compute vertex normals from face normals
@@ -135,7 +136,7 @@ index a4059e5f4488e12e0c2c5d1610f39c40f159196f..b9d5d535a54041c378091de225c7397c
          if (vids.size() < 3) continue;
          Point pos0 = result.vertex.at(vids[0]).position();
          Point pos1 = result.vertex.at(vids[1]).position();
-@@ -368,11 +447,30 @@
+@@ -368,11 +447,30 @@ Mesh RemeshNurbsSurfaceGrid::from_u_v_q(const NurbsSurface& s, int max_u, int ma
          double fnx = e1y*e2z - e1z*e2y, fny = e1z*e2x - e1x*e2z, fnz = e1x*e2y - e1y*e2x;
          for (auto vi : vids) { vnx[vi] += fnx; vny[vi] += fny; vnz[vi] += fnz; }
      }
@@ -144,7 +145,6 @@ index a4059e5f4488e12e0c2c5d1610f39c40f159196f..b9d5d535a54041c378091de225c7397c
          double len = std::sqrt(vnx[i]*vnx[i] + vny[i]*vny[i] + vnz[i]*vnz[i]);
 -        if (len > 1e-15) { vnx[i] /= len; vny[i] /= len; vnz[i] /= len; }
 -        result.vertex[i].set_normal(vnx[i], vny[i], vnz[i]);
--    }
 +        double fx = 0.0, fy = 0.0, fz = 1.0;
 +        if (std::isfinite(len) && len > 0.0) {
 +            fx = vnx[i] / len; fy = vny[i] / len; fz = vnz[i] / len;
@@ -165,16 +165,16 @@ index a4059e5f4488e12e0c2c5d1610f39c40f159196f..b9d5d535a54041c378091de225c7397c
 +            }
 +        }
 +        vd.set_normal(nx, ny, nz);
-+    }
+     }
 +    split_crease_normals(s, result);
      return result;
  }
  
 diff --git a/session_cpp/src/remesh_nurbssurface_grid.h b/session_cpp/src/remesh_nurbssurface_grid.h
-index 4eb010a44e3000123663ceb3e41fcfcdbb116d04..0ef5622581424f5eb64acc291f594d010b1fff17
+index 4eb010a44e3000123663ceb3e41fcfcdbb116d04..0ef5622581424f5eb64acc291f594d010b1fff17 100644
 --- a/session_cpp/src/remesh_nurbssurface_grid.h
 +++ b/session_cpp/src/remesh_nurbssurface_grid.h
-@@ -7,7 +7,13 @@
+@@ -7,7 +7,13 @@ namespace session_cpp {
  
  struct RemeshNurbsSurfaceGrid {
      static Mesh from_u_v(const NurbsSurface& s, int max_u, int max_v);
@@ -189,10 +189,10 @@ index 4eb010a44e3000123663ceb3e41fcfcdbb116d04..0ef5622581424f5eb64acc291f594d01
  
  } // namespace session_cpp
 diff --git a/session_cpp/src/remesh_nurbssurface_grid_test.cpp b/session_cpp/src/remesh_nurbssurface_grid_test.cpp
-index 707d2f706d7be3c91351ef4b85fa41f8655d78cc..474f1ef31234c8e5eb61d07fa89aa6eb861f26bd
+index 707d2f706d7be3c91351ef4b85fa41f8655d78cc..474f1ef31234c8e5eb61d07fa89aa6eb861f26bd 100644
 --- a/session_cpp/src/remesh_nurbssurface_grid_test.cpp
 +++ b/session_cpp/src/remesh_nurbssurface_grid_test.cpp
-@@ -1,10 +1,54 @@
+@@ -1,11 +1,55 @@
  #include "mini_test.h"
  #include "remesh_nurbssurface_grid.h"
  #include "primitives.h"
@@ -202,7 +202,7 @@ index 707d2f706d7be3c91351ef4b85fa41f8655d78cc..474f1ef31234c8e5eb61d07fa89aa6eb
  using namespace session_cpp::mini_test;
  
  namespace session_cpp {
-+
+ 
 +MINI_TEST("RemeshNurbsSurfaceGrid", "Crease Normals") {
 +    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 3, 2, {
 +        Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),
@@ -244,14 +244,15 @@ index 707d2f706d7be3c91351ef4b85fa41f8655d78cc..474f1ef31234c8e5eb61d07fa89aa6eb
 +        }
 +    }
 +}
- 
++
  MINI_TEST("RemeshNurbsSurfaceGrid", "Sphere") {
      // uncomment #include "remesh_nurbssurface_grid.h"
+     // uncomment #include "mesh.h"
 diff --git a/session_py/src/session_py/primitives_test.py b/session_py/src/session_py/primitives_test.py
-index a57671fd5e9dfd98b90fb2be55b525ca22fa3bad..83b28292632e1bc84be6127b466b0930ce868bb9
+index a57671fd5e9dfd98b90fb2be55b525ca22fa3bad..83b28292632e1bc84be6127b466b0930ce868bb9 100644
 --- a/session_py/src/session_py/primitives_test.py
 +++ b/session_py/src/session_py/primitives_test.py
-@@ -599,8 +599,21 @@
+@@ -599,8 +599,21 @@ def test_nurbssurface_extrusion():
      MINI_CHECK(s_wavy.is_valid())
      MINI_CHECK(s_wavy.degree(0) == 1 and s_wavy.degree(1) == 1)
      MINI_CHECK(s_wavy.cv_count_dir(0) == 4 and s_wavy.cv_count_dir(1) == 2)
@@ -275,10 +276,10 @@ index a57671fd5e9dfd98b90fb2be55b525ca22fa3bad..83b28292632e1bc84be6127b466b0930
      MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(0, 1), Point(40.0, 4.0, 5.0)))
      MINI_CHECK(TOLERANCE.is_point_close(s_wavy.get_cv(1, 0), Point(45.0, 0.0, 0.0)))
 diff --git a/session_py/src/session_py/remesh_nurbssurface_grid.py b/session_py/src/session_py/remesh_nurbssurface_grid.py
-index ff741b5ccd81e0175655a6fca0742e565f1c47f2..6d9173c8efcea391c2ccca9ab8fd206ef2c78210
+index ff741b5ccd81e0175655a6fca0742e565f1c47f2..6d9173c8efcea391c2ccca9ab8fd206ef2c78210 100644
 --- a/session_py/src/session_py/remesh_nurbssurface_grid.py
 +++ b/session_py/src/session_py/remesh_nurbssurface_grid.py
-@@ -19,6 +19,12 @@
+@@ -19,6 +19,12 @@ class RemeshNurbsSurfaceGrid:
  
      @staticmethod
      def from_u_v_q(s: "NurbsSurface", max_u: int, max_v: int, max_angle_deg: float, chord_factor: float) -> "Mesh":
@@ -291,7 +292,7 @@ index ff741b5ccd81e0175655a6fca0742e565f1c47f2..6d9173c8efcea391c2ccca9ab8fd206e
          from .mesh import Mesh
          MAX_ANGLE = max_angle_deg
          usp = list(s.get_span_vector(0))
-@@ -354,7 +360,8 @@
+@@ -354,7 +360,8 @@ class RemeshNurbsSurfaceGrid:
              vnx = [0.0] * (max_vkey + 1)
              vny = [0.0] * (max_vkey + 1)
              vnz = [0.0] * (max_vkey + 1)
@@ -301,7 +302,7 @@ index ff741b5ccd81e0175655a6fca0742e565f1c47f2..6d9173c8efcea391c2ccca9ab8fd206e
                  if len(vids) < 3:
                      continue
                  pos0 = result.vertex[vids[0]].position()
-@@ -371,10 +378,98 @@
+@@ -371,10 +378,98 @@ class RemeshNurbsSurfaceGrid:
                      vnz[vi] += fnz
              for vk in result.vertex:
                  ln = math.sqrt(vnx[vk]**2 + vny[vk]**2 + vnz[vk]**2)
@@ -310,7 +311,6 @@ index ff741b5ccd81e0175655a6fca0742e565f1c47f2..6d9173c8efcea391c2ccca9ab8fd206e
 -                    vny[vk] /= ln
 -                    vnz[vk] /= ln
 -                result.vertex[vk].set_normal(vnx[vk], vny[vk], vnz[vk])
--
 +                fx, fy, fz = 0.0, 0.0, 1.0
 +                if math.isfinite(ln) and ln > 0.0:
 +                    fx, fy, fz = vnx[vk] / ln, vny[vk] / ln, vnz[vk] / ln
@@ -327,7 +327,7 @@ index ff741b5ccd81e0175655a6fca0742e565f1c47f2..6d9173c8efcea391c2ccca9ab8fd206e
 +                        if nx * fx + ny * fy + nz * fz < 0.0:
 +                            nx, ny, nz = -nx, -ny, -nz
 +                vd.set_normal(nx, ny, nz)
-+
+ 
 +        RemeshNurbsSurfaceGrid._split_crease_normals(s, result)
          return result
 +
@@ -407,7 +407,7 @@ index ff741b5ccd81e0175655a6fca0742e565f1c47f2..6d9173c8efcea391c2ccca9ab8fd206e
 +            mesh.face[face_key] = split
 +        mesh.rebuild_halfedges()
 diff --git a/session_py/src/session_py/remesh_nurbssurface_grid_test.py b/session_py/src/session_py/remesh_nurbssurface_grid_test.py
-index 10cf2b0a903de1b138125b718eeb709a187f5323..9ac6fff229ce0a05207a0f69d01869fb2b8b20dd
+index 10cf2b0a903de1b138125b718eeb709a187f5323..9ac6fff229ce0a05207a0f69d01869fb2b8b20dd 100644
 --- a/session_py/src/session_py/remesh_nurbssurface_grid_test.py
 +++ b/session_py/src/session_py/remesh_nurbssurface_grid_test.py
 @@ -1,6 +1,29 @@
@@ -440,7 +440,7 @@ index 10cf2b0a903de1b138125b718eeb709a187f5323..9ac6fff229ce0a05207a0f69d01869fb
  
  
  @MINI_TEST("RemeshNurbsSurfaceGrid", "Sphere")
-@@ -145,5 +168,32 @@
+@@ -145,5 +168,32 @@ def test_remesh_nurbs_surface_grid_double_curved_triangle():
      MINI_CHECK(m.number_of_faces() == 98)
  
  
@@ -474,10 +474,10 @@ index 10cf2b0a903de1b138125b718eeb709a187f5323..9ac6fff229ce0a05207a0f69d01869fb
  if __name__ == "__main__":
      run_all(language="python")
 diff --git a/session_rust/src/mini_test.rs b/session_rust/src/mini_test.rs
-index ce9628cb13b09a64bab024e6b841cc9f1d01bf5a..70630c6b5efa7ba123fdeb802ebc030f08cd0b8d
+index ce9628cb13b09a64bab024e6b841cc9f1d01bf5a..70630c6b5efa7ba123fdeb802ebc030f08cd0b8d 100644
 --- a/session_rust/src/mini_test.rs
 +++ b/session_rust/src/mini_test.rs
-@@ -3375,7 +3375,17 @@
+@@ -3375,7 +3375,17 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
              name: "Double-Curved Triangle",
              func: run_remesh_nurbssurface_adaptive_double_curved_triangle,
          },
@@ -496,10 +496,10 @@ index ce9628cb13b09a64bab024e6b841cc9f1d01bf5a..70630c6b5efa7ba123fdeb802ebc030f
              group: "RemeshNurbsSurfaceGrid",
              name: "Sphere",
 diff --git a/session_rust/src/primitives_test.rs b/session_rust/src/primitives_test.rs
-index 5e3d0fd6b798124f64e771dbc245cad95349bb4f..959db60c7135fe2f0b889f7e66eab7abae0cf18e
+index 5e3d0fd6b798124f64e771dbc245cad95349bb4f..959db60c7135fe2f0b889f7e66eab7abae0cf18e 100644
 --- a/session_rust/src/primitives_test.rs
 +++ b/session_rust/src/primitives_test.rs
-@@ -791,8 +791,29 @@
+@@ -791,8 +791,29 @@ pub fn run_primitives_nurbssurface_extrusion() -> TestResult {
          MINI_CHECK!(s_wavy.is_valid());
          MINI_CHECK!(s_wavy.degree(0) == 1 && s_wavy.degree(1) == 1);
          MINI_CHECK!(s_wavy.cv_count_dir(Some(0)) == 4 && s_wavy.cv_count_dir(Some(1)) == 2);
@@ -531,10 +531,10 @@ index 5e3d0fd6b798124f64e771dbc245cad95349bb4f..959db60c7135fe2f0b889f7e66eab7ab
              TOLERANCE.is_point_close(&s_wavy.get_cv(0, 0).unwrap(), &Point::new(40.0, 3.0, 0.0))
          );
 diff --git a/session_rust/src/remesh_nurbssurface_grid.rs b/session_rust/src/remesh_nurbssurface_grid.rs
-index 39fcefadcd45cd59ddc35b62a8f783ad640eb72e..54f27f9be05abbde5f72a5e510d260a9319b9fd2
+index 39fcefadcd45cd59ddc35b62a8f783ad640eb72e..54f27f9be05abbde5f72a5e510d260a9319b9fd2 100644
 --- a/session_rust/src/remesh_nurbssurface_grid.rs
 +++ b/session_rust/src/remesh_nurbssurface_grid.rs
-@@ -16,6 +16,9 @@
+@@ -16,6 +16,9 @@ impl RemeshNurbsSurfaceGrid {
      /// normal deviation per subdivision (smaller → denser on curved spans) and
      /// `chord_factor` is the chord-height tolerance as a fraction of the bbox diagonal
      /// (smaller → denser). The defaults (20.0, 0.005) reproduce `from_u_v`.
@@ -544,7 +544,7 @@ index 39fcefadcd45cd59ddc35b62a8f783ad640eb72e..54f27f9be05abbde5f72a5e510d260a9
      pub fn from_u_v_q(
          s: NurbsSurface,
          max_u: usize,
-@@ -500,7 +503,8 @@
+@@ -500,7 +503,8 @@ impl RemeshNurbsSurfaceGrid {
          for vk in result.vertex.keys() {
              vn_map.insert(*vk, (0.0, 0.0, 0.0));
          }
@@ -554,7 +554,7 @@ index 39fcefadcd45cd59ddc35b62a8f783ad640eb72e..54f27f9be05abbde5f72a5e510d260a9
          for fk in &face_keys {
              if let Some(vids) = result.face.get(fk) {
                  if vids.len() < 3 {
-@@ -544,7 +548,7 @@
+@@ -544,7 +548,7 @@ impl RemeshNurbsSurfaceGrid {
              // Winding-consistent direction from the accumulated face normals.
              let (mut fx, mut fy, mut fz) = vn_map.get(&vk).copied().unwrap_or((0.0, 0.0, 1.0));
              let flen = (fx * fx + fy * fy + fz * fz).sqrt();
@@ -563,7 +563,7 @@ index 39fcefadcd45cd59ddc35b62a8f783ad640eb72e..54f27f9be05abbde5f72a5e510d260a9
                  fx /= flen;
                  fy /= flen;
                  fz /= flen;
-@@ -572,7 +576,7 @@
+@@ -572,7 +576,7 @@ impl RemeshNurbsSurfaceGrid {
                  if let Some((u, v)) = uv {
                      let na = s.normal_at(u, v);
                      let nl = (na[0] * na[0] + na[1] * na[1] + na[2] * na[2]).sqrt();
@@ -572,13 +572,13 @@ index 39fcefadcd45cd59ddc35b62a8f783ad640eb72e..54f27f9be05abbde5f72a5e510d260a9
                          let (mut ax, mut ay, mut az) = (na[0] / nl, na[1] / nl, na[2] / nl);
                          if ax * fx + ay * fy + az * fz < 0.0 {
                              ax = -ax;
-@@ -590,7 +594,123 @@
+@@ -590,8 +594,124 @@ impl RemeshNurbsSurfaceGrid {
              }
          }
  
 +        Self::split_crease_normals(&s, &mut result);
          result
-+    }
+     }
 +    /// Split shading vertices only at internal C0 knots with different one-sided normals.
 +    /// Exact positions and UV samples stay unchanged; coincident smooth knot joins stay shared.
 +    pub(crate) fn split_crease_normals(s: &NurbsSurface, mesh: &mut Mesh) {
@@ -693,18 +693,19 @@ index 39fcefadcd45cd59ddc35b62a8f783ad640eb72e..54f27f9be05abbde5f72a5e510d260a9
 +            mesh.face.insert(face_key, split);
 +        }
 +        mesh.rebuild_halfedges();
-     }
++    }
  }
  
+ pub fn remesh_nurbssurface_grid(surface: NurbsSurface, max_u: usize, max_v: usize) -> Mesh {
 diff --git a/session_rust/src/remesh_nurbssurface_grid_test.rs b/session_rust/src/remesh_nurbssurface_grid_test.rs
-index 2840cdf41088a87a4d41d8504fac4daece0d7879..420f54df26cf6c37d199cfafb7351f741901540f
+index 2840cdf41088a87a4d41d8504fac4daece0d7879..420f54df26cf6c37d199cfafb7351f741901540f 100644
 --- a/session_rust/src/remesh_nurbssurface_grid_test.rs
 +++ b/session_rust/src/remesh_nurbssurface_grid_test.rs
-@@ -1,5 +1,38 @@
+@@ -1,6 +1,39 @@
  use crate::mini_test::TestResult;
 +use crate::tolerance::Tolerance;
  use crate::{MINI_CHECK, MINI_TEST, REGISTER_MINI_TEST};
-+
+ 
 +pub fn run_remesh_nurbssurface_grid_analytic_normals() -> TestResult {
 +    MINI_TEST!("Analytic Normals", {
 +        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
@@ -736,10 +737,11 @@ index 2840cdf41088a87a4d41d8504fac4daece0d7879..420f54df26cf6c37d199cfafb7351f74
 +    "Analytic Normals",
 +    crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_analytic_normals
 +);
- 
++
  pub fn run_remesh_nurbssurface_grid_sphere() -> TestResult {
      MINI_TEST!("Sphere", {
-@@ -216,3 +249,50 @@
+         use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
+@@ -216,3 +249,50 @@ REGISTER_MINI_TEST!(
      "Double-Curved Triangle",
      crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_double_curved_triangle
  );
@@ -791,7 +793,7 @@ index 2840cdf41088a87a4d41d8504fac4daece0d7879..420f54df26cf6c37d199cfafb7351f74
 +    crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_crease_normals
 +);
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index c6c7e0dce3b12078b33d09694b8366df2b762614..58454b3c528ecd383b6c3bbb6fd8538bd37fef51
+index c6c7e0dce3b12078b33d09694b8366df2b762614..58454b3c528ecd383b6c3bbb6fd8538bd37fef51 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
 @@ -1,9 +1,9 @@
@@ -806,7 +808,7 @@ index c6c7e0dce3b12078b33d09694b8366df2b762614..58454b3c528ecd383b6c3bbb6fd8538b
  <script>
  let tutorial;
  let pointer;
-@@ -21,7 +21,7 @@
+@@ -21,7 +21,7 @@ function render() {
      const canvas = document.getElementById('canvas');
      const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
      canvas.dataset.tutorialInspection = JSON.stringify(state);
@@ -874,7 +876,7 @@ index 0000000000000000000000000000000000000000..f8840df36f84b1c245b7c2468cd72640
 +    env_flag("VIEWER_SEAMS", &SEAMS)
 +}
 diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
-index 736418dd99b9221fbf48dc3f2816dbf0d1366d46..fa764d67ce3f13229e43eec36526aecb36aed71d
+index 736418dd99b9221fbf48dc3f2816dbf0d1366d46..fa764d67ce3f13229e43eec36526aecb36aed71d 100644
 --- a/session_viewer/src/app/mod.rs
 +++ b/session_viewer/src/app/mod.rs
 @@ -1,2 +1,4 @@
@@ -1403,10 +1405,10 @@ index 0000000000000000000000000000000000000000..845dfbaf074cd1d96319e35e66375c59
 +}
 diff --git a/session_viewer/src/app/walk/mesh.rs b/session_viewer/src/app/walk/mesh.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..160367632207dd672f2610b12bf580f021ec4a5c
+index 0000000000000000000000000000000000000000..4240f60b9bde11cd81bca302287c555c642a3395
 --- /dev/null
 +++ b/session_viewer/src/app/walk/mesh.rs
-@@ -0,0 +1,236 @@
+@@ -0,0 +1,239 @@
 +//! One mesh into the tables: its faces into the arena, its local box, then the ink pass
 +//! (`mesh_ink`) unless the mesh is dense, a print fill, or edges are switched off. The gates
 +//! and thresholds live here. Nothing here reads the GPU.
@@ -1597,6 +1599,9 @@ index 0000000000000000000000000000000000000000..160367632207dd672f2610b12bf580f0
 +    let smooth = o.smooth && !knobs::seams();
 +    if smooth {
 +        flags |= Instance::FLAG_SMOOTH;
++    }
++    if m.number_of_faces() == 1 {
++        flags |= Instance::FLAG_SINGLE;
 +    }
 +    let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
 +    let row = Row {
@@ -2252,7 +2257,7 @@ index 0000000000000000000000000000000000000000..67a89cd6d50143d8292d075b0cdb7b9b
 +    }
 +}
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606
+index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
 @@ -1,150 +1,107 @@
@@ -2275,88 +2280,19 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 -        floor()
 -    } else {
 -        grey_box()
+-    }
 +/// Retain original f64 source objects independently from their GPU row addresses.
 +pub struct CadFixture {
 +    pub upload: Upload,
 +    pub sources: Vec<Geometry>,
 +    pub identities: Vec<SourceIdentity>,
 +    pub pipe_source_edges: Vec<u32>,
-+}
-+
-+/// An object row is a display address; the source GUID belongs to the retained geometry.
-+#[derive(serde::Serialize)]
-+pub struct SourceIdentity {
-+    pub object_row: u32,
-+    pub guid: String,
-+    pub kind: &'static str,
-+}
-+
-+impl CadFixture {
-+    /// Allocate no geometry until the selected local case appends its source objects.
-+    fn new() -> Self {
-+        Self {
-+            upload: Upload::default(),
-+            sources: Vec::new(),
-+            identities: Vec::new(),
-+            pipe_source_edges: Vec::new(),
-+        }
-+    }
-+
-+    /// Prepare one source object, retaining its identity and source-space geometry together.
-+    fn add(&mut self, geometry: Geometry, place: Xform) {
-+        let row = self.upload.obj.rows.len() as u32;
-+        let first_pipe = self.upload.seg.pipes.len();
-+        let context = WalkCx {
-+            vert_base: 0,
-+            cloud_px: 0.0,
-+            row,
-+        };
-+        let mut ink = Ink {
-+            seg: &mut self.upload.seg,
-+            glyph: &mut self.upload.glyph,
-+        };
-+        let (prepared, guid, kind) = match &geometry {
-+            Geometry::BRep(source) => (
-+                walk_brep(&mut self.upload.arena, &mut ink, source, &context),
-+                source.guid().to_string(),
-+                "BRep",
-+            ),
-+            Geometry::NurbsSurface(source) => (
-+                walk_surface(&mut self.upload.arena, &mut ink, source, &context),
-+                source.guid().to_string(),
-+                "NurbsSurface",
-+            ),
-+            _ => unreachable!("the CAD fixture only constructs BRep and surface source objects"),
-+        };
-+        self.pipe_source_edges
-+            .extend_from_slice(&self.upload.seg.pipe_ids[first_pipe..]);
-+        self.push_row(prepared, place);
-+        self.identities.push(SourceIdentity {
-+            object_row: row,
-+            guid,
-+            kind,
-+        });
-+        self.sources.push(geometry);
-+    }
-+
-+    /// Keep object-local bounds separate from the instance placement used for camera fitting.
-+    fn push_row(&mut self, prepared: Row, place: Xform) {
-+        let mut object = ObjectRow::new(place.m, prepared.flags);
-+        object.bounds = prepared.bounds;
-+        object.spacing = prepared.spacing;
-+        object.faces = prepared.faces;
-+        object.thickness = prepared.thickness;
-+        self.upload.bounds.union(&prepared.bounds.placed(&place.m));
-+        self.upload.obj.rows.push(object);
-     }
  }
  
 -/// Eight source corners, six exact face quads, twelve red source edges and eight black markers.
 -fn grey_box() -> Upload {
 -    let mut upload = Upload::default();
-+/// A planar surface with one actual source face and four natural parameter boundaries.
-+fn planar_surface() -> NurbsSurface {
-     let points = [
+-    let points = [
 -        [-0.5, -0.5, -0.5],
 -        [0.5, -0.5, -0.5],
 -        [0.5, 0.5, -0.5],
@@ -2365,11 +2301,7 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 -        [0.5, -0.5, 0.5],
 -        [0.5, 0.5, 0.5],
 -        [-0.5, 0.5, 0.5],
-+        Point::new(-200.0, -150.0, 0.0),
-+        Point::new(-200.0, 150.0, 0.0),
-+        Point::new(200.0, -150.0, 0.0),
-+        Point::new(200.0, 150.0, 0.0),
-     ];
+-    ];
 -    upload.bounds = Aabb {
 -        min: [-0.5; 3],
 -        max: [0.5; 3],
@@ -2410,12 +2342,14 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 -        marker(&mut upload, 0, point, [0., 0., 0., 1.]);
 -    }
 -    upload
-+    let mut surface = NurbsSurface::create(false, false, 1, 1, 2, 2, &points).unwrap();
-+    surface.facecolors = vec![Color::grey()];
-+    surface.name = "local source face".into();
-+    surface
++/// An object row is a display address; the source GUID belongs to the retained geometry.
++#[derive(serde::Serialize)]
++pub struct SourceIdentity {
++    pub object_row: u32,
++    pub guid: String,
++    pub kind: &'static str,
  }
--
+ 
 -/// Four millimetres separate hidden magenta ink from a physical sloping floor.
 -fn floor() -> Upload {
 -    let mut upload = Upload::default();
@@ -2435,17 +2369,20 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 -            [-2., 1.5, -0.5],
 -        ],
 -        [-0.24253562, 0., 0.9701425],
-+/// Build the first source-face checkpoint entirely from local geometry.
-+pub fn build() -> CadFixture {
-+    let mut scene = CadFixture::new();
-+    scene.add(
-+        Geometry::NurbsSurface(Rc::new(planar_surface())),
-+        Xform::identity(),
-     );
+-    );
 -    for y in [-0.6, 0.0, 0.6] {
 -        stroke(&mut upload, 1, [-1., y, -0.254], [1., y, 0.246], 0xffff00ff);
 -        marker(&mut upload, 1, [0., y, -0.004], [1., 0., 1., 1.]);
--    }
++impl CadFixture {
++    /// Allocate no geometry until the selected local case appends its source objects.
++    fn new() -> Self {
++        Self {
++            upload: Upload::default(),
++            sources: Vec::new(),
++            identities: Vec::new(),
++            pipe_source_edges: Vec::new(),
++        }
+     }
 -    stroke(
 -        &mut upload,
 -        0,
@@ -2454,9 +2391,8 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 -        0xffff0000,
 -    );
 -    upload
-+    scene
- }
--
+-}
+ 
 -/// Describe each source object once; table indices remain its rendering address.
 -fn row(upload: &mut Upload, faces: bool) {
 -    let mut row = ObjectRow::new(Xform::identity().m, 0);
@@ -2473,14 +2409,58 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 -            position,
 -            normal,
 -            color: [0.6, 0.6, 0.6, 1.],
--        });
++    /// Prepare one source object, retaining its identity and source-space geometry together.
++    fn add(&mut self, geometry: Geometry, place: Xform) {
++        let row = self.upload.obj.rows.len() as u32;
++        let first_pipe = self.upload.seg.pipes.len();
++        let context = WalkCx {
++            vert_base: 0,
++            cloud_px: 0.0,
++            row,
++        };
++        let mut ink = Ink {
++            seg: &mut self.upload.seg,
++            glyph: &mut self.upload.glyph,
++        };
++        let (prepared, guid, kind) = match &geometry {
++            Geometry::BRep(source) => (
++                walk_brep(&mut self.upload.arena, &mut ink, source, &context),
++                source.guid().to_string(),
++                "BRep",
++            ),
++            Geometry::NurbsSurface(source) => (
++                walk_surface(&mut self.upload.arena, &mut ink, source, &context),
++                source.guid().to_string(),
++                "NurbsSurface",
++            ),
++            _ => unreachable!("the CAD fixture only constructs BRep and surface source objects"),
++        };
++        self.pipe_source_edges
++            .extend_from_slice(&self.upload.seg.pipe_ids[first_pipe..]);
++        self.push_row(prepared, place);
++        self.identities.push(SourceIdentity {
++            object_row: row,
++            guid,
++            kind,
+         });
 -        upload.arena.vids.push(row);
--    }
++        self.sources.push(geometry);
+     }
 -    for index in [0, 1, 2, 0, 2, 3] {
 -        upload.arena.idx.push(first + index);
--    }
--}
--
++
++    /// Keep object-local bounds separate from the instance placement used for camera fitting.
++    fn push_row(&mut self, prepared: Row, place: Xform) {
++        let mut object = ObjectRow::new(place.m, prepared.flags);
++        object.bounds = prepared.bounds;
++        object.spacing = prepared.spacing;
++        object.faces = prepared.faces;
++        object.thickness = prepared.thickness;
++        self.upload.bounds.union(&prepared.bounds.placed(&place.m));
++        self.upload.obj.rows.push(object);
+     }
+ }
+ 
 -/// Screen-space ribbon extrusion consumes unchanged source endpoints.
 -fn stroke(upload: &mut Upload, row: u32, p0: [f32; 3], p1: [f32; 3], color: u32) {
 -    upload.seg.ribbons.push(CylinderSegment {
@@ -2491,7 +2471,19 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 -        color,
 -        facing: u32::MAX,
 -    });
--}
++/// A planar surface with one actual source face and four natural parameter boundaries.
++fn planar_surface() -> NurbsSurface {
++    let points = [
++        Point::new(-200.0, -150.0, 0.0),
++        Point::new(-200.0, 150.0, 0.0),
++        Point::new(200.0, -150.0, 0.0),
++        Point::new(200.0, 150.0, 0.0),
++    ];
++    let mut surface = NurbsSurface::create(false, false, 1, 1, 2, 2, &points).unwrap();
++    surface.facecolors = vec![Color::grey()];
++    surface.name = "local source face".into();
++    surface
+ }
 -
 -/// Source-centred markers use the same physical scene depth as the strokes.
 -fn marker(upload: &mut Upload, row: u32, center: [f32; 3], color: [f32; 4]) {
@@ -2503,12 +2495,20 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 -        facing: u32::MAX,
 -        facing_ext: [u32::MAX; 2],
 -    });
--}
++/// Build the first source-face checkpoint entirely from local geometry.
++pub fn build() -> CadFixture {
++    let mut scene = CadFixture::new();
++    scene.add(
++        Geometry::NurbsSurface(Rc::new(planar_surface())),
++        Xform::identity(),
++    );
++    scene
+ }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index f2fb7e08d09946d58166992f8a0da14b03e95cc1..3e700225c9a2e687ce460dd2bd717212e9ef47f7
+index f2fb7e08d09946d58166992f8a0da14b03e95cc1..3e700225c9a2e687ce460dd2bd717212e9ef47f7 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -13,18 +13,19 @@
+@@ -13,18 +13,19 @@ pub struct Tutorial {
      gpu: Gpu,
      camera: camera::Camera,
      scale: f64,
@@ -2533,7 +2533,7 @@ index f2fb7e08d09946d58166992f8a0da14b03e95cc1..3e700225c9a2e687ce460dd2bd717212
          camera.set_view(camera::View::Iso);
          camera.fit(&gpu.bounds, 1.5);
          if app::route::query("top").is_some() {
-@@ -41,6 +42,7 @@
+@@ -41,6 +42,7 @@ impl Tutorial {
              gpu,
              camera,
              scale: 1.0,
@@ -2541,7 +2541,7 @@ index f2fb7e08d09946d58166992f8a0da14b03e95cc1..3e700225c9a2e687ce460dd2bd717212
          })
      }
      /// Orbit or pan with the same production camera methods used by the final viewer.
-@@ -90,7 +92,7 @@
+@@ -90,7 +92,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;
@@ -2551,10 +2551,10 @@ index f2fb7e08d09946d58166992f8a0da14b03e95cc1..3e700225c9a2e687ce460dd2bd717212
      }
  }
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index 899b43a73e51289ae7c71d1d3d68cdac3dd6d0c3..6adbd6799d80d58e306268cb5f828112d1242ef3
+index b28176b5d22b8405322f6dc8209ac78cf4514aaa..a9def57546c799df71aa1af01552b5b4f80c1798 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -90,7 +90,8 @@
+@@ -90,7 +90,8 @@ fn vs_main(in: VsIn) -> VsOut {
      }
      o.color = color;
      o.world_pos = world;

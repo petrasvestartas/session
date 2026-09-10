@@ -1,42 +1,128 @@
-/* Keep the course readable beside a code editor, including long shader declarations. */
-:root { --md-text-font: system-ui, sans-serif; --md-code-font: "DejaVu Sans Mono", "Liberation Mono", monospace; }
+/* The only consumer of theme.css. Every design-system decision is spent here and nowhere else,
+   so switching systems is a regeneration rather than a search through the stylesheet.
+
+   The line it draws: the design system owns the CHROME - ground, plates, rules, type, radius,
+   density, the accent. It does not own the CONTENT colours. The illustrations, the Mermaid
+   diagrams and the viewer's own contact and joint colours are all matched to the BRG
+   Equilibrium palette (navy, pink, green, yellow, pale bands), and a reader has to be able to
+   carry a colour from a diagram to the running viewer. Those stay put. */
+
+/* Roboto is the viewer's own label font, so the course is set in it and the documentation reads
+   as the same thing as the running app. It is NOT the design system's choice - theme.json asks
+   for a display and a body serif and both are ignored; see the note in theme.css. Committed
+   under fonts/ with its URL and sha256 rather than hot-linked, and mkdocs.yml keeps
+   `font: false` so no CDN is contacted. One variable file covers the whole weight range. */
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("fonts/Roboto-latin.woff2") format("woff2");
+}
+
+/* Keep the course readable beside a code editor, including long shader declarations. Code is
+   never the design system's to set: it stays monospace at a size that fits a WGSL binding. */
+:root { --md-text-font: "Roboto", system-ui, sans-serif; --md-code-font: "DejaVu Sans Mono", "Liberation Mono", monospace; }
 .md-grid { max-width: 92rem; }
-.md-typeset { font-size: .84rem; line-height: 1.65; }
+.md-typeset { font-size: .84rem; line-height: calc(1.30 + var(--ds-density) * .25); }
 .md-typeset pre > code { font-size: .75rem; line-height: 1.55; }
 .md-typeset .highlight { margin: 1.2em 0; }
-.md-typeset .highlight pre { border: 1px solid #dbe2e9; border-radius: .35rem; }
-.md-typeset table:not([class]) th { background: #eef2f6; }
+.md-typeset .highlight pre { border: 1px solid var(--ds-hairline); border-radius: var(--ds-radius); }
+.md-typeset table:not([class]) th { background: var(--ds-surface); }
 .md-typeset .mermaid { overflow-x: auto; }
 .md-typeset .mermaid svg { width: auto !important; max-width: none !important; height: auto; }
 
-/* Palette: the BRG Equilibrium drawing library (navy, pink, green, yellow; pale bands). */
+/* Ground from the design system named in theme.css. The selector matches Material's own
+   (`:root, [data-md-color-scheme="default"]`) because the scheme attribute sits on BODY: a
+   bare :root here is set on html and then shadowed by body's own copy, and the page stays
+   white. Equal specificity, so this file loading later is what wins. */
+:root, [data-md-color-scheme="default"] { --md-default-bg-color: var(--ds-bg); }
+
+/* Headings are the same face as the body; only weight and size separate them. The weight is
+   the one place the design system still reaches type. Sizes are Material's, not the enlarged
+   ones a small-drawn display serif needed. */
+.md-typeset h1, .md-typeset h2, .md-typeset h3, .md-typeset h4 {
+  font-weight: var(--ds-heading-weight);
+  color: var(--ds-text);
+  letter-spacing: 0;
+}
+.md-typeset h1 { font-size: 1.7em; line-height: 1.25; }
+.md-typeset h2 { font-size: 1.35em; line-height: 1.3; }
+.md-typeset h3 { font-size: 1.1em; }
+
+/* layoutStyle "justified", with hyphenation, which a justified measure this wide needs to
+   avoid rivers. Anything with a fixed internal rhythm keeps its ragged edge. */
+.md-typeset p { text-align: justify; hyphens: auto; }
+.md-typeset li p, .md-typeset td p, .md-typeset .admonition p { text-align: left; hyphens: manual; }
+
+/* dividers "hairline": one rule weight and colour across the page, replacing Material's mix
+   of borders. */
+.md-typeset hr, .md-typeset table:not([class]) th, .md-typeset table:not([class]) td { border-color: var(--ds-hairline); }
+.md-typeset h2 { border-bottom: 1px solid var(--ds-hairline); padding-bottom: .3em; }
+
+/* Palette: the BRG Equilibrium drawing library (navy, pink, green, yellow; pale bands). Left
+   as it is on purpose - the committed illustrations and the viewer's own contact and joint
+   colours are matched to these, so a design system must not drive them. The accent is the one
+   exception, because it is chrome: it carries links and rules, not meaning. */
 :root {
   --md-primary-fg-color: #111111;
   --md-primary-fg-color--light: #444444;
   --md-primary-fg-color--dark: #000000;
-  --md-accent-fg-color: #ce4095;
-  --md-typeset-a-color: #1b7fc4;
+  --md-accent-fg-color: var(--ds-accent-ink);
+  --md-typeset-a-color: var(--ds-accent-ink);
   --md-code-hl-color: #f9e08a;
 }
 [data-md-color-scheme="default"], [data-md-color-scheme="slate"] {
-  /* Diagrams: black ground; white nodes with black text; white arrows and white edge labels
-     on the ground. In Material's theme `node-fg` is the node border, `label-fg` the node
-     text and `edge` both the arrows and the edge-label text. */
+  /* Diagrams are BRG, not the design system. 222 nodes already carry their own BRG pink, and
+     draw.py's twenty-one drawings are BRG throughout, so the whole set is one language: black
+     ground, white nodes, black node text, white arrows and white edge labels. draw.py holds
+     the same black, so the two never drift.
+
+     `node-fg` is the node BORDER and it is set to the node fill, because no diagram on this
+     site draws a border: shapes are told apart by fill, and an outline on a white box over a
+     black ground is only noise. Type stays system-ui: dense technical labels in auto-laid
+     boxes, and the drawings pin measured label widths against system-ui metrics. */
   --md-mermaid-font-family: system-ui, sans-serif;
   --md-mermaid-node-bg-color: #ffffff;
-  --md-mermaid-node-fg-color: #111111;
+  --md-mermaid-node-fg-color: #ffffff;
   --md-mermaid-edge-color: #ffffff;
   --md-mermaid-label-bg-color: #111111;
   --md-mermaid-label-fg-color: #111111;
 }
-.md-typeset .mermaid { background: #111111; border-radius: 12px; padding: 1rem; }
-.md-typeset .mermaid svg { background: #111111; }
 .md-typeset .mermaid svg { font-size: 14px !important; }
-.md-typeset .highlight pre { border-color: #bdbfe8; }
-.md-typeset table:not([class]) th { background: #e4e4e7; }
 .md-typeset details.note > summary { background: #bdbfe8; }
 .md-typeset details.example > summary { background: #f0bcdb; }
-.md-typeset img[src$=".svg"] { border: 1px solid #b9b9bd; border-radius: 12px; }
 
-.md-typeset .source-banner { background: #f0bcdb; border-left: .4rem solid #ce4095; border-radius: 8px; padding: .7rem 1rem; margin: 1rem 0; color: #111111; font-size: .9rem; }
-.md-typeset .source-banner a { color: #111111; text-decoration: underline; font-weight: 600; }
+/* imageTreatment "plate": every figure is mounted, not floated - one radius, no border, no mat.
+   A Mermaid diagram and a generated SVG both arrive as a black block, so a rule drawn around
+   them only doubles an edge the picture already has; a screenshot is a photograph of the app
+   and wants no frame either. What makes twenty-one drawings, 233 diagrams and twenty-eight
+   screenshots read as one set is that all three end at the same corner. */
+.md-typeset .mermaid,
+.md-typeset img[src$=".svg"],
+.md-typeset img[src$=".png"] {
+  border: 0;
+  border-radius: var(--ds-radius);
+  box-sizing: border-box;
+}
+.md-typeset .mermaid { padding: .75rem; }
+.md-typeset .mermaid { background: #111111; }
+.md-typeset .mermaid svg { background: #111111; }
+.md-typeset img[src$=".svg"], .md-typeset img[src$=".png"] { display: block; }
+
+/* A figure's caption is its alt text, set small under the plate. */
+.md-typeset p > img[src$=".svg"] + em, .md-typeset p > img[src$=".png"] + em { display: block; margin-top: .4rem; color: var(--ds-text); font-size: .78em; }
+
+/* colorUse "stroke", buttonStyle "outline": the accent arrives as a rule, never as a fill. */
+.md-typeset .source-banner {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-hairline);
+  border-left: .2rem solid var(--ds-accent);
+  border-radius: var(--ds-radius);
+  padding: .7rem 1rem;
+  margin: 1rem 0;
+  color: var(--ds-text);
+  font-size: .9rem;
+}
+.md-typeset .source-banner a { color: var(--ds-accent-ink); text-decoration: underline; font-weight: 600; }
+.md-typeset .md-button { border: 1px solid var(--ds-accent); background: transparent; color: var(--ds-accent-ink); border-radius: var(--ds-radius); }

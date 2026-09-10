@@ -105,18 +105,18 @@ flowchart TB
 
 - `from_query` turns the page off, on, or onto a custom manifest; a named scene or a local dev page never watches the bucket.
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=91-185 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=91-190 -->
 
 - `read` returns `Changed`, `Same` or `Failed`; a server without ETags falls back to hashing the body.
 - A manifest inside the bucket names its files from the bucket root; any other manifest names them from its own folder.
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=186-251 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=191-256 -->
 
 - `check` is one tick: nothing happens unless the relay flagged or the poll interval is due; a replacement with any unreadable file returns `None` and the last valid scene stays.
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=252-349 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=257-354 -->
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=350-436 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=355-441 -->
 
 <!-- check: 14 -->
 
@@ -129,12 +129,6 @@ flowchart TB
 - Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
 - Whole files have a budget too: `scene_budget_bytes` is `?budget=<MB>` or 16 MB per GB of `navigator.deviceMemory`, 64 MB when the browser says nothing, because a decoded file costs the wasm heap about five times its size. Each file's size is asked by HEAD first; one that would put the scene over the budget is skipped, and the status line names it and the knob instead of the page dying without a word.
 
-```mermaid
-flowchart TB
-    F["responses, any order"] --> P["pending, manifest order"]
-    P -- "stale_load?" --> S["clear_scene · Msg::File"]
-    style P fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 14 session_viewer/src/app/loader.rs type hunks=1 -->
 

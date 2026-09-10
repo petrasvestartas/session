@@ -24,14 +24,8 @@ flowchart TB
 - Skipped geometry fields never decide the window's size: `read_length` reads at least 64 KiB inside the file, larger only for an array that is itself larger, and never past `end`.
 - `slice` borrows an exact cached range, including a valid empty range at the window's end.
 
-```mermaid
-flowchart TB
-    A["cloud .pb bytes"] -- "read_length ≥ 64 KiB" --> W["MetadataWindow<br/>at · bytes"]
-    W -- "slice(at, length)" --> S["exact borrowed range"]
-    style W fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
-<!-- file: 15 session_viewer/src/app/stream.rs type hunks=1,2 -->
+<!-- file: 15 session_viewer/src/app/stream.rs type hunks=1-2 -->
 
 ## Step 2 · Refill only on a jump
 
@@ -45,7 +39,7 @@ flowchart TB
     style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 15 session_viewer/src/app/stream.rs type hunks=3 -->
+<!-- file: 15 session_viewer/src/app/stream.rs type hunks=3-3 -->
 
 ## Step 3 · Route the LOD walk through the window
 
@@ -59,11 +53,11 @@ flowchart TB
     style L fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 15 session_viewer/src/app/stream.rs type hunks=4,5,6 -->
+<!-- file: 15 session_viewer/src/app/stream.rs type hunks=4-6 -->
 
 A unit test of the range rules, part of the file:
 
-<!-- file: 15 session_viewer/src/app/stream.rs copy hunks=7 -->
+<!-- file: 15 session_viewer/src/app/stream.rs copy hunks=7-7 -->
 
 ## Step 4 · Publication helpers
 

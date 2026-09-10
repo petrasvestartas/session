@@ -589,11 +589,259 @@ index 0000000000000000000000000000000000000000..d92eb2802a36dea952d1054a3f75b508
 +        assert!(token.get());
 +    }
 +}
+diff --git a/session_viewer/src/app/fetch.rs b/session_viewer/src/app/fetch.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b4a058a5b467b00f5303a97ab5d4dcfeff1e5f37
+--- /dev/null
++++ b/session_viewer/src/app/fetch.rs
+@@ -0,0 +1,230 @@
++//! The browser's network edge: cross-origin GETs (plain and conditional), HTTP Range reads
++//! that refuse anything but `206`, and the two ways to hand the browser its main thread back.
++
++use wasm_bindgen::closure::Closure;
++use wasm_bindgen::{JsCast, JsValue};
++use wasm_bindgen_futures::JsFuture;
++use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
++
++/// The browser's message for a JS error value.
++fn describe(e: JsValue) -> String {
++    match e.as_string() {
++        Some(message) => message,
++        None => format!("{e:?}"),
++    }
++}
++
++/// Fetch rejections include their network context in recoverable page feedback.
++fn network_error(error: JsValue) -> String {
++    format!("network error: {}", describe(error))
++}
++
++/// What a GET came back with. `bytes` is empty on a 304.
++pub struct Reply {
++    pub status: u16,
++    pub etag: Option<String>,
++    pub bytes: Vec<u8>,
++}
++
++/// A GET's options: bypass the HTTP cache, revalidate it (a cached copy is used only when
++/// the server says it is still current), make it conditional, or read a byte range.
++#[derive(Default)]
++pub struct GetOpts {
++    pub no_store: bool,
++    pub revalidate: bool,
++    pub if_none_match: Option<String>,
++    pub range: Option<(u64, u64)>,
++}
++
++/// GET `url` with `opts`. Any HTTP status is `Ok`; a network failure is `Err`.
++pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
++    let deadline = Deadline::new()?;
++    let init = RequestInit::new();
++    init.set_signal(Some(&deadline.controller.signal()));
++    init.set_method("GET");
++    init.set_mode(RequestMode::Cors);
++    if opts.no_store {
++        init.set_cache(web_sys::RequestCache::NoStore);
++    } else if opts.revalidate {
++        init.set_cache(web_sys::RequestCache::NoCache);
++    }
++    let headers = Headers::new().map_err(describe)?;
++    if let Some(tag) = &opts.if_none_match {
++        headers.set("If-None-Match", tag).map_err(describe)?;
++    }
++    if let Some((start, len)) = opts.range {
++        if len == 0 {
++            return Ok(Reply {
++                status: 206,
++                etag: None,
++                bytes: Vec::new(),
++            });
++        }
++        headers
++            .set(
++                "Range",
++                &format!(
++                    "bytes={}-{}",
++                    start,
++                    start.checked_add(len - 1).ok_or("invalid byte range")?
++                ),
++            )
++            .map_err(describe)?;
++    }
++    init.set_headers(&headers);
++    let request = Request::new_with_str_and_init(url, &init).map_err(describe)?;
++    let window = web_sys::window().ok_or("no window")?;
++    let resp: Response = JsFuture::from(window.fetch_with_request(&request))
++        .await
++        .map_err(network_error)?
++        .dyn_into()
++        .map_err(describe)?;
++    let etag = resp.headers().get("etag").ok().flatten();
++    let status = resp.status();
++    // A body is read only when it is the one asked for: a `Range` answered with `200` is the
++    // WHOLE file, a conditional answered with `304` has none, an error page is not the file.
++    let wanted = if opts.range.is_some() {
++        status == 206
++    } else {
++        (200..300).contains(&status)
++    };
++    if !wanted {
++        return Ok(Reply {
++            status,
++            etag,
++            bytes: Vec::new(),
++        });
++    }
++    if let Ok(Some(length)) = resp.headers().get("Content-Length")
++        && let Ok(length) = length.parse::<u64>()
++        && length > 512 * 1024 * 1024
++    {
++        return Err(
++            "payload exceeds the 512 MiB whole-file limit; use cloud streaming".to_string(),
++        );
++    }
++    let buf = JsFuture::from(resp.array_buffer().map_err(describe)?)
++        .await
++        .map_err(describe)?;
++    let bytes = js_sys::Uint8Array::new(&buf).to_vec();
++    if let Some((_, length)) = opts.range
++        && bytes.len() as u64 > length
++    {
++        return Err("range response exceeds requested bytes".to_string());
++    }
++    Ok(Reply {
++        status,
++        etag,
++        bytes,
++    })
++}
++
++/// The size a whole file would download, from a HEAD request; `None` when the server does not
++/// say. Asked before a file is fetched, so a scene can refuse what the device cannot hold.
++pub async fn content_length(url: &str) -> Option<u64> {
++    let init = RequestInit::new();
++    init.set_method("HEAD");
++    init.set_mode(RequestMode::Cors);
++    let request = Request::new_with_str_and_init(url, &init).ok()?;
++    let window = web_sys::window()?;
++    let resp: Response = JsFuture::from(window.fetch_with_request(&request))
++        .await
++        .ok()?
++        .dyn_into()
++        .ok()?;
++    resp.headers().get("Content-Length").ok().flatten()?.parse().ok()
++}
++
++/// GET a whole file, revalidating any cached copy (a re-uploaded file is never stale, an
++/// unchanged one costs one 304); a non-2xx status is an error naming it.
++pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
++    let r = get(
++        url,
++        &GetOpts {
++            revalidate: true,
++            ..GetOpts::default()
++        },
++    )
++    .await?;
++    if !(200..300).contains(&r.status) {
++        return Err(format!("HTTP {} for {url}", r.status));
++    }
++    Ok(r.bytes)
++}
++
++/// GET a byte range. Refuses anything but `206`: a server that ignores `Range` answers `200`
++/// with the WHOLE body, which for a 431 MB scan would be catastrophic and silent.
++pub async fn fetch_range(url: &str, start: u64, len: u64) -> Result<Vec<u8>, String> {
++    let r = get(
++        url,
++        &GetOpts {
++            range: Some((start, len)),
++            ..GetOpts::default()
++        },
++    )
++    .await?;
++    if r.status != 206 {
++        return Err(format!(
++            "server ignored Range (HTTP {}) for {url}",
++            r.status
++        ));
++    }
++    Ok(r.bytes)
++}
++
++/// `setTimeout(resolve, ms)` as the executor `Promise::new` wants.
++fn schedule(resolve: js_sys::Function, ms: i32) {
++    if let Some(w) = web_sys::window() {
++        let _ = w.set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, ms);
++    }
++}
++
++/// Resolve after `ms` milliseconds, yielding to the browser meanwhile.
++pub async fn sleep_ms(ms: i32) {
++    let p = js_sys::Promise::new(&mut |resolve, _| schedule(resolve, ms));
++    let _ = JsFuture::from(p).await;
++}
++
++/// One macrotask: lets the browser paint between slices of work (a microtask would not).
++pub async fn next_tick() {
++    sleep_ms(0).await;
++}
++
++/// Own a bounded fetch deadline and its callback; every return path releases the timer.
++struct Deadline {
++    controller: web_sys::AbortController,
++    timer: i32,
++    _callback: Closure<dyn FnMut()>,
++}
++impl Deadline {
++    /// Permit slow scene transfers for ninety seconds, then surface a recoverable network error.
++    fn new() -> Result<Self, String> {
++        let window = web_sys::window().ok_or("no window")?;
++        let controller = web_sys::AbortController::new().map_err(describe)?;
++        let owned = controller.clone();
++        let callback = Closure::<dyn FnMut()>::new(move || abort_request(&owned));
++        let timer = window
++            .set_timeout_with_callback_and_timeout_and_arguments_0(
++                callback.as_ref().unchecked_ref(),
++                90_000,
++            )
++            .map_err(describe)?;
++        Ok(Self {
++            controller,
++            timer,
++            _callback: callback,
++        })
++    }
++}
++impl Drop for Deadline {
++    /// Remove the JavaScript timer before dropping its Rust callback handle.
++    fn drop(&mut self) {
++        if let Some(window) = web_sys::window() {
++            window.clear_timeout_with_handle(self.timer);
++        }
++    }
++}
++/// The browser callback adapter forwards cancellation to the request's controller.
++fn abort_request(controller: &web_sys::AbortController) {
++    controller.abort();
++}
+diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
+index 139e9bc7ecc0bc531534a6f496f1a23665379c3a..0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09 100644
+--- a/session_viewer/src/app/input.rs
++++ b/session_viewer/src/app/input.rs
+@@ -52,6 +52,7 @@ impl Input {
+                 .camera
+                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
+             Key::Named(NamedKey::Escape) => state.escape_selection(),
++            Key::Named(NamedKey::F10) => state.enable_controls(),
+             Key::Character("1") => state.camera.set_view(View::Front),
+             Key::Character("2") => state.camera.set_view(View::Back),
+             Key::Character("3") => state.camera.set_view(View::Left),
 diff --git a/session_viewer/src/app/inspection.rs b/session_viewer/src/app/inspection.rs
-index a17fd97b039d992827fb8edcefc5e1ef004159a2..f31db8bae111e86d20416b432407b4f8427e1fb7
+index a17fd97b039d992827fb8edcefc5e1ef004159a2..f31db8bae111e86d20416b432407b4f8427e1fb7 100644
 --- a/session_viewer/src/app/inspection.rs
 +++ b/session_viewer/src/app/inspection.rs
-@@ -31,7 +31,7 @@
+@@ -31,7 +31,7 @@ pub fn publish(state: &State) {
          "selected": parent,
          "identity": identity,
          "selection": state.selection,
@@ -603,7 +851,7 @@ index a17fd97b039d992827fb8edcefc5e1ef004159a2..f31db8bae111e86d20416b432407b4f8
          "control_segments": state.gpu.control_net.ribbon_count(),
          "pick_busy": state.gpu.pick.busy(),
 diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index 9f18a09947cdd41eaf4c22bbe19626b63f484fc6..e90a21156f54d11731549f8ca97dc2aadc1a0602
+index 9f18a09947cdd41eaf4c22bbe19626b63f484fc6..e90a21156f54d11731549f8ca97dc2aadc1a0602 100644
 --- a/session_viewer/src/app/loader.rs
 +++ b/session_viewer/src/app/loader.rs
 @@ -1,7 +1,8 @@
@@ -616,7 +864,7 @@ index 9f18a09947cdd41eaf4c22bbe19626b63f484fc6..e90a21156f54d11731549f8ca97dc2aa
  use crate::{Msg, State};
  use session_rust::{Session, Xform};
  use std::cell::RefCell;
-@@ -53,6 +54,9 @@
+@@ -53,6 +54,9 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
  
  /// Only the explicit local streaming test selects the ranged source fixture.
  async fn fixture() -> Result<(), String> {
@@ -626,7 +874,7 @@ index 9f18a09947cdd41eaf4c22bbe19626b63f484fc6..e90a21156f54d11731549f8ca97dc2aa
      let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
          .map_err(fixture_error)?;
      post(Msg::File(FileDoc {
-@@ -70,6 +74,44 @@
+@@ -70,6 +74,44 @@ fn fixture_error(error: Box<dyn std::error::Error>) -> String {
      format!("Bundled interaction fixture: {error}")
  }
  
@@ -672,7 +920,7 @@ index 9f18a09947cdd41eaf4c22bbe19626b63f484fc6..e90a21156f54d11731549f8ca97dc2aa
  pub struct StreamCursor {
      pub idx: usize,
 diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
-index 90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c..e5361f826df6cfdaa4d23f172eddfe85f998b253
+index 90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c..e5361f826df6cfdaa4d23f172eddfe85f998b253 100644
 --- a/session_viewer/src/app/mod.rs
 +++ b/session_viewer/src/app/mod.rs
 @@ -1,5 +1,6 @@
@@ -682,20 +930,20 @@ index 90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c..e5361f826df6cfdaa4d23f172eddfe85
  pub mod feedback;
  pub mod input;
  pub mod knobs;
-@@ -10,6 +11,8 @@
+@@ -9,6 +10,8 @@ pub mod stream;
+ pub mod touch;
  pub mod walk;
  
- #[cfg(target_arch = "wasm32")]
-+pub mod fetch;
 +#[cfg(target_arch = "wasm32")]
++pub mod fetch;
+ #[cfg(target_arch = "wasm32")]
  pub mod loader;
  #[cfg(target_arch = "wasm32")]
- pub mod route;
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index cceec2a03d4d78f3553ede153cb24923d9e8f2be..ac0ed24f4ce28bb8b6f1eaa8808fcb323bfae72f
+index cceec2a03d4d78f3553ede153cb24923d9e8f2be..ac0ed24f4ce28bb8b6f1eaa8808fcb323bfae72f 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
-@@ -492,3 +492,64 @@
+@@ -492,3 +492,64 @@ fn placement(world: &HashMap<String, Xform>, place: &Mat4, guid: &str) -> Mat4 {
          None => *place,
      }
  }
@@ -761,15 +1009,14 @@ index cceec2a03d4d78f3553ede153cb24923d9e8f2be..ac0ed24f4ce28bb8b6f1eaa8808fcb32
 +    }
 +}
 diff --git a/session_viewer/src/app/selection.rs b/session_viewer/src/app/selection.rs
-index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177efe2e78d6
+index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177efe2e78d6 100644
 --- a/session_viewer/src/app/selection.rs
 +++ b/session_viewer/src/app/selection.rs
 @@ -1,6 +1,18 @@
 -//! Original edge identity and single-parent selection; source controls arrive in chapter13.
--
--/// Exactly one parent owns the specialized edge selection.
 +//! Source identities and single-parent selection transitions. GPU rows are only pick addresses.
-+
+ 
+-/// Exactly one parent owns the specialized edge selection.
 +use session_rust::element::ElementGeometry;
 +use session_rust::{Geometry, NurbsCurve, NurbsSurface, Point};
 +
@@ -786,7 +1033,7 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
  #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize)]
  pub enum SelectionMode {
      #[default]
-@@ -9,24 +21,224 @@
+@@ -9,24 +21,224 @@ pub enum SelectionMode {
          parent: u32,
          edge: u32,
      },
@@ -804,12 +1051,10 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
          match self {
              Self::Object => None,
 -            Self::Edge { parent, .. } => Some(*parent),
--        }
--    }
--    /// Replace old-parent edge selection atomically.
 +            Self::Edge { parent, .. } | Self::Controls { parent, .. } => Some(*parent),
-+        }
-+    }
+         }
+     }
+-    /// Replace old-parent edge selection atomically.
 +
 +    /// Replacing the enum clears all old-parent sub-selection atomically.
      pub fn select_edge(&mut self, parent: u32, edge: u32) {
@@ -1018,10 +1263,10 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +    }
 +}
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 920f036f77b250d98108579b6788c6e8c8015378..098d813854a4c766fa0bc1607d972526d6c9b2bc
+index 920f036f77b250d98108579b6788c6e8c8015378..098d813854a4c766fa0bc1607d972526d6c9b2bc 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
-@@ -35,12 +35,613 @@
+@@ -35,12 +35,613 @@ pub struct CloudLod {
  }
  
  impl CloudLod {
@@ -1638,10 +1883,10 @@ index 920f036f77b250d98108579b6788c6e8c8015378..098d813854a4c766fa0bc1607d972526
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
-index f162ecb52f6b7d426864fd5f3b2272a609a59ccb..f862d238f5f8301ce0463150fa1380402244c695
+index f162ecb52f6b7d426864fd5f3b2272a609a59ccb..f862d238f5f8301ce0463150fa1380402244c695 100644
 --- a/session_viewer/src/engine/gpu/pick.rs
 +++ b/session_viewer/src/engine/gpu/pick.rs
-@@ -36,6 +36,18 @@
+@@ -36,6 +36,18 @@ pub enum PickMode {
      #[default]
      Object,
      Edge,
@@ -1660,7 +1905,7 @@ index f162ecb52f6b7d426864fd5f3b2272a609a59ccb..f862d238f5f8301ce0463150fa138040
  }
  
  /// The readback window: a `PICK_RADIUS` square about the cursor, clamped into the target.
-@@ -93,6 +105,7 @@
+@@ -93,6 +105,7 @@ pub struct Picker {
      submitted: u64,
      pub mode: PickMode,
      radius: u32,
@@ -1668,7 +1913,7 @@ index f162ecb52f6b7d426864fd5f3b2272a609a59ccb..f862d238f5f8301ce0463150fa138040
      readback: Option<wgpu::Buffer>,
      targets: Option<IdTargets>,
  }
-@@ -176,6 +189,7 @@
+@@ -176,6 +189,7 @@ impl Picker {
              submitted: 0,
              mode: PickMode::Object,
              radius: PICK_RADIUS,
@@ -1676,15 +1921,15 @@ index f162ecb52f6b7d426864fd5f3b2272a609a59ccb..f862d238f5f8301ce0463150fa138040
              readback: None,
              targets: None,
          }
-@@ -197,8 +211,64 @@
+@@ -197,10 +211,66 @@ impl Picker {
  
      /// Invalidate pending and mapped results on camera, viewport, scene or mode changes.
      pub fn cancel(&mut self) {
 +        self.source_phase = SourcePhase::Inactive;
          self.generation = self.generation.wrapping_add(1);
          self.pending = None;
-+    }
-+
+     }
+ 
 +    /// One source query retains physical point depth and IDs across every bounded page.
 +    pub fn start_source_query(&mut self) {
 +        self.cancel();
@@ -1738,14 +1983,16 @@ index f162ecb52f6b7d426864fd5f3b2272a609a59ccb..f862d238f5f8301ce0463150fa138040
 +            occlusion_query_set: None,
 +            multiview_mask: None,
 +        })
-     }
- 
++    }
++
      /// The same bounds must be used for both scissoring and copying.
+     pub fn window(&self, at: (u32, u32), size: (u32, u32)) -> Window {
+         Window::with_radius(at, size, self.radius)
 diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
-index 5c5b7edce2a7c7833a67da8039c0d3d7089af6cb..6b37c2e57fb6d53daadc71c133a2c9e786a477fa
+index 5c5b7edce2a7c7833a67da8039c0d3d7089af6cb..6b37c2e57fb6d53daadc71c133a2c9e786a477fa 100644
 --- a/session_viewer/src/engine/gpu/render.rs
 +++ b/session_viewer/src/engine/gpu/render.rs
-@@ -115,6 +115,8 @@
+@@ -115,6 +115,8 @@ impl Gpu {
              draws += self.glyphs.draw_dots(pass, &b);
          }
          draws += self.selection_outline.draw(pass);
@@ -1754,7 +2001,7 @@ index 5c5b7edce2a7c7833a67da8039c0d3d7089af6cb..6b37c2e57fb6d53daadc71c133a2c9e7
          draws += self.text.draw(pass);
          draws
      }
-@@ -135,6 +137,32 @@
+@@ -135,6 +137,32 @@ impl Gpu {
              line: &self.frame.line_group,
              instances: &self.objects.group,
          };
@@ -1787,7 +2034,7 @@ index 5c5b7edce2a7c7833a67da8039c0d3d7089af6cb..6b37c2e57fb6d53daadc71c133a2c9e7
          {
              let mut pass = self.pick.begin_pass(&self.ctx, encoder, size);
              // Plane reconstruction also reads neighboring texels: render a small halo around
-@@ -172,6 +200,10 @@
+@@ -172,6 +200,10 @@ impl Gpu {
                          self.segments.draw_edge_ids(&mut pass, &ink);
                      }
                  }
@@ -1799,10 +2046,10 @@ index 5c5b7edce2a7c7833a67da8039c0d3d7089af6cb..6b37c2e57fb6d53daadc71c133a2c9e7
                      if self.view.show_mesh_edges {
                          self.segments.draw_pipe_ids(&mut pass, &ink);
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 4c1a982f8d71fb1096f6ed1da5ce956d091004a9..3658f3316d6684d362ff10c84039fd253031f935
+index 4c1a982f8d71fb1096f6ed1da5ce956d091004a9..3658f3316d6684d362ff10c84039fd253031f935 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -30,6 +30,8 @@
+@@ -30,6 +30,8 @@ pub enum Msg {
      Fit,
      StreamedCloud(Box<StreamedInit>),
      CloudChunk(CloudChunk),
@@ -1811,7 +2058,7 @@ index 4c1a982f8d71fb1096f6ed1da5ce956d091004a9..3658f3316d6684d362ff10c84039fd25
      CancelPointer,
  }
  
-@@ -147,6 +149,8 @@
+@@ -147,6 +149,8 @@ impl ApplicationHandler<Msg> for App {
                  });
              }
              Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
@@ -1821,7 +2068,7 @@ index 4c1a982f8d71fb1096f6ed1da5ce956d091004a9..3658f3316d6684d362ff10c84039fd25
                  self.input.cancel();
                  state.touch();
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f52ca5fd5
+index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f52ca5fd5 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
 @@ -4,10 +4,14 @@
@@ -1840,7 +2087,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
  use crate::engine::gpu::{FrameInput, Gpu, Pick};
  use crate::engine::performance::{heap_mb, now_ms};
  use crate::engine::text::{TextLabel, TextPlacement};
-@@ -37,10 +41,16 @@
+@@ -37,10 +41,16 @@ pub struct State {
      dirty: bool,
      last_frame_ms: f64,
      pub selection: SelectionMode,
@@ -1857,7 +2104,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
  }
  
  impl State {
-@@ -59,10 +69,14 @@
+@@ -59,10 +69,14 @@ impl State {
              dirty: true,
              last_frame_ms: 0.0,
              selection: SelectionMode::Object,
@@ -1872,7 +2119,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          })
      }
  
-@@ -119,6 +133,7 @@
+@@ -119,6 +133,7 @@ impl State {
      /// Drop every document; the canvas, device and camera stay.
      pub fn clear(&mut self) {
          self.selection = SelectionMode::Object;
@@ -1880,7 +2127,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          self.scene_labels.clear();
          self.scene.clear(&mut self.gpu);
          self.touch();
-@@ -163,6 +178,7 @@
+@@ -163,6 +178,7 @@ impl State {
      pub fn resize(&mut self, width: u32, height: u32) {
          self.gpu.resize(width, height);
          self.gpu.logical_size = self.logical_size();
@@ -1888,7 +2135,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          self.touch();
      }
  
-@@ -179,6 +195,7 @@
+@@ -179,6 +195,7 @@ impl State {
  
      /// The picture changed: the next redraw presents it.
      pub fn touch(&mut self) {
@@ -1896,7 +2143,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          self.gpu.pick.cancel();
          self.dirty = true;
          self.needs_frame = true;
-@@ -187,6 +204,7 @@
+@@ -187,6 +204,7 @@ impl State {
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
          self.selection = SelectionMode::Object;
@@ -1904,7 +2151,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          self.gpu.controls.reset();
          self.gpu.control_net.reset();
          self.gpu.segments.set_edge(&self.gpu.ctx, None);
-@@ -202,6 +220,13 @@
+@@ -202,6 +220,13 @@ impl State {
          self.touch();
      }
  
@@ -1918,7 +2165,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
      /// Hide the selection - `H`. The guid goes in the hide set as well as the row's flag, so
      /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
      /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
-@@ -229,6 +254,11 @@
+@@ -229,6 +254,11 @@ impl State {
  
      /// A pick came back: log what it hit and select it (clicking the selection clears it).
      fn apply_pick(&mut self, pick: Option<Pick>) {
@@ -1930,22 +2177,22 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          match self.requested {
              PickMode::Edge => {
                  if let Some(pick) = pick
-@@ -241,6 +271,14 @@
-                         .segments
-                         .set_edge(&self.gpu.ctx, Some((pick.row, edge)));
-                     self.status(&format!("Edge {edge} selected"));
-+                }
-+                return;
-+            }
+@@ -244,6 +274,14 @@ impl State {
+                 }
+                 return;
+             }
 +            PickMode::Controls { parent, cloud } => {
 +                if let Some(pick) = pick
 +                    && pick.row == parent
 +                {
 +                    self.apply_control(pick, cloud);
-                 }
-                 return;
-             }
-@@ -287,6 +325,7 @@
++                }
++                return;
++            }
+             PickMode::Object => {}
+         }
+         let Some(p) = pick else {
+@@ -287,6 +325,7 @@ impl State {
          let logical = self.logical_size();
          if logical != self.gpu.logical_size {
              self.gpu.logical_size = logical;
@@ -1953,7 +2200,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              self.touch();
          }
          let failure = match self.gpu.failure.lock() {
-@@ -295,15 +334,22 @@
+@@ -295,15 +334,22 @@ impl State {
          };
          if let Some(message) = failure {
              crate::app::feedback::error(&message);
@@ -1976,7 +2223,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              self.camera.orbit(SPIN_STEP, 0.0);
          }
          let now_ms = now_ms();
-@@ -323,7 +369,7 @@
+@@ -323,7 +369,7 @@ impl State {
          self.dirty |= rebase.moved || self.gpu.view.perf || self.gpu.view.spin;
  
          let mut dropped = false;
@@ -1985,7 +2232,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              let gap = now_ms - self.last_frame_ms;
              self.last_frame_ms = now_ms;
              let drawn = self.gpu.present(&input);
-@@ -365,11 +411,21 @@
+@@ -365,11 +411,21 @@ impl State {
  
      /// A pointer gesture chooses one pass; Ctrl never also performs ordinary selection.
      pub fn request_selection(&mut self, x: u32, y: u32, edge: bool) {
@@ -2008,7 +2255,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          };
          self.requested = mode;
          let logical = self.logical_size();
-@@ -381,6 +437,44 @@
+@@ -381,6 +437,44 @@ impl State {
          self.needs_frame = true;
      }
  
@@ -2053,7 +2300,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
      /// Escape clears targets before retaining the active parent as an ordinary selection.
      pub fn escape_selection(&mut self) {
          let parent = self.selection.escape();
-@@ -388,14 +482,295 @@
+@@ -388,14 +482,295 @@ impl State {
          self.status("");
      }
  
@@ -2061,10 +2308,6 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
 -    pub fn toggle_selected_names(&mut self) {
 -        self.show_selected_names = !self.show_selected_names;
 -        self.update_label();
--        self.touch();
--    }
--
--    /// Prepare one source-document title when its CAD rows arrive.
 +    /// Upload only temporary source controls; repeated F10 never appends duplicate markers.
 +    fn upload_controls(&mut self) {
 +        self.gpu.controls.reset();
@@ -2148,9 +2391,10 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
 +        };
 +        self.upload_controls();
 +        self.status(&format!("Selected {id:?}"));
-+        self.touch();
-+    }
-+
+         self.touch();
+     }
+ 
+-    /// Prepare one source-document title when its CAD rows arrive.
 +    /// A source-query page owns GPU readback while ordinary color rendering is paused.
 +    fn cloud_query_awaiting_gpu(&self) -> bool {
 +        match &self.cloud_query {
@@ -2357,7 +2601,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
      fn annotate_document(&mut self, first_row: usize) {
          let mut bounds = crate::math::Aabb::empty();
          for index in first_row..self.scene.object_count() {
-@@ -423,10 +798,11 @@
+@@ -423,10 +798,11 @@ impl State {
          ));
      }
  
@@ -2370,7 +2614,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              && let Some(row) = self.scene.selected
              && let Some(bounds) = self.gpu.objects.row_bounds(row)
          {
-@@ -470,7 +846,24 @@
+@@ -470,7 +846,24 @@ impl State {
      fn perf_line(&self, _gap_ms: f64, _encode_ms: f64) {}
  }
  
@@ -2396,7 +2640,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
  fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
      let mut center = [0.0; 3];
      for (axis, coordinate) in center.iter_mut().enumerate() {
-@@ -479,7 +872,7 @@
+@@ -479,7 +872,7 @@ fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
      center
  }
  
@@ -2405,251 +2649,3 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
  fn nameplate(id: u32, text: String, world: [f64; 3]) -> TextLabel {
      let scale = if id == 0 { 0.75 } else { 1.0 };
      let line_height = 26.0 * scale;
-diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
-index 8f407222abdaf2c34c89b742bee5fd4c27c3bfe7..b39e95c8d1693551143efaad60a735c40ed0a8e1 100644
---- a/session_viewer/src/app/input.rs
-+++ b/session_viewer/src/app/input.rs
-@@ -52,6 +52,7 @@ impl Input {
-                 .camera
-                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
-             Key::Named(NamedKey::Escape) => state.escape_selection(),
-+            Key::Named(NamedKey::F10) => state.enable_controls(),
-             Key::Character("1") => state.camera.set_view(View::Front),
-             Key::Character("2") => state.camera.set_view(View::Back),
-             Key::Character("3") => state.camera.set_view(View::Left),
-diff --git a/session_viewer/src/app/fetch.rs b/session_viewer/src/app/fetch.rs
-new file mode 100644
-index 0000000000000000000000000000000000000000..b4a058a5b467b00f5303a97ab5d4dcfeff1e5f37
---- /dev/null
-+++ b/session_viewer/src/app/fetch.rs
-@@ -0,0 +1,230 @@
-+//! The browser's network edge: cross-origin GETs (plain and conditional), HTTP Range reads
-+//! that refuse anything but `206`, and the two ways to hand the browser its main thread back.
-+
-+use wasm_bindgen::closure::Closure;
-+use wasm_bindgen::{JsCast, JsValue};
-+use wasm_bindgen_futures::JsFuture;
-+use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
-+
-+/// The browser's message for a JS error value.
-+fn describe(e: JsValue) -> String {
-+    match e.as_string() {
-+        Some(message) => message,
-+        None => format!("{e:?}"),
-+    }
-+}
-+
-+/// Fetch rejections include their network context in recoverable page feedback.
-+fn network_error(error: JsValue) -> String {
-+    format!("network error: {}", describe(error))
-+}
-+
-+/// What a GET came back with. `bytes` is empty on a 304.
-+pub struct Reply {
-+    pub status: u16,
-+    pub etag: Option<String>,
-+    pub bytes: Vec<u8>,
-+}
-+
-+/// A GET's options: bypass the HTTP cache, revalidate it (a cached copy is used only when
-+/// the server says it is still current), make it conditional, or read a byte range.
-+#[derive(Default)]
-+pub struct GetOpts {
-+    pub no_store: bool,
-+    pub revalidate: bool,
-+    pub if_none_match: Option<String>,
-+    pub range: Option<(u64, u64)>,
-+}
-+
-+/// GET `url` with `opts`. Any HTTP status is `Ok`; a network failure is `Err`.
-+pub async fn get(url: &str, opts: &GetOpts) -> Result<Reply, String> {
-+    let deadline = Deadline::new()?;
-+    let init = RequestInit::new();
-+    init.set_signal(Some(&deadline.controller.signal()));
-+    init.set_method("GET");
-+    init.set_mode(RequestMode::Cors);
-+    if opts.no_store {
-+        init.set_cache(web_sys::RequestCache::NoStore);
-+    } else if opts.revalidate {
-+        init.set_cache(web_sys::RequestCache::NoCache);
-+    }
-+    let headers = Headers::new().map_err(describe)?;
-+    if let Some(tag) = &opts.if_none_match {
-+        headers.set("If-None-Match", tag).map_err(describe)?;
-+    }
-+    if let Some((start, len)) = opts.range {
-+        if len == 0 {
-+            return Ok(Reply {
-+                status: 206,
-+                etag: None,
-+                bytes: Vec::new(),
-+            });
-+        }
-+        headers
-+            .set(
-+                "Range",
-+                &format!(
-+                    "bytes={}-{}",
-+                    start,
-+                    start.checked_add(len - 1).ok_or("invalid byte range")?
-+                ),
-+            )
-+            .map_err(describe)?;
-+    }
-+    init.set_headers(&headers);
-+    let request = Request::new_with_str_and_init(url, &init).map_err(describe)?;
-+    let window = web_sys::window().ok_or("no window")?;
-+    let resp: Response = JsFuture::from(window.fetch_with_request(&request))
-+        .await
-+        .map_err(network_error)?
-+        .dyn_into()
-+        .map_err(describe)?;
-+    let etag = resp.headers().get("etag").ok().flatten();
-+    let status = resp.status();
-+    // A body is read only when it is the one asked for: a `Range` answered with `200` is the
-+    // WHOLE file, a conditional answered with `304` has none, an error page is not the file.
-+    let wanted = if opts.range.is_some() {
-+        status == 206
-+    } else {
-+        (200..300).contains(&status)
-+    };
-+    if !wanted {
-+        return Ok(Reply {
-+            status,
-+            etag,
-+            bytes: Vec::new(),
-+        });
-+    }
-+    if let Ok(Some(length)) = resp.headers().get("Content-Length")
-+        && let Ok(length) = length.parse::<u64>()
-+        && length > 512 * 1024 * 1024
-+    {
-+        return Err(
-+            "payload exceeds the 512 MiB whole-file limit; use cloud streaming".to_string(),
-+        );
-+    }
-+    let buf = JsFuture::from(resp.array_buffer().map_err(describe)?)
-+        .await
-+        .map_err(describe)?;
-+    let bytes = js_sys::Uint8Array::new(&buf).to_vec();
-+    if let Some((_, length)) = opts.range
-+        && bytes.len() as u64 > length
-+    {
-+        return Err("range response exceeds requested bytes".to_string());
-+    }
-+    Ok(Reply {
-+        status,
-+        etag,
-+        bytes,
-+    })
-+}
-+
-+/// The size a whole file would download, from a HEAD request; `None` when the server does not
-+/// say. Asked before a file is fetched, so a scene can refuse what the device cannot hold.
-+pub async fn content_length(url: &str) -> Option<u64> {
-+    let init = RequestInit::new();
-+    init.set_method("HEAD");
-+    init.set_mode(RequestMode::Cors);
-+    let request = Request::new_with_str_and_init(url, &init).ok()?;
-+    let window = web_sys::window()?;
-+    let resp: Response = JsFuture::from(window.fetch_with_request(&request))
-+        .await
-+        .ok()?
-+        .dyn_into()
-+        .ok()?;
-+    resp.headers().get("Content-Length").ok().flatten()?.parse().ok()
-+}
-+
-+/// GET a whole file, revalidating any cached copy (a re-uploaded file is never stale, an
-+/// unchanged one costs one 304); a non-2xx status is an error naming it.
-+pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
-+    let r = get(
-+        url,
-+        &GetOpts {
-+            revalidate: true,
-+            ..GetOpts::default()
-+        },
-+    )
-+    .await?;
-+    if !(200..300).contains(&r.status) {
-+        return Err(format!("HTTP {} for {url}", r.status));
-+    }
-+    Ok(r.bytes)
-+}
-+
-+/// GET a byte range. Refuses anything but `206`: a server that ignores `Range` answers `200`
-+/// with the WHOLE body, which for a 431 MB scan would be catastrophic and silent.
-+pub async fn fetch_range(url: &str, start: u64, len: u64) -> Result<Vec<u8>, String> {
-+    let r = get(
-+        url,
-+        &GetOpts {
-+            range: Some((start, len)),
-+            ..GetOpts::default()
-+        },
-+    )
-+    .await?;
-+    if r.status != 206 {
-+        return Err(format!(
-+            "server ignored Range (HTTP {}) for {url}",
-+            r.status
-+        ));
-+    }
-+    Ok(r.bytes)
-+}
-+
-+/// `setTimeout(resolve, ms)` as the executor `Promise::new` wants.
-+fn schedule(resolve: js_sys::Function, ms: i32) {
-+    if let Some(w) = web_sys::window() {
-+        let _ = w.set_timeout_with_callback_and_timeout_and_arguments_0(&resolve, ms);
-+    }
-+}
-+
-+/// Resolve after `ms` milliseconds, yielding to the browser meanwhile.
-+pub async fn sleep_ms(ms: i32) {
-+    let p = js_sys::Promise::new(&mut |resolve, _| schedule(resolve, ms));
-+    let _ = JsFuture::from(p).await;
-+}
-+
-+/// One macrotask: lets the browser paint between slices of work (a microtask would not).
-+pub async fn next_tick() {
-+    sleep_ms(0).await;
-+}
-+
-+/// Own a bounded fetch deadline and its callback; every return path releases the timer.
-+struct Deadline {
-+    controller: web_sys::AbortController,
-+    timer: i32,
-+    _callback: Closure<dyn FnMut()>,
-+}
-+impl Deadline {
-+    /// Permit slow scene transfers for ninety seconds, then surface a recoverable network error.
-+    fn new() -> Result<Self, String> {
-+        let window = web_sys::window().ok_or("no window")?;
-+        let controller = web_sys::AbortController::new().map_err(describe)?;
-+        let owned = controller.clone();
-+        let callback = Closure::<dyn FnMut()>::new(move || abort_request(&owned));
-+        let timer = window
-+            .set_timeout_with_callback_and_timeout_and_arguments_0(
-+                callback.as_ref().unchecked_ref(),
-+                90_000,
-+            )
-+            .map_err(describe)?;
-+        Ok(Self {
-+            controller,
-+            timer,
-+            _callback: callback,
-+        })
-+    }
-+}
-+impl Drop for Deadline {
-+    /// Remove the JavaScript timer before dropping its Rust callback handle.
-+    fn drop(&mut self) {
-+        if let Some(window) = web_sys::window() {
-+            window.clear_timeout_with_handle(self.timer);
-+        }
-+    }
-+}
-+/// The browser callback adapter forwards cancellation to the request's controller.
-+fn abort_request(controller: &web_sys::AbortController) {
-+    controller.abort();
-+}

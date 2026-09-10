@@ -24,6 +24,8 @@ Group 1 of the point pass (`Layouts::points`):
 
 Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_group`), not the camera: the camera is folded into each record.
 
+![One node, one question: a spacing that projects wider than lod_px descends into the four children, and one that fits draws the node whole.](illustrations/lod.svg)
+
 ## Starting point
 
 - Checkpoint 04c: meshes, strokes and markers draw inside the face and ink passes.

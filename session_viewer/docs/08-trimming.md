@@ -31,7 +31,7 @@ flowchart TB
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1 -->
+<!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
 
 ## Step 2 · Name natural boundaries from UV, not from triangle order
 
@@ -48,7 +48,7 @@ flowchart TB
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2 -->
+<!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2-2 -->
 
 <!-- check: 08 -->
 

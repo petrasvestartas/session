@@ -317,13 +317,7 @@ flowchart LR
 
 ![The selected solid's yellow strokes are below the black silhouette; standalone selected curves are above it.](illustrations/frame.svg)
 
-```mermaid
-flowchart LR
-    O["ordinary mask · R8"] --> X["max(ordinary, selected)"]
-    S["selected mask · thicker"] --> X
-    X --> B["one black border"]
-    style X fill:#f0bcdb,stroke:#ce4095,color:#111
-```
+![Ordinary and selected ink each rasterize into an R8 coverage mask; the compositor takes the larger of the two, and a pooled copy of block maxima lets a fragment with no ink near it return zero without entering the search loop.](illustrations/masks.svg)
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=1-33 -->
 
@@ -353,14 +347,6 @@ Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves 
 
 - `encode_pool` runs after the mask pass: one full-screen triangle over the coarse texture, no depth, `fs_pool` as its fragment entry.
 
-```mermaid
-flowchart TB
-    M["mask pass · resolve"] --> P["fs_pool · block maxima"]
-    P --> C["compositor · near_any_coverage?"]
-    C -- "no" --> Z["0, no loop"]
-    C -- "yes" --> L["radial dilation"]
-    style P fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=288-314 -->
 
@@ -395,7 +381,7 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/engine/gpu/view.rs type -->
 
-<!-- file: 17 session_viewer/src/app/input.rs type hunks=4 -->
+<!-- file: 17 session_viewer/src/app/input.rs type hunks=4-4 -->
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1 -->
 
@@ -432,9 +418,9 @@ flowchart LR
 
 - Two more pipelines split ordinary from selected strokes; `draw_selected` is skipped when nothing is selected.
 
-<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=7-13 -->
+<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=7-14 -->
 
-<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=14-16 -->
+<!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=15-17 -->
 
 - The layout test mirrors `StrokeSegment` and pins `origin` and `frame` in every shader copy of `LineUniform`: 80 bytes.
 
@@ -448,23 +434,16 @@ flowchart LR
 - The start side keeps pixels on its side of the plane, the end side excludes them: exactly one segment owns each pixel of the shared cap.
 - `stroke_vertex(vid, layer)` culls the other layer's strokes, so the selected pass draws only selected ink.
 
-```mermaid
-flowchart TB
-    V["shared vertex"] -- "join_plane(before, after)" --> P["one bisector plane"]
-    P -- "start keeps · end excludes" --> O["one owner per cap pixel"]
-    L["stroke_vertex(vid, layer)"] --> O
-    style P fill:#f0bcdb,stroke:#ce4095,color:#111
-```
 
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-3 -->
 
 - A selected stroke keeps an opaque yellow core at least `line.thickness` wide; CAD boundary samples never taper with density.
 
-<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=4,5 -->
+<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=4-5 -->
 
 - Three vertex entries share `stroke_vertex`; `coverage` applies both join planes before the capsule distance.
 
-<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=6,7 -->
+<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=6-7 -->
 
 ### Step 14b · Install the supplied tooling
 

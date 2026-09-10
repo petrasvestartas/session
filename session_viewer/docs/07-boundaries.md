@@ -35,7 +35,7 @@ flowchart LR
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=1 -->
+<!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=1-1 -->
 
 <!-- file: 07 session_rust/src/lib.rs type -->
 

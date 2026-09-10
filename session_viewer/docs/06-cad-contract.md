@@ -39,7 +39,7 @@ flowchart TB
 
 `split_crease_normals` is `pub(crate)`: the trimmed mesher in `nurbssurface_trimmed.rs` shares it.
 
-<!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=5 -->
+<!-- file: 06 session_rust/src/remesh_nurbssurface_grid.rs type hunks=5-5 -->
 
 <!-- check: 06 -->
 
@@ -164,7 +164,7 @@ flowchart LR
 
 - Faces go into the arena with `vids = cx.row`; the ink pass runs only on decorated meshes with a topology.
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=145-236 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=145-239 -->
 
 ## Step 8 · Curves into the ribbon lane
 

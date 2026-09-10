@@ -419,10 +419,10 @@ index 0000000000000000000000000000000000000000..6e139ec068cc7a9dadfd34eaf2645927
 +echo
 +echo "  open:  ?scene=${stem}.yaml"
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387a04e68d0
+index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387a04e68d0 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
-@@ -296,6 +296,33 @@
+@@ -296,6 +296,33 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
      if next <= end { Some(next) } else { None }
  }
  
@@ -456,7 +456,7 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
  /// A packed `int32` (varint) array in full.
  pub fn packed_i32(raw: &[u8]) -> Vec<i32> {
      let mut out = Vec::new();
-@@ -346,7 +373,7 @@
+@@ -346,7 +373,7 @@ pub fn colors_from(raw: &[u8], count: u32) -> Option<(Vec<u32>, usize)> {
  #[cfg(target_arch = "wasm32")]
  pub use web::*;
  
@@ -465,11 +465,10 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
  #[cfg(target_arch = "wasm32")]
  mod web {
      use super::*;
-@@ -354,6 +381,25 @@
- 
+@@ -355,6 +382,25 @@ mod web {
      const POINT_BYTES: u64 = 24;
      const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
-+
+ 
 +    impl MetadataWindow {
 +        /// Reuse adjacent headers/arrays under the same ETag; replace the window on a jump.
 +        async fn read(
@@ -488,10 +487,11 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
 +            self.slice(at, length)
 +        }
 +    }
- 
++
      /// Exact bounded 206 bodies, tied to the metadata's exposed source validator.
      async fn source_range(
-@@ -438,9 +484,12 @@
+         url: &str,
+@@ -438,9 +484,12 @@ mod web {
          let mut seen = [false; 7];
          let mut table_bytes = 0u64;
          let mut ids = None;
@@ -506,7 +506,7 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
              let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
              if field == 0 {
                  return None;
-@@ -449,11 +498,11 @@
+@@ -449,11 +498,11 @@ mod web {
                  if (8..=15).contains(&field) {
                      return None;
                  }
@@ -520,7 +520,7 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
              let body = body_end(at, (used + extra) as u64, fields.end)?;
              let next = body_end(body, length, fields.end)?;
              if (8..=14).contains(&field) {
-@@ -464,8 +513,8 @@
+@@ -464,8 +513,8 @@ mod web {
                  if table_bytes > MAX_TABLE_BYTES {
                      return None;
                  }
@@ -531,11 +531,10 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
                      return None;
                  }
                  seen[field - 8] = true;
-@@ -532,6 +581,35 @@
- #[cfg(test)]
+@@ -533,6 +582,35 @@ mod web {
  mod tests {
      use super::*;
-+
+ 
 +    /// Adjacent metadata borrows one window; jumps and boundary crossings force a refill.
 +    #[test]
 +    fn metadata_window_checks_ranges_without_copying_or_following_large_skips() {
@@ -564,9 +563,10 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
 +        );
 +        assert_eq!(MetadataWindow::read_length(u64::MAX - 1, 2, u64::MAX), None);
 +    }
- 
++
      fn valid_lod() -> CloudLod {
          CloudLod {
+             min: vec![0.0; 6],
 diff --git a/session_viewer/tests/publication.py b/session_viewer/tests/publication.py
 new file mode 100644
 index 0000000000000000000000000000000000000000..706c2ccd0ad8652ab72ba25ca5247654576c254b

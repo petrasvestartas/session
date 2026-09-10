@@ -1,8 +1,8 @@
 diff --git a/session_cpp/src/nurbssurface_trimmed.cpp b/session_cpp/src/nurbssurface_trimmed.cpp
-index 5b72bb6ffe767a168716ede83f491e2678ba511b..1a45876224d9ef0b8a092e579a81a48413e3d19b
+index 5b72bb6ffe767a168716ede83f491e2678ba511b..1a45876224d9ef0b8a092e579a81a48413e3d19b 100644
 --- a/session_cpp/src/nurbssurface_trimmed.cpp
 +++ b/session_cpp/src/nurbssurface_trimmed.cpp
-@@ -1532,9 +1532,14 @@
+@@ -1532,9 +1532,14 @@ Mesh NurbsSurfaceTrimmed::triangulate(const TrimLoops& loops, double max_angle_d
      for (size_t vi = 0; vi < vert_map.size(); ++vi) {
          if (vert_map[vi] == SIZE_MAX) continue;
          VertexData& vd = result.vertex[vert_map[vi]];
@@ -20,14 +20,13 @@ index 5b72bb6ffe767a168716ede83f491e2678ba511b..1a45876224d9ef0b8a092e579a81a484
              double fl = std::sqrt(f[0]*f[0] + f[1]*f[1] + f[2]*f[2]);
              nrm = std::isfinite(fl) && fl > 0.0 ? Vector(f[0]/fl, f[1]/fl, f[2]/fl) : Vector(0.0, 0.0, 1.0);
 diff --git a/session_cpp/src/nurbssurface_trimmed_test.cpp b/session_cpp/src/nurbssurface_trimmed_test.cpp
-index c4c16508dd6d86dde27edd1beed91c5bd7ee1442..a5243bde664ab34ae747b58916f5247d6455333c
+index c4c16508dd6d86dde27edd1beed91c5bd7ee1442..a5243bde664ab34ae747b58916f5247d6455333c 100644
 --- a/session_cpp/src/nurbssurface_trimmed_test.cpp
 +++ b/session_cpp/src/nurbssurface_trimmed_test.cpp
-@@ -16,6 +16,25 @@
- using namespace session_cpp::mini_test;
+@@ -17,6 +17,25 @@ using namespace session_cpp::mini_test;
  
  namespace session_cpp {
-+
+ 
 +// A collapsed planar corner takes its own triangle fan, never normal_at's +Z sentinel.
 +MINI_TEST("NurbsSurfaceTrimmed", "Singular Planar Normal") {
 +    NurbsSurfaceTrimmed trimmed;
@@ -46,14 +45,15 @@ index c4c16508dd6d86dde27edd1beed91c5bd7ee1442..a5243bde664ab34ae747b58916f5247d
 +    }
 +    MINI_CHECK(apex);
 +}
- 
++
  MINI_TEST("NurbsSurfaceTrimmed", "Crease Loops") {
      NurbsSurfaceTrimmed ts;
+     ts.m_surface = NurbsSurface::create(false, false, 1, 1, 3, 2, {
 diff --git a/session_cpp/src/remesh_nurbssurface_grid.cpp b/session_cpp/src/remesh_nurbssurface_grid.cpp
-index b9d5d535a54041c378091de225c7397c6593cd99..0070ad87e457503b61afcad7ff4414eb5e78b4a8
+index b9d5d535a54041c378091de225c7397c6593cd99..0070ad87e457503b61afcad7ff4414eb5e78b4a8 100644
 --- a/session_cpp/src/remesh_nurbssurface_grid.cpp
 +++ b/session_cpp/src/remesh_nurbssurface_grid.cpp
-@@ -459,7 +459,10 @@
+@@ -459,7 +459,10 @@ Mesh RemeshNurbsSurfaceGrid::from_u_v_q(const NurbsSurface& s, int max_u, int ma
          bool is_pole = (sing_v0 && i == south_pole) || (sing_v1 && i == north_pole);
          // Surface normals preserve smooth interiors; singular poles use adjacent facets.
          if (!is_pole && u != vd.attributes.end() && v != vd.attributes.end()) {
@@ -66,14 +66,13 @@ index b9d5d535a54041c378091de225c7397c6593cd99..0070ad87e457503b61afcad7ff4414eb
              if (std::isfinite(nl) && nl > 0.0) {
                  nx = na[0] / nl; ny = na[1] / nl; nz = na[2] / nl;
 diff --git a/session_cpp/src/remesh_nurbssurface_grid_test.cpp b/session_cpp/src/remesh_nurbssurface_grid_test.cpp
-index 474f1ef31234c8e5eb61d07fa89aa6eb861f26bd..dd8378833d60b19eaded1154f04c288c365892a0
+index 474f1ef31234c8e5eb61d07fa89aa6eb861f26bd..dd8378833d60b19eaded1154f04c288c365892a0 100644
 --- a/session_cpp/src/remesh_nurbssurface_grid_test.cpp
 +++ b/session_cpp/src/remesh_nurbssurface_grid_test.cpp
-@@ -7,6 +7,28 @@
- using namespace session_cpp::mini_test;
+@@ -8,6 +8,28 @@ using namespace session_cpp::mini_test;
  
  namespace session_cpp {
-+
+ 
 +// U-collapsed corners retain their fan normal on every nondegenerate triangle.
 +MINI_TEST("RemeshNurbsSurfaceGrid", "Singular Planar Normal") {
 +    NurbsSurface surface = NurbsSurface::create(false,false,1,1,2,2,{
@@ -95,14 +94,15 @@ index 474f1ef31234c8e5eb61d07fa89aa6eb861f26bd..dd8378833d60b19eaded1154f04c288c
 +    }
 +    MINI_CHECK(apex);
 +}
- 
++
  MINI_TEST("RemeshNurbsSurfaceGrid", "Crease Normals") {
      NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 3, 2, {
+         Point(0.0, 0.0, 0.0), Point(0.0, 1.0, 0.0),
 diff --git a/session_py/src/session_py/nurbssurface_trimmed.py b/session_py/src/session_py/nurbssurface_trimmed.py
-index be23339fdcedd12524753896f18ae91d2c037cdd..1aba7d2be0ba24279e96237168a63398d756b5ac
+index be23339fdcedd12524753896f18ae91d2c037cdd..1aba7d2be0ba24279e96237168a63398d756b5ac 100644
 --- a/session_py/src/session_py/nurbssurface_trimmed.py
 +++ b/session_py/src/session_py/nurbssurface_trimmed.py
-@@ -1386,10 +1386,16 @@
+@@ -1386,10 +1386,16 @@ class NurbsSurfaceTrimmed:
              if vert_map[vi] is not None:
                  u = dt.vertices[vi].x
                  v = dt.vertices[vi].y
@@ -123,10 +123,10 @@ index be23339fdcedd12524753896f18ae91d2c037cdd..1aba7d2be0ba24279e96237168a63398
                      fl = math.sqrt(f[0]*f[0] + f[1]*f[1] + f[2]*f[2])
                      nrm = [f[0]/fl, f[1]/fl, f[2]/fl] if math.isfinite(fl) and fl > 0.0 else [0.0, 0.0, 1.0]
 diff --git a/session_py/src/session_py/nurbssurface_trimmed_test.py b/session_py/src/session_py/nurbssurface_trimmed_test.py
-index 8bff7ef7f450971e8687f0412228a7b98fa66bd6..7e6daf4dbf0f7efdf31e8e96a8d04bb4f695928f
+index 8bff7ef7f450971e8687f0412228a7b98fa66bd6..7e6daf4dbf0f7efdf31e8e96a8d04bb4f695928f 100644
 --- a/session_py/src/session_py/nurbssurface_trimmed_test.py
 +++ b/session_py/src/session_py/nurbssurface_trimmed_test.py
-@@ -554,5 +554,25 @@
+@@ -554,5 +554,25 @@ def test_nurbssurface_trimmed_crease_loops():
          MINI_CHECK(not (.8 < sum(us)/3 < 1.2 and .4 < sum(vs)/3 < .6))
  
  
@@ -153,10 +153,10 @@ index 8bff7ef7f450971e8687f0412228a7b98fa66bd6..7e6daf4dbf0f7efdf31e8e96a8d04bb4
  if __name__ == "__main__":
      run_all("python")
 diff --git a/session_py/src/session_py/remesh_nurbssurface_grid.py b/session_py/src/session_py/remesh_nurbssurface_grid.py
-index 6d9173c8efcea391c2ccca9ab8fd206ef2c78210..a979f0c4dfe592101d45f9822709d60975f32dc0
+index 6d9173c8efcea391c2ccca9ab8fd206ef2c78210..a979f0c4dfe592101d45f9822709d60975f32dc0 100644
 --- a/session_py/src/session_py/remesh_nurbssurface_grid.py
 +++ b/session_py/src/session_py/remesh_nurbssurface_grid.py
-@@ -387,7 +387,12 @@
+@@ -387,7 +387,12 @@ class RemeshNurbsSurfaceGrid:
                  is_pole = (sing_v0 and vk == south_pole) or (sing_v1 and vk == north_pole)
                  # Surface normals preserve smooth interiors; singular poles use adjacent facets.
                  if not is_pole and u is not None and v is not None:
@@ -171,15 +171,13 @@ index 6d9173c8efcea391c2ccca9ab8fd206ef2c78210..a979f0c4dfe592101d45f9822709d609
                      if math.isfinite(nl) and nl > 0.0:
                          nx, ny, nz = na[0] / nl, na[1] / nl, na[2] / nl
 diff --git a/session_py/src/session_py/remesh_nurbssurface_grid_test.py b/session_py/src/session_py/remesh_nurbssurface_grid_test.py
-index 9ac6fff229ce0a05207a0f69d01869fb2b8b20dd..f79ab11d89c994eeba49bd26e5dc84e033612308
+index 9ac6fff229ce0a05207a0f69d01869fb2b8b20dd..f79ab11d89c994eeba49bd26e5dc84e033612308 100644
 --- a/session_py/src/session_py/remesh_nurbssurface_grid_test.py
 +++ b/session_py/src/session_py/remesh_nurbssurface_grid_test.py
-@@ -2,6 +2,26 @@
- from .mini_test import MINI_CHECK
- from .mini_test import run_all
+@@ -4,6 +4,26 @@ from .mini_test import run_all
  from .tolerance import Tolerance
-+
-+
+ 
+ 
 +@MINI_TEST("RemeshNurbsSurfaceGrid", "Singular Planar Normal")
 +def test_remesh_nurbssurface_grid_singular_planar_normal():
 +    """U-collapsed corners retain their fan normal on every nondegenerate triangle."""
@@ -198,14 +196,16 @@ index 9ac6fff229ce0a05207a0f69d01869fb2b8b20dd..f79ab11d89c994eeba49bd26e5dc84e0
 +            MINI_CHECK(abs(abs(normal[1])-1.0) < 1e-12)
 +            apex = apex or vertex.z == 1.0
 +    MINI_CHECK(apex)
- 
- 
++
++
  @MINI_TEST("RemeshNurbsSurfaceGrid", "Analytic Normals")
+ def test_remesh_nurbssurface_grid_analytic_normals():
+     from session_py import RemeshNurbsSurfaceGrid
 diff --git a/session_rust/src/mini_test.rs b/session_rust/src/mini_test.rs
-index b9fefd5e07e82f208ee9e1722d0c36e6bd3440f3..c6f9b49b15068d3f3bd454b265adc1d005cdd236
+index b9fefd5e07e82f208ee9e1722d0c36e6bd3440f3..c6f9b49b15068d3f3bd454b265adc1d005cdd236 100644
 --- a/session_rust/src/mini_test.rs
 +++ b/session_rust/src/mini_test.rs
-@@ -1862,6 +1862,7 @@
+@@ -1862,6 +1862,7 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
              func: run_solve_banded_spd,
          },
          // NurbsSurfaceTrimmed tests
@@ -213,7 +213,7 @@ index b9fefd5e07e82f208ee9e1722d0c36e6bd3440f3..c6f9b49b15068d3f3bd454b265adc1d0
          RegisteredTest { group: "NurbsSurfaceTrimmed", name: "Crease Loops", func: run_nurbssurface_trimmed_crease_loops },
          RegisteredTest {
              group: "NurbsSurfaceTrimmed",
-@@ -3388,6 +3389,7 @@
+@@ -3388,6 +3389,7 @@ pub fn get_all_tests() -> Vec<RegisteredTest> {
              func: run_remesh_nurbssurface_grid_crease_normals,
          },
          // RemeshNurbsSurfaceGrid tests
@@ -222,10 +222,10 @@ index b9fefd5e07e82f208ee9e1722d0c36e6bd3440f3..c6f9b49b15068d3f3bd454b265adc1d0
              group: "RemeshNurbsSurfaceGrid",
              name: "Analytic Normals",
 diff --git a/session_rust/src/nurbssurface_trimmed.rs b/session_rust/src/nurbssurface_trimmed.rs
-index 931147093526fc816b0f905fe2daa81c99c8887a..d7aada312dc18da57e76a87922dfeeabf087f484
+index 931147093526fc816b0f905fe2daa81c99c8887a..d7aada312dc18da57e76a87922dfeeabf087f484 100644
 --- a/session_rust/src/nurbssurface_trimmed.rs
 +++ b/session_rust/src/nurbssurface_trimmed.rs
-@@ -2188,10 +2188,18 @@
+@@ -2188,10 +2188,18 @@ impl NurbsSurfaceTrimmed {
              if let Some(vk) = vert_map[vi] {
                  let u = dt.vertices[vi].x;
                  let v = dt.vertices[vi].y;
@@ -248,10 +248,10 @@ index 931147093526fc816b0f905fe2daa81c99c8887a..d7aada312dc18da57e76a87922dfeeab
                      let fl = (f[0] * f[0] + f[1] * f[1] + f[2] * f[2]).sqrt();
                      nrm = if fl.is_finite() && fl > 0.0 {
 diff --git a/session_rust/src/nurbssurface_trimmed_test.rs b/session_rust/src/nurbssurface_trimmed_test.rs
-index 3a3245644e144aa43969ff6888e3647b24d9260e..1f7fcfe3877f6e6462330c5dfdce32ef805d2f54
+index 3a3245644e144aa43969ff6888e3647b24d9260e..1f7fcfe3877f6e6462330c5dfdce32ef805d2f54 100644
 --- a/session_rust/src/nurbssurface_trimmed_test.rs
 +++ b/session_rust/src/nurbssurface_trimmed_test.rs
-@@ -894,3 +894,30 @@
+@@ -894,3 +894,30 @@ REGISTER_MINI_TEST!(
      "Crease Loops",
      crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_crease_loops
  );
@@ -283,10 +283,10 @@ index 3a3245644e144aa43969ff6888e3647b24d9260e..1f7fcfe3877f6e6462330c5dfdce32ef
 +REGISTER_MINI_TEST!("NurbsSurfaceTrimmed", "Singular Planar Normal",
 +    crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_singular_planar_normal);
 diff --git a/session_rust/src/remesh_nurbssurface_grid.rs b/session_rust/src/remesh_nurbssurface_grid.rs
-index 54f27f9be05abbde5f72a5e510d260a9319b9fd2..edf1e097d8937eaec8741c12c40010e003c1750a
+index 54f27f9be05abbde5f72a5e510d260a9319b9fd2..edf1e097d8937eaec8741c12c40010e003c1750a 100644
 --- a/session_rust/src/remesh_nurbssurface_grid.rs
 +++ b/session_rust/src/remesh_nurbssurface_grid.rs
-@@ -574,7 +574,13 @@
+@@ -574,7 +574,13 @@ impl RemeshNurbsSurfaceGrid {
              let (mut nx, mut ny, mut nz) = (fx, fy, fz);
              if !is_pole {
                  if let Some((u, v)) = uv {
@@ -302,10 +302,10 @@ index 54f27f9be05abbde5f72a5e510d260a9319b9fd2..edf1e097d8937eaec8741c12c40010e0
                      if nl.is_finite() && nl > 0.0 {
                          let (mut ax, mut ay, mut az) = (na[0] / nl, na[1] / nl, na[2] / nl);
 diff --git a/session_rust/src/remesh_nurbssurface_grid_test.rs b/session_rust/src/remesh_nurbssurface_grid_test.rs
-index 420f54df26cf6c37d199cfafb7351f741901540f..cc7d8ccfc897c6f12f9113df208cf8cb1e63eb18
+index 420f54df26cf6c37d199cfafb7351f741901540f..cc7d8ccfc897c6f12f9113df208cf8cb1e63eb18 100644
 --- a/session_rust/src/remesh_nurbssurface_grid_test.rs
 +++ b/session_rust/src/remesh_nurbssurface_grid_test.rs
-@@ -296,3 +296,31 @@
+@@ -296,3 +296,31 @@ REGISTER_MINI_TEST!(
      "Crease Normals",
      crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_crease_normals
  );
@@ -338,7 +338,7 @@ index 420f54df26cf6c37d199cfafb7351f741901540f..cc7d8ccfc897c6f12f9113df208cf8cb
 +REGISTER_MINI_TEST!("RemeshNurbsSurfaceGrid", "Singular Planar Normal",
 +    crate::remesh_nurbssurface_grid_test::run_remesh_nurbssurface_grid_singular_planar_normal);
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index d4fae1cf80dcea5f994eb7c3acc444f95f758794..ae58248dd605dd88792f155e6164dc43b284513b
+index d4fae1cf80dcea5f994eb7c3acc444f95f758794..ae58248dd605dd88792f155e6164dc43b284513b 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
 @@ -1,9 +1,9 @@
@@ -353,7 +353,7 @@ index d4fae1cf80dcea5f994eb7c3acc444f95f758794..ae58248dd605dd88792f155e6164dc43
  <script>
  let tutorial;
  let pointer;
-@@ -21,7 +21,7 @@
+@@ -21,7 +21,7 @@ function render() {
      const canvas = document.getElementById('canvas');
      const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
      canvas.dataset.tutorialInspection = JSON.stringify(state);
@@ -363,10 +363,10 @@ index d4fae1cf80dcea5f994eb7c3acc444f95f758794..ae58248dd605dd88792f155e6164dc43
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index 03cc841cb9e88f7b1d1c1269ec15a621d1b6e200..a483961f7b31e253929ac87df36a833d8398891c
+index d82d21e3154c0e4e4d80548dd54ba7fab1b119dd..bc6e4eed35a311b7163f26ee8b646dc7a2e8bd11 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
-@@ -102,11 +102,7 @@
+@@ -105,11 +105,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
              radius: encode_width(b.width),
              color: pack_rgba(Color::black().to_f32()),
          };
@@ -379,11 +379,10 @@ index 03cc841cb9e88f7b1d1c1269ec15a621d1b6e200..a483961f7b31e253929ac87df36a833d
          walk_brep_edges(ink, b, &chains, (&ep, &mut row.bounds));
      }
      row
-@@ -373,4 +369,59 @@
+@@ -377,4 +373,59 @@ mod tests {
              );
          }
      }
--}
 +    /// A collapsed UV corner on a planar pyramid side retains that side's normal at its apex.
 +    /// Check the final upload so later shading-vertex conversion cannot reintroduce face bleed.
 +    #[test]
@@ -439,12 +438,12 @@ index 03cc841cb9e88f7b1d1c1269ec15a621d1b6e200..a483961f7b31e253929ac87df36a833d
 +            }
 +        }
 +    }
-+}
+ }
 diff --git a/session_viewer/src/app/walk/brep_edges.rs b/session_viewer/src/app/walk/brep_edges.rs
-index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9fb6062e2
+index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9fb6062e2 100644
 --- a/session_viewer/src/app/walk/brep_edges.rs
 +++ b/session_viewer/src/app/walk/brep_edges.rs
-@@ -283,43 +283,130 @@
+@@ -283,43 +283,130 @@ pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
      out
  }
  
@@ -458,8 +457,16 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
 -    } else {
 -        None
 -    }
--}
--
++/// Position-based keys preserve incidence across duplicated shading vertices and periodic seams.
++type FacetEdge = [[u64; 3]; 2];
++
++/// At most two incident facets are sufficient for the edge's conservative facing test.
++#[derive(Default)]
++struct FacetPair {
++    normals: [Option<[f64; 3]>; 2],
++    count: usize,
+ }
+ 
 -/// The normal of the face-mesh vertex nearest to `p`: the other face's surface direction at
 -/// the edge, without that face having sampled the edge the same way. A minimum, not a
 -/// threshold, so no tolerance enters; an exact-distance tie breaks by the smaller vertex key,
@@ -471,16 +478,6 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
 -        let closer = match best {
 -            Some((bd, bk, _)) => d < bd || (d == bd && key < bk),
 -            None => true,
-+/// Position-based keys preserve incidence across duplicated shading vertices and periodic seams.
-+type FacetEdge = [[u64; 3]; 2];
-+
-+/// At most two incident facets are sufficient for the edge's conservative facing test.
-+#[derive(Default)]
-+struct FacetPair {
-+    normals: [Option<[f64; 3]>; 2],
-+    count: usize,
-+}
-+
 +/// Canonicalize signed zero without moving a source point or introducing a weld tolerance.
 +fn position_bits(position: [f64; 3]) -> [u64; 3] {
 +    let mut bits = [0; 3];
@@ -492,13 +489,6 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
          };
 -        if closer && let Some(n) = vd.normal() {
 -            best = Some((d, key, n));
--        }
--    }
--    Some(best?.2)
--}
--
--/// What the pipe loop reads: every face mesh (for the other face's normals), the outward
--/// sign of every face (`brep_orient::face_signs`) and the pen.
 +    }
 +    bits
 +}
@@ -551,11 +541,14 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
 +                pair.normals[pair.count] = Some(normal);
 +            }
 +            pair.count += 1;
-+        }
-+    }
+         }
+     }
+-    Some(best?.2)
 +    result
-+}
-+
+ }
+ 
+-/// What the pipe loop reads: every face mesh (for the other face's normals), the outward
+-/// sign of every face (`brep_orient::face_signs`) and the pen.
 +/// Face meshes, orientation signs and exact physical edge incidence consumed during one BRep upload.
  pub struct EdgePen<'a> {
      pub fms: &'a [Mesh],
@@ -607,7 +600,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
  }
  
  /// A normal turned outward by its face's sign.
-@@ -328,10 +415,8 @@
+@@ -328,10 +415,8 @@ fn scaled_normal(normal: Option<[f64; 3]>, sign: f64) -> Option<[f64; 3]> {
      Some([n[0] * sign, n[1] * sign, n[2] * sign])
  }
  
@@ -620,7 +613,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
  pub fn push_edge_pipes(
      seg: &mut SegRows,
      chain: &EdgeChain,
-@@ -346,16 +431,6 @@
+@@ -346,16 +431,6 @@ pub fn push_edge_pipes(
          let (a, b) = (&fm.vertex[&w[0]], &fm.vertex[&w[1]]);
          let p0 = [a.x, a.y, a.z];
          let p1 = [b.x, b.y, b.z];
@@ -637,7 +630,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
          let p0f = super::curves::render_position(p0);
          let p1f = super::curves::render_position(p1);
          // A valid f64 edge may collapse or overflow during display conversion.
-@@ -370,7 +445,7 @@
+@@ -370,7 +445,7 @@ pub fn push_edge_pipes(
              p1: p1f,
              instance_id: ep.pen.row,
              color: ep.pen.color,
@@ -646,7 +639,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
          });
          seg.pipe_ids
              .push(u32::try_from(chain.edge).unwrap_or(u32::MAX));
-@@ -549,8 +624,67 @@
+@@ -549,8 +624,67 @@ mod tests {
          }
      }
  
@@ -715,7 +708,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
      #[test]
      fn pipes_face_both_adjacent_faces() {
          use crate::app::walk::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
-@@ -560,21 +694,25 @@
+@@ -560,21 +694,25 @@ mod tests {
          let fms = b.face_meshes_q(Some(QUALITY));
          let chains = edge_chains(&b, &fms);
          let signs = vec![1.0; fms.len()];
@@ -747,7 +740,7 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
              assert_ne!(p.facing & 0xffff, p.facing >> 16);
              assert_eq!(p.instance_id, 3);
          }
-@@ -582,11 +720,51 @@
+@@ -582,13 +720,53 @@ mod tests {
          let seam = push_edge_pipes(&mut seg, chains[2].as_ref().unwrap(), &ep, &mut bounds);
          assert_eq!(seam, 1);
          let p = &seg.pipes[before];
@@ -757,8 +750,8 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
          assert_eq!(seg.pipe_ids.len(), seg.pipes.len());
          assert!(seg.pipe_ids[..before].iter().all(|&id| id == 0));
          assert_eq!(seg.pipe_ids[before], 2);
-+    }
-+
+     }
+ 
 +    /// A cone apex's smooth +Z fan must not tilt the physical seam's cull normal upward.
 +    #[test]
 +    fn cone_seam_facing_uses_both_incident_facets() {
@@ -797,10 +790,12 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
 +                "physical cone facet normal must retain its slope; apex shading average gives z=0.822"
 +            );
 +        }
-     }
- 
++    }
++
      #[test]
-@@ -602,15 +780,15 @@
+     fn collapsed_display_segments_do_not_create_pick_targets() {
+         let b = BRep::create_box(40.0, 30.0, 25.0);
+@@ -602,15 +780,15 @@ mod tests {
              vertex.z = 1e20;
          }
          let signs = vec![1.0; fms.len()];
@@ -822,10 +817,10 @@ index ea971e27a14fc2adea17e65c114584dc9de55c0d..8c91d0a15043e26118fe02816534e4a9
          assert_eq!(push_edge_pipes(&mut seg, chain, &ep, &mut Aabb::empty()), 0);
          assert!(seg.pipes.is_empty());
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 71e0a9fa582f22dcff07fb94516cb02f1514d8c1..835229a9a206867bf1d218d7609f5878a4e4a08b
+index 71e0a9fa582f22dcff07fb94516cb02f1514d8c1..835229a9a206867bf1d218d7609f5878a4e4a08b 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
-@@ -270,9 +270,13 @@
+@@ -270,9 +270,13 @@ impl Gpu {
                  instances: &self.objects.ink_group,
              };
              self.arena.draw_print(&mut pass, &basic);
@@ -842,10 +837,10 @@ index 71e0a9fa582f22dcff07fb94516cb02f1514d8c1..835229a9a206867bf1d218d7609f5878
              self.arena.draw_text(&mut pass, &basic);
          }
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index 84f830cb6081c78d4cd9dcc449c5182ca16ea297..614b48d0d83f878f17b1bfcaf2ad4629976cf676
+index 84f830cb6081c78d4cd9dcc449c5182ca16ea297..614b48d0d83f878f17b1bfcaf2ad4629976cf676 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -83,6 +83,44 @@
+@@ -83,6 +83,44 @@ impl CadFixture {
      }
  }
  
@@ -890,7 +885,7 @@ index 84f830cb6081c78d4cd9dcc449c5182ca16ea297..614b48d0d83f878f17b1bfcaf2ad4629
  /// A curved source patch carrying the producer's constrained hole mesh in its supported cache.
  fn trimmed_surface() -> NurbsSurface {
      use session_rust::{NurbsSurfaceTrimmed, TrimLoops};
-@@ -145,18 +183,42 @@
+@@ -145,18 +183,42 @@ fn trimmed_surface() -> NurbsSurface {
      surface
  }
  
@@ -945,10 +940,10 @@ index 84f830cb6081c78d4cd9dcc449c5182ca16ea297..614b48d0d83f878f17b1bfcaf2ad4629
      scene
  }
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 53544ae931ae9c15dfd24d4d625925b3de7eb2ef..cdcf8b3f6f7709f06be4aa46a92096da45f91444
+index 53544ae931ae9c15dfd24d4d625925b3de7eb2ef..cdcf8b3f6f7709f06be4aa46a92096da45f91444 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
-@@ -37,6 +37,8 @@
+@@ -37,6 +37,8 @@ impl Tutorial {
              camera.update_position();
          }
          gpu.view.show_grid = false;
@@ -957,7 +952,7 @@ index 53544ae931ae9c15dfd24d4d625925b3de7eb2ef..cdcf8b3f6f7709f06be4aa46a92096da
          Ok(Self {
              canvas,
              gpu,
-@@ -92,7 +94,7 @@
+@@ -92,7 +94,7 @@ impl Tutorial {
              now_ms: now,
          };
          self.gpu.render(&input).map_err(js_error)?;
@@ -967,7 +962,7 @@ index 53544ae931ae9c15dfd24d4d625925b3de7eb2ef..cdcf8b3f6f7709f06be4aa46a92096da
      }
  }
 diff --git a/session_viewer/src/shaders/normals.wgsl b/session_viewer/src/shaders/normals.wgsl
-index e717f4cdc381947d9f1a8005bcacdfef117d374b..36ca8f063427be89ce9209e1aa5ed5ec36be6717
+index e717f4cdc381947d9f1a8005bcacdfef117d374b..36ca8f063427be89ce9209e1aa5ed5ec36be6717 100644
 --- a/session_viewer/src/shaders/normals.wgsl
 +++ b/session_viewer/src/shaders/normals.wgsl
 @@ -1,9 +1,22 @@
@@ -997,10 +992,10 @@ index e717f4cdc381947d9f1a8005bcacdfef117d374b..36ca8f063427be89ce9209e1aa5ed5ec
      return transform_normal(mat3x3<f32>(model[0].xyz, model[1].xyz, model[2].xyz), normal);
  }
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index 6adbd6799d80d58e306268cb5f828112d1242ef3..899b43a73e51289ae7c71d1d3d68cdac3dd6d0c3
+index a9def57546c799df71aa1af01552b5b4f80c1798..b28176b5d22b8405322f6dc8209ac78cf4514aaa 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -90,8 +90,7 @@
+@@ -90,8 +90,7 @@ fn vs_main(in: VsIn) -> VsOut {
      }
      o.color = color;
      o.world_pos = world;

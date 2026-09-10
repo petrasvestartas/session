@@ -1,0 +1,41 @@
+{
+  "name": "Classical",
+  "palette": {
+    "hue": 36,
+    "band": "light",
+    "scheme": "mono",
+    "sat": 0.55,
+    "bg": "#f3f2f2",
+    "surface": "#eae9e9",
+    "text": "#201f1d",
+    "accent": "#b68235",
+    "accent2": "#ac803e"
+  },
+  "fonts": {
+    "heading": {
+      "family": "Cormorant Garamond",
+      "class": "serif-modern",
+      "weights": [
+        400,
+        600
+      ]
+    },
+    "body": {
+      "family": "Lora",
+      "class": "serif-trans",
+      "weights": [
+        400,
+        600
+      ]
+    },
+    "headingWeight": 600
+  },
+  "density": 1.15,
+  "radius": 4,
+  "layoutStyle": "justified",
+  "dividers": "hairline",
+  "imageTreatment": "plate",
+  "photo": "classical",
+  "buttonStyle": "outline",
+  "colorUse": "stroke"
+}

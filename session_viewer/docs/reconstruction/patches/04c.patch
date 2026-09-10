@@ -487,10 +487,10 @@ index 98aeca7e7150fb1a754effdaab1131d69a2fe772..d021d4ac68c4066eecf029892f2e87de
          }
      }
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
-index 43c4a320003093ef280ccbbeb256e1d363deba51..4316b43b51af6e670a1e23c1e855c6e6aac238f6 100644
+index 1da0ad8842c41462610896ced7bdcf94e5823f64..51ba117143418fe7f93301eda628bf459ac7f27f 100644
 --- a/session_viewer/src/engine/pipelines/mod.rs
 +++ b/session_viewer/src/engine/pipelines/mod.rs
-@@ -151,6 +151,12 @@ const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+@@ -167,6 +167,12 @@ const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
      format: wgpu::VertexFormat::Uint32,
  }];
  
@@ -503,7 +503,7 @@ index 43c4a320003093ef280ccbbeb256e1d363deba51..4316b43b51af6e670a1e23c1e855c6e6
  /// The mesh vertex slot: the kernel's interleaved `RenderVertex` (pos, normal, colour).
  pub fn vertex_layout() -> wgpu::VertexBufferLayout<'static> {
      RenderVertex::layout()
-@@ -165,6 +171,15 @@ pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
+@@ -181,6 +187,15 @@ pub fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
      }
  }
  
@@ -569,10 +569,10 @@ index d33b9d82bf9813b8b6693191a5575b3dd8fdf141..3b8ae641cd8f1948d586195561be4a90
  /// Read a monotonic frame time from the browser when available.
 diff --git a/session_viewer/src/shaders/glyph.wgsl b/session_viewer/src/shaders/glyph.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..852aaaebc33ca3792a8ffcfa5e9cf529a74279cb
+index 0000000000000000000000000000000000000000..13e2fe738e7d2e5bfd2c280368ee963966c97e03
 --- /dev/null
 +++ b/session_viewer/src/shaders/glyph.wgsl
-@@ -0,0 +1,188 @@
+@@ -0,0 +1,189 @@
 +// Free points as SDF dots: one triangle per dot (its incircle is the disc), no template.
 +// Group 3 = the glyph table.
 +
@@ -614,6 +614,7 @@ index 0000000000000000000000000000000000000000..852aaaebc33ca3792a8ffcfa5e9cf529
 +    backface: f32,
 +    origin: vec2<f32>,
 +    frame: vec2<f32>,
++    opacity: f32,
 +};
 +
 +// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
@@ -763,10 +764,10 @@ index 0000000000000000000000000000000000000000..852aaaebc33ca3792a8ffcfa5e9cf529
 +}
 diff --git a/session_viewer/src/shaders/sphere.wgsl b/session_viewer/src/shaders/sphere.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..b686c29712d8d1ca8a50f252b079969ae5d19ebc
+index 0000000000000000000000000000000000000000..1a8767c8135aca12668c2e815a76dae94173c597
 --- /dev/null
 +++ b/session_viewer/src/shaders/sphere.wgsl
-@@ -0,0 +1,213 @@
+@@ -0,0 +1,215 @@
 +// Mesh vertex markers: a camera-facing quad template per glyph, trimmed to a disc by the
 +// fragment SDF, hidden when every incident face turns away. Group 3 = the glyph table.
 +
@@ -808,6 +809,7 @@ index 0000000000000000000000000000000000000000..b686c29712d8d1ca8a50f252b079969a
 +    backface: f32,
 +    origin: vec2<f32>,
 +    frame: vec2<f32>,
++    opacity: f32,
 +};
 +
 +const FACING_UNKNOWN: u32 = 0xffffffffu;
@@ -927,8 +929,9 @@ index 0000000000000000000000000000000000000000..b686c29712d8d1ca8a50f252b079969a
 +        return dead_dot();
 +    }
 +
-+    // Hidden vertices never reach the rasterizer, unless the eye is inside the object.
-+    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u;
++    // Hidden vertices never reach the rasterizer, unless the eye is inside the object or
++    // x-ray (`P`) shows every vertex.
++    let inside = (inst.flags & (FLAG_INSIDE | FLAG_OPEN)) != 0u || line.opacity <= 0.0;
 +    if (!inside) {
 +        let kf = faces_front(g, inst.model, toward_eye(centre));
 +        if (kf.x && !kf.y) {

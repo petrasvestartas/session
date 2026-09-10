@@ -128,17 +128,17 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=1-47 -->
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=48-80 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=48-81 -->
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=81-167 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=82-168 -->
 
 - A press that moved more than `CLICK_SLOP` before release is a drag, so a camera gesture never selects on release.
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=168-195 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=169-196 -->
 
 - The owned `pointercancel` listener detaches on drop; a forgotten closure would outlive the canvas.
 
-<!-- file: 12 session_viewer/src/app/input.rs copy lines=196-255 -->
+<!-- file: 12 session_viewer/src/app/input.rs copy lines=197-256 -->
 
 ### Step 5 · Touch
 

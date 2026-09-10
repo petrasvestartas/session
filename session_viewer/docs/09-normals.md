@@ -107,9 +107,9 @@ Module unit tests: COPY.
 
 The BRep walk builds the incidence once per upload:
 
-<!-- file: 09 session_viewer/src/app/walk/brep.rs type hunks=1 -->
+<!-- file: 09 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
 
-<!-- file: 09 session_viewer/src/app/walk/brep.rs copy hunks=2 -->
+<!-- file: 09 session_viewer/src/app/walk/brep.rs copy hunks=2-2 -->
 
 <!-- check: 09 -->
 
@@ -173,7 +173,7 @@ A subtle crease under one light is not proof that normals are separate; identica
 
 ## Try
 
-- Open `?cad=sphere` and then `?cad=sphere&nolit=1`: the shading is the only difference, the mesh is the same; a normal bug shows in the first view only.
+- Open `?cad=sphere&lit=1` and then `?cad=sphere`: the shading is the only difference, the mesh is the same; a normal bug shows in the first view only.
 - Open `?cad=crease` and orbit until the light grazes the fold: one side goes dark while the other stays lit, because the two sides own different normals at the same positions.
 - Open `?cad=cylinder&affine=1`: the stretched copy shades like the original. Replace `transform_normal` in `normals.wgsl` with a plain `mat3x3(model) * n` and reload: the stretched copy's lighting tilts.
 

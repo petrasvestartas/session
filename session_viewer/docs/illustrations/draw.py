@@ -2,18 +2,30 @@
 """Generate the course illustrations as SVG from a layout that sizes every box from its text.
 
 Palette: the BRG Equilibrium drawing library (navy compression, pink tension, green loads,
-yellow hover, orange inspector, pale bands). Run `python3 docs/illustrations/draw.py`, then
-`node docs/check_illustrations.cjs` measures every label in Chrome and fails on any overflow.
+yellow hover, orange inspector, pale bands). It is the drawing's own and stays put, because a
+reader carries these colours from a diagram to the running viewer. What the Claude Design
+system in ../stylesheets/theme.json does own is the chrome: the corner radius of the frame and
+of every box, so the drawing and the plate course.css mounts it on agree.
+
+Run `python3 docs/illustrations/draw.py`, then `node docs/check_illustrations.cjs --write`
+measures every label in Chrome, fails on any overflow, and pins each measured width.
 """
 from pathlib import Path
+import json
 
 HERE = Path(__file__).resolve().parent
+THEME = json.loads((HERE.parent / "stylesheets/theme.json").read_text())
+RADIUS = THEME["radius"]
+# The ground, and the dark ink drawn on a light shape. BRG black, not the design system's ink:
+# these drawings and the Mermaid diagrams are one set, and the Mermaid ones already carry BRG
+# pink. course.css spends the same value on Mermaid so the two never drift.
+INK = "#111111"
 
 PAL = {
     "navy": "#1a1eb2", "pink": "#ce4095", "green": "#3f9c20", "yellow": "#e8ac00",
     "yellow_light": "#f9e08a", "orange": "#e07a26", "ghost": "#9ed4c9", "grey": "#aaaaaa",
     "zero": "#b9b9bd", "pink_band": "#f0bcdb", "blue_band": "#bdbfe8", "zero_band": "#e4e4e7",
-    "black": "#111111", "text2": "#455b6b", "page": "#eef0f2", "white": "#ffffff",
+    "black": INK, "text2": "#455b6b", "page": "#eef0f2", "white": "#ffffff",
 }
 # Box kinds: (fill, stroke). CPU/Rust = blue band, GPU/WGSL = pink band, note = zero band,
 # selection = yellow light, warning = orange stroke.
@@ -30,7 +42,7 @@ KIND = {
 ON_BLACK = {
     PAL["navy"]: "#bdbfe8", PAL["pink"]: "#f0bcdb", PAL["green"]: "#8fd36a", PAL["text2"]: "#c9ccd6",
     PAL["black"]: "#f4f4f6", "#111": "#f4f4f6", PAL["grey"]: "#b9b9bd", PAL["zero"]: "#b9b9bd",
-    PAL["white"]: "#111111",
+    PAL["white"]: INK,
 }
 # Average glyph advance per em, calibrated against Chrome on the build host; the checker
 # writes `textLength` from real measurements so other machines cannot overflow either.
@@ -86,7 +98,7 @@ class Canvas:
         widest = max([width(title, title_cls)] + [width(b.replace("`", ""), body_cls if not b.startswith("`") else "m") for b in body] + [0])
         return widest + 2 * pad
 
-    def box(self, x, y, lines, kind="cpu", w=None, h=None, pad=12, gap=6, title_cls="l", body_cls="s", r=8):
+    def box(self, x, y, lines, kind="cpu", w=None, h=None, pad=12, gap=6, title_cls="l", body_cls="s", r=RADIUS):
         """A rounded box whose width fits its longest line unless `w` is given. Returns (x,y,w,h)."""
         fill, stroke = KIND[kind]
         title, body = lines[0], lines[1:]
@@ -116,7 +128,7 @@ class Canvas:
                 self.text(mx + 8, my + 4, label, "s")
 
     def raw(self, svg):
-        swap = {'"#111111"': '"#f4f4f6"', "fill:#fff;": "fill:#111111;", "fill:#ffffff": "fill:#111111", '"#ffffff"': '"#111111"'}
+        swap = {'"#111111"': '"#f4f4f6"', "fill:#fff;": f"fill:{INK};", "fill:#ffffff": f"fill:{INK}", '"#ffffff"': f'"{INK}"'}
         for old, new in swap.items():
             svg = svg.replace(old, new)
         for old, new in ON_BLACK.items():
@@ -127,7 +139,7 @@ class Canvas:
     def write(self, name):
         head = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {self.w} {self.h}" role="img" aria-labelledby="t d">'
                 f'<title id="t">{esc(self.title)}</title><desc id="d">{esc(self.desc)}</desc>{MARKER}<style>{STYLE}</style>'
-                f'<rect width="100%" height="100%" rx="14" fill="{PAL["black"]}"/>')
+                f'<rect width="100%" height="100%" rx="{RADIUS}" fill="{PAL["black"]}"/>')
         (HERE / name).write_text(head + "".join(self.parts) + "</svg>\n")
 
 
@@ -957,7 +969,401 @@ def joins():
     c.write("joins.svg")
 
 
+def ribbon():
+    c = Canvas("A stroke segment is a screen-space quad",
+               "A segment has no mesh. The vertex shader emits six vertices per row, placing a camera-facing quad around the projected axis, and the half-width at each end travels down as a scalar so the trapezoid resolves per pixel. Coverage is not a distance ramp: band_area integrates the pixel box against the capsule exactly, so a thin stroke cannot beat with its own subpixel phase.",
+               1180, 460)
+    import math
+    pink, green, grey = PAL["pink"], PAL["green"], PAL["grey"]
+    c.text(28, 40, "Six vertices, then exact coverage", "h")
+
+    c.text(60, 86, "no vertex buffer: the quad is built in the shader", "l")
+    ax, ay, bx, by = 110.0, 320.0, 440.0, 190.0
+    h0, h1 = 40.0, 22.0
+    dx, dy = bx - ax, by - ay
+    n = math.hypot(dx, dy)
+    nx, ny = -dy / n, dx / n
+    p = [(ax + nx * h0, ay + ny * h0), (bx + nx * h1, by + ny * h1),
+         (bx - nx * h1, by - ny * h1), (ax - nx * h0, ay - ny * h0)]
+    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in p) + '" fill="#ffffff" fill-opacity="0.10" stroke="#111111" stroke-width="1.4"/>')
+    c.raw(f'<line x1="{p[0][0]:.1f}" y1="{p[0][1]:.1f}" x2="{p[2][0]:.1f}" y2="{p[2][1]:.1f}" stroke="{grey}" stroke-width="1" stroke-dasharray="4 4"/>')
+    c.raw(f'<line x1="{ax}" y1="{ay}" x2="{bx}" y2="{by}" stroke="{pink}" stroke-width="1.8"/>')
+    for x, y in p:
+        c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.5" fill="#111111"/>')
+    c.raw(f'<line x1="{ax:.1f}" y1="{ay:.1f}" x2="{p[0][0]:.1f}" y2="{p[0][1]:.1f}" stroke="{green}" stroke-width="1.6"/>')
+    c.raw(f'<line x1="{bx:.1f}" y1="{by:.1f}" x2="{p[1][0]:.1f}" y2="{p[1][1]:.1f}" stroke="{green}" stroke-width="1.6"/>')
+    c.text(96, 372, "two triangles share the dashed diagonal", "s")
+    c.text(96, 394, "the axis is the row; the corners are computed", "s", fill=pink)
+    c.text(96, 416, "one half-width per end, resolved per pixel", "s", fill=green)
+
+    c.text(660, 86, "coverage is an area, not a distance", "l")
+    gx, gy, cell = 700.0, 150.0, 58.0
+    for i in range(4):
+        for j in range(3):
+            c.raw(f'<rect x="{gx + i * cell:.1f}" y="{gy + j * cell:.1f}" width="{cell}" height="{cell}" fill="none" stroke="{grey}" stroke-width="0.9"/>')
+    edge_y0, edge_y1 = gy + 22.0, gy + 3 * cell - 30.0
+    c.raw(f'<path d="M{gx:.1f},{edge_y0:.1f} L{gx + 4 * cell:.1f},{edge_y1:.1f}" stroke="{pink}" stroke-width="2"/>')
+    # the one pixel whose box is split by the capsule edge: the shaded part is band_area
+    px, py = gx + cell, gy + cell
+    top = edge_y0 + (edge_y1 - edge_y0) * (cell / (4 * cell))
+    bot = edge_y0 + (edge_y1 - edge_y0) * (2 * cell / (4 * cell))
+    c.raw(f'<polygon points="{px:.1f},{top:.1f} {px + cell:.1f},{bot:.1f} {px + cell:.1f},{py + cell:.1f} {px:.1f},{py + cell:.1f}" fill="{pink}" fill-opacity="0.55"/>')
+    c.raw(f'<rect x="{px:.1f}" y="{py:.1f}" width="{cell}" height="{cell}" fill="none" stroke="#111111" stroke-width="2"/>')
+    c.text(660, 372, "band_area integrates one pixel box against the capsule", "s")
+    c.text(660, 394, "the shaded part is the pixel's coverage, exactly", "s", fill=pink)
+    c.text(660, 416, "a distance ramp beats with the line's subpixel phase; this does not", "s")
+    c.write("ribbon.svg")
+
+
+def markers():
+    c = Canvas("Two ways to cover a disc",
+               "A vertex marker is a sphere: the template corner is pushed out in clip space by the pixel radius plus the feather, so four vertices always contain the antialiased disc. A free dot needs no template at all, because one equilateral triangle whose incircle is the disc covers it with three vertices.",
+               1180, 430)
+    import math
+    pink, green, yellow, grey = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
+    c.text(28, 40, "Four vertices, or three", "h")
+
+    c.text(60, 86, "sphere marker: a quad from the template", "l")
+    cx, cy, r = 250.0, 258.0, 76.0
+    feather = 14.0
+    half = r + feather
+    c.raw(f'<rect x="{cx - half:.1f}" y="{cy - half:.1f}" width="{2 * half:.1f}" height="{2 * half:.1f}" fill="#ffffff" fill-opacity="0.08" stroke="#111111" stroke-width="1.4"/>')
+    c.raw(f'<circle cx="{cx}" cy="{cy}" r="{half:.1f}" fill="none" stroke="{green}" stroke-width="1.2" stroke-dasharray="5 4"/>')
+    c.raw(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{pink}" fill-opacity="0.45" stroke="{pink}" stroke-width="1.6"/>')
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            c.raw(f'<circle cx="{cx + sx * half:.1f}" cy="{cy + sy * half:.1f}" r="4.5" fill="#111111"/>')
+    c.text(60, 372, "four template corners, offset in clip space", "s")
+    c.text(60, 394, "pixel radius plus the feather, so the quad always contains the disc", "s", fill=green)
+
+    c.text(660, 86, "free dot: one equilateral triangle", "l")
+    dx0, dy0, dr = 880.0, 258.0, 76.0
+    verts = [(dx0 + 2 * dr * math.cos(math.radians(a)), dy0 + 2 * dr * math.sin(math.radians(a))) for a in (-90, 30, 150)]
+    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in verts) + '" fill="#ffffff" fill-opacity="0.08" stroke="#111111" stroke-width="1.4"/>')
+    c.raw(f'<circle cx="{dx0}" cy="{dy0}" r="{dr}" fill="{pink}" fill-opacity="0.45" stroke="{pink}" stroke-width="1.6"/>')
+    for x, y in verts:
+        c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4.5" fill="#111111"/>')
+    c.raw(f'<line x1="{dx0}" y1="{dy0}" x2="{dx0}" y2="{dy0 + dr}" stroke="{yellow}" stroke-width="1.4"/>')
+    c.raw(f'<circle cx="{dx0}" cy="{dy0}" r="3" fill="{yellow}"/>')
+    c.text(660, 372, "three vertices, no template and no vertex buffer", "s")
+    c.text(660, 394, "the incircle is the visible disc; the corners are never seen", "s", fill=pink)
+    c.write("markers.svg")
+
+
+def lod():
+    c = Canvas("One node, one decision",
+               "The LOD walk is pure CPU and asks one question per node: how wide does this node's point spacing land on screen? Wider than lod_px and the walk descends, picking up the finer subsample each child owns. No wider, and the node is drawn whole from its own subsample and nothing below it is read.",
+               1180, 480)
+    pink, green, grey = PAL["pink"], PAL["green"], PAL["grey"]
+    c.text(28, 40, "Descend, or stop", "h")
+
+    def node(x, y, size, step, tint):
+        c.raw(f'<rect x="{x:.1f}" y="{y:.1f}" width="{size:.1f}" height="{size:.1f}" fill="{tint}" fill-opacity="0.14" stroke="#111111" stroke-width="1.3"/>')
+        count = int(size // step)
+        start = (size - (count - 1) * step) / 2
+        for i in range(count):
+            for j in range(count):
+                c.raw(f'<circle cx="{x + start + step * i:.1f}" cy="{y + start + step * j:.1f}" r="1.9" fill="{grey}"/>')
+
+    def ruler(x, y, length, colour):
+        c.raw(f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x + length:.1f}" y2="{y:.1f}" stroke="{colour}" stroke-width="2"/>')
+        for at in (x, x + length):
+            c.raw(f'<line x1="{at:.1f}" y1="{y - 5:.1f}" x2="{at:.1f}" y2="{y + 5:.1f}" stroke="{colour}" stroke-width="2"/>')
+
+    c.text(110, 86, "spacing wider than lod_px: descend", "l", fill=pink)
+    for i in (0, 1):
+        for j in (0, 1):
+            node(110 + i * 120, 120 + j * 120, 120, 14.0, pink)
+    ruler(110, 396, 44, pink)
+    c.text(168, 400, "this node's spacing — too wide, so its four children are drawn", "s", fill=pink)
+    ruler(110, 428, 24, grey)
+    c.text(168, 432, "lod_px", "s")
+
+    c.text(700, 86, "spacing fits: draw the node whole", "l", fill=green)
+    node(700, 120, 240, 34.0, green)
+    ruler(700, 396, 16, green)
+    c.text(758, 400, "this node's spacing — fits, so the node itself is drawn", "s", fill=green)
+    ruler(700, 428, 24, grey)
+    c.text(758, 432, "lod_px", "s")
+
+    c.text(28, 464, "Each node owns its subsample, so descending only adds detail; the finest spacing found below a node travels back up to size the discs it is drawn with.", "s")
+    c.write("lod.svg")
+
+
+def arena():
+    c = Canvas("Vertex pulling: one arena, no vertex buffer",
+               "Every mesh in the scene puts its vertices into one growable arena, and the object table records where each mesh starts. The pipeline binds no vertex buffer at all: the shader takes its vertex index, reads face_indices, adds the object's base row and pulls the position straight out of the arena.",
+               1180, 420)
+    navy, pink, green, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"]
+    c.text(28, 40, "The shader indexes the arena", "h")
+
+    tri = [(386.0, 120.0), (590.0, 120.0), (488.0, 214.0)]
+    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in tri) + '" fill="#ffffff" fill-opacity="0.10" stroke="#111111" stroke-width="1.4"/>')
+    for x, y in tri:
+        c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="5" fill="{pink}"/>')
+    c.text(120, 150, "one triangle", "l")
+    c.text(120, 176, "vertex_index 0 · 1 · 2", "s", fill=pink)
+    c.text(660, 176, "face_indices[vertex_index] + the object's base row", "s", fill=grey)
+
+    sx, sy, sw, sh = 80.0, 286.0, 1020.0, 46.0
+    ranges = [("mesh A", 0.00, 0.22, navy), ("mesh B", 0.22, 0.62, pink), ("mesh C", 0.62, 0.80, green), ("mesh D", 0.80, 1.00, grey)]
+    for name, a, b, colour in ranges:
+        c.raw(f'<rect x="{sx + sw * a:.1f}" y="{sy:.1f}" width="{sw * (b - a):.1f}" height="{sh:.1f}" fill="{colour}" fill-opacity="0.22" stroke="{colour}" stroke-width="1.2"/>')
+        c.text(sx + sw * a + 10, sy - 12, name, "s", fill=colour)
+    for (tx, ty), at in zip(tri, (0.30, 0.50, 0.40)):
+        target = sx + sw * at
+        c.arrow(tx, ty + 12, target, sy - 8)
+        c.raw(f'<circle cx="{target:.1f}" cy="{sy + sh / 2:.1f}" r="4.5" fill="#111111"/>')
+    c.text(80, 366, "One growable arena holds every mesh; the object table holds the base of each.", "s")
+    c.text(80, 388, "No vertex buffer is bound: a draw is a vertex count and a row.", "s", fill=green)
+    c.write("arena.svg")
+
+
+def stages():
+    c = Canvas("Three vertices in, thousands of fragments out",
+               "The two shaders you write never meet. vs_main runs once per vertex and its only required output is a clip position. Between the two stages sits the rasterizer, which you do not write: it works out which pixels the triangle covers and blends the vertex outputs across them. fs_main then runs once per covered pixel and never sees a vertex at all, only the blend.",
+               1180, 540)
+    navy, pink, green, grey, yellow = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"], PAL["yellow"]
+    c.text(28, 40, "The two shaders never meet", "h")
+
+    def triangle(ox, oy):
+        return [(ox + 40.0, oy + 40.0), (ox + 250.0, oy + 10.0), (ox + 150.0, oy + 180.0)]
+
+    def inside(p, tri):
+        (x1, y1), (x2, y2), (x3, y3) = tri
+        d = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+        a = ((y2 - y3) * (p[0] - x3) + (x3 - x2) * (p[1] - y3)) / d
+        b = ((y3 - y1) * (p[0] - x3) + (x1 - x3) * (p[1] - y3)) / d
+        return a >= 0 and b >= 0 and a + b <= 1
+
+    c.text(60, 86, "vs_main", "l", fill=navy)
+    c.text(60, 112, "3 invocations", "s", fill=navy)
+    ta = triangle(60, 150)
+    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in ta) + '" fill="none" stroke="#111111" stroke-width="1.4"/>')
+    for x, y in ta:
+        c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="7" fill="{navy}"/>')
+    c.text(60, 400, "one call per vertex; the only output it owes", "s")
+    c.text(60, 422, "is @builtin(position), in clip space", "s")
+
+    c.text(450, 86, "the rasterizer", "l", fill=grey)
+    c.text(450, 112, "fixed function: you do not write it", "s", fill=grey)
+    tb = triangle(450, 150)
+    step = 13.0
+    for i in range(20):
+        for j in range(15):
+            px, py = 450 + 30 + step * i, 150 + step * j
+            if inside((px + step / 2, py + step / 2), tb):
+                c.raw(f'<rect x="{px:.1f}" y="{py:.1f}" width="{step - 1.4:.1f}" height="{step - 1.4:.1f}" fill="{pink}" fill-opacity="0.34"/>')
+    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in tb) + '" fill="none" stroke="#111111" stroke-width="1.4"/>')
+    for x, y in tb:
+        c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="7" fill="{navy}"/>')
+    c.text(450, 400, "it finds the covered pixels and blends the", "s")
+    c.text(450, 422, "three vertex outputs across every one of them", "s")
+
+    c.text(830, 86, "fs_main", "l", fill=pink)
+    c.text(830, 112, "one invocation per covered pixel", "s", fill=pink)
+    tc = triangle(830, 150)
+    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in tc) + '" fill="none" stroke="#111111" stroke-width="1.4"/>')
+    frag = (tc[0][0] + 110.0, tc[0][1] + 90.0)
+    for px, py in tc:
+        c.raw(f'<line x1="{px:.1f}" y1="{py:.1f}" x2="{frag[0]:.1f}" y2="{frag[1]:.1f}" stroke="{grey}" stroke-width="1" stroke-dasharray="4 4"/>')
+        c.raw(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="7" fill="{navy}"/>')
+    c.raw(f'<rect x="{frag[0] - 8:.1f}" y="{frag[1] - 8:.1f}" width="16" height="16" fill="{yellow}"/>')
+    c.text(830, 400, "it never sees a vertex, only the blend", "s")
+    c.text(830, 422, "w0·v0 + w1·v1 + w2·v2, summing to one", "s", fill=yellow)
+
+    c.arrow(330, 250, 470, 250)
+    c.arrow(730, 250, 870, 250)
+    c.text(28, 484, "This is why a value cannot travel from one pixel to its neighbour.", "s")
+    c.text(28, 506, "Anything a fragment needs is a uniform, a buffer it can index, or something a vertex handed to the rasterizer first.", "s")
+    c.write("stages.svg")
+
+
+def interpolate():
+    c = Canvas("What the rasterizer hands over",
+               "A value carried from the vertex shader to the fragment shader is blended, and the blend is perspective-correct: evenly spaced pixels do not correspond to evenly spaced points on the surface. Marking an output flat turns the blending off, so every fragment of the triangle reads one vertex's value unchanged. Both are used here: a colour interpolates, a stroke's half-width does not.",
+               1180, 500)
+    navy, pink, green, grey, yellow = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"], PAL["yellow"]
+    c.text(28, 40, "Blended, or not blended", "h")
+
+    c.text(60, 86, "the blend is perspective-correct", "l", fill=pink)
+    ex, ey = 90.0, 250.0
+    sx = 250.0
+    ax, ay, bx2, by2 = 420.0, 170.0, 580.0, 330.0
+
+    def to_screen(px, py):
+        return ey + (sx - ex) / (px - ex) * (py - ey)
+
+    # Sample the screen only across the span the surface actually subtends, so every ray lands
+    # on the segment and the uneven spacing that comes back is the whole point of the picture.
+    sa, sb = to_screen(ax, ay), to_screen(bx2, by2)
+    c.raw(f'<line x1="{sx}" y1="{min(sa, sb) - 40:.1f}" x2="{sx}" y2="{max(sa, sb) + 40:.1f}" stroke="{grey}" stroke-width="1.4"/>')
+    c.text(214, min(sa, sb) - 52, "screen", "s")
+    c.raw(f'<line x1="{ax}" y1="{ay}" x2="{bx2}" y2="{by2}" stroke="{pink}" stroke-width="2.4"/>')
+    c.raw(f'<circle cx="{ex}" cy="{ey}" r="5" fill="{yellow}"/>')
+    c.text(60, 292, "eye", "s", fill=yellow)
+    sxx, syy = bx2 - ax, by2 - ay
+    for k in range(7):
+        py = sa + (sb - sa) * k / 6.0
+        dxr, dyr = sx - ex, py - ey
+        u = ((ax - ex) * syy - (ay - ey) * sxx) / (dxr * syy - dyr * sxx)
+        hx, hy = ex + dxr * u, ey + dyr * u
+        c.raw(f'<line x1="{sx:.1f}" y1="{py:.1f}" x2="{hx:.1f}" y2="{hy:.1f}" stroke="{grey}" stroke-width="0.9" stroke-dasharray="4 4"/>')
+        c.raw(f'<circle cx="{sx:.1f}" cy="{py:.1f}" r="3.4" fill="#111111"/>')
+        c.raw(f'<circle cx="{hx:.1f}" cy="{hy:.1f}" r="3.4" fill="{pink}"/>')
+    c.text(430, 378, "the surface, seen edge on", "s", fill=pink)
+    c.text(60, 412, "seven evenly spaced pixels, seven points that are not evenly spaced", "s")
+    c.text(60, 434, "dividing by w is what keeps the two in step", "s", fill=pink)
+
+    c.text(700, 86, "@interpolate(flat): no blend at all", "l", fill=green)
+    tri = [(760.0, 320.0), (930.0, 160.0), (1100.0, 320.0)]
+    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in tri) + '" fill="{}" fill-opacity="0.30" stroke="#111111" stroke-width="1.4"/>'.format(green))
+    for x, y in tri:
+        c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="6" fill="#111111"/>')
+    c.raw(f'<circle cx="{tri[0][0]:.1f}" cy="{tri[0][1]:.1f}" r="9" fill="{green}"/>')
+    c.text(700, 380, "one vertex decides for the whole triangle", "s", fill=green)
+    c.text(700, 412, "a stroke's half-width goes down flat and is resolved per pixel:", "s")
+    c.text(700, 434, "a width blended over a trapezoid would be projective, and wrong", "s")
+    c.write("interpolate.svg")
+
+
+def frustum():
+    c = Canvas("The frustum becomes a cube",
+               "The projection matrix and the divide by w take everything inside the viewing frustum and land it in a cube. Depth does not survive that trip evenly: with the near and far planes swapped, so that near maps to one and far to zero, the float values crowd where the geometry is instead of where it is not.",
+               1180, 500)
+    navy, pink, green, grey, yellow = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"], PAL["yellow"]
+    c.text(28, 40, "Depth does not survive evenly", "h")
+
+    c.text(60, 86, "view space: metres from the eye", "l")
+    ex, ey = 100.0, 250.0
+    near_x, far_x = 200.0, 560.0
+    half_near, half_far = 44.0, 128.0
+    c.raw(f'<polygon points="{near_x},{ey - half_near} {far_x},{ey - half_far} {far_x},{ey + half_far} {near_x},{ey + half_near}" fill="#ffffff" fill-opacity="0.07" stroke="#111111" stroke-width="1.3"/>')
+    for side in (-1, 1):
+        c.raw(f'<line x1="{ex:.1f}" y1="{ey:.1f}" x2="{far_x:.1f}" y2="{ey + side * half_far:.1f}" stroke="{grey}" stroke-width="1" stroke-dasharray="5 5"/>')
+    c.raw(f'<circle cx="{ex}" cy="{ey}" r="5" fill="{yellow}"/>')
+    c.text(62, 300, "eye", "s", fill=yellow)
+    depths = [(1.0, near_x), (1.5, 260.0), (2.5, 350.0), (4.0, 450.0), (8.0, far_x)]
+    for scale, x in depths:
+        c.raw(f'<circle cx="{x:.1f}" cy="{ey:.1f}" r="4.5" fill="{pink}"/>')
+    c.text(60, 400, "five points, spread out through the frustum", "s", fill=pink)
+    c.text(60, 422, "at 1×, 1.5×, 2.5×, 4× and 8× the near distance", "s")
+
+    c.text(700, 86, "clip, then divide by w: the cube", "l")
+    cx0, cy0, cs = 740.0, 130.0, 240.0
+    c.raw(f'<rect x="{cx0}" y="{cy0}" width="{cs}" height="{cs}" fill="#ffffff" fill-opacity="0.07" stroke="#111111" stroke-width="1.3"/>')
+    for scale, _ in depths:
+        ndc = 1.0 / scale
+        y = cy0 + (1.0 - ndc) * cs
+        c.raw(f'<line x1="{cx0:.1f}" y1="{y:.1f}" x2="{cx0 + cs:.1f}" y2="{y:.1f}" stroke="{pink}" stroke-width="1.8"/>')
+    c.text(1000, 148, "near = 1", "s", fill=green)
+    c.text(1000, 380, "far = 0", "s", fill=green)
+    c.text(700, 400, "the same five points: the far ones crowd into a thin band", "s", fill=pink)
+    c.text(700, 422, "and that band sits at zero, where float32 is densest — which is the swap", "s")
+    c.text(28, 458, "Only x and y go on to the viewport map, from [-1, 1] to pixels.", "s")
+    c.text(28, 480, "Depth is compared and never displayed, so all that matters is that two nearby surfaces land on two different floats.", "s")
+    c.write("frustum.svg")
+
+
+def camera_basis():
+    c = Canvas("Three gestures, three fields",
+               "The camera keeps a target, a distance and an orientation, and every gesture changes exactly one of them. Orbit turns the orientation about the target; pan slides the target across the camera's own plane; the wheel scales the distance and never reaches zero. The view matrix is rebuilt from those three, so no gesture can put the camera in a state the others cannot undo.",
+               1180, 420)
+    navy, pink, green, grey, yellow = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"], PAL["yellow"]
+    c.text(28, 40, "Each gesture moves one field", "h")
+    import math
+
+    def eye(x, y, angle, colour):
+        dx, dy = math.cos(angle), math.sin(angle)
+        px, py = -dy, dx
+        c.raw(f'<polygon points="{x + dx * 18:.1f},{y + dy * 18:.1f} {x - dx * 10 + px * 13:.1f},{y - dy * 10 + py * 13:.1f} {x - dx * 10 - px * 13:.1f},{y - dy * 10 - py * 13:.1f}" fill="{colour}"/>')
+
+    panels = [
+        (90.0, "orbit", "the orientation turns; target and distance hold", pink),
+        (490.0, "pan", "the target slides in the camera's plane", green),
+        (890.0, "wheel", "the distance scales, and never reaches zero", yellow),
+    ]
+    for ox, name, note, colour in panels:
+        c.text(ox, 92, name, "l", fill=colour)
+        tx, ty, radius = ox + 110.0, 230.0, 90.0
+        c.raw(f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="4.5" fill="#111111"/>')
+        c.text(tx - 22, ty + 30, "target", "s")
+        if name == "orbit":
+            c.raw(f'<circle cx="{tx:.1f}" cy="{ty:.1f}" r="{radius:.1f}" fill="none" stroke="{grey}" stroke-width="1" stroke-dasharray="5 5"/>')
+            for angle in (math.radians(200), math.radians(250)):
+                eye(tx + math.cos(angle) * radius, ty + math.sin(angle) * radius, angle + math.pi, colour)
+            c.raw(f'<path d="M{tx + math.cos(math.radians(200)) * (radius + 22):.1f},{ty + math.sin(math.radians(200)) * (radius + 22):.1f} A{radius + 22:.1f},{radius + 22:.1f} 0 0 1 {tx + math.cos(math.radians(250)) * (radius + 22):.1f},{ty + math.sin(math.radians(250)) * (radius + 22):.1f}" fill="none" stroke="{colour}" stroke-width="2"/>')
+        elif name == "pan":
+            eye(tx - radius, ty, 0.0, colour)
+            c.raw(f'<line x1="{tx:.1f}" y1="{ty:.1f}" x2="{tx + 70:.1f}" y2="{ty - 44:.1f}" stroke="{colour}" stroke-width="2"/>')
+            c.raw(f'<circle cx="{tx + 70:.1f}" cy="{ty - 44:.1f}" r="4.5" fill="{colour}"/>')
+        else:
+            far_x, near_x = tx - 150.0, tx - 58.0
+            c.raw(f'<line x1="{far_x:.1f}" y1="{ty:.1f}" x2="{tx:.1f}" y2="{ty:.1f}" stroke="{grey}" stroke-width="1" stroke-dasharray="5 5"/>')
+            eye(far_x, ty, 0.0, grey)
+            eye(near_x, ty, 0.0, colour)
+            c.arrow(far_x + 26, ty + 46, near_x - 6, ty + 46)
+        c.text(ox, 342, note, "s", fill=colour)
+    c.text(28, 392, "The view-projection is rebuilt from target, distance and orientation every frame, so the three gestures compose in any order and each one is exactly undoable.", "s")
+    c.write("camera-basis.svg")
+
+
+def masks():
+    c = Canvas("One border, however many masks",
+               "The silhouette is not drawn from geometry. Ordinary and selected ink each rasterize into an R8 coverage mask, the compositor takes the larger of the two so a selected edge thickens without doubling, and a pooled copy holding the maximum of every block lets a fragment with no ink anywhere near it return zero without entering the search loop at all.",
+               1180, 500)
+    import math
+    pink, green, yellow, grey = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
+    c.text(28, 40, "Two coverage masks, pooled, then one border", "h")
+
+    def pentagon(cx, cy, r=86.0):
+        return [(cx + math.cos(math.radians(-90 + k * 72)) * r, cy + math.sin(math.radians(-90 + k * 72)) * r) for k in range(5)]
+
+    def outline(pts, colour, width, opacity=1.0):
+        c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in pts) + f'" fill="none" stroke="{colour}" stroke-width="{width}" stroke-opacity="{opacity}" stroke-linejoin="round"/>')
+
+    def near(p, pts, reach):
+        best = 1e9
+        for i in range(len(pts)):
+            (ax, ay), (bx, by) = pts[i], pts[(i + 1) % len(pts)]
+            dx, dy = bx - ax, by - ay
+            t = max(0.0, min(1.0, ((p[0] - ax) * dx + (p[1] - ay) * dy) / (dx * dx + dy * dy)))
+            best = min(best, math.hypot(p[0] - (ax + dx * t), p[1] - (ay + dy * t)))
+        return best <= reach
+
+    c.text(60, 86, "two masks", "l", fill=pink)
+    one = pentagon(190, 250)
+    outline(one, yellow, 18, 0.55)
+    outline(one, pink, 6)
+    c.text(60, 386, "ordinary ink is thin, selected ink is thicker,", "s")
+    c.text(60, 408, "and each lands in its own R8 attachment", "s", fill=pink)
+
+    c.text(460, 86, "max, not sum", "l", fill=green)
+    two = pentagon(590, 250)
+    outline(two, green, 18, 0.75)
+    c.text(460, 386, "the larger of the two, so a selected edge", "s")
+    c.text(460, 408, "thickens instead of doubling in weight", "s", fill=green)
+
+    c.text(850, 86, "block maxima", "l", fill=yellow)
+    three = pentagon(980, 250)
+    outline(three, grey, 18, 0.35)
+    block = 27.0
+    for i in range(9):
+        for j in range(9):
+            bx, by = 980 - 121 + block * i, 250 - 121 + block * j
+            lit = near((bx + block / 2, by + block / 2), three, 9 + block * 0.7)
+            colour, opacity = (yellow, 0.42) if lit else (grey, 0.10)
+            c.raw(f'<rect x="{bx:.1f}" y="{by:.1f}" width="{block - 2:.1f}" height="{block - 2:.1f}" fill="{colour}" fill-opacity="{opacity}"/>')
+    c.text(850, 386, "a block that holds no ink answers zero", "s")
+    c.text(850, 408, "and the fragment never enters the search loop", "s", fill=yellow)
+
+    c.arrow(320, 250, 440, 250)
+    c.arrow(720, 250, 830, 250)
+    c.text(28, 462, "What comes out is one black border of uniform width, whatever mix of ordinary and selected ink produced the coverage underneath it.", "s")
+    c.write("masks.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks):
         draw()
-    print("wrote 21 illustrations")
+    print("wrote 30 illustrations")

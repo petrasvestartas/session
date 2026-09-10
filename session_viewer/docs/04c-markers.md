@@ -21,6 +21,8 @@ Vertex input of the marker pipeline (`pipelines::template_layout`):
 
 The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row.
 
+![A sphere is four template corners pushed out by the pixel radius plus the feather; a free dot is one equilateral triangle whose incircle is the disc.](illustrations/markers.svg)
+
 ## Starting point
 
 - Checkpoint 04b: meshes and strokes. Both ink lanes share the visibility rule appended by `ink_module`.
@@ -78,17 +80,17 @@ flowchart TB
     style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-58 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-59 -->
 
 - `screen_radius` and `to_px` turn a world or pen radius into pixels; `faces_front` decodes the packed normals.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=59-129 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=60-130 -->
 
 - The template corner is offset in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=130-184 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=131-186 -->
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=185-213 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=187-215 -->
 
 ## Step 4 · Free dots
 
@@ -102,15 +104,15 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-58 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-59 -->
 
 - A dot wider than the canvas is dropped before it is placed. The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment: a large dot survives when the pass renders only a window of the canvas, so it stays pickable.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=59-139 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=60-140 -->
 
 - The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=140-188 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=141-189 -->
 
 <!-- check: 04c -->
 
