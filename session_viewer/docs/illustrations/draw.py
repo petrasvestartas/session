@@ -2234,7 +2234,58 @@ def side_table():
     c.write("side-table.svg")
 
 
+def msaa_budget():
+    c = Canvas("Where 4x is affordable",
+               "Multisampling is spent only where an adapter can carry it: 4x needs solid geometry on the GPU, a "
+               "canvas within this adapter's pixel budget, and a device scale below two physical pixels per CSS "
+               "pixel. In a browser the adapter never says what it is - wgpu reports DeviceType::Other for every "
+               "one - so Other is its own budget and must not be read as a synonym for integrated.",
+               1180, 596)
+    lav, pnk, zer, yel = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"], PAL["yellow_light"]
+    c.text(28, 40, "Two gates, then the adapter's budget", "h")
+
+    c.box(28, 76, ["solid geometry on the GPU?",
+                   "faces, pipes or spheres — ribbons, dots",
+                   "and splats antialias themselves"], "note", w=430)
+    c.box(490, 76, ["device scale below 2?",
+                    "at two physical pixels per CSS pixel the",
+                    "density has already halved the stair-steps"], "note", w=430)
+    c.box(956, 76, ["no → 1×"], "gpu", w=196)
+    c.text(28, 196, "?msaa= is forced and wins over everything below.", "s", fill=PAL["yellow"])
+
+    heads = ["DiscreteGpu", "IntegratedGpu\nVirtualGpu", "Cpu", "Other"]
+    budget = ["9,000,000 px", "2,500,000 px", "never 4×", "4,200,000 px"]
+    rows = [("1920 × 1080 = 2.1 Mpx", [1, 1, 0, 1]),
+            ("2560 × 1440 = 3.7 Mpx", [1, 0, 0, 1]),
+            ("3840 × 2160 = 8.3 Mpx", [1, 0, 0, 0])]
+    lx, x0, cw, rh, y0 = 28.0, 300.0, 212.0, 46.0, 260.0
+    for i, (head, b) in enumerate(zip(heads, budget)):
+        x = x0 + i * cw
+        for k, part in enumerate(head.split("\n")):
+            c.text(x + cw / 2, y0 - 42 + k * 18, part, "s", anchor="middle")
+        c.text(x + cw / 2, y0 - 8, b, "m", anchor="middle", fill=PAL["grey"])
+    c.text(lx, y0 - 8, "pixels this adapter carries at 4×", "s")
+    for j, (name, cells) in enumerate(rows):
+        y = y0 + j * rh
+        c.text(lx, y + 28, name, "m")
+        for i, on in enumerate(cells):
+            x = x0 + i * cw
+            c.parts.append(f'<rect x="{x + 4:.1f}" y="{y + 4:.1f}" width="{cw - 8:.1f}" height="{rh - 10:.1f}" rx="4" fill="{lav if on else zer}" fill-opacity="{1.0 if on else 0.18}"/>')
+            # Dark ink on the lavender fill; the empty cell's label stays light on the ground.
+            c.text(x + cw / 2, y + 28, "4×" if on else "1×", "l", anchor="middle",
+                   fill=PAL["black"] if on else PAL["grey"], keep=on)
+
+    c.parts.append(f'<rect x="{x0 + 3 * cw:.1f}" y="{y0 - 62:.1f}" width="{cw:.1f}" height="{3 * rh + 66:.1f}" rx="{RADIUS}" fill="{pnk}" fill-opacity="0.16"/>')
+    c.box(28, 424, ["The browser is ALWAYS 'Other'",
+                    "wgpu's WebGPU backend reports `DeviceType::Other` for every adapter, because WebGPU",
+                    "exposes no such field. It is a discrete GPU exactly as often as it is not — read it as",
+                    "\"probably integrated\" and an ordinary 2560 × 1440 window gives up its samples for nothing."], "gpu", w=1124)
+    c.text(28, 552, "Measured: discrete at 3840 × 2160 costs 8.2 ms at 4× against 6.9 at 1×. An Intel iGPU on the same scene: 108.9 against 46.5,", "s")
+    c.text(28, 574, "and shrinking the canvas does not buy it back (92.4 ms at 2108 × 1186) — so a big canvas gives up the samples, not the pixels.", "s", fill=PAL["yellow"])
+    c.write("msaa-budget.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')
