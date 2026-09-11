@@ -649,14 +649,7 @@ Document titles and the selected name are derived labels; they have no source ro
 - `touch-action: none` on the canvas hands every gesture to winit before the browser claims it as a scroll.
 - `#viewer-docs` is the documentation corner: a black folded triangle, top right, drawn from the borders of a zero-size anchor; it opens `docs/` in a new tab.
 - Hover or keyboard focus grows it, a page corner lifting; it covers nothing but itself.
-- The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner resolves in a served build.
-- Trunk refuses to build when a `copy-dir` source is missing, and nothing has created that directory yet: run `mkdir -p target/docs/site` once before the Check. Lesson 14 adds the pre-build hook that fills it.
-- Nothing builds that site yet; lesson 14 adds the hook.
-- Trunk refuses a `copy-dir` whose source is missing, so create the directory once before serving:
-
-```sh
-mkdir -p "$COURSE_WORK/session_viewer/target/docs/site"
-```
+- It opens `docs/`, which is empty until lesson 14 publishes the built course into the bundle.
 
 ![Diagram: index.html · #canvas · #viewer-docs · dist/docs · view_local.yaml · loader::boot](illustrations/12-19.svg)
 

@@ -124,7 +124,7 @@
     "session_rust/src/xform.rs": "8af9f807c2f01bba1af504f1b2f34d248cdd3491161fffac93f720f553fefbf2",
     "session_rust/src/xform_test.rs": "a050118a5e1b5c2bf345135f7f4ac79d1530808cb2a51c21de334ad5b427f563",
     "session_viewer/.cargo/config.toml": "80552436d83b93b91cb8e5a3177c0a270289df8efc7205a1fdcf9d8717dbdc5a",
-    "session_viewer/.gitignore": "d7e5be2d730827cfdfa35abbf829018edb2e3a664ef6b05d79987b0ed771aa04",
+    "session_viewer/.gitignore": "d1742dfbe3776a53666543714955c530988b791a2b50a1789e365fdf071f6919",
     "session_viewer/Cargo.lock": "49309b7749991cb52bddcfa34a7f0cbd168a03b39e20f7e41a66e3e9d4a91cd3",
     "session_viewer/Cargo.toml": "f52c9ec3f806dad58501108ab08f9c133a7f76390299af2630f4e29cb580769a",
     "session_viewer/Trunk.toml": "741a0726c1f5edb6814829a559de6e4d0a748e48f18d9993e552c7cd0db5c892",
@@ -336,7 +336,7 @@
   },
   "supersedes": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
   "tree_encoding": "sha256 of sorted path + NUL + file sha256 + newline records",
-  "tree_sha256": "ba1bf080af359f6fe718379b6b9a2c6370cb6665977b4a99b2d06013a3dafd3f",
+  "tree_sha256": "c47d86f55886ce0285c6669bdf5c93ba0ca3d41517b42f09fd8f9a99de3add52",
   "verification": {
     "cad_captures": 12,
     "cleanup": "empty npm lock and three generated Python caches removed; retained running build outputs and local/user assets",

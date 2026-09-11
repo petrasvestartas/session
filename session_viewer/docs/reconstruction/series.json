@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "production_tree": "ba1bf080af359f6fe718379b6b9a2c6370cb6665977b4a99b2d06013a3dafd3f",
+  "production_tree": "c47d86f55886ce0285c6669bdf5c93ba0ca3d41517b42f09fd8f9a99de3add52",
   "steps": [
     {
       "assets": [],
@@ -9169,7 +9169,7 @@
         "session_viewer/assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
         "session_viewer/assets/text/README.md": "d4ff61b1ce3e8ea349ad7704ce2b0771b9363841c6853320ed79ecf48b07a152",
         "session_viewer/assets/view_local.yaml": "6fa546086bf84996362e75d42cf44a15f9e99512d4b1e8b9feddc8defded5f25",
-        "session_viewer/index.html": "07458b7f18fcfdf0e9a272b01125f98a794ca1bccc8cd166b90555153dedaabf",
+        "session_viewer/index.html": "a00ae1ccdfbb057d6c96593ad928cc4bb2ebff8c4ffc31401d84440ecb7104a5",
         "session_viewer/src/app/feedback.rs": "537602dfd0556e968bd6f641da7d36d19e3c0146fda54d293837789379122b8b",
         "session_viewer/src/app/input.rs": "3ceb3f3aacb2b28fc0764bc365bc6ac5c634d50975882ece366ec4cd3e214692",
         "session_viewer/src/app/inspection.rs": "ce858b65a15a471ba4737b4e414431fd8a401f74d5752b3aadcee6a0c1b0c967",
@@ -9248,7 +9248,7 @@
       },
       "id": "12",
       "patch": "patches/12.patch",
-      "patch_sha256": "65a3ee7953bebc6a68609deded2887002bb66ff8b05f857308d8a848aa00e21c",
+      "patch_sha256": "e47afb832c7ae163acb535520d72ac7bc0bb119a183aa18c563f908cd8fa985a",
       "title": "Object and edge picking"
     },
     {
@@ -9793,7 +9793,7 @@
         "session_viewer/assets/text/OFL.txt": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
         "session_viewer/assets/text/README.md": "d4ff61b1ce3e8ea349ad7704ce2b0771b9363841c6853320ed79ecf48b07a152",
         "session_viewer/assets/view_local.yaml": "6fa546086bf84996362e75d42cf44a15f9e99512d4b1e8b9feddc8defded5f25",
-        "session_viewer/index.html": "07458b7f18fcfdf0e9a272b01125f98a794ca1bccc8cd166b90555153dedaabf",
+        "session_viewer/index.html": "a00ae1ccdfbb057d6c96593ad928cc4bb2ebff8c4ffc31401d84440ecb7104a5",
         "session_viewer/src/app/cloud_query.rs": "8cb6365ce9095949e0f7dc606ebdd8a5a1177d864c39b16d74732dc5c99197d5",
         "session_viewer/src/app/feedback.rs": "537602dfd0556e968bd6f641da7d36d19e3c0146fda54d293837789379122b8b",
         "session_viewer/src/app/fetch.rs": "798f8be55976ea6632487f6cfe92046d77d14f3e6a594353da88b7862f01e55f",
@@ -10507,7 +10507,7 @@
       },
       "id": "14",
       "patch": "patches/14.patch",
-      "patch_sha256": "ca2370d2ab2a0f079bf16b9b1b72059137faaaa2c6d4ee0dafc0e1dcf3427b97",
+      "patch_sha256": "05aaf38ad44520b76c107a1214f679446146b25fbdd85ce2715e9c4cba96e46c",
       "title": "Loading"
     },
     {
@@ -11682,7 +11682,7 @@
         "session_rust/src/xform.rs": "8af9f807c2f01bba1af504f1b2f34d248cdd3491161fffac93f720f553fefbf2",
         "session_rust/src/xform_test.rs": "a050118a5e1b5c2bf345135f7f4ac79d1530808cb2a51c21de334ad5b427f563",
         "session_viewer/.cargo/config.toml": "80552436d83b93b91cb8e5a3177c0a270289df8efc7205a1fdcf9d8717dbdc5a",
-        "session_viewer/.gitignore": "d7e5be2d730827cfdfa35abbf829018edb2e3a664ef6b05d79987b0ed771aa04",
+        "session_viewer/.gitignore": "d1742dfbe3776a53666543714955c530988b791a2b50a1789e365fdf071f6919",
         "session_viewer/Cargo.lock": "49309b7749991cb52bddcfa34a7f0cbd168a03b39e20f7e41a66e3e9d4a91cd3",
         "session_viewer/Cargo.toml": "f52c9ec3f806dad58501108ab08f9c133a7f76390299af2630f4e29cb580769a",
         "session_viewer/Trunk.toml": "741a0726c1f5edb6814829a559de6e4d0a748e48f18d9993e552c7cd0db5c892",
@@ -11825,7 +11825,7 @@
       },
       "id": "16",
       "patch": "patches/16.patch",
-      "patch_sha256": "87c8cc49d4ba965914c2920d4b3a28c1ab04e73b6581a1e451204f8efa016542",
+      "patch_sha256": "f98fefa3f2629538996debc86bf081e756bf4c922faafb93d5716ae5487e03e7",
       "title": "Production convergence"
     },
     {
@@ -12361,7 +12361,7 @@
         "session_rust/src/xform.rs": "8af9f807c2f01bba1af504f1b2f34d248cdd3491161fffac93f720f553fefbf2",
         "session_rust/src/xform_test.rs": "a050118a5e1b5c2bf345135f7f4ac79d1530808cb2a51c21de334ad5b427f563",
         "session_viewer/.cargo/config.toml": "80552436d83b93b91cb8e5a3177c0a270289df8efc7205a1fdcf9d8717dbdc5a",
-        "session_viewer/.gitignore": "d7e5be2d730827cfdfa35abbf829018edb2e3a664ef6b05d79987b0ed771aa04",
+        "session_viewer/.gitignore": "d1742dfbe3776a53666543714955c530988b791a2b50a1789e365fdf071f6919",
         "session_viewer/Cargo.lock": "49309b7749991cb52bddcfa34a7f0cbd168a03b39e20f7e41a66e3e9d4a91cd3",
         "session_viewer/Cargo.toml": "f52c9ec3f806dad58501108ab08f9c133a7f76390299af2630f4e29cb580769a",
         "session_viewer/Trunk.toml": "741a0726c1f5edb6814829a559de6e4d0a748e48f18d9993e552c7cd0db5c892",
@@ -13048,7 +13048,7 @@
         "session_rust/src/xform.rs": "8af9f807c2f01bba1af504f1b2f34d248cdd3491161fffac93f720f553fefbf2",
         "session_rust/src/xform_test.rs": "a050118a5e1b5c2bf345135f7f4ac79d1530808cb2a51c21de334ad5b427f563",
         "session_viewer/.cargo/config.toml": "80552436d83b93b91cb8e5a3177c0a270289df8efc7205a1fdcf9d8717dbdc5a",
-        "session_viewer/.gitignore": "d7e5be2d730827cfdfa35abbf829018edb2e3a664ef6b05d79987b0ed771aa04",
+        "session_viewer/.gitignore": "d1742dfbe3776a53666543714955c530988b791a2b50a1789e365fdf071f6919",
         "session_viewer/Cargo.lock": "49309b7749991cb52bddcfa34a7f0cbd168a03b39e20f7e41a66e3e9d4a91cd3",
         "session_viewer/Cargo.toml": "f52c9ec3f806dad58501108ab08f9c133a7f76390299af2630f4e29cb580769a",
         "session_viewer/Trunk.toml": "741a0726c1f5edb6814829a559de6e4d0a748e48f18d9993e552c7cd0db5c892",
@@ -13743,7 +13743,7 @@
         "session_rust/src/xform.rs": "8af9f807c2f01bba1af504f1b2f34d248cdd3491161fffac93f720f553fefbf2",
         "session_rust/src/xform_test.rs": "a050118a5e1b5c2bf345135f7f4ac79d1530808cb2a51c21de334ad5b427f563",
         "session_viewer/.cargo/config.toml": "80552436d83b93b91cb8e5a3177c0a270289df8efc7205a1fdcf9d8717dbdc5a",
-        "session_viewer/.gitignore": "d7e5be2d730827cfdfa35abbf829018edb2e3a664ef6b05d79987b0ed771aa04",
+        "session_viewer/.gitignore": "d1742dfbe3776a53666543714955c530988b791a2b50a1789e365fdf071f6919",
         "session_viewer/Cargo.lock": "49309b7749991cb52bddcfa34a7f0cbd168a03b39e20f7e41a66e3e9d4a91cd3",
         "session_viewer/Cargo.toml": "f52c9ec3f806dad58501108ab08f9c133a7f76390299af2630f4e29cb580769a",
         "session_viewer/Trunk.toml": "741a0726c1f5edb6814829a559de6e4d0a748e48f18d9993e552c7cd0db5c892",
@@ -14449,7 +14449,7 @@
         "session_rust/src/xform.rs": "8af9f807c2f01bba1af504f1b2f34d248cdd3491161fffac93f720f553fefbf2",
         "session_rust/src/xform_test.rs": "a050118a5e1b5c2bf345135f7f4ac79d1530808cb2a51c21de334ad5b427f563",
         "session_viewer/.cargo/config.toml": "80552436d83b93b91cb8e5a3177c0a270289df8efc7205a1fdcf9d8717dbdc5a",
-        "session_viewer/.gitignore": "d7e5be2d730827cfdfa35abbf829018edb2e3a664ef6b05d79987b0ed771aa04",
+        "session_viewer/.gitignore": "d1742dfbe3776a53666543714955c530988b791a2b50a1789e365fdf071f6919",
         "session_viewer/Cargo.lock": "49309b7749991cb52bddcfa34a7f0cbd168a03b39e20f7e41a66e3e9d4a91cd3",
         "session_viewer/Cargo.toml": "f52c9ec3f806dad58501108ab08f9c133a7f76390299af2630f4e29cb580769a",
         "session_viewer/Trunk.toml": "741a0726c1f5edb6814829a559de6e4d0a748e48f18d9993e552c7cd0db5c892",

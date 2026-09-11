@@ -237,6 +237,12 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/docs/build_site.sh copy -->
 
+- The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so lesson 12's documentation corner resolves in a served build. It arrives here rather than there because Trunk refuses to build at all when a `copy-dir` source is missing, and nothing fills that directory until the hook above exists.
+
+<span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
+
+<!-- file: 14 session_viewer/index.html type -->
+
 <!-- supplied: 14 -->
 
 ## Check

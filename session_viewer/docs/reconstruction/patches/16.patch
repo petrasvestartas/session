@@ -1,9 +1,9 @@
 diff --git a/session_viewer/.gitignore b/session_viewer/.gitignore
 new file mode 100644
-index 0000000000000000000000000000000000000000..33a9867f31058444c20c34f0b7a8d07cdd16630d
+index 0000000000000000000000000000000000000000..124ae9fe8a86246a686eeb5868c6b6a0a2d87075
 --- /dev/null
 +++ b/session_viewer/.gitignore
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,20 @@
 +dist/
 +__pycache__/
 +
@@ -17,6 +17,13 @@ index 0000000000000000000000000000000000000000..33a9867f31058444c20c34f0b7a8d07c
 +
 +# The browser application and tutorials share a reproducible dependency resolution.
 +!Cargo.lock
++
++# Course tooling scratch at the repo root: `course_pages.py` replays the series into a
++# disposable workspace and keeps every step's text beside it. Regenerable, and large - the
++# snapshots alone are hundreds of megabytes.
++workspace/
++logs/
++snapshots/
 diff --git a/session_viewer/Cargo.toml b/session_viewer/Cargo.toml
 index bb8e93341cfcf4c92a89172744e68e8c51b58498..74cd5472d8e9d9a5345c49d3ea6556eb5c360fca 100644
 --- a/session_viewer/Cargo.toml

@@ -55,6 +55,19 @@ index 0000000000000000000000000000000000000000..c7ad4c310ac1e4bb31708fc0e5622b85
 +HTML
 +    echo "docs/build_site.sh: course sources or uvx not found; wrote a placeholder page" >&2
 +fi
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index 2c2f1be3277c88ebcbb4642bfb4b46c71cd8106f..2217bc15b2ead11de37725414dda387d819b6189 100644
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -54,6 +54,8 @@
+   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
+   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
++  <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
++  <link data-trunk rel="copy-dir" href="target/docs/site" data-target-path="docs"/>
+   <!-- Message telling that Webgpu is not available. -->
+   <script>
+     // These named registrations belong to this document's lifetime and are installed once.
 diff --git a/session_viewer/src/app/decode.rs b/session_viewer/src/app/decode.rs
 new file mode 100644
 index 0000000000000000000000000000000000000000..29dde0563604d981c245b168238c638200052e16
