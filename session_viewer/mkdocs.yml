@@ -79,6 +79,11 @@ nav:
     - 19 · Sheets: docs/19-sheets.md
     - 20 · The document: docs/20-history.md
   - Capstone: docs/capstone.md
+  - Extending the viewer:
+    - Adding a gumball: docs/extend-gumball.md
+    - Adding a command line: docs/extend-command-line.md
+    - Adding panels: docs/extend-panels.md
+    - What it does not do yet: docs/extend-roadmap.md
   - Reading failures: docs/debugging.md
   - What this is built on: docs/references.md
   - Architecture reference: ARCHITECTURE.md
