@@ -49,6 +49,8 @@ pub enum Msg {
     CancelPointer,
     /// A line typed into the command box, sent when Enter was pressed in it.
     Command(String),
+    /// A layers-panel row was clicked, carrying its key.
+    ToggleLayer(String),
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -72,6 +74,7 @@ pub struct App {
     input: Input,
     pointer_cancellation: Option<app::input::PointerCancellation>,
     command_keys: Option<app::input::CommandKeys>,
+    layer_clicks: Option<app::input::LayerClicks>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -86,6 +89,7 @@ impl App {
             input: Input::new(),
             pointer_cancellation: None,
             command_keys: None,
+            layer_clicks: None,
         };
         event_loop.spawn_app(app);
         Ok(())
@@ -140,6 +144,12 @@ impl ApplicationHandler<Msg> for App {
                     Err(error) => log::warn!("Cannot register the command line: {error:?}"),
                 }
             }
+            if let Some(panel) = app::feedback::layers_visible(false) {
+                match app::input::LayerClicks::new(panel, proxy.clone()) {
+                    Ok(listener) => self.layer_clicks = Some(listener),
+                    Err(error) => log::warn!("Cannot register the layers panel: {error:?}"),
+                }
+            }
             wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
         }
     }
@@ -179,6 +189,11 @@ impl ApplicationHandler<Msg> for App {
                     Err(why) => why,
                 };
                 app::feedback::status(&said);
+            }
+            Msg::ToggleLayer(key) => {
+                if let Some(layer) = app::layers::Layer::from_key(&key) {
+                    state.toggle_layer(layer);
+                }
             }
             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),

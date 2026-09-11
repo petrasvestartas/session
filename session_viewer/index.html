@@ -52,6 +52,10 @@
   <canvas id="canvas" tabindex="0"></canvas>
   <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
+  <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
+       `L` opens and closes it; a click on a row hides or shows that layer. -->
+  <div id="viewer-layers" hidden aria-label="Layers"
+       style="position:fixed;top:12px;left:12px;min-width:180px;max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
   <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
        back the moment it closes, so typing `z` in here is a letter and not an undo. -->
   <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden

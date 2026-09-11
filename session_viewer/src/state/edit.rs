@@ -9,6 +9,7 @@
 //! makes one gesture one undo step.
 
 use crate::app::command::Command;
+use crate::app::layers::{self, Layer};
 use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
 use crate::app::walk::encode::FACING_UNKNOWN;
 use crate::state::render_position;
@@ -372,4 +373,76 @@ fn centred(inner: Xform, about: Option<&Point>) -> Xform {
     let to = Xform::translation(p[0], p[1], p[2]);
     let back = Xform::translation(-p[0], -p[1], -p[2]);
     &(&to * &inner) * &back
+}
+
+impl State {
+    /// Hide or show everything one panel row controls, through the same hide set `H` writes.
+    ///
+    /// A layer with anything still visible hides; a layer wholly hidden comes back. That rule
+    /// makes one click enough on a half-hidden layer, which is what a person means by it.
+    pub fn toggle_layer(&mut self, layer: Layer) {
+        let rows = layers::of_layer(&self.scene, layer);
+        if rows.is_empty() {
+            return;
+        }
+        let hidden: Vec<bool> = rows
+            .iter()
+            .map(|&row| {
+                self.scene
+                    .identity_of(row)
+                    .is_some_and(|id| self.scene.hidden.contains(&id))
+            })
+            .collect();
+        let hide = !hidden.iter().all(|&h| h);
+        for (&row, was) in rows.iter().zip(&hidden) {
+            if *was == hide {
+                continue;
+            }
+            let Some(identity) = self.scene.identity_of(row) else {
+                continue;
+            };
+            if hide {
+                self.scene.hidden.insert(identity);
+            } else {
+                self.scene.hidden.remove(&identity);
+            }
+            self.gpu.set_hidden(row, hide);
+        }
+        if self.scene.selected.is_some_and(|row| rows.contains(&row)) && hide {
+            self.select(None);
+        }
+        self.refresh_layers();
+        self.update_label();
+        self.touch();
+    }
+
+    /// Redraw the panel from the scene, when it is open.
+    pub fn refresh_layers(&mut self) {
+        if !crate::app::feedback::layers_open() {
+            return;
+        }
+        let rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
+            .into_iter()
+            .map(|row| crate::app::feedback::LayerRow {
+                key: row.layer.key(),
+                label: row.label,
+                count: row.count,
+                hidden: row.hidden,
+            })
+            .collect();
+        crate::app::feedback::layers_panel(&rows);
+    }
+}
+
+impl State {
+    /// Open or close the layers panel - `L`. Opening fills it; closing leaves it empty, so a
+    /// scene change while it is shut costs nothing.
+    pub fn toggle_layers_panel(&mut self) {
+        let open = !crate::app::feedback::layers_open();
+        crate::app::feedback::layers_visible(open);
+        if open {
+            self.refresh_layers();
+        }
+        self.touch();
+    }
 }

@@ -11,6 +11,7 @@ pub mod feedback;
 pub mod gizmo;
 pub mod input;
 pub mod knobs;
+pub mod layers;
 pub mod manifest;
 pub mod scene;
 pub mod selection;

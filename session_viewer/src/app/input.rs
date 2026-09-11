@@ -4,7 +4,7 @@
 //! Ctrl+Shift+Z or Ctrl+Y redoes;
 //! 1-7 named views, Space projection, C reset, F fits the selection (or
 //! everything with none selected), Q/W/E lane toggles, O silhouettes, D face lighting,
-//! B the back-face flag,
+//! B the back-face flag, L the layers panel, : the command line,
 //! H hides the selection and S shows everything back, T toggles selected names,
 //! P toggles x-ray (faces gone, edges stay), F10 shows the selected object's source controls,
 //! [ ] cloud size, Escape clears the selection. Fingers go to `touch.rs`.
@@ -69,6 +69,7 @@ impl Input {
             Key::Character(":") => {
                 crate::app::feedback::command_line(true);
             }
+            Key::Character("l" | "L") => state.toggle_layers_panel(),
             // Ctrl+Z back, Ctrl+Shift+Z or Ctrl+Y forward: the two spellings every editor takes.
             Key::Character("z" | "Z") if self.ctrl => {
                 if self.shift {
@@ -340,6 +341,48 @@ impl Drop for CommandKeys {
         let _ = self
             .input
             .remove_event_listener_with_callback("keydown", self.callback.as_ref().unchecked_ref());
+    }
+}
+
+/// The layers panel's one click listener. One listener for the whole panel, not one a row:
+/// the rows are rebuilt on every scene change, and a closure a row would have to be dropped
+/// with it.
+#[cfg(target_arch = "wasm32")]
+pub struct LayerClicks {
+    panel: web_sys::Element,
+    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl LayerClicks {
+    pub fn new(
+        panel: web_sys::Element,
+        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
+    ) -> Result<Self, wasm_bindgen::JsValue> {
+        use wasm_bindgen::JsCast;
+        let callback =
+            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+                let Some(target) = event.target() else { return };
+                let Ok(element) = target.dyn_into::<web_sys::Element>() else {
+                    return;
+                };
+                let Some(key) = element.get_attribute("data-layer") else {
+                    return;
+                };
+                let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
+            });
+        panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
+        Ok(Self { panel, callback })
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Drop for LayerClicks {
+    fn drop(&mut self) {
+        use wasm_bindgen::JsCast;
+        let _ = self
+            .panel
+            .remove_event_listener_with_callback("click", self.callback.as_ref().unchecked_ref());
     }
 }
 
