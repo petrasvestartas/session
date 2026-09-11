@@ -422,7 +422,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/state/edit.rs type lines=578-745 -->
+<!-- file: 21 session_viewer/src/state/edit.rs type lines=578-866 -->
 
 - The pointer resolves through the construction plane, and the object's other control points
   are offered as snaps.

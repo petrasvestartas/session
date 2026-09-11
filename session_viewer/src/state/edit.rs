@@ -298,93 +298,95 @@ impl State {
     /// The arms are sized in PIXELS, converted to world at the widget's own depth, so the
     /// gumball is the same size on screen wherever the camera is.
     pub fn upload_gizmo(&mut self) {
-        self.gpu.gizmo_arms.reset();
-        self.gpu.gizmo_dots.reset();
         let Some(gizmo) = self.gizmo.as_ref() else {
+            self.gpu.set_widget_rows(&SegRows::default(), &GlyphRows::default());
             return;
         };
+        let origin = gizmo.origin.clone();
         let per_px = self.world_per_px();
         // The marker lane reads a negative radius as PHYSICAL pixels; the widget's sizes are in
         // CSS pixels, like every other size a person sees.
         let scale = self.pixel_scale();
-        let origin = gizmo.origin.clone();
         // World coordinates, so the rows draw against the identity row rather than an object's.
         let widget = self.gpu.widget_row();
-        let arm = ARM * per_px;
-        let ball = BALL_AT * per_px;
-        let mut segments = SegRows::default();
-        let mut glyphs = GlyphRows::default();
-        for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
-            let u = axis.unit();
-            let tip = [
-                origin[0] + u[0] * arm,
-                origin[1] + u[1] * arm,
-                origin[2] + u[2] * arm,
-            ];
-            let at = [
-                origin[0] + u[0] * ball,
-                origin[1] + u[1] * ball,
-                origin[2] + u[2] * ball,
-            ];
-            segments.ribbons.push(CylinderSegment {
-                p0: render_position([origin[0], origin[1], origin[2]]),
-                p1: render_position(tip),
-                radius: 0.0,
-                color: AXIS_COLORS[i],
-                instance_id: widget,
-                facing: FACING_UNKNOWN,
-            });
-            glyphs.dots.push(GlyphPoint {
-                center: render_position(at),
-                radius: -(BALL_PX * scale) as f32,
-                color: unpack_color(AXIS_COLORS[i]),
-                instance_id: widget,
-                facing: FACING_UNKNOWN,
-                facing_ext: [FACING_UNKNOWN; 2],
-            });
-        }
-        // The three rotation arcs, drawn where `Gizmo::hit` tests for them: a quarter circle at
-        // the arm's radius, in the quadrant both arms avoid. An arc that is hit-tested and not
-        // drawn is an invisible ring that swallows clicks.
-        for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
-            let (u, v) = arc_axes(axis);
-            let mut previous: Option<[f64; 3]> = None;
-            for step in 0..=ARC_STEPS {
-                let t = std::f64::consts::FRAC_PI_2 * f64::from(step) / f64::from(ARC_STEPS);
-                let (c, s) = (-t.cos() * arm, -t.sin() * arm);
-                let at = [
-                    origin[0] + u[0] * c + v[0] * s,
-                    origin[1] + u[1] * c + v[1] * s,
-                    origin[2] + u[2] * c + v[2] * s,
-                ];
-                if let Some(from) = previous {
-                    segments.ribbons.push(CylinderSegment {
-                        p0: render_position(from),
-                        p1: render_position(at),
-                        radius: 0.0,
-                        color: AXIS_COLORS[i],
-                        instance_id: widget,
-                        facing: FACING_UNKNOWN,
-                    });
-                }
-                previous = Some(at);
-            }
-        }
+        let (segments, glyphs) = widget_rows(&origin, per_px, scale, widget);
+        self.gpu.set_widget_rows(&segments, &glyphs);
+    }
+}
+
+/// The widget's rows: three arms and three arcs as strokes, three balls and a hub as markers.
+///
+/// A free function of an origin and two scales, so what the gumball would draw can be checked
+/// without a window, a camera or a device - which is the only reason the thing was ever
+/// checkable at all on a machine whose browser renders it black.
+fn widget_rows(
+    origin: &Point,
+    per_px: f64,
+    pixel_scale: f64,
+    widget: u32,
+) -> (SegRows, GlyphRows) {
+    let arm = ARM * per_px;
+    let ball = BALL_AT * per_px;
+    let mut segments = SegRows::default();
+    let mut glyphs = GlyphRows::default();
+    let stroke = |p0: [f64; 3], p1: [f64; 3], color: u32| CylinderSegment {
+        p0: render_position(p0),
+        p1: render_position(p1),
+        radius: 0.0,
+        color,
+        instance_id: widget,
+        facing: FACING_UNKNOWN,
+    };
+    for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
+        let u = axis.unit();
+        let at = |d: f64| {
+            [
+                origin[0] + u[0] * d,
+                origin[1] + u[1] * d,
+                origin[2] + u[2] * d,
+            ]
+        };
+        segments
+            .ribbons
+            .push(stroke([origin[0], origin[1], origin[2]], at(arm), AXIS_COLORS[i]));
         glyphs.dots.push(GlyphPoint {
-            center: render_position([origin[0], origin[1], origin[2]]),
-            radius: -(HUB * scale) as f32,
-            color: [1.0, 1.0, 1.0, 1.0],
+            center: render_position(at(ball)),
+            radius: -(BALL_PX * pixel_scale) as f32,
+            color: unpack_color(AXIS_COLORS[i]),
             instance_id: widget,
             facing: FACING_UNKNOWN,
             facing_ext: [FACING_UNKNOWN; 2],
         });
-        self.gpu
-            .gizmo_arms
-            .append(&self.gpu.ctx, &self.gpu.layouts, &segments);
-        self.gpu
-            .gizmo_dots
-            .append(&self.gpu.ctx, &self.gpu.layouts, &glyphs);
     }
+    // The three rotation arcs, drawn where `Gizmo::hit` tests for them: a quarter circle at the
+    // arm's radius, in the quadrant both arms avoid. An arc that is hit-tested and not drawn is
+    // an invisible ring that swallows clicks.
+    for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
+        let (u, v) = arc_axes(axis);
+        let mut previous: Option<[f64; 3]> = None;
+        for step in 0..=ARC_STEPS {
+            let t = std::f64::consts::FRAC_PI_2 * f64::from(step) / f64::from(ARC_STEPS);
+            let (c, d) = (-t.cos() * arm, -t.sin() * arm);
+            let at = [
+                origin[0] + u[0] * c + v[0] * d,
+                origin[1] + u[1] * c + v[1] * d,
+                origin[2] + u[2] * c + v[2] * d,
+            ];
+            if let Some(from) = previous {
+                segments.ribbons.push(stroke(from, at, AXIS_COLORS[i]));
+            }
+            previous = Some(at);
+        }
+    }
+    glyphs.dots.push(GlyphPoint {
+        center: render_position([origin[0], origin[1], origin[2]]),
+        radius: -(HUB * pixel_scale) as f32,
+        color: [1.0, 1.0, 1.0, 1.0],
+        instance_id: widget,
+        facing: FACING_UNKNOWN,
+        facing_ext: [FACING_UNKNOWN; 2],
+    });
+    (segments, glyphs)
 }
 
 /// A packed row colour as the four floats a marker wants. LOW byte red: that is what
@@ -721,6 +723,125 @@ const SNAP_APERTURE_PX: f64 = 12.0;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// What the widget would draw, without a window or a device: the counts, where the arms
+    /// end, and that every colour is what the lane will read. The gumball could not be seen on
+    /// the machine it was written on, so this is the check that it is there at all.
+    #[test]
+    fn the_widget_draws_three_arms_three_arcs_and_four_balls() {
+        let origin = Point::new(10.0, 20.0, 30.0);
+        let (segments, glyphs) = widget_rows(&origin, 2.0, 1.0, 7);
+
+        assert_eq!(segments.ribbons.len(), 3 + 3 * ARC_STEPS as usize);
+        assert_eq!(glyphs.dots.len(), 4);
+        assert!(
+            segments.ribbons.iter().all(|r| r.instance_id == 7)
+                && glyphs.dots.iter().all(|d| d.instance_id == 7),
+            "every row draws against the identity instance, not an object's"
+        );
+
+        // The X arm runs ARM * per_px along +x from the origin.
+        let x_arm = &segments.ribbons[0];
+        assert_eq!(x_arm.p0, [10.0, 20.0, 30.0]);
+        assert_eq!(x_arm.p1, [10.0 + (ARM * 2.0) as f32, 20.0, 30.0]);
+
+        // An arm and its own ball must be the same colour: the stroke lane reads the packed
+        // word and the marker lane reads floats, and those two agreeing is not automatic.
+        let unpacked = unpack_color(x_arm.color);
+        assert_eq!(glyphs.dots[0].color, unpacked);
+        assert!(
+            unpacked[0] > 0.8 && unpacked[1] < 0.2 && unpacked[2] < 0.2,
+            "X is red on both sides, {unpacked:?}"
+        );
+        assert_eq!(glyphs.dots[3].color, [1.0, 1.0, 1.0, 1.0], "the hub is white");
+
+        // The balls are screen-sized, which the lane reads as a NEGATIVE radius.
+        assert!(glyphs.dots.iter().all(|d| d.radius < 0.0));
+    }
+
+    /// The gumball, rendered. A headless device draws the same frame twice - once without the
+    /// widget and once with it - and the pixels that changed are the widget.
+    ///
+    /// Differencing rather than looking for colours on a fixed background is what makes this
+    /// independent of the backdrop, the grid and the lighting. It is the check the browser
+    /// could not give: on the machine this was written on, the page renders black through a
+    /// software path.
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    #[ignore = "requires a native GPU adapter"]
+    fn the_widget_reaches_the_pixels() {
+        use crate::camera::Camera;
+        use crate::engine::gpu::{FrameInput, Gpu, ObjectRow, Upload};
+        use session_rust::Xform;
+
+        let mut gpu = pollster::block_on(Gpu::new_headless(256, 256)).unwrap();
+        gpu.view.show_grid = false;
+        let mut upload = Upload::default();
+        upload.obj.rows.push(ObjectRow::new(Xform::identity().m, 0));
+        gpu.set_scene(&upload);
+
+        let mut camera = Camera::new();
+        camera.target = [0.0, 0.0, 0.0];
+        camera.distance = 0.2; // metres: 200 world units in a millimetre scene
+        camera.update_position();
+        let rebase = gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
+        let input = FrameInput {
+            view_proj: camera.view_proj_anchored(1.0, &rebase.anchor),
+            clear: wgpu::Color::BLACK,
+            now_ms: 0.0,
+        };
+        let before = gpu.render_offscreen(&input);
+
+        let widget = gpu.widget_row();
+        // 72 CSS px of arm at 0.5 world units a pixel: 36 units, well inside a 200-unit view.
+        let (segments, glyphs) = widget_rows(&Point::new(0.0, 0.0, 0.0), 0.5, 1.0, widget);
+        gpu.set_widget_rows(&segments, &glyphs);
+        let after = gpu.render_offscreen(&input);
+
+        let (mut red, mut green, mut blue, mut changed) = (0, 0, 0, 0);
+        for (a, b) in before.chunks_exact(4).zip(after.chunks_exact(4)) {
+            if a[..3] == b[..3] {
+                continue;
+            }
+            changed += 1;
+            let (r, g, bl) = (i32::from(b[0]), i32::from(b[1]), i32::from(b[2]));
+            if r > g + 40 && r > bl + 40 {
+                red += 1;
+            } else if g > r + 40 && g > bl + 40 {
+                green += 1;
+            } else if bl > r + 40 && bl > g + 40 {
+                blue += 1;
+            }
+        }
+        assert!(
+            changed > 100,
+            "the widget changed the picture: {changed} pixels"
+        );
+        assert!(
+            red > 10 && green > 10 && blue > 10,
+            "three coloured arms: red {red}, green {green}, blue {blue}, of {changed} changed"
+        );
+    }
+
+    /// Every arc point is on the circle the hit test looks for, in the quadrant it looks in.
+    #[test]
+    fn the_arcs_are_where_the_hit_test_expects_them() {
+        let origin = Point::new(0.0, 0.0, 0.0);
+        let per_px = 1.0;
+        let (segments, _) = widget_rows(&origin, per_px, 1.0, 0);
+        // The Z arc is the last third; its plane is x/y, and `hit` accepts only the quadrant
+        // where both in-plane coordinates are negative.
+        let z_arc = &segments.ribbons[3 + 2 * ARC_STEPS as usize..];
+        assert_eq!(z_arc.len(), ARC_STEPS as usize);
+        for segment in z_arc {
+            for p in [segment.p0, segment.p1] {
+                let r = (f64::from(p[0]).powi(2) + f64::from(p[1]).powi(2)).sqrt();
+                assert!((r - ARM * per_px).abs() < 0.5, "on the arm's circle: {r}");
+                assert!(p[0] <= 1e-3 && p[1] <= 1e-3, "in the quadrant hit() tests: {p:?}");
+                assert!(p[2].abs() < 1e-6, "in the plane normal to Z");
+            }
+        }
+    }
 
     /// The conversion the widget's size depends on. A 2x display has twice the physical pixels
     /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is

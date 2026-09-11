@@ -267,6 +267,21 @@ impl Gpu {
         self.rebind_ink();
     }
 
+    /// Fill the widget's two lanes, replacing whatever they held.
+    ///
+    /// The rows are built by the caller, which knows the camera; this owns the two lanes and
+    /// the borrow of the device, so the widget's drawing is one call rather than four.
+    pub fn set_widget_rows(
+        &mut self,
+        segments: &segments::SegRows,
+        glyphs: &glyphs::GlyphRows,
+    ) {
+        self.gizmo_arms.reset();
+        self.gizmo_dots.reset();
+        self.gizmo_arms.append(&self.ctx, &self.layouts, segments);
+        self.gizmo_dots.append(&self.ctx, &self.layouts, glyphs);
+    }
+
     /// Grow the scene's bounds by a row that moved.
     ///
     /// `bounds` is the union every reader frames against - `fit`, and the far plane through

@@ -203,7 +203,7 @@
     "session_viewer/src/engine/gpu/glyphs.rs": "63922ab0ff60a57cf463cd55ff57106774a031143e2934a7d84c83ad100cd18c",
     "session_viewer/src/engine/gpu/instance.rs": "7141dac1963a5bf2c3fb1f4546a075d0db43a485ec5ef075f707066e497f7bdc",
     "session_viewer/src/engine/gpu/lod.rs": "da51f070ef49a4e44febdc3498ee79c7abedb1b402eee556c20891990911dba2",
-    "session_viewer/src/engine/gpu/mod.rs": "632a531f8b2ad6aed28a41e061305f0eea54565d93d9312f868cfbcd36eccc37",
+    "session_viewer/src/engine/gpu/mod.rs": "75f784d6dc62dba96c3c808d870c99dbca47a4da3d5e22fb145a782c6ad43d72",
     "session_viewer/src/engine/gpu/objects.rs": "9a5a980f6017c32486e9afa7e4e0ddbff0be1c0d5b38ebdb6591a54b1cd7f47f",
     "session_viewer/src/engine/gpu/pick.rs": "05defc0890c9803f213911560738127847671b22ae9a307b2e013119f2353cca",
     "session_viewer/src/engine/gpu/present.rs": "343d9a4bba0d674c33232a1d8619a952debdbdd3395db74330ae041f279613f2",
@@ -311,7 +311,7 @@
     "session_viewer/assets/view_local.yaml": "Deterministic local interaction scene replaces the user's local working datasets."
   },
   "passed": true,
-  "production_tree": "ccf7be3154df6a9775e53e883ce5c2b3b4c0255de1280a6962901a4f1f8a4f88",
+  "production_tree": "8c3bd9af0d25e5db27d7480f005db2cbf0d9bbf48a87b0499919c106556a6cbb",
   "runtime_source_files": 94,
   "tutorial_input_additions": [
     "session_viewer/assets/pb/interaction.pb",
