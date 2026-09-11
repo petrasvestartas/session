@@ -1633,7 +1633,7 @@ def clip_space():
     c.text(ox - 34, oy + 6, "+1", "s", fill=navy)
     c.text(ox - 34, oy + side + 6, "-1", "s", fill=navy)
     c.text(ox + side + 10, oy + side / 2 + 5, "x = +1", "s", fill=navy)
-    c.text(ox + side / 2 - 18, oy - 12, "y up", "s", fill=navy)
+    c.text(ox + side / 2 + 10, oy + 20, "y up", "s", fill=navy)
 
     c.text(700, 92, "framebuffer, after the viewport transform", "l", fill=pink)
     px, py, pw, ph = 720.0, 120.0, 320.0, 240.0
@@ -1641,7 +1641,7 @@ def clip_space():
     c.text(px - 42, py + 6, "y = 0", "s", fill=pink)
     c.text(px - 52, py + ph + 6, "y = h", "s", fill=pink)
     c.text(px + pw + 10, py + 6, "x = w", "s", fill=pink)
-    c.text(px + pw / 2 - 26, py - 12, "y down", "s", fill=pink)
+    c.text(px + pw / 2 + 10, py + 20, "y down", "s", fill=pink)
 
     c.arrow(ox + side + 76, oy + side / 2, px - 60, py + ph / 2, "viewport transform")
     c.text(90, 404, "The two squares hold the same triangle. Only the y axis turns over, which is why a first", "s")

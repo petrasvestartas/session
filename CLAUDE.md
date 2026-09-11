@@ -84,6 +84,11 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
   into `dist/docs` and `docs/build_site.sh` (pre-build hook) rebuilds the site when stale.
 - Mermaid: `flowchart TB` for chains longer than five nodes (LR gets shrunk to unreadable size);
   several small diagrams beat one tangled one; edge labels stay short.
+- `python3 docs/check_svg.py docs/illustrations/*.svg` is the playwright-free check: it renders each
+  SVG in an installed Chrome and fails on a label that leaves the canvas or overlaps another. Use it
+  when `check_illustrations.cjs` cannot run. NOTE: running `draw.py` REWRITES every SVG and strips the
+  measured `textLength` pins; restore them with
+  `git checkout -- $(grep -l textLength docs/illustrations/*.svg)` before committing.
 - Illustrations come from `docs/illustrations/draw.py` (BRG Equilibrium palette; boxes sized
   from text). Never hand-place SVG text: regenerate, then `node docs/check_illustrations.cjs
   --write` must PASS (real Chrome metrics, no overflow, no collisions, pinned textLength).
