@@ -28,70 +28,70 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 ## Step 1 · The glyph row
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
 
 - `facing` plus `facing_ext` hold up to six incident face normals as oct16 pairs; a marker hides when every incident face turns away.
 
 ![Diagram: walk · vertex or point · GlyphPoint\ center · radius · facing · glyph table](illustrations/04c-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-57 -->
 
 ## Step 2 · The lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
 
 - One table per kind, one bind group each, two shader modules, five pipelines.
 
 ![Diagram: GlyphRows\ spheres · dots · GlyphLane · ink pass](illustrations/04c-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=58-101 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=102-154 -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=155-213 -->
 
 - Clearing keeps the capacity: a reload refills a buffer already the right size.
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=214-239 -->
 
 - `source_dot` serves streamed source queries; declaring it with the others keeps the lane from growing a second pipeline set.
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=240-295 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs copy lines=296-322 -->
 
 ## Step 3 · Vertex markers
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
 
 - Same bindings as the ribbon shader, the row is `GlyphPoint`, `line` comes from `scene.wgsl` as always.
 - A sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
 
 ![Diagram: glyphs · @group(3) · keep or hide · template corner · quad around disc · antialiased disc](illustrations/04c-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-3 -->
 
 - `to_px` turns a world length into pixels; `pen_world_radius` inverts it, giving the world radius that projects to the global pen.
 - `faces_front` decodes the packed normals.
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=4-16 -->
 
@@ -99,7 +99,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 - The facing cull is skipped when the object is flagged inside or open, or when `line.opacity` is zero: in x-ray, a vertex on the far side of a cube is what you want to see.
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-64 -->
 
@@ -107,19 +107,19 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 ![Both marker shapes measure the same radius in corner space, where 1.0 is the far edge of the primitive, and the ramp is clamped so a thin pen still reaches full opacity.](illustrations/disc-coverage.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=65-155 -->
 
 ## Step 4 · Free dots
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
 
 - One equilateral triangle per dot; its incircle is the visible disc, so three vertices cover it without a template.
 
 ![Diagram: glyphs · @group(3) · equilateral triangle · dot disc · source id pass](illustrations/04c-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-2 -->
 
@@ -127,19 +127,19 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 - The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment.
 - A large dot then survives a window-sized pass and stays pickable.
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=3-13 -->
 
 - `vs_source` and `fs_source_id` serve source-cloud queries.
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=14-45 -->
 
 - The fragment half is the same shape as the ribbon's: coverage first, then the shared visibility test.
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=46-140 -->
 
@@ -147,42 +147,42 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 ## Step 5 · Wire the lane
 
-![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-771239ee6f.svg){ .locator data-strip="illustrations/strip-20ba8a8ce6.svg" }
+![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 12 zones built so far.](illustrations/locator-2806e52b9f.svg){ .locator data-strip="illustrations/strip-c8d4b7d421.svg" }
 
 - A template vertex slot and the `ink_rows` layout (one storage buffer at group 3).
 
 ![Diagram: Upload.glyph · Gpu.glyphs · template_layout · ink_rows · markers on top](illustrations/04c-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 04c session_viewer/src/engine/pipelines/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 04c session_viewer/src/engine/pipelines/layouts.rs type -->
 
 - Group 2 has two variants; a marker takes the ink one, which carries the physical depth it must test itself against.
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/upload.rs type -->
 
 - Markers draw after strokes so their full footprint stays on top of the edges they sit on.
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-6e964d1d1f.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
 
 <!-- file: 04c session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-6e964d1d1f.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
 
 <!-- file: 04c session_viewer/src/lib.rs type -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-a7bdebbf9f.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-f6e7047b45.svg" data-zone="Page"></span>
 
 <!-- file: 04c session_viewer/index.html copy -->
 

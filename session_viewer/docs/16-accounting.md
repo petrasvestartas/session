@@ -18,7 +18,7 @@
 
 ## Step 1 · Native tooling the crate declares
 
-![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-010fb6361a.svg){ .locator data-strip="illustrations/strip-e6f4fee67c.svg" }
+![Where this step sits in the viewer: Page, with 10 of 12 zones built so far.](illustrations/locator-5fae8b8d84.svg){ .locator data-strip="illustrations/strip-5c991d3cd5.svg" }
 
 - Cargo discovers every file under `examples/` as a native example, each linking the crate.
 - The manifest moves `[dev-dependencies]` above the native-only table that has declared `pollster` since lesson 00, drops the unused wasm-pack metadata, and writes down why `getrandom` is a dependency with no use site.
@@ -28,20 +28,20 @@
 
 <!-- supplied: 16 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5c991d3cd5.svg" data-zone="Page"></span>
 
 <!-- file: 16 session_viewer/Cargo.toml copy -->
 
 ## Step 2 · Count what is knowable, name what is not
 
-![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-c00f8dcb64.svg){ .locator data-strip="illustrations/strip-56723afb3a.svg" }
+![Where this step sits in the viewer: Shell, with 10 of 12 zones built so far.](illustrations/locator-945666ce16.svg){ .locator data-strip="illustrations/strip-8498e81c71.svg" }
 
 ![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)
 
 - The number is a lower bound: exact `Vec`/`String` capacities, occupied map entries and exposed slice lengths, never allocator overhead or RSS.
 - A `seen` set records each `Rc` object by pointer, so a document listed twice, or a geometry in both a typed list and the lookup, counts once.
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=1-52 -->
 
@@ -49,11 +49,11 @@
 - When every `Rc` pointer matches the last snapshot, the cached payload is returned with no walk.
 - The cache keys on identity, which replacement and append change. Editing a document in place would leave it stale.
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-140 -->
 
@@ -62,13 +62,13 @@ The rest of `session_payload` — components, the lookup, the transform map and 
 - Each adds only what it can see exactly: vector and string capacity, occupied map entries, exposed slice lengths. Never allocator overhead, never the `Rc` header.
 - Every `Rc` goes into `seen` by pointer before it is counted, so a geometry reachable from both a typed list and the lookup adds its bytes once. That makes the number a floor, not an over-count.
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=141-363 -->
 
 The end of the mesh walk, the element walk, and the unit tests, part of the file:
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=364-487 -->
 
@@ -76,13 +76,13 @@ The end of the mesh walk, the element walk, and the unit tests, part of the file
 
 ## Step 3 · Report it beside the GPU figures
 
-![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-c00f8dcb64.svg){ .locator data-strip="illustrations/strip-56723afb3a.svg" }
+![Where this step sits in the viewer: Shell, with 10 of 12 zones built so far.](illustrations/locator-945666ce16.svg){ .locator data-strip="illustrations/strip-8498e81c71.svg" }
 
 - The JSON carries its own scope and exclusions, so a reader of `?inspect=1` cannot mistake the payload for total heap.
 
 ![Diagram: known_bytes() · ?inspect=1 JSON\ source_cpu_known_payload · Gpu::allocated_bytes · scope + exclusions named](illustrations/16-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection.rs type -->
 

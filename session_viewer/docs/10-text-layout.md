@@ -19,7 +19,7 @@
 
 ## Step 1 · Bundled fonts
 
-![Where this step sits in the viewer: Page, with 9 of 11 zones built so far.](illustrations/locator-5a35cbdd20.svg){ .locator data-strip="illustrations/strip-63a57b9919.svg" }
+![Where this step sits in the viewer: Page, with 9 of 12 zones built so far.](illustrations/locator-85a4534fe7.svg){ .locator data-strip="illustrations/strip-4c179dfae1.svg" }
 
 - Fonts are compiled into the WASM with `include_bytes!`: no system-font scan, so every machine shapes identically.
 - Install the three font files now; the shaping module cannot compile without them.
@@ -30,17 +30,17 @@
 
 The fonts' licence and provenance travel with them.
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 10 session_viewer/assets/text/OFL.txt copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 10 session_viewer/assets/text/README.md copy -->
 
 ## Step 2 · A clock
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-78232d7410.svg){ .locator data-strip="illustrations/strip-3bd0a898de.svg" }
+![Where this step sits in the viewer: Shell, with 9 of 12 zones built so far.](illustrations/locator-83a00319a8.svg){ .locator data-strip="illustrations/strip-45c5341909.svg" }
 
 Shaping and every frame are timed, both from `now_ms`; native builds read the system clock, so the same module compiles for tests.
 
@@ -49,26 +49,26 @@ Shaping and every frame are timed, both from `now_ms`; native builds read the sy
 - `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict.
 - Nothing reads it until lesson 17's `reduce_for_slow_frames` lowers the device scale: measuring first and acting later keeps the number testable alone.
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 10 session_viewer/src/engine/performance.rs type -->
 
 ## Step 3 · Where a label lives: `TextPlacement`
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - Placement is intent, not pixels: a camera move changes where text lands, never its string or its glyphs.
 - `Screen` is CSS pixels; `Anchor`/`Nameplate` follow a world point with screen-sized glyphs; `WorldBillboard` and `WorldPlane` have a world em height.
 
 ![Diagram: TextPlacement · Screen · CSS px · Anchor · Nameplate · WorldBillboard · WorldPlane](illustrations/10-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=1-47 -->
 
 ## Step 4 · Label, run, document
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 ![The pen moves by advances: a kerned pair, a space without ink, a two-character ligature and a zero-advance accent; clusters map glyphs back to characters.](illustrations/shaping.svg)
 
@@ -77,73 +77,73 @@ Shaping and every frame are timed, both from `now_ms`; native builds read the sy
 
 ![Diagram: TextLabel · TextRun · Buffer · TextDocument · FontSystem](illustrations/10-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=48-77 -->
 
 ## Step 5 · Replace labels without reshaping unchanged ones
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - Validate the whole replacement before touching the current runs; a bad label leaves the old document intact.
 - Only `text`, `font_size` and `line_height` participate in shaping; a colour or placement edit reuses the buffer by id.
 
 ![Diagram: Vec of TextLabel · set_labels · reuse Buffer by id · shape](illustrations/10-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=78-133 -->
 
 ## Step 6 · Font replacement, clearing and diagnostics
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - Diagnostics export the shaper's decisions: glyph id, source byte cluster, advance, offset, baseline; the reference page compares them with the browser.
 - A cluster is a byte range into the source string: `ffi` may be one glyph, `e` + combining accent one cluster.
 
 ![Diagram: replace_fonts · clear · TextDocument · GlyphDiagnostic\ id · cluster · advance](illustrations/10-07.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=134-194 -->
 
 - The document owns the `FontSystem`: nothing else in the crate knows where fonts come from.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=195-226 -->
 
 ## Step 7 · Validation and the shaping call
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - Non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion.
 - `Shaping::Advanced` does kerning, ligatures and font fallback once, at shape time.
 
 ![Diagram: validate_label · valid_plane_axes · shape · Shaping::Advanced · Buffer](illustrations/10-08.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=227-287 -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=288-324 -->
 
 Unit checks for the shaper live in the same file.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs copy lines=325-437 -->
 
 ## Step 8 · Declare the modules
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-1c4b2f24dc.svg){ .locator data-strip="illustrations/strip-54e1511b20.svg" }
+![Where this step sits in the viewer: GPU core, with 9 of 12 zones built so far.](illustrations/locator-f208128342.svg){ .locator data-strip="illustrations/strip-24a2b7f974.svg" }
 
 ![Diagram: engine/mod.rs · performance · text](illustrations/10-09.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
 <!-- file: 10 session_viewer/src/engine/mod.rs type -->
 
@@ -151,28 +151,28 @@ Unit checks for the shaper live in the same file.
 
 ## Step 9 · The same-font reference page
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-4c1ae78629.svg){ .locator data-strip="illustrations/strip-460ff53e99.svg" }
+![Where this step sits in the viewer: Page, Shell, with 9 of 12 zones built so far.](illustrations/locator-f78d0d45a4.svg){ .locator data-strip="illustrations/strip-eab6f676f4.svg" }
 
 - The page loads the identical font bytes with `@font-face`, sets the same kerning and ligature options, and compares line widths with the shaper's `line_width`.
 - The WASM export shapes five sizes, then changes only colour and placement and asserts the shape count held.
 
 ![Diagram: text_layout · WASM export · text-layout.html · @font-face · same bytes · textLayout.passed](illustrations/10-10.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 10 session_viewer/src/text_layout.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 10 session_viewer/src/lib.rs type -->
 
 - A module line and the shaping export; nothing in this lesson draws, so nothing else in the shell changes.
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 10 session_viewer/assets/text-layout.html copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 10 session_viewer/index.html copy -->
 

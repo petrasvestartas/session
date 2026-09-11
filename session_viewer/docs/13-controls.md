@@ -25,26 +25,26 @@ Streamed clouds display a bounded prefix, so a click must ask the source, not th
 
 ## Step 1 · Control identities
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-7ccf7d4f74.svg){ .locator data-strip="illustrations/strip-6f8f40e8fe.svg" }
+![Where this step sits in the viewer: Scene + walk, with 10 of 12 zones built so far.](illustrations/locator-758baddc7e.svg){ .locator data-strip="illustrations/strip-d213357acb.svg" }
 
 - `ControlId` names a control inside its parent's source geometry; the GPU slot it landed in is temporary.
 - `enable_controls` is idempotent: pressing F10 on the same parent does nothing, so markers are never duplicated.
 
 ![Diagram: selected parent · Controls · ControlId](illustrations/13-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 13 session_viewer/src/app/selection.rs type hunks=1 -->
 
 - `Controls::from_geometry` reads source data: mesh vertex keys, BRep vertices, curve and surface control nets with links; never tessellation vertices.
 
-<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 13 session_viewer/src/app/selection.rs type hunks=2 -->
 
 ## Step 2 · Fetching and source-query records
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 These two modules are new and undeclared, so the crate still builds after them.
 
@@ -53,43 +53,43 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 ![Diagram: click · QueryView · eligible_ranges · source page · Query token](illustrations/13-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-38 -->
 
 - `get` treats any HTTP status as success and only a network failure as an error: a 304 or a 404 is the caller's decision.
 - So one function serves the live source's conditional read and the loader's download.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/fetch.rs type lines=39-121 -->
 
 - `content_length` is a HEAD request: a file's download size before a byte is fetched, so a scene can refuse what the device cannot hold.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-228 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/fetch.rs copy lines=229-248 -->
 
 - `QueryView` freezes the click's projection; every page is tested against the same matrix and pixel window.
 - A cube crossing the eye plane cannot be excluded, so `intersects` returns true for it.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=1-52 -->
 
 - A source query may look at more nodes than it needed; it must never skip one that held the answer.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=53-92 -->
 
 - A cube whose projection is not finite is kept and tested the slow way: the arithmetic that would reject it is the arithmetic that failed.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=93-124 -->
 
@@ -101,27 +101,27 @@ These two modules are new and undeclared, so the crate still builds after them.
 - `page_candidates` keeps only the points whose projection lands inside the frozen click window; ranking across pages stays on the GPU.
 - `resolve_id` re-reads two small ranges for the winner alone: its original id and its exact position.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=125-195 -->
 
 - `Query` owns the cancellation token; superseding input drops the query and every callback in flight checks the token before posting.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=196-251 -->
 
 - Cancellation is an ownership property rather than a flag someone must remember to set.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=252-270 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-368 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=369-556 -->
 
@@ -129,7 +129,7 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 ## Step 3 · Wire parsing for streamed clouds
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 - `varint` and `skip_scalar` read the protobuf wire format by hand. The viewer wants one array's byte offset, not the message: decoding it is what streaming exists to avoid.
 - `descend_message` walks into the wanted field and requires every container to close exactly where its length says. A file that disagrees with itself is refused before a single range is requested.
@@ -140,69 +140,69 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 ![Diagram: cloud .pb header · CloudFields · point count](illustrations/13-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/stream.rs copy -->
 
 ## Step 4 · Picking controls
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-43ed20e7f8.svg){ .locator data-strip="illustrations/strip-187e4e26b4.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 12 zones built so far.](illustrations/locator-973e5c8e7a.svg){ .locator data-strip="illustrations/strip-42d6eaf05e.svg" }
 
 - `PickMode::Controls` restricts the ID pass to the temporary control markers of one parent.
 - A source query keeps the physical depth and accumulates point IDs across pages: the first page clears the IDs, later pages load them.
 
 ![Diagram: PickMode::Controls · id_pass · control markers · pick · source page](illustrations/13-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 13 session_viewer/src/engine/gpu/pick.rs type -->
 
 - Control markers draw after the silhouette; a source-query page draws only source-point IDs and returns before the ordinary ink IDs.
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 13 session_viewer/src/engine/gpu/render.rs type -->
 
 ## Step 5 · State transitions
 
-![Where this step sits in the viewer: State, with 10 of 11 zones built so far.](illustrations/locator-3fc75276ea.svg){ .locator data-strip="illustrations/strip-0fc6abc083.svg" }
+![Where this step sits in the viewer: State, with 10 of 12 zones built so far.](illustrations/locator-612125249b.svg){ .locator data-strip="illustrations/strip-3d14f3161b.svg" }
 
 - `controls` are the current parent's source controls; `cloud_query` is the in-flight page loop.
 
 ![Diagram: F10 · upload_controls · apply_control · selected control](illustrations/13-07.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=1-3 -->
 
 - Clearing, resizing, touching and selecting all reset controls.
 - Marker size follows the logical-to-physical scale, so a resize re-uploads them.
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=4-8 -->
 
 - A control answer is accepted only when its row is still the active parent.
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=9-10 -->
 
 - While a source-query page owns the GPU readback, no colour frame is presented: that page is an ID target, not a picture.
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=11-13 -->
 
 - A click in control mode picks controls; a click on a streamed cloud's controls starts the page loop instead.
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=14-14 -->
 
 - `enable_controls` reads the source geometry once; a display-only object without source reports that instead of inventing controls.
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=15-15 -->
 
@@ -210,49 +210,49 @@ These two modules are new and undeclared, so the crate still builds after them.
 - `apply_control` decodes the marker's sub-ID tag; a cloud control resolves through the cloud lane's row map.
 - The page loop: `start_cloud_query` → `advance_cloud_query` → `cloud_query_batch` (upload candidates as ID targets, request a pick) → `apply_cloud_query_pick` (fold the winner) → next page → `cloud_query_resolved`.
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=16-16 -->
 
 - The selected name is hidden while controls are shown; the inspection snapshot lists the controls.
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=17-19 -->
 
 ## Step 6 · Key, message and loader wiring
 
-![Where this step sits in the viewer: Network, Scene + walk, Shell, Input, with 10 of 11 zones built so far.](illustrations/locator-2c5303abc3.svg){ .locator data-strip="illustrations/strip-7e4f59eba1.svg" }
+![Where this step sits in the viewer: Network, Scene + walk, Shell, Input, with 10 of 12 zones built so far.](illustrations/locator-74d9da146d.svg){ .locator data-strip="illustrations/strip-6ff6adc4b1.svg" }
 
 ![Diagram: F10 · Escape · Input · State · loader](illustrations/13-08.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
+<span class="zone-mark" data-strip="illustrations/strip-fa7394decb.svg" data-zone="Input"></span>
 
 <!-- file: 13 session_viewer/src/app/input.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 13 session_viewer/src/lib.rs type -->
 
 - A feature that talks to the network has this shape: one more `Msg` the event loop routes.
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 13 session_viewer/src/app/mod.rs type -->
 
 - `fetch` is the viewer's first code that talks to a server; loading stays local until lesson 14.
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 13 session_viewer/src/app/inspection.rs copy -->
 
 - The streamed fixture is opt-in (`?scene=stream-test.yaml`) and reads a bounded display prefix while keeping every source row reachable.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 13 session_viewer/src/app/loader.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 13 session_viewer/src/app/scene.rs copy -->
 

@@ -23,7 +23,7 @@ cd "$COURSE_WORK/session_viewer"
 
 ## Step 1 · Declare the crate
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
+![Where this step sits in the viewer: Page, with 2 of 12 zones built so far.](illustrations/locator-6a19544068.svg){ .locator data-strip="illustrations/strip-d6699db8c5.svg" }
 
 - wasm-bindgen turns `cdylib` into the browser module; `rlib` lets native tools link the same crate.
 - `Cargo.lock` in step 4 pins every version; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
@@ -31,31 +31,31 @@ cd "$COURSE_WORK/session_viewer"
 
 ![Diagram: Cargo.toml · session_viewer crate · ../session_rust](illustrations/00-01.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d6699db8c5.svg" data-zone="Page"></span>
 
 <!-- file: 00 session_viewer/Cargo.toml copy -->
 
 ## Step 2 · Make wasm32 the default target
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
+![Where this step sits in the viewer: Page, with 2 of 12 zones built so far.](illustrations/locator-6a19544068.svg){ .locator data-strip="illustrations/strip-d6699db8c5.svg" }
 
 One line points every `cargo` command at the browser, so nothing has to be gated to `#[cfg(target_arch = "wasm32")]` to reach it. The gates that appear from lesson 04a on run the other way: they keep browser-only calls out of the native build, or give them a native fallback. The `xtest` alias runs the tests natively.
 
 ![Diagram: .cargo/config.toml · wasm32-unknown-unknown · native test target](illustrations/00-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d6699db8c5.svg" data-zone="Page"></span>
 
 <!-- file: 00 session_viewer/.cargo/config.toml type -->
 
 ## Step 3 · Tell Trunk what to bundle
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
+![Where this step sits in the viewer: Page, with 2 of 12 zones built so far.](illustrations/locator-6a19544068.svg){ .locator data-strip="illustrations/strip-d6699db8c5.svg" }
 
 Release builds, no subresource hashes, relative asset URLs, dev server on 127.0.0.1:8770 — every Check in this course passes `--port 8780` on the command line instead, so the course and a production viewer can run at once. Lesson 14 adds the watch list reaching the kernel next door.
 
 ![Diagram: Trunk.toml · dist/ · 127.0.0.1:8770 dev server](illustrations/00-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d6699db8c5.svg" data-zone="Page"></span>
 
 <!-- file: 00 session_viewer/Trunk.toml copy -->
 
@@ -69,19 +69,19 @@ Dependency data, not code. Verified against exactly these versions, so install t
 
 ## Step 5 · The page
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
+![Where this step sits in the viewer: Page, with 2 of 12 zones built so far.](illustrations/locator-6a19544068.svg){ .locator data-strip="illustrations/strip-d6699db8c5.svg" }
 
 One element with `id="status"`; Rust looks it up by that name.
 
 ![Diagram: index.html · .wasm + JS glue · status element](illustrations/00-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d6699db8c5.svg" data-zone="Page"></span>
 
 <!-- file: 00 session_viewer/index.html copy -->
 
 ## Step 6 · The first Rust function
 
-![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-a6eea7cc7f.svg){ .locator data-strip="illustrations/strip-d765e907c1.svg" }
+![Where this step sits in the viewer: Shell, with 3 of 12 zones built so far.](illustrations/locator-e30c9f8e31.svg){ .locator data-strip="illustrations/strip-ec577443d7.svg" }
 
 - `#[wasm_bindgen(start)]` runs this function when the browser finishes loading the module.
 - `web_sys` is the browser DOM from Rust.
@@ -90,7 +90,7 @@ One element with `id="status"`; Rust looks it up by that name.
 
 ![Diagram: browser loads module · start() · #status](illustrations/00-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-d765e907c1.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-ec577443d7.svg" data-zone="Shell"></span>
 
 <!-- file: 00 session_viewer/src/lib.rs type -->
 

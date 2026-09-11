@@ -17,7 +17,7 @@
 
 ## Step 1 · A bounded window over the metadata
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 ![The file is small fields between huge arrays; the window fetches the small fields once and skips the arrays by length.](illustrations/metadata-window.svg)
 
@@ -25,38 +25,38 @@
 - A skipped geometry field never sets the window's size.
 - `slice` borrows an exact cached range, including a valid empty range at the window's end.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=1-2 -->
 
 ## Step 2 · Refill only on a jump
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 - `read` reuses the window when the range is inside it, and refills under the same exposed revision otherwise.
 - A changed ETag fails the read rather than mixing two revisions.
 
 ![Diagram: read(at, length) · reuse cached bytes · refill · same ETag · fail the read](illustrations/15-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=3-3 -->
 
 ## Step 3 · Route the LOD walk through the window
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 The loop is unchanged: headers, skips and array bodies borrow from `window` instead of issuing their own requests.
 
 ![Diagram: LOD walk loop · window.read · borrowed bytes · parsed LOD fields](illustrations/15-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=4-6 -->
 
 A unit test of the range rules, part of the file:
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 15 session_viewer/src/app/stream.rs copy hunks=7-7 -->
 

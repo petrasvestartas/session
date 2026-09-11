@@ -22,18 +22,18 @@
 
 ## Step 1 · Kernel: the trim-loop contract
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-acdbf8493e.svg){ .locator data-strip="illustrations/strip-9186989aed.svg" }
+![Where this step sits in the viewer: Kernel, with 9 of 12 zones built so far.](illustrations/locator-aab456356b.svg){ .locator data-strip="illustrations/strip-0228f733aa.svg" }
 
 - `TrimLoops` is one face's handoff from BRep to mesher: UV polygons, the 3D point each polygon vertex must lift to, interior seeds.
 - Loop vertices keep their positions exactly; a neighbouring face fed the same polygon lifts to the same bits.
 
 ![Diagram: BRep face · TrimLoops · mesher](illustrations/07-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=1-1 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 07 session_rust/src/lib.rs type -->
 
@@ -41,20 +41,20 @@
 
 ## Step 2 · Kernel: one triangulation body
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-acdbf8493e.svg){ .locator data-strip="illustrations/strip-9186989aed.svg" }
+![Where this step sits in the viewer: Kernel, with 9 of 12 zones built so far.](illustrations/locator-aab456356b.svg){ .locator data-strip="illustrations/strip-0228f733aa.svg" }
 
 - `mesh_q` (the surface's own trim curves) and `mesh_loops` (polygons from BRep) share `triangulate`; the bounding-box diagonal becomes its own helper.
 - `mesh_loops` answers invalid input or lost boundary provenance with an empty mesh, never a manufactured face.
 
 ![Diagram: mesh_q · triangulate · mesh_loops · Mesh or empty](illustrations/07-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=2-6 -->
 
 ## Step 3 · Kernel: constrain boundaries and C0 knot lines
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-acdbf8493e.svg){ .locator data-strip="illustrations/strip-9186989aed.svg" }
+![Where this step sits in the viewer: Kernel, with 9 of 12 zones built so far.](illustrations/locator-aab456356b.svg){ .locator data-strip="illustrations/strip-0228f733aa.svg" }
 
 - Every loop vertex keeps its Delaunay id: a 3D point plus a `boundary/{loop}/{sample}` tag reaches the vertex it becomes.
 - A loop segment crossing an interior C0 knot line gains a node with a `boundary_interval/{loop}/{segment}` fraction: a polygon interval, not a curve parameter.
@@ -62,32 +62,32 @@
 
 ![Diagram: loop vertices · constraints · C0 knot line · triangulate](illustrations/07-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=7-8 -->
 
 ## Step 4 · Kernel: lift to the given points, tag, split creases
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-acdbf8493e.svg){ .locator data-strip="illustrations/strip-9186989aed.svg" }
+![Where this step sits in the viewer: Kernel, with 9 of 12 zones built so far.](illustrations/locator-aab456356b.svg){ .locator data-strip="illustrations/strip-0228f733aa.svg" }
 
 - A triangle straddling a crease knot means the constraint failed: an empty mesh, never a smeared crease.
 - With given XYZ the weld tolerance is zero; interval nodes interpolate on the supplied chord, so both faces insert the same point.
 
 ![Diagram: triangles · vertices\ u · v · provenance · split creases](illustrations/07-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=9-10 -->
 
 - Singular points take their fan's mean face normal in key order; every vertex records `u`, `v` and boundary provenance before the crease split.
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=11-12 -->
 
 ## Step 5 · Kernel: BRep phases
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-acdbf8493e.svg){ .locator data-strip="illustrations/strip-9186989aed.svg" }
+![Where this step sits in the viewer: Kernel, with 9 of 12 zones built so far.](illustrations/locator-aab456356b.svg){ .locator data-strip="illustrations/strip-0228f733aa.svg" }
 
 - Phase 2: the first incident grid face supplies the canonical polygon and its pcurve parameters; a grid whose samples differ is marked for rebuild, never left incompatible.
 - Curved boundaries refine before interior refinement; every incident face is then rebuilt with the refined polygon.
@@ -96,13 +96,13 @@
 
 ![Diagram: first grid face · canonical polygon · refined polygon · every incident face](illustrations/07-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 07 session_rust/src/brep.rs type hunks=1-3 -->
 
 - Helpers: bounded golden-section search on the lifted pcurve, one-sided boundary normals at singular ends, refinement that keeps original samples exact.
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 07 session_rust/src/brep.rs type hunks=4 -->
 
@@ -110,65 +110,65 @@
 
 ## Step 6 · Viewer: chains from the face meshes
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - Grid faces give an iso-parametric chain read off `u`/`v`; constrained faces give the `brep_edge/{edge}/{use}/{sample}` nodes.
 
 ![Diagram: face Mesh · node chain · EdgeChain · pipes + pipe_ids](illustrations/07-07.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=1-39 -->
 
 - A grid face's pcurve is a straight iso line: its constant parameter names one sample column.
 - The wrap of a closed direction is handled without tolerance.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=40-99 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=100-165 -->
 
 - `constrained_chain` orders producer-tagged nodes by sample index plus interval fraction; a missing sample makes the chain unavailable rather than approximate.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=166-239 -->
 
 - One chain per edge, from the first use that can supply one; the other face lends the cull its normal.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=240-297 -->
 
 - The lending face's normal comes from its nearest face-mesh vertex: the facing cull needs two outward directions.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=298-316 -->
 
 - Pipes carry both faces' outward normals; `pipe_ids` records each pipe's source edge index.
 - A collapsed f32 segment is skipped: it cannot become a pick target.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=317-381 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs copy whole lines=382-712 -->
 
 ## Step 7 · Viewer: outward orientation from the tessellation
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - Face-use flags are never read: two faces walking a shared edge in opposite directions agree, and a group enclosing negative volume is inside out.
 
 ![Diagram: EdgeChain · face_signs · face Mesh · outward normals](illustrations/07-08.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=1-59 -->
 
@@ -176,26 +176,26 @@
 - Two grid faces agree bit for bit; a constrained Delaunay face re-evaluates the surface and lands one unit in the last place away — the gap between two neighbouring f64 values, far below any tolerance you would write down.
 - So the lookup is a nearest-vertex minimum: not an equality, and not a tolerance search.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=60-78 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=79-113 -->
 
 - `opposed`: do the two faces walk their shared edge in opposite directions? `None` when either side cannot say — a refusal, not a guess.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=114-162 -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs copy lines=163-277 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/mod.rs type -->
 
@@ -205,37 +205,37 @@
 
 ## Step 8 · Viewer: ink the solid's edges
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - A negative face sign flips normals and winding before upload, so shading, culling and boundary facing agree.
 - An edge without a chain is drawn as a sampled ribbon and logged: a display fallback, not a CAD boundary.
 
 ![A shared rim is meshed by both faces from the same boundary polygon, so the ink is read from whichever face can supply the chain while the other lends only a normal; an edge no face can supply is drawn as a resampled ribbon with no source id.](illustrations/edge-owner.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep.rs type -->
 
 ## Step 9 · Fixture and status
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-4c1ae78629.svg){ .locator data-strip="illustrations/strip-460ff53e99.svg" }
+![Where this step sits in the viewer: Page, Shell, with 9 of 12 zones built so far.](illustrations/locator-f78d0d45a4.svg){ .locator data-strip="illustrations/strip-eab6f676f4.svg" }
 
 A cylinder (closed seam, two circles) and a block with a hole (inner wire) exercise shared and trimmed boundaries.
 
 ![Diagram: fixture.rs\ cylinder · block with hole · CadFixture · lib.rs status](illustrations/07-10.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 07 session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 07 session_viewer/src/lib.rs type -->
 
 - Only the status line changes: every lane reports its own count.
 - The checkpoint test reads that JSON, not a screenshot.
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 07 session_viewer/index.html copy -->
 

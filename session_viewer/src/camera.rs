@@ -114,6 +114,52 @@ impl Camera {
     /// The cursor's world point on the target plane is computed from the view frame.
     /// Then the target is pulled toward it by the zoom factor.
     /// 'cursor'/'viewport' in physical px.
+    /// The world ray through a cursor position: `(origin, direction)`, direction normalized.
+    ///
+    /// f64 throughout, and deliberately: this is what a pick, a snap and a drag all measure
+    /// against, and an f32 ray a kilometre out is already wrong by a millimetre before it
+    /// reaches anything - the error the object table's anchor exists to keep out.
+    ///
+    /// Under perspective every ray starts at the eye. Under orthographic they are parallel, so
+    /// the origin moves across the target plane instead and the direction is the view axis.
+    pub fn ray(&self, cursor: (f64, f64), viewport: (f64, f64)) -> Option<(Point, Vector)> {
+        if viewport.0 <= 0.0 || viewport.1 <= 0.0 || !cursor.0.is_finite() || !cursor.1.is_finite()
+        {
+            return None;
+        }
+        let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
+        let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
+        // The same frustum half-extents `zoom_at` uses, at the target plane.
+        let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan();
+        let half_w = half_h * (viewport.0 / viewport.1);
+        let right = self.orientation.rotate_vector(Vector::x_axis());
+        let forward = self.orientation.rotate_vector(Vector::y_axis());
+        let mut on_plane = [0.0; 3];
+        for i in 0..3 {
+            on_plane[i] = self.target[i] + right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
+        }
+        if !self.perspective {
+            let origin = Point::new(
+                on_plane[0] - forward[0] * self.distance,
+                on_plane[1] - forward[1] * self.distance,
+                on_plane[2] - forward[2] * self.distance,
+            );
+            return Some((origin, forward));
+        }
+        let mut dir = [0.0; 3];
+        for i in 0..3 {
+            dir[i] = on_plane[i] - self.position[i];
+        }
+        let length = (dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]).sqrt();
+        if !length.is_finite() || length <= 0.0 {
+            return None;
+        }
+        Some((
+            Point::new(self.position[0], self.position[1], self.position[2]),
+            Vector::new(dir[0] / length, dir[1] / length, dir[2] / length),
+        ))
+    }
+
     pub fn zoom_at(&mut self, amount: f32, cursor: (f64, f64), viewport: (f64, f64)) {
         if viewport.0 <= 0.0 || viewport.1 <= 0.0 || !cursor.0.is_finite() || !cursor.1.is_finite()
         {
@@ -495,6 +541,90 @@ fn zoom_distance(distance: f64, amount: f32) -> f64 {
 
 #[cfg(test)]
 mod wheel_tests {
+#[cfg(test)]
+mod ray_tests {
+    use super::*;
+
+    fn viewport() -> (f64, f64) {
+        (800.0, 400.0)
+    }
+
+    /// The centre pixel looks straight down the view axis, in both projections.
+    #[test]
+    fn the_centre_ray_is_the_view_axis() {
+        let mut cam = Camera::new();
+        cam.update_position();
+        for perspective in [true, false] {
+            cam.perspective = perspective;
+            let (_, dir) = cam.ray((400.0, 200.0), viewport()).expect("a ray");
+            let forward = cam.orientation.rotate_vector(Vector::y_axis());
+            for i in 0..3 {
+                assert!((dir[i] - forward[i]).abs() < 1e-12, "{perspective}");
+            }
+        }
+    }
+
+    /// Every perspective ray leaves the eye; every orthographic ray is parallel to the axis
+    /// and starts somewhere else. That difference is the whole reason the two paths exist.
+    #[test]
+    fn perspective_rays_share_an_origin_and_ortho_rays_share_a_direction() {
+        let mut cam = Camera::new();
+        cam.update_position();
+
+        cam.perspective = true;
+        let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
+        let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
+        for i in 0..3 {
+            assert!((a[i] - b[i]).abs() < 1e-9, "one eye");
+        }
+        assert!((0..3).any(|i| (da[i] - db[i]).abs() > 1e-6), "different directions");
+
+        cam.perspective = false;
+        let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
+        let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
+        for i in 0..3 {
+            assert!((da[i] - db[i]).abs() < 1e-12, "one direction");
+        }
+        assert!((0..3).any(|i| (a[i] - b[i]).abs() > 1e-6), "different origins");
+    }
+
+    /// A ray through a pixel passes through the world point that pixel shows: walk the target
+    /// plane's own point back to the screen and the ray must come back to it.
+    #[test]
+    fn a_ray_hits_the_target_plane_where_the_cursor_is() {
+        let mut cam = Camera::new();
+        cam.update_position();
+        let half_h = cam.distance * (FOVY_DEG * 0.5).to_radians().tan();
+        let half_w = half_h * (viewport().0 / viewport().1);
+        let right = cam.orientation.rotate_vector(Vector::x_axis());
+        let forward = cam.orientation.rotate_vector(Vector::y_axis());
+        // The world point a quarter right and a quarter up from the target.
+        let expected: Vec<f64> = (0..3)
+            .map(|i| cam.target[i] + right[i] * 0.5 * half_w + cam.up[i] * 0.5 * half_h)
+            .collect();
+        for perspective in [true, false] {
+            cam.perspective = perspective;
+            let (origin, dir) = cam.ray((600.0, 100.0), viewport()).expect("a ray");
+            // Advance to the target plane, whose normal is the view axis.
+            let denom: f64 = (0..3).map(|i| dir[i] * forward[i]).sum();
+            let num: f64 = (0..3).map(|i| (cam.target[i] - origin[i]) * forward[i]).sum();
+            let t = num / denom;
+            for i in 0..3 {
+                let hit = origin[i] + dir[i] * t;
+                assert!((hit - expected[i]).abs() < 1e-6, "{perspective} axis {i}");
+            }
+        }
+    }
+
+    /// A zero or non-finite viewport has no ray, rather than a NaN one.
+    #[test]
+    fn a_degenerate_viewport_has_no_ray() {
+        let mut cam = Camera::new();
+        cam.update_position();
+        assert!(cam.ray((1.0, 1.0), (0.0, 400.0)).is_none());
+        assert!(cam.ray((f64::NAN, 1.0), viewport()).is_none());
+    }
+}
     use super::*;
     #[test]
     fn coalesced_wheel_events_remain_positive_and_preserve_the_cursor_anchor() {

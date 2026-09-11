@@ -21,7 +21,7 @@
 
 ## Step 1 · The object row
 
-![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-afd0463e4d.svg){ .locator data-strip="illustrations/strip-10d43625b6.svg" }
+![Where this step sits in the viewer: GPU core, with 6 of 12 zones built so far.](illustrations/locator-8c49476c55.svg){ .locator data-strip="illustrations/strip-c206283004.svg" }
 
 - One 96-byte record per object, indexed by `instance_index` in every instance-reading shader.
 - Flags are bits: selecting sets bit 0 and leaves the rest.
@@ -30,27 +30,27 @@
 
 ![Diagram: Instance::placeholder · struct Instance\ 96 B · one object row · flags](illustrations/03-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c206283004.svg" data-zone="GPU core"></span>
 
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
 
 The rest is `#[cfg(test)]`: naga parses every lane shader and checks WGSL member offsets against the Rust ones. The browser build never compiles it.
 
-<span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c206283004.svg" data-zone="GPU core"></span>
 
 <!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=58-236 -->
 
 ## Step 2 · Declare the engine module tree
 
-![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-afd0463e4d.svg){ .locator data-strip="illustrations/strip-10d43625b6.svg" }
+![Where this step sits in the viewer: GPU core, with 6 of 12 zones built so far.](illustrations/locator-8c49476c55.svg){ .locator data-strip="illustrations/strip-c206283004.svg" }
 
 ![Diagram: lib.rs · engine/mod.rs · engine/gpu/mod.rs · instance.rs](illustrations/03-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c206283004.svg" data-zone="GPU core"></span>
 
 <!-- file: 03 session_viewer/src/engine/gpu/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-c206283004.svg" data-zone="GPU core"></span>
 
 <!-- file: 03 session_viewer/src/engine/mod.rs type -->
 
@@ -58,14 +58,14 @@ The rest is `#[cfg(test)]`: naga parses every lane shader and checks WGSL member
 
 ## Step 3 · Source identity is separate from the row
 
-![Where this step sits in the viewer: Scene + walk, with 7 of 11 zones built so far.](illustrations/locator-f9a61bc664.svg){ .locator data-strip="illustrations/strip-3589a2f087.svg" }
+![Where this step sits in the viewer: Scene + walk, with 7 of 12 zones built so far.](illustrations/locator-96b65e05de.svg){ .locator data-strip="illustrations/strip-775348e207.svg" }
 
 - A `guid` and `revision` identify what the object *is*; the row says how it is drawn this revision.
 - Picking returns a row; the scene maps it back. Never search for an object by matching triangle positions.
 
 ![Diagram: SourceObject · guid · revision · Instance · scene::objects()](illustrations/03-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-3589a2f087.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-775348e207.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 03 session_viewer/src/scene.rs type -->
 
@@ -73,7 +73,7 @@ The rest is `#[cfg(test)]`: naga parses every lane shader and checks WGSL member
 
 ## Step 4 · Rust layout ↔ WGSL layout
 
-![Where this step sits in the viewer: Shaders, with 7 of 11 zones built so far.](illustrations/locator-1378bac81b.svg){ .locator data-strip="illustrations/strip-9d7fcc8d70.svg" }
+![Where this step sits in the viewer: Shaders, with 7 of 12 zones built so far.](illustrations/locator-9b9a019790.svg){ .locator data-strip="illustrations/strip-14a3923a88.svg" }
 
 Same bytes on both sides, read through different type systems:
 
@@ -93,24 +93,24 @@ size                         96     array stride
 
 ![Diagram: Instance rows · storage instances[] · instance_index · vs_main · fs_main](illustrations/03-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-9d7fcc8d70.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-14a3923a88.svg" data-zone="Shaders"></span>
 
 <!-- file: 03 session_viewer/src/shaders/first.wgsl type -->
 
 ## Step 5 · Bind the rows and draw each one
 
-![Where this step sits in the viewer: Page, Shell, with 7 of 11 zones built so far.](illustrations/locator-b32fcaf1b6.svg){ .locator data-strip="illustrations/strip-e2a9d1f0c8.svg" }
+![Where this step sits in the viewer: Page, Shell, with 7 of 12 zones built so far.](illustrations/locator-c57998bade.svg){ .locator data-strip="illustrations/strip-89193e76aa.svg" }
 
 - The layout gains binding 1; the bind group supplies the storage buffer; one draw per row.
 - `objects` stays on the CPU side of the shell, so the status counts source data, not GPU rows.
 
 ![Diagram: scene::objects() · STORAGE buffer · BindGroup · draw(0..3, row..row+1)](illustrations/03-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-3d2a8d385e.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-28e280dd78.svg" data-zone="Shell"></span>
 
 <!-- file: 03 session_viewer/src/lib.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-7b9fa61633.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-86519abf52.svg" data-zone="Page"></span>
 
 <!-- file: 03 session_viewer/index.html copy -->
 

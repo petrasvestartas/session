@@ -27,19 +27,19 @@ Install the supplied same-font comparison page and its WASM export first; `lib.r
 
 ## Step 2 · Black plates
 
-![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-2eab4d3d01.svg){ .locator data-strip="illustrations/strip-5c9e80c7f0.svg" }
+![Where this step sits in the viewer: Lanes, Shaders, with 9 of 12 zones built so far.](illustrations/locator-dd49759103.svg){ .locator data-strip="illustrations/strip-e0431cad57.svg" }
 
 - A plate is six clip-space vertices plus the local offset, half size and corner radius the fragment shader needs for a rounded edge.
 - Depth compare `Always`, no depth write: a plate is an overlay and never occludes geometry.
 
 ![Diagram: placed line box · Plates · PlateVertex · text_plate.wgsl · rounded SDF](illustrations/11-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-73 -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=74-100 -->
 
@@ -53,7 +53,7 @@ Rust vertex_attr_array (stride 28)          WGSL vs_main
 3 => Float32    radius                 ↔  @location(3) radius: f32
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=101-148 -->
 
@@ -61,54 +61,54 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 ![A label is two coverages: the plate's alpha computed from a signed distance and softened over exactly one pixel, and the plane's ink sampled from the R8 atlas and multiplied into the colour.](illustrations/glyph-coverage.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a8b790c015.svg" data-zone="Shaders"></span>
 
 <!-- file: 11 session_viewer/src/shaders/text_plate.wgsl type -->
 
 ## Step 3 · Fixed world planes: records and resources
 
-![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
+![Where this step sits in the viewer: Lanes, with 9 of 12 zones built so far.](illustrations/locator-212a851c36.svg){ .locator data-strip="illustrations/strip-11536ea897.svg" }
 
 - A `WorldPlane` label keeps one coverage texture; a camera move rewrites only six vertices.
 - The texture budget is a hard cap independent of the adapter: one huge label cannot take the scene's memory.
 
 ![Diagram: WorldPlane label · CachedPlane · R8 texture · Planes · budget](illustrations/11-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-33 -->
 
 - The lane borrows the viewer's device and target and owns only its coverage textures: the budget lives in one place.
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=34-83 -->
 
 ## Step 4 · Planes: prepare
 
-![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
+![Where this step sits in the viewer: Lanes, with 9 of 12 zones built so far.](illustrations/locator-212a851c36.svg){ .locator data-strip="illustrations/strip-11536ea897.svg" }
 
 - Placement and colour changes keep the texture; text, font or a larger projected em rebuilds it.
 - Resolution grows in power-of-two em buckets, so small camera motion never re-rasterizes.
 
 ![Diagram: TextFrame · camera · Planes::prepare · keep texture · rasterize again](illustrations/11-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=84-142 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=143-219 -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=220-258 -->
 
 ## Step 5 · Planes: projection, raster and the quad
 
-![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-2eab4d3d01.svg){ .locator data-strip="illustrations/strip-5c9e80c7f0.svg" }
+![Where this step sits in the viewer: Lanes, Shaders, with 9 of 12 zones built so far.](illustrations/locator-dd49759103.svg){ .locator data-strip="illustrations/strip-e0431cad57.svg" }
 
 - `project` keeps clip `w`; the shader divides, so UVs stay perspective-correct across the plane.
 - `rasterize` composites Swash glyph images into one R8 texture at the chosen em size, bearings and baseline included.
@@ -116,17 +116,17 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 ![Diagram: project · clip w · append_quad · Vertex · rasterize · Swash to R8 · text_plane.wgsl](illustrations/11-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=259-322 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=323-402 -->
 
 - Screen-space text takes the other path, through Glyphon's shared atlas.
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=403-467 -->
 
@@ -144,66 +144,66 @@ vertex_attr_array (stride 56)
 3 => Float32x4  clip rectangle          ↔  @location(3) clip: vec4<f32>
 ```
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=468-492 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a8b790c015.svg" data-zone="Shaders"></span>
 
 <!-- file: 11 session_viewer/src/shaders/text_plane.wgsl type -->
 
 A native GPU check for the plane path ends the file.
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs copy lines=493-588 -->
 
 ## Step 6 · The text lane: frame input and counters
 
-![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
+![Where this step sits in the viewer: Lanes, with 9 of 12 zones built so far.](illustrations/locator-212a851c36.svg){ .locator data-strip="illustrations/strip-11536ea897.svg" }
 
 - `TextFrame` is what placement needs from the frame: rebased camera, anchor origin, physical and logical sizes.
 - `logical` comes from the canvas CSS box, not `devicePixelRatio`; that makes browser zoom and DPR both work.
 
 ![Diagram: camera · rebase anchor · TextFrame · physical + logical size · TextStats](illustrations/11-07.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=1-61 -->
 
 ## Step 7 · The lane owns Glyphon
 
-![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
+![Where this step sits in the viewer: Lanes, with 9 of 12 zones built so far.](illustrations/locator-212a851c36.svg){ .locator data-strip="illustrations/strip-11536ea897.svg" }
 
 - Two renderers share one atlas: `anchored` compares depth `GreaterEqual` (reversed Z, occluded by solids), `overlay` is `Always`.
 - `retarget` follows the scene's sample count without reshaping or dropping the atlas.
 
 ![Diagram: TextLane::new · anchored · GreaterEqual · overlay · Always · one TextAtlas](illustrations/11-08.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-121 -->
 
 - Replacement is all-or-nothing: an invalid submission leaves the previous document standing, so a bad label cannot empty the screen.
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=122-144 -->
 
 ## Step 8 · Prepare: place, rasterize, build both draw lists
 
-![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
+![Where this step sits in the viewer: Lanes, with 9 of 12 zones built so far.](illustrations/locator-212a851c36.svg){ .locator data-strip="illustrations/strip-11536ea897.svg" }
 
 - The key `(document revision, font revision, frame)` skips the whole preparation when nothing moved.
 - Raster keys are bounded: past the budget the atlas and Swash cache rebuild together, so no prepared vertex points at an evicted glyph.
 
 ![Diagram: key · revision, font, frame · TextLane::prepare · PlacedText · atlas · raster keys · two draw lists](illustrations/11-09.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=145-218 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=219-273 -->
 
@@ -211,19 +211,19 @@ A native GPU check for the plane path ends the file.
 
 ## Step 9 · Draw order, reset, release
 
-![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
+![Where this step sits in the viewer: Lanes, with 9 of 12 zones built so far.](illustrations/locator-212a851c36.svg){ .locator data-strip="illustrations/strip-11536ea897.svg" }
 
 Planes first (they are in the scene), then anchored glyphs, then plates, then overlay glyphs on top of their plates.
 
 ![Diagram: TextLane::draw · planes · anchored glyphs · plates · overlay glyphs](illustrations/11-10.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=274-340 -->
 
 ## Step 10 · CSS to physical, once
 
-![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
+![Where this step sits in the viewer: Lanes, with 9 of 12 zones built so far.](illustrations/locator-212a851c36.svg){ .locator data-strip="illustrations/strip-11536ea897.svg" }
 
 - `scale()` derives one isotropic raster scale from framebuffer ÷ CSS box and rejects a stretched canvas.
 - `place()` projects only the anchor; behind-camera and out-of-range anchors are culled, never drawn inverted.
@@ -233,29 +233,29 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 ![Diagram: framebuffer ÷ CSS box · TextFrame::scale · place · anchor only · center_nameplate](illustrations/11-11.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=341-374 -->
 
 - Only the anchor is projected: following a world point needs one clip position, then screen-space layout.
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=375-431 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=432-498 -->
 
 - Glyphon owns its own shaders; the lane only hands it a depth state.
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=499-548 -->
 
 Native checks for scale, depth, nameplates and cache eviction live in the same file.
 
-<span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-11536ea897.svg" data-zone="Lanes"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs copy lines=549-949 -->
 
@@ -263,38 +263,38 @@ Native checks for scale, depth, nameplates and cache eviction live in the same f
 
 ## Step 11 · Wire the lane into the frame
 
-![Where this step sits in the viewer: Page, Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-59c2ee0bf1.svg){ .locator data-strip="illustrations/strip-5ae6140b12.svg" }
+![Where this step sits in the viewer: Page, Shell, GPU core, with 9 of 12 zones built so far.](illustrations/locator-b4a76a7bfb.svg){ .locator data-strip="illustrations/strip-2f2b1259c1.svg" }
 
 - `write_frame_uniforms` also prepares text and can fail (a stretched canvas), so it returns a `Result`.
 - Text draws after mesh ink in the same pass, against the same read-only depth.
 
 ![Diagram: write_frame_uniforms · TextLane::prepare · mesh ink pass · TextLane::draw](illustrations/11-12.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
 <!-- file: 11 session_viewer/src/engine/gpu/mod.rs type -->
 
 Three fixture labels: a nameplate above the model, a rounded centred nameplate, and one fixed world plane.
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 11 session_viewer/src/lib.rs type -->
 
 The supplied comparison page replaces the shaping reference page and its export.
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 11 session_viewer/src/text_layout.rs -->
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 11 session_viewer/assets/text-layout.html -->
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 11 session_viewer/assets/text-quality.html copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 11 session_viewer/index.html copy -->
 

@@ -72,6 +72,27 @@ fn world_box(r: &ObjectRow) -> Aabb {
     r.bounds.placed(&r.place)
 }
 
+/// One row's GPU form under a placement: the model matrix with its translation column cleared,
+/// the true f64 translation taken out of that column, and the row's own box placed into the
+/// world. Split out of `set_placement` because it is the whole arithmetic of a move and a
+/// device is not needed to check it.
+fn placed_row(local: &Aabb, place: &Mat4) -> ([f32; 16], [f64; 3], Aabb) {
+    let world = local.placed(place);
+    let mut model = mat_to_f32(place);
+    model[12] = 0.0;
+    model[13] = 0.0;
+    model[14] = 0.0;
+    (
+        model,
+        [place[12], place[13], place[14]],
+        if world.is_finite() {
+            world
+        } else {
+            Aabb::empty()
+        },
+    )
+}
+
 /// The anchored translation the GPU reads: the true f64 world position minus the table's
 /// anchor, narrowed once at the end. Subtracting first is what keeps a small move: a
 /// millimetre is lost narrowing a world coordinate a kilometre out, and kept narrowing the
@@ -100,6 +121,10 @@ pub struct InstanceTable {
     /// it against the current anchor. Every change to a placement is applied HERE, so the
     /// error of an edit is the error of the edit, not of the position it happens at.
     translation: Vec<[f64; 3]>,
+    /// Each row's box in its OWN space. `world_bounds` is this box under the current
+    /// placement, so an edit that only moves the object recomputes the world box from here
+    /// instead of walking the geometry again.
+    local_bounds: Vec<Aabb>,
     bounded: Vec<BoundedRow>,
     /// Every row's world box, row order, so index = row; `Aabb::empty()` where not finite.
     world_bounds: Vec<Aabb>,
@@ -206,6 +231,7 @@ impl InstanceTable {
             geometry_revision: 0,
             rows: vec![Instance::placeholder()],
             translation: Vec::new(),
+            local_bounds: Vec::new(),
             bounded: Vec::new(),
             world_bounds: Vec::new(),
             last_origin: None,
@@ -258,6 +284,7 @@ impl InstanceTable {
         if self.translation.is_empty() {
             self.rows.clear();
             self.world_bounds.clear();
+            self.local_bounds.clear();
             self.buffer.reset();
             self.translations.reset();
         }
@@ -265,6 +292,7 @@ impl InstanceTable {
         self.rows.reserve(up.rows.len());
         self.translation.reserve(up.rows.len());
         self.world_bounds.reserve(up.rows.len());
+        self.local_bounds.reserve(up.rows.len());
         for (i, r) in up.rows.iter().enumerate() {
             let world = world_box(r);
             if r.faces && world.is_finite() {
@@ -289,6 +317,7 @@ impl InstanceTable {
             } else {
                 Aabb::empty()
             });
+            self.local_bounds.push(r.bounds);
             self.translation
                 .push([r.place[12], r.place[13], r.place[14]]);
             let mut model = mat_to_f32(&r.place);
@@ -413,6 +442,40 @@ impl InstanceTable {
         }
     }
 
+    /// Replace one row's placement and write back only that row.
+    ///
+    /// Two small writes - 96 B of instance and 16 B of anchored translation - so a drag frame
+    /// costs the same whether the scene holds one object or a million. The true f64 translation
+    /// is what changes; the anchored f32 the GPU reads is derived from it, because a delta
+    /// written straight into the f32 is erased by the next re-anchor.
+    ///
+    /// The world box is recomputed from the row's own box, and `bounded` (the sparse list the
+    /// inside test walks) is kept in step. Returns false when the row does not exist.
+    pub fn set_placement(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4) -> bool {
+        let i = row as usize;
+        let (Some(instance), Some(local)) = (self.rows.get_mut(i), self.local_bounds.get(i)) else {
+            return false;
+        };
+        let (model, translation, world) = placed_row(local, place);
+        instance.model = model;
+        self.translation[i] = translation;
+        self.world_bounds[i] = world;
+        for b in &mut self.bounded {
+            if b.row == row {
+                b.lo = [world.min[0] as f64, world.min[1] as f64, world.min[2] as f64];
+                b.hi = [world.max[0] as f64, world.max[1] as f64, world.max[2] as f64];
+            }
+        }
+        self.geometry_revision = self.geometry_revision.wrapping_add(1);
+        let instance = *instance;
+        self.buffer.write_at(ctx, row, std::slice::from_ref(&instance));
+        if let Some(origin) = &self.last_origin {
+            let t = anchored(self.translation[i], origin);
+            self.translations.write_at(ctx, row, std::slice::from_ref(&t));
+        }
+        true
+    }
+
     /// Set or clear one flag bit on one row and write that row back.
     pub fn set_flag(&mut self, ctx: &GpuCtx, row: u32, bit: u32, on: bool) {
         let Some(r) = self.rows.get_mut(row as usize) else {
@@ -434,6 +497,7 @@ impl InstanceTable {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
         self.rows.clear();
         self.translation.clear();
+        self.local_bounds.clear();
         self.bounded.clear();
         self.world_bounds.clear();
         self.buffer.reset();
@@ -446,6 +510,7 @@ impl InstanceTable {
         self.reset();
         self.rows.shrink_to_fit();
         self.translation.shrink_to_fit();
+        self.local_bounds.shrink_to_fit();
         self.bounded.shrink_to_fit();
         self.world_bounds.shrink_to_fit();
         self.rows.push(Instance::placeholder());
@@ -531,6 +596,32 @@ mod tests {
         let before = anchored([world, 0.0, 0.0], &near)[0];
         let after = anchored([world + step, 0.0, 0.0], &near)[0];
         assert_ne!(after, before);
+    }
+
+    /// A move rewrites the f64 translation and the world box, and leaves the model matrix's
+    /// translation column at zero: the GPU adds the anchored translation itself, and a matrix
+    /// carrying the position twice would draw the object at twice its distance.
+    #[test]
+    fn a_move_goes_into_the_translation_not_the_matrix() {
+        let local = Aabb {
+            min: [-1.0, -1.0, -1.0],
+            max: [1.0, 1.0, 1.0],
+        };
+        let place = Xform::translation(10.0, 20.0, 30.0).m;
+        let (model, translation, world) = placed_row(&local, &place);
+
+        assert_eq!([model[12], model[13], model[14]], [0.0, 0.0, 0.0]);
+        assert_eq!(translation, [10.0, 20.0, 30.0]);
+        assert_eq!(world.min, [9.0, 19.0, 29.0]);
+        assert_eq!(world.max, [11.0, 21.0, 31.0]);
+    }
+
+    /// A row with no volume keeps an empty box rather than an infinite one, so the inside test
+    /// and the fit never walk a box that answers yes to everything.
+    #[test]
+    fn a_row_with_no_box_stays_empty() {
+        let (_, _, world) = placed_row(&Aabb::empty(), &Xform::translation(1.0, 0.0, 0.0).m);
+        assert!(!world.is_finite());
     }
 
     /// The anchored value is a pure function of the f64 base and the anchor, so a placement

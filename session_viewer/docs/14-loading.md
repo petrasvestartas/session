@@ -17,7 +17,7 @@
 
 ## Step 1 · The manifest is placement, not geometry
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 - A manifest lists files and where each sits (`at`, `xform`, auto-grid); geometry stays in the `.pb` files, so a placement edit never re-uploads geometry.
 - `parse` accepts YAML, JSON and TOML with one set of semantics, rejecting non-finite or non-affine transforms before anything is fetched.
@@ -25,34 +25,34 @@
 
 ![Diagram: yaml · json · toml · Manifest · Item · at · xform · TextItem](illustrations/14-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=1-57 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=58-127 -->
 
 - Placement has a fallback: an item with no transform takes its slot in the auto grid.
 - So a manifest of nothing but file names still loads — with the grid step at zero every unplaced item lands on the origin, and a scene that wants them apart gives each one an `at`.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=128-146 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=147-217 -->
 
 Parser unit tests, part of the file:
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/manifest.rs copy lines=218-347 -->
 
 ## Step 2 · Validate serialized counts before the kernel allocates
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 - A hostile `cv_count` would make a kernel constructor allocate from a declared number; every count is checked against the actual storage length first.
 - `session` is the single entry for a decoded protobuf: it walks every object of every kind and returns the first failure as a string, so a hostile file becomes a status line instead of a panic inside a kernel constructor. `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds anything.
@@ -62,33 +62,33 @@ Parser unit tests, part of the file:
 
 ![Diagram: decoded protobuf · counts ≤ storage · JSON document](illustrations/14-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/validate.rs copy lines=1-147 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/validate.rs type lines=148-232 -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/validate.rs copy lines=233-473 -->
 
 ## Step 3 · Decode without freezing the page
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 - prost decodes the whole message in one call; conversion into kernel types is the slow part, so `Pacer` yields to the browser every `CHUNK` objects through `next_tick`.
 - The bytes are taken by value and dropped right after prost is done, before the conversion loop starts.
 
 ![Diagram: bytes · message · kernel objects](illustrations/14-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=1-60 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=61-149 -->
 
@@ -97,20 +97,20 @@ Parser unit tests, part of the file:
 
 ## Step 4 · The URL decides the route
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 - Three routes: a named scene (`?scene=` or the last path segment) from the bucket; the local manifest on a dev server; no route on a deployed page, which hands over to the live source.
 - `?data=` overrides where `.pb` files come from; `query_scene` refuses `..`, absolute paths and schemes so a manifest name stays inside one tree.
 
 ![Diagram: ?scene= · path · SceneRoute · bucket · local · live](illustrations/14-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/route.rs type -->
 
 ## Step 5 · A live source polls with ETags
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 - An idle poll stays cheap: every file is re-read with `If-None-Match`, so an unchanged file answers `304` and is never downloaded or decoded again.
 - A relay message (`EventSource`) only raises a "look now" flag; the conditional reads decide what changed.
@@ -118,60 +118,60 @@ Parser unit tests, part of the file:
 
 ![Diagram: EventSource · Notify flag · LiveSource::check · read: Changed · Same](illustrations/14-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=1-68 -->
 
 - The flag says *when* to check, never *what* changed, so a lost or duplicated notification cannot corrupt the scene.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=69-90 -->
 
 - `from_query` turns the page off, on, or onto a custom manifest; a named scene or a local dev page never watches the bucket.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=91-116 -->
 
 - Watching the bucket is a property of how the page was reached, not a mode someone sets.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=117-174 -->
 
 - The console warning is deduplicated by message, so a poll that keeps failing logs once instead of repeating. It never reaches the status line.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=175-190 -->
 
 - `read` returns `Changed`, `Same` or `Failed`; a server without ETags falls back to hashing the body.
 - A manifest inside the bucket names its files from the bucket root; any other manifest names them from its own folder.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=191-256 -->
 
 - `check` is one tick: nothing happens unless the relay flagged or the interval is due.
 - Any unreadable file in a replacement returns `None`; the last valid scene stays.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=257-333 -->
 
 - An empty file is forgotten, not treated as an empty scene: a publisher writing in place is briefly zero bytes, and that moment must not clear the screen.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=334-354 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=355-411 -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=412-441 -->
 
@@ -179,7 +179,7 @@ Parser unit tests, part of the file:
 
 ## Step 6 · Stage a replacement, then swap it in whole
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
+![Where this step sits in the viewer: Network, with 10 of 12 zones built so far.](illustrations/locator-aaa1e42ba8.svg){ .locator data-strip="illustrations/strip-58e2d02802.svg" }
 
 ![Two request generations in flight: the older one is dropped, the newer one is staged in manifest order and swapped in whole while the previous scene stays on screen.](illustrations/loading.svg)
 
@@ -189,35 +189,35 @@ Parser unit tests, part of the file:
 - Whole files have a budget: `?budget=<MB>`, else 16 MB per GB of `navigator.deviceMemory`, 64 MB when the browser says nothing; a decoded file costs the wasm heap about five times its size.
 - A HEAD gives each file's size first; one that would cross the budget is skipped and the status line names it and the knob.
 
-<span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
+<span class="zone-mark" data-strip="illustrations/strip-58e2d02802.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/loader.rs type -->
 
 ## Step 7 · Wire the modules and the text message
 
-![Where this step sits in the viewer: Page, Scene + walk, Shell, State, with 10 of 11 zones built so far.](illustrations/locator-e3b9eeaafb.svg){ .locator data-strip="illustrations/strip-fe32e2b10b.svg" }
+![Where this step sits in the viewer: Page, Scene + walk, Shell, State, with 10 of 12 zones built so far.](illustrations/locator-3178fd880d.svg){ .locator data-strip="illustrations/strip-979f6b252a.svg" }
 
 - `decode`, `fetch` and `live` are browser-only; `manifest` and `validate` compile natively too.
 - Manifest text reaches State through one `Msg::Texts`; `set_texts` builds fixed-plane labels and grows the fit bounds by the shaped text extents.
 
 ![Diagram: app::mod · decode · fetch · live · Msg::Texts · set_texts](illustrations/14-07.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 14 session_viewer/src/app/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d213357acb.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 14 session_viewer/src/app/scene.rs type -->
 
 - One field: the manifest's authored text, kept beside the documents because a scene replacement forgets both together — so `clear` gains a line too.
 
-<span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-8498e81c71.svg" data-zone="Shell"></span>
 
 <!-- file: 14 session_viewer/src/lib.rs type -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3d14f3161b.svg" data-zone="State"></span>
 
 <!-- file: 14 session_viewer/src/state.rs type -->
 
@@ -229,17 +229,17 @@ Parser unit tests, part of the file:
 
 ![Diagram: pre_build hook · target/docs/site · dist/docs · #viewer-docs corner](illustrations/14-08.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5c991d3cd5.svg" data-zone="Page"></span>
 
 <!-- file: 14 session_viewer/Trunk.toml copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5c991d3cd5.svg" data-zone="Page"></span>
 
 <!-- file: 14 session_viewer/docs/build_site.sh copy -->
 
 - The `copy-dir` link arrives here rather than in lesson 12 because Trunk refuses to build at all when a `copy-dir` source is missing, and nothing fills that directory until the hook above exists.
 
-<span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5c991d3cd5.svg" data-zone="Page"></span>
 
 <!-- file: 14 session_viewer/index.html type -->
 

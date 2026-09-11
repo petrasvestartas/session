@@ -32,14 +32,14 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ### Step 1 · Metadata carries the primitive
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
 
 - The physical metadata target grows from two to four half floats: gradient in `xy`, a lossless triangle address in `zw`.
 - Each 14-bit half of the address skips exponent zero, so it survives `Rgba16Float` without NaNs or denormals.
 
 ![Diagram: physical depth · Rgba16Float metadata\ xy gradient · zw primitive · pull_triangle index](illustrations/18-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/physical.wgsl type -->
 
@@ -49,35 +49,35 @@ The same revision counter tells the silhouette when its masks are stale:
 - The solid then writes no colour, no depth and no coverage, and the ink behind it is judged against what remains.
 - A single face (`FLAG_SINGLE`, a sheet, print fill) has no inside to show and keeps its shading.
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/triangle.wgsl type -->
 
 - Every other physical writer widens its metadata to `vec4` with a zero address, keeping the conservative plane rule.
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/background.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/grid.wgsl type -->
 
 - The backdrop shaders widen to four halves with a zero triangle address: they are not surfaces a tile list can describe.
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/splat.wgsl type -->
 
 - Same widening for points, same reason: a splat has no triangle to name.
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
 - And for the resolve, the pass that writes the scene's depth for a cloud.
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/text_outline.wgsl type -->
 
@@ -87,7 +87,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ### Step 2 · The projected record
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
 
 `ProjectedTriangle` is six `vec4<f32>`; the Rust mirror test asserts the same offsets and `PROJECTED_BYTES`:
 
@@ -107,13 +107,13 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ![The 96-byte record is the triangle rewritten as four inward half-planes, a depth gradient and a bounds box, so the query costs four dot products and a bounds test.](illustrations/projected-record.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/projected_triangle.wgsl type -->
 
 ### Step 3 · The projection shader
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
 
 - One compute invocation per triangle reads the arena's vertex, object and index columns through the same instance and translation rows the draw uses.
 - Near-plane clipping happens before the divide, so a triangle crossing the eye becomes a quad or vanishes, never a garbage projection.
@@ -129,11 +129,11 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ![Diagram: arena columns · instances · near-plane clip · quad or nothing · projected[] record](illustrations/18-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=1-67 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=68-138 -->
 
@@ -144,7 +144,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ### Step 4 · Count and fill
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
 
 - One quad per projected triangle covers its tile bounds; `covered_tile` discards tiles the polygon cannot touch.
 - `fs_count` counts references per tile.
@@ -152,33 +152,33 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ![Diagram: quad per projected triangle · fs_count · tile counts · fs_fill\ (primitive, max depth) · overflow flag](illustrations/18-07.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/triangle_tiles.wgsl type -->
 
 ### Step 5 · Prefix sums instead of a per-tile cap
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
 
 - Tile records are `count / offset / cursor / overflow`; block records are `sum / prefix`.
 - Sums saturate at the buffer capacity, so an oversubscribed pool can never wrap into a plausible offset.
 
 ![Diagram: tile counts · block sums · block prefixes · tile offsets · saturating](illustrations/18-08.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/scan_triangle_tiles.wgsl type -->
 
 ### Step 6 · The owner
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-50eec72a61.svg){ .locator data-strip="illustrations/strip-ccdfd9e2ff.svg" }
+![Where this step sits in the viewer: Lanes, with 10 of 12 zones built so far.](illustrations/locator-e5367f0009.svg){ .locator data-strip="illustrations/strip-64164dfbc0.svg" }
 
 - `TileLayout` mirrors `visibility_tile_span`.
 - The reference pool is sized for the scene: two references per tile plus eight per triangle, capped at `REFERENCES_PER_TILE` per tile.
 
 ![Diagram: ProjectionKey\ camera · geometry revision · encode\ project · count · scan · fill · TileLayout · initial_pool_words · prepare storage · PoolReport · read back](illustrations/18-09.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-57 -->
 
@@ -186,7 +186,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ![The scan's report saturates at the pool's own capacity, so a report that reaches it is a floor and not a measurement: it is read back a frame later, the pool doubles, and until it is large enough the overflowed tiles cost conservative ink and never a wrong pixel.](illustrations/tile-pool.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=58-79 -->
 
@@ -196,62 +196,62 @@ The same revision counter tells the silhouette when its masks are stale:
   saturated report far above capacity - a floor, not a measurement. There is nothing to size
   against then, so the pool doubles and the next report says whether that was enough.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=80-182 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=183-215 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=216-248 -->
 
 - `prepare` resizes storage for the triangle count, the framebuffer and the last report.
 - Beyond the device's storage binding limit it releases the tables and reports, so the ink shader keeps the plane rule.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=249-326 -->
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=327-397 -->
 
 - Counting first removes the per-tile cap.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=398-433 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=434-465 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=466-491 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=492-599 -->
 
 - Every preparation shader compiles the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query cannot disagree about which tile a pixel is in.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=600-607 -->
 
 Copy the rest of the file:
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=608-796 -->
 
@@ -263,7 +263,7 @@ Copy the rest of the file:
 
 ### Step 7 · Refine the rejection, keep the cheap test
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
+![Where this step sits in the viewer: Shaders, with 10 of 12 zones built so far.](illustrations/locator-b2d0a9b9d0.svg){ .locator data-strip="illustrations/strip-653969caac.svg" }
 
 - `ink_visible_plane` is the plane test. When it accepts, nothing else runs.
 - When it rejects: test the winning primitive at the axis, then the four sample-matched neighbours. A finite nearer hit confirms occlusion.
@@ -275,11 +275,11 @@ The blank lines separate the helpers; type them so the file matches production:
 
 ![Diagram: ink_visible_plane · visible · ink_primitive + neighbours\ finite test · tile list of the pixel · hidden](illustrations/18-10.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=1-11 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-653969caac.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=12,13 -->
 
@@ -288,7 +288,7 @@ The blank lines separate the helpers; type them so the file matches production:
 
 ### Step 8 · Faces draws the physical pass
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-50eec72a61.svg){ .locator data-strip="illustrations/strip-ccdfd9e2ff.svg" }
+![Where this step sits in the viewer: Lanes, with 10 of 12 zones built so far.](illustrations/locator-e5367f0009.svg){ .locator data-strip="illustrations/strip-64164dfbc0.svg" }
 
 - The physical and object-ID triangle pipelines move into `Faces`, so the color pass writes the primitive numbers the projection shader uses.
 - `revision` counts highlight changes; the silhouette's cache key reads it.
@@ -296,56 +296,56 @@ The blank lines separate the helpers; type them so the file matches production:
 
 ![Diagram: Faces\ draw_physical · draw_object_ids · color pass · projection shader · coverage masks](illustrations/18-11.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/faces.rs type -->
 
 - The arena owns the `TriangleTiles`: `prepare_visibility` encodes them over the arena's exact buffers, and every append, reset or release invalidates them.
 - `draw_masks` is the arena's side of the one-pass mask rasterization.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/arena.rs type -->
 
 ### Step 9 · Bindings 6 and 7
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-43ed20e7f8.svg){ .locator data-strip="illustrations/strip-187e4e26b4.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 12 zones built so far.](illustrations/locator-973e5c8e7a.svg){ .locator data-strip="illustrations/strip-42d6eaf05e.svg" }
 
 - The ink instance group gains the projected table and the tile buffer; the mvp, line and instance layouts become visible to compute.
 
 ![Diagram: ink_instance layout · projected table · tile buffer · geometry_revision · cache key](illustrations/18-12.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/pipelines/layouts.rs type -->
 
 - The ink module concatenates `projected_triangle.wgsl` after `ink_visibility.wgsl`.
 - A desc marked `masks` targets two `R8Unorm` coverage attachments blended with MAX; the metadata attachment is `Rgba16Float`.
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/pipelines/mod.rs type -->
 
 - `geometry_revision` counts placement, rebase and hidden-state changes; selection flags do not bump it.
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/objects.rs type -->
 
 - Metadata textures and the pick copy widen to four channels; the ID targets now cost 20 bytes a texel instead of 16.
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/targets.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
 
 - The pick target follows the metadata: `Rgba16Float` instead of `Rg16Float`.
 - The tile lists reach the ID pass through group 2, so nothing else here changes.
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/instance.rs type -->
 
@@ -353,20 +353,20 @@ The blank lines separate the helpers; type them so the file matches production:
 
 ### Step 10 · The tile pass runs before ink
 
-![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-6b7cde642e.svg){ .locator data-strip="illustrations/strip-68dea8ec67.svg" }
+![Where this step sits in the viewer: GPU core, with 10 of 12 zones built so far.](illustrations/locator-99cec3c5e5.svg){ .locator data-strip="illustrations/strip-d12f214b99.svg" }
 
 - `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
 - After every submit the picker maps its copy and the tiles map their report.
 
 ![Diagram: triangle_tile_pass · ink passes · color frame · ID-only frame](illustrations/18-13.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/present.rs type -->
 
 ### Step 11 · Masks rasterized once, reused while the view stands still
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-43ed20e7f8.svg){ .locator data-strip="illustrations/strip-187e4e26b4.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 12 zones built so far.](illustrations/locator-973e5c8e7a.svg){ .locator data-strip="illustrations/strip-42d6eaf05e.svg" }
 
 - `MaskKey` is what a coverage mask depends on: camera matrix, geometry revision, selection revision, the highlighted face's revision, size, sample count, and — because edges are part of the coverage — the edge toggle and the pen width.
 - While none of them changes, the mask passes are skipped and the previous masks composited again.
@@ -378,18 +378,18 @@ The blank lines separate the helpers; type them so the file matches production:
 
 - One `css_radius` for ordinary and selected solids: a heavier ring on the selection read as a different object, and the yellow strokes already say which one is selected.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/surface_outline.rs type -->
 
 - Edges join the silhouette: four more segment pipelines rasterize every solid edge into the coverage masks (`fs_mask`, `fs_masks`, `ColorWrite::Max`).
 - The black outline then hugs a cube's edges as tightly as its faces.
 
-<span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-64164dfbc0.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/segments.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
 
@@ -397,7 +397,7 @@ The blank lines separate the helpers; type them so the file matches production:
 
 - The `Gpu` accounts for the wider targets and the tile pool, binds the tiles into every ink scene, and bumps `selection_revision` in `set_selected`.
 
-<span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-d12f214b99.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/mod.rs type -->
 

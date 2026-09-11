@@ -20,20 +20,20 @@
 
 ## Step 1 · Kernel: only a valid derivative cross is a normal
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-acdbf8493e.svg){ .locator data-strip="illustrations/strip-9186989aed.svg" }
+![Where this step sits in the viewer: Kernel, with 9 of 12 zones built so far.](illustrations/locator-aab456356b.svg){ .locator data-strip="illustrations/strip-0228f733aa.svg" }
 
 - `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.
 - Read the derivatives directly: a zero-length cross means "singular here", so the incident-triangle fan decides.
 
 ![Diagram: derivatives du, dv · length > 0? · analytic normal · incident-triangle fan](illustrations/09-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 09 session_rust/src/nurbssurface_trimmed.rs type -->
 
 Same rule for the grid remesher (U poles of spheres and cones):
 
-<span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
+<span class="zone-mark" data-strip="illustrations/strip-0228f733aa.svg" data-zone="Kernel"></span>
 
 <!-- file: 09 session_rust/src/remesh_nurbssurface_grid.rs type -->
 
@@ -45,7 +45,7 @@ Kernel unit tests, the C++/Python parity ports and the teapot asset are supplied
 
 ## Step 2 · WGSL: transform a normal with the cofactor matrix
 
-![Where this step sits in the viewer: Shaders, with 9 of 11 zones built so far.](illustrations/locator-08e89ddac2.svg){ .locator data-strip="illustrations/strip-62db6ccc73.svg" }
+![Where this step sits in the viewer: Shaders, with 9 of 12 zones built so far.](illustrations/locator-f29eca4630.svg){ .locator data-strip="illustrations/strip-a8b790c015.svg" }
 
 Positions use `model`; normals need its inverse transpose, or a nonuniformly scaled instance tilts its normals off the surface.
 
@@ -62,7 +62,7 @@ sign(det)                        →     mirrored instances keep outward normals
 
 ![Diagram: instances[row].model · face_normal · transform_normal · cofactors · triangle.wgsl fragment](illustrations/09-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a8b790c015.svg" data-zone="Shaders"></span>
 
 <!-- file: 09 session_viewer/src/shaders/normals.wgsl type -->
 
@@ -77,13 +77,13 @@ inst_id  u32 (2nd buffer) ↔ @location(3) inst_id
 
 The vertex stage transforms the baked normal; `shade` normalizes `in.normal` because interpolation does not preserve unit length.
 
-<span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-a8b790c015.svg" data-zone="Shaders"></span>
 
 <!-- file: 09 session_viewer/src/shaders/triangle.wgsl type -->
 
 ## Step 3 · Edge facing from physical facets, not shading normals
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - A cone apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward and hid it.
 - Index every triangle's geometric normal by its exact edge (position bits, winding-free). A seam of one periodic face keeps both incident facets.
@@ -91,23 +91,23 @@ The vertex stage transforms the baked normal; `shade` normalizes `in.normal` bec
 
 ![Three normals live at one vertex: the fan's shading average, each triangle's own facet normal, and the packed 16-bit code; the facing cull may only ask the facet normals.](illustrations/three-normals.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 09 session_viewer/src/app/walk/brep_edges.rs type hunks=1-4 -->
 
 Module unit tests: COPY.
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 09 session_viewer/src/app/walk/brep_edges.rs copy hunks=5-8 -->
 
 The BRep walk builds the incidence once per upload:
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 09 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 09 session_viewer/src/app/walk/brep.rs copy hunks=2-2 -->
 
@@ -115,17 +115,17 @@ The BRep walk builds the incidence once per upload:
 
 ## Step 4 · A fill-only view for inspecting lighting
 
-![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-051e297fb9.svg){ .locator data-strip="illustrations/strip-3889827b9f.svg" }
+![Where this step sits in the viewer: Shell, GPU core, with 9 of 12 zones built so far.](illustrations/locator-a1305e2b0b.svg){ .locator data-strip="illustrations/strip-bc625e87a3.svg" }
 
 Mesh edges and markers become toggles so shading can be judged without boundary ink.
 
 ![Diagram: ?fill=1 · View knobs · frame · faces only](illustrations/09-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-24a2b7f974.svg" data-zone="GPU core"></span>
 
 <!-- file: 09 session_viewer/src/engine/gpu/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 09 session_viewer/src/lib.rs type -->
 
@@ -133,18 +133,18 @@ Mesh edges and markers become toggles so shading can be judged without boundary 
 
 ## Step 5 · Fixture: one solid per URL, optionally under an affine placement
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-4c1ae78629.svg){ .locator data-strip="illustrations/strip-460ff53e99.svg" }
+![Where this step sits in the viewer: Page, Shell, with 9 of 12 zones built so far.](illustrations/locator-f78d0d45a4.svg){ .locator data-strip="illustrations/strip-eab6f676f4.svg" }
 
 - The placement has a negative determinant and three distinct scales: the sign and cofactor paths are exercised.
 - The crease surface is degree one in U with a shared knot: two shading normals at identical XYZ.
 
 ![Diagram: ?cad=sphere … torus · solid · BRep · ?affine=1 · affine_placement · build · CadFixture](illustrations/09-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 09 session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 09 session_viewer/index.html copy -->
 

@@ -139,6 +139,9 @@ pub struct Scene {
     ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,
     guid_to_row: HashMap<(usize, Rc<str>), u32>,
     bases: Bases,
+    /// Which document the last edit touched. Undo is per document, because the history is the
+    /// document's; this is the only thing that says which one a bare Ctrl+Z means.
+    pub last_edited: Option<usize>,
 }
 
 impl Default for Scene {
@@ -165,6 +168,7 @@ impl Scene {
             ribbon_ranges: Vec::new(),
             guid_to_row: HashMap::new(),
             bases: Bases::default(),
+            last_edited: None,
         }
     }
 

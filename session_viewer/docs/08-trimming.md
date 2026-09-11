@@ -20,7 +20,7 @@
 
 ## Step 1 · Prefer the producer's cached trim mesh
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - A hole curve drawn over a full rectangle is not a hole: the fill must exclude the region.
 - So the constrained mesh cached on the surface wins over a fresh grid.
@@ -28,13 +28,13 @@
 
 ![Diagram: NurbsSurface · m_mesh · walk_surface · from_u_v_q grid · map_surface_boundaries](illustrations/08-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=1-1 -->
 
 ## Step 2 · Name natural boundaries from UV, not from triangle order
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 12 zones built so far.](illustrations/locator-78a434b0f8.svg){ .locator data-strip="illustrations/strip-cbd4724b14.svg" }
 
 - A natural boundary is a domain limit: `u == start`, `u == end`, `v == start`, `v == end`.
 - A closed direction has no physical edge, so a periodic seam never gets a boundary ID.
@@ -45,7 +45,7 @@
 
 ![Diagram: mesh vertex u, v · map_surface_boundaries · pipe_ids · source ID · u32::MAX](illustrations/08-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
+<span class="zone-mark" data-strip="illustrations/strip-cbd4724b14.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 08 session_viewer/src/app/walk/brep.rs type hunks=2-2 -->
 
@@ -53,28 +53,28 @@
 
 ## Step 3 · Fixture: a curved trimmed patch and a torus
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-78232d7410.svg){ .locator data-strip="illustrations/strip-3bd0a898de.svg" }
+![Where this step sits in the viewer: Shell, with 9 of 12 zones built so far.](illustrations/locator-83a00319a8.svg){ .locator data-strip="illustrations/strip-45c5341909.svg" }
 
 - The patch: a degree-2 surface, square outer loop, circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
 - The torus is periodic in both directions: same XYZ curve, two face uses, different UV.
 
 ![Diagram: trimmed_surface · square + hole · build · CadFixture · torus · periodic u, v](illustrations/08-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 08 session_viewer/src/fixture.rs copy -->
 
 ## Step 4 · Stage bump
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-4c1ae78629.svg){ .locator data-strip="illustrations/strip-460ff53e99.svg" }
+![Where this step sits in the viewer: Page, Shell, with 9 of 12 zones built so far.](illustrations/locator-f78d0d45a4.svg){ .locator data-strip="illustrations/strip-eab6f676f4.svg" }
 
 ![Diagram: lib.rs · stage · index.html · title](illustrations/08-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-45c5341909.svg" data-zone="Shell"></span>
 
 <!-- file: 08 session_viewer/src/lib.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-4c179dfae1.svg" data-zone="Page"></span>
 
 <!-- file: 08 session_viewer/index.html copy -->
 

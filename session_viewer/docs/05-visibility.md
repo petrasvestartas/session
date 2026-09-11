@@ -21,7 +21,7 @@
 
 ## Step 1 · The physical contract shared by every shader
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
 
 Two constants and two output structs, appended to every shader module. `physical_gradient` is the rasterizer's own depth slope of the winning primitive, scaled so `Rg16Float` keeps it.
 
@@ -34,13 +34,13 @@ Two constants and two output structs, appended to every shader module. `physical
 
 ![Diagram: fs_main depth · PhysicalColor\ color + gradient · fs_id · PhysicalId\ id + gradient](illustrations/05-02.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/physical.wgsl type -->
 
 ## Step 2 · Backdrop shaders
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
 
 - The background is one oversized triangle at `w = 1.0`, depth `Always`, so it never occludes.
 - The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor.
@@ -48,25 +48,25 @@ Two constants and two output structs, appended to every shader module. `physical
 
 ![Diagram: vertex_index · background.wgsl\ depth Always · grid.wgsl\ line.anchor · PhysicalColor](illustrations/05-03.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/background.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/grid.wgsl type -->
 
 
 ## Step 3 · The backdrop lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 12 zones built so far.](illustrations/locator-8546ffd8aa.svg){ .locator data-strip="illustrations/strip-3e64424ead.svg" }
 
 - One owner for two pipelines; no buffers, no upload, `retarget` when the sample count changes.
 - `draw_grid` binds `mvp` and the `line` block, matching `@group(0)`/`@group(1)` in `grid.wgsl`.
 
 ![Diagram: SHADERS · BackdropLane · faces pass](illustrations/05-04.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/backdrop.rs type -->
 
@@ -74,7 +74,7 @@ Two constants and two output structs, appended to every shader module. `physical
 
 ## Step 4 · The ink visibility test
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
 
 A stroke is a ribbon of fragments around its mathematical axis; the depth beside the axis belongs to whatever surface is there, not to the axis:
 
@@ -96,7 +96,7 @@ Comparing `z0` with `d` directly hides ink on its own face. The physical gradien
 
 ![Diagram: scene_gradient_*\ @group(2) @binding(4/5) · ink_visibility.wgsl · DEPTH_REL_TOL · SLOPE_PX · KINK · InkAxis record](illustrations/05-05.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=1-43 -->
 
@@ -107,7 +107,7 @@ Comparing `z0` with `d` directly hides ink on its own face. The physical gradien
 
 ![Diagram: pixel + sample · ink_depth · ink_tolerance · ink_pair_planar · ink_carry_visible](illustrations/05-06.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=44-101 -->
 
@@ -120,7 +120,7 @@ Comparing `z0` with `d` directly hides ink on its own face. The physical gradien
 
 ![Where a carried depth has to land: a farther texel gives a one-sided compare, a nearer one a two-sided window, so a surface that does not pass through the axis cannot uncover covered ink.](illustrations/carry-verdict.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=102-137 -->
 
@@ -130,7 +130,7 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ![Diagram: disc centre + depth · ink_disc_fragment_visible · ink_disc_visible](illustrations/05-08.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=138-187 -->
 
@@ -143,13 +143,13 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ![Diagram: four quadrants · ink_disc_source_hidden · own gradient valid · ink_visible · ink_axis_visible fallback](illustrations/05-09.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=188-236 -->
 
 ## Step 5 · Shaders emit the gradient
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 12 zones built so far.](illustrations/locator-468f15a884.svg){ .locator data-strip="illustrations/strip-5dfcc02682.svg" }
 
 - Every fragment that writes physical depth also returns its gradient.
 - Face shaders return the real slope in both the colour and ID passes.
@@ -157,22 +157,22 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ![Diagram: triangle.wgsl fs_main · PhysicalColor · splat · splat_resolve · text_outline.wgsl · PhysicalId](illustrations/05-10.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/triangle.wgsl type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/splat.wgsl type -->
 
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
 - The resolve rejoins the private pass to the shared one: reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` for the scene's depth test.
 
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
+<span class="zone-mark" data-strip="illustrations/strip-5dfcc02682.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
 
@@ -180,7 +180,7 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ## Step 6 · Targets: the gradient attachment and a sample budget
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 12 zones built so far.](illustrations/locator-327f5e76cb.svg){ .locator data-strip="illustrations/strip-e3a1ffe58f.svg" }
 
 - `Rg16Float` gradient texture beside depth; its single and multisampled views swap exactly like the depth views, so bind groups stay valid at both sample counts.
 - `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
@@ -191,30 +191,30 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ![Diagram: adapter type + pixels · samples_for · Targets\ depth + Rg16Float gradient · faces pass](illustrations/05-11.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/targets.rs type -->
 
 ## Step 7 · Pipelines: one flag adds the second color target
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 12 zones built so far.](illustrations/locator-327f5e76cb.svg){ .locator data-strip="illustrations/strip-e3a1ffe58f.svg" }
 
 - `PipelineDesc::physical()` appends the `Rg16Float` target; `ReadOnlyEqual` pipelines keep the gradient their face already wrote by masking their writes.
 - `module` appends `physical.wgsl` after `normals.wgsl`, so every shader sees `PhysicalColor`.
 
 ![Diagram: PipelineDesc · second target\ Rg16Float · module() · shader source · scene_gradient entry · ink bind group layout](illustrations/05-12.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/pipelines/mod.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/pipelines/layouts.rs type -->
 
 - Group 2 grows: the ink variant now carries the depth and gradient views.
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
 
@@ -222,66 +222,66 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ## Step 8 · Lanes read and write the gradient
 
-![Where this step sits in the viewer: GPU core, Lanes, with 8 of 11 zones built so far.](illustrations/locator-7cc87e5e20.svg){ .locator data-strip="illustrations/strip-5fb45cfc9e.svg" }
+![Where this step sits in the viewer: GPU core, Lanes, with 8 of 12 zones built so far.](illustrations/locator-1b54349f8b.svg){ .locator data-strip="illustrations/strip-76bbcc93a3.svg" }
 
 - The ink bind group gains bindings 4 and 5: `@group(2) @binding(4/5)` in step 4a.
 - The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline.
 
 ![Diagram: gradient views · objects.rs ink group · arena · draw_selection_mask · splat · text_outline retarget](illustrations/05-13.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/objects.rs type -->
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
 
 - The selection-mask pipeline writes the coverage the outline pass will read.
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
 
 - `.physical()` on the ID pipeline and the resolve: the cloud writes the same metadata as every other surface, so ink can judge itself against a point cloud.
 
-<span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
+<span class="zone-mark" data-strip="illustrations/strip-3e64424ead.svg" data-zone="Lanes"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
 
 
 ## Step 9 · Wire the lane and the sample count
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
+![Where this step sits in the viewer: GPU core, with 8 of 12 zones built so far.](illustrations/locator-327f5e76cb.svg){ .locator data-strip="illustrations/strip-e3a1ffe58f.svg" }
 
 - `retarget` rebuilds targets and ink bind groups on a resize or a sample-count flip; the lanes' pipelines only when the count flips.
 - The backdrop draws first inside `begin_faces`, before any geometry.
 
 ![Diagram: resize · retarget · targets · ink groups · lanes · BackdropLane · frame](illustrations/05-14.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
+<span class="zone-mark" data-strip="illustrations/strip-e3a1ffe58f.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/mod.rs type -->
 
 ## Step 10 · The fixture and the page
 
-![Where this step sits in the viewer: Page, Shell, with 8 of 11 zones built so far.](illustrations/locator-c88f51e1ff.svg){ .locator data-strip="illustrations/strip-75e0f98df5.svg" }
+![Where this step sits in the viewer: Page, Shell, with 8 of 12 zones built so far.](illustrations/locator-a43611654f.svg){ .locator data-strip="illustrations/strip-773dbdb80b.svg" }
 
 The grey box and the sloping floor are the shapes the visibility test is judged on.
 
 ![Diagram: fixture.rs\ grey_box · floor · Upload · ?fixture · ?distance · lib.rs](illustrations/05-15.svg)
 
-<span class="zone-mark" data-strip="illustrations/strip-6e964d1d1f.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
 
 <!-- file: 05 session_viewer/src/fixture.rs copy -->
 
-<span class="zone-mark" data-strip="illustrations/strip-6e964d1d1f.svg" data-zone="Shell"></span>
+<span class="zone-mark" data-strip="illustrations/strip-456cea51a1.svg" data-zone="Shell"></span>
 
 <!-- file: 05 session_viewer/src/lib.rs type -->
 
 - A lane costs the shell a hunk or two: construct it where the others are built, and report it.
 
-<span class="zone-mark" data-strip="illustrations/strip-a7bdebbf9f.svg" data-zone="Page"></span>
+<span class="zone-mark" data-strip="illustrations/strip-f6e7047b45.svg" data-zone="Page"></span>
 
 <!-- file: 05 session_viewer/index.html copy -->
 
