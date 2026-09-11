@@ -28,7 +28,7 @@
 .md-typeset pre > code { font-size: .75rem; line-height: 1.55; }
 .md-typeset .highlight { margin: 1.2em 0; }
 .md-typeset .highlight pre { border: 1px solid var(--ds-hairline); border-radius: var(--ds-radius); }
-.md-typeset table:not([class]) th { background: var(--ds-surface); }
+.md-typeset table:not([class]) th { background: var(--brg-blue-wash, #ececf8); }
 .md-typeset .mermaid { overflow-x: auto; }
 .md-typeset .mermaid svg { width: auto !important; max-width: none !important; height: auto; }
 
@@ -60,18 +60,59 @@
 .md-typeset hr, .md-typeset table:not([class]) th, .md-typeset table:not([class]) td { border-color: var(--ds-hairline); }
 .md-typeset h2 { border-bottom: 1px solid var(--ds-hairline); padding-bottom: .3em; }
 
-/* Palette: the BRG Equilibrium drawing library (navy, pink, green, yellow; pale bands). Left
-   as it is on purpose - the committed illustrations and the viewer's own contact and joint
-   colours are matched to these, so a design system must not drive them. The accent is the one
-   exception, because it is chrome: it carries links and rules, not meaning. */
+/* Palette: the BRG Equilibrium drawing library (navy, pink, green, yellow; pale bands) now owns
+   the chrome as well as the content. The design system still sets ground, plates, rules, type,
+   radius and density; what it no longer sets is the accent, because a warm ochre next to
+   twenty-one navy-and-pink drawings read as two sites. Blue leads, pink is the second voice
+   (hover, the thing you are on), grey does the quiet work. One language, page and picture. */
 :root {
-  --md-primary-fg-color: #111111;
-  --md-primary-fg-color--light: #444444;
-  --md-primary-fg-color--dark: #000000;
-  --md-accent-fg-color: var(--ds-accent-ink);
-  --md-typeset-a-color: var(--ds-accent-ink);
-  --md-code-hl-color: #f9e08a;
+  --brg-navy: #1a1eb2;
+  --brg-navy-ink: #151790;
+  --brg-blue-band: #bdbfe8;
+  --brg-blue-wash: #ececf8;
+  --brg-pink: #ce4095;
+  --brg-pink-band: #f0bcdb;
+  --brg-grey: #b9b9bd;
+  --brg-grey-band: #e4e4e7;
+  --brg-slate: #455b6b;
+
+  --md-primary-fg-color: var(--brg-navy);
+  --md-primary-fg-color--light: #4b4fd0;
+  --md-primary-fg-color--dark: var(--brg-navy-ink);
+  --md-accent-fg-color: var(--brg-pink);
+  --md-typeset-a-color: var(--brg-navy-ink);
+  --md-code-hl-color: var(--brg-blue-band);
+  /* the chrome the design system named, re-pointed at the drawing palette */
+  --ds-accent: var(--brg-navy);
+  --ds-accent-ink: var(--brg-navy-ink);
 }
+
+/* The section you are on, in the nav and in the table of contents: a blue bar at the side and
+   blue type, so the eye finds its place with the same colour the diagrams use for structure. */
+.md-nav__link--active, .md-nav__link--active code { color: var(--brg-navy-ink); font-weight: 600; }
+.md-nav--secondary .md-nav__link {
+  border-left: 2px solid transparent;
+  padding-left: .5rem;
+  transition: border-color 120ms, background-color 120ms, color 120ms;
+}
+.md-nav--secondary .md-nav__link--active {
+  border-left-color: var(--brg-navy);
+  background: var(--brg-blue-wash);
+}
+.md-nav__link:hover, .md-nav__link:focus { color: var(--brg-pink); }
+.md-typeset a:hover { color: var(--brg-pink); }
+/* the header: the one large field of blue the page is built around */
+.md-header { background: var(--brg-navy); }
+.md-typeset mark { background: var(--brg-pink-band); }
+/* the same side bar in the course list, so "where am I" reads the same on both edges */
+.md-nav--primary .md-nav__item--active > .md-nav__link {
+  border-left: 2px solid var(--brg-navy);
+  padding-left: .5rem;
+  background: var(--brg-blue-wash);
+}
+.md-typeset .highlight pre { border-color: var(--brg-grey-band); }
+.md-typeset kbd, .md-typeset code { background: var(--brg-blue-wash); }
+.md-typeset .md-button:hover { border-color: var(--brg-pink); color: var(--brg-pink); }
 [data-md-color-scheme="default"], [data-md-color-scheme="slate"] {
   /* Diagrams are BRG, not the design system. 222 nodes already carry their own BRG pink, and
      draw.py's twenty-one drawings are BRG throughout, so the whole set is one language: black
@@ -135,7 +176,7 @@
   margin: 0 0 1.2rem;
   padding: .45rem .6rem .3rem;
   background: var(--md-default-bg-color);
-  border-bottom: 1px solid var(--ds-rule, #d8d8dc);
+  border-bottom: 2px solid var(--brg-navy);
 }
 .viewer-strip img { display: block; width: 100%; height: auto; }
 .viewer-strip-note {
