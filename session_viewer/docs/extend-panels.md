@@ -1,5 +1,10 @@
 # Adding panels: tree, types and graph
 
+!!! note "Built in lesson 21, in part"
+    The types panel is `src/app/layers.rs` and `L` opens it; [lesson 21](21-editing.md) teaches
+    it. The tree and graph filters described below are not built: they need multi-selection
+    first.
+
 ## One visibility set, three filters
 
 - `Scene.hidden: HashSet<(usize, Rc<str>)>` (`src/app/scene.rs`) is the only record of what is not drawn; written today only by `State::hide_selected` and `show_all` (`src/state.rs`).

@@ -1,5 +1,10 @@
 # Adding a command line
 
+!!! note "Built in lesson 21"
+    This was the design; `src/app/command.rs` parses and `State::run_command` dispatches, and
+    [lesson 21](21-editing.md) teaches them. The parser ended up in `app/`, not `state/`, so
+    what a line MEANS can be tested without a window or a device.
+
 ## The shape of the finished thing
 
 - An `<input>` and a `<pre>` in `index.html`, a keydown listener in `src/app/input.rs`, two `Msg` variants, a table in a new `src/state/command.rs`, one named action per command on `State`.

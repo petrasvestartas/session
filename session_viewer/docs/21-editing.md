@@ -7,6 +7,8 @@ step. A colon opens a command line whose verbs are the actions the keys already 
 a panel of layers, each row a filter over rows that already exist. A control point can be
 dragged on the plane the view is facing, snapped to its neighbours.
 
+![A drag is three moments: grabbing remembers the object's own transform, every move frame writes a preview into the row's GPU placement and touches no document, and letting go writes the document once.](illustrations/one-gesture.svg)
+
 ## Starting point
 
 - Checkpoint 20: documents, selection, hiding, and the kernel's undo history.

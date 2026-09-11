@@ -1,5 +1,12 @@
 # Adding a gumball
 
+!!! note "Built in lesson 21"
+    This was the design; `src/app/gizmo.rs` and `src/state/edit.rs` are what it became, and
+    [lesson 21](21-editing.md) teaches them. Two decisions went the other way in the end: the
+    widget draws in the two lane types the control net already uses rather than in a private
+    lane, and the drag is committed once on release rather than per frame. Read this for the
+    reasoning; read the code for what runs.
+
 ## The widget
 
 - Transform gizmo on the selected object: three arrows translate along a world axis, three quarter-arcs rotate about one, three balls scale along one, a centre ball scales uniformly.

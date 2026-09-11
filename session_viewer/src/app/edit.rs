@@ -17,17 +17,6 @@ use crate::app::scene::Scene;
 use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
 
-/// What an edit did, so the caller knows how much of the frame to redo.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Edited {
-    /// One row's placement changed: write that row and draw.
-    Placement(u32),
-    /// Which rows exist changed: re-flatten every document.
-    Rows,
-    /// The document refused, or there was nothing to do.
-    Nothing,
-}
-
 impl Scene {
     /// The document a row belongs to, made writable. Returns the document index and the guid,
     /// having already split any session this placement was sharing.

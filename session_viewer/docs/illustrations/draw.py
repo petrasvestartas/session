@@ -3081,7 +3081,57 @@ def edge_owner():
     c.write("edge-owner.svg")
 
 
+def one_gesture():
+    """21: a drag is three moments, and only the last one writes the document."""
+    c = Canvas("A drag is three moments, and only the last one writes the document",
+               "Grabbing remembers the object's own transform and the placement it was drawn with. Every move frame writes a preview into the row's GPU placement and touches no document. Letting go writes the document once, with the transform measured from the grab, so one gesture is one undo step.",
+               1200, 560)
+    c.text(28, 40, "One gesture, one undo step", "h")
+
+    xs = [28, 420, 812]
+    titles = ["grab", "move · every frame", "let go"]
+    for x, t in zip(xs, titles):
+        c.text(x, 76, t, "l")
+
+    a = c.box(xs[0], 96, ["what is remembered",
+                          "`base_local` the object's own transform",
+                          "`base_place` the placement it was drawn with",
+                          "`Drag` where on the handle the ray hit"], "cpu", w=360)
+    b = c.box(xs[1], 96, ["what is written",
+                          "`delta = gizmo.update(drag, ray)`",
+                          "`place = delta × base_place`",
+                          "`objects.set_placement(row, place)`"], "gpu", w=360)
+    d = c.box(xs[2], 96, ["what is recorded",
+                          "`local = delta × base_local`",
+                          "`session.begin(\"move\")`",
+                          "`session.set_xform(guid, local)`",
+                          "`session.commit()`"], "cpu", w=360)
+    y = max(a[1] + a[3], b[1] + b[3], d[1] + d[3])
+    c.arrow(a[0] + a[2] + 6, a[1] + 40, b[0] - 6, a[1] + 40)
+    c.arrow(b[0] + b[2] + 6, b[1] + 40, d[0] - 6, b[1] + 40)
+    c.raw(f'<path d="M{b[0]+b[2]-30},{b[1]+b[3]+10} a 26 26 0 1 1 -40 0" stroke="{PAL["pink_band"]}" stroke-width="2" fill="none" marker-end="url(#a)"/>')
+    c.text(b[0] + b[2] - 50, b[1] + b[3] + 74, "sixty times a second", "s", anchor="middle", fill=PAL["pink"])
+
+    costs = [("96 B instance + 16 B translation", PAL["pink_band"], b[0]),
+             ("one history op", PAL["blue_band"], d[0])]
+    cy = y + 106
+    for label, colour, x in costs:
+        w = width(label, "s") + 26
+        c.raw(f'<rect x="{x}" y="{cy}" width="{w:.1f}" height="28" rx="6" fill="{colour}"/>')
+        c.text(x + 13, cy + 19, label, "s", fill=PAL["black"], keep=True)
+    c.text(xs[0], cy + 19, "nothing yet", "s", fill=PAL["text2"])
+
+    n = c.box(28, cy + 56, ["Why the middle one does not write the document",
+                            "a drag across the screen is sixty frames, so sixty ops, and Ctrl+Z would undo one frame",
+                            "the preview costs two small writes and no history at all",
+                            "and because both the preview and the commit are measured from the GRAB rather than from",
+                            "the frame before, a dropped frame changes neither of them"], "note", w=1144)
+    c.h = int(n[1] + n[3] + 30)
+    c.w = 1200
+    c.write("one-gesture.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract, glyph_coverage, projected_record, edge_owner):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract, glyph_coverage, projected_record, edge_owner, one_gesture):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')

@@ -2,7 +2,7 @@
 
 ## You are building
 
-A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was immediately final. This lesson gives the kernel a history: edits group into transactions, a removal's record is the tombstone undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet. The kernel now has the history an editing viewer would record through, and [Extending the viewer](extend-roadmap.md) is where that would start.
+A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was immediately final. This lesson gives the kernel a history: edits group into transactions, a removal's record is the tombstone undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet. The kernel now has the history an editing viewer records through, and [lesson 21](21-editing.md) is where the viewer starts using it.
 
 ![Diagram: begin(label) · add · replace · remove · set_xform · records: Add · Remove · Replace · Xform · commit() · undo() · redo() · pb_dump · file_json_dump…](illustrations/20-01.svg)
 
