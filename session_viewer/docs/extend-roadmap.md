@@ -45,23 +45,23 @@ pub fn ray(&self, cursor: (f64, f64), viewport: (f64, f64)) -> (Point, Vector);
 ### 4 · No object snapping
 - Endpoints, midpoints, vertices, intersections, knots, nearest-point-on-edge in an aperture, ranked by kind then pixel distance, with a marker glyph.
 - Archive `snap.rs` (401 lines) + ranking in `state_tool.rs:258-328`: one session walk per tool session, edges sampled 16 per edge, best within `SNAP_APERTURE_PX = 12.0`.
-- **Read the call graph, not the plan.** `CAD_SKETCHER_PLAN.md` says intersection and knot snapping are done; `pub fn snap(...)` (`snap.rs:185-401`, ~216 lines) has no call site. The live cache holds Vertex, Endpoint, Midpoint; `SnapModes::default_on()` enables two modes that never fire.
+- **Read the call graph, not the plan.** `CAD_SKETCHER_PLAN.md` says intersection and knot snapping are done; `pub fn snap(...)` (`snap.rs:185-401`, ~216 lines) has no call site. The live cache holds Vertex, Endpoint, Midpoint; `SnapModes::default_on` enables two modes that never fire.
 - Needs (2), (3) for the fallback point, a lane for the marker. Emission ports nearly as written — sources are retained (`FileDoc.session: Rc<Session>`, `src/app/scene.rs:26-37`); the sweep does not. 450 lines, a test per kind. (this page)
 
 ```rust
 // sketch — a candidate names its owner the way the rest of this viewer does
-enum SnapKind { End, Vertex, Int, Mid, Knot, Center, Near, Plane }  // priority 0..6, lower wins
+enum SnapKind { End, Vertex, Int, Mid, Knot, Center, Near, Plane } // priority 0..6, lower wins
 struct SnapHit { point: Point, kind: SnapKind, owner: (usize, Rc<str>) }
 struct SnapCache {
-    points: Vec<(Point, SnapKind, (usize, Rc<str>))>,
-    edges: Vec<(u32, Vec<Point>)>,   // row + polyline, for Near and for a move ghost
-    built_for: u64,                  // the geometry revision it was built from
+ points: Vec<(Point, SnapKind, (usize, Rc<str>))>,
+ edges: Vec<(u32, Vec<Point>)>, // row + polyline, for Near and for a move ghost
+ built_for: u64, // the geometry revision it was built from
 }
 ```
 
 - **CPU, and the split is the rule.** A candidate drawn as a lane (handle, edge, face) has an id: `PickMode::Controls`/`PickMode::Edge` answers it. One never drawn (midpoint, intersection, point along an edge) has none — `gpu/pick.rs` cannot return a pixel never rendered — so it is CPU work against the cache.
-- **Bites.** - **Bites.** A streamed cloud's session is an empty shell (`display_only`, `scene.rs:36-38`): a `session.lookup` sweep silently reports no snaps on a 40M-point cloud. A sheet is one row for tens of thousands of segments (`SheetBatch`, `scene.rs:84-96`): the sweep emits a candidate per segment. Ask what a row is — `Scene::sheet_slot` (`src/app/scene.rs:477`), `State::streamed_slot` (`src/state/cloud_query.rs:21`), `app/cloud_query.rs`.: a `session.lookup` sweep silently reports no snaps on a 40M-point cloud. A sheet is one row for tens of thousands of segments (`SheetBatch`, `scene.rs:80-93`): the sweep emits a candidate per segment. Ask what a row is — `Scene::sheet_slot` (`src/app/scene.rs:477`), `State::streamed_slot` (`src/state/cloud_query.rs:21`), `app/cloud_query.rs`.
-- **Bites.** `Session::world_xforms()`, one downward pass; per-object `world_xform` rescans the tree and is quadratic (`snap.rs:94-96`).
+- **Bites.** - **Bites.** A streamed cloud's session is an empty shell (`display_only`, `scene.rs`): a `session.lookup` sweep silently reports no snaps on a 40M-point cloud. A sheet is one row for tens of thousands of segments (`SheetBatch`, `scene.rs`): the sweep emits a candidate per segment. Ask what a row is — `Scene::sheet_slot` (`src/app/scene.rs`), `State::streamed_slot` (`src/state/cloud_query.rs`), `app/cloud_query.rs`.: a `session.lookup` sweep silently reports no snaps on a 40M-point cloud. A sheet is one row for tens of thousands of segments (`SheetBatch`, `scene.rs`): the sweep emits a candidate per segment. Ask what a row is — `Scene::sheet_slot` (`src/app/scene.rs`), `State::streamed_slot` (`src/state/cloud_query.rs`), `app/cloud_query.rs`.
+- **Bites.** `Session::world_xforms`, one downward pass; per-object `world_xform` rescans the tree and is quadratic (`snap.rs:94-96`).
 - **Bites.** Invalidate by revision, not a bool, as `geometry_revision` and `selection_revision` do.
 
 ### 5 · Nothing can be created
@@ -73,37 +73,37 @@ struct SnapCache {
 enum Tool { Idle, Point, Line, Polyline, Curve { degree: usize }, Move }
 
 struct Draft {
-    tool: Tool,
-    points: Vec<Point>,        // f64 kernel points, never f32
-    cursor: Option<SnapHit>,   // resolved once per pointer move
-    dirty: bool,               // preview rebuilt in render(), not per event
+ tool: Tool,
+ points: Vec<Point>, // f64 kernel points, never f32
+ cursor: Option<SnapHit>, // resolved once per pointer move
+ dirty: bool, // preview rebuilt in render, not per event
 }
 
 impl State {
-    pub fn tool_begin(&mut self, tool: Tool);
-    pub fn tool_hover(&mut self, x: f64, y: f64);
-    pub fn tool_point(&mut self, p: Point);
-    pub fn tool_text(&mut self, line: &str);
-    pub fn tool_finish(&mut self);
-    pub fn tool_cancel(&mut self);
+ pub fn tool_begin(&mut self, tool: Tool);
+ pub fn tool_hover(&mut self, x: f64, y: f64);
+ pub fn tool_point(&mut self, p: Point);
+ pub fn tool_text(&mut self, line: &str);
+ pub fn tool_finish(&mut self);
+ pub fn tool_cancel(&mut self);
 }
 ```
 
 ```rust
 // sketch — the only shape an edit may take in this viewer
 let doc = &mut self.scene.docs[owner];
-let session = Rc::make_mut(&mut doc.session);   // FIRST: other placements share this Rc
-session.begin("Polyline");                      // no begin -> History::record is a silent no-op
+let session = Rc::make_mut(&mut doc.session); // FIRST: other placements share this Rc
+session.begin("Polyline"); // no begin -> History::record is a silent no-op
 session.add_polyline(polyline, None);
-session.commit();                               // no commit -> nothing on the undo stack
-self.scene.rebuild(&mut self.gpu);              // rows, ids, bounds, masks, hidden flags follow
-self.touch();
+session.commit; // no commit -> nothing on the undo stack
+self.scene.rebuild(&mut self.gpu); // rows, ids, bounds, masks, hidden flags follow
+self.touch;
 ```
 
-- **Bites.** Without `begin`, `History::record` returns at once (`history.rs:249-255`) and `replace`/`set_xform`/`_add_object` snapshot only when `history.current.is_some()`: the edit works and is silently unundoable.
-- **Bites.** `Rc::make_mut` first — a manifest listing one file twice hands both documents the same `Rc` (`scene.rs:29-35`).
-- **Bites.** `State::render` never requests the next frame: a rubber band that does not move is a missing `touch()`.
-- **Bites.** `Scene::rebuild`'s only call site is `src/selftest/lifecycle.rs:161`, asserting a rebuilt scene renders pixel-identical to the incrementally loaded one. The commit path stands on that test.
+- **Bites.** Without `begin`, `History::record` returns at once (`history.rs:249-255`) and `replace`/`set_xform`/`_add_object` snapshot only when `history.current.is_some`: the edit works and is silently unundoable.
+- **Bites.** `Rc::make_mut` first — a manifest listing one file twice hands both documents the same `Rc` (`scene.rs`).
+- **Bites.** `State::render` never requests the next frame: a rubber band that does not move is a missing `touch`.
+- **Bites.** `Scene::rebuild`'s only call site is `src/selftest/lifecycle.rs`, asserting a rebuilt scene renders pixel-identical to the incrementally loaded one. The commit path stands on that test.
 - **Bites.** `rebuild` cannot restore a streamed cloud or sheet — no kernel object to walk — so a commit in such a scene must not take that path.
 
 ### 6 · Nothing can be moved
@@ -131,7 +131,7 @@ self.touch();
 
 ```rust
 // sketch, src/app/scene.rs
-pub selected: Vec<u32>,   // was Option<u32>
+pub selected: Vec<u32>, // was Option<u32>
 ```
 
 - **Touches.** `State::select`, `hide_selected`, `fit_selected_or_all`, `enable_controls`, `apply_pick`, `update_label`, `Gpu::set_selected`, `selection_outline.set_selected`, the name annotations in `src/state/text.rs`.
@@ -149,7 +149,7 @@ fn write_control(geometry: &mut Geometry, id: ControlId, to: Point) -> bool;
 
 - 300 lines for `write_control`, its arms and tests, plus the drag — against `edit_state.rs` + `state_edit.rs`, 2,282 lines, 21% of the archive's `src/`.
 - **Do not port `EditState`'s GPU half** (own `node_buf`/`edge_buf`, bind groups, doubling growth: `edit_state.rs:135-157, 276-303`): the `controls`/`control_net` lanes are that already, so porting adds a second overlay and a second address type meaning `ControlId`.: the `controls`/`control_net` lanes are that already, so porting adds a second overlay and a second address type meaning `ControlId`.
-- **Bites.** `VertexData::set_position` bypasses the mutators that drop the per-mesh triangle BVH: call `Mesh::invalidate_triangle_bvh()` or picking keeps hitting the pre-edit shape (`state_edit.rs:1359-1366`).
+- **Bites.** `VertexData::set_position` bypasses the mutators that drop the per-mesh triangle BVH: call `Mesh::invalidate_triangle_bvh` or picking keeps hitting the pre-edit shape (`state_edit.rs:1359-1366`).
 - **Bites.** A BRep's 3D edges must be re-derived from the 2D trims after surfaces move (`recompute_brep_edges`, `state_edit.rs:1625`). That walk is `src/app/walk/brep_edges.rs`, run from `Scene::rebuild`: commit through the rebuild and it is free; an in-place update loses it.
 - **Bites.** f64 through the drag, narrowed once at upload — `render_position` (`src/state.rs`) is that boundary for reads, `f32p` was the archive's for writes.
 
@@ -161,10 +161,10 @@ fn write_control(geometry: &mut Geometry, id: ControlId, to: Point) -> bool;
 ```rust
 // sketch, src/app/selection.rs — the only additions ControlId needs
 enum ControlId {
-    Vertex(usize), Curve { curve: usize, point: usize },
-    Surface { surface: usize, u: usize, v: usize }, Point(u32),
-    CurveEdit { curve: usize, index: usize },          // new
-    SurfaceEdit { surface: usize, index: usize },      // new
+ Vertex(usize), Curve { curve: usize, point: usize },
+ Surface { surface: usize, u: usize, v: usize }, Point(u32),
+ CurveEdit { curve: usize, index: usize }, // new
+ SurfaceEdit { surface: usize, index: usize }, // new
 }
 ```
 
@@ -173,13 +173,13 @@ enum ControlId {
 ### 12 · No live deform during a drag
 - Needs (10) and an in-place range rewrite meshes lack; archive ~350 lines plus the lane work. (gumball)
 - **The premise ports.** A NURBS point is linear in its control points: freeze the tessellation at drag start, precompute each tessellation vertex's influence weight per moved control point, and every move is a multiply-add — no `point_at`, no `normal_at`, no re-tessellation. The adaptive rebuild runs once, on release.
-- **The lane gap.** `Buffer::write_at` (`buffers.rs:91`) plus `Scene::ribbon_range(row)` means strokes can be rewritten in place today. Faces cannot: `ArenaLane`'s `verts` is private (`arena.rs`), `Scene` keeps no per-row vertex range. Adding one is a real lane change — `Vec<Option<Range<u32>>>` beside `ribbon_ranges`, filled in `add_file`, plus `ArenaLane::write_verts`.
+- **The lane gap.** `Buffer::write_at` (`buffers.rs`) plus `Scene::ribbon_range(row)` means strokes can be rewritten in place today. Faces cannot: `ArenaLane`'s `verts` is private (`arena.rs`), `Scene` keeps no per-row vertex range. Adding one is a real lane change — `Vec<Option<Range<u32>>>` beside `ribbon_ranges`, filled in `add_file`, plus `ArenaLane::write_verts`.
 - **Bites.** An in-place vertex write does not bump `geometry_revision`, the key for the triangle tile index (`ProjectionKey { matrix, objects }`, `triangle_tiles.rs:178-181`) and the silhouette masks (`MaskKey.geometry`): visibility then culls against the pre-drag projection while the picture shows the deformed one. Bump per drag frame, paying a re-projection — the correct default — or prove the cheaper thing in a comment.
 - **Bites.** `Instance::FLAG_SMOOTH` says a row is a tessellation; a deformed tessellation still is one.
 
 ### 13 · No edge you can drag
 - Ctrl+Shift+click an edge and move it, the highlight following the real curve, not its chorded control polygon. Needs (10). (gumball)
-- **Half exists**: `PickMode::Edge`, `Scene::edge_at(pick)`, `SegRows.pipe_ids`, `SegmentLane::set_edge` (`src/state.rs`, `segments.rs:343`); every subdivision keeps its source edge id. The archive's 140 lines of edge selection are replaced; only the drag and write remain.
+- **Half exists**: `PickMode::Edge`, `Scene::edge_at(pick)`, `SegRows.pipe_ids`, `SegmentLane::set_edge` (`src/state.rs`, `segments.rs`); every subdivision keeps its source edge id. The archive's 140 lines of edge selection are replaced; only the drag and write remain.
 - **Ports as a rule.** The drag highlight is the frozen base polyline mapped by the delta: a whole-edge transform is affine, so nothing is re-evaluated per move.
 
 ### 14 · No BRep hole → collar deform
@@ -192,7 +192,7 @@ enum ControlId {
 
 ```rust
 // sketch, src/engine/gpu/pick.rs
-struct Filter(u32);   // one bit per lane: faces, strokes, markers, clouds, text, sheets
+struct Filter(u32); // one bit per lane: faces, strokes, markers, clouds, text, sheets
 enum PickMode { Object { filter: Filter }, Edge, Component, Controls { parent: u32, cloud: bool } }
 ```
 
@@ -208,16 +208,16 @@ enum PickMode { Object { filter: Filter }, Edge, Component, Controls { parent: u
 - `app/feedback::status` writes one line into `#viewer-status` as `textContent`, never HTML. A prompt is a status line; the archive's log of the last 200 prompts is a panel, and belongs to the tree guide if wanted. Under 30 lines. (command line)
 
 ### 18 · No in-app geometry construction, and it stays that way
-- **Not a gap.** Scenes come from manifests and `.pb` files (`src/app/manifest.rs`, `loader.rs`, `route.rs`, `live.rs`), validated before kernel constructors allocate from serialized counts (`src/app/validate.rs`). `ARCHITECTURE.md` §8 lists the archive's `demo.rs` (860 lines) as a structural defect — "app data, not engine", `State::new` hardcoding `demo::active_scene()`.
+- **Not a gap.** Scenes come from manifests and `.pb` files (`src/app/manifest.rs`, `loader.rs`, `route.rs`, `live.rs`), validated before kernel constructors allocate from serialized counts (`src/app/validate.rs`). `ARCHITECTURE.md` §8 lists the archive's `demo.rs` (860 lines) as a structural defect — "app data, not engine", `State::new` hardcoding `demo::active_scene`.
 - **Worth having:** primitive *commands* (`box`, `sphere`) constructing through `Session::add_*` inside a transaction — item 5 with different verbs. (command line)
 
 ## What we take from the old viewer and what we do not
 
 **Ports** — `edit_points.rs` (157 lines), kernel-only and tested; `coord_parser.rs` (44 lines) at f64; `SnapKind`, its priority ladder and `SnapModes` (priority class first, pixel distance breaks ties); absolute snapshots on both sides of a recorded edit, and the accumulating-delta bug behind them; the live-deform premise (freeze, precompute weights, multiply-add); f64 through, f32 at the boundary, now in the write direction too; iso-curves, not triangle edges.
 
-**Adapts** — getpoint loop → a `Draft` driven by named actions with `touch()` at every mutation; snap emission ports but the `session.lookup` sweep does not (ask what a row is); snap ranking stays CPU only for candidates no lane draws; invalidation → a revision counter; construction plane → forward-axis rule kept, world-origin placeholder replaced; `NodeAddr` → `ControlId` plus two Greville arms and the write direction; the two write hazards (mesh BVH, BRep 3D edges) as rules; bake-vs-matrix → the question, re-answered against the two-table transform; multi-selection yes, the centroid box test → a rectangle id read; the transient preview → an owned region of the segment and glyph lanes; `log_prompt` → `feedback::status`.
+**Adapts** — getpoint loop → a `Draft` driven by named actions with `touch` at every mutation; snap emission ports but the `session.lookup` sweep does not (ask what a row is); snap ranking stays CPU only for candidates no lane draws; invalidation → a revision counter; construction plane → forward-axis rule kept, world-origin placeholder replaced; `NodeAddr` → `ControlId` plus two Greville arms and the write direction; the two write hazards (mesh BVH, BRep 3D edges) as rules; bake-vs-matrix → the question, re-answered against the two-table transform; multi-selection yes, the centroid box test → a rectangle id read; the transient preview → an owned region of the segment and glyph lanes; `log_prompt` → `feedback::status`.
 
-**Replaced** — `undo_state.rs` + `state_undo.rs` (303 lines), because the kernel history is the cursor; `EditState`'s GPU half, because the `controls`/`control_net` lanes are it; `build_overlay_data`, because `Controls::from_geometry` covers more types and is tested; `pick.rs` CPU raycasting and `closest_object_under_ray`, because selection is GPU ids with a halo, a generation and a mode — the kernel's `ray_cast` has never been called here and should not start; `selected_centroid` and its per-type arms, because `InstanceTable::row_bounds(row)` gives the box and a widget origin is its centre; `text.rs` (256 lines, an 8×16 atlas as screen-anchored quads), replaced by text objects with scene identity; `demo.rs` (860 lines), replaced by manifests, loader, routes and live reload; `rebuild_tess_wireframe` as written; `selftest.rs` (164 lines), replaced by the headless harness; Escape falling through to `event_loop.exit()`, since Escape here is `escape_selection` with "cancel the active tool" in front of it.
+**Replaced** — `undo_state.rs` + `state_undo.rs` (303 lines), because the kernel history is the cursor; `EditState`'s GPU half, because the `controls`/`control_net` lanes are it; `build_overlay_data`, because `Controls::from_geometry` covers more types and is tested; `pick.rs` CPU raycasting and `closest_object_under_ray`, because selection is GPU ids with a halo, a generation and a mode — the kernel's `ray_cast` has never been called here and should not start; `selected_centroid` and its per-type arms, because `InstanceTable::row_bounds(row)` gives the box and a widget origin is its centre; `text.rs` (256 lines, an 8×16 atlas as screen-anchored quads), replaced by text objects with scene identity; `demo.rs` (860 lines), replaced by manifests, loader, routes and live reload; `rebuild_tess_wireframe` as written; `selftest.rs` (164 lines), replaced by the headless harness; Escape falling through to `event_loop.exit`, since Escape here is `escape_selection` with "cancel the active tool" in front of it.
 
 - Also replaced: the `impl State`-at-crate-root arrangement (`state_tool.rs`, `state_edit.rs`, `state_undo.rs`, `state_interaction.rs`, `state_pick.rs`, `state_cmd.rs`, `state_ui.rs`, `state_render.rs`, `state_update.rs`). `commit_object_transform` alone reads and writes the session lookup, the xform table, four GPU pick-mesh caches, instance flags, colour overrides, the thickness uniform and the text labels. That coupling is why the gap list cannot be closed by copying files.
 
@@ -233,10 +233,10 @@ Each step compiles; each names what it must not break.
 6. **Undo and redo** (8) — history: one cursor, chosen by the selection; clouds and sheets as in 5.
 7. **Delete** (7) — source identity (`hidden`/`guid_to_row` keyed on `(document, guid)`), silhouettes (masks key on `geometry_revision`).
 8. **Snapping** (4), marker in `glyphs` — clouds (ranged query, never the empty shell), sheets (one row is not one object), the tile index (a glyph is not a triangle).
-9. **Getpoint and the four tools** (5), rubber band in a transient `segments` region — finite-triangle visibility (the preview is strokes), text identity (`register_text` on rebuild), one frame per demand (`touch()`).
+9. **Getpoint and the four tools** (5), rubber band in a transient `segments` region — finite-triangle visibility (the preview is strokes), text identity (`register_text` on rebuild), one frame per demand (`touch`).
 10. **Multi-selection and rectangle pick** (9) — silhouettes (`selection_revision` once per gesture), sheets (a sheet row selects the sheet).
 11. **Move** (6) — the transform split (commit writes the f64 source), the tile index and silhouettes, sheets (decide what moving ninety thousand segments means).
-12. **Control write-back** (10) on Mesh, Polyline, NurbsCurve — picking (`invalidate_triangle_bvh()`), source identity (a rebuilt object keeps guid, row, hidden flag, name).
+12. **Control write-back** (10) on Mesh, Polyline, NurbsCurve — picking (`invalidate_triangle_bvh`), source identity (a rebuilt object keeps guid, row, hidden flag, name).
 13. **NurbsSurface and BRep write-back** — the CAD contract: boundaries, trims and provenance are re-derived by `app/walk/brep_edges.rs` on rebuild, so commit through the rebuild.
 14. **Greville edit points** (11) — nothing; the two `ControlId` arms are additive.
 15. **Live deform** (12) plus the per-row vertex range — the tile index and silhouettes (bump `geometry_revision`), `FLAG_SMOOTH`.
