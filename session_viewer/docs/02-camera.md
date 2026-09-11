@@ -162,6 +162,23 @@ If dragging moves twice as far on a high-DPI display, look at the `self.scale` c
 - Set `perspective: false` in `Camera::new` and orbit: the far edge no longer shrinks, and zoom scales the whole picture instead of walking towards it.
 - Pan with Shift held and release far from the origin, then zoom with the wheel: the point under the cursor stays under the cursor.
 
+
+## Recall
+
+??? question "`index = col * 4 + row`. Why does the convention matter more than the formula?"
+    Because a matrix built for the other convention is its transpose, and a transposed matrix still multiplies without an error: you get a picture that is wrong in a plausible way. The kernel's `Xform`, `math.rs` and WGSL's `m * v` all agree on column-major, so the rule is written once and never negotiated again.
+
+??? question "Reverse-Z needs three things to agree. Which three?"
+    Near and far are swapped in the projection (near becomes 1, far approaches 0); the depth attachment clears to `0.0`; the compare is `Greater`. Get two of three right and everything vanishes, or nothing is ever occluded.
+
+??? question "Where does f64 become f32, and why exactly there?"
+    In `mat_to_f32`, after the anchor has been subtracted. Positions near the camera are small numbers by then, so f32 has precision to spare. Convert before rebasing and a model a kilometre from the origin loses its low bits — the jitter you cannot debug from the shader.
+
+??? question "Why must `zoom_at` be given physical pixels rather than CSS pixels?"
+    Because it has to land the cursor on the same world point the framebuffer drew there, and the framebuffer is in physical pixels. A missing `devicePixelRatio` is invisible on a 1× display and doubles every gesture on a laptop.
+
+**Rebuild from memory:** state the orbit gesture in one sentence — yaw about the world up axis, then pitch about the camera's current right axis — and say why doing it the other way around, or with Euler angles, eventually locks the camera.
+
 ## Next
 
 [03 · Object rows and identity](03-identity.md): a storage buffer of per-object rows, and why a GPU row is not a source identity.

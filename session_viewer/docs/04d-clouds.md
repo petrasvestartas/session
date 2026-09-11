@@ -193,6 +193,23 @@ Expected:
 - Append `?edl=0`: the eye-dome lighting goes away and the cloud reads flat; it is a resolve-pass effect, not stored colour.
 - Append `?lod=64`: fewer octree nodes qualify and the cloud thins with distance; `LodWalk::select` is the only code that changed behaviour.
 
+
+## Recall
+
+??? question "Points draw into their own targets and are then resolved into the scene. Why not draw them with everything else?"
+    Because a splat is not a surface: it needs its own depth so neighbouring points can light each other (Eye-Dome Lighting reads the depths around a pixel), and it must still occlude and be occluded like a solid. The resolve writes `frag_depth` under the scene's `Greater` test, which is what folds a private pass back into the shared one. The cost is a pass; the benefit is that no other lane has to know clouds exist.
+
+??? question "The point pass targets are created on the first frame that has points. What principle is that, and where else in the viewer does it appear?"
+    Pay for a feature only when it is used. The coverage masks in the silhouette lane are allocated only while something is outlined, and released when nothing is; the tile pool is built only when finite visibility runs. In a browser, memory you do not allocate is the cheapest optimisation there is.
+
+??? question "The LOD walk is pure CPU and answers one question per node. What is the question?"
+    Does this node's point spacing project wider than `lod_px`? If yes, descend into its four children; if no, draw the node whole. Each node owns its own subsample, so descending only ever adds detail — which is what makes the walk a single pass with no back-tracking.
+
+??? question "Group 0 of the point pipelines is the cloud uniform, not the camera. Where did the camera go?"
+    Folded into each `SplatRecord`. One mat-vec per point is done from a record the CPU wrote, so the cloud pass does not need the scene's camera group at all — and a record straddling two chunks simply becomes two records rather than a special case in the shader.
+
+**Rebuild from memory:** trace one point from a chunk in CPU memory to a lit pixel, naming every buffer and pass it passes through. Four checkpoints in, this is the first time you can do that for a whole lane without help — if it comes out fuzzy, the lane to re-read is `splat.rs`, not the shader.
+
 ## Next
 
 [05 · Depth and visible ink](05-visibility.md): the physical pass, the surface-carry visibility rule, and multisampling.

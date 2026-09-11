@@ -231,6 +231,23 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 - Append `?thickness=4` and orbit: the pipes widen but never detach from the faces, which only holds because their endpoints are mesh nodes.
 - Zoom close to the hole rim with `?distance=0.4`: the rim stays attached to the inner face; a separately sampled circle would float above or sink below it.
 
+
+## Recall
+
+??? question "Two faces agree on an edge's endpoints. Why is that not enough?"
+    Because agreeing on the ends says nothing about the middle: each face may chord the curve differently, so the seam z-fights and one face's coarse chord can be buried under the other's refinement. The fix is stronger than agreement — one canonical XYZ polygon, shared bit for bit, so there is nothing left to disagree about.
+
+??? question "Why is the ink drawn from mesh nodes rather than sampled from the CAD curve?"
+    Because a separately sampled curve is a *different* approximation of the same edge, and it will float above or sink below the tessellation it is meant to outline — visibly, as soon as you zoom in. Drawing from the nodes the boundary polygon became makes the line and the surface the same geometry by construction, not by tolerance.
+
+??? question "When the constraint fails, the kernel returns an empty mesh. Defend that choice against 'return the best mesh you can'."
+    A smeared crease or a manufactured face looks plausible and is wrong: it would be inked, picked, measured and trusted. An empty face is obviously broken, is reported, and cannot silently propagate into a drawing someone builds from. In a CAD kernel, a visible failure is cheaper than a quiet approximation.
+
+??? question "Face-use flags are never read when deciding which way is out. What is used instead, and why is that more robust?"
+    The tessellation itself: two faces that walk a shared edge in opposite directions agree, and a group enclosing negative volume is inside out. Flags are metadata that an upstream tool can get wrong; the geometry cannot lie about its own winding. Prefer the invariant you can compute over the one you were told.
+
+**Rebuild from memory:** explain, in three sentences and without the page, why this lesson's fix is *upstream* of the viewer at all — what would have to be true for the viewer to fix it alone, and why that is not true here. This is the first lesson where the right change was not in the renderer, and recognising that situation is a skill of its own.
+
 ## Next
 
 [08 · Trims and seams](08-trimming.md): holes, natural boundaries and repeated seam uses keep correct geometry and source IDs.

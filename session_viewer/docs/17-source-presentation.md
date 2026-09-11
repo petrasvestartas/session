@@ -481,6 +481,8 @@ flowchart TB
 
 ### Step 16 · Device scale and a lost device
 
+![The same strip of glass measured three ways: CSS pixels, device pixels at ratio 2, and the surface pixels a capped ?dpr= actually renders. winit reports the middle one, so every arriving position is multiplied by surface_per_physical.](illustrations/device-scale.svg)
+
 - Input and canvas sizing share the capped `device_pixel_ratio`, so a pointer position and a rendered pixel agree at any `?dpr=`.
 - `samples_for` returns 1x from two physical pixels per CSS pixel: the pixel density already halves the stair-steps, for a quarter of the attachment memory. `forced` still wins.
 - When the browser loses the device because video memory ran out, `recover_from_device_loss` reloads the page once at device scale 1 without antialiasing, keeping every other query; `recovered_notice` keeps the status line saying so on the reloaded page.
@@ -580,6 +582,28 @@ Expected:
 - Load a manifest with two `texts` entries and hide one with H: the other stays, and S brings the hidden one back.
 - Open `?thickness=6` and look at a corner of the polyline: no darker dot and no notch at the shared vertex, at any pen width.
 - On a high-density screen open `?dpr=1`: the canvas renders a quarter of the pixels, clicks still land where the pointer is, and the perf line reports the smaller attachments.
+
+
+## Recall
+
+Five mechanisms in one checkpoint. Answer these before the lesson closes, because 18 assumes all five.
+
+??? question "Face picking pulls the arena's existing vertices by index rather than building a per-face mesh. What would the alternative cost?"
+    A duplicate of every mesh in memory, or one draw call per face — and a second copy of the geometry that can drift out of sync with the first. Vertex pulling means the face lane adds a table of addresses and a bind group, and the triangles stay exactly the triangles that were drawn. `transform_vertex` being shared between `vs_main` and `vs_face` is what makes the two paths provably identical.
+
+??? question "Why does the compositor take `max(ordinary, selected)` rather than drawing one mask over the other?"
+    Because overlapping coverage would be blended twice and the seam would darken, and a selected interior would grow an ordinary contour inside it. `max` makes the two masks idempotent where they meet: the thicker one simply wins. This is the same reason the mask attachments blend with `Max` rather than alpha.
+
+??? question "The coarse pooled texture holds block maxima. Explain how it can make the compositor cheaper *without changing a single output pixel*."
+    Each pixel's dilation reads up to 27 × 27 texels. The pool holds the maximum of each `POOL` × `POOL` block; if the block under the pixel and its eight neighbours are all empty, no covered texel can be within the radius, so the answer is zero without the loop. The CPU clamps the kernel radius to 12 precisely so those nine blocks always contain the whole kernel — which is what makes the shortcut exact rather than approximate.
+
+??? question "Two ribbons meeting at a bend overlap inside and leave a wedge outside. What makes the join fix work, and what would break it?"
+    Both segments compute the *same* bisector plane from the same ordered pair, and then one side keeps the pixels on its side while the other excludes them — so exactly one segment owns each pixel of the shared cap. It breaks the moment the two ends compute the plane from differently ordered inputs, because then neither or both would own a pixel: a seam or a double-blend.
+
+??? question "The pick attachment is the window *plus a three-texel halo*. Why the halo?"
+    Because the ink visibility test fits planes from neighbouring texels, and a neighbour outside the attachment reads as cleared — so strokes at the window's edge would judge themselves against empty depth and appear or vanish wrongly. The halo makes those neighbours real occlusion samples. It is a small number with a precise reason, which is the kind worth being able to re-derive.
+
+**Rebuild from memory:** name the frame order this lesson establishes — face highlight, print geometry, unselected strokes, selected solid strokes, the silhouette, then selected curves — and justify *one* adjacency: why selected solid strokes go under the silhouette while standalone selected curves go over it.
 
 ## Next
 

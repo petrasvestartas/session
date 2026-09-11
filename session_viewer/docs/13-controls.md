@@ -220,6 +220,23 @@ Expected:
 - Serve a directory holding a large `cloud.pb` locally and open `?scene=stream-test.yaml&data=http://127.0.0.1:PORT`; select the cloud, press F10 and click a point: the status names an original fixed32 ID that the display prefix never loaded.
 - Clear the selection while a page loop is running (Escape twice): the query token is dropped and no late page selects anything.
 
+
+## Recall
+
+??? question "A curve is drawn as hundreds of chords. Why can F10 not just show the vertices that were drawn?"
+    Because those vertices are a display approximation: they change when the tessellation changes, they do not exist in the document, and moving one would mean nothing. `Controls::from_geometry` reads the real control net from the source — a handful of points with links. This is the same rule as the tessellation seam in lesson 06: never let the display invent an identity.
+
+??? question "`fetch::get` refuses a `200` answer to a `Range` request. Why is that worth a check rather than a trusting read?"
+    Because `200` means the server ignored the range and is sending the *whole file* — possibly gigabytes onto a device that asked for 64 KB. The answer looks successful, so nothing else in the chain would object until memory ran out. When you ask for less than everything, verify you got less than everything.
+
+??? question "A streamed cloud displays a bounded prefix, so a click cannot be answered from the screen. What does the viewer do instead?"
+    Freezes the click's projection into a `QueryView` and pages through the source, testing every octree node against that same matrix and pixel window — resident or not — and accumulating point IDs across pages. Freezing matters: if each page used the current camera, pages fetched after you moved would answer a different question than the first.
+
+??? question "`enable_controls` is idempotent. Name the bug that makes that worth stating explicitly."
+    Pressing F10 twice on the same parent would upload a second set of markers on top of the first: doubled ink, doubled pick answers, and a marker count that grows until you select something else. Idempotence is cheap here and the failure is silent, which is exactly when to write the invariant down.
+
+**Rebuild from memory:** describe the cancellation story — who owns the token, who checks it, and what happens to a callback that comes back after the user clicked elsewhere. Then compare it with `generation` in lesson 12: two mechanisms for stale answers, and they are not interchangeable. Say why.
+
 ## Next
 
 [14 · Loading scenes](14-loading.md): manifests, protobuf documents, validation and safe replacement through the real loader.

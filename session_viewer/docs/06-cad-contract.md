@@ -291,6 +291,25 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 - Append `?distance=3` then `?distance=0.3`: the pipes keep their pixel width while the faces grow; the boundary nodes move with the mesh because they are the mesh.
 - Append `?thickness=3`: the boundary pipes widen on screen but stay glued to their faces, because their endpoints are face-mesh nodes, not a separately sampled curve.
 
+
+## Recall
+
+From here on the questions are less about "what does this call do" and more about "why is it built this way". Answer with the page closed.
+
+??? question "A producer reports a `Row` and is given a `WalkCx`. What is the boundary this draws, and why does it matter?"
+    `WalkCx` is *where* rows land — vertex base, object row. `Row` is *what the producer measured* — local box, spacing, flags. A producer therefore knows how to turn one geometry into rows and nothing else: not what file it came from, not whether the document is planar, not what is selected. That is why a sheet is detected after the walk from the object rows, and why adding a new geometry type later means writing one producer rather than editing the scene.
+
+??? question "Face normals are computed with Newell's method rather than from the first three corners. What goes wrong with three corners?"
+    A reflex second corner inverts the cross product, so a flat polygon is reported as facing backwards — and downstream that becomes a crease in a surface that has none. Newell sums over all the edges, so a single awkward corner cannot flip the result. The general lesson: when the input is authored by a human, prefer the formula that averages over the one that samples.
+
+??? question "`pipe_ids` stores the source edge index for an authored mesh but `u32::MAX` for a tessellation seam. Why not just number the seams?"
+    Because a pick has to return something a user can be told about, and a tessellation seam is not a thing in the document — it is an artefact of how finely the surface happened to be cut. Numbering it would make selection return an invented identity, and the user would be able to click on something that does not exist. Refusing to answer is the correct answer.
+
+??? question "Face keys are sorted before their normals are accumulated. What bug does the sort prevent?"
+    Float addition is not associative, so a different accumulation order gives a slightly different normal — and map iteration order is not stable. Without the sort, the *same* mesh could produce different bytes on different runs, which would break every hash the course verifies. Determinism is a feature you have to write down.
+
+**Rebuild from memory:** name the four things every producer packs (pen → radius, colour → RGBA8, normal → oct16, two normals → one facing word) and say why each is packed rather than passed as-is. Then predict which of them a point cloud producer would not need.
+
 ## Next
 
 [07 · Shared boundaries](07-boundaries.md): one canonical chain per BRep edge, constrained into every incident face, drawn from the exact mesh nodes.

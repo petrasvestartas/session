@@ -177,6 +177,23 @@ A subtle crease under one light is not proof that normals are separate; identica
 - Open `?cad=crease` and orbit until the light grazes the fold: one side goes dark while the other stays lit, because the two sides own different normals at the same positions.
 - Open `?cad=cylinder&affine=1`: the stretched copy shades like the original. Replace `transform_normal` in `normals.wgsl` with a plain `mat3x3(model) * n` and reload: the stretched copy's lighting tilts.
 
+
+## Recall
+
+??? question "Positions use `model`. Why can normals not?"
+    Because a normal is perpendicular to a surface, and perpendicularity does not survive a nonuniform scale: stretch a sphere into an ellipsoid and the old normals lean. The inverse transpose (built here as cofactors) is the transform that keeps a normal perpendicular. The cofactor form also never divides by a small determinant, which a literal inverse would.
+
+??? question "`normal_at` returns `+Z` at a pole. Why is that dangerous, and what saves it?"
+    Because `+Z` is finite and plausible — it will not trip any check — but it is not this face's normal, so a sphere's pole would shade as if it were flat and facing up. The zero-length derivative cross is the real signal, and it hands the decision to the incident-triangle fan. The pattern is worth keeping: a fallback value that *looks* valid is worse than one that is obviously a sentinel.
+
+??? question "Edge culling reads geometric facet normals, never shading normals. What broke when it did not?"
+    A cone's apex has a smooth `+Z` fan, and averaging that into the seam's cull normal tilted it upward until the seam was culled and disappeared. Shading normals are an artistic decision about how a surface should look; visibility is a geometric fact about where the surface is. Mixing them lets an appearance choice delete geometry.
+
+??? question "A singular matrix yields the zero normal sentinel instead of an error. Who handles it and how?"
+    The fragment stage, which falls back to flat shading from screen derivatives. The instance is degenerate — it has no unique normal — so the honest answer is "shade this without one" rather than "refuse to draw" or "make one up".
+
+**Rebuild from memory:** without the page, name the three cases where a normal cannot come from the analytic derivative, and what happens in each. Then explain why `?cad=crease` (identical XYZ, two normals) is a better test of this lesson than any picture of a smooth sphere.
+
 ## Next
 
 [10 · Text shaping](10-text-layout.md): fonts, glyph advances and clusters before any pixel is drawn.

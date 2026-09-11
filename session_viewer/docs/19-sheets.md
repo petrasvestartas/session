@@ -163,6 +163,23 @@ Open <http://localhost:8780/?scene=view_sheets&inspect=1>. Two sheets stream in;
 - Add `&segments=200000` and watch the second sheet stop at the budget; the status line names the sheet that stayed out.
 - Select an entity, then open the network panel: exactly two range requests against the `.meta` file, 16 bytes and the blob.
 
+
+## Recall
+
+??? question "The same drawing costs 340 MiB as objects and 20 MiB as a sheet. Where did the memory actually go?"
+    Into per-object overhead, not geometry: a GUID string, a name, a colour and a kernel object per *line*, plus four copies of each line between the bytes and the GPU. The geometry itself was always small. When a format is 90 000 of something, the per-item cost *is* the cost — which is why a sheet is one object row with a source id per segment.
+
+??? question "Metadata is fetched per entity, on selection, in two small reads. Why is the side table not protobuf?"
+    Because protobuf has to be parsed from the start to find anything, and the point is to read *one* record without reading the file. `SHM1` is a count, then fixed 16-byte `(offset, length)` pairs, so the entity id is an index: one 16-byte read at `8 + 16 · id`, then the blob. Choosing a format by the access pattern you need is the lesson, not the format.
+
+??? question "A selected entity highlights all its segments with no shader change. How?"
+    Because the ribbon shader already compares `source_edges` against the edge selection, and a sheet's segments carry their entity id in exactly that slot. The feature was free because an earlier lesson put the id in a general place rather than an edge-specific one. That is what a good abstraction pays out — later, and without being asked.
+
+??? question "`descend_message` requires the wanted field to close the message. Why insist on that?"
+    Because it proves the reader has located the real end of the array rather than a prefix that happens to parse: `source_ids` being the last field means a slice boundary can be trusted. A range read that guesses the end silently returns truncated data, and truncated geometry looks like geometry.
+
+**Rebuild from memory:** the sheet path reuses the cloud path's generation discipline, budget, range reads and query cancellation almost unchanged. List what genuinely *had* to be new, and then judge whether a shared abstraction between clouds and sheets would be an improvement or a trap. There is a defensible answer either way; make yours and say why.
+
 ## Next
 
 [20 · The document](20-history.md): undo, redo and save in the kernel.

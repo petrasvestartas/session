@@ -145,6 +145,20 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 - Set the same `model[12]` for both rows: they overlap exactly, proving the geometry buffer is shared.
 - Draw with `draw(0..3, 0..1)` only: the second row vanishes, because `instance_index` never reaches 1.
 
+
+## Recall
+
+??? question "`Instance` has a matrix, a colour, some flags and a spacing. Why does it occupy 96 bytes?"
+    Alignment. A `mat4x4` needs 16-byte alignment and so does the struct in a storage array, so the stride rounds up to a multiple of 16; the padding field on the Rust side makes the two agree deliberately rather than by accident. The size assertion turns a stride mistake into a `cargo check` failure instead of a corrupt second object.
+
+??? question "A GPU row is not a source identity. What is the difference, and why keep both?"
+    A row is 96 bytes of drawing state at some index in a buffer; an identity is the guid and revision of a thing in the document. Rows are rebuilt whenever the scene reloads and their indices change; identities must not. Picking returns a row, and `Scene` is what turns it back into something a user can be told about.
+
+??? question "Which index reaches the shader's `instances[]`, and what sets it?"
+    `@builtin(instance_index)`, and the instance range of the draw call sets it: `draw(0..3, 1..2)` runs the vertex stage with `instance_index == 1`. Nothing is bound per object — one buffer, one index.
+
+**Rebuild from memory:** write the `#[repr(C)]` row and its size assertion again in an empty file, without looking at the field order. Then check it against `instance.rs`. If your field order differs, ask whether the shader would still work — and why `#[repr(C)]` is what makes that question answerable at all.
+
 ## Next
 
 [04a · Meshes on the GPU](04a-meshes.md): vertex and index buffers, the mesh arena, and the first real drawing module.

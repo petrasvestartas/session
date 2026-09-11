@@ -1363,7 +1363,40 @@ def masks():
     c.write("masks.svg")
 
 
+def device_scale():
+    c = Canvas("Three rulers over the same glass",
+               "A pointer position and a rendered pixel are measured in different units. winit reports at the browser's ratio whatever ?dpr= asks for, so every arriving position is multiplied by surface_per_physical - the cap over the ratio, and 1 when there is no cap - before it is used. Picks, zooms and drags then read against the surface that is actually drawn.",
+               1180, 430)
+    pink, green, yellow, grey, navy = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"], PAL["navy"]
+    c.text(28, 40, "The pointer and the surface are different units", "h")
+    c.text(60, 86, "the same strip of screen, measured three ways", "l")
+
+    left, width = 268.0, 852.0
+    at = 0.5
+
+    def ruler(y, cells, colour, label):
+        c.text(60, y + 5, label, "s", fill=colour)
+        c.raw(f'<line x1="{left:.1f}" y1="{y:.1f}" x2="{left + width:.1f}" y2="{y:.1f}" stroke="{colour}" stroke-width="1.8"/>')
+        for k in range(cells + 1):
+            x = left + width * k / cells
+            c.raw(f'<line x1="{x:.1f}" y1="{y - 9:.1f}" x2="{x:.1f}" y2="{y + 9:.1f}" stroke="{colour}" stroke-width="1.8"/>')
+
+    ruler(160, 6, grey, "CSS px")
+    ruler(232, 12, pink, "device px · ratio 2")
+    ruler(304, 6, green, "surface px · ?dpr=1 caps it")
+    mark = left + width * at
+    c.raw(f'<line x1="{mark:.1f}" y1="142" x2="{mark:.1f}" y2="322" stroke="{yellow}" stroke-width="1.4" stroke-dasharray="5 5"/>')
+    for y in (160, 232, 304):
+        c.raw(f'<circle cx="{mark:.1f}" cy="{y:.1f}" r="5" fill="{yellow}"/>')
+    c.text(mark + 14, 134, "one point on the glass", "s", fill=yellow)
+
+    c.text(60, 366, "winit reports 6 device px; × surface_per_physical 0.5 = 3 surface px", "s", fill=yellow)
+    c.text(60, 388, "the cap over the ratio, and 1 when nothing is capped, applied on arrival", "s")
+    c.text(60, 410, "At two physical pixels per CSS pixel the density already halves the stair-steps, so samples_for drops to 1×: the same edge for a quarter of the attachment memory.", "s")
+    c.write("device-scale.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale):
         draw()
-    print("wrote 30 illustrations")
+    print("wrote 31 illustrations")

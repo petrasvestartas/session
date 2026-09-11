@@ -388,6 +388,25 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 - Add a second `ObjectRow` in `fixture.rs` with a different `place`: the same vertex range draws twice, once per row.
 - Set `msaa=1` in the query string and look at the edge of the mesh against the background: the antialiasing budget is a knob, not a constant.
 
+
+## Recall
+
+This is the longest lesson in the course and the one the rest is built on. Answer with it closed.
+
+??? question "`GrowBuf` returns `true` when it grew. Why does a caller have to care?"
+    Because growing allocates a *new* buffer, and every bind group that referenced the old one is now pointing at the wrong memory. The boolean is the signal to rebuild the bind group. Ignore it and you get stale or garbage geometry with no validation error at all — the buffer it names is still perfectly valid, just not yours any more.
+
+??? question "Group 2 holds rows in one buffer and translations in another. What does the split buy?"
+    A re-anchor rewrites only the translations: 16 bytes per object instead of 96. The anchor moves whenever the camera drifts far from it, so this is the write that happens while you are navigating, and it is the one worth making small.
+
+??? question "`vp_w`/`vp_h` and `frame`/`origin` look like the same numbers. When do they differ, and why are both needed?"
+    Only in the pick pass. `vp_w`/`vp_h` are the attachment actually being drawn into — a small window around the cursor. `frame` is the whole canvas the scene was projected for, and `origin` is where the window's top-left sits in it. Pixel arithmetic uses the attachment; anything laid out against the full canvas has to be addressed through `origin`. Collapse them into one pair and picking silently drifts as soon as the window is not the canvas.
+
+??? question "Why is a pipeline described by data (`PipelineDesc`) instead of a function per pipeline?"
+    Because the viewer has one shader with many variants — a different fragment entry, a different colour mode, a different depth rule — and a function per variant duplicates the twenty fields they share. One base plus `with`/`vertex`/`color`/`depth` keeps the differences visible in one line each, and `build` stays the only place wgpu is asked for a pipeline, which is where a format or sample-count mistake can be caught once.
+
+**Rebuild from memory:** name the three bind groups every lane shares and what each holds, then say which one the ink pass binds differently and what it adds. If you can do that, you can read any shader in this repository; if you cannot, re-read step 2 before lesson 04b, because every lane after this one assumes it.
+
 ## Next
 
 [04b · Strokes](04b-strokes.md): the segment lane, `ribbon.wgsl`, and the shared ink visibility rule.

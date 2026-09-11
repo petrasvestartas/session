@@ -163,6 +163,23 @@ Expected:
 - Zoom far out: the strokes keep their pixel width. A world-space width would vanish; a screen-space pen does not.
 - Set `aa=0.5` and compare an edge-on stroke with `aa=2`: the antialiasing ramp is the only thing that changed.
 
+
+## Recall
+
+??? question "The segment row ends in flat `f32`s instead of two `vec3`s. What would the `vec3`s cost?"
+    Eight bytes a row. A `vec3` aligns to 16, so the row would pad from 40 to 48 — and it buys nothing, because the shader reads the components anyway. This is the same alignment rule that made `Instance` 96 bytes; it is worth being able to predict it rather than discover it.
+
+??? question "Strokes draw with `DepthMode::Always` and blending. Why not simply depth-test them?"
+    Because a stroke usually lies *exactly on* a surface — the edge of the face it belongs to — and a hardware depth test at the same depth is a coin flip that produces stitching. The shader decides visibility itself: `ink_visible` compares the scene depth at the pixel against the depth of the closest point on the stroke's axis, using the gradient the face pass wrote. The rule is one shared file so every ink lane answers the question the same way.
+
+??? question "The half-width at each end travels as a flat scalar, resolved per pixel. What breaks if you interpolate a width per vertex instead?"
+    A stroke going away from you is a trapezoid, and interpolating a width across it is not projectively correct: the width at the middle comes out wrong, and it wobbles as the camera moves. Sending both ends flat and resolving per pixel is exact.
+
+??? question "Why must the segment be clipped against the near plane before any divide?"
+    Dividing by a negative `w` mirrors the point through the screen centre, so a line crossing behind the eye would swing across the canvas instead of disappearing. Clip first, divide second — the one ordering rule that costs nothing and saves an afternoon.
+
+**Rebuild from memory:** in two sentences, explain why a stroke keeps its pixel width when you zoom out, and where in the pipeline that decision is applied. Then predict what would change if the pen were applied to the geometry on the CPU instead.
+
 ## Next
 
 [04c · Markers](04c-markers.md): vertex markers on a quad template and free dots as SDF triangles.

@@ -134,6 +134,23 @@ Expected:
 - Remove a group with children and undo: the children return under the same parent at the same index.
 - Open the saved file in the Python or C++ kernel and run the same sequence: the same names do the same things.
 
+
+## Recall
+
+??? question "History lives in memory and never crosses pb or JSON. What does that buy, and what does it give up?"
+    An opened file always starts clean: no undo across sessions, no history in a file someone else reads, no format to version. It gives up cross-session undo — which, as Rhino also decided, is not what users expect from a CAD document. The rule is worth stating because the temptation to persist it is constant and the cost only appears later, in the file format.
+
+??? question "A tombstone stores the object, its list position, its transform, its parent and sibling index, its subtree, its graph attribute and its incident edges. Why so much for one deletion?"
+    Because undo has to put the object back into *every* live table at the same place — anything less is a restore that quietly loses a parent, a child order, or an edge. The reason the list was incomplete before is that each table's loss was invisible on its own. When you write an undo, enumerate the tables, not the operations.
+
+??? question "`Replace` and `Xform` carry absolute before and after values, never deltas. Argue for absolutes here."
+    Deltas compose and drift: two floating-point transforms that undo each other do not return the original bits, and a delta applied to a state it was not computed from is silently wrong. Absolutes are bigger and completely unambiguous, and the buffer is bounded at 64 anyway. Reach for deltas when size is the constraint, and here it is not.
+
+??? question "A removal's clone keeps the guid rather than minting a new one. What would break with `duplicate`?"
+    The restored object would be a different object as far as every reference is concerned: links, selections and anything holding the guid would point at nothing. An undo has to restore *identity*, not merely equivalent content — which is why the four types that lacked `refresh_guid` had to gain it for `replace` to work at all.
+
+**Rebuild from memory:** you have finished the course. Without looking, describe the path a click takes from the browser event to a highlighted object — through input, state, the id pass, the readback, the generation check, `Scene::resolve`, the row flag and the next frame. That single path crosses almost every module you built. When you can narrate it, take the [capstone](capstone.md).
+
 ## Next
 
 [Architecture reference](../ARCHITECTURE.md): the finished module graph, frame lifecycle and Rust ↔ WGSL interfaces.

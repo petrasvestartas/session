@@ -48,6 +48,7 @@ watch:
   - ARCHITECTURE.md
 nav:
   - Start here: docs/README.md
+  - How to use this course: docs/how-to-learn.md
   - Words before code: docs/words.md
   - Course:
     - 00 · Empty project to WASM: docs/00-environment.md
@@ -74,5 +75,7 @@ nav:
     - 18 · Finite-triangle visibility: docs/18-finite-visibility.md
     - 19 · Sheets: docs/19-sheets.md
     - 20 · The document: docs/20-history.md
+  - Capstone: docs/capstone.md
+  - Reading failures: docs/debugging.md
   - Architecture reference: ARCHITECTURE.md
   - CAD design record: docs/cad-design.md

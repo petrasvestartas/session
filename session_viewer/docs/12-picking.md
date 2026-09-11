@@ -502,6 +502,25 @@ If an object highlights but the status names another GUID, the row → identity 
 - Hover the black corner at the top right: it grows; click it and the course opens in a new tab from `dist/docs`.
 - Make `Picker::poll` skip its `submitted != generation` comparison and orbit while a click is pending: a late answer selects against the new camera, which is the bug the check prevents.
 
+
+## Recall
+
+Halfway. From here the questions assume you can read the code and ask instead whether you would have *designed* it this way.
+
+??? question "Picking renders the scene again into an integer target instead of intersecting a ray with the geometry on the CPU. Argue for that choice."
+    Because the GPU already knows exactly what is on screen, including every rule the CPU would have to reimplement: the ink visibility test, hidden flags, x-ray discards, the finite-triangle test, text placement. A ray-caster would be a second, subtly different answer to "what is visible here" — and the day the two disagree, the user is the one who finds out. Rendering IDs means the picture and the pick cannot drift apart. The cost is a GPU round-trip, which is why the pass is scissored to a small window and read back asynchronously.
+
+??? question "What is `generation` for, and what breaks without it?"
+    It counts pick requests; `submitted` records which generation the in-flight copy belongs to, and a camera move bumps the counter. Without it, an answer computed against an older camera lands after you have orbited away and selects whatever happened to be under that pixel then — an object that is no longer there. Every asynchronous answer in this viewer carries a generation for the same reason.
+
+??? question "`needs_frame` and `dirty` sound like the same flag. Why are they two?"
+    `needs_frame` is "ask for another frame"; `dirty` is "the picture actually changed". A pick in flight needs a frame (to poll the readback) without the picture having changed, and drawing it again would be wasted work. Conflating them costs you either a hung pick or a permanently redrawing canvas.
+
+??? question "In the pick window, ink beats a face anywhere; among equals the nearest to the cursor wins. Why not simply take the nearest ID?"
+    Because a curve lying on a face covers a handful of pixels and the face covers thousands: nearest-wins would make edges nearly unclickable. The rule encodes what the user meant, not what the pixels said — and it is exactly the tolerance a CAD user expects. Note also that the tolerance is expressed in CSS pixels and scaled, so it feels the same on any display.
+
+**Rebuild from memory:** list the frame's passes in order and say, for each, what it reads and what it writes. Then explain why the ID pass must repeat *the same toggles* as the colour pass. If you can do both, you have the whole renderer; lessons 13 to 20 add features to this list rather than changing it.
+
 ## Next
 
 [13 · Source controls](13-controls.md): F10 shows original vertices and control points, and streamed clouds answer from every source page.

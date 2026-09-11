@@ -127,6 +127,23 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 - Compare `source_cpu_known_payload_bytes` with `gpu_buffer_capacity_bytes`: the GPU side is larger, because display data adds tessellation and instance rows to the retained source arrays.
 - Hold a second `Rc` to a document somewhere in `State` and replace the scene: the payload figure keeps counting it, which is the leak the Weak identities are there to expose.
 
+
+## Recall
+
+??? question "The figure is called a *known payload*, not memory use. Why is the honesty in the name worth the words?"
+    Because the number excludes allocator overhead, `Rc` and map bookkeeping, spare map slots and everything the browser holds outside the wasm heap — so calling it "memory" would invite exactly the wrong conclusion. The snapshot even carries its own scope and exclusions as JSON fields so a reader cannot mistake one for the other. A measurement you cannot defend is worse than no measurement.
+
+??? question "The cache holds `Weak<Session>`, not `Rc<Session>`. What breaks with `Rc`?"
+    The cache would keep every document alive forever: nothing would ever drop, the figure would grow monotonically, and the very leak you are measuring would be caused by the instrument. `Weak` recognises a document without extending its life — and when every pointer still matches the last snapshot, the cached payload is returned with no walk at all.
+
+??? question "The cache keys on identity, so in-place editing would make it stale. Why is that acceptable here?"
+    Because documents are replaced and appended, never mutated in place — replacement changes identity, which is exactly what the cache watches. The invariant is real but unenforced by the type system, which is why it is written down. Recognising "this is safe only because of a convention elsewhere" and *saying so* is the difference between a comment worth reading and noise.
+
+??? question "Four numbers now sit side by side: retained source payload, owned GPU buffer bytes, estimated texture bytes, and what the browser says about wasm memory. Why not add them up?"
+    Because they measure different things in different places, with different exactness: two are counted, one is estimated, and one is reported by another system entirely. A sum would be a number with no meaning that people would nonetheless quote. Keeping them separate forces the reader to ask which question they are actually asking.
+
+**Rebuild from memory:** name one thing the viewer genuinely cannot measure about its own memory and explain why. Then propose how you would find out anyway — and notice that the answer involves a different tool, not more code.
+
 ## Next
 
 [17 · Faces, text objects and silhouettes](17-source-presentation.md): source-face selection, selectable authored text and one black outline.

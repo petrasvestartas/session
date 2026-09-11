@@ -381,6 +381,28 @@ The same source you just finished is what the repository publishes:
 - Overflow a tile on purpose by loading a dense mesh and lowering the tile size in `triangle_tiles.rs`: overflowing lists keep the conservative rejection, and hidden edges never leak through.
 - Open `?outlines=1`, select the BRep and click another object: the masks are rebuilt because `selection_revision` moved, while the tile index, keyed on geometry only, is reused.
 
+
+## Recall
+
+The last renderer lesson. These questions are the ones an interviewer would ask about this codebase.
+
+??? question "The plane test is kept, and the tile walk only runs when the plane test rejects. Why is that ordering the whole design?"
+    Because the plane test is one `textureLoad` and a dot product and it is right almost everywhere; the tile walk is a list traversal and it is needed at concavities and contacts. Running the cheap conservative test first and escalating only on a rejection means the expensive machinery costs nothing on the overwhelming majority of fragments. Note the direction of the conservatism: the plane test may wrongly *hide*, never wrongly *show*, so escalating on rejection can only ever restore ink.
+
+??? question "An overflowing or incomplete tile list keeps the rejection rather than accepting. Why is that the safe direction?"
+    Because the list is the evidence for "nothing finite occludes this"; without a complete list you have no evidence, and showing ink that should be hidden is the worse error — it draws lines through solids. Degrading to the previous, conservative answer is a failure mode the user can live with, and `PoolReport` makes it last exactly one frame before the pool is resized.
+
+??? question "`ProjectionKey` is the camera matrix plus the geometry revision. Why is selection deliberately not in it?"
+    Because selecting an object changes no triangle's position, so the projection and its tiles are still valid — rebuilding them on every click would be pure waste during the most interactive thing a user does. The silhouette masks *are* keyed on selection, because their content genuinely changes. One revision counter per thing that can go stale, and each consumer keys on the ones that affect it.
+
+??? question "X-ray discards fragments instead of blending them. Give two reasons."
+    A blended face still writes depth, so it would hide the very edges and vertices `P` exists to show — transparency is not the same as absence. And a discarding face writes no coverage either, which is what keeps the silhouette from ringing a solid you asked to see through. `FLAG_SINGLE` marks the shapes with no inside to reveal, and they keep their shading; the flag exists because "a single face" is a geometric fact the producer knows and the shader cannot.
+
+??? question "Sums saturate at the buffer capacity instead of wrapping. What is the failure this prevents?"
+    A wrapped prefix sum produces a small, *plausible* offset, and the fill pass would write triangle references over another tile's list. The result is not a crash but wrong visibility somewhere else on screen — the worst kind of bug to track down. Saturation turns it into the overflow flag, which is handled.
+
+**Rebuild from memory:** you have now built the entire renderer. Without the page, name the passes of one frame in order, with what each reads and writes, and say which two are skipped when nothing needs them. Then take the [capstone](capstone.md): the section plane touches every one of those passes, and nobody will tell you how.
+
 ## Next
 
 [19 · Sheets](19-sheets.md): drawings as one segment batch with lazy metadata.

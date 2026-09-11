@@ -100,6 +100,23 @@ Expected:
 - Lower the 64 KiB minimum in `read_length` to 1 KiB: the walk still succeeds, but every small field past the first kilobyte refills the window and the request count climbs back.
 - Change the served file while the viewer is open so its ETag changes: the next read outside the window fails instead of mixing two revisions, and the status says so.
 
+
+## Recall
+
+??? question "The read window has a 64 KiB minimum, yet a large array is still skipped by its length. Why both rules?"
+    Because the file is small fields separated by huge arrays. The minimum makes adjacent small fields — headers, node tables — share a single request instead of one round-trip each. Skipping by length keeps the window from ever pulling a geometry array it does not need. Lower the minimum and the request count climbs back, as the lesson's own experiment shows; drop the skip and you download the file you were trying to avoid.
+
+??? question "A changed ETag fails the read instead of refilling the window. Defend that."
+    Because the two halves would come from different revisions of the file, and the result would be a plausible, silently wrong scene — offsets from one version indexing bytes of another. Failing is recoverable: reload and get a consistent revision. Mixing is not detectable after the fact.
+
+??? question "Publication writes the immutable geometry revision first, verifies it, then updates the alias and the manifest. What invariant does that ordering protect?"
+    That a manifest never points at bytes that do not exist yet. Any reader arriving mid-publish sees either the old, complete scene or the new, complete scene — never a manifest naming a file still uploading. Write the thing that is pointed *at* before the pointer; it is the same ordering discipline as any atomic swap.
+
+??? question "Credentials live in the local shell helpers, never in the browser bundle. What follows from that?"
+    Anything shipped to a browser is public — the bundle, its constants, its query parameters. Publication is a local operation with local credentials, and the deployed viewer can only read. This is worth stating because the temptation is always to add "just one" write endpoint.
+
+**Rebuild from memory:** without looking, describe what the network panel shows for a streamed cloud with and without the window, and say which of the two numbers a user would actually notice. Then decide whether this optimisation would be worth it for a local file — and why the answer differs.
+
 ## Next
 
 [16 · Resource accounting](16-accounting.md): what the viewer can and cannot measure about its own memory.

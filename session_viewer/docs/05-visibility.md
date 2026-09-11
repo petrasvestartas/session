@@ -316,6 +316,25 @@ If every edge disappears, compare the depth clear and compare function against t
 - Orbit until a stroke passes behind the box: the covered span disappears cleanly, without a global depth offset.
 - Append `?msaa=4` and compare the stroke fringe with `msaa=1`: multisampling changes coverage, never the visibility decision.
 
+
+## Recall
+
+This lesson is the conceptual centre of the viewer. If only one lesson is worth being able to reconstruct, it is this one.
+
+??? question "Why can a stroke fragment not simply compare its own depth with the depth buffer?"
+    Because a stroke is a *ribbon* of fragments around a mathematical axis, and a fragment beside the axis reads the depth of whatever surface is under *that* pixel — not under the axis. On a face the stroke lies on, half the ribbon would lose the comparison and the line would stitch. The gradient the face pass wrote is what carries the surface depth from the fragment to the axis, and only that predicted depth is compared.
+
+??? question "What exactly is stored in the gradient attachment, and who writes zero into it?"
+    The winning primitive's own depth slope in screen space, scaled to survive `Rg16Float`. Surfaces write their real slope; the background, the grid, splats, sheets and every ID pass write zero, because they are not surfaces ink can be carried across. A zero gradient is not "flat" — it means "do not extrapolate me".
+
+??? question "Reverse-Z needs three things to agree, and you have now seen all three in code. Name them."
+    The projection swaps near and far; the depth attachment clears to `0.0`; the compare is `Greater`. If every edge vanishes, one of the three is wrong — the lesson's own troubleshooting note says exactly this, and it is worth being able to derive rather than look up.
+
+??? question "Multisampling is chosen per frame from the adapter and the pixel count. Why does it never change the visibility decision?"
+    Because visibility is computed per fragment from depth and gradient, not from coverage. MSAA changes how much of a pixel a face covers — the smoothness of a hard edge — while the ink test still asks the same question at the same place. Two mechanisms that both affect edges, kept deliberately independent; `?msaa=4` versus `?msaa=1` is the experiment that proves it.
+
+**Rebuild from memory:** draw the frame on paper — which pass writes depth, which reads it, which attachments exist, and where the backdrop sits. Then predict what a stroke on the *far* side of a box does at each stage. This is the mental model that lessons 12, 17 and 18 extend rather than replace.
+
 ## Next
 
 [06 · CAD face contract](06-cad-contract.md): BRep faces, surfaces and boundary records flow from the shared kernel into display data.

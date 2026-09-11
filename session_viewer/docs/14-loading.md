@@ -205,6 +205,23 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 - Give an item a non-orthogonal `xform`: `Manifest::parse` rejects it before any file is fetched.
 - Touch a file under `docs/` and run `trunk serve` again: the hook rebuilds the site, and the black corner opens the fresh page from `dist/docs`.
 
+
+## Recall
+
+??? question "The manifest holds placement and the `.pb` files hold geometry. What does that separation buy?"
+    A placement edit re-reads a few kilobytes of YAML and rewrites one matrix; it never re-uploads geometry. It also means the same geometry file can appear twice in a scene at two placements, and that a manifest can be authored by hand. When you see a format split like this, ask what the *cheap* edit is — that is usually what the split is protecting.
+
+??? question "A hostile `cv_count` is checked against the actual storage length before a kernel constructor sees it. What class of bug is that, and why is the viewer the right place to catch it?"
+    A declared count that does not match reality — a constructor allocating or indexing from a number an attacker chose. The viewer is the trust boundary: it is the first code that touches bytes from the network, and the kernel constructors are shared with tools that are given trusted input. Validate where untrusted data enters, not where it is used.
+
+??? question "Every load carries a generation and `stale_load` is checked after each await. Predict the bug this prevents, concretely."
+    You load scene A, it is slow; you load scene B, it arrives; then A finally answers and replaces B. The user sees the scene they did not ask for, and nothing errors. Any `await` is a place where the world can change — and the check has to be *after each* one, not only at the end.
+
+??? question "Files are skipped when they would exceed the scene budget, and the status line names the file and the knob. Why is naming the knob part of the design?"
+    Because the alternative is a page that silently shows less than the user asked for, or dies with an out-of-memory the user cannot act on. Telling them which file was skipped and which query parameter raises the limit turns a dead end into a decision. An error message that does not say what to do next is only half-written.
+
+**Rebuild from memory:** the staged replacement keeps the previous scene on screen until every item of the new one has succeeded. Sketch the states involved, then argue the opposite design — swap in each document as it arrives — and say exactly what the user would see. Being able to argue both sides is how you know you understand the trade.
+
 ## Next
 
 [15 · Publication and streamed reads](15-publication.md): bounded metadata windows for streamed clouds, and the publication helpers.

@@ -172,6 +172,23 @@ Expected:
 - Zoom out until the markers thin out: `spacing` in the object row is what lets the shader fade them once they would overlap.
 - Give one `GlyphPoint` a larger radius in `fixture.rs`: only that dot grows, because size travels per point.
 
+
+## Recall
+
+??? question "A marker is a disc, but the pipeline draws a quad template. Why not draw a disc?"
+    The rasterizer only fills triangles. The four template corners are pushed out in clip space by the pixel radius plus the feather, so the quad is guaranteed to contain the antialiased disc, and the fragment stage decides what is inside it. Trading a tight shape for a simple one and letting the fragment stage do the geometry is the pattern behind strokes, markers and dots alike.
+
+??? question "A free dot is one triangle, not a quad. What makes that enough?"
+    Its incircle is the disc: an equilateral triangle's inscribed circle touches all three sides, so three vertices cover the whole disc with less area than a quad and no template buffer at all — the row comes from `@builtin(vertex_index) / 3`.
+
+??? question "The dot's too-big-to-draw test reads `frame`, while a sphere sizes itself against `vp_w`/`vp_h`. Why the difference?"
+    `frame` is the canvas the scene was projected for; `vp_w`/`vp_h` is the attachment actually being drawn. They are the same except in the pick pass, which renders a small window. A dot judged against the *window* would be dropped there and become unpickable, while a sphere genuinely needs the attachment it is being sized into. Two similar-looking numbers, two different questions.
+
+??? question "When is the facing cull skipped, and what would you see if it never were?"
+    When the eye is inside the object, and when `line.opacity` is zero — that is, in x-ray. Without the skip, `P` would show back edges but no back vertices, because every marker on the far side is culled by the faces pointing away from you. It is a one-line condition and its absence is a bug report you would struggle to phrase.
+
+**Rebuild from memory:** the marker row is 48 bytes for a centre, a radius and packed face normals. Say where the radius lives and why — then check. The answer is the same alignment rule as lessons 03 and 04b, and by now you should be able to predict it before looking.
+
 ## Next
 
 [04d · Point clouds](04d-clouds.md): the cloud tables, the LOD walk, and the splat prelude that resolves into the face pass.

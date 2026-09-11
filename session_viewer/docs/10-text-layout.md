@@ -197,6 +197,23 @@ If the status shows a width difference, compare font bytes, size and the kerning
 - Compare `é` with the decomposed `e` + combining accent that follows it: the first is one glyph, the second is two, and the accent glyph carries advance 0.
 - Change the sample string in `src/text_layout.rs` to `AVATAR AV AT`: the width of `AV` alone shows the kerning without the rest of the line.
 
+
+## Recall
+
+??? question "Nothing is drawn in this lesson. Why is that the right place to stop?"
+    Because shaping and drawing are separate problems and mixing them makes both unverifiable. Shaping answers "which glyphs, at which advances, from which bytes"; the browser can be asked the same question with the same font bytes, and the two answers compared numerically. Once pixels are involved, a disagreement could be shaping *or* rasterization *or* placement, and you would be guessing.
+
+??? question "Fonts are compiled into the WASM instead of loaded from the system. What does that buy, and what does it cost?"
+    It buys identical shaping on every machine — a layout bug can be reproduced from a screenshot — and a comparison page that is meaningful. It costs binary size, which is why only the faces the viewer actually uses are bundled, and why unreferenced fonts were worth deleting.
+
+??? question "A colour change does not reshape; a font-size change does. Which properties participate in shaping, and why those?"
+    `text`, `font_size` and `line_height`. They are the inputs that change *which glyphs at which advances*. Colour and placement change how the same glyphs are drawn, so the shaped buffer is reused by id. Knowing which edits are cheap is what lets a label follow the camera every frame without a shaper in the loop.
+
+??? question "What is a cluster, and why does the code carry it around?"
+    A byte range in the source string that one or more glyphs came from: `ffi` may be one glyph over three bytes, `e` plus a combining accent is one cluster of two glyphs. Without clusters you cannot map a click on a glyph back to a character, so editing and selection would be impossible — the data structure exists for a feature that arrives lessons later.
+
+**Rebuild from memory:** the replacement path validates the *whole* new document before touching the current runs. Say why, and name one other place in the course that takes the same all-or-nothing stance. (Lesson 07's empty mesh is one.)
+
 ## Next
 
 [11 · Text rendering](11-text-rendering.md): placement, raster scale, coverage atlas and the black plates.

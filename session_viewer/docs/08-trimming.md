@@ -108,6 +108,23 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 - Orbit around the torus seam with `?thickness=3`: the seam stays one line, drawn from one face use, although two parameter uses share it.
 - Append `?distance=0.5` near a natural boundary of the trimmed patch: the rim is still ink from the mesh nodes, so it cannot detach when you zoom.
 
+
+## Recall
+
+??? question "Why does drawing the hole's curve on top of a full rectangle not make a hole?"
+    Because the fill is still there: you have painted a circle on a solid face. The face behind it still writes depth, still occludes, still answers a pick, and still hides whatever is meant to show through. A hole is an absence in the *mesh*, which is why the constrained mesh cached on the surface has to win over a freshly triangulated grid.
+
+??? question "A natural boundary gets a source ID; a periodic seam does not. What distinguishes them?"
+    A natural boundary is a limit of the domain — `u == start`, `v == end` — and it is a real edge of a real face. A closed direction has no physical edge at its seam: the surface continues through it. Giving the seam an ID would invent a CAD edge where the model has none, the same refusal you met for tessellation seams in lesson 06.
+
+??? question "A seam and a shading crease sound alike. State the difference in one sentence each."
+    A seam is repeated *parameter* coordinates — the same XYZ reached at `u = 0` and `u = 1` — and it is a bookkeeping fact. A crease is a discontinuity in the *normal* — a genuine fold — and it is a lighting fact. A torus has seams and no creases; a folded plane has a crease and no seam.
+
+??? question "Boundary keys use exact position bits with no weld tolerance. Why is a tolerance the wrong tool here?"
+    Because the two faces were given the *same* points by construction (lesson 07), so equality is exact and any tolerance can only make it wrong — merging two boundaries that genuinely differ. A tolerance is for reconciling independent approximations; when you have arranged for the bits to be identical, use that.
+
+**Rebuild from memory:** predict what a user sees if `map_surface_boundaries` is given the wrong `first_pipe` — not what the code does, what the *user* sees. Being able to translate a bookkeeping mistake into a symptom is most of debugging.
+
 ## Next
 
 [09 · Normals and shading](09-normals.md): analytic normals, singular fallbacks, C0 splits and the affine normal transform.

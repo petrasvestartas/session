@@ -176,6 +176,25 @@ If the background appears without the triangle, compare the entry-point names, `
 - Swap two entries of the `points` array in `first.wgsl`: the triangle flips, because the vertex order is what the rasterizer sees.
 - Change `draw(0..3, 0..1)` to `draw(0..2, 0..1)`: nothing is drawn, because two vertices make no triangle.
 
+
+## Recall
+
+Close the lesson first. These four are the frame, and the rest of the course assumes them.
+
+??? question "Name every object between an empty page and a cleared canvas, in order."
+    Instance → surface (from the canvas) → adapter (requested `compatible_surface`, or it may not be able to present here) → device + queue → surface configuration. Then, per frame: `get_current_texture` → a texture view → a command encoder → a render pass with its attachments → `encoder.finish()` → `queue.submit` → `present`.
+
+??? question "Which of those happen once, and which happen every frame?"
+    Once: instance, adapter, device, queue, shader module, pipeline layout, pipeline, bind group, buffers. Every frame: the surface texture, its view, the encoder, the pass, the submit. The split is the whole point of a pipeline — validation is paid once so each frame is cheap. Reconfiguring the surface is neither: it happens only when the size changes.
+
+??? question "Three things Rust and WGSL must agree on here. What are they?"
+    The bind-group layout against `@group(0) @binding(0)`; the entry-point names `vs_main` / `fs_main`; the colour target format against the `@location(0)` return. Every validation error in this lesson is one of the three.
+
+??? question "Why is `buffers: &[]` allowed when a triangle clearly has vertices?"
+    The vertices are computed from `@builtin(vertex_index)` inside the shader, so nothing is pulled from memory. `draw(0..3, 0..1)` is what makes that builtin count 0, 1, 2.
+
+**Rebuild from memory:** write `render_frame` on paper — acquire, view, encoder, pass, set pipeline, set bind group, draw, finish, submit, present — then compare. Missing `present` is the classic: the frame is drawn and never shown.
+
 ## Next
 
 [02 · Camera](02-camera.md): the production camera and math, wired to orbit, pan and zoom.

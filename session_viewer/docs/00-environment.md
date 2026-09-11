@@ -132,6 +132,22 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 - Change the status text in `start()` and reload: Trunk rebuilds on save, and the page shows your text. That is the whole edit loop of the course.
 - Misspell the element id in `get_element_by_id("status")`: the page stays on "Loading WASM" and the browser console shows the `expect` message. Put it back.
 
+
+## Recall
+
+Scroll the lesson away and answer these before opening them.
+
+??? question "Two crate types are declared. Who consumes each?"
+    `cdylib` is what wasm-bindgen turns into a browser module — it is the artefact Trunk bundles. `rlib` is the ordinary Rust library, so native tools, tests and examples can link the same crate. Drop `rlib` and `cargo xtest` has nothing to link.
+
+??? question "What does one line in `.cargo/config.toml` buy you?"
+    `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so browser code needs no `#[cfg(target_arch = "wasm32")]` gate — the rule is "the default is the browser, native is the exception". The `xtest` alias is how tests still run natively.
+
+??? question "The page is stuck on *Loading WASM* and the console is empty. Name two candidates before you touch the Rust."
+    You opened the file from disk instead of the Trunk address (nothing ever loaded the module), or the crate did not rebuild. An id typo is the *third* candidate, and it is easy to tell apart: it panics, and the console shows the `expect` message.
+
+**Rebuild from memory:** delete `src/lib.rs` and write it again — the start attribute, the document lookup, the two writes — then `cargo check`. It is under ten lines, and typing it once from memory is the difference between having read the entry point and knowing it.
+
 ## Next
 
 [01 · First WebGPU frame](01-first-frame.md): adapter, device, surface, one pipeline, one triangle.
