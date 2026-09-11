@@ -35,6 +35,8 @@ flowchart TB
     end
 ```
 
+Before lesson 00, read [Words before code](words.md) once: every term the lessons use before they have room to explain it, with the file where it first appears. Come back to it whenever a sentence stops making sense.
+
 ## How a lesson reads
 
 - **You are building**: the mechanism this lesson adds, as one diagram.

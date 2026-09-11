@@ -63,9 +63,9 @@ flowchart LR
 
 - `DepthMode::Always` with blending: the shader decides visibility itself, so no hardware depth test can hide a stroke that lies on a surface.
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-319 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-283 -->
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=320-350 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=284-314 -->
 
 ## Step 3 · The shared visibility rule
 
@@ -87,23 +87,23 @@ flowchart LR
 
 ![A value handed from the vertex shader to the fragment shader is blended perspective-correctly; marked flat it is not blended at all, which is how a stroke's half-width travels.](illustrations/interpolate.svg)
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-58 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-20 -->
 
 - `band_area` integrates the pixel box against the capsule exactly, so coverage cannot beat with the line's subpixel phase the way a distance ramp does.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=59-134 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=21-82 -->
 
 - Per-vertex outputs are flat: the half-width at each end goes down as two scalars and is resolved per pixel, because a per-vertex width is projective over a trapezoid.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=135-191 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=83-129 -->
 
 - Clip against the near plane before any divide; a hand divide behind the eye mirrors the point through the screen centre.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=192-271 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=130-201 -->
 
 - The fragment: coverage times fade, then `ink_visible` at the closest axis point. `fs_id` and `fs_edge_id` write `(row + 1, segment + 1)` for picking.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=272-350 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=202-280 -->
 
 <!-- check: 04b -->
 

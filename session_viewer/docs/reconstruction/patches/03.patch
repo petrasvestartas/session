@@ -25,10 +25,10 @@ index 276a260697ca16ec09a202c1a0688d020144f3ff..f8c1d6f40ac4dbd53b7a828561dec0b9
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..83c90cf106cdf4f1aa00e9a73225e2e53ab07599
+index 0000000000000000000000000000000000000000..55788957f3cf6e424657214e38b95da74de5903a
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/instance.rs
-@@ -0,0 +1,237 @@
+@@ -0,0 +1,236 @@
 +//! `Instance` - the one object row every instance-reading shader indexes by `instance_id`,
 +//! its flag bits, and the mirror tests that prove the shaders declare the same rows.
 +//! No buffer and no bind group here: `objects.rs` owns both tables.
@@ -44,9 +44,8 @@ index 0000000000000000000000000000000000000000..83c90cf106cdf4f1aa00e9a73225e2e5
 +    pub model: [f32; 16],
 +    pub color: [f32; 4],
 +    pub flags: u32,
-+    /// Retained thickness metadata, in world units. Visibility no longer spends a depth
-+    /// offset based on this value; keeping the field preserves the shared instance layout.
-+    pub thickness: f32,
++    /// Unused; keeps `spacing` at offset 88 and the row at 96 bytes.
++    pub _pad0: f32,
 +    /// Vertex spacing, world units; markers thin once it projects small. 0 = unknown.
 +    pub spacing: f32,
 +    pub _pad: u32,
@@ -83,7 +82,7 @@ index 0000000000000000000000000000000000000000..83c90cf106cdf4f1aa00e9a73225e2e5
 +            model: Xform::identity().to_f32(),
 +            color: [0.5, 0.5, 0.5, 1.0],
 +            flags: 0,
-+            thickness: 0.0,
++            _pad0: 0.0,
 +            spacing: 0.0,
 +            _pad: 0,
 +        }

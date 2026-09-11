@@ -130,11 +130,7 @@ flowchart TB
 - Whole files have a budget too: `scene_budget_bytes` is `?budget=<MB>` or 16 MB per GB of `navigator.deviceMemory`, 64 MB when the browser says nothing, because a decoded file costs the wasm heap about five times its size. Each file's size is asked by HEAD first; one that would put the scene over the budget is skipped, and the status line names it and the knob instead of the page dying without a word.
 
 
-<!-- file: 14 session_viewer/src/app/loader.rs type hunks=1 -->
-
-<!-- file: 14 session_viewer/src/app/loader.rs type hunks=2 -->
-
-<!-- file: 14 session_viewer/src/app/loader.rs type hunks=3 -->
+<!-- file: 14 session_viewer/src/app/loader.rs type -->
 
 ## Step 7 · Wire the modules and the text message
 

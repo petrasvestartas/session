@@ -3369,10 +3369,10 @@ index 0000000000000000000000000000000000000000..bba262cc54f46cc511fdb4bc05d1b5c8
 +checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
 diff --git a/session_viewer/Cargo.toml b/session_viewer/Cargo.toml
 new file mode 100644
-index 0000000000000000000000000000000000000000..dc9bf07a615daf7177e2ee9f59e2a841e6819702
+index 0000000000000000000000000000000000000000..bb8e93341cfcf4c92a89172744e68e8c51b58498
 --- /dev/null
 +++ b/session_viewer/Cargo.toml
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,72 @@
 +[package]
 +name = "session_viewer"
 +version = "0.1.0"
@@ -3388,8 +3388,8 @@ index 0000000000000000000000000000000000000000..dc9bf07a615daf7177e2ee9f59e2a841
 +serde_yaml_ng = "0.10"
 +toml = "=0.8.23"
 +serde_json = { version = "1.0", features = ["float_roundtrip"] }
-+winit = { version = "0.30", features = ["android-native-activity"] }
-+wgpu = { version = "29.0"}
++winit = "0.30"
++wgpu = "29.0"
 +glyphon = "=0.11.0" # The maintained text renderer release compatible with wgpu 29.
 +log = "0.4"
 +console_error_panic_hook = "0.1.6"
@@ -3397,14 +3397,12 @@ index 0000000000000000000000000000000000000000..dc9bf07a615daf7177e2ee9f59e2a841
 +wasm-bindgen = "0.2"
 +wasm-bindgen-futures = "0.4"
 +web-sys = { version = "0.3", features = [
-+    "Document", 
-+    "Window", 
-+    "Element", 
-+    "HtmlCanvasElement", 
-+    "EventTarget", 
-+    "Event", 
-+    "CanvasRenderingContext2d", 
-+    "ImageData", 
++    "Document",
++    "Window",
++    "Element",
++    "HtmlCanvasElement",
++    "EventTarget",
++    "Event",
 +    "Location",
 +    "Performance",
 +    "EventSource",

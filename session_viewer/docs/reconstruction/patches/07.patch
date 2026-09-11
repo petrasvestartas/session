@@ -3160,10 +3160,10 @@ index 58454b3c528ecd383b6c3bbb6fd8538bd37fef51..ab40895e0d379a865fd2c4fc6005209f
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index eaf5150e8ae4536be20289ffc26d8413da180c54..2fbca951ff8a19a9a685de0b4b3828ff7d552832 100644
+index 2be0bdd074b3ab9af5bdbf35121efaf5a206b606..c5bab475e0f312bf2402451bdd90ab437af36f55 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
-@@ -1,13 +1,23 @@
+@@ -1,12 +1,22 @@
 -//! CAD faces preserve their own positions, triangle indices and surface normals.
 +//! A BRep or a NURBS surface into the tables. A BRep's faces are uploaded one by one with the
 +//! kernel's own vertices and analytic normals - no weld across faces, which is what let the
@@ -3171,7 +3171,6 @@ index eaf5150e8ae4536be20289ffc26d8413da180c54..2fbca951ff8a19a9a685de0b4b3828ff
 +//! tessellations (`brep_edges`). No sheet lanes; `FLAG_OPEN` only when the BRep is not a
 +//! solid, from its own topology rather than from a welded mesh.
 +
- use super::bounds::mesh_thickness;
 +use super::brep_edges::{EdgeChain, EdgePen, edge_chains, push_edge_pipes};
 +use super::brep_orient::face_signs;
 +use super::curves::{push_polyline, sample_nurbscurve};
@@ -3189,7 +3188,7 @@ index eaf5150e8ae4536be20289ffc26d8413da180c54..2fbca951ff8a19a9a685de0b4b3828ff
  
  /// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
  /// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
-@@ -44,31 +54,110 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
+@@ -43,30 +53,108 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
      }
  }
  
@@ -3238,7 +3237,6 @@ index eaf5150e8ae4536be20289ffc26d8413da180c54..2fbca951ff8a19a9a685de0b4b3828ff
 +        flags |= Instance::FLAG_SINGLE;
      }
 -    Row {
-+    let thickness = mesh_thickness(&solid.pos, &solid.tris);
 +    let mut row = Row {
          bounds: solid.bounds,
 -        spacing: mesh_spacing(&solid.bounds, vertices),
@@ -3251,8 +3249,6 @@ index eaf5150e8ae4536be20289ffc26d8413da180c54..2fbca951ff8a19a9a685de0b4b3828ff
 +        spacing: mesh_spacing(&solid.bounds, verts),
 +        flags,
          faces: true,
--        thickness: mesh_thickness(&solid.pos, &solid.tris),
-+        thickness,
 +    };
 +    if !knobs::no_edges() {
 +        let pen = Pen {
@@ -4315,7 +4311,7 @@ index 0000000000000000000000000000000000000000..52681174ee7efb303b441dbc5b0bf0c6
 +    }
 +}
 diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
-index 67a89cd6d50143d8292d075b0cdb7b9bd99f597b..8a62d8e3ad59ad0d4d9017b103e0c511e7be6ba5 100644
+index 54701b0473425345a6852f3d7f91b4be7596e888..c6e5376a24bfd9fc9bf77b7417bc9f943d7cbbbb 100644
 --- a/session_viewer/src/app/walk/mod.rs
 +++ b/session_viewer/src/app/walk/mod.rs
 @@ -3,6 +3,7 @@ use crate::math::Aabb;
@@ -4327,7 +4323,7 @@ index 67a89cd6d50143d8292d075b0cdb7b9bd99f597b..8a62d8e3ad59ad0d4d9017b103e0c511
  pub mod encode;
  pub mod mesh;
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606..ab8dbc2cfc3af0bed5c9d9fd9633e186b91537da 100644
+index 2adc642e9f0be5126f3697f6a529e4c1c356af82..f59c6930e0ed6ce954115c674cb0d4c890f1e7ec 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
 @@ -4,7 +4,7 @@ use crate::app::walk::mesh_ink::Ink;
@@ -4339,7 +4335,7 @@ index c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606..ab8dbc2cfc3af0bed5c9d9fd9633e186
  use std::rc::Rc;
  
  /// Retain original f64 source objects independently from their GPU row addresses.
-@@ -83,25 +83,20 @@ impl CadFixture {
+@@ -82,25 +82,20 @@ impl CadFixture {
      }
  }
  

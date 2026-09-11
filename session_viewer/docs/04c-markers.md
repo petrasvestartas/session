@@ -80,17 +80,19 @@ flowchart TB
     style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-59 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-16 -->
 
 - `screen_radius` and `to_px` turn a world or pen radius into pixels; `faces_front` decodes the packed normals.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=60-130 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-68 -->
 
 - The template corner is offset in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=131-186 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=69-124 -->
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=187-215 -->
+- The facing cull is skipped when the eye is inside the object and when `line.opacity` is zero: in x-ray a vertex on the far side of a cube is exactly what you want to see.
+
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=125-153 -->
 
 ## Step 4 · Free dots
 
@@ -104,15 +106,15 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-59 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-19 -->
 
 - A dot wider than the canvas is dropped before it is placed. The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment: a large dot survives when the pass renders only a window of the canvas, so it stays pickable.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=60-140 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=20-89 -->
 
 - The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=141-189 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=90-138 -->
 
 <!-- check: 04c -->
 

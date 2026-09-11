@@ -24,10 +24,10 @@ index ab40895e0d379a865fd2c4fc6005209ff0da1bb2..d4fae1cf80dcea5f994eb7c3acc444f9
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index 2fbca951ff8a19a9a685de0b4b3828ff7d552832..d82d21e3154c0e4e4d80548dd54ba7fab1b119dd 100644
+index c5bab475e0f312bf2402451bdd90ab437af36f55..c960cec6e7f3a3c80fbf3153ce1c9a5b58e0825d 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
-@@ -17,7 +17,7 @@ use crate::engine::gpu::Instance;
+@@ -16,7 +16,7 @@ use crate::engine::gpu::Instance;
  use crate::engine::gpu::arena::ArenaRows;
  use crate::math::Aabb;
  use session_rust::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
@@ -36,7 +36,7 @@ index 2fbca951ff8a19a9a685de0b4b3828ff7d552832..d82d21e3154c0e4e4d80548dd54ba7fa
  
  /// How finely the VIEWER wants a surface tessellated: the normal may turn 5 degrees between
  /// samples and a chord may sag a thousandth of the object. The kernel's own default is 20
-@@ -160,21 +160,221 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut Aabb))
+@@ -157,21 +157,224 @@ fn push_curve_ribbon(ink: &mut Ink, b: &BRep, ei: usize, out: (&Pen, &mut Aabb))
      push_polyline(ink.seg, &points, out.0, out.1);
  }
  
@@ -52,24 +52,30 @@ index 2fbca951ff8a19a9a685de0b4b3828ff7d552832..d82d21e3154c0e4e4d80548dd54ba7fa
 -        mesh.set_objectcolor(color.clone());
 -    }
 -    let options = MeshOpts {
+-        sheet_lanes: false,
+-        allow_open: true,
+-        smooth: true,
 +/// Tessellate a surface with UV provenance, including planar patches with curved boundaries.
 +pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: &WalkCx) -> Row {
 +    let mut sm = if let Some(mesh) = &s.m_mesh {
 +        mesh.clone()
 +    } else {
 +        RemeshNurbsSurfaceGrid::from_u_v_q(s.clone(), 0, 0, QUALITY.0, QUALITY.1)
-+    };
+     };
+-    walk_mesh(arena, ink, &mesh, &MeshCx { cx, opts: &options })
 +    if let Some(c) = s.facecolors.first() {
 +        sm.set_objectcolor(c.clone());
 +    }
-+    let opts = MeshOpts {
-         sheet_lanes: false,
-         allow_open: true,
-         smooth: true,
-     };
--    walk_mesh(arena, ink, &mesh, &MeshCx { cx, opts: &options })
 +    let first_pipe = ink.seg.pipes.len();
-+    let mut row = walk_mesh(arena, ink, &sm, &MeshCx { cx, opts: &opts });
++    let mut row = walk_mesh(
++        arena,
++        ink,
++        &sm,
++        &MeshCx {
++            cx,
++            opts: &MeshOpts::SURFACE,
++        },
++    );
 +    row.flags |= Instance::FLAG_SINGLE;
 +    map_surface_boundaries(ink, s, &sm, first_pipe);
 +    row
@@ -272,7 +278,7 @@ index 2fbca951ff8a19a9a685de0b4b3828ff7d552832..d82d21e3154c0e4e4d80548dd54ba7fa
 +    }
  }
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index ab8dbc2cfc3af0bed5c9d9fd9633e186b91537da..84f830cb6081c78d4cd9dcc449c5182ca16ea297 100644
+index f59c6930e0ed6ce954115c674cb0d4c890f1e7ec..cd869ec316bddd890bf90b374a3889ac15490473 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
 @@ -4,7 +4,7 @@ use crate::app::walk::mesh_ink::Ink;
@@ -284,7 +290,7 @@ index ab8dbc2cfc3af0bed5c9d9fd9633e186b91537da..84f830cb6081c78d4cd9dcc449c5182c
  use std::rc::Rc;
  
  /// Retain original f64 source objects independently from their GPU row addresses.
-@@ -83,20 +83,80 @@ impl CadFixture {
+@@ -82,20 +82,80 @@ impl CadFixture {
      }
  }
  

@@ -48,6 +48,7 @@ watch:
   - ARCHITECTURE.md
 nav:
   - Start here: docs/README.md
+  - Words before code: docs/words.md
   - Course:
     - 00 · Empty project to WASM: docs/00-environment.md
     - 01 · First WebGPU frame: docs/01-first-frame.md

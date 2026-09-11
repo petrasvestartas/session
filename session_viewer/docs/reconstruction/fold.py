@@ -127,6 +127,13 @@ def strip_scene(text):
     return re.sub(r"\n{3,}", "\n\n", text)
 
 
+def apply_hunk(repo, name, body):
+    """One hunk at a time: a hunk a conflict resolution already redid is skipped as
+    "previously applied" without taking its neighbours with it."""
+    return subprocess.run(["patch", "-p1", "-N", "--fuzz=3", "--no-backup-if-mismatch", "-r", "-", str(repo / name)],
+                          cwd=repo, input=f"--- a/{name}\n+++ b/{name}\n{body}", capture_output=True, text=True)
+
+
 def apply_to_step(repo, commit, assigned, additions=(), strips=(), patches=()):
     """Check out the step, apply its hunks against the current file text, amend."""
     git(repo, "checkout", "-q", commit)
@@ -143,13 +150,10 @@ def apply_to_step(repo, commit, assigned, additions=(), strips=(), patches=()):
         if result.returncode != 0:
             sys.exit(f"cannot apply {patch} at {commit[:12]}:\n{result.stdout}{result.stderr}")
     for name, bodies in assigned.items():
-        path = repo / name
-        bodies = sorted(bodies, key=lambda body: int(HUNK.match(body).group(1)))
-        patch = f"--- a/{name}\n+++ b/{name}\n" + "".join(bodies)
-        result = subprocess.run(["patch", "-p1", "--fuzz=3", "--no-backup-if-mismatch", "-r", "-", str(path)],
-                                cwd=repo, input=patch, capture_output=True, text=True)
-        if result.returncode != 0:
-            sys.exit(f"cannot fold into {name} at {commit[:12]}:\n{result.stdout}{result.stderr}")
+        for body in sorted(bodies, key=lambda body: int(HUNK.match(body).group(1))):
+            result = apply_hunk(repo, name, body)
+            if result.returncode != 0 and "FAILED" in result.stdout:
+                sys.exit(f"cannot fold into {name} at {commit[:12]}:\n{result.stdout}{result.stderr}")
     git(repo, "add", "-A", "-f")
     git(repo, "commit", "-q", "--amend", "--no-edit")
     return git(repo, "rev-parse", "HEAD").stdout.strip()
@@ -265,13 +269,18 @@ def main():
                 print(result.stdout, result.stderr)
                 sys.exit(f"rebase stopped after {step} without a conflict to resolve; see {repo}")
             for name in conflicted:
+                stages = git(repo, "ls-files", "-u", "--", name).stdout
+                if "\t" in stages and not any(line.split()[2] == "3" for line in stages.splitlines()):
+                    # The replayed step deletes the file: the deletion wins.
+                    git(repo, "rm", "-q", "--", name)
+                    print(f"  {name} deleted by a later step")
+                    continue
                 git(repo, "checkout", "--theirs", "--", name)
                 path = repo / name
                 if name in stripped:
                     path.write_text(strip_scene(path.read_text()))
                 for body in applied.get(name, []):
-                    subprocess.run(["patch", "-p1", "-N", "--fuzz=3", "--no-backup-if-mismatch", "-r", "-", str(path)],
-                                   cwd=repo, input=f"--- a/{name}\n+++ b/{name}\n{body}", capture_output=True, text=True)
+                    apply_hunk(repo, name, body)
                 git(repo, "add", "--", name)
                 print(f"  resolved {name} while replaying a later step")
             result = git(repo, "-c", "core.editor=true", "rebase", "--continue", check=False)

@@ -133,10 +133,10 @@ index 20c69007f34c4dd76166e14926de51be47cfd0ff..089dd58dddb460b2c63b4af8df5741b7
  #[derive(Clone, PartialEq, ::prost::Message)]
 diff --git a/session_viewer/examples/mk_sheet.rs b/session_viewer/examples/mk_sheet.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a113207cb472d40706184a0772077f8167ccb08d
+index 0000000000000000000000000000000000000000..e4172fc99d52eeb55cf5b1280d230e8eac2018c9
 --- /dev/null
 +++ b/session_viewer/examples/mk_sheet.rs
-@@ -0,0 +1,210 @@
+@@ -0,0 +1,221 @@
 +use std::collections::BTreeMap;
 +use std::path::Path;
 +
@@ -282,8 +282,19 @@ index 0000000000000000000000000000000000000000..a113207cb472d40706184a0772077f81
 +            }
 +            Geometry::NurbsCurve(c) => {
 +                let c = c.transformed(xf);
-+                let color = c.linecolors.first().cloned().unwrap_or(Color::new(0.0, 0.0, 0.0, 1.0));
-+                sheet.push(&sample_nurbscurve(&c), &guid, &c.name, "nurbscurve", c.width, &color);
++                let color = c
++                    .linecolors
++                    .first()
++                    .cloned()
++                    .unwrap_or(Color::new(0.0, 0.0, 0.0, 1.0));
++                sheet.push(
++                    &sample_nurbscurve(&c),
++                    &guid,
++                    &c.name,
++                    "nurbscurve",
++                    c.width,
++                    &color,
++                );
 +            }
 +            g => *skipped.entry(kind_name(g)).or_default() += 1,
 +        }
@@ -378,7 +389,7 @@ index 7b2d9fce0e96b545651baa408d609c0b31554823..d59a2a4baca686a586f6913b0ce38560
  #[cfg(target_arch = "wasm32")]
  fn text_labels(state: &State) -> Vec<serde_json::Value> {
 diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e2208b4ecd4 100644
+index 3c63ac1346beec79b3db65467562bdaa267bfca4..41c249508ad36a8675109c0914540f86070a6c2a 100644
 --- a/session_viewer/src/app/loader.rs
 +++ b/session_viewer/src/app/loader.rs
 @@ -1,6 +1,7 @@
@@ -442,7 +453,7 @@ index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e22
      post(Msg::Clear);
  }
  
-@@ -89,6 +107,21 @@ fn budget_spend(n: u32) {
+@@ -80,6 +98,21 @@ fn budget_spend(n: u32) {
      RESIDENT.set(RESIDENT.get().saturating_add(n));
  }
  
@@ -464,7 +475,7 @@ index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e22
  /// Start-up: the live source when the page has one, else the URL's route, then the empty
  /// canvas either way; then the poll loop.
  pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
-@@ -195,6 +228,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -186,6 +219,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
      let mut spent = 0u64;
      let mut skipped: Vec<String> = Vec::new();
      let mut staged_points = 0u32;
@@ -472,7 +483,7 @@ index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e22
      let t0 = now_ms();
      let bytes = match fetch_manifest(route).await {
          Ok(b) => b,
-@@ -257,6 +291,28 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -248,6 +282,28 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                  }
                  continue;
              }
@@ -501,7 +512,7 @@ index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e22
          }
          // A whole file is decoded into the wasm heap several times over; past the device's
          // budget the page would die without a word, so the file is skipped with one instead.
-@@ -326,6 +382,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -322,6 +378,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
          }
          clear_scene();
          budget_spend(staged_points);
@@ -509,7 +520,7 @@ index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e22
          for document in pending {
              match document {
                  PendingDocument::Whole(doc) => {
-@@ -334,6 +391,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -330,6 +387,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
                  PendingDocument::Streamed(stream) => {
                      post(Msg::StreamedCloud(stream));
                  }
@@ -519,7 +530,7 @@ index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e22
              }
          }
      }
-@@ -348,10 +408,11 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
+@@ -344,10 +404,11 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
      );
  }
  
@@ -532,7 +543,7 @@ index 1cc1f22fabc5e1074f4bb860642853378769157a..c5e641d33c3e25eb5dcd499663de0e22
  }
  
  /// Where a streamed cloud goes: its document name, placement and point size.
-@@ -414,6 +475,102 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
+@@ -410,6 +471,102 @@ async fn stream_prefix(url: &str, slot: &Placement, share: u32) -> Option<Stream
      })
  }
  
@@ -648,7 +659,7 @@ index 2ef628363bdfb35d3ddc77cde5ec5e7ce79f5e3a..3cc9933bb164535f05d4f5107d41cb1b
  pub mod touch;
  pub mod validate;
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9eb141bd1 100644
+index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7a1fb4504 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
 @@ -8,10 +8,12 @@ mod text;
@@ -665,7 +676,7 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
  use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
  use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
  use crate::math::{Mat4, mat_mul};
-@@ -70,14 +72,43 @@ pub struct StreamedCloud {
+@@ -61,14 +63,43 @@ pub struct StreamedCloud {
      pub point_px: f32,
  }
  
@@ -711,7 +722,7 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
  }
  
  /// A picked cloud point: the row-local index (this file version only) and the stable id.
-@@ -103,6 +134,7 @@ pub struct Scene {
+@@ -94,6 +125,7 @@ pub struct Scene {
      pub texts: Vec<SceneText>,
      pub tables: Upload,
      pub streamed: Vec<StreamedCloud>,
@@ -719,7 +730,7 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
      pub hidden: HashSet<(usize, Rc<str>)>,
      pub selected: Option<u32>,
      order: Vec<Rc<str>>,
-@@ -129,6 +161,7 @@ impl Scene {
+@@ -120,6 +152,7 @@ impl Scene {
              texts: Vec::new(),
              tables: Upload::default(),
              streamed: Vec::new(),
@@ -727,15 +738,29 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
              hidden: HashSet::new(),
              selected: None,
              order: Vec::new(),
-@@ -147,6 +180,7 @@ impl Scene {
+@@ -136,33 +169,31 @@ impl Scene {
+     pub fn clear(&mut self, gpu: &mut Gpu) {
+         self.docs.clear();
          self.texts.clear();
++        self.hidden.clear();
++        self.reset_rows();
++        gpu.release();
++    }
++
++    /// Forget every row and its identity; the documents and the hidden set are the caller's.
++    fn reset_rows(&mut self) {
          self.tables = Upload::default();
          self.streamed.clear();
 +        self.sheets.clear();
          self.order.clear();
          self.owners.clear();
          self.edge_sources.clear();
-@@ -159,12 +193,13 @@ impl Scene {
+         self.ribbon_ranges.clear();
+         self.guid_to_row.clear();
+-        self.hidden.clear();
+         self.selected = None;
+         self.bases = Bases::default();
+-        gpu.release();
      }
  
      /// Re-flatten EVERY document from its kernel `Session` and re-upload from scratch - the
@@ -744,13 +769,20 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
      pub fn rebuild(&mut self, gpu: &mut Gpu) {
          let docs = std::mem::take(&mut self.docs);
          let texts = std::mem::take(&mut self.texts);
-         self.tables = Upload::default();
-         self.streamed.clear();
-+        self.sheets.clear();
-         self.order.clear();
-         self.owners.clear();
-         self.edge_sources.clear();
-@@ -385,7 +420,89 @@ impl Scene {
+-        self.tables = Upload::default();
+-        self.streamed.clear();
+-        self.order.clear();
+-        self.owners.clear();
+-        self.edge_sources.clear();
+-        self.ribbon_ranges.clear();
+-        self.guid_to_row.clear();
+-        self.selected = None;
+-        self.bases = Bases::default();
++        self.reset_rows();
+         gpu.reset();
+         for d in docs {
+             if d.display_only {
+@@ -368,7 +399,93 @@ impl Scene {
          self.upload_to(gpu);
      }
  
@@ -769,17 +801,21 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
 +            resident,
 +        } = init;
 +        let total = fields.count;
-+        let row = self.push_row(&format!("sheet:{url}"), place.m, Instance::FLAG_SHEET);
++        let row = self.push_row(
++            self.docs.len(),
++            &format!("sheet:{url}"),
++            place.m,
++            Instance::FLAG_SHEET,
++        );
 +        let slice = SheetSlice { rows, from: 0, row };
 +        let bounds = walk_sheet_slice(&mut self.tables.seg, &slice);
 +        let o = self.tables.obj.rows.last_mut().unwrap();
 +        o.bounds = bounds;
-+        o.thickness = bounds.thinnest();
 +        self.tables.bounds.union(&bounds.placed(&place.m));
 +        self.upload_to(gpu);
 +
 +        let model = place.m;
-+        self.docs.push(Doc {
++        self.docs.push(FileDoc {
 +            name: name.clone(),
 +            place,
 +            session: Rc::new(Session::new(&name)),
@@ -841,7 +877,7 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
      pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
          let guid = self.order.get(pick.row as usize)?.to_string();
          let mut point = None;
-@@ -394,6 +511,15 @@ impl Scene {
+@@ -377,6 +494,15 @@ impl Scene {
          {
              point = self.point_at(pick.row, local);
          }
@@ -857,7 +893,7 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
          let doc = match self.document(pick.row) {
              Some(document) => document.name.clone(),
              None => String::new(),
-@@ -403,6 +529,7 @@ impl Scene {
+@@ -386,6 +512,7 @@ impl Scene {
              guid,
              row: pick.row,
              point,
@@ -865,7 +901,7 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
          })
      }
  
-@@ -419,11 +546,19 @@ impl Scene {
+@@ -402,11 +529,19 @@ impl Scene {
              .get(self.order.get(row as usize)?.as_ref())
      }
  
@@ -888,10 +924,10 @@ index 72a3ef4914faa0013c53eb1ee1ba45e6d838cb53..01c2121d619a465620449e0cba2496b9
              Some(Geometry::BRep(value)) => (value.name.as_str(), "BRep"),
 diff --git a/session_viewer/src/app/sheet_query.rs b/session_viewer/src/app/sheet_query.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b4aaf1a62fbb58e25b68dfcb36d14418c5c5b446
+index 0000000000000000000000000000000000000000..ab6a0f9e95625f17f7cecc2073a11512ba36a9ec
 --- /dev/null
 +++ b/session_viewer/src/app/sheet_query.rs
-@@ -0,0 +1,273 @@
+@@ -0,0 +1,244 @@
 +//! Sheet entity lookup by bounded range reads of the side table: the 8-byte head once per
 +//! sheet, then one 16-byte record and one JSON blob per pick. The segment itself was picked
 +//! on the GPU; only its entity's identity comes off the wire.
@@ -996,39 +1032,10 @@ index 0000000000000000000000000000000000000000..b4aaf1a62fbb58e25b68dfcb36d14418
 +#[cfg(target_arch = "wasm32")]
 +mod web {
 +    use super::*;
-+    use crate::app::{
-+        fetch::{GetOpts, get},
-+        loader::post,
-+    };
++    use crate::app::loader::post;
 +
 +    /// Validate the exact ranged body and any exposed revision; never consume a whole-file 200.
-+    async fn range(
-+        url: &str,
-+        at: u64,
-+        len: u64,
-+        revision: &Option<String>,
-+    ) -> Result<(Vec<u8>, Option<String>), String> {
-+        let reply = get(
-+            url,
-+            &GetOpts {
-+                range: Some((at, len)),
-+                revalidate: true,
-+                ..Default::default()
-+            },
-+        )
-+        .await?;
-+        if reply.status != 206 || reply.bytes.len() as u64 != len {
-+            return Err(format!(
-+                "Side table range failed (HTTP {}, {} of {len} bytes)",
-+                reply.status,
-+                reply.bytes.len()
-+            ));
-+        }
-+        if revision.is_some() && revision != &reply.etag {
-+            return Err("Side table changed during selection; reload the sheet".to_string());
-+        }
-+        Ok((reply.bytes, reply.etag))
-+    }
++    use crate::app::fetch::fetch_range as range;
 +
 +    /// Schedule one entity read; the named task posts its completion to the event loop.
 +    pub fn fetch_entity(query: &Query, url: String, table: Option<SheetTable>, entities: u32) {
@@ -1166,7 +1173,7 @@ index 0000000000000000000000000000000000000000..b4aaf1a62fbb58e25b68dfcb36d14418
 +    }
 +}
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c4440b3c2cb 100644
+index 88641ebf301949149e74f5665aef7fbc0ea46f4c..6b8e6db1d741b55b6a218f482c7468abceea1476 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
 @@ -1,8 +1,9 @@
@@ -1405,7 +1412,7 @@ index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c44
 @@ -378,6 +524,7 @@ pub use web::*;
  mod web {
      use super::*;
-     use crate::app::fetch::{GetOpts, get};
+     use crate::app::fetch::{GetOpts, fetch_range, get};
 +    use crate::app::walk::sheet::SheetRows;
  
      const POINT_BYTES: u64 = 24;
@@ -1428,7 +1435,7 @@ index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c44
                  self.at = at;
              }
              self.slice(at, length)
-@@ -487,7 +635,13 @@ mod web {
+@@ -471,7 +619,13 @@ mod web {
          let mut window = MetadataWindow::default();
          while at < fields.end {
              let header = window
@@ -1443,7 +1450,7 @@ index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c44
                  .await?;
              let (tag, used) = varint(header, 0)?;
              let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
-@@ -513,7 +667,9 @@ mod web {
+@@ -497,7 +651,9 @@ mod web {
                  if table_bytes > MAX_TABLE_BYTES {
                      return None;
                  }
@@ -1454,7 +1461,7 @@ index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c44
                  if !lod.set_field(field, raw) {
                      return None;
                  }
-@@ -576,6 +732,105 @@ mod web {
+@@ -560,6 +716,105 @@ mod web {
          let (colors, used) = colors_from(&raw, count)?;
          Some((colors, body_end(at, used as u64, end)?))
      }
@@ -1560,7 +1567,7 @@ index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c44
  }
  
  #[cfg(test)]
-@@ -714,6 +969,116 @@ mod tests {
+@@ -698,6 +953,116 @@ mod tests {
          );
      }
  
@@ -1678,7 +1685,7 @@ index ca48bf66ca83f6baeaba0e8458090387a04e68d0..5ba0c8038c40384b01fffb06848a8c44
      #[test]
      fn colors_decode_and_report_their_end() {
 diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
-index db68239e5d43b22635febac638e540aa09664fc3..d1279a98c82d64a723ffd8a2cc3b9d319b376306 100644
+index 90217d77f6832cce3f83f745fc054e185e7724cd..e7fd5ba304bb8653bfe9c09949e75be09aea3293 100644
 --- a/session_viewer/src/app/walk/mod.rs
 +++ b/session_viewer/src/app/walk/mod.rs
 @@ -30,6 +30,7 @@ pub mod mesh;
@@ -1805,7 +1812,7 @@ index 0000000000000000000000000000000000000000..e03e224798cc8f9dee9137ebaafc3142
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
-index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b323bea9cd 100644
+index 1d714cbc4f904710d7dc7fcbc95829c6d0096101..73ca5b92f05875aadb3f490fcc5769b323bea9cd 100644
 --- a/session_viewer/src/engine/gpu/segments.rs
 +++ b/session_viewer/src/engine/gpu/segments.rs
 @@ -1,6 +1,8 @@
@@ -1917,16 +1924,8 @@ index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b3
  }
  
  /// GPU connectivity partitions the shared rounded cap instead of blending it twice.
-@@ -159,9 +239,15 @@ struct SegPipelines {
-     selected: wgpu::RenderPipeline,
-     id_ribbon: wgpu::RenderPipeline,
-     id_edge: wgpu::RenderPipeline,
-+    /// Solid-edge coverage into one silhouette mask, ordinary and selected strokes.
-+    mask_unselected: wgpu::RenderPipeline,
-+    mask_selected: wgpu::RenderPipeline,
-+    /// The same into the solid and selected masks together.
-+    masks_unselected: wgpu::RenderPipeline,
-+    masks_selected: wgpu::RenderPipeline,
+@@ -167,7 +247,7 @@ struct SegPipelines {
+     masks_selected: wgpu::RenderPipeline,
  }
  
 -/// The segment lane on the GPU: two tables, the shader, the pipelines.
@@ -1934,7 +1933,7 @@ index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b3
  pub struct SegmentLane {
      pipes: SegTable,
      ribbons: SegTable,
-@@ -170,6 +256,7 @@ pub struct SegmentLane {
+@@ -176,6 +256,7 @@ pub struct SegmentLane {
      selection: wgpu::Buffer,
      selected_rows: HashSet<u32>,
      selected_edge: bool,
@@ -1942,7 +1941,7 @@ index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b3
  }
  
  impl SegmentLane {
-@@ -201,6 +288,7 @@ impl SegmentLane {
+@@ -207,6 +288,7 @@ impl SegmentLane {
              selection,
              selected_rows: HashSet::new(),
              selected_edge: false,
@@ -1950,7 +1949,7 @@ index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b3
          }
      }
  
-@@ -218,16 +306,37 @@ impl SegmentLane {
+@@ -224,16 +306,37 @@ impl SegmentLane {
          if self.pipes.ids.append(ctx, &ids) || pipes_changed {
              self.pipes.rebind(ctx, l, &self.selection);
          }
@@ -1995,7 +1994,7 @@ index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b3
      }
  
      /// Highlight one source edge without reuploading its tessellation or the parent geometry.
-@@ -356,6 +465,7 @@ impl SegmentLane {
+@@ -362,6 +465,7 @@ impl SegmentLane {
      pub fn reset(&mut self) {
          self.selected_rows.clear();
          self.selected_edge = false;
@@ -2003,7 +2002,7 @@ index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b3
          self.pipes.buf.reset();
          self.pipes.ids.reset();
          self.ribbons.buf.reset();
-@@ -366,6 +476,7 @@ impl SegmentLane {
+@@ -372,6 +476,7 @@ impl SegmentLane {
      pub fn release(&mut self, ctx: &GpuCtx, l: &Layouts) {
          self.selected_rows.clear();
          self.selected_edge = false;
@@ -2011,7 +2010,7 @@ index 0c528a4c02156078f721bc1263cb7708235f280d..73ca5b92f05875aadb3f490fcc5769b3
          self.pipes.buf.release(ctx);
          self.pipes.ids.release(ctx);
          self.ribbons.buf.release(ctx);
-@@ -502,4 +613,27 @@ mod tests {
+@@ -508,4 +613,27 @@ mod tests {
          assert_eq!(std::mem::size_of::<StrokeSegment>(), 48);
          assert_eq!(std::mem::offset_of!(CylinderSegment, facing), 36);
      }
@@ -2098,7 +2097,7 @@ index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf0
                  self.input.cancel();
                  state.touch();
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index 586fcff008a70ad03a5413c637d5a6d887cd3497..af4d9bac516b156f3d316bb9e53011a52af203ab 100644
+index 566a658b8b9629cef31575ce95849922fb6e2912..c9e83b63e0234cd70425cb57a938968a795bd380 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
 @@ -3,10 +3,11 @@
@@ -2170,7 +2169,7 @@ index 586fcff008a70ad03a5413c637d5a6d887cd3497..af4d9bac516b156f3d316bb9e53011a5
          self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
          self.controls = Controls::default();
          self.scene.clear(&mut self.gpu);
-@@ -219,6 +245,7 @@ impl State {
+@@ -223,6 +249,7 @@ impl State {
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
          self.selection = SelectionMode::Object;
@@ -2178,7 +2177,7 @@ index 586fcff008a70ad03a5413c637d5a6d887cd3497..af4d9bac516b156f3d316bb9e53011a5
          self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
          self.controls = Controls::default();
          self.gpu.controls.reset();
-@@ -340,6 +367,10 @@ impl State {
+@@ -344,6 +371,10 @@ impl State {
                      ),
                      None => log::info!("pick: '{}' {} row {}", hit.doc, hit.guid, hit.row),
                  }

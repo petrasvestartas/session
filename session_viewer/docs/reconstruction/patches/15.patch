@@ -419,7 +419,7 @@ index 0000000000000000000000000000000000000000..6e139ec068cc7a9dadfd34eaf2645927
 +echo
 +echo "  open:  ?scene=${stem}.yaml"
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387a04e68d0 100644
+index 645f6ae932848ae614d30871b672edeb0ee628d5..88641ebf301949149e74f5665aef7fbc0ea46f4c 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
 @@ -296,6 +296,33 @@ fn body_end(at: u64, length: u64, end: u64) -> Option<u64> {
@@ -491,7 +491,7 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
      /// Exact bounded 206 bodies, tied to the metadata's exposed source validator.
      async fn source_range(
          url: &str,
-@@ -438,9 +484,12 @@ mod web {
+@@ -422,9 +468,12 @@ mod web {
          let mut seen = [false; 7];
          let mut table_bytes = 0u64;
          let mut ids = None;
@@ -506,7 +506,7 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
              let (field, wire) = (usize::try_from(tag >> 3).ok()?, (tag & 7) as u32);
              if field == 0 {
                  return None;
-@@ -449,11 +498,11 @@ mod web {
+@@ -433,11 +482,11 @@ mod web {
                  if (8..=15).contains(&field) {
                      return None;
                  }
@@ -520,7 +520,7 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
              let body = body_end(at, (used + extra) as u64, fields.end)?;
              let next = body_end(body, length, fields.end)?;
              if (8..=14).contains(&field) {
-@@ -464,8 +513,8 @@ mod web {
+@@ -448,8 +497,8 @@ mod web {
                  if table_bytes > MAX_TABLE_BYTES {
                      return None;
                  }
@@ -531,7 +531,7 @@ index 098d813854a4c766fa0bc1607d972526d6c9b2bc..ca48bf66ca83f6baeaba0e8458090387
                      return None;
                  }
                  seen[field - 8] = true;
-@@ -533,6 +582,35 @@ mod web {
+@@ -517,6 +566,35 @@ mod web {
  mod tests {
      use super::*;
  

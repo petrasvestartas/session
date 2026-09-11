@@ -1,5 +1,5 @@
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index 75d8b3a9f642e3c02a1abf045a035d36d4d7aa6f..545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca
+index 75d8b3a9f642e3c02a1abf045a035d36d4d7aa6f..545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
 @@ -1 +1,46 @@
@@ -52,7 +52,7 @@ index 75d8b3a9f642e3c02a1abf045a035d36d4d7aa6f..545d8e7e76392a6fe965fef74fc94ed6
 +start();
 +</script></body></html>
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index 5854c47378298ce7c7c5d7a6b8d6b2206e6e5ed7..b55dd88d9946c88077a1ca34f42d7e7e5ebc2400
+index 5854c47378298ce7c7c5d7a6b8d6b2206e6e5ed7..b55dd88d9946c88077a1ca34f42d7e7e5ebc2400 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
 @@ -1,18 +1,205 @@
@@ -74,7 +74,6 @@ index 5854c47378298ce7c7c5d7a6b8d6b2206e6e5ed7..b55dd88d9946c88077a1ca34f42d7e7e
 -    status
 -        .set_attribute("data-checkpoint", "00")
 -        .expect("status attribute");
--}
 +use wgpu::util::DeviceExt;
 +
 +/// The browser owns the canvas; this teaching facade owns one GPU/device and one draw lane.
@@ -277,7 +276,7 @@ index 5854c47378298ce7c7c5d7a6b8d6b2206e6e5ed7..b55dd88d9946c88077a1ca34f42d7e7e
 +/// A shader validation failure must fail the browser checkpoint rather than look like success.
 +fn gpu_error(error: wgpu::Error) {
 +    panic!("tutorial WebGPU error: {error}");
-+}
+ }
 diff --git a/session_viewer/src/shaders/first.wgsl b/session_viewer/src/shaders/first.wgsl
 new file mode 100644
 index 0000000000000000000000000000000000000000..057f3d824c4f007af8bd24579a4a2a6a4de65607

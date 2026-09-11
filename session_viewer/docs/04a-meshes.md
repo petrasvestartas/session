@@ -90,19 +90,27 @@ flowchart TB
     style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-52 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-54 -->
 
 - `PipelineDesc` is one base per shader; `with`, `vertex`, `color`, `depth` derive the variants.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=53-163 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=55-177 -->
 
-- `module` appends `normals.wgsl` to every shader source, so one normal transform serves all lanes.
+- `module` appends `normals.wgsl` to every shader source, so one normal transform serves all lanes; `scene_module` also appends `scene.wgsl`, so the camera, the line block and the object rows are declared once for every lane.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=164-193 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=178-207 -->
 
 - `build` is the only place wgpu is asked for a render pipeline: `Depth32Float`, no cull, fill mode, the desc supplies the rest.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=194-271 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=208-285 -->
+
+- `scene.wgsl` is the scene contract: groups 0 to 2, the `Instance` row, the `LineUniform` block, the `FLAG_*` bits and `place`. A lane shader never declares them itself, so a row field changes in one place.
+
+<!-- file: 04a session_viewer/src/shaders/scene.wgsl type -->
+
+- The mirror test reads that one declaration: the Rust field names against `SCENE`.
+
+<!-- file: 04a session_viewer/src/engine/gpu/instance.rs type -->
 
 <!-- file: 04a session_viewer/src/shaders/normals.wgsl type -->
 
@@ -171,17 +179,17 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=177-205 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-293 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-311 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result. The pen is `thickness_px * pixel_scale`, so it keeps its CSS width at every device scale; `origin` is zero and `frame` is the framebuffer.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=294-338 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=312-356 -->
 
 - `write_pick` derives the pick blocks from the frame's after `write`: the camera premultiplied by the window's clip transform, `proj_y` and `ortho_h` scaled by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=339-374 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=357-392 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=375-399 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=393-417 -->
 
 ## Step 6 · Runtime knobs and the query string
 
@@ -217,29 +225,29 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-61 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-48 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=62-104 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=49-91 -->
 
 - Group 2 for ink binds the same two buffers plus the face pass's depth views.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=105-156 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=92-143 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=157-227 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=144-214 -->
 
 - `append` converts each row to the 96-byte `Instance`, keeps the f64 translation aside, and records bounded rows for the inside test.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=228-296 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=215-282 -->
 
 - `rebase_anchor` rewrites only the translation column when the camera target drifts a quarter of the view distance, throttled to one rebuild per interval.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=297-354 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=283-340 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=355-402 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=341-388 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=403-458 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=389-444 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=459-483 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=445-469 -->
 
 <!-- check: 04a -->
 
@@ -249,15 +257,15 @@ flowchart TB
 
 ![vs_main runs once per vertex, the rasterizer works out which pixels the triangle covers and blends the vertex outputs across them, and fs_main runs once per covered pixel and never sees a vertex.](illustrations/stages.svg)
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-38 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-3 -->
 
 - A hidden row's triangle is parked outside the clip volume; the ID pass shares this vertex stage, so a hidden object is unpickable too.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=39-100 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=4-61 -->
 
 - A camera headlight with wrapped diffuse: the darkest visible face is its silhouette, never black. Back faces paint red unless the object is print.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=101-161 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=62-122 -->
 
 ## Step 9 · The mesh lane
 

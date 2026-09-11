@@ -658,10 +658,10 @@ index 0000000000000000000000000000000000000000..e1b30c248e7894133dada379ca6fca9f
 +    }
 +}
 diff --git a/session_viewer/src/app/loader.rs b/session_viewer/src/app/loader.rs
-index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb860642853378769157a 100644
+index e90a21156f54d11731549f8ca97dc2aadc1a0602..3c63ac1346beec79b3db65467562bdaa267bfca4 100644
 --- a/session_viewer/src/app/loader.rs
 +++ b/session_viewer/src/app/loader.rs
-@@ -1,26 +1,67 @@
+@@ -1,118 +1,417 @@
 -//! Local tutorial fixture boundary; chapter14 installs production routing and reloads.
 +//! The async loader (wasm): bring the canvas up EMPTY, then post every document to the
 +//! event loop as a `Msg` - whole files through `decode`, big clouds a slice at a time
@@ -716,8 +716,11 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +    /// Bumped on every `Clear`: a stream task from an older scene stops at its next slice.
 +    static GENERATION: Cell<u32> = const { Cell::new(0) };
 +    static LOAD_GENERATION: Cell<u64> = const { Cell::new(0) };
-+}
-+
+ }
+ 
+-/// Preserve the production query-result delivery interface across the loader checkpoint.
+-pub(super) fn post(message: Msg) -> bool {
+-    PROXY.with_borrow(|proxy| post_with_proxy(proxy, message))
 +/// Drop the scene: post `Clear`, forget the point budget, and retire every running stream.
 +fn clear_scene() {
 +    GENERATION.set(GENERATION.get().wrapping_add(1));
@@ -725,35 +728,30 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +    post(Msg::Clear);
  }
  
--/// Preserve the production query-result delivery interface across the loader checkpoint.
--pub(super) fn post(message: Msg) -> bool {
--    PROXY.with_borrow(|proxy| post_with_proxy(proxy, message))
+-/// Deliver to the live browser event loop without retaining State in an async task.
+-fn post_with_proxy(proxy: &Option<EventLoopProxy<Msg>>, message: Msg) -> bool {
+-    match proxy {
+-        Some(proxy) => proxy.send_event(message).is_ok(),
+-        None => false,
+-    }
 +/// Post one message into the running event loop; false when the loop is gone.
 +pub(super) fn post(msg: Msg) -> bool {
-+    PROXY.with_borrow(|proxy| post_with_proxy(proxy, msg))
- }
- 
--/// Deliver to the live browser event loop without retaining State in an async task.
-+/// The thread-local API adapter forwards delivery to this named operation.
- fn post_with_proxy(proxy: &Option<EventLoopProxy<Msg>>, message: Msg) -> bool {
-     match proxy {
-         Some(proxy) => proxy.send_event(message).is_ok(),
-@@ -28,91 +69,353 @@ fn post_with_proxy(proxy: &Option<EventLoopProxy<Msg>>, message: Msg) -> bool {
-     }
++    PROXY.with_borrow(|proxy| {
++        proxy
++            .as_ref()
++            .is_some_and(|proxy| proxy.send_event(msg).is_ok())
++    })
  }
  
 -/// Own the proxy for asynchronous source-query messages.
-+/// Retain the startup event proxy for later loading and streaming tasks.
- fn retain_proxy(slot: &mut Option<EventLoopProxy<Msg>>, proxy: &EventLoopProxy<Msg>) {
-     *slot = Some(proxy.clone());
- }
- 
--/// Start the production shell with one small deterministic, bundled Session fixture.
+-fn retain_proxy(slot: &mut Option<EventLoopProxy<Msg>>, proxy: &EventLoopProxy<Msg>) {
+-    *slot = Some(proxy.clone());
 +/// The resident ceiling for this page load.
 +fn max_points() -> u32 {
 +    knob_u32("points").unwrap_or(STREAM_MAX_POINTS)
-+}
-+
+ }
+ 
+-/// Start the production shell with one small deterministic, bundled Session fixture.
 +/// Points the scene may still make resident.
 +fn budget_left() -> u32 {
 +    max_points().saturating_sub(RESIDENT.get())
@@ -767,7 +765,8 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +/// Start-up: the live source when the page has one, else the URL's route, then the empty
 +/// canvas either way; then the poll loop.
  pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
-     PROXY.with_borrow_mut(|slot| retain_proxy(slot, &proxy));
+-    PROXY.with_borrow_mut(|slot| retain_proxy(slot, &proxy));
++    PROXY.with_borrow_mut(|slot| *slot = Some(proxy.clone()));
      let state = match State::new(window, Scene::new()).await {
          Ok(state) => state,
          Err(error) => {
@@ -798,7 +797,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +    loop {
 +        sleep_ms(src.tick_ms).await;
 +        post_live(&mut src).await;
-+    }
+     }
 +}
 +
 +/// One live check: when the source changed, replace the scene. True when files loaded.
@@ -813,7 +812,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +    let texts = src.texts();
 +    if docs.is_empty() && texts.is_empty() {
 +        return false;
-     }
++    }
 +    clear_scene();
 +    for doc in docs {
 +        post(Msg::File(doc));
@@ -844,8 +843,12 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +/// A state-capturing browser task delegates replacement to one named async operation.
 +async fn load_replacement(route: SceneRoute, generation: u64) {
 +    load_route(&route, Some(generation)).await;
-+}
-+
+ }
+ 
+-/// Only the explicit local streaming test selects the ranged source fixture.
+-async fn fixture() -> Result<(), String> {
+-    if super::route::query("scene").as_deref() == Some("stream-test.yaml") {
+-        return streamed_fixture().await;
 +/// Newer route requests win even if older network or decode operations finish later.
 +fn stale_load(generation: u64) -> bool {
 +    LOAD_GENERATION.get() != generation
@@ -860,13 +863,22 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +            fetch_bytes(&yaml).await
 +        }
 +        result => result,
-+    }
+     }
+-    let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
+-        .map_err(fixture_error)?;
+-    post(Msg::File(FileDoc {
+-        name: "Interaction fixture".to_string(),
+-        session: Rc::new(session),
+-        place: Xform::identity(),
+-        point_px: 0.0,
+-        display_only: false,
+-    }));
+-    Ok(())
  }
  
--/// Only the explicit local streaming test selects the ranged source fixture.
--async fn fixture() -> Result<(), String> {
--    if super::route::query("scene").as_deref() == Some("stream-test.yaml") {
--        return streamed_fixture().await;
+-/// Keep fixture decode failures visible while production validation is introduced later.
+-fn fixture_error(error: Box<dyn std::error::Error>) -> String {
+-    format!("Bundled interaction fixture: {error}")
 +/// Fetch a manifest and post every item, in manifest order, then a `Fit`.
 +async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
 +    let generation = match replacement {
@@ -946,7 +958,12 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +        // budget the page would die without a word, so the file is skipped with one instead.
 +        let length = super::fetch::content_length(&url).await.unwrap_or(0);
 +        if spent + length > budget {
-+            log::warn!("skipped '{}': {} MB over the {} MB scene budget", item.file, length >> 20, budget >> 20);
++            log::warn!(
++                "skipped '{}': {} MB over the {} MB scene budget",
++                item.file,
++                length >> 20,
++                budget >> 20
++            );
 +            skipped.push(format!("{} ({} MB)", item.file, length >> 20));
 +            continue;
 +        }
@@ -1000,17 +1017,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +    }
 +    if stale_load(generation) {
 +        return;
-     }
--    let session = Session::pb_loads(include_bytes!("../../assets/pb/interaction.pb"))
--        .map_err(fixture_error)?;
--    post(Msg::File(FileDoc {
--        name: "Interaction fixture".to_string(),
--        session: Rc::new(session),
--        place: Xform::identity(),
--        point_px: 0.0,
--        display_only: false,
--    }));
--    Ok(())
++    }
 +    if replacement.is_some() {
 +        if failed {
 +            super::feedback::status(
@@ -1042,20 +1049,17 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
 +    );
  }
  
--/// Keep fixture decode failures visible while production validation is introduced later.
--fn fixture_error(error: Box<dyn std::error::Error>) -> String {
--    format!("Bundled interaction fixture: {error}")
-+/// Replacement staging preserves manifest order across whole files and streamed clouds.
-+enum PendingDocument {
-+    Whole(FileDoc),
-+    Streamed(Box<StreamedInit>),
- }
- 
 -/// Read one bounded display prefix while retaining every actual source row for F10.
 -async fn streamed_fixture() -> Result<(), String> {
 -    let base = super::route::query("data").ok_or("local source URL is missing")?;
 -    if !base.starts_with("http://127.0.0.1:") && !base.starts_with("http://localhost:") {
 -        return Err("The tutorial source fixture must use a local HTTP server".to_string());
++/// Replacement staging preserves manifest order across whole files and streamed clouds.
++enum PendingDocument {
++    Whole(FileDoc),
++    Streamed(Box<StreamedInit>),
++}
++
 +/// Where a streamed cloud goes: its document name, placement and point size.
 +struct Placement {
 +    name: String,
@@ -1146,7 +1150,7 @@ index e90a21156f54d11731549f8ca97dc2aadc1a0602..1cc1f22fabc5e1074f4bb86064285337
  pub struct StreamCursor {
      pub idx: usize,
      pub url: String,
-@@ -121,5 +424,82 @@ pub struct StreamCursor {
+@@ -121,5 +420,82 @@ pub struct StreamCursor {
      pub col_at: u64,
  }
  
@@ -1768,19 +1772,19 @@ index 063956142744d66d8c68003efec676e0f18464ce..fa62d6cc63be6d2acb4bb7ba0298d4ce
 +    }
 +}
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index ac0ed24f4ce28bb8b6f1eaa8808fcb323bfae72f..dc76687ff8839c1bd6ff2efd7e593f784f1293ef 100644
+index 7412fbb012349c91ee6dad76ab8ef199cf69ba82..b49753b5fd807b7c41faf8536c076f2b4f2f4910 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
-@@ -95,6 +95,8 @@ struct Bases {
+@@ -86,6 +86,8 @@ struct Bases {
  /// The open document set, the pending upload and the row bookkeeping.
  pub struct Scene {
-     pub docs: Vec<Doc>,
+     pub docs: Vec<FileDoc>,
 +    /// Authored world-plane text from the scene manifest, independent of object annotations.
 +    pub texts: Vec<super::manifest::TextItem>,
      pub tables: Upload,
      pub streamed: Vec<StreamedCloud>,
      pub hidden: HashSet<(usize, Rc<str>)>,
-@@ -120,6 +122,7 @@ impl Scene {
+@@ -111,6 +113,7 @@ impl Scene {
      pub fn new() -> Self {
          Self {
              docs: Vec::new(),
@@ -1788,7 +1792,7 @@ index ac0ed24f4ce28bb8b6f1eaa8808fcb323bfae72f..dc76687ff8839c1bd6ff2efd7e593f78
              tables: Upload::default(),
              streamed: Vec::new(),
              hidden: HashSet::new(),
-@@ -137,6 +140,7 @@ impl Scene {
+@@ -128,6 +131,7 @@ impl Scene {
      /// REPLACED without tearing down `State` (camera, surface and pipelines survive).
      pub fn clear(&mut self, gpu: &mut Gpu) {
          self.docs.clear();
@@ -2305,7 +2309,7 @@ index 3658f3316d6684d362ff10c84039fd253031f935..e6ab54d84047af4cdc1316a576e370a4
                  let (url, fields, from, col_at) = (
                      init.url.clone(),
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index a089674e92f001faeb7b0bad8e1c927f52ca5fd5..2bfa08425b7d0237f56ca4fb00513b99ea43ff5e 100644
+index 0dd940f8b63d0ca190fc30c5b5e0cc906a04c152..517213bef95c7cdb21e36eb1c3f972bf2d7ac499 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
 @@ -110,6 +110,14 @@ impl State {
@@ -2323,7 +2327,7 @@ index a089674e92f001faeb7b0bad8e1c927f52ca5fd5..2bfa08425b7d0237f56ca4fb00513b99
      /// A streamed cloud's first slice; returns the slot later slices address.
      pub fn add_streamed(&mut self, init: StreamedInit) -> usize {
          let idx = self.scene.add_streamed_cloud(init, &mut self.gpu);
-@@ -801,6 +809,22 @@ impl State {
+@@ -812,6 +820,22 @@ impl State {
      /// Source-document text and the selected object's centered name share a fixed white style.
      fn update_label(&mut self) {
          let mut labels = self.scene_labels.clone();
@@ -2346,7 +2350,7 @@ index a089674e92f001faeb7b0bad8e1c927f52ca5fd5..2bfa08425b7d0237f56ca4fb00513b99
          if self.show_selected_names
              && !matches!(self.selection, SelectionMode::Controls { .. })
              && let Some(row) = self.scene.selected
-@@ -818,6 +842,40 @@ impl State {
+@@ -829,6 +853,40 @@ impl State {
          }
      }
  
@@ -2386,7 +2390,7 @@ index a089674e92f001faeb7b0bad8e1c927f52ca5fd5..2bfa08425b7d0237f56ca4fb00513b99
 +
      /// Non-disruptive interaction feedback also remains available to native diagnostics.
      fn status(&self, message: &str) {
-         #[cfg(target_arch = "wasm32")]
+         crate::app::feedback::status(message);
 diff --git a/session_viewer/tests/lifecycle.cjs b/session_viewer/tests/lifecycle.cjs
 new file mode 100644
 index 0000000000000000000000000000000000000000..d4c0c685dc1693f267dc90b6e2ea8dad160efc64

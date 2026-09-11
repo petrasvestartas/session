@@ -363,10 +363,10 @@ index d4fae1cf80dcea5f994eb7c3acc444f95f758794..ae58248dd605dd88792f155e6164dc43
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
-index d82d21e3154c0e4e4d80548dd54ba7fab1b119dd..bc6e4eed35a311b7163f26ee8b646dc7a2e8bd11 100644
+index c960cec6e7f3a3c80fbf3153ce1c9a5b58e0825d..474f308cbf5c7fc879ab02708e5262c2b334110e 100644
 --- a/session_viewer/src/app/walk/brep.rs
 +++ b/session_viewer/src/app/walk/brep.rs
-@@ -105,11 +105,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
+@@ -102,11 +102,7 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
              radius: encode_width(b.width),
              color: pack_rgba(Color::black().to_f32()),
          };
@@ -837,10 +837,10 @@ index 71e0a9fa582f22dcff07fb94516cb02f1514d8c1..835229a9a206867bf1d218d7609f5878
              self.arena.draw_text(&mut pass, &basic);
          }
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index 84f830cb6081c78d4cd9dcc449c5182ca16ea297..614b48d0d83f878f17b1bfcaf2ad4629976cf676 100644
+index cd869ec316bddd890bf90b374a3889ac15490473..de93294dfa44c16396fda69c12d8b7aacb2746ac 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -83,6 +83,44 @@ impl CadFixture {
+@@ -82,6 +82,44 @@ impl CadFixture {
      }
  }
  
@@ -885,7 +885,7 @@ index 84f830cb6081c78d4cd9dcc449c5182ca16ea297..614b48d0d83f878f17b1bfcaf2ad4629
  /// A curved source patch carrying the producer's constrained hole mesh in its supported cache.
  fn trimmed_surface() -> NurbsSurface {
      use session_rust::{NurbsSurfaceTrimmed, TrimLoops};
-@@ -145,18 +183,42 @@ fn trimmed_surface() -> NurbsSurface {
+@@ -144,18 +182,42 @@ fn trimmed_surface() -> NurbsSurface {
      surface
  }
  
@@ -962,7 +962,7 @@ index 53544ae931ae9c15dfd24d4d625925b3de7eb2ef..cdcf8b3f6f7709f06be4aa46a92096da
      }
  }
 diff --git a/session_viewer/src/shaders/normals.wgsl b/session_viewer/src/shaders/normals.wgsl
-index e717f4cdc381947d9f1a8005bcacdfef117d374b..36ca8f063427be89ce9209e1aa5ed5ec36be6717 100644
+index 75f72c676d3e1b9e150d843cfdd165aec0086019..b8b2ed60fea675320a57af6967b885e414114836 100644
 --- a/session_viewer/src/shaders/normals.wgsl
 +++ b/session_viewer/src/shaders/normals.wgsl
 @@ -1,9 +1,22 @@
@@ -992,10 +992,10 @@ index e717f4cdc381947d9f1a8005bcacdfef117d374b..36ca8f063427be89ce9209e1aa5ed5ec
      return transform_normal(mat3x3<f32>(model[0].xyz, model[1].xyz, model[2].xyz), normal);
  }
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index a9def57546c799df71aa1af01552b5b4f80c1798..b28176b5d22b8405322f6dc8209ac78cf4514aaa 100644
+index 1b62de11fa8a9ffeb02a4f2688bb92205acffe6a..d2c50ab216cd6739d2cad684205831e6196db0ac 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -90,8 +90,7 @@ fn vs_main(in: VsIn) -> VsOut {
+@@ -51,8 +51,7 @@ fn vs_main(in: VsIn) -> VsOut {
      }
      o.color = color;
      o.world_pos = world;

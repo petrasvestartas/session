@@ -129,11 +129,11 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-63 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-53 -->
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=64-122 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=54-112 -->
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=123-181 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=113-171 -->
 
 - The resolve reads the lane's depth and color, applies Eye-Dome Lighting from neighbouring depths, and writes `frag_depth` under the scene's `Greater` test.
 

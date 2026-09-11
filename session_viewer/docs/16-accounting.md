@@ -47,15 +47,15 @@ flowchart LR
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-200 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-177 -->
 
 Per-type payload walks, one function per geometry kind:
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=201-432 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=178-409 -->
 
 Unit tests, part of the file:
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=433-510 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=410-487 -->
 
 <!-- check: 16 -->
 

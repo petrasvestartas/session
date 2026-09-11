@@ -58,11 +58,11 @@ flowchart TB
 
 - The browser picks the presentation-compatible adapter; `?gpu=high` asks for the high-performance one on a hybrid machine and falls back to the browser's choice when that adapter is refused.
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-156 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-158 -->
 
 Native-only adapter naming and the error callbacks:
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=157-229 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=159-231 -->
 
 ### Step 2 · Presenting a frame
 
@@ -85,7 +85,7 @@ flowchart TB
 
 The offscreen and benchmark paths used by native tools:
 
-<!-- file: 12 session_viewer/src/engine/gpu/present.rs copy lines=86-214 -->
+<!-- file: 12 session_viewer/src/engine/gpu/present.rs copy lines=86-183 -->
 
 ### Step 3 · The frame list
 
@@ -130,6 +130,8 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=48-81 -->
 
+- Two view keys sit beside selection. `D` flips the headlight (`view.lit`, off by default: a face shows its flat row colour until you ask for shading). `P` flips x-ray through `toggle_xray`; from lesson 18 on, a zero opacity turns every multi-face solid into its edges and vertices.
+
 <!-- file: 12 session_viewer/src/app/input.rs type lines=82-168 -->
 
 - A press that moved more than `CLICK_SLOP` before release is a drag, so a camera gesture never selects on release.
@@ -173,21 +175,21 @@ flowchart LR
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-86 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-77 -->
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=87-203 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=78-194 -->
 
 - One object row per GUID in the kernel's canonical order; the row a GUID gets is the row it keeps within a revision.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=204-294 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=195-284 -->
 
 - Streamed clouds have no kernel object; their slot records the absolute row point 0 landed on.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=295-374 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=285-363 -->
 
 - Row → identity in both directions; `edge_at` reads the segment sub-ID tag bit set by the ribbon shader.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=375-494 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=364-483 -->
 
 ### Step 7 · Selection mode
 
@@ -211,9 +213,9 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-131 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-130 -->
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=132-222 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=131-221 -->
 
 <!-- file: 12 session_viewer/src/app/walk/frames.rs type -->
 
@@ -358,29 +360,30 @@ flowchart TB
 
 <!-- file: 12 session_viewer/src/state.rs type lines=1-45 -->
 
-<!-- file: 12 session_viewer/src/state.rs type lines=46-174 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=46-185 -->
 
+- `toggle_xray` is a view change, not a scene change: `view.opacity` goes between `1.0` and `0.0` and `touch` schedules a frame; the shaders read the zero, no row is rewritten.
 - `select` clears controls and edge highlight before moving the flag, so no lane keeps a stale parent.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=175-229 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=186-240 -->
 
 - `apply_pick`: an edge answer needs `Scene::edge_at`; an object answer toggles the row.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=230-283 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=241-294 -->
 
 - `render` applies a returned pick first, so the same frame presents its highlight; a pick on a still scene runs alone through `pick_frame`.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=284-347 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=295-358 -->
 
 - `request_selection` configures the tolerance in CSS pixels times the actual logical-to-physical scale, then records the request.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=348-397 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=359-408 -->
 
 Document titles and the selected name are derived labels; they have no source row and cannot intercept a click.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=398-472 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=409-476 -->
 
-<!-- file: 12 session_viewer/src/state.rs copy lines=473-506 -->
+<!-- file: 12 session_viewer/src/state.rs copy lines=477-510 -->
 
 ### Step 14 · Gpu owns device, presentation and picking
 
@@ -414,9 +417,9 @@ flowchart LR
 
 - Append the dispatcher at the end of the walk module first, then replace its header with the lane-table borrow and the new declarations.
 
-<!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=2 -->
+<!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=2-2 -->
 
-<!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=1 -->
+<!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=1-1 -->
 
 <!-- file: 12 session_viewer/src/app/route.rs type -->
 

@@ -45,14 +45,14 @@ flowchart LR
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 02 session_viewer/src/math.rs type lines=72-166 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=72-162 -->
 
 ## Step 3 · Recover camera facts from the matrix
 
 Draw lanes receive only the view-projection, never the camera. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
 
 
-<!-- file: 02 session_viewer/src/math.rs type lines=167-224 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=163-220 -->
 
 ## Step 4 · Camera state
 
@@ -77,7 +77,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 
 ![The projection and the divide by w land the frustum in a cube. With near and far swapped, distant points crowd into a thin band at zero, which is where float32 is densest.](illustrations/frustum.svg)
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=139-198 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=139-197 -->
 
 ## Step 7 · The view-projection
 
@@ -86,7 +86,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 - Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
 
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=199-272 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=198-271 -->
 
 ## Step 8 · Named views, fit, extent
 
@@ -103,7 +103,7 @@ flowchart TB
     style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=273-401 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=272-400 -->
 
 ## Step 9 · Wheel response
 
@@ -111,7 +111,7 @@ flowchart TB
 - The two `#[cfg(test)]` modules are native-only unit checks; they are not part of the browser build.
 
 
-<!-- file: 02 session_viewer/src/camera.rs copy lines=402-513 -->
+<!-- file: 02 session_viewer/src/camera.rs copy lines=401-512 -->
 
 <!-- check: 02 -->
 

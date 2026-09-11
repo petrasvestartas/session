@@ -24,7 +24,7 @@ index db7adb7684a8e9f4aba1ecc82c375df06f6bf82f..c6c7e0dce3b12078b33d09694b8366df
  /// Start an orbit gesture; Shift selects pan in checkpoints with a camera.
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
-index bb3c25df3d803f2589f65f7adb9ca20a65bc4387..d3ac42f165b00a2396b794e1a22cf9d13209bfe7 100644
+index 6fd6992f3591ef3ac17ab5aadea2d49aa16a2193..9a7e5fc9ce96d341675de5a08dbca434347f9815 100644
 --- a/session_viewer/src/engine/gpu/arena.rs
 +++ b/session_viewer/src/engine/gpu/arena.rs
 @@ -47,6 +47,7 @@ impl ArenaRows {
@@ -82,16 +82,18 @@ index bb3c25df3d803f2589f65f7adb9ca20a65bc4387..d3ac42f165b00a2396b794e1a22cf9d1
  }
 diff --git a/session_viewer/src/engine/gpu/backdrop.rs b/session_viewer/src/engine/gpu/backdrop.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..7b654e76f5a8cc9d9c04c415326029eeebd52236
+index 0000000000000000000000000000000000000000..2bbbe9bbc21b9a8b75fee4bc605e95a8c74a39d6
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/backdrop.rs
-@@ -0,0 +1,112 @@
+@@ -0,0 +1,114 @@
 +//! The backdrop lane: the fullscreen background triangle and the vertexless 50-vertex grid.
 +//! No table, no upload; two pipelines and two draws that open every frame.
 +
 +use super::buffers::GpuCtx;
 +use super::frame::Binds;
-+use crate::engine::pipelines::{DepthMode, Layouts, PipelineDesc, Target, build, module};
++use crate::engine::pipelines::{
++    DepthMode, Layouts, PipelineDesc, Target, build, module, scene_module,
++};
 +use wgpu::PrimitiveTopology::{LineList, TriangleList};
 +
 +/// The lane's shaders, for the mirror tests.
@@ -123,7 +125,7 @@ index 0000000000000000000000000000000000000000..7b654e76f5a8cc9d9c04c415326029ee
 +            "background.shader",
 +            include_str!("../../shaders/background.wgsl"),
 +        );
-+        let grid_shader = module(
++        let grid_shader = scene_module(
 +            &ctx.device,
 +            "grid.shader",
 +            include_str!("../../shaders/grid.wgsl"),
@@ -199,10 +201,10 @@ index 0000000000000000000000000000000000000000..7b654e76f5a8cc9d9c04c415326029ee
 +    )
 +}
 diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
-index 83c90cf106cdf4f1aa00e9a73225e2e53ab07599..e449fca610b1c6a584b0035dcb3a2cd6f6838456 100644
+index ee7c50b82c473cf99b258cf20f628f2a9aa5c568..3d3554a855f2654a3bbe0b0034e2a6b1d015e8be 100644
 --- a/session_viewer/src/engine/gpu/instance.rs
 +++ b/session_viewer/src/engine/gpu/instance.rs
-@@ -101,7 +101,11 @@ mod tests {
+@@ -100,7 +100,11 @@ mod tests {
              } else {
                  source.to_string()
              };
@@ -357,10 +359,10 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
              self.splat.draw_resolve(&mut pass, &self.frame.cloud_group);
          }
 diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
-index 64e8fac743bf28bc06009dc22e578887a002c41b..3f377bb6481e7f5a0726bd97bfdf81a31f027d74 100644
+index 2a287f8bf9bc763a506511fefd063d8e31620f33..a48d64fbf15cda2989a3f2e89d9bbb097aada823 100644
 --- a/session_viewer/src/engine/gpu/objects.rs
 +++ b/session_viewer/src/engine/gpu/objects.rs
-@@ -150,6 +150,14 @@ fn ink_instance_group(
+@@ -137,6 +137,14 @@ fn ink_instance_group(
                  binding: 3,
                  resource: wgpu::BindingResource::TextureView(&targets.depth_msaa),
              },
@@ -375,7 +377,7 @@ index 64e8fac743bf28bc06009dc22e578887a002c41b..3f377bb6481e7f5a0726bd97bfdf81a3
          ],
      })
  }
-@@ -198,6 +206,7 @@ impl InstanceTable {
+@@ -185,6 +193,7 @@ impl InstanceTable {
          ctx: &GpuCtx,
          layouts: &Layouts,
          depths: [&wgpu::TextureView; 2],
@@ -383,7 +385,7 @@ index 64e8fac743bf28bc06009dc22e578887a002c41b..3f377bb6481e7f5a0726bd97bfdf81a3
      ) -> wgpu::BindGroup {
          ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
              label: Some("pick.instances"),
-@@ -219,6 +228,14 @@ impl InstanceTable {
+@@ -206,6 +215,14 @@ impl InstanceTable {
                      binding: 3,
                      resource: wgpu::BindingResource::TextureView(depths[1]),
                  },
@@ -615,7 +617,7 @@ index 0e020b1e3041bb5f57d715e1ceba30f215770178..6fe7a69aa6f0453b59d13cd7c2f6b4f3
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/text_outline.rs b/session_viewer/src/engine/gpu/text_outline.rs
-index 65af6f1d5851e441a200983d641d31ab77c1d577..16bde2089114a13a30f850106e8c43173ce3cc0e 100644
+index 3d17edab45bd9f67d3019b29a1f9b0877714ee60..64eed7ee628282b0370aff6d4daba222b61973ca 100644
 --- a/session_viewer/src/engine/gpu/text_outline.rs
 +++ b/session_viewer/src/engine/gpu/text_outline.rs
 @@ -23,6 +23,7 @@ pub struct OutlineTextLane {
@@ -731,10 +733,10 @@ index 88cc89d4850a4fe6b2e10ec2d9c7362c6413567f..8cf597917a47f742b5a284f2a1c65b78
      })
  }
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
-index 51ba117143418fe7f93301eda628bf459ac7f27f..b1ceb67eb70ac2e8429689d22b1d1107ecc70145 100644
+index 220c041fd882b10d135d8640ab571f8737f595ce..c4a52504e821c681650f7f02d69f460472875fe1 100644
 --- a/session_viewer/src/engine/pipelines/mod.rs
 +++ b/session_viewer/src/engine/pipelines/mod.rs
-@@ -103,6 +103,7 @@ pub struct PipelineDesc<'a> {
+@@ -108,6 +108,7 @@ pub struct PipelineDesc<'a> {
      pub color: ColorWrite,
      pub depth: DepthMode,
      pub scene_samples: Option<u32>,
@@ -742,7 +744,7 @@ index 51ba117143418fe7f93301eda628bf459ac7f27f..b1ceb67eb70ac2e8429689d22b1d1107
  }
  
  impl<'a> PipelineDesc<'a> {
-@@ -125,6 +126,7 @@ impl<'a> PipelineDesc<'a> {
+@@ -130,6 +131,7 @@ impl<'a> PipelineDesc<'a> {
              color: ColorWrite::Opaque,
              depth: DepthMode::Opaque,
              scene_samples: None,
@@ -750,7 +752,7 @@ index 51ba117143418fe7f93301eda628bf459ac7f27f..b1ceb67eb70ac2e8429689d22b1d1107
          }
      }
  
-@@ -154,6 +156,12 @@ impl<'a> PipelineDesc<'a> {
+@@ -159,6 +161,12 @@ impl<'a> PipelineDesc<'a> {
          self
      }
  
@@ -763,7 +765,7 @@ index 51ba117143418fe7f93301eda628bf459ac7f27f..b1ceb67eb70ac2e8429689d22b1d1107
      /// The same desc with another depth mode.
      pub fn depth(mut self, depth: DepthMode) -> Self {
          self.depth = depth;
-@@ -198,7 +206,12 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
+@@ -212,7 +220,12 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
  
  /// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
  pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
@@ -777,7 +779,7 @@ index 51ba117143418fe7f93301eda628bf459ac7f27f..b1ceb67eb70ac2e8429689d22b1d1107
      device.create_shader_module(wgpu::ShaderModuleDescriptor {
          label: Some(label),
          source: wgpu::ShaderSource::Wgsl(source.into()),
-@@ -239,11 +252,22 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
+@@ -253,11 +266,22 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
      let layout = pipeline_layout(device, desc.label, desc.groups);
      let (depth_write, depth_compare) = desc.depth.state();
      let (blend, write_mask) = desc.color.state();
@@ -1091,30 +1093,12 @@ index 0000000000000000000000000000000000000000..f5f4758d18a284aaec1bc388699e75a9
 +}
 diff --git a/session_viewer/src/shaders/grid.wgsl b/session_viewer/src/shaders/grid.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..86e40124daefc0fe34186e2161b3e1187e6e72c9
+index 0000000000000000000000000000000000000000..773e635f4559ea6c1d1245dbf310b5ed8008692e
 --- /dev/null
 +++ b/session_viewer/src/shaders/grid.wgsl
-@@ -0,0 +1,72 @@
+@@ -0,0 +1,54 @@
 +// The ground grid and axes: 50 vertices built from the vertex index, no buffer. Authored in
 +// world millimetres about the origin, minus the camera anchor the instance rows are rebased on.
-+
-+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-+@group(1) @binding(0) var<uniform> line: LineUniform;
-+
-+struct LineUniform {
-+    thickness: f32,
-+    proj_y: f32,
-+    ortho_h: f32,
-+    vp_h: f32,
-+    vp_w: f32,
-+    eye_x: f32,
-+    eye_y: f32,
-+    eye_z: f32,
-+    anchor: vec3<f32>,
-+    feather: f32,
-+    lit: f32,
-+    backface: f32,
-+};
 +
 +const STEP: f32 = 1000.0;   // mm per cell
 +const HALF: f32 = 5000.0;   // +-5 m floor
@@ -1449,10 +1433,10 @@ index 0000000000000000000000000000000000000000..dcf68beaceb47e45b155eafef2d3267c
 +    return scaled;
 +}
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
-index 9992d8634811047f37e0cc25b4a1aad3f4c29070..3b7f8a85d2e06e7ad78532254e29e4057c94b89c 100644
+index 367c66cc7c23a7b19a3903ad7a5ee47d6350aaf6..09ca8b3ccc24697da88574c681cf61de256e5110 100644
 --- a/session_viewer/src/shaders/splat.wgsl
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -173,9 +173,9 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
+@@ -163,9 +163,9 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
  
  // The id pass: (object row + 1, point row + 1).
  @fragment
@@ -1485,10 +1469,10 @@ index 7a3b1b0507b133361cb17de61a96f7708e686207..75905e75ae11ebf1289f5a99ecbf788c
  }
  
 diff --git a/session_viewer/src/shaders/text_outline.wgsl b/session_viewer/src/shaders/text_outline.wgsl
-index 4a0e7839f78e656685472c4ff67b24848ab7f6d0..27fa98fd5b775ee3bc637aefb09ba17e3ce3f3fa 100644
+index a8551be581cbefef7fd37494c66ba6a28e8fc48c..73763a5177a66e2bf3f03fbf1dc6062e99cbc8cf 100644
 --- a/session_viewer/src/shaders/text_outline.wgsl
 +++ b/session_viewer/src/shaders/text_outline.wgsl
-@@ -56,6 +56,11 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
+@@ -38,6 +38,11 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
  }
  
  // Keep the exact source object row available to the shared identity pass.
@@ -1501,10 +1485,10 @@ index 4a0e7839f78e656685472c4ff67b24848ab7f6d0..27fa98fd5b775ee3bc637aefb09ba17e
  fn fs_id(fragment: Fragment) -> @location(0) vec2<u32> {
      return vec2<u32>(fragment.object + 1u, 0u);
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index 4be1b9ac14f9838abdc74c3c0696e822d29e2107..b28176b5d22b8405322f6dc8209ac78cf4514aaa 100644
+index 7934a12b9c424223c2a92f8edbb0a4e21bf1f43b..d2c50ab216cd6739d2cad684205831e6196db0ac 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -56,6 +56,7 @@ struct VsOut {
+@@ -17,6 +17,7 @@ struct VsOut {
      @location(3) print: f32,
      @location(4) @interpolate(flat) inst_id: u32,
      @location(5) @interpolate(flat) mirrored: u32,
@@ -1512,7 +1496,7 @@ index 4be1b9ac14f9838abdc74c3c0696e822d29e2107..b28176b5d22b8405322f6dc8209ac78c
  }
  
  // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
-@@ -69,6 +70,7 @@ fn dead_vertex() -> VsOut {
+@@ -30,6 +31,7 @@ fn dead_vertex() -> VsOut {
      dead.print = 0.0;
      dead.inst_id = 0u;
      dead.mirrored = 0u;
@@ -1520,7 +1504,7 @@ index 4be1b9ac14f9838abdc74c3c0696e822d29e2107..b28176b5d22b8405322f6dc8209ac78c
      return dead;
  }
  
-@@ -92,6 +94,7 @@ fn vs_main(in: VsIn) -> VsOut {
+@@ -53,6 +55,7 @@ fn vs_main(in: VsIn) -> VsOut {
      o.mirrored = select(0u, 1u, dot(inst.model[0].xyz, cross(inst.model[1].xyz, inst.model[2].xyz)) < 0.0);
      o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
      o.inst_id = in.inst_id;
@@ -1528,7 +1512,7 @@ index 4be1b9ac14f9838abdc74c3c0696e822d29e2107..b28176b5d22b8405322f6dc8209ac78c
      return o;
  }
  
-@@ -151,11 +154,17 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
+@@ -112,11 +115,17 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
  
  // The id pass: (object row + 1, 0).
  @fragment

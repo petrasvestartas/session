@@ -887,16 +887,15 @@ index 736418dd99b9221fbf48dc3f2816dbf0d1366d46..fa764d67ce3f13229e43eec36526aecb
 +pub mod walk;
 diff --git a/session_viewer/src/app/walk/bounds.rs b/session_viewer/src/app/walk/bounds.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..6664656d51752ee0641542e82336bd280303cf2f
+index 0000000000000000000000000000000000000000..7926bee56ca4155bc578f7bff2e7086db4866f41
 --- /dev/null
 +++ b/session_viewer/src/app/walk/bounds.rs
-@@ -0,0 +1,153 @@
+@@ -0,0 +1,69 @@
 +//! The per-file sweeps after a walk, all over the object rows (every producer reports its
 +//! local box): the file's world extent, the planar test, and the sheet marking.
 +
 +use crate::engine::gpu::{Instance, Upload};
 +use crate::math::{Aabb, Mat4};
-+use std::collections::HashMap;
 +
 +/// Row counts captured BEFORE a file is walked, so the sweeps read only that file's rows.
 +pub struct Baselines {
@@ -961,97 +960,13 @@ index 0000000000000000000000000000000000000000..6664656d51752ee0641542e82336bd28
 +        }
 +    }
 +}
-+
-+/// Face-normal candidates kept for the thickness measure: the largest faces by area, so a
-+/// plate measures across its two big faces and chamfers do not vote.
-+const THICK_NORMALS: usize = 24;
-+
-+/// The spread of `pts` along the unit direction `n`; 0 for no points.
-+fn extent_along(pts: &[[f32; 3]], n: [f32; 3]) -> f32 {
-+    let (mut lo, mut hi) = (f32::MAX, f32::MIN);
-+    for p in pts {
-+        let d = p[0] * n[0] + p[1] * n[1] + p[2] * n[2];
-+        lo = lo.min(d);
-+        hi = hi.max(d);
-+    }
-+    if lo <= hi { hi - lo } else { 0.0 }
-+}
-+
-+/// A direction quantised to 1/32 per axis: one bucket per face orientation.
-+fn direction_key(n: [f32; 3]) -> u32 {
-+    let mut key = 0;
-+    for (axis, value) in n.into_iter().enumerate() {
-+        key |= (((value * 31.0).round() as i32 + 32) as u32) << (axis * 8);
-+    }
-+    key
-+}
-+
-+/// Rank accumulated face-normal buckets by descending area, retaining the existing NaN tie.
-+fn descending_area(a: &(f32, [f32; 3]), b: &(f32, [f32; 3])) -> std::cmp::Ordering {
-+    b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal)
-+}
-+
-+/// A mesh's thickness whatever its orientation: the smallest spread of its vertices along
-+/// one of its own dominant face normals or an axis. A plate baked rotated into world
-+/// coordinates measures its plate thickness, not the diagonal of its axis-aligned box.
-+pub fn mesh_thickness(pts: &[[f32; 3]], tris: &[u32]) -> f32 {
-+    let mut buckets: HashMap<u32, (f32, [f32; 3])> = HashMap::new();
-+    for t in tris.chunks_exact(3) {
-+        let (a, b, c) = (pts[t[0] as usize], pts[t[1] as usize], pts[t[2] as usize]);
-+        let (u, v) = (
-+            [b[0] - a[0], b[1] - a[1], b[2] - a[2]],
-+            [c[0] - a[0], c[1] - a[1], c[2] - a[2]],
-+        );
-+        let n = [
-+            u[1] * v[2] - u[2] * v[1],
-+            u[2] * v[0] - u[0] * v[2],
-+            u[0] * v[1] - u[1] * v[0],
-+        ];
-+        let area = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
-+        if area <= 0.0 {
-+            continue;
-+        }
-+        let unit = [n[0] / area, n[1] / area, n[2] / area];
-+        let key = direction_key(unit).min(direction_key([-unit[0], -unit[1], -unit[2]]));
-+        let e = buckets.entry(key).or_insert((0.0, unit));
-+        e.0 += area;
-+    }
-+    let mut ranked: Vec<(f32, [f32; 3])> = buckets.into_values().collect();
-+    ranked.sort_by(descending_area);
-+    let mut thin = f32::MAX;
-+    for (_, n) in ranked.iter().take(THICK_NORMALS) {
-+        thin = thin.min(extent_along(pts, *n));
-+    }
-+    for axis in [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]] {
-+        thin = thin.min(extent_along(pts, axis));
-+    }
-+    if thin == f32::MAX { 0.0 } else { thin }
-+}
-+
-+/// A polyline's thickness: its spread across its own plane (the Newell normal of the closed
-+/// run), so a planar outline measures 0 whatever its orientation; a straight run measures 0 too.
-+pub fn polyline_thickness(pts: &[[f32; 3]]) -> f32 {
-+    let mut n = [0.0f32; 3];
-+    for i in 0..pts.len() {
-+        let (a, b) = (pts[i], pts[(i + 1) % pts.len()]);
-+        n[0] += (a[1] - b[1]) * (a[2] + b[2]);
-+        n[1] += (a[2] - b[2]) * (a[0] + b[0]);
-+        n[2] += (a[0] - b[0]) * (a[1] + b[1]);
-+    }
-+    let len = (n[0] * n[0] + n[1] * n[1] + n[2] * n[2]).sqrt();
-+    if len <= 0.0 {
-+        return 0.0;
-+    }
-+    extent_along(pts, [n[0] / len, n[1] / len, n[2] / len])
-+}
 diff --git a/session_viewer/src/app/walk/brep.rs b/session_viewer/src/app/walk/brep.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..eaf5150e8ae4536be20289ffc26d8413da180c54
+index 0000000000000000000000000000000000000000..2be0bdd074b3ab9af5bdbf35121efaf5a206b606
 --- /dev/null
 +++ b/session_viewer/src/app/walk/brep.rs
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,89 @@
 +//! CAD faces preserve their own positions, triangle indices and surface normals.
-+use super::bounds::mesh_thickness;
 +use super::mesh::{MeshCx, MeshOpts, mesh_spacing, walk_mesh};
 +use super::mesh_ink::Ink;
 +use super::{Row, WalkCx};
@@ -1119,7 +1034,6 @@ index 0000000000000000000000000000000000000000..eaf5150e8ae4536be20289ffc26d8413
 +                Instance::FLAG_OPEN
 +            },
 +        faces: true,
-+        thickness: mesh_thickness(&solid.pos, &solid.tris),
 +    }
 +}
 +
@@ -1169,15 +1083,14 @@ index 0000000000000000000000000000000000000000..570ddf1bee56bcedaa45044e39c89bf1
 +}
 diff --git a/session_viewer/src/app/walk/curves.rs b/session_viewer/src/app/walk/curves.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..cfcaac070051b823aa07d2d14b9289cc4adf657e
+index 0000000000000000000000000000000000000000..a195218b29f9878d36673f5806e175b6f62226ef
 --- /dev/null
 +++ b/session_viewer/src/app/walk/curves.rs
-@@ -0,0 +1,149 @@
+@@ -0,0 +1,147 @@
 +//! Lines, polylines and NURBS curves into the FLAT ribbon lane: one segment per span,
 +//! `FACING_UNKNOWN` because free linework has no topological facing cull.
 +
 +use super::Row;
-+use super::bounds::polyline_thickness;
 +use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
 +use crate::engine::gpu::CylinderSegment;
 +use crate::engine::gpu::segments::SegRows;
@@ -1235,7 +1148,6 @@ index 0000000000000000000000000000000000000000..cfcaac070051b823aa07d2d14b9289cc
 +    let mut bounds = Aabb::empty();
 +    push_polyline(seg, &pts, &pen, &mut bounds);
 +    Row {
-+        thickness: polyline_thickness(&pts),
 +        ..Row::thin(bounds)
 +    }
 +}
@@ -1405,15 +1317,14 @@ index 0000000000000000000000000000000000000000..845dfbaf074cd1d96319e35e66375c59
 +}
 diff --git a/session_viewer/src/app/walk/mesh.rs b/session_viewer/src/app/walk/mesh.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..4240f60b9bde11cd81bca302287c555c642a3395
+index 0000000000000000000000000000000000000000..af7647718ffc14813f0d029c59c840a635a5cd59
 --- /dev/null
 +++ b/session_viewer/src/app/walk/mesh.rs
-@@ -0,0 +1,239 @@
+@@ -0,0 +1,236 @@
 +//! One mesh into the tables: its faces into the arena, its local box, then the ink pass
 +//! (`mesh_ink`) unless the mesh is dense, a print fill, or edges are switched off. The gates
 +//! and thresholds live here. Nothing here reads the GPU.
 +
-+use super::bounds::mesh_thickness;
 +use super::mesh_ink::{Ink, InkCx, edges_and_dots};
 +use super::mesh_topology::{SlotMap, mesh_topology};
 +use super::{Row, WalkCx};
@@ -1475,11 +1386,11 @@ index 0000000000000000000000000000000000000000..4240f60b9bde11cd81bca302287c555c
 +        allow_open: true,
 +        smooth: false,
 +    };
-+    /// A tessellated BRep or surface: always the depth-tested run, never `FLAG_OPEN`, and the
-+    /// seams between its facets are sampling, not geometry.
-+    pub const MODEL: MeshOpts = MeshOpts {
++    /// A tessellated NURBS surface: the depth-tested run, open when its grid is, and the seams
++    /// between its facets are sampling, not geometry.
++    pub const SURFACE: MeshOpts = MeshOpts {
 +        sheet_lanes: false,
-+        allow_open: false,
++        allow_open: true,
 +        smooth: true,
 +    };
 +    /// An element's mesh: sheet runs, but an element is never flagged open.
@@ -1603,13 +1514,11 @@ index 0000000000000000000000000000000000000000..4240f60b9bde11cd81bca302287c555c
 +    if m.number_of_faces() == 1 {
 +        flags |= Instance::FLAG_SINGLE;
 +    }
-+    let thickness = mesh_thickness(&positions(&rm.vertices), &rm.indices);
 +    let row = Row {
 +        bounds,
 +        spacing: mesh_spacing(&bounds, m.number_of_vertices()),
 +        flags,
 +        faces: true,
-+        thickness,
 +    };
 +
 +    if !decorated || knobs::no_edges() {
@@ -1650,7 +1559,7 @@ index 0000000000000000000000000000000000000000..4240f60b9bde11cd81bca302287c555c
 +}
 diff --git a/session_viewer/src/app/walk/mesh_ink.rs b/session_viewer/src/app/walk/mesh_ink.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a0041eddc510f4e725276f12771c781cdfc347a1
+index 0000000000000000000000000000000000000000..2619f2bff3a89ab837d4ae954feb5e1c2855cd76
 --- /dev/null
 +++ b/session_viewer/src/app/walk/mesh_ink.rs
 @@ -0,0 +1,373 @@
@@ -2023,8 +1932,8 @@ index 0000000000000000000000000000000000000000..a0041eddc510f4e725276f12771c781c
 +    fn smooth_mesh_inks_borders_and_creases_only() {
 +        let grid = bulged_grid();
 +        assert_eq!(walk_pipes(&grid, &MeshOpts::OBJECT), 24);
-+        assert_eq!(walk_pipes(&grid, &MeshOpts::MODEL), 12);
-+        assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::MODEL), 7);
++        assert_eq!(walk_pipes(&grid, &MeshOpts::SURFACE), 12);
++        assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::SURFACE), 7);
 +    }
 +}
 diff --git a/session_viewer/src/app/walk/mesh_topology.rs b/session_viewer/src/app/walk/mesh_topology.rs
@@ -2208,10 +2117,10 @@ index 0000000000000000000000000000000000000000..e6330cc37cf2f415a4aa1ed3a0a29ece
 +}
 diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..67a89cd6d50143d8292d075b0cdb7b9bd99f597b
+index 0000000000000000000000000000000000000000..54701b0473425345a6852f3d7f91b4be7596e888
 --- /dev/null
 +++ b/session_viewer/src/app/walk/mod.rs
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,40 @@
 +//! CPU-only producer contracts; lane buffers remain owned by the earlier GPU coordinator.
 +use crate::math::Aabb;
 +pub mod bounds;
@@ -2239,28 +2148,24 @@ index 0000000000000000000000000000000000000000..67a89cd6d50143d8292d075b0cdb7b9b
 +    pub flags: u32,
 +    /// The row drew faces: the inside test (eye within the box) applies to it.
 +    pub faces: bool,
-+    /// The object's thickness in its own units, whatever its orientation: retained metadata
-+    /// the instance row carries.
-+    pub thickness: f32,
 +}
 +
 +impl Row {
-+    /// Linework, points, frames: a box, no spacing, no flags, no faces; as thick as the box.
++    /// Linework, points, frames: a box, no spacing, no flags, no faces.
 +    pub fn thin(bounds: Aabb) -> Self {
 +        Self {
 +            bounds,
 +            spacing: 0.0,
 +            flags: 0,
 +            faces: false,
-+            thickness: bounds.thinnest(),
 +        }
 +    }
 +}
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
-index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f6659cafe606 100644
+index 221e12bee79791eff97e3101c1e811cb02f02479..2adc642e9f0be5126f3697f6a529e4c1c356af82 100644
 --- a/session_viewer/src/fixture.rs
 +++ b/session_viewer/src/fixture.rs
-@@ -1,150 +1,107 @@
+@@ -1,150 +1,106 @@
 -//! Deterministic grey box and floor depth fixtures in metre units.
 -use crate::engine::gpu::{CylinderSegment, GlyphPoint, ObjectRow, Upload};
 -use crate::math::Aabb;
@@ -2455,7 +2360,6 @@ index 221e12bee79791eff97e3101c1e811cb02f02479..c0a82eb31b3f9c8b5c4c1a0a6571f665
 +        object.bounds = prepared.bounds;
 +        object.spacing = prepared.spacing;
 +        object.faces = prepared.faces;
-+        object.thickness = prepared.thickness;
 +        self.upload.bounds.union(&prepared.bounds.placed(&place.m));
 +        self.upload.obj.rows.push(object);
      }
@@ -2551,10 +2455,10 @@ index f2fb7e08d09946d58166992f8a0da14b03e95cc1..3e700225c9a2e687ce460dd2bd717212
      }
  }
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index b28176b5d22b8405322f6dc8209ac78cf4514aaa..a9def57546c799df71aa1af01552b5b4f80c1798 100644
+index d2c50ab216cd6739d2cad684205831e6196db0ac..1b62de11fa8a9ffeb02a4f2688bb92205acffe6a 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -90,7 +90,8 @@ fn vs_main(in: VsIn) -> VsOut {
+@@ -51,7 +51,8 @@ fn vs_main(in: VsIn) -> VsOut {
      }
      o.color = color;
      o.world_pos = world;

@@ -1,9 +1,9 @@
 diff --git a/session_viewer/.gitignore b/session_viewer/.gitignore
 new file mode 100644
-index 0000000000000000000000000000000000000000..eaf3cb20831cd96a4ffdb69bbb62f2d269cc7a9b
+index 0000000000000000000000000000000000000000..33a9867f31058444c20c34f0b7a8d07cdd16630d
 --- /dev/null
 +++ b/session_viewer/.gitignore
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,13 @@
 +dist/
 +__pycache__/
 +
@@ -14,45 +14,51 @@ index 0000000000000000000000000000000000000000..eaf3cb20831cd96a4ffdb69bbb62f2d2
 +assets/pb/*
 +!assets/pb/.gitkeep
 +!assets/pb/view_mixed_teapot.pb
-+assets/scenes/
-+assets/pdf/
-+assets/lion_src/
 +
 +# The browser application and tutorials share a reproducible dependency resolution.
 +!Cargo.lock
 diff --git a/session_viewer/Cargo.toml b/session_viewer/Cargo.toml
-index dc9bf07a615daf7177e2ee9f59e2a841e6819702..1db525cfba5fdbe196beead6eb875b977c48c93d 100644
+index bb8e93341cfcf4c92a89172744e68e8c51b58498..74cd5472d8e9d9a5345c49d3ea6556eb5c360fca 100644
 --- a/session_viewer/Cargo.toml
 +++ b/session_viewer/Cargo.toml
-@@ -59,6 +59,9 @@ strip = true
- [package.metadata.wasm-pack.profile.release]
- wasm-opt = false
+@@ -41,32 +41,25 @@ web-sys = { version = "0.3", features = [
+     "AbortController",
+     "AbortSignal",
+     ] }
++# No use site here: session_rust -> rand 0.8 -> getrandom 0.2, which refuses wasm32-unknown-unknown
++# without the `js` feature.
+ getrandom = { version = "0.2", features = ["js"] }
+-
+ js-sys = "0.3"
+ prost = "0.14"
+ bytemuck = { version = "1", features = ["derive"] }
  
-+[[example]]
-+name = "selftest"
-+path = "examples/selftest.rs"
++# Optimized dependencies keep debug builds fast enough to parse real scenes.
+ [profile.dev.package."*"]
+ opt-level = 3
+ 
+-# parse speed in debug builds
+ [profile.release]
+ strip = true
+ 
+-[package.metadata.wasm-pack.profile.release]
+-wasm-opt = false
+-
++[dev-dependencies]
++naga = { version = "=29.0.4", features = ["wgsl-in"] }
  
  # Native-only: the headless verification harness (examples/selftest.rs). MUST stay at the end -
  # a target table placed mid-file silently swallows every [dependencies] entry after it, which is
-@@ -66,9 +69,18 @@ wasm-opt = false
+ # how prost and bytemuck vanished from the wasm build.
  [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
  pollster = "0.4"
- 
-+[[example]]
-+name = "bench_load"
-+path = "examples/bench_load.rs"
- 
-+[[example]]
-+name = "mk_facing_probe"
-+path = "examples/mk_facing_probe.rs"
- 
- 
-+[[example]]
-+name = "check_determinism"
-+path = "examples/check_determinism.rs"
- 
- [dev-dependencies]
- naga = { version = "=29.0.4", features = ["wgsl-in"] }
+-
+-
+-
+-
+-
+-[dev-dependencies]
+-naga = { version = "=29.0.4", features = ["wgsl-in"] }
 diff --git a/session_viewer/assets/pb/.gitkeep b/session_viewer/assets/pb/.gitkeep
 new file mode 100644
 index 0000000000000000000000000000000000000000..e69de29bb2d1d6434b8b29ae775ad8c2e48c5391
@@ -4358,14 +4364,14 @@ index f31db8bae111e86d20416b432407b4f8427e1fb7..201bb720e18e4150a9a224e32c9d789f
          "gpu_buffer_capacity_bytes": buffers,
 diff --git a/session_viewer/src/app/inspection/source_memory.rs b/session_viewer/src/app/inspection/source_memory.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..6835ccfb718af81ef503428e13d1255491df34fa
+index 0000000000000000000000000000000000000000..c5ed05ab8c02d1255bc1858095aba0416136bdcf
 --- /dev/null
 +++ b/session_viewer/src/app/inspection/source_memory.rs
-@@ -0,0 +1,510 @@
+@@ -0,0 +1,487 @@
 +//! Known retained source payloads, not RSS, allocator usage or total heap ownership.
 +//! Vec/String capacities are exact payload capacities. Slice and map-entry figures use
 +//! exposed occupied lengths; private spare capacity and allocator metadata are excluded.
-+use super::super::scene::Doc;
++use super::super::scene::FileDoc;
 +use session_rust::{
 +    BRep, Element, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, NurbsSurfaceTrimmed, OBB, Plane,
 +    Point, PointCloud, Polyline, Session,
@@ -4424,7 +4430,7 @@ index 0000000000000000000000000000000000000000..6835ccfb718af81ef503428e13d12554
 +impl SourceCache {
 +    /// Current viewer sources are immutable Rc sessions: replacement/append changes identity.
 +    /// Future in-place source editing must invalidate this cache or replace the Rc session.
-+    pub fn snapshot(&mut self, docs: &[Doc]) -> Payload {
++    pub fn snapshot(&mut self, docs: &[FileDoc]) -> Payload {
 +        let mut matches = docs.len() == self.documents.len();
 +        if matches {
 +            for (old, doc) in self.documents.iter().zip(docs) {
@@ -4458,6 +4464,19 @@ index 0000000000000000000000000000000000000000..6835ccfb718af81ef503428e13d12554
 +}
 +
 +/// Count each shared value once across typed collections, lookup and repeated documents.
++/// A typed collection: its vector, then every shared value it holds.
++fn shared_all<T>(
++    values: &Vec<Rc<T>>,
++    payload: &mut Payload,
++    seen: &mut HashSet<usize>,
++    children: fn(&T, &mut Payload),
++) {
++    payload.vector(values);
++    for value in values {
++        shared(value, payload, seen, children);
++    }
++}
++
 +fn shared<T>(
 +    value: &Rc<T>,
 +    payload: &mut Payload,
@@ -4477,54 +4496,18 @@ index 0000000000000000000000000000000000000000..6835ccfb718af81ef503428e13d12554
 +    p.string(&session.name);
 +    p.string(&session.objects.name);
 +    let objects = &session.objects;
-+    p.vector(&objects.points);
-+    for value in &objects.points {
-+        shared(value, p, seen, point_payload);
-+    }
-+    p.vector(&objects.lines);
-+    for value in &objects.lines {
-+        shared(value, p, seen, line_payload);
-+    }
-+    p.vector(&objects.planes);
-+    for value in &objects.planes {
-+        shared(value, p, seen, plane_payload);
-+    }
-+    p.vector(&objects.bboxes);
-+    for value in &objects.bboxes {
-+        shared(value, p, seen, box_payload);
-+    }
-+    p.vector(&objects.polylines);
-+    for value in &objects.polylines {
-+        shared(value, p, seen, polyline_payload);
-+    }
-+    p.vector(&objects.pointclouds);
-+    for value in &objects.pointclouds {
-+        shared(value, p, seen, cloud_payload);
-+    }
-+    p.vector(&objects.meshes);
-+    for value in &objects.meshes {
-+        shared(value, p, seen, mesh_payload);
-+    }
-+    p.vector(&objects.nurbscurves);
-+    for value in &objects.nurbscurves {
-+        shared(value, p, seen, curve_payload);
-+    }
-+    p.vector(&objects.nurbssurfaces);
-+    for value in &objects.nurbssurfaces {
-+        shared(value, p, seen, surface_payload);
-+    }
-+    p.vector(&objects.nurbssurfacetrimmeds);
-+    for value in &objects.nurbssurfacetrimmeds {
-+        shared(value, p, seen, trimmed_payload);
-+    }
-+    p.vector(&objects.breps);
-+    for value in &objects.breps {
-+        shared(value, p, seen, brep_payload);
-+    }
-+    p.vector(&objects.elements);
-+    for value in &objects.elements {
-+        shared(value, p, seen, element_payload);
-+    }
++    shared_all(&objects.points, p, seen, point_payload);
++    shared_all(&objects.lines, p, seen, line_payload);
++    shared_all(&objects.planes, p, seen, plane_payload);
++    shared_all(&objects.bboxes, p, seen, box_payload);
++    shared_all(&objects.polylines, p, seen, polyline_payload);
++    shared_all(&objects.pointclouds, p, seen, cloud_payload);
++    shared_all(&objects.meshes, p, seen, mesh_payload);
++    shared_all(&objects.nurbscurves, p, seen, curve_payload);
++    shared_all(&objects.nurbssurfaces, p, seen, surface_payload);
++    shared_all(&objects.nurbssurfacetrimmeds, p, seen, trimmed_payload);
++    shared_all(&objects.breps, p, seen, brep_payload);
++    shared_all(&objects.elements, p, seen, element_payload);
 +    p.vector(&objects.components);
 +    for component in &objects.components {
 +        p.string(&component.name);
@@ -4800,8 +4783,8 @@ index 0000000000000000000000000000000000000000..6835ccfb718af81ef503428e13d12554
 +    use session_rust::Xform;
 +
 +    /// A document shares the source exactly as the loader and scene coordinator do.
-+    fn document(session: Rc<Session>) -> Doc {
-+        Doc {
++    fn document(session: Rc<Session>) -> FileDoc {
++        FileDoc {
 +            name: "memory fixture".into(),
 +            place: Xform::identity(),
 +            session,
@@ -4874,10 +4857,10 @@ index 0000000000000000000000000000000000000000..6835ccfb718af81ef503428e13d12554
 +}
 diff --git a/session_viewer/src/selftest.rs b/session_viewer/src/selftest.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..fb53ba0841444960de131c1ff66a7156d72fd6a4
+index 0000000000000000000000000000000000000000..d45c09c72eb61a9ad4aad52acc7ab1544989ec4e
 --- /dev/null
 +++ b/session_viewer/src/selftest.rs
-@@ -0,0 +1,432 @@
+@@ -0,0 +1,389 @@
 +//! Headless harness, native only: the same `encode_frame` the browser runs, aimed at an
 +//! offscreen texture and read back, so a shader change can be LOOKED AT and measured here.
 +//! Every number in the docs comes through this file.
@@ -5040,10 +5023,9 @@ index 0000000000000000000000000000000000000000..fb53ba0841444960de131c1ff66a7156
 +    );
 +}
 +
-+/// Load every file into `scene`, uploading per file when `VIEWER_INCREMENTAL` is set (the
-+/// browser's path) and once at the end otherwise. Prints per-file load costs.
++/// Load every file into `scene` and upload once at the end (the per-file path the browser
++/// takes is exercised by `lifecycle`). Prints per-file load costs.
 +fn load_files(scene: &mut Scene, gpu: &mut Gpu, files: &[SceneFile]) {
-+    let incremental = std::env::var("VIEWER_INCREMENTAL").is_ok();
 +    for f in files {
 +        let t0 = std::time::Instant::now();
 +        let bytes =
@@ -5064,18 +5046,8 @@ index 0000000000000000000000000000000000000000..fb53ba0841444960de131c1ff66a7156
 +            bytes.len() as f64 / 1.048576e6,
 +            t0.elapsed() - t1
 +        );
-+        if incremental {
-+            scene.upload_to(gpu);
-+        }
 +    }
-+    if !incremental {
-+        scene.upload_to(gpu);
-+    }
-+    if std::env::var("VIEWER_REBUILD").is_ok() {
-+        let t = std::time::Instant::now();
-+        scene.rebuild(gpu);
-+        println!("rebuild {:?}", t.elapsed());
-+    }
++    scene.upload_to(gpu);
 +}
 +
 +/// The frame input for `camera` on `gpu`, re-anchoring first.
@@ -5090,7 +5062,7 @@ index 0000000000000000000000000000000000000000..fb53ba0841444960de131c1ff66a7156
 +}
 +
 +/// Write RGBA8 rows as a binary PPM (P6).
-+fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
++pub(crate) fn write_ppm(path: &str, rgba: &[u8], w: u32, h: u32) -> std::io::Result<()> {
 +    use std::io::Write;
 +    let mut f = std::io::BufWriter::new(std::fs::File::create(path)?);
 +    write!(f, "P6\n{w} {h}\n255\n")?;
@@ -5221,38 +5193,6 @@ index 0000000000000000000000000000000000000000..fb53ba0841444960de131c1ff66a7156
 +    }
 +}
 +
-+/// Where a frame's milliseconds go - uniforms, encode, GPU - for a still and a moving camera.
-+pub fn frame_profile(files: &[SceneFile], w: u32, h: u32) -> String {
-+    let mut gpu = pollster::block_on(Gpu::new_headless(w, h)).expect("headless gpu");
-+    let mut scene = Scene::new();
-+    load_files(&mut scene, &mut gpu, files);
-+    let aspect = w as f64 / h as f64;
-+    let n: usize = std::env::var("BENCH_FRAMES")
-+        .ok()
-+        .and_then(|v| v.parse().ok())
-+        .unwrap_or(120);
-+    let mut camera = camera_from_env(&gpu, aspect);
-+    let mut out = String::new();
-+    for (label, spin) in [("still", 0.0f32), ("moving", 0.35f32)] {
-+        let mut ms: Vec<f64> = Vec::new();
-+        for i in 0..n + 5 {
-+            camera.orbit(spin, 0.0);
-+            let input = frame_input(&mut gpu, &camera, aspect);
-+            let secs = gpu.bench_frames(&input, 1);
-+            if i >= 5 {
-+                ms.push(secs * 1000.0);
-+            }
-+        }
-+        ms.sort_by(|a, b| a.partial_cmp(b).unwrap());
-+        let med = ms[ms.len() / 2];
-+        out.push_str(&format!(
-+            "{label:>6}: {med:6.2} ms/frame ({:5.0} fps)\n",
-+            1000.0 / med
-+        ));
-+    }
-+    out
-+}
-+
 +/// Same-device visibility, upload and picking regression harness.
 +pub mod lifecycle;
 +
@@ -5310,12 +5250,38 @@ index 0000000000000000000000000000000000000000..fb53ba0841444960de131c1ff66a7156
 +        actual.len()
 +    );
 +}
+diff --git a/session_viewer/src/selftest/lifecycle.rs b/session_viewer/src/selftest/lifecycle.rs
+index aff764f138fe0cf3b57fa29a7b932a2a517a32b0..66701638ad0aa81ec197ffd13b253bf247584fd2 100644
+--- a/session_viewer/src/selftest/lifecycle.rs
++++ b/session_viewer/src/selftest/lifecycle.rs
+@@ -8,7 +8,7 @@ use crate::{
+     engine::gpu::{FrameInput, Gpu, Pick},
+ };
+ use session_rust::{Color, Line, Point, Session, Xform};
+-use std::{collections::HashSet, io::Write, path::Path, rc::Rc};
++use std::{collections::HashSet, path::Path, rc::Rc};
+ 
+ type Source = (String, Rc<Session>, Xform);
+ 
+@@ -111,11 +111,7 @@ fn same(label: &str, reference: &Frame, current: &Frame) {
+ 
+ /// Retain a reference image for visual continuity and marker inspection.
+ fn write_frame(path: &Path, frame: &Frame) {
+-    let mut file = std::io::BufWriter::new(std::fs::File::create(path).unwrap());
+-    write!(file, "P6\n800 600\n255\n").unwrap();
+-    for pixel in frame.color.chunks_exact(4) {
+-        file.write_all(&pixel[..3]).unwrap();
+-    }
++    super::write_ppm(path.to_str().unwrap(), &frame.color, 800, 600).unwrap();
+ }
+ 
+ /// Switch live targets, requiring exact restoration after every round trip.
 diff --git a/session_viewer/tests/README.md b/session_viewer/tests/README.md
 new file mode 100644
-index 0000000000000000000000000000000000000000..ff5f9d6f98a0fa21995cba4ded7ed3494be9acc7
+index 0000000000000000000000000000000000000000..94e1aaff18e2dc83584032f791c6d76d7bed15dc
 --- /dev/null
 +++ b/session_viewer/tests/README.md
-@@ -0,0 +1,222 @@
+@@ -0,0 +1,214 @@
 +# Maintained browser checks
 +
 +Serve the production build with `REGEN_PROTO=0 NO_COLOR=true trunk serve` on port 8770.
@@ -5396,12 +5362,6 @@ index 0000000000000000000000000000000000000000..ff5f9d6f98a0fa21995cba4ded7ed349
 +with completed picking after each action. A fixed delay followed by an already-idle snapshot
 +can otherwise observe the state before the browser dispatches the action.
 +
-+`node tests/text-zoom.cjs` uses Chrome's actual Settings → Appearance → Page zoom control
-+at 100%, 125%, 150% and 200% in a disposable persistent profile. It checks actual
-+`devicePixelRatio` and canvas scale changes, retains logical shaping, compares same-font
-+metrics and captures visible white glyph pixels. This is separate from emulated DPR and
-+forced raster-scale checks; the runner deletes its own temporary profile on completion.
-+
 +Native GPU regressions run explicitly on a machine with a supported adapter:
 +
 +```sh
@@ -5415,6 +5375,12 @@ index 0000000000000000000000000000000000000000..ff5f9d6f98a0fa21995cba4ded7ed349
 +placement changes without reshaping, cache eviction, release, exact imported outline IDs,
 +selection/hidden behavior, legacy mixed-print equivalence, and canceled GPU completions.
 +
++`node tests/loading.cjs` is the last-valid-scene, revision-race and malformed-payload check:
++a bad document keeps the previous scene, a stale revision is dropped, and the same replacement
++workload releases the GPU growth of the previous one. `node tests/lifecycle.cjs` covers focus,
++pointer cancellation, the hidden canvas and an unchanged framebuffer at a changed DPR. Both use
++the interaction fixture and the same Chrome/Playwright environment as `interaction.cjs`.
++
 +`node tests/streamed-controls.cjs` serves a virtual ranged protobuf source with 6,065,539
 +points and caps display residency at 250,000. It holds the second detail page to verify
 +that an early visible hit is not committed before every eligible source page finishes.
@@ -5426,14 +5392,6 @@ index 0000000000000000000000000000000000000000..ff5f9d6f98a0fa21995cba4ded7ed349
 +capture directory is `/tmp/session-viewer-streamed-controls-dpr1`. Run again with
 +`VIEWER_DPR=2` to check physical/CSS conversion and point visibility at DPR 2. Display LOD and residency
 +remain bounded while F10 source queries examine every intersecting source node.
-+
-+`python3 tests/modularity.py` prepares a scratch copy, removes the standalone point
-+producer and its registration, and applies an explicit skip-before-row-allocation policy.
-+It compiles the WASM build and runs the same seven-family interaction checks with one
-+additional standalone-point probe in the source. Exactly seven drawable rows must remain.
-+The maintained production source is never edited; shared GPU markers still serve controls
-+and other geometry. `--target-dir /path/to/cargo/target` can reuse build artifacts, and
-+`--prepare-only` stops after compilation when another GPU regression is running.
 +
 +CAD fixtures use the production native render path and preserve source topology through
 +rotated, mirrored and nonuniform instance transforms:
@@ -5528,7 +5486,7 @@ index 0000000000000000000000000000000000000000..ff5f9d6f98a0fa21995cba4ded7ed349
 +The planar pyramid upload and cone seam-facing regressions run with
 +`cargo test --target x86_64-unknown-linux-gnu --lib app::walk::brep` (set `REGEN_PROTO=0`).
 +The shared `Singular Planar Normal` cases cover both trimmed and U-collapsed grid surfaces
-+through `python3 tests/parity.py --output /tmp/cad-parity` (53 Rust / 61 C++ / 53 Python).
++in the kernels' own mini-tests (`bash/minitest.sh` in the parent directory).
 +
 +The BRep front-meridian unit regression ray-tests the teapot’s exposed authored edge against
 +all face triangles; it fails with the earlier kernel that buried its lower-body chord.
@@ -7135,7 +7093,7 @@ index 0000000000000000000000000000000000000000..37ff37725de5510f60369f8259e12aba
 +main().catch(function failed(error) { console.error(error); process.exitCode = 1; });
 diff --git a/session_viewer/tests/teapot.cjs b/session_viewer/tests/teapot.cjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..995e1463a93eeb1ab4df33722a422dd5020a1809
+index 0000000000000000000000000000000000000000..6ea5a726d46293041e4160c7d70264c948b43c1e
 --- /dev/null
 +++ b/session_viewer/tests/teapot.cjs
 @@ -0,0 +1,89 @@
@@ -7191,7 +7149,7 @@ index 0000000000000000000000000000000000000000..995e1463a93eeb1ab4df33722a422dd5
 +      await page.route('**/pb/view_mixed_teapot.pb', function source(route) {
 +        return route.fulfill({status:200,contentType:'application/octet-stream',body:bytes});
 +      });
-+      await page.goto(new URL('?data=off&inspect=1', process.env.VIEWER_URL || 'http://127.0.0.1:8771/').href);
++      await page.goto(new URL('?data=off&inspect=1', process.env.VIEWER_URL || 'http://127.0.0.1:8770/').href);
 +      await page.bringToFront();
 +      await page.waitForFunction(function loaded() {
 +        const s = JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection') || '{}');
@@ -7340,7 +7298,7 @@ index 0000000000000000000000000000000000000000..8a7d8aeb2f363a85c30edbf94b10bb1e
 +function fail(error){console.error(error);process.exitCode=1;}
 diff --git a/session_viewer/tests/world-text.cjs b/session_viewer/tests/world-text.cjs
 new file mode 100644
-index 0000000000000000000000000000000000000000..c02285dda854d5a394faf05e6b1d9f9402d01995
+index 0000000000000000000000000000000000000000..7050cfbe07e168b8fb101b4cc35daabdabb85665
 --- /dev/null
 +++ b/session_viewer/tests/world-text.cjs
 @@ -0,0 +1,95 @@
@@ -7408,7 +7366,7 @@ index 0000000000000000000000000000000000000000..c02285dda854d5a394faf05e6b1d9f94
 +        return route.fulfill({status:200,contentType:'application/yaml',body:
 +          'name: Fixed text\nitems: []\ntexts:\n  - text: text_not_oriented_to_camera\n    at: [0,0,10]\n    height: 32\n'});
 +      });
-+      await page.goto(new URL('?data=off&inspect=1',process.env.VIEWER_URL || 'http://127.0.0.1:8771/').href);
++      await page.goto(new URL('?data=off&inspect=1',process.env.VIEWER_URL || 'http://127.0.0.1:8770/').href);
 +      await page.bringToFront();
 +      await page.waitForFunction(function ready() {
 +        const s = JSON.parse(document.querySelector('#canvas')?.getAttribute('data-viewer-inspection') || '{}');

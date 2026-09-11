@@ -216,13 +216,13 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-18 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-17 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=19-70 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=18-69 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=71-117 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=70-105 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=118-163 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=106-142 -->
 
 <!-- file: 17 session_viewer/src/app/scene.rs type -->
 
@@ -337,7 +337,7 @@ Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves 
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=122-145 -->
 
-- `prepare` allocates coverage only while something is outlined; the radius is CSS pixels scaled to physical pixels. The coarse texture is `size / POOL` in each direction and binds beside the resolved mask.
+- `prepare` allocates coverage only while something is outlined; the radius is CSS pixels scaled to physical pixels (lesson 18 settles on one radius for ordinary and selected solids). The coarse texture is `size / POOL` in each direction and binds beside the resolved mask.
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=146-250 -->
 
@@ -354,11 +354,11 @@ Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves 
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=315-343 -->
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=344-400 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=344-376 -->
 
 Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, because silhouettes start off:
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=401-648 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=377-624 -->
 
 - The shader dilates coverage with a one-pixel smooth edge and returns black with that alpha. The dilation reads every texel within the radius, up to 27 × 27 per pixel; `near_any_coverage` checks the block under the pixel and its eight neighbours in the coarse texture and returns zero without the loop when all nine are empty. The kernel radius is clamped to 12 on the CPU, so those nine blocks always contain the whole kernel and the answer is the same to the bit.
 
@@ -377,6 +377,7 @@ flowchart LR
 
 - Silhouettes start **off**: the two coverage masks and the compositor are a full-screen pass per frame, which is slow on integrated GPUs. `O` turns them on; `?outlines=1` / `VIEWER_OUTLINES=1` starts with them on.
 - The default pen is one CSS pixel; `?thickness=` / `VIEWER_THICKNESS` selects a heavier weight.
+- The headlight starts **off** (`D`, `?lit=1` / `VIEWER_LIT=1` turn it on) and so do back faces (`?backface=1` paints them red): a CAD drawing reads better flat, and a wrong normal is easier to see with shading as an explicit switch than as the default.
 - `device_pixel_ratio` is the one place the browser's ratio is read: `?dpr=` caps it for people who prefer memory over crispness, never raising it above the browser's and never below 0.5.
 
 <!-- file: 17 session_viewer/src/engine/gpu/view.rs type -->
@@ -435,15 +436,15 @@ flowchart LR
 - `stroke_vertex(vid, layer)` culls the other layer's strokes, so the selected pass draws only selected ink.
 
 
-<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-3 -->
+<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-2 -->
 
 - A selected stroke keeps an opaque yellow core at least `line.thickness` wide; CAD boundary samples never taper with density.
 
-<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=4-5 -->
+<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=3-4 -->
 
 - Three vertex entries share `stroke_vertex`; `coverage` applies both join planes before the capsule distance.
 
-<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=6-7 -->
+<!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=5-6 -->
 
 ### Step 14b · Install the supplied tooling
 
@@ -473,8 +474,6 @@ flowchart TB
     P --> S["splat.wgsl · frame − origin"]
     style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
-
-<!-- file: 17 session_viewer/src/shaders/grid.wgsl type -->
 
 <!-- file: 17 session_viewer/src/shaders/splat.wgsl type -->
 

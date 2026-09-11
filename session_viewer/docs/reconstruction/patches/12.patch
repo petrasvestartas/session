@@ -812,10 +812,10 @@ index 5680f6b8b3ff7a4e72f76d908b472bea4c118580..063956142744d66d8c68003efec676e0
      None
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923d9e8f2be
+index 0000000000000000000000000000000000000000..b0325c04c9eea37e14c2bb7a96b469d8c04b8845
 --- /dev/null
 +++ b/session_viewer/src/app/scene.rs
-@@ -0,0 +1,494 @@
+@@ -0,0 +1,483 @@
 +//! The document side: `Scene` owns WHAT is loaded - every kernel `Session` with its placement,
 +//! the `Upload` tables, the row bookkeeping and the streamed-cloud slots. `add_file` walks one
 +//! session into the tables; rows append during loading and rebuild explicitly after edits.
@@ -835,7 +835,7 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +
 +/// One loaded file: the kernel `Session` (kept for picking, editing and saving) plus the
 +/// placement the manifest gave it.
-+pub struct Doc {
++pub struct FileDoc {
 +    pub name: String,
 +    pub place: Xform,
 +    /// Shared with whoever decoded it (the live source keeps its current set), never copied.
@@ -843,15 +843,6 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +    pub point_px: f32,
 +    /// True only for a streamed source descriptor with an empty Session shell.
 +    /// Full-file display_only hints retain geometry and become false after loading.
-+    pub display_only: bool,
-+}
-+
-+/// One parsed file on its way into the scene.
-+pub struct FileDoc {
-+    pub name: String,
-+    pub session: Rc<Session>,
-+    pub place: Xform,
-+    pub point_px: f32,
 +    pub display_only: bool,
 +}
 +
@@ -912,7 +903,7 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +
 +/// The open document set, the pending upload and the row bookkeeping.
 +pub struct Scene {
-+    pub docs: Vec<Doc>,
++    pub docs: Vec<FileDoc>,
 +    pub tables: Upload,
 +    pub streamed: Vec<StreamedCloud>,
 +    pub hidden: HashSet<(usize, Rc<str>)>,
@@ -1020,14 +1011,14 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +    }
 +
 +    /// The next object row and its guid bookkeeping.
-+    fn push_row(&mut self, guid: &str, place: Mat4, flags: u32) -> u32 {
++    /// One object row for `guid` owned by document `owner` (`usize::MAX` for a text object).
++    pub(super) fn push_row(&mut self, owner: usize, guid: &str, place: Mat4, flags: u32) -> u32 {
 +        let row = self.bases.obj + self.tables.obj.rows.len() as u32;
 +        self.tables.obj.rows.push(ObjectRow::new(place, flags));
 +        let guid: Rc<str> = Rc::from(guid);
-+        self.guid_to_row
-+            .insert((self.docs.len(), Rc::clone(&guid)), row);
++        self.guid_to_row.insert((owner, Rc::clone(&guid)), row);
 +        self.order.push(guid);
-+        self.owners.push(self.docs.len());
++        self.owners.push(owner);
 +        self.ribbon_ranges.push(None);
 +        row
 +    }
@@ -1066,7 +1057,7 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +                0
 +            };
 +            let object_place = placement(&world, &place.m, &guid);
-+            let row = self.push_row(&guid, object_place, flags);
++            let row = self.push_row(self.docs.len(), &guid, object_place, flags);
 +            let ribbon_start = self.tables.seg.ribbons.len();
 +            let cx = WalkCx {
 +                vert_base: self.bases.vert,
@@ -1079,7 +1070,6 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +            o.bounds = r.bounds;
 +            o.spacing = r.spacing;
 +            o.faces = r.faces;
-+            o.thickness = r.thickness;
 +            let ribbon_end = self.tables.seg.ribbons.len();
 +            if ribbon_start != ribbon_end {
 +                self.ribbon_ranges[row as usize] = Some(
@@ -1101,7 +1091,7 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +                "'{name}': retaining source geometry for controls; the legacy display_only/drop_sessions hint no longer releases it"
 +            );
 +        }
-+        self.docs.push(Doc {
++        self.docs.push(FileDoc {
 +            name,
 +            place,
 +            session,
@@ -1125,7 +1115,7 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +            col_at: _,
 +        } = init;
 +        let total = fields.count;
-+        let row = self.push_row(&format!("stream:{url}"), place.m, 0);
++        let row = self.push_row(self.docs.len(), &format!("stream:{url}"), place.m, 0);
 +        let slice = StreamSlice {
 +            rows,
 +            lod: &lod,
@@ -1138,12 +1128,11 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +        let o = self.tables.obj.rows.last_mut().unwrap();
 +        o.bounds = bounds;
 +        o.spacing = point_px;
-+        o.thickness = bounds.thinnest();
 +        self.tables.bounds.union(&bounds.placed(&place.m));
 +        self.upload_to(gpu);
 +
 +        let model = place.m;
-+        self.docs.push(Doc {
++        self.docs.push(FileDoc {
 +            name: name.clone(),
 +            place,
 +            session: Rc::new(Session::new(&name)),
@@ -1212,7 +1201,7 @@ index 0000000000000000000000000000000000000000..cceec2a03d4d78f3553ede153cb24923
 +    }
 +
 +    /// An instance's exact owning document; duplicated GUIDs across files remain distinct.
-+    pub fn document(&self, row: u32) -> Option<&Doc> {
++    pub fn document(&self, row: u32) -> Option<&FileDoc> {
 +        self.docs.get(*self.owners.get(row as usize)?)
 +    }
 +
@@ -1637,10 +1626,10 @@ index 0000000000000000000000000000000000000000..d5d7ca8a69de29f3428276801a3926f3
 +}
 diff --git a/session_viewer/src/app/walk/cloud.rs b/session_viewer/src/app/walk/cloud.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d5dba20c967990dbd72de410fc33f9fa549065af
+index 0000000000000000000000000000000000000000..a9ffae9ab5a853daae45895be248799b9bd3bbf7
 --- /dev/null
 +++ b/session_viewer/src/app/walk/cloud.rs
-@@ -0,0 +1,222 @@
+@@ -0,0 +1,221 @@
 +//! Point clouds into the cloud lane: a walked kernel `PointCloud` (points, optional normals,
 +//! the octree it carries, one draw), and the streamed form - a prefix or chunk of raw rows
 +//! that never became a kernel object, with the nodes those rows complete.
@@ -1687,7 +1676,6 @@ index 0000000000000000000000000000000000000000..d5dba20c967990dbd72de410fc33f9fa
 +        spacing: px,
 +        flags: 0,
 +        faces: false,
-+        thickness: bounds.thinnest(),
 +    }
 +}
 +
@@ -1954,7 +1942,7 @@ index 0000000000000000000000000000000000000000..83429b8f1e6be620a8d290098532f7cb
 +    Row::thin(push_loop(seg, &c, &BOX_EDGES, &pen))
 +}
 diff --git a/session_viewer/src/app/walk/mod.rs b/session_viewer/src/app/walk/mod.rs
-index 8a62d8e3ad59ad0d4d9017b103e0c511e7be6ba5..db68239e5d43b22635febac638e540aa09664fc3 100644
+index c6e5376a24bfd9fc9bf77b7417bc9f943d7cbbbb..90217d77f6832cce3f83f745fc054e185e7724cd 100644
 --- a/session_viewer/src/app/walk/mod.rs
 +++ b/session_viewer/src/app/walk/mod.rs
 @@ -1,14 +1,66 @@
@@ -2025,7 +2013,7 @@ index 8a62d8e3ad59ad0d4d9017b103e0c511e7be6ba5..db68239e5d43b22635febac638e540aa
  
  /// Where one object's rows land: the arena rows already on the GPU (`walk_mesh` bases its
  /// indices on it), the file's point-size override in px (0 = the pb's own) and the object row.
-@@ -43,3 +95,64 @@ impl Row {
+@@ -39,3 +91,64 @@ impl Row {
          }
      }
  }
@@ -2122,10 +2110,10 @@ index 0000000000000000000000000000000000000000..6365b56b7c45b796df0acf4580fd6794
 +}
 diff --git a/session_viewer/src/engine/gpu/device.rs b/session_viewer/src/engine/gpu/device.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..12bef051ae9f530045492f50cd7b0b4b17059123
+index 0000000000000000000000000000000000000000..5d8a99d79318e6043acc7b690ed23251a6dcc84f
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/device.rs
-@@ -0,0 +1,229 @@
+@@ -0,0 +1,231 @@
 +//! Device negotiation: instance -> surface -> adapter -> device + queue -> surface format.
 +//! Produces one `DeviceSetup` and owns nothing afterwards. Headless callers pass no window
 +//! and get no surface.
@@ -2190,7 +2178,9 @@ index 0000000000000000000000000000000000000000..12bef051ae9f530045492f50cd7b0b4b
 +        Some(named) => named,
 +        None => match instance.request_adapter(&options(preferred)).await {
 +            Ok(adapter) => adapter,
-+            Err(_) if preferred != default_power => instance.request_adapter(&options(default_power)).await?,
++            Err(_) if preferred != default_power => {
++                instance.request_adapter(&options(default_power)).await?
++            }
 +            Err(error) => return Err(error.into()),
 +        },
 +    };
@@ -3540,13 +3530,13 @@ index 0000000000000000000000000000000000000000..f162ecb52f6b7d426864fd5f3b2272a6
 +}
 diff --git a/session_viewer/src/engine/gpu/present.rs b/session_viewer/src/engine/gpu/present.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..796b49bbe22fb604926d7d316b250d9e96869408
+index 0000000000000000000000000000000000000000..ff8ed37c7f187413d9b3d329d5c96a9eedf70553
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/present.rs
-@@ -0,0 +1,214 @@
-+//! The three ways a frame leaves `Gpu`: presented to the swapchain (`present`), read back from
-+//! an offscreen texture (`render_offscreen`, the native harness), or timed in a batch
-+//! (`bench_frames`). Each writes the uniforms, encodes through `encode_frame`, and submits.
+@@ -0,0 +1,183 @@
++//! The two ways a frame leaves `Gpu`: presented to the swapchain (`present`) or read back from
++//! an offscreen texture (`render_offscreen`, the native harness). Each writes the uniforms,
++//! encodes through `encode_frame`, and submits.
 +
 +use super::Gpu;
 +use super::frame::{FrameCx, FrameInput};
@@ -3725,37 +3715,6 @@ index 0000000000000000000000000000000000000000..796b49bbe22fb604926d7d316b250d9e
 +        let readback = self.pick.copy_frame(&self.ctx, &mut encoder);
 +        self.ctx.queue.submit([encoder.finish()]);
 +        readback.read(&self.ctx)
-+    }
-+
-+    /// Time `frames` full frames into one offscreen target, GPU drained after each; returns
-+    /// seconds for the batch. The caller warms the caches with a first call it discards.
-+    #[cfg(not(target_arch = "wasm32"))]
-+    pub fn bench_frames(&mut self, input: &FrameInput, frames: u32) -> f64 {
-+        let (w, h) = (self.config.width, self.config.height);
-+        let tex = texture(
-+            &self.ctx,
-+            "bench.color",
-+            &TextureSpec {
-+                size: (w, h),
-+                format: self.config.format,
-+                samples: 1,
-+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-+            },
-+        );
-+        let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
-+        self.write_frame_uniforms(input);
-+
-+        let t0 = std::time::Instant::now();
-+        for _ in 0..frames {
-+            let mut encoder = self.ctx.device.create_command_encoder(&Default::default());
-+            self.encode_frame(&mut encoder, &view, input.clear);
-+            self.ctx.queue.submit([encoder.finish()]);
-+            let _ = self.ctx.device.poll(wgpu::PollType::Wait {
-+                submission_index: None,
-+                timeout: None,
-+            });
-+        }
-+        t0.elapsed().as_secs_f64()
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
@@ -4324,10 +4283,10 @@ index 452a01b8928b24e9b4db5618f8e745d5b557118c..740b88f1770a515acaf77e79ac9f1ddb
  pub mod text;
 diff --git a/session_viewer/src/fixture.rs b/session_viewer/src/fixture.rs
 deleted file mode 100644
-index 614b48d0d83f878f17b1bfcaf2ad4629976cf676..0000000000000000000000000000000000000000
+index de93294dfa44c16396fda69c12d8b7aacb2746ac..0000000000000000000000000000000000000000
 --- a/session_viewer/src/fixture.rs
 +++ /dev/null
-@@ -1,224 +0,0 @@
+@@ -1,223 +0,0 @@
 -//! Local source geometry and its prepared GPU rows; no fetch, credentials or baked transforms.
 -use crate::app::walk::brep::{walk_brep, walk_surface};
 -use crate::app::walk::mesh_ink::Ink;
@@ -4407,7 +4366,6 @@ index 614b48d0d83f878f17b1bfcaf2ad4629976cf676..00000000000000000000000000000000
 -        object.bounds = prepared.bounds;
 -        object.spacing = prepared.spacing;
 -        object.faces = prepared.faces;
--        object.thickness = prepared.thickness;
 -        self.upload.bounds.union(&prepared.bounds.placed(&place.m));
 -        self.upload.obj.rows.push(object);
 -    }
@@ -5245,10 +5203,10 @@ index 0000000000000000000000000000000000000000..10e1a2640887ed82608ae64c78ce4801
 +}
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..a976db0dccd70cec1d69bff2d7ba39660331b65d
+index 0000000000000000000000000000000000000000..b258f62b32326078e49bce2792a4a5ce34b32225
 --- /dev/null
 +++ b/session_viewer/src/state.rs
-@@ -0,0 +1,506 @@
+@@ -0,0 +1,510 @@
 +//! `State` - the viewer itself: the layers (`gpu`, `scene`, `camera`) and the shell state:
 +//! `needs_frame`, the demand for a redraw, and `dirty`, whether the picture changed (a pick
 +//! on a still scene needs the loop, not a colour frame). Higher layers drive lower ones,
@@ -5420,6 +5378,17 @@ index 0000000000000000000000000000000000000000..a976db0dccd70cec1d69bff2d7ba3966
 +    /// The global cloud point-size scale, clamped.
 +    pub fn set_cloud_size(&mut self, size: f32) {
 +        self.gpu.view.cloud_size = size.clamp(0.25, 8.0);
++        self.touch();
++    }
++
++    /// `P`: shaded faces <-> x-ray. In x-ray every mesh, NURBS and BRep face is gone and only
++    /// its edges, points and text remain; lines and points are never affected.
++    pub fn toggle_xray(&mut self) {
++        self.gpu.view.opacity = if self.gpu.view.opacity > 0.0 {
++            0.0
++        } else {
++            1.0
++        };
 +        self.touch();
 +    }
 +
@@ -5695,14 +5664,7 @@ index 0000000000000000000000000000000000000000..a976db0dccd70cec1d69bff2d7ba3966
 +
 +    /// Non-disruptive interaction feedback also remains available to native diagnostics.
 +    fn status(&self, message: &str) {
-+        #[cfg(target_arch = "wasm32")]
-+        if let Some(window) = web_sys::window()
-+            && let Some(document) = window.document()
-+            && let Some(status) = document.get_element_by_id("viewer-status")
-+        {
-+            status.set_text_content(Some(message));
-+        }
-+        log::info!("{message}");
++        crate::app::feedback::status(message);
 +    }
 +
 +    /// The `?perf=1` line: frame number, gap since the previous frame, encode time, heap.

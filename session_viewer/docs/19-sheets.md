@@ -117,9 +117,9 @@ flowchart TB
 
 <!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=1-101 -->
 
-<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=102-216 -->
+<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=102-187 -->
 
-<!-- file: 19 session_viewer/src/app/sheet_query.rs copy lines=217-273 -->
+<!-- file: 19 session_viewer/src/app/sheet_query.rs copy lines=188-244 -->
 
 <!-- file: 19 session_viewer/src/app/mod.rs type -->
 

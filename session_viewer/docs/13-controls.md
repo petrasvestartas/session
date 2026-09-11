@@ -68,9 +68,9 @@ flowchart LR
 
 - `content_length` is a HEAD request: the size a whole file would download, before a byte of it is fetched, so a scene can refuse what the device cannot hold.
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-174 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-192 -->
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=175-230 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=193-248 -->
 
 - `QueryView` freezes the click's projection; every page is tested against the same matrix and pixel window.
 - A cube crossing the eye plane cannot be excluded, so `intersects` returns true for it.
@@ -85,9 +85,9 @@ flowchart LR
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=196-270 -->
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-455 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-426 -->
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=456-585 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=427-556 -->
 
 <!-- check: 13 -->
 

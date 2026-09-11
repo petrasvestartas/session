@@ -1277,10 +1277,10 @@ index 3b8ae641cd8f1948d586195561be4a903d3a7fbf..27c1006dcc6b33ffe54e9b36aecae135
  /// Read a monotonic frame time from the browser when available.
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..9992d8634811047f37e0cc25b4a1aad3f4c29070
+index 0000000000000000000000000000000000000000..367c66cc7c23a7b19a3903ad7a5ee47d6350aaf6
 --- /dev/null
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -0,0 +1,181 @@
+@@ -0,0 +1,171 @@
 +// The point lane: one pixel-aligned quad per point, pulled by vertex index, into the lane's
 +// own 1x depth + colour targets. Group 0 = the cloud uniform, group 1 = records + tables.
 +
@@ -1331,16 +1331,6 @@ index 0000000000000000000000000000000000000000..9992d8634811047f37e0cc25b4a1aad3
 +        }
 +    }
 +    return lo;
-+}
-+
-+fn oct16_decode(p: u32) -> vec3<f32> {
-+    let e = vec2<f32>(f32(i32(p << 24u) >> 24u) / 127.0, f32(i32(p << 16u) >> 24u) / 127.0);
-+    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
-+    if (n.z < 0.0) {
-+        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
-+        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
-+    }
-+    return normalize(n);
 +}
 +
 +// Point `gid` projected: pixel centre, radius, depth, lit colour, and its table row.

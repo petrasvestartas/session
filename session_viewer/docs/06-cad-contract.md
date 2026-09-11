@@ -89,9 +89,7 @@ flowchart LR
     style K fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/bounds.rs type lines=1-71 -->
-
-<!-- file: 06 session_viewer/src/app/walk/bounds.rs type lines=72-153 -->
+<!-- file: 06 session_viewer/src/app/walk/bounds.rs type -->
 
 ## Step 5 · Fused mesh topology
 
@@ -158,13 +156,13 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-81 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-80 -->
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=82-144 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=81-143 -->
 
 - Faces go into the arena with `vids = cx.row`; the ink pass runs only on decorated meshes with a topology.
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=145-239 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=144-236 -->
 
 ## Step 8 · Curves into the ribbon lane
 
@@ -178,12 +176,12 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-67 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-65 -->
 
 - A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
 - `render_position` is the single f64 → f32 boundary for every producer.
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=68-149 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=66-147 -->
 
 ## Step 9 · Edge records and the first BRep consumer
 

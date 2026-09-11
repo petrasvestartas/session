@@ -51,7 +51,7 @@ index 0000000000000000000000000000000000000000..5680f6b8b3ff7a4e72f76d908b472bea
 +}
 diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..bb3c25df3d803f2589f65f7adb9ca20a65bc4387
+index 0000000000000000000000000000000000000000..6fd6992f3591ef3ac17ab5aadea2d49aa16a2193
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/arena.rs
 @@ -0,0 +1,226 @@
@@ -64,7 +64,7 @@ index 0000000000000000000000000000000000000000..bb3c25df3d803f2589f65f7adb9ca20a
 +use super::text_outline::{OutlineBuffers, OutlineTextLane};
 +use super::upload::drop_rows;
 +use crate::engine::pipelines::{
-+    Layouts, PipelineDesc, Target, build, instance_id_layout, module, vertex_layout,
++    Layouts, PipelineDesc, Target, build, instance_id_layout, scene_module, vertex_layout,
 +};
 +use session_rust::RenderVertex;
 +use wgpu::PrimitiveTopology::TriangleList;
@@ -130,7 +130,7 @@ index 0000000000000000000000000000000000000000..bb3c25df3d803f2589f65f7adb9ca20a
 +
 +    /// Five one-row tables; the first upload sizes them.
 +    pub fn new(ctx: &GpuCtx, l: &Layouts, target: Target) -> Self {
-+        let shader = module(
++        let shader = scene_module(
 +            &ctx.device,
 +            "triangle.shader",
 +            include_str!("../../shaders/triangle.wgsl"),
@@ -495,10 +495,10 @@ index 0000000000000000000000000000000000000000..a6b436e4a08402b08ce39480e9d533ba
 +}
 diff --git a/session_viewer/src/engine/gpu/frame.rs b/session_viewer/src/engine/gpu/frame.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..9c08cec6ab815c15ed2e68166b7745b4d5eb22cd
+index 0000000000000000000000000000000000000000..62deb515377042edb2b26c6979ba746d77c4d4b3
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/frame.rs
-@@ -0,0 +1,399 @@
+@@ -0,0 +1,417 @@
 +//! The per-frame uniforms every shader reads: the camera matrix (group 0), the line/pen block
 +//! and the cloud block (group 1), written once per frame from a `FrameInput`. The eye and the
 +//! ortho half-height are solved here ONCE and read by the point records and the inside test.
@@ -705,6 +705,24 @@ index 0000000000000000000000000000000000000000..9c08cec6ab815c15ed2e68166b7745b4
 +}
 +
 +impl FrameUniforms {
++    /// Groups 0-2 for a scene draw over `instances` (the plain or the ink instance group).
++    pub fn binds<'a>(&'a self, instances: &'a wgpu::BindGroup) -> Binds<'a> {
++        Binds {
++            mvp: &self.mvp_group,
++            line: &self.line_group,
++            instances,
++        }
++    }
++
++    /// Groups 0-2 for the pick pass: the window's uniforms over `instances`.
++    pub fn pick_binds<'a>(&'a self, instances: &'a wgpu::BindGroup) -> Binds<'a> {
++        Binds {
++            mvp: &self.pick_mvp_group,
++            line: &self.pick_line_group,
++            instances,
++        }
++    }
++
 +    /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
 +    pub fn allocated_bytes(&self) -> u64 {
 +        self.mvp_buffer.size()
@@ -898,6 +916,35 @@ index 0000000000000000000000000000000000000000..9c08cec6ab815c15ed2e68166b7745b4
 +        assert!((right_bottom[0] - 1.0).abs() < 1e-4 && (right_bottom[1] + 1.0).abs() < 1e-4);
 +    }
 +}
+diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
+index 55788957f3cf6e424657214e38b95da74de5903a..ee7c50b82c473cf99b258cf20f628f2a9aa5c568 100644
+--- a/session_viewer/src/engine/gpu/instance.rs
++++ b/session_viewer/src/engine/gpu/instance.rs
+@@ -175,19 +175,13 @@ mod tests {
+         }
+     }
+ 
+-    /// Every shader that declares `Instance` lists the Rust fields, in order.
++    use crate::engine::pipelines::SCENE;
++
++    /// The scene contract declares `Instance` with the Rust fields, in order.
+     #[test]
+     fn instance_mirror() {
+-        let rust = ["model", "color", "flags", "thickness", "spacing"];
+-        for (name, src) in lane_shaders() {
+-            if src.contains("struct Instance") {
+-                assert_eq!(
+-                    wgsl_fields(src, "Instance"),
+-                    rust,
+-                    "{name}: Instance fields"
+-                );
+-            }
+-        }
++        let rust = ["model", "color", "flags", "_pad0", "spacing"];
++        assert_eq!(wgsl_fields(SCENE, "Instance"), rust, "Instance fields");
+     }
+ 
+     /// Every shader that declares `LineUniform` lists the Rust fields; `eye: [f32; 3]` is
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
 index 7f219711f9712b02aa65c38a586a761d1030fc5e..67bba8bbe84aef6895f7bb10f70d8eca668f3b1f 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
@@ -1078,10 +1125,10 @@ index 7f219711f9712b02aa65c38a586a761d1030fc5e..67bba8bbe84aef6895f7bb10f70d8eca
 +}
 diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..64e8fac743bf28bc06009dc22e578887a002c41b
+index 0000000000000000000000000000000000000000..2a287f8bf9bc763a506511fefd063d8e31620f33
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/objects.rs
-@@ -0,0 +1,483 @@
+@@ -0,0 +1,469 @@
 +//! `ObjectRows` - the per-object columns ONE upload carries (a delta, dropped after upload) -
 +//! and `InstanceTable`, the ONE owner of the object rows the GPU reads: the rows, their f64
 +//! translations, the sparse bounded rows, the re-anchor, the inside test, the two buffers and
@@ -1091,7 +1138,7 @@ index 0000000000000000000000000000000000000000..64e8fac743bf28bc06009dc22e578887
 +use super::instance::Instance;
 +use super::targets::Targets;
 +use crate::engine::pipelines::Layouts;
-+use crate::math::{Aabb, Mat4, mat_scale, mat_to_f32};
++use crate::math::{Aabb, Mat4, mat_to_f32};
 +use session_rust::Point;
 +
 +/// Re-anchor threshold band, world units: the table is rebased once the camera target drifts
@@ -1101,16 +1148,6 @@ index 0000000000000000000000000000000000000000..64e8fac743bf28bc06009dc22e578887
 +
 +/// Re-anchors are throttled to this interval so a wheel-zoom gesture does not rebuild every tick.
 +const REANCHOR_THROTTLE_MS: f64 = 200.0;
-+
-+/// Preserve the historical floor on the instance's thickness metadata.
-+const THICK_FLOOR: f32 = 0.001;
-+
-+/// Scale the walk's thickness metadata into world units. Physical occlusion does not use it.
-+fn thickness(r: &ObjectRow) -> f32 {
-+    let scale = mat_scale(&mat_to_f32(&r.place)) as f32;
-+    let thin = r.thickness * scale;
-+    thin.max(THICK_FLOOR * r.bounds.placed(&r.place).diagonal())
-+}
 +
 +/// One object as the walk reports it: its true placement, tint, flags, mesh-local box
 +/// (empty when the object has no volume the ink lanes care about) and vertex spacing.
@@ -1124,8 +1161,6 @@ index 0000000000000000000000000000000000000000..64e8fac743bf28bc06009dc22e578887
 +    pub spacing: f32,
 +    /// The row drew faces, so the per-frame inside test walks its box.
 +    pub faces: bool,
-+    /// The object's thickness in local units, orientation-free (the walk measures it).
-+    pub thickness: f32,
 +}
 +
 +impl ObjectRow {
@@ -1138,7 +1173,6 @@ index 0000000000000000000000000000000000000000..64e8fac743bf28bc06009dc22e578887
 +            bounds: Aabb::empty(),
 +            spacing: 0.0,
 +            faces: false,
-+            thickness: 0.0,
 +        }
 +    }
 +}
@@ -1350,12 +1384,11 @@ index 0000000000000000000000000000000000000000..64e8fac743bf28bc06009dc22e578887
 +            model[12] = 0.0;
 +            model[13] = 0.0;
 +            model[14] = 0.0;
-+            let thickness = thickness(r);
 +            self.rows.push(Instance {
 +                model,
 +                color: r.color,
 +                flags: r.flags,
-+                thickness,
++                _pad0: 0.0,
 +                spacing: r.spacing,
 +                _pad: 0,
 +            });
@@ -1738,7 +1771,7 @@ index 0000000000000000000000000000000000000000..0e020b1e3041bb5f57d715e1ceba30f2
 +}
 diff --git a/session_viewer/src/engine/gpu/text_outline.rs b/session_viewer/src/engine/gpu/text_outline.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..65af6f1d5851e441a200983d641d31ab77c1d577
+index 0000000000000000000000000000000000000000..3d17edab45bd9f67d3019b29a1f9b0877714ee60
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/text_outline.rs
 @@ -0,0 +1,246 @@
@@ -1751,7 +1784,7 @@ index 0000000000000000000000000000000000000000..65af6f1d5851e441a200983d641d31ab
 +use super::buffers::{GpuCtx, GrowBuf};
 +use super::frame::Binds;
 +use crate::engine::pipelines::{
-+    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, instance_id_layout, module,
++    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, instance_id_layout, scene_module,
 +    vertex_layout,
 +};
 +
@@ -1772,7 +1805,7 @@ index 0000000000000000000000000000000000000000..65af6f1d5851e441a200983d641d31ab
 +impl OutlineTextLane {
 +    /// Compile the exact-outline shader against the viewer's shared layouts and device.
 +    pub fn new(ctx: &GpuCtx, layouts: &Layouts, target: Target) -> Self {
-+        let shader = module(
++        let shader = scene_module(
 +            &ctx.device,
 +            "text-outline.shader",
 +            include_str!("../../shaders/text_outline.wgsl"),
@@ -2038,10 +2071,10 @@ index 0000000000000000000000000000000000000000..930d39d146a2d265e210a0b2c4d57eed
 +}
 diff --git a/session_viewer/src/engine/gpu/view.rs b/session_viewer/src/engine/gpu/view.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b69a9094c291c06064f0f01bca92747c831fcac0
+index 0000000000000000000000000000000000000000..146fa47369b05439046baad48c53114720278c93
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/view.rs
-@@ -0,0 +1,101 @@
+@@ -0,0 +1,102 @@
 +//! `View` - the runtime knobs a frame reads: what to show, the
 +//! cloud / EDL / LOD scalars and the pen weight. Read ONCE at startup from the query string
 +//! (wasm) or the environment (native); the key handlers flip them afterwards. No GPU here.
@@ -2105,8 +2138,9 @@ index 0000000000000000000000000000000000000000..b69a9094c291c06064f0f01bca92747c
 +            lod_px: knob_f32("VIEWER_LOD", "lod", 0.0),
 +            thickness_px: knob_f32("VIEWER_THICKNESS", "thickness", 1.5).max(0.1),
 +            feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
-+            lit: knob("VIEWER_NO_LIT", "nolit").is_none(),
-+            backface: knob("VIEWER_NO_BACKFACE", "nobackface").is_none(),
++            lit: knob("VIEWER_LIT", "lit").is_some(),
++            backface: knob("VIEWER_BACKFACE", "backface").is_some(),
++            opacity: knob_f32("VIEWER_OPACITY", "opacity", 1.0).clamp(0.0, 1.0),
 +            msaa_forced: knob_u32("VIEWER_MSAA", "msaa"),
 +            perf: knob("VIEWER_PERF", "perf").is_some(),
 +            spin: knob("VIEWER_SPIN", "spin").is_some(),
@@ -2266,10 +2300,10 @@ index 0000000000000000000000000000000000000000..9ca1665bc17dc1da45e0b56b61b9dc35
 +}
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..6e4c92d50855126321c786830c74345384860625
+index 0000000000000000000000000000000000000000..aeed61c9f6cad996c459d016608696306158c39a
 --- /dev/null
 +++ b/session_viewer/src/engine/pipelines/mod.rs
-@@ -0,0 +1,271 @@
+@@ -0,0 +1,285 @@
 +//! Pipelines are data. `PipelineDesc` names what differs between the viewer's render
 +//! pipelines and `build` is the only place wgpu is asked for one. Every lane owns its own
 +//! descs and rebuilds them through `retarget` when the MSAA sample count flips.
@@ -2308,6 +2342,8 @@ index 0000000000000000000000000000000000000000..6e4c92d50855126321c786830c743453
 +    ReadOnlyEqual,
 +    /// No test, no write: the background.
 +    Always,
++    /// No depth attachment at all: a full-screen pass over a texture.
++    Detached,
 +}
 +
 +impl DepthMode {
@@ -2318,7 +2354,7 @@ index 0000000000000000000000000000000000000000..6e4c92d50855126321c786830c743453
 +            DepthMode::OpaqueEqual => (true, wgpu::CompareFunction::GreaterEqual),
 +            DepthMode::ReadOnly => (false, wgpu::CompareFunction::Greater),
 +            DepthMode::ReadOnlyEqual => (false, wgpu::CompareFunction::GreaterEqual),
-+            DepthMode::Always => (false, wgpu::CompareFunction::Always),
++            DepthMode::Always | DepthMode::Detached => (false, wgpu::CompareFunction::Always),
 +        }
 +    }
 +}
@@ -2332,6 +2368,8 @@ index 0000000000000000000000000000000000000000..6e4c92d50855126321c786830c743453
 +    Blended,
 +    /// Keep the larger value: coverage masks, where a stroke's feather must not dent a face.
 +    Max,
++    /// No colour at all: a rasterization run for its fragment side effects.
++    Nothing,
 +}
 +
 +impl ColorWrite {
@@ -2343,6 +2381,7 @@ index 0000000000000000000000000000000000000000..6e4c92d50855126321c786830c743453
 +                Some(wgpu::BlendState::ALPHA_BLENDING),
 +                wgpu::ColorWrites::ALL,
 +            ),
++            ColorWrite::Nothing => (None, wgpu::ColorWrites::empty()),
 +            ColorWrite::Max => {
 +                let max = wgpu::BlendComponent {
 +                    src_factor: wgpu::BlendFactor::One,
@@ -2431,6 +2470,15 @@ index 0000000000000000000000000000000000000000..6e4c92d50855126321c786830c743453
 +        self.depth = depth;
 +        self
 +    }
++}
++
++/// The scene contract (`scene.wgsl`: groups 0-2, `Instance`, `LineUniform`, the flags,
++/// `place`) that every lane on it is compiled with.
++pub const SCENE: &str = include_str!("../../shaders/scene.wgsl");
++
++/// A lane on the scene contract: faces, lettering, the grid.
++pub fn scene_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
++    module(device, label, &format!("{source}\n{SCENE}"))
 +}
 +
 +const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
@@ -2525,7 +2573,7 @@ index 0000000000000000000000000000000000000000..6e4c92d50855126321c786830c743453
 +            unclipped_depth: false,
 +            conservative: false,
 +        },
-+        depth_stencil: Some(wgpu::DepthStencilState {
++        depth_stencil: (desc.depth != DepthMode::Detached).then_some(wgpu::DepthStencilState {
 +            format: wgpu::TextureFormat::Depth32Float,
 +            depth_write_enabled: Some(depth_write),
 +            depth_compare: Some(depth_compare),
@@ -2964,10 +3012,10 @@ index e05e7aabbdd8c7d0e8cabf9650c99d2c37018ef8..00000000000000000000000000000000
 -@fragment fn fs_main(input: VertexOut) -> @location(0) vec4<f32> { return vec4<f32>(input.color,1.0); }
 diff --git a/session_viewer/src/shaders/normals.wgsl b/session_viewer/src/shaders/normals.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..e717f4cdc381947d9f1a8005bcacdfef117d374b
+index 0000000000000000000000000000000000000000..75f72c676d3e1b9e150d843cfdd165aec0086019
 --- /dev/null
 +++ b/session_viewer/src/shaders/normals.wgsl
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,20 @@
 +// Rigid/uniform-scale teaching stage; chapter09 installs the full affine normal contract.
 +fn transform_normal(model: mat3x3<f32>, normal: vec3<f32>) -> vec3<f32> {
 +    let transformed = model * normal;
@@ -2977,27 +3025,90 @@ index 0000000000000000000000000000000000000000..e717f4cdc381947d9f1a8005bcacdfef
 +fn face_normal(model: mat4x4<f32>, normal: vec3<f32>) -> vec3<f32> {
 +    return transform_normal(mat3x3<f32>(model[0].xyz, model[1].xyz, model[2].xyz), normal);
 +}
-diff --git a/session_viewer/src/shaders/text_outline.wgsl b/session_viewer/src/shaders/text_outline.wgsl
-new file mode 100644
-index 0000000000000000000000000000000000000000..4a0e7839f78e656685472c4ff67b24848ab7f6d0
---- /dev/null
-+++ b/session_viewer/src/shaders/text_outline.wgsl
-@@ -0,0 +1,62 @@
-+// Imported PDF lettering retains the producer's exact positioned outlines. Coverage comes
-+// from the pass samples; this shader never lights, thickens or re-spaces the glyphs.
-+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 +
-+// Same 96-byte instance record as the arena: model 0, color 64, flags 80,
-+// thickness 84, spacing 88; the storage-array stride rounds up to 96 bytes.
++// A unit normal packed as two signed octahedral bytes (encode.rs), decoded.
++fn oct16_decode(p: u32) -> vec3<f32> {
++    let e = vec2<f32>(f32(i32(p << 24u) >> 24u) / 127.0, f32(i32(p << 16u) >> 24u) / 127.0);
++    var n = vec3<f32>(e, 1.0 - abs(e.x) - abs(e.y));
++    if (n.z < 0.0) {
++        let s = vec2<f32>(select(1.0, -1.0, n.x < 0.0), select(1.0, -1.0, n.y < 0.0));
++        n = vec3<f32>((1.0 - abs(n.y)) * s.x, (1.0 - abs(n.x)) * s.y, n.z);
++    }
++    return normalize(n);
++}
+diff --git a/session_viewer/src/shaders/scene.wgsl b/session_viewer/src/shaders/scene.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..cdc953413ed84c5b1c9211fa44dab40a5ab35c6f
+--- /dev/null
++++ b/session_viewer/src/shaders/scene.wgsl
+@@ -0,0 +1,59 @@
++// The scene contract every lane shader is compiled with (pipelines::scene_module appends
++// this file): the camera at group 0, the per-frame line block at group 1, the object rows and
++// their anchored translations at group 2. A lane declares only its own group 3.
++
++@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
++@group(1) @binding(0) var<uniform> line: LineUniform;
++
++// One object row, 96 bytes: model 0, color 64, flags 80, pad 84, spacing 88 (engine/gpu/instance.rs).
 +struct Instance {
 +    model: mat4x4<f32>,
 +    color: vec4<f32>,
 +    flags: u32,
-+    thickness: f32,
++    _pad0: f32,
 +    spacing: f32,
-+}
++};
 +@group(2) @binding(0) var<storage, read> instances: array<Instance>;
 +@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
++
++// The 80-byte frame block (engine/gpu/frame.rs): pen, projection, viewport, eye, anchor.
++struct LineUniform {
++    thickness: f32,
++    proj_y: f32,
++    ortho_h: f32,
++    vp_h: f32,
++    vp_w: f32,
++    eye_x: f32,
++    eye_y: f32,
++    eye_z: f32,
++    anchor: vec3<f32>,
++    feather: f32,
++    lit: f32,
++    backface: f32,
++    origin: vec2<f32>,
++    frame: vec2<f32>,
++    opacity: f32,
++};
++
++// Instance::FLAG_* bits.
++const FLAG_SELECTED: u32 = 1u;
++const FLAG_HIDDEN: u32 = 2u;
++const FLAG_INSIDE: u32 = 4u;
++const FLAG_PRINT: u32 = 8u;
++const FLAG_OPEN: u32 = 16u;
++const FLAG_SHEET: u32 = 32u;
++const FLAG_SMOOTH: u32 = 64u;
++const FLAG_SINGLE: u32 = 128u;
++
++const FACING_UNKNOWN: u32 = 0xffffffffu;
++// The sub id a marker answers: ink, not a face, to the pick window; no row behind it.
++const DISC_ID_TAG: u32 = 0x40000000u;
++const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
++const MM_TO_M: f32 = 0.001;
++const HAIRLINE_MIN_ALPHA: f32 = 0.5;
++
++// A point of object `i` in the anchored frame: rotation/scale from the row, translation
++// from the 16 B table a re-anchor rewrites.
++fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
++    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
++}
+diff --git a/session_viewer/src/shaders/text_outline.wgsl b/session_viewer/src/shaders/text_outline.wgsl
+new file mode 100644
+index 0000000000000000000000000000000000000000..a8551be581cbefef7fd37494c66ba6a28e8fc48c
+--- /dev/null
++++ b/session_viewer/src/shaders/text_outline.wgsl
+@@ -0,0 +1,44 @@
++// Imported PDF lettering retains the producer's exact positioned outlines. Coverage comes
++// from the pass samples; this shader never lights, thickens or re-spaces the glyphs.
 +
 +struct Vertex {
 +    @location(0) position: vec3<f32>,
@@ -3008,11 +3119,6 @@ index 0000000000000000000000000000000000000000..4a0e7839f78e656685472c4ff67b2484
 +    @builtin(position) position: vec4<f32>,
 +    @location(0) color: vec4<f32>,
 +    @location(1) @interpolate(flat) object: u32,
-+}
-+
-+// Object-local point to the camera's rebased world frame.
-+fn place(object: u32, point: vec3<f32>) -> vec3<f32> {
-+    return (instances[object].model * vec4<f32>(point, 1.0)).xyz + translations[object].xyz;
 +}
 +
 +// Apply the original object placement and unlit source/selection color.
@@ -3047,52 +3153,13 @@ index 0000000000000000000000000000000000000000..4a0e7839f78e656685472c4ff67b2484
 +}
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..4be1b9ac14f9838abdc74c3c0696e822d29e2107
+index 0000000000000000000000000000000000000000..7934a12b9c424223c2a92f8edbb0a4e21bf1f43b
 --- /dev/null
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -0,0 +1,161 @@
-+// Mesh faces: lit triangles from the arena. Group 0 camera, 1 line/pen block, 2 instances.
+@@ -0,0 +1,122 @@
++// Mesh faces: lit triangles from the arena, on the scene contract of scene.wgsl.
 +
-+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-+@group(1) @binding(0) var<uniform> line: LineUniform;
-+
-+struct Instance {
-+    model: mat4x4<f32>,
-+    color: vec4<f32>,
-+    flags: u32,
-+    thickness: f32,
-+    spacing: f32,
-+}
-+@group(2) @binding(0) var<storage, read> instances: array<Instance>;
-+@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
-+
-+struct LineUniform {
-+    thickness: f32,
-+    proj_y: f32,
-+    ortho_h: f32,
-+    vp_h: f32,
-+    vp_w: f32,
-+    eye_x: f32,
-+    eye_y: f32,
-+    eye_z: f32,
-+    anchor: vec3<f32>,
-+    feather: f32,
-+    lit: f32,
-+    backface: f32,
-+};
-+
-+const FLAG_SELECTED: u32 = 1u;
-+const FLAG_HIDDEN: u32 = 2u;
-+const FLAG_PRINT: u32 = 8u;
-+const MM_TO_M: f32 = 0.001;
-+const SELECT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 0.0);
 +const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
-+
-+// A point of object `i` in the anchored frame: rotation/scale from the row, translation
-+// from the 16 B table a re-anchor rewrites.
-+fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
-+    return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;
-+}
 +
 +struct VsIn {
 +    @location(0) position: vec3<f32>,

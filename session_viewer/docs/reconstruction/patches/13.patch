@@ -1,9 +1,9 @@
 diff --git a/session_viewer/src/app/cloud_query.rs b/session_viewer/src/app/cloud_query.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..d92eb2802a36dea952d1054a3f75b508b357c8d1
+index 0000000000000000000000000000000000000000..a36b04e37f7650186d717dcbafb6d9f125740c6f
 --- /dev/null
 +++ b/session_viewer/src/app/cloud_query.rs
-@@ -0,0 +1,585 @@
+@@ -0,0 +1,556 @@
 +//! Exhaustive source-cloud selection with bounded range reads. The display retains its LOD
 +//! residency budget; a click examines every intersecting source node, including nonresident
 +//! nodes. Only one page of candidates exists at a time and visibility stays in the GPU picker.
@@ -277,39 +277,10 @@ index 0000000000000000000000000000000000000000..d92eb2802a36dea952d1054a3f75b508
 +#[cfg(target_arch = "wasm32")]
 +mod web {
 +    use super::*;
-+    use crate::app::{
-+        fetch::{GetOpts, get},
-+        loader::post,
-+    };
++    use crate::app::loader::post;
 +
 +    /// Validate the exact ranged body and any exposed revision; never consume a whole-file 200.
-+    async fn range(
-+        url: &str,
-+        at: u64,
-+        len: u64,
-+        revision: &Option<String>,
-+    ) -> Result<(Vec<u8>, Option<String>), String> {
-+        let reply = get(
-+            url,
-+            &GetOpts {
-+                range: Some((at, len)),
-+                revalidate: true,
-+                ..Default::default()
-+            },
-+        )
-+        .await?;
-+        if reply.status != 206 || reply.bytes.len() as u64 != len {
-+            return Err(format!(
-+                "Source range failed (HTTP {}, {} of {len} bytes)",
-+                reply.status,
-+                reply.bytes.len()
-+            ));
-+        }
-+        if revision.is_some() && revision != &reply.etag {
-+            return Err("Source changed during point selection; reload the cloud".to_string());
-+        }
-+        Ok((reply.bytes, reply.etag))
-+    }
++    use crate::app::fetch::fetch_range as range;
 +
 +    /// Owned request data outlives the event-loop borrow, with one shared cancellation token.
 +    struct SourceRequest {
@@ -591,10 +562,10 @@ index 0000000000000000000000000000000000000000..d92eb2802a36dea952d1054a3f75b508
 +}
 diff --git a/session_viewer/src/app/fetch.rs b/session_viewer/src/app/fetch.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b4a058a5b467b00f5303a97ab5d4dcfeff1e5f37
+index 0000000000000000000000000000000000000000..467d757776f6a931401f35b465624d8711d870e8
 --- /dev/null
 +++ b/session_viewer/src/app/fetch.rs
-@@ -0,0 +1,230 @@
+@@ -0,0 +1,248 @@
 +//! The browser's network edge: cross-origin GETs (plain and conditional), HTTP Range reads
 +//! that refuse anything but `206`, and the two ways to hand the browser its main thread back.
 +
@@ -729,7 +700,12 @@ index 0000000000000000000000000000000000000000..b4a058a5b467b00f5303a97ab5d4dcfe
 +        .ok()?
 +        .dyn_into()
 +        .ok()?;
-+    resp.headers().get("Content-Length").ok().flatten()?.parse().ok()
++    resp.headers()
++        .get("Content-Length")
++        .ok()
++        .flatten()?
++        .parse()
++        .ok()
 +}
 +
 +/// GET a whole file, revalidating any cached copy (a re-uploaded file is never stale, an
@@ -751,22 +727,35 @@ index 0000000000000000000000000000000000000000..b4a058a5b467b00f5303a97ab5d4dcfe
 +
 +/// GET a byte range. Refuses anything but `206`: a server that ignores `Range` answers `200`
 +/// with the WHOLE body, which for a 431 MB scan would be catastrophic and silent.
-+pub async fn fetch_range(url: &str, start: u64, len: u64) -> Result<Vec<u8>, String> {
-+    let r = get(
++/// One revision-checked range read: HTTP 206 with exactly `len` bytes, revalidated, and when
++/// `revision` is known the ETag must still match it, so a source republished mid-read is
++/// refused rather than mixed. Returns the bytes and the ETag they came with.
++pub async fn fetch_range(
++    url: &str,
++    start: u64,
++    len: u64,
++    revision: &Option<String>,
++) -> Result<(Vec<u8>, Option<String>), String> {
++    let reply = get(
 +        url,
 +        &GetOpts {
 +            range: Some((start, len)),
++            revalidate: true,
 +            ..GetOpts::default()
 +        },
 +    )
 +    .await?;
-+    if r.status != 206 {
++    if reply.status != 206 || reply.bytes.len() as u64 != len {
 +        return Err(format!(
-+            "server ignored Range (HTTP {}) for {url}",
-+            r.status
++            "Range read failed for {url} (HTTP {}, {} of {len} bytes)",
++            reply.status,
++            reply.bytes.len()
 +        ));
 +    }
-+    Ok(r.bytes)
++    if revision.is_some() && revision != &reply.etag {
++        return Err(format!("{url} changed during the read; reload it"));
++    }
++    Ok((reply.bytes, reply.etag))
 +}
 +
 +/// `setTimeout(resolve, ms)` as the executor `Promise::new` wants.
@@ -940,10 +929,10 @@ index 90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c..e5361f826df6cfdaa4d23f172eddfe85
  pub mod loader;
  #[cfg(target_arch = "wasm32")]
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index cceec2a03d4d78f3553ede153cb24923d9e8f2be..ac0ed24f4ce28bb8b6f1eaa8808fcb323bfae72f 100644
+index b0325c04c9eea37e14c2bb7a96b469d8c04b8845..7412fbb012349c91ee6dad76ab8ef199cf69ba82 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
-@@ -492,3 +492,64 @@ fn placement(world: &HashMap<String, Xform>, place: &Mat4, guid: &str) -> Mat4 {
+@@ -481,3 +481,64 @@ fn placement(world: &HashMap<String, Xform>, place: &Mat4, guid: &str) -> Mat4 {
          None => *place,
      }
  }
@@ -1263,10 +1252,10 @@ index 0c31dad9964f190f4452354e7b1b0c69f3b3f33f..05d407d426220e3c2331a291b8c4177e
 +    }
 +}
 diff --git a/session_viewer/src/app/stream.rs b/session_viewer/src/app/stream.rs
-index 920f036f77b250d98108579b6788c6e8c8015378..098d813854a4c766fa0bc1607d972526d6c9b2bc 100644
+index 920f036f77b250d98108579b6788c6e8c8015378..645f6ae932848ae614d30871b672edeb0ee628d5 100644
 --- a/session_viewer/src/app/stream.rs
 +++ b/session_viewer/src/app/stream.rs
-@@ -35,12 +35,613 @@ pub struct CloudLod {
+@@ -35,12 +35,597 @@ pub struct CloudLod {
  }
  
  impl CloudLod {
@@ -1587,7 +1576,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..098d813854a4c766fa0bc1607d972526
 +#[cfg(target_arch = "wasm32")]
 +mod web {
 +    use super::*;
-+    use crate::app::fetch::{GetOpts, get};
++    use crate::app::fetch::{GetOpts, fetch_range, get};
 +
 +    const POINT_BYTES: u64 = 24;
 +    const MAX_TABLE_BYTES: u64 = 128 * 1024 * 1024;
@@ -1605,23 +1594,7 @@ index 920f036f77b250d98108579b6788c6e8c8015378..098d813854a4c766fa0bc1607d972526
 +        if length == 0 {
 +            return Some(Vec::new());
 +        }
-+        let reply = get(
-+            url,
-+            &GetOpts {
-+                range: Some((at, length)),
-+                revalidate: true,
-+                ..Default::default()
-+            },
-+        )
-+        .await
-+        .ok()?;
-+        if reply.status != 206 || reply.bytes.len() as u64 != length {
-+            return None;
-+        }
-+        if revision.is_some() && revision != &reply.etag {
-+            return None;
-+        }
-+        Some(reply.bytes)
++        Some(fetch_range(url, at, length, revision).await.ok()?.0)
 +    }
 +
 +    /// Locate the coordinate/color runs without crossing the enclosing cloud message.
@@ -2068,7 +2041,7 @@ index 4c1a982f8d71fb1096f6ed1da5ce956d091004a9..3658f3316d6684d362ff10c84039fd25
                  self.input.cancel();
                  state.touch();
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f52ca5fd5 100644
+index b258f62b32326078e49bce2792a4a5ce34b32225..0dd940f8b63d0ca190fc30c5b5e0cc906a04c152 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
 @@ -4,10 +4,14 @@
@@ -2135,7 +2108,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          self.touch();
      }
  
-@@ -179,6 +195,7 @@ impl State {
+@@ -190,6 +206,7 @@ impl State {
  
      /// The picture changed: the next redraw presents it.
      pub fn touch(&mut self) {
@@ -2143,7 +2116,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          self.gpu.pick.cancel();
          self.dirty = true;
          self.needs_frame = true;
-@@ -187,6 +204,7 @@ impl State {
+@@ -198,6 +215,7 @@ impl State {
      /// Make `row` the selection (or none), moving the highlight.
      pub fn select(&mut self, row: Option<u32>) {
          self.selection = SelectionMode::Object;
@@ -2151,7 +2124,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          self.gpu.controls.reset();
          self.gpu.control_net.reset();
          self.gpu.segments.set_edge(&self.gpu.ctx, None);
-@@ -202,6 +220,13 @@ impl State {
+@@ -213,6 +231,13 @@ impl State {
          self.touch();
      }
  
@@ -2165,7 +2138,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
      /// Hide the selection - `H`. The guid goes in the hide set as well as the row's flag, so
      /// a `rebuild` (an edit commit) re-applies it when the rows come back. A live reload
      /// takes the `clear` path instead and starts a fresh scene with nothing hidden.
-@@ -229,6 +254,11 @@ impl State {
+@@ -240,6 +265,11 @@ impl State {
  
      /// A pick came back: log what it hit and select it (clicking the selection clears it).
      fn apply_pick(&mut self, pick: Option<Pick>) {
@@ -2177,7 +2150,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          match self.requested {
              PickMode::Edge => {
                  if let Some(pick) = pick
-@@ -244,6 +274,14 @@ impl State {
+@@ -255,6 +285,14 @@ impl State {
                  }
                  return;
              }
@@ -2192,7 +2165,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              PickMode::Object => {}
          }
          let Some(p) = pick else {
-@@ -287,6 +325,7 @@ impl State {
+@@ -298,6 +336,7 @@ impl State {
          let logical = self.logical_size();
          if logical != self.gpu.logical_size {
              self.gpu.logical_size = logical;
@@ -2200,7 +2173,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              self.touch();
          }
          let failure = match self.gpu.failure.lock() {
-@@ -295,15 +334,22 @@ impl State {
+@@ -306,15 +345,22 @@ impl State {
          };
          if let Some(message) = failure {
              crate::app::feedback::error(&message);
@@ -2223,7 +2196,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              self.camera.orbit(SPIN_STEP, 0.0);
          }
          let now_ms = now_ms();
-@@ -323,7 +369,7 @@ impl State {
+@@ -334,7 +380,7 @@ impl State {
          self.dirty |= rebase.moved || self.gpu.view.perf || self.gpu.view.spin;
  
          let mut dropped = false;
@@ -2232,7 +2205,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              let gap = now_ms - self.last_frame_ms;
              self.last_frame_ms = now_ms;
              let drawn = self.gpu.present(&input);
-@@ -365,11 +411,21 @@ impl State {
+@@ -376,11 +422,21 @@ impl State {
  
      /// A pointer gesture chooses one pass; Ctrl never also performs ordinary selection.
      pub fn request_selection(&mut self, x: u32, y: u32, edge: bool) {
@@ -2255,7 +2228,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
          };
          self.requested = mode;
          let logical = self.logical_size();
-@@ -381,6 +437,44 @@ impl State {
+@@ -392,6 +448,44 @@ impl State {
          self.needs_frame = true;
      }
  
@@ -2300,7 +2273,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
      /// Escape clears targets before retaining the active parent as an ordinary selection.
      pub fn escape_selection(&mut self) {
          let parent = self.selection.escape();
-@@ -388,14 +482,295 @@ impl State {
+@@ -399,14 +493,295 @@ impl State {
          self.status("");
      }
  
@@ -2601,7 +2574,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
      fn annotate_document(&mut self, first_row: usize) {
          let mut bounds = crate::math::Aabb::empty();
          for index in first_row..self.scene.object_count() {
-@@ -423,10 +798,11 @@ impl State {
+@@ -434,10 +809,11 @@ impl State {
          ));
      }
  
@@ -2614,7 +2587,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
              && let Some(row) = self.scene.selected
              && let Some(bounds) = self.gpu.objects.row_bounds(row)
          {
-@@ -470,7 +846,24 @@ impl State {
+@@ -474,7 +850,24 @@ impl State {
      fn perf_line(&self, _gap_ms: f64, _encode_ms: f64) {}
  }
  
@@ -2640,7 +2613,7 @@ index a976db0dccd70cec1d69bff2d7ba39660331b65d..a089674e92f001faeb7b0bad8e1c927f
  fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
      let mut center = [0.0; 3];
      for (axis, coordinate) in center.iter_mut().enumerate() {
-@@ -479,7 +872,7 @@ fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
+@@ -483,7 +876,7 @@ fn label_center(bounds: &crate::math::Aabb) -> [f64; 3] {
      center
  }
  

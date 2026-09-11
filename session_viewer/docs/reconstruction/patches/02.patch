@@ -1,5 +1,5 @@
 diff --git a/session_viewer/index.html b/session_viewer/index.html
-index 545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca..276a260697ca16ec09a202c1a0688d020144f3ff
+index 545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca..276a260697ca16ec09a202c1a0688d020144f3ff 100644
 --- a/session_viewer/index.html
 +++ b/session_viewer/index.html
 @@ -1,9 +1,9 @@
@@ -14,7 +14,7 @@ index 545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca..276a260697ca16ec09a202c1a0688d02
  <script>
  let tutorial;
  let pointer;
-@@ -21,7 +21,7 @@
+@@ -21,7 +21,7 @@ function render() {
      const canvas = document.getElementById('canvas');
      const state = JSON.parse(tutorial.render(canvas.clientWidth, canvas.clientHeight, devicePixelRatio));
      canvas.dataset.tutorialInspection = JSON.stringify(state);
@@ -25,10 +25,10 @@ index 545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca..276a260697ca16ec09a202c1a0688d02
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/camera.rs b/session_viewer/src/camera.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..1874fa129e2f705ee89d8fd0f520e6c94430baa3
+index 0000000000000000000000000000000000000000..48933bcd708bb4bb5177ec9d0e671a225c44842f
 --- /dev/null
 +++ b/session_viewer/src/camera.rs
-@@ -0,0 +1,513 @@
+@@ -0,0 +1,512 @@
 +//! Source-precision orbit camera, framed projection and a rebased reversed-depth view transform.
 +use crate::math::{Aabb, FOVY_DEG};
 +use session_rust::{Point, Quaternion, Vector, Xform};
@@ -187,7 +187,6 @@ index 0000000000000000000000000000000000000000..1874fa129e2f705ee89d8fd0f520e6c9
 +        if !self.perspective || !bounds.is_finite() {
 +            return;
 +        }
-+        let (min, max) = (bounds.min, bounds.max);
 +        let s = self.unit.to_meters();
 +        let t = self.origin(); // target, world units
 +        let right = self.orientation.rotate_vector(Vector::x_axis());
@@ -201,11 +200,11 @@ index 0000000000000000000000000000000000000000..1874fa129e2f705ee89d8fd0f520e6c9
 +        let half_w = half_h * aspect;
 +        let mut lo = [f64::INFINITY; 3];
 +        let mut hi = [f64::NEG_INFINITY; 3];
-+        for k in 0..8u32 {
++        for corner in bounds.corners() {
 +            let c = [
-+                (if k & 1 == 0 { min[0] } else { max[0] }) as f64 - t[0],
-+                (if k & 2 == 0 { min[1] } else { max[1] }) as f64 - t[1],
-+                (if k & 4 == 0 { min[2] } else { max[2] }) as f64 - t[2],
++                corner[0] as f64 - t[0],
++                corner[1] as f64 - t[1],
++                corner[2] as f64 - t[2],
 +            ];
 +            let dx = (c[0] * right[0] + c[1] * right[1] + c[2] * right[2]).clamp(-half_w, half_w);
 +            let dy = (c[0] * up[0] + c[1] * up[1] + c[2] * up[2]).clamp(-half_h, half_h);
@@ -365,12 +364,7 @@ index 0000000000000000000000000000000000000000..1874fa129e2f705ee89d8fd0f520e6c9
 +        // proportionally more distance, hence the `+ z` rather than a max of the two separately.
 +        let mut distance: f64 = 0.0;
 +        let mut extent: f64 = 0.0;
-+        for c in 0..8u32 {
-+            let p = [
-+                (if c & 1 == 0 { min[0] } else { max[0] }) as f64 * s - self.target[0],
-+                (if c & 2 == 0 { min[1] } else { max[1] }) as f64 * s - self.target[1],
-+                (if c & 4 == 0 { min[2] } else { max[2] }) as f64 * s - self.target[2],
-+            ];
++        for p in self.offsets(bounds) {
 +            let (x, y, z) = (dot3(&p, &right), dot3(&p, &up), dot3(&p, &fwd));
 +            extent = extent.max((x * x + y * y + z * z).sqrt());
 +            distance = distance.max(x.abs() / tx + z);
@@ -389,19 +383,24 @@ index 0000000000000000000000000000000000000000..1874fa129e2f705ee89d8fd0f520e6c9
 +
 +    /// Grow the far-plane floor to cover a scene that streamed in after the last fit.
 +    /// without touching the view. Same definition as fit's: the farthest scene corner from the target in meters.
++    /// The box's corners in metres, relative to the current target.
++    fn offsets(&self, bounds: &Aabb) -> [[f64; 3]; 8] {
++        let s = self.unit.to_meters();
++        bounds.corners().map(|c| {
++            [
++                c[0] as f64 * s - self.target[0],
++                c[1] as f64 * s - self.target[1],
++                c[2] as f64 * s - self.target[2],
++            ]
++        })
++    }
++
 +    pub fn grow_extent(&mut self, bounds: &Aabb) {
 +        if !bounds.is_finite() {
 +            return;
 +        }
-+        let (min, max) = (bounds.min, bounds.max);
-+        let s = self.unit.to_meters();
 +        let mut extent: f64 = 0.0;
-+        for c in 0..8u32 {
-+            let p = [
-+                (if c & 1 == 0 { min[0] } else { max[0] }) as f64 * s - self.target[0],
-+                (if c & 2 == 0 { min[1] } else { max[1] }) as f64 * s - self.target[1],
-+                (if c & 4 == 0 { min[2] } else { max[2] }) as f64 * s - self.target[2],
-+            ];
++        for p in self.offsets(bounds) {
 +            extent = extent.max((p[0] * p[0] + p[1] * p[1] + p[2] * p[2]).sqrt());
 +        }
 +        if extent.is_finite() && extent > self.scene_extent {
@@ -543,7 +542,7 @@ index 0000000000000000000000000000000000000000..1874fa129e2f705ee89d8fd0f520e6c9
 +    }
 +}
 diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
-index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c1178d54b
+index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c1178d54b 100644
 --- a/session_viewer/src/lib.rs
 +++ b/session_viewer/src/lib.rs
 @@ -1,7 +1,8 @@
@@ -556,7 +555,7 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
  /// The browser owns the canvas; this teaching facade owns one GPU/device and one draw lane.
  #[wasm_bindgen]
  pub struct Tutorial {
-@@ -11,8 +12,10 @@
+@@ -11,8 +12,10 @@ pub struct Tutorial {
      queue: wgpu::Queue,
      config: wgpu::SurfaceConfiguration,
      pipeline: wgpu::RenderPipeline,
@@ -567,7 +566,7 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
  }
  #[wasm_bindgen]
  impl Tutorial {
-@@ -27,11 +30,19 @@
+@@ -27,11 +30,19 @@ impl Tutorial {
      }
      /// Apply one camera gesture; the first GPU checkpoint intentionally has no camera yet.
      pub fn drag(&mut self, dx: f32, dy: f32, pan: bool) {
@@ -589,7 +588,7 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
      }
  }
  impl Tutorial {
-@@ -130,6 +141,16 @@
+@@ -130,6 +141,16 @@ impl Tutorial {
              multiview_mask: None,
              cache: None,
          });
@@ -606,7 +605,7 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
  
          Ok(Self {
              canvas,
-@@ -138,8 +159,10 @@
+@@ -138,8 +159,10 @@ impl Tutorial {
              queue,
              config,
              pipeline,
@@ -617,7 +616,7 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
          })
      }
      /// Resize once, upload the camera transform, encode the lane, submit and present.
-@@ -156,7 +179,12 @@
+@@ -156,7 +179,12 @@ impl Tutorial {
              self.config.height = height;
              self.surface.configure(&self.device, &self.config);
          }
@@ -631,7 +630,7 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
          let output = match self.surface.get_current_texture() {
              wgpu::CurrentSurfaceTexture::Success(output)
              | wgpu::CurrentSurfaceTexture::Suboptimal(output) => output,
-@@ -192,7 +220,7 @@
+@@ -192,7 +220,7 @@ impl Tutorial {
          }
          self.queue.submit([encoder.finish()]);
          output.present();
@@ -642,10 +641,10 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
  /// Keep initialization/render errors visible at the browser boundary.
 diff --git a/session_viewer/src/math.rs b/session_viewer/src/math.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..1debe8e4ca914374399a6cf54bfbebac6e2ca0df
+index 0000000000000000000000000000000000000000..017c311e9a41fe134eaa3d650bc4a1e396376dc9
 --- /dev/null
 +++ b/session_viewer/src/math.rs
-@@ -0,0 +1,224 @@
+@@ -0,0 +1,220 @@
 +//! Small f64/f32 math shared by the app and the engine: the column-major `Mat4`, point
 +//! transforms, the f32 `Aabb` with empty semantics, and the two camera facts recovered from
 +//! a view-projection. Nothing here touches wgpu; the only kernel type named is `Xform`.
@@ -768,25 +767,21 @@ index 0000000000000000000000000000000000000000..1debe8e4ca914374399a6cf54bfbebac
 +        if !self.is_finite() {
 +            return out;
 +        }
-+        for c in 0..8u32 {
-+            let p = [
-+                if c & 1 == 0 { self.min[0] } else { self.max[0] },
-+                if c & 2 == 0 { self.min[1] } else { self.max[1] },
-+                if c & 4 == 0 { self.min[2] } else { self.max[2] },
-+            ];
++        for p in self.corners() {
 +            out.grow(xform_point(m, p));
 +        }
 +        out
 +    }
 +
-+    /// The smallest axis length - a plate's thickness - 0 when empty.
-+    pub fn thinnest(&self) -> f32 {
-+        if !self.is_finite() {
-+            return 0.0;
-+        }
-+        (self.max[0] - self.min[0])
-+            .min(self.max[1] - self.min[1])
-+            .min(self.max[2] - self.min[2])
++    /// The eight corners, bit k of the index choosing min or max on axis k.
++    pub fn corners(&self) -> [[f32; 3]; 8] {
++        std::array::from_fn(|c| {
++            [
++                if c & 1 == 0 { self.min[0] } else { self.max[0] },
++                if c & 2 == 0 { self.min[1] } else { self.max[1] },
++                if c & 4 == 0 { self.min[2] } else { self.max[2] },
++            ]
++        })
 +    }
 +
 +    /// The diagonal length, 0 when empty.

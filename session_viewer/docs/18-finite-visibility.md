@@ -59,6 +59,7 @@ flowchart LR
 
 - `pull_triangle` numbers every triangle; `vs_triangle` is the plain physical draw, `vs_face` adds the source face on top.
 - `fs_masks` writes the solid coverage and the selected coverage to two attachments from one rasterization; the targets blend with MAX, so a written zero acts as a discard.
+- X-ray (`P`, `line.opacity` zero): `transform_vertex` marks a closed multi-face solid `xray`, and every fragment entry `discard`s its fragments, so the solid writes no colour, no depth and no coverage, and the ink behind it (back edges, far vertices) is judged against what remains. A single face (`FLAG_SINGLE`, a sheet, print fill) has no inside to show and keeps its shading. Discarding, not blending: a translucent face would still write depth and hide everything behind it.
 
 <!-- file: 18 session_viewer/src/shaders/triangle.wgsl type -->
 
@@ -173,39 +174,39 @@ flowchart TB
     style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-73 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-75 -->
 
 - `PoolReport` reads the scan's first record back one frame later: the words every list needed. A pool that was too small keeps the conservative rejection for that one frame and is reallocated before the next projection.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=74-145 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=76-147 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=146-178 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=148-180 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=179-211 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=181-213 -->
 
 - `prepare` resizes storage for the triangle count, the framebuffer and the last report; beyond the device's storage binding limit it releases the tables and reports so the ink shader keeps the plane rule.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=212-293 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=214-295 -->
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=294-400 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=296-402 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=401-432 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=403-434 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=433-458 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=435-460 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=459-548 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=461-560 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=549-628 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=561-590 -->
 
 Copy the rest of the file:
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=629-741 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=591-703 -->
 
 <!-- check: 18 -->
 
@@ -316,9 +317,17 @@ flowchart TB
     style K fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
+- One `css_radius` for ordinary and selected solids: a heavier ring on the selection read as a different object, and the yellow strokes already say which one is selected.
+
 <!-- file: 18 session_viewer/src/engine/gpu/surface_outline.rs type -->
 
+- Edges join the silhouette. Four more segment pipelines rasterize every solid edge into the coverage masks (`fs_mask`, `fs_masks`, `ColorWrite::Max`), so the black outline hugs a cube's edges as tightly as its faces, at one thickness whether the object is selected or not.
+
+<!-- file: 18 session_viewer/src/engine/gpu/segments.rs type -->
+
 <!-- file: 18 session_viewer/src/engine/gpu/render.rs type -->
+
+- No silhouettes in x-ray (`faces` requires `opacity > 0.0`): the ring would sit on top of the very edges and vertices `P` is there to show.
 
 - The `Gpu` accounts for the wider targets and the tile pool, binds the tiles into every ink scene, and bumps `selection_revision` in `set_selected`.
 

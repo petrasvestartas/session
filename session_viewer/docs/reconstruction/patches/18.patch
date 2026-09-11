@@ -98,7 +98,7 @@ index 0000000000000000000000000000000000000000..a5b4931c448dc4d21cb02dfac6ba0804
 +    Ok(())
 +}
 diff --git a/session_viewer/src/engine/gpu/arena.rs b/session_viewer/src/engine/gpu/arena.rs
-index fcbe11a8d4ae992d44eec0313ecdd325b93187bc..8cfb854ddb997b3c1f07dc4d599997a516c521b2 100644
+index 349f2efa7ce428f03ed63270ef4239d0bd0250ab..01e3203d9494422e7c5f73a6b5dce72a8d11289e 100644
 --- a/session_viewer/src/engine/gpu/arena.rs
 +++ b/session_viewer/src/engine/gpu/arena.rs
 @@ -50,14 +50,14 @@ impl ArenaRows {
@@ -422,23 +422,37 @@ index 7b669a260ac66c7163138102af31349c55a93304..8de1ecb50b80c1f7ef2d2eadfc1f2c97
 +    }
  }
 diff --git a/session_viewer/src/engine/gpu/instance.rs b/session_viewer/src/engine/gpu/instance.rs
-index ce79c72422f0b27aa6e60a908e12afa1805e6220..009fbe8dbbb8d600c69959a505f03b54d347684e 100644
+index 15a2414574069a3f6b807a5145af078c76083eb7..a39a74ff699f35cf8ccdeae4a3b120cc0f40d466 100644
 --- a/session_viewer/src/engine/gpu/instance.rs
 +++ b/session_viewer/src/engine/gpu/instance.rs
-@@ -96,7 +96,11 @@ mod tests {
-             let source = if source.contains("-> InkColor") {
-                 format!(
-                     "{source}\n{}",
+@@ -92,24 +92,24 @@ mod tests {
+         use crate::engine::gpu::segments::{CylinderSegment, StrokeSegment};
+         use std::mem::{offset_of, size_of};
+         for (name, source) in lane_shaders() {
+-            let source = if source.contains("-> InkColor") {
+-                format!(
+-                    "{source}\n{}",
 -                    include_str!("../../shaders/ink_visibility.wgsl")
-+                    concat!(
-+                        include_str!("../../shaders/ink_visibility.wgsl"),
-+                        "\n",
-+                        include_str!("../../shaders/projected_triangle.wgsl")
-+                    )
-                 )
-             } else {
-                 source.to_string()
-@@ -110,7 +114,10 @@ mod tests {
+-                )
+-            } else {
+-                source.to_string()
+-            };
+-            let source = format!(
+-                "{source}\n{}\n{}",
+-                include_str!("../../shaders/normals.wgsl"),
+-                include_str!("../../shaders/physical.wgsl")
+-            );
++            // The backdrop declares no scene binding; every other lane is on the contract.
++            let scene = source.contains("mvp") || source.contains("line.");
++            let mut source = source.to_string();
++            if source.contains("-> InkColor") {
++                source = format!("{source}\n{}", crate::engine::pipelines::INK);
++            }
++            if scene {
++                source = format!("{source}\n{}", crate::engine::pipelines::SCENE);
++            }
++            let source = crate::engine::pipelines::shared(&source);
+             let module = naga::front::wgsl::parse_str(&source)
                  .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
              naga::valid::Validator::new(
                  naga::valid::ValidationFlags::all(),
@@ -450,7 +464,7 @@ index ce79c72422f0b27aa6e60a908e12afa1805e6220..009fbe8dbbb8d600c69959a505f03b54
              )
              .validate(&module)
              .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
-@@ -136,6 +143,10 @@ mod tests {
+@@ -135,6 +135,10 @@ mod tests {
                          ],
                          size_of::<StrokeSegment>(),
                      ),
@@ -462,7 +476,7 @@ index ce79c72422f0b27aa6e60a908e12afa1805e6220..009fbe8dbbb8d600c69959a505f03b54
                          vec![
                              offset_of!(GlyphPoint, center),
 diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
-index 6cd07bb546ec3b32103b07d15e0050f7423bafef..974204e92f17a2c76f804d631a8413698a069cd4 100644
+index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b6d924574 100644
 --- a/session_viewer/src/engine/gpu/mod.rs
 +++ b/session_viewer/src/engine/gpu/mod.rs
 @@ -23,6 +23,7 @@ pub mod surface_outline;
@@ -521,7 +535,17 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..974204e92f17a2c76f804d631a841369
              logical_size: [size.0 as f64, size.1 as f64],
              cloud,
              splat,
-@@ -241,6 +253,7 @@ impl Gpu {
+@@ -236,11 +248,17 @@ impl Gpu {
+             self.cloud.point_count
+         );
+         self.retarget(false);
++        self.rebind_ink();
++    }
++
++    /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
++    fn rebind_ink(&mut self) {
+         self.objects.rebind_ink(
+             &self.ctx,
              &self.layouts,
              &InkScene {
                  targets: &self.targets,
@@ -529,21 +553,33 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..974204e92f17a2c76f804d631a841369
              },
          );
      }
-@@ -270,6 +283,7 @@ impl Gpu {
-                 &self.layouts,
-                 &InkScene {
-                     targets: &self.targets,
-+                    tiles: &self.arena.tiles,
-                 },
+@@ -265,13 +283,7 @@ impl Gpu {
+                 self.config.format,
+                 samples,
              );
+-            self.objects.rebind_ink(
+-                &self.ctx,
+-                &self.layouts,
+-                &InkScene {
+-                    targets: &self.targets,
+-                },
+-            );
++            self.rebind_ink();
          }
-@@ -380,12 +394,14 @@ impl Gpu {
-             &self.layouts,
-             &InkScene {
-                 targets: &self.targets,
-+                tiles: &self.arena.tiles,
-             },
-         );
+         if flip {
+             let target = self.target();
+@@ -375,17 +387,12 @@ impl Gpu {
+             .rebind(&self.ctx, &self.layouts, self.cloud.buffers());
+         self.bounds = Aabb::empty();
+         self.retarget(false);
+-        self.objects.rebind_ink(
+-            &self.ctx,
+-            &self.layouts,
+-            &InkScene {
+-                targets: &self.targets,
+-            },
+-        );
++        self.rebind_ink();
      }
  
      /// Flip the selection flag on one object row.
@@ -553,10 +589,10 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..974204e92f17a2c76f804d631a841369
          self.selection_outline.set_selected(row, on);
          self.objects
 diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
-index 53e19cc71f075e65d8383d4b31249b7af56ccc45..9e7780183bb759a62434384de70197ec91baa3b0 100644
+index ee9f58175424eb3863f73714fe3df3f26bb5deaf..5bb623c7860bac249b343e66e8e9fd0aa683b036 100644
 --- a/session_viewer/src/engine/gpu/objects.rs
 +++ b/session_viewer/src/engine/gpu/objects.rs
-@@ -88,6 +88,7 @@ fn world_box(r: &ObjectRow) -> Aabb {
+@@ -75,6 +75,7 @@ fn world_box(r: &ObjectRow) -> Aabb {
  /// The object rows as the GPU sees them, the TRUE f64 translation per row, and the sparse
  /// bounded rows. The anchored translations live in their own 16 B/row buffer.
  pub struct InstanceTable {
@@ -564,7 +600,7 @@ index 53e19cc71f075e65d8383d4b31249b7af56ccc45..9e7780183bb759a62434384de70197ec
      rows: Vec<Instance>,
      translation: Vec<[f64; 3]>,
      bounded: Vec<BoundedRow>,
-@@ -119,6 +120,7 @@ fn instance_group(
+@@ -106,50 +107,53 @@ fn instance_group(
  
  /// The immutable physical depth bound beside each ink lane's instance columns.
  pub struct InkScene<'a> {
@@ -572,19 +608,70 @@ index 53e19cc71f075e65d8383d4b31249b7af56ccc45..9e7780183bb759a62434384de70197ec
      pub targets: &'a Targets,
  }
  
-@@ -158,11 +160,24 @@ fn ink_instance_group(
-                 binding: 5,
-                 resource: wgpu::BindingResource::TextureView(&targets.gradient_msaa),
-             },
-+            wgpu::BindGroupEntry {
-+                binding: 6,
-+                resource: scene.tiles.projected.as_entire_binding(),
-+            },
-+            wgpu::BindGroupEntry {
-+                binding: 7,
-+                resource: scene.tiles.buffer.as_entire_binding(),
-+            },
-         ],
+-/// Group 2 for ink: the instance columns plus the face pass's depth, both sample counts.
++/// Group 2 for ink: the instance columns, the physical depth and gradient at both sample
++/// counts, and the finite-visibility tables.
+ fn ink_instance_group(
+     ctx: &GpuCtx,
+     l: &Layouts,
++    label: &str,
+     buffers: [&wgpu::Buffer; 2],
+-    scene: &InkScene,
++    depths: [&wgpu::TextureView; 2],
++    gradients: [&wgpu::TextureView; 2],
++    tiles: &super::triangle_tiles::TriangleTiles,
+ ) -> wgpu::BindGroup {
+-    let targets = scene.targets;
++    let view = wgpu::BindingResource::TextureView;
++    let entries = [
++        buffers[0].as_entire_binding(),
++        buffers[1].as_entire_binding(),
++        view(depths[0]),
++        view(depths[1]),
++        view(gradients[0]),
++        view(gradients[1]),
++        tiles.projected.as_entire_binding(),
++        tiles.buffer.as_entire_binding(),
++    ];
++    let entries: Vec<wgpu::BindGroupEntry> = entries
++        .into_iter()
++        .enumerate()
++        .map(|(binding, resource)| wgpu::BindGroupEntry {
++            binding: binding as u32,
++            resource,
++        })
++        .collect();
+     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+-        label: Some("ink.instances.bind_group"),
++        label: Some(label),
+         layout: &l.ink_instance,
+-        entries: &[
+-            wgpu::BindGroupEntry {
+-                binding: 0,
+-                resource: buffers[0].as_entire_binding(),
+-            },
+-            wgpu::BindGroupEntry {
+-                binding: 1,
+-                resource: buffers[1].as_entire_binding(),
+-            },
+-            wgpu::BindGroupEntry {
+-                binding: 2,
+-                resource: wgpu::BindingResource::TextureView(&targets.depth_single),
+-            },
+-            wgpu::BindGroupEntry {
+-                binding: 3,
+-                resource: wgpu::BindingResource::TextureView(&targets.depth_msaa),
+-            },
+-            wgpu::BindGroupEntry {
+-                binding: 4,
+-                resource: wgpu::BindingResource::TextureView(&targets.gradient_single),
+-            },
+-            wgpu::BindGroupEntry {
+-                binding: 5,
+-                resource: wgpu::BindingResource::TextureView(&targets.gradient_msaa),
+-            },
+-        ],
++        entries: &entries,
      })
  }
  
@@ -597,38 +684,93 @@ index 53e19cc71f075e65d8383d4b31249b7af56ccc45..9e7780183bb759a62434384de70197ec
      /// Application-owned buffer allocation capacity in bytes; excludes driver overhead.
      pub fn allocated_bytes(&self) -> u64 {
          self.buffer.buf.size() + self.translations.buf.size()
-@@ -181,6 +196,7 @@ impl InstanceTable {
-         let ink_group = ink_instance_group(ctx, l, [&buffer.buf, &translations.buf], scene);
+@@ -165,9 +169,19 @@ impl InstanceTable {
+         );
+         let translations = GrowBuf::new(ctx, "instance.translations", 16, ROWS);
+         let group = instance_group(ctx, l, &buffer.buf, &translations.buf);
+-        let ink_group = ink_instance_group(ctx, l, [&buffer.buf, &translations.buf], scene);
++        let t = scene.targets;
++        let ink_group = ink_instance_group(
++            ctx,
++            l,
++            "ink.instances.bind_group",
++            [&buffer.buf, &translations.buf],
++            [&t.depth_single, &t.depth_msaa],
++            [&t.gradient_single, &t.gradient_msaa],
++            scene.tiles,
++        );
  
          Self {
 +            geometry_revision: 0,
              rows: vec![Instance::placeholder()],
              translation: Vec::new(),
              bounded: Vec::new(),
-@@ -207,6 +223,7 @@ impl InstanceTable {
+@@ -183,8 +197,16 @@ impl InstanceTable {
+ 
+     /// Refresh the depth and instance bindings after upload, resize, or release.
+     pub fn rebind_ink(&mut self, ctx: &GpuCtx, l: &Layouts, scene: &InkScene) {
+-        self.ink_group =
+-            ink_instance_group(ctx, l, [&self.buffer.buf, &self.translations.buf], scene);
++        let t = scene.targets;
++        self.ink_group = ink_instance_group(
++            ctx,
++            l,
++            "ink.instances.bind_group",
++            [&self.buffer.buf, &self.translations.buf],
++            [&t.depth_single, &t.depth_msaa],
++            [&t.gradient_single, &t.gradient_msaa],
++            scene.tiles,
++        );
+     }
+ 
+     /// Bind pixel-center picking depth separately from the multisampled display depth.
+@@ -194,42 +216,23 @@ impl InstanceTable {
          layouts: &Layouts,
          depths: [&wgpu::TextureView; 2],
          gradients: [&wgpu::TextureView; 2],
 +        tiles: &super::triangle_tiles::TriangleTiles,
      ) -> wgpu::BindGroup {
-         ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
-             label: Some("pick.instances"),
-@@ -236,6 +253,14 @@ impl InstanceTable {
-                     binding: 5,
-                     resource: wgpu::BindingResource::TextureView(gradients[1]),
-                 },
-+                wgpu::BindGroupEntry {
-+                    binding: 6,
-+                    resource: tiles.projected.as_entire_binding(),
-+                },
-+                wgpu::BindGroupEntry {
-+                    binding: 7,
-+                    resource: tiles.buffer.as_entire_binding(),
-+                },
-             ],
-         })
+-        ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+-            label: Some("pick.instances"),
+-            layout: &layouts.ink_instance,
+-            entries: &[
+-                wgpu::BindGroupEntry {
+-                    binding: 0,
+-                    resource: self.buffer.buf.as_entire_binding(),
+-                },
+-                wgpu::BindGroupEntry {
+-                    binding: 1,
+-                    resource: self.translations.buf.as_entire_binding(),
+-                },
+-                wgpu::BindGroupEntry {
+-                    binding: 2,
+-                    resource: wgpu::BindingResource::TextureView(depths[0]),
+-                },
+-                wgpu::BindGroupEntry {
+-                    binding: 3,
+-                    resource: wgpu::BindingResource::TextureView(depths[1]),
+-                },
+-                wgpu::BindGroupEntry {
+-                    binding: 4,
+-                    resource: wgpu::BindingResource::TextureView(gradients[0]),
+-                },
+-                wgpu::BindGroupEntry {
+-                    binding: 5,
+-                    resource: wgpu::BindingResource::TextureView(gradients[1]),
+-                },
+-            ],
+-        })
++        ink_instance_group(
++            ctx,
++            layouts,
++            "pick.instances",
++            [&self.buffer.buf, &self.translations.buf],
++            depths,
++            gradients,
++            tiles,
++        )
      }
-@@ -243,6 +268,7 @@ impl InstanceTable {
+ 
      /// Append one upload's rows: cast once, keep the f64 translation, note the bounded ones,
      /// send only the new rows. The next frame rebases the whole table.
      pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
@@ -636,7 +778,7 @@ index 53e19cc71f075e65d8383d4b31249b7af56ccc45..9e7780183bb759a62434384de70197ec
          if self.translation.is_empty() {
              self.rows.clear();
              self.world_bounds.clear();
-@@ -342,6 +368,7 @@ impl InstanceTable {
+@@ -328,6 +331,7 @@ impl InstanceTable {
      /// Rebase every row's translation around `origin` in f64, cast, and rewrite the 16 B/row
      /// translation table; the 96 B rows are not touched.
      fn rebuild(&mut self, ctx: &GpuCtx, origin: &Point) {
@@ -644,7 +786,7 @@ index 53e19cc71f075e65d8383d4b31249b7af56ccc45..9e7780183bb759a62434384de70197ec
          self.last_origin = Some(origin.clone());
          let mut anchored: Vec<[f32; 4]> = Vec::with_capacity(self.rows.len());
          for t in &self.translation {
-@@ -413,11 +440,15 @@ impl InstanceTable {
+@@ -399,11 +403,15 @@ impl InstanceTable {
              return;
          }
          r.flags ^= bit;
@@ -683,7 +825,7 @@ index 81c7bccf5ba1929fb377c4de9b48adbbeddc67df..06c3a529f92c48be48593cb13ae50623
                      usage: wgpu::TextureUsages::RENDER_ATTACHMENT
                          | wgpu::TextureUsages::TEXTURE_BINDING,
 diff --git a/session_viewer/src/engine/gpu/present.rs b/session_viewer/src/engine/gpu/present.rs
-index 796b49bbe22fb604926d7d316b250d9e96869408..5c8e7c03d469fee48a6edb74f72638531d7df252 100644
+index ff8ed37c7f187413d9b3d329d5c96a9eedf70553..b545c3b07c22222bf4847712bd70bb57349c9301 100644
 --- a/session_viewer/src/engine/gpu/present.rs
 +++ b/session_viewer/src/engine/gpu/present.rs
 @@ -60,6 +60,7 @@ impl Gpu {
@@ -711,10 +853,10 @@ index 796b49bbe22fb604926d7d316b250d9e96869408..5c8e7c03d469fee48a6edb74f7263853
  
          let slice = readback.slice(..);
 diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
-index 91fa04976444fe3ed4e484520ea3338945870ccf..a6ea9628e8bf4eedbefdc1327aee896e008dccae 100644
+index e3ef902e1780e266e472f610ed03233c1d32050f..54069330afa758d9276a9d8f6ad20206c808a706 100644
 --- a/session_viewer/src/engine/gpu/render.rs
 +++ b/session_viewer/src/engine/gpu/render.rs
-@@ -5,8 +5,39 @@ use super::Gpu;
+@@ -5,8 +5,28 @@ use super::Gpu;
  use super::frame::Binds;
  use super::pick::PickMode;
  use super::splat::RecordCx;
@@ -728,20 +870,9 @@ index 91fa04976444fe3ed4e484520ea3338945870ccf..a6ea9628e8bf4eedbefdc1327aee896e
 +            (self.config.width, self.config.height),
 +            self.arena.face_count() / 3,
 +        ) {
-+            self.objects.rebind_ink(
-+                &self.ctx,
-+                &self.layouts,
-+                &super::objects::InkScene {
-+                    tiles: &self.arena.tiles,
-+                    targets: &self.targets,
-+                },
-+            );
++            self.rebind_ink();
 +        }
-+        let b = Binds {
-+            mvp: &self.frame.mvp_group,
-+            line: &self.frame.line_group,
-+            instances: &self.objects.group,
-+        };
++        let b = self.frame.binds(&self.objects.group);
 +        self.arena.prepare_visibility(
 +            &self.ctx,
 +            encoder,
@@ -754,7 +885,7 @@ index 91fa04976444fe3ed4e484520ea3338945870ccf..a6ea9628e8bf4eedbefdc1327aee896e
      /// Encode the whole frame into `view`. Returns (draws, objects) for the perf counter.
      /// Knows nothing about a surface, so it works headless.
      pub fn encode_frame(
-@@ -15,6 +46,7 @@ impl Gpu {
+@@ -15,53 +35,88 @@ impl Gpu {
          view: &wgpu::TextureView,
          clear: wgpu::Color,
      ) -> (u32, u32) {
@@ -762,13 +893,21 @@ index 91fa04976444fe3ed4e484520ea3338945870ccf..a6ea9628e8bf4eedbefdc1327aee896e
          self.point_pass(encoder);
  
          let mut draws = {
-@@ -26,42 +58,85 @@ impl Gpu {
+-            let b = Binds {
+-                mvp: &self.frame.mvp_group,
+-                line: &self.frame.line_group,
+-                instances: &self.objects.group,
+-            };
++            let b = self.frame.binds(&self.objects.group);
              let mut pass = self.targets.begin_faces(encoder, view, clear);
              self.face_list(&mut pass, &b)
          };
 -        if self.selection_outline.prepare(
 +        let size = (self.config.width, self.config.height);
-+        let faces = self.view.show_outlines && self.arena.face_count() > 0;
++        // No silhouettes in x-ray: with the faces gone they would only paint over the edges
++        // and vertices that are the picture.
++        let faces =
++            self.view.show_outlines && self.view.opacity > 0.0 && self.arena.face_count() > 0;
 +        let selected = self.selection_outline.prepare(
              &self.ctx,
 -            (self.config.width, self.config.height),
@@ -800,6 +939,12 @@ index 91fa04976444fe3ed4e484520ea3338945870ccf..a6ea9628e8bf4eedbefdc1327aee896e
              self.logical_size[0],
 -            self.view.show_outlines && self.arena.face_count() > 0,
 -        ) {
+-            let b = Binds {
+-                mvp: &self.frame.mvp_group,
+-                line: &self.frame.line_group,
+-                instances: &self.objects.group,
+-            };
+-            {
 +            faces,
 +        );
 +        // The masks depend on the camera, the geometry, the selection and the highlighted
@@ -817,19 +962,10 @@ index 91fa04976444fe3ed4e484520ea3338945870ccf..a6ea9628e8bf4eedbefdc1327aee896e
 +        let stale = (solid && !self.solid_outline.is_valid(&key))
 +            || (selected && !self.selection_outline.is_valid(&key));
 +        if stale {
-             let b = Binds {
-                 mvp: &self.frame.mvp_group,
-                 line: &self.frame.line_group,
-                 instances: &self.objects.group,
-             };
--            {
++            let b = self.frame.binds(&self.objects.group);
 +            // The edges extend the coverage by their own footprint, tested against the same
 +            // physical depth the ink pass reads, so the ring wraps them.
-+            let ink = Binds {
-+                mvp: &self.frame.mvp_group,
-+                line: &self.frame.line_group,
-+                instances: &self.objects.ink_group,
-+            };
++            let ink = self.frame.binds(&self.objects.ink_group);
 +            let edges = self.view.show_mesh_edges;
 +            if solid && selected {
 +                // One rasterization of the faces writes both masks.
@@ -870,7 +1006,7 @@ index 91fa04976444fe3ed4e484520ea3338945870ccf..a6ea9628e8bf4eedbefdc1327aee896e
          }
          {
              let mut pass = self.targets.begin_ink(encoder, view);
-@@ -154,6 +229,7 @@ impl Gpu {
+@@ -146,6 +201,7 @@ impl Gpu {
      /// is one (the vertex work stays; the fill is what a full frame would cost), which is then
      /// copied out for `Picker`.
      pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
@@ -878,16 +1014,117 @@ index 91fa04976444fe3ed4e484520ea3338945870ccf..a6ea9628e8bf4eedbefdc1327aee896e
          let size = (self.config.width, self.config.height);
          let mode = self.pick.mode;
          // The pass draws the window about the cursor (plus the halo the plane fit reads) into
-@@ -217,6 +293,7 @@ impl Gpu {
+@@ -201,12 +257,9 @@ impl Gpu {
              &self.layouts,
              [depth, &self.targets.depth_msaa],
              [self.pick.gradient(), &self.targets.gradient_msaa],
 +            &self.arena.tiles,
          );
-         let ink = Binds {
-             mvp: &self.frame.pick_mvp_group,
+-        let ink = Binds {
+-            mvp: &self.frame.pick_mvp_group,
+-            line: &self.frame.pick_line_group,
+-            instances: &group,
+-        };
++        let ink = self.frame.pick_binds(&group);
+         {
+             let mut pass = self.pick.begin_ink(encoder);
+             if let Some((x, y, w, h)) = inner {
+diff --git a/session_viewer/src/engine/gpu/segments.rs b/session_viewer/src/engine/gpu/segments.rs
+index dcf9ee00fbb97f4c57ca056f56ca0107c923a689..1d714cbc4f904710d7dc7fcbc95829c6d0096101 100644
+--- a/session_viewer/src/engine/gpu/segments.rs
++++ b/session_viewer/src/engine/gpu/segments.rs
+@@ -159,6 +159,12 @@ struct SegPipelines {
+     selected: wgpu::RenderPipeline,
+     id_ribbon: wgpu::RenderPipeline,
+     id_edge: wgpu::RenderPipeline,
++    /// Solid-edge coverage into one silhouette mask, ordinary and selected strokes.
++    mask_unselected: wgpu::RenderPipeline,
++    mask_selected: wgpu::RenderPipeline,
++    /// The same into the solid and selected masks together.
++    masks_unselected: wgpu::RenderPipeline,
++    masks_selected: wgpu::RenderPipeline,
+ }
+ 
+ /// The segment lane on the GPU: two tables, the shader, the pipelines.
+@@ -289,6 +295,26 @@ impl SegmentLane {
+         draws
+     }
+ 
++    /// Every visible solid edge into the solid silhouette mask.
++    pub fn draw_solid_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_table(pass, b, &self.gpu.mask_unselected, &self.pipes)
++            + self.draw_table(pass, b, &self.gpu.mask_selected, &self.pipes)
++    }
++
++    /// The selected objects' edges into the selected silhouette mask.
++    pub fn draw_selection_mask(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        if self.selected_rows.is_empty() {
++            return 0;
++        }
++        self.draw_table(pass, b, &self.gpu.mask_selected, &self.pipes)
++    }
++
++    /// Both masks at once: ordinary edges cover, selected edges cover and select.
++    pub fn draw_masks(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
++        self.draw_table(pass, b, &self.gpu.masks_unselected, &self.pipes)
++            + self.draw_table(pass, b, &self.gpu.masks_selected, &self.pipes)
++    }
++
+     /// Mesh/BRep edges: camera-facing quads against physical depth.
+     pub fn draw_pipes(&self, pass: &mut wgpu::RenderPass<'_>, b: &Binds) -> u32 {
+         self.draw_table(pass, b, &self.gpu.ribbon, &self.pipes)
+@@ -376,6 +402,10 @@ fn build_pipelines(
+     let quad = PipelineDesc::new(shader, &groups, &[], TriangleList)
+         .scene_samples(target.samples)
+         .depth(DepthMode::Always);
++    let mask = Target {
++        format: wgpu::TextureFormat::R8Unorm,
++        samples: target.samples,
++    };
+     let dev = &ctx.device;
+ 
+     SegPipelines {
+@@ -410,6 +440,38 @@ fn build_pipelines(
+             Target::ID,
+             &quad.with("edge.id", "fs_edge_id").scene_samples(1),
+         ),
++        mask_unselected: build(
++            dev,
++            mask,
++            &quad
++                .with("ribbon.mask", "fs_mask")
++                .vertex("vs_unselected")
++                .color(ColorWrite::Max),
++        ),
++        mask_selected: build(
++            dev,
++            mask,
++            &quad
++                .with("ribbon.mask.selected", "fs_mask")
++                .vertex("vs_selected")
++                .color(ColorWrite::Max),
++        ),
++        masks_unselected: build(
++            dev,
++            mask,
++            &quad
++                .with("ribbon.masks", "fs_masks")
++                .vertex("vs_unselected")
++                .masks(),
++        ),
++        masks_selected: build(
++            dev,
++            mask,
++            &quad
++                .with("ribbon.masks.selected", "fs_masks_selected")
++                .vertex("vs_selected")
++                .masks(),
++        ),
+     }
+ }
+ 
 diff --git a/session_viewer/src/engine/gpu/surface_outline.rs b/session_viewer/src/engine/gpu/surface_outline.rs
-index c644333bca4d4fb65db7b67f1330b606082d839a..54c90f9f91dd76ca01200dd1612bf8db0d68f87e 100644
+index 80fb39e85090909fcf5748846fd192c2682a0efa..b0a0f29f66244a2196af897a9f4d66c25835ed39 100644
 --- a/session_viewer/src/engine/gpu/surface_outline.rs
 +++ b/session_viewer/src/engine/gpu/surface_outline.rs
 @@ -24,6 +24,21 @@ struct Mask {
@@ -1008,7 +1245,7 @@ index c644333bca4d4fb65db7b67f1330b606082d839a..54c90f9f91dd76ca01200dd1612bf8db
          let radius = (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32;
          ctx.queue.write_buffer(
              &self.uniform,
-@@ -413,6 +482,7 @@ mod tests {
+@@ -389,6 +458,7 @@ mod tests {
          use std::rc::Rc;
  
          let mut gpu = pollster::block_on(Gpu::new_headless(480, 480)).unwrap();
@@ -1016,7 +1253,7 @@ index c644333bca4d4fb65db7b67f1330b606082d839a..54c90f9f91dd76ca01200dd1612bf8db
          gpu.view.show_grid = false;
          gpu.view.markers = false;
          for shape in [
-@@ -477,6 +547,7 @@ mod tests {
+@@ -453,6 +523,7 @@ mod tests {
      #[ignore = "requires a native GPU adapter"]
      fn touching_and_overlapping_solids_have_one_continuous_outline() {
          let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
@@ -1024,7 +1261,7 @@ index c644333bca4d4fb65db7b67f1330b606082d839a..54c90f9f91dd76ca01200dd1612bf8db
          gpu.view.show_grid = false;
          gpu.view.lit = false;
          let input = FrameInput {
-@@ -553,6 +624,7 @@ mod tests {
+@@ -529,6 +600,7 @@ mod tests {
      #[ignore = "requires a native GPU adapter"]
      fn selected_silhouette_is_black_visible_only_and_releases_coverage() {
          let mut gpu = pollster::block_on(Gpu::new_headless(200, 200)).unwrap();
@@ -1033,33 +1270,102 @@ index c644333bca4d4fb65db7b67f1330b606082d839a..54c90f9f91dd76ca01200dd1612bf8db
          gpu.view.lit = false;
          let mut upload = Upload::default();
 diff --git a/session_viewer/src/engine/gpu/targets.rs b/session_viewer/src/engine/gpu/targets.rs
-index ac6920bd833acb52ca6d75f4b9da5e2df06680c5..4d2b41f7321fc2bf427bc142518950bd48a89212 100644
+index ac6920bd833acb52ca6d75f4b9da5e2df06680c5..1a2e408ab7c736bc73d1cabe28b8150a5cdfa58c 100644
 --- a/session_viewer/src/engine/gpu/targets.rs
 +++ b/session_viewer/src/engine/gpu/targets.rs
-@@ -89,7 +89,7 @@ impl Targets {
+@@ -43,66 +43,46 @@ impl Targets {
+     /// Frame attachments and the opposite-sample-count placeholder binding.
+     pub fn new(ctx: &GpuCtx, size: (u32, u32), format: wgpu::TextureFormat, samples: u32) -> Self {
+         let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING;
+-        let depth = texture_view(
+-            ctx,
+-            "depth",
+-            &TextureSpec {
+-                size,
+-                format: wgpu::TextureFormat::Depth32Float,
+-                samples,
+-                usage,
+-            },
+-        );
+-        let msaa = if samples > 1 {
+-            Some(texture_view(
++        let attachment = |label, size, format, samples| {
++            texture_view(
+                 ctx,
+-                "msaa_color",
++                label,
+                 &TextureSpec {
+                     size,
+                     format,
+                     samples,
+                     usage,
+                 },
+-            ))
+-        } else {
+-            None
++            )
+         };
++        let depth = attachment("depth", size, wgpu::TextureFormat::Depth32Float, samples);
++        let msaa = (samples > 1).then(|| attachment("msaa_color", size, format, samples));
+ 
++        // The ink layout binds a single-sampled and a multisampled view of both physical
++        // targets; the pair not in use is a 1x1 placeholder.
+         let other_samples = if samples == 1 { 4 } else { 1 };
+-        let empty_depth = texture_view(
+-            ctx,
++        let empty_depth = attachment(
+             "unused.depth",
+-            &TextureSpec {
+-                size: (1, 1),
+-                format: wgpu::TextureFormat::Depth32Float,
+-                samples: other_samples,
+-                usage,
+-            },
++            (1, 1),
++            wgpu::TextureFormat::Depth32Float,
++            other_samples,
+         );
+         let (depth_single, depth_msaa) = if samples == 1 {
+             (depth.clone(), empty_depth)
+         } else {
+             (empty_depth, depth.clone())
+         };
+-        let gradient = texture_view(
+-            ctx,
++        let gradient = attachment(
              "physical.gradient",
-             &TextureSpec {
-                 size,
+-            &TextureSpec {
+-                size,
 -                format: wgpu::TextureFormat::Rg16Float,
-+                format: wgpu::TextureFormat::Rgba16Float,
-                 samples,
-                 usage,
-             },
-@@ -99,7 +99,7 @@ impl Targets {
+-                samples,
+-                usage,
+-            },
++            size,
++            wgpu::TextureFormat::Rgba16Float,
++            samples,
+         );
+-        let empty_gradient = texture_view(
+-            ctx,
++        let empty_gradient = attachment(
              "unused.gradient",
-             &TextureSpec {
-                 size: (1, 1),
+-            &TextureSpec {
+-                size: (1, 1),
 -                format: wgpu::TextureFormat::Rg16Float,
-+                format: wgpu::TextureFormat::Rgba16Float,
-                 samples: other_samples,
-                 usage,
-             },
+-                samples: other_samples,
+-                usage,
+-            },
++            (1, 1),
++            wgpu::TextureFormat::Rgba16Float,
++            other_samples,
+         );
+         let (gradient_single, gradient_msaa) = if samples == 1 {
+             (gradient.clone(), empty_gradient)
 diff --git a/session_viewer/src/engine/gpu/triangle_tiles.rs b/session_viewer/src/engine/gpu/triangle_tiles.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..c193b1fe3f4bcccd5efb8b5db1f7aecefc550fce
+index 0000000000000000000000000000000000000000..88203617db2a80204443afa7080fe7a70ec95cf0
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/triangle_tiles.rs
-@@ -0,0 +1,741 @@
+@@ -0,0 +1,703 @@
 +//! Finite triangle visibility for ink near curved surfaces and touching solids.
 +//!
 +//! A projected polygon table and conservative screen tiles include triangles that win no
@@ -1067,7 +1373,9 @@ index 0000000000000000000000000000000000000000..c193b1fe3f4bcccd5efb8b5db1f7aece
 +//! pairs. Projection, count, prefix scan and fill run only when their inputs change.
 +use super::buffers::{GpuCtx, ROWS, bind_group, uniform_buffer, zeroed_buffer};
 +use super::frame::Binds;
-+use crate::engine::pipelines::Layouts;
++use crate::engine::pipelines::{
++    ColorWrite, DepthMode, Layouts, PipelineDesc, Target, build, pipeline_layout,
++};
 +use std::sync::Arc;
 +use std::sync::atomic::{AtomicU8, Ordering};
 +
@@ -1567,18 +1875,28 @@ index 0000000000000000000000000000000000000000..c193b1fe3f4bcccd5efb8b5db1f7aece
 +            "triangle.tiles",
 +            include_str!("../../shaders/triangle_tiles.wgsl"),
 +        );
-+        let raster_pipeline_layout = pipeline_layout(
-+            device,
-+            "triangle.tiles",
-+            &[
-+                &layouts.mvp,
-+                &layouts.line,
-+                &layouts.instance,
-+                &raster_layout,
-+            ],
-+        );
-+        let count = raster_pipeline(device, &raster_pipeline_layout, &raster_shader, "fs_count");
-+        let fill = raster_pipeline(device, &raster_pipeline_layout, &raster_shader, "fs_fill");
++        // The tile passes rasterize into an R8 target they never write: the fragment side
++        // effects (counts, then list fills) are the output.
++        let raster_groups = [
++            &layouts.mvp,
++            &layouts.line,
++            &layouts.instance,
++            &raster_layout,
++        ];
++        let raster = PipelineDesc::new(
++            &raster_shader,
++            &raster_groups,
++            &[],
++            wgpu::PrimitiveTopology::TriangleList,
++        )
++        .depth(DepthMode::Detached)
++        .color(ColorWrite::Nothing);
++        let tile_target = Target {
++            format: wgpu::TextureFormat::R8Unorm,
++            samples: 1,
++        };
++        let count = build(device, tile_target, &raster.with("fs_count", "fs_count"));
++        let fill = build(device, tile_target, &raster.with("fs_fill", "fs_fill"));
 +        let scan_shader = shader(
 +            device,
 +            "triangle.scan",
@@ -1620,23 +1938,6 @@ index 0000000000000000000000000000000000000000..c193b1fe3f4bcccd5efb8b5db1f7aece
 +    })
 +}
 +
-+/// Keep pipeline group order visible at each call site.
-+fn pipeline_layout(
-+    device: &wgpu::Device,
-+    label: &str,
-+    layouts: &[&wgpu::BindGroupLayout],
-+) -> wgpu::PipelineLayout {
-+    let mut groups = Vec::with_capacity(layouts.len());
-+    for layout in layouts {
-+        groups.push(Some(*layout));
-+    }
-+    device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-+        label: Some(label),
-+        bind_group_layouts: &groups,
-+        immediate_size: 0,
-+    })
-+}
-+
 +/// One named compute entry; no optional features or atomics beyond core WebGPU are needed.
 +fn compute_pipeline(
 +    device: &wgpu::Device,
@@ -1655,39 +1956,6 @@ index 0000000000000000000000000000000000000000..c193b1fe3f4bcccd5efb8b5db1f7aece
 +}
 +
 +/// Tile binning is an ordinary single-sample raster pass without a depth attachment.
-+fn raster_pipeline(
-+    device: &wgpu::Device,
-+    layout: &wgpu::PipelineLayout,
-+    shader: &wgpu::ShaderModule,
-+    entry: &str,
-+) -> wgpu::RenderPipeline {
-+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-+        label: Some(entry),
-+        layout: Some(layout),
-+        vertex: wgpu::VertexState {
-+            module: shader,
-+            entry_point: Some("vs_main"),
-+            compilation_options: Default::default(),
-+            buffers: &[],
-+        },
-+        primitive: Default::default(),
-+        depth_stencil: None,
-+        multisample: Default::default(),
-+        fragment: Some(wgpu::FragmentState {
-+            module: shader,
-+            entry_point: Some(entry),
-+            compilation_options: Default::default(),
-+            targets: &[Some(wgpu::ColorTargetState {
-+                format: wgpu::TextureFormat::R8Unorm,
-+                blend: None,
-+                write_mask: wgpu::ColorWrites::empty(),
-+            })],
-+        }),
-+        multiview_mask: None,
-+        cache: None,
-+    })
-+}
-+
 +#[cfg(test)]
 +mod tests {
 +    use super::*;
@@ -1862,10 +2130,10 @@ index 8cf597917a47f742b5a284f2a1c65b789c7e8e00..19e2b8d3263e13213f8e897e60573caa
              ink_instance: ink_instance_layout(device),
              ink_rows: ink_rows_layout(device),
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
-index b1ceb67eb70ac2e8429689d22b1d1107ecc70145..f53ca24276dafdf7490c265c691fa9ba51aa15ad 100644
+index c4a52504e821c681650f7f02d69f460472875fe1..ae9272358c63460efccb36490e24e1a2f69da7ec 100644
 --- a/session_viewer/src/engine/pipelines/mod.rs
 +++ b/session_viewer/src/engine/pipelines/mod.rs
-@@ -104,6 +104,9 @@ pub struct PipelineDesc<'a> {
+@@ -109,6 +109,9 @@ pub struct PipelineDesc<'a> {
      pub depth: DepthMode,
      pub scene_samples: Option<u32>,
      pub physical: bool,
@@ -1875,7 +2143,7 @@ index b1ceb67eb70ac2e8429689d22b1d1107ecc70145..f53ca24276dafdf7490c265c691fa9ba
  }
  
  impl<'a> PipelineDesc<'a> {
-@@ -127,6 +130,7 @@ impl<'a> PipelineDesc<'a> {
+@@ -132,6 +135,7 @@ impl<'a> PipelineDesc<'a> {
              depth: DepthMode::Opaque,
              scene_samples: None,
              physical: false,
@@ -1883,7 +2151,7 @@ index b1ceb67eb70ac2e8429689d22b1d1107ecc70145..f53ca24276dafdf7490c265c691fa9ba
          }
      }
  
-@@ -162,6 +166,12 @@ impl<'a> PipelineDesc<'a> {
+@@ -167,6 +171,12 @@ impl<'a> PipelineDesc<'a> {
          self
      }
  
@@ -1896,20 +2164,63 @@ index b1ceb67eb70ac2e8429689d22b1d1107ecc70145..f53ca24276dafdf7490c265c691fa9ba
      /// The same desc with another depth mode.
      pub fn depth(mut self, depth: DepthMode) -> Self {
          self.depth = depth;
-@@ -224,7 +234,11 @@ pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::Sha
-     let source = format!(
-         "{}\n{}",
-         source,
--        include_str!("../../shaders/ink_visibility.wgsl")
-+        concat!(
-+            include_str!("../../shaders/ink_visibility.wgsl"),
-+            "\n",
-+            include_str!("../../shaders/projected_triangle.wgsl")
-+        )
-     );
-     module(device, label, &source)
+@@ -218,33 +228,39 @@ pub fn template_layout() -> wgpu::VertexBufferLayout<'static> {
+     }
  }
-@@ -257,9 +271,25 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
+ 
+-/// Compile one WGSL source into a module; the caller keeps it and shares it across pipelines.
+-pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+-    let source = format!(
+-        "{}\n{}\n{}",
+-        source,
++/// The WGSL every module ends with: the normal transform and the physical output struct.
++/// The layout test compiles exactly this text, so what naga validates is what the GPU runs.
++pub fn shared(source: &str) -> String {
++    format!(
++        "{source}\n{}\n{}",
+         include_str!("../../shaders/normals.wgsl"),
+         include_str!("../../shaders/physical.wgsl")
+-    );
++    )
++}
++
++/// A shader with its own bindings (the backdrop, the point splats, the silhouettes).
++pub fn module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+     device.create_shader_module(wgpu::ShaderModuleDescriptor {
+         label: Some(label),
+-        source: wgpu::ShaderSource::Wgsl(source.into()),
++        source: wgpu::ShaderSource::Wgsl(shared(source).into()),
+     })
+ }
+ 
+-/// Compile an ink lane with the shared visibility rule appended: every ink fragment decides
+-/// from the scene depth buffer alone, so all the lanes hide against one another's surfaces.
++/// The shared visibility rule and the projected-triangle records every ink fragment decides
++/// with, so all the ink lanes hide against one another's surfaces.
++pub const INK: &str = concat!(
++    include_str!("../../shaders/ink_visibility.wgsl"),
++    "\n",
++    include_str!("../../shaders/projected_triangle.wgsl")
++);
++
++/// An ink lane: the scene contract plus the ink rule.
+ pub fn ink_module(device: &wgpu::Device, label: &str, source: &str) -> wgpu::ShaderModule {
+-    let source = format!(
+-        "{}\n{}",
+-        source,
+-        include_str!("../../shaders/ink_visibility.wgsl")
+-    );
+-    module(device, label, &source)
++    scene_module(device, label, &format!("{source}\n{INK}"))
+ }
+ 
+ /// The pipeline layout for `groups`, in slot order.
+-fn pipeline_layout(
++pub fn pipeline_layout(
+     device: &wgpu::Device,
+     label: &str,
+     groups: &[&wgpu::BindGroupLayout],
+@@ -271,9 +287,25 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
          blend,
          write_mask,
      })];
@@ -1948,10 +2259,10 @@ index f5f4758d18a284aaec1bc388699e75a9991648b8..c21b160a52f636b53893dcaef78cc2ef
 +    return PhysicalColor(vec4<f32>(1.0, 1.0, 1.0, 1.0), vec4<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/grid.wgsl b/session_viewer/src/shaders/grid.wgsl
-index 780757f468a43cd689bb466bb6654c34d324d886..16ee5225eb663462d0e54c7d3327c566713065b4 100644
+index 773e635f4559ea6c1d1245dbf310b5ed8008692e..a3d076dbe22df3def13c23a5326cd73df3344641 100644
 --- a/session_viewer/src/shaders/grid.wgsl
 +++ b/session_viewer/src/shaders/grid.wgsl
-@@ -71,5 +71,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+@@ -50,5 +50,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
  
  @fragment
  fn fs_main(in: VsOut) -> PhysicalColor {
@@ -2183,7 +2494,7 @@ index dcf68beaceb47e45b155eafef2d3267c11abac96..21660e08a6c0497fdfee11910b359a15
  }
 diff --git a/session_viewer/src/shaders/project_triangles.wgsl b/session_viewer/src/shaders/project_triangles.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..7cdd8d7364886fde71adfe50868e9ab2e61c1a6f
+index 0000000000000000000000000000000000000000..72f43f18609f375eca1ce6c6b7e55200447621ff
 --- /dev/null
 +++ b/session_viewer/src/shaders/project_triangles.wgsl
 @@ -0,0 +1,127 @@
@@ -2195,7 +2506,7 @@ index 0000000000000000000000000000000000000000..7cdd8d7364886fde71adfe50868e9ab2
 +@group(1) @binding(0) var<uniform> line: ProjectLine;
 +
 +struct ProjectInstance {
-+    model: mat4x4<f32>, color: vec4<f32>, flags: u32, thickness: f32, spacing: f32
++    model: mat4x4<f32>, color: vec4<f32>, flags: u32, _pad0: f32, spacing: f32
 +};
 +@group(2) @binding(0) var<storage, read> instances: array<ProjectInstance>;
 +@group(2) @binding(1) var<storage, read> translations: array<vec4<f32>>;
@@ -2463,10 +2774,10 @@ index 0000000000000000000000000000000000000000..bd6779f059616d306ba4b0748d85ede8
 +    }
 +}
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
-index b688d662aa3dfc270e8800f132d7e3c2b961e1cf..3532c3ef4387f62202efef9989da72fee7589ee8 100644
+index e7eccb632d46ab1d009fa0e270d6db36f94eb1ae..aff088c68222150b7fd285d8c4e6b29567f94e21 100644
 --- a/session_viewer/src/shaders/splat.wgsl
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -183,5 +183,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
+@@ -173,5 +173,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
      if (outside(in)) {
          discard;
      }
@@ -2496,10 +2807,10 @@ index ccf54fc911d3e3fb1253448bb9470998a6ba39de..9b912aab18ae53a184a115c326d87414
  }
  
 diff --git a/session_viewer/src/shaders/text_outline.wgsl b/session_viewer/src/shaders/text_outline.wgsl
-index 27fa98fd5b775ee3bc637aefb09ba17e3ce3f3fa..c19dabf1c701195a9f3e71fe0a9947b0bf6a0ca7 100644
+index 73763a5177a66e2bf3f03fbf1dc6062e99cbc8cf..12535d5a4ee52823e0fa8c3e1265182fd3580bf3 100644
 --- a/session_viewer/src/shaders/text_outline.wgsl
 +++ b/session_viewer/src/shaders/text_outline.wgsl
-@@ -58,7 +58,7 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
+@@ -40,7 +40,7 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
  // Keep the exact source object row available to the shared identity pass.
  @fragment
  fn fs_physical_id(fragment: Fragment) -> PhysicalId {
@@ -2509,10 +2820,10 @@ index 27fa98fd5b775ee3bc637aefb09ba17e3ce3f3fa..c19dabf1c701195a9f3e71fe0a9947b0
  
  @fragment
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index 1340368108e20559ab5149a2145f7afd4cbb85c8..692a4289f6164857ec5dbb4752850c0292555180 100644
+index 1f34dd31ea4b1f2888a3660a17349381b48a268e..8f953a8df0697793eb7825e26091ffc18f90c9c2 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
-@@ -64,6 +64,13 @@ struct VsOut {
+@@ -19,20 +19,20 @@ struct VsOut {
      @location(5) @interpolate(flat) mirrored: u32,
      @location(6) @interpolate(flat) selected: u32,
      @location(7) @interpolate(flat) source_face: u32,
@@ -2526,7 +2837,31 @@ index 1340368108e20559ab5149a2145f7afd4cbb85c8..692a4289f6164857ec5dbb4752850c02
  }
  
  // A hidden row's triangle, parked outside the clip volume: the ID pass shares this vertex
-@@ -117,14 +124,23 @@ fn vs_main(in: VsIn) -> VsOut { return transform_vertex(in); }
+ // stage, so a hidden object stops being pickable as well as drawn.
+ fn dead_vertex() -> VsOut {
+-    var dead: VsOut;
++    var dead: VsOut;  // zero-valued; the position parks it, no source face is 0xffffffff
+     dead.pos = vec4<f32>(3.0, 3.0, 0.5, 1.0);
+-    dead.color = vec3<f32>(0.0);
+-    dead.world_pos = vec3<f32>(0.0);
+-    dead.normal = vec3<f32>(0.0);
+-    dead.print = 0.0;
+-    dead.inst_id = 0u;
+-    dead.mirrored = 0u;
+-    dead.selected = 0u;
+     dead.source_face = 0xffffffffu;
+     return dead;
+ }
+@@ -58,6 +58,8 @@ fn transform_vertex(in: VsIn) -> VsOut {
+     o.inst_id = in.inst_id;
+     o.selected = inst.flags & FLAG_SELECTED;
+     o.source_face = 0xffffffffu;
++    o.closed = select(1u, 0u, (inst.flags & FLAG_OPEN) != 0u);
++    o.xray = select(0u, 1u, line.opacity <= 0.0 && (inst.flags & (FLAG_PRINT | FLAG_SHEET | FLAG_SINGLE)) == 0u);
+     return o;
+ }
+ 
+@@ -70,14 +72,23 @@ fn vs_main(in: VsIn) -> VsOut { return transform_vertex(in); }
  @group(3) @binding(3) var<storage, read> source_faces: array<u32>;
  @group(3) @binding(4) var<uniform> selected_face: vec4<u32>;
  
@@ -2552,7 +2887,7 @@ index 1340368108e20559ab5149a2145f7afd4cbb85c8..692a4289f6164857ec5dbb4752850c02
      out.source_face = source_faces[index/3u];
      out.selected = select(0u, 1u, out.source_face != 0xffffffffu && out.source_face == selected_face.x);
      if (out.selected != 0u) { out.color = SELECT_COLOR; }
-@@ -182,30 +198,33 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
+@@ -135,30 +146,33 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
      let backface = !front && in.print <= 0.5 && line.backface > 0.5;
      let base = select(in.color, BACKFACE_COLOR, backface);
      let shaded = select(1.0, lit, line.lit > 0.5 && in.print <= 0.5);
@@ -2591,7 +2926,7 @@ index 1340368108e20559ab5149a2145f7afd4cbb85c8..692a4289f6164857ec5dbb4752850c02
      return shade(in, front);
  }
  
-@@ -213,5 +232,19 @@ fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location
+@@ -166,5 +180,19 @@ fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location
  // objects create no artificial seam in the group's outside silhouette.
  @fragment
  fn fs_solid_mask(in: VsOut) -> @location(0) vec4<f32> {
@@ -2706,10 +3041,10 @@ index 0000000000000000000000000000000000000000..91d9faa193f8dfba39bd55d8191caa34
 +    return 0.0;
 +}
 diff --git a/session_viewer/tests/README.md b/session_viewer/tests/README.md
-index ff5f9d6f98a0fa21995cba4ded7ed3494be9acc7..f3f2123b3b60fbf68b9fb20e5dd2dac7d7996921 100644
+index 94e1aaff18e2dc83584032f791c6d76d7bed15dc..96e225e918e47c4f2cd037d30f664fe7266bd2b0 100644
 --- a/session_viewer/tests/README.md
 +++ b/session_viewer/tests/README.md
-@@ -44,13 +44,62 @@ checks actual solid occlusion, projection, cache reuse and texture release.
+@@ -44,19 +44,61 @@ checks actual solid occlusion, projection, cache reuse and texture release.
  
  `node tests/teapot.cjs` uses the intentionally retained `assets/pb/view_mixed_teapot.pb`:
  the existing 32-patch Utah teapot, preserved byte-for-byte from the archive worktree.
@@ -2739,6 +3074,12 @@ index ff5f9d6f98a0fa21995cba4ded7ed3494be9acc7..f3f2123b3b60fbf68b9fb20e5dd2dac7
  checks black selected-surface silhouettes against physical occlusion, unchanged picking
  IDs, 1x/4x transitions and immediate coverage-texture release when selection clears.
  
+-`node tests/pdf-text-quality.cjs` compares the checked local PDF asset at forced 1x and
+-budget-selected 4x. It checks the source SHA-256, automatic sheet coverage, and three
+-normal-size glyph crops for partial coverage, retained ink mass, bounds and word position.
+-The test preserves the original PDF outline/font geometry. It captures both full drawings
+-and crops; it is deliberately tied to that source and camera. Run on a stable production
+-bundle to avoid a development rebuild overlay contaminating the screenshots.
 +Selected strokes must retain their yellow core over coincident mesh edges, other polylines
 +and crossing strokes, while genuinely covered spans stay hidden:
 +
@@ -2769,22 +3110,47 @@ index ff5f9d6f98a0fa21995cba4ded7ed3494be9acc7..f3f2123b3b60fbf68b9fb20e5dd2dac7
 +90% and 108%. This detects missing joint cores and repeated cap opacity without historical
 +golden images. Output goes to `target/stroke-joins`; `--output`, `--renderer`, `--generator`
 +and `--check-only` support isolated builds and rechecking retained captures.
-+
- `node tests/pdf-text-quality.cjs` compares the checked local PDF asset at forced 1x and
- budget-selected 4x. It checks the source SHA-256, automatic sheet coverage, and three
- normal-size glyph crops for partial coverage, retained ink mass, bounds and word position.
-@@ -134,7 +183,9 @@ one-sided C0 normals, trimmed holes and exact shared boundary XYZ. This is a Ses
+ 
+ Generate the seven-object interaction source fixture outside the repository, then drive
+ real canvas clicks and keyboard events against the opt-in read-only inspection snapshot:
+@@ -125,43 +167,27 @@ six post-upload source-edge mappings. Shared geometry minitests separately verif
+ one-sided C0 normals, trimmed holes and exact shared boundary XYZ. This is a Session
  rendering regression, not an OCCT pixel comparison.
  
- `python3 tests/parity.py` rebuilds and runs the existing shared CAD mini-tests without a
+-`python3 tests/parity.py` rebuilds and runs the existing shared CAD mini-tests without a
 -GPU: `RemeshNurbsSurfaceGrid`, `NurbsSurfaceTrimmed` and `BRep`. The expected totals are
-+GPU: `RemeshNurbsSurfaceGrid`, `NurbsSurfaceTrimmed` and `BRep`. Run it with a Python that
-+has `session_py`'s dependencies (numpy and protobuf) and with the CMake the C++ build directory
-+was configured with on `PATH`; the Python suite is executed by the same interpreter. The expected totals are
- 51 Rust, 59 C++ and 51 Python tests; C++ has eight additional preexisting trimmed-surface
- tests. Rust uses the maintained `check_shared_geometry` example and the normal Cargo
- dependency resolver. C++ uses the existing `point_minitest` CMake target's compiler flags
-@@ -170,6 +221,21 @@ The script passes an explicit file list and `skip_children=true`, so it never tr
+-51 Rust, 59 C++ and 51 Python tests; C++ has eight additional preexisting trimmed-surface
+-tests. Rust uses the maintained `check_shared_geometry` example and the normal Cargo
+-dependency resolver. C++ uses the existing `point_minitest` CMake target's compiler flags
+-and link inputs, selecting only those three test registration objects. A generated main
+-calls the existing registry, with only report paths redirected outside the source tree.
+-Python runs the three original modules with their report destination redirected.
+-
+-The default C++ build directory is `../session_cpp/build` and must use Unix Makefiles;
+-`--cpp-build /tmp/cad-cpp-build` creates a separate build with the same generator. Building
+-from scratch requires the shared package's documented compiler and dependency tooling,
+-including network access for CMake's pinned dependencies. `--jobs 4` controls C++ build
+-parallelism. Commands, compiler versions, assertions, counts and logs go under
+-`/tmp/session-viewer-parity` (override with `--output`); no test report is written into
+-the source tree. A changed or missing suite count fails the gate for review.
+-
+-`node tests/picking-performance.cjs` compares real mouse-release selection on a controlled
+-baseline (`VIEWER_BASELINE_URL`, default port 45693) and the current viewer (`VIEWER_URL`,
+-default port 18772). Set `VIEWER_INTERACTION_FIXTURE` to the same generated seven-family
+-fixture used by `interaction.cjs`; the runner mocks identical YAML and protobuf bytes for
+-both builds and records their SHA-256. Both builds need the inspection attributes used by
+-the controlled baseline: selected row, frame count, submission timestamp and camera matrix.
+-The default is ten measured samples per family after one warmup, using actual Escape and
+-mouse input. Submission, the following browser frame callback and screenshot completion
+-are reported separately as median and p95; none measures physical display presentation.
+-Every sample must also show yellow screenshot pixels. Failed highlights remain failures
+-and are excluded from successful-highlight timing summaries. There is no fixed sleep in
+-the measured path. `--self-test` checks timestamp/summary logic without Chrome; browser
+-runs use the same Playwright installation and Chrome settings as `interaction.cjs`.
+-
+ `python3 tests/format.py` checks all handwritten Rust files under the viewer's `src/`
+ and `examples/` with Rust 2024 defaults. Use `--write` to apply the same formatting.
+ The script passes an explicit file list and `skip_children=true`, so it never traverses
  or reformats the shared Session packages.
  
  The maintained depth scripts are in `tests/depth/`; they moved out of the archived lessons.
@@ -2961,7 +3327,7 @@ index ec37e07a6a814b478b221d09e04a604840cf3f6c..eb714ebbf0d0a0857473759e469def56
  
  def read_ids(path):
 diff --git a/session_viewer/tests/interaction.cjs b/session_viewer/tests/interaction.cjs
-index 15b19d9bce396b42bbebfd3c37bbb689e76ddc60..246bcffd9e9dd0a0ee19f55a263768675ed31fa7 100644
+index aaf409972b0d9b7b53ee890485e2e972dbe77216..4e9b3b9ec9c91551a3eb8cf2a8812e9ffa9a2e21 100644
 --- a/session_viewer/tests/interaction.cjs
 +++ b/session_viewer/tests/interaction.cjs
 @@ -28,17 +28,20 @@ async function run(browser,dpr,bytes,cases,output){
@@ -3056,7 +3422,7 @@ index b70f96b31a1f8724ceaec8abd04484eb5d7b8353..da44a11208d622b32b24ea871d96afb3
                          if selected:
                              knobs["VIEWER_SELECT"] = "joined stroke"
 diff --git a/session_viewer/tests/teapot.cjs b/session_viewer/tests/teapot.cjs
-index 995e1463a93eeb1ab4df33722a422dd5020a1809..76162d28cbea0f3d315ea1466badac0a64b9e643 100644
+index 6ea5a726d46293041e4160c7d70264c948b43c1e..8511461aba3b1043f770887a46095101835ab446 100644
 --- a/session_viewer/tests/teapot.cjs
 +++ b/session_viewer/tests/teapot.cjs
 @@ -24,6 +24,40 @@ async function shadedPixels(base64) {
@@ -3254,7 +3620,7 @@ index 0000000000000000000000000000000000000000..7377543ea0721786b9a8aaca15702377
 +if __name__ == "__main__":
 +    main()
 diff --git a/session_viewer/tests/world-text.cjs b/session_viewer/tests/world-text.cjs
-index 0b119d653ff18df6408aed4386d73b6782a76afd..0e2f152d8e0c01de4edb43cbaec83ae8a5c6b930 100644
+index 15a11fdc10b7a324d2f5208783971b9af02411cc..18f56003c75ff30a5aa5ada1bbe74b4bb48924f3 100644
 --- a/session_viewer/tests/world-text.cjs
 +++ b/session_viewer/tests/world-text.cjs
 @@ -93,7 +93,7 @@ async function main() {
