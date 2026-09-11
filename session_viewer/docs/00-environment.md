@@ -27,7 +27,7 @@ cd "$COURSE_WORK/session_viewer"
 
 - wasm-bindgen turns `cdylib` into the browser module; `rlib` lets native tools link the same crate.
 - `Cargo.lock` in step 4 pins every version; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
-- Keep `[target.'cfg(not(wasm32))']` after every `[dependencies]` entry: a target table mid-file silently swallows every `[dependencies]` line after it. (Only a `[dependencies]` line is at risk, which is why `[dev-dependencies]` may follow it here.)
+- Keep `[target.'cfg(not(target_arch = "wasm32"))'.dependencies]` after every `[dependencies]` entry: a target table mid-file silently swallows every `[dependencies]` line after it. (Only a `[dependencies]` line is at risk, so `[dev-dependencies]` may follow it here.)
 
 ![Diagram: Cargo.toml · session_viewer crate · ../session_rust](illustrations/00-01.svg)
 
@@ -39,7 +39,7 @@ cd "$COURSE_WORK/session_viewer"
 
 ![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
-One line points every `cargo` command at the browser: no `#[cfg(target_arch = "wasm32")]` gates anywhere. `xtest` is the native alias that runs the tests.
+One line points every `cargo` command at the browser, so nothing has to be gated to `#[cfg(target_arch = "wasm32")]` to reach it. The gates that appear from lesson 04a on run the other way: they keep browser-only calls out of the native build, or give them a native fallback. The `xtest` alias runs the tests natively.
 
 ![Diagram: .cargo/config.toml · wasm32-unknown-unknown · native test target](illustrations/00-02.svg)
 
@@ -133,7 +133,7 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 
 **What does one line in `.cargo/config.toml` buy you?**
 
-*How to work it out.* Without it, `cargo build` targets your machine: every browser-only item needs `#[cfg(target_arch = "wasm32")]` and every build command needs `--target wasm32-unknown-unknown`. Almost all of this crate is browser code, so that is the common case.
+*How to work it out.* Without it, `cargo build` targets your machine: every browser-only item needs `#[cfg(target_arch = "wasm32")]` and every build command needs `--target wasm32-unknown-unknown`. Almost all of this crate is browser code — the common case.
 
 *The answer.* `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so the source needs no per-item gates. The `xtest` alias still runs the tests natively.
 

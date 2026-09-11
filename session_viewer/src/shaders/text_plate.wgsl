@@ -54,6 +54,8 @@ fn fs_main(in: PlateVertex) -> @location(0) vec4<f32> {
 
 @fragment
 fn fs_id(in: PlateVertex) -> @location(0) vec2<u32> {
+    // `object` arrives already biased: text_plate.rs packs `row + 1` into the f32 vertex lane,
+    // 0 meaning no object, so this lane passes it through where the others add the 1 here.
     if (in.object == 0u || plate_distance(in) > 0.0) { discard; }
     return vec2<u32>(in.object, 0u);
 }

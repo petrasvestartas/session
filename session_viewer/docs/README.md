@@ -14,7 +14,7 @@ GPU side, from `Gpu` to its passes:
 
 Read these four first:
 
-- [How to use this course](how-to-learn.md) — how a lesson is built. Nothing is hidden: every lesson ends in **Questions and answers**, each question followed by the reasoning that gets you there and then the answer.
+- [How to use this course](how-to-learn.md) — how a lesson is built. Nothing is hidden: every lesson ends in **Questions and answers**, each question followed by its reasoning and then the answer.
 - [The map](map.md) — one picture of the whole viewer; every step reopens it with your position lit.
 - [Words before code](words.md) — every term the lessons use before they have room to explain it, with the file where it first appears.
 - [Reading failures](debugging.md) — the errors this course actually produces.
@@ -22,7 +22,7 @@ Read these four first:
 ## How a lesson reads
 
 - **You are building**: the mechanism this lesson adds, as one diagram.
-- **Step k**: one idea, then the code. Every code block names its file and one of four actions: **NEW FILE**, **CURRENT → REPLACE WITH**, **CURRENT → ADD BELOW**, **DELETE**.
+- **Step k**: one idea, then the code. Every code block names its file and one of five actions: **NEW FILE**, **CURRENT → REPLACE WITH**, **CURRENT → ADD BELOW**, **CURRENT → ADD ABOVE**, **DELETE**. The two anchored inserts differ only in which side of the quoted line the new code goes.
 - **TYPE THIS** marks code worth writing by hand. **COPY** marks boilerplate, pages, lockfiles, fixtures. **READ ONLY** marks a complete file shown for orientation.
 - **Supplied files** are tooling (native examples, fixtures, parity ports) installed by one command; the course does not teach them.
 - **Check**: `cargo check` where it is known to pass, then the checkpoint build and what you should see.

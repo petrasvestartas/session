@@ -10,7 +10,7 @@
 
 - Checkpoint 06: each BRep face is tessellated on its own; boundaries are records without geometry.
 - Two faces that agree on an edge's endpoints can still chord the curve differently, so their seam z-fights and interior refinement can bury a coarse boundary chord.
-- Fix: one XYZ polygon per edge, shared bit for bit by every incident face, then draw ink from the mesh nodes that polygon became.
+- Fix: one XYZ polygon per edge, shared bit for bit by every incident face; ink comes from the mesh nodes it became.
 
 <!-- supplied: 07 -->
 
@@ -173,7 +173,7 @@
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=1-59 -->
 
 - Matching a shared edge means finding where the other face sampled its start.
-- Two grid faces agree bit for bit; a CDT face re-evaluates the surface and lands an ULP off.
+- Two grid faces agree bit for bit; a constrained Delaunay face re-evaluates the surface and lands one unit in the last place away — the gap between two neighbouring f64 values, far below any tolerance you would write down.
 - So the lookup is a nearest-vertex minimum: not an equality, and not a tolerance search.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
@@ -272,7 +272,7 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 
 **Two faces agree on an edge's endpoints. Why is that not enough?**
 
-*How to work it out.* Agreeing on the ends constrains two points. In between, each face chords the curve by *its own* refinement, from its own curvature and tolerance: two different polylines with the same endpoints.
+*How to work it out.* Agreeing on the ends constrains two points. Between them each face chords the curve by *its own* refinement, from its own curvature and tolerance: two polylines, same endpoints.
 
 *The answer.* The seam z-fights where the two chordings cross, and one face's coarse chord can be buried under the other's finer surface. Endpoints are too weak a contract; one canonical XYZ polygon, shared bit for bit, leaves nothing to disagree about.
 
@@ -280,7 +280,7 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 
 *How to work it out.* The ink outlines the tessellation, which is what the user sees. A curve sampled independently is a second approximation of the same edge, accurate to its own tolerance — and two approximations differ.
 
-*The answer.* An independently sampled line visibly floats above or sinks below the surface it outlines as soon as you zoom. Drawing from the nodes the shared boundary polygon became makes line and surface the same geometry by construction, not by tolerance.
+*The answer.* An independently sampled line floats above or sinks below the surface it outlines as soon as you zoom. Drawing from the nodes the shared polygon became makes line and surface one geometry by construction, not by tolerance.
 
 **When the constraint fails, the kernel returns an empty mesh. Defend that choice against "return the best mesh you can".**
 

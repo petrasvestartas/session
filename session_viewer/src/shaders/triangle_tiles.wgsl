@@ -6,6 +6,10 @@ struct TileLine {
 @group(1) @binding(0) var<uniform> line: TileLine;
 @group(3) @binding(0) var<storage, read> projected: array<ProjectedTriangle>;
 
+// One tile's record: 0 = how many triangles cover the tile, counted by fs_count; 1 = where its
+// list starts, written by the scan in scan_triangle_tiles.wgsl; 2 = the write cursor fs_fill
+// advances; 3 = the overflow flag. The same buffer is the pool past the last record, where a
+// list is (primitive, nearest depth bound) pairs.
 struct TileRecord {
     values: array<atomic<u32>, 4>
 };

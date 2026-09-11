@@ -48,7 +48,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 ![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-aa8225000e.svg){ .locator data-strip="illustrations/strip-a1fbe46b03.svg" }
 
 - The generated Rust module gains the message; the kernel's own `Objects` serializer names the new field and never reads it.
-- A kernel that loads a sheet file sees an empty session, which is why the viewer never hands a sheet to the kernel.
+- A kernel that loads a sheet file sees an empty session, so the viewer never hands a sheet to the kernel.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -124,13 +124,13 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 <!-- file: 19 session_viewer/src/app/walk/mod.rs type -->
 
-- The producer list gains the sheet slice — a producer fed by the network rather than by a document.
+- The producer list gains the sheet slice — fed by the network rather than by a document.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 19 session_viewer/src/engine/gpu/segments.rs type -->
 
-- That map is what lets a picked line in a 90 000-line drawing name itself.
+- That map lets a picked line in a 90 000-line drawing name itself.
 
 ### Step 7 · One row per sheet
 
@@ -151,7 +151,8 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 - `sheet_query` transcribes the cloud's source query: the table head is read once per sheet and cached with its ETag.
 - An entity then costs the 16-byte record at `8 + 16 · id` and its blob, both refused if the table's revision moved.
-- `EntityMeta` parses the JSON's guid, name, kind, width and colour; blobs over 64 KiB are refused. Dropping a `Query` cancels its callback.
+- `EntityMeta` parses the JSON's guid, name, kind, width and colour; blobs over 64 KiB are refused.
+- Dropping a `Query` cancels its callback.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -197,7 +198,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 <!-- file: 19 session_viewer/src/state/sheet_query.rs type -->
 
-- State's third companion, owning the in-flight entity lookup and nothing else — which is why it is a file rather than more of `state.rs`.
+- State's third companion, owning the in-flight entity lookup and nothing else — hence a file rather than more of `state.rs`.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 

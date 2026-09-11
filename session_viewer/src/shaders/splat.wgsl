@@ -111,6 +111,9 @@ fn project(gid: u32) -> Splat {
         let lambert = 0.25 + 0.75 * abs(dot(nw, light));
         rgba = vec4<f32>(rgba.rgb * lambert, rgba.a);
     }
+    // Word 38 is the object's flag word - bit 0 is FLAG_SELECTED, spelled out because this lane
+    // compiles without scene.wgsl - and word 39 is the highlighted point's row + 1. Either one
+    // paints the yellow the other lanes take from SELECT_COLOR.
     if ((table[base + 38u] & 1u) != 0u || table[base + 39u] == i + 1u) { rgba = vec4<f32>(1.0, 1.0, 0.0, 1.0); }
     s.color = pack4x8unorm(rgba);
     s.ok = true;

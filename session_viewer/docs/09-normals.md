@@ -152,18 +152,18 @@ Mesh edges and markers become toggles so shading can be judged without boundary 
 
 <!-- checkpoint: 09 -->
 
-Open these views (the `cad` query selects the fixture, `affine=1` applies the placement, `fill=1` hides edges and markers, `perspective=1` switches projection):
+Open these views (the `cad` query selects the fixture, `affine=1` applies the placement, `lit=1` turns the headlight on — every face is its flat colour without it — `fill=1` hides the boundary ink, `perspective=1` switches projection):
 
-- `?cad=sphere` — smooth interior shading, no facet pattern.
-- `?cad=cylinder` — smooth side; each cap is one flat tone with no bleed across the rim.
-- `?cad=crease` — one-sided shading on each side of the fold.
-- `?cad=cylinder&affine=1` — the mirrored, nonuniformly scaled copy shades like the original.
-- `?cad=cylinder&fill=1` — lighting only.
-- `?cad=hole`, `?cad=trimmed`, `?cad=torus` — the hole, trimmed patch and torus fixtures under these normals.
+- `?cad=sphere&lit=1` — smooth interior shading, no facet pattern.
+- `?cad=cylinder&lit=1` — smooth side; each cap is one flat tone with no bleed across the rim.
+- `?cad=crease&lit=1` — one-sided shading on each side of the fold.
+- `?cad=cylinder&affine=1&lit=1` — the mirrored, nonuniformly scaled copy shades like the original.
+- `?cad=cylinder&fill=1&lit=1` — lighting only.
+- `?cad=hole&lit=1`, `?cad=trimmed&lit=1`, `?cad=torus&lit=1` — the hole, trimmed patch and torus fixtures under these normals.
 
 A subtle crease under one light is not proof that normals are separate; identical XYZ with two normals is.
 
-![Checkpoint 09: smooth interiors, separate cap normals and a sharp crease under one headlight.](screenshots/09.png)
+![Checkpoint 09 at `?cad=sphere&lit=1`: the sphere's interior shades smoothly, with no facet pattern.](screenshots/09.png)
 
 ## What changed
 
@@ -176,9 +176,9 @@ A subtle crease under one light is not proof that normals are separate; identica
 
 ## Try
 
-- Open `?cad=sphere&lit=1` and then `?cad=sphere`: the shading is the only difference, the mesh is the same; a normal bug shows in the first view only.
-- Open `?cad=crease` and orbit until the light grazes the fold: one side goes dark while the other stays lit, because the two sides own different normals at the same positions.
-- Open `?cad=cylinder&affine=1`: the stretched copy shades like the original. Replace `transform_normal` in `normals.wgsl` with a plain `mat3x3(model) * n` and reload: the stretched copy's lighting tilts.
+- Open `?cad=sphere&lit=1` and then `?cad=sphere`: same mesh, different shading; a normal bug shows in the first view only.
+- Open `?cad=crease&lit=1` and orbit until the light grazes the fold: one side goes dark while the other stays lit, because the two sides own different normals at the same positions.
+- Open `?cad=cylinder&affine=1&lit=1`: the stretched copy shades like the original. Replace `transform_normal` in `normals.wgsl` with a plain `mat3x3(model) * n` and reload: the stretched copy's lighting tilts.
 
 ## Questions and answers
 
@@ -202,7 +202,7 @@ A subtle crease under one light is not proof that normals are separate; identica
 
 **A singular matrix yields the zero normal sentinel instead of an error. Who handles it and how?**
 
-*How to work it out.* A singular model matrix flattens the instance to a plane or a line: there is genuinely no unique normal. Refuse to draw, invent one, or shade without one.
+*How to work it out.* A singular model matrix flattens the instance to a plane or a line: genuinely no unique normal. Refuse to draw, invent one, or shade without one.
 
 *The answer.* The fragment stage falls back to flat shading from screen derivatives — the honest answer, rather than a crash or a fiction.
 

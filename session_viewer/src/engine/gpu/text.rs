@@ -75,6 +75,8 @@ pub struct TextLane {
     atlas_font_revision: u64,
     prepared: Option<(u64, u64, TextFrame)>,
     raster_keys: HashSet<glyphon::CacheKey>,
+    /// 0 or 1, never a tally: whether `prepare` left this renderer anything to draw. `draw`
+    /// skips the render call when it did not.
     overlay_count: u32,
     anchored_count: u32,
 }

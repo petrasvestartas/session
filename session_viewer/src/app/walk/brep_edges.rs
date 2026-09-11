@@ -417,6 +417,8 @@ fn scaled_normal(normal: Option<[f64; 3]>, sign: f64) -> Option<[f64; 3]> {
 
 /// One pipe per source segment, culled only when both incident physical facets turn away.
 /// Singular endpoint shading normals and nearest unrelated vertices cannot change this decision.
+/// Returns how many pipes reached the table: a segment that collapses or goes non-finite in
+/// f32 is dropped, so it can be fewer than `chain.keys.len() - 1`.
 pub fn push_edge_pipes(
     seg: &mut SegRows,
     chain: &EdgeChain,

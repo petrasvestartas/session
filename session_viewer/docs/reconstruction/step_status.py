@@ -44,11 +44,15 @@ def ranges(numbers):
 
 
 def label(name):
+    """A step's number, or a part's own name: a lesson whose last unit is "Part C" must not be
+    described as reaching "step C", which names nothing the reader can find on the page."""
     m = NUMBER.match(name)
     if not m:
         return name
     raw = m.group(1)
-    return int(raw) if raw.isdigit() else raw
+    if raw.isdigit():
+        return int(raw)
+    return f"Part {raw}" if name.startswith("Part ") else raw
 
 
 def sentence(entry):
@@ -58,7 +62,9 @@ def sentence(entry):
     bad = [label(n) for n in order if results[n] != "ok"]
     if not bad:
         return "**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson."
-    passes = (f"passes after step{'s' if len(ok) != 1 else ''} {ranges(ok)}; "
+    # The noun counts only the NUMBERED units: a part carries its own noun in its label.
+    numbered = sum(1 for x in ok if not isinstance(x, str))
+    passes = (f"passes after step{'s' if numbered != 1 else ''} {ranges(ok)}; "
               if ok else "passes at no point during this lesson; ")
     # For each failing step, the first later step that builds again: "when would it work".
     labels = [label(n) for n in order]
@@ -76,7 +82,8 @@ def sentence(entry):
         which = ranges([labels[i] for i in idxs])
         many = len(idxs) > 1
         word, fail, build = ("steps", "fail", "build") if many else ("step", "fails", "builds")
-        recovery.append(f"{word} {which} {fail} and {build} again at step {nxt}" if nxt else
+        at = nxt if isinstance(nxt, str) and nxt.startswith("Part ") else f"step {nxt}"
+        recovery.append(f"{word} {which} {fail} and {build} again at {at}" if nxt else
                         f"{word} {which} {fail} and stay incomplete until the checkpoint build")
     # Why a step can fail is the same on all 24 lessons, and how-to-learn.md already says it once.
     # Repeating it here cost 60 words a lesson; only the measured part belongs in the lesson.

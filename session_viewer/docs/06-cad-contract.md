@@ -291,7 +291,7 @@ The shader ignores vertex normals and shades from the finite face fallback, so a
 Expected:
 
 - A grey shaded planar face fills much of the canvas; its four natural boundaries draw as black ink separate from the fill.
-- The status reads one object; the inspection JSON lists `sourceObjects` with a GUID and `sourceEdgeIds`.
+- The status reads one object. For the rest, open the browser console and run `JSON.parse(document.getElementById('canvas').dataset.tutorialInspection)` — the object the page writes after every frame: it lists `sourceObjects` with a GUID and `sourceEdgeIds`.
 - Orbit: fill and boundary move together.
 
 If the face is missing, follow producer → `Upload` → arena → draw range. If boundaries float off the face, the two f64 → f32 conversions differ.
@@ -318,7 +318,7 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 
 **A producer reports a `Row` and is given a `WalkCx`. What is the boundary this draws, and why does it matter?**
 
-*How to work it out.* `WalkCx` gives positions in the output (vertex base, object row); `Row` reports measurements of the input (box, spacing, flags). What is *absent* from both is the design: the file, the document, the selection, the camera.
+*How to work it out.* `WalkCx` gives positions in the output (vertex base, object row); `Row` reports measurements of the input (box, spacing, flags). *Absent* from both is the design: the file, the document, the selection, the camera.
 
 *The answer.* A producer turns one geometry into rows and knows nothing else — so a sheet is detected after the walk from the object rows, and a new geometry type costs one producer rather than an edit to the scene.
 

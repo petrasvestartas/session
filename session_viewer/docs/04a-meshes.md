@@ -111,7 +111,7 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=118-182 -->
 
-- `SCENE` is the contract every lane compiles with; `INK` the visibility rule only ink lanes need. A lane names a constant instead of repeating an `include_str!`.
+- `SCENE` is the contract every lane compiles with: a lane names the constant instead of repeating an `include_str!`.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -172,7 +172,8 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=136-165 -->
 
-- `TextureSpec` is the whole description of an attachment - size, format, samples, usage. Keeping it as data lets every attachment rebuild from one place when the sample count flips.
+- `TextureSpec` holds an attachment as data - size, format, samples, usage.
+- Kept as data, every attachment rebuilds from one place when the sample count flips.
 
 ## Step 5 · Frame uniforms
 
@@ -232,7 +233,8 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-253 -->
 
-- Construction makes the buffers and bind groups with no camera in them yet. A frame only writes into buffers that already exist and are already bound — no per-frame allocation.
+- Construction makes the buffers and bind groups, no camera in them yet.
+- A frame writes only into buffers already built and bound — no per-frame allocation.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -510,7 +512,7 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 Expected:
 
-- One flat blue triangle, lit by the headlight, on the dark canvas.
+- One flat blue triangle, unlit, on the dark canvas.
 - Status reads **Checkpoint 04a · 1 objects**.
 - Orbit, pan and zoom still work; the triangle stays put while the camera moves.
 
@@ -530,8 +532,8 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 ## Try
 
 - Append `?lit=1` (or press `D` later): the face gains headlight shading. Without it every face is its flat row color — what a color-based probe needs.
-- Add a second `ObjectRow` in `fixture.rs` with a different `place`: the same vertex range draws twice, once per row.
-- `?msaa=` is parsed here with no consumer yet: `Targets::new` is called with one sample and the comment says so. Lesson 05 gives the knob its meaning; that checkpoint is where `?msaa=4` changes the picture.
+- Push the three vertices again in `fixture.rs` with `upload.arena.vids.push(1)` and extend `idx` with `[3, 4, 5]`, then add a second `ObjectRow` with a different `place`: the copy draws at its own placement. The row travels per vertex at `@location(3)`, so a second row alone draws nothing.
+- `?msaa=` is parsed here with no consumer yet: `Targets::new` is called with one sample and the comment says so. Lesson 05 gives the knob its meaning: there `?msaa=4` changes the picture.
 
 ## Questions and answers
 
@@ -540,19 +542,19 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 
 *How to work it out.* There is no realloc on a GPU: growing creates a *new*, larger buffer and copies the live prefix into it. Then ask what else remembers the old buffer — a bind group holds a reference to a specific buffer, not to a name.
 
-*The answer.* The old bind group now points at a buffer nobody writes to any more. The boolean is the signal to rebuild it. Ignore it and there is no validation error — the buffer it names is still perfectly valid, just not yours — so the symptom is stale geometry, failure 9 in [Reading failures](debugging.md).
+*The answer.* The old bind group now points at a buffer nobody writes to. The boolean says rebuild it. Ignoring it raises no validation error — the buffer it names is still valid, just not yours — so the symptom is stale geometry, failure 9 in [Reading failures](debugging.md).
 
 **Group 2 holds rows in one buffer and translations in another. What does the split buy?**
 
-*How to work it out.* Ask which of the two changes more often. The rows change when the scene changes; the translations change every time the anchor moves, which is while you are navigating. Then price each write per object: 96 bytes against 16.
+*How to work it out.* Ask which of the two changes more often. The rows change when the scene changes; the translations change whenever the anchor moves — while you navigate. Then price each write per object: 96 bytes against 16.
 
-*The answer.* A re-anchor rewrites only the translations — 16 bytes per object instead of 96 — and that is the write that happens during interaction, so it is the one worth making small. The general move: split a record when one half changes on a different clock.
+*The answer.* A re-anchor rewrites only the translations — 16 bytes per object instead of 96 — the write that happens during interaction, so the one worth making small. The general move: split a record when one half changes on a different clock.
 
 **`vp_w`/`vp_h` and `frame`/`origin` look like the same numbers. When do they differ, and why are both needed?**
 
 *How to work it out.* Find a case where the thing being drawn into is not the whole canvas. There is exactly one: the pick pass renders a window around the cursor into its own attachment. Then ask of each piece of pixel arithmetic whether it means "in this attachment" or "on the canvas the scene was laid out for".
 
-*The answer.* `vp_w`/`vp_h` are the attachment being drawn into; `frame` is the whole canvas the scene was projected for, and `origin` is where the window's top-left sits in it. Pixel arithmetic uses the attachment; anything laid out against the full canvas goes through `origin`. Collapse them and picking drifts as soon as the window is not the canvas.
+*The answer.* `vp_w`/`vp_h` are the attachment drawn into; `frame` is the whole canvas the scene was projected for, `origin` the window's top-left within it. Pixel arithmetic uses the attachment; anything laid out against the full canvas goes through `origin`. Collapse them and picking drifts as soon as the window is not the canvas.
 
 **Why is a pipeline described by data (`PipelineDesc`) instead of a function per pipeline?**
 

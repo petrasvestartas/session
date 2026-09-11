@@ -65,7 +65,8 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
 
 /// Tessellate a BRep face by face, upload each with its surface colour and normals, then ink
 /// its edges. The row is one object; `FLAG_SMOOTH` tells the marker lane the vertices are
-/// samples; `FLAG_OPEN` is the BRep's own `is_solid`, since an open shell shows its inside.
+/// samples; `FLAG_OPEN` goes on when the BRep's own `is_solid` is FALSE, since an open shell
+/// shows its inside; `FLAG_SINGLE` when the whole thing is one face, which x-ray leaves shaded.
 pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
     let mut fms = b.face_meshes_q(Some(QUALITY));
     let chains = edge_chains(b, &fms);
@@ -188,9 +189,12 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
     row
 }
 
-/// Name natural domain edges from the mesher's UV records: u-min, u-max, v-min, v-max.
-/// Closed directions have no physical domain edge. Creases without source topology stay
-/// unavailable for CAD edge picking; no triangulation index becomes a source edge ID.
+/// Name natural domain edges from the mesher's UV records: u-min, u-max, v-min, v-max. Those
+/// four are bits 0-3 of a per-position mask, and a pipe whose two ends share EXACTLY one bit
+/// takes that bit's index as its source edge id - so a surface's edge ids are 0, 1, 2, 3 and
+/// nothing else. Closed directions have no physical domain edge. Creases without source
+/// topology stay unavailable for CAD edge picking; no triangulation index becomes a source
+/// edge ID.
 fn map_surface_boundaries(ink: &mut Ink, s: &NurbsSurface, mesh: &Mesh, first_pipe: usize) {
     let mut masks = std::collections::HashMap::<[u32; 3], u8>::new();
     for vertex in mesh.vertex.values() {

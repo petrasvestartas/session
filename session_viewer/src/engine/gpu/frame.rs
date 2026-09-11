@@ -80,11 +80,16 @@ const _: () = {
     assert!(std::mem::offset_of!(LineUniform, opacity) == 72);
 };
 
-/// The cloud block (group 1 of the point lane), 16 B.
+/// The cloud block (group 0 of the point lane), 48 B.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct CloudUniform {
-    pub size: f32, // global scale on per-cloud point sizes
+    /// The global scale on per-cloud point sizes, UNREAD BY THE SHADERS: neither `splat.wgsl`
+    /// nor `splat_resolve.wgsl` touches `cloud.size`. The scale is applied on the CPU, in
+    /// `splat.rs`'s record builder (`... else { 3.0 } * cx.cloud_size`), so the sizes reach the
+    /// GPU already scaled. Dropping the word would move `origin` and `frame` off the offsets
+    /// the assertion below pins and both shaders index.
+    pub size: f32,
     pub vp_w: f32,
     pub vp_h: f32,
     pub edl: f32, // Eye-Dome Lighting strength; 0 = off
@@ -321,7 +326,7 @@ impl FrameUniforms {
         let line = LineUniform {
             thickness: cx.view.thickness_px * cx.pixel_scale,
             feather: cx.view.feather_px,
-            // cot(fovy/2) times millimetres-per-metre: the camera folds that same 0.001 into
+            // cot(fovy/2) times metres-per-millimetre: the camera folds that same 0.001 into
             // its projection, so a world-mm radius must carry it too before being divided by
             // the metres in clip.w. `ortho_h` below comes off the view-projection already scaled.
             proj_y: 1.0 / (FOVY_DEG as f32 * 0.5).to_radians().tan() * 0.001,

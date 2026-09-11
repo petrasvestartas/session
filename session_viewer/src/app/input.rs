@@ -1,5 +1,6 @@
 //! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
-//! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
+//! left click picks the object, Ctrl+click an edge and Ctrl+Shift+click a face;
+//! 1-7 named views, Space projection, C reset, F fits the selection (or
 //! everything with none selected), Q/W/E lane toggles, O silhouettes, D face lighting,
 //! B the back-face flag,
 //! H hides the selection and S shows everything back, T toggles selected names,

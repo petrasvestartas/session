@@ -86,7 +86,7 @@ A stroke is a ribbon of fragments around its mathematical axis; the depth beside
                    z0            depth varies across the footprint
 ```
 
-Comparing `z0` with `d` directly hides ink on its own face. The physical gradient instead carries the surface depth from the fragment to the axis point, and only that predicted depth is compared with the axis.
+Comparing `z0` with `d` directly hides ink on its own face. The physical gradient instead carries the surface depth from the fragment to the axis point, and compares only that prediction.
 
 
 ### 4a · Bindings, tolerances and the axis record
@@ -293,12 +293,12 @@ Expected:
 
 - A grey box on a white background, twelve red edges, black corner markers.
 - Orbit: edges on the far side of the box disappear behind its faces; front edges stay at full width up to the corners.
-- `?fixture=floor`: magenta lines just under the sloping floor stay hidden; the red line on the floor stays visible.
+- `?fixture=floor`: magenta lines just under the sloping floor stay hidden; the blue line on the floor stays visible.
 - `?top`, `?perspective`, `?distance=N` select the view for repeatable inspection.
 
 Every edge disappears: compare the depth clear and compare function against the table in step 1. Hidden edges show through: check that the face pipeline uses `.physical()` and that `fs_main` returns `physical_gradient(in.pos.z)`.
 
-![Checkpoint 05: hidden lines stay hidden while visible strokes and corners stay readable, over the grid and backdrop.](screenshots/05.png)
+![Checkpoint 05: hidden lines stay hidden while visible strokes and corners stay readable, over the white backdrop.](screenshots/05.png)
 
 ## What changed
 
@@ -312,7 +312,7 @@ Every edge disappears: compare the depth clear and compare function against the 
 
 ## Try
 
-- Append `?nogrid=1`: the construction grid is gone; it was drawn by `backdrop.rs` with a read-only depth test.
+- The grid never appears at this checkpoint: `lib.rs` sets `gpu.view.show_grid = false`, so `backdrop.rs` draws the white background alone. Delete that line and reload to see the grid it draws with a read-only depth test — then `?nogrid=1` switches it off again.
 - Orbit until a stroke passes behind the box: the covered span disappears cleanly, without a global depth offset.
 - Append `?msaa=4` and compare the stroke fringe with `msaa=1`: multisampling changes coverage, never the visibility decision.
 

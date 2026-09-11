@@ -203,10 +203,10 @@ If the status shows a width difference, compare font bytes, size and the kerning
 
 ## Try
 
-- Open `text-layout.html`, expand the glyph report and find the `AV` of `AVATAR`: the second advance is smaller than a lone `V`, because the pair is kerned.
+- Open `text-layout.html`, expand the glyph report and find the `AV` of `AVATAR`: the first advance is smaller than a lone `A`, because the kern lands on the first glyph of the pair.
 - Count the glyphs shaped for `ffi`: one glyph, three bytes in its cluster; the browser row has the same width, so the ligature is not a viewer invention.
-- Compare `é` with the decomposed `e` + combining accent that follows it: the first is one glyph, the second is two, and the accent glyph carries advance 0.
-- Change the sample string in `src/text_layout.rs` to `AVATAR AV AT`: the width of `AV` alone shows the kerning without the rest of the line.
+- Compare `é` with the decomposed `e` + combining accent that follows it: both shape to the same single glyph with the same advance, because the shaper composes the base and the mark before it chooses glyphs.
+- Change the sample string in `src/text_layout.rs` to `AVATAR AV AT ffi`: the width of `AV` alone shows the kerning without the rest of the line. Keep the `ffi` — the page refuses a line in which no glyph's cluster spans more than one byte.
 
 ## Questions and answers
 

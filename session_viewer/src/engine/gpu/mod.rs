@@ -112,6 +112,11 @@ impl Gpu {
             + outline_buffers;
         let pixels = u64::from(self.config.width) * u64::from(self.config.height);
         let samples = u64::from(self.targets.samples);
+        // 16 B a sample is the three physical attachments together: 4 for the MSAA colour, 4
+        // for depth32, 8 for the Rgba16Float gradient. At 1x there IS no MSAA colour target -
+        // the pass draws into the swapchain, which this process does not own - so a pixel
+        // costs 12. The constant that follows is the 1x1 placeholder pair `Targets::new` makes
+        // at the OTHER sample count: 4 x 12 while we are at 1x, 12 while we are at 4x.
         let frame_textures = pixels * if samples > 1 { samples * 16 } else { 12 }
             + if samples > 1 { 12 } else { 48 };
         (

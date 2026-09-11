@@ -147,16 +147,19 @@ impl PoolReport {
 
 /// The pool to ask for next, from the last report.
 ///
-/// The scan's prefix sums saturate at the capacity of the buffer they were given, so that an
-/// overflowing sum can never wrap into a plausible offset. That makes a report which REACHES
-/// capacity a floor rather than a measurement: the lists needed at least this much and possibly
-/// far more, and the true figure was never computed. There is nothing to size against, so the
-/// pool doubles and the next report says whether that was enough. A report below capacity is a
-/// real measurement of lists that fitted, so it asks for nothing.
+/// The report is an ABSOLUTE word index into the buffer - the last tile's end, header words
+/// included - so it is directly comparable with `pool_capacity`. The scan's prefix sums
+/// saturate at the buffer's own length so an overflowing sum can never wrap into a plausible
+/// offset, and the header words are added on top of that ceiling: a report from lists that did
+/// not fit therefore lands at or above capacity, and one from lists that did fit lands below.
 ///
-/// This is why the guard is `>=` and not `>`. It used to be `>`, which a saturating report can
-/// never satisfy, and the pool never grew at all: an oversubscribed scene kept the conservative
-/// rejection for good instead of for one frame.
+/// A saturated report is a floor, not a measurement: the lists needed at least this much and
+/// possibly far more, and the true figure was never computed. There is nothing to size against,
+/// so the pool doubles and the next report says whether that was enough. Sizing to the report
+/// itself would be sizing to a number known to be too small.
+///
+/// The guard is `>=` rather than `>` for the boundary alone: lists that exactly fill the pool
+/// have also run out of room.
 fn next_pool_words(
     current: u64,
     floor: u64,
@@ -616,16 +619,23 @@ fn compute_pipeline(
 mod tests {
     use super::*;
 
-    /// The regression this function exists for. The scan saturates AT capacity, so a report can
-    /// never exceed it: a `>` guard here means the pool never grows, which is how it shipped.
+    /// The three shapes a report arrives in. Lists that overflowed report past capacity,
+    /// because the saturated prefix sum is still carrying the header words on top of it;
+    /// lists that exactly filled the pool report capacity itself, which is the boundary the
+    /// `>=` guard is for; lists that fitted report below it and ask for nothing.
     #[test]
     fn a_saturated_report_grows_the_pool() {
         let capacity = 1_000;
         let pool = 800;
         assert_eq!(
+            next_pool_words(pool, 0, capacity, Some(capacity + 64), u64::MAX),
+            1_600,
+            "a report past capacity doubles"
+        );
+        assert_eq!(
             next_pool_words(pool, 0, capacity, Some(capacity), u64::MAX),
             1_600,
-            "a report at capacity doubles"
+            "a pool exactly filled has also run out"
         );
         assert_eq!(
             next_pool_words(pool, 0, capacity, Some(capacity - 1), u64::MAX),

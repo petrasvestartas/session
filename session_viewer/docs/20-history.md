@@ -14,7 +14,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1 and C; steps 2–5 fail and build again at step C.
+**Does it compile yet?** `cargo check` passes after step 1 and Part C; steps 2–5 fail and build again at Part C.
 
 <!-- step-status: end -->
 
@@ -72,7 +72,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/history.rs type lines=203-268 -->
 
-- Keeping both directions in one place makes it obvious that every record type handles both.
+- Keeping both directions in one place shows that every record type handles both.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -82,7 +82,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/lib.rs type -->
 
-- Everything in this lesson lives in the shared kernel, which is why the tests run there.
+- Everything in this lesson lives in the shared kernel, so the tests run there.
 
 ## Part B · The session records
 
@@ -149,7 +149,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 ## Part C · Three kernels, one behaviour
 
 - The Python and C++ kernels carry the same `History`, `replace`, `begin`, `commit`, `undo` and `redo`, the same records and the same test names, so a document behaves the same whichever language edits it.
-- They are supplied with their tests; the Rust tests below are the ones you type.
+- The Python and C++ kernels are supplied with their tests, and so are the Rust tests: install them all with the command below and run them from the Check.
 
 <!-- supplied: 20 -->
 
@@ -191,7 +191,7 @@ Expected:
 ## Try
 
 - Add three points, `begin`, `replace` one, `remove` one, `set_xform` one, `commit`, `undo`, `redo`; then `pb_dump` and check `history.depth()` is 0.
-- Remove a group with children and undo: the children return under the same parent at the same index.
+- Remove an object that has children under it in the tree and undo: the children return under the same parent at the same index.
 - Open the saved file in the Python or C++ kernel and run the same sequence: the same names do the same things.
 
 ## Questions and answers
@@ -212,7 +212,7 @@ Expected:
 
 *How to work it out.* A delta assumes it will be applied to exactly the state it was computed from. What breaks that: a redo stack, a reordered transaction, floating-point rounding that makes inverse composition not quite the identity. Then price the alternative: the buffer is 64 transactions, so size is not the constraint.
 
-*The answer.* Absolutes are bigger and completely unambiguous; deltas compose and drift. Reach for deltas when size is the binding constraint, and here it is not.
+*The answer.* Absolutes are bigger and unambiguous; deltas compose and drift. Reach for deltas when size is the binding constraint; here it is not.
 
 **A removal's clone keeps the guid rather than minting a new one. What would break with `duplicate`?**
 

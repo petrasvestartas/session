@@ -66,7 +66,7 @@ struct GraphIndex {
 enum Filter { Tree(usize, Vec<u16>), Kind(Kind), VertexAttribute(String), EdgeAttribute(String) }
 ```
 
-- `Graph::add_node(key, attribute)` takes the geometry guid as key (`session_rust/src/session.rs`): a `Vertex`'s name is a guid, `attribute` the label to group on. `src/app/decode.rs` matches, so wasm and native agree.
+- `Graph::add_node(key, attribute)` takes the geometry guid as key (`session_rust/src/graph.rs:290`): a `Vertex`'s name is a guid, `attribute` the label to group on. `src/app/decode.rs` matches, so wasm and native agree. `src/app/decode.rs` matches, so wasm and native agree.
 - Edges have no rows, so an edge filter hides both endpoints — and the row says "joint — 8 objects", not "4 edges".
 - Read once per load: `get_vertices()` clones every `Vertex`, `get_edges()` de-duplicates into a new `Vec<(String, String)>` — ~114k allocations on the sheet fixture.
 - `node_attribute` and `edge_attribute` need `&mut self`, unreachable behind `Rc<Session>`; the index is the only read path.
@@ -170,7 +170,7 @@ impl Gpu          { pub fn set_hidden_rows(&mut self, runs: &[Range<u32>], on: b
 - `Scene::rebuild` keeps `docs` and `hidden` and re-runs `add_file`, so the indexes return with the rows — provided `reset_rows` cleared them, or they double.
 - `Scene::clear` drops documents and `hidden`; `State::clear` must clear `Filters` too, or a new scene starts half-hidden.
 - Open state and scroll are path-keyed: they survive a rebuild of the same documents and die with a `clear`.
-- Streamed clouds and sheets cannot return after a rebuild — no kernel object to re-walk (`Scene::rebuild`'s doc comment). Rebuild their rows from `Scene.streamed` and `Scene.sheets`.
+- Streamed clouds and sheets cannot return after a rebuild — no kernel object to re-walk (`Scene::rebuild`'s doc comment) — and `reset_rows` empties `Scene.streamed` and `Scene.sheets` before the first `add_file`, so their descriptors are gone too: the documents survive in `docs` as empty shells that walk to no rows at all. Only a document change rebuilds, so refuse a reparent or delete while `scene.streamed` or `scene.sheets` is non-empty, say why on the row, and drop their panel rows if a rebuild happens anyway.
 - Nothing prunes panel state: rebuild the flat list after every `add_file`, `rebuild` and `clear`, and drop entries whose document index is gone.
 
 ## The awkward rows

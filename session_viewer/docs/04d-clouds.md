@@ -98,7 +98,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 | 64 | `tint: [f32; 4]`, `.a` = minimum radius in px |
 | 80 | `first`, `count`, `cum`, `k` |
 | 96 | `rot: [f32; 12]` |
-| 144 | `nrm_first`, `instance`, `flags`, `_pad` |
+| 144 | `nrm_first`, `instance`, `flags`, `selected_point` |
 
 ![Diagram: RecordCx\ camera · clouds · nodes · SplatRecord × N\ 160 B · 1× depth + color targets · face pass](illustrations/04d-04.svg)
 
@@ -122,7 +122,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=160-232 -->
 
 - Construction allocates the record buffer up front - 4096 records at 160 bytes, about 640 KB - and binds it over placeholder buffers.
-- The point *targets* wait for the first cloud; they are the part that scales with the framebuffer.
+- The point *targets* wait for the first cloud: they scale with the framebuffer.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -229,7 +229,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 Expected:
 
-- Triangle, polyline, dot, and a grid of orange points at the lower right.
+- Triangle, polyline, dot, and a grid of blue points at the lower right.
 - Status reads **Checkpoint 04 · 4 objects**.
 - Orbit: the points stay round and keep their size on screen.
 
@@ -247,7 +247,7 @@ Expected:
 
 - Append `?cloud=3`: every point grows on screen; `cloud_size` scales the per-cloud size in the record, the buffers are untouched.
 - Append `?edl=0`: the eye-dome lighting goes away and the cloud reads flat; it is a resolve-pass effect, not stored colour.
-- Append `?lod=64`: fewer octree nodes qualify and the cloud thins with distance; only `LodWalk::select` behaves differently.
+- Append `?lod=64`: the picture does not change, and that is the answer. `LodWalk::select` draws a cloud whole when it has no octree or holds fewer than `LOD_MIN_POINTS` points, and this fixture's grid is 117 points with `node_count: 0`. The cutoff starts choosing nodes only once a cloud arrives with an octree behind it.
 
 ## Questions and answers
 
@@ -255,7 +255,7 @@ Expected:
 
 *How to work it out.* A splat must read the depth of *neighbouring* points to shade itself (Eye-Dome Lighting), and you cannot read the depth buffer you are writing. But it must still occlude and be occluded like a solid. They conflict unless the points get their own buffer.
 
-*The answer.* A private colour and depth pass first, then a fullscreen resolve that reads them, applies EDL and writes `frag_depth` under the scene's `Greater` test, folding the result back into the shared depth as if it had been drawn there. The cost is one pass; the benefit is that no other lane has to know clouds exist.
+*The answer.* A private colour and depth pass first, then a fullscreen resolve that reads them, applies EDL and writes `frag_depth` under the scene's `Greater` test, folding the result back into the shared depth as if it had been drawn there. The cost is one pass; no other lane need know clouds exist.
 
 **The point pass targets are created on the first frame that has points. What principle is that, and where else does it appear?**
 

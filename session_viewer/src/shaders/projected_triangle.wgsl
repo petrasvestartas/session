@@ -11,6 +11,10 @@ fn projected_triangle_at(triangle: ProjectedTriangle, at: vec2<f32>) -> vec2<f32
     if (triangle.edge3.w<3.0) {
         return vec2<f32>(0.0);
     }
+    // The 0.00390625 slack here and on the edge distances below is the rasterizer's 1/256 px
+    // vertex snap - the quantity ink_visibility.wgsl names SLOPE_PX, spelled out because the tile
+    // modules compile this file without it. A point the rasterizer covered must never read as
+    // outside, or the ink it should hide survives.
     if (any(at<triangle.bounds.xy-0.00390625) || any(at>triangle.bounds.zw+0.00390625)) {
         return vec2<f32>(0.0);
     }

@@ -106,7 +106,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=5-17 -->
 
-- Per-vertex outputs are flat: each end's half-width travels as its own scalar and resolves per pixel, because a per-vertex width is projective over a trapezoid.
+- The two half-widths travel flat, one scalar per end, and resolve per pixel, because a per-vertex width is projective over a trapezoid.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -208,7 +208,7 @@ Expected:
 
 - Append `?thickness=4`: every stroke widens on screen while the geometry stays put — the pen is applied in `ribbon.wgsl`, not in the vertex data.
 - Zoom far out: the strokes keep their pixel width. A world-space width would vanish; a screen-space pen does not.
-- Set `?thickness=0.2`: `floor_hairline` holds the stroke at half a pixel and `hairline_fade` floors its alpha at `HAIRLINE_MIN_ALPHA`, so it thins instead of disappearing.. (`?aa=` feathers markers and dots, not ribbons — `ribbon.wgsl` never reads `line.feather`.)
+- Set `?thickness=0.2`: `floor_hairline` holds the stroke at half a pixel and `hairline_fade` floors its alpha at `HAIRLINE_MIN_ALPHA`, so it thins instead of disappearing. (`?aa=` feathers markers and dots, not ribbons — `ribbon.wgsl` never reads `line.feather`.)
 
 ## Questions and answers
 
@@ -222,7 +222,7 @@ Expected:
 
 *How to work it out.* A stroke sits on the edge of its own face, at that face's depth. A depth test between two fragments at the same depth is a per-pixel coin flip decided by float rounding, and it changes as the camera moves.
 
-*The answer.* Hardware depth testing at equal depth produces stitching, so the shader decides visibility itself: `ink_visible` compares the scene depth at the pixel against the depth of the closest point on the stroke's axis, using the gradient the face pass wrote. One shared file keeps every ink lane answering the question the same way.
+*The answer.* Hardware depth testing at equal depth produces stitching, so the shader decides visibility itself: `ink_visible` compares the scene depth at the pixel against the depth of the closest point on the stroke's axis, read straight out of the depth the face pass wrote. One shared file keeps every ink lane answering the question the same way.
 
 **The half-width at each end travels as a flat scalar, resolved per pixel. What breaks if you interpolate a width per vertex instead?**
 

@@ -38,6 +38,8 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
             wp = vec3<f32>(0.0, select(0.0, HALF, far), 0.0);
             c = GREEN;
         } else {
+            // The up axis is a direction marker rather than part of the floor: it is drawn one
+            // cell long, not out to HALF like the two axes that lie in the grid.
             wp = vec3<f32>(0.0, 0.0, select(0.0, STEP, far));
             c = BLUE;
         }

@@ -50,7 +50,8 @@ pub fn is_planar(t: &Upload, from: &Baselines, place: &Mat4) -> bool {
 }
 
 /// Every row of a planar file is page content: `FLAG_SHEET` on its objects (the ink lanes
-/// drop their lift) and every unset pen becomes a 0.5 mm world hairline, like a plotter pen.
+/// drop their lift) and every unset pen becomes a 1 mm wide world stroke, like a plotter pen -
+/// `radius` is a HALF width, so the 0.5 below is half of that millimetre.
 pub fn mark_sheet(t: &mut Upload, from: &Baselines) {
     for o in t.obj.rows.iter_mut().skip(from.obj) {
         o.flags |= Instance::FLAG_SHEET;

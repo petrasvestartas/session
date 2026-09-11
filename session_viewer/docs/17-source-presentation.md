@@ -29,6 +29,12 @@
 - `selection_outline.rs` draws the selected object's outline.
 - Five independent parts share this checkpoint; the frame order at the end wires them together.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 1, 2 and 17; steps 3–14, 14b, 15 and 16 fail and build again at step 17.
+
+<!-- step-status: end -->
+
 ## Part A · Select a source face
 
 ### Step 1 · Face identities over the existing triangles
@@ -88,7 +94,7 @@ Group 3 borrows the arena's buffers and adds the face table and the selected-fac
 - `transform_vertex` is the old `vs_main` body; `vs_face` reaches the same code through storage buffers instead of vertex attributes.
 - `fs_id` writes `FACE_TAG | address` as the sub-ID; `fs_face_highlight` discards everything but the selected face.
 - `fs_solid_mask` writes plain coverage; part C reads it.
-- `LineUniform` lists `origin` and `frame` — window origin, canvas size — in the order every shader copy declares.
+- `origin` and `frame` — the pick attachment's corner in the canvas and the canvas size — are fields of the one `LineUniform` in `scene.wgsl`, the contract appended to every lane shader; the pick pass is what fills them.
 
 ![Diagram: storage · group 3 · vs_face · fs_id · FACE_TAG · fs_face_highlight · fs_solid_mask](illustrations/17-07.svg)
 
@@ -501,7 +507,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/engine/gpu/segments.rs type hunks=15-17 -->
 
-- The layout test mirrors `StrokeSegment` and pins `origin` and `frame` in every shader copy of `LineUniform`: 80 bytes.
+- The layout test mirrors `StrokeSegment` and pins `origin`, `frame` and `opacity` in the single `LineUniform` of `scene.wgsl`, the contract every lane is compiled with: 80 bytes.
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -521,7 +527,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/shaders/ribbon.wgsl type hunks=1-2 -->
 
-- A selected stroke's half-width is floored at `line.thickness`, so its yellow core is at least twice the ordinary pen.; CAD boundary samples never taper with density.
+- A selected stroke's half-width is floored at `line.thickness`, so its yellow core is at least twice the ordinary pen; a CAD boundary sample takes 1.0 in place of the density taper, so refining a surface never thins the pen along its edges.
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -551,11 +557,9 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 
 ![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
 
-- The pick pass sees the scene through the sub-frustum of the window about the cursor: `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`.
+- The pick pass sees the scene through the sub-frustum of the attachment it draws — the window about the cursor plus its halo: `LineUniform` and `CloudUniform` carry that attachment's `origin` and the canvas `frame`.
 - In a colour frame `origin` is zero and `frame` is the canvas, so the same arithmetic serves both.
 - Splats project with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment.
--
-
 ![Diagram: frame uniforms · pick uniforms\ mvp' · line' · cloud' · id_pass · window-sized attachment · splat.wgsl · frame − origin](illustrations/17-21.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
@@ -606,7 +610,7 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 
 <!-- file: 17 session_viewer/src/engine/gpu/targets.rs type -->
 
-- The sample-count policy, not the masks: the coverage masks live in `surface_outline.rs`.
+- The sample-count policy only; the coverage masks live in `surface_outline.rs`.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -624,11 +628,6 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 
 <!-- file: 17 session_viewer/src/state.rs type hunks=2,13,14 -->
 
-<!-- step-status: start -->
-
-**Does it compile yet?** `cargo check` passes after steps 1, 2 and 17; steps 3–14, 14b, 15 and 16 fail and build again at step 17.
-
-<!-- step-status: end -->
 
 ## Step 17 · Wire the frame
 
@@ -641,7 +640,7 @@ Three rules keep every pixel the same: the pick pass draws a window, antialiasin
 - `id_pass` computes the window's view, writes the pick uniforms, draws the whole attachment (halo included) and scissors the ink and source passes to the window inside it.
 
 ![Which id lanes each of the five pick modes draws: every mode draws splat ids, and face ids except Component which draws component ids instead; each narrows the rest to the lanes it is about, and authored text is pickable in every mode but a source query.](illustrations/pick-modes.svg)
-- Authored text draws its IDs in every pick mode.
+- Authored text draws its IDs in every pick mode; a source query is the exception — it returns before the ink pass that would have drawn them.
 
 ![Diagram: selection_outline lane · two SurfaceOutline · render.rs order\ solid strokes · silhouette · curves · id_pass · PickView · pick uniforms · scissor inside](illustrations/17-24.svg)
 
@@ -703,7 +702,7 @@ Expected:
 - Select the BRep, press O and orbit: the black border is the union of the visible solids. Press O again and the strokes' yellow fringe defines the outline instead — not uniform where strokes meet.
 - Load a manifest with two `texts` entries and hide one with H: the other stays, and S brings the hidden one back.
 - Open `?thickness=6` and look at a corner of the polyline: no darker dot and no notch at the shared vertex, at any pen width.
-- On a high-density screen open `?dpr=1`: the canvas renders a quarter of the pixels, clicks still land where the pointer is, and `data-viewer-inspection` reports the smaller `canvas` and `gpu_texture_estimate_bytes`. The perf line carries the frame counter, the gap, the encode time and the wasm capacity, and nothing about attachments.
+- On a high-density screen open `?dpr=1`: the canvas renders a quarter of the pixels, clicks still land where the pointer is, and `data-viewer-inspection` reports the smaller `canvas` and `gpu_texture_estimate_bytes`. The perf line carries the frame counter, gap, encode time and wasm capacity — nothing about attachments.
 
 ## Questions and answers
 
@@ -718,7 +717,7 @@ Expected:
 
 *How to work it out.* Consider a selected solid touching an unselected one. Both masks cover the contact region. Draw one over the other with alpha and the overlap is darkened twice; the seam appears. Ask for an operator idempotent where the two agree.
 
-*The answer.* `max` — the thicker coverage wins, overlap included, and a selected interior suppresses the ordinary contour inside it. Same reason the mask attachments blend with `Max` rather than alpha: a written zero then acts as a discard.
+*The answer.* `max` — the thicker coverage wins, overlap included, and a selected interior suppresses the ordinary contour inside it. Lesson 18 carries the same instinct into the masks themselves, where strokes arrive under a `Max` blend so a feathered zero cannot dent a face already written.
 
 **Explain how the coarse pooled texture makes the compositor cheaper *without changing a single output pixel*.**
 

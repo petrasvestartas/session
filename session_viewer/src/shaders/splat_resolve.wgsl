@@ -67,7 +67,6 @@ fn shade(in: VsOut) -> FsOut {
             }
             sum += max(0.0, me - log_depth(nd));
         }
-        // Floored at 0.25: an edge darkens, it never goes black.
         // 75 is the fixed exponent scale on the summed log-depth steps and `cloud.edl` the
         // 0..1 knob on top of it. Floored at 0.25: an edge darkens, it never goes black.
         let shade = max(exp(-sum * 75.0 * cloud.edl), 0.25);

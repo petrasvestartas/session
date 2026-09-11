@@ -340,12 +340,17 @@ fn fs_masks_selected(in: VsOut, @builtin(sample_index) sample: u32) -> MaskPair 
     return MaskPair(vec4<f32>(alpha), vec4<f32>(alpha));
 }
 
+// The sub id a stroke answers with: bit 31, which pick.rs calls the segment tag and
+// tests/depth/_stroke_weight.py reads back as SEGMENT_BIT. It is clear of FACE_TAG and of
+// DISC_ID_TAG so one pick channel carries all three.
+const SEGMENT_BIT: u32 = 0x80000000u;
+
 @fragment
 fn fs_id(in: VsOut) -> @location(0) vec2<u32> {
     if (coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
         discard;
     }
-    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
+    return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | SEGMENT_BIT);
 }
 
 // Specialized edge picks exclude segments without a producer-provided source edge.
@@ -354,5 +359,10 @@ fn fs_edge_id(in: VsOut) -> @location(0) vec2<u32> {
     if (in.source_edge == 0xffffffffu || coverage(in) < 0.5 || !ink_visible(in.pos.xy, ink_axis(in), 0u)) {
         discard;
     }
+    // Bit 31 is the STROKE tag of the pick-id union `Pick::sub` documents (engine/gpu/pick.rs):
+    // the low 31 bits are the segment row + 1. Unlike FACE_TAG (faces.rs and triangle.wgsl) and
+    // DISC_ID_TAG (scene.wgsl) this tag has no named constant anywhere, so moving it means
+    // editing this line, fs_edge_id below, app/scene.rs (`resolve` and `edge_at`, which also
+    // strip with 0x7fff_ffff), selftest.rs, selftest/lifecycle.rs and pick.rs by hand.
     return vec2<u32>(in.inst_id + 1u, (in.segment_index + 1u) | 0x80000000u);
 }

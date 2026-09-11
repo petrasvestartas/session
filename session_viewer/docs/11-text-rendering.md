@@ -163,7 +163,7 @@ A native GPU check for the plane path ends the file.
 ![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-30f2047aa1.svg){ .locator data-strip="illustrations/strip-a34e542105.svg" }
 
 - `TextFrame` is what placement needs from the frame: rebased camera, anchor origin, physical and logical sizes.
-- `logical` comes from the canvas CSS box, not `devicePixelRatio`; that is what makes browser zoom and DPR both work.
+- `logical` comes from the canvas CSS box, not `devicePixelRatio`; that makes browser zoom and DPR both work.
 
 ![Diagram: camera · rebase anchor · TextFrame · physical + logical size · TextStats](illustrations/11-07.svg)
 
@@ -343,7 +343,7 @@ If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate 
 
 *How to work it out.* Zoom smoothly with a continuous scale: the projected em changes every frame, so "is my raster the right size?" fails every frame, and re-rasterizing means Swash plus an atlas upload.
 
-*The answer.* A re-raster on nearly every frame. Buckets make small camera motion free and charge only for a real change in size — the same instinct as `MaskKey` (lesson 17) and the splat prelude key (04d): make expensive work depend on a quantised key, never a continuous one.
+*The answer.* A re-raster on nearly every frame. Buckets make small camera motion free and charge only for a real change in size — the same instinct as `MaskKey` (lesson 18) and the splat prelude key (04d): make expensive work depend on a quantised key, never a continuous one.
 
 **Two Glyphon renderers share one atlas, with different depth rules. Why two, and why one atlas?**
 

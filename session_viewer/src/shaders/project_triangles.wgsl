@@ -5,6 +5,13 @@ struct ProjectLine {
 };
 @group(1) @binding(0) var<uniform> line: ProjectLine;
 
+// `Instance` (engine/gpu/instance.rs) under another name: the tile passes are compiled without
+// scene.wgsl — `triangle_tiles.rs::shader` appends only projected_triangle.wgsl — so the
+// `Instance` declared there is out of reach. The rename is also why `instance.rs`'s
+// `translations_mirror` test, which walks `lane_shaders()` and forbids a lane from redeclaring
+// `Instance` or `LineUniform`, never sees this copy, `ProjectLine` above it, or `TileLine` in
+// triangle_tiles.wgsl and `ScanLine` in scan_triangle_tiles.wgsl. The field ORDER here is the
+// contract with the Rust row: a field added or moved there must be added or moved in all four.
 struct ProjectInstance {
     model: mat4x4<f32>, color: vec4<f32>, flags: u32, _pad0: f32, spacing: f32
 };
@@ -82,6 +89,10 @@ fn project_physical_triangle(primitive: u32) -> ProjectedPolygon {
     }
     let base = (primitive-1u)*3u;
     let owner = physical_objects[physical_indices[base]];
+    // 2u is `Instance::FLAG_HIDDEN` (engine/gpu/instance.rs, named `FLAG_HIDDEN` in scene.wgsl),
+    // spelled out because this module is compiled alone — `triangle_tiles.rs::shader` appends
+    // only projected_triangle.wgsl — so the FLAG_* constants are not in scope. Change the bit
+    // there and change it here: a hidden object that still projects goes on occluding ink.
     if ((instances[owner].flags & 2u) != 0u) {
         return polygon;
     }

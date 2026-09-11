@@ -138,7 +138,7 @@ The same revision counter tells the silhouette when its masks are stale:
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=61-127 -->
 
 - The projection itself, used by the one compute pass that fills the record buffer.
-- The arithmetic the binning passes and the ink query share is the smaller `projected_triangle.wgsl`, appended to both.
+- The binning passes and the ink query share the smaller `projected_triangle.wgsl`, appended to both.
 
 ## Part C · A compact screen index
 
@@ -184,16 +184,17 @@ The same revision counter tells the silhouette when its masks are stale:
 
 - The pool is one flat array, not a quota per tile: a dense tile borrows space a sparse one never used, so the allocation follows the scene rather than the grid.
 
-![The scan reports what its lists needed, the number is read back a frame later, and a pool that was too small costs one frame of conservative ink and never a wrong pixel.](illustrations/tile-pool.svg)
+![The scan's report saturates at the pool's own capacity, so a report that reaches it is a floor and not a measurement: it is read back a frame later, the pool doubles, and until it is large enough the overflowed tiles cost conservative ink and never a wrong pixel.](illustrations/tile-pool.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=58-79 -->
 
-- `PoolReport` reads the scan's first record back one frame later. The prefix sums saturate at
-  the buffer's own capacity, so a report that reaches it is a floor and not a measurement:
-  the lists needed at least that much and possibly far more. There is nothing to size
-  against, so the pool doubles and the next report says whether that was enough.
+- `PoolReport` reads the scan's first record back one frame later: an absolute word index into
+  the tile buffer, header words included, so it is above capacity exactly when the lists did not
+  fit. The prefix sums stop at the buffer's word count instead of wrapping, which puts a
+  saturated report far above capacity - a floor, not a measurement. There is nothing to size
+  against then, so the pool doubles and the next report says whether that was enough.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -222,7 +223,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=324-394 -->
 
-- Counting first is what removes the per-tile cap.
+- Counting first removes the per-tile cap.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -318,7 +319,8 @@ The blank lines separate the helpers; type them so the file matches production:
 
 <!-- file: 18 session_viewer/src/engine/pipelines/layouts.rs type -->
 
-- The ink module concatenates `projected_triangle.wgsl` after `ink_visibility.wgsl`; a desc marked `masks` targets two `R8Unorm` coverage attachments blended with MAX; the metadata attachment is `Rgba16Float`.
+- The ink module concatenates `projected_triangle.wgsl` after `ink_visibility.wgsl`.
+- A desc marked `masks` targets two `R8Unorm` coverage attachments blended with MAX; the metadata attachment is `Rgba16Float`.
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -340,14 +342,14 @@ The blank lines separate the helpers; type them so the file matches production:
 
 <!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
 
-- The pick target follows the metadata: twenty bytes a texel instead of sixteen, `Rgba16Float` instead of `Rg16Float`.
+- The pick target follows the metadata: `Rgba16Float` instead of `Rg16Float`.
 - The tile lists reach the ID pass through group 2, so nothing else here changes.
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/instance.rs type -->
 
-- A second mirror test: `ProjectedTriangle` is 96 bytes with asserted offsets, another Rust struct with a WGSL twin that must not drift.
+- A second mirror test: `ProjectedTriangle` is 96 bytes with asserted offsets — a WGSL struct with no Rust twin, so the offsets are pinned against a written list and `PROJECTED_BYTES` instead of against a `#[repr(C)]` layout.
 
 ### Step 10 · The tile pass runs before ink
 
@@ -405,7 +407,7 @@ The blank lines separate the helpers; type them so the file matches production:
 
 Expected:
 
-- With the supplied teapot fixture (`assets/pb/view_mixed_teapot.pb`) or the local scene loaded: the concave foot boundary stays continuous while orbiting; edges where two solids touch stay visible.
+- No manifest names the teapot: to use it, add `  - file: pb/view_mixed_teapot.pb` as a second entry under `items:` in `session_viewer/assets/view_local.yaml` before `trunk serve`. With the teapot or the local scene loaded: the concave foot boundary stays continuous while orbiting; edges where two solids touch stay visible.
 - A genuinely covered edge stays hidden; a visible seam does not break up as a neighbouring face moves over its stroke fringe.
 - Press **O**, select a solid and hold the camera still: the encode time on the `?perf=1` line settles, because the masks are reused; orbit and it rises again while they are rebuilt.
 
@@ -425,7 +427,7 @@ cargo clippy --locked --target wasm32-unknown-unknown --lib -- -D warnings
 The same source you just finished is what the repository publishes:
 
 - **Served viewer**: <https://petrasvestartas.github.io/session/> — the GitHub Pages build of `session_viewer`; its documentation corner opens this course at <https://petrasvestartas.github.io/session/docs/>.
-- **Source code**: <https://github.com/petrasvestartas/session/tree/main/session_viewer> — the folder this course reconstructs, byte for byte at checkpoint 18.
+- **Source code**: <https://github.com/petrasvestartas/session/tree/main/session_viewer> — the folder this course reconstructs; lesson 20 ends by proving the reconstruction equals it byte for byte.
 - **Locally**: `trunk serve` in `session_viewer` serves the viewer at <http://localhost:8770/> and the course at <http://localhost:8770/docs/>; the black corner at the top right links the two.
 
 ## What changed
@@ -438,13 +440,13 @@ The same source you just finished is what the repository publishes:
 - Silhouette: `MaskKey` reuses both coverage masks while the view stands still; a change rasterizes the faces once for both.
 - Memory: the visibility pool is sized for the scene and grows from the scan's report.
 
-**Production equivalent:** this checkpoint is the current production runtime.
+**Production equivalent:** every file in this lesson sits at the same path in production; lesson 19 then changes `src/engine/gpu/segments.rs`, `src/app/`, `src/lib.rs` and `src/state.rs`, and lesson 20 the kernel.
 
 ## Try
 
 - Orbit the teapot slowly around its foot: the bottom boundary stays continuous where the body's planes cross the stroke axis — exactly where the plane test alone would break it into dashes.
 - Set `?thickness=3` and repeat: the finite test is on the stroke axis, so a wider fringe changes the look, not the visibility decision.
-- Overflow a tile: load a dense mesh and lower the tile size in `triangle_tiles.rs`. Overflowing lists keep the conservative rejection, and hidden edges never leak through.
+- Overflow a tile: load a dense mesh and lower `REFERENCES_PER_TILE` in `triangle_tiles.rs`, the ceiling the pool may never pass. The tile span is not the knob for this: it has a twin in `projected_triangle.wgsl` and may only change in both at once. Overflowing lists keep the conservative rejection, and hidden edges never leak through.
 - Open `?outlines=1`, select the BRep and click another object: the masks are rebuilt because `selection_revision` moved, while the tile index, keyed on geometry only, is reused.
 
 ## Questions and answers
@@ -460,7 +462,7 @@ The same source you just finished is what the repository publishes:
 
 *How to work it out.* The list is the evidence for "nothing finite occludes this axis". Ask what an incomplete list proves: nothing. Then compare the two errors — ink wrongly hidden (a seam missing at one contact) against ink wrongly shown (lines drawn through solids).
 
-*The answer.* With no evidence you fall back to the conservative answer. Drawing through solids is the worse and more confusing error, and `PoolReport` makes the degradation last exactly one frame before the pool is resized.
+*The answer.* With no evidence you fall back to the conservative answer. Drawing through solids is the worse and more confusing error, and `PoolReport` is the way out of the degradation: a report that reaches capacity doubles the pool, and the next report says whether that was enough, until the lists fit or the pool stands at the ceiling it may never pass.
 
 **`ProjectionKey` is the camera matrix plus the geometry revision. Why is selection deliberately not in it?**
 

@@ -1,6 +1,6 @@
 # Words before code
 
-Every word the lessons use before they have room to explain it, with the lesson that first needs it. Each entry names the file or call where the thing appears.
+Every word the lessons use before they have room to explain it, with the lesson that first needs it and the file or call where it appears.
 
 ## Two sides and a wire
 
@@ -80,25 +80,26 @@ Every word the lessons use before they have room to explain it, with the lesson 
 
 - **WGSL** — the WebGPU Shading Language: small, C-like, no pointers, run in parallel per vertex or per fragment.
 - **`let` / `var`** — immutable value / mutable variable. A `var` without an initializer is zero.
-- **`vec3<f32>`, `vec4<f32>`, `mat4x4<f32>`** — vectors and a 4×4 matrix; `m * vec4(p, 1.0)` moves a point, the trailing 1.0 is what makes it a point rather than a direction.
+- **`vec3<f32>`, `vec4<f32>`, `mat4x4<f32>`** — vectors and a 4×4 matrix; `m * vec4(p, 1.0)` moves a point; the trailing 1.0 makes it a point, not a direction.
 - **swizzle** — `.xyz` / `.rgb` picks components; `.xy` of a position is the pixel.
 - **`select(f, t, cond)`** — the false value comes **first**: `select(a, b, c)` is `c ? b : a`.
 - **`mix(a, b, t)`** — `a + (b − a) · t`.
 - **`textureLoad`** — one texel at integer coordinates, no filtering.
 - **`@builtin(position)`** — in the vertex stage the clip position you output; in the fragment stage the pixel centre in framebuffer pixels plus depth.
-- **alignment** (03) — a `vec4` and each matrix column start on 16 bytes, a `vec3` too although it is 12 bytes wide, and a struct in an array is padded to its largest alignment: the `Instance` row is 96 bytes because of this, and `_pad` fields on the Rust side make the two agree.
+- **alignment** (03) — a `vec4` and each matrix column start on 16 bytes, a `vec3` too although it is 12 bytes wide, and a struct in an array is padded to its largest alignment, which makes the `Instance` row 96 bytes; `_pad` fields on the Rust side make the two agree.
 
 ## House words
 
 - **row / instance** (03) — one object on the GPU: a 96-byte record (`Instance`: model matrix, colour, flags, spacing). A pick returns a row; `Scene` turns it into a source identity.
-- **lane** (04a) — one drawing family with its own buffers, pipelines and draw calls. The twelve the map names: `arena` (meshes), `faces` (17, source faces), `segments` (strokes), `glyphs` (markers), `cloud` + `splat` + `lod` (points), `text*`, `surface_outline`, `backdrop` (05), `pick` (12), `triangle_tiles` (18). Lanes do not reach into each other's buffers, except where one lane owns another outright — the arena owns the outline-text lane and the tile pool. `Gpu` lists them by hand.
+- **lane** (04a) — one drawing family with its own buffers, pipelines and draw calls. The twelve the map names: `arena` (meshes), `faces` (17, source faces), `segments` (strokes), `glyphs` (markers), `cloud` + `splat` + `lod` (points), `text*`, `surface_outline`, `backdrop` (05), `pick` (12), `triangle_tiles` (18). Lanes do not reach into each other's buffers, except where one lane owns another outright — the arena owns the outline-text lane, the source-face lane and the tile pool. `Gpu` lists them by hand.
 - **upload** (04a) — the typed rows one file produces, with no wgpu types in them; `Gpu::set_scene` appends them to the lanes, then the rows are dropped.
 - **walk / producer** (06) — the CPU code that turns one kernel geometry into rows; one producer per geometry family in `src/app/walk/`.
 - **face pass / physical** (04a, 05) — the first pass: solid faces write colour, depth and a depth-gradient. "Physical" means *this is what occludes*.
+- **print / print fill** (04a, named again in 06, 17 and 18) — flat filled drawing ink rather than a surface: an imported PDF glyph, a filled region of a sheet. Recognised because the mesh broadcasts a single width of 0 (`is_print_fill`, `FLAG_PRINT`). It takes the sheet index runs, keeps its flat colour under the headlight, is never painted red as a back face, and `P` never x-rays it away — there is no inside to see through.
 - **ink** (04b) — everything that is not a solid face: strokes, markers, lettering, drawn in the second pass, which reads the physical depth and decides visibility per fragment (`ink_visibility.wgsl`).
 - **pcurve** (07) — a *parameter curve*: a trimmed face's boundary in the surface's own `u`,`v` domain, not in XYZ. Lifting it through the surface gives the 3D edge; mapping a shared XYZ edge back onto each face's pcurve is how two faces agree where it lies.
 - **grid face / constrained face** (07) — which mesher produced a face. A *grid* face comes from `mesh_q`, sampling the whole `u`,`v` rectangle on a regular grid, so its boundary is an iso line read straight off the `u`/`v` attributes. A *constrained* face comes from `mesh_loops`, triangulating inside given trim loops, so its boundary nodes carry `brep_edge/{edge}/{use}/{sample}` tags. 
-- **constrained Delaunay** (07) — a triangulation that is Delaunay except that named segments are forced to appear as edges. Here the forced segments are the trim loops, which is what makes a boundary node a mesh node rather than an approximation of one.
+- **constrained Delaunay** (07) — a triangulation that is Delaunay except that named segments are forced to appear as edges. Here they are the trim loops, so a boundary node is a mesh node, not an approximation of one.
 - **source vs display** — source: the kernel's face, edge, control point, in f64, with its id. Display: the triangles, node chains and markers made from it. GPU: the packed rows. Selection always names a source thing.
 - **id pass / pick window** (12) — the same draws again into an integer target, only in a small window around the cursor, read back asynchronously; the answer is a row plus a sub-id.
 - **coverage mask / silhouette** (12 for the selected object, 17 for every solid) — an `R8Unorm` texture marking which pixels a solid (and its edges) covers; a compositor paints the ring just outside it black. `O` toggles it.

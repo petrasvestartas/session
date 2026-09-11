@@ -28,7 +28,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
 - A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here and the kernel's `Xform` follow it.
-- `mat_to_f32` is the only f64 → f32 edge: one place to look when a large model jitters.
+- `mat_to_f32` and the kernel's `Xform::to_f32` are the two matrix f64 → f32 edges: the first for an object's placement, the second for the view-projection this lesson writes into the uniform. Two places to look when a large model jitters.
 
 ![Diagram: Mat4 · [f64; 16] · Mat4 · placed point · [f32; 16] for the GPU](illustrations/02-01.svg)
 
@@ -135,7 +135,7 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=270-298 -->
 
-- Fitting is the one gesture that reads the scene: it centres the target on the box.
+- Fitting alone reads the scene: it centres the target on the box.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -152,7 +152,7 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
 - `zoom_distance` is exponential per detent and clamps a single event to ten detents, so coalesced wheel events compose and never cross zero.
-- The two `#[cfg(test)]` modules are native-only; the browser build never compiles them.
+- The browser build never compiles the two `#[cfg(test)]` modules.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -166,7 +166,7 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 
 - The uniform buffer lives in the struct; each frame writes a fresh matrix into it.
 - The anchor passed to `view_proj_anchored` is the world origin, where the triangle sits.
-- Gestures arrive in CSS pixels and are scaled by `self.scale` before the camera sees them.
+- The wheel's cursor position arrives in CSS pixels and is scaled by `self.scale` into the framebuffer's physical pixels before `zoom_at` sees it; drag deltas stay in CSS pixels, and `orbit`/`pan` carry their own per-pixel constants.
 
 ![Diagram: drag · zoom from JS · Tutorial · Camera · uniform · write_buffer](illustrations/02-04.svg)
 
@@ -203,8 +203,8 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 ## Try
 
-- Change `FOVY_DEG` in `math.rs` and reload: the triangle grows or shrinks without moving the camera; a wider field of view compresses the middle of the picture.
-- Set `perspective: false` in `Camera::new` and orbit: the far edge no longer shrinks, and zoom scales the whole picture instead of walking towards it.
+- Change `FOVY_DEG` in `math.rs` and reload: almost nothing moves. `fit` derives the distance from the same constant, so a wider field of view pulls the camera in by as much as it widens the view. Comment out the `camera.fit(...)` call in `open` first, and the triangle then grows or shrinks with the constant.
+- Add `camera.perspective = true;` after the `set_view(View::Top)` call in `open` and orbit: `set_view` switches to orthographic, so this checkpoint starts parallel — with perspective back on, the far edge shrinks and the wheel walks the eye towards the triangle instead of scaling the whole picture.
 - Pan with Shift held and release far from the origin, then zoom with the wheel: the point under the cursor stays under the cursor.
 
 ## Questions and answers
@@ -213,7 +213,7 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 *How to work it out.* Indexing the other way gives the transpose — still a valid 4×4 matrix, so nothing errors. Three parties have an opinion: the kernel's `Xform`, this file, and WGSL's `m * v`. One convention, no runtime check.
 
-*The answer.* The wrong one is silent: a transposed matrix multiplies without complaint and produces a plausibly wrong picture — the object rotates about the wrong point, or translates when it should scale. `math.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
+*The answer.* The wrong one is silent: a transposed matrix multiplies and produces a plausibly wrong picture — the object rotates about the wrong point, or translates when it should scale. `math.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
 
 **Reverse-Z needs three things to agree. Which three?**
 
@@ -225,7 +225,7 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 *How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven before the decimal point, so the conversion has to happen while the numbers are *small* — after subtracting an anchor near the camera.
 
-*The answer.* In `mat_to_f32`, after the anchor is subtracted. Convert before rebasing and the low bits are gone; the symptom is jitter you cannot debug from inside the shader, which was handed bad numbers. One function is the whole matrix f64 → f32 boundary, so a jittering placement has one place to look.
+*The answer.* On the matrix the shader receives, once the anchor is already out of it: `view_proj_anchored` subtracts the anchor and does every step in f64, and the cast is the `Xform::to_f32` call that fills the uniform. A placement crosses at the matching edge, `mat_to_f32`. Convert before rebasing and the low bits are gone; the symptom is jitter you cannot debug from inside the shader, which was handed bad numbers. The subtraction is what makes the cast safe, so a jittering placement has one thing to check: which side of it the conversion happened on.
 
 **Why must `zoom_at` be given physical pixels rather than CSS pixels?**
 

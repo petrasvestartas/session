@@ -94,9 +94,10 @@ These two modules are new and undeclared, so the crate still builds after them.
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=93-124 -->
 
 - `eligible_ranges` walks every octree node, resident or not; when the node table misses rows it falls back to a full bounded scan.
-- `fetch_page` spawns one bounded range read per page and posts the result back; the token is checked at the callback, so a page that lands after you clicked elsewhere is discarded rather than folded in.
+- `fetch_page` spawns one bounded range read per page and posts the result back.
+- The token is checked at the callback, so a page landing after you clicked elsewhere is discarded, not folded in.
 - `read_page` derives the byte range from the coordinate array's offset and reads it under the source revision, so a file republished mid-query is refused rather than mixed.
-- `source_position` demands exactly 24 bytes and a value still finite after the cast to f32, which is all a GPU row can hold.
+- `source_position` demands exactly 24 bytes and a value still finite after the cast to f32 — all a GPU row can hold.
 - `page_candidates` keeps only the points whose projection lands inside the frozen click window; ranking across pages stays on the GPU.
 - `resolve_id` re-reads two small ranges for the winner alone: its original id and its exact position.
 
@@ -130,12 +131,12 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- `varint` and `skip_scalar` read the protobuf wire format by hand. The viewer wants one array's byte offset, not the message: decoding the message is the thing streaming exists to avoid.
+- `varint` and `skip_scalar` read the protobuf wire format by hand. The viewer wants one array's byte offset, not the message: decoding it is what streaming exists to avoid.
 - `descend_message` walks into the wanted field and requires every container to close exactly where its length says. A file that disagrees with itself is refused before a single range is requested.
 - `walk_to_coords` and `cloud_layout` return `coords`' absolute offset and length from the first few kilobytes, so the point count is known before a byte of payload is fetched.
 - `CloudLod::set_field` decodes one packed octree array per field number; `valid` then checks the whole table at once. After that the scene can index nodes and children without a bounds test per access.
 - `bounded_range`, `body_end` and `checked_positions` are the range guards: a slice must be whole coordinate triples, land inside the file, and stay inside the array it belongs to.
-- Long, and worth reading rather than typing: it is one wire-format reader and its guards, and nothing above this line in the course parses bytes.
+- Long, and worth reading rather than typing: one wire-format reader and its guards, and nothing above this line in the course parses bytes.
 
 ![Diagram: cloud .pb header · CloudFields · point count](illustrations/13-05.svg)
 
@@ -205,7 +206,7 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <!-- file: 13 session_viewer/src/state.rs type hunks=15-15 -->
 
-- `upload_controls` resets both lanes before appending, which is what makes repeated F10 idempotent.
+- `upload_controls` resets both lanes before appending, which makes repeated F10 idempotent.
 - `apply_control` decodes the marker's sub-ID tag; a cloud control resolves through the cloud lane's row map.
 - The page loop: `start_cloud_query` → `advance_cloud_query` → `cloud_query_batch` (upload candidates as ID targets, request a pick) → `apply_cloud_query_pick` (fold the winner) → next page → `cloud_query_resolved`.
 
@@ -284,7 +285,7 @@ Expected:
 - Select the polyline and press F10: every vertex is a control, so the markers sit on the display corners; select the line: two markers.
 - With controls shown, drag the window edge to resize: the markers are re-uploaded at the new logical-to-physical scale and keep their size.
 - Select a NURBS curve and press F10, then count the markers against the chords you can see: the markers are the control net the document carries, not the samples the tessellator chose.
-- Press F10 on an object with no source geometry (a document title plate): the status says so instead of inventing controls.
+- Press F10 with nothing selected: the status reads `Select one object before pressing F10` instead of inventing controls.
 - The streamed path needs a point cloud served over HTTP and this checkpoint has no fixture: `?scene=stream-test.yaml` wants a `?data=` base URL holding a large `cloud.pb`, which the course never supplies. Lesson 15 publishes real scenes — watch the page loop there in the network panel.
 - Clear the selection while a page loop is running (Escape twice): the query token is dropped and no late page selects anything.
 

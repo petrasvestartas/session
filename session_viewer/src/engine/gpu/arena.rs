@@ -214,7 +214,9 @@ impl ArenaLane {
         }
     }
 
-    /// PDF vectors need coverage, including legacy imports that mix letters with fills.
+    /// Indices in the two SHEET runs, lettering and fills together - not a number of sheets.
+    /// The MSAA policy reads it: vector lettering needs coverage samples, so any sheet index
+    /// on the GPU counts as solid geometry for the sample-count decision.
     pub fn sheet_count(&self) -> u32 {
         self.text.len().saturating_add(self.print.len())
     }

@@ -299,7 +299,9 @@ pub fn walk_to_coords(head: &[u8]) -> Option<(u64, u64)> {
     Some((at, length))
 }
 
-/// Read only header bytes with a usize cursor; message bounds remain u64 even on wasm32.
+/// The walk down `Session.3 -> Objects.8 -> PointCloud`: where `coords` (field 3) starts, how
+/// long it is, and where the cloud message ends - the same triple as `sheet_layout`. The
+/// cursor into the head bytes is a usize; the offsets it reports stay u64 even on wasm32.
 fn cloud_layout(head: &[u8]) -> Option<(u64, u64, u64)> {
     let mut at = 0usize;
     let objects_end = descend_message(head, &mut at, None, 3)?;
@@ -708,6 +710,9 @@ mod web {
         if at < fields.colors_at || at > end || count > fields.count {
             return None;
         }
+        // 8 B a colour is the WORST case, not the size: each of the four channels is a varint,
+        // and a channel of 128 or more takes two bytes. `colors_from` reports where it really
+        // stopped, and that is where the next slice starts.
         let length = (u64::from(count) * 8).min(end - at);
         if length == 0 {
             return None;
@@ -802,6 +807,8 @@ mod web {
         let coords = (fields.coords_at, fields.coords_len);
         let raw = sheet_array(url, fields, coords, from, to, SheetFields::SEGMENT_BYTES).await?;
         let positions = checked_doubles(&raw, u64::from(to - from) * 6)?;
+        // Every column after `coords` is one 4 B cell a segment: a fixed32 colour, a float
+        // width, a fixed32 entity id. Only `coords` is wider, at six doubles.
         let colors = (fields.colors_at, fields.colors_len);
         let colors = packed_u32(&sheet_array(url, fields, colors, from, to, 4).await?);
         let widths = (fields.widths_at, fields.widths_len);

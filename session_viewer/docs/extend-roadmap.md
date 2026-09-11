@@ -15,7 +15,9 @@ It reads, draws, picks and streams; it does not create, move, delete or edit. `s
 - **Tree** — a panel of rows kept in step with `Scene` identity.
 - **This page** — snapping, construction plane, write-back address, refit math, commit path.
 
-## The gap list
+### 19 · No panel of rows beside the scene
+- A side window listing documents, tree groups, type buckets and graph attributes, each row a visibility filter and a leaf row a selection. Depends on (9) for a group row to select its subtree; everything else it needs exists.
+- `Scene.hidden` is already the one visibility record, keyed `(document, guid)` and re-applied by `add_file`, so the panel writes one named action and never touches `Gpu` directly. Rows are text-lane labels plus one quad lane, not a second renderer. (tree)
 
 ### 1 · No text entry anywhere on the page
 - `index.html` has only `#viewer-status` (textContent, from `app/feedback.rs`) and `#viewer-error`; no input, no egui, `tabindex` only for key events.
@@ -58,7 +60,7 @@ struct SnapCache {
 ```
 
 - **CPU, and the split is the rule.** A candidate drawn as a lane (handle, edge, face) has an id: `PickMode::Controls`/`PickMode::Edge` answers it. One never drawn (midpoint, intersection, point along an edge) has none — `gpu/pick.rs` cannot return a pixel never rendered — so it is CPU work against the cache.
-- **Bites.** A streamed cloud's session is an empty shell (`display_only`, `scene.rs:33-37`): a `session.lookup` sweep silently reports no snaps on a 40M-point cloud. A sheet is one row for tens of thousands of segments (`SheetBatch`, `scene.rs:80-93`): the sweep emits a candidate per segment. Ask what a row is — `Scene::sheet_slot`, `Scene::streamed_slot`, `app/cloud_query.rs`.
+- **Bites.** - **Bites.** A streamed cloud's session is an empty shell (`display_only`, `scene.rs:36-38`): a `session.lookup` sweep silently reports no snaps on a 40M-point cloud. A sheet is one row for tens of thousands of segments (`SheetBatch`, `scene.rs:84-96`): the sweep emits a candidate per segment. Ask what a row is — `Scene::sheet_slot` (`src/app/scene.rs:477`), `State::streamed_slot` (`src/state/cloud_query.rs:21`), `app/cloud_query.rs`.: a `session.lookup` sweep silently reports no snaps on a 40M-point cloud. A sheet is one row for tens of thousands of segments (`SheetBatch`, `scene.rs:80-93`): the sweep emits a candidate per segment. Ask what a row is — `Scene::sheet_slot` (`src/app/scene.rs:477`), `State::streamed_slot` (`src/state/cloud_query.rs:21`), `app/cloud_query.rs`.
 - **Bites.** `Session::world_xforms()`, one downward pass; per-object `world_xform` rescans the tree and is quadratic (`snap.rs:94-96`).
 - **Bites.** Invalidate by revision, not a bool, as `geometry_revision` and `selection_revision` do.
 
@@ -101,7 +103,7 @@ self.touch();
 - **Bites.** Without `begin`, `History::record` returns at once (`history.rs:249-255`) and `replace`/`set_xform`/`_add_object` snapshot only when `history.current.is_some()`: the edit works and is silently unundoable.
 - **Bites.** `Rc::make_mut` first — a manifest listing one file twice hands both documents the same `Rc` (`scene.rs:29-35`).
 - **Bites.** `State::render` never requests the next frame: a rubber band that does not move is a missing `touch()`.
-- **Bites.** `Scene::rebuild`'s only call site is `src/selftest/lifecycle.rs:161`, asserting a rebuilt scene renders pixel-identical to the incrementally loaded one. That test is what the commit path stands on.
+- **Bites.** `Scene::rebuild`'s only call site is `src/selftest/lifecycle.rs:161`, asserting a rebuilt scene renders pixel-identical to the incrementally loaded one. The commit path stands on that test.
 - **Bites.** `rebuild` cannot restore a streamed cloud or sheet — no kernel object to walk — so a commit in such a scene must not take that path.
 
 ### 6 · Nothing can be moved
@@ -146,8 +148,8 @@ fn write_control(geometry: &mut Geometry, id: ControlId, to: Point) -> bool;
 ```
 
 - 300 lines for `write_control`, its arms and tests, plus the drag — against `edit_state.rs` + `state_edit.rs`, 2,282 lines, 21% of the archive's `src/`.
-- **Do not port `EditState`'s GPU half** (own `node_buf`/`edge_buf`, bind groups, doubling growth: `edit_state.rs:292-313, 426-460`): the `controls`/`control_net` lanes are that already, so porting adds a second overlay and a second address type meaning `ControlId`.
-- **Bites.** `VertexData::set_position` bypasses the mutators that drop the per-mesh triangle BVH: call `Mesh::invalidate_triangle_bvh()` or picking keeps hitting the pre-edit shape (`state_edit.rs:1375-1379`).
+- **Do not port `EditState`'s GPU half** (own `node_buf`/`edge_buf`, bind groups, doubling growth: `edit_state.rs:135-157, 276-303`): the `controls`/`control_net` lanes are that already, so porting adds a second overlay and a second address type meaning `ControlId`.: the `controls`/`control_net` lanes are that already, so porting adds a second overlay and a second address type meaning `ControlId`.
+- **Bites.** `VertexData::set_position` bypasses the mutators that drop the per-mesh triangle BVH: call `Mesh::invalidate_triangle_bvh()` or picking keeps hitting the pre-edit shape (`state_edit.rs:1359-1366`).
 - **Bites.** A BRep's 3D edges must be re-derived from the 2D trims after surfaces move (`recompute_brep_edges`, `state_edit.rs:1625`). That walk is `src/app/walk/brep_edges.rs`, run from `Scene::rebuild`: commit through the rebuild and it is free; an in-place update loses it.
 - **Bites.** f64 through the drag, narrowed once at upload — `render_position` (`src/state.rs`) is that boundary for reads, `f32p` was the archive's for writes.
 
@@ -172,7 +174,7 @@ enum ControlId {
 - Needs (10) and an in-place range rewrite meshes lack; archive ~350 lines plus the lane work. (gumball)
 - **The premise ports.** A NURBS point is linear in its control points: freeze the tessellation at drag start, precompute each tessellation vertex's influence weight per moved control point, and every move is a multiply-add — no `point_at`, no `normal_at`, no re-tessellation. The adaptive rebuild runs once, on release.
 - **The lane gap.** `Buffer::write_at` (`buffers.rs:91`) plus `Scene::ribbon_range(row)` means strokes can be rewritten in place today. Faces cannot: `ArenaLane`'s `verts` is private (`arena.rs`), `Scene` keeps no per-row vertex range. Adding one is a real lane change — `Vec<Option<Range<u32>>>` beside `ribbon_ranges`, filled in `add_file`, plus `ArenaLane::write_verts`.
-- **Bites.** An in-place vertex write does not bump `geometry_revision`, the key for the triangle tile index (`ProjectionKey { matrix, objects }`, `triangle_tiles.rs:150-153`) and the silhouette masks (`MaskKey.geometry`): visibility then culls against the pre-drag projection while the picture shows the deformed one. Bump per drag frame, paying a re-projection — the correct default — or prove the cheaper thing in a comment.
+- **Bites.** An in-place vertex write does not bump `geometry_revision`, the key for the triangle tile index (`ProjectionKey { matrix, objects }`, `triangle_tiles.rs:178-181`) and the silhouette masks (`MaskKey.geometry`): visibility then culls against the pre-drag projection while the picture shows the deformed one. Bump per drag frame, paying a re-projection — the correct default — or prove the cheaper thing in a comment.
 - **Bites.** `Instance::FLAG_SMOOTH` says a row is a tessellation; a deformed tessellation still is one.
 
 ### 13 · No edge you can drag

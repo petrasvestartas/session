@@ -207,7 +207,11 @@ async fn fetch_manifest(route: &SceneRoute) -> Result<Vec<u8>, String> {
     }
 }
 
-/// Fetch a manifest and post every item, in manifest order, then a `Fit`.
+/// Fetch a manifest and post every item, in manifest order, then a `Fit`. `replacement` picks
+/// the mode: `None` is the first load, which posts each item the moment it arrives and books
+/// it against the live budget; `Some(generation)` is a reload, which STAGES every item, bails
+/// out the moment a newer request takes that generation, and only then clears the old scene
+/// and posts the lot - so a reload that fails halfway leaves the visible scene alone.
 async fn load_route(route: &SceneRoute, replacement: Option<u64>) {
     let generation = match replacement {
         Some(generation) => generation,
@@ -411,7 +415,8 @@ enum PendingDocument {
     Sheet(Box<SheetInit>),
 }
 
-/// Where a streamed cloud goes: its document name, placement and point size.
+/// Where a streamed document goes: its name, placement and point size. Sheets take one of
+/// these too and ignore `point_px`.
 struct Placement {
     name: String,
     place: Xform,

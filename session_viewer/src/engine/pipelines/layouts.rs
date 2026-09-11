@@ -89,7 +89,11 @@ fn scene_gradient(binding: u32, multisampled: bool) -> wgpu::BindGroupLayoutEntr
     }
 }
 
-/// Ink keeps the instance rows and adds the immutable physical depth, single and multisampled.
+/// Ink keeps the instance rows (0 rows, 1 anchored translations) and adds everything a
+/// fragment needs to decide it is visible: physical depth at 2 single-sampled and 3
+/// multisampled, the gradient the face pass wrote at 4 and 5, and the finite-triangle pool at
+/// 6 (the projected triangles) and 7 (the per-tile lists). Only one of each sampled pair is
+/// real; the other is the 1x1 placeholder `Targets::new` makes at the unused sample count.
 fn ink_instance_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("ink.instance.layout"),

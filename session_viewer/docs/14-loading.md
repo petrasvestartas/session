@@ -34,7 +34,7 @@
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=58-127 -->
 
 - Placement has a fallback: an item with no transform takes its slot in the auto grid.
-- So a manifest of nothing but file names still produces a readable scene.
+- So a manifest of nothing but file names still loads — with the grid step at zero every unplaced item lands on the origin, and a scene that wants them apart gives each one an `at`.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -237,7 +237,7 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/docs/build_site.sh copy -->
 
-- The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so lesson 12's documentation corner resolves in a served build. It arrives here rather than there because Trunk refuses to build at all when a `copy-dir` source is missing, and nothing fills that directory until the hook above exists.
+- The `copy-dir` link arrives here rather than in lesson 12 because Trunk refuses to build at all when a `copy-dir` source is missing, and nothing fills that directory until the hook above exists.
 
 <span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
 
@@ -277,7 +277,7 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 - Add a `texts` entry with `at`, `right`, `up` and `height`: the label sits in that world plane and foreshortens with the view.
 - Point an item at a file that does not exist: the status reads which stage failed and the previous scene stays on screen.
 - Give an item an `xform` whose last row is not `0 0 0 1`: `Manifest::parse` rejects it as not affine, before any file is fetched.
-- Touch a file under `docs/` and run `trunk serve` again: the hook rebuilds the site, and the black corner opens the fresh page from `dist/docs`.
+- Touch a file under `docs/` and run `trunk serve` again: the hook re-runs and `dist/docs` is rebuilt. This workspace holds only `docs/build_site.sh` and no `mkdocs.yml`, so the hook takes its fallback branch and the black corner opens the "Documentation not built" placeholder; a checkout that also has the course sources and `uvx` gets the real page there.
 
 ## Questions and answers
 

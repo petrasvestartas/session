@@ -17,7 +17,7 @@ wgpu's validation messages are long and they bury the useful line in the middle.
 
 - In the **browser**, errors arrive asynchronously and print to the devtools console. The viewer also installs `on_uncaptured_error`, so a GPU error reaches the error panel instead of vanishing (`src/engine/gpu/device.rs`).
 - A **Rust panic** in wasm prints a proper stack trace only because `console_error_panic_hook::set_once()` runs first in `lib.rs`. Without it you get `unreachable executed` and nothing else.
-- **Natively** (`cargo xtest`, the selftest binary) the same errors print to stderr, and naga validates every shader in a unit test — which is the cheapest place to catch WGSL mistakes.
+- **Natively** (`cargo xtest`, the selftest binary) the same errors print to stderr, and naga validates every shader in a unit test — the cheapest place to catch WGSL mistakes.
 
 ## Habit 3 · Bisect the frame
 
@@ -75,7 +75,7 @@ The rule: write the layout from `offset_of!`, never from a count of bytes in you
 Binding 0 has a different type (Buffer { ty: Uniform, .. }) than the one in the layout (buffer storage)
 ```
 
-This is Habit 1 in its purest form. The pipeline was compiled against a *layout*; the draw supplied a *group*; the shader declared `@group`/`@binding`. All three. In this viewer the scene contract (`src/shaders/scene.wgsl`) exists precisely so that groups 0 to 2 are declared once instead of in every lane shader.
+This is Habit 1 in its purest form. The pipeline was compiled against a *layout*; the draw supplied a *group*; the shader declared `@group`/`@binding`. All three. In this viewer the scene contract (`src/shaders/scene.wgsl`) declares groups 0 to 2 once instead of in every lane shader.
 
 ### 5 · Invalid buffer usage
 
@@ -83,7 +83,7 @@ This is Habit 1 in its purest form. The pipeline was compiled against a *layout*
 Usage flags BufferUsages(VERTEX) of Buffer with 'arena' label do not contain required usage flags BufferUsages(COPY_DST)
 ```
 
-Usage flags are fixed at creation and wgpu forgives none. If the CPU will ever write into a buffer again, it needs `COPY_DST` *at creation*, not at the write. It teaches the habit of asking, for every buffer: who writes this, and when?
+Usage flags are fixed at creation and wgpu forgives none. If the CPU will ever write into a buffer again, it needs `COPY_DST` *at creation*, not at the write. Ask of every buffer: who writes this, and when?
 
 ### 6 · The object is behind the camera
 
@@ -93,11 +93,11 @@ Nothing errors; the screen is empty. Test it in this order:
 - if `x/w` or `y/w` is outside −1..1, it is off screen;
 - if `z/w` is outside the depth range, the near or far plane ate it.
 
-In this viewer a *deliberately* invisible vertex is parked at `(3, 3, 0.5, 1)` by `dead_vertex`, which is exactly this failure used on purpose.
+In this viewer `dead_vertex` parks a *deliberately* invisible vertex at `(3, 3, 0.5, 1)` — this failure used on purpose.
 
 ### 7 · Wrong matrix order
 
-Matrix multiplication does not commute, and the wrong order produces a picture that is wrong in a *plausible* way: the object moves when it should spin, or spins around the wrong point.
+Matrix multiplication does not commute, and the wrong order is wrong *plausibly*: the object moves when it should spin, or spins around the wrong point.
 
 - The chain is `projection * view * model * position`, applied right to left.
 - WGSL's `m * v` is column-vector convention; a matrix built for row vectors comes out transposed.
@@ -150,4 +150,4 @@ You can always rebuild any checkpoint exactly:
 python3 docs/reconstruction/replay.py --output /tmp/at-07 --through 07
 ```
 
-Diff your tree against it. The first file that differs is where your lesson went sideways — and diffing your own mistake against a correct file is one of the fastest ways to learn.
+Diff your tree against it. The first file that differs is where your lesson went sideways.

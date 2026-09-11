@@ -45,4 +45,4 @@ Not "I typed all twenty-four lessons." It means you can sit in front of an empty
 - add a new primitive: decide its rows, its buffers, its pipeline, its shader, its pass, and its answer to a pick;
 - read a wgpu validation error and know which of the three declarations disagreed.
 
-If a lesson leaves you unable to do its share of that, redo the lesson before moving on.
+If a lesson leaves you unable to do its share, redo it before moving on.

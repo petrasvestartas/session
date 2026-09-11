@@ -119,7 +119,7 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 
 *How to work it out.* Ask whether the surface continues past it. At `u == start` the domain ends — nothing beyond, so a real edge. At a periodic seam the surface wraps and continues; the seam is where the parameterisation was cut, not where the shape stops.
 
-*The answer.* A natural boundary is a limit of the domain and a real edge of a real face. A seam is bookkeeping, and giving it an ID would invent a CAD edge — the same refusal as tessellation seams in lesson 06.
+*The answer.* A natural boundary limits the domain — a real edge of a real face. A seam is bookkeeping, and giving it an ID would invent a CAD edge — the same refusal as tessellation seams in lesson 06.
 
 **A seam and a shading crease sound alike. State the difference in one sentence each.**
 

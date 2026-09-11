@@ -174,6 +174,9 @@ pub fn walk_stream_slice(c: &mut CloudRows, s: &StreamSlice) -> Aabb {
         from: s.from,
         count,
         first,
+        // No node is complete yet, so there is no measured spacing to report: stand in the
+        // file's own point size, never below `DEFAULT_SPACING`, and read both as cloud-local
+        // units. A placeholder until the first whole node lands, not a measurement.
         spacing: resident_spacing(s.lod, s.to).unwrap_or(s.point_px.max(DEFAULT_SPACING)),
         node_first,
         node_count,

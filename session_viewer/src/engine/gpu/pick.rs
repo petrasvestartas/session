@@ -12,7 +12,8 @@ use std::sync::atomic::{AtomicU8, Ordering};
 
 /// What a pixel answered: the object row, and a sub-object id that is a TAGGED union rather
 /// than one number. 0 is the object itself; bit 31 set is a segment, the low bits its row;
-/// the top three bits equal to `faces::FACE_TAG` is a source face address; a cloud answers
+/// the top three bits equal to `faces::FACE_TAG` is a source face address; top bits `01`
+/// (`DISC_ID_TAG` in `scene.wgsl`) is a control dot, its index in the low 30; a cloud answers
 /// with its point row. The tags are disjoint so one channel carries every kind.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Pick {

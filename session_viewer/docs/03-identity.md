@@ -142,7 +142,7 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 ## Try
 
 - Change the second row's `color` in `scene.rs`: only that triangle changes, because tint lives in the row, not in the geometry.
-- Set the same `model[12]` for both rows: they overlap exactly, proving the geometry buffer is shared.
+- Set the same `model[12]` for both rows: they overlap exactly, because nothing about the geometry is per row — both rows drive the same three positions `vs_main` builds from `vertex_index`.
 - Draw with `draw(0..3, 0..1)` only: the second row vanishes, because `instance_index` never reaches 1.
 
 ## Questions and answers
@@ -167,7 +167,7 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 
 **What you should be able to do now**
 
-Write the `#[repr(C)]` row and its size assertion in an empty file without looking, then compare with `instance.rs`. Correct: `model: [f32; 16]`, `color: [f32; 4]`, `flags: u32`, a padding `f32`, `spacing: f32`, a trailing padding `u32`, `#[repr(C)]`, `Clone`/`Copy`/`Pod`/`Zeroable`, and the 96-byte size assertion. If your field order differs, ask whether the shader would still work — `#[repr(C)]` is what makes that question answerable, because without it Rust may reorder the fields.
+Write the `#[repr(C)]` row and its size assertion in an empty file without looking, then compare with `instance.rs`. Correct: `model: [f32; 16]`, `color: [f32; 4]`, `flags: u32`, a padding `f32`, `spacing: f32`, a trailing padding `u32`, `#[repr(C)]`, `Clone`/`Copy`/`Pod`/`Zeroable`, and the 96-byte size assertion. If your field order differs, ask whether the shader would still work — `#[repr(C)]` makes that question answerable, because without it Rust may reorder the fields.
 
 ## Next
 

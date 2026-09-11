@@ -20,8 +20,8 @@
 
 ![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-010fb6361a.svg){ .locator data-strip="illustrations/strip-e6f4fee67c.svg" }
 
-- Cargo discovers every file under `examples/` as a native example, and each one links the crate natively.
-- The manifest only moves `[dev-dependencies]` above the native-only table that has declared `pollster` since lesson 00, and drops the unused wasm-pack metadata.
+- Cargo discovers every file under `examples/` as a native example, each linking the crate.
+- The manifest moves `[dev-dependencies]` above the native-only table that has declared `pollster` since lesson 00, drops the unused wasm-pack metadata, and writes down why `getrandom` is a dependency with no use site.
 - `src/selftest.rs` and `src/selftest/lifecycle.rs` come with them: the headless harness runs the same `encode_frame` the browser runs, against an offscreen texture it reads back. Every measured number in this course comes through it.
 
 ![Diagram: supplied examples/ · tests/ · Cargo.toml\ native-only pollster · cargo xtest · examples build](illustrations/16-02.svg)
@@ -57,7 +57,7 @@
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-140 -->
 
-Per-type payload walks, one function per geometry kind:
+The rest of `session_payload` — components, the lookup, the transform map and the caches — then the per-type payload walks, one function per geometry kind:
 
 - Each adds only what it can see exactly: vector and string capacity, occupied map entries, exposed slice lengths. Never allocator overhead, never the `Rc` header.
 - Every `Rc` goes into `seen` by pointer before it is counted, so a geometry reachable from both a typed list and the lookup adds its bytes once. That is what makes the number a floor rather than an over-count.
@@ -66,7 +66,7 @@ Per-type payload walks, one function per geometry kind:
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=141-363 -->
 
-Unit tests, part of the file:
+The end of the mesh walk, the element walk, and the unit tests, part of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -138,7 +138,7 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 - Read the snapshot twice a few seconds apart: `scans` stays at 1, because the document identities did not change.
 - Load a different manifest with `?scene=` and read it again: `unique_sessions` follows the document count, and `scans` rises once per observed change to the document list — the clear, then each document as it arrived.
 - Compare `source_cpu_known_payload_bytes` with `gpu_buffer_capacity_bytes`: the GPU side is larger, because display data adds tessellation and instance rows to the retained source arrays.
-- Hold a second `Rc` to a document in `State` and replace the scene: the payload keeps counting it — the leak the Weak identities exist to expose.
+- Hold a second `Rc` to a document in `State` and replace the scene: the payload stops counting it the moment it leaves `scene.docs`, while its bytes stay allocated — the walk measures the live scene, not the heap, which is the other half of why the figure is named a known payload.
 
 ## Questions and answers
 
@@ -152,7 +152,7 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 
 *How to work it out.* Ask what the cache is for: recognising documents it has already measured. Then ask what holding an `Rc` does: keeps them alive. A cache that never forgets, holding strong references, is a leak.
 
-*The answer.* Nothing would ever drop, the figure would grow forever, and the instrument would cause the leak it measures. `Weak` recognises a document without extending its life, and when every pointer still matches the last snapshot the cached payload is returned with no walk.
+*The answer.* The instrument would own what it measures: the cache would hold the previous scene's documents alive until its next rescan, so replacing a large scene with `?inspect=1` on would keep both in memory at once. `Weak` recognises a document without extending its life, and when every pointer still matches the last snapshot the cached payload is returned with no walk.
 
 **The cache keys on identity, so in-place editing would make it stale. Why is that acceptable here?**
 

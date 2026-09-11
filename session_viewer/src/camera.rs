@@ -352,7 +352,6 @@ impl Camera {
     }
 
     /// The box's eight corners in metres, relative to the current target.
-    /// The box's corners in metres, relative to the current target.
     fn offsets(&self, bounds: &Aabb) -> [[f64; 3]; 8] {
         let s = self.unit.to_meters();
         bounds.corners().map(|c| {

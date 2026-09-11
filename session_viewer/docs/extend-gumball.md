@@ -62,8 +62,8 @@ const ARC_CHORDS: usize = 16;
 
 - `ARC_R = 72` spans 144 px on a 400 CSS px phone canvas, a third of the width: grabbable, object still visible.
 - Axis balls at half the arc radius: 36 px from the centre ball and from the arrow tip, over 4× `GRAB`, so collinear handles never conflict. They sit on the **positive** axis with the arrows, so pulling outward grows the object and press distance stays positive — no sign-preserving floor anywhere.
-- `BALL_R = 5` beats the 3.5 px control dot (`state.rs:592`): a handle never reads as a control point.
-- `GRAB = 8` beats `PICK_RADIUS = 6` (`pick.rs:31`) — grabbed, not aimed at — and `CLICK_SLOP = 4` (`input.rs:16`), so a click-length press stays on its handle.
+- `BALL_R = 5` beats the 3.5 px control dot (`state.rs:596`): a handle never reads as a control point.
+- `GRAB = 8` beats `PICK_RADIUS = 6` (`pick.rs:34`) — grabbed, not aimed at — and `CLICK_SLOP = 4` (`input.rs:17`), so a click-length press stays on its handle.
 - 16 chords per quarter arc: sagitta `r(1 − cos(θ/2))`, `θ = π/32`, is 0.087 px at `r = 72`.
 - 51 `CylinderSegment` (3 shafts + 48 chords) + 4 `GlyphPoint` = 55 rows, rebuilt every frame; nothing to cache or invalidate.
 
@@ -102,7 +102,7 @@ pub struct GizmoLane {
 - Pipelines from `scene_module` (`pipelines/mod.rs:191`), **not** `ink_module` (`:257`): ink fragments are gated on `ink_disc_visible` (`glyph.wgsl:106`, `:114`), so a handle behind a face would vanish. Hence not a `GlyphLane`/`SegmentLane` pair like `controls`.
 - Two more reasons for a private lane: the ink lanes bind `objects.ink_group` at group 2, not a one-row group; and `msaa_now()` (`mod.rs:312`) flips the canvas to 4× MSAA once `glyphs.sphere_count() > 0`, so balls in the shared glyph lane would change every frame's antialiasing.
 - `DepthMode::Always` (`pipelines/mod.rs:38`), already used for marker discs, gives always-on-top with no private pass. It also draws over itself: CPU-sort the 55 rows back-to-front before upload, rather than add a depth attachment and a pass.
-- Wiring: field beside `controls` (`mod.rs:72`), into `build`, `retarget` (`:276`), `reset` (`:354`), `release` (`:372`), `allocated_bytes` (`:94`); two draws after `self.text.draw(pass)` at the end of `scene_list` (`render.rs:195`), over authored text too; `SHADERS` into `lane_shaders()` (`mod.rs:415`) for the layout mirror test.
+- Wiring: field beside `controls` (`mod.rs:72`), into `build`, `retarget` (`:276`), `reset` (`:354`), `release` (`:372`), `allocated_bytes` (`:94`); two draws after `self.text.draw(pass)` at the end of `scene_list` (`render.rs:197`), over authored text too; `SHADERS` into `lane_shaders()` (`mod.rs:415`) for the layout mirror test.
 
 ### Two shader conventions that will catch you
 
@@ -120,7 +120,7 @@ pub struct GizmoLane {
 
 **Join the id pass?** No:
 
-- It is asynchronous: `Picker::request` (`pick.rs:224`) → `take_pending` next frame (`render.rs:126`) → `poll` a frame or more later (`state.rs:417`). A press must know instantly, or the object behind the handle is selected first.
+- It is asynchronous: `Picker::request` (`pick.rs:228`) → `take_pending` next frame (`render.rs:126`) → `poll` a frame or more later (`state.rs:417`). A press must know instantly, or the object behind the handle is selected first.
 - `State::touch()` cancels any pick in flight (`state.rs:242`): a GPU-picking gizmo cancels its own question every frame of its own drag.
 - Hover fires on every `CursorMoved` (`input.rs:115`); a pass, a copy and an async map per pointer event is not a hover budget.
 - The id path earns its complexity on data the CPU lacks — half a million sheet segments behind one row, streamed cloud points (`pick.rs:1`). Ten analytic handles are the opposite case.
@@ -135,7 +135,7 @@ pub fn hit(&self, cursor: [f64; 2], projected: &Handles, grab_px: f64) -> Option
 - Priority, first match wins: centre ball → axis balls → shafts → arcs. Shafts all start at the origin, so centre-first keeps the centre ball grabbable; arcs last, largest ambiguous area.
 - Arcs test as **projected polylines** over the 16 drawn chords: the angular bound is free, where a plane-radius test picks the three quarters that are not drawn.
 - Shafts test as projected 2D segments clamped to drawn length — no ray-parallel branch to get the sign wrong.
-- `PickMode` (`pick.rs:40`) gains no arm and `id_pass` no draw: invisible to picks in all four modes. It is not an object.
+- `PickMode` (`pick.rs:43`) gains no arm and `id_pass` no draw: invisible to picks in all four modes. It is not an object.
 - Consequence: no occlusion test, so a handle behind a wall still picks. Right, because it also *draws* over the wall — drawn-always and picked-always must be one rule.
 
 ### The ray the drag does need
@@ -200,7 +200,7 @@ pub fn set_place(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4);           // 
 - Both add to the **f64 base**, never the f32 the GPU holds — `objects.rs` test `an_edit_written_past_the_base_does_not_survive_a_rebase`.
 - Both refresh `world_bounds[row]` (`objects.rs:105`) and the matching `BoundedRow.lo/hi` (`objects.rs:64`, walked by `update_inside`); nothing else recomputes them, so skipping it leaves `F` framing the old place and the inside test stale.
 - That needs the row's **local** box, dropped after upload (`scene.rs:219`), so `InstanceTable` retains a `Vec<Aabb>` of local boxes — **the one new piece of retained state the feature forces**.
-- Both bump `geometry_revision`, cache key of the finite-visibility tiles (`render.rs:171`) and the outline masks (`MaskKey.geometry`, `render.rs:68`): **every drag frame re-renders the masks and re-bins the tiles.** Measure that before deciding whether a live drag drops `view.show_outlines`.
+- Both bump `geometry_revision`, cache key of the finite-visibility tiles (`render.rs:26`) and the outline masks (`MaskKey.geometry`, `render.rs:69`): **every drag frame re-renders the masks and re-bins the tiles.** Measure that before deciding whether a live drag drops `view.show_outlines`.: **every drag frame re-renders the masks and re-bins the tiles.** Measure that before deciding whether a live drag drops `view.show_outlines`.
 - `Gpu::set_place` / `set_translation` forward beside `set_selected` / `set_hidden` (`mod.rs:394`), each calling `splat.invalidate()`: splat records fold `mvp × model` per cloud.
 - Set `state.interacting = true` for the drag, as orbit and pan do (`input.rs:96`).
 
@@ -281,7 +281,7 @@ Each step builds on its own.
 4. **`src/engine/gpu/mod.rs`** — `Gpu::set_place` / `set_translation` beside `set_selected` (`mod.rs:394`), each calling `splat.invalidate()`.
 5. **`src/shaders/gizmo.wgsl` + `src/engine/gpu/gizmo.rs`** — the lane, empty: two `GrowBuf` tables on `l.ink_rows`, one-row group 2 on `l.instance`, `new` / `retarget` / `reset` / `release` / `allocated_bytes` / `set_origin` / `upload` / `draw`; pipelines from `scene_module` at `DepthMode::Always`; `SHADERS` into `lane_shaders()`.
 6. **`src/engine/gpu/mod.rs` + `render.rs`** — the field into `build`, `retarget`, `reset`, `release`, `allocated_bytes`, and two draws at the end of `scene_list`. Tables empty, picture unchanged: the wiring lands before anything about it can be wrong.
-7. **`src/app/gizmo.rs`** — the widget, pure CPU: `Handle` and `labels()`, geometry builders returning local-offset rows, the hit test, `begin_drag` / `update_drag`, `manual_delta`. Unit tests for hit-test priority and every drag law.
+7. **`src/app/gizmo.rs`** — the widget, pure CPU: `Handle` and `labels()`, geometry builders returning local-offset rows, the hit test, `begin_drag` / `update_drag`, `manual_delta`. Unit tests for hit-test priority and every drag law. `docs/locator.py` refuses to run when a taught file matches no zone, and this path matches none (`docs/locator.py:43-76`): add it to the `scene` zone's matchers first.
 8. **`src/state.rs`** — the `gizmo` field (`state.rs:49`); `upload_gizmo()` from `render()` after `rebase_anchor` (`state.rs:430`); origin set or cleared in `select`, `clear`, `escape_selection`. **First visibly working point**, no interaction yet.
 9. **`src/state.rs` + `src/app/input.rs`** — the named actions and the gesture. Objects move; nothing is recorded yet.
 10. **`src/app/scene.rs` + `src/state.rs`** — `Scene::place_object`: the `Rc::make_mut` split, the inverse composition, `begin` → `set_xform` → `commit`, then `update_label()`. Streamed and sheet rows take the view-placement branch.
@@ -327,7 +327,7 @@ Each step builds on its own.
 **Not taken, and why that is not a gap**
 
 - Arrowhead cones: no cone lane here, and a thickened shaft end reads as an arrow using `CylinderSegment` alone.
-- `transform_locked`: no such set exists, and inventing one before there is a reason to lock a row is speculative.
+- `transform_locked`: no such set exists, and inventing one before a row needs locking is speculative.
 - Edit-mode control dragging (~2000 archive lines): out of scope for v1, and the hook exists — `SelectionMode::Controls { parent, selected }` (`src/app/selection.rs`), committing through `Op::Replace`.
 - Snapping: the archive wired `snap.rs` into its draw tools only, never the gumball.
 - Object-aligned and CPlane-aligned modes, and a relocate gesture: the archive is world-axis-only too.

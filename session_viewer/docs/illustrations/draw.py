@@ -2008,9 +2008,11 @@ def attachment_cost():
 
 def tile_pool():
     c = Canvas("The pool measures itself, one frame late",
-               "The scan records how many words its lists really needed. That number is copied out after the submit and "
-               "read next frame, so a pool that was too small grows one frame late. The cost is one frame of "
-               "conservative ink - overflowed tiles keep rejecting the plane - never a wrong pixel.",
+               "The scan reports the word its lists ended at, header words included. A report at or over the "
+               "buffer's capacity means they did not fit, and because the prefix sums saturate there is no figure to "
+               "size against, so the pool doubles. It is copied out after the submit and read next frame, so a pool "
+               "that was too small grows one frame late. The cost is one frame of conservative ink - overflowed "
+               "tiles keep rejecting the plane - never a wrong pixel.",
                1180, 592)
     c.text(28, 40, "A pool too small costs one frame, never a wrong pixel", "h")
 
@@ -2032,7 +2034,7 @@ def tile_pool():
         ]),
         ("CPU", 340, [
             (["copy the first record", "16 B out of the tile buffer,", "then map_report() after the submit"], "note"),
-            (["prepare() reads it back", "the report reached capacity, so it is a floor:", "double, and ask again next frame"], "note"),
+            (["prepare() reads it back", "at or over capacity means they did not fit:", "double, and ask again next frame"], "note"),
             (["nothing to do"], "note"),
         ]),
     ]

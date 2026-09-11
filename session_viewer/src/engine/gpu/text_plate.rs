@@ -23,6 +23,11 @@ impl Plates {
     /// Start with one vertex of capacity and an empty draw list.
     pub(super) fn new(ctx: &GpuCtx, target: Target) -> Self {
         Self {
+            // 40 B is ONE plate vertex, and that number plus its field order live in four
+            // places that must agree: this stride, `array_stride: 40` and the
+            // `vertex_attr_array!` in `pipeline` below, the `[f32; 10]` pushed in `prepare`
+            // (element 8 is the object row via `f32::from_bits`), and `@location(0..5)` of
+            // text_plate.wgsl. Adding or reordering an attribute is four edits.
             vertices: GrowBuf::new(ctx, "text.plates", 40, VERTS),
             pipeline: pipeline(ctx, target, false),
             id_pipeline: pipeline(ctx, Target::ID, true),

@@ -72,7 +72,7 @@ Native-only adapter naming and the error callbacks:
 
 - `write_frame_uniforms` runs once per frame: camera matrices, the inside-flag refresh reading the eye just solved, then text placement.
 - `present` returns `None` when the surface had no texture; the caller asks for another frame instead of panicking.
-- `pick_frame` is the cloud prelude and the ID pass, against the last presented frame's depth: a pick on a still scene costs no colour frame.
+- `pick_frame` is the cloud prelude and the ID pass, which clears its own depth and refills it from the same face and cloud draws: a pick on a still scene costs no colour frame.
 
 ![Diagram: camera · eye · write_frame_uniforms · present · surface texture · pick_frame](illustrations/12-04.svg)
 
@@ -112,7 +112,7 @@ Offscreen and benchmark paths for native tools:
 
 ![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-e98165b3e5.svg){ .locator data-strip="illustrations/strip-25545ebdc0.svg" }
 
-Every handler returns whether a redraw is needed; a click returns `false` — nothing changes until the GPU answers.
+Every handler returns whether a redraw is needed; a click returns `false` — nothing changes until the GPU answers. The module header you are about to type also names `O` (silhouettes) and `F10` (source controls): neither has an arm in `key()` yet, because `F10` arrives in lesson 13 and `O` in lesson 17. The header is written once for the finished set of bindings; the table below is what this checkpoint answers.
 
 | Input | Action |
 |---|---|
@@ -354,6 +354,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 - The pass is scissored to a window about the cursor; only that window is copied out.
 - The vertex work stays, the fill does not.
 - `ROW_BYTES` is the copy pitch rounded to the required alignment.
+- `Pick.sub` is a tagged union, and its doc comment names every tag the finished viewer uses at once: 0 for the object itself, bit 31 set for a segment with its row in the low bits, a point row for a cloud, and `faces::FACE_TAG` for a source face. The `faces` module arrives with lesson 17; nothing writes that tag yet.
 
 ![Diagram: cursor window · IdTargets\ Rg32Uint · Depth32Float · readback buffer · Picker answer](illustrations/12-12.svg)
 
@@ -389,7 +390,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=226-312 -->
 
-- The ID pass gets the colour frame's gradient attachment — the third target the figure above labels *metadata* — so ink decides its own visibility from it.
+- The ID pass gets its own gradient attachment, cleared beside the ID and depth targets on every pick, so ink decides its own visibility from it.
 - Without it, a stroke would be pickable exactly where it is invisible.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
@@ -427,7 +428,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 ![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-6b7cde642e.svg){ .locator data-strip="illustrations/strip-68dea8ec67.svg" }
 
 - Same toggles, same order as the colour list: what a lane hides it cannot pick.
-- Edge mode draws only source-edge IDs; object mode draws faces, then ink with ink-first precedence.
+- Both modes draw the faces and the cloud first; edge mode then adds only source-edge IDs, object mode every ink lane, with ink-first precedence.
 
 ![Diagram: encode_frame · id_pass · ID targets](illustrations/12-13.svg)
 
@@ -457,13 +458,13 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=99-165 -->
 
-- `prepare` also answers whether there is anything to draw: the cheapest version of this feature is the one switched off.
+- `prepare` also answers whether anything needs drawing: the cheapest version of this feature is the one switched off.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=166-229 -->
 
-- The compositing pipeline is built for the pass's own colour format and sample count, so a sample-count flip rebuilds it; it cannot be chosen once at start-up.
+- The compositing pipeline is built for the pass's own colour format and sample count, so a sample-count flip rebuilds it — never chosen once at start-up.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -654,7 +655,7 @@ Document titles and the selected name are derived labels; they have no source ro
 - `touch-action: none` on the canvas hands every gesture to winit before the browser claims it as a scroll.
 - `#viewer-docs` is the documentation corner: a black folded triangle, top right, drawn from the borders of a zero-size anchor; it opens `docs/` in a new tab.
 - Hover or keyboard focus grows it, a page corner lifting; it covers nothing but itself.
-- It opens `docs/`, which is empty until lesson 14 publishes the built course into the bundle.
+- `docs/` is empty until lesson 14 publishes the built course into the bundle.
 
 ![Diagram: index.html · #canvas · #viewer-docs · dist/docs · view_local.yaml · loader::boot](illustrations/12-19.svg)
 
@@ -706,7 +707,7 @@ If an object highlights but the status names another GUID, the row → identity 
 
 - Click the empty background: the selection clears, because the ID pass wrote 0 there.
 - Press the left button on the BRep, drag more than `CLICK_SLOP` (4 logical pixels) and release: nothing is selected, because a release outside the slop is a drag, not a click.
-- Raise `PICK_RADIUS` in `pick.rs` and click just beside the curve: the nearest ID inside the window wins, so the curve is selected from further away.
+- Raise `selection_radius_css` in `src/state.rs` and click just beside the curve: the nearest ID inside the window wins, so the curve is selected from further away. `PICK_RADIUS` is only the picker's starting value — `request_selection` overwrites the radius from that field on every click.
 - Hover the black corner at the top right: it grows. It opens `dist/docs`, which is empty until lesson 14 builds the course into it.
 - Make `Picker::poll` skip its `submitted != generation` comparison and orbit while a click is pending: a late answer selects against the new camera — the bug the check prevents.
 

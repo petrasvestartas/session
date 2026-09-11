@@ -87,7 +87,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
         let sp_px = to_px(inst.spacing, clip.w);
         px = px * clamp(sp_px / max(MARKER_MIN_DIAMS * 2.0 * px, 1e-6), TAPER_MIN, 1.0);
     }
-    if (px > max(line.vp_w, line.vp_h)) {
+    if (px > max(line.frame.x, line.frame.y)) {
         return dead_dot();
     }
     px = max(px, 0.5);

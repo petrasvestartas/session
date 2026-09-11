@@ -2,7 +2,7 @@
 
 ## The shape of the finished thing
 
-- An `<input>` and a `<pre>` in `index.html`, a keydown listener in `src/app/input.rs`, one `Msg` variant, a table in a new `src/state/command.rs`, one named action per command on `State`.
+- An `<input>` and a `<pre>` in `index.html`, a keydown listener in `src/app/input.rs`, two `Msg` variants, a table in a new `src/state/command.rs`, one named action per command on `State`.
 - Commands are `pub fn` on `State` beside `hide_selected` (`src/state.rs:280`) and `escape_selection` (`:567`); the typed line picks one, never mutates a document.
 - Every editing command opens and closes a kernel transaction (`Session::begin`, `session_rust/src/session.rs:1612`). No viewer-side undo stack: two stacks, two answers on undo.
 - Rubber band and snap marker are a `SegmentLane`/`GlyphLane` pair in `Gpu`, not a bespoke renderer.
@@ -129,7 +129,7 @@ fn positive(name: &str, v: f64) -> Result<f64, ArgError>;
 
 ## The command table
 
-Selection-scoped commands act on `Scene::selected` (`src/app/scene.rs:130`) and report "nothing selected" rather than guessing.
+Selection-scoped commands act on `Scene::selected` (`src/app/scene.rs:134`) and report "nothing selected" rather than guessing.
 
 ### Document and history
 
@@ -199,7 +199,7 @@ Selection-scoped commands act on `Scene::selected` (`src/app/scene.rs:130`) and 
 | `xsect` | two selected objects | `intersection::{line_line, line_plane}` (`intersection.rs:94`, `198`) |
 | `bbox` | — | `InstanceTable::row_bounds` (`src/engine/gpu/objects.rs`) |
 
-- `bbox` reads the GPU table: `row_bounds` is what `fit_selected_or_all` already reads (`src/state.rs:191-209`) and is current after every upload.
+- `bbox` reads the GPU table: `fit_selected_or_all` already reads `row_bounds` (`src/state.rs:191-209`), current after every upload.
 
 ### Commands that already exist — zero new code
 
@@ -210,7 +210,7 @@ Selection-scoped commands act on `Scene::selected` (`src/app/scene.rs:130`) and 
 | `show` | `State::show_all` (`src/state.rs:295`) |
 | `clear` | `State::clear` (`src/state.rs:167`) plus `history.clear()` |
 | `xray` | `State::toggle_xray` (`src/state.rs:227`) |
-| `controls` | `State::enable_controls` (`src/state.rs:528`) |
+| `controls` | `State::enable_controls` (`src/state.rs:531`) |
 | `names` | `State::toggle_selected_names` (`src/state.rs:271`) |
 | `cloudsize` | `State::set_cloud_size` (`src/state.rs:220`) |
 | `view` | `Camera::set_view` (`src/camera.rs:273`) |
@@ -301,7 +301,7 @@ pub preview_marks: GlyphLane,
 ```
 
 - Five one-line edits beside their `controls` twins: `allocated_bytes` (`mod.rs:104-105`), construction (`:174-175`), `retarget` (`:294-295`), `reset` (`:359-360`), `release` (`:377-378`). Missing one leaks buffers across a scene change or leaves the lane on the wrong sample count after an MSAA flip.
-- Two draw calls in `scene_list` (`src/engine/gpu/render.rs:193-194`), beside `control_net.draw_ribbons` and `controls.draw_dots`.
+- Two draw calls in `scene_list` (`src/engine/gpu/render.rs:195-196`), beside `control_net.draw_ribbons` and `controls.draw_dots`.
 - Zero lines in the id pass (`render.rs:203-295`). `control_net` proves it is free: colour only, in no id pass. The preview is unpickable by construction, not by a filter.
 - Do not reuse `controls`/`control_net`: `upload_controls` (`src/state.rs:574-617`) resets both unconditionally on every resize (`:215`) and selection change (`:255-256`), so a shared rubber band vanishes mid-drag.
 - Preview geometry is world-space and every ink lane composes `model[row]` with `anchored_translation[row]`, so it needs one row with identity model and zero translation:
@@ -311,7 +311,7 @@ scene.push_row(usize::MAX, "__preview__", Xform::identity().m, 0);
 ```
 
 - `usize::MAX` as owner is the idiom for a row with no kernel object (`register_text`, `src/app/scene_text.rs:84`); `push_row` is `pub(super)`.
-- Push it inside `Scene::rebuild` (`src/app/scene.rs:193`), not at start-up: `reset_rows` (`:178-189`) clears `order`, `owners` and `guid_to_row` every rebuild, so a cached row number goes stale on the next commit.
+- Push it wherever rows are minted from empty — `Scene::new` (`src/app/scene.rs:153`) and the tail of `reset_rows` (`:182-193`) — not at start-up alone and not in `Scene::rebuild` (`:197`) alone: `reset_rows` clears `order`, `owners` and `guid_to_row` on every rebuild, so a cached row number goes stale on the next commit, and `rebuild` runs on no ordinary load path (a document arrives through `State::append` → `add_file` → `upload_to`), so a row reserved only there does not exist until the first edit. Keep the number on `Scene` and re-read it after every rebuild.
 - Colour it distinctly from the control net's `0xffcc8866` (`src/state.rs:606`).
 
 ## Reporting back
@@ -375,7 +375,7 @@ pub fn set_place(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4, translate_only
 - Write the increment into the f64 base, never the f32 the shader reads: `rebuild` recomputes every row from `translation`, so a delta on the returned f32 is erased by the next re-anchor (`anchored` doc comment, `objects.rs`).
 - Both writes must refresh `world_bounds[row]` and its bounded-row entry. Stale values break `fit_selected_or_all` (`src/state.rs:191`), `update_inside` and the selection box, and none of those failures points back at the move.
 - Write the kernel side in the same transaction: `Session::set_xform(guid, xf)` (`session_rust/src/session.rs:346`), recorded as `Op::Xform` with absolute before and after (`history.rs:107-113`). GPU only and the next rebuild snaps it back; kernel only and nothing moves until something else rebuilds.
-- Compose the GPU matrix as the walk does — the document's `place` times the session's *world* xform for that guid (`Scene::placement`) — because `set_xform` sets the **local** transform relative to the tree parent (`session.rs:345`). Expose it once as `Scene::placement_of(row)`.
+- Compose the GPU matrix as the walk does — the document's `place` times the session's *world* xform for that guid (the private free function `placement`, `src/app/scene.rs:629`, fed the map `session.world_xforms()` returns) — because `set_xform` sets the **local** transform relative to the tree parent (`session.rs:345`). Expose it once as `Scene::placement_of(row)`.
 - So `move` needs no rebuild: rows keep identity, the selection survives, pick tables stay valid. The cheapest edit, and the right one to build first on a large document.
 
 ## Testing, and a real limit

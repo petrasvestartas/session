@@ -298,6 +298,10 @@ impl SurfaceOutline {
         // One radius for every silhouette: an ordinary solid's outline is as heavy as a
         // selected one's, the selection differing by its yellow fill, not its border.
         let css_radius = 1.6875;
+        // The 12 px ceiling is bound to `POOL` above and may not be raised alone: the shader
+        // skips every pixel whose 3x3 block neighbourhood is empty, which is sound only while
+        // the kernel's reach, `ceil(radius + 0.5)`, fits inside one POOL-square block. At 12
+        // that is 13 of 16. Past POOL the dilation silently loses coverage at a silhouette.
         let radius = (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32;
         ctx.queue.write_buffer(
             &self.uniform,

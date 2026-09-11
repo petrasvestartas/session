@@ -88,8 +88,9 @@ impl Aabb {
     }
 
     /// True once at least one point went in: every bound finite AND min <= max. The name is
-    /// only the first half; the `min <= max` test is what rejects `Aabb::empty()`, whose bounds
-    /// are the two infinities. Read it as "has a box".
+    /// only the first half. `Aabb::empty()` is rejected by the finite test itself - its bounds
+    /// are the two infinities - and `min <= max` catches a box that was built wrong from
+    /// finite numbers. Read it as "has a box".
     pub fn is_finite(&self) -> bool {
         for value in self.min.iter().chain(self.max.iter()) {
             if !value.is_finite() {

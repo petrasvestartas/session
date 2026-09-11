@@ -60,9 +60,7 @@ pub fn walk_polyline(seg: &mut SegRows, pl: &Polyline, row: u32) -> Row {
     };
     let mut bounds = Aabb::empty();
     push_polyline(seg, &pts, &pen, &mut bounds);
-    Row {
-        ..Row::thin(bounds)
-    }
+    Row::thin(bounds)
 }
 
 /// Degrees of turning one chord may hide. A chord across `a` degrees of arc sags by

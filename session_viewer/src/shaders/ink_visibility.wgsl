@@ -298,7 +298,9 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
     let size = vec2<u32>(ceil(line.frame/span));
     let cell = vec2<u32>(at/span);
     let head = triangle_tiles[1u+cell.y*size.x+cell.x];
-    // An incomplete or overflowing list cannot prove that the axis is clear.
+    // The tile's record as four words: x = triangles covering it, y = where its list starts,
+    // z = how many were actually written, w = the overflow flag. An incomplete list (z != x)
+    // or an overflowing one cannot prove that the axis is clear.
     if (head.w!=0u || head.z!=head.x) {
         return false;
     }
@@ -310,7 +312,7 @@ fn ink_visible(pixel: vec2<f32>, axis: InkAxis, sample: u32) -> bool {
         }
         let primitive = triangle_tiles[offset/4u][offset%4u];
         let bounds = projected[primitive-1u].bounds;
-        if (any(at<bounds.xy-0.00390625) || any(at>bounds.zw+0.00390625)) {
+        if (any(at<bounds.xy-SLOPE_PX) || any(at>bounds.zw+SLOPE_PX)) {
             continue;
         }
         let hit = projected_triangle_at(projected[primitive-1u], at);

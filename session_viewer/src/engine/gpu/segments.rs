@@ -350,7 +350,8 @@ impl SegmentLane {
         );
     }
 
-    /// Skip the final selection pass when no source object or edge is selected.
+    /// Remember whether object row `row` is selected. The set is also what lets
+    /// `draw_selected` skip its pass outright when nothing - no row and no source edge - is.
     pub fn set_selected(&mut self, row: u32, selected: bool) {
         if selected {
             self.selected_rows.insert(row);

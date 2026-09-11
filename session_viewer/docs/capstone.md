@@ -2,7 +2,7 @@
 
 Everything until now had a next line waiting for you. This does not.
 
-The exercise is to add a **section plane** to the viewer: a movable plane that cuts the scene, so faces, edges, markers and text on the far side of it disappear and the interior of a solid becomes visible.
+Add a **section plane** to the viewer: a movable plane that cuts the scene, so faces, edges, markers and text on the far side disappear and a solid's interior becomes visible.
 
 
 ![Diagram: keyboard · pointer\ which plane, where · state\ the plane as data · uniform\ plane reaches the GPU · every shader that draws\ faces · ink · markers · text · pixels\ cut away or kept · picking\ does a cut object still answer?](illustrations/capstone-01.svg)
@@ -44,7 +44,7 @@ Each is worked through below, then written out in full in the answer key.
 
 ### 1 · Where the plane belongs
 
-`P` (x-ray) and `D` (headlight) are the analogue: no row, `View` state, carried in the block already bound to every lane. A section plane is the same kind of thing — view state, not scene state — so it survives a reload, which is what a user expects.
+`P` (x-ray) and `D` (headlight) are the analogue: no row, `View` state, carried in the block already bound to every lane. A section plane is the same — view state, not scene state — so it survives a reload, as a user expects.
 
 ### 2 · Getting four floats everywhere
 
@@ -52,7 +52,7 @@ Each is worked through below, then written out in full in the answer key.
 
 ### 3 · Which stage cuts
 
-A vertex-stage rejection removes only whole triangles, so the cut face keeps a ragged edge of whichever vertices survived. Fragment-stage `discard` cuts exactly at the plane, at pixel resolution — the reason x-ray discards in the fragment stage too. Its cost: a discarding fragment shader cannot be early-depth-tested, which is why you want it compiled out when the plane is off.
+A vertex-stage rejection removes only whole triangles, so the cut face keeps a ragged edge of whichever vertices survived. Fragment-stage `discard` cuts exactly at the plane, at pixel resolution — the reason x-ray discards in the fragment stage too. Its cost: a discarding fragment shader cannot be early-depth-tested, so compile it out when the plane is off.
 
 ### 4 · The cut face
 
@@ -97,4 +97,4 @@ No solution branch to diff against, on purpose. Check it the way you would check
 
 - **A second plane.** Two planes are not twice the work — but what is the right way to say "one, two, six"? An array in the uniform, a count, and a loop. Does the branch still stay uniform?
 - **A dimension primitive.** A leader line, an arrowhead and a label that keeps its size on screen. Now you *do* need a new lane: its rows, buffers, pipeline, shader and pick answer are yours to decide — lesson 04b for strokes, with nobody typing it for you.
-- **Contribute it.** A clean section plane belongs in the viewer. Read `ARCHITECTURE.md`: changing source the course teaches means the course has to be refolded, which is this repository's last lesson about keeping documentation honest.
+- **Contribute it.** A clean section plane belongs in the viewer. Read `ARCHITECTURE.md`: changing source the course teaches means refolding the course.

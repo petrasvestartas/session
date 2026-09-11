@@ -86,19 +86,16 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-2 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-3 -->
 
-- `to_px` turns a world length into pixels; `pen_world_radius` goes the other way, giving the world radius that projects to the global pen. `faces_front` decodes the packed normals.
-
-<span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
-
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=3-3 -->
-
-- The template corner is offset in clip space by the pixel radius plus half the feather, so the quad always contains the antialiased disc.
+- `to_px` turns a world length into pixels; `pen_world_radius` inverts it, giving the world radius that projects to the global pen.
+- `faces_front` decodes the packed normals.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=4-16 -->
+
+- The template corner is offset in clip space by the pixel radius plus half the feather, so the quad always contains the antialiased disc.
 
 - The facing cull is skipped when the object is flagged inside or open, or when `line.opacity` is zero: in x-ray, a vertex on the far side of a cube is what you want to see.
 
@@ -212,7 +209,7 @@ Expected:
 ## Try
 
 - Append `?aa=3`: the antialiasing ramp widens and every disc edge softens, because the feather is a uniform the lane reads per frame.
-- Zoom out until the markers thin out: `spacing` in the object row lets the shader fade them once they would overlap.
+- Set the dot's `radius` to `-6.0` in `fixture.rs`: its disc holds a six-pixel radius at every zoom, because a negative radius is already a pixel count rather than a world length.
 - Give one `GlyphPoint` a larger radius in `fixture.rs`: only that dot grows, because size travels per point.
 
 ## Questions and answers
@@ -239,11 +236,11 @@ Expected:
 
 *How to work it out.* The cull hides a vertex whose incident faces all point away. That is wrong when no face is in the way — the eye is inside the object, or the faces are not drawn at all.
 
-*The answer.* It is skipped on three conditions: the object is flagged inside, the object is flagged open, or `line.opacity` is zero, which is x-ray. Without the skip, `P` would show back edges but no back vertices, because every far-side marker is culled by faces that are not even drawn.
+*The answer.* Three conditions skip it: the object is flagged inside, flagged open, or `line.opacity` is zero — x-ray. Without the skip, `P` would show back edges but no back vertices, because every far-side marker is culled by faces that are not even drawn.
 
 **What you should be able to do now**
 
-Predict where the radius sits in the 48-byte marker row before looking. Correct: `center` is a `vec3` so it aligns to 16 and leaves a 4-byte hole after it — the radius goes in that hole, which is why the row is 48 and not 52. 
+Predict where the radius sits in the 48-byte marker row before looking. Correct: `center` is a `vec3` so it aligns to 16 and leaves a 4-byte hole after it — the radius goes in that hole, so the row is 48 and not 52. 
 
 ## Next
 
