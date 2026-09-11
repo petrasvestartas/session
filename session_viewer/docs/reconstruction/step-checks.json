@@ -534,5 +534,39 @@
       "Step 4 \u00b7 The tree gives the node back, the graph its edges": "fail",
       "Step 5 \u00b7 Identity survives a swap": "fail"
     }
+  },
+  "21": {
+    "order": [
+      "Step 1 \u00b7 Name the modules first",
+      "Step 2 \u00b7 The construction plane",
+      "Step 3 \u00b7 Typed coordinates",
+      "Step 4 \u00b7 A ray from the cursor",
+      "Step 5 \u00b7 The widget",
+      "Step 6 \u00b7 Snapping",
+      "Step 7 \u00b7 Copy-on-write, and one gesture as one step",
+      "Step 8 \u00b7 The write a drag frame costs",
+      "Step 9 \u00b7 The widget's rows",
+      "Step 10 \u00b7 Grab, preview, commit",
+      "Step 11 \u00b7 The command line",
+      "Step 12 \u00b7 The layers panel",
+      "Step 13 \u00b7 Control points",
+      "Step 14 \u00b7 Wire the page and the keys"
+    ],
+    "results": {
+      "Step 1 \u00b7 Name the modules first": "fail",
+      "Step 10 \u00b7 Grab, preview, commit": "fail",
+      "Step 11 \u00b7 The command line": "fail",
+      "Step 12 \u00b7 The layers panel": "fail",
+      "Step 13 \u00b7 Control points": "fail",
+      "Step 14 \u00b7 Wire the page and the keys": "ok",
+      "Step 2 \u00b7 The construction plane": "fail",
+      "Step 3 \u00b7 Typed coordinates": "fail",
+      "Step 4 \u00b7 A ray from the cursor": "fail",
+      "Step 5 \u00b7 The widget": "fail",
+      "Step 6 \u00b7 Snapping": "fail",
+      "Step 7 \u00b7 Copy-on-write, and one gesture as one step": "fail",
+      "Step 8 \u00b7 The write a drag frame costs": "fail",
+      "Step 9 \u00b7 The widget's rows": "fail"
+    }
   }
 }

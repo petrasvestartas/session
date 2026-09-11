@@ -81,7 +81,7 @@ Msg::CommandCancel => state.command_cancel,
 
 - The listener branches only on whether the field is empty, so it never asks Rust.
 - Not empty: clear the field and send `Msg::CommandCancel`. Empty: send it and `canvas.focus`.
-- The next Escape reaches winit and `escape_selection` (`src/app/input.rs:56`). Chain: text, tool, focus, selection; two presses at most to get out.
+- The next Escape reaches winit and `escape_selection` (`src/app/input.rs`). Chain: text, tool, focus, selection; two presses at most to get out.
 - `command_cancel` is idempotent because it has two senders; a double cancel shows only under a fast second press.
 
 ## One table, never three

@@ -1,0 +1,3403 @@
+diff --git a/session_viewer/Cargo.toml b/session_viewer/Cargo.toml
+index 74cd5472d8e9d9a5345c49d3ea6556eb5c360fca..aff2ac8568fd5c2c04a37cac69c7c8ebddb70dca 100644
+--- a/session_viewer/Cargo.toml
++++ b/session_viewer/Cargo.toml
+@@ -26,6 +26,9 @@ web-sys = { version = "0.3", features = [
+     "Window",
+     "Element",
+     "HtmlCanvasElement",
++    "HtmlElement",
++    "HtmlInputElement",
++    "KeyboardEvent",
+     "EventTarget",
+     "Event",
+     "Location",
+diff --git a/session_viewer/index.html b/session_viewer/index.html
+index 2217bc15b2ead11de37725414dda387d819b6189..0d3629f0322a74d5e91e75aaf764ee95936dfd49 100644
+--- a/session_viewer/index.html
++++ b/session_viewer/index.html
+@@ -52,6 +52,15 @@
+   <canvas id="canvas" tabindex="0"></canvas>
+   <a id="viewer-docs" href="docs/" target="_blank" rel="noopener" title="Open the documentation" aria-label="Open the documentation"></a>
+   <div id="viewer-status" role="status" aria-live="polite" style="position:fixed;bottom:12px;left:12px;color:#fff;background:#222b;font:14px system-ui;padding:4px 8px;pointer-events:none"></div>
++  <!-- The layers panel: one element, filled from Rust with textContent, never innerHTML.
++       `L` opens and closes it; a click on a row hides or shows that layer. -->
++  <div id="viewer-layers" hidden aria-label="Layers"
++       style="position:fixed;top:12px;left:12px;min-width:180px;max-height:70vh;overflow:auto;color:#fff;background:#222d;font:13px/1.7 system-ui;padding:6px 0;border-radius:4px;outline:1px solid #555"></div>
++  <!-- The command line. Hidden until the colon key opens it, and the canvas takes the keyboard
++       back the moment it closes, so typing `z` in here is a letter and not an undo. -->
++  <input id="viewer-command" type="text" spellcheck="false" autocomplete="off" hidden
++         aria-label="Command line"
++         style="position:fixed;bottom:44px;left:12px;width:min(420px,60vw);color:#fff;background:#222d;border:0;border-radius:4px;font:14px/1.6 ui-monospace,monospace;padding:4px 8px;outline:1px solid #555">
+   <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text"/>
+   <link data-trunk rel="copy-file" href="assets/text-quality.html"/>
+   <!-- The built course site (docs/build_site.sh keeps it current before each build). -->
+diff --git a/session_viewer/src/app/command.rs b/session_viewer/src/app/command.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..f5efab8a78f76a0277cfbf7e49106725c0f9f27c
+--- /dev/null
++++ b/session_viewer/src/app/command.rs
+@@ -0,0 +1,158 @@
++//! The command line: one typed line becomes one named action.
++//!
++//! Parsing is here and doing is in `State`, so what a line MEANS can be tested without a
++//! window, a device or a scene. A verb the viewer does not have is an error with the line
++//! quoted back, never a silent no-op: a command line that ignores what you typed is worse
++//! than one that refuses it.
++//!
++//! Every verb is an action the viewer already has. The command line is a second way to reach
++//! them, not a second implementation of them.
++
++use crate::app::coords;
++use crate::app::gizmo::Axis;
++
++/// What a line asked for.
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub enum Command {
++    /// Move the selection by a world offset, in millimetres.
++    Move([f64; 3]),
++    /// Turn the selection about one axis through its own centre, in degrees.
++    Rotate { axis: Axis, degrees: f64 },
++    /// Scale the selection about its own centre.
++    Scale(f64),
++    Delete,
++    Undo,
++    Redo,
++    Hide,
++    ShowAll,
++    Fit,
++    /// Clear the selection.
++    Escape,
++}
++
++/// Parse one line. `Err` carries what to show the person who typed it.
++pub fn parse(line: &str) -> Result<Command, String> {
++    let line = line.trim();
++    if line.is_empty() {
++        return Err("nothing typed".into());
++    }
++    let mut words = line.split_whitespace();
++    let verb = words.next().unwrap_or_default().to_ascii_lowercase();
++    let rest: Vec<&str> = words.collect();
++    match verb.as_str() {
++        "move" | "m" => offset(&rest).map(Command::Move),
++        "rotate" | "rot" => {
++            let (axis, degrees) = axis_and_number(&rest, "rotate x 90")?;
++            Ok(Command::Rotate { axis, degrees })
++        }
++        "scale" | "s" => {
++            let k = number(rest.first().copied(), "scale 2")?;
++            if k <= 0.0 {
++                return Err("scale wants a factor above zero".into());
++            }
++            Ok(Command::Scale(k))
++        }
++        "delete" | "del" => Ok(Command::Delete),
++        "undo" => Ok(Command::Undo),
++        "redo" => Ok(Command::Redo),
++        "hide" => Ok(Command::Hide),
++        "show" => Ok(Command::ShowAll),
++        "fit" => Ok(Command::Fit),
++        "escape" | "esc" => Ok(Command::Escape),
++        other => Err(format!("no command `{other}`")),
++    }
++}
++
++/// `move` takes the coordinate parser's own syntax, so `10,0,0`, `@10,0` and `10<45` mean here
++/// what they mean anywhere else in the viewer.
++///
++/// A command line is typed with spaces, and the coordinate syntax separates with commas, so
++/// spaces between the numbers become commas first. `@10 0` and `@10,0` are then the same line,
++/// which is what a person typing at speed expects.
++fn offset(words: &[&str]) -> Result<[f64; 3], String> {
++    let joined = words.join(" ");
++    let text = if joined.contains(',') || joined.contains('<') {
++        joined.replace(' ', "")
++    } else {
++        words.join(",").replacen("@,", "@", 1)
++    };
++    let Some(typed) = coords::parse(&text) else {
++        return Err(format!("`{joined}` is not an offset; try `move 10 0 0`"));
++    };
++    match typed {
++        coords::Typed::Absolute { x, y, z } | coords::Typed::Relative { x, y, z } => {
++            Ok([x, y, z.unwrap_or(0.0)])
++        }
++        coords::Typed::Polar { distance, degrees } => {
++            let r = degrees.to_radians();
++            Ok([distance * r.cos(), distance * r.sin(), 0.0])
++        }
++        coords::Typed::Distance(d) => Ok([d, 0.0, 0.0]),
++    }
++}
++
++fn axis_and_number(words: &[&str], example: &str) -> Result<(Axis, f64), String> {
++    let axis = match words.first().map(|w| w.to_ascii_lowercase()) {
++        Some(a) if a == "x" => Axis::X,
++        Some(a) if a == "y" => Axis::Y,
++        Some(a) if a == "z" => Axis::Z,
++        _ => return Err(format!("which axis? try `{example}`")),
++    };
++    Ok((axis, number(words.get(1).copied(), example)?))
++}
++
++fn number(word: Option<&str>, example: &str) -> Result<f64, String> {
++    let Some(word) = word else {
++        return Err(format!("missing a number; try `{example}`"));
++    };
++    match word.parse::<f64>() {
++        Ok(v) if v.is_finite() => Ok(v),
++        _ => Err(format!("`{word}` is not a number")),
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn the_verbs_and_their_short_forms() {
++        assert_eq!(parse("delete"), Ok(Command::Delete));
++        assert_eq!(parse("del"), Ok(Command::Delete));
++        assert_eq!(parse("  UNDO "), Ok(Command::Undo));
++        assert_eq!(parse("fit"), Ok(Command::Fit));
++    }
++
++    #[test]
++    fn move_reads_the_same_coordinates_as_the_rest_of_the_viewer() {
++        assert_eq!(parse("move 10 0 0"), Ok(Command::Move([10.0, 0.0, 0.0])));
++        assert_eq!(parse("m @0 5"), Ok(Command::Move([0.0, 5.0, 0.0])));
++        let Ok(Command::Move(polar)) = parse("move 10<90") else {
++            panic!("a polar offset is an offset");
++        };
++        assert!((polar[1] - 10.0).abs() < 1e-9, "90 degrees is +y");
++    }
++
++    /// A refusal names what was wrong, and a verb the viewer does not have is one of them: a
++    /// command line that swallows a typo teaches the typist nothing.
++    #[test]
++    fn a_line_it_cannot_do_says_so() {
++        assert_eq!(parse("fly 3"), Err("no command `fly`".into()));
++        assert_eq!(parse(""), Err("nothing typed".into()));
++        assert!(parse("scale 0").is_err(), "a zero scale collapses the object");
++        assert!(parse("rotate 90").is_err(), "no axis");
++        assert!(parse("rotate x").is_err(), "no angle");
++        assert!(parse("move sideways").is_err());
++    }
++
++    #[test]
++    fn rotation_names_its_axis() {
++        assert_eq!(
++            parse("rotate z 45"),
++            Ok(Command::Rotate {
++                axis: Axis::Z,
++                degrees: 45.0
++            })
++        );
++    }
++}
+diff --git a/session_viewer/src/app/coords.rs b/session_viewer/src/app/coords.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..83ec22f340576daaeb4c1049afff5d2d2330b22d
+--- /dev/null
++++ b/session_viewer/src/app/coords.rs
+@@ -0,0 +1,190 @@
++//! Typed coordinates: what a command line does with the text between the commas.
++//!
++//! Four forms, resolved against the last point the user gave and the plane they are drawing on:
++//!
++//! ```text
++//!   12,4,0     absolute, world
++//!   12,4       absolute, on the construction plane
++//!   @3,0       relative to the previous point
++//!   @5<90      polar: 5 along the plane, 90 degrees round from its first axis
++//!   5          bare distance, along the direction already established
++//! ```
++//!
++//! f64 throughout. A typed coordinate is the one input a user expects to be exact, and every
++//! kernel `Point` is f64, so narrowing anywhere here would be a choice to lose what they typed.
++
++use session_rust::{Point, Vector};
++
++/// A parsed coordinate, before it knows where it is.
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub enum Typed {
++    /// World coordinates. `z` is `None` when only two were given.
++    Absolute { x: f64, y: f64, z: Option<f64> },
++    /// An offset from the previous point. `z` is `None` when only two were given.
++    Relative { x: f64, y: f64, z: Option<f64> },
++    /// A distance and an angle in degrees, in the plane.
++    Polar { distance: f64, degrees: f64 },
++    /// A distance along a direction the caller already has.
++    Distance(f64),
++}
++
++/// Parse one line of coordinate text. `None` when it is not a coordinate at all, which is how
++/// a command line tells a coordinate from a verb.
++pub fn parse(text: &str) -> Option<Typed> {
++    let text = text.trim();
++    if text.is_empty() {
++        return None;
++    }
++    let (body, relative) = match text.strip_prefix('@') {
++        Some(rest) => (rest.trim(), true),
++        None => (text, false),
++    };
++    if let Some((d, a)) = body.split_once('<') {
++        let distance = number(d)?;
++        let degrees = number(a)?;
++        return Some(Typed::Polar { distance, degrees });
++    }
++    let parts: Vec<&str> = body.split(',').map(str::trim).collect();
++    match parts.len() {
++        1 if relative => None, // `@5` alone has no direction; use `@5<0`
++        1 => Some(Typed::Distance(number(parts[0])?)),
++        2 | 3 => {
++            let x = number(parts[0])?;
++            let y = number(parts[1])?;
++            let z = match parts.get(2) {
++                Some(v) => Some(number(v)?),
++                None => None,
++            };
++            Some(if relative {
++                Typed::Relative { x, y, z }
++            } else {
++                Typed::Absolute { x, y, z }
++            })
++        }
++        _ => None,
++    }
++}
++
++/// Turn a parsed coordinate into a world point.
++///
++/// `origin` and the two axes are the construction plane; `previous` is the last point given,
++/// and `along` the direction already established, both `None` at the start of a draft. A form
++/// that needs something the caller does not have resolves to `None` rather than to a guess.
++pub fn resolve(
++    typed: Typed,
++    origin: &Point,
++    x_axis: &Vector,
++    y_axis: &Vector,
++    previous: Option<&Point>,
++    along: Option<&Vector>,
++) -> Option<Point> {
++    let on_plane = |u: f64, v: f64, base: &Point| {
++        Point::new(
++            base[0] + x_axis[0] * u + y_axis[0] * v,
++            base[1] + x_axis[1] * u + y_axis[1] * v,
++            base[2] + x_axis[2] * u + y_axis[2] * v,
++        )
++    };
++    match typed {
++        Typed::Absolute { x, y, z: Some(z) } => Some(Point::new(x, y, z)),
++        Typed::Absolute { x, y, z: None } => Some(on_plane(x, y, origin)),
++        Typed::Relative { x, y, z: Some(z) } => {
++            let p = previous?;
++            Some(Point::new(p[0] + x, p[1] + y, p[2] + z))
++        }
++        Typed::Relative { x, y, z: None } => Some(on_plane(x, y, previous?)),
++        Typed::Polar { distance, degrees } => {
++            let r = degrees.to_radians();
++            let base = previous.unwrap_or(origin);
++            Some(on_plane(distance * r.cos(), distance * r.sin(), base))
++        }
++        Typed::Distance(d) => {
++            let p = previous?;
++            let v = along?;
++            Some(Point::new(p[0] + v[0] * d, p[1] + v[1] * d, p[2] + v[2] * d))
++        }
++    }
++}
++
++/// A finite number, or nothing. Rejects the infinities and NaN that `parse::<f64>` accepts,
++/// because every one of them reaches a bounding box and makes every later fit meaningless.
++fn number(text: &str) -> Option<f64> {
++    let value: f64 = text.trim().parse().ok()?;
++    value.is_finite().then_some(value)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    fn plane() -> (Point, Vector, Vector) {
++        (
++            Point::new(0.0, 0.0, 0.0),
++            Vector::new(1.0, 0.0, 0.0),
++            Vector::new(0.0, 1.0, 0.0),
++        )
++    }
++
++    #[test]
++    fn the_four_forms_parse() {
++        assert_eq!(parse("12,4,2"), Some(Typed::Absolute { x: 12.0, y: 4.0, z: Some(2.0) }));
++        assert_eq!(parse(" 12 , 4 "), Some(Typed::Absolute { x: 12.0, y: 4.0, z: None }));
++        assert_eq!(parse("@3,0"), Some(Typed::Relative { x: 3.0, y: 0.0, z: None }));
++        assert_eq!(parse("@5<90"), Some(Typed::Polar { distance: 5.0, degrees: 90.0 }));
++        assert_eq!(parse("7.5"), Some(Typed::Distance(7.5)));
++    }
++
++    /// A verb is not a coordinate, and neither is a number that would poison a bounding box.
++    #[test]
++    fn what_is_not_a_coordinate() {
++        assert_eq!(parse("line"), None);
++        assert_eq!(parse(""), None);
++        assert_eq!(parse("1,2,3,4"), None);
++        assert_eq!(parse("@5"), None, "no direction");
++        assert_eq!(parse("nan"), None);
++        assert_eq!(parse("inf,0"), None);
++    }
++
++    /// Two numbers land on the plane, three land in the world, and the plane can be anywhere.
++    #[test]
++    fn two_numbers_are_on_the_plane_and_three_are_not() {
++        let lifted = Point::new(0.0, 0.0, 9.0);
++        let (_, x, y) = plane();
++        let on = resolve(parse("2,3").unwrap(), &lifted, &x, &y, None, None).unwrap();
++        assert_eq!([on[0], on[1], on[2]], [2.0, 3.0, 9.0]);
++        let world = resolve(parse("2,3,0").unwrap(), &lifted, &x, &y, None, None).unwrap();
++        assert_eq!([world[0], world[1], world[2]], [2.0, 3.0, 0.0]);
++    }
++
++    /// Relative and polar both measure from the previous point; polar falls back to the plane
++    /// origin so the very first point of a draft can still be typed as an angle.
++    #[test]
++    fn relative_forms_measure_from_the_previous_point() {
++        let (o, x, y) = plane();
++        let prev = Point::new(10.0, 10.0, 0.0);
++        let r = resolve(parse("@3,4").unwrap(), &o, &x, &y, Some(&prev), None).unwrap();
++        assert_eq!([r[0], r[1]], [13.0, 14.0]);
++        let p = resolve(parse("@5<90").unwrap(), &o, &x, &y, Some(&prev), None).unwrap();
++        assert!((p[0] - 10.0).abs() < 1e-12 && (p[1] - 15.0).abs() < 1e-12);
++        let first = resolve(parse("@5<0").unwrap(), &o, &x, &y, None, None).unwrap();
++        assert_eq!([first[0], first[1]], [5.0, 0.0]);
++    }
++
++    /// A form that needs something the caller does not have resolves to nothing, not a guess.
++    #[test]
++    fn a_missing_reference_does_not_resolve() {
++        let (o, x, y) = plane();
++        assert!(resolve(parse("@3,4").unwrap(), &o, &x, &y, None, None).is_none());
++        assert!(resolve(parse("5").unwrap(), &o, &x, &y, None, None).is_none());
++        let prev = Point::new(1.0, 0.0, 0.0);
++        assert!(resolve(parse("5").unwrap(), &o, &x, &y, Some(&prev), None).is_none());
++    }
++
++    /// A millimetre typed a kilometre out is kept exactly.
++    #[test]
++    fn a_typed_coordinate_is_exact() {
++        let (o, x, y) = plane();
++        let p = resolve(parse("1000000.001,0,0").unwrap(), &o, &x, &y, None, None).unwrap();
++        assert_eq!(p[0], 1_000_000.001);
++    }
++}
+diff --git a/session_viewer/src/app/cplane.rs b/session_viewer/src/app/cplane.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..933b48fcc3ff763d910bdd92a22b2c2fc4297762
+--- /dev/null
++++ b/session_viewer/src/app/cplane.rs
+@@ -0,0 +1,132 @@
++//! The construction plane: where a click lands when there is no geometry under it.
++//!
++//! One of the three world planes through a chosen origin, picked so the camera is looking at
++//! it rather than along it. Everything here is f64 and free of the GPU: a click resolves to a
++//! world point before anything else happens to it.
++
++use session_rust::{Point, Vector};
++
++/// Which pair of world axes the plane spans. The third axis is its normal.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum CPlane {
++    Xy,
++    Yz,
++    Xz,
++}
++
++impl CPlane {
++    /// The plane the camera is most nearly facing: the world axis the view runs most along
++    /// becomes the normal. Choosing the other way round would hand a click the plane it sees
++    /// edge-on, where a pixel of cursor movement is metres of world movement.
++    ///
++    /// The same rule serves both projections. A view that is exactly diagonal has to break the
++    /// tie somewhere; it breaks toward Z, then Y, so a level-ish view draws on the ground.
++    pub fn facing(forward: &Vector) -> Self {
++        let (x, y, z) = (forward[0].abs(), forward[1].abs(), forward[2].abs());
++        if z >= x && z >= y {
++            CPlane::Xy
++        } else if y >= x {
++            CPlane::Xz
++        } else {
++            CPlane::Yz
++        }
++    }
++
++    /// The plane's unit normal.
++    pub fn normal(self) -> Vector {
++        match self {
++            CPlane::Xy => Vector::new(0.0, 0.0, 1.0),
++            CPlane::Yz => Vector::new(1.0, 0.0, 0.0),
++            CPlane::Xz => Vector::new(0.0, 1.0, 0.0),
++        }
++    }
++
++    /// Where a ray meets this plane through `origin`.
++    ///
++    /// `None` when the ray runs along the plane, and when the hit is behind the ray's start:
++    /// a click resolves to a point in front of the eye or it does not resolve at all, because
++    /// the alternative is geometry appearing behind the camera.
++    pub fn hit(self, origin: &Point, from: &Point, direction: &Vector) -> Option<Point> {
++        let n = self.normal();
++        let denom = direction[0] * n[0] + direction[1] * n[1] + direction[2] * n[2];
++        if denom.abs() < 1e-12 {
++            return None;
++        }
++        let num = (origin[0] - from[0]) * n[0]
++            + (origin[1] - from[1]) * n[1]
++            + (origin[2] - from[2]) * n[2];
++        let t = num / denom;
++        if !t.is_finite() || t <= 0.0 {
++            return None;
++        }
++        Some(Point::new(
++            from[0] + direction[0] * t,
++            from[1] + direction[1] * t,
++            from[2] + direction[2] * t,
++        ))
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    /// Looking down picks the ground plane; looking along an axis picks a plane containing it.
++    #[test]
++    fn the_plane_is_the_one_the_camera_faces() {
++        assert_eq!(CPlane::facing(&Vector::new(0.0, 0.0, -1.0)), CPlane::Xy);
++        assert_eq!(CPlane::facing(&Vector::new(0.0, 1.0, 0.0)), CPlane::Xz);
++        assert_eq!(CPlane::facing(&Vector::new(-1.0, 0.0, 0.0)), CPlane::Yz);
++        // A mostly-level view still draws on the ground.
++        assert_eq!(CPlane::facing(&Vector::new(0.6, 0.1, -0.79)), CPlane::Xy);
++    }
++
++    /// A ray straight down lands on the plane's origin height, at its own x and y.
++    #[test]
++    fn a_ray_lands_where_it_crosses() {
++        let hit = CPlane::Xy
++            .hit(
++                &Point::new(0.0, 0.0, 5.0),
++                &Point::new(2.0, 3.0, 20.0),
++                &Vector::new(0.0, 0.0, -1.0),
++            )
++            .expect("a hit");
++        assert!((hit[0] - 2.0).abs() < 1e-12);
++        assert!((hit[1] - 3.0).abs() < 1e-12);
++        assert!((hit[2] - 5.0).abs() < 1e-12);
++    }
++
++    /// A ray along the plane never meets it, and one pointing away from it does not count.
++    #[test]
++    fn parallel_and_backward_rays_do_not_resolve() {
++        let origin = Point::new(0.0, 0.0, 0.0);
++        assert!(
++            CPlane::Xy
++                .hit(&origin, &Point::new(0.0, 0.0, 4.0), &Vector::new(1.0, 0.0, 0.0))
++                .is_none(),
++            "parallel"
++        );
++        assert!(
++            CPlane::Xy
++                .hit(&origin, &Point::new(0.0, 0.0, 4.0), &Vector::new(0.0, 0.0, 1.0))
++                .is_none(),
++            "pointing away"
++        );
++    }
++
++    /// A plane a kilometre out keeps a millimetre. The same arithmetic in f32 does not: the
++    /// offset is below the spacing of an f32 at that magnitude, so it rounds away entirely.
++    #[test]
++    fn a_distant_plane_keeps_a_small_offset() {
++        let expected = 1.0e6 + 1.0e-3;
++        let hit = CPlane::Xy
++            .hit(
++                &Point::new(0.0, 0.0, expected),
++                &Point::new(0.0, 0.0, 1.0e7),
++                &Vector::new(0.0, 0.0, -1.0),
++            )
++            .expect("a hit");
++        assert!((hit[2] - expected).abs() < 1.0e-6, "kept, within rounding");
++        assert_eq!(expected as f32, 1.0e6_f32, "and f32 would have lost it");
++    }
++}
+diff --git a/session_viewer/src/app/edit.rs b/session_viewer/src/app/edit.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..975723876d311f7511d7324dd81b205e73269e10
+--- /dev/null
++++ b/session_viewer/src/app/edit.rs
+@@ -0,0 +1,300 @@
++//! Editing: what a gesture does to a document, and how the row on the GPU follows.
++//!
++//! Every edit goes through the kernel `Session`, never around it. The session owns the
++//! transforms and the undo history, so a move made here is a move a save keeps and an undo
++//! reverses; a transform written only into the GPU row would be none of those things.
++//!
++//! Two rules this module exists to hold:
++//!
++//! * **Copy-on-write first.** A manifest listing one file twice hands both placements the same
++//!   `Rc<Session>`, and the live source keeps a third. `Rc::make_mut` before any mutation is
++//!   what stops one placement's edit from moving the others.
++//! * **A move is a partial write; anything else is a rebuild.** Moving an object changes one
++//!   row's placement, which is two small writes. Deleting one, or undoing anything, changes
++//!   which rows exist at all, and the only honest answer is to walk the documents again.
++
++use crate::app::scene::Scene;
++use session_rust::{Geometry, Point, Xform};
++use std::rc::Rc;
++
++/// What an edit did, so the caller knows how much of the frame to redo.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Edited {
++    /// One row's placement changed: write that row and draw.
++    Placement(u32),
++    /// Which rows exist changed: re-flatten every document.
++    Rows,
++    /// The document refused, or there was nothing to do.
++    Nothing,
++}
++
++impl Scene {
++    /// The document a row belongs to, made writable. Returns the document index and the guid,
++    /// having already split any session this placement was sharing.
++    fn writable(&mut self, row: u32) -> Option<(usize, Rc<str>)> {
++        let (doc, guid) = self.identity_of(row)?;
++        let file = self.docs.get_mut(doc)?;
++        if file.display_only {
++            return None;
++        }
++        // The split happens HERE, before anything is written, and only for the document being
++        // edited: the other placements keep the session they were sharing.
++        Rc::make_mut(&mut file.session);
++        Some((doc, guid))
++    }
++
++    /// One row's LOCAL transform, the value a drag remembers before it starts moving.
++    pub fn local_xform_of(&self, row: u32) -> Option<Xform> {
++        let (doc, guid) = self.identity_of(row)?;
++        Some(self.docs.get(doc)?.session.xform(&guid))
++    }
++
++    /// Set one row's object to exactly this local transform, in one recorded transaction.
++    ///
++    /// A drag calls this ONCE, at the end, with the transform measured from where it grabbed.
++    /// Writing every intermediate frame into the session would fill the history with a hundred
++    /// ops that undo one gesture, and the GPU row is the right place for a preview.
++    pub fn set_row_xform(&mut self, row: u32, local: Xform, label: &str) -> Option<[f64; 16]> {
++        let (doc, guid) = self.writable(row)?;
++        let file = self.docs.get_mut(doc)?;
++        let session = Rc::make_mut(&mut file.session);
++        session.begin(label);
++        session.set_xform(&guid, local);
++        session.commit();
++        self.last_edited = Some(doc);
++        self.placement_of(row)
++    }
++
++    /// Left-multiply one row's object by `delta`, in world space, and report its new placement.
++    ///
++    /// The discrete form: a typed command, an arrow-key nudge. A drag uses `set_row_xform`,
++    /// because a drag's transform is measured from its grab rather than from the last frame.
++    pub fn transform_row(&mut self, row: u32, delta: &Xform, label: &str) -> Option<[f64; 16]> {
++        let local = self.local_xform_of(row)?;
++        self.set_row_xform(row, delta * &local, label)
++    }
++
++    /// One row's full placement: the file's, composed with the object's cumulative transform.
++    pub fn placement_of(&self, row: u32) -> Option<[f64; 16]> {
++        let (doc, guid) = self.identity_of(row)?;
++        let file = self.docs.get(doc)?;
++        let world = file.session.world_xform(&guid);
++        Some(crate::math::mat_mul(&file.place.m, &world.m))
++    }
++
++    /// Remove one row's object from its document. The rows change, so the caller rebuilds.
++    pub fn delete_row(&mut self, row: u32) -> bool {
++        let Some((doc, guid)) = self.writable(row) else {
++            return false;
++        };
++        let Some(file) = self.docs.get_mut(doc) else {
++            return false;
++        };
++        let session = Rc::make_mut(&mut file.session);
++        session.begin("delete");
++        let removed = session.remove_object(&guid);
++        session.commit();
++        if removed {
++            self.last_edited = Some(doc);
++            self.selected = None;
++        }
++        removed
++    }
++
++    /// Undo the newest transaction in the document that was edited last.
++    ///
++    /// Per document, because the history is the document's: a viewer-wide stack would have to
++    /// invent an order between edits to two files that never interacted.
++    pub fn undo(&mut self) -> bool {
++        self.step_history(true)
++    }
++
++    /// Redo the newest undone transaction in the document that was edited last.
++    pub fn redo(&mut self) -> bool {
++        self.step_history(false)
++    }
++
++    fn step_history(&mut self, back: bool) -> bool {
++        let Some(doc) = self.last_edited else {
++            return false;
++        };
++        let Some(file) = self.docs.get_mut(doc) else {
++            return false;
++        };
++        let session = Rc::make_mut(&mut file.session);
++        if back {
++            session.undo()
++        } else {
++            session.redo()
++        }
++    }
++}
++
++impl Scene {
++    /// Move one control point of a row's source geometry, in one recorded transaction.
++    ///
++    /// Sub-element editing goes through `Session::replace`, which records the whole object
++    /// before and after: the kernel's own undo step for a change that is not a placement. A
++    /// geometry whose control points the kernel cannot set is refused rather than silently
++    /// left alone.
++    pub fn set_control_point(&mut self, row: u32, index: usize, to: &Point) -> bool {
++        let Some((doc, guid)) = self.writable(row) else {
++            return false;
++        };
++        let Some(file) = self.docs.get_mut(doc) else {
++            return false;
++        };
++        let session = Rc::make_mut(&mut file.session);
++        let Some(geometry) = session.lookup.get(guid.as_ref()).cloned() else {
++            return false;
++        };
++        let edited = match &geometry {
++            Geometry::Polyline(source) => {
++                let mut next = (**source).clone();
++                if index >= next.point_count() {
++                    return false;
++                }
++                next.set_point(index, to);
++                Geometry::Polyline(Rc::new(next))
++            }
++            Geometry::NurbsCurve(source) => {
++                let mut next = (**source).clone();
++                if !next.set_cv_point(index, to) {
++                    return false;
++                }
++                Geometry::NurbsCurve(Rc::new(next))
++            }
++            _ => return false,
++        };
++        session.begin("edit point");
++        let replaced = session.replace(&guid, edited);
++        session.commit();
++        if replaced {
++            self.last_edited = Some(doc);
++        }
++        replaced
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::app::scene::FileDoc;
++    use session_rust::{Point, Session};
++
++    fn file(name: &str, session: Rc<Session>) -> FileDoc {
++        FileDoc {
++            name: name.into(),
++            session,
++            place: Xform::identity(),
++            point_px: 0.0,
++            display_only: false,
++        }
++    }
++
++    fn one_point_twice() -> Scene {
++        let mut source = Session::new("twice");
++        source.add_point(Point::new(1.0, 0.0, 0.0), None);
++        let shared = Rc::new(source);
++        let mut scene = Scene::new();
++        scene.add_file(file("first", Rc::clone(&shared)));
++        scene.add_file(file("second", Rc::clone(&shared)));
++        scene
++    }
++
++    /// The rule the whole module exists for. Two placements of one file share an `Rc`; moving
++    /// the first must not move the second, and the only thing that makes that true is the
++    /// `Rc::make_mut` before the write.
++    #[test]
++    fn moving_one_placement_leaves_the_other_where_it_was() {
++        let mut scene = one_point_twice();
++        assert!(Rc::ptr_eq(&scene.docs[0].session, &scene.docs[1].session));
++
++        let moved = scene
++            .transform_row(0, &Xform::translation(5.0, 0.0, 0.0), "move")
++            .expect("row 0 is editable");
++
++        assert!(!Rc::ptr_eq(&scene.docs[0].session, &scene.docs[1].session));
++        assert_eq!([moved[12], moved[13], moved[14]], [5.0, 0.0, 0.0]);
++        let still = scene.placement_of(1).expect("row 1 still exists");
++        assert_eq!([still[12], still[13], still[14]], [0.0, 0.0, 0.0]);
++    }
++
++    /// Two moves compose rather than replace: dragging twice leaves the object where the two
++    /// drags put it, not where the second one alone would have.
++    #[test]
++    fn a_second_move_starts_from_the_first() {
++        let mut scene = one_point_twice();
++        scene.transform_row(0, &Xform::translation(5.0, 0.0, 0.0), "move");
++        let moved = scene
++            .transform_row(0, &Xform::translation(0.0, 2.0, 0.0), "move")
++            .expect("row 0 is editable");
++        assert_eq!([moved[12], moved[13], moved[14]], [5.0, 2.0, 0.0]);
++    }
++
++    /// The move is in the document, so the document's own history reverses it. Undo without an
++    /// edit first does nothing rather than reaching into a document nobody touched.
++    #[test]
++    fn undo_puts_the_object_back() {
++        let mut scene = one_point_twice();
++        assert!(!scene.undo(), "nothing has been edited yet");
++
++        scene.transform_row(0, &Xform::translation(5.0, 0.0, 0.0), "move");
++        assert!(scene.undo());
++        let back = scene.placement_of(0).expect("row 0 still exists");
++        assert_eq!([back[12], back[13], back[14]], [0.0, 0.0, 0.0]);
++
++        assert!(scene.redo());
++        let again = scene.placement_of(0).expect("row 0 still exists");
++        assert_eq!([again[12], again[13], again[14]], [5.0, 0.0, 0.0]);
++    }
++
++    /// A control-point edit is a replacement, so the whole object goes into the history and
++    /// undo puts the old one back - unlike a move, which records only the transform.
++    #[test]
++    fn a_control_point_moves_and_undoes() {
++        use session_rust::Polyline;
++        let mut source = Session::new("line");
++        source.add_polyline(
++            Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]),
++            None,
++        );
++        let mut scene = Scene::new();
++        scene.add_file(file("line", Rc::new(source)));
++
++        assert!(scene.set_control_point(0, 1, &Point::new(1.0, 5.0, 0.0)));
++        let moved = scene.docs[0].session.lookup.values().next().cloned();
++        let Some(session_rust::Geometry::Polyline(line)) = moved else {
++            panic!("still a polyline");
++        };
++        assert_eq!(line.get_point(1).expect("two points")[1], 5.0);
++
++        assert!(scene.undo());
++        let back = scene.docs[0].session.lookup.values().next().cloned();
++        let Some(session_rust::Geometry::Polyline(line)) = back else {
++            panic!("still a polyline");
++        };
++        assert_eq!(line.get_point(1).expect("two points")[1], 0.0);
++    }
++
++    /// A geometry whose control points the kernel cannot set is refused, not silently ignored:
++    /// a drag that appears to do nothing is a bug report waiting to happen.
++    #[test]
++    fn a_kind_with_no_control_points_is_refused() {
++        let mut scene = one_point_twice();
++        assert!(!scene.set_control_point(0, 0, &Point::new(1.0, 1.0, 1.0)));
++    }
++
++    /// A streamed source is a shell with no kernel object behind it: editing it would write
++    /// into an empty session and silently lose the edit, so it is refused.
++    #[test]
++    fn a_display_only_document_refuses_the_edit() {
++        let mut scene = one_point_twice();
++        scene.docs[0].display_only = true;
++        assert!(
++            scene
++                .transform_row(0, &Xform::translation(1.0, 0.0, 0.0), "move")
++                .is_none()
++        );
++    }
++}
+diff --git a/session_viewer/src/app/feedback.rs b/session_viewer/src/app/feedback.rs
+index 16a4d0c84d9b58463243f1affcd6987ea9376cdb..c0cb1a12a90b7770afd5452f8d74960c22e1093f 100644
+--- a/session_viewer/src/app/feedback.rs
++++ b/session_viewer/src/app/feedback.rs
+@@ -33,3 +33,119 @@ pub fn error(message: &str) {
+     }
+     log::error!("{message}");
+ }
++
++/// Open or close the command line. Opening focuses it; closing hands the keyboard back to the
++/// canvas, or a letter typed next would reach the viewer's key bindings instead of the box.
++#[cfg(target_arch = "wasm32")]
++pub fn command_line(open: bool) -> Option<web_sys::HtmlInputElement> {
++    use wasm_bindgen::JsCast;
++    let document = web_sys::window()?.document()?;
++    let input: web_sys::HtmlInputElement = document
++        .get_element_by_id("viewer-command")?
++        .dyn_into()
++        .ok()?;
++    if open {
++        input.set_hidden(false);
++        input.set_value("");
++        let _ = input.focus();
++    } else {
++        input.set_hidden(true);
++        if let Some(canvas) = document.get_element_by_id("canvas")
++            && let Ok(canvas) = canvas.dyn_into::<web_sys::HtmlElement>()
++        {
++            let _ = canvas.focus();
++        }
++    }
++    Some(input)
++}
++
++/// The command line, when it is open.
++#[cfg(target_arch = "wasm32")]
++pub fn command_text() -> Option<String> {
++    use wasm_bindgen::JsCast;
++    let input: web_sys::HtmlInputElement = web_sys::window()?
++        .document()?
++        .get_element_by_id("viewer-command")?
++        .dyn_into()
++        .ok()?;
++    (!input.hidden()).then(|| input.value())
++}
++
++/// Native builds have no command box; the callers stay free of `cfg`.
++#[cfg(not(target_arch = "wasm32"))]
++pub fn command_line(_open: bool) {}
++
++/// One row of the layers panel, as the panel needs it.
++pub struct LayerRow {
++    pub key: String,
++    pub label: String,
++    pub count: usize,
++    pub hidden: bool,
++}
++
++/// Fill the layers panel, or empty it. Every label goes in with `textContent`, so a document
++/// named after a tag cannot become markup.
++#[cfg(target_arch = "wasm32")]
++pub fn layers_panel(rows: &[LayerRow]) {
++    let Some(document) = web_sys::window().and_then(|w| w.document()) else {
++        return;
++    };
++    let Some(panel) = document.get_element_by_id("viewer-layers") else {
++        return;
++    };
++    panel.set_text_content(None);
++    for row in rows {
++        let Ok(line) = document.create_element("div") else {
++            continue;
++        };
++        let _ = line.set_attribute("data-layer", &row.key);
++        let _ = line.set_attribute(
++            "style",
++            "padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
++        );
++        if row.hidden {
++            let _ = line.set_attribute(
++                "style",
++                "padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:0.45",
++            );
++        }
++        let mark = if row.hidden { "·" } else { "•" };
++        line.set_text_content(Some(&format!("{mark} {} ({})", row.label, row.count)));
++        let _ = panel.append_child(&line);
++    }
++}
++
++/// Show or hide the panel; returns it so a caller can attach its one listener.
++#[cfg(target_arch = "wasm32")]
++pub fn layers_visible(open: bool) -> Option<web_sys::Element> {
++    let panel = web_sys::window()?
++        .document()?
++        .get_element_by_id("viewer-layers")?;
++    let _ = if open {
++        panel.remove_attribute("hidden")
++    } else {
++        panel.set_attribute("hidden", "")
++    };
++    Some(panel)
++}
++
++/// Whether the panel is open, so a refresh can skip the work while it is not.
++#[cfg(target_arch = "wasm32")]
++pub fn layers_open() -> bool {
++    web_sys::window()
++        .and_then(|w| w.document())
++        .and_then(|d| d.get_element_by_id("viewer-layers"))
++        .is_some_and(|panel| !panel.has_attribute("hidden"))
++}
++
++#[cfg(not(target_arch = "wasm32"))]
++pub fn layers_panel(_rows: &[LayerRow]) {}
++
++/// Native builds have no panel either; the one caller stays free of `cfg`.
++#[cfg(not(target_arch = "wasm32"))]
++pub fn layers_visible(_open: bool) {}
++
++#[cfg(not(target_arch = "wasm32"))]
++pub fn layers_open() -> bool {
++    false
++}
+diff --git a/session_viewer/src/app/gizmo.rs b/session_viewer/src/app/gizmo.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..d50618f5dab58a15aa1bb3b4827e8edfd0c0bf4c
+--- /dev/null
++++ b/session_viewer/src/app/gizmo.rs
+@@ -0,0 +1,533 @@
++//! The gumball: ten handles, a hit test, and the transform each drag produces.
++//!
++//! Pure CPU and f64: no wgpu, no kernel objects, no `State`. What a drag produces is a world
++//! matrix, which the caller applies to one object row or to many.
++//!
++//! It is hit tested on the CPU rather than through the id targets, and that is deliberate.
++//! Scene picking draws integer ids into a window and reads them back asynchronously, dropping
++//! stale answers by generation, so an answer arrives a frame after the pointer moved. Hover
++//! feedback a frame late is unusable, and the widget's geometry is the viewer's own, so there
++//! is nothing to read back.
++//!
++//! Every length below is in CSS pixels and multiplied by `world_per_px` at the gumball's
++//! depth, which is what keeps the widget the same size on screen at any zoom or projection: a
++//! control that shrinks with distance stops being grabbable exactly when the object needs it.
++
++use session_rust::{Point, Vector};
++
++/// The one length everything else is a fraction of, in CSS pixels.
++pub const ARM: f64 = 72.0;
++/// Axis scale balls, on the same side as the arrows so pulling out always grows.
++pub const BALL_AT: f64 = ARM * 0.5;
++/// Grab radius. Wider than the 6 px pick radius because a handle is grabbed, not aimed at.
++const GRAB: f64 = 8.0;
++/// Uniform-scale ball at the centre.
++pub const HUB: f64 = 6.0;
++/// Drag softening. A scale that follows the raw distance ratio doubles an object within a few
++/// pixels of the centre, where that ratio changes fastest. A square root flattens it without
++/// moving its fixed point: 1 is still 1, and any factor is still reachable, just further out.
++const SCALE_SOFTENING: f64 = 0.5;
++/// The smallest factor a scale may produce. Below this a matrix is singular or mirrors, and
++/// either one is baked into geometry for good.
++const MIN_SCALE: f64 = 0.01;
++
++/// Which handle, and so which law the drag follows.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Handle {
++    Translate(Axis),
++    Rotate(Axis),
++    Scale(Axis),
++    ScaleUniform,
++}
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Axis {
++    X,
++    Y,
++    Z,
++}
++
++impl Axis {
++    pub fn unit(self) -> Vector {
++        match self {
++            Axis::X => Vector::new(1.0, 0.0, 0.0),
++            Axis::Y => Vector::new(0.0, 1.0, 0.0),
++            Axis::Z => Vector::new(0.0, 0.0, 1.0),
++        }
++    }
++
++    /// The two axes spanning the plane this one is normal to.
++    fn others(self) -> (Vector, Vector) {
++        match self {
++            Axis::X => (Axis::Y.unit(), Axis::Z.unit()),
++            Axis::Y => (Axis::Z.unit(), Axis::X.unit()),
++            Axis::Z => (Axis::X.unit(), Axis::Y.unit()),
++        }
++    }
++}
++
++impl Handle {
++    /// (verb, axis, unit) for a numeric entry box. The axis is empty for uniform scale.
++    pub fn labels(self) -> (&'static str, &'static str, &'static str) {
++        let name = |a: Axis| match a {
++            Axis::X => "X",
++            Axis::Y => "Y",
++            Axis::Z => "Z",
++        };
++        match self {
++            Handle::Translate(a) => ("Move", name(a), "mm"),
++            Handle::Rotate(a) => ("Rotate", name(a), "deg"),
++            Handle::Scale(a) => ("Scale", name(a), "factor"),
++            Handle::ScaleUniform => ("Scale", "", "factor"),
++        }
++    }
++}
++
++/// What a drag needs to remember from the moment the handle was grabbed.
++#[derive(Clone, Debug)]
++pub struct Drag {
++    pub handle: Handle,
++    /// Where the grab landed: a point on the axis, or in the handle's plane.
++    grabbed: Point,
++    /// The angle of the grab about the axis, for a rotate.
++    angle: f64,
++    /// The distance of the grab from the origin, for a scale. Never zero.
++    reach: f64,
++}
++
++/// Where the widget is and what it is doing.
++pub struct Gizmo {
++    pub origin: Point,
++    pub hovered: Option<Handle>,
++    pub drag: Option<Drag>,
++}
++
++impl Gizmo {
++    pub fn new(origin: Point) -> Self {
++        Self { origin, hovered: None, drag: None }
++    }
++
++    /// Move the widget and forget any interaction: a new selection is not a continued drag.
++    pub fn set_origin(&mut self, origin: Point) {
++        self.origin = origin;
++        self.hovered = None;
++        self.drag = None;
++    }
++
++    /// The handle under a ray, or none.
++    ///
++    /// Order is the disambiguation, not geometry: near the centre the hub, the balls and the
++    /// three arms all overlap, so they are tested outward from the centre and the first hit
++    /// wins. `world_per_px` converts the CSS-pixel sizes above into world units at this depth.
++    pub fn hit(&self, from: &Point, dir: &Vector, world_per_px: f64) -> Option<Handle> {
++        let s = world_per_px;
++        if within(from, dir, &self.origin, HUB * s) {
++            return Some(Handle::ScaleUniform);
++        }
++        for axis in [Axis::X, Axis::Y, Axis::Z] {
++            let at = along(&self.origin, &axis.unit(), BALL_AT * s);
++            if within(from, dir, &at, GRAB * s) {
++                return Some(Handle::Scale(axis));
++            }
++        }
++        for axis in [Axis::X, Axis::Y, Axis::Z] {
++            if let Some(p) = closest_on_axis(from, dir, &self.origin, &axis.unit()) {
++                let t = dot(&sub(&p, &self.origin), &axis.unit());
++                if (0.0..=ARM * s).contains(&t) && within(from, dir, &p, GRAB * s) {
++                    return Some(Handle::Translate(axis));
++                }
++            }
++        }
++        for axis in [Axis::X, Axis::Y, Axis::Z] {
++            if let Some(p) = plane_hit(from, dir, &self.origin, &axis.unit()) {
++                let d = sub(&p, &self.origin);
++                let (u, v) = axis.others();
++                // A quarter arc, in the quadrant the arms and balls do not occupy. Sharing a
++                // radius with the arm tip would make the two ambiguous exactly where a reader
++                // aims for one of them.
++                if dot(&d, &u) < 0.0 && dot(&d, &v) < 0.0 && (length(&d) - ARM * s).abs() < GRAB * s
++                {
++                    return Some(Handle::Rotate(axis));
++                }
++            }
++        }
++        None
++    }
++
++    /// Grab a handle. `None` when the ray cannot resolve against it, which happens when you
++    /// sight straight down a translate axis: there is no answer, so there is no drag.
++    pub fn begin(&mut self, handle: Handle, from: &Point, dir: &Vector) -> Option<Drag> {
++        let drag = match handle {
++            Handle::Translate(axis) => Drag {
++                handle,
++                grabbed: closest_on_axis(from, dir, &self.origin, &axis.unit())?,
++                angle: 0.0,
++                reach: 1.0,
++            },
++            Handle::Rotate(axis) => Drag {
++                handle,
++                grabbed: self.origin.clone(),
++                angle: angle_in_plane(&plane_hit(from, dir, &self.origin, &axis.unit())?, &self.origin, axis),
++                reach: 1.0,
++            },
++            Handle::Scale(axis) => {
++                let p = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
++                let reach = dot(&sub(&p, &self.origin), &axis.unit());
++                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach) }
++            }
++            Handle::ScaleUniform => {
++                let normal = facing(dir);
++                let p = plane_hit(from, dir, &self.origin, &normal)?;
++                let reach = length(&sub(&p, &self.origin));
++                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach) }
++            }
++        };
++        self.drag = Some(drag.clone());
++        Some(drag)
++    }
++
++    /// The world transform this drag now stands for, as a column-major 4x4.
++    ///
++    /// Always measured from the grab, never accumulated frame to frame: a drag that adds a
++    /// delta per move drifts, and a dropped frame changes the result.
++    pub fn update(&self, drag: &Drag, from: &Point, dir: &Vector) -> Option<[f64; 16]> {
++        match drag.handle {
++            Handle::Translate(axis) => {
++                let now = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
++                let d = sub(&now, &drag.grabbed);
++                Some(translation(d[0], d[1], d[2]))
++            }
++            Handle::Rotate(axis) => {
++                let now = plane_hit(from, dir, &self.origin, &axis.unit())?;
++                let turned = angle_in_plane(&now, &self.origin, axis) - drag.angle;
++                Some(about(&self.origin, rotation(axis, turned)))
++            }
++            Handle::Scale(axis) => {
++                let now = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
++                let reach = dot(&sub(&now, &self.origin), &axis.unit());
++                let k = softened(reach / drag.reach);
++                let (x, y, z) = match axis {
++                    Axis::X => (k, 1.0, 1.0),
++                    Axis::Y => (1.0, k, 1.0),
++                    Axis::Z => (1.0, 1.0, k),
++                };
++                Some(about(&self.origin, scaling(x, y, z)))
++            }
++            Handle::ScaleUniform => {
++                let normal = facing(dir);
++                let now = plane_hit(from, dir, &self.origin, &normal)?;
++                let k = softened(length(&sub(&now, &self.origin)) / drag.reach);
++                Some(about(&self.origin, scaling(k, k, k)))
++            }
++        }
++    }
++
++    /// The transform for a value typed into the numeric box, with the same meaning a drag has:
++    /// a move is millimetres, a rotation degrees, a scale a factor.
++    pub fn typed(&self, handle: Handle, value: f64) -> [f64; 16] {
++        match handle {
++            Handle::Translate(axis) => {
++                let u = axis.unit();
++                translation(u[0] * value, u[1] * value, u[2] * value)
++            }
++            Handle::Rotate(axis) => about(&self.origin, rotation(axis, value.to_radians())),
++            Handle::Scale(axis) => {
++                let k = value.max(MIN_SCALE);
++                let (x, y, z) = match axis {
++                    Axis::X => (k, 1.0, 1.0),
++                    Axis::Y => (1.0, k, 1.0),
++                    Axis::Z => (1.0, 1.0, k),
++                };
++                about(&self.origin, scaling(x, y, z))
++            }
++            Handle::ScaleUniform => {
++                let k = value.max(MIN_SCALE);
++                about(&self.origin, scaling(k, k, k))
++            }
++        }
++    }
++}
++
++// ---- the arithmetic, all f64 -------------------------------------------------------------
++
++fn sub(a: &Point, b: &Point) -> [f64; 3] {
++    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
++}
++
++fn dot(a: &[f64; 3], b: &Vector) -> f64 {
++    a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
++}
++
++fn length(v: &[f64; 3]) -> f64 {
++    (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt()
++}
++
++fn along(p: &Point, v: &Vector, d: f64) -> Point {
++    Point::new(p[0] + v[0] * d, p[1] + v[1] * d, p[2] + v[2] * d)
++}
++
++/// A factor that never collapses or mirrors, softened so the drag is usable near the centre.
++fn softened(ratio: f64) -> f64 {
++    if !ratio.is_finite() || ratio <= 0.0 {
++        return MIN_SCALE;
++    }
++    ratio.powf(SCALE_SOFTENING).max(MIN_SCALE)
++}
++
++fn nonzero(v: f64) -> f64 {
++    if v.abs() < 1e-9 { 1e-9_f64.copysign(if v < 0.0 { -1.0 } else { 1.0 }) } else { v }
++}
++
++/// The world axis a ray runs most along: the plane to measure a uniform scale in, chosen so the
++/// ray is never near-parallel to it.
++fn facing(dir: &Vector) -> Vector {
++    let (x, y, z) = (dir[0].abs(), dir[1].abs(), dir[2].abs());
++    if x >= y && x >= z {
++        Axis::X.unit()
++    } else if y >= z {
++        Axis::Y.unit()
++    } else {
++        Axis::Z.unit()
++    }
++}
++
++/// The point on the axis closest to the ray. `None` when the ray runs along the axis, which is
++/// the classic gumball failure: without this guard a drag down the axis throws the object away.
++fn closest_on_axis(from: &Point, dir: &Vector, origin: &Point, axis: &Vector) -> Option<Point> {
++    let w = sub(from, origin);
++    let b = dot(&[dir[0], dir[1], dir[2]], axis);
++    let denom = 1.0 - b * b;
++    if denom.abs() < 1e-9 {
++        return None;
++    }
++    let t = (dot(&w, axis) - b * dot(&w, dir)) / denom;
++    Some(along(origin, axis, t))
++}
++
++/// Where a ray meets the plane through `origin` with this normal, in front of the ray.
++fn plane_hit(from: &Point, dir: &Vector, origin: &Point, normal: &Vector) -> Option<Point> {
++    let denom = dot(&[dir[0], dir[1], dir[2]], normal);
++    if denom.abs() < 1e-9 {
++        return None;
++    }
++    let t = dot(&sub(origin, from), normal) / denom;
++    (t > 0.0 && t.is_finite()).then(|| along(from, dir, t))
++}
++
++/// Whether a ray passes within `radius` of a point.
++fn within(from: &Point, dir: &Vector, at: &Point, radius: f64) -> bool {
++    let w = sub(at, from);
++    let t = dot(&w, dir);
++    if t < 0.0 {
++        return false;
++    }
++    let closest = along(from, dir, t);
++    length(&sub(&closest, at)) <= radius
++}
++
++/// The angle of a point about an axis, measured from that axis's first companion.
++fn angle_in_plane(p: &Point, origin: &Point, axis: Axis) -> f64 {
++    let (u, v) = axis.others();
++    let d = sub(p, origin);
++    dot(&d, &v).atan2(dot(&d, &u))
++}
++
++fn translation(x: f64, y: f64, z: f64) -> [f64; 16] {
++    let mut m = identity();
++    m[12] = x;
++    m[13] = y;
++    m[14] = z;
++    m
++}
++
++fn scaling(x: f64, y: f64, z: f64) -> [f64; 16] {
++    let mut m = identity();
++    m[0] = x;
++    m[5] = y;
++    m[10] = z;
++    m
++}
++
++fn rotation(axis: Axis, radians: f64) -> [f64; 16] {
++    let (c, s) = (radians.cos(), radians.sin());
++    let mut m = identity();
++    match axis {
++        Axis::X => {
++            m[5] = c;
++            m[6] = s;
++            m[9] = -s;
++            m[10] = c;
++        }
++        Axis::Y => {
++            m[0] = c;
++            m[2] = -s;
++            m[8] = s;
++            m[10] = c;
++        }
++        Axis::Z => {
++            m[0] = c;
++            m[1] = s;
++            m[4] = -s;
++            m[5] = c;
++        }
++    }
++    m
++}
++
++fn identity() -> [f64; 16] {
++    let mut m = [0.0; 16];
++    m[0] = 1.0;
++    m[5] = 1.0;
++    m[10] = 1.0;
++    m[15] = 1.0;
++    m
++}
++
++/// `m` applied about `pivot` rather than the world origin.
++fn about(pivot: &Point, m: [f64; 16]) -> [f64; 16] {
++    let to = translation(pivot[0], pivot[1], pivot[2]);
++    let back = translation(-pivot[0], -pivot[1], -pivot[2]);
++    mul(&mul(&to, &m), &back)
++}
++
++/// Column-major 4x4 product.
++fn mul(a: &[f64; 16], b: &[f64; 16]) -> [f64; 16] {
++    let mut out = [0.0; 16];
++    for col in 0..4 {
++        for row in 0..4 {
++            out[col * 4 + row] = (0..4).map(|k| a[k * 4 + row] * b[col * 4 + k]).sum();
++        }
++    }
++    out
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    const SCALE: f64 = 1.0; // one world unit per CSS pixel keeps the numbers readable
++
++    fn at_origin() -> Gizmo {
++        Gizmo::new(Point::new(0.0, 0.0, 0.0))
++    }
++
++    /// A ray from above, pointing down, through a world x/y.
++    fn down(x: f64, y: f64) -> (Point, Vector) {
++        (Point::new(x, y, 500.0), Vector::new(0.0, 0.0, -1.0))
++    }
++
++    /// The three collinear handles on one axis are told apart by where the ray passes, and the
++    /// hub wins at the centre where all of them overlap.
++    #[test]
++    fn the_handles_do_not_shadow_each_other() {
++        let g = at_origin();
++        let (f, d) = down(0.0, 0.0);
++        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::ScaleUniform));
++        let (f, d) = down(BALL_AT, 0.0);
++        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Scale(Axis::X)));
++        let (f, d) = down(ARM * 0.8, 0.0);
++        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Translate(Axis::X)));
++        // the arcs live in the quadrant the arms do not
++        let r = ARM / 2.0_f64.sqrt();
++        let (f, d) = down(-r, -r);
++        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Rotate(Axis::Z)));
++        let (f, d) = down(ARM, 0.0);
++        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Translate(Axis::X)), "the arm tip is not an arc");
++        let (f, d) = down(ARM * 3.0, ARM * 3.0);
++        assert_eq!(g.hit(&f, &d, SCALE), None);
++    }
++
++    /// Everything is measured in CSS pixels times the world size of one: at twice the scale
++    /// the same handle sits twice as far out.
++    #[test]
++    fn the_widget_is_screen_constant() {
++        let g = at_origin();
++        let (f, d) = down(BALL_AT * 2.0, 0.0);
++        assert_eq!(g.hit(&f, &d, 2.0), Some(Handle::Scale(Axis::X)));
++        assert_ne!(g.hit(&f, &d, 1.0), Some(Handle::Scale(Axis::X)));
++    }
++
++    /// A translate drag moves by exactly the distance the grab point travelled along the axis,
++    /// and by nothing on the other two.
++    #[test]
++    fn a_translate_drag_moves_along_its_axis_only() {
++        let mut g = at_origin();
++        let (f0, d0) = down(30.0, 0.0);
++        let drag = g.begin(Handle::Translate(Axis::X), &f0, &d0).expect("grabbed");
++        let (f1, d1) = down(42.0, 0.0);
++        let m = g.update(&drag, &f1, &d1).expect("a transform");
++        assert!((m[12] - 12.0).abs() < 1e-9);
++        assert!(m[13].abs() < 1e-9 && m[14].abs() < 1e-9);
++    }
++
++    /// Sighting straight down the axis has no answer, so there is no drag rather than a wrong
++    /// one. This is the failure that throws an object to infinity in a naive gumball.
++    #[test]
++    fn a_drag_down_its_own_axis_refuses() {
++        let mut g = at_origin();
++        let from = Point::new(-500.0, 0.0, 0.0);
++        let dir = Vector::new(1.0, 0.0, 0.0);
++        assert!(g.begin(Handle::Translate(Axis::X), &from, &dir).is_none());
++    }
++
++    /// A quarter turn about Z takes the x axis onto the y axis.
++    #[test]
++    fn a_rotate_drag_turns_by_the_angle_swept() {
++        let mut g = at_origin();
++        let (f0, d0) = down(ARM, 0.0);
++        let drag = g.begin(Handle::Rotate(Axis::Z), &f0, &d0).expect("grabbed");
++        let (f1, d1) = down(0.0, ARM);
++        let m = g.update(&drag, &f1, &d1).expect("a transform");
++        // column 0 is the image of the x axis
++        assert!((m[0]).abs() < 1e-9, "x.x");
++        assert!((m[1] - 1.0).abs() < 1e-9, "x.y");
++    }
++
++    /// A scale is measured from the grab, so re-reading the same pointer gives 1, and it can
++    /// never produce a factor that collapses or mirrors the object.
++    #[test]
++    fn a_scale_is_relative_to_the_grab_and_never_collapses() {
++        let mut g = at_origin();
++        let (f0, d0) = down(BALL_AT, 0.0);
++        let drag = g.begin(Handle::Scale(Axis::X), &f0, &d0).expect("grabbed");
++        let m = g.update(&drag, &f0, &d0).expect("a transform");
++        assert!((m[0] - 1.0).abs() < 1e-9, "no movement is no change");
++
++        let (f1, d1) = down(BALL_AT * 4.0, 0.0);
++        let grown = g.update(&drag, &f1, &d1).expect("a transform");
++        assert!(grown[0] > 1.0 && grown[5] == 1.0 && grown[10] == 1.0, "one axis only");
++
++        let (f2, d2) = down(-BALL_AT * 4.0, 0.0);
++        let flipped = g.update(&drag, &f2, &d2).expect("a transform");
++        assert!(flipped[0] >= MIN_SCALE, "never mirrors");
++    }
++
++    /// A rotation and a scale act about the gumball, not the world origin: a point AT the
++    /// gumball does not move.
++    #[test]
++    fn transforms_act_about_the_gumball() {
++        let g = Gizmo::new(Point::new(100.0, 200.0, 300.0));
++        for m in [
++            g.typed(Handle::Rotate(Axis::Z), 90.0),
++            g.typed(Handle::ScaleUniform, 3.0),
++        ] {
++            let p = [100.0, 200.0, 300.0, 1.0];
++            let moved: Vec<f64> = (0..3)
++                .map(|r| (0..4).map(|k| m[k * 4 + r] * p[k]).sum())
++                .collect();
++            for i in 0..3 {
++                assert!((moved[i] - p[i]).abs() < 1e-9, "axis {i}");
++            }
++        }
++    }
++
++    /// A typed value means what the drag means, and a typed zero cannot bake a singular matrix.
++    #[test]
++    fn typed_values_match_the_drag_and_are_clamped() {
++        let g = at_origin();
++        let m = g.typed(Handle::Translate(Axis::Y), 12.5);
++        assert_eq!([m[12], m[13], m[14]], [0.0, 12.5, 0.0]);
++        let z = g.typed(Handle::ScaleUniform, 0.0);
++        assert!(z[0] >= MIN_SCALE && z[5] >= MIN_SCALE && z[10] >= MIN_SCALE);
++    }
++}
+diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
+index 93af76b0dd80e82176e92d9d54c63b7135384b5f..1ffb60032a5e54f8900217b83970401e3a4dddfb 100644
+--- a/session_viewer/src/app/input.rs
++++ b/session_viewer/src/app/input.rs
+@@ -1,8 +1,10 @@
+ //! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
+-//! left click picks the object, Ctrl+click an edge and Ctrl+Shift+click a face;
++//! left click picks the object, Ctrl+click an edge and Ctrl+Shift+click a face, and a left
++//! drag on a gizmo handle moves the selection; Delete removes it, Ctrl+Z undoes and
++//! Ctrl+Shift+Z or Ctrl+Y redoes;
+ //! 1-7 named views, Space projection, C reset, F fits the selection (or
+ //! everything with none selected), Q/W/E lane toggles, O silhouettes, D face lighting,
+-//! B the back-face flag,
++//! B the back-face flag, L the layers panel, : the command line,
+ //! H hides the selection and S shows everything back, T toggles selected names,
+ //! P toggles x-ray (faces gone, edges stay), F10 shows the selected object's source controls,
+ //! [ ] cloud size, Escape clears the selection. Fingers go to `touch.rs`.
+@@ -23,6 +25,11 @@ pub struct Input {
+     panning: bool,
+     ctrl: bool,
+     shift: bool,
++    /// A gizmo handle is being dragged, so the pointer belongs to the widget and neither the
++    /// camera nor the picker sees it until it is let go.
++    gizmo_drag: bool,
++    /// A control point is being dragged: the same press, a different gesture.
++    control_drag: bool,
+     last_cursor: (f64, f64),
+     left_down: Option<(f64, f64)>,
+     touch: Touches,
+@@ -43,6 +50,8 @@ impl Input {
+             panning: false,
+             ctrl: false,
+             shift: false,
++            gizmo_drag: false,
++            control_drag: false,
+             last_cursor: (0.0, 0.0),
+             left_down: None,
+             touch: Touches::new(),
+@@ -57,6 +66,22 @@ impl Input {
+                 .toggle_projection_framed(&state.gpu.bounds, state.aspect()),
+             Key::Named(NamedKey::Escape) => state.escape_selection(),
+             Key::Named(NamedKey::F10) => state.enable_controls(),
++            Key::Named(NamedKey::Delete) => state.delete_selected(),
++            // The colon opens the command box, the way a modal editor does. The box then holds
++            // the keyboard, so the letters typed into it never reach these bindings.
++            Key::Character(":") => {
++                crate::app::feedback::command_line(true);
++            }
++            Key::Character("l" | "L") => state.toggle_layers_panel(),
++            // Ctrl+Z back, Ctrl+Shift+Z or Ctrl+Y forward: the two spellings every editor takes.
++            Key::Character("z" | "Z") if self.ctrl => {
++                if self.shift {
++                    state.redo()
++                } else {
++                    state.undo()
++                }
++            }
++            Key::Character("y" | "Y") if self.ctrl => state.redo(),
+             Key::Character("1") => state.camera.set_view(View::Front),
+             Key::Character("2") => state.camera.set_view(View::Back),
+             Key::Character("3") => state.camera.set_view(View::Left),
+@@ -118,6 +143,14 @@ impl Input {
+                 let scale = crate::engine::gpu::view::surface_per_physical();
+                 let position =
+                     winit::dpi::PhysicalPosition::new(position.x * scale, position.y * scale);
++                if self.control_drag {
++                    self.last_cursor = (position.x, position.y);
++                    return state.drag_control(position.x, position.y);
++                }
++                if self.gizmo_drag {
++                    self.last_cursor = (position.x, position.y);
++                    return state.drag_gizmo(position.x, position.y);
++                }
+                 let dragging = self.orbiting || self.panning;
+                 if dragging {
+                     let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
+@@ -185,6 +218,8 @@ impl Input {
+         self.panning = false;
+         self.ctrl = false;
+         self.shift = false;
++        self.gizmo_drag = false;
++        self.control_drag = false;
+         self.left_down = None;
+         self.touch = Touches::new();
+     }
+@@ -192,13 +227,35 @@ impl Input {
+     /// The left button: a press remembers where; a release within the slop is a click and
+     /// asks the GPU what is under it. The picture is unchanged until the answer lands, so a
+     /// click never redraws by itself.
++    /// A left press is either a gizmo grab or the start of a click. The gizmo is asked first:
++    /// its handles sit over the object they move, so a click that lands on one is never also
++    /// a pick of what is behind it.
+     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
+         match btn {
+             ElementState::Pressed => {
++                if state.begin_control_drag(self.last_cursor.0, self.last_cursor.1) {
++                    self.control_drag = true;
++                    return false;
++                }
++                if state.begin_gizmo(self.last_cursor.0, self.last_cursor.1) {
++                    self.gizmo_drag = true;
++                    return false;
++                }
+                 self.left_down = Some(self.last_cursor);
+                 false
+             }
+             ElementState::Released => {
++                if self.control_drag {
++                    self.control_drag = false;
++                    state.end_control_drag(self.last_cursor.0, self.last_cursor.1);
++                    return true;
++                }
++                if self.gizmo_drag {
++                    self.gizmo_drag = false;
++        self.control_drag = false;
++                    state.end_gizmo(self.last_cursor.0, self.last_cursor.1);
++                    return true;
++                }
+                 let Some(down) = self.left_down.take() else {
+                     return false;
+                 };
+@@ -257,6 +314,96 @@ impl Drop for PointerCancellation {
+     }
+ }
+ 
++/// The command box's own key listener: winit never sees these, because the box has the focus
++/// while it is open, which is exactly what lets a `z` typed in it be a letter.
++#[cfg(target_arch = "wasm32")]
++pub struct CommandKeys {
++    input: web_sys::HtmlInputElement,
++    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::KeyboardEvent)>,
++}
++
++#[cfg(target_arch = "wasm32")]
++impl CommandKeys {
++    /// Install once. Enter sends the line and closes the box; Escape closes it and throws the
++    /// line away. Nothing else is intercepted, so the box behaves like a text field.
++    pub fn new(
++        input: web_sys::HtmlInputElement,
++        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
++    ) -> Result<Self, wasm_bindgen::JsValue> {
++        use wasm_bindgen::JsCast;
++        let box_ = input.clone();
++        let callback = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
++            move |event: web_sys::KeyboardEvent| match event.key().as_str() {
++                "Enter" => {
++                    let line = box_.value();
++                    crate::app::feedback::command_line(false);
++                    if !line.trim().is_empty() {
++                        let _ = proxy.send_event(crate::Msg::Command(line));
++                    }
++                }
++                "Escape" => {
++                    crate::app::feedback::command_line(false);
++                }
++                _ => {}
++            },
++        );
++        input.add_event_listener_with_callback("keydown", callback.as_ref().unchecked_ref())?;
++        Ok(Self { input, callback })
++    }
++}
++
++#[cfg(target_arch = "wasm32")]
++impl Drop for CommandKeys {
++    fn drop(&mut self) {
++        use wasm_bindgen::JsCast;
++        let _ = self
++            .input
++            .remove_event_listener_with_callback("keydown", self.callback.as_ref().unchecked_ref());
++    }
++}
++
++/// The layers panel's one click listener. One listener for the whole panel, not one a row:
++/// the rows are rebuilt on every scene change, and a closure a row would have to be dropped
++/// with it.
++#[cfg(target_arch = "wasm32")]
++pub struct LayerClicks {
++    panel: web_sys::Element,
++    callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
++}
++
++#[cfg(target_arch = "wasm32")]
++impl LayerClicks {
++    pub fn new(
++        panel: web_sys::Element,
++        proxy: winit::event_loop::EventLoopProxy<crate::Msg>,
++    ) -> Result<Self, wasm_bindgen::JsValue> {
++        use wasm_bindgen::JsCast;
++        let callback =
++            wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
++                let Some(target) = event.target() else { return };
++                let Ok(element) = target.dyn_into::<web_sys::Element>() else {
++                    return;
++                };
++                let Some(key) = element.get_attribute("data-layer") else {
++                    return;
++                };
++                let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
++            });
++        panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;
++        Ok(Self { panel, callback })
++    }
++}
++
++#[cfg(target_arch = "wasm32")]
++impl Drop for LayerClicks {
++    fn drop(&mut self) {
++        use wasm_bindgen::JsCast;
++        let _ = self
++            .panel
++            .remove_event_listener_with_callback("click", self.callback.as_ref().unchecked_ref());
++    }
++}
++
+ /// Pointer cancellation goes through the same event-loop owner as every other input change.
+ #[cfg(target_arch = "wasm32")]
+ fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
+diff --git a/session_viewer/src/app/layers.rs b/session_viewer/src/app/layers.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..b65abf6098b71e31144c39c782b67d168addbdba
+--- /dev/null
++++ b/session_viewer/src/app/layers.rs
+@@ -0,0 +1,245 @@
++//! The side panel's model: what rows it shows and which objects each one controls.
++//!
++//! A panel row is a FILTER over the rows that already exist, never a second copy of the scene.
++//! It owns no visibility of its own either: hiding a layer puts the same guids in the same
++//! `Scene.hidden` set that `H` uses, so a rebuild re-applies it and the two cannot disagree.
++//!
++//! Pure, so what the panel would show is testable without a browser.
++
++use crate::app::scene::Scene;
++
++/// What a row stands for.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Layer {
++    /// One loaded file, by its index in `Scene.docs`.
++    Document(usize),
++    /// Every object of one kernel type, whichever file it came from.
++    Kind(Kind),
++}
++
++/// The geometry kinds the panel groups by: the viewer's lanes, named as a person would.
++#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
++pub enum Kind {
++    Solids,
++    Surfaces,
++    Meshes,
++    Curves,
++    Points,
++    Clouds,
++    Other,
++}
++
++impl Kind {
++    pub fn label(self) -> &'static str {
++        match self {
++            Kind::Solids => "solids",
++            Kind::Surfaces => "surfaces",
++            Kind::Meshes => "meshes",
++            Kind::Curves => "curves",
++            Kind::Points => "points",
++            Kind::Clouds => "clouds",
++            Kind::Other => "other",
++        }
++    }
++
++    /// Which bucket one object falls in. A kernel type the panel has no name for is `Other`
++    /// rather than missing: a row that cannot be switched off is worse than a vague label.
++    fn of(geometry: &session_rust::Geometry) -> Self {
++        use session_rust::Geometry as G;
++        match geometry {
++            G::BRep(_) | G::OBB(_) | G::Element(_) => Kind::Solids,
++            G::NurbsSurface(_) | G::Plane(_) => Kind::Surfaces,
++            G::Mesh(_) => Kind::Meshes,
++            G::Line(_) | G::Polyline(_) | G::NurbsCurve(_) => Kind::Curves,
++            G::Point(_) => Kind::Points,
++            G::PointCloud(_) => Kind::Clouds,
++        }
++    }
++}
++
++impl Layer {
++    /// The panel is one element with one listener, and a row says which layer it is through
++    /// this key: a closure per row would be a closure per scene change.
++    pub fn key(self) -> String {
++        match self {
++            Layer::Document(index) => format!("doc:{index}"),
++            Layer::Kind(kind) => format!("kind:{}", kind.label()),
++        }
++    }
++
++    /// The layer a clicked row names, or `None` for anything that is not a row.
++    pub fn from_key(key: &str) -> Option<Self> {
++        if let Some(index) = key.strip_prefix("doc:") {
++            return index.parse().ok().map(Layer::Document);
++        }
++        let label = key.strip_prefix("kind:")?;
++        for kind in [
++            Kind::Solids,
++            Kind::Surfaces,
++            Kind::Meshes,
++            Kind::Curves,
++            Kind::Points,
++            Kind::Clouds,
++            Kind::Other,
++        ] {
++            if kind.label() == label {
++                return Some(Layer::Kind(kind));
++            }
++        }
++        None
++    }
++}
++
++/// One line of the panel.
++pub struct Row {
++    pub layer: Layer,
++    pub label: String,
++    /// How many object rows it controls. A row that controls none is not shown at all.
++    pub count: usize,
++    /// Every one of them is hidden.
++    pub hidden: bool,
++}
++
++/// The rows a panel would show: the documents in load order, then the kinds present.
++pub fn rows(scene: &Scene) -> Vec<Row> {
++    let mut out = Vec::new();
++    for (index, doc) in scene.docs.iter().enumerate() {
++        let rows = of_layer(scene, Layer::Document(index));
++        if rows.is_empty() {
++            continue;
++        }
++        out.push(Row {
++            layer: Layer::Document(index),
++            label: doc.name.clone(),
++            count: rows.len(),
++            hidden: all_hidden(scene, &rows),
++        });
++    }
++    let mut kinds: Vec<Kind> = Vec::new();
++    for row in 0..scene.object_count() as u32 {
++        if let Some(geometry) = scene.geometry(row) {
++            let kind = Kind::of(geometry);
++            if !kinds.contains(&kind) {
++                kinds.push(kind);
++            }
++        }
++    }
++    kinds.sort();
++    for kind in kinds {
++        let rows = of_layer(scene, Layer::Kind(kind));
++        if rows.is_empty() {
++            continue;
++        }
++        out.push(Row {
++            layer: Layer::Kind(kind),
++            label: kind.label().to_string(),
++            count: rows.len(),
++            hidden: all_hidden(scene, &rows),
++        });
++    }
++    out
++}
++
++/// The object rows one layer controls.
++pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
++    let mut rows = Vec::new();
++    for row in 0..scene.object_count() as u32 {
++        let matches = match layer {
++            Layer::Document(index) => scene.identity_of(row).map(|(doc, _)| doc) == Some(index),
++            Layer::Kind(kind) => scene.geometry(row).map(Kind::of) == Some(kind),
++        };
++        if matches {
++            rows.push(row);
++        }
++    }
++    rows
++}
++
++fn all_hidden(scene: &Scene, rows: &[u32]) -> bool {
++    !rows.is_empty()
++        && rows.iter().all(|&row| {
++            scene
++                .identity_of(row)
++                .is_some_and(|identity| scene.hidden.contains(&identity))
++        })
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::app::scene::FileDoc;
++    use session_rust::{Point, Polyline, Session, Xform};
++    use std::rc::Rc;
++
++    fn scene_with_two_files() -> Scene {
++        let mut left = Session::new("left");
++        left.add_point(Point::new(0.0, 0.0, 0.0), None);
++        left.add_polyline(
++            Polyline::new(vec![
++                Point::new(0.0, 0.0, 0.0),
++                Point::new(1.0, 0.0, 0.0),
++                Point::new(1.0, 1.0, 0.0),
++            ]),
++            None,
++        );
++        let mut right = Session::new("right");
++        right.add_point(Point::new(5.0, 0.0, 0.0), None);
++        let mut scene = Scene::new();
++        for (name, session) in [("left", left), ("right", right)] {
++            scene.add_file(FileDoc {
++                name: name.into(),
++                session: Rc::new(session),
++                place: Xform::identity(),
++                point_px: 0.0,
++                display_only: false,
++            });
++        }
++        scene
++    }
++
++    /// Documents first, in load order, then the kinds that are actually present - never a row
++    /// for a kind nothing in the scene has.
++    #[test]
++    fn the_panel_lists_documents_then_the_kinds_present() {
++        let scene = scene_with_two_files();
++        let rows = rows(&scene);
++        let labels: Vec<&str> = rows.iter().map(|r| r.label.as_str()).collect();
++        assert_eq!(labels, vec!["left", "right", "curves", "points"]);
++        assert_eq!(rows[0].count, 2, "left holds a point and a polyline");
++        assert_eq!(rows[3].count, 2, "one point in each file");
++    }
++
++    /// A layer is a filter over rows that already exist, so it can name rows from more than
++    /// one document, and a document row names only its own.
++    #[test]
++    fn a_layer_names_the_rows_it_controls() {
++        let scene = scene_with_two_files();
++        assert_eq!(of_layer(&scene, Layer::Document(1)), vec![2]);
++        assert_eq!(of_layer(&scene, Layer::Kind(Kind::Points)), vec![0, 2]);
++        assert!(of_layer(&scene, Layer::Kind(Kind::Clouds)).is_empty());
++    }
++
++    /// A row carries its layer as text, and the text has to come back as the same layer -
++    /// otherwise a click lands on a different row than the one under the pointer.
++    #[test]
++    fn a_row_key_survives_the_round_trip() {
++        for layer in [Layer::Document(0), Layer::Document(17), Layer::Kind(Kind::Clouds)] {
++            assert_eq!(Layer::from_key(&layer.key()), Some(layer));
++        }
++        assert_eq!(Layer::from_key("kind:sandwiches"), None);
++        assert_eq!(Layer::from_key("nonsense"), None);
++    }
++
++    /// The panel reads the same hide set `H` writes, so a layer reads as hidden exactly when
++    /// every row it controls is.
++    #[test]
++    fn a_layer_is_hidden_when_all_of_it_is() {
++        let mut scene = scene_with_two_files();
++        assert!(!rows(&scene)[1].hidden);
++        let identity = scene.identity_of(2).expect("row 2 exists");
++        scene.hidden.insert(identity);
++        let rows = rows(&scene);
++        assert!(rows[1].hidden, "the whole of `right` is hidden");
++        assert!(!rows[3].hidden, "only one of the two points is");
++    }
++}
+diff --git a/session_viewer/src/app/mod.rs b/session_viewer/src/app/mod.rs
+index 3cc9933bb164535f05d4f5107d41cb1b7f3a7bff..37c1d6889157ebb6810d65b15eb1cfb66f3960c4 100644
+--- a/session_viewer/src/app/mod.rs
++++ b/session_viewer/src/app/mod.rs
+@@ -3,13 +3,20 @@
+ //! touch). Above the engine, below the shell in lib.rs. Never names a wgpu type.
+ 
+ pub mod cloud_query;
++pub mod command;
++pub mod coords;
++pub mod cplane;
++pub mod edit;
+ pub mod feedback;
++pub mod gizmo;
+ pub mod input;
+ pub mod knobs;
++pub mod layers;
+ pub mod manifest;
+ pub mod scene;
+ pub mod selection;
+ pub mod sheet_query;
++pub mod snap;
+ pub mod stream;
+ pub mod touch;
+ pub mod validate;
+diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
+index 9dc608eb819b0053c1b8f2f30e2103b6832ddd06..5f5f72cf731b8940f941e7e2ee5a778ecfdeaa92 100644
+--- a/session_viewer/src/app/scene.rs
++++ b/session_viewer/src/app/scene.rs
+@@ -139,6 +139,9 @@ pub struct Scene {
+     ribbon_ranges: Vec<Option<std::ops::Range<u32>>>,
+     guid_to_row: HashMap<(usize, Rc<str>), u32>,
+     bases: Bases,
++    /// Which document the last edit touched. Undo is per document, because the history is the
++    /// document's; this is the only thing that says which one a bare Ctrl+Z means.
++    pub last_edited: Option<usize>,
+ }
+ 
+ impl Default for Scene {
+@@ -165,6 +168,7 @@ impl Scene {
+             ribbon_ranges: Vec::new(),
+             guid_to_row: HashMap::new(),
+             bases: Bases::default(),
++            last_edited: None,
+         }
+     }
+ 
+diff --git a/session_viewer/src/app/snap.rs b/session_viewer/src/app/snap.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..7b7141de32f23900cca25f02b84403e5f0672724
+--- /dev/null
++++ b/session_viewer/src/app/snap.rs
+@@ -0,0 +1,191 @@
++//! Object snapping: the candidate points near the cursor, and which one wins.
++//!
++//! Ranked in SCREEN space, not world space. Two candidates a metre apart in world can be one
++//! pixel apart on screen, and it is the pixel distance the user is aiming with. The caller
++//! supplies the projection, which keeps this module free of the camera and the GPU.
++//!
++//! Kind beats distance. An endpoint three pixels away wins over a point-on-edge one pixel
++//! away, because a user reaching for an end and getting "somewhere along it" has to undo,
++//! while the reverse is a small correction.
++
++use session_rust::Point;
++
++/// What a candidate is, in the order it wins ties. Lower wins.
++#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
++pub enum SnapKind {
++    End,
++    Vertex,
++    Mid,
++    Center,
++    Near,
++}
++
++#[derive(Clone, Debug)]
++pub struct Snap {
++    pub point: Point,
++    pub kind: SnapKind,
++    /// Which object it came from, so a caller can say what it snapped to.
++    pub owner: u32,
++}
++
++/// The ends, vertices and midpoints of one open or closed polyline.
++///
++/// A two-point line has one midpoint and two ends and no interior vertex; a closed loop has no
++/// ends at all, which is why the caller says whether it is closed rather than this guessing
++/// from coincident endpoints.
++pub fn from_polyline(points: &[Point], closed: bool, owner: u32, out: &mut Vec<Snap>) {
++    if points.is_empty() {
++        return;
++    }
++    let last = points.len() - 1;
++    for (i, p) in points.iter().enumerate() {
++        let interior = i != 0 && i != last;
++        let kind = if closed || interior { SnapKind::Vertex } else { SnapKind::End };
++        out.push(Snap { point: p.clone(), kind, owner });
++    }
++    let spans = if closed { points.len() } else { last };
++    for i in 0..spans {
++        let a = &points[i];
++        let b = &points[(i + 1) % points.len()];
++        out.push(Snap {
++            point: Point::new(
++                (a[0] + b[0]) * 0.5,
++                (a[1] + b[1]) * 0.5,
++                (a[2] + b[2]) * 0.5,
++            ),
++            kind: SnapKind::Mid,
++            owner,
++        });
++    }
++}
++
++/// The point on a segment nearest a world position, as a `Near` candidate.
++///
++/// Clamped to the segment: the nearest point on an infinite line can be nowhere near the edge
++/// the user is pointing at.
++pub fn nearest_on_segment(a: &Point, b: &Point, to: &Point, owner: u32) -> Snap {
++    let ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
++    let ap = [to[0] - a[0], to[1] - a[1], to[2] - a[2]];
++    let len2 = ab[0] * ab[0] + ab[1] * ab[1] + ab[2] * ab[2];
++    let t = if len2 > 0.0 {
++        ((ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / len2).clamp(0.0, 1.0)
++    } else {
++        0.0
++    };
++    Snap {
++        point: Point::new(a[0] + ab[0] * t, a[1] + ab[1] * t, a[2] + ab[2] * t),
++        kind: SnapKind::Near,
++        owner,
++    }
++}
++
++/// The winning candidate within `aperture` pixels of the cursor, or none.
++///
++/// `project` returns the screen position of a world point, or `None` when it is behind the eye
++/// or otherwise off the frustum - a candidate that cannot be seen cannot be snapped to.
++pub fn best<F>(
++    candidates: &[Snap],
++    cursor: (f64, f64),
++    aperture: f64,
++    project: F,
++) -> Option<Snap>
++where
++    F: Fn(&Point) -> Option<(f64, f64)>,
++{
++    let mut winner: Option<(SnapKind, f64, &Snap)> = None;
++    for c in candidates {
++        let Some((x, y)) = project(&c.point) else { continue };
++        let (dx, dy) = (x - cursor.0, y - cursor.1);
++        let d = (dx * dx + dy * dy).sqrt();
++        if d > aperture {
++            continue;
++        }
++        let better = match winner {
++            None => true,
++            Some((kind, best_d, _)) => c.kind < kind || (c.kind == kind && d < best_d),
++        };
++        if better {
++            winner = Some((c.kind, d, c));
++        }
++    }
++    winner.map(|(_, _, c)| c.clone())
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    fn p(x: f64, y: f64) -> Point {
++        Point::new(x, y, 0.0)
++    }
++
++    /// Flat projection: x and y are already screen pixels, everything is visible.
++    fn flat(point: &Point) -> Option<(f64, f64)> {
++        Some((point[0], point[1]))
++    }
++
++    /// An open polyline has two ends, its interior points are vertices, and every span has a
++    /// midpoint.
++    #[test]
++    fn an_open_polyline_offers_ends_vertices_and_midpoints() {
++        let mut out = Vec::new();
++        from_polyline(&[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)], false, 7, &mut out);
++        let count = |k: SnapKind| out.iter().filter(|s| s.kind == k).count();
++        assert_eq!(count(SnapKind::End), 2);
++        assert_eq!(count(SnapKind::Vertex), 1);
++        assert_eq!(count(SnapKind::Mid), 2);
++        assert!(out.iter().all(|s| s.owner == 7));
++    }
++
++    /// A closed loop has no ends, and it has a midpoint for the closing span too.
++    #[test]
++    fn a_closed_loop_has_no_ends() {
++        let mut out = Vec::new();
++        from_polyline(&[p(0.0, 0.0), p(10.0, 0.0), p(10.0, 10.0)], true, 0, &mut out);
++        assert_eq!(out.iter().filter(|s| s.kind == SnapKind::End).count(), 0);
++        assert_eq!(out.iter().filter(|s| s.kind == SnapKind::Vertex).count(), 3);
++        assert_eq!(out.iter().filter(|s| s.kind == SnapKind::Mid).count(), 3);
++    }
++
++    /// Kind beats distance: a nearer point-on-edge loses to an endpoint inside the aperture.
++    #[test]
++    fn kind_wins_before_distance() {
++        let candidates = vec![
++            Snap { point: p(2.0, 0.0), kind: SnapKind::Near, owner: 0 },
++            Snap { point: p(6.0, 0.0), kind: SnapKind::End, owner: 0 },
++        ];
++        let best = best(&candidates, (0.0, 0.0), 12.0, flat).expect("a snap");
++        assert_eq!(best.kind, SnapKind::End);
++    }
++
++    /// Within one kind, the nearest wins.
++    #[test]
++    fn distance_decides_within_a_kind() {
++        let candidates = vec![
++            Snap { point: p(9.0, 0.0), kind: SnapKind::End, owner: 1 },
++            Snap { point: p(3.0, 0.0), kind: SnapKind::End, owner: 2 },
++        ];
++        assert_eq!(best(&candidates, (0.0, 0.0), 12.0, flat).unwrap().owner, 2);
++    }
++
++    /// Nothing outside the aperture, and nothing the projection cannot see.
++    #[test]
++    fn out_of_reach_and_out_of_sight_do_not_snap() {
++        let candidates = vec![Snap { point: p(40.0, 0.0), kind: SnapKind::End, owner: 0 }];
++        assert!(best(&candidates, (0.0, 0.0), 12.0, flat).is_none(), "too far");
++        let near = vec![Snap { point: p(1.0, 0.0), kind: SnapKind::End, owner: 0 }];
++        assert!(best(&near, (0.0, 0.0), 12.0, |_| None).is_none(), "not visible");
++    }
++
++    /// The nearest point on a segment stays on it, at either end when the target is past it.
++    #[test]
++    fn nearest_on_a_segment_stays_on_the_segment() {
++        let (a, b) = (p(0.0, 0.0), p(10.0, 0.0));
++        let middle = nearest_on_segment(&a, &b, &p(4.0, 5.0), 0);
++        assert!((middle.point[0] - 4.0).abs() < 1e-12 && middle.point[1].abs() < 1e-12);
++        let past = nearest_on_segment(&a, &b, &p(50.0, 5.0), 0);
++        assert!((past.point[0] - 10.0).abs() < 1e-12);
++        let before = nearest_on_segment(&a, &b, &p(-50.0, 5.0), 0);
++        assert!(before.point[0].abs() < 1e-12);
++    }
++}
+diff --git a/session_viewer/src/camera.rs b/session_viewer/src/camera.rs
+index 2985620d371c59e29430e621ee09f4111af5c39b..1898a321ba1feb4cd74ff906c0624a7f957361ec 100644
+--- a/session_viewer/src/camera.rs
++++ b/session_viewer/src/camera.rs
+@@ -114,6 +114,52 @@ impl Camera {
+     /// The cursor's world point on the target plane is computed from the view frame.
+     /// Then the target is pulled toward it by the zoom factor.
+     /// 'cursor'/'viewport' in physical px.
++    /// The world ray through a cursor position: `(origin, direction)`, direction normalized.
++    ///
++    /// f64 throughout, and deliberately: this is what a pick, a snap and a drag all measure
++    /// against, and an f32 ray a kilometre out is already wrong by a millimetre before it
++    /// reaches anything - the error the object table's anchor exists to keep out.
++    ///
++    /// Under perspective every ray starts at the eye. Under orthographic they are parallel, so
++    /// the origin moves across the target plane instead and the direction is the view axis.
++    pub fn ray(&self, cursor: (f64, f64), viewport: (f64, f64)) -> Option<(Point, Vector)> {
++        if viewport.0 <= 0.0 || viewport.1 <= 0.0 || !cursor.0.is_finite() || !cursor.1.is_finite()
++        {
++            return None;
++        }
++        let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
++        let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
++        // The same frustum half-extents `zoom_at` uses, at the target plane.
++        let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan();
++        let half_w = half_h * (viewport.0 / viewport.1);
++        let right = self.orientation.rotate_vector(Vector::x_axis());
++        let forward = self.orientation.rotate_vector(Vector::y_axis());
++        let mut on_plane = [0.0; 3];
++        for i in 0..3 {
++            on_plane[i] = self.target[i] + right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
++        }
++        if !self.perspective {
++            let origin = Point::new(
++                on_plane[0] - forward[0] * self.distance,
++                on_plane[1] - forward[1] * self.distance,
++                on_plane[2] - forward[2] * self.distance,
++            );
++            return Some((origin, forward));
++        }
++        let mut dir = [0.0; 3];
++        for i in 0..3 {
++            dir[i] = on_plane[i] - self.position[i];
++        }
++        let length = (dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]).sqrt();
++        if !length.is_finite() || length <= 0.0 {
++            return None;
++        }
++        Some((
++            Point::new(self.position[0], self.position[1], self.position[2]),
++            Vector::new(dir[0] / length, dir[1] / length, dir[2] / length),
++        ))
++    }
++
+     pub fn zoom_at(&mut self, amount: f32, cursor: (f64, f64), viewport: (f64, f64)) {
+         if viewport.0 <= 0.0 || viewport.1 <= 0.0 || !cursor.0.is_finite() || !cursor.1.is_finite()
+         {
+@@ -495,6 +541,90 @@ fn zoom_distance(distance: f64, amount: f32) -> f64 {
+ 
+ #[cfg(test)]
+ mod wheel_tests {
++#[cfg(test)]
++mod ray_tests {
++    use super::*;
++
++    fn viewport() -> (f64, f64) {
++        (800.0, 400.0)
++    }
++
++    /// The centre pixel looks straight down the view axis, in both projections.
++    #[test]
++    fn the_centre_ray_is_the_view_axis() {
++        let mut cam = Camera::new();
++        cam.update_position();
++        for perspective in [true, false] {
++            cam.perspective = perspective;
++            let (_, dir) = cam.ray((400.0, 200.0), viewport()).expect("a ray");
++            let forward = cam.orientation.rotate_vector(Vector::y_axis());
++            for i in 0..3 {
++                assert!((dir[i] - forward[i]).abs() < 1e-12, "{perspective}");
++            }
++        }
++    }
++
++    /// Every perspective ray leaves the eye; every orthographic ray is parallel to the axis
++    /// and starts somewhere else. That difference is the whole reason the two paths exist.
++    #[test]
++    fn perspective_rays_share_an_origin_and_ortho_rays_share_a_direction() {
++        let mut cam = Camera::new();
++        cam.update_position();
++
++        cam.perspective = true;
++        let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
++        let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
++        for i in 0..3 {
++            assert!((a[i] - b[i]).abs() < 1e-9, "one eye");
++        }
++        assert!((0..3).any(|i| (da[i] - db[i]).abs() > 1e-6), "different directions");
++
++        cam.perspective = false;
++        let (a, da) = cam.ray((100.0, 80.0), viewport()).expect("a ray");
++        let (b, db) = cam.ray((700.0, 320.0), viewport()).expect("a ray");
++        for i in 0..3 {
++            assert!((da[i] - db[i]).abs() < 1e-12, "one direction");
++        }
++        assert!((0..3).any(|i| (a[i] - b[i]).abs() > 1e-6), "different origins");
++    }
++
++    /// A ray through a pixel passes through the world point that pixel shows: walk the target
++    /// plane's own point back to the screen and the ray must come back to it.
++    #[test]
++    fn a_ray_hits_the_target_plane_where_the_cursor_is() {
++        let mut cam = Camera::new();
++        cam.update_position();
++        let half_h = cam.distance * (FOVY_DEG * 0.5).to_radians().tan();
++        let half_w = half_h * (viewport().0 / viewport().1);
++        let right = cam.orientation.rotate_vector(Vector::x_axis());
++        let forward = cam.orientation.rotate_vector(Vector::y_axis());
++        // The world point a quarter right and a quarter up from the target.
++        let expected: Vec<f64> = (0..3)
++            .map(|i| cam.target[i] + right[i] * 0.5 * half_w + cam.up[i] * 0.5 * half_h)
++            .collect();
++        for perspective in [true, false] {
++            cam.perspective = perspective;
++            let (origin, dir) = cam.ray((600.0, 100.0), viewport()).expect("a ray");
++            // Advance to the target plane, whose normal is the view axis.
++            let denom: f64 = (0..3).map(|i| dir[i] * forward[i]).sum();
++            let num: f64 = (0..3).map(|i| (cam.target[i] - origin[i]) * forward[i]).sum();
++            let t = num / denom;
++            for i in 0..3 {
++                let hit = origin[i] + dir[i] * t;
++                assert!((hit - expected[i]).abs() < 1e-6, "{perspective} axis {i}");
++            }
++        }
++    }
++
++    /// A zero or non-finite viewport has no ray, rather than a NaN one.
++    #[test]
++    fn a_degenerate_viewport_has_no_ray() {
++        let mut cam = Camera::new();
++        cam.update_position();
++        assert!(cam.ray((1.0, 1.0), (0.0, 400.0)).is_none());
++        assert!(cam.ray((f64::NAN, 1.0), viewport()).is_none());
++    }
++}
+     use super::*;
+     #[test]
+     fn coalesced_wheel_events_remain_positive_and_preserve_the_cursor_anchor() {
+diff --git a/session_viewer/src/engine/gpu/mod.rs b/session_viewer/src/engine/gpu/mod.rs
+index a70daa1a6840537d54c89fc3536c52d924ba392f..7b18398b224bd55a6b4b028c78742a1a60dfeaa7 100644
+--- a/session_viewer/src/engine/gpu/mod.rs
++++ b/session_viewer/src/engine/gpu/mod.rs
+@@ -71,6 +71,11 @@ pub struct Gpu {
+     pub glyphs: GlyphLane,
+     pub controls: GlyphLane,
+     pub control_net: SegmentLane,
++    /// The move/rotate/scale widget, drawn by the same two lane types the control net uses:
++    /// three arms and their balls are strokes and markers, so the widget costs no shader and
++    /// no pipeline of its own.
++    pub gizmo_arms: SegmentLane,
++    pub gizmo_dots: GlyphLane,
+     pub text: text::TextLane,
+     pub selection_outline: surface_outline::SurfaceOutline,
+     pub solid_outline: surface_outline::SurfaceOutline,
+@@ -103,6 +108,8 @@ impl Gpu {
+             + self.glyphs.allocated_bytes()
+             + self.controls.allocated_bytes()
+             + self.control_net.allocated_bytes()
++            + self.gizmo_arms.allocated_bytes()
++            + self.gizmo_dots.allocated_bytes()
+             + self.cloud.allocated_bytes()
+             + self.objects.allocated_bytes()
+             + self.frame.allocated_bytes()
+@@ -178,6 +185,8 @@ impl Gpu {
+         let glyphs = GlyphLane::new(&ctx, &layouts, target);
+         let controls = GlyphLane::new(&ctx, &layouts, target);
+         let control_net = SegmentLane::new(&ctx, &layouts, target);
++        let gizmo_arms = SegmentLane::new(&ctx, &layouts, target);
++        let gizmo_dots = GlyphLane::new(&ctx, &layouts, target);
+         let text = text::TextLane::new(&ctx, target);
+         let selection_outline = surface_outline::SurfaceOutline::new(
+             &ctx,
+@@ -213,6 +222,8 @@ impl Gpu {
+             glyphs,
+             controls,
+             control_net,
++            gizmo_arms,
++            gizmo_dots,
+             text,
+             selection_outline,
+             solid_outline,
+@@ -298,6 +309,8 @@ impl Gpu {
+             self.glyphs.retarget(&self.ctx, &self.layouts, target);
+             self.controls.retarget(&self.ctx, &self.layouts, target);
+             self.control_net.retarget(&self.ctx, &self.layouts, target);
++            self.gizmo_arms.retarget(&self.ctx, &self.layouts, target);
++            self.gizmo_dots.retarget(&self.ctx, &self.layouts, target);
+             self.text.retarget(&self.ctx, target);
+             self.selection_outline.retarget(&self.ctx, target);
+             self.solid_outline.retarget(&self.ctx, target);
+@@ -363,6 +376,8 @@ impl Gpu {
+         self.glyphs.reset();
+         self.controls.reset();
+         self.control_net.reset();
++        self.gizmo_arms.reset();
++        self.gizmo_dots.reset();
+         self.text.reset();
+         self.selection_outline.reset();
+         self.solid_outline.reset();
+@@ -381,6 +396,8 @@ impl Gpu {
+         self.glyphs.release(&self.ctx, &self.layouts);
+         self.controls.release(&self.ctx, &self.layouts);
+         self.control_net.release(&self.ctx, &self.layouts);
++        self.gizmo_arms.release(&self.ctx, &self.layouts);
++        self.gizmo_dots.release(&self.ctx, &self.layouts);
+         self.text.release(&self.ctx);
+         self.selection_outline.reset();
+         self.solid_outline.reset();
+diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
+index 12cacbb2f62e98b5fc7e254fc79a2784d20485d7..c709caa2b9c5d10f413a171e1b29ce5cd378c3ea 100644
+--- a/session_viewer/src/engine/gpu/objects.rs
++++ b/session_viewer/src/engine/gpu/objects.rs
+@@ -72,6 +72,27 @@ fn world_box(r: &ObjectRow) -> Aabb {
+     r.bounds.placed(&r.place)
+ }
+ 
++/// One row's GPU form under a placement: the model matrix with its translation column cleared,
++/// the true f64 translation taken out of that column, and the row's own box placed into the
++/// world. Split out of `set_placement` because it is the whole arithmetic of a move and a
++/// device is not needed to check it.
++fn placed_row(local: &Aabb, place: &Mat4) -> ([f32; 16], [f64; 3], Aabb) {
++    let world = local.placed(place);
++    let mut model = mat_to_f32(place);
++    model[12] = 0.0;
++    model[13] = 0.0;
++    model[14] = 0.0;
++    (
++        model,
++        [place[12], place[13], place[14]],
++        if world.is_finite() {
++            world
++        } else {
++            Aabb::empty()
++        },
++    )
++}
++
+ /// The anchored translation the GPU reads: the true f64 world position minus the table's
+ /// anchor, narrowed once at the end. Subtracting first is what keeps a small move: a
+ /// millimetre is lost narrowing a world coordinate a kilometre out, and kept narrowing the
+@@ -100,6 +121,12 @@ pub struct InstanceTable {
+     /// it against the current anchor. Every change to a placement is applied HERE, so the
+     /// error of an edit is the error of the edit, not of the position it happens at.
+     translation: Vec<[f64; 3]>,
++    /// Each row's box in its OWN space. `world_bounds` is this box under the current
++    /// placement, so an edit that only moves the object recomputes the world box from here
++    /// instead of walking the geometry again.
++    local_bounds: Vec<Aabb>,
++    /// The identity row the widgets draw against, once something has asked for it.
++    widget: Option<u32>,
+     bounded: Vec<BoundedRow>,
+     /// Every row's world box, row order, so index = row; `Aabb::empty()` where not finite.
+     world_bounds: Vec<Aabb>,
+@@ -206,6 +233,8 @@ impl InstanceTable {
+             geometry_revision: 0,
+             rows: vec![Instance::placeholder()],
+             translation: Vec::new(),
++            local_bounds: Vec::new(),
++            widget: None,
+             bounded: Vec::new(),
+             world_bounds: Vec::new(),
+             last_origin: None,
+@@ -255,9 +284,11 @@ impl InstanceTable {
+     /// send only the new rows. The next frame rebases the whole table.
+     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
+         self.geometry_revision = self.geometry_revision.wrapping_add(1);
++        self.widget = None;
+         if self.translation.is_empty() {
+             self.rows.clear();
+             self.world_bounds.clear();
++            self.local_bounds.clear();
+             self.buffer.reset();
+             self.translations.reset();
+         }
+@@ -265,6 +296,7 @@ impl InstanceTable {
+         self.rows.reserve(up.rows.len());
+         self.translation.reserve(up.rows.len());
+         self.world_bounds.reserve(up.rows.len());
++        self.local_bounds.reserve(up.rows.len());
+         for (i, r) in up.rows.iter().enumerate() {
+             let world = world_box(r);
+             if r.faces && world.is_finite() {
+@@ -289,6 +321,7 @@ impl InstanceTable {
+             } else {
+                 Aabb::empty()
+             });
++            self.local_bounds.push(r.bounds);
+             self.translation
+                 .push([r.place[12], r.place[13], r.place[14]]);
+             let mut model = mat_to_f32(&r.place);
+@@ -413,6 +446,65 @@ impl InstanceTable {
+         }
+     }
+ 
++    /// The index of an identity row the widgets draw against, appending one the first time.
++    ///
++    /// A gizmo's geometry is already in world coordinates, so it needs an instance whose model
++    /// is the identity and whose translation is zero. Row 0 is a real object as soon as the
++    /// scene has one, so the widget cannot borrow it: it gets a row of its own, after every
++    /// scene row, minted once and cleared with the table.
++    pub fn widget_row(&mut self, ctx: &GpuCtx, l: &Layouts) -> u32 {
++        if let Some(row) = self.widget {
++            return row;
++        }
++        let row = self.rows.len() as u32;
++        self.rows.push(Instance::placeholder());
++        self.translation.push([0.0; 3]);
++        self.local_bounds.push(Aabb::empty());
++        self.world_bounds.push(Aabb::empty());
++        // `append` is what grows the buffer; writing past the end would be a validation error.
++        let grew = self.buffer.append(ctx, std::slice::from_ref(&self.rows[row as usize]));
++        let grew_t = self.translations.append(ctx, std::slice::from_ref(&[0.0f32; 4]));
++        if grew || grew_t {
++            self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
++        }
++        self.widget = Some(row);
++        row
++    }
++
++    /// Replace one row's placement and write back only that row.
++    ///
++    /// Two small writes - 96 B of instance and 16 B of anchored translation - so a drag frame
++    /// costs the same whether the scene holds one object or a million. The true f64 translation
++    /// is what changes; the anchored f32 the GPU reads is derived from it, because a delta
++    /// written straight into the f32 is erased by the next re-anchor.
++    ///
++    /// The world box is recomputed from the row's own box, and `bounded` (the sparse list the
++    /// inside test walks) is kept in step. Returns false when the row does not exist.
++    pub fn set_placement(&mut self, ctx: &GpuCtx, row: u32, place: &Mat4) -> bool {
++        let i = row as usize;
++        let (Some(instance), Some(local)) = (self.rows.get_mut(i), self.local_bounds.get(i)) else {
++            return false;
++        };
++        let (model, translation, world) = placed_row(local, place);
++        instance.model = model;
++        self.translation[i] = translation;
++        self.world_bounds[i] = world;
++        for b in &mut self.bounded {
++            if b.row == row {
++                b.lo = [world.min[0] as f64, world.min[1] as f64, world.min[2] as f64];
++                b.hi = [world.max[0] as f64, world.max[1] as f64, world.max[2] as f64];
++            }
++        }
++        self.geometry_revision = self.geometry_revision.wrapping_add(1);
++        let instance = *instance;
++        self.buffer.write_at(ctx, row, std::slice::from_ref(&instance));
++        if let Some(origin) = &self.last_origin {
++            let t = anchored(self.translation[i], origin);
++            self.translations.write_at(ctx, row, std::slice::from_ref(&t));
++        }
++        true
++    }
++
+     /// Set or clear one flag bit on one row and write that row back.
+     pub fn set_flag(&mut self, ctx: &GpuCtx, row: u32, bit: u32, on: bool) {
+         let Some(r) = self.rows.get_mut(row as usize) else {
+@@ -432,8 +524,10 @@ impl InstanceTable {
+     /// Forget every row; the buffers keep their capacity.
+     pub fn reset(&mut self) {
+         self.geometry_revision = self.geometry_revision.wrapping_add(1);
++        self.widget = None;
+         self.rows.clear();
+         self.translation.clear();
++        self.local_bounds.clear();
+         self.bounded.clear();
+         self.world_bounds.clear();
+         self.buffer.reset();
+@@ -446,6 +540,7 @@ impl InstanceTable {
+         self.reset();
+         self.rows.shrink_to_fit();
+         self.translation.shrink_to_fit();
++        self.local_bounds.shrink_to_fit();
+         self.bounded.shrink_to_fit();
+         self.world_bounds.shrink_to_fit();
+         self.rows.push(Instance::placeholder());
+@@ -533,6 +628,68 @@ mod tests {
+         assert_ne!(after, before);
+     }
+ 
++    /// A move rewrites the f64 translation and the world box, and leaves the model matrix's
++    /// translation column at zero: the GPU adds the anchored translation itself, and a matrix
++    /// carrying the position twice would draw the object at twice its distance.
++    #[test]
++    fn a_move_goes_into_the_translation_not_the_matrix() {
++        let local = Aabb {
++            min: [-1.0, -1.0, -1.0],
++            max: [1.0, 1.0, 1.0],
++        };
++        let place = Xform::translation(10.0, 20.0, 30.0).m;
++        let (model, translation, world) = placed_row(&local, &place);
++
++        assert_eq!([model[12], model[13], model[14]], [0.0, 0.0, 0.0]);
++        assert_eq!(translation, [10.0, 20.0, 30.0]);
++        assert_eq!(world.min, [9.0, 19.0, 29.0]);
++        assert_eq!(world.max, [11.0, 21.0, 31.0]);
++    }
++
++    /// The write a drag frame makes, on a real device: one row moves, its neighbour does not,
++    /// and the widget row the gizmo draws against lands after both.
++    #[cfg(not(target_arch = "wasm32"))]
++    #[test]
++    #[ignore = "requires a native GPU adapter"]
++    fn one_row_moves_and_its_neighbour_does_not() {
++        use crate::engine::gpu::{Gpu, Upload};
++        let mut gpu = pollster::block_on(Gpu::new_headless(64, 64)).unwrap();
++        let mut upload = Upload::default();
++        for x in [0.0, 100.0] {
++            let mut row = ObjectRow::new(Xform::translation(x, 0.0, 0.0).m, 0);
++            row.bounds = Aabb {
++                min: [-1.0, -1.0, -1.0],
++                max: [1.0, 1.0, 1.0],
++            };
++            row.faces = true;
++            upload.obj.rows.push(row);
++        }
++        gpu.set_scene(&upload);
++        assert_eq!(gpu.objects.len(), 2);
++
++        let moved = Xform::translation(0.0, 50.0, 0.0).m;
++        assert!(gpu.objects.set_placement(&gpu.ctx, 0, &moved));
++
++        let first = gpu.objects.row_bounds(0).expect("row 0 has a box");
++        let second = gpu.objects.row_bounds(1).expect("row 1 has a box");
++        assert_eq!(first.min[1], 49.0);
++        assert_eq!(second.min[0], 99.0);
++        assert_eq!(second.min[1], -1.0, "the neighbour did not move");
++
++        // The widget row is minted once, after every scene row, and stays where it was put.
++        let widget = gpu.objects.widget_row(&gpu.ctx, &gpu.layouts);
++        assert_eq!(widget, 2);
++        assert_eq!(gpu.objects.widget_row(&gpu.ctx, &gpu.layouts), widget);
++    }
++
++    /// A row with no volume keeps an empty box rather than an infinite one, so the inside test
++    /// and the fit never walk a box that answers yes to everything.
++    #[test]
++    fn a_row_with_no_box_stays_empty() {
++        let (_, _, world) = placed_row(&Aabb::empty(), &Xform::translation(1.0, 0.0, 0.0).m);
++        assert!(!world.is_finite());
++    }
++
+     /// The anchored value is a pure function of the f64 base and the anchor, so a placement
+     /// change written anywhere else is erased by the next re-anchor. An edit writes
+     /// `translation`; it never adds its delta to the f32 the GPU was given.
+diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
+index 7261e761932da13f9a15289d9980fea1f739fc39..1b68429e9a2840b58bd9c78d41317c0e5b2d6369 100644
+--- a/session_viewer/src/engine/gpu/render.rs
++++ b/session_viewer/src/engine/gpu/render.rs
+@@ -194,6 +194,9 @@ impl Gpu {
+         }
+         draws += self.control_net.draw_ribbons(pass, &b);
+         draws += self.controls.draw_dots(pass, &b);
++        // Last of the ink list, so the widget is drawn over the object it moves.
++        draws += self.gizmo_arms.draw_ribbons(pass, &b);
++        draws += self.gizmo_dots.draw_dots(pass, &b);
+         draws += self.text.draw(pass);
+         draws
+     }
+diff --git a/session_viewer/src/lib.rs b/session_viewer/src/lib.rs
+index 369099b5865eefb80a97b7d4c1a88cf08d7a1334..97748a2b7d13da62982e68b4fd05c5717f1326e4 100644
+--- a/session_viewer/src/lib.rs
++++ b/session_viewer/src/lib.rs
+@@ -47,6 +47,10 @@ pub enum Msg {
+     SheetChunk(SheetChunk),
+     SheetEntity(app::sheet_query::Resolved),
+     CancelPointer,
++    /// A line typed into the command box, sent when Enter was pressed in it.
++    Command(String),
++    /// A layers-panel row was clicked, carrying its key.
++    ToggleLayer(String),
+ }
+ 
+ #[cfg(target_arch = "wasm32")]
+@@ -69,6 +73,8 @@ pub struct App {
+     proxy: Option<EventLoopProxy<Msg>>,
+     input: Input,
+     pointer_cancellation: Option<app::input::PointerCancellation>,
++    command_keys: Option<app::input::CommandKeys>,
++    layer_clicks: Option<app::input::LayerClicks>,
+ }
+ 
+ #[cfg(target_arch = "wasm32")]
+@@ -82,6 +88,8 @@ impl App {
+             state: None,
+             input: Input::new(),
+             pointer_cancellation: None,
++            command_keys: None,
++            layer_clicks: None,
+         };
+         event_loop.spawn_app(app);
+         Ok(())
+@@ -130,6 +138,18 @@ impl ApplicationHandler<Msg> for App {
+                 Ok(listener) => self.pointer_cancellation = Some(listener),
+                 Err(error) => log::warn!("Cannot register pointer cancellation: {error:?}"),
+             }
++            if let Some(input) = app::feedback::command_line(false) {
++                match app::input::CommandKeys::new(input, proxy.clone()) {
++                    Ok(listener) => self.command_keys = Some(listener),
++                    Err(error) => log::warn!("Cannot register the command line: {error:?}"),
++                }
++            }
++            if let Some(panel) = app::feedback::layers_visible(false) {
++                match app::input::LayerClicks::new(panel, proxy.clone()) {
++                    Ok(listener) => self.layer_clicks = Some(listener),
++                    Err(error) => log::warn!("Cannot register the layers panel: {error:?}"),
++                }
++            }
+             wasm_bindgen_futures::spawn_local(loader::boot(window, proxy));
+         }
+     }
+@@ -163,6 +183,18 @@ impl ApplicationHandler<Msg> for App {
+                     col_at,
+                 });
+             }
++            Msg::Command(line) => {
++                let said = match state.run_command(&line) {
++                    Ok(done) => done,
++                    Err(why) => why,
++                };
++                app::feedback::status(&said);
++            }
++            Msg::ToggleLayer(key) => {
++                if let Some(layer) = app::layers::Layer::from_key(&key) {
++                    state.toggle_layer(layer);
++                }
++            }
+             Msg::CloudChunk(c) => state.extend_streamed(c.idx, c.rows, c.to),
+             Msg::CloudQueryBatch(batch) => state.cloud_query_batch(batch),
+             Msg::CloudQueryResolved(resolved) => state.cloud_query_resolved(resolved),
+diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
+index c52a717d28f6a156b6b683595c59a7f4a07553f9..f42af8029162195e870e6235bb384af2f9dc2e30 100644
+--- a/session_viewer/src/state.rs
++++ b/session_viewer/src/state.rs
+@@ -16,6 +16,7 @@ use crate::engine::gpu::{CylinderSegment, GlyphPoint};
+ use crate::engine::gpu::{FrameInput, Gpu, Pick};
+ use crate::engine::performance::{heap_mb, now_ms};
+ mod cloud_query;
++pub mod edit;
+ mod sheet_query;
+ mod text;
+ use std::sync::Arc;
+@@ -56,6 +57,12 @@ pub struct State {
+     query_generation: u64,
+     sheet_query: Option<crate::app::sheet_query::Query>,
+     sheet_generation: u64,
++    /// The move/rotate/scale widget, present only while a row with a box is selected.
++    pub gizmo: Option<crate::app::gizmo::Gizmo>,
++    /// The drag in progress, holding what the gesture is measured FROM.
++    dragging: Option<edit::GizmoDrag>,
++    /// A control point being dragged, which is a different gesture from a placement drag.
++    control_drag: Option<edit::ControlDrag>,
+ }
+ 
+ impl State {
+@@ -84,6 +91,9 @@ impl State {
+             query_generation: 0,
+             sheet_query: None,
+             sheet_generation: 0,
++            gizmo: None,
++            dragging: None,
++            control_drag: None,
+         })
+     }
+ 
+@@ -263,6 +273,7 @@ impl State {
+             self.gpu.set_selected(r, true);
+         }
+         self.scene.selected = row;
++        self.place_gizmo(row);
+         self.update_label();
+         self.touch();
+     }
+@@ -695,6 +706,6 @@ impl State {
+ }
+ 
+ /// Convert a retained source position at the temporary GPU-control upload boundary.
+-fn render_position(position: [f64; 3]) -> [f32; 3] {
++pub(crate) fn render_position(position: [f64; 3]) -> [f32; 3] {
+     [position[0] as f32, position[1] as f32, position[2] as f32]
+ }
+diff --git a/session_viewer/src/state/edit.rs b/session_viewer/src/state/edit.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..74bc3f2ead6dc2fca04af704ea0e1cad70e3ebd2
+--- /dev/null
++++ b/session_viewer/src/state/edit.rs
+@@ -0,0 +1,593 @@
++//! The editing gestures: what a pointer on a gizmo handle, a Delete and a Ctrl+Z do.
++//!
++//! State is the only place that knows the camera, the scene and the GPU at once, so the join
++//! lives here and the four pure modules below it stay free of all three.
++//!
++//! A drag is three moments. It BEGINS by remembering the object's own transform and the
++//! placement it was drawn with. It MOVES by writing a preview into the row's GPU placement -
++//! two small writes, no document touched. It ENDS by writing the document once, which is what
++//! makes one gesture one undo step.
++
++use crate::app::command::Command;
++use crate::app::cplane::CPlane;
++use crate::app::selection::ControlId;
++use crate::app::snap::{self, Snap, SnapKind};
++use crate::app::layers::{self, Layer};
++use crate::app::gizmo::{ARM, Axis, BALL_AT, Drag, Gizmo, HUB, Handle};
++use crate::app::walk::encode::FACING_UNKNOWN;
++use crate::state::render_position;
++use crate::engine::gpu::glyphs::{GlyphPoint, GlyphRows};
++use crate::engine::gpu::segments::{CylinderSegment, SegRows};
++use crate::state::{SelectionMode, State};
++use session_rust::{Point, Vector, Xform};
++
++/// A drag in progress: the row, its transform when the drag started, and the handle.
++pub struct GizmoDrag {
++    row: u32,
++    /// The object's LOCAL transform at the grab. Every frame's preview is measured from this,
++    /// never from the frame before, so a dropped frame changes nothing.
++    base_local: Xform,
++    /// The full placement at the grab, for the same reason, on the GPU side.
++    base_place: [f64; 16],
++    drag: Drag,
++}
++
++impl State {
++    /// Put the gizmo on the selected row's box centre, or take it away. A row with no box -
++    /// a single point, a text label - gets no widget rather than one at the world origin.
++    pub fn place_gizmo(&mut self, row: Option<u32>) {
++        let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else {
++            self.gizmo = None;
++            self.upload_gizmo();
++            return;
++        };
++        let origin = Point::new(
++            f64::from(box_.min[0] + box_.max[0]) * 0.5,
++            f64::from(box_.min[1] + box_.max[1]) * 0.5,
++            f64::from(box_.min[2] + box_.max[2]) * 0.5,
++        );
++        match self.gizmo.as_mut() {
++            Some(gizmo) => gizmo.set_origin(origin),
++            None => self.gizmo = Some(Gizmo::new(origin)),
++        }
++        self.upload_gizmo();
++    }
++
++    /// Try to grab a gizmo handle under the cursor. False means the click was not on the
++    /// widget and the caller should go on to pick.
++    pub fn begin_gizmo(&mut self, x: f64, y: f64) -> bool {
++        let Some(row) = self.scene.selected else {
++            return false;
++        };
++        let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
++            return false;
++        };
++        let per_px = self.world_per_px();
++        let Some(gizmo) = self.gizmo.as_mut() else {
++            return false;
++        };
++        let Some(handle) = gizmo.hit(&from, &dir, per_px) else {
++            return false;
++        };
++        let Some(drag) = gizmo.begin(handle, &from, &dir) else {
++            return false;
++        };
++        let Some(base_local) = self.scene.local_xform_of(row) else {
++            return false;
++        };
++        let Some(base_place) = self.scene.placement_of(row) else {
++            return false;
++        };
++        self.dragging = Some(GizmoDrag {
++            row,
++            base_local,
++            base_place,
++            drag,
++        });
++        true
++    }
++
++    /// Move the object with the pointer. The document is not touched: this is a preview.
++    pub fn drag_gizmo(&mut self, x: f64, y: f64) -> bool {
++        let Some(active) = self.dragging.as_ref() else {
++            return false;
++        };
++        let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
++            return false;
++        };
++        let Some(gizmo) = self.gizmo.as_ref() else {
++            return false;
++        };
++        let Some(delta) = gizmo.update(&active.drag, &from, &dir) else {
++            return false;
++        };
++        let place = crate::math::mat_mul(&delta, &active.base_place);
++        self.gpu
++            .objects
++            .set_placement(&self.gpu.ctx, active.row, &place);
++        self.place_gizmo(Some(active.row));
++        self.touch();
++        true
++    }
++
++    /// Let go: the document records the whole gesture as one transaction.
++    pub fn end_gizmo(&mut self, x: f64, y: f64) -> bool {
++        let Some(active) = self.dragging.take() else {
++            return false;
++        };
++        let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
++            return false;
++        };
++        let Some(gizmo) = self.gizmo.as_mut() else {
++            return false;
++        };
++        gizmo.drag = None;
++        let Some(delta) = gizmo.update(&active.drag, &from, &dir) else {
++            return false;
++        };
++        let local = Xform::from_matrix(crate::math::mat_mul(&delta, &active.base_local.m));
++        let label = match active.drag.handle {
++            Handle::Translate(_) => "move",
++            Handle::Rotate(_) => "rotate",
++            Handle::Scale(_) | Handle::ScaleUniform => "scale",
++        };
++        if let Some(place) = self.scene.set_row_xform(active.row, local, label) {
++            self.gpu
++                .objects
++                .set_placement(&self.gpu.ctx, active.row, &place);
++        }
++        self.touch();
++        true
++    }
++
++    /// Delete the selection. The rows change, so every document is walked again.
++    pub fn delete_selected(&mut self) {
++        let Some(row) = self.scene.selected else {
++            return;
++        };
++        if !self.scene.delete_row(row) {
++            return;
++        }
++        self.select(None);
++        self.scene.rebuild(&mut self.gpu);
++        self.place_gizmo(None);
++        self.update_label();
++        self.touch();
++    }
++
++    /// Undo the last edit in the document that was edited last - Ctrl+Z.
++    pub fn undo(&mut self) {
++        if self.scene.undo() {
++            self.after_history();
++        }
++    }
++
++    /// Redo it - Ctrl+Y, or Ctrl+Shift+Z.
++    pub fn redo(&mut self) {
++        if self.scene.redo() {
++            self.after_history();
++        }
++    }
++
++    /// An undo can bring an object back or take one away, so the rows are rebuilt rather than
++    /// patched. The selection is dropped because the row it named may not exist any more.
++    fn after_history(&mut self) {
++        self.selection = SelectionMode::Object;
++        self.select(None);
++        self.scene.rebuild(&mut self.gpu);
++        self.place_gizmo(None);
++        self.update_label();
++        self.touch();
++    }
++
++    /// World length of one screen pixel at the gizmo, for a hit test that must feel the same
++    /// however far the camera is: the widget is sized in pixels, so its grab radius is too.
++    fn world_per_px(&self) -> f64 {
++        let (_, h) = self.viewport();
++        if h <= 0.0 {
++            return 1.0;
++        }
++        2.0 * self.camera.distance * (crate::math::FOVY_DEG * 0.5).to_radians().tan() / h
++    }
++}
++
++/// The three axis colours every CAD tool agrees on, as the packed RGBA a stroke row carries.
++const AXIS_COLORS: [u32; 3] = [0xff2222dd, 0xff22bb22, 0xffdd4422];
++
++impl State {
++    /// Rebuild the widget's rows. Three arms as strokes, three balls and a hub as markers,
++    /// in the two lanes the control net already uses - so the widget adds no shader, no
++    /// pipeline and no pass, only rows.
++    ///
++    /// The arms are sized in PIXELS, converted to world at the widget's own depth, so the
++    /// gumball is the same size on screen wherever the camera is.
++    pub fn upload_gizmo(&mut self) {
++        self.gpu.gizmo_arms.reset();
++        self.gpu.gizmo_dots.reset();
++        let Some(gizmo) = self.gizmo.as_ref() else {
++            return;
++        };
++        let per_px = self.world_per_px();
++        let origin = gizmo.origin.clone();
++        // World coordinates, so the rows draw against the identity row rather than an object's.
++        let widget = self
++            .gpu
++            .objects
++            .widget_row(&self.gpu.ctx, &self.gpu.layouts);
++        let arm = ARM * per_px;
++        let ball = BALL_AT * per_px;
++        let mut segments = SegRows::default();
++        let mut glyphs = GlyphRows::default();
++        for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
++            let u = axis.unit();
++            let tip = [
++                origin[0] + u[0] * arm,
++                origin[1] + u[1] * arm,
++                origin[2] + u[2] * arm,
++            ];
++            let at = [
++                origin[0] + u[0] * ball,
++                origin[1] + u[1] * ball,
++                origin[2] + u[2] * ball,
++            ];
++            segments.ribbons.push(CylinderSegment {
++                p0: render_position([origin[0], origin[1], origin[2]]),
++                p1: render_position(tip),
++                radius: 0.0,
++                color: AXIS_COLORS[i],
++                instance_id: widget,
++                facing: FACING_UNKNOWN,
++            });
++            glyphs.dots.push(GlyphPoint {
++                center: render_position(at),
++                radius: -5.0,
++                color: unpack_color(AXIS_COLORS[i]),
++                instance_id: widget,
++                facing: FACING_UNKNOWN,
++                facing_ext: [FACING_UNKNOWN; 2],
++            });
++        }
++        glyphs.dots.push(GlyphPoint {
++            center: render_position([origin[0], origin[1], origin[2]]),
++            radius: -(HUB as f32),
++            color: [1.0, 1.0, 1.0, 1.0],
++            instance_id: widget,
++            facing: FACING_UNKNOWN,
++            facing_ext: [FACING_UNKNOWN; 2],
++        });
++        self.gpu
++            .gizmo_arms
++            .append(&self.gpu.ctx, &self.gpu.layouts, &segments);
++        self.gpu
++            .gizmo_dots
++            .append(&self.gpu.ctx, &self.gpu.layouts, &glyphs);
++    }
++}
++
++/// A packed `0xAARRGGBB` row colour as the four floats a marker wants.
++fn unpack_color(packed: u32) -> [f32; 4] {
++    [
++        ((packed >> 16) & 0xff) as f32 / 255.0,
++        ((packed >> 8) & 0xff) as f32 / 255.0,
++        (packed & 0xff) as f32 / 255.0,
++        ((packed >> 24) & 0xff) as f32 / 255.0,
++    ]
++}
++
++impl State {
++    /// Run one typed line. The string that comes back is what to show the person who typed it:
++    /// what happened, or why nothing did.
++    ///
++    /// Every arm calls an action the viewer already has, so a command cannot drift from the
++    /// key that does the same thing.
++    pub fn run_command(&mut self, line: &str) -> Result<String, String> {
++        let command = crate::app::command::parse(line)?;
++        let needs_selection = matches!(
++            command,
++            Command::Move(_) | Command::Rotate { .. } | Command::Scale(_) | Command::Delete
++        );
++        if needs_selection && self.scene.selected.is_none() {
++            return Err("nothing is selected".into());
++        }
++        match command {
++            Command::Move(d) => self.apply(Xform::translation(d[0], d[1], d[2]), "move"),
++            Command::Rotate { axis, degrees } => {
++                let about = self.gizmo.as_ref().map(|g| g.origin.clone());
++                let turn = rotation_about(axis, degrees, about.as_ref());
++                self.apply(turn, "rotate")
++            }
++            Command::Scale(k) => {
++                let about = self.gizmo.as_ref().map(|g| g.origin.clone());
++                self.apply(scaling_about(k, about.as_ref()), "scale")
++            }
++            Command::Delete => {
++                self.delete_selected();
++                Ok("deleted".into())
++            }
++            Command::Undo => {
++                self.undo();
++                Ok("undone".into())
++            }
++            Command::Redo => {
++                self.redo();
++                Ok("redone".into())
++            }
++            Command::Hide => {
++                self.hide_selected();
++                Ok("hidden".into())
++            }
++            Command::ShowAll => {
++                self.show_all();
++                Ok("everything shown".into())
++            }
++            Command::Fit => {
++                self.fit_selected_or_all();
++                Ok("fitted".into())
++            }
++            Command::Escape => {
++                self.escape_selection();
++                Ok("selection cleared".into())
++            }
++        }
++    }
++
++    /// One recorded transform on the selection, with the row's placement written back.
++    fn apply(&mut self, delta: Xform, label: &str) -> Result<String, String> {
++        let Some(row) = self.scene.selected else {
++            return Err("nothing is selected".into());
++        };
++        let Some(place) = self.scene.transform_row(row, &delta, label) else {
++            return Err("this row cannot be edited".into());
++        };
++        self.gpu
++            .objects
++            .set_placement(&self.gpu.ctx, row, &place);
++        self.place_gizmo(Some(row));
++        self.touch();
++        Ok(label.into())
++    }
++}
++
++/// A turn about a point rather than about the world origin: translate the point to the origin,
++/// turn, translate back. Without the centring, `rotate z 90` would swing the object around the
++/// file's origin, which is rarely where it is.
++fn rotation_about(axis: Axis, degrees: f64, about: Option<&Point>) -> Xform {
++    let turn = match axis {
++        Axis::X => Xform::rotation_x(degrees, true),
++        Axis::Y => Xform::rotation_y(degrees, true),
++        Axis::Z => Xform::rotation_z(degrees, true),
++    };
++    centred(turn, about)
++}
++
++/// The same centring for a scale. The kernel already has the centred form, so this only has to
++/// choose a centre: the widget's origin, or the world origin when there is no widget.
++fn scaling_about(factor: f64, about: Option<&Point>) -> Xform {
++    match about {
++        Some(p) => Xform::scale_uniform(p, factor),
++        None => Xform::scale_xyz(factor, factor, factor),
++    }
++}
++
++fn centred(inner: Xform, about: Option<&Point>) -> Xform {
++    let Some(p) = about else {
++        return inner;
++    };
++    let to = Xform::translation(p[0], p[1], p[2]);
++    let back = Xform::translation(-p[0], -p[1], -p[2]);
++    &(&to * &inner) * &back
++}
++
++impl State {
++    /// Hide or show everything one panel row controls, through the same hide set `H` writes.
++    ///
++    /// A layer with anything still visible hides; a layer wholly hidden comes back. That rule
++    /// makes one click enough on a half-hidden layer, which is what a person means by it.
++    pub fn toggle_layer(&mut self, layer: Layer) {
++        let rows = layers::of_layer(&self.scene, layer);
++        if rows.is_empty() {
++            return;
++        }
++        let hidden: Vec<bool> = rows
++            .iter()
++            .map(|&row| {
++                self.scene
++                    .identity_of(row)
++                    .is_some_and(|id| self.scene.hidden.contains(&id))
++            })
++            .collect();
++        let hide = !hidden.iter().all(|&h| h);
++        for (&row, was) in rows.iter().zip(&hidden) {
++            if *was == hide {
++                continue;
++            }
++            let Some(identity) = self.scene.identity_of(row) else {
++                continue;
++            };
++            if hide {
++                self.scene.hidden.insert(identity);
++            } else {
++                self.scene.hidden.remove(&identity);
++            }
++            self.gpu.set_hidden(row, hide);
++        }
++        if self.scene.selected.is_some_and(|row| rows.contains(&row)) && hide {
++            self.select(None);
++        }
++        self.refresh_layers();
++        self.update_label();
++        self.touch();
++    }
++
++    /// Redraw the panel from the scene, when it is open.
++    pub fn refresh_layers(&mut self) {
++        if !crate::app::feedback::layers_open() {
++            return;
++        }
++        let rows: Vec<crate::app::feedback::LayerRow> = layers::rows(&self.scene)
++            .into_iter()
++            .map(|row| crate::app::feedback::LayerRow {
++                key: row.layer.key(),
++                label: row.label,
++                count: row.count,
++                hidden: row.hidden,
++            })
++            .collect();
++        crate::app::feedback::layers_panel(&rows);
++    }
++}
++
++impl State {
++    /// Open or close the layers panel - `L`. Opening fills it; closing leaves it empty, so a
++    /// scene change while it is shut costs nothing.
++    pub fn toggle_layers_panel(&mut self) {
++        let open = !crate::app::feedback::layers_open();
++        crate::app::feedback::layers_visible(open);
++        if open {
++            self.refresh_layers();
++        }
++        self.touch();
++    }
++}
++
++/// A control point being dragged: which row and which control, and the plane it moves in.
++pub struct ControlDrag {
++    parent: u32,
++    /// Index into `State.controls.points`, which is what the preview moves.
++    index: usize,
++    /// Which kernel control it is, which is what the commit moves.
++    id: ControlId,
++    plane: CPlane,
++}
++
++impl State {
++    /// Grab the selected control point, if the press is on it. A control drag is offered
++    /// before an object drag because the two gestures are the same press: in control mode the
++    /// object's own widget is not shown.
++    pub fn begin_control_drag(&mut self, x: f64, y: f64) -> bool {
++        let SelectionMode::Controls {
++            parent,
++            selected: Some(id),
++            ..
++        } = self.selection
++        else {
++            return false;
++        };
++        let Some(index) = self.controls.points.iter().position(|c| c.id == id) else {
++            return false;
++        };
++        let at = self.controls.points[index].position;
++        let Some((sx, sy)) = self.project(at) else {
++            return false;
++        };
++        let grab = GRAB_CSS * crate::engine::gpu::view::device_pixel_ratio();
++        if (sx - x).abs() > grab || (sy - y).abs() > grab {
++            return false;
++        }
++        let forward = self.camera.orientation.rotate_vector(Vector::y_axis());
++        self.control_drag = Some(ControlDrag {
++            parent,
++            index,
++            id,
++            plane: CPlane::facing(&forward),
++        });
++        true
++    }
++
++    /// Move the preview dot. The document is untouched until the drag ends, for the same
++    /// reason a gizmo drag does not touch it: one gesture is one undo step.
++    pub fn drag_control(&mut self, x: f64, y: f64) -> bool {
++        let Some(active) = self.control_drag.as_ref() else {
++            return false;
++        };
++        let Some(point) = self.control_target(active, x, y) else {
++            return false;
++        };
++        let index = active.index;
++        self.controls.points[index].position = [point[0], point[1], point[2]];
++        self.upload_controls();
++        self.touch();
++        true
++    }
++
++    /// Commit: the kernel replaces the geometry, and the rows are walked again because the
++    /// shape changed rather than its placement.
++    pub fn end_control_drag(&mut self, x: f64, y: f64) -> bool {
++        let Some(active) = self.control_drag.take() else {
++            return false;
++        };
++        let Some(point) = self.control_target(&active, x, y) else {
++            return false;
++        };
++        let index = match active.id {
++            ControlId::Curve { point, .. } => point,
++            ControlId::Vertex(index) => index,
++            _ => return false,
++        };
++        if !self.scene.set_control_point(active.parent, index, &point) {
++            self.status("This geometry's control points cannot be edited");
++            return false;
++        }
++        self.scene.rebuild(&mut self.gpu);
++        self.selection = SelectionMode::Object;
++        self.select(Some(active.parent));
++        self.enable_controls();
++        self.touch();
++        true
++    }
++
++    /// Where the pointer is, in the world: the construction plane the view is facing, with the
++    /// object's other control points offered as snaps.
++    fn control_target(&self, active: &ControlDrag, x: f64, y: f64) -> Option<Point> {
++        let (from, dir) = self.camera.ray((x, y), self.viewport())?;
++        let origin = {
++            let at = self.controls.points[active.index].position;
++            Point::new(at[0], at[1], at[2])
++        };
++        let free = active.plane.hit(&origin, &from, &dir)?;
++        let mut candidates = Vec::new();
++        for (i, control) in self.controls.points.iter().enumerate() {
++            if i == active.index {
++                continue;
++            }
++            candidates.push(Snap {
++                point: Point::new(
++                    control.position[0],
++                    control.position[1],
++                    control.position[2],
++                ),
++                kind: SnapKind::Vertex,
++                owner: active.parent,
++            });
++        }
++        // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
++        let project = |p: &Point| self.project([p[0], p[1], p[2]]);
++        match snap::best(&candidates, (x, y), SNAP_APERTURE_PX, project) {
++            Some(hit) => Some(hit.point),
++            None => Some(free),
++        }
++    }
++
++    /// A world point in framebuffer pixels, or `None` when it is behind the eye.
++    fn project(&self, at: [f64; 3]) -> Option<(f64, f64)> {
++        let (w, h) = self.viewport();
++        let anchor = Point::new(at[0], at[1], at[2]);
++        let mvp = self.camera.view_proj_anchored(self.aspect(), &anchor);
++        let clip = [mvp.m[12], mvp.m[13], mvp.m[14], mvp.m[15]];
++        if clip[3] <= 0.0 {
++            return None;
++        }
++        Some((
++            (clip[0] / clip[3] * 0.5 + 0.5) * w,
++            (0.5 - clip[1] / clip[3] * 0.5) * h,
++        ))
++    }
++}
++
++/// How near the pointer must be to grab a control dot, in CSS pixels: the dot is drawn at
++/// 3.5 px, and a grab radius smaller than the thing it grabs is a gesture people miss.
++const GRAB_CSS: f64 = 10.0;
++
++/// How far a snap reaches, in screen pixels. Wide enough to catch what you meant, narrow
++/// enough that a point a centimetre away on screen is not "what you meant".
++const SNAP_APERTURE_PX: f64 = 12.0;

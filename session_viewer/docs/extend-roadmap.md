@@ -45,7 +45,7 @@ pub fn ray(&self, cursor: (f64, f64), viewport: (f64, f64)) -> (Point, Vector);
 ### 4 · No object snapping
 - Endpoints, midpoints, vertices, intersections, knots, nearest-point-on-edge in an aperture, ranked by kind then pixel distance, with a marker glyph.
 - Archive `snap.rs` (401 lines) + ranking in `state_tool.rs:258-328`: one session walk per tool session, edges sampled 16 per edge, best within `SNAP_APERTURE_PX = 12.0`.
-- **Read the call graph, not the plan.** `CAD_SKETCHER_PLAN.md` says intersection and knot snapping are done; `pub fn snap(...)` (`snap.rs:185-401`, ~216 lines) has no call site. The live cache holds Vertex, Endpoint, Midpoint; `SnapModes::default_on` enables two modes that never fire.
+- **Read the call graph, not the plan.** `CAD_SKETCHER_PLAN.md` says intersection and knot snapping are done; the archive's `pub fn snap(...)` (~216 lines) has no call site. The live cache holds Vertex, Endpoint, Midpoint; `SnapModes::default_on` enables two modes that never fire.
 - Needs (2), (3) for the fallback point, a lane for the marker. Emission ports nearly as written — sources are retained (`FileDoc.session: Rc<Session>`, `src/app/scene.rs:26-37`); the sweep does not. 450 lines, a test per kind. (this page)
 
 ```rust

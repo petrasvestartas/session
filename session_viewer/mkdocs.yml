@@ -78,6 +78,7 @@ nav:
     - 18 · Finite-triangle visibility: docs/18-finite-visibility.md
     - 19 · Sheets: docs/19-sheets.md
     - 20 · The document: docs/20-history.md
+    - 21 · Editing: docs/21-editing.md
   - Capstone: docs/capstone.md
   - Extending the viewer:
     - Adding a gumball: docs/extend-gumball.md
