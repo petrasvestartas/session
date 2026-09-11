@@ -29,13 +29,15 @@ PAL = {
 }
 # Box kinds: (fill, stroke). CPU/Rust = blue band, GPU/WGSL = pink band, note = zero band,
 # selection = yellow light, warning = orange stroke.
+# A box says what it is with its fill alone: no outline anywhere, so nothing reads as a border
+# around a colour. The stroke is kept equal to the fill so one rect rule serves every renderer.
 KIND = {
-    "cpu": (PAL["white"], PAL["blue_band"]),
-    "gpu": (PAL["white"], PAL["pink_band"]),
-    "note": (PAL["white"], PAL["zero"]),
-    "sel": (PAL["yellow_light"], PAL["yellow"]),
-    "warn": (PAL["white"], PAL["orange"]),
-    "plain": (PAL["white"], PAL["grey"]),
+    "cpu": (PAL["blue_band"], PAL["blue_band"]),
+    "gpu": (PAL["pink_band"], PAL["pink_band"]),
+    "note": (PAL["zero_band"], PAL["zero_band"]),
+    "sel": (PAL["yellow_light"], PAL["yellow_light"]),
+    "warn": (PAL["white"], PAL["white"]),
+    "plain": (PAL["white"], PAL["white"]),
 }
 # The page is black like the Mermaid diagrams; boxes are white with black text, free labels are
 # light. Colours named for the light palette are remapped when they would vanish on black.
@@ -108,7 +110,7 @@ class Canvas:
         h = h or pad + SIZE["l"] + (gap + line_h * len(body) if body else 0) + pad - 2
         ident = self.box_count
         self.box_count += 1
-        self.parts.append(f'<rect data-box="{ident}" x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{r}" fill="{fill}" stroke="{stroke}" stroke-width="1.5"/>')
+        self.parts.append(f'<rect data-box="{ident}" x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{r}" fill="{fill}" stroke="{stroke}" stroke-width="0"/>')
         ty = y + pad + SIZE["l"] - 3
         dark = PAL["yellow_light"] if kind == "sel" else PAL["white"]
         self.text(x + pad, ty, title, title_cls, fill=PAL["black"], box=ident)
@@ -357,7 +359,7 @@ def vertex_layout():
         for (label, w), kind in zip(items, kinds):
             fill, stroke = KIND[kind]
             w = max(w, width(label, "m") + 16)
-            c.raw(f'<rect data-box="c{y}{x:.0f}" x="{x:.1f}" y="{y}" width="{w:.1f}" height="32" fill="{fill}" stroke="{stroke}" stroke-width="1.5"/>')
+            c.raw(f'<rect data-box="c{y}{x:.0f}" x="{x:.1f}" y="{y}" width="{w:.1f}" height="32" fill="{fill}" stroke="{stroke}" stroke-width="0"/>')
             c.text(x + 8, y + 21, label, "m", box=f"c{y}{x:.0f}")
             x += w
         return x

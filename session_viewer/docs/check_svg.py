@@ -26,7 +26,8 @@ window.addEventListener('load', () => {
 });
 </script></body>"""
 
-def check(path):
+def measure(path):
+    """Every label's real bounding box, in document order, from a real browser."""
     html = PAGE % Path(path).read_text()
     with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False) as fh:
         fh.write(html); tmp = fh.name
@@ -35,8 +36,36 @@ def check(path):
                          capture_output=True, text=True, timeout=120).stdout
     m = re.search(r"<title>(.*?)</title>", dom, re.S)
     if not m:
+        return None
+    return json.loads(m.group(1).replace("&quot;", '"').replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">"))
+
+
+def pin(path):
+    """Write each label's measured width back as textLength, the way the node checker does."""
+    data = measure(path)
+    if data is None:
         return [f"{path}: could not measure"]
-    data = json.loads(m.group(1).replace("&quot;", '"').replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">"))
+    text = Path(path).read_text()
+    parts, at = [], 0
+    widths = [t["w"] for t in data["t"]]
+    index = 0
+    for m in re.finditer(r"<text\b([^>]*)>", text):
+        if index >= len(widths):
+            break
+        attrs = m.group(1)
+        if "textLength" not in attrs and widths[index] > 0:
+            new = f"<text{attrs} textLength=\"{widths[index]:.1f}\" lengthAdjust=\"spacingAndGlyphs\">"
+            parts.append(text[at:m.start()]); parts.append(new); at = m.end()
+        index += 1
+    parts.append(text[at:])
+    Path(path).write_text("".join(parts))
+    return []
+
+
+def check(path):
+    data = measure(path)
+    if data is None:
+        return [f"{path}: could not measure"]
     bad = []
     for t in data["t"]:
         if t["x"] < -1 or t["x"] + t["w"] > data["w"] + 1:
@@ -54,7 +83,13 @@ def check(path):
     return bad
 
 if __name__ == "__main__":
+    args = sys.argv[1:]
+    writing = "--write" in args
+    files = [a for a in args if a != "--write"]
     problems = []
-    for p in sys.argv[1:]:
+    for p in files:
+        if writing:
+            problems += pin(p)
         problems += check(p)
-    print("\n".join(problems) if problems else f"PASS {len(sys.argv)-1} illustrations: no overflow, no label collisions")
+    verb = "pinned and checked" if writing else "checked"
+    print("\n".join(problems) if problems else f"PASS {len(files)} illustrations {verb}: no overflow, no label collisions")

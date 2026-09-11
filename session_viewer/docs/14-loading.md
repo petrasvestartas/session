@@ -26,7 +26,7 @@ flowchart TB
 
 ## Step 1 · The manifest is placement, not geometry
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 - A manifest lists files and where each sits (`at`, `xform`, or the auto-grid); the geometry stays in `.pb` files, so a placement edit never re-uploads geometry.
 - `parse` accepts YAML, JSON and TOML with one set of semantics and rejects non-finite or non-affine transforms before anything is fetched.
@@ -36,26 +36,36 @@ flowchart TB
 flowchart LR
     F["yaml · json · toml"] -- "Manifest::parse" --> M["Manifest"] --> I["Item · at · xform"]
     M --> T["TextItem"]
-    style M fill:#f0bcdb,stroke:#ce4095,color:#111
+    style M fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=1-57 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=58-127 -->
 
 - Placement has a fallback: an item with no transform of its own takes its slot in the auto grid, so a manifest can list files and nothing else and still produce a readable scene.
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=128-146 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=147-217 -->
 
 Parser unit tests, part of the file:
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/manifest.rs copy lines=218-347 -->
 
 ## Step 2 · Validate serialized counts before the kernel allocates
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 - A hostile `cv_count` would make a kernel constructor allocate from a declared number; every count is checked against the actual storage length first.
 - `session` walks a decoded protobuf; `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds objects.
@@ -64,20 +74,26 @@ Parser unit tests, part of the file:
 flowchart LR
     P["decoded protobuf"] -- "validate::session" --> O["counts ≤ storage"]
     J["JSON document"] -- "validate::json" --> O
-    style O fill:#f0bcdb,stroke:#ce4095,color:#111
+    style O fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/validate.rs copy lines=1-147 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/validate.rs type lines=148-232 -->
 
 - Every declared count is checked against the storage that must hold it, before a kernel constructor can allocate from a number an attacker chose.
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/validate.rs copy lines=233-473 -->
 
 ## Step 3 · Decode without freezing the page
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 - prost decodes the whole message in one call; converting objects into kernel types is the slow part, so `Pacer` yields to the browser every `CHUNK` objects through `next_tick`.
 - The bytes are taken by value and dropped right after prost is done, before the conversion loop starts.
@@ -85,10 +101,14 @@ flowchart LR
 ```mermaid
 flowchart LR
     B["bytes"] -- "prost" --> M["message"] -- "Pacer::tick" --> K["kernel objects"]
-    style M fill:#f0bcdb,stroke:#ce4095,color:#111
+    style M fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=1-60 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=61-149 -->
 
@@ -96,7 +116,7 @@ flowchart LR
 
 ## Step 4 · The URL decides the route
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 - Three routes: a named scene (`?scene=` or the last path segment) from the bucket, the local manifest on a dev server, and no route at all on a deployed page, which hands over to the live source.
 - `?data=` overrides where `.pb` files come from; `query_scene` refuses `..`, absolute paths and schemes so a manifest name stays inside one tree.
@@ -104,14 +124,16 @@ flowchart LR
 ```mermaid
 flowchart LR
     U["?scene= · path"] -- "scene_route" --> R["SceneRoute"] --> S["bucket · local · live"]
-    style R fill:#f0bcdb,stroke:#ce4095,color:#111
+    style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/route.rs type -->
 
 ## Step 5 · A live source polls with ETags
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 - An idle poll must stay cheap: every file is re-read with `If-None-Match`, so an unchanged file answers `304` and is never downloaded or decoded again.
 - A relay message (`EventSource`) only raises a flag that says "look now"; the conditional reads still decide what changed.
@@ -122,43 +144,63 @@ flowchart TB
     E["EventSource"] --> N["Notify flag"]
     N --> C["LiveSource::check"]
     C -- "If-None-Match" --> R["read: Changed · Same"]
-    style C fill:#f0bcdb,stroke:#ce4095,color:#111
+    style C fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=1-68 -->
 
 - The relay only raises a flag, consumed on the next look. It says *when* to check, never *what* changed — the conditional reads still decide that, so a lost or duplicated notification cannot corrupt the scene.
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/live.rs type lines=69-90 -->
 
 - `from_query` turns the page off, on, or onto a custom manifest; a named scene or a local dev page never watches the bucket.
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=91-116 -->
 
 - The live source is constructed from the route and the query, so a named scene or a local dev page simply has none: watching the bucket is a property of how the page was reached, not a mode someone sets.
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/live.rs type lines=117-174 -->
 
 - The status line is deduplicated by message, so a poll that keeps failing says so once instead of filling the page with the same sentence.
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=175-190 -->
 
 - `read` returns `Changed`, `Same` or `Failed`; a server without ETags falls back to hashing the body.
 - A manifest inside the bucket names its files from the bucket root; any other manifest names them from its own folder.
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/live.rs type lines=191-256 -->
 
 - `check` is one tick: nothing happens unless the relay flagged or the poll interval is due; a replacement with any unreadable file returns `None` and the last valid scene stays.
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=257-333 -->
 
 - An empty file is forgotten rather than treated as an empty scene: a publisher writing a file in place is briefly zero bytes, and that moment must not clear what the viewer is showing.
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/live.rs type lines=334-354 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=355-411 -->
 
 - Where a manifest's file names are resolved from depends on where the manifest itself lives: inside the bucket they are named from its root, anywhere else from the manifest's own folder.
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=412-441 -->
 
@@ -166,7 +208,7 @@ flowchart TB
 
 ## Step 6 · Stage a replacement, then swap it in whole
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 ![Two request generations in flight: the older one is dropped, the newer one is staged in manifest order and swapped in whole while the previous scene stays on screen.](illustrations/loading.svg)
 
@@ -175,11 +217,13 @@ flowchart TB
 - Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
 - Whole files have a budget too: `scene_budget_bytes` is `?budget=<MB>` or 16 MB per GB of `navigator.deviceMemory`, 64 MB when the browser says nothing, because a decoded file costs the wasm heap about five times its size. Each file's size is asked by HEAD first; one that would put the scene over the budget is skipped, and the status line names it and the knob instead of the page dying without a word.
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 14 session_viewer/src/app/loader.rs type -->
 
 ## Step 7 · Wire the modules and the text message
 
-![Where this step sits in the viewer: Page, Scene + walk, Shell, State, with 10 of 11 zones built so far.](illustrations/locator-1bcfc88537.svg){ .locator data-strip="illustrations/strip-357cd0aeea.svg" }
+![Where this step sits in the viewer: Page, Scene + walk, Shell, State, with 10 of 11 zones built so far.](illustrations/locator-ec5a53b2dd.svg){ .locator data-strip="illustrations/strip-1f0f68b15b.svg" }
 
 - `decode`, `fetch` and `live` are browser-only; `manifest` and `validate` compile natively too.
 - Manifest text reaches State through one `Msg::Texts`; `set_texts` builds fixed-plane labels and grows the fit bounds by the shaped text extents.
@@ -188,19 +232,27 @@ flowchart TB
 flowchart LR
     M["app::mod"] --> D["decode · fetch · live"]
     T["Msg::Texts"] --> S["set_texts"]
-    style M fill:#f0bcdb,stroke:#ce4095,color:#111
-    style S fill:#f0bcdb,stroke:#ce4095,color:#111
+    style M fill:#f0bcdb,stroke:#f0bcdb,color:#111
+    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+
 <!-- file: 14 session_viewer/src/app/mod.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-90f35de946.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 14 session_viewer/src/app/scene.rs type -->
 
 - One field: the manifest's authored text. It is kept beside the documents because a scene replacement has to forget both together, which is why `clear` gains a line too.
 
+<span class="zone-mark" data-strip="illustrations/strip-933a0a15e1.svg" data-zone="Shell"></span>
+
 <!-- file: 14 session_viewer/src/lib.rs type -->
 
 - A module line and a `Msg` arm: the shell declares what now exists and routes one more asynchronous answer.
+
+<span class="zone-mark" data-strip="illustrations/strip-61a540a7f7.svg" data-zone="State"></span>
 
 <!-- file: 14 session_viewer/src/state.rs type -->
 
@@ -213,10 +265,14 @@ flowchart TB
     H["pre_build hook"] -- "docs/build_site.sh" --> S["target/docs/site"]
     S -- "copy-dir" --> D["dist/docs"]
     C["#viewer-docs corner"] -- "docs/" --> D
-    style S fill:#f0bcdb,stroke:#ce4095,color:#111
+    style S fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-4f8dd8a91e.svg" data-zone="Page"></span>
+
 <!-- file: 14 session_viewer/Trunk.toml copy -->
+
+<span class="zone-mark" data-strip="illustrations/strip-4f8dd8a91e.svg" data-zone="Page"></span>
 
 <!-- file: 14 session_viewer/docs/build_site.sh copy -->
 

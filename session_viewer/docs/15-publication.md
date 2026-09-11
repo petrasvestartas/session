@@ -25,18 +25,20 @@ flowchart TB
 
 ## Step 1 · A bounded window over the metadata
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 ![The file is small fields between huge arrays; the window fetches the small fields once and skips the arrays by length.](illustrations/metadata-window.svg)
 
 - Skipped geometry fields never decide the window's size: `read_length` reads at least 64 KiB inside the file, larger only for an array that is itself larger, and never past `end`.
 - `slice` borrows an exact cached range, including a valid empty range at the window's end.
 
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
+
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=1-2 -->
 
 ## Step 2 · Refill only on a jump
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 - `read` reuses the window when the requested range is inside it and replaces it under the same exposed revision otherwise; a changed ETag fails the read instead of mixing two revisions.
 
@@ -45,14 +47,16 @@ flowchart TB
     R["read(at, length)"] -- "inside window" --> H["reuse cached bytes"]
     R -- "outside window" --> F["refill · same ETag"]
     F -- "ETag changed" --> E["fail the read"]
-    style R fill:#f0bcdb,stroke:#ce4095,color:#111
+    style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=3-3 -->
 
 ## Step 3 · Route the LOD walk through the window
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-d89f2540f2.svg){ .locator data-strip="illustrations/strip-5220abe4db.svg" }
 
 The loop is unchanged: headers, skips and array bodies now borrow from `window` instead of issuing their own requests.
 
@@ -61,12 +65,16 @@ flowchart TB
     L["LOD walk loop"] -- "headers · skips · arrays" --> W["window.read"]
     W --> B["borrowed bytes"]
     B --> P["parsed LOD fields"]
-    style L fill:#f0bcdb,stroke:#ce4095,color:#111
+    style L fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 15 session_viewer/src/app/stream.rs type hunks=4-6 -->
 
 A unit test of the range rules, part of the file:
+
+<span class="zone-mark" data-strip="illustrations/strip-5220abe4db.svg" data-zone="Network"></span>
 
 <!-- file: 15 session_viewer/src/app/stream.rs copy hunks=7-7 -->
 
@@ -80,7 +88,7 @@ flowchart TB
     G["geometry bytes"] -- "put + verify" --> R["immutable revision"]
     R -- "copy" --> A["stable alias"]
     A -- "then" --> M["mutable manifest"]
-    style R fill:#f0bcdb,stroke:#ce4095,color:#111
+    style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
 <!-- supplied: 15 -->

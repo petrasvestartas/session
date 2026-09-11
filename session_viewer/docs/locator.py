@@ -28,11 +28,13 @@ PAL, esc, width = DRAW.PAL, DRAW.esc, DRAW.width
 DIRECTIVE = re.compile(r"<!-- (file|supplied): (\S+)(.*?)-->")
 HEADING = re.compile(r"^(#{2,3}) (Step|Part) ([^\n]*)$", re.M)
 IMAGE = re.compile(r"^!\[[^\]]*\]\(illustrations/locator-[0-9a-f]+\.svg\)(\{[^}]*\})?\n\n?", re.M)
+MARK = re.compile(r"^<span class=\"zone-mark\"[^>]*></span>\n\n?", re.M)
 
 # Colours chosen for the black page directly: Canvas.raw() remaps light fills to dark so a
 # label stays readable on a white box, which is the wrong direction for boxes drawn ON the page.
-DIM, EDGE = "#6f6f76", "#f4f4f6"
-LIT_FILL, LIT_STROKE, LIT_INK = "#f0bcdb", "#ce4095", "#111111"
+AHEAD_FILL, AHEAD_INK = "#26262b", "#77777e"
+BUILT_FILL, BUILT_INK = "#3a3a41", "#f4f4f6"
+LIT_FILL, LIT_INK = "#f0bcdb", "#111111"
 
 # One zone per box on the map. Order is reading order within the row; the matchers are tried in
 # order, so a longer prefix must come before the directory that contains it.
@@ -112,14 +114,12 @@ def render(lit, built):
     for key, rowi, label, sub, _ in ZONES:
         x, y, w, h = PLACE[key]
         on, here = key in built, key in lit
-        fill = LIT_FILL if here else "none"
-        stroke = LIT_STROKE if here else (EDGE if on else DIM)
-        dash = "" if (on or here) else ' stroke-dasharray="6 5"'
+        fill = LIT_FILL if here else (BUILT_FILL if on else AHEAD_FILL)
         # straight into parts: no colour remapping, these boxes sit on the page, not on white
         c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{DRAW.RADIUS}" '
-                       f'fill="{fill}" stroke="{stroke}" stroke-width="{2.4 if here else 1.4}"{dash}/>')
-        ink = LIT_INK if here else (EDGE if on else DIM)
-        sub_ink = LIT_INK if here else ("#c9ccd6" if on else DIM)
+                       f'fill="{fill}"/>')
+        ink = LIT_INK if here else (BUILT_INK if on else AHEAD_INK)
+        sub_ink = LIT_INK if here else ("#c9ccd6" if on else AHEAD_INK)
         c.text(x + 12, y + 26, label, "l", fill=ink, keep=True)
         c.text(x + 12, y + 48, sub, "s", fill=sub_ink, keep=True)
     sx, sy, sw, sh = PLACE["scene"]
@@ -128,7 +128,7 @@ def render(lit, built):
     # the rows the walk produced fall into the frame path; nothing else crosses between the rows
     down = sx + sw / 2
     c.parts.append(f'<path d="M{down:.1f},{sy + sh:.1f} L{down:.1f},158 L{gx + gw / 2:.1f},158 '
-                   f'L{gx + gw / 2:.1f},{gy - 2:.1f}" fill="none" stroke="{EDGE}" stroke-width="1.6" '
+                   f'L{gx + gw / 2:.1f},{gy - 2:.1f}" fill="none" stroke="{BUILT_INK}" stroke-width="1.6" '
                    f'marker-end="url(#a)"/>')
     c.text(gx + gw / 2 + 10, 154, "rows, uploaded once", "s", fill="#c9ccd6")
     # and one answer travels the other way
@@ -158,12 +158,10 @@ def strip(lit, built):
         for i, (key, _, label, _, _) in enumerate(zones):
             x = margin + i * (w + gap)
             on, here = key in built, key in lit
-            fill = LIT_FILL if here else "none"
-            stroke = LIT_STROKE if here else (EDGE if on else DIM)
-            dash = "" if (on or here) else ' stroke-dasharray="5 4"'
+            fill = LIT_FILL if here else (BUILT_FILL if on else AHEAD_FILL)
             c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="3" '
-                           f'fill="{fill}" stroke="{stroke}" stroke-width="{2.0 if here else 1.2}"{dash}/>')
-            ink = LIT_INK if here else (EDGE if on else DIM)
+                           f'fill="{fill}"/>')
+            ink = LIT_INK if here else (BUILT_INK if on else AHEAD_INK)
             c.text(x + w / 2, y + 20, label, "s", anchor="middle", fill=ink, keep=True)
     body = "".join(c.parts)
     name = "strip-" + hashlib.sha1(body.encode()).hexdigest()[:10] + ".svg"
@@ -188,7 +186,7 @@ def main():
     stale, drawn = [], set()
     for index, step in enumerate(steps):
         lesson = next(p for p in HERE.glob(f"{step['id']}-*.md"))
-        text = IMAGE.sub("", lesson.read_text())
+        text = MARK.sub("", IMAGE.sub("", lesson.read_text()))
         if index:
             previous = set(steps[index - 1]["files"])
         else:
@@ -223,6 +221,20 @@ def main():
             out.append(f"\n\n![{alt}](illustrations/{name}){{ .locator data-strip=\"illustrations/{bar}\" }}")
             last = head.end()
             built |= touched
+            # One mark per code block, so scrolling to a file inside a step moves the highlight
+            # to that file's zone rather than leaving the whole step lit.
+            for d in DIRECTIVE.finditer(text, head.end(), (nxt.start() if nxt else len(text))):
+                if d.group(1) != "file" or d.group(2) != step["id"]:
+                    continue
+                zone = zone_of(d.group(3).split()[0])
+                if zone is None:
+                    continue
+                one = strip({zone}, built)
+                drawn.add(one)
+                out.append(text[last:d.start()])
+                out.append(f'<span class="zone-mark" data-strip="illustrations/{one}" '
+                           f'data-zone="{BY_KEY[zone][2]}"></span>\n\n')
+                last = d.start()
         out.append(text[last:])
         new = "".join(out)
         if new != lesson.read_text():

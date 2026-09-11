@@ -25,7 +25,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 ## Step 1 · Matrix helpers
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 - A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here follows that rule, and so does the kernel's `Xform`.
 - The f64 → f32 edge is one function, `mat_to_f32`, so it is easy to find when a large model jitters.
@@ -35,14 +35,16 @@ flowchart LR
     A["Mat4 · [f64; 16]"] -- "mat_mul" --> B["Mat4"]
     A -- "xform_point_f64" --> P["placed point"]
     A -- "mat_to_f32" --> G["[f32; 16] for the GPU"]
-    style A fill:#f0bcdb,stroke:#ce4095,color:#111
+    style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
 
 <!-- file: 02 session_viewer/src/math.rs type lines=1-71 -->
 
 ## Step 2 · A box that can be empty
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 - `Aabb::empty()` is inverted (min > max), so a scene can start with no box and `grow` one point at a time.
 - `placed` transforms the eight corners; conservative for rotations, exact for translations.
@@ -52,69 +54,85 @@ flowchart LR
     E["Aabb::empty"] -- "grow · union" --> B["Aabb min · max"]
     B -- "placed(Mat4)" --> W["world box"]
     B -- "diagonal · contains" --> Q["queries"]
-    style B fill:#f0bcdb,stroke:#ce4095,color:#111
+    style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
 
 <!-- file: 02 session_viewer/src/math.rs type lines=72-123 -->
 
 - A box also has to travel through a placement. `placed` transforms all eight corners rather than the two extremes, because a rotation moves a corner that was not extreme into a position that is.
 
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
+
 <!-- file: 02 session_viewer/src/math.rs type lines=124-154 -->
 
 ## Step 3 · Recover camera facts from the matrix
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 Draw lanes receive only the view-projection, never the camera. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
+
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
 
 <!-- file: 02 session_viewer/src/math.rs type lines=155-220 -->
 
 ## Step 4 · Camera state
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 - `orientation` is a quaternion, the single source of truth; `position` and `up` are derived from it.
 - Internal units are metres; `Unit` converts scene millimetres at the matrix edge.
 - `scene_extent` floors the far plane so zooming into one detail cannot clip the rest of the scene.
 
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
+
 <!-- file: 02 session_viewer/src/camera.rs type lines=1-52 -->
 
 ## Step 5 · Construction and gestures
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 - Orbit is yaw about `world_up`, then pitch about the current right axis; no Euler singularity.
 - `zoom_at` keeps the world point under the cursor fixed: the target moves toward it by the zoom factor. Cursor and viewport are physical pixels, the same space as the framebuffer.
+
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=53-111 -->
 
 - Zoom is the gesture with a constraint attached: the world point under the cursor must not move. That is why it takes a cursor position at all, and why it moves the target as well as the distance.
 
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
+
 <!-- file: 02 session_viewer/src/camera.rs type lines=112-138 -->
 
 ## Step 6 · Projection swap that keeps the content
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 Orthographic shows content off-axis and nearer than the target plane; a naive flip to perspective would present sky. The framed toggle clips the bounds to the rectangle the orthographic view was showing and refits.
 
 ![The projection and the divide by w land the frustum in a cube. With near and far swapped, distant points crowd into a thin band at zero, which is where float32 is densest.](illustrations/frustum.svg)
 
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
+
 <!-- file: 02 session_viewer/src/camera.rs type lines=139-195 -->
 
 ## Step 7 · The view-projection
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 - **Reversed depth:** near and far are swapped in `perspective(...)`, so near is 1 and far approaches 0. The depth pass clears to 0 and compares `Greater`; all three must agree.
 - **Anchor:** eye and target are expressed relative to a caller anchor in world units before any f32 exists, so a model far from the origin does not cancel to noise.
 - Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
 
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
+
 <!-- file: 02 session_viewer/src/camera.rs type lines=196-269 -->
 
 ## Step 8 · Named views, fit, extent
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 - `fit` measures the box along the camera's own axes with `tan`, not a bounding sphere with `sin`; elongated scenes no longer sit twice as far as needed.
 - `grow_extent` widens only the far-plane floor when more geometry streams in.
@@ -126,25 +144,33 @@ flowchart TB
     F["fit(Aabb, aspect)"] -- "distance · scene_extent" --> C
     G["grow_extent"] --> C
     C -- "update_position" --> D["position · up"]
-    style F fill:#f0bcdb,stroke:#ce4095,color:#111
+    style F fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=270-298 -->
 
 - Fitting is the one gesture that reads the scene: it centres the target on a box and sets the distance from the box measured along the camera's own axes, so an elongated model fills the view instead of sitting twice as far away as it needs to.
 
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
+
 <!-- file: 02 session_viewer/src/camera.rs type lines=299-347 -->
 
 - The far plane has a floor rather than a value. Geometry streams in after the first fit, so the camera keeps the widest extent it has ever been told about instead of refitting and cutting the scene it already showed.
+
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=348-399 -->
 
 ## Step 9 · Wheel response
 
-![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-32ff160a3e.svg){ .locator data-strip="illustrations/strip-f7692c523e.svg" }
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-c15987f7e1.svg){ .locator data-strip="illustrations/strip-0027be4707.svg" }
 
 - `zoom_distance` is exponential per detent and clamps a single event to ten detents, so coalesced wheel events compose and never cross zero.
 - The two `#[cfg(test)]` modules are native-only unit checks; they are not part of the browser build.
+
+<span class="zone-mark" data-strip="illustrations/strip-0027be4707.svg" data-zone="State"></span>
 
 <!-- file: 02 session_viewer/src/camera.rs copy lines=400-513 -->
 
@@ -152,7 +178,7 @@ flowchart TB
 
 ## Step 10 · Wire the shell
 
-![Where this step sits in the viewer: Page, Shell, with 5 of 11 zones built so far.](illustrations/locator-c5d2734c22.svg){ .locator data-strip="illustrations/strip-6540b3f4df.svg" }
+![Where this step sits in the viewer: Page, Shell, with 5 of 11 zones built so far.](illustrations/locator-14a72206bd.svg){ .locator data-strip="illustrations/strip-9d05d45a43.svg" }
 
 - The uniform buffer is kept in the struct, and each frame writes a fresh matrix into it.
 - The anchor passed to `view_proj_anchored` is the world origin, where the triangle sits.
@@ -163,10 +189,14 @@ flowchart TB
     J["drag · zoom from JS"] --> T["Tutorial"]
     T -- "orbit · pan · zoom_at" --> C["Camera"]
     C -- "view_proj_anchored" --> U["uniform · write_buffer"]
-    style T fill:#f0bcdb,stroke:#ce4095,color:#111
+    style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-209b7c4538.svg" data-zone="Shell"></span>
+
 <!-- file: 02 session_viewer/src/lib.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-c82103ab5d.svg" data-zone="Page"></span>
 
 <!-- file: 02 session_viewer/index.html copy -->
 

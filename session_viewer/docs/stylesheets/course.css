@@ -148,3 +148,5 @@
 @media screen and (max-width: 60em) { .viewer-strip { display: none; } }
 /* An anchored heading must clear the pinned map rather than hide behind it. */
 .md-content h2[id], .md-content h3[id] { scroll-margin-top: 9rem; }
+/* Invisible anchors: one before each code block, so the pinned map can follow the file you reach. */
+.zone-mark { display: block; height: 0; overflow: hidden; }

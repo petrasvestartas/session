@@ -14,11 +14,28 @@
 
   function start() {
     var maps = Array.prototype.slice.call(document.querySelectorAll("img.locator[data-strip]"));
-    var steps = [];
+    if (!maps.length) return;
+    // mkdocs rewrites the markdown image path but not our attributes, so borrow the directory
+    // the first inline map resolved to.
+    var base = (maps[0].getAttribute("src") || "").replace(/[^/]+$/, "");
+
+    // Anchors, finest first: one per code block, falling back to the step heading.
+    var anchors = [];
     maps.forEach(function (img) {
       var head = headingFor(img);
-      if (head) steps.push({ head: head, img: img });
+      if (head) anchors.push({ at: head, strip: img.getAttribute("data-strip"),
+                               where: (img.getAttribute("alt") || "")
+                                 .replace(/^Where this step sits in the viewer: /, "")
+                                 .replace(/,? with .*$/, "") });
     });
+    Array.prototype.forEach.call(document.querySelectorAll(".zone-mark[data-strip]"), function (m) {
+      anchors.push({ at: m, strip: m.getAttribute("data-strip"), where: m.getAttribute("data-zone") });
+    });
+    anchors.sort(function (a, b) {
+      var d = a.at.compareDocumentPosition(b.at);
+      return (d & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1;
+    });
+    var steps = anchors;
     if (!steps.length) return;
 
     var bar = document.createElement("div");
@@ -34,21 +51,18 @@
 
     var current = null;
     function place() {
-      var middle = innerHeight / 2;
+      // Current is whatever last passed under the pinned bar: the code you are looking at, not
+      // the one coming. The floor keeps an anchored heading (which lands below the bar) current.
+      var rect = bar.getBoundingClientRect();
+      var line = Math.max(rect.height ? rect.bottom + 24 : 0, 160);
       var pick = steps[0];
       for (var i = 0; i < steps.length; i++) {
-        if (steps[i].head.getBoundingClientRect().top <= middle) pick = steps[i];
+        if (steps[i].at.getBoundingClientRect().top <= line) pick = steps[i];
       }
       if (pick === current) return;
       current = pick;
-      // mkdocs rewrites the markdown image path but not our attribute, so take the directory
-      // the inline map resolved to and swap in the strip's file name.
-      var here = pick.img.getAttribute("src") || "";
-      var file = (pick.img.getAttribute("data-strip") || "").split("/").pop();
-      img.src = here.replace(/[^/]+$/, file);
-      var alt = pick.img.getAttribute("alt") || "";
-      var where = alt.replace(/^Where this step sits in the viewer: /, "").replace(/,? with .*$/, "");
-      note.textContent = where ? "you are in: " + where : "";
+      img.src = base + (pick.strip || "").split("/").pop();
+      note.textContent = pick.where ? "you are in: " + pick.where : "";
     }
     place();
     addEventListener("scroll", place, { passive: true });

@@ -28,7 +28,7 @@ flowchart TB
 
 ## Step 1 · One struct owns the GPU
 
-![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-17e302cb1a.svg){ .locator data-strip="illustrations/strip-7cbb7f3a48.svg" }
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-0d04126684.svg){ .locator data-strip="illustrations/strip-4ad1ce20ab.svg" }
 
 - `Tutorial` is the shell: one struct that owns the GPU objects and is exported to the page.
 - `#[wasm_bindgen]` on the struct and its `impl` exports `create`, `render`, `drag`, `zoom` to JavaScript.
@@ -39,14 +39,16 @@ flowchart TB
     J["JavaScript page"] -- "Tutorial.create" --> T["struct Tutorial"]
     T -- "owns" --> R["surface · device<br>queue · pipeline"]
     J -- "render · drag · zoom" --> T
-    style T fill:#f0bcdb,stroke:#ce4095,color:#111
+    style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-4ad1ce20ab.svg" data-zone="Shell"></span>
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=1-36 -->
 
 ## Step 2 · Instance, surface, adapter, device
 
-![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-17e302cb1a.svg){ .locator data-strip="illustrations/strip-7cbb7f3a48.svg" }
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-0d04126684.svg){ .locator data-strip="illustrations/strip-4ad1ce20ab.svg" }
 
 - `Backends::BROWSER_WEBGPU`: only the browser's WebGPU, never WebGL.
 - The adapter must be `compatible_surface`; otherwise the device may not be able to present to this canvas.
@@ -54,11 +56,13 @@ flowchart TB
 
 ![The instance picks the backend, the surface is the canvas you present to, the adapter is one physical GPU chosen to be compatible with that surface, and the device is the handle every later resource comes from.](illustrations/gpu-objects.svg)
 
+<span class="zone-mark" data-strip="illustrations/strip-4ad1ce20ab.svg" data-zone="Shell"></span>
+
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=37-58 -->
 
 ## Step 3 · Surface configuration and the camera uniform
 
-![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-17e302cb1a.svg){ .locator data-strip="illustrations/strip-7cbb7f3a48.svg" }
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-0d04126684.svg){ .locator data-strip="illustrations/strip-4ad1ce20ab.svg" }
 
 - `width: 1, height: 1` marks "not configured yet"; `render_frame` resizes on first use.
 - A **uniform** is one small buffer every vertex reads. It holds an identity matrix, so clip position equals the shader's vertex position.
@@ -75,14 +79,16 @@ flowchart TB
     C["SurfaceConfiguration"] -- "width 1 · height 1" --> S["Surface"]
     M["identity [f32; 16]"] -- "create_buffer_init" --> U["uniform buffer"]
     U -- "binding 0" --> G["BindGroup"]
-    style G fill:#f0bcdb,stroke:#ce4095,color:#111
+    style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-4ad1ce20ab.svg" data-zone="Shell"></span>
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=59-98 -->
 
 ## Step 4 · Shader module, pipeline layout, render pipeline
 
-![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-17e302cb1a.svg){ .locator data-strip="illustrations/strip-7cbb7f3a48.svg" }
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-0d04126684.svg){ .locator data-strip="illustrations/strip-4ad1ce20ab.svg" }
 
 - `include_str!` bakes the WGSL into the binary; a missing shader file is a compile error, not a runtime one.
 - Entry-point names `vs_main`/`fs_main` and the color target `format` are the contract with the shader and the surface.
@@ -94,14 +100,16 @@ flowchart LR
     L["BindGroupLayout"] -- "create_pipeline_layout" --> P["PipelineLayout"]
     S --> R["RenderPipeline"]
     P --> R
-    style R fill:#f0bcdb,stroke:#ce4095,color:#111
+    style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-4ad1ce20ab.svg" data-zone="Shell"></span>
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=99-144 -->
 
 ## Step 5 · One frame
 
-![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-17e302cb1a.svg){ .locator data-strip="illustrations/strip-7cbb7f3a48.svg" }
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-0d04126684.svg){ .locator data-strip="illustrations/strip-4ad1ce20ab.svg" }
 
 - Resize once when the CSS size or device scale changed; configure the surface only then.
 - A render pass borrows the encoder; the inner braces end the borrow before `encoder.finish()`.
@@ -112,14 +120,16 @@ flowchart TB
     S["get_current_texture"] --> V["TextureView"]
     E["CommandEncoder"] -- "begin_render_pass" --> P["clear · draw(0..3)"]
     P -- "queue.submit" --> Q["present"]
-    style P fill:#f0bcdb,stroke:#ce4095,color:#111
+    style P fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-4ad1ce20ab.svg" data-zone="Shell"></span>
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=145-205 -->
 
 ## Step 6 · The shader
 
-![Where this step sits in the viewer: Shaders, with 4 of 11 zones built so far.](illustrations/locator-45d5713998.svg){ .locator data-strip="illustrations/strip-4298520334.svg" }
+![Where this step sits in the viewer: Shaders, with 4 of 11 zones built so far.](illustrations/locator-cbd913416e.svg){ .locator data-strip="illustrations/strip-118768e4b3.svg" }
 
 Rust and WGSL agree on three things:
 
@@ -138,8 +148,10 @@ flowchart LR
     I["vertex_index 0..3"] --> V["vs_main"]
     U["mvp uniform"] -- "group 0 · binding 0" --> V
     V -- "position + color" --> F["fs_main"]
-    style V fill:#f0bcdb,stroke:#ce4095,color:#111
+    style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-118768e4b3.svg" data-zone="Shaders"></span>
 
 <!-- file: 01 session_viewer/src/shaders/first.wgsl type -->
 
@@ -149,7 +161,7 @@ flowchart LR
 
 ## Step 7 · The page drives the shell
 
-![Where this step sits in the viewer: Page, with 4 of 11 zones built so far.](illustrations/locator-784430c17c.svg){ .locator data-strip="illustrations/strip-33a08ac62c.svg" }
+![Where this step sits in the viewer: Page, with 4 of 11 zones built so far.](illustrations/locator-12cbcb937a.svg){ .locator data-strip="illustrations/strip-e4b2182359.svg" }
 
 JavaScript owns the canvas and pointer events; it calls the four exported methods. Replace the page in full.
 
@@ -158,8 +170,10 @@ flowchart TB
     P["pointer · wheel · resize"] --> J["index.html script"]
     J -- "tutorial.render" --> T["Tutorial"]
     T -- "inspection JSON" --> S["#status"]
-    style J fill:#f0bcdb,stroke:#ce4095,color:#111
+    style J fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-e4b2182359.svg" data-zone="Page"></span>
 
 <!-- file: 01 session_viewer/index.html copy -->
 

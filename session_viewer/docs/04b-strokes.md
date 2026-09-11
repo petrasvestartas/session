@@ -35,7 +35,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 ## Step 1 · The segment row
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg){ .locator data-strip="illustrations/strip-f15c897b37.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-c699657f1d.svg){ .locator data-strip="illustrations/strip-2015313fb3.svg" }
 
 - 40 bytes, ends as flat `f32`s: a `vec3` would pad the row to 48.
 - `radius` 0 means the screen-constant pen; `facing` packs two face normals for the solid lane's back-edge cull.
@@ -44,14 +44,16 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 flowchart TB
     W["walk · segment endpoints"] --> R["CylinderSegment<br/>a · b · radius · facing"]
     R -- "40 B · storage" --> T["segment table"]
-    style R fill:#f0bcdb,stroke:#ce4095,color:#111
+    style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=1-56 -->
 
 ## Step 2 · The lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg){ .locator data-strip="illustrations/strip-f15c897b37.svg" }
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-c699657f1d.svg){ .locator data-strip="illustrations/strip-2015313fb3.svg" }
 
 - Two tables of the same row: pipes (mesh edges, culled by facing) and ribbons (free linework, always drawn).
 
@@ -60,30 +62,42 @@ flowchart LR
     SR["SegRows<br/>pipes · ribbons"] -- "append" --> SL["SegmentLane"]
     SL -- "draw_pipes · culled" --> P["ink pass"]
     SL -- "draw_ribbons · always" --> P
-    style SL fill:#f0bcdb,stroke:#ce4095,color:#111
+    style SL fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
+
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=57-115 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=116-180 -->
 
 - Every draw is `RIBBON_VERTS * rows` vertices with no vertex buffer bound; the shader indexes the table.
 
+<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
+
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=181-240 -->
 
 - The lane reports its solid-lane row count because the MSAA policy reads it: sample count is chosen from how much geometry is on screen.
+
+<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=241-252 -->
 
 - `DepthMode::Always` with blending: the shader decides visibility itself, so no hardware depth test can hide a stroke that lies on a surface.
 
+<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
+
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-275 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-2015313fb3.svg" data-zone="Lanes"></span>
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=276-314 -->
 
 ## Step 3 · The shared visibility rule
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg){ .locator data-strip="illustrations/strip-dc07261952.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-1b8cad2a06.svg){ .locator data-strip="illustrations/strip-9396de91e8.svg" }
 
 - Appended to every ink shader by `ink_module`. It compares the scene depth at the pixel with the axis depth.
 
@@ -92,42 +106,58 @@ flowchart LR
     D["scene depth · group 2"] --> V["ink_visible"]
     A["axis depth"] --> V
     V -- "keep / discard" --> F["ink fragment"]
-    style V fill:#f0bcdb,stroke:#ce4095,color:#111
+    style V fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
 
 <!-- file: 04b session_viewer/src/shaders/ink_visibility.wgsl type -->
 
 ## Step 4 · The ribbon shader
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg){ .locator data-strip="illustrations/strip-dc07261952.svg" }
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-1b8cad2a06.svg){ .locator data-strip="illustrations/strip-9396de91e8.svg" }
 
 - Bindings and constants. `LineUniform` is the same block as `triangle.wgsl`.
 
 ![A value handed from the vertex shader to the fragment shader is blended perspective-correctly; marked flat it is not blended at all, which is how a stroke's half-width travels.](illustrations/interpolate.svg)
 
+<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-4 -->
 
 - `band_area` integrates the pixel box against the capsule exactly, so coverage cannot beat with the line's subpixel phase the way a distance ramp does.
+
+<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=5-17 -->
 
 - Per-vertex outputs are flat: the half-width at each end goes down as two scalars and is resolved per pixel, because a per-vertex width is projective over a trapezoid.
 
+<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=18-25 -->
 
 - Clip against the near plane before any divide; a hand divide behind the eye mirrors the point through the screen centre.
+
+<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=26-90 -->
 
 - The fragment: coverage times fade, then `ink_visible` at the closest axis point. `fs_id` and `fs_edge_id` write `(row + 1, segment + 1)` for picking.
 
+<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=91-137 -->
 
 - `coverage` is where the exactness lives: `band_area` integrates the pixel box against the capsule instead of sampling a distance, so coverage cannot beat against the line's subpixel phase.
 
+<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
+
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=138-187 -->
 
 - The ID entries write `(row + 1, segment + 1)`, and the segment half carries a tag bit so a picked ribbon can be told from a picked face in the same channel.
+
+<span class="zone-mark" data-strip="illustrations/strip-9396de91e8.svg" data-zone="Shaders"></span>
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=188-280 -->
 
@@ -135,7 +165,7 @@ flowchart LR
 
 ## Step 5 · Wire the lane
 
-![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-63f669ae94.svg){ .locator data-strip="illustrations/strip-3e22a770ed.svg" }
+![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-8b355dfb89.svg){ .locator data-strip="illustrations/strip-a40df220b6.svg" }
 
 - `ink_module` compiles a lane shader with the visibility rule appended.
 
@@ -144,28 +174,42 @@ flowchart TB
     U["Upload.seg"] -- "set_scene" --> G["Gpu.segments"]
     L["segment_rows layout"] --> G
     G -- "ink pass · ink_group" --> P["strokes drawn"]
-    style G fill:#f0bcdb,stroke:#ce4095,color:#111
+    style G fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
+
 <!-- file: 04b session_viewer/src/engine/pipelines/mod.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
 
 <!-- file: 04b session_viewer/src/engine/pipelines/layouts.rs type -->
 
 - The layout file grows with each lane; this version adds the segment group. Every layout is built once per device and lives here, so a group number is decided in one file.
 
+<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
+
 <!-- file: 04b session_viewer/src/engine/gpu/upload.rs type -->
 
 - The ink pass binds group 2 through `objects.ink_group`, the variant that carries the physical depth.
+
+<span class="zone-mark" data-strip="illustrations/strip-d8a2d049f6.svg" data-zone="GPU core"></span>
 
 <!-- file: 04b session_viewer/src/engine/gpu/mod.rs type -->
 
 - A second object row with a three-segment polyline.
 
+<span class="zone-mark" data-strip="illustrations/strip-14430b945f.svg" data-zone="Shell"></span>
+
 <!-- file: 04b session_viewer/src/fixture.rs copy -->
+
+<span class="zone-mark" data-strip="illustrations/strip-14430b945f.svg" data-zone="Shell"></span>
 
 <!-- file: 04b session_viewer/src/lib.rs type -->
 
 - The shell's only change is the status line: every lane reports its own count, and that JSON is what the checkpoint test reads instead of a screenshot.
+
+<span class="zone-mark" data-strip="illustrations/strip-0d9ad8de3d.svg" data-zone="Page"></span>
 
 <!-- file: 04b session_viewer/index.html copy -->
 

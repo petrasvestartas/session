@@ -10,7 +10,7 @@ flowchart TB
     E --> R["records: Add · Remove · Replace · Xform"]
     R --> C["commit()"] --> U["undo() · redo()"]
     S["pb_dump · file_json_dump"] -- "purge" --> H["History"]
-    style R fill:#f0bcdb,stroke:#ce4095,color:#111
+    style R fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
 ![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)
@@ -29,7 +29,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 ### Step 1 · The tombstone
 
-![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg){ .locator data-strip="illustrations/strip-8c73a630e5.svg" }
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-9a8c0aba6a.svg){ .locator data-strip="illustrations/strip-31272bccaf.svg" }
 
 - `clone` is a deep copy that keeps the guid: a snapshot must still name the object it stands for, which is why `duplicate`, which mints a fresh guid, is never used here.
 - A `Tombstone` is everything needed to put one object back into every live table: the object, its typed list and position in it, its local transform, its parent and position among the siblings, the detached subtree, the graph attribute and every incident edge. `Add` and `Remove` share it; `Replace` and `Xform` carry absolute before and after values, never deltas.
@@ -40,39 +40,55 @@ flowchart TB
     T["Tombstone"] --> O["obj clone · collection · obj_index"]
     O ~~~ X["xform · parent_guid · index"]
     X ~~~ N["subtree node · attribute · edges"]
-    style T fill:#f0bcdb,stroke:#ce4095,color:#111
+    style T fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/history.rs type lines=1-59 -->
 
 - The tombstone is built while the tables are emptied, because that is the only moment when every position it must remember is still known.
 
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
+
 <!-- file: 20 session_rust/src/history.rs type lines=60-114 -->
 
 - A transform record is the same shape: the value before and the value after, absolute, so replaying it never depends on the state it is replayed into.
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/history.rs type lines=115-127 -->
 
 - Those are the three record bodies: the tombstone a removal leaves behind, and the before/after pairs of a replace and a transform. Next is what groups them.
 
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
+
 <!-- file: 20 session_rust/src/history.rs type lines=128-182 -->
 
 - `Op` can print itself, which is what makes a transaction readable in a test failure: the history is a data structure someone has to debug.
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/history.rs type lines=183-202 -->
 
 ### Step 2 · Undo replays in reverse
 
-![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg){ .locator data-strip="illustrations/strip-8c73a630e5.svg" }
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-9a8c0aba6a.svg){ .locator data-strip="illustrations/strip-31272bccaf.svg" }
 
 - `undo` pops a transaction, reverts its records last to first and pushes it onto the redo stack; `redo` applies them first to last. An add reverts by detaching, a remove by attaching, a replace by swapping the before clone in, a transform by placing the before value.
 - Both commit an open transaction first, so a half-typed gesture is never lost.
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/history.rs type lines=203-268 -->
 
 - Redo is undo's mirror: the same records applied in their original order. Keeping both directions in one place is what makes it obvious that every record type handles both.
 
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
+
 <!-- file: 20 session_rust/src/history.rs type lines=269-320 -->
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/lib.rs type -->
 
@@ -82,7 +98,7 @@ flowchart TB
 
 ### Step 3 · One place to add
 
-![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg){ .locator data-strip="illustrations/strip-8c73a630e5.svg" }
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-9a8c0aba6a.svg){ .locator data-strip="illustrations/strip-31272bccaf.svg" }
 
 - Every `add_*` routes through `_add_object`, which pushes to the typed list, `lookup`, the graph and the tree exactly as before and, while a transaction is open, records an `Add`.
 - `replace(guid, obj)` is the edit history sees: it gives `obj` the guid, swaps it into the typed list and `lookup`, refreshes the graph attribute and records before and after. Mutating an object in place through `lookup` still works and is not recorded.
@@ -97,19 +113,25 @@ flowchart TB
         P ~~~ D["remove_object → _detach"] ~~~ Xf["set_xform → _place"]
     end
     M --> H["history.record"]
-    style H fill:#f0bcdb,stroke:#ce4095,color:#111
+    style H fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/session.rs type -->
 
 ### Step 4 · The tree gives the node back, the graph its edges
 
-![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg){ .locator data-strip="illustrations/strip-8c73a630e5.svg" }
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-9a8c0aba6a.svg){ .locator data-strip="illustrations/strip-31272bccaf.svg" }
 
 - `Tree::remove` returns the detached node with its subtree, and `TreeNode::insert` puts a child back at an index, so a restored object lands where it was.
 - `Graph::edges_of` lists the incident edges with their attribute and direction, the part of a removal that had no way back before.
 
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
+
 <!-- file: 20 session_rust/src/tree.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/graph.rs type -->
 
@@ -117,19 +139,27 @@ flowchart TB
 
 ### Step 5 · Identity survives a swap
 
-![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg){ .locator data-strip="illustrations/strip-8c73a630e5.svg" }
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-9a8c0aba6a.svg){ .locator data-strip="illustrations/strip-31272bccaf.svg" }
 
 - `replace` sets the guid on the replacement, and a guid minted once cannot be reset, so the four types that lacked `refresh_guid` gain it.
 
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
+
 <!-- file: 20 session_rust/src/element.rs type -->
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/obb.rs type -->
 
 - One of the four types that lacked `refresh_guid`. `replace` gives the replacement the original's guid, and a guid minted once cannot otherwise be reset.
 
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
+
 <!-- file: 20 session_rust/src/plane.rs type -->
 
 - `Plane` gains it too. Watch how small each of these four edits is - the work was finding which types lacked it, not making the change.
+
+<span class="zone-mark" data-strip="illustrations/strip-31272bccaf.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/pointcloud.rs type -->
 

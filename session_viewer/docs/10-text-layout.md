@@ -25,7 +25,7 @@ flowchart TB
 
 ## Step 1 · Bundled fonts
 
-![Where this step sits in the viewer: Page, with 9 of 11 zones built so far.](illustrations/locator-0236a81d44.svg){ .locator data-strip="illustrations/strip-dfc1d1b412.svg" }
+![Where this step sits in the viewer: Page, with 9 of 11 zones built so far.](illustrations/locator-195875ab19.svg){ .locator data-strip="illustrations/strip-8fd356bf70.svg" }
 
 - Fonts are compiled into the WASM with `include_bytes!`; the browser never scans system fonts, so every machine shapes identically.
 - Install the three font files now; the shaping module cannot compile without them.
@@ -34,20 +34,24 @@ flowchart TB
 flowchart TB
     A["NotoSans · Symbols · Symbols2"] -- "include_bytes!" --> B["FONT_BYTES … FALLBACK_BYTES"]
     B --> C["bundled_fonts · FontSystem"]
-    style B fill:#f0bcdb,stroke:#ce4095,color:#111
+    style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
 <!-- supplied: 10 -->
 
 The fonts' licence and provenance travel with them.
 
+<span class="zone-mark" data-strip="illustrations/strip-8fd356bf70.svg" data-zone="Page"></span>
+
 <!-- file: 10 session_viewer/assets/text/OFL.txt copy -->
+
+<span class="zone-mark" data-strip="illustrations/strip-8fd356bf70.svg" data-zone="Page"></span>
 
 <!-- file: 10 session_viewer/assets/text/README.md copy -->
 
 ## Step 2 · A clock
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-0782eb20da.svg){ .locator data-strip="illustrations/strip-0e147ea14f.svg" }
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-84964bf508.svg){ .locator data-strip="illustrations/strip-f4676a764b.svg" }
 
 Shaping is timed and every frame is timed; both read the same `now_ms`. Native builds read the system clock so the same module compiles for tests.
 
@@ -56,16 +60,18 @@ flowchart LR
     A["performance.now · browser"] --> B["now_ms"]
     C["SystemTime · native"] --> B
     B --> D["Performance::frame"]
-    style B fill:#f0bcdb,stroke:#ce4095,color:#111
+    style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
 - `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict. Nothing reads it yet — lesson 17 adds `reduce_for_slow_frames`, which is what turns the verdict into a lower device scale. Measuring first and acting later is deliberate: the number is easy to test on its own.
+
+<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
 
 <!-- file: 10 session_viewer/src/engine/performance.rs type -->
 
 ## Step 3 · Where a label lives: `TextPlacement`
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
 
 - The placement is intent, not pixels: a camera move changes where the text lands, never its string or its glyphs.
 - `Screen` is CSS pixels; `Anchor`/`Nameplate` follow a world point with screen-sized glyphs; `WorldBillboard` and `WorldPlane` have a world em height.
@@ -75,14 +81,16 @@ flowchart LR
     A["TextPlacement"] --> B["Screen · CSS px"]
     A --> C["Anchor · Nameplate"]
     A --> D["WorldBillboard · WorldPlane"]
-    style A fill:#f0bcdb,stroke:#ce4095,color:#111
+    style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=1-47 -->
 
 ## Step 4 · Label, run, document
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
 
 ![The pen moves by advances: a kerned pair, a space without ink, a two-character ligature and a zero-advance accent; clusters map glyphs back to characters.](illustrations/shaping.svg)
 
@@ -93,14 +101,16 @@ flowchart LR
 flowchart LR
     A["TextLabel"] -- "shape" --> B["TextRun · Buffer"]
     B --> C["TextDocument · FontSystem"]
-    style C fill:#f0bcdb,stroke:#ce4095,color:#111
+    style C fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=48-77 -->
 
 ## Step 5 · Replace labels without reshaping unchanged ones
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
 
 - Validate the whole replacement before touching the current runs; a bad label leaves the old document intact.
 - Only `text`, `font_size` and `line_height` participate in shaping; a colour or placement edit reuses the buffer by id.
@@ -110,14 +120,16 @@ flowchart TB
     A["Vec of TextLabel"] -- "validate_label" --> B["set_labels"]
     B -- "same_layout" --> C["reuse Buffer by id"]
     B -- "layout changed" --> D["shape"]
-    style B fill:#f0bcdb,stroke:#ce4095,color:#111
+    style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=78-133 -->
 
 ## Step 6 · Font replacement, clearing and diagnostics
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
 
 - Diagnostics export what the shaper decided: glyph id, source byte cluster, advance, offset, baseline. The reference page compares these to the browser.
 - A cluster is a byte range into the source string: `ffi` may be one glyph, `e` + combining accent one cluster.
@@ -126,18 +138,22 @@ flowchart TB
 flowchart TB
     A["replace_fonts · clear"] --> B["TextDocument"]
     B -- "diagnostics" --> C["GlyphDiagnostic<br>id · cluster · advance"]
-    style C fill:#f0bcdb,stroke:#ce4095,color:#111
+    style C fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=134-194 -->
 
 - The document owns the `FontSystem`, so a default one can be constructed with the bundled faces already loaded and nothing else in the crate has to know where fonts come from.
 
+<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=195-226 -->
 
 ## Step 7 · Validation and the shaping call
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-0e78c35a06.svg){ .locator data-strip="illustrations/strip-c18c0adc1a.svg" }
 
 - Non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion sees them.
 - `Shaping::Advanced` is what makes kerning, ligatures and font fallback happen once, at shape time.
@@ -146,29 +162,37 @@ flowchart TB
 flowchart TB
     A["validate_label · valid_plane_axes"] --> B["shape · Shaping::Advanced"]
     B -- "kerning · ligatures · fallback" --> C["Buffer"]
-    style B fill:#f0bcdb,stroke:#ce4095,color:#111
+    style B fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=227-287 -->
 
 - Validation is its own small layer: non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion can turn them into a silent misplacement.
 
+<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
+
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=288-324 -->
 
 Unit checks for the shaper live in the same file.
+
+<span class="zone-mark" data-strip="illustrations/strip-c18c0adc1a.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 10 session_viewer/src/engine/text.rs copy lines=325-437 -->
 
 ## Step 8 · Declare the modules
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg){ .locator data-strip="illustrations/strip-7e0ebebd95.svg" }
+![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-b604fab263.svg){ .locator data-strip="illustrations/strip-21f1420dc0.svg" }
 
 ```mermaid
 flowchart LR
     A["engine/mod.rs"] -- "pub mod" --> B["performance"]
     A -- "pub mod" --> C["text"]
-    style A fill:#f0bcdb,stroke:#ce4095,color:#111
+    style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
+
+<span class="zone-mark" data-strip="illustrations/strip-21f1420dc0.svg" data-zone="GPU core"></span>
 
 <!-- file: 10 session_viewer/src/engine/mod.rs type -->
 
@@ -176,7 +200,7 @@ flowchart LR
 
 ## Step 9 · The same-font reference page
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-39ef302cfc.svg){ .locator data-strip="illustrations/strip-bd5a52e356.svg" }
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-bead4729e6.svg){ .locator data-strip="illustrations/strip-80d0501ef5.svg" }
 
 - The page loads the identical font bytes with `@font-face`, sets the same kerning and ligature options, and compares line widths with the shaper's `line_width`.
 - The WASM export shapes five sizes, then changes only colour and placement and asserts the shape count did not move.
@@ -186,16 +210,24 @@ flowchart TB
     A["text_layout · WASM export"] -- "line_width" --> B["text-layout.html"]
     C["@font-face · same bytes"] --> B
     B -- "compare widths" --> D["textLayout.passed"]
-    style A fill:#f0bcdb,stroke:#ce4095,color:#111
+    style A fill:#f0bcdb,stroke:#f0bcdb,color:#111
 ```
 
+<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
+
 <!-- file: 10 session_viewer/src/text_layout.rs copy -->
+
+<span class="zone-mark" data-strip="illustrations/strip-f4676a764b.svg" data-zone="Shell"></span>
 
 <!-- file: 10 session_viewer/src/lib.rs type -->
 
 - A module line and the shaping export: the shell grows by declaring what now exists. Nothing in this lesson draws, so nothing else in the shell changes.
 
+<span class="zone-mark" data-strip="illustrations/strip-8fd356bf70.svg" data-zone="Page"></span>
+
 <!-- file: 10 session_viewer/assets/text-layout.html copy -->
+
+<span class="zone-mark" data-strip="illustrations/strip-8fd356bf70.svg" data-zone="Page"></span>
 
 <!-- file: 10 session_viewer/index.html copy -->
 
