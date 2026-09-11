@@ -308,7 +308,7 @@ If every edge disappears, compare the depth clear and compare function against t
 - New lane: `BackdropLane` (background, grid).
 - Sample count is chosen per frame from geometry and adapter budget.
 
-**Production equivalent:** `src/engine/gpu/targets.rs`, `backdrop.rs`, `src/shaders/physical.wgsl`, `ink_visibility.wgsl`, `grid.wgsl`, `background.wgsl`; the page entry and the fixture live in `src/lib.rs` and `src/fixture.rs`.
+**Production equivalent:** `src/engine/gpu/targets.rs`, `backdrop.rs`, `src/shaders/physical.wgsl`, `ink_visibility.wgsl`, `grid.wgsl`, `background.wgsl`; the page entry is `src/lib.rs`. The fixture is teaching scaffolding with no production counterpart: lesson 12 deletes `src/fixture.rs` and the manifest loader takes its place.
 
 ## Try
 

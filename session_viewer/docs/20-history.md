@@ -33,7 +33,11 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 20 session_rust/src/history.rs type lines=1-202 -->
+<!-- file: 20 session_rust/src/history.rs type lines=1-127 -->
+
+- Those are the three record bodies: the tombstone a removal leaves behind, and the before/after pairs of a replace and a transform. Next is what groups them.
+
+<!-- file: 20 session_rust/src/history.rs type lines=128-202 -->
 
 ### Step 2 · Undo replays in reverse
 

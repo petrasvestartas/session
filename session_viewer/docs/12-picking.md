@@ -58,7 +58,18 @@ flowchart TB
 
 - The browser picks the presentation-compatible adapter; `?gpu=high` asks for the high-performance one on a hybrid machine and falls back to the browser's choice when that adapter is refused.
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-160 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-81 -->
+
+- That is the chain as far as a chosen adapter. The next part asks it for a device, and the only unusual thing it asks for is a storage-binding limit.
+
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=82-114 -->
+
+- 256 MiB of storage binding where available, rather than the adapter maximum: the measured point-cloud scene needs 158 MB in one table. A device limited to the standard 128 MiB still starts, and an oversized scene then reports a GPU error instead of a silent driver fallback.
+- `failure` is where an uncaptured error or a device loss is remembered, because both arrive on a callback rather than at the call that caused them. `State::render` reads it and shows the reload panel instead of drawing garbage.
+
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=115-160 -->
+
+- The surface's own capabilities decide the format: the first sRGB one if there is one, so colours are written in the space the browser will display.
 
 Native-only adapter naming and the error callbacks:
 
@@ -360,7 +371,11 @@ flowchart TB
 
 <!-- file: 12 session_viewer/src/state.rs type lines=1-45 -->
 
-<!-- file: 12 session_viewer/src/state.rs type lines=46-196 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=46-177 -->
+
+- Everything above changes what is in the scene: append a document, replace the manifest texts, start or extend a streamed cloud or sheet, clear. Each one ends by telling the GPU and asking for a frame — `State` is the only place that knows both sides.
+
+<!-- file: 12 session_viewer/src/state.rs type lines=178-196 -->
 
 - `toggle_xray` is a view change, not a scene change: `view.opacity` goes between `1.0` and `0.0` and `touch` schedules a frame; the shaders read the zero, no row is rewritten.
 - `select` clears controls and edge highlight before moving the flag, so no lane keeps a stale parent.
