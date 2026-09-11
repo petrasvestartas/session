@@ -17,7 +17,7 @@ That is deliberate. Being stuck with no way forward teaches nothing; being shown
 
 ## One map, always the same
 
-Every step opens with the same picture of the whole viewer, with the box you are working in filled pink, the boxes you have already built solid, and the ones still ahead dashed.
+Every step that writes a file opens with the same picture of the whole viewer, with the box you are working in filled pink, the boxes you have already built solid, and the ones still ahead dashed.
 
 ![The whole viewer as one map: documents come in along the top row, a frame is drawn along the bottom one.](illustrations/map.svg)
 

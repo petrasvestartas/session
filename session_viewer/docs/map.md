@@ -4,7 +4,7 @@ Learn this one picture and the rest of the course has an address.
 
 ![The whole viewer as one map: the top row is how documents come in, the bottom row is how a frame is drawn, and a pick answer travels back up.](illustrations/map.svg)
 
-Every step of every lesson opens with this same map, with one box filled pink: that is where the code on the page lives. A solid box is something you have already built. A dashed box is still ahead of you. Nothing else on the map ever moves, so after a lesson or two you stop reading it and start *seeing* it.
+Every step that touches a file opens with this same map, with one box filled pink: that is where the code on the page lives. (A step that only explains something has no file, so it has no map.) A solid box is something you have already built. A dashed box is still ahead of you. Nothing else on the map ever moves, so after a lesson or two you stop reading it and start *seeing* it.
 
 ## The two paths
 
@@ -16,7 +16,7 @@ There are only two journeys in this viewer, and every file serves one of them.
 
 The two meet in one place: the rows the walk produced are uploaded once, and from then on the frame path reads them. That single junction is why the viewer can hold a large model and still draw quickly — drawing never re-reads the documents.
 
-**One arrow goes backwards.** A pick is the only upward flow: the lanes draw object ids into a small offscreen window, the answer is read back, and `Scene` turns a row number into the document object it came from. Everything else in the viewer points downward.
+**One arrow goes backwards.** A pick is the upward flow you will feel: the lanes draw object ids into a small offscreen window, the answer is read back, and `Scene` turns a row number into the document object it came from. Two things extend it further than the arrow can show — picking a streamed cloud point or a sheet entity continues left into the network, because the identity was never on this machine; and the tile pool reads its own size report back a frame later, which is a GPU → CPU flow that never reaches the scene. Everything else points downward.
 
 ## The zones, one line each
 
@@ -24,13 +24,13 @@ The two meet in one place: the rows the walk produced are uploaded once, and fro
 |---|---|---|
 | **Page** | `index.html`, `Trunk.toml`, `Cargo.toml` | The browser's side of the contract: what gets loaded before any Rust runs. |
 | **Network** | `fetch`, `manifest`, `validate`, `decode`, `stream`, `live`, `loader` | The only code that touches bytes you did not create. All validation happens here. |
-| **Kernel** | `session_rust` | Shared with the C++ and Python kernels. Exact f64 geometry and identity; it knows nothing about drawing. |
-| **Scene + walk** | `app/scene.rs`, `app/walk/*` | Turns one document into rows. A producer per geometry kind, and none of them knows about files, selection or the camera. |
-| **Shell** | `lib.rs`, `app/mod.rs` | The window, the event loop, and the one place a redraw is asked for. |
-| **Input** | `app/input.rs`, `app/touch.rs` | Gestures become intentions. It never touches a buffer; it asks `State`. |
+| **Kernel** | `session_rust` | Shared with the C++ and Python kernels: exact f64 geometry and identity, and the one shared display type, `RenderVertex`. It does link wgpu for that, but it decides nothing about how the viewer draws. |
+| **Scene + walk** | `app/scene.rs`, `app/scene_text.rs`, `app/selection.rs`, `app/walk/*`, `engine/text.rs` | Turns one document into rows, and names what can be selected. No producer in `walk/` knows about files, selection or the camera; `Scene` above them holds the documents and their placements, and hands finished rows to the GPU. |
+| **Shell** | `lib.rs`, `app/mod.rs`, `app/feedback.rs`, `app/inspection*`, `engine/performance.rs` | The window, the event loop, the one place a redraw is asked for, and the measurements that observe a frame without changing it. |
+| **Input** | `app/input.rs`, `app/touch.rs` | Gestures become intentions. It never touches a buffer or names a wgpu type: anything that changes the scene goes through `State`. It does flip the view knobs directly (`view.lit`, `show_outlines`) and read the device scale, because those are per-frame view state rather than scene state. |
 | **State** | `state.rs`, `camera.rs` | Camera and selection transitions, and the demand for the next frame. |
-| **GPU core** | `device`, `present`, `render`, `frame`, `objects`, `targets`, `pipelines` | One device, one set of uniforms, one list of passes. Everything a lane needs but no lane should own. |
-| **Lanes** | `arena`, `segments`, `glyphs`, `cloud`, `splat`, `text*`, `surface_outline`, `triangle_tiles`, `pick` | One per kind of thing drawn. Lanes never see each other; that is what makes a new primitive an addition rather than an edit. |
+| **GPU core** | `device`, `present`, `render`, `frame`, `objects`, `targets`, `buffers`, `instance`, `upload`, `view`, `pipelines/` | One device, one set of uniforms, one list of passes, one row type, one growable buffer. Everything a lane needs but no lane should own. |
+| **Lanes** | `arena`, `segments`, `glyphs`, `cloud`, `splat`, `lod`, `text*`, `surface_outline`, `backdrop`, `triangle_tiles`, `pick` | One per kind of thing drawn, which is what makes a new primitive an addition rather than an edit. Most lanes ignore each other completely; the exceptions are deliberate and few — outline text borrows the arena's buffers rather than copying the geometry, and the splat lane reads the cloud tables and the LOD walk it draws from. |
 | **Shaders** | `src/shaders/*.wgsl` | The code that runs on the GPU, compiled against the scene contract in `scene.wgsl`. |
 | **Pixels** | the canvas | Where it all ends up. |
 

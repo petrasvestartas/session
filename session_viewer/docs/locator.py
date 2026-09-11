@@ -39,7 +39,8 @@ LIT_FILL, LIT_STROKE, LIT_INK = "#f0bcdb", "#ce4095", "#111111"
 ZONES = [
     ("page",    0, "Page",         "index.html · Trunk · Cargo", ["session_viewer/index.html", "session_viewer/Trunk.toml",
                                                                   "session_viewer/Cargo", "session_viewer/.cargo",
-                                                                  "session_viewer/assets/"]),
+                                                                  "session_viewer/assets/", "session_viewer/docs/build_site.sh",
+                                                                  "session_viewer/index.html"]),
     ("network", 0, "Network",      "fetch · manifest · stream",  ["session_viewer/src/app/fetch.rs", "session_viewer/src/app/live.rs",
                                                                   "session_viewer/src/app/stream.rs", "session_viewer/src/app/manifest.rs",
                                                                   "session_viewer/src/app/validate.rs", "session_viewer/src/app/decode.rs",
@@ -47,11 +48,14 @@ ZONES = [
                                                                   "session_viewer/src/app/cloud_query.rs", "session_viewer/src/app/sheet_query.rs"]),
     ("kernel",  0, "Kernel",       "documents in f64",           ["session_rust/", "session_proto/", "session_py/", "session_cpp/"]),
     ("scene",   0, "Scene + walk", "documents → rows",           ["session_viewer/src/app/scene", "session_viewer/src/app/walk/",
-                                                                  "session_viewer/src/app/selection.rs"]),
+                                                                  "session_viewer/src/app/selection.rs", "session_viewer/src/scene.rs",
+                                                                  "session_viewer/src/engine/text.rs"]),
     ("shell",   1, "Shell",        "lib.rs · App",      ["session_viewer/src/lib.rs", "session_viewer/src/app/mod.rs",
                                                                   "session_viewer/src/app/feedback.rs", "session_viewer/src/app/inspection",
                                                                   "session_viewer/src/app/knobs.rs", "session_viewer/src/selftest",
-                                                                  "session_viewer/src/text_quality.rs", "session_viewer/src/fixture.rs"]),
+                                                                  "session_viewer/src/text_quality.rs", "session_viewer/src/fixture.rs",
+                                                                  "session_viewer/src/text_layout.rs",
+                                                                  "session_viewer/src/engine/performance.rs"]),
     ("input",   1, "Input",        "pointer · keys",     ["session_viewer/src/app/input.rs", "session_viewer/src/app/touch.rs"]),
     ("state",   1, "State",        "camera, pick",         ["session_viewer/src/state", "session_viewer/src/camera.rs",
                                                                   "session_viewer/src/math.rs"]),
@@ -61,8 +65,7 @@ ZONES = [
                                                                   "session_viewer/src/engine/gpu/targets.rs", "session_viewer/src/engine/gpu/buffers.rs",
                                                                   "session_viewer/src/engine/gpu/instance.rs", "session_viewer/src/engine/gpu/upload.rs",
                                                                   "session_viewer/src/engine/gpu/view.rs", "session_viewer/src/engine/pipelines",
-                                                                  "session_viewer/src/engine/mod.rs", "session_viewer/src/engine/performance.rs",
-                                                                  "session_viewer/src/engine/text.rs"]),
+                                                                  "session_viewer/src/engine/mod.rs"]),
     ("lanes",   1, "Lanes",        "one per kind",         ["session_viewer/src/engine/gpu/"]),
     ("shaders", 1, "Shaders",      "WGSL",            ["session_viewer/src/shaders/"]),
     ("pixels",  1, "Pixels",       "the canvas",                 []),
@@ -176,7 +179,12 @@ def main():
                     path = d.group(3).split()[0] if d.group(2) == step["id"] else None
                     if path:
                         touched.add(zone_of(path))
-            touched -= {None}
+            if None in touched:
+                unplaced = sorted({d.group(3).split()[0] for d in DIRECTIVE.finditer(chunk)
+                                   if d.group(1) == "file" and d.group(2) == step["id"]
+                                   and zone_of(d.group(3).split()[0]) is None})
+                raise SystemExit(f"{lesson.name}: no zone for {', '.join(unplaced)} - "
+                                 "add it to ZONES, or the step silently gets no map")
             if not touched:
                 continue
             name, names = render(touched, built | touched)

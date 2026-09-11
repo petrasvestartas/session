@@ -47,7 +47,7 @@ The fonts' licence and provenance travel with them.
 
 ## Step 2 · A clock
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg)
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-0782eb20da.svg)
 
 Shaping is timed and every frame is timed; both read the same `now_ms`. Native builds read the system clock so the same module compiles for tests.
 
@@ -65,7 +65,7 @@ flowchart LR
 
 ## Step 3 · Where a label lives: `TextPlacement`
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
 
 - The placement is intent, not pixels: a camera move changes where the text lands, never its string or its glyphs.
 - `Screen` is CSS pixels; `Anchor`/`Nameplate` follow a world point with screen-sized glyphs; `WorldBillboard` and `WorldPlane` have a world em height.
@@ -82,7 +82,7 @@ flowchart LR
 
 ## Step 4 · Label, run, document
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
 
 ![The pen moves by advances: a kerned pair, a space without ink, a two-character ligature and a zero-advance accent; clusters map glyphs back to characters.](illustrations/shaping.svg)
 
@@ -100,7 +100,7 @@ flowchart LR
 
 ## Step 5 · Replace labels without reshaping unchanged ones
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
 
 - Validate the whole replacement before touching the current runs; a bad label leaves the old document intact.
 - Only `text`, `font_size` and `line_height` participate in shaping; a colour or placement edit reuses the buffer by id.
@@ -117,7 +117,7 @@ flowchart TB
 
 ## Step 6 · Font replacement, clearing and diagnostics
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
 
 - Diagnostics export what the shaper decided: glyph id, source byte cluster, advance, offset, baseline. The reference page compares these to the browser.
 - A cluster is a byte range into the source string: `ffi` may be one glyph, `e` + combining accent one cluster.
@@ -137,7 +137,7 @@ flowchart TB
 
 ## Step 7 · Validation and the shaping call
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
 
 - Non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion sees them.
 - `Shaping::Advanced` is what makes kerning, ligatures and font fallback happen once, at shape time.

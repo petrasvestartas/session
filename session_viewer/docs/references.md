@@ -13,13 +13,16 @@ Every version below is pinned in `session_viewer/Cargo.toml` and locked by `Carg
 | `wgpu` | 29.0 | The WebGPU implementation. In the browser it is a thin layer over the browser's own WebGPU; natively it reaches Vulkan, Metal or DX12, which is how the same code runs under `cargo xtest`. |
 | `winit` | 0.30 | The window and event loop. On the web it is the canvas and its pointer, keyboard and touch events. |
 | `glyphon` | =0.11.0 | Glyph atlas and text renderer on top of wgpu. Pinned exactly: it is the release that matches wgpu 29. |
-| `wasm-bindgen`, `wasm-bindgen-futures`, `web-sys`, `js-sys` | 0.2 / 0.4 / 0.3 | The bridge to the browser: the DOM, `fetch`, `EventSource`, `performance.now`. |
+| `wasm-bindgen` 0.2, `wasm-bindgen-futures` 0.4, `web-sys` 0.3, `js-sys` 0.3 | The bridge to the browser: the DOM, `fetch`, `EventSource`, `performance.now`. |
 | `bytemuck` | 1 | `Pod`/`Zeroable`, which is what lets a `#[repr(C)]` struct be viewed as bytes for the GPU without a copy. |
 | `prost` | 0.14 | Protobuf decoding for the `.pb` documents. |
-| `serde`, `serde_json`, `serde_yaml_ng`, `toml` | 1.0 / 0.10 / 0.8 | Manifest parsing, in three formats with one set of semantics. |
+| `serde` 1.0, `serde_json` 1.0, `serde_yaml_ng` 0.10, `toml` =0.8.23 | Manifest parsing in three formats with one set of semantics — a test asserts the three agree — plus session JSON validation, sheet side tables and the live source. `toml` is pinned exactly. |
 | `anyhow` | 1.0 | One error type at the boundaries, so `?` composes. |
-| `log`, `console_log`, `console_error_panic_hook` | 0.4 / 1.0 / 0.1 | Diagnostics that survive the wasm boundary. Without the panic hook a Rust panic reaches the console as `unreachable executed` and nothing else. |
-| `session_rust` | path | The geometry kernel, shared with the C++ and Python implementations. |
+| `log` 0.4, `console_log` 1.0, `console_error_panic_hook` 0.1.6 | Diagnostics that survive the wasm boundary. Without the panic hook a Rust panic reaches the console as `unreachable executed` and nothing else. |
+| `getrandom` | 0.2 (`js`) | Randomness in the browser, where the usual system source does not exist. |
+| `naga` | =29.0.4 (`wgsl-in`) | Parses every shader in the mirror tests, which is how `cargo xtest` catches a WGSL mistake without a GPU. |
+| `pollster` | 0.4 (native only) | Blocks on the async device setup in the native harness, so the same code path serves the browser and the tests. |
+| `session_rust` | path | The geometry kernel, shared with the C++ and Python implementations. It links wgpu for one shared display type, `RenderVertex`. |
 
 Trunk builds the page; `wasm-bindgen` generates the JavaScript that instantiates the module. Lesson 00 draws that chain.
 
@@ -41,7 +44,7 @@ Each of these is a known technique. The course does not link to a paper for any 
 
 | Idea | The problem it solves | Drawn in | Built in |
 |---|---|---|---|
-| **Reverse-Z depth** | Float depth crowds its precision at the far plane, which is where you need it least. Swapping near and far puts the precision near the eye. | [frustum](02-camera.md), [ink visibility](05-visibility.md) | `math.rs`, every `DepthMode` |
+| **Reverse-Z depth** | Float depth crowds its precision at the far plane, which is where you need it least. Swapping near and far puts the precision near the eye. | [frustum](02-camera.md), [ink-visibility](05-visibility.md) | `camera.rs` swaps the planes, every `DepthMode` compares `Greater` |
 | **Depth-gradient carried ink** | A thick stroke's fragments sit beside its axis and read the wrong surface's depth. The surface slope carries the depth from fragment to axis. | [ink-visibility](05-visibility.md) | `shaders/ink_visibility.wgsl` |
 | **Finite-triangle visibility** | A depth plane is infinite; a triangle is not. Binning projected triangles into screen tiles lets an edge be hidden only by geometry that really covers it. | [finite-triangle](18-finite-visibility.md), [tiles](18-finite-visibility.md) | `engine/gpu/triangle_tiles.rs` |
 | **Octahedral normal encoding** | A unit vector has two degrees of freedom, so it does not need three floats. Two 8-bit numbers are enough for shading and culling. | [normals](09-normals.md) | `app/walk/encode.rs`, `shaders/normals.wgsl` |

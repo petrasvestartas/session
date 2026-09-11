@@ -197,7 +197,7 @@ flowchart TB
 
 ### Step 6 · A text label can own a row
 
-![Where this step sits in the viewer: Network, GPU core, with 10 of 11 zones built so far.](illustrations/locator-b9ea9b9703.svg)
+![Where this step sits in the viewer: Network, Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-c35ec43efb.svg)
 
 - `TextObject { row, selected }` on a label means "this text is a scene object"; `None` means a derived annotation such as the selected-object name.
 - `ink_color` is black while the object is selected and the authored color otherwise; both text renderers read it, so the authored color is never touched.
