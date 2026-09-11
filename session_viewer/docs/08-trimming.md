@@ -2,7 +2,7 @@
 
 ## You are building
 
-![Diagram: surface domain\ + outer loop + inner loops · triangles inside the allowed region · trimmed 3D face + chains · arena rows + pipes · pipe_ids: u-min / u-max / v-min / v-max](illustrations/08-01.svg)
+![Diagram: a surface domain with outer and inner loops triangulates to a trimmed 3D face whose pipes carry u-min, u-max, v-min and v-max source ids.](illustrations/08-01.svg)
 
 ![Left: outer and inner loops select the face in u,v and the hole stays empty. Right: a cylinder's seam is one XYZ curve used at u=0 and u=1.](illustrations/trims-seams.svg)
 
@@ -38,7 +38,7 @@
 
 - A natural boundary is a domain limit: `u == start`, `u == end`, `v == start`, `v == end`.
 - A closed direction has no physical edge, so a periodic seam never gets a boundary ID.
-- The one boundary bit two vertices of a pipe share is the source ID.
+- Two vertices of one pipe share exactly one boundary bit → that bit is the source ID.
 - Interior creases and seams stay `u32::MAX`: unavailable, never invented from a triangulation index.
 - Keys are exact position bits; no weld tolerance enters.
 - Everything from `#[cfg(test)]` down is the module's unit tests: COPY.
@@ -86,7 +86,7 @@ Expected:
 
 - The patch shows a real hole in the fill, not a drawn circle over a filled surface.
 - Orbit: boundary ink stays attached to the patch and to the torus.
-- The torus seam is visible as ink on a geometrically smooth surface; the surface has no lighting break there.
+- The torus seam draws as ink on a geometrically smooth surface; no lighting break there.
 - Status shows **2 objects**.
 
 If a periodic boundary crosses the wrong part of the surface, inspect the UV branch and the oriented use mapping before touching stroke depth.
@@ -105,7 +105,7 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 
 - Append `?top=1` and look through the hole: the fill is absent there, not merely covered by a curve.
 - Orbit around the torus seam with `?thickness=3`: the seam stays one line, drawn from one face use, although two parameter uses share it.
-- Zoom in on a natural boundary of the trimmed patch with the wheel: the rim is still ink from the mesh nodes, so it cannot detach however close you get.
+- Zoom in on a natural boundary of the trimmed patch: the rim is still ink from the mesh nodes, so it cannot detach however close you get.
 
 ## Questions and answers
 
@@ -113,7 +113,7 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 
 *How to work it out.* A hole must let you see through it, must not occlude, and must let a click reach whatever is behind. A painted circle fails all three, because the face is still there.
 
-*The answer.* The fill still writes depth, still occludes, still answers a pick. A hole is an absence in the *mesh*, which is why the constrained mesh cached on the surface has to win over a freshly triangulated grid.
+*The answer.* The fill still writes depth, still occludes, still answers a pick. A hole is an absence in the *mesh* — so the constrained mesh cached on the surface must beat a freshly triangulated grid.
 
 **A natural boundary gets a source ID; a periodic seam does not. What distinguishes them?**
 
@@ -129,7 +129,7 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 
 **Boundary keys use exact position bits with no weld tolerance. Why is a tolerance the wrong tool here?**
 
-*How to work it out.* Lesson 07 arranged for both faces to be *given* the same points, so equality is exact by construction. A tolerance can then only do damage: it can merge two boundaries that genuinely differ.
+*How to work it out.* Lesson 07 *gave* both faces the same points, so equality is exact by construction. A tolerance can then only do damage: merging two boundaries that genuinely differ.
 
 *The answer.* A tolerance reconciles independent approximations. When the bits are identical by construction, compare the bits — and if they ever differ, that is a real bug you want to hear about.
 

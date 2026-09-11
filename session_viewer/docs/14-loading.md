@@ -6,7 +6,7 @@
 
 ## Starting point
 
-- Checkpoint 13: the shell loads one bundled fixture from `loader.rs`; there is no manifest, no network and no replacement.
+- Checkpoint 13: the shell loads one bundled fixture from `loader.rs`; no manifest, no network, no replacement.
 - This lesson installs the production path: route → manifest → validate → decode → staged replacement, plus the live source that watches a published manifest.
 
 <!-- step-status: start -->
@@ -19,7 +19,7 @@
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- A manifest lists files and where each sits (`at`, `xform`, auto-grid); geometry stays in the `.pb` files, so a placement edit re-uploads nothing.
+- A manifest lists files and where each sits (`at`, `xform`, auto-grid); - A manifest lists files and where each sits (`at`, `xform`, auto-grid); geometry stays in the `.pb` files, so a placement edit never re-uploads geometry.
 - `parse` accepts YAML, JSON and TOML with one set of semantics, rejecting non-finite or non-affine transforms before anything is fetched.
 - `TextItem` is a manifest-authored fixed world-plane label; its frame must be unit and orthogonal, checked here rather than in a renderer.
 
@@ -54,7 +54,7 @@ Parser unit tests, part of the file:
 
 ![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-f20b36578b.svg){ .locator data-strip="illustrations/strip-2c1e2b3b5e.svg" }
 
-- A hostile `cv_count` makes a kernel constructor allocate from a declared number: every count is checked against the actual storage length first.
+- A hostile `cv_count` would make a kernel constructor allocate from a declared number; every count is checked against the actual storage length first.
 - `session` walks a decoded protobuf; `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds objects.
 
 ![Diagram: decoded protobuf · counts ≤ storage · JSON document](illustrations/14-03.svg)
@@ -260,7 +260,7 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 - A `LiveSource` re-reads a published manifest with ETags and replaces the scene only when every file is readable.
 - `docs/build_site.sh` runs as Trunk's pre-build hook and keeps `dist/docs` current, so the page's documentation corner works in a served build.
 
-**Production equivalent:** `src/app/manifest.rs`, `validate.rs`, `decode.rs`, `route.rs`, `live.rs`, `loader.rs` are the production files.
+**Production equivalent:** `src/app/manifest.rs`, `validate.rs`, `decode.rs`, `route.rs`, `live.rs`, `loader.rs`.
 
 ## Try
 
@@ -276,19 +276,19 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 
 *How to work it out.* Ask which edit a user makes most often. Moving an object, adding a second copy, changing a scene's layout — all placement. Then ask what each edit would cost if placement lived inside the geometry file: rewriting and re-uploading megabytes to change sixteen numbers.
 
-*The answer.* A placement edit re-reads a few kilobytes of YAML and rewrites one matrix; geometry is never touched. It also lets the same geometry file appear twice at two placements, and lets a manifest be written by hand. When you meet a format split, ask what the cheap edit is — that is usually what the split protects.
+*The answer.* A placement edit re-reads a few kilobytes of YAML and rewrites one matrix; geometry is never touched. It also lets one geometry file appear twice at two placements, and a manifest be written by hand. When you meet a format split, ask what the cheap edit is — that is usually what the split protects.
 
 **A hostile `cv_count` is checked against the actual storage length before a kernel constructor sees it. What class of bug is that, and why is the viewer the right place to catch it?**
 
 *How to work it out.* Ask what a constructor does with a declared count: allocates from it, or indexes with it. Both are attacker-controlled if the number came off the network. Then ask where the trust boundary is — which code first touches bytes it did not produce.
 
-*The answer.* It is the declared-length-versus-actual-length class. The viewer is the first code to see untrusted bytes, while the kernel constructors are shared with tools whose input is trusted. Validate where untrusted data enters, not where it is eventually used.
+*The answer.* It is the declared-length-versus-actual-length class. The viewer is the first code to see untrusted bytes; the kernel constructors are shared with tools whose input is trusted. Validate where untrusted data enters, not where it is used.
 
 **Every load carries a generation and `stale_load` is checked after each await. Predict the bug this prevents, concretely.**
 
 *How to work it out.* Walk two overlapping loads. You ask for scene A; it is slow. You ask for B; B arrives and is shown. Then A's response lands and continues its code path, which ends in "replace the scene". Nothing errors.
 
-*The answer.* The user sees the scene they did not ask for. The check has to be after *each* await rather than only at the end, because every await is a point where the world can change — and the later stages of the old load would otherwise keep running against a scene that has moved on.
+*The answer.* The user sees the scene they did not ask for. The check belongs after *each* await, not only at the end: every await is a point where the world can change, and the old load's later stages would otherwise keep running against a scene that has moved on.
 
 **Files are skipped when they would exceed the scene budget, and the status line names the file and the knob. Why is naming the knob part of the design?**
 
@@ -298,7 +298,7 @@ If nothing loads, read the status text: it names the failing stage (manifest fet
 
 **What you should be able to do now**
 
-Sketch the staged replacement and argue the opposite design. Correct: documents are fetched and decoded into a pending list in manifest order; only when every item has succeeded is the old scene cleared and the new one swapped in whole. The alternative — swapping each document in as it arrives — shows the user a scene that is half old and half new for several seconds, and if one file fails they are left with a mixture that matches no manifest. Being able to argue both sides is how you know you understand the trade.
+Sketch the staged replacement and argue the opposite design. Correct: documents are fetched and decoded into a pending list in manifest order; only when every item has succeeded is the old scene cleared and the new one swapped in whole. The alternative — swapping each document in as it arrives — shows a scene half old and half new for several seconds, and if one file fails leaves a mixture that matches no manifest. Arguing both sides is how you know you understand the trade.
 
 ## Next
 

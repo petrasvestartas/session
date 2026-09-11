@@ -9,7 +9,7 @@
 ## Starting point
 
 - Checkpoint 10: labels are shaped and measured, nothing drawn.
-- Three GPU owners appear: plates (black backing), planes (fixed world text), and the lane that drives Glyphon and both of them.
+- Three GPU owners appear: plates (black backing), planes (fixed world text), and the lane driving Glyphon and both.
 
 <!-- step-status: start -->
 
@@ -345,7 +345,7 @@ If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate 
 
 **Two Glyphon renderers share one atlas, with different depth rules. Why two, and why one atlas?**
 
-*How to work it out.* Only the depth rule differs between a label in the scene and a label over it; the glyph images are shared. A pipeline's depth state is fixed at creation, so a differing depth rule means a second renderer; identical glyph bytes mean no reason for a second atlas.
+*How to work it out.* A label in the scene and a label over it differ only in the depth rule; their glyph bytes are identical. A pipeline's depth state is fixed at creation, so the second rule needs a second renderer; identical bytes need no second atlas.
 
 *The answer.* Two renderers because anchored text must be occluded by solids (`GreaterEqual` under reversed Z) and overlay text must not (`Always`). One atlas because a second would double texture memory and eviction bookkeeping for nothing.
 
@@ -353,7 +353,7 @@ If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate 
 
 *How to work it out.* A prepared vertex contains atlas coordinates. Evict from the atlas alone and the vertex still points at that rectangle, which now holds a different glyph.
 
-*The answer.* Text renders as garbage with no error anywhere. Rebuilding both keeps the invariant "no prepared vertex points at anything evicted" — the kind of rule worth a comment, because the type system cannot express it.
+*The answer.* Text renders as garbage with no error anywhere. Rebuilding both keeps the invariant "no prepared vertex points at anything evicted".
 
 **What you should be able to do now**
 

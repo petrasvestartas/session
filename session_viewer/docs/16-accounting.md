@@ -20,7 +20,7 @@
 
 ![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-010fb6361a.svg){ .locator data-strip="illustrations/strip-e6f4fee67c.svg" }
 
-Cargo discovers every file under `examples/` as a native example. Their sources and the offscreen harness are supplied, not taught: install them, and give the manifest its native-only dependency.
+Cargo discovers every file under `examples/` as a native example. Describe the edit that actually happens, e.g. "install them; the manifest only moves `[dev-dependencies]` above the native-only table that has declared `pollster` since lesson 00, and drops the unused wasm-pack metadata." docs/diagrams/16-02.d2 carries the same implication in its focus node label "Cargo.toml\nnative-only pollster".
 
 ![Diagram: supplied examples/ · tests/ · Cargo.toml\ native-only pollster · cargo xtest · examples build](illustrations/16-02.svg)
 
@@ -91,7 +91,7 @@ Expected:
 - The canvas `data-viewer-inspection` attribute now carries `source_cpu_known_payload_bytes`, `source_cpu_known_payload`, `source_cpu_scope` and `source_cpu_exclusions`.
 - Reload the same scene: `scans` in the payload stays at one per document identity change, not one per frame.
 
-The accounting part of the snapshot for the local fixture, from the canvas attribute in the browser console:
+The accounting part of the snapshot for the local fixture, from the browser console:
 
 ```js
 JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
@@ -124,14 +124,14 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 <!-- tree: 16 session_viewer/src/app -->
 
 - `SourceCache` (weak identities) → `Payload` (known bytes) → inspection snapshot.
-- Four measurements now sit side by side, meaning different things: retained source payload, owned GPU buffers, estimated texture bytes, and whatever the browser reports for WASM memory.
+- Four measurements now sit side by side: retained source payload, owned GPU buffers, estimated texture bytes, and whatever the browser reports for WASM memory.
 
 **Production equivalent:** `src/app/inspection.rs`, `src/app/inspection/source_memory.rs`, `Cargo.toml`.
 
 ## Try
 
 - Read the snapshot twice a few seconds apart: `scans` stays at 1, because the document identities did not change.
-- Load a different manifest with `?scene=` and read it again: `unique_sessions` follows the document count, and `scans` rises once per change of the document list a frame observed — the clear, then each document as it arrived.
+- Load a different manifest with `?scene=` and read it again: `unique_sessions` follows the document count, and `scans` rises once per observed change to the document list — the clear, then each document as it arrived.
 - Compare `source_cpu_known_payload_bytes` with `gpu_buffer_capacity_bytes`: the GPU side is larger, because display data adds tessellation and instance rows to the retained source arrays.
 - Hold a second `Rc` to a document in `State` and replace the scene: the payload keeps counting it — the leak the Weak identities exist to expose.
 
@@ -141,7 +141,7 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 
 *How to work it out.* List what the walk can actually count: `Vec` and `String` capacities, occupied map entries, slice lengths. Then list what it cannot: allocator overhead, `Rc` headers, spare map slots, GPU-side memory, anything the browser holds outside the wasm heap. A name like "memory use" claims the second list too.
 
-*The answer.* The number is a lower bound over a defined set, so it is named after that set, and the snapshot carries its scope and exclusions as JSON fields. A measurement you cannot defend is worse than no measurement, because people quote it.
+*The answer.* The number is a lower bound over a defined set, so it is named after that set; the snapshot carries its scope and exclusions as JSON fields. A measurement you cannot defend is worse than none, because people quote it.
 
 **The cache holds `Weak<Session>`, not `Rc<Session>`. What breaks with `Rc`?**
 
@@ -151,15 +151,15 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 
 **The cache keys on identity, so in-place editing would make it stale. Why is that acceptable here?**
 
-*How to work it out.* Ask how documents actually change in this system. They are replaced or appended to — both change the `Rc` identity, which is what the cache watches. Mutating through `lookup` is possible in principle and is not done.
+*How to work it out.* Ask how documents actually change here. They are replaced or appended to — both change the `Rc` identity the cache watches. Mutating through `lookup` is possible in principle and is not done.
 
-*The answer.* The invariant is real but unenforced by the type system, so it is written down. Recognising "this is only safe because of a convention elsewhere" and saying so is what separates a comment worth reading from noise.
+*The answer.* The invariant is real but unenforced by the type system, so it is written down.
 
 **Four numbers now sit side by side. Why not add them up?**
 
 *How to work it out.* Ask what each measures and how. Retained source payload: counted, CPU, exact over a defined set. GPU buffer bytes: counted, GPU, capacity not use. Texture bytes: estimated from formats and sizes. Wasm memory: reported by the browser, includes everything. Different places, different methods, different exactness.
 
-*The answer.* A sum would be a number with no meaning that people would nonetheless quote — and it would double-count, since the GPU buffers were built from the source arrays. Keeping them apart forces the reader to ask which question they are actually asking.
+*The answer.* A sum would be meaningless and quoted anyway — and it would double-count, since the GPU buffers were built from the source arrays. Keeping them apart forces the reader to ask which question they are actually asking.
 
 **What you should be able to do now**
 

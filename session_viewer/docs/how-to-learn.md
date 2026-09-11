@@ -1,19 +1,14 @@
 # How to use this course
 
-Nothing in this course is hidden: every question is followed by its reasoning and then its answer, on the same page.
-
-Being stuck with no way forward teaches nothing; being shown *how someone worked it out* teaches a move you can reuse.
-
 ## The loop
 
+![One step is four moves: read what it adds, type the block, check that it compiles, then read why the important lines are there.](illustrations/loop.svg)
 
-![Read the idea, type the block, check that it compiles, then read why it is that way - and the reasoning is the part worth reading twice.](illustrations/loop.svg)
-
-- **Read the idea.** Each step names what it adds before the code. Guess the shape of the code first if you like — a wrong guess turns the block into an answer to a question you actually had; the block is right there either way.
-- **Type** the blocks marked **TYPE THIS**. Typing is slow on purpose; it is the part where your hands learn the API. Blocks marked **COPY** are boilerplate, fixtures and lockfiles — copy those, you learn nothing by retyping a font table.
+- **Read the idea.** Each step names what it adds before the code.
+- **Type** the blocks marked **TYPE THIS**. Blocks marked **COPY** are boilerplate, fixtures and lockfiles.
 - **Check** at every marker. `cargo check` is the cheapest feedback in the course, and the checkpoint build tells you what the screen should show. Never carry a broken state into the next lesson.
-    Know what a check proves: a Rust file enters the build only when a `mod` line names it, and the bigger lessons create files first and declare them at the end. A check before that wiring step proves only that you have not broken the *previous* checkpoint; the check after it compiles what you just typed. Run both — the first is how you notice you deleted the wrong line.
-- **Read the reasoning.** Every lesson ends in **Questions and answers**: *how to work it out* — the chain of reasoning from what you already know — then *the answer*. The reasoning is the half worth reading twice, because the next problem will be a different question.
+    A Rust file enters the build only when a `mod` line names it, and the bigger lessons create files first and declare them at the end. A check before that wiring step proves only that you have not broken the *previous* checkpoint; the check after it compiles what you just typed. Run both.
+- **Read the reasoning.** Every lesson ends in **Questions and answers**: *how to work it out*, the chain from what you already know, then *the answer*.
 
 ## One map, always the same
 
@@ -21,7 +16,7 @@ Every step that writes a file opens with the same picture of the whole viewer: t
 
 ![The whole viewer as one map: documents come in along the top row, a frame is drawn along the bottom one.](illustrations/map.svg)
 
-A diagram that changes shape every time has to be read; a diagram that never changes shape is *seen*. By lesson 05 you should be able to glance at the pink box and know whether this step is about getting data in, deciding what to draw, or drawing it. [The map](map.md) explains the eleven zones once.
+By lesson 05 the pink box alone should tell you whether this step is about getting data in, deciding what to draw, or drawing it. [The map](map.md) explains the eleven zones once.
 
 ## Every lesson has the same shape
 
@@ -33,17 +28,13 @@ A diagram that changes shape every time has to be read; a diagram that never cha
 - **Try** — small experiments with visible results; each one changes the picture.
 - **Questions and answers** — the reasoning, then the answers, then what you should be able to do now.
 
-## The same depth all the way through
-
-Lesson 18 explains the tile walk as completely as lesson 01 explains the adapter: the subjects get harder, the explanations do not get shorter. Where a later lesson says less, an earlier one said it in full and is named.
-
-The [capstone](capstone.md) is the one place with no step-by-step, and even there nothing is withheld: the questions are listed, the reasoning for each is worked through, and the full design is in the answer key. It asks you to try first because trying first is how the answer sticks, not because the answer is rationed.
+Where a later lesson says less about something, an earlier one said it in full and is named. The [capstone](capstone.md) is the one page with no step-by-step; its questions, the reasoning for each and the full design are all on it.
 
 ## When you are stuck
 
 - Read the error, not the code. [Reading failures](debugging.md) covers the ten errors this course actually produces and how to reason about each.
-- Go back one checkpoint. Every lesson ends in a state that compiles and draws; `docs/reconstruction/replay.py --output <dir> --through NN` rebuilds any checkpoint exactly, so a mistake five lessons ago is never a trap.
-- A word you do not know is a word the course owes you: [Words before code](words.md) defines every term before its lesson needs it.
+- Go back one checkpoint. Every lesson ends in a state that compiles and draws; `docs/reconstruction/replay.py --output <dir> --through NN` rebuilds any checkpoint exactly.
+- A word you do not know is defined in [Words before code](words.md), before the lesson that needs it.
 
 ## What finishing means
 

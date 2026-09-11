@@ -2,7 +2,7 @@
 
 Two kinds of thing belong on this page: the libraries the viewer actually links against, which you can check in `Cargo.toml`, and the ideas it borrows, which are explained here rather than linked away.
 
-That second choice is deliberate. A link to somebody else's tutorial is a promise that their explanation will still be there, still be current, and still use the same words as this course. It usually is not. So where this viewer uses a known technique, the course draws it.
+Where this viewer uses a known technique, the course draws it rather than linking to someone else's explanation of it.
 
 ## The libraries
 
@@ -36,14 +36,14 @@ Three documents decide what is legal, and no tutorial — including this one —
 - **The WGSL specification** (`gpuweb.github.io/gpuweb/wgsl/`) — the shading language: types, alignment, entry points, builtins.
 - **The `wgpu` API documentation** (`docs.rs/wgpu`) — the Rust shape of all of the above, version by version.
 
-These URLs were not fetched while this page was written, so treat them as the place to look rather than as a citation. The one thing worth knowing is which of the three to open: an error at pipeline creation is a WebGPU rule, an error inside a shader is a WGSL rule, and a signature that does not match is an API question.
+These URLs were not fetched while this page was written, so treat them as the place to look, not as a citation. Which of the three to open: an error at pipeline creation is a WebGPU rule, an error inside a shader is a WGSL rule, and a signature that does not match is an API question.
 
 ## The ideas, and where the course draws them
 
 
 | Idea | The problem it solves | Drawn in | Built in |
 |---|---|---|---|
-| **Reverse-Z depth** | Float depth crowds its precision at the far plane, which is where you need it least. Swapping near and far puts the precision near the eye. | [frustum](02-camera.md), [ink-visibility](05-visibility.md) | `camera.rs` swaps the planes, every `DepthMode` compares `Greater` |
+| **Reverse-Z depth** | Float depth crowds its precision at the far plane, which is where you need it least. Swapping near and far puts the precision near the eye. | [frustum](02-camera.md), [ink-visibility](05-visibility.md) | `camera.rs` swaps the planes, every depth-testing `DepthMode` compares `Greater` or `GreaterEqual` |
 | **Depth-gradient carried ink** | A thick stroke's fragments sit beside its axis and read the wrong surface's depth. The surface slope carries the depth from fragment to axis. | [ink-visibility](05-visibility.md) | `shaders/ink_visibility.wgsl` |
 | **Finite-triangle visibility** | A depth plane is infinite; a triangle is not. Binning projected triangles into screen tiles lets an edge be hidden only by geometry that really covers it. | [finite-triangle](18-finite-visibility.md), [tiles](18-finite-visibility.md) | `engine/gpu/triangle_tiles.rs` |
 | **Octahedral normal encoding** | A unit vector has two degrees of freedom, so it does not need three floats. Two 8-bit numbers are enough for shading and culling. | [normals](09-normals.md) | `app/walk/encode.rs`, `shaders/normals.wgsl` |

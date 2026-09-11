@@ -4,7 +4,7 @@
 
 ![Orbit turns the orientation about the target, pan slides the target across the camera's own plane, and the wheel scales the distance; the view-projection is rebuilt from those three every frame.](illustrations/camera-basis.svg)
 
-Four spaces, one conversion each:
+Six spaces, five conversions:
 
 ```text
 local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → NDC → viewport × DPR → pixels
@@ -49,7 +49,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <!-- file: 02 session_viewer/src/math.rs type lines=72-123 -->
 
-- Eight corners, not the two extremes: a rotation moves a corner that was not extreme into one that is.
+- `corners` returns all eight, not the two extremes: a rotation moves a corner that was not extreme into one that is.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -196,10 +196,10 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 <!-- tree: 02 session_viewer/src -->
 
-- `Camera` owns view state; `math.rs` owns the matrix and box helpers both sides of the crate use.
+- `Camera` owns view state; `math.rs` owns the shared matrix and box helpers.
 - Data flow: gesture → `Camera` → `Xform` → `[f32; 16]` → uniform → `mvp` in the shader.
 
-**Production equivalent:** `src/camera.rs` and `src/math.rs` are the production files.
+**Production equivalent:** `src/camera.rs` and `src/math.rs`.
 
 ## Try
 
@@ -213,7 +213,7 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 *How to work it out.* Indexing the other way gives the transpose — still a valid 4×4 matrix, so nothing errors. Three parties have an opinion: the kernel's `Xform`, this file, and WGSL's `m * v`. One convention, no runtime check.
 
-*The answer.* The wrong one is silent: a transposed matrix multiplies without complaint and produces a picture wrong in a plausible way — the object rotates about the wrong point, or translates when it should scale. `math.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
+*The answer.* The wrong one is silent: a transposed matrix multiplies without complaint and produces a plausibly wrong picture — the object rotates about the wrong point, or translates when it should scale. `math.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
 
 **Reverse-Z needs three things to agree. Which three?**
 
@@ -223,19 +223,19 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 **Where does f64 become f32, and why exactly there?**
 
-*How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven before the decimal point, so the conversion has to happen while the numbers are *small* — which is after subtracting an anchor near the camera.
+*How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven before the decimal point, so the conversion has to happen while the numbers are *small* — after subtracting an anchor near the camera.
 
-*The answer.* In `mat_to_f32`, after the anchor is subtracted. Convert before rebasing and the low bits are gone; the symptom is jitter you cannot debug from inside the shader, because the shader was handed bad numbers. One function is the whole matrix f64 → f32 boundary, so a jittering placement has one place to look.
+*The answer.* In `mat_to_f32`, after the anchor is subtracted. Convert before rebasing and the low bits are gone; the symptom is jitter you cannot debug from inside the shader, which was handed bad numbers. One function is the whole matrix f64 → f32 boundary, so a jittering placement has one place to look.
 
 **Why must `zoom_at` be given physical pixels rather than CSS pixels?**
 
 *How to work it out.* Its job is to keep the world point under the cursor fixed, so it must agree with whatever drew that point — and the framebuffer is in physical pixels. The two units differ whenever `devicePixelRatio` is not 1.
 
-*The answer.* Because the cursor position and the rendered pixel must be in the same space. On a 1× display the bug is invisible; on a 2× laptop every gesture moves twice as far. That is why the conversion happens once, at the input layer, rather than being remembered at each call site.
+*The answer.* The cursor position and the rendered pixel must be in the same space. On a 1× display the bug is invisible; on a 2× laptop every gesture moves twice as far. So the conversion happens once, at the input layer, instead of being remembered at each call site.
 
 **What you should be able to do now**
 
-State the orbit gesture in one sentence and say why the alternatives fail. Correct: yaw about the world up axis, then pitch about the camera's *current* right axis. Doing it in the other order, or storing Euler angles, eventually lines two rotation axes up and the camera loses a degree of freedom — gimbal lock. The quaternion is the single source of truth here precisely so that cannot happen.
+State the orbit gesture in one sentence and say why the alternatives fail. Correct: yaw about the world up axis, then pitch about the camera's *current* right axis. The other order, or stored Euler angles, eventually lines two rotation axes up and the camera loses a degree of freedom — gimbal lock. The quaternion is the single source of truth here precisely so that cannot happen.
 
 ## Next
 

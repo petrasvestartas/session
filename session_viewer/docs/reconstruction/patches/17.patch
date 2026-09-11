@@ -3204,7 +3204,7 @@ index 0000000000000000000000000000000000000000..80fb39e85090909fcf5748846fd192c2
 +    }
 +}
 diff --git a/session_viewer/src/engine/gpu/targets.rs b/session_viewer/src/engine/gpu/targets.rs
-index 6fe7a69aa6f0453b59d13cd7c2f6b4f3e566f53c..ac6920bd833acb52ca6d75f4b9da5e2df06680c5 100644
+index 2b0ade67e467948ec2ea39c01ed544253fb8a564..661374764fa610f2bf183e436c680e9c5b312291 100644
 --- a/session_viewer/src/engine/gpu/targets.rs
 +++ b/session_viewer/src/engine/gpu/targets.rs
 @@ -6,6 +6,8 @@ use super::buffers::GpuCtx;

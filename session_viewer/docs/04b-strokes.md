@@ -2,7 +2,7 @@
 
 ## You are building
 
-![Diagram: fixture: CylinderSegment rows · SegRows\ pipes · ribbons · group 3\ segments · source_edges · edge_selection · ribbon.wgsl vs_main\ 6 verts per segment, no vertex buffer · screen-space quad\ + FILTER_REACH · fs_main\ band_area coverage · ink_visible…](illustrations/04b-01.svg)
+![Diagram: segment rows reach ribbon.wgsl through group 3, become a screen-space quad, and are shaded by exact coverage tested against the scene depth.](illustrations/04b-01.svg)
 
 Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
@@ -206,31 +206,31 @@ Expected:
 
 - Append `?thickness=4`: every stroke widens on screen while the geometry stays put — the pen is applied in `ribbon.wgsl`, not in the vertex data.
 - Zoom far out: the strokes keep their pixel width. A world-space width would vanish; a screen-space pen does not.
-- Set `?thickness=0.2`: the stroke thins to a hairline and keeps an alpha floor instead of disappearing, because `band_area` integrates the pixel box exactly rather than ramping a distance. (`?aa=` feathers markers and dots, not ribbons — `ribbon.wgsl` never reads `line.feather`.)
+- Set `?thickness=0.2`: `floor_hairline` holds the stroke at half a pixel and `hairline_fade` floors its alpha at `HAIRLINE_MIN_ALPHA`, so it thins instead of disappearing.. (`?aa=` feathers markers and dots, not ribbons — `ribbon.wgsl` never reads `line.feather`.)
 
 ## Questions and answers
 
 **The segment row ends in flat `f32`s instead of two `vec3`s. What would the `vec3`s cost?**
 
-*How to work it out.* Apply lesson 03's alignment rule: a `vec3` aligns to 16 even though it holds 12 bytes. Lay the row out both ways and count — then ask what the `vec3` form buys, given the shader reads the components individually anyway.
+*How to work it out.* Apply lesson 03's alignment rule: a `vec3` holds 12 bytes but aligns to 16. Count the row both ways, then ask what the `vec3` form buys when the shader reads the components individually anyway.
 
-*The answer.* Eight bytes a row, taking it from 40 to 48, for no benefit. Being able to predict this rather than discover it is the point: the same rule set `Instance` at 96 and will set the marker row at 48.
+*The answer.* Eight bytes a row, 40 to 48, for no benefit. Predicting this rather than discovering it is the point: the same rule set `Instance` at 96 and will set the marker row at 48.
 
 **Strokes draw with `DepthMode::Always` and blending. Why not simply depth-test them?**
 
-*How to work it out.* A stroke sits on the edge of the face it belongs to, at that face's depth. A depth test between two fragments at the same depth is a coin flip decided by float rounding, per pixel, and it changes as the camera moves.
+*How to work it out.* A stroke sits on the edge of its own face, at that face's depth. A depth test between two fragments at the same depth is a per-pixel coin flip decided by float rounding, and it changes as the camera moves.
 
 *The answer.* Hardware depth testing at equal depth produces stitching, so the shader decides visibility itself: `ink_visible` compares the scene depth at the pixel against the depth of the closest point on the stroke's axis, using the gradient the face pass wrote. One shared file keeps every ink lane answering the question the same way.
 
 **The half-width at each end travels as a flat scalar, resolved per pixel. What breaks if you interpolate a width per vertex instead?**
 
-*How to work it out.* A stroke going away from the camera is a trapezoid on screen, wide at the near end, narrow at the far end. Interpolation across it is perspective-correct for *positions*, but a width is not a position — it is a screen-space quantity derived from one.
+*How to work it out.* A stroke going away from the camera is a trapezoid on screen, wide near, narrow far. Interpolation across it is perspective-correct for *positions*, but a width is not a position — it is a screen-space quantity derived from one.
 
-*The answer.* The width comes out wrong in the middle and wobbles as the camera moves. Sending both ends flat and computing the width per pixel from them is exact, which is why the outputs are marked `@interpolate(flat)`.
+*The answer.* The width comes out wrong in the middle and wobbles as the camera moves. Sending both ends flat and computing the width per pixel is exact — hence `@interpolate(flat)` on the outputs.
 
 **Why must the segment be clipped against the near plane before any divide?**
 
-*How to work it out.* Write out the divide: `x/w`, `y/w`. Ask what happens when `w` is negative — both signs flip, so the point appears mirrored through the screen centre instead of being absent.
+*How to work it out.* Write out the divide: `x/w`, `y/w`. When `w` is negative both signs flip, so the point appears mirrored through the screen centre instead of absent.
 
 *The answer.* A line crossing behind the eye would swing across the canvas rather than disappear. Clip first, divide second: the bug otherwise appears only when you walk the camera into geometry.
 

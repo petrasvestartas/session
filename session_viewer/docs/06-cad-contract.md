@@ -119,7 +119,7 @@
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-67 -->
 
-- The rest is the crease test: the cosine between two face normals decides whether a shared edge is a border, a crease, or an interior diagonal nobody should see.
+- The rest is the crease test: the cosine between two face normals sorts a shared edge into border, crease, or an interior diagonal nobody should see.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -211,7 +211,7 @@
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- Topology records only: which edge, which face, which orientation. The records carry no geometry.
+- Topology records only: which edge, which face, which orientation. No geometry.
 
 ![Diagram: BRep · face Mesh · ArenaRows · EdgeUse · EdgeChain\ records only](illustrations/06-10.svg)
 
@@ -290,7 +290,7 @@ The shader ignores vertex normals and shades from the finite face fallback, so a
 
 Expected:
 
-- A grey shaded planar face fills a large part of the canvas; its four natural boundaries draw as black ink separate from the fill.
+- A grey shaded planar face fills much of the canvas; its four natural boundaries draw as black ink separate from the fill.
 - The status reads one object; the inspection JSON lists `sourceObjects` with a GUID and `sourceEdgeIds`.
 - Orbit: fill and boundary move together.
 
@@ -309,7 +309,7 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 
 ## Try
 
-- Append `?top=1` or `?perspective=1`: a fixed camera, which makes a boundary drifting off its face easy to spot.
+- Append `?top=1` or `?perspective=1`: the start-up view becomes straight down, or perspective instead of orthographic. A repeatable view makes a boundary drifting off its face easy to spot.
 - Append `?distance=3` and then `?distance=12`: the pipes keep their pixel width while the faces shrink; the boundary nodes move with the mesh because they are the mesh. (`parse_distance` accepts 1 to 16 and ignores anything else.)
 - Append `?thickness=3`: the boundary pipes widen on screen but stay glued to their faces, because their endpoints are face-mesh nodes, not a separately sampled curve.
 
@@ -320,7 +320,7 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 
 *How to work it out.* `WalkCx` gives positions in the output (vertex base, object row); `Row` reports measurements of the input (box, spacing, flags). What is *absent* from both is the design: the file, the document, the selection, the camera.
 
-*The answer.* A producer turns one geometry into rows and knows nothing else — which is why a sheet is detected after the walk from the object rows, and why a new geometry type costs one producer rather than an edit to the scene.
+*The answer.* A producer turns one geometry into rows and knows nothing else — so a sheet is detected after the walk from the object rows, and a new geometry type costs one producer rather than an edit to the scene.
 
 **Face normals are computed with Newell's method rather than from the first three corners. What goes wrong with three corners?**
 
@@ -336,7 +336,7 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 
 **Face keys are sorted before their normals are accumulated. What bug does the sort prevent?**
 
-*How to work it out.* Float addition is not associative: `(a + b) + c` and `a + (b + c)` differ in the last bits. What decides the order here is iteration over a hash map, which is not stable.
+*How to work it out.* Float addition is not associative: `(a + b) + c` and `a + (b + c)` differ in the last bits. Here the order comes from hash-map iteration, which is not stable.
 
 *The answer.* Without the sort the same mesh produces different bytes on different runs, which breaks every hash the course verifies and makes bugs unreproducible. Determinism is something you write down.
 

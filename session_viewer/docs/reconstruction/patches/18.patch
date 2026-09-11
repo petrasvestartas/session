@@ -1270,7 +1270,7 @@ index 80fb39e85090909fcf5748846fd192c2682a0efa..fd7012a871035c39e4210039ad6e662b
          gpu.view.lit = false;
          let mut upload = Upload::default();
 diff --git a/session_viewer/src/engine/gpu/targets.rs b/session_viewer/src/engine/gpu/targets.rs
-index ac6920bd833acb52ca6d75f4b9da5e2df06680c5..1a2e408ab7c736bc73d1cabe28b8150a5cdfa58c 100644
+index 661374764fa610f2bf183e436c680e9c5b312291..ec09ae12e0f442934794c23e330d6a701128b075 100644
 --- a/session_viewer/src/engine/gpu/targets.rs
 +++ b/session_viewer/src/engine/gpu/targets.rs
 @@ -43,66 +43,46 @@ impl Targets {

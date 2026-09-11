@@ -60,7 +60,7 @@ sign(det)                        →     mirrored instances keep outward normals
 - A singular matrix has no unique normal: return the zero sentinel and the fragment stage shades flat.
 - Normalize after the transform. The cofactor form never divides by a small determinant.
 
-![Diagram: instances[row].model · transform_normal · cofactors · face_normal · triangle.wgsl fragment](illustrations/09-03.svg)
+![Diagram: instances[row].model · face_normal · transform_normal · cofactors · triangle.wgsl fragment](illustrations/09-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
 
@@ -184,25 +184,25 @@ A subtle crease under one light is not proof that normals are separate; identica
 
 **Positions use `model`. Why can normals not?**
 
-*How to work it out.* Scale a sphere twice as wide in x. Every surface point moves by `model`; a flank normal moved the same way no longer stands perpendicular, because a nonuniform scale does not preserve perpendicularity. The matrix that does is the inverse transpose.
+*How to work it out.* Scale a sphere twice as wide in x. Every surface point moves by `model`; a flank normal moved the same way no longer stands perpendicular, because a nonuniform scale does not preserve angles. The matrix that does is the inverse transpose.
 
 *The answer.* Normals need `model`'s inverse transpose, built here as cofactors — the same matrix up to a positive scale, and it never divides by a small determinant as a literal inverse would.
 
 **`normal_at` returns `+Z` at a pole. Why is that dangerous, and what saves it?**
 
-*How to work it out.* `+Z` is finite, unit length and passes every sanity test, so no caller can tell it from a real normal. The genuine signal of a pole is that the derivatives are parallel: their cross product has zero length.
+*How to work it out.* `+Z` is finite, unit length and passes every sanity test, so no caller can tell it from a real normal. The true signal of a pole is parallel derivatives: their cross product has zero length.
 
-*The answer.* A plausible fallback is worse than an obvious sentinel because nothing downstream can detect it — a sphere's pole would shade as flat and facing up. The zero-length cross is the real signal, and it hands the decision to the incident-triangle fan.
+*The answer.* A plausible fallback is worse than an obvious sentinel: nothing downstream can detect it, and a sphere's pole would shade flat and facing up. The zero-length cross is the real signal, and hands the decision to the incident-triangle fan.
 
 **Edge culling reads geometric facet normals, never shading normals. What broke when it did not?**
 
-*How to work it out.* A shading normal exists to make a tessellated surface look smooth: an average, deliberately different from the facet it sits on. Deciding whether an edge faces away with it asks a question about geometry with a number smoothed on purpose.
+*How to work it out.* A shading normal makes a tessellated surface look smooth: an average, deliberately different from the facet it sits on. Culling with it asks a geometric question with a number smoothed on purpose.
 
 *The answer.* A cone's apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward until it was culled and vanished. Appearance choices must not delete geometry, so the cull indexes each triangle's real normal by its exact edge.
 
 **A singular matrix yields the zero normal sentinel instead of an error. Who handles it and how?**
 
-*How to work it out.* A singular model matrix means the instance is flattened to a plane or a line: there is genuinely no unique normal. Refuse to draw, invent one, or shade without one.
+*How to work it out.* A singular model matrix flattens the instance to a plane or a line: there is genuinely no unique normal. Refuse to draw, invent one, or shade without one.
 
 *The answer.* The fragment stage falls back to flat shading from screen derivatives — the honest answer, rather than a crash or a fiction.
 

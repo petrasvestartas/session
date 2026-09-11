@@ -273,9 +273,9 @@ Expected:
 
 - Select the polyline and press F10: every vertex is a control, so the markers sit on the display corners; select the line: two markers.
 - With controls shown, drag the window edge to resize: the markers are re-uploaded at the new logical-to-physical scale and keep their size.
-- Select a NURBS curve and press F10, then compare the marker count with the number of chords you can see: the markers are the control net the document carries, not the samples the tessellator chose.
+- Select a NURBS curve and press F10, then count the markers against the chords you can see: the markers are the control net the document carries, not the samples the tessellator chose.
 - Press F10 on an object with no source geometry (a document title plate): the status says so instead of inventing controls.
-- The streamed path needs a point cloud served over HTTP, which this checkpoint has no fixture for — `?scene=stream-test.yaml` requires a `?data=` base URL holding a large `cloud.pb`, and the course never supplies one. Lesson 15 publishes real scenes; come back to the page loop there if you want to watch it in the network panel.
+- The streamed path needs a point cloud served over HTTP and this checkpoint has no fixture: `?scene=stream-test.yaml` wants a `?data=` base URL holding a large `cloud.pb`, which the course never supplies. Lesson 15 publishes real scenes — watch the page loop there in the network panel.
 - Clear the selection while a page loop is running (Escape twice): the query token is dropped and no late page selects anything.
 
 ## Questions and answers
@@ -294,7 +294,7 @@ Expected:
 
 **A streamed cloud displays a bounded prefix, so a click cannot be answered from the screen. What does the viewer do instead?**
 
-*How to work it out.* The points you want may never have been downloaded, so the answer has to come from the source. That means paging, which takes time, during which the camera may move. Ask which camera each page should be tested against.
+*How to work it out.* The points you want may never have been downloaded, so the answer must come from the source. Paging takes time, and the camera may move meanwhile. Ask which camera each page should be tested against.
 
 *The answer.* The click's projection is frozen into a `QueryView`, and every octree node — resident or not — is tested against that same matrix and pixel window while ids accumulate across pages. Freezing matters: with the live camera, later pages would be answering a different question than the first.
 
@@ -302,11 +302,11 @@ Expected:
 
 *How to work it out.* Ask what pressing F10 twice would do without it: run the upload again, adding a second set of markers on top of the first. Identical positions, so the screen looks almost the same.
 
-*The answer.* Doubled ink, doubled pick answers and a marker count that grows until you select something else — a failure that is nearly invisible. Idempotence is cheap here and the failure is silent, which is exactly when to write the invariant down.
+*The answer.* Doubled ink, doubled pick answers and a marker count that grows until you select something else. Idempotence is cheap and the failure is silent — exactly when to write the invariant down.
 
 **What you should be able to do now**
 
-Describe the cancellation story and contrast it with lesson 12's generation counter. Correct: `Query` owns a cancellation token, superseding input drops the query, and every callback checks the token before posting — so a page that arrives after you clicked elsewhere is discarded at the callback. A generation *labels* answers so a stale one can be recognised; a token *cancels* work that is still in flight. You need both: generations cannot stop a fetch, and a token cannot label an answer already on its way back.
+Describe the cancellation story and contrast it with lesson 12's generation counter. Correct: `Query` owns a cancellation token, superseding input drops the query, and every callback checks the token before posting — so a page that arrives after you clicked elsewhere is discarded at the callback. A generation *labels* answers so a stale one is recognised; a token *cancels* work still in flight. You need both: generations cannot stop a fetch, and a token cannot label an answer already on its way back.
 
 ## Next
 

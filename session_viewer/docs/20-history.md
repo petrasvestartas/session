@@ -2,7 +2,7 @@
 
 ## You are building
 
-A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was final the instant it happened. This lesson gives the kernel a history: edits group into transactions, a removal's record is the tombstone undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet; this is the ground the editing lesson stands on.
+A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was immediately final. This lesson gives the kernel a history: edits group into transactions, a removal's record is the tombstone undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet; this is the ground the editing lesson stands on.
 
 ![Diagram: begin(label) · add · replace · remove · set_xform · records: Add · Remove · Replace · Xform · commit() · undo() · redo() · pb_dump · file_json_dump…](illustrations/20-01.svg)
 
@@ -98,7 +98,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 - `set_xform` and `remove_xform` record absolute before and after transforms.
 - `pb_dump`, `pb_dumps`, `file_json_dump` and `file_json_dumps` call `history.clear()` first.
 
-![Diagram: mutators · add_* → _add_object · replace → _swap · remove_object → _detach · set_xform → _place · history.record](illustrations/20-03.svg)
+![Diagram: mutators · add_* → _add_object · replace → _swap · remove_object → _detach · set_xform → xforms.insert · history.record](illustrations/20-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -165,7 +165,7 @@ Native tests:
 cd "$COURSE_WORK/session_viewer/../session_rust" && cargo test --lib minitest_suite -- --nocapture
 ```
 
-The cases you typed are `MINI_TEST!` blocks, not `#[test]` functions: they register themselves and the whole suite runs as one libtest case, so filtering by name would run nothing. Expected: the run ends `[rust-minitest] N/N passed` and `test mini_test::harness::minitest_suite ... ok`. A failure prints `FAIL <group>::<name>  <file>:<line>` and the failing check, so `Undo Remove` or `History Purged On Save` names itself when it breaks. The viewer builds and runs unchanged: it loads documents and never edits them yet.
+The cases you typed are `MINI_TEST!` blocks, not `#[test]` functions: they register themselves and the whole suite runs as one libtest case, so filtering by name runs nothing. Expected: the run ends `[rust-minitest] N/N passed` and `test mini_test::harness::minitest_suite ... ok`. A failure prints `FAIL <group>::<name>  <file>:<line>` and the failing check, so `Undo Remove` or `History Purged On Save` names itself when it breaks. The viewer builds and runs unchanged: it loads documents and never edits them.
 
 ## Verify you reached production
 
@@ -200,13 +200,13 @@ Expected:
 
 *How to work it out.* Ask what a persisted history would require: a version in the file format, a decision about what an undo means after someone else edited the file, and a guarantee that a tombstone's object still makes sense in a later schema. Then ask what users expect — open a file, and it is what it is.
 
-*The answer.* An opened file always starts clean: no format to version, no cross-session semantics to define, no history leaking to whoever you send the file to. It gives up cross-session undo, which is what Rhino also gives up. Worth stating because the temptation to persist it is constant and the cost only appears later, in the format.
+*The answer.* An opened file always starts clean: no format to version, no cross-session semantics to define, no history leaking to whoever you send the file to. It gives up cross-session undo, which is what Rhino also gives up.
 
 **A tombstone stores the object, its list position, its transform, its parent and sibling index, its subtree, its graph attribute and its incident edges. Why so much for one deletion?**
 
 *How to work it out.* List the live tables a removal touches: the typed list, `lookup`, the transform map, the tree, the graph. For each, ask what undo needs to restore it *exactly* — not just presence but position, because index order is visible to the user.
 
-*The answer.* Anything less is a restore that quietly loses a parent, a child order or an edge. The reason the list was incomplete before is that each table's loss is invisible on its own. When you write an undo, enumerate the tables, not the operations.
+*The answer.* Anything less is a restore that quietly loses a parent, a child order or an edge. The list was incomplete before because each table's loss is invisible on its own. When you write an undo, enumerate the tables, not the operations.
 
 **`Replace` and `Xform` carry absolute before and after values, never deltas. Argue for absolutes here.**
 

@@ -111,15 +111,15 @@ Expected:
 
 **Publication writes the immutable geometry revision first, verifies it, then updates the alias and the manifest. What invariant does that ordering protect?**
 
-*How to work it out.* Ask what a reader arriving in the middle sees under each ordering. Manifest first: it names a file that is still uploading — a 404 or a truncated read. Geometry first: it names the old file, which is complete.
+*How to work it out.* Ask what a reader arriving in the middle sees under each ordering. Manifest first: it names a file still uploading — a 404 or a truncated read. Geometry first: it names the old file, complete.
 
-*The answer.* A manifest never points at bytes that do not exist. Every reader sees either the old complete scene or the new complete scene. Write the thing that is pointed *at* before the pointer — the same discipline as any atomic swap.
+*The answer.* A manifest never points at bytes that do not exist. Every reader sees the old complete scene or the new one. Write what is pointed *at* before the pointer — the same discipline as any atomic swap.
 
 **Credentials live in the local shell helpers, never in the browser bundle. What follows from that?**
 
 *How to work it out.* Ask what is public in a web app: the bundle, its constants, its query parameters, its network calls. Anything shipped can be read.
 
-*The answer.* Publication is a local operation with local credentials, and the deployed viewer can only read. Worth stating because the temptation to add "just one" write endpoint is constant and its cost is not visible at the time.
+*The answer.* Publication is a local operation with local credentials, and the deployed viewer can only read.
 
 **What you should be able to do now**
 

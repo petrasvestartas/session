@@ -60,7 +60,7 @@ Every block is cut from that checkpoint's verified patch, a replay audit proves 
 
 Then [the capstone](capstone.md): a section plane — requirements, constraints, the reasoning for each decision and the full design, but no line-by-line instructions.
 
-Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06–09 change the shared kernel and need only 05. 10–11 need 04c. 12 needs everything before it. 13–16 extend `State` and loading. 17–18 build on 12. 19 needs 15 and 17. 20 changes the kernel only and needs 19.
+Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06, 07 and 09 change the shared kernel; 08 is viewer-only. All four need only 05. 10–11 need 04c. 12 needs everything before it. 13–16 extend `State` and loading. 17–18 build on 12. 19 needs 15 and 17. 20 changes the kernel only and needs 19.
 
 ## Prepare one workspace
 

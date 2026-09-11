@@ -2,7 +2,7 @@
 
 ## You are building
 
-![Diagram: fixture: GlyphPoint rows · GlyphRows\ spheres · dots · group 3\ glyphs: array<GlyphPoint> · sphere.wgsl\ quad Template × instance_index\ culled by incident faces · glyph.wgsl\ 3 verts per dot, incircle is the disc · coverage · ink_disc_visible](illustrations/04c-01.svg)
+![Diagram: glyph rows reach sphere.wgsl's quad template and glyph.wgsl's single triangle through group 3, both trimmed to a disc by coverage.](illustrations/04c-01.svg)
 
 Vertex input of the marker pipeline (`pipelines::template_layout`):
 
@@ -88,7 +88,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-2 -->
 
-- `screen_radius` and `to_px` turn a world or pen radius into pixels; `faces_front` decodes the packed normals.
+- `to_px` turns a world length into pixels; `screen_radius` goes the other way, expressing the pen as a world radius.; `faces_front` decodes the packed normals.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -106,7 +106,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-62 -->
 
-- The antialiasing ramp is clamped to the ink it feathers; a thinner pen would otherwise be drawn entirely out of fade and vanish at distance.
+- The antialiasing ramp is clamped to the ink it feathers; a pen thinner than the ramp would otherwise be drawn entirely out of fade and vanish at distance.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -210,20 +210,20 @@ Expected:
 ## Try
 
 - Append `?nomarkers=1`: the vertex markers disappear, the strokes stay; markers are a separate lane with its own draw.
-- Zoom out until the markers thin out: `spacing` in the object row is what lets the shader fade them once they would overlap.
+- Zoom out until the markers thin out: `spacing` in the object row lets the shader fade them once they would overlap.
 - Give one `GlyphPoint` a larger radius in `fixture.rs`: only that dot grows, because size travels per point.
 
 ## Questions and answers
 
 **A marker is a disc, but the pipeline draws a quad template. Why not draw a disc?**
 
-*How to work it out.* Hardware fills triangles and nothing else. A disc is either many triangles approximating a circle, or a shape that covers the disc with a fragment test inside it. Price both: an N-gon costs N vertices and still has visible corners when zoomed; a quad costs four and is exact.
+*How to work it out.* Hardware fills triangles and nothing else. A disc is either many triangles approximating a circle, or a covering shape with a fragment test inside it. Price both: an N-gon costs N vertices and still shows corners when zoomed; a quad costs four and is exact.
 
-*The answer.* The four template corners are pushed out in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc, and the fragment stage decides what is inside. Cover with a simple shape, resolve with the fragment stage — the same pattern as strokes and dots.
+*The answer.* Replace the clause with "pushed out in clip space by the pixel radius plus half the feather". NOTE: this clause sits on the same line as rewrite docs/04c-markers.md:222 above, and my replacement text for that rewrite carries the clause forward verbatim — apply this correction to whichever version of line 222 ends up in the file., so the quad always contains the antialiased disc, and the fragment stage decides what is inside. Cover with a simple shape, resolve with the fragment stage — the same pattern as strokes and dots.
 
 **A free dot is one triangle, not a quad. What makes that enough?**
 
-*How to work it out.* Ask what the smallest triangle containing a given circle is. That is the equilateral triangle whose inscribed circle is the disc — its incircle touches all three sides. Three vertices instead of four, and no template buffer.
+*How to work it out.* What is the smallest triangle containing a given circle? The equilateral one whose incircle is that circle. Three vertices instead of four, and no template buffer.
 
 *The answer.* The incircle of an equilateral triangle is the disc, so three vertices cover it, and the row comes from `@builtin(vertex_index) / 3` with nothing bound. Slightly more wasted area per dot than a quad, far less per-vertex work — the right trade when there are millions of dots.
 
@@ -235,9 +235,9 @@ Expected:
 
 **When is the facing cull skipped, and what would you see if it never were?**
 
-*How to work it out.* The cull hides a vertex whose incident faces all point away. That is the wrong thing to do when no face is in the way — because the eye is inside the object, or because the faces are not being drawn at all.
+*How to work it out.* The cull hides a vertex whose incident faces all point away. That is wrong when no face is in the way — the eye is inside the object, or the faces are not drawn at all.
 
-*The answer.* It is skipped on three conditions: the object is flagged inside, the object is flagged open, or `line.opacity` is zero, which is x-ray. Without the skip, `P` would show back edges but no back vertices, because every far-side marker is culled by faces that are not even drawn. One line of condition; its absence is a bug you would struggle to describe.
+*The answer.* It is skipped on three conditions: the object is flagged inside, the object is flagged open, or `line.opacity` is zero, which is x-ray. Without the skip, `P` would show back edges but no back vertices, because every far-side marker is culled by faces that are not even drawn.
 
 **What you should be able to do now**
 

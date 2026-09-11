@@ -45,7 +45,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 - `pull_triangle` numbers every triangle; `vs_triangle` is the plain physical draw, `vs_face` adds the source face on top.
 - `fs_masks` writes solid and selected coverage to two attachments from one rasterization; the targets blend with MAX, so a written zero acts as a discard.
-- X-ray (`P`, `line.opacity` zero): `transform_vertex` marks a closed multi-face solid `xray`, and every fragment entry `discard`s its fragments.
+- X-ray (`P`, `line.opacity` zero): `transform_vertex` marks `xray` every solid that is not a print, a sheet or a single face, and every fragment entry `discard`s its fragments.
 - The solid then writes no colour, no depth and no coverage, and the ink behind it is judged against what remains.
 - A single face (`FLAG_SINGLE`, a sheet, print fill) has no inside to show and keeps its shading.
 
@@ -171,7 +171,8 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-50eec72a61.svg){ .locator data-strip="illustrations/strip-ccdfd9e2ff.svg" }
 
-- `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall.
+- `TileLayout` mirrors `visibility_tile_span`.
+- The reference pool is sized for the scene: two references per tile plus eight per triangle, capped at `REFERENCES_PER_TILE` per tile.
 
 ![Diagram: ProjectionKey\ camera · geometry revision · encode\ project · count · scan · fill · TileLayout · initial_pool_words · prepare storage · PoolReport · read back](illustrations/18-09.svg)
 
@@ -179,8 +180,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-57 -->
 
-- The pool is one flat array shared by every tile, not a quota each.
-- A dense tile borrows space a sparse one never used, so the allocation follows the scene rather than the grid.
+- The pool is one flat array, not a quota per tile: a dense tile borrows space a sparse one never used, so the allocation follows the scene rather than the grid.
 
 ![The scan reports what its lists needed, the number is read back a frame later, and a pool that was too small costs one frame of conservative ink and never a wrong pixel.](illustrations/tile-pool.svg)
 
@@ -286,7 +286,7 @@ The blank lines separate the helpers; type them so the file matches production:
 
 - The physical and object-ID triangle pipelines move into `Faces`, so the color pass writes the primitive numbers the projection shader uses.
 - `revision` counts highlight changes; the silhouette's cache key reads it.
-- `draw_masks` writes the highlighted face into both coverage masks of the combined pass, so the one rasterization draws the face through this entry.
+- `draw_masks` writes the highlighted face into both coverage masks, so the one rasterization draws it through this entry.
 
 ![Diagram: Faces\ draw_physical · draw_object_ids · color pass · projection shader · coverage masks](illustrations/18-11.svg)
 
@@ -362,7 +362,7 @@ The blank lines separate the helpers; type them so the file matches production:
 ![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-43ed20e7f8.svg){ .locator data-strip="illustrations/strip-187e4e26b4.svg" }
 
 - `MaskKey` is what a coverage mask depends on: camera matrix, geometry revision, selection revision, the highlighted face's revision, size, sample count, and — because edges are part of the coverage — the edge toggle and the pen width.
-- While none of them changes, the mask passes are skipped and the previous masks composited again: a still view costs no rasterization.
+- While none of them changes, the mask passes are skipped and the previous masks composited again.
 - When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments and rasterizes the faces once for both masks.
 - A single outline keeps its own pass.
 - `selection_revision` counts selection flag changes, so a selection change rebuilds the masks without touching the tile index.
@@ -376,7 +376,7 @@ The blank lines separate the helpers; type them so the file matches production:
 <!-- file: 18 session_viewer/src/engine/gpu/surface_outline.rs type -->
 
 - Edges join the silhouette: four more segment pipelines rasterize every solid edge into the coverage masks (`fs_mask`, `fs_masks`, `ColorWrite::Max`).
-- The black outline then hugs a cube's edges as tightly as its faces, at one thickness whether the object is selected or not.
+- The black outline then hugs a cube's edges as tightly as its faces.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -404,7 +404,7 @@ Expected:
 - A genuinely covered edge stays hidden; a visible seam does not break up as a neighbouring face moves over its stroke fringe.
 - Press **O**, select a solid and hold the camera still: the perf line shows the mask passes only on the frame after a change; orbit and they run again.
 
-![Checkpoint 18 with the supplied teapot: the rim and foot boundaries stay continuous from two camera positions, and the seams where the lid meets the body remain visible while a neighbouring face passes over their stroke fringe.](screenshots/18-teapot.png)
+![Checkpoint 18 with the supplied teapot: the rim and foot boundaries stay continuous from two camera positions, and the lid-to-body seams stay visible while a neighbouring face passes over their stroke fringe.](screenshots/18-teapot.png)
 
 ![A selected manifest text on its yellow backing beside the one-pixel pen at two weights, magnified five times: the finite test changes which samples are hidden, not how the ink is drawn.](screenshots/18-text-pen.png)
 
@@ -439,7 +439,7 @@ The same source you just finished is what the repository publishes:
 
 - Orbit the teapot slowly around its foot: the bottom boundary stays continuous where the body's planes cross the stroke axis — exactly where the plane test alone would break it into dashes.
 - Set `?thickness=3` and repeat: the finite test is on the stroke axis, so a wider fringe changes the look, not the visibility decision.
-- Overflow a tile on purpose by loading a dense mesh and lowering the tile size in `triangle_tiles.rs`: overflowing lists keep the conservative rejection, and hidden edges never leak through.
+- Overflow a tile: load a dense mesh and lower the tile size in `triangle_tiles.rs`. Overflowing lists keep the conservative rejection, and hidden edges never leak through.
 - Open `?outlines=1`, select the BRep and click another object: the masks are rebuilt because `selection_revision` moved, while the tile index, keyed on geometry only, is reused.
 
 ## Questions and answers
@@ -449,35 +449,35 @@ The same source you just finished is what the repository publishes:
 
 *How to work it out.* Price them: the plane test is one `textureLoad` plus a dot product; the tile walk is a list traversal with a bounds test per entry. The plane test is right everywhere except at concavities and where solids touch. Then check the *direction* of its error: it extends a finite triangle's plane, so it can only over-occlude.
 
-*The answer.* Because the cheap test can only wrongly *hide*, never wrongly *show*, escalating on rejection can only restore ink — so running it first is free correctness, not a gamble. The expensive machinery then costs nothing on the overwhelming majority of fragments.
+*The answer.* Because the cheap test can only wrongly *hide*, never wrongly *show*, escalating on rejection can only restore ink — so running it first is free correctness, not a gamble. The expensive machinery then costs nothing on almost every fragment.
 
 **An overflowing or incomplete tile list keeps the rejection rather than accepting. Why is that the safe direction?**
 
 *How to work it out.* The list is the evidence for "nothing finite occludes this axis". Ask what an incomplete list proves: nothing. Then compare the two errors — ink wrongly hidden (a seam missing at one contact) against ink wrongly shown (lines drawn through solids).
 
-*The answer.* With no evidence you fall back to the conservative answer. Drawing through solids is the worse error and the more confusing one, and `PoolReport` makes the degradation last exactly one frame before the pool is resized.
+*The answer.* With no evidence you fall back to the conservative answer. Drawing through solids is the worse and more confusing error, and `PoolReport` makes the degradation last exactly one frame before the pool is resized.
 
 **`ProjectionKey` is the camera matrix plus the geometry revision. Why is selection deliberately not in it?**
 
 *How to work it out.* Ask what the projection contains: each triangle's screen position and depth. Then ask what selecting an object changes: a flag in a row, affecting colour. No triangle moves.
 
-*The answer.* The tiles are still valid, so rebuilding them on every click would be pure waste during the most interactive thing a user does. The silhouette masks *are* keyed on selection, because their content genuinely changes. One revision counter per thing that can go stale, and each consumer keys on the ones that affect it.
+*The answer.* The tiles are still valid, so rebuilding them on every click is pure waste during the most interactive thing a user does. The silhouette masks *are* keyed on selection: their content genuinely changes. One revision counter per thing that can go stale, and each consumer keys on the ones that affect it.
 
 **X-ray discards fragments instead of blending them. Give two reasons.**
 
 *How to work it out.* Ask what a blended face still does: it writes depth. Then ask what `P` is for: seeing the edges and vertices *behind* the face. Then check the mask pass, which rasterizes the same faces.
 
-*The answer.* A translucent face would still occlude everything behind it through the depth buffer, so transparency is not absence. And a discarding face writes no coverage either, which is what stops the silhouette from ringing a solid you asked to see through. `FLAG_SINGLE` marks shapes with no inside to reveal — a geometric fact the producer knows and the shader cannot work out for itself.
+*The answer.* A translucent face would still occlude everything behind it through the depth buffer, so transparency is not absence. And a discarding face writes no coverage either, which stops the silhouette ringing a solid you asked to see through. `FLAG_SINGLE` marks shapes with no inside to reveal — a geometric fact the producer knows and the shader cannot work out for itself.
 
 **Sums saturate at the buffer capacity instead of wrapping. What is the failure this prevents?**
 
-*How to work it out.* Follow a wrapped prefix sum: it becomes a small number, which is a valid-looking offset into the pool. The fill pass then writes this tile's references into some other tile's range.
+*How to work it out.* Follow a wrapped prefix sum: it becomes a small number, a valid-looking offset into the pool. The fill pass then writes this tile's references into some other tile's range.
 
 *The answer.* Not a crash — wrong visibility somewhere else on screen, far from the dense geometry that caused it. Saturation turns a silent corruption into the overflow flag, which the ink query already handles.
 
 **What you should be able to do now**
 
-You have built the whole renderer: name one frame's passes in order, with what each reads and writes, and which two are skipped when not needed. Correct: project triangles and build tiles (skipped when the key still matches), the point prelude (skipped when there are no points), the face pass with backdrop, the coverage-mask passes and their pool reductions, the silhouette composite, the ink pass, the text pass, and the ID pass on demand. Then take the [capstone](capstone.md): the section plane touches every one of them.
+You have built the whole renderer: name one frame's passes in order, with what each reads and writes, and which two are skipped when not needed. Correct: project triangles and build tiles (skipped when the key still matches), the point prelude (skipped when there are no points), the face pass with backdrop, the coverage-mask passes and their pool reductions, the ink pass — which carries the silhouette composite and the text — and the ID pass on demand. Then take the [capstone](capstone.md): the section plane touches every one of them.
 
 ## Next
 

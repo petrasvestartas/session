@@ -27,7 +27,7 @@ Every word the lessons use before they have room to explain it, with the lesson 
 - **uniform buffer** (01) — the camera matrix: 64 bytes, same for every vertex.
 - **storage buffer** (03) — `array<Instance>`: one row per object, any length, indexed by the shader.
 - **vertex buffer / index buffer** (04a) — fixed-size vertex records, and triangle corner numbers three per triangle so a shared corner is stored once (`draw_indexed`).
-- **texture** — a grid of texels with a format: the surface's colour format; `Depth32Float` (04a, one depth per pixel); `Rg16Float` (05, the depth-gradient target; lesson 18 widens it to `Rgba16Float` to carry a triangle address too); `Rg32Uint` (12, pick ids); `R8Unorm` (17, coverage masks).
+- **texture** — a grid of texels with a format: the surface's colour format; `Depth32Float` (04a, one depth per pixel); `Rg16Float` (05, the depth-gradient target; lesson 18 widens it to `Rgba16Float` to carry a triangle address too); `Rg32Uint` (12, pick ids); Use "`R8Unorm` (11, glyph coverage; 12, the selection coverage mask; 17, the silhouette masks)" — see the full-line rewrite for docs/words.md:30..
 - **texture view** — the handle a pass draws into or a bind group reads. Passes attach views, not textures.
 - **attachment** — a view a render pass writes: the colour attachment gets fragment colours, the depth attachment remembers the nearest depth per pixel.
 - **multisampling (MSAA)** (04a, used from 05) — N colour and depth samples per pixel so a partly covered edge pixel gets a partial colour; pipelines and every attachment of a pass must share the sample count; the samples are *resolved* into the 1-sample surface at the end.
@@ -46,7 +46,7 @@ Every word the lessons use before they have room to explain it, with the lesson 
 - **pipeline layout** — the list of bind-group layouts the pipeline expects, in group order.
 - **entry point** — the shader function a stage runs (`vs_main`, `fs_main`). One module can hold several; `PipelineDesc::with` and `vertex` pick them.
 - **`PipelineDesc`, `build`** (04a, `src/engine/pipelines/mod.rs`) — the house form: one base per shader, variants by fragment entry, colour mode and depth mode; `build` is the only place a pipeline is created.
-- **depth mode** — every compare is reverse-Z: nearer is **greater**. `Opaque` writes and tests, `ReadOnly`/`ReadOnlyEqual` test only, `Always` neither, `Detached` has no depth attachment at all.
+- **depth mode** — every compare is reverse-Z: nearer is **greater**. `Opaque` and `OpaqueEqual` write and test, `ReadOnly`/`ReadOnlyEqual` test only, `Always` neither, `Detached` has no depth attachment at all. The `*Equal` pair compares `GreaterEqual` so a draw can tie with its own prepass; the others compare `Greater`.
 - **colour mode** — `Opaque` overwrites, `Blended` mixes by alpha, `Max` keeps the larger value (coverage masks), `Nothing` writes no colour (a pass run for its side effects).
 - **pipeline-overridable constant** (`override SCENE_MSAA`, 04b) — a shader constant the Rust side sets at build time, so one WGSL source gives a 1x and a 4x variant.
 
@@ -91,7 +91,7 @@ Every word the lessons use before they have room to explain it, with the lesson 
 ## House words
 
 - **row / instance** (03) — one object on the GPU: a 96-byte record (`Instance`: model matrix, colour, flags, spacing). A pick returns a row; `Scene` turns it into a source identity.
-- **lane** (04a) — one drawing family with its own buffers, pipelines and draw calls: `arena` (meshes), `segments` (strokes), `glyphs` (markers), `cloud` + `splat` (points), `text`, `surface_outline`. Lanes do not reach into each other's buffers, except where one lane owns another outright — the arena owns the outline-text lane and the tile pool. `Gpu` lists them by hand.
+- **lane** (04a) — one drawing family with its own buffers, pipelines and draw calls. The eleven the map names: `arena` (meshes), `segments` (strokes), `glyphs` (markers), `cloud` + `splat` + `lod` (points), `text*`, `surface_outline`, `backdrop` (05), `pick` (12), `triangle_tiles` (18). Lanes do not reach into each other's buffers, except where one lane owns another outright — the arena owns the outline-text lane and the tile pool. `Gpu` lists them by hand.
 - **upload** (04a) — the typed rows one file produces, with no wgpu types in them; `Gpu::set_scene` appends them to the lanes, then the rows are dropped.
 - **walk / producer** (06) — the CPU code that turns one kernel geometry into rows; one producer per geometry family in `src/app/walk/`.
 - **face pass / physical** (04a, 05) — the first pass: solid faces write colour, depth and a depth-gradient. "Physical" means *this is what occludes*.
@@ -101,7 +101,7 @@ Every word the lessons use before they have room to explain it, with the lesson 
 - **constrained Delaunay** (07) — a triangulation that is Delaunay except that named segments are forced to appear as edges. Here the forced segments are the trim loops, which is what makes a boundary node a mesh node rather than an approximation of one.
 - **source vs display** — source: the kernel's face, edge, control point, in f64, with its id. Display: the triangles, node chains and markers made from it. GPU: the packed rows. Selection always names a source thing.
 - **id pass / pick window** (12) — the same draws again into an integer target, only in a small window around the cursor, read back asynchronously; the answer is a row plus a sub-id.
-- **coverage mask / silhouette** (17) — an `R8Unorm` texture marking which pixels a solid (and its edges) covers; a compositor darkens the ring just outside it. `O` toggles it.
+- **coverage mask / silhouette** (12 for the selected object, 17 for every solid) — an `R8Unorm` texture marking which pixels a solid (and its edges) covers; a compositor paints the ring just outside it black. `O` toggles it." 12:441's own 'darkens' should become 'paints … black' in the same pass, so the two pages use one verb.
 - **x-ray** (`P`) — every multi-face solid loses its faces (they are discarded in all entry points), so only edges, vertices and text remain; single faces keep their shading; no silhouettes while it is on.
 - **headlight** (`D`) — the camera light on shaded faces; off by default, so a face shows its flat colour.
 - **tile lists / finite visibility** (18) — projected triangles binned into screen tiles, so an edge is hidden only by triangles that actually cover it, not by a neighbour's extended plane.
@@ -116,7 +116,7 @@ Every word the lessons use before they have room to explain it, with the lesson 
 - **`anyhow::Result`, `?`, `ensure!`, `bail!`** (01) — one catch-all error type; `?` converts, `ensure!` checks, `bail!` returns early.
 - **`#[cfg(target_arch = "wasm32")]`** — code that exists only in the browser build; the crate's default target is wasm32, tests run natively through `cargo xtest`.
 - **let-else / let chains** (06) — `let Some(x) = y else { continue }` and `if let A = b && cond { }`: edition 2024 forms the kernel code uses.
-- **`OnceLock` knobs** (06, `src/app/knobs.rs`) — a query-string or environment switch read once per process. The view knobs arrive earlier, in `src/engine/gpu/view.rs` (04a).
+- **`OnceLock` knobs** (06, `src/app/knobs.rs`) — an environment flag read once per process, always false in the browser. The view knobs, which read `?name=` on wasm and `ENV` natively, arrive earlier in `src/engine/gpu/view.rs` (04a).
 
 ## Questions and answers
 
@@ -142,10 +142,10 @@ Every word the lessons use before they have room to explain it, with the lesson 
 
 *How to work it out.* Walk the pipeline descriptor field by field and ask which ones restate something the shader also declares.
 
-*The answer.* Group and binding numbers, the entry-point names, and the colour target format. All three surface as a validation error when the pipeline is created, never as a Rust compile error — `cargo check` cannot see inside WGSL, which is why `cargo xtest` parses every shader with naga.
+*The answer.* Group and binding numbers, the entry-point names, and the colour target format. All three surface as a validation error at pipeline creation, never as a Rust compile error — `cargo check` cannot see inside WGSL, which is why `cargo xtest` parses every shader with naga.
 
 **Where does the source identity of a face live: on the GPU, in `Scene`, or in the kernel?**
 
 *How to work it out.* Ask what each layer holds. The GPU has a row index and a face address — numbers. `Scene` has the mapping and the retained documents. The kernel `Session` has the face itself, with its guid.
 
-*The answer.* In the kernel, retained by `Scene` through `Rc`; the GPU knows only an object row and a face address, `Faces::source` turns that pair into the face it came from, and `Scene::resolve` turns the row into its document and guid. That is why picking never reads a vertex buffer back from the GPU.
+*The answer.* In the kernel, retained by `Scene` through `Rc`. The GPU knows only an object row and a face address; `Faces::source` turns that pair into its face, and `Scene::resolve` turns the row into its document and guid. That is why picking never reads a vertex buffer back from the GPU.

@@ -20,8 +20,8 @@ const MSAA_PIXELS_SHARED: u32 = 2_500_000;
 /// (`wgpu-29.0.4/src/backend/webgpu.rs:864`), because WebGPU exposes no such field. So this
 /// arm, not the ones above, is what every wasm session gets, and it may not be read as
 /// "probably integrated" - it is a discrete GPU exactly as often as it is not. It keeps the
-/// memory bound that has always governed here: 4x colour + 4x depth are 266 MiB at 3840x2160
-/// against 36 at 1x. Sending the browser to the integrated arm instead costs every canvas
+/// memory bound that has always governed here: 4x colour + 4x depth are 265 MB at 3840x2160
+/// against 66 at 1x. Sending the browser to the integrated arm instead costs every canvas
 /// between 2.5 and 4.2 Mpx its samples - a 2560x1440 window, or a 1440x900 one at dpr 1.5.
 const MSAA_PIXELS_UNKNOWN: u32 = 4_200_000;
 
@@ -102,7 +102,7 @@ impl Targets {
     }
 
     /// How many pixels this adapter carries at 4x, or `None` when 4x is never worth it. 4x
-    /// colour + 4x depth scale with DPR², and at 3840x2160 they were 266 MiB against 36 at 1x,
+    /// colour + 4x depth scale with DPR², and at 3840x2160 they were 265 MB against 66 at 1x,
     /// but what decides the frame is the adapter: the same scene cost a discrete GPU a fifth
     /// more and an integrated one more than twice as much.
     pub fn msaa_budget(gpu: wgpu::DeviceType) -> Option<u32> {
@@ -299,7 +299,7 @@ mod tests {
     /// THE BROWSER'S ARM. wgpu's WebGPU backend reports `DeviceType::Other` for every adapter
     /// there, so this is the only budget a wasm session can reach. Reading it as "integrated"
     /// costs an ordinary 2560x1440 window its samples; the memory bound still takes them away
-    /// at 4K, where 4x really is 266 MiB.
+    /// at 4K, where 4x really is 265 MB.
     #[test]
     fn the_browser_arm_is_not_the_integrated_one() {
         let browser = Targets::msaa_budget(wgpu::DeviceType::Other);

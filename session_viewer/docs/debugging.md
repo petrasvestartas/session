@@ -1,13 +1,13 @@
 # Reading failures
 
-Most of the time you lose is spent on an error that has already told you the answer. Three habits solve almost every wgpu failure; then the ten this course actually produces.
+Most of the time you lose goes to an error that already told you the answer. Three habits solve almost every wgpu failure; then the ten this course actually produces.
 
 ## Habit 1 · Three declarations must agree
 
 Almost every validation error in wgpu is the same bug wearing different clothes: **one thing is declared in three places and you changed only two.**
 
 
-When something is wrong, name the thing (a vertex attribute, a binding, a uniform field, a texture format) and check all three. The error message names one of them; the bug is usually in a different one.
+When something is wrong, name the thing (a vertex attribute, a binding, a uniform field, a texture format) and check all three. The error names one of them; the bug is usually in another.
 
 ![One thing declared in three places: change two and both edges that touch the third disagree. The error names one corner, and the stale declaration is usually a different one.](illustrations/three-declarations.svg)
 
@@ -15,7 +15,7 @@ When something is wrong, name the thing (a vertex attribute, a binding, a unifor
 
 wgpu's validation messages are long and they bury the useful line in the middle. Read to the end.
 
-- In the **browser**, errors arrive asynchronously and print to the devtools console. The viewer also installs `on_uncaptured_error`, so a GPU error reaches the status line instead of vanishing (`src/engine/gpu/device.rs`).
+- In the **browser**, errors arrive asynchronously and print to the devtools console. The viewer also installs `on_uncaptured_error`, so a GPU error reaches the error panel instead of vanishing (`src/engine/gpu/device.rs`).
 - A **Rust panic** in wasm prints a proper stack trace only because `console_error_panic_hook::set_once()` runs first in `lib.rs`. Without it you get `unreachable executed` and nothing else.
 - **Natively** (`cargo xtest`, the selftest binary) the same errors print to stderr, and naga validates every shader in a unit test — which is the cheapest place to catch WGSL mistakes.
 
@@ -36,14 +36,14 @@ The first change that alters the picture is next to the bug.
 
 ### 1 · The canvas is black
 
-Black is the *background clear* colour before anything draws, so black means "nothing drew", which has many causes and one method. In order:
+Black is the *background clear* colour before anything draws, so black means "nothing drew" — many causes, one method. In order:
 
 - Did the first frame even run? The status line is HTML, not WebGPU — if it is stuck on the loading message, the failure is in the setup chain, not in drawing.
 - Is the canvas sized? A canvas with zero width configures a zero-sized surface and every draw is clipped away.
 - Is the geometry in front of the camera? See failure 6.
 - Is depth clearing right? With reverse-Z the clear value is `0.0` and the compare is `Greater`; clear to `1.0` by habit and every fragment fails the test, silently.
 
-Patience first, though: the very first frame in a fresh browser profile compiles every pipeline, and on a slow integrated GPU that is seconds of black before anything appears.
+Patience first: the first frame in a fresh browser profile compiles every pipeline — on a slow integrated GPU, seconds of black before anything appears.
 
 ### 2 · Shader compilation failure
 
@@ -57,7 +57,7 @@ naga tells you the line. The traps that are not typos:
 - A `var` without an initializer is zero, not undefined — but a `let` used before assignment will not compile.
 - An entry point must return everything its `@location` declarations promise; a missing field is a compile error, a *wrongly typed* one is a confusing cast.
 
-Catch these without a browser: `cargo xtest` parses every shader in the crate with naga.
+`cargo xtest` parses every lane shader with naga." The same overstatement sits at docs/debugging.md:20 ("naga validates every shader in a unit test" → "every lane shader"). docs/references.md:23, "Parses every shader in the mirror tests", is already accurate and needs no change.
 
 ### 3 · Wrong vertex layout
 
@@ -83,7 +83,7 @@ This is Habit 1 in its purest form. The pipeline was compiled against a *layout*
 Usage flags BufferUsages(VERTEX) of Buffer with 'arena' label do not contain required usage flags BufferUsages(COPY_DST)
 ```
 
-Usage flags are fixed at creation and wgpu will not forgive one. If the CPU will ever write into a buffer again, it needs `COPY_DST` *at creation*, not at the write. This is the error that teaches the habit of asking, for every buffer: who writes this, and when?
+Usage flags are fixed at creation and wgpu forgives none. If the CPU will ever write into a buffer again, it needs `COPY_DST` *at creation*, not at the write. It teaches the habit of asking, for every buffer: who writes this, and when?
 
 ### 6 · The object is behind the camera
 
@@ -150,4 +150,4 @@ You can always rebuild any checkpoint exactly:
 python3 docs/reconstruction/replay.py --output /tmp/at-07 --through 07
 ```
 
-Diff your tree against it. The first file that differs is where your lesson went sideways — and diffing your own mistake against a correct file is one of the fastest ways to learn there is.
+Diff your tree against it. The first file that differs is where your lesson went sideways — and diffing your own mistake against a correct file is one of the fastest ways to learn.

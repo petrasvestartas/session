@@ -266,10 +266,10 @@ def ink_visibility():
     c.raw(f'<circle cx="{x0 + 250}" cy="250" r="4" fill="{green}"/>')
     c.text(x0 + 40, 222, "transfer the surface depth to the axis with the gradient, then compare", "s", fill="#2d7a14", keep=True)
     c.box(x0 - 20, 350, ["The test, as the shader spells it",
-                         "`physical pass writes  depth + (∂d/∂x, ∂d/∂y, primitive id)`",
+                         "`physical pass writes  depth + (∂d/∂x, ∂d/∂y)`",
                          "`d_axis = d_sample + g · (axis − sample)       ink_visibility.wgsl`",
                          "`visible ⇔ line depth ≥ d_axis − tolerance`",
-                         "Lesson 18 adds the finite-triangle test for planes that end before the axis."], "note")
+                         "Lesson 18 widens the metadata to carry a triangle address, and adds the finite test."], "note")
     c.write("ink-visibility.svg")
 
 
@@ -418,7 +418,7 @@ def frame():
                "Six ordered passes: prepare finite visibility, draw physical surfaces that establish depth, draw source ink and the selected solid edges, composite one black silhouette from the ordinary and selected masks, draw selected standalone curves over coincident mesh ink, then markers, controls and text. Picking repeats the same lists in a separate ID pass.",
                1000, 470)
     c.text(28, 40, "Draw order is part of the visual contract", "h")
-    steps = [("Prepare visibility", "project and bin triangles only when camera or geometry changed", "gpu"),
+    steps = [("Prepare visibility (lesson 18)", "project and bin triangles only when camera or geometry changed", "gpu"),
              ("Physical surfaces", "opaque faces and clouds write depth + primitive metadata", "gpu"),
              ("Source ink and selected solid edges", "ordinary strokes, source-face highlight, yellow solid boundaries", "gpu"),
              ("One black silhouette", "max(ordinary, selected) mask coverage, composited once", "note"),
@@ -855,8 +855,9 @@ def loading():
 def metadata_window():
     c = Canvas("One window instead of one request per field",
                "A streamed cloud file is small protobuf fields (count, bounds, the LOD node table) between very large "
-               "arrays. The LOD walk needs only the small ones. Checkpoint 14 spent one HTTP Range request per field; "
-               "MetadataWindow reads at least 64 KiB once and skips each large array by its declared length.",
+               "arrays. The LOD walk needs only the small ones. Checkpoint 14 spent one HTTP Range request per header "
+               "and one per array body; MetadataWindow reads 64 KiB at once, or what is left of the message, and "
+               "skips each large array by its declared length.",
                1180, 470)
     navy, pink, green, yellow, orange, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["orange"], PAL["grey"]
     c.text(28, 40, "The file on the server, and what the LOD walk touches", "h")
@@ -1096,7 +1097,7 @@ def lod():
         for j in (0, 1):
             node(110 + i * 120, 120 + j * 120, 120, 14.0, pink)
     ruler(110, 396, 44, pink)
-    c.text(168, 400, "this node's spacing — too wide, so its four children are drawn", "s", fill=pink)
+    c.text(168, 400, "this node's spacing — too wide, so its eight children are visited too", "s", fill=pink)
     ruler(110, 428, 24, grey)
     c.text(168, 432, "lod_px", "s")
 
@@ -1115,7 +1116,7 @@ def arena():
     c = Canvas("One arena, three index runs",
                "Every mesh puts its vertices into one growable arena and its object row into a parallel table of "
                "the same length. A mesh is then a range of indices, not a buffer of its own: a draw binds the two "
-               "vertex buffers, binds one index run, and calls draw_indexed once for every mesh in that run.",
+               "vertex buffers, binds one index run, and calls draw_indexed once for the whole run.",
                1180, 452)
     grey = PAL["grey"]
     lav, pnk, grn, zer = PAL["blue_band"], PAL["pink_band"], "#bfe3a8", PAL["zero_band"]
@@ -1768,8 +1769,8 @@ def cpu_gpu():
 
 def loop():
     c = Canvas("Read, type, check, understand",
-               "Read the idea, type the block, check that it compiles, then read why it is that way - and the "
-               "reasoning is the part worth reading twice.",
+               "One step is four moves: read what it adds, type the block, check that it compiles, then read "
+               "why the important lines are there.",
                1180, 320)
     c.text(28, 40, "How one step goes", "h")
     y = 110
@@ -1898,7 +1899,7 @@ def pick_window():
     c = Canvas("A pick draws a window, not the canvas",
                "One click renders a 19 x 19 attachment: a 13 x 13 readback window plus a 3-cell halo, because an edge "
                "texel fits its plane from its neighbours and cleared neighbours would make a stroke pickable where it is "
-               "invisible. Two uniforms carry the canvas in: origin is the window's top-left, frame names the canvas the "
+               "invisible. Two uniforms carry the canvas in: origin is the attachment's top-left, frame names the canvas the "
                "tiles were binned for.",
                1180, 616)
     lav, pnk, zer, yel = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"], PAL["yellow_light"]
@@ -2031,7 +2032,7 @@ def tile_pool():
         ]),
         ("CPU", 340, [
             (["copy the first record", "16 B out of the tile buffer,", "then map_report() after the submit"], "note"),
-            (["prepare() reads it back", "grow to needed × 3/2, or double", "when the report saturated, then invalidate()"], "note"),
+            (["prepare() reads it back", "grow to (needed − the header words) × 3/2,", "or double when the report saturated"], "note"),
             (["nothing to do"], "note"),
         ]),
     ]
@@ -2127,8 +2128,8 @@ def cloud_pick():
         c.parts.append(f'<circle cx="{x}" cy="{y}" r="2" fill="{zer}" fill-opacity="0.55"/>')
     c.parts.append(f'<rect x="150" y="186" width="40" height="40" fill="{pnk}" fill-opacity="0.42"/>')
     c.text(200, 210, "the click, ± PICK_RADIUS", "s", fill=PAL["pink"])
-    c.text(28, 330, "a resident prefix: at most 2,000,000", "s")
-    c.text(28, 352, "of this cloud's 40,000,000 points", "s")
+    c.text(28, 330, "a resident prefix: a bounded fraction", "s")
+    c.text(28, 352, "of this cloud's points", "s")
     c.text(28, 382, "ask the screen and you get the nearest", "s", fill=PAL["pink"])
     c.text(28, 404, "displayed point, which at a coarse level", "s", fill=PAL["pink"])
     c.text(28, 426, "of detail is not the one that was clicked", "s", fill=PAL["pink"])
@@ -2168,7 +2169,7 @@ def cloud_pick():
     c.box(616, 486, ["Cancellation is ownership",
                      "every page carries the query's generation, and dropping the Query flips its",
                      "token — nothing has to remember to clear a flag."], "note", w=536)
-    c.text(28, 592, "When every eligible page has answered, one more range read brings the winner's original id and its exact position.", "s", fill=PAL["yellow"])
+    c.text(28, 592, "When every eligible page has answered, two more range reads bring the winner's exact position and its original id.", "s", fill=PAL["yellow"])
     c.write("cloud-pick.svg")
 
 
@@ -2183,17 +2184,16 @@ def group_two():
     c.text(28, 40, "One layout, both sample counts", "h")
 
     cols = [
-        (28.0, "instance layout · every physical lane (04a)",
+        (28.0, "instance layout · every physical lane",
          [("object rows · 96 B each", lav), ("anchored translations · 16 B each", lav)]),
-        (400.0, "ink instance layout (05)",
+        (400.0, "ink instance layout · this lesson",
+         [("object rows", lav), ("anchored translations", lav),
+          ("depth · single-sampled", lav), ("depth · multisampled", zer)]),
+        (772.0, "and it grows: 05, then 18",
          [("object rows", lav), ("anchored translations", lav),
           ("depth · single-sampled", lav), ("depth · multisampled", zer),
-          ("gradient · single-sampled", lav), ("gradient · multisampled", zer)]),
-        (772.0, "ink instance layout (18)",
-         [("object rows", lav), ("anchored translations", lav),
-          ("depth · single-sampled", lav), ("depth · multisampled", zer),
-          ("gradient · single-sampled", lav), ("gradient · multisampled", zer),
-          ("projected triangles", lav), ("tile headers + pool", lav)]),
+          ("gradient · single-sampled (05)", lav), ("gradient · multisampled (05)", zer),
+          ("projected triangles (18)", lav), ("tile headers + pool (18)", lav)]),
     ]
     w, rh, y0 = 380.0, 40.0, 140.0
     for x, head, rows in cols:
@@ -2268,21 +2268,21 @@ def side_table():
 
 def msaa_budget():
     c = Canvas("Where 4x is affordable",
-               "Multisampling is spent only where an adapter can carry it: 4x needs solid geometry on the GPU, a "
-               "canvas within this adapter's pixel budget, and a device scale below two physical pixels per CSS "
-               "pixel. In a browser the adapter never says what it is - wgpu reports DeviceType::Other for every "
-               "one - so Other is its own budget and must not be read as a synonym for integrated.",
+               "Multisampling is spent only where an adapter can carry it: 4x needs solid geometry on the GPU and a "
+               "canvas within this adapter's pixel budget, and lesson 17 adds a third condition, a device scale "
+               "below two physical pixels per CSS pixel. In a browser the adapter never says what it is - wgpu "
+               "reports DeviceType::Other for every one - so Other is its own budget, not a synonym for integrated.",
                1180, 596)
     lav, pnk, zer, yel = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"], PAL["yellow_light"]
-    c.text(28, 40, "Two gates, then the adapter's budget", "h")
+    c.text(28, 40, "One gate, then the adapter's budget", "h")
 
     c.box(28, 76, ["solid geometry on the GPU?",
                    "faces, pipes or spheres — ribbons, dots",
                    "and splats antialias themselves"], "note", w=430)
-    c.box(490, 76, ["device scale below 2?",
-                    "at two physical pixels per CSS pixel the",
-                    "density has already halved the stair-steps"], "note", w=430)
-    c.box(956, 76, ["no → 1×"], "gpu", w=196)
+    c.box(490, 76, ["no → 1×"], "gpu", w=196)
+    c.box(722, 76, ["lesson 17 adds a second gate",
+                    "device scale below two physical",
+                    "pixels per CSS pixel"], "sel", w=430)
     c.text(28, 196, "?msaa= is forced and wins over everything below.", "s", fill=PAL["yellow"])
 
     heads = ["DiscreteGpu", "IntegratedGpu\nVirtualGpu", "Cpu", "Other"]

@@ -212,27 +212,27 @@ If the status shows a width difference, compare font bytes, size and the kerning
 
 **Nothing is drawn in this lesson. Why is that the right place to stop?**
 
-*How to work it out.* Text comes out wrong on screen: shaping (which glyphs, what advances), rasterization (coverage at this size) or placement (where on screen) could be to blame, and with all three in play you cannot tell which. Only shaping has an independent oracle — the browser answers the same question with the same font.
+*How to work it out.* Text comes out wrong on screen: shaping (which glyphs, what advances), rasterization (coverage at this size) or placement (where on screen) could all be to blame, and you cannot tell which. Only shaping has an independent oracle — the browser answers the same question with the same font.
 
 *The answer.* Shaping is verified numerically before pixels exist. Once "these glyphs at these advances" is trusted, a later disagreement must be raster or placement.
 
 **Fonts are compiled into the WASM instead of loaded from the system. What does that buy, and what does it cost?**
 
-*How to work it out.* A system font varies in version, hinting, availability and fallback. Every one of those makes a layout bug unreproducible.
+*How to work it out.* A system font varies in version, hinting, availability and fallback — each makes a layout bug unreproducible.
 
-*The answer.* Bundling buys identical shaping on every machine — a bug reproducible from a screenshot — and makes the comparison page meaningful, since both sides load the same bytes. It costs binary size, which is why only the faces the viewer uses are bundled.
+*The answer.* Bundling buys identical shaping on every machine — a bug reproducible from a screenshot — and makes the comparison page meaningful: both sides load the same bytes. It costs binary size, so only the faces the viewer uses are bundled.
 
 **A colour change does not reshape; a font-size change does. Which properties participate in shaping, and why those?**
 
-*How to work it out.* Which inputs change *which glyph appears where*? Kerning and ligatures depend on the characters and the size; line breaking depends on the line height. Colour and position only change how the same glyphs are painted.
+*How to work it out.* Which inputs change *which glyph appears where*? Kerning and ligatures depend on the characters and the size; line breaking depends on the line height. Colour and position only repaint the same glyphs.
 
-*The answer.* `text`, `font_size` and `line_height`. Everything else reuses the shaped buffer by id — which is what lets a label follow the camera every frame without a shaper in the loop.
+*The answer.* `text`, `font_size` and `line_height`. Everything else reuses the shaped buffer by id — so a label follows the camera every frame with no shaper in the loop.
 
 **What is a cluster, and why does the code carry it around?**
 
 *How to work it out.* To map a click on a glyph back to a character: `ffi` can be one glyph from three bytes, `e` plus a combining accent two glyphs for one grapheme. A glyph index alone cannot answer it.
 
-*The answer.* A cluster is the byte range in the source string a glyph came from. Without clusters there is no editing and no text selection — structure built early because removing it later would be impossible.
+*The answer.* A cluster is the byte range in the source string a glyph came from. Without clusters there is no editing and no text selection — structure carried early because it cannot be retrofitted.
 
 **What you should be able to do now**
 

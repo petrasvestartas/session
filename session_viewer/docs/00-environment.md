@@ -27,7 +27,7 @@ cd "$COURSE_WORK/session_viewer"
 
 - wasm-bindgen turns `cdylib` into the browser module; `rlib` lets native tools link the same crate.
 - `Cargo.lock` in step 4 pins every version; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
-- Keep `[target.'cfg(not(wasm32))']` last: a target table mid-file silently swallows every `[dependencies]` line after it.
+- Keep `[target.'cfg(not(wasm32))']` after every `[dependencies]` entry: a target table mid-file silently swallows every `[dependencies]` line after it. (Only a `[dependencies]` line is at risk, which is why `[dev-dependencies]` may follow it here.)
 
 ![Diagram: Cargo.toml · session_viewer crate · ../session_rust](illustrations/00-01.svg)
 
@@ -51,7 +51,7 @@ One line points every `cargo` command at the browser: no `#[cfg(target_arch = "w
 
 ![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
-Release builds, no subresource hashes, relative asset URLs, dev server on 127.0.0.1:8770. Lesson 14 adds the watch list reaching the kernel next door.
+Release builds, no subresource hashes, relative asset URLs, dev server on 127.0.0.1:8770 — every Check in this course passes `--port 8780` on the command line instead, so the course and a production viewer can run at once. Lesson 14 adds the watch list reaching the kernel next door.
 
 ![Diagram: Trunk.toml · dist/ · 127.0.0.1:8770 dev server](illustrations/00-03.svg)
 
@@ -115,11 +115,11 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 - New crate that compiles to WebAssembly and runs in the browser.
 - Data flow: `lib.rs::start` → DOM.
 
-**Production equivalent:** `Cargo.toml`, `.cargo/config.toml`, `Trunk.toml` are the production files. Production keeps its entry point in `src/lib.rs`.
+**Production equivalent:** `Cargo.toml`, `.cargo/config.toml`, `Trunk.toml`; production keeps its entry point in `src/lib.rs`.
 
 ## Try
 
-- Change the status text in `start()` and reload: Trunk rebuilds on save, and the page shows your text. That is the whole edit loop of the course.
+- Change the status text in `start()` and reload: Trunk rebuilds on save and the page shows your text — the whole edit loop of the course.
 - Misspell the element id in `get_element_by_id("status")`: the page stays on "Loading WASM" and the browser console shows the `expect` message. Put it back.
 
 ## Questions and answers
@@ -127,7 +127,7 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 
 **Two crate types are declared. Who consumes each?**
 
-*How to work it out.* Two consumers read the build output: the browser, through wasm-bindgen and Trunk, and `cargo test` / `cargo run --example` natively. A browser module and a Rust library are different artefacts, so both must be declared.
+*How to work it out.* Two consumers read the build output: the browser, through wasm-bindgen and Trunk, and `cargo test` / `cargo run --example` natively. Those are different artefacts, so both must be declared.
 
 *The answer.* `cdylib` is the dynamic library wasm-bindgen turns into a browser module — what Trunk bundles. `rlib` is the ordinary Rust library that native tools, tests and examples link against. Drop `rlib` and `cargo xtest` has nothing to link; drop `cdylib` and there is no page.
 
@@ -135,17 +135,17 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 
 *How to work it out.* Without it, `cargo build` targets your machine: every browser-only item needs `#[cfg(target_arch = "wasm32")]` and every build command needs `--target wasm32-unknown-unknown`. Almost all of this crate is browser code, so that is the common case.
 
-*The answer.* `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so the source needs no per-item gates. The `xtest` alias is how the tests still run natively.
+*The answer.* `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so the source needs no per-item gates. The `xtest` alias still runs the tests natively.
 
 **The page is stuck on *Loading WASM* and the console is empty. Name two candidates before you touch the Rust.**
 
-*How to work it out.* "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs and points at the two stages before it: was a module served at all, and was it rebuilt? An empty console confirms it — a Rust panic would have printed.
+*How to work it out.* "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs and points at the two stages before it: was a module served at all, and was it rebuilt? *How to work it out.* "Loading WASM" is the HTML's own text, so the page loaded but the module never replaced it. That rules out everything after `start()` runs and points at the two stages before it: was a module served at all, and was it rebuilt? An empty console is the clue — a Rust panic would have printed.
 
 *The answer.* Either you opened the file from disk instead of the Trunk address, so nothing loaded the module, or the crate did not rebuild. An id typo is a third candidate, easy to tell apart: it panics, and the console shows the `expect` message.
 
 **What you should be able to do now**
 
-Delete `src/lib.rs` and write it again — the start attribute, the document lookup, the two writes — then `cargo check`. Correct looks like: `#[wasm_bindgen(start)]` on a `pub fn start()`, `web_sys::window().unwrap().document().unwrap()`, `get_element_by_id("status")` with an `expect`, and `set_text_content(Some(...))` plus the `data-checkpoint` attribute. Under ten lines.
+Delete `src/lib.rs` and write it again — the start attribute, the document lookup, the two writes — then `cargo check`. Correct looks like: `#[wasm_bindgen(start)]` on a `pub fn start()`, `console_error_panic_hook::set_once()` first, `web_sys::window().expect(…).document().expect(…)`, `get_element_by_id("status")` with an `expect`, and `set_text_content(Some(...))` plus the `data-checkpoint` attribute. Under twenty lines.
 
 ## Next
 

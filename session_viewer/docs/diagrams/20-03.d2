@@ -13,7 +13,7 @@ M: "mutators" {
   A: "add_* → _add_object" { class: box }
   P: "replace → _swap" { class: box }
   D: "remove_object → _detach" { class: box }
-  Xf: "set_xform → _place" { class: box }
+  Xf: "set_xform → xforms.insert" { class: box }
 }
 H: "history.record" { class: focus }
 

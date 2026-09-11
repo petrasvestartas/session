@@ -49,7 +49,8 @@ Install the binary interaction fixture and the supplied native harness file firs
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=84-116 -->
 
 - Ask for 256 MiB of storage binding where available, not the adapter maximum: the measured point-cloud scene needs 158 MB in one table.
-- A 128 MiB device still starts, and an oversized scene then reports a GPU error rather than a silent driver fallback.
+- A 128 MiB device still starts.
+- An oversized scene then reports a GPU error, not a silent driver fallback.
 - `failure` remembers an uncaptured error or a device loss: both arrive on a callback, not at the call that caused them.
 - `State::render` reads it and shows the reload panel instead of drawing garbage.
 
@@ -71,7 +72,7 @@ Native-only adapter naming and the error callbacks:
 
 - `write_frame_uniforms` runs once per frame: camera matrices, the inside-flag refresh reading the eye just solved, then text placement.
 - `present` returns `None` when the surface had no texture; the caller asks for another frame instead of panicking.
-- `pick_frame` is the ID pass alone, against the last presented frame's depth: a pick on a still scene costs no colour frame.
+- `pick_frame` is the cloud prelude and the ID pass, against the last presented frame's depth: a pick on a still scene costs no colour frame. (The source comment at present.rs:72 says "the id pass alone" too, and has the same gap.)
 
 ![Diagram: camera · eye · write_frame_uniforms · present · surface texture · pick_frame](illustrations/12-04.svg)
 
@@ -186,7 +187,8 @@ Every handler returns whether a redraw is needed; a click returns `false` — no
 
 ![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-7ccf7d4f74.svg){ .locator data-strip="illustrations/strip-6f8f40e8fe.svg" }
 
-- `Scene` owns every kernel `Session` plus its placement; the GPU only holds rows. A pick returns a row, `Scene::resolve` returns the document and GUID.
+- `Scene` owns every kernel `Session` plus its placement; the GPU only holds rows.
+- A pick returns a row; `Scene::resolve` returns the document and GUID.
 - `order` maps row → GUID, `guid_to_row` back; both survive an upload, since rows are forgotten only after `upload_to`.
 
 ![Diagram: Session documents · Scene · object rows](illustrations/12-08.svg)
@@ -264,7 +266,7 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-48 -->
 
-- Normals are read only when every point has one: a partly-normalled cloud shades inconsistently, and no per-point flag says which.
+- Normals are read only when every point has one: - Normals are read only when every point has one: a partly-normalled cloud would shade inconsistently, and no per-point flag says which.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -349,7 +351,8 @@ IdTargets.depth : Depth32Float, cleared to 0       ↔   reversed depth, compare
 copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 ```
 
-- The pass is scissored to a small window about the cursor and only that window is copied out; the vertex work stays, the fill does not.
+- The pass is scissored to a window about the cursor; only that window is copied out.
+- The vertex work stays, the fill does not.
 - `ROW_BYTES` is the copy pitch rounded to the required alignment.
 
 ![Diagram: cursor window · IdTargets\ Rg32Uint · Depth32Float · readback buffer · Picker answer](illustrations/12-12.svg)
@@ -386,7 +389,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=223-309 -->
 
-- The ID pass gets the colour frame's gradient attachment: ink decides its own visibility from it.
+- The ID pass gets the colour frame's gradient attachment — the third target the figure above labels *metadata* — so ink decides its own visibility from it.
 - Without it, a stroke would be pickable exactly where it is invisible.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
@@ -424,8 +427,6 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 ![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-6b7cde642e.svg){ .locator data-strip="illustrations/strip-68dea8ec67.svg" }
 
 - Same toggles, same order as the colour list: what a lane hides it cannot pick.
-
-![Which id lanes each pick mode draws: every mode draws face and splat ids, each narrows the rest to the lanes it is about, and authored text is pickable in all of them.](illustrations/pick-modes.svg)
 - Edge mode draws only source-edge IDs; object mode draws faces, then ink with ink-first precedence.
 
 ![Diagram: encode_frame · id_pass · ID targets](illustrations/12-13.svg)
@@ -491,7 +492,8 @@ binding 1: uniform [radius, 0, 0, 0]    ↔  @group(0) @binding(1) var<uniform> 
 
 ![Where this step sits in the viewer: State, with 10 of 11 zones built so far.](illustrations/locator-3fc75276ea.svg){ .locator data-strip="illustrations/strip-0fc6abc083.svg" }
 
-- `needs_frame` is the demand for a redraw; `dirty` says the picture changed. A pending pick sets the first without the second.
+- `needs_frame` demands another frame; `dirty` says the picture changed.
+- A pending pick sets the first without the second.
 - `touch` cancels any pick in flight: the camera or scene it was asked against no longer exists.
 
 ![Diagram: Input · State::request_selection · Gpu pick · FLAG_SELECTED](illustrations/12-15.svg)
@@ -524,7 +526,8 @@ binding 1: uniform [radius, 0, 0, 0]    ↔  @group(0) @binding(1) var<uniform> 
 
 <!-- file: 12 session_viewer/src/state.rs type lines=189-207 -->
 
-- `toggle_xray` is a view change, not a scene change: `view.opacity` goes between `1.0` and `0.0` and `touch` schedules a frame; the shaders read the zero, no row is rewritten.
+- `toggle_xray` is a view change, not a scene change: `view.opacity` goes between `1.0` and `0.0`, and `touch` schedules a frame.
+- The shaders read the zero; no row is rewritten.
 - `select` clears controls and edge highlight before moving the flag, so no lane keeps a stale parent.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
@@ -628,7 +631,7 @@ Document titles and the selected name are derived labels; they have no source ro
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=93-157 -->
 
 - The window handler keeps only redraw and resize.
-- Keys and the mouse go to `Input`, which answers whether a frame is needed; the shell never decides what a gesture means.
+- Keys and the mouse go to `Input`; the shell never decides what a gesture means.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -642,11 +645,13 @@ Document titles and the selected name are derived labels; they have no source ro
 
 ![Where this step sits in the viewer: Page, Shell, with 10 of 11 zones built so far.](illustrations/locator-51db8c1fc4.svg){ .locator data-strip="illustrations/strip-7794a17bda.svg" }
 
-- The page is one canvas, a status line and a hidden error panel; `touch-action: none` on the canvas hands every gesture to winit before the browser claims it as a scroll.
+- The page is one canvas, a status line and a hidden error panel.
+- `touch-action: none` on the canvas hands every gesture to winit before the browser claims it as a scroll.
 - `#viewer-docs` is the documentation corner: a black folded triangle, top right, drawn from the borders of a zero-size anchor; it opens `docs/` in a new tab.
 - Hover or keyboard focus grows it, a page corner lifting; it covers nothing but itself.
 - The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner resolves in a served build.
-- Nothing builds that site yet (lesson 14 adds the hook), and Trunk refuses a `copy-dir` whose source is missing — create the directory once before serving:
+- Nothing builds that site yet; lesson 14 adds the hook.
+- Trunk refuses a `copy-dir` whose source is missing, so create the directory once before serving:
 
 ```sh
 mkdir -p "$COURSE_WORK/session_viewer/target/docs/site"
@@ -680,7 +685,7 @@ Expected:
 - The seven-object fixture loads: mesh, line, polyline, curve, surface, BRep and cloud.
 - Click each one: it turns yellow; click again: it clears.
 - Ctrl + click a mesh or BRep edge: that source edge highlights.
-- Right-drag to orbit, then release without moving and click: only a still click selects. A drag never selects on release.
+- Right-drag to orbit, then release without moving and click: only a still click selects.
 - Orbit while a click is pending: the late answer is discarded, nothing wrong gets selected.
 
 If an object highlights but the status names another GUID, the row → identity map is wrong; fix `Scene`, not the shader colour.
@@ -701,10 +706,10 @@ If an object highlights but the status names another GUID, the row → identity 
 ## Try
 
 - Click the empty background: the selection clears, because the ID pass wrote 0 there.
-- Press the right button on the BRep, drag one pixel and release: nothing is selected, so a small drag never counts as a click.
+- Press the left button on the BRep, drag more than `CLICK_SLOP` (4 logical pixels) and release: nothing is selected, because a release outside the slop is a drag, not a click.
 - Raise `PICK_RADIUS` in `pick.rs` and click just beside the curve: the nearest ID inside the window wins, so the curve is selected from further away.
 - Hover the black corner at the top right: it grows; click it and the course opens in a new tab from `dist/docs`.
-- Make `Picker::poll` skip its `submitted != generation` comparison and orbit while a click is pending: a late answer selects against the new camera, which is the bug the check prevents.
+- Make `Picker::poll` skip its `submitted != generation` comparison and orbit while a click is pending: a late answer selects against the new camera — the bug the check prevents.
 
 ## Questions and answers
 
@@ -713,7 +718,7 @@ If an object highlights but the status names another GUID, the row → identity 
 
 *How to work it out.* Write down everything that decides whether a pixel shows an object: the depth test, the ink visibility rule, hidden flags, x-ray discards, the finite-triangle test, text placement, the LOD the cloud chose this frame. Now ask a CPU ray-caster to reproduce all of it. Every rule you forget is a place where the click disagrees with the picture.
 
-*The answer.* The GPU already knows what is on screen, so ask it. Rendering the same draws with `fs_id` instead of `fs_main` means the picture and the pick cannot drift apart by construction. The cost is a GPU round-trip, which is why the pass is scissored to a small window around the cursor and read back asynchronously.
+*The answer.* The GPU already knows what is on screen, so ask it. Rendering the same draws with `fs_id` instead of `fs_main` keeps picture and pick from drifting apart by construction. The cost is a GPU round-trip, so the pass is scissored to a small window around the cursor and read back asynchronously.
 
 **What is `generation` for, and what breaks without it?**
 
@@ -729,13 +734,13 @@ If an object highlights but the status names another GUID, the row → identity 
 
 **In the pick window, ink beats a face anywhere; among equals the nearest to the cursor wins. Why not simply take the nearest ID?**
 
-*How to work it out.* Count pixels. A curve lying on a face covers a few pixels in the window; the face covers nearly all of them. Nearest-wins therefore returns the face almost every time, and edges become nearly unclickable — which is not what the user meant by clicking on a line.
+*How to work it out.* Count pixels. A curve lying on a face covers a few pixels in the window; the face covers nearly all of them. Nearest-wins returns the face almost every time, and edges become nearly unclickable — not what the user meant by clicking on a line.
 
-*The answer.* The rule encodes intent rather than pixel counts, and it is the tolerance a CAD user expects. The window's size is expressed in CSS pixels and scaled, so the feel is the same on any display.
+*The answer.* The rule encodes intent rather than pixel counts — the tolerance a CAD user expects. The window is sized in CSS pixels and scaled, so the feel is the same on any display.
 
 **What you should be able to do now**
 
-List the frame's passes in order with what each reads and writes: backdrop and faces write colour, depth and gradient; the selection mask reads depth and writes coverage; ink reads depth and gradient and writes colour; the ID pass repeats the same draws and toggles into an integer target. Then say why the ID pass must repeat the same toggles — because what a lane hides it must also not pick, or the user can select something they cannot see. Lessons 13 to 20 add to this list; they do not change it.
+List the frame's passes in order with what each reads and writes: backdrop and faces write colour, depth and gradient; the selection mask reads depth and writes coverage; ink reads depth and gradient and writes colour; the ID pass repeats the same draws and toggles into an integer target. Then say why the ID pass must repeat the same toggles: what a lane hides it must also not pick, or the user can select something they cannot see. Lessons 13 to 20 add to this list; they do not change it.
 
 ## Next
 

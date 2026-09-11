@@ -223,7 +223,7 @@ Open <http://localhost:8780/?scene=view_sheets&inspect=1>. Two sheets stream in;
 
 ## Try
 
-- Publish a sheet of your own: `cargo run --example mk_sheet --target x86_64-unknown-linux-gnu -- in.pb out.pb`, upload the `.pb` and `.meta` side by side, and name the `.pb` in a manifest.
+- Publish a sheet of your own: `cargo run --example mk_sheet --target x86_64-unknown-linux-gnu -- in.pb out.pb` prints `out.pb: N segments, M entities, … B pb, … B meta, skipped [...]` beside the two files it wrote; upload the `.pb` and `.meta` side by side, name the `.pb` in a manifest, and the whole sheet draws as one object row.
 - Add `&segments=200000` and watch the second sheet stop at the budget; the status line names the sheet that stayed out.
 - Select an entity, then open the network panel: exactly two range requests against the `.meta` file, 16 bytes and the blob.
 
@@ -239,13 +239,13 @@ Open <http://localhost:8780/?scene=view_sheets&inspect=1>. Two sheets stream in;
 
 *How to work it out.* Ask how you find record number 4 000 in each format. Protobuf is a stream of tag-length-value: you must walk from the start. Now design the minimum format that supports random access: a count, then fixed-size offset/length pairs, then the blobs.
 
-*The answer.* `SHM1` makes the entity id an index — one 16-byte read at `8 + 16 · id`, then the blob. Choosing the format from the access pattern is the lesson, not the format itself; protobuf is the right choice for the geometry arrays in the same system.
+*The answer.* `SHM1` makes the entity id an index — one 16-byte read at `8 + 16 · id`, then the blob. Choose the format from the access pattern: protobuf is the right choice for the geometry arrays in the same system.
 
 **A selected entity highlights all its segments with no shader change. How?**
 
 *How to work it out.* Ask what the ribbon shader already does with selection: it compares each segment's `source_edges` value against the edge selection. Then ask what a sheet puts in that slot.
 
-*The answer.* The entity id. The feature was free because an earlier lesson put "which source thing is this segment part of" in a general slot rather than an edge-specific one. That is what a good abstraction pays out — later, and without being asked.
+*The answer.* The entity id. The feature was free because an earlier lesson put "which source thing is this segment part of" in a general slot rather than an edge-specific one.
 
 **`descend_message` requires the wanted field to close the message. Why insist on that?**
 

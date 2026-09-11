@@ -2,7 +2,7 @@
 
 ## You are building
 
-![Diagram: fixture.rs\ ObjectRow + RenderVertex · Upload\ obj rows · arena rows · InstanceTable\ group 2 · ArenaLane\ GrowBufs · FrameUniforms\ groups 0, 1 · P…](illustrations/04a-01.svg)
+![Diagram: fixture.rs\ ObjectRow + RenderVertex · Upload\ obj rows · arena rows · InstanceTable\ group 2 · ArenaLane\ GrowBufs · FrameUniforms\ groups 0, 1 · triangle.wgsl vs_main and fs_main](illustrations/04a-01.svg)
 
 Rust vertex layout ↔ WGSL locations (`pipelines::vertex_layout`, `instance_id_layout`):
 
@@ -36,7 +36,8 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-6656f81dc2.svg){ .locator data-strip="illustrations/strip-1d6ef8d27c.svg" }
 
-- `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written. It returns `true` when the buffer moved, so the caller rebuilds its bind group.
+- `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written.
+- Returns `true` when the buffer moved, so the caller rebuilds its bind group.
 
 ![Diagram: new rows · GrowBuf\ cap · len · GpuCtx\ device · queue · bind group](illustrations/04a-02.svg)
 
@@ -72,7 +73,7 @@ Bind groups every lane shares (`Layouts`):
 
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
 
-![Group 2 is two bindings for a physical lane, six once ink reads the scene depth and gradient, eight once it also reads the projected triangles and tile lists; the sample count the frame is not using is a 1 x 1 placeholder.](illustrations/group-two.svg)
+Give the drawing a four-row column between them — "ink instance layout (04a)": object rows, anchored translations, depth · single-sampled, depth · multisampled (1 x 1 placeholder) — or relabel the six-row column "ink instance layout (04a-05)" and mark the two gradient rows as the lesson-05 additions.
 
 ![Diagram: Layouts · group 0 · mvp · group 1 · line · group 2 · rows + translations · ink_instance](illustrations/04a-03.svg)
 
@@ -102,7 +103,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=59-117 -->
 
-- The builders turn one base description into a family: `with` renames and repoints the fragment entry, `vertex` swaps the vertex entry, `color` and `depth` set the two states that vary between passes.
+- One base description becomes a family: `with` renames and repoints the fragment entry, `vertex` swaps the vertex entry, `color` and `depth` set the two states that vary between passes.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -169,13 +170,15 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=136-165 -->
 
-- `TextureSpec` describes an attachment whole - size, format, samples, usage. As data, every attachment rebuilds from one place when the sample count flips.
+- `TextureSpec` is the whole description of an attachment - size, format, samples, usage. Keeping it as data lets every attachment rebuild from one place when the sample count flips.
 
 ## Step 5 · Frame uniforms
 
 ![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-6656f81dc2.svg){ .locator data-strip="illustrations/strip-1d6ef8d27c.svg" }
 
-- `FrameInput` is what one frame needs from the caller; `FrameCx` adds the knobs, the anchor and the framebuffer, and `pixel_scale` is framebuffer pixels per CSS pixel. `Binds` sets groups 0, 1 and 2 before every lane draw.
+- `FrameInput` is what one frame needs from the caller.
+- `FrameCx` adds the knobs, the anchor and the framebuffer; `pixel_scale` is framebuffer pixels per CSS pixel.
+- `Binds` sets groups 0, 1 and 2 before every lane draw.
 
 ![Diagram: FrameInput\ view_proj · clear · FrameUniforms\ mvp · line · cloud · every lane draw · pick blocks\ window-sized attachment](illustrations/04a-06.svg)
 
@@ -280,7 +283,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/app/route.rs type -->
 
-- Enough query parser to read `?name=value`; routing policy waits for lesson 14. A knob is read in one place, not wherever it is needed.
+- Enough of a query parser to read `?name=value`; routing policy waits for lesson 14. A knob is read in one place, not wherever it is needed.
 
 ## Step 7 · The object table
 
@@ -356,9 +359,9 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=24-61 -->
 
-- Shading sits apart from the vertex stage: both fragment entries need it, neither should reimplement it.
+- Shading is a function of its own: `fs_main` calls it, `fs_id` returns the row and never lights.
 - A camera headlight with wrapped diffuse keeps the darkest visible face its own colour, not black.
-- Back faces paint red unless the object is print.
+- Back faces paint red once `B` (`?backface=1`) asks for it, unless the object is print.
 
 <span class="zone-mark" data-strip="illustrations/strip-dbc84dca37.svg" data-zone="Shaders"></span>
 
@@ -524,16 +527,16 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 
 ## Try
 
-- Append `?lit=1` (or press `D` later): the face gains headlight shading. Without it every face is its flat row color, which is what a color-based probe needs.
+- Append `?lit=1` (or press `D` later): the face gains headlight shading. Without it every face is its flat row color — what a color-based probe needs.
 - Add a second `ObjectRow` in `fixture.rs` with a different `place`: the same vertex range draws twice, once per row.
-- `?msaa=` is parsed here with no consumer yet: `Targets::new` takes one sample and the comment says so. Lesson 05 gives the knob its meaning; that checkpoint is where `?msaa=4` changes the picture.
+- `?msaa=` is parsed here with no consumer yet: `Targets::new` is called with one sample and the comment says so. Lesson 05 gives the knob its meaning; that checkpoint is where `?msaa=4` changes the picture.
 
 ## Questions and answers
 
 
 **`GrowBuf` returns `true` when it grew. Why does a caller have to care?**
 
-*How to work it out.* There is no realloc on a GPU: growing creates a *new*, larger buffer and copies the live prefix into it. Then ask what else in the system remembers the old buffer — a bind group holds a reference to a specific buffer, not to a name.
+*How to work it out.* There is no realloc on a GPU: growing creates a *new*, larger buffer and copies the live prefix into it. Then ask what else remembers the old buffer — a bind group holds a reference to a specific buffer, not to a name.
 
 *The answer.* The old bind group now points at a buffer nobody writes to any more. The boolean is the signal to rebuild it. Ignore it and there is no validation error — the buffer it names is still perfectly valid, just not yours — so the symptom is stale geometry, failure 9 in [Reading failures](debugging.md).
 
@@ -545,7 +548,7 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 
 **`vp_w`/`vp_h` and `frame`/`origin` look like the same numbers. When do they differ, and why are both needed?**
 
-*How to work it out.* Find a case where the thing being drawn into is not the whole canvas. There is exactly one: the pick pass renders a window around the cursor into its own attachment. Then ask of each piece of pixel arithmetic in the shaders whether it means "in this attachment" or "on the canvas the scene was laid out for".
+*How to work it out.* Find a case where the thing being drawn into is not the whole canvas. There is exactly one: the pick pass renders a window around the cursor into its own attachment. Then ask of each piece of pixel arithmetic whether it means "in this attachment" or "on the canvas the scene was laid out for".
 
 *The answer.* `vp_w`/`vp_h` are the attachment being drawn into; `frame` is the whole canvas the scene was projected for, and `origin` is where the window's top-left sits in it. Pixel arithmetic uses the attachment; anything laid out against the full canvas goes through `origin`. Collapse them and picking drifts as soon as the window is not the canvas.
 
@@ -557,7 +560,7 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 
 **What you should be able to do now**
 
-Name the three bind groups every lane shares and what each holds, and say what the ink pass binds differently. Correct: group 0 the camera matrix, group 1 the per-frame `LineUniform`, group 2 the object rows plus anchored translations — and the ink variant of group 2 adds the physical depth views, so ink can test its own visibility. 
+Name the three bind groups every lane shares, what each holds, and what the ink pass binds differently. Correct: group 0 the camera matrix, group 1 the per-frame `LineUniform`, group 2 the object rows plus anchored translations — and the ink variant of group 2 adds the physical depth views, so ink can test its own visibility. 
 
 ## Next
 

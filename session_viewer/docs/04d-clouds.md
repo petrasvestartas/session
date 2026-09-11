@@ -2,7 +2,7 @@
 
 ## You are building
 
-![Diagram: fixture: positions · colors · CloudDraw · CloudRows · PointBufs\ pos · col · nrm GrowBufs · points group\ records · pos · col · nrm · LodWalk::select\ octree ranges per cloud · SplatRecord × visible range\ mvp × model folded…](illustrations/04d-01.svg)
+![Diagram: cloud rows fill the point buffers, the LOD walk picks the ranges each record covers, and splat.wgsl's private depth and colour pair is resolved into the scene.](illustrations/04d-01.svg)
 
 Group 1 of the point pass (`Layouts::points`):
 
@@ -247,33 +247,33 @@ Expected:
 
 - Append `?cloud=3`: every point grows on screen; `cloud_size` scales the per-cloud size in the record, the buffers are untouched.
 - Append `?edl=0`: the eye-dome lighting goes away and the cloud reads flat; it is a resolve-pass effect, not stored colour.
-- Append `?lod=64`: fewer octree nodes qualify and the cloud thins with distance; `LodWalk::select` is the only code that changed behaviour.
+- Append `?lod=64`: fewer octree nodes qualify and the cloud thins with distance; only `LodWalk::select` behaves differently.
 
 ## Questions and answers
 
 **Points draw into their own targets and are then resolved into the scene. Why not draw them with everything else?**
 
-*How to work it out.* A splat must read the depth of *neighbouring* points to shade itself (Eye-Dome Lighting), and you cannot read the depth buffer you are writing. But it must still occlude and be occluded like a solid. Those two requirements conflict unless the points get a buffer of their own.
+*How to work it out.* A splat must read the depth of *neighbouring* points to shade itself (Eye-Dome Lighting), and you cannot read the depth buffer you are writing. But it must still occlude and be occluded like a solid. They conflict unless the points get their own buffer.
 
 *The answer.* A private colour and depth pass first, then a fullscreen resolve that reads them, applies EDL and writes `frag_depth` under the scene's `Greater` test, folding the result back into the shared depth as if it had been drawn there. The cost is one pass; the benefit is that no other lane has to know clouds exist.
 
 **The point pass targets are created on the first frame that has points. What principle is that, and where else does it appear?**
 
-*How to work it out.* Ask what a scene with no cloud should pay for cloud support. Then look for other features with the same shape: something expensive, allocated per-framebuffer, not always needed.
+*How to work it out.* What should a scene with no cloud pay for cloud support? Then look for features with the same shape: expensive, allocated per-framebuffer, not always needed.
 
 *The answer.* Pay for a feature only when it is used. The same rule allocates the coverage masks only while something is outlined and releases them when nothing is, and builds the tile pool only when finite visibility runs. In a browser, memory you never allocate is the cheapest optimisation available.
 
 **The LOD walk is pure CPU and answers one question per node. What is the question?**
 
-*How to work it out.* You want just enough points that the gaps between them are invisible. So the quantity to test is the node's point spacing *as projected on screen*, compared against a pixel threshold.
+*How to work it out.* You want just enough points that the gaps between them are invisible. So test the node's point spacing *as projected on screen* against a pixel threshold.
 
-*The answer.* "Does this node's spacing project wider than `lod_px`?" Every visited node draws its own subsample; a yes also pushes the eight children, so descending only ever adds detail, which is what makes this a single pass with no back-tracking.
+*The answer.* "Does this node's spacing project wider than `lod_px`?" Every visited node draws its own subsample; a yes also pushes the eight children, so descending only ever adds detail — one pass, no back-tracking.
 
 **Group 0 of the point pipelines is the cloud uniform, not the camera. Where did the camera go?**
 
-*How to work it out.* Ask what a splat record has to contain anyway: which range of points, at what size, from which cloud. Once a record exists per visible cloud, the camera can be premultiplied into it on the CPU at no per-point cost.
+*How to work it out.* A splat record must already say which range of points, at what size, from which cloud. Once a record exists per visible cloud, the CPU can premultiply the camera into it at no per-point cost.
 
-*The answer.* Folded into each `SplatRecord`, so the shader does one mat-vec per point from a record the CPU wrote, and the point pass does not need the scene's camera group at all. It also makes a range straddling two chunks simply two records instead of a special case in the shader.
+*The answer.* Folded into each `SplatRecord`, so the shader does one mat-vec per point from a record the CPU wrote, and the point pass never needs the scene's camera group. It also makes a range straddling two chunks two records rather than a special case in the shader.
 
 **What you should be able to do now**
 

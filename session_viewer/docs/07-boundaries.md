@@ -2,7 +2,7 @@
 
 ## You are building
 
-![Diagram: BRep edge · canonical XYZ chain\ edge_bnd · edge_basis · refined chain\ (originals kept exact) · params on each face's pcurve · mesh_loops\ constrained Delaunay · ordered mesh-node chains…](illustrations/07-01.svg)
+![Diagram: one BRep edge's canonical XYZ chain is refined once, mapped onto every incident face's pcurve, meshed, then drawn as pipes with outward normals.](illustrations/07-01.svg)
 
 ![Before: face A, face B and the ink each chord the same edge differently. After: one canonical chain constrains both meshes and the ink is drawn from those nodes.](illustrations/shared-boundary.svg)
 
@@ -43,7 +43,7 @@
 
 ![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-acdbf8493e.svg){ .locator data-strip="illustrations/strip-9186989aed.svg" }
 
-- `mesh_q` (untrimmed) and `mesh_loops` (BRep) share `triangulate`; the bounding-box diagonal becomes its own helper.
+- `mesh_q` (the surface's own trim curves) and `mesh_loops` (polygons from BRep) share `triangulate`; the bounding-box diagonal becomes its own helper.
 - `mesh_loops` answers invalid input or lost boundary provenance with an empty mesh, never a manufactured face.
 
 ![Diagram: mesh_q · triangulate · mesh_loops · Mesh or empty](illustrations/07-03.svg)
@@ -164,7 +164,7 @@
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- Face-use flags are never read: two faces walking a shared edge in opposite directions agree, and negative enclosed volume means inside out.
+- Face-use flags are never read: - Face-use flags are never read: two faces walking a shared edge in opposite directions agree, and a group enclosing negative volume is inside out.
 
 ![Diagram: EdgeChain · face_signs · face Mesh · outward normals](illustrations/07-08.svg)
 
@@ -264,9 +264,9 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 
 ## Try
 
-- Orbit until the cylinder's seam faces you: it is one line, not two, because both incident face meshes were built from the same chain. (`?top=1` is the wrong view for this one — the cylinder's axis is Z, so from above the seam projects to a point and the two rim circles sit face-on.)
-- Append `?thickness=4` and orbit: the pipes widen but never detach from the faces, which only holds because their endpoints are mesh nodes.
-- Zoom close to the hole rim with the wheel, then orbit: the rim stays attached to the inner face at every scale; a separately sampled circle would float above or sink below it.
+- Orbit until the cylinder's seam faces you: it is one line, not two, because both incident face meshes were built from the same chain. (`?top=1` is the wrong view — the axis is Z, so from above the seam projects to a point and the two rim circles sit face-on.)
+- Append `?thickness=4` and orbit: the pipes widen but never detach from the faces, because their endpoints are mesh nodes.
+- Zoom close to the hole rim, then orbit: the rim stays attached to the inner face at every scale; a separately sampled circle would float above or sink below it.
 
 ## Questions and answers
 

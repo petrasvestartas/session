@@ -158,7 +158,7 @@ Background but no triangle: compare the entry-point names, `draw(0..3, ..)` and 
 ## Try
 
 - Change the clear color in `render_frame` and watch the background follow.
-- Swap two entries of the `points` array in `first.wgsl`: the triangle flips — vertex order is what the rasterizer sees.
+- Swap two entries of the `points` array in `first.wgsl`: the outline is unchanged and two corners trade colours, because `color` is indexed by the same `index` and nothing culls the reversed winding.
 - Change `draw(0..3, 0..1)` to `draw(0..2, 0..1)`: nothing is drawn, because two vertices make no triangle.
 
 ## Questions and answers
@@ -169,7 +169,7 @@ These four are the frame; the rest of the course assumes them.
 
 *How to work it out.* Follow the dependencies: each object is made from one that already exists. No GPU without an entry point; none that can draw to your canvas without the canvas; no buffers without an open connection to it. Then separate what is made once from what one frame needs.
 
-*The answer.* Instance → surface (from the canvas) → adapter (requested with `compatible_surface`, or it may not be able to present here) → device + queue → surface configuration. Then, per frame: `get_current_texture` → a texture view → a command encoder → a render pass with its attachments → `encoder.finish()` → `queue.submit` → `present`.
+*The answer.* Instance → surface (from the canvas) → adapter (requested with `compatible_surface`, or it may not present here) → device + queue → surface configuration. Then, per frame: `get_current_texture` → a texture view → a command encoder → a render pass with its attachments → `encoder.finish()` → `queue.submit` → `present`.
 
 **Which of those happen once, and which happen every frame?**
 
@@ -185,13 +185,13 @@ These four are the frame; the rest of the course assumes them.
 
 **Why is `buffers: &[]` allowed when a triangle clearly has vertices?**
 
-*How to work it out.* Read `vs_main`: it never reads an input attribute, so nothing has to be fetched from memory and a vertex buffer would be a slot nobody reads.
+*How to work it out.* Read `vs_main`: it never reads an input attribute, so nothing is fetched from memory and a vertex buffer would be a slot nobody reads.
 
-*The answer.* The three positions are computed inside the shader from `@builtin(vertex_index)`, so no buffer is bound. `draw(0..3, 0..1)` is what makes that builtin count 0, 1, 2.
+*The answer.* The shader computes the three positions from `@builtin(vertex_index)`, so no buffer is bound. `draw(0..3, 0..1)` makes that builtin count 0, 1, 2.
 
 **What you should be able to do now**
 
-Write `render_frame` on paper — acquire, view, encoder, pass, set pipeline, set bind group, draw, finish, submit, present — then compare. Correct looks like: the pass created inside an inner scope so its borrow of the encoder ends before `encoder.finish()`, and `present()` as the last statement. Missing `present` is the classic: the frame is drawn and never shown.
+Write `render_frame` on paper — acquire, view, encoder, pass, set pipeline, set bind group, draw, finish, submit, present — then compare. Correct looks like: the pass in an inner scope so its borrow of the encoder ends before `encoder.finish()`, and `present()` as the last statement. Missing `present` is the classic: the frame is drawn and never shown.
 
 ## Next
 

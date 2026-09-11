@@ -149,7 +149,7 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 
 **`Instance` has a matrix, a colour, some flags and a spacing. Why does it occupy 96 bytes?**
 
-*How to work it out.* Add the fields: 64 for the matrix, 16 for the colour, 4 + 4 + 4 for the rest — 92. A `mat4x4` requires 16-byte alignment, and an element of a storage array must start at a multiple of the struct's largest alignment, so the stride rounds to the next multiple of 16.
+*How to work it out.* Add the fields: 64 for the matrix, 16 for the colour, 4 + 4 + 4 for the rest — 92. A `mat4x4` requires 16-byte alignment, and a storage-array element must start at a multiple of the struct's largest alignment, so the stride rounds to the next multiple of 16.
 
 *The answer.* 96, because 92 rounds up to 96. The explicit padding field on the Rust side makes the round-up deliberate instead of accidental.
 
@@ -163,11 +163,11 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 
 *How to work it out.* Look at what the draw call takes: a vertex range and an instance range. The shader reads two builtins. One counts vertices; by elimination the other counts instances.
 
-*The answer.* `@builtin(instance_index)`, set by the instance range of the draw: `draw(0..3, 1..2)` runs the vertex stage with `instance_index == 1`. Nothing is bound per object — one buffer, one index — which is why drawing a thousand objects costs one bind and a thousand indices.
+*The answer.* `@builtin(instance_index)`, set by the draw's instance range: `draw(0..3, 1..2)` runs the vertex stage with `instance_index == 1`. Nothing is bound per object — one buffer, one index — so a thousand objects cost one bind and a thousand indices.
 
 **What you should be able to do now**
 
-Write the `#[repr(C)]` row and its size assertion in an empty file without looking, then compare with `instance.rs`. Correct: `model: [f32; 16]`, `color: [f32; 4]`, `flags: u32`, a padding field, `spacing: f32`, `#[repr(C)]`, `Pod`/`Zeroable`, and `assert_eq!(size_of::<Instance>(), 96)`. If your field order differs, ask whether the shader would still work — `#[repr(C)]` is what makes that question answerable, because without it Rust may reorder the fields.
+Write the `#[repr(C)]` row and its size assertion in an empty file without looking, then compare with `instance.rs`. Correct: `model: [f32; 16]`, `color: [f32; 4]`, `flags: u32`, a padding `f32`, `spacing: f32`, a trailing padding `u32`, `#[repr(C)]`, `Clone`/`Copy`/`Pod`/`Zeroable`, and the 96-byte size assertion. If your field order differs, ask whether the shader would still work — `#[repr(C)]` is what makes that question answerable, because without it Rust may reorder the fields.
 
 ## Next
 

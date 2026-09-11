@@ -8,8 +8,9 @@
 
 ## Starting point
 
-- Checkpoint 04d (all drawing modules present): faces, strokes, markers and clouds draw into one color target with a single-sample depth buffer, and every stroke fragment compares its own depth at its own pixel.
-- Rear edges shine through solids at grazing angles: a thick stroke covers samples beside its axis, and those samples belong to a surface whose depth changes sharply within one pixel.
+- Checkpoint 04d: faces, strokes, markers and clouds draw into one color target with a single-sample depth buffer.
+- Every stroke fragment compares its own depth at its own pixel.
+- Rear edges shine through solids at grazing angles: a thick stroke covers samples beside its axis, on a surface whose depth changes sharply within one pixel.
 - Depth is reversed: near is larger, far approaches zero.
 
 <!-- step-status: start -->
@@ -85,7 +86,7 @@ A stroke is a ribbon of fragments around its mathematical axis; the depth beside
                    z0            depth varies across the footprint
 ```
 
-Comparing `z0` with `d` directly hides ink on its own face. The physical gradient instead carries the surface depth from the fragment to the axis point, and only that prediction is compared.
+Comparing `z0` with `d` directly hides ink on its own face. Comparing `z0` with `d` directly hides ink on its own face. The physical gradient instead carries the surface depth from the fragment to the axis point, and only that predicted depth is compared with the axis.
 
 
 ### 4a · Bindings, tolerances and the axis record
@@ -134,7 +135,8 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 ### 4e · Corner fits and the fast path
 
 - `ink_disc_source_hidden` tries each quadrant so a face boundary cannot discard a valid fit.
-- `ink_visible` is the entry point strokes call: with a valid own gradient, one `textureLoad` and a dot product decide; the neighbouring-pair fit is the fallback for gradients outside the attachment's range.
+- `ink_visible` is the entry point strokes call: a valid own gradient decides with one `textureLoad` and a dot product.
+- Gradients outside the attachment's range fall back to the neighbouring-pair fit.
 - A neighbouring triangle is treated as an infinite plane: the fit extends its slope past its edges.
 
 ![Diagram: four quadrants · ink_disc_source_hidden · own gradient valid · ink_visible · ink_axis_visible fallback](illustrations/05-09.svg)
@@ -166,7 +168,7 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 <!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
-- The resolve is where a private pass rejoins the shared one: it reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` for the scene's depth test.
+- The resolve rejoins the private pass to the shared one: reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` for the scene's depth test.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -178,12 +180,12 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
 
-- `Rg16Float` gradient texture beside depth; its views swap like the depth views, so bind groups stay valid at both sample counts.
+- `Rg16Float` gradient texture beside depth; its single and multisampled views swap exactly like the depth views, so bind groups stay valid at both sample counts.
 - `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
-- `msaa_budget`/`samples_for` decide the sample count from the adapter type and pixel count.
+- `msaa_budget`/`samples_for` decide the sample count from two things at this checkpoint: whether solid geometry is on the GPU, and whether the canvas fits the adapter's pixel budget. Lesson 17 adds the third gate the figure shows, the device scale.
 - Multisampling smooths hard face edges only; ribbons and discs antialias themselves.
 
-![Two gates then a per-adapter pixel budget decide the sample count, and in a browser every adapter reports as Other, which is its own budget rather than a synonym for integrated.](illustrations/msaa-budget.svg)
+![A solid-geometry gate then a per-adapter pixel budget decide the sample count, and in a browser every adapter reports as Other, which is its own budget rather than a synonym for integrated.](illustrations/msaa-budget.svg)
 
 ![Diagram: adapter type + pixels · samples_for · Targets\ depth + Rg16Float gradient · faces pass](illustrations/05-11.svg)
 
@@ -337,7 +339,7 @@ Every edge disappears: compare the depth clear and compare function against the 
 
 *How to work it out.* MSAA changes how many samples a triangle covers within a pixel — a coverage question. The ink test asks whether the axis is behind a surface — a depth question. At 4x it runs once per sample against that sample's own depth and gradient; coverage never enters it.
 
-*The answer.* Because visibility is decided from depth and gradient, not from coverage. MSAA smooths hard face edges; the ink test still asks the same question at the same place. `?msaa=4` against `?msaa=1` is the experiment that shows it: the fringe changes, the decision does not.
+*The answer.* Visibility is decided from depth and gradient, not coverage. MSAA smooths hard face edges; the ink test still asks the same question at the same place. `?msaa=4` against `?msaa=1` shows it: the fringe changes, the decision does not.
 
 **What you should be able to do now**
 
