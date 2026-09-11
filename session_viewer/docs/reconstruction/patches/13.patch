@@ -929,10 +929,10 @@ index 90c0e7a788c1956a46eaf24dd2f099b9c22c1c2c..e5361f826df6cfdaa4d23f172eddfe85
  pub mod loader;
  #[cfg(target_arch = "wasm32")]
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index b0325c04c9eea37e14c2bb7a96b469d8c04b8845..7412fbb012349c91ee6dad76ab8ef199cf69ba82 100644
+index 51ee66b0991fa62baf75cc81dd3014e95b9485e2..1533465103dd75f732fbdb8feb32bd9e1845955b 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
-@@ -481,3 +481,64 @@ fn placement(world: &HashMap<String, Xform>, place: &Mat4, guid: &str) -> Mat4 {
+@@ -485,3 +485,84 @@ fn placement(world: &HashMap<String, Xform>, place: &Mat4, guid: &str) -> Mat4 {
          None => *place,
      }
  }
@@ -979,6 +979,26 @@ index b0325c04c9eea37e14c2bb7a96b469d8c04b8845..7412fbb012349c91ee6dad76ab8ef199
 +        scene.hidden.insert(scene.identity_of(1).unwrap());
 +        assert_eq!(scene.hidden_rows(), vec![1]);
 +        assert!(scene.document(2).is_none());
++    }
++
++    /// One file placed twice hands both documents the same `Rc`. An edit must split it first:
++    /// `Rc::make_mut` clones while the count is above one, and the other placement keeps the
++    /// geometry it was drawn with. Without the split, moving one placement moves them all.
++    #[test]
++    fn an_edit_must_split_a_session_two_placements_share() {
++        let mut source = Session::new("twice");
++        source.add_point(Point::new(1.0, 0.0, 0.0), None);
++        let shared = Rc::new(source);
++        let mut scene = Scene::new();
++        scene.add_file(file("first", Rc::clone(&shared), false));
++        scene.add_file(file("second", Rc::clone(&shared), false));
++        assert!(Rc::ptr_eq(&scene.docs[0].session, &scene.docs[1].session));
++
++        Rc::make_mut(&mut scene.docs[0].session).add_point(Point::new(2.0, 0.0, 0.0), None);
++
++        assert!(!Rc::ptr_eq(&scene.docs[0].session, &scene.docs[1].session));
++        assert_eq!(scene.docs[0].session.lookup.len(), 2);
++        assert_eq!(scene.docs[1].session.lookup.len(), 1);
 +    }
 +
 +    /// Legacy display hints must preserve original CAD controls without cloning the source.

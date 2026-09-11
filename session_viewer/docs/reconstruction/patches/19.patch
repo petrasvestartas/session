@@ -659,7 +659,7 @@ index 2ef628363bdfb35d3ddc77cde5ec5e7ce79f5e3a..3cc9933bb164535f05d4f5107d41cb1b
  pub mod touch;
  pub mod validate;
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7a1fb4504 100644
+index bcadef88281db457e5a6d8ac3a3487e52c48f34b..ecba1d5a14e82d7babe7debad179bb3b7079e7d8 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
 @@ -8,10 +8,12 @@ mod text;
@@ -676,7 +676,7 @@ index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7
  use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
  use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
  use crate::math::{Mat4, mat_mul};
-@@ -61,14 +63,43 @@ pub struct StreamedCloud {
+@@ -65,14 +67,43 @@ pub struct StreamedCloud {
      pub point_px: f32,
  }
  
@@ -722,7 +722,7 @@ index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7
  }
  
  /// A picked cloud point: the row-local index (this file version only) and the stable id.
-@@ -94,6 +125,7 @@ pub struct Scene {
+@@ -98,6 +129,7 @@ pub struct Scene {
      pub texts: Vec<SceneText>,
      pub tables: Upload,
      pub streamed: Vec<StreamedCloud>,
@@ -730,7 +730,7 @@ index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7
      pub hidden: HashSet<(usize, Rc<str>)>,
      pub selected: Option<u32>,
      order: Vec<Rc<str>>,
-@@ -120,6 +152,7 @@ impl Scene {
+@@ -124,6 +156,7 @@ impl Scene {
              texts: Vec::new(),
              tables: Upload::default(),
              streamed: Vec::new(),
@@ -738,7 +738,7 @@ index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7
              hidden: HashSet::new(),
              selected: None,
              order: Vec::new(),
-@@ -136,33 +169,31 @@ impl Scene {
+@@ -140,33 +173,31 @@ impl Scene {
      pub fn clear(&mut self, gpu: &mut Gpu) {
          self.docs.clear();
          self.texts.clear();
@@ -782,7 +782,7 @@ index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7
          gpu.reset();
          for d in docs {
              if d.display_only {
-@@ -368,7 +399,93 @@ impl Scene {
+@@ -372,7 +403,93 @@ impl Scene {
          self.upload_to(gpu);
      }
  
@@ -877,7 +877,7 @@ index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7
      pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
          let guid = self.order.get(pick.row as usize)?.to_string();
          let mut point = None;
-@@ -377,6 +494,15 @@ impl Scene {
+@@ -381,6 +498,15 @@ impl Scene {
          {
              point = self.point_at(pick.row, local);
          }
@@ -893,7 +893,7 @@ index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7
          let doc = match self.document(pick.row) {
              Some(document) => document.name.clone(),
              None => String::new(),
-@@ -386,6 +512,7 @@ impl Scene {
+@@ -390,6 +516,7 @@ impl Scene {
              guid,
              row: pick.row,
              point,
@@ -901,7 +901,7 @@ index 3f012c31ffa817682ca365fd0b4808ad26c746ae..3e5016eae528f327225f175c3742abf7
          })
      }
  
-@@ -402,11 +529,19 @@ impl Scene {
+@@ -406,11 +533,19 @@ impl Scene {
              .get(self.order.get(row as usize)?.as_ref())
      }
  

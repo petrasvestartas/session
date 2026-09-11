@@ -27,7 +27,7 @@ Every word the lessons use before they have room to explain it, with the lesson 
 - **uniform buffer** (01) — the camera matrix: 64 bytes, same for every vertex.
 - **storage buffer** (03) — `array<Instance>`: one row per object, any length, indexed by the shader.
 - **vertex buffer / index buffer** (04a) — fixed-size vertex records, and triangle corner numbers three per triangle so a shared corner is stored once (`draw_indexed`).
-- **texture** — a grid of texels with a format: the surface's colour format; `Depth32Float` (04a, one depth per pixel); `Rg16Float` (05, the depth-gradient target; lesson 18 widens it to `Rgba16Float` to carry a triangle address too); `Rg32Uint` (12, pick ids); Use "`R8Unorm` (11, glyph coverage; 12, the selection coverage mask; 17, the silhouette masks)" — see the full-line rewrite for docs/words.md:30..
+- **texture** — a grid of texels with a format: the surface's colour format; `Depth32Float` (04a, one depth per pixel); `Rg16Float` (05, the depth-gradient target; lesson 18 widens it to `Rgba16Float` to carry a triangle address too); `Rg32Uint` (12, pick ids); `R8Unorm` (11, glyph coverage; 12, the selection coverage mask; 17, the silhouette masks).
 - **texture view** — the handle a pass draws into or a bind group reads. Passes attach views, not textures.
 - **attachment** — a view a render pass writes: the colour attachment gets fragment colours, the depth attachment remembers the nearest depth per pixel.
 - **multisampling (MSAA)** (04a, used from 05) — N colour and depth samples per pixel so a partly covered edge pixel gets a partial colour; pipelines and every attachment of a pass must share the sample count; the samples are *resolved* into the 1-sample surface at the end.

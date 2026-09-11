@@ -26,7 +26,11 @@ use std::rc::Rc;
 pub struct FileDoc {
     pub name: String,
     pub place: Xform,
-    /// Shared with whoever decoded it (the live source keeps its current set), never copied.
+    /// Shared with whoever decoded it (the live source keeps its current set), and shared
+    /// again between placements: a manifest listing one file twice hands both documents the
+    /// same `Rc`. Nothing mutates a session today. Anything that starts to must call
+    /// `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file
+    /// and the live source's cached copy with them.
     pub session: Rc<Session>,
     pub point_px: f32,
     /// True only for a streamed source descriptor with an empty Session shell.
@@ -669,6 +673,26 @@ mod tests {
         scene.hidden.insert(scene.identity_of(1).unwrap());
         assert_eq!(scene.hidden_rows(), vec![1]);
         assert!(scene.document(2).is_none());
+    }
+
+    /// One file placed twice hands both documents the same `Rc`. An edit must split it first:
+    /// `Rc::make_mut` clones while the count is above one, and the other placement keeps the
+    /// geometry it was drawn with. Without the split, moving one placement moves them all.
+    #[test]
+    fn an_edit_must_split_a_session_two_placements_share() {
+        let mut source = Session::new("twice");
+        source.add_point(Point::new(1.0, 0.0, 0.0), None);
+        let shared = Rc::new(source);
+        let mut scene = Scene::new();
+        scene.add_file(file("first", Rc::clone(&shared), false));
+        scene.add_file(file("second", Rc::clone(&shared), false));
+        assert!(Rc::ptr_eq(&scene.docs[0].session, &scene.docs[1].session));
+
+        Rc::make_mut(&mut scene.docs[0].session).add_point(Point::new(2.0, 0.0, 0.0), None);
+
+        assert!(!Rc::ptr_eq(&scene.docs[0].session, &scene.docs[1].session));
+        assert_eq!(scene.docs[0].session.lookup.len(), 2);
+        assert_eq!(scene.docs[1].session.lookup.len(), 1);
     }
 
     /// Legacy display hints must preserve original CAD controls without cloning the source.

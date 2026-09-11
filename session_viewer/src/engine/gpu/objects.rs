@@ -72,11 +72,33 @@ fn world_box(r: &ObjectRow) -> Aabb {
     r.bounds.placed(&r.place)
 }
 
+/// The anchored translation the GPU reads: the true f64 world position minus the table's
+/// anchor, narrowed once at the end. Subtracting first is what keeps a small move: a
+/// millimetre is lost narrowing a world coordinate a kilometre out, and kept narrowing the
+/// ten metres that remain after the anchor comes off.
+///
+/// It is a pure function of the base and the anchor, which fixes where a placement CHANGE
+/// goes. `rebuild` recomputes every row from `translation`, so a delta added to the f32 this
+/// returned is erased by the next re-anchor. An edit adds its increment to the f64 base.
+/// `render_position` is the same boundary for geometry arriving from the kernel; this is the
+/// boundary for placement, and an edit crosses it in the other direction.
+fn anchored(t: [f64; 3], origin: &Point) -> [f32; 4] {
+    [
+        (t[0] - origin[0]) as f32,
+        (t[1] - origin[1]) as f32,
+        (t[2] - origin[2]) as f32,
+        0.0,
+    ]
+}
+
 /// The object rows as the GPU sees them, the TRUE f64 translation per row, and the sparse
 /// bounded rows. The anchored translations live in their own 16 B/row buffer.
 pub struct InstanceTable {
     geometry_revision: u64,
     rows: Vec<Instance>,
+    /// The TRUE world translation per row, in f64. The GPU never sees it: `anchored` narrows
+    /// it against the current anchor. Every change to a placement is applied HERE, so the
+    /// error of an edit is the error of the edit, not of the position it happens at.
     translation: Vec<[f64; 3]>,
     bounded: Vec<BoundedRow>,
     /// Every row's world box, row order, so index = row; `Aabb::empty()` where not finite.
@@ -333,26 +355,22 @@ impl InstanceTable {
     fn rebuild(&mut self, ctx: &GpuCtx, origin: &Point) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
         self.last_origin = Some(origin.clone());
-        let mut anchored: Vec<[f32; 4]> = Vec::with_capacity(self.rows.len());
+        let mut rebased: Vec<[f32; 4]> = Vec::with_capacity(self.rows.len());
         for t in &self.translation {
-            anchored.push([
-                (t[0] - origin[0]) as f32,
-                (t[1] - origin[1]) as f32,
-                (t[2] - origin[2]) as f32,
-                0.0,
-            ]);
+            rebased.push(anchored(*t, origin));
         }
-        anchored.resize(self.rows.len(), [0.0; 4]);
-        self.translations.write_at(ctx, 0, &anchored);
+        rebased.resize(self.rows.len(), [0.0; 4]);
+        self.translations.write_at(ctx, 0, &rebased);
     }
 
     /// Row `i`'s model as a shader composes it: rotation/scale plus the anchored translation.
     pub fn anchored_model(&self, i: u32) -> Option<[f32; 16]> {
         let mut model = self.rows.get(i as usize)?.model;
         if let (Some(t), Some(o)) = (self.translation.get(i as usize), &self.last_origin) {
-            model[12] = (t[0] - o[0]) as f32;
-            model[13] = (t[1] - o[1]) as f32;
-            model[14] = (t[2] - o[2]) as f32;
+            let a = anchored(*t, o);
+            model[12] = a[0];
+            model[13] = a[1];
+            model[14] = a[2];
         }
         Some(model)
     }
@@ -497,5 +515,37 @@ mod tests {
     fn world_box_empty_stays_empty() {
         let r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
         assert!(!world_box(&r).is_finite());
+    }
+
+    /// A millimetre move a kilometre out survives subtraction against a near anchor and does
+    /// not survive narrowing the world coordinate itself. This is what the anchor is for.
+    #[test]
+    fn the_anchor_is_what_keeps_a_small_move() {
+        let world = 1.0e6_f64;
+        let step = 1.0e-3_f64;
+        assert_eq!((world + step) as f32, world as f32);
+
+        let near = Point::new(world - 1.0e4, 0.0, 0.0);
+        let before = anchored([world, 0.0, 0.0], &near)[0];
+        let after = anchored([world + step, 0.0, 0.0], &near)[0];
+        assert_ne!(after, before);
+    }
+
+    /// The anchored value is a pure function of the f64 base and the anchor, so a placement
+    /// change written anywhere else is erased by the next re-anchor. An edit writes
+    /// `translation`; it never adds its delta to the f32 the GPU was given.
+    #[test]
+    fn an_edit_written_past_the_base_does_not_survive_a_rebase() {
+        let base = [1.0e4, 0.0, 0.0];
+        let first = Point::new(0.0, 0.0, 0.0);
+        let step = 0.25_f32;
+
+        // An edit applied to the anchored value only.
+        let edited = anchored(base, &first)[0] + step;
+        assert_eq!(edited, 1.0e4 + 0.25);
+
+        // The next re-anchor recomputes from `translation`, which never saw it.
+        let second = Point::new(1.0e3, 0.0, 0.0);
+        assert_eq!(anchored(base, &second)[0], 9.0e3);
     }
 }

@@ -812,10 +812,10 @@ index 5680f6b8b3ff7a4e72f76d908b472bea4c118580..063956142744d66d8c68003efec676e0
      None
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b0325c04c9eea37e14c2bb7a96b469d8c04b8845
+index 0000000000000000000000000000000000000000..51ee66b0991fa62baf75cc81dd3014e95b9485e2
 --- /dev/null
 +++ b/session_viewer/src/app/scene.rs
-@@ -0,0 +1,483 @@
+@@ -0,0 +1,487 @@
 +//! The document side: `Scene` owns WHAT is loaded - every kernel `Session` with its placement,
 +//! the `Upload` tables, the row bookkeeping and the streamed-cloud slots. `add_file` walks one
 +//! session into the tables; rows append during loading and rebuild explicitly after edits.
@@ -838,7 +838,11 @@ index 0000000000000000000000000000000000000000..b0325c04c9eea37e14c2bb7a96b469d8
 +pub struct FileDoc {
 +    pub name: String,
 +    pub place: Xform,
-+    /// Shared with whoever decoded it (the live source keeps its current set), never copied.
++    /// Shared with whoever decoded it (the live source keeps its current set), and shared
++    /// again between placements: a manifest listing one file twice hands both documents the
++    /// same `Rc`. Nothing mutates a session today. Anything that starts to must call
++    /// `Rc::make_mut` FIRST, or one placement's edit moves every other placement of that file
++    /// and the live source's cached copy with them.
 +    pub session: Rc<Session>,
 +    pub point_px: f32,
 +    /// True only for a streamed source descriptor with an empty Session shell.

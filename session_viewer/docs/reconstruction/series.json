@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "production_tree": "89f26fc57c2b5cfd6eebefdc0397d958bf98dff7f8899c4c2232710e6438cdc5",
+  "production_tree": "ba1bf080af359f6fe718379b6b9a2c6370cb6665977b4a99b2d06013a3dafd3f",
   "steps": [
     {
       "assets": [],
@@ -9177,7 +9177,7 @@
         "session_viewer/src/app/loader.rs": "779b5dfb2a93983f4ffa8365dc1e6bb9f7e58bd0d0c8a5398218913f20f5e33b",
         "session_viewer/src/app/mod.rs": "30dabbf1a954bc5dc9265b77572ff40ae2b54c8d0e22c517dd21fa007f880c3d",
         "session_viewer/src/app/route.rs": "2cd39c631e74f0fb08bb949c5b64c3360859ece3c6117232be16e22eb14cfab7",
-        "session_viewer/src/app/scene.rs": "13953135b3de7c8d5ab9bccdb34a692bab44bd88f654f15398af82e4c196b524",
+        "session_viewer/src/app/scene.rs": "07575c93acab586efe836b18d2dce2c5741bd7e57064645fcc13811ef92b3e13",
         "session_viewer/src/app/selection.rs": "9f4295381a844457b827707b85f131315385a4ca22f7788b7e0c91c910e50ff3",
         "session_viewer/src/app/stream.rs": "5ee975a1d646057a7c3bad5013b2c173db50b47f051311fd287217f82d3580ba",
         "session_viewer/src/app/touch.rs": "468d8e1a28e7f6e06d992718e59f067c01b16c8a3b1d7d62a3536549d8b7afce",
@@ -9248,7 +9248,7 @@
       },
       "id": "12",
       "patch": "patches/12.patch",
-      "patch_sha256": "047b49186d258a2d97409837f1768bca8d1c95db9a38d1f2711430f918fc5d6f",
+      "patch_sha256": "65a3ee7953bebc6a68609deded2887002bb66ff8b05f857308d8a848aa00e21c",
       "title": "Object and edge picking"
     },
     {
@@ -9803,7 +9803,7 @@
         "session_viewer/src/app/loader.rs": "a0cbb66022575409e0d20a4bcfab8bd98481155fa263222f25cbd354f02d041f",
         "session_viewer/src/app/mod.rs": "60ba8f8513254643c053fbb8b58790d63825a649f03dcf44a4b7ca382babe99a",
         "session_viewer/src/app/route.rs": "2cd39c631e74f0fb08bb949c5b64c3360859ece3c6117232be16e22eb14cfab7",
-        "session_viewer/src/app/scene.rs": "b63482e13b33a2d931035c6a38dd5b61ee7ac51268912008ec3c31d24aeb555e",
+        "session_viewer/src/app/scene.rs": "aeca7b0ff652f30280607272c93cc7b0b73da60e2bcc8a6dabb8246b7df30c6e",
         "session_viewer/src/app/selection.rs": "6c74a5a231cc5280803c389ccff2b69966b755f5a94d61049626a6b88ce6a566",
         "session_viewer/src/app/stream.rs": "6bc42cb3027027b1f82485f43453541b36b3afcc3da03702e1db5a32055aa459",
         "session_viewer/src/app/touch.rs": "468d8e1a28e7f6e06d992718e59f067c01b16c8a3b1d7d62a3536549d8b7afce",
@@ -9874,7 +9874,7 @@
       },
       "id": "13",
       "patch": "patches/13.patch",
-      "patch_sha256": "3f0248d27fd22764523c55dd81e57c80e038d92bc7c76f992addb2a5de10e946",
+      "patch_sha256": "9694be5ca2d7168b9b5ac521c430a9cb5409b4319e344fe58d8f2ee85c518b1e",
       "title": "Source controls"
     },
     {
@@ -10433,7 +10433,7 @@
         "session_viewer/src/app/manifest.rs": "7b01b55d4051018bd51f0aa401e688f6eb77ee6a1dc2470ce716bf44c15a6cd4",
         "session_viewer/src/app/mod.rs": "f9cbbf967974b2eb8293b56853be4b8222dfe41f6de692b481251fe219b02bda",
         "session_viewer/src/app/route.rs": "ea81c158b0c96bddfa1c9ad31c8d7168ba624157b89e8a00a7e40f074ead6392",
-        "session_viewer/src/app/scene.rs": "02ccb6a4edb0ec923fd6a7ae456b1a354e60b19d074ed93261ccdf652d478c5b",
+        "session_viewer/src/app/scene.rs": "09baecc2a3c26984c90a8e2648d0c8db222ee38bc649cf7f34b807070dd2b74b",
         "session_viewer/src/app/selection.rs": "6c74a5a231cc5280803c389ccff2b69966b755f5a94d61049626a6b88ce6a566",
         "session_viewer/src/app/stream.rs": "6bc42cb3027027b1f82485f43453541b36b3afcc3da03702e1db5a32055aa459",
         "session_viewer/src/app/touch.rs": "468d8e1a28e7f6e06d992718e59f067c01b16c8a3b1d7d62a3536549d8b7afce",
@@ -10507,7 +10507,7 @@
       },
       "id": "14",
       "patch": "patches/14.patch",
-      "patch_sha256": "28ebf99d233a2a0a37531a2924785cd2247f8d046b716b9fe103b55f99c47b5b",
+      "patch_sha256": "ca2370d2ab2a0f079bf16b9b1b72059137faaaa2c6d4ee0dafc0e1dcf3427b97",
       "title": "Loading"
     },
     {
@@ -11070,7 +11070,7 @@
         "session_viewer/src/app/manifest.rs": "7b01b55d4051018bd51f0aa401e688f6eb77ee6a1dc2470ce716bf44c15a6cd4",
         "session_viewer/src/app/mod.rs": "f9cbbf967974b2eb8293b56853be4b8222dfe41f6de692b481251fe219b02bda",
         "session_viewer/src/app/route.rs": "ea81c158b0c96bddfa1c9ad31c8d7168ba624157b89e8a00a7e40f074ead6392",
-        "session_viewer/src/app/scene.rs": "02ccb6a4edb0ec923fd6a7ae456b1a354e60b19d074ed93261ccdf652d478c5b",
+        "session_viewer/src/app/scene.rs": "09baecc2a3c26984c90a8e2648d0c8db222ee38bc649cf7f34b807070dd2b74b",
         "session_viewer/src/app/selection.rs": "6c74a5a231cc5280803c389ccff2b69966b755f5a94d61049626a6b88ce6a566",
         "session_viewer/src/app/stream.rs": "d1b3d55ad9df6caf34fee24eccdcbdcc7a7566f92578d35ee2e63a8f56dd853c",
         "session_viewer/src/app/touch.rs": "468d8e1a28e7f6e06d992718e59f067c01b16c8a3b1d7d62a3536549d8b7afce",
@@ -11729,7 +11729,7 @@
         "session_viewer/src/app/manifest.rs": "7b01b55d4051018bd51f0aa401e688f6eb77ee6a1dc2470ce716bf44c15a6cd4",
         "session_viewer/src/app/mod.rs": "f9cbbf967974b2eb8293b56853be4b8222dfe41f6de692b481251fe219b02bda",
         "session_viewer/src/app/route.rs": "ea81c158b0c96bddfa1c9ad31c8d7168ba624157b89e8a00a7e40f074ead6392",
-        "session_viewer/src/app/scene.rs": "02ccb6a4edb0ec923fd6a7ae456b1a354e60b19d074ed93261ccdf652d478c5b",
+        "session_viewer/src/app/scene.rs": "09baecc2a3c26984c90a8e2648d0c8db222ee38bc649cf7f34b807070dd2b74b",
         "session_viewer/src/app/selection.rs": "6c74a5a231cc5280803c389ccff2b69966b755f5a94d61049626a6b88ce6a566",
         "session_viewer/src/app/stream.rs": "d1b3d55ad9df6caf34fee24eccdcbdcc7a7566f92578d35ee2e63a8f56dd853c",
         "session_viewer/src/app/touch.rs": "468d8e1a28e7f6e06d992718e59f067c01b16c8a3b1d7d62a3536549d8b7afce",
@@ -12410,7 +12410,7 @@
         "session_viewer/src/app/manifest.rs": "f4a93a8e371bd7d7b3dc8f7d92265adaa906adfa22248bcc0409eb6742316547",
         "session_viewer/src/app/mod.rs": "f9cbbf967974b2eb8293b56853be4b8222dfe41f6de692b481251fe219b02bda",
         "session_viewer/src/app/route.rs": "3c2459b086dead3c9606713449bf61a4e6cb8dfbcf96ff96878343b1a6134eb1",
-        "session_viewer/src/app/scene.rs": "d76777eba1d46e12486cbd0c3c2222ea6b69e682c19ede3bcd46a10295c1676d",
+        "session_viewer/src/app/scene.rs": "8f64e81ade0569a1fdc5656ba7c013996a969afd2a8a783c4fd28f69dd570e47",
         "session_viewer/src/app/scene_text.rs": "c02b16913b5b5b0641967b4c793586be7b7cb2ac1970a8c1c37309d527ccc8e5",
         "session_viewer/src/app/selection.rs": "a4da8ad66b235010b51a0f57ee55158187bda60931b97cfa6b2159852096b0a7",
         "session_viewer/src/app/stream.rs": "d1b3d55ad9df6caf34fee24eccdcbdcc7a7566f92578d35ee2e63a8f56dd853c",
@@ -12512,7 +12512,7 @@
       },
       "id": "17",
       "patch": "patches/17.patch",
-      "patch_sha256": "cc717266342286f9f48157c007677aca582101022fbb156b1280515481654beb",
+      "patch_sha256": "3ece26da0ca46ecbcffe5325c77627083e9de688d436878d53c3e681763551f2",
       "title": "Source faces, selectable text and consistent silhouettes"
     },
     {
@@ -13098,7 +13098,7 @@
         "session_viewer/src/app/manifest.rs": "f4a93a8e371bd7d7b3dc8f7d92265adaa906adfa22248bcc0409eb6742316547",
         "session_viewer/src/app/mod.rs": "f9cbbf967974b2eb8293b56853be4b8222dfe41f6de692b481251fe219b02bda",
         "session_viewer/src/app/route.rs": "3c2459b086dead3c9606713449bf61a4e6cb8dfbcf96ff96878343b1a6134eb1",
-        "session_viewer/src/app/scene.rs": "d76777eba1d46e12486cbd0c3c2222ea6b69e682c19ede3bcd46a10295c1676d",
+        "session_viewer/src/app/scene.rs": "8f64e81ade0569a1fdc5656ba7c013996a969afd2a8a783c4fd28f69dd570e47",
         "session_viewer/src/app/scene_text.rs": "c02b16913b5b5b0641967b4c793586be7b7cb2ac1970a8c1c37309d527ccc8e5",
         "session_viewer/src/app/selection.rs": "a4da8ad66b235010b51a0f57ee55158187bda60931b97cfa6b2159852096b0a7",
         "session_viewer/src/app/stream.rs": "d1b3d55ad9df6caf34fee24eccdcbdcc7a7566f92578d35ee2e63a8f56dd853c",
@@ -13129,7 +13129,7 @@
         "session_viewer/src/engine/gpu/instance.rs": "7141dac1963a5bf2c3fb1f4546a075d0db43a485ec5ef075f707066e497f7bdc",
         "session_viewer/src/engine/gpu/lod.rs": "da51f070ef49a4e44febdc3498ee79c7abedb1b402eee556c20891990911dba2",
         "session_viewer/src/engine/gpu/mod.rs": "2b6d28d89f61cdbcc6a7f0a709aa54a88c38418c54b2131c618f97147abb78df",
-        "session_viewer/src/engine/gpu/objects.rs": "4ff8a96e78ad350c0e3e4bfa6c4181fcd144feda4a479c0176804f04382fc0cc",
+        "session_viewer/src/engine/gpu/objects.rs": "eb2179c33c7bd469b6562d520dbb4f41496082d56fc2aba3ac5c5f60ab6665a1",
         "session_viewer/src/engine/gpu/pick.rs": "b52a5cfde2a1d0fa453d0ec9aed8b0d281a5bb468469207e179308dd0600e2c8",
         "session_viewer/src/engine/gpu/present.rs": "343d9a4bba0d674c33232a1d8619a952debdbdd3395db74330ae041f279613f2",
         "session_viewer/src/engine/gpu/render.rs": "c8fbaac3d26fed5917e25ec5355ff4344dc522011ca2087b2bbb0f577ef782e4",
@@ -13206,7 +13206,7 @@
       },
       "id": "18",
       "patch": "patches/18.patch",
-      "patch_sha256": "4ad5894d2709f8f330269a9fb3e76cf3c7685ce2c646907cd3f61619d5e3a286",
+      "patch_sha256": "ec9ff09b77354317bbb952554a652d808c445673457f33abcdd0b38add21a1a3",
       "title": "Finite triangle visibility and final production"
     },
     {
@@ -13794,7 +13794,7 @@
         "session_viewer/src/app/manifest.rs": "f4a93a8e371bd7d7b3dc8f7d92265adaa906adfa22248bcc0409eb6742316547",
         "session_viewer/src/app/mod.rs": "00c06fa5c47f90ef4677d095f9b3cd21374dfe3fa89e74aa27a1f51d7f365e67",
         "session_viewer/src/app/route.rs": "3c2459b086dead3c9606713449bf61a4e6cb8dfbcf96ff96878343b1a6134eb1",
-        "session_viewer/src/app/scene.rs": "46c55370077654424671362cbe871bbee43b79b081017f6bb2f6a7aff73bc2f3",
+        "session_viewer/src/app/scene.rs": "b7d6aa5d4592c3b33d6b2555055ade46d598752c6c4e12398211b29c65f467ec",
         "session_viewer/src/app/scene_text.rs": "c02b16913b5b5b0641967b4c793586be7b7cb2ac1970a8c1c37309d527ccc8e5",
         "session_viewer/src/app/selection.rs": "a4da8ad66b235010b51a0f57ee55158187bda60931b97cfa6b2159852096b0a7",
         "session_viewer/src/app/sheet_query.rs": "c988164ead5833982ceffa92f7682f6ff0b74bacb060271a7c7e175597cfe589",
@@ -13827,7 +13827,7 @@
         "session_viewer/src/engine/gpu/instance.rs": "7141dac1963a5bf2c3fb1f4546a075d0db43a485ec5ef075f707066e497f7bdc",
         "session_viewer/src/engine/gpu/lod.rs": "da51f070ef49a4e44febdc3498ee79c7abedb1b402eee556c20891990911dba2",
         "session_viewer/src/engine/gpu/mod.rs": "2b6d28d89f61cdbcc6a7f0a709aa54a88c38418c54b2131c618f97147abb78df",
-        "session_viewer/src/engine/gpu/objects.rs": "4ff8a96e78ad350c0e3e4bfa6c4181fcd144feda4a479c0176804f04382fc0cc",
+        "session_viewer/src/engine/gpu/objects.rs": "eb2179c33c7bd469b6562d520dbb4f41496082d56fc2aba3ac5c5f60ab6665a1",
         "session_viewer/src/engine/gpu/pick.rs": "b52a5cfde2a1d0fa453d0ec9aed8b0d281a5bb468469207e179308dd0600e2c8",
         "session_viewer/src/engine/gpu/present.rs": "343d9a4bba0d674c33232a1d8619a952debdbdd3395db74330ae041f279613f2",
         "session_viewer/src/engine/gpu/render.rs": "c8fbaac3d26fed5917e25ec5355ff4344dc522011ca2087b2bbb0f577ef782e4",
@@ -13905,7 +13905,7 @@
       },
       "id": "19",
       "patch": "patches/19.patch",
-      "patch_sha256": "c06999c280c75ffb7caa2f2daef177fb33b05df52af706da0585d6a865d23650",
+      "patch_sha256": "e1a2e3eb32c74fb2e454a7e57ad2ae94e104755284c1a975191c68c435b85f6a",
       "title": "Sheets: batched drawings with lazy metadata"
     },
     {
@@ -14500,7 +14500,7 @@
         "session_viewer/src/app/manifest.rs": "f4a93a8e371bd7d7b3dc8f7d92265adaa906adfa22248bcc0409eb6742316547",
         "session_viewer/src/app/mod.rs": "00c06fa5c47f90ef4677d095f9b3cd21374dfe3fa89e74aa27a1f51d7f365e67",
         "session_viewer/src/app/route.rs": "3c2459b086dead3c9606713449bf61a4e6cb8dfbcf96ff96878343b1a6134eb1",
-        "session_viewer/src/app/scene.rs": "46c55370077654424671362cbe871bbee43b79b081017f6bb2f6a7aff73bc2f3",
+        "session_viewer/src/app/scene.rs": "b7d6aa5d4592c3b33d6b2555055ade46d598752c6c4e12398211b29c65f467ec",
         "session_viewer/src/app/scene_text.rs": "c02b16913b5b5b0641967b4c793586be7b7cb2ac1970a8c1c37309d527ccc8e5",
         "session_viewer/src/app/selection.rs": "a4da8ad66b235010b51a0f57ee55158187bda60931b97cfa6b2159852096b0a7",
         "session_viewer/src/app/sheet_query.rs": "c988164ead5833982ceffa92f7682f6ff0b74bacb060271a7c7e175597cfe589",
@@ -14533,7 +14533,7 @@
         "session_viewer/src/engine/gpu/instance.rs": "7141dac1963a5bf2c3fb1f4546a075d0db43a485ec5ef075f707066e497f7bdc",
         "session_viewer/src/engine/gpu/lod.rs": "da51f070ef49a4e44febdc3498ee79c7abedb1b402eee556c20891990911dba2",
         "session_viewer/src/engine/gpu/mod.rs": "2b6d28d89f61cdbcc6a7f0a709aa54a88c38418c54b2131c618f97147abb78df",
-        "session_viewer/src/engine/gpu/objects.rs": "4ff8a96e78ad350c0e3e4bfa6c4181fcd144feda4a479c0176804f04382fc0cc",
+        "session_viewer/src/engine/gpu/objects.rs": "eb2179c33c7bd469b6562d520dbb4f41496082d56fc2aba3ac5c5f60ab6665a1",
         "session_viewer/src/engine/gpu/pick.rs": "b52a5cfde2a1d0fa453d0ec9aed8b0d281a5bb468469207e179308dd0600e2c8",
         "session_viewer/src/engine/gpu/present.rs": "343d9a4bba0d674c33232a1d8619a952debdbdd3395db74330ae041f279613f2",
         "session_viewer/src/engine/gpu/render.rs": "c8fbaac3d26fed5917e25ec5355ff4344dc522011ca2087b2bbb0f577ef782e4",

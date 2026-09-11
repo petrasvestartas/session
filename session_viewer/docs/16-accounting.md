@@ -20,7 +20,9 @@
 
 ![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-010fb6361a.svg){ .locator data-strip="illustrations/strip-e6f4fee67c.svg" }
 
-Cargo discovers every file under `examples/` as a native example. Describe the edit that actually happens, e.g. "install them; the manifest only moves `[dev-dependencies]` above the native-only table that has declared `pollster` since lesson 00, and drops the unused wasm-pack metadata." docs/diagrams/16-02.d2 carries the same implication in its focus node label "Cargo.toml\nnative-only pollster".
+- Cargo discovers every file under `examples/` as a native example, and each one links the crate natively.
+- The manifest only moves `[dev-dependencies]` above the native-only table that has declared `pollster` since lesson 00, and drops the unused wasm-pack metadata.
+- `src/selftest.rs` and `src/selftest/lifecycle.rs` come with them: the headless harness runs the same `encode_frame` the browser runs, against an offscreen texture it reads back. Every measured number in this course comes through it.
 
 ![Diagram: supplied examples/ · tests/ · Cargo.toml\ native-only pollster · cargo xtest · examples build](illustrations/16-02.svg)
 

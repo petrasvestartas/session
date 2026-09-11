@@ -561,7 +561,7 @@ index fa62d6cc63be6d2acb4bb7ba0298d4ceca80375b..1e31eada48e5e255ae68b0cee0bca02c
 +    })
 +}
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index b49753b5fd807b7c41faf8536c076f2b4f2f4910..3f012c31ffa817682ca365fd0b4808ad26c746ae 100644
+index 5a91119d7b6b8e3d3817ba8e9594608d9b725ff8..bcadef88281db457e5a6d8ac3a3487e52c48f34b 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
 @@ -3,6 +3,10 @@
@@ -575,7 +575,7 @@ index b49753b5fd807b7c41faf8536c076f2b4f2f4910..3f012c31ffa817682ca365fd0b4808ad
  use crate::app::knobs;
  use crate::app::stream::{CloudFields, CloudLod};
  use crate::app::walk::bounds::{Baselines, file_extent, is_planar, mark_sheet};
-@@ -86,8 +90,8 @@ struct Bases {
+@@ -90,8 +94,8 @@ struct Bases {
  /// The open document set, the pending upload and the row bookkeeping.
  pub struct Scene {
      pub docs: Vec<FileDoc>,
@@ -586,7 +586,7 @@ index b49753b5fd807b7c41faf8536c076f2b4f2f4910..3f012c31ffa817682ca365fd0b4808ad
      pub tables: Upload,
      pub streamed: Vec<StreamedCloud>,
      pub hidden: HashSet<(usize, Rc<str>)>,
-@@ -149,6 +153,7 @@ impl Scene {
+@@ -153,6 +157,7 @@ impl Scene {
      /// path an edit commit takes. Streamed clouds cannot come back (no kernel object).
      pub fn rebuild(&mut self, gpu: &mut Gpu) {
          let docs = std::mem::take(&mut self.docs);
@@ -594,7 +594,7 @@ index b49753b5fd807b7c41faf8536c076f2b4f2f4910..3f012c31ffa817682ca365fd0b4808ad
          self.tables = Upload::default();
          self.streamed.clear();
          self.order.clear();
-@@ -166,15 +171,13 @@ impl Scene {
+@@ -170,15 +175,13 @@ impl Scene {
                      d.name
                  );
              }
@@ -615,7 +615,7 @@ index b49753b5fd807b7c41faf8536c076f2b4f2f4910..3f012c31ffa817682ca365fd0b4808ad
      }
  
      /// Upload the walked tables, then FORGET the rows: the GPU is their only holder.
-@@ -401,6 +404,9 @@ impl Scene {
+@@ -405,6 +408,9 @@ impl Scene {
  
      /// The source object's name; unnamed geometry uses its type instead of its file name.
      pub fn object_name(&self, row: u32) -> &str {

@@ -11,3 +11,10 @@ assets/pb/*
 
 # The browser application and tutorials share a reproducible dependency resolution.
 !Cargo.lock
+
+# Course tooling scratch at the repo root: `course_pages.py` replays the series into a
+# disposable workspace and keeps every step's text beside it. Regenerable, and large - the
+# snapshots alone are hundreds of megabytes.
+workspace/
+logs/
+snapshots/

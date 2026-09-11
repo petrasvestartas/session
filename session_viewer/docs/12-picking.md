@@ -195,52 +195,52 @@ Every handler returns whether a redraw is needed; a click returns `false` — no
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-59 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-63 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=60-117 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=64-121 -->
 
 - A reload must not invalidate the `Scene` the application holds: the tables empty in place and row bookkeeping restarts at zero.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=118-176 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=122-180 -->
 
 - One object row per GUID, in the kernel's canonical order; a GUID keeps its row for a whole revision.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=177-199 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=181-203 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=200-264 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=204-268 -->
 
 - Streamed clouds have no kernel object; their slot records the absolute row point 0 landed on.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=265-326 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=269-330 -->
 
 - A streamed cloud grows: each slice appends to the same row range and uploads only its new points, never rebuilding what is on the GPU.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=327-341 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=331-345 -->
 
 - Row → identity in both directions; `edge_at` reads the segment sub-ID tag bit set by the ribbon shader.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=342-405 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=346-409 -->
 
 - An edge answer goes back through the retained producer records; one that cannot be named is refused, not guessed.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=406-483 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=410-487 -->
 
 ### Step 7 · Selection mode
 
