@@ -35,7 +35,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 ## Step 1 · The segment row
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg)
 
 - 40 bytes, ends as flat `f32`s: a `vec3` would pad the row to 48.
 - `radius` 0 means the screen-constant pen; `facing` packs two face normals for the solid lane's back-edge cull.
@@ -51,7 +51,7 @@ flowchart TB
 
 ## Step 2 · The lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg)
 
 - Two tables of the same row: pipes (mesh edges, culled by facing) and ribbons (free linework, always drawn).
 
@@ -83,7 +83,7 @@ flowchart LR
 
 ## Step 3 · The shared visibility rule
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
 
 - Appended to every ink shader by `ink_module`. It compares the scene depth at the pixel with the axis depth.
 
@@ -99,7 +99,7 @@ flowchart LR
 
 ## Step 4 · The ribbon shader
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
 
 - Bindings and constants. `LineUniform` is the same block as `triangle.wgsl`.
 
@@ -135,7 +135,7 @@ flowchart LR
 
 ## Step 5 · Wire the lane
 
-![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-7861806464.svg)
+![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-63f669ae94.svg)
 
 - `ink_module` compiles a lane shader with the visibility rule appended.
 

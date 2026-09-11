@@ -36,7 +36,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 ## Step 1 · The glyph row
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg)
 
 - `center` is a `vec3` in WGSL, so the row is 48 bytes with `radius` in the padding slot.
 - `facing` plus `facing_ext` hold up to six incident face normals as oct16 pairs; a marker hides when every incident face turns away.
@@ -52,7 +52,7 @@ flowchart LR
 
 ## Step 2 · The lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg)
 
 - One table per kind, one bind group each, two shader modules, five pipelines.
 
@@ -84,7 +84,7 @@ flowchart LR
 
 ## Step 3 · Vertex markers
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
 
 - Same bindings as the ribbon shader; the row is `GlyphPoint`. The `LineUniform` mirror lists the whole 80-byte block, `origin` and `frame` included; a sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
 
@@ -116,7 +116,7 @@ flowchart TB
 
 ## Step 4 · Free dots
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
 
 - One equilateral triangle per dot; its incircle is the visible disc, so three vertices cover it without a template.
 
@@ -146,7 +146,7 @@ flowchart TB
 
 ## Step 5 · Wire the lane
 
-![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-7861806464.svg)
+![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-63f669ae94.svg)
 
 - A template vertex slot and the `ink_rows` layout (one storage buffer at group 3).
 

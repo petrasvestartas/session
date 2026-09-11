@@ -29,7 +29,10 @@ DIRECTIVE = re.compile(r"<!-- (file|supplied): (\S+)(.*?)-->")
 HEADING = re.compile(r"^(#{2,3}) (Step|Part) ([^\n]*)$", re.M)
 IMAGE = re.compile(r"^!\[[^\]]*\]\(illustrations/locator-[0-9a-f]+\.svg\)\n\n?", re.M)
 
-DIM, LIT_FILL, LIT_STROKE = "#8a8a90", PAL["pink"], PAL["pink_band"]
+# Colours chosen for the black page directly: Canvas.raw() remaps light fills to dark so a
+# label stays readable on a white box, which is the wrong direction for boxes drawn ON the page.
+DIM, EDGE = "#6f6f76", "#f4f4f6"
+LIT_FILL, LIT_STROKE, LIT_INK = "#f0bcdb", "#ce4095", "#111111"
 
 # One zone per box on the map. Order is reading order within the row; the matchers are tried in
 # order, so a longer prefix must come before the directory that contains it.
@@ -80,7 +83,7 @@ def geometry():
     bottom = [z for z in ZONES if z[1] == 1]
     place = {}
     for rowi, zones in ((0, top), (1, bottom)):
-        y = 92 if rowi == 0 else 208
+        y = 76.0 if rowi == 0 else 200.0
         margin, gap = 28.0, 16.0
         w = (1180 - 2 * margin - gap * (len(zones) - 1)) / len(zones)
         for i, z in enumerate(zones):
@@ -101,30 +104,37 @@ def render(lit, built):
     desc = (f"The whole viewer as one map. This step works in: {lit_names}. "
             "A solid box is something you have already built, a dashed one is still ahead, "
             "and the pink box is where the code on this page lives.")
-    c = DRAW.Canvas("Where this step sits in the viewer", desc, 1180, 330)
+    c = DRAW.Canvas("Where this step sits in the viewer", desc, 1180, 312)
     c.text(28, 34, "Where you are", "l", fill=PAL["grey"])
     for key, rowi, label, sub, _ in ZONES:
         x, y, w, h = PLACE[key]
         on, here = key in built, key in lit
         fill = LIT_FILL if here else "none"
-        stroke = LIT_STROKE if here else (PAL["white"] if on else DIM)
+        stroke = LIT_STROKE if here else (EDGE if on else DIM)
         dash = "" if (on or here) else ' stroke-dasharray="6 5"'
-        c.raw(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{DRAW.RADIUS}" '
-              f'fill="{fill}" stroke="{stroke}" stroke-width="{2.2 if here else 1.4}"{dash}/>')
-        ink = PAL["black"] if here else (PAL["white"] if on else DIM)
+        # straight into parts: no colour remapping, these boxes sit on the page, not on white
+        c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{DRAW.RADIUS}" '
+                       f'fill="{fill}" stroke="{stroke}" stroke-width="{2.4 if here else 1.4}"{dash}/>')
+        ink = LIT_INK if here else (EDGE if on else DIM)
+        sub_ink = LIT_INK if here else ("#c9ccd6" if on else DIM)
         c.text(x + 12, y + 26, label, "l", fill=ink, keep=True)
-        c.text(x + 12, y + 48, sub, "s", fill=ink if here else (PAL["text2"] if on else DIM), keep=True)
-    # the two paths and where they meet
+        c.text(x + 12, y + 48, sub, "s", fill=sub_ink, keep=True)
     sx, sy, sw, sh = PLACE["scene"]
-    gx, gy, _, _ = PLACE["gpucore"]
-    c.raw(f'<path class="ar" d="M{sx + sw / 2:.1f},{sy + sh:.1f} L{sx + sw / 2:.1f},{sy + sh + 26:.1f} '
-          f'L{gx + 60:.1f},{sy + sh + 26:.1f} L{gx + 60:.1f},{gy - 4:.1f}"/>')
-    c.text(sx + sw / 2 + 10, sy + sh + 20, "rows", "s", fill=PAL["text2"])
+    gx, gy, gw, _ = PLACE["gpucore"]
     lx, ly, lw, _ = PLACE["lanes"]
-    c.raw(f'<path class="dash" d="M{lx + lw / 2:.1f},{ly:.1f} L{lx + lw / 2:.1f},{ly - 30:.1f} '
-          f'L{sx + sw - 30:.1f},{ly - 30:.1f} L{sx + sw - 30:.1f},{sy + sh + 4:.1f}"/>')
-    c.text(lx + lw / 2 - 150, ly - 36, "a pick answer travels back up", "s", fill=PAL["orange"])
-    c.text(28, 300, "documents come in along the top row; a frame is drawn along the bottom one", "s", fill=PAL["text2"])
+    # the rows the walk produced fall into the frame path; nothing else crosses between the rows
+    down = sx + sw / 2
+    c.parts.append(f'<path d="M{down:.1f},{sy + sh:.1f} L{down:.1f},158 L{gx + gw / 2:.1f},158 '
+                   f'L{gx + gw / 2:.1f},{gy - 2:.1f}" fill="none" stroke="{EDGE}" stroke-width="1.6" '
+                   f'marker-end="url(#a)"/>')
+    c.text(gx + gw / 2 + 10, 154, "rows, uploaded once", "s", fill="#c9ccd6")
+    # and one answer travels the other way
+    up = lx + lw / 2
+    c.parts.append(f'<path d="M{up:.1f},{ly:.1f} L{up:.1f},182 L{sx + sw - 26:.1f},182 '
+                   f'L{sx + sw - 26:.1f},{sy + sh + 2:.1f}" fill="none" stroke="{PAL["orange"]}" '
+                   f'stroke-width="1.6" stroke-dasharray="7 5" marker-end="url(#a)"/>')
+    c.text(up + 14, 177, "a pick answer travels back up", "s", fill=PAL["orange"])
+    c.text(28, 296, "documents come in along the top row; a frame is drawn along the bottom one", "s", fill="#c9ccd6")
     body = "".join(c.parts)
     name = "locator-" + hashlib.sha1(body.encode()).hexdigest()[:10] + ".svg"
     c.write(name)

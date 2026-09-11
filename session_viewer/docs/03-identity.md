@@ -28,7 +28,7 @@ flowchart TB
 
 ## Step 1 · The object row
 
-![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-211c36b062.svg)
+![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-92519d056e.svg)
 
 - One 96-byte record per object, indexed by `instance_index` in every instance-reading shader. Flags are bits: selecting sets bit 0 and keeps the rest.
 - The translation column of `model` is zero; the anchored translation belongs to its own table (group 2, binding 1).
@@ -50,7 +50,7 @@ The rest of the file is `#[cfg(test)]` only: it parses every lane shader with na
 
 ## Step 2 · Declare the engine module tree
 
-![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-211c36b062.svg)
+![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-92519d056e.svg)
 
 ```mermaid
 flowchart TB
@@ -84,7 +84,7 @@ flowchart LR
 
 ## Step 4 · Rust layout ↔ WGSL layout
 
-![Where this step sits in the viewer: Shaders, with 6 of 11 zones built so far.](illustrations/locator-cc87ad1276.svg)
+![Where this step sits in the viewer: Shaders, with 6 of 11 zones built so far.](illustrations/locator-d8fe264e74.svg)
 
 Same bytes on both sides, read through different type systems:
 
@@ -115,7 +115,7 @@ flowchart TB
 
 ## Step 5 · Bind the rows and draw each one
 
-![Where this step sits in the viewer: Page, Shell, with 6 of 11 zones built so far.](illustrations/locator-6a02755fc1.svg)
+![Where this step sits in the viewer: Page, Shell, with 6 of 11 zones built so far.](illustrations/locator-d1d6c21551.svg)
 
 - The layout gains binding 1; the bind group supplies the storage buffer; one draw per row.
 - `objects` stays on the CPU side of the shell, so the status can report a count that comes from source data rather than from the GPU.

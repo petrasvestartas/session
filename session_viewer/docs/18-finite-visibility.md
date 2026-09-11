@@ -51,7 +51,7 @@ flowchart TB
 
 ### Step 1 · Metadata carries the primitive
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
 
 - The physical metadata target grows from two to four half floats: gradient in `xy`, a lossless triangle address in `zw`.
 - Each 14-bit half of the address skips exponent zero, so it survives `Rgba16Float` without NaNs or denormals.
@@ -95,7 +95,7 @@ flowchart LR
 
 ### Step 2 · The projected record
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
 
 `ProjectedTriangle` is six `vec4<f32>`; the Rust mirror test asserts the same offsets and `PROJECTED_BYTES`:
 
@@ -122,7 +122,7 @@ flowchart LR
 
 ### Step 3 · The projection shader
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
 
 - One compute invocation per triangle reads the arena's vertex, object and index columns through the same instance and translation rows the draw uses.
 - Near-plane clipping happens before the divide, so a triangle crossing the eye becomes a quad or vanishes, never a garbage projection.
@@ -154,7 +154,7 @@ flowchart TB
 
 ### Step 4 · Count and fill
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
 
 - One quad per projected triangle covers its tile bounds; `covered_tile` discards tiles the polygon cannot touch.
 - `fs_count` counts references per tile. `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
@@ -171,7 +171,7 @@ flowchart TB
 
 ### Step 5 · Prefix sums instead of a per-tile cap
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
 
 - Tile records are `count / offset / cursor / overflow`; block records are `sum / prefix`.
 - Sums saturate at the buffer capacity, so an oversubscribed pool can never wrap into a plausible offset.
@@ -188,7 +188,7 @@ flowchart TB
 
 ### Step 6 · The owner
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-329bba5d89.svg)
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-30281769bb.svg)
 
 - `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall. A dense tile borrows spare space anywhere in the pool.
 
@@ -254,7 +254,7 @@ Copy the rest of the file:
 
 ### Step 7 · Refine the rejection, keep the cheap test
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
 
 - `ink_visible_plane` is the plane test. When it accepts, nothing else runs.
 - When it rejects: test the winning primitive at the axis, then the four sample-matched neighbours. A finite nearer hit confirms occlusion.
@@ -283,7 +283,7 @@ flowchart TB
 
 ### Step 8 · Faces draws the physical pass
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-329bba5d89.svg)
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-30281769bb.svg)
 
 - The physical and object-ID triangle pipelines move into `Faces`, so the primitive numbers written by the color pass are the same numbers the projection shader uses.
 - `revision` counts highlight changes, and `draw_masks` writes the highlighted face into both coverage masks of the combined pass: the silhouette's cache key reads the counter, and its one rasterization draws the face through this entry.
@@ -304,7 +304,7 @@ flowchart LR
 
 ### Step 9 · Bindings 6 and 7
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-9efddb983e.svg)
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-ac40a9793e.svg)
 
 - The ink instance group gains the projected table and the tile buffer; the mvp, line and instance layouts become visible to compute.
 
@@ -340,7 +340,7 @@ flowchart LR
 
 ### Step 10 · The tile pass runs before ink
 
-![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-4ed02615ae.svg)
+![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-91e8586995.svg)
 
 - `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
 - After every submit the picker maps its copy and the tiles map their report.
@@ -357,7 +357,7 @@ flowchart LR
 
 ### Step 11 · Masks rasterized once, reused while the view stands still
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-9efddb983e.svg)
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-ac40a9793e.svg)
 
 - `MaskKey` is what a coverage mask depends on: the camera matrix, the geometry revision, the selection revision, the highlighted face's revision, the size, the sample count, and — because edges are part of the coverage — the edge toggle and the pen width. While none of them changes, the mask passes are skipped and the previous masks are composited again: a still view costs no rasterization.
 - When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments, and the faces are rasterized once for both masks; a single outline keeps its own pass.

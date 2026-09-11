@@ -26,7 +26,7 @@ flowchart TB
 
 ## Step 1 · Prefer the producer's cached trim mesh
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
 
 - Triangulating the full rectangle and drawing a hole curve on top does not make a hole. The fill must exclude the region, so the constrained mesh cached on the surface wins over a fresh grid.
 - `first_pipe` remembers where this surface's pipes start so only those get boundary IDs.
@@ -43,7 +43,7 @@ flowchart TB
 
 ## Step 2 · Name natural boundaries from UV, not from triangle order
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
 
 - A natural boundary is a domain limit: `u == start`, `u == end`, `v == start`, `v == end`. A closed direction has no physical edge there, so a periodic seam never gets a boundary ID.
 - Two vertices of one pipe share exactly one boundary bit → that bit is the source ID. Interior creases and seams stay `u32::MAX`: unavailable, never invented from a triangulation index.
@@ -64,7 +64,7 @@ flowchart TB
 
 ## Step 3 · Fixture: a curved trimmed patch and a torus
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-82bc3205bd.svg)
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-0782eb20da.svg)
 
 - The patch is a degree-2 surface with a square outer loop and a circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
 - The torus is periodic in both directions: same XYZ curve, two face uses, different UV.
@@ -80,7 +80,7 @@ flowchart LR
 
 ## Step 4 · Stage bump
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-884e63c1c5.svg)
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-39ef302cfc.svg)
 
 ```mermaid
 flowchart LR
