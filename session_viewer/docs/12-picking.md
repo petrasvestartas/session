@@ -569,6 +569,7 @@ Document titles and the selected name are derived labels; they have no source ro
 - The surface becomes optional so the same `Gpu` renders headless.
 - `controls` and `control_net` are second glyph and segment lanes for source control markers.
 - `set_selected` and `set_hidden` flip one row's flag; hiding also invalidates the cloud records.
+- The lane list is the drawing architecture: each lane owns its buffers, pipelines and draws, nothing outside it touches them, and `Gpu` only holds them and calls them in order. A new kind of thing on screen is a new field here, not a new path through the frame.
 
 ![Diagram: Gpu · DeviceSetup · present · Picker](illustrations/12-16.svg)
 
@@ -614,6 +615,10 @@ Document titles and the selected name are derived labels; they have no source ro
 
 - `Msg` is every asynchronous message the loader can post; `Ready` carries the `State` built around an empty scene.
 - `request_if_needed` is the one place a frame is asked for.
+- `run_web` is the wasm entry: the panic hook, then the app, unless the page is the text-quality fixture, which owns its own canvas.
+- `viewer_focused` gates keys on the canvas holding browser focus, so typing in a page control never orbits the camera.
+- `page_hidden` stops asking for frames in a background tab, and winit resumes when it is visible again.
+- `desired_canvas_size` is the CSS size times the device pixel ratio: the framebuffer follows the display, not the layout.
 
 ![Diagram: winit events · App · State · redraw](illustrations/12-18.svg)
 

@@ -94,6 +94,11 @@ These two modules are new and undeclared, so the crate still builds after them.
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=93-124 -->
 
 - `eligible_ranges` walks every octree node, resident or not; when the node table misses rows it falls back to a full bounded scan.
+- `fetch_page` spawns one bounded range read per page and posts the result back; the token is checked at the callback, so a page that lands after you clicked elsewhere is discarded rather than folded in.
+- `read_page` derives the byte range from the coordinate array's offset and reads it under the source revision, so a file republished mid-query is refused rather than mixed.
+- `source_position` demands exactly 24 bytes and a value still finite after the cast to f32, which is all a GPU row can hold.
+- `page_candidates` keeps only the points whose projection lands inside the frozen click window; ranking across pages stays on the GPU.
+- `resolve_id` re-reads two small ranges for the winner alone: its original id and its exact position.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 

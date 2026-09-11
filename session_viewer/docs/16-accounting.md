@@ -59,6 +59,9 @@
 
 Per-type payload walks, one function per geometry kind:
 
+- Each adds only what it can see exactly: vector and string capacity, occupied map entries, exposed slice lengths. Never allocator overhead, never the `Rc` header.
+- Every `Rc` goes into `seen` by pointer before it is counted, so a geometry reachable from both a typed list and the lookup adds its bytes once. That is what makes the number a floor rather than an over-count.
+
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=141-363 -->
