@@ -47,13 +47,13 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/math.rs type lines=72-123 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=72-125 -->
 
 - `corners` returns all eight, not the two extremes: a rotation moves a corner that was not extreme into one that is.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/math.rs type lines=124-154 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=126-156 -->
 
 ## Step 3 · Recover camera facts from the matrix
 
@@ -65,7 +65,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/math.rs type lines=155-220 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=157-222 -->
 
 ## Step 4 · Camera state
 
@@ -145,7 +145,7 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=348-399 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=348-401 -->
 
 ## Step 9 · Wheel response
 
@@ -156,7 +156,7 @@ Orthographic shows content off-axis and nearer than the target plane, so a naive
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
-<!-- file: 02 session_viewer/src/camera.rs copy lines=400-513 -->
+<!-- file: 02 session_viewer/src/camera.rs copy lines=402-515 -->
 
 <!-- check: 02 -->
 

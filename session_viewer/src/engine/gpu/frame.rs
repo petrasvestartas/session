@@ -321,6 +321,9 @@ impl FrameUniforms {
         let line = LineUniform {
             thickness: cx.view.thickness_px * cx.pixel_scale,
             feather: cx.view.feather_px,
+            // cot(fovy/2) times millimetres-per-metre: the camera folds that same 0.001 into
+            // its projection, so a world-mm radius must carry it too before being divided by
+            // the metres in clip.w. `ortho_h` below comes off the view-projection already scaled.
             proj_y: 1.0 / (FOVY_DEG as f32 * 0.5).to_radians().tan() * 0.001,
             ortho_h: self.ortho_h,
             vp_h: cx.size.1 as f32,

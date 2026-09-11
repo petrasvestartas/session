@@ -116,25 +116,25 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=26-90 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=26-93 -->
 
 - The fragment: coverage times fade, then `ink_visible` at the closest axis point.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=91-137 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=94-140 -->
 
 - `coverage` is where the exactness lives: `band_area` integrates the pixel box against the capsule instead of sampling a distance, so coverage cannot beat against the line's subpixel phase.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=138-187 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=141-190 -->
 
 - The ID entries write `(row + 1, segment + 1)`; a tag bit in the segment half tells a picked ribbon from a picked face in the same channel.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=188-280 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=191-283 -->
 
 <!-- check: 04b -->
 

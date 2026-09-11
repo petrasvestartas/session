@@ -48,6 +48,8 @@ fn glyph_vertex(vid: u32) -> VsOut {
         return dead_dot();
     }
 
+    // Three sizes in one field: 0 takes the global pen, a positive radius is world mm
+    // projected here, a negative radius is already a pixel count and holds at every zoom.
     var px = line.thickness * 0.5;
     if (g.radius < 0.0) {
         px = -g.radius;

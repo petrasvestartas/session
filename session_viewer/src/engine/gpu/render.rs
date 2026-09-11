@@ -174,6 +174,8 @@ impl Gpu {
         draws += self
             .segments
             .draw_unselected(pass, &b, v.show_mesh_edges, v.show_lines);
+        // (pipes, ribbons): the selected object's mesh and BRep edges now; its standalone
+        // curves come after the silhouette below, so they are not cut by it.
         draws += self
             .segments
             .draw_selected(pass, &b, v.show_mesh_edges, false);

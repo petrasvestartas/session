@@ -25,10 +25,10 @@ index d93141370ff7af53632904d891f518ad7b416944..916b554e3a81d47dd7c25468eb20d57f
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/engine/gpu/glyphs.rs b/session_viewer/src/engine/gpu/glyphs.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..b167f88f67051697dd6ae9e2df00669b0ced23ee
+index 0000000000000000000000000000000000000000..9ac8d43d7e34e032b84b431fe3b80e2ceb617267
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/glyphs.rs
-@@ -0,0 +1,321 @@
+@@ -0,0 +1,322 @@
 +//! The glyph lane: every vertex-sized piece of ink. Two tables of the same 48 B row - spheres
 +//! (mesh/BRep vertex markers, the SOLID lane, on a quad template) and
 +//! dots (free points, the FLAT lane, three verts per dot). `GlyphRows` is one upload.
@@ -57,7 +57,8 @@ index 0000000000000000000000000000000000000000..b167f88f67051697dd6ae9e2df00669b
 +#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 +pub struct GlyphPoint {
 +    pub center: [f32; 3],
-+    /// 0 = the screen-constant pen; > 0 = a world-mm radius.
++    /// 0 = the screen-constant pen; > 0 = a world-mm radius; < 0 = exactly that many screen
++    /// pixels, which is what the F10 control dots use so they hold their size at every zoom.
 +    pub radius: f32,
 +    pub color: [f32; 4],
 +    pub instance_id: u32,
@@ -569,10 +570,10 @@ index d33b9d82bf9813b8b6693191a5575b3dd8fdf141..3b8ae641cd8f1948d586195561be4a90
  /// Read a monotonic frame time from the browser when available.
 diff --git a/session_viewer/src/shaders/glyph.wgsl b/session_viewer/src/shaders/glyph.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..6a393bff6f40d929de6fa0fe71a7ae704e45cd91
+index 0000000000000000000000000000000000000000..e439e7595afe9bb08a0ea5935f6ebc033b7a7fca
 --- /dev/null
 +++ b/session_viewer/src/shaders/glyph.wgsl
-@@ -0,0 +1,138 @@
+@@ -0,0 +1,140 @@
 +// Free points as SDF dots: one triangle per dot (its incircle is the disc), no template.
 +// Group 3 = the glyph table.
 +
@@ -623,6 +624,8 @@ index 0000000000000000000000000000000000000000..6a393bff6f40d929de6fa0fe71a7ae70
 +        return dead_dot();
 +    }
 +
++    // Three sizes in one field: 0 takes the global pen, a positive radius is world mm
++    // projected here, a negative radius is already a pixel count and holds at every zoom.
 +    var px = line.thickness * 0.5;
 +    if (g.radius < 0.0) {
 +        px = -g.radius;
@@ -713,10 +716,10 @@ index 0000000000000000000000000000000000000000..6a393bff6f40d929de6fa0fe71a7ae70
 +}
 diff --git a/session_viewer/src/shaders/sphere.wgsl b/session_viewer/src/shaders/sphere.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..a289324669abcc82d62c3d105714492970c7774f
+index 0000000000000000000000000000000000000000..4241c11cbf83f0f9f1ecce4bd707eab7fff028fc
 --- /dev/null
 +++ b/session_viewer/src/shaders/sphere.wgsl
-@@ -0,0 +1,153 @@
+@@ -0,0 +1,155 @@
 +// Mesh vertex markers: a camera-facing quad template per glyph, trimmed to a disc by the
 +// fragment SDF, hidden when every incident face turns away. Group 3 = the glyph table.
 +
@@ -734,7 +737,9 @@ index 0000000000000000000000000000000000000000..a289324669abcc82d62c3d1057144929
 +const MARKER_MIN_DIAMS: f32 = 3.0;
 +const TAPER_MIN: f32 = 0.15;
 +
-+fn screen_radius(clip_w: f32) -> f32 {
++// Despite living in a screen-space file, this returns a WORLD length: the global pen is a
++// pixel width, and this is the world radius that projects to it at this depth.
++fn pen_world_radius(clip_w: f32) -> f32 {
 +    if (line.ortho_h > 0.0) {
 +        return line.thickness * line.ortho_h / line.vp_h;
 +    }
@@ -798,7 +803,7 @@ index 0000000000000000000000000000000000000000..a289324669abcc82d62c3d1057144929
 +        return dead_dot();
 +    }
 +
-+    let r = select(screen_radius(clip.w), g.radius, g.radius > 0.0);
++    let r = select(pen_world_radius(clip.w), g.radius, g.radius > 0.0);
 +    var px = to_px(r, clip.w);
 +    if (inst.spacing > 0.0) {
 +        let sp_px = to_px(inst.spacing, clip.w);

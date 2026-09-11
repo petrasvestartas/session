@@ -38,7 +38,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
             wp = vec3<f32>(0.0, select(0.0, HALF, far), 0.0);
             c = GREEN;
         } else {
-            wp = vec3<f32>(0.0, 0.0, select(0.0, 1000.0, far));
+            wp = vec3<f32>(0.0, 0.0, select(0.0, STEP, far));
             c = BLUE;
         }
     }

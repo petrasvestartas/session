@@ -234,13 +234,13 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=254-329 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=254-332 -->
 
 - The three blocks are written together from one solved camera, so they cannot disagree about which frame they describe.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=330-347 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=333-350 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result.
 - The pen is `thickness_px * pixel_scale`, keeping its CSS width at every device scale.
@@ -248,7 +248,7 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=348-392 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=351-395 -->
 
 - `write_pick` runs after `write`, deriving the pick blocks from the frame's own solved values.
 - The camera is premultiplied by the window's clip transform; `origin` becomes the window's top-left.
@@ -256,11 +256,11 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=393-410 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=396-413 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=411-417 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=414-420 -->
 
 ## Step 6 · Runtime knobs and the query string
 
@@ -321,23 +321,23 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <span class="zone-mark" data-strip="illustrations/strip-62cf9167cc.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=256-312 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=256-314 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-62cf9167cc.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=313-360 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=315-362 -->
 
 - `anchored_model` spells out on the CPU the composition a shader performs, so a test can check it.
 
 <span class="zone-mark" data-strip="illustrations/strip-62cf9167cc.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=361-416 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=363-418 -->
 
 - Flags are set and written back one row at a time: selecting an object must not re-upload the table.
 
 <span class="zone-mark" data-strip="illustrations/strip-62cf9167cc.svg" data-zone="GPU core"></span>
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=417-469 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=419-471 -->
 
 <!-- check: 04a -->
 

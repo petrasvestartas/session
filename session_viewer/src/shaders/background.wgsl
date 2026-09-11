@@ -1,4 +1,6 @@
-// The background: one fullscreen triangle at the far plane, flat white.
+// The background: one fullscreen triangle, flat white. Its pipeline is DepthMode::Always -
+// no test and no write - so the depth it emits never competes; under this viewer's reverse-Z
+// the far plane is 0, not the 1 written here.
 
 struct VsOut {
     @builtin(position) pos: vec4<f32>,

@@ -307,6 +307,9 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
         targets.push(Some(wgpu::ColorTargetState {
             format: wgpu::TextureFormat::Rgba16Float,
             blend: None,
+            // A lane that ties with its own prepass has already written this target and must
+            // not write it twice, so `physical()` paired with `ReadOnlyEqual` declares the
+            // attachment and masks it off. The pairing is the switch; there is no other flag.
             write_mask: if desc.depth == DepthMode::ReadOnlyEqual {
                 wgpu::ColorWrites::empty()
             } else {

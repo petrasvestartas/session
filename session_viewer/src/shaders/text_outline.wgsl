@@ -18,16 +18,16 @@ fn vs_main(vertex: Vertex) -> Fragment {
     let instance = instances[vertex.object];
     var out: Fragment;
     out.object = vertex.object;
-    if (instance.flags & 2u) != 0u {
+    if (instance.flags & FLAG_HIDDEN) != 0u {
         out.position = vec4<f32>(3.0, 3.0, 0.5, 1.0);
         out.color = vec4<f32>(0.0);
         return out;
     }
     let world = place(vertex.object, vertex.position);
     out.position = mvp * vec4<f32>(world, 1.0);
-    let selected = (instance.flags & 1u) != 0u;
+    let selected = (instance.flags & FLAG_SELECTED) != 0u;
     out.color = vec4<f32>(select(vertex.color.rgb * instance.color.rgb,
-        vec3<f32>(1.0, 1.0, 0.0), selected), vertex.color.a * instance.color.a);
+        SELECT_COLOR, selected), vertex.color.a * instance.color.a);
     return out;
 }
 

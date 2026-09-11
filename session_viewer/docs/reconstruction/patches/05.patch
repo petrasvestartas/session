@@ -359,7 +359,7 @@ index 82cadb28703147f7a4de933c9bd845bf9eeb5b9d..71e0a9fa582f22dcff07fb94516cb02f
              self.splat.draw_resolve(&mut pass, &self.frame.cloud_group);
          }
 diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
-index 2a287f8bf9bc763a506511fefd063d8e31620f33..a48d64fbf15cda2989a3f2e89d9bbb097aada823 100644
+index c984024b435312719e67722f4f3a9c509f47dc67..4c93f8c013b03e66b1170a334d4db9e1aa72f383 100644
 --- a/session_viewer/src/engine/gpu/objects.rs
 +++ b/session_viewer/src/engine/gpu/objects.rs
 @@ -137,6 +137,14 @@ fn ink_instance_group(
@@ -401,10 +401,10 @@ index 2a287f8bf9bc763a506511fefd063d8e31620f33..a48d64fbf15cda2989a3f2e89d9bbb09
          })
      }
 diff --git a/session_viewer/src/engine/gpu/splat.rs b/session_viewer/src/engine/gpu/splat.rs
-index 30d9344434d1d9bf5f54e3afe84fe68ca5886e7e..816cdabda3085cb2f9f0578162a58b785999c9fd 100644
+index de5233fabfac8f69cde1f744d73121975a5f53e9..d9470ccde81ddf36c8d589ff6577cf763e743ae8 100644
 --- a/session_viewer/src/engine/gpu/splat.rs
 +++ b/session_viewer/src/engine/gpu/splat.rs
-@@ -496,6 +496,11 @@ fn build_point(
+@@ -500,6 +500,11 @@ fn build_point(
      let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
          .with(v.label, v.fs)
          .vertex("vs_point");
@@ -416,7 +416,7 @@ index 30d9344434d1d9bf5f54e3afe84fe68ca5886e7e..816cdabda3085cb2f9f0578162a58b78
      build(&ctx.device, v.target, &desc)
  }
  
-@@ -510,6 +515,7 @@ fn build_resolve(
+@@ -514,6 +519,7 @@ fn build_resolve(
      let groups = [&l.line, &l.resolve];
      let desc = PipelineDesc::new(shader, &groups, &[], TriangleList)
          .with("splat.resolve", "fs_main")
@@ -1064,11 +1064,13 @@ index 27c1006dcc6b33ffe54e9b36aecae135a1a6c906..f2fb7e08d09946d58166992f8a0da14b
 +}
 diff --git a/session_viewer/src/shaders/background.wgsl b/session_viewer/src/shaders/background.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..f5f4758d18a284aaec1bc388699e75a9991648b8
+index 0000000000000000000000000000000000000000..6fa12413e6d467c92ca1e020d8f70b69b9a6afb7
 --- /dev/null
 +++ b/session_viewer/src/shaders/background.wgsl
-@@ -0,0 +1,23 @@
-+// The background: one fullscreen triangle at the far plane, flat white.
+@@ -0,0 +1,25 @@
++// The background: one fullscreen triangle, flat white. Its pipeline is DepthMode::Always -
++// no test and no write - so the depth it emits never competes; under this viewer's reverse-Z
++// the far plane is 0, not the 1 written here.
 +
 +struct VsOut {
 +    @builtin(position) pos: vec4<f32>,
@@ -1093,7 +1095,7 @@ index 0000000000000000000000000000000000000000..f5f4758d18a284aaec1bc388699e75a9
 +}
 diff --git a/session_viewer/src/shaders/grid.wgsl b/session_viewer/src/shaders/grid.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..773e635f4559ea6c1d1245dbf310b5ed8008692e
+index 0000000000000000000000000000000000000000..75705095282ee7c95b3a4328edbf794e349bec7e
 --- /dev/null
 +++ b/session_viewer/src/shaders/grid.wgsl
 @@ -0,0 +1,54 @@
@@ -1137,7 +1139,7 @@ index 0000000000000000000000000000000000000000..773e635f4559ea6c1d1245dbf310b5ed
 +            wp = vec3<f32>(0.0, select(0.0, HALF, far), 0.0);
 +            c = GREEN;
 +        } else {
-+            wp = vec3<f32>(0.0, 0.0, select(0.0, 1000.0, far));
++            wp = vec3<f32>(0.0, 0.0, select(0.0, STEP, far));
 +            c = BLUE;
 +        }
 +    }
@@ -1433,10 +1435,10 @@ index 0000000000000000000000000000000000000000..dcf68beaceb47e45b155eafef2d3267c
 +    return scaled;
 +}
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
-index 367c66cc7c23a7b19a3903ad7a5ee47d6350aaf6..09ca8b3ccc24697da88574c681cf61de256e5110 100644
+index 6caa7da25703fe5c067378925fd4144420bd52be..86ede97791f67e1ab8aef18a4c3f7d578c489804 100644
 --- a/session_viewer/src/shaders/splat.wgsl
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -163,9 +163,9 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
+@@ -164,9 +164,9 @@ fn fs_point(in: PointOut) -> @location(0) vec4<f32> {
  
  // The id pass: (object row + 1, point row + 1).
  @fragment
@@ -1449,7 +1451,7 @@ index 367c66cc7c23a7b19a3903ad7a5ee47d6350aaf6..09ca8b3ccc24697da88574c681cf61de
 +    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec2<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
-index 7a3b1b0507b133361cb17de61a96f7708e686207..75905e75ae11ebf1289f5a99ecbf788c81eac37f 100644
+index ad85aa08ccd23f6b05ed6046e9bd39cd8d278201..37349030595bf1b868533e5bc63f2bb1683fcaae 100644
 --- a/session_viewer/src/shaders/splat_resolve.wgsl
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
 @@ -28,6 +28,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
@@ -1460,7 +1462,7 @@ index 7a3b1b0507b133361cb17de61a96f7708e686207..75905e75ae11ebf1289f5a99ecbf788c
      @builtin(frag_depth) depth: f32,
  };
  
-@@ -69,6 +70,7 @@ fn shade(in: VsOut) -> FsOut {
+@@ -71,6 +72,7 @@ fn shade(in: VsOut) -> FsOut {
  
      o.color = vec4<f32>(rgb, 1.0);
      o.depth = d;
@@ -1469,7 +1471,7 @@ index 7a3b1b0507b133361cb17de61a96f7708e686207..75905e75ae11ebf1289f5a99ecbf788c
  }
  
 diff --git a/session_viewer/src/shaders/text_outline.wgsl b/session_viewer/src/shaders/text_outline.wgsl
-index a8551be581cbefef7fd37494c66ba6a28e8fc48c..73763a5177a66e2bf3f03fbf1dc6062e99cbc8cf 100644
+index 14295e1a74fd05a1d3040b670f32d8f49464e6ef..5b55823ae18677e22a2954139d1ba46d2e6f934d 100644
 --- a/session_viewer/src/shaders/text_outline.wgsl
 +++ b/session_viewer/src/shaders/text_outline.wgsl
 @@ -38,6 +38,11 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {

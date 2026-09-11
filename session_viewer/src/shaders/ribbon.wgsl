@@ -47,6 +47,9 @@ const FILTER_REACH: f32 = 0.70711;
 
 // The unit pixel square projected onto a direction is a trapezoid (a box of width |g.x|
 // convolved with one of |g.y|); this is that trapezoid's CDF.
+// `t` is the signed distance from the band's edge; the other four are that trapezoid's shape,
+// computed once in `band_area` from the gradient: `hi` half its base, `lo` half its flat top,
+// `m` its ramp scale (the larger of |g.x| and |g.y|) and `q` the quadratic tails' divisor.
 fn box_cdf(t: f32, hi: f32, lo: f32, m: f32, q: f32) -> f32 {
     let s = clamp(t, -hi, hi);
     let e = hi - abs(s);
@@ -222,7 +225,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let px = floor_hairline(select(raw0, raw1, at_end1));
     // CAD boundary segments are samples of one curve, not independent mesh wires.
     // Refining the surface must not shrink the pen at its short boundary intervals.
-    let cad_boundary = (inst.flags & 64u) != 0u && source_edges[iid] != 0xffffffffu;
+    let cad_boundary = (inst.flags & FLAG_SMOOTH) != 0u && source_edges[iid] != 0xffffffffu;
     let crowd = select(density_taper(seg.facing, len, px), 1.0, cad_boundary || selected);
     let along = select(-1.0, 1.0, at_end1);
     let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + FILTER_REACH);
@@ -269,6 +272,10 @@ fn vs_selected(@builtin(vertex_index) vid: u32) -> VsOut {
 // gradient is the unit vector from its axis, which straightens the cap arc inside one pixel.
 fn coverage(in: VsOut) -> f32 {
     let pixel = vec2<f32>(in.pos.x, line.vp_h-in.pos.y);
+    // The two halves of the join partition are half-open, `< 0` here and `>= 0` below, so a
+    // pixel on the plane belongs to exactly one segment. A disabled join is a ZERO plane and
+    // scores exactly 0: that already passes `< 0`, but it would satisfy `>= 0` and reject
+    // every fragment, which is why only the end test carries a guard. Not a missing one.
     if (dot(pixel-in.start_join.zw, in.start_join.xy) < 0.0) { return 0.0; }
     if (any(in.end_join.xy != vec2<f32>(0.0)) && dot(pixel-in.end_join.zw, in.end_join.xy) >= 0.0) { return 0.0; }
     let pa = in.p - in.a;

@@ -2032,7 +2032,7 @@ def tile_pool():
         ]),
         ("CPU", 340, [
             (["copy the first record", "16 B out of the tile buffer,", "then map_report() after the submit"], "note"),
-            (["prepare() reads it back", "grow to (needed − the header words) × 3/2,", "or double when the report saturated"], "note"),
+            (["prepare() reads it back", "the report reached capacity, so it is a floor:", "double, and ask again next frame"], "note"),
             (["nothing to do"], "note"),
         ]),
     ]

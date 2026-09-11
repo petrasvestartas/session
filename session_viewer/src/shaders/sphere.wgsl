@@ -15,7 +15,9 @@ struct GlyphPoint {
 const MARKER_MIN_DIAMS: f32 = 3.0;
 const TAPER_MIN: f32 = 0.15;
 
-fn screen_radius(clip_w: f32) -> f32 {
+// Despite living in a screen-space file, this returns a WORLD length: the global pen is a
+// pixel width, and this is the world radius that projects to it at this depth.
+fn pen_world_radius(clip_w: f32) -> f32 {
     if (line.ortho_h > 0.0) {
         return line.thickness * line.ortho_h / line.vp_h;
     }
@@ -79,7 +81,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> Vs
         return dead_dot();
     }
 
-    let r = select(screen_radius(clip.w), g.radius, g.radius > 0.0);
+    let r = select(pen_world_radius(clip.w), g.radius, g.radius > 0.0);
     var px = to_px(r, clip.w);
     if (inst.spacing > 0.0) {
         let sp_px = to_px(inst.spacing, clip.w);

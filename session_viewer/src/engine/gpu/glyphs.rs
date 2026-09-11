@@ -26,7 +26,8 @@ const DOT_VERTS: u32 = 3;
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct GlyphPoint {
     pub center: [f32; 3],
-    /// 0 = the screen-constant pen; > 0 = a world-mm radius.
+    /// 0 = the screen-constant pen; > 0 = a world-mm radius; < 0 = exactly that many screen
+    /// pixels, which is what the F10 control dots use so they hold their size at every zoom.
     pub radius: f32,
     pub color: [f32; 4],
     pub instance_id: u32,

@@ -578,10 +578,10 @@ index 26518f03a28887e94ae44b83eca59d02c997dbe7..82cadb28703147f7a4de933c9bd845bf
              let mut pass = self.targets.begin_ink(&mut encoder, &target);
 diff --git a/session_viewer/src/engine/gpu/splat.rs b/session_viewer/src/engine/gpu/splat.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..30d9344434d1d9bf5f54e3afe84fe68ca5886e7e
+index 0000000000000000000000000000000000000000..de5233fabfac8f69cde1f744d73121975a5f53e9
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/splat.rs
-@@ -0,0 +1,515 @@
+@@ -0,0 +1,519 @@
 +//! The point lane's renderer: one pixel-aligned quad per point into the lane's OWN 1x depth +
 +//! colour targets (the hardware depth test keeps the nearest point), then a fullscreen resolve
 +//! into the scene pass with EDL and `frag_depth`. A record per visible cloud (or octree node)
@@ -630,7 +630,9 @@ index 0000000000000000000000000000000000000000..30d9344434d1d9bf5f54e3afe84fe68c
 +    /// The object row, written by the id pass.
 +    pub instance: u32,
 +    pub flags: u32,
-+    pub _pad: u32,
++    /// Not padding: the highlighted source point's row + 1, or 0. `splat.wgsl` reads it as
++    /// word 39 and paints that one point yellow.
++    pub selected_point: u32,
 +}
 +
 +const _: () = assert!(std::mem::size_of::<SplatRecord>() == 160);
@@ -960,6 +962,8 @@ index 0000000000000000000000000000000000000000..30d9344434d1d9bf5f54e3afe84fe68c
 +            let Some(model) = cx.objects.anchored_model(c.instance) else {
 +                continue;
 +            };
++            // 3 px is the fallback point size for a cloud whose manifest named none, and the
++            // global knob scales either: the `*` applies to the whole `if` expression.
 +            let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * cx.cloud_size;
 +
 +            p.lod_px = if self.control_parent == Some(c.instance) {
@@ -1010,7 +1014,7 @@ index 0000000000000000000000000000000000000000..30d9344434d1d9bf5f54e3afe84fe68c
 +                        nrm_first,
 +                        instance: c.instance,
 +                        flags: row.flags,
-+                        _pad: match self.selected_point {
++                        selected_point: match self.selected_point {
 +                            Some(point) => point + 1,
 +                            None => 0,
 +                        },
@@ -1277,10 +1281,10 @@ index 3b8ae641cd8f1948d586195561be4a903d3a7fbf..27c1006dcc6b33ffe54e9b36aecae135
  /// Read a monotonic frame time from the browser when available.
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..367c66cc7c23a7b19a3903ad7a5ee47d6350aaf6
+index 0000000000000000000000000000000000000000..6caa7da25703fe5c067378925fd4144420bd52be
 --- /dev/null
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -0,0 +1,171 @@
+@@ -0,0 +1,172 @@
 +// The point lane: one pixel-aligned quad per point, pulled by vertex index, into the lane's
 +// own 1x depth + colour targets. Group 0 = the cloud uniform, group 1 = records + tables.
 +
@@ -1294,7 +1298,8 @@ index 0000000000000000000000000000000000000000..367c66cc7c23a7b19a3903ad7a5ee47d
 +
 +// The record table as raw words: a 4-word header {n, total, 0, 0}, then REC_WORDS per record:
 +// 0-15 mvp x model (column-major), 16-19 tint (.a = min radius px), 20 first, 21 count,
-+// 22 cum, 23 k bits, 24-35 rotation columns (3 x vec4), 36 nrm_first, 37 instance, 38 flags.
++// 22 cum, 23 k bits, 24-35 rotation columns (3 x vec4), 36 nrm_first, 37 instance, 38 flags,
++// 39 the highlighted point's row + 1, or 0 for none.
 +const REC_WORDS: u32 = 40u;
 +const NO_NORMALS: u32 = 0xffffffffu;
 +@group(1) @binding(0) var<storage, read> table: array<u32>;
@@ -1454,10 +1459,10 @@ index 0000000000000000000000000000000000000000..367c66cc7c23a7b19a3903ad7a5ee47d
 +}
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..7a3b1b0507b133361cb17de61a96f7708e686207
+index 0000000000000000000000000000000000000000..ad85aa08ccd23f6b05ed6046e9bd39cd8d278201
 --- /dev/null
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,80 @@
 +// Composite the point pass into the scene: one fullscreen triangle looks up its pixel in the
 +// lane's depth + colour targets, discards empties, applies Eye-Dome Lighting from the four
 +// neighbouring depths, and exports the point's depth through frag_depth so points and solids
@@ -1523,6 +1528,8 @@ index 0000000000000000000000000000000000000000..7a3b1b0507b133361cb17de61a96f770
 +            sum += max(0.0, me - log_depth(nd));
 +        }
 +        // Floored at 0.25: an edge darkens, it never goes black.
++        // 75 is the fixed exponent scale on the summed log-depth steps and `cloud.edl` the
++        // 0..1 knob on top of it. Floored at 0.25: an edge darkens, it never goes black.
 +        let shade = max(exp(-sum * 75.0 * cloud.edl), 0.25);
 +        rgb *= shade;
 +    }

@@ -499,6 +499,8 @@ impl Scene {
             point = self.point_at(pick.row, local);
         }
         let mut entity = None;
+        // Bit 31 marks a segment sub-id, set in ribbon.wgsl; the low 31 bits are already the
+        // global ribbon row, the decode having taken the shader's +1 off.
         let ribbon = pick.sub & 0x7fff_ffff;
         if pick.sub & 0x8000_0000 != 0
             && self.sheet_at(pick.row).is_some()

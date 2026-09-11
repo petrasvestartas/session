@@ -10,7 +10,10 @@ use super::targets::{TextureSpec, texture, texture_view};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
 
-/// What a pixel answered: the object row and the sub-object id (point row for clouds, 0 else).
+/// What a pixel answered: the object row, and a sub-object id that is a TAGGED union rather
+/// than one number. 0 is the object itself; bit 31 set is a segment, the low bits its row;
+/// the top three bits equal to `faces::FACE_TAG` is a source face address; a cloud answers
+/// with its point row. The tags are disjoint so one channel carries every kind.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Pick {
     pub row: u32,
@@ -110,8 +113,9 @@ impl Window {
     }
 }
 
-/// The row pitch of the window copy: `2 * PICK_RADIUS + 1` texels of 8 B, rounded up to
-/// wgpu's 256 B copy alignment.
+/// The row pitch of the window copy: `2 * MAX_RADIUS + 1` texels of 8 B, rounded up to wgpu's
+/// 256 B copy alignment. It is sized for the widest window `configure` can ask for, not for
+/// `PICK_RADIUS`, so one readback buffer serves every tolerance.
 const ROW_BYTES: u32 = ((2 * MAX_RADIUS + 1) * 8).div_ceil(256) * 256;
 
 /// The pending request, the targets, the readback buffer and its completion flag.
@@ -611,6 +615,10 @@ fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
                 continue;
             }
             let face = sub == 0 || sub.wrapping_sub(1) & 0xe000_0000 == super::faces::FACE_TAG;
+            // The rule, as a tuple compared left to right: `false < true` in Rust, so ink
+            // (face == false) beats a face outright, and only then does the nearer win. The
+            // last two fields decide nothing real - they make the order total, so the same
+            // pixels always answer the same way.
             let key = (face, distance, object, sub);
             match best {
                 Some(previous) if key >= previous => {}

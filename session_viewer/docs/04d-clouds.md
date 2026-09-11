@@ -104,57 +104,57 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-68 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-70 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=69-134 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=71-136 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=135-157 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=137-159 -->
 
 - The lane's own type: three pipelines - colour, id, resolve - and the record buffer that feeds them.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=158-230 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=160-232 -->
 
 - Construction allocates the record buffer up front - 4096 records at 160 bytes, about 640 KB - and binds it over placeholder buffers.
 - The point *targets* wait for the first cloud; they are the part that scales with the framebuffer.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=231-278 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=233-280 -->
 
 - `prelude` is skipped while the key (camera, knobs, point count) matches; otherwise it rebuilds records, writes them and draws the point pass.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=279-344 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=281-346 -->
 
 - The ID pipeline draws the same quads and writes `(object row, point row)` instead of colour, so a pick names the point, not the cloud.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=345-359 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=347-361 -->
 
 - One record per visible cloud, or per selected octree node; a range straddling two chunks becomes two records.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=360-443 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=362-447 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=444-501 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=448-505 -->
 
 - The resolve is one fullscreen triangle writing colour and `frag_depth`, folding the private point pass back under the scene's own depth test.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=502-515 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=506-519 -->
 
 ## Step 4 · The point shaders
 
@@ -166,17 +166,17 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-50 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-51 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=51-92 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=52-93 -->
 
 - `project` is the whole per-point cost: one mat-vec, a radius folded from the record, a depth. Everything computable per cloud was already computed on the CPU.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=93-171 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=94-172 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>

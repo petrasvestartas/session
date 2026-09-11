@@ -2322,7 +2322,7 @@ index 3658f3316d6684d362ff10c84039fd253031f935..e6ab54d84047af4cdc1316a576e370a4
                  let (url, fields, from, col_at) = (
                      init.url.clone(),
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index 0dd940f8b63d0ca190fc30c5b5e0cc906a04c152..517213bef95c7cdb21e36eb1c3f972bf2d7ac499 100644
+index d29800257db3fa1ae6ba065bd85934c227468d16..cd1649274bc559ce9174116d3a3953a5f8381787 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
 @@ -110,6 +110,14 @@ impl State {
@@ -2340,7 +2340,7 @@ index 0dd940f8b63d0ca190fc30c5b5e0cc906a04c152..517213bef95c7cdb21e36eb1c3f972bf
      /// A streamed cloud's first slice; returns the slot later slices address.
      pub fn add_streamed(&mut self, init: StreamedInit) -> usize {
          let idx = self.scene.add_streamed_cloud(init, &mut self.gpu);
-@@ -812,6 +820,22 @@ impl State {
+@@ -814,6 +822,22 @@ impl State {
      /// Source-document text and the selected object's centered name share a fixed white style.
      fn update_label(&mut self) {
          let mut labels = self.scene_labels.clone();
@@ -2363,7 +2363,7 @@ index 0dd940f8b63d0ca190fc30c5b5e0cc906a04c152..517213bef95c7cdb21e36eb1c3f972bf
          if self.show_selected_names
              && !matches!(self.selection, SelectionMode::Controls { .. })
              && let Some(row) = self.scene.selected
-@@ -829,6 +853,40 @@ impl State {
+@@ -831,6 +855,40 @@ impl State {
          }
      }
  

@@ -133,30 +133,30 @@ Every handler returns whether a redraw is needed; a click returns `false` — no
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=1-47 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=1-48 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=48-81 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=49-82 -->
 
 - `D` flips the headlight (`view.lit`), off by default: a face shows its flat row colour until you ask for shading.
 - `P` flips x-ray; from lesson 18 on, zero opacity turns every multi-face solid into edges and vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=82-168 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=83-169 -->
 
 - A press that moved more than `CLICK_SLOP` before release is a drag: a camera gesture never selects on release.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs type lines=169-196 -->
+<!-- file: 12 session_viewer/src/app/input.rs type lines=170-197 -->
 
 - The owned `pointercancel` listener detaches on drop; a forgotten closure would outlive the canvas.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
-<!-- file: 12 session_viewer/src/app/input.rs copy lines=197-256 -->
+<!-- file: 12 session_viewer/src/app/input.rs copy lines=198-257 -->
 
 ### Step 5 · Touch
 
@@ -359,68 +359,68 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-59 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-62 -->
 
 - The tolerance is a circle in framebuffer pixels, at least one pixel wide: a click is a point, the intent a neighbourhood — the same physical size on every display.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=60-82 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=63-85 -->
 
 - `generation` counts requests; `submitted` records which generation the in-flight copy belongs to. A camera move bumps `generation`, so the answer is discarded when it lands.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=83-144 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=86-147 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=145-203 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=148-206 -->
 
 - One function computes the window's bounds, used by both the scissor and the copy: two computations that must agree are one computation used twice.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=204-222 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=207-225 -->
 
 - The ID targets are made on the first pick and kept until the canvas resizes.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=223-309 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=226-312 -->
 
 - The ID pass gets the colour frame's gradient attachment — the third target the figure above labels *metadata* — so ink decides its own visibility from it.
 - Without it, a stroke would be pickable exactly where it is invisible.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=310-350 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=313-353 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=351-395 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=354-398 -->
 
 - The native census captures the unchanged ID pass: the hidden-line tests judge visibility against exact object numbers, not pixels.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=396-439 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=399-442 -->
 
 - `map` must run after the submit and only once per copy; `poll` reads the mapped bytes on a later frame.
 - Ink beats a face anywhere in the window; among equals the nearest to the cursor wins, so a curve across a face stays selectable.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=440-488 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=443-491 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=489-552 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=492-555 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=553-632 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=556-635 -->
 
 ### Step 11 · The ID pass in the frame list
 

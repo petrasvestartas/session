@@ -494,7 +494,10 @@ impl State {
         ]
     }
 
-    /// A pointer gesture chooses one pass; Ctrl never also performs ordinary selection.
+    /// Ask what is under pixel (x, y) in ONE pass, chosen by the modifiers the click carried:
+    /// `edge` is Ctrl and picks the source edge, `face` is Ctrl+Shift and picks the source face
+    /// with edges still winning. Both false is the ordinary object pass, or the control-point
+    /// pass while F10 controls are up. Ctrl never also performs ordinary selection.
     pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
         self.cancel_cloud_query();
         self.gpu.pick.cancel();
@@ -638,6 +641,8 @@ impl State {
             };
             ControlId::Point(source.id)
         } else {
+            // A control dot tags the top two bits `01` and carries its index in the low 30;
+            // `Pick::sub` documents the whole scheme. Anything else here is not a dot.
             if pick.sub & 0xc000_0000 != 0x4000_0000 {
                 return;
             }

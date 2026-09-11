@@ -178,6 +178,8 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
         idx.push(base + i);
     }
     if !(o.sheet_lanes && print) {
+        // `o.smooth` doubles as "this mesh IS one source face": a tessellated NURBS surface
+        // has no per-face source keys, so every triangle gets the same face address.
         append_face_ids(arena, m, cx.row, o.smooth, rm.indices.len() / 3);
     }
     lap.mark("vert+idx push");

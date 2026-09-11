@@ -82,6 +82,10 @@ fn covered_tile(v: TileVertex) -> u32 {
     let centre = (floor(v.clip.xy)+0.5)*f32(visibility_tile_span());
     let slope = abs(v.gradient.x)+abs(v.gradient.y);
     let nearest = min(v.gradient.z, v.reference.z+dot(v.gradient.xy, centre-v.reference.xy)+0.5*f32(visibility_tile_span())*slope);
+    // The two tolerances ink_visibility.wgsl names DEPTH_REL_TOL and SLOPE_PX, spelled out
+    // because this module is compiled without it: float error at this depth, then the slope
+    // across the rasterizer's 1/256 px vertex snap. The bound must never be nearer than the
+    // triangle can actually reach, or a tile drops a triangle that covers it.
     let bound = nearest+abs(nearest)*1.9073486e-6+slope*0.00390625;
     atomicStore(&tile_records[(offset+1u)/4u].values[(offset+1u)%4u], bitcast<u32>(bound));
     return 0.0;

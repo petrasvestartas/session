@@ -15,7 +15,8 @@ struct CloudUniform {
 
 // The record table as raw words: a 4-word header {n, total, 0, 0}, then REC_WORDS per record:
 // 0-15 mvp x model (column-major), 16-19 tint (.a = min radius px), 20 first, 21 count,
-// 22 cum, 23 k bits, 24-35 rotation columns (3 x vec4), 36 nrm_first, 37 instance, 38 flags.
+// 22 cum, 23 k bits, 24-35 rotation columns (3 x vec4), 36 nrm_first, 37 instance, 38 flags,
+// 39 the highlighted point's row + 1, or 0 for none.
 const REC_WORDS: u32 = 40u;
 const NO_NORMALS: u32 = 0xffffffffu;
 @group(1) @binding(0) var<storage, read> table: array<u32>;

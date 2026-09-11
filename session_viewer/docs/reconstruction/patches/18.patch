@@ -589,7 +589,7 @@ index 6cd07bb546ec3b32103b07d15e0050f7423bafef..9e277a49e9c9b39df74efc833c84a63b
          self.selection_outline.set_selected(row, on);
          self.objects
 diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
-index ee9f58175424eb3863f73714fe3df3f26bb5deaf..9628da1565e014de3c3a45ec906f28d61ab563f6 100644
+index eb5f217fbd86b948e1b893422e43efa0f6e7846f..12cacbb2f62e98b5fc7e254fc79a2784d20485d7 100644
 --- a/session_viewer/src/engine/gpu/objects.rs
 +++ b/session_viewer/src/engine/gpu/objects.rs
 @@ -72,10 +72,33 @@ fn world_box(r: &ObjectRow) -> Aabb {
@@ -804,7 +804,7 @@ index ee9f58175424eb3863f73714fe3df3f26bb5deaf..9628da1565e014de3c3a45ec906f28d6
          if self.translation.is_empty() {
              self.rows.clear();
              self.world_bounds.clear();
-@@ -328,27 +353,24 @@ impl InstanceTable {
+@@ -330,27 +355,24 @@ impl InstanceTable {
      /// Rebase every row's translation around `origin` in f64, cast, and rewrite the 16 B/row
      /// translation table; the 96 B rows are not touched.
      fn rebuild(&mut self, ctx: &GpuCtx, origin: &Point) {
@@ -841,7 +841,7 @@ index ee9f58175424eb3863f73714fe3df3f26bb5deaf..9628da1565e014de3c3a45ec906f28d6
          }
          Some(model)
      }
-@@ -399,11 +421,15 @@ impl InstanceTable {
+@@ -401,11 +423,15 @@ impl InstanceTable {
              return;
          }
          r.flags ^= bit;
@@ -857,7 +857,7 @@ index ee9f58175424eb3863f73714fe3df3f26bb5deaf..9628da1565e014de3c3a45ec906f28d6
          self.rows.clear();
          self.translation.clear();
          self.bounded.clear();
-@@ -490,4 +516,36 @@ mod tests {
+@@ -492,4 +518,36 @@ mod tests {
          let r = ObjectRow::new(Xform::translation(10.0, 20.0, 30.0).m, 0);
          assert!(!world_box(&r).is_finite());
      }
@@ -895,10 +895,10 @@ index ee9f58175424eb3863f73714fe3df3f26bb5deaf..9628da1565e014de3c3a45ec906f28d6
 +    }
  }
 diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
-index 81c7bccf5ba1929fb377c4de9b48adbbeddc67df..06c3a529f92c48be48593cb13ae50623a4c8a132 100644
+index 56b751486ce8f3da26bbc66a861dd2a3e797b6bf..562d360ac01b9404ae024c1d56a30bd45ef19469 100644
 --- a/session_viewer/src/engine/gpu/pick.rs
 +++ b/session_viewer/src/engine/gpu/pick.rs
-@@ -190,7 +190,7 @@ impl Picker {
+@@ -194,7 +194,7 @@ impl Picker {
              Some(target) => u64::from(target.size.0) * u64::from(target.size.1),
              None => 0,
          };
@@ -907,7 +907,7 @@ index 81c7bccf5ba1929fb377c4de9b48adbbeddc67df..06c3a529f92c48be48593cb13ae50623
      }
  
      /// Nothing requested, nothing allocated.
-@@ -362,7 +362,7 @@ impl Picker {
+@@ -366,7 +366,7 @@ impl Picker {
                  "pick.gradient",
                  &TextureSpec {
                      size,
@@ -945,7 +945,7 @@ index ff8ed37c7f187413d9b3d329d5c96a9eedf70553..b545c3b07c22222bf4847712bd70bb57
  
          let slice = readback.slice(..);
 diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
-index e3ef902e1780e266e472f610ed03233c1d32050f..54069330afa758d9276a9d8f6ad20206c808a706 100644
+index 604cd5054dc94c051d828b92dff0bce8eefe25d5..7261e761932da13f9a15289d9980fea1f739fc39 100644
 --- a/session_viewer/src/engine/gpu/render.rs
 +++ b/session_viewer/src/engine/gpu/render.rs
 @@ -5,8 +5,28 @@ use super::Gpu;
@@ -1098,7 +1098,7 @@ index e3ef902e1780e266e472f610ed03233c1d32050f..54069330afa758d9276a9d8f6ad20206
          }
          {
              let mut pass = self.targets.begin_ink(encoder, view);
-@@ -146,6 +201,7 @@ impl Gpu {
+@@ -148,6 +203,7 @@ impl Gpu {
      /// is one (the vertex work stays; the fill is what a full frame would cost), which is then
      /// copied out for `Picker`.
      pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
@@ -1106,7 +1106,7 @@ index e3ef902e1780e266e472f610ed03233c1d32050f..54069330afa758d9276a9d8f6ad20206
          let size = (self.config.width, self.config.height);
          let mode = self.pick.mode;
          // The pass draws the window about the cursor (plus the halo the plane fit reads) into
-@@ -201,12 +257,9 @@ impl Gpu {
+@@ -203,12 +259,9 @@ impl Gpu {
              &self.layouts,
              [depth, &self.targets.depth_msaa],
              [self.pick.gradient(), &self.targets.gradient_msaa],
@@ -1454,10 +1454,10 @@ index 661374764fa610f2bf183e436c680e9c5b312291..ec09ae12e0f442934794c23e330d6a70
              (gradient.clone(), empty_gradient)
 diff --git a/session_viewer/src/engine/gpu/triangle_tiles.rs b/session_viewer/src/engine/gpu/triangle_tiles.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..88203617db2a80204443afa7080fe7a70ec95cf0
+index 0000000000000000000000000000000000000000..be4f689f36048bce3928cd82c882efc25aae2501
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/triangle_tiles.rs
-@@ -0,0 +1,703 @@
+@@ -0,0 +1,786 @@
 +//! Finite triangle visibility for ink near curved surfaces and touching solids.
 +//!
 +//! A projected polygon table and conservative screen tiles include triangles that win no
@@ -1605,6 +1605,34 @@ index 0000000000000000000000000000000000000000..88203617db2a80204443afa7080fe7a7
 +    }
 +}
 +
++/// The pool to ask for next, from the last report.
++///
++/// The scan's prefix sums saturate at the capacity of the buffer they were given, so that an
++/// overflowing sum can never wrap into a plausible offset. That makes a report which REACHES
++/// capacity a floor rather than a measurement: the lists needed at least this much and possibly
++/// far more, and the true figure was never computed. There is nothing to size against, so the
++/// pool doubles and the next report says whether that was enough. A report below capacity is a
++/// real measurement of lists that fitted, so it asks for nothing.
++///
++/// This is why the guard is `>=` and not `>`. It used to be `>`, which a saturating report can
++/// never satisfy, and the pool never grew at all: an oversubscribed scene kept the conservative
++/// rejection for good instead of for one frame.
++fn next_pool_words(
++    current: u64,
++    floor: u64,
++    capacity: u64,
++    report: Option<u64>,
++    ceiling: u64,
++) -> u64 {
++    let mut want = current.max(floor);
++    if let Some(needed) = report
++        && needed >= capacity
++    {
++        want = want.max(current.saturating_mul(2));
++    }
++    want.min(ceiling)
++}
++
 +/// Selection changes do not change physical geometry; hiding, placement and rebasing do.
 +#[derive(Clone, Copy, Debug, PartialEq)]
 +struct ProjectionKey {
@@ -1685,22 +1713,18 @@ index 0000000000000000000000000000000000000000..88203617db2a80204443afa7080fe7a7
 +        }
 +        let mut changed = false;
 +        let layout = TileLayout::new(size);
-+        // The scan reported what its lists needed last time: grow past it with headroom, and
-+        // a saturated report (the lists did not fit) doubles instead.
-+        let mut pool_words = self.pool_words.max(layout.initial_pool_words(triangles));
-+        if let Some(needed) = self.report.poll()
-+            && self.layout == Some(layout)
-+            && needed > self.pool_capacity(layout)
-+        {
-+            let saturated = needed >= self.pool_capacity(layout);
-+            let grown = if saturated {
-+                self.pool_words * 2
-+            } else {
-+                (needed - layout.header_records() * 4) * 3 / 2
-+            };
-+            pool_words = pool_words.max(grown);
-+        }
-+        let pool_words = pool_words.min(layout.max_pool_words());
++        let report = match self.report.poll() {
++            Some(needed) if self.layout == Some(layout) => Some(needed),
++            // A report from a different layout describes a pool that no longer exists.
++            _ => None,
++        };
++        let pool_words = next_pool_words(
++            self.pool_words,
++            layout.initial_pool_words(triangles),
++            self.pool_capacity(layout),
++            report,
++            layout.max_pool_words(),
++        );
 +        let grow = pool_words > self.pool_words;
 +        if triangles != self.requested_triangles || self.layout.is_none() {
 +            self.projected = zeroed_buffer(
@@ -2052,6 +2076,65 @@ index 0000000000000000000000000000000000000000..88203617db2a80204443afa7080fe7a7
 +mod tests {
 +    use super::*;
 +
++    /// The regression this function exists for. The scan saturates AT capacity, so a report can
++    /// never exceed it: a `>` guard here means the pool never grows, which is how it shipped.
++    #[test]
++    fn a_saturated_report_grows_the_pool() {
++        let capacity = 1_000;
++        let pool = 800;
++        assert_eq!(
++            next_pool_words(pool, 0, capacity, Some(capacity), u64::MAX),
++            1_600,
++            "a report at capacity doubles"
++        );
++        assert_eq!(
++            next_pool_words(pool, 0, capacity, Some(capacity - 1), u64::MAX),
++            pool,
++            "a report below capacity measured lists that fitted"
++        );
++        assert_eq!(
++            next_pool_words(pool, 0, capacity, None, u64::MAX),
++            pool,
++            "no report, no change"
++        );
++    }
++
++    /// Growth stops at the ceiling and stays there, however many saturated reports arrive: a
++    /// pool that cannot grow is the one case where conservative ink is permanent, and it must
++    /// not also reallocate every frame.
++    #[test]
++    fn growth_stops_at_the_ceiling() {
++        let ceiling = 2_048;
++        let mut pool = 512;
++        for _ in 0..8 {
++            pool = next_pool_words(pool, 0, pool, Some(pool), ceiling);
++        }
++        assert_eq!(pool, ceiling);
++        assert_eq!(next_pool_words(pool, 0, pool, Some(pool), ceiling), ceiling);
++    }
++
++    /// A scene that needs more than the pool has can never be served in one step, so the point
++    /// of doubling is that it converges: four frames take a pool an order of magnitude further.
++    #[test]
++    fn doubling_converges_in_a_few_frames() {
++        let ceiling = u64::MAX;
++        let mut pool = 1_000;
++        let mut frames = 0;
++        while pool < 10_000 {
++            pool = next_pool_words(pool, 0, pool, Some(pool), ceiling);
++            frames += 1;
++        }
++        assert_eq!(frames, 4);
++    }
++
++    /// The floor wins when the scene grew: a bigger scene asks for its initial pool even if no
++    /// report ever arrives.
++    #[test]
++    fn the_initial_pool_is_a_floor() {
++        assert_eq!(next_pool_words(100, 4_096, 100, None, u64::MAX), 4_096);
++        assert_eq!(next_pool_words(8_192, 4_096, 8_192, None, u64::MAX), 8_192);
++    }
++
 +    #[test]
 +    fn viewport_grid_fits_core_storage_limits_without_fixed_per_tile_caps() {
 +        for size in [
@@ -2222,7 +2305,7 @@ index 8cf597917a47f742b5a284f2a1c65b789c7e8e00..19e2b8d3263e13213f8e897e60573caa
              ink_instance: ink_instance_layout(device),
              ink_rows: ink_rows_layout(device),
 diff --git a/session_viewer/src/engine/pipelines/mod.rs b/session_viewer/src/engine/pipelines/mod.rs
-index c4a52504e821c681650f7f02d69f460472875fe1..ae9272358c63460efccb36490e24e1a2f69da7ec 100644
+index c4a52504e821c681650f7f02d69f460472875fe1..6329b4ae546b299d79a3c3c50d2b606295a42819 100644
 --- a/session_viewer/src/engine/pipelines/mod.rs
 +++ b/session_viewer/src/engine/pipelines/mod.rs
 @@ -109,6 +109,9 @@ pub struct PipelineDesc<'a> {
@@ -2312,7 +2395,7 @@ index c4a52504e821c681650f7f02d69f460472875fe1..ae9272358c63460efccb36490e24e1a2
      device: &wgpu::Device,
      label: &str,
      groups: &[&wgpu::BindGroupLayout],
-@@ -271,9 +287,25 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
+@@ -271,10 +287,29 @@ pub fn build(device: &wgpu::Device, target: Target, desc: &PipelineDesc) -> wgpu
          blend,
          write_mask,
      })];
@@ -2337,13 +2420,17 @@ index c4a52504e821c681650f7f02d69f460472875fe1..ae9272358c63460efccb36490e24e1a2
 -            format: wgpu::TextureFormat::Rg16Float,
 +            format: wgpu::TextureFormat::Rgba16Float,
              blend: None,
++            // A lane that ties with its own prepass has already written this target and must
++            // not write it twice, so `physical()` paired with `ReadOnlyEqual` declares the
++            // attachment and masks it off. The pairing is the switch; there is no other flag.
              write_mask: if desc.depth == DepthMode::ReadOnlyEqual {
                  wgpu::ColorWrites::empty()
+             } else {
 diff --git a/session_viewer/src/shaders/background.wgsl b/session_viewer/src/shaders/background.wgsl
-index f5f4758d18a284aaec1bc388699e75a9991648b8..c21b160a52f636b53893dcaef78cc2efe22a17be 100644
+index 6fa12413e6d467c92ca1e020d8f70b69b9a6afb7..75cb8b98b37c9751640c8b1ccdccf0882a0e2457 100644
 --- a/session_viewer/src/shaders/background.wgsl
 +++ b/session_viewer/src/shaders/background.wgsl
-@@ -19,5 +19,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+@@ -21,5 +21,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
  
  @fragment
  fn fs_main(in: VsOut) -> PhysicalColor {
@@ -2351,7 +2438,7 @@ index f5f4758d18a284aaec1bc388699e75a9991648b8..c21b160a52f636b53893dcaef78cc2ef
 +    return PhysicalColor(vec4<f32>(1.0, 1.0, 1.0, 1.0), vec4<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/grid.wgsl b/session_viewer/src/shaders/grid.wgsl
-index 773e635f4559ea6c1d1245dbf310b5ed8008692e..a3d076dbe22df3def13c23a5326cd73df3344641 100644
+index 75705095282ee7c95b3a4328edbf794e349bec7e..55b1a48f1e79551579d77b7efcb79e02dc3a3dd1 100644
 --- a/session_viewer/src/shaders/grid.wgsl
 +++ b/session_viewer/src/shaders/grid.wgsl
 @@ -50,5 +50,5 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
@@ -2866,10 +2953,10 @@ index 0000000000000000000000000000000000000000..bd6779f059616d306ba4b0748d85ede8
 +    }
 +}
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
-index e7eccb632d46ab1d009fa0e270d6db36f94eb1ae..aff088c68222150b7fd285d8c4e6b29567f94e21 100644
+index fcde227ee91c241d038f0bb7492f4f21e3a34015..8538871b9c61b206176281137de3cdc125cf75f3 100644
 --- a/session_viewer/src/shaders/splat.wgsl
 +++ b/session_viewer/src/shaders/splat.wgsl
-@@ -173,5 +173,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
+@@ -174,5 +174,5 @@ fn fs_point_id(in: PointOut) -> PhysicalId {
      if (outside(in)) {
          discard;
      }
@@ -2877,7 +2964,7 @@ index e7eccb632d46ab1d009fa0e270d6db36f94eb1ae..aff088c68222150b7fd285d8c4e6b295
 +    return PhysicalId(vec2<u32>(in.instance + 1u, in.row + 1u), vec4<f32>(0.0));
  }
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
-index ccf54fc911d3e3fb1253448bb9470998a6ba39de..9b912aab18ae53a184a115c326d874147d4fe3b7 100644
+index b0d2f4d1507d5606878e50547c96c77a6ff1e88b..8b404ad12252864068e46dc0b2ead3c4f68d0a76 100644
 --- a/session_viewer/src/shaders/splat_resolve.wgsl
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
 @@ -32,7 +32,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
@@ -2889,7 +2976,7 @@ index ccf54fc911d3e3fb1253448bb9470998a6ba39de..9b912aab18ae53a184a115c326d87414
      @builtin(frag_depth) depth: f32,
  };
  
-@@ -74,7 +74,7 @@ fn shade(in: VsOut) -> FsOut {
+@@ -76,7 +76,7 @@ fn shade(in: VsOut) -> FsOut {
  
      o.color = vec4<f32>(rgb, 1.0);
      o.depth = d;
@@ -2899,7 +2986,7 @@ index ccf54fc911d3e3fb1253448bb9470998a6ba39de..9b912aab18ae53a184a115c326d87414
  }
  
 diff --git a/session_viewer/src/shaders/text_outline.wgsl b/session_viewer/src/shaders/text_outline.wgsl
-index 73763a5177a66e2bf3f03fbf1dc6062e99cbc8cf..12535d5a4ee52823e0fa8c3e1265182fd3580bf3 100644
+index 5b55823ae18677e22a2954139d1ba46d2e6f934d..9738c25c53e6d4a73af26031dab4dc876d191445 100644
 --- a/session_viewer/src/shaders/text_outline.wgsl
 +++ b/session_viewer/src/shaders/text_outline.wgsl
 @@ -40,7 +40,7 @@ fn fs_main(fragment: Fragment) -> @location(0) vec4<f32> {
@@ -2912,7 +2999,7 @@ index 73763a5177a66e2bf3f03fbf1dc6062e99cbc8cf..12535d5a4ee52823e0fa8c3e1265182f
  
  @fragment
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index 1f34dd31ea4b1f2888a3660a17349381b48a268e..8f953a8df0697793eb7825e26091ffc18f90c9c2 100644
+index fcd454583bf129800cb834b6699ef69b93aee1e7..e04931a3b5eb3c27b9af2e80d916d96bbf313659 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
 @@ -19,20 +19,20 @@ struct VsOut {
@@ -2953,7 +3040,7 @@ index 1f34dd31ea4b1f2888a3660a17349381b48a268e..8f953a8df0697793eb7825e26091ffc1
      return o;
  }
  
-@@ -70,14 +72,23 @@ fn vs_main(in: VsIn) -> VsOut { return transform_vertex(in); }
+@@ -73,14 +75,23 @@ const FACE_TAG: u32 = 0x20000000u;
  @group(3) @binding(3) var<storage, read> source_faces: array<u32>;
  @group(3) @binding(4) var<uniform> selected_face: vec4<u32>;
  
@@ -2979,7 +3066,7 @@ index 1f34dd31ea4b1f2888a3660a17349381b48a268e..8f953a8df0697793eb7825e26091ffc1
      out.source_face = source_faces[index/3u];
      out.selected = select(0u, 1u, out.source_face != 0xffffffffu && out.source_face == selected_face.x);
      if (out.selected != 0u) { out.color = SELECT_COLOR; }
-@@ -135,30 +146,33 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
+@@ -138,30 +149,33 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
      let backface = !front && in.print <= 0.5 && line.backface > 0.5;
      let base = select(in.color, BACKFACE_COLOR, backface);
      let shaded = select(1.0, lit, line.lit > 0.5 && in.print <= 0.5);
@@ -2991,9 +3078,10 @@ index 1f34dd31ea4b1f2888a3660a17349381b48a268e..8f953a8df0697793eb7825e26091ffc1
  // The id pass: (object row + 1, 0).
  @fragment
  fn fs_id(in: VsOut) -> PhysicalId {
-+    if (in.xray != 0u) { discard; }
-     let sub = select((0x20000000u | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
+-    let sub = select((0x20000000u | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
 -    return PhysicalId(vec2<u32>(in.inst_id + 1u, sub), physical_gradient(in.pos.z));
++    if (in.xray != 0u) { discard; }
++    let sub = select((FACE_TAG | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
 +    return PhysicalId(vec2<u32>(in.inst_id + 1u, sub), physical_triangle(in.pos.z, in.primitive));
  }
  
@@ -3018,7 +3106,7 @@ index 1f34dd31ea4b1f2888a3660a17349381b48a268e..8f953a8df0697793eb7825e26091ffc1
      return shade(in, front);
  }
  
-@@ -166,5 +180,19 @@ fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location
+@@ -169,5 +183,19 @@ fn fs_face_highlight(in: VsOut, @builtin(front_facing) front: bool) -> @location
  // objects create no artificial seam in the group's outside silhouette.
  @fragment
  fn fs_solid_mask(in: VsOut) -> @location(0) vec4<f32> {
@@ -3040,10 +3128,10 @@ index 1f34dd31ea4b1f2888a3660a17349381b48a268e..8f953a8df0697793eb7825e26091ffc1
 +}
 diff --git a/session_viewer/src/shaders/triangle_tiles.wgsl b/session_viewer/src/shaders/triangle_tiles.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..91d9faa193f8dfba39bd55d8191caa349ffe3e8a
+index 0000000000000000000000000000000000000000..d283a279a4fe8d8ab25d8c1c457fcaff21dfae30
 --- /dev/null
 +++ b/session_viewer/src/shaders/triangle_tiles.wgsl
-@@ -0,0 +1,88 @@
+@@ -0,0 +1,92 @@
 +@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 +
 +struct TileLine {
@@ -3128,6 +3216,10 @@ index 0000000000000000000000000000000000000000..91d9faa193f8dfba39bd55d8191caa34
 +    let centre = (floor(v.clip.xy)+0.5)*f32(visibility_tile_span());
 +    let slope = abs(v.gradient.x)+abs(v.gradient.y);
 +    let nearest = min(v.gradient.z, v.reference.z+dot(v.gradient.xy, centre-v.reference.xy)+0.5*f32(visibility_tile_span())*slope);
++    // The two tolerances ink_visibility.wgsl names DEPTH_REL_TOL and SLOPE_PX, spelled out
++    // because this module is compiled without it: float error at this depth, then the slope
++    // across the rasterizer's 1/256 px vertex snap. The bound must never be nearer than the
++    // triangle can actually reach, or a tile drops a triangle that covers it.
 +    let bound = nearest+abs(nearest)*1.9073486e-6+slope*0.00390625;
 +    atomicStore(&tile_records[(offset+1u)/4u].values[(offset+1u)%4u], bitcast<u32>(bound));
 +    return 0.0;

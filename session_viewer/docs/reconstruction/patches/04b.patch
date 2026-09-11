@@ -603,10 +603,10 @@ index 0000000000000000000000000000000000000000..19d7c3d366cc58e4435e30cc5fd0d5d6
 +}
 diff --git a/session_viewer/src/shaders/ribbon.wgsl b/session_viewer/src/shaders/ribbon.wgsl
 new file mode 100644
-index 0000000000000000000000000000000000000000..e4ed7edbb3f83b8629f9d2fdc891009be47994fd
+index 0000000000000000000000000000000000000000..5256d472f5ca98951af379caf3e4ea99636954ee
 --- /dev/null
 +++ b/session_viewer/src/shaders/ribbon.wgsl
-@@ -0,0 +1,280 @@
+@@ -0,0 +1,283 @@
 +// Flat ink: one camera-facing quad per segment (6 verts pulled by index, no vertex buffer),
 +// a capsule SDF in the fragment, visibility from the physical depth. Draws the ribbon table
 +// (free linework) and the pipe table (mesh edges). Group 3 = the segment table. Which edges
@@ -654,6 +654,9 @@ index 0000000000000000000000000000000000000000..e4ed7edbb3f83b8629f9d2fdc891009b
 +
 +// The unit pixel square projected onto a direction is a trapezoid (a box of width |g.x|
 +// convolved with one of |g.y|); this is that trapezoid's CDF.
++// `t` is the signed distance from the band's edge; the other four are that trapezoid's shape,
++// computed once in `band_area` from the gradient: `hi` half its base, `lo` half its flat top,
++// `m` its ramp scale (the larger of |g.x| and |g.y|) and `q` the quadratic tails' divisor.
 +fn box_cdf(t: f32, hi: f32, lo: f32, m: f32, q: f32) -> f32 {
 +    let s = clamp(t, -hi, hi);
 +    let e = hi - abs(s);

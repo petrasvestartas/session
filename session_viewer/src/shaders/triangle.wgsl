@@ -67,6 +67,9 @@ fn transform_vertex(in: VsIn) -> VsOut {
 fn vs_main(in: VsIn) -> VsOut { return transform_vertex(in); }
 
 @group(3) @binding(0) var<storage, read> face_vertices: array<f32>;
+// The sub id a face answers with, the same value as faces.rs::FACE_TAG. It is kept clear of
+// the stroke lane's high bit and of the control-dot tag so one pick channel carries all three.
+const FACE_TAG: u32 = 0x20000000u;
 @group(3) @binding(1) var<storage, read> face_objects: array<u32>;
 @group(3) @binding(2) var<storage, read> face_indices: array<u32>;
 @group(3) @binding(3) var<storage, read> source_faces: array<u32>;
@@ -154,7 +157,7 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
 @fragment
 fn fs_id(in: VsOut) -> PhysicalId {
     if (in.xray != 0u) { discard; }
-    let sub = select((0x20000000u | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
+    let sub = select((FACE_TAG | in.source_face) + 1u, 0u, in.source_face == 0xffffffffu);
     return PhysicalId(vec2<u32>(in.inst_id + 1u, sub), physical_triangle(in.pos.z, in.primitive));
 }
 

@@ -36,7 +36,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-56 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-57 -->
 
 ## Step 2 · The lane
 
@@ -48,32 +48,32 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=57-100 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=58-101 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=101-153 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=102-154 -->
 
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=154-212 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=155-213 -->
 
 - Clearing keeps the capacity: a reload refills a buffer already the right size.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=213-238 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=214-239 -->
 
 - `source_dot` serves streamed source queries; declaring it with the others keeps the lane from growing a second pipeline set.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=239-294 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=240-295 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs copy lines=295-321 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs copy lines=296-322 -->
 
 ## Step 3 · Vertex markers
 
@@ -88,7 +88,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-2 -->
 
-- `to_px` turns a world length into pixels; `screen_radius` goes the other way, expressing the pen as a world radius.; `faces_front` decodes the packed normals.
+- `to_px` turns a world length into pixels; `pen_world_radius` goes the other way, giving the world radius that projects to the global pen. `faces_front` decodes the packed normals.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -104,13 +104,13 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-62 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-64 -->
 
 - The antialiasing ramp is clamped to the ink it feathers; a pen thinner than the ramp would otherwise be drawn entirely out of fade and vanish at distance.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=63-153 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=65-155 -->
 
 ## Step 4 · Free dots
 
@@ -142,7 +142,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=46-138 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=46-140 -->
 
 <!-- check: 04c -->
 

@@ -102,7 +102,7 @@ impl Camera {
     /// Dolly in/out by scaling `distance`.
     /// NO range clamp - zoom is multiplicative
     /// x0.9 per detent, so it approaches but never reaches zero
-    /// And near/fat planes scale with distances.
+    /// And near/far planes scale with distance.
     /// Only a not-zero guard remains.
     pub fn zoom(&mut self, amount: f32) {
         self.distance = zoom_distance(self.distance, amount);
@@ -351,8 +351,7 @@ impl Camera {
         self.update_position();
     }
 
-    /// Grow the far-plane floor to cover a scene that streamed in after the last fit.
-    /// without touching the view. Same definition as fit's: the farthest scene corner from the target in meters.
+    /// The box's eight corners in metres, relative to the current target.
     /// The box's corners in metres, relative to the current target.
     fn offsets(&self, bounds: &Aabb) -> [[f64; 3]; 8] {
         let s = self.unit.to_meters();
@@ -365,6 +364,9 @@ impl Camera {
         })
     }
 
+    /// Grow the far-plane floor to cover a scene that streamed in after the last fit, without
+    /// touching the view. Same definition as `fit`'s: the farthest scene corner from the
+    /// target, in metres.
     pub fn grow_extent(&mut self, bounds: &Aabb) {
         if !bounds.is_finite() {
             return;

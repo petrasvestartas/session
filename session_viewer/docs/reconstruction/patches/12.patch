@@ -292,16 +292,17 @@ index 0000000000000000000000000000000000000000..8e846d19d6fcef5720ef60d9e580cbe7
 +}
 diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..139e9bc7ecc0bc531534a6f496f1a23665379c3a
+index 0000000000000000000000000000000000000000..eafb80277a81f006fbb109714855465a31ecc644
 --- /dev/null
 +++ b/session_viewer/src/app/input.rs
-@@ -0,0 +1,256 @@
+@@ -0,0 +1,257 @@
 +//! Every binding: RMB orbits, MMB (or Ctrl+RMB) pans, the wheel zooms toward the cursor, a
 +//! left click picks; 1-7 named views, Space projection, C reset, F fits the selection (or
-+//! everything with none selected), Q/W/E lane toggles, D face lighting, B the back-face flag,
++//! everything with none selected), Q/W/E lane toggles, O silhouettes, D face lighting,
++//! B the back-face flag,
 +//! H hides the selection and S shows everything back, T toggles selected names,
-+//! P toggles x-ray (faces gone, edges stay), [ ] cloud size, Escape clears the
-+//! selection. Fingers go to `touch.rs`.
++//! P toggles x-ray (faces gone, edges stay), F10 shows the selected object's source controls,
++//! [ ] cloud size, Escape clears the selection. Fingers go to `touch.rs`.
 +//! Every handler says whether the frame must be redrawn.
 +
 +use super::touch::{Act, Touches};
@@ -2894,10 +2895,10 @@ index d3796431438d7c3e2c8aa65d6c35dd5bf08f0096..def66bdb1660f9015f1b7455e124cb81
  }
 diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..f162ecb52f6b7d426864fd5f3b2272a609a59ccb
+index 0000000000000000000000000000000000000000..22bf1c9c97b1112a7b108566f2dde6b65192882e
 --- /dev/null
 +++ b/session_viewer/src/engine/gpu/pick.rs
-@@ -0,0 +1,632 @@
+@@ -0,0 +1,635 @@
 +//! Picking by id pass: on request the lanes redraw ONCE at 1x into an `Rg32Uint` target -
 +//! (object row + 1, sub-object id + 1) per pixel - scissored to a small window about the
 +//! cursor, which is copied out and mapped asynchronously. `poll` answers with the nearest
@@ -2909,7 +2910,10 @@ index 0000000000000000000000000000000000000000..f162ecb52f6b7d426864fd5f3b2272a6
 +use std::sync::Arc;
 +use std::sync::atomic::{AtomicU8, Ordering};
 +
-+/// What a pixel answered: the object row and the sub-object id (point row for clouds, 0 else).
++/// What a pixel answered: the object row, and a sub-object id that is a TAGGED union rather
++/// than one number. 0 is the object itself; bit 31 set is a segment, the low bits its row;
++/// the top three bits equal to `faces::FACE_TAG` is a source face address; a cloud answers
++/// with its point row. The tags are disjoint so one channel carries every kind.
 +#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 +pub struct Pick {
 +    pub row: u32,

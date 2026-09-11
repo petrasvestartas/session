@@ -344,6 +344,8 @@ impl InstanceTable {
             self.last_rebase_ms = now;
         }
         Rebase {
+            // Safe in one step: `last_origin` being None makes `need` true and `moved` true,
+            // so `rebuild` above has just filled it. Otherwise it was already filled.
             anchor: self.last_origin.clone().unwrap(),
             moved,
             pending: need && !moved,

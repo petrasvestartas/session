@@ -145,6 +145,34 @@ impl PoolReport {
     }
 }
 
+/// The pool to ask for next, from the last report.
+///
+/// The scan's prefix sums saturate at the capacity of the buffer they were given, so that an
+/// overflowing sum can never wrap into a plausible offset. That makes a report which REACHES
+/// capacity a floor rather than a measurement: the lists needed at least this much and possibly
+/// far more, and the true figure was never computed. There is nothing to size against, so the
+/// pool doubles and the next report says whether that was enough. A report below capacity is a
+/// real measurement of lists that fitted, so it asks for nothing.
+///
+/// This is why the guard is `>=` and not `>`. It used to be `>`, which a saturating report can
+/// never satisfy, and the pool never grew at all: an oversubscribed scene kept the conservative
+/// rejection for good instead of for one frame.
+fn next_pool_words(
+    current: u64,
+    floor: u64,
+    capacity: u64,
+    report: Option<u64>,
+    ceiling: u64,
+) -> u64 {
+    let mut want = current.max(floor);
+    if let Some(needed) = report
+        && needed >= capacity
+    {
+        want = want.max(current.saturating_mul(2));
+    }
+    want.min(ceiling)
+}
+
 /// Selection changes do not change physical geometry; hiding, placement and rebasing do.
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct ProjectionKey {
@@ -225,22 +253,18 @@ impl TriangleTiles {
         }
         let mut changed = false;
         let layout = TileLayout::new(size);
-        // The scan reported what its lists needed last time: grow past it with headroom, and
-        // a saturated report (the lists did not fit) doubles instead.
-        let mut pool_words = self.pool_words.max(layout.initial_pool_words(triangles));
-        if let Some(needed) = self.report.poll()
-            && self.layout == Some(layout)
-            && needed > self.pool_capacity(layout)
-        {
-            let saturated = needed >= self.pool_capacity(layout);
-            let grown = if saturated {
-                self.pool_words * 2
-            } else {
-                (needed - layout.header_records() * 4) * 3 / 2
-            };
-            pool_words = pool_words.max(grown);
-        }
-        let pool_words = pool_words.min(layout.max_pool_words());
+        let report = match self.report.poll() {
+            Some(needed) if self.layout == Some(layout) => Some(needed),
+            // A report from a different layout describes a pool that no longer exists.
+            _ => None,
+        };
+        let pool_words = next_pool_words(
+            self.pool_words,
+            layout.initial_pool_words(triangles),
+            self.pool_capacity(layout),
+            report,
+            layout.max_pool_words(),
+        );
         let grow = pool_words > self.pool_words;
         if triangles != self.requested_triangles || self.layout.is_none() {
             self.projected = zeroed_buffer(
@@ -591,6 +615,65 @@ fn compute_pipeline(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The regression this function exists for. The scan saturates AT capacity, so a report can
+    /// never exceed it: a `>` guard here means the pool never grows, which is how it shipped.
+    #[test]
+    fn a_saturated_report_grows_the_pool() {
+        let capacity = 1_000;
+        let pool = 800;
+        assert_eq!(
+            next_pool_words(pool, 0, capacity, Some(capacity), u64::MAX),
+            1_600,
+            "a report at capacity doubles"
+        );
+        assert_eq!(
+            next_pool_words(pool, 0, capacity, Some(capacity - 1), u64::MAX),
+            pool,
+            "a report below capacity measured lists that fitted"
+        );
+        assert_eq!(
+            next_pool_words(pool, 0, capacity, None, u64::MAX),
+            pool,
+            "no report, no change"
+        );
+    }
+
+    /// Growth stops at the ceiling and stays there, however many saturated reports arrive: a
+    /// pool that cannot grow is the one case where conservative ink is permanent, and it must
+    /// not also reallocate every frame.
+    #[test]
+    fn growth_stops_at_the_ceiling() {
+        let ceiling = 2_048;
+        let mut pool = 512;
+        for _ in 0..8 {
+            pool = next_pool_words(pool, 0, pool, Some(pool), ceiling);
+        }
+        assert_eq!(pool, ceiling);
+        assert_eq!(next_pool_words(pool, 0, pool, Some(pool), ceiling), ceiling);
+    }
+
+    /// A scene that needs more than the pool has can never be served in one step, so the point
+    /// of doubling is that it converges: four frames take a pool an order of magnitude further.
+    #[test]
+    fn doubling_converges_in_a_few_frames() {
+        let ceiling = u64::MAX;
+        let mut pool = 1_000;
+        let mut frames = 0;
+        while pool < 10_000 {
+            pool = next_pool_words(pool, 0, pool, Some(pool), ceiling);
+            frames += 1;
+        }
+        assert_eq!(frames, 4);
+    }
+
+    /// The floor wins when the scene grew: a bigger scene asks for its initial pool even if no
+    /// report ever arrives.
+    #[test]
+    fn the_initial_pool_is_a_floor() {
+        assert_eq!(next_pool_words(100, 4_096, 100, None, u64::MAX), 4_096);
+        assert_eq!(next_pool_words(8_192, 4_096, 8_192, None, u64::MAX), 8_192);
+    }
 
     #[test]
     fn viewport_grid_fits_core_storage_limits_without_fixed_per_tile_caps() {

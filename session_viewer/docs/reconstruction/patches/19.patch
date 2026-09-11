@@ -659,7 +659,7 @@ index 2ef628363bdfb35d3ddc77cde5ec5e7ce79f5e3a..3cc9933bb164535f05d4f5107d41cb1b
  pub mod touch;
  pub mod validate;
 diff --git a/session_viewer/src/app/scene.rs b/session_viewer/src/app/scene.rs
-index bcadef88281db457e5a6d8ac3a3487e52c48f34b..ecba1d5a14e82d7babe7debad179bb3b7079e7d8 100644
+index bcadef88281db457e5a6d8ac3a3487e52c48f34b..9dc608eb819b0053c1b8f2f30e2103b6832ddd06 100644
 --- a/session_viewer/src/app/scene.rs
 +++ b/session_viewer/src/app/scene.rs
 @@ -8,10 +8,12 @@ mod text;
@@ -877,11 +877,13 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..ecba1d5a14e82d7babe7debad179bb3b
      pub fn resolve(&self, pick: Pick, gpu: &Gpu) -> Option<Picked> {
          let guid = self.order.get(pick.row as usize)?.to_string();
          let mut point = None;
-@@ -381,6 +498,15 @@ impl Scene {
+@@ -381,6 +498,17 @@ impl Scene {
          {
              point = self.point_at(pick.row, local);
          }
 +        let mut entity = None;
++        // Bit 31 marks a segment sub-id, set in ribbon.wgsl; the low 31 bits are already the
++        // global ribbon row, the decode having taken the shader's +1 off.
 +        let ribbon = pick.sub & 0x7fff_ffff;
 +        if pick.sub & 0x8000_0000 != 0
 +            && self.sheet_at(pick.row).is_some()
@@ -893,7 +895,7 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..ecba1d5a14e82d7babe7debad179bb3b
          let doc = match self.document(pick.row) {
              Some(document) => document.name.clone(),
              None => String::new(),
-@@ -390,6 +516,7 @@ impl Scene {
+@@ -390,6 +518,7 @@ impl Scene {
              guid,
              row: pick.row,
              point,
@@ -901,7 +903,7 @@ index bcadef88281db457e5a6d8ac3a3487e52c48f34b..ecba1d5a14e82d7babe7debad179bb3b
          })
      }
  
-@@ -406,11 +533,19 @@ impl Scene {
+@@ -406,11 +535,19 @@ impl Scene {
              .get(self.order.get(row as usize)?.as_ref())
      }
  
@@ -2097,7 +2099,7 @@ index ca9aed067974dcecff84a8b16df9f840cd7a0d41..369099b5865eefb80a97b7d4c1a88cf0
                  self.input.cancel();
                  state.touch();
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index 566a658b8b9629cef31575ce95849922fb6e2912..c9e83b63e0234cd70425cb57a938968a795bd380 100644
+index b65eae4b4e7746c837aa31f410504ae4a45e8dd6..c52a717d28f6a156b6b683595c59a7f4a07553f9 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
 @@ -3,10 +3,11 @@

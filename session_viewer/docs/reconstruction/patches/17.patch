@@ -319,10 +319,10 @@ index 8e846d19d6fcef5720ef60d9e580cbe77bca6d19..16a4d0c84d9b58463243f1affcd6987e
      if let Some(window) = web_sys::window()
          && let Some(document) = window.document()
 diff --git a/session_viewer/src/app/input.rs b/session_viewer/src/app/input.rs
-index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf969689964 100644
+index da0938d501202a9f9a44357977dc96bd5bdfbe7f..9a8dd5bee21c36f6bdc67a64e015efacb4f46a6b 100644
 --- a/session_viewer/src/app/input.rs
 +++ b/session_viewer/src/app/input.rs
-@@ -9,7 +9,7 @@
+@@ -10,7 +10,7 @@
  use super::touch::{Act, Touches};
  use crate::State;
  use crate::camera::View;
@@ -331,7 +331,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
  use winit::keyboard::{Key, NamedKey};
  
  /// A press that moves less than this (CSS px) before release is a click.
-@@ -20,6 +20,7 @@ pub struct Input {
+@@ -21,6 +21,7 @@ pub struct Input {
      orbiting: bool,
      panning: bool,
      ctrl: bool,
@@ -339,7 +339,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
      last_cursor: (f64, f64),
      left_down: Option<(f64, f64)>,
      touch: Touches,
-@@ -39,6 +40,7 @@ impl Input {
+@@ -40,6 +41,7 @@ impl Input {
              orbiting: false,
              panning: false,
              ctrl: false,
@@ -347,7 +347,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
              last_cursor: (0.0, 0.0),
              left_down: None,
              touch: Touches::new(),
-@@ -67,6 +69,9 @@ impl Input {
+@@ -68,6 +70,9 @@ impl Input {
              Key::Character("e" | "E") => {
                  state.gpu.view.show_mesh_edges = !state.gpu.view.show_mesh_edges
              }
@@ -357,7 +357,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
              Key::Character("d" | "D") => state.gpu.view.lit = !state.gpu.view.lit,
              Key::Character("h" | "H") => state.hide_selected(),
              Key::Character("s" | "S") => state.show_all(),
-@@ -90,6 +95,7 @@ impl Input {
+@@ -91,6 +96,7 @@ impl Input {
                  ..
              } => {
                  self.orbiting = *btn == ElementState::Pressed;
@@ -365,7 +365,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
                  false
              }
              WindowEvent::MouseInput {
-@@ -98,6 +104,7 @@ impl Input {
+@@ -99,6 +105,7 @@ impl Input {
                  ..
              } => {
                  self.panning = *btn == ElementState::Pressed;
@@ -373,7 +373,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
                  false
              }
              WindowEvent::MouseInput {
-@@ -106,6 +113,9 @@ impl Input {
+@@ -107,6 +114,9 @@ impl Input {
                  ..
              } => self.left(state, *btn),
              WindowEvent::CursorMoved { position, .. } => {
@@ -383,7 +383,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
                  let dragging = self.orbiting || self.panning;
                  if dragging {
                      let dx = ((position.x - self.last_cursor.0) / device_pixel_ratio()) as f32;
-@@ -129,13 +139,24 @@ impl Input {
+@@ -130,13 +140,24 @@ impl Input {
              }
              WindowEvent::ModifiersChanged(mods) => {
                  self.ctrl = mods.state().control_key();
@@ -408,7 +408,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
                  match self
                      .touch
                      .event(&mut state.camera, t, viewport, device_pixel_ratio())
-@@ -143,7 +164,7 @@ impl Input {
+@@ -144,7 +165,7 @@ impl Input {
                      Act::None => false,
                      Act::Moved => true,
                      Act::Tap(at) => {
@@ -417,7 +417,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
                          false
                      }
                      Act::Fit => {
-@@ -161,6 +182,7 @@ impl Input {
+@@ -162,6 +183,7 @@ impl Input {
          self.orbiting = false;
          self.panning = false;
          self.ctrl = false;
@@ -425,7 +425,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
          self.left_down = None;
          self.touch = Touches::new();
      }
-@@ -188,6 +210,7 @@ impl Input {
+@@ -189,6 +211,7 @@ impl Input {
                      self.last_cursor.0 as u32,
                      self.last_cursor.1 as u32,
                      self.ctrl,
@@ -433,7 +433,7 @@ index 0b1b5c20250f2d7bed6e07bc505ce24cfda3fe09..b6e525f6f17fd10114eedc8fc8a2cdf9
                  );
                  false
              }
-@@ -238,20 +261,8 @@ fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
+@@ -239,20 +262,8 @@ fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
      let _ = proxy.send_event(crate::Msg::CancelPointer);
  }
  
@@ -872,7 +872,7 @@ index a195218b29f9878d36673f5806e175b6f62226ef..dfafc40ef983a7fe0d401c03701b7bbb
          bounds.grow(*last);
      }
 diff --git a/session_viewer/src/app/walk/mesh.rs b/session_viewer/src/app/walk/mesh.rs
-index af7647718ffc14813f0d029c59c840a635a5cd59..b69599c3ca94be1ae2fe1fd9537f1c43b792b7e2 100644
+index af7647718ffc14813f0d029c59c840a635a5cd59..96bd2e661fa7efaf7194b030c1a286e7e2a26d8b 100644
 --- a/session_viewer/src/app/walk/mesh.rs
 +++ b/session_viewer/src/app/walk/mesh.rs
 @@ -10,7 +10,6 @@ use crate::engine::gpu::Instance;
@@ -883,17 +883,19 @@ index af7647718ffc14813f0d029c59c840a635a5cd59..b69599c3ca94be1ae2fe1fd9537f1c43
  
  /// Above this many triangles a mesh draws as TRIANGLES ONLY - no edges, no markers: on a
  /// scan the decoration is 90x the geometry. The bunny (69k tri) keeps its wireframe.
-@@ -178,6 +177,9 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
+@@ -178,6 +177,11 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
      for &i in &rm.indices {
          idx.push(base + i);
      }
 +    if !(o.sheet_lanes && print) {
++        // `o.smooth` doubles as "this mesh IS one source face": a tessellated NURBS surface
++        // has no per-face source keys, so every triangle gets the same face address.
 +        append_face_ids(arena, m, cx.row, o.smooth, rm.indices.len() / 3);
 +    }
      lap.mark("vert+idx push");
      let mut flags = if o.sheet_lanes && print {
          Instance::FLAG_PRINT
-@@ -226,11 +228,48 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
+@@ -226,11 +230,48 @@ pub fn walk_mesh(arena: &mut ArenaRows, ink: &mut Ink, m: &Mesh, mc: &MeshCx) ->
      }
  }
  
@@ -1551,10 +1553,10 @@ index def66bdb1660f9015f1b7455e124cb81a5f42b35..6cd07bb546ec3b32103b07d15e0050f7
          self.objects
              .set_flag(&self.ctx, row, Instance::FLAG_SELECTED, on);
 diff --git a/session_viewer/src/engine/gpu/objects.rs b/session_viewer/src/engine/gpu/objects.rs
-index a48d64fbf15cda2989a3f2e89d9bbb097aada823..ee9f58175424eb3863f73714fe3df3f26bb5deaf 100644
+index 4c93f8c013b03e66b1170a334d4db9e1aa72f383..eb5f217fbd86b948e1b893422e43efa0f6e7846f 100644
 --- a/session_viewer/src/engine/gpu/objects.rs
 +++ b/session_viewer/src/engine/gpu/objects.rs
-@@ -442,6 +442,13 @@ impl InstanceTable {
+@@ -444,6 +444,13 @@ impl InstanceTable {
          b.is_finite().then_some(b)
      }
  
@@ -1569,7 +1571,7 @@ index a48d64fbf15cda2989a3f2e89d9bbb097aada823..ee9f58175424eb3863f73714fe3df3f2
      pub fn anchor(&self) -> [f64; 3] {
          match &self.last_origin {
 diff --git a/session_viewer/src/engine/gpu/pick.rs b/session_viewer/src/engine/gpu/pick.rs
-index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbbeddc67df 100644
+index bdc917677152feb6ccaaa3b5fbd9352ca5b55b0b..56b751486ce8f3da26bbc66a861dd2a3e797b6bf 100644
 --- a/session_viewer/src/engine/gpu/pick.rs
 +++ b/session_viewer/src/engine/gpu/pick.rs
 @@ -5,6 +5,7 @@
@@ -1580,7 +1582,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
  use super::targets::{TextureSpec, texture, texture_view};
  use std::sync::Arc;
  use std::sync::atomic::{AtomicU8, Ordering};
-@@ -16,7 +17,8 @@ pub struct Pick {
+@@ -19,7 +20,8 @@ pub struct Pick {
      pub sub: u32,
  }
  
@@ -1590,7 +1592,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
  struct IdTargets {
      id: wgpu::Texture,
      id_view: wgpu::TextureView,
-@@ -27,6 +29,9 @@ struct IdTargets {
+@@ -30,6 +32,9 @@ struct IdTargets {
  
  /// Default selection tolerance in CSS pixels, independent of display stroke width.
  pub const PICK_RADIUS: u32 = 6;
@@ -1600,7 +1602,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
  /// Bounds readback allocations even at unusual browser zoom factors.
  const MAX_RADIUS: u32 = 128;
  
-@@ -36,6 +41,8 @@ pub enum PickMode {
+@@ -39,6 +44,8 @@ pub enum PickMode {
      #[default]
      Object,
      Edge,
@@ -1609,7 +1611,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
      Controls {
          parent: u32,
          cloud: bool,
-@@ -86,6 +93,21 @@ impl Window {
+@@ -89,10 +96,26 @@ impl Window {
              radius,
          }
      }
@@ -1630,8 +1632,15 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
 +    }
  }
  
- /// The row pitch of the window copy: `2 * PICK_RADIUS + 1` texels of 8 B, rounded up to
-@@ -108,6 +130,8 @@ pub struct Picker {
+-/// The row pitch of the window copy: `2 * PICK_RADIUS + 1` texels of 8 B, rounded up to
+-/// wgpu's 256 B copy alignment.
++/// The row pitch of the window copy: `2 * MAX_RADIUS + 1` texels of 8 B, rounded up to wgpu's
++/// 256 B copy alignment. It is sized for the widest window `configure` can ask for, not for
++/// `PICK_RADIUS`, so one readback buffer serves every tolerance.
+ const ROW_BYTES: u32 = ((2 * MAX_RADIUS + 1) * 8).div_ceil(256) * 256;
+ 
+ /// The pending request, the targets, the readback buffer and its completion flag.
+@@ -111,6 +134,8 @@ pub struct Picker {
      source_phase: SourcePhase,
      readback: Option<wgpu::Buffer>,
      targets: Option<IdTargets>,
@@ -1640,7 +1649,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
  }
  
  /// A native full-frame ID capture awaiting queue submission and readback.
-@@ -192,6 +216,7 @@ impl Picker {
+@@ -195,6 +220,7 @@ impl Picker {
              source_phase: SourcePhase::Inactive,
              readback: None,
              targets: None,
@@ -1648,7 +1657,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
          }
      }
  
-@@ -276,6 +301,14 @@ impl Picker {
+@@ -279,6 +305,14 @@ impl Picker {
          Window::with_radius(at, size, self.radius)
      }
  
@@ -1663,7 +1672,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
      /// Whether a pick is waiting for its answer (the shell keeps frames coming until it lands).
      pub fn busy(&self) -> bool {
          self.inflight || self.pending.is_some()
-@@ -290,13 +323,16 @@ impl Picker {
+@@ -293,13 +327,16 @@ impl Picker {
          }
      }
  
@@ -1682,7 +1691,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
          if !matches!(&self.targets, Some(targets) if targets.size == size) {
              let usage = wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC;
              let id = texture(
-@@ -418,16 +454,17 @@ impl Picker {
+@@ -421,16 +458,17 @@ impl Picker {
          })
      }
  
@@ -1703,7 +1712,7 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
          if self.readback.is_none() {
              self.readback = Some(readback_buffer(ctx));
          }
-@@ -437,8 +474,8 @@ impl Picker {
+@@ -440,8 +478,8 @@ impl Picker {
                  texture: &t.id,
                  mip_level: 0,
                  origin: wgpu::Origin3d {
@@ -1714,18 +1723,22 @@ index f862d238f5f8301ce0463150fa1380402244c695..81c7bccf5ba1929fb377c4de9b48adbb
                      z: 0,
                  },
                  aspect: wgpu::TextureAspect::All,
-@@ -573,7 +610,8 @@ fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
+@@ -576,7 +614,12 @@ fn nearest_hit(bytes: &[u8], win: Window) -> Option<(u32, u32)> {
              if distance > u64::from(win.radius).pow(2) {
                  continue;
              }
 -            let key = (sub == 0, distance, object, sub);
 +            let face = sub == 0 || sub.wrapping_sub(1) & 0xe000_0000 == super::faces::FACE_TAG;
++            // The rule, as a tuple compared left to right: `false < true` in Rust, so ink
++            // (face == false) beats a face outright, and only then does the nearer win. The
++            // last two fields decide nothing real - they make the order total, so the same
++            // pixels always answer the same way.
 +            let key = (face, distance, object, sub);
              match best {
                  Some(previous) if key >= previous => {}
                  _ => best = Some(key),
 diff --git a/session_viewer/src/engine/gpu/render.rs b/session_viewer/src/engine/gpu/render.rs
-index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..e3ef902e1780e266e472f610ed03233c1d32050f 100644
+index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..604cd5054dc94c051d828b92dff0bce8eefe25d5 100644
 --- a/session_viewer/src/engine/gpu/render.rs
 +++ b/session_viewer/src/engine/gpu/render.rs
 @@ -31,15 +31,37 @@ impl Gpu {
@@ -1769,7 +1782,7 @@ index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..e3ef902e1780e266e472f610ed03233c
          }
          {
              let mut pass = self.targets.begin_ink(encoder, view);
-@@ -90,23 +112,22 @@ impl Gpu {
+@@ -90,23 +112,24 @@ impl Gpu {
      /// Markers follow all strokes so their complete footprints remain on top.
      fn scene_list(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
          let v = &self.view;
@@ -1797,6 +1810,8 @@ index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..e3ef902e1780e266e472f610ed03233c
 +        draws += self
 +            .segments
 +            .draw_unselected(pass, &b, v.show_mesh_edges, v.show_lines);
++        // (pipes, ribbons): the selected object's mesh and BRep edges now; its standalone
++        // curves come after the silhouette below, so they are not cut by it.
 +        draws += self
 +            .segments
 +            .draw_selected(pass, &b, v.show_mesh_edges, false);
@@ -1809,7 +1824,7 @@ index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..e3ef902e1780e266e472f610ed03233c
          if v.show_mesh_edges && v.markers {
              draws += self.glyphs.draw_spheres(pass, &b);
          }
-@@ -114,7 +135,6 @@ impl Gpu {
+@@ -114,7 +137,6 @@ impl Gpu {
          if v.show_points {
              draws += self.glyphs.draw_dots(pass, &b);
          }
@@ -1817,7 +1832,7 @@ index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..e3ef902e1780e266e472f610ed03233c
          draws += self.control_net.draw_ribbons(pass, &b);
          draws += self.controls.draw_dots(pass, &b);
          draws += self.text.draw(pass);
-@@ -128,54 +148,52 @@ impl Gpu {
+@@ -128,54 +150,52 @@ impl Gpu {
      pub(super) fn id_pass(&mut self, encoder: &mut wgpu::CommandEncoder, at: Option<(u32, u32)>) {
          let size = (self.config.width, self.config.height);
          let mode = self.pick.mode;
@@ -1902,7 +1917,7 @@ index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..e3ef902e1780e266e472f610ed03233c
          }
          let depth = self.pick.depth().expect("physical ID pass creates depth");
          let group = self.objects.pick_group(
-@@ -185,17 +203,17 @@ impl Gpu {
+@@ -185,17 +205,17 @@ impl Gpu {
              [self.pick.gradient(), &self.targets.gradient_msaa],
          );
          let ink = Binds {
@@ -1925,7 +1940,7 @@ index 6b37c2e57fb6d53daadc71c133a2c9e786a477fa..e3ef902e1780e266e472f610ed03233c
                      if self.view.show_mesh_edges {
                          self.segments.draw_edge_ids(&mut pass, &ink);
                      }
-@@ -220,9 +238,12 @@ impl Gpu {
+@@ -220,9 +240,12 @@ impl Gpu {
                      }
                  }
              }
@@ -4192,7 +4207,7 @@ index d45c09c72eb61a9ad4aad52acc7ab1544989ec4e..e418739cf32a482efa1d7f572390b4ca
      let camera = camera_from_env(&gpu, aspect);
  
 diff --git a/session_viewer/src/shaders/ribbon.wgsl b/session_viewer/src/shaders/ribbon.wgsl
-index e4ed7edbb3f83b8629f9d2fdc891009be47994fd..a8720ef2e6a1ec09fa9f5765f12a537b01d78494 100644
+index 5256d472f5ca98951af379caf3e4ea99636954ee..32f5a451d12e013729ebdfc6173ad3aba65cf77f 100644
 --- a/session_viewer/src/shaders/ribbon.wgsl
 +++ b/session_viewer/src/shaders/ribbon.wgsl
 @@ -3,15 +3,17 @@
@@ -4215,7 +4230,7 @@ index e4ed7edbb3f83b8629f9d2fdc891009be47994fd..a8720ef2e6a1ec09fa9f5765f12a537b
  @group(3) @binding(1) var<storage, read> source_edges: array<u32>;
  @group(3) @binding(2) var<uniform> edge_selection: vec4<u32>;
  
-@@ -93,6 +95,8 @@ struct VsOut {
+@@ -96,6 +98,8 @@ struct VsOut {
      @location(8) @interpolate(flat) segment_index: u32,
      @location(9) @interpolate(flat) end_depth: vec2<f32>,
      @location(10) @interpolate(flat) source_edge: u32,
@@ -4224,7 +4239,7 @@ index e4ed7edbb3f83b8629f9d2fdc891009be47994fd..a8720ef2e6a1ec09fa9f5765f12a537b
  };
  
  // The fragment's half-width and fade at `h` along the segment. Resolved per pixel from the
-@@ -127,12 +131,54 @@ fn corner_of(k: u32) -> u32 {
+@@ -130,12 +134,54 @@ fn corner_of(k: u32) -> u32 {
      return 3u;
  }
  
@@ -4281,7 +4296,7 @@ index e4ed7edbb3f83b8629f9d2fdc891009be47994fd..a8720ef2e6a1ec09fa9f5765f12a537b
      if ((inst.flags & FLAG_HIDDEN) != 0u) {
          return dead_vertex();
      }
-@@ -169,10 +215,15 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+@@ -172,10 +218,15 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
      let n = vec2<f32>(-dir.y, dir.x);
  
      // The quad is a trapezoid under perspective: both end widths go down flat.
@@ -4295,12 +4310,12 @@ index e4ed7edbb3f83b8629f9d2fdc891009be47994fd..a8720ef2e6a1ec09fa9f5765f12a537b
 -    let crowd = density_taper(seg.facing, len, px);
 +    // CAD boundary segments are samples of one curve, not independent mesh wires.
 +    // Refining the surface must not shrink the pen at its short boundary intervals.
-+    let cad_boundary = (inst.flags & 64u) != 0u && source_edges[iid] != 0xffffffffu;
++    let cad_boundary = (inst.flags & FLAG_SMOOTH) != 0u && source_edges[iid] != 0xffffffffu;
 +    let crowd = select(density_taper(seg.facing, len, px), 1.0, cad_boundary || selected);
      let along = select(-1.0, 1.0, at_end1);
      let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + FILTER_REACH);
  
-@@ -180,7 +231,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+@@ -183,7 +234,7 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
      let ndc = (p / vp - 0.5) * 2.0;
      o.pos = vec4<f32>(ndc * clip.w, clip.z, clip.w);
      var color = unpack4x8unorm(seg.color) * inst.color;
@@ -4309,7 +4324,7 @@ index e4ed7edbb3f83b8629f9d2fdc891009be47994fd..a8720ef2e6a1ec09fa9f5765f12a537b
          color = vec4<f32>(SELECT_COLOR, color.a);
      }
      o.color = color;
-@@ -194,12 +245,32 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
+@@ -197,12 +248,36 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
      o.segment_index = iid;
      o.source_edge = source_edges[iid];
      o.end_depth = vec2<f32>(e0.z / e0.w, e1.z / e1.w);
@@ -4337,6 +4352,10 @@ index e4ed7edbb3f83b8629f9d2fdc891009be47994fd..a8720ef2e6a1ec09fa9f5765f12a537b
  // gradient is the unit vector from its axis, which straightens the cap arc inside one pixel.
  fn coverage(in: VsOut) -> f32 {
 +    let pixel = vec2<f32>(in.pos.x, line.vp_h-in.pos.y);
++    // The two halves of the join partition are half-open, `< 0` here and `>= 0` below, so a
++    // pixel on the plane belongs to exactly one segment. A disabled join is a ZERO plane and
++    // scores exactly 0: that already passes `< 0`, but it would satisfy `>= 0` and reject
++    // every fragment, which is why only the end test carries a guard. Not a missing one.
 +    if (dot(pixel-in.start_join.zw, in.start_join.xy) < 0.0) { return 0.0; }
 +    if (any(in.end_join.xy != vec2<f32>(0.0)) && dot(pixel-in.end_join.zw, in.end_join.xy) >= 0.0) { return 0.0; }
      let pa = in.p - in.a;
@@ -4380,7 +4399,7 @@ index 10e1a2640887ed82608ae64c78ce48011bdd0759..00000000000000000000000000000000
 -    return vec4<f32>(0.0, 0.0, 0.0, coverage * (1.0 - center));
 -}
 diff --git a/session_viewer/src/shaders/splat.wgsl b/session_viewer/src/shaders/splat.wgsl
-index 09ca8b3ccc24697da88574c681cf61de256e5110..e7eccb632d46ab1d009fa0e270d6db36f94eb1ae 100644
+index 86ede97791f67e1ab8aef18a4c3f7d578c489804..fcde227ee91c241d038f0bb7492f4f21e3a34015 100644
 --- a/session_viewer/src/shaders/splat.wgsl
 +++ b/session_viewer/src/shaders/splat.wgsl
 @@ -6,6 +6,10 @@ struct CloudUniform {
@@ -4394,7 +4413,7 @@ index 09ca8b3ccc24697da88574c681cf61de256e5110..e7eccb632d46ab1d009fa0e270d6db36
  };
  @group(0) @binding(0) var<uniform> cloud: CloudUniform;
  
-@@ -80,9 +84,11 @@ fn project(gid: u32) -> Splat {
+@@ -81,9 +85,11 @@ fn project(gid: u32) -> Splat {
      // Attenuated radius: k folds the world footprint and the projection; floored at the
      // manifest px so a far cloud never turns to dust, capped at 8 px.
      let r_min = rec_f(base, 19u);
@@ -4410,7 +4429,7 @@ index 09ca8b3ccc24697da88574c681cf61de256e5110..e7eccb632d46ab1d009fa0e270d6db36
          return s;
      }
 diff --git a/session_viewer/src/shaders/splat_resolve.wgsl b/session_viewer/src/shaders/splat_resolve.wgsl
-index 75905e75ae11ebf1289f5a99ecbf788c81eac37f..ccf54fc911d3e3fb1253448bb9470998a6ba39de 100644
+index 37349030595bf1b868533e5bc63f2bb1683fcaae..b0d2f4d1507d5606878e50547c96c77a6ff1e88b 100644
 --- a/session_viewer/src/shaders/splat_resolve.wgsl
 +++ b/session_viewer/src/shaders/splat_resolve.wgsl
 @@ -8,6 +8,10 @@ struct CloudUniform {
@@ -4653,7 +4672,7 @@ index 9c5bd2833fbddef489c00af9dac15abcfe304fe6..135a12188fc6ac3c03587939624bbb6d
 +    return vec2<u32>(in.object, 0u);
  }
 diff --git a/session_viewer/src/shaders/triangle.wgsl b/session_viewer/src/shaders/triangle.wgsl
-index d2c50ab216cd6739d2cad684205831e6196db0ac..1f34dd31ea4b1f2888a3660a17349381b48a268e 100644
+index d2c50ab216cd6739d2cad684205831e6196db0ac..fcd454583bf129800cb834b6699ef69b93aee1e7 100644
 --- a/session_viewer/src/shaders/triangle.wgsl
 +++ b/session_viewer/src/shaders/triangle.wgsl
 @@ -18,6 +18,7 @@ struct VsOut {
@@ -4678,7 +4697,7 @@ index d2c50ab216cd6739d2cad684205831e6196db0ac..1f34dd31ea4b1f2888a3660a17349381
      let inst = instances[in.inst_id];
      if ((inst.flags & FLAG_HIDDEN) != 0u) {
          return dead_vertex();
-@@ -56,9 +57,33 @@ fn vs_main(in: VsIn) -> VsOut {
+@@ -56,9 +57,36 @@ fn vs_main(in: VsIn) -> VsOut {
      o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
      o.inst_id = in.inst_id;
      o.selected = inst.flags & FLAG_SELECTED;
@@ -4690,6 +4709,9 @@ index d2c50ab216cd6739d2cad684205831e6196db0ac..1f34dd31ea4b1f2888a3660a17349381
 +fn vs_main(in: VsIn) -> VsOut { return transform_vertex(in); }
 +
 +@group(3) @binding(0) var<storage, read> face_vertices: array<f32>;
++// The sub id a face answers with, the same value as faces.rs::FACE_TAG. It is kept clear of
++// the stroke lane's high bit and of the control-dot tag so one pick channel carries all three.
++const FACE_TAG: u32 = 0x20000000u;
 +@group(3) @binding(1) var<storage, read> face_objects: array<u32>;
 +@group(3) @binding(2) var<storage, read> face_indices: array<u32>;
 +@group(3) @binding(3) var<storage, read> source_faces: array<u32>;
@@ -4712,7 +4734,7 @@ index d2c50ab216cd6739d2cad684205831e6196db0ac..1f34dd31ea4b1f2888a3660a17349381
  // The direction a fragment sees the camera in: a ray from the point under perspective,
  // one fixed direction under orthographic, where every ray is parallel (as `ink_visibility.wgsl`
  // reads it out of the same matrix row).
-@@ -116,7 +141,8 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
+@@ -116,7 +144,8 @@ fn shade(in: VsOut, raster_front: bool) -> vec4<f32> {
  // The id pass: (object row + 1, 0).
  @fragment
  fn fs_id(in: VsOut) -> PhysicalId {
@@ -4722,7 +4744,7 @@ index d2c50ab216cd6739d2cad684205831e6196db0ac..1f34dd31ea4b1f2888a3660a17349381
  }
  
  @fragment
-@@ -129,3 +155,16 @@ fn fs_selection_mask(in: VsOut) -> @location(0) vec4<f32> {
+@@ -129,3 +158,16 @@ fn fs_selection_mask(in: VsOut) -> @location(0) vec4<f32> {
  fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> PhysicalColor {
      return PhysicalColor(shade(in, front), physical_gradient(in.pos.z));
  }
@@ -4740,7 +4762,7 @@ index d2c50ab216cd6739d2cad684205831e6196db0ac..1f34dd31ea4b1f2888a3660a17349381
 +    return vec4<f32>(1.0);
 +}
 diff --git a/session_viewer/src/state.rs b/session_viewer/src/state.rs
-index 517213bef95c7cdb21e36eb1c3f972bf2d7ac499..566a658b8b9629cef31575ce95849922fb6e2912 100644
+index cd1649274bc559ce9174116d3a3953a5f8381787..b65eae4b4e7746c837aa31f410504ae4a45e8dd6 100644
 --- a/session_viewer/src/state.rs
 +++ b/session_viewer/src/state.rs
 @@ -14,7 +14,8 @@ use crate::engine::gpu::segments::SegRows;
@@ -4903,11 +4925,16 @@ index 517213bef95c7cdb21e36eb1c3f972bf2d7ac499..566a658b8b9629cef31575ce95849922
              dropped = drawn.is_none() && self.gpu.surface.is_some();
              self.dirty = dropped;
              if let (true, Some(encode_ms)) = (self.gpu.view.perf, drawn) {
-@@ -429,14 +464,16 @@ impl State {
+@@ -428,15 +463,20 @@ impl State {
+         ]
      }
  
-     /// A pointer gesture chooses one pass; Ctrl never also performs ordinary selection.
+-    /// A pointer gesture chooses one pass; Ctrl never also performs ordinary selection.
 -    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool) {
++    /// Ask what is under pixel (x, y) in ONE pass, chosen by the modifiers the click carried:
++    /// `edge` is Ctrl and picks the source edge, `face` is Ctrl+Shift and picks the source face
++    /// with edges still winning. Both false is the ordinary object pass, or the control-point
++    /// pass while F10 controls are up. Ctrl never also performs ordinary selection.
 +    pub fn request_selection(&mut self, x: u32, y: u32, edge: bool, face: bool) {
          self.cancel_cloud_query();
          self.gpu.pick.cancel();
@@ -4922,7 +4949,7 @@ index 517213bef95c7cdb21e36eb1c3f972bf2d7ac499..566a658b8b9629cef31575ce95849922
              PickMode::Edge
          } else {
              match self.selection {
-@@ -482,6 +519,7 @@ impl State {
+@@ -482,6 +522,7 @@ impl State {
              return;
          }
          self.selection.enable_controls(Some(parent), controls.cloud);
@@ -4930,7 +4957,7 @@ index 517213bef95c7cdb21e36eb1c3f972bf2d7ac499..566a658b8b9629cef31575ce95849922
          self.gpu.segments.set_edge(&self.gpu.ctx, None);
          self.gpu.set_selected(parent, false);
          self.gpu
-@@ -587,306 +625,6 @@ impl State {
+@@ -589,306 +630,6 @@ impl State {
          self.touch();
      }
  
@@ -5237,7 +5264,7 @@ index 517213bef95c7cdb21e36eb1c3f972bf2d7ac499..566a658b8b9629cef31575ce95849922
      /// Non-disruptive interaction feedback also remains available to native diagnostics.
      fn status(&self, message: &str) {
          crate::app::feedback::status(message);
-@@ -924,38 +662,3 @@ impl State {
+@@ -926,38 +667,3 @@ impl State {
  fn render_position(position: [f64; 3]) -> [f32; 3] {
      [position[0] as f32, position[1] as f32, position[2] as f32]
  }

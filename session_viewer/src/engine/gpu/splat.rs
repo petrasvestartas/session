@@ -46,7 +46,9 @@ pub struct SplatRecord {
     /// The object row, written by the id pass.
     pub instance: u32,
     pub flags: u32,
-    pub _pad: u32,
+    /// Not padding: the highlighted source point's row + 1, or 0. `splat.wgsl` reads it as
+    /// word 39 and paints that one point yellow.
+    pub selected_point: u32,
 }
 
 const _: () = assert!(std::mem::size_of::<SplatRecord>() == 160);
@@ -376,6 +378,8 @@ impl Splat {
             let Some(model) = cx.objects.anchored_model(c.instance) else {
                 continue;
             };
+            // 3 px is the fallback point size for a cloud whose manifest named none, and the
+            // global knob scales either: the `*` applies to the whole `if` expression.
             let px = if row.spacing > 0.0 { row.spacing } else { 3.0 } * cx.cloud_size;
 
             p.lod_px = if self.control_parent == Some(c.instance) {
@@ -426,7 +430,7 @@ impl Splat {
                         nrm_first,
                         instance: c.instance,
                         flags: row.flags,
-                        _pad: match self.selected_point {
+                        selected_point: match self.selected_point {
                             Some(point) => point + 1,
                             None => 0,
                         },

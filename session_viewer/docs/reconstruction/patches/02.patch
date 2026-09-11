@@ -25,10 +25,10 @@ index 545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca..276a260697ca16ec09a202c1a0688d02
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/camera.rs b/session_viewer/src/camera.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..6a91f791ebc1c88f2e4222c64545e1ae713fe821
+index 0000000000000000000000000000000000000000..91cccc706e5715347bd707c36057e668de4d04df
 --- /dev/null
 +++ b/session_viewer/src/camera.rs
-@@ -0,0 +1,513 @@
+@@ -0,0 +1,515 @@
 +//! Source-precision orbit camera, framed projection and a rebased reversed-depth view transform.
 +use crate::math::{Aabb, FOVY_DEG};
 +use session_rust::{Point, Quaternion, Vector, Xform};
@@ -133,7 +133,7 @@ index 0000000000000000000000000000000000000000..6a91f791ebc1c88f2e4222c64545e1ae
 +    /// Dolly in/out by scaling `distance`.
 +    /// NO range clamp - zoom is multiplicative
 +    /// x0.9 per detent, so it approaches but never reaches zero
-+    /// And near/fat planes scale with distances.
++    /// And near/far planes scale with distance.
 +    /// Only a not-zero guard remains.
 +    pub fn zoom(&mut self, amount: f32) {
 +        self.distance = zoom_distance(self.distance, amount);
@@ -382,8 +382,7 @@ index 0000000000000000000000000000000000000000..6a91f791ebc1c88f2e4222c64545e1ae
 +        self.update_position();
 +    }
 +
-+    /// Grow the far-plane floor to cover a scene that streamed in after the last fit.
-+    /// without touching the view. Same definition as fit's: the farthest scene corner from the target in meters.
++    /// The box's eight corners in metres, relative to the current target.
 +    /// The box's corners in metres, relative to the current target.
 +    fn offsets(&self, bounds: &Aabb) -> [[f64; 3]; 8] {
 +        let s = self.unit.to_meters();
@@ -396,6 +395,9 @@ index 0000000000000000000000000000000000000000..6a91f791ebc1c88f2e4222c64545e1ae
 +        })
 +    }
 +
++    /// Grow the far-plane floor to cover a scene that streamed in after the last fit, without
++    /// touching the view. Same definition as `fit`'s: the farthest scene corner from the
++    /// target, in metres.
 +    pub fn grow_extent(&mut self, bounds: &Aabb) {
 +        if !bounds.is_finite() {
 +            return;
@@ -642,10 +644,10 @@ index b55dd88d9946c88077a1ca34f42d7e7e5ebc2400..d54b76882d25d637063590bbb55bf75c
  /// Keep initialization/render errors visible at the browser boundary.
 diff --git a/session_viewer/src/math.rs b/session_viewer/src/math.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..017c311e9a41fe134eaa3d650bc4a1e396376dc9
+index 0000000000000000000000000000000000000000..ade950abdfd451060b8c5d58db4741b1168ca0f9
 --- /dev/null
 +++ b/session_viewer/src/math.rs
-@@ -0,0 +1,220 @@
+@@ -0,0 +1,222 @@
 +//! Small f64/f32 math shared by the app and the engine: the column-major `Mat4`, point
 +//! transforms, the f32 `Aabb` with empty semantics, and the two camera facts recovered from
 +//! a view-projection. Nothing here touches wgpu; the only kernel type named is `Xform`.
@@ -735,7 +737,9 @@ index 0000000000000000000000000000000000000000..017c311e9a41fe134eaa3d650bc4a1e3
 +        }
 +    }
 +
-+    /// True once at least one point went in.
++    /// True once at least one point went in: every bound finite AND min <= max. The name is
++    /// only the first half; the `min <= max` test is what rejects `Aabb::empty()`, whose bounds
++    /// are the two infinities. Read it as "has a box".
 +    pub fn is_finite(&self) -> bool {
 +        for value in self.min.iter().chain(self.max.iter()) {
 +            if !value.is_finite() {

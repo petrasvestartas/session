@@ -188,66 +188,69 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=58-79 -->
 
-- `PoolReport` reads the scan's first record back one frame later: the words every list needed.
+- `PoolReport` reads the scan's first record back one frame later. The prefix sums saturate at
+  the buffer's own capacity, so a report that reaches it is a floor and not a measurement:
+  the lists needed at least that much and possibly far more. There is nothing to size
+  against, so the pool doubles and the next report says whether that was enough.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=80-151 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=80-179 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=152-184 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=180-212 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=185-217 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=213-245 -->
 
 - `prepare` resizes storage for the triangle count, the framebuffer and the last report.
 - Beyond the device's storage binding limit it releases the tables and reports, so the ink shader keeps the plane rule.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=218-299 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=246-323 -->
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=300-370 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=324-394 -->
 
 - Counting first is what removes the per-tile cap.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=371-406 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=395-430 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=407-438 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=431-462 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=439-464 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=463-488 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=465-572 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=489-596 -->
 
 - Every preparation shader compiles the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query cannot disagree about which tile a pixel is in.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=573-580 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=597-604 -->
 
 Copy the rest of the file:
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=581-703 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=605-786 -->
 
 <!-- check: 18 -->
 
