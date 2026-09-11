@@ -84,11 +84,16 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
   into `dist/docs` and `docs/build_site.sh` (pre-build hook) rebuilds the site when stale.
 - Mermaid: `flowchart TB` for chains longer than five nodes (LR gets shrunk to unreadable size);
   several small diagrams beat one tangled one; edge labels stay short.
+- Every step opens with the viewer map, and a compact copy of it stays pinned while the reader
+  scrolls: `python3 docs/locator.py` regenerates both plus the per-code-block zone marks the
+  pinned bar follows (`--check` fails when a lesson is stale). It refuses to run when a taught
+  file matches no zone, so a new top-level path means adding it to `ZONES` there.
 - `python3 docs/check_svg.py docs/illustrations/*.svg` is the playwright-free check: it renders each
   SVG in an installed Chrome and fails on a label that leaves the canvas or overlaps another. Use it
   when `check_illustrations.cjs` cannot run. NOTE: running `draw.py` REWRITES every SVG and strips the
   measured `textLength` pins; restore them with
-  `git checkout -- $(grep -l textLength docs/illustrations/*.svg)` before committing.
+  `git checkout -- $(grep -l textLength docs/illustrations/*.svg)` before committing, or re-pin the
+  regenerated set with `python3 docs/check_svg.py --write docs/illustrations/*.svg`.
 - Illustrations come from `docs/illustrations/draw.py` (BRG Equilibrium palette; boxes sized
   from text). Never hand-place SVG text: regenerate, then `node docs/check_illustrations.cjs
   --write` must PASS (real Chrome metrics, no overflow, no collisions, pinned textLength).
