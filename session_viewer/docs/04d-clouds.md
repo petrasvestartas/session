@@ -125,7 +125,7 @@ flowchart TB
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=158-230 -->
 
-- Construction allocates the record buffer and a bind group over placeholder buffers. The point targets themselves wait for the first cloud, so a scene without points pays nothing.
+- Construction allocates the record buffer up front - 4096 records at 160 bytes, about 640 KB - and binds it over placeholder buffers. The point *targets* are what wait for the first cloud, and they are the part that scales with the framebuffer.
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=231-278 -->
 
@@ -203,7 +203,7 @@ flowchart TB
 
 <!-- file: 04d session_viewer/src/lib.rs type -->
 
-- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+- Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
 
 <!-- file: 04d session_viewer/index.html copy -->
 

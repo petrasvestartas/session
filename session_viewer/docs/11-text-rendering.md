@@ -138,7 +138,7 @@ flowchart LR
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=323-402 -->
 
-- Rasterization composites Swash's glyph images into one coverage texture at the chosen em size, bearings and baseline included. This is the only place a glyph becomes pixels.
+- A fixed-plane label is rasterized once into a coverage texture of its own, at the em size its projection asked for. Screen-space text takes the other path, through Glyphon's shared atlas.
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=403-467 -->
 

@@ -292,7 +292,7 @@ flowchart LR
 
 <!-- file: 06 session_viewer/src/lib.rs type -->
 
-- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+- Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
 
 ## Step 13 · Flat preview shading
 

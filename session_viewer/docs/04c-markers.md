@@ -162,7 +162,7 @@ flowchart TB
 
 <!-- file: 04c session_viewer/src/engine/pipelines/layouts.rs type -->
 
-- The marker lane's group 3 joins the list. Note what does not change: groups 0 to 2 are identical for every lane, which is exactly what the scene contract depends on.
+- The marker lane's group 3 joins the list. Groups 0 and 1 are the same for every lane; group 2 has two variants, and a marker takes the ink one, which carries the physical depth it must test itself against.
 
 <!-- file: 04c session_viewer/src/engine/gpu/upload.rs type -->
 
@@ -174,7 +174,7 @@ flowchart TB
 
 <!-- file: 04c session_viewer/src/lib.rs type -->
 
-- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+- The shell's only change is the status line: every lane reports its own count, and that JSON is what the checkpoint test reads instead of a screenshot.
 
 <!-- file: 04c session_viewer/index.html copy -->
 

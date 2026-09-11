@@ -89,7 +89,7 @@ flowchart LR
 
 <!-- file: 18 session_viewer/src/shaders/text_outline.wgsl type -->
 
-- And for imported lettering, the last physical writer.
+- And imported lettering, the last of the four. None of them can name a triangle, so all four write a zero address.
 
 ## Part B · Project each triangle once
 
@@ -148,7 +148,7 @@ flowchart TB
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=61-127 -->
 
-- The shared half: the same projection arithmetic is compiled into the binning passes and into the ink query, so the CPU, the raster and the shader cannot disagree about where a triangle landed.
+- The projection itself, used by the one compute pass that fills the record buffer. The arithmetic the binning passes and the ink query share is the smaller `projected_triangle.wgsl`, appended to both.
 
 ## Part C · A compact screen index
 
@@ -332,11 +332,11 @@ flowchart LR
 
 <!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
 
-- The picker re-typed whole: the ID pass now needs the tile lists too, or a pick would apply a different visibility rule than the picture.
+- The pick target follows the metadata: twenty bytes a texel instead of sixteen, `Rgba16Float` instead of `Rg16Float`. The tile lists themselves reach the ID pass through group 2, so nothing else here changes.
 
 <!-- file: 18 session_viewer/src/engine/gpu/instance.rs type -->
 
-- The row file re-typed whole for the projected-record mirror test: another Rust struct with a WGSL twin that must not drift.
+- A second mirror test: `ProjectedTriangle` is 96 bytes with asserted offsets, another Rust struct with a WGSL twin that must not drift.
 
 ### Step 10 · The tile pass runs before ink
 

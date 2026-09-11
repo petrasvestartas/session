@@ -129,7 +129,7 @@ flowchart TB
 
 <!-- file: 20 session_rust/src/plane.rs type -->
 
-- The same addition, for the same reason.
+- `Plane` gains it too. Watch how small each of these four edits is - the work was finding which types lacked it, not making the change.
 
 <!-- file: 20 session_rust/src/pointcloud.rs type -->
 

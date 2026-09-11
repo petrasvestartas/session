@@ -154,7 +154,7 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/app/walk/brep.rs type -->
 
-- The BRep producer, re-typed whole: every face now records the source face index of the triangles it emits, which is what makes a face pickable at all.
+- `push_face` now records which source face it is tessellating, once per triangle it emits. That address is what makes a face pickable at all.
 
 ### Step 5 · A third selection mode
 
@@ -248,7 +248,7 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/app/scene.rs type -->
 
-- `Scene` is re-typed to include the text file as a sibling module: text rows and geometry rows are the same kind of thing and share one numbering.
+- `Scene` declares the text file as a sibling module: text rows and geometry rows are the same kind of thing and share one numbering.
 
 ### Step 8 · State's companions: text presentation and streamed queries
 
@@ -305,7 +305,7 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/engine/gpu/objects.rs type -->
 
-- The object table re-typed whole: it now owns the source-face highlight alongside the rows, because both are per-object state the frame reads.
+- `set_text_bounds`: a text object's shaped world box joins the scene's bounds, so fitting the view includes the lettering. The source-face highlight itself belongs to `faces.rs`.
 
 ### Step 9 · Plates and planes draw IDs
 
@@ -345,7 +345,7 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=2 -->
 
-- The rest of the snapshot: what the reader reads back in the browser console to check their own build against the lesson.
+- Each reported label gains its object row, its world height and its resolved ink colour, so the snapshot says not just what text exists but which of it is selected.
 
 ## Part C · One black silhouette
 
@@ -431,7 +431,7 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=4-4 -->
 
-- The binding table in the module comment is the user-facing contract of the whole viewer - if a key is not listed there, it does not exist.
+- One new arm: `O` toggles the silhouettes. The module comment at the top of this file is the nearest thing to a user manual the viewer has, which is why the next step brings it up to date.
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1 -->
 
@@ -456,7 +456,7 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/app/walk/brep_edges.rs type -->
 
-- Re-typed whole because the chain now carries its source edge id all the way to the GPU row: an edge you can see is an edge you can select.
+- Each chain now records the range of pipes it produced. A chain is one authored edge, so that range is what lets the join code know which segments are neighbours and which merely touch.
 
 ### Step 13 · The GPU row gains neighbours
 
@@ -539,7 +539,7 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
-- The resolve gains the window origin, so a point keeps its pixel footprint when the pass renders only a small window of the canvas.
+- The resolve's `CloudUniform` gains `origin` so its layout still matches the block the point pass writes. The offset itself is applied in `splat.wgsl`, where the footprint is computed.
 
 ### Step 16 · Device scale and a lost device
 
@@ -576,15 +576,15 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/lib.rs type -->
 
-- The production shell, re-typed whole: its module list is the record of what the viewer now owns, and the `Msg` arms are every asynchronous answer it must handle.
+- One hunk, in `desired_canvas_size`: the `?dpr=` cap that lets someone trade crispness for memory.
 
 <!-- file: 17 session_viewer/src/engine/gpu/targets.rs type -->
 
-- Targets are re-typed whole for the coverage masks: two more attachments, allocated only while something is outlined.
+- The sample-count policy, not the masks: past two physical pixels per CSS pixel the density has already done multisampling's job, so `samples_for` returns 1x and the attachments cost a quarter as much. The coverage masks live in `surface_outline.rs`.
 
 <!-- file: 17 session_viewer/src/app/route.rs type -->
 
-- The three routes in one file, and the rule that keeps a scene name inside one tree.
+- Device-loss recovery: the page reloads itself once at device scale 1 without antialiasing, keeping every other query, and says so on the reloaded page. A lost device is not an error to report but a smaller frame to ask for.
 
 <!-- file: 17 session_viewer/src/app/feedback.rs type -->
 
@@ -620,11 +620,11 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/engine/gpu/mod.rs type -->
 
-- `Gpu` re-typed whole: the two silhouette instances replace the old single outline, and the lane list is what the frame walks.
+- The two silhouette instances replace the old single outline, and `Gpu` grows the fields that hold them. Its lane list is what the frame walks, so this is where a new lane announces itself.
 
 <!-- file: 17 session_viewer/src/engine/gpu/render.rs type -->
 
-- The frame list re-typed whole, because the order changed: this is the file to read when something draws on top of something it should not.
+- The order changes here, substantially. This is the file to read when something draws on top of something it should not.
 
 ## Check
 

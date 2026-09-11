@@ -142,7 +142,7 @@ flowchart LR
 
 <!-- file: 09 session_viewer/src/lib.rs type -->
 
-- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+- One view knob for this checkpoint's fixture. The shell is where a lesson's viewing choices live, so the lane code stays free of them.
 
 ## Step 5 · Fixture: one solid per URL, optionally under an affine placement
 

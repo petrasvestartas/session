@@ -47,7 +47,7 @@ flowchart LR
 
 <!-- file: 07 session_rust/src/lib.rs type -->
 
-- The kernel's own module list. This lesson adds files to the shared geometry library, so the declaration has to grow there rather than in the viewer.
+- One re-export: `TrimLoops` joins `NurbsSurfaceTrimmed` at the kernel's front door. The type is the contract a BRep hands the mesher, so it has to be nameable from outside.
 
 ## Step 2 · Kernel: one triangulation body
 
@@ -201,7 +201,7 @@ flowchart LR
 
 <!-- file: 07 session_viewer/src/app/walk/mod.rs type -->
 
-- The producer list gains the BRep files. A lane is deleted by deleting its producer and its arm here - that is the whole coupling.
+- One line: `brep_orient`, the winding helper this lesson adds. The walk has no dispatcher yet - that arrives with the production shell in lesson 12 - so a new file costs exactly one declaration.
 
 <!-- check: 07 -->
 
@@ -240,7 +240,7 @@ flowchart LR
 
 <!-- file: 07 session_viewer/src/lib.rs type -->
 
-- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+- The shell's only change is the status line: every lane reports its own count, and that JSON is what the checkpoint test reads instead of a screenshot.
 
 <!-- file: 07 session_viewer/index.html copy -->
 

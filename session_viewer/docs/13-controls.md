@@ -213,11 +213,11 @@ flowchart LR
 
 <!-- file: 13 session_viewer/src/lib.rs type -->
 
-- The production shell, re-typed whole: its module list is the record of what the viewer now owns, and the `Msg` arms are every asynchronous answer it must handle.
+- Two additions, both `Msg`: one more asynchronous answer the event loop has to route. Adding a feature that talks to the network is exactly this shape.
 
 <!-- file: 13 session_viewer/src/app/mod.rs type -->
 
-- The app module list gains the control and query files. The comment is honest about the boundary: loading is still local until lesson 14.
+- Two modules: `cloud_query`, the page loop, and `fetch`, the first code in the viewer that talks to a server. The comment is honest about the boundary - loading is still local until lesson 14.
 
 <!-- file: 13 session_viewer/src/app/inspection.rs copy -->
 

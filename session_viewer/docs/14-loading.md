@@ -196,11 +196,11 @@ flowchart LR
 
 <!-- file: 14 session_viewer/src/app/scene.rs type -->
 
-- `Scene` is re-typed whole because its job changes: it now owns the documents *and* their placements, and knows how to be cleared without being replaced.
+- One field: the manifest's authored text. It is kept beside the documents because a scene replacement has to forget both together, which is why `clear` gains a line too.
 
 <!-- file: 14 session_viewer/src/lib.rs type -->
 
-- The production shell, re-typed whole: its module list is the record of what the viewer now owns, and the `Msg` arms are every asynchronous answer it must handle.
+- A module line and a `Msg` arm: the shell declares what now exists and routes one more asynchronous answer.
 
 <!-- file: 14 session_viewer/src/state.rs type -->
 

@@ -216,7 +216,7 @@ flowchart LR
 
 <!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
 
-- Imported lettering writes physical depth like any surface but is never lit or thickened: the PDF already decided what the glyphs look like.
+- Imported lettering returns the physical output like every fragment in this pass, but its pipelines are depth read-only: the glyphs are drawn against the depth their page already wrote, never lit and never re-spaced.
 
 ## Step 6 · Targets: the gradient attachment and a sample budget
 
@@ -260,7 +260,7 @@ flowchart LR
 
 <!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
 
-- The row gains the flags this lesson needs. The mirror tests at the bottom are what stop the Rust struct and every WGSL declaration of it from drifting apart.
+- The only change is to the mirror test: `physical.wgsl` joins the shader sources it parses, so the new physical output is checked against the Rust side like everything else.
 
 ## Step 8 · Lanes read and write the gradient
 
@@ -282,11 +282,11 @@ flowchart TB
 
 <!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
 
-- The mesh lane learns its second index run: sheet fills draw in document order with the depth write off, because a flat fill has no thickness to occlude with.
+- Two changes: the face pipelines gain `.physical()`, which adds the gradient target, and a selection-mask pipeline appears for the coverage the outline pass will read.
 
 <!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
 
-- The point lane learns the resolve pass and the physical metadata, so a cloud now occludes and is occluded exactly like a solid.
+- `.physical()` on the ID pipeline and the resolve: the cloud now writes the same metadata as every other surface, which is what lets ink judge itself against a point cloud.
 
 <!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
 
@@ -327,7 +327,7 @@ flowchart LR
 
 <!-- file: 05 session_viewer/src/lib.rs type -->
 
-- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+- Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
 
 <!-- file: 05 session_viewer/index.html copy -->
 

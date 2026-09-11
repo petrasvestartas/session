@@ -96,7 +96,7 @@ flowchart TB
 
 <!-- file: 19 session_viewer/src/lib.rs type -->
 
-- The production shell, re-typed whole: its module list is the record of what the viewer now owns, and the `Msg` arms are every asynchronous answer it must handle.
+- The sheet messages join the event loop: a prefix, its later slices, and the resolved entity, each an arm beside the cloud's.
 
 ## Part C · One batch on the GPU
 
@@ -125,7 +125,7 @@ flowchart TB
 
 <!-- file: 19 session_viewer/src/engine/gpu/segments.rs type -->
 
-- The segment lane re-typed whole: it now maps a global ribbon row back to (sheet, entity) through the chunk list, which is what lets a picked line name itself.
+- The segment lane gains a chunk list, and with it the map from a global ribbon row back to (sheet, entity). That is what lets a picked line in a 90 000-line drawing name itself.
 
 ### Step 7 · One row per sheet
 
@@ -181,7 +181,7 @@ flowchart TB
 
 <!-- file: 19 session_viewer/src/app/inspection.rs type -->
 
-- The snapshot gains `sheet_entity`, so the checkpoint can be verified without clicking anything.
+- The snapshot gains `sheet_entity`: select a line and the resolved guid, name and kind appear there, so the checkpoint is verified by reading an attribute rather than by reading the screen.
 
 <!-- check: 19 -->
 

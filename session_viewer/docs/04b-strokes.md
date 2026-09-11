@@ -165,7 +165,7 @@ flowchart TB
 
 <!-- file: 04b session_viewer/src/lib.rs type -->
 
-- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+- The shell's only change is the status line: every lane reports its own count, and that JSON is what the checkpoint test reads instead of a screenshot.
 
 <!-- file: 04b session_viewer/index.html copy -->
 

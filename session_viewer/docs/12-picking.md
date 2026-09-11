@@ -552,7 +552,7 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/app/route.rs type -->
 
-- Still the small query parser. It is re-typed here because the production shell owns it now; the routing policy is still two lessons away.
+- The query reader is edited, not replaced: the production shell owns it now, and the routing policy is still two lessons away.
 
 ### Step 16 · The application shell
 

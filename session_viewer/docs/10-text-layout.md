@@ -193,7 +193,7 @@ flowchart TB
 
 <!-- file: 10 session_viewer/src/lib.rs type -->
 
-- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+- A module line and the shaping export: the shell grows by declaring what now exists. Nothing in this lesson draws, so nothing else in the shell changes.
 
 <!-- file: 10 session_viewer/assets/text-layout.html copy -->
 
