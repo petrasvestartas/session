@@ -226,14 +226,14 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/edit.rs type lines=1-30 -->
+<!-- file: 21 session_viewer/src/app/edit.rs type lines=1-19 -->
 
 - A manifest listing one file twice hands both placements the same `Rc<Session>`, and the live
-  source keeps a third.
+  source keeps a third. The module header is the two rules the rest of it holds.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/edit.rs type lines=31-132 -->
+<!-- file: 21 session_viewer/src/app/edit.rs type lines=20-121 -->
 
 - `writable` calls `Rc::make_mut` BEFORE anything is written, and only for the document being
   edited: the other placements keep the session they were sharing.
@@ -245,7 +245,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/edit.rs type lines=133-178 -->
+<!-- file: 21 session_viewer/src/app/edit.rs type lines=122-167 -->
 
 - A control-point edit is a `Session::replace`, which records the whole object before and
   after: the kernel's own undo step for a change that is not a placement.
@@ -253,7 +253,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/edit.rs type lines=179-300 -->
+<!-- file: 21 session_viewer/src/app/edit.rs type lines=168-289 -->
 
 - The first test is the rule the module exists for: move one placement, and assert the other
   stayed.

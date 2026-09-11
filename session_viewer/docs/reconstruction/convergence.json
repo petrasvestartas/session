@@ -311,7 +311,7 @@
     "session_viewer/assets/view_local.yaml": "Deterministic local interaction scene replaces the user's local working datasets."
   },
   "passed": true,
-  "production_tree": "cd4ddf887df72b0bed6d7f03fa67a24b138077bc8be9e744fa518a3be65d5ef4",
+  "production_tree": "6dad4dd1e68c9b8b346ba341804671b604d3b2bc4105e0b9e75be8d2ba8eda5f",
   "runtime_source_files": 94,
   "tutorial_input_additions": [
     "session_viewer/assets/pb/interaction.pb",

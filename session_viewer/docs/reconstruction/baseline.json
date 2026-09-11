@@ -165,7 +165,7 @@
     "session_viewer/src/app/coords.rs": "eaf6294168a1a86de9074d12bc6cf01e821d05d8aa058e5a226dfcea56f12a83",
     "session_viewer/src/app/cplane.rs": "9c0b7d821f186fd7184d1a7b1b681e3c0e38b5587919ad8e1fdbce99ddff56fe",
     "session_viewer/src/app/decode.rs": "5c490d05d7fbe9982ec801f4bbf90f3b660d03c1ab3c6046de6af6b1c0c82b99",
-    "session_viewer/src/app/edit.rs": "506dc8af36a618b45f4cff90d87e218c504cccd37bb7b96bf22ae20d55889300",
+    "session_viewer/src/app/edit.rs": "eff369b398e3964f0498be8a6d9f2c54fb0084f91090d8c58c5b89c0a70d0056",
     "session_viewer/src/app/feedback.rs": "a0b7b40c5d4a9af3a97ed2c55487514d9b2844d5600de3142d389cd9c0e9b784",
     "session_viewer/src/app/fetch.rs": "798f8be55976ea6632487f6cfe92046d77d14f3e6a594353da88b7862f01e55f",
     "session_viewer/src/app/gizmo.rs": "9062c87b6eeca516bb23e5d9c7fcdc2acd1b5280317003a33a09765ef5dd5ffb",
@@ -344,7 +344,7 @@
   },
   "supersedes": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
   "tree_encoding": "sha256 of sorted path + NUL + file sha256 + newline records",
-  "tree_sha256": "cd4ddf887df72b0bed6d7f03fa67a24b138077bc8be9e744fa518a3be65d5ef4",
+  "tree_sha256": "6dad4dd1e68c9b8b346ba341804671b604d3b2bc4105e0b9e75be8d2ba8eda5f",
   "verification": {
     "cad_captures": 12,
     "cleanup": "empty npm lock and three generated Python caches removed; retained running build outputs and local/user assets",
