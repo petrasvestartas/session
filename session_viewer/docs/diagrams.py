@@ -83,6 +83,20 @@ def render(source, binary, out):
             out.write_text(svg[:head.start(2)] + sized + svg[head.end(2):])
 
 
+def unsized(sources):
+    """A diagram the sizing rule does not name is silently blown up to the column width.
+
+    course.css keeps each generated SVG at its own size by matching its file name, and a new
+    lesson stem matches nothing - which looks like a deliberately huge drawing rather than a
+    bug. So the rule is read back here and every diagram checked against it.
+    """
+    css = (HERE / "stylesheets/course.css").read_text()
+    fragments = re.findall(r'img\[src\*="illustrations/([^"]*)"\]', css)
+    missed = [s.stem for s in sources if not any(s.stem.startswith(f) for f in fragments)]
+    if missed:
+        raise SystemExit("course.css has no size rule for: " + ", ".join(missed))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
@@ -111,6 +125,7 @@ def main():
         made += 1
     if stale:
         raise SystemExit("diagrams out of date: " + ", ".join(stale))
+    unsized(sources)
     print("diagrams current" if args.check else f"rendered {made} of {len(sources)} diagrams")
 
 

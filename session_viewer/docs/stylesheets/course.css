@@ -192,7 +192,8 @@
 /* A generated diagram keeps its own size and centres; it may shrink on a narrow screen but is
    never blown up to the column width, which was making a 489px drawing 970px wide. */
 .md-typeset img[src*="illustrations/0"], .md-typeset img[src*="illustrations/1"],
-.md-typeset img[src*="illustrations/2"], .md-typeset img[src*="illustrations/README"] {
+.md-typeset img[src*="illustrations/2"], .md-typeset img[src*="illustrations/README"],
+.md-typeset img[src*="illustrations/capstone"], .md-typeset img[src*="illustrations/debugging"] {
   max-width: 100%;
   height: auto;
   margin-inline: auto;

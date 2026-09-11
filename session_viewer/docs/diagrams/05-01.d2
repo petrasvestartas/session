@@ -8,14 +8,14 @@ direction: down
 
 faces: "opaque faces\ntriangle.wgsl" { class: box }
 phys: "physical pass\ndepth + gradient targets" { class: box }
-back: "background + grid\nbackdrop.rs" { class: box }
+back: "background + grid\nbackdrop.rs · depth Always / ReadOnly" { class: box }
 ink: "ink pass\nink_visibility.wgsl" { class: box }
 test: "ink_visible" { class: box }
 cov: "stroke coverage color" { class: box }
 discard: "discard" { class: box }
 
 faces -> phys: "fs_main → PhysicalColor" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-back -> phys: "depth Always / ReadOnly" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+back -> phys { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 phys -> ink: "textureLoad depth, gradient" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 ink -> test: "carry depth to the stroke axis" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 test -> cov: "true" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

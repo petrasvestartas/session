@@ -261,7 +261,7 @@ def ink_visibility():
     c.raw(f'<line x1="{x0 + 40}" y1="250" x2="{x0 + 500}" y2="250" stroke="{pink}" stroke-width="2"/>')
     c.text(x0 + 40, 290, "stroke footprint covers samples beside the axis", "s", fill=PAL["black"], keep=True)
     c.raw(f'<circle cx="{x0 + 250}" cy="261" r="4" fill="{orange}"/>')
-    c.text(x0 + 40, 306, "sample here: the surface is nearer → the line is wrongly hidden", "s", fill="#b45a10", keep=True)
+    c.text(x0 + 40, 306, "sample here: the surface is nearer → the line is wrongly hidden", "s", fill=PAL["navy"], keep=True)
     c.raw(f'<line x1="{x0 + 250}" y1="261" x2="{x0 + 250}" y2="250" stroke="{green}" stroke-width="2"/>')
     c.raw(f'<circle cx="{x0 + 250}" cy="250" r="4" fill="{green}"/>')
     c.text(x0 + 40, 222, "transfer the surface depth to the axis with the gradient, then compare", "s", fill="#2d7a14", keep=True)
@@ -359,8 +359,8 @@ def vertex_layout():
         for (label, w), kind in zip(items, kinds):
             fill, stroke = KIND[kind]
             w = max(w, width(label, "m") + 16)
-            c.raw(f'<rect data-box="c{y}{x:.0f}" x="{x:.1f}" y="{y}" width="{w:.1f}" height="32" fill="{fill}" stroke="{stroke}" stroke-width="0"/>')
-            c.text(x + 8, y + 21, label, "m", box=f"c{y}{x:.0f}")
+            c.parts.append(f'<rect data-box="c{y}{x:.0f}" x="{x:.1f}" y="{y}" width="{w:.1f}" height="32" fill="{fill}" stroke="{stroke}" stroke-width="0"/>')
+            c.text(x + 8, y + 21, label, "m", fill=PAL["black"], box=f"c{y}{x:.0f}")
             x += w
         return x
 
@@ -620,7 +620,7 @@ def trims_seams():
     c.raw(f'<line x1="{X + 220}" y1="{y0}" x2="{X + 220}" y2="{y0 + h}" stroke="{green}" stroke-width="3"/>')
     c.text(X + 20, y0 - 8, "u = 0", "s", anchor="middle", fill=green)
     c.text(X + 220, y0 - 8, "u = 1", "s", anchor="middle", fill=green)
-    c.text(X + 120, y0 + h / 2, "unrolled cylinder face", "s", anchor="middle")
+    c.text(X + 120, y0 + h / 2, "unrolled cylinder face", "s", anchor="middle", fill=PAL["black"], keep=True)
     # cylinder sketch
     cx, cy = X + 340, y0 + h / 2
     c.raw(f'<ellipse cx="{cx}" cy="{y0 + 30}" rx="60" ry="18" fill="none" stroke="{grey}" stroke-width="1.2"/>')
@@ -1622,32 +1622,52 @@ def gpu_objects():
 def clip_space():
     c = Canvas("Clip space and the viewport flip",
                "The shader computes three positions in clip space, a square two units across with y up; the viewport "
-               "transform turns that into pixels with y down, and that flip is why a first image is sometimes upside down.",
-               1180, 460)
-    navy, pink, yellow = PAL["navy"], PAL["pink"], PAL["yellow"]
+               "transform turns that into pixels with y down. The triangle does not move: the numbers on the axes "
+               "turn over, and flipping the sign yourself on top of that is what makes a first image upside down.",
+               1180, 458)
+    navy, pink, yellow, grey = PAL["blue_band"], PAL["pink_band"], PAL["yellow"], PAL["zero"]
     c.text(28, 40, "Two coordinate systems, one flip", "h")
 
-    c.text(90, 92, "clip space, after the divide by w", "l", fill=navy)
-    ox, oy, side = 110.0, 120.0, 240.0
-    c.raw(f'<rect x="{ox}" y="{oy}" width="{side}" height="{side}" fill="none" stroke="{navy}" stroke-width="1.6"/>')
-    c.raw(f'<line x1="{ox}" y1="{oy + side / 2}" x2="{ox + side}" y2="{oy + side / 2}" stroke="{navy}" stroke-width="1"/>')
-    c.raw(f'<line x1="{ox + side / 2}" y1="{oy}" x2="{ox + side / 2}" y2="{oy + side}" stroke="{navy}" stroke-width="1"/>')
-    c.text(ox - 34, oy + 6, "+1", "s", fill=navy)
-    c.text(ox - 34, oy + side + 6, "-1", "s", fill=navy)
+    def panel(x, y, w, h):
+        c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{RADIUS}" fill="#e4e4e7" fill-opacity="0.10"/>')
+
+    def tri(pts, fill):
+        d = " ".join(f"{px:.1f},{py:.1f}" for px, py in pts)
+        c.parts.append(f'<polygon points="{d}" fill="{fill}" fill-opacity="0.85"/>')
+
+    # The same three corners, given once. Each side places them with its own mapping.
+    corners = [(-0.65, -0.55), (0.65, -0.55), (0.0, 0.72)]
+
+    c.text(90, 96, "clip space, after the divide by w", "l", fill=navy)
+    ox, oy, side = 110.0, 126.0, 210.0
+    panel(ox, oy, side, side)
+    # y up: +1 sits at the top of the square, so the screen row is (1 - y) / 2.
+    left = [(ox + (x + 1) / 2 * side, oy + (1 - y) / 2 * side) for x, y in corners]
+    tri(left, navy)
+    c.parts.append(f'<line x1="{ox}" y1="{oy + side / 2:.1f}" x2="{ox + side}" y2="{oy + side / 2:.1f}" stroke="{grey}" stroke-width="1" stroke-opacity="0.55"/>')
+    c.parts.append(f'<line x1="{ox + side / 2:.1f}" y1="{oy}" x2="{ox + side / 2:.1f}" y2="{oy + side}" stroke="{grey}" stroke-width="1" stroke-opacity="0.55"/>')
+    c.text(ox + side / 2, oy - 12, "y = +1", "s", anchor="middle", fill=navy)
+    c.text(ox + side / 2, oy + side + 22, "y = -1", "s", anchor="middle", fill=navy)
+    c.text(ox - 10, oy + side / 2 + 5, "x = -1", "s", anchor="end", fill=navy)
     c.text(ox + side + 10, oy + side / 2 + 5, "x = +1", "s", fill=navy)
-    c.text(ox + side / 2 + 10, oy + 20, "y up", "s", fill=navy)
+    c.text(left[2][0] + 10, left[2][1] - 8, "( 0.0, +0.72 )", "m", fill=navy)
 
-    c.text(700, 92, "framebuffer, after the viewport transform", "l", fill=pink)
-    px, py, pw, ph = 720.0, 120.0, 320.0, 240.0
-    c.raw(f'<rect x="{px}" y="{py}" width="{pw}" height="{ph}" fill="none" stroke="{pink}" stroke-width="1.6"/>')
-    c.text(px - 42, py + 6, "y = 0", "s", fill=pink)
-    c.text(px - 52, py + ph + 6, "y = h", "s", fill=pink)
-    c.text(px + pw + 10, py + 6, "x = w", "s", fill=pink)
-    c.text(px + pw / 2 + 10, py + 20, "y down", "s", fill=pink)
+    c.text(700, 96, "framebuffer, after the viewport transform", "l", fill=pink)
+    px, py, pw, ph = 700.0, 126.0, 280.0, 210.0
+    panel(px, py, pw, ph)
+    # y down: the same corner lands on the same row, now counted from the top edge.
+    right = [(px + (x + 1) / 2 * pw, py + (1 - y) / 2 * ph) for x, y in corners]
+    tri(right, pink)
+    c.text(px + pw / 2, py - 12, "y = 0", "s", anchor="middle", fill=pink)
+    c.text(px + pw / 2, py + ph + 22, "y = h", "s", anchor="middle", fill=pink)
+    c.text(px - 10, py + ph / 2 + 5, "x = 0", "s", anchor="end", fill=pink)
+    c.text(px + pw + 10, py + ph / 2 + 5, "x = w", "s", fill=pink)
+    c.text(right[2][0] + 10, right[2][1] - 8, "( 0.50 w, 0.14 h )", "m", fill=pink)
 
-    c.arrow(ox + side + 76, oy + side / 2, px - 60, py + ph / 2, "viewport transform")
-    c.text(90, 404, "The two squares hold the same triangle. Only the y axis turns over, which is why a first", "s")
-    c.text(90, 428, "image that is upside down is a sign flip, not a broken shader.", "s", fill=yellow)
+    c.arrow(400, oy + side / 2, 618, py + ph / 2, "viewport transform")
+    c.text(90, 392, "Both squares hold the same triangle in the same place: the apex is half way across and near the top in each.", "s")
+    c.text(90, 416, "Only the numbers turn over - +1 at the top becomes 0, -1 at the bottom becomes h - so an upside-down first", "s")
+    c.text(90, 440, "image is a sign you flipped y a second time yourself, not a broken shader.", "s", fill=yellow)
     c.write("clip-space.svg")
 
 
@@ -1675,19 +1695,19 @@ def cpu_gpu():
     c = Canvas("Two sides and a narrow wire",
                "The CPU side you may read and change at any time; the GPU side you send bytes and commands to and "
                "cannot read back casually. Between them is a narrow wire, and almost every mistake is on it.",
-               1180, 420)
+               1180, 340)
     c.text(28, 40, "Where does this thing live?", "h")
     a = c.box(60, 110, ["CPU · Rust", "scene, documents, ids, input", "read and change any time"], "cpu")
     b = c.box(760, 110, ["GPU", "buffers, textures, pipelines", "write only; no casual read back"], "gpu")
-    c.raw(f'<rect x="{a[0] + a[2] + 40:.1f}" y="150" width="{b[0] - a[0] - a[2] - 80:.1f}" height="96" rx="{RADIUS}" '
-          f'fill="{PAL["white"]}" stroke="{PAL["orange"]}" stroke-width="1.5"/>')
-    c.text(a[0] + a[2] + 62, 182, "the wire", "l", fill=PAL["black"], keep=True)
-    c.text(a[0] + a[2] + 62, 206, "write_buffer · create_buffer_init", "m", fill=PAL["black"], keep=True)
-    c.text(a[0] + a[2] + 62, 228, "vertex layout · bind group · @binding", "m", fill=PAL["black"], keep=True)
-    c.arrow(a[0] + a[2], 198, a[0] + a[2] + 32, 198)
-    c.arrow(b[0] - 40, 198, b[0] - 8, 198)
-    c.text(60, 330, "Ask this of every value in the course: which side is it on, and who owns it? A bug you cannot", "s")
-    c.text(60, 354, "place on this picture is usually a wire bug - three declarations that must agree and do not.", "s", fill=PAL["yellow"])
+    wx = a[0] + a[2] + 40
+    w = c.box(wx, 110, ["the wire",
+                        "`write_buffer · create_buffer_init`",
+                        "`vertex layout · bind group · @binding`"], "note", w=b[0] - wx - 40)
+    mid = w[1] + w[3] / 2
+    c.arrow(a[0] + a[2], mid, w[0] - 8, mid)
+    c.arrow(w[0] + w[2], mid, b[0] - 8, mid)
+    c.text(60, 258, "Ask this of every value in the course: which side is it on, and who owns it? A bug you cannot", "s")
+    c.text(60, 282, "place on this picture is usually a wire bug - three declarations that must agree and do not.", "s", fill=PAL["yellow"])
     c.write("cpu-gpu.svg")
 
 
