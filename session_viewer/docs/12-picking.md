@@ -418,6 +418,8 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 ![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-6b7cde642e.svg){ .locator data-strip="illustrations/strip-68dea8ec67.svg" }
 
 - Same toggles, same order as the colour list: what a lane hides it cannot pick.
+
+![Which id lanes each pick mode draws: every mode draws face and splat ids, each narrows the rest to the lanes it is about, and authored text is pickable in all of them.](illustrations/pick-modes.svg)
 - Edge mode draws only source-edge IDs; object mode draws faces, then ink with ink-first precedence.
 
 ![Diagram: encode_frame · id_pass · ID targets](illustrations/12-13.svg)

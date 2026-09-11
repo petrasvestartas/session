@@ -175,13 +175,15 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-57 -->
 
-- The pool is one flat array of reference words shared by every tile, not a fixed quota each. A dense tile borrows space a sparse one never used, which is what keeps the allocation proportional to the scene rather than to the grid.
+- The pool is one flat array shared by every tile, not a quota each: a dense tile borrows space a sparse one never used, so the allocation follows the scene rather than the grid.
+
+![The scan reports what its lists needed, the number is read back a frame later, and a pool that was too small costs one frame of conservative ink and never a wrong pixel.](illustrations/tile-pool.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=58-79 -->
 
-- `PoolReport` reads the scan's first record back one frame later: the words every list needed. A pool that was too small keeps the conservative rejection for that one frame and is reallocated before the next projection.
+- `PoolReport` reads the scan's first record back one frame later: the words every list needed.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 

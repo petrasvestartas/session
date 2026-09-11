@@ -1971,7 +1971,109 @@ def attachment_cost():
     c.write("attachment-cost.svg")
 
 
+def tile_pool():
+    c = Canvas("The pool measures itself, one frame late",
+               "The scan writes down how many words its lists really needed. That number is copied out after "
+               "the submit and read on the next frame, so a pool that was too small grows one frame after the "
+               "frame that overflowed. The cost of being wrong is one frame of conservative ink - tiles that "
+               "overflowed keep rejecting the plane - and never a wrong pixel.",
+               1180, 592)
+    c.text(28, 40, "A pool too small costs one frame, never a wrong pixel", "h")
+
+    x0, colw, gap = 212.0, 300.0, 16.0
+    cols = [x0 + i * (colw + gap) for i in range(3)]
+    for x, name in zip(cols, ("frame N", "frame N + 1", "frame N + 2")):
+        c.text(x, 84, name, "l")
+
+    lanes = [
+        ("GPU", 102, [
+            (["project · clear · count · scan ×3 · fill", "tile 812: the cursor runs past its count", "the overflow word is set, nothing written"], "gpu"),
+            (["all of it runs again", "the key was cleared, and this time", "every list fits in the new pool"], "gpu"),
+            (["nothing runs at all", "ProjectionKey unchanged: same matrix,", "same geometry revision"], "note"),
+        ]),
+        ("an ink fragment", 224, [
+            (["conservative for one frame", "an overflowed tile keeps rejecting the plane,", "so ink that should show stays hidden"], "cpu"),
+            (["walk the axis pixel's tile list", "and run the finite test"], "cpu"),
+            (["walk the axis pixel's tile list", "and run the finite test"], "cpu"),
+        ]),
+        ("CPU", 340, [
+            (["copy the first record", "16 B out of the tile buffer,", "then map_report() after the submit"], "note"),
+            (["prepare() reads it back", "grow to needed × 3/2, or double", "when the report saturated, then invalidate()"], "note"),
+            (["nothing to do"], "note"),
+        ]),
+    ]
+    for name, y, boxes in lanes:
+        c.text(28, y + 26, name, "l")
+        for x, (lines, kind) in zip(cols, boxes):
+            c.box(x, y, lines, kind, w=colw, h=96)
+
+    c.box(28, 456, ["One flat array, not a quota per tile",
+                    "`tiles × 2 + triangles × 8` references to start, never below 32768",
+                    "words and never above 32 a tile: a dense tile borrows the space a sparse one never used"], "note", w=740)
+    c.box(788, 456, ["Sums saturate at capacity",
+                     "so an oversubscribed pool can never",
+                     "wrap into a plausible offset"], "note", w=364)
+    c.text(28, 578, "The scan reports what it needed; the number comes back a frame later.", "s", fill=PAL["yellow"])
+    c.write("tile-pool.svg")
+
+
+def pick_modes():
+    c = Canvas("What the ID pass draws in each pick mode",
+               "The ID pass repeats the colour list, opaque and at one sample, and each pick mode narrows it to "
+               "the lanes that mode is about. A lane draws its ids under the same toggle that hides it in the "
+               "colour frame - what a lane hides it cannot pick - with one deliberate exception: authored text "
+               "covers geometry in every mode, exactly as its visible plane does.",
+               1180, 588)
+    lav, yel, zer = PAL["blue_band"], PAL["yellow_light"], PAL["zero_band"]
+    c.text(28, 40, "One list, five answers", "h")
+
+    cols = ["face|ids", "component|ids", "splat|ids", "edge|ids", "pipe|ids", "ribbon|ids",
+            "sphere|ids", "marker|dots", "control|dots", "arena|text", "authored|text", "source|ids"]
+    rows = [
+        ("Object", {0: "", 2: "", 4: "edges", 5: "lines", 6: "edges+", 7: "points", 9: "", 10: ""}),
+        ("Edge", {0: "", 2: "", 3: "edges", 10: ""}),
+        ("Component", {1: "", 2: "", 3: "edges", 10: ""}),
+        ("Controls { cloud: false }", {0: "", 2: "", 8: "", 10: ""}),
+        ("Controls { cloud: true }", {0: "", 2: "", 10: ""}),
+        ("source query · F10", {0: "first", 2: "first", 11: ""}),
+    ]
+    lx, x0, cw, rh, y0 = 28.0, 262.0, 76.0, 44.0, 148.0
+
+    # The one lane every mode draws, called out before the cells so the eye lands on it.
+    c.parts.append(f'<rect x="{x0 + 10 * cw - 3:.1f}" y="{y0 - 46:.1f}" width="{cw + 6:.1f}" height="{5 * rh + 50:.1f}" rx="{RADIUS}" fill="{yel}" fill-opacity="0.22"/>')
+
+    for i, head in enumerate(cols):
+        top, bottom = head.split("|")
+        c.text(x0 + i * cw + cw / 2, y0 - 28, top, "s", anchor="middle")
+        c.text(x0 + i * cw + cw / 2, y0 - 10, bottom, "s", anchor="middle")
+
+    for j, (name, drawn) in enumerate(rows):
+        y = y0 + j * rh
+        c.text(lx, y + rh / 2 + 5, name, "s")
+        for i in range(len(cols)):
+            if i not in drawn:
+                continue
+            fill = yel if i == 10 else lav
+            c.parts.append(f'<rect x="{x0 + i * cw + 3:.1f}" y="{y + 4:.1f}" width="{cw - 6:.1f}" height="{rh - 8:.1f}" rx="4" fill="{fill}"/>')
+            if drawn[i]:
+                c.text(x0 + i * cw + cw / 2, y + rh / 2 + 5, drawn[i], "s", anchor="middle", fill=PAL["black"], keep=True)
+
+    gy = y0 + 5 * rh
+    c.parts.append(f'<rect x="{x0 + 3 * cw:.1f}" y="{gy + 4:.1f}" width="{7 * cw:.1f}" height="{rh - 8:.1f}" rx="4" fill="{zer}" fill-opacity="0.16"/>')
+    c.text(x0 + 3 * cw + 10, gy + rh / 2 + 5, "returns before the ink pass", "s")
+
+    c.text(28, 430, "A tag names the toggle that gates the cell: edges = show_mesh_edges · lines = show_lines · points = show_points · edges+ = both edges and markers.", "s")
+    c.text(28, 452, "first = drawn only on the first page of a source query, before the accumulated ids exist.", "s")
+    c.box(28, 478, ["The rule",
+                    "a lane draws its ids under the same toggle that hides it in the colour frame.",
+                    "What a lane hides it cannot pick, or a user selects what they cannot see."], "note", w=700)
+    c.box(756, 478, ["The exception",
+                     "authored text is pickable in every mode,",
+                     "exactly as its visible plane covers geometry"], "sel", w=396)
+    c.write("pick-modes.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')
