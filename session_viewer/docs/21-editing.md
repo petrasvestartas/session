@@ -139,18 +139,18 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=50-106 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=50-112 -->
 
 - An axis knows its unit vector and the two axes spanning the plane it is normal to.
 - `Drag` remembers where the grab was, not where the pointer was last frame.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=107-123 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=113-129 -->
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=124-168 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=130-174 -->
 
 - `hit` tests OUTWARD from the centre: the uniform-scale ball first, then the axis balls, then
   the arms, then the rotation arcs. A handle nearer the hub can never be shadowed by one
@@ -160,14 +160,14 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=169-202 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=175-210 -->
 
 - `begin` answers `None` when the ray cannot resolve against the handle — sighting straight
   down a translate axis has no answer, so there is no drag.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=203-262 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=211-271 -->
 
 - Every drag is measured from its grab, never accumulated: a drag that adds a delta per frame
   drifts, and a dropped frame changes the result.
@@ -175,7 +175,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=263-423 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=272-432 -->
 
 - The arithmetic is f64 and free of the camera, the GPU and wgpu.
 - `closest_on_axis` is the point on the axis nearest the ray, which is what a translate drag
@@ -183,7 +183,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-b283297fe6.svg" data-zone="Editing"></span>
 
-<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=424-569 -->
+<!-- file: 21 session_viewer/src/app/gizmo.rs type lines=433-578 -->
 
 - The tests fix the two properties that matter: the handles do not shadow each other, and the
   widget's grab radius is constant in pixels rather than in world units.
@@ -462,7 +462,7 @@ dragged on the plane the view is facing, snapped to its neighbours.
 
 <span class="zone-mark" data-strip="illustrations/strip-5b09b0fedb.svg" data-zone="State"></span>
 
-<!-- file: 21 session_viewer/src/state.rs type hunks=2,3,4,5,6,7,8,9 -->
+<!-- file: 21 session_viewer/src/state.rs type hunks=2,3,4,5,6,7,8,9,10,11,12 -->
 
 <!-- check: 21 -->
 

@@ -95,6 +95,12 @@ pub struct Drag {
     /// `Scale(axis)`, so grabbing the negative side stores a negative reach and the ratio in
     /// `update` still comes out positive; a plain distance for `ScaleUniform`.
     reach: f64,
+    /// The plane a uniform scale is measured in, chosen once at the grab.
+    ///
+    /// Choosing it again from the live ray on every move lets it flip to another world axis
+    /// mid-drag, and the reach is then measured in a different plane than the one the grab was
+    /// measured in - the object jumps. Unused by the other handles, which have an axis.
+    plane: Vector,
 }
 
 /// Where the widget is and what it is doing.
@@ -173,23 +179,25 @@ impl Gizmo {
                 grabbed: closest_on_axis(from, dir, &self.origin, &axis.unit())?,
                 angle: 0.0,
                 reach: 1.0,
+                plane: axis.unit(),
             },
             Handle::Rotate(axis) => Drag {
                 handle,
                 grabbed: self.origin.clone(),
                 angle: angle_in_plane(&plane_hit(from, dir, &self.origin, &axis.unit())?, &self.origin, axis),
                 reach: 1.0,
+                plane: axis.unit(),
             },
             Handle::Scale(axis) => {
                 let p = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
                 let reach = dot(&sub(&p, &self.origin), &axis.unit());
-                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach) }
+                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: axis.unit() }
             }
             Handle::ScaleUniform => {
                 let normal = facing(dir);
                 let p = plane_hit(from, dir, &self.origin, &normal)?;
                 let reach = length(&sub(&p, &self.origin));
-                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach) }
+                Drag { handle, grabbed: p, angle: 0.0, reach: nonzero(reach), plane: normal }
             }
         };
         self.drag = Some(drag.clone());
@@ -224,8 +232,9 @@ impl Gizmo {
                 Some(about(&self.origin, scaling(x, y, z)))
             }
             Handle::ScaleUniform => {
-                let normal = facing(dir);
-                let now = plane_hit(from, dir, &self.origin, &normal)?;
+                // The plane the grab was measured in, not one chosen again from this frame's
+                // ray: a plane that flips mid-drag makes the object jump.
+                let now = plane_hit(from, dir, &self.origin, &drag.plane)?;
                 let k = softened(length(&sub(&now, &self.origin)) / drag.reach);
                 Some(about(&self.origin, scaling(k, k, k)))
             }

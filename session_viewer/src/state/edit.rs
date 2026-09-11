@@ -248,23 +248,23 @@ impl State {
     }
 }
 
-/// World length of one CSS pixel at `distance`, given the surface height in PHYSICAL pixels
-/// and how many physical pixels one CSS pixel is.
+/// World length of one CSS pixel at `world_distance`, given the surface height in PHYSICAL
+/// pixels and how many physical pixels one CSS pixel is.
 ///
-/// `distance` is in WORLD units - `Camera::distance_world`, not the `distance` field, which is
-/// the camera's internal metres. The lengths this scales are an arm and a ball in a millimetre
+/// Every parameter carries its unit in its name, because the two the camera offers differ by a
+/// thousand: `Camera::distance_world`, never the `distance` field, which is internal metres. The lengths this scales are an arm and a ball in a millimetre
 /// scene, so the metres would draw the widget a thousand times too small.
 ///
 /// Split out because the units are the whole of it: the frustum arithmetic answers in physical
 /// pixels, and every size a person sees - an arm, a ball, a grab radius - is in CSS pixels.
 /// Forgetting the last multiply makes the widget half size on a 2x display, drawn half size
 /// and grabbable only within half the radius.
-fn world_per_css_px(distance: f64, physical_height: f64, physical_per_css: f64) -> f64 {
+fn world_per_css_px(world_distance: f64, physical_height: f64, physical_per_css: f64) -> f64 {
     if physical_height <= 0.0 {
         return 1.0;
     }
     let per_physical =
-        2.0 * distance * (crate::math::FOVY_DEG * 0.5).to_radians().tan() / physical_height;
+        2.0 * world_distance * (crate::math::FOVY_DEG * 0.5).to_radians().tan() / physical_height;
     per_physical * physical_per_css
 }
 

@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "production_tree": "8c3bd9af0d25e5db27d7480f005db2cbf0d9bbf48a87b0499919c106556a6cbb",
+  "production_tree": "c9a9843189062a0f5dac83acf575e79541e4b48a14dcbdf5aa7aaaf60e39469d",
   "steps": [
     {
       "assets": [],
@@ -15201,7 +15201,7 @@
         "session_viewer/src/app/edit.rs": "6c846d85c9c8bcb52a6e3da203591e5c4182b0dedf5fdafc780b459fa61592ac",
         "session_viewer/src/app/feedback.rs": "13f2bd9b8c60004dae227911ebdc18f917a152aa4b5c1488cd73ab8faecc23a8",
         "session_viewer/src/app/fetch.rs": "798f8be55976ea6632487f6cfe92046d77d14f3e6a594353da88b7862f01e55f",
-        "session_viewer/src/app/gizmo.rs": "10f7a55f50047b9136ef5f415971679a56c1af697dd05b736cc8809657d5e754",
+        "session_viewer/src/app/gizmo.rs": "e5a14c7af161c9153ba8cfb7f073c58dac4fd59bb6bd0dc6a2197f42601a060e",
         "session_viewer/src/app/input.rs": "589d1365f5471882f8a262fc0f09b6650a3867e19b1b99ee972dab82bb2df7af",
         "session_viewer/src/app/inspection.rs": "13265c1e65e328510ee7927745e947a026069ecf0c20aa0ee32cd2e123d77238",
         "session_viewer/src/app/inspection/source_memory.rs": "46298232b32504bfcb2795ead9000dedb61ade5ba04eb159e62a09b2f9816ec0",
@@ -15290,9 +15290,9 @@
         "session_viewer/src/shaders/text_plate.wgsl": "ff5da139d218b8345d74a0c10409fb4e19f22a6466270283768b36ae4f07fa1c",
         "session_viewer/src/shaders/triangle.wgsl": "6e0788c30b34dfe22c5212fc0f68037e99b7921ebaacc94530e03217e3587f9e",
         "session_viewer/src/shaders/triangle_tiles.wgsl": "82cded468042cd4842398b215a5f4670201ce89c82e72fb82a7672af63d9615d",
-        "session_viewer/src/state.rs": "fcc301183bf3f74195614a32bcb088880f1060d95e22c6be4c4d4c2226e64f1b",
+        "session_viewer/src/state.rs": "2d6465a7cc9d94ccaca7b75a58a553640904fba8a6f283284a0b069b4920ab4e",
         "session_viewer/src/state/cloud_query.rs": "d75d2344e886410d6658c6190b35822b234a292a8df9e4ca3dc9063f47796770",
-        "session_viewer/src/state/edit.rs": "fc9f7a6f5565d9a9e0ab8e57dbb6f832f55f92b8839335baad3c3c67c1e35ec2",
+        "session_viewer/src/state/edit.rs": "e79e3b0e2eb9d84516d6199f28cff299e889f7afe98ae74ed2a7840a6b1eab72",
         "session_viewer/src/state/sheet_query.rs": "754ee0310a274364b6a00683dc396271e46e3c24448bb4c5856730243aeeefe2",
         "session_viewer/src/state/text.rs": "71eb8d402fed2e143685bef22304fc133364c5c45df3363b7c8b1fb155e3d5fd",
         "session_viewer/src/text_quality.rs": "08647a690e11b1c3df05f9d20057575f97dd01d3dafdfe49c09cfbeb1ada5949",
@@ -15325,7 +15325,7 @@
       },
       "id": "21",
       "patch": "patches/21.patch",
-      "patch_sha256": "6dd1e0890b96c3d44a44ba7e2058031396b4da9997e6b1684d16e20c2d5407b6",
+      "patch_sha256": "f671ca513ad6e42903fadb6374691c854944a01a9f89ae73b3895b581ecdf656",
       "title": "Editing: the gumball, the command line and the layers panel"
     }
   ]

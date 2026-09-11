@@ -182,6 +182,8 @@ impl State {
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.controls = Controls::default();
         self.scene.clear(&mut self.gpu);
+        self.place_gizmo(None);
+        self.refresh_layers();
         self.touch();
     }
 
@@ -300,6 +302,7 @@ impl State {
         self.select(None);
         self.scene.hidden.insert(guid);
         self.gpu.set_hidden(row, true);
+        self.refresh_layers();
         self.update_label();
         self.touch();
     }
@@ -310,6 +313,7 @@ impl State {
             self.gpu.set_hidden(row, false);
         }
         self.scene.hidden.clear();
+        self.refresh_layers();
         self.update_label();
         self.touch();
     }
