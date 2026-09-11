@@ -25,6 +25,8 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 ## Step 1 · Matrix helpers
 
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
+
 - A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here follows that rule, and so does the kernel's `Xform`.
 - The f64 → f32 edge is one function, `mat_to_f32`, so it is easy to find when a large model jitters.
 
@@ -39,6 +41,8 @@ flowchart LR
 <!-- file: 02 session_viewer/src/math.rs type lines=1-71 -->
 
 ## Step 2 · A box that can be empty
+
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
 
 - `Aabb::empty()` is inverted (min > max), so a scene can start with no box and `grow` one point at a time.
 - `placed` transforms the eight corners; conservative for rotations, exact for translations.
@@ -59,11 +63,15 @@ flowchart LR
 
 ## Step 3 · Recover camera facts from the matrix
 
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
+
 Draw lanes receive only the view-projection, never the camera. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
 
 <!-- file: 02 session_viewer/src/math.rs type lines=155-220 -->
 
 ## Step 4 · Camera state
+
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
 
 - `orientation` is a quaternion, the single source of truth; `position` and `up` are derived from it.
 - Internal units are metres; `Unit` converts scene millimetres at the matrix edge.
@@ -72,6 +80,8 @@ Draw lanes receive only the view-projection, never the camera. The eye is where 
 <!-- file: 02 session_viewer/src/camera.rs type lines=1-52 -->
 
 ## Step 5 · Construction and gestures
+
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
 
 - Orbit is yaw about `world_up`, then pitch about the current right axis; no Euler singularity.
 - `zoom_at` keeps the world point under the cursor fixed: the target moves toward it by the zoom factor. Cursor and viewport are physical pixels, the same space as the framebuffer.
@@ -84,6 +94,8 @@ Draw lanes receive only the view-projection, never the camera. The eye is where 
 
 ## Step 6 · Projection swap that keeps the content
 
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
+
 Orthographic shows content off-axis and nearer than the target plane; a naive flip to perspective would present sky. The framed toggle clips the bounds to the rectangle the orthographic view was showing and refits.
 
 ![The projection and the divide by w land the frustum in a cube. With near and far swapped, distant points crowd into a thin band at zero, which is where float32 is densest.](illustrations/frustum.svg)
@@ -92,6 +104,8 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 
 ## Step 7 · The view-projection
 
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
+
 - **Reversed depth:** near and far are swapped in `perspective(...)`, so near is 1 and far approaches 0. The depth pass clears to 0 and compares `Greater`; all three must agree.
 - **Anchor:** eye and target are expressed relative to a caller anchor in world units before any f32 exists, so a model far from the origin does not cancel to noise.
 - Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
@@ -99,6 +113,8 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 <!-- file: 02 session_viewer/src/camera.rs type lines=196-269 -->
 
 ## Step 8 · Named views, fit, extent
+
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
 
 - `fit` measures the box along the camera's own axes with `tan`, not a bounding sphere with `sin`; elongated scenes no longer sit twice as far as needed.
 - `grow_extent` widens only the far-plane floor when more geometry streams in.
@@ -125,6 +141,8 @@ flowchart TB
 
 ## Step 9 · Wheel response
 
+![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-21c087dbe5.svg)
+
 - `zoom_distance` is exponential per detent and clamps a single event to ten detents, so coalesced wheel events compose and never cross zero.
 - The two `#[cfg(test)]` modules are native-only unit checks; they are not part of the browser build.
 
@@ -133,6 +151,8 @@ flowchart TB
 <!-- check: 02 -->
 
 ## Step 10 · Wire the shell
+
+![Where this step sits in the viewer: Page, Shell, with 5 of 11 zones built so far.](illustrations/locator-5f19347bdc.svg)
 
 - The uniform buffer is kept in the struct, and each frame writes a fresh matrix into it.
 - The anchor passed to `view_proj_anchored` is the world origin, where the triangle sits.

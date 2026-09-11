@@ -29,6 +29,8 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 ### Step 1 · The tombstone
 
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-32e7b6aad9.svg)
+
 - `clone` is a deep copy that keeps the guid: a snapshot must still name the object it stands for, which is why `duplicate`, which mints a fresh guid, is never used here.
 - A `Tombstone` is everything needed to put one object back into every live table: the object, its typed list and position in it, its local transform, its parent and position among the siblings, the detached subtree, the graph attribute and every incident edge. `Add` and `Remove` share it; `Replace` and `Xform` carry absolute before and after values, never deltas.
 - A `Transaction` groups the records of one gesture; `History` keeps the last 64 and drops the redo stack when a new one commits.
@@ -61,6 +63,8 @@ flowchart TB
 
 ### Step 2 · Undo replays in reverse
 
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-32e7b6aad9.svg)
+
 - `undo` pops a transaction, reverts its records last to first and pushes it onto the redo stack; `redo` applies them first to last. An add reverts by detaching, a remove by attaching, a replace by swapping the before clone in, a transform by placing the before value.
 - Both commit an open transaction first, so a half-typed gesture is never lost.
 
@@ -72,9 +76,13 @@ flowchart TB
 
 <!-- file: 20 session_rust/src/lib.rs type -->
 
+- The kernel's module list gains `history`. Everything in this lesson lives in the shared kernel, which is why the tests are run there.
+
 ## Part B · The session records
 
 ### Step 3 · One place to add
+
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-32e7b6aad9.svg)
 
 - Every `add_*` routes through `_add_object`, which pushes to the typed list, `lookup`, the graph and the tree exactly as before and, while a transaction is open, records an `Add`.
 - `replace(guid, obj)` is the edit history sees: it gives `obj` the guid, swaps it into the typed list and `lookup`, refreshes the graph attribute and records before and after. Mutating an object in place through `lookup` still works and is not recorded.
@@ -96,6 +104,8 @@ flowchart TB
 
 ### Step 4 · The tree gives the node back, the graph its edges
 
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-32e7b6aad9.svg)
+
 - `Tree::remove` returns the detached node with its subtree, and `TreeNode::insert` puts a child back at an index, so a restored object lands where it was.
 - `Graph::edges_of` lists the incident edges with their attribute and direction, the part of a removal that had no way back before.
 
@@ -103,7 +113,11 @@ flowchart TB
 
 <!-- file: 20 session_rust/src/graph.rs type -->
 
+- `edges_of` is added: a removal has to remember the edges whose other end still exists, and there was no way to ask for them before.
+
 ### Step 5 · Identity survives a swap
+
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-32e7b6aad9.svg)
 
 - `replace` sets the guid on the replacement, and a guid minted once cannot be reset, so the four types that lacked `refresh_guid` gain it.
 
@@ -111,9 +125,15 @@ flowchart TB
 
 <!-- file: 20 session_rust/src/obb.rs type -->
 
+- One of the four types that lacked `refresh_guid`. `replace` gives the replacement the original's guid, and a guid minted once cannot otherwise be reset.
+
 <!-- file: 20 session_rust/src/plane.rs type -->
 
+- The same addition, for the same reason.
+
 <!-- file: 20 session_rust/src/pointcloud.rs type -->
+
+- And the same again - four types, one missing capability, found by the one operation that needed it.
 
 ## Part C · Three kernels, one behaviour
 

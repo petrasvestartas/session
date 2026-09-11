@@ -15,6 +15,14 @@ That is deliberate. Being stuck with no way forward teaches nothing; being shown
     Know what a check proves, though: a Rust file enters the build only when a `mod` line names it, and the bigger lessons create files first and declare them at the end. A check before that wiring step proves you have not broken the *previous* checkpoint; the check after it is the one that compiles what you just typed. Both are worth running — the first is how you notice you deleted the wrong line.
 - **Read the reasoning.** Every lesson ends in **Questions and answers**. Each entry has two parts: *how to work it out* — the chain of reasoning, starting from what you already know — and *the answer*. The reasoning is the part worth reading twice. The answers to the questions matter less than the way they were reached, because the next problem will be a different question.
 
+## One map, always the same
+
+Every step opens with the same picture of the whole viewer, with the box you are working in filled pink, the boxes you have already built solid, and the ones still ahead dashed.
+
+![The whole viewer as one map: documents come in along the top row, a frame is drawn along the bottom one.](illustrations/map.svg)
+
+This is deliberate repetition. A diagram that changes shape every time has to be read; a diagram that never changes shape is *seen*. By lesson 05 you should be able to glance at the pink box and know, without reading a word, whether this step is about getting data in, deciding what to draw, or drawing it. [The map](map.md) explains the eleven zones once.
+
 ## Every lesson has the same shape
 
 - **You are building** — the mechanism this lesson adds, as one diagram.

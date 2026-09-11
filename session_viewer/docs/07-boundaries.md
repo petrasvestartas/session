@@ -31,6 +31,8 @@ flowchart TD
 
 ## Step 1 · Kernel: the trim-loop contract
 
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-34d8e85b4d.svg)
+
 - `TrimLoops` is what a BRep hands the mesher for one face: UV polygons, the 3D point each polygon vertex must lift to, and interior seeds.
 - Loop vertices keep their positions exactly; a neighbouring face fed the same polygon lifts to the same bits.
 
@@ -45,7 +47,11 @@ flowchart LR
 
 <!-- file: 07 session_rust/src/lib.rs type -->
 
+- The kernel's own module list. This lesson adds files to the shared geometry library, so the declaration has to grow there rather than in the viewer.
+
 ## Step 2 · Kernel: one triangulation body
+
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-34d8e85b4d.svg)
 
 - `mesh_q` (untrimmed entry) and `mesh_loops` (BRep entry) share `triangulate`; the bounding-box diagonal moves into its own helper.
 - `mesh_loops` rejects invalid input and lost boundary provenance with an empty mesh instead of manufacturing a face.
@@ -62,6 +68,8 @@ flowchart LR
 
 ## Step 3 · Kernel: constrain boundaries and C0 knot lines
 
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-34d8e85b4d.svg)
+
 - Every loop vertex keeps its Delaunay id, so a given 3D point and a `boundary/{loop}/{sample}` tag reach the vertex it becomes.
 - Where a loop segment crosses an interior C0 knot line, a node is inserted with a `boundary_interval/{loop}/{segment}` fraction: a polygon interval, not a curve parameter.
 - Knot lines inside the trim are constrained too; the refinement test evaluates normals on the triangle's own side of a crease.
@@ -77,6 +85,8 @@ flowchart LR
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=7-8 -->
 
 ## Step 4 · Kernel: lift to the given points, tag, split creases
+
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-34d8e85b4d.svg)
 
 - A triangle straddling a crease knot means the constraint failed: the result is an empty mesh, never a smeared crease.
 - With given XYZ the weld tolerance is zero; interval nodes interpolate on the supplied chord, so both faces see the same inserted point.
@@ -95,6 +105,8 @@ flowchart TB
 <!-- file: 07 session_rust/src/nurbssurface_trimmed.rs type hunks=11-12 -->
 
 ## Step 5 · Kernel: BRep phases
+
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-34d8e85b4d.svg)
 
 - Phase 2: the first incident grid face supplies the canonical polygon and its pcurve parameters; any other grid whose samples differ is marked for rebuild rather than left incompatible.
 - Curved boundaries are refined before any interior refinement, then every incident face is rebuilt with the refined polygon.
@@ -117,6 +129,8 @@ flowchart TB
 <!-- check: 07 -->
 
 ## Step 6 · Viewer: chains from the face meshes
+
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
 
 - Grid faces give an iso-parametric chain read straight off `u`/`v` attributes; constrained faces give the `brep_edge/{edge}/{use}/{sample}` nodes.
 
@@ -157,6 +171,8 @@ flowchart TB
 
 ## Step 7 · Viewer: outward orientation from the tessellation
 
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+
 - Face-use flags are never read: two faces that walk a shared edge in opposite directions agree, and a group enclosing negative volume is inside out.
 
 ```mermaid
@@ -175,15 +191,23 @@ flowchart LR
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=79-113 -->
 
+- `opposed` asks the only question that matters for winding: do the two faces walk their shared edge in opposite directions? `None` when either side cannot say, which is a refusal rather than a guess.
+
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=114-162 -->
+
+- The two-step answer: neighbours are made to agree by walking the shared edges, then each connected group is turned outward by the sign of the volume it encloses. Both steps read the tessellation, never the file's own orientation flags.
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs copy lines=163-277 -->
 
 <!-- file: 07 session_viewer/src/app/walk/mod.rs type -->
 
+- The producer list gains the BRep files. A lane is deleted by deleting its producer and its arm here - that is the whole coupling.
+
 <!-- check: 07 -->
 
 ## Step 8 · Viewer: ink the solid's edges
+
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
 
 - A negative face sign flips normals and winding before upload, so shading, culling and boundary facing agree.
 - An edge without a chain is drawn as a sampled ribbon and logged: a display fallback, not a coherent CAD boundary.
@@ -201,6 +225,8 @@ flowchart LR
 
 ## Step 9 · Fixture and status
 
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-884e63c1c5.svg)
+
 A cylinder (closed seam, two circles) and a block with a hole (inner wire) exercise shared and trimmed boundaries.
 
 ```mermaid
@@ -213,6 +239,8 @@ flowchart LR
 <!-- file: 07 session_viewer/src/fixture.rs copy -->
 
 <!-- file: 07 session_viewer/src/lib.rs type -->
+
+- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
 
 <!-- file: 07 session_viewer/index.html copy -->
 

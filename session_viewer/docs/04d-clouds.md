@@ -39,6 +39,8 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 ## Step 1 · Cloud tables
 
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
+
 - A cloud's points arrive in chunks; `Chunk` maps cloud-local indices to lane rows.
 
 ```mermaid
@@ -59,9 +61,15 @@ flowchart TB
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=145-208 -->
 
+- Clouds arrive in chunks, so the lane keeps a chunk list: `append` grows the buffers, `extend` records which object row a chunk belongs to, and a chunk that does not continue the resident prefix is refused rather than silently misplaced.
+
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=209-257 -->
 
+- `row_of` is the inverse the picker needs: a global point row back to its cloud and its index within it. Without it a picked point could not be named.
+
 ## Step 2 · The LOD walk
+
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
 
 - Pure CPU: which octree ranges to draw, given how wide each node's point spacing projects. Small clouds draw whole.
 
@@ -81,7 +89,11 @@ flowchart TB
 
 <!-- file: 04d session_viewer/src/engine/gpu/lod.rs type lines=116-151 -->
 
+- The size of a disc is decided here, on the CPU, and folded into the record, so the shader divides once per point instead of reasoning about spacing.
+
 ## Step 3 · The splat lane
+
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
 
 `SplatRecord` is 160 bytes, read as raw words by the shader:
 
@@ -109,7 +121,11 @@ flowchart TB
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=135-157 -->
 
+- The lane's own type: three pipelines - colour, id, resolve - and the record buffer that feeds them.
+
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=158-230 -->
+
+- Construction allocates the record buffer and a bind group over placeholder buffers. The point targets themselves wait for the first cloud, so a scene without points pays nothing.
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=231-278 -->
 
@@ -133,6 +149,8 @@ flowchart TB
 
 ## Step 4 · The point shaders
 
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+
 - `record_of` finds the record whose cumulative range contains the vertex index; `project` folds one mat-vec per point.
 
 ```mermaid
@@ -147,6 +165,8 @@ flowchart TB
 
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=51-92 -->
 
+- `project` is the whole per-point cost: one mat-vec, a radius folded from the record, a depth. Everything computable per cloud was already computed on the CPU.
+
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=93-171 -->
 
 - The resolve reads the lane's depth and color, applies Eye-Dome Lighting from neighbouring depths, and writes `frag_depth` under the scene's `Greater` test.
@@ -155,7 +175,11 @@ flowchart TB
 
 <!-- check: 04d -->
 
+![Points are rasterized as discs into a private depth and colour pair at one sample, and a fullscreen resolve inside the face pass shades from neighbouring depths and writes frag_depth - so a cloud occludes a wall and a wall occludes it, without the points ever entering the face pipeline.](illustrations/splat-resolve.svg)
+
 ## Step 5 · Wire the lane
+
+![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-7861806464.svg)
 
 ```mermaid
 flowchart TB
@@ -178,6 +202,8 @@ flowchart TB
 <!-- file: 04d session_viewer/src/fixture.rs copy -->
 
 <!-- file: 04d session_viewer/src/lib.rs type -->
+
+- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
 
 <!-- file: 04d session_viewer/index.html copy -->
 

@@ -30,6 +30,8 @@ flowchart TB
 
 ## Step 1 · Kernel: one-sided normals at a C0 knot
 
+![Where this step sits in the viewer: Kernel, with 8 of 11 zones built so far.](illustrations/locator-ac4fbc5f7d.svg)
+
 - A knot repeated `degree` times folds the surface; averaging normals across that fold makes a sharp edge look rounded.
 - The grid mesher splits a shading vertex on the crease side: same position and `u`/`v`, different normal, so the split never invents a CAD vertex.
 - Face keys are sorted before accumulation: float sums are order-dependent, and map order must not reach the mesh bytes.
@@ -51,6 +53,8 @@ flowchart TB
 
 ## Step 2 · Row encodings
 
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+
 - Every producer packs the same four things: pen width → world radius, colour → RGBA8, unit normal → 16-bit octahedral code, two normals → one `facing` word.
 - `FACING_UNKNOWN` is all ones and means "no adjacency, always draw"; `pack_facing` steps around that value.
 
@@ -68,6 +72,8 @@ flowchart LR
 
 ## Step 3 · What a producer reports
 
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+
 - `WalkCx`: where an object's rows land (vertex base, object row). `Row`: what the producer measured (local box, spacing, flags, thickness).
 - The `mod.rs` also declares the modules you type in the following steps; nothing compiles them until `app/mod.rs` names `walk` in step 11.
 
@@ -82,6 +88,8 @@ flowchart LR
 <!-- file: 06 session_viewer/src/app/walk/mod.rs type -->
 
 ## Step 4 · Per-file sweeps and thickness
+
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
 
 - A sheet (planar file) is detected after the walk from the object rows, so producers stay ignorant of documents.
 - Thickness is measured along the mesh's own dominant face normals, not the axis-aligned box: a rotated plate measures its plate thickness.
@@ -98,6 +106,8 @@ flowchart LR
 <!-- file: 06 session_viewer/src/app/walk/bounds.rs type -->
 
 ## Step 5 · Fused mesh topology
+
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
 
 - One pass over the faces gives the ink lanes everything: unique edges with pen colours, the two faces at each edge, face normals, closedness.
 - Edges hang off their low vertex on an intrusive chain; a mesh with sparse vertex keys still indexes in O(1) through `SlotMap`.
@@ -120,6 +130,8 @@ flowchart LR
 <!-- file: 06 session_viewer/src/app/walk/mesh_topology.rs type lines=96-173 -->
 
 ## Step 6 · Ink: pipes for edges, spheres for vertices
+
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
 
 - The ink pass reads the topology and the f32 positions by slot, and writes only `SegRows.pipes` and `GlyphRows.spheres`.
 - When a pair's winding disagrees, the second normal is negated: the facing test needs two outward normals.
@@ -158,6 +170,8 @@ flowchart LR
 
 ## Step 7 · One mesh into the tables
 
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+
 - Gates first: above `MESH_RAW_MIN` triangles a mesh is faces only; a print fill (single width 0) takes the sheet index runs.
 - `MeshOpts::SURFACE` marks a tessellation: `FLAG_SMOOTH` tells the marker lane its vertices are samples, and its seams are sampling rather than geometry. `OBJECT` and `ELEMENT` are the authored-mesh presets, which differ in whether an open mesh may be flagged open.
 
@@ -184,6 +198,8 @@ flowchart LR
 
 ## Step 8 · Curves into the ribbon lane
 
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+
 - Lines and polylines become one flat ribbon per span with `FACING_UNKNOWN`: free linework has no faces to cull against.
 
 ```mermaid
@@ -207,6 +223,8 @@ flowchart TB
 
 ## Step 9 · Edge records and the first BRep consumer
 
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+
 - Topology records only: which edge, which face, which orientation. The records carry no geometry.
 
 ```mermaid
@@ -227,6 +245,8 @@ flowchart LR
 
 ## Step 10 · Launch-time knobs
 
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-82bc3205bd.svg)
+
 Presence-only environment flags, read once per process; always false in the browser.
 
 ```mermaid
@@ -240,6 +260,8 @@ flowchart LR
 
 ## Step 11 · Wire the producers
 
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-82bc3205bd.svg)
+
 ```mermaid
 flowchart LR
     A["app/mod.rs"] -- "pub mod walk" --> W["walk producers"]
@@ -252,6 +274,8 @@ flowchart LR
 <!-- check: 06 -->
 
 ## Step 12 · The fixture becomes a source scene
+
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-82bc3205bd.svg)
 
 - `CadFixture` retains the f64 source objects and a `SourceIdentity` per object row; the GPU only receives prepared tables.
 - The same `add` path serves BRep and surface sources, so a row maps back to a GUID without searching triangles.
@@ -268,7 +292,11 @@ flowchart LR
 
 <!-- file: 06 session_viewer/src/lib.rs type -->
 
+- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+
 ## Step 13 · Flat preview shading
+
+![Where this step sits in the viewer: Page, Shaders, with 9 of 11 zones built so far.](illustrations/locator-57da0132de.svg)
 
 The shader ignores vertex normals and shades from the finite face fallback, so a wrong normal contract cannot hide behind lighting.
 

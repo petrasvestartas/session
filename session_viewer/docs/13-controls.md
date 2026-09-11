@@ -39,6 +39,8 @@ flowchart TD
 
 ## Step 1 · Control identities
 
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a258ad0a10.svg)
+
 - `ControlId` names a control within its parent's source geometry; the GPU slot it was uploaded to is temporary.
 - `enable_controls` is idempotent: pressing F10 on the same parent does nothing, so markers are never duplicated.
 
@@ -56,6 +58,8 @@ flowchart LR
 <!-- file: 13 session_viewer/src/app/selection.rs type hunks=2 -->
 
 ## Step 2 · Fetching and source-query records
+
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-02f8bdd268.svg)
 
 These two modules are new and undeclared, so the crate still builds after them.
 
@@ -115,6 +119,8 @@ flowchart LR
 
 ## Step 3 · Wire parsing for streamed clouds
 
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-02f8bdd268.svg)
+
 The protobuf headers sit in the first few kilobytes and `coords` is packed, so the point count is known before a byte of payload is read. Mechanical, so copy it.
 
 ```mermaid
@@ -126,6 +132,8 @@ flowchart LR
 <!-- file: 13 session_viewer/src/app/stream.rs copy -->
 
 ## Step 4 · Picking controls
+
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-9efddb983e.svg)
 
 - `PickMode::Controls` restricts the ID pass to the temporary control markers of one parent.
 - A source query keeps the physical depth and accumulates point IDs across pages: the first page clears the IDs, later pages load them.
@@ -144,6 +152,8 @@ flowchart LR
 <!-- file: 13 session_viewer/src/engine/gpu/render.rs type -->
 
 ## Step 5 · State transitions
+
+![Where this step sits in the viewer: State, with 10 of 11 zones built so far.](illustrations/locator-c12ebb500a.svg)
 
 - `controls` are the current parent's source controls; `cloud_query` is the in-flight page loop.
 
@@ -190,6 +200,8 @@ flowchart TB
 
 ## Step 6 · Key, message and loader wiring
 
+![Where this step sits in the viewer: Network, Scene + walk, Shell, Input, with 10 of 11 zones built so far.](illustrations/locator-3f09f4b704.svg)
+
 ```mermaid
 flowchart LR
     K["F10 · Escape"] --> I["Input"] --> S["State"]
@@ -201,7 +213,11 @@ flowchart LR
 
 <!-- file: 13 session_viewer/src/lib.rs type -->
 
+- The production shell, re-typed whole: its module list is the record of what the viewer now owns, and the `Msg` arms are every asynchronous answer it must handle.
+
 <!-- file: 13 session_viewer/src/app/mod.rs type -->
+
+- The app module list gains the control and query files. The comment is honest about the boundary: loading is still local until lesson 14.
 
 <!-- file: 13 session_viewer/src/app/inspection.rs copy -->
 

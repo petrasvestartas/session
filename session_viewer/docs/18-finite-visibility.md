@@ -51,6 +51,8 @@ flowchart TB
 
 ### Step 1 · Metadata carries the primitive
 
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+
 - The physical metadata target grows from two to four half floats: gradient in `xy`, a lossless triangle address in `zw`.
 - Each 14-bit half of the address skips exponent zero, so it survives `Rgba16Float` without NaNs or denormals.
 
@@ -75,15 +77,25 @@ flowchart LR
 
 <!-- file: 18 session_viewer/src/shaders/grid.wgsl type -->
 
+- The backdrop shaders widen their metadata output to four halves with a zero triangle address: they are not surfaces a tile list can describe.
+
 <!-- file: 18 session_viewer/src/shaders/splat.wgsl type -->
+
+- Same widening for points, same reason: a splat has no triangle to name.
 
 <!-- file: 18 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
+- And for the resolve, which is the pass that actually writes the scene's depth for a cloud.
+
 <!-- file: 18 session_viewer/src/shaders/text_outline.wgsl type -->
+
+- And for imported lettering, the last physical writer.
 
 ## Part B · Project each triangle once
 
 ### Step 2 · The projected record
+
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
 
 `ProjectedTriangle` is six `vec4<f32>`; the Rust mirror test asserts the same offsets and `PROJECTED_BYTES`:
 
@@ -110,6 +122,8 @@ flowchart LR
 
 ### Step 3 · The projection shader
 
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+
 - One compute invocation per triangle reads the arena's vertex, object and index columns through the same instance and translation rows the draw uses.
 - Near-plane clipping happens before the divide, so a triangle crossing the eye becomes a quad or vanishes, never a garbage projection.
 
@@ -134,9 +148,13 @@ flowchart TB
 
 <!-- file: 18 session_viewer/src/shaders/project_triangles.wgsl type lines=61-127 -->
 
+- The shared half: the same projection arithmetic is compiled into the binning passes and into the ink query, so the CPU, the raster and the shader cannot disagree about where a triangle landed.
+
 ## Part C · A compact screen index
 
 ### Step 4 · Count and fill
+
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
 
 - One quad per projected triangle covers its tile bounds; `covered_tile` discards tiles the polygon cannot touch.
 - `fs_count` counts references per tile. `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
@@ -153,6 +171,8 @@ flowchart TB
 
 ### Step 5 · Prefix sums instead of a per-tile cap
 
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+
 - Tile records are `count / offset / cursor / overflow`; block records are `sum / prefix`.
 - Sums saturate at the buffer capacity, so an oversubscribed pool can never wrap into a plausible offset.
 
@@ -167,6 +187,8 @@ flowchart TB
 <!-- file: 18 session_viewer/src/shaders/scan_triangle_tiles.wgsl type -->
 
 ### Step 6 · The owner
+
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-329bba5d89.svg)
 
 - `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall. A dense tile borrows spare space anywhere in the pool.
 
@@ -226,9 +248,13 @@ Copy the rest of the file:
 
 <!-- check: 18 -->
 
+![Each projected triangle rasterizes a quad over its tile bounds, covered_tile discards the tiles the polygon cannot reach, and what survives is counted, prefix-summed and written into one flat pool - so an ink fragment scans one tile's range instead of the whole scene.](illustrations/tiles.svg)
+
 ## Part D · The ink query
 
 ### Step 7 · Refine the rejection, keep the cheap test
+
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
 
 - `ink_visible_plane` is the plane test. When it accepts, nothing else runs.
 - When it rejects: test the winning primitive at the axis, then the four sample-matched neighbours. A finite nearer hit confirms occlusion.
@@ -251,9 +277,13 @@ flowchart TB
 
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=12,13 -->
 
+- The escalation itself: when the plane test rejects, walk the axis pixel's tile list and look for a finite hit. An incomplete list keeps the rejection.
+
 ## Part E · Rust owners and wiring
 
 ### Step 8 · Faces draws the physical pass
+
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-329bba5d89.svg)
 
 - The physical and object-ID triangle pipelines move into `Faces`, so the primitive numbers written by the color pass are the same numbers the projection shader uses.
 - `revision` counts highlight changes, and `draw_masks` writes the highlighted face into both coverage masks of the combined pass: the silhouette's cache key reads the counter, and its one rasterization draws the face through this entry.
@@ -273,6 +303,8 @@ flowchart LR
 <!-- file: 18 session_viewer/src/engine/gpu/arena.rs type -->
 
 ### Step 9 · Bindings 6 and 7
+
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-9efddb983e.svg)
 
 - The ink instance group gains the projected table and the tile buffer; the mvp, line and instance layouts become visible to compute.
 
@@ -300,9 +332,15 @@ flowchart LR
 
 <!-- file: 18 session_viewer/src/engine/gpu/pick.rs type -->
 
+- The picker re-typed whole: the ID pass now needs the tile lists too, or a pick would apply a different visibility rule than the picture.
+
 <!-- file: 18 session_viewer/src/engine/gpu/instance.rs type -->
 
+- The row file re-typed whole for the projected-record mirror test: another Rust struct with a WGSL twin that must not drift.
+
 ### Step 10 · The tile pass runs before ink
+
+![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-4ed02615ae.svg)
 
 - `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
 - After every submit the picker maps its copy and the tiles map their report.
@@ -318,6 +356,8 @@ flowchart LR
 <!-- file: 18 session_viewer/src/engine/gpu/present.rs type -->
 
 ### Step 11 · Masks rasterized once, reused while the view stands still
+
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-9efddb983e.svg)
 
 - `MaskKey` is what a coverage mask depends on: the camera matrix, the geometry revision, the selection revision, the highlighted face's revision, the size, the sample count, and — because edges are part of the coverage — the edge toggle and the pen width. While none of them changes, the mask passes are skipped and the previous masks are composited again: a still view costs no rasterization.
 - When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments, and the faces are rasterized once for both masks; a single outline keeps its own pass.

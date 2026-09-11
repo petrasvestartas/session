@@ -56,6 +56,8 @@ flowchart TB
 
 ### Step 1 · Face identities over the existing triangles
 
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-329bba5d89.svg)
+
 - One `FaceSource` per original face; every display triangle of that face stores the same address in `ids`.
 - Picking pulls the arena's existing vertices by index: no duplicate mesh, no per-face draw call.
 - `FACE_TAG` keeps face addresses apart from edge and control sub-IDs in the same pick channel.
@@ -98,6 +100,8 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 ### Step 2 · The triangle shader learns vertex pulling
 
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+
 - `transform_vertex` is the old `vs_main` body; `vs_face` reaches the same code through storage buffers instead of vertex attributes.
 - `fs_id` writes `FACE_TAG | address` as the sub-ID; `fs_face_highlight` discards everything but the selected face.
 - `fs_solid_mask` writes plain coverage; part C reads it.
@@ -118,6 +122,8 @@ flowchart LR
 
 ### Step 3 · The arena owns a `Faces` lane
 
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-329bba5d89.svg)
+
 - Vertex, id and index buffers gain `STORAGE` usage so `vs_face` can read them.
 - `draw_component_ids` replaces the object-ID draw only in component pick mode.
 
@@ -131,6 +137,8 @@ flowchart TB
 <!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=1,2,4,5,6,7,8,10,11 -->
 
 ### Step 4 · Producers emit one face address per triangle
+
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a258ad0a10.svg)
 
 - Meshes: sorted source face keys, cached triangulation or the fan the kernel would build; the assertion ties the address stream to the triangle stream.
 - BReps: `push_face` records the face index it is tessellating.
@@ -146,7 +154,11 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/app/walk/brep.rs type -->
 
+- The BRep producer, re-typed whole: every face now records the source face index of the triangles it emits, which is what makes a face pickable at all.
+
 ### Step 5 · A third selection mode
+
+![Where this step sits in the viewer: Scene + walk, Input, State, Lanes, with 10 of 11 zones built so far.](illustrations/locator-e4014575f5.svg)
 
 - `SelectionMode::Face` carries parent and face, so Escape returns to the parent like edges do.
 - `PickMode::Component`: the pick sorter prefers a nearby edge, then a face. There is no object fallback — a component click that finds neither selects nothing, because narrowing to a component is a different intent from selecting the whole object.
@@ -185,6 +197,8 @@ flowchart TB
 
 ### Step 6 · A text label can own a row
 
+![Where this step sits in the viewer: Network, GPU core, with 10 of 11 zones built so far.](illustrations/locator-300abc0477.svg)
+
 - `TextObject { row, selected }` on a label means "this text is a scene object"; `None` means a derived annotation such as the selected-object name.
 - `ink_color` is black while the object is selected and the authored color otherwise; both text renderers read it, so the authored color is never touched.
 
@@ -205,6 +219,8 @@ flowchart TB
 
 ### Step 7 · Scene registers text rows
 
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a258ad0a10.svg)
+
 - A key (`manifest-text/{index}`, `document-title/{doc}`) finds its previous row on reload, so hidden state survives replacement.
 - The row is an ordinary `ObjectRow`; hide, select and pick treat it like geometry.
 
@@ -220,13 +236,23 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=16-67 -->
 
+- Authored text becomes a scene object here: a manifest label and a document title each get an ordinary object row, so hide, select and pick treat them like geometry.
+
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=68-85 -->
+
+- A stable key (`manifest-text/{i}`, `document-title/{doc}`) finds the row this text had before a reload, so a selected label stays selected across a scene replacement.
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=86-142 -->
 
+- Resolving text by row, and building the visible submission with the current selection flags. The derived selection name is the one label with no row - it must never intercept a click meant for its parent.
+
 <!-- file: 17 session_viewer/src/app/scene.rs type -->
 
+- `Scene` is re-typed to include the text file as a sibling module: text rows and geometry rows are the same kind of thing and share one numbering.
+
 ### Step 8 · State's companions: text presentation and streamed queries
+
+![Where this step sits in the viewer: State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-a57a97e989.svg)
 
 - `update_label` submits the visible source texts plus the one derived name; the derived name has no row and cannot steal its parent's click.
 - `include_text_bounds` records each text object's shaped world box so fitting and the selection name can use it.
@@ -244,7 +270,11 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=34-54 -->
 
+- Submission is where the derived name is added and marked as having no source row.
+
 <!-- file: 17 session_viewer/src/state/text.rs type lines=55-112 -->
+
+- Fitting now includes authored text: a label's shaped extent in its own fixed frame is part of the scene's bounds, or pressing `F` would cut the text off.
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=113-144 -->
 
@@ -261,7 +291,11 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=39-101 -->
 
+- The page loop, one page per frame: fetch, test, accumulate, and resolve the winner only once every eligible page has answered.
+
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=102-159 -->
+
+- Each batch is stamped with the camera, scene and parent it was asked against; a callback from an older generation is dropped rather than answered.
 
 <!-- file: 17 session_viewer/src/state/cloud_query.rs type lines=160-212 -->
 
@@ -271,7 +305,11 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/engine/gpu/objects.rs type -->
 
+- The object table re-typed whole: it now owns the source-face highlight alongside the rows, because both are per-object state the frame reads.
+
 ### Step 9 · Plates and planes draw IDs
+
+![Where this step sits in the viewer: Shell, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-c709ec99f0.svg)
 
 - Camera-facing text: `Plates` gains a depth per rectangle, an object row and an ID pipeline; physical plates draw before glyphs, overlays after.
 - Every plate vertex carries `object` and a selection flag; the plate's signed distance defines coverage, the yellow backing and the pick footprint.
@@ -307,9 +345,13 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=2 -->
 
+- The rest of the snapshot: what the reader reads back in the browser console to check their own build against the lesson.
+
 ## Part C · One black silhouette
 
 ### Step 10 · Two masks, one compositor
+
+![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-5aa63f726f.svg)
 
 - Ordinary outlines describe the union of all visible solids; touching or overlapping objects get no inner seam.
 - The selected mask is thicker. The compositor takes `max(ordinary, selected)`, so the overlap is never blended twice, and a selected interior suppresses the ordinary contour.
@@ -369,6 +411,8 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 ### Step 11 · The arena draws the solid mask
 
+![Where this step sits in the viewer: Shell, Input, GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-e520a7c2d5.svg)
+
 ```mermaid
 flowchart LR
     A["ArenaLane"] -- "draw_solid_mask" --> M["solid coverage mask"]
@@ -387,11 +431,17 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=4-4 -->
 
+- The binding table in the module comment is the user-facing contract of the whole viewer - if a key is not listed there, it does not exist.
+
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1 -->
+
+- The snapshot gains the new fields. `?inspect=1` is how every checkpoint in this course is observed without a screenshot.
 
 ## Part D · Subdivisions share one join
 
 ### Step 12 · Producers mark chains
+
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a258ad0a10.svg)
 
 - A chain is one authored curve or one BRep edge; independent mesh wires never join just because endpoints coincide.
 
@@ -406,7 +456,11 @@ flowchart LR
 
 <!-- file: 17 session_viewer/src/app/walk/brep_edges.rs type -->
 
+- Re-typed whole because the chain now carries its source edge id all the way to the GPU row: an edge you can see is an edge you can select.
+
 ### Step 13 · The GPU row gains neighbours
+
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-9efddb983e.svg)
 
 - `StrokeSegment` wraps the source row with `previous` and `next` GPU indices; `joined_rows` links consecutive chain members whose endpoints, instance, color and radius agree, and wraps a closed chain.
 
@@ -431,6 +485,8 @@ flowchart LR
 <!-- file: 17 session_viewer/src/engine/gpu/instance.rs type -->
 
 ### Step 14 · One join plane per shared vertex
+
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
 
 ![Two independent ribbons overlap on the inner side of a bend and open a wedge on the outer side; cutting both at one join plane through the shared vertex gives uniform coverage.](illustrations/joins.svg)
 
@@ -466,6 +522,8 @@ Per-pixel attachments are where video memory goes. At 4x the colour, depth and m
 
 ### Step 15 · The pick window's uniforms
 
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-8761e2bda2.svg)
+
 - The pick pass sees the scene through the sub-frustum of the window about the cursor. `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`; both are zero and the canvas size in a colour frame.
 - Splats project onto the canvas with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment; the grid only lists the new fields.
 
@@ -481,7 +539,11 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/shaders/splat_resolve.wgsl type -->
 
+- The resolve gains the window origin, so a point keeps its pixel footprint when the pass renders only a small window of the canvas.
+
 ### Step 16 · Device scale and a lost device
+
+![Where this step sits in the viewer: Network, Shell, Input, State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-3ed1345792.svg)
 
 ![The same strip of glass measured three ways: CSS pixels, device pixels at ratio 2, and the surface pixels a capped ?dpr= actually renders. winit reports the middle one, so every arriving position is multiplied by surface_per_physical.](illustrations/device-scale.svg)
 
@@ -514,9 +576,15 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/lib.rs type -->
 
+- The production shell, re-typed whole: its module list is the record of what the viewer now owns, and the `Msg` arms are every asynchronous answer it must handle.
+
 <!-- file: 17 session_viewer/src/engine/gpu/targets.rs type -->
 
+- Targets are re-typed whole for the coverage masks: two more attachments, allocated only while something is outlined.
+
 <!-- file: 17 session_viewer/src/app/route.rs type -->
+
+- The three routes in one file, and the rule that keeps a scene name inside one tree.
 
 <!-- file: 17 session_viewer/src/app/feedback.rs type -->
 
@@ -531,6 +599,8 @@ flowchart TB
 <!-- step-status: end -->
 
 ## Step 17 · Wire the frame
+
+![Where this step sits in the viewer: GPU core, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-ea7006e739.svg)
 
 - The old `selection_outline` lane goes away; two `SurfaceOutline` instances take its place, and `samples_for` receives the pixel scale.
 - Frame order: face highlight, print geometry, unselected strokes, selected **solid** strokes, the combined black silhouette, then selected **standalone** curves over coincident mesh ink. Each mask pass is followed by its pool pass.
@@ -550,7 +620,11 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/engine/gpu/mod.rs type -->
 
+- `Gpu` re-typed whole: the two silhouette instances replace the old single outline, and the lane list is what the frame walks.
+
 <!-- file: 17 session_viewer/src/engine/gpu/render.rs type -->
+
+- The frame list re-typed whole, because the order changed: this is the file to read when something draws on top of something it should not.
 
 ## Check
 

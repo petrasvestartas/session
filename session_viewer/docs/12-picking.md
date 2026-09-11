@@ -50,6 +50,8 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 ### Step 1 · Device negotiation
 
+![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-b2e12a0853.svg)
+
 - Browser builds use `BROWSER_WEBGPU` only; native test builds use the primary backends. Both go through one function.
 - A storage-binding limit is requested explicitly, so a large cloud fails with a GPU error instead of a silent driver fallback.
 - Uncaptured errors and device loss are remembered in `failure`; `State::render` reads it and shows the reload panel instead of drawing garbage.
@@ -83,6 +85,8 @@ Native-only adapter naming and the error callbacks:
 
 ### Step 2 · Presenting a frame
 
+![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-b2e12a0853.svg)
+
 - `write_frame_uniforms` runs once per frame: camera matrices, then the inside-flag refresh that reads the eye just solved, then text placement.
 - `present` returns `None` when the surface had no texture; the caller asks for another frame instead of panicking.
 - `pick_frame` is the ID pass alone, against the depth the last presented frame left: a pick on a still scene costs no colour frame.
@@ -106,6 +110,8 @@ The offscreen and benchmark paths used by native tools:
 
 ### Step 3 · The frame list
 
+![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-b2e12a0853.svg)
+
 - Pass order is the whole contract: physical surfaces write depth, the selection mask reads it, ink reads it, the ID pass repeats the same toggles.
 - `encode_frame` knows nothing about a surface, so the same list renders headless.
 
@@ -119,7 +125,11 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=55-123 -->
 
+- The frame list, in order. Read it as the contract it is: physical surfaces write the depth, everything after them reads it, and the same order is repeated by the ID pass so a pick cannot disagree with the picture.
+
 ### Step 4 · Input bindings
+
+![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-9a2f7d5e9b.svg)
 
 Every handler returns whether the frame must be redrawn; a click returns `false` because nothing changes until the GPU answers.
 
@@ -161,6 +171,8 @@ flowchart LR
 
 ### Step 5 · Touch
 
+![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-9a2f7d5e9b.svg)
+
 - winit routes `pointerType == "touch"` to `WindowEvent::Touch` only, so fingers never reach the mouse arms.
 - Finger travel is divided by the device pixel ratio; otherwise one centimetre of glass orbits three times faster on a DPR 3 phone.
 - A finger that lifts within 12 px and 300 ms of where it landed is a tap: `Act::Tap` carries the point and the input layer requests a selection there, the same pick a click makes. A second tap within 320 ms and 40 px is `Act::Fit`, which needs the scene bounds a layer up.
@@ -178,9 +190,13 @@ flowchart TB
 
 <!-- file: 12 session_viewer/src/app/touch.rs type lines=69-138 -->
 
+- A finger's whole life, in physical pixels. `Act` is what the gesture asked for rather than what was done, because `Fit` needs the scene bounds and this file is allowed to know only the camera.
+
 <!-- file: 12 session_viewer/src/app/touch.rs copy lines=139-229 -->
 
 ### Step 6 · Scene: source documents and row bookkeeping
+
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a258ad0a10.svg)
 
 - `Scene` owns every kernel `Session` plus its placement; the GPU only holds rows. A pick returns a row, `Scene::resolve` returns the document and GUID.
 - `order` maps row → GUID and `guid_to_row` maps back; both survive an upload because the rows are forgotten only after `upload_to`.
@@ -226,6 +242,8 @@ flowchart LR
 
 ### Step 7 · Selection mode
 
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a258ad0a10.svg)
+
 Exactly one parent owns a specialized selection; `escape` returns that parent so it stays highlighted.
 
 ```mermaid
@@ -237,6 +255,8 @@ flowchart LR
 <!-- file: 12 session_viewer/src/app/selection.rs type -->
 
 ### Step 8 · Producers for clouds, frames and points
+
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-a258ad0a10.svg)
 
 The walk gains three producers so every kernel geometry type has a lane.
 
@@ -264,9 +284,15 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/app/walk/frames.rs type -->
 
+- A plane becomes a one-metre square and a box its twelve edges, both in the flat ribbon lane: a construction plane is drawn, not shaded.
+
 <!-- file: 12 session_viewer/src/app/walk/points.rs type -->
 
+- The smallest producer in the viewer: one dot, no topology, no facing cull. Worth reading as the shape every producer has.
+
 ### Step 9 · Stream records, feedback, inspection and the fixture loader
+
+![Where this step sits in the viewer: Network, Shell, with 10 of 11 zones built so far.](illustrations/locator-467f6be5df.svg)
 
 - `stream.rs` holds the wire-layout records of a streamed cloud.
 - `feedback` writes `textContent`, never HTML.
@@ -286,9 +312,13 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/app/feedback.rs type -->
 
+- Status messages go through `textContent`, never HTML: the text can come from a document or a server, and neither is allowed to write markup into the page.
+
 <!-- file: 12 session_viewer/src/app/inspection.rs copy -->
 
 <!-- file: 12 session_viewer/src/app/loader.rs type -->
+
+- A local fixture loader, one file wide, so the shell has something to load. Lesson 14 replaces it with manifests, routing and staged replacement.
 
 <!-- check: 12 -->
 
@@ -297,6 +327,8 @@ The new modules are not declared yet, so the crate still builds unchanged.
 ## Part B · Picking
 
 ### Step 10 · The ID target and the readback window
+
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-329bba5d89.svg)
 
 ```text
 Rust                                                    WGSL (already in the lanes)
@@ -356,9 +388,13 @@ flowchart TB
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=489-552 -->
 
+- `nearest_hit` is the rule that makes a hairline clickable: ink beats a face anywhere in the window, and among equals the nearest texel to the cursor wins.
+
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs copy lines=553-632 -->
 
 ### Step 11 · The ID pass in the frame list
+
+![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-4ed02615ae.svg)
 
 - Same toggles, same order as the colour list: what a lane hides it cannot pick.
 - Edge mode draws only source-edge IDs; object mode draws faces, then ink with ink-first precedence.
@@ -372,6 +408,8 @@ flowchart LR
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=124-196 -->
 
 ### Step 12 · Selected-surface silhouette
+
+![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-5aa63f726f.svg)
 
 - A visible selected surface writes an R8 coverage mask against the frame's depth; a fullscreen pass darkens the ring just outside it.
 - Coverage is allocated only while a selection exists and released the moment it clears.
@@ -391,6 +429,8 @@ flowchart TB
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=75-98 -->
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=99-165 -->
+
+- `prepare` allocates the coverage texture only while something is selected, and answers whether there is anything to draw at all - the cheapest version of this feature is the one that is switched off.
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=166-229 -->
 
@@ -415,6 +455,8 @@ Still undeclared modules; the check passes for the same reason as before.
 ## Part C · Wiring
 
 ### Step 13 · State
+
+![Where this step sits in the viewer: State, with 10 of 11 zones built so far.](illustrations/locator-c12ebb500a.svg)
 
 - `needs_frame` is the demand for a redraw; `dirty` says the picture changed. A pending pick sets the first without the second.
 - `touch` cancels any pick in flight: the camera or scene it was asked against no longer exists.
@@ -468,6 +510,8 @@ Document titles and the selected name are derived labels; they have no source ro
 
 ### Step 14 · Gpu owns device, presentation and picking
 
+![Where this step sits in the viewer: GPU core, with 10 of 11 zones built so far.](illustrations/locator-4ed02615ae.svg)
+
 - The surface becomes optional so the same `Gpu` renders headless.
 - `controls` and `control_net` are second glyph and segment lanes for source control markers.
 - `set_selected` and `set_hidden` flip one row's flag; hiding also invalidates the cloud records.
@@ -483,6 +527,8 @@ flowchart LR
 <!-- file: 12 session_viewer/src/engine/gpu/mod.rs type -->
 
 ### Step 15 · Declare the modules
+
+![Where this step sits in the viewer: Network, Scene + walk, Shell, GPU core, with 10 of 11 zones built so far.](illustrations/locator-da0cf3c925.svg)
 
 ```mermaid
 flowchart LR
@@ -502,9 +548,15 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/app/walk/mod.rs type hunks=1-1 -->
 
+- The dispatcher: one arm per kernel geometry type, each handed only the lane tables it writes. Nothing here knows what a file is.
+
 <!-- file: 12 session_viewer/src/app/route.rs type -->
 
+- Still the small query parser. It is re-typed here because the production shell owns it now; the routing policy is still two lessons away.
+
 ### Step 16 · The application shell
+
+![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-98ee5e1181.svg)
 
 - `Msg` is every asynchronous message the loader can post; `Ready` carries the `State` built around an empty scene.
 - `request_if_needed` is the one place a frame is asked for.
@@ -531,6 +583,8 @@ flowchart LR
 <!-- file: 12 session_viewer/src/lib.rs copy whole lines=195-258 -->
 
 ### Step 17 · Page, manifest and the removed teaching fixture
+
+![Where this step sits in the viewer: Page, Shell, with 10 of 11 zones built so far.](illustrations/locator-f512b57664.svg)
 
 - The page is one canvas, a status line and a hidden error panel; `touch-action: none` on the canvas hands every gesture to winit before the browser can claim it as a scroll.
 - `#viewer-docs` is the documentation corner: a fixed 40 px black folded-corner triangle at the top right, drawn from the borders of a zero-size anchor, that opens `docs/` in a new tab. Hover or keyboard focus grows it to 52 px through a 250 ms eased transition, so it reads as a page corner lifting; it sits above the canvas and covers nothing but its own triangle.

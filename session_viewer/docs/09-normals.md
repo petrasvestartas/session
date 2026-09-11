@@ -30,6 +30,8 @@ flowchart TD
 
 ## Step 1 · Kernel: only a valid derivative cross is a normal
 
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-34d8e85b4d.svg)
+
 - `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.
 - Read the derivatives directly: a zero-length cross means "singular here", so the incident-triangle fan decides.
 
@@ -54,6 +56,8 @@ Kernel unit tests, the C++/Python parity ports and the teapot asset are supplied
 <!-- check: 09 -->
 
 ## Step 2 · WGSL: transform a normal with the cofactor matrix
+
+![Where this step sits in the viewer: Shaders, with 9 of 11 zones built so far.](illustrations/locator-ab2c6afb30.svg)
 
 Positions use `model`; normals need its inverse transpose, or a nonuniformly scaled instance tilts its normals off the surface.
 
@@ -93,6 +97,8 @@ The vertex stage transforms the baked normal; `shade` normalizes `in.normal` bec
 
 ## Step 3 · Edge facing from physical facets, not shading normals
 
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-bf1f46ef56.svg)
+
 - A cone apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward and hid it.
 - Index every triangle's geometric normal by its exact edge (position bits, winding-free). A seam of one periodic face keeps both incident facets.
 - Missing or ambiguous incidence disables the cull instead of guessing.
@@ -121,6 +127,8 @@ The BRep walk builds the incidence once per upload:
 
 ## Step 4 · A fill-only view for inspecting lighting
 
+![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-7d7a8e7fa4.svg)
+
 Mesh edges and markers become toggles so shading can be judged without boundary ink.
 
 ```mermaid
@@ -134,7 +142,11 @@ flowchart LR
 
 <!-- file: 09 session_viewer/src/lib.rs type -->
 
+- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
+
 ## Step 5 · Fixture: one solid per URL, optionally under an affine placement
+
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-884e63c1c5.svg)
 
 - The placement has a negative determinant and three distinct scales: the sign and cofactor paths are exercised.
 - The crease surface is degree one in U with a shared knot: two shading normals at identical XYZ.

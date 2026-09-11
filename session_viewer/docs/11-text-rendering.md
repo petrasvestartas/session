@@ -41,6 +41,8 @@ flowchart LR
 
 ## Step 2 · Black plates
 
+![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-8b7ae20219.svg)
+
 - A plate is six vertices in clip space plus the local offset, half size and corner radius the fragment shader needs for a rounded edge.
 - Depth compare `Always`, no depth write: a plate is an overlay and never occludes geometry.
 
@@ -75,6 +77,8 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 ## Step 3 · Fixed world planes: records and resources
 
+![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-4fb695e01c.svg)
+
 - A `WorldPlane` label keeps one coverage texture per label; the camera only rewrites six vertices.
 - The texture budget is a hard cap independent of the adapter, so one huge label cannot take the scene's memory.
 
@@ -92,6 +96,8 @@ flowchart LR
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=34-83 -->
 
 ## Step 4 · Planes: prepare
+
+![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-4fb695e01c.svg)
 
 - Placement and colour changes keep the texture; text, font or a larger projected em rebuilds it.
 - Resolution grows in power-of-two em buckets, so small camera motion never re-rasterizes.
@@ -114,6 +120,8 @@ flowchart LR
 
 ## Step 5 · Planes: projection, raster and the quad
 
+![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-8b7ae20219.svg)
+
 - `project` keeps clip `w`; the shader divides, so UVs stay perspective-correct across the plane.
 - `rasterize` composites Swash glyph images into one R8 texture at the chosen em size, bearings and baseline included.
 - `append_quad` walks the label's right/up axes in world units; every vertex carries full clip coordinates and the CSS clip in physical pixels.
@@ -129,6 +137,8 @@ flowchart LR
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=259-322 -->
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=323-402 -->
+
+- Rasterization composites Swash's glyph images into one coverage texture at the chosen em size, bearings and baseline included. This is the only place a glyph becomes pixels.
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=403-467 -->
 
@@ -156,6 +166,8 @@ A native GPU check for the plane path sits at the end of the file.
 
 ## Step 6 · The text lane: frame input and counters
 
+![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-4fb695e01c.svg)
+
 - `TextFrame` is everything placement needs from the frame: the rebased camera, the anchor origin, physical and logical sizes.
 - `logical` comes from the canvas CSS box, not `devicePixelRatio`; that is what makes browser zoom and DPR both work.
 
@@ -170,6 +182,8 @@ flowchart LR
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=1-61 -->
 
 ## Step 7 · The lane owns Glyphon
+
+![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-4fb695e01c.svg)
 
 - Two renderers share one atlas: `anchored` compares depth `GreaterEqual` (reversed Z, occluded by solids), `overlay` is `Always`.
 - `retarget` follows the scene's sample count without reshaping or dropping the atlas.
@@ -191,6 +205,8 @@ flowchart LR
 
 ## Step 8 · Prepare: place, rasterize, build both draw lists
 
+![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-4fb695e01c.svg)
+
 - The key `(document revision, font revision, frame)` skips the whole preparation when nothing moved.
 - Raster keys are bounded: past the budget the atlas and Swash cache are rebuilt together, so no prepared vertex can point at an evicted glyph.
 
@@ -207,7 +223,11 @@ flowchart LR
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=217-271 -->
 
+- Glyphon needs a callback to map each shaped run back to its label's clip depth: the atlas knows glyphs, not scenes, so depth has to be supplied from this side.
+
 ## Step 9 · Draw order, reset, release
+
+![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-4fb695e01c.svg)
 
 Planes first (they are in the scene), then anchored glyphs, then plates, then overlay glyphs on top of their plates.
 
@@ -223,6 +243,8 @@ flowchart TB
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=272-338 -->
 
 ## Step 10 · CSS to physical, once
+
+![Where this step sits in the viewer: Lanes, with 9 of 11 zones built so far.](illustrations/locator-4fb695e01c.svg)
 
 - `scale()` derives one isotropic raster scale from framebuffer ÷ CSS box and rejects a stretched canvas.
 - `place()` projects only the anchor; behind-camera and out-of-range anchors are culled instead of producing inverted text.
@@ -257,6 +279,8 @@ Native checks for scale, depth, nameplates and cache eviction live in the same f
 <!-- check: 11 -->
 
 ## Step 11 · Wire the lane into the frame
+
+![Where this step sits in the viewer: Page, Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-655a6e4a46.svg)
 
 - `write_frame_uniforms` also prepares text and can fail (a stretched canvas), so it returns a `Result`.
 - Text draws after mesh ink in the same pass, against the same read-only depth.

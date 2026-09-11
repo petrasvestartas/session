@@ -1604,7 +1604,7 @@ def gpu_objects():
     c.text(28, 40, "The four objects before any drawing", "h")
     c.text(28, 68, "each one is made from the one before it", "l", fill=PAL["grey"])
     y = 130
-    a = c.box(60, y, ["Instance", "which backend", "BROWSER_WEBGPU"], "cpu")
+    a = c.box(60, y, ["Instance", "which backend", "BROWSER_WEBGPU"], "cpu", w=162)
     b = c.box(a[0] + a[2] + 60, y, ["Surface", "the canvas", "you present to it"], "gpu")
     d = c.box(b[0] + b[2] + 60, y, ["Adapter", "one physical GPU", "compatible_surface"], "gpu")
     e = c.box(d[0] + d[2] + 60, y, ["Device + Queue", "makes every resource", "and takes every command"], "gpu")
@@ -1708,7 +1708,110 @@ def loop():
     c.write("loop.svg")
 
 
+def tiles():
+    c = Canvas("A screen index, one triangle at a time",
+               "Every triangle is projected once, and the screen is a grid of tiles. A quad covering the triangle's tile bounds is rasterized, covered_tile throws away the tiles inside those bounds that the polygon cannot actually touch, and what survives is counted, prefix-summed and written into one flat pool of references. An ink fragment then reads only its own tile's range instead of every triangle in the scene.",
+               1180, 510)
+    pink, green, navy, yellow, grey = PAL["pink"], PAL["green"], PAL["navy"], PAL["yellow"], PAL["grey"]
+    c.text(28, 40, "Only the tiles a triangle can touch", "h")
+
+    cols, rows, tile = 8, 5, 56.0
+    ox, oy = 80.0, 150.0
+    tri = [(190.0, 196.0), (416.0, 244.0), (268.0, 392.0)]
+
+    def inside(p):
+        (x1, y1), (x2, y2), (x3, y3) = tri
+        d = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+        a = ((y2 - y3) * (p[0] - x3) + (x3 - x2) * (p[1] - y3)) / d
+        b = ((y3 - y1) * (p[0] - x3) + (x1 - x3) * (p[1] - y3)) / d
+        return a >= 0 and b >= 0 and a + b <= 1
+
+    # The quad covers TILE bounds, not the raw bbox: snap outward, or tiles it touches sit outside it.
+    lo_i = int((min(p[0] for p in tri) - ox) // tile)
+    hi_i = int((max(p[0] for p in tri) - ox) // tile)
+    lo_j = int((min(p[1] for p in tri) - oy) // tile)
+    hi_j = int((max(p[1] for p in tri) - oy) // tile)
+    lo_x, hi_x = ox + lo_i * tile, ox + (hi_i + 1) * tile
+    lo_y, hi_y = oy + lo_j * tile, oy + (hi_j + 1) * tile
+    touched = 0
+    bounded = 0
+    for i in range(cols):
+        for j in range(rows):
+            x, y = ox + i * tile, oy + j * tile
+            in_bounds = lo_i <= i <= hi_i and lo_j <= j <= hi_j
+            hit = any(inside((x + tile * u, y + tile * v))
+                      for u in (0.12, 0.5, 0.88) for v in (0.12, 0.5, 0.88))
+            if hit:
+                touched += 1
+                c.raw(f'<rect x="{x:.1f}" y="{y:.1f}" width="{tile - 2:.1f}" height="{tile - 2:.1f}" fill="{green}" fill-opacity="0.30" stroke="{green}" stroke-width="1"/>')
+            elif in_bounds:
+                bounded += 1
+                c.raw(f'<rect x="{x:.1f}" y="{y:.1f}" width="{tile - 2:.1f}" height="{tile - 2:.1f}" fill="none" stroke="{pink}" stroke-width="1" stroke-dasharray="4 4"/>')
+            else:
+                c.raw(f'<rect x="{x:.1f}" y="{y:.1f}" width="{tile - 2:.1f}" height="{tile - 2:.1f}" fill="none" stroke="{grey}" stroke-width="0.7"/>')
+    c.raw(f'<rect x="{lo_x:.1f}" y="{lo_y:.1f}" width="{hi_x - lo_x:.1f}" height="{hi_y - lo_y:.1f}" fill="none" stroke="{yellow}" stroke-width="1.6" stroke-dasharray="7 5"/>')
+    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in tri) + f'" fill="none" stroke="#111111" stroke-width="2"/>')
+    c.text(60, 86, "one projected triangle, and the tiles its quad covers", "l")
+    c.text(60, 466, f"{touched} tiles the polygon touches, kept", "s", fill=green)
+    c.text(60, 488, f"{bounded} inside the bounds it cannot reach, discarded by covered_tile", "s", fill=pink)
+
+    c.text(660, 86, "one flat pool, not a quota per tile", "l", fill=navy)
+    px, py, pw = 660.0, 180.0, 460.0
+    spans = [(0.00, 0.09, grey), (0.09, 0.15, grey), (0.15, 0.40, navy), (0.40, 0.47, grey),
+             (0.47, 0.55, grey), (0.55, 0.62, grey), (0.62, 0.78, navy), (0.78, 1.00, grey)]
+    for a, b, colour in spans:
+        c.raw(f'<rect x="{px + pw * a:.1f}" y="{py:.1f}" width="{pw * (b - a) - 2:.1f}" height="46" fill="{colour}" fill-opacity="0.26" stroke="{colour}" stroke-width="1"/>')
+    c.text(660, 166, "references: (primitive, nearest possible depth)", "s")
+    c.raw(f'<line x1="{px + pw * 0.15:.1f}" y1="{py + 58:.1f}" x2="{px + pw * 0.40:.1f}" y2="{py + 58:.1f}" stroke="{navy}" stroke-width="2"/>')
+    c.text(px + pw * 0.15, py + 80, "a dense tile borrows", "s", fill=navy)
+    c.text(px + pw * 0.15, py + 102, "space a sparse one never used", "s", fill=navy)
+    c.text(660, 340, "fs_count counts per tile, a prefix sum turns the counts", "s")
+    c.text(660, 362, "into offsets, and fs_fill writes into the range it was given", "s")
+    c.text(660, 466, "An ink fragment scans one tile's range,", "s", fill=yellow)
+    c.text(660, 488, "never the whole scene.", "s", fill=yellow)
+    c.write("tiles.svg")
+
+
+def splat_resolve():
+    c = Canvas("A point pass of its own, folded back into the scene",
+               "Points are not drawn in the face pass. They are rasterized as discs into a private pair of targets at one sample, where the disc radius comes from the spacing the LOD walk chose; a fullscreen resolve then runs inside the face pass, shades from neighbouring depths and writes frag_depth under the scene's Greater test. That is what lets a cloud occlude a wall and be occluded by it without ever entering the face pipeline.",
+               1180, 480)
+    pink, green, navy, yellow, grey = PAL["pink"], PAL["green"], PAL["navy"], PAL["yellow"], PAL["grey"]
+    c.text(28, 40, "Two passes, one depth buffer in the end", "h")
+
+    c.text(60, 86, "a point becomes a disc", "l", fill=navy)
+    c.raw(f'<circle cx="110" cy="210" r="4" fill="{navy}"/>')
+    c.text(60, 250, "one position", "s")
+    c.arrow(140, 210, 196, 210)
+    c.raw(f'<circle cx="250" cy="210" r="34" fill="{navy}" fill-opacity="0.34" stroke="{navy}" stroke-width="1.6"/>')
+    c.raw(f'<line x1="250" y1="210" x2="284" y2="210" stroke="{yellow}" stroke-width="2"/>')
+    c.text(210, 274, "radius from the spacing", "s", fill=yellow)
+    c.text(210, 296, "the LOD walk chose", "s", fill=yellow)
+
+    c.text(430, 86, "its own targets, one sample", "l", fill=pink)
+    for k, (label, colour) in enumerate((("depth", pink), ("colour", pink))):
+        x = 430.0 + k * 150
+        c.raw(f'<rect x="{x:.1f}" y="150" width="126" height="96" fill="{colour}" fill-opacity="0.18" stroke="{colour}" stroke-width="1.3"/>')
+        c.text(x + 12, 204, label, "s", fill=colour)
+    c.text(430, 274, "not the face pass's attachments,", "s")
+    c.text(430, 296, "and never multisampled", "s", fill=pink)
+
+    c.text(790, 86, "resolved inside the face pass", "l", fill=green)
+    c.raw(f'<rect x="790" y="150" width="300" height="96" fill="{green}" fill-opacity="0.16" stroke="{green}" stroke-width="1.3"/>')
+    c.text(804, 186, "splat_resolve · fullscreen", "s", fill=green)
+    c.text(804, 220, "EDL from neighbouring depths", "s")
+    c.text(790, 274, "writes frag_depth under the scene's Greater test,", "s")
+    c.text(790, 296, "so a cloud occludes a wall and a wall occludes it", "s", fill=green)
+
+    c.arrow(330, 198, 420, 198)
+    c.arrow(720, 198, 780, 198)
+    c.text(28, 404, "The private pair exists because a point is a disc, not a triangle: it needs no multisampling and it must not pay for the face pass's.", "s")
+    c.text(28, 426, "Folding it back as frag_depth is what keeps one depth buffer authoritative for the whole frame.", "s", fill=yellow)
+    c.text(28, 456, "The targets are created on the first frame that has points, so a scene without a cloud never allocates them.", "s")
+    c.write("splat-resolve.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve):
         draw()
-    print("wrote 35 illustrations")
+    print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')

@@ -49,6 +49,7 @@ watch:
 nav:
   - Start here: docs/README.md
   - How to use this course: docs/how-to-learn.md
+  - The map: docs/map.md
   - Words before code: docs/words.md
   - Course:
     - 00 · Empty project to WASM: docs/00-environment.md
@@ -77,5 +78,6 @@ nav:
     - 20 · The document: docs/20-history.md
   - Capstone: docs/capstone.md
   - Reading failures: docs/debugging.md
+  - What this is built on: docs/references.md
   - Architecture reference: ARCHITECTURE.md
   - CAD design record: docs/cad-design.md

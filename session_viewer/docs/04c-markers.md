@@ -36,6 +36,8 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 ## Step 1 · The glyph row
 
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
+
 - `center` is a `vec3` in WGSL, so the row is 48 bytes with `radius` in the padding slot.
 - `facing` plus `facing_ext` hold up to six incident face normals as oct16 pairs; a marker hides when every incident face turns away.
 
@@ -49,6 +51,8 @@ flowchart LR
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=1-56 -->
 
 ## Step 2 · The lane
+
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
 
 - One table per kind, one bind group each, two shader modules, five pipelines.
 
@@ -80,6 +84,8 @@ flowchart LR
 
 ## Step 3 · Vertex markers
 
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+
 - Same bindings as the ribbon shader; the row is `GlyphPoint`. The `LineUniform` mirror lists the whole 80-byte block, `origin` and `frame` included; a sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
 
 ```mermaid
@@ -110,6 +116,8 @@ flowchart TB
 
 ## Step 4 · Free dots
 
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+
 - One equilateral triangle per dot; its incircle is the visible disc, so three vertices cover it without a template.
 
 ```mermaid
@@ -138,6 +146,8 @@ flowchart TB
 
 ## Step 5 · Wire the lane
 
+![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-7861806464.svg)
+
 - A template vertex slot and the `ink_rows` layout (one storage buffer at group 3).
 
 ```mermaid
@@ -152,6 +162,8 @@ flowchart TB
 
 <!-- file: 04c session_viewer/src/engine/pipelines/layouts.rs type -->
 
+- The marker lane's group 3 joins the list. Note what does not change: groups 0 to 2 are identical for every lane, which is exactly what the scene contract depends on.
+
 <!-- file: 04c session_viewer/src/engine/gpu/upload.rs type -->
 
 - Markers draw after strokes so their full footprint stays on top of the edges they sit on.
@@ -161,6 +173,8 @@ flowchart TB
 <!-- file: 04c session_viewer/src/fixture.rs copy -->
 
 <!-- file: 04c session_viewer/src/lib.rs type -->
+
+- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
 
 <!-- file: 04c session_viewer/index.html copy -->
 

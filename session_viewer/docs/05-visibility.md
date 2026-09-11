@@ -28,6 +28,8 @@ flowchart TB
 
 ## Step 1 · The physical contract shared by every shader
 
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+
 Two constants and two output structs, appended to every shader module. `physical_gradient` is the rasterizer's own depth slope of the winning primitive, scaled so `Rg16Float` keeps it.
 
 | Contract | Where it lives |
@@ -49,6 +51,8 @@ flowchart LR
 
 ## Step 2 · Backdrop shaders
 
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+
 - The background is one oversized triangle at `w = 1.0`, depth `Always`, so it never occludes.
 - The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor.
 - Both return `PhysicalColor` with a zero gradient: neither is a surface ink can be carried across.
@@ -66,7 +70,11 @@ flowchart LR
 
 <!-- file: 05 session_viewer/src/shaders/grid.wgsl type -->
 
+- Fifty vertices from the vertex index alone, no buffer. It subtracts `line.anchor` because the instance rows are rebased on the camera anchor and the grid has to agree with them.
+
 ## Step 3 · The backdrop lane
+
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-d52443109a.svg)
 
 - One owner for two pipelines; no buffers, no upload, `retarget` when the sample count changes.
 - `draw_grid` binds `mvp` and the `line` block, matching `@group(0)`/`@group(1)` in `grid.wgsl`.
@@ -85,6 +93,8 @@ flowchart LR
 <!-- check: 05 -->
 
 ## Step 4 · The ink visibility test
+
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
 
 A stroke is drawn as a ribbon of fragments around its mathematical axis. The physical depth at a fragment beside the axis belongs to whatever surface is there, not to the axis:
 
@@ -181,6 +191,8 @@ flowchart LR
 
 ## Step 5 · Shaders emit the gradient
 
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-169b71975b.svg)
+
 Every fragment that writes physical depth also returns its gradient. Face shaders return the real slope; splats, sheets and ID passes return zero because they are not surfaces ink can be carried across.
 
 ```mermaid
@@ -196,11 +208,19 @@ flowchart LR
 
 <!-- file: 05 session_viewer/src/shaders/splat.wgsl type -->
 
+- The point shader gains the physical metadata output, so a splat writes a gradient like every other surface - a zero gradient, because a point is not a surface ink can be carried across.
+
 <!-- file: 05 session_viewer/src/shaders/splat_resolve.wgsl type -->
+
+- The resolve is where a private pass rejoins the shared one: it reads the lane's own depth and colour, lights each point from its neighbours, and writes `frag_depth` so the scene's depth test does the rest.
 
 <!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
 
+- Imported lettering writes physical depth like any surface but is never lit or thickened: the PDF already decided what the glyphs look like.
+
 ## Step 6 · Targets: the gradient attachment and a sample budget
+
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-46c6fbd285.svg)
 
 - `Rg16Float` gradient texture beside depth; single/multisampled views are swapped exactly like the depth views so bind groups stay valid at both sample counts.
 - `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
@@ -218,6 +238,8 @@ flowchart TB
 
 ## Step 7 · Pipelines: one flag adds the second color target
 
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-46c6fbd285.svg)
+
 - `PipelineDesc::physical()` appends the `Rg16Float` target; `ReadOnlyEqual` pipelines keep the gradient their face already wrote by masking their writes.
 - `module` appends `physical.wgsl` after `normals.wgsl`, so every shader sees `PhysicalColor`.
 
@@ -234,9 +256,15 @@ flowchart LR
 
 <!-- file: 05 session_viewer/src/engine/pipelines/layouts.rs type -->
 
+- Group 2 grows: the ink variant now carries the depth and gradient views. This is the binding change that makes the visibility test possible at all.
+
 <!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
 
+- The row gains the flags this lesson needs. The mirror tests at the bottom are what stop the Rust struct and every WGSL declaration of it from drifting apart.
+
 ## Step 8 · Lanes read and write the gradient
+
+![Where this step sits in the viewer: GPU core, Lanes, with 8 of 11 zones built so far.](illustrations/locator-cdae69b29f.svg)
 
 - The ink bind group gains bindings 4 and 5: `@group(2) @binding(4/5)` in step 4a.
 - The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline.
@@ -254,11 +282,19 @@ flowchart TB
 
 <!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
 
+- The mesh lane learns its second index run: sheet fills draw in document order with the depth write off, because a flat fill has no thickness to occlude with.
+
 <!-- file: 05 session_viewer/src/engine/gpu/splat.rs type -->
+
+- The point lane learns the resolve pass and the physical metadata, so a cloud now occludes and is occluded exactly like a solid.
 
 <!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
 
+- The outline lane joins the physical pass with `.physical()`, the one flag that adds the gradient target to a pipeline.
+
 ## Step 9 · Wire the lane and the sample count
+
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-46c6fbd285.svg)
 
 - `retarget` rebuilds targets, ink bind groups and every lane's pipelines when the sample count flips, and only then.
 - The backdrop draws first inside `begin_faces`, before any geometry.
@@ -275,6 +311,8 @@ flowchart LR
 
 ## Step 10 · The fixture and the page
 
+![Where this step sits in the viewer: Page, Shell, with 8 of 11 zones built so far.](illustrations/locator-f79ec34c84.svg)
+
 The grey box and the sloping floor are the shapes the visibility test is judged on.
 
 ```mermaid
@@ -288,6 +326,8 @@ flowchart LR
 <!-- file: 05 session_viewer/src/fixture.rs copy -->
 
 <!-- file: 05 session_viewer/src/lib.rs type -->
+
+- The teaching shell is re-typed whole because its module list and its `render` are what wire the lane you just built; the production `App` replaces it in lesson 12.
 
 <!-- file: 05 session_viewer/index.html copy -->
 

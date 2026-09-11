@@ -24,6 +24,8 @@ flowchart TB
 
 ## Step 1 · Native tooling the crate declares
 
+![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-8f947b7797.svg)
+
 Cargo discovers every file under `examples/` as a native example; their sources and the offscreen harness are supplied, not taught. Install them now, and give the manifest its native-only dependency.
 
 ```mermaid
@@ -38,6 +40,8 @@ flowchart LR
 <!-- file: 16 session_viewer/Cargo.toml copy -->
 
 ## Step 2 · Count what is knowable, name what is not
+
+![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-98ee5e1181.svg)
 
 ![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)
 
@@ -64,6 +68,8 @@ Unit tests, part of the file:
 <!-- check: 16 -->
 
 ## Step 3 · Report it beside the GPU figures
+
+![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-98ee5e1181.svg)
 
 - The snapshot names its scope and exclusions in the JSON itself, so a reader of `?inspect=1` cannot mistake the payload for total heap.
 

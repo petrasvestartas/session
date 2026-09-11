@@ -23,6 +23,8 @@ cd "$COURSE_WORK/session_viewer"
 
 ## Step 1 · Declare the crate
 
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-0be6f1d7e5.svg)
+
 - `cdylib` is what wasm-bindgen turns into a browser module; `rlib` lets native tools link the same crate.
 - Every version here is pinned by `Cargo.lock` in step 4; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
 - The `[target.'cfg(not(wasm32))']` table stays at the end: a target table in the middle silently swallows every `[dependencies]` line after it.
@@ -39,6 +41,8 @@ flowchart LR
 
 ## Step 2 · Make wasm32 the default target
 
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-0be6f1d7e5.svg)
+
 One line makes every `cargo` command build for the browser, so the code needs no `#[cfg(target_arch = "wasm32")]` gates. `xtest` is the native alias that runs the tests.
 
 ```mermaid
@@ -51,6 +55,8 @@ flowchart LR
 <!-- file: 00 session_viewer/.cargo/config.toml type -->
 
 ## Step 3 · Tell Trunk what to bundle
+
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-0be6f1d7e5.svg)
 
 Release builds, no subresource hashes, and a watch list that includes the kernel next door.
 
@@ -78,6 +84,8 @@ flowchart LR
 
 ## Step 5 · The page
 
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-0be6f1d7e5.svg)
+
 One element with `id="status"`; Rust looks it up by that name.
 
 ```mermaid
@@ -90,6 +98,8 @@ flowchart LR
 <!-- file: 00 session_viewer/index.html copy -->
 
 ## Step 6 · The first Rust function
+
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-82bfa4337f.svg)
 
 - `#[wasm_bindgen(start)]` runs this function when the browser finishes loading the module.
 - `web_sys` is the browser DOM seen from Rust; `expect` aborts with a readable message if an element is missing.

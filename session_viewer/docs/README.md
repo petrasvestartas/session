@@ -37,6 +37,8 @@ flowchart TB
 
 Read [How to use this course](how-to-learn.md) first: it is short, and it says how a lesson is built. Nothing in this course is hidden — every lesson ends in **Questions and answers**, where each question is followed by the reasoning that gets you there and then the answer.
 
+Then read [The map](map.md): one picture of the whole viewer, which every single step of the course reopens with your current position lit. It is the answer to "where does this file sit in the bigger picture", and it is the same picture every time.
+
 Then read [Words before code](words.md) once: every term the lessons use before they have room to explain it, with the file where it first appears. Come back to it whenever a sentence stops making sense. When something breaks, [Reading failures](debugging.md) covers the errors this course actually produces.
 
 ## How a lesson reads

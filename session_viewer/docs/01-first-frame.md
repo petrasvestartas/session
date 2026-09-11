@@ -28,6 +28,8 @@ flowchart TB
 
 ## Step 1 · One struct owns the GPU
 
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-82bfa4337f.svg)
+
 - `Tutorial` is the shell: one struct that owns the GPU objects and is exported to the page.
 - `#[wasm_bindgen]` on the struct and its `impl` exports `create`, `render`, `drag`, `zoom` to JavaScript.
 - `drag` and `zoom` are exported with empty bodies, so the page wires all four methods at once.
@@ -44,6 +46,8 @@ flowchart TB
 
 ## Step 2 · Instance, surface, adapter, device
 
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-82bfa4337f.svg)
+
 - `Backends::BROWSER_WEBGPU`: only the browser's WebGPU, never WebGL.
 - The adapter must be `compatible_surface`; otherwise the device may not be able to present to this canvas.
 - `on_uncaptured_error` turns a shader validation failure into a visible panic instead of a silent black canvas.
@@ -53,6 +57,8 @@ flowchart TB
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=37-58 -->
 
 ## Step 3 · Surface configuration and the camera uniform
+
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-82bfa4337f.svg)
 
 - `width: 1, height: 1` marks "not configured yet"; `render_frame` resizes on first use.
 - A **uniform** is one small buffer every vertex reads. It holds an identity matrix, so clip position equals the shader's vertex position.
@@ -76,6 +82,8 @@ flowchart TB
 
 ## Step 4 · Shader module, pipeline layout, render pipeline
 
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-82bfa4337f.svg)
+
 - `include_str!` bakes the WGSL into the binary; a missing shader file is a compile error, not a runtime one.
 - Entry-point names `vs_main`/`fs_main` and the color target `format` are the contract with the shader and the surface.
 - `buffers: &[]`: this triangle is generated from `vertex_index`, so no vertex buffer is bound.
@@ -93,6 +101,8 @@ flowchart LR
 
 ## Step 5 · One frame
 
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-82bfa4337f.svg)
+
 - Resize once when the CSS size or device scale changed; configure the surface only then.
 - A render pass borrows the encoder; the inner braces end the borrow before `encoder.finish()`.
 - This pass has a color attachment only, no depth.
@@ -108,6 +118,8 @@ flowchart TB
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=145-205 -->
 
 ## Step 6 · The shader
+
+![Where this step sits in the viewer: Shaders, with 4 of 11 zones built so far.](illustrations/locator-1091c74167.svg)
 
 Rust and WGSL agree on three things:
 
@@ -136,6 +148,8 @@ flowchart LR
 ![The shader is handed only an index and computes three positions in clip space, a square two units across with y up; the viewport transform turns that into pixels with y down, and that flip is why a first image is sometimes upside down.](illustrations/clip-space.svg)
 
 ## Step 7 · The page drives the shell
+
+![Where this step sits in the viewer: Page, with 4 of 11 zones built so far.](illustrations/locator-20bb0c76b9.svg)
 
 JavaScript owns the canvas and pointer events; it calls the four exported methods. Replace the page in full.
 

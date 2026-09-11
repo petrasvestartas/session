@@ -26,6 +26,8 @@ flowchart TB
 
 ## Step 1 · The manifest is placement, not geometry
 
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-02f8bdd268.svg)
+
 - A manifest lists files and where each sits (`at`, `xform`, or the auto-grid); the geometry stays in `.pb` files, so a placement edit never re-uploads geometry.
 - `parse` accepts YAML, JSON and TOML with one set of semantics and rejects non-finite or non-affine transforms before anything is fetched.
 - `TextItem` is a fixed world-plane label authored in the manifest; its frame must be unit and orthogonal, checked here rather than in a renderer.
@@ -53,6 +55,8 @@ Parser unit tests, part of the file:
 
 ## Step 2 · Validate serialized counts before the kernel allocates
 
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-02f8bdd268.svg)
+
 - A hostile `cv_count` would make a kernel constructor allocate from a declared number; every count is checked against the actual storage length first.
 - `session` walks a decoded protobuf; `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds objects.
 
@@ -67,9 +71,13 @@ flowchart LR
 
 <!-- file: 14 session_viewer/src/app/validate.rs type lines=148-232 -->
 
+- Every declared count is checked against the storage that must hold it, before a kernel constructor can allocate from a number an attacker chose.
+
 <!-- file: 14 session_viewer/src/app/validate.rs copy lines=233-473 -->
 
 ## Step 3 · Decode without freezing the page
+
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-02f8bdd268.svg)
 
 - prost decodes the whole message in one call; converting objects into kernel types is the slow part, so `Pacer` yields to the browser every `CHUNK` objects through `next_tick`.
 - The bytes are taken by value and dropped right after prost is done, before the conversion loop starts.
@@ -84,7 +92,11 @@ flowchart LR
 
 <!-- file: 14 session_viewer/src/app/decode.rs type lines=61-149 -->
 
+- Decoding is `pb_loads` unrolled with awaits, so the browser gets a turn between chunks. A page that freezes for two seconds while a scene loads is a bug you cannot profile after the fact.
+
 ## Step 4 · The URL decides the route
+
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-02f8bdd268.svg)
 
 - Three routes: a named scene (`?scene=` or the last path segment) from the bucket, the local manifest on a dev server, and no route at all on a deployed page, which hands over to the live source.
 - `?data=` overrides where `.pb` files come from; `query_scene` refuses `..`, absolute paths and schemes so a manifest name stays inside one tree.
@@ -98,6 +110,8 @@ flowchart LR
 <!-- file: 14 session_viewer/src/app/route.rs type -->
 
 ## Step 5 · A live source polls with ETags
+
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-02f8bdd268.svg)
 
 - An idle poll must stay cheap: every file is re-read with `If-None-Match`, so an unchanged file answers `304` and is never downloaded or decoded again.
 - A relay message (`EventSource`) only raises a flag that says "look now"; the conditional reads still decide what changed.
@@ -152,6 +166,8 @@ flowchart TB
 
 ## Step 6 · Stage a replacement, then swap it in whole
 
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-02f8bdd268.svg)
+
 ![Two request generations in flight: the older one is dropped, the newer one is staged in manifest order and swapped in whole while the previous scene stays on screen.](illustrations/loading.svg)
 
 - A slow old response arriving last must not replace a newer scene, so every load carries a generation and `stale_load` is checked after each await.
@@ -162,6 +178,8 @@ flowchart TB
 <!-- file: 14 session_viewer/src/app/loader.rs type -->
 
 ## Step 7 · Wire the modules and the text message
+
+![Where this step sits in the viewer: Page, Scene + walk, Shell, State, with 10 of 11 zones built so far.](illustrations/locator-111883acf9.svg)
 
 - `decode`, `fetch` and `live` are browser-only; `manifest` and `validate` compile natively too.
 - Manifest text reaches State through one `Msg::Texts`; `set_texts` builds fixed-plane labels and grows the fit bounds by the shaped text extents.
@@ -178,7 +196,11 @@ flowchart LR
 
 <!-- file: 14 session_viewer/src/app/scene.rs type -->
 
+- `Scene` is re-typed whole because its job changes: it now owns the documents *and* their placements, and knows how to be cleared without being replaced.
+
 <!-- file: 14 session_viewer/src/lib.rs type -->
+
+- The production shell, re-typed whole: its module list is the record of what the viewer now owns, and the `Msg` arms are every asynchronous answer it must handle.
 
 <!-- file: 14 session_viewer/src/state.rs type -->
 

@@ -44,6 +44,8 @@ Bind groups every lane shares (`Layouts`):
 
 ## Step 1 · The floor: device, growable buffers, helpers
 
+![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-211c36b062.svg)
+
 - `GpuCtx` is the device/queue pair every lane is made with.
 - `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written. It returns `true` when the buffer moved so the caller rebuilds its bind group.
 
@@ -73,6 +75,8 @@ flowchart LR
 
 ## Step 2 · Bind-group layouts
 
+![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-211c36b062.svg)
+
 - A layout is the shape of a bind group; the buffers live in the lanes.
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
 
@@ -92,6 +96,8 @@ flowchart LR
 <!-- file: 04a session_viewer/src/engine/pipelines/layouts.rs type lines=53-106 -->
 
 ## Step 3 · Pipelines are data
+
+![Where this step sits in the viewer: GPU core, Shaders, with 6 of 11 zones built so far.](illustrations/locator-d646012418.svg)
 
 - `Target` is where a pipeline draws; `DepthMode` and `ColorWrite` name the only depth and blend states the viewer uses.
 - Every compare is reverse-Z: nearer is `Greater`.
@@ -136,9 +142,13 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/shaders/normals.wgsl type -->
 
+- A teaching stage: rigid and uniform scales only. Lesson 09 replaces the body with the cofactor transform that survives a nonuniform scale, keeping the signature so no lane has to change.
+
 <!-- check: 04a -->
 
 ## Step 4 · Targets and the two passes
+
+![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-211c36b062.svg)
 
 - The face pass clears color and depth (to `0.0`, reverse-Z) and writes both.
 - The ink pass loads color, keeps depth read-only and samples it through group 2.
@@ -155,9 +165,15 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=71-135 -->
 
+- The two passes in one place. `begin_faces` establishes the depth every later fragment is judged against; `begin_ink` keeps that depth read-only and hands it to the shader instead.
+
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=136-165 -->
 
+- `TextureSpec` is the whole description of an attachment - size, format, samples, usage. Keeping it as data is what lets every attachment be rebuilt from one place when the sample count flips.
+
 ## Step 5 · Frame uniforms
+
+![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-211c36b062.svg)
 
 - `FrameInput` is what one frame needs from the caller; `FrameCx` adds the knobs, the anchor and the framebuffer, with `pixel_scale` the framebuffer pixels per CSS pixel; `Binds` sets groups 0, 1, 2 before every lane draw.
 
@@ -224,6 +240,8 @@ flowchart TB
 
 ## Step 6 · Runtime knobs and the query string
 
+![Where this step sits in the viewer: Network, Shell, GPU core, with 7 of 11 zones built so far.](illustrations/locator-87dfa62a71.svg)
+
 - `View` is read once from `?name=` on wasm or `ENV` natively and consulted every frame.
 
 ```mermaid
@@ -238,9 +256,15 @@ flowchart LR
 
 <!-- file: 04a session_viewer/src/app/mod.rs type -->
 
+- The app layer begins with one file: a query reader. Everything else it will own - loading, input, the scene - arrives later, and this module list is how you watch it grow.
+
 <!-- file: 04a session_viewer/src/app/route.rs type -->
 
+- Enough of a query parser to read `?name=value`. The routing policy waits for lesson 14; what matters now is that a knob is read in one place instead of being parsed wherever it is needed.
+
 ## Step 7 · The object table
+
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-d1749ee4b2.svg)
 
 - `ObjectRow` is one object as the producer reports it: f64 placement, tint, flags, local box, spacing.
 - `InstanceTable` owns the rows the GPU reads, the true f64 translations, and the two buffers behind group 2.
@@ -276,13 +300,19 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=313-360 -->
 
+- Re-anchoring lives here: when the camera drifts far from the anchor the f64 translations are rewritten and the f32 rows stay small. `anchored_model` spells out on the CPU the composition a shader performs, so a test can check it.
+
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=361-416 -->
+
+- Flags are set one row at a time and written back one row at a time: selecting an object must not re-upload the table.
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=417-469 -->
 
 <!-- check: 04a -->
 
 ## Step 8 · The mesh shader
+
+![Where this step sits in the viewer: Shaders, with 7 of 11 zones built so far.](illustrations/locator-66f96c5101.svg)
 
 - Groups 0, 1, 2 and the `LineUniform` mirror; `place` applies the row's rotation/scale and the anchored translation.
 
@@ -303,6 +333,8 @@ flowchart TB
 <!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=114-122 -->
 
 ## Step 9 · The mesh lane
+
+![Where this step sits in the viewer: Lanes, Shaders, with 8 of 11 zones built so far.](illustrations/locator-7cc12fce76.svg)
 
 - `ArenaRows` is one upload's delta; `ArenaLane` is five `GrowBuf`s under one growth policy and the pipelines over them.
 
@@ -337,9 +369,13 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=68-114 -->
 
+- Imported lettering borrows the arena's buffers rather than copying them: the glyphs are already geometry, and a second copy would be a second thing to keep in step.
+
 <!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs copy lines=115-246 -->
 
 ## Step 10 · Upload and the fixture
+
+![Where this step sits in the viewer: Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-26e18eb112.svg)
 
 - `Upload` carries every lane's rows for one file and nothing GPU-typed. Deleting a lane means deleting its field here.
 
@@ -358,6 +394,8 @@ flowchart LR
 <!-- file: 04a session_viewer/src/fixture.rs copy -->
 
 ## Step 11 · Wire the coordinator
+
+![Where this step sits in the viewer: Page, Shell, GPU core, Shaders, with 8 of 11 zones built so far.](illustrations/locator-acc1360a16.svg)
 
 - `Gpu` owns the surface, one device, the layouts, frame uniforms, targets, the object table and the lanes; the lanes never see each other.
 
@@ -391,6 +429,8 @@ flowchart TB
 <!-- file: 04a session_viewer/src/lib.rs type whole lines=1-52 -->
 
 <!-- file: 04a session_viewer/src/lib.rs type whole lines=53-95 -->
+
+- `render` is the frame: resize if needed, take one anchor for the whole frame, submit. Taking the anchor once is what stops two lanes disagreeing about where the world is.
 
 <!-- file: 04a session_viewer/src/scene.rs -->
 
