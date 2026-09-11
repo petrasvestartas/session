@@ -119,7 +119,7 @@
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-67 -->
 
-- The rest is the crease test: the cosine between two face normals sorts a shared edge into border, crease, or an interior diagonal nobody should see.
+- The rest is the crease test drawn above: one cosine sorts a shared edge into border, crease, or an interior diagonal.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 

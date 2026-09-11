@@ -101,11 +101,11 @@ Expected:
 
 *How to work it out.* The file is small metadata fields separated by huge geometry arrays. Reading only what you asked for costs one round-trip per field — dozens. Reading generously costs nothing extra for small fields but would swallow a geometry array whole.
 
-*The answer.* The minimum makes adjacent small fields share one request; skipping by length keeps the window from pulling an array it does not need. Lower the minimum and the request count climbs back, as the lesson's experiment shows; drop the skip and you download the file you were avoiding.
+*The answer.* The minimum makes adjacent small fields share one request; skipping by length keeps the window from pulling an array it does not need. Lower the minimum and the request count climbs back; drop the skip and you download the file you were avoiding.
 
 **A changed ETag fails the read instead of refilling the window. Defend that.**
 
-*How to work it out.* Ask what you would be holding after a silent refill: offsets computed from revision 1 indexing bytes from revision 2. The result parses, because both are valid files — it is simply wrong geometry.
+*How to work it out.* Ask what you would be holding after a silent refill: offsets computed from revision 1 indexing bytes from revision 2. The result parses, because both are valid files — it is wrong geometry.
 
 *The answer.* Failing is recoverable: reload and get a consistent revision. Mixing is not detectable after the fact, and a plausible wrong scene is the expensive failure. Same instinct as the empty mesh in lesson 07.
 

@@ -114,7 +114,7 @@ Comparing `z0` with `d` directly hides ink on its own face. The physical gradien
 ### 4c · Carrying a stroke fragment's surface to the axis
 
 - `ink_axis_visible` fits a plane from the fragment's texel and one neighbour away from the stroke, then evaluates it at the axis.
-- `ink_carry_visible` is one-sided: a nearer texel hides the stroke unless its surface passes through the axis, while a farther texel keeps the plain compare.
+- `ink_carry_visible` is one-sided when the texel is farther and a window when it is nearer, as above.
 
 ![Diagram: fragment texel · neighbour texel · ink_axis_visible · ink_carry_visible](illustrations/05-07.svg)
 

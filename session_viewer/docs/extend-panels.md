@@ -143,7 +143,7 @@ impl Gpu          { pub fn set_hidden_rows(&mut self, runs: &[Range<u32>], on: b
 
 - The GPU could do it with no new `PickMode`: `TextLane::draw_ids` runs outside the `match mode` in `Renderer::id_pass`, so a screen label with an `object` is pickable today.
 - Don't: the id path answers occlusion, and costs a pass, a `copy_window` readback, a generation check and a frame of lag (`Picker::poll`, applied atop `State::render`) — hover cannot survive that. A row is an axis-aligned CSS-px box computed one call earlier: four comparisons, no lag, no stale-generation drop.
-- Precedence is what the CPU test must add: run it in `Input::left` (`src/app/input.rs`) BEFORE `state.request_selection(...)` and return on a hit.
+- The CPU test must add precedence: run it in `Input::left` (`src/app/input.rs`) BEFORE `state.request_selection(...)` and return on a hit.
 - Units bite: `Input.last_cursor` is surface px (`CursorMoved` multiplies by `surface_per_physical()`), `Screen` is CSS px. Divide by `device_pixel_ratio()` (`src/engine/gpu/view.rs`) and lay out against `State::logical_size()`.
 - Hover on `CursorMoved` when not dragging; return `true` only when the hovered row CHANGED, else every mouse motion redraws the scene.
 - `l` toggles the panel in `Input::key` — taken are c, f, q, w, e, o, d, h, s, t, b, p, 1–7, `[`, `]`, Space, Escape, F10.
@@ -170,7 +170,7 @@ impl Gpu          { pub fn set_hidden_rows(&mut self, runs: &[Range<u32>], on: b
 - `Scene::rebuild` keeps `docs` and `hidden` and re-runs `add_file`, so the indexes return with the rows — provided `reset_rows` cleared them, or they double.
 - `Scene::clear` drops documents and `hidden`; `State::clear` must clear `Filters` too, or a new scene starts half-hidden.
 - Open state and scroll are path-keyed: they survive a rebuild of the same documents and die with a `clear`.
-- Streamed clouds and sheets cannot return after a rebuild — no kernel object to re-walk (`Scene::rebuild`'s doc comment) — and `reset_rows` empties `Scene.streamed` and `Scene.sheets` before the first `add_file`, so their descriptors are gone too: the documents survive in `docs` as empty shells that walk to no rows at all. Only a document change rebuilds, so refuse a reparent or delete while `scene.streamed` or `scene.sheets` is non-empty, say why on the row, and drop their panel rows if a rebuild happens anyway.
+- Streamed clouds and sheets cannot return after a rebuild: there is no kernel object to re-walk, and `reset_rows` empties `Scene.streamed` and `Scene.sheets` before the first `add_file`, so the documents survive in `docs` as empty shells that walk to no rows. Refuse a reparent or delete while either is non-empty, say why on the row, and drop their rows if a rebuild happens anyway.
 - Nothing prunes panel state: rebuild the flat list after every `add_file`, `rebuild` and `clear`, and drop entries whose document index is gone.
 
 ## The awkward rows

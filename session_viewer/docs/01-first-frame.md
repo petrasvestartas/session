@@ -140,7 +140,7 @@ Expected:
 
 - A red/green/blue triangle on a dark canvas.
 - Status reads **Checkpoint 01 · 1 objects · W×H** where W×H is the physical framebuffer size.
-- Resize the window: the triangle stretches with it. The uniform holds identity, so the three positions are already clip space and the viewport maps them onto whatever shape the canvas is; nothing corrects for aspect ratio until the camera in 02.
+- Resize the window: the triangle stretches with it. The uniform holds identity, so the three positions are already clip space; nothing corrects for aspect ratio until the camera in 02.
 
 ![Checkpoint 01: the first triangle, colors interpolated from the three vertices.](screenshots/01.png)
 

@@ -311,7 +311,7 @@ scene.push_row(usize::MAX, "__preview__", Xform::identity().m, 0);
 ```
 
 - `usize::MAX` as owner is the idiom for a row with no kernel object (`register_text`, `src/app/scene_text.rs:84`); `push_row` is `pub(super)`.
-- Push it wherever rows are minted from empty — `Scene::new` (`src/app/scene.rs:153`) and the tail of `reset_rows` (`:182-193`) — not at start-up alone and not in `Scene::rebuild` (`:197`) alone: `reset_rows` clears `order`, `owners` and `guid_to_row` on every rebuild, so a cached row number goes stale on the next commit, and `rebuild` runs on no ordinary load path (a document arrives through `State::append` → `add_file` → `upload_to`), so a row reserved only there does not exist until the first edit. Keep the number on `Scene` and re-read it after every rebuild.
+- Push it wherever rows are minted from empty — `Scene::new` and the tail of `reset_rows` — not at start-up alone and not in `Scene::rebuild` alone. `reset_rows` clears `order`, `owners` and `guid_to_row` on every rebuild, so a cached row goes stale; and `rebuild` runs on no ordinary load path (a document arrives through `State::append` → `add_file` → `upload_to`), so a row reserved only there does not exist until the first edit. Keep the number on `Scene` and re-read it after every rebuild.
 - Colour it distinctly from the control net's `0xffcc8866` (`src/state.rs:606`).
 
 ## Reporting back

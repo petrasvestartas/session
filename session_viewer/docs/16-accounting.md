@@ -39,7 +39,7 @@
 ![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)
 
 - The number is a lower bound: exact `Vec`/`String` capacities, occupied map entries and exposed slice lengths, never allocator overhead or RSS.
-- Shared values count once: a `seen` set records each `Rc` object by pointer, so a document listed twice, or a geometry in both a typed list and the lookup, adds nothing twice.
+- A `seen` set records each `Rc` object by pointer, so a document listed twice, or a geometry in both a typed list and the lookup, counts once.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -60,7 +60,7 @@
 The rest of `session_payload` — components, the lookup, the transform map and the caches — then the per-type payload walks, one function per geometry kind:
 
 - Each adds only what it can see exactly: vector and string capacity, occupied map entries, exposed slice lengths. Never allocator overhead, never the `Rc` header.
-- Every `Rc` goes into `seen` by pointer before it is counted, so a geometry reachable from both a typed list and the lookup adds its bytes once. That is what makes the number a floor rather than an over-count.
+- Every `Rc` goes into `seen` by pointer before it is counted, so a geometry reachable from both a typed list and the lookup adds its bytes once. That makes the number a floor, not an over-count.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 

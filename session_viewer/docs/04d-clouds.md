@@ -247,7 +247,7 @@ Expected:
 
 - Append `?cloud=3`: every point grows on screen; `cloud_size` scales the per-cloud size in the record, the buffers are untouched.
 - Append `?edl=0`: the eye-dome lighting goes away and the cloud reads flat; it is a resolve-pass effect, not stored colour.
-- Append `?lod=64`: the picture does not change, and that is the answer. `LodWalk::select` draws a cloud whole when it has no octree or holds fewer than `LOD_MIN_POINTS` points, and this fixture's grid is 117 points with `node_count: 0`. The cutoff starts choosing nodes only once a cloud arrives with an octree behind it.
+- Append `?lod=64`: nothing changes, and that is the answer. `LodWalk::select` draws a cloud whole with no octree or under `LOD_MIN_POINTS`, and this fixture is 117 points with `node_count: 0`. The cutoff bites only behind an octree.
 
 ## Questions and answers
 

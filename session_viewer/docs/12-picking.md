@@ -112,7 +112,7 @@ Offscreen and benchmark paths for native tools:
 
 ![Where this step sits in the viewer: Input, with 10 of 11 zones built so far.](illustrations/locator-e98165b3e5.svg){ .locator data-strip="illustrations/strip-25545ebdc0.svg" }
 
-Every handler returns whether a redraw is needed; a click returns `false` — nothing changes until the GPU answers. The module header you are about to type also names `O` (silhouettes) and `F10` (source controls): neither has an arm in `key()` yet, because `F10` arrives in lesson 13 and `O` in lesson 17. The header is written once for the finished set of bindings; the table below is what this checkpoint answers.
+Every handler returns whether a redraw is needed; a click returns `false` — nothing changes until the GPU answers. The header you type names `O` and `F10` too: they have no arm in `key()` yet (`F10` arrives in 13, `O` in 17). The header lists the finished set; the table below is this checkpoint.
 
 | Input | Action |
 |---|---|
@@ -354,7 +354,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 - The pass is scissored to a window about the cursor; only that window is copied out.
 - The vertex work stays, the fill does not.
 - `ROW_BYTES` is the copy pitch rounded to the required alignment.
-- `Pick.sub` is a tagged union, and its doc comment names every tag the finished viewer uses at once: 0 for the object itself, bit 31 set for a segment with its row in the low bits, a point row for a cloud, and `faces::FACE_TAG` for a source face. The `faces` module arrives with lesson 17; nothing writes that tag yet.
+- `Pick.sub` is a tagged union and its doc names every tag at once: 0 the object, bit 31 a segment, a point row a cloud, `faces::FACE_TAG` a source face. `faces` arrives in 17; nothing writes that tag yet.
 
 ![Diagram: cursor window · IdTargets\ Rg32Uint · Depth32Float · readback buffer · Picker answer](illustrations/12-12.svg)
 

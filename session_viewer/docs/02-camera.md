@@ -225,7 +225,7 @@ Dragging twice as far on a high-DPI display: look at the `self.scale` conversion
 
 *How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven before the decimal point, so the conversion has to happen while the numbers are *small* — after subtracting an anchor near the camera.
 
-*The answer.* On the matrix the shader receives, once the anchor is already out of it: `view_proj_anchored` subtracts the anchor and does every step in f64, and the cast is the `Xform::to_f32` call that fills the uniform. A placement crosses at the matching edge, `mat_to_f32`. Convert before rebasing and the low bits are gone; the symptom is jitter you cannot debug from inside the shader, which was handed bad numbers. The subtraction is what makes the cast safe, so a jittering placement has one thing to check: which side of it the conversion happened on.
+*The answer.* After the anchor is out of it. `view_proj_anchored` subtracts the anchor in f64 and `Xform::to_f32` casts what is left into the uniform; a placement crosses at the matching edge, `mat_to_f32`. Convert before rebasing and the low bits are gone — jitter you cannot debug from inside the shader, which was handed bad numbers. The subtraction is what makes the cast safe, so a jittering placement has one thing to check: which side of it the conversion happened on.
 
 **Why must `zoom_at` be given physical pixels rather than CSS pixels?**
 

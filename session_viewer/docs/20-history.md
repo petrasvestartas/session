@@ -200,7 +200,7 @@ Expected:
 
 *How to work it out.* Ask what a persisted history would require: a version in the file format, a decision about what an undo means after someone else edited the file, and a guarantee that a tombstone's object still makes sense in a later schema. Then ask what users expect — open a file, and it is what it is.
 
-*The answer.* An opened file always starts clean: no format to version, no cross-session semantics to define, no history leaking to whoever you send the file to. It gives up cross-session undo, which is what Rhino also gives up.
+*The answer.* An opened file always starts clean: no format to version, no cross-session semantics to define, no history leaking to whoever you send the file to. It gives up cross-session undo, as Rhino does.
 
 **A tombstone stores the object, its list position, its transform, its parent and sibling index, its subtree, its graph attribute and its incident edges. Why so much for one deletion?**
 

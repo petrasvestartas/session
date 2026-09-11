@@ -95,7 +95,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=4-16 -->
 
-- The template corner is offset in clip space by the pixel radius plus half the feather, so the quad always contains the antialiased disc.
+- The corner is offset by the pixel radius plus half the feather, so the quad always contains the disc.
 
 - The facing cull is skipped when the object is flagged inside or open, or when `line.opacity` is zero: in x-ray, a vertex on the far side of a cube is what you want to see.
 
@@ -103,7 +103,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-64 -->
 
-- The antialiasing ramp is clamped to the ink it feathers; a pen thinner than the ramp would otherwise be drawn entirely out of fade and vanish at distance.
+- The ramp is clamped to the ink it feathers; an unclamped one never reaches full opacity, and a thin pen fades out at distance.
 
 ![Both marker shapes measure the same radius in corner space, where 1.0 is the far edge of the primitive, and the ramp is clamped so a thin pen still reaches full opacity.](illustrations/disc-coverage.svg)
 
