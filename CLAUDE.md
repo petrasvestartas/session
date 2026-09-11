@@ -94,11 +94,16 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
   pinned bar follows (`--check` fails when a lesson is stale). It refuses to run when a taught
   file matches no zone, so a new top-level path means adding it to `ZONES` there.
 - `python3 docs/check_svg.py docs/illustrations/*.svg` is the playwright-free check: it renders each
-  SVG in an installed Chrome and fails on a label that leaves the canvas or overlaps another. Use it
-  when `check_illustrations.cjs` cannot run. NOTE: running `draw.py` REWRITES every SVG and strips the
+  SVG in an installed Chrome and fails on a label that leaves the canvas, overlaps another, or is
+  too close in colour to the shape it sits on (below 3:1, found by paint order and exact fill
+  containment - `Canvas.raw()` rewrites white to near-black for the dark page, which silently turns
+  ink on a light box into ink on a black one). It exits non-zero. Use it when
+  `check_illustrations.cjs` cannot run. NOTE: running `draw.py` REWRITES every SVG and strips the
   measured `textLength` pins; restore them with
   `git checkout -- $(grep -l textLength docs/illustrations/*.svg)` before committing, or re-pin the
-  regenerated set with `python3 docs/check_svg.py --write docs/illustrations/*.svg`.
+  regenerated set with `python3 docs/check_svg.py --write docs/illustrations/*.svg`. `--write` skips
+  a drawing its generator owns (the d2 diagrams, `map.svg`, `locator-*`, `strip-*`): those are
+  verified by byte comparison, so a pin would make them report stale for good.
 - Illustrations come from `docs/illustrations/draw.py` (BRG Equilibrium palette; boxes sized
   from text). Never hand-place SVG text: regenerate, then `node docs/check_illustrations.cjs
   --write` must PASS (real Chrome metrics, no overflow, no collisions, pinned textLength).
