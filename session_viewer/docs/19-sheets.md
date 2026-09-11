@@ -30,7 +30,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 ### Step 1 · A message that can be sliced
 
-![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg)
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg){ .locator data-strip="illustrations/strip-8c73a630e5.svg" }
 
 - `Sheet` mirrors `PointCloud`: the big arrays are packed fixed-width fields, so a slice of segments `[from, to)` is one HTTP Range per array. `coords` holds six doubles per segment, `colors` one RGBA8, `widths` one float in mm, `source_ids` one entity id, and `source_ids` is field 15, the last field, so a reader knows the message ends with it.
 - `Objects.sheets` is field 17, the highest in `Objects`; a sheet file is a `Session` whose `Objects` holds exactly one `Sheet` and nothing else.
@@ -51,7 +51,7 @@ flowchart TB
 
 ### Step 2 · The kernel tolerates the field
 
-![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg)
+![Where this step sits in the viewer: Kernel, with 10 of 11 zones built so far.](illustrations/locator-4b25dc5606.svg){ .locator data-strip="illustrations/strip-8c73a630e5.svg" }
 
 - The generated Rust module gains the message; the kernel's own `Objects` serializer names the new field and never reads it. A kernel that loads a sheet file sees an empty session, which is why the viewer never hands a sheet to the kernel.
 
@@ -69,7 +69,7 @@ flowchart TB
 
 ### Step 4 · Locate every array
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg)
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
 
 - `descend_message` now accepts either container: `Objects.pointclouds` at 8 or `Objects.sheets` at 17, and still requires the wanted field to close the message.
 - `sheet_fields` reads the first 8 KiB, walks to `coords`, then scans the later fields through the `MetadataWindow` and records the absolute offset and length of every array plus `segment_count`, `entity_count` and the side table's name. A count that disagrees with the array lengths refuses the file.
@@ -87,7 +87,7 @@ flowchart TB
 
 ### Step 5 · Prefix, then slices
 
-![Where this step sits in the viewer: Network, Shell, with 10 of 11 zones built so far.](illustrations/locator-55d646fe2a.svg)
+![Where this step sits in the viewer: Network, Shell, with 10 of 11 zones built so far.](illustrations/locator-55d646fe2a.svg){ .locator data-strip="illustrations/strip-d717b2c025.svg" }
 
 - `sheet_prefix` sits beside `stream_prefix` and is tried right after it: a sheet is always streamed, never decoded whole. The prefix is up to 500 000 segments; `spawn_sheet_rest` continues in 500 000-segment slices under the same generation discipline as clouds and its own page-wide budget of 3 000 000 segments (`?segments=`).
 - `Msg::Sheet` carries the first slice with the fields; `Msg::SheetChunk` each later one.
@@ -102,7 +102,7 @@ flowchart TB
 
 ### Step 6 · Segments with source ids
 
-![Where this step sits in the viewer: Scene + walk, Lanes, with 10 of 11 zones built so far.](illustrations/locator-7f68e27640.svg)
+![Where this step sits in the viewer: Scene + walk, Lanes, with 10 of 11 zones built so far.](illustrations/locator-7f68e27640.svg){ .locator data-strip="illustrations/strip-849eae74ef.svg" }
 
 - `walk_sheet_slice` turns a slice into ribbon segments: one `CylinderSegment` per segment, the sheet's single object row as instance, the pen from the width with 0 as the hairline, no chains, and the segment's source id beside it.
 - `SegRows.ribbon_ids` travels with the ribbons; `SegmentLane::append` uploads real ids where it used to upload `u32::MAX`, and records a `SegChunk` per upload so `row_of` and `source_id` map a picked global ribbon row back to its sheet and entity. The shader already compares `source_edges` against the edge selection for both tables, so a selected entity highlights every one of its segments with no shader change.
@@ -129,7 +129,7 @@ flowchart TB
 
 ### Step 7 · One row per sheet
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg)
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg){ .locator data-strip="illustrations/strip-06adfb6f59.svg" }
 
 - `add_sheet` pushes one object row with `FLAG_SHEET` and an empty display-only document, the shape a streamed cloud uses; `extend_sheet` appends later slices. `Scene::resolve` gains a sibling of the cloud branch: a pick whose sub-id has the ribbon bit and whose row is a sheet resolves to `Picked { entity }`.
 
@@ -139,7 +139,7 @@ flowchart TB
 
 ### Step 8 · Two ranged reads
 
-![Where this step sits in the viewer: Network, Shell, with 10 of 11 zones built so far.](illustrations/locator-55d646fe2a.svg)
+![Where this step sits in the viewer: Network, Shell, with 10 of 11 zones built so far.](illustrations/locator-55d646fe2a.svg){ .locator data-strip="illustrations/strip-d717b2c025.svg" }
 
 - `sheet_query` transcribes the cloud's source query: the table head is read once per sheet and cached with its ETag, then an entity costs the 16-byte record at `8 + 16 · id` and its blob, both refused if the table's revision moved. `EntityMeta` parses the JSON's guid, name, kind, width and colour; blobs over 64 KiB are refused. Dropping a `Query` cancels its callback.
 
@@ -161,7 +161,7 @@ flowchart TB
 
 ### Step 9 · Selection and the status line
 
-![Where this step sits in the viewer: Shell, State, with 10 of 11 zones built so far.](illustrations/locator-5ca4adb0d4.svg)
+![Where this step sits in the viewer: Shell, State, with 10 of 11 zones built so far.](illustrations/locator-5ca4adb0d4.svg){ .locator data-strip="illustrations/strip-ee4fb0100f.svg" }
 
 - An entity pick reuses the edge selection: `set_edge((row, id))` highlights the entity's segments, the status line says "Selected entity {id}, fetching…", and `Msg::SheetEntity` replaces it with the name and kind once the reads land. The resolved entity is cached on the `SheetBatch`, so the nameplate shows its name instead of the file's. A new selection or `Clear` drops a pending query.
 

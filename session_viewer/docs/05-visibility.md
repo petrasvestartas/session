@@ -28,7 +28,7 @@ flowchart TB
 
 ## Step 1 · The physical contract shared by every shader
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg){ .locator data-strip="illustrations/strip-dc07261952.svg" }
 
 Two constants and two output structs, appended to every shader module. `physical_gradient` is the rasterizer's own depth slope of the winning primitive, scaled so `Rg16Float` keeps it.
 
@@ -51,7 +51,7 @@ flowchart LR
 
 ## Step 2 · Backdrop shaders
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg){ .locator data-strip="illustrations/strip-dc07261952.svg" }
 
 - The background is one oversized triangle at `w = 1.0`, depth `Always`, so it never occludes.
 - The grid builds fifty vertices from `vertex_index` alone; it subtracts `line.anchor` because instance rows are rebased on the camera anchor.
@@ -74,7 +74,7 @@ flowchart LR
 
 ## Step 3 · The backdrop lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg)
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg){ .locator data-strip="illustrations/strip-f15c897b37.svg" }
 
 - One owner for two pipelines; no buffers, no upload, `retarget` when the sample count changes.
 - `draw_grid` binds `mvp` and the `line` block, matching `@group(0)`/`@group(1)` in `grid.wgsl`.
@@ -94,7 +94,7 @@ flowchart LR
 
 ## Step 4 · The ink visibility test
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg){ .locator data-strip="illustrations/strip-dc07261952.svg" }
 
 A stroke is drawn as a ribbon of fragments around its mathematical axis. The physical depth at a fragment beside the axis belongs to whatever surface is there, not to the axis:
 
@@ -191,7 +191,7 @@ flowchart LR
 
 ## Step 5 · Shaders emit the gradient
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg){ .locator data-strip="illustrations/strip-dc07261952.svg" }
 
 Every fragment that writes physical depth also returns its gradient. Face shaders return the real slope; splats, sheets and ID passes return zero because they are not surfaces ink can be carried across.
 
@@ -220,7 +220,7 @@ flowchart LR
 
 ## Step 6 · Targets: the gradient attachment and a sample budget
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-822992293e.svg)
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-822992293e.svg){ .locator data-strip="illustrations/strip-4f3856a21e.svg" }
 
 - `Rg16Float` gradient texture beside depth; single/multisampled views are swapped exactly like the depth views so bind groups stay valid at both sample counts.
 - `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
@@ -238,7 +238,7 @@ flowchart TB
 
 ## Step 7 · Pipelines: one flag adds the second color target
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-822992293e.svg)
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-822992293e.svg){ .locator data-strip="illustrations/strip-4f3856a21e.svg" }
 
 - `PipelineDesc::physical()` appends the `Rg16Float` target; `ReadOnlyEqual` pipelines keep the gradient their face already wrote by masking their writes.
 - `module` appends `physical.wgsl` after `normals.wgsl`, so every shader sees `PhysicalColor`.
@@ -264,7 +264,7 @@ flowchart LR
 
 ## Step 8 · Lanes read and write the gradient
 
-![Where this step sits in the viewer: GPU core, Lanes, with 8 of 11 zones built so far.](illustrations/locator-b18952b04d.svg)
+![Where this step sits in the viewer: GPU core, Lanes, with 8 of 11 zones built so far.](illustrations/locator-b18952b04d.svg){ .locator data-strip="illustrations/strip-e124bc7d5f.svg" }
 
 - The ink bind group gains bindings 4 and 5: `@group(2) @binding(4/5)` in step 4a.
 - The arena, splats and outline text build their pipelines with `.physical()`; the arena also gains a selection-mask pipeline.
@@ -294,7 +294,7 @@ flowchart TB
 
 ## Step 9 · Wire the lane and the sample count
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-822992293e.svg)
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-822992293e.svg){ .locator data-strip="illustrations/strip-4f3856a21e.svg" }
 
 - `retarget` rebuilds targets, ink bind groups and every lane's pipelines when the sample count flips, and only then.
 - The backdrop draws first inside `begin_faces`, before any geometry.
@@ -311,7 +311,7 @@ flowchart LR
 
 ## Step 10 · The fixture and the page
 
-![Where this step sits in the viewer: Page, Shell, with 8 of 11 zones built so far.](illustrations/locator-9bc63add6e.svg)
+![Where this step sits in the viewer: Page, Shell, with 8 of 11 zones built so far.](illustrations/locator-9bc63add6e.svg){ .locator data-strip="illustrations/strip-c43d3840f7.svg" }
 
 The grey box and the sloping floor are the shapes the visibility test is judged on.
 

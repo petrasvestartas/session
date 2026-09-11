@@ -44,7 +44,7 @@ Bind groups every lane shares (`Layouts`):
 
 ## Step 1 · The floor: device, growable buffers, helpers
 
-![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-dfddf09ffc.svg)
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-dfddf09ffc.svg){ .locator data-strip="illustrations/strip-f66525179b.svg" }
 
 - `GpuCtx` is the device/queue pair every lane is made with.
 - `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written. It returns `true` when the buffer moved so the caller rebuilds its bind group.
@@ -75,7 +75,7 @@ flowchart LR
 
 ## Step 2 · Bind-group layouts
 
-![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-dfddf09ffc.svg)
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-dfddf09ffc.svg){ .locator data-strip="illustrations/strip-f66525179b.svg" }
 
 - A layout is the shape of a bind group; the buffers live in the lanes.
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
@@ -97,7 +97,7 @@ flowchart LR
 
 ## Step 3 · Pipelines are data
 
-![Where this step sits in the viewer: GPU core, Shaders, with 7 of 11 zones built so far.](illustrations/locator-81f0308bea.svg)
+![Where this step sits in the viewer: GPU core, Shaders, with 7 of 11 zones built so far.](illustrations/locator-81f0308bea.svg){ .locator data-strip="illustrations/strip-5c229b032a.svg" }
 
 - `Target` is where a pipeline draws; `DepthMode` and `ColorWrite` name the only depth and blend states the viewer uses.
 - Every compare is reverse-Z: nearer is `Greater`.
@@ -148,7 +148,7 @@ flowchart TB
 
 ## Step 4 · Targets and the two passes
 
-![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-dfddf09ffc.svg)
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-dfddf09ffc.svg){ .locator data-strip="illustrations/strip-f66525179b.svg" }
 
 - The face pass clears color and depth (to `0.0`, reverse-Z) and writes both.
 - The ink pass loads color, keeps depth read-only and samples it through group 2.
@@ -173,7 +173,7 @@ flowchart TB
 
 ## Step 5 · Frame uniforms
 
-![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-dfddf09ffc.svg)
+![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-dfddf09ffc.svg){ .locator data-strip="illustrations/strip-f66525179b.svg" }
 
 - `FrameInput` is what one frame needs from the caller; `FrameCx` adds the knobs, the anchor and the framebuffer, with `pixel_scale` the framebuffer pixels per CSS pixel; `Binds` sets groups 0, 1, 2 before every lane draw.
 
@@ -240,7 +240,7 @@ flowchart TB
 
 ## Step 6 · Runtime knobs and the query string
 
-![Where this step sits in the viewer: Network, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-c1a4e8106f.svg)
+![Where this step sits in the viewer: Network, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-c1a4e8106f.svg){ .locator data-strip="illustrations/strip-621206613f.svg" }
 
 - `View` is read once from `?name=` on wasm or `ENV` natively and consulted every frame.
 
@@ -264,7 +264,7 @@ flowchart LR
 
 ## Step 7 · The object table
 
-![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-6ae27cb16a.svg)
+![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-6ae27cb16a.svg){ .locator data-strip="illustrations/strip-c50dce9609.svg" }
 
 - `ObjectRow` is one object as the producer reports it: f64 placement, tint, flags, local box, spacing.
 - `InstanceTable` owns the rows the GPU reads, the true f64 translations, and the two buffers behind group 2.
@@ -312,7 +312,7 @@ flowchart TB
 
 ## Step 8 · The mesh shader
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-0281cb294e.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-0281cb294e.svg){ .locator data-strip="illustrations/strip-d9dc3ce6e5.svg" }
 
 - Groups 0, 1, 2 and the `LineUniform` mirror; `place` applies the row's rotation/scale and the anchored translation.
 
@@ -334,7 +334,7 @@ flowchart TB
 
 ## Step 9 · The mesh lane
 
-![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-8ee7e6c798.svg)
+![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-8ee7e6c798.svg){ .locator data-strip="illustrations/strip-f27b981910.svg" }
 
 - `ArenaRows` is one upload's delta; `ArenaLane` is five `GrowBuf`s under one growth policy and the pipelines over them.
 
@@ -375,7 +375,7 @@ flowchart TB
 
 ## Step 10 · Upload and the fixture
 
-![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-81bdd6c1c8.svg)
+![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-81bdd6c1c8.svg){ .locator data-strip="illustrations/strip-954be41df0.svg" }
 
 - `Upload` carries every lane's rows for one file and nothing GPU-typed. Deleting a lane means deleting its field here.
 
@@ -395,7 +395,7 @@ flowchart LR
 
 ## Step 11 · Wire the coordinator
 
-![Where this step sits in the viewer: Page, Scene + walk, Shell, GPU core, Shaders, with 9 of 11 zones built so far.](illustrations/locator-bc38b9c50f.svg)
+![Where this step sits in the viewer: Page, Scene + walk, Shell, GPU core, Shaders, with 9 of 11 zones built so far.](illustrations/locator-bc38b9c50f.svg){ .locator data-strip="illustrations/strip-58a329c892.svg" }
 
 - `Gpu` owns the surface, one device, the layouts, frame uniforms, targets, the object table and the lanes; the lanes never see each other.
 

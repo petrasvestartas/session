@@ -39,7 +39,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 ## Step 1 · Cloud tables
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg)
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg){ .locator data-strip="illustrations/strip-f15c897b37.svg" }
 
 - A cloud's points arrive in chunks; `Chunk` maps cloud-local indices to lane rows.
 
@@ -69,7 +69,7 @@ flowchart TB
 
 ## Step 2 · The LOD walk
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg)
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg){ .locator data-strip="illustrations/strip-f15c897b37.svg" }
 
 - Pure CPU: which octree ranges to draw, given how wide each node's point spacing projects. Small clouds draw whole.
 
@@ -93,7 +93,7 @@ flowchart TB
 
 ## Step 3 · The splat lane
 
-![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg)
+![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-598dae0cf0.svg){ .locator data-strip="illustrations/strip-f15c897b37.svg" }
 
 `SplatRecord` is 160 bytes, read as raw words by the shader:
 
@@ -149,7 +149,7 @@ flowchart TB
 
 ## Step 4 · The point shaders
 
-![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg)
+![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-827ddb7682.svg){ .locator data-strip="illustrations/strip-dc07261952.svg" }
 
 - `record_of` finds the record whose cumulative range contains the vertex index; `project` folds one mat-vec per point.
 
@@ -179,7 +179,7 @@ flowchart TB
 
 ## Step 5 · Wire the lane
 
-![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-63f669ae94.svg)
+![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-63f669ae94.svg){ .locator data-strip="illustrations/strip-3e22a770ed.svg" }
 
 ```mermaid
 flowchart TB

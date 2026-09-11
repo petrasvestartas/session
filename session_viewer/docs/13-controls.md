@@ -39,7 +39,7 @@ flowchart TD
 
 ## Step 1 · Control identities
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg)
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg){ .locator data-strip="illustrations/strip-06adfb6f59.svg" }
 
 - `ControlId` names a control within its parent's source geometry; the GPU slot it was uploaded to is temporary.
 - `enable_controls` is idempotent: pressing F10 on the same parent does nothing, so markers are never duplicated.
@@ -59,7 +59,7 @@ flowchart LR
 
 ## Step 2 · Fetching and source-query records
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg)
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
 
 These two modules are new and undeclared, so the crate still builds after them.
 
@@ -119,7 +119,7 @@ flowchart LR
 
 ## Step 3 · Wire parsing for streamed clouds
 
-![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg)
+![Where this step sits in the viewer: Network, with 10 of 11 zones built so far.](illustrations/locator-a08706154b.svg){ .locator data-strip="illustrations/strip-f570bfbca2.svg" }
 
 The protobuf headers sit in the first few kilobytes and `coords` is packed, so the point count is known before a byte of payload is read. Mechanical, so copy it.
 
@@ -133,7 +133,7 @@ flowchart LR
 
 ## Step 4 · Picking controls
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-ac40a9793e.svg)
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-ac40a9793e.svg){ .locator data-strip="illustrations/strip-0bcde5dcfb.svg" }
 
 - `PickMode::Controls` restricts the ID pass to the temporary control markers of one parent.
 - A source query keeps the physical depth and accumulates point IDs across pages: the first page clears the IDs, later pages load them.
@@ -153,7 +153,7 @@ flowchart LR
 
 ## Step 5 · State transitions
 
-![Where this step sits in the viewer: State, with 10 of 11 zones built so far.](illustrations/locator-cbdb234933.svg)
+![Where this step sits in the viewer: State, with 10 of 11 zones built so far.](illustrations/locator-cbdb234933.svg){ .locator data-strip="illustrations/strip-600cbe96cd.svg" }
 
 - `controls` are the current parent's source controls; `cloud_query` is the in-flight page loop.
 
@@ -200,7 +200,7 @@ flowchart TB
 
 ## Step 6 · Key, message and loader wiring
 
-![Where this step sits in the viewer: Network, Scene + walk, Shell, Input, with 10 of 11 zones built so far.](illustrations/locator-a8a3c86190.svg)
+![Where this step sits in the viewer: Network, Scene + walk, Shell, Input, with 10 of 11 zones built so far.](illustrations/locator-a8a3c86190.svg){ .locator data-strip="illustrations/strip-a3654bfe9b.svg" }
 
 ```mermaid
 flowchart LR

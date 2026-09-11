@@ -27,7 +27,7 @@ PAL, esc, width = DRAW.PAL, DRAW.esc, DRAW.width
 
 DIRECTIVE = re.compile(r"<!-- (file|supplied): (\S+)(.*?)-->")
 HEADING = re.compile(r"^(#{2,3}) (Step|Part) ([^\n]*)$", re.M)
-IMAGE = re.compile(r"^!\[[^\]]*\]\(illustrations/locator-[0-9a-f]+\.svg\)\n\n?", re.M)
+IMAGE = re.compile(r"^!\[[^\]]*\]\(illustrations/locator-[0-9a-f]+\.svg\)(\{[^}]*\})?\n\n?", re.M)
 
 # Colours chosen for the black page directly: Canvas.raw() remaps light fills to dark so a
 # label stays readable on a white box, which is the wrong direction for boxes drawn ON the page.
@@ -144,6 +144,33 @@ def render(lit, built):
     return name, lit_names
 
 
+
+def strip(lit, built):
+    """The same map, compressed to a bar that can sit pinned under the header while you read."""
+    c = DRAW.Canvas("Where this step sits in the viewer",
+                    "The eleven zones of the viewer as a bar; the pink one is where the code on this page lives.",
+                    1180, 92)
+    margin, gap, h = 16.0, 8.0, 30.0
+    top = [z for z in ZONES if z[1] == 0]
+    bottom = [z for z in ZONES if z[1] == 1]
+    for zones, y in ((top, 8.0), (bottom, 50.0)):
+        w = (1180 - 2 * margin - gap * (len(zones) - 1)) / len(zones)
+        for i, (key, _, label, _, _) in enumerate(zones):
+            x = margin + i * (w + gap)
+            on, here = key in built, key in lit
+            fill = LIT_FILL if here else "none"
+            stroke = LIT_STROKE if here else (EDGE if on else DIM)
+            dash = "" if (on or here) else ' stroke-dasharray="5 4"'
+            c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="3" '
+                           f'fill="{fill}" stroke="{stroke}" stroke-width="{2.0 if here else 1.2}"{dash}/>')
+            ink = LIT_INK if here else (EDGE if on else DIM)
+            c.text(x + w / 2, y + 20, label, "s", anchor="middle", fill=ink, keep=True)
+    body = "".join(c.parts)
+    name = "strip-" + hashlib.sha1(body.encode()).hexdigest()[:10] + ".svg"
+    c.write(name)
+    return name
+
+
 ZONES_ORDER = [z[0] for z in ZONES]
 
 
@@ -188,11 +215,12 @@ def main():
             if not touched:
                 continue
             name, names = render(touched, built | touched)
-            drawn.add(name)
+            bar = strip(touched, built | touched)
+            drawn.add(name); drawn.add(bar)
             alt = (f"Where this step sits in the viewer: {names}, "
                    f"with {len(built | touched)} of {len(ZONES)} zones built so far.")
             out.append(text[last:head.end()])
-            out.append(f"\n\n![{alt}](illustrations/{name})")
+            out.append(f"\n\n![{alt}](illustrations/{name}){{ .locator data-strip=\"illustrations/{bar}\" }}")
             last = head.end()
             built |= touched
         out.append(text[last:])

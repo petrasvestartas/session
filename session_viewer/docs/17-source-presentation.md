@@ -56,7 +56,7 @@ flowchart TB
 
 ### Step 1 · Face identities over the existing triangles
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-30281769bb.svg)
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-30281769bb.svg){ .locator data-strip="illustrations/strip-a17ca1f455.svg" }
 
 - One `FaceSource` per original face; every display triangle of that face stores the same address in `ids`.
 - Picking pulls the arena's existing vertices by index: no duplicate mesh, no per-face draw call.
@@ -100,7 +100,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 ### Step 2 · The triangle shader learns vertex pulling
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg){ .locator data-strip="illustrations/strip-1b7dcf60f9.svg" }
 
 - `transform_vertex` is the old `vs_main` body; `vs_face` reaches the same code through storage buffers instead of vertex attributes.
 - `fs_id` writes `FACE_TAG | address` as the sub-ID; `fs_face_highlight` discards everything but the selected face.
@@ -122,7 +122,7 @@ flowchart LR
 
 ### Step 3 · The arena owns a `Faces` lane
 
-![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-30281769bb.svg)
+![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-30281769bb.svg){ .locator data-strip="illustrations/strip-a17ca1f455.svg" }
 
 - Vertex, id and index buffers gain `STORAGE` usage so `vs_face` can read them.
 - `draw_component_ids` replaces the object-ID draw only in component pick mode.
@@ -138,7 +138,7 @@ flowchart TB
 
 ### Step 4 · Producers emit one face address per triangle
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg)
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg){ .locator data-strip="illustrations/strip-06adfb6f59.svg" }
 
 - Meshes: sorted source face keys, cached triangulation or the fan the kernel would build; the assertion ties the address stream to the triangle stream.
 - BReps: `push_face` records the face index it is tessellating.
@@ -158,7 +158,7 @@ flowchart TB
 
 ### Step 5 · A third selection mode
 
-![Where this step sits in the viewer: Scene + walk, Input, State, Lanes, with 10 of 11 zones built so far.](illustrations/locator-375e9b59d6.svg)
+![Where this step sits in the viewer: Scene + walk, Input, State, Lanes, with 10 of 11 zones built so far.](illustrations/locator-375e9b59d6.svg){ .locator data-strip="illustrations/strip-c27551191a.svg" }
 
 - `SelectionMode::Face` carries parent and face, so Escape returns to the parent like edges do.
 - `PickMode::Component`: the pick sorter prefers a nearby edge, then a face. There is no object fallback — a component click that finds neither selects nothing, because narrowing to a component is a different intent from selecting the whole object.
@@ -197,7 +197,7 @@ flowchart TB
 
 ### Step 6 · A text label can own a row
 
-![Where this step sits in the viewer: Network, Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-c35ec43efb.svg)
+![Where this step sits in the viewer: Network, Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-c35ec43efb.svg){ .locator data-strip="illustrations/strip-54f110f507.svg" }
 
 - `TextObject { row, selected }` on a label means "this text is a scene object"; `None` means a derived annotation such as the selected-object name.
 - `ink_color` is black while the object is selected and the authored color otherwise; both text renderers read it, so the authored color is never touched.
@@ -219,7 +219,7 @@ flowchart TB
 
 ### Step 7 · Scene registers text rows
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg)
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg){ .locator data-strip="illustrations/strip-06adfb6f59.svg" }
 
 - A key (`manifest-text/{index}`, `document-title/{doc}`) finds its previous row on reload, so hidden state survives replacement.
 - The row is an ordinary `ObjectRow`; hide, select and pick treat it like geometry.
@@ -252,7 +252,7 @@ flowchart TB
 
 ### Step 8 · State's companions: text presentation and streamed queries
 
-![Where this step sits in the viewer: State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-e899655bb6.svg)
+![Where this step sits in the viewer: State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-e899655bb6.svg){ .locator data-strip="illustrations/strip-4b991419ff.svg" }
 
 - `update_label` submits the visible source texts plus the one derived name; the derived name has no row and cannot steal its parent's click.
 - `include_text_bounds` records each text object's shaped world box so fitting and the selection name can use it.
@@ -309,7 +309,7 @@ flowchart LR
 
 ### Step 9 · Plates and planes draw IDs
 
-![Where this step sits in the viewer: Shell, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-2a37714de0.svg)
+![Where this step sits in the viewer: Shell, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-2a37714de0.svg){ .locator data-strip="illustrations/strip-050e70a360.svg" }
 
 - Camera-facing text: `Plates` gains a depth per rectangle, an object row and an ID pipeline; physical plates draw before glyphs, overlays after.
 - Every plate vertex carries `object` and a selection flag; the plate's signed distance defines coverage, the yellow backing and the pick footprint.
@@ -351,7 +351,7 @@ flowchart LR
 
 ### Step 10 · Two masks, one compositor
 
-![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-cb3ce73df2.svg)
+![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-cb3ce73df2.svg){ .locator data-strip="illustrations/strip-e35aa0ee6c.svg" }
 
 - Ordinary outlines describe the union of all visible solids; touching or overlapping objects get no inner seam.
 - The selected mask is thicker. The compositor takes `max(ordinary, selected)`, so the overlap is never blended twice, and a selected interior suppresses the ordinary contour.
@@ -411,7 +411,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 ### Step 11 · The arena draws the solid mask
 
-![Where this step sits in the viewer: Shell, Input, GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-231b90bd77.svg)
+![Where this step sits in the viewer: Shell, Input, GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-231b90bd77.svg){ .locator data-strip="illustrations/strip-5d852d275b.svg" }
 
 ```mermaid
 flowchart LR
@@ -441,7 +441,7 @@ flowchart LR
 
 ### Step 12 · Producers mark chains
 
-![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg)
+![Where this step sits in the viewer: Scene + walk, with 10 of 11 zones built so far.](illustrations/locator-6fe4804f91.svg){ .locator data-strip="illustrations/strip-06adfb6f59.svg" }
 
 - A chain is one authored curve or one BRep edge; independent mesh wires never join just because endpoints coincide.
 
@@ -460,7 +460,7 @@ flowchart LR
 
 ### Step 13 · The GPU row gains neighbours
 
-![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-ac40a9793e.svg)
+![Where this step sits in the viewer: GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-ac40a9793e.svg){ .locator data-strip="illustrations/strip-0bcde5dcfb.svg" }
 
 - `StrokeSegment` wraps the source row with `previous` and `next` GPU indices; `joined_rows` links consecutive chain members whose endpoints, instance, color and radius agree, and wraps a closed chain.
 
@@ -486,7 +486,7 @@ flowchart LR
 
 ### Step 14 · One join plane per shared vertex
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg){ .locator data-strip="illustrations/strip-1b7dcf60f9.svg" }
 
 ![Two independent ribbons overlap on the inner side of a bend and open a wedge on the outer side; cutting both at one join plane through the shared vertex gives uniform coverage.](illustrations/joins.svg)
 
@@ -522,7 +522,7 @@ Per-pixel attachments are where video memory goes. At 4x the colour, depth and m
 
 ### Step 15 · The pick window's uniforms
 
-![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg)
+![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-3c0fbe1131.svg){ .locator data-strip="illustrations/strip-1b7dcf60f9.svg" }
 
 - The pick pass sees the scene through the sub-frustum of the window about the cursor. `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`; both are zero and the canvas size in a colour frame.
 - Splats project onto the canvas with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment; the grid only lists the new fields.
@@ -543,7 +543,7 @@ flowchart TB
 
 ### Step 16 · Device scale and a lost device
 
-![Where this step sits in the viewer: Network, Shell, Input, State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-988c7ef54d.svg)
+![Where this step sits in the viewer: Network, Shell, Input, State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-988c7ef54d.svg){ .locator data-strip="illustrations/strip-36bfbdb693.svg" }
 
 ![The same strip of glass measured three ways: CSS pixels, device pixels at ratio 2, and the surface pixels a capped ?dpr= actually renders. winit reports the middle one, so every arriving position is multiplied by surface_per_physical.](illustrations/device-scale.svg)
 
@@ -600,7 +600,7 @@ flowchart TB
 
 ## Step 17 · Wire the frame
 
-![Where this step sits in the viewer: GPU core, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-d328971f90.svg)
+![Where this step sits in the viewer: GPU core, Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-d328971f90.svg){ .locator data-strip="illustrations/strip-7f753c341e.svg" }
 
 - The old `selection_outline` lane goes away; two `SurfaceOutline` instances take its place, and `samples_for` receives the pixel scale.
 - Frame order: face highlight, print geometry, unselected strokes, selected **solid** strokes, the combined black silhouette, then selected **standalone** curves over coincident mesh ink. Each mask pass is followed by its pool pass.

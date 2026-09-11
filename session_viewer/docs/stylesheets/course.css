@@ -126,3 +126,25 @@
 }
 .md-typeset .source-banner a { color: var(--ds-accent-ink); text-decoration: underline; font-weight: 600; }
 .md-typeset .md-button { border: 1px solid var(--ds-accent); background: transparent; color: var(--ds-accent-ink); border-radius: var(--ds-radius); }
+
+/* The pinned map: the step you are reading stays visible while the prose scrolls under it. */
+.viewer-strip {
+  position: sticky;
+  top: 2.4rem;
+  z-index: 3;
+  margin: 0 0 1.2rem;
+  padding: .45rem .6rem .3rem;
+  background: var(--md-default-bg-color);
+  border-bottom: 1px solid var(--ds-rule, #d8d8dc);
+}
+.viewer-strip img { display: block; width: 100%; height: auto; }
+.viewer-strip-note {
+  display: block;
+  margin-top: .25rem;
+  font-size: .68rem;
+  letter-spacing: .02em;
+  color: var(--md-default-fg-color--light);
+}
+@media screen and (max-width: 60em) { .viewer-strip { display: none; } }
+/* An anchored heading must clear the pinned map rather than hide behind it. */
+.md-content h2[id], .md-content h3[id] { scroll-margin-top: 9rem; }

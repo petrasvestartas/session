@@ -4,7 +4,9 @@ Learn this one picture and the rest of the course has an address.
 
 ![The whole viewer as one map: the top row is how documents come in, the bottom row is how a frame is drawn, and a pick answer travels back up.](illustrations/map.svg)
 
-Every step that touches a file opens with this same map, with one box filled pink: that is where the code on the page lives. (A step that only explains something has no file, so it has no map.) A solid box is something you have already built. A dashed box is still ahead of you. Nothing else on the map ever moves, so after a lesson or two you stop reading it and start *seeing* it.
+Every step that touches a file opens with this same map, with one box filled pink: that is where the code on the page lives. (A step that only explains something has no file, so it has no map.)
+
+A compressed copy of it stays **pinned at the top of the page** while you read, and follows you from step to step, so the answer to "where am I" is never more than a glance away — you never have to scroll back to find it. A solid box is something you have already built. A dashed box is still ahead of you. Nothing else on the map ever moves, so after a lesson or two you stop reading it and start *seeing* it.
 
 ## The two paths
 

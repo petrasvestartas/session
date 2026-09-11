@@ -30,7 +30,7 @@ flowchart TD
 
 ## Step 1 · Kernel: only a valid derivative cross is a normal
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg)
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg){ .locator data-strip="illustrations/strip-26f16d2902.svg" }
 
 - `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.
 - Read the derivatives directly: a zero-length cross means "singular here", so the incident-triangle fan decides.
@@ -57,7 +57,7 @@ Kernel unit tests, the C++/Python parity ports and the teapot asset are supplied
 
 ## Step 2 · WGSL: transform a normal with the cofactor matrix
 
-![Where this step sits in the viewer: Shaders, with 9 of 11 zones built so far.](illustrations/locator-6683be37f4.svg)
+![Where this step sits in the viewer: Shaders, with 9 of 11 zones built so far.](illustrations/locator-6683be37f4.svg){ .locator data-strip="illustrations/strip-125c9f9cc3.svg" }
 
 Positions use `model`; normals need its inverse transpose, or a nonuniformly scaled instance tilts its normals off the surface.
 
@@ -97,7 +97,7 @@ The vertex stage transforms the baked normal; `shade` normalizes `in.normal` bec
 
 ## Step 3 · Edge facing from physical facets, not shading normals
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 - A cone apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward and hid it.
 - Index every triangle's geometric normal by its exact edge (position bits, winding-free). A seam of one periodic face keeps both incident facets.
@@ -127,7 +127,7 @@ The BRep walk builds the incidence once per upload:
 
 ## Step 4 · A fill-only view for inspecting lighting
 
-![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-81bdd6c1c8.svg)
+![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-81bdd6c1c8.svg){ .locator data-strip="illustrations/strip-954be41df0.svg" }
 
 Mesh edges and markers become toggles so shading can be judged without boundary ink.
 
@@ -146,7 +146,7 @@ flowchart LR
 
 ## Step 5 · Fixture: one solid per URL, optionally under an affine placement
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-39ef302cfc.svg)
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-39ef302cfc.svg){ .locator data-strip="illustrations/strip-bd5a52e356.svg" }
 
 - The placement has a negative determinant and three distinct scales: the sign and cofactor paths are exercised.
 - The crease surface is degree one in U with a shared knot: two shading normals at identical XYZ.

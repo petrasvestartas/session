@@ -43,6 +43,8 @@ markdown_extensions:
 extra_css:
   - docs/stylesheets/theme.css
   - docs/stylesheets/course.css
+extra_javascript:
+  - docs/js/locator.js
 watch:
   - docs
   - ARCHITECTURE.md

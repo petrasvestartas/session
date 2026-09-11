@@ -31,7 +31,7 @@ flowchart TD
 
 ## Step 1 · Kernel: the trim-loop contract
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg)
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg){ .locator data-strip="illustrations/strip-26f16d2902.svg" }
 
 - `TrimLoops` is what a BRep hands the mesher for one face: UV polygons, the 3D point each polygon vertex must lift to, and interior seeds.
 - Loop vertices keep their positions exactly; a neighbouring face fed the same polygon lifts to the same bits.
@@ -51,7 +51,7 @@ flowchart LR
 
 ## Step 2 · Kernel: one triangulation body
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg)
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg){ .locator data-strip="illustrations/strip-26f16d2902.svg" }
 
 - `mesh_q` (untrimmed entry) and `mesh_loops` (BRep entry) share `triangulate`; the bounding-box diagonal moves into its own helper.
 - `mesh_loops` rejects invalid input and lost boundary provenance with an empty mesh instead of manufacturing a face.
@@ -68,7 +68,7 @@ flowchart LR
 
 ## Step 3 · Kernel: constrain boundaries and C0 knot lines
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg)
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg){ .locator data-strip="illustrations/strip-26f16d2902.svg" }
 
 - Every loop vertex keeps its Delaunay id, so a given 3D point and a `boundary/{loop}/{sample}` tag reach the vertex it becomes.
 - Where a loop segment crosses an interior C0 knot line, a node is inserted with a `boundary_interval/{loop}/{segment}` fraction: a polygon interval, not a curve parameter.
@@ -86,7 +86,7 @@ flowchart LR
 
 ## Step 4 · Kernel: lift to the given points, tag, split creases
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg)
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg){ .locator data-strip="illustrations/strip-26f16d2902.svg" }
 
 - A triangle straddling a crease knot means the constraint failed: the result is an empty mesh, never a smeared crease.
 - With given XYZ the weld tolerance is zero; interval nodes interpolate on the supplied chord, so both faces see the same inserted point.
@@ -106,7 +106,7 @@ flowchart TB
 
 ## Step 5 · Kernel: BRep phases
 
-![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg)
+![Where this step sits in the viewer: Kernel, with 9 of 11 zones built so far.](illustrations/locator-53a5fcb73c.svg){ .locator data-strip="illustrations/strip-26f16d2902.svg" }
 
 - Phase 2: the first incident grid face supplies the canonical polygon and its pcurve parameters; any other grid whose samples differ is marked for rebuild rather than left incompatible.
 - Curved boundaries are refined before any interior refinement, then every incident face is rebuilt with the refined polygon.
@@ -130,7 +130,7 @@ flowchart TB
 
 ## Step 6 · Viewer: chains from the face meshes
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 - Grid faces give an iso-parametric chain read straight off `u`/`v` attributes; constrained faces give the `brep_edge/{edge}/{use}/{sample}` nodes.
 
@@ -171,7 +171,7 @@ flowchart TB
 
 ## Step 7 · Viewer: outward orientation from the tessellation
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 - Face-use flags are never read: two faces that walk a shared edge in opposite directions agree, and a group enclosing negative volume is inside out.
 
@@ -207,7 +207,7 @@ flowchart LR
 
 ## Step 8 · Viewer: ink the solid's edges
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 - A negative face sign flips normals and winding before upload, so shading, culling and boundary facing agree.
 - An edge without a chain is drawn as a sampled ribbon and logged: a display fallback, not a coherent CAD boundary.
@@ -225,7 +225,7 @@ flowchart LR
 
 ## Step 9 · Fixture and status
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-39ef302cfc.svg)
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-39ef302cfc.svg){ .locator data-strip="illustrations/strip-bd5a52e356.svg" }
 
 A cylinder (closed seam, two circles) and a block with a hole (inner wire) exercise shared and trimmed boundaries.
 

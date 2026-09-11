@@ -23,7 +23,7 @@ cd "$COURSE_WORK/session_viewer"
 
 ## Step 1 · Declare the crate
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-b3a86ee014.svg)
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-b3a86ee014.svg){ .locator data-strip="illustrations/strip-e9e7fd14c7.svg" }
 
 - `cdylib` is what wasm-bindgen turns into a browser module; `rlib` lets native tools link the same crate.
 - Every version here is pinned by `Cargo.lock` in step 4; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
@@ -41,7 +41,7 @@ flowchart LR
 
 ## Step 2 · Make wasm32 the default target
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-b3a86ee014.svg)
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-b3a86ee014.svg){ .locator data-strip="illustrations/strip-e9e7fd14c7.svg" }
 
 One line makes every `cargo` command build for the browser, so the code needs no `#[cfg(target_arch = "wasm32")]` gates. `xtest` is the native alias that runs the tests.
 
@@ -56,7 +56,7 @@ flowchart LR
 
 ## Step 3 · Tell Trunk what to bundle
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-b3a86ee014.svg)
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-b3a86ee014.svg){ .locator data-strip="illustrations/strip-e9e7fd14c7.svg" }
 
 Release builds, no subresource hashes, and a watch list that includes the kernel next door.
 
@@ -84,7 +84,7 @@ flowchart LR
 
 ## Step 5 · The page
 
-![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-b3a86ee014.svg)
+![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-b3a86ee014.svg){ .locator data-strip="illustrations/strip-e9e7fd14c7.svg" }
 
 One element with `id="status"`; Rust looks it up by that name.
 
@@ -99,7 +99,7 @@ flowchart LR
 
 ## Step 6 · The first Rust function
 
-![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-17e302cb1a.svg)
+![Where this step sits in the viewer: Shell, with 3 of 11 zones built so far.](illustrations/locator-17e302cb1a.svg){ .locator data-strip="illustrations/strip-7cbb7f3a48.svg" }
 
 - `#[wasm_bindgen(start)]` runs this function when the browser finishes loading the module.
 - `web_sys` is the browser DOM seen from Rust; `expect` aborts with a readable message if an element is missing.

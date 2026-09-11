@@ -24,7 +24,7 @@ flowchart TB
 
 ## Step 1 · Native tooling the crate declares
 
-![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-07eb81ceb0.svg)
+![Where this step sits in the viewer: Page, with 10 of 11 zones built so far.](illustrations/locator-07eb81ceb0.svg){ .locator data-strip="illustrations/strip-b272dd94a2.svg" }
 
 Cargo discovers every file under `examples/` as a native example; their sources and the offscreen harness are supplied, not taught. Install them now, and give the manifest its native-only dependency.
 
@@ -41,7 +41,7 @@ flowchart LR
 
 ## Step 2 · Count what is knowable, name what is not
 
-![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-01bb9be0c3.svg)
+![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-01bb9be0c3.svg){ .locator data-strip="illustrations/strip-fb5fa99de5.svg" }
 
 ![Scene owns documents through Rc; the cache keeps Weak identities and a payload figure, reuses it while the pointers match, walks once when a document is replaced, and never keeps a dropped document alive.](illustrations/source-cache.svg)
 
@@ -69,7 +69,7 @@ Unit tests, part of the file:
 
 ## Step 3 · Report it beside the GPU figures
 
-![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-01bb9be0c3.svg)
+![Where this step sits in the viewer: Shell, with 10 of 11 zones built so far.](illustrations/locator-01bb9be0c3.svg){ .locator data-strip="illustrations/strip-fb5fa99de5.svg" }
 
 - The snapshot names its scope and exclusions in the JSON itself, so a reader of `?inspect=1` cannot mistake the payload for total heap.
 

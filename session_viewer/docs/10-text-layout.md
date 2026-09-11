@@ -25,7 +25,7 @@ flowchart TB
 
 ## Step 1 · Bundled fonts
 
-![Where this step sits in the viewer: Page, with 9 of 11 zones built so far.](illustrations/locator-0236a81d44.svg)
+![Where this step sits in the viewer: Page, with 9 of 11 zones built so far.](illustrations/locator-0236a81d44.svg){ .locator data-strip="illustrations/strip-dfc1d1b412.svg" }
 
 - Fonts are compiled into the WASM with `include_bytes!`; the browser never scans system fonts, so every machine shapes identically.
 - Install the three font files now; the shaping module cannot compile without them.
@@ -47,7 +47,7 @@ The fonts' licence and provenance travel with them.
 
 ## Step 2 · A clock
 
-![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-0782eb20da.svg)
+![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-0782eb20da.svg){ .locator data-strip="illustrations/strip-0e147ea14f.svg" }
 
 Shaping is timed and every frame is timed; both read the same `now_ms`. Native builds read the system clock so the same module compiles for tests.
 
@@ -65,7 +65,7 @@ flowchart LR
 
 ## Step 3 · Where a label lives: `TextPlacement`
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 - The placement is intent, not pixels: a camera move changes where the text lands, never its string or its glyphs.
 - `Screen` is CSS pixels; `Anchor`/`Nameplate` follow a world point with screen-sized glyphs; `WorldBillboard` and `WorldPlane` have a world em height.
@@ -82,7 +82,7 @@ flowchart LR
 
 ## Step 4 · Label, run, document
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 ![The pen moves by advances: a kerned pair, a space without ink, a two-character ligature and a zero-advance accent; clusters map glyphs back to characters.](illustrations/shaping.svg)
 
@@ -100,7 +100,7 @@ flowchart LR
 
 ## Step 5 · Replace labels without reshaping unchanged ones
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 - Validate the whole replacement before touching the current runs; a bad label leaves the old document intact.
 - Only `text`, `font_size` and `line_height` participate in shaping; a colour or placement edit reuses the buffer by id.
@@ -117,7 +117,7 @@ flowchart TB
 
 ## Step 6 · Font replacement, clearing and diagnostics
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 - Diagnostics export what the shaper decided: glyph id, source byte cluster, advance, offset, baseline. The reference page compares these to the browser.
 - A cluster is a byte range into the source string: `ffi` may be one glyph, `e` + combining accent one cluster.
@@ -137,7 +137,7 @@ flowchart TB
 
 ## Step 7 · Validation and the shaping call
 
-![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg)
+![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-297055ed8c.svg){ .locator data-strip="illustrations/strip-f14b25464c.svg" }
 
 - Non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion sees them.
 - `Shaping::Advanced` is what makes kerning, ligatures and font fallback happen once, at shape time.
@@ -161,7 +161,7 @@ Unit checks for the shaper live in the same file.
 
 ## Step 8 · Declare the modules
 
-![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg)
+![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-6992ee7b12.svg){ .locator data-strip="illustrations/strip-7e0ebebd95.svg" }
 
 ```mermaid
 flowchart LR
@@ -176,7 +176,7 @@ flowchart LR
 
 ## Step 9 · The same-font reference page
 
-![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-39ef302cfc.svg)
+![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-39ef302cfc.svg){ .locator data-strip="illustrations/strip-bd5a52e356.svg" }
 
 - The page loads the identical font bytes with `@font-face`, sets the same kerning and ligature options, and compares line widths with the shaper's `line_width`.
 - The WASM export shapes five sizes, then changes only colour and placement and asserts the shape count did not move.
