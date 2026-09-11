@@ -3004,7 +3004,82 @@ def projected_record():
     c.write("projected-record.svg")
 
 
+def edge_owner():
+    """07: a shared edge is drawn once, from one face's nodes; the other lends a normal."""
+    c = Canvas("One edge, two faces, one chain",
+               "A cylinder's rim is meshed twice, by the grid on the side face and by the constrained triangulator on the cap, but both were constrained to the same boundary polygon. The ink is read from whichever face can supply the chain; the other lends only a normal. An edge no face can supply is still drawn, as a resampled ribbon with no source id.",
+               1200, 640)
+    c.text(28, 40, "One edge, two faces, one chain", "h")
+
+    # ---- left: the cylinder ----
+    cx_, top_y, bot_y, rx_, ry_ = 200, 120, 300, 96, 28
+    c.raw(f'<path d="M{cx_-rx_},{top_y} L{cx_-rx_},{bot_y} A {rx_} {ry_} 0 0 0 {cx_+rx_},{bot_y} L{cx_+rx_},{top_y} Z" fill="{PAL["blue_band"]}" opacity="0.45"/>')
+    c.raw(f'<ellipse cx="{cx_}" cy="{top_y}" rx="{rx_}" ry="{ry_}" fill="{PAL["blue_band"]}" opacity="0.25" stroke="#9a9aa4" stroke-width="1.2"/>')
+    c.raw(f'<path d="M{cx_-rx_},{bot_y} A {rx_} {ry_} 0 0 0 {cx_+rx_},{bot_y}" fill="{PAL["pink_band"]}" opacity="0.45"/>')
+    c.text(cx_, top_y + 80, "face 0 · side · grid-meshed", "s", anchor="middle", fill=PAL["black"], keep=True)
+    c.text(cx_, bot_y + 44, "face 1 · cap · constrained triangulation", "s", anchor="middle", fill=PAL["pink"])
+    c.raw(f'<path d="M{cx_-rx_},{bot_y} A {rx_} {ry_} 0 0 0 {cx_+rx_},{bot_y}" fill="none" stroke="#f4f4f6" stroke-width="3.4"/>')
+    import math
+    for k in range(7):
+        a = math.pi * k / 6.0
+        c.raw(f'<circle cx="{cx_-rx_*math.cos(a):.1f}" cy="{bot_y+ry_*math.sin(a):.1f}" r="4" fill="{PAL["green"]}"/>')
+    c.text(cx_, bot_y + 68, "edge 0 · the rim", "s", anchor="middle", fill=PAL["green"])
+    c.arrow(cx_ + rx_ + 10, bot_y + 10, 430, 250, "zoom")
+
+    # ---- middle: the zoom ----
+    zx, zy = 460, 250
+    xs = [zx + i * 62 for i in range(5)]
+    for i in range(4):
+        c.raw(f'<polygon points="{xs[i]},{zy} {xs[i+1]},{zy} {(xs[i]+xs[i+1])/2:.1f},{zy-58}" fill="{PAL["blue_band"]}" opacity="0.6" stroke="#9a9aa4" stroke-width="0.8"/>')
+        c.raw(f'<polygon points="{xs[i]},{zy} {xs[i+1]},{zy} {(xs[i]+xs[i+1])/2:.1f},{zy+58}" fill="{PAL["pink_band"]}" opacity="0.6" stroke="#9a9aa4" stroke-width="0.8"/>')
+    c.raw(f'<path d="M{xs[0]},{zy} L{xs[-1]},{zy}" stroke="#f4f4f6" stroke-width="3"/>')
+    for x in xs:
+        c.raw(f'<circle cx="{x}" cy="{zy}" r="4.6" fill="{PAL["green"]}"/>')
+    c.text(xs[0], zy + 78, "keys[0]", "m", anchor="middle")
+    c.text(xs[-1], zy + 78, "keys[4]", "m", anchor="middle")
+    c.text(zx, zy - 78, "side face triangles", "s", fill=PAL["blue_band"])
+    c.text(zx, zy + 100, "cap face triangles", "s", fill=PAL["pink"])
+    c.text(zx, zy + 124, "both meshes were constrained to the same polygon,", "s", fill=PAL["text2"])
+    c.text(zx, zy + 142, "so these nodes belong to both", "s", fill=PAL["text2"])
+
+    # ---- right: owner and other ----
+    ox = 800
+    o1 = c.box(ox, 96, ["owner · chain.face",
+                        "`keys` → the pipes' endpoints",
+                        "`chain.edge` → every pipe's source id",
+                        "the first use that can answer,",
+                        "not the first face"], "cpu")
+    o2 = c.box(ox, o1[1] + o1[3] + 20, ["other · chain.other",
+                                        "lends one facet normal to the facing word",
+                                        "None on a seam: both uses are one face"], "cpu")
+    c.arrow(xs[-1] + 20, zy - 30, ox - 8, o1[1] + o1[3] / 2)
+    c.arrow(xs[-1] + 20, zy + 30, ox - 8, o2[1] + o2[3] / 2)
+
+    # ---- bottom: the two outcomes ----
+    by = 470
+    a = c.box(28, by, ["chain → pipes",
+                       "one pipe per key pair",
+                       "`pipe_ids.push(chain.edge)`",
+                       "facing from the two facets, turned outward by the face signs",
+                       "a pair that collapses in f32 is skipped: it cannot be picked"], "cpu")
+    b = c.box(a[0] + a[2] + 40, by, ["no chain → ribbon",
+                                     "the 3D curve resampled by turning angle",
+                                     "no pipe_ids entry, FACING_UNKNOWN",
+                                     "`log::warn!` — a display fallback,",
+                                     "not a CAD boundary"], "warn")
+    c.raw(f'<rect x="{b[0]}" y="{b[1]}" width="{b[2]:.1f}" height="{b[3]:.1f}" rx="{RADIUS}" fill="none" stroke="{PAL["orange"]}" stroke-width="1.8" stroke-dasharray="7 5"/>')
+    c.text(a[0] + a[2] + 20, by + a[3] / 2 + 5, "or", "l", anchor="middle")
+    n = c.box(b[0] + b[2] + 40, by, ["what the refusal buys",
+                                     "a pick resolves through `edge_sources`;",
+                                     "`u32::MAX` means the viewer answers",
+                                     "'no edge here' rather than naming",
+                                     "something that is not in the model"], "note")
+    c.w = int(max(n[0] + n[2] + 28, o1[0] + o1[2] + 28))
+    c.h = int(by + max(a[3], b[3], n[3]) + 32)
+    c.write("edge-owner.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract, glyph_coverage, projected_record):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract, glyph_coverage, projected_record, edge_owner):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')

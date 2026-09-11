@@ -210,7 +210,7 @@
 - A negative face sign flips normals and winding before upload, so shading, culling and boundary facing agree.
 - An edge without a chain is drawn as a sampled ribbon and logged: a display fallback, not a CAD boundary.
 
-![Diagram: face sign · ArenaRows · chain · pipes · no chain · sampled ribbon](illustrations/07-09.svg)
+![A shared rim is meshed by both faces from the same boundary polygon, so the ink is read from whichever face can supply the chain while the other lends only a normal; an edge no face can supply is drawn as a resampled ribbon with no source id.](illustrations/edge-owner.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
