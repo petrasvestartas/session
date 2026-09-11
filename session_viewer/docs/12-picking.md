@@ -8,7 +8,7 @@ Part A builds the production application: winit owns the canvas and events, `App
 
 Part B adds picking: an integer ID pass, a bounded readback window, and a generation check so a late answer never selects against a newer camera.
 
-![Diagram: win · ID pass · Rg32Uint + depth · readback buffer · Picker::poll · Scene::resolve → source GUID · State::select → FLAG_SELECTED…](illustrations/12-02.svg)
+![Diagram: left click (CSS px) · physical pick window · ID pass · Rg32Uint + depth · readback buffer · Picker::poll · Scene::resolve → source GUID…](illustrations/12-02.svg)
 
 ![A pointer release becomes a scissored ID window, an asynchronous bounded readback, a Scene lookup and a selected flag; stale generations are dropped.](illustrations/picking.svg)
 
