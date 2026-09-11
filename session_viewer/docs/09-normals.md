@@ -14,7 +14,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -129,7 +129,7 @@ Mesh edges and markers become toggles so shading can be judged without boundary 
 
 <!-- file: 09 session_viewer/src/lib.rs type -->
 
-- One view knob for this checkpoint's fixture. The shell is where a lesson's viewing choices live, so the lane code stays free of them.
+- Viewing choices live in the shell, so the lane code stays free of them.
 
 ## Step 5 · Fixture: one solid per URL, optionally under an affine placement
 
@@ -184,31 +184,31 @@ A subtle crease under one light is not proof that normals are separate; identica
 
 **Positions use `model`. Why can normals not?**
 
-*How to work it out.* Take a sphere and scale it twice as wide in x. Every surface point moves by `model`. Now take a normal on the flank: transform it the same way and it no longer stands perpendicular to the stretched surface — because perpendicularity is not preserved by a nonuniform scale. Ask which matrix does preserve it: the inverse transpose.
+*How to work it out.* Scale a sphere twice as wide in x. Every surface point moves by `model`; a normal on the flank, moved the same way, no longer stands perpendicular, because a nonuniform scale does not preserve perpendicularity. The matrix that does is the inverse transpose.
 
-*The answer.* Normals need `model`'s inverse transpose, built here as cofactors. The cofactor form is the same matrix up to a positive scale and never divides by a small determinant, which a literal inverse would.
+*The answer.* Normals need `model`'s inverse transpose, built here as cofactors — the same matrix up to a positive scale, and it never divides by a small determinant as a literal inverse would.
 
 **`normal_at` returns `+Z` at a pole. Why is that dangerous, and what saves it?**
 
-*How to work it out.* Ask what a caller can check. `+Z` is finite, unit length and passes every sanity test — so a caller cannot tell it apart from a real normal. Then ask what the genuine signal of a pole is: the derivatives are parallel, so their cross product has zero length.
+*How to work it out.* `+Z` is finite, unit length and passes every sanity test, so no caller can tell it from a real normal. The genuine signal of a pole is that the derivatives are parallel: their cross product has zero length.
 
-*The answer.* A plausible-looking fallback is worse than an obvious sentinel, because nothing downstream can detect it — a sphere's pole would shade as though flat and facing up. The zero-length cross is the real signal, and it hands the decision to the incident-triangle fan.
+*The answer.* A plausible fallback is worse than an obvious sentinel because nothing downstream can detect it — a sphere's pole would shade as flat and facing up. The zero-length cross is the real signal, and it hands the decision to the incident-triangle fan.
 
 **Edge culling reads geometric facet normals, never shading normals. What broke when it did not?**
 
-*How to work it out.* Ask what a shading normal is for: making a tessellated surface look smooth. It is an artistic average, deliberately different from the facet it sits on. Now use that average to decide whether an edge faces away — you are asking a question about geometry with a number that was smoothed on purpose.
+*How to work it out.* A shading normal exists to make a tessellated surface look smooth: an average, deliberately different from the facet it sits on. Deciding whether an edge faces away with it asks a question about geometry with a number smoothed on purpose.
 
 *The answer.* A cone's apex has a smooth `+Z` fan; averaging it into the seam's cull normal tilted the seam upward until it was culled and vanished. Appearance choices must not delete geometry, so the cull indexes each triangle's real normal by its exact edge.
 
 **A singular matrix yields the zero normal sentinel instead of an error. Who handles it and how?**
 
-*How to work it out.* Ask what a singular model matrix means: the instance has been flattened to a plane or a line, so there is genuinely no unique normal. The options are refuse to draw, invent one, or shade without one.
+*How to work it out.* A singular model matrix means the instance is flattened to a plane or a line: there is genuinely no unique normal. Refuse to draw, invent one, or shade without one.
 
-*The answer.* The fragment stage falls back to flat shading from screen derivatives. The degenerate case gets the honest answer — shade this without a normal — rather than a crash or a fiction.
+*The answer.* The fragment stage falls back to flat shading from screen derivatives — the honest answer, rather than a crash or a fiction.
 
 **What you should be able to do now**
 
-Name the three cases where an analytic derivative gives no normal and what happens in each: a pole (zero-length cross → the incident-triangle fan decides), a C0 crease (two valid normals at one position → the vertex is split, same position and `u`/`v`, different normal), a singular instance matrix (no unique direction → the zero sentinel, flat shading). Then say why `?cad=crease` is the better test than a smooth sphere: identical XYZ carrying two different normals is proof the split happened, while a subtle shading difference under one light is not.
+Name the three cases where an analytic derivative gives no normal: a pole (zero-length cross → the incident-triangle fan decides), a C0 crease (two valid normals at one position → the vertex is split, same position and `u`/`v`, different normal), a singular instance matrix (no unique direction → the zero sentinel, flat shading). Then say why `?cad=crease` beats a smooth sphere as a test: identical XYZ carrying two different normals is proof the split happened; a subtle shading difference under one light is not.
 
 ## Next
 

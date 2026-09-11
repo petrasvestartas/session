@@ -14,7 +14,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -55,7 +55,6 @@ Two constants and two output structs, appended to every shader module. `physical
 
 <!-- file: 05 session_viewer/src/shaders/grid.wgsl type -->
 
-- Fifty vertices from the vertex index alone, no buffer. It subtracts `line.anchor` because the instance rows are rebased on the camera anchor and the grid has to agree with them.
 
 ## Step 3 · The backdrop lane
 
@@ -76,7 +75,7 @@ Two constants and two output structs, appended to every shader module. `physical
 
 ![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
-A stroke is drawn as a ribbon of fragments around its mathematical axis. The physical depth at a fragment beside the axis belongs to whatever surface is there, not to the axis:
+A stroke is a ribbon of fragments around its mathematical axis; the depth beside the axis belongs to whatever surface is there, not to the axis:
 
 ```text
       fragment ●─────── stroke footprint ───────● fragment
@@ -88,7 +87,6 @@ A stroke is drawn as a ribbon of fragments around its mathematical axis. The phy
 
 Comparing `z0` with `d` directly hides ink on its own face. Instead the physical gradient carries the surface depth from the fragment to the axis point, and only that predicted depth is compared with the axis.
 
-Replace the whole shader in five pieces.
 
 ### 4a · Bindings, tolerances and the axis record
 
@@ -115,7 +113,7 @@ Replace the whole shader in five pieces.
 ### 4c · Carrying a stroke fragment's surface to the axis
 
 - `ink_axis_visible` fits a plane from the fragment's texel and one neighbour away from the stroke, then evaluates it at the axis.
-- `ink_carry_visible` is one-sided: a farther texel can never hide, a nearer texel hides unless its surface passes through the axis.
+- `ink_carry_visible` is one-sided: a nearer texel hides the stroke unless its surface passes through the axis, while a farther texel keeps the plain compare.
 
 ![Diagram: fragment texel · neighbour texel · ink_axis_visible · ink_carry_visible](illustrations/05-07.svg)
 
@@ -149,7 +147,7 @@ A marker is a camera-facing disc; its rim must not be uncovered by a grazing sur
 
 ![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
-Every fragment that writes physical depth also returns its gradient. Face shaders return the real slope; splats, sheets and ID passes return zero because they are not surfaces ink can be carried across.
+Every fragment that writes physical depth also returns its gradient. Face shaders return the real slope in the colour pass and the ID pass alike; the background, the grid, splats and imported lettering return zero, because they are not surfaces ink can be carried across.
 
 ![Diagram: triangle.wgsl fs_main · PhysicalColor · splat · splat_resolve · text_outline.wgsl · PhysicalId](illustrations/05-10.svg)
 
@@ -161,7 +159,6 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 <!-- file: 05 session_viewer/src/shaders/splat.wgsl type -->
 
-- The point shader gains the physical metadata output, so a splat writes a gradient like every other surface - a zero gradient, because a point is not a surface ink can be carried across.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -173,7 +170,7 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 <!-- file: 05 session_viewer/src/shaders/text_outline.wgsl type -->
 
-- Imported lettering returns the physical output like every fragment in this pass, but its pipelines are depth read-only: the glyphs are drawn against the depth their page already wrote, never lit and never re-spaced.
+- Imported lettering's pipelines stay depth read-only: glyphs are drawn against the depth their page already wrote, never lit and never re-spaced.
 
 ## Step 6 · Targets: the gradient attachment and a sample budget
 
@@ -183,7 +180,7 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 - `begin_faces` clears the gradient to transparent alongside the reverse-Z depth clear.
 - `msaa_budget`/`samples_for` decide the sample count from the adapter type and pixel count; multisampling smooths hard face edges only, ribbons and discs antialias themselves.
 
-![Diagram: adapter type + pixels · samples_for · Targets\ depth + Rg16Float gradient · faces pass](illustrations/05-11.svg)
+![Diagram: adapter type + pixels · samples_for · Targets\ depth + Rgba16Float metadata · faces pass](illustrations/05-11.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
@@ -206,13 +203,13 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 <!-- file: 05 session_viewer/src/engine/pipelines/layouts.rs type -->
 
-- Group 2 grows: the ink variant now carries the depth and gradient views. This is the binding change that makes the visibility test possible at all.
+- Group 2 grows: the ink variant now carries the depth and gradient views.
 
 <span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
 <!-- file: 05 session_viewer/src/engine/gpu/instance.rs type -->
 
-- The only change is to the mirror test: `physical.wgsl` joins the shader sources it parses, so the new physical output is checked against the Rust side like everything else.
+- `physical.wgsl` joins the shader sources the mirror test parses, so the new output is checked against the Rust side.
 
 ## Step 8 · Lanes read and write the gradient
 
@@ -231,7 +228,7 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 <!-- file: 05 session_viewer/src/engine/gpu/arena.rs type -->
 
-- Two changes: the face pipelines gain `.physical()`, which adds the gradient target, and a selection-mask pipeline appears for the coverage the outline pass will read.
+- The selection-mask pipeline writes the coverage the outline pass will read.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -243,13 +240,12 @@ Every fragment that writes physical depth also returns its gradient. Face shader
 
 <!-- file: 05 session_viewer/src/engine/gpu/text_outline.rs type -->
 
-- The outline lane joins the physical pass with `.physical()`, the one flag that adds the gradient target to a pipeline.
 
 ## Step 9 · Wire the lane and the sample count
 
 ![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-7e63ed245a.svg){ .locator data-strip="illustrations/strip-203427a3dc.svg" }
 
-- `retarget` rebuilds targets, ink bind groups and every lane's pipelines when the sample count flips, and only then.
+- `retarget` rebuilds targets and ink bind groups on a resize or a sample-count flip; the lanes' pipelines only when the count flips.
 - The backdrop draws first inside `begin_faces`, before any geometry.
 
 ![Diagram: resize · retarget · targets · ink groups · lanes · BackdropLane · frame](illustrations/05-14.svg)
@@ -274,7 +270,7 @@ The grey box and the sloping floor are the shapes the visibility test is judged 
 
 <!-- file: 05 session_viewer/src/lib.rs type -->
 
-- Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
+- A lane costs the shell a hunk or two: construct it where the others are built, and report it.
 
 <span class="zone-mark" data-strip="illustrations/strip-a7bdebbf9f.svg" data-zone="Page"></span>
 
@@ -301,9 +297,9 @@ If every edge disappears, compare the depth clear and compare function against t
 
 - Data flow: face fragment → depth + gradient attachments → stroke fragment loads both → `ink_visible` predicts the surface depth at the axis → coverage or discard.
 - New lane: `BackdropLane` (background, grid).
-- Sample count is chosen per frame from geometry and adapter budget.
+- Sample count is re-chosen on upload and on resize, from the geometry present and the adapter budget.
 
-**Production equivalent:** `src/engine/gpu/targets.rs`, `backdrop.rs`, `src/shaders/physical.wgsl`, `ink_visibility.wgsl`, `grid.wgsl`, `background.wgsl`; the page entry is `src/lib.rs`. The fixture is teaching scaffolding with no production counterpart: lesson 12 deletes `src/fixture.rs` and the manifest loader takes its place.
+**Production equivalent:** `src/engine/gpu/targets.rs`, `backdrop.rs`, `src/shaders/physical.wgsl`, `ink_visibility.wgsl`, `grid.wgsl`, `background.wgsl`; the page entry is `src/lib.rs`. The fixture is scaffolding: lesson 12 deletes it for the manifest loader.
 
 ## Try
 
@@ -313,35 +309,34 @@ If every edge disappears, compare the depth clear and compare function against t
 
 ## Questions and answers
 
-This lesson is the conceptual centre of the viewer. If only one lesson is worth being able to reconstruct, it is this one.
 
 **Why can a stroke fragment not simply compare its own depth with the depth buffer?**
 
-*How to work it out.* Draw the situation in cross-section. A stroke is a *ribbon* several pixels wide around a mathematical axis. A fragment on the edge of that ribbon reads the depth buffer at *its own* pixel — which is the surface under that pixel, not the surface under the axis. Now put the stroke on the face it belongs to: the axis is exactly on the surface, but the edge fragments sit over a surface that is a fraction nearer or further.
+*How to work it out.* A stroke is a *ribbon* several pixels wide; an edge fragment reads the depth buffer at *its own* pixel, which is the surface under that pixel, not under the axis. On the stroke's own face the axis sits on the surface while the edge fragments sit over surface a little nearer or further.
 
-*The answer.* Half the ribbon loses a naive comparison and the line stitches. The fix is to carry the surface depth from the fragment's pixel to the axis using the depth gradient the face pass stored, and compare only the predicted depth at the axis with the axis itself.
+*The answer.* Half the ribbon loses the naive comparison and the line stitches. Carry the surface depth to the axis with the gradient the face pass stored, and compare only that prediction.
 
 **What exactly is stored in the gradient attachment, and who writes zero into it?**
 
-*How to work it out.* Ask what you need to travel from one pixel to another along a surface: the rate at which the surface's depth changes per pixel — its screen-space slope. Then ask which things on screen are not surfaces you can slide along.
+*How to work it out.* Travelling along a surface from pixel to pixel needs the rate its depth changes per pixel — its screen-space slope. Then ask which things on screen are not surfaces you can slide along.
 
-*The answer.* The winning primitive's own depth slope, scaled to survive `Rg16Float`. Surfaces write their real slope; the background, the grid, splats, sheets and every ID pass write zero, because extrapolating across them is meaningless. A zero gradient does not mean "flat" — it means "do not extrapolate me".
+*The answer.* The winning primitive's own depth slope, scaled to survive `Rg16Float`. Faces write their real slope in both the colour and the ID pass; the background, the grid, splats and imported lettering write zero, because extrapolating across them is meaningless. A zero gradient does not mean "flat" — it means "do not extrapolate me".
 
 **Reverse-Z needs three things to agree, and you have now seen all three in code. Name them.**
 
-*How to work it out.* Same reasoning as lesson 02, now with the code in front of you: the projection, the clear, the compare.
+*How to work it out.* Lesson 02's three, now in code: the projection, the clear, the compare.
 
-*The answer.* Near and far swapped in the projection; the depth attachment cleared to `0.0`; the compare `Greater`. The lesson's own troubleshooting note says exactly this, and being able to derive it beats remembering it — if every edge disappears, one of the three is wrong.
+*The answer.* Near and far swapped in the projection; the depth attachment cleared to `0.0`; the compare `Greater`. If every edge disappears, one of the three is wrong.
 
-**Multisampling is chosen per frame from the adapter and the pixel count. Why does it never change the visibility decision?**
+**Multisampling is chosen from the adapter and the pixel count. Why does it never change the visibility decision?**
 
-*How to work it out.* Separate the two things MSAA affects. It changes how many samples a triangle covers within a pixel — a coverage question. The ink test asks whether the axis is behind a surface — a depth question, computed per fragment from values that do not depend on the sample count.
+*How to work it out.* Separate the two things MSAA affects. It changes how many samples a triangle covers within a pixel — a coverage question. The ink test asks whether the axis is behind a surface — a depth question. At 4x it runs once per sample against that sample's own depth and gradient; coverage never enters it.
 
 *The answer.* Because visibility is decided from depth and gradient, not from coverage. MSAA smooths hard face edges; the ink test still asks the same question at the same place. `?msaa=4` against `?msaa=1` is the experiment that shows it: the fringe changes, the decision does not.
 
 **What you should be able to do now**
 
-Draw the frame on paper: which pass writes depth, which reads it, what attachments exist, where the backdrop sits. Correct: the face pass clears colour, depth and gradient and writes all three (the backdrop drawing first inside it); the ink pass loads colour, holds depth read-only and samples depth and gradient through group 2. Then predict a stroke on the far side of a box: its axis loses against the box's carried depth, so its fragments discard. Lessons 12, 17 and 18 extend this picture; they never replace it.
+Draw the frame on paper. Correct: the face pass clears colour, depth and gradient and writes all three, the backdrop drawing first inside it; the ink pass loads colour, holds depth read-only and samples depth and gradient through group 2. Then predict a stroke on the far side of a box: its axis loses against the box's carried depth, so its fragments discard.
 
 ## Next
 

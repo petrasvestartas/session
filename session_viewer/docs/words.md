@@ -1,6 +1,6 @@
 # Words before code
 
-Every word the lessons use before they have room to explain it, in plain language, with the lesson that first needs it. Read it once now; come back whenever a sentence in a lesson stops making sense. Nothing here is theory for its own sake: each entry names the file or call where the thing appears.
+Every word the lessons use before they have room to explain it, with the lesson that first needs it. Each entry names the file or call where the thing appears.
 
 ## Two sides and a wire
 
@@ -9,7 +9,7 @@ Every word the lessons use before they have room to explain it, in plain languag
 
 - **CPU side**: your Rust structs, the kernel documents, the scene, input events, object ids. You can read and change them at any time.
 - **GPU side**: buffers, textures, bind groups, pipelines, shaders. You cannot read them back casually; you *send* bytes and commands.
-- **The wire**: `queue.write_buffer`, `create_buffer_init`, the vertex layout, the bind-group layout, the shader's `@location`/`@binding` declarations. Every mistake in the course is on one of these.
+- **The wire**: `queue.write_buffer`, `create_buffer_init`, the vertex layout, the bind-group layout, the shader's `@location`/`@binding` declarations. 
 - Ask of every object: *CPU or GPU? Made once or every frame? Who owns it?* The answers are the architecture.
 
 ## Made once (lesson 01)
@@ -37,12 +37,12 @@ Every word the lessons use before they have room to explain it, in plain languag
 - **bind group layout** — the *shape* of a set of resources: group N has binding 0 of this kind, binding 1 of that kind, visible to these stages. A pipeline is compiled against shapes.
 - **bind group** — the *filled* set: this buffer at binding 0, this view at binding 2. Plugged in at draw time with `set_bind_group`.
 - **`@group(g) @binding(b)`** — the shader's name for one slot; it must agree with the layout and with what the bind group holds.
-- **the scene contract** (04a onward, `src/shaders/scene.wgsl`) — group 0: the camera matrix; group 1: the per-frame line block; group 2: object rows and their translations (plus the physical depth for ink); group 3: whatever the lane draws. Every lane shader is compiled with that file appended (`pipelines::scene_module`).
+- **the scene contract** (04a onward, `src/shaders/scene.wgsl`) — group 0 the camera matrix, group 1 the per-frame line block, group 2 object rows and translations (plus the physical depth for ink), group 3 the lane's own. Every lane shader is compiled with that file appended (`pipelines::scene_module`).
 - **shader stage visibility** — each layout entry lists the stages allowed to read it; a stage reading a binding it may not see fails at pipeline creation.
 
 ## Pipeline (01, 04a)
 
-- **render pipeline** — the frozen recipe for one kind of draw: which shaders, what vertex input, what output formats, blending, depth rule, sample count. Validated once, so every draw is cheap. Never rebuilt per frame; rebuilt only when the sample count flips (`Gpu::retarget`).
+- **render pipeline** — the frozen recipe for one kind of draw: which shaders, what vertex input, what output formats, blending, depth rule, sample count. Validated once, so every draw is cheap; rebuilt only when the sample count flips (`Gpu::retarget`).
 - **pipeline layout** — the list of bind-group layouts the pipeline expects, in group order.
 - **entry point** — the shader function a stage runs (`vs_main`, `fs_main`). One module can hold several; `PipelineDesc::with` and `vertex` pick them.
 - **`PipelineDesc`, `build`** (04a, `src/engine/pipelines/mod.rs`) — the house form: one base per shader, variants by fragment entry, colour mode and depth mode; `build` is the only place a pipeline is created.
@@ -91,13 +91,13 @@ Every word the lessons use before they have room to explain it, in plain languag
 ## House words
 
 - **row / instance** (03) — one object on the GPU: a 96-byte record (`Instance`: model matrix, colour, flags, spacing). A pick returns a row; `Scene` turns it into a source identity.
-- **lane** (04a) — one drawing family with its own buffers, pipelines and draw calls: `arena` (meshes), `segments` (strokes), `glyphs` (markers), `cloud` + `splat` (points), `text`, `surface_outline`. Lanes never see each other; `Gpu` lists them by hand.
+- **lane** (04a) — one drawing family with its own buffers, pipelines and draw calls: `arena` (meshes), `segments` (strokes), `glyphs` (markers), `cloud` + `splat` (points), `text`, `surface_outline`. Lanes do not reach into each other's buffers, except where one lane owns another outright — the arena owns the outline-text lane and the tile pool. `Gpu` lists them by hand.
 - **upload** (04a) — the typed rows one file produces, with no wgpu types in them; `Gpu::set_scene` appends them to the lanes, then the rows are dropped.
 - **walk / producer** (06) — the CPU code that turns one kernel geometry into rows; one producer per geometry family in `src/app/walk/`.
 - **face pass / physical** (04a, 05) — the first pass: solid faces write colour, depth and a depth-gradient. "Physical" means *this is what occludes*.
 - **ink** (04b) — everything that is not a solid face: strokes, markers, lettering, drawn in the second pass, which reads the physical depth and decides visibility per fragment (`ink_visibility.wgsl`).
-- **pcurve** (07) — a *parameter curve*: a trimmed face's boundary written in the surface's own `u`,`v` domain rather than in XYZ. Lifting a pcurve through the surface gives the 3D edge; mapping a shared XYZ edge back onto each face's pcurve is how two faces agree on where an edge lies in their own coordinates.
-- **grid face / constrained face** (07) — which mesher produced a face. A *grid* face comes from `mesh_q`, sampling the whole `u`,`v` rectangle on a regular grid, so its boundary is an iso line read straight off the `u`/`v` attributes. A *constrained* face comes from `mesh_loops`, triangulating inside given trim loops, so its boundary nodes carry `brep_edge/{edge}/{use}/{sample}` tags. The two give their boundary chains in different ways, which is why lesson 07 keeps naming them apart.
+- **pcurve** (07) — a *parameter curve*: a trimmed face's boundary in the surface's own `u`,`v` domain, not in XYZ. Lifting it through the surface gives the 3D edge; mapping a shared XYZ edge back onto each face's pcurve is how two faces agree where it lies.
+- **grid face / constrained face** (07) — which mesher produced a face. A *grid* face comes from `mesh_q`, sampling the whole `u`,`v` rectangle on a regular grid, so its boundary is an iso line read straight off the `u`/`v` attributes. A *constrained* face comes from `mesh_loops`, triangulating inside given trim loops, so its boundary nodes carry `brep_edge/{edge}/{use}/{sample}` tags. 
 - **constrained Delaunay** (07) — a triangulation that is Delaunay except that named segments are forced to appear as edges. Here the forced segments are the trim loops, which is what makes a boundary node a mesh node rather than an approximation of one.
 - **source vs display** — source: the kernel's face, edge, control point, in f64, with its id. Display: the triangles, node chains and markers made from it. GPU: the packed rows. Selection always names a source thing.
 - **id pass / pick window** (12) — the same draws again into an integer target, only in a small window around the cursor, read back asynchronously; the answer is a row plus a sub-id.
@@ -122,7 +122,7 @@ Every word the lessons use before they have room to explain it, in plain languag
 
 **Which of these is made per pipeline and which per buffer: a bind group layout, a bind group?**
 
-*How to work it out.* Ask what each one names. A layout names *kinds* of resources at slots — the shape the shader was compiled against. A bind group names *actual* buffers and views. A pipeline is compiled once; the buffers it draws from change.
+*How to work it out.* A layout names *kinds* of resources at slots — the shape the shader was compiled against; a bind group names *actual* buffers and views. A pipeline is compiled once; the buffers it draws from change.
 
 *The answer.* The layout is compiled into the pipeline; the bind group is made per set of real resources and plugged in at draw time. One pipeline draws with many bind groups.
 

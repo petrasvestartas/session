@@ -9,11 +9,11 @@
 ## Starting point
 
 - Checkpoint 00: Rust runs in the page, no GPU.
-- `src/lib.rs` is replaced in full during this lesson, in five appended pieces. Each piece is one idea; the file compiles when the last piece is in.
+- `src/lib.rs` is replaced in full during this lesson, in five appended pieces, one idea each.
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 6 and 7, and fails after 1–5: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 1–5 build again at step 6. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 6 and 7; steps 1–5 fail and build again at step 6.
 
 <!-- step-status: end -->
 
@@ -123,7 +123,7 @@ targets: [surface format]                    ↔  @location(0) vec4<f32> return
 
 ![Where this step sits in the viewer: Page, with 4 of 11 zones built so far.](illustrations/locator-640c09beef.svg){ .locator data-strip="illustrations/strip-cdcbec521d.svg" }
 
-JavaScript owns the canvas and pointer events; it calls the four exported methods. Replace the page in full.
+JavaScript owns the canvas and pointer events; it calls the four exported methods.
 
 ![Diagram: pointer · wheel · resize · index.html script · Tutorial · #status](illustrations/01-07.svg)
 
@@ -162,11 +162,11 @@ If the background appears without the triangle, compare the entry-point names, `
 
 ## Questions and answers
 
-These four are the frame, and the rest of the course assumes them. Reasoning first, then the answer.
+These four are the frame; the rest of the course assumes them.
 
 **Name every object between an empty page and a cleared canvas, in order.**
 
-*How to work it out.* Follow the dependencies: each object can only be made from something that already exists. You cannot ask for a GPU without an entry point; you cannot pick a GPU that can draw to your canvas without the canvas; you cannot create buffers without an open connection to that GPU. Then separate what is made once from what one frame needs.
+*How to work it out.* Follow the dependencies: each object is made from one that already exists. No GPU without an entry point; no GPU that can draw to your canvas without the canvas; no buffers without an open connection to that GPU. Then separate what is made once from what one frame needs.
 
 *The answer.* Instance → surface (from the canvas) → adapter (requested with `compatible_surface`, or it may not be able to present here) → device + queue → surface configuration. Then, per frame: `get_current_texture` → a texture view → a command encoder → a render pass with its attachments → `encoder.finish()` → `queue.submit` → `present`.
 
@@ -178,13 +178,13 @@ These four are the frame, and the rest of the course assumes them. Reasoning fir
 
 **Three things Rust and WGSL must agree on here. What are they?**
 
-*How to work it out.* Look for every place the same fact is written twice, once in each language. Walk the pipeline descriptor field by field and ask "where does the shader say this too?"
+*How to work it out.* Walk the pipeline descriptor field by field and ask where the shader says the same thing.
 
 *The answer.* The bind-group layout against `@group(0) @binding(0)`; the entry-point names `vs_main` / `fs_main`; the colour target format against the `@location(0)` return. Every validation error in this lesson is one of the three, because `cargo check` cannot see inside WGSL.
 
 **Why is `buffers: &[]` allowed when a triangle clearly has vertices?**
 
-*How to work it out.* Ask where the vertex positions actually come from. Read `vs_main`: if it never reads an input attribute, nothing has to be fetched from memory, and a vertex buffer would only be a slot nobody reads.
+*How to work it out.* Read `vs_main`: if it never reads an input attribute, nothing has to be fetched from memory, and a vertex buffer would be a slot nobody reads.
 
 *The answer.* The three positions are computed inside the shader from `@builtin(vertex_index)`, so no buffer is bound. `draw(0..3, 0..1)` is what makes that builtin count 0, 1, 2.
 

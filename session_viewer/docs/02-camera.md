@@ -19,7 +19,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -49,7 +49,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 
 <!-- file: 02 session_viewer/src/math.rs type lines=72-123 -->
 
-- A box also has to travel through a placement. `placed` transforms all eight corners rather than the two extremes, because a rotation moves a corner that was not extreme into a position that is.
+- `placed` transforms all eight corners rather than the two extremes, because a rotation moves a corner that was not extreme into a position that is.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -88,7 +88,6 @@ Draw lanes receive only the view-projection, never the camera. The eye is where 
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=53-111 -->
 
-- Zoom is the gesture with a constraint attached: the world point under the cursor must not move. That is why it takes a cursor position at all, and why it moves the target as well as the distance.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -123,7 +122,6 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 ![Where this step sits in the viewer: State, with 5 of 11 zones built so far.](illustrations/locator-3e7d0cf852.svg){ .locator data-strip="illustrations/strip-2150f410c0.svg" }
 
 - `fit` measures the box along the camera's own axes with `tan`, not a bounding sphere with `sin`; elongated scenes no longer sit twice as far as needed.
-- `grow_extent` widens only the far-plane floor when more geometry streams in.
 - Every mutation ends in `update_position`.
 
 ![Diagram: set_view · Camera · fit(Aabb, aspect) · grow_extent · position · up](illustrations/02-03.svg)
@@ -132,7 +130,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 
 <!-- file: 02 session_viewer/src/camera.rs type lines=270-298 -->
 
-- Fitting is the one gesture that reads the scene: it centres the target on a box and sets the distance from the box measured along the camera's own axes, so an elongated model fills the view instead of sitting twice as far away as it needs to.
+- Fitting is the one gesture that reads the scene: it centres the target on the box.
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -208,9 +206,9 @@ If dragging moves twice as far on a high-DPI display, look at the `self.scale` c
 
 **`index = col * 4 + row`. Why does the convention matter more than the formula?**
 
-*How to work it out.* Ask what happens if you get it backwards. Indexing the other way gives you the transpose — and a transpose is still a perfectly valid 4×4 matrix, so nothing errors. Then ask who else has an opinion: the kernel's `Xform`, this file, and WGSL's `m * v`. Three parties, one convention, no runtime check.
+*How to work it out.* Indexing the other way gives you the transpose — still a perfectly valid 4×4 matrix, so nothing errors. Then ask who else has an opinion: the kernel's `Xform`, this file, and WGSL's `m * v`. Three parties, one convention, no runtime check.
 
-*The answer.* The formula is trivial; the risk is that the wrong one is silent. A transposed matrix multiplies without complaint and produces a picture that is wrong in a plausible way — the object rotates about the wrong point, or translates when it should scale. Because `math.rs`, the kernel and WGSL all agree on column-major, the rule is written once and never renegotiated.
+*The answer.* The risk is that the wrong one is silent: a transposed matrix multiplies without complaint and produces a picture wrong in a plausible way — the object rotates about the wrong point, or translates when it should scale. `math.rs`, the kernel and WGSL all agree on column-major, so the rule is written once and never renegotiated.
 
 **Reverse-Z needs three things to agree. Which three?**
 
@@ -222,7 +220,7 @@ If dragging moves twice as far on a high-DPI display, look at the `self.scale` c
 
 *How to work it out.* f32 has about seven significant digits. A model a kilometre from the origin, measured in millimetres, needs seven digits before the decimal point — so the conversion has to happen when the numbers are *small*. Ask what makes them small: subtracting an anchor near the camera.
 
-*The answer.* In `mat_to_f32`, after the anchor has been subtracted. Convert before rebasing and the low bits are gone, and the symptom is jitter you cannot debug from inside the shader because the shader was handed bad numbers. One function is the whole f64 → f32 boundary, so there is one place to look.
+*The answer.* In `mat_to_f32`, after the anchor has been subtracted. Convert before rebasing and the low bits are gone, and the symptom is jitter you cannot debug from inside the shader because the shader was handed bad numbers. One function is the whole matrix f64 → f32 boundary, so there is one place to look when a placement jitters.
 
 **Why must `zoom_at` be given physical pixels rather than CSS pixels?**
 

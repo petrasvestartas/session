@@ -16,7 +16,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 2 and 4–9, and fails after 1 and 3: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, step 1 build again at step 2; step 3 build again at step 4. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 2 and 4–9; step 1 fails and builds again at step 2; step 3 fails and builds again at step 4.
 
 <!-- step-status: end -->
 
@@ -37,7 +37,7 @@
 
 <!-- file: 07 session_rust/src/lib.rs type -->
 
-- One re-export: `TrimLoops` joins `NurbsSurfaceTrimmed` at the kernel's front door. The type is the contract a BRep hands the mesher, so it has to be nameable from outside.
+- One re-export: the contract a BRep hands the mesher has to be nameable from outside the kernel.
 
 ## Step 2 · Kernel: one triangulation body
 
@@ -141,7 +141,7 @@
 
 <!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=240-297 -->
 
-- When only one face can supply a chain, the other face still lends its normal: the facing cull needs two outward directions, and the nearest face-mesh vertex is where that surface actually points at the edge.
+- The lending face's normal comes from its nearest face-mesh vertex: the facing cull needs two outward directions.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -169,7 +169,7 @@
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=1-59 -->
 
-- Matching a shared edge means finding where the other face sampled its start. Two grid faces meeting on a seam agree on the position exactly, so the lookup is nearest-vertex rather than a tolerance search.
+- Matching a shared edge means finding where the other face sampled its start. Two grid faces put that vertex down bit for bit, but a CDT face re-evaluates the surface and lands an ULP off — so the lookup is a nearest-vertex minimum, not an equality, and still not a tolerance search.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -179,13 +179,12 @@
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=79-113 -->
 
-- `opposed` asks the only question that matters for winding: do the two faces walk their shared edge in opposite directions? `None` when either side cannot say, which is a refusal rather than a guess.
+- `opposed`: do the two faces walk their shared edge in opposite directions? `None` when either side cannot say — a refusal, not a guess.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=114-162 -->
 
-- The two-step answer: neighbours are made to agree by walking the shared edges, then each connected group is turned outward by the sign of the volume it encloses. Both steps read the tessellation, never the file's own orientation flags.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -195,7 +194,7 @@
 
 <!-- file: 07 session_viewer/src/app/walk/mod.rs type -->
 
-- One line: `brep_orient`, the winding helper this lesson adds. The walk has no dispatcher yet - that arrives with the production shell in lesson 12 - so a new file costs exactly one declaration.
+- One line: `brep_orient`. The walk has no dispatcher until lesson 12, so a new file costs exactly one declaration.
 
 <!-- check: 07 -->
 
@@ -267,31 +266,31 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 
 **Two faces agree on an edge's endpoints. Why is that not enough?**
 
-*How to work it out.* Agreeing on the ends constrains two points. Ask what happens in between: each face chords the curve according to *its own* refinement, which depends on its own curvature and tolerance. Two different polylines with the same endpoints.
+*How to work it out.* Agreeing on the ends constrains two points. In between, each face chords the curve by *its own* refinement, from its own curvature and tolerance: two different polylines with the same endpoints.
 
-*The answer.* The seam z-fights where the two chordings cross, and one face's coarse chord can be buried under the other's finer surface. Agreement on endpoints is too weak a contract; the fix is stronger — one canonical XYZ polygon, shared bit for bit, so there is nothing left to disagree about.
+*The answer.* The seam z-fights where the two chordings cross, and one face's coarse chord can be buried under the other's finer surface. Endpoints are too weak a contract; one canonical XYZ polygon, shared bit for bit, leaves nothing to disagree about.
 
 **Why is the ink drawn from mesh nodes rather than sampled from the CAD curve?**
 
-*How to work it out.* Ask what the ink is supposed to outline: the tessellation, which is what the user actually sees. A curve sampled independently is a second approximation of the same edge, accurate to its own tolerance — and two approximations of a curve differ by more than nothing.
+*How to work it out.* The ink outlines the tessellation, which is what the user sees. A curve sampled independently is a second approximation of the same edge, accurate to its own tolerance — and two approximations differ.
 
-*The answer.* An independently sampled line floats above or sinks below the surface it is meant to outline, visibly, as soon as you zoom. Drawing from the nodes the shared boundary polygon became makes the line and the surface the same geometry by construction rather than by tolerance.
+*The answer.* An independently sampled line visibly floats above or sinks below the surface it outlines as soon as you zoom. Drawing from the nodes the shared boundary polygon became makes line and surface the same geometry by construction, not by tolerance.
 
 **When the constraint fails, the kernel returns an empty mesh. Defend that choice against "return the best mesh you can".**
 
-*How to work it out.* Ask what happens to a slightly-wrong face downstream. It is inked, picked, measured, exported and trusted. Now ask what happens to an empty face: it is obviously broken, it is reported, and nothing is built on it.
+*How to work it out.* A slightly-wrong face is inked, picked, measured, exported and trusted. An empty face is obviously broken, is reported, and nothing is built on it.
 
 *The answer.* A smeared crease or a manufactured face looks plausible and is wrong; in a CAD kernel that is the expensive failure. A visible failure is cheaper than a quiet approximation — the same instinct as refusing a `200` answer to a range request in lesson 13.
 
 **Face-use flags are never read when deciding which way is out. What is used instead, and why is that more robust?**
 
-*How to work it out.* Ask where each candidate comes from. A flag was written by whichever tool produced the file and can be wrong or missing. The winding of the tessellation is something you compute from the geometry you are holding.
+*How to work it out.* A flag was written by whichever tool produced the file and can be wrong or missing. The winding of the tessellation you compute from the geometry in your hand.
 
-*The answer.* Two faces that walk a shared edge in opposite directions agree, and a group enclosing negative volume is inside out — both derived from the mesh. Prefer the invariant you can compute over the one you were told; the second has no error bar you can see.
+*The answer.* Two faces that walk a shared edge in opposite directions agree, and a group enclosing negative volume is inside out — both from the mesh. Prefer the invariant you can compute over the one you were told; the second has no error bar you can see.
 
 **What you should be able to do now**
 
-Explain in three sentences why the fix for this problem is upstream of the viewer. Correct: the viewer receives two independently meshed faces and has no way to recover the curve they were both approximating, so any viewer-side fix would be a tolerance-based weld that guesses. The information needed — one canonical polygon and the provenance tags saying which node came from which boundary sample — only exists inside the mesher. Recognising "this cannot be fixed where I am standing" is a skill worth naming.
+Explain why the fix is upstream of the viewer. Correct: the viewer receives two independently meshed faces and cannot recover the curve they both approximate, so any viewer-side fix would be a tolerance weld that guesses. The information needed — one canonical polygon, and the provenance tags saying which node came from which boundary sample — exists only inside the mesher. Recognising "this cannot be fixed where I am standing" is a skill worth naming.
 
 ## Next
 

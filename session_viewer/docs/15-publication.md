@@ -11,7 +11,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 

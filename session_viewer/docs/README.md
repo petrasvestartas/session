@@ -1,22 +1,23 @@
 # Build the Session Viewer
 
-A code-first course. Start from an empty Rust crate, type the parts worth understanding, copy the boilerplate, compile after every step, and finish with the current production viewer, byte for byte.
+A code-first course: from an empty Rust crate to the current production viewer, byte for byte. Type what is worth understanding, copy the boilerplate, compile after every step.
 
 ## What you build
 
 App side, from the window to the upload rows:
 
-![Diagram: lib.rs · App (winit) · state.rs · State · app/loader.rs\ manifest · protobuf · camera.rs · app/input.rs\ touch.rs · app/scene.rs\ source documents\ + identity…](illustrations/README-01.svg)
+![Diagram: lib.rs · App (winit) owns app/input.rs and touch.rs, which send named actions to state.rs · State; State drives camera.rs, app/scene.rs and engine/gpu · Gpu, and app/walk turns source documents into Upload rows…](illustrations/README-01.svg)
 
 GPU side, from `Gpu` to its passes:
 
 ![Diagram: engine/gpu · Gpu · Faces · Text · Tiles · segments\ ribbon.wgsl\ ink_visibility.wgsl · glyphs · cloud · splat…](illustrations/README-02.svg)
 
-Read [How to use this course](how-to-learn.md) first: it is short, and it says how a lesson is built. Nothing in this course is hidden — every lesson ends in **Questions and answers**, where each question is followed by the reasoning that gets you there and then the answer.
+Read these four first:
 
-Then read [The map](map.md): one picture of the whole viewer, which every single step of the course reopens with your current position lit. It is the answer to "where does this file sit in the bigger picture", and it is the same picture every time.
-
-Then read [Words before code](words.md) once: every term the lessons use before they have room to explain it, with the file where it first appears. Come back to it whenever a sentence stops making sense. When something breaks, [Reading failures](debugging.md) covers the errors this course actually produces.
+- [How to use this course](how-to-learn.md) — how a lesson is built. Nothing is hidden: every lesson ends in **Questions and answers**, each question followed by the reasoning that gets you there and then the answer.
+- [The map](map.md) — one picture of the whole viewer; every step reopens it with your position lit.
+- [Words before code](words.md) — every term the lessons use before they have room to explain it, with the file where it first appears.
+- [Reading failures](debugging.md) — the errors this course actually produces.
 
 ## How a lesson reads
 
@@ -26,7 +27,7 @@ Then read [Words before code](words.md) once: every term the lessons use before 
 - **Supplied files** are tooling (native examples, fixtures, parity ports) installed by one command; the course does not teach them.
 - **Check**: `cargo check` where it is known to pass, then the checkpoint build and what you should see.
 
-Every block is cut from the verified patch of that checkpoint. A replay audit types each lesson literally and requires the result to hash to the checkpoint, and every `cargo check` marker was measured on the typed state.
+Every block is cut from that checkpoint's verified patch, a replay audit proves that typing the lesson reproduces it, and every `cargo check` marker was measured on the typed state.
 
 ## Course
 
@@ -57,9 +58,9 @@ Every block is cut from the verified patch of that checkpoint. A replay audit ty
 | [19 · Sheets](19-sheets.md) | Batched drawings, ranged slices, lazy entity metadata | |
 | [20 · The document](20-history.md) | Kernel history: transactions, tombstones, undo and redo, purge on save | **5 · Full viewer** |
 
-Then [the capstone](capstone.md): a section plane, with requirements, constraints, the reasoning for each decision worked through, and the full design written out — but no line-by-line instructions.
+Then [the capstone](capstone.md): a section plane — requirements, constraints, the reasoning for each decision and the full design, but no line-by-line instructions.
 
-Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06–09 change the shared kernel and only need 05. 10–11 need 04c. 12 builds the production shell and needs everything before it. 13–16 extend `State` and loading. 17–18 refine presentation and visibility on top of 12. 19 streams drawing sheets on top of 15 and 17. 20 changes the shared kernel only and needs 19 for the inventory.
+Dependencies: 01 → 02 → 03 → 04a–d → 05 are strictly sequential. 06–09 change the shared kernel and need only 05. 10–11 need 04c. 12 needs everything before it. 13–16 extend `State` and loading. 17–18 build on 12. 19 needs 15 and 17. 20 changes the kernel only and needs 19.
 
 ## Prepare one workspace
 
@@ -89,14 +90,13 @@ cargo check --locked --lib
 trunk serve --port 8780
 ```
 
-Open <http://localhost:8780/?data=off&inspect=1>. Stop with **Ctrl+C** before the next lesson. Port 8780 keeps the course apart from a production viewer on 8770.
+Open <http://localhost:8780/?data=off&inspect=1>; stop with **Ctrl+C** before the next lesson. Port 8780 keeps the course apart from a production viewer on 8770.
 
-A passing `cargo check` proves Rust. A Trunk build proves the WASM bundle. Pixels in the browser prove the GPU work; an empty canvas is not a passing checkpoint.
+A passing `cargo check` proves Rust, a Trunk build proves the WASM bundle, pixels prove the GPU work — an empty canvas is not a passing checkpoint.
 
 ## Exact reconstruction, optional
 
-- `replay.py --output "$COURSE_WORK" --through NN --copy-supplied` installs the supplied files for a lesson.
-- `replay.py --output "$COURSE_WORK" --through NN --adopt` verifies your typed sources against the checkpoint hashes.
+- `replay.py --output "$COURSE_WORK" --through NN` takes `--copy-supplied` to install a lesson's supplied files, or `--adopt` to verify your typed sources against the checkpoint hashes.
 - `replay.py --output "$HOME/viewer-course-auto" --through NN` writes a lesson for you in a separate workspace.
 - Lesson 20 ends with `converge.py`, which compares the final workspace with the frozen production inventory.
 
@@ -120,12 +120,12 @@ python3 docs/course_pages.py --audit
 docs/serve.sh
 ```
 
-Two more tools keep the lessons honest about building: `python3 docs/reconstruction/step_checks.py` runs `cargo check` at the end of every step of every lesson, and `python3 docs/reconstruction/step_status.py` writes the result into each lesson as the "Does it compile yet?" line (`--check` fails when one is stale).
+`docs/reconstruction/step_checks.py` runs `cargo check` at the end of every step of every lesson; `step_status.py` writes the result into each lesson as the "Does it compile yet?" line (`--check` fails when one is stale).
 
 The build expands lesson directives from the verified patches, so lesson code is never duplicated in Git. `check_site.py` checks links, downloads and lexers; `course_pages.py --audit` checks that every checkpoint change is taught or supplied exactly once and that typing each lesson reproduces its checkpoint.
 
-Flowcharts are D2: edit `docs/diagrams/<lesson>-<n>.d2` and run `python3 docs/diagrams.py`, which fetches its own pinned renderer the first time and writes the committed SVG. Every step's "where you are" map comes from `python3 docs/locator.py` (`--check` fails when a lesson is stale), and `python3 docs/check_svg.py docs/illustrations/*.svg` measures every label in a real Chrome when playwright is unavailable: it fails on a label that leaves the canvas, one that collides with another, and one whose colour is too close to the shape it sits on. That last check is why the dark-page remapping cannot quietly turn a white box black under black type again.
+Flowcharts are D2: edit `docs/diagrams/<lesson>-<n>.d2`, then `python3 docs/diagrams.py` (it fetches its own pinned renderer once and writes the committed SVG). `python3 docs/locator.py` regenerates every step's "where you are" map. `python3 docs/check_svg.py docs/illustrations/*.svg` is the playwright-free check: a label that leaves the canvas, collides with another, or sits too close in colour to its shape fails the build — which is what stops the dark-page remapping turning a white box black under black type. (`--check` fails when a lesson or an SVG is stale.)
 
-Illustrations are generated: `python3 docs/illustrations/draw.py` sizes every box from its text, and `node docs/check_illustrations.cjs --write` measures every label in Chrome, fails on any overflow or collision, and pins each label's measured width so other fonts cannot overflow either. The palette is the BRG Equilibrium drawing palette (navy, pink, green, yellow, pale bands), also applied to the Mermaid diagrams: a reader carries those colours from a diagram to the running viewer, so they are the drawing's own and no theme replaces them.
+Illustrations are generated: `python3 docs/illustrations/draw.py` sizes every box from its text, and `node docs/check_illustrations.cjs --write` measures every label in Chrome, fails on overflow or collision, and pins the measured width so other fonts cannot overflow either. The palette is BRG Equilibrium (navy, pink, green, yellow, pale bands), shared with the D2 diagrams: a reader carries those colours from a diagram to the running viewer, so no theme replaces them.
 
-Everything around them - ground, plates, rules, type, radius, density, the accent - comes from a Claude Design system, and the link runs both ways. Pulling: `docs/stylesheets/theme.json` is the project exported from claude.ai/design, `python3 docs/stylesheets/theme.py` renders it into `theme.css`, `docs/stylesheets/fonts/fetch.sh` refetches the faces it names against their recorded sha256, and `check_site.py` fails the build if `theme.css`, the committed faces and `theme.json` ever disagree. `course.css` is the only consumer, so switching systems is one export rather than a search through the stylesheet. Pushing: `python3 docs/design_cards.py` builds the drawing palette, the figure plate and all the illustrations into `target/docs/cards/`, ready to upload back to the same project so the graphics can be reviewed as one set on the canvas.
+Everything around them — ground, plates, rules, type, radius, density, the accent — comes from a Claude Design system, and the link runs both ways. `theme.json` is the project exported from claude.ai/design; `theme.py` renders it into `theme.css`; `fonts/fetch.sh` refetches the named faces against their recorded sha256; `check_site.py` fails the build if the three disagree. `course.css` is the only consumer, so switching systems is one export. `python3 docs/design_cards.py` pushes the palette, the figure plate and every illustration into `target/docs/cards/` to review as one set.

@@ -23,7 +23,7 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1–13, 16 and 17, and fails after 14 and 15: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 14 and 15 build again at step 16. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 1–13, 16 and 17; steps 14 and 15 fail and build again at step 16.
 
 <!-- step-status: end -->
 
@@ -34,8 +34,6 @@ Install the binary interaction fixture and the supplied native harness file firs
 ![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-1c4b2f24dc.svg){ .locator data-strip="illustrations/strip-54e1511b20.svg" }
 
 - Browser builds use `BROWSER_WEBGPU` only; native test builds use the primary backends. Both go through one function.
-- A storage-binding limit is requested explicitly, so a large cloud fails with a GPU error instead of a silent driver fallback.
-- Uncaptured errors and device loss are remembered in `failure`; `State::render` reads it and shows the reload panel instead of drawing garbage.
 
 ![Diagram: BROWSER_WEBGPU adapter · DeviceSetup · device · queue · failure](illustrations/12-03.svg)
 
@@ -45,7 +43,6 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 <!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-83 -->
 
-- That is the chain as far as a chosen adapter. The next part asks it for a device, and the only unusual thing it asks for is a storage-binding limit.
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
@@ -107,7 +104,6 @@ The offscreen and benchmark paths used by native tools:
 
 <!-- file: 12 session_viewer/src/engine/gpu/render.rs type lines=55-123 -->
 
-- The frame list, in order. Read it as the contract it is: physical surfaces write the depth, everything after them reads it, and the same order is repeated by the ID pass so a pick cannot disagree with the picture.
 
 ### Step 4 · Input bindings
 
@@ -124,6 +120,8 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 | Ctrl + left click | select an original edge |
 | 1–7 | named views · Space projection · C reset · F fit |
 | Q / W / E / D / B | points, lines, mesh edges, lighting, back faces |
+| P | x-ray |
+| [ / ] | cloud point size |
 | H / S | hide the selection / show all |
 | T | toggle selected names |
 | Escape | leave edge mode, then clear |
@@ -138,7 +136,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/input.rs type lines=48-81 -->
 
-- Two view keys sit beside selection. `D` flips the headlight (`view.lit`, off by default: a face shows its flat row colour until you ask for shading). `P` flips x-ray through `toggle_xray`; from lesson 18 on, a zero opacity turns every multi-face solid into its edges and vertices.
+- `D` flips the headlight (`view.lit`, off by default: a face shows its flat row colour until you ask for shading). `P` flips x-ray; from lesson 18 on, a zero opacity turns every multi-face solid into its edges and vertices.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
@@ -162,7 +160,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 - winit routes `pointerType == "touch"` to `WindowEvent::Touch` only, so fingers never reach the mouse arms.
 - Finger travel is divided by the device pixel ratio; otherwise one centimetre of glass orbits three times faster on a DPR 3 phone.
-- A finger that lifts within 12 px and 300 ms of where it landed is a tap: `Act::Tap` carries the point and the input layer requests a selection there, the same pick a click makes. A second tap within 320 ms and 40 px is `Act::Fit`, which needs the scene bounds a layer up.
+- A finger that lifts within 12 px and 300 ms of where it landed is a tap, and asks for the same pick a click makes; a second tap within 320 ms and 40 px asks for a fit, which needs the scene bounds a layer up.
 
 ![Diagram: WindowEvent::Touch · Touch · orbit · pan · zoom · request_selection · fit](illustrations/12-07.svg)
 
@@ -174,7 +172,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/touch.rs type lines=69-138 -->
 
-- A finger's whole life, in physical pixels. `Act` is what the gesture asked for rather than what was done, because `Fit` needs the scene bounds and this file is allowed to know only the camera.
+- `Act` is what the gesture asked for rather than what was done: `Fit` needs the scene bounds and this file may know only the camera.
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
@@ -197,7 +195,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=60-117 -->
 
-- Clearing keeps the scene usable rather than replacing it: a reload must not invalidate the `Scene` the whole application is holding, so the tables are emptied in place and the row bookkeeping starts again from zero.
+- A reload must not invalidate the `Scene` the whole application is holding, so the tables are emptied in place and the row bookkeeping starts again from zero.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -209,7 +207,6 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=177-199 -->
 
-- The walk is where a kernel document becomes rows: one object row per guid, in the kernel's canonical order, so the row a guid gets is the row it keeps for as long as that revision is loaded.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -233,7 +230,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=342-405 -->
 
-- Resolving a pick is where a row becomes something a user can be told about: an edge answer goes back through the retained producer records, and an answer that cannot be named is refused rather than guessed.
+- An edge answer goes back through the retained producer records, and an answer that cannot be named is refused rather than guessed.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -263,7 +260,7 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-48 -->
 
-- Positions, colours and normals come out of the kernel's flat arrays; normals only when every point has one, because a partly-normalled cloud would shade inconsistently and there is no per-point flag to say which.
+- Normals are read only when every point has one: a partly-normalled cloud would shade inconsistently and there is no per-point flag to say which.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -316,7 +313,7 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/feedback.rs type -->
 
-- Status messages go through `textContent`, never HTML: the text can come from a document or a server, and neither is allowed to write markup into the page.
+- The text can come from a document or a server, and neither is allowed to write markup into the page.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -326,7 +323,7 @@ The walk gains three producers so every kernel geometry type has a lane.
 
 <!-- file: 12 session_viewer/src/app/loader.rs type -->
 
-- A local fixture loader, one file wide, so the shell has something to load. Lesson 14 replaces it with manifests, routing and staged replacement.
+- A local fixture loader, one file wide, so the shell has something to load; lesson 14 replaces it.
 
 <!-- check: 12 -->
 
@@ -356,7 +353,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-59 -->
 
-- The tolerance is a circle in framebuffer pixels, at least one pixel wide: the click is a point, but the user's intent is a small neighbourhood, and that neighbourhood has to be the same physical size on every display.
+- The tolerance is a circle in framebuffer pixels, at least one pixel wide: a click is a point, the user's intent is a neighbourhood, and that neighbourhood must be the same physical size on every display.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -378,7 +375,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=204-222 -->
 
-- The ID targets are made on the first pick and kept until the canvas resizes. The gradient attachment gives ink the same visibility rule as the colour frame.
+- The ID targets are made on the first pick and kept until the canvas resizes.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -411,7 +408,6 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=489-552 -->
 
-- `nearest_hit` is the rule that makes a hairline clickable: ink beats a face anywhere in the window, and among equals the nearest texel to the cursor wins.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -435,7 +431,6 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 ![Where this step sits in the viewer: Lanes, Shaders, with 10 of 11 zones built so far.](illustrations/locator-51de178268.svg){ .locator data-strip="illustrations/strip-aff484c5a8.svg" }
 
 - A visible selected surface writes an R8 coverage mask against the frame's depth; a fullscreen pass darkens the ring just outside it.
-- Coverage is allocated only while a selection exists and released the moment it clears.
 
 ![Diagram: selected faces · R8 coverage mask · SelectionOutline pass · black ring](illustrations/12-14.svg)
 
@@ -453,7 +448,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=99-165 -->
 
-- `prepare` allocates the coverage texture only while something is selected, and answers whether there is anything to draw at all - the cheapest version of this feature is the one that is switched off.
+- `prepare` also answers whether there is anything to draw at all: the cheapest version of this feature is the one that is switched off.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -481,7 +476,6 @@ binding 1: uniform [radius, 0, 0, 0]    ↔  @group(0) @binding(1) var<uniform> 
 
 <!-- check: 12 -->
 
-Still undeclared modules; the check passes for the same reason as before.
 
 ## Part C · Wiring
 
@@ -514,7 +508,7 @@ Still undeclared modules; the check passes for the same reason as before.
 
 <!-- file: 12 session_viewer/src/state.rs type lines=162-188 -->
 
-- Everything above changes what is in the scene: append a document, replace the manifest texts, start or extend a streamed cloud or sheet, clear. Each one ends by telling the GPU and asking for a frame — `State` is the only place that knows both sides.
+- Each of these ends by telling the GPU and asking for a frame: `State` is the only place that knows both sides.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -599,7 +593,7 @@ Document titles and the selected name are derived labels; they have no source ro
 
 <!-- file: 12 session_viewer/src/app/route.rs type -->
 
-- The query reader is edited, not replaced: the production shell owns it now, and the routing policy is still two lessons away.
+- The routing policy is still two lessons away.
 
 ### Step 16 · The application shell
 
@@ -618,7 +612,6 @@ Document titles and the selected name are derived labels; they have no source ro
 
 <!-- file: 12 session_viewer/src/lib.rs type whole lines=36-92 -->
 
-- `resumed` binds the `#canvas` element and spawns the loader; `user_event` and `window_event` end by asking for a frame only when something changed.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -639,7 +632,7 @@ Document titles and the selected name are derived labels; they have no source ro
 ![Where this step sits in the viewer: Page, Shell, with 10 of 11 zones built so far.](illustrations/locator-51db8c1fc4.svg){ .locator data-strip="illustrations/strip-7794a17bda.svg" }
 
 - The page is one canvas, a status line and a hidden error panel; `touch-action: none` on the canvas hands every gesture to winit before the browser can claim it as a scroll.
-- `#viewer-docs` is the documentation corner: a fixed 40 px black folded-corner triangle at the top right, drawn from the borders of a zero-size anchor, that opens `docs/` in a new tab. Hover or keyboard focus grows it to 52 px through a 250 ms eased transition, so it reads as a page corner lifting; it sits above the canvas and covers nothing but its own triangle.
+- `#viewer-docs` is the documentation corner: a black folded-corner triangle at the top right that opens `docs/` in a new tab, drawn from the borders of a zero-size anchor. Hover or keyboard focus grows it, so it reads as a page corner lifting; it covers nothing but its own triangle.
 - The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner's link resolves in a served build. Nothing builds that site yet — lesson 14 adds the pre-build hook that does — and Trunk refuses a `copy-dir` whose source is missing, so create the directory once before you serve:
 
 ```sh
@@ -660,7 +653,7 @@ mkdir -p "$COURSE_WORK/session_viewer/target/docs/site"
 
 <!-- file: 12 session_viewer/src/fixture.rs -->
 
-- The whole production shell is in the build now. The two checks inside Parts A and B passed while the new modules were still undeclared, so this is the first one that compiles them; the teaching fixture and `Tutorial` are gone and `App` has taken their place.
+- This is the first check that compiles the new modules: the two inside Parts A and B ran while they were still undeclared. `Tutorial` and the teaching fixture are gone.
 
 <!-- check: 12 -->
 
@@ -701,7 +694,6 @@ If an object highlights but the status names another GUID, the row → identity 
 
 ## Questions and answers
 
-Halfway. From here the questions assume you can read the code and ask instead whether you would have *designed* it this way.
 
 **Picking renders the scene again into an integer target instead of intersecting a ray with the geometry on the CPU. Argue for that choice.**
 

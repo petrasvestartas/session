@@ -203,7 +203,7 @@ def spaces():
 
 def gpu_data():
     c = Canvas("How a Rust record reaches a WGSL shader",
-               "A repr(C) Pod struct is cast to bytes by bytemuck and written into a wgpu buffer. A bind group layout describes the shape, a bind group attaches the buffer at a group and binding number, and the shader declares the same group and binding with a matching struct. Meshes are vertex-pulled from storage buffers.",
+               "A repr(C) Pod struct is cast to bytes by bytemuck and written into a wgpu buffer. A bind group layout describes the shape, a bind group attaches the buffer at a group and binding number, and the shader declares the same group and binding with a matching struct, and the draw picks one row of it by instance index.",
                1000, 440)
     c.text(28, 40, "Rust struct → buffer → bind group → WGSL", "h")
     r = row(c, 66, [(["Rust · instance.rs", "`#[repr(C)] #[derive(Pod)]`", "`struct Instance {`", "`  model: [f32; 16], // 0`", "`  color: [f32; 4],  // 64`", "`  flags: u32, …     // 80`", "`}                   // 96 B`"], "cpu"),
@@ -216,11 +216,11 @@ def gpu_data():
     c.raw(f'<path d="M{first[0] + first[2] / 2:.1f},{bottom + 4:.1f} C{first[0] + first[2] / 2:.1f},{bottom + 44:.1f} {last[0] + last[2] / 2:.1f},{bottom + 44:.1f} {last[0] + last[2] / 2:.1f},{bottom + 4:.1f}" fill="none" stroke="{PAL["yellow"]}" stroke-width="2"/>')
     c.text((first[0] + last[0] + last[2]) / 2, bottom + 62, "same field order, sizes and 16-byte alignment · checked by the layout test", "s", anchor="middle", fill="#8a6a10")
     y2 = bottom + 80
-    b1 = c.box(28, y2, ["Vertex pulling · arena.rs, triangle.wgsl",
-                        "No vertex buffer: positions live in storage at group 3.",
-                        "`let v = face_indices[vertex_index];`",
-                        "`let row = face_objects[v / 3];`",
-                        "`p = mvp * (instances[row].model * pos + translations[row]);`"], "note")
+    b1 = c.box(28, y2, ["One row per object",
+                        "The draw picks the row; the shader reads it.",
+                        "`draw(0..3, row..row + 1)`",
+                        "`let row = instance_index;`",
+                        "`p = mvp * instances[row].model * pos;`"], "note")
     c.box(b1[0] + b1[2] + 24, y2, ["Group scheme for every draw",
                                    "`0  mvp uniform`",
                                    "`1  line / pen uniform`",
@@ -251,7 +251,7 @@ def ink_visibility():
     c.box(28, 350, ["The contract, as the code spells it",
                     "`projection: Xform::perspective(fovy, aspect, far, near)`",
                     "`clear: LoadOp::Clear(0.0)     format: Depth32Float`",
-                    "`compare: CompareFunction::Greater   (physical.wgsl)`",
+                    "`compare: CompareFunction::Greater   (pipelines/mod.rs)`",
                     "More float precision lands where the geometry is: near the eye."], "note")
     x0 = 540
     c.text(x0, 40, "A thick line is not its axis", "h")
@@ -283,7 +283,7 @@ def picking():
              (["id_pass · render.rs", "same lists, opaque, 1×", "scissor = window(cursor)"], "gpu"),
              (["ID targets", "`Rg32Uint  (row, sub)`", "`Depth32Float + metadata`"], "gpu")]
     lower = [(["SelectionMode", "FLAG_SELECTED uploaded", "frame requested", "yellow strokes, black", "silhouette, name plate"], "sel"),
-             (["Scene · scene.rs", "`object_at(row)`", "`edge_at(row, sub)`", "`face_at(row, sub)`", "row → GUID, edge, face, control"], "cpu"),
+             (["Scene · scene.rs", "`resolve(pick, gpu)`", "`edge_at(pick)`", "`point_at(row, local)`", "row → GUID, edge, point, sheet"], "cpu"),
              (["copy_window → map_async", "a bounded copy, never the frame", "nearest eligible ID wins;", "edges beat faces in Component"], "gpu"),
              (["window · pick.rs", "radius in CSS px × DPR"], "gpu")]
     widths = [max(c.natural(u[0]), c.natural(l[0])) for u, l in zip(upper, lower)]
@@ -352,7 +352,7 @@ def vertex_layout():
                "A repr(C) Rust struct and its WGSL mirror must agree on offsets. Scalars are 4 bytes; vec3 is aligned to 16 bytes in WGSL, so a Rust struct that packs three floats without padding shifts every following field. The viewer uses vec4 or explicit padding and asserts size and offsets at compile time.",
                1000, 300)
     c.text(28, 40, "96 bytes, the same on both sides", "h")
-    c.text(28, 76, "Instance (instance.rs ↔ triangle.wgsl)", "l")
+    c.text(28, 76, "Instance (instance.rs ↔ scene.wgsl)", "l")
 
     def cells(y, items, kinds):
         x = 28
@@ -364,7 +364,7 @@ def vertex_layout():
             x += w
         return x
 
-    end = cells(88, [("model: [f32;16] · mat4x4<f32> · 64 B · offset 0", 420), ("color: [f32;4] · 64", 150), ("flags 80", 70), ("thickness 84", 96), ("spacing 88", 88), ("_pad 92", 70)],
+    end = cells(88, [("model: [f32;16] · mat4x4<f32> · 64 B · offset 0", 420), ("color: [f32;4] · 64", 150), ("flags 80", 70), ("_pad0 84", 96), ("spacing 88", 88), ("_pad 92", 70)],
                 ["cpu", "cpu", "gpu", "gpu", "gpu", "note"])
     c.text(28, 146, "const _: () = assert!(size_of::<Instance>() == 96);  the layout test parses the WGSL struct and compares every offset.", "s")
     c.text(28, 186, "The trap: vec3 is 16-byte aligned in WGSL", "l")
@@ -418,8 +418,8 @@ def frame():
                "Six ordered passes: prepare finite visibility, draw physical surfaces that establish depth, draw source ink and the selected solid edges, composite one black silhouette from the ordinary and selected masks, draw selected standalone curves over coincident mesh ink, then markers, controls and text. Picking repeats the same lists in a separate ID pass.",
                1000, 470)
     c.text(28, 40, "Draw order is part of the visual contract", "h")
-    steps = [("Prepare visibility", "project and bin triangles only when camera or geometry changed", "cpu"),
-             ("Physical surfaces", "opaque faces and clouds write depth + primitive metadata", "cpu"),
+    steps = [("Prepare visibility", "project and bin triangles only when camera or geometry changed", "gpu"),
+             ("Physical surfaces", "opaque faces and clouds write depth + primitive metadata", "gpu"),
              ("Source ink and selected solid edges", "ordinary strokes, source-face highlight, yellow solid boundaries", "gpu"),
              ("One black silhouette", "max(ordinary, selected) mask coverage, composited once", "note"),
              ("Selected standalone curves", "yellow polylines above coincident mesh ink; true occlusion still hides", "gpu"),
@@ -789,10 +789,10 @@ def controls():
     for i, (x, y) in enumerate(P):
         fill = yellow if i == 2 else navy
         c.raw(f'<rect x="{x + dx - 6}" y="{y - 6}" width="12" height="12" fill="{fill}" stroke="#111111" stroke-width="1"/>')
-    c.text(P[2][0] + dx + 12, P[2][1] + 4, "picked: ControlId::Curve { index: 2 }", "s", fill=pink)
-    c.text(P[0][0] + dx - 4, P[0][1] + 24, "index 0", "s", fill=navy)
-    c.text(P[1][0] + dx + 12, P[1][1] + 4, "index 1", "s", fill=navy)
-    c.text(P[3][0] + dx - 4, P[3][1] - 12, "index 3", "s", fill=navy)
+    c.text(1152, P[2][1] - 14, "picked: ControlId::Curve { curve: 0, point: 2 }", "s", anchor="end", fill=pink)
+    c.text(P[0][0] + dx - 4, P[0][1] + 24, "point 0", "s", fill=navy)
+    c.text(P[1][0] + dx + 12, P[1][1] + 4, "point 1", "s", fill=navy)
+    c.text(P[3][0] + dx - 4, P[3][1] - 12, "point 3", "s", fill=navy)
     c.text(28, 392, "What each family reports as its controls", "l")
     x = 28
     for lines, kind in [(["Mesh", "original vertex keys"], "cpu"), (["Curve · Surface", "control points · control net", "links = control polygon"], "cpu"),
@@ -887,7 +887,7 @@ def source_cache():
                1180, 470)
     navy, pink, green, yellow, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
     c.text(28, 40, "Strong ownership in Scene, weak identity in the cache", "h")
-    a = c.box(28, 80, ["Scene", "documents: Vec<Rc<Session>>", "owns the bytes"], "cpu")
+    a = c.box(28, 80, ["Scene", "docs: Vec<FileDoc>", "each holds one Rc<Session>"], "cpu")
     d1 = c.box(360, 80, ["Session A · Rc count 1", "meshes · breps · clouds"], "gpu")
     d2 = c.box(360, 170, ["Session B · Rc count 1", "curves · text"], "gpu")
     k = c.box(700, 80, ["SourceCache", "Weak<Session> per document", "Payload { known bytes, scans }"], "cpu")
@@ -1019,7 +1019,7 @@ def ribbon():
 
 def markers():
     c = Canvas("Two ways to cover a disc",
-               "A vertex marker is a sphere: the template corner is pushed out in clip space by the pixel radius plus the feather, so four vertices always contain the antialiased disc. A free dot needs no template at all, because one equilateral triangle whose incircle is the disc covers it with three vertices.",
+               "A vertex marker is a sphere: the template corner is pushed out in clip space by the pixel radius plus half the feather, so four vertices always contain the antialiased disc. A free dot needs no template at all, because one equilateral triangle whose incircle is the disc covers it with three vertices.",
                1180, 430)
     import math
     pink, green, yellow, grey = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"]
@@ -1036,7 +1036,7 @@ def markers():
         for sy in (-1, 1):
             c.raw(f'<circle cx="{cx + sx * half:.1f}" cy="{cy + sy * half:.1f}" r="4.5" fill="#111111"/>')
     c.text(60, 372, "four template corners, offset in clip space", "s")
-    c.text(60, 394, "pixel radius plus the feather, so the quad always contains the disc", "s", fill=green)
+    c.text(60, 394, "pixel radius plus half the feather, so the quad contains the disc", "s", fill=green)
 
     c.text(660, 86, "free dot: one equilateral triangle", "l")
     dx0, dy0, dr = 880.0, 258.0, 76.0
@@ -1093,31 +1093,58 @@ def lod():
 
 
 def arena():
-    c = Canvas("Vertex pulling: one arena, no vertex buffer",
-               "Every mesh in the scene puts its vertices into one growable arena, and the object table records where each mesh starts. The pipeline binds no vertex buffer at all: the shader takes its vertex index, reads face_indices, adds the object's base row and pulls the position straight out of the arena.",
-               1180, 420)
-    navy, pink, green, grey = PAL["navy"], PAL["pink"], PAL["green"], PAL["grey"]
-    c.text(28, 40, "The shader indexes the arena", "h")
+    c = Canvas("One arena, three index runs",
+               "Every mesh puts its vertices into one growable arena and its object row into a parallel table of "
+               "the same length. A mesh is then a range of indices, not a buffer of its own: a draw binds the two "
+               "vertex buffers, binds one index run, and calls draw_indexed once for every mesh in that run.",
+               1180, 452)
+    grey = PAL["grey"]
+    lav, pnk, grn, zer = PAL["blue_band"], PAL["pink_band"], "#bfe3a8", PAL["zero_band"]
+    c.text(28, 40, "A mesh is a range, not a buffer of its own", "h")
 
-    tri = [(386.0, 120.0), (590.0, 120.0), (488.0, 214.0)]
-    c.raw('<polygon points="' + " ".join(f"{x:.1f},{y:.1f}" for x, y in tri) + '" fill="#ffffff" fill-opacity="0.10" stroke="#111111" stroke-width="1.4"/>')
-    for x, y in tri:
-        c.raw(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="5" fill="{pink}"/>')
-    c.text(120, 150, "one triangle", "l")
-    c.text(120, 176, "vertex_index 0 · 1 · 2", "s", fill=pink)
-    c.text(660, 176, "face_indices[vertex_index] + the object's base row", "s", fill=grey)
+    x0, w0 = 244.0, 856.0
 
-    sx, sy, sw, sh = 80.0, 286.0, 1020.0, 46.0
-    ranges = [("mesh A", 0.00, 0.22, navy), ("mesh B", 0.22, 0.62, pink), ("mesh C", 0.62, 0.80, green), ("mesh D", 0.80, 1.00, grey)]
-    for name, a, b, colour in ranges:
-        c.raw(f'<rect x="{sx + sw * a:.1f}" y="{sy:.1f}" width="{sw * (b - a):.1f}" height="{sh:.1f}" fill="{colour}" fill-opacity="0.22" stroke="{colour}" stroke-width="1.2"/>')
-        c.text(sx + sw * a + 10, sy - 12, name, "s", fill=colour)
-    for (tx, ty), at in zip(tri, (0.30, 0.50, 0.40)):
-        target = sx + sw * at
-        c.arrow(tx, ty + 12, target, sy - 8)
-        c.raw(f'<circle cx="{target:.1f}" cy="{sy + sh / 2:.1f}" r="4.5" fill="#111111"/>')
-    c.text(80, 366, "One growable arena holds every mesh; the object table holds the base of each.", "s")
-    c.text(80, 388, "No vertex buffer is bound: a draw is a vertex count and a row.", "s", fill=green)
+    def band(x, y, w, h, fill, label, cls="s"):
+        c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{RADIUS}" fill="{fill}"/>')
+        if label:
+            c.text(x + 10, y + h / 2 + 5, label, cls, fill=PAL["black"], keep=True)
+
+    c.text(28, 116, "three index runs", "l")
+    c.text(28, 138, "u32, one bound at a time", "s")
+    for name, a, b, fill in (("faces · lit triangles", 0.00, 0.46, lav),
+                             ("print · flat fills", 0.50, 0.74, pnk),
+                             ("text · outline glyphs", 0.78, 1.00, grn)):
+        band(x0 + w0 * a, 100, w0 * (b - a), 40, fill, name)
+
+    meshes = [("mesh A", 0.00, 0.22, lav), ("mesh B", 0.22, 0.62, pnk),
+              ("mesh C", 0.62, 0.80, grn), ("mesh D", 0.80, 1.00, zer)]
+    c.text(28, 224, "verts", "l")
+    c.text(28, 246, "position · normal · colour", "s")
+    c.text(28, 268, "@location(0) (1) (2)", "m", fill=grey)
+    for name, a, b, fill in meshes:
+        band(x0 + w0 * a, 212, w0 * (b - a), 48, fill, name)
+
+    c.text(28, 312, "vids", "l")
+    c.text(28, 334, "one object row per vertex", "s")
+    c.text(28, 356, "@location(3)", "m", fill=grey)
+    for name, a, b, fill in meshes:
+        band(x0 + w0 * a, 300, w0 * (b - a), 34, fill, "", "m")
+    c.text(x0 + 10, 322, "7 7 7 7", "m", fill=PAL["black"], keep=True)
+    c.text(x0 + w0 * 0.24, 322, "8 8 8 8 8 8 8 8", "m", fill=PAL["black"], keep=True)
+    c.text(x0 + w0 * 0.64, 322, "9 9 9", "m", fill=PAL["black"], keep=True)
+
+    # An index run names vertices anywhere in the arena: the mesh's base is folded in on the CPU.
+    for at in (0.10, 0.34, 0.56, 0.70, 0.90):
+        c.arrow(x0 + w0 * at, 144, x0 + w0 * at, 206)
+
+    c.box(28, 380, ["One draw for a whole run",
+                    "`set_vertex_buffer(0, verts) · set_vertex_buffer(1, vids)`",
+                    "`set_index_buffer(run) · draw_indexed(0..run.len())`"], "note", w=700)
+    c.box(756, 380, ["Not vertex pulling",
+                     "that lane binds no vertex buffer at all",
+                     "`faces.rs` · `vs_face` · lesson 17"], "sel", w=344)
+    c.h = 380 + 86 + 34
+    c.text(28, c.h - 16, "The mesh's base is folded into the indices on the CPU when the run is built, so a run addresses the whole arena directly.", "s", fill=PAL["yellow"])
     c.write("arena.svg")
 
 
@@ -1833,7 +1860,118 @@ def splat_resolve():
     c.write("splat-resolve.svg")
 
 
+def pick_window():
+    c = Canvas("A pick draws a window, not the canvas",
+               "One click renders a 19 x 19 attachment: a 13 x 13 readback window with a 3-cell halo around it, "
+               "because an edge texel fits its plane from its neighbours and cleared neighbours would make a "
+               "stroke pickable exactly where it is invisible. Two uniform fields carry the canvas into that "
+               "window: origin says where its top-left sits, frame says which canvas the tiles were binned for.",
+               1180, 616)
+    lav, pnk, zer, yel = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"], PAL["yellow_light"]
+    c.text(28, 40, "361 texels, not 1.6 million", "h")
+
+    # Left: the canvas, with the window at its true relative size.
+    c.text(28, 92, "the canvas · 1600 × 1000", "l")
+    cw, ch = 320.0, 200.0
+    c.parts.append(f'<rect x="28" y="110" width="{cw}" height="{ch}" rx="{RADIUS}" fill="{zer}" fill-opacity="0.22"/>')
+    ux, uy = 28 + cw * 109 / 1600, 110 + ch * 259 / 1000
+    c.parts.append(f'<rect x="{ux - 4:.1f}" y="{uy - 4:.1f}" width="8" height="8" fill="{yel}"/>')
+    c.text(ux + 14, uy + 4, "cursor (109, 259) · 19 × 19", "s", fill=PAL["yellow"])
+    c.text(28, 334, "the yellow square, at the scale of the canvas", "s")
+    c.text(28, 356, "it is drawn on. That is the whole pick.", "s")
+
+    # Centre: the attachment, blown up one cell per texel.
+    gx, gy, cell = 420.0, 110.0, 13.0
+    c.text(gx, 92, "the attachment · PickView { x: 100, y: 250, w: 19, h: 19 }", "l")
+    for j in range(19):
+        for i in range(19):
+            edge = i < 3 or i > 15 or j < 3 or j > 15
+            fill = zer if edge else lav
+            if i == 9 and j == 9:
+                fill = yel
+            c.parts.append(f'<rect x="{gx + i * cell:.1f}" y="{gy + j * cell:.1f}" width="{cell - 1:.1f}" height="{cell - 1:.1f}" fill="{fill}"/>')
+    gw = 19 * cell
+    c.text(28, 396, "pale · PICK_HALO = 3, rendered, never copied", "s")
+    c.text(28, 418, "lavender · the window, 2 × PICK_RADIUS + 1 = 13", "s", fill=PAL["navy"])
+    c.text(28, 440, "yellow · the cursor texel", "s", fill=PAL["yellow"])
+
+    # Right: everything write_pick changes.
+    c.box(714, 110, ["what write_pick changes",
+                     "`mvp′ = clip_transform(frame) × mvp`",
+                     "`vp_w, vp_h = 19, 19`",
+                     "`origin = (100, 250)`",
+                     "`frame  = (1600, 1000)`",
+                     "`proj_y × 1000/19 · ortho_h ÷ 1000/19`"], "note", w=386)
+    c.box(714, 300, ["and which pass sees what",
+                     "physical ID pass · no scissor, halo included",
+                     "ink ID pass · `set_scissor_rect(3, 3, 13, 13)`",
+                     "`copy_window` · ids only, 8 B a texel"], "note", w=386)
+
+    c.box(28, 470, ["Drop the halo",
+                    "an edge texel fits its plane from cleared neighbours,",
+                    "so a stroke is pickable exactly where it is invisible"], "gpu", w=556)
+    c.box(614, 470, ["Drop origin",
+                     "the axis is looked up in tile (0, 0)'s list, and ink is",
+                     "judged against triangles elsewhere on the screen"], "gpu", w=538)
+    c.text(28, 600, "20 bytes a texel: ids 8 · depth 4 · metadata 8. The window costs 7 KB; the same target at canvas size would cost 32 MB.", "s", fill=PAL["yellow"])
+    c.write("pick-window.svg")
+
+
+def attachment_cost():
+    c = Canvas("Where the video memory goes",
+               "Three attachments are kept for every physical pixel: colour in the surface format, depth as "
+               "Depth32Float, and the metadata target as Rgba16Float. That is 16 bytes a pixel at one sample and "
+               "64 at four, so the sample count is a four-times decision on the largest allocation the viewer "
+               "makes. Every rule about picking, device scale and device loss is about the same 64 bytes.",
+               1180, 580)
+    lav, pnk, zer = PAL["blue_band"], PAL["pink_band"], PAL["zero_band"]
+    c.text(28, 40, "Sixty-four bytes, times every pixel on the glass", "h")
+
+    x0, scale = 250.0, 12.5  # pixels per byte
+    def bar(y, samples, label, inside):
+        x = x0
+        for name, one, fill in (("colour", 4, lav), ("depth", 4, zer), ("metadata", 8, pnk)):
+            w = one * samples * scale
+            c.parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="46" rx="{RADIUS}" fill="{fill}"/>')
+            if inside:
+                c.text(x + 10, y + 20, name, "s", fill=PAL["black"], keep=True)
+                c.text(x + 10, y + 38, f"{one} B × {samples} = {one * samples}", "m", fill=PAL["black"], keep=True)
+            x += w + 4
+        if not inside:
+            c.text(x + 14, y + 30, "the same three, one sample each: 4 + 4 + 8", "s")
+        c.text(28, y + 22, label, "l")
+        c.text(28, y + 44, f"{16 * samples} bytes a pixel", "s")
+
+    bar(96, 4, "4 samples", True)
+    bar(168, 1, "1 sample", False)
+    c.text(x0, 232, "exactly four times · this is what samples_for is spending", "s", fill=PAL["yellow"])
+
+    c.text(28, 268, "and the canvas multiplies it", "l")
+    c.text(28, 300, "1600 × 1000  = 1.6 Mpx", "m")
+    c.text(300, 300, "26 MB at 1×", "m", fill=PAL["navy"])
+    c.text(460, 300, "102 MB at 4×", "m", fill=PAL["pink"])
+    c.text(28, 324, "3840 × 2160  = 8.3 Mpx", "m")
+    c.text(300, 324, "133 MB at 1×", "m", fill=PAL["navy"])
+    c.text(460, 324, "531 MB at 4×", "m", fill=PAL["pink"])
+
+    c.text(28, 372, "Three levers hold it down", "l")
+    w = 364
+    c.box(28, 390, ["the pick pass draws a window",
+                    "19 × 19 × 20 B = 7 KB, where a canvas-sized",
+                    "ID target would be 32 MB"], "note", w=w)
+    c.box(28 + w + 20, 390, ["device scale spends the samples",
+                             "`samples_for` returns 1× from 2 physical",
+                             "pixels per CSS pixel: the density has",
+                             "already halved the stair-steps"], "note", w=w)
+    c.box(28 + 2 * (w + 20), 390, ["a lost device reloads plainly",
+                                   "once at scale 1 with antialiasing off,",
+                                   "every other query kept, and the status",
+                                   "line says so"], "note", w=w)
+    c.text(28, 564, "Per-pixel attachments are the largest allocation the viewer makes, and the sample count multiplies all three of them at once.", "s", fill=PAL["yellow"])
+    c.write("attachment-cost.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')

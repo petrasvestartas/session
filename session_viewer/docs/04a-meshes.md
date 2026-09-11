@@ -19,17 +19,16 @@ Bind groups every lane shares (`Layouts`):
 | 1 | `Layouts::line` uniform | `@group(1) @binding(0) var<uniform> line: LineUniform` |
 | 2 | `Layouts::instance` two storage buffers | `@group(2) @binding(0) instances`, `@binding(1) translations` |
 
-![One growable arena holds every mesh, the object table holds each mesh's base row, and the shader pulls a position with its own vertex index. No vertex buffer is bound.](illustrations/arena.svg)
+![One growable arena holds every mesh's vertices and a parallel table gives every vertex its object row; a mesh is a range of indices, and a draw binds both vertex buffers, binds one index run and calls draw_indexed.](illustrations/arena.svg)
 
 ## Starting point
 
 - Checkpoint 03: two instances drawn from one hard-coded triangle; the object row lives in `instance.rs`.
 - This lesson builds the engine behind `lib.rs`: buffers, layouts, pipelines, targets, frame uniforms, the object table and the mesh lane. `scene.rs` and `first.wgsl` are deleted.
-- New files first. Nothing references them until the wiring at the end, so the crate keeps compiling after each step.
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -37,8 +36,7 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-6656f81dc2.svg){ .locator data-strip="illustrations/strip-1d6ef8d27c.svg" }
 
-- `GpuCtx` is the device/queue pair every lane is made with.
-- `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written. It returns `true` when the buffer moved so the caller rebuilds its bind group.
+- `GrowBuf` returns `true` when the buffer moved, so the caller rebuilds its bind group.
 
 ![Diagram: new rows · GrowBuf\ cap · len · GpuCtx\ device · queue · bind group](illustrations/04a-02.svg)
 
@@ -50,13 +48,12 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=40-99 -->
 
-- Clearing keeps the allocation. A scene reload writes the same order of magnitude of rows again, so throwing the buffer away would only buy a second allocation of the same size.
+- `reset` keeps the allocation, because a reload refills a buffer that is already the right size. `release` hands the buffer back, for a scene that is cleared and should hold no GPU memory at all.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=100-123 -->
 
-- `Template` is a unit mesh drawn N times, one instance per row.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -72,7 +69,6 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-6656f81dc2.svg){ .locator data-strip="illustrations/strip-1d6ef8d27c.svg" }
 
-- A layout is the shape of a bind group; the buffers live in the lanes.
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
 
 ![Diagram: Layouts · group 0 · mvp · group 1 · line · group 2 · rows + translations · ink_instance](illustrations/04a-03.svg)
@@ -91,8 +87,6 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: GPU core, Shaders, with 7 of 11 zones built so far.](illustrations/locator-abf037ee75.svg){ .locator data-strip="illustrations/strip-7ad9324e80.svg" }
 
-- `Target` is where a pipeline draws; `DepthMode` and `ColorWrite` name the only depth and blend states the viewer uses.
-- Every compare is reverse-Z: nearer is `Greater`.
 
 ![Diagram: shader source · ShaderModule · PipelineDesc\ Target · DepthMode · ColorWrite · RenderPipeline](illustrations/04a-04.svg)
 
@@ -100,7 +94,6 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-58 -->
 
-- `PipelineDesc` is one base per shader; `with`, `vertex`, `color`, `depth` derive the variants.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -112,7 +105,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=118-182 -->
 
-- Two shader constants sit beside them. `SCENE` is the scene contract every lane is compiled with; `INK` is the visibility rule only ink lanes need. Keeping them here means a lane names a constant rather than repeating an `include_str!`.
+- `SCENE` is the scene contract every lane is compiled with; `INK` is the visibility rule only ink lanes need, so a lane names a constant instead of repeating an `include_str!`.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -167,7 +160,6 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/targets.rs type lines=71-135 -->
 
-- The two passes in one place. `begin_faces` establishes the depth every later fragment is judged against; `begin_ink` keeps that depth read-only and hands it to the shader instead.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -179,7 +171,7 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: GPU core, with 7 of 11 zones built so far.](illustrations/locator-6656f81dc2.svg){ .locator data-strip="illustrations/strip-1d6ef8d27c.svg" }
 
-- `FrameInput` is what one frame needs from the caller; `FrameCx` adds the knobs, the anchor and the framebuffer, with `pixel_scale` the framebuffer pixels per CSS pixel; `Binds` sets groups 0, 1, 2 before every lane draw.
+- `FrameCx` adds the knobs, the anchor and the framebuffer; `pixel_scale` is framebuffer pixels per CSS pixel.
 
 ![Diagram: FrameInput\ view_proj · clear · FrameUniforms\ mvp · line · cloud · every lane draw · pick blocks\ window-sized attachment](illustrations/04a-06.svg)
 
@@ -187,7 +179,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-44 -->
 
-`LineUniform` is 80 bytes. The WGSL side is declared once, in `scene.wgsl`, so no lane shader repeats it and there is one list of offsets to keep true:
+`LineUniform` is 80 bytes, declared once in `scene.wgsl`, so there is one list of offsets to keep true:
 
 | Offset | Rust | WGSL |
 |---|---|---|
@@ -205,7 +197,7 @@ Bind groups every lane shares (`Layouts`):
 | 64 | `frame: [f32; 2]` | `frame: vec2<f32>` |
 | 72 | `opacity` | `opacity` |
 
-- `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected for and `origin` where the attachment's top-left sits in it. They differ only in the pick pass, which renders the window about the cursor into a window-sized target: pixel arithmetic stays in attachment coordinates, and only what was laid out for the whole canvas is addressed through `origin`.
+- `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected for and `origin` where the attachment's top-left sits in it. They differ only in the pick pass.
 - `CloudUniform` is the point lane's 48-byte block with the same `origin` and `frame` pair.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
@@ -234,7 +226,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=254-329 -->
 
-- `FrameUniforms` owns all three blocks — camera, line, cloud — because they are written together from one solved camera and must never disagree about which frame they describe.
+- The three blocks are written together from one solved camera, so they cannot disagree about which frame they describe.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -246,7 +238,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=348-392 -->
 
-- `write_pick` runs after `write` and derives the pick blocks from the frame's own solved values: the camera premultiplied by the window's clip transform, `proj_y` and `ortho_h` scaled by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
+- `write_pick` runs after `write` and derives the pick blocks from the frame's own solved values: the camera premultiplied by the window's clip transform, `proj_y` multiplied and `ortho_h` divided by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -272,19 +264,17 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/app/mod.rs type -->
 
-- The app layer begins with one file: a query reader. Everything else it will own - loading, input, the scene - arrives later, and this module list is how you watch it grow.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb02dd8083.svg" data-zone="Network"></span>
 
 <!-- file: 04a session_viewer/src/app/route.rs type -->
 
-- Enough of a query parser to read `?name=value`. The routing policy waits for lesson 14; what matters now is that a knob is read in one place instead of being parsed wherever it is needed.
+- Enough of a query parser to read `?name=value`; the routing policy waits for lesson 14. A knob is read in one place, not wherever it is needed.
 
 ## Step 7 · The object table
 
 ![Where this step sits in the viewer: GPU core, with 8 of 11 zones built so far.](illustrations/locator-ad50462e0a.svg){ .locator data-strip="illustrations/strip-62cf9167cc.svg" }
 
-- `ObjectRow` is one object as the producer reports it: f64 placement, tint, flags, local box, spacing.
 - `InstanceTable` owns the rows the GPU reads, the true f64 translations, and the two buffers behind group 2.
 
 ![Diagram: ObjectRow\ f64 placement · InstanceTable · rows · 96 B · translations · 16 B · group 2 · camera drift](illustrations/04a-08.svg)
@@ -323,7 +313,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=313-360 -->
 
-- Re-anchoring lives here: when the camera drifts far from the anchor the f64 translations are rewritten and the f32 rows stay small. `anchored_model` spells out on the CPU the composition a shader performs, so a test can check it.
+- `anchored_model` spells out on the CPU the composition a shader performs, so a test can check it.
 
 <span class="zone-mark" data-strip="illustrations/strip-62cf9167cc.svg" data-zone="GPU core"></span>
 
@@ -341,7 +331,7 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-0073ed3253.svg){ .locator data-strip="illustrations/strip-dbc84dca37.svg" }
 
-- Groups 0, 1, 2 and the `LineUniform` mirror; `place` applies the row's rotation/scale and the anchored translation.
+- Groups 0, 1, 2, the `LineUniform` and `place` all arrive from `scene.wgsl`; this file declares only its own vertex input and outputs.
 
 ![vs_main runs once per vertex, the rasterizer works out which pixels the triangle covers and blends the vertex outputs across them, and fs_main runs once per covered pixel and never sees a vertex.](illustrations/stages.svg)
 
@@ -371,7 +361,6 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: Lanes, Shaders, with 9 of 11 zones built so far.](illustrations/locator-2eab4d3d01.svg){ .locator data-strip="illustrations/strip-5c9e80c7f0.svg" }
 
-- `ArenaRows` is one upload's delta; `ArenaLane` is five `GrowBuf`s under one growth policy and the pipelines over them.
 
 ![Diagram: ArenaRows\ verts · vids · idx · ArenaLane\ five GrowBufs · face pass · OutlineTextLane\ unlit · ink pass](illustrations/04a-09.svg)
 
@@ -413,7 +402,6 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=68-114 -->
 
-- Imported lettering borrows the arena's buffers rather than copying them: the glyphs are already geometry, and a second copy would be a second thing to keep in step.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -423,7 +411,6 @@ Bind groups every lane shares (`Layouts`):
 
 ![Where this step sits in the viewer: Shell, GPU core, with 9 of 11 zones built so far.](illustrations/locator-051e297fb9.svg){ .locator data-strip="illustrations/strip-3889827b9f.svg" }
 
-- `Upload` carries every lane's rows for one file and nothing GPU-typed. Deleting a lane means deleting its field here.
 
 ![Diagram: fixture.rs\ one mesh row · Upload\ obj · arena · bounds · Gpu · rows freed](illustrations/04a-10.svg)
 
@@ -495,7 +482,7 @@ Bind groups every lane shares (`Layouts`):
 
 <!-- file: 04a session_viewer/index.html copy -->
 
-- Now everything you typed is in the build. The two earlier checks only proved you had not broken checkpoint 03: an undeclared file is not compiled at all, and `engine/gpu/mod.rs` names the new modules only here. Read a compiler error now rather than a blank canvas in a moment.
+- Everything you typed is now in the build: `engine/gpu/mod.rs` names the new modules only here, so read a compiler error now rather than a blank canvas in a moment.
 
 <!-- check: 04a -->
 
@@ -530,7 +517,6 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 
 ## Questions and answers
 
-This is the longest lesson in the course and the one the rest is built on.
 
 **`GrowBuf` returns `true` when it grew. Why does a caller have to care?**
 
@@ -554,11 +540,11 @@ This is the longest lesson in the course and the one the rest is built on.
 
 *How to work it out.* Count the variants: one shader, several fragment entries, several colour modes, several depth rules. Then count the fields they share — around twenty. A function per variant duplicates the twenty and buries the one line that differs.
 
-*The answer.* One base per shader plus `with`/`vertex`/`color`/`depth` makes each variant a single readable line, and keeps `build` as the only place wgpu is asked for a pipeline — so a format or sample-count mistake is caught in one place instead of eight. This is the "small number of strong abstractions" rule: the desc reduces repetition without hiding what wgpu is doing.
+*The answer.* One base per shader plus `with`/`vertex`/`color`/`depth` makes each variant a single readable line, and keeps `build` as the only place wgpu is asked for a pipeline — so a format or sample-count mistake is caught in one place instead of eight. 
 
 **What you should be able to do now**
 
-Name the three bind groups every lane shares and what each holds, and say what the ink pass binds differently. Correct: group 0 the camera matrix, group 1 the per-frame `LineUniform`, group 2 the object rows plus anchored translations — and the ink variant of group 2 adds the physical depth views, so ink can test its own visibility. If you can say that, you can read any shader in this repository.
+Name the three bind groups every lane shares and what each holds, and say what the ink pass binds differently. Correct: group 0 the camera matrix, group 1 the per-frame `LineUniform`, group 2 the object rows plus anchored translations — and the ink variant of group 2 adds the physical depth views, so ink can test its own visibility. 
 
 ## Next
 

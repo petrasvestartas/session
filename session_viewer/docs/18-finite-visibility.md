@@ -24,7 +24,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1–7 and 11, and fails after 8–10: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 8–10 build again at step 11. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 1–7 and 11; steps 8–10 fail and build again at step 11.
 
 <!-- step-status: end -->
 
@@ -45,7 +45,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 - `pull_triangle` numbers every triangle; `vs_triangle` is the plain physical draw, `vs_face` adds the source face on top.
 - `fs_masks` writes the solid coverage and the selected coverage to two attachments from one rasterization; the targets blend with MAX, so a written zero acts as a discard.
-- X-ray (`P`, `line.opacity` zero): `transform_vertex` marks a closed multi-face solid `xray`, and every fragment entry `discard`s its fragments, so the solid writes no colour, no depth and no coverage, and the ink behind it (back edges, far vertices) is judged against what remains. A single face (`FLAG_SINGLE`, a sheet, print fill) has no inside to show and keeps its shading. Discarding, not blending: a translucent face would still write depth and hide everything behind it.
+- X-ray (`P`, `line.opacity` zero): `transform_vertex` marks a closed multi-face solid `xray` and every fragment entry `discard`s its fragments, so the solid writes no colour, no depth and no coverage, and the ink behind it is judged against what remains. A single face (`FLAG_SINGLE`, a sheet, print fill) has no inside to show and keeps its shading.
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -79,7 +79,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/shaders/text_outline.wgsl type -->
 
-- And imported lettering, the last of the four. None of them can name a triangle, so all four write a zero address.
+- And imported lettering, the last of the four.
 
 ## Part B · Project each triangle once
 
@@ -167,7 +167,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ![Where this step sits in the viewer: Lanes, with 10 of 11 zones built so far.](illustrations/locator-50eec72a61.svg){ .locator data-strip="illustrations/strip-ccdfd9e2ff.svg" }
 
-- `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall. A dense tile borrows spare space anywhere in the pool.
+- `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall.
 
 ![Diagram: ProjectionKey\ camera · geometry revision · encode\ project · count · scan · fill · TileLayout · initial_pool_words · prepare storage · PoolReport · read back](illustrations/18-09.svg)
 
@@ -209,7 +209,7 @@ The same revision counter tells the silhouette when its masks are stale:
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=300-370 -->
 
-- Coverage is rasterized twice: once to count how many references each tile needs, and again, after the scan has turned those counts into offsets, to write them. Counting first is what removes the per-tile cap.
+- Counting first is what removes the per-tile cap.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -268,7 +268,6 @@ The blank lines separate the helpers; type them so the file matches production:
 
 <!-- file: 18 session_viewer/src/shaders/ink_visibility.wgsl type hunks=12,13 -->
 
-- The escalation itself: when the plane test rejects, walk the axis pixel's tile list and look for a finite hit. An incomplete list keeps the rejection.
 
 ## Part E · Rust owners and wiring
 
@@ -315,7 +314,7 @@ The blank lines separate the helpers; type them so the file matches production:
 
 <!-- file: 18 session_viewer/src/engine/gpu/objects.rs type -->
 
-- Metadata textures and the pick copy widen to four channels; the readback row is 20 bytes per texel.
+- Metadata textures and the pick copy widen to four channels; the ID targets now cost 20 bytes a texel instead of 16.
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -430,7 +429,6 @@ The same source you just finished is what the repository publishes:
 
 ## Questions and answers
 
-The last renderer lesson. These questions are the ones an interviewer would ask about this codebase.
 
 **The plane test is kept, and the tile walk only runs when the plane test rejects. Why is that ordering the whole design?**
 

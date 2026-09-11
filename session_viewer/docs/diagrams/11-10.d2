@@ -8,11 +8,13 @@ direction: down
 
 E: "TextLane::draw" { class: focus }
 A: "planes" { class: box }
+C: "plates\nphysical range" { class: box }
 B: "anchored glyphs" { class: box }
-C: "plates" { class: box }
+C2: "plates\noverlay range" { class: box }
 D: "overlay glyphs" { class: box }
 
 E -> A { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-A -> B { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-B -> C { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-C -> D { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+A -> C { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+C -> B { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+B -> C2 { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+C2 -> D { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

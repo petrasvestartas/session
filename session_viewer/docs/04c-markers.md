@@ -22,7 +22,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -30,7 +30,6 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 ![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
 
-- `center` is a `vec3` in WGSL, so the row is 48 bytes with `radius` in the padding slot.
 - `facing` plus `facing_ext` hold up to six incident face normals as oct16 pairs; a marker hides when every incident face turns away.
 
 ![Diagram: walk · vertex or point · GlyphPoint\ center · radius · facing · glyph table](illustrations/04c-02.svg)
@@ -55,13 +54,12 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=101-153 -->
 
-- Markers draw the template `spheres.len()` times; dots draw `DOT_VERTS * dots.len()` vertices with no template.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
 <!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=154-212 -->
 
-- Clearing forgets the rows and keeps the capacity, the same bargain the arena makes: a reload refills a buffer that is already the right size.
+- Clearing keeps the capacity: a reload refills a buffer that is already the right size.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -81,7 +79,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 ![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
-- Same bindings as the ribbon shader; the row is `GlyphPoint`. The `LineUniform` mirror lists the whole 80-byte block, `origin` and `frame` included; a sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
+- Same bindings as the ribbon shader; the row is `GlyphPoint`. `line` arrives from `scene.wgsl` as always; a sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
 
 ![Diagram: glyphs · @group(3) · keep or hide · template corner · quad around disc · antialiased disc](illustrations/04c-04.svg)
 
@@ -95,7 +93,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=3-3 -->
 
-- The template corner is offset in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc.
+- The template corner is offset in clip space by the pixel radius plus half the feather, so the quad always contains the antialiased disc.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -131,13 +129,13 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=3-13 -->
 
-- The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries.
+- `vs_source` and `fs_source_id` serve source-cloud queries.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=14-45 -->
 
-- The fragment half is the same shape as the ribbon's: coverage first, then the shared visibility test. Every ink lane answers the visibility question with the same function, which is why the rule lives in its own file.
+- The fragment half is the same shape as the ribbon's: coverage first, then the shared visibility test.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -161,7 +159,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/engine/pipelines/layouts.rs type -->
 
-- The marker lane's group 3 joins the list. Groups 0 and 1 are the same for every lane; group 2 has two variants, and a marker takes the ink one, which carries the physical depth it must test itself against.
+- Group 2 has two variants; a marker takes the ink one, which carries the physical depth it must test itself against.
 
 <span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
@@ -181,7 +179,6 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 <!-- file: 04c session_viewer/src/lib.rs type -->
 
-- The shell's only change is the status line: every lane reports its own count, and that JSON is what the checkpoint test reads instead of a screenshot.
 
 <span class="zone-mark" data-strip="illustrations/strip-a7bdebbf9f.svg" data-zone="Page"></span>
 
@@ -195,7 +192,7 @@ Expected:
 
 - Triangle, polyline, and one orange dot below the triangle.
 - Status reads **Checkpoint 04c · 3 objects**.
-- Zoom out: the dot shrinks with its world radius, then holds at the pen width.
+- Zoom out: the dot shrinks with its world radius, then holds at half a pixel and fades instead of vanishing.
 
 ![Checkpoint 04c: vertex markers and free dots drawn from the glyph lane.](screenshots/04c.png)
 
@@ -241,7 +238,7 @@ Expected:
 
 **What you should be able to do now**
 
-Predict where the radius sits in the 48-byte marker row before looking. Correct: `center` is a `vec3` so it aligns to 16 and leaves a 4-byte hole after it — the radius goes in that hole, which is why the row is 48 and not 52. This is the third time the same alignment rule has decided a layout; by now you should be able to work it out rather than read it.
+Predict where the radius sits in the 48-byte marker row before looking. Correct: `center` is a `vec3` so it aligns to 16 and leaves a 4-byte hole after it — the radius goes in that hole, which is why the row is 48 and not 52. 
 
 ## Next
 

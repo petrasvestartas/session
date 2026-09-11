@@ -1,10 +1,10 @@
 # CAD representation and meshing decisions
 
-This design record explains the shared geometry producer used by chapters 06–09. The later finite-triangle visibility correction is described in [chapter 18](18-finite-visibility.md); it changes screen-space visibility, not the CAD geometry contract.
+This design record explains the shared geometry producer behind chapters 06–09. [Chapter 18](18-finite-visibility.md)'s finite-triangle correction changes screen-space visibility, not this contract.
 
 ## Producer contract
 
-Session's producer is the independent C++/Rust/Python NURBS and constrained-Delaunay implementation in the sibling geometry packages; it does not call an OCCT runtime. The source comparison used the actual **OCCT V8_0_1** implementation below. This is an implementation reference, not a claim of pixel comparison against an OCCT renderer.
+Session's producer is the independent C++/Rust/Python NURBS and constrained-Delaunay implementation in the sibling geometry packages; it does not call an OCCT runtime. The **OCCT V8_0_1** sources below are an implementation reference, not a claim of pixel comparison against an OCCT renderer.
 
 | Actual OCCT reference | Relevant contract | Session implementation |
 |---|---|---|
@@ -23,6 +23,5 @@ Quality uses a normal-angle target in degrees and a chord factor relative to the
 
 ![Source geometry preparation and physical visibility have separate owners.](illustrations/ownership.svg)
 
-Text alternative: one shared tessellation supplies the visible surface and its edge chains; analytic normals and crease splits govern shading; instance normal transforms and shared physical depth keep both drawing paths aligned; retained source IDs connect the displayed edges to picking.
 
 The same producer exists in Rust, C++ and Python; the Rust version is the one this viewer builds against, and the course installs the other two as supplied files.

@@ -14,7 +14,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1 and C, and fails after 2–5: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 2–5 build again at step C. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 1 and C; steps 2–5 fail and build again at step C.
 
 <!-- step-status: end -->
 
@@ -46,7 +46,6 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/history.rs type lines=115-127 -->
 
-- Those are the three record bodies: the tombstone a removal leaves behind, and the before/after pairs of a replace and a transform. Next is what groups them.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -69,7 +68,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/history.rs type lines=203-268 -->
 
-- Redo is undo's mirror: the same records applied in their original order. Keeping both directions in one place is what makes it obvious that every record type handles both.
+- Keeping both directions in one place makes it obvious that every record type handles both.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -79,7 +78,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/lib.rs type -->
 
-- The kernel's module list gains `history`. Everything in this lesson lives in the shared kernel, which is why the tests are run there.
+- Everything in this lesson lives in the shared kernel, which is why the tests run there.
 
 ## Part B · The session records
 
@@ -113,7 +112,6 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/graph.rs type -->
 
-- `edges_of` is added: a removal has to remember the edges whose other end still exists, and there was no way to ask for them before.
 
 ### Step 5 · Identity survives a swap
 
@@ -129,19 +127,17 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 
 <!-- file: 20 session_rust/src/obb.rs type -->
 
-- One of the four types that lacked `refresh_guid`. `replace` gives the replacement the original's guid, and a guid minted once cannot otherwise be reset.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/plane.rs type -->
 
-- `Plane` gains it too. Watch how small each of these four edits is - the work was finding which types lacked it, not making the change.
+- The work was finding which four types lacked it, not making the change.
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
 <!-- file: 20 session_rust/src/pointcloud.rs type -->
 
-- And the same again - four types, one missing capability, found by the one operation that needed it.
 
 ## Part C · Three kernels, one behaviour
 

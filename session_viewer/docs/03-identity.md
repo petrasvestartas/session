@@ -15,7 +15,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -24,7 +24,7 @@
 ![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-afd0463e4d.svg){ .locator data-strip="illustrations/strip-10d43625b6.svg" }
 
 - One 96-byte record per object, indexed by `instance_index` in every instance-reading shader. Flags are bits: selecting sets bit 0 and keeps the rest.
-- The translation column of `model` is zero; the anchored translation belongs to its own table (group 2, binding 1).
+- Here the placement sits in the translation column of `model`. From 04a on, production zeroes that column and moves the anchored translation to its own table (group 2, binding 1).
 - The size assertion is compile-time: a wrong stride fails `cargo check`, not the picture.
 
 ![Diagram: Instance::placeholder · struct Instance\ 96 B · one object row · flags](illustrations/03-02.svg)
@@ -81,7 +81,7 @@ Rust `Instance`            offset   WGSL `struct Instance`
 model: [f32; 16]              0     model: mat4x4<f32>
 color: [f32; 4]              64     color: vec4<f32>
 flags: u32                   80     flags: u32
-_pad0: f32                   84     _pad0: f32
+_pad0: f32                   84     thickness: f32
 spacing: f32                 88     spacing: f32
 _pad: u32                    92     pad: u32
 size                         96     array stride
@@ -150,7 +150,7 @@ A wrong stride shows as a correct first object and a corrupt second one. A wrong
 
 *How to work it out.* Add the fields: 64 for the matrix, 16 for the colour, 4 + 4 + 4 for the rest — 92. Then ask what rounds it up. A `mat4x4` requires 16-byte alignment, and an element of a storage array must start at a multiple of the struct's largest alignment, so the stride is rounded to the next multiple of 16.
 
-*The answer.* 96, because 92 rounds up to 96. The explicit padding field on the Rust side makes the round-up deliberate instead of accidental, and the size assertion turns a mistake into a `cargo check` failure rather than a correct first object and a corrupt second one.
+*The answer.* 96, because 92 rounds up to 96. The explicit padding field on the Rust side makes the round-up deliberate instead of accidental.
 
 **A GPU row is not a source identity. What is the difference, and why keep both?**
 

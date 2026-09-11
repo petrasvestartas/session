@@ -26,7 +26,6 @@
 
 - Checkpoint 16: objects, edges and controls are selectable; text is an annotation without identity; the selected object's outline is drawn by `selection_outline.rs`.
 - Five independent parts share this checkpoint. Each part below is complete on its own; the frame order at the end wires them together.
-- The supplied tooling for this checkpoint is installed at the end of the lesson: its reference page already uses the text-object field that Part B adds.
 
 ## Part A · Select a source face
 
@@ -142,7 +141,9 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/app/selection.rs type -->
 
-- The picker renders into an attachment the size of the pick window plus a `PICK_HALO` of three texels, never the canvas: `Window::view` is that rectangle, `view_for` falls back to the whole canvas for a full-frame capture, and `copy_window` reads the window from inside the attachment. The halo exists because the ink visibility test fits planes from neighbouring texels, which must be occlusion samples rather than cleared ones.
+- The picker renders into the pick window plus a three-texel `PICK_HALO`, never the canvas; `view_for` falls back to the whole canvas for a full-frame capture.
+
+![A pick renders a 19 x 19 attachment: a 13 x 13 readback window inside a three-texel halo, with origin and frame carrying the canvas into it.](illustrations/pick-window.svg)
 
 ![Diagram: Window about the cursor · PickView · IdTargets · view-sized · readback](illustrations/17-11.svg)
 
@@ -200,19 +201,17 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=16-67 -->
 
-- Authored text becomes a scene object here: a manifest label and a document title each get an ordinary object row, so hide, select and pick treat them like geometry.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=68-85 -->
 
-- A stable key (`manifest-text/{i}`, `document-title/{doc}`) finds the row this text had before a reload, so a selected label stays selected across a scene replacement.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 17 session_viewer/src/app/scene_text.rs type lines=86-142 -->
 
-- Resolving text by row, and building the visible submission with the current selection flags. The derived selection name is the one label with no row - it must never intercept a click meant for its parent.
+- Resolving text by row, and building the visible submission with the current selection flags.
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -225,7 +224,6 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 ![Where this step sits in the viewer: State, GPU core, with 10 of 11 zones built so far.](illustrations/locator-a36ba7ebc5.svg){ .locator data-strip="illustrations/strip-2e217df3d4.svg" }
 
 - `update_label` submits the visible source texts plus the one derived name; the derived name has no row and cannot steal its parent's click.
-- `include_text_bounds` records each text object's shaped world box so fitting and the selection name can use it.
 
 ![Diagram: visible_texts() · update_label · derived nameplate · TextLane labels · include_text_bounds · fit · selection name](illustrations/17-14.svg)
 
@@ -237,7 +235,6 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/state/text.rs type lines=34-54 -->
 
-- Submission is where the derived name is added and marked as having no source row.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -283,7 +280,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/engine/gpu/objects.rs type -->
 
-- `set_text_bounds`: a text object's shaped world box joins the scene's bounds, so fitting the view includes the lettering. The source-face highlight itself belongs to `faces.rs`.
+- The source-face highlight itself belongs to `faces.rs`.
 
 ### Step 9 · Plates and planes draw IDs
 
@@ -304,7 +301,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/shaders/text_plate.wgsl type -->
 
-- Fixed-plane text: the same three attributes, an ID pipeline, and the whole rounded backing yellow while selected; the padding matches the selection-name plate.
+- Fixed-plane text: the same three attributes and ID pipeline; the padding matches the selection-name plate.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -314,7 +311,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 
 <!-- file: 17 session_viewer/src/shaders/text_plane.wgsl type -->
 
-- The text lane exposes `draw_ids`; `text_rectangle` serves nameplates and source labels alike, reserving a cap radius at each end of a rounded backing, and glyphs take their color from `ink_color`.
+- The text lane exposes `draw_ids`, and `text_rectangle` serves nameplates and source labels alike.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -364,13 +361,12 @@ Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves 
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=34-121 -->
 
-- Clearing the last selected row releases the coverage texture at once.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=122-145 -->
 
-- `prepare` allocates coverage only while something is outlined; the radius is CSS pixels scaled to physical pixels (lesson 18 settles on one radius for ordinary and selected solids). The coarse texture is `size / POOL` in each direction and binds beside the resolved mask.
+- `prepare` allocates coverage only while something is outlined; the coarse texture is `size / POOL` in each direction and binds beside the resolved mask. Lesson 18 settles on one radius for ordinary and selected solids.
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -410,7 +406,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs copy lines=376-624 -->
 
-- The shader dilates coverage with a one-pixel smooth edge and returns black with that alpha. The dilation reads every texel within the radius, up to 27 × 27 per pixel; `near_any_coverage` checks the block under the pixel and its eight neighbours in the coarse texture and returns zero without the loop when all nine are empty. The kernel radius is clamped to 12 on the CPU, so those nine blocks always contain the whole kernel and the answer is the same to the bit.
+- The shader dilates coverage with a one-pixel smooth edge and returns black with that alpha; `near_any_coverage` returns zero without entering the loop when the pixel's coarse block and its eight neighbours are all empty.
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -429,7 +425,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 - Silhouettes start **off**: the two coverage masks and the compositor are a full-screen pass per frame, which is slow on integrated GPUs. `O` turns them on; `?outlines=1` / `VIEWER_OUTLINES=1` starts with them on.
 - The default pen is one CSS pixel; `?thickness=` / `VIEWER_THICKNESS` selects a heavier weight.
 - The headlight starts **off** (`D`, `?lit=1` / `VIEWER_LIT=1` turn it on) and so do back faces (`?backface=1` paints them red): a CAD drawing reads better flat, and a wrong normal is easier to see with shading as an explicit switch than as the default.
-- `device_pixel_ratio` is the capped ratio the canvas and the camera use: `?dpr=` lowers it for people who prefer memory over crispness, never above the browser's and never below 0.5. Step 16 adds the second reader, `surface_per_physical`, which needs the *uncapped* browser ratio to convert pointer positions — those two are the only places the browser's ratio is read.
+- `device_pixel_ratio` is the capped ratio the canvas and the camera use: `?dpr=` lowers it for people who prefer memory over crispness, never above the browser's and never below 0.5.
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -439,13 +435,13 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/app/input.rs type hunks=4-4 -->
 
-- One new arm: `O` toggles the silhouettes. The module comment at the top of this file is the nearest thing to a user manual the viewer has, which is why the next step brings it up to date.
+- The module comment at the top of this file is the nearest thing to a user manual the viewer has, which is why the next step brings it up to date.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 17 session_viewer/src/app/inspection.rs type hunks=1 -->
 
-- The snapshot gains the new fields. `?inspect=1` is how every checkpoint in this course is observed without a screenshot.
+- `?inspect=1` is how every checkpoint in this course is observed without a screenshot.
 
 ## Part D · Subdivisions share one join
 
@@ -465,7 +461,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 <!-- file: 17 session_viewer/src/app/walk/brep_edges.rs type -->
 
-- Each chain now records the range of pipes it produced. A chain is one authored edge, so that range is what lets the join code know which segments are neighbours and which merely touch.
+- That range is what lets the join code know which segments are neighbours and which merely touch.
 
 ### Step 13 · The GPU row gains neighbours
 
@@ -531,13 +527,15 @@ The reference page and native fixtures for this checkpoint use the text-object f
 
 ## Part E · Every pixel the same size
 
-Per-pixel attachments are where video memory goes. At 4x the colour, depth and metadata targets cost 64 bytes per physical pixel; canvas-sized pick targets would cost another 20 per pixel after the first click. Three rules keep every pixel the same and avoid both: the pick pass draws a window, antialiasing stops at device scale 2, and a lost device reloads once at the smallest settings.
+Three rules keep every pixel the same: the pick pass draws a window, antialiasing stops at device scale 2, and a lost device reloads once at the smallest settings.
+
+![Colour, depth and metadata cost 16 bytes per physical pixel at one sample and 64 at four; the canvas multiplies that, and three levers hold it down.](illustrations/attachment-cost.svg)
 
 ### Step 15 · The pick window's uniforms
 
 ![Where this step sits in the viewer: Shaders, with 10 of 11 zones built so far.](illustrations/locator-7da6664bb5.svg){ .locator data-strip="illustrations/strip-093d035257.svg" }
 
-- The pick pass sees the scene through the sub-frustum of the window about the cursor. `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`; both are zero and the canvas size in a colour frame.
+- In a colour frame `origin` is zero and `frame` is the canvas, so the same arithmetic serves both.
 - Splats project onto the canvas with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment; the grid only lists the new fields.
 
 ![Diagram: frame uniforms · pick uniforms\ mvp' · line' · cloud' · id_pass · window-sized attachment · splat.wgsl · frame − origin](illustrations/17-21.svg)
@@ -583,13 +581,13 @@ Per-pixel attachments are where video memory goes. At 4x the colour, depth and m
 
 <!-- file: 17 session_viewer/src/engine/gpu/targets.rs type -->
 
-- The sample-count policy, not the masks: past two physical pixels per CSS pixel the density has already done multisampling's job, so `samples_for` returns 1x and the attachments cost a quarter as much. The coverage masks live in `surface_outline.rs`.
+- The sample-count policy, not the masks: the coverage masks live in `surface_outline.rs`.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
 <!-- file: 17 session_viewer/src/app/route.rs type -->
 
-- Device-loss recovery: the page reloads itself once at device scale 1 without antialiasing, keeping every other query, and says so on the reloaded page. A lost device is not an error to report but a smaller frame to ask for.
+- A lost device is not an error to report but a smaller frame to ask for.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -603,7 +601,7 @@ Per-pixel attachments are where video memory goes. At 4x the colour, depth and m
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1, 2 and 17, and fails after 3–14, 14b, 15 and 16: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 3–14, 14b, 15 and 16 build again at step 17. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 1, 2 and 17; steps 3–14, 14b, 15 and 16 fail and build again at step 17.
 
 <!-- step-status: end -->
 
@@ -629,13 +627,13 @@ Per-pixel attachments are where video memory goes. At 4x the colour, depth and m
 
 <!-- file: 17 session_viewer/src/engine/gpu/mod.rs type -->
 
-- The two silhouette instances replace the old single outline, and `Gpu` grows the fields that hold them. Its lane list is what the frame walks, so this is where a new lane announces itself.
+- `Gpu`'s lane list is what the frame walks, so this is where a new lane announces itself.
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
 <!-- file: 17 session_viewer/src/engine/gpu/render.rs type -->
 
-- The order changes here, substantially. This is the file to read when something draws on top of something it should not.
+- This is the file to read when something draws on top of something it should not.
 
 ## Check
 
@@ -678,7 +676,6 @@ Expected:
 
 ## Questions and answers
 
-Five mechanisms in one checkpoint, and 18 assumes all five.
 
 **Face picking pulls the arena's existing vertices by index rather than building a per-face mesh. What would the alternative cost?**
 

@@ -17,7 +17,7 @@ Streamed clouds display a bounded prefix, so a click must ask the source, not th
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1, 2 and 6, and fails after 3–5: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 3–5 build again at step 6. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 1, 2 and 6; steps 3–5 fail and build again at step 6.
 
 <!-- step-status: end -->
 
@@ -78,7 +78,7 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=1-52 -->
 
-- The cube test is deliberately conservative: a cube crossing the eye plane cannot be excluded by a projected comparison, so it is kept. A source query may look at more nodes than it needed; it must never skip one that held the answer.
+- A source query may look at more nodes than it needed; it must never skip one that held the answer.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -102,7 +102,7 @@ These two modules are new and undeclared, so the crate still builds after them.
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=196-251 -->
 
-- `Drop` cancels: dropping the query flips its token, and every callback still in flight checks the token before posting. Cancellation is an ownership property rather than a flag someone must remember to set.
+- Cancellation is an ownership property rather than a flag someone must remember to set.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -219,13 +219,13 @@ The protobuf headers sit in the first few kilobytes and `coords` is packed, so t
 
 <!-- file: 13 session_viewer/src/lib.rs type -->
 
-- Two additions, both `Msg`: one more asynchronous answer the event loop has to route. Adding a feature that talks to the network is exactly this shape.
+- Adding a feature that talks to the network is exactly this shape: one more `Msg` the event loop routes.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
 <!-- file: 13 session_viewer/src/app/mod.rs type -->
 
-- Two modules: `cloud_query`, the page loop, and `fetch`, the first code in the viewer that talks to a server. The comment is honest about the boundary - loading is still local until lesson 14.
+- `fetch` is the first code in the viewer that talks to a server; loading itself is still local until lesson 14.
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 

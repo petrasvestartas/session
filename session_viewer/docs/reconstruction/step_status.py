@@ -4,6 +4,10 @@
 The reader's question is "after this step, can I build?". `step_checks.py` answers it by
 running cargo check at the end of every step; this writes the answer into the lesson between
 the `step-status` markers, so the sentence is never a guess and never goes stale.
+
+It says only what was MEASURED. Why a mid-lesson check can fail - a Rust file joins the build
+only when a `mod` line names it - is the same sentence on every lesson, and how-to-learn.md
+already carries it once. Saying it 24 times cost 60 words a lesson and taught nothing new.
 """
 import argparse
 import json
@@ -53,12 +57,9 @@ def sentence(entry):
     ok = [label(n) for n in order if results[n] == "ok"]
     bad = [label(n) for n in order if results[n] != "ok"]
     if not bad:
-        return ("**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run "
-                "at the end of each one to make sure. A step that writes a file Rust has not been told "
-                "about yet compiles without checking any of it, so keep going to the checkpoint: that "
-                "build is the real test.")
-    passes = (f"passes after step{'s' if len(ok) != 1 else ''} {ranges(ok)}, and "
-              if ok else "passes at no point during this lesson, and ")
+        return "**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson."
+    passes = (f"passes after step{'s' if len(ok) != 1 else ''} {ranges(ok)}; "
+              if ok else "passes at no point during this lesson; ")
     # For each failing step, the first later step that builds again: "when would it work".
     labels = [label(n) for n in order]
     groups, run = [], []
@@ -73,15 +74,13 @@ def sentence(entry):
     recovery = []
     for idxs, nxt in groups:
         which = ranges([labels[i] for i in idxs])
-        word = "steps" if len(idxs) > 1 else "step"
-        recovery.append(f"{word} {which} build again at step {nxt}" if nxt else
-                        f"{word} {which} stay incomplete to the end, where the checkpoint build takes over")
-    return (f"**Does it compile yet?** `cargo check` {passes}"
-            f"fails after {ranges(bad)}: a file is written across several steps, and a check can only "
-            f"pass once its last piece is in. Concretely, {'; '.join(recovery)}. This is measured at the "
-            "end of every step rather than guessed. And where a check passes while your new files are not "
-            "yet named by a `mod` line, it is telling you only that you have not broken the previous "
-            "checkpoint — the checkpoint build at the end of the lesson is the real test.")
+        many = len(idxs) > 1
+        word, fail, build = ("steps", "fail", "build") if many else ("step", "fails", "builds")
+        recovery.append(f"{word} {which} {fail} and {build} again at step {nxt}" if nxt else
+                        f"{word} {which} {fail} and stay incomplete until the checkpoint build")
+    # Why a step can fail is the same on all 24 lessons, and how-to-learn.md already says it once.
+    # Repeating it here cost 60 words a lesson; only the measured part belongs in the lesson.
+    return f"**Does it compile yet?** `cargo check` {passes}{'; '.join(recovery)}."
 
 
 def main():

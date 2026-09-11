@@ -14,7 +14,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1–3 and 9, and fails after 4–8: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 4–8 build again at step 9. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 1–3 and 9; steps 4–8 fail and build again at step 9.
 
 <!-- step-status: end -->
 
@@ -98,7 +98,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 ![Where this step sits in the viewer: Scene + walk, Lanes, with 10 of 11 zones built so far.](illustrations/locator-358426916c.svg){ .locator data-strip="illustrations/strip-378c48058c.svg" }
 
 - `walk_sheet_slice` turns a slice into ribbon segments: one `CylinderSegment` per segment, the sheet's single object row as instance, the pen from the width with 0 as the hairline, no chains, and the segment's source id beside it.
-- `SegRows.ribbon_ids` travels with the ribbons; `SegmentLane::append` uploads real ids where it used to upload `u32::MAX`, and records a `SegChunk` per upload so `row_of` and `source_id` map a picked global ribbon row back to its sheet and entity. The shader already compares `source_edges` against the edge selection for both tables, so a selected entity highlights every one of its segments with no shader change.
+- `SegRows.ribbon_ids` travels with the ribbons; `SegmentLane::append` uploads real ids where it used to upload `u32::MAX`, and records a `SegChunk` per upload so `row_of` and `source_id` map a picked global ribbon row back to its sheet and entity.
 
 ![Diagram: SheetRows · walk_sheet_slice · ribbons + ribbon_ids · SegmentLane::append\ SegChunk { from, to, row } · row_of · source_id](illustrations/19-04.svg)
 
@@ -120,7 +120,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 <!-- file: 19 session_viewer/src/engine/gpu/segments.rs type -->
 
-- The segment lane gains a chunk list, and with it the map from a global ribbon row back to (sheet, entity). That is what lets a picked line in a 90 000-line drawing name itself.
+- That map is what lets a picked line in a 90 000-line drawing name itself.
 
 ### Step 7 · One row per sheet
 
@@ -144,7 +144,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 
 <!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=1-58 -->
 
-- The side table's whole design is one line of arithmetic: record `id` sits at `8 + 16 · id`, and `record_at(count)` is where the blobs begin. That is what makes one entity cost two small reads instead of a scan.
+- `record_at(count)` is where the blobs begin: two small reads for one entity instead of a scan.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 

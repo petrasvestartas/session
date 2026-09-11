@@ -16,7 +16,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -59,7 +59,7 @@
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
-- `WalkCx`: where an object's rows land (vertex base, object row). `Row`: what the producer measured (local box, spacing, flags, thickness).
+- `WalkCx`: where an object's rows land (vertex base, object row). `Row`: what the producer measured (local box, spacing, flags, and whether it drew faces).
 - The `mod.rs` also declares the modules you type in the following steps; nothing compiles them until `app/mod.rs` names `walk` in step 11.
 
 ![Diagram: WalkCx\ vertex base · row · producer · Row\ bounds · spacing · flags](illustrations/06-04.svg)
@@ -68,14 +68,14 @@
 
 <!-- file: 06 session_viewer/src/app/walk/mod.rs type -->
 
-## Step 4 · Per-file sweeps and thickness
+## Step 4 · Per-file sweeps
 
 ![Where this step sits in the viewer: Scene + walk, with 9 of 11 zones built so far.](illustrations/locator-8bf646ae4a.svg){ .locator data-strip="illustrations/strip-bb17a255a3.svg" }
 
 - A sheet (planar file) is detected after the walk from the object rows, so producers stay ignorant of documents.
-- Thickness is measured along the mesh's own dominant face normals, not the axis-aligned box: a rotated plate measures its plate thickness.
+- The sweeps read only this file's rows, against the `Baselines` captured before the walk.
 
-![Diagram: Upload rows · file_extent · mark_sheet · tris + normals · thickness](illustrations/06-05.svg)
+![Diagram: Upload rows · file_extent · mark_sheet · object rows, one per producer](illustrations/06-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -165,7 +165,7 @@
 
 <!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-56 -->
 
-- `MeshOpts` names the three decisions a caller makes about a mesh: whether sheet lanes apply, whether an open mesh is allowed, and whether it is a tessellation. Named presets keep those decisions out of the producer bodies.
+- Named presets keep those three decisions out of the producer bodies.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -194,13 +194,13 @@
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-61 -->
 
 - A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
-- `render_position` is the single f64 → f32 boundary for every producer.
+- `render_position` is the f64 → f32 boundary for every sampled point; a producer already holding f32 endpoints casts them where it builds them.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
 <!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=62-125 -->
 
-- A NURBS curve reaches the GPU as a polyline, sampled by its own size rather than a fixed count, and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
+- A NURBS curve reaches the GPU as a polyline, sampled by its own turning rather than a fixed count, and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -266,7 +266,6 @@ Presence-only environment flags, read once per process; always false in the brow
 
 <!-- file: 06 session_viewer/src/lib.rs type -->
 
-- Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
 
 ## Step 13 · Flat preview shading
 
@@ -310,40 +309,39 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 ## Try
 
 - Append `?top=1` or `?perspective=1`: the fixture is viewed from a fixed camera, which makes a boundary that drifts off its face easy to spot.
-- Append `?distance=3` and then `?distance=12`: the pipes keep their pixel width while the faces shrink; the boundary nodes move with the mesh because they are the mesh. (`parse_distance` accepts 1 to 16 and ignores anything else, so a smaller value is not a zoom — it is a no-op.)
+- Append `?distance=3` and then `?distance=12`: the pipes keep their pixel width while the faces shrink; the boundary nodes move with the mesh because they are the mesh. (`parse_distance` accepts 1 to 16 and ignores anything else.)
 - Append `?thickness=3`: the boundary pipes widen on screen but stay glued to their faces, because their endpoints are face-mesh nodes, not a separately sampled curve.
 
 ## Questions and answers
 
-From here on the questions are less about "what does this call do" and more about "why is it built this way".
 
 **A producer reports a `Row` and is given a `WalkCx`. What is the boundary this draws, and why does it matter?**
 
-*How to work it out.* Look at what is in each type. `WalkCx` carries positions in the output — vertex base, object row. `Row` carries measurements of the input — local box, spacing, flags. Now ask what is *absent* from both: the file, the document, the selection, the camera. That absence is the design.
+*How to work it out.* `WalkCx` gives positions in the output (vertex base, object row); `Row` reports measurements of the input (box, spacing, flags). What is *absent* from both is the design: the file, the document, the selection, the camera.
 
-*The answer.* A producer knows how to turn one geometry into rows and nothing else. That is why a sheet is detected after the walk from the object rows rather than inside a producer, and why adding a new geometry type later means writing one producer instead of editing the scene. The boundary is what makes the walk layer extensible.
+*The answer.* A producer turns one geometry into rows and knows nothing else — which is why a sheet is detected after the walk from the object rows, and why a new geometry type costs one producer rather than an edit to the scene.
 
 **Face normals are computed with Newell's method rather than from the first three corners. What goes wrong with three corners?**
 
-*How to work it out.* Take a flat polygon and make its second corner reflex — push it inward so the interior angle exceeds 180°. The cross product of the first two edges now points the other way, while the polygon is unchanged. Ask how often authored geometry has a reflex corner: often.
+*How to work it out.* Make a flat polygon's second corner reflex — push it inward past 180°. The cross product of the first two edges now points the other way while the polygon is unchanged. Authored geometry has reflex corners often.
 
-*The answer.* The face is reported as facing backwards, and downstream that becomes a crease in a surface that has none, or a back face painted red. Newell sums over every edge, so one awkward corner cannot flip the result. The general rule: for human-authored input, prefer the formula that averages over the one that samples.
+*The answer.* The face reads as facing backwards, and downstream that is a crease in a surface that has none, or a back face painted red. Newell sums over every edge, so one awkward corner cannot flip the result: for human-authored input, prefer the formula that averages over the one that samples.
 
 **`pipe_ids` stores the source edge index for an authored mesh but `u32::MAX` for a tessellation seam. Why not just number the seams?**
 
-*How to work it out.* Ask what happens after a pick returns that id: the viewer looks it up and tells the user what they selected. So the question becomes — is there anything in the document to name? A tessellation seam exists only because the surface was cut this finely; mesh it differently and it is gone.
+*How to work it out.* A pick returns that id and the viewer tells the user what they selected — so, is there anything in the document to name? A tessellation seam exists only because the surface was cut this finely; mesh it differently and it is gone.
 
-*The answer.* Numbering it would make selection return an invented identity, and the user could click on something that does not exist in their model. Refusing to answer is the correct answer, and it is the same refusal as lesson 08's periodic seams.
+*The answer.* Numbering it would hand selection an invented identity: the user clicks something that is not in their model. Refusing is the correct answer — the same refusal as lesson 08's periodic seams.
 
 **Face keys are sorted before their normals are accumulated. What bug does the sort prevent?**
 
-*How to work it out.* Float addition is not associative: `(a + b) + c` and `a + (b + c)` can differ in the last bits. Then ask what decides the order here — iteration over a hash map, which is not stable.
+*How to work it out.* Float addition is not associative: `(a + b) + c` and `a + (b + c)` differ in the last bits. What decides the order here is iteration over a hash map, which is not stable.
 
-*The answer.* Without the sort, the same mesh can produce different bytes on different runs, which breaks every hash the course verifies and makes bugs unreproducible. Determinism does not happen by itself; it is something you write down.
+*The answer.* Without the sort the same mesh produces different bytes on different runs, which breaks every hash the course verifies and makes bugs unreproducible. Determinism is something you write down.
 
 **What you should be able to do now**
 
-Name the four things every producer packs and why each is packed rather than passed as-is: pen width → world radius (the GPU works in world units), colour → RGBA8 (four bytes instead of sixteen, and colour needs no more), unit normal → 16-bit octahedral code (two bytes, and a unit vector has only two degrees of freedom), two normals → one `facing` word (the marker and edge lanes need adjacency, not geometry). Then predict which a point-cloud producer skips: facing and normals — a point has no adjacency, which is why `FACING_UNKNOWN` exists.
+Name the four things every producer packs and why: pen width → world radius (the GPU works in world units), colour → RGBA8 (four bytes, and colour needs no more), unit normal → 16-bit octahedral code (a unit vector has two degrees of freedom), two normals → one `facing` word (the marker and edge lanes need adjacency, not geometry). Then predict which a point-cloud producer skips: facing and normals — a point has no adjacency, which is why `FACING_UNKNOWN` exists.
 
 ## Next
 

@@ -11,7 +11,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -129,7 +129,7 @@ JSON.parse(document.querySelector("#canvas").dataset.viewerInspection)
 ## Try
 
 - Read the snapshot twice a few seconds apart: `scans` stays at 1, because the document identities did not change.
-- Load a different manifest with `?scene=` and read it again: `unique_sessions` follows the document count and `scans` grew by exactly the number of new documents.
+- Load a different manifest with `?scene=` and read it again: `unique_sessions` follows the document count, and `scans` has gone up once for each change of the document list a frame observed — the clear, then each document as it arrived.
 - Compare `source_cpu_known_payload_bytes` with `gpu_buffer_capacity_bytes`: the GPU side is larger, because display data adds tessellation and instance rows to the retained source arrays.
 - Hold a second `Rc` to a document somewhere in `State` and replace the scene: the payload figure keeps counting it, which is the leak the Weak identities are there to expose.
 

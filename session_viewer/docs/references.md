@@ -22,7 +22,7 @@ Every version below is pinned in `session_viewer/Cargo.toml` and locked by `Carg
 | `getrandom` | 0.2 (`js`) | Randomness in the browser, where the usual system source does not exist. |
 | `naga` | =29.0.4 (`wgsl-in`) | Parses every shader in the mirror tests, which is how `cargo xtest` catches a WGSL mistake without a GPU. |
 | `pollster` | 0.4 (native only) | Blocks on the async device setup in the native harness, so the same code path serves the browser and the tests. |
-| `session_rust` | path | The geometry kernel, shared with the C++ and Python implementations. It links wgpu for one shared display type, `RenderVertex`. |
+| `session_rust` | path | The geometry kernel, shared with the C++ and Python implementations. It links wgpu for the shared display type `RenderVertex` and for the GPU buffers a `Mesh` caches. |
 
 Trunk builds the page; `wasm-bindgen` generates the JavaScript that instantiates the module. Lesson 00 draws that chain.
 
@@ -40,7 +40,6 @@ These URLs were not fetched while this page was written, so treat them as the pl
 
 ## The ideas, and where the course draws them
 
-Each of these is a known technique. The course does not link to a paper for any of them; it builds the thing and draws why it is shaped that way.
 
 | Idea | The problem it solves | Drawn in | Built in |
 |---|---|---|---|

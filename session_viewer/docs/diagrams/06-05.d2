@@ -9,9 +9,8 @@ direction: right
 U: "Upload rows" { class: box }
 B: "file_extent" { class: box }
 S: "mark_sheet" { class: focus }
-T: "tris + normals" { class: box }
-K: "thickness" { class: focus }
+T: "object rows\none per producer" { class: box }
 
 U -> B: "Baselines::capture" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
 B -> S: "is_planar" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
-T -> K: "mesh_thickness" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+T -> B: "the rows the sweeps read" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

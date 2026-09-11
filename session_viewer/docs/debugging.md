@@ -1,6 +1,6 @@
 # Reading failures
 
-Most of the time you lose in this course is spent on an error that has already told you the answer. This page is not a troubleshooting encyclopedia; it teaches the three habits that solve almost every wgpu failure, and then walks the ten that this course actually produces.
+Most of the time you lose is spent on an error that has already told you the answer. Three habits solve almost every wgpu failure; then the ten this course actually produces.
 
 ## Habit 1 · Three declarations must agree
 
@@ -26,7 +26,7 @@ When the canvas is wrong but nothing errors, cut the frame down until the pictur
 - clear to an ugly colour — if you do not see it, the frame is not reaching the screen at all, and nothing after that matters;
 - draw one object, not the scene;
 - disable the depth test (`DepthMode::Always`), then the ink pass, then MSAA;
-- move the camera to a known view (`?top`, `?distance=5`, `?perspective`).
+- move the camera to a known view (keys 1–7, `C`, Space; natively `VIEWER_VIEW=top`, `VIEWER_ORTHO`, `VIEWER_DISTANCE_SCALE=5`).
 
 The first change that alters the picture is next to the bug.
 

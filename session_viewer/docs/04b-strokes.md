@@ -21,7 +21,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -29,7 +29,6 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 ![Where this step sits in the viewer: Lanes, with 8 of 11 zones built so far.](illustrations/locator-be21b3fc34.svg){ .locator data-strip="illustrations/strip-445a1edf20.svg" }
 
-- 40 bytes, ends as flat `f32`s: a `vec3` would pad the row to 48.
 - `radius` 0 means the screen-constant pen; `facing` packs two face normals for the solid lane's back-edge cull.
 
 ![Diagram: walk · segment endpoints · CylinderSegment\ a · b · radius · facing · segment table](illustrations/04b-02.svg)
@@ -60,7 +59,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=181-240 -->
 
-- The lane reports its solid-lane row count because the MSAA policy reads it: sample count is chosen from how much geometry is on screen.
+- The lane reports whether it holds any solid rows at all: 4x is spent only when hard edges exist on the GPU, and then only if the canvas fits the adapter's budget.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -100,7 +99,6 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-4 -->
 
-- `band_area` integrates the pixel box against the capsule exactly, so coverage cannot beat with the line's subpixel phase the way a distance ramp does.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -118,7 +116,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=26-90 -->
 
-- The fragment: coverage times fade, then `ink_visible` at the closest axis point. `fs_id` and `fs_edge_id` write `(row + 1, segment + 1)` for picking.
+- The fragment: coverage times fade, then `ink_visible` at the closest axis point.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -154,7 +152,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 <!-- file: 04b session_viewer/src/engine/pipelines/layouts.rs type -->
 
-- The layout file grows with each lane; this version adds the segment group. Every layout is built once per device and lives here, so a group number is decided in one file.
+- Every layout is built once per device and lives here, so a group number is decided in one file.
 
 <span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 
@@ -232,7 +230,7 @@ Expected:
 
 *How to work it out.* Write out the divide: `x/w`, `y/w`. Ask what happens when `w` is negative — both signs flip, so the point appears mirrored through the screen centre instead of being absent.
 
-*The answer.* A line crossing behind the eye would swing across the canvas rather than disappear. Clip first, divide second. It costs nothing and it is the difference between a correct viewer and one with a bizarre bug that appears only when you walk the camera into geometry.
+*The answer.* A line crossing behind the eye would swing across the canvas rather than disappear. Clip first, divide second: the bug otherwise appears only when you walk the camera into geometry.
 
 **What you should be able to do now**
 

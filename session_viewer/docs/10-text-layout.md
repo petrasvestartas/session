@@ -13,7 +13,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -46,7 +46,7 @@ Shaping is timed and every frame is timed; both read the same `now_ms`. Native b
 
 ![Diagram: performance.now · browser · now_ms · SystemTime · native · Performance::frame](illustrations/10-03.svg)
 
-- `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict. Nothing reads it yet — lesson 17 adds `reduce_for_slow_frames`, which is what turns the verdict into a lower device scale. Measuring first and acting later is deliberate: the number is easy to test on its own.
+- `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict. Nothing reads it until lesson 17's `reduce_for_slow_frames` turns it into a lower device scale — measuring first and acting later keeps the number testable on its own.
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 
@@ -106,7 +106,7 @@ Shaping is timed and every frame is timed; both read the same `now_ms`. Native b
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=134-194 -->
 
-- The document owns the `FontSystem`, so a default one can be constructed with the bundled faces already loaded and nothing else in the crate has to know where fonts come from.
+- The document owns the `FontSystem`, so nothing else in the crate has to know where fonts come from.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -125,7 +125,6 @@ Shaping is timed and every frame is timed; both read the same `now_ms`. Native b
 
 <!-- file: 10 session_viewer/src/engine/text.rs type lines=227-287 -->
 
-- Validation is its own small layer: non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion can turn them into a silent misplacement.
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -166,7 +165,7 @@ Unit checks for the shaper live in the same file.
 
 <!-- file: 10 session_viewer/src/lib.rs type -->
 
-- A module line and the shaping export: the shell grows by declaring what now exists. Nothing in this lesson draws, so nothing else in the shell changes.
+- A module line and the shaping export; nothing in this lesson draws, so nothing else in the shell changes.
 
 <span class="zone-mark" data-strip="illustrations/strip-63a57b9919.svg" data-zone="Page"></span>
 
@@ -212,31 +211,31 @@ If the status shows a width difference, compare font bytes, size and the kerning
 
 **Nothing is drawn in this lesson. Why is that the right place to stop?**
 
-*How to work it out.* Suppose text came out wrong on screen. List the stages that could be to blame: shaping (which glyphs, what advances), rasterization (coverage at this size), placement (where on screen). With all three in play you cannot tell which failed. Now ask whether any stage can be tested on its own — shaping can, because the browser will answer the same question with the same font.
+*How to work it out.* Text comes out wrong on screen: shaping (which glyphs, what advances), rasterization (coverage at this size) or placement (where on screen) could be to blame, and with all three in play you cannot tell which. Only shaping has an independent oracle — the browser answers the same question with the same font.
 
-*The answer.* Shaping is the one stage with an independent oracle, so it is verified numerically before pixels exist. Once you can trust "these glyphs at these advances", a later disagreement must be raster or placement.
+*The answer.* Shaping is verified numerically before pixels exist. Once "these glyphs at these advances" is trusted, a later disagreement must be raster or placement.
 
 **Fonts are compiled into the WASM instead of loaded from the system. What does that buy, and what does it cost?**
 
-*How to work it out.* Ask what varies if the font comes from the system: version, hinting, availability, fallback. Every one of those makes a layout bug unreproducible.
+*How to work it out.* A system font varies in version, hinting, availability and fallback. Every one of those makes a layout bug unreproducible.
 
-*The answer.* It buys identical shaping on every machine — a bug can be reproduced from a screenshot — and makes the comparison page meaningful, since both sides load the same bytes. It costs binary size, which is why only the faces the viewer actually uses are bundled and why unreferenced fonts were worth deleting.
+*The answer.* Bundling buys identical shaping on every machine — a bug reproducible from a screenshot — and makes the comparison page meaningful, since both sides load the same bytes. It costs binary size, which is why only the faces the viewer uses are bundled.
 
 **A colour change does not reshape; a font-size change does. Which properties participate in shaping, and why those?**
 
-*How to work it out.* Ask which inputs could change *which glyph appears where*. Kerning and ligatures depend on the characters and the size; line breaking depends on the line height. Colour and position change how the same glyphs are painted.
+*How to work it out.* Which inputs change *which glyph appears where*? Kerning and ligatures depend on the characters and the size; line breaking depends on the line height. Colour and position only change how the same glyphs are painted.
 
 *The answer.* `text`, `font_size` and `line_height`. Everything else reuses the shaped buffer by id — which is what lets a label follow the camera every frame without a shaper in the loop.
 
 **What is a cluster, and why does the code carry it around?**
 
-*How to work it out.* Ask how you would map a click on a glyph back to a character. `ffi` can be one glyph from three bytes; `e` plus a combining accent is two glyphs for one grapheme. A glyph index alone cannot answer it.
+*How to work it out.* To map a click on a glyph back to a character: `ffi` can be one glyph from three bytes, `e` plus a combining accent two glyphs for one grapheme. A glyph index alone cannot answer it.
 
-*The answer.* A cluster is the byte range in the source string that a glyph came from. Without clusters there is no editing and no text selection — the data structure exists for a feature that arrives lessons later, which is worth noticing: some structure is built early because removing it later would be impossible.
+*The answer.* A cluster is the byte range in the source string a glyph came from. Without clusters there is no editing and no text selection — structure built early because removing it later would be impossible.
 
 **What you should be able to do now**
 
-Say why replacement validates the whole new document before touching the current runs, and name another place with the same stance. Correct: a partly-applied replacement leaves the document in a state that is neither the old one nor the new one, and there is no way back — so validate everything, then swap. Lesson 07's empty mesh and lesson 14's staged scene swap take the same all-or-nothing position.
+Say why replacement validates the whole new document before touching the current runs, and name another place with the same stance. Correct: a partly-applied replacement leaves the document neither old nor new, with no way back — so validate everything, then swap. Lesson 07's empty mesh and lesson 14's staged scene swap take the same all-or-nothing position.
 
 ## Next
 

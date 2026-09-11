@@ -11,7 +11,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after steps 1–5 and 7, and fails after 6: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, step 6 build again at step 7. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after steps 1–5 and 7; step 6 fails and builds again at step 7.
 
 <!-- step-status: end -->
 
@@ -66,7 +66,6 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/validate.rs type lines=148-232 -->
 
-- Every declared count is checked against the storage that must hold it, before a kernel constructor can allocate from a number an attacker chose.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -118,7 +117,7 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=1-68 -->
 
-- The relay only raises a flag, consumed on the next look. It says *when* to check, never *what* changed — the conditional reads still decide that, so a lost or duplicated notification cannot corrupt the scene.
+- The flag says *when* to check, never *what* changed, so a lost or duplicated notification cannot corrupt the scene.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -130,7 +129,7 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=91-116 -->
 
-- The live source is constructed from the route and the query, so a named scene or a local dev page simply has none: watching the bucket is a property of how the page was reached, not a mode someone sets.
+- Watching the bucket is a property of how the page was reached, not a mode someone sets.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -165,7 +164,6 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/app/live.rs type lines=355-411 -->
 
-- Where a manifest's file names are resolved from depends on where the manifest itself lives: inside the bucket they are named from its root, anywhere else from the manifest's own folder.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -182,7 +180,7 @@ Parser unit tests, part of the file:
 - A slow old response arriving last must not replace a newer scene, so every load carries a generation and `stale_load` is checked after each await.
 - Network responses finish in any order; `PendingDocument` keeps manifest order, and `clear_scene` runs only after every item succeeded.
 - Streaming clouds keep their budget: `stream_prefix` opens a large file by range and `stream_rest` continues a slice at a time until its scene is cleared.
-- Whole files have a budget too: `scene_budget_bytes` is `?budget=<MB>` or 16 MB per GB of `navigator.deviceMemory`, 64 MB when the browser says nothing, because a decoded file costs the wasm heap about five times its size. Each file's size is asked by HEAD first; one that would put the scene over the budget is skipped, and the status line names it and the knob instead of the page dying without a word.
+- Whole files have a budget: `?budget=<MB>`, else 16 MB per GB of `navigator.deviceMemory` and 64 MB when the browser says nothing, because a decoded file costs the wasm heap about five times its size. A HEAD gives each file's size first; one that would cross the budget is skipped, and the status line names it and the knob.
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -211,7 +209,6 @@ Parser unit tests, part of the file:
 
 <!-- file: 14 session_viewer/src/lib.rs type -->
 
-- A module line and a `Msg` arm: the shell declares what now exists and routes one more asynchronous answer.
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 

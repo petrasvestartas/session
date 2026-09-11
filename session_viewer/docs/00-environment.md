@@ -17,7 +17,7 @@ cd "$COURSE_WORK/session_viewer"
 
 <!-- step-status: start -->
 
-**Does it compile yet?** `cargo check` passes after step 6, and fails after 1–5: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 1–5 build again at step 6. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+**Does it compile yet?** `cargo check` passes after step 6; steps 1–5 fail and build again at step 6.
 
 <!-- step-status: end -->
 
@@ -51,7 +51,7 @@ One line makes every `cargo` command build for the browser, so the code needs no
 
 ![Where this step sits in the viewer: Page, with 2 of 11 zones built so far.](illustrations/locator-c7bf829249.svg){ .locator data-strip="illustrations/strip-40d1f63564.svg" }
 
-Release builds, no subresource hashes, and a watch list that includes the kernel next door.
+Release builds, no subresource hashes, relative asset URLs, and the dev server on 127.0.0.1:8770. Lesson 14 adds the watch list that reaches the kernel next door.
 
 ![Diagram: Trunk.toml · dist/ · src · index.html · ../session_rust](illustrations/00-03.svg)
 
@@ -123,19 +123,18 @@ If Cargo cannot find `../session_rust`, the setup ran in a different `$COURSE_WO
 
 ## Questions and answers
 
-Every question is worked through: first how to reason to the answer, then the answer itself. Nothing is hidden.
 
 **Two crate types are declared. Who consumes each?**
 
-*How to work it out.* Ask who reads the build output. Two things read it: the browser, through wasm-bindgen and Trunk, and `cargo test`/`cargo run --example` on your own machine. A browser module and a Rust library are different artefacts, so if both consumers exist, both artefacts must be declared.
+*How to work it out.* Ask who reads the build output: the browser, through wasm-bindgen and Trunk, and `cargo test` / `cargo run --example` on your own machine. A browser module and a Rust library are different artefacts, so both must be declared.
 
 *The answer.* `cdylib` is the dynamic library wasm-bindgen turns into a browser module — what Trunk bundles. `rlib` is the ordinary Rust library that native tools, tests and examples link against. Drop `rlib` and `cargo xtest` has nothing to link; drop `cdylib` and there is no page.
 
 **What does one line in `.cargo/config.toml` buy you?**
 
-*How to work it out.* Notice what the alternative looks like. Without it, `cargo build` targets your machine, so every browser-only item needs `#[cfg(target_arch = "wasm32")]` and every build command needs `--target wasm32-unknown-unknown`. Ask which case is the common one: in this crate, almost all the code is browser code.
+*How to work it out.* Without it, `cargo build` targets your machine, so every browser-only item needs `#[cfg(target_arch = "wasm32")]` and every build command needs `--target wasm32-unknown-unknown`. Ask which case is the common one: in this crate, almost all the code is browser code.
 
-*The answer.* `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so the source needs no per-item gates — the rule becomes "the default is the browser, native is the exception". The `xtest` alias is how the tests still run natively when you want them to.
+*The answer.* `build.target = "wasm32-unknown-unknown"` makes the browser the default for every `cargo` command, so the source needs no per-item gates. The `xtest` alias is how the tests still run natively.
 
 **The page is stuck on *Loading WASM* and the console is empty. Name two candidates before you touch the Rust.**
 
@@ -145,7 +144,7 @@ Every question is worked through: first how to reason to the answer, then the an
 
 **What you should be able to do now**
 
-Delete `src/lib.rs` and write it again — the start attribute, the document lookup, the two writes — then `cargo check`. Correct looks like: `#[wasm_bindgen(start)]` on a `pub fn start()`, `web_sys::window().unwrap().document().unwrap()`, `get_element_by_id("status")` with an `expect`, and `set_text_content(Some(...))` plus the `data-checkpoint` attribute. Under ten lines, and typing them once from memory is the difference between having read the entry point and knowing it.
+Delete `src/lib.rs` and write it again — the start attribute, the document lookup, the two writes — then `cargo check`. Correct looks like: `#[wasm_bindgen(start)]` on a `pub fn start()`, `web_sys::window().unwrap().document().unwrap()`, `get_element_by_id("status")` with an `expect`, and `set_text_content(Some(...))` plus the `data-checkpoint` attribute. Under ten lines.
 
 ## Next
 

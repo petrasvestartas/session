@@ -14,7 +14,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -95,7 +95,6 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 <!-- tree: 08 session_viewer/src/app -->
 
 - Data flow: cached `m_mesh` → `walk_mesh` → pipes → `map_surface_boundaries` → `pipe_ids`.
-- A seam and a shading crease are different things: a seam is repeated parameter coordinates, a crease is a lighting discontinuity, and this lesson touches only the first.
 
 **Production equivalent:** Production keeps this in `src/app/walk/brep.rs` (`walk_surface`, `map_surface_boundaries`) and the kernel's `session_rust/src/nurbssurface_trimmed.rs`.
 
@@ -109,15 +108,15 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 
 **Why does drawing the hole's curve on top of a full rectangle not make a hole?**
 
-*How to work it out.* Ask what a hole has to do, beyond looking right from one angle. You must be able to see through it, it must not occlude, and clicking through it must hit whatever is behind. A painted circle fails all three, because the face is still there.
+*How to work it out.* A hole must let you see through it, must not occlude, and must let a click reach whatever is behind. A painted circle fails all three, because the face is still there.
 
 *The answer.* The fill still writes depth, still occludes, still answers a pick. A hole is an absence in the *mesh*, which is why the constrained mesh cached on the surface has to win over a freshly triangulated grid.
 
 **A natural boundary gets a source ID; a periodic seam does not. What distinguishes them?**
 
-*How to work it out.* Ask, for each, whether the surface continues past it. At `u == start` the domain ends — there is nothing beyond, so there is a real edge. At a periodic seam the surface wraps and continues; the seam is where the parameterisation was cut, not where the shape stops.
+*How to work it out.* Ask whether the surface continues past it. At `u == start` the domain ends — nothing beyond, so a real edge. At a periodic seam the surface wraps and continues; the seam is where the parameterisation was cut, not where the shape stops.
 
-*The answer.* A natural boundary is a limit of the domain and a real edge of a real face. A seam is bookkeeping. Giving the seam an ID would invent a CAD edge, which is the same refusal as tessellation seams in lesson 06.
+*The answer.* A natural boundary is a limit of the domain and a real edge of a real face. A seam is bookkeeping, and giving it an ID would invent a CAD edge — the same refusal as tessellation seams in lesson 06.
 
 **A seam and a shading crease sound alike. State the difference in one sentence each.**
 
@@ -127,13 +126,13 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 
 **Boundary keys use exact position bits with no weld tolerance. Why is a tolerance the wrong tool here?**
 
-*How to work it out.* Ask where the two sets of points came from. Lesson 07 arranged for both faces to be *given* the same points, so equality is exact by construction. A tolerance can then only do damage: it can merge two boundaries that genuinely differ.
+*How to work it out.* Lesson 07 arranged for both faces to be *given* the same points, so equality is exact by construction. A tolerance can then only do damage: it can merge two boundaries that genuinely differ.
 
-*The answer.* A tolerance is for reconciling independent approximations. When you have arranged for the bits to be identical, compare the bits — and if they ever differ, that is a real bug you want to hear about rather than smooth over.
+*The answer.* A tolerance reconciles independent approximations. When the bits are identical by construction, compare the bits — and if they ever differ, that is a real bug you want to hear about.
 
 **What you should be able to do now**
 
-Predict what a *user* sees if `map_surface_boundaries` gets the wrong `first_pipe`. Correct: boundary source IDs land on the wrong pipes — some of this surface's edges report no id and become unselectable, while pipes belonging to an earlier object get ids that are not theirs, so clicking one edge highlights a different one. Translating a bookkeeping mistake into a symptom is most of debugging.
+Predict what a *user* sees if `map_surface_boundaries` gets the wrong `first_pipe`. Correct: source IDs land on the wrong pipes — some of this surface's edges report no id and become unselectable, while pipes of an earlier object get ids that are not theirs, so clicking one edge highlights another. Translating a bookkeeping mistake into a symptom is most of debugging.
 
 ## Next
 

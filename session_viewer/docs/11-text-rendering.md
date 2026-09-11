@@ -13,7 +13,7 @@
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -38,7 +38,6 @@ The same-font white-on-black comparison page and its WASM export are supplied. I
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-73 -->
 
-- A plate is an overlay: depth compare `Always` and no depth write, so a backing rectangle can never occlude the geometry it is annotating.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -77,7 +76,7 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-33 -->
 
-- The lane borrows the viewer's device and target and owns only its coverage textures, so a label's texture budget is visible in one place rather than spread through the renderer.
+- The lane borrows the viewer's device and target and owns only its coverage textures, so the budget lives in one place.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -100,7 +99,6 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=143-219 -->
 
-- The draw keeps clip `w` per vertex and lets the shader divide, which is what makes the UVs perspective-correct across a plane seen at an angle.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -124,7 +122,7 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=323-402 -->
 
-- A fixed-plane label is rasterized once into a coverage texture of its own, at the em size its projection asked for. Screen-space text takes the other path, through Glyphon's shared atlas.
+- Screen-space text takes the other path, through Glyphon's shared atlas.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -215,7 +213,7 @@ A native GPU check for the plane path sits at the end of the file.
 
 Planes first (they are in the scene), then anchored glyphs, then plates, then overlay glyphs on top of their plates.
 
-![Diagram: TextLane::draw · planes · anchored glyphs · plates · overlay glyphs](illustrations/11-10.svg)
+![Diagram: TextLane::draw · planes · plates (physical range) · anchored glyphs · plates (overlay range) · overlay glyphs](illustrations/11-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -237,7 +235,7 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=339-372 -->
 
-- Only the anchor is projected, not the glyphs: text that follows a world point needs one clip position and then screen-space layout. An anchor behind the camera or out of range is culled here rather than producing inverted text.
+- Only the anchor is projected: text that follows a world point needs one clip position, then screen-space layout.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -247,7 +245,7 @@ Planes first (they are in the scene), then anchored glyphs, then plates, then ov
 
 <!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=430-496 -->
 
-- Glyphon owns its own shaders, so the lane's job is to hand it a depth state: `GreaterEqual` under reversed Z for text in the scene, `Always` for text over it.
+- Glyphon owns its own shaders; the lane's job is only to hand it a depth state.
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -335,31 +333,31 @@ If letters look blurred at one zoom level, check `TextFrame::scale`; if a plate 
 
 **`logical` comes from the canvas CSS box, not from `devicePixelRatio`. Why does that distinction matter here of all places?**
 
-*How to work it out.* List what changes the ratio between CSS pixels and physical pixels: the display's device pixel ratio, *and* browser zoom. Ask which of the two `devicePixelRatio` reports — it moves with zoom on some browsers and not others, while the canvas's own measured box always reflects both.
+*How to work it out.* Two things change the ratio between CSS pixels and physical pixels: the display's device pixel ratio *and* browser zoom. `devicePixelRatio` moves with zoom on some browsers and not others; the canvas's own measured box always reflects both.
 
-*The answer.* Deriving the raster scale from `devicePixelRatio` alone gives text that is crisp at 100% zoom and blurry at 125%. The lane derives one isotropic scale from framebuffer ÷ CSS box, and rejects a stretched canvas outright rather than rendering text at the wrong aspect.
+*The answer.* Deriving the raster scale from `devicePixelRatio` alone gives text crisp at 100% zoom and blurry at 125%. The lane derives one isotropic scale from framebuffer ÷ CSS box, and rejects a stretched canvas outright rather than rendering text at the wrong aspect.
 
 **Raster resolution grows in power-of-two em buckets. What would continuous resolution cost?**
 
-*How to work it out.* Imagine zooming smoothly. With a continuous scale the projected em changes every frame, so the "is my raster the right size?" test fails every frame, and re-rasterizing a label means Swash plus an atlas upload.
+*How to work it out.* Zoom smoothly with a continuous scale: the projected em changes every frame, so "is my raster the right size?" fails every frame, and re-rasterizing means Swash plus an atlas upload.
 
-*The answer.* A re-raster on nearly every frame. Buckets make small camera motion free and charge only for a real change in size. The same instinct appears in `MaskKey` (lesson 17) and the splat prelude key (04d): make expensive work depend on a quantised key, never a continuous one.
+*The answer.* A re-raster on nearly every frame. Buckets make small camera motion free and charge only for a real change in size — the same instinct as `MaskKey` (lesson 17) and the splat prelude key (04d): make expensive work depend on a quantised key, never a continuous one.
 
 **Two Glyphon renderers share one atlas, with different depth rules. Why two, and why one atlas?**
 
-*How to work it out.* Ask what differs between a label in the scene and a label over it: only the depth rule. Ask what they share: the glyph images. A pipeline's depth state is fixed at creation, so a differing depth rule means a second renderer; identical glyph bytes mean no reason for a second atlas.
+*How to work it out.* Only the depth rule differs between a label in the scene and a label over it; the glyph images are shared. A pipeline's depth state is fixed at creation, so a differing depth rule means a second renderer; identical glyph bytes mean no reason for a second atlas.
 
-*The answer.* Two renderers because anchored text must be occluded by solids (`GreaterEqual` under reversed Z) and overlay text must not (`Always`). One atlas because a second would double both texture memory and eviction bookkeeping for nothing.
+*The answer.* Two renderers because anchored text must be occluded by solids (`GreaterEqual` under reversed Z) and overlay text must not (`Always`). One atlas because a second would double texture memory and eviction bookkeeping for nothing.
 
 **Raster keys are bounded, and passing the budget rebuilds the atlas and the Swash cache *together*. Why together?**
 
-*How to work it out.* Ask what a prepared vertex contains: atlas coordinates. Now evict from the atlas alone — the vertex still points at that rectangle, which now holds a different glyph.
+*How to work it out.* A prepared vertex contains atlas coordinates. Evict from the atlas alone and the vertex still points at that rectangle, which now holds a different glyph.
 
-*The answer.* Text renders as garbage with no error anywhere. Rebuilding both keeps the invariant "no prepared vertex points at anything evicted", which is exactly the kind of rule worth writing in a comment because the type system cannot express it.
+*The answer.* Text renders as garbage with no error anywhere. Rebuilding both keeps the invariant "no prepared vertex points at anything evicted" — the kind of rule worth a comment, because the type system cannot express it.
 
 **What you should be able to do now**
 
-Name the five placements and what each keeps constant: `Screen` (a fixed CSS position), `Anchor` and `Nameplate` (follow a world point, glyphs stay screen-sized), `WorldBillboard` (a world em height, always facing you), `WorldPlane` (a world em height in a fixed plane). Then say which can be hidden by a solid: the ones drawn by the anchored renderer with a depth test — the fixed plane genuinely lives in the scene — while a nameplate is an annotation and gets no depth. Whether text is occluded is a property of the placement, not of the text.
+Name the five placements and what each keeps constant: `Screen` (a fixed CSS position), `Anchor` and `Nameplate` (follow a world point, glyphs stay screen-sized), `WorldBillboard` (a world em height, always facing you), `WorldPlane` (a world em height in a fixed plane). Then say which a solid can hide: the ones the anchored renderer draws with a depth test, and the fixed plane, which genuinely lives in the scene — a nameplate is an annotation and gets no depth. Occlusion is a property of the placement, not of the text.
 
 ## Next
 

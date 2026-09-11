@@ -24,7 +24,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- step-status: start -->
 
-**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+**Does it compile yet?** Yes — `cargo check` was run at the end of every step of this lesson.
 
 <!-- step-status: end -->
 
@@ -54,7 +54,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- file: 04d session_viewer/src/engine/gpu/cloud.rs type lines=145-208 -->
 
-- Clouds arrive in chunks, so the lane keeps a chunk list: `append` grows the buffers, `extend` records which object row a chunk belongs to, and a chunk that does not continue the resident prefix is refused rather than silently misplaced.
+- `extend` records which object row a chunk belongs to, and a chunk that does not continue the resident prefix is refused rather than silently misplaced.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -106,7 +106,6 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=1-68 -->
 
-- The point pass targets are made on the first frame that has points, so a scene without a cloud never pays for them.
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -160,7 +159,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 ![Where this step sits in the viewer: Shaders, with 8 of 11 zones built so far.](illustrations/locator-53c0d29f7b.svg){ .locator data-strip="illustrations/strip-ef21ae124d.svg" }
 
-- `record_of` finds the record whose cumulative range contains the vertex index; `project` folds one mat-vec per point.
+- `record_of` finds the record whose cumulative range contains the vertex index.
 
 ![Diagram: vertex_index · SplatRecord · point disc · fs_point · splat_resolve\ EDL · frag_depth](illustrations/04d-05.svg)
 
@@ -178,7 +177,6 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=93-171 -->
 
-- The resolve reads the lane's depth and color, applies Eye-Dome Lighting from neighbouring depths, and writes `frag_depth` under the scene's `Greater` test.
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -218,7 +216,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 <!-- file: 04d session_viewer/src/lib.rs type -->
 
-- Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it. That is the whole price of adding a lane to this facade.
+- Wiring a lane into the shell costs a hunk or two: construct it where the others are built, and report it.
 
 <span class="zone-mark" data-strip="illustrations/strip-a7bdebbf9f.svg" data-zone="Page"></span>
 
@@ -268,7 +266,7 @@ Expected:
 
 *How to work it out.* You want just enough points that the gaps between them are invisible. So the quantity to test is the node's point spacing *as projected on screen*, compared against a pixel threshold.
 
-*The answer.* "Does this node's spacing project wider than `lod_px`?" Yes: descend into the eight children. No: draw the node whole. Because each node owns its own subsample, descending only ever adds detail, which is what makes this a single pass with no back-tracking.
+*The answer.* "Does this node's spacing project wider than `lod_px`?" Every visited node draws its own subsample; a yes also pushes the eight children, so descending adds detail rather than replacing it. Because each node owns its own subsample, descending only ever adds detail, which is what makes this a single pass with no back-tracking.
 
 **Group 0 of the point pipelines is the cloud uniform, not the camera. Where did the camera go?**
 
@@ -278,7 +276,7 @@ Expected:
 
 **What you should be able to do now**
 
-Trace one point from a chunk in CPU memory to a lit pixel, naming every buffer and pass. Correct: `CloudRows` → the lane's point buffers → `LodWalk::select` picks ranges → `SplatRecord`s written per visible cloud → the point pass draws into private colour and depth → the resolve reads both, applies EDL and writes `frag_depth` into the face pass. Four checkpoints in, this is the first whole lane you can narrate.
+Trace one point from a chunk in CPU memory to a lit pixel, naming every buffer and pass. Correct: `CloudRows` → the lane's point buffers → `LodWalk::select` picks ranges → `SplatRecord`s written per visible cloud → the point pass draws into private colour and depth → the resolve reads both, applies EDL and writes `frag_depth` into the face pass. 
 
 ## Next
 
