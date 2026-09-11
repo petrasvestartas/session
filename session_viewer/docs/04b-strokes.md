@@ -59,7 +59,11 @@ flowchart LR
 
 - Every draw is `RIBBON_VERTS * rows` vertices with no vertex buffer bound; the shader indexes the table.
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=181-252 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=181-240 -->
+
+- The lane reports its solid-lane row count because the MSAA policy reads it: sample count is chosen from how much geometry is on screen.
+
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=241-252 -->
 
 - `DepthMode::Always` with blending: the shader decides visibility itself, so no hardware depth test can hide a stroke that lies on a surface.
 
@@ -103,7 +107,15 @@ flowchart LR
 
 - The fragment: coverage times fade, then `ink_visible` at the closest axis point. `fs_id` and `fs_edge_id` write `(row + 1, segment + 1)` for picking.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=143-280 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=143-199 -->
+
+- `coverage` is where the exactness lives: `band_area` integrates the pixel box against the capsule instead of sampling a distance, so coverage cannot beat against the line's subpixel phase.
+
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=200-257 -->
+
+- The ID entries write `(row + 1, segment + 1)`, and the segment half carries a tag bit so a picked ribbon can be told from a picked face in the same channel.
+
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=258-280 -->
 
 <!-- check: 04b -->
 

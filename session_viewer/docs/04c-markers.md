@@ -60,7 +60,11 @@ flowchart LR
 
 - Markers draw the template `spheres.len()` times; dots draw `DOT_VERTS * dots.len()` vertices with no template.
 
-<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=154-238 -->
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=154-212 -->
+
+- Clearing forgets the rows and keeps the capacity, the same bargain the arena makes: a reload refills a buffer that is already the right size.
+
+<!-- file: 04c session_viewer/src/engine/gpu/glyphs.rs type lines=213-238 -->
 
 - `source_dot` is the pipeline for streamed source queries; it is declared with the others so the lane never grows a second pipeline set.
 
@@ -92,7 +96,11 @@ flowchart TB
 
 - The facing cull is skipped when the eye is inside the object and when `line.opacity` is zero: in x-ray a vertex on the far side of a cube is exactly what you want to see.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=63-153 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=63-124 -->
+
+- The antialiasing ramp is clamped to the ink it feathers. A pen thinner than the ramp would otherwise be drawn entirely out of fade and disappear at distance.
+
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=125-153 -->
 
 ## Step 4 · Free dots
 
@@ -114,7 +122,11 @@ flowchart TB
 
 - The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=39-138 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=39-96 -->
+
+- The fragment half is the same shape as the ribbon's: coverage first, then the shared visibility test. Every ink lane answers the visibility question with the same function, which is why the rule lives in its own file.
+
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=97-138 -->
 
 <!-- check: 04c -->
 

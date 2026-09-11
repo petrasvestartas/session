@@ -51,8 +51,8 @@ Patience first, though: the very first frame in a fresh browser profile compiles
 
 ### 2 · Shader compilation failure
 
-```
-Shader validation error: expected u32, found bool
+```text
+error: the type of `broken` is expected to be `u32`, but got `bool`
 ```
 
 naga tells you the line. The traps that are not typos:
@@ -75,20 +75,16 @@ The rule: write the layout from `offset_of!`, never from a count of bytes in you
 
 ### 4 · Bind-group-layout mismatch
 
-```
-Bind group 2 expected 3 entries, found 2
-```
-or
-```
-Buffer binding 0 expects STORAGE, but buffer usage is UNIFORM
+```text
+Binding 0 has a different type (Buffer { ty: Uniform, .. }) than the one in the layout (buffer storage)
 ```
 
 This is Habit 1 in its purest form. The pipeline was compiled against a *layout*; the draw supplied a *group*; the shader declared `@group`/`@binding`. All three. In this viewer the scene contract (`src/shaders/scene.wgsl`) exists precisely so that groups 0 to 2 are declared once instead of in every lane shader.
 
 ### 5 · Invalid buffer usage
 
-```
-Buffer usages BufferUsages(VERTEX) do not contain required usage COPY_DST
+```text
+Usage flags BufferUsages(VERTEX) of Buffer with 'arena' label do not contain required usage flags BufferUsages(COPY_DST)
 ```
 
 Usage flags are fixed at creation and wgpu will not forgive one. If the CPU will ever write into a buffer again, it needs `COPY_DST` *at creation*, not at the write. This is the error that teaches the habit of asking, for every buffer: who writes this, and when?

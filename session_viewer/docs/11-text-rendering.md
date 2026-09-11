@@ -45,7 +45,11 @@ flowchart TB
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-100 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=1-73 -->
+
+- A plate is an overlay: depth compare `Always` and no depth write, so a backing rectangle can never occlude the geometry it is annotating.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text_plate.rs type lines=74-100 -->
 
 Vertex layout ↔ shader locations:
 
@@ -75,7 +79,11 @@ flowchart LR
     style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-83 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=1-33 -->
+
+- The lane borrows the viewer's device and target and owns only its coverage textures, so a label's texture budget is visible in one place rather than spread through the renderer.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=34-83 -->
 
 ## Step 4 · Planes: prepare
 
@@ -92,7 +100,11 @@ flowchart LR
 
 <!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=84-142 -->
 
-<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=143-258 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=143-219 -->
+
+- The draw keeps clip `w` per vertex and lets the shader divide, which is what makes the UVs perspective-correct across a plane seen at an angle.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text_plane.rs type lines=220-258 -->
 
 ## Step 5 · Planes: projection, raster and the quad
 
@@ -165,7 +177,11 @@ flowchart LR
     style A fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-142 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=62-119 -->
+
+- Replacement is all-or-nothing: an invalid submission leaves the previous document standing, so a bad label cannot empty the screen.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=120-142 -->
 
 ## Step 8 · Prepare: place, rasterize, build both draw lists
 
@@ -216,9 +232,17 @@ flowchart TB
     style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=339-429 -->
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=339-372 -->
 
-<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=430-546 -->
+- Only the anchor is projected, not the glyphs: text that follows a world point needs one clip position and then screen-space layout. An anchor behind the camera or out of range is culled here rather than producing inverted text.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=373-429 -->
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=430-496 -->
+
+- Glyphon owns its own shaders, so the lane's job is to hand it a depth state: `GreaterEqual` under reversed Z for text in the scene, `Always` for text over it.
+
+<!-- file: 11 session_viewer/src/engine/gpu/text.rs type lines=497-546 -->
 
 Native checks for scale, depth, nameplates and cache eviction live in the same file.
 

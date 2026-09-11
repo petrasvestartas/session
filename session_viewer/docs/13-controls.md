@@ -64,7 +64,11 @@ flowchart LR
     style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-121 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs type lines=1-38 -->
+
+- `get` treats any HTTP status as success and only a network failure as an error, so a 304 or a 404 is something the caller decides about. That is what lets the live source use the same function for a conditional read as the loader uses for a download.
+
+<!-- file: 13 session_viewer/src/app/fetch.rs type lines=39-121 -->
 
 - `content_length` is a HEAD request: the size a whole file would download, before a byte of it is fetched, so a scene can refuse what the device cannot hold.
 
@@ -75,7 +79,15 @@ flowchart LR
 - `QueryView` freezes the click's projection; every page is tested against the same matrix and pixel window.
 - A cube crossing the eye plane cannot be excluded, so `intersects` returns true for it.
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=1-124 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=1-52 -->
+
+- The cube test is deliberately conservative: a cube crossing the eye plane cannot be excluded by a projected comparison, so it is kept. A source query may look at more nodes than it needed; it must never skip one that held the answer.
+
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=53-92 -->
+
+- A cube whose projection is not finite cannot be excluded safely - the arithmetic that would reject it is the arithmetic that failed - so it is kept and tested the slow way.
+
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=93-124 -->
 
 - `eligible_ranges` walks every octree node, resident or not, and falls back to a full bounded scan when the node table does not cover all rows.
 
@@ -83,7 +95,11 @@ flowchart LR
 
 - `Query` owns the cancellation token; superseding input drops the query and every callback in flight checks the token before posting.
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=196-270 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=196-251 -->
+
+- `Drop` cancels: dropping the query flips its token, and every callback still in flight checks the token before posting. Cancellation is an ownership property rather than a flag someone must remember to set.
+
+<!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=252-270 -->
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-397 -->
 

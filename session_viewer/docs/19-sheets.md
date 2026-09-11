@@ -115,7 +115,11 @@ flowchart TB
 
 - `sheet_query` transcribes the cloud's source query: the table head is read once per sheet and cached with its ETag, then an entity costs the 16-byte record at `8 + 16 · id` and its blob, both refused if the table's revision moved. `EntityMeta` parses the JSON's guid, name, kind, width and colour; blobs over 64 KiB are refused. Dropping a `Query` cancels its callback.
 
-<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=1-101 -->
+<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=1-58 -->
+
+- The side table's whole design is one line of arithmetic: record `id` sits at `8 + 16 · id`, and `record_at(count)` is where the blobs begin. That is what makes one entity cost two small reads instead of a scan.
+
+<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=59-101 -->
 
 <!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=102-158 -->
 

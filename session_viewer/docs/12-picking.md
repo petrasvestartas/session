@@ -188,19 +188,35 @@ flowchart LR
 
 <!-- file: 12 session_viewer/src/app/scene.rs type lines=1-68 -->
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=69-185 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=69-126 -->
+
+- Clearing keeps the scene usable rather than replacing it: a reload must not invalidate the `Scene` the whole application is holding, so the tables are emptied in place and the row bookkeeping starts again from zero.
+
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=127-185 -->
 
 - One object row per GUID in the kernel's canonical order; the row a GUID gets is the row it keeps within a revision.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=186-274 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=186-207 -->
+
+- The walk is where a kernel document becomes rows: one object row per guid, in the kernel's canonical order, so the row a guid gets is the row it keeps for as long as that revision is loaded.
+
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=208-274 -->
 
 - Streamed clouds have no kernel object; their slot records the absolute row point 0 landed on.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=275-352 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=275-337 -->
+
+- A streamed cloud grows: each slice appends to the same row range and uploads only the new points, so the scene never rebuilds what is already on the GPU.
+
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=338-352 -->
 
 - Row → identity in both directions; `edge_at` reads the segment sub-ID tag bit set by the ribbon shader.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=353-483 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=353-416 -->
+
+- Resolving a pick is where a row becomes something a user can be told about: an edge answer goes back through the retained producer records, and an answer that cannot be named is refused rather than guessed.
+
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=417-483 -->
 
 ### Step 7 · Selection mode
 
@@ -224,9 +240,21 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-129 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-49 -->
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=130-221 -->
+- Positions, colours and normals come out of the kernel's flat arrays; normals only when every point has one, because a partly-normalled cloud would shade inconsistently and there is no per-point flag to say which.
+
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=50-82 -->
+
+- The octree the file carries is rewritten into this cloud's own row and node numbering, so one lane can hold many clouds without their node indices colliding.
+
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=83-129 -->
+
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=130-184 -->
+
+- A streamed cloud is only partly present, so its spacing is measured over the nodes that are actually complete within the points received. Sizing discs from a node that is still arriving would make them flicker as it fills.
+
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=185-221 -->
 
 <!-- file: 12 session_viewer/src/app/walk/frames.rs type -->
 
@@ -285,19 +313,35 @@ flowchart TB
     style P fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-82 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=1-59 -->
+
+- The tolerance is a circle in framebuffer pixels, at least one pixel wide: the click is a point, but the user's intent is a small neighbourhood, and that neighbourhood has to be the same physical size on every display.
+
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=60-82 -->
 
 - `generation` counts requests; `submitted` records which generation the in-flight copy belongs to. A camera move bumps `generation`, so the answer is discarded when it lands.
 
 <!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=83-144 -->
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=145-222 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=145-203 -->
+
+- One function computes the window's bounds and both the scissor and the copy use it. Two computations that must agree are one computation used twice.
+
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=204-222 -->
 
 - The ID targets are made on the first pick and kept until the canvas resizes. The gradient attachment gives ink the same visibility rule as the colour frame.
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=223-350 -->
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=223-309 -->
 
-<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=351-439 -->
+- The ID pass gets the same gradient attachment the colour frame has, because ink decides its own visibility from it — without it, a stroke would be pickable exactly where it is invisible.
+
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=310-350 -->
+
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=351-395 -->
+
+- The native census captures the unchanged ID pass, which is how the hidden-line tests judge visibility against exact object numbers rather than against pixels.
+
+<!-- file: 12 session_viewer/src/engine/gpu/pick.rs type lines=396-439 -->
 
 - `map` must run after the submit and only once per copy; `poll` reads the mapped bytes on a later frame.
 - Ink beats a face anywhere in the window; among equals the nearest to the cursor wins, so a curve lying across a face is still selectable.
@@ -334,11 +378,19 @@ flowchart TB
     style O fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-98 -->
+<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=1-74 -->
+
+- Coverage is allocated with the first selected row and released with the last, so an unselected scene pays nothing for a feature it is not using.
+
+<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=75-98 -->
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=99-165 -->
 
-<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=166-244 -->
+<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=166-229 -->
+
+- The compositing pipeline is built for the pass's own colour format and sample count, which is why it has to be rebuilt when the sample count flips rather than chosen once at start-up.
+
+<!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs type lines=230-244 -->
 
 <!-- file: 12 session_viewer/src/engine/gpu/selection_outline.rs copy lines=245-341 -->
 
@@ -371,7 +423,15 @@ flowchart TB
 
 <!-- file: 12 session_viewer/src/state.rs type lines=1-45 -->
 
-<!-- file: 12 session_viewer/src/state.rs type lines=46-177 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=46-106 -->
+
+- Streamed clouds and sheets arrive in slices, so each has an add and an extend: the first makes the row, the rest only append. `State` is the only place that knows a slice belongs to a scene object already on screen.
+
+<!-- file: 12 session_viewer/src/state.rs type lines=107-161 -->
+
+- A resize is forwarded rather than handled: the camera needs the new aspect, the GPU needs new attachments, and doing both from one place is what keeps them from disagreeing for a frame.
+
+<!-- file: 12 session_viewer/src/state.rs type lines=162-177 -->
 
 - Everything above changes what is in the scene: append a document, replace the manifest texts, start or extend a streamed cloud or sheet, clear. Each one ends by telling the GPU and asking for a frame — `State` is the only place that knows both sides.
 
@@ -456,7 +516,11 @@ flowchart LR
 
 - `resumed` binds the `#canvas` element and spawns the loader; `user_event` and `window_event` end by asking for a frame only when something changed.
 
-<!-- file: 12 session_viewer/src/lib.rs type whole lines=93-194 -->
+<!-- file: 12 session_viewer/src/lib.rs type whole lines=93-157 -->
+
+- The window handler keeps only redraw and resize. Keys and the mouse are handed to `Input`, which answers whether a frame is needed — so the shell never decides what a gesture means.
+
+<!-- file: 12 session_viewer/src/lib.rs type whole lines=158-194 -->
 
 <!-- file: 12 session_viewer/src/lib.rs copy whole lines=195-258 -->
 

@@ -111,7 +111,11 @@ flowchart TB
     style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=134-226 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=134-194 -->
+
+- The document owns the `FontSystem`, so a default one can be constructed with the bundled faces already loaded and nothing else in the crate has to know where fonts come from.
+
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=195-226 -->
 
 ## Step 7 · Validation and the shaping call
 
@@ -125,7 +129,11 @@ flowchart TB
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 10 session_viewer/src/engine/text.rs type lines=227-324 -->
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=227-287 -->
+
+- Validation is its own small layer: non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion can turn them into a silent misplacement.
+
+<!-- file: 10 session_viewer/src/engine/text.rs type lines=288-324 -->
 
 Unit checks for the shaper live in the same file.
 

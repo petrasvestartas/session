@@ -174,7 +174,11 @@ flowchart TB
     style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-77 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-55 -->
+
+- The pool is one flat array of reference words shared by every tile, not a fixed quota each. A dense tile borrows space a sparse one never used, which is what keeps the allocation proportional to the scene rather than to the grid.
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=56-77 -->
 
 - `PoolReport` reads the scan's first record back one frame later: the words every list needed. A pool that was too small keeps the conservative rejection for that one frame and is reallocated before the next projection.
 
@@ -192,7 +196,11 @@ flowchart TB
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=298-404 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=298-368 -->
+
+- Coverage is rasterized twice: once to count how many references each tile needs, and again, after the scan has turned those counts into offsets, to write them. Counting first is what removes the per-tile cap.
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=369-404 -->
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=405-436 -->
 
@@ -200,7 +208,11 @@ flowchart TB
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=437-462 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=463-572 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=463-560 -->
+
+- Every preparation shader is compiled with the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query can never disagree about which tile a pixel is in.
+
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=561-572 -->
 
 <!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=573-585 -->
 

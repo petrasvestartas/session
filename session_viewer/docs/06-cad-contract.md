@@ -127,7 +127,11 @@ flowchart LR
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-110 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=1-67 -->
+
+- The rest is the crease test: the cosine between two face normals decides whether a shared edge is a border, a crease, or an interior diagonal nobody should see.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=68-110 -->
 
 - A smooth tessellation inks only borders and creases; a coplanar diagonal is dropped unless `VIEWER_ALL_EDGES` asks for it.
 - `pipe_ids` gets the source edge index for an authored mesh and `u32::MAX` for a tessellation seam: selection must never return an invented edge.
@@ -138,7 +142,11 @@ flowchart LR
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=147-192 -->
 
-<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=193-268 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=193-250 -->
+
+- One entry point does both lanes in order — pipes, then markers unless `VIEWER_NO_DOTS` — so a caller cannot produce edges without the vertices that belong to them.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs type lines=251-268 -->
 
 <!-- file: 06 session_viewer/src/app/walk/mesh_ink.rs copy lines=269-373 -->
 
@@ -156,7 +164,11 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-79 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-57 -->
+
+- `MeshOpts` names the three decisions a caller makes about a mesh: whether sheet lanes apply, whether an open mesh is allowed, and whether it is a tessellation. Named presets keep those decisions out of the producer bodies.
+
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=58-79 -->
 
 <!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=80-142 -->
 
@@ -181,7 +193,11 @@ flowchart TB
 - A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
 - `render_position` is the single f64 → f32 boundary for every producer.
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=64-147 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=64-127 -->
+
+- A NURBS curve reaches the GPU as a polyline, sampled by its own size rather than a fixed count, and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
+
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=128-147 -->
 
 ## Step 9 · Edge records and the first BRep consumer
 

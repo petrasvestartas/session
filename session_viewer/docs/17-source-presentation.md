@@ -339,7 +339,11 @@ Group 0 is the ordinary mask, group 1 the selected mask; the same layout serves 
 
 - `prepare` allocates coverage only while something is outlined; the radius is CSS pixels scaled to physical pixels (lesson 18 settles on one radius for ordinary and selected solids). The coarse texture is `size / POOL` in each direction and binds beside the resolved mask.
 
-<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=146-250 -->
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=146-226 -->
+
+- The radius is the only thing written per frame: CSS pixels scaled to physical pixels and clamped, so the ring keeps its apparent weight at any device scale while the textures above are touched only when the size changes.
+
+<!-- file: 17 session_viewer/src/engine/gpu/surface_outline.rs type lines=227-250 -->
 
 - The mask pass tests the frame's immutable depth, so hidden surfaces cannot contribute coverage.
 

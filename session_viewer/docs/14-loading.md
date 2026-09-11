@@ -33,7 +33,11 @@ flowchart LR
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=1-57 -->
 
-<!-- file: 14 session_viewer/src/app/manifest.rs type lines=58-146 -->
+<!-- file: 14 session_viewer/src/app/manifest.rs type lines=58-127 -->
+
+- Placement has a fallback: an item with no transform of its own takes its slot in the auto grid, so a manifest can list files and nothing else and still produce a readable scene.
+
+<!-- file: 14 session_viewer/src/app/manifest.rs type lines=128-146 -->
 
 <!-- file: 14 session_viewer/src/app/manifest.rs type lines=147-217 -->
 
@@ -101,11 +105,23 @@ flowchart TB
     style C fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=1-90 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=1-68 -->
+
+- The relay only raises a flag, consumed on the next look. It says *when* to check, never *what* changed — the conditional reads still decide that, so a lost or duplicated notification cannot corrupt the scene.
+
+<!-- file: 14 session_viewer/src/app/live.rs type lines=69-90 -->
 
 - `from_query` turns the page off, on, or onto a custom manifest; a named scene or a local dev page never watches the bucket.
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=91-190 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=91-116 -->
+
+- The live source is constructed from the route and the query, so a named scene or a local dev page simply has none: watching the bucket is a property of how the page was reached, not a mode someone sets.
+
+<!-- file: 14 session_viewer/src/app/live.rs type lines=117-174 -->
+
+- The status line is deduplicated by message, so a poll that keeps failing says so once instead of filling the page with the same sentence.
+
+<!-- file: 14 session_viewer/src/app/live.rs type lines=175-190 -->
 
 - `read` returns `Changed`, `Same` or `Failed`; a server without ETags falls back to hashing the body.
 - A manifest inside the bucket names its files from the bucket root; any other manifest names them from its own folder.
@@ -114,9 +130,17 @@ flowchart TB
 
 - `check` is one tick: nothing happens unless the relay flagged or the poll interval is due; a replacement with any unreadable file returns `None` and the last valid scene stays.
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=257-354 -->
+<!-- file: 14 session_viewer/src/app/live.rs type lines=257-333 -->
 
-<!-- file: 14 session_viewer/src/app/live.rs type lines=355-441 -->
+- An empty file is forgotten rather than treated as an empty scene: a publisher writing a file in place is briefly zero bytes, and that moment must not clear what the viewer is showing.
+
+<!-- file: 14 session_viewer/src/app/live.rs type lines=334-354 -->
+
+<!-- file: 14 session_viewer/src/app/live.rs type lines=355-411 -->
+
+- Where a manifest's file names are resolved from depends on where the manifest itself lives: inside the bucket they are named from its root, anywhere else from the manifest's own folder.
+
+<!-- file: 14 session_viewer/src/app/live.rs type lines=412-441 -->
 
 <!-- check: 14 -->
 

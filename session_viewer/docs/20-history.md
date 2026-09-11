@@ -33,18 +33,34 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 20 session_rust/src/history.rs type lines=1-127 -->
+<!-- file: 20 session_rust/src/history.rs type lines=1-59 -->
+
+- The tombstone is built while the tables are emptied, because that is the only moment when every position it must remember is still known.
+
+<!-- file: 20 session_rust/src/history.rs type lines=60-114 -->
+
+- A transform record is the same shape: the value before and the value after, absolute, so replaying it never depends on the state it is replayed into.
+
+<!-- file: 20 session_rust/src/history.rs type lines=115-127 -->
 
 - Those are the three record bodies: the tombstone a removal leaves behind, and the before/after pairs of a replace and a transform. Next is what groups them.
 
-<!-- file: 20 session_rust/src/history.rs type lines=128-202 -->
+<!-- file: 20 session_rust/src/history.rs type lines=128-182 -->
+
+- `Op` can print itself, which is what makes a transaction readable in a test failure: the history is a data structure someone has to debug.
+
+<!-- file: 20 session_rust/src/history.rs type lines=183-202 -->
 
 ### Step 2 · Undo replays in reverse
 
 - `undo` pops a transaction, reverts its records last to first and pushes it onto the redo stack; `redo` applies them first to last. An add reverts by detaching, a remove by attaching, a replace by swapping the before clone in, a transform by placing the before value.
 - Both commit an open transaction first, so a half-typed gesture is never lost.
 
-<!-- file: 20 session_rust/src/history.rs type lines=203-320 -->
+<!-- file: 20 session_rust/src/history.rs type lines=203-268 -->
+
+- Redo is undo's mirror: the same records applied in their original order. Keeping both directions in one place is what makes it obvious that every record type handles both.
+
+<!-- file: 20 session_rust/src/history.rs type lines=269-320 -->
 
 <!-- file: 20 session_rust/src/lib.rs type -->
 

@@ -67,6 +67,8 @@ A vertex-stage rejection can only remove whole triangles, so a cut face would ke
 
 Discarding alone leaves a hollow shell: you see the *inside* of the far wall, lit from the wrong side. A real CAD viewer fills the cut with a cap. A good first version paints back faces in a flat cap colour (the viewer already knows a fragment's facing — look at how back faces are detected for the red debug paint). A full solution stencils the cap; that is a stretch goal, not a requirement.
 
+![A vertex-stage rejection can only drop whole triangles, so the cut face keeps a staircase of mesh edges; a fragment-stage discard cuts exactly on the plane, but discarding alone leaves a hollow shell until a cap fills it.](illustrations/section-plane.svg)
+
 ### 5 · Picking for free
 
 The id pass runs the *same* vertex and fragment entry points over the same rows, with the pick camera in the same uniform block. If the cut is a `discard` in a function both entry points call, a cut-away fragment writes no id, and picking agrees with the picture with no extra work. This is the payoff for the ink/physical split the course built in lesson 05 — architecture you can feel.

@@ -109,13 +109,21 @@ flowchart TB
 
 - `prelude` is skipped while the key (camera, knobs, point count) matches; otherwise it rebuilds records, writes them and draws the point pass.
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=279-359 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=279-344 -->
+
+- The ID pipeline draws the same quads and writes `(object row, point row)` instead of colour, so a point answers a pick with the identity of the point, not of the cloud.
+
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=345-359 -->
 
 - One record per visible cloud, or per selected octree node; a range straddling two chunks becomes two records.
 
 <!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=360-443 -->
 
-<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=444-515 -->
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=444-501 -->
+
+- The resolve is one fullscreen triangle writing colour and `frag_depth`, which is what folds the private point pass back under the scene's own depth test.
+
+<!-- file: 04d session_viewer/src/engine/gpu/splat.rs type lines=502-515 -->
 
 ## Step 4 · The point shaders
 

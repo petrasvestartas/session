@@ -45,7 +45,11 @@ flowchart LR
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 02 session_viewer/src/math.rs type lines=72-158 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=72-128 -->
+
+- A box also has to travel through a placement. `placed` transforms all eight corners rather than the two extremes, because a rotation moves a corner that was not extreme into a position that is.
+
+<!-- file: 02 session_viewer/src/math.rs type lines=129-158 -->
 
 ## Step 3 · Recover camera facts from the matrix
 
@@ -66,7 +70,11 @@ Draw lanes receive only the view-projection, never the camera. The eye is where 
 - Orbit is yaw about `world_up`, then pitch about the current right axis; no Euler singularity.
 - `zoom_at` keeps the world point under the cursor fixed: the target moves toward it by the zoom factor. Cursor and viewport are physical pixels, the same space as the framebuffer.
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=53-138 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=53-111 -->
+
+- Zoom is the gesture with a constraint attached: the world point under the cursor must not move. That is why it takes a cursor position at all, and why it moves the target as well as the distance.
+
+<!-- file: 02 session_viewer/src/camera.rs type lines=112-138 -->
 
 ## Step 6 · Projection swap that keeps the content
 
@@ -99,7 +107,15 @@ flowchart TB
     style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=271-399 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=271-299 -->
+
+- Fitting is the one gesture that reads the scene: it centres the target on a box and sets the distance from the box measured along the camera's own axes, so an elongated model fills the view instead of sitting twice as far away as it needs to.
+
+<!-- file: 02 session_viewer/src/camera.rs type lines=300-352 -->
+
+- The far plane has a floor rather than a value. Geometry streams in after the first fit, so the camera keeps the widest extent it has ever been told about instead of refitting and cutting the scene it already showed.
+
+<!-- file: 02 session_viewer/src/camera.rs type lines=353-399 -->
 
 ## Step 9 · Wheel response
 

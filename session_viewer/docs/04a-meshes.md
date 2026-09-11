@@ -51,11 +51,19 @@ flowchart LR
 
 <!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=1-39 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=40-123 -->
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=40-99 -->
+
+- Clearing keeps the allocation. A scene reload writes the same order of magnitude of rows again, so throwing the buffer away would only buy a second allocation of the same size.
+
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=100-123 -->
 
 - `Template` is a unit mesh drawn N times, one instance per row.
 
-<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=124-206 -->
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=124-186 -->
+
+- One helper builds every bind group in this crate: buffers in binding order, no names to keep in sync. A layout mismatch then fails at one call site instead of eight.
+
+<!-- file: 04a session_viewer/src/engine/gpu/buffers.rs type lines=187-206 -->
 
 ## Step 2 · Bind-group layouts
 
@@ -94,7 +102,15 @@ flowchart TB
 
 - `PipelineDesc` is one base per shader; `with`, `vertex`, `color`, `depth` derive the variants.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=57-191 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=57-112 -->
+
+- The builders are what make one base description into a family: `with` renames and repoints the fragment entry, `vertex` swaps the vertex entry, `color` and `depth` set the two states that actually vary between the viewer's passes.
+
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=113-168 -->
+
+- Two shader constants sit beside them. `SCENE` is the scene contract every lane is compiled with; `INK` is the visibility rule only ink lanes need. Keeping them here means a lane names a constant rather than repeating an `include_str!`.
+
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=169-191 -->
 
 - `module` appends `normals.wgsl` to every shader source, so one normal transform serves all lanes; `scene_module` also appends `scene.wgsl`, so the camera, the line block and the object rows are declared once for every lane.
 
@@ -179,7 +195,15 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=177-205 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-329 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-235 -->
+
+- Construction makes the buffers and bind groups with no camera in them yet. A frame is a write into buffers that already exist and are already bound — allocating per frame is what this shape exists to avoid.
+
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=236-311 -->
+
+- `FrameUniforms` owns all three blocks — camera, line, cloud — because they are written together from one solved camera and must never disagree about which frame they describe.
+
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=312-329 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result. The pen is `thickness_px * pixel_scale`, so it keeps its CSS width at every device scale; `origin` is zero and `frame` is the framebuffer.
 
@@ -265,7 +289,11 @@ flowchart TB
 
 - A camera headlight with wrapped diffuse: the darkest visible face is its silhouette, never black. Back faces paint red unless the object is print.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=23-122 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=23-68 -->
+
+- Shading is separate from the vertex stage because both fragment entries need it and neither should reimplement it: a headlight with wrapped diffuse, so the darkest visible face is still its own colour rather than black.
+
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=69-122 -->
 
 ## Step 9 · The mesh lane
 
@@ -294,7 +322,11 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/shaders/text_outline.wgsl copy -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=1-67 -->
+<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=1-55 -->
+
+- Imported outline text is geometry, not glyphs: it keeps exact object IDs and the sheet depth comparison, so it picks and occludes like the drawing it came from.
+
+<!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=56-67 -->
 
 <!-- file: 04a session_viewer/src/engine/gpu/text_outline.rs type lines=68-114 -->
 

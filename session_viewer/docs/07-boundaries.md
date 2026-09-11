@@ -137,7 +137,11 @@ flowchart TB
 
 - One chain per edge from the first use that can supply one; the other face lends the facing cull its normal.
 
-<!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=240-316 -->
+<!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=240-297 -->
+
+- When only one face can supply a chain, the other face still lends its normal: the facing cull needs two outward directions, and the nearest face-mesh vertex is where that surface actually points at the edge.
+
+<!-- file: 07 session_viewer/src/app/walk/brep_edges.rs type whole lines=298-316 -->
 
 - Pipes carry both faces' outward normals; a collapsed f32 segment is skipped so it cannot become a pick target. `pipe_ids` records the source edge index per pipe.
 
@@ -157,7 +161,11 @@ flowchart LR
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=1-78 -->
+<!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=1-59 -->
+
+- Matching a shared edge means finding where the other face sampled its start. Two grid faces meeting on a seam agree on the position exactly, so the lookup is nearest-vertex rather than a tolerance search.
+
+<!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=60-78 -->
 
 <!-- file: 07 session_viewer/src/app/walk/brep_orient.rs type lines=79-113 -->
 

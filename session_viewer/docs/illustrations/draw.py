@@ -1474,7 +1474,109 @@ def section_plane():
     c.write("section-plane.svg")
 
 
+def three_declarations():
+    c = Canvas("One thing, declared three times",
+               "Almost every wgpu validation error is the same bug in different clothes: a vertex attribute, a binding, a uniform field or a texture format is declared in three places and only two of them were changed. The message names one of the three; the stale one is usually a different one.",
+               1180, 530)
+    pink, green, yellow, grey, navy = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"], PAL["navy"]
+    c.text(28, 40, "Name the thing, then check all three", "h")
+
+    apex, bl, br = (590.0, 190.0), (270.0, 410.0), (910.0, 410.0)
+    # WGSL is the corner left behind, so BOTH edges that touch it disagree - that is the whole point.
+    c.raw(f'<line x1="{apex[0]}" y1="{apex[1]}" x2="{bl[0]}" y2="{bl[1]}" stroke="{green}" stroke-width="2.4"/>')
+    c.raw(f'<line x1="{bl[0]}" y1="{bl[1]}" x2="{br[0]}" y2="{br[1]}" stroke="{pink}" stroke-width="2.8" stroke-dasharray="8 6"/>')
+    c.raw(f'<line x1="{apex[0]}" y1="{apex[1]}" x2="{br[0]}" y2="{br[1]}" stroke="{pink}" stroke-width="2.8" stroke-dasharray="8 6"/>')
+    for x, y in (apex, bl):
+        c.raw(f'<circle cx="{x}" cy="{y}" r="9" fill="{navy}"/>')
+    c.raw(f'<circle cx="{br[0]}" cy="{br[1]}" r="11" fill="{pink}"/>')
+
+    c.text(520, 132, "Rust struct", "l")
+    c.text(452, 156, "#[repr(C)] fields and offsets", "s")
+    c.text(196, 452, "layout", "l")
+    c.text(96, 476, "vertex attributes · bind-group entries", "s")
+    c.text(846, 452, "WGSL", "l", fill=pink)
+    c.text(680, 476, "@location · @binding · struct members — the stale one", "s", fill=pink)
+    c.text(742, 268, "both edges that touch it disagree", "s", fill=pink)
+    c.text(298, 268, "these two agree: you changed both", "s", fill=green)
+    c.text(28, 512, "The error names one corner. Name the thing yourself, then read all three declarations of it: the stale one is rarely the corner the message pointed at.", "s")
+    c.write("three-declarations.svg")
+
+
+def sheet_cost():
+    c = Canvas("A sheet is one pen, not ten thousand objects",
+               "Loaded as objects, every line of a drawing pays for a GUID string, a name, a colour and four copies of itself between the file bytes and the GPU, so a 51 MB sheet lifts the wasm heap by 300 MiB. Published as one segment batch, a line is a few numbers and a small source id; the GUID, name and kind live in a side table read by byte range only when something is selected.",
+               1180, 480)
+    pink, green, yellow, grey, navy = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"], PAL["navy"]
+    c.text(28, 40, "What one line of a drawing costs", "h")
+
+    c.text(60, 86, "one object per line", "l", fill=pink)
+    fields = [("guid", 132.0, pink), ("name", 74.0, grey), ("colour", 60.0, navy), ("coords × 4", 130.0, grey)]
+    for row in range(5):
+        y = 146.0 + row * 40
+        x = 60.0
+        for label, width, colour in fields:
+            c.raw(f'<rect x="{x:.1f}" y="{y:.1f}" width="{width:.1f}" height="26" fill="{colour}" fill-opacity="0.26" stroke="{colour}" stroke-width="1"/>')
+            if row == 0:
+                c.text(x + 4, y - 10, label, "s", fill=colour)
+            x += width + 4
+    c.text(60, 384, "one line, four copies and a string that is never read", "s")
+    c.text(60, 406, "51 MB of drawing lifts the wasm heap by 300 MiB", "s", fill=pink)
+
+    c.text(660, 86, "one batch, one side table", "l", fill=green)
+    bx, by, bw = 660.0, 146.0, 440.0
+    cells = 22
+    for k in range(cells):
+        x = bx + bw * k / cells
+        colour = yellow if k == 14 else green
+        c.raw(f'<rect x="{x:.1f}" y="{by:.1f}" width="{bw / cells - 2:.1f}" height="34" fill="{colour}" fill-opacity="0.30" stroke="{colour}" stroke-width="1"/>')
+    c.text(660, 136, "segments: coords · colour · width · source_id", "s", fill=green)
+    mx, my, mw = 780.0, 288.0, 200.0
+    c.raw(f'<rect x="{mx:.1f}" y="{my:.1f}" width="{mw:.1f}" height="34" fill="{grey}" fill-opacity="0.22" stroke="{grey}" stroke-width="1"/>')
+    c.text(mx - 4, my + 56, ".meta side table: guid · name · kind", "s")
+    sel = bx + bw * 14 / cells + 8
+    c.raw(f'<path d="M{sel:.1f},{by + 34:.1f} C{sel:.1f},{by + 86:.1f} {mx + 40:.1f},{my - 54:.1f} {mx + 40:.1f},{my - 2:.1f}" fill="none" stroke="{yellow}" stroke-width="1.6" stroke-dasharray="5 4"/>')
+    c.text(660, 384, "streamed by HTTP Range, the way a point cloud is", "s")
+    c.text(660, 406, "two ranged reads, and only when something is selected", "s", fill=yellow)
+    c.text(28, 456, "The batch is what the GPU draws; the side table is what a human asks for. Keeping them apart is what makes a sheet openable on a machine that would otherwise die without a word.", "s")
+    c.write("sheet-cost.svg")
+
+
+def history():
+    c = Canvas("A removal is a record, not a gap",
+               "Edits are grouped into transactions, and a removal's record is the tombstone undo restores from, so nothing is destroyed at the moment it disappears. The cursor moves back and forward through committed transactions; a save purges the whole buffer, as Rhino does, and history never crosses pb or JSON, so an opened file always starts clean.",
+               1180, 480)
+    pink, green, yellow, grey, navy = PAL["pink"], PAL["green"], PAL["yellow"], PAL["grey"], PAL["navy"]
+    c.text(28, 40, "The buffer behind undo", "h")
+
+    line_y = 246.0
+    steps = [("add 3 walls", navy), ("move beam", navy), ("remove column", pink), ("add rail", grey)]
+    width, gap = 200.0, 34.0
+    for k, (label, colour) in enumerate(steps):
+        x = 120.0 + k * (width + gap)
+        faded = 0.10 if k == 3 else 0.30
+        c.raw(f'<rect x="{x:.1f}" y="{line_y - 30:.1f}" width="{width:.1f}" height="60" rx="{RADIUS}" fill="{colour}" fill-opacity="{faded}" stroke="{colour}" stroke-width="1.4"/>')
+        c.text(x + 12, line_y + 6, label, "s", fill=colour)
+        c.text(x + 12, line_y - 44, f"transaction {k + 1}", "s")
+        if k:
+            c.raw(f'<line x1="{x - gap:.1f}" y1="{line_y}" x2="{x:.1f}" y2="{line_y}" stroke="{grey}" stroke-width="1.6"/>')
+    tomb_x = 120.0 + 2 * (width + gap)
+    c.raw(f'<rect x="{tomb_x + 12:.1f}" y="{line_y + 48:.1f}" width="178" height="34" rx="{RADIUS}" fill="{pink}" fill-opacity="0.22" stroke="{pink}" stroke-width="1.2" stroke-dasharray="5 4"/>')
+    c.text(tomb_x + 22, line_y + 70, "tombstone: the column", "s", fill=pink)
+
+    cursor = 120.0 + 3 * (width + gap) - gap / 2
+    c.raw(f'<line x1="{cursor:.1f}" y1="{line_y - 84:.1f}" x2="{cursor:.1f}" y2="{line_y + 40:.1f}" stroke="{yellow}" stroke-width="2.4"/>')
+    c.text(cursor - 24, line_y - 94, "cursor", "s", fill=yellow)
+    c.arrow(cursor - 20, line_y - 64, cursor - 160, line_y - 64, "undo")
+    c.arrow(cursor + 20, line_y - 64, cursor + 160, line_y - 64, "redo")
+
+    c.text(110, 384, "a removal keeps its record, so undo restores from it rather than rebuilding", "s", fill=pink)
+    c.text(110, 406, "redo past the cursor is discarded the moment a new transaction commits", "s")
+    c.text(110, 428, "pb_dump and file_json_dump purge the whole buffer: history is memory only,", "s", fill=green)
+    c.text(110, 450, "so a file that is opened again always starts clean", "s", fill=green)
+    c.write("history.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, section_plane):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, section_plane, three_declarations, sheet_cost, history):
         draw()
-    print("wrote 32 illustrations")
+    print("wrote 35 illustrations")
