@@ -59,6 +59,23 @@ pub fn command_line(open: bool) -> Option<web_sys::HtmlInputElement> {
     Some(input)
 }
 
+/// Give the canvas the keyboard back. Every key binding is on the canvas, so anything that
+/// takes the focus - a click in a panel, a closing text box - has to hand it back or the
+/// viewer stops answering keys with no way to say so.
+#[cfg(target_arch = "wasm32")]
+pub fn focus_canvas() {
+    use wasm_bindgen::JsCast;
+    if let Some(document) = web_sys::window().and_then(|w| w.document())
+        && let Some(canvas) = document.get_element_by_id("canvas")
+        && let Ok(canvas) = canvas.dyn_into::<web_sys::HtmlElement>()
+    {
+        let _ = canvas.focus();
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn focus_canvas() {}
+
 /// The command line, when it is open.
 #[cfg(target_arch = "wasm32")]
 pub fn command_text() -> Option<String> {
@@ -95,18 +112,22 @@ pub fn layers_panel(rows: &[LayerRow]) {
     };
     panel.set_text_content(None);
     for row in rows {
-        let Ok(line) = document.create_element("div") else {
+        // A button, not a div: the panel is the viewer's only set of discrete controls, and a
+        // div is neither reachable by keyboard nor announced as something that can be pressed.
+        let Ok(line) = document.create_element("button") else {
             continue;
         };
+        let _ = line.set_attribute("type", "button");
+        let _ = line.set_attribute("aria-pressed", if row.hidden { "true" } else { "false" });
         let _ = line.set_attribute("data-layer", &row.key);
         let _ = line.set_attribute(
             "style",
-            "padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
+            "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:1",
         );
         if row.hidden {
             let _ = line.set_attribute(
                 "style",
-                "padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:0.45",
+                "display:block;width:100%;text-align:left;border:0;background:none;color:inherit;font:inherit;padding:2px 10px;cursor:pointer;white-space:nowrap;opacity:0.45",
             );
         }
         let mark = if row.hidden { "·" } else { "•" };

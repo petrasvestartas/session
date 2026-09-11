@@ -109,12 +109,9 @@ impl Camera {
         self.update_position();
     }
 
-    /// CAD zoom: dolly toward the mouse cursor
-    /// The point under the mouse stays under the mouse.
-    /// The cursor's world point on the target plane is computed from the view frame.
-    /// Then the target is pulled toward it by the zoom factor.
-    /// 'cursor'/'viewport' in physical px.
-    /// The world ray through a cursor position: `(origin, direction)`, direction normalized.
+    /// The world ray through a cursor position: `(origin, direction)`, direction normalized and
+    /// the origin in WORLD units, like `origin()` and `distance_world()` and unlike the fields
+    /// it is built from.
     ///
     /// f64 throughout, and deliberately: this is what a pick, a snap and a drag all measure
     /// against, and an f32 ray a kilometre out is already wrong by a millimetre before it
@@ -129,37 +126,58 @@ impl Camera {
         }
         let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
         let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
+        // WORLD units, not the camera's internal metres: `target`, `position` and `distance`
+        // are all pre-`to_meters`, and everything this ray is tested against - an object's box,
+        // a control point, a construction plane - is in the file's own millimetres. Answering
+        // in metres would make every hit test and every drag wrong by a factor of a thousand.
+        let s = self.unit.to_meters();
+        let target = self.origin();
+        let distance = self.distance_world();
         // The same frustum half-extents `zoom_at` uses, at the target plane.
-        let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan();
+        let half_h = distance * (FOVY_DEG * 0.5).to_radians().tan();
         let half_w = half_h * (viewport.0 / viewport.1);
         let right = self.orientation.rotate_vector(Vector::x_axis());
         let forward = self.orientation.rotate_vector(Vector::y_axis());
         let mut on_plane = [0.0; 3];
         for i in 0..3 {
-            on_plane[i] = self.target[i] + right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
+            on_plane[i] = target[i] + right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
         }
         if !self.perspective {
+            // Orthographic draws as far BEHIND the eye plane as in front of it, and every
+            // consumer of this ray discards a hit at a negative parameter. Starting the ray on
+            // the eye plane would make everything behind the target unhittable; it starts
+            // behind the whole drawn volume instead.
+            let back = distance + 2.0 * (self.scene_extent / s).max(distance);
             let origin = Point::new(
-                on_plane[0] - forward[0] * self.distance,
-                on_plane[1] - forward[1] * self.distance,
-                on_plane[2] - forward[2] * self.distance,
+                on_plane[0] - forward[0] * back,
+                on_plane[1] - forward[1] * back,
+                on_plane[2] - forward[2] * back,
             );
             return Some((origin, forward));
         }
+        let eye = [
+            self.position[0] / s,
+            self.position[1] / s,
+            self.position[2] / s,
+        ];
         let mut dir = [0.0; 3];
         for i in 0..3 {
-            dir[i] = on_plane[i] - self.position[i];
+            dir[i] = on_plane[i] - eye[i];
         }
         let length = (dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]).sqrt();
         if !length.is_finite() || length <= 0.0 {
             return None;
         }
         Some((
-            Point::new(self.position[0], self.position[1], self.position[2]),
+            Point::new(eye[0], eye[1], eye[2]),
             Vector::new(dir[0] / length, dir[1] / length, dir[2] / length),
         ))
     }
 
+    /// CAD zoom: dolly toward the mouse cursor, so the point under it stays under it.
+    ///
+    /// The cursor's world point on the target plane comes from the view frame, and the target
+    /// is then pulled toward it by the zoom factor. `cursor` and `viewport` are physical px.
     pub fn zoom_at(&mut self, amount: f32, cursor: (f64, f64), viewport: (f64, f64)) {
         if viewport.0 <= 0.0 || viewport.1 <= 0.0 || !cursor.0.is_finite() || !cursor.1.is_finite()
         {
@@ -594,26 +612,54 @@ mod ray_tests {
     fn a_ray_hits_the_target_plane_where_the_cursor_is() {
         let mut cam = Camera::new();
         cam.update_position();
-        let half_h = cam.distance * (FOVY_DEG * 0.5).to_radians().tan();
+        // WORLD units on both sides: the camera keeps metres internally, and a ray that
+        // answered in those would miss everything it is tested against by a factor of a
+        // thousand.
+        let target = cam.origin();
+        let half_h = cam.distance_world() * (FOVY_DEG * 0.5).to_radians().tan();
         let half_w = half_h * (viewport().0 / viewport().1);
         let right = cam.orientation.rotate_vector(Vector::x_axis());
         let forward = cam.orientation.rotate_vector(Vector::y_axis());
         // The world point a quarter right and a quarter up from the target.
         let expected: Vec<f64> = (0..3)
-            .map(|i| cam.target[i] + right[i] * 0.5 * half_w + cam.up[i] * 0.5 * half_h)
+            .map(|i| target[i] + right[i] * 0.5 * half_w + cam.up[i] * 0.5 * half_h)
             .collect();
         for perspective in [true, false] {
             cam.perspective = perspective;
             let (origin, dir) = cam.ray((600.0, 100.0), viewport()).expect("a ray");
             // Advance to the target plane, whose normal is the view axis.
             let denom: f64 = (0..3).map(|i| dir[i] * forward[i]).sum();
-            let num: f64 = (0..3).map(|i| (cam.target[i] - origin[i]) * forward[i]).sum();
+            let num: f64 = (0..3).map(|i| (target[i] - origin[i]) * forward[i]).sum();
             let t = num / denom;
             for i in 0..3 {
                 let hit = origin[i] + dir[i] * t;
                 assert!((hit - expected[i]).abs() < 1e-6, "{perspective} axis {i}");
             }
         }
+    }
+
+    /// The unit itself, pinned: the eye sits `distance_world` from the target in the file's own
+    /// units. Read straight off `position` it would be a thousand times nearer in a millimetre
+    /// scene, and every hit test built on the ray would miss.
+    #[test]
+    fn the_ray_is_in_world_units_not_the_camera_s_metres() {
+        let mut cam = Camera::new();
+        cam.update_position();
+        // The centre pixel, so the ray points straight at the target and the projection below
+        // is the whole distance rather than its cosine.
+        let (origin, dir) = cam
+            .ray((viewport().0 * 0.5, viewport().1 * 0.5), viewport())
+            .expect("a ray");
+        let target = cam.origin();
+        let reach: f64 = (0..3).map(|i| (target[i] - origin[i]) * dir[i]).sum();
+        assert!(
+            (reach - cam.distance_world()).abs() < 1e-6,
+            "the eye is distance_world from the target, in world units"
+        );
+        assert!(
+            cam.distance_world() > cam.distance * 100.0,
+            "the fixture is a millimetre scene, so the two really do differ"
+        );
     }
 
     /// A zero or non-finite viewport has no ray, rather than a NaN one.

@@ -211,6 +211,7 @@ impl ApplicationHandler<Msg> for App {
             Msg::SheetChunk(c) => state.extend_sheet(c.idx, c.rows, c.to),
             Msg::SheetEntity(resolved) => state.sheet_entity(resolved),
             Msg::CancelPointer => {
+                state.cancel_gesture();
                 self.input.cancel();
                 state.touch();
             }

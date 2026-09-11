@@ -284,7 +284,33 @@ impl InstanceTable {
     /// send only the new rows. The next frame rebases the whole table.
     pub fn append(&mut self, ctx: &GpuCtx, l: &Layouts, up: &ObjectRows) {
         self.geometry_revision = self.geometry_revision.wrapping_add(1);
-        self.widget = None;
+        // The widget row sits after every scene row, so a second file's rows would land after
+        // IT and every row number past it would be off by one. Drop it first; whoever wants it
+        // mints it again, at the new end.
+        if let Some(widget) = self.widget.take() {
+            let keep = widget as usize;
+            self.rows.truncate(keep);
+            self.translation.truncate(keep);
+            self.local_bounds.truncate(keep);
+            self.world_bounds.truncate(keep);
+            // `GrowBuf` grows and resets; it cannot rewind by one. Both buffers are rewound to
+            // the kept rows by resetting and re-appending them, which keeps the capacity and
+            // leaves `buffer.len()` equal to `rows.len()` - the length the fresh-row slice
+            // below is measured against.
+            self.buffer.reset();
+            self.translations.reset();
+            if keep > 0 {
+                let rows: Vec<Instance> = self.rows.clone();
+                let anchored_rows: Vec<[f32; 4]> = match &self.last_origin {
+                    Some(origin) => self.translation.iter().map(|t| anchored(*t, origin)).collect(),
+                    None => vec![[0.0f32; 4]; keep],
+                };
+                let grew = self.buffer.append(ctx, &rows);
+                if self.translations.append(ctx, &anchored_rows) || grew {
+                    self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
+                }
+            }
+        }
         if self.translation.is_empty() {
             self.rows.clear();
             self.world_bounds.clear();
@@ -452,23 +478,42 @@ impl InstanceTable {
     /// is the identity and whose translation is zero. Row 0 is a real object as soon as the
     /// scene has one, so the widget cannot borrow it: it gets a row of its own, after every
     /// scene row, minted once and cleared with the table.
-    pub fn widget_row(&mut self, ctx: &GpuCtx, l: &Layouts) -> u32 {
+    /// Returns the row and whether the buffers moved; group 2 for INK binds the same two
+    /// buffers, so a caller that says true must rebind it or the widget lanes draw against a
+    /// buffer nobody owns any more.
+    pub fn widget_row(&mut self, ctx: &GpuCtx, l: &Layouts) -> (u32, bool) {
         if let Some(row) = self.widget {
-            return row;
+            return (row, false);
         }
         let row = self.rows.len() as u32;
-        self.rows.push(Instance::placeholder());
+        // `placeholder`'s identity model and zero flags are what the widget wants; its mid-grey
+        // tint is not. Both lanes multiply their own row colour by the object's, so a grey
+        // instance would halve every colour the widget is recognised by.
+        self.rows.push(Instance {
+            color: [1.0; 4],
+            ..Instance::placeholder()
+        });
         self.translation.push([0.0; 3]);
         self.local_bounds.push(Aabb::empty());
         self.world_bounds.push(Aabb::empty());
+        // The widget's geometry is in absolute world coordinates and the frame is drawn about
+        // the anchor, so its anchored translation is what `anchored` gives a zero f64 base:
+        // minus the anchor. A literal zero draws the widget one whole anchor away from the
+        // object it belongs to, which is dead centre only at the world origin.
+        let translation = match &self.last_origin {
+            Some(origin) => anchored([0.0; 3], origin),
+            None => [0.0; 4],
+        };
         // `append` is what grows the buffer; writing past the end would be a validation error.
         let grew = self.buffer.append(ctx, std::slice::from_ref(&self.rows[row as usize]));
-        let grew_t = self.translations.append(ctx, std::slice::from_ref(&[0.0f32; 4]));
+        let grew_t = self
+            .translations
+            .append(ctx, std::slice::from_ref(&translation));
         if grew || grew_t {
             self.group = instance_group(ctx, l, &self.buffer.buf, &self.translations.buf);
         }
         self.widget = Some(row);
-        row
+        (row, grew || grew_t)
     }
 
     /// Replace one row's placement and write back only that row.
@@ -677,9 +722,19 @@ mod tests {
         assert_eq!(second.min[1], -1.0, "the neighbour did not move");
 
         // The widget row is minted once, after every scene row, and stays where it was put.
-        let widget = gpu.objects.widget_row(&gpu.ctx, &gpu.layouts);
+        let (widget, _) = gpu.objects.widget_row(&gpu.ctx, &gpu.layouts);
         assert_eq!(widget, 2);
-        assert_eq!(gpu.objects.widget_row(&gpu.ctx, &gpu.layouts), widget);
+        assert_eq!(gpu.objects.widget_row(&gpu.ctx, &gpu.layouts).0, widget);
+
+        // A second file arriving must not land after the widget row: every row number past it
+        // would be off by one, and a pick would name the wrong object for good.
+        let mut more = Upload::default();
+        more.obj
+            .rows
+            .push(ObjectRow::new(Xform::translation(200.0, 0.0, 0.0).m, 0));
+        gpu.set_scene(&more);
+        assert_eq!(gpu.objects.len(), 3, "two rows, one file's row, no widget");
+        assert_eq!(gpu.objects.widget_row(&gpu.ctx, &gpu.layouts).0, 3);
     }
 
     /// A row with no volume keeps an empty box rather than an infinite one, so the inside test

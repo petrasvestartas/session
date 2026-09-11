@@ -18,8 +18,12 @@ use session_rust::{Geometry, Point, Xform};
 use std::rc::Rc;
 
 impl Scene {
-    /// The document a row belongs to, made writable. Returns the document index and the guid,
-    /// having already split any session this placement was sharing.
+    /// The document a row belongs to, made writable: the index and the guid, with this
+    /// placement's session already split off any it was sharing.
+    ///
+    /// Callers re-borrow the file and call `Rc::make_mut` again to get the `&mut Session` - the
+    /// second call is a no-op, because the split here left the count at one. The split is here
+    /// so that a caller which refuses later has still not written to a shared session.
     fn writable(&mut self, row: u32) -> Option<(usize, Rc<str>)> {
         let (doc, guid) = self.identity_of(row)?;
         let file = self.docs.get_mut(doc)?;
@@ -54,13 +58,32 @@ impl Scene {
         self.placement_of(row)
     }
 
-    /// Left-multiply one row's object by `delta`, in world space, and report its new placement.
+    /// The local transform that puts a WORLD-space `delta` on a row whose local transform is
+    /// `base`.
     ///
-    /// The discrete form: a typed command, an arrow-key nudge. A drag uses `set_row_xform`,
-    /// because a drag's transform is measured from its grab rather than from the last frame.
+    /// The session stores an object's LOCAL transform, under its file's placement and its
+    /// ancestors'. Left-multiplying a world delta onto that gives P·A·D·L, which moves the
+    /// object in the PARENT's frame; the world meaning is D·P·A·L. Conjugating the delta by the
+    /// parent placement is the difference, and it is the difference between a drag that follows
+    /// the pointer and one that jumps when you let go of it.
+    ///
+    /// With an identity file placement and no tree ancestors the two agree, which is why this
+    /// is easy to miss.
+    pub fn local_for_world_delta(&self, row: u32, delta: &Xform, base: &Xform) -> Option<Xform> {
+        let placed = Xform::from_matrix(self.placement_of(row)?);
+        let parent = &placed * &base.inverse()?;
+        let back = parent.inverse()?;
+        Some(&(&back * &(delta * &parent)) * base)
+    }
+
+    /// Apply a WORLD-space `delta` to one row and report its new placement.
+    ///
+    /// The discrete form: a typed command. A drag uses `set_row_xform` with the transform it
+    /// measured from its grab, through the same conjugation.
     pub fn transform_row(&mut self, row: u32, delta: &Xform, label: &str) -> Option<[f64; 16]> {
-        let local = self.local_xform_of(row)?;
-        self.set_row_xform(row, delta * &local, label)
+        let base = self.local_xform_of(row)?;
+        let local = self.local_for_world_delta(row, delta, &base)?;
+        self.set_row_xform(row, local, label)
     }
 
     /// One row's full placement: the file's, composed with the object's cumulative transform.
@@ -207,6 +230,41 @@ mod tests {
         assert_eq!([moved[12], moved[13], moved[14]], [5.0, 0.0, 0.0]);
         let still = scene.placement_of(1).expect("row 1 still exists");
         assert_eq!([still[12], still[13], still[14]], [0.0, 0.0, 0.0]);
+    }
+
+    /// The frame a delta is measured in. With a file placed away from the origin, a world move
+    /// must land where the pointer went, not where the file's own frame would put it. Applying
+    /// the delta straight to the local transform gives P·D·L; the world meaning is D·P·L, and
+    /// for a translation under a placement that scales, the two differ by that scale.
+    #[test]
+    fn a_world_delta_moves_the_object_in_the_world() {
+        let mut source = Session::new("placed");
+        source.add_point(Point::new(0.0, 0.0, 0.0), None);
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "placed".into(),
+            session: Rc::new(source),
+            // Ten times up, and shifted: the two frames disagree as loudly as possible.
+            place: Xform::from_matrix([
+                10.0, 0.0, 0.0, 0.0, //
+                0.0, 10.0, 0.0, 0.0, //
+                0.0, 0.0, 10.0, 0.0, //
+                100.0, 0.0, 0.0, 1.0,
+            ]),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let before = scene.placement_of(0).expect("a placement");
+        assert_eq!([before[12], before[13], before[14]], [100.0, 0.0, 0.0]);
+
+        let moved = scene
+            .transform_row(0, &Xform::translation(5.0, 0.0, 0.0), "move")
+            .expect("row 0 is editable");
+        assert_eq!(
+            [moved[12], moved[13], moved[14]],
+            [105.0, 0.0, 0.0],
+            "five world units, not fifty"
+        );
     }
 
     /// Two moves compose rather than replace: dragging twice leaves the object where the two

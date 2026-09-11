@@ -91,7 +91,9 @@ pub struct Drag {
     grabbed: Point,
     /// The angle of the grab about the axis, for a rotate.
     angle: f64,
-    /// The distance of the grab from the origin, for a scale. Never zero.
+    /// Where the grab was, for a scale, and never zero. SIGNED along the axis for
+    /// `Scale(axis)`, so grabbing the negative side stores a negative reach and the ratio in
+    /// `update` still comes out positive; a plain distance for `ScaleUniform`.
     reach: f64,
 }
 
@@ -125,15 +127,23 @@ impl Gizmo {
             return Some(Handle::ScaleUniform);
         }
         for axis in [Axis::X, Axis::Y, Axis::Z] {
+            if end_on(dir, axis) {
+                continue;
+            }
             let at = along(&self.origin, &axis.unit(), BALL_AT * s);
             if within(from, dir, &at, GRAB * s) {
                 return Some(Handle::Scale(axis));
             }
         }
         for axis in [Axis::X, Axis::Y, Axis::Z] {
+            if end_on(dir, axis) {
+                continue;
+            }
             if let Some(p) = closest_on_axis(from, dir, &self.origin, &axis.unit()) {
                 let t = dot(&sub(&p, &self.origin), &axis.unit());
-                if (0.0..=ARM * s).contains(&t) && within(from, dir, &p, GRAB * s) {
+                // The arm's grabbable run starts where the hub ends: inside it all three arms
+                // overlap, and whichever was tested first would win a click aimed at the centre.
+                if (HUB * s..=ARM * s).contains(&t) && within(from, dir, &p, GRAB * s) {
                     return Some(Handle::Translate(axis));
                 }
             }
@@ -293,6 +303,16 @@ fn facing(dir: &Vector) -> Vector {
 
 /// The point on the axis closest to the ray. `None` when the ray runs along the axis, which is
 /// the classic gumball failure: without this guard a drag down the axis throws the object away.
+/// An axis seen end-on: within about fourteen degrees of the view direction.
+///
+/// Its arm and its ball then sit on top of the hub in screen terms, so a cursor a few pixels
+/// from the centre grabs the axis rather than what it is pointing at - and `begin` would refuse
+/// the drag anyway, because there is no answer to where along an axis a ray that runs down it
+/// is. Skipping the handle is the same refusal, made early enough that the click falls through.
+fn end_on(dir: &Vector, axis: Axis) -> bool {
+    dot(&[dir[0], dir[1], dir[2]], &axis.unit()).abs() > 0.97
+}
+
 fn closest_on_axis(from: &Point, dir: &Vector, origin: &Point, axis: &Vector) -> Option<Point> {
     let w = sub(from, origin);
     let b = dot(&[dir[0], dir[1], dir[2]], axis);
@@ -435,6 +455,22 @@ mod tests {
         assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Translate(Axis::X)), "the arm tip is not an arc");
         let (f, d) = down(ARM * 3.0, ARM * 3.0);
         assert_eq!(g.hit(&f, &d, SCALE), None);
+    }
+
+    /// An axis pointing at the camera is seen end-on: its ball and its arm project onto the hub,
+    /// so a cursor a few pixels from the centre would grab Z in a Top view rather than what it
+    /// is pointing at. The handle is skipped, and the click falls through to the picker.
+    #[test]
+    fn an_axis_seen_end_on_is_not_grabbable() {
+        let g = at_origin();
+        // Seven pixels from the centre along -x, looking down Z: past the hub, clear of both
+        // drawn arms (which run along +x and +y), and inside the Z ball's grab radius - the Z
+        // ball sits 36 units up the axis, which in this view is straight at the eye.
+        let (f, d) = down(-7.0, 0.0);
+        assert_eq!(g.hit(&f, &d, SCALE), None);
+        // The other two axes are across the view and still answer.
+        let (f, d) = down(BALL_AT, 0.0);
+        assert_eq!(g.hit(&f, &d, SCALE), Some(Handle::Scale(Axis::X)));
     }
 
     /// Everything is measured in CSS pixels times the world size of one: at twice the scale

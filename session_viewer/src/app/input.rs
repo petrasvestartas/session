@@ -224,12 +224,12 @@ impl Input {
         self.touch = Touches::new();
     }
 
-    /// The left button: a press remembers where; a release within the slop is a click and
-    /// asks the GPU what is under it. The picture is unchanged until the answer lands, so a
-    /// click never redraws by itself.
-    /// A left press is either a gizmo grab or the start of a click. The gizmo is asked first:
-    /// its handles sit over the object they move, so a click that lands on one is never also
-    /// a pick of what is behind it.
+    /// The left button. A press is offered to the control drag, then to the gizmo, then kept
+    /// as the start of a click: both widgets sit over the object they move, so a press that
+    /// lands on one is never also a pick of what is behind it.
+    ///
+    /// A release within the slop is a click and asks the GPU what is under it. The picture is
+    /// unchanged until the answer lands, so a click never redraws by itself.
     fn left(&mut self, state: &mut State, btn: ElementState) -> bool {
         match btn {
             ElementState::Pressed => {
@@ -252,7 +252,6 @@ impl Input {
                 }
                 if self.gizmo_drag {
                     self.gizmo_drag = false;
-        self.control_drag = false;
                     state.end_gizmo(self.last_cursor.0, self.last_cursor.1);
                     return true;
                 }
@@ -320,6 +319,7 @@ impl Drop for PointerCancellation {
 pub struct CommandKeys {
     input: web_sys::HtmlInputElement,
     callback: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::KeyboardEvent)>,
+    blur: wasm_bindgen::closure::Closure<dyn FnMut(web_sys::Event)>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -348,7 +348,22 @@ impl CommandKeys {
             },
         );
         input.add_event_listener_with_callback("keydown", callback.as_ref().unchecked_ref())?;
-        Ok(Self { input, callback })
+        // Clicking away closes it. Otherwise the box keeps the keyboard with no key that
+        // reaches it, and the viewer answers nothing until the canvas is clicked.
+        let shut = input.clone();
+        let blur = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
+            move |_: web_sys::Event| {
+                if !shut.hidden() {
+                    crate::app::feedback::command_line(false);
+                }
+            },
+        );
+        input.add_event_listener_with_callback("blur", blur.as_ref().unchecked_ref())?;
+        Ok(Self {
+            input,
+            callback,
+            blur,
+        })
     }
 }
 
@@ -359,6 +374,9 @@ impl Drop for CommandKeys {
         let _ = self
             .input
             .remove_event_listener_with_callback("keydown", self.callback.as_ref().unchecked_ref());
+        let _ = self
+            .input
+            .remove_event_listener_with_callback("blur", self.blur.as_ref().unchecked_ref());
     }
 }
 
@@ -387,6 +405,9 @@ impl LayerClicks {
                 let Some(key) = element.get_attribute("data-layer") else {
                     return;
                 };
+                // A click in the panel takes the focus off the canvas, and every key binding
+                // with it - including the `L` that closes the panel being clicked.
+                crate::app::feedback::focus_canvas();
                 let _ = proxy.send_event(crate::Msg::ToggleLayer(key));
             });
         panel.add_event_listener_with_callback("click", callback.as_ref().unchecked_ref())?;

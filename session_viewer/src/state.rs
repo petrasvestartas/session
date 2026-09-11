@@ -116,6 +116,8 @@ impl State {
         self.scene.upload_to(&mut self.gpu);
         self.camera.grow_extent(&self.gpu.bounds);
         self.annotate_document(first_row);
+        // An open panel is a view of the scene, and the scene just changed under it.
+        self.refresh_layers();
         self.update_label();
         log::info!(
             "appended: walk {:.0} ms, upload {:.0} ms | {} docs | memory observation {:.0} MiB",
@@ -488,7 +490,7 @@ impl State {
     }
 
     /// CSS dimensions come from the actual canvas; native harness dimensions are physical.
-    fn logical_size(&self) -> [f64; 2] {
+    pub(crate) fn logical_size(&self) -> [f64; 2] {
         #[cfg(target_arch = "wasm32")]
         if let Some(window) = web_sys::window()
             && let Some(document) = window.document()
@@ -563,6 +565,9 @@ impl State {
             self.status("This object has no selectable source controls");
             return;
         }
+        // The widget and the control net compete for the same clicks and the same space, so
+        // control mode takes the widget away.
+        self.place_gizmo(None);
         self.selection.enable_controls(Some(parent), controls.cloud);
         self.gpu.arena.source_faces.select(&self.gpu.ctx, None);
         self.gpu.segments.set_edge(&self.gpu.ctx, None);
@@ -585,7 +590,7 @@ impl State {
     }
 
     /// Upload only temporary source controls; repeated F10 never appends duplicate markers.
-    fn upload_controls(&mut self) {
+    pub(crate) fn upload_controls(&mut self) {
         self.gpu.controls.reset();
         self.gpu.control_net.reset();
         let SelectionMode::Controls {

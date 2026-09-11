@@ -33,8 +33,12 @@ pub struct GizmoDrag {
 }
 
 impl State {
-    /// Put the gizmo on the selected row's box centre, or take it away. A row with no box -
-    /// a single point, a text label - gets no widget rather than one at the world origin.
+    /// Put the gizmo on the selected row's box centre, or take it away.
+    ///
+    /// A row whose box is empty gets no widget rather than one at the world origin: a streamed
+    /// cloud before its first slice lands, a sheet row, a row whose geometry produced no
+    /// finite bounds. A single point is NOT one of those - `walk_point` grows a box around it,
+    /// so min equals max and the widget sits on the point.
     pub fn place_gizmo(&mut self, row: Option<u32>) {
         let Some(box_) = row.and_then(|r| self.gpu.objects.row_bounds(r)) else {
             self.gizmo = None;
@@ -105,6 +109,7 @@ impl State {
         self.gpu
             .objects
             .set_placement(&self.gpu.ctx, active.row, &place);
+        self.gpu.grew_bounds(active.row);
         self.place_gizmo(Some(active.row));
         self.touch();
         true
@@ -125,7 +130,16 @@ impl State {
         let Some(delta) = gizmo.update(&active.drag, &from, &dir) else {
             return false;
         };
-        let local = Xform::from_matrix(crate::math::mat_mul(&delta, &active.base_local.m));
+        // The delta is a WORLD matrix and the session stores a LOCAL one: the same conjugation
+        // the command line goes through, or the object jumps to a different place than the last
+        // preview frame drew it.
+        let delta = Xform::from_matrix(delta);
+        let Some(local) = self
+            .scene
+            .local_for_world_delta(active.row, &delta, &active.base_local)
+        else {
+            return false;
+        };
         let label = match active.drag.handle {
             Handle::Translate(_) => "move",
             Handle::Rotate(_) => "rotate",
@@ -135,9 +149,35 @@ impl State {
             self.gpu
                 .objects
                 .set_placement(&self.gpu.ctx, active.row, &place);
+            self.gpu.grew_bounds(active.row);
         }
         self.touch();
         true
+    }
+
+    /// Abandon a gesture that will never be released - a cancelled pointer, a lost focus.
+    ///
+    /// The preview lives only in the row's GPU placement, and nothing was recorded that an undo
+    /// could take back, so the row is put back where the grab found it. Without this the object
+    /// stays where the pointer left it, with the document still holding the old placement, and
+    /// no key reaches that state.
+    pub fn cancel_gesture(&mut self) {
+        if let Some(active) = self.dragging.take() {
+            self.gpu
+                .objects
+                .set_placement(&self.gpu.ctx, active.row, &active.base_place);
+            if let Some(gizmo) = self.gizmo.as_mut() {
+                gizmo.drag = None;
+            }
+            self.place_gizmo(Some(active.row));
+            self.touch();
+        }
+        if self.control_drag.take().is_some() {
+            // The control preview is a dot in a temporary lane; re-uploading from the source
+            // puts it back.
+            self.upload_controls();
+            self.touch();
+        }
     }
 
     /// Delete the selection. The rows change, so every document is walked again.
@@ -151,6 +191,7 @@ impl State {
         self.select(None);
         self.scene.rebuild(&mut self.gpu);
         self.place_gizmo(None);
+        self.refresh_layers();
         self.update_label();
         self.touch();
     }
@@ -176,22 +217,77 @@ impl State {
         self.select(None);
         self.scene.rebuild(&mut self.gpu);
         self.place_gizmo(None);
+        self.refresh_layers();
         self.update_label();
         self.touch();
     }
 
-    /// World length of one screen pixel at the gizmo, for a hit test that must feel the same
-    /// however far the camera is: the widget is sized in pixels, so its grab radius is too.
+    /// World length of one CSS pixel at the gizmo, for a widget that must feel the same however
+    /// far the camera is AND whatever the display's pixel ratio is.
+    ///
+    /// `viewport()` is the surface in PHYSICAL pixels, so the world-per-physical-pixel it gives
+    /// is multiplied back up by the physical-per-CSS ratio. Without that the widget is half
+    /// size on a 2x display - drawn half size, and grabbable only within half the radius.
     fn world_per_px(&self) -> f64 {
-        let (_, h) = self.viewport();
-        if h <= 0.0 {
+        world_per_css_px(
+            self.camera.distance_world(),
+            self.viewport().1,
+            self.pixel_scale(),
+        )
+    }
+
+    /// Physical pixels per CSS pixel, from the surface and the canvas: 1 on a desktop monitor,
+    /// 2 or more on a phone. The marker lane wants physical pixels and the widget's sizes are
+    /// in CSS pixels, so this is the conversion between them.
+    fn pixel_scale(&self) -> f64 {
+        let logical = self.logical_size()[0];
+        if logical <= 0.0 {
             return 1.0;
         }
-        2.0 * self.camera.distance * (crate::math::FOVY_DEG * 0.5).to_radians().tan() / h
+        f64::from(self.gpu.config.width) / logical
     }
 }
 
-/// The three axis colours every CAD tool agrees on, as the packed RGBA a stroke row carries.
+/// World length of one CSS pixel at `distance`, given the surface height in PHYSICAL pixels
+/// and how many physical pixels one CSS pixel is.
+///
+/// `distance` is in WORLD units - `Camera::distance_world`, not the `distance` field, which is
+/// the camera's internal metres. The lengths this scales are an arm and a ball in a millimetre
+/// scene, so the metres would draw the widget a thousand times too small.
+///
+/// Split out because the units are the whole of it: the frustum arithmetic answers in physical
+/// pixels, and every size a person sees - an arm, a ball, a grab radius - is in CSS pixels.
+/// Forgetting the last multiply makes the widget half size on a 2x display, drawn half size
+/// and grabbable only within half the radius.
+fn world_per_css_px(distance: f64, physical_height: f64, physical_per_css: f64) -> f64 {
+    if physical_height <= 0.0 {
+        return 1.0;
+    }
+    let per_physical =
+        2.0 * distance * (crate::math::FOVY_DEG * 0.5).to_radians().tan() / physical_height;
+    per_physical * physical_per_css
+}
+
+/// Segments in a rotation arc's quarter circle. Twelve is under half a degree of chord error
+/// at the arm's radius, which is below the pen width that draws it.
+const ARC_STEPS: u32 = 12;
+
+/// The two axes a rotation arc about `axis` is drawn in, in the same order `Axis::others`
+/// gives them, so the drawn arc and the hit-tested one are the same quarter.
+fn arc_axes(axis: Axis) -> ([f64; 3], [f64; 3]) {
+    match axis {
+        Axis::X => ([0.0, 1.0, 0.0], [0.0, 0.0, 1.0]),
+        Axis::Y => ([0.0, 0.0, 1.0], [1.0, 0.0, 0.0]),
+        Axis::Z => ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0]),
+    }
+}
+
+/// The axis balls' radius in CSS pixels, a little larger than a control dot's 3.5 so the two
+/// are not mistaken for each other.
+const BALL_PX: f64 = 5.0;
+
+/// The three axis colours every CAD tool agrees on, packed the way the lanes read them: low
+/// byte red, so `0xff2222dd` is red, `0xff22bb22` green and `0xffdd4422` blue.
 const AXIS_COLORS: [u32; 3] = [0xff2222dd, 0xff22bb22, 0xffdd4422];
 
 impl State {
@@ -208,12 +304,12 @@ impl State {
             return;
         };
         let per_px = self.world_per_px();
+        // The marker lane reads a negative radius as PHYSICAL pixels; the widget's sizes are in
+        // CSS pixels, like every other size a person sees.
+        let scale = self.pixel_scale();
         let origin = gizmo.origin.clone();
         // World coordinates, so the rows draw against the identity row rather than an object's.
-        let widget = self
-            .gpu
-            .objects
-            .widget_row(&self.gpu.ctx, &self.gpu.layouts);
+        let widget = self.gpu.widget_row();
         let arm = ARM * per_px;
         let ball = BALL_AT * per_px;
         let mut segments = SegRows::default();
@@ -240,16 +336,43 @@ impl State {
             });
             glyphs.dots.push(GlyphPoint {
                 center: render_position(at),
-                radius: -5.0,
+                radius: -(BALL_PX * scale) as f32,
                 color: unpack_color(AXIS_COLORS[i]),
                 instance_id: widget,
                 facing: FACING_UNKNOWN,
                 facing_ext: [FACING_UNKNOWN; 2],
             });
         }
+        // The three rotation arcs, drawn where `Gizmo::hit` tests for them: a quarter circle at
+        // the arm's radius, in the quadrant both arms avoid. An arc that is hit-tested and not
+        // drawn is an invisible ring that swallows clicks.
+        for (i, axis) in [Axis::X, Axis::Y, Axis::Z].into_iter().enumerate() {
+            let (u, v) = arc_axes(axis);
+            let mut previous: Option<[f64; 3]> = None;
+            for step in 0..=ARC_STEPS {
+                let t = std::f64::consts::FRAC_PI_2 * f64::from(step) / f64::from(ARC_STEPS);
+                let (c, s) = (-t.cos() * arm, -t.sin() * arm);
+                let at = [
+                    origin[0] + u[0] * c + v[0] * s,
+                    origin[1] + u[1] * c + v[1] * s,
+                    origin[2] + u[2] * c + v[2] * s,
+                ];
+                if let Some(from) = previous {
+                    segments.ribbons.push(CylinderSegment {
+                        p0: render_position(from),
+                        p1: render_position(at),
+                        radius: 0.0,
+                        color: AXIS_COLORS[i],
+                        instance_id: widget,
+                        facing: FACING_UNKNOWN,
+                    });
+                }
+                previous = Some(at);
+            }
+        }
         glyphs.dots.push(GlyphPoint {
             center: render_position([origin[0], origin[1], origin[2]]),
-            radius: -(HUB as f32),
+            radius: -(HUB * scale) as f32,
             color: [1.0, 1.0, 1.0, 1.0],
             instance_id: widget,
             facing: FACING_UNKNOWN,
@@ -264,12 +387,14 @@ impl State {
     }
 }
 
-/// A packed `0xAARRGGBB` row colour as the four floats a marker wants.
+/// A packed row colour as the four floats a marker wants. LOW byte red: that is what
+/// `encode::pack_rgba` writes and what `unpack4x8unorm` reads in the stroke shader, so reading
+/// it the other way round gave the arm and its own ball different colours.
 fn unpack_color(packed: u32) -> [f32; 4] {
     [
-        ((packed >> 16) & 0xff) as f32 / 255.0,
-        ((packed >> 8) & 0xff) as f32 / 255.0,
         (packed & 0xff) as f32 / 255.0,
+        ((packed >> 8) & 0xff) as f32 / 255.0,
+        ((packed >> 16) & 0xff) as f32 / 255.0,
         ((packed >> 24) & 0xff) as f32 / 255.0,
     ]
 }
@@ -339,9 +464,8 @@ impl State {
         let Some(place) = self.scene.transform_row(row, &delta, label) else {
             return Err("this row cannot be edited".into());
         };
-        self.gpu
-            .objects
-            .set_placement(&self.gpu.ctx, row, &place);
+        self.gpu.objects.set_placement(&self.gpu.ctx, row, &place);
+        self.gpu.grew_bounds(row);
         self.place_gizmo(Some(row));
         self.touch();
         Ok(label.into())
@@ -480,7 +604,9 @@ impl State {
         let Some((sx, sy)) = self.project(at) else {
             return false;
         };
-        let grab = GRAB_CSS * crate::engine::gpu::view::device_pixel_ratio();
+        // `project` answers in physical pixels, so a CSS radius is converted the same way the
+        // widget's own sizes are.
+        let grab = GRAB_CSS * self.pixel_scale();
         if (sx - x).abs() > grab || (sy - y).abs() > grab {
             return false;
         }
@@ -562,7 +688,7 @@ impl State {
         }
         // The ranking is in SCREEN space, so the aperture means pixels wherever the camera is.
         let project = |p: &Point| self.project([p[0], p[1], p[2]]);
-        match snap::best(&candidates, (x, y), SNAP_APERTURE_PX, project) {
+        match snap::best(&candidates, (x, y), SNAP_APERTURE_PX * self.pixel_scale(), project) {
             Some(hit) => Some(hit.point),
             None => Some(free),
         }
@@ -585,9 +711,35 @@ impl State {
 }
 
 /// How near the pointer must be to grab a control dot, in CSS pixels: the dot is drawn at
-/// 3.5 px, and a grab radius smaller than the thing it grabs is a gesture people miss.
+/// 3.5 CSS px, and a grab radius smaller than the thing it grabs is a gesture people miss.
 const GRAB_CSS: f64 = 10.0;
 
-/// How far a snap reaches, in screen pixels. Wide enough to catch what you meant, narrow
-/// enough that a point a centimetre away on screen is not "what you meant".
+/// How far a snap reaches, in CSS pixels. Wide enough to catch what you meant, narrow enough
+/// that a point a centimetre away on screen is not "what you meant".
 const SNAP_APERTURE_PX: f64 = 12.0;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The conversion the widget's size depends on. A 2x display has twice the physical pixels
+    /// for the same CSS pixel, so one CSS pixel is twice as much world - and the arm that is
+    /// 72 CSS pixels long stays 72 CSS pixels long.
+    #[test]
+    fn a_css_pixel_is_worth_more_world_on_a_denser_display() {
+        let one_to_one = world_per_css_px(1000.0, 800.0, 1.0);
+        let retina = world_per_css_px(1000.0, 1600.0, 2.0);
+        assert!((one_to_one - retina).abs() < 1e-9, "the same CSS pixel, either way");
+
+        let closer = world_per_css_px(500.0, 800.0, 1.0);
+        assert!(closer < one_to_one, "nearer camera, less world in a pixel");
+        // The unit trap: a metre distance where a millimetre one was meant shrinks every
+        // length the widget draws by a thousand.
+        assert!(
+            world_per_css_px(1.0, 800.0, 1.0) * 1000.0 - world_per_css_px(1000.0, 800.0, 1.0)
+                < 1e-9,
+            "the answer scales with the distance, so the distance must be in world units"
+        );
+        assert_eq!(world_per_css_px(1000.0, 0.0, 1.0), 1.0, "no surface, no answer");
+    }
+}

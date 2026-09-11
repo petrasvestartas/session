@@ -63,8 +63,10 @@ pub fn parse(line: &str) -> Result<Command, String> {
     }
 }
 
-/// `move` takes the coordinate parser's own syntax, so `10,0,0`, `@10,0` and `10<45` mean here
-/// what they mean anywhere else in the viewer.
+/// `move` borrows the coordinate parser's SYNTAX - `10,0,0`, `@10,0` and `10<45` all parse -
+/// but not all of its meanings: a typed move is always an OFFSET, so absolute and relative
+/// collapse to the same thing here, and a bare distance is along +x rather than along a
+/// direction the caller established. Polar is in the world XY plane, not the construction one.
 ///
 /// A command line is typed with spaces, and the coordinate syntax separates with commas, so
 /// spaces between the numbers become commas first. `@10 0` and `@10,0` are then the same line,

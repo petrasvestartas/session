@@ -26,7 +26,6 @@ pub enum Kind {
     Curves,
     Points,
     Clouds,
-    Other,
 }
 
 impl Kind {
@@ -38,12 +37,14 @@ impl Kind {
             Kind::Curves => "curves",
             Kind::Points => "points",
             Kind::Clouds => "clouds",
-            Kind::Other => "other",
         }
     }
 
-    /// Which bucket one object falls in. A kernel type the panel has no name for is `Other`
-    /// rather than missing: a row that cannot be switched off is worse than a vague label.
+    /// Which bucket one object falls in.
+    ///
+    /// The match is exhaustive on purpose, with no catch-all: a kernel type added later stops
+    /// the build here, where someone has to decide which bucket it belongs in, rather than
+    /// falling into an "other" row nobody would notice was wrong.
     fn of(geometry: &session_rust::Geometry) -> Self {
         use session_rust::Geometry as G;
         match geometry {
@@ -80,7 +81,6 @@ impl Layer {
             Kind::Curves,
             Kind::Points,
             Kind::Clouds,
-            Kind::Other,
         ] {
             if kind.label() == label {
                 return Some(Layer::Kind(kind));

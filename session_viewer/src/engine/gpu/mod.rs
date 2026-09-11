@@ -267,6 +267,32 @@ impl Gpu {
         self.rebind_ink();
     }
 
+    /// Grow the scene's bounds by a row that moved.
+    ///
+    /// `bounds` is the union every reader frames against - `fit`, and the far plane through
+    /// `grow_extent`. It is built by `set_scene` and nothing else touched it, so an object
+    /// dragged past the old extent used to fall outside what a fit would frame and, far
+    /// enough out, outside the far plane. Growing is enough: an edit that SHRINKS the scene
+    /// leaves the union generous, which costs depth precision and never correctness.
+    pub fn grew_bounds(&mut self, row: u32) {
+        if let Some(box_) = self.objects.row_bounds(row) {
+            self.bounds.union(&box_);
+        }
+    }
+
+    /// The identity row the widgets draw against, minting it the first time.
+    ///
+    /// Minting it can grow the instance buffers, and group 2 for INK binds those same buffers,
+    /// so the rebind happens here rather than at the call site: the gizmo lanes are ink lanes,
+    /// and a caller that forgot would have them draw against a buffer nobody owns.
+    pub fn widget_row(&mut self) -> u32 {
+        let (row, grew) = self.objects.widget_row(&self.ctx, &self.layouts);
+        if grew {
+            self.rebind_ink();
+        }
+        row
+    }
+
     /// Group 2 for ink is rebuilt whenever the depth targets or the tile pool moved.
     fn rebind_ink(&mut self) {
         self.objects.rebind_ink(
