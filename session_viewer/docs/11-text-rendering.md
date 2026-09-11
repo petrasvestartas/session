@@ -59,6 +59,8 @@ Rust vertex_attr_array (stride 28)          WGSL vs_main
 
 The signed distance to a rounded rectangle gives one physical pixel of edge coverage; the colour is always black.
 
+![A label is two coverages: the plate's alpha computed from a signed distance and softened over exactly one pixel, and the plane's ink sampled from the R8 atlas and multiplied into the colour.](illustrations/glyph-coverage.svg)
+
 <span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
 
 <!-- file: 11 session_viewer/src/shaders/text_plate.wgsl type -->

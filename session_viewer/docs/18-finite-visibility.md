@@ -105,6 +105,8 @@ The same revision counter tells the silhouette when its masks are stale:
 
 ![Diagram: ProjectedTriangle\ 6 × vec4 · 96 B · (depth, inside) · visibility_tile_span · ≤ 262144 tiles](illustrations/18-05.svg)
 
+![The 96-byte record is the triangle rewritten as four inward half-planes, a depth gradient and a bounds box, so the query costs four dot products and a bounds test.](illustrations/projected-record.svg)
+
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
 <!-- file: 18 session_viewer/src/shaders/projected_triangle.wgsl type -->

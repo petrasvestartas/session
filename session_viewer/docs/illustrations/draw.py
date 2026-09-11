@@ -2868,7 +2868,143 @@ def producer_contract():
     c.write("producer-contract.svg")
 
 
+def glyph_coverage():
+    """11: a label is two coverages, one computed and one sampled, spent on different channels."""
+    c = Canvas("Two coverages, two channels",
+               "The plate's alpha is computed from a signed distance to a rounded rectangle and softened over exactly one pixel by fwidth; the plane's ink is sampled from the R8 coverage atlas and multiplies the colour, so a glyph edge darkens toward black instead of opening a hole.",
+               1180, 560)
+    c.text(28, 40, "Two coverages, two channels", "h")
+
+    # ---- left: the plate ----
+    c.text(28, 74, "the plate · a distance becomes alpha", "l")
+    px, py, pw, ph, r = 70, 100, 300, 132, 34
+    c.raw(f'<rect x="{px}" y="{py}" width="{pw}" height="{ph}" rx="{r}" fill="#2a2a32"/>')
+    c.raw(f'<rect x="{px}" y="{py}" width="{pw}" height="{ph}" rx="{r}" fill="none" stroke="#f4f4f6" stroke-width="1.6"/>')
+    cxp, cyp = px + pw / 2, py + ph / 2
+    c.raw(f'<circle cx="{cxp}" cy="{cyp}" r="3" fill="#f4f4f6"/>')
+    c.raw(f'<path d="M{cxp},{cyp} L{px+pw},{cyp}" stroke="#9a9aa4" stroke-width="1.2" stroke-dasharray="4 4"/>')
+    c.raw(f'<path d="M{cxp},{cyp} L{cxp},{py}" stroke="#9a9aa4" stroke-width="1.2" stroke-dasharray="4 4"/>')
+    c.text(cxp + 70, cyp - 8, "half_size.x", "m", fill=PAL["text2"])
+    c.text(cxp + 8, py + 26, "half_size.y", "m", fill=PAL["text2"])
+    ccx, ccy = px + pw - r, py + r
+    c.raw(f'<circle cx="{ccx}" cy="{ccy}" r="{r}" fill="none" stroke="{PAL["green"]}" stroke-width="1.4" stroke-dasharray="5 4"/>')
+    c.raw(f'<circle cx="{ccx}" cy="{ccy}" r="3" fill="{PAL["green"]}"/>')
+    c.text(px, py + ph + 26, "r = min(radius, half_size.x, half_size.y)", "m", fill=PAL["green"])
+    c.raw(f'<circle cx="{px+pw+26}" cy="{py-16}" r="4" fill="{PAL["pink_band"]}"/>')
+    c.raw(f'<path d="M{px+pw+24},{py-14} L{ccx+r*0.72:.1f},{ccy-r*0.72:.1f}" stroke="{PAL["pink_band"]}" stroke-width="1.2"/>')
+    c.text(px + pw + 36, py - 12, "outside: length(max(q, 0)) − r", "s", fill=PAL["pink"])
+    c.raw(f'<circle cx="{cxp-70}" cy="{cyp+30}" r="4" fill="{PAL["pink_band"]}"/>')
+    c.text(px, py + ph + 48, "inside: min(max(q.x, q.y), 0) − r, the negative distance to the nearest side", "s", fill=PAL["text2"])
+    nb = c.box(px, py + ph + 62, ["one distance, both jobs",
+                                  "`q = |local| − half_size + r`",
+                                  "`d = length(max(q, 0)) + min(max(q.x, q.y), 0) − r`"], "note")
+    # the profile
+    gy = nb[1] + nb[3] + 110
+    gl, gr = px, px + 300
+    c.raw(f'<path d="M{gl},{gy} L{gr},{gy}" stroke="#f4f4f6" stroke-width="1.3"/>')
+    mid = (gl + gr) / 2
+    c.raw(f'<path d="M{mid},{gy} L{mid},{gy+7}" stroke="#f4f4f6" stroke-width="1.3"/>')
+    c.text(mid, gy + 24, "d = 0", "m", anchor="middle")
+    c.raw(f'<path d="M{gl},{gy-60} L{mid-36},{gy-60} L{mid+36},{gy} L{gr},{gy}" stroke="{PAL["green"]}" stroke-width="2.4" fill="none"/>')
+    c.text(gl, gy - 70, "alpha = clamp(0.5 − d / max(fwidth(d), 0.001), 0, 1)", "m", fill=PAL["green"])
+    c.raw(f'<path d="M{mid-36},{gy+14} L{mid+36},{gy+14}" stroke="{PAL["yellow"]}" stroke-width="1.4"/>')
+    c.text(mid + 44, gy + 18, "one fwidth: one physical pixel at any zoom", "s", fill=PAL["yellow"])
+    o1 = c.box(gl, gy + 40, ["the plate's output", "`vec4(0, 0, 0, coverage)`", "black; only the alpha varies"], "gpu")
+
+    # ---- right: the plane ----
+    rx = 640
+    c.text(rx, 74, "the plane · a texel becomes ink", "l")
+    quad = [(rx + 30, 130), (rx + 300, 108), (rx + 320, 214), (rx + 46, 240)]
+    c.raw(f'<polygon points="{" ".join(f"{x},{y}" for x, y in quad)}" fill="{PAL["blue_band"]}" opacity="0.5"/>')
+    for (x, y), uv in zip(quad, ("0,0", "1,0", "1,1", "0,1")):
+        c.raw(f'<circle cx="{x}" cy="{y}" r="3.4" fill="#f4f4f6"/>')
+    c.text(rx + 20, 122, "uv 0,0", "m", anchor="end")
+    c.text(rx + 330, 214, "uv 1,1", "m")
+    tx, ty = rx + 30, 268
+    stem = [[0.05, 0.62, 1.00, 0.28],
+            [0.05, 0.70, 1.00, 0.34],
+            [0.05, 0.70, 1.00, 0.34],
+            [0.02, 0.40, 0.74, 0.16]]
+    for j, rowv in enumerate(stem):
+        for i, v in enumerate(rowv):
+            g = int(18 + v * 225)
+            c.raw(f'<rect x="{tx+i*26}" y="{ty+j*26}" width="26" height="26" fill="rgb({g},{g},{g})"/>')
+    c.text(tx, ty + 4 * 26 + 26, "R8 coverage atlas, one stem magnified", "s", fill=PAL["text2"])
+    o2 = c.box(tx + 4 * 26 + 30, ty, ["the plane's output",
+                                      "`textureSample(coverage, samp, uv).r`",
+                                      "`vec4(color.rgb * coverage, color.a)`",
+                                      "coverage 1 → the label's colour",
+                                      "coverage 0 → black, still opaque"], "gpu")
+    c.text(rx, o2[1] + o2[3] + 28, "The backing is opaque: coverage darkens toward black rather than opening a hole,", "s", fill=PAL["yellow"])
+    c.text(rx, o2[1] + o2[3] + 48, "so a glyph edge never shows the scene through it.", "s", fill=PAL["yellow"])
+    c.w = int(max(o2[0] + o2[2] + 28, 1180))
+    c.h = int(max(o1[1] + o1[3], o2[1] + o2[3] + 60) + 28)
+    c.write("glyph-coverage.svg")
+
+
+def projected_record():
+    """18: the 96-byte record is the triangle rewritten as the test that will be run on it."""
+    c = Canvas("A triangle stored as the test that will be run on it",
+               "The 96-byte projected record holds four inward half-planes, a depth gradient and a bounds box, so asking whether a screen point is covered costs four dot products, a bounds test and one multiply-add.",
+               1180, 620)
+    c.text(28, 40, "A triangle, stored as the test that will be run on it", "h")
+    tri = [(250, 200), (500, 268), (312, 420)]
+    c.raw(f'<polygon points="{" ".join(f"{x},{y}" for x, y in tri)}" fill="{PAL["blue_band"]}" opacity="0.55"/>')
+    lo = (min(x for x, _ in tri) - 18, min(y for _, y in tri) - 18)
+    hi = (max(x for x, _ in tri) + 18, max(y for _, y in tri) + 18)
+    c.raw(f'<rect x="{lo[0]}" y="{lo[1]}" width="{hi[0]-lo[0]}" height="{hi[1]-lo[1]}" fill="none" stroke="#9a9aa4" stroke-width="1.2" stroke-dasharray="4 4"/>')
+    c.text(lo[0], lo[1] - 12, "bounds = (lo.xy, hi.zw)", "m", fill=PAL["text2"])
+    for (x, y) in tri:
+        c.raw(f'<circle cx="{x}" cy="{y}" r="4.2" fill="#f4f4f6"/>')
+    cxt = sum(x for x, _ in tri) / 3
+    cyt = sum(y for _, y in tri) / 3
+    places = [("end", -1), ("start", 1), ("end", -1)]
+    for i in range(3):
+        a_, b_ = tri[i], tri[(i + 1) % 3]
+        mx, my = (a_[0] + b_[0]) / 2, (a_[1] + b_[1]) / 2
+        dx, dy = cxt - mx, cyt - my
+        n = (dx * dx + dy * dy) ** 0.5
+        ux, uy = dx / n, dy / n
+        c.arrow(mx, my, mx + ux * 40, my + uy * 40)
+        anchor = "start" if ux < 0 else "end"
+        c.text(mx - ux * 26, my - uy * 26 + 5, f"edge{i}.xy", "m", anchor=anchor)
+    c.raw(f'<path d="M{tri[0][0]-30},{tri[0][1]+46} L{tri[0][0]+70},{tri[0][1]-12}" stroke="{PAL["orange"]}" stroke-width="1.8" stroke-dasharray="7 5"/>')
+    c.text(tri[0][0] + 74, tri[0][1] - 14, "edge3: the near-plane cut", "s", fill=PAL["orange"])
+    c.raw(f'<circle cx="{tri[1][0]}" cy="{tri[1][1]}" r="11" fill="none" stroke="{PAL["yellow"]}" stroke-width="2.2"/>')
+    c.text(tri[1][0] - 10, tri[1][1] + 42, "gradient.z = the nearest corner", "s", anchor="middle", fill=PAL["yellow"])
+    c.arrow(cxt - 30, cyt + 10, cxt + 40, cyt + 30)
+    c.text(cxt + 46, cyt + 36, "gradient.xy · depth per pixel", "s")
+    c.raw(f'<path d="M{tri[0][0]},{tri[0][1]} L{tri[0][0]-60},{tri[0][1]-66}" stroke="#9a9aa4" stroke-width="1.1"/>')
+    c.text(28, tri[0][1] - 76, "reference = (edge0.w, edge1.w, edge2.w)", "m")
+    c.text(28, tri[0][1] - 58, "the x, y and depth of points[0]", "s", fill=PAL["text2"])
+
+    t = c.box(620, 110, ["projected_triangle_at(t, at)",
+                         "`count < 3                       → (0, 0)`",
+                         "`at outside bounds ± 1/256        → (0, 0)`",
+                         "`any(dot(edge_i.xy, at) + edge_i.z < −1/256) → (0, 0)`",
+                         "`else (edge2.w + dot(gradient.xy, at − reference), 1)`"], "note")
+    c.text(620, t[1] + t[3] + 24, "1/256 px is the rasterizer's vertex snap — the same slack the tile binning uses,", "s", fill=PAL["text2"])
+    c.text(620, t[1] + t[3] + 44, "on the bounds and on every edge.", "s", fill=PAL["text2"])
+    n2 = c.box(620, t[1] + t[3] + 64, ["edge3.w is the corner count",
+                                       "3, or 4 after a near-plane clip",
+                                       "below 3 the record is empty and answers (0, 0)",
+                                       "sign(area) flips all four planes, so inward is inward",
+                                       "whichever way the triangle wound"], "sel")
+    sy = 480
+    cells = [("0", "edge0"), ("16", "edge1"), ("32", "edge2"), ("48", "edge3"), ("64", "gradient"), ("80", "bounds")]
+    cw2 = 150
+    for i, (off, name) in enumerate(cells):
+        x = 28 + i * (cw2 + 8)
+        c.raw(f'<rect x="{x}" y="{sy}" width="{cw2}" height="46" rx="6" fill="{PAL["pink_band"]}"/>')
+        c.text(x + 12, sy + 20, off, "m", fill=PAL["black"], keep=True)
+        c.text(x + 12, sy + 38, name, "m", fill=PAL["black"], keep=True)
+    c.text(28, sy + 74, "96 B, asserted field by field against the Rust mirror · projected once per camera and geometry revision, read by every ink fragment", "s", fill=PAL["text2"])
+    c.w = int(max(n2[0] + n2[2] + 28, 28 + 6 * (cw2 + 8) + 20, 620 + 520))
+    c.h = sy + 100
+    c.write("projected-record.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract, glyph_coverage, projected_record):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')
