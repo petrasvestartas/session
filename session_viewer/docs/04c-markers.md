@@ -108,6 +108,8 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 
 - The antialiasing ramp is clamped to the ink it feathers; a pen thinner than the ramp would otherwise be drawn entirely out of fade and vanish at distance.
 
+![Both marker shapes measure the same radius in corner space, where 1.0 is the far edge of the primitive, and the ramp is clamped so a thin pen still reaches full opacity.](illustrations/disc-coverage.svg)
+
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=65-155 -->

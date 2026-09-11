@@ -62,7 +62,7 @@
 - `WalkCx`: where an object's rows land (vertex base, object row). `Row`: what the producer measured (local box, spacing, flags, and whether it drew faces).
 - `mod.rs` also declares the modules typed in the following steps; nothing compiles them until `app/mod.rs` names `walk` in step 11.
 
-![Diagram: WalkCx\ vertex base · row · producer · Row\ bounds · spacing · flags](illustrations/06-04.svg)
+![A producer is handed one geometry, the row it is filling and the vertex base its indices start from; it appends to the lane tables and reports one Row measured in the object's own space.](illustrations/producer-contract.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -113,7 +113,7 @@
 - The ink pass reads the topology and the f32 positions by slot, and writes only `SegRows.pipes` and `GlyphRows.spheres`.
 - When a pair's winding disagrees, the second normal is negated: the facing test needs two outward normals.
 
-![Diagram: MeshTopo · SegRows.pipes · Incidence CSR · GlyphRows.spheres](illustrations/06-07.svg)
+![One angle between two face normals sorts a shared edge into ink or nothing, and the four thresholds of this lane sit on that axis in an order that has to hold.](illustrations/ink-thresholds.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 

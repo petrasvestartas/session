@@ -126,6 +126,8 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
 - `coverage` is where the exactness lives: `band_area` integrates the pixel box against the capsule instead of sampling a distance, so coverage cannot beat against the line's subpixel phase.
 
+![A stroke's alpha is the exact area of one pixel square inside the capsule, and that area is one trapezoid's CDF evaluated at hw minus d and at hw plus d.](illustrations/band-coverage.svg)
+
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=141-190 -->

@@ -97,7 +97,7 @@ Offscreen and benchmark paths for native tools:
 - Pass order is the contract: physical surfaces write depth; the selection mask and ink read it; the ID pass repeats the same toggles.
 - `encode_frame` knows nothing about a surface, so the same list renders headless.
 
-![Diagram: encode_frame · face_list · depth · scene_list · ink · id_pass](illustrations/12-05.svg)
+![The six passes of a frame against the five attachments they touch: the physical depth is cleared and written by the face pass alone, and every pass after it attaches or samples it.](illustrations/frame-passes.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 

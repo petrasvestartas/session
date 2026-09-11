@@ -118,6 +118,8 @@ Comparing `z0` with `d` directly hides ink on its own face. The physical gradien
 
 ![Diagram: fragment texel · neighbour texel · ink_axis_visible · ink_carry_visible](illustrations/05-07.svg)
 
+![Where a carried depth has to land: a farther texel gives a one-sided compare, a nearer one a two-sided window, so a surface that does not pass through the axis cannot uncover covered ink.](illustrations/carry-verdict.svg)
+
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
 <!-- file: 05 session_viewer/src/shaders/ink_visibility.wgsl type whole lines=102-137 -->

@@ -2364,7 +2364,511 @@ def tombstone():
     c.write("tombstone.svg")
 
 
+def band_coverage():
+    """04b: a stroke's alpha is the exact area of one pixel inside the band."""
+    import math
+    c = Canvas("A stroke's alpha is the area of one pixel square inside the band",
+               "The left panel shows one pixel square crossed by a capsule's two parallel edges; the part of the square inside the band is the returned alpha. The right panel shows that area as one trapezoid CDF evaluated at hw minus d and at hw plus d.",
+               1040, 560)
+    c.text(28, 40, "Coverage is an area, and the area is a trapezoid", "h")
+
+    # ---- left: one pixel, one band ----
+    c.text(28, 74, "one pixel, one band", "l")
+    ox, oy, cell = 56, 96, 58
+    grid = []
+    for i in range(5):
+        for j in range(5):
+            grid.append(f'<rect x="{ox+i*cell}" y="{oy+j*cell}" width="{cell}" height="{cell}" fill="none" stroke="#3a3a42" stroke-width="1"/>')
+    c.raw("".join(grid))
+    px, py = ox + 2 * cell, oy + 2 * cell          # the studied pixel
+    ang = math.radians(20.0)
+    ux, uy = math.cos(ang), -math.sin(ang)          # axis direction
+    nx, ny = -uy, ux                                # unit normal
+    cx, cy = px + cell * 0.5, py - cell * 0.06      # a point on the axis, above the pixel centre
+    hw = cell * 0.62
+    def band_poly(scale):
+        far = 190.0
+        pts = [(cx + ux * far + nx * hw * scale, cy + uy * far + ny * hw * scale),
+               (cx - ux * far + nx * hw * scale, cy - uy * far + ny * hw * scale),
+               (cx - ux * far - nx * hw * scale, cy - uy * far - ny * hw * scale),
+               (cx + ux * far - nx * hw * scale, cy + uy * far - ny * hw * scale)]
+        return " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+    c.raw(f'<clipPath id="cbp"><rect x="{px}" y="{py}" width="{cell}" height="{cell}"/></clipPath>')
+    c.raw(f'<clipPath id="cgr"><rect x="{ox}" y="{oy}" width="{5*cell}" height="{5*cell}"/></clipPath>')
+    c.raw(f'<g clip-path="url(#cgr)"><polygon points="{band_poly(1)}" fill="{PAL["pink_band"]}" opacity="0.45"/></g>')
+    c.raw(f'<polygon points="{band_poly(1)}" fill="{PAL["yellow_light"]}" clip-path="url(#cbp)"/>')
+    c.raw(f'<rect x="{px}" y="{py}" width="{cell}" height="{cell}" fill="none" stroke="#f4f4f6" stroke-width="2.4"/>')
+    # the axis itself
+    c.raw(f'<g clip-path="url(#cgr)"><path d="M{cx-ux*200:.1f},{cy-uy*200:.1f} L{cx+ux*200:.1f},{cy+uy*200:.1f}" stroke="{PAL["pink_band"]}" stroke-width="1.6" fill="none"/></g>')
+    # pixel centre, and d to the axis
+    mx, my = px + cell / 2, py + cell / 2
+    t = (mx - cx) * nx + (my - cy) * ny
+    fx, fy = mx - nx * t, my - ny * t
+    c.raw(f'<circle cx="{mx:.1f}" cy="{my:.1f}" r="3.2" fill="#f4f4f6"/>')
+    c.arrow(mx, my, fx, fy)
+    c.text((mx + fx) / 2 + 12, (my + fy) / 2 + 4, "d", "m", fill=PAL["black"], keep=True)
+    # the band width
+    jx, jy = cx + ux * 84, cy + uy * 84
+    c.raw(f'<path d="M{jx-nx*hw:.1f},{jy-ny*hw:.1f} L{jx+nx*hw:.1f},{jy+ny*hw:.1f}" stroke="#f4f4f6" stroke-width="1.4" fill="none"/>')
+    c.text(jx + nx * hw + 10, jy + ny * hw + 16, "2 · hw", "m")
+    c.text(ox, oy + 5 * cell + 26, "the yellow area IS the returned alpha, not a sample of a ramp", "s", fill=PAL["yellow"])
+    c.text(ox, oy + 5 * cell + 46, "g = v / d, the unit gradient of the distance field", "m")
+
+    # ---- right: the pixel square projected onto g ----
+    bx = 430
+    c.text(bx, 74, "the same pixel projected onto g", "l")
+    ax0, ax1 = bx + 30, bx + 520
+    base = 300
+    top = 150
+    hi, lo = 0.72, 0.24                       # in axis units, an example gradient
+    def X(t):
+        return ax0 + (t + 1.0) * (ax1 - ax0) / 2.0
+    c.raw(f'<polygon points="{X(-hi):.1f},{base} {X(-lo):.1f},{top} {X(lo):.1f},{top} {X(hi):.1f},{base}" fill="{PAL["zero_band"]}"/>')
+    c.raw(f'<path d="M{ax0},{base} L{ax1},{base}" stroke="#f4f4f6" stroke-width="1.4" fill="none"/>')
+    c.text(ax1 + 8, base + 5, "t", "m")
+    for t, lab in ((-hi, "−hi"), (-lo, "−lo"), (lo, "lo"), (hi, "hi")):
+        c.raw(f'<path d="M{X(t):.1f},{base} L{X(t):.1f},{base+7}" stroke="#f4f4f6" stroke-width="1.4"/>')
+        c.text(X(t), base + 24, lab, "m", anchor="middle")
+    for t, lab in ((0.08, "hw − d"), (0.58, "hw + d")):
+        c.raw(f'<path d="M{X(t):.1f},{top-26:.1f} L{X(t):.1f},{base:.1f}" stroke="{PAL["pink_band"]}" stroke-width="1.8" fill="none"/>')
+        c.raw(f'<circle cx="{X(t):.1f}" cy="{base:.1f}" r="3.4" fill="{PAL["pink_band"]}"/>')
+        c.text(X(t), top - 34, lab, "m", anchor="middle", fill=PAL["pink"])
+    c.text(bx + 30, base + 60, "band_area = box_cdf(hw − d) + box_cdf(hw + d) − 1", "m")
+    n = c.box(bx + 30, base + 76, ["the trapezoid is the gradient",
+                                   "`hi = (|g.x| + |g.y|) / 2`   half its base",
+                                   "`lo = ||g.x| − |g.y|| / 2`   half its flat top",
+                                   "axis-aligned: hi = lo = 0.5, a box",
+                                   "at 45°: hi = 0.7071, lo = 0, a triangle"], "note")
+    c.w = max(c.w, int(n[0] + n[2] + 28))
+    c.text(28, 520, "A distance ramp is sampled at pixel centres, spaced cos(angle) apart, so it beats with the line's subpixel phase: 22.2 % at a 1.5 px pen.", "s", fill=PAL["text2"])
+    c.text(28, 540, "Pixel boxes tile the plane, so summing their true areas cannot beat. FILTER_REACH = 0.70711 is half a pixel's diagonal, and the quad grows by exactly that.", "s", fill=PAL["text2"])
+    c.write("band-coverage.svg")
+
+
+def disc_coverage():
+    """04c: one radius in corner space, two primitives, one clamped ramp."""
+    import math
+    c = Canvas("One radius, two primitives, one clamped ramp",
+               "A quad template and a triangle template both carry a corner whose length 1 is the far edge of the disc, and the antialiasing ramp is clamped to twice the ink's half width so a thin pen still reaches full opacity.",
+               1060, 520)
+    c.text(28, 40, "One radius, two primitives, one clamped ramp", "h")
+
+    # ---- panel 1: corner space ----
+    c.text(28, 74, "corner space", "l")
+    def template(cx, cy, pts, r):
+        poly = " ".join(f"{cx+x*r:.1f},{cy+y*r:.1f}" for x, y in pts)
+        c.raw(f'<polygon points="{poly}" fill="none" stroke="#f4f4f6" stroke-width="1.6"/>')
+        c.raw(f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="none" stroke="{PAL["green"]}" stroke-width="1.6" stroke-dasharray="6 5"/>')
+        c.raw(f'<circle cx="{cx}" cy="{cy}" r="{r*0.62:.1f}" fill="{PAL["pink_band"]}"/>')
+        for x, y in pts:
+            c.raw(f'<circle cx="{cx+x*r:.1f}" cy="{cy+y*r:.1f}" r="3.6" fill="#f4f4f6"/>')
+    template(112, 196, [(-1, -1), (1, -1), (1, 1), (-1, 1)], 54)
+    template(268, 178, [(0, -2), (-1.7320508, 1), (1.7320508, 1)], 54)
+    c.text(112, 272, "quad · 4 corners", "s", anchor="middle")
+    c.text(268, 272, "dot · 3 corners", "s", anchor="middle")
+    c.text(28, 300, "|corner| = 1 is the quad's edge midpoint AND the", "s", fill=PAL["green"])
+    c.text(28, 318, "triangle's incircle, so the disc fits in either.", "s", fill=PAL["green"])
+
+    # ---- panel 2: corner to pixels ----
+    cx0 = 400
+    c.text(cx0, 74, "corner to pixels", "l")
+    l1 = ["clip offset", "`corner * (px + 0.5 * feather)`", "`* 2 / (vp_w, vp_h) * clip.w`"]
+    l2 = ["pixels from the centre", "`d = |corner| * (px + 0.5 * feather)`"]
+    cwide = max(c.natural(l1), c.natural(l2))
+    b1 = c.box(cx0, 92, l1, "gpu", w=cwide)
+    b2 = c.box(cx0, b1[1] + b1[3] + 26, l2, "gpu", w=cwide)
+    c.arrow(cx0 + b1[2] / 2, b1[1] + b1[3], cx0 + b1[2] / 2, b2[1])
+    b3 = c.box(cx0, b2[1] + b2[3] + 16, ["px = to_px(radius, clip.w)",
+                                         "floored at 0.5 px",
+                                         "wider than the viewport: parked", "outside the clip volume"], "note", w=b1[2])
+
+    # ---- panel 3: the ramp ----
+    gx0 = cx0 + b1[2] + 56
+    c.text(gx0, 74, "the ramp", "l")
+    left, right = gx0 + 34, gx0 + 300
+    base, topy = 300, 120
+    def PX(d):
+        return left + d * (right - left) / 3.0
+    def PY(a):
+        return base - a * (base - topy)
+    c.raw(f'<path d="M{left},{base} L{right},{base}" stroke="#f4f4f6" stroke-width="1.4" fill="none"/>')
+    c.raw(f'<path d="M{left},{base} L{left},{topy-10}" stroke="#f4f4f6" stroke-width="1.4" fill="none"/>')
+    c.raw(f'<path d="M{left},{PY(1):.1f} L{right},{PY(1):.1f}" stroke="#55555f" stroke-width="1" stroke-dasharray="4 4" fill="none"/>')
+    for d in (1, 2, 3):
+        c.raw(f'<path d="M{PX(d):.1f},{base} L{PX(d):.1f},{base+6}" stroke="#f4f4f6" stroke-width="1.2"/>')
+        c.text(PX(d), base + 22, str(d), "m", anchor="middle")
+    c.text(right + 8, base + 5, "d px", "s")
+    c.text(left - 8, PY(1) + 4, "1", "m", anchor="end")
+    c.text(left - 8, base + 4, "0", "m", anchor="end")
+    # clamped: f = 1.5, px = 0.75 -> alpha 1 until d = 0, zero at 1.5
+    c.raw(f'<path d="M{PX(0):.1f},{PY(1):.1f} L{PX(0.75):.1f},{PY(1):.1f} L{PX(1.5):.1f},{PY(0):.1f}" stroke="{PAL["green"]}" stroke-width="2.4" fill="none"/>')
+    # unclamped: f = 4, alpha(0) = 0.6875, zero at 2.75
+    c.raw(f'<path d="M{PX(0):.1f},{PY(0.6875):.1f} L{PX(2.75):.1f},{PY(0):.1f}" stroke="{PAL["orange"]}" stroke-width="2.2" stroke-dasharray="7 5" fill="none"/>')
+    c.text(PX(0.1), PY(1) - 12, "f = min(feather, 2 · px)", "m", fill=PAL["green"])
+    c.text(PX(0.55), PY(0.60) + 2, "f = feather, unclamped", "m", fill=PAL["orange"])
+    c.raw(f'<path d="M{PX(0.05):.1f},{PY(0.6875):.1f} L{PX(0.05):.1f},{PY(1):.1f}" stroke="{PAL["orange"]}" stroke-width="1.4" fill="none"/>')
+    c.text(PX(0.12), PY(0.84) + 4, "never reaches 1", "s", fill=PAL["orange"])
+    note = c.box(gx0, base + 46, ["px = 0.75, feather = 4",
+                                  "`clamped   f = 1.5  → alpha(0) = 1.00`",
+                                  "`unclamped f = 4.0  → alpha(0) = 0.69`",
+                                  "the fade always ends inside the quad"], "note", w=right - gx0 + 34)
+    c.text(28, 470, "alpha = clamp((px + 0.5 · f − d) / f, 0, 1); a free dot then multiplies by its hairline fade, floored at HAIRLINE_MIN_ALPHA = 0.5.", "m")
+    c.h = 500
+    c.w = max(c.w, int(note[0] + note[2] + 28))
+    c.write("disc-coverage.svg")
+
+
+def carry_verdict():
+    """05: where a carried prediction has to land on the depth line."""
+    c = Canvas("Where a carried ink depth has to land",
+               "Two reverse-Z depth lines. When the texel under the fragment is farther than the ink's axis the test is one sided; when it is nearer the predicted depth must fall inside the tolerance band on both sides, so a surface that does not pass through the axis cannot uncover covered ink.",
+               1040, 560)
+    c.text(28, 40, "Where the predicted depth has to land", "h")
+
+    def line(y, title, note, z_left, window):
+        c.text(28, y - 76, title, "l")
+        x0, x1 = 60, 700
+        c.raw(f'<path d="M{x0},{y} L{x1},{y}" stroke="#f4f4f6" stroke-width="1.6" fill="none"/>')
+        c.text(x0, y + 26, "far · 0.0 · the clear value", "s", fill=PAL["text2"])
+        c.text(x1, y + 26, "near · 1.0", "s", anchor="end", fill=PAL["text2"])
+        axis = (x0 + x1) / 2 + 40
+        tol = 46
+        if window:
+            c.raw(f'<rect x="{axis-tol}" y="{y-16}" width="{2*tol}" height="32" fill="{PAL["green"]}" opacity="0.34"/>')
+        else:
+            c.raw(f'<rect x="{x0}" y="{y-16}" width="{axis+tol-x0}" height="32" fill="{PAL["green"]}" opacity="0.34"/>')
+        c.raw(f'<path d="M{axis},{y-22} L{axis},{y+22}" stroke="#f4f4f6" stroke-width="2"/>')
+        c.text(axis, y - 58, "axis.depth", "m", anchor="middle")
+        for s in (-1, 1):
+            c.raw(f'<path d="M{axis+s*tol},{y-12} L{axis+s*tol},{y+12}" stroke="#f4f4f6" stroke-width="1.2"/>')
+        zx = axis - 150 if z_left else axis + 120
+        c.raw(f'<circle cx="{zx}" cy="{y}" r="6" fill="{PAL["blue_band"]}"/>')
+        c.text(zx, y - 34, "z · the depth already there", "s", anchor="middle", fill=PAL["blue_band"])
+        px = axis + (28 if z_left else -20)
+        c.raw(f'<circle cx="{px}" cy="{y}" r="6" fill="{PAL["green"]}"/>')
+        c.text(px + 14, y + 66, "predicted", "s", fill=PAL["green"])
+        c.arrow(zx + 8, y + 26, px - 8, y + 26, "+ gradient · (axis.at − pixel)", above=False)
+        return c.box(760, y - 48, note, "note", w=252)
+
+    c.text(28, 64, "reverse-Z: the buffer clears to 0.0 and nearer is greater →", "s", fill=PAL["text2"])
+    line(170, "the texel is FARTHER than the axis   z ≤ depth",
+         ["one-sided", "`predicted ≤ depth + tolerance`", "ink still overhangs a", "silhouette at full width"], True, False)
+    line(370, "the texel is NEARER   z > depth + |depth| · 2⁻¹⁹",
+         ["two-sided", "`|predicted − depth| ≤ tolerance`", "the surface must pass", "THROUGH the axis"], False, True)
+
+    tb = c.box(28, 470, ["tolerance",
+                         "`|depth| · 1.9073486e-6  +  |slope| · 0.00390625 · (1 + lever)`",
+                         "2⁻¹⁹: about 16 ULPs of the depth",
+                         "2⁻⁸: the rasterizer snaps vertices to 1/256 px, so a fitted slope is",
+                         "wrong by that much, times the lever it was carried across"], "note", w=984)
+    c.text(28, tb[1] + tb[3] + 30, "One verdict, three callers: the plane carry, the neighbouring-pair carry and the disc's two-axis carry all end here.", "s", fill=PAL["yellow"])
+    c.h = int(tb[1] + tb[3] + 52)
+    c.write("carry-verdict.svg")
+
+
+def depth_modes():
+    """04a: six depth modes are three compare functions crossed with the write flag."""
+    c = Canvas("The six depth modes are three compare functions crossed with the write flag",
+               "A matrix whose rows are write and no write and whose columns are Greater, GreaterEqual and Always. Five cells hold a named mode and the pair that state() returns for it; the sixth is empty because a pass that always passes has nothing to write, and Detached sits off the matrix because it has no depth attachment at all.",
+               1060, 520)
+    c.text(28, 40, "Three compares × one write flag", "h")
+    cols = [("Greater", "strictly nearer wins"), ("GreaterEqual", "ties are kept"), ("Always", "no test")]
+    cw, ch = 262, 122
+    x0, y0 = 176, 130
+    for i, (name, sub) in enumerate(cols):
+        c.text(x0 + i * cw + (cw - 24) / 2, y0 - 36, name, "l", anchor="middle")
+        c.text(x0 + i * cw + (cw - 24) / 2, y0 - 16, sub, "s", anchor="middle")
+    c.text(x0 - 18, y0 + ch / 2 + 5, "write", "l", anchor="end")
+    c.text(x0 - 18, y0 + ch + 24 + ch / 2 + 5, "no write", "l", anchor="end")
+    cells = [[("Opaque", "`(true, Greater)`", "solids and the depth prepass"),
+              ("OpaqueEqual", "`(true, GreaterEqual)`", "source-point queries: a", "resident point ties with itself"),
+              None],
+             [("ReadOnly", "`(false, Greater)`", "sheet fills and the grid"),
+              ("ReadOnlyEqual", "`(false, GreaterEqual)`", "blended ink, tying with its own", "prepass and with faces"),
+              ("Always", "`(false, Always)`", "the background")]]
+    for r, rowcells in enumerate(cells):
+        for i, cell in enumerate(rowcells):
+            x, y = x0 + i * cw, y0 + r * (ch + 24)
+            if cell is None:
+                c.raw(f'<rect x="{x}" y="{y}" width="{cw-24}" height="{ch}" rx="{RADIUS}" fill="#23232a"/>')
+                c.text(x + 16, y + 40, "no caller", "s", fill=PAL["grey"])
+                c.text(x + 16, y + 62, "a pass that always passes", "s", fill=PAL["grey"])
+                c.text(x + 16, y + 84, "has nothing to write", "s", fill=PAL["grey"])
+                continue
+            c.box(x, y, list(cell), "gpu", w=cw - 24, h=ch)
+    ny = y0 + 2 * (ch + 24) + 6
+    note = c.box(28, ny, ["one pair, not two enums", "`fn state(self) -> (bool, CompareFunction)`"], "note")
+    d = c.box(note[0] + note[2] + 24, ny, ["Detached · the sixth mode, off the matrix",
+                                           "no depth attachment at all, so nothing to compare against:",
+                                           "a full-screen pass over a texture"], "note")
+    c.text(28, d[1] + d[3] + 32, "Reverse-Z: the depth buffer clears to 0.0 and nearer is greater, so Greater is the ordinary solid test and GreaterEqual is the one that lets a tie through.", "s", fill=PAL["yellow"])
+    c.w = max(c.w, int(d[0] + d[2] + 28), int(x0 + 3 * cw + 4))
+    c.h = int(d[1] + d[3] + 54)
+    c.write("depth-modes.svg")
+
+
+def ink_thresholds():
+    """06: one angle sorts a shared edge into ink or nothing, and the thresholds are ordered."""
+    import math
+    c = Canvas("One angle decides whether a shared edge gets ink",
+               "The cosine between two face normals sorts a shared edge into one of three verdicts. The thresholds sit in an order that has to hold: the mesher may turn 5 degrees between samples, so a sampling seam can never reach the 25 degree crease test, and the packed normal code is only good to 1.4 degrees, so the test runs on the walk's f64 normals.",
+               1120, 620)
+    c.text(28, 40, "One angle decides: does this edge get ink?", "h")
+    ax0, ax1, ay = 176, 1092, 232
+    lo, hi = math.log10(0.001), math.log10(180.0)
+    def X(deg):
+        return ax0 + (math.log10(max(deg, 0.001)) - lo) * (ax1 - ax0) / (hi - lo)
+    c.raw(f'<path d="M{ax0},{ay} L{ax1},{ay}" stroke="#f4f4f6" stroke-width="1.6" fill="none"/>')
+    for d in (0.001, 0.01, 0.1, 1, 10, 100):
+        c.raw(f'<path d="M{X(d):.1f},{ay} L{X(d):.1f},{ay+7}" stroke="#6a6a74" stroke-width="1.2"/>')
+        c.text(X(d), ay + 24, f"{d:g}", "s", anchor="middle", fill=PAL["grey"])
+    c.text(ax1, ay + 48, "degrees between the two faces' outward normals", "s", anchor="end", fill=PAL["text2"])
+    ticks = [(0.0026, PAL["navy"], "`COPLANAR_DOT = 1.0 − 1e-9`", "0.0026°: below this the faces are one flat region"),
+             (1.4, PAL["grey"], "oct16 quantisation", "1.4°: the smallest turn the packed code can see"),
+             (5.0, PAL["green"], "`QUALITY = (5.0, 0.001)`", "5°: the most a tessellation may turn between samples"),
+             (25.0, PAL["pink"], "`CREASE_COS = 0.906_307_787`", "25°: a genuine fold")]
+    for i, (deg, col, top, sub) in enumerate(ticks):
+        x = X(deg)
+        shown = ON_BLACK.get(col, col)
+        c.raw(f'<path d="M{x:.1f},{ay} L{x:.1f},{ay-34}" stroke="{shown}" stroke-width="2.6"/>')
+        ty = 96 if i % 2 == 0 else 150
+        c.text(x, ty, top.replace("`", ""), "m" if top.startswith("`") else "s", anchor="middle", fill=col)
+        c.text(x, ty + 18, sub, "s", anchor="middle", fill=PAL["text2"])
+        c.raw(f'<path d="M{x:.1f},{ty+26:.1f} L{x:.1f},{ay-36:.1f}" stroke="#4a4a54" stroke-width="1"/>')
+    # the two verdict bands
+    def band(y, name, segs):
+        c.text(28, y + 26, name, "s", fill=PAL["blue_band"])
+        for a, b, fill, label in segs:
+            xa, xb = X(a), X(b)
+            c.raw(f'<rect x="{xa:.1f}" y="{y}" width="{xb-xa:.1f}" height="38" rx="4" fill="{fill}"/>')
+            if label:
+                c.text((xa + xb) / 2, y + 24, label, "s", anchor="middle", fill=PAL["black"], keep=True)
+    band(300, "authored Mesh", [(0.001, 0.0026, PAL["zero_band"], ""),
+                                (0.0026, 180, PAL["blue_band"], "ink: every edge the author put there")])
+    band(366, "tessellation", [(0.001, 0.0026, PAL["zero_band"], ""),
+                               (0.0026, 25, PAL["zero_band"], "dropped: this is the sampling grid, not the shape"),
+                               (25, 180, PAL["pink_band"], "ink: a crease")])
+    c.raw(f'<path d="M{X(25):.1f},{300} L{X(25):.1f},{404}" stroke="{PAL["pink_band"]}" stroke-width="1.6" stroke-dasharray="6 5" fill="none"/>')
+    c.text(X(0.0026) - 6, 438, "VIEWER_ALL_EDGES re-opens the flat sliver", "m", fill=PAL["orange"])
+    c.text(X(25) - 6, 458, "VIEWER_SEAMS re-opens the grid", "m", anchor="end", fill=PAL["orange"])
+    b1 = c.box(28, 480, ["A border has no angle to test",
+                         "`edge_faces[ei][1] == u32::MAX`",
+                         "one face only, so the verdict is ink before any cosine is",
+                         "computed: at any angle, in both bands"], "sel")
+    b2 = c.box(b1[0] + b1[2] + 24, 480, ["Why the order of the ticks is the argument",
+                                         "5° is the most the mesher may turn between samples, so a sampling seam",
+                                         "cannot reach 25°: the crease test never mistakes the grid for the shape",
+                                         "1.4° is the packed code's error, so the test runs on the walk's f64",
+                                         "normals and never on the codes the shader reads"], "note")
+    c.w = max(c.w, int(b2[0] + b2[2] + 28))
+    c.h = int(b2[1] + b2[3] + 32)
+    c.write("ink-thresholds.svg")
+
+
+def three_normals():
+    """09: three normals at one vertex, and what each is allowed to decide."""
+    import math
+    c = Canvas("Three normals at one vertex, and what each is allowed to decide",
+               "A shading normal is an average chosen to make a tessellation look smooth. A cone's apex fan averages to straight up, so asking that average whether the seam faces away answered yes from every side and the seam vanished. The cull indexes each triangle's own normal by the exact bits of its edge endpoints instead.",
+               1120, 560)
+    c.text(28, 40, "Three normals at one vertex, and what each decides", "h")
+
+    # ---- left: the cone and its seam ----
+    c.text(40, 76, "the cone", "l")
+    apex = (188, 110)
+    bl, br, by = 96, 280, 300
+    c.raw(f'<path d="M{apex[0]},{apex[1]} L{bl},{by} A 92 26 0 0 0 {br},{by} Z" fill="{PAL["blue_band"]}" opacity="0.30" stroke="#9a9aa4" stroke-width="1.2"/>')
+    c.raw(f'<ellipse cx="188" cy="{by}" rx="92" ry="26" fill="none" stroke="#9a9aa4" stroke-width="1.2" stroke-dasharray="5 4"/>')
+    c.raw(f'<path d="M{apex[0]},{apex[1]} L{188+52},{by+18}" stroke="#f4f4f6" stroke-width="3"/>')
+    c.text(258, 340, "the seam", "s")
+    c.raw(f'<circle cx="{apex[0]}" cy="{apex[1]}" r="30" fill="none" stroke="#6a6a74" stroke-width="1.2" stroke-dasharray="5 4"/>')
+    c.arrow(apex[0] + 32, apex[1] + 6, 372, 150, "zoom")
+
+    # ---- middle: the apex fan ----
+    fx, fy = 520, 190
+    c.text(392, 76, "the apex, enlarged", "l")
+    fan = []
+    for k in range(4):
+        a0 = math.radians(200 + k * 35)
+        a1 = math.radians(200 + (k + 1) * 35)
+        p0 = (fx + 110 * math.cos(a0), fy + 110 * math.sin(a0))
+        p1 = (fx + 110 * math.cos(a1), fy + 110 * math.sin(a1))
+        fan.append((p0, p1))
+        c.raw(f'<polygon points="{fx},{fy} {p0[0]:.1f},{p0[1]:.1f} {p1[0]:.1f},{p1[1]:.1f}" fill="{PAL["blue_band"]}" opacity="0.55" stroke="#9a9aa4" stroke-width="0.9"/>')
+    seam = fan[1][1]
+    c.raw(f'<path d="M{fx},{fy} L{seam[0]:.1f},{seam[1]:.1f}" stroke="#f4f4f6" stroke-width="3"/>')
+    c.arrow(fx, fy, fx, fy - 84)
+    c.text(fx + 128, fy - 96, "shading normal", "s", fill=PAL["green"])
+    c.text(fx + 128, fy - 78, "the fan's mean · lighting only", "s", fill=PAL["green"])
+    for (p0, p1), lean in ((fan[1], -1), (fan[2], 1)):
+        cx_ = (fx + p0[0] + p1[0]) / 3
+        cy_ = (fy + p0[1] + p1[1]) / 3
+        c.raw(f'<path d="M{cx_:.1f},{cy_:.1f} L{cx_+lean*54:.1f},{cy_+22:.1f}" stroke="{PAL["pink_band"]}" stroke-width="2.6" fill="none"/>')
+        c.raw(f'<circle cx="{cx_+lean*54:.1f}" cy="{cy_+22:.1f}" r="4" fill="{PAL["pink_band"]}"/>')
+    c.text(392, 326, "facet normals: each triangle's own cross product,", "s", fill=PAL["pink"])
+    c.text(392, 344, "turned outward by the face sign · the facing cull", "s", fill=PAL["pink"])
+    c.text(392, 368, "oct16 → facing word (1.4°) · what the shader compares", "m")
+
+    # ---- right: the consequence ----
+    c.text(860, 76, "the same seam, two culls", "l")
+    w1 = c.box(860, 96, ["cull with the shading normal",
+                         "both average to the same up vector",
+                         "→ both face away → the seam is culled",
+                         "and disappears"], "warn", w=292)
+    c.raw(f'<rect x="860" y="96" width="292" height="{w1[3]:.1f}" rx="{RADIUS}" fill="none" stroke="{PAL["orange"]}" stroke-width="1.8" stroke-dasharray="7 5"/>')
+    c.box(860, w1[1] + w1[3] + 22, ["cull with the facet normals",
+                                    "the two triangles splay left and right",
+                                    "→ one of them faces the eye",
+                                    "→ the seam is drawn"], "cpu", w=292)
+    n = c.box(28, 402, ["The refusals built into the lookup",
+                        "the key is the two endpoint positions' exact bits, smallest first, so winding cannot change the answer",
+                        "a periodic face's seam has both its triangles in one mesh and keeps both",
+                        "more than two incident facets, or a facet missing on the lending face, returns FACING_UNKNOWN — always draw — rather than a guess"], "note")
+    c.w = max(c.w, int(n[0] + n[2] + 28), 1180)
+    c.h = int(n[1] + n[3] + 32)
+    c.write("three-normals.svg")
+
+
+def frame_passes():
+    """12: the frame as six passes, and which one owns the physical depth."""
+    c = Canvas("One frame, six passes, and who touches each attachment",
+               "A matrix of the six render passes encode_frame records against the five attachments they can touch. The physical depth is cleared and written by the face pass alone; every later pass either attaches it read-only or samples it, and the pick passes use a second depth of their own.",
+               1200, 620)
+    c.text(28, 40, "One frame, six passes", "h")
+    c.text(28, 62, "in the order encode_frame records them", "s", fill=PAL["text2"])
+    lx, lw = 28, 244
+    cx0, cwid, gap = 292, 166, 8
+    hy, ry, rh, rgap = 106, 156, 54, 10
+    cols = [("surface", "colour"), ("physical", "Depth32Float"), ("gradient", "Rg16Float"),
+            ("coverage", "R8Unorm"), ("ID", "Rg32Uint")]
+    for i, (a, b) in enumerate(cols):
+        x = cx0 + i * (cwid + gap) + cwid / 2
+        c.text(x, hy, a, "l", anchor="middle")
+        c.text(x, hy + 18, b, "m", anchor="middle", fill=PAL["text2"])
+    # the depth column's highlight, drawn under the cells
+    dx = cx0 + 1 * (cwid + gap)
+    c.raw(f'<rect x="{dx-6}" y="{ry+rh+rgap-6}" width="{cwid+12}" height="{4*(rh+rgap)+6}" rx="8" fill="{PAL["yellow_light"]}" opacity="0.16"/>')
+    rows = [
+        ("`splat.points`", "only when the cloud, camera or knobs moved", None),
+        ("`face pass`", "backdrop, grid, faces, cloud resolve",
+         [("w", "Clear → Store"), ("w", "Clear 0.0 → Store"), ("w", "Clear → Store"), ("-", ""), ("-", "")]),
+        ("`selection coverage`", "only when a selected face is visible",
+         [("-", ""), ("r", "attached read-only"), ("-", ""), ("w", "Clear → Store"), ("-", "")]),
+        ("`ink pass`", "the scene list, resolved at 4×",
+         [("w", "Load → Store"), ("r", "read-only AND sampled"), ("r", "sampled"), ("r", "sampled"), ("-", "")]),
+        ("`pick pass`", "only when a pick is pending",
+         [("-", ""), ("w", "its own · Clear 0.0"), ("w", "its own · Clear"), ("-", ""), ("w", "Clear → Store")]),
+        ("`pick ink`", "the same list, narrowed by mode",
+         [("-", ""), ("r", "its own, read-only"), ("r", "its own, sampled"), ("-", ""), ("w", "Load → Store")]),
+    ]
+    fill = {"w": (PAL["pink_band"], 1.0), "r": ("#6b2f4a", 1.0), "-": ("#23232a", 1.0)}
+    y = ry
+    for label, gloss, cells in rows:
+        c.text(lx, y + 22, label.replace("`", ""), "m")
+        c.text(lx, y + 42, gloss, "s", fill=PAL["text2"])
+        if cells is None:
+            w = 5 * cwid + 4 * gap
+            c.raw(f'<rect x="{cx0}" y="{y}" width="{w}" height="{rh}" rx="6" fill="{PAL["zero_band"]}" opacity="0.5"/>')
+            c.text(cx0 + w / 2, y + 24, "its own private pair, one sample always:", "s", anchor="middle", fill=PAL["black"], keep=True)
+            c.text(cx0 + w / 2, y + 42, "Rgba8Unorm colour + Depth32Float, cleared transparent and 0.0", "s", anchor="middle", fill=PAL["black"], keep=True)
+        else:
+            for i, (kind, txt) in enumerate(cells):
+                x = cx0 + i * (cwid + gap)
+                col, op = fill[kind]
+                c.raw(f'<rect x="{x}" y="{y}" width="{cwid}" height="{rh}" rx="6" fill="{col}" opacity="{op}"/>')
+                if not txt:
+                    c.text(x + cwid / 2, y + rh / 2 + 5, "—", "s", anchor="middle", fill=PAL["grey"])
+                    continue
+                words, line, lines = txt.split(" "), "", []
+                for word in words:
+                    trial = (line + " " + word).strip()
+                    if width(trial, "s") > cwid - 18:
+                        lines.append(line); line = word
+                    else:
+                        line = trial
+                lines.append(line)
+                ty = y + rh / 2 + 5 - (len(lines) - 1) * 9
+                for ln in lines:
+                    c.text(x + cwid / 2, ty, ln, "s", anchor="middle",
+                           fill=PAL["black"] if kind == "w" else None, keep=(kind == "w"))
+                    ty += 18
+        y += rh + rgap
+    c.text(dx + cwid / 2, y + 8, "one writer", "s", anchor="middle", fill=PAL["yellow"])
+    lg = y + 34
+    for i, (kind, name) in enumerate((("w", "written"), ("r", "read"), ("-", "untouched"))):
+        x = lx + i * 150
+        col, op = fill[kind]
+        c.raw(f'<rect x="{x}" y="{lg}" width="26" height="16" rx="4" fill="{col}" opacity="{op}"/>')
+        c.text(x + 34, lg + 13, name, "s", fill=PAL["text2"])
+    c.text(lx, lg + 68, "The physical depth is cleared and written by the face pass alone; the two passes after it attach or sample it, and the pick passes carry a second depth of their own.", "s", fill=PAL["yellow"])
+    c.text(lx, lg + 44, "then copy_window: copy_texture_to_buffer, 8 B a texel → queue.submit → pick.map → output.present", "s", fill=PAL["text2"])
+    c.w, c.h = int(cx0 + 5 * cwid + 4 * gap + 28), int(lg + 92)
+    c.write("frame-passes.svg")
+
+
+def producer_contract():
+    """06: what crosses a producer's edge, and the one index it has to get right."""
+    c = Canvas("What crosses a producer's edge",
+               "A producer is handed one kernel geometry, the row it is filling and the vertex base its indices must start from. It appends to the lane tables and reports one Row measured in the object's own space. The file, the document, the camera and the selection are not in scope.",
+               1200, 600)
+    c.text(28, 40, "What crosses a producer's edge", "h")
+    # the fence
+    fence = ["the file", "the document", "the camera", "the selection"]
+    fx = 340
+    for i, name in enumerate(fence):
+        w = width(name, "s") + 26
+        c.raw(f'<rect x="{fx}" y="70" width="{w:.1f}" height="26" rx="6" fill="#2a2a32"/>')
+        c.text(fx + w / 2, 88, name, "s", anchor="middle", fill=PAL["grey"])
+        c.raw(f'<path d="M{fx+6},{92} L{fx+w-6:.1f},{74}" stroke="#6a6a74" stroke-width="1.4"/>')
+        fx += w + 12
+    c.text(fx + 6, 88, "never in scope", "s", fill=PAL["grey"])
+
+    mid = c.box(340, 116, ["one producer",
+                           "`walk_mesh(arena, ink, m, mc)`",
+                           "`walk_brep(arena, ink, brep, cx)`",
+                           "`walk_line(seg, l, row)`",
+                           "one geometry, one row, nothing else"], "note", w=372)
+    a = c.box(28, 120, ["the geometry", "`&Mesh  &BRep  &NurbsCurve`", "f64, the kernel's own"], "cpu")
+    b = c.box(28, a[1] + a[3] + 24, ["WalkCx · the row it is filling",
+                                     "`vert_base` arena rows already on the GPU",
+                                     "`row` this object's row",
+                                     "`cloud_px` the file's point-size override"], "cpu")
+    c.arrow(a[0] + a[2], a[1] + a[3] / 2, mid[0], a[1] + a[3] / 2)
+    c.arrow(b[0] + b[2], b[1] + b[3] / 2, mid[0], b[1] + b[3] / 2)
+    out = c.box(mid[0] + mid[2] + 44, 140, ["Row · what it reports",
+                                            "`bounds` an Aabb in the object's OWN space",
+                                            "`spacing` diagonal / √vertices",
+                                            "`flags` PRINT · SMOOTH · SINGLE · OPEN",
+                                            "`faces` did it draw triangles?"], "cpu")
+    c.arrow(mid[0] + mid[2], out[1] + 40, out[0], out[1] + 40)
+    c.text(out[0], out[1] + out[3] + 20, "Row::thin: a box and nothing else, for linework and points", "s", fill=PAL["text2"])
+
+    ty = mid[1] + mid[3] + 40
+    tabs = [("`ArenaRows`", "verts · vids · idx"), ("`SegRows`", "pipes · ribbons"), ("`GlyphRows`", "spheres · dots")]
+    tx = 340
+    for label, body in tabs:
+        r = c.box(tx, ty, [label.replace("`", ""), body], "gpu")
+        c.arrow(r[0] + r[2] / 2, r[1], r[0] + r[2] / 2, mid[1] + mid[3] + 8)
+        tx = r[0] + r[2] + 16
+    c.text(340, ty + 90, "append-only: a producer never reads a table back", "s", fill=PAL["text2"])
+
+    ruler_x = out[0]
+    cap_y = out[1] + out[3] + 56
+    c.text(ruler_x, cap_y, "arena.verts · one index space", "s")
+    zones = [(PAL["yellow_light"], "this object", 70), (PAL["blue_band"], "earlier objects of this file", 62), ("#3a3a44", "already uploaded", 52)]
+    zy = cap_y + 14
+    for colr, name, hgt in zones:
+        c.raw(f'<rect x="{ruler_x}" y="{zy}" width="44" height="{hgt}" rx="4" fill="{colr}"/>')
+        c.text(ruler_x + 56, zy + hgt / 2 + 5, name, "s", fill=PAL["text2"])
+        zy += hgt + 6
+    c.text(ruler_x, zy + 26, "base = cx.vert_base + arena.verts.len()", "m")
+    c.text(ruler_x, zy + 46, "idx.push(base + i) — wrong here is silent", "s", fill=PAL["yellow"])
+    c.w = int(max(ruler_x + 320, out[0] + out[2] + 28))
+    c.h = int(zy + 70)
+    c.write("producer-contract.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history, tiles, splat_resolve, pick_window, attachment_cost, tile_pool, pick_modes, cloud_pick, group_two, side_table, msaa_budget, tombstone, band_coverage, disc_coverage, carry_verdict, depth_modes, ink_thresholds, three_normals, frame_passes, producer_contract):
         draw()
     print(f'wrote {len(list(HERE.glob("*.svg")))} illustrations')

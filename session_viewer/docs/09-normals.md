@@ -89,7 +89,7 @@ The vertex stage transforms the baked normal; `shade` normalizes `in.normal` bec
 - Index every triangle's geometric normal by its exact edge (position bits, winding-free). A seam of one periodic face keeps both incident facets.
 - Missing or ambiguous incidence disables the cull instead of guessing.
 
-![Diagram: face triangles · face_facets · FacetPair · EdgePen::facing · push_edge_pipes](illustrations/09-04.svg)
+![Three normals live at one vertex: the fan's shading average, each triangle's own facet normal, and the packed 16-bit code; the facing cull may only ask the facet normals.](illustrations/three-normals.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 

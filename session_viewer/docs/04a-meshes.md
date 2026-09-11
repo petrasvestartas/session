@@ -98,6 +98,8 @@ The ink layout this lesson builds has four entries: object rows, anchored transl
 
 <!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-58 -->
 
+![The six depth modes are three compare functions crossed with the write flag; Always with a write has no caller, and Detached has no depth attachment at all.](illustrations/depth-modes.svg)
+
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
