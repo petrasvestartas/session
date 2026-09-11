@@ -27,6 +27,12 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 - Checkpoint 04a: one mesh drawn through the arena; the ink pass exists but draws nothing of its own.
 - A stroke is a camera-facing quad per segment. The vertex stage pulls six vertices by index from the segment table; the fragment stage computes exact pixel coverage of a capsule and asks the physical depth whether the axis is visible.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · The segment row
 
 - 40 bytes, ends as flat `f32`s: a `vec3` would pad the row to 48.
@@ -67,9 +73,9 @@ flowchart LR
 
 - `DepthMode::Always` with blending: the shader decides visibility itself, so no hardware depth test can hide a stroke that lies on a surface.
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-279 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs type lines=253-275 -->
 
-<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=280-314 -->
+<!-- file: 04b session_viewer/src/engine/gpu/segments.rs copy lines=276-314 -->
 
 ## Step 3 · The shared visibility rule
 
@@ -91,31 +97,31 @@ flowchart LR
 
 ![A value handed from the vertex shader to the fragment shader is blended perspective-correctly; marked flat it is not blended at all, which is how a stroke's half-width travels.](illustrations/interpolate.svg)
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-7 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=1-4 -->
 
 - `band_area` integrates the pixel box against the capsule exactly, so coverage cannot beat with the line's subpixel phase the way a distance ramp does.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=8-30 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=5-17 -->
 
 - Per-vertex outputs are flat: the half-width at each end goes down as two scalars and is resolved per pixel, because a per-vertex width is projective over a trapezoid.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=31-77 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=18-25 -->
 
 - Clip against the near plane before any divide; a hand divide behind the eye mirrors the point through the screen centre.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=78-142 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=26-90 -->
 
 - The fragment: coverage times fade, then `ink_visible` at the closest axis point. `fs_id` and `fs_edge_id` write `(row + 1, segment + 1)` for picking.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=143-199 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=91-137 -->
 
 - `coverage` is where the exactness lives: `band_area` integrates the pixel box against the capsule instead of sampling a distance, so coverage cannot beat against the line's subpixel phase.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=200-257 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=138-187 -->
 
 - The ID entries write `(row + 1, segment + 1)`, and the segment half carries a tag bit so a picked ribbon can be told from a picked face in the same channel.
 
-<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=258-280 -->
+<!-- file: 04b session_viewer/src/shaders/ribbon.wgsl type lines=188-280 -->
 
 <!-- check: 04b -->
 
@@ -173,7 +179,7 @@ Expected:
 
 - Append `?thickness=4` to the URL: every stroke widens on screen while the geometry stays put, because the pen is applied in `ribbon.wgsl`, not in the vertex data.
 - Zoom far out: the strokes keep their pixel width. A world-space width would vanish; a screen-space pen does not.
-- Set `aa=0.5` and compare an edge-on stroke with `aa=2`: the antialiasing ramp is the only thing that changed.
+- Set `?thickness=0.2`: the stroke thins to a hairline and keeps a floor of alpha rather than disappearing, because `band_area` integrates the pixel box exactly instead of ramping a distance. (`?aa=` feathers markers and dots, not ribbons — the ribbon shader never reads `line.feather`.)
 
 ## Questions and answers
 

@@ -194,7 +194,7 @@
     "session_viewer/src/app/walk/mod.rs": "ca10d0f840c734d3c4f32e84c614d58ad1576d94d6bc1b565fc42d8980b221fe",
     "session_viewer/src/app/walk/points.rs": "b0ab48bbcd56db66750c11695527498f2df7387403b2e80159674affd3d59787",
     "session_viewer/src/app/walk/sheet.rs": "839b1857726771aa69b1ba748e9708d1e91dea37b2fffabf5e91bca5f4df2734",
-    "session_viewer/src/camera.rs": "0ec530b215c9c4b5734278056618c013ac83ec454c51b41212ec21bdd03a5bf1",
+    "session_viewer/src/camera.rs": "8c3bcdd7c022065ce49f2acd85907464883e0b782dd79333e11e212070a05a5a",
     "session_viewer/src/engine/gpu/arena.rs": "bb794e4909eee3ce11b42d3d8266a25283acf159078fcf4f0abb271b62318f6f",
     "session_viewer/src/engine/gpu/backdrop.rs": "e411fceaf4c766bb1ca8ead1dfa057cc2163711ff45c529ca62d6f118faad8c5",
     "session_viewer/src/engine/gpu/buffers.rs": "6a57e74f988c3d26f65fa8207d261b58b86737049d81c16e02d4919788f6c569",
@@ -336,7 +336,7 @@
   },
   "supersedes": "d05cf486b88d1dae6a368b52f9ee0db98ec8696d84a112d8fc4f1a0e7c61a643",
   "tree_encoding": "sha256 of sorted path + NUL + file sha256 + newline records",
-  "tree_sha256": "2fc6ac66d4f22adfc421d2de0a31acbbaa9c5f078b07c8d41616a0394d6db6ce",
+  "tree_sha256": "0759ef46192c47520f1dfef812ad40aa5e0d49552f5338fb8d86153d73d1bf63",
   "verification": {
     "cad_captures": 12,
     "cleanup": "empty npm lock and three generated Python caches removed; retained running build outputs and local/user assets",

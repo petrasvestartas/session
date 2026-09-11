@@ -2,13 +2,8 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    A["Cargo.toml<br/>src/lib.rs"] -- "cargo (wasm32)" --> B[".wasm"]
-    B -- "wasm-bindgen" --> C["JS glue"]
-    C -- "Trunk" --> D["index.html + bundle"]
-    D -- "browser" --> E["start() writes the page status"]
-```
+
+![Four tools and four artefacts: cargo produces a .wasm a browser cannot load on its own, wasm-bindgen writes the JavaScript that can, Trunk assembles the page around it, and the browser runs start().](illustrations/toolchain.svg)
 
 ## Starting point
 
@@ -19,6 +14,12 @@ flowchart TB
 mkdir -p "$COURSE_WORK/session_viewer/src"
 cd "$COURSE_WORK/session_viewer"
 ```
+
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after step 6, and fails after 1–5: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 1–5 build again at step 6. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
 
 ## Step 1 · Declare the crate
 

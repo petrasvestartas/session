@@ -35,11 +35,17 @@ flowchart TB
 
 - Checkpoint 17. The ink shader hides a stroke sample when the surface's depth plane, carried to the stroke axis through the stored gradient, lies in front of the axis.
 - That plane is infinite. A narrow strip beside a seam has a plane that crosses the seam ray outside the strip, so a seam disappears at teapot concavities and where solids touch.
-- This lesson ends at the current production runtime.
+- This lesson finishes the renderer. Two lessons still change production: 19 adds drawing sheets and 20 gives the kernel its history, and lesson 20 is where the reconstruction is compared against production.
 
 <!-- supplied: 18 -->
 
 ![The depth plane continues beyond the finite triangle; only a finite nearer hit can hide the axis.](illustrations/finite-triangle.svg)
+
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 1–7 and 11, and fails after 8–10: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 8–10 build again at step 11. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
 
 ## Part A · Remember which triangle won
 
@@ -174,51 +180,49 @@ flowchart TB
     style E fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-55 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=1-57 -->
 
 - The pool is one flat array of reference words shared by every tile, not a fixed quota each. A dense tile borrows space a sparse one never used, which is what keeps the allocation proportional to the scene rather than to the grid.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=56-77 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=58-79 -->
 
 - `PoolReport` reads the scan's first record back one frame later: the words every list needed. A pool that was too small keeps the conservative rejection for that one frame and is reallocated before the next projection.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=78-149 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=80-151 -->
 
 - `ProjectionKey` is the cache key: camera matrix plus the object table's geometry revision. Selection is not in it.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=150-182 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=152-184 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=183-215 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=185-217 -->
 
 - `prepare` resizes storage for the triangle count, the framebuffer and the last report; beyond the device's storage binding limit it releases the tables and reports so the ink shader keeps the plane rule.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=216-297 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=218-299 -->
 
 - `encode` runs project → clear headers → count → three scan dispatches → fill → copy the report, then records the key.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=298-368 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=300-370 -->
 
 - Coverage is rasterized twice: once to count how many references each tile needs, and again, after the scan has turned those counts into offsets, to write them. Counting first is what removes the per-tile cap.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=369-404 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=371-406 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=405-436 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=407-438 -->
 
 - Layouts and pipelines: the project pass sees groups 0–2 from compute, the raster pass reads `projected` in the vertex stage and writes records in the fragment stage.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=437-462 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=439-464 -->
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=463-560 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=465-572 -->
 
 - Every preparation shader is compiled with the same projected-record and tile-grid arithmetic the ink shader uses, so the CPU, the raster passes and the ink query can never disagree about which tile a pixel is in.
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=561-572 -->
-
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=573-585 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs type lines=573-580 -->
 
 Copy the rest of the file:
 
-<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=586-703 -->
+<!-- file: 18 session_viewer/src/engine/gpu/triangle_tiles.rs copy lines=581-703 -->
 
 <!-- check: 18 -->
 
@@ -315,13 +319,13 @@ flowchart LR
 
 ### Step 11 · Masks rasterized once, reused while the view stands still
 
-- `MaskKey` is what a coverage mask depends on: the camera matrix, the geometry revision, the selection revision, the highlighted face's revision, the size and the sample count. While none of them changes, the mask passes are skipped and the previous masks are composited again: a still view costs no rasterization.
+- `MaskKey` is what a coverage mask depends on: the camera matrix, the geometry revision, the selection revision, the highlighted face's revision, the size, the sample count, and — because edges are part of the coverage — the edge toggle and the pen width. While none of them changes, the mask passes are skipped and the previous masks are composited again: a still view costs no rasterization.
 - When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments, and the faces are rasterized once for both masks; a single outline keeps its own pass.
 - `selection_revision` counts selection flag changes, so a selection change rebuilds the masks without touching the tile index.
 
 ```mermaid
 flowchart TB
-    K["MaskKey<br/>mvp · geometry · selection · faces · size · samples"] -- "is_valid?" --> S{"stale?"}
+    K["MaskKey<br/>mvp · geometry · selection · faces<br/>size · samples · edges · pen"] -- "is_valid?" --> S{"stale?"}
     S -- no --> R["draw_combined · previous masks"]
     S -- yes --> P["begin_masks · one pass · both attachments"]
     P --> Q["encode_pool · mark_valid"]

@@ -18,6 +18,12 @@ flowchart TB
 - A standalone NURBS surface still tessellates its whole natural UV rectangle and its pipes have no source IDs.
 - This lesson changes only the viewer consumer; the kernel's constrained mesher and `TrimLoops` supply the trimmed mesh.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Prefer the producer's cached trim mesh
 
 - Triangulating the full rectangle and drawing a hole curve on top does not make a hole. The fill must exclude the region, so the constrained mesh cached on the surface wins over a fresh grid.
@@ -106,7 +112,7 @@ If a periodic boundary crosses the wrong part of the surface, inspect the UV bra
 
 - Append `?top=1` and look through the hole: the fill is absent there, not merely covered by a curve.
 - Orbit around the torus seam with `?thickness=3`: the seam stays one line, drawn from one face use, although two parameter uses share it.
-- Append `?distance=0.5` near a natural boundary of the trimmed patch: the rim is still ink from the mesh nodes, so it cannot detach when you zoom.
+- Zoom in on a natural boundary of the trimmed patch with the wheel: the rim is still ink from the mesh nodes, so it cannot detach however close you get.
 
 ## Questions and answers
 

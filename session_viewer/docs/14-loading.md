@@ -18,6 +18,12 @@ flowchart TB
 - Checkpoint 13: the shell loads one bundled fixture from `loader.rs`; there is no manifest, no network and no replacement.
 - This lesson installs the production path: route → manifest → validate → decode → staged replacement, plus the live source that watches a published manifest.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 1–5 and 7, and fails after 6: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, step 6 build again at step 7. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · The manifest is placement, not geometry
 
 - A manifest lists files and where each sits (`at`, `xform`, or the auto-grid); the geometry stays in `.pb` files, so a placement edit never re-uploads geometry.

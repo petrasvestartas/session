@@ -51,11 +51,11 @@ pub struct Camera {
 }
 
 impl Camera {
-    /// A camera at the isometric view (45° yaw, −30° pitch), distance 3, perspective, millimeters.
+    /// A camera at the isometric view (30° yaw, −30° pitch), distance 3, perspective, millimeters.
     pub fn new() -> Self {
         use std::f64::consts::FRAC_PI_6;
 
-        // iso start: yaw 45 deg about T, pitch -30 deg about the tileted right axis
+        // iso start: yaw -30 deg about Z, then pitch -30 deg about the tilted right axis
         let yaw_q = Quaternion::from_axis_angle(Vector::z_axis(), -FRAC_PI_6);
         let rv = yaw_q.rotate_vector(Vector::x_axis());
         let pitch_q = Quaternion::from_axis_angle(rv, -FRAC_PI_6);
@@ -297,7 +297,8 @@ impl Camera {
         *self = Camera::new();
     }
 
-    /// Frame an AABB: center the target on it and set distance so its bounding sphere fills the FOV (+10%).
+    /// Frame an AABB: center the target on it and set the distance from the box measured along the
+    /// camera's own axes, so an elongated scene fills the view rather than its bounding sphere (+5%).
     pub fn fit(&mut self, bounds: &Aabb, aspect: f64) {
         if !bounds.is_finite() {
             return;

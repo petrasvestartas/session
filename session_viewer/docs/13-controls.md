@@ -31,6 +31,12 @@ flowchart TD
 - Checkpoint 12: clicks select objects and edges. `Gpu` already owns empty `controls` and `control_net` lanes.
 - A display vertex is not a control: a curve draws hundreds of chords from a few control points. F10 must show the original ones.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 1, 2 and 6, and fails after 3–5: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 3–5 build again at step 6. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Control identities
 
 - `ControlId` names a control within its parent's source geometry; the GPU slot it was uploaded to is temporary.
@@ -72,9 +78,9 @@ flowchart LR
 
 - `content_length` is a HEAD request: the size a whole file would download, before a byte of it is fetched, so a scene can refuse what the device cannot hold.
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-210 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=122-228 -->
 
-<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=211-248 -->
+<!-- file: 13 session_viewer/src/app/fetch.rs copy lines=229-248 -->
 
 - `QueryView` freezes the click's projection; every page is tested against the same matrix and pixel window.
 - A cube crossing the eye plane cannot be excluded, so `intersects` returns true for it.
@@ -101,9 +107,9 @@ flowchart LR
 
 <!-- file: 13 session_viewer/src/app/cloud_query.rs type lines=252-270 -->
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-397 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=271-368 -->
 
-<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=398-556 -->
+<!-- file: 13 session_viewer/src/app/cloud_query.rs copy lines=369-556 -->
 
 <!-- check: 13 -->
 
@@ -233,7 +239,9 @@ Expected:
 
 - Select the polyline and press F10: every vertex is a control, so the markers sit on the display corners; select the line: two markers.
 - With controls shown, drag the window edge to resize: the markers are re-uploaded at the new logical-to-physical scale and keep their size.
-- Serve a directory holding a large `cloud.pb` locally and open `?scene=stream-test.yaml&data=http://127.0.0.1:PORT`; select the cloud, press F10 and click a point: the status names an original fixed32 ID that the display prefix never loaded.
+- Select a NURBS curve and press F10, then compare the marker count with the number of chords you can see: the markers are the control net the document carries, not the samples the tessellator chose.
+- Press F10 on an object with no source geometry (a document title plate): the status says so instead of inventing controls.
+- The streamed path needs a point cloud served over HTTP, which this checkpoint has no fixture for — `?scene=stream-test.yaml` requires a `?data=` base URL holding a large `cloud.pb`, and the course never supplies one. Lesson 15 publishes real scenes; come back to the page loop there if you want to watch it in the network panel.
 - Clear the selection while a page loop is running (Escape twice): the query token is dropped and no late page selects anything.
 
 ## Questions and answers

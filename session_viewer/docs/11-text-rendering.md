@@ -21,6 +21,12 @@ flowchart TB
 - Checkpoint 10: labels are shaped and measured, nothing drawn.
 - Three GPU owners appear: plates (black backing), planes (fixed world text), and the lane that drives Glyphon and both of them.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Supplied comparison page
 
 The same-font white-on-black comparison page and its WASM export are supplied. Install them first; `lib.rs` declares the module in the last step.

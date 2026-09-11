@@ -116,7 +116,21 @@ flowchart LR
 
 <!-- check: 17 -->
 
-### Step 3 · Producers emit one face address per triangle
+### Step 3 · The arena owns a `Faces` lane
+
+- Vertex, id and index buffers gain `STORAGE` usage so `vs_face` can read them.
+- `draw_component_ids` replaces the object-ID draw only in component pick mode.
+
+```mermaid
+flowchart TB
+    B["vertex · id · index buffers"] -- "STORAGE usage" --> L["Faces lane"]
+    L -- "component mode" --> D["draw_component_ids"]
+    style L fill:#f0bcdb,stroke:#ce4095,color:#111
+```
+
+<!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=1,2,4,5,6,7,8,10,11 -->
+
+### Step 4 · Producers emit one face address per triangle
 
 - Meshes: sorted source face keys, cached triangulation or the fan the kernel would build; the assertion ties the address stream to the triangle stream.
 - BReps: `push_face` records the face index it is tessellating.
@@ -132,24 +146,10 @@ flowchart TB
 
 <!-- file: 17 session_viewer/src/app/walk/brep.rs type -->
 
-### Step 4 · The arena owns a `Faces` lane
-
-- Vertex, id and index buffers gain `STORAGE` usage so `vs_face` can read them.
-- `draw_component_ids` replaces the object-ID draw only in component pick mode.
-
-```mermaid
-flowchart TB
-    B["vertex · id · index buffers"] -- "STORAGE usage" --> L["Faces lane"]
-    L -- "component mode" --> D["draw_component_ids"]
-    style L fill:#f0bcdb,stroke:#ce4095,color:#111
-```
-
-<!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=1,2,4,5,6,7,8,9,10,11 -->
-
 ### Step 5 · A third selection mode
 
 - `SelectionMode::Face` carries parent and face, so Escape returns to the parent like edges do.
-- `PickMode::Component`: the pick sorter prefers a nearby edge, then a face, then the object.
+- `PickMode::Component`: the pick sorter prefers a nearby edge, then a face. There is no object fallback — a component click that finds neither selects nothing, because narrowing to a component is a different intent from selecting the whole object.
 
 ```mermaid
 flowchart TB
@@ -216,13 +216,13 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-16 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=1-15 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=17-68 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=16-67 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=69-95 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=68-85 -->
 
-<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=96-142 -->
+<!-- file: 17 session_viewer/src/app/scene_text.rs type lines=86-142 -->
 
 <!-- file: 17 session_viewer/src/app/scene.rs type -->
 
@@ -376,12 +376,12 @@ flowchart LR
     style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=3,12 -->
+<!-- file: 17 session_viewer/src/engine/gpu/arena.rs type hunks=3,9,12 -->
 
 - Silhouettes start **off**: the two coverage masks and the compositor are a full-screen pass per frame, which is slow on integrated GPUs. `O` turns them on; `?outlines=1` / `VIEWER_OUTLINES=1` starts with them on.
 - The default pen is one CSS pixel; `?thickness=` / `VIEWER_THICKNESS` selects a heavier weight.
 - The headlight starts **off** (`D`, `?lit=1` / `VIEWER_LIT=1` turn it on) and so do back faces (`?backface=1` paints them red): a CAD drawing reads better flat, and a wrong normal is easier to see with shading as an explicit switch than as the default.
-- `device_pixel_ratio` is the one place the browser's ratio is read: `?dpr=` caps it for people who prefer memory over crispness, never raising it above the browser's and never below 0.5.
+- `device_pixel_ratio` is the capped ratio the canvas and the camera use: `?dpr=` lowers it for people who prefer memory over crispness, never above the browser's and never below 0.5. Step 16 adds the second reader, `surface_per_physical`, which needs the *uncapped* browser ratio to convert pointer positions — those two are the only places the browser's ratio is read.
 
 <!-- file: 17 session_viewer/src/engine/gpu/view.rs type -->
 
@@ -523,6 +523,12 @@ flowchart TB
 - A device-loss failure returns before the error panel; every other failure still reports.
 
 <!-- file: 17 session_viewer/src/state.rs type hunks=2,13,14 -->
+
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 1, 2 and 17, and fails after 3–14, 14b, 15 and 16: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 3–14, 14b, 15 and 16 build again at step 17. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
 
 ## Step 17 · Wire the frame
 

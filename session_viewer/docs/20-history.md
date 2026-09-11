@@ -13,9 +13,17 @@ flowchart TB
     style R fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
+![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)
+
 ## Starting point
 
 Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, its transform, its tree node and its graph node at once and returns a bool; nothing remembers it.
+
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 1 and C, and fails after 2–5: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 2–5 build again at step C. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
 
 ## Part A · Records
 
@@ -122,10 +130,10 @@ flowchart TB
 Native tests:
 
 ```sh
-cd "$COURSE_WORK/session_viewer/../session_rust" && cargo test --lib -- history session
+cd "$COURSE_WORK/session_viewer/../session_rust" && cargo test --lib minitest_suite -- --nocapture
 ```
 
-Expected: `Document Workflow`, `Undo Remove`, `Undo Add`, `Undo Replace`, `Undo Xform`, `History Purged On Save` and `History Capacity` pass, and the four `history` tests with them. The viewer builds and runs unchanged: it loads documents and never edits them yet.
+The cases you typed are `MINI_TEST!` blocks, not `#[test]` functions: they register themselves and the whole suite runs as one libtest case, so filtering by name would run nothing. Expected: the run ends `[rust-minitest] N/N passed` and `test mini_test::harness::minitest_suite ... ok`. A failure is the informative case — it prints `FAIL <group>::<name>  <file>:<line>` followed by the failing check, so `Undo Remove` or `History Purged On Save` names itself when it breaks. The viewer builds and runs unchanged: it loads documents and never edits them yet.
 
 ## Verify you reached production
 

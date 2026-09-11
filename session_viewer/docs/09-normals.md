@@ -22,6 +22,12 @@ flowchart TD
 - The vertex stage still passes a zero normal and the fragment stage shades flat from screen derivatives.
 - A planar polyhedron looks curved if normals average across faces. Nothing in this lesson welds across a BRep face.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Kernel: only a valid derivative cross is a normal
 
 - `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.

@@ -23,6 +23,12 @@ flowchart TD
 
 <!-- supplied: 07 -->
 
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 2 and 4–9, and fails after 1 and 3: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, step 1 build again at step 2; step 3 build again at step 4. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Kernel: the trim-loop contract
 
 - `TrimLoops` is what a BRep hands the mesher for one face: UV polygons, the 3D point each polygon vertex must lift to, and interior seeds.
@@ -235,9 +241,9 @@ If a boundary floats or doubles, compare the f64 chains of both faces first, the
 
 ## Try
 
-- Append `?top=1`: the cylinder's seam and both circles are seen edge-on; the seam is still one line, because both incident face meshes were built from the same chain.
+- Orbit until the cylinder's seam faces you: it is one line, not two, because both incident face meshes were built from the same chain. (`?top=1` is the wrong view for this one — the cylinder's axis is Z, so from above the seam projects to a point and the two rim circles sit face-on.)
 - Append `?thickness=4` and orbit: the pipes widen but never detach from the faces, which only holds because their endpoints are mesh nodes.
-- Zoom close to the hole rim with `?distance=0.4`: the rim stays attached to the inner face; a separately sampled circle would float above or sink below it.
+- Zoom close to the hole rim with the wheel, then orbit: the rim stays attached to the inner face at every scale; a separately sampled circle would float above or sink below it.
 
 ## Questions and answers
 

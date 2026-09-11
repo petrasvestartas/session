@@ -22,6 +22,12 @@ flowchart TB
 
 <!-- supplied: 06 -->
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Kernel: one-sided normals at a C0 knot
 
 - A knot repeated `degree` times folds the surface; averaging normals across that fold makes a sharp edge look rounded.
@@ -153,7 +159,7 @@ flowchart LR
 ## Step 7 · One mesh into the tables
 
 - Gates first: above `MESH_RAW_MIN` triangles a mesh is faces only; a print fill (single width 0) takes the sheet index runs.
-- `MeshOpts::MODEL` marks a tessellation: `FLAG_SMOOTH` tells the marker lane its vertices are samples, and its seams are not geometry.
+- `MeshOpts::SURFACE` marks a tessellation: `FLAG_SMOOTH` tells the marker lane its vertices are samples, and its seams are sampling rather than geometry. `OBJECT` and `ELEMENT` are the authored-mesh presets, which differ in whether an open mesh may be flagged open.
 
 ```mermaid
 flowchart LR
@@ -164,17 +170,17 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-57 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=1-56 -->
 
 - `MeshOpts` names the three decisions a caller makes about a mesh: whether sheet lanes apply, whether an open mesh is allowed, and whether it is a tessellation. Named presets keep those decisions out of the producer bodies.
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=58-79 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=57-78 -->
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=80-142 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs copy lines=79-141 -->
 
 - Faces go into the arena with `vids = cx.row`; the ink pass runs only on decorated meshes with a topology.
 
-<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=143-236 -->
+<!-- file: 06 session_viewer/src/app/walk/mesh.rs type lines=142-236 -->
 
 ## Step 8 · Curves into the ribbon lane
 
@@ -188,16 +194,16 @@ flowchart TB
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-63 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=1-61 -->
 
 - A NURBS curve is sampled by turning angle of its control polygon, so a full circle gets the same chord count at any radius.
 - `render_position` is the single f64 → f32 boundary for every producer.
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=64-127 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=62-125 -->
 
 - A NURBS curve reaches the GPU as a polyline, sampled by its own size rather than a fixed count, and then takes the polyline path. One sampling rule, used everywhere a curve is drawn.
 
-<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=128-147 -->
+<!-- file: 06 session_viewer/src/app/walk/curves.rs type lines=126-147 -->
 
 ## Step 9 · Edge records and the first BRep consumer
 
@@ -304,7 +310,7 @@ If the face is missing, follow producer → `Upload` → arena → draw range. I
 ## Try
 
 - Append `?top=1` or `?perspective=1`: the fixture is viewed from a fixed camera, which makes a boundary that drifts off its face easy to spot.
-- Append `?distance=3` then `?distance=0.3`: the pipes keep their pixel width while the faces grow; the boundary nodes move with the mesh because they are the mesh.
+- Append `?distance=3` and then `?distance=12`: the pipes keep their pixel width while the faces shrink; the boundary nodes move with the mesh because they are the mesh. (`parse_distance` accepts 1 to 16 and ignores anything else, so a smaller value is not a zoom — it is a no-op.)
 - Append `?thickness=3`: the boundary pipes widen on screen but stay glued to their faces, because their endpoints are face-mesh nodes, not a separately sampled curve.
 
 ## Questions and answers

@@ -20,6 +20,12 @@ flowchart TB
 - Checkpoint 02: one triangle, one camera uniform.
 - Same geometry drawn twice with different placement and tint. Identity lives on the CPU; the GPU only sees rows.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · The object row
 
 - One 96-byte record per object, indexed by `instance_index` in every instance-reading shader. Flags are bits: selecting sets bit 0 and keeps the rest.
@@ -34,11 +40,11 @@ flowchart TB
     style I fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-58 -->
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs type lines=1-57 -->
 
 The rest of the file is `#[cfg(test)]` only: it parses every lane shader with naga and checks that WGSL member offsets equal the Rust ones; the browser build never compiles this block.
 
-<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=59-236 -->
+<!-- file: 03 session_viewer/src/engine/gpu/instance.rs copy lines=58-236 -->
 
 ## Step 2 · Declare the engine module tree
 
@@ -79,7 +85,7 @@ Rust `Instance`            offset   WGSL `struct Instance`
 model: [f32; 16]              0     model: mat4x4<f32>
 color: [f32; 4]              64     color: vec4<f32>
 flags: u32                   80     flags: u32
-thickness: f32               84     thickness: f32
+_pad0: f32                   84     _pad0: f32
 spacing: f32                 88     spacing: f32
 _pad: u32                    92     pad: u32
 size                         96     array stride
@@ -115,6 +121,8 @@ flowchart TB
 <!-- file: 03 session_viewer/src/lib.rs type -->
 
 <!-- file: 03 session_viewer/index.html copy -->
+
+![A draw call carries two ranges: vertex_index walks the three corners, instance_index walks the object rows, and every invocation reads only the row its instance_index names - so a hundred objects are one call and one buffer.](illustrations/instancing.svg)
 
 ## Check
 

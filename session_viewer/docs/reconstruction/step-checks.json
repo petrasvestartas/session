@@ -1,0 +1,538 @@
+{
+  "00": {
+    "order": [
+      "Step 1 \u00b7 Declare the crate",
+      "Step 2 \u00b7 Make wasm32 the default target",
+      "Step 3 \u00b7 Tell Trunk what to bundle",
+      "Step 4 \u00b7 Pin the dependency graph",
+      "Step 5 \u00b7 The page",
+      "Step 6 \u00b7 The first Rust function"
+    ],
+    "results": {
+      "Step 1 \u00b7 Declare the crate": "fail",
+      "Step 2 \u00b7 Make wasm32 the default target": "fail",
+      "Step 3 \u00b7 Tell Trunk what to bundle": "fail",
+      "Step 4 \u00b7 Pin the dependency graph": "fail",
+      "Step 5 \u00b7 The page": "fail",
+      "Step 6 \u00b7 The first Rust function": "ok"
+    }
+  },
+  "01": {
+    "order": [
+      "Step 1 \u00b7 One struct owns the GPU",
+      "Step 2 \u00b7 Instance, surface, adapter, device",
+      "Step 3 \u00b7 Surface configuration and the camera uniform",
+      "Step 4 \u00b7 Shader module, pipeline layout, render pipeline",
+      "Step 5 \u00b7 One frame",
+      "Step 6 \u00b7 The shader",
+      "Step 7 \u00b7 The page drives the shell"
+    ],
+    "results": {
+      "Step 1 \u00b7 One struct owns the GPU": "fail",
+      "Step 2 \u00b7 Instance, surface, adapter, device": "fail",
+      "Step 3 \u00b7 Surface configuration and the camera uniform": "fail",
+      "Step 4 \u00b7 Shader module, pipeline layout, render pipeline": "fail",
+      "Step 5 \u00b7 One frame": "fail",
+      "Step 6 \u00b7 The shader": "ok",
+      "Step 7 \u00b7 The page drives the shell": "ok"
+    }
+  },
+  "02": {
+    "order": [
+      "Step 1 \u00b7 Matrix helpers",
+      "Step 2 \u00b7 A box that can be empty",
+      "Step 3 \u00b7 Recover camera facts from the matrix",
+      "Step 4 \u00b7 Camera state",
+      "Step 5 \u00b7 Construction and gestures",
+      "Step 6 \u00b7 Projection swap that keeps the content",
+      "Step 7 \u00b7 The view-projection",
+      "Step 8 \u00b7 Named views, fit, extent",
+      "Step 9 \u00b7 Wheel response",
+      "Step 10 \u00b7 Wire the shell"
+    ],
+    "results": {
+      "Step 1 \u00b7 Matrix helpers": "ok",
+      "Step 10 \u00b7 Wire the shell": "ok",
+      "Step 2 \u00b7 A box that can be empty": "ok",
+      "Step 3 \u00b7 Recover camera facts from the matrix": "ok",
+      "Step 4 \u00b7 Camera state": "ok",
+      "Step 5 \u00b7 Construction and gestures": "ok",
+      "Step 6 \u00b7 Projection swap that keeps the content": "ok",
+      "Step 7 \u00b7 The view-projection": "ok",
+      "Step 8 \u00b7 Named views, fit, extent": "ok",
+      "Step 9 \u00b7 Wheel response": "ok"
+    }
+  },
+  "03": {
+    "order": [
+      "Step 1 \u00b7 The object row",
+      "Step 2 \u00b7 Declare the engine module tree",
+      "Step 3 \u00b7 Source identity is separate from the row",
+      "Step 4 \u00b7 Rust layout \u2194 WGSL layout",
+      "Step 5 \u00b7 Bind the rows and draw each one"
+    ],
+    "results": {
+      "Step 1 \u00b7 The object row": "ok",
+      "Step 2 \u00b7 Declare the engine module tree": "ok",
+      "Step 3 \u00b7 Source identity is separate from the row": "ok",
+      "Step 4 \u00b7 Rust layout \u2194 WGSL layout": "ok",
+      "Step 5 \u00b7 Bind the rows and draw each one": "ok"
+    }
+  },
+  "04a": {
+    "order": [
+      "Step 1 \u00b7 The floor: device, growable buffers, helpers",
+      "Step 2 \u00b7 Bind-group layouts",
+      "Step 3 \u00b7 Pipelines are data",
+      "Step 4 \u00b7 Targets and the two passes",
+      "Step 5 \u00b7 Frame uniforms",
+      "Step 6 \u00b7 Runtime knobs and the query string",
+      "Step 7 \u00b7 The object table",
+      "Step 8 \u00b7 The mesh shader",
+      "Step 9 \u00b7 The mesh lane",
+      "Step 10 \u00b7 Upload and the fixture",
+      "Step 11 \u00b7 Wire the coordinator"
+    ],
+    "results": {
+      "Step 1 \u00b7 The floor: device, growable buffers, helpers": "ok",
+      "Step 10 \u00b7 Upload and the fixture": "ok",
+      "Step 11 \u00b7 Wire the coordinator": "ok",
+      "Step 2 \u00b7 Bind-group layouts": "ok",
+      "Step 3 \u00b7 Pipelines are data": "ok",
+      "Step 4 \u00b7 Targets and the two passes": "ok",
+      "Step 5 \u00b7 Frame uniforms": "ok",
+      "Step 6 \u00b7 Runtime knobs and the query string": "ok",
+      "Step 7 \u00b7 The object table": "ok",
+      "Step 8 \u00b7 The mesh shader": "ok",
+      "Step 9 \u00b7 The mesh lane": "ok"
+    }
+  },
+  "04b": {
+    "order": [
+      "Step 1 \u00b7 The segment row",
+      "Step 2 \u00b7 The lane",
+      "Step 3 \u00b7 The shared visibility rule",
+      "Step 4 \u00b7 The ribbon shader",
+      "Step 5 \u00b7 Wire the lane"
+    ],
+    "results": {
+      "Step 1 \u00b7 The segment row": "ok",
+      "Step 2 \u00b7 The lane": "ok",
+      "Step 3 \u00b7 The shared visibility rule": "ok",
+      "Step 4 \u00b7 The ribbon shader": "ok",
+      "Step 5 \u00b7 Wire the lane": "ok"
+    }
+  },
+  "04c": {
+    "order": [
+      "Step 1 \u00b7 The glyph row",
+      "Step 2 \u00b7 The lane",
+      "Step 3 \u00b7 Vertex markers",
+      "Step 4 \u00b7 Free dots",
+      "Step 5 \u00b7 Wire the lane"
+    ],
+    "results": {
+      "Step 1 \u00b7 The glyph row": "ok",
+      "Step 2 \u00b7 The lane": "ok",
+      "Step 3 \u00b7 Vertex markers": "ok",
+      "Step 4 \u00b7 Free dots": "ok",
+      "Step 5 \u00b7 Wire the lane": "ok"
+    }
+  },
+  "04d": {
+    "order": [
+      "Step 1 \u00b7 Cloud tables",
+      "Step 2 \u00b7 The LOD walk",
+      "Step 3 \u00b7 The splat lane",
+      "Step 4 \u00b7 The point shaders",
+      "Step 5 \u00b7 Wire the lane"
+    ],
+    "results": {
+      "Step 1 \u00b7 Cloud tables": "ok",
+      "Step 2 \u00b7 The LOD walk": "ok",
+      "Step 3 \u00b7 The splat lane": "ok",
+      "Step 4 \u00b7 The point shaders": "ok",
+      "Step 5 \u00b7 Wire the lane": "ok"
+    }
+  },
+  "05": {
+    "order": [
+      "Step 1 \u00b7 The physical contract shared by every shader",
+      "Step 2 \u00b7 Backdrop shaders",
+      "Step 3 \u00b7 The backdrop lane",
+      "Step 4 \u00b7 The ink visibility test",
+      "Step 5 \u00b7 Shaders emit the gradient",
+      "Step 6 \u00b7 Targets: the gradient attachment and a sample budget",
+      "Step 7 \u00b7 Pipelines: one flag adds the second color target",
+      "Step 8 \u00b7 Lanes read and write the gradient",
+      "Step 9 \u00b7 Wire the lane and the sample count",
+      "Step 10 \u00b7 The fixture and the page"
+    ],
+    "results": {
+      "Step 1 \u00b7 The physical contract shared by every shader": "ok",
+      "Step 10 \u00b7 The fixture and the page": "ok",
+      "Step 2 \u00b7 Backdrop shaders": "ok",
+      "Step 3 \u00b7 The backdrop lane": "ok",
+      "Step 4 \u00b7 The ink visibility test": "ok",
+      "Step 5 \u00b7 Shaders emit the gradient": "ok",
+      "Step 6 \u00b7 Targets: the gradient attachment and a sample budget": "ok",
+      "Step 7 \u00b7 Pipelines: one flag adds the second color target": "ok",
+      "Step 8 \u00b7 Lanes read and write the gradient": "ok",
+      "Step 9 \u00b7 Wire the lane and the sample count": "ok"
+    }
+  },
+  "06": {
+    "order": [
+      "Step 1 \u00b7 Kernel: one-sided normals at a C0 knot",
+      "Step 2 \u00b7 Row encodings",
+      "Step 3 \u00b7 What a producer reports",
+      "Step 4 \u00b7 Per-file sweeps and thickness",
+      "Step 5 \u00b7 Fused mesh topology",
+      "Step 6 \u00b7 Ink: pipes for edges, spheres for vertices",
+      "Step 7 \u00b7 One mesh into the tables",
+      "Step 8 \u00b7 Curves into the ribbon lane",
+      "Step 9 \u00b7 Edge records and the first BRep consumer",
+      "Step 10 \u00b7 Launch-time knobs",
+      "Step 11 \u00b7 Wire the producers",
+      "Step 12 \u00b7 The fixture becomes a source scene",
+      "Step 13 \u00b7 Flat preview shading"
+    ],
+    "results": {
+      "Step 1 \u00b7 Kernel: one-sided normals at a C0 knot": "ok",
+      "Step 10 \u00b7 Launch-time knobs": "ok",
+      "Step 11 \u00b7 Wire the producers": "ok",
+      "Step 12 \u00b7 The fixture becomes a source scene": "ok",
+      "Step 13 \u00b7 Flat preview shading": "ok",
+      "Step 2 \u00b7 Row encodings": "ok",
+      "Step 3 \u00b7 What a producer reports": "ok",
+      "Step 4 \u00b7 Per-file sweeps and thickness": "ok",
+      "Step 5 \u00b7 Fused mesh topology": "ok",
+      "Step 6 \u00b7 Ink: pipes for edges, spheres for vertices": "ok",
+      "Step 7 \u00b7 One mesh into the tables": "ok",
+      "Step 8 \u00b7 Curves into the ribbon lane": "ok",
+      "Step 9 \u00b7 Edge records and the first BRep consumer": "ok"
+    }
+  },
+  "07": {
+    "order": [
+      "Step 1 \u00b7 Kernel: the trim-loop contract",
+      "Step 2 \u00b7 Kernel: one triangulation body",
+      "Step 3 \u00b7 Kernel: constrain boundaries and C0 knot lines",
+      "Step 4 \u00b7 Kernel: lift to the given points, tag, split creases",
+      "Step 5 \u00b7 Kernel: BRep phases",
+      "Step 6 \u00b7 Viewer: chains from the face meshes",
+      "Step 7 \u00b7 Viewer: outward orientation from the tessellation",
+      "Step 8 \u00b7 Viewer: ink the solid's edges",
+      "Step 9 \u00b7 Fixture and status"
+    ],
+    "results": {
+      "Step 1 \u00b7 Kernel: the trim-loop contract": "fail",
+      "Step 2 \u00b7 Kernel: one triangulation body": "ok",
+      "Step 3 \u00b7 Kernel: constrain boundaries and C0 knot lines": "fail",
+      "Step 4 \u00b7 Kernel: lift to the given points, tag, split creases": "ok",
+      "Step 5 \u00b7 Kernel: BRep phases": "ok",
+      "Step 6 \u00b7 Viewer: chains from the face meshes": "ok",
+      "Step 7 \u00b7 Viewer: outward orientation from the tessellation": "ok",
+      "Step 8 \u00b7 Viewer: ink the solid's edges": "ok",
+      "Step 9 \u00b7 Fixture and status": "ok"
+    }
+  },
+  "08": {
+    "order": [
+      "Step 1 \u00b7 Prefer the producer's cached trim mesh",
+      "Step 2 \u00b7 Name natural boundaries from UV, not from triangle order",
+      "Step 3 \u00b7 Fixture: a curved trimmed patch and a torus",
+      "Step 4 \u00b7 Stage bump"
+    ],
+    "results": {
+      "Step 1 \u00b7 Prefer the producer's cached trim mesh": "ok",
+      "Step 2 \u00b7 Name natural boundaries from UV, not from triangle order": "ok",
+      "Step 3 \u00b7 Fixture: a curved trimmed patch and a torus": "ok",
+      "Step 4 \u00b7 Stage bump": "ok"
+    }
+  },
+  "09": {
+    "order": [
+      "Step 1 \u00b7 Kernel: only a valid derivative cross is a normal",
+      "Step 2 \u00b7 WGSL: transform a normal with the cofactor matrix",
+      "Step 3 \u00b7 Edge facing from physical facets, not shading normals",
+      "Step 4 \u00b7 A fill-only view for inspecting lighting",
+      "Step 5 \u00b7 Fixture: one solid per URL, optionally under an affine placement"
+    ],
+    "results": {
+      "Step 1 \u00b7 Kernel: only a valid derivative cross is a normal": "ok",
+      "Step 2 \u00b7 WGSL: transform a normal with the cofactor matrix": "ok",
+      "Step 3 \u00b7 Edge facing from physical facets, not shading normals": "ok",
+      "Step 4 \u00b7 A fill-only view for inspecting lighting": "ok",
+      "Step 5 \u00b7 Fixture: one solid per URL, optionally under an affine placement": "ok"
+    }
+  },
+  "10": {
+    "order": [
+      "Step 1 \u00b7 Bundled fonts",
+      "Step 2 \u00b7 A clock",
+      "Step 3 \u00b7 Where a label lives: `TextPlacement`",
+      "Step 4 \u00b7 Label, run, document",
+      "Step 5 \u00b7 Replace labels without reshaping unchanged ones",
+      "Step 6 \u00b7 Font replacement, clearing and diagnostics",
+      "Step 7 \u00b7 Validation and the shaping call",
+      "Step 8 \u00b7 Declare the modules",
+      "Step 9 \u00b7 The same-font reference page"
+    ],
+    "results": {
+      "Step 1 \u00b7 Bundled fonts": "ok",
+      "Step 2 \u00b7 A clock": "ok",
+      "Step 3 \u00b7 Where a label lives: `TextPlacement`": "ok",
+      "Step 4 \u00b7 Label, run, document": "ok",
+      "Step 5 \u00b7 Replace labels without reshaping unchanged ones": "ok",
+      "Step 6 \u00b7 Font replacement, clearing and diagnostics": "ok",
+      "Step 7 \u00b7 Validation and the shaping call": "ok",
+      "Step 8 \u00b7 Declare the modules": "ok",
+      "Step 9 \u00b7 The same-font reference page": "ok"
+    }
+  },
+  "11": {
+    "order": [
+      "Step 1 \u00b7 Supplied comparison page",
+      "Step 2 \u00b7 Black plates",
+      "Step 3 \u00b7 Fixed world planes: records and resources",
+      "Step 4 \u00b7 Planes: prepare",
+      "Step 5 \u00b7 Planes: projection, raster and the quad",
+      "Step 6 \u00b7 The text lane: frame input and counters",
+      "Step 7 \u00b7 The lane owns Glyphon",
+      "Step 8 \u00b7 Prepare: place, rasterize, build both draw lists",
+      "Step 9 \u00b7 Draw order, reset, release",
+      "Step 10 \u00b7 CSS to physical, once",
+      "Step 11 \u00b7 Wire the lane into the frame"
+    ],
+    "results": {
+      "Step 1 \u00b7 Supplied comparison page": "ok",
+      "Step 10 \u00b7 CSS to physical, once": "ok",
+      "Step 11 \u00b7 Wire the lane into the frame": "ok",
+      "Step 2 \u00b7 Black plates": "ok",
+      "Step 3 \u00b7 Fixed world planes: records and resources": "ok",
+      "Step 4 \u00b7 Planes: prepare": "ok",
+      "Step 5 \u00b7 Planes: projection, raster and the quad": "ok",
+      "Step 6 \u00b7 The text lane: frame input and counters": "ok",
+      "Step 7 \u00b7 The lane owns Glyphon": "ok",
+      "Step 8 \u00b7 Prepare: place, rasterize, build both draw lists": "ok",
+      "Step 9 \u00b7 Draw order, reset, release": "ok"
+    }
+  },
+  "12": {
+    "order": [
+      "Step 1 \u00b7 Device negotiation",
+      "Step 2 \u00b7 Presenting a frame",
+      "Step 3 \u00b7 The frame list",
+      "Step 4 \u00b7 Input bindings",
+      "Step 5 \u00b7 Touch",
+      "Step 6 \u00b7 Scene: source documents and row bookkeeping",
+      "Step 7 \u00b7 Selection mode",
+      "Step 8 \u00b7 Producers for clouds, frames and points",
+      "Step 9 \u00b7 Stream records, feedback, inspection and the fixture loader",
+      "Step 10 \u00b7 The ID target and the readback window",
+      "Step 11 \u00b7 The ID pass in the frame list",
+      "Step 12 \u00b7 Selected-surface silhouette",
+      "Step 13 \u00b7 State",
+      "Step 14 \u00b7 Gpu owns device, presentation and picking",
+      "Step 15 \u00b7 Declare the modules",
+      "Step 16 \u00b7 The application shell",
+      "Step 17 \u00b7 Page, manifest and the removed teaching fixture"
+    ],
+    "results": {
+      "Step 1 \u00b7 Device negotiation": "ok",
+      "Step 10 \u00b7 The ID target and the readback window": "ok",
+      "Step 11 \u00b7 The ID pass in the frame list": "ok",
+      "Step 12 \u00b7 Selected-surface silhouette": "ok",
+      "Step 13 \u00b7 State": "ok",
+      "Step 14 \u00b7 Gpu owns device, presentation and picking": "fail",
+      "Step 15 \u00b7 Declare the modules": "fail",
+      "Step 16 \u00b7 The application shell": "ok",
+      "Step 17 \u00b7 Page, manifest and the removed teaching fixture": "ok",
+      "Step 2 \u00b7 Presenting a frame": "ok",
+      "Step 3 \u00b7 The frame list": "ok",
+      "Step 4 \u00b7 Input bindings": "ok",
+      "Step 5 \u00b7 Touch": "ok",
+      "Step 6 \u00b7 Scene: source documents and row bookkeeping": "ok",
+      "Step 7 \u00b7 Selection mode": "ok",
+      "Step 8 \u00b7 Producers for clouds, frames and points": "ok",
+      "Step 9 \u00b7 Stream records, feedback, inspection and the fixture loader": "ok"
+    }
+  },
+  "13": {
+    "order": [
+      "Step 1 \u00b7 Control identities",
+      "Step 2 \u00b7 Fetching and source-query records",
+      "Step 3 \u00b7 Wire parsing for streamed clouds",
+      "Step 4 \u00b7 Picking controls",
+      "Step 5 \u00b7 State transitions",
+      "Step 6 \u00b7 Key, message and loader wiring"
+    ],
+    "results": {
+      "Step 1 \u00b7 Control identities": "ok",
+      "Step 2 \u00b7 Fetching and source-query records": "ok",
+      "Step 3 \u00b7 Wire parsing for streamed clouds": "fail",
+      "Step 4 \u00b7 Picking controls": "fail",
+      "Step 5 \u00b7 State transitions": "fail",
+      "Step 6 \u00b7 Key, message and loader wiring": "ok"
+    }
+  },
+  "14": {
+    "order": [
+      "Step 1 \u00b7 The manifest is placement, not geometry",
+      "Step 2 \u00b7 Validate serialized counts before the kernel allocates",
+      "Step 3 \u00b7 Decode without freezing the page",
+      "Step 4 \u00b7 The URL decides the route",
+      "Step 5 \u00b7 A live source polls with ETags",
+      "Step 6 \u00b7 Stage a replacement, then swap it in whole",
+      "Step 7 \u00b7 Wire the modules and the text message"
+    ],
+    "results": {
+      "Step 1 \u00b7 The manifest is placement, not geometry": "ok",
+      "Step 2 \u00b7 Validate serialized counts before the kernel allocates": "ok",
+      "Step 3 \u00b7 Decode without freezing the page": "ok",
+      "Step 4 \u00b7 The URL decides the route": "ok",
+      "Step 5 \u00b7 A live source polls with ETags": "ok",
+      "Step 6 \u00b7 Stage a replacement, then swap it in whole": "fail",
+      "Step 7 \u00b7 Wire the modules and the text message": "ok"
+    }
+  },
+  "15": {
+    "order": [
+      "Step 1 \u00b7 A bounded window over the metadata",
+      "Step 2 \u00b7 Refill only on a jump",
+      "Step 3 \u00b7 Route the LOD walk through the window",
+      "Step 4 \u00b7 Publication helpers"
+    ],
+    "results": {
+      "Step 1 \u00b7 A bounded window over the metadata": "ok",
+      "Step 2 \u00b7 Refill only on a jump": "ok",
+      "Step 3 \u00b7 Route the LOD walk through the window": "ok",
+      "Step 4 \u00b7 Publication helpers": "ok"
+    }
+  },
+  "16": {
+    "order": [
+      "Step 1 \u00b7 Native tooling the crate declares",
+      "Step 2 \u00b7 Count what is knowable, name what is not",
+      "Step 3 \u00b7 Report it beside the GPU figures"
+    ],
+    "results": {
+      "Step 1 \u00b7 Native tooling the crate declares": "ok",
+      "Step 2 \u00b7 Count what is knowable, name what is not": "ok",
+      "Step 3 \u00b7 Report it beside the GPU figures": "ok"
+    }
+  },
+  "17": {
+    "order": [
+      "Step 1 \u00b7 Face identities over the existing triangles",
+      "Step 2 \u00b7 The triangle shader learns vertex pulling",
+      "Step 3 \u00b7 The arena owns a `Faces` lane",
+      "Step 4 \u00b7 Producers emit one face address per triangle",
+      "Step 5 \u00b7 A third selection mode",
+      "Step 6 \u00b7 A text label can own a row",
+      "Step 7 \u00b7 Scene registers text rows",
+      "Step 8 \u00b7 State's companions: text presentation and streamed queries",
+      "Step 9 \u00b7 Plates and planes draw IDs",
+      "Step 10 \u00b7 Two masks, one compositor",
+      "Step 11 \u00b7 The arena draws the solid mask",
+      "Step 12 \u00b7 Producers mark chains",
+      "Step 13 \u00b7 The GPU row gains neighbours",
+      "Step 14 \u00b7 One join plane per shared vertex",
+      "Step 14b \u00b7 Install the supplied tooling",
+      "Step 15 \u00b7 The pick window's uniforms",
+      "Step 16 \u00b7 Device scale and a lost device",
+      "Step 17 \u00b7 Wire the frame"
+    ],
+    "results": {
+      "Step 1 \u00b7 Face identities over the existing triangles": "ok",
+      "Step 10 \u00b7 Two masks, one compositor": "fail",
+      "Step 11 \u00b7 The arena draws the solid mask": "fail",
+      "Step 12 \u00b7 Producers mark chains": "fail",
+      "Step 13 \u00b7 The GPU row gains neighbours": "fail",
+      "Step 14 \u00b7 One join plane per shared vertex": "fail",
+      "Step 14b \u00b7 Install the supplied tooling": "fail",
+      "Step 15 \u00b7 The pick window's uniforms": "fail",
+      "Step 16 \u00b7 Device scale and a lost device": "fail",
+      "Step 17 \u00b7 Wire the frame": "ok",
+      "Step 2 \u00b7 The triangle shader learns vertex pulling": "ok",
+      "Step 3 \u00b7 The arena owns a `Faces` lane": "fail",
+      "Step 4 \u00b7 Producers emit one face address per triangle": "fail",
+      "Step 5 \u00b7 A third selection mode": "fail",
+      "Step 6 \u00b7 A text label can own a row": "fail",
+      "Step 7 \u00b7 Scene registers text rows": "fail",
+      "Step 8 \u00b7 State's companions: text presentation and streamed queries": "fail",
+      "Step 9 \u00b7 Plates and planes draw IDs": "fail"
+    }
+  },
+  "18": {
+    "order": [
+      "Step 1 \u00b7 Metadata carries the primitive",
+      "Step 2 \u00b7 The projected record",
+      "Step 3 \u00b7 The projection shader",
+      "Step 4 \u00b7 Count and fill",
+      "Step 5 \u00b7 Prefix sums instead of a per-tile cap",
+      "Step 6 \u00b7 The owner",
+      "Step 7 \u00b7 Refine the rejection, keep the cheap test",
+      "Step 8 \u00b7 Faces draws the physical pass",
+      "Step 9 \u00b7 Bindings 6 and 7",
+      "Step 10 \u00b7 The tile pass runs before ink",
+      "Step 11 \u00b7 Masks rasterized once, reused while the view stands still"
+    ],
+    "results": {
+      "Step 1 \u00b7 Metadata carries the primitive": "ok",
+      "Step 10 \u00b7 The tile pass runs before ink": "fail",
+      "Step 11 \u00b7 Masks rasterized once, reused while the view stands still": "ok",
+      "Step 2 \u00b7 The projected record": "ok",
+      "Step 3 \u00b7 The projection shader": "ok",
+      "Step 4 \u00b7 Count and fill": "ok",
+      "Step 5 \u00b7 Prefix sums instead of a per-tile cap": "ok",
+      "Step 6 \u00b7 The owner": "ok",
+      "Step 7 \u00b7 Refine the rejection, keep the cheap test": "ok",
+      "Step 8 \u00b7 Faces draws the physical pass": "fail",
+      "Step 9 \u00b7 Bindings 6 and 7": "fail"
+    }
+  },
+  "19": {
+    "order": [
+      "Step 1 \u00b7 A message that can be sliced",
+      "Step 2 \u00b7 The kernel tolerates the field",
+      "Step 3 \u00b7 The publisher",
+      "Step 4 \u00b7 Locate every array",
+      "Step 5 \u00b7 Prefix, then slices",
+      "Step 6 \u00b7 Segments with source ids",
+      "Step 7 \u00b7 One row per sheet",
+      "Step 8 \u00b7 Two ranged reads",
+      "Step 9 \u00b7 Selection and the status line"
+    ],
+    "results": {
+      "Step 1 \u00b7 A message that can be sliced": "ok",
+      "Step 2 \u00b7 The kernel tolerates the field": "ok",
+      "Step 3 \u00b7 The publisher": "ok",
+      "Step 4 \u00b7 Locate every array": "fail",
+      "Step 5 \u00b7 Prefix, then slices": "fail",
+      "Step 6 \u00b7 Segments with source ids": "fail",
+      "Step 7 \u00b7 One row per sheet": "fail",
+      "Step 8 \u00b7 Two ranged reads": "fail",
+      "Step 9 \u00b7 Selection and the status line": "ok"
+    }
+  },
+  "20": {
+    "order": [
+      "Step 1 \u00b7 The tombstone",
+      "Step 2 \u00b7 Undo replays in reverse",
+      "Step 3 \u00b7 One place to add",
+      "Step 4 \u00b7 The tree gives the node back, the graph its edges",
+      "Step 5 \u00b7 Identity survives a swap",
+      "Part C \u00b7 Three kernels, one behaviour"
+    ],
+    "results": {
+      "Part C \u00b7 Three kernels, one behaviour": "ok",
+      "Step 1 \u00b7 The tombstone": "ok",
+      "Step 2 \u00b7 Undo replays in reverse": "fail",
+      "Step 3 \u00b7 One place to add": "fail",
+      "Step 4 \u00b7 The tree gives the node back, the graph its edges": "fail",
+      "Step 5 \u00b7 Identity survives a swap": "fail"
+    }
+  }
+}

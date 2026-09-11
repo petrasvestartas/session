@@ -59,7 +59,7 @@ Every block is cut from the verified patch of that checkpoint. A replay audit ty
 | [03 · Object rows and identity](03-identity.md) | `Instance` rows, storage bind group, `instance_index` | |
 | [04a · Meshes on the GPU](04a-meshes.md) | Arena buffers, object table, vertex pulling, `triangle.wgsl` | |
 | [04b · Strokes](04b-strokes.md) | Segment lane and the screen-space ribbon shader | |
-| [04c · Markers](04c-markers.md) | Glyph markers and imported outline text | |
+| [04c · Markers](04c-markers.md) | Vertex markers on a quad template, free dots as one triangle | |
 | [04d · Point clouds](04d-clouds.md) | LOD nodes, splat prelude and resolve | |
 | [05 · Depth and visible ink](05-visibility.md) | Reversed depth, physical metadata, the ink visibility test | **2 · Camera + meshes work** |
 | [06 · CAD face contract](06-cad-contract.md) | Face meshes, UVs, normals, boundary provenance | |
@@ -140,6 +140,8 @@ python3 docs/check_site.py
 python3 docs/course_pages.py --audit
 docs/serve.sh
 ```
+
+Two more tools keep the lessons honest about building: `python3 docs/reconstruction/step_checks.py` runs `cargo check` at the end of every step of every lesson, and `python3 docs/reconstruction/step_status.py` writes the result into each lesson as the "Does it compile yet?" line (`--check` fails when one is stale).
 
 The build expands lesson directives from the verified patches, so lesson code is never duplicated in Git. `check_site.py` checks links, downloads and lexers; `course_pages.py --audit` checks that every checkpoint change is taught or supplied exactly once and that typing each lesson reproduces its checkpoint.
 

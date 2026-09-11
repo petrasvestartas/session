@@ -16,6 +16,12 @@ flowchart TB
 - Checkpoint 15: the inspection snapshot reports owned GPU buffer and texture bytes.
 - This lesson adds a known-payload figure for retained source documents, kept in a cache that cannot extend their lifetime, and declares the native tooling the production crate ships with.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Native tooling the crate declares
 
 Cargo discovers every file under `examples/` as a native example; their sources and the offscreen harness are supplied, not taught. Install them now, and give the manifest its native-only dependency.
@@ -45,15 +51,15 @@ flowchart LR
 
 <!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=53-95 -->
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-154 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs type lines=96-140 -->
 
 Per-type payload walks, one function per geometry kind:
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=155-386 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=141-363 -->
 
 Unit tests, part of the file:
 
-<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=387-487 -->
+<!-- file: 16 session_viewer/src/app/inspection/source_memory.rs copy lines=364-487 -->
 
 <!-- check: 16 -->
 

@@ -70,6 +70,11 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
   exactly once, and typing the lesson literally reproduces the checkpoint hashes. Every
   `<!-- check: NN -->` marker must be recorded by `docs/reconstruction/compile_points.py`
   (it runs cargo check on the typed state; one cargo process at a time, -j4).
+- Each lesson also states, before its first step, which of its steps compile. That sentence is
+  generated: `docs/reconstruction/step_checks.py` cargo-checks the typed state at the end of
+  EVERY step (CARGO_INCREMENTAL=0 - 195 distinct states otherwise fill the disk) into
+  `step-checks.json`, and `step_status.py` renders it between the `step-status` markers.
+  `step_status.py --check` fails when a lesson is stale; re-run both after editing steps.
 - Changing viewer source that the final checkpoint covers: reconstruct it
   (`replay.py --output <new> --through 18`), then `docs/reconstruction/refreeze.py --workspace <new>`
   folds the production diff into patch 18, series/baseline hashes and the tree hash; add a

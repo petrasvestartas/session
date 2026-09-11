@@ -1576,7 +1576,139 @@ def history():
     c.write("history.svg")
 
 
+
+def toolchain():
+    c = Canvas("Four tools, four artefacts",
+               "cargo produces a .wasm a browser cannot load on its own, wasm-bindgen writes the JavaScript that can, "
+               "Trunk assembles the page around it, and the browser runs start().",
+               1180, 340)
+    c.text(28, 40, "From source to a running page", "h")
+    c.text(28, 68, "each tool hands the next one file", "l", fill=PAL["grey"])
+    y = 130
+    a = c.box(60, y, ["cargo", "src/lib.rs", "Cargo.toml"], "cpu")
+    b = c.box(a[0] + a[2] + 70, y, ["wasm-bindgen", "session_viewer.wasm"], "cpu")
+    d = c.box(b[0] + b[2] + 70, y, ["Trunk", "JS glue + .wasm"], "cpu")
+    e = c.box(d[0] + d[2] + 70, y, ["browser", "index.html + bundle"], "gpu")
+    for lhs, rhs, label in ((a, b, ".wasm"), (b, d, "JS glue"), (d, e, "dist/")):
+        c.arrow(lhs[0] + lhs[2], y + lhs[3] / 2, rhs[0] - 8, y + lhs[3] / 2, label)
+    c.text(60, 268, "A .wasm is not loadable on its own: wasm-bindgen writes the JavaScript that instantiates it", "s")
+    c.text(60, 292, "and calls start(); Trunk runs both and assembles the page that loads the pair.", "s")
+    c.write("toolchain.svg")
+
+
+def gpu_objects():
+    c = Canvas("Instance, surface, adapter, device",
+               "The instance picks the backend, the surface is the canvas you present to, the adapter is one physical "
+               "GPU chosen to be compatible with that surface, and the device is the handle every later resource comes from.",
+               1180, 400)
+    c.text(28, 40, "The four objects before any drawing", "h")
+    c.text(28, 68, "each one is made from the one before it", "l", fill=PAL["grey"])
+    y = 130
+    a = c.box(60, y, ["Instance", "which backend", "BROWSER_WEBGPU"], "cpu")
+    b = c.box(a[0] + a[2] + 60, y, ["Surface", "the canvas", "you present to it"], "gpu")
+    d = c.box(b[0] + b[2] + 60, y, ["Adapter", "one physical GPU", "compatible_surface"], "gpu")
+    e = c.box(d[0] + d[2] + 60, y, ["Device + Queue", "makes every resource", "and takes every command"], "gpu")
+    mid = y + a[3] / 2
+    c.arrow(a[0] + a[2], mid, b[0] - 8, mid, "canvas")
+    c.arrow(b[0] + b[2], mid, d[0] - 8, mid, "request")
+    c.arrow(d[0] + d[2], mid, e[0] - 8, mid, "request")
+    c.text(60, 320, "The adapter is requested WITH the surface: a GPU that cannot present to this canvas is no use,", "s")
+    c.text(60, 344, "and asking for it later is how a device ends up unable to show anything.", "s", fill=PAL["yellow"])
+    c.write("gpu-objects.svg")
+
+
+def clip_space():
+    c = Canvas("Clip space and the viewport flip",
+               "The shader computes three positions in clip space, a square two units across with y up; the viewport "
+               "transform turns that into pixels with y down, and that flip is why a first image is sometimes upside down.",
+               1180, 460)
+    navy, pink, yellow = PAL["navy"], PAL["pink"], PAL["yellow"]
+    c.text(28, 40, "Two coordinate systems, one flip", "h")
+
+    c.text(90, 92, "clip space, after the divide by w", "l", fill=navy)
+    ox, oy, side = 110.0, 120.0, 240.0
+    c.raw(f'<rect x="{ox}" y="{oy}" width="{side}" height="{side}" fill="none" stroke="{navy}" stroke-width="1.6"/>')
+    c.raw(f'<line x1="{ox}" y1="{oy + side / 2}" x2="{ox + side}" y2="{oy + side / 2}" stroke="{navy}" stroke-width="1"/>')
+    c.raw(f'<line x1="{ox + side / 2}" y1="{oy}" x2="{ox + side / 2}" y2="{oy + side}" stroke="{navy}" stroke-width="1"/>')
+    c.text(ox - 34, oy + 6, "+1", "s", fill=navy)
+    c.text(ox - 34, oy + side + 6, "-1", "s", fill=navy)
+    c.text(ox + side + 10, oy + side / 2 + 5, "x = +1", "s", fill=navy)
+    c.text(ox + side / 2 - 18, oy - 12, "y up", "s", fill=navy)
+
+    c.text(700, 92, "framebuffer, after the viewport transform", "l", fill=pink)
+    px, py, pw, ph = 720.0, 120.0, 320.0, 240.0
+    c.raw(f'<rect x="{px}" y="{py}" width="{pw}" height="{ph}" fill="none" stroke="{pink}" stroke-width="1.6"/>')
+    c.text(px - 42, py + 6, "y = 0", "s", fill=pink)
+    c.text(px - 52, py + ph + 6, "y = h", "s", fill=pink)
+    c.text(px + pw + 10, py + 6, "x = w", "s", fill=pink)
+    c.text(px + pw / 2 - 26, py - 12, "y down", "s", fill=pink)
+
+    c.arrow(ox + side + 76, oy + side / 2, px - 60, py + ph / 2, "viewport transform")
+    c.text(90, 404, "The two squares hold the same triangle. Only the y axis turns over, which is why a first", "s")
+    c.text(90, 428, "image that is upside down is a sign flip, not a broken shader.", "s", fill=yellow)
+    c.write("clip-space.svg")
+
+
+def instancing():
+    c = Canvas("One draw, two counters",
+               "A draw call carries two ranges: vertex_index walks the three corners, instance_index walks the object "
+               "rows, and every invocation reads only the row its instance_index names.",
+               1180, 420)
+    navy, pink = PAL["navy"], PAL["pink"]
+    c.text(28, 40, "One call, one buffer, a hundred objects", "h")
+    c.text(28, 68, "draw(0..3, 0..100)", "l", fill=PAL["grey"])
+    a = c.box(60, 120, ["vertex_index", "0, 1, 2", "the three corners"], "cpu")
+    b = c.box(60, 250, ["instance_index", "0 .. 99", "which object row"], "cpu")
+    d = c.box(520, 120, ["vs_main", "runs 3 x 100 times", "reads instances[instance_index]"], "gpu")
+    e = c.box(900, 250, ["instances[]", "one 96-byte row", "per object"], "gpu")
+    c.arrow(a[0] + a[2], 120 + a[3] / 2, d[0] - 8, 120 + a[3] / 2)
+    c.arrow(b[0] + b[2], 250 + b[3] / 2, d[0] + d[2] / 3, 120 + d[3] + 8)
+    c.arrow(d[0] + d[2], 120 + d[3] / 2, e[0] + e[2] / 2, 250 - 8)
+    c.text(60, 376, "Nothing is bound per object: the row is an index, so adding the hundredth object costs one row,", "s")
+    c.text(60, 400, "not one draw call.", "s", fill=PAL["yellow"])
+    c.write("instancing.svg")
+
+
+def cpu_gpu():
+    c = Canvas("Two sides and a narrow wire",
+               "The CPU side you may read and change at any time; the GPU side you send bytes and commands to and "
+               "cannot read back casually. Between them is a narrow wire, and almost every mistake is on it.",
+               1180, 420)
+    c.text(28, 40, "Where does this thing live?", "h")
+    a = c.box(60, 110, ["CPU · Rust", "scene, documents, ids, input", "read and change any time"], "cpu")
+    b = c.box(760, 110, ["GPU", "buffers, textures, pipelines", "write only; no casual read back"], "gpu")
+    c.raw(f'<rect x="{a[0] + a[2] + 40:.1f}" y="150" width="{b[0] - a[0] - a[2] - 80:.1f}" height="96" rx="{RADIUS}" '
+          f'fill="{PAL["white"]}" stroke="{PAL["orange"]}" stroke-width="1.5"/>')
+    c.text(a[0] + a[2] + 62, 182, "the wire", "l", fill=PAL["black"], keep=True)
+    c.text(a[0] + a[2] + 62, 206, "write_buffer · create_buffer_init", "m", fill=PAL["black"], keep=True)
+    c.text(a[0] + a[2] + 62, 228, "vertex layout · bind group · @binding", "m", fill=PAL["black"], keep=True)
+    c.arrow(a[0] + a[2], 198, a[0] + a[2] + 32, 198)
+    c.arrow(b[0] - 40, 198, b[0] - 8, 198)
+    c.text(60, 330, "Ask this of every value in the course: which side is it on, and who owns it? A bug you cannot", "s")
+    c.text(60, 354, "place on this picture is usually a wire bug - three declarations that must agree and do not.", "s", fill=PAL["yellow"])
+    c.write("cpu-gpu.svg")
+
+
+def loop():
+    c = Canvas("Read, type, check, understand",
+               "Read the idea, type the block, check that it compiles, then read why it is that way - and the "
+               "reasoning is the part worth reading twice.",
+               1180, 320)
+    c.text(28, 40, "How one step goes", "h")
+    y = 110
+    a = c.box(60, y, ["read the idea", "one or two sentences"], "note")
+    b = c.box(a[0] + a[2] + 60, y, ["type the block", "by hand, not pasted"], "cpu")
+    d = c.box(b[0] + b[2] + 60, y, ["check", "cargo check · the browser"], "cpu")
+    e = c.box(d[0] + d[2] + 60, y, ["read the reasoning", "why it is that way"], "sel")
+    mid = y + a[3] / 2
+    for lhs, rhs in ((a, b), (b, d), (d, e)):
+        c.arrow(lhs[0] + lhs[2], mid, rhs[0] - 8, mid)
+    c.text(60, 262, "Nothing is hidden: the answer and the reasoning are on the page. The order is what matters -", "s")
+    c.text(60, 286, "type it before you read why, and the reasoning lands on something you have already built.", "s", fill=PAL["yellow"])
+    c.write("loop.svg")
+
+
 if __name__ == "__main__":
-    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, section_plane, three_declarations, sheet_cost, history):
+    for draw in (spaces, gpu_data, ink_visibility, picking, text_pipeline, vertex_layout, ownership, frame, finite_triangle, first_frame, cad_contract, shared_boundary, trims_seams, normals, shaping, text_placement, controls, loading, metadata_window, source_cache, joins, ribbon, markers, lod, arena, stages, interpolate, frustum, camera_basis, masks, device_scale, toolchain, gpu_objects, clip_space, instancing, cpu_gpu, loop, section_plane, three_declarations, sheet_cost, history):
         draw()
     print("wrote 35 illustrations")

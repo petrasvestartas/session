@@ -36,6 +36,12 @@ Bind groups every lane shares (`Layouts`):
 - This lesson builds the engine behind `lib.rs`: buffers, layouts, pipelines, targets, frame uniforms, the object table and the mesh lane. `scene.rs` and `first.wgsl` are deleted.
 - New files first. Nothing references them until the wiring at the end, so the crate keeps compiling after each step.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · The floor: device, growable buffers, helpers
 
 - `GpuCtx` is the device/queue pair every lane is made with.
@@ -98,27 +104,27 @@ flowchart TB
     style D fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-56 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=1-58 -->
 
 - `PipelineDesc` is one base per shader; `with`, `vertex`, `color`, `depth` derive the variants.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=57-112 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=59-117 -->
 
 - The builders are what make one base description into a family: `with` renames and repoints the fragment entry, `vertex` swaps the vertex entry, `color` and `depth` set the two states that actually vary between the viewer's passes.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=113-168 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=118-182 -->
 
 - Two shader constants sit beside them. `SCENE` is the scene contract every lane is compiled with; `INK` is the visibility rule only ink lanes need. Keeping them here means a lane names a constant rather than repeating an `include_str!`.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=169-191 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=183-205 -->
 
 - `module` appends `normals.wgsl` to every shader source, so one normal transform serves all lanes; `scene_module` also appends `scene.wgsl`, so the camera, the line block and the object rows are declared once for every lane.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=192-221 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=206-235 -->
 
 - `build` is the only place wgpu is asked for a render pipeline: `Depth32Float`, no cull, fill mode, the desc supplies the rest.
 
-<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=222-285 -->
+<!-- file: 04a session_viewer/src/engine/pipelines/mod.rs type lines=236-285 -->
 
 - `scene.wgsl` is the scene contract: groups 0 to 2, the `Instance` row, the `LineUniform` block, the `FLAG_*` bits and `place`. A lane shader never declares them itself, so a row field changes in one place.
 
@@ -165,7 +171,7 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=1-44 -->
 
-`LineUniform` is 80 bytes; a WGSL mirror declares the same offsets, and `triangle.wgsl` reads nothing past `backface`, so its struct stops there:
+`LineUniform` is 80 bytes. The WGSL side is declared once, in `scene.wgsl`, so no lane shader repeats it and there is one list of offsets to keep true:
 
 | Offset | Rust | WGSL |
 |---|---|---|
@@ -181,6 +187,7 @@ flowchart TB
 | 52 | `backface` | `backface` |
 | 56 | `origin: [f32; 2]` | `origin: vec2<f32>` |
 | 64 | `frame: [f32; 2]` | `frame: vec2<f32>` |
+| 72 | `opacity` | `opacity` |
 
 - `vp_w`/`vp_h` are the pass's own attachment; `frame` is the canvas the scene was projected for and `origin` where the attachment's top-left sits in it. They differ only in the pick pass, which renders the window about the cursor into a window-sized target: pixel arithmetic stays in attachment coordinates, and only what was laid out for the whole canvas is addressed through `origin`.
 - `CloudUniform` is the point lane's 48-byte block with the same `origin` and `frame` pair.
@@ -195,23 +202,23 @@ flowchart TB
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=177-205 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-235 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=206-253 -->
 
 - Construction makes the buffers and bind groups with no camera in them yet. A frame is a write into buffers that already exist and are already bound — allocating per frame is what this shape exists to avoid.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=236-311 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=254-329 -->
 
 - `FrameUniforms` owns all three blocks — camera, line, cloud — because they are written together from one solved camera and must never disagree about which frame they describe.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=312-329 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=330-347 -->
 
 - `write` solves the eye and the orthographic half-height once per frame from the camera matrix; every lane reads the result. The pen is `thickness_px * pixel_scale`, so it keeps its CSS width at every device scale; `origin` is zero and `frame` is the framebuffer.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=330-374 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=348-392 -->
 
-- `write_pick` derives the pick blocks from the frame's after `write`: the camera premultiplied by the window's clip transform, `proj_y` and `ortho_h` scaled by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
+- `write_pick` runs after `write` and derives the pick blocks from the frame's own solved values: the camera premultiplied by the window's clip transform, `proj_y` and `ortho_h` scaled by canvas height over attachment height so a marker or a pen is as wide in the window as on the canvas, and `origin` set to the window's top-left.
 
-<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=375-410 -->
+<!-- file: 04a session_viewer/src/engine/gpu/frame.rs type lines=393-410 -->
 
 <!-- file: 04a session_viewer/src/engine/gpu/frame.rs copy lines=411-417 -->
 
@@ -249,29 +256,29 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-36 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=1-26 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=37-78 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=27-65 -->
 
 - Group 2 for ink binds the same two buffers plus the face pass's depth views.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=79-130 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=66-117 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=131-201 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=118-188 -->
 
 - `append` converts each row to the 96-byte `Instance`, keeps the f64 translation aside, and records bounded rows for the inside test.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=202-268 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=189-255 -->
 
 - `rebase_anchor` rewrites only the translation column when the camera target drifts a quarter of the view distance, throttled to one rebuild per interval.
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=269-326 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=256-312 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=327-374 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=313-360 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=375-430 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs type lines=361-416 -->
 
-<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=431-469 -->
+<!-- file: 04a session_viewer/src/engine/gpu/objects.rs copy lines=417-469 -->
 
 <!-- check: 04a -->
 
@@ -281,19 +288,19 @@ flowchart TB
 
 ![vs_main runs once per vertex, the rasterizer works out which pixels the triangle covers and blends the vertex outputs across them, and fs_main runs once per covered pixel and never sees a vertex.](illustrations/stages.svg)
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-2 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=1-23 -->
 
 - A hidden row's triangle is parked outside the clip volume; the ID pass shares this vertex stage, so a hidden object is unpickable too.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=3-22 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=24-61 -->
 
-- A camera headlight with wrapped diffuse: the darkest visible face is its silhouette, never black. Back faces paint red unless the object is print.
+- Shading is separate from the vertex stage because both fragment entries need it and neither should reimplement it: a camera headlight with wrapped diffuse, so the darkest visible face is still its own colour rather than black. Back faces paint red unless the object is print.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=23-68 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=62-113 -->
 
-- Shading is separate from the vertex stage because both fragment entries need it and neither should reimplement it: a headlight with wrapped diffuse, so the darkest visible face is still its own colour rather than black.
+- The two fragment entries end the file: `fs_id` writes the object row for picking, `fs_main` the shaded colour.
 
-<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=69-122 -->
+<!-- file: 04a session_viewer/src/shaders/triangle.wgsl type lines=114-122 -->
 
 ## Step 9 · The mesh lane
 
@@ -422,7 +429,7 @@ If the canvas stays empty, compare `Gpu::new` against the checkpoint listing: th
 
 - Append `?lit=1` to the URL (or press `D` later): the face gains its headlight shading; without it every face is its flat row color, which is what a color-based probe needs.
 - Add a second `ObjectRow` in `fixture.rs` with a different `place`: the same vertex range draws twice, once per row.
-- Set `msaa=1` in the query string and look at the edge of the mesh against the background: the antialiasing budget is a knob, not a constant.
+- `?msaa=` is parsed here but has no consumer yet: `Targets::new` is called with one sample and the comment says so. Lesson 05 gives the knob its meaning, and that is the checkpoint where `?msaa=4` changes the picture.
 
 ## Questions and answers
 

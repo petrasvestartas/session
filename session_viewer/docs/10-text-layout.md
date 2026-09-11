@@ -17,6 +17,12 @@ flowchart TB
 - Checkpoint 09: the CAD fixture shades correctly; no text anywhere.
 - This lesson shapes text and measures it against the browser. Nothing is drawn on the canvas.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Bundled fonts
 
 - Fonts are compiled into the WASM with `include_bytes!`; the browser never scans system fonts, so every machine shapes identically.
@@ -49,7 +55,7 @@ flowchart LR
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-- `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict that the renderer reads to lower its resolution.
+- `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict. Nothing reads it yet — lesson 17 adds `reduce_for_slow_frames`, which is what turns the verdict into a lower device scale. Measuring first and acting later is deliberate: the number is easy to test on its own.
 
 <!-- file: 10 session_viewer/src/engine/performance.rs type -->
 

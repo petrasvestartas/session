@@ -6,14 +6,10 @@ Most of the time you lose in this course is spent on an error that has already t
 
 Almost every validation error in wgpu is the same bug wearing different clothes: **one thing is declared in three places and you changed only two.**
 
-```mermaid
-flowchart TB
-    R["Rust struct<br/>#[repr(C)] fields, offsets"] --- L["layout<br/>vertex attributes · bind-group entries"]
-    L --- W["WGSL<br/>@location · @binding · struct members"]
-    R --- W
-```
 
 When something is wrong, name the thing (a vertex attribute, a binding, a uniform field, a texture format) and check all three. The error message names one of them; the bug is usually in a different one.
+
+![One thing declared in three places: change two and both edges that touch the third disagree. The error names one corner, and the stale declaration is usually a different one.](illustrations/three-declarations.svg)
 
 ## Habit 2 · Read the error, all of it
 
@@ -112,7 +108,7 @@ Change one factor at a time and watch what moves.
 ### 8 · Surface resize problems
 
 - The picture is stretched or half the canvas is stale: the surface was not reconfigured after the resize, so its texture is still the old size.
-- The picture is crisp on one machine and blurry on another: you sized in CSS pixels where physical pixels were needed. `devicePixelRatio` is the only difference, and this viewer reads it in exactly one place (`device_pixel_ratio`).
+- The picture is crisp on one machine and blurry on another: you sized in CSS pixels where physical pixels were needed. `devicePixelRatio` is the only difference. This viewer reads it in two deliberate places: `device_pixel_ratio` (capped by `?dpr=`, used to size the canvas) and `surface_per_physical` (uncapped, used to convert pointer positions onto the surface actually drawn).
 - Everything breaks when the window is dragged small: a zero-sized surface is invalid; clamp to at least 1.
 
 The depth texture is sized too. A resize that forgets it fails with a mismatch on the next pass.

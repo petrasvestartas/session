@@ -25,10 +25,10 @@ index 545d8e7e76392a6fe965fef74fc94ed6ec6dd5ca..276a260697ca16ec09a202c1a0688d02
  function down(event) { pointer = [event.clientX, event.clientY]; event.target.setPointerCapture(event.pointerId); }
 diff --git a/session_viewer/src/camera.rs b/session_viewer/src/camera.rs
 new file mode 100644
-index 0000000000000000000000000000000000000000..48933bcd708bb4bb5177ec9d0e671a225c44842f
+index 0000000000000000000000000000000000000000..6a91f791ebc1c88f2e4222c64545e1ae713fe821
 --- /dev/null
 +++ b/session_viewer/src/camera.rs
-@@ -0,0 +1,512 @@
+@@ -0,0 +1,513 @@
 +//! Source-precision orbit camera, framed projection and a rebased reversed-depth view transform.
 +use crate::math::{Aabb, FOVY_DEG};
 +use session_rust::{Point, Quaternion, Vector, Xform};
@@ -82,11 +82,11 @@ index 0000000000000000000000000000000000000000..48933bcd708bb4bb5177ec9d0e671a22
 +}
 +
 +impl Camera {
-+    /// A camera at the isometric view (45° yaw, −30° pitch), distance 3, perspective, millimeters.
++    /// A camera at the isometric view (30° yaw, −30° pitch), distance 3, perspective, millimeters.
 +    pub fn new() -> Self {
 +        use std::f64::consts::FRAC_PI_6;
 +
-+        // iso start: yaw 45 deg about T, pitch -30 deg about the tileted right axis
++        // iso start: yaw -30 deg about Z, then pitch -30 deg about the tilted right axis
 +        let yaw_q = Quaternion::from_axis_angle(Vector::z_axis(), -FRAC_PI_6);
 +        let rv = yaw_q.rotate_vector(Vector::x_axis());
 +        let pitch_q = Quaternion::from_axis_angle(rv, -FRAC_PI_6);
@@ -328,7 +328,8 @@ index 0000000000000000000000000000000000000000..48933bcd708bb4bb5177ec9d0e671a22
 +        *self = Camera::new();
 +    }
 +
-+    /// Frame an AABB: center the target on it and set distance so its bounding sphere fills the FOV (+10%).
++    /// Frame an AABB: center the target on it and set the distance from the box measured along the
++    /// camera's own axes, so an elongated scene fills the view rather than its bounding sphere (+5%).
 +    pub fn fit(&mut self, bounds: &Aabb, aspect: f64) {
 +        if !bounds.is_finite() {
 +            return;

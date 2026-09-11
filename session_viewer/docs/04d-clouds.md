@@ -24,12 +24,18 @@ Group 1 of the point pass (`Layouts::points`):
 
 Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_group`), not the camera: the camera is folded into each record.
 
-![One node, one question: a spacing that projects wider than lod_px descends into the four children, and one that fits draws the node whole.](illustrations/lod.svg)
+![One node, one question: a spacing that projects wider than lod_px descends into the eight children, and one that fits draws the node whole.](illustrations/lod.svg)
 
 ## Starting point
 
 - Checkpoint 04c: meshes, strokes and markers draw inside the face and ink passes.
 - Points draw into their own 1× depth and color targets before the face pass, then a fullscreen resolve writes them into the scene with `frag_depth`, so a cloud occludes and is occluded like a solid.
+
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
 
 ## Step 1 · Cloud tables
 
@@ -139,9 +145,9 @@ flowchart TB
 
 <!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=1-50 -->
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=51-102 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=51-92 -->
 
-<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=103-171 -->
+<!-- file: 04d session_viewer/src/shaders/splat.wgsl type lines=93-171 -->
 
 - The resolve reads the lane's depth and color, applies Eye-Dome Lighting from neighbouring depths, and writes `frag_depth` under the scene's `Greater` test.
 
@@ -219,7 +225,7 @@ Expected:
 
 *How to work it out.* You want just enough points that the gaps between them are invisible. So the quantity to test is the node's point spacing *as projected on screen*, compared against a pixel threshold.
 
-*The answer.* "Does this node's spacing project wider than `lod_px`?" Yes: descend into the four children. No: draw the node whole. Because each node owns its own subsample, descending only ever adds detail, which is what makes this a single pass with no back-tracking.
+*The answer.* "Does this node's spacing project wider than `lod_px`?" Yes: descend into the eight children. No: draw the node whole. Because each node owns its own subsample, descending only ever adds detail, which is what makes this a single pass with no back-tracking.
 
 **Group 0 of the point pipelines is the cloud uniform, not the camera. Where did the camera go?**
 

@@ -20,6 +20,12 @@ flowchart TB
 - Checkpoint 00: Rust runs in the page, no GPU.
 - `src/lib.rs` is replaced in full during this lesson, in five appended pieces. Each piece is one idea; the file compiles when the last piece is in.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 6 and 7, and fails after 1–5: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 1–5 build again at step 6. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · One struct owns the GPU
 
 - `Tutorial` is the shell: one struct that owns the GPU objects and is exported to the page.
@@ -42,13 +48,7 @@ flowchart TB
 - The adapter must be `compatible_surface`; otherwise the device may not be able to present to this canvas.
 - `on_uncaptured_error` turns a shader validation failure into a visible panic instead of a silent black canvas.
 
-```mermaid
-flowchart LR
-    I["wgpu::Instance"] -- "create_surface" --> S["Surface"]
-    I -- "request_adapter" --> A["Adapter"]
-    A -- "request_device" --> D["device + queue"]
-    style D fill:#f0bcdb,stroke:#ce4095,color:#111
-```
+![The instance picks the backend, the surface is the canvas you present to, the adapter is one physical GPU chosen to be compatible with that surface, and the device is the handle every later resource comes from.](illustrations/gpu-objects.svg)
 
 <!-- file: 01 session_viewer/src/lib.rs type whole lines=37-58 -->
 
@@ -132,6 +132,8 @@ flowchart LR
 <!-- file: 01 session_viewer/src/shaders/first.wgsl type -->
 
 <!-- check: 01 -->
+
+![The shader is handed only an index and computes three positions in clip space, a square two units across with y up; the viewport transform turns that into pixels with y down, and that flip is why a first image is sometimes upside down.](illustrations/clip-space.svg)
 
 ## Step 7 · The page drives the shell
 

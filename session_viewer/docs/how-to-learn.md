@@ -6,13 +6,8 @@ That is deliberate. Being stuck with no way forward teaches nothing; being shown
 
 ## The loop
 
-```mermaid
-flowchart LR
-    P["read the idea<br/>one or two sentences"] --> T["type it<br/>the block, by hand"]
-    T --> C["check<br/>cargo check · the browser"]
-    C --> R["read the reasoning<br/>why it is that way"]
-    R --> P
-```
+
+![Read the idea, type the block, check that it compiles, then read why it is that way - and the reasoning is the part worth reading twice.](illustrations/loop.svg)
 
 - **Read the idea.** Each step names what it adds before the code. If you want to guess the shape of the code first, guess — a wrong guess turns the block into an answer to a question you actually had. If you do not want to guess, read on; the block is right there.
 - **Type** the blocks marked **TYPE THIS**. Typing is slow on purpose; it is the part where your hands learn the API. Blocks marked **COPY** are boilerplate, fixtures and lockfiles — copy those, you learn nothing by retyping a font table.

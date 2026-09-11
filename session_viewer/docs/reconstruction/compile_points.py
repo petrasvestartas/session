@@ -54,14 +54,9 @@ def cargo_check(viewer, env, log):
     return result.returncode == 0
 
 
-def measure(step, lesson_markdown, workspace, env, log_dir):
-    """Apply directives in order; run cargo check at every check marker."""
-    results = {}
-    position = 0
-    for match in COURSE.DIRECTIVE.finditer(lesson_markdown):
-        kind, step_id, rest = match.groups()
-        if step_id != step.id:
-            continue
+def apply_directive(step, kind, rest, workspace):
+    """Apply one `file` or `supplied` directive to the typed workspace, as a reader would."""
+    if True:  # keeps the original indentation of the branches below
         if kind == "file":
             options = COURSE.parse_args_text(rest)
             name = options["path"]
@@ -94,6 +89,18 @@ def measure(step, lesson_markdown, workspace, env, log_dir):
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(step.changes[name].new_text)
             REPLAY.copy_assets(workspace, step.record)
+
+
+def measure(step, lesson_markdown, workspace, env, log_dir):
+    """Apply directives in order; run cargo check at every check marker."""
+    results = {}
+    position = 0
+    for match in COURSE.DIRECTIVE.finditer(lesson_markdown):
+        kind, step_id, rest = match.groups()
+        if step_id != step.id:
+            continue
+        if kind in ("file", "supplied"):
+            apply_directive(step, kind, rest, workspace)
         elif kind == "check":
             ok = cargo_check(workspace / "session_viewer", env, log_dir / f"check-{position}.log")
             results[str(position)] = "ok" if ok else "fail"

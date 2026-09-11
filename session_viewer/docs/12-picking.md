@@ -40,6 +40,12 @@ Install the binary interaction fixture and the supplied native harness file firs
 
 <!-- supplied: 12 -->
 
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 1–13, 16 and 17, and fails after 14 and 15: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 14 and 15 build again at step 16. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
+
 ## Part A · Production shell
 
 ### Step 1 · Device negotiation
@@ -58,22 +64,22 @@ flowchart TB
 
 - The browser picks the presentation-compatible adapter; `?gpu=high` asks for the high-performance one on a hybrid machine and falls back to the browser's choice when that adapter is refused.
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-81 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=1-83 -->
 
 - That is the chain as far as a chosen adapter. The next part asks it for a device, and the only unusual thing it asks for is a storage-binding limit.
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=82-114 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=84-116 -->
 
 - 256 MiB of storage binding where available, rather than the adapter maximum: the measured point-cloud scene needs 158 MB in one table. A device limited to the standard 128 MiB still starts, and an oversized scene then reports a GPU error instead of a silent driver fallback.
 - `failure` is where an uncaptured error or a device loss is remembered, because both arrive on a callback rather than at the call that caused them. `State::render` reads it and shows the reload panel instead of drawing garbage.
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=115-160 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs type lines=117-162 -->
 
 - The surface's own capabilities decide the format: the first sRGB one if there is one, so colours are written in the space the browser will display.
 
 Native-only adapter naming and the error callbacks:
 
-<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=161-231 -->
+<!-- file: 12 session_viewer/src/engine/gpu/device.rs copy lines=163-231 -->
 
 ### Step 2 · Presenting a frame
 
@@ -186,37 +192,37 @@ flowchart LR
     style S fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-68 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=1-59 -->
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=69-126 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=60-117 -->
 
 - Clearing keeps the scene usable rather than replacing it: a reload must not invalidate the `Scene` the whole application is holding, so the tables are emptied in place and the row bookkeeping starts again from zero.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=127-185 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=118-176 -->
 
 - One object row per GUID in the kernel's canonical order; the row a GUID gets is the row it keeps within a revision.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=186-207 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=177-199 -->
 
 - The walk is where a kernel document becomes rows: one object row per guid, in the kernel's canonical order, so the row a guid gets is the row it keeps for as long as that revision is loaded.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=208-274 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=200-264 -->
 
 - Streamed clouds have no kernel object; their slot records the absolute row point 0 landed on.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=275-337 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=265-326 -->
 
 - A streamed cloud grows: each slice appends to the same row range and uploads only the new points, so the scene never rebuilds what is already on the GPU.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=338-352 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=327-341 -->
 
 - Row → identity in both directions; `edge_at` reads the segment sub-ID tag bit set by the ribbon shader.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=353-416 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=342-405 -->
 
 - Resolving a pick is where a row becomes something a user can be told about: an edge answer goes back through the retained producer records, and an answer that cannot be named is refused rather than guessed.
 
-<!-- file: 12 session_viewer/src/app/scene.rs type lines=417-483 -->
+<!-- file: 12 session_viewer/src/app/scene.rs type lines=406-483 -->
 
 ### Step 7 · Selection mode
 
@@ -240,21 +246,21 @@ flowchart LR
     style W fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-49 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=1-48 -->
 
 - Positions, colours and normals come out of the kernel's flat arrays; normals only when every point has one, because a partly-normalled cloud would shade inconsistently and there is no per-point flag to say which.
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=50-82 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=49-81 -->
 
 - The octree the file carries is rewritten into this cloud's own row and node numbering, so one lane can hold many clouds without their node indices colliding.
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=83-129 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=82-128 -->
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=130-184 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=129-183 -->
 
 - A streamed cloud is only partly present, so its spacing is measured over the nodes that are actually complete within the points received. Sizing discs from a node that is still arriving would make them flicker as it fills.
 
-<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=185-221 -->
+<!-- file: 12 session_viewer/src/app/walk/cloud.rs type lines=184-221 -->
 
 <!-- file: 12 session_viewer/src/app/walk/frames.rs type -->
 
@@ -431,34 +437,34 @@ flowchart TB
 
 - A resize is forwarded rather than handled: the camera needs the new aspect, the GPU needs new attachments, and doing both from one place is what keeps them from disagreeing for a frame.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=162-177 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=162-188 -->
 
 - Everything above changes what is in the scene: append a document, replace the manifest texts, start or extend a streamed cloud or sheet, clear. Each one ends by telling the GPU and asking for a frame — `State` is the only place that knows both sides.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=178-196 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=189-207 -->
 
 - `toggle_xray` is a view change, not a scene change: `view.opacity` goes between `1.0` and `0.0` and `touch` schedules a frame; the shaders read the zero, no row is rewritten.
 - `select` clears controls and edge highlight before moving the flag, so no lane keeps a stale parent.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=197-251 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=208-262 -->
 
 - `apply_pick`: an edge answer needs `Scene::edge_at`; an object answer toggles the row.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=252-305 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=263-316 -->
 
 - `render` applies a returned pick first, so the same frame presents its highlight; a pick on a still scene runs alone through `pick_frame`.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=306-369 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=317-380 -->
 
 - `request_selection` configures the tolerance in CSS pixels times the actual logical-to-physical scale, then records the request.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=370-419 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=381-430 -->
 
 Document titles and the selected name are derived labels; they have no source row and cannot intercept a click.
 
-<!-- file: 12 session_viewer/src/state.rs type lines=420-480 -->
+<!-- file: 12 session_viewer/src/state.rs type lines=431-484 -->
 
-<!-- file: 12 session_viewer/src/state.rs copy lines=481-510 -->
+<!-- file: 12 session_viewer/src/state.rs copy lines=485-510 -->
 
 ### Step 14 · Gpu owns device, presentation and picking
 
@@ -528,7 +534,11 @@ flowchart LR
 
 - The page is one canvas, a status line and a hidden error panel; `touch-action: none` on the canvas hands every gesture to winit before the browser can claim it as a scroll.
 - `#viewer-docs` is the documentation corner: a fixed 40 px black folded-corner triangle at the top right, drawn from the borders of a zero-size anchor, that opens `docs/` in a new tab. Hover or keyboard focus grows it to 52 px through a 250 ms eased transition, so it reads as a page corner lifting; it sits above the canvas and covers nothing but its own triangle.
-- The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner's link resolves in a served build.
+- The `copy-dir` link publishes `target/docs/site` as `dist/docs`, so the corner's link resolves in a served build. Nothing builds that site yet — lesson 14 adds the pre-build hook that does — and Trunk refuses a `copy-dir` whose source is missing, so create the directory once before you serve:
+
+```sh
+mkdir -p "$COURSE_WORK/session_viewer/target/docs/site"
+```
 
 ```mermaid
 flowchart LR

@@ -4,16 +4,8 @@ Every word the lessons use before they have room to explain it, in plain languag
 
 ## Two sides and a wire
 
-```mermaid
-flowchart LR
-    subgraph CPU["CPU · Rust · every frame you decide"]
-        S["scene, documents,<br>ids, input"] --> R["rows and vertices<br>as bytes"]
-    end
-    subgraph GPU["GPU · runs the submitted list"]
-        B["buffers · textures"] --> P["pipeline + shader"] --> X["pixels"]
-    end
-    R -- "queue.write_buffer · create_buffer_init" --> B
-```
+
+![The CPU side you may read and change at any time; the GPU side you send bytes and commands to and cannot read back casually. Between them is a narrow wire, and almost every mistake in the course is on it.](illustrations/cpu-gpu.svg)
 
 - **CPU side**: your Rust structs, the kernel documents, the scene, input events, object ids. You can read and change them at any time.
 - **GPU side**: buffers, textures, bind groups, pipelines, shaders. You cannot read them back casually; you *send* bytes and commands.
@@ -35,7 +27,7 @@ flowchart LR
 - **uniform buffer** (01) — the camera matrix: 64 bytes, same for every vertex.
 - **storage buffer** (03) — `array<Instance>`: one row per object, any length, indexed by the shader.
 - **vertex buffer / index buffer** (04a) — fixed-size vertex records, and triangle corner numbers three per triangle so a shared corner is stored once (`draw_indexed`).
-- **texture** — a grid of texels with a format: the surface's colour format; `Depth32Float` (04a, one depth per pixel); `Rgba16Float` (05, the gradient/metadata target); `Rg32Uint` (12, pick ids); `R8Unorm` (17, coverage masks).
+- **texture** — a grid of texels with a format: the surface's colour format; `Depth32Float` (04a, one depth per pixel); `Rg16Float` (05, the depth-gradient target; lesson 18 widens it to `Rgba16Float` to carry a triangle address too); `Rg32Uint` (12, pick ids); `R8Unorm` (17, coverage masks).
 - **texture view** — the handle a pass draws into or a bind group reads. Passes attach views, not textures.
 - **attachment** — a view a render pass writes: the colour attachment gets fragment colours, the depth attachment remembers the nearest depth per pixel.
 - **multisampling (MSAA)** (04a, used from 05) — N colour and depth samples per pixel so a partly covered edge pixel gets a partial colour; pipelines and every attachment of a pass must share the sample count; the samples are *resolved* into the 1-sample surface at the end.
@@ -104,12 +96,16 @@ flowchart LR
 - **walk / producer** (06) — the CPU code that turns one kernel geometry into rows; one producer per geometry family in `src/app/walk/`.
 - **face pass / physical** (04a, 05) — the first pass: solid faces write colour, depth and a depth-gradient. "Physical" means *this is what occludes*.
 - **ink** (04b) — everything that is not a solid face: strokes, markers, lettering, drawn in the second pass, which reads the physical depth and decides visibility per fragment (`ink_visibility.wgsl`).
+- **pcurve** (07) — a *parameter curve*: a trimmed face's boundary written in the surface's own `u`,`v` domain rather than in XYZ. Lifting a pcurve through the surface gives the 3D edge; mapping a shared XYZ edge back onto each face's pcurve is how two faces agree on where an edge lies in their own coordinates.
+- **grid face / constrained face** (07) — which mesher produced a face. A *grid* face comes from `mesh_q`, sampling the whole `u`,`v` rectangle on a regular grid, so its boundary is an iso line read straight off the `u`/`v` attributes. A *constrained* face comes from `mesh_loops`, triangulating inside given trim loops, so its boundary nodes carry `brep_edge/{edge}/{use}/{sample}` tags. The two give their boundary chains in different ways, which is why lesson 07 keeps naming them apart.
+- **constrained Delaunay** (07) — a triangulation that is Delaunay except that named segments are forced to appear as edges. Here the forced segments are the trim loops, which is what makes a boundary node a mesh node rather than an approximation of one.
 - **source vs display** — source: the kernel's face, edge, control point, in f64, with its id. Display: the triangles, node chains and markers made from it. GPU: the packed rows. Selection always names a source thing.
 - **id pass / pick window** (12) — the same draws again into an integer target, only in a small window around the cursor, read back asynchronously; the answer is a row plus a sub-id.
 - **coverage mask / silhouette** (17) — an `R8Unorm` texture marking which pixels a solid (and its edges) covers; a compositor darkens the ring just outside it. `O` toggles it.
 - **x-ray** (`P`) — every multi-face solid loses its faces (they are discarded in all entry points), so only edges, vertices and text remain; single faces keep their shading; no silhouettes while it is on.
 - **headlight** (`D`) — the camera light on shaded faces; off by default, so a face shows its flat colour.
 - **tile lists / finite visibility** (18) — projected triangles binned into screen tiles, so an edge is hidden only by triangles that actually cover it, not by a neighbour's extended plane.
+- **CSR** (06) — compressed sparse row: one flat array of entries plus a per-owner start index, instead of a vector per owner. The vertex→edge incidence is stored this way (`vstart`, `vinc`), so a vertex finds its edges without a heap allocation each.
 - **generation** (12, 13) — a counter on every asynchronous answer (pick, range read); an answer from an older generation is dropped when it lands.
 
 ## Rust idioms the code leans on
@@ -120,7 +116,7 @@ flowchart LR
 - **`anyhow::Result`, `?`, `ensure!`, `bail!`** (01) — one catch-all error type; `?` converts, `ensure!` checks, `bail!` returns early.
 - **`#[cfg(target_arch = "wasm32")]`** — code that exists only in the browser build; the crate's default target is wasm32, tests run natively through `cargo xtest`.
 - **let-else / let chains** (06) — `let Some(x) = y else { continue }` and `if let A = b && cond { }`: edition 2024 forms the kernel code uses.
-- **`OnceLock` knobs** (04a, `src/app/knobs.rs`) — a query-string or environment switch read once per process.
+- **`OnceLock` knobs** (06, `src/app/knobs.rs`) — a query-string or environment switch read once per process. The view knobs arrive earlier, in `src/engine/gpu/view.rs` (04a).
 
 ## Questions and answers
 
@@ -152,4 +148,4 @@ flowchart LR
 
 *How to work it out.* Ask what each layer holds. The GPU has a row index and a face address — numbers. `Scene` has the mapping and the retained documents. The kernel `Session` has the face itself, with its guid.
 
-*The answer.* In the kernel, retained by `Scene` through `Rc`; the GPU knows only an object row and a face index, and `Scene::face_at` maps them back. That is why picking never reads a vertex buffer back from the GPU.
+*The answer.* In the kernel, retained by `Scene` through `Rc`; the GPU knows only an object row and a face address, `Faces::source` turns that pair into the face it came from, and `Scene::resolve` turns the row into its document and guid. That is why picking never reads a vertex buffer back from the GPU.

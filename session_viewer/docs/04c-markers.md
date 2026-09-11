@@ -28,6 +28,12 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 - Checkpoint 04b: meshes and strokes. Both ink lanes share the visibility rule appended by `ink_module`.
 - Markers are the vertex-sized ink: mesh vertex markers (solid lane) and free points (flat lane), one 48-byte row for both.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · The glyph row
 
 - `center` is a `vec3` in WGSL, so the row is 48 bytes with `radius` in the padding slot.
@@ -84,23 +90,23 @@ flowchart TB
     style Q fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-3 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=1-2 -->
 
 - `screen_radius` and `to_px` turn a world or pen radius into pixels; `faces_front` decodes the packed normals.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=4-16 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=3-3 -->
 
 - The template corner is offset in clip space by the pixel radius plus the feather, so the quad always contains the antialiased disc.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-62 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=4-16 -->
 
 - The facing cull is skipped when the eye is inside the object and when `line.opacity` is zero: in x-ray a vertex on the far side of a cube is exactly what you want to see.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=63-124 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=17-62 -->
 
 - The antialiasing ramp is clamped to the ink it feathers. A pen thinner than the ramp would otherwise be drawn entirely out of fade and disappear at distance.
 
-<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=125-153 -->
+<!-- file: 04c session_viewer/src/shaders/sphere.wgsl type lines=63-153 -->
 
 ## Step 4 · Free dots
 
@@ -114,19 +120,19 @@ flowchart TB
     style T fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-6 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=1-2 -->
 
 - A dot wider than the canvas is dropped before it is placed. The test reads `frame`, the canvas the scene was projected for, not `vp_w`/`vp_h`, the attachment: a large dot survives when the pass renders only a window of the canvas, so it stays pickable.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=7-38 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=3-13 -->
 
 - The ramp never exceeds the ink it feathers; `vs_source` and `fs_source_id` serve source-cloud queries.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=39-96 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=14-45 -->
 
 - The fragment half is the same shape as the ribbon's: coverage first, then the shared visibility test. Every ink lane answers the visibility question with the same function, which is why the rule lives in its own file.
 
-<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=97-138 -->
+<!-- file: 04c session_viewer/src/shaders/glyph.wgsl type lines=46-138 -->
 
 <!-- check: 04c -->
 

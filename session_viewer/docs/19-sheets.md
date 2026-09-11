@@ -14,9 +14,17 @@ flowchart TB
     style M fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
+![As objects, every line pays for a GUID string, a name, a colour and four copies of itself; as one batch a line is a few numbers and a small source id, with guid, name and kind in a side table read only when something is selected.](illustrations/sheet-cost.svg)
+
 ## Starting point
 
 Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; streamed point clouds already locate their arrays by scanning protobuf tags and read any slice by range.
+
+<!-- step-status: start -->
+
+**Does it compile yet?** `cargo check` passes after steps 1–3 and 9, and fails after 4–8: a file is written across several steps, and a check can only pass once its last piece is in. Concretely, steps 4–8 build again at step 9. This is measured at the end of every step rather than guessed. And where a check passes while your new files are not yet named by a `mod` line, it is telling you only that you have not broken the previous checkpoint — the checkpoint build at the end of the lesson is the real test.
+
+<!-- step-status: end -->
 
 ## Part A · The format
 
@@ -121,9 +129,9 @@ flowchart TB
 
 <!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=59-101 -->
 
-<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=102-158 -->
+<!-- file: 19 session_viewer/src/app/sheet_query.rs type lines=102-129 -->
 
-<!-- file: 19 session_viewer/src/app/sheet_query.rs copy lines=159-244 -->
+<!-- file: 19 session_viewer/src/app/sheet_query.rs copy lines=130-244 -->
 
 <!-- file: 19 session_viewer/src/app/mod.rs type -->
 

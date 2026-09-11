@@ -17,6 +17,12 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 - Checkpoint 01: one triangle, identity matrix in the uniform, `drag` and `zoom` do nothing.
 - This lesson adds the production `camera.rs` and `math.rs` in full, then wires the shell to them.
 
+<!-- step-status: start -->
+
+**Does it compile yet?** Yes, after every step of this lesson — `cargo check` was run at the end of each one to make sure. A step that writes a file Rust has not been told about yet compiles without checking any of it, so keep going to the checkpoint: that build is the real test.
+
+<!-- step-status: end -->
+
 ## Step 1 · Matrix helpers
 
 - A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here follows that rule, and so does the kernel's `Xform`.
@@ -45,17 +51,17 @@ flowchart LR
     style B fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 02 session_viewer/src/math.rs type lines=72-128 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=72-123 -->
 
 - A box also has to travel through a placement. `placed` transforms all eight corners rather than the two extremes, because a rotation moves a corner that was not extreme into a position that is.
 
-<!-- file: 02 session_viewer/src/math.rs type lines=129-158 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=124-154 -->
 
 ## Step 3 · Recover camera facts from the matrix
 
 Draw lanes receive only the view-projection, never the camera. The eye is where clip x, y and w vanish together (one 3×3 solve); orthographic has no eye, so the fallback is the view direction pushed far back.
 
-<!-- file: 02 session_viewer/src/math.rs type lines=159-220 -->
+<!-- file: 02 session_viewer/src/math.rs type lines=155-220 -->
 
 ## Step 4 · Camera state
 
@@ -82,7 +88,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 
 ![The projection and the divide by w land the frustum in a cube. With near and far swapped, distant points crowd into a thin band at zero, which is where float32 is densest.](illustrations/frustum.svg)
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=139-196 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=139-195 -->
 
 ## Step 7 · The view-projection
 
@@ -90,7 +96,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 - **Anchor:** eye and target are expressed relative to a caller anchor in world units before any f32 exists, so a model far from the origin does not cancel to noise.
 - Near is a ten-thousandth of the focus distance: the cut opens a millimetre ahead of the eye, not a beam's width.
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=197-270 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=196-269 -->
 
 ## Step 8 · Named views, fit, extent
 
@@ -107,22 +113,22 @@ flowchart TB
     style F fill:#f0bcdb,stroke:#ce4095,color:#111
 ```
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=271-299 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=270-298 -->
 
 - Fitting is the one gesture that reads the scene: it centres the target on a box and sets the distance from the box measured along the camera's own axes, so an elongated model fills the view instead of sitting twice as far away as it needs to.
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=300-352 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=299-347 -->
 
 - The far plane has a floor rather than a value. Geometry streams in after the first fit, so the camera keeps the widest extent it has ever been told about instead of refitting and cutting the scene it already showed.
 
-<!-- file: 02 session_viewer/src/camera.rs type lines=353-399 -->
+<!-- file: 02 session_viewer/src/camera.rs type lines=348-399 -->
 
 ## Step 9 · Wheel response
 
 - `zoom_distance` is exponential per detent and clamps a single event to ten detents, so coalesced wheel events compose and never cross zero.
 - The two `#[cfg(test)]` modules are native-only unit checks; they are not part of the browser build.
 
-<!-- file: 02 session_viewer/src/camera.rs copy lines=400-512 -->
+<!-- file: 02 session_viewer/src/camera.rs copy lines=400-513 -->
 
 <!-- check: 02 -->
 
