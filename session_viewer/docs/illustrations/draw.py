@@ -2754,7 +2754,7 @@ def frame_passes():
          [("w", "Clear → Store"), ("w", "Clear 0.0 → Store"), ("w", "Clear → Store"), ("-", ""), ("-", "")]),
         ("`selection coverage`", "only when a selected face is visible",
          [("-", ""), ("r", "attached read-only"), ("-", ""), ("w", "Clear → Store"), ("-", "")]),
-        ("`ink pass`", "the scene list, resolved at 4×",
+        ("`ink pass`", "the scene list, resolved into the surface",
          [("w", "Load → Store"), ("r", "read-only AND sampled"), ("r", "sampled"), ("r", "sampled"), ("-", "")]),
         ("`pick pass`", "only when a pick is pending",
          [("-", ""), ("w", "its own · Clear 0.0"), ("w", "its own · Clear"), ("-", ""), ("w", "Clear → Store")]),
