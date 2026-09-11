@@ -1,0 +1,20 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+F: "sheet .pb\ncoords · colors · widths · source_ids" { class: focus }
+L: "loader\nprefix, then slices" { class: box }
+W: "walk_sheet_slice" { class: box }
+G: "SegmentLane\nribbons + ribbon_ids" { class: box }
+R: "Scene::resolve\nentity id" { class: box }
+M: ".meta side table\nguid · name · kind" { class: focus }
+
+F -> L: "HTTP Range" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+L -> W { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+W -> G { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+G -> R: "pick: row + segment" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+R -> M: "two ranged reads" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

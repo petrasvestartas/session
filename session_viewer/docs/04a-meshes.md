@@ -2,16 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    F["fixture.rs<br/>ObjectRow + RenderVertex"] --> U["Upload<br/>obj rows · arena rows"]
-    U -- "Gpu::set_scene" --> T["InstanceTable<br/>group 2"]
-    U -- "Gpu::set_scene" --> A["ArenaLane<br/>GrowBufs"]
-    FR["FrameUniforms<br/>groups 0, 1"] --> P
-    T --> P["triangle.wgsl<br/>vs_main · fs_main"]
-    A --> P
-    P --> TG["Targets<br/>color + Depth32Float"]
-```
+![Diagram: fixture.rs\ ObjectRow + RenderVertex · Upload\ obj rows · arena rows · InstanceTable\ group 2 · ArenaLane\ GrowBufs · FrameUniforms\ groups 0, 1 · P…](illustrations/04a-01.svg)
 
 Rust vertex layout ↔ WGSL locations (`pipelines::vertex_layout`, `instance_id_layout`):
 
@@ -49,13 +40,7 @@ Bind groups every lane shares (`Layouts`):
 - `GpuCtx` is the device/queue pair every lane is made with.
 - `GrowBuf` grows by appending: capacity `max(need, cap * 3 / 2)`, the live prefix copied GPU-side, only new rows written. It returns `true` when the buffer moved so the caller rebuilds its bind group.
 
-```mermaid
-flowchart LR
-    R["new rows"] -- "append" --> G["GrowBuf<br/>cap · len"]
-    C["GpuCtx<br/>device · queue"] -- "create_buffer" --> G
-    G -- "grew? rebuild" --> B["bind group"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: new rows · GrowBuf\ cap · len · GpuCtx\ device · queue · bind group](illustrations/04a-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -90,14 +75,7 @@ flowchart LR
 - A layout is the shape of a bind group; the buffers live in the lanes.
 - Group 2 splits rows (96 B) from anchored translations (16 B) so a re-anchor rewrites 16 bytes per object.
 
-```mermaid
-flowchart LR
-    L["Layouts"] --> G0["group 0 · mvp"]
-    L --> G1["group 1 · line"]
-    L --> G2["group 2 · rows + translations"]
-    G2 -- "+ depth views" --> GI["ink_instance"]
-    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Layouts · group 0 · mvp · group 1 · line · group 2 · rows + translations · ink_instance](illustrations/04a-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -116,13 +94,7 @@ flowchart LR
 - `Target` is where a pipeline draws; `DepthMode` and `ColorWrite` name the only depth and blend states the viewer uses.
 - Every compare is reverse-Z: nearer is `Greater`.
 
-```mermaid
-flowchart TB
-    S["shader source"] -- "module + normals.wgsl" --> M["ShaderModule"]
-    D["PipelineDesc<br/>Target · DepthMode · ColorWrite"] -- "build" --> P["RenderPipeline"]
-    M --> P
-    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: shader source · ShaderModule · PipelineDesc\ Target · DepthMode · ColorWrite · RenderPipeline](illustrations/04a-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -185,13 +157,7 @@ flowchart TB
 - The face pass clears color and depth (to `0.0`, reverse-Z) and writes both.
 - The ink pass loads color, keeps depth read-only and samples it through group 2.
 
-```mermaid
-flowchart TB
-    T["Targets<br/>color · Depth32Float"] -- "begin_faces · clear" --> F["face pass<br/>writes depth"]
-    T -- "begin_ink · load" --> I["ink pass<br/>depth read-only"]
-    F -- "depth view · group 2" --> I
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Targets\ color · Depth32Float · face pass\ writes depth · ink pass\ depth read-only](illustrations/04a-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -215,13 +181,7 @@ flowchart TB
 
 - `FrameInput` is what one frame needs from the caller; `FrameCx` adds the knobs, the anchor and the framebuffer, with `pixel_scale` the framebuffer pixels per CSS pixel; `Binds` sets groups 0, 1, 2 before every lane draw.
 
-```mermaid
-flowchart TB
-    FI["FrameInput<br/>view_proj · clear"] -- "write" --> FU["FrameUniforms<br/>mvp · line · cloud"]
-    FU -- "Binds · groups 0 1 2" --> D["every lane draw"]
-    FU -- "write_pick · PickView" --> PK["pick blocks<br/>window-sized attachment"]
-    style FU fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: FrameInput\ view_proj · clear · FrameUniforms\ mvp · line · cloud · every lane draw · pick blocks\ window-sized attachment](illustrations/04a-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-1d6ef8d27c.svg" data-zone="GPU core"></span>
 
@@ -302,13 +262,7 @@ flowchart TB
 
 - `View` is read once from `?name=` on wasm or `ENV` natively and consulted every frame.
 
-```mermaid
-flowchart LR
-    Q["?name= · route::query"] -- "knob" --> V["View<br/>show_* · thickness_px"]
-    E["ENV · native"] -- "knob" --> V
-    V -- "read each frame" --> F["frame"]
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ?name= · route::query · View\ show_* · thickness_px · ENV · native · frame](illustrations/04a-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-62cf9167cc.svg" data-zone="GPU core"></span>
 
@@ -333,16 +287,7 @@ flowchart LR
 - `ObjectRow` is one object as the producer reports it: f64 placement, tint, flags, local box, spacing.
 - `InstanceTable` owns the rows the GPU reads, the true f64 translations, and the two buffers behind group 2.
 
-```mermaid
-flowchart TB
-    O["ObjectRow<br/>f64 placement"] -- "append" --> T["InstanceTable"]
-    T --> R["rows · 96 B"]
-    T --> A["translations · 16 B"]
-    R --> G["group 2"]
-    A --> G
-    C["camera drift"] -- "rebase_anchor" --> A
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ObjectRow\ f64 placement · InstanceTable · rows · 96 B · translations · 16 B · group 2 · camera drift](illustrations/04a-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-62cf9167cc.svg" data-zone="GPU core"></span>
 
@@ -428,14 +373,7 @@ flowchart TB
 
 - `ArenaRows` is one upload's delta; `ArenaLane` is five `GrowBuf`s under one growth policy and the pipelines over them.
 
-```mermaid
-flowchart TB
-    AR["ArenaRows<br/>verts · vids · idx"] -- "append" --> AL["ArenaLane<br/>five GrowBufs"]
-    AL -- "draw_faces" --> FP["face pass"]
-    AL -- "draw_print · draw_text" --> OL["OutlineTextLane<br/>unlit"]
-    OL --> IP["ink pass"]
-    style AL fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ArenaRows\ verts · vids · idx · ArenaLane\ five GrowBufs · face pass · OutlineTextLane\ unlit · ink pass](illustrations/04a-09.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -487,13 +425,7 @@ flowchart TB
 
 - `Upload` carries every lane's rows for one file and nothing GPU-typed. Deleting a lane means deleting its field here.
 
-```mermaid
-flowchart LR
-    FX["fixture.rs<br/>one mesh row"] --> U["Upload<br/>obj · arena · bounds"]
-    U -- "set_scene" --> G["Gpu"]
-    U -- "drop_uploaded" --> X["rows freed"]
-    style U fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: fixture.rs\ one mesh row · Upload\ obj · arena · bounds · Gpu · rows freed](illustrations/04a-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
@@ -511,14 +443,7 @@ flowchart LR
 
 - `Gpu` owns the surface, one device, the layouts, frame uniforms, targets, the object table and the lanes; the lanes never see each other.
 
-```mermaid
-flowchart TB
-    S["Tutorial · lib.rs"] -- "set_scene · render" --> G["Gpu<br/>ctx · layouts · targets"]
-    G --> O["InstanceTable"]
-    G --> A["ArenaLane"]
-    G -- "write · face pass · ink pass · present" --> W["frame"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Tutorial · lib.rs · Gpu\ ctx · layouts · targets · InstanceTable · ArenaLane · frame](illustrations/04a-11.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 

@@ -4,30 +4,11 @@
 
 Part A builds the production application: winit owns the canvas and events, `App` routes them, `State` coordinates camera, scene and GPU.
 
-```mermaid
-flowchart TB
-    browser["browser events"] -- "winit" --> App
-    App -- "key / mouse / touch" --> Input
-    Input -- "named actions" --> State
-    loader -- "Msg::File / Fit" --> App
-    State --> Camera
-    State --> Scene["Scene (source documents)"]
-    State --> Gpu
-    Gpu -- "encode_frame · present" --> canvas
-```
+![Diagram: browser events · App · Input · State · loader · Camera…](illustrations/12-01.svg)
 
 Part B adds picking: an integer ID pass, a bounded readback window, and a generation check so a late answer never selects against a newer camera.
 
-```mermaid
-flowchart TB
-    click["left click (CSS px)"] --> win["physical pick window"]
-    win --> id["ID pass · Rg32Uint + depth"]
-    id -- "copy_texture_to_buffer" --> buf["readback buffer"]
-    buf -- "map_async" --> poll["Picker::poll"]
-    poll -- "(row+1, sub+1)" --> scene["Scene::resolve → source GUID"]
-    scene --> sel["State::select → FLAG_SELECTED"]
-    sel --> frame["next frame: yellow object"]
-```
+![Diagram: win · ID pass · Rg32Uint + depth · readback buffer · Picker::poll · Scene::resolve → source GUID · State::select → FLAG_SELECTED…](illustrations/12-02.svg)
 
 ![A pointer release becomes a scissored ID window, an asynchronous bounded readback, a Scene lookup and a selected flag; stale generations are dropped.](illustrations/picking.svg)
 
@@ -56,13 +37,7 @@ Install the binary interaction fixture and the supplied native harness file firs
 - A storage-binding limit is requested explicitly, so a large cloud fails with a GPU error instead of a silent driver fallback.
 - Uncaptured errors and device loss are remembered in `failure`; `State::render` reads it and shows the reload panel instead of drawing garbage.
 
-```mermaid
-flowchart TB
-    B["BROWSER_WEBGPU adapter"] -- "open" --> D["DeviceSetup"]
-    D --> Q["device · queue"]
-    Q -- "uncaptured error" --> F["failure"]
-    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: BROWSER_WEBGPU adapter · DeviceSetup · device · queue · failure](illustrations/12-03.svg)
 
 - The browser picks the presentation-compatible adapter; `?gpu=high` asks for the high-performance one on a hybrid machine and falls back to the browser's choice when that adapter is refused.
 
@@ -99,14 +74,7 @@ Native-only adapter naming and the error callbacks:
 - `present` returns `None` when the surface had no texture; the caller asks for another frame instead of panicking.
 - `pick_frame` is the ID pass alone, against the depth the last presented frame left: a pick on a still scene costs no colour frame.
 
-```mermaid
-flowchart TB
-    C["camera · eye"] --> U["write_frame_uniforms"]
-    U --> P["present"] --> S["surface texture"]
-    U --> K["pick_frame"]
-    style U fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: camera · eye · write_frame_uniforms · present · surface texture · pick_frame](illustrations/12-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
@@ -129,11 +97,7 @@ The offscreen and benchmark paths used by native tools:
 - Pass order is the whole contract: physical surfaces write depth, the selection mask reads it, ink reads it, the ID pass repeats the same toggles.
 - `encode_frame` knows nothing about a surface, so the same list renders headless.
 
-```mermaid
-flowchart LR
-    E["encode_frame"] --> F["face_list · depth"] --> I["scene_list · ink"] --> D["id_pass"]
-    style E fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: encode_frame · face_list · depth · scene_list · ink · id_pass](illustrations/12-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
@@ -164,12 +128,7 @@ Every handler returns whether the frame must be redrawn; a click returns `false`
 | T | toggle selected names |
 | Escape | leave edge mode, then clear |
 
-```mermaid
-flowchart LR
-    W["winit event"] --> I["Input"] -- "named action" --> S["State"]
-    I -- "CLICK_SLOP" --> D["drag, not a click"]
-    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: winit event · Input · State · drag, not a click](illustrations/12-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
@@ -205,14 +164,7 @@ flowchart LR
 - Finger travel is divided by the device pixel ratio; otherwise one centimetre of glass orbits three times faster on a DPR 3 phone.
 - A finger that lifts within 12 px and 300 ms of where it landed is a tap: `Act::Tap` carries the point and the input layer requests a selection there, the same pick a click makes. A second tap within 320 ms and 40 px is `Act::Fit`, which needs the scene bounds a layer up.
 
-```mermaid
-flowchart TB
-    E["WindowEvent::Touch"] --> T["Touch"]
-    T -- "÷ DPR" --> C["orbit · pan · zoom"]
-    T -- "tap" --> P["request_selection"]
-    T -- "double tap" --> F["fit"]
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: WindowEvent::Touch · Touch · orbit · pan · zoom · request_selection · fit](illustrations/12-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
@@ -235,12 +187,7 @@ flowchart TB
 - `Scene` owns every kernel `Session` plus its placement; the GPU only holds rows. A pick returns a row, `Scene::resolve` returns the document and GUID.
 - `order` maps row → GUID and `guid_to_row` maps back; both survive an upload because the rows are forgotten only after `upload_to`.
 
-```mermaid
-flowchart LR
-    D["Session documents"] --> S["Scene"] -- "upload_to" --> R["object rows"]
-    R -- "resolve · edge_at" --> S
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Session documents · Scene · object rows](illustrations/12-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -298,11 +245,7 @@ flowchart LR
 
 Exactly one parent owns a specialized selection; `escape` returns that parent so it stays highlighted.
 
-```mermaid
-flowchart LR
-    C["click"] --> M["SelectionMode"] -- "escape" --> P["parent kept"]
-    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: click · SelectionMode · parent kept](illustrations/12-09.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -314,11 +257,7 @@ flowchart LR
 
 The walk gains three producers so every kernel geometry type has a lane.
 
-```mermaid
-flowchart LR
-    G["clouds · planes · points"] --> W["walk_cloud · walk_plane · walk_point"] --> U["Upload rows"]
-    style W fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: clouds · planes · points · walk_cloud · walk_plane · walk_point · Upload rows](illustrations/12-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -367,14 +306,7 @@ flowchart LR
 - `inspection` publishes a read-only JSON snapshot on `?inspect=1`; it is how the checkpoint is observed.
 - `loader` decodes the bundled fixture and posts `Msg::File` then `Msg::Fit`.
 
-```mermaid
-flowchart LR
-    L["loader::boot"] -- "Msg::File" --> A["App"]
-    A -- "?inspect=1" --> I["inspection::publish"]
-    A -- "textContent" --> F["feedback"]
-    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: loader::boot · App · inspection::publish · feedback](illustrations/12-11.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -418,14 +350,7 @@ copy_texture_to_buffer(window)  →  readback buffer  →  map_async  →  poll
 - The pass is scissored to a small window about the cursor and only that window is copied out; the vertex work stays, the fill does not.
 - `ROW_BYTES` is the copy pitch rounded to the required alignment.
 
-```mermaid
-flowchart TB
-    C["cursor window"] --> T["IdTargets<br/>Rg32Uint · Depth32Float"]
-    T -- "copy_window" --> B["readback buffer"]
-    B -- "map · poll" --> P["Picker answer"]
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: cursor window · IdTargets\ Rg32Uint · Depth32Float · readback buffer · Picker answer](illustrations/12-12.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -499,11 +424,7 @@ flowchart TB
 - Same toggles, same order as the colour list: what a lane hides it cannot pick.
 - Edge mode draws only source-edge IDs; object mode draws faces, then ink with ink-first precedence.
 
-```mermaid
-flowchart LR
-    E["encode_frame"] -- "pick pending" --> D["id_pass"] --> T["ID targets"]
-    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: encode_frame · id_pass · ID targets](illustrations/12-13.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -516,13 +437,7 @@ flowchart LR
 - A visible selected surface writes an R8 coverage mask against the frame's depth; a fullscreen pass darkens the ring just outside it.
 - Coverage is allocated only while a selection exists and released the moment it clears.
 
-```mermaid
-flowchart TB
-    S["selected faces"] --> M["R8 coverage mask"]
-    M --> O["SelectionOutline pass"]
-    O --> R["black ring"]
-    style O fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: selected faces · R8 coverage mask · SelectionOutline pass · black ring](illustrations/12-14.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -577,13 +492,7 @@ Still undeclared modules; the check passes for the same reason as before.
 - `needs_frame` is the demand for a redraw; `dirty` says the picture changed. A pending pick sets the first without the second.
 - `touch` cancels any pick in flight: the camera or scene it was asked against no longer exists.
 
-```mermaid
-flowchart TB
-    I["Input"] --> R["State::request_selection"]
-    R --> G["Gpu pick"]
-    G -- "apply_pick" --> F["FLAG_SELECTED"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Input · State::request_selection · Gpu pick · FLAG_SELECTED](illustrations/12-15.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -654,13 +563,7 @@ Document titles and the selected name are derived labels; they have no source ro
 - `controls` and `control_net` are second glyph and segment lanes for source control markers.
 - `set_selected` and `set_hidden` flip one row's flag; hiding also invalidates the cloud records.
 
-```mermaid
-flowchart LR
-    G["Gpu"] --> D["DeviceSetup"]
-    G --> P["present"]
-    G --> K["Picker"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Gpu · DeviceSetup · present · Picker](illustrations/12-16.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -670,13 +573,7 @@ flowchart LR
 
 ![Where this step sits in the viewer: Network, Scene + walk, Shell, GPU core, with 10 of 11 zones built so far.](illustrations/locator-2346be005a.svg){ .locator data-strip="illustrations/strip-67b44a8375.svg" }
 
-```mermaid
-flowchart LR
-    L["lib.rs"] --> A["app::*"] --> W["walk::*"]
-    L --> E["engine::*"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style E fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: lib.rs · app::* · walk::* · engine::*](illustrations/12-17.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -711,12 +608,7 @@ flowchart LR
 - `Msg` is every asynchronous message the loader can post; `Ready` carries the `State` built around an empty scene.
 - `request_if_needed` is the one place a frame is asked for.
 
-```mermaid
-flowchart LR
-    W["winit events"] --> A["App"] -- "Msg" --> S["State"]
-    A -- "request_if_needed" --> R["redraw"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: winit events · App · State · redraw](illustrations/12-18.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -754,15 +646,7 @@ flowchart LR
 mkdir -p "$COURSE_WORK/session_viewer/target/docs/site"
 ```
 
-```mermaid
-flowchart LR
-    I["index.html"] --> C["#canvas"]
-    I --> K["#viewer-docs"] -- "docs/" --> D["dist/docs"]
-    Y["view_local.yaml"] --> B["loader::boot"]
-    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style K fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style Y fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: index.html · #canvas · #viewer-docs · dist/docs · view_local.yaml · loader::boot](illustrations/12-19.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
 

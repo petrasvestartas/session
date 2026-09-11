@@ -1,0 +1,20 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+e1: "pick window + halo" { class: box }
+e2: "window-sized ID attachment" { class: box }
+e3: "?dpr= cap" { class: box }
+e4: "device_pixel_ratio" { class: box }
+e5: "device scale 2: 1x samples" { class: box }
+e6: "device lost" { class: box }
+e7: "reload once: dpr=1, msaa=1" { class: box }
+
+e1 -> e2 { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+e3 -> e4 { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+e4 -> e5 { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+e6 -> e7 { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

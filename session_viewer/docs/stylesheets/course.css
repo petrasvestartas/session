@@ -29,8 +29,6 @@
 .md-typeset .highlight { margin: 1.2em 0; }
 .md-typeset .highlight pre { border: 1px solid var(--ds-hairline); border-radius: var(--ds-radius); }
 .md-typeset table:not([class]) th { background: var(--brg-blue-wash, #ececf8); }
-.md-typeset .mermaid { overflow-x: auto; }
-.md-typeset .mermaid svg { width: auto !important; max-width: none !important; height: auto; }
 
 /* Ground from the design system named in theme.css. The selector matches Material's own
    (`:root, [data-md-color-scheme="default"]`) because the scheme attribute sits on BODY: a
@@ -85,8 +83,9 @@
   --ds-accent-ink: var(--brg-navy);
 }
 
-/* Cream ground, so the page is the palette's own paper rather than a neutral grey. */
-:root, [data-md-color-scheme="default"] { --md-default-bg-color: var(--brg-cream); }
+/* White paper. The cream is kept for the one place a warm ground still helps - the blush and
+   cream pair behind an active item - but the page itself is white. */
+:root, [data-md-color-scheme="default"] { --md-default-bg-color: #ffffff; }
 
 /* The section you are on, in the nav and in the table of contents: a navy bar at the side, navy
    type, and the blush behind it. Pink is a field colour here, never small type - at this
@@ -123,62 +122,7 @@
 .md-typeset .highlight pre { border-color: var(--brg-grey-band); }
 .md-typeset kbd, .md-typeset code { background: var(--brg-blue-wash); }
 .md-typeset .md-button:hover { border-color: var(--brg-pink); color: var(--brg-pink); }
-[data-md-color-scheme="default"], [data-md-color-scheme="slate"] {
-  /* Diagrams are BRG, not the design system. 222 nodes already carry their own BRG pink, and
-     draw.py's twenty-one drawings are BRG throughout, so the whole set is one language: black
-     ground, white nodes, black node text, white arrows and white edge labels. draw.py holds
-     the same black, so the two never drift.
 
-     `node-fg` is the node BORDER and it is set to the node fill, because no diagram on this
-     site draws a border: shapes are told apart by fill, and an outline on a white box over a
-     black ground is only noise. Type stays system-ui: dense technical labels in auto-laid
-     boxes, and the drawings pin measured label widths against system-ui metrics. */
-  --md-mermaid-font-family: system-ui, sans-serif;
-  --md-mermaid-node-bg-color: #ffffff;
-  --md-mermaid-node-fg-color: #ffffff;
-  --md-mermaid-edge-color: #ffffff;
-  --md-mermaid-label-bg-color: #111111;
-  --md-mermaid-label-fg-color: #111111;
-}
-.md-typeset .mermaid svg { font-size: 14px !important; }
-
-/* Mermaid drawn the way draw.py draws: the same black ground, the same 4px corner, no outline
-   on anything, and one type size for labels. A generated diagram and a hand-drawn one sit on the
-   same page constantly, and the only way they read as one language is if the geometry matches,
-   not just the palette. `rx`/`ry` as CSS properties are SVG2 and Chrome honours them; the
-   !important is needed because mermaid writes the radius as a presentation attribute. */
-.md-typeset .mermaid .node rect,
-.md-typeset .mermaid .node polygon,
-.md-typeset .mermaid .cluster rect,
-.md-typeset .mermaid .label-container {
-  rx: 4px !important;
-  ry: 4px !important;
-  stroke: none !important;
-  stroke-width: 0 !important;
-}
-.md-typeset .mermaid .node .label,
-.md-typeset .mermaid .nodeLabel,
-.md-typeset .mermaid .edgeLabel,
-.md-typeset .mermaid .cluster .label {
-  font-family: system-ui, sans-serif !important;
-  font-size: 13.5px !important;
-  line-height: 1.35 !important;
-}
-/* Edges: one weight, one colour, an arrowhead that matches the drawings' 1.6px rules. */
-.md-typeset .mermaid .edgePath .path,
-.md-typeset .mermaid .flowchart-link {
-  stroke: #f4f4f6 !important;
-  stroke-width: 1.6px !important;
-}
-.md-typeset .mermaid .arrowheadPath,
-.md-typeset .mermaid marker path { fill: #e4e4e7 !important; stroke: none !important; }
-/* An edge label sits on the ground, not in a white box. */
-.md-typeset .mermaid .edgeLabel rect,
-.md-typeset .mermaid .edgeLabel .labelBkg { fill: #111111 !important; opacity: 1 !important; }
-.md-typeset .mermaid .edgeLabel, .md-typeset .mermaid .edgeLabel p { color: #c9ccd6 !important; background: transparent !important; }
-/* A subgraph is a plate like any other figure: same ground, no rule around it. */
-.md-typeset .mermaid .cluster rect { fill: #1b1b1f !important; }
-.md-typeset .mermaid .cluster .nodeLabel { fill: #c9ccd6 !important; }
 .md-typeset details.note > summary { background: #bdbfe8; }
 .md-typeset details.example > summary { background: #f0bcdb; }
 
@@ -187,16 +131,12 @@
    them only doubles an edge the picture already has; a screenshot is a photograph of the app
    and wants no frame either. What makes twenty-one drawings, 233 diagrams and twenty-eight
    screenshots read as one set is that all three end at the same corner. */
-.md-typeset .mermaid,
 .md-typeset img[src$=".svg"],
 .md-typeset img[src$=".png"] {
   border: 0;
   border-radius: var(--ds-radius);
   box-sizing: border-box;
 }
-.md-typeset .mermaid { padding: .75rem; }
-.md-typeset .mermaid { background: #111111; }
-.md-typeset .mermaid svg { background: #111111; }
 .md-typeset img[src$=".svg"], .md-typeset img[src$=".png"] { display: block; }
 
 /* A figure's caption is its alt text, set small under the plate. */
@@ -249,3 +189,11 @@
 .viewer-strip-key .chip-here::before  { background: #fa9ebc; }
 .viewer-strip-key .chip-built::before { background: #4a4a54; }
 .viewer-strip-key .chip-ahead::before { background: #1e1e22; }
+/* A generated diagram keeps its own size and centres; it may shrink on a narrow screen but is
+   never blown up to the column width, which was making a 489px drawing 970px wide. */
+.md-typeset img[src*="illustrations/0"], .md-typeset img[src*="illustrations/1"],
+.md-typeset img[src*="illustrations/2"], .md-typeset img[src*="illustrations/README"] {
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+}

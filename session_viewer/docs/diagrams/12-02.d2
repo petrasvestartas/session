@@ -1,0 +1,22 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+win: "win" { class: box }
+id: "ID pass · Rg32Uint + depth" { class: box }
+buf: "readback buffer" { class: box }
+poll: "Picker::poll" { class: box }
+scene: "Scene::resolve → source GUID" { class: box }
+sel: "State::select → FLAG_SELECTED" { class: box }
+frame: "next frame: yellow object" { class: box }
+
+win -> id { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+id -> buf: "copy_texture_to_buffer" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+buf -> poll: "map_async" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+poll -> scene: "(row+1, sub+1)" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+scene -> sel { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+sel -> frame { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

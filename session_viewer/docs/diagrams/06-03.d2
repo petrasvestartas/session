@@ -1,0 +1,21 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: right
+
+W: "pen width" { class: box }
+R: "world radius" { class: focus }
+C: "colour" { class: box }
+A: "RGBA8" { class: box }
+N: "unit normal" { class: box }
+O: "16-bit code" { class: box }
+P: "two normals" { class: box }
+F: "facing word" { class: focus }
+
+W -> R: "encode_width" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+C -> A: "pack_rgba" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+N -> O: "oct16" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+P -> F: "pack_facing" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

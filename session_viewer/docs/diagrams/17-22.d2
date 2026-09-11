@@ -1,0 +1,21 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+B: "browser ratio" { class: box }
+D: "device_pixel_ratio" { class: focus }
+C: "canvas size" { class: box }
+N: "pointer and touch input" { class: box }
+M: "samples_for: 1x" { class: box }
+L: "device lost" { class: box }
+R: "reload ?dpr=1&msaa=1&recovered=1" { class: box }
+
+B -> D: "min(?dpr=)" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+D -> C { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+D -> N { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+D -> M: "≥ 2" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+L -> R: "once" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

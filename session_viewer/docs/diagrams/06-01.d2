@@ -1,0 +1,23 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+S: "BRep / NurbsSurface\n(f64 source)" { class: box }
+M: "kernel Mesh per face\npositions · u,v · normals" { class: box }
+R: "RenderMesh (f32)" { class: box }
+A: "ArenaRows\nverts · vids · idx" { class: box }
+T: "MeshTopo\nedges · edge_faces · normals" { class: box }
+I: "SegRows pipes\nGlyphRows spheres" { class: box }
+G: "GPU" { class: box }
+
+S -> M: "face_meshes_q / from_u_v_q" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+M -> R: "to_render" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+R -> A: "push_face" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+M -> T: "mesh_topology" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+T -> I: "edges_and_dots" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+A -> G: "Upload" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+I -> G: "Upload" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

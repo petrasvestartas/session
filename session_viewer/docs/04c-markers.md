@@ -2,15 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    R["fixture: GlyphPoint rows"] --> G["GlyphRows<br/>spheres · dots"]
-    G -- "GlyphLane::append" --> G3["group 3<br/>glyphs: array&lt;GlyphPoint&gt;"]
-    G3 --> SP["sphere.wgsl<br/>quad Template × instance_index<br/>culled by incident faces"]
-    G3 --> DT["glyph.wgsl<br/>3 verts per dot, incircle is the disc"]
-    SP --> FS["coverage · ink_disc_visible"]
-    DT --> FS
-```
+![Diagram: fixture: GlyphPoint rows · GlyphRows\ spheres · dots · group 3\ glyphs: array<GlyphPoint> · sphere.wgsl\ quad Template × instance_index\ culled by incident faces · glyph.wgsl\ 3 verts per dot, incircle is the disc · coverage · ink_disc_visible](illustrations/04c-01.svg)
 
 Vertex input of the marker pipeline (`pipelines::template_layout`):
 
@@ -41,12 +33,7 @@ The dot pipeline binds no vertex buffer: `@builtin(vertex_index) / 3` is the row
 - `center` is a `vec3` in WGSL, so the row is 48 bytes with `radius` in the padding slot.
 - `facing` plus `facing_ext` hold up to six incident face normals as oct16 pairs; a marker hides when every incident face turns away.
 
-```mermaid
-flowchart LR
-    W["walk · vertex or point"] --> R["GlyphPoint<br/>center · radius · facing"]
-    R -- "48 B · storage" --> T["glyph table"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: walk · vertex or point · GlyphPoint\ center · radius · facing · glyph table](illustrations/04c-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -58,13 +45,7 @@ flowchart LR
 
 - One table per kind, one bind group each, two shader modules, five pipelines.
 
-```mermaid
-flowchart LR
-    GR["GlyphRows<br/>spheres · dots"] -- "append" --> GL["GlyphLane"]
-    GL -- "draw_spheres · template" --> P["ink pass"]
-    GL -- "draw_dots · 3 verts" --> P
-    style GL fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: GlyphRows\ spheres · dots · GlyphLane · ink pass](illustrations/04c-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -102,13 +83,7 @@ flowchart LR
 
 - Same bindings as the ribbon shader; the row is `GlyphPoint`. The `LineUniform` mirror lists the whole 80-byte block, `origin` and `frame` included; a sphere sizes and culls against `vp_w`/`vp_h`, the attachment it is drawn into.
 
-```mermaid
-flowchart TB
-    G["glyphs · @group(3)"] -- "faces_front" --> K["keep or hide"]
-    T["template corner"] -- "vs_main · screen_radius" --> Q["quad around disc"]
-    Q -- "fs_main" --> D["antialiased disc"]
-    style Q fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: glyphs · @group(3) · keep or hide · template corner · quad around disc · antialiased disc](illustrations/04c-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -144,13 +119,7 @@ flowchart TB
 
 - One equilateral triangle per dot; its incircle is the visible disc, so three vertices cover it without a template.
 
-```mermaid
-flowchart TB
-    G["glyphs · @group(3)"] -- "vs_main · 3 verts" --> T["equilateral triangle"]
-    T -- "fs_main · incircle" --> D["dot disc"]
-    G -- "vs_source · fs_source_id" --> S["source id pass"]
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: glyphs · @group(3) · equilateral triangle · dot disc · source id pass](illustrations/04c-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -182,13 +151,7 @@ flowchart TB
 
 - A template vertex slot and the `ink_rows` layout (one storage buffer at group 3).
 
-```mermaid
-flowchart TB
-    U["Upload.glyph"] -- "set_scene" --> G["Gpu.glyphs"]
-    L["template_layout · ink_rows"] --> G
-    G -- "after strokes" --> P["markers on top"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Upload.glyph · Gpu.glyphs · template_layout · ink_rows · markers on top](illustrations/04c-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 

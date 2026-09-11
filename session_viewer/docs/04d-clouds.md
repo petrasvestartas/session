@@ -2,16 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    R["fixture: positions · colors · CloudDraw"] --> C["CloudRows"]
-    C -- "CloudLane::append" --> PB["PointBufs<br/>pos · col · nrm GrowBufs"]
-    PB --> PG["points group<br/>records · pos · col · nrm"]
-    L["LodWalk::select<br/>octree ranges per cloud"] --> REC["SplatRecord × visible range<br/>mvp × model folded"]
-    REC --> PG
-    PG --> PP["splat.wgsl point pass<br/>own 1x depth + color targets"]
-    PP --> RS["splat_resolve.wgsl<br/>fullscreen, writes frag_depth<br/>inside the face pass"]
-```
+![Diagram: fixture: positions · colors · CloudDraw · CloudRows · PointBufs\ pos · col · nrm GrowBufs · points group\ records · pos · col · nrm · LodWalk::select\ octree ranges per cloud · SplatRecord × visible range\ mvp × model folded…](illustrations/04d-01.svg)
 
 Group 1 of the point pass (`Layouts::points`):
 
@@ -43,13 +34,7 @@ Group 0 of both point pipelines is the cloud uniform (`FrameUniforms::cloud_grou
 
 - A cloud's points arrive in chunks; `Chunk` maps cloud-local indices to lane rows.
 
-```mermaid
-flowchart TB
-    CR["CloudRows<br/>positions · colors"] -- "append · Chunk" --> CL["CloudLane"]
-    CL --> PB["PointBufs<br/>pos · col · nrm"]
-    PB -- "moved? rebind" --> BG["points group"]
-    style CL fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: CloudRows\ positions · colors · CloudLane · PointBufs\ pos · col · nrm · points group](illustrations/04d-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -83,13 +68,7 @@ flowchart TB
 
 - Pure CPU: which octree ranges to draw, given how wide each node's point spacing projects. Small clouds draw whole.
 
-```mermaid
-flowchart TB
-    N["LodNode octree"] -- "projected_spacing" --> W["LodWalk::select"]
-    C["camera · lod_px"] --> W
-    W -- "ranges · finest spacing" --> R["records to draw"]
-    style W fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: LodNode octree · LodWalk::select · camera · lod_px · records to draw](illustrations/04d-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -121,13 +100,7 @@ flowchart TB
 | 96 | `rot: [f32; 12]` |
 | 144 | `nrm_first`, `instance`, `flags`, `_pad` |
 
-```mermaid
-flowchart TB
-    RC["RecordCx<br/>camera · clouds · nodes"] -- "prelude · key changed" --> SR["SplatRecord × N<br/>160 B"]
-    SR -- "point pass" --> PT["1× depth + color targets"]
-    PT -- "draw_resolve" --> FP["face pass"]
-    style SR fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: RecordCx\ camera · clouds · nodes · SplatRecord × N\ 160 B · 1× depth + color targets · face pass](illustrations/04d-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -189,13 +162,7 @@ flowchart TB
 
 - `record_of` finds the record whose cumulative range contains the vertex index; `project` folds one mat-vec per point.
 
-```mermaid
-flowchart TB
-    V["vertex_index"] -- "record_of" --> R["SplatRecord"]
-    R -- "project · vs_point" --> P["point disc · fs_point"]
-    P -- "lane depth + color" --> S["splat_resolve<br/>EDL · frag_depth"]
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: vertex_index · SplatRecord · point disc · fs_point · splat_resolve\ EDL · frag_depth](illustrations/04d-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -225,13 +192,7 @@ flowchart TB
 
 ![Where this step sits in the viewer: Page, Shell, GPU core, with 8 of 11 zones built so far.](illustrations/locator-771239ee6f.svg){ .locator data-strip="illustrations/strip-20ba8a8ce6.svg" }
 
-```mermaid
-flowchart TB
-    U["Upload.cloud"] -- "set_scene" --> G["Gpu.cloud · Gpu.splat"]
-    G -- "prelude · before faces" --> PP["point pass"]
-    PP -- "draw_resolve · face pass" --> F["scene depth"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Upload.cloud · Gpu.cloud · Gpu.splat · point pass · scene depth](illustrations/04d-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 

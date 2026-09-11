@@ -1,0 +1,21 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+R: "fixture: GlyphPoint rows" { class: box }
+G: "GlyphRows\nspheres · dots" { class: box }
+G3: "group 3\nglyphs: array<GlyphPoint>" { class: box }
+SP: "sphere.wgsl\nquad Template × instance_index\nculled by incident faces" { class: box }
+DT: "glyph.wgsl\n3 verts per dot, incircle is the disc" { class: box }
+FS: "coverage · ink_disc_visible" { class: box }
+
+R -> G { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+G -> G3: "GlyphLane::append" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+G3 -> SP { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+G3 -> DT { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+SP -> FS { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+DT -> FS { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

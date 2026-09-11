@@ -2,15 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    C["cloud .pb<br/>length-delimited fields"] -- "header read at `at`" --> W["MetadataWindow<br/>at · bytes"]
-    W -- "slice hit" --> P["parse tag · length"]
-    W -- "slice miss → source_range(at, ≥64 KiB)" --> W
-    P -- "large geometry field" --> S["skip by length"]
-    P -- "small LOD array" --> L["lod.set_field"]
-    S --> P
-```
+![Diagram: cloud .pb\ length-delimited fields · MetadataWindow\ at · bytes · parse tag · length · skip by length · lod.set_field](illustrations/15-01.svg)
 
 ## Starting point
 
@@ -42,13 +34,7 @@ flowchart TB
 
 - `read` reuses the window when the requested range is inside it and replaces it under the same exposed revision otherwise; a changed ETag fails the read instead of mixing two revisions.
 
-```mermaid
-flowchart TB
-    R["read(at, length)"] -- "inside window" --> H["reuse cached bytes"]
-    R -- "outside window" --> F["refill · same ETag"]
-    F -- "ETag changed" --> E["fail the read"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: read(at, length) · reuse cached bytes · refill · same ETag · fail the read](illustrations/15-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -60,13 +46,7 @@ flowchart TB
 
 The loop is unchanged: headers, skips and array bodies now borrow from `window` instead of issuing their own requests.
 
-```mermaid
-flowchart TB
-    L["LOD walk loop"] -- "headers · skips · arrays" --> W["window.read"]
-    W --> B["borrowed bytes"]
-    B --> P["parsed LOD fields"]
-    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: LOD walk loop · window.read · borrowed bytes · parsed LOD fields](illustrations/15-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -83,13 +63,7 @@ A unit test of the range rules, part of the file:
 - Publishing writes the immutable geometry revision first, verifies it, then updates the alias and the mutable manifest, so a manifest never points at missing bytes.
 - Credentials stay in the local shell helpers; nothing in the browser bundle can write to the bucket.
 
-```mermaid
-flowchart TB
-    G["geometry bytes"] -- "put + verify" --> R["immutable revision"]
-    R -- "copy" --> A["stable alias"]
-    A -- "then" --> M["mutable manifest"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: geometry bytes · immutable revision · stable alias · mutable manifest](illustrations/15-04.svg)
 
 <!-- supplied: 15 -->
 

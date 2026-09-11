@@ -2,27 +2,11 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    sel["selected parent"] -- "F10" --> ctl["Controls { points, links } from the source geometry"]
-    ctl -- "upload_controls" --> lanes["controls glyph lane · control_net segment lane"]
-    lanes -- "click → ID pass (PickMode::Controls)" --> pick["Pick { row = parent, sub = control index }"]
-    pick --> id["ControlId::Vertex / Curve / Surface / Point"]
-    id --> yellow["selected marker turns yellow"]
-```
+![Diagram: selected parent · Controls { points, links } from the source geometry · controls glyph lane · control_net segment lane · Pick { row = parent, sub = control index } · ControlId::Vertex / Curve / Surface / Point · selected marker turns yellow](illustrations/13-01.svg)
 
 Streamed clouds display a bounded prefix, so a click must ask the source, not the screen:
 
-```mermaid
-flowchart TD
-    c0["click"] --> ranges["eligible source node ranges (octree ∩ click window)"]
-    ranges --> page["fetch one bounded page (HTTP Range)"]
-    page --> cand["candidates within the window"]
-    cand --> gpu["GPU ID pass accumulates nearest visible point"]
-    gpu -- "more pages" --> page
-    gpu -- "all pages done" --> resolve["range-read original fixed32 ID + exact position"]
-    resolve --> marker["one yellow marker at the source position"]
-```
+![Diagram: click · eligible source node ranges (octree ∩ click window) · fetch one bounded page (HTTP Range) · candidates within the window · GPU ID pass accumulates nearest visible point · range-read original fixed32 ID + exact position…](illustrations/13-02.svg)
 
 ![The screen draws a curve as chords and a surface as a grid; F10 shows the source controls, and a picked marker answers with a ControlId into the source.](illustrations/controls.svg)
 
@@ -44,12 +28,7 @@ flowchart TD
 - `ControlId` names a control within its parent's source geometry; the GPU slot it was uploaded to is temporary.
 - `enable_controls` is idempotent: pressing F10 on the same parent does nothing, so markers are never duplicated.
 
-```mermaid
-flowchart LR
-    P["selected parent"] -- "from_geometry" --> C["Controls"] --> I["ControlId"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: selected parent · Controls · ControlId](illustrations/13-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -70,13 +49,7 @@ These two modules are new and undeclared, so the crate still builds after them.
 - `fetch::get` refuses a `200` answer to a `Range` request: that would be the whole file.
 - Every request owns a deadline; dropping it clears the timer.
 
-```mermaid
-flowchart LR
-    K["click"] --> V["QueryView"] --> E["eligible_ranges"] -- "fetch::get" --> P["source page"]
-    Q["Query token"] --> P
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style Q fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: click · QueryView · eligible_ranges · source page · Query token](illustrations/13-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -151,11 +124,7 @@ flowchart LR
 
 The protobuf headers sit in the first few kilobytes and `coords` is packed, so the point count is known before a byte of payload is read. Mechanical, so copy it.
 
-```mermaid
-flowchart LR
-    H["cloud .pb header"] -- "cloud_fields" --> F["CloudFields"] --> N["point count"]
-    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: cloud .pb header · CloudFields · point count](illustrations/13-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -168,12 +137,7 @@ flowchart LR
 - `PickMode::Controls` restricts the ID pass to the temporary control markers of one parent.
 - A source query keeps the physical depth and accumulates point IDs across pages: the first page clears the IDs, later pages load them.
 
-```mermaid
-flowchart LR
-    M["PickMode::Controls"] --> D["id_pass · control markers"] --> P["pick"]
-    S["source page"] -- "accumulate" --> D
-    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: PickMode::Controls · id_pass · control markers · pick · source page](illustrations/13-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -191,14 +155,7 @@ flowchart LR
 
 - `controls` are the current parent's source controls; `cloud_query` is the in-flight page loop.
 
-```mermaid
-flowchart TB
-    F["F10"] -- "enable_controls" --> U["upload_controls"]
-    U --> A["apply_control"]
-    A --> S["selected control"]
-    style U fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: F10 · upload_controls · apply_control · selected control](illustrations/13-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -252,12 +209,7 @@ flowchart TB
 
 ![Where this step sits in the viewer: Network, Scene + walk, Shell, Input, with 10 of 11 zones built so far.](illustrations/locator-2c5303abc3.svg){ .locator data-strip="illustrations/strip-7e4f59eba1.svg" }
 
-```mermaid
-flowchart LR
-    K["F10 · Escape"] --> I["Input"] --> S["State"]
-    L["loader"] -- "?scene=stream-test.yaml" --> S
-    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: F10 · Escape · Input · State · loader](illustrations/13-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 

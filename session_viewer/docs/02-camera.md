@@ -30,13 +30,7 @@ local (mm, f64) → world → camera (view) → clip (x, y, z, w) → ÷w → ND
 - A placement is 16 column-major doubles: `index = col * 4 + row`. Every multiply here follows that rule, and so does the kernel's `Xform`.
 - The f64 → f32 edge is one function, `mat_to_f32`, so it is easy to find when a large model jitters.
 
-```mermaid
-flowchart LR
-    A["Mat4 · [f64; 16]"] -- "mat_mul" --> B["Mat4"]
-    A -- "xform_point_f64" --> P["placed point"]
-    A -- "mat_to_f32" --> G["[f32; 16] for the GPU"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Mat4 · [f64; 16] · Mat4 · placed point · [f32; 16] for the GPU](illustrations/02-01.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -49,13 +43,7 @@ flowchart LR
 - `Aabb::empty()` is inverted (min > max), so a scene can start with no box and `grow` one point at a time.
 - `placed` transforms the eight corners; conservative for rotations, exact for translations.
 
-```mermaid
-flowchart LR
-    E["Aabb::empty"] -- "grow · union" --> B["Aabb min · max"]
-    B -- "placed(Mat4)" --> W["world box"]
-    B -- "diagonal · contains" --> Q["queries"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Aabb::empty · Aabb min · max · world box · queries](illustrations/02-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -138,14 +126,7 @@ Orthographic shows content off-axis and nearer than the target plane; a naive fl
 - `grow_extent` widens only the far-plane floor when more geometry streams in.
 - Every mutation ends in `update_position`.
 
-```mermaid
-flowchart TB
-    S["set_view"] -- "quaternion" --> C["Camera"]
-    F["fit(Aabb, aspect)"] -- "distance · scene_extent" --> C
-    G["grow_extent"] --> C
-    C -- "update_position" --> D["position · up"]
-    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: set_view · Camera · fit(Aabb, aspect) · grow_extent · position · up](illustrations/02-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2150f410c0.svg" data-zone="State"></span>
 
@@ -184,13 +165,7 @@ flowchart TB
 - The anchor passed to `view_proj_anchored` is the world origin, where the triangle sits.
 - Gestures arrive in CSS pixels and are scaled by `self.scale` before the camera sees them.
 
-```mermaid
-flowchart TB
-    J["drag · zoom from JS"] --> T["Tutorial"]
-    T -- "orbit · pan · zoom_at" --> C["Camera"]
-    C -- "view_proj_anchored" --> U["uniform · write_buffer"]
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: drag · zoom from JS · Tutorial · Camera · uniform · write_buffer](illustrations/02-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-8075c7cb7f.svg" data-zone="Shell"></span>
 

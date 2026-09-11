@@ -4,14 +4,7 @@
 
 A `Session` is a CAD document: objects are added, edited, deleted, saved to a file and opened again. Until now a removal was final the instant it happened. This lesson gives the kernel a history: edits are grouped into transactions, a removal's record is the tombstone that undo restores from, and every save purges the buffer, as Rhino does. History lives in memory only and never crosses pb or JSON, so an opened file always starts clean. The viewer does not edit yet; this is the ground the editing lesson will stand on.
 
-```mermaid
-flowchart TB
-    B["begin(label)"] --> E["add · replace · remove · set_xform"]
-    E --> R["records: Add · Remove · Replace · Xform"]
-    R --> C["commit()"] --> U["undo() · redo()"]
-    S["pb_dump · file_json_dump"] -- "purge" --> H["History"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: begin(label) · add · replace · remove · set_xform · records: Add · Remove · Replace · Xform · commit() · undo() · redo() · pb_dump · file_json_dump…](illustrations/20-01.svg)
 
 ![Edits group into transactions and a removal leaves a tombstone to restore from; the cursor moves back and forward through them, and a save purges the whole buffer because history never crosses pb or JSON.](illustrations/history.svg)
 
@@ -35,13 +28,7 @@ Checkpoint 19. `remove_object` erases an object from its typed list, `lookup`, i
 - A `Tombstone` is everything needed to put one object back into every live table: the object, its typed list and position in it, its local transform, its parent and position among the siblings, the detached subtree, the graph attribute and every incident edge. `Add` and `Remove` share it; `Replace` and `Xform` carry absolute before and after values, never deltas.
 - A `Transaction` groups the records of one gesture; `History` keeps the last 64 and drops the redo stack when a new one commits.
 
-```mermaid
-flowchart TB
-    T["Tombstone"] --> O["obj clone · collection · obj_index"]
-    O ~~~ X["xform · parent_guid · index"]
-    X ~~~ N["subtree node · attribute · edges"]
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Tombstone · obj clone · collection · obj_index · xform · parent_guid · index · subtree node · attribute · edges](illustrations/20-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -105,16 +92,7 @@ flowchart TB
 - `remove_object` becomes `_detach` plus a record. `_detach` builds the tombstone while it empties every table; `_attach` puts everything back at the same positions, including the subtree and the edges whose other end still exists.
 - `set_xform` and `remove_xform` record absolute before and after transforms. `pb_dump`, `pb_dumps`, `file_json_dump` and `file_json_dumps` call `history.clear()` first.
 
-```mermaid
-flowchart TB
-    subgraph M["mutators"]
-        direction TB
-        A["add_* → _add_object"] ~~~ P["replace → _swap"]
-        P ~~~ D["remove_object → _detach"] ~~~ Xf["set_xform → _place"]
-    end
-    M --> H["history.record"]
-    style H fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: add_* → _add_object · replace → _swap · remove_object → _detach · set_xform → _place · M · history.record](illustrations/20-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 

@@ -4,47 +4,23 @@
 
 **A · source faces**
 
-```mermaid
-flowchart TB
-    a1["Ctrl+Shift click"] --> a2["PickMode::Component"]
-    a2 --> a3["FACE_TAG sub-ID"]
-    a3 --> a4["FaceSource<br/>parent · face"]
-```
+![Diagram: Ctrl+Shift click · PickMode::Component · FACE_TAG sub-ID · FaceSource\ parent · face](illustrations/17-01.svg)
 
 **B · text objects**
 
-```mermaid
-flowchart TB
-    b1["manifest text · document title"] --> b2["SceneText row"]
-    b2 --> b3["select · hide · pick<br/>like geometry"]
-    b3 --> b4["selected: black on yellow"]
-```
+![Diagram: manifest text · document title · SceneText row · select · hide · pick\ like geometry · selected: black on yellow](illustrations/17-02.svg)
 
 **C · one silhouette**
 
-```mermaid
-flowchart LR
-    c1["solid mask"] --> c3["max(ordinary, selected)"]
-    c2["selected mask"] --> c3
-    c3 --> c4["one black border"]
-```
+![Diagram: solid mask · max(ordinary, selected) · selected mask · one black border](illustrations/17-03.svg)
 
 **D · joined strokes**
 
-```mermaid
-flowchart LR
-    d1["chain ranges"] --> d2["previous / next rows"] --> d3["one join plane per shared vertex"]
-```
+![Diagram: chain ranges · previous / next rows · one join plane per shared vertex](illustrations/17-04.svg)
 
 **E · every pixel the same size**
 
-```mermaid
-flowchart TB
-    e1["pick window + halo"] --> e2["window-sized ID attachment"]
-    e3["?dpr= cap"] --> e4["device_pixel_ratio"]
-    e4 --> e5["device scale 2: 1x samples"]
-    e6["device lost"] --> e7["reload once: dpr=1, msaa=1"]
-```
+![Diagram: pick window + halo · window-sized ID attachment · ?dpr= cap · device_pixel_ratio · device scale 2: 1x samples · device lost…](illustrations/17-05.svg)
 
 ## Starting point
 
@@ -62,13 +38,7 @@ flowchart TB
 - Picking pulls the arena's existing vertices by index: no duplicate mesh, no per-face draw call.
 - `FACE_TAG` keeps face addresses apart from edge and control sub-IDs in the same pick channel.
 
-```mermaid
-flowchart LR
-    T["display triangles"] -- "one address each" --> I["ids · source_faces"]
-    I --> F["FaceSource<br/>parent · face"]
-    P["FACE_TAG sub-ID"] --> F
-    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: display triangles · ids · source_faces · FaceSource\ parent · face · FACE_TAG sub-ID](illustrations/17-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -119,14 +89,7 @@ The bind group at group 3 borrows the arena's buffers and adds the face table an
 - `fs_solid_mask` writes plain coverage; part C reads it.
 - `LineUniform` lists `origin` and `frame`: the window origin and the canvas size, which every shader copy of the uniform declares in the same order.
 
-```mermaid
-flowchart LR
-    S["storage · group 3"] -- "vertex pulling" --> V["vs_face"]
-    V --> A["fs_id · FACE_TAG"]
-    V --> B["fs_face_highlight"]
-    V --> C["fs_solid_mask"]
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: storage · group 3 · vs_face · fs_id · FACE_TAG · fs_face_highlight · fs_solid_mask](illustrations/17-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -141,12 +104,7 @@ flowchart LR
 - Vertex, id and index buffers gain `STORAGE` usage so `vs_face` can read them.
 - `draw_component_ids` replaces the object-ID draw only in component pick mode.
 
-```mermaid
-flowchart TB
-    B["vertex · id · index buffers"] -- "STORAGE usage" --> L["Faces lane"]
-    L -- "component mode" --> D["draw_component_ids"]
-    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: vertex · id · index buffers · Faces lane · draw_component_ids](illustrations/17-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -159,12 +117,7 @@ flowchart TB
 - Meshes: sorted source face keys, cached triangulation or the fan the kernel would build; the assertion ties the address stream to the triangle stream.
 - BReps: `push_face` records the face index it is tessellating.
 
-```mermaid
-flowchart TB
-    M["Mesh faces · BRep faces"] -- "push_face" --> A["append_face_ids"]
-    A -- "one per triangle" --> R["ArenaRows · face ids"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Mesh faces · BRep faces · append_face_ids · ArenaRows · face ids](illustrations/17-09.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -183,13 +136,7 @@ flowchart TB
 - `SelectionMode::Face` carries parent and face, so Escape returns to the parent like edges do.
 - `PickMode::Component`: the pick sorter prefers a nearby edge, then a face. There is no object fallback — a component click that finds neither selects nothing, because narrowing to a component is a different intent from selecting the whole object.
 
-```mermaid
-flowchart TB
-    K["Ctrl+Shift click"] --> P["PickMode::Component"]
-    P -- "edge first, then face" --> S["SelectionMode::Face<br/>parent · face"]
-    S -- "Faces::source" --> H["face highlight"]
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Ctrl+Shift click · PickMode::Component · SelectionMode::Face\ parent · face · face highlight](illustrations/17-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -197,13 +144,7 @@ flowchart TB
 
 - The picker renders into an attachment the size of the pick window plus a `PICK_HALO` of three texels, never the canvas: `Window::view` is that rectangle, `view_for` falls back to the whole canvas for a full-frame capture, and `copy_window` reads the window from inside the attachment. The halo exists because the ink visibility test fits planes from neighbouring texels, which must be occlusion samples rather than cleared ones.
 
-```mermaid
-flowchart TB
-    W["Window about the cursor"] -- "+ PICK_HALO" --> V["PickView"]
-    V --> T["IdTargets · view-sized"]
-    T -- "copy_window" --> R["readback"]
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Window about the cursor · PickView · IdTargets · view-sized · readback](illustrations/17-11.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -230,14 +171,7 @@ flowchart TB
 - `TextObject { row, selected }` on a label means "this text is a scene object"; `None` means a derived annotation such as the selected-object name.
 - `ink_color` is black while the object is selected and the authored color otherwise; both text renderers read it, so the authored color is never touched.
 
-```mermaid
-flowchart TB
-    L["TextLabel"] -- "object: Some" --> O["TextObject<br/>row · selected"]
-    L -- "object: None" --> D["derived annotation"]
-    O -- "selected" --> K["ink_color: black"]
-    C["manifest camera_facing"] --> L
-    style O fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: TextLabel · TextObject\ row · selected · derived annotation · ink_color: black · manifest camera_facing](illustrations/17-12.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -256,13 +190,7 @@ flowchart TB
 - A key (`manifest-text/{index}`, `document-title/{doc}`) finds its previous row on reload, so hidden state survives replacement.
 - The row is an ordinary `ObjectRow`; hide, select and pick treat it like geometry.
 
-```mermaid
-flowchart TB
-    M["manifest text · document title"] -- "key" --> S["SceneText row"]
-    S -- "ObjectRow" --> G["hide · select · pick"]
-    S -- "reload" --> K["same row, hidden kept"]
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: manifest text · document title · SceneText row · hide · select · pick · same row, hidden kept](illustrations/17-13.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -299,14 +227,7 @@ flowchart TB
 - `update_label` submits the visible source texts plus the one derived name; the derived name has no row and cannot steal its parent's click.
 - `include_text_bounds` records each text object's shaped world box so fitting and the selection name can use it.
 
-```mermaid
-flowchart LR
-    V["visible_texts()"] --> U["update_label"]
-    N["derived nameplate"] --> U
-    U --> T["TextLane labels"]
-    B["include_text_bounds"] --> F["fit · selection name"]
-    style U fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: visible_texts() · update_label · derived nameplate · TextLane labels · include_text_bounds · fit · selection name](illustrations/17-14.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -330,12 +251,7 @@ flowchart LR
 
 - The streamed F10 query is `State`'s second companion: `State` owns the query, and this file groups the page, answer and resolve workflow.
 
-```mermaid
-flowchart LR
-    S["state.rs"] -- "owns the query" --> Q["state/cloud_query.rs<br/>page · answer · resolve"]
-    S -- "labels · bounds" --> X["state/text.rs"]
-    style Q fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: state.rs · state/cloud_query.rs\ page · answer · resolve · state/text.rs](illustrations/17-15.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 
@@ -378,14 +294,7 @@ flowchart LR
 - A selected plate fills the whole rounded backing yellow; every backing reserves a full cap at each end, so rounding never intersects the shaped line.
 - `vs_id` maps the same clip-space vertices through the pick pass's window transform, so the ID footprint lands in the window-sized attachment.
 
-```mermaid
-flowchart LR
-    P["Plates<br/>depth · object · selected"] --> C["fs_main coverage · yellow"]
-    P --> I["fs_id · object row"]
-    W["text_plane.rs"] --> I
-    K["pick transform"] --> I
-    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Plates\ depth · object · selected · fs_main coverage · yellow · fs_id · object row · text_plane.rs · pick transform](illustrations/17-16.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -511,12 +420,7 @@ Copy the rest of the file. Its unit block turns `show_outlines` on explicitly, b
 
 ![Where this step sits in the viewer: Shell, Input, GPU core, Lanes, with 10 of 11 zones built so far.](illustrations/locator-ad35b5b57e.svg){ .locator data-strip="illustrations/strip-fcd274b834.svg" }
 
-```mermaid
-flowchart LR
-    A["ArenaLane"] -- "draw_solid_mask" --> M["solid coverage mask"]
-    K["O key · ?outlines=1"] -- "show_outlines" --> M
-    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ArenaLane · solid coverage mask · O key · ?outlines=1](illustrations/17-17.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -551,12 +455,7 @@ flowchart LR
 
 - A chain is one authored curve or one BRep edge; independent mesh wires never join just because endpoints coincide.
 
-```mermaid
-flowchart LR
-    C["one curve · one BRep edge"] -- "push" --> R["ribbon_chains · pipe_chains<br/>Range&lt;u32&gt;"]
-    W["separate mesh wires"] -- "no chain" --> E["own end caps"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: one curve · one BRep edge · ribbon_chains · pipe_chains\ Range<u32> · separate mesh wires · own end caps](illustrations/17-18.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -574,13 +473,7 @@ flowchart LR
 
 - `StrokeSegment` wraps the source row with `previous` and `next` GPU indices; `joined_rows` links consecutive chain members whose endpoints, instance, color and radius agree, and wraps a closed chain.
 
-```mermaid
-flowchart LR
-    R["segment rows"] -- "joined_rows(chains)" --> S["StrokeSegment<br/>previous · next"]
-    S --> U["draw_unselected"]
-    S --> D["draw_selected"]
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: segment rows · StrokeSegment\ previous · next · draw_unselected · draw_selected](illustrations/17-19.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -632,11 +525,7 @@ flowchart LR
 
 The reference page and native fixtures for this checkpoint use the text-object field from Part B, so they are copied now:
 
-```mermaid
-flowchart LR
-    S["supplied fixtures · reference page"] -- "use TextObject" --> W["workspace"]
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: supplied fixtures · reference page · workspace](illustrations/17-20.svg)
 
 <!-- supplied: 17 -->
 
@@ -651,13 +540,7 @@ Per-pixel attachments are where video memory goes. At 4x the colour, depth and m
 - The pick pass sees the scene through the sub-frustum of the window about the cursor. `LineUniform` and `CloudUniform` carry the window `origin` and the canvas `frame`; both are zero and the canvas size in a colour frame.
 - Splats project onto the canvas with `frame` and subtract `origin`, so a point's footprint keeps its pixel size inside the window-sized attachment; the grid only lists the new fields.
 
-```mermaid
-flowchart TB
-    F["frame uniforms"] -- "write_pick(view)" --> P["pick uniforms<br/>mvp' · line' · cloud'"]
-    P --> I["id_pass · window-sized attachment"]
-    P --> S["splat.wgsl · frame − origin"]
-    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: frame uniforms · pick uniforms\ mvp' · line' · cloud' · id_pass · window-sized attachment · splat.wgsl · frame − origin](illustrations/17-21.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -679,26 +562,12 @@ flowchart TB
 - `samples_for` returns 1x from two physical pixels per CSS pixel: the pixel density already halves the stair-steps, for a quarter of the attachment memory. `forced` still wins.
 - When the browser loses the device because video memory ran out, `recover_from_device_loss` reloads the page once at device scale 1 without antialiasing, keeping every other query; `recovered_notice` keeps the status line saying so on the reloaded page.
 
-```mermaid
-flowchart TB
-    B["browser ratio"] -- "min(?dpr=)" --> D["device_pixel_ratio"]
-    D --> C["canvas size"]
-    D --> N["pointer and touch input"]
-    D -- "≥ 2" --> M["samples_for: 1x"]
-    L["device lost"] -- "once" --> R["reload ?dpr=1&msaa=1&recovered=1"]
-    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: browser ratio · device_pixel_ratio · canvas size · pointer and touch input · samples_for: 1x · device lost…](illustrations/17-22.svg)
 
 - winit reports cursor and touch positions at the browser's ratio even when `?dpr=` renders the canvas below it. `surface_per_physical` is the cap over the ratio, 1 without a cap, and every pointer and touch position is multiplied by it on arrival, so picks, zooms and drags read against the surface that is actually drawn.
 - The input layer sets `State::interacting` while a button or finger drags. Frames during a drag come back to back, so their spacing is the cost of a frame: thirty in a row slower than 40 ms tell `reduce_for_slow_frames` to render at device scale 1 without antialiasing from then on, the same attachments a device loss reloads into, without waiting for the loss. The status line says so.
 
-```mermaid
-flowchart TB
-    W["winit position · browser ratio"] -- "× surface_per_physical" --> S["surface pixels"]
-    S --> P["pick · zoom · drag"]
-    I["30 drag frames > 40 ms"] --> R2["reduce_for_slow_frames<br/>scale 1 · MSAA off"]
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: winit position · browser ratio · surface pixels · pick · zoom · drag · 30 drag frames > 40 ms · reduce_for_slow_frames\ scale 1 · MSAA off](illustrations/17-23.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-25545ebdc0.svg" data-zone="Input"></span>
 
@@ -746,13 +615,7 @@ flowchart TB
 - Frame order: face highlight, print geometry, unselected strokes, selected **solid** strokes, the combined black silhouette, then selected **standalone** curves over coincident mesh ink. Each mask pass is followed by its pool pass.
 - `id_pass` computes the window's view, writes the pick uniforms, draws the whole attachment (halo included) and scissors the ink and source passes to the window inside it; authored text draws its IDs in every pick mode.
 
-```mermaid
-flowchart TB
-    X["selection_outline lane"] -- "deleted" --> Y["two SurfaceOutline"]
-    Y --> F["render.rs order<br/>solid strokes · silhouette · curves"]
-    W["id_pass · PickView"] --> G["pick uniforms · scissor inside"]
-    style Y fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: selection_outline lane · two SurfaceOutline · render.rs order\ solid strokes · silhouette · curves · id_pass · PickView · pick uniforms · scissor inside](illustrations/17-24.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 

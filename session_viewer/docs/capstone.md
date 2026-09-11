@@ -6,14 +6,7 @@ The exercise is to add a **section plane** to the viewer: a movable plane that c
 
 It is a good final exercise because it touches every decision the course has been teaching — where data lives, who owns it, which pass sees it, what a shader may assume — and because no lesson has already made those decisions for you.
 
-```mermaid
-flowchart TB
-    K["keyboard · pointer<br/>which plane, where"] --> S["state<br/>the plane as data"]
-    S --> U["uniform<br/>plane reaches the GPU"]
-    U --> F["every shader that draws<br/>faces · ink · markers · text"]
-    F --> P["pixels<br/>cut away or kept"]
-    S --> Q["picking<br/>does a cut object still answer?"]
-```
+![Diagram: keyboard · pointer\ which plane, where · state\ the plane as data · uniform\ plane reaches the GPU · every shader that draws\ faces · ink · markers · text · pixels\ cut away or kept · picking\ does a cut object still answer?](illustrations/capstone-01.svg)
 
 ## Requirements
 

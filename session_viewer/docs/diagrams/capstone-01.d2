@@ -1,0 +1,20 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+K: "keyboard · pointer\nwhich plane, where" { class: box }
+S: "state\nthe plane as data" { class: box }
+U: "uniform\nplane reaches the GPU" { class: box }
+F: "every shader that draws\nfaces · ink · markers · text" { class: box }
+P: "pixels\ncut away or kept" { class: box }
+Q: "picking\ndoes a cut object still answer?" { class: box }
+
+K -> S { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+S -> U { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+U -> F { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+F -> P { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+S -> Q { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

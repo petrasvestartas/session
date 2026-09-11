@@ -4,15 +4,7 @@
 
 A drawing sheet is tens of thousands of lines that share one pen. Loaded as objects, each line costs a GUID string, a name, a colour and four copies of itself between the bytes and the GPU; a 51 MB sheet lifts the wasm heap by 300 MiB and an old machine dies without a word. This lesson publishes a sheet as one segment batch whose every segment carries a small source id, streams it by byte range like a point cloud, and fetches an entity's GUID, name and kind from a side table only when the entity is selected.
 
-```mermaid
-flowchart TB
-    F["sheet .pb<br/>coords · colors · widths · source_ids"] -- "HTTP Range" --> L["loader<br/>prefix, then slices"]
-    L --> W["walk_sheet_slice"] --> G["SegmentLane<br/>ribbons + ribbon_ids"]
-    G -- "pick: row + segment" --> R["Scene::resolve<br/>entity id"]
-    R -- "two ranged reads" --> M[".meta side table<br/>guid · name · kind"]
-    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: sheet .pb\ coords · colors · widths · source_ids · loader\ prefix, then slices · walk_sheet_slice · SegmentLane\ ribbons + ribbon_ids · Scene::resolve\ entity id · .meta side table\ guid · name · kind](illustrations/19-01.svg)
 
 ![As objects, every line pays for a GUID string, a name, a colour and four copies of itself; as one batch a line is a few numbers and a small source id, with guid, name and kind in a side table read only when something is selected.](illustrations/sheet-cost.svg)
 
@@ -36,14 +28,7 @@ Checkpoint 18. A whole-file sheet decodes into the kernel, one object per line; 
 - `Objects.sheets` is field 17, the highest in `Objects`; a sheet file is a `Session` whose `Objects` holds exactly one `Sheet` and nothing else.
 - The side table is not protobuf: `SHM1`, a record count, then one `(offset, length)` pair per entity and the JSON blobs. Entity id is the record index, so reading an entity costs one 16-byte read and one blob read.
 
-```mermaid
-flowchart TB
-    S["Session.objects"] --> O["Objects.sheets = 17"] --> H["Sheet"]
-    H --> C["coords = 3<br/>48 B per segment"]
-    C ~~~ K["colors = 4 · widths = 5<br/>4 B per segment"]
-    K ~~~ I["source_ids = 15<br/>4 B per segment, last"]
-    style H fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Session.objects · Objects.sheets = 17 · Sheet · coords = 3\ 48 B per segment · colors = 4 · widths = 5\ 4 B per segment · source_ids = 15\ 4 B per segment, last](illustrations/19-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a1fbe46b03.svg" data-zone="Kernel"></span>
 
@@ -83,13 +68,7 @@ flowchart TB
 - `sheet_fields` reads the first 8 KiB, walks to `coords`, then scans the later fields through the `MetadataWindow` and records the absolute offset and length of every array plus `segment_count`, `entity_count` and the side table's name. A count that disagrees with the array lengths refuses the file.
 - `fetch_sheet_slice` is four revision-checked range reads for one slice, returned as `SheetRows`.
 
-```mermaid
-flowchart TB
-    A["8 KiB head"] --> B["Session.3 → Objects.17"] --> D["coords offset"]
-    D --> E["MetadataWindow scan<br/>colors · widths · counts · meta · source_ids"]
-    E --> Fx["SheetFields"]
-    style Fx fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: 8 KiB head · Session.3 → Objects.17 · coords offset · MetadataWindow scan\ colors · widths · counts · meta · source_ids · SheetFields](illustrations/19-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -121,13 +100,7 @@ flowchart TB
 - `walk_sheet_slice` turns a slice into ribbon segments: one `CylinderSegment` per segment, the sheet's single object row as instance, the pen from the width with 0 as the hairline, no chains, and the segment's source id beside it.
 - `SegRows.ribbon_ids` travels with the ribbons; `SegmentLane::append` uploads real ids where it used to upload `u32::MAX`, and records a `SegChunk` per upload so `row_of` and `source_id` map a picked global ribbon row back to its sheet and entity. The shader already compares `source_edges` against the edge selection for both tables, so a selected entity highlights every one of its segments with no shader change.
 
-```mermaid
-flowchart TB
-    R["SheetRows"] --> W["walk_sheet_slice"] --> T["ribbons + ribbon_ids"]
-    T --> U["SegmentLane::append<br/>SegChunk { from, to, row }"]
-    U --> P["row_of · source_id"]
-    style U fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: SheetRows · walk_sheet_slice · ribbons + ribbon_ids · SegmentLane::append\ SegChunk { from, to, row } · row_of · source_id](illustrations/19-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-6f8f40e8fe.svg" data-zone="Scene + walk"></span>
 
@@ -199,13 +172,7 @@ flowchart TB
 
 - An entity pick reuses the edge selection: `set_edge((row, id))` highlights the entity's segments, the status line says "Selected entity {id}, fetching…", and `Msg::SheetEntity` replaces it with the name and kind once the reads land. The resolved entity is cached on the `SheetBatch`, so the nameplate shows its name instead of the file's. A new selection or `Clear` drops a pending query.
 
-```mermaid
-flowchart TB
-    K["click on a segment"] --> V["Scene::resolve → entity"]
-    V --> E["set_edge((row, id))"] --> Q["Query → two range reads"]
-    Q --> N["Msg::SheetEntity → status · nameplate · inspection"]
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: click on a segment · Scene::resolve → entity · set_edge((row, id)) · Query → two range reads · Msg::SheetEntity → status · nameplate · inspection](illustrations/19-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-0fc6abc083.svg" data-zone="State"></span>
 

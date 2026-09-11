@@ -6,34 +6,11 @@ A code-first course. Start from an empty Rust crate, type the parts worth unders
 
 App side, from the window to the upload rows:
 
-```mermaid
-flowchart TB
-    App["lib.rs · App (winit)"] --> State["state.rs · State"]
-    App --> Loader["app/loader.rs<br>manifest · protobuf"]
-    State --> Camera["camera.rs"]
-    State --> Input["app/input.rs<br>touch.rs"]
-    State --> Scene["app/scene.rs<br>source documents<br>+ identity"]
-    Scene --> Walk["app/walk · producers"]
-    Walk --> Upload["Upload rows"]
-    Upload --> Gpu["engine/gpu · Gpu"]
-    State --> Gpu
-```
+![Diagram: lib.rs · App (winit) · state.rs · State · app/loader.rs\ manifest · protobuf · camera.rs · app/input.rs\ touch.rs · app/scene.rs\ source documents\ + identity…](illustrations/README-01.svg)
 
 GPU side, from `Gpu` to its passes:
 
-```mermaid
-flowchart TB
-    Gpu["engine/gpu · Gpu"] --> Faces
-    Gpu --> Text
-    Gpu --> Tiles
-    subgraph Lanes["engine/gpu"]
-        direction TB
-        Faces["arena · faces<br>triangle.wgsl"] ~~~ Ink["segments<br>ribbon.wgsl<br>ink_visibility.wgsl"]
-        Ink ~~~ Points["glyphs · cloud · splat"]
-        Text["text · text_plate<br>text_plane"] ~~~ Outline["surface_outline"]
-        Tiles["triangle_tiles<br>finite visibility"] ~~~ Pick["pick · IDs → Scene"]
-    end
-```
+![Diagram: engine/gpu · Gpu · Faces · Text · Tiles · segments\ ribbon.wgsl\ ink_visibility.wgsl · glyphs · cloud · splat…](illustrations/README-02.svg)
 
 Read [How to use this course](how-to-learn.md) first: it is short, and it says how a lesson is built. Nothing in this course is hidden — every lesson ends in **Questions and answers**, where each question is followed by the reasoning that gets you there and then the answer.
 
@@ -147,7 +124,7 @@ Two more tools keep the lessons honest about building: `python3 docs/reconstruct
 
 The build expands lesson directives from the verified patches, so lesson code is never duplicated in Git. `check_site.py` checks links, downloads and lexers; `course_pages.py --audit` checks that every checkpoint change is taught or supplied exactly once and that typing each lesson reproduces its checkpoint.
 
-Every step's "where you are" map comes from `python3 docs/locator.py` (`--check` fails when a lesson is stale), and `python3 docs/check_svg.py docs/illustrations/*.svg` measures every label in a real Chrome when playwright is unavailable.
+Flowcharts are D2: edit `docs/diagrams/<lesson>-<n>.d2` and run `python3 docs/diagrams.py`, which fetches its own pinned renderer the first time and writes the committed SVG. Every step's "where you are" map comes from `python3 docs/locator.py` (`--check` fails when a lesson is stale), and `python3 docs/check_svg.py docs/illustrations/*.svg` measures every label in a real Chrome when playwright is unavailable.
 
 Illustrations are generated: `python3 docs/illustrations/draw.py` sizes every box from its text, and `node docs/check_illustrations.cjs --write` measures every label in Chrome, fails on any overflow or collision, and pins each label's measured width so other fonts cannot overflow either. The palette is the BRG Equilibrium drawing palette (navy, pink, green, yellow, pale bands), also applied to the Mermaid diagrams: a reader carries those colours from a diagram to the running viewer, so they are the drawing's own and no theme replaces them.
 

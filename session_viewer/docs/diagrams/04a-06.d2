@@ -1,0 +1,16 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+FI: "FrameInput\nview_proj · clear" { class: box }
+FU: "FrameUniforms\nmvp · line · cloud" { class: focus }
+D: "every lane draw" { class: box }
+PK: "pick blocks\nwindow-sized attachment" { class: box }
+
+FI -> FU: "write" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+FU -> D: "Binds · groups 0 1 2" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+FU -> PK: "write_pick · PickView" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

@@ -1,0 +1,23 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+c0: "click" { class: box }
+ranges: "eligible source node ranges (octree ∩ click window)" { class: box }
+page: "fetch one bounded page (HTTP Range)" { class: box }
+cand: "candidates within the window" { class: box }
+gpu: "GPU ID pass accumulates nearest visible point" { class: box }
+resolve: "range-read original fixed32 ID + exact position" { class: box }
+marker: "one yellow marker at the source position" { class: box }
+
+c0 -> ranges { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+ranges -> page { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+page -> cand { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+cand -> gpu { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+gpu -> page: "more pages" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+gpu -> resolve: "all pages done" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+resolve -> marker { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

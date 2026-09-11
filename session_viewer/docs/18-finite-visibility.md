@@ -2,34 +2,15 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    P["physical pass<br/>depth · gradient · primitive id"] --> Q{"plane test<br/>accepts?"}
-    Q -- yes --> V["visible"]
-    Q -- no --> W["finite test:<br/>winning + neighbour triangles"]
-    W -- "nearer hit" --> H["hidden"]
-    W -- "no hit" --> T["finite test:<br/>every triangle in the axis tile"]
-    T -- "nearer hit" --> H
-    T -- "no hit" --> V
-```
+![Diagram: physical pass\ depth · gradient · primitive id · plane test\ accepts? · visible · finite test:\ winning + neighbour triangles · hidden · finite test:\ every triangle in the axis tile](illustrations/18-01.svg)
 
 Built once per camera and geometry revision, read by the tile test:
 
-```mermaid
-flowchart TB
-    c1["project_triangles.wgsl<br/>96-byte records"] --> c2["triangle_tiles.wgsl<br/>count per tile"]
-    c2 --> c3["scan_triangle_tiles.wgsl<br/>prefix sums"]
-    c3 --> c4["fill<br/>(primitive, max depth)"]
-```
+![Diagram: project_triangles.wgsl\ 96-byte records · triangle_tiles.wgsl\ count per tile · scan_triangle_tiles.wgsl\ prefix sums · fill\ (primitive, max depth)](illustrations/18-02.svg)
 
 The same revision counter tells the silhouette when its masks are stale:
 
-```mermaid
-flowchart TB
-    r1["geometry_revision · selection_revision · face revision"] --> r2["MaskKey"]
-    r2 -- "changed" --> r3["one rasterization: both masks"]
-    r2 -- "same" --> r4["composite the previous masks"]
-```
+![Diagram: geometry_revision · selection_revision · face revision · MaskKey · one rasterization: both masks · composite the previous masks](illustrations/18-03.svg)
 
 ## Starting point
 
@@ -56,12 +37,7 @@ flowchart TB
 - The physical metadata target grows from two to four half floats: gradient in `xy`, a lossless triangle address in `zw`.
 - Each 14-bit half of the address skips exponent zero, so it survives `Rgba16Float` without NaNs or denormals.
 
-```mermaid
-flowchart LR
-    D["physical depth"] --> M["Rgba16Float metadata<br/>xy gradient · zw primitive"]
-    P["pull_triangle index"] -- "physical_triangle" --> M
-    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: physical depth · Rgba16Float metadata\ xy gradient · zw primitive · pull_triangle index](illustrations/18-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -125,12 +101,7 @@ flowchart LR
 - `projected_triangle_at` returns `(depth, 1)` when the point is inside every edge, else `(0, 0)`.
 - `visibility_tile_span` doubles the tile size until the grid has at most `262144` tiles; the CPU `TileLayout` uses the same rule.
 
-```mermaid
-flowchart LR
-    R["ProjectedTriangle<br/>6 × vec4 · 96 B"] -- "projected_triangle_at" --> H["(depth, inside)"]
-    T["visibility_tile_span"] --> G["≤ 262144 tiles"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ProjectedTriangle\ 6 × vec4 · 96 B · (depth, inside) · visibility_tile_span · ≤ 262144 tiles](illustrations/18-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -152,13 +123,7 @@ flowchart LR
 | 3 · 3 | `TriangleTiles::projected` | `projected` (read_write) |
 | 3 · 4 | `live_count` uniform | `live_count` |
 
-```mermaid
-flowchart TB
-    A["arena columns · instances"] -- "cs_main per triangle" --> C["near-plane clip"]
-    C --> Q["quad or nothing"]
-    Q --> P["projected[] record"]
-    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: arena columns · instances · near-plane clip · quad or nothing · projected[] record](illustrations/18-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -179,13 +144,7 @@ flowchart TB
 - One quad per projected triangle covers its tile bounds; `covered_tile` discards tiles the polygon cannot touch.
 - `fs_count` counts references per tile. `fs_fill` runs after the scan and writes `(primitive, nearest possible depth)` pairs into the tile's range; a cursor past the count sets the overflow flag instead of writing.
 
-```mermaid
-flowchart TB
-    Q["quad per projected triangle"] -- "covered_tile" --> C["fs_count · tile counts"]
-    C -- "after scan" --> F["fs_fill<br/>(primitive, max depth)"]
-    F -- "cursor past count" --> O["overflow flag"]
-    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: quad per projected triangle · fs_count · tile counts · fs_fill\ (primitive, max depth) · overflow flag](illustrations/18-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -198,13 +157,7 @@ flowchart TB
 - Tile records are `count / offset / cursor / overflow`; block records are `sum / prefix`.
 - Sums saturate at the buffer capacity, so an oversubscribed pool can never wrap into a plausible offset.
 
-```mermaid
-flowchart TB
-    C["tile counts"] -- "scan_tiles" --> B["block sums"]
-    B -- "scan_blocks" --> P["block prefixes"]
-    P -- "finish_offsets" --> O["tile offsets · saturating"]
-    style O fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: tile counts · block sums · block prefixes · tile offsets · saturating](illustrations/18-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -216,15 +169,7 @@ flowchart TB
 
 - `TileLayout` mirrors `visibility_tile_span`; the reference pool is sized for the scene, two references per tile plus eight per triangle, and never larger than `REFERENCES_PER_TILE` per tile overall. A dense tile borrows spare space anywhere in the pool.
 
-```mermaid
-flowchart TB
-    K["ProjectionKey<br/>camera · geometry revision"] -- "changed" --> E["encode<br/>project · count · scan · fill"]
-    L["TileLayout · initial_pool_words"] --> P["prepare storage"]
-    P --> E
-    E -- "words needed" --> R["PoolReport · read back"]
-    R -- "grow" --> P
-    style E fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ProjectionKey\ camera · geometry revision · encode\ project · count · scan · fill · TileLayout · initial_pool_words · prepare storage · PoolReport · read back](illustrations/18-09.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -313,15 +258,7 @@ Copy the rest of the file:
 
 The blank lines separate the helpers; type them so the file matches production:
 
-```mermaid
-flowchart TB
-    A["ink_visible_plane"] -- "accepts" --> V["visible"]
-    A -- "rejects" --> W["ink_primitive + neighbours<br/>finite test"]
-    W -- "no hit" --> T["tile list of the pixel"]
-    T --> V
-    T -- "nearer finite hit" --> H["hidden"]
-    style W fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ink_visible_plane · visible · ink_primitive + neighbours\ finite test · tile list of the pixel · hidden](illustrations/18-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-093d035257.svg" data-zone="Shaders"></span>
 
@@ -342,13 +279,7 @@ flowchart TB
 - The physical and object-ID triangle pipelines move into `Faces`, so the primitive numbers written by the color pass are the same numbers the projection shader uses.
 - `revision` counts highlight changes, and `draw_masks` writes the highlighted face into both coverage masks of the combined pass: the silhouette's cache key reads the counter, and its one rasterization draws the face through this entry.
 
-```mermaid
-flowchart LR
-    F["Faces<br/>draw_physical · draw_object_ids"] -- "same primitive numbers" --> C["color pass"]
-    F --> J["projection shader"]
-    F -- "draw_masks · revision" --> M["coverage masks"]
-    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Faces\ draw_physical · draw_object_ids · color pass · projection shader · coverage masks](illustrations/18-11.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ccdfd9e2ff.svg" data-zone="Lanes"></span>
 
@@ -366,13 +297,7 @@ flowchart LR
 
 - The ink instance group gains the projected table and the tile buffer; the mvp, line and instance layouts become visible to compute.
 
-```mermaid
-flowchart LR
-    I["ink_instance layout"] -- "binding 6" --> P["projected table"]
-    I -- "binding 7" --> T["tile buffer"]
-    G["geometry_revision"] --> K["cache key"]
-    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ink_instance layout · projected table · tile buffer · geometry_revision · cache key](illustrations/18-12.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -415,13 +340,7 @@ flowchart LR
 - `triangle_tile_pass` prepares storage, rebinds the ink group when a buffer was replaced, then encodes; both the color frame and an ID-only frame call it.
 - After every submit the picker maps its copy and the tiles map their report.
 
-```mermaid
-flowchart LR
-    T["triangle_tile_pass"] -- "prepare · rebind · encode" --> I["ink passes"]
-    C["color frame"] --> T
-    D["ID-only frame"] --> T
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: triangle_tile_pass · ink passes · color frame · ID-only frame](illustrations/18-13.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-68dea8ec67.svg" data-zone="GPU core"></span>
 
@@ -435,15 +354,7 @@ flowchart LR
 - When the key changes and both outlines are on, `begin_masks` opens one pass with both attachments, and the faces are rasterized once for both masks; a single outline keeps its own pass.
 - `selection_revision` counts selection flag changes, so a selection change rebuilds the masks without touching the tile index.
 
-```mermaid
-flowchart TB
-    K["MaskKey<br/>mvp · geometry · selection · faces<br/>size · samples · edges · pen"] -- "is_valid?" --> S{"stale?"}
-    S -- no --> R["draw_combined · previous masks"]
-    S -- yes --> P["begin_masks · one pass · both attachments"]
-    P --> Q["encode_pool · mark_valid"]
-    Q --> R
-    style K fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: MaskKey\ mvp · geometry · selection · faces\ size · samples · edges · pen · stale? · draw_combined · previous masks · begin_masks · one pass · both attachments · encode_pool · mark_valid](illustrations/18-14.svg)
 
 - One `css_radius` for ordinary and selected solids: a heavier ring on the selection read as a different object, and the yellow strokes already say which one is selected.
 

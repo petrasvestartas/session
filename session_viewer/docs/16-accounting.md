@@ -2,14 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    D["Scene docs<br/>Rc&lt;Session&gt;"] -- "Rc::downgrade" --> C["SourceCache<br/>Weak identities + Payload"]
-    C -- "same Rc pointers → cached" --> P["Payload<br/>known bytes"]
-    C -- "identity changed → session_payload walk" --> P
-    G["Gpu::allocated_bytes"] --> I["inspection snapshot<br/>?inspect=1"]
-    P --> I
-```
+![Diagram: Scene docs\ Rc<Session> · SourceCache\ Weak identities + Payload · Payload\ known bytes · Gpu::allocated_bytes · inspection snapshot\ ?inspect=1](illustrations/16-01.svg)
 
 ## Starting point
 
@@ -28,12 +21,7 @@ flowchart TB
 
 Cargo discovers every file under `examples/` as a native example; their sources and the offscreen harness are supplied, not taught. Install them now, and give the manifest its native-only dependency.
 
-```mermaid
-flowchart LR
-    S["supplied examples/ · tests/"] --> C["Cargo.toml<br/>native-only pollster"]
-    C --> N["cargo xtest · examples build"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: supplied examples/ · tests/ · Cargo.toml\ native-only pollster · cargo xtest · examples build](illustrations/16-02.svg)
 
 <!-- supplied: 16 -->
 
@@ -85,13 +73,7 @@ Unit tests, part of the file:
 
 - The snapshot names its scope and exclusions in the JSON itself, so a reader of `?inspect=1` cannot mistake the payload for total heap.
 
-```mermaid
-flowchart TB
-    K["known_bytes()"] --> J["?inspect=1 JSON<br/>source_cpu_known_payload"]
-    G["Gpu::allocated_bytes"] --> J
-    J --> X["scope + exclusions named"]
-    style J fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: known_bytes() · ?inspect=1 JSON\ source_cpu_known_payload · Gpu::allocated_bytes · scope + exclusions named](illustrations/16-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 

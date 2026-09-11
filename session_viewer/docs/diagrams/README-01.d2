@@ -1,0 +1,27 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+App: "lib.rs · App (winit)" { class: box }
+State: "state.rs · State" { class: box }
+Loader: "app/loader.rs\nmanifest · protobuf" { class: box }
+Camera: "camera.rs" { class: box }
+Input: "app/input.rs\ntouch.rs" { class: box }
+Scene: "app/scene.rs\nsource documents\n+ identity" { class: box }
+Walk: "app/walk · producers" { class: box }
+Upload: "Upload rows" { class: box }
+Gpu: "engine/gpu · Gpu" { class: box }
+
+App -> State { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+App -> Loader { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+State -> Camera { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+State -> Input { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+State -> Scene { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+Scene -> Walk { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+Walk -> Upload { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+Upload -> Gpu { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+State -> Gpu { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

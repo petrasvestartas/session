@@ -2,16 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    U["URL<br/>?scene= · path · localhost"] -- "route.rs" --> R["SceneRoute<br/>manifest + base"]
-    R -- "fetch_bytes" --> M["Manifest::parse<br/>items · texts"]
-    M -- "per item" --> F["fetch_bytes(.pb)"]
-    F -- "validate → decode" --> S["Rc&lt;Session&gt;"]
-    S -- "generation still current?" --> P["PendingDocument<br/>staged in manifest order"]
-    P -- "Msg::File / StreamedCloud / Texts / Fit" --> A["App → State → Scene"]
-    L["LiveSource<br/>ETag polls"] -. "changed files" .-> P
-```
+![Diagram: URL\ ?scene= · path · localhost · SceneRoute\ manifest + base · Manifest::parse\ items · texts · fetch_bytes(.pb) · Rc<Session> · PendingDocument\ staged in manifest order…](illustrations/14-01.svg)
 
 ## Starting point
 
@@ -32,12 +23,7 @@ flowchart TB
 - `parse` accepts YAML, JSON and TOML with one set of semantics and rejects non-finite or non-affine transforms before anything is fetched.
 - `TextItem` is a fixed world-plane label authored in the manifest; its frame must be unit and orthogonal, checked here rather than in a renderer.
 
-```mermaid
-flowchart LR
-    F["yaml · json · toml"] -- "Manifest::parse" --> M["Manifest"] --> I["Item · at · xform"]
-    M --> T["TextItem"]
-    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: yaml · json · toml · Manifest · Item · at · xform · TextItem](illustrations/14-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -70,12 +56,7 @@ Parser unit tests, part of the file:
 - A hostile `cv_count` would make a kernel constructor allocate from a declared number; every count is checked against the actual storage length first.
 - `session` walks a decoded protobuf; `retained` covers the JSON path, which has no protobuf constructors; `json` checks declared NURBS counts before serde builds objects.
 
-```mermaid
-flowchart LR
-    P["decoded protobuf"] -- "validate::session" --> O["counts ≤ storage"]
-    J["JSON document"] -- "validate::json" --> O
-    style O fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: decoded protobuf · counts ≤ storage · JSON document](illustrations/14-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -98,11 +79,7 @@ flowchart LR
 - prost decodes the whole message in one call; converting objects into kernel types is the slow part, so `Pacer` yields to the browser every `CHUNK` objects through `next_tick`.
 - The bytes are taken by value and dropped right after prost is done, before the conversion loop starts.
 
-```mermaid
-flowchart LR
-    B["bytes"] -- "prost" --> M["message"] -- "Pacer::tick" --> K["kernel objects"]
-    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: bytes · message · kernel objects](illustrations/14-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -121,11 +98,7 @@ flowchart LR
 - Three routes: a named scene (`?scene=` or the last path segment) from the bucket, the local manifest on a dev server, and no route at all on a deployed page, which hands over to the live source.
 - `?data=` overrides where `.pb` files come from; `query_scene` refuses `..`, absolute paths and schemes so a manifest name stays inside one tree.
 
-```mermaid
-flowchart LR
-    U["?scene= · path"] -- "scene_route" --> R["SceneRoute"] --> S["bucket · local · live"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ?scene= · path · SceneRoute · bucket · local · live](illustrations/14-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -139,13 +112,7 @@ flowchart LR
 - A relay message (`EventSource`) only raises a flag that says "look now"; the conditional reads still decide what changed.
 - `Notify` owns its closure handle and detaches it in `Drop`; nothing is leaked with `forget()`.
 
-```mermaid
-flowchart TB
-    E["EventSource"] --> N["Notify flag"]
-    N --> C["LiveSource::check"]
-    C -- "If-None-Match" --> R["read: Changed · Same"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: EventSource · Notify flag · LiveSource::check · read: Changed · Same](illustrations/14-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-2c1e2b3b5e.svg" data-zone="Network"></span>
 
@@ -228,13 +195,7 @@ flowchart TB
 - `decode`, `fetch` and `live` are browser-only; `manifest` and `validate` compile natively too.
 - Manifest text reaches State through one `Msg::Texts`; `set_texts` builds fixed-plane labels and grows the fit bounds by the shaped text extents.
 
-```mermaid
-flowchart LR
-    M["app::mod"] --> D["decode · fetch · live"]
-    T["Msg::Texts"] --> S["set_texts"]
-    style M fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: app::mod · decode · fetch · live · Msg::Texts · set_texts](illustrations/14-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-56723afb3a.svg" data-zone="Shell"></span>
 
@@ -260,13 +221,7 @@ flowchart LR
 - A `pre_build` hook runs `docs/build_site.sh` before every bundle: it builds the documentation site into `target/docs/site`, which the page's `copy-dir` link publishes as `dist/docs`, so the black corner opens the course from the same `dist/` the viewer is served from.
 - The hook rebuilds only when a documentation source is newer than the built `index.html`; a checkout without the course sources or without `uvx` gets a placeholder page instead of a failed build.
 
-```mermaid
-flowchart TB
-    H["pre_build hook"] -- "docs/build_site.sh" --> S["target/docs/site"]
-    S -- "copy-dir" --> D["dist/docs"]
-    C["#viewer-docs corner"] -- "docs/" --> D
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: pre_build hook · target/docs/site · dist/docs · #viewer-docs corner](illustrations/14-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-e6f4fee67c.svg" data-zone="Page"></span>
 

@@ -84,6 +84,11 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
   into `dist/docs` and `docs/build_site.sh` (pre-build hook) rebuilds the site when stale.
 - Mermaid: `flowchart TB` for chains longer than five nodes (LR gets shrunk to unreadable size);
   several small diagrams beat one tangled one; edge labels stay short.
+- Flowcharts are D2, not Mermaid: the source is `docs/diagrams/<lesson>-<n>.d2` and the rendered
+  SVG is committed beside the illustrations. `python3 docs/diagrams.py` re-renders what changed
+  (`--all` everything, `--check` fails when a committed SVG is stale). It fetches its own pinned
+  d2 into `target/tools/` the first time, so a fresh checkout needs one command and a network
+  connection once. Edit the `.d2`, never the `.svg`.
 - Every step opens with the viewer map, and a compact copy of it stays pinned while the reader
   scrolls: `python3 docs/locator.py` regenerates both plus the per-code-block zone marks the
   pinned bar follows (`--check` fails when a lesson is stale). It refuses to run when a taught

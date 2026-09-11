@@ -2,13 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    A["TextLabel<br>string · size · line height"] -- "Cosmic Text · Noto fonts" --> B["shaped Buffer<br>glyph IDs · advances · clusters"]
-    B --> C["TextDocument<br>runs cached by id"]
-    C -- "diagnostics()" --> D["browser reference page"]
-    C -.-> E["placement · raster · GPU"]
-```
+![Diagram: TextLabel\ string · size · line height · shaped Buffer\ glyph IDs · advances · clusters · TextDocument\ runs cached by id · browser reference page · placement · raster · GPU](illustrations/10-01.svg)
 
 ![Shape once, place per frame, raster per device scale, then a plate pass and a glyph pass.](illustrations/text-pipeline.svg)
 
@@ -30,12 +24,7 @@ flowchart TB
 - Fonts are compiled into the WASM with `include_bytes!`; the browser never scans system fonts, so every machine shapes identically.
 - Install the three font files now; the shaping module cannot compile without them.
 
-```mermaid
-flowchart TB
-    A["NotoSans · Symbols · Symbols2"] -- "include_bytes!" --> B["FONT_BYTES … FALLBACK_BYTES"]
-    B --> C["bundled_fonts · FontSystem"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: NotoSans · Symbols · Symbols2 · FONT_BYTES … FALLBACK_BYTES · bundled_fonts · FontSystem](illustrations/10-02.svg)
 
 <!-- supplied: 10 -->
 
@@ -55,13 +44,7 @@ The fonts' licence and provenance travel with them.
 
 Shaping is timed and every frame is timed; both read the same `now_ms`. Native builds read the system clock so the same module compiles for tests.
 
-```mermaid
-flowchart LR
-    A["performance.now · browser"] --> B["now_ms"]
-    C["SystemTime · native"] --> B
-    B --> D["Performance::frame"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: performance.now · browser · now_ms · SystemTime · native · Performance::frame](illustrations/10-03.svg)
 
 - `Performance::frame` also watches frame spacing while `interacting` is set: thirty drag frames in a row slower than 40 ms raise a one-shot verdict. Nothing reads it yet — lesson 17 adds `reduce_for_slow_frames`, which is what turns the verdict into a lower device scale. Measuring first and acting later is deliberate: the number is easy to test on its own.
 
@@ -76,13 +59,7 @@ flowchart LR
 - The placement is intent, not pixels: a camera move changes where the text lands, never its string or its glyphs.
 - `Screen` is CSS pixels; `Anchor`/`Nameplate` follow a world point with screen-sized glyphs; `WorldBillboard` and `WorldPlane` have a world em height.
 
-```mermaid
-flowchart LR
-    A["TextPlacement"] --> B["Screen · CSS px"]
-    A --> C["Anchor · Nameplate"]
-    A --> D["WorldBillboard · WorldPlane"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: TextPlacement · Screen · CSS px · Anchor · Nameplate · WorldBillboard · WorldPlane](illustrations/10-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -97,12 +74,7 @@ flowchart LR
 - A `TextRun` keeps the source label next to its shaped `Buffer`, so editing and selection can map glyphs back to characters.
 - `TextDocument` owns the `FontSystem`; the GPU side borrows it and owns nothing here.
 
-```mermaid
-flowchart LR
-    A["TextLabel"] -- "shape" --> B["TextRun · Buffer"]
-    B --> C["TextDocument · FontSystem"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: TextLabel · TextRun · Buffer · TextDocument · FontSystem](illustrations/10-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -115,13 +87,7 @@ flowchart LR
 - Validate the whole replacement before touching the current runs; a bad label leaves the old document intact.
 - Only `text`, `font_size` and `line_height` participate in shaping; a colour or placement edit reuses the buffer by id.
 
-```mermaid
-flowchart TB
-    A["Vec of TextLabel"] -- "validate_label" --> B["set_labels"]
-    B -- "same_layout" --> C["reuse Buffer by id"]
-    B -- "layout changed" --> D["shape"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Vec of TextLabel · set_labels · reuse Buffer by id · shape](illustrations/10-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -134,12 +100,7 @@ flowchart TB
 - Diagnostics export what the shaper decided: glyph id, source byte cluster, advance, offset, baseline. The reference page compares these to the browser.
 - A cluster is a byte range into the source string: `ffi` may be one glyph, `e` + combining accent one cluster.
 
-```mermaid
-flowchart TB
-    A["replace_fonts · clear"] --> B["TextDocument"]
-    B -- "diagnostics" --> C["GlyphDiagnostic<br>id · cluster · advance"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: replace_fonts · clear · TextDocument · GlyphDiagnostic\ id · cluster · advance](illustrations/10-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -158,12 +119,7 @@ flowchart TB
 - Non-finite sizes and non-orthonormal plane axes are rejected here, before any raster or integer clip conversion sees them.
 - `Shaping::Advanced` is what makes kerning, ligatures and font fallback happen once, at shape time.
 
-```mermaid
-flowchart TB
-    A["validate_label · valid_plane_axes"] --> B["shape · Shaping::Advanced"]
-    B -- "kerning · ligatures · fallback" --> C["Buffer"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: validate_label · valid_plane_axes · shape · Shaping::Advanced · Buffer](illustrations/10-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -185,12 +141,7 @@ Unit checks for the shaper live in the same file.
 
 ![Where this step sits in the viewer: GPU core, with 9 of 11 zones built so far.](illustrations/locator-1c4b2f24dc.svg){ .locator data-strip="illustrations/strip-54e1511b20.svg" }
 
-```mermaid
-flowchart LR
-    A["engine/mod.rs"] -- "pub mod" --> B["performance"]
-    A -- "pub mod" --> C["text"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: engine/mod.rs · performance · text](illustrations/10-09.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
@@ -205,13 +156,7 @@ flowchart LR
 - The page loads the identical font bytes with `@font-face`, sets the same kerning and ligature options, and compares line widths with the shaper's `line_width`.
 - The WASM export shapes five sizes, then changes only colour and placement and asserts the shape count did not move.
 
-```mermaid
-flowchart TB
-    A["text_layout · WASM export"] -- "line_width" --> B["text-layout.html"]
-    C["@font-face · same bytes"] --> B
-    B -- "compare widths" --> D["textLayout.passed"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: text_layout · WASM export · text-layout.html · @font-face · same bytes · textLayout.passed](illustrations/10-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 

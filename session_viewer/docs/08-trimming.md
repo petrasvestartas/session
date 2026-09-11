@@ -2,13 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    A["surface domain<br/>+ outer loop + inner loops"] -- "constrained UV triangulation" --> B["triangles inside the allowed region"]
-    B -- "lift with boundary XYZ" --> C["trimmed 3D face + chains"]
-    C -- "walk_surface" --> D["arena rows + pipes"]
-    D -- "map_surface_boundaries" --> E["pipe_ids: u-min / u-max / v-min / v-max"]
-```
+![Diagram: surface domain\ + outer loop + inner loops · triangles inside the allowed region · trimmed 3D face + chains · arena rows + pipes · pipe_ids: u-min / u-max / v-min / v-max](illustrations/08-01.svg)
 
 ![Left: outer and inner loops select the face in u,v and the hole stays empty. Right: a cylinder's seam is one XYZ curve used at u=0 and u=1.](illustrations/trims-seams.svg)
 
@@ -31,13 +25,7 @@ flowchart TB
 - Triangulating the full rectangle and drawing a hole curve on top does not make a hole. The fill must exclude the region, so the constrained mesh cached on the surface wins over a fresh grid.
 - `first_pipe` remembers where this surface's pipes start so only those get boundary IDs.
 
-```mermaid
-flowchart TB
-    A["NurbsSurface · m_mesh"] -- "cached trim mesh" --> B["walk_surface"]
-    C["from_u_v_q grid"] -- "fallback" --> B
-    B -- "first_pipe" --> D["map_surface_boundaries"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: NurbsSurface · m_mesh · walk_surface · from_u_v_q grid · map_surface_boundaries](illustrations/08-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -52,13 +40,7 @@ flowchart TB
 - Keys are exact position bits; no weld tolerance enters.
 - Everything from `#[cfg(test)]` down is the module's unit tests: COPY.
 
-```mermaid
-flowchart TB
-    A["mesh vertex u, v"] -- "domain limit bits" --> B["map_surface_boundaries"]
-    B -- "one shared bit" --> C["pipe_ids · source ID"]
-    B -- "seam or crease" --> D["u32::MAX"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: mesh vertex u, v · map_surface_boundaries · pipe_ids · source ID · u32::MAX](illustrations/08-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -73,12 +55,7 @@ flowchart TB
 - The patch is a degree-2 surface with a square outer loop and a circular inner loop, meshed once by the constrained mesher and cached in `m_mesh`.
 - The torus is periodic in both directions: same XYZ curve, two face uses, different UV.
 
-```mermaid
-flowchart LR
-    A["trimmed_surface · square + hole"] --> C["build · CadFixture"]
-    B["torus · periodic u, v"] --> C
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: trimmed_surface · square + hole · build · CadFixture · torus · periodic u, v](illustrations/08-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 
@@ -88,11 +65,7 @@ flowchart LR
 
 ![Where this step sits in the viewer: Page, Shell, with 9 of 11 zones built so far.](illustrations/locator-4c1ae78629.svg){ .locator data-strip="illustrations/strip-460ff53e99.svg" }
 
-```mermaid
-flowchart LR
-    A["lib.rs · stage"] --> B["index.html · title"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: lib.rs · stage · index.html · title](illustrations/08-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 

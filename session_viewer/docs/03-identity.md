@@ -2,14 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    src["SourceObject<br/>guid · revision"] -- "row" --> inst["Instance<br/>model · color · flags"]
-    inst -- "bytemuck · STORAGE buffer" --> buf["instances[]"]
-    buf -- "@group(0) @binding(1)" --> vs["vs_main(instance_index)"]
-    draw["draw(0..3, row..row+1)"] --> vs
-    vs --> px["two tinted, placed triangles"]
-```
+![Diagram: SourceObject\ guid · revision · Instance\ model · color · flags · instances[] · vs_main(instance_index) · draw(0..3, row..row+1) · two tinted, placed triangles](illustrations/03-01.svg)
 
 ![A repr(C) struct is cast to bytes, written to a buffer, attached by a bind group at a group and binding, and declared again in WGSL.](illustrations/gpu-data.svg)
 
@@ -34,13 +27,7 @@ flowchart TB
 - The translation column of `model` is zero; the anchored translation belongs to its own table (group 2, binding 1).
 - The size assertion is compile-time: a wrong stride fails `cargo check`, not the picture.
 
-```mermaid
-flowchart TB
-    P["Instance::placeholder"] --> I["struct Instance<br/>96 B"]
-    I -- "model · color" --> R["one object row"]
-    I -- "FLAG_ bits" --> F["flags"]
-    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Instance::placeholder · struct Instance\ 96 B · one object row · flags](illustrations/03-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
 
@@ -56,13 +43,7 @@ The rest of the file is `#[cfg(test)]` only: it parses every lane shader with na
 
 ![Where this step sits in the viewer: GPU core, with 6 of 11 zones built so far.](illustrations/locator-afd0463e4d.svg){ .locator data-strip="illustrations/strip-10d43625b6.svg" }
 
-```mermaid
-flowchart TB
-    L["lib.rs"] -- "pub mod engine" --> E["engine/mod.rs"]
-    E -- "pub mod gpu" --> G["engine/gpu/mod.rs"]
-    G -- "pub mod instance" --> I["instance.rs"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: lib.rs · engine/mod.rs · engine/gpu/mod.rs · instance.rs](illustrations/03-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-10d43625b6.svg" data-zone="GPU core"></span>
 
@@ -81,12 +62,7 @@ flowchart TB
 - A `guid` and `revision` identify what the object *is*; the row says how it is drawn this revision.
 - Picking returns a row; the scene maps it back. Never search for an object by matching triangle positions.
 
-```mermaid
-flowchart LR
-    S["SourceObject · guid · revision"] -- "row" --> I["Instance"]
-    O["scene::objects()"] -- "two placements" --> S
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: SourceObject · guid · revision · Instance · scene::objects()](illustrations/03-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3589a2f087.svg" data-zone="Scene + walk"></span>
 
@@ -114,14 +90,7 @@ size                         96     array stride
 - `@builtin(instance_index)` is the `row` of `draw(0..3, row..row + 1)`.
 - `@group(0) @binding(1) var<storage, read>` mirrors the `BufferBindingType::Storage { read_only: true }` entry added in the next step.
 
-```mermaid
-flowchart TB
-    I["Instance rows"] -- "group 0 · binding 1" --> B["storage instances[]"]
-    R["instance_index"] --> V["vs_main"]
-    B --> V
-    V -- "model × point · color" --> F["fs_main"]
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Instance rows · storage instances[] · instance_index · vs_main · fs_main](illustrations/03-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-9d7fcc8d70.svg" data-zone="Shaders"></span>
 
@@ -134,13 +103,7 @@ flowchart TB
 - The layout gains binding 1; the bind group supplies the storage buffer; one draw per row.
 - `objects` stays on the CPU side of the shell, so the status can report a count that comes from source data rather than from the GPU.
 
-```mermaid
-flowchart TB
-    O["scene::objects()"] -- "cast_slice" --> S["STORAGE buffer"]
-    S -- "binding 1" --> G["BindGroup"]
-    G --> D["draw(0..3, row..row+1)"]
-    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: scene::objects() · STORAGE buffer · BindGroup · draw(0..3, row..row+1)](illustrations/03-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3d2a8d385e.svg" data-zone="Shell"></span>
 

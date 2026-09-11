@@ -1,0 +1,25 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+D: "surface derivatives ∂u, ∂v" { class: box }
+N: "analytic normal" { class: box }
+F: "fallback: incident triangle fan" { class: box }
+K: "C0 knot / sharp face" { class: box }
+S: "split shading vertices\nsame XYZ, two normals" { class: box }
+V: "face-local RenderVertex.normal" { class: box }
+T: "transform_normal(model)\ncofactor inverse transpose" { class: box }
+L: "normalize · headlight shade" { class: box }
+
+D -> N: "cross product valid" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+D -> F: "length 0 or NaN" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+K -> S { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+N -> V { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+F -> V { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+S -> V { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+V -> T: "@location(1)" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+T -> L: "@location(2) interpolated" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

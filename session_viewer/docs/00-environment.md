@@ -29,13 +29,7 @@ cd "$COURSE_WORK/session_viewer"
 - Every version here is pinned by `Cargo.lock` in step 4; `wgpu = "29.0"` and `glyphon = "=0.11.0"` must move together.
 - The `[target.'cfg(not(wasm32))']` table stays at the end: a target table in the middle silently swallows every `[dependencies]` line after it.
 
-```mermaid
-flowchart LR
-    T["Cargo.toml"] -- "cdylib + rlib" --> C["session_viewer crate"]
-    T -- "path dep" --> K["../session_rust"]
-    T -- "wgpu 29 · glyphon 0.11" --> C
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Cargo.toml · session_viewer crate · ../session_rust](illustrations/00-01.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
@@ -47,12 +41,7 @@ flowchart LR
 
 One line makes every `cargo` command build for the browser, so the code needs no `#[cfg(target_arch = "wasm32")]` gates. `xtest` is the native alias that runs the tests.
 
-```mermaid
-flowchart LR
-    G[".cargo/config.toml"] -- "build.target" --> W["wasm32-unknown-unknown"]
-    G -- "alias xtest" --> N["native test target"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: .cargo/config.toml · wasm32-unknown-unknown · native test target](illustrations/00-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
@@ -64,12 +53,7 @@ flowchart LR
 
 Release builds, no subresource hashes, and a watch list that includes the kernel next door.
 
-```mermaid
-flowchart LR
-    T["Trunk.toml"] -- "release · public_url ./" --> D["dist/"]
-    T -- "watch list" --> S["src · index.html · ../session_rust"]
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Trunk.toml · dist/ · src · index.html · ../session_rust](illustrations/00-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
@@ -79,12 +63,7 @@ flowchart LR
 
 Dependency data, not code. The course was verified against exactly these versions, so install the lockfile with the supplied-files command instead of typing it.
 
-```mermaid
-flowchart LR
-    L["Cargo.lock"] -- "pins every version" --> C["cargo --locked"]
-    C --> B["reproducible build"]
-    style L fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Cargo.lock · cargo --locked · reproducible build](illustrations/00-04.svg)
 
 <!-- supplied: 00 -->
 
@@ -94,12 +73,7 @@ flowchart LR
 
 One element with `id="status"`; Rust looks it up by that name.
 
-```mermaid
-flowchart LR
-    H["index.html"] -- "data-trunk rel=rust" --> W[".wasm + JS glue"]
-    H -- "output id=status" --> S["status element"]
-    style H fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: index.html · .wasm + JS glue · status element](illustrations/00-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-40d1f63564.svg" data-zone="Page"></span>
 
@@ -113,13 +87,7 @@ flowchart LR
 - `web_sys` is the browser DOM seen from Rust; `expect` aborts with a readable message if an element is missing.
 - The `data-checkpoint` attribute is what the automatic checkpoint test reads, so a static HTML message cannot pass for Rust.
 
-```mermaid
-flowchart TB
-    B["browser loads module"] -- "wasm_bindgen start" --> F["start()"]
-    F -- "get_element_by_id" --> S["#status"]
-    F -- "set_text_content" --> S
-    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: browser loads module · start() · #status](illustrations/00-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-d765e907c1.svg" data-zone="Shell"></span>
 

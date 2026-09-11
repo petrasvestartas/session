@@ -125,13 +125,7 @@ The scene shows what it showed a moment ago, or half of each.
 
 The click selects an object slightly up and to the left, or nothing at all. The pointer travels through four coordinate systems, and picking works only when all four agree:
 
-```mermaid
-flowchart LR
-    E["pointer event<br/>CSS px, canvas-relative"] --> P["physical px<br/>× devicePixelRatio"]
-    P --> W["pick window<br/>small offscreen target"]
-    W --> I["id texture<br/>row + sub-id"]
-    I --> S["Scene<br/>source identity"]
-```
+![Diagram: pointer event\ CSS px, canvas-relative · physical px\ × devicePixelRatio · pick window\ small offscreen target · id texture\ row + sub-id · Scene\ source identity](illustrations/debugging-01.svg)
 
 - An offset by a constant means the event was page-relative, not canvas-relative.
 - An offset that grows toward one corner means a missing (or doubled) `devicePixelRatio`.

@@ -1,0 +1,18 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+AR: "ArenaRows\nverts · vids · idx" { class: box }
+AL: "ArenaLane\nfive GrowBufs" { class: focus }
+FP: "face pass" { class: box }
+OL: "OutlineTextLane\nunlit" { class: box }
+IP: "ink pass" { class: box }
+
+AR -> AL: "append" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+AL -> FP: "draw_faces" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+AL -> OL: "draw_print · draw_text" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+OL -> IP { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

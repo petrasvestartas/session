@@ -2,16 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    canvas -- "create_surface" --> surface
-    surface -- "request_adapter(compatible_surface)" --> adapter
-    adapter -- "request_device" --> device["device + queue"]
-    device -- "create_render_pipeline" --> pipeline
-    device -- "create_command_encoder" --> encoder
-    encoder -- "begin_render_pass(clear, draw 3)" --> tex["surface texture"]
-    tex -- "queue.submit · present" --> screen
-```
+![Diagram: canvas · surface · adapter · device + queue · pipeline · encoder…](illustrations/01-01.svg)
 
 ![Created once versus recorded every frame: the CPU records a pass into an encoder, the GPU executes the submitted list, the surface texture is presented.](illustrations/first-frame.svg)
 
@@ -34,13 +25,7 @@ flowchart TB
 - `#[wasm_bindgen]` on the struct and its `impl` exports `create`, `render`, `drag`, `zoom` to JavaScript.
 - `drag` and `zoom` are exported with empty bodies, so the page wires all four methods at once.
 
-```mermaid
-flowchart TB
-    J["JavaScript page"] -- "Tutorial.create" --> T["struct Tutorial"]
-    T -- "owns" --> R["surface · device<br>queue · pipeline"]
-    J -- "render · drag · zoom" --> T
-    style T fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: JavaScript page · struct Tutorial · surface · device\ queue · pipeline](illustrations/01-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-d765e907c1.svg" data-zone="Shell"></span>
 
@@ -74,13 +59,7 @@ flowchart TB
                             @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>
 ```
 
-```mermaid
-flowchart TB
-    C["SurfaceConfiguration"] -- "width 1 · height 1" --> S["Surface"]
-    M["identity [f32; 16]"] -- "create_buffer_init" --> U["uniform buffer"]
-    U -- "binding 0" --> G["BindGroup"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: SurfaceConfiguration · Surface · identity [f32; 16] · uniform buffer · BindGroup](illustrations/01-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-d765e907c1.svg" data-zone="Shell"></span>
 
@@ -94,14 +73,7 @@ flowchart TB
 - Entry-point names `vs_main`/`fs_main` and the color target `format` are the contract with the shader and the surface.
 - `buffers: &[]`: this triangle is generated from `vertex_index`, so no vertex buffer is bound.
 
-```mermaid
-flowchart LR
-    W["first.wgsl"] -- "include_str!" --> S["ShaderModule"]
-    L["BindGroupLayout"] -- "create_pipeline_layout" --> P["PipelineLayout"]
-    S --> R["RenderPipeline"]
-    P --> R
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: first.wgsl · ShaderModule · BindGroupLayout · PipelineLayout · RenderPipeline](illustrations/01-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-d765e907c1.svg" data-zone="Shell"></span>
 
@@ -115,13 +87,7 @@ flowchart LR
 - A render pass borrows the encoder; the inner braces end the borrow before `encoder.finish()`.
 - This pass has a color attachment only, no depth.
 
-```mermaid
-flowchart TB
-    S["get_current_texture"] --> V["TextureView"]
-    E["CommandEncoder"] -- "begin_render_pass" --> P["clear · draw(0..3)"]
-    P -- "queue.submit" --> Q["present"]
-    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: get_current_texture · TextureView · CommandEncoder · clear · draw(0..3) · present](illustrations/01-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-d765e907c1.svg" data-zone="Shell"></span>
 
@@ -143,13 +109,7 @@ targets: [surface format]                    ↔  @location(0) vec4<f32> return
 - `@builtin(vertex_index)` is 0, 1, 2 for `draw(0..3, 0..1)`.
 - `@location(0) color` leaves the vertex stage and is interpolated into the fragment stage.
 
-```mermaid
-flowchart LR
-    I["vertex_index 0..3"] --> V["vs_main"]
-    U["mvp uniform"] -- "group 0 · binding 0" --> V
-    V -- "position + color" --> F["fs_main"]
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: vertex_index 0..3 · vs_main · mvp uniform · fs_main](illustrations/01-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a3e7270ec6.svg" data-zone="Shaders"></span>
 
@@ -165,13 +125,7 @@ flowchart LR
 
 JavaScript owns the canvas and pointer events; it calls the four exported methods. Replace the page in full.
 
-```mermaid
-flowchart TB
-    P["pointer · wheel · resize"] --> J["index.html script"]
-    J -- "tutorial.render" --> T["Tutorial"]
-    T -- "inspection JSON" --> S["#status"]
-    style J fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: pointer · wheel · resize · index.html script · Tutorial · #status](illustrations/01-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-cdcbec521d.svg" data-zone="Page"></span>
 

@@ -1,0 +1,24 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+R: "fixture: positions · colors · CloudDraw" { class: box }
+C: "CloudRows" { class: box }
+PB: "PointBufs\npos · col · nrm GrowBufs" { class: box }
+PG: "points group\nrecords · pos · col · nrm" { class: box }
+L: "LodWalk::select\noctree ranges per cloud" { class: box }
+REC: "SplatRecord × visible range\nmvp × model folded" { class: box }
+PP: "splat.wgsl point pass\nown 1x depth + color targets" { class: box }
+RS: "splat_resolve.wgsl\nfullscreen, writes frag_depth\ninside the face pass" { class: box }
+
+R -> C { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+C -> PB: "CloudLane::append" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+PB -> PG { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+L -> REC { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+REC -> PG { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+PG -> PP { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+PP -> RS { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

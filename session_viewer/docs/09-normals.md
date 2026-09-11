@@ -2,17 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TD
-    D["surface derivatives ∂u, ∂v"] -- "cross product valid" --> N["analytic normal"]
-    D -- "length 0 or NaN" --> F["fallback: incident triangle fan"]
-    K["C0 knot / sharp face"] --> S["split shading vertices<br/>same XYZ, two normals"]
-    N --> V["face-local RenderVertex.normal"]
-    F --> V
-    S --> V
-    V -- "@location(1)" --> T["transform_normal(model)<br/>cofactor inverse transpose"]
-    T -- "@location(2) interpolated" --> L["normalize · headlight shade"]
-```
+![Diagram: surface derivatives ∂u, ∂v · analytic normal · fallback: incident triangle fan · C0 knot / sharp face · split shading vertices\ same XYZ, two normals · face-local RenderVertex.normal…](illustrations/09-01.svg)
 
 ![Analytic normal or finite fallback at a pole; two shading normals at a C0 crease; the cofactor transform keeps a normal perpendicular under nonuniform scale.](illustrations/normals.svg)
 
@@ -35,13 +25,7 @@ flowchart TD
 - `normal_at` returns `+Z` at a pole. Finite, but not this face's normal; it must not bypass the fan fallback.
 - Read the derivatives directly: a zero-length cross means "singular here", so the incident-triangle fan decides.
 
-```mermaid
-flowchart LR
-    A["derivatives du, dv"] -- "cross" --> B{"length > 0?"}
-    B -- "yes" --> C["analytic normal"]
-    B -- "no" --> D["incident-triangle fan"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: derivatives du, dv · length > 0? · analytic normal · incident-triangle fan](illustrations/09-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-9186989aed.svg" data-zone="Kernel"></span>
 
@@ -76,13 +60,7 @@ sign(det)                        →     mirrored instances keep outward normals
 - A singular matrix has no unique normal: return the zero sentinel and let the fragment stage fall back to flat shading.
 - Normalize after the transform. The cofactor form never divides by a small determinant.
 
-```mermaid
-flowchart TB
-    A["instances[row].model"] -- "3×3 columns" --> B["transform_normal · cofactors"]
-    B -- "sign(det)" --> C["face_normal"]
-    C -- "normalize in shade" --> D["triangle.wgsl fragment"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: instances[row].model · transform_normal · cofactors · face_normal · triangle.wgsl fragment](illustrations/09-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
 
@@ -111,13 +89,7 @@ The vertex stage transforms the baked normal; `shade` normalizes `in.normal` bec
 - Index every triangle's geometric normal by its exact edge (position bits, winding-free). A seam of one periodic face keeps both incident facets.
 - Missing or ambiguous incidence disables the cull instead of guessing.
 
-```mermaid
-flowchart TB
-    A["face triangles"] -- "position bits" --> B["face_facets · FacetPair"]
-    B --> C["EdgePen::facing"]
-    C -- "cull or keep" --> D["push_edge_pipes"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: face triangles · face_facets · FacetPair · EdgePen::facing · push_edge_pipes](illustrations/09-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -147,12 +119,7 @@ The BRep walk builds the incidence once per upload:
 
 Mesh edges and markers become toggles so shading can be judged without boundary ink.
 
-```mermaid
-flowchart LR
-    A["?fill=1"] -- "show_mesh_edges = false" --> B["View knobs"]
-    B --> C["frame · faces only"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ?fill=1 · View knobs · frame · faces only](illustrations/09-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 
@@ -171,13 +138,7 @@ flowchart LR
 - The placement has a negative determinant and three distinct scales: the sign and cofactor paths are exercised.
 - The crease surface is degree one in U with a shared knot: two shading normals at identical XYZ.
 
-```mermaid
-flowchart LR
-    A["?cad=sphere … torus"] --> B["solid · BRep"]
-    C["?affine=1 · affine_placement"] --> B
-    B --> D["build · CadFixture"]
-    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: ?cad=sphere … torus · solid · BRep · ?affine=1 · affine_placement · build · CadFixture](illustrations/09-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 

@@ -1,0 +1,24 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+E: "BRep edge" { class: box }
+C: "canonical XYZ chain\nedge_bnd · edge_basis" { class: box }
+C2: "refined chain\n(originals kept exact)" { class: box }
+P: "params on each face's pcurve" { class: box }
+M: "mesh_loops\nconstrained Delaunay" { class: box }
+N: "ordered mesh-node chains" { class: box }
+K: "pipes with source edge IDs" { class: box }
+O: "outward normals" { class: box }
+
+E -> C: "first incident grid face" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+C -> C2: "refine_surface_boundary" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+C2 -> P: "closest_parameters / boundary_parameter" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+P -> M: "TrimLoops { uv, xyz, interior_uv }" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+M -> N: "boundary/{loop}/{sample}\nbrep_edge/{edge}/{use}/{sample}" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+N -> K: "edge_chains · push_edge_pipes" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+N -> O: "face_signs" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }

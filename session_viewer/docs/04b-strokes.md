@@ -2,15 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    R["fixture: CylinderSegment rows"] --> S["SegRows<br/>pipes · ribbons"]
-    S -- "SegmentLane::append" --> G3["group 3<br/>segments · source_edges · edge_selection"]
-    G3 --> V["ribbon.wgsl vs_main<br/>6 verts per segment, no vertex buffer"]
-    V --> Q["screen-space quad<br/>+ FILTER_REACH"]
-    Q --> FS["fs_main<br/>band_area coverage · ink_visible"]
-    D["physical depth<br/>group 2 bindings 2, 3"] --> FS
-```
+![Diagram: fixture: CylinderSegment rows · SegRows\ pipes · ribbons · group 3\ segments · source_edges · edge_selection · ribbon.wgsl vs_main\ 6 verts per segment, no vertex buffer · screen-space quad\ + FILTER_REACH · fs_main\ band_area coverage · ink_visible…](illustrations/04b-01.svg)
 
 Group 3 of the segment pipelines (`Layouts::segment_rows`):
 
@@ -40,12 +32,7 @@ Group 3 of the segment pipelines (`Layouts::segment_rows`):
 - 40 bytes, ends as flat `f32`s: a `vec3` would pad the row to 48.
 - `radius` 0 means the screen-constant pen; `facing` packs two face normals for the solid lane's back-edge cull.
 
-```mermaid
-flowchart TB
-    W["walk · segment endpoints"] --> R["CylinderSegment<br/>a · b · radius · facing"]
-    R -- "40 B · storage" --> T["segment table"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: walk · segment endpoints · CylinderSegment\ a · b · radius · facing · segment table](illustrations/04b-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -57,13 +44,7 @@ flowchart TB
 
 - Two tables of the same row: pipes (mesh edges, culled by facing) and ribbons (free linework, always drawn).
 
-```mermaid
-flowchart LR
-    SR["SegRows<br/>pipes · ribbons"] -- "append" --> SL["SegmentLane"]
-    SL -- "draw_pipes · culled" --> P["ink pass"]
-    SL -- "draw_ribbons · always" --> P
-    style SL fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: SegRows\ pipes · ribbons · SegmentLane · ink pass](illustrations/04b-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-445a1edf20.svg" data-zone="Lanes"></span>
 
@@ -101,13 +82,7 @@ flowchart LR
 
 - Appended to every ink shader by `ink_module`. It compares the scene depth at the pixel with the axis depth.
 
-```mermaid
-flowchart LR
-    D["scene depth · group 2"] --> V["ink_visible"]
-    A["axis depth"] --> V
-    V -- "keep / discard" --> F["ink fragment"]
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: scene depth · group 2 · ink_visible · axis depth · ink fragment](illustrations/04b-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-ef21ae124d.svg" data-zone="Shaders"></span>
 
@@ -169,13 +144,7 @@ flowchart LR
 
 - `ink_module` compiles a lane shader with the visibility rule appended.
 
-```mermaid
-flowchart TB
-    U["Upload.seg"] -- "set_scene" --> G["Gpu.segments"]
-    L["segment_rows layout"] --> G
-    G -- "ink pass · ink_group" --> P["strokes drawn"]
-    style G fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Upload.seg · Gpu.segments · segment_rows layout · strokes drawn](illustrations/04b-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-203427a3dc.svg" data-zone="GPU core"></span>
 

@@ -1,0 +1,24 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box:   { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 15; font-color: "#111111" } }
+}
+direction: down
+
+U: "URL\n?scene= · path · localhost" { class: box }
+R: "SceneRoute\nmanifest + base" { class: box }
+M: "Manifest::parse\nitems · texts" { class: box }
+F: "fetch_bytes(.pb)" { class: box }
+S: "Rc<Session>" { class: box }
+P: "PendingDocument\nstaged in manifest order" { class: box }
+A: "App → State → Scene" { class: box }
+L: "LiveSource\nETag polls" { class: box }
+
+U -> R: "route.rs" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+R -> M: "fetch_bytes" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+M -> F: "per item" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+F -> S: "validate → decode" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+S -> P: "generation still current?" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+P -> A: "Msg::File / StreamedCloud / Texts / Fit" { style: { stroke: "#0b1957"; stroke-width: 2; font-size: 13; font-color: "#455b6b" } }
+L -> P: "changed files" { style: { stroke: "#8a8fb0"; stroke-width: 2; stroke-dash: 4; font-size: 13; font-color: "#455b6b" } }

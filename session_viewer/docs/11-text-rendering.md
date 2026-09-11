@@ -2,17 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    R["shaped runs"] --> P["place()<br>anchor to physical px + depth"]
-    F["TextFrame<br>mvp · origin · sizes"] --> P
-    P --> G["Glyphon atlas<br>R8 coverage per raster key"]
-    P --> B["Plates<br>black rounded quads"]
-    R --> W["Planes<br>one R8 texture per label"]
-    B -- "draw first" --> pass
-    G -- "GreaterEqual · Always" --> pass
-    W -- "perspective UV · GreaterEqual" --> pass
-```
+![Diagram: shaped runs · place()\ anchor to physical px + depth · TextFrame\ mvp · origin · sizes · Glyphon atlas\ R8 coverage per raster key · Plates\ black rounded quads · Planes\ one R8 texture per label…](illustrations/11-01.svg)
 
 ![Five placements of one shaped line, and the same label rasterized once per device scale.](illustrations/text-placement.svg)
 
@@ -31,11 +21,7 @@ flowchart TB
 
 The same-font white-on-black comparison page and its WASM export are supplied. Install them first; `lib.rs` declares the module in the last step.
 
-```mermaid
-flowchart LR
-    A["text_quality.rs · WASM export"] --> B["text-quality.html"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: text_quality.rs · WASM export · text-quality.html](illustrations/11-02.svg)
 
 <!-- supplied: 11 -->
 
@@ -46,12 +32,7 @@ flowchart LR
 - A plate is six vertices in clip space plus the local offset, half size and corner radius the fragment shader needs for a rounded edge.
 - Depth compare `Always`, no depth write: a plate is an overlay and never occludes geometry.
 
-```mermaid
-flowchart TB
-    A["placed line box"] -- "6 vertices" --> B["Plates · PlateVertex"]
-    B -- "depth Always" --> C["text_plate.wgsl · rounded SDF"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: placed line box · Plates · PlateVertex · text_plate.wgsl · rounded SDF](illustrations/11-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -90,12 +71,7 @@ The signed distance to a rounded rectangle gives one physical pixel of edge cove
 - A `WorldPlane` label keeps one coverage texture per label; the camera only rewrites six vertices.
 - The texture budget is a hard cap independent of the adapter, so one huge label cannot take the scene's memory.
 
-```mermaid
-flowchart LR
-    A["WorldPlane label"] --> B["CachedPlane · R8 texture"]
-    B --> C["Planes · budget"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: WorldPlane label · CachedPlane · R8 texture · Planes · budget](illustrations/11-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -114,13 +90,7 @@ flowchart LR
 - Placement and colour changes keep the texture; text, font or a larger projected em rebuilds it.
 - Resolution grows in power-of-two em buckets, so small camera motion never re-rasterizes.
 
-```mermaid
-flowchart LR
-    A["TextFrame · camera"] --> B["Planes::prepare"]
-    B -- "same_raster" --> C["keep texture"]
-    B -- "raster_em grew" --> D["rasterize again"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: TextFrame · camera · Planes::prepare · keep texture · rasterize again](illustrations/11-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -144,13 +114,7 @@ flowchart LR
 - `rasterize` composites Swash glyph images into one R8 texture at the chosen em size, bearings and baseline included.
 - `append_quad` walks the label's right/up axes in world units; every vertex carries full clip coordinates and the CSS clip in physical pixels.
 
-```mermaid
-flowchart LR
-    A["project · clip w"] --> D["append_quad · Vertex"]
-    B["rasterize · Swash to R8"] --> D
-    D --> C["text_plane.wgsl"]
-    style D fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: project · clip w · append_quad · Vertex · rasterize · Swash to R8 · text_plane.wgsl](illustrations/11-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -201,13 +165,7 @@ A native GPU check for the plane path sits at the end of the file.
 - `TextFrame` is everything placement needs from the frame: the rebased camera, the anchor origin, physical and logical sizes.
 - `logical` comes from the canvas CSS box, not `devicePixelRatio`; that is what makes browser zoom and DPR both work.
 
-```mermaid
-flowchart LR
-    A["camera · rebase anchor"] --> B["TextFrame"]
-    C["physical + logical size"] --> B
-    B --> D["TextStats"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: camera · rebase anchor · TextFrame · physical + logical size · TextStats](illustrations/11-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -220,14 +178,7 @@ flowchart LR
 - Two renderers share one atlas: `anchored` compares depth `GreaterEqual` (reversed Z, occluded by solids), `overlay` is `Always`.
 - `retarget` follows the scene's sample count without reshaping or dropping the atlas.
 
-```mermaid
-flowchart LR
-    A["TextLane::new"] --> B["anchored · GreaterEqual"]
-    A --> C["overlay · Always"]
-    B --> D["one TextAtlas"]
-    C --> D
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: TextLane::new · anchored · GreaterEqual · overlay · Always · one TextAtlas](illustrations/11-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -246,14 +197,7 @@ flowchart LR
 - The key `(document revision, font revision, frame)` skips the whole preparation when nothing moved.
 - Raster keys are bounded: past the budget the atlas and Swash cache are rebuilt together, so no prepared vertex can point at an evicted glyph.
 
-```mermaid
-flowchart LR
-    A["key · revision, font, frame"] --> B["TextLane::prepare"]
-    B -- "place" --> C["PlacedText"]
-    B -- "rasterize" --> D["atlas · raster keys"]
-    B --> E["two draw lists"]
-    style B fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: key · revision, font, frame · TextLane::prepare · PlacedText · atlas · raster keys · two draw lists](illustrations/11-09.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -271,14 +215,7 @@ flowchart LR
 
 Planes first (they are in the scene), then anchored glyphs, then plates, then overlay glyphs on top of their plates.
 
-```mermaid
-flowchart TB
-    E["TextLane::draw"] --> A["planes"]
-    A --> B["anchored glyphs"]
-    B --> C["plates"]
-    C --> D["overlay glyphs"]
-    style E fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: TextLane::draw · planes · anchored glyphs · plates · overlay glyphs](illustrations/11-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -294,13 +231,7 @@ flowchart TB
 
 ![The same nameplate at device scale 1 (left) and 2 (right), both magnified six times in CSS pixels: the plate and glyphs occupy the same CSS box, the second has four times the pixels.](screenshots/11-dpr.png)
 
-```mermaid
-flowchart TB
-    A["framebuffer ÷ CSS box"] --> B["TextFrame::scale"]
-    B --> C["place · anchor only"]
-    C -- "Nameplate" --> D["center_nameplate"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: framebuffer ÷ CSS box · TextFrame::scale · place · anchor only · center_nameplate](illustrations/11-11.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a34e542105.svg" data-zone="Lanes"></span>
 
@@ -337,12 +268,7 @@ Native checks for scale, depth, nameplates and cache eviction live in the same f
 - `write_frame_uniforms` also prepares text and can fail (a stretched canvas), so it returns a `Result`.
 - Text draws after mesh ink in the same pass, against the same read-only depth.
 
-```mermaid
-flowchart LR
-    A["write_frame_uniforms"] -- "TextFrame" --> B["TextLane::prepare"]
-    C["mesh ink pass"] --> D["TextLane::draw"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: write_frame_uniforms · TextLane::prepare · mesh ink pass · TextLane::draw](illustrations/11-12.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-54e1511b20.svg" data-zone="GPU core"></span>
 

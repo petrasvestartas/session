@@ -2,15 +2,7 @@
 
 ## You are building
 
-```mermaid
-flowchart TB
-    S["BRep / NurbsSurface<br/>(f64 source)"] -- "face_meshes_q / from_u_v_q" --> M["kernel Mesh per face<br/>positions · u,v · normals"]
-    M -- "to_render" --> R["RenderMesh (f32)"]
-    R -- "push_face" --> A["ArenaRows<br/>verts · vids · idx"]
-    M -- "mesh_topology" --> T["MeshTopo<br/>edges · edge_faces · normals"]
-    T -- "edges_and_dots" --> I["SegRows pipes<br/>GlyphRows spheres"]
-    A & I -- "Upload" --> G["GPU"]
-```
+![Diagram: BRep / NurbsSurface\ (f64 source) · kernel Mesh per face\ positions · u,v · normals · RenderMesh (f32) · ArenaRows\ verts · vids · idx · MeshTopo\ edges · edge_faces · normals · SegRows pipes\ GlyphRows spheres…](illustrations/06-01.svg)
 
 ![One face, three representations: BRep source in f64, kernel mesh with u,v, normals and boundary tags, viewer rows in f32 that keep the face and edge identities.](illustrations/cad-contract.svg)
 
@@ -36,12 +28,7 @@ flowchart TB
 - The grid mesher splits a shading vertex on the crease side: same position and `u`/`v`, different normal, so the split never invents a CAD vertex.
 - Face keys are sorted before accumulation: float sums are order-dependent, and map order must not reach the mesh bytes.
 
-```mermaid
-flowchart TB
-    K["repeated knot"] -- "sorted face keys" --> N["accumulated normals"]
-    N -- "split_crease_normals" --> V["two shading vertices<br/>same u,v"]
-    style V fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: repeated knot · accumulated normals · two shading vertices\ same u,v](illustrations/06-02.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-a84a26918d.svg" data-zone="Kernel"></span>
 
@@ -62,15 +49,7 @@ flowchart TB
 - Every producer packs the same four things: pen width → world radius, colour → RGBA8, unit normal → 16-bit octahedral code, two normals → one `facing` word.
 - `FACING_UNKNOWN` is all ones and means "no adjacency, always draw"; `pack_facing` steps around that value.
 
-```mermaid
-flowchart LR
-    W["pen width"] -- "encode_width" --> R["world radius"]
-    C["colour"] -- "pack_rgba" --> A["RGBA8"]
-    N["unit normal"] -- "oct16" --> O["16-bit code"]
-    P["two normals"] -- "pack_facing" --> F["facing word"]
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style F fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: pen width · world radius · colour · RGBA8 · unit normal · 16-bit code…](illustrations/06-03.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -83,13 +62,7 @@ flowchart LR
 - `WalkCx`: where an object's rows land (vertex base, object row). `Row`: what the producer measured (local box, spacing, flags, thickness).
 - The `mod.rs` also declares the modules you type in the following steps; nothing compiles them until `app/mod.rs` names `walk` in step 11.
 
-```mermaid
-flowchart LR
-    C["WalkCx<br/>vertex base · row"] --> P["producer"]
-    P --> R["Row<br/>bounds · spacing · flags"]
-    style C fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style R fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: WalkCx\ vertex base · row · producer · Row\ bounds · spacing · flags](illustrations/06-04.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -102,14 +75,7 @@ flowchart LR
 - A sheet (planar file) is detected after the walk from the object rows, so producers stay ignorant of documents.
 - Thickness is measured along the mesh's own dominant face normals, not the axis-aligned box: a rotated plate measures its plate thickness.
 
-```mermaid
-flowchart LR
-    U["Upload rows"] -- "Baselines::capture" --> B["file_extent"]
-    B -- "is_planar" --> S["mark_sheet"]
-    T["tris + normals"] -- "mesh_thickness" --> K["thickness"]
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style K fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Upload rows · file_extent · mark_sheet · tris + normals · thickness](illustrations/06-05.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -122,12 +88,7 @@ flowchart LR
 - One pass over the faces gives the ink lanes everything: unique edges with pen colours, the two faces at each edge, face normals, closedness.
 - Edges hang off their low vertex on an intrusive chain; a mesh with sparse vertex keys still indexes in O(1) through `SlotMap`.
 
-```mermaid
-flowchart LR
-    M["Mesh faces"] -- "SlotMap" --> T["mesh_topology"]
-    T --> E["MeshTopo<br/>edges · edge_faces · normals"]
-    style E fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Mesh faces · mesh_topology · MeshTopo\ edges · edge_faces · normals](illustrations/06-06.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -152,14 +113,7 @@ flowchart LR
 - The ink pass reads the topology and the f32 positions by slot, and writes only `SegRows.pipes` and `GlyphRows.spheres`.
 - When a pair's winding disagrees, the second normal is negated: the facing test needs two outward normals.
 
-```mermaid
-flowchart LR
-    T["MeshTopo"] -- "push_pipes" --> P["SegRows.pipes"]
-    T -- "incidence" --> I["Incidence CSR"]
-    I -- "push_markers" --> S["GlyphRows.spheres"]
-    style P fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: MeshTopo · SegRows.pipes · Incidence CSR · GlyphRows.spheres](illustrations/06-07.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -205,14 +159,7 @@ flowchart LR
 - Gates first: above `MESH_RAW_MIN` triangles a mesh is faces only; a print fill (single width 0) takes the sheet index runs.
 - `MeshOpts::SURFACE` marks a tessellation: `FLAG_SMOOTH` tells the marker lane its vertices are samples, and its seams are sampling rather than geometry. `OBJECT` and `ELEMENT` are the authored-mesh presets, which differ in whether an open mesh may be flagged open.
 
-```mermaid
-flowchart LR
-    M["Mesh"] -- "MeshOpts gates" --> W["walk_mesh"]
-    W -- "faces" --> A["ArenaRows"]
-    W -- "edges_and_dots" --> I["Ink"]
-    W --> R["Row"]
-    style W fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Mesh · walk_mesh · ArenaRows · Ink · Row](illustrations/06-08.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -240,13 +187,7 @@ flowchart LR
 
 - Lines and polylines become one flat ribbon per span with `FACING_UNKNOWN`: free linework has no faces to cull against.
 
-```mermaid
-flowchart TB
-    L["Line · Polyline"] -- "walk_line · walk_polyline" --> S["SegRows ribbons"]
-    C["NurbsCurve"] -- "turning_degrees" --> N["walk_nurbscurve"]
-    N -- "render_position" --> S
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: Line · Polyline · SegRows ribbons · NurbsCurve · walk_nurbscurve](illustrations/06-09.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -271,14 +212,7 @@ flowchart TB
 
 - Topology records only: which edge, which face, which orientation. The records carry no geometry.
 
-```mermaid
-flowchart LR
-    B["BRep"] -- "face_meshes_q · QUALITY" --> F["face Mesh"]
-    F -- "push_face" --> A["ArenaRows"]
-    B --> E["EdgeUse · EdgeChain<br/>records only"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-    style E fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: BRep · face Mesh · ArenaRows · EdgeUse · EdgeChain\ records only](illustrations/06-10.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-bb17a255a3.svg" data-zone="Scene + walk"></span>
 
@@ -297,12 +231,7 @@ flowchart LR
 
 Presence-only environment flags, read once per process; always false in the browser.
 
-```mermaid
-flowchart LR
-    E["environment flag"] -- "OnceLock" --> K["knobs.rs<br/>all_edges · seams"]
-    K --> P["producers"]
-    style K fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: environment flag · knobs.rs\ all_edges · seams · producers](illustrations/06-11.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 
@@ -312,12 +241,7 @@ flowchart LR
 
 ![Where this step sits in the viewer: Shell, with 9 of 11 zones built so far.](illustrations/locator-78232d7410.svg){ .locator data-strip="illustrations/strip-3bd0a898de.svg" }
 
-```mermaid
-flowchart LR
-    A["app/mod.rs"] -- "pub mod walk" --> W["walk producers"]
-    A -- "pub mod knobs" --> K["knobs"]
-    style A fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: app/mod.rs · walk producers · knobs](illustrations/06-12.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 
@@ -332,13 +256,7 @@ flowchart LR
 - `CadFixture` retains the f64 source objects and a `SourceIdentity` per object row; the GPU only receives prepared tables.
 - The same `add` path serves BRep and surface sources, so a row maps back to a GUID without searching triangles.
 
-```mermaid
-flowchart LR
-    S["f64 source objects"] -- "CadFixture::add" --> I["SourceIdentity per row"]
-    S -- "walk_brep · walk_surface" --> U["Upload"]
-    U --> L["lib.rs"]
-    style I fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: f64 source objects · SourceIdentity per row · Upload · lib.rs](illustrations/06-13.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-3bd0a898de.svg" data-zone="Shell"></span>
 
@@ -356,13 +274,7 @@ flowchart LR
 
 The shader ignores vertex normals and shades from the finite face fallback, so a wrong normal contract cannot hide behind lighting.
 
-```mermaid
-flowchart LR
-    V["vertex normal"] -. "ignored" .-> S["fs_main"]
-    F["finite face fallback"] --> S
-    S --> C["PhysicalColor"]
-    style S fill:#fa9ebc,stroke:#fa9ebc,color:#111
-```
+![Diagram: vertex normal · fs_main · finite face fallback · PhysicalColor](illustrations/06-14.svg)
 
 <span class="zone-mark" data-strip="illustrations/strip-62db6ccc73.svg" data-zone="Shaders"></span>
 
